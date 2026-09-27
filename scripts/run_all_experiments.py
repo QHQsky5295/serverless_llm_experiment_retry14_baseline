@@ -13765,6 +13765,7 @@ class ScenarioRunner:
             and _should_spawn_dedicated_engine_subprocess(cfg, instance_mode=self._instance_mode),
             'native owned TP1 subprocess contract required')
         require(self._generation_contract == 'fixed_length_greedy_v1', 'fixed native generation required')
+        request_timeout_s = self._request_timeout_seconds(required=True)
         require(isinstance(self._stack, ExperimentStack), 'owned IEEE stack required')
         require(isinstance(self._service_profiles, FrozenServiceProfiles)
             and isinstance(self._preparation_profiles, FrozenPreparationProfiles),
@@ -13812,6 +13813,8 @@ class ScenarioRunner:
             input_plan=replay.plan.identity(), observation_binding=binding,
             runtime_concurrency_cap=self._runtime_forward_capacity_limit(),
             dispatch_admission_mode=self._dispatch_admission_mode(),
+            request_timeout_s=request_timeout_s,
+            request_deadline_origin='planned_arrival',
             physical_deployment_path=str(deployment.root),
             formal_comparison_qualified=False)
 
@@ -14189,6 +14192,47 @@ class ScenarioRunner:
         if supplied is not None and self._external_replay is None:
             raise ValueError('supplied replay is not bound to this guarded launch')
 
+    def _request_timeout_seconds(self, *, required=False):
+        value = self.wl_cfg.get('request_timeout_s')
+        if value is None:
+            if required:
+                raise ValueError('Full requires an explicit planned-arrival request timeout')
+            return None
+        if (isinstance(value, bool) or not isinstance(value, (int, float))
+                or not math.isfinite(value) or value <= 0):
+            raise ValueError('request_timeout_s must be finite and positive')
+        return float(value)
+
+    async def _run_offered_request(self, request_id, scheduled_arrival_at, serve):
+        """Deadline covers all queue/admission/service time, not a fresh dispatch budget.
+
+        The timeout context cancels and unwinds existing ownership cleanup before
+        translating its OWN cancellation. Outer replay cancellation is preserved.
+        Physical terminal observation must be outside that translation boundary;
+        it is not proof of native completion or of GPU/resource release.
+        """
+        out = None
+        try:
+            timeout_s = self._request_timeout_seconds()
+            if timeout_s is None:
+                out = await serve()  # Unchanged legacy opt-out.
+            else:
+                remaining = scheduled_arrival_at + timeout_s - time.perf_counter()
+                if remaining <= 0:
+                    raise TimeoutError('planned-arrival deadline already expired')
+                # Convert the remaining interval to the loop's own clock. Never
+                # reset the origin to task creation, backend-ready or admission.
+                async with asyncio.timeout(remaining):
+                    out = await serve()
+            return out
+        finally:
+            deployment = getattr(self, '_physical_deployment', None)
+            if deployment is not None:
+                failure = sys.exc_info()[0]
+                deployment.terminal(request_id, at=time.monotonic(), result=out,
+                    error_type=failure.__name__ if failure is not None else None,
+                    interrupted=failure is not None and issubclass(failure, asyncio.CancelledError))
+
     async def run(self) -> Tuple[ScenarioResult, Dict]:
         # 按场景设置 transformers 后端 GPU 内最多 LoRA 数（贴近真实系统）
         coord_enabled = (
@@ -14214,6 +14258,9 @@ class ScenarioRunner:
             total=len(self.traces),
             ttft_slo_ms=self._ttft_slo_ms,
         )
+        # Keep completed rows if post-replay scale control or cleanup fails.
+        # Interrupted continuous windows retain their separate observed rows.
+        self._active_scenario_result = result
         self._live_scale_eval_last_at = 0.0
         self._live_scale_overrides = None
         self._live_last_print_time = 0.0
@@ -14253,12 +14300,10 @@ class ScenarioRunner:
                 # Eq. (4) observes arrivals, including requests waiting for
                 # admission or a remote fetch. Backend retries do not come here.
                 self._stack.record_arrival(trace.adapter_id)
-            # Let the dispatcher keep releasing due trace arrivals before this
-            # request starts the heavier dispatch/runtime path on the shared
-            # control loop.
-            await asyncio.sleep(0)
-            out = None
-            try:
+            async def serve():
+                # Include dispatcher yielding and every service queue in the
+                # same offered-arrival deadline, including already-late tasks.
+                await asyncio.sleep(0)
                 admission_start_at = time.perf_counter()
                 await self._acquire_dispatch_admission()
                 admitted_at = time.perf_counter()
@@ -14294,15 +14339,11 @@ class ScenarioRunner:
                 finally:
                     self._release_live_started_lora(getattr(trace, "adapter_id", None))
                     await self._release_dispatch_admission()
+            try:
+                return await self._run_offered_request(trace.request_id, scheduled_arrival_at, serve)
             finally:
                 self._release_live_waiting_trace(trace)
                 self._release_live_arrived_lora(getattr(trace, "adapter_id", None))
-                deployment = getattr(self, '_physical_deployment', None)
-                if deployment is not None:
-                    failure = sys.exc_info()[0]
-                    deployment.terminal(trace.request_id, at=time.monotonic(), result=out,
-                        error_type=failure.__name__ if failure is not None else None,
-                        interrupted=failure is not None and issubclass(failure, asyncio.CancelledError))
 
         if multi_cycle_phases <= 1:
             # substrate_v2: 连续到达 + 共享等待队列；控制面按周期观察在线队列。
@@ -21050,6 +21091,116 @@ def _initialize_workload_sources(*, shared_trace_path, max_azure, max_sgpt,
     return dataset, stats, has_azure, has_sgpt
 
 
+def _create_ieee_run_workspaces(paths):
+    """Claim only new cold-cache roots; never erase an existing run to reuse it."""
+    original = [Path(path).absolute() for path in paths]
+    roots = [path.resolve() for path in original]
+    if (len(roots) != 2 or len(set(roots)) != 2
+            or any(a in b.parents for a in roots for b in roots if a != b)):
+        raise ValueError('IEEE workspace roots must be distinct and nonoverlapping')
+    if any(path.exists() or path.is_symlink() for path in original):
+        raise FileExistsError('IEEE replay requires fresh per-run workspace roots')
+    claims = []
+    try:
+        for path in roots:
+            path.mkdir(parents=True, exist_ok=False)
+            info = path.stat()
+            claims.append(dict(path=str(path),device=info.st_dev,inode=info.st_ino))
+    except BaseException:
+        # Only our empty creations; rmdir refuses any concurrently-added data.
+        for claim in claims:
+            Path(claim['path']).rmdir()
+        raise
+    return claims
+
+
+def _cleanup_ieee_run_workspaces(stack, claims):
+    owner = stack.residency_manager.local_source_references
+    roots = {Path(row['path']) for row in claims}
+    if roots != set(owner.roots.values()) or len(claims) != 2:
+        raise RuntimeError('workspace cleanup identity differs from actual file owner')
+    # Check BOTH roots before deleting either. Reference/movement guards remain
+    # authoritative even after the control task or native process has exited.
+    for row in claims:
+        path=Path(row['path'])
+        if (path.is_symlink() or not path.is_dir()
+                or (path.stat().st_dev,path.stat().st_ino) != (row['device'],row['inode'])):
+            raise RuntimeError('workspace cleanup identity changed')
+    with owner.lock:
+        if owner.leases or owner.materializations or owner._file_preparation_plans:
+            raise RuntimeError('workspace cleanup has unresolved references or movements')
+        receipt = dict(complete=False,roots=copy.deepcopy(claims),
+            inventory_before=owner.inventory())
+        for row in claims:
+            path=Path(row['path'])
+            for child in tuple(path.iterdir()):
+                if not stack.residency_manager._delete_path(str(child)):
+                    raise RuntimeError('workspace cleanup has unresolved references')
+        receipt['inventory_after'] = owner.inventory()
+        for row in claims:
+            Path(row['path']).rmdir()
+        receipt['complete'] = True
+        return receipt
+
+
+async def _finish_ieee_main_scenario(service, stack, claims, primary_error):
+    """Retain failed main-run evidence without replacing the original failure.
+
+    All shutdown stages are attempted. A cleanup or measurement failure after a
+    normal replay still fails the run. Actual physical owner journals, finalized
+    by main_async, remain the sole source of allocation/release timestamps.
+    """
+    import traceback
+    path = service._physical_deployment.root/'main_outcome.json'
+    # Always attempt resource cleanup, even if the evidence path cannot be opened.
+    errors, measurement_errors, failure_objects = [], [], []
+    def error_record(stage, exc):
+        return dict(stage=stage,type=type(exc).__name__,message=str(exc),
+                    traceback=''.join(traceback.format_exception(exc)))
+    for stage, action in (('runtime_shutdown',service._shutdown_instance_pool),
+                          ('stack_stop',stack.stop)):
+        try:
+            await action()
+        except BaseException as exc:
+            errors.append(error_record(stage,exc)); failure_objects.append(exc)
+    data = dict(kind='ieee_main_outcome_v1',scenario=service.name,
+        planned_request_count=len(service.traces),
+        run_completed=primary_error is None,
+        formal_comparison_qualified=False,
+        error=error_record('main_execution',primary_error) if primary_error else None,
+        cleanup_errors=errors,measurement_errors=measurement_errors,
+        launch_contract=getattr(service,'_ieee_full_launch_contract',None),
+        interrupted_replays=getattr(service,'_interrupted_replay_evidence',[]),
+        remote_transfers=service._remote_transfer_evidence,
+        transfer_pressure=service._adapter_transfer_pressure_evidence,
+        local_transfers=stack.residency_manager.local_transfer_evidence,
+        # Preserve each independent event journal even if a live inventory
+        # cannot be taken after an invariant/ownership failure.
+        mechanism_events={field:getattr(service,field,None) for field in (
+            '_ieee_activations','_ieee_initial_deployment','_ieee_residency_epochs',
+            '_ieee_file_preparation_plans','_ieee_gpu_preparation_plans',
+            '_ieee_native_host_preparations','_ieee_control_events')})
+    try:
+        data['coordination_after_shutdown'] = service._current_coord_metrics()
+    except BaseException as exc:
+        measurement_errors.append(error_record('coordination_snapshot',exc))
+        failure_objects.append(exc)
+    data['cleanup'] = dict(complete=False,roots=claims,reason='shutdown_unresolved')
+    if not errors:
+        try:
+            data['cleanup'] = _cleanup_ieee_run_workspaces(stack,claims)
+        except BaseException as exc:
+            errors.append(error_record('workspace_cleanup',exc)); failure_objects.append(exc)
+    if primary_error is not None or failure_objects:
+        active = getattr(service,'_active_scenario_result',None)
+        data['completed_scenario_windows'] = asdict(active) if active is not None else None
+    data['run_completed'] = primary_error is None and not failure_objects
+    with path.open('x') as handle:
+        json.dump(data,handle,indent=2,allow_nan=False)
+    if primary_error is None and failure_objects:
+        raise failure_objects[0]
+
+
 async def _main_async_impl(
     cfg_path: str,
     quick: bool = False,
@@ -21771,7 +21922,9 @@ async def _main_async_impl(
         )
         sc_nvme = sc_nvme_base / sname
         sc_host = sc_host_base / sname
-        v2_cold_cache_reset = str(sname).startswith("v2_")
+        ieee_workspace_claims = (_create_ieee_run_workspaces([sc_nvme,sc_host])
+            if physical_deployment is not None else None)
+        v2_cold_cache_reset = ieee_workspace_claims is None and str(sname).startswith("v2_")
         if v2_cold_cache_reset:
             # Revision runs pre-register cold-cache semantics.  In particular,
             # no-preload variants must not inherit an NVMe path from a prior
@@ -22055,6 +22208,7 @@ async def _main_async_impl(
                 engine._reinit_attempted = False
                 await engine.reinitialize()
 
+            main_error = None
             try:
                 print("  [Phase 1] Preloading ...")
                 runner._assert_clean_gpu_environment(context="scenario_preload", force=True)
@@ -22121,12 +22275,27 @@ async def _main_async_impl(
                     result, coord_m = runner.run_sync_faaslora_subprocess()
                 else:
                     result, coord_m = await runner.run()
+            except BaseException as exc:
+                main_error = exc
+                raise
             finally:
-                try:
-                    await runner._shutdown_instance_pool()
-                finally:
-                    if experiment_stack is not None:
-                        await experiment_stack.stop()
+                if physical_deployment is not None:
+                    try:
+                        await _finish_ieee_main_scenario(runner,experiment_stack,
+                            ieee_workspace_claims,main_error)
+                    except BaseException:
+                        if main_error is None:
+                            raise
+                        # Preserve original execution failure; surface evidence
+                        # write/serialization failure separately in the run log.
+                        import traceback
+                        traceback.print_exc()
+                else:
+                    try:
+                        await runner._shutdown_instance_pool()
+                    finally:
+                        if experiment_stack is not None:
+                            await experiment_stack.stop()
             runner.finalize_runtime_infra_accounting(result)
             if physical_deployment is not None:
                 # The final sidecar is written only after outer cleanup. Legacy

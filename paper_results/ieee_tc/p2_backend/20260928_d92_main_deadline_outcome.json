@@ -1,0 +1,906 @@
+{
+  "kind": "d92_main_deadline_outcome_cpu_v1",
+  "parent_commit": "1148078783831ab96e2d817c596161fb50410670",
+  "new_gpu_run": false,
+  "new_remote_run": false,
+  "full_qualified": false,
+  "formal_performance_result": false,
+  "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c",
+  "runtime_configuration": "unchanged D88 parent / D89 measured initialization",
+  "code_changes": [
+    "explicit finite planned-arrival deadline with unchanged cancellation ownership",
+    "terminal classification outside timeout conversion; global interruption remains interruption",
+    "fresh run-owned cold-cache claims and guarded cleanup receipts",
+    "main failure retains partial requests, transfer UUIDs, mechanism events and cleanup errors"
+  ],
+  "regression": {
+    "tests": 835,
+    "seconds": 50.078,
+    "passed": true
+  },
+  "retained_failure": {
+    "reason": "red tests plus first outcome test used wrong positional fixture API; production guard unchanged"
+  },
+  "final_source_assembly": {
+    "kind": "main_assembly_audit_v1",
+    "records": [
+      {
+        "model": "3b",
+        "kind": "main_configuration_assembly_only",
+        "actual_inference": false,
+        "real_ingress": false,
+        "formal_comparison_qualified": false,
+        "profile_manifest": {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d89_3b_initialization/manifest.json",
+          "sha256": "332f914d31dca776b0fdf52faad6241e04a3f3713db3e9289f5b5ecd551a9e0e"
+        },
+        "trace": {
+          "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+          "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+          "view_sha256": "0d998f48a006d638dda9b8d714f667fe3a87f4d2c88044ce19a816b308494a37",
+          "count": 4000,
+          "source_count": 4000,
+          "profile": "W0",
+          "rate_scale": 1.0
+        },
+        "subset": {
+          "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_adapter_subset.json",
+          "sha256": "6c5fc286e3cef00efdd6b84e26c841f3b09d20b17a57b8f6a394b8d27bb1e86b"
+        },
+        "config": {
+          "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d92_20260928/3b_main_config_attempt1.yaml",
+          "sha256": "45bedd2fc253e7ef3c86aaeed0964abe0591c36d96d633eb2c13632f6266583b"
+        },
+        "launch_contract": {
+          "contract": "ieee_full_integrated_replay_v1",
+          "service_profile_id": "667e397831214198faf078e6c2e30c63e826946e3590fea8c63d87bc68995727",
+          "preparation_profile_id": "3ab29bca4f374c3457af3e9f5e804d6cfa9178baa121c06e707b2f8c17553c27",
+          "content_manifest_sha256": "ac8e9b36c328376a9e1ecec6a4d928dd684f4d94e3fa4d2e08f531b166da145e",
+          "input_plan": {
+            "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+            "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+            "view_sha256": "0d998f48a006d638dda9b8d714f667fe3a87f4d2c88044ce19a816b308494a37",
+            "count": 4000,
+            "source_count": 4000,
+            "profile": "W0",
+            "rate_scale": 1.0
+          },
+          "observation_binding": {
+            "kind": "ieee_online_observation_binding_v1",
+            "window_s": 5.0,
+            "demand_windows": {
+              "configured_demand": 5.0,
+              "runner_demand": 5.0,
+              "actual_demand": 5.0,
+              "preload_demand": 5
+            },
+            "transfer_limit": 3,
+            "movement_limits": {
+              "configured_movement": 3,
+              "actual_movement": 3
+            },
+            "admission_profile_id": "native-completed/1c325d13d0372112cf312b4a2cc991bb6e0c89b7a610887dfcd79742d36d3692",
+            "model_backend_id": "native-model/3a41720821468b1d0042f8783941a2a28698488f749909bd179f6cd9ae774f38"
+          },
+          "runtime_concurrency_cap": 8,
+          "dispatch_admission_mode": "open_loop_trace_replay",
+          "request_timeout_s": 1800.0,
+          "request_deadline_origin": "planned_arrival",
+          "physical_deployment_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d92_20260928/d92-assembly-3vuu4otp/physical_deployment",
+          "formal_comparison_qualified": false
+        },
+        "adapter_count": 500,
+        "requests": 4000,
+        "one_runtime_capacity": 8,
+        "four_runtime_capacity": 32,
+        "ready_pool_count": 0,
+        "initialized_engines": 0,
+        "pass": true,
+        "deliberate_pre_activation_failure_outcome": {
+          "kind": "ieee_main_outcome_v1",
+          "scenario": "tc_ieee_full",
+          "planned_request_count": 4000,
+          "run_completed": false,
+          "formal_comparison_qualified": false,
+          "error": {
+            "stage": "main_execution",
+            "type": "AssemblyComplete",
+            "message": "",
+            "traceback": "Traceback (most recent call last):\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 22217, in _main_async_impl\n    await runner.preload()\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d92_20260928/audit_main_assembly.py\", line 106, in stop_before_activation\n    raise AssemblyComplete()\nAssemblyComplete\n"
+          },
+          "cleanup_errors": [],
+          "measurement_errors": [],
+          "launch_contract": {
+            "contract": "ieee_full_integrated_replay_v1",
+            "service_profile_id": "667e397831214198faf078e6c2e30c63e826946e3590fea8c63d87bc68995727",
+            "preparation_profile_id": "3ab29bca4f374c3457af3e9f5e804d6cfa9178baa121c06e707b2f8c17553c27",
+            "content_manifest_sha256": "ac8e9b36c328376a9e1ecec6a4d928dd684f4d94e3fa4d2e08f531b166da145e",
+            "input_plan": {
+              "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+              "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+              "view_sha256": "0d998f48a006d638dda9b8d714f667fe3a87f4d2c88044ce19a816b308494a37",
+              "count": 4000,
+              "source_count": 4000,
+              "profile": "W0",
+              "rate_scale": 1.0
+            },
+            "observation_binding": {
+              "kind": "ieee_online_observation_binding_v1",
+              "window_s": 5.0,
+              "demand_windows": {
+                "configured_demand": 5.0,
+                "runner_demand": 5.0,
+                "actual_demand": 5.0,
+                "preload_demand": 5
+              },
+              "transfer_limit": 3,
+              "movement_limits": {
+                "configured_movement": 3,
+                "actual_movement": 3
+              },
+              "admission_profile_id": "native-completed/1c325d13d0372112cf312b4a2cc991bb6e0c89b7a610887dfcd79742d36d3692",
+              "model_backend_id": "native-model/3a41720821468b1d0042f8783941a2a28698488f749909bd179f6cd9ae774f38"
+            },
+            "runtime_concurrency_cap": 8,
+            "dispatch_admission_mode": "open_loop_trace_replay",
+            "request_timeout_s": 1800.0,
+            "request_deadline_origin": "planned_arrival",
+            "physical_deployment_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d92_20260928/d92-assembly-3vuu4otp/physical_deployment",
+            "formal_comparison_qualified": false
+          },
+          "interrupted_replays": [],
+          "remote_transfers": [],
+          "transfer_pressure": [],
+          "local_transfers": [],
+          "mechanism_events": {
+            "_ieee_activations": null,
+            "_ieee_initial_deployment": null,
+            "_ieee_residency_epochs": [],
+            "_ieee_file_preparation_plans": null,
+            "_ieee_gpu_preparation_plans": null,
+            "_ieee_native_host_preparations": null,
+            "_ieee_control_events": []
+          },
+          "coordination_after_shutdown": {
+            "contention_events": 0,
+            "gpu_admission_decisions": 0,
+            "gpu_admission_admits": 0,
+            "gpu_admission_defers": 0,
+            "gpu_admission_rejects": 0,
+            "gpu_ready_hits": 0,
+            "warm_pool_hits": 0,
+            "avg_contention_penalty_ms": 0.0,
+            "avg_defer_delay_ms": 0.0,
+            "current_gpu_utilization_pct": 4.069010416666666,
+            "ieee_online_observation_binding": {
+              "kind": "ieee_online_observation_binding_v1",
+              "window_s": 5.0,
+              "demand_windows": {
+                "configured_demand": 5.0,
+                "runner_demand": 5.0,
+                "actual_demand": 5.0,
+                "preload_demand": 5
+              },
+              "transfer_limit": 3,
+              "movement_limits": {
+                "configured_movement": 3,
+                "actual_movement": 3
+              },
+              "admission_profile_id": "native-completed/1c325d13d0372112cf312b4a2cc991bb6e0c89b7a610887dfcd79742d36d3692",
+              "model_backend_id": "native-model/3a41720821468b1d0042f8783941a2a28698488f749909bd179f6cd9ae774f38"
+            },
+            "ieee_full_launch_contract": {
+              "contract": "ieee_full_integrated_replay_v1",
+              "service_profile_id": "667e397831214198faf078e6c2e30c63e826946e3590fea8c63d87bc68995727",
+              "preparation_profile_id": "3ab29bca4f374c3457af3e9f5e804d6cfa9178baa121c06e707b2f8c17553c27",
+              "content_manifest_sha256": "ac8e9b36c328376a9e1ecec6a4d928dd684f4d94e3fa4d2e08f531b166da145e",
+              "input_plan": {
+                "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+                "source_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+                "view_sha256": "0d998f48a006d638dda9b8d714f667fe3a87f4d2c88044ce19a816b308494a37",
+                "count": 4000,
+                "source_count": 4000,
+                "profile": "W0",
+                "rate_scale": 1.0
+              },
+              "observation_binding": {
+                "kind": "ieee_online_observation_binding_v1",
+                "window_s": 5.0,
+                "demand_windows": {
+                  "configured_demand": 5.0,
+                  "runner_demand": 5.0,
+                  "actual_demand": 5.0,
+                  "preload_demand": 5
+                },
+                "transfer_limit": 3,
+                "movement_limits": {
+                  "configured_movement": 3,
+                  "actual_movement": 3
+                },
+                "admission_profile_id": "native-completed/1c325d13d0372112cf312b4a2cc991bb6e0c89b7a610887dfcd79742d36d3692",
+                "model_backend_id": "native-model/3a41720821468b1d0042f8783941a2a28698488f749909bd179f6cd9ae774f38"
+              },
+              "runtime_concurrency_cap": 8,
+              "dispatch_admission_mode": "open_loop_trace_replay",
+              "request_timeout_s": 1800.0,
+              "request_deadline_origin": "planned_arrival",
+              "physical_deployment_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d92_20260928/d92-assembly-3vuu4otp/physical_deployment",
+              "formal_comparison_qualified": false
+            },
+            "ieee_service_profile": {
+              "kind": "native_service_profiles_v1",
+              "profile_sha256": "667e397831214198faf078e6c2e30c63e826946e3590fea8c63d87bc68995727",
+              "supported_classes": 40,
+              "initial_samples": 360,
+              "source_run_sha256": [
+                "7377ed4e706e1eb81db79d89d780d1205d04e76345f5ede8b8a6c9c81397e953"
+              ],
+              "beta": 0.5
+            },
+            "ieee_preparation_profile": {
+              "kind": "native_preparation_profiles_v1",
+              "profile_sha256": "3ab29bca4f374c3457af3e9f5e804d6cfa9178baa121c06e707b2f8c17553c27",
+              "layout_partition": "exact_content_v1",
+              "supported_classes": 96,
+              "initial_samples": 288,
+              "source_run_sha256": [
+                "7377ed4e706e1eb81db79d89d780d1205d04e76345f5ede8b8a6c9c81397e953"
+              ],
+              "beta": 0.5,
+              "size_edges_bytes": [],
+              "activation_layout_available": true
+            },
+            "ieee_control_events": [],
+            "ieee_residency_epochs": []
+          },
+          "cleanup": {
+            "complete": true,
+            "roots": [
+              {
+                "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d92_20260928/d92-assembly-3vuu4otp/nvme/tc_ieee_full",
+                "device": 2050,
+                "inode": 106204550
+              },
+              {
+                "path": "/dev/shm/d92-host-rmaotzzh/tc_ieee_full",
+                "device": 27,
+                "inode": 2978
+              }
+            ],
+            "inventory_before": {
+              "owner_id": "0f649fc2091247c683a79b3700aa6ea3",
+              "scope": "linked_inode_storage_v1",
+              "logical_file_bytes": 0,
+              "file_path_bytes": 0,
+              "allocated_bytes": 4096,
+              "allocated_file_bytes": 0,
+              "unique_file_count": 0,
+              "allocations": [
+                {
+                  "device": 27,
+                  "inode": 2978,
+                  "kind": "directory",
+                  "logical_bytes": 0,
+                  "allocated_bytes": 0,
+                  "link_count": 2,
+                  "paths": [
+                    "/dev/shm/d92-host-rmaotzzh/tc_ieee_full"
+                  ],
+                  "path_tiers": [
+                    "host"
+                  ],
+                  "tiers": [
+                    "host"
+                  ],
+                  "external_link_count": null
+                },
+                {
+                  "device": 2050,
+                  "inode": 106204550,
+                  "kind": "directory",
+                  "logical_bytes": 0,
+                  "allocated_bytes": 4096,
+                  "link_count": 2,
+                  "paths": [
+                    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d92_20260928/d92-assembly-3vuu4otp/nvme/tc_ieee_full"
+                  ],
+                  "path_tiers": [
+                    "nvme"
+                  ],
+                  "tiers": [
+                    "nvme"
+                  ],
+                  "external_link_count": null
+                }
+              ],
+              "tiers": {
+                "host": {
+                  "logical_file_bytes": 0,
+                  "file_path_bytes": 0,
+                  "allocated_bytes": 0,
+                  "allocated_file_bytes": 0,
+                  "unique_file_count": 0,
+                  "pending_file_increment_bytes": 0
+                },
+                "nvme": {
+                  "logical_file_bytes": 0,
+                  "file_path_bytes": 0,
+                  "allocated_bytes": 4096,
+                  "allocated_file_bytes": 0,
+                  "unique_file_count": 0,
+                  "pending_file_increment_bytes": 0
+                }
+              },
+              "tier_totals_additive": true,
+              "content_verified": false,
+              "capacity_reserved": false,
+              "physical_release_proven": false,
+              "pending_file_increment_bytes": 0,
+              "transfer_held_file_bytes": 0
+            },
+            "inventory_after": {
+              "owner_id": "0f649fc2091247c683a79b3700aa6ea3",
+              "scope": "linked_inode_storage_v1",
+              "logical_file_bytes": 0,
+              "file_path_bytes": 0,
+              "allocated_bytes": 4096,
+              "allocated_file_bytes": 0,
+              "unique_file_count": 0,
+              "allocations": [
+                {
+                  "device": 27,
+                  "inode": 2978,
+                  "kind": "directory",
+                  "logical_bytes": 0,
+                  "allocated_bytes": 0,
+                  "link_count": 2,
+                  "paths": [
+                    "/dev/shm/d92-host-rmaotzzh/tc_ieee_full"
+                  ],
+                  "path_tiers": [
+                    "host"
+                  ],
+                  "tiers": [
+                    "host"
+                  ],
+                  "external_link_count": null
+                },
+                {
+                  "device": 2050,
+                  "inode": 106204550,
+                  "kind": "directory",
+                  "logical_bytes": 0,
+                  "allocated_bytes": 4096,
+                  "link_count": 2,
+                  "paths": [
+                    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d92_20260928/d92-assembly-3vuu4otp/nvme/tc_ieee_full"
+                  ],
+                  "path_tiers": [
+                    "nvme"
+                  ],
+                  "tiers": [
+                    "nvme"
+                  ],
+                  "external_link_count": null
+                }
+              ],
+              "tiers": {
+                "host": {
+                  "logical_file_bytes": 0,
+                  "file_path_bytes": 0,
+                  "allocated_bytes": 0,
+                  "allocated_file_bytes": 0,
+                  "unique_file_count": 0,
+                  "pending_file_increment_bytes": 0
+                },
+                "nvme": {
+                  "logical_file_bytes": 0,
+                  "file_path_bytes": 0,
+                  "allocated_bytes": 4096,
+                  "allocated_file_bytes": 0,
+                  "unique_file_count": 0,
+                  "pending_file_increment_bytes": 0
+                }
+              },
+              "tier_totals_additive": true,
+              "content_verified": false,
+              "capacity_reserved": false,
+              "physical_release_proven": false,
+              "pending_file_increment_bytes": 0,
+              "transfer_held_file_bytes": 0
+            }
+          },
+          "completed_scenario_windows": null
+        }
+      },
+      {
+        "model": "7b",
+        "kind": "main_configuration_assembly_only",
+        "actual_inference": false,
+        "real_ingress": false,
+        "formal_comparison_qualified": false,
+        "profile_manifest": {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d89_7b_initialization/manifest.json",
+          "sha256": "7ba165a97559ac375dea3e4c5690023c045c591b7de6c08a28adbe9a63069468"
+        },
+        "trace": {
+          "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_131528_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+          "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+          "view_sha256": "a5331be2e2204483f18206825d9aaa18cbaa259fe0babfc303f989055819430d",
+          "count": 4000,
+          "source_count": 4000,
+          "profile": "W0",
+          "rate_scale": 1.0
+        },
+        "subset": {
+          "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_131528_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_adapter_subset.json",
+          "sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016"
+        },
+        "config": {
+          "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d92_20260928/7b_main_config_attempt1.yaml",
+          "sha256": "4eb53f2b3e60037ecba2ea60abe28045fc1c2e62c26e0a61c1653145d1a6a8e7"
+        },
+        "launch_contract": {
+          "contract": "ieee_full_integrated_replay_v1",
+          "service_profile_id": "9d5714f6dc8d00f3aef1a775dfb7e563d2e7404ae54b77f9d4c2554f18aeccb8",
+          "preparation_profile_id": "188dd702796cea71058d999f787e368c8bbb363a3b5dff6a2866a23a32cdf9b7",
+          "content_manifest_sha256": "684c7ab113b6a51b694066753b340fce4eb0b26f565e1f9b7ebbd97d3b8ea050",
+          "input_plan": {
+            "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_131528_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+            "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+            "view_sha256": "a5331be2e2204483f18206825d9aaa18cbaa259fe0babfc303f989055819430d",
+            "count": 4000,
+            "source_count": 4000,
+            "profile": "W0",
+            "rate_scale": 1.0
+          },
+          "observation_binding": {
+            "kind": "ieee_online_observation_binding_v1",
+            "window_s": 5.0,
+            "demand_windows": {
+              "configured_demand": 5.0,
+              "runner_demand": 5.0,
+              "actual_demand": 5.0,
+              "preload_demand": 5
+            },
+            "transfer_limit": 3,
+            "movement_limits": {
+              "configured_movement": 3,
+              "actual_movement": 3
+            },
+            "admission_profile_id": "native-completed/47d9ea8e982a8238d1ff1928fc0b7152c64976f271e40165c532179a2cc2d2ad",
+            "model_backend_id": "native-model/47195242726318d3e564d57bae4d182750991d6941d839eb9b20d205001bdfb6"
+          },
+          "runtime_concurrency_cap": 2,
+          "dispatch_admission_mode": "open_loop_trace_replay",
+          "request_timeout_s": 1800.0,
+          "request_deadline_origin": "planned_arrival",
+          "physical_deployment_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d92_20260928/d92-assembly-sy50raf2/physical_deployment",
+          "formal_comparison_qualified": false
+        },
+        "adapter_count": 500,
+        "requests": 4000,
+        "one_runtime_capacity": 2,
+        "four_runtime_capacity": 8,
+        "ready_pool_count": 0,
+        "initialized_engines": 0,
+        "pass": true,
+        "deliberate_pre_activation_failure_outcome": {
+          "kind": "ieee_main_outcome_v1",
+          "scenario": "tc_ieee_full",
+          "planned_request_count": 4000,
+          "run_completed": false,
+          "formal_comparison_qualified": false,
+          "error": {
+            "stage": "main_execution",
+            "type": "AssemblyComplete",
+            "message": "",
+            "traceback": "Traceback (most recent call last):\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 22217, in _main_async_impl\n    await runner.preload()\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d92_20260928/audit_main_assembly.py\", line 106, in stop_before_activation\n    raise AssemblyComplete()\nAssemblyComplete\n"
+          },
+          "cleanup_errors": [],
+          "measurement_errors": [],
+          "launch_contract": {
+            "contract": "ieee_full_integrated_replay_v1",
+            "service_profile_id": "9d5714f6dc8d00f3aef1a775dfb7e563d2e7404ae54b77f9d4c2554f18aeccb8",
+            "preparation_profile_id": "188dd702796cea71058d999f787e368c8bbb363a3b5dff6a2866a23a32cdf9b7",
+            "content_manifest_sha256": "684c7ab113b6a51b694066753b340fce4eb0b26f565e1f9b7ebbd97d3b8ea050",
+            "input_plan": {
+              "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_131528_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+              "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+              "view_sha256": "a5331be2e2204483f18206825d9aaa18cbaa259fe0babfc303f989055819430d",
+              "count": 4000,
+              "source_count": 4000,
+              "profile": "W0",
+              "rate_scale": 1.0
+            },
+            "observation_binding": {
+              "kind": "ieee_online_observation_binding_v1",
+              "window_s": 5.0,
+              "demand_windows": {
+                "configured_demand": 5.0,
+                "runner_demand": 5.0,
+                "actual_demand": 5.0,
+                "preload_demand": 5
+              },
+              "transfer_limit": 3,
+              "movement_limits": {
+                "configured_movement": 3,
+                "actual_movement": 3
+              },
+              "admission_profile_id": "native-completed/47d9ea8e982a8238d1ff1928fc0b7152c64976f271e40165c532179a2cc2d2ad",
+              "model_backend_id": "native-model/47195242726318d3e564d57bae4d182750991d6941d839eb9b20d205001bdfb6"
+            },
+            "runtime_concurrency_cap": 2,
+            "dispatch_admission_mode": "open_loop_trace_replay",
+            "request_timeout_s": 1800.0,
+            "request_deadline_origin": "planned_arrival",
+            "physical_deployment_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d92_20260928/d92-assembly-sy50raf2/physical_deployment",
+            "formal_comparison_qualified": false
+          },
+          "interrupted_replays": [],
+          "remote_transfers": [],
+          "transfer_pressure": [],
+          "local_transfers": [],
+          "mechanism_events": {
+            "_ieee_activations": null,
+            "_ieee_initial_deployment": null,
+            "_ieee_residency_epochs": [],
+            "_ieee_file_preparation_plans": null,
+            "_ieee_gpu_preparation_plans": null,
+            "_ieee_native_host_preparations": null,
+            "_ieee_control_events": []
+          },
+          "coordination_after_shutdown": {
+            "contention_events": 0,
+            "gpu_admission_decisions": 0,
+            "gpu_admission_admits": 0,
+            "gpu_admission_defers": 0,
+            "gpu_admission_rejects": 0,
+            "gpu_ready_hits": 0,
+            "warm_pool_hits": 0,
+            "avg_contention_penalty_ms": 0.0,
+            "avg_defer_delay_ms": 0.0,
+            "current_gpu_utilization_pct": 4.069010416666666,
+            "ieee_online_observation_binding": {
+              "kind": "ieee_online_observation_binding_v1",
+              "window_s": 5.0,
+              "demand_windows": {
+                "configured_demand": 5.0,
+                "runner_demand": 5.0,
+                "actual_demand": 5.0,
+                "preload_demand": 5
+              },
+              "transfer_limit": 3,
+              "movement_limits": {
+                "configured_movement": 3,
+                "actual_movement": 3
+              },
+              "admission_profile_id": "native-completed/47d9ea8e982a8238d1ff1928fc0b7152c64976f271e40165c532179a2cc2d2ad",
+              "model_backend_id": "native-model/47195242726318d3e564d57bae4d182750991d6941d839eb9b20d205001bdfb6"
+            },
+            "ieee_full_launch_contract": {
+              "contract": "ieee_full_integrated_replay_v1",
+              "service_profile_id": "9d5714f6dc8d00f3aef1a775dfb7e563d2e7404ae54b77f9d4c2554f18aeccb8",
+              "preparation_profile_id": "188dd702796cea71058d999f787e368c8bbb363a3b5dff6a2866a23a32cdf9b7",
+              "content_manifest_sha256": "684c7ab113b6a51b694066753b340fce4eb0b26f565e1f9b7ebbd97d3b8ea050",
+              "input_plan": {
+                "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_131528_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+                "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+                "view_sha256": "a5331be2e2204483f18206825d9aaa18cbaa259fe0babfc303f989055819430d",
+                "count": 4000,
+                "source_count": 4000,
+                "profile": "W0",
+                "rate_scale": 1.0
+              },
+              "observation_binding": {
+                "kind": "ieee_online_observation_binding_v1",
+                "window_s": 5.0,
+                "demand_windows": {
+                  "configured_demand": 5.0,
+                  "runner_demand": 5.0,
+                  "actual_demand": 5.0,
+                  "preload_demand": 5
+                },
+                "transfer_limit": 3,
+                "movement_limits": {
+                  "configured_movement": 3,
+                  "actual_movement": 3
+                },
+                "admission_profile_id": "native-completed/47d9ea8e982a8238d1ff1928fc0b7152c64976f271e40165c532179a2cc2d2ad",
+                "model_backend_id": "native-model/47195242726318d3e564d57bae4d182750991d6941d839eb9b20d205001bdfb6"
+              },
+              "runtime_concurrency_cap": 2,
+              "dispatch_admission_mode": "open_loop_trace_replay",
+              "request_timeout_s": 1800.0,
+              "request_deadline_origin": "planned_arrival",
+              "physical_deployment_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d92_20260928/d92-assembly-sy50raf2/physical_deployment",
+              "formal_comparison_qualified": false
+            },
+            "ieee_service_profile": {
+              "kind": "native_service_profiles_v1",
+              "profile_sha256": "9d5714f6dc8d00f3aef1a775dfb7e563d2e7404ae54b77f9d4c2554f18aeccb8",
+              "supported_classes": 20,
+              "initial_samples": 90,
+              "source_run_sha256": [
+                "60d2f9e7ec28f2a1a2a0884a216919e5561aa86c75708b3079698d7f5e97c2c5"
+              ],
+              "beta": 0.5
+            },
+            "ieee_preparation_profile": {
+              "kind": "native_preparation_profiles_v1",
+              "profile_sha256": "188dd702796cea71058d999f787e368c8bbb363a3b5dff6a2866a23a32cdf9b7",
+              "layout_partition": "exact_content_v1",
+              "supported_classes": 24,
+              "initial_samples": 72,
+              "source_run_sha256": [
+                "60d2f9e7ec28f2a1a2a0884a216919e5561aa86c75708b3079698d7f5e97c2c5"
+              ],
+              "beta": 0.5,
+              "size_edges_bytes": [],
+              "activation_layout_available": true
+            },
+            "ieee_control_events": [],
+            "ieee_residency_epochs": []
+          },
+          "cleanup": {
+            "complete": true,
+            "roots": [
+              {
+                "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d92_20260928/d92-assembly-sy50raf2/nvme/tc_ieee_full",
+                "device": 2050,
+                "inode": 106204551
+              },
+              {
+                "path": "/dev/shm/d92-host-qftscopm/tc_ieee_full",
+                "device": 27,
+                "inode": 2981
+              }
+            ],
+            "inventory_before": {
+              "owner_id": "507c5210560a4ae5aed4271c615a1915",
+              "scope": "linked_inode_storage_v1",
+              "logical_file_bytes": 0,
+              "file_path_bytes": 0,
+              "allocated_bytes": 4096,
+              "allocated_file_bytes": 0,
+              "unique_file_count": 0,
+              "allocations": [
+                {
+                  "device": 27,
+                  "inode": 2981,
+                  "kind": "directory",
+                  "logical_bytes": 0,
+                  "allocated_bytes": 0,
+                  "link_count": 2,
+                  "paths": [
+                    "/dev/shm/d92-host-qftscopm/tc_ieee_full"
+                  ],
+                  "path_tiers": [
+                    "host"
+                  ],
+                  "tiers": [
+                    "host"
+                  ],
+                  "external_link_count": null
+                },
+                {
+                  "device": 2050,
+                  "inode": 106204551,
+                  "kind": "directory",
+                  "logical_bytes": 0,
+                  "allocated_bytes": 4096,
+                  "link_count": 2,
+                  "paths": [
+                    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d92_20260928/d92-assembly-sy50raf2/nvme/tc_ieee_full"
+                  ],
+                  "path_tiers": [
+                    "nvme"
+                  ],
+                  "tiers": [
+                    "nvme"
+                  ],
+                  "external_link_count": null
+                }
+              ],
+              "tiers": {
+                "host": {
+                  "logical_file_bytes": 0,
+                  "file_path_bytes": 0,
+                  "allocated_bytes": 0,
+                  "allocated_file_bytes": 0,
+                  "unique_file_count": 0,
+                  "pending_file_increment_bytes": 0
+                },
+                "nvme": {
+                  "logical_file_bytes": 0,
+                  "file_path_bytes": 0,
+                  "allocated_bytes": 4096,
+                  "allocated_file_bytes": 0,
+                  "unique_file_count": 0,
+                  "pending_file_increment_bytes": 0
+                }
+              },
+              "tier_totals_additive": true,
+              "content_verified": false,
+              "capacity_reserved": false,
+              "physical_release_proven": false,
+              "pending_file_increment_bytes": 0,
+              "transfer_held_file_bytes": 0
+            },
+            "inventory_after": {
+              "owner_id": "507c5210560a4ae5aed4271c615a1915",
+              "scope": "linked_inode_storage_v1",
+              "logical_file_bytes": 0,
+              "file_path_bytes": 0,
+              "allocated_bytes": 4096,
+              "allocated_file_bytes": 0,
+              "unique_file_count": 0,
+              "allocations": [
+                {
+                  "device": 27,
+                  "inode": 2981,
+                  "kind": "directory",
+                  "logical_bytes": 0,
+                  "allocated_bytes": 0,
+                  "link_count": 2,
+                  "paths": [
+                    "/dev/shm/d92-host-qftscopm/tc_ieee_full"
+                  ],
+                  "path_tiers": [
+                    "host"
+                  ],
+                  "tiers": [
+                    "host"
+                  ],
+                  "external_link_count": null
+                },
+                {
+                  "device": 2050,
+                  "inode": 106204551,
+                  "kind": "directory",
+                  "logical_bytes": 0,
+                  "allocated_bytes": 4096,
+                  "link_count": 2,
+                  "paths": [
+                    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d92_20260928/d92-assembly-sy50raf2/nvme/tc_ieee_full"
+                  ],
+                  "path_tiers": [
+                    "nvme"
+                  ],
+                  "tiers": [
+                    "nvme"
+                  ],
+                  "external_link_count": null
+                }
+              ],
+              "tiers": {
+                "host": {
+                  "logical_file_bytes": 0,
+                  "file_path_bytes": 0,
+                  "allocated_bytes": 0,
+                  "allocated_file_bytes": 0,
+                  "unique_file_count": 0,
+                  "pending_file_increment_bytes": 0
+                },
+                "nvme": {
+                  "logical_file_bytes": 0,
+                  "file_path_bytes": 0,
+                  "allocated_bytes": 4096,
+                  "allocated_file_bytes": 0,
+                  "unique_file_count": 0,
+                  "pending_file_increment_bytes": 0
+                }
+              },
+              "tier_totals_additive": true,
+              "content_verified": false,
+              "capacity_reserved": false,
+              "physical_release_proven": false,
+              "pending_file_increment_bytes": 0,
+              "transfer_held_file_bytes": 0
+            }
+          },
+          "completed_scenario_windows": null
+        }
+      }
+    ],
+    "pass": true,
+    "full_qualification_complete": false,
+    "driver_sha256": "f366e3ce6e0bf14dcb4c7cdf8f1b50e2533f279f50d9a87813425cd97fee6acb"
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "555dc46ae0ec47871dd039b76a125b8194c906e4f444c581364ee7d5398f02fd"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_launch.py",
+      "sha256": "eb36289d05e1459bb50eb248ea6bcb062d0ce1c6d2be00ce9e506fabd014cd66"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d92_20260928/audit_main_assembly.py",
+      "sha256": "f366e3ce6e0bf14dcb4c7cdf8f1b50e2533f279f50d9a87813425cd97fee6acb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d92_20260928/summarize_checkpoint.py",
+      "sha256": "6752093e310dc59f4b0add5b4cc1ab204fd1cea50461b9c8a298bdee27c42492"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d92_20260928/deadline_red.log",
+      "sha256": "6ac11be97582a9516b152f2249e66a6fd66c865ede5e0a4dcbed0ea51dc58e72"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d92_20260928/deadline_green1.log",
+      "sha256": "cefbe492ad3a2b480d3aad7e4b305bdf7b95d9dd6631f032627278522bbd9ce0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d92_20260928/outcome_red.log",
+      "sha256": "8559541c40e955bbff1656e984c925c300b5e8d5b303ed5317ed89a6842d5c8c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d92_20260928/outcome_green1.log",
+      "sha256": "b0dceecc3aa4c652deb6ed7f30561f8a0847d25fd233810dc6cb188ec7b834e8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d92_20260928/regression1.log",
+      "sha256": "05fe9ee4bfae088da0f948aee557754ade88d09e0314de73e7acbefa0f34b7a6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d92_20260928/main_assembly.json",
+      "sha256": "618a381587d0e15adbdcb468c1dda429b0c3a83021c57145625f40026eed6126"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d92_20260928/main_assembly.log",
+      "sha256": "0b8b74873cae7150d2230e1b36ce50786d21f645673c39f8a4b1252fa58feee1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/EXECUTION_HISTORY_D81_D91.md",
+      "sha256": "4cf98a011577c5996c13fa20621cd413b637f40f93d63ef3ad4cce6f990cb7dd"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d89_3b_initialization/manifest.json",
+      "sha256": "332f914d31dca776b0fdf52faad6241e04a3f3713db3e9289f5b5ecd551a9e0e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d92_20260928/3b_main_config_attempt1.yaml",
+      "sha256": "45bedd2fc253e7ef3c86aaeed0964abe0591c36d96d633eb2c13632f6266583b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_adapter_subset.json",
+      "sha256": "6c5fc286e3cef00efdd6b84e26c841f3b09d20b17a57b8f6a394b8d27bb1e86b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+      "sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d89_7b_initialization/manifest.json",
+      "sha256": "7ba165a97559ac375dea3e4c5690023c045c591b7de6c08a28adbe9a63069468"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d92_20260928/7b_main_config_attempt1.yaml",
+      "sha256": "4eb53f2b3e60037ecba2ea60abe28045fc1c2e62c26e0a61c1653145d1a6a8e7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_131528_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_adapter_subset.json",
+      "sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_131528_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+      "sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c"
+    }
+  ],
+  "next": [
+    "canonical 3B4000 actual external replay, cleanup/validation/table before7B",
+    "no repeated prefix, profile, publication or baseline task"
+  ],
+  "baselines": "paused",
+  "metric_references": "warm SLO/Resident not yet measured"
+}

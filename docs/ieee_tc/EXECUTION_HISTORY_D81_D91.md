@@ -1,0 +1,1343 @@
+# IEEE TC execution status
+
+## Latest — D91 main-entry integration CPU-verified; no live inference
+
+BACKEDUP1148078783831ab96e2d817c596161fb50410670 PUSHED/freshremoteSHA matched.
+Sixscopedfiles,22SHArefs,147protectedentries andsecretschecksPASS;userdirtymanifest
+NOTstaged.825tests andbothactualmainassemblies complete;no D91 unit/model/tmux/
+remote job remains. Rawcheckpoint_push_receipt.json. NEXT deadline/failure/cleanup
+integration,notanotherCPUassembly/profile/backup loop. BaselinesremainPAUSED.
+
+2026-09-28 02:56. Supersedes older NEXT/LIVE notes. Completed actual canonical
+`_main_async_impl` assembly for BOTH models:4000 existing requests/500 adapters,
+exact D88 child configuration after original parent assembly,D89 measured profiles.
+One/four-runtime capacity3B8/32,7B2/8. Stops deliberately before activation;
+ingress/notice are explicit CPU fixtures,NOT real transport/resource/performance
+qualification. Main raw input reuse now skips raw dataset construction; IEEE
+remote setup only reads frozen index+SHA-checked small configs, no payload scan,
+repair/generation or local fallback. Actual external ingress determines open-loop
+mode independently of provenance labels; old non-external behavior retained.
+
+Unconditional Full rejection now replaced with explicit executable prerequisites:
+pending native owned TP1, exact measured profiles+activation layout, actual shared
+demand/movement/admission binding,published remote/no artificial delay, started
+external full-map replay,common60s notice and physical ledger. Does NOT certify
+numerical correctness, SLO or superiority; receipt formal_comparison_qualified=false.
+Existing per-worker/ownership/source/reservation/release checks unchanged.
+
+Final825 related/basic/external testsPASS47.471s;99 launch-onlyPASS11.591s earlier.
+Initial807 regression had1failure ONLYold exact error text; test still requires
+rejection and no legacy startup,updated to new missing-owner reason. Red input
+counterexamples2failure/3error retained. Final-source real main assemblies both
+PASS in13.485s. Rawd91_20260928 incl assembly_final/,curated
+20260928_d91_integrated_main_entry.json,D91_INTEGRATED_MAIN_ENTRY.md status table.
+No new GPU/remote/weights/trace/profile/baseline run. No tmux/model/remote job.
+Disk312GiB,host108GiBavailable,swap0. Protected/source verification and scoped
+backup follow; NEVERstage userdirtymanifest or unrelateduntrackedfiles.
+
+NEXT complete canonical main finite deadline FROM plannedarrival (development
+1800s) and distinguish request timeout from whole-run interruption; preserve
+interrupted replay/native/UUID/mechanism evidence on main exception; owned HOST/
+NVMe cleanup receipt. THEN3B full4000 development replay viaexisting scope/native
+environment/externalpublisher/physicalledger,cleanup+validation+table before7B.
+Config files prepared byCPU audit lack the yet-to-wire request deadline and are
+NOT launch-authorized scripts. Do NOT blindly launch them or repeat D90 prefixes,
+D78/D80/D81/D88/D89. Baselines9e2cf289PAUSED. Full/M1/M2/A/S notqualified/started;
+warmSLO/Resident stillunmeasured;originalzero-weight numerical limitation remains.
+
+## Latest — D90 both model prefixes complete; integrated Full protocol next
+
+Evidence checkpoint d763ec795988fbb6f2beb3938fa1b5d232f9d085 PUSHED; fresh
+remote branch SHA matched. Three scoped files,15 source SHA references and147
+protected entries verified; staged secrets/name checks PASS. No runtime changes
+from799-test857fc7e; actual7B100/100 pass. User manifest not staged. Raw receipt
+7b_attempt1_evidence_push_receipt.json. No live local/remote job. NEXT integrated
+canonical Full qualification audit, not another prefix/profile or backup repeat.
+
+2026-09-28 02:28: 7B attempt1 finished 100 planned/submitted/success, zero failures
+or unsubmitted. Execution a78f76b (evidence-only after runtime857fc7e/799 tests).
+Same original driver, D88 parent configuration and D89 measured initialization.
+All native generation/dispatch fields pass; E2E identity error <0.000001ms,
+TPOT recalculation ≤1ms. Initial1/controlled1/natural2 ready, all4 leases released.
+Residency469 completed/13 superseded/0 failed; file473/13/0. Dispatch tiers
+GPU49/HOST25/NVMe21/Remote5. Actual29 HTTP UUID pairs exact, all published;
+50,650,865 wire /724,665,100 verified logical bytes, request packing0.
+1093 resource samples: peak17,347,903,488B/min host98,979,450,880B; high/max/OOM/
+OOM-kill/swap0. Service/watchdog0/0, no outer forced cleanup. Both workspaces
+removed by original driver, actual native contexts and service domain gone.
+HOST snapshot after native shutdown BEFORE file cleanup still58,720,256B;
+native/pending reservations0. Preserve that intermediate value, not a fake0.
+
+Empty aux9be8eafc11fc42408a0a20601158341b stopped after procs empty/populated0.
+AFTER inference, matching remote monitor62d58c6cb2914f3a9a3627a46bde439f stopped;
+all3 remote units inactive/MainPID0/success. Postprocessing scopes also stopped
+after empty checks. No live GPU/model/tmux/remote job. Disk312GiB/host108GiB/swap0.
+Curated20260928_d90_7b_full_prefix_attempt1.json has15 SHA references;
+147 protected entries unchanged. D90 immediate functional/descriptive tables done.
+Mean TTFT261.173s, dispatch wait258.445s, service2.728s; P95 TTFT685.236s.
+These are NOT formal performance, SLO qualification or superiority evidence.
+
+IMPORTANT: original limited driver caps GLOBAL admitted requests at ONE runtime
+capacity and omits Azure/open-loop labels. Thus3B total8,7B total2 even with4
+runtimes. Code-established limitation, NOT proven attribution of all waiting.
+Canonical main assembly sets arrival_source/workload_source/timing_mode and its
+Azure path uses aggregate runtime capacity. Do not blindly change global policy.
+Both old raw prefixes retained as functional evidence; new caveat in D90 doc.
+Routing span includes awaited snapshot RPC, not pure CPU; legacy0 fields are
+uninstrumented on IEEE path, not zero-overhead proof.
+
+NEXT verify/scoped evidence backup, then integrated MAIN Full qualification:
+actual assembled open-loop configuration, fixed deployment notice+60s, external
+publisher and physical lifecycle. Existing unconditional Full gate remains;
+replace only through validated explicit contract, not monkeypatch/bypass.
+No more D90 prefix/profile/publication loops without new causal evidence.
+3B and7B original bounded checks DONE; D78/D80/D81/D88/D89 reused, no reruns.
+Full/M1/M2/A/S NOT qualified/started. Baselines9e2cf289 PAUSED. Warm SLO and
+Resident references not yet measured; numerical discrimination still unqualified.
+All preceding live/next headings are historical, not restart instructions.
+
+## Live — D90 7B original limited Full prefix attempt1, 2026-09-28 02:10
+
+Sourcea78f76b95f9218b54f29c6ab11cd32259ea3f71e (evidence-onlyafter857fc7e);
+tmux tc-d90-7b-attempt1, raw7b_full_prefix_attempt1 result/launch/console.
+Sameoriginaldriver100prefix500pool,7B D88parentconfig/D89measuredprofiles.
+Newlauncheronlymodel/endpoint/output/auxidentitychanges;qualifiedCUDA13PATHretained.
+BothdirecthealthPASSED BEFORElaunch;14priorSHArefs/147protectedunchanged.
+Host108GiB/disk312GiB/swap0/GPUidle;bothNIC1000/full. BaselinesPAUSED.
+Remote3B1ef06346c3b841378eac5c05521bf36e PID736862;
+7B41839c68676541ad8861d49eb9957c14 PID736864;
+monitor62d58c6cb2914f3a9a3627a46bde439f PID736867,
+unitprimelora-artifact-monitor-d90b1.service/logremote_monitor_7b_attempt1.log.
+No source/remotechanges,hash,cleanup,extraexperiments duringinference.
+Observe SAMEattempttoterminal;cleanup/validate/table beforefurtherwork.
+3Bcompleted/backedup;do notrepeat3B/D78/D80/D81/D88/D89. Full/M1/M2/A/S
+notqualified/started. Old latest/next/live notesbelow historical.
+
+## Latest — D90 3B attempt7 completed and cleaned; 7B next, not launched
+
+Evidencecheckpoint a78f76b95f9218b54f29c6ab11cd32259ea3f71e PUSHED/freshremoteSHA
+matched. Three scopedfiles,14SHArefs/147protected/stagedsecretchecksPASS. Runtime
+unchangedfrom857fc7e/799tests;actualprefix100/100pass. UsermanifestNOTstaged.
+Baseline9e2cf289unchanged/PAUSED. No livejob. NEXT7Blimitedprefix afterfullreads;
+do not redo completed3B or evidencebackup. Rawattempt7_evidence_push_receipt.json.
+
+Supersedes LIVE/next notes below. Original100prefix COMPLETE100/100, exactnative
+generation/dispatchfields, E2Eidentity0ms andTPOTrecalc≤1ms. Source857fc7e;
+sameD88parent/D89profiles/originaldriver, no runtime/config/remoteedit duringrun.
+Initial1/controlled1/natural2allready. Residency82complete17superseded0failed;
+file86complete17superseded0failed. TiersGPU41/HOST6/NVMe26/Remote27.
+29HTTPUUIDpairs exact,67350156wire/1170025980verifiedlogicalB,all29published,
+requestpacking0.405samplespeak19045117952B/minhost97282367488B;high/max/OOM/swap0.
+ALL4inprocessphysicalleasesclosed;ready_pool0/HOSTfiles0/native_reserved0/pending0.
+OriginalrunremovedBOTHworkspaces;service/watchdog0/0,actualGPUcontexts/servicegone.
+Emptyauxd99d938177cd43d7928a95ca1d9b26a9 STOPPEDafterprocs/populated0 verified.
+AFTERinference,matchingremote8bc9812618864eff8a21c2d9d2f20473 STOPPED;all3units
+inactive/MainPID0/success. NO liveGPU/model/tmux/remote. Disk312GiB/host108GiB/swap0.
+
+Curated20260928_d90_3b_full_prefix_attempt7.json,14SHArefs,147protectedunchanged;
+rawsummarize_attempt7 reusesimmutableattempt4 reducer. D90 immediatefunctional
+table+descriptivelatencycomplete. MeanTTFT15.530s/dispatchwait13.044s/service2.486s;
+P95TTFT46.911s. Highwait meritslatercausalinspection; notformalSLO/result/ranking.
+Routing-span2.35s notyetpureCPUproof;zero legacyfieldsnotzerooverhead evidence.
+Onepassedtimingdoesnotproveallconcurrencyor numericaladapterdiscrimination.
+
+NEXT scopesource/evidencebackup,thenFULLplan/ledger+safety and7B SAMEoriginal
+limiteddriver/D88parent/D89profiling. No7Blauncherpreparedyet. Do NOT repeat3B,
+D78/D80/D81/D88/D89 or returntobaselines. After7B returnintegratedFull production
+qualification;main4000/M1/M2/A/S NOTqualified/started. No localtuningloop now.
+
+## Live — D90 original 3B prefix attempt7, 2026-09-28 01:56
+
+Original100prefix/500pool/D88parentconfig/D89profiles, unchangeddriver; source
+857fc7e493fd6d2fa0660e1a81805670c8d7a9bc pushed. tmux tc-d90-3b-attempt7;
+new run/activate scripts onlyrename outputs/aux/monitor. BOTH authenticateddirect
+health passed BEFORElaunch underexistingconda, remote_health7_{3b,7b}.json.
+23finalreferences/147protectedverified, bothNIC1000/full, host108GiBavailable,
+disk312GiB/swap0/GPUcomputeempty atadmission. No repeatedprofiling/publication.
+Remote3Bb17cffc9d8a64edeac51f2b5f91e0b84 PID718232;
+7Bedd475e0dbde47e7b85e8601824fbd96 PID718234;
+monitor8bc9812618864eff8a21c2d9d2f20473 PID718237,
+unitprimelora-artifact-monitor-d90a7.service/logremote_monitor_attempt7.log.
+No source/remote management/hash/cleanup duringinference. Observe SAMEattempt
+toterminal; cleanup/validate/table BEFORE any7B. Full/M1/M2/A/S notqualified;
+baselinesPAUSED. Prior latest/next notesbelow are historical.
+
+## Latest — D90 allocation correction and draining-member cleanup CPU-qualified
+
+BACKEDUP857fc7e493fd6d2fa0660e1a81805670c8d7a9bc PUSHED/freshremoteSHA
+matched;13scopedfiles/30SHArefs/147protected andsecretsPASS, usermanifestNOTstaged.
+Rawallocation_cleanup_push_receipt.json. No livejob. NEXT original3Bprefixattempt7
+after fullplan/ledger/freshsafety;do not repeat completedCPUtests/backup/profiles.
+
+Final combined regression799PASS48.173s (`draining_regression2.log`), including
+native ownership/launch/request/pressure/HTTP/basic smoke. Earlier798PASS48.055s
+for allocation-only;71targetedPASS2.976s. Final-source existing-weight extent
+counterexample1/1PASS4.582s,all5states including+4096B;8SHAverified,temporary
+removed,147protectedunchanged. Prior intermediate3/3PASS retained separately,
+not3final-source repetitions or performance. Curated
+20260928_d90_bounded_allocation_and_cleanup.json holds23final source/log refs.
+
+Correction: preallocate data and reserve a filesystem-derived extent envelope
+before writes. Account actual blocks+unconsumed pending once; pending follows
+inode through publication/cleanup, retired only for closed fullyinitialized
+non-syncFIEMAP files. No productionfsync/sleep/retry/4KiBtolerance. Content SHA/
+identity checks kept; allocation no longer masquerades as content signature.
+Full16GiB budgets/config/nineIEEEequations unchanged. Conservative temporary
+bound may defer preparation; no performance claim. Supported actualext4/tmpfs,
+64-bitLinux; no generic filesystem claim. Known-deleted identities retire before
+nextcreate; no-capacity-change emptyworkspace doesnotwake deferred jobs.
+
+Separate exactCPUproof: actualpool one running+one draining, oldshutdown visits
+onlyone (red1!=2). Addedcomplete retained-membership view ONLYforfinalcleanup;
+servingget_slots/count/routing unchanged. Realnative shutdown/pidfd/release
+remainrequired, nofakephysicalreturn. Exacthistoricalslotstate notcaptured,
+notclaimedsoleprovenattempt6cleanupcause. Twooldmockinterfacesupdated after
+firstcombinedregression, no productionfallback. Intermediatefailures allkept:
+unit1syntax;regression1externalhardlink;regression2deletedinodeownership;
+unit3empty-workspacewake/deletedroot;drainingregression1twoincompletefixtures.
+
+NO newGPU/remote run, no liveCPUtest/model/tmux;baseline9e2cf289unchanged/PAUSED.
+Once-only delivery cachealreadyDONE1.47GiB500/500both;DO NOTrebuild. D88/D89data
+reused. NEXT verify/scopedbackupthenreadfullplan/ledger/freshsafety andONEunique
+original3B100prefixattempt7;notprepared/launched. Full/M1/M2/A/S remainNOTqualified
+orstarted;do notredoCPUcounterexamples/profiles/publicationbeforethat. Allolder
+latest/live/nextnotes below historical. Disk312GiB/host107GiBavailable/swap0.
+
+## Latest — D90 attempt6 terminal/cleaned; exact private-file allocation growth
+
+BACKEDUP21e2e66780f88fa315f47cc16b87bb79455d9c96 PUSHED/freshremoteSHA
+matched. Fourdocs/evidencefiles,16SHArefs/147protectedchecksPASS;secretscheckPASS,
+userdirtymanifestNOTstaged. Productionstill21f2258/759tested;no runtimechange.
+Baseline9e2cf289unchanged/PAUSED. No liveGPU/remote/CPUprobe. NEXTaccounting
+contractcorrection using PROVENCPUcounterexample;do not repeatnegativeD88probes
+orlaunchGPUwithouttestedcorrection. Rawextent_evidence_push_receipt.json.
+
+CPUfollowupCOMPLETE:3/3controlledextent-transitionprobes reproduce +4096B
+unchangedinode/size/nlink;filefrag1→3→5→7→1records,allocation0/0/+4096/+4096/0.
+Existingcode_lora_0039bytes only,8filesSHApass afterfullwrite,alltempdirsremoved.
+Actualownerrejects both5/7-recordstates. Sameext4,12.099s,3/4GiBswap0CPU2,3,26,27.
+Controlledsparsewrites+diagnosticfsync areNOToriginalextractorder/productionfix.
+This disprovesconstantst_blocks assumption; originalrunextenttreeNOTcaptured,
+attempt5causenotproven. Primarykernel6.8extents.c/iforkandposix_fallocatechecked.
+Curated20260928_d90_extent_transition_diagnostic.json andD90immediatetable.
+No productionedit/newGPUrun. NEXT designaccountedboundedwrite-timeallocation,
+separatecontentidentityfrommetadata; preservebudget/concurrency/integrity,
+no4KiBmagic tolerance/sleep/fsyncworkaround. Nativeleasecleanupstillopen.
+147protectedunchanged;312GiBdiskfree,108GiBMemAvailable. Backuptheseevidencenext.
+
+Attempt6 ended100planned/61submitted/47success/14cancelled/39unsubmitted.
+Firstfatal SAMEreservedinode code_lora_0039/adapter_data.bin grew allocated
+37982208→37986304B (+4096), logical37980895B/device/inode/nlink1 unchanged.
+Transfer72c41c58f17e4eb488c13c29a56ceb11, HTTPeeb281f137a048a39e237ef6c7870708.
+Duringprivateextraction, NOTpublished-sourceerror; extentsnotcapturedinrun.
+2epochsfailed/60completed/13superseded;initial+controlledready,2naturalcancelled.
+22UUIDpairs exact,51098232wire/831603868verifiedlogicalB;21published1not;packing0.
+340samplespeak19138220032B/minhost97015042048B;high/max/OOM/swap0.
+2/4inprocessleasesclosed;outercleanup60s thenallcontexts/servicegone,2/0.
+Bothworkspacesremovedbyoriginalrun;NO postrun deletion. Aux855b9b92 stopped after
+emptyprocs/populated0;matchingremote33eda388 stopped,all3inactive/MainPID0/success.
+No liveGPUmodel/tmux/remote. Curated20260928_d90_3b_full_prefix_attempt6.json,
+summarize_attempt6 reusesimmutableattempt4 reducer;rawSHArefs/147protectedpass.
+ImmediateD90failuretablewritten. Sourceunchanged21f2258;healthpreparationerror
+retained below. NEXT boundedCPU ext4 allocation-transition probe onexistingfile,
+notanotherGPUrepeat or speculativeguardrelaxation. Full/M1/M2/A/SNOTqualified;
+baselinesPAUSED. PreviousLIVE/nextattempt6text below nowhistorical.
+
+## Current checkpoint — 2026-09-28 D90 publication diagnostics CPU-qualified, root NOT proven
+
+LIVE01:05:56:3B attempt6 STARTED tmux tc-d90-3b-attempt6, source21f2258
+unchanged/pushed. Sameoriginaldriver100prefix500poolD88configD89profiles.
+Remote3B4568b94b502743cb84176b21d903bbcb PID676299;
+7B17e4616ee4ec4bee9c3042b8ad536cfa PID676301;
+monitor33eda388c0ef4faeb5a359a9201420dd PID676304 ACTIVE,
+unitprimelora-artifact-monitor-d90a6.service/logremote_monitor_attempt6.log.
+ActualbothNIC1000/full,147protectedunchanged,9source/logrefsverified. No
+source/config/remotechanges duringinference;observe SAMEattempttoterminal.
+Preparationerror:healthCLI invokedundersystemPythonfailedmissingnumpy;empty
+remote_health6_{3b,7b}.json retained. Launchalreadybeganbeforethatwasnoticed.
+CorrectedSAMECLI underexistingconda environment passedBOTHhealth at01:06:10,
+duringinitialconstructionBEFOREruntime-ready/business;new*_verified.json kept.
+No restart/configchange,notclaimedasprelaunchhealth/performancequalification.
+Cleanup/validation/tablebefore7B;baselinesPAUSED,Full/M1/M2/A/Snotqualified.
+
+BACKEDUP21f2258dcccd8b8e2c4790e8dc41e660ea4e8676 PUSHED/freshremoteSHA
+matched. Seven scopedfiles,9raw/sourceSHArefs and147protectedentriesverified;
+userdirtymanifestNOTstaged. BaselineHEAD9e2cf289unchanged/PAUSED. No liveCPUtest/
+GPUmodel/tmux/remote. Nextreadfullplan/ledger/safetybeforeONEinstrumented3B
+originalprefix;attempt6notprepared/launched. Do notrepeatcompletedCPUtests or
+remotequalification. MetricsV1unchanged;sourcefailureNOTcausallyfixed.
+
+Latest user approved once-only immutable compressed cache again; already DONE
+D78/D80,1.47GiB,both500/500. DO NOT rebuild/republish/download full pools.
+CPU post-rename/pre-registry barriers on actualowner+runner pass forinitial AND
+replacement;privatepreallocation remainsunpublished. Existinglock correctly
+excludesotherthread. Simplepublicationgap hypothesisNOTsupported.14retainedNVMe
+copies matchoriginalpublishedfootprints;notcontentrehash/nottransientproof.
+AddedONLYfailureobservability:originalepocherror/traceback,firstsource-signature/
+footprintdifference,andunknowncopy exactpath/tier/activeIDs. Samefatalpredicates,
+no normal-pathIO,retry,fsync,formula/config/profilechange. Red2missingfielderrors
+retained;20targetedPASS0.979s;759related/basicPASS43.685s. Curated
+20260928_d90_file_publication_diagnostic.json + immediateD90table.147protected
+unchanged. NO causalfix/Fullqualification/newGPUrun. NEXT verify/backupthenONE
+instrumented same-contract3Bprefix to preservefirstcause,notblindperformance
+rerun;lastnativeleasefailurestillopen. No7B/baselines/main/A/S. No livemodel,
+tmux,remote.312GiBfree,MemAvailable107GiB;oldretainedcachesnotdeleted.
+
+## Previous backed-up checkpoint — attempt5 and metric rules
+
+BACKEDUP c7ed4994e1261fb837219c6acac3801b4bfad78b PUSHED/freshremoteSHA matched.
+Seven scoped docs/rules/evidence files, runtime code unchanged from757-test
+checkpoint7297141. MetricV1SHA5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22
+frozen inpaper_results/ieee_tc/protocols/20260928_metrics_v1_freeze.json.
+Allattempt5 rawreferences and147protecteditems verified again; userdirtymanifest
+untouched. BaselineHEAD9e2cf289unchanged/PAUSED. No liveGPUmodel/tmux/remote;
+disk312GiBfree. NextCPU file-publication atomicity diagnosis, NOT a blindGPUrerun.
+
+Latest:attempt5 terminal100planned/74submitted/56success/18cancelled/26unsubmitted.
+No individualrequestexceptions; source_snapshot failed unverified localcopy during
+residency planning. Exactadapter/atomicinterleavingNOTyetproven. Actualreadyepochs
+initial1/controlled1/natural2;residency61complete/16superseded/1cancel/3failed.
+23HTTPUUIDpairs exact,53437743wireB/887931336verifiedlogicalB,22published/1not,
+no requestpacking.350samples peak19172200448B/minhost97284222976B;high/max/OOM/swap0.
+3/4inprocessleasesclosed;lastconservativelyfalse/2GiBHOSTreserved. Actualouter
+cleanup after60s remainingdescendants confirmsallGPUcontexts/servicegone;2/0.
+Emptyaux85cdb2b2 stopped afterprocs/populated0;matchingremote45872767 stopped only
+afterinference;all3remoteinactive/MainPID0/success. NO LIVEMODEL/TMUX/REMOTE.
+HOSTworkspacegone;NVMe531046400B112filesretained fordeniedsameUIDholderinspection.
+Rawattempt5_workspace_cleanup.json, curated20260928_d90_3b_full_prefix_attempt5
+and D90immediatetable preservefailure.147protectedunchanged. NEXT CPUisolatefile
+publication/snapshotatomicboundary andlastnativeleaserelease beforeanyGPUrerun.
+Do not relaxverifiedsourceguard, treatunknownasmiss, orrepeatD78/D80/D81/D88/D89.
+7B/main/A/S notstarted;baselinesPAUSED. FullNOTqualified.
+
+Userrequested definitiveMD/frozencomparisonrules. METRIC_PROTOCOL_FROZEN_V1.md
+now fixes G1/G2, TTFT/TPOT/jointdenominators,nativecounts,physicalGPU-s,failures,
+referenceSLOrecipe,workpointselection,Holm/noninfer,CEsupplement andcomparisonchecklist.
+Numericalwarmthresholds/Residentreference areNOTyetmeasured/frozen;doNOTinventthem.
+AGENTSrequiresfullreadbeforecomparisons. ExistingplanSHA/formulas unchanged.
+HYDRASERVE_METRIC_ALIGNMENT_20260928.md holdsobjectiveadaptationreasoning.
+No productioncodeeditedduringthisrun;needscoped evidence/docbackup next.
+
+User objective expanded duringrun: objectively compare HydraServe metric system,
+not mandatoryalignment; permit observable-driven adaptive optimization outside
+IEEE displayedformulas/coresemantics. Read officialNSDI§8.2–8.4/AppendixA and
+officialAEguide. Analysis recorded HYDRASERVE_METRIC_ALIGNMENT_20260928.md:
+retainG1/G2, CE supplementary; TTFT/TPOT marginal vsjoint distinctions; original
+GPU-memory-time != physicalGPU-s underexclusiveallocation. CurrentD90 uses
+development5000ms, NOTfinalwarmSLO. No runningconfig/source/metric changed.
+No superiorityassertion. OfficialAE defaultprecomputedfigurefallback mustNOT
+enterourfuturelocalresults. BaselinesremainPAUSED.
+
+00:35:3B attempt5 STARTED tmux tc-d90-3b-attempt5, source7297141 unchanged/pushed.
+Same original driver/100prefix/500pool/D88config/D89profiles; no new input/profile.
+Both direct healthPASS,147protectedunchanged,10source/logrefsverified.
+Remote3B6fb89f6e98b84e9491a47d7b4ab39404 PID641621;
+7B2a53ca6259ea4e119c66b6ea2da4e893 PID641623;
+monitor4587276762c849e9bb61fe4ccdf880bb PID641626 ACTIVE,
+unitprimelora-artifact-monitor-d90a5.service/logremote_monitor_attempt5.log.
+Both NICs1000/full; inference MemAvailable113581608KiB and disk313GiB.
+Raw3b_full_prefix_attempt5 result/launch/console,remote_preinference_health5.
+No source/remoteoperations duringinference. Monitor SAMEattempt totterminal;
+cleanup/validation/table BEFORE7B. Full/M1/M2/A/S stillNOTqualified/started.
+BaselinesPAUSED. Following attempt4 stop/next notes are historical.
+
+BACKEDUP72971413137e192fa297b3a6b2d413cd989097a1 PUSHED/freshremoteSHA
+matched,rawconcurrent_fix_push_receipt.json. Eightscopedfiles,allsourceSHAs and
+secret/name checksPASS;userdirtymanifestuntouched. PreparedONLYunique
+run_3b_full_prefix_attempt5.sh/activate_services_attempt5.sh fromsameattempt4
+interfaces,newnames/auxID/monitor only;bash-nPASS. DO NOT interpret asrunning.
+Nextfreshreadfullplan/ledger/safety,thenlaunchONE3B100prefix withoriginaldriver.
+No live tmux/GPUmodel/remote service. Disk313GiBavailable;baselineHEAD9e2cf289
+unchanged/PAUSED. All prior failedrawruns retained;no benchmarkrankingyet.
+
+00:28 CPUcorrectionsCOMPLETE,757related/basicPASS39.889s(rawconcurrent_regression1).
+Three exact boundaries: (1)fileplans nowjoin existing same-owner/tier/content
+executing targets evenwithout ownintent, no newinterest/wake/cancel,thenoriginal
+atomicclose withoutawaitgap;(2)router decision frozenlocallybeforependingRPC,
+notreadsharedlastdecisionafterawait;(3)Remote subscriber recordsnoemptyowntransfer,
+retainsservicewait, skipsfull-loadprofileupdate. Old CPU interleaving reproduced
+classmismatch ANDNone subtraction;actualreq00007queue proves sharedresidencyfetch.
+Closuretests include repeatedcancel and survivingdemand. No guard/formula/profile/
+configurationchange. Firstgreenfixturewrongpayload thenwrongsetupcountretained
+andfixturecorrected, no productionloosening. No newGPUrunyet.
+NEXT backup verifiedcode/evidence thenunique3Bprefixattempt5 using SAME original
+driver/profiles/config. Freshplan/ledger/safetybeforelaunch,cleanup/table before7B.
+No D78/D80/D81/D88/D89reruns. BaselinesPAUSED;Full/M1/M2/A/S NOTqualified/started.
+
+Latest supersedes live notes below: attempt4 terminal,100planned/45submitted/
+30success/7exception/8cancelled/55unsubmitted. All45 retained;collectionerrors0.
+Root superseded nativeplan then fileclose rejected active materialization.
+2ready activations(initial+controlled);2natural activations cancelled. Epochs
+56completed/5superseded/1cancelled/1failed. Requesterrors5source-class mismatch,
+1remote identity,1None subtraction; not yet individually diagnosed. No Full pass.
+339samplespeak18941923328B/minhost97875075072B;high/max/OOM/swap0.
+20HTTPUUIDpairs exact,46437100wireB;19published/1notpublished,no packing.
+3/4 inprocessleasesclosed;outercleanupconfirms actualGPUcontexts/servicegone.
+Never infer missingrelease timestamp. Aux0a10c9f5 stoppedafterprocs/populated0;
+matchingremote0343b97b stopped;all3remoteinactive/MainPID0/success. No livejob.
+HOSTworkspacegone;NVMe tc-d90-full-c2dxtgv5 retained because sameUIDprocinspection
+partlydenied,notblinddeleted. Rawattempt4_workspace_cleanup.json hasdetails.
+Curated20260928_d90_3b_full_prefix_attempt4.json/D90immediatetable;147protected
+unchanged. NEXT CPU owner/queue reproduction of plan-close concurrent target IO,
+then exact request-source/measurement failures. No new GPU before corrections;
+no7B/baseline/main/A/S. CompletedD78/D80/D81/D88/D89 reused,notrepeated.
+
+LIVE00:06:D90 3B attempt4 STARTED tmux tc-d90-3b-attempt4, unchangedpushed
+sourcedb317368466691160c245e5dd7ae5e2650d614a5. Same100prefix/500pool/D88config/
+D89profiles/driver. Bothdirecthealthpass,147protectedunchanged,8refsverified.
+Remote3Be3996ea87fe44ff8a4e7093ad6f68fc5PID613503;
+7B61d4f5f65ad3406e81007e4f5bab235cPID613505;
+monitor0343b97b43e94671a42b10014d3eeb4fPID613508 ACTIVE,
+unitprimelora-artifact-monitor-d90a4.service/logremote_monitor_attempt4.log.
+Bothlinks1000/full; localinterfaceeno1np0, remoteeno1. Aninitialread mistakenly
+usedremoteinterfacenameonlocalhost andstoppedbeforeanyactivation; routequery
+resolvedit, no networkchange. No source/remoteoperations duringinference.
+MonitorSAMEattempttoterminal;cleanup/validate/table BEFORE7B. Fullnotqualified.
+
+BACKEDUP db317368466691160c245e5dd7ae5e2650d614a5 PUSHED/freshremoteSHA
+matched; rawpartial_fix_push_receipt.json. Maincode/tests/curated/doccheckpoint
+saved, baselineHEAD9e2cf28903ed11bc8ee891dd4cc9636b94307573unchanged/PAUSED.
+No GPUcompute/model/tmux/remote job live. NEXT exactly prepared3Battempt4 after
+fullplan/ledger/safety recheck; do not repeat finished CPUregressions or publication.
+
+00:03:Explicitconflictcheckpointc44167157a3634e6e420a26e66499a7e9f42b7dc
+PUSHED/freshremoteSHA matched,rawepoch_fix_push_receipt.json. Thencompleted
+failureevidenceretention: existingcontinuousrunnerjoinslaunchedtasks, retains
+observed/terminalrows, unsubmittedIDs andcollectionerrors; originalexception
+propagates. Preflightstoresseparateinterrupted_replays, notsuccessfulrequests.
+Red2errors kept;519request/launch/basicPASS38.600s(rawpartial_regression1.log).
+No normal-path serialization ormetric/formula/config change; no newGPUrun.
+Preparedrun_3b_full_prefix_attempt4.sh/activate_services_attempt4.sh; bash-nPASS.
+NEXT backupthismeasurementcheckpoint thenreadfullplan/ledger/freshsafety,
+activateexistingremoteunitswithattempt4monitor andlaunchsame100prefix unique
+attempt4. No D78/D80/D81/D88/D89 repeats,7Bonlyafter3Bcleanup/validation/table.
+No model/tmux/remote services live. FormalFull/M1/M2/A/S stillNOTqualified;
+baselinesPAUSED. Rawroot staysd90_20260927 withuniqueattemptkeys acrossmidnight.
+
+23:59 CPUcorrectionCOMPLETE: legit acquire/release between snapshot/register
+reproduced oldfailure. Native returns explicit registered=false onlyforstrictly
+olderrevision afteridentity/targetvalidation; controller requires exactowner/
+clock/plan/expected/current, closesownership, marks superseded. Nextnormal
+residencytick replans; noimmediateretry, nohandoffrewriting, noformula/configchange.
+Malformed/unknownRPC/cancel/closurefailures remainfatal/cancelled.22targetedPASS;
+final788related/basicPASS41.934s,rawepoch_regression1.log. Red2errors retained.
+Originalrealguardcombinedpredicates: exactoldcause stillnotproven. ActualGPU
+planledger nowretained, same-epoch invariant errorlogs separated. No newGPUrun.
+NEXT backup testedcheckpoint, thenpreservepartialrequestrows oncontrollerabort
+in existingrunner beforeunique3Bprefixattempt4. Do notrerunD78/D80/D81/D88/D89,
+no7Bbefore3Bcleanup/table; no Fullqualification claim. Models/remotesstopped.
+
+Latest supersedes live notes below: attempt3 reached actual concurrent business,
+then native plan registration rejected its complete-current-source predicate.
+Both activations ready,38residencyepochs completed/1failed; lastlive counter
+arrived9/done5/ok5. Aborted runner returned0requestrows: NOTzeroactualinference,
+NOTverified100, notperformance. Original guard combines epoch/slots/coverage/
+sourceidentity; exact failing predicate unrecorded, do not assert a proven race.
+168samplespeak8954916864B/minhost107262668800B,high/max/OOM/swap0.
+5HTTP UUIDs exact,11609599wire/200896988logicalB,no packing. Bothphysicalleases
+released,HOSTreservationsclosed,workspacesremoved,service/GPUgone. Matchingempty
+aux447f832b stopped afterprocs/populated0; matchingremotemonitorc355b7ac stopped,
+bothservicesandmonitorinactive/MainPID0/success. NO LIVE MODEL/TMUX/REMOTE.
+Curated20260927_d90_3b_full_prefix_attempt3.json andD90table preserve failure;
+147protectedentriesunchanged. NEXT CPU isolate legitimate native epoch change
+before registration from malformed plan/identity/unknown RPC; no blindretry,
+no guardrelaxation, no7B/baseline/main/A/S launch. Full remainsunqualified.
+
+LIVE23:43:D90 3B attempt3 STARTED tmux tc-d90-3b-attempt3, sourcef6ef5d6
+unchanged/pushed. Same100originalprefix500pool/D89profiles/D88config/driver.
+Remote3Bfd9850c726034919a84b9283a8a2dccaPID590223,
+7B13ff857521704e88a5a010a055b5104cPID590225,
+monitorc355b7ac955945d3b6104789e3cce261PID590228 ACTIVE,
+unitprimelora-artifact-monitor-d90a3.service/logremote_monitor_attempt3.log.
+Bothdirecthealthpass,link1000;147protectedunchanged/9source-scriptrefsverified.
+No model/source/remotechange duringinference. Monitor sameattempttoterminal,
+cleanup/validate/table BEFORE any7B. Main/A/S NOTqualified; baselinesPAUSED.
+
+BACKEDUP:f6ef5d6d0a440290117e52b02a3a750a403145bc PUSHED andfreshremoteSHA
+matched;rawd90/rpc_fix_push_receipt.json. Do not repeat completed tests/backup.
+NEXTreadfullplan/ledgerandsafetythenpreparedunique3Bprefixattempt3. No live
+model/tmux/remote;314GiBdiskfree,MemAvailable113902456KiB,swap0 atcheckpoint.
+BaselineHEAD9e2cf28903ed11bc8ee891dd4cc9636b94307573unchanged/PAUSED.
+
+LATEST23:42:ExistingnewlineJSON nowshared8MiBencodedbodybound,bothsendandreceive;
+nativeunknownresponsesstillNOretry/cancellationownershipunchanged. PerRPC wire
+bytesobserved. Realworker/proxy500-candidate>1MiBCPUroundtrip reproducedold64KiB
+failure,nowpassesincludingnextframe/progress. Bytebound/Unicode/fragment/merged/
+oversizetestsPASS. Final571testsPASS31.604s(rawrpc_regression2.log);prior571PASS
+32.403s beforewirebytemetadata. NativeKV/LoRA/IEEEformulas/profileinputsunchanged.
+Preparedrawrun_3b_full_prefix_attempt3.sh andactivate_services_attempt3.sh ONLY;
+no model/service is running. NEXT freshplan/ledger/safetycheck thenbackupverified
+checkpoint andlaunch3Bprefixattempt3,cleanup/table before7B. Do notreruncompleted
+D78/D80/D81/D88/D89orresumeServerless. Full/M1/M2/A/S NOTqualified/started.
+
+LATEST23:37:D90attempt2 FAILED/CLEANED, rootresidencyregister_preparation_plan
+newlineJSON>default64KiB reader; initial+controlledBOTHready46.813/48.296s.
+127samples controller3355270NEVERownsGPU, twoactualleasesreleased; passivefix
+supportedfororiginalactivationfailure, NOTFullqualified.1remoteUUIDverified,
+wire2325514B/logical42695980B;no packing.0/100verifiedcompletedrequests.
+Peak8946106368B/minhost107181121536B,high/max/OOM/swap0;service/watcher2/0.
+Inprocessfilecleanupfailedunresolvedrefs;afterservice/controllergone/noopenFD,
+ownedNVMe42729472B removed withrawattempt2_workspace_cleanup.json. HOSTgone.
+Emptyauxa12e69a16d9b402b91e1445aa5897dc4STOPPED afterprocs/populated0.
+Remote monitor8b716b5d STOPPED;all3inactive/MainPID0/success. Finalmonitorand
+exactjournal5b6aea4f copied. Earlierwrongjournalnameemptyfilekept,notused.
+NO LIVE MODEL/TMUX/REMOTE. Failuretable/curatedattempt2written;NEXT boundedRPC
+messagecontract withrealworker/proxyCPUlargeframe/limit/cancelchecks thenbackup,
+unique3Battempt3. No7B/fullformal/baseline. Allcompletedprofilesremainreuse.
+
+LIVE23:31:D90 3B prefixattempt2 STARTED tmux tc-d90-3b-attempt2. Passivefix
+7012bfbd4f8a63496c0120ddb59f5cca7c1e9820 PUSHED/freshremoteSHA matched;
+rawd90/passive_fix_push_receipt.json. Sameoriginaldriver/profiles/config/prefix.
+Remote3Bb20683772941411d9ff96be6e7ae5323PID578552,
+7B670f6d62a1114b96a04d9f3dfd527bcePID578554,
+monitor8b716b5dae4d4111861144d7cfcb6cffPID578557 ACTIVE,unchangedsharedlimits,
+primelora-artifact-monitor-d90a2.service/logremote_monitor_attempt2.log.
+Bothdirecthealthpassed,actuallink1000,protected147unchanged. No source/remote
+changes duringinference. Monitor toterminal thencleanup/validate/table before7B.
+Fullformalguardunchanged; no baselineorotherheavyjob. Failureattempt1retained.
+
+LATEST23:29:D90 failureevidence75a72bd68a3a9bce179d66da39b110176393f7aa
+PUSHED/freshremoteSHA matched. Passivecontrollerfix CPU/native-NVML checked:
+IEEE stack selects nvml_device, physicalindices; noTorch probe/device/allocator.
+Workerallocator fieldsnull, legacyestimatornotfedunknownzero. Nativeworker KV/
+LoRA/admission andphysicalguard unchanged.404worker/launch/basicPASS30.271s;
+nativeenv real4GPU NVMLread passedwithoutTorchCUDAinit. Red3failure/1error kept;
+firsttest hadwrongregistryimport correctedonlyfixture. No actualFull rerun yet.
+NEXT backupfix thenunique3Bprefixattempt2 usingSAMEdriver/profiles/config/inputs.
+Do notrerun D78/D80/D81/D88/D89;7Bwaits3Bcleanup/table. No liveinference/remote;
+baselinesPAUSED, Full/M1/M2/A/S stillunqualified/unstarted.
+
+LATEST23:16:D90 3B attempt1 FAILED/CLEANED atcontrolledactivation,0/100requests,
+0HTTPfetch. Initialruntimeactuallyready46.791787s;secondphysicalallocation rejects
+existingcontexts. ServiceparentPID3240430alreadyowns256MiBeachonGPU1/2/3 atsample16;
+modelworker3245954GPU0firstsample40. GPUMemoryMonitor currentdevice sampling calls
+torch.cuda.device/memory_stats beforeNVML: likelydirectcontextcreationpath, must
+isolate withCPUtest and separatepassivecontrollerNVML/nativeworkerallocator.
+Do notexemptparentcontext/relaxphysicalguard or claimcausalfixbeforeverification.
+71samplespeak5673623552B,minhost110412017664B,high/max/OOM/swap0. Service/watcher2/0.
+GPU/service/workspacesgone;pool0;actuallease1a7fcfcfcd434f89bbb030b2daac0327released.
+Failedactivation2GiBHOSTreservation conservativelyretainedinprocess,notfakeclosed.
+Matchingemptyaux24dc5ec30ab64845bb82fe8fa1a8923fSTOPPED afteractualprocs/populated0.
+Matchingremote monitor0fe8fa51 STOPPED;bothservicesinactive/MainPID0/success.
+NO LIVE MODEL/TMUX/REMOTE. Failuretable D90 doc and curated20260927_d90_3b_full_prefix_attempt1.json.
+NEXT evidencebackup thenpassivecontrollerobservationfix;do notlaunch7B/samefailed
+configuration. AllD89/D88measurementsretained, baselinesPAUSED, main/A/Snotstarted.
+
+LIVE23:14:D90 3B bounded Full prefix attempt1 STARTED in tmux tc-d90-3b-attempt1.
+Code2f26d3233ed9d5723786d47d34830db4d441dd8a PUSHED/freshremoteSHA matched;
+rawcode_push_receipt.json. Oneinitial+onecontrolledbefore100originalrequests;
+not commonnotice/mainperformance. SameD89profiles/D88parentconfig/actualfactory.
+Remote3B1ba54fee5b6f477292714ac5c4553d9f PID564450,
+7B586e7389bf694669b8e45abca8c3036d PID564452,
+monitor0fe8fa5135864f12957777fd7f9d37fa PID564455 ACTIVE.
+Monitorunit primelora-artifact-monitor-d90.service/logremote tc/d90_20260927/remote_monitor.log.
+Bothdirecthealthpass;link1000. No source/remotechanges duringinference.
+Observe sameattempt toterminal,cleanup/validate/table before7B. No othermodelrun.
+
+D90 existing preflight now exercises actual initial+one controlled activation,
+then existing ScenarioRunner.run on original100requestprefix. NOTmain/A4natural/
+deployment_notice performance. Production Full guard untouched. Main and diagnostic
+share extracted actual subprocess factory; controller-construction failure retires
+already-created runtime. IEEE request callbacks no longer start legacy HOST-hit
+promotion or opportunisticGPUforwarding; actualIEEE planner/movement/nativeadmission
+and cache reuse remain enabled. Two exact isolation tests include legacy control.
+Final713related/basic testsPASS43.170s(rawd90/regression5.log). Earlier wrongmodule
+command and two incomplete __new__ legacyfixtures failures retained. Fixturesnow
+explicitlylegacy; no productionfallback added.147protectedentriesUNCHANGED.
+Rawd90/full_prefix_driver.py and run_3b_full_prefix_attempt1.sh PREPARED, notrun.
+Models/remotes STOPPED; actuallink1000 confirmed. BaselinesPAUSED. NEXT backup
+tested checkpoint then start existingremoteunits with newownedmonitor and3B bounded
+Fullactivationprefix;cleanup/table BEFORE any7B or nextmodel. No D78/D80/D81/D88
+repeat. See D90_FULL_ACTIVATION_PREFIX.md. Full/M1/M2/A/S unqualified/unstarted.
+
+## D89 completed measured initialization export and binding
+
+D89 code/data1bcc2ffed7df40f8db23c1a16b69c45e89fd8d82 PUSHED/freshremoteSHA
+matched. Rawd89/code_push_receipt.json;13rawrefs+4profilehashes+11scopedfiles
+verified,430tests,147protectedunchanged. BaselineHEAD9e2cf289unchanged/PAUSED.
+NoD89CPUunit/model/GPUcontextorremoteartifactservice remains running.
+NEXT actualintegratedFullactivation/lifecycle; do not repeat completedexports.
+
+D89BOTHofflineexportsCOMPLETE. Newexisting-preflight helper
+measured_source_profile_payloads converts strict D88 native events; unchanged
+runtime loaders recompute serviceD/T/O and loadingd,excludeexplicitwarmup.
+3B40service/360samples+96preparation/288samples;7B20/90+24/72.
+Directories paper_results/ieee_tc/p2_backend/d89_{3b,7b}_initialization contain
+service/preparationJSON+manifest(context,binding,means,coverage,raw/sourceSHAs).
+Allstatic500/model covered;onlytinyexistingPEFTconfigsread,noGPU/network/newinput.
+ActualScenarioRunner+ExperimentStackconstructionBOTHpass with original D88
+requested_model_config (PARENTbeforechildresolution),500identities,emptyready
+pool/uninitializedengine;Fullguardstillrejects. W5/movement3 actualownersmatch.
+IMPORTANT use original requested_model_config for next Full descriptor, NOT
+already-resolved contract.model_config as parent: that changes provenance
+requested_enforce_eager auto→False on second resolution. No productionchange.
+Rawd89/runner_binding_attempt3.json SHA2e69a1e7dd301bfd9552f3bd81db3d440a9e66a2c1e40b845634ec59bdfe7f0c.
+Firstdriverwrongsizefieldandsecondwrongconfigurationstagefailuresretained;
+no guardrelaxation/rerun. Driversv1/v2/v3 kept. Exportdriver SHA-bound,do not
+edit in place. Preflight source SHA inexportmanifests captures this helperversion.
+6newtestspass;430related/basicpass36.065s,fulllograwd89/export_regression1.log.
+147protectedunchanged;GPUcomputeempty,remoteunitsSTOPPED,baselinesPAUSED.
+D88evidence56049e1873b3e94427e7be728a4f08030a9e30c5 PUSHED/freshSHAverified;
+rawd88/7b_evidence_push_receipt.json. D89code/data backupNEXT thenactualFull
+activation/lifecycle qualification. No new parameter selection, no sourceprofile
+reruns, no remote publication/coverage or baseline resumption. Full/M1/M2/A/S
+NOTqualified/started. See D89_MEASURED_PROFILE_EXPORT.md for immediate table.
+
+## D88 completed admission source checkpoint (historical details below)
+
+LATEST22:48:7B attempt1 COMPLETE92/92(90representative+2warmup),allpendingclosed.
+Sourcec642fdfc3bffc5eee09f70777b0570954235e58a;20service/24preparation/6content
+classes,3observations/preparationclass.92HTTPUUID pairs exact,wire490763433B/
+logical2463242860B,18measuredRemote+74setup;no packing.437resourcesamples,
+peak5442330624B,minhost110904717312B,high/max/OOM/swap0. Service/watcher0/0;
+GPU/service/workspacesgone;lease4de9038dd25e4cd9a74447a5a80804b9released.
+Emptyaux049879743d89405b9683837df0decbec STOPPED afteractualemptychecks.
+AFTERallinference,matchingd88a4monitord99dad5a STOPPED;bothservicesinactive/
+MainPID0/Resultsuccess. Finalmonitor and7Bjournal copied;NO LIVE MODEL/TMUX/REMOTE.
+ThreeTNR3.45inchPDF/PNG d88_7b_admission_attempt1 visuallychecked/embeddedfonts.
+Curated20260927_d88_7b_admission_source.json;147protectedunchanged.
+7BloadingdmeansRemote531.17/NVMe55.18/fileHOST54.83/nativeHOST16.93ms;
+serviceD545.96/154.80/153.55/124.16ms;GPU0. No outputSHAvariation6groups.
+Descriptiveinitialization only,NOTFull/S1/baseline or independent3runs.
+NEXTbackupD88evidence,thenofflineprofileexportfromBOTHcompletedD88runs and
+integratedFullactivation/lifecycle. NoD78/D80/D81or sourceprofile reruns.
+Fullguardunchanged;M1/M2/A/SNOTstarted;baselinesPAUSED. Historicalnotesbelow.
+
+LIVE22:39:37:7B admission_source_attempt1 STARTED,tmux tc-d88-7b-attempt1;
+sourcec642fdfc3bffc5eee09f70777b0570954235e58a PUSHED/freshremoteSHA matched.
+This is evidence-only successor to3B executionc180bac,implementation unchanged.
+Rawd88/run_7b_admission_source_attempt1.sh;7b_admission_source_attempt1
+result/launch/console.92plannedcases(90representative+2warmup),samefrozen7Bspec.
+CompilerPATH/CUDA13/nativeenv andallresourceguards unchanged. Newauxsuffix0002.
+DirecthealthBOTHpass,remote3Bc0114fbb/7B2a22e5b3/monitord99dad5a identities
+unchanged from3B andACTIVE,link1000. No remote management/hash/config/cleanup
+or source changes during7Binference. Monitor to terminal,cleanup/validate/plot,
+then STOPmatchingd88a4remote monitor (trapstopsmatchingservices) afterbothmodels.
+3Bcompleted/backedup/plotschecked;DO NOT RERUN3B or D78/D80/D81.
+Rawsummaryscript summarize_admission_source.py isSHA-bound by3Bcuratedevidence;
+DO NOT editinplace for7B(hardcodedexecutioncommitc180bac). Reuse its logic with
+a new raw filename/actual7Bexecutioncommit ifneeded. Fullprofileexport+actual
+activation/lifecycle remainNEXT after7B;Full/M1/M2/A/S unqualified/unstarted.
+Originalfilefailure stillunresolved,negativeCPUprobesretained;no guardrelaxation.
+
+LATEST22:38:3B attempt4 COMPLETE368/368,360representative+8warmup,allpending
+closed.24content/40service/96preparation classes,3samples/preparationclass.
+368HTTP UUID pairs exact;wire854130750B/logical14353166144B;72measuredRemote+
+296setup,packing0.639samplespeak5652393984B,high/max/OOM/swap0. Service/watcher
+0/0;GPU/service/workspacesclear;physicalleased4d6cdfe755641839fc3350b832a60d3
+released;matchingemptyaux30a7bb9e stopped. No localmodel/tmux remains.
+ThreeTNR3.45-inchPDF/PNG d88_3b_admission_attempt4 visuallychecked;tables/curated
+20260927_d88_3b_admission_source.json complete.147protectedunchanged.
+LoadingdmeansRemote986.48/NVMe41.26/fileHOST40.31/nativeHOST15.21ms;nativeHOST
+serviceD390.62ms exceedsNVMe216.77ms:retain,not assumedtierordering.
+3/24outputgroupsvarySHA,sameprompt/target;no numericaldiscrimination claim.
+PriorfilefailureNOTreproduced/NOTcausallyfixed;exactguardunchanged.
+NEXTbackup3Bevidence thenprepared7Badmission_source_attempt1,unchangedsettings.
+RemoteD88a4services/monitor STILL ACTIVE withidentities immediatelybelow; keep
+sameconfiguration for7B,stopmatchingmonitor afterbothmodels. Do not repeat3B,
+publicationorfullpoolchecks. Full/M1/M2/A/S NOTqualified/started;baselinesPAUSED.
+
+LIVE22:24:D88 3B attempt4 STARTED tmux tc-d88-3b-attempt4, source
+c180bacd59415d45f7fcd1554829da2270ca813b PUSHED/freshremoteSHA matched.
+Same368cases/config; only failure diagnostics added,not a causal fix.
+Rawd88/run_3b_admission_source_attempt4.sh and3b_admission_source_attempt4
+result/launch/console names. Newauxd8800000000000000000000000000005.
+Remote3Bc0114fbbf035400e868f9100b35d8b02 PID504777,
+7B2a22e5b33a434c4cb9bcbd5619890fa3 PID504779,
+monitord99dad5a1b1b4fa690ccfba9c63bb24d PID504782,
+unitprimelora-artifact-monitor-d88a4.service/logremote_monitor_attempt4.log.
+Both directhealthpassed;link1000;no configchange. No remote management/hash/
+cleanup or source modification during inference. Monitor to terminal,then
+cleanup/validate/table or plots; do not launch7B before that. Full remains
+unqualified; baselinesPAUSED. Originalfailure and negativeCPUprobes retained.
+
+LATEST22:23:two bounded CPU diagnostic sets completed,3copy+3original-archive
+cases. All content and allocation checks pass;NO reproduction,NO causal fix.
+Originalarchive read once overSSH, no HTTP/service/config/newpool operation.
+Alltempfiles removed,147protected unchanged. Firstsystemdlaunchwrongcwd retained,
+correctedexplicitWorkingDirectory. Production only adds exact expected/observed
+tuple to SAME invariant rejection; no normal-path IO,guardrelaxation,retry,fsync,
+or config change.2redtests preserved;448lifecycle/pending/basicpass24.914s.
+Curated20260927_d88_file_invariant_diagnostic.json and D88 status table preserved.
+NEXT backup this diagnostic checkpoint, then one instrumented same-contract3B
+attempt; pending wire remains onlyCPUqualified. If failure recurs,use exacttuple,
+not speculation. No claim filebugfixed or Fullqualified. Models/remotes STOPPED;
+baselinesPAUSED and M1/M2/A/S notstarted. Historicalnotes below preserved.
+
+LATEST:3B attempt3 FAILED before request wave initialization,0requests/1setup
+transfer. Model initialized, original archive AND content verified, but final
+file-publication inventory rejected changed reserved inode size/allocation/link
+tuple. Exact differing tuple NOT logged; no assumption of corruption or ext4
+cause yet. No pending-register call was reached; transport fix remains CPU-only
+qualified. Actual GPU/service/workspaces released;physicalleasecf746ef588cc41f5b9717f972c1d2f9d
+released. Matchingemptyaux8c81d440 stopped;remote monitor27ba3e2e and both matching
+services STOPPED/allinactive/MainPID0/success. No live tmux/GPU model.
+NEXT preserve failure status/UUID then diagnose existing preallocation invariant
+without GPU. Do not start another inference or relax capacity/content checks on
+speculation. BaselinesPAUSED;Full/M1/M2/A/S stillunqualified/unstarted.
+
+Historical:3B attempt3 launched22:09:52 in tmux tc-d88-3b-attempt3, source
+b091e426b0444329fe151ebc4f17e30baf12710f PUSHED/freshremoteSHA matches.
+Rawd88/run_3b_admission_source_attempt3.sh;3b_admission_source_attempt3{,_launch}.json.
+Same368-case spec/settings/inputs, only corrected native pending transport.
+Remote3Bafbe2ed1f5354f149506f551cebb0722 PID490895,
+7B4c57cf3ffe8343afad78f187d93e0224 PID490897,
+monitor27ba3e2e82c8444e8932d70179810cf9 PID490900
+(primelora-artifact-monitor-d88a3.service), logtc/d88_20260927/remote_monitor_attempt3.log.
+Both direct health pass, actualeno1 speed1000; no remote configuration change.
+Newauxprimelora-tc-aux-d8800000000000000000000000000004.scope.
+Monitor to terminal;no code/remote management during inference. Cleanup,validate,
+table/plot BEFORE7B or any next experiment. No Full qualification yet.
+
+LATEST correction ready:fixed two-field operation/payload utility packet preserves
+native pending ownership.190related tests pass2.635s;20final pending tests pass
+0.039s;actual installed converter/msgspec no-CUDA audit passes. OS63pass1.172s;
+related/basic422pass36.139s. Initial regression erroneously ran OS pidfd tests
+under conda interpreter:four failures retained, resolved by running unchanged
+OS tests under qualified system Python, not weakening production checks.
+147protectedentries unchanged;all local/remote jobs stopped. New attempt3 launcher
+and remote-monitor script prepared only; backup checked files before launch.
+Attempt2 status table and8exact transfer UUID pairs preserved; no performance
+result. Mainline remains admission-enabled profiles then integrated Full.
+
+3B attempt2 FAILED/CLEANED at warmup wave0;0/8 executed requests passed,
+0representative samples. Actual model initialized, but native utility argument
+converter rejected variadic pending-registration bridge before inference. Exact
+AssertionError remains in raw error's worker_log_tail. All8 reservations closed;
+physical lease95406e27946c470f8b26b00693ffe191 released, service/watchdog2/0,
+actual GPU/service/workspaces gone. Matching emptyaux081d8dca stopped. Remote
+monitor59d5aa2b and both matching services STOPPED; allinactive/MainPID0/success
+reconfirmed. No live tmux/model. Do not launch7B or repeat remote qualification.
+NEXT preserve attempt2 status/transfer evidence; fixed-arity pending transport
+with native-converter CPU verification, regression, backup, then unique attempt3.
+All IEEE formulas/settings and admission ownership remain unchanged; Full is
+NOT qualified. M1/M2/A/S not started; baselines PAUSED.
+
+Historical attempt2 launch:3B launched21:52:57, tmux tc-d88-3b-attempt2, source
+426d7ead4594f34372871facbe2783e137568ccb PUSHED/freshremoteSHA matched.
+Rawd88/run_3b_admission_source_attempt2.sh, output3b_admission_source_attempt2.json
+and corresponding _launch.json; unchanged frozen spec/config. Monitor terminal
+before any7B. Remote3Bb55932e5f68e4fca80b05bb04b159c29,
+7Bc120959507e8469ca17e3489d2e7801d, monitor59d5aa2b8438477e8fc14fa3ebcac65a
+(primelora-artifact-monitor-d88a2.service) ACTIVE. Remote monitor log is
+tc/d88_20260927/remote_monitor_attempt2.log. New health clocks saved in
+rawd88/remote_pre_attempt2_health.json; previous attempt1 IDs are STOPPED.
+No remote management/config/hash/cleanup or code changes during this inference.
+
+LATEST overrides live notes below:3B attempt1 FAILED before inference0/368,
+remote0. GPU contexts/service/workspaces cleared; matching emptyauxdba5def0 and
+remote monitor70b2339c/services stopped. No actual inference/performance sample.
+Worker log shows watchdog identity verification enumerated auxiliary processes
+and hit membership/owner race; exact changing PID unknown. Top-level physical
+release remained conservatively deferred, not falsely completed.25samplespeak
+1916977152B,high/max/OOM/swap0. Table D88_ADMISSION_SOURCE_INITIALIZATION.md and
+curated20260927_d88_3b_admission_attempt1_failure.json preserve failure evidence.
+Correction reads actual acknowledged watcher directly using existing double-birth
+observer, verifies UID/domain/start/affinity/service incarnation. No other safety
+guard/core formula/config changed. OS63pass1.009s and real tiny bounded handshake/
+teardown pass0/0. First tiny relative-path invocation rejected before service;
+both emptyaux scopes stopped. Regression run1 canceled during accidental online
+dummy-model retry; offline run2 completed422pass33.514s. Full still NOT qualified.
+NEXT backup correction, then unique3B attempt2; prepared7B stays unstarted.
+
+- Explicit controller/bin/EWMA development rules now derived from completed D84
+  native observations and historical bounds; IEEE formulas unchanged. Separate
+  capacity algebra from heuristics in D88_DEVELOPMENT_CONTROL_DERIVATION.md.
+  3B/7B cooldown48/38s may exceed W1gap30s; no promise of eight natural cycles.
+- Both actual Full child configurations bind exactly to D88 contracts and measured
+  admission initializer. No new weights/trace; source spec keeps all original
+  D84 representative waves/bins. Collector does NOT run autoscaler; controller
+  binding records future Full identity, not a controller performance result.
+- Regression422pass37.356s; OS60pass1.952s. Both source assemblies passed and
+  current code rederived both control dictionaries exactly.147protected entries
+  unchanged. Curated20260927_d88_control_validation.json; complete rawd88 logs.
+- Prepared unique rawd88/run_{3b,7b}_admission_source_attempt1.sh, not launched
+  at this checkpoint. Native compiler/cache and safety limits unchanged.
+- NEXT: backup tested code/contracts, restart already-qualified remote delivery
+  with fresh owned monitor/log, then 3B admission-enabled source acquisition.
+  Cleanup/validate/table/plot BEFORE7B. Do not repeat remote full-pool coverage,
+  publication, allocator or static class audit. Full guard remains intact.
+- Full/M1/M2/A/S NOT qualified or started; baselines PAUSED. Development5000ms
+  target and W5s are NOT final common SLO or production-optimal parameters.
+- Code00199ebe64e96202471fd6b5764359c79ae538a4 PUSHED/freshremoteSHA matched;
+  rawd88/code_push_receipt.json records completed checks and the initial local
+  audit-tool compatibility failure. No user manifest in commit.
+- D88 3B admission-source attempt1 STARTED21:43 in tmux tc-d88-3b-attempt1.
+  Same368requests/spec waves, now measured initializer/pending descriptor active.
+  Rawd88/3b_admission_source_attempt1{,_launch}.json, console.log. Monitor same
+  run to terminal; do NOT start7B until cleanup/validation/table/plots.
+- Remote ACTIVE unchanged qualified delivery config:3B03d7f6af8962468a9edef85156ed19e3,
+  7Bb0e5a572b841445cbe3e09478edca857; monitor70b2339c19844bc0b0a723d14f864ddd
+  (primelora-artifact-monitor-d88.service). PID463731/463733/463736; verify IDs
+  before any later management. Monitorlog remote tc/d88_20260927/remote_monitor.log.
+  Direct health passed both, link1000/full. Initial diagnostic urllib request
+  used ambient proxy and returned502; retained, not a service failure/restart.
+  Actual artifact client already explicitly bypasses proxy. No remote management
+  or configuration/hash/cleanup during inference. OldD84IDs no longer apply.
+
+## D87 preceding configuration/coverage checkpoint (no new GPU run)
+
+- Main/source now share generation/capacity assembly and actual subprocess
+  factory. Repeated normalization retains requested cap; explicit override resets
+  its provenance. Actual effective capacity/IEEE formulas/Full guard unchanged.
+- Opt-in admission-enabled source spec now derives measured prior first, verifies
+  frozen content-index SHA, and assembles Full fields with main helper. Old specs
+  unchanged. Both real model inputs assembled offline; no performance relabelling.
+- Entire static500/model checked using frozen index + existing tiny PEFT configs,
+  no weight read/network/new data. D84 measured class domain complete:3B40/40
+  service96preparation24content;7B20/20service24preparation6content. Bothrank8/16
+  counts350/150. No missing content/source or service bins;warmup excluded.
+- Original native activation layouts validated:3B8slots*228130816B,
+  7B4slots*329056256B. Geometry only, not readiness/free capacity or new-runtime
+  qualification. Full raw snapshots remain in old D84 results.
+- Final related/basic418pass34.084s;OS60pass0.948s. Both input audits completed,
+  rawd87_20260927, curated20260927_d87_main_source_configuration_coverage.json.
+  147protected entries unchanged. Details/table D87_MAIN_SOURCE_CONFIGURATION_AND_COVERAGE.
+- Code5e516134325402389ae6a9e0ec7fc2e4bacd6d8a PUSHED/freshremoteSHA matched;
+  rawd87/code_push_receipt.json.17references verified,147protected unchanged,
+  GPUcomputeempty;baselineHEAD9e2cf289 unchanged/PAUSED. No live D87 job.
+- NEXT before GPU: resolve explicit development controller upper/lower/window/
+  cooldown, routing bin width and EWMA beta; then only the affected admission-
+  enabled source path and integrated Full activation/lifecycle. Common runtime
+  assembly and static class coverage are DONE; do not reopen D78/D80/D81/D84
+  source-only runs or add another full-pool download. No Full guard bypass.
+- W5s remains development-only. Old D84 lacks admission initializer, so its
+  latency remains source-only. No production profile or numerical discrimination
+  claim. M1/M2/A/S NOT STARTED, baselines PAUSED, models/remote services STOPPED.
+
+## D86 previous checkpoint — binding work (no new GPU run)
+
+- Full constructor now requires the same explicit demand/completion W and the
+  same native-pressure/actual-movement limit; records immutable binding summary.
+  Tested actual HotnessTracker/OwnedMovementQueue and actual runner constructor.
+- Worker now atomically publishes initialized facade model_cfg; parent validates
+  every field and rejects/cleans a mismatched worker before exposing it. Shared
+  pure capacity resolver preserves existing max(max_loras,24) default; no new
+  capacity tuning. Raw qualification now records configuration receipt origin.
+- CORRECTION to D84/D85 wording: old proxy model_config was parent-resolved, not
+  post-initialize worker receipt.7B omitted max_cpu_loras although actual old
+  facade used24;3B explicitly32. No old evidence overwritten/relabelled.
+- Completed-length reuse resolves only this known historical facade default,
+  retains source and resolved configs; changed actual capacity still rejects.
+  Both D84 raw inputs reverified offline. No GPU, remote or baseline operation.
+- Final related/basic regression418pass34.973s;OS60pass0.857s. Rawd86_20260927;
+  full scope/table/remaining prerequisites in D86_RUNTIME_CONFIGURATION_BINDING.
+- Additional ownership regression331pass7.336s;147protected entries unchanged.
+  Model/GPU/remote services remain stopped; no actual inference in this checkpoint.
+- Final launch/basic349pass33.726s after preserving nested model-config objects;
+  curated20260927_d86_runtime_configuration_binding.json stores source/log SHAs.
+- Code5d7c2ecb8870b722a9049b99f0647bc0817927a1 PUSHED/freshremoteSHA matched;
+  rawd86/code_push_receipt.json.18source/log references verified,147protected
+  entries unchanged,GPUcomputeempty,baselineHEAD9e2cf289 unchanged/PAUSED.
+- NEXT before any GPU: finish common main/source config assembly, including
+  requested_runtime_concurrency_cap and artifact_content_manifest_path; settle
+  controller/profile settings and class coverage together. Then affected native
+  path and Full activation/lifecycle. Do NOT blindly repeat D84 or bypass guard.
+- Candidate W5s NOT production-frozen; actual GPU receipt NOT yet qualified.
+  M1/M2/A/S NOT STARTED; baselines PAUSED. D78/D80/D81 remain completed, no rerun.
+
+## D85 preceding checkpoint (completed, retained provenance)
+
+- Both physical-subprocess source calibrations completed, cleaned, analyzed and
+  plotted:3B368/368 (360+8warmup),7B92/92 (90+2warmup). No local GPU job/tmux or
+  remote artifact service/monitor remains running. Do not relaunch either run.
+- Full is NOT qualified. NEXT is the complete Full configuration/initialization
+  binding audit described under D84 below, then integrated activation/lifecycle.
+  In particular, source-only D84 omitted ieee_admission_profile; adding it is a
+  real runtime/config difference. Do not bypass profile identity or Full guard.
+- Existing native events now supply both completion-length buckets, including
+  actual prompt760; no extra length-profiling GPU run needed. Curated audit below.
+- D84 evidence26ee1220b6ca49158f111afc8418308a7a15b456 PUSHED, fresh remote SHA
+  matched; rawd84/evidence_push_receipt.json. D84 code was488a716; later evidence
+  commits are not retroactively recorded as its executed source.
+- D85 corrected the source collector's missing Full pending-admission registration
+  and generation intent. Reuses live methods and native ownership close; no core
+  formula/guard change. Three red tests preserved;219related tests pass2.697s.
+  Complete logs rawd85_20260927. Details D85_FULL_CONFIGURATION_BINDING.md.
+- Measured initializer now wired into existing preflight as optional explicit
+  admission_initialization binding. SHA-bound raw successful native completions,
+  exact runtime/model/trace/buckets, all repeated request counts checked; no
+  guessed buckets/future lengths. Old specs unchanged. Actual D84 inputs BOTH
+  verified offline, no additional GPU run. Transfer limit derived from movement3.
+- Candidate W5s recovered from old2s arrival/2s scale/5s TTFT config, development
+  only; Full demand window NOT bound/frozen yet. NEXT before any GPU launch:
+  bind common W and resolve remaining controller/profile settings together.
+  Do not blindly rerunD84 or label source-only latency as admission-enabled.
+- 59OS tests pass1.311s;343related regression pass7.188s. New collector retires
+  existing shared pressure owner before engine shutdown and records its events.
+  Evidence20260927_d85_measured_admission_initializer.json; complete logs rawd85.
+  First two environment/import failures retained; no safety guard relaxed.
+- Initializer follow-up basic288pass22.195s;147protected entries unchanged.
+  Code e7b48fe0b3b2198a8e5808132763f9f4b88c9d07 PUSHED/fresh remote SHA verified;
+  rawd85/initializer_push_receipt.json. All models/services stopped;
+  no new remote operation or performance measurement in this follow-up.
+- D85 basic288pass21.478s;147protected entries unchanged, GPU compute empty.
+  Complete tests and sourceSHA in20260927_d85_pending_collector_alignment.json.
+  Code c854857e0c4c5d8a3aa764d3b8befd367abb9fde PUSHED/fresh remote SHA verified;
+  rawd85/code_push_receipt.json. No model run, remote restart, new input or baseline change.
+- Baselines remain PAUSED; M1/M2/A1–A5/S1–S13 remain NOT STARTED. No optimality claim.
+
+## Authority and recovery
+
+- Read FULL /home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md and this ledger
+  before work, after compaction, and before experiments. AGENTS.md applies.
+  No subagents authorized. Default mode; execution authorized.
+- Approved snapshot PLAN_APPROVED_20260927_PUBLISHED_ARTIFACT.md. Plan SHA:
+  fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c.
+  Historical snapshots and unsuccessful attempts remain preserved.
+- Active goal incomplete. G1=correct complete workload/common SLO then minimum
+  physical lifecycle GPU-s; G2=common budget/SLO then tail TTFT. CE supplementary.
+  M1/M2/A/S formal matrices have NOT started; no optimality claim.
+- D74 Serverless3B repaired finished/analyzed/plotted/backed up. Baselines PAUSED.
+  Do NOT run the prepared3B original. Complete Prime IEEE Full first.
+- User APPROVED once-only immutable compressed delivery cache, not new weights,
+  trace or a second extracted pool. D78 publication and D80 delivery functionality
+  are COMPLETE; DO NOT repeat either full pool.
+- Formal artifacts are already published before deployment notice. No request
+  packing/compression/formatting/full-pool hashing. Necessary reads, transfer,
+  request-caused competition and local loading stay observed. Preserve legitimate
+  NVMe/HOST/GPU reuse/fewer fetches. Never subtract old cumulative packing from E2E.
+- Only artifact-only node exits150GiB disk floor; use actual incremental space,
+  log and safety reserve with1.5margin. Inference150/100GiB and ALL OOM rules remain.
+- No unrelated remote restart/config/hash/cleanup during actual inference.
+  Shared service conditions freeze after qualification. No silent local fallback.
+
+## D78–D80 completed milestone, 2026-09-27
+
+| Check | 3B | 7B |
+|---|---:|---:|
+| D78 published objects / exact files |500/4000|500/5000|
+| Immutable archive bytes |1160474851|420740410|
+| Original logical bytes |19482573296|12985984450|
+| Offline publication seconds |1210.560770|516.222248|
+| D80 verified real HTTP transfers / UUID pairs |500/500|500/500|
+| D80 request packing / temporary archive |0/0|0/0|
+| Serial functionality-loop seconds, NOT production profile |154.636926|101.359877|
+| Post-header cancellation / false publication / leaked files |pass/none/none|pass/none/none|
+
+- Total compressed cache1581215261B (~1.47GiB), files0444/dirs0555. Both publishers
+  exited0 and stopped. Builder e00e3f7c898cb90022361b0afc7381d9ba947d40.
+  Offline1GiB memory.high reclaim was recorded, not production latency.
+- D79 tested server a125b54a6cd2436ea3784d8ead859eca55be9ad4 deployed separately:
+  /home/lab14/primelora_remote/tc/a125b54a6cd2436ea3784d8ead859eca55be9ad4/server.py
+  SHA a31fa9212143914f5a7fb21dea126a23eaafedffe199ff9513de9ce03eb62a2c.
+  Original remote server/source pools unchanged. Published objects reused.
+- Server startup verifies immutable archives; HTTP reads/streams only. Client
+  requires prepublished_gzip_v1 and validates archive AND exact original content.
+  Read/socket-write/client-receive/local-verify spans are nested, not additive.
+  Blocking socket write is not pure wire time.
+- D80 first activation failed before transfers: io.stat unavailable under remote
+  cpu/memory/pids delegation; monitor exit2 stopped owned services. Failure kept.
+  Corrected monitor reports io_accounting=not_delegated; host diskstats separately.
+  No fabricated I/O zero or weakened memory protection.
+- Remote lab14 Linger enabled no→yes under existing service-management authority,
+  without sudo/password. Services not boot-enabled. SSH logout persistence works.
+- D80 service functional-only envelope high2GiB/max4GiB/swap0, CPU2–19,22–39,
+  Tasks128. Not yet a validated whole-service concurrent production contract.
+- 3B/7B coverage local high/max/OOM/swap all0; peak96903168/75149312B.
+  Both clients/watchdogs exited0, service scopes removed, GPU compute empty.
+  Empty auxiliary scopes verified with actual cgroup.procs content AND populated0,
+  then stopped by matching invocation. Do not use file size to test pseudo-files.
+- Cancellation UUID3B92adf056201f4609b381953f4569b0ab, server BrokenPipeError;
+  UUID7B09e08c7d905a421d8977361aec1ecc17, ConnectionResetError.
+  Both application body bytes0/not_published, owned workspaces empty BEFORE outer
+  cleanup. Remote reads already occurred. Zero completed writes != zero network.
+- Local cancel service/watchdog0/0, contexts clear, sampled high/max/OOM/swap0.
+- After all clients exited, remote monitor invocation7c3039d545374a19b07d5cf3bab16b4f
+  stopped; its trap stopped matching artifact services. All3 inactive/MainPID0/
+  Result=success. NO LIVE TMUX/model/remote qualification task remains.
+- Remote complete monitor838samples: minhost109657817088B, maxfull PSI0,
+  mindisk147973099520B, no abort. SHA
+  c9200043f87982c28aee9d00e5562351c5b1d596cb75aa64bffe37c60d4e0b3f.
+- Raw results/ieee_tc/remote_qualification/d78_20260927 and d80_20260927.
+  Curated 20260927_d78_{3b,7b}_publication, d80_{3b,7b}_coverage,d80_cancellation.
+  REMOTE_ACCESS has immediate functional tables. Old500-row snapshots unchanged;
+  new after-cancel journals501rows. No performance speedup inferred from them.
+- D79 source tests already pass:182HTTP/lifecycle/preparation checks6.310s;
+  288offline basic smoke21.870s under bounded unit. Terminal capture of latter
+  truncated, accurately recorded as footer not full log. Full D78 smoke preserved.
+  No source code changed during D80 qualification.
+- Sourcea125b54 and earlier evidencea2488dd PUSHED and remote SHA verified.
+  New D80 evidence-only backup follows validation; record receipt in raw directory.
+
+## Mainline: next action (do not reopen completed qualification)
+
+### D82 completed source integration pilot; representative profiles next
+
+- Source83b9f7f140b8c491cce42e9e3cdaaa9a60475624 PUSHED/remoteSHA verified.
+  Attempt3 real3B five sources x two original requests PASSED10/10. No Full,
+  router, numerical discrimination, SLO or optimality qualification claimed.
+- Original req00000/finance_lora rank8 target152 and req00015/code_lora_0015
+  rank16 target256, actual counts exact in all five sources.20nativefirst/last
+  events, cross-source prompt/output hashes identical, timing identity error0ms.
+  Actual post-accept counts1/2. All references and owned workspaces retired.
+- Service/watchdog0/0, GPU contexts clear, service domain removed.82samples,
+  peak5023551488B, high/max/OOM/swap0. Empty aux invocation
+  ebf1f8645a894b1289ad4140708c835d STOPPED.
+- Remote10UUIDs joined exactly:23325570B wire/495117240B logical.2measured
+  Remote fetches plus8controlled source-setup fetches. All published/cache/content
+  verified, request-time packing0. Raw spans nested, not additive network time.
+- Remote monitor0cbac9d7bced4aa89c8f14d0ec16b0a4 STOPPED after inference.
+  Its trap stopped services612bfa8d08a645ccb068be707022dede and
+  15a09462cc8e4038a33fb218df1af11c. All3inactive/MainPID0/Resultsuccess.
+  Complete monitor SHA1cc18c62d058a6f4bc71ace561a2eff9a674ed777c5829009dfdf5cf934adb36
+  retrieved; service journals and10transfer records preserved.
+- Raw results/ieee_tc/p2_backend_qualification/d82_20260927. Curated
+  20260927_d82_3b_source_pilot_attempt3 CSV/JSON and immediate P2 table.
+  First Remote wave includes first LoRA JIT; NVMe may hit page cache.
+  Single pilot does not isolate performance or constitute frozen D/T/O profiles.
+- Attempt1 failed before model/requests: runner import clobbered explicit
+  startup allocator env. Fix2fe7 preserves startup policies/defaults, retains
+  conflict checks;72launch/worker tests including real fresh import passed.
+- Attempt2 initialized3B but failed before requests: observer mistook last
+  allocator command for full current state. Fix83b9 checks actual typed pinned
+  cache limit0; background flag readback=null, no live allocator reset.
+  420worker/owner/basic smoke passed22.388s. Failures retained/cleaned, not samples.
+- Native API-only check: programexit0 and three effective cache limits0, no CUDA
+  initialization. Wrapper eventuallyexit1 stop-timeout102s despite emptycgroup;
+  not a complete service qualification. Full terminal evidence/P2 caveat retained.
+- Collector uses actual Full source/protection/preparation/native-event/release
+  helpers, no fabricated router costs. Same-name/new-path allowed only after
+  complete old native incarnation retirement; live conflicts still rejected.
+  278owner/lifecycle/service/preparation and55OS tests passed earlier.
+- CandidateHOST16GiB/native2GiB/NVMe16GiB,C32/slots8/cap8,movement3 unchanged.
+  This is not frozen production-optimal configuration.
+- NEXT: evidence backup, then representative3B24/7B6 exact-content classes and
+  actual concurrency profiles, then integrated Full activation/lifecycle.
+  Do not repeat D78/D80/D81, allocator microtests or baseline work.
+- D82 evidence a81c29e53aa4e3f60a6e0166558fbd13e782d103 PUSHED; fresh remote
+  SHA matched;8rawrefs/147protected entries unchanged.
+- D83 pre-run specification (3B completion supersedes this preparation state):3B360+8warmup,
+  7B90+2warmup;3interleaved rounds, actual caps8/2, all24/6static file classes.
+  Warmup retained separately, no lifecycle subtraction. Reuse original development
+  prompts/static artifacts; no new trace/weights. New rawd83_20260927, no overwrite.
+
+### D83 latest: BOTH models complete, cleaned and plotted
+
+- Specsf5e238935c266edfdeb45ff237d195338b598969 PUSHED/remote SHA matched.
+  Real3B368/368 completed:360 representative +8explicit warmup.40service classes,
+  96preparation classes,3samples per preparation class;24static content classes.
+  Not Full/S1/SLO/numerical discrimination qualification. No production profile frozen.
+- 368remoteUUIDpairs exact,854130750B wire/14353166144B logical;72measured
+  Remote fetches +296controlled setup. No request packing. Original input hashes unchanged.
+- 585resource samples,peak5015142400B,high/max/OOM/swap0. Service/watchdog0/0,
+  native GPU contexts/service path/workspaces removed. Empty auxscope invocation
+  5853996aaae74b4d917c540000b13882 STOPPED. No local model remains.
+- P2 immediate interpretation/table and3TNR single-column PDF/PNG previews:
+  figs/ieee_tc/p2_backend/d83_3b_preview_attempt1. Actual loading d meansRemote973ms,
+  NVMe40ms,fileHOST40ms,nativeHOST15ms. ServiceD has additional waits; nativeHOST
+  D215ms exceeds NVMe157ms. Preserve discrepancy, do not claim monotonic tier gains.
+- Plotter only extended during inference (not imported by model). Inference source
+  stayedf5e2389. Seven new strict plotting tests pass in existing conda base;
+  old LLM_vllm0102 has no matplotlib. All43analysis-tools tests passed7.201s.
+  Backup a719e9c915efa189f222b50a88f6f7c520a7148b PUSHED/freshremoteSHA matched.
+  3B4/24static request groups have output SHA variation, same prompt/target;
+  retain all. Official vLLM default nondeterminism is a possible, not proven cause.
+- D83 remote units used unchanged shared configuration (now STOPPED below):
+  3B3af671e251a7464fbd6fcd31f4e3965a;7Bf09f1cde4b7d4458947fe637649fac31;
+  monitorf322f426d2d9402c9e0bacc22d7af998. Do not use old D82 identities.
+  Health clocks3B2762c9d63bc14907be430ef8935d4ebf,7B66c4e294d86644df8f283f2bed599d80.
+- 7B attempt1 sourcea719e9c failed engine_initialization0requests: rawlauncher
+  copied3B environment omitted already-qualified7B venv/bin PATH; FlashInfer
+  could not find installedninja. Prior P2 document records this same failure/fix.
+  Service2/watchdog0,69samples peak16224022528B,high/max/OOM0, actualGPUcontexts/
+  service/workspaces cleared; emptyaux89bc9fc714f6401e957074c9062e201a stopped.
+- Failure table a0ec5e023acbee52ae4213e890a6db1eab34871a PUSHED/freshremoteSHA matched.
+  Attempt2 launched19:02:24 in tmux tc-d83-7b-attempt2;
+  rawd83/run_7b_source_representative_attempt2.sh
+  with restored venv/bin PATH,CUDA_HOME13,FLASHINFER_NVCC13,MAX_JOBS2. No install,
+  backend substitution or model changes. Reuse this environment in all native
+  launchers. Do not re-run3B or reinterpret failure as performance sample.
+  Attempt2 completed19:11:92/92 (90+2warmup),20service/24preparation classes,
+  three observations per preparation class. Six fixed input groups preserve
+  both prompt/output SHA across sources/rounds. All native output counts exact.
+  92UUIDpairs verified,490763433B wire/2463242860B logical;18measuredRemote+
+  74setup transfers.513resource samples,peak4909465600B,high/max/OOM/swap0.
+  Service/watchdog0/0, GPU/service/workspaces released; emptyaux invocation
+  412bd195f42449a89fd3cbe8e5dbe6cd STOPPED. No live tmux/model remains.
+  Matching D83 remote monitor STOPPED after inference; both artifact services
+  inactive/MainPID0/Resultsuccess. Complete1619samplemonitor retrieved SHA
+  d6d7c85782424f9e8a486150547719248d33ef96772b985e5c515bfdbb00723e.
+  Curated20260927_d83_7b_source_representative.json; three TNR singlecolumn
+  figures d83_7b_preview_attempt2_layout2 visually checked. First preview kept
+  incomplete: QA falsely checked a locator tick outside displayed limits.
+  Fixed only QA to match drawn ticks, not data/axes;44analysis-tools tests pass.
+  NEXT: backup D83, resolve measured-profile applicability to Full subprocess
+  path, then integrated activation/lifecycle. No baseline/remote/allocator sweeps.
+- D83 applicability audit in progress: source collector currently uses direct
+  InferenceEngine, while IEEE Full uses SubprocessInferenceEngineProxy with
+  ieee_physical_allocation=True. Both ultimately use native EngineCore, but the
+  Full proxy adds a controller/worker communication boundary. Frozen profile
+  identity currently differs and must NOT be relabelled or bypassed. Inspect
+  measured interval boundaries and actual configuration before exporting Full
+  initialization; D83 remains valid direct-path development evidence. Do not
+  automatically repeat remote/publication/allocator checks or remove Full guard.
+- D83 completed evidence71206ed6a5b2bf7965596c1429b8cbb2e832a548 PUSHED and
+  freshremoteSHA verified. D84 now corrects source collector to actual Full
+  subprocess+physical allocation boundary and records effective child config.
+  Full pending descriptor/pre-init validation uses the identical factory's pure
+  config resolution; actual spawned worker still independently checked. No
+  profile identity fields removed, no Full guard bypass.367CPU integration tests
+  passed19.418s; first stale syntheticfixture run stopped29s, then fixture made
+  faithful to actual distinct controller/child configs. D84 no model run yet.
+  Next: complete OS/smoke and backup, then same representative indexes under
+  actual owned subprocess path; D83 raw observations remain direct-path evidence.
+  OS55pass0.796s/basic288pass22.440s, complete logs in rawd84. Final launch-only
+  regression also exit0; source direct-initialization retains original finally
+  ownership on startup failure. D84 specs preserve all D83 waves/bins/budgets/
+  input hashes, change only temporary campaign parent and record runtime boundary.
+  Prepared rawd84/run_{3b,7b}_physical_source_attempt1.sh; NOT LAUNCHED yet.
+
+### D84 attempt1 FAILED/CLEANED; collector fix tested, attempt2 not launched
+
+- Source143d1d6f69aa2c111d4bf0bcf030247b9f4e211a PUSHED/freshremoteSHA matched.
+  Final launch regression52pass11.631s; full OS/basic logs retained.
+- 3B physical-source attempt1 launched19:26, finished19:28; no live tmux/model.
+  Raw results/ieee_tc/p2_backend_qualification/d84_20260927,
+  run_3b_physical_source_attempt1.sh.368registered requests including8warmup,
+  same24classes/46waves as D83. Only warmup wave executed:6pass/2explicit stale
+  GPU-source rejections;0representative samples.106resourcesamples peak5631705088B,
+  high/max/OOM/swap0. Service2/watchdog0; physical allocation released and actual
+  GPU/service/workspaces cleared. Empty matchingauxcff45755 stopped. P2 status
+  table written;8warmup-setupUUIDs verified in attempt1_remote_3b_transfers.jsonl.
+  Collector omitted Full's finish+retry_known_conflict before re-reserving after
+  explicit no-acquisition. Fix reuses those existing transaction methods; core
+  protection unchanged. New2-conflict deterministic test and related regression
+  pass; no unknown-reply retry. Preserve failureSHA2a5ef80502b160718770f377ce74ff173534c227fc0087bc5a473bf7cea0880a.
+  NEXT backup fix then launch unique3B attempt2.7B PREPARED ONLY, not running.
+- Actual D84 remote identities (ACTIVE, freeze during inference):
+  3B bff65725fecf4544be930c6bae36782d,PID337915;
+  7B c8040d3b1e3d446fb7c262d93ac68480,PID337917;
+  monitor4d9737c682e5437d8e73d8ca29f03328,PID337920.
+  Healthclocks3B7a7e42805e874021b2894e197da4ea75,
+  7Bf08dc9e4e1ba495abbd7a17b8b80ff18. Immutable cache/service limits unchanged.
+  Monitorlog /home/lab14/primelora_remote/tc/d84_20260927/remote_monitor.log.
+  Stop only matching monitor after all inference; retrieve latest transfer
+  files and final monitor, not old D83 journal filenames.
+- Local auxiliaryscope primelora-tc-aux-d8400000000000000000000000000001.scope.
+  Actual invocationcff4575515de423d9403a3c2dd519e8a. All D83 scopes dead.
+  Mainline remains profile export then Full integration; baselines PAUSED.
+
+### D84 latest: BOTH physical-source calibrations COMPLETE; Full binding next
+
+- Source488a716e78c1819b6d6082553b983c9f8d6e5170 PUSHED/freshremoteSHA matched.
+  Known-conflict collector correction187tests passed14.218s; complete log inraw.
+- Launched19:33:33, tmux tc-d84-3b-attempt2, rawd84
+  run_3b_physical_source_attempt2.sh. Same368requests/spec/budgets; no new test
+  point or hidden retry of failed attempt1. Monitor to terminal before any7B.
+- Newauxscope primelora-tc-aux-d8400000000000000000000000000003.scope;
+  invocation4320174dea8743e4a7b3213d74b64cfd; attempt1aux is stopped.
+- Remote D84 monitor/services SAME invocation/health clocks, no restart. Current
+  3B server journal is d80_20260927/3b/transfers-5a3ef10c7f054c7b8f811f7d78db01df.jsonl.
+  It already contains8attempt1setup transfers. Join each run by exact HTTP UUID
+  set; do NOT demand whole journal count equals onlyattempt2. Failed8 preserved
+  in localattempt1_remote_3b_transfers.jsonl. No remote management duringrun.
+- D83 remains complete/backedup direct-path evidence. New physical profiles
+  still NOT frozen/qualified. Full, M1/M2/A/S pending; do not bypass Full guard.
+  At19:35 attempt2 passed warmup and the first Remote/NVMe measurement waves;
+  collector's known-conflict failure has not recurred. Model still running,
+  no result JSON yet. Last safety sample showed105GiBavailable,5.26GiBpeak,
+  high/max/OOM0 and no abort. Do not mistake partial samples for completed run.
+- Completion19:44 supersedes preceding live notes:368/368,360representative+8warmup,
+  24content/40service/96preparation classes; each preparation class3samples.
+  Physical owned subprocess leaseb7e88b83c8a7431e9f6c1963c782f9c8 released;
+  service/watchdog0/0,actualGPU/service/workspaces gone. Emptyaux4320174d stopped.
+  633samples peak5645193216B,high/max/OOM/swap0.368UUID pairs exact;376journal
+  records include8failed-attempt1setup, not counted again. Wire854130750B,
+  logical14353166144B,72measured/296setup transfers,packing0.
+  Curated20260927_d84_3b_physical_source.json;3figures d84_3b_physical_attempt2
+  visuallychecked/TNRembedded/3.45inch. Two output groups have2SHA each; prompt/
+  target fixed, variation retained, no numerical adapter discrimination claimed.
+  95explicit no-acquisition reselections:4GPU/85nativeHOST/6file conflicts;
+  all controller reservations retired. Rejected native holds never acquired a
+  lease, so correctly remain rejected rather than falsely recording release.
+  HOSTtensor Dmean1027ms versus actual-load d15.37ms; retain wait discrepancy.
+  Full integration should examine it, not assume tensor caching wins all metrics.
+  NEXT same frozen remote services/spec and existing7B physical attempt1 launcher.
+- 7B physical attempt1 launched19:50:13, tmux tc-d84-7b-attempt1, source488a716;
+  original92requests/46waves and compiler environment retained. Prelaunch health
+  and all3remote invocation IDs matched; no remote configuration changed. Actual
+  service scope primelora-tc-svc-37cd0d650a8b48cb88457e98316aff7f.scope.
+  Monitor to terminal, then cleanup/UUID validation/plots before any further run.
+- Integrated configuration audit found another explicit prerequisite BEFORE any
+  profile export as Full: D84 model_config has no ieee_admission_profile. Native
+  scheduler therefore has no completed-length initializer/transfer owner. Full
+  requires these for proactive E(t); adding that dictionary changes actual model
+  config and vLLM additional_config hash. Do not relabel D84 as that different
+  runtime or drop identity fields to force acceptance. Derive measured length
+  priors and settle ALL Full/controller settings together before more GPU runs.
+  Reuse D83/D84 raw native token/load evidence where valid; no blind full matrix
+  repetition. Current measurements remain correct source-only development data.
+  Candidate next audit must cover actual native prompt bins (including tail),
+  missing classes, IEEE scale limits/windows, routing bin and EWMA beta, owned
+  activation/planning resource bindings. Full unconditional guard remains intact.
+- 7B completed19:57:92/92 (90+2warmup),6content/20service/24preparation classes,
+  3samples/preparation class.11explicit source rejections safely retired/reselected.
+  92remoteUUIDs exact,490763433Bwire/2463242860Blogical,18measured/74setup,
+  packing0.402local samples peak5703483392B,high/max/OOM/swap0. Service/watchdog0/0,
+  physicalleasef47f416e371b49f6970fdd6793b00510 released;GPU/service/workspacesclear.
+  Emptyaux095dcd5e6ad04b34a769c6f72993402e STOPPED. Curatedd84_7b_physical_source
+  and three TNR figures d84_7b_physical_attempt1 visuallyverified. Legal_lora has
+  2outputSHA across sources/rounds; allsameprompt/target, variation retained.
+- AFTER all inference, matchingD84monitor4d9737c6 STOPPED; its trap stopped
+  matching3B/7B. All3inactive/MainPID0/Resultsuccess. Complete monitor1729samples,
+  minhost109322158080B, maxfullPSI0,mindisk147778523136B; localremote_monitor_final.log.
+  Current7Bjournal transfers-87bb8cae4aab435586b0649318c310af.jsonl copied locally.
+  No live tmux/model/remote service remains. Next evidence backup, then complete
+  Full initialization binding audit ABOVE; not another remote/allocator sweep.
+- Offline reuse completed:20260927_d84_completion_length_audit.json recovers
+  actual native completed-output priors without another GPU run. Distinct original
+  requests3B21/7B6; repeated sources/rounds verified before deduplication. Native
+  prompt760 exists despite content cap759, so the native tail bucket is real.
+  For bounds[759], observed output means3B98.375/171.69230769230768 (n8/13),
+  7B121.33333333333333/256 (n3/3). Bothbuckets observed; no guessed tail mean.
+  These remain development bootstrap observations, not frozen optimal production
+  settings or independent repeats. Full binding still must include its actual
+  admission profile and associated data source identity.
+### D81 completed four-way real-remote qualification; Full profiling next
+
+- BOTH models:3waves×4lanes=12/12verified, each wave observed4server-handler
+  overlap via same-clock UUID records.3Bwire28075224B/logical675929616B,
+  loop1.696959s;7Bwire176838192B/logical251264148B,loop2.371959s. No packing.
+  Exact compressed/original content and bytes agree for every transfer.
+- Local peaks283430912/178532352B; remote27054080/31903744B at completion;
+  allhigh/max/OOM/swap0. Client/watchdog0/0, service paths gone, empty owned
+  auxiliary scopes stopped. Both original pools/caches intact, no new pool/trace.
+- Remote monitor65b1f8f2997e44f3a3d4ec1fdd5ce132 STOPPED after both clients.
+  Services5f32136ac7eb40769b7d2d6d97bf683f/a7db5c5d428e4e21bb229342fe92a3b4
+  inactive/MainPID0/Result=success. OldPID204149/204151/204154 are notlive.
+  Final monitor SHA bfe39e36e6ee84197dad8c57c39f91fe90d60ad7a698a02d83238c5c375e8dab.
+- No remote setting changed. Immediate health checks preceded startup archive
+  hashing and were refused; subsequent SAME invocation health passed, no restart.
+- Existing Llama3B/7B formal4000_s8 profiles both use max_concurrent_loads=3.
+  Four-lane qualification comes from plan microtest condition, not tuning Full
+  concurrency. The class default5 is NOT the effective config.
+- Curated20260927_d81_{3b,7b}_concurrent.json and REMOTE_ACCESS immediate tables.
+  This qualifies observed4-way candidate delivery, NOT final all-baseline bounds
+  or Full profiles. No more publication/full-pool/concurrent repeats needed.
+  Return directly to representative native source/preparation collector.
+
+Earlier preparation details (completed; not new launch instructions):
+
+- D80 evidence checkpoint88e6ad9f4174d43da98446763678d8d88de1374b PUSHED;
+  fresh remote SHA matched. All42new raw SHA references/147protected entries pass.
+- Existing scripts/remote_artifact_client.py adds opt-in verify-concurrent only:
+  explicit static IDs/lanes, simultaneous waves, exact published content, per-lane
+  UUIDs, join failures/cleanup, exclusive JSONL. No server/core algorithm change.
+  No artificial sleep or claim that client overlap proves wire/server overlap.
+-36HTTP/client tests PASS4.162s;288offline basic smoke PASS22.341s, bounded unit
+  runtime30.096s. Complete HTTP log retained; smoke terminal output truncated,
+  footer proves success but is not a full log. Rawd81_20260927/client_tests.json
+  and basic_smoke_terminal.json. No model/GPU experiment launched.
+- IMPORTANT correction: PreloadingManager class default5 is NOT necessarily
+  effective Full concurrency. _build_experiment_config uses coord.max_concurrent_loads,
+  then preload.max_concurrent_operations, then3. Existing YAML has2/3 overrides.
+  Derive final effective model/workload configuration before choosing the
+  concurrent qualification lanes. Do not launch current default Qwen profile;
+  IEEE models remain Llama3.2-3B and Llama2-7B.
+- Candidate static largest compressed objects (read from completed D78 manifest):
+  3Bcode_lora_0315=2339602B wire/56327468B logical;
+  7Bmedical_lora=14736516B wire/20938679B logical.
+  7B largest logical object differs:code_lora_0015=37716322B logical.
+  Use measured identity/footprint; no new data. Do not confuse compressed size
+  with original payload, HOST footprint or training diversity.
+- Remote services remain INACTIVE. The completed check reused D80 server/units/
+  immutable caches/monitor with new unit identity and exclusive log files. Do
+  NOT rerun activation script that refuses existing D80 logs or overwrite them.
+  Common all-baseline concurrency qualification is still open; a Prime-specific
+  bound must not be called an all-system production guarantee.
+
+1. D81 has qualified4-way published delivery under2/4GiB remote limits, enough
+   for the next Prime candidate profiling. Freeze actual Full configuration and
+   verify integrated transfer concurrency; do not repeat finished remote checks.
+   All-baseline common bounds are audited when those systems resume, not claimed now.
+2. Extend existing source/profile collector for representative Remote, file-HOST/
+   NVMe, native-HOST and GPU sources plus actual concurrency. Reuse frozen inputs,
+   completed loading events, and existing admission helpers with
+   collect_profile_only=True. Do not fabricate router estimates to bootstrap.
+3. Choose/validate native HOST B/C under unchanged common80GiB inference budget.
+   D60 uncached_background_v1 + D61 observed return are accepted candidates, not
+   a selected production budget/profile. No allocator/bootstrap/install repeats.
+4. Existing development1000 prefixes cover3B21/24 and7B6/6 exact file-content
+   classes. Missing3B static representatives:support_lora_0148,research_lora_0104,
+   finance_lora_0073. D76 P2 document records source trace hashes.
+   D26 serial32 was28GPU/4HOST with16primed; NOT representative Full costs.
+5. Then actual integrated IEEE Full multi-activation/lifecycle qualification.
+   _require_ieee_full_qualification still intentionally rejects; do not remove
+   guard or invent missing D/T/O/preparation profiles. Frozen profiles need exact
+   backend/config/environment/resource/input identity and complete observed classes.
+6. Baselines resume only after Prime Full:Serverless→vLLM→S-LoRA→dLoRA3B→
+   Loquetier→HydraServe. M1/M2/A1–A5/S1–S13 all pending (442conditional core
+   slots plus qualifications/extras, not442unique completed jobs).
+7. All-zero limitation:3B500/500,7B498/500 weights zero,2/4distinct weightSHAs.
+   D63 wrong/correct controls not discriminative. Nonzero fixture permission
+   unanswered; do not re-ask repeatedly/download/generate or claim numerical
+   correctness. Other Full implementation/profile work can continue independently.
+
+## Assets and current service state
+
+- Main /home/qhq/serverless_llm_experiment_retry14_baseline,
+  retry14_continuous_queue_v2. Baseline /home/qhq/serverless_llm_baselines/main,
+  HEAD9e2cf28903ed11bc8ee891dd4cc9636b94307573, PAUSED.
+- Native /home/qhq/.venvs/primelora_vllm0300_tc_20260925:
+  vLLM0.30/torch2.13/CUDA13; no reinstall/driver upgrade.
+  CPU tests /home/qhq/anaconda3/envs/LLM_vllm0102/bin/python;
+  OS guards /usr/bin/python3 (required pidfd API).
+- Real remote alias primelora-artifact-174, lab14@192.168.4.174:8122,
+  strict BatchMode/host check. Fingerprint
+  SHA256:wkvfU2qJWd6V7TCPYpot5PHXJlgBChI03Npu4y7bb40.
+  Private key ~/.ssh/primelora_artifact_174_ed25519_20260925,0600,outsideGit.
+  Local/remote token ~/.config/primelora-tc-d75/artifact.token,0600.
+  NEVER print values/put credentials in journals or Git.
+- D80/D83/D84 monitors and both artifact services INACTIVE; D84 stopped19:57
+  after both physical-source models completed. No local model or live tmux.
+  Do not reuse old PIDs/invocations. Unit fragments/cache remain deployed.
+- Cache root /home/lab14/primelora_remote/tc/d78_20260927/published/{3b,7b}.
+  Source pools /home/lab14/primelora_remote_artifacts/
+  llama32_3b_a500_v1_modelscope and llama2_7b_a500_v2_publicmix.
+  HTTP18080/18081, no13B.
+- Correct indices ONLY:
+  paper_results/ieee_tc/inputs/20260927_3b_remote_content_index.json,
+  SHA bd1826c58f00ea30dee1d3829dc11727a975127db701a1eee6c6c86b4a38f275;
+  20260927_7b_materialized_content_index.json,
+  SHA e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c.
+  Canonical HTTP SHA3Bac8e9b36c328376a9e1ecec6a4d928dd684f4d94e3fa4d2e08f531b166da145e;
+  7B684c7ab113b6a51b694066753b340fce4eb0b26f565e1f9b7ebbd97d3b8ea050.
+  Misnamed7b_remote_content_index4998files is local diagnostic, NOT valid full7B.
+- External reboot~15:06, not agent initiated: localboot
+  aef67ed2-79d1-46bc-82e4-37401a5b45bf; remote
+  b53c1f16-1dd2-4741-9271-6b75e86582ec. Current direct link1000Mb/s/full BOTH
+  endpoints and remote peer advertises1000. D77 earlier100M historical only;
+  physical reason not confirmed. No agent network change, no inspected qdisc cap.
+- Main results symlinks to /home/qhq/serverless_llm_experiment/results.
+  D80 snapshots/failed activation retained. No old results overwritten.
+
+## Protection, reporting and backup
+
+- Common inference72/80GiB/swap2GiB, auxiliary4GiB; one heavy run at a time.
+  Actual workers contained BEFORE start, external watchdog, native release.
+  No global kill/ray-stop/reset/remote reboot or unrelated cleanup.
+- Protected147entries seal
+  paper_results/ieee_tc/safety/20260925_execution_start_protected.json,
+  SHAfa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6.
+  Verify with scripts.ieee_tc_preflight.verify_seal.
+- Preserve/exclude user configs/generated/lora_manifest_1000.json, AAAI archive/
+  dir, oldfig7/fig2/fig3,scripts/regenerate_motivation_figs.py; rejected D72/D73
+  previews untracked. Baseline unrelated dirty files untouched.
+- Main push faaslora_origin/retry14_continuous_queue_v2; baseline own origin/main.
+  Before push diff/secrets/protected-name/checksum/test/smoke; fresh remote SHA.
+  Raw large logs/credentials never Git. Explicit paths only, no force push.
+- Each run cleanup→validation→table/figure→interpretation→next. Chinese reports
+  at least each minute during work from paper-evidence view. Functional checks
+  use status tables, not manufactured performance plots. Use academic-plotting
+  for actual figures per plan IEEE single-column/TNR/no overlap rules.
+- Relevant pre-optimization evidence: P1_FORMULA_IMPLEMENTATION,
+  P2_BACKEND_QUALIFICATION, PHYSICAL_GPU_MEASUREMENT, RESOURCE_QUALIFICATION,
+  EXTERNAL_REPLAY_QUALIFICATION, ARTIFACT_CONTENT_AUDIT,
+  NATIVE_ADAPTER_NUMERIC_CONTROL,P0_FULL_PROVENANCE,REMOTE_ACCESS.
+- Verbatim archives contain SUPERSEDED live/next-action text, not fresh directives:
+  EXECUTION_HISTORY_D78_D80.md SHA090798cbdf7ab651797e8fa7df2245f7c0dc3c3fe911397b37a67183feb3f99e;
+  D67_D77 SHA608d83d2440b27cd071d5e85a3d41d92d8b74c100952bf530ec58c5e7c8dab21;
+  THROUGH_D26 SHA4e91643d959967f1f0dc8642fe969d35380f2156cf8c820964019539d3b415cb;
+  D27_D52 SHAbd56dec4a43d7e03f35e8a9b1b26ac598378df4ca75429e0d1344d237e0d1dfe;
+  D53_D66 SHA47b9a76adad6b7dacb1977133389c56cebbb921531d0c1921a5f2ea5618ee35c.

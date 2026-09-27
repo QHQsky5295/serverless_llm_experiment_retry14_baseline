@@ -123,6 +123,7 @@ class IEEEIntegratedLaunchContract(unittest.IsolatedAsyncioTestCase):
             deployment_notice_s=notice,replay_t0_s=notice+60,tiny_witness=False)
         service = runner.ScenarioRunner.__new__(runner.ScenarioRunner)
         self.service = service
+        service.wl_cfg = dict(request_timeout_s=1800.)
         service.model_cfg = dict(backend='vllm',ieee_gpu_references=True,
             ieee_physical_allocation=True,timing_contract='ieee_tc_native_v1',
             tensor_parallel_size=1,runtime_concurrency_cap=2,
@@ -172,6 +173,8 @@ class IEEEIntegratedLaunchContract(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(receipt['formal_comparison_qualified'])
         self.assertEqual(receipt['dispatch_admission_mode'],'open_loop_trace_replay')
         self.assertEqual(receipt['runtime_concurrency_cap'],2)
+        self.assertEqual(receipt['request_timeout_s'],1800.)
+        self.assertEqual(receipt['request_deadline_origin'],'planned_arrival')
         self.service.engine_factory.assert_not_awaited()
         self.assertIsNone(self.service.engine.engine)
 
@@ -1762,6 +1765,85 @@ class ExternalDispatcherIntegration(unittest.IsolatedAsyncioTestCase):
 
 
 class DeploymentTerminalIntegration(unittest.IsolatedAsyncioTestCase):
+    def deadline_runner(self, timeout):
+        r = runner.ScenarioRunner.__new__(runner.ScenarioRunner)
+        r.wl_cfg = {} if timeout is None else dict(request_timeout_s=timeout)
+        r._physical_deployment = SimpleNamespace(terminal=Mock())
+        return r
+
+    async def test_deadline_uses_offered_arrival_and_never_starts_expired_work(self):
+        r = self.deadline_runner(1.)
+        serve = AsyncMock()
+        with self.assertRaisesRegex(TimeoutError, 'planned-arrival'):
+            await r._run_offered_request('q', time.perf_counter()-2., serve)
+        serve.assert_not_awaited()
+        row = r._physical_deployment.terminal.call_args.kwargs
+        self.assertEqual(row['error_type'], 'TimeoutError')
+        self.assertFalse(row['interrupted'])
+        self.assertIsNone(row['result'])
+
+    async def test_deadline_waits_for_cancellation_cleanup_and_records_timeout(self):
+        r = self.deadline_runner(.02)
+        cleaned = asyncio.Event()
+        async def serve():
+            try:
+                await asyncio.Future()
+            finally:
+                await asyncio.sleep(0)
+                cleaned.set()
+        with self.assertRaises(TimeoutError):
+            await r._run_offered_request('q', time.perf_counter(), serve)
+        self.assertTrue(cleaned.is_set())
+        r._physical_deployment.terminal.assert_called_once()
+        row = r._physical_deployment.terminal.call_args.kwargs
+        self.assertEqual(row['error_type'], 'TimeoutError')
+        self.assertFalse(row['interrupted'])
+
+    async def test_outer_cancel_is_not_converted_to_request_timeout(self):
+        r = self.deadline_runner(10.)
+        entered, cleaned = asyncio.Event(), asyncio.Event()
+        async def serve():
+            entered.set()
+            try:
+                await asyncio.Future()
+            finally:
+                cleaned.set()
+        task = asyncio.create_task(r._run_offered_request('q', time.perf_counter(), serve))
+        await entered.wait()
+        task.cancel()
+        with self.assertRaises(asyncio.CancelledError):
+            await task
+        self.assertTrue(cleaned.is_set())
+        row = r._physical_deployment.terminal.call_args.kwargs
+        self.assertEqual(row['error_type'], 'CancelledError')
+        self.assertTrue(row['interrupted'])
+
+    async def test_success_and_cleanup_failure_are_not_relabelled(self):
+        for timeout in (None, 10.):
+            r = self.deadline_runner(timeout)
+            output = object()
+            self.assertIs(await r._run_offered_request('q', time.perf_counter(),
+                AsyncMock(return_value=output)), output)
+            self.assertIs(r._physical_deployment.terminal.call_args.kwargs['result'], output)
+        r = self.deadline_runner(.01)
+        async def serve():
+            try:
+                await asyncio.Future()
+            finally:
+                raise RuntimeError('native ownership unresolved')
+        with self.assertRaisesRegex(RuntimeError, 'ownership unresolved'):
+            await r._run_offered_request('q', time.perf_counter(), serve)
+        self.assertEqual(r._physical_deployment.terminal.call_args.kwargs['error_type'], 'RuntimeError')
+
+    def test_deadline_configuration_must_be_finite_positive_and_explicit_for_full(self):
+        for value in (0., -1., float('nan'), float('inf'), True, '1800'):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                self.deadline_runner(value)._request_timeout_seconds()
+        self.assertIsNone(self.deadline_runner(None)._request_timeout_seconds())
+        with self.assertRaisesRegex(ValueError, 'explicit'):
+            self.deadline_runner(None)._request_timeout_seconds(required=True)
+        self.assertEqual(self.deadline_runner(1800)._request_timeout_seconds(required=True), 1800.)
+
     async def test_shutdown_visits_draining_members_not_only_serving_slots(self):
         from faaslora.experiment.instance_pool import InstancePool
         r = runner.ScenarioRunner.__new__(runner.ScenarioRunner)
@@ -1822,6 +1904,95 @@ class DeploymentTerminalIntegration(unittest.IsolatedAsyncioTestCase):
             await r._shutdown_instance_pool()
         self.assertEqual(r._cleanup_removed_slot.await_count, 2)
         self.assertEqual(slots, {})
+
+
+class MainOutcomeRetention(unittest.IsolatedAsyncioTestCase):
+    def make_fixture(self, root):
+        claims = runner._create_ieee_run_workspaces([root/'nvme', root/'host'])
+        stack = runner.ExperimentStack(adapter_info={}, hardware_cfg={}, coord_cfg={},
+            preload_cfg={},remote_dir=root/'remote',nvme_dir=root/'nvme',host_dir=root/'host')
+        service = SimpleNamespace(name='fixture',traces=[SimpleNamespace(request_id='r')],
+            _physical_deployment=SimpleNamespace(root=root),
+            _shutdown_instance_pool=AsyncMock(), _current_coord_metrics=Mock(return_value={'measured':1}),
+            _interrupted_replay_evidence=[dict(complete=False,requests=[dict(request_id='r',success=False)])],
+            _remote_transfer_evidence=[dict(http_request_id='exact-uuid')],
+            _adapter_transfer_pressure_evidence=[],_ieee_full_launch_contract={'fixture':True})
+        return claims, stack, service
+
+    def test_existing_or_overlapping_workspace_is_never_cleared(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            (root/'host').mkdir()
+            (root/'host'/'unique').write_text('protected')
+            with self.assertRaises(FileExistsError):
+                runner._create_ieee_run_workspaces([root/'nvme',root/'host'])
+            self.assertFalse((root/'nvme').exists())
+            self.assertEqual((root/'host'/'unique').read_text(),'protected')
+            with self.assertRaises(ValueError):
+                runner._create_ieee_run_workspaces([root/'new',root/'new'/'nested'])
+
+    async def test_cleanup_uses_actual_owner_and_keeps_receipt(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            claims,stack,service=self.make_fixture(root)
+            (root/'host'/'payload').write_bytes(b'existing-cache')
+            await runner._finish_ieee_main_scenario(service,stack,claims,None)
+            row=json.loads((root/'main_outcome.json').read_text())
+            self.assertTrue(row['cleanup']['complete'])
+            self.assertFalse((root/'host').exists())
+            self.assertFalse((root/'nvme').exists())
+            self.assertEqual(row['remote_transfers'][0]['http_request_id'],'exact-uuid')
+            service._shutdown_instance_pool.assert_awaited_once()
+            with self.assertRaises(FileExistsError):
+                await runner._finish_ieee_main_scenario(service,stack,claims,None)
+
+    async def test_primary_error_survives_secondary_shutdown_and_snapshot_failure(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            claims,stack,service=self.make_fixture(root)
+            original=ValueError('original controller failure')
+            service._shutdown_instance_pool.side_effect=RuntimeError('native release unresolved')
+            service._current_coord_metrics.side_effect=RuntimeError('snapshot incomplete')
+            stack.stop=AsyncMock()
+            await runner._finish_ieee_main_scenario(service,stack,claims,original)
+            stack.stop.assert_awaited_once()
+            row=json.loads((root/'main_outcome.json').read_text())
+            self.assertEqual(row['error']['type'],'ValueError')
+            self.assertFalse(row['run_completed'])
+            self.assertFalse(row['cleanup']['complete'])
+            self.assertEqual(row['interrupted_replays'][0]['requests'][0]['request_id'],'r')
+            self.assertEqual(row['remote_transfers'][0]['http_request_id'],'exact-uuid')
+            self.assertTrue(row['measurement_errors'])
+            self.assertTrue((root/'host').exists())
+
+    async def test_cleanup_failure_invalidates_otherwise_completed_run(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            claims,stack,service=self.make_fixture(root)
+            service._shutdown_instance_pool.side_effect=RuntimeError('native release unresolved')
+            with self.assertRaisesRegex(RuntimeError,'native release unresolved'):
+                await runner._finish_ieee_main_scenario(service,stack,claims,None)
+            row=json.loads((root/'main_outcome.json').read_text())
+            self.assertFalse(row['cleanup']['complete'])
+            self.assertEqual(row['cleanup_errors'][0]['stage'],'runtime_shutdown')
+
+    async def test_reference_or_replaced_root_prevents_deletion(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            claims,stack,service=self.make_fixture(root)
+            adapter=root/'host'/'a'; adapter.mkdir()
+            (adapter/'adapter_config.json').write_text('{}')
+            owner=stack.residency_manager.local_source_references
+            lease=owner.acquire(path=str(adapter),adapter_id='a',lease_id='reader')
+            with self.assertRaisesRegex(RuntimeError,'references'):
+                runner._cleanup_ieee_run_workspaces(stack,claims)
+            self.assertTrue(adapter.exists())
+            owner.release(lease_id=lease['lease_id'],expected_owner_id=owner.owner_id)
+            (root/'host').rename(root/'original-host')
+            (root/'host').symlink_to(root/'original-host',target_is_directory=True)
+            with self.assertRaisesRegex(RuntimeError,'identity'):
+                runner._cleanup_ieee_run_workspaces(stack,claims)
+            self.assertTrue((root/'original-host'/'a').exists())
 
 
 class NativePhysicalShutdown(unittest.IsolatedAsyncioTestCase):
