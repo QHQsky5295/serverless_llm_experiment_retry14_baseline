@@ -2664,6 +2664,318 @@ async def qualify_native_cancel_reference(engine, plan, adapters, result, *, inc
     result.update(stage='complete', **{'pass': True})
 
 
+async def collect_native_source_wave(boundary, slot, cases, result):
+    """Measure real selected-source admission/preparation on one native worker.
+
+    Cases are explicit indexes into frozen inputs, not a replacement replay.
+    The caller establishes controlled source states before this function. There
+    is no router estimate, priming, forced admission barrier or synthetic D/T/O.
+    Concurrent tasks retain their actual post-accept class and all are joined,
+    including after a sibling fails. This is profiling, not a Full qualification.
+    """
+    import asyncio
+    from dataclasses import asdict
+    from faaslora.clock import local_monotonic_clock_id
+    from faaslora.experiment.instance_pool import (
+        NativeSourceSnapshot, NativeServiceIntervalObserver, confirmed_source_class)
+    from scripts.run_all_experiments import RuntimeRequestReservation
+
+    if not cases or len({c['adapter_id'] for c in cases}) != len(cases):
+        raise ValueError('source wave needs distinct existing adapters; shared misses need a separate study')
+    if slot.active_requests or len(cases) > min(
+            boundary._runtime_forward_capacity_limit(), boundary._runtime_max_active_loras()):
+        raise ValueError('source wave exceeds the actual empty runtime capacity')
+    engine, clock_id = slot.engine, local_monotonic_clock_id()
+    admission_lock = asyncio.Lock()
+    tasks = []
+
+    async def measure(spec):
+        row, aid = spec['row'], spec['adapter_id']
+        target = min(row['expected_output_tokens'], 256)
+        case = dict(request_id=spec['case_id'], source_request_id=spec['source_request_id'],
+            adapter_id=aid, target_tokens=target, requested_source=spec['source'],
+            source_row_sha256=spec['source_row_sha256'], **{'pass': False})
+        result['requests'].append(case)
+        reservation = RuntimeRequestReservation(spec['case_id'])
+        case['source_evidence'] = reservation.gpu_reference_evidence
+        try:
+            prepared = engine.prepare_request('', target, row['expected_input_tokens'],
+                                              chat_messages=row['body']['messages'])
+            if prepared.max_tokens != target:
+                raise ValueError('source profiling changed fixed output target')
+            case.update(prompt_sha256=hashlib.sha256(prepared.prompt.encode()).hexdigest(),
+                        input_content_tokens=prepared.input_tokens)
+            # Selection/reference transactions serialize, but the complete
+            # preparation and generation below do not. Native state can change
+            # in another task; only an explicitly rejected hold is re-observed.
+            async with admission_lock:
+                ok, reserved = boundary._try_reserve_runtime_request_slot(slot, aid)
+                if not ok:
+                    raise RuntimeError('source wave could not reserve its declared runtime lane')
+                reservation.bind(slot, aid, reserved)
+                reservation.ieee_routing_evidence = dict(selection='single_worker_source_profiling_not_router')
+                while True:
+                    raw = await engine.ieee_gpu_reference(operation='source_snapshot')
+                    state = NativeSourceSnapshot.from_native(raw, expected_clock_id=clock_id,
+                        received_monotonic_s=time.monotonic())
+                    if not slot.commit_native_sources(state) or state.unknown_native_adapter_ids:
+                        raise RuntimeError('profile source lacks complete received native state')
+                    files = boundary._stack.residency_manager.local_source_references.source_snapshot(aid)
+                    identity = boundary._ieee_artifact_identities[aid]
+                    key, source = confirmed_source_class(native=state, files=files, identity=identity,
+                        adapter_int_id=engine._lora_int_id(aid), bins=slot.service_class_bins,
+                        prompt_tokens=prepared.input_tokens, declared_output_tokens=target,
+                        admitted_after_accept=slot.active_requests)
+                    observed = ('native_host' if source['native'] and source['tier'] == 'host'
+                                else 'file_host' if source['tier'] == 'host' else source['tier'])
+                    if observed != spec['source']:
+                        raise RuntimeError(f'controlled source changed: expected {spec["source"]}, observed {observed}')
+                    if await boundary._ieee_protect_selected_source(
+                            reservation, source, key, collect_profile_only=True):
+                        break
+                    case.setdefault('rejected_source_views', []).append(dict(
+                        native_owner_id=state.owner_id, native_epoch=state.epoch,
+                        file_epoch=files['epoch'], source=dict(source)))
+            reference = await boundary._ieee_prepare_selected_adapter(reservation)
+            observation = reservation.ieee_observation
+            observer = NativeServiceIntervalObserver(observation, clock_id=clock_id,
+                                                     adapter_id=aid, gpu_reference=reference)
+            reservation.ieee_native_observer = observer
+            reservation.generation_started = True
+            generated = await asyncio.wait_for(engine.generate_prepared(request_plan=prepared,
+                lora_path=reference['lora_path'], adapter_id=aid, temperature=0., top_p=1.,
+                generation_seed=42, return_timing=True, gpu_reference=reference,
+                native_event_observer=observer), timeout=1800.)
+            timing = generated[3]
+            reservation.native_terminal_observed = timing.get('native_terminal_observed') is True
+            admission = reservation.gpu_reference_evidence['source_admission']
+            source = admission['source']
+            case.update(actual_tokens=generated[2], timing=timing, native_events=observer.events,
+                reference=reference, service_class=asdict(observation.key),
+                class_features=dict(tier=source['tier'], representation=source['representation'],
+                    footprint_bytes=source['footprint_bytes'], adapter_rank=identity['rank'],
+                    prompt_tokens=prepared.input_tokens, declared_output_tokens=target,
+                    admitted_after_accept=admission['admitted_after_accept']),
+                admission_clock_id=clock_id, native_clock_id=timing['native_clock_id'],
+                admitted_monotonic_s=observation.admitted_at, acquired_monotonic_s=observation.acquired_at,
+                first_token_monotonic_s=observation.first_at, last_token_monotonic_s=observation.last_at,
+                protected_at_admission=True)
+            if (generated[2] != target or not reservation.native_terminal_observed
+                    or len(observer.events) != 2 or not observation.closed
+                    or observer.events[-1]['token_count'] != target
+                    or observation.first_at != timing['native_first_token_monotonic_s']
+                    or observation.last_at != timing['native_last_token_monotonic_s']):
+                raise RuntimeError('source profiling lacks matching native completion events')
+            case['pass'] = True
+        except BaseException as exc:
+            case.update(error_type=type(exc).__name__, error=str(exc))
+            raise
+        finally:
+            try:
+                await boundary._finish_runtime_request_reservation(reservation)
+                case['reservation_released'] = reservation.released
+                if reservation.bound and not reservation.released:
+                    raise RuntimeError('profile reservation remains owned; worker must be retired')
+            except BaseException as exc:
+                case.update(cleanup_error_type=type(exc).__name__, cleanup_error=str(exc), **{'pass': False})
+                raise
+        print(json.dumps(dict(event='native_source_profile_sample', request_id=case['request_id'],
+            adapter_id=aid, source=case['requested_source'], actual_tokens=case['actual_tokens'])), flush=True)
+
+    for case in cases:
+        tasks.append(asyncio.create_task(measure(case)))
+    group = asyncio.gather(*tasks, return_exceptions=True)
+    try:
+        outcomes = await asyncio.shield(group)
+    except asyncio.CancelledError:
+        for task in tasks:
+            task.cancel()
+        while not group.done():
+            try:
+                await asyncio.shield(group)
+            except asyncio.CancelledError:
+                pass
+        raise
+    for outcome in outcomes:
+        if isinstance(outcome, BaseException):
+            raise outcome
+    if slot.active_requests or slot.active_adapter_counts or boundary._unsettled_runtime_reservations:
+        raise RuntimeError('source wave left controller/native ownership unsettled')
+
+
+def source_profile_inputs(path, plan, cfg, pool):
+    """Resolve a small profiling index; never create a trace or adapter payload."""
+    from faaslora.experiment.instance_pool import ServiceClassBins
+    from faaslora.storage.http_artifact_store import HttpArtifactStoreClient
+    spec = json.loads(Path(path).read_text())
+    if spec.get('kind') != 'native_source_profile_spec_v1':
+        raise ValueError('unknown source profile specification')
+    if spec.get('trace_sha256') != plan.source_sha256:
+        raise ValueError('profile specification references another source trace')
+    def verified_file(reference):
+        target = Path(reference['path'])
+        target = target if target.is_absolute() else ROOT / target
+        if digest(target) != reference['sha256']:
+            raise ValueError('profile input reference SHA256 differs')
+        return target
+    index_path = verified_file(spec['content_index'])
+    index = json.loads(index_path.read_text())
+    # Identity-only client: no connection/download and no token in the spec.
+    client = HttpArtifactStoreClient(endpoint='http://127.0.0.1:1')
+    client.configure_content_manifest(index)
+    entries = {entry.request_id: entry for entry in plan.entries}
+    static_ids = {a['id'] for a in index['artifacts']}
+    bins = ServiceClassBins(**{key: tuple(value) for key, value in spec['bins'].items()})
+    overrides = spec['model_overrides']
+    allowed = {'ieee_host_budget_bytes', 'ieee_native_host_tensor_budget_bytes',
+               'ieee_native_host_workspace', 'ieee_native_host_allocator_policy'}
+    if set(overrides) != allowed or overrides['ieee_native_host_allocator_policy'] != 'uncached_background_v1':
+        raise ValueError('source profiling requires the qualified HOST policy, not arbitrary model overrides')
+    for name in ('ieee_host_budget_bytes', 'ieee_native_host_tensor_budget_bytes'):
+        if type(overrides[name]) is not int or overrides[name] <= 0:
+            raise ValueError('profile HOST budgets must be explicit positive bytes')
+    if overrides['ieee_host_budget_bytes'] <= overrides['ieee_native_host_tensor_budget_bytes']:
+        raise ValueError('total HOST budget must leave room beyond its native allowance')
+    workspace = json.loads(verified_file(spec['workspace_derivation']).read_text())
+    matches = [p['workspace_contract'] for p in workspace['pools']
+               if Path(p['pool_root']).resolve() == pool]
+    if matches != [overrides['ieee_native_host_workspace']]:
+        raise ValueError('HOST workspace does not match the completed model artifact audit')
+    if type(spec['nvme_budget_bytes']) is not int or spec['nvme_budget_bytes'] <= 0:
+        raise ValueError('NVMe capacity must be explicit positive bytes')
+    if type(spec['movement_concurrency']) is not int or spec['movement_concurrency'] <= 0:
+        raise ValueError('source profiling requires the actual shared movement capacity')
+    identities, waves = {}, []
+    for number, wave in enumerate(spec['waves']):
+        if wave['source'] not in ('remote', 'nvme', 'file_host', 'native_host', 'gpu') or not wave['requests']:
+            raise ValueError('profile wave requires an explicit source and existing requests')
+        cases = []
+        for lane, selected in enumerate(wave['requests']):
+            entry = entries[selected['source_request_id']]
+            aid = selected['adapter_id']
+            if aid not in static_ids or aid in {case['adapter_id'] for case in cases}:
+                raise ValueError('profile wave has missing or duplicate static adapter')
+            directory = (pool/aid).resolve(strict=True)
+            if directory.parent != pool:
+                raise ValueError('profile metadata is outside the original pool')
+            identities[aid] = client.routing_identity(aid, (directory/'adapter_config.json').read_bytes())
+            row = json.loads(entry.source_json)
+            if type(row['expected_output_tokens']) is not int or row['expected_output_tokens'] <= 0:
+                raise ValueError('source request lacks a positive original target')
+            cases.append(dict(case_id=f'source-profile/w{number}/l{lane}', source=wave['source'],
+                source_request_id=entry.request_id, source_row_sha256=entry.source_sha256,
+                adapter_id=aid, row=row))
+        if len(cases) > min(cfg['runtime_concurrency_cap'], cfg['max_loras']):
+            raise ValueError('source wave exceeds the unchanged model runtime/adapter limit')
+        waves.append(cases)
+    if not waves:
+        raise ValueError('source profile specification has no waves')
+    return spec, bins, identities, waves, index
+
+
+def source_profile_boundary(cfg, spec, identities, index):
+    """Build only real file/transfer owners; Full planner/router remain absent."""
+    import asyncio
+    from collections import defaultdict
+    from types import SimpleNamespace
+    from faaslora.memory.residency_manager import ResidencyManager
+    from faaslora.preloading.preloading_manager import OwnedMovementQueue
+    from scripts.run_all_experiments import ScenarioRunner, _remote_artifact_from_env
+    client = _remote_artifact_from_env()
+    if client is None or client.required_delivery_mode != 'prepublished_gzip_v1':
+        raise ValueError('source profile requires frozen published real-remote delivery')
+    client.configure_content_manifest(index)
+    parents = {tier: Path(spec[tier+'_parent']).resolve(strict=True) for tier in ('host', 'nvme')}
+    if subprocess.check_output(['stat', '-f', '-c', '%T', str(parents['host'])], text=True).strip() != 'tmpfs':
+        raise ValueError('file HOST profile must use a charged tmpfs, not relabel an NVMe directory')
+    paths = {tier: Path(tempfile.mkdtemp(prefix='primelora-source-profile-', dir=parent))
+             for tier, parent in parents.items()}
+    manager = ResidencyManager({'memory': {
+        'host': {'cache_dir': str(paths['host']), 'total_memory_gb': cfg['ieee_host_budget_bytes']/GIB},
+        'nvme': {'cache_dir': str(paths['nvme']), 'cache_size_gb': spec['nvme_budget_bytes']/GIB}}}, None, None)
+    boundary = ScenarioRunner.__new__(ScenarioRunner)
+    boundary.model_cfg, boundary.instance_pool = cfg, None
+    boundary._stack = SimpleNamespace(residency_manager=manager,
+        preloading_manager=SimpleNamespace(ieee_movements=OwnedMovementQueue(spec['movement_concurrency'])))
+    boundary._routing_policy = 'ieee_confirmed'
+    boundary._ieee_artifact_identities = identities
+    boundary._remote_artifact_client = client
+    boundary._remote_transfer_evidence, boundary._adapter_transfer_pressure_evidence = [], []
+    boundary._remote_materialize_locks = defaultdict(asyncio.Lock)
+    boundary.nvme_dir, boundary._nvme_cache = paths['nvme'], {}
+    boundary._unsettled_runtime_reservations = {}
+    return boundary, paths
+
+
+async def qualify_native_source_matrix(engine, boundary, bins, waves, result):
+    """Controlled source setup + actual loading/generation, on the existing path.
+
+    Explicit between-wave eviction isolates initial tiers. Setup is recorded,
+    not subtracted from a workload result. There is no global page-cache drop.
+    This provides measurements; coverage/profile freezing remains a separate check.
+    """
+    from faaslora.experiment.instance_pool import InstanceSlot
+    from faaslora.registry.schema import StorageTier
+    slot = InstanceSlot('source-profile-only', engine, None)
+    slot.service_class_bins = bins
+    files = boundary._stack.residency_manager
+    result.update(profile_collection_only=True, router_qualified=False,
+        physical_capacity_qualified=False, numerical_adapter_correctness_qualified=False,
+        priming_policy='explicit_controlled_source_setup_recorded_per_wave', profile_waves=[])
+    await boundary._attach_ieee_host_budget(engine)
+    for number, cases in enumerate(waves):
+        setup = dict(wave=number, source=cases[0]['source'], requests=[c['case_id'] for c in cases],
+                     started_monotonic_s=time.monotonic(), native_evictions={}, transfers=[])
+        result['profile_waves'].append(setup)
+        # Only this profile's owned native/file cache, never original inputs.
+        current = await engine.ieee_gpu_reference(operation='source_snapshot')
+        references = await engine.ieee_gpu_reference(operation='snapshot')
+        if references['live_leases'] or references['live_host_source_leases']:
+            raise RuntimeError('controlled source reset found live native references')
+        for row in current['sources']:
+            receipt = await engine.ieee_gpu_reference(operation='evict', adapter_int_id=row['adapter_int_id'])
+            validate_qualification_eviction(receipt, present_before=True)
+            setup['native_evictions'][str(row['adapter_int_id'])] = receipt
+        for root in files.local_source_references.roots.values():
+            for path in tuple(root.iterdir()):
+                if not files._delete_path(str(path)):
+                    raise RuntimeError('controlled file reset could not release an owned source')
+        boundary._nvme_cache.clear()
+        source = cases[0]['source']
+        for case in cases if source != 'remote' else ():
+            aid = case['adapter_id']
+            movement = await boundary._queue_ieee_file_preparation(adapter_id=aid, target_tier=StorageTier.NVME,
+                target_engine=engine, target_replica=slot.instance_id, trigger_reason='residency',
+                plan_id=f'profile-setup/{number}')
+            setup['transfers'].append(movement)
+            local_path = movement['target_path']
+            if source == 'file_host':
+                setup['transfers'].append(await boundary._materialize_confirmed_source_async(
+                    aid, local_path, StorageTier.HOST, target_engine=engine, movement_context=dict(
+                        target_replica=slot.instance_id, trigger_reason='residency', plan_id=f'profile-setup/{number}')))
+            elif source == 'native_host':
+                setup['transfers'].append(await boundary._queue_ieee_native_host_preparation(
+                    slot=slot, adapter_id=aid, source_path=local_path,
+                    trigger_reason='residency', plan_id=f'profile-setup/{number}'))
+            elif source == 'gpu':
+                state = await engine.ieee_gpu_reference(operation='snapshot')
+                reference = await engine.ieee_gpu_reference(operation='demand_load_and_acquire',
+                    lease_id=f'profile-setup/{number}/{aid}', adapter_int_id=engine._lora_int_id(aid),
+                    lora_name=aid, lora_path=local_path, expected_owner_id=state['owner_id'], expected_epoch=state['epoch'])
+                if reference.get('acquired') is not True:
+                    raise RuntimeError('controlled GPU setup failed without retry')
+                released = await engine.ieee_gpu_reference(operation='release', lease_id=reference['lease_id'],
+                                                         expected_owner_id=reference['owner_id'])
+                if released.get('released') is not True:
+                    raise RuntimeError('controlled GPU setup reference was not released')
+                setup.setdefault('gpu_setup', []).append(dict(reference=reference, release=released))
+        setup['finished_monotonic_s'] = time.monotonic()
+        result['stage'] = f'source_profile_wave:{number}'
+        await collect_native_source_wave(boundary, slot, cases, result)
+        setup['measurement_finished_monotonic_s'] = time.monotonic()
+        setup['complete'] = True
+
+
 async def qualify_native_source_intervals(engine, plan, adapters, result):
     """Measure actual admission helpers without claiming a qualified Full router.
 
@@ -2890,7 +3202,8 @@ async def qualify_native_capacity_wait(engine, plan, adapters, result):
 
 async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                               trace: Path, count: int, mode: str = 'sequential',
-                              artifact_audit: Path | None = None) -> dict:
+                              artifact_audit: Path | None = None,
+                              source_profile_spec: Path | None = None) -> dict:
     """Existing engine + old trace prefix, not a replacement performance runner.
 
     Sequential local-artifact qualification deliberately does not claim main
@@ -2902,13 +3215,17 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
             or prior.get('pass') is not True or prior.get('stage') != 'complete'
             or Path(prior['environment']).resolve() != Path(sys.prefix).resolve()):
         raise RuntimeError('model qualification requires completed CUDA check in this environment')
-    if type(count) is not int or not 1 <= count <= 100:
-        raise ValueError('qualification uses a 1..100 request prefix, not a regenerated trace')
+    limit = 1000 if mode == 'native_source_matrix' else 100
+    if type(count) is not int or not 1 <= count <= limit:
+        raise ValueError(f'qualification uses a 1..{limit} existing request prefix, not a regenerated trace')
+    if (mode == 'native_source_matrix') != (source_profile_spec is not None):
+        raise ValueError('native source matrix requires its explicit frozen profiling specification')
     if mode not in ('sequential', 'concurrent_pairs', 'cancel_pairs', 'cancel_pairs_retain_adapter',
                     'cancel_pairs_subprocess', 'native_cancel_reference',
                     'native_adapter_reference', 'native_numeric_reference', 'native_source_intervals',
-                    'native_lifecycle', 'native_capacity_wait') or (
-                    mode not in ('sequential', 'native_source_intervals', 'native_capacity_wait') and count != 4):
+                    'native_lifecycle', 'native_capacity_wait', 'native_source_matrix') or (
+                    mode not in ('sequential', 'native_source_intervals', 'native_capacity_wait',
+                                 'native_source_matrix') and count != 4):
         raise ValueError('concurrent qualification requires exactly the original four-request prefix')
     result = {'kind': 'backend_native_model_prefix_qualification_v1', 'pass': False,
               'full_model_qualification': False, 'production_launch_authorized': False,
@@ -2925,7 +3242,7 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
         result['input_mode'] = 'same_existing_req00003_sequential_adapter_controls'
     if mode == 'native_source_intervals':
         result['input_mode'] = 'existing_trace_prefix_sequential_source_profiling'
-    engine = None
+    engine, source_boundary, source_paths = None, None, None
     try:
         import asyncio
         import yaml
@@ -2955,8 +3272,16 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
         plan = FrozenReplayPlan.load(trace, count=count)
         result['trace'] = plan.identity()
         pool = (ROOT/source['storage']['remote_dir']).resolve(strict=True)
+        if mode == 'native_source_matrix':
+            spec, bins, identities, waves, index = source_profile_inputs(source_profile_spec, plan, cfg, pool)
+            cfg.update(spec['model_overrides'])
+            result.update(source_profile_spec_sha256=digest(source_profile_spec),
+                source_profile_spec=spec, artifact_mode='prepublished_gzip_v1_real_remote_no_fallback',
+                input_mode='controlled_sources_original_prompt_target_static_adapter_index')
+            source_boundary, source_paths = source_profile_boundary(cfg, spec, identities, index)
+            result['owned_profile_workspaces'] = {k: str(v) for k, v in source_paths.items()}
         adapters = {}
-        for entry in plan.entries:
+        for entry in plan.entries if mode != 'native_source_matrix' else ():
             row = json.loads(entry.source_json)
             aid = row['adapter_id']
             path = (pool/aid).resolve(strict=True)
@@ -2971,6 +3296,14 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                 adapters[aid] = {'path': str(path), 'weights_sha256': digest(weights),
                                 'config_sha256': digest(path/'adapter_config.json')}
         result['adapters'] = adapters
+        if mode == 'native_source_matrix':
+            indexed = {artifact['id']: {f['path']: f['sha256'] for f in artifact['files']}
+                       for artifact in index['artifacts']}
+            for aid in identities:
+                adapters[aid] = dict(path=str(pool/aid),
+                    weights_sha256=indexed[aid]['adapter_model.safetensors'],
+                    config_sha256=indexed[aid]['adapter_config.json'],
+                    metadata_only=True, measured_payload_requires_real_remote=True)
         numeric_controls = None
         if mode == 'native_numeric_reference':
             if artifact_audit is None:
@@ -3029,7 +3362,9 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                 include_pairs=(mode == 'native_cancel_reference'), numeric_controls=numeric_controls)
             return result
         result['sources_before'] = await engine.ieee_gpu_reference(operation='source_snapshot')
-        if mode == 'native_source_intervals':
+        if mode == 'native_source_matrix':
+            await qualify_native_source_matrix(engine, source_boundary, bins, waves, result)
+        elif mode == 'native_source_intervals':
             await qualify_native_source_intervals(engine, plan, adapters, result)
         elif mode == 'native_capacity_wait':
             await qualify_native_capacity_wait(engine, plan, adapters, result)
@@ -3110,6 +3445,15 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
         import traceback
         result.update(error_type=type(error).__name__, error=str(error), traceback=traceback.format_exc())
     finally:
+        if source_boundary is not None:
+            queue = source_boundary._stack.preloading_manager.ieee_movements
+            try:
+                await queue.close()
+            except Exception as error:
+                result.update(profile_queue_shutdown_error=str(error), **{'pass': False})
+            result['profile_movements'] = queue.snapshot()
+            result['remote_transfers'] = source_boundary._remote_transfer_evidence
+            result['native_host_preparations'] = getattr(source_boundary, '_ieee_native_host_preparations', [])
         if engine is not None:
             try:
                 await engine.shutdown()
@@ -3118,6 +3462,19 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                 result.update(shutdown_error=str(error), **{'pass': False})
             if getattr(engine, '_physical_allocation', None) is not None:
                 result['physical_allocation'] = engine._physical_allocation.evidence()
+        if source_boundary is not None:
+            try:
+                if engine is not None:
+                    source_boundary._retire_ieee_host_budget(engine)
+                manager = source_boundary._stack.residency_manager
+                for root in source_paths.values():
+                    for path in tuple(root.iterdir()):
+                        if not manager._delete_path(str(path)):
+                            raise RuntimeError('profile cleanup retains unresolved source ownership')
+                    root.rmdir()
+                result['profile_workspaces_removed'] = True
+            except Exception as error:
+                result.update(profile_cleanup_error=str(error), **{'pass': False})
     return result
 
 
@@ -3223,6 +3580,8 @@ def main():
     parser.add_argument('--native-observation', type=Path,
                         help='Completed existing native numeric control result for independent PEFT reference')
     parser.add_argument('--artifact-audit', type=Path)
+    parser.add_argument('--source-profile-spec', type=Path,
+                        help='Explicit original-input index and resource contract for native source profiling')
     parser.add_argument('--materialized-support-root', type=Path, action='append', default=[],
                         help='Existing local metadata root corresponding to ordinary files in the remote pool')
     parser.add_argument('--host-copy-lifecycle', action='store_true',
@@ -3236,7 +3595,8 @@ def main():
     parser.add_argument('--qualification-mode', choices=['sequential', 'concurrent_pairs', 'cancel_pairs',
                         'cancel_pairs_retain_adapter', 'cancel_pairs_subprocess',
                         'native_cancel_reference', 'native_adapter_reference', 'native_numeric_reference',
-                        'native_source_intervals', 'native_lifecycle', 'native_capacity_wait'], default='sequential')
+                        'native_source_intervals', 'native_lifecycle', 'native_capacity_wait',
+                        'native_source_matrix'], default='sequential')
     parser.add_argument('--gate-socket')
     parser.add_argument('--gate-nonce')
     parser.add_argument('--tiny-witness', action='store_true')
@@ -3248,6 +3608,9 @@ def main():
     parser.add_argument('--nvml-sha256')
     parser.add_argument('--exec', dest='command', nargs=argparse.REMAINDER)
     args = parser.parse_args()
+    if args.source_profile_spec and (args.action != 'backend-model-check'
+                                    or args.qualification_mode != 'native_source_matrix'):
+        parser.error('--source-profile-spec applies only to backend-model-check native_source_matrix')
     if args.materialized_support_root and args.action != 'artifact-index':
         parser.error('--materialized-support-root applies only to artifact-index')
     if args.host_copy_lifecycle and args.action != 'backend-host-check':
@@ -3304,7 +3667,7 @@ def main():
         import asyncio
         result = asyncio.run(backend_model_check(args.runtime_receipt, args.config,
             args.model_profile, args.replay_trace, args.request_count, args.qualification_mode,
-            args.artifact_audit))
+            args.artifact_audit, args.source_profile_spec))
     elif args.action == 'backend-peft-reference':
         if not all((args.native_observation,args.replay_trace,args.output)):
             parser.error('backend-peft-reference requires existing native observation, trace and new output')

@@ -131,6 +131,20 @@ class NativeFileHostPreparation(unittest.TestCase):
                 lora_name='other', lora_path='/other', expected_owner_id=snap['owner_id'],
                 expected_epoch=snap['epoch'], native_host_tensor_budget_bytes=4096)
 
+    def test_new_host_object_can_use_another_verified_tier_after_complete_eviction(self):
+        first = self.prepare()
+        self.release()
+        self.assertTrue(self.owner.evict(adapter_int_id=4)['evicted'])
+        state = self.owner.snapshot()
+        next_copy = self.owner.prepare_file_host_and_hold(lease_id='new-source', adapter_int_id=4,
+            lora_name='adapter-4', lora_path='/managed-host/adapter-4', expected_owner_id=state['owner_id'],
+            expected_epoch=state['epoch'], native_host_tensor_budget_bytes=4096)
+        self.assertTrue(next_copy['held'])
+        self.assertTrue(next_copy['native_load_invoked'])
+        self.assertNotEqual(first['native_host_source_id'], next_copy['native_host_source_id'])
+        self.assertEqual(next_copy['lora_path'], '/managed-host/adapter-4')
+        self.release('new-source')
+
     def test_cpu_capacity_defers_without_native_lru_or_gpu_eviction(self):
         self.prepare()
         self.release()
@@ -1314,6 +1328,42 @@ class NativeDemandTransactions(unittest.TestCase):
                 lora_name='another-adapter', lora_path=receipt['lora_path'],
                 expected_owner_id=before['owner_id'], expected_epoch=before['epoch'])
         self.assertEqual(len(self.loads), 1)
+
+    def test_evicted_copy_allows_same_adapter_from_a_new_tier_but_not_live_relabelling(self):
+        first = self.demand()
+        self.release('cold-1')
+        def another_path(lease, snapshot=None):
+            state = snapshot or self.owner.snapshot()
+            return self.owner.demand_load_and_acquire(lease_id=lease, adapter_int_id=4,
+                lora_name='adapter-4', lora_path='/managed-host/adapter-4',
+                expected_owner_id=state['owner_id'], expected_epoch=state['epoch'])
+        with self.assertRaisesRegex(ValueError, 'different adapter source'):
+            another_path('still-gpu')
+        self.manager.deactivate(4)
+        with self.assertRaisesRegex(ValueError, 'different adapter source'):
+            another_path('still-host')
+        previous = self.owner.snapshot()
+        self.assertTrue(self.owner.evict(adapter_int_id=4)['evicted'])
+        self.assertEqual(another_path('stale', previous)['reason'], 'stale_snapshot')
+        next_copy = another_path('new-source')
+        self.assertTrue(next_copy['acquired'])
+        self.assertFalse(next_copy['cpu_registered_before_load'])
+        self.assertNotEqual(first['native_host_source_id'], next_copy['native_host_source_id'])
+        self.assertEqual(len(self.loads), 2)
+        self.release('new-source')
+
+    def test_preparation_ownership_prevents_source_rebinding_without_residency(self):
+        self.demand()
+        self.release('cold-1')
+        self.owner.evict(adapter_int_id=4)
+        # A still-live owner target, not a synthetic latency/profile sample.
+        self.owner._preparation_plans['pending'] = {'identity': ('fixture', (4,))}
+        with self.assertRaisesRegex(ValueError, 'different adapter source'):
+            self.owner._validate_source_binding(4, ('adapter-4', '/new-tier/adapter-4'))
+        del self.owner._preparation_plans['pending']
+        self.owner._staged_host[4] = {'source': ('adapter-4', '/existing/adapter-4')}
+        with self.assertRaisesRegex(ValueError, 'different adapter source'):
+            self.owner._validate_source_binding(4, ('adapter-4', '/new-tier/adapter-4'))
 
     def test_failed_or_incomplete_load_never_publishes_ready(self):
         for callback in (Mock(side_effect=RuntimeError('copy failed')), Mock()):

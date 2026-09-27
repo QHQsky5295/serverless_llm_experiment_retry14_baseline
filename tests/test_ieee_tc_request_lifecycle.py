@@ -614,6 +614,144 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
             self.assertEqual(owner.snapshot()['live_leases'], 0)
             self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
 
+    def profile_case(self, runner, slot, trace, plan, source):
+        slot.engine._lora_int_id = InferenceEngine._lora_int_id
+        slot.engine.prepare_request = Mock(return_value=plan)
+        # This fixture supplies synthetic inference only, never production data.
+        return dict(case_id='profile-case', source_request_id=trace.request_id,
+            adapter_id=trace.adapter_id, source=source, source_row_sha256='b'*64,
+            row=dict(expected_output_tokens=4, expected_input_tokens=2,
+                     body=dict(messages=[dict(role='user', content='hello')])) )
+
+    def test_source_profile_collector_covers_all_five_observed_representations(self):
+        from scripts.ieee_tc_preflight import collect_native_source_wave
+        for source in ('gpu', 'native_host', 'file_host', 'nvme', 'remote'):
+            with self.subTest(source=source):
+                runner, slot, trace, plan, owner, _ = self.build(
+                    'host' if source == 'native_host' else 'gpu' if source == 'gpu' else 'remote')
+                if source in ('file_host', 'nvme', 'remote'):
+                    self.file_source(runner, trace, publish=source != 'remote', host=source == 'file_host')
+                case = self.profile_case(runner, slot, trace, plan, source)
+                result = dict(requests=[])
+                asyncio.run(collect_native_source_wave(runner, slot, [case], result))
+                sample = result['requests'][0]
+                self.assertTrue(sample['pass'])
+                self.assertTrue(sample['reservation_released'])
+                self.assertEqual(sample['requested_source'], source)
+                self.assertEqual(sample['actual_tokens'], 4)
+                self.assertEqual(sample['class_features']['admitted_after_accept'], 1)
+                self.assertEqual(sample['class_features']['representation'],
+                                 sample['service_class']['representation'])
+                self.assertTrue(sample['source_evidence']['source_admission']['profile_collection_only'])
+                self.assertEqual(slot.active_requests, 0)
+                self.assertEqual(owner.snapshot()['live_leases'], 0)
+                self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
+                for key in slot.service_cost_model._profiles:
+                    self.assertEqual(slot.service_cost_model.sample_counts(key), dict(d_ms=0, t_ms=0, o_ms=0))
+
+    def test_profile_source_change_is_preserved_not_primed_or_relabelled(self):
+        from scripts.ieee_tc_preflight import collect_native_source_wave
+        runner, slot, trace, plan, owner, _ = self.build('gpu')
+        case = self.profile_case(runner, slot, trace, plan, 'remote')
+        result = dict(requests=[])
+        with self.assertRaisesRegex(RuntimeError, 'controlled source changed'):
+            asyncio.run(collect_native_source_wave(runner, slot, [case], result))
+        self.assertFalse(result['requests'][0]['pass'])
+        self.assertTrue(result['requests'][0]['reservation_released'])
+        slot.engine.generate_prepared.assert_not_awaited()
+        self.assertEqual(slot.active_requests, 0)
+        self.assertEqual(owner.snapshot()['live_leases'], 0)
+
+    def test_profile_wrong_output_fails_with_native_reference_cleanup(self):
+        from scripts.ieee_tc_preflight import collect_native_source_wave
+        runner, slot, trace, plan, owner, _ = self.build('gpu')
+        case = self.profile_case(runner, slot, trace, plan, 'gpu')
+        generate = slot.engine.generate_prepared.side_effect
+        async def wrong(**kwargs):
+            value = await generate(**kwargs)
+            return value[:2]+(3, value[3])
+        slot.engine.generate_prepared.side_effect = wrong
+        result = dict(requests=[])
+        with self.assertRaisesRegex(RuntimeError, 'matching native completion'):
+            asyncio.run(collect_native_source_wave(runner, slot, [case], result))
+        self.assertFalse(result['requests'][0]['pass'])
+        self.assertTrue(result['requests'][0]['reservation_released'])
+        self.assertEqual(owner.snapshot()['live_leases'], 0)
+
+    def test_profile_rejects_duplicate_misses_before_any_native_operation(self):
+        from scripts.ieee_tc_preflight import collect_native_source_wave
+        runner, slot, trace, plan, owner, _ = self.build('remote')
+        case = self.profile_case(runner, slot, trace, plan, 'remote')
+        with self.assertRaisesRegex(ValueError, 'distinct existing adapters'):
+            asyncio.run(collect_native_source_wave(runner, slot, [case, case], dict(requests=[])))
+        slot.engine.ieee_gpu_reference.assert_not_awaited()
+
+    def test_profile_concurrent_wave_joins_sibling_even_when_one_output_is_wrong(self):
+        from scripts.ieee_tc_preflight import collect_native_source_wave
+        from faaslora.clock import local_monotonic_clock_id
+        from tests.test_ieee_tc_service_events import event
+        runner, slot, trace, plan, owner, _ = self.build('gpu')
+        first = self.profile_case(runner, slot, trace, plan, 'gpu')
+        second = {**first, 'case_id': 'profile-second', 'adapter_id': 'adapter-b'}
+        runner._ieee_artifact_identities['adapter-b'] = {
+            **runner._ieee_artifact_identities[trace.adapter_id], 'adapter_id': 'adapter-b'}
+        state = owner.snapshot()
+        receipt = owner.demand_load_and_acquire(lease_id='setup-b',
+            adapter_int_id=InferenceEngine._lora_int_id('adapter-b'), lora_name='adapter-b',
+            lora_path='/existing/a', expected_owner_id=state['owner_id'], expected_epoch=state['epoch'])
+        owner.release(lease_id=receipt['lease_id'], expected_owner_id=owner.owner_id)
+        result = dict(requests=[])
+        async def run():
+            arrived, barrier = [], asyncio.Event()
+            async def generate(**kwargs):
+                reference, aid = kwargs['gpu_reference'], kwargs['adapter_id']
+                arrived.append(aid)
+                if len(arrived) == 2:
+                    barrier.set()
+                await asyncio.wait_for(barrier.wait(), .5)
+                first_at = time.monotonic()
+                fields = dict(adapter_id=aid, native_clock_id=local_monotonic_clock_id(),
+                    backend_request_id=aid, gpu_reference_owner_id=owner.owner_id,
+                    gpu_reference_lease_id=reference['lease_id'],
+                    gpu_reference_adapter_int_id=reference['adapter_int_id'])
+                kwargs['native_event_observer'](event(**fields, timestamp_monotonic_s=first_at))
+                last_at = time.monotonic()
+                kwargs['native_event_observer'](event(2, **fields, token_count=4, timestamp_monotonic_s=last_at))
+                return 0., 0., 3 if aid == trace.adapter_id else 4, dict(
+                    native_clock_id=local_monotonic_clock_id(), native_terminal_observed=True,
+                    native_first_token_monotonic_s=first_at, native_last_token_monotonic_s=last_at)
+            slot.engine.generate_prepared.side_effect = generate
+            with self.assertRaisesRegex(RuntimeError, 'matching native completion'):
+                await collect_native_source_wave(runner, slot, [first, second], result)
+            self.assertEqual(set(arrived), {'adapter-a', 'adapter-b'})
+        asyncio.run(run())
+        self.assertEqual(len(result['requests']), 2)
+        self.assertEqual(sum(row['pass'] for row in result['requests']), 1)
+        self.assertTrue(all(row['reservation_released'] for row in result['requests']))
+        self.assertEqual(slot.active_requests, 0)
+        self.assertEqual(owner.snapshot()['live_leases'], 0)
+        self.assertIn(2, [row['class_features']['admitted_after_accept'] for row in result['requests']])
+
+    def test_profile_matrix_executes_real_file_setup_and_native_eviction_between_waves(self):
+        from scripts.ieee_tc_preflight import qualify_native_source_matrix
+        runner, slot, trace, plan, owner, _ = self.build('remote')
+        self.file_source(runner, trace)
+        base = self.profile_case(runner, slot, trace, plan, 'remote')
+        waves = [[{**base, 'case_id': 'profile-'+source, 'source': source}]
+                 for source in ('remote', 'nvme', 'file_host', 'gpu', 'remote')]
+        result = dict(requests=[])
+        asyncio.run(qualify_native_source_matrix(
+            slot.engine, runner, slot.service_class_bins, waves, result))
+        self.assertTrue(all(row['pass'] for row in result['requests']))
+        self.assertEqual([row['requested_source'] for row in result['requests']],
+                         ['remote', 'nvme', 'file_host', 'gpu', 'remote'])
+        self.assertEqual(len(result['profile_waves']), 5)
+        self.assertEqual(len(runner._remote_transfer_evidence), 5)
+        self.assertEqual(owner.snapshot()['live_leases'], 0)
+        self.assertTrue(all(row['complete'] for row in result['profile_waves']))
+        self.assertEqual(result['profile_waves'][0]['native_evictions'], {})
+        self.assertTrue(all(row['native_evictions'] for row in result['profile_waves'][1:]))
+
     def test_actual_request_loads_update_the_admission_fixed_preparation_class(self):
         for tier in ('gpu', 'native_host', 'host', 'nvme', 'remote'):
             with self.subTest(tier=tier):

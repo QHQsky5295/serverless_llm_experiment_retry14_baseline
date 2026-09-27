@@ -1,0 +1,116 @@
+{
+  "kind": "native_source_profile_spec_v1",
+  "purpose": "integration_pilot_not_representative_production_profile",
+  "trace_sha256": "4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d",
+  "content_index": {
+    "path": "paper_results/ieee_tc/inputs/20260927_3b_remote_content_index.json",
+    "sha256": "bd1826c58f00ea30dee1d3829dc11727a975127db701a1eee6c6c86b4a38f275"
+  },
+  "workspace_derivation": {
+    "path": "paper_results/ieee_tc/p2_backend/20260927_native_host_workspace_contracts.json",
+    "sha256": "275efc7e669b958ded47ab1b7dca2724700ad3580583f3331aeebf8028c22453"
+  },
+  "model_overrides": {
+    "ieee_host_budget_bytes": 17179869184,
+    "ieee_native_host_tensor_budget_bytes": 2147483648,
+    "ieee_native_host_workspace": {
+      "kind": "native_host_workspace_contract_v1",
+      "dtype": "torch.float16",
+      "source_audit_sha256": "224b9337ecaba2590ac888e9d0e3b9eb41a17074ce77b952e98e935259adf60f",
+      "max_resident_pinned_bytes": 18350080,
+      "max_transient_tensor_bytes": 36730056
+    },
+    "ieee_native_host_allocator_policy": "uncached_background_v1"
+  },
+  "nvme_budget_bytes": 17179869184,
+  "movement_concurrency": 3,
+  "host_parent": "/dev/shm",
+  "nvme_parent": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d82_20260927",
+  "bins": {
+    "prompt_tokens": [
+      759
+    ],
+    "declared_output_tokens": [
+      256
+    ],
+    "adapter_rank": [
+      8,
+      16,
+      64
+    ],
+    "footprint_bytes": [],
+    "admitted_requests": [
+      1,
+      2,
+      4,
+      8
+    ]
+  },
+  "waves": [
+    {
+      "source": "remote",
+      "requests": [
+        {
+          "source_request_id": "req_00000",
+          "adapter_id": "finance_lora"
+        },
+        {
+          "source_request_id": "req_00015",
+          "adapter_id": "code_lora_0015"
+        }
+      ]
+    },
+    {
+      "source": "nvme",
+      "requests": [
+        {
+          "source_request_id": "req_00000",
+          "adapter_id": "finance_lora"
+        },
+        {
+          "source_request_id": "req_00015",
+          "adapter_id": "code_lora_0015"
+        }
+      ]
+    },
+    {
+      "source": "file_host",
+      "requests": [
+        {
+          "source_request_id": "req_00000",
+          "adapter_id": "finance_lora"
+        },
+        {
+          "source_request_id": "req_00015",
+          "adapter_id": "code_lora_0015"
+        }
+      ]
+    },
+    {
+      "source": "native_host",
+      "requests": [
+        {
+          "source_request_id": "req_00000",
+          "adapter_id": "finance_lora"
+        },
+        {
+          "source_request_id": "req_00015",
+          "adapter_id": "code_lora_0015"
+        }
+      ]
+    },
+    {
+      "source": "gpu",
+      "requests": [
+        {
+          "source_request_id": "req_00000",
+          "adapter_id": "finance_lora"
+        },
+        {
+          "source_request_id": "req_00015",
+          "adapter_id": "code_lora_0015"
+        }
+      ]
+    }
+  ]
+}

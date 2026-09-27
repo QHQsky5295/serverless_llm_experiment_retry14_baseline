@@ -1293,6 +1293,29 @@ class IEEEBackendGPUReferences:
             self._source_incarnations[adapter_int_id] = uuid.uuid4().hex
         self._source_objects[adapter_int_id] = weakref.ref(model)
 
+    def _validate_source_binding(self, adapter_int_id, source):
+        """Logical identity survives eviction; a physical file path need not.
+
+        The controller holds a SHA-confirmed file source during loading. A
+        native object/lease/plan still binds its exact source path, so it cannot
+        be relabelled in place. Once all native residency and preparation have
+        retired, the same immutable adapter may be loaded from a different
+        managed tier. A different logical name can never reuse this integer ID.
+        """
+        old = self._sources.get(adapter_int_id)
+        staged = self._staged_host.get(adapter_int_id)
+        if staged is not None and staged['source'] != source:
+            raise ValueError('native integer ID reused for a different adapter source')
+        if old is None or old == source:
+            return
+        cpu, gpu = self._caches()
+        live = (adapter_int_id in cpu or adapter_int_id in gpu
+                or adapter_int_id in self._references or adapter_int_id in self._host_references
+                or staged is not None or any(adapter_int_id in plan['identity'][1]
+                                             for plan in self._preparation_plans.values()))
+        if old[0] != source[0] or live:
+            raise ValueError('native integer ID reused for a different adapter source')
+
     def staged_models(self):
         return {aid: row['model'] for aid, row in self._staged_host.items()}
 
@@ -1741,8 +1764,7 @@ class IEEEBackendGPUReferences:
         if expected_epoch != self.epoch:
             return dict(held=False, reason='stale_snapshot', **self.snapshot())
         source = (lora_name, lora_path)
-        if adapter_int_id in self._sources and self._sources[adapter_int_id] != source:
-            raise ValueError('native integer ID reused for a different adapter source')
+        self._validate_source_binding(adapter_int_id, source)
         if self._native_host_tensor_budget not in (None, native_host_tensor_budget_bytes):
             raise ValueError('native HOST tensor sub-budget cannot change within a worker')
         self._native_host_tensor_budget = native_host_tensor_budget_bytes
@@ -1976,8 +1998,7 @@ class IEEEBackendGPUReferences:
         source = (lora_name, lora_path)
         if lease_id in self._host_leases or lease_id in self._host_released or lease_id in self._staged_host_leases:
             raise ValueError('GPU lease collides with a HOST source lease')
-        if adapter_int_id in self._sources and self._sources[adapter_int_id] != source:
-            raise ValueError('native integer ID reused for a different adapter source')
+        self._validate_source_binding(adapter_int_id, source)
         if lease_id in self._leases:
             receipt = self._leases[lease_id]
             if (receipt['adapter_int_id'] != adapter_int_id

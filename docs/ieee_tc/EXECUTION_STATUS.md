@@ -85,6 +85,34 @@
 
 ## Mainline: next action (do not reopen completed qualification)
 
+### D82 source profiling implementation, real pilot next
+
+- D81 evidence4ba3f58aa7ab86f1056905fc8136d01539e7966e PUSHED; fresh remoteSHA
+  matched.25new raw references/147protected entries verified.
+- Existing backend-model-check gains native_source_matrix with explicit small
+  source-profile-spec. Uses actual Full source/admission/load/native-event/release
+  helpers, no fabricated profiles or router. All five source representations and
+  concurrent sibling failure tested. Old source32 entry preserved, do not rerun it.
+- Continuous file-tier test exposed native name/path binding surviving complete
+  eviction. Fixed physical-incarnation semantics, not core formulas: same name
+  can use a new confirmed path only after all residency/references/staging/plans
+  retire. Different name, live copy, old epoch/lease remain rejected. P2 document
+  records original failure, history, official vLLM evidence and scope.
+-278owner/lifecycle/service/preparation tests pass3.680s;55systemPython tests
+  pass0.982s. Conda lacks pidfd_send_signal; do not use it for OS tests/guards.
+  Rawd82_20260927 keeps test logs; OS capture partial. No GPU inference yet.
+-288offline basic smoke pass22.170s in6/8GiB CPU domain. Earlier online smoke
+  omitted offline flags and contacted dummy-model; stopped owned unit after
+ 74.767s, NOT a pass. Offline environment required in all following launchers.
+- Prepared 3B rank8/16 source pilot spec:5sources×2requests=10samples, original
+  req00000/00015. HOST16GiB/native2GiB/NVMe16GiB, originalC32/slots8/cap8,
+  sharedmovement3. Candidate only, not selected production/profile/Full qualified.
+  Spec resolves original trace/content/workspace SHA; no new payload/prompt/trace.
+- NEXT: backup tested source; run guarded real3B source
+  pilot with published remote service. Then representative24/6-content-class and
+  actual concurrency profiles, followed by integrated Full activation/lifecycle.
+  Do not expand remote qualification, allocator microtests or baseline work.
+
 ### D81 completed four-way real-remote qualification; Full profiling next
 
 - BOTH models:3waves×4lanes=12/12verified, each wave observed4server-handler

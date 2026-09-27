@@ -1023,3 +1023,60 @@ prompt。不能重新跑相同短前缀后宣称覆盖已补齐，也不能以 r
 `efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c`，
 本次读取时重新校验一致。只在内存中建立 ID→类索引，没有复制完整 trace。
 独立训练权重数量和全零权重限制不变；内容类数量不是模型多样性结论。
+
+## 2026-09-27 D82：分层原生测量入口与来源生命周期修正
+
+沿用 `ieee_tc_preflight.py backend-model-check`，增加显式
+`native_source_matrix --source-profile-spec`。小型 JSON 只索引原 trace 的
+request ID、静态 adapter ID、来源层级和资源配置，不生成 prompt、权重或
+新到达负载。测量重用 Full 的来源分类、保护、加载、原生 token 事件和释放
+路径；没有 router、虚构初始成本或 Full 资格豁免。五种来源为 Remote、
+NVMe 文件、tmpfs HOST 文件、native HOST 张量和 GPU。
+
+每个受控 wave 前的建态和驱逐单独记录；真实测量不预先消除 Remote miss。
+并发波次记录实际接纳人数，不靠强制等待把所有请求伪造成同一并发类。
+兄弟请求全部 join，包括有请求失败的情况。已完成来源变成更快/不同表示时
+不能重贴标签。HOST 文件必须确实在 tmpfs，原始池始终只读，退出只处理本轮
+拥有的临时目录。代表性覆盖和 profile 冻结仍需后续实测，不由此入口自动保证。
+
+连续 Remote→NVMe→HOST 文件的 CPU 集成检查发现：原 native owner 将
+`(adapter name, path)` 终身绑定；即使旧 CPU/GPU 对象已完全驱逐，同一 adapter
+换到另一合法层级仍被拒绝。该失败发生在加载前，不是 GPU 性能问题。
+修正将逻辑身份与物理副本生命周期分开：不同 name 仍永远不能复用 integer ID；
+已有 cache、引用、staging 或准备目标存在时仍不允许换路径；只有完全退休后，
+同名工件可由控制器持有的 SHA-confirmed 新文件来源重新加载，新对象获得新
+incarnation，旧 lease/epoch 仍不可重用。IEEE 公式、路由排序和驱逐策略不变。
+
+历史依据是 D26 单一来源短测量未覆盖此转换；代码沿革
+`774bd7f`→`e2ba9f6`→`3297289` 保留。再次核对
+[vLLM 0.30 原生 worker](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/worker_manager.py)：
+其 LRU 对象的装入、复用和替换本来具有不同生命周期。本次不删除身份保护，
+也不把路径字符串等同于工件内容身份。
+
+| D82 检查 | 结果与边界 |
+|---|---|
+| 五类来源的 actual admission/event collector | CPU fixture 全部通过；无真实 GPU 延迟结论 |
+| 并发中一个输出错误 | 保留失败，另一请求完成，两者引用释放 |
+| 同 adapter 驱逐后 NVMe→HOST 文件 | 修正前确定失败；修正后集成路径通过 |
+| 存活 GPU/HOST、staging、计划持有、错误 name、旧 epoch/lease | 仍拒绝非法重绑定 |
+| owner/lifecycle/service/preparation regression | 278 项通过，3.680 秒 |
+| 系统 Python preflight | 55 项通过，0.982 秒；输出前段非完整捕获 |
+| 原有 offline basic smoke | 288 项通过，22.170 秒；6/8GiB受限CPU域 |
+
+原始日志位于 `results/ieee_tc/p2_backend_qualification/d82_20260927/`。
+此前测试 launcher 遗漏工作目录、编辑中重复函数声明和用 conda Python 跑
+pidfd 检查均失败，不能算通过；后续修正测试条件，不放松安全门槛。
+spec-only 导入的512MiB试验资源域发生回收停留，43秒时主动停止；改用已验证的
+CPU测试6/8GiB域后7.717秒完成。没有启动模型，没有主机 OOM。
+一次 basic smoke 启动遗漏 offline 环境，dummy-model HEAD进入外网等待；
+74.767秒时停止本实验单元，保留终止记录，不算通过。上述288项来自随后明确
+`HF_HUB_OFFLINE=1/TRANSFORMERS_OFFLINE=1` 的完整运行。
+
+下一项是现有 3B 原输入中的 `req_00000/finance_lora`（rank8）与
+`req_00015/code_lora_0015`（rank16），五来源、两路 wave 的十次原生链路 pilot。
+`20260927_3b_source_profile_pilot_spec.json` 固定共享 HOST16GiB、每 native
+owner2GiB、NVMe16GiB，仍在推理服务72/80GiB内；保留现有32个 CPU entry、
+8个GPU slot、服务并发8、共享移动并发3。这是公开候选配置，不是正式最优配置。
+根据已核验 workspace 下界，该 native 额度可容纳32×18,350,080字节常驻与两份
+55,080,136字节加载峰值；实际 worker 的基线占用仍须在安装预算时重新检查。
+pilot只验证集成，不宣称覆盖全部24个内容类、完整服务分桶或性能优越性。
