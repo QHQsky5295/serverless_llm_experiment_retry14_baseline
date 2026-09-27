@@ -85,6 +85,36 @@
 
 ## Mainline: next action (do not reopen completed qualification)
 
+### D81 qualification-client extension tested; real concurrent check NOT STARTED
+
+- D80 evidence checkpoint88e6ad9f4174d43da98446763678d8d88de1374b PUSHED;
+  fresh remote SHA matched. All42new raw SHA references/147protected entries pass.
+- Existing scripts/remote_artifact_client.py adds opt-in verify-concurrent only:
+  explicit static IDs/lanes, simultaneous waves, exact published content, per-lane
+  UUIDs, join failures/cleanup, exclusive JSONL. No server/core algorithm change.
+  No artificial sleep or claim that client overlap proves wire/server overlap.
+-36HTTP/client tests PASS4.162s;288offline basic smoke PASS22.341s, bounded unit
+  runtime30.096s. Complete HTTP log retained; smoke terminal output truncated,
+  footer proves success but is not a full log. Rawd81_20260927/client_tests.json
+  and basic_smoke_terminal.json. No model/GPU experiment launched.
+- IMPORTANT correction: PreloadingManager class default5 is NOT necessarily
+  effective Full concurrency. _build_experiment_config uses coord.max_concurrent_loads,
+  then preload.max_concurrent_operations, then3. Existing YAML has2/3 overrides.
+  Derive final effective model/workload configuration before choosing the
+  concurrent qualification lanes. Do not launch current default Qwen profile;
+  IEEE models remain Llama3.2-3B and Llama2-7B.
+- Candidate static largest compressed objects (read from completed D78 manifest):
+  3Bcode_lora_0315=2339602B wire/56327468B logical;
+  7Bmedical_lora=14736516B wire/20938679B logical.
+  7B largest logical object differs:code_lora_0015=37716322B logical.
+  Use measured identity/footprint; no new data. Do not confuse compressed size
+  with original payload, HOST footprint or training diversity.
+- Remote services remain INACTIVE. Next check reuses D80 qualified server/units/
+  immutable caches/monitor with new unit identity and exclusive log files. Do
+  NOT rerun activation script that refuses existing D80 logs or overwrite them.
+  Common all-baseline concurrency qualification is still open; a Prime-specific
+  bound must not be called an all-system production guarantee.
+
 1. Check actual whole-service transfer entrypoints/concurrency and derive common
    remote resource envelope. No request archive allocation now; retain published
    cache, streaming buffers, thread/socket/metadata/log overhead. Qualify shared

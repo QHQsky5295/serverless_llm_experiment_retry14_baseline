@@ -238,6 +238,79 @@ class AtomicArtifactPublication(unittest.TestCase):
         result = prepare_delivery_cache(root, index, destination, event_sink=events.append)
         return root, index, destination, result, events
 
+    def test_concurrent_published_roundtrip_retains_each_uuid_and_cleans_each_lane(self):
+        from scripts.remote_artifact_client import verify_concurrent
+        root, index, destination, _, _ = self._publish_fixture()
+        records = []
+        server = ArtifactServer(('127.0.0.1', 0), ArtifactHandler,
+            root=root, delivery_cache=destination, event_sink=records.append)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        output = self.root/'concurrent.jsonl'
+        try:
+            client = HttpArtifactStoreClient(endpoint='http://127.0.0.1:'+str(server.server_port),
+                                            required_delivery_mode='prepublished_gzip_v1')
+            client.configure_content_manifest(json.loads(index.read_text()))
+            result = verify_concurrent(client, adapter_ids=('a',)*3, repetitions=2, output=output)
+            self.assertEqual(result['verified_count'], 6)
+            self.assertFalse(result['performance_profile'])
+            rows = [json.loads(line) for line in output.read_text().splitlines()]
+            cases = [r for r in rows if r['event']=='concurrent_attempt']
+            self.assertEqual(len(cases), 6)
+            self.assertTrue(all(c['pass'] and c['temporary_removed'] for c in cases))
+            ids = {c['evidence']['http_transfer_id'] for c in cases}
+            self.assertEqual(len(ids), 6)
+            self.assertEqual(ids, {r['transfer_id'] for r in records})
+            self.assertTrue(all(not r['pack_performed'] and not r['temporary_created'] for r in records))
+            self.assertEqual(result['wire_bytes'], sum(r['archive_bytes'] for r in records))
+            self.assertFalse(list(self.root.glob('.remote-concurrent-*')))
+            with self.assertRaises(FileExistsError):
+                verify_concurrent(client, adapter_ids=('a',), repetitions=1, output=output)
+            with self.assertRaises(ValueError):
+                verify_concurrent(client, adapter_ids=('unknown',), repetitions=1,
+                                  output=self.root/'invalid.jsonl')
+            self.assertFalse((self.root/'invalid.jsonl').exists())
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=5)
+
+    def test_concurrent_qualification_joins_failed_wave_without_running_later_waves(self):
+        from scripts.remote_artifact_client import verify_concurrent
+        client = Mock(required_delivery_mode='prepublished_gzip_v1', timeout_s=5,
+                      endpoint='http://fixture', content_manifest_sha256='test-manifest')
+        client.health.return_value = dict(timing_contract='artifact_timing_v2',
+                                          delivery_mode='prepublished_gzip_v1')
+        def download(aid, target, *, evidence, **kwargs):
+            self.assertTrue(kwargs['require_content_manifest'])
+            self.assertTrue(kwargs['require_remote_timing'])
+            if aid == 'bad':
+                raise RemoteArtifactError('test failure')
+            evidence.update(content_verified=True, remote_delivery_mode='prepublished_gzip_v1',
+                            transferred_bytes=2)
+            return True, 1., 2
+        client.download_artifact.side_effect = download
+        output = self.root/'failed-concurrent.jsonl'
+        with self.assertRaises(RemoteArtifactError):
+            verify_concurrent(client, adapter_ids=('good','bad'), repetitions=3, output=output)
+        rows = [json.loads(line) for line in output.read_text().splitlines()]
+        cases = [r for r in rows if r['event']=='concurrent_attempt']
+        self.assertEqual(len(cases), 2)
+        self.assertEqual(sum(c['pass'] for c in cases), 1)
+        self.assertEqual(rows[-1]['event'], 'incomplete')
+        self.assertEqual(rows[-1]['verified_count'], 1)
+        self.assertTrue(all(c['temporary_removed'] for c in cases))
+        self.assertFalse(list(self.root.glob('.remote-concurrent-*')))
+
+    def test_concurrent_qualification_rejects_unfrozen_protocol_and_empty_lanes(self):
+        from scripts.remote_artifact_client import verify_concurrent
+        output = self.root/'invalid-concurrent.jsonl'
+        client = Mock(required_delivery_mode=None)
+        for ids, repetitions in ((('a',),1), ((),1), (('a',),0), (('a',),True)):
+            with self.assertRaises(ValueError):
+                verify_concurrent(client, adapter_ids=ids, repetitions=repetitions, output=output)
+        self.assertFalse(output.exists())
+
     def test_published_object_roundtrip_never_packs_hashes_or_creates_temp_at_request(self):
         from remote_artifact_node.server import prepare_delivery_cache
         root, index, destination, result, events = self._publish_fixture()

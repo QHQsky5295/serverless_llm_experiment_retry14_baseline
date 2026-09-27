@@ -671,3 +671,38 @@ host disk counters are separate, not substituted as service I/O.
 This closes delivery **functionality**, not concurrent production profiling.
 Next: qualify the shared remote concurrency/resource conditions, then collect
 representative Prime Full service/preparation intervals. Baselines remain paused.
+
+### D81 scoped concurrency measurement interface (not a remote result yet)
+
+The existing client now accepts `verify-concurrent --adapter-id ID` repeated
+once per lane, `--repetitions N`, and an exclusive `--output`. It requires the
+frozen content index and `--delivery-mode prepublished_gzip_v1`. Every attempt
+retains its UUID/content check/cleanup, including failures. A failed wave is
+fully joined and later waves are not launched. No second retained pool or
+artificial download delay is introduced. Client overlap is reported separately
+and must be reconciled with server monotonic intervals before claiming actual
+remote overlap.
+
+| Local verification | Observed result |
+|---|---|
+|Existing HTTP/client suite including concurrent roundtrip|36 tests pass,4.162s|
+|Existing offline basic smoke|288 tests pass,22.341s|
+|Actual174 concurrent qualification|Not started|
+|Prime Full profiles /production resource selection|Still pending|
+
+Concurrency must come from the effective experiment config, not the manager's
+class default5. The stack resolves `coord.max_concurrent_loads`, then
+`preload.max_concurrent_operations`, then3; existing YAML profiles override2/3.
+The shared movement queue accounts globally for executing jobs, including
+demand and proactive file preparation; it is not a separate allowance per GPU.
+The final whole-service entrypoint census remains part of Full integration.
+
+Primary-source check: Python3.12's
+[socketserver documentation](https://docs.python.org/3.12/library/socketserver.html)
+distinguishes threaded handlers from the pending connection backlog. Therefore
+neither `TasksMax=128` nor backlog5 is an observed transfer concurrency, and
+successful serial coverage cannot qualify every simultaneous workload. Pinned
+[vLLM0.30 worker manager](https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/lora/worker_manager.py)
+keeps file loading, CPU objects and GPU activation distinct; subsequent Full
+profiles must retain those source distinctions instead of pooling them into
+one download time. No server/backlog/queue optimization was made in this step.

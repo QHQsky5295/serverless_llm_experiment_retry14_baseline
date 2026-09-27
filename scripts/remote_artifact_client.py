@@ -4,10 +4,12 @@
 from __future__ import annotations
 
 import argparse
+import concurrent.futures
 import json
 import os
 import sys
 import tempfile
+import threading
 import time
 from pathlib import Path
 
@@ -91,6 +93,95 @@ def verify_pool(client: HttpArtifactStoreClient, *, content_index: Path, output:
         except BaseException as exc:
             emit(dict(event='incomplete', error_type=type(exc).__name__,
                       elapsed_s=time.monotonic()-started))
+            raise
+
+
+def verify_concurrent(client: HttpArtifactStoreClient, *, adapter_ids, repetitions: int,
+                      output: Path) -> dict:
+    """Bounded simultaneous cold destinations using the real published client.
+
+    Explicit static IDs define the lanes (duplicates are allowed for repeated
+    maximum-size objects). Each wave joins all outcomes before continuing. No
+    injected transfer delay, reconstructed latency or production-profile claim.
+    Client overlap is NOT server/network overlap; correlate the retained UUIDs.
+    """
+    adapter_ids = tuple(adapter_ids)
+    if (not adapter_ids or type(repetitions) is not int or repetitions <= 0
+            or client.required_delivery_mode != 'prepublished_gzip_v1'):
+        raise ValueError('concurrent qualification needs explicit lanes, repetitions and published mode')
+    # Validate static membership without initiating a transfer or retaining a pool.
+    client.preparation_manifests(tuple(dict.fromkeys(adapter_ids)))
+    started = time.monotonic()
+    with output.open('x', buffering=1) as journal:
+        lock = threading.Lock()
+        def emit(record):
+            with lock:
+                journal.write(json.dumps(record, sort_keys=True) + '\n')
+        emit(dict(event='start', purpose='concurrent_published_delivery_qualification',
+                  endpoint=client.endpoint, adapter_ids=adapter_ids,
+                  offered_concurrency=len(adapter_ids), repetitions=repetitions,
+                  content_manifest_sha256=client.content_manifest_sha256))
+        completed, wire, payload = 0, 0, 0
+        try:
+            health = client.health()
+            if (health.get('timing_contract') != 'artifact_timing_v2'
+                    or health.get('delivery_mode') != 'prepublished_gzip_v1'):
+                raise RemoteArtifactError('concurrent qualification requires published timing v2')
+            emit(dict(event='health_verified', health=health))
+            for wave in range(repetitions):
+                barrier = threading.Barrier(len(adapter_ids))
+                def run_lane(lane, adapter_id):
+                    case = dict(event='concurrent_attempt', wave=wave, lane=lane,
+                                adapter_id=adapter_id, evidence={}, **{'pass': False})
+                    temporary = None
+                    try:
+                        barrier.wait(timeout=client.timeout_s)
+                        case['started_monotonic_s'] = time.monotonic()
+                        with tempfile.TemporaryDirectory(prefix='.remote-concurrent-',
+                                                         dir=output.parent) as temporary:
+                            ok, elapsed, size = client.download_artifact(adapter_id,
+                                str(Path(temporary)/'payload'), evidence=case['evidence'],
+                                require_content_manifest=True, require_remote_timing=True)
+                            if (not ok or not case['evidence'].get('content_verified')
+                                    or case['evidence'].get('remote_delivery_mode') != 'prepublished_gzip_v1'):
+                                raise RemoteArtifactError('concurrent transfer did not verify published content')
+                            case.update(elapsed_ms=elapsed, payload_bytes=size)
+                        case['pass'] = True
+                    except BaseException as exc:
+                        # Keep every lane, including failures; the wave is joined.
+                        case['error_type'] = type(exc).__name__
+                    case.update(completed_monotonic_s=time.monotonic(),
+                                temporary_removed=temporary is not None and not Path(temporary).exists())
+                    case['pass'] = case['pass'] and case['temporary_removed']
+                    emit(case)
+                    return case
+                with concurrent.futures.ThreadPoolExecutor(max_workers=len(adapter_ids)) as pool:
+                    futures = [pool.submit(run_lane, lane, aid) for lane, aid in enumerate(adapter_ids)]
+                    cases = [future.result() for future in futures]
+                succeeded = [c for c in cases if c['pass']]
+                completed += len(succeeded)
+                wire += sum(c['evidence']['transferred_bytes'] for c in succeeded)
+                payload += sum(c['payload_bytes'] for c in succeeded)
+                intervals = [(c['started_monotonic_s'], 1) for c in cases if 'started_monotonic_s' in c]
+                intervals += [(c['completed_monotonic_s'], -1) for c in cases if 'started_monotonic_s' in c]
+                active = peak = 0
+                for _, change in sorted(intervals):
+                    active += change
+                    peak = max(peak, active)
+                emit(dict(event='wave_complete', wave=wave, offered=len(cases),
+                          verified=len(succeeded), max_observed_client_overlap=peak,
+                          server_overlap_inferred=False))
+                if len(succeeded) != len(cases):
+                    raise RemoteArtifactError('concurrent wave failed; all lane evidence retained')
+            result = dict(event='complete', verified_count=completed, wire_bytes=wire,
+                          payload_bytes=payload, elapsed_s=time.monotonic()-started,
+                          offered_concurrency=len(adapter_ids), repetitions=repetitions,
+                          inference_qualified=False, performance_profile=False)
+            emit(result)
+            return result
+        except BaseException as exc:
+            emit(dict(event='incomplete', error_type=type(exc).__name__, verified_count=completed,
+                      wire_bytes=wire, payload_bytes=payload, elapsed_s=time.monotonic()-started))
             raise
 
 
@@ -200,8 +291,21 @@ def main() -> int:
     cancel_parser.add_argument('--adapter-id', required=True)
     cancel_parser.add_argument('--output', required=True, type=Path, help='New JSONL journal; refuses overwrite')
 
+    concurrent_parser = sub.add_parser('verify-concurrent', help='Qualify explicit simultaneous published fetches')
+    concurrent_parser.add_argument('--adapter-id', action='append', required=True,
+                                   help='One static adapter ID per concurrent lane; repeat to use the same object')
+    concurrent_parser.add_argument('--repetitions', type=int, required=True)
+    concurrent_parser.add_argument('--output', required=True, type=Path, help='New JSONL journal; refuses overwrite')
+
     args = parser.parse_args()
     client = _client(args)
+
+    if args.cmd == 'verify-concurrent':
+        if not args.content_index or args.delivery_mode != 'prepublished_gzip_v1':
+            parser.error('verify-concurrent requires --content-index and --delivery-mode prepublished_gzip_v1')
+        print(json.dumps(verify_concurrent(client, adapter_ids=args.adapter_id,
+                         repetitions=args.repetitions, output=args.output), sort_keys=True))
+        return 0
 
     if args.cmd == 'verify-cancel':
         if not args.content_index:
