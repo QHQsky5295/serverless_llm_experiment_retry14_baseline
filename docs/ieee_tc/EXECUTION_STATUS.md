@@ -75,6 +75,15 @@
   Baseline source1b05335 and evidence9603442 are backed up. Main checkpoint
   contains only the current ledger and curated JSON/CSV; original user dirt
   excluded. Full remote SHA verification is performed after each push.
+- Verified backups: baseline9603442c34ac53327df93c6adf0fc7f15c2fc02a and main
+ 718c99c5800e02dd372401b70852eafb5615b3c4; fresh remote full SHAs matched.
+  Post-run journal additionally reports systemd user inotify-watch ENOSPC,
+  including the passing main test unit. This is NOT disk exhaustion (334GB
+  available) or evidence of model OOM; inotify limits read65536 watches/128
+  instances. Actual cgroup limits/events and the independent polling watchdog
+  were verified. Before the next heavy run recheck monitor readiness/actual
+  limits; do not alter global sysctl, restart the user manager, or stop unrelated
+  processes to hide this warning. Raw journal saved in guard_invocation_error.log.
 
 ## D70 checkpoint: native 7B inference works; whole-workload qualification fails
 
