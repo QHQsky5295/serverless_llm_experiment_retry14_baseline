@@ -15,6 +15,34 @@
 - Resume by inspecting actual handles/Git/resources; never restart a live run
   from stale notes. D72 7B ORIGINAL1,000-request diagnostic ENDED/cleaned.
   D73 7B REPAIRED side is ENDED/cleaned; the7B pair is complete. Do not repeat it.
+  D74 3B REPAIRED is RUNNING; inspect live handles below before any new task.
+
+## D74 checkpoint: 3B repaired development side running
+
+- Starts main08353732d670838f2e4bc1767abd5ead8a25c05c and baseline
+  d2b96068f2c8638d4c91e39dd05bb8f6eb782c69. Full plan/status/AGENTS and
+  run-experiment/github-sync/academic-plotting read.147 protected entries and
+  plan unchanged. Existing3B trace/content-index SHAs verified; no new weights,
+  pool, checkpoint, full trace or environment. No serving code/policy change.
+- Raw results/ieee_tc/serverless_qualification/d74_20260927: PROTOCOL.md,
+  shared http_3b_1000.json and BOTH run3b_repaired.sh/run3b_original.sh prepared
+  before either result. Reuse D72 measured source views. Same predeclared
+  min1/max4/target8/keepalive10 and diagnostic max_num_seqs4; notice+60, existing
+  seed42prefix1000/development41. Repaired→original order; no7B-driven tuning.
+- LIVE started2026-09-27T10:56:22+08:00: outer TMUX tc-d74-3br,
+  private/tmp/tc-d74-3br; serviceccc778ca9c9e46f9b84d7ba66d49c9c7,
+  auxiliary d7400000000000000000000000000001; launch3b_repaired.launch,
+  model3b_repaired. overlay3b_repaired/install.json is INSTALLED; restore only
+  AFTER actual owned GPU release. Do not restart from this ledger alone.
+- Actual service72/80GiB/swap2 and independent watchdog verified. Before launch
+  disk333855449088B,host110498164736B free, GPUs15MiB/0%, no other model/TMUX.
+  No heavy parallel work. Preserve all startup/transport failures; no hidden
+  retries, arrival shift or success-only selection.
+- Next: complete this1,000-request side, cleanup/validation/figure/table, then
+  the prepared3B ORIGINAL side with shared config and fresh paths/receipts.
+  Do not repeat7B, native export, bytes,100-request or bootstrap-only checks.
+  Existing3B zero-weight and remote gates remain independent; no formal or
+  numerical correctness claim. M1/M2/A/S still unstarted.
 
 ## D73 checkpoint: paired 7B repaired polling side completed
 
