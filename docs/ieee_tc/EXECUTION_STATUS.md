@@ -1,6 +1,6 @@
 # IEEE TC execution status
 
-## Current checkpoint — 2026-09-27 after D84
+## Current checkpoint — 2026-09-27 D85 binding work (no new GPU run)
 
 - Both physical-subprocess source calibrations completed, cleaned, analyzed and
   plotted:3B368/368 (360+8warmup),7B92/92 (90+2warmup). No local GPU job/tmux or
@@ -11,9 +11,21 @@
   real runtime/config difference. Do not bypass profile identity or Full guard.
 - Existing native events now supply both completion-length buckets, including
   actual prompt760; no extra length-profiling GPU run needed. Curated audit below.
-- No new backend/algorithm code changed during this continuation.288basic tests
-  pass24.250s (complete raw evidence_basic_smoke.log);147protected entries unchanged;
-  14raw SHA references and both figure manifests verified. Evidence backup next.
+- D84 evidence26ee1220b6ca49158f111afc8418308a7a15b456 PUSHED, fresh remote SHA
+  matched; rawd84/evidence_push_receipt.json. D84 code was488a716; later evidence
+  commits are not retroactively recorded as its executed source.
+- D85 corrected the source collector's missing Full pending-admission registration
+  and generation intent. Reuses live methods and native ownership close; no core
+  formula/guard change. Three red tests preserved;219related tests pass2.697s.
+  Complete logs rawd85_20260927. Details D85_FULL_CONFIGURATION_BINDING.md.
+- NEXT before any GPU launch: finish measured admission initializer assembly/
+  strict input validation in existing preflight, bind common W/transfer owner,
+  and resolve remaining control/profile configuration together. Current spec only
+  permits four HOST overrides; Full admission initializer not wired into it yet.
+  No candidate production profile exported or frozen; do not blindly rerunD84.
+- D85 basic288pass21.478s;147protected entries unchanged, GPU compute empty.
+  Complete tests and sourceSHA in20260927_d85_pending_collector_alignment.json.
+  Code backup next. No model run, remote restart, new input or baseline change.
 - Baselines remain PAUSED; M1/M2/A1–A5/S1–S13 remain NOT STARTED. No optimality claim.
 
 ## Authority and recovery

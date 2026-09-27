@@ -716,6 +716,130 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
             asyncio.run(collect_native_source_wave(runner, slot, [case, case], dict(requests=[])))
         slot.engine.ieee_gpu_reference.assert_not_awaited()
 
+    def test_profile_full_pending_intent_precedes_protection_and_reaches_generation(self):
+        from scripts.ieee_tc_preflight import collect_native_source_wave
+        from faaslora.clock import local_monotonic_clock_id
+        runner, slot, trace, plan, owner, _ = self.build('host')
+        runner.model_cfg['ieee_admission_profile'] = {'test_only': True}
+        case = self.profile_case(runner, slot, trace, plan, 'native_host')
+        events, intents = [], []
+        original_rpc = slot.engine.ieee_gpu_reference.side_effect
+        original_generate = slot.engine.generate_prepared.side_effect
+
+        async def register(**kwargs):
+            self.assertEqual((kwargs['prompt'], kwargs['max_tokens'], kwargs['adapter_id']),
+                             (plan.prompt, plan.max_tokens, trace.adapter_id))
+            events.append('register')
+            intents.append(kwargs['intent_id'])
+            return dict(kind='ieee_pending_admission_v1', intent_id=kwargs['intent_id'],
+                state='pending', clock_id=local_monotonic_clock_id(), physical_kv_reservation=False)
+
+        async def source(**kwargs):
+            if kwargs['operation'] == 'hold_host_source':
+                self.assertEqual(events, ['register'])
+                self.assertIn(case['case_id'], slot.ieee_pending_load_ids)
+                events.append('protect')
+            return await original_rpc(**kwargs)
+
+        async def generate(**kwargs):
+            self.assertEqual(kwargs['pending_admission_id'], intents[0])
+            self.assertFalse(slot.ieee_pending_load_ids)
+            events.append('generate')
+            return await original_generate(**kwargs)
+
+        async def close(**kwargs):
+            self.assertEqual(kwargs['intent_id'], intents[0])
+            self.assertEqual(slot.active_requests, 1)
+            events.append('close')
+            return dict(intent_id=kwargs['intent_id'], closed=True)
+
+        slot.engine.ieee_register_pending = AsyncMock(side_effect=register)
+        slot.engine.ieee_close_pending = AsyncMock(side_effect=close)
+        slot.engine.ieee_gpu_reference.side_effect = source
+        slot.engine.generate_prepared.side_effect = generate
+        result = dict(requests=[])
+        asyncio.run(collect_native_source_wave(runner, slot, [case], result))
+        self.assertEqual(events, ['register', 'protect', 'generate', 'close'])
+        self.assertTrue(result['requests'][0]['pass'])
+        self.assertEqual(result['requests'][0]['source_evidence']['pending_kv_admission']['state'], 'closed')
+        self.assertEqual(slot.active_requests, 0)
+        self.assertFalse(slot.ieee_pending_load_ids)
+        self.assertEqual(owner.snapshot()['live_leases'], 0)
+
+    def test_profile_full_known_conflict_closes_old_pending_before_new_intent(self):
+        from scripts.ieee_tc_preflight import collect_native_source_wave
+        from faaslora.clock import local_monotonic_clock_id
+        runner, slot, trace, plan, owner, _ = self.build('gpu')
+        runner.model_cfg['ieee_admission_profile'] = {'test_only': True}
+        case = self.profile_case(runner, slot, trace, plan, 'gpu')
+        original_rpc = slot.engine.ieee_gpu_reference.side_effect
+        original_generate = slot.engine.generate_prepared.side_effect
+        active, registered, closed = set(), [], []
+        attempts = []
+
+        async def register(**kwargs):
+            self.assertFalse(active)
+            intent = kwargs['intent_id']
+            active.add(intent)
+            registered.append(intent)
+            return dict(kind='ieee_pending_admission_v1', intent_id=intent, state='pending',
+                clock_id=local_monotonic_clock_id(), physical_kv_reservation=False)
+
+        async def source(**kwargs):
+            if kwargs['operation'] == 'demand_load_and_acquire':
+                self.assertEqual(len(active), 1)
+                attempts.append(kwargs['lease_id'])
+                if len(attempts) == 1:
+                    owner.epoch += 1
+            return await original_rpc(**kwargs)
+
+        async def generate(**kwargs):
+            self.assertEqual(kwargs['pending_admission_id'], registered[-1])
+            return await original_generate(**kwargs)
+
+        async def close(**kwargs):
+            intent = kwargs['intent_id']
+            active.remove(intent)
+            closed.append(intent)
+            return dict(intent_id=intent, closed=True)
+
+        slot.engine.ieee_register_pending = AsyncMock(side_effect=register)
+        slot.engine.ieee_close_pending = AsyncMock(side_effect=close)
+        slot.engine.ieee_gpu_reference.side_effect = source
+        slot.engine.generate_prepared.side_effect = generate
+        result = dict(requests=[])
+        asyncio.run(collect_native_source_wave(runner, slot, [case], result))
+        self.assertEqual(len(registered), 2)
+        self.assertEqual(len(set(registered)), 2)
+        self.assertEqual(closed, registered)
+        self.assertFalse(active)
+        sample = result['requests'][0]
+        self.assertTrue(sample['pass'])
+        rejected = sample['rejected_source_views'][0]
+        self.assertTrue(rejected['reservation_released'])
+        self.assertEqual(rejected['source_evidence']['pending_kv_admission']['state'], 'closed')
+        self.assertEqual(slot.active_requests, 0)
+        self.assertFalse(runner._unsettled_runtime_reservations)
+
+    def test_profile_lost_pending_reply_does_not_generate_or_release_unknown_ownership(self):
+        from scripts.ieee_tc_preflight import collect_native_source_wave
+        runner, slot, trace, plan, owner, _ = self.build('gpu')
+        runner.model_cfg['ieee_admission_profile'] = {'test_only': True}
+        case = self.profile_case(runner, slot, trace, plan, 'gpu')
+        slot.engine.ieee_register_pending = AsyncMock(side_effect=RuntimeError('lost pending reply'))
+        slot.engine.ieee_close_pending = AsyncMock(side_effect=RuntimeError('pending owner unresolved'))
+        result = dict(requests=[])
+        with self.assertRaisesRegex(RuntimeError, 'pending owner unresolved'):
+            asyncio.run(collect_native_source_wave(runner, slot, [case], result))
+        sample = result['requests'][0]
+        self.assertFalse(sample['pass'])
+        self.assertIn('lost pending reply', sample['error'])
+        self.assertIn('pending owner unresolved', sample['cleanup_error'])
+        slot.engine.generate_prepared.assert_not_awaited()
+        self.assertEqual(slot.active_requests, 1)
+        self.assertIn(case['case_id'], runner._unsettled_runtime_reservations)
+        self.assertEqual(owner.snapshot()['live_leases'], 0)
+
     def test_profile_concurrent_wave_joins_sibling_even_when_one_output_is_wrong(self):
         from scripts.ieee_tc_preflight import collect_native_source_wave
         from faaslora.clock import local_monotonic_clock_id

@@ -2731,6 +2731,16 @@ async def collect_native_source_wave(boundary, slot, cases, result):
                                 else 'file_host' if source['tier'] == 'host' else source['tier'])
                     if observed != spec['source']:
                         raise RuntimeError(f'controlled source changed: expected {spec["source"]}, observed {observed}')
+                    # Match Full's demand ownership before protecting/loading a
+                    # selected source. Source-only historical configurations make
+                    # this an explicit no-op; a native admission initializer
+                    # requires the real pending intent, not just its config hash.
+                    await boundary._register_ieee_pending_admission(reservation, prepared)
+                    if source['tier'] not in ('gpu', 'backbone'):
+                        if reservation.request_id in slot.ieee_pending_load_ids:
+                            raise RuntimeError('duplicate profiling pending adapter load')
+                        slot.ieee_pending_load_ids.add(reservation.request_id)
+                        reservation.ieee_load_pending = True
                     if await boundary._ieee_protect_selected_source(
                             reservation, source, key, collect_profile_only=True):
                         break
@@ -2750,10 +2760,13 @@ async def collect_native_source_wave(boundary, slot, cases, result):
                                                      adapter_id=aid, gpu_reference=reference)
             reservation.ieee_native_observer = observer
             reservation.generation_started = True
+            pending = reservation.ieee_pending_admission
+            pending_kwargs = ({'pending_admission_id': pending['intent_id']}
+                              if pending is not None else {})
             generated = await asyncio.wait_for(engine.generate_prepared(request_plan=prepared,
                 lora_path=reference['lora_path'], adapter_id=aid, temperature=0., top_p=1.,
                 generation_seed=42, return_timing=True, gpu_reference=reference,
-                native_event_observer=observer), timeout=1800.)
+                native_event_observer=observer, **pending_kwargs), timeout=1800.)
             timing = generated[3]
             reservation.native_terminal_observed = timing.get('native_terminal_observed') is True
             admission = reservation.gpu_reference_evidence['source_admission']

@@ -1,0 +1,56 @@
+{
+  "kind": "source_collector_full_pending_alignment_v1",
+  "status": "cpu_contract_passed_no_new_gpu_measurement",
+  "before_commit": "26ee1220b6ca49158f111afc8418308a7a15b456",
+  "full_qualified": false,
+  "production_profile_frozen": false,
+  "source_profile_admission_initializer_wired": false,
+  "independent_integrity_review": "not_run_project_disallows_subagents",
+  "source_sha256": {
+    "scripts/ieee_tc_preflight.py": "96cb2f97c3467d484de51ec18aa9642f5b04041e058a0100d229260511f9f355",
+    "tests/test_ieee_tc_request_lifecycle.py": "c0a74233e3c2e15f879c78d6db6b9cd094a0795b41f87cdd81949f0b18d67dc4"
+  },
+  "checks": [
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d85_20260927/pending_collector_red.json",
+      "sha256": "81ba8ccaaffe9cada76f9f3d978e18a006d22622275cebe7664a13467c4d4971",
+      "status": "expected_failure_before_fix",
+      "tests": 3,
+      "failures": 1,
+      "errors": 2
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d85_20260927/pending_regression.log",
+      "sha256": "6370a24c6e019e71ebf610bcc315d62574bba969febd64e9974f99e3c4e776a5",
+      "status": "passed",
+      "tests": 219,
+      "test_seconds": 2.697,
+      "bounded_service_seconds": 9.895
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d85_20260927/basic_smoke.log",
+      "sha256": "cbda8455e15c1f1ac194ec6bf9a56e487b38eb5d7ebe8e051f76eff876274b2d",
+      "status": "passed",
+      "tests": 288,
+      "test_seconds": 21.478,
+      "bounded_service_seconds": 29.223
+    }
+  ],
+  "protected_verification": {
+    "entries": 147,
+    "changed": [],
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "reused_completion_audit": {
+    "path": "paper_results/ieee_tc/p2_backend/20260927_d84_completion_length_audit.json",
+    "sha256": "5deef0df7e0d945e194e8e9d5effc6eab2ea0422fbc509f481a23698ca030c55"
+  },
+  "runtime_state": {
+    "new_model_runs": 0,
+    "new_remote_operations": 0,
+    "new_input_datasets": 0,
+    "gpu_compute_empty": true,
+    "baselines_paused": true
+  }
+}
