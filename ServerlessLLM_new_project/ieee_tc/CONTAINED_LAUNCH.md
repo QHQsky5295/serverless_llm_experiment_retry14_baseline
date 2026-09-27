@@ -1,11 +1,13 @@
 # Serverless: independent native launcher view
 
-Status: D68 adds verified7B native serialization (not7B serving); D65 infrastructure,
-D66 native-input identity and D67 actual3B native
-backbone loading qualification pass. Four fixed-output requests and actual
-worker/source/resource release are verified. LoRA, full-pool,7B loading and
-original/repaired1,000-request pairs remain open. No comparative performance or
-polling-benefit claim follows from this narrow prerequisite.
+Current status D73: D68 native7B serialization and D70 actual7B loading are
+verified. D72/D73 completes the7B original/repaired1,000-request development
+pair (997/3 versus996/4 valid/failed). Conditional mean queue294.746→121.871s;
+one run each, no CI, neither is a whole-workload qualification pass. See the
+current REQUEST_PROTOCOL D73 table and main EXECUTION_STATUS. Next3B repaired
+then original; do not repeat passed bytes/loader/startup checks or the7B pair.
+Full-pool, independent numerical LoRA and real-remote qualification remain open.
+The following D65–D68 records are historical evidence, not current next actions.
 
 ## D67 final result: native3B loading qualified, not performance
 

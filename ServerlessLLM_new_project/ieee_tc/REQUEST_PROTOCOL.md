@@ -344,3 +344,66 @@ Next: the already prepared run7b_repaired.sh, SAME HTTP/deployment settings,
 fresh private/cold runtime and fresh overlay receipt; do not repeat the original
 side or change bootstrap/loading/target after seeing its result. Then the 3B
 pair (repaired first). Complete cleanup/validation/table/figure between runs.
+
+## D73: completed7B original/repaired development pair
+
+The precreated repaired command used EXACTLY the shared HTTP configuration
+SHA00a4b6cbbb0d60c91b76cdb34854325c247d52572f6b50eae4f480f7d369a9f3
+and deployment SHA2e1de8d1eb786b873296afd520cdc98e55edaea38a6e6a8694d16760bc8b6bc6.
+Same native loader, bootstrap, min1/max4,target2,keepalive10, diagnostic engine
+settings, source trace prefix and notice+60. No tuning or source change after
+the original result. Baseline sourcece23e7512f66847eafc95645b51ba9fbde870255 has
+the unchanged serving helper7f135add13082af1cc2e428c7a8e497e9360d949.
+
+| Observation | Original | Repaired |
+|---|---:|---:|
+| Planned / arrived / terminal |1000/1000/1000 |1000/1000/1000 |
+| Protocol-valid / failed |997/3 |996/4 |
+| Actual native output tokens |122176 |121920 |
+| Mean router queue, valid responses |294.746s |121.871s |
+| P95 TTFT, valid responses |534.178s |187.581s |
+| Mean service TTFT |380.685ms |391.743ms |
+| Mean E2E |302.789s |129.984s |
+| Observed assignment gap<10ms |0/996 |410/995 |
+| Assignment gap median |1.004s |1.001s |
+| Workload qualification |Failed |Failed |
+
+One run per variant; no run-level CI or significance claim. The observed queue
+reduction58.65% and P95TTFT reduction64.88% support unconditional polling as an
+important contributor, not the only bottleneck. Repaired median near1s is
+consistent with retained no-capacity waits;410 sub10ms gaps show the unconditional
+per-request floor is absent. RR, scaling, native loader and capacity checks
+remain unchanged. ServiceTTFT did not improve; do not hide that trade-off.
+
+All1000 offered rows remain. Repaired initial failures: request0 connection
+refused;1/2HTTP500 before router creation. Additional req_00845 had client
+ServerDisconnectedError; its ID is absent from preserved native logs. No model
+crash/OOM evidence; transport root cause is undetermined, not attributed to
+the polling repair. No retry or exclusion. The common996 successful-request
+subset has original mean queue294.555s versus repaired121.871s, so the missing
+response does not explain the observed improvement. This is only a conditional
+sensitivity, not an alternative complete-workload success report.
+
+Actual GPU release/service removal confirmed, auxiliary empty/events0 before
+targeted stop, overlay restored byte-for-byte AFTER release.1341 watchdog
+samples; service peak51351257088B, minimum host57025748992B; high/max/OOM/
+OOM-kill/swap0.108 regular native files archived with equal SHA; four obsolete
+socket files omitted. Final service/replay/watchdog1/1/0,
+qualification_request_failure; measurement_complete=true/workload_passed=false.
+Same raw rootd72_20260927; native_log_copy_check_repaired_d73.json and25-member
+verified_raw_sources_repaired_d73.sha256 preserve exact evidence.
+
+Main curated20260927_7b_repaired_polling_d73.json + _evidence.json include all
+rows, failures, paired contracts, matched sensitivity and resource receipts.
+Accepted plots: figs/ieee_tc/serverless_audit/d73_7b_polling_pair_v2. First
+preview retained separately because historical fixed ticks left subsecond gaps
+unlabeled; only the existing renderer's tick policy changed. Both final3.45×
+2.85in PNGs visually checked, no overlap, embedded Times New Roman in PDF,
+explicit n1 and failure counts.46 baseline checks2.480s,328 main24.596s and53
+OS checks1.336s pass. No dataset/environment/policy/remote modification.
+
+Next:3B repaired then original1,000-request pair under the predeclared common
+target8/min1/max4/keepalive10 and diagnostic max_num_seqs4. Reuse audited native
+checkpoint and existing trace/pool; no7B repeat or startup-only tuning. This
+development attribution does not close remote, full-pool, independent numerical
+LoRA or formal performance qualification.
