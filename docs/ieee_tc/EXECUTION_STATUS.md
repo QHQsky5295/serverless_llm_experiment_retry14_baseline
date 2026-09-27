@@ -1,6 +1,54 @@
 # IEEE TC execution status
 
+## Latest — D90 3B attempt7 completed and cleaned; 7B next, not launched
+
+Supersedes LIVE/next notes below. Original100prefix COMPLETE100/100, exactnative
+generation/dispatchfields, E2Eidentity0ms andTPOTrecalc≤1ms. Source857fc7e;
+sameD88parent/D89profiles/originaldriver, no runtime/config/remoteedit duringrun.
+Initial1/controlled1/natural2allready. Residency82complete17superseded0failed;
+file86complete17superseded0failed. TiersGPU41/HOST6/NVMe26/Remote27.
+29HTTPUUIDpairs exact,67350156wire/1170025980verifiedlogicalB,all29published,
+requestpacking0.405samplespeak19045117952B/minhost97282367488B;high/max/OOM/swap0.
+ALL4inprocessphysicalleasesclosed;ready_pool0/HOSTfiles0/native_reserved0/pending0.
+OriginalrunremovedBOTHworkspaces;service/watchdog0/0,actualGPUcontexts/servicegone.
+Emptyauxd99d938177cd43d7928a95ca1d9b26a9 STOPPEDafterprocs/populated0 verified.
+AFTERinference,matchingremote8bc9812618864eff8a21c2d9d2f20473 STOPPED;all3units
+inactive/MainPID0/success. NO liveGPU/model/tmux/remote. Disk312GiB/host108GiB/swap0.
+
+Curated20260928_d90_3b_full_prefix_attempt7.json,14SHArefs,147protectedunchanged;
+rawsummarize_attempt7 reusesimmutableattempt4 reducer. D90 immediatefunctional
+table+descriptivelatencycomplete. MeanTTFT15.530s/dispatchwait13.044s/service2.486s;
+P95TTFT46.911s. Highwait meritslatercausalinspection; notformalSLO/result/ranking.
+Routing-span2.35s notyetpureCPUproof;zero legacyfieldsnotzerooverhead evidence.
+Onepassedtimingdoesnotproveallconcurrencyor numericaladapterdiscrimination.
+
+NEXT scopesource/evidencebackup,thenFULLplan/ledger+safety and7B SAMEoriginal
+limiteddriver/D88parent/D89profiling. No7Blauncherpreparedyet. Do NOT repeat3B,
+D78/D80/D81/D88/D89 or returntobaselines. After7B returnintegratedFull production
+qualification;main4000/M1/M2/A/S NOTqualified/started. No localtuningloop now.
+
+## Live — D90 original 3B prefix attempt7, 2026-09-28 01:56
+
+Original100prefix/500pool/D88parentconfig/D89profiles, unchangeddriver; source
+857fc7e493fd6d2fa0660e1a81805670c8d7a9bc pushed. tmux tc-d90-3b-attempt7;
+new run/activate scripts onlyrename outputs/aux/monitor. BOTH authenticateddirect
+health passed BEFORElaunch underexistingconda, remote_health7_{3b,7b}.json.
+23finalreferences/147protectedverified, bothNIC1000/full, host108GiBavailable,
+disk312GiB/swap0/GPUcomputeempty atadmission. No repeatedprofiling/publication.
+Remote3Bb17cffc9d8a64edeac51f2b5f91e0b84 PID718232;
+7Bedd475e0dbde47e7b85e8601824fbd96 PID718234;
+monitor8bc9812618864eff8a21c2d9d2f20473 PID718237,
+unitprimelora-artifact-monitor-d90a7.service/logremote_monitor_attempt7.log.
+No source/remote management/hash/cleanup duringinference. Observe SAMEattempt
+toterminal; cleanup/validate/table BEFORE any7B. Full/M1/M2/A/S notqualified;
+baselinesPAUSED. Prior latest/next notesbelow are historical.
+
 ## Latest — D90 allocation correction and draining-member cleanup CPU-qualified
+
+BACKEDUP857fc7e493fd6d2fa0660e1a81805670c8d7a9bc PUSHED/freshremoteSHA
+matched;13scopedfiles/30SHArefs/147protected andsecretsPASS, usermanifestNOTstaged.
+Rawallocation_cleanup_push_receipt.json. No livejob. NEXT original3Bprefixattempt7
+after fullplan/ledger/freshsafety;do not repeat completedCPUtests/backup/profiles.
 
 Final combined regression799PASS48.173s (`draining_regression2.log`), including
 native ownership/launch/request/pressure/HTTP/basic smoke. Earlier798PASS48.055s
