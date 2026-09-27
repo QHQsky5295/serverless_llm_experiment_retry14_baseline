@@ -13,8 +13,33 @@
   startingd85263e00e976cc61c8938e662d77a2b249cdf58. Goal remains incomplete.
 - D68 start main5b09401c1e7598c407b22710a21486dc1be44166, baseline08153b457f43d3d587dae171f9dc49024fde4752.
 - Resume by inspecting actual handles/Git/resources; never restart a live run
-  from stale notes. D72 7B ORIGINAL1,000-request diagnostic ENDED; actual GPU
-  contexts clear, service removed, auxiliary empty/stopped, overlay RESTORED.
+  from stale notes. D72 7B ORIGINAL1,000-request diagnostic ENDED/cleaned.
+  D73 7B REPAIRED side is RUNNING; see exact handles below. Do not restart it.
+
+## D73 checkpoint: paired 7B repaired polling side running
+
+- Starts main3a3cb74656f18528e121f45bada05e8618e9303d and baseline
+  ce23e7512f66847eafc95645b51ba9fbde870255. Full source plan/status/AGENTS and
+  run-experiment/github-sync/academic-plotting reread.147 protected entries and
+  plan unchanged; all24 D72 raw source hashes still match. No policy/code change.
+- Started2026-09-27T10:20+08 with PRECREATED run7b_repaired.sh and shared
+  http_7b_1000.json. Same notice+60, inputs, native loader, bootstrap, min1/max4,
+  target2/keep_alive10 and diagnostic engine settings as the completed original.
+  No hidden retry, prewarm or change after seeing original results.
+- LIVE handles: outer TMUX tc-d72-7br; private/tmp/tc-d72-7br;
+  service7099cfbcfdca4cc6b2dc80b66fe3764e;
+  auxiliary d7200000000000000000000000000002;
+  raw results/ieee_tc/serverless_qualification/d72_20260927;
+  launch7b_repaired.launch, model7b_repaired, overlay7b_repaired/install.json.
+  Loader overlay INSTALLED; restore only AFTER actual owned GPU contexts exit.
+- Initial actual service72/80GiB/swap2 verified by independent watchdog, no
+  pressure/high/max/OOM. Before launch disk333970202624B, host112021647360B
+  available, four GPUs15MiB/0%, no other model/TMUX. No heavy parallel task.
+- Next: retain all1,000 terminal outcomes, actual cleanup, failure-aware paired
+  audit and immediate plots/table; then3B repaired/original. Do not repeat7B
+  original, checkpoint export, old100-request or bootstrap-only experiments.
+  This is a local-artifact development attribution, not remote/formal/numerical
+  qualification. Pending remote-space/nonzero-LoRA choices remain separate.
 
 ## D72 checkpoint: 7B original polling development side completed
 
