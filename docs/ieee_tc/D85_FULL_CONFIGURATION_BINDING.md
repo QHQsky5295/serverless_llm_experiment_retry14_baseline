@@ -89,3 +89,57 @@ admission initializer，统一窗口和实际 transfer owner，再核对其余�
 不重做 D78 发布、D80 全池下载、D81 并发功能检查、D83/D84 已结束运行；不恢复
 baseline。M1/M2/A1–A5/S1–S13 均未开始。既有零权重集合不能证明 adapter 数值
 区分性的问题仍保留，不用本轮 owner 测试替代它。
+
+## D85 后续：已接入原生完成长度初始化（无新增 GPU 运行）
+
+以上“组装入口尚未接入”描述的是 `c854857` 时点。现在原有
+`backend-model-check/native_source_matrix` 支持显式 `admission_initialization`：
+
+```json
+{
+  "kind": "native_completed_length_binding_v1",
+  "audit": {"path": "已完成长度审计的路径", "sha256": "对应SHA256"},
+  "model": "3b",
+  "window_s": 5.0
+}
+```
+
+不是直接填写均值的自由配置：入口核验 audit 与其原始 run 的 SHA，重新检查
+所有原生终态、完整 request 集合、native token 数及原生 prompt hash；排除已
+标记 warmup，同一原始请求的不同 source/round 必须一致后去重，再计算各桶
+实际完成长度均值。与 curated 不符、桶缺失、模型/后端/trace/实际子配置不符
+均拒绝。没有该字段的历史 source-only 入口保持原行为；不修改旧 spec 或结果。
+
+| 离线复用检查 | 3B | 7B |
+|---|---:|---:|
+| 独立原始 request ID 数（不是独立实验重复） | 21 | 6 |
+| 原生 prompt ≤759 / >759 的样本数 | 8 / 13 | 3 / 3 |
+| 两桶实际完成 output 均值 | 98.375 / 171.6923 | 121.3333 / 256 |
+| 从真实 movement owner 派生的 transfer limit | 3 | 3 |
+| 新增 GPU 测量 | 0 | 0 |
+
+候选 W=5s 来自两模型旧 workload 配置的
+`max(arrival_window=2s, scale_interval=2s, historical_TTFT_SLO=5s)`，
+并非新共同 SLO 或最优 W；Full demand window 尚待显式绑定同一值。这里只接受
+显式正窗口，不以测试 fixture 或缺失值自动兜底。原生 completed-length window
+仍按论文 `(t-W,t]` 的已完成统计更新，不使用未来请求的 target。
+
+采用原有 child factory 解析实际配置后，两模型离线组装通过。完成长度的复用
+不代表可复用旧 D/T/O 性能 profile：新增 initializer 仍进入实际 runtime 身份。
+新 collector 收尾复用 `SharedFileTransferDomain.retire`，保存 shared pressure
+事件及退休前后状态，再停止后端；并未改变原生压力或物理容量公式。
+
+验证：59项 OS/初始化测试通过（1.311s）；343项生命周期、pending、scheduler、
+routing、transfer 相关测试通过（7.188s）；288项基础回归通过（22.195s）；147项
+历史保护清单零变化。最初两次检查的环境/导入错误保留在
+raw 日志：conda 没有 OS gate 必需的 pidfd API；system Python 没有被不必要的
+experiment package import 引入的可选依赖。证据校验已去除该非必要导入，OS
+检查使用既有 system Python；不安装依赖、不削弱进程安全门槛。
+
+依据 [vLLM0.30 Request 源码](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/request.py)，
+原生 prompt 计数包含实际输入，output 计数取实际 output token IDs 长度。这里只
+借此确认计数语义，不借此推断 Prime 性能。完整验证/配置身份见
+`paper_results/ieee_tc/p2_backend/20260927_d85_measured_admission_initializer.json`。
+
+下一步集中确定余下 Full/controller 配置和 profile 类覆盖，再进入受影响的
+原生路径与 Full 多次激活验证。没有新增主比较结果或性能优越性结论。

@@ -18,14 +18,26 @@
   and generation intent. Reuses live methods and native ownership close; no core
   formula/guard change. Three red tests preserved;219related tests pass2.697s.
   Complete logs rawd85_20260927. Details D85_FULL_CONFIGURATION_BINDING.md.
-- NEXT before any GPU launch: finish measured admission initializer assembly/
-  strict input validation in existing preflight, bind common W/transfer owner,
-  and resolve remaining control/profile configuration together. Current spec only
-  permits four HOST overrides; Full admission initializer not wired into it yet.
-  No candidate production profile exported or frozen; do not blindly rerunD84.
+- Measured initializer now wired into existing preflight as optional explicit
+  admission_initialization binding. SHA-bound raw successful native completions,
+  exact runtime/model/trace/buckets, all repeated request counts checked; no
+  guessed buckets/future lengths. Old specs unchanged. Actual D84 inputs BOTH
+  verified offline, no additional GPU run. Transfer limit derived from movement3.
+- Candidate W5s recovered from old2s arrival/2s scale/5s TTFT config, development
+  only; Full demand window NOT bound/frozen yet. NEXT before any GPU launch:
+  bind common W and resolve remaining controller/profile settings together.
+  Do not blindly rerunD84 or label source-only latency as admission-enabled.
+- 59OS tests pass1.311s;343related regression pass7.188s. New collector retires
+  existing shared pressure owner before engine shutdown and records its events.
+  Evidence20260927_d85_measured_admission_initializer.json; complete logs rawd85.
+  First two environment/import failures retained; no safety guard relaxed.
+- Initializer follow-up basic288pass22.195s;147protected entries unchanged.
+  Backup pending after diff/checksum/secrets check. All models/services stopped;
+  no new remote operation or performance measurement in this follow-up.
 - D85 basic288pass21.478s;147protected entries unchanged, GPU compute empty.
   Complete tests and sourceSHA in20260927_d85_pending_collector_alignment.json.
-  Code backup next. No model run, remote restart, new input or baseline change.
+  Code c854857e0c4c5d8a3aa764d3b8befd367abb9fde PUSHED/fresh remote SHA verified;
+  rawd85/code_push_receipt.json. No model run, remote restart, new input or baseline change.
 - Baselines remain PAUSED; M1/M2/A1–A5/S1–S13 remain NOT STARTED. No optimality claim.
 
 ## Authority and recovery

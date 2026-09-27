@@ -1,4 +1,5 @@
 import json
+import copy
 from pathlib import Path
 import tempfile
 import unittest
@@ -739,6 +740,133 @@ class ProtocolGates(unittest.TestCase):
         with patch.dict(p.os.environ, {}, clear=True):
             with self.assertRaisesRegex(RuntimeError, 'missing guarded'):
                 p.verify_current_service()
+
+
+class MeasuredAdmissionInitializer(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.cfg = dict(name='existing-model', backend='vllm', device_id=0,
+                        visible_device_ids=[0], ieee_input_upper_bounds=[759],
+                        generation_contract='fixed_length_greedy_v1')
+        samples = [dict(source_request_id=f'r{i}', native_prompt_tokens=prompt,
+                        completed_output_tokens=count, prompt_sha256=str(i)*64,
+                        content_prompt_tokens=prompt-1)
+                   for i, (prompt, count) in enumerate(((100, 10), (759, 30), (760, 40)))]
+        # One warmup, three original requests and one legitimate repeated source.
+        rows = []
+        for wave, selected in enumerate(([samples[2]], samples, [samples[0]])):
+            for lane, s in enumerate(selected):
+                rows.append(dict(request_id=f'source-profile/w{wave}/l{lane}',
+                    source_request_id=s['source_request_id'], **{'pass': True},
+                    actual_tokens=s['completed_output_tokens'], target_tokens=s['completed_output_tokens'],
+                    input_content_tokens=s['content_prompt_tokens'], timing=dict(
+                        native_terminal_observed=True, native_output_tokens=float(s['completed_output_tokens']),
+                        actual_prompt_tokens=s['native_prompt_tokens'],
+                        native_prompt_token_ids_sha256=s['prompt_sha256'])))
+        self.run = dict(kind='backend_native_native_source_matrix_qualification_v1',
+            **{'pass': True}, stage='complete', model_config=copy.deepcopy(self.cfg),
+            runtime_receipt_sha256='runtime', trace=dict(source_sha256='trace'), requests=rows,
+            source_profile_spec=dict(waves=[dict(role=role, requests=[dict(source_request_id=s['source_request_id']) for s in selected])
+                for role, selected in [('kernel_warmup_retained', [samples[2]]),
+                                       ('representative_measurement', samples),
+                                       ('representative_measurement', [samples[0]])]]))
+        self.entry = dict(model_config=copy.deepcopy(self.cfg), same_backend='0.30.0',
+            input_upper_bounds=[759], samples=samples, unique_original_requests=3,
+            unobserved_bucket_ids=[], observed_buckets=[
+                dict(bucket=0, unique_requests=2, completed_output_mean=20.0),
+                dict(bucket=1, unique_requests=1, completed_output_mean=40.0)])
+        self.audit = dict(kind='native_completed_output_length_initialization_audit_v1',
+            development_only=True, production_profile_frozen=False, models={'3b': self.entry})
+        self.binding = dict(kind='native_completed_length_binding_v1', model='3b', window_s=5)
+
+    def bind(self):
+        raw = self.root/'raw.json'
+        raw.write_text(json.dumps(self.run))
+        self.entry['source_run'] = dict(path=str(raw), sha256=p.digest(raw))
+        audit = self.root/'audit.json'
+        audit.write_text(json.dumps(self.audit))
+        self.binding['audit'] = dict(path=str(audit), sha256=p.digest(audit))
+
+    def derive(self, **overrides):
+        kwargs = dict(model_config=self.cfg, backend_version='0.30.0',
+                      runtime_receipt_sha256='runtime', source_trace_sha256='trace',
+                      movement_concurrency=3)
+        kwargs.update(overrides)
+        return p.measured_admission_initializer(self.binding, **kwargs)
+
+    def test_raw_native_counts_and_boundary_deduplicated_without_mutation(self):
+        self.bind()
+        cfg_before = copy.deepcopy(self.cfg)
+        profile, evidence = self.derive()
+        self.assertEqual(profile['profile_means'], [20.0, 40.0])
+        self.assertEqual(profile['transfer_limit'], 3)
+        self.assertEqual(profile['window_s'], 5.0)
+        self.assertEqual(evidence['unique_original_requests'], 3)
+        self.assertFalse(evidence['performance_samples_relabelled'])
+        self.assertFalse(evidence['production_profile_frozen'])
+        self.assertEqual(self.cfg, cfg_before)
+        self.assertEqual(self.derive(), (profile, evidence))
+        placed = dict(self.cfg, device_id=2, visible_device_ids=[2])
+        self.assertEqual(self.derive(model_config=placed), (profile, evidence))
+        self.assertNotEqual(self.derive(movement_concurrency=4)[0]['profile_id'], profile['profile_id'])
+
+    def test_wrong_identity_sha_or_existing_profile_rejected(self):
+        self.bind()
+        for kwargs in (dict(backend_version='different'), dict(runtime_receipt_sha256='other'),
+                       dict(source_trace_sha256='other'), dict(movement_concurrency=0),
+                       dict(movement_concurrency=True), dict(model_config=dict(self.cfg, max_loras=99)),
+                       dict(model_config=dict(self.cfg, ieee_admission_profile={})),
+                       dict(model_config=dict(self.cfg, ieee_input_upper_bounds=[760]))):
+            with self.subTest(kwargs=kwargs), self.assertRaises(ValueError):
+                self.derive(**kwargs)
+        self.binding['audit']['sha256'] = 'bad'
+        with self.assertRaisesRegex(ValueError, 'SHA256'):
+            self.derive()
+        self.bind()
+        (self.root/'raw.json').write_text('{}')
+        with self.assertRaisesRegex(ValueError, 'SHA256'):
+            self.derive()
+
+    def test_bad_raw_completion_coverage_or_curated_means_rejected(self):
+        original_run, original_entry = copy.deepcopy(self.run), copy.deepcopy(self.entry)
+        mutations = [
+            lambda: self.run.update(stage='incomplete'),
+            lambda: self.run.update(**{'pass': False}),
+            lambda: self.run['requests'].pop(),
+            lambda: self.run['requests'].append(copy.deepcopy(self.run['requests'][1])),
+            lambda: self.run['requests'][1].update(target_tokens=11),
+            lambda: self.run['requests'][1]['timing'].update(native_terminal_observed=False),
+            lambda: self.run['requests'][1]['timing'].update(native_output_tokens=10.5),
+            lambda: self.run['requests'][1]['timing'].update(native_output_tokens=True),
+            lambda: self.run['requests'][-1]['timing'].update(actual_prompt_tokens=101),
+            lambda: self.run['requests'][1]['timing'].pop('native_output_tokens'),
+            lambda: self.run['requests'][1]['timing'].update(native_prompt_token_ids_sha256='missing'),
+            lambda: self.entry['samples'].append(copy.deepcopy(self.entry['samples'][0])),
+            lambda: self.entry['observed_buckets'][0].update(completed_output_mean=21),
+            lambda: self.entry['unobserved_bucket_ids'].append(1),
+            lambda: self.entry.update(input_upper_bounds=[760]),
+        ]
+        for number, mutate in enumerate(mutations):
+            self.run, self.entry = copy.deepcopy(original_run), copy.deepcopy(original_entry)
+            self.audit['models']['3b'] = self.entry
+            mutate()
+            self.bind()
+            with self.subTest(mutation=number), self.assertRaises(ValueError):
+                self.derive()
+
+    def test_explicit_window_and_development_scope_required(self):
+        self.bind()
+        for window in (0, -1, float('nan'), float('inf'), True, 'auto'):
+            self.binding['window_s'] = window
+            with self.subTest(window=window), self.assertRaises(ValueError):
+                self.derive()
+        self.binding['window_s'] = 5
+        self.audit['production_profile_frozen'] = True
+        self.bind()
+        with self.assertRaisesRegex(ValueError, 'development'):
+            self.derive()
 
 
 if __name__ == '__main__':

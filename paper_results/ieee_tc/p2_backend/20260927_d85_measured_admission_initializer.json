@@ -1,0 +1,76 @@
+{
+  "kind": "measured_admission_initializer_qualification_v1",
+  "pass": true,
+  "development_only": true,
+  "production_profile_frozen": false,
+  "gpu_runs_added": 0,
+  "performance_samples_relabelled": false,
+  "source_basis_commit": "c854857e0c4c5d8a3aa764d3b8befd367abb9fde",
+  "check_source_sha256": "fd84d0e92bfda403db513dfc833a73563d33929453db4747caa4a94aed5934fc",
+  "test_source_sha256": "2b3de930abf306a0f3fdeecd2a66cd1f5262158cb4f07fd234d9665b98b4e25e",
+  "audit": {
+    "path": "paper_results/ieee_tc/p2_backend/20260927_d84_completion_length_audit.json",
+    "sha256": "5deef0df7e0d945e194e8e9d5effc6eab2ea0422fbc509f481a23698ca030c55"
+  },
+  "window_basis": {
+    "candidate_window_s": 5.0,
+    "derivation": "existing _derive_online_hotness_window_s: max(arrival_window_s, scale_eval_interval_s, historical_ttft_slo_ms/1000)",
+    "arrival_window_s": 2.0,
+    "scale_eval_interval_s": 2.0,
+    "historical_ttft_slo_ms": 5000,
+    "new_common_slo_calibrated": false,
+    "full_demand_window_bound": false
+  },
+  "models": {
+    "3b": {
+      "unique_original_requests": 21,
+      "native_input_upper_bounds": [759],
+      "bucket_counts": [8, 13],
+      "profile_means": [98.375, 171.69230769230768],
+      "transfer_limit": 3,
+      "profile_id": "native-completed/303f16e918e96ca50e43275e89933ca2f55b2b7267dbb1ad80f1b5aeac6ba32e"
+    },
+    "7b": {
+      "unique_original_requests": 6,
+      "native_input_upper_bounds": [759],
+      "bucket_counts": [3, 3],
+      "profile_means": [121.33333333333333, 256.0],
+      "transfer_limit": 3,
+      "profile_id": "native-completed/15d05d3faaab64c5c71a2bf0f5dd73fa79c7099789c3c6f64902b033f326eda0"
+    }
+  },
+  "evidence": [
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d85_20260927/verify_initializer.py",
+      "sha256": "5068d7a7640d097efe16aa8629dc8550b320caba4a5dc9e51def1db9b20121d2"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d85_20260927/initializer_real_1.log",
+      "sha256": "5895956eab77c08ffde034725d7426f7d57b883c93cfa134c05d0e3f73fb99d1",
+      "scope": "SHA-bound D84 raw records rechecked, both model configs resolved through actual child factory; no model spawned"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d85_20260927/initializer_os_tests_2.log",
+      "sha256": "02ead8a31ba128f0cdfb953521ccc8a514610ff9303d7cc849732a3e6ca909f2",
+      "tests_passed": 59,
+      "test_seconds": 1.311
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d85_20260927/initializer_regression_1.log",
+      "sha256": "b09cb828382b0f941fe680749821cb27c0cb3f35337083f0c2ca88d6b79a5a10",
+      "tests_passed": 343,
+      "test_seconds": 7.188
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d85_20260927/initializer_smoke_1.log",
+      "sha256": "e38989bd0f2737625f9f9a9077c40167f12e607e25db6ac0064d1f0860cb8be8",
+      "tests_passed": 288,
+      "test_seconds": 22.195
+    }
+  ],
+  "failed_checks_retained": [
+    "initializer_tests_1.log: conda interpreter lacks pidfd_send_signal for OS guards; new initializer tests passed",
+    "initializer_os_tests_1.log: initializer's experiment-package import required optional dependencies absent in system Python; removed unnecessary serving import from pure evidence check"
+  ],
+  "next": "Bind Full demand/completion window and remaining controller/profile settings together; admission-enabled runtime is not yet GPU-qualified. Preserve all Full/profile guards."
+}

@@ -2824,6 +2824,141 @@ async def collect_native_source_wave(boundary, slot, cases, result):
         raise RuntimeError('source wave left controller/native ownership unsettled')
 
 
+def measured_admission_initializer(binding, *, model_config, backend_version,
+                                   runtime_receipt_sha256, source_trace_sha256,
+                                   movement_concurrency):
+    """Bootstrap lengths from completed native observations, never future targets.
+
+    This derives a development initializer, NOT a performance-profile export.
+    Adding it changes runtime identity; the old latency samples remain old runs.
+    Call before model startup, with the factory-resolved child configuration.
+    """
+    from bisect import bisect_left
+
+    def model_identity(config):
+        # Same placement-only exclusion as FrozenServiceProfiles.model_identity.
+        # Keep this pre-start evidence check usable by the stdlib-only OS gate;
+        # importing the experiment package would import optional serving stacks.
+        return {key: value for key, value in config.items()
+                if key not in ('visible_device_ids', 'device_id')}
+
+    if (set(binding) != {'kind', 'audit', 'model', 'window_s'}
+            or binding['kind'] != 'native_completed_length_binding_v1'):
+        raise ValueError('unknown completed-length initialization binding')
+    window = binding['window_s']
+    if (type(window) not in (int, float) or not math.isfinite(window) or window <= 0
+            or type(movement_concurrency) is not int or movement_concurrency <= 0):
+        raise ValueError('initializer requires explicit positive window and movement capacity')
+    if 'ieee_admission_profile' in model_config:
+        raise ValueError('cannot replace an existing admission initializer')
+
+    def verified(reference):
+        path = Path(reference['path'])
+        path = path if path.is_absolute() else ROOT / path
+        if digest(path) != reference['sha256']:
+            raise ValueError('completed-length input SHA256 differs')
+        return json.loads(path.read_text())
+
+    audit = verified(binding['audit'])
+    if (audit.get('kind') != 'native_completed_output_length_initialization_audit_v1'
+            or audit.get('development_only') is not True
+            or audit.get('production_profile_frozen') is not False):
+        raise ValueError('initializer requires explicit development length evidence')
+    entry = audit['models'][binding['model']]
+    run = verified(entry['source_run'])
+    identity = model_identity(model_config)
+    if (entry['same_backend'] != backend_version
+            or entry['model_config'] != run['model_config']
+            or model_identity(run['model_config']) != identity
+            or run['runtime_receipt_sha256'] != runtime_receipt_sha256
+            or run['trace']['source_sha256'] != source_trace_sha256):
+        raise ValueError('completed-length model/backend/trace identity differs')
+    if (run.get('kind') != 'backend_native_native_source_matrix_qualification_v1'
+            or run.get('pass') is not True or run.get('stage') != 'complete'):
+        raise ValueError('completed-length source run is incomplete or failed')
+    bounds = entry['input_upper_bounds']
+    if (bounds != model_config.get('ieee_input_upper_bounds')
+            or any(type(x) is not int or x <= 0 for x in bounds)
+            or bounds != sorted(set(bounds))):
+        raise ValueError('native prompt buckets differ or are invalid')
+    expected, measured = {}, set()
+    for number, wave in enumerate(run['source_profile_spec']['waves']):
+        if wave['role'] not in ('representative_measurement', 'kernel_warmup_retained'):
+            raise ValueError('unknown completed-length source wave role')
+        for lane, case in enumerate(wave['requests']):
+            case_id = f'source-profile/w{number}/l{lane}'
+            expected[case_id] = case['source_request_id']
+            if wave['role'] == 'representative_measurement':
+                measured.add(case_id)
+
+    def token_count(value):
+        # Some native timings serialize exact integral counts as JSON floats.
+        if (type(value) not in (int, float) or not math.isfinite(value)
+                or value <= 0 or int(value) != value):
+            raise ValueError('completed-length evidence lacks a positive native integer count')
+        return int(value)
+
+    seen, samples = set(), {}
+    for row in run['requests']:
+        case_id = row['request_id']
+        if (case_id in seen or case_id not in expected or row.get('pass') is not True
+                or row['source_request_id'] != expected[case_id]):
+            raise ValueError('completed-length request set is inconsistent')
+        seen.add(case_id)
+        timing = row['timing']
+        count = token_count(timing.get('native_output_tokens'))
+        if (timing.get('native_terminal_observed') is not True
+                or token_count(row['actual_tokens']) != count
+                or token_count(row['target_tokens']) != count):
+            raise ValueError('completed-length request has no correct native completion')
+        if case_id not in measured:
+            continue
+        sample = dict(source_request_id=row['source_request_id'],
+            native_prompt_tokens=token_count(timing.get('actual_prompt_tokens')),
+            completed_output_tokens=count,
+            prompt_sha256=timing.get('native_prompt_token_ids_sha256'),
+            content_prompt_tokens=token_count(row['input_content_tokens']))
+        if not isinstance(sample['prompt_sha256'], str) or not re.fullmatch('[0-9a-f]{64}', sample['prompt_sha256']):
+            raise ValueError('completed-length request lacks native prompt identity')
+        prior = samples.setdefault(sample['source_request_id'], sample)
+        if prior != sample:
+            raise ValueError('repeated original request has inconsistent native length/prompt')
+    if seen != set(expected) or not samples:
+        raise ValueError('completed-length source request coverage is incomplete')
+    if (len(entry['samples']) != len(samples)
+            or {s['source_request_id']: s for s in entry['samples']} != samples
+            or entry['unique_original_requests'] != len(samples)):
+        raise ValueError('curated completed-length samples differ from raw observations')
+    buckets = [[] for _ in range(len(bounds) + 1)]
+    for sample in samples.values():
+        buckets[bisect_left(bounds, sample['native_prompt_tokens'])].append(sample['completed_output_tokens'])
+    if any(not values for values in buckets) or entry['unobserved_bucket_ids']:
+        raise ValueError('unobserved native prompt bucket cannot receive a guessed mean')
+    observed = [dict(bucket=i, unique_requests=len(values),
+                     completed_output_mean=sum(values)/len(values))
+                for i, values in enumerate(buckets)]
+    if observed != entry['observed_buckets']:
+        raise ValueError('curated bucket means differ from completed native lengths')
+
+    def object_sha(value):
+        return hashlib.sha256(json.dumps(value, sort_keys=True, allow_nan=False).encode()).hexdigest()
+
+    evidence = dict(kind='measured_admission_initialization_v1', development_only=True,
+        production_profile_frozen=False, audit=binding['audit'], source_run=entry['source_run'],
+        model=binding['model'], backend_version=backend_version,
+        runtime_receipt_sha256=runtime_receipt_sha256, source_trace_sha256=source_trace_sha256,
+        base_model_config=identity, input_upper_bounds=bounds, observed_buckets=observed,
+        unique_original_requests=len(samples), window_s=float(window),
+        transfer_limit=movement_concurrency, transfer_limit_source='owned_movement_concurrency',
+        performance_samples_relabelled=False)
+    profile = dict(window_s=float(window),
+        model_backend_id='native-model/'+object_sha(dict(model_config=identity, backend=backend_version)),
+        profile_id='native-completed/'+object_sha(evidence),
+        profile_means=[row['completed_output_mean'] for row in observed],
+        transfer_limit=movement_concurrency)
+    return profile, evidence
+
+
 def source_profile_inputs(path, plan, cfg, pool):
     """Resolve a small profiling index; never create a trace or adapter payload."""
     from faaslora.experiment.instance_pool import ServiceClassBins
@@ -3314,6 +3449,16 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
         if mode == 'native_source_matrix':
             spec, bins, identities, waves, index = source_profile_inputs(source_profile_spec, plan, cfg, pool)
             cfg.update(spec['model_overrides'])
+            if 'admission_initialization' in spec:
+                from scripts.run_all_experiments import _prepare_dedicated_subprocess_model_cfg
+                child_cfg, _ = _prepare_dedicated_subprocess_model_cfg(cfg, device_id=0, runtime_gpu_ids=[0])
+                initializer, evidence = measured_admission_initializer(spec['admission_initialization'],
+                    model_config=child_cfg, backend_version=prior['modules']['vllm']['version'],
+                    runtime_receipt_sha256=digest(runtime_receipt),
+                    source_trace_sha256=plan.source_sha256,
+                    movement_concurrency=spec['movement_concurrency'])
+                cfg['ieee_admission_profile'] = initializer
+                result['admission_initialization'] = evidence
             result.update(source_profile_spec_sha256=digest(source_profile_spec),
                 source_profile_spec=spec, artifact_mode='prepublished_gzip_v1_real_remote_no_fallback',
                 input_mode='controlled_sources_original_prompt_target_static_adapter_index')
@@ -3502,6 +3647,16 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
             result['profile_movements'] = queue.snapshot()
             result['remote_transfers'] = source_boundary._remote_transfer_evidence
             result['native_host_preparations'] = getattr(source_boundary, '_ieee_native_host_preparations', [])
+            domain = getattr(source_boundary, '_shared_file_pressure', None)
+            if domain is not None:
+                result['file_pressure_before_retirement'] = domain.snapshot()
+                try:
+                    if engine is not None:
+                        await domain.retire(engine)
+                except Exception as error:
+                    result.update(profile_pressure_retirement_error=str(error), **{'pass': False})
+                result['file_pressure_after_retirement'] = domain.snapshot()
+            result['adapter_transfer_pressure'] = source_boundary._adapter_transfer_pressure_evidence
         if engine is not None:
             try:
                 await engine.shutdown()
