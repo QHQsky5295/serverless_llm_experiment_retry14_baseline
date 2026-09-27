@@ -1,0 +1,186 @@
+{
+  "schema": "ieee_tc_serverless_polling_evidence_v1",
+  "development_only": true,
+  "model": "llama32_3b",
+  "variant": "repaired",
+  "plan_sha256": "a9ed2d8136073f5a5d5c8088489e1d8642b916a610fc7e9d3b3ff8eaf35301b0",
+  "post_run_authorized_plan_sha256": "d79d7eb691d6f57fff08290134e6f8841222c6ed68ef975c7febb362d8a61381",
+  "main_source_commit": "08353732d670838f2e4bc1767abd5ead8a25c05c",
+  "baseline_source_commit": "d2b96068f2c8638d4c91e39dd05bb8f6eb782c69",
+  "serving_helper_unchanged_from": "7f135add13082af1cc2e428c7a8e497e9360d949",
+  "run_status": {
+    "measurement_complete": true,
+    "workload_passed": false,
+    "classification": "qualification_request_failure",
+    "service_returncode": 1,
+    "replay_returncode": 1,
+    "watchdog_returncode": 0,
+    "N_plan": 1000,
+    "N_arrived": 1000,
+    "N_terminal": 1000,
+    "N_response": 997,
+    "N_failed": 3,
+    "N_submitted": 999
+  },
+  "failures": [
+    {
+      "request_id": "req_00000",
+      "error": "connection refused before API bootstrap return"
+    },
+    {
+      "request_id": "req_00001",
+      "error": "HTTP500 before model router construction"
+    },
+    {
+      "request_id": "req_00002",
+      "error": "HTTP500 before model router construction"
+    }
+  ],
+  "resource": {
+    "watchdog_samples": 1157,
+    "service_peak_bytes": 61358882816,
+    "min_host_available_bytes": 47412617216,
+    "max_swap_bytes": 0,
+    "high_events": 0,
+    "max_events": 0,
+    "oom_events": 0,
+    "oom_kill_events": 0,
+    "native_gpu_context_release_confirmed": true,
+    "service_path_removed": true,
+    "auxiliary_empty_before_stop": true,
+    "auxiliary_memory_events_all_zero": true,
+    "overlay_exactly_restored_after_release": true
+  },
+  "archive": {
+    "regular_files": 118,
+    "all_regular_sha256_equal": true,
+    "obsolete_socket_files_not_copied": 4
+  },
+  "validation": {
+    "native_token_target_binding": true,
+    "prompt_and_adapter_binding": true,
+    "max_e2e_recomputation_error_ms": 0,
+    "max_tpot_recomputation_error_ms": 0,
+    "independent_lora_numerical_correctness": false,
+    "remote_qualified": false,
+    "formal_performance_qualified": false
+  },
+  "assignment_gap_below_0_01_s": {
+    "count": 142,
+    "denominator": 996
+  },
+  "plot": {
+    "published": "figs/ieee_tc/serverless_audit/d74_3b_repaired",
+    "width_inches": 3.45,
+    "height_inches": 2.85,
+    "manual_visual_review": "Both PNGs inspected: no overlap/clipping; below-bold titles; explicit development n1 and all3 failures.",
+    "times_new_roman_embedded": true
+  },
+  "tests": {
+    "baseline_checks": 46,
+    "baseline_seconds": 2.963,
+    "main_checks": 328,
+    "main_seconds": 24.993,
+    "os_checks": 55,
+    "os_seconds": 0.785
+  },
+  "next_action": "User directed PAUSE baseline work, preserve unexecuted3B original configuration, return to complete Prime P1/P2/Full.",
+  "boundaries": [
+    "One repaired3B development run; no original3B measurement, paired improvement or CI.",
+    "Local-artifact diagnosis, source42prefix1000/development41, native loader, min1/max4/target8/keepalive10, diagnostic max_num_seqs4.",
+    "All1000 offered rows retained; startup failures mean complete-workload qualification FAILED.",
+    "Zero-weight pool limits numerical claims;60 logical adapters in this trace prefix is not500-pool functional coverage.",
+    "No remote management, packing stress or cleanup ran during measured inference; inference resource policies unchanged.",
+    "Full remains unqualified; no formal resource, SLO or superiority result inferred."
+  ],
+  "raw_sources": [
+    {
+      "sha256": "cd3f5ef350666b5a4e18917c1d22182a365fac90f6de5d3214fdaa79c6cd2578",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d74_20260927/http_3b_1000.json"
+    },
+    {
+      "sha256": "5add29ef829cd71cef4a57762fabfb081797fc999d09a27fc4803804c8227276",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d74_20260927/PROTOCOL.md"
+    },
+    {
+      "sha256": "627128d32909e18f116311d15aa52f3e4cb5259a7ea684691b74f0e395950aeb",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d74_20260927/run3b_repaired.sh"
+    },
+    {
+      "sha256": "df6b4489821afc9022331e340380d28e62654c08d836b6b91dedb69a4a195428",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d74_20260927/run3b_original.sh"
+    },
+    {
+      "sha256": "4e2e92f383218d81f1fdf3e6c903d9478f08590371c749cd979cb6434f04f649",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d74_20260927/launcher3b_repaired.log"
+    },
+    {
+      "sha256": "66bd12d13a76e75b170f66d1a5db79fb316237ee645c3dfb3c45fdc05d62ad61",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d74_20260927/launch3b_repaired.json"
+    },
+    {
+      "sha256": "da530ef991ad86a2161945ba5cc621ffbe62a34fad1ab22ca5640f464c417dea",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d74_20260927/launch3b_repaired.launch/replay.jsonl"
+    },
+    {
+      "sha256": "e00e798fd2750472d593c521cf53fe7b90c1e5b121b9b643dba210b383c72c7f",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d74_20260927/launch3b_repaired.launch/watchdog.jsonl"
+    },
+    {
+      "sha256": "9d1f6dc30c9be2bb4cab17e502d233bb763fcc85ffa4b7dc4d4200acc661452e",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d74_20260927/launch3b_repaired.launch/exec_receipt.json"
+    },
+    {
+      "sha256": "ae63caae02d01bd4783748bc32477203e8b4d1727f8788bf259a680fe0404949",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d74_20260927/launch3b_repaired.launch/service.log"
+    },
+    {
+      "sha256": "8b5eaf94d27a73cfb76bd622c1aaf623ce877c4627c80b3bef1fa403d4c29c2f",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d74_20260927/model3b_repaired/configuration.json"
+    },
+    {
+      "sha256": "fe13db62ad77cad21f8420f3ccef50092c09461eed7707cd5baf82549cf70924",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d74_20260927/model3b_repaired/model_qualification.json"
+    },
+    {
+      "sha256": "a0b6ad810e731dd5b1e4b20f38045a867a3ff5d050f80515c8586d45b84fa181",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d74_20260927/model3b_repaired/startup_events.jsonl"
+    },
+    {
+      "sha256": "ef6bc7944867709cb25c5182e37b31a61978341cdd65faccb55563f4d278e868",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d74_20260927/model3b_repaired/store.log"
+    },
+    {
+      "sha256": "761f5d41de92af8504fc1cbd124d98c60ea3e5940792ca42e51c693b565ee2f4",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d74_20260927/model3b_repaired/serve.log"
+    },
+    {
+      "sha256": "2eb2c2d1c99fa6d98551ff5a291aca8b54e46132ec09afb8bfe6b41e5e3665b4",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d74_20260927/overlay3b_repaired/install.json"
+    },
+    {
+      "sha256": "978d1a30c8cae2e9e5674999b08ee599d0beff76f4b6fcb78c92d70e7b2fa525",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d74_20260927/overlay3b_repaired/restore_receipt.json"
+    },
+    {
+      "sha256": "181c7029fd287df92e69abfdaee5323605cc80840cd36526855ab25a1d92c7c0",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d74_20260927/native_log_copy_check_repaired_d74.json"
+    },
+    {
+      "sha256": "8fd5b67961328f91ae26b2580a17c591924abc386eb7ad775c58f2e5562c9a3f",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d74_20260927/baseline_tests_d74.log"
+    },
+    {
+      "sha256": "57e62b6dc3937140f599a4db41137cc6203a60cdb7e3b7c68d1c703eb756bec3",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d74_20260927/main_tests_d74.log"
+    },
+    {
+      "sha256": "439d22090a2a8ade8a460d73f48c7f14f12da790e9343992daf9dd4a5e93b7e0",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d74_20260927/guard_tests_d74.log"
+    },
+    {
+      "sha256": "81dc806eea94a2349c749406055dee98ed6ac7052ba5156c6d7bcd23c22f1a48",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d74_20260927/plot_d74.log"
+    }
+  ]
+}

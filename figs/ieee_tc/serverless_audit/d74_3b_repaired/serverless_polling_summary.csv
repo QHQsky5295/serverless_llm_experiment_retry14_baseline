@@ -1,0 +1,2 @@
+model,variant,requests,N_plan,N_arrived,N_terminal,N_response,N_failed,N_submitted,ttft_ms,e2e_ms,submit_lag_ms,dispatch_wait_after_submit_ms,service_ttft_ms,decode_ms,completion_notification_ms,router_queue_ms,gap_count,gap_mean,gap_p50_type1,gap_p95_type1
+llama32_3b,Repaired,1000,1000,1000,1000,997,3,999,3519.801641667753,10792.866577354256,2.546562658449581,2136.93156180904,1380.3235172002633,7176.7536679836485,96.31126770285428,2131.323157917858,996,1.023107143306224,0.6217794900294393,3.5050586530123837

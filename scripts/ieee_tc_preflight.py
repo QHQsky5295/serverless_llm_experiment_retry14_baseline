@@ -33,7 +33,7 @@ GIB = 1024 ** 3
 MIB = 1024 ** 2
 ROOT = Path(__file__).resolve().parents[1]
 PLAN = Path('/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md')
-SNAPSHOT = ROOT / 'docs/ieee_tc/PLAN_APPROVED_20260925.md'
+SNAPSHOT = ROOT / 'docs/ieee_tc/PLAN_APPROVED_20260927.md'
 CGROOT = Path('/sys/fs/cgroup')
 SERVICE_CPUS = set(range(4, 24)) | set(range(28, 48))
 POLICY = {
@@ -337,6 +337,35 @@ def disk_required(predicted_growth: int) -> int:
         raise ValueError('predicted growth must be nonnegative')
     return max(POLICY['disk_start_floor_bytes'],
                POLICY['disk_stop_bytes'] + (3 * predicted_growth + 1) // 2)
+
+
+def artifact_disk_required(*, concurrent_packs: list[dict], log_growth_bytes: int,
+                           safety_reserve_bytes: int) -> dict:
+    """One artifact-node filesystem, not an inference-host override.
+
+    Counts cover ALL services on this filesystem; per-pack remaining growth is
+    a bound, not a mean compressed size. Evidence for these caller-supplied
+    bounds, quota and inodes is a separate qualification obligation. This pure
+    arithmetic never tunes transfer concurrency, starts a service or deletes data.
+    """
+    if (type(log_growth_bytes) is not int or log_growth_bytes < 0
+            or type(safety_reserve_bytes) is not int or safety_reserve_bytes <= 0
+            or not isinstance(concurrent_packs, list) or not concurrent_packs):
+        raise ValueError('artifact disk gate needs explicit growth and positive reserve')
+    peak = 0
+    for row in concurrent_packs:
+        if (not isinstance(row, dict)
+                or set(row) != {'max_concurrent', 'remaining_archive_bytes'}
+                or any(type(row[k]) is not int or row[k] <= 0 for k in row)):
+            raise ValueError('artifact packing peak needs positive integer bounds')
+        peak += row['max_concurrent'] * row['remaining_archive_bytes']
+    growth = peak + log_growth_bytes
+    return dict(kind='artifact_filesystem_disk_requirement_v1',
+                packing_peak_bytes=peak, log_growth_bytes=log_growth_bytes,
+                safety_reserve_bytes=safety_reserve_bytes,
+                required_bytes=safety_reserve_bytes + (3 * growth + 1) // 2,
+                inference_host_policy_unchanged=True,
+                production_launch_authorized=False)
 
 
 def scalar(path: Path):

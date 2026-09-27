@@ -533,6 +533,31 @@ class ProtocolGates(unittest.TestCase):
         with self.assertRaises(ValueError):
             p.disk_required(-1)
 
+    def test_artifact_disk_rule_sums_concurrent_growth_without_inference_floor(self):
+        rows = [dict(max_concurrent=4, remaining_archive_bytes=5),
+                dict(max_concurrent=2, remaining_archive_bytes=7)]
+        result = p.artifact_disk_required(concurrent_packs=rows,
+            log_growth_bytes=3, safety_reserve_bytes=100)
+        self.assertEqual(result['packing_peak_bytes'], 34)
+        self.assertEqual(result['required_bytes'], 156)  # ceil(1.5 * 37) + 100
+        self.assertFalse(result['production_launch_authorized'])
+        self.assertEqual(p.disk_required(0), 150*p.GIB)
+        self.assertEqual(p.POLICY['disk_stop_bytes'], 100*p.GIB)
+        self.assertEqual(p.memory_required(), 102*p.GIB)
+
+    def test_artifact_disk_rule_rejects_unknown_or_invalid_bounds(self):
+        args = dict(concurrent_packs=[dict(max_concurrent=2, remaining_archive_bytes=7)],
+                    log_growth_bytes=0, safety_reserve_bytes=100)
+        bad = [dict(concurrent_packs=[]), dict(concurrent_packs=None),
+               dict(concurrent_packs=[dict(max_concurrent=0, remaining_archive_bytes=7)]),
+               dict(concurrent_packs=[dict(max_concurrent=True, remaining_archive_bytes=7)]),
+               dict(concurrent_packs=[dict(max_concurrent=2, remaining_archive_bytes=-1)]),
+               dict(log_growth_bytes=-1), dict(log_growth_bytes=1.5),
+               dict(safety_reserve_bytes=0), dict(safety_reserve_bytes=None)]
+        for override in bad:
+            with self.subTest(override=override), self.assertRaises(ValueError):
+                p.artifact_disk_required(**{**args, **override})
+
     def test_cpu_sets_preserve_smt_pairs(self):
         svc = set(p.POLICY['service_cpus'])
         aux = set(p.POLICY['aux_cpus'])

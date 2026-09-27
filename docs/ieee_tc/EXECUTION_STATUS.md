@@ -3,8 +3,8 @@
 ## Authority and recovery
 
 - Authoritative plan: /home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md
-- Approved snapshot: PLAN_APPROVED_20260925.md
-- Plan SHA256: a9ed2d8136073f5a5d5c8088489e1d8642b916a610fc7e9d3b3ff8eaf35301b0
+- Approved snapshot: PLAN_APPROVED_20260927.md (20260925 snapshot retained)
+- Plan SHA256: d79d7eb691d6f57fff08290134e6f8841222c6ed68ef975c7febb362d8a61381
 - User authorized execution, milestone Git backups and recurring paper-oriented
   progress reports. Read full plan and this current ledger before work, after
   compaction and before experiments. Preserve equations, data and fair comparison.
@@ -15,9 +15,33 @@
 - Resume by inspecting actual handles/Git/resources; never restart a live run
   from stale notes. D72 7B ORIGINAL1,000-request diagnostic ENDED/cleaned.
   D73 7B REPAIRED side is ENDED/cleaned; the7B pair is complete. Do not repeat it.
-  D74 3B REPAIRED is RUNNING; inspect live handles below before any new task.
+  D74 3B REPAIRED is ENDED/cleaned. Baselines are PAUSED by latest user direction.
+  Do not run the prepared3B original side; return to Prime P1/P2/Full.
 
-## D74 checkpoint: 3B repaired development side running
+## D74 checkpoint: 3B repaired completed; baseline work paused
+
+### Latest user direction (2026-09-27; supersedes older next-action text)
+
+- Finish ONLY the currently live3B repaired run, then cleanup, analyze, plot,
+  and back up its evidence. PAUSE baseline work; do NOT start the prepared3B
+  original run. Preserve that unexecuted configuration and the incomplete-pair
+  status. Return to complete PrimeLoRA P1/P2/Full before further baselines.
+- User APPROVED a separate artifact-node disk rule based on concurrent temporary
+  packaging peak, log growth and safety reserve. The inference-node150/100GiB
+  disk thresholds, all memory/OOM guards and unique-artifact protection stay
+  unchanged. Remote138.42GiB is not demonstrated storage exhaustion.
+- Freeze remote service configuration across comparisons. No restart, archive
+  profiling, cleanup/compression, extra download stress or configuration changes
+  during a measured run. Actual artifact transfer/packaging is part of the
+  real-remote experiment; do not promise that this inherent cost is zero or
+  subtract it from results. Record unrelated remote interference separately.
+- Source plan and NEW approved snapshot20260927 now match SHA above; original
+  snapshot20260925 retained. This run finished under the OLD plan SHA a9ed2d8;
+  do not retroactively relabel its provenance. No new weights/trace authorized.
+- User specifically retains Prime's legitimate NVMe/HOST/GPU residency benefits:
+  fewer remote fetches/bytes and different demand-caused contention are in scope.
+  Dynamic packaging is separately measured as a delivery-implementation cost,
+  not pure network/inference. Complete E2E remains; no invalid overlap subtraction.
 
 - Starts main08353732d670838f2e4bc1767abd5ead8a25c05c and baseline
   d2b96068f2c8638d4c91e39dd05bb8f6eb782c69. Full plan/status/AGENTS and
@@ -29,20 +53,47 @@
   before either result. Reuse D72 measured source views. Same predeclared
   min1/max4/target8/keepalive10 and diagnostic max_num_seqs4; notice+60, existing
   seed42prefix1000/development41. Repaired→original order; no7B-driven tuning.
-- LIVE started2026-09-27T10:56:22+08:00: outer TMUX tc-d74-3br,
+- ENDED started2026-09-27T10:56:22+08:00: outer TMUX tc-d74-3br,
   private/tmp/tc-d74-3br; serviceccc778ca9c9e46f9b84d7ba66d49c9c7,
   auxiliary d7400000000000000000000000000001; launch3b_repaired.launch,
-  model3b_repaired. overlay3b_repaired/install.json is INSTALLED; restore only
-  AFTER actual owned GPU release. Do not restart from this ledger alone.
+  model3b_repaired. overlay3b_repaired/install.json is RESTORED exactly AFTER
+  actual owned GPU release. All4 GPUs15MiB/0%, no live model/TMUX remains.
 - Actual service72/80GiB/swap2 and independent watchdog verified. Before launch
   disk333855449088B,host110498164736B free, GPUs15MiB/0%, no other model/TMUX.
   No heavy parallel work. Preserve all startup/transport failures; no hidden
   retries, arrival shift or success-only selection.
-- Next: complete this1,000-request side, cleanup/validation/figure/table, then
-  the prepared3B ORIGINAL side with shared config and fresh paths/receipts.
-  Do not repeat7B, native export, bytes,100-request or bootstrap-only checks.
-  Existing3B zero-weight and remote gates remain independent; no formal or
-  numerical correctness claim. M1/M2/A/S still unstarted.
+-1000 planned/arrived/terminal;997 protocol-valid/3 startup failures,999 submitted.
+  Initial request0 connection refusal,1/2HTTP500 before model router exists; no
+  later failure.122176 native tokens,60 offered logical adapters,4 observed
+  serving instances. Prompt/target/adapter binding997/997; E2E/TPOT error0ms.
+  Conditional mean router queue2.131323s,meanTTFT3.519802s,P95TTFT18.305062s,
+  serviceTTFT1.380324s,meanE2E10.792867s; assignment gap median0.621779s,
+ 142/996 gaps<10ms. No original3B measurement: no paired benefit or CI claim.
+-1157 watchdog samples, peak61358882816B,min host47412617216B;high/max/OOM/
+  OOM-kill/swap0. Actual service removed, auxiliary empty/events0 before targeted
+  stop.118 regular native files copied/checksum equal;4 obsolete sockets omitted.
+  Final qualification_request_failure,service/replay/watchdog1/1/0; measurement
+  complete=true/workload_passed=false. No failure removed or hidden retry.
+- Existing analyzer and plotter reused. Curated20260927_3b_repaired_polling_d74
+  JSON and evidence; figs/ieee_tc/serverless_audit/d74_3b_repaired. Both images
+  visually inspected,3.45×2.85in, embedded TNR/Times bold, below subtitles, no
+  overlap, explicit single-run/3failures. Protocol table saved in baseline repo.
+- Approved remote arithmetic added to EXISTING preflight with tests; inference
+  disk and memory policies unchanged. Actual measured remote peak/concurrency/
+  quota profile and services remain to qualify; no150GiB authorization blocker.
+- Next: back up checkpoint, then Prime Full's representative file/remote/native
+  service/preparation profiles and real end-to-end mechanism integration. No new
+  baseline run,7B repeat,native export,100-request bootstrap or allocator microloop.
+  Full guard stays until evidence permits qualification; no formal/numerical
+  correctness claim. M1/M2/A/S still unstarted.
+- Post-run checks:55 system-Python safety tests0.785s,328 main/shared-protocol
+  checks24.993s,46 baseline checks2.963s PASS. Test fixture retry/OOM/error text
+  is not a new model event.147 protected entries unchanged under both old/new
+  plan verification.22 raw hashes and all118 copied native members recorded.
+- Baseline evidence checkpoint9e2cf28903ed11bc8ee891dd4cc9636b94307573 pushed;
+  fresh origin/main full SHA matched. Main stage is limited to D74 evidence,
+  accepted figures, explicit plan revision and separately tested disk arithmetic.
+  No user manifest, legacy dirty replay, rejected preview or raw large log staged.
 
 ## D73 checkpoint: paired 7B repaired polling side completed
 
@@ -375,16 +426,25 @@
 |---|---|---|
 | Safety/physical measurement | Actual Ray/worker and dedicated7B owner qualification; Full reducer connected | RESOURCE_QUALIFICATION, EXTERNAL_REPLAY_QUALIFICATION, PHYSICAL_GPU_MEASUREMENT D27/D55; actual Full multi-activation still open |
 | Old results | All147 protected entries unchanged at D72 final verification | paper_results/ieee_tc/safety/20260925_execution_start_protected.json |
-| Remote174 | Strict key login works; service qualification pending | Disk138.52GiB below approved150GiB; user decision pending |
+| Remote174 | Strict key login works; artifact-specific disk rule APPROVED | Actual peak/concurrency/quota/service qualification pending; no150GiB floor on artifact-only node |
 | P0 Table1/Full | 7B source-pair audit complete | Same inputs, different execution;202 scalars retained; no rerun needed for provenance finding |
 | P1 IEEE alignment | Frozen h/d planning/replacement, staging/admission, observed HOST return connected | P1 throughD54, P2 throughD61; representative profiles and actual Full remain open |
 | P2 backend/artifacts | vLLM0.30 installed; mechanical/numerical diagnostics; complete pool content audits | Full semantic qualification OPEN;3B500/500 and7B498/500 zero weights |
-| Serverless | D72/D73 7B polling pair complete:997/3 vs996/4; conditional queue294.75→121.87s; cleanup/paired plots delivered | Next3B repaired→original; full qualification open; no startup-only retry |
+| Serverless |7B pair and3B repaired side complete;3B997/3, queue2.13s; figures/cleanup delivered | PAUSED;3B original unexecuted, no paired3B claim; return to Prime Full |
 | Baseline qualification | Pending | Serverless first, then vLLM/S-LoRA/dLoRA3B/Loquetier/HydraServe |
 | M1/M2, A1–A5, S1–S13 | NOT STARTED | No formal performance or optimality claim |
 | Documents/figures | Design and qualification tables in progress | Formal performance figures pending |
 
 ## Immediate next action
+
+LATEST USER ORDER: D74 baseline is finished and PAUSED. The historical pair
+instructions below are superseded; do not execute3B original now. Complete
+Prime P1/P2/Full first. Artifact-specific disk floor revision is approved and
+implemented as a separate arithmetic rule; derive actual per-filesystem bounds
+and qualify shared remote service without performance-run interference. Retain
+legitimate caching/fetch-count advantages; independently report packaging spans.
+No arbitrary removal of Full guard, invented profiles, new weights or baseline
+side investigations. The nonzero-fixture user choice below remains separate.
 
 D67 native loading is complete for its narrow3B case. D68 now provides7B native
 checkpoint `baseline/models/vllm/tc-native-llama2-7b-fp16-20260927`: both numbered
