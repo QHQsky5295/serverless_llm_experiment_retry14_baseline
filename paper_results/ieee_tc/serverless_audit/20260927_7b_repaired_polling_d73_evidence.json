@@ -1,0 +1,286 @@
+{
+  "schema": "ieee_tc_serverless_polling_pair_evidence_v1",
+  "development_only": true,
+  "model": "llama2_7b",
+  "variant": "repaired",
+  "plan_sha256": "a9ed2d8136073f5a5d5c8088489e1d8642b916a610fc7e9d3b3ff8eaf35301b0",
+  "raw_root": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927",
+  "main_source_commit": "3a3cb74656f18528e121f45bada05e8618e9303d",
+  "baseline_source_commit": "ce23e7512f66847eafc95645b51ba9fbde870255",
+  "serving_helper_unchanged_from": "7f135add13082af1cc2e428c7a8e497e9360d949",
+  "run_status": {
+    "measurement_complete": true,
+    "workload_passed": false,
+    "classification": "qualification_request_failure",
+    "service_returncode": 1,
+    "replay_returncode": 1,
+    "watchdog_returncode": 0,
+    "N_plan": 1000,
+    "N_arrived": 1000,
+    "N_terminal": 1000,
+    "N_response": 996,
+    "N_failed": 4,
+    "N_submitted": 999
+  },
+  "failures": {
+    "initial": [
+      {
+        "request_id": "req_00000",
+        "error": "connection refused"
+      },
+      {
+        "request_id": "req_00001",
+        "error": "HTTP500 before router construction"
+      },
+      {
+        "request_id": "req_00002",
+        "error": "HTTP500 before router construction"
+      }
+    ],
+    "later": [
+      {
+        "request_id": "req_00845",
+        "error": "ServerDisconnectedError: Server disconnected",
+        "native_logs_request_id_found": false,
+        "cause": "undetermined transport failure; no retry, no model crash/OOM evidence, not attributed to polling fix"
+      }
+    ]
+  },
+  "resource": {
+    "watchdog_samples": 1341,
+    "service_peak_bytes": 51351257088,
+    "min_host_available_bytes": 57025748992,
+    "max_swap_bytes": 0,
+    "high_events": 0,
+    "max_events": 0,
+    "oom_events": 0,
+    "oom_kill_events": 0,
+    "native_gpu_context_release_confirmed": true,
+    "service_path_removed": true,
+    "auxiliary_empty_before_stop": true,
+    "auxiliary_memory_events_all_zero": true,
+    "overlay_exactly_restored_after_release": true
+  },
+  "archive": {
+    "regular_files": 108,
+    "all_regular_sha256_equal": true,
+    "obsolete_socket_files_not_copied": 4
+  },
+  "comparison": {
+    "same_offered_ids_and_contracts": true,
+    "same_http_config_sha256": true,
+    "same_deployment_sha256": true,
+    "common_valid_response_count": 996,
+    "extra_original_valid_requests": [
+      "req_00845"
+    ],
+    "matched_conditional_metrics": {
+      "original": {
+        "ttft_ms": {
+          "count": 996,
+          "mean": 294948.95727249084,
+          "p95_type1": 534177.8726457269
+        },
+        "router_queue_ms": {
+          "count": 996,
+          "mean": 294554.99451087695,
+          "p95_type1": 533723.4131199657
+        },
+        "service_ttft_ms": {
+          "count": 996,
+          "mean": 380.60677613686426,
+          "p95_type1": 527.4107810109854
+        },
+        "e2e_ms": {
+          "count": 996,
+          "mean": 302589.0419131224,
+          "p95_type1": 536713.2697731722
+        },
+        "tpot_ms": {
+          "count": 996,
+          "mean": 62.61368217189504,
+          "p95_type1": 64.40269955783151
+        }
+      },
+      "repaired": {
+        "ttft_ms": {
+          "count": 996,
+          "mean": 122277.953024478,
+          "p95_type1": 187580.77782811597
+        },
+        "router_queue_ms": {
+          "count": 996,
+          "mean": 121871.06690584926,
+          "p95_type1": 187284.66060903156
+        },
+        "service_ttft_ms": {
+          "count": 996,
+          "mean": 391.7433144988718,
+          "p95_type1": 521.4812170015648
+        },
+        "e2e_ms": {
+          "count": 996,
+          "mean": 129984.15610096123,
+          "p95_type1": 192241.4573399583
+        },
+        "tpot_ms": {
+          "count": 996,
+          "mean": 63.32477059938678,
+          "p95_type1": 66.49945604248329
+        }
+      }
+    },
+    "all_response_population_reduction": {
+      "router_queue_ms": 0.5865222031670385,
+      "ttft_ms": 0.5856956105456328,
+      "e2e_ms": 0.5707099602032885
+    },
+    "p95_ttft_reduction": 0.6488421040372787,
+    "assignment_gap_below_0_01_s": {
+      "original": {
+        "count": 0,
+        "denominator": 996
+      },
+      "repaired": {
+        "count": 410,
+        "denominator": 995
+      }
+    }
+  },
+  "validation": {
+    "native_token_target_binding": true,
+    "prompt_and_adapter_binding": true,
+    "max_e2e_recomputation_error_ms": 0,
+    "max_tpot_recomputation_error_ms": 0,
+    "independent_lora_numerical_correctness": false,
+    "remote_qualified": false,
+    "formal_performance_qualified": false
+  },
+  "plot": {
+    "rejected_preview": "figs/ieee_tc/serverless_audit/d73_7b_polling_pair",
+    "reason": "historical fixed ticks left the subsecond region unlabeled; preserved, not published",
+    "published": "figs/ieee_tc/serverless_audit/d73_7b_polling_pair_v2",
+    "width_inches": 3.45,
+    "height_inches": 2.85,
+    "manual_visual_review": "both v2 PNGs inspected; labeled millisecond-to-second decades, no clipping/overlap",
+    "times_new_roman_embedded": true,
+    "automatic_note_legend_collision_check": true
+  },
+  "tests": {
+    "baseline_checks": 46,
+    "baseline_seconds": 2.48,
+    "main_checks": 328,
+    "main_seconds": 24.596,
+    "os_checks": 53,
+    "os_seconds": 1.336
+  },
+  "boundaries": [
+    "One development run per variant; no run-level CI or significance claim.",
+    "The valid-response population differs by req_00845; all failures remain. Matched996 sensitivity is conditional, not an alternative complete-workload result.",
+    "Only polling implementation differs; source42prefix/development41, local artifacts, native loader, bootstrap, deployment, target and generation fixed.",
+    "Remaining one-second gaps reflect waits when no allocation is available; a one-second median does not prove the unconditional wait remains.",
+    "Observed improvement does not establish numerical LoRA correctness, remote qualification, formal resource optimality or a universal four-minute startup penalty."
+  ],
+  "raw_sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/http_7b_1000.json",
+      "sha256": "00a4b6cbbb0d60c91b76cdb34854325c247d52572f6b50eae4f480f7d369a9f3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/PROTOCOL.md",
+      "sha256": "9fd774949ff177d215cdce0b947a004349b18716390e53f0218fddb0d113bee4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/run7b_original.sh",
+      "sha256": "25b05b94f81f8188a0ea3c1eba86eeecbb847d55b51bb604d904505d44e919c0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/run7b_repaired.sh",
+      "sha256": "ed23957c0ddec360dbceca93e035f1b3e134db64bd2c19ac01cb8792b81e86ed"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/launcher7b_repaired.log",
+      "sha256": "ab78159f92b7d4afeeb934ec09192d1ad1073e36cceaf7945448793ac052974f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/launch7b_repaired.json",
+      "sha256": "10a1e6a5e4a8b0d9321e16eb7d645a77df3e4f6d929b35a6861e1c42b70c0f0f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/launch7b_repaired.launch/replay.jsonl",
+      "sha256": "c15c43ae9e80599d15f17f0421c47330fa8381d888c0e2e86db0e1438402593e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/launch7b_repaired.launch/watchdog.jsonl",
+      "sha256": "5ed6de31160fec153c098edca132998a0bb95c7c6b8dd15f60236f4a25902d62"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/launch7b_repaired.launch/exec_receipt.json",
+      "sha256": "efc29a07cc43e455e7ba8780424de927db52fae0923a980e1973d4ea6a29bbdb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/launch7b_repaired.launch/service.log",
+      "sha256": "d8888dc2cbfcfe5f23046d4fbe71e6d794aca7f024ebde872b82180249558e8f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/model7b_repaired/configuration.json",
+      "sha256": "2e1de8d1eb786b873296afd520cdc98e55edaea38a6e6a8694d16760bc8b6bc6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/model7b_repaired/model_qualification.json",
+      "sha256": "8b2ffda2c913a554d44f19d2a51e1bc5d4a35a9491093f3566061e4bf91c21d8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/model7b_repaired/startup_events.jsonl",
+      "sha256": "88ca9229d43aa18c1e8176239f236f1542f796ac51fe45ace22c3faf09b02076"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/model7b_repaired/store.log",
+      "sha256": "696586d66888d485146cf8a46efa5ce6099dce9fb9df75fe0fb84f0416da0470"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/model7b_repaired/serve.log",
+      "sha256": "d61af05d34b3bcc1c41056c4988ad25729f2abba0f67c7480d86df95f3a2fd15"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/source_original/measurement_manifest.json",
+      "sha256": "76d973d5a3b2405604d2a1c6beaa562bad447c3308e02cbf8e89482760dbdb60"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/source_repaired/measurement_manifest.json",
+      "sha256": "bb03cacac9d02f64a4d26ec299f059cb3321ce57bdc84834983449e5068c00cb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/overlay7b_repaired/install.json",
+      "sha256": "8fe8715941b14b23d534edd07fe9d2194e24cc6d75560f3c9698042741d74f20"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/overlay7b_repaired/restore_receipt.json",
+      "sha256": "dd17d779ad96258e62ba181c3a1456a081852286791c4ba6622a520e5e2fe2da"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/native_log_copy_check_repaired_d73.json",
+      "sha256": "c3e17b3b50bef86c817bc4e81e626551de358837a8c76798c264de909ee25233"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/baseline_tests_d73.log",
+      "sha256": "e78fc118720b7281e9345655b8a88554f1d97ed580a70c4293c81043332f03f9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/main_tests_d73.log",
+      "sha256": "5c47af426c9801b0d5e007b34f5146dbbc46d1a324282238761e39e302b519c2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/guard_tests_d73.log",
+      "sha256": "2e2952d023b4ae6d12023001af8a31770f587468f8de362b0c16fb9883e3e732"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/plot_pair_d73.log",
+      "sha256": "acfcba2d4d14d72d1e6a0f1603ad54741eb9dc6325c39f35f98f4d49b143f3fa"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/plot_pair_d73_v2.log",
+      "sha256": "8e555250538ae32ae9d83824217a67bb2958d8f4a26fa002b4e90300d92125a9"
+    }
+  ]
+}

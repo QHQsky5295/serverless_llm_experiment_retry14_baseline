@@ -3386,7 +3386,14 @@ def plot_tc_serverless_wait_audit(inputs: Sequence[Path], out_dir: Path,
                 ax.set_ylim(bottom=0)
             else:
                 ax.set_xscale('log')
-                ax.set_xticks([.5, 1, 2, 5], ['0.5', '1', '2', '5'])
+                if native_polling and any(gap < .5 for a in audits for gap in a['backend_gaps_s']):
+                    # Ready-first allocation may span milliseconds to seconds.
+                    # Label every visible decade instead of leaving the entire
+                    # subsecond region unlabeled by the historical fixed ticks.
+                    ax.xaxis.set_major_locator(matplotlib.ticker.LogLocator(base=10))
+                    ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda x, _: f'{x:g}'))
+                else:
+                    ax.set_xticks([.5, 1, 2, 5], ['0.5', '1', '2', '5'])
                 ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
                 ax.axvline(1, color='#666666', linestyle=':', lw=1)
                 ax.set_xlabel('Assignment gap (s, log)' if native_polling else 'Backend-start gap (s, log)', labelpad=2)

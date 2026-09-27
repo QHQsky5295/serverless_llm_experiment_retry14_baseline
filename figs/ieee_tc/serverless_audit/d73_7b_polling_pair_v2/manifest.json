@@ -1,0 +1,45 @@
+{
+  "kind": "native_polling_development",
+  "runs_per_variant": 1,
+  "ci": null,
+  "display_name": "Serverless",
+  "interpretation": "Conditional valid-response timing; all failures retained in table. Not formal/remote/numerical LoRA evidence.",
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/serverless_audit/20260927_7b_original_polling_d72.json",
+      "sha256": "b3dff9b3ca09b33f9fe32baa582c6115390e15979c3a737dba1e0f7d8ed29db3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/serverless_audit/20260927_7b_repaired_polling_d73.json",
+      "sha256": "47a99241199ec1b8e29c6b63cfc971edde38400912388fff11c8efd213ceae9c"
+    }
+  ],
+  "script_sha256": "661ecc242622dd716a39637659dd38bf72e2cf65080e59d33d7ef8fa3666c1c7",
+  "qa": [
+    {
+      "figure": "queue",
+      "width_inches": 3.45,
+      "height_inches": 2.85,
+      "label_clipping": false,
+      "note_legend_overlap": false,
+      "font_path": "/home/qhq/.local/share/fonts/msttcorefonts-times/times.ttf",
+      "manual_visual_review": "required"
+    },
+    {
+      "figure": "cadence",
+      "width_inches": 3.45,
+      "height_inches": 2.85,
+      "label_clipping": false,
+      "note_legend_overlap": false,
+      "font_path": "/home/qhq/.local/share/fonts/msttcorefonts-times/times.ttf",
+      "manual_visual_review": "required"
+    }
+  ],
+  "files": {
+    "serverless_polling_cadence.pdf": "aeefe3196b3bc02a9f042044d01b5e3840b8698678c5981a869ed6b8f80db3eb",
+    "serverless_polling_cadence.png": "e1e4f0a4717a4932217f2203a9864a6f6812d0c7b549f64d5f9f49f34a24526a",
+    "serverless_polling_queue.pdf": "0262ecbb1c4bf36c4c03d7cc15ca5824082cffa33cc0d2e104e7c6dc28975875",
+    "serverless_polling_queue.png": "4b48ba3765f5fe89c5353cb84073c96b9f74357f0be3d36535da6b37e533b509",
+    "serverless_polling_summary.csv": "e741b9f19256df434e3df3ad281f5336bb6b351c5f2abeeb201cf94e9715953b"
+  }
+}

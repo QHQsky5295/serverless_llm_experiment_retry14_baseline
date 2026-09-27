@@ -14,9 +14,9 @@
 - D68 start main5b09401c1e7598c407b22710a21486dc1be44166, baseline08153b457f43d3d587dae171f9dc49024fde4752.
 - Resume by inspecting actual handles/Git/resources; never restart a live run
   from stale notes. D72 7B ORIGINAL1,000-request diagnostic ENDED/cleaned.
-  D73 7B REPAIRED side is RUNNING; see exact handles below. Do not restart it.
+  D73 7B REPAIRED side is ENDED/cleaned; the7B pair is complete. Do not repeat it.
 
-## D73 checkpoint: paired 7B repaired polling side running
+## D73 checkpoint: paired 7B repaired polling side completed
 
 - Starts main3a3cb74656f18528e121f45bada05e8618e9303d and baseline
   ce23e7512f66847eafc95645b51ba9fbde870255. Full source plan/status/AGENTS and
@@ -26,20 +26,58 @@
   http_7b_1000.json. Same notice+60, inputs, native loader, bootstrap, min1/max4,
   target2/keep_alive10 and diagnostic engine settings as the completed original.
   No hidden retry, prewarm or change after seeing original results.
-- LIVE handles: outer TMUX tc-d72-7br; private/tmp/tc-d72-7br;
+- ENDED handles: outer TMUX tc-d72-7br; private/tmp/tc-d72-7br;
   service7099cfbcfdca4cc6b2dc80b66fe3764e;
   auxiliary d7200000000000000000000000000002;
   raw results/ieee_tc/serverless_qualification/d72_20260927;
   launch7b_repaired.launch, model7b_repaired, overlay7b_repaired/install.json.
-  Loader overlay INSTALLED; restore only AFTER actual owned GPU contexts exit.
+  Loader overlay exactly RESTORED after actual owned GPU contexts exited.
 - Initial actual service72/80GiB/swap2 verified by independent watchdog, no
   pressure/high/max/OOM. Before launch disk333970202624B, host112021647360B
   available, four GPUs15MiB/0%, no other model/TMUX. No heavy parallel task.
-- Next: retain all1,000 terminal outcomes, actual cleanup, failure-aware paired
-  audit and immediate plots/table; then3B repaired/original. Do not repeat7B
-  original, checkpoint export, old100-request or bootstrap-only experiments.
+- All1000 offered/arrived/terminal;996 protocol-valid/4 failed,999 submitted.
+  Initial request0 connection refused and1/2 missing-routerHTTP500; later
+  req_00845 ServerDisconnectedError. No occurrence of that ID in preserved native
+  logs, no model crash/OOM evidence. Transport cause remains undetermined; no
+  hidden retry or attribution to polling.121920 actual native output tokens,
+ 60 offered unique adapters,4 actual serving instance IDs. E2E/TPOT errors0ms.
+- Conditional mean router queue294.746→121.871s, P95TTFT534.178→187.581s;
+  mean serviceTTFT380.685→391.743ms and E2E302.789→129.984s. Thus observed
+  improvements are58.65% queue and64.88% P95TTFT, NOT a statistical claim.
+  Same996 valid request IDs give original queue294.555s, same repaired121.871s;
+  population mismatch does not explain the observed difference. This conditional
+  sensitivity does not remove failed requests from the full-workload report.
+  Assignment gaps<10ms: original0/996,repaired410/995. Median still1.001s in
+  repaired because empty-capacity waits remain; native load/scaling/RR unchanged.
+-1341 watchdog samples; peak51351257088B,min host57025748992B; high/max/OOM/
+  OOM-kill/swap0. Actual GPU contexts clear, service removed, auxiliary actual
+  empty/events0 then stopped.108 regular native files copied/SHA-equal; four
+  obsolete sockets excluded. Final qualification_request_failure, service/
+  replay/watchdog1/1/0, measurement_complete=true/workload_passed=false.
+- Existing analyzer retains all1000 rows; main20260927_7b_repaired_polling_d73
+  JSON + _evidence.json preserves25 raw hashes, matched sensitivity and failures.
+  Immediate paired table in baseline REQUEST_PROTOCOL. Initial paired plot had
+  no subsecond tick labels, retained as rejected preview. Existing plotter now
+  labels visible decades when necessary; no data/model change. Final
+  figs/ieee_tc/serverless_audit/d73_7b_polling_pair_v2: both PNGs visually checked,
+ 3.45×2.85in, embedded TNR/Times bold, no clipping/overlap, explicit n1/failures.
+ 46 baseline tests2.480s,328 main24.596s,53 OS1.336s PASS.147 protected/plan
+  unchanged. CPU test fixture errors/retries are not model-run events.
+- Next EXACT action:3B repaired then original1,000-request development pair,
+  existing native3B checkpoint/trace/content index and SAME predeclared min1/
+  max4/target8/keepalive10, diagnostic max_num_seqs4. Reuse source views/helper;
+  prepare common3B HTTP config and fresh outputs/private roots/overlay receipts.
+  Do not repeat7B pair, checkpoint export, old100 requests or bootstrap tuning.
   This is a local-artifact development attribution, not remote/formal/numerical
   qualification. Pending remote-space/nonzero-LoRA choices remain separate.
+- Final25 raw-source and8 paired figure/input/script SHA checks PASS; source
+  loader preflight passes after exact restore. Raw pair136MiB, disk333856448512B
+  free, host110514110464B available, all GPUs15MiB/0%, no model/TMUX remains.
+  Main running-ledger85c4e3caeeef6205ffcd0dcb7a370e31725cf947 backed up earlier.
+  Baseline evidence d2b96068f2c8638d4c91e39dd05bb8f6eb782c69 pushed; fresh
+  origin/main full SHA matches. Main final staged set contains only this ledger,
+  existing plotter, repaired curated2JSON and accepted v2 plot/data/manifest.
+  User dirt, failed previews, credentials and raw large logs excluded.
 
 ## D72 checkpoint: 7B original polling development side completed
 
@@ -313,7 +351,7 @@
 | P0 Table1/Full | 7B source-pair audit complete | Same inputs, different execution;202 scalars retained; no rerun needed for provenance finding |
 | P1 IEEE alignment | Frozen h/d planning/replacement, staging/admission, observed HOST return connected | P1 throughD54, P2 throughD61; representative profiles and actual Full remain open |
 | P2 backend/artifacts | vLLM0.30 installed; mechanical/numerical diagnostics; complete pool content audits | Full semantic qualification OPEN;3B500/500 and7B498/500 zero weights |
-| Serverless | D72 7B original1,000-request side complete:997 valid/3 initial HTTP500; finalization/cleanup/plots delivered | 7B repaired next, then3B pair; full qualification open; no more startup-only retry |
+| Serverless | D72/D73 7B polling pair complete:997/3 vs996/4; conditional queue294.75→121.87s; cleanup/paired plots delivered | Next3B repaired→original; full qualification open; no startup-only retry |
 | Baseline qualification | Pending | Serverless first, then vLLM/S-LoRA/dLoRA3B/Loquetier/HydraServe |
 | M1/M2, A1–A5, S1–S13 | NOT STARTED | No formal performance or optimality claim |
 | Documents/figures | Design and qualification tables in progress | Formal performance figures pending |
@@ -326,10 +364,11 @@ parts and all291 source parameter tensors verified exactly;32 recomputed RoPE
 buffers separately accounted. Do NOT re-export it or repeat the passed byte,
 Ray-only, allocator or four-request3B witnesses/old prefixes.
 Complete the approved two-model original/repaired1,000-request development
-pairs. D72 7B original side is COMPLETE and must NOT be repeated:997 valid/3
-initial failures, all1000 terminal rows preserved, cleanup and plots checked.
-Next7B repaired with prepared run7b_repaired.sh and SAME http_7b_1000.json;
-fresh overlay/receipt/private directory. Then3B repaired followed by original.
+pairs. D72/D73 7B pair is COMPLETE and must NOT be repeated: original997 valid/3
+initial failures, repaired996 valid/4 failures (one additional connection close).
+All1000 terminal rows per side retained; cleanup and paired plots checked.
+Next3B repaired followed by original: prepare one common3B HTTP configuration
+from existing trace/content index, then fresh receipts/private/output directories.
 Explicit historical min1/max4,target7B2/3B8 settings are now available; backend
 diagnostic max_num_seqs4 retained, not a frozen M1/M2 optimum. Do NOT repeat100
 requests, checkpoint bytes, Ray-only or another bootstrap-only optimization.
