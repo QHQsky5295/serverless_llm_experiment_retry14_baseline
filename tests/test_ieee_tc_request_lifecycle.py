@@ -678,6 +678,36 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
         self.assertTrue(result['requests'][0]['reservation_released'])
         self.assertEqual(owner.snapshot()['live_leases'], 0)
 
+    def test_profile_known_stale_view_retires_full_reservation_before_reselection(self):
+        from scripts.ieee_tc_preflight import collect_native_source_wave
+        runner, slot, trace, plan, owner, _ = self.build('gpu')
+        case = self.profile_case(runner, slot, trace, plan, 'gpu')
+        observed = slot.engine.ieee_gpu_reference.side_effect
+        attempts = []
+        async def concurrent_epoch(*, operation, **kwargs):
+            if operation == 'demand_load_and_acquire':
+                attempts.append(kwargs['lease_id'])
+                self.assertEqual(slot.active_requests, 1)
+                if len(attempts) <= 2:
+                    owner.epoch += 1  # Controlled unrelated native transition.
+            return await observed(operation=operation, **kwargs)
+        slot.engine.ieee_gpu_reference.side_effect = concurrent_epoch
+        result = dict(requests=[])
+        asyncio.run(collect_native_source_wave(runner, slot, [case], result))
+        sample = result['requests'][0]
+        self.assertTrue(sample['pass'])
+        self.assertEqual(len(attempts), 3)
+        self.assertEqual(len(set(attempts)), 3)
+        self.assertEqual(len(sample['rejected_source_views']), 2)
+        for rejected in sample['rejected_source_views']:
+            self.assertTrue(rejected['reservation_released'])
+            self.assertEqual(rejected['source_evidence']['state'], 'rejected')
+            self.assertFalse(rejected['source_evidence']['last_conflict']['acquired'])
+        self.assertTrue(sample['reservation_released'])
+        self.assertEqual(slot.active_requests, 0)
+        self.assertFalse(runner._unsettled_runtime_reservations)
+        self.assertEqual(owner.snapshot()['live_leases'], 0)
+
     def test_profile_rejects_duplicate_misses_before_any_native_operation(self):
         from scripts.ieee_tc_preflight import collect_native_source_wave
         runner, slot, trace, plan, owner, _ = self.build('remote')

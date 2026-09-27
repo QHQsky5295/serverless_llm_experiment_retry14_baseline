@@ -210,6 +210,36 @@
   ownership on startup failure. D84 specs preserve all D83 waves/bins/budgets/
   input hashes, change only temporary campaign parent and record runtime boundary.
   Prepared rawd84/run_{3b,7b}_physical_source_attempt1.sh; NOT LAUNCHED yet.
+
+### D84 attempt1 FAILED/CLEANED; collector fix tested, attempt2 not launched
+
+- Source143d1d6f69aa2c111d4bf0bcf030247b9f4e211a PUSHED/freshremoteSHA matched.
+  Final launch regression52pass11.631s; full OS/basic logs retained.
+- 3B physical-source attempt1 launched19:26, finished19:28; no live tmux/model.
+  Raw results/ieee_tc/p2_backend_qualification/d84_20260927,
+  run_3b_physical_source_attempt1.sh.368registered requests including8warmup,
+  same24classes/46waves as D83. Only warmup wave executed:6pass/2explicit stale
+  GPU-source rejections;0representative samples.106resourcesamples peak5631705088B,
+  high/max/OOM/swap0. Service2/watchdog0; physical allocation released and actual
+  GPU/service/workspaces cleared. Empty matchingauxcff45755 stopped. P2 status
+  table written;8warmup-setupUUIDs verified in attempt1_remote_3b_transfers.jsonl.
+  Collector omitted Full's finish+retry_known_conflict before re-reserving after
+  explicit no-acquisition. Fix reuses those existing transaction methods; core
+  protection unchanged. New2-conflict deterministic test and related regression
+  pass; no unknown-reply retry. Preserve failureSHA2a5ef80502b160718770f377ce74ff173534c227fc0087bc5a473bf7cea0880a.
+  NEXT backup fix then launch unique3B attempt2.7B PREPARED ONLY, not running.
+- Actual D84 remote identities (ACTIVE, freeze during inference):
+  3B bff65725fecf4544be930c6bae36782d,PID337915;
+  7B c8040d3b1e3d446fb7c262d93ac68480,PID337917;
+  monitor4d9737c682e5437d8e73d8ca29f03328,PID337920.
+  Healthclocks3B7a7e42805e874021b2894e197da4ea75,
+  7Bf08dc9e4e1ba495abbd7a17b8b80ff18. Immutable cache/service limits unchanged.
+  Monitorlog /home/lab14/primelora_remote/tc/d84_20260927/remote_monitor.log.
+  Stop only matching monitor after all inference; retrieve latest transfer
+  files and final monitor, not old D83 journal filenames.
+- Local auxiliaryscope primelora-tc-aux-d8400000000000000000000000000001.scope.
+  Actual invocationcff4575515de423d9403a3c2dd519e8a. All D83 scopes dead.
+  Mainline remains profile export then Full integration; baselines PAUSED.
 ### D81 completed four-way real-remote qualification; Full profiling next
 
 - BOTH models:3waves×4lanes=12/12verified, each wave observed4server-handler
@@ -305,9 +335,9 @@ Earlier preparation details (completed; not new launch instructions):
   Private key ~/.ssh/primelora_artifact_174_ed25519_20260925,0600,outsideGit.
   Local/remote token ~/.config/primelora-tc-d75/artifact.token,0600.
   NEVER print values/put credentials in journals or Git.
-- D80/D83 monitors and both artifact services are INACTIVE. D83 stopped after
-  completed7B19:11. Do not reuse old PIDs/invocations. Unit fragments remain
-  deployed; caches not deleted. No live local model/tmux or qualification run.
+- D80/D83 monitors INACTIVE, D83 stopped after completed7B19:11. D84 monitor and
+  two artifact services ACTIVE.3B attempt1 failed/cleaned; no live model now.
+  Do not reuse old PIDs/invocations. Unit fragments/cache remain deployed.
 - Cache root /home/lab14/primelora_remote/tc/d78_20260927/published/{3b,7b}.
   Source pools /home/lab14/primelora_remote_artifacts/
   llama32_3b_a500_v1_modelscope and llama2_7b_a500_v2_publicmix.

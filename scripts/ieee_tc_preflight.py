@@ -2709,12 +2709,13 @@ async def collect_native_source_wave(boundary, slot, cases, result):
             # preparation and generation below do not. Native state can change
             # in another task; only an explicitly rejected hold is re-observed.
             async with admission_lock:
-                ok, reserved = boundary._try_reserve_runtime_request_slot(slot, aid)
-                if not ok:
-                    raise RuntimeError('source wave could not reserve its declared runtime lane')
-                reservation.bind(slot, aid, reserved)
-                reservation.ieee_routing_evidence = dict(selection='single_worker_source_profiling_not_router')
                 while True:
+                    ok, reserved = boundary._try_reserve_runtime_request_slot(slot, aid)
+                    if not ok:
+                        raise RuntimeError('source wave could not reserve its declared runtime lane')
+                    reservation.bind(slot, aid, reserved)
+                    reservation.ieee_routing_evidence = dict(selection='single_worker_source_profiling_not_router')
+                    case['source_evidence'] = reservation.gpu_reference_evidence
                     raw = await engine.ieee_gpu_reference(operation='source_snapshot')
                     state = NativeSourceSnapshot.from_native(raw, expected_clock_id=clock_id,
                         received_monotonic_s=time.monotonic())
@@ -2733,9 +2734,16 @@ async def collect_native_source_wave(boundary, slot, cases, result):
                     if await boundary._ieee_protect_selected_source(
                             reservation, source, key, collect_profile_only=True):
                         break
+                    # Same complete transaction retirement as the live router:
+                    # an explicit no-acquisition reply is not a fresh reservation.
+                    # Unknown replies/exceptions never reach this retry path.
+                    await boundary._finish_runtime_request_reservation(reservation)
                     case.setdefault('rejected_source_views', []).append(dict(
                         native_owner_id=state.owner_id, native_epoch=state.epoch,
-                        file_epoch=files['epoch'], source=dict(source)))
+                        file_epoch=files['epoch'], source=dict(source),
+                        reservation_released=reservation.released,
+                        source_evidence=reservation.gpu_reference_evidence))
+                    reservation.retry_known_conflict()
             reference = await boundary._ieee_prepare_selected_adapter(reservation)
             observation = reservation.ieee_observation
             observer = NativeServiceIntervalObserver(observation, clock_id=clock_id,
