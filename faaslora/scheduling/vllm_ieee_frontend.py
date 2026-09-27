@@ -29,7 +29,7 @@ class IEEENativeAsyncLLM(AsyncLLM):
 
     async def _pending_rpc(self, operation, intent_id, *args):
         result = await self.engine_core.call_utility_async(
-            'ieee_pending_admission', operation, intent_id, *args)
+            'ieee_pending_admission', operation, [intent_id, *args])
         if (not isinstance(result, dict) or result.get('kind') != 'ieee_pending_admission_v1'
                 or result.get('intent_id') != intent_id
                 or result.get('clock_id') != local_monotonic_clock_id()

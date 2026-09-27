@@ -21,12 +21,18 @@ from .resource_coordinator import (NativeIterationObservation, NativeRequestReti
                                    capture_native_kv_observation)
 
 
-def _core_pending_admission(core, operation, *args):
+def _core_pending_admission(core, operation, arguments):
     if not isinstance(core.scheduler, IEEENativeAsyncScheduler):
         raise RuntimeError('pending KV utility requires the native scheduler owner')
-    if operation not in ('register', 'bind', 'withdraw'):
+    if type(operation) is not str or operation not in ('register', 'bind', 'withdraw'):
         raise ValueError('unsupported pending KV ownership transition')
-    return getattr(core.scheduler._ieee_pending_admissions, operation)(*args)
+    # vLLM 0.30's utility converter counts declared signature entries; a
+    # variadic method cannot carry register/bind's differing positional arity.
+    # One decoded list preserves the command payload without changing ownership.
+    arity = {'register': 2, 'bind': 3, 'withdraw': 1}[operation]
+    if type(arguments) is not list or len(arguments) != arity:
+        raise ValueError('pending KV ownership command payload mismatch')
+    return getattr(core.scheduler._ieee_pending_admissions, operation)(*arguments)
 
 
 def _core_observation(core):

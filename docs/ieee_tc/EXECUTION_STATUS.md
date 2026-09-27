@@ -2,6 +2,41 @@
 
 ## Current checkpoint — 2026-09-27 D88 development controls; admission source next
 
+LATEST correction ready:fixed two-field operation/payload utility packet preserves
+native pending ownership.190related tests pass2.635s;20final pending tests pass
+0.039s;actual installed converter/msgspec no-CUDA audit passes. OS63pass1.172s;
+related/basic422pass36.139s. Initial regression erroneously ran OS pidfd tests
+under conda interpreter:four failures retained, resolved by running unchanged
+OS tests under qualified system Python, not weakening production checks.
+147protectedentries unchanged;all local/remote jobs stopped. New attempt3 launcher
+and remote-monitor script prepared only; backup checked files before launch.
+Attempt2 status table and8exact transfer UUID pairs preserved; no performance
+result. Mainline remains admission-enabled profiles then integrated Full.
+
+3B attempt2 FAILED/CLEANED at warmup wave0;0/8 executed requests passed,
+0representative samples. Actual model initialized, but native utility argument
+converter rejected variadic pending-registration bridge before inference. Exact
+AssertionError remains in raw error's worker_log_tail. All8 reservations closed;
+physical lease95406e27946c470f8b26b00693ffe191 released, service/watchdog2/0,
+actual GPU/service/workspaces gone. Matching emptyaux081d8dca stopped. Remote
+monitor59d5aa2b and both matching services STOPPED; allinactive/MainPID0/success
+reconfirmed. No live tmux/model. Do not launch7B or repeat remote qualification.
+NEXT preserve attempt2 status/transfer evidence; fixed-arity pending transport
+with native-converter CPU verification, regression, backup, then unique attempt3.
+All IEEE formulas/settings and admission ownership remain unchanged; Full is
+NOT qualified. M1/M2/A/S not started; baselines PAUSED.
+
+Historical attempt2 launch:3B launched21:52:57, tmux tc-d88-3b-attempt2, source
+426d7ead4594f34372871facbe2783e137568ccb PUSHED/freshremoteSHA matched.
+Rawd88/run_3b_admission_source_attempt2.sh, output3b_admission_source_attempt2.json
+and corresponding _launch.json; unchanged frozen spec/config. Monitor terminal
+before any7B. Remote3Bb55932e5f68e4fca80b05bb04b159c29,
+7Bc120959507e8469ca17e3489d2e7801d, monitor59d5aa2b8438477e8fc14fa3ebcac65a
+(primelora-artifact-monitor-d88a2.service) ACTIVE. Remote monitor log is
+tc/d88_20260927/remote_monitor_attempt2.log. New health clocks saved in
+rawd88/remote_pre_attempt2_health.json; previous attempt1 IDs are STOPPED.
+No remote management/config/hash/cleanup or code changes during this inference.
+
 LATEST overrides live notes below:3B attempt1 FAILED before inference0/368,
 remote0. GPU contexts/service/workspaces cleared; matching emptyauxdba5def0 and
 remote monitor70b2339c/services stopped. No actual inference/performance sample.

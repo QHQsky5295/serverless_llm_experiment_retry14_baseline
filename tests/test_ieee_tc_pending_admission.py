@@ -4,6 +4,8 @@ No CUDA or performance qualification. Exact-token descriptors include native
 special tokens; transport gaps/cancellation cannot remove predicted demand.
 """
 import asyncio
+import inspect
+import json
 from dataclasses import fields
 from types import SimpleNamespace as NS
 import unittest
@@ -36,6 +38,15 @@ def native_request(rid='native-random', tokens=(1, 20, 30), limit=64, adapter=4)
     return request(rid, num_prompt_tokens=len(tokens), prompt_token_ids=list(tokens),
         max_tokens=limit, lora_request=NS(lora_int_id=adapter) if adapter is not None else None,
         num_computed_tokens=0, num_in_flight_tokens=0)
+
+
+def utility_call(method, *args):
+    # vLLM 0.30 EngineCoreProc._convert_msgspec_args counts signature entries,
+    # not the arity accepted by Python *args. These commands use plain payloads,
+    # not typed msgspec structs. Also exercise the decoded wire container shape.
+    wire_args = json.loads(json.dumps(args))
+    assert len(wire_args) <= len(inspect.signature(method).parameters)
+    return method(*wire_args)
 
 
 class PendingOwnership(unittest.TestCase):
@@ -116,14 +127,40 @@ class PendingOwnership(unittest.TestCase):
         hook = module.IEEENativeAsyncScheduler(scheduler())
         engine_core = core()
         engine_core.scheduler = hook
-        engine_core.ieee_pending_admission('register', 'i', descriptor())
-        engine_core.ieee_pending_admission('bind', 'i', 'native-random', descriptor())
+        utility_call(engine_core.ieee_pending_admission, 'register', ['i', descriptor()])
+        utility_call(engine_core.ieee_pending_admission, 'bind', ['i', 'native-random', descriptor()])
         self.assertEqual(len(hook.ieee_scheduler_observation()['admitted']), 2)
         hook.add_request(native_request())
         rows = hook.ieee_scheduler_observation()['admitted']
         self.assertEqual(len(rows), 2)
         self.assertTrue(all(r['demand_owner'] == 'native' for r in rows))
         self.assertIn('native-random', hook._ieee_retirement.registered)
+
+    def test_native_converter_rejects_legacy_variadic_transport(self):
+        reached = []
+        def old_bound_bridge(operation, *args):
+            reached.append((operation, args))
+        with self.assertRaises(AssertionError):
+            utility_call(old_bound_bridge, 'register', 'i', descriptor())
+        self.assertEqual(reached, [])
+
+    def test_packet_shape_rejects_before_mutating_pending_owner(self):
+        module, _, core = native_hook_tests.NativeHookWiring().load_adapter()
+        hook = module.IEEENativeAsyncScheduler(scheduler())
+        engine_core = core()
+        engine_core.scheduler = hook
+        for operation, packet in (('register', ['i']), ('bind', ['i', 'n']),
+                                  ('withdraw', []), ('withdraw', ['i', 'extra']),
+                                  ('register', {'i': descriptor()}),
+                                  ('unknown', ['i']), (None, ['i'])):
+            with self.subTest(operation=operation, packet=packet):
+                with self.assertRaises(ValueError):
+                    utility_call(engine_core.ieee_pending_admission, operation, packet)
+                self.assertEqual(hook._ieee_pending_admissions.snapshot(), [])
+        result = utility_call(engine_core.ieee_pending_admission, 'withdraw', ['i'])
+        self.assertEqual(result['state'], 'withdrawn')
+        with self.assertRaisesRegex(ValueError, 'already used'):
+            utility_call(engine_core.ieee_pending_admission, 'register', ['i', descriptor()])
 
     def test_pending_demand_changes_existing_equation_not_physical_allocator(self):
         journal = self.make()
@@ -146,10 +183,11 @@ class FrontendHandoff(unittest.TestCase):
     async def make(self):
         frontend = frontend_type()()
         journal = NativePendingAdmissions(NativeIterationObservation(), (3, 20))
-        def call(method, operation, *args):
+        def call(method, operation, arguments):
             if method != 'ieee_pending_admission':
                 raise AssertionError(method)
-            return getattr(journal, operation)(*args)
+            self.assertIs(type(arguments), list)
+            return getattr(journal, operation)(*arguments)
         frontend.engine_core.call_utility_async = AsyncMock(side_effect=call)
         frontend.get_supported_tasks = AsyncMock(return_value=('generate',))
         frontend.input_processor = NS(process_inputs_async=AsyncMock(return_value=NS(
