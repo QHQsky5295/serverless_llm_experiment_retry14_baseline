@@ -224,6 +224,174 @@ class AtomicArtifactPublication(unittest.TestCase):
             server.server_close()
             thread.join()
 
+    def _publish_fixture(self, files=None):
+        from remote_artifact_node.server import prepare_delivery_cache
+        files = files or {'weights': b'unchanged-fixture', 'nested/config.json': b'{}'}
+        root, destination = self.root/'published-source', self.root/'published-cache'
+        for name, payload in files.items():
+            path = root/'a'/name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(payload)
+        index = self.root/'published-index.json'
+        index.write_text(json.dumps(content_manifest(files=files)))
+        events = []
+        result = prepare_delivery_cache(root, index, destination, event_sink=events.append)
+        return root, index, destination, result, events
+
+    def test_published_object_roundtrip_never_packs_hashes_or_creates_temp_at_request(self):
+        from remote_artifact_node.server import prepare_delivery_cache
+        root, index, destination, result, events = self._publish_fixture()
+        self.assertTrue(result['complete'])
+        self.assertEqual([e['event'] for e in events], ['artifact_published'])
+        records = []
+        server = ArtifactServer(('127.0.0.1', 0), ArtifactHandler,
+            root=root, delivery_cache=destination, event_sink=records.append)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            client = HttpArtifactStoreClient(endpoint='http://127.0.0.1:'+str(server.server_port),
+                                            required_delivery_mode='prepublished_gzip_v1')
+            client.configure_content_manifest(json.loads(index.read_text()))
+            self.assertEqual(client.content_manifest_sha256, result['content_manifest_sha256'])
+            self.assertEqual(client.health()['delivery_mode'], 'prepublished_gzip_v1')
+            self.assertEqual(client.list_artifacts(), ['a'])
+            self.assertTrue(client.has_artifact('a'))
+            original_tar_open = tarfile.open
+            def no_pack(*args, **kwargs):
+                mode = kwargs.get('mode', args[1] if len(args)>1 else 'r')
+                self.assertFalse(any(c in mode for c in ('w','x','a')))
+                return original_tar_open(*args, **kwargs)
+            with patch('remote_artifact_node.server._sha_file', side_effect=AssertionError('request hash scan')), \
+                    patch('remote_artifact_node.server.tempfile.mkdtemp', wraps=tempfile.mkdtemp) as temporary, \
+                    patch('remote_artifact_node.server.tarfile.open', side_effect=no_pack):
+                evidence = {}
+                ok, _, _ = client.download_artifact('a', str(self.root/'received'),
+                    require_content_manifest=True, require_remote_timing=True, evidence=evidence)
+                self.assertTrue(ok)
+                # One CLIENT staging workspace; server has no packing workspace.
+                self.assertEqual(temporary.call_count, 1)
+            self.assertEqual(evidence['remote_pack_ms'], 0.)
+            self.assertFalse(evidence['remote_pack_performed'])
+            self.assertEqual(evidence['remote_pack_duration_basis'], 'absent_by_published_contract')
+            self.assertTrue(evidence['published_archive_verified'])
+            self.assertEqual((self.root/'received/nested/config.json').read_bytes(), b'{}')
+            with self.assertRaises(FileExistsError):
+                prepare_delivery_cache(root, index, destination)
+        finally:
+            server.shutdown(); server.server_close(); thread.join()
+        self.assertEqual(len(records), 1)
+        self.assertFalse(records[0]['pack_performed'])
+        self.assertFalse(records[0]['temporary_created'])
+        self.assertNotIn('pack_started_ns', records[0])
+        self.assertEqual(records[0]['bytes_written'], evidence['transferred_bytes'])
+
+    def test_published_cache_rejects_corrupt_source_without_completion_manifest(self):
+        from remote_artifact_node.server import prepare_delivery_cache, load_delivery_cache
+        root = self.root/'bad-source'
+        (root/'a').mkdir(parents=True)
+        (root/'a/weights').write_bytes(b'wrong')
+        index = self.root/'bad-index.json'
+        index.write_text(json.dumps(content_manifest(files={'weights': b'right'})))
+        destination = self.root/'failed-cache'
+        events = []
+        with self.assertRaisesRegex(ValueError, 'frozen SHA'):
+            prepare_delivery_cache(root, index, destination, event_sink=events.append)
+        self.assertFalse((destination/'delivery_manifest.json').exists())
+        self.assertEqual(events[-1]['event'], 'preparation_failed')
+        with self.assertRaises(FileNotFoundError):
+            load_delivery_cache(destination)
+        self.assertEqual((root/'a/weights').read_bytes(), b'wrong')
+
+    def test_published_cache_rejects_changed_archive_and_never_falls_back(self):
+        from remote_artifact_node.server import load_delivery_cache
+        root, index, destination, result, _ = self._publish_fixture()
+        server = ArtifactServer(('127.0.0.1', 0), ArtifactHandler, root=root, delivery_cache=destination)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            archive = destination/'a.tar.gz'
+            archive.chmod(0o644)
+            client = HttpArtifactStoreClient(endpoint='http://127.0.0.1:'+str(server.server_port))
+            with patch('remote_artifact_node.server.tarfile.open', side_effect=AssertionError('no fallback')):
+                with self.assertRaisesRegex(RemoteArtifactError, 'HTTP 409'):
+                    client.download_artifact('a', str(self.root/'must-not-publish'))
+            self.assertFalse((self.root/'must-not-publish').exists())
+            archive.write_bytes(b'corrupt')
+            archive.chmod(0o444)
+            with self.assertRaisesRegex(ValueError, 'archive changed'):
+                load_delivery_cache(destination)
+        finally:
+            server.shutdown(); server.server_close(); thread.join()
+
+    def test_published_timing_requires_identity_and_complete_object_hashes(self):
+        from faaslora.storage.http_artifact_store import _remote_pack_timing
+        h = {'X-PrimeLoRA-Timing-Contract':'artifact_timing_v2',
+             'X-PrimeLoRA-Transfer-ID':'a'*32, 'X-PrimeLoRA-Delivery-Mode':'prepublished_gzip_v1',
+             'X-PrimeLoRA-Archive-SHA256':'b'*64, 'X-PrimeLoRA-Content-Manifest-SHA256':'c'*64}
+        self.assertEqual(_remote_pack_timing(h, 'a'*32), 0.)
+        for key in h:
+            with self.subTest(key=key), self.assertRaises(RemoteArtifactError):
+                _remote_pack_timing({**h, key:'wrong'}, 'a'*32)
+
+    def test_published_download_rejects_mismatched_manifest_archive_and_mode(self):
+        payload = archive_bytes()
+        manifest = content_manifest()
+        for fault in ('manifest', 'archive', 'mode'):
+            client = HttpArtifactStoreClient(endpoint='http://unit.invalid',
+                required_delivery_mode='dynamic_gzip_v1' if fault == 'mode' else 'prepublished_gzip_v1')
+            client.configure_content_manifest(manifest)
+            def response(req, **kwargs):
+                result = SizedResponse(payload)
+                tid = next(v for k,v in req.header_items() if k.lower() == 'x-primelora-transfer-id')
+                result.headers.update({'X-PrimeLoRA-Timing-Contract':'artifact_timing_v2',
+                    'X-PrimeLoRA-Transfer-ID':tid, 'X-PrimeLoRA-Delivery-Mode':'prepublished_gzip_v1',
+                    'X-PrimeLoRA-Archive-SHA256': ('0'*64 if fault=='archive' else hashlib.sha256(payload).hexdigest()),
+                    'X-PrimeLoRA-Content-Manifest-SHA256': ('0'*64 if fault=='manifest' else client.content_manifest_sha256)})
+                return result
+            client._opener = Mock()
+            client._opener.open.side_effect = response
+            evidence = {}
+            with self.subTest(fault=fault), self.assertRaises(RemoteArtifactError):
+                client.download_artifact('a', str(self.root/('invalid-'+fault)), evidence=evidence,
+                    require_content_manifest=True, require_remote_timing=True)
+            self.assertEqual(evidence['state'], 'not_published')
+            self.assertFalse((self.root/('invalid-'+fault)).exists())
+
+    def test_published_cache_cancellation_keeps_ready_object_and_cleans_client(self):
+        from scripts.remote_artifact_client import verify_cancel
+        root, index, destination, _, _ = self._publish_fixture()
+        records = []
+        server = ArtifactServer(('127.0.0.1', 0), ArtifactHandler, root=root,
+                                delivery_cache=destination, event_sink=records.append)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            client = HttpArtifactStoreClient(endpoint='http://127.0.0.1:'+str(server.server_port),
+                                            required_delivery_mode='prepublished_gzip_v1')
+            client.configure_content_manifest(json.loads(index.read_text()))
+            result = verify_cancel(client, adapter_id='a', output=self.root/'cached-cancel.jsonl')
+            self.assertTrue(result['pass'])
+            self.assertFalse(result['evidence']['remote_pack_performed'])
+            self.assertTrue((destination/'a.tar.gz').is_file())
+        finally:
+            server.shutdown(); server.server_close(); thread.join()
+        self.assertEqual(len(records),1)
+        self.assertFalse(records[0]['temporary_created'])
+
+    def test_offline_publication_rejects_links_and_outside_paths(self):
+        from remote_artifact_node.server import prepare_delivery_cache, _frozen_files
+        for name in ('../bad','/bad','a//b','a/./b','a\\b'):
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                _frozen_files(content_manifest(files={name:b'x'}))
+        root = self.root/'linked-source'
+        (root/'a').mkdir(parents=True)
+        (root/'a/weights').symlink_to(self.target/'old')
+        index = self.root/'linked-index.json'
+        index.write_text(json.dumps(content_manifest(files={'weights':b'previous-valid-copy'})))
+        with self.assertRaisesRegex(ValueError,'regular files'):
+            prepare_delivery_cache(root,index,self.root/'linked-cache')
+        self.assertFalse((self.root/'linked-cache/delivery_manifest.json').exists())
+
     def test_cancel_qualification_does_not_relabel_network_failure_as_cancellation(self):
         from scripts.remote_artifact_client import verify_cancel
         client = Mock()

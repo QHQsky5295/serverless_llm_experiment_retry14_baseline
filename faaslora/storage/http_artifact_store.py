@@ -103,7 +103,8 @@ def endpoint_from_env(
             f"{enabled_env}=1 requires {endpoint_env}=http://host:port"
         )
     timeout_s = float(os.getenv(timeout_env, "300") or 300)
-    return HttpArtifactStoreClient(endpoint=endpoint, token_env=token_env, timeout_s=timeout_s)
+    return HttpArtifactStoreClient(endpoint=endpoint, token_env=token_env, timeout_s=timeout_s,
+        required_delivery_mode=os.getenv('FAASLORA_REMOTE_ARTIFACT_DELIVERY_MODE') or None)
 
 
 class HttpArtifactStoreClient:
@@ -117,6 +118,7 @@ class HttpArtifactStoreClient:
         token_env: str = "PRIME_REMOTE_TOKEN",
         timeout_s: float = 300.0,
         use_env_proxy: bool = False,
+        required_delivery_mode: Optional[str] = None,
     ) -> None:
         endpoint = endpoint.strip().rstrip("/")
         if not endpoint:
@@ -126,6 +128,9 @@ class HttpArtifactStoreClient:
         self.token_env = token_env
         self.timeout_s = float(timeout_s)
         self.use_env_proxy = bool(use_env_proxy)
+        if required_delivery_mode not in (None, 'dynamic_gzip_v1', 'prepublished_gzip_v1'):
+            raise ValueError('unknown required artifact delivery mode')
+        self.required_delivery_mode = required_delivery_mode
         self._content_manifest = None
         self.content_manifest_sha256 = None
         self._opener = (
@@ -302,8 +307,21 @@ class HttpArtifactStoreClient:
                     if require_remote_timing and timing is None:
                         raise RemoteArtifactError('remote timing contract is required for this measurement')
                     if timing is not None:
+                        contract = resp.headers['X-PrimeLoRA-Timing-Contract']
+                        published = contract == 'artifact_timing_v2'
+                        delivery_mode = 'prepublished_gzip_v1' if published else 'dynamic_gzip_v1'
                         evidence.update(remote_timing_available=True, remote_pack_ms=timing,
-                                        remote_timing_contract='artifact_timing_v1')
+                            remote_timing_contract=contract, remote_delivery_mode=delivery_mode,
+                            remote_pack_performed=not published,
+                            remote_pack_duration_basis='absent_by_published_contract' if published else 'measured')
+                        if published:
+                            if (expected is None or resp.headers['X-PrimeLoRA-Content-Manifest-SHA256']
+                                    != self.content_manifest_sha256):
+                                raise RemoteArtifactError('published object requires matching frozen content manifest')
+                            evidence['remote_archive_sha256'] = resp.headers['X-PrimeLoRA-Archive-SHA256']
+                    if (self.required_delivery_mode is not None
+                            and evidence.get('remote_delivery_mode') != self.required_delivery_mode):
+                        raise RemoteArtifactError('remote delivery mode differs from the frozen contract')
                     length = None
                     if expected is not None:
                         raw = resp.headers.get('Content-Length', '')
@@ -314,6 +332,7 @@ class HttpArtifactStoreClient:
                         evidence['payload_bytes_expected'] = sum(size for size, _ in expected.values())
                     if reserve_files is not None:
                         evidence['file_reservation'] = reserve_files(staging, length, expected)
+                    archive_hash = hashlib.sha256() if 'remote_archive_sha256' in evidence else None
                     with archive.open('r+b' if reserve_files is not None else 'wb') as fh:
                         while True:
                             check_cancelled()
@@ -321,11 +340,17 @@ class HttpArtifactStoreClient:
                             if not chunk:
                                 break
                             evidence['transferred_bytes'] += len(chunk)
+                            if archive_hash is not None:
+                                archive_hash.update(chunk)
                             if length is not None and evidence['transferred_bytes'] > length:
                                 raise RemoteArtifactError('artifact body exceeds declared Content-Length')
                             fh.write(chunk)
                     if length is not None and evidence['transferred_bytes'] != length:
                         raise RemoteArtifactError('artifact body is shorter than declared Content-Length')
+                    if archive_hash is not None:
+                        if archive_hash.hexdigest() != evidence['remote_archive_sha256']:
+                            raise RemoteArtifactError('published archive SHA differs from response')
+                        evidence['published_archive_verified'] = True
                     evidence['body_received_monotonic_s'] = time.monotonic()
                 check_cancelled()
                 staging.mkdir(exist_ok=reserve_files is not None)
@@ -405,8 +430,15 @@ def _remote_pack_timing(headers, transfer_id):
     contract = headers.get('X-PrimeLoRA-Timing-Contract')
     if contract is None:
         return None
-    if (contract != 'artifact_timing_v1'
-            or headers.get('X-PrimeLoRA-Transfer-ID') != transfer_id):
+    if headers.get('X-PrimeLoRA-Transfer-ID') != transfer_id:
+        raise RemoteArtifactError('remote timing identity/contract mismatch')
+    if contract == 'artifact_timing_v2':
+        if (headers.get('X-PrimeLoRA-Delivery-Mode') != 'prepublished_gzip_v1'
+                or any(not re.fullmatch('[0-9a-f]{64}', headers.get(key, '')) for key in (
+                    'X-PrimeLoRA-Archive-SHA256', 'X-PrimeLoRA-Content-Manifest-SHA256'))):
+            raise RemoteArtifactError('invalid published object delivery contract')
+        return 0.0  # Structural absence, NOT a missing/unmeasured legacy duration.
+    if contract != 'artifact_timing_v1':
         raise RemoteArtifactError('remote timing identity/contract mismatch')
     value = headers.get('Server-Timing', '')
     match = re.fullmatch(r'artifact_pack;dur=([0-9]+(?:\.[0-9]+)?)', value)

@@ -30,6 +30,7 @@ def _client(args: argparse.Namespace) -> HttpArtifactStoreClient:
         token_env=args.token_env,
         token=args.token_file.read_text().strip() if args.token_file else None,
         timeout_s=float(args.timeout_s),
+        required_delivery_mode=args.delivery_mode,
     )
     if args.content_index:
         client.configure_content_manifest(json.loads(args.content_index.read_text()))
@@ -56,8 +57,8 @@ def verify_pool(client: HttpArtifactStoreClient, *, content_index: Path, output:
                   content_manifest_sha256=client.content_manifest_sha256))
         try:
             health = client.health()
-            if health.get('timing_contract') != 'artifact_timing_v1':
-                raise RemoteArtifactError('pool qualification requires artifact_timing_v1')
+            if health.get('timing_contract') not in ('artifact_timing_v1', 'artifact_timing_v2'):
+                raise RemoteArtifactError('pool qualification requires an explicit artifact timing contract')
             actual = client.list_artifacts()
             if sorted(actual) != expected:
                 raise RemoteArtifactError('remote manifest does not equal the complete frozen pool')
@@ -176,6 +177,8 @@ def main() -> int:
     parser.add_argument('--content-index', type=Path,
                         help='Existing frozen content manifest, no pool regeneration')
     parser.add_argument('--require-remote-timing', action='store_true')
+    parser.add_argument('--delivery-mode', choices=['dynamic_gzip_v1', 'prepublished_gzip_v1'],
+                        help='Require the frozen remote delivery mode; never silently substitute')
     sub = parser.add_subparsers(dest="cmd", required=True)
 
     sub.add_parser("health")

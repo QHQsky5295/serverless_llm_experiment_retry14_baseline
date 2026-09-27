@@ -8,7 +8,7 @@
 - Approved snapshot PLAN_APPROVED_20260927_PUBLISHED_ARTIFACT.md; original
  20260925/20260927 snapshots retained. User explicitly excludes artificial
  per-request packaging from formal research path (latest D77 clarification).
-  Plan SHA 7d91a34791f5132b50e983c7552105a297f1ded2dcd1cbdd4108428e2b2dfb05.
+  Plan SHA fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c.
   Do not mutate plan to hide a failed or unavailable condition.
 - Active goal is incomplete. M1/M2/A/S formal matrices have NOT started.
   G1=correct complete workload/common SLO then minimum lifecycle GPU-s;
@@ -30,10 +30,56 @@
   request path, not by subtracting old logs. Preserve real transfers/contention
   and local tiers. Necessary storage reads/HTTP response are distinguished from
   artificial preparation, not assumed zero. D75–D77 pack results remain legacy
-  functionality/diagnosis, not formal performance. No source delivery change yet.
+  functionality/diagnosis, not formal performance. D78 source delivery change
+  tested; actual remote publication/deployment not started yet.
 - User now asks why actual remote link is100M and whether latency should be
   excluded. D77 read-only diagnosis below answers; no network-change permission
   inferred. Do not silently replace measured real-remote main protocol by sim.
+
+## D78 approved prepublished cache: implementation tested, deployment next
+
+- User explicitly APPROVED once-only immutable compressed transport cache,
+  expected1.47GiB, no second extracted pool/new weights/trace. No longer a
+  pending choice. Source plan and same current approved snapshot include this
+  specific exception; previous7d91a347/d79d7eb6 versions remain in Git/raw records.
+- Existing standalone server now has OFFLINE prepare-delivery-cache: full static
+  ID/file set, regular nonsymlink files, streamed original SHA verification,
+  exclusive destination, gzip9/PAX, read-only objects and complete manifest only
+  after all succeed. Failed cache retained but cannot be served/resumed silently.
+- Optional delivery-cache serving validates immutable archive hashes at startup,
+  then only opens/streams frozen objects. No request-time packing/hash/temporary
+  archive or miss fallback. Mutation rejected, all attempts correlated.
+  artifact_timing_v2 explicitly states prepublished mode/no pack; zero pack is
+  structural absence, not unknown legacy timing silently filled with zero.
+- Existing client verifies published archive AND original exact file content;
+  explicit required_delivery_mode prevents reverting to dynamic packing. Both
+  env factory and configured RemoteStorageClient forward the contract. No
+  routing/admission/equation/backend/weight change.
+- Initial30 client checks3.951s pass; expanded40 client/content checks3.680s pass,
+  including corrupted source, incomplete cache, mutation/no fallback, content/
+  archive/mode mismatch, cancellation and no HTTP-path pack/hash/temp tests.
+  Basic smoke288 checks PASS68.316s (bounded CPU unit, no GPU). Actual remote
+  cache NOT generated yet. Protected147 entries unchanged, diff-check clean.
+- Raw root results/ieee_tc/remote_qualification/d78_20260927, PROTOCOL.md.
+  Next: finish checks/backup, bounded offline3B publication to fresh remote root,
+  monitor/validate/table, then7B. No parallel inference, baseline or new pool.
+
+### D78 external reboot and link change, 2026-09-27 16:25+08
+
+- Local boot aef67ed2-79d1-46bc-82e4-37401a5b45bf (15:05:52), remote
+  b53c1f16-1dd2-4741-9271-6b75e86582ec (15:06:36). We did not reboot either.
+- Remote eno1 now1000Mb/s/full AND peer advertises1000baseT/Full. Local
+  eno1np0 also1000/full; direct route unchanged, inspected qdisc has no cap.
+  No network setting changed by this agent; physical cause remains unconfirmed.
+  D77's100M evidence remains historical, not current or new profile evidence.
+- Old artifact units both inactive/MainPID0/empty InvocationID after reboot;
+  ports18080/18081 unoccupied. Old PIDs/invocations must not be reused.
+- Remote free149560934400B, > conservative97407250432B preparation bound;
+  MemAvailable107319648KiB (~102GiB), swap0, pressure0. Local free337391349760B,
+  MemAvailable120724268KiB, GPU compute empty. Check again before publication.
+- Raw post_reboot_link.json SHA68acaf331f2f7a04490198805154455e5420026c3cc5aa496bca0e9679ecbde4.
+  Remote rg absent (recorded); immediate grep fallback supplied memory values.
+  Plan/snapshot observation updated, no experimental/safety threshold relaxed.
 
 ## D77 completed checkpoint, 2026-09-27
 
@@ -133,14 +179,13 @@
    packing. Two actual alternatives audited: once-only immutable compressed
    transport cache (same content/compression semantic, estimated1.5GiB total)
    versus direct existing files (no duplicate cache but substantially more wire
-   bytes). ASYNC user choice sent D77 because prior rules prohibit pool/data
-   duplication. NO cache generated/new format selected yet. Prefer first if
-   explicitly permitted; do not silently inflate network work by switching to
-   uncompressed files merely to avoid disk use. Both must retain exact input
+   bytes). User now APPROVED once-only compressed cache; implement that choice.
+   No cache generated yet at D78 source-check stage. Do not silently inflate
+   network work by switching to uncompressed files merely to avoid disk use.
+   Both alternatives must retain exact input
    SHA, identical common protocol, cold local state and legitimate caching.
    Hugging Face official file-download docs/pinned vLLM0.30 resolver inspected.
-   While choice pending, progress Full profile/integration code safely; do not
-   freeze obsolete packaging timings or repeatedly ask the same question.
+   Do not freeze obsolete packaging timings or ask the answered choice again.
 3. Derive common remote performance resource contract from actual whole-service
    concurrent transfer/retained-archive bounds and metadata. Current1/2GiB
    qualification limits must not silently become production profiles.
@@ -161,7 +206,7 @@
    repeatedly ask, acquire/generate new weights, or claim numerical proof.
    Other Full implementation/profile work may continue independently.
 
-## Assets / live remote services (not inference)
+## Assets / remote services (currently inactive after reboot)
 
 - Main /home/qhq/serverless_llm_experiment_retry14_baseline,
   retry14_continuous_queue_v2. Baseline /home/qhq/serverless_llm_baselines/main.
@@ -183,9 +228,9 @@
  Private key ~/.ssh/primelora_artifact_174_ed25519_20260925,0600,outsideGit.
  Local/remote tokens ~/.config/primelora-tc-d75/artifact.token,0600,outsideGit;
  never print/read into journal/commit secret values.
-- Remote units primelora-artifact-tc-{3b,7b}.service remain ACTIVE, unchanged:
- 3BPID3240469/invocation5d1621ec44f44d5495e0fd2c86a182ba;
- 7BPID3240475/invocation856cbbb9dfd94974ae19fffc2c8549c3.
+- Remote units primelora-artifact-tc-{3b,7b}.service are INACTIVE/MainPID0
+ after reboot. Historical3BPID3240469/invocation5d1621ec44f44d5495e0fd2c86a182ba
+ and7BPID3240475/invocation856cbbb9dfd94974ae19fffc2c8549c3 are no longer live.
  UID1000 cgroup (local UID1001). Each high1GiB/max2GiB/swap0/TasksMax128,
  CPU2–19,22–39. Qualification only. Revalidate identities before any operation.
  Ports18080/18081, original500 pools. No13B.

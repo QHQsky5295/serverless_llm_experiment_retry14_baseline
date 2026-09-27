@@ -79,6 +79,8 @@ class RemoteStorageClient:
                 token_env=self.http_token_env,
                 timeout_s=self.http_timeout_s,
                 use_env_proxy=self.http_use_env_proxy,
+                required_delivery_mode=(remote_cfg.get('delivery_mode')
+                    or os.getenv('FAASLORA_REMOTE_ARTIFACT_DELIVERY_MODE') or None),
             )
 
         # Operation stats

@@ -380,3 +380,51 @@ Source plan updated explicitly and snapshotted as
 PLAN_APPROVED_20260927_PUBLISHED_ARTIFACT.md, SHA
 7d91a34791f5132b50e983c7552105a297f1ded2dcd1cbdd4108428e2b2dfb05.
 Earlier plan snapshots and all D75–D77 raw identities remain intact.
+
+### D78 explicit approval and implementation
+
+User APPROVED the once-only compressed cache. The direct-file alternative is
+not selected. Current plan/snapshot SHA
+fa1027d968d906982ca183127f2e615b01c554613efe54c962db7e672c1d1577.
+Existing server gains offline publication and immutable read-only serving;
+client rejects delivery-mode mismatch and verifies compressed AND original
+content SHA. No request-time preparation fallback. gzip level9 is the same
+Python tarfile default used before; compressed object identity is newly recorded,
+not claimed byte-identical to previous timestamped gzip responses. Logical
+frozen files and weights remain exact.
+
+Publication must precede deployment notice and all inference measurements;
+all500 static IDs/model are prepared independently of demand. Only complete,
+startup-hash-verified caches may serve; failed exclusive directories retained
+as failed attempts. Requests do not reread/hash the source pool or mutate caches.
+Client file verification/loading remains inside actual preparation/E2E.
+
+Official Python3.12 tarfile/gzip formats and exclusive-create behavior checked:
+https://docs.python.org/3.12/library/tarfile.html,
+https://docs.python.org/3.12/library/gzip.html.
+Full guard and independent numerical correctness limits unchanged. Actual
+remote publication/deployment and common performance envelope still pending.
+
+### D78 post-reboot current-state correction (16:25+08)
+
+Both hosts restarted outside this agent's actions. Remote boot
+b53c1f16-1dd2-4741-9271-6b75e86582ec; local
+aef67ed2-79d1-46bc-82e4-37401a5b45bf. Old artifact units are inactive, no listeners
+on18080/18081. Never act on old PID/invocation identities.
+
+Remote ethtool now reports1000Mb/s/full and partner1000baseT/Full advertisement;
+local sysfs reports1000/full. Direct route and inspected qdisc unchanged. No
+agent network modification; change's physical cause unknown. Negotiated rate
+is not achieved application throughput. D77's100M diagnosis is retained as
+historical evidence, not overwritten or used for new transport profiles.
+Raw d78_20260927/post_reboot_link.json
+SHA68acaf331f2f7a04490198805154455e5420026c3cc5aa496bca0e9679ecbde4.
+Plan/snapshot currentSHAfe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c.
+
+| D78 prerequisite | Result | Scope |
+|---|---|---|
+| Client/content unit checks |40pass,3.680s|No real remote performance claim|
+| Basic smoke |288pass,68.316s|Bounded CPU unit, no model|
+| Protected historical entries |147unchanged|No old results overwritten|
+| Current remote disk/memory |149560934400B /107319648KiB available|Recheck at launch|
+| Remote publication |Not started|3B then table,7B then table|
