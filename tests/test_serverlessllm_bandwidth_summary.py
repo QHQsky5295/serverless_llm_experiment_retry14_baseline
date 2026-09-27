@@ -16,6 +16,77 @@ import summarize_serverlessllm_replay as summary  # noqa: E402
 
 
 class ServerlessLLMBandwidthSummaryTest(unittest.TestCase):
+    def test_tc_native_audit_retains_failures_and_rejects_live_duplicate_counts(self):
+        contract = dict(event='request_contract', request_id='r', adapter_id='a',
+                        target_tokens=2, native_prompt_token_ids_sha256='input',
+                        canonical_prompt_sha256='prompt', source_item_sha256='source')
+        arrival = dict(event='request_created', request_id='r', planned_arrival_s=10.,
+                       source_item_sha256='source')
+        failed = dict(event='http_request_failed', request_id='r', error='HTTP status 500')
+        final = dict(event='http_replay_complete', N_plan=1, N_arrived=1,
+                     N_terminal=1, N_response=0, N_failed=1)
+        events = [dict(event='replay_ready'), contract, arrival, failed, final]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)/'journal.jsonl'
+
+            def audit(rows):
+                path.write_text(''.join(json.dumps(row)+'\n' for row in rows))
+                return summary.audit_tc_http_journal(path)
+
+            actual = audit(events)
+            self.assertFalse(actual['workload_passed'])
+            self.assertTrue(actual['measurement_complete'])
+            self.assertEqual(actual['counts']['N_failed'], 1)
+            self.assertIsNone(actual['conditional_metrics']['ttft_ms']['mean'])
+            self.assertEqual(actual['diagnostic_rows'][0]['error'], 'HTTP status 500')
+            for corrupt in (events[:-1], events[:-1]+[failed, final],
+                            events[:-1]+[dict(final, N_response=1)],
+                            events[:2]+[final], events+[arrival]):
+                with self.assertRaises(ValueError):
+                    audit(corrupt)
+
+    def test_tc_native_audit_recomputes_timing_and_never_claims_numeric_correctness(self):
+        contract = dict(event='request_contract', request_id='r', adapter_id='a',
+                        target_tokens=2, native_prompt_token_ids_sha256='input',
+                        canonical_prompt_sha256='prompt', source_item_sha256='source')
+        arrival = dict(event='request_created', request_id='r', planned_arrival_s=10.,
+                       source_item_sha256='source')
+        timing = dict(protocol_valid=True, ttft_ms=6., e2e_ms=15., submit_lag_ms=1.,
+                      dispatch_wait_after_submit_ms=2., service_ttft_ms=3.,
+                      decode_ms=4., completion_notification_ms=5., router_queue_ms=2.,
+                      tpot_ms=4., instance_assigned_s=10.003, ready_instances_at_enqueue=1)
+        observed = dict(native_output_tokens=2, native_lora_name='a',
+                        native_prompt_token_ids_sha256='input',
+                        control_observation=dict(instance_id='native'))
+        raw = dict(event='http_raw_response', request_id='r', status=200,
+                   body=dict(metrics=dict(ieee_tc=observed)))
+        events = [dict(event='replay_ready'), contract, arrival,
+                  dict(event='http_headers_sent', request_id='r'), raw,
+                  dict(event='http_response', request_id='r', response=timing),
+                  dict(event='http_replay_complete', N_plan=1, N_arrived=1,
+                       N_terminal=1, N_response=1, N_failed=0)]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)/'journal.jsonl'
+
+            def audit():
+                path.write_text(''.join(json.dumps(row)+'\n' for row in events))
+                return summary.audit_tc_http_journal(path)
+
+            actual = audit()
+            self.assertTrue(actual['workload_passed'])
+            self.assertFalse(actual['formal_performance_qualified'])
+            self.assertFalse(actual['independent_lora_numerical_correctness'])
+            self.assertEqual(actual['actual_native_output_tokens'], 2)
+            for field, value in [('e2e_ms', 17.), ('tpot_ms', 7.), ('ttft_ms', float('nan'))]:
+                saved = timing[field]
+                timing[field] = value
+                with self.subTest(field=field), self.assertRaises(ValueError):
+                    audit()
+                timing[field] = saved
+            observed['native_lora_name'] = 'wrong'
+            with self.assertRaises(ValueError):
+                audit()
+
     def test_aggregate_reservation_fields(self) -> None:
         replay = {
             "remote_artifact_bandwidth": {

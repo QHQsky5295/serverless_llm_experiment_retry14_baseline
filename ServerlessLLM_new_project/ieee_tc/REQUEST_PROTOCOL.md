@@ -284,3 +284,63 @@ the planned original/repaired1,000-request development pairs with equal
 bootstrap, native loading, scaling and inputs; retain any startup failures
 there too. Those pairs isolate dispatch polling, not the absent-front-door
 boundary. Formal, full-pool, remote and numerical correctness gates stay open.
+
+## D72: 7B original side of the 1,000-request polling pair
+
+The first planned development side is complete. Native loading, D71 bootstrap,
+FP16 TP1 and existing inputs are retained. Exposed the native historical
+min1/max4/keep_alive10,target2 settings in the existing contained helper.
+The diagnostic engine retains max_num_seqs4/eager/prefix-cache; this is not
+claimed identical to the historical main-table backend or an optimized M1 point.
+Source7f135add13082af1cc2e428c7a8e497e9360d949 passed41 checks and was backed up
+before launch. Original/repaired source views differ only in the measured
+load-balancer method. 3B development target8 comes from the later historical
+seq8 deployment, not the earlier target4 deployment.
+
+| Observation | 7B original, one development run |
+|---|---:|
+| Planned / arrived / terminal |1000 /1000 /1000 |
+| Protocol-valid / failed |997 /3 |
+| Actual native output tokens |122176 |
+| Offered unique adapter IDs / observed serving instances |60 /4 |
+| Mean router queue, valid responses |294.746s |
+| Mean service TTFT, valid responses |380.685ms |
+| Mean / P95 TTFT, valid responses |295.140s /534.178s |
+| Mean E2E, valid responses |302.789s |
+| P50 / P95 observed assignment gap |1.004s /5.009s |
+| E2E identity / TPOT recomputation max error |0ms /0ms |
+| Service memory peak / minimum host available |51780816896B /57868718080B |
+| high / max / OOM / OOM-kill / swap |0 /0 /0 /0 /0 |
+
+The same initial three HTTP500 missing-router failures are retained. No later
+failure, shifted arrival, hidden retry, new weight or generated trace. Native
+responses validate the declared token/prompt/adapter binding, not independent
+LoRA numerical correctness. The one-second cadence supports a control-path
+limitation; gaps above one second also retain capacity waits. This original
+side alone does NOT measure how much a polling repair removes, nor permit a
+comparison to the old four-minute mean under a different execution contract.
+
+1704 watchdog observations, actual GPU contexts released, service path removed,
+empty auxiliary stopped, loader overlay restored byte-for-byte. Final outcome
+qualification_request_failure (service/replay/watchdog1/1/0), measurement
+complete=true/workload_passed=false.108 regular native files copied/SHA equal;
+four obsolete socket files excluded. Raw root d72_20260927 is70MiB.
+
+Existing summarizer now consumes a finished native JSONL journal, rejects
+truncated/duplicate/inconsistent records, preserves failed/offered rows and
+recomputes E2E/TPOT.46 baseline checks PASS2.982s. Main existing plotter renders
+the diagnostic without rewriting historical figures. First invocation used an
+environment without matplotlib; reused conda base instead of installing. First
+render had overlapping note/legend; retained as rejected preview. Final v2 has
+collision checking,3.45×2.85-inch PDF/PNG, embedded Times New Roman, below-bold
+subtitles and visual QA. No model rerun for either plotting correction.
+
+Main artifacts:
+- paper_results/ieee_tc/serverless_audit/20260927_7b_original_polling_d72.json
+- same stem _evidence.json:24 raw hashes, resource/cleanup/test/QA evidence
+- figs/ieee_tc/serverless_audit/d72_7b_original_v2/: two plots and full summary
+
+Next: the already prepared run7b_repaired.sh, SAME HTTP/deployment settings,
+fresh private/cold runtime and fresh overlay receipt; do not repeat the original
+side or change bootstrap/loading/target after seeing its result. Then the 3B
+pair (repaired first). Complete cleanup/validation/table/figure between runs.

@@ -83,6 +83,114 @@ def audit_dispatch_timing(replay_path: Path) -> Dict[str, Any]:
     }
 
 
+def audit_tc_http_journal(replay_path: Path) -> Dict[str, Any]:
+    """Finished native polling diagnostic, including failed offered requests.
+
+    This never upgrades a development/local observation to formal performance
+    or independent LoRA correctness. A truncated live journal is not publishable.
+    """
+    events = [json.loads(line) for line in replay_path.read_text().splitlines()]
+    ready = [e for e in events if e['event'] == 'replay_ready']
+    completed = [e for e in events if e['event'] in
+                 ('http_replay_complete', 'http_replay_incomplete')]
+    if len(ready) != 1 or len(completed) != 1 or events[-1] != completed[0]:
+        raise ValueError('one final replay record required; live/truncated journal rejected')
+
+    def unique(kind):
+        rows = [e for e in events if e['event'] in kind]
+        mapping = {e['request_id']: e for e in rows}
+        if len(mapping) != len(rows):
+            raise ValueError('duplicate request record')
+        return mapping
+
+    contracts = unique({'request_contract'})
+    arrivals = unique({'request_created'})
+    submitted = unique({'http_headers_sent'})
+    raw = unique({'http_raw_response'})
+    terminals = unique({'http_response', 'http_request_failed', 'http_request_cancelled'})
+    if not set(terminals) <= set(arrivals) <= set(contracts) or set(raw) - set(terminals):
+        raise ValueError('offered/arrived/terminal identity mismatch')
+    if set(submitted) - set(arrivals) or set(terminals) != set(arrivals):
+        raise ValueError('arrived requests lack a terminal record')
+    passed = {k: e for k, e in terminals.items() if e['event'] == 'http_response'}
+    counts = dict(N_plan=len(contracts), N_arrived=len(arrivals), N_terminal=len(terminals),
+                  N_response=len(passed), N_failed=len(terminals)-len(passed))
+    if not contracts or any(completed[0].get(k) != v for k, v in counts.items()):
+        raise ValueError('replay final counts differ from request records')
+    if completed[0]['event'] == 'http_replay_complete' and len(arrivals) != len(contracts):
+        raise ValueError('complete journal omits offered requests')
+    metrics = ('ttft_ms', 'e2e_ms', 'submit_lag_ms', 'dispatch_wait_after_submit_ms',
+               'service_ttft_ms', 'decode_ms', 'completion_notification_ms', 'router_queue_ms')
+    rows = []
+    identity_errors, tpot_errors = [], []
+    for rid, contract in contracts.items():
+        event, arrival = terminals.get(rid), arrivals.get(rid)
+        row = dict(request_id=rid, adapter_id=contract['adapter_id'],
+                   target_tokens=contract['target_tokens'], actual_tokens=None,
+                   native_prompt_token_ids_sha256=contract['native_prompt_token_ids_sha256'],
+                   canonical_prompt_sha256=contract['canonical_prompt_sha256'],
+                   source_item_sha256=contract['source_item_sha256'],
+                   status='not_arrived' if event is None else event['event'],
+                   planned_arrival_s=None if arrival is None else arrival['planned_arrival_s'])
+        if arrival and arrival['source_item_sha256'] != contract['source_item_sha256']:
+            raise ValueError('request source identity drift')
+        if rid in passed:
+            r = event['response']
+            observation = raw[rid]['body']['metrics']['ieee_tc']
+            if (r.get('protocol_valid') is not True or raw[rid]['status'] != 200
+                    or observation['native_output_tokens'] != contract['target_tokens']
+                    or observation['native_lora_name'] != contract['adapter_id']
+                    or observation['native_prompt_token_ids_sha256'] != contract['native_prompt_token_ids_sha256']):
+                raise ValueError('validated response differs from frozen contract')
+            if any(type(r.get(k)) not in (int, float) or not math.isfinite(r[k]) or r[k] < 0
+                   for k in metrics):
+                raise ValueError('missing or invalid timing field')
+            error = abs(sum(r[k] for k in metrics[2:7])-r['e2e_ms'])
+            identity_errors.append(error)
+            n = observation['native_output_tokens']
+            tpot = r['decode_ms']/(n-1) if n > 1 else None
+            tpot_error = 0 if n == 1 and r['tpot_ms'] is None else (
+                abs(tpot-r['tpot_ms']) if n > 1 and type(r['tpot_ms']) in (int, float) else math.inf)
+            tpot_errors.append(tpot_error)
+            if error > 1 or not math.isfinite(tpot_error) or tpot_error > 1:
+                raise ValueError('E2E/TPOT recomputation differs by more than 1ms')
+            row.update({k: r[k] for k in metrics})
+            row.update(actual_tokens=n, tpot_ms=r['tpot_ms'],
+                       instance_assigned_s=r['instance_assigned_s'],
+                       ready_instances_at_enqueue=r['ready_instances_at_enqueue'],
+                       instance_id=observation['control_observation']['instance_id'])
+        elif event:
+            row['error'] = event.get('error', 'cancelled')
+            row['http_status'] = raw.get(rid, {}).get('status')
+        rows.append(row)
+    valid = [row for row in rows if row['status'] == 'http_response']
+    assigned = sorted(r['instance_assigned_s'] for r in valid)
+    gaps = [b-a for a, b in zip(assigned, assigned[1:])]
+
+    def stats(values):
+        ordered = sorted(values)
+        return dict(count=len(values), mean=statistics.mean(values) if values else None,
+                    p50_type1=ordered[math.ceil(len(ordered)*.5)-1] if ordered else None,
+                    p95_type1=ordered[math.ceil(len(ordered)*.95)-1] if ordered else None)
+
+    return dict(kind='ieee_tc_serverless_polling_diagnostic', display_name='Serverless',
+                replay_path=str(replay_path.resolve()), replay_sha256=_sha256_file(replay_path),
+                ready_identity=ready[0], counts=dict(counts, N_submitted=len(submitted)),
+                measurement_complete=completed[0]['event'] == 'http_replay_complete',
+                workload_passed=len(passed) == len(contracts),
+                formal_performance_qualified=False, remote_qualified=False,
+                independent_lora_numerical_correctness=False, runs=1, ci=None,
+                latency_population='protocol-valid responses only; failures retained separately',
+                assignment_gap_population='success-observed assignments, not all router assignments',
+                conditional_metrics={k: stats([r[k] for r in valid]) for k in metrics},
+                actual_native_output_tokens=sum(r['actual_tokens'] for r in valid),
+                observed_instance_ids=sorted({r['instance_id'] for r in valid}),
+                offered_unique_adapters=len({r['adapter_id'] for r in rows}),
+                max_e2e_recomputation_error_ms=max(identity_errors, default=None),
+                max_tpot_recomputation_error_ms=max(tpot_errors, default=None),
+                assignment_gaps_s=gaps, assignment_gap_stats=stats(gaps), diagnostic_rows=rows)
+
+
 def _deep_merge(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
     merged = dict(base)
     for key, value in override.items():
@@ -1142,6 +1250,9 @@ def main() -> int:
     ap.add_argument("--trace", type=Path)
     ap.add_argument("--timing-audit-only", action="store_true",
                     help="Read-only historical queue/cadence audit; not a TC main result.")
+    ap.add_argument('--tc-http-audit-only', action='store_true',
+                    help='Finished native HTTP diagnostic including all failed/offered rows.')
+    ap.add_argument('--polling-variant', choices=('original', 'repaired'))
     ap.add_argument(
         "--adapter-subset",
         type=Path,
@@ -1181,6 +1292,28 @@ def main() -> int:
     )
     args = ap.parse_args()
 
+    if args.tc_http_audit_only:
+        if args.timing_audit_only:
+            ap.error('choose one audit contract')
+        if (args.polling_variant is None or args.config is None or args.deploy is None
+                or args.model_profile not in ('llama2_7b', 'llama32_3b')):
+            ap.error('native audit requires variant, HTTP --config, native --deploy and model profile')
+        result = audit_tc_http_journal(args.replay)
+        result['model_profile'] = args.model_profile
+        result['variant'] = args.polling_variant
+        result['http_config_path'] = str(args.config.resolve())
+        result['http_config_sha256'] = _sha256_file(args.config)
+        result['deployment_path'] = str(args.deploy.resolve())
+        result['deployment_sha256'] = _sha256_file(args.deploy)
+        if result['ready_identity']['config_sha256'] != result['http_config_sha256']:
+            ap.error('HTTP configuration differs from actual publisher')
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        with args.output.open('x') as handle:
+            json.dump(result, handle, indent=2)
+            handle.write('\n')
+        print(json.dumps({k:v for k,v in result.items()
+                          if k not in {'diagnostic_rows', 'assignment_gaps_s', 'ready_identity'}}, indent=2))
+        return 0
     if args.timing_audit_only:
         result = audit_dispatch_timing(args.replay)
         result['model_profile'] = args.model_profile
