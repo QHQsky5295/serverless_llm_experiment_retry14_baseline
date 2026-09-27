@@ -1,0 +1,355 @@
+{
+  "kind": "representative_native_source_profile_summary_v1",
+  "model": "3b",
+  "source_commit": "488a716e78c1819b6d6082553b983c9f8d6e5170",
+  "status": "completed_development_physical_source_profile_not_Full",
+  "runtime_boundary": "dedicated_subprocess",
+  "requests": 368,
+  "representative_requests": 360,
+  "warmup_requests": 8,
+  "content_classes": 24,
+  "service_classes_observed": 40,
+  "preparation_classes_observed": 96,
+  "samples_per_preparation_class": [
+    3
+  ],
+  "service_class_counts": [
+    {
+      "source": "file_host",
+      "rank_bin": 0,
+      "admitted_bin": 0,
+      "samples": 6
+    },
+    {
+      "source": "file_host",
+      "rank_bin": 0,
+      "admitted_bin": 1,
+      "samples": 4
+    },
+    {
+      "source": "file_host",
+      "rank_bin": 0,
+      "admitted_bin": 2,
+      "samples": 8
+    },
+    {
+      "source": "file_host",
+      "rank_bin": 0,
+      "admitted_bin": 3,
+      "samples": 18
+    },
+    {
+      "source": "file_host",
+      "rank_bin": 1,
+      "admitted_bin": 0,
+      "samples": 3
+    },
+    {
+      "source": "file_host",
+      "rank_bin": 1,
+      "admitted_bin": 1,
+      "samples": 5
+    },
+    {
+      "source": "file_host",
+      "rank_bin": 1,
+      "admitted_bin": 2,
+      "samples": 10
+    },
+    {
+      "source": "file_host",
+      "rank_bin": 1,
+      "admitted_bin": 3,
+      "samples": 18
+    },
+    {
+      "source": "gpu",
+      "rank_bin": 0,
+      "admitted_bin": 0,
+      "samples": 6
+    },
+    {
+      "source": "gpu",
+      "rank_bin": 0,
+      "admitted_bin": 1,
+      "samples": 4
+    },
+    {
+      "source": "gpu",
+      "rank_bin": 0,
+      "admitted_bin": 2,
+      "samples": 9
+    },
+    {
+      "source": "gpu",
+      "rank_bin": 0,
+      "admitted_bin": 3,
+      "samples": 17
+    },
+    {
+      "source": "gpu",
+      "rank_bin": 1,
+      "admitted_bin": 0,
+      "samples": 3
+    },
+    {
+      "source": "gpu",
+      "rank_bin": 1,
+      "admitted_bin": 1,
+      "samples": 5
+    },
+    {
+      "source": "gpu",
+      "rank_bin": 1,
+      "admitted_bin": 2,
+      "samples": 10
+    },
+    {
+      "source": "gpu",
+      "rank_bin": 1,
+      "admitted_bin": 3,
+      "samples": 18
+    },
+    {
+      "source": "native_host",
+      "rank_bin": 0,
+      "admitted_bin": 0,
+      "samples": 6
+    },
+    {
+      "source": "native_host",
+      "rank_bin": 0,
+      "admitted_bin": 1,
+      "samples": 4
+    },
+    {
+      "source": "native_host",
+      "rank_bin": 0,
+      "admitted_bin": 2,
+      "samples": 10
+    },
+    {
+      "source": "native_host",
+      "rank_bin": 0,
+      "admitted_bin": 3,
+      "samples": 16
+    },
+    {
+      "source": "native_host",
+      "rank_bin": 1,
+      "admitted_bin": 0,
+      "samples": 3
+    },
+    {
+      "source": "native_host",
+      "rank_bin": 1,
+      "admitted_bin": 1,
+      "samples": 5
+    },
+    {
+      "source": "native_host",
+      "rank_bin": 1,
+      "admitted_bin": 2,
+      "samples": 10
+    },
+    {
+      "source": "native_host",
+      "rank_bin": 1,
+      "admitted_bin": 3,
+      "samples": 18
+    },
+    {
+      "source": "nvme",
+      "rank_bin": 0,
+      "admitted_bin": 0,
+      "samples": 6
+    },
+    {
+      "source": "nvme",
+      "rank_bin": 0,
+      "admitted_bin": 1,
+      "samples": 4
+    },
+    {
+      "source": "nvme",
+      "rank_bin": 0,
+      "admitted_bin": 2,
+      "samples": 8
+    },
+    {
+      "source": "nvme",
+      "rank_bin": 0,
+      "admitted_bin": 3,
+      "samples": 18
+    },
+    {
+      "source": "nvme",
+      "rank_bin": 1,
+      "admitted_bin": 0,
+      "samples": 3
+    },
+    {
+      "source": "nvme",
+      "rank_bin": 1,
+      "admitted_bin": 1,
+      "samples": 5
+    },
+    {
+      "source": "nvme",
+      "rank_bin": 1,
+      "admitted_bin": 2,
+      "samples": 10
+    },
+    {
+      "source": "nvme",
+      "rank_bin": 1,
+      "admitted_bin": 3,
+      "samples": 18
+    },
+    {
+      "source": "remote",
+      "rank_bin": 0,
+      "admitted_bin": 0,
+      "samples": 6
+    },
+    {
+      "source": "remote",
+      "rank_bin": 0,
+      "admitted_bin": 1,
+      "samples": 4
+    },
+    {
+      "source": "remote",
+      "rank_bin": 0,
+      "admitted_bin": 2,
+      "samples": 8
+    },
+    {
+      "source": "remote",
+      "rank_bin": 0,
+      "admitted_bin": 3,
+      "samples": 18
+    },
+    {
+      "source": "remote",
+      "rank_bin": 1,
+      "admitted_bin": 0,
+      "samples": 3
+    },
+    {
+      "source": "remote",
+      "rank_bin": 1,
+      "admitted_bin": 1,
+      "samples": 5
+    },
+    {
+      "source": "remote",
+      "rank_bin": 1,
+      "admitted_bin": 2,
+      "samples": 10
+    },
+    {
+      "source": "remote",
+      "rank_bin": 1,
+      "admitted_bin": 3,
+      "samples": 18
+    }
+  ],
+  "preparation_d_ms_mean": {
+    "remote": 1093.865541583303,
+    "nvme": 40.842208097122544,
+    "file_host": 41.08463897240553,
+    "native_host": 15.372806402612898
+  },
+  "prompt_hash_invariant_across_sources": true,
+  "output_sha_distinct_counts": {
+    "code_lora": 1,
+    "code_lora_0015": 1,
+    "ecommerce_lora_0009": 1,
+    "ecommerce_lora_0057": 1,
+    "education_lora_0007": 1,
+    "education_lora_0043": 1,
+    "finance_lora": 1,
+    "finance_lora_0073": 1,
+    "gaming_lora_0010": 1,
+    "gaming_lora_0034": 2,
+    "legal_lora": 1,
+    "legal_lora_0017": 1,
+    "medical_lora": 2,
+    "medical_lora_0026": 1,
+    "research_lora_0008": 1,
+    "research_lora_0104": 1,
+    "security_lora_0012": 1,
+    "security_lora_0048": 1,
+    "support_lora": 1,
+    "support_lora_0148": 1,
+    "translate_lora": 1,
+    "translate_lora_0054": 1,
+    "writing_lora_0011": 1,
+    "writing_lora_0035": 1
+  },
+  "known_source_conflict_reselections": 95,
+  "remote_uuid_pairs": 368,
+  "remote_journal_records": 376,
+  "other_attempt_uuid_records": 8,
+  "remote_wire_bytes": 854130750,
+  "remote_logical_bytes": 14353166144,
+  "remote_measured_fetches": 72,
+  "remote_controlled_setup_fetches": 296,
+  "remote_packing": 0,
+  "resources": {
+    "samples": 633,
+    "peak_bytes": 5645193216,
+    "memory_event_max": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    },
+    "max_swap_bytes": 0
+  },
+  "service_exit": 0,
+  "watchdog_exit": 0,
+  "native_gpu_released": true,
+  "service_path_removed": true,
+  "workspaces_removed": true,
+  "physical_allocation": {
+    "lease_id": "b7e88b83c8a7431e9f6c1963c782f9c8",
+    "released": true,
+    "gpu_uuids": [
+      "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946"
+    ],
+    "acquired_at": 16071.970026222,
+    "released_at": 16690.081875013
+  },
+  "figures": "figs/ieee_tc/p2_backend/d84_3b_physical_attempt2",
+  "full_qualified": false,
+  "frozen_profile": false,
+  "numerical_adapter_correctness_qualified": false,
+  "raw_evidence": [
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d84_20260927/3b_physical_source_attempt2.json",
+      "sha256": "4c28b3813617628d81d5eb24cd08b625c81da901258e3a1344b115fb474260ec"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d84_20260927/3b_physical_source_attempt2_launch.json",
+      "sha256": "334317a76cc1b87ca435d9c9c85492f7f1d849f89edcad0413f254a91f1bb5ff"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d84_20260927/3b_physical_source_attempt2_launch.launch/service.log",
+      "sha256": "c2f7054fc6c2f59414703020394bf4a9d2fa3410b8ec2399b866ed501837312c"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d84_20260927/3b_physical_source_attempt2_launch.launch/watchdog.jsonl",
+      "sha256": "8fb5afb0ef76864f00f0aadd45410099cc7ecc31a18863cfc8e7c38b8df02e43"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d84_20260927/after_attempt2_remote_3b_transfers.jsonl",
+      "sha256": "fc98068f71e23e9c24fc723de72a0e0919b0fecefa7bfe0b82b582aab848fa92"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d84_20260927/run_3b_physical_source_attempt2.sh",
+      "sha256": "26aee03025614a13ff7891b72e10d54ca830f4767131897c5a3c0c6be21d785b"
+    }
+  ]
+}

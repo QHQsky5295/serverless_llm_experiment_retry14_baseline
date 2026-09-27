@@ -1,0 +1,233 @@
+{
+  "kind": "representative_native_source_profile_summary_v1",
+  "model": "7b",
+  "source_commit": "488a716e78c1819b6d6082553b983c9f8d6e5170",
+  "status": "completed_development_physical_source_profile_not_Full",
+  "runtime_boundary": "dedicated_subprocess",
+  "requests": 92,
+  "representative_requests": 90,
+  "warmup_requests": 2,
+  "content_classes": 6,
+  "service_classes_observed": 20,
+  "preparation_classes_observed": 24,
+  "samples_per_preparation_class": [
+    3
+  ],
+  "service_class_counts": [
+    {
+      "source": "file_host",
+      "rank_bin": 0,
+      "admitted_bin": 0,
+      "samples": 6
+    },
+    {
+      "source": "file_host",
+      "rank_bin": 0,
+      "admitted_bin": 1,
+      "samples": 6
+    },
+    {
+      "source": "file_host",
+      "rank_bin": 1,
+      "admitted_bin": 0,
+      "samples": 3
+    },
+    {
+      "source": "file_host",
+      "rank_bin": 1,
+      "admitted_bin": 1,
+      "samples": 3
+    },
+    {
+      "source": "gpu",
+      "rank_bin": 0,
+      "admitted_bin": 0,
+      "samples": 6
+    },
+    {
+      "source": "gpu",
+      "rank_bin": 0,
+      "admitted_bin": 1,
+      "samples": 6
+    },
+    {
+      "source": "gpu",
+      "rank_bin": 1,
+      "admitted_bin": 0,
+      "samples": 3
+    },
+    {
+      "source": "gpu",
+      "rank_bin": 1,
+      "admitted_bin": 1,
+      "samples": 3
+    },
+    {
+      "source": "native_host",
+      "rank_bin": 0,
+      "admitted_bin": 0,
+      "samples": 6
+    },
+    {
+      "source": "native_host",
+      "rank_bin": 0,
+      "admitted_bin": 1,
+      "samples": 6
+    },
+    {
+      "source": "native_host",
+      "rank_bin": 1,
+      "admitted_bin": 0,
+      "samples": 3
+    },
+    {
+      "source": "native_host",
+      "rank_bin": 1,
+      "admitted_bin": 1,
+      "samples": 3
+    },
+    {
+      "source": "nvme",
+      "rank_bin": 0,
+      "admitted_bin": 0,
+      "samples": 6
+    },
+    {
+      "source": "nvme",
+      "rank_bin": 0,
+      "admitted_bin": 1,
+      "samples": 6
+    },
+    {
+      "source": "nvme",
+      "rank_bin": 1,
+      "admitted_bin": 0,
+      "samples": 3
+    },
+    {
+      "source": "nvme",
+      "rank_bin": 1,
+      "admitted_bin": 1,
+      "samples": 3
+    },
+    {
+      "source": "remote",
+      "rank_bin": 0,
+      "admitted_bin": 0,
+      "samples": 6
+    },
+    {
+      "source": "remote",
+      "rank_bin": 0,
+      "admitted_bin": 1,
+      "samples": 6
+    },
+    {
+      "source": "remote",
+      "rank_bin": 1,
+      "admitted_bin": 0,
+      "samples": 3
+    },
+    {
+      "source": "remote",
+      "rank_bin": 1,
+      "admitted_bin": 1,
+      "samples": 3
+    }
+  ],
+  "preparation_d_ms_mean": {
+    "remote": 513.81763855554,
+    "nvme": 52.36040927795531,
+    "file_host": 51.70726172178143,
+    "native_host": 18.355774166896783
+  },
+  "prompt_hash_invariant_across_sources": true,
+  "output_sha_distinct_counts": {
+    "code_lora_0015": 1,
+    "education_lora_0007": 1,
+    "finance_lora": 1,
+    "legal_lora": 2,
+    "medical_lora": 1,
+    "writing_lora_0011": 1
+  },
+  "known_source_conflict_reselections": 11,
+  "remote_uuid_pairs": 92,
+  "remote_journal_records": 92,
+  "other_attempt_uuid_records": 0,
+  "remote_wire_bytes": 490763433,
+  "remote_logical_bytes": 2463242860,
+  "remote_measured_fetches": 18,
+  "remote_controlled_setup_fetches": 74,
+  "remote_packing": 0,
+  "resources": {
+    "samples": 402,
+    "peak_bytes": 5703483392,
+    "memory_event_max": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    },
+    "max_swap_bytes": 0
+  },
+  "service_exit": 0,
+  "watchdog_exit": 0,
+  "native_gpu_released": true,
+  "service_path_removed": true,
+  "workspaces_removed": true,
+  "physical_allocation": {
+    "lease_id": "f47f416e371b49f6970fdd6793b00510",
+    "released": true,
+    "gpu_uuids": [
+      "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946"
+    ],
+    "acquired_at": 17071.573538793,
+    "released_at": 17466.137134073
+  },
+  "figures": "figs/ieee_tc/p2_backend/d84_7b_physical_attempt1",
+  "full_qualified": false,
+  "frozen_profile": false,
+  "numerical_adapter_correctness_qualified": false,
+  "raw_evidence": [
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d84_20260927/7b_physical_source_attempt1.json",
+      "sha256": "2c286dd8672530fcc5fe8d908ea0442b5f0d929454af10a0b6a3cd3871cef769"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d84_20260927/7b_physical_source_attempt1_launch.json",
+      "sha256": "396c7a5d3eac21cbbb3b6a69038fc30644388d28ad891f2f28f59d7e12ad3fc4"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d84_20260927/7b_physical_source_attempt1_launch.launch/service.log",
+      "sha256": "24d1fd04c025ecccf5eddc64c84d6fc58cfe45e11495d9bae24e2ad053e1b57f"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d84_20260927/7b_physical_source_attempt1_launch.launch/watchdog.jsonl",
+      "sha256": "ded098a49f468ef4b181bfb532da2bbdce744ee0d86a6483b64517fc76a4667f"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d84_20260927/remote_7b_transfers.jsonl",
+      "sha256": "7ae0cf762e9f7aa2c8df07d7b0ce44a6c6f62e6861dec0e2b378440b3f94f392"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d84_20260927/run_7b_physical_source_attempt1.sh",
+      "sha256": "46afbd91e09c4d09047941adc180abe38a8c9fe1489801be9b8e81124658ca3e"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d84_20260927/remote_monitor_final.log",
+      "sha256": "92e1ecd66e591f71c176c92b1b264f68c2cb5a7b731c60bb5c6f20a108c98e90"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d84_20260927/remote_pre_7b_health.json",
+      "sha256": "39ff8b0c01c63d33ff35c968096a2ab56612929228663f7f39bef8b948822289"
+    }
+  ],
+  "remote_monitor": {
+    "samples": 1729,
+    "min_host_available_bytes": 109322158080,
+    "max_full_psi_avg10": 0,
+    "min_free_disk_bytes": 147778523136,
+    "termination": "owned_monitor_stopped_after_all_inference",
+    "io_accounting": "not_delegated"
+  }
+}

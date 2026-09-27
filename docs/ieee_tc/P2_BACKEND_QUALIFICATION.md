@@ -1344,3 +1344,111 @@ OS护栏55项通过（0.796s）；既有basic smoke 288项通过（22.440s），
 新增连续两次原生epoch更新测试，检查三个不同lease、每次旧预留确已释放、
 计数不重复及最终无残留；相关生命周期/启动回归通过，完整日志在
 `d84_20260927/stale_source_tests.log`。下次使用独立attempt2，不覆盖本次。
+# P2 D84: 3B actual-subprocess calibration completed (2026-09-27)
+
+This is measured initialization evidence, not a Full, S1 or system-ranking result.
+Attempt2 completed368/368:360representative+8explicit warmup,24content classes,
+40service classes and96exact-content preparation classes, each with3observations.
+
+| Source | Requests | D mean ms (admission to acquired) | d mean ms (actual loading) | T mean ms | TPOT mean ms/token |
+|---|---:|---:|---:|---:|---:|
+| Remote |72|1566.231|1093.866|277.653|29.332|
+| NVMe |72|253.056|40.842|319.969|32.721|
+| HOST file |72|246.487|41.085|327.767|32.904|
+| HOST tensor |72|1027.001|15.373|373.211|32.981|
+| GPU |72|0|already protected|185.450|30.957|
+
+HOST tensor has short actual loading but substantial additional waiting; no
+monotonic tier or end-to-end benefit is inferred. Actual physical subprocess
+boundary differs from D83, so D83 values are not silently substituted. Native
+output counts match targets; gaming_lora_0034 and medical_lora each produce two
+output hashes across source/round observations, with invariant prompt hashes.
+This retained variation has not yet been causally attributed.
+
+95 explicit rejected source views were reselected after complete controller
+reservation retirement:4GPU/85nativeHOST/6file. A rejected, unacquired reference
+is not falsely marked as released. All final successful references are released.
+368client/server UUIDs match exactly; the server snapshot also contains8retained
+failed-attempt1setup records.72measured Remote and296controlled setup fetches,
+854130750Bwire,14353166144Blogical, no request packing.633resource samples,
+peak5645193216B, high/max/OOM/swap0. Actual GPU lease and service/workspaces
+released. Single-column TNR plots and full observations in
+`figs/ieee_tc/p2_backend/d84_3b_physical_attempt2`; curated evidence in
+`paper_results/ieee_tc/p2_backend/20260927_d84_3b_physical_source.json`.
+
+## Remaining Full configuration binding (not a new performance claim)
+
+Code audit after D84: current source-only model has no `ieee_admission_profile`.
+`IEEENativeAsyncScheduler` consequently leaves completion-length and transfer
+owners unset; real Full proactive preparation requires them. This is an actual
+configuration distinction, not evidence that D84 measurements are invalid. The
+current exact profile loader must not accept those observations by silently
+dropping the differing field. Derive initialization from existing completed
+native measurements, then settle the full configuration and observation
+coverage before deciding the minimal affected remeasurement/integration work.
+
+Audit together: actual native prompt buckets versus content-token buckets,
+completion output means including any reachable tail, common movement limit,
+length window, model/backend profile identity, service/preparation beta, routing
+bin, IEEE scaling limits/windows, pending deployment and physical HOST/GPU
+bindings. No fabricated missing-bin mean or prospective target length may stand
+in for a measured completion prior. No Full qualification guard is removed.
+
+Primary-source cross-check: official vLLM0.30 hashes dictionary
+`additional_config` in its configuration identity, so this change cannot simply
+be assumed transparent ([source](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/config/vllm.py)).
+Its utility requests execute through EngineCore's request handling; this supports
+examining native utility waiting, but does not prove the cause of D84's HOST
+waiting ([source](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/engine/core.py)).
+Default online output reproducibility is not guaranteed; this is a possible,
+not established explanation of the retained two3Boutput-variation groups
+([official reproducibility guidance](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/docs/usage/reproducibility.md)).
+No scheduler/kernel/config change was made during the running7Bcalibration.
+
+## D84 7B completed, 2026-09-27 19:57
+
+92/92 (90representative+2warmup),6exact content classes,20service classes,
+24preparation classes with3samples each. Same actual owned subprocess boundary.
+
+| Source | Requests | D mean ms | d mean ms | T mean ms | TPOT mean ms/token |
+|---|---:|---:|---:|---:|---:|
+| Remote |18|516.270|513.818|247.729|27.576|
+| NVMe |18|161.234|52.360|219.296|27.604|
+| HOST file |18|176.643|51.707|228.302|27.594|
+| HOST tensor |18|185.182|18.356|264.339|27.486|
+| GPU |18|0|already protected|214.857|27.427|
+
+11explicit rejected views safely retired/reselected. Legal_lora has two native
+output hashes despite identical prompt/target across sources/rounds; retained,
+not a demonstrated adapter identity error or proven nondeterminism cause.
+92exact client/server UUIDs,490763433Bwire/2463242860Blogical,18measured Remote
+and74setup fetches,packing0.402resource samples peak5703483392B,high/max/OOM/
+swap0. Actual physical allocation, GPU contexts, service and workspaces released.
+Plots `figs/ieee_tc/p2_backend/d84_7b_physical_attempt1` pass visual/font/size QA;
+curated `paper_results/ieee_tc/p2_backend/20260927_d84_7b_physical_source.json`.
+
+After both local runtimes exited, matching D84remote monitor stopped both owned
+artifact services; all3inactive/MainPID0/Resultsuccess. Complete monitor1729
+samples: minhost109322158080B, maxfullPSI0,mindisk147778523136B. No source pool,
+published cache, weight, trace or historical result was overwritten. Full
+initialization binding and integrated policy qualification remain incomplete.
+
+## Reused native completion evidence for the remaining initializer
+
+No new inference or input generation. Existing D84 native events provide both
+input buckets at upper bound759; special-token-inclusive prompt760 is observed.
+Using one row per distinct original request after verifying all repeated source/
+round observations gives:
+
+| Model | Native prompt bucket | Distinct original requests | Mean completed output tokens |
+|---|---|---:|---:|
+| 3B | <=759 |8|98.375|
+| 3B | >759 |13|171.69230769230768|
+| 7B | <=759 |3|121.33333333333333|
+| 7B | >759 |3|256|
+
+These are development calibration means from observed completions, not a future
+target or missing-bin substitute. Repeated sources are not independent samples.
+`20260927_d84_completion_length_audit.json` retains native prompt hashes, exact
+source request IDs, model configuration and raw SHA. Production prior/profile
+identity and complete admission configuration are not yet frozen.

@@ -1,5 +1,21 @@
 # IEEE TC execution status
 
+## Current checkpoint — 2026-09-27 after D84
+
+- Both physical-subprocess source calibrations completed, cleaned, analyzed and
+  plotted:3B368/368 (360+8warmup),7B92/92 (90+2warmup). No local GPU job/tmux or
+  remote artifact service/monitor remains running. Do not relaunch either run.
+- Full is NOT qualified. NEXT is the complete Full configuration/initialization
+  binding audit described under D84 below, then integrated activation/lifecycle.
+  In particular, source-only D84 omitted ieee_admission_profile; adding it is a
+  real runtime/config difference. Do not bypass profile identity or Full guard.
+- Existing native events now supply both completion-length buckets, including
+  actual prompt760; no extra length-profiling GPU run needed. Curated audit below.
+- No new backend/algorithm code changed during this continuation.288basic tests
+  pass24.250s (complete raw evidence_basic_smoke.log);147protected entries unchanged;
+  14raw SHA references and both figure manifests verified. Evidence backup next.
+- Baselines remain PAUSED; M1/M2/A1–A5/S1–S13 remain NOT STARTED. No optimality claim.
+
 ## Authority and recovery
 
 - Read FULL /home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md and this ledger
@@ -240,6 +256,83 @@
 - Local auxiliaryscope primelora-tc-aux-d8400000000000000000000000000001.scope.
   Actual invocationcff4575515de423d9403a3c2dd519e8a. All D83 scopes dead.
   Mainline remains profile export then Full integration; baselines PAUSED.
+
+### D84 latest: BOTH physical-source calibrations COMPLETE; Full binding next
+
+- Source488a716e78c1819b6d6082553b983c9f8d6e5170 PUSHED/freshremoteSHA matched.
+  Known-conflict collector correction187tests passed14.218s; complete log inraw.
+- Launched19:33:33, tmux tc-d84-3b-attempt2, rawd84
+  run_3b_physical_source_attempt2.sh. Same368requests/spec/budgets; no new test
+  point or hidden retry of failed attempt1. Monitor to terminal before any7B.
+- Newauxscope primelora-tc-aux-d8400000000000000000000000000003.scope;
+  invocation4320174dea8743e4a7b3213d74b64cfd; attempt1aux is stopped.
+- Remote D84 monitor/services SAME invocation/health clocks, no restart. Current
+  3B server journal is d80_20260927/3b/transfers-5a3ef10c7f054c7b8f811f7d78db01df.jsonl.
+  It already contains8attempt1setup transfers. Join each run by exact HTTP UUID
+  set; do NOT demand whole journal count equals onlyattempt2. Failed8 preserved
+  in localattempt1_remote_3b_transfers.jsonl. No remote management duringrun.
+- D83 remains complete/backedup direct-path evidence. New physical profiles
+  still NOT frozen/qualified. Full, M1/M2/A/S pending; do not bypass Full guard.
+  At19:35 attempt2 passed warmup and the first Remote/NVMe measurement waves;
+  collector's known-conflict failure has not recurred. Model still running,
+  no result JSON yet. Last safety sample showed105GiBavailable,5.26GiBpeak,
+  high/max/OOM0 and no abort. Do not mistake partial samples for completed run.
+- Completion19:44 supersedes preceding live notes:368/368,360representative+8warmup,
+  24content/40service/96preparation classes; each preparation class3samples.
+  Physical owned subprocess leaseb7e88b83c8a7431e9f6c1963c782f9c8 released;
+  service/watchdog0/0,actualGPU/service/workspaces gone. Emptyaux4320174d stopped.
+  633samples peak5645193216B,high/max/OOM/swap0.368UUID pairs exact;376journal
+  records include8failed-attempt1setup, not counted again. Wire854130750B,
+  logical14353166144B,72measured/296setup transfers,packing0.
+  Curated20260927_d84_3b_physical_source.json;3figures d84_3b_physical_attempt2
+  visuallychecked/TNRembedded/3.45inch. Two output groups have2SHA each; prompt/
+  target fixed, variation retained, no numerical adapter discrimination claimed.
+  95explicit no-acquisition reselections:4GPU/85nativeHOST/6file conflicts;
+  all controller reservations retired. Rejected native holds never acquired a
+  lease, so correctly remain rejected rather than falsely recording release.
+  HOSTtensor Dmean1027ms versus actual-load d15.37ms; retain wait discrepancy.
+  Full integration should examine it, not assume tensor caching wins all metrics.
+  NEXT same frozen remote services/spec and existing7B physical attempt1 launcher.
+- 7B physical attempt1 launched19:50:13, tmux tc-d84-7b-attempt1, source488a716;
+  original92requests/46waves and compiler environment retained. Prelaunch health
+  and all3remote invocation IDs matched; no remote configuration changed. Actual
+  service scope primelora-tc-svc-37cd0d650a8b48cb88457e98316aff7f.scope.
+  Monitor to terminal, then cleanup/UUID validation/plots before any further run.
+- Integrated configuration audit found another explicit prerequisite BEFORE any
+  profile export as Full: D84 model_config has no ieee_admission_profile. Native
+  scheduler therefore has no completed-length initializer/transfer owner. Full
+  requires these for proactive E(t); adding that dictionary changes actual model
+  config and vLLM additional_config hash. Do not relabel D84 as that different
+  runtime or drop identity fields to force acceptance. Derive measured length
+  priors and settle ALL Full/controller settings together before more GPU runs.
+  Reuse D83/D84 raw native token/load evidence where valid; no blind full matrix
+  repetition. Current measurements remain correct source-only development data.
+  Candidate next audit must cover actual native prompt bins (including tail),
+  missing classes, IEEE scale limits/windows, routing bin and EWMA beta, owned
+  activation/planning resource bindings. Full unconditional guard remains intact.
+- 7B completed19:57:92/92 (90+2warmup),6content/20service/24preparation classes,
+  3samples/preparation class.11explicit source rejections safely retired/reselected.
+  92remoteUUIDs exact,490763433Bwire/2463242860Blogical,18measured/74setup,
+  packing0.402local samples peak5703483392B,high/max/OOM/swap0. Service/watchdog0/0,
+  physicalleasef47f416e371b49f6970fdd6793b00510 released;GPU/service/workspacesclear.
+  Emptyaux095dcd5e6ad04b34a769c6f72993402e STOPPED. Curatedd84_7b_physical_source
+  and three TNR figures d84_7b_physical_attempt1 visuallyverified. Legal_lora has
+  2outputSHA across sources/rounds; allsameprompt/target, variation retained.
+- AFTER all inference, matchingD84monitor4d9737c6 STOPPED; its trap stopped
+  matching3B/7B. All3inactive/MainPID0/Resultsuccess. Complete monitor1729samples,
+  minhost109322158080B, maxfullPSI0,mindisk147778523136B; localremote_monitor_final.log.
+  Current7Bjournal transfers-87bb8cae4aab435586b0649318c310af.jsonl copied locally.
+  No live tmux/model/remote service remains. Next evidence backup, then complete
+  Full initialization binding audit ABOVE; not another remote/allocator sweep.
+- Offline reuse completed:20260927_d84_completion_length_audit.json recovers
+  actual native completed-output priors without another GPU run. Distinct original
+  requests3B21/7B6; repeated sources/rounds verified before deduplication. Native
+  prompt760 exists despite content cap759, so the native tail bucket is real.
+  For bounds[759], observed output means3B98.375/171.69230769230768 (n8/13),
+  7B121.33333333333333/256 (n3/3). Bothbuckets observed; no guessed tail mean.
+  These remain development bootstrap observations, not frozen optimal production
+  settings or independent repeats. Full binding still must include its actual
+  admission profile and associated data source identity.
 ### D81 completed four-way real-remote qualification; Full profiling next
 
 - BOTH models:3waves×4lanes=12/12verified, each wave observed4server-handler
@@ -335,8 +428,8 @@ Earlier preparation details (completed; not new launch instructions):
   Private key ~/.ssh/primelora_artifact_174_ed25519_20260925,0600,outsideGit.
   Local/remote token ~/.config/primelora-tc-d75/artifact.token,0600.
   NEVER print values/put credentials in journals or Git.
-- D80/D83 monitors INACTIVE, D83 stopped after completed7B19:11. D84 monitor and
-  two artifact services ACTIVE.3B attempt1 failed/cleaned; no live model now.
+- D80/D83/D84 monitors and both artifact services INACTIVE; D84 stopped19:57
+  after both physical-source models completed. No local model or live tmux.
   Do not reuse old PIDs/invocations. Unit fragments/cache remain deployed.
 - Cache root /home/lab14/primelora_remote/tc/d78_20260927/published/{3b,7b}.
   Source pools /home/lab14/primelora_remote_artifacts/
