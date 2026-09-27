@@ -3143,6 +3143,127 @@ def source_profile_class_coverage(payload, identities):
         numerical_adapter_correctness_qualified=False)
 
 
+def measured_source_profile_payloads(payload, *, source_run_sha256, identities,
+                                     context, model_config):
+    """Export existing completed admission-enabled observations, never estimates.
+
+    The caller verifies source/index/launch/journal SHA receipts and writes new
+    output paths. Runtime loaders independently recompute D/T/O and loading d.
+    This supplies development initialization, not Full qualification, numerical
+    adapter discrimination, a new replay, or independently repeated experiments.
+    """
+    import copy
+    from faaslora.experiment.instance_pool import FrozenServiceProfiles
+    from faaslora.preloading.preloading_planner import (
+        native_activation_layout, observed_preparation_interval)
+
+    def is_digest(value):
+        return (isinstance(value, str) and len(value) == 64
+                and all(c in '0123456789abcdef' for c in value))
+
+    if (not is_digest(source_run_sha256) or not isinstance(context, dict)
+            or set(context) != {'backend_environment_sha256', 'resource_envelope_sha256',
+                                'input_contract_sha256'}
+            or not all(is_digest(v) for v in context.values())):
+        raise ValueError('measured export requires SHA-bound source and context')
+    cfg = payload['model_config']
+    if (payload.get('runtime_boundary') != 'dedicated_subprocess'
+            or payload.get('model_config_source') != 'initialized_model_config_v1'
+            or not cfg.get('ieee_physical_allocation')
+            or not isinstance(cfg.get('ieee_admission_profile'), dict)
+            or not cfg['ieee_admission_profile']
+            or cfg.get('timing_contract') != 'ieee_tc_native_v1'
+            or FrozenServiceProfiles.model_identity(cfg) !=
+               FrozenServiceProfiles.model_identity(model_config)
+            or payload.get('physical_allocation', {}).get('released') is not True):
+        raise ValueError('measured export requires matching initialized admission runtime and release')
+    coverage = source_profile_class_coverage(payload, identities)
+    if not coverage['class_domain_covered']:
+        raise ValueError('measured export has missing source/service classes')
+    # Validate geometry, but never copy the old replica's readiness/epoch/free
+    # capacity as a live state of a newly activated replica.
+    native_activation_layout(payload['sources_before'])
+    spec = payload['source_profile_spec']
+    roles = {f'source-profile/w{i}/l{lane}': wave['role']
+             for i, wave in enumerate(spec['waves']) for lane, _ in enumerate(wave['requests'])}
+    service_samples, preparation_samples = [], []
+    transfers = {r['transfer_id']: r for r in payload['remote_transfers']}
+    if len(transfers) != len(payload['remote_transfers']):
+        raise ValueError('duplicate measured transfer identity')
+    time_fields = ('admitted_monotonic_s', 'acquired_monotonic_s',
+                   'first_token_monotonic_s', 'last_token_monotonic_s')
+    for q in payload['requests']:
+        evidence, timing = q['source_evidence'], q['timing']
+        admission, native = evidence['source_admission'], evidence['receipt']
+        pending = evidence.get('pending_kv_admission', {})
+        n = q['actual_tokens']
+        if (evidence.get('state') != 'released' or pending.get('state') != 'closed'
+                or pending.get('close_receipt', {}).get('closed') is not True
+                or native.get('acquired') is not True or native.get('lora_name') != q['adapter_id']
+                or type(n) is not int or n < 1 or n != q['target_tokens']
+                or n != timing.get('native_output_tokens')
+                or timing.get('native_terminal_observed') is not True
+                or len(q['native_events']) != 2
+                or q['native_events'][-1].get('token_count') != n
+                or any(q[k] != timing.get('native_clock_id') for k in
+                       ('admission_clock_id', 'native_clock_id'))
+                or admission['clock_id'] != q['native_clock_id']
+                or native['clock_id'] != q['native_clock_id']):
+            raise ValueError('measured export lacks complete native request/ownership evidence')
+        a, b, f, z = [q[k] for k in time_fields]
+        values = [a, b, f, z, timing.get('native_decode_ms'),
+                  timing.get('native_dispatch_monotonic_s'), timing.get('worker_wall_e2e_ms'),
+                  timing.get('worker_completion_notification_ms')]
+        if n > 1:
+            values.append(timing.get('native_tpot_ms'))
+        if (any(type(x) not in (int, float) or not math.isfinite(x) for x in values)
+                or not 0 < a <= b <= f <= z
+                or a != admission['admitted_monotonic_s']
+                or f != timing.get('native_first_token_monotonic_s')
+                or z != timing.get('native_last_token_monotonic_s')
+                or abs((z-f)*1000 - timing['native_decode_ms']) > 1
+                or (n > 1 and abs((z-f)*1000/(n-1) - timing['native_tpot_ms']) > 1)
+                or abs(timing['worker_wall_e2e_ms'] - ((z-timing['native_dispatch_monotonic_s'])*1000
+                       + timing['worker_completion_notification_ms'])) > 1):
+            raise ValueError('measured export native interval reconstruction failed')
+        if roles[q['request_id']] != 'representative_measurement':
+            continue  # Preserve warmups in the raw run, not in initial class means.
+        identity = dict(correct=True, source_run_sha256=source_run_sha256,
+                        request_id=q['request_id'], attempt_id=native['lease_id'])
+        service_samples.append(identity | dict(
+            source_measurement='native_admission_acquisition_token_events_v1',
+            admission_clock_id=q['admission_clock_id'], native_clock_id=q['native_clock_id'],
+            class_features=copy.deepcopy(q['class_features']), native_output_tokens=n,
+            protected_at_admission=q['protected_at_admission'],
+            **{k:q[k] for k in time_fields}))
+        if q['requested_source'] == 'gpu':
+            continue  # D=0 for a protected hit; it is not a measured zero-cost load.
+        remote = None
+        if q['requested_source'] == 'remote':
+            r = evidence.get('remote_preparation', {})
+            remote = transfers.get(r.get('transfer_id'))
+            if (remote is None or remote != r or remote.get('remote_pack_performed') is not False
+                    or remote.get('published_archive_verified') is not True):
+                raise ValueError('measured export lacks this request\'s published transfer')
+        interval = observed_preparation_interval(adapter_id=q['adapter_id'],
+            request_id=q['request_id'], admission=admission, native=native, remote=remote,
+            expected_clock_id=q['native_clock_id'])
+        if not interval['profile_eligible']:
+            raise ValueError('measured export cannot substitute reused/incomplete preparation')
+        preparation_samples.append(identity | dict(adapter_id=q['adapter_id'],
+            admission=copy.deepcopy(admission), native=copy.deepcopy(native), remote=copy.deepcopy(remote)))
+    common = dict(context=dict(context), model_config=FrozenServiceProfiles.model_identity(cfg),
+        development_only=True, full_qualified=False, numerical_adapter_correctness_qualified=False,
+        correctness_scope='completed_native_identity_token_timing_not_numerical_discrimination')
+    service = common | dict(kind='native_service_profiles_v1', bins=copy.deepcopy(spec['bins']),
+                            samples=service_samples)
+    preparation = common | dict(kind='native_preparation_profiles_v1', layout_partition='exact_content_v1',
+        size_edges_bytes=[], samples=preparation_samples,
+        activation_layout_evidence=dict(source_run_sha256=source_run_sha256,
+                                        native_snapshot=copy.deepcopy(payload['sources_before'])))
+    return service, preparation, coverage
+
+
 def derive_ieee_development_controls(payload, *, window_s, interval_s,
                                      historical_ttft_ms, min_instances, max_instances):
     """Explicit development starting point, not a formal SLO or optimum.

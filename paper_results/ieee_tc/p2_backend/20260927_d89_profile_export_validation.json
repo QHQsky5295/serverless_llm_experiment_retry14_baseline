@@ -1,0 +1,182 @@
+{
+  "kind": "measured_development_profile_export_validation_v1",
+  "pass": true,
+  "runner_binding": {
+    "records": [
+      {
+        "model": "3b",
+        "pass": true,
+        "static_adapter_count": 500,
+        "profile_manifest": {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d89_3b_initialization/manifest.json",
+          "sha256": "332f914d31dca776b0fdf52faad6241e04a3f3713db3e9289f5b5ecd551a9e0e"
+        },
+        "service_profile": {
+          "kind": "native_service_profiles_v1",
+          "profile_sha256": "667e397831214198faf078e6c2e30c63e826946e3590fea8c63d87bc68995727",
+          "supported_classes": 40,
+          "initial_samples": 360,
+          "source_run_sha256": [
+            "7377ed4e706e1eb81db79d89d780d1205d04e76345f5ede8b8a6c9c81397e953"
+          ],
+          "beta": 0.5
+        },
+        "preparation_profile": {
+          "kind": "native_preparation_profiles_v1",
+          "profile_sha256": "3ab29bca4f374c3457af3e9f5e804d6cfa9178baa121c06e707b2f8c17553c27",
+          "layout_partition": "exact_content_v1",
+          "supported_classes": 96,
+          "initial_samples": 288,
+          "source_run_sha256": [
+            "7377ed4e706e1eb81db79d89d780d1205d04e76345f5ede8b8a6c9c81397e953"
+          ],
+          "beta": 0.5,
+          "size_edges_bytes": [],
+          "activation_layout_available": true
+        },
+        "actual_observation_binding": {
+          "kind": "ieee_online_observation_binding_v1",
+          "window_s": 5,
+          "demand_windows": {
+            "configured_demand": 5,
+            "runner_demand": 5,
+            "actual_demand": 5,
+            "preload_demand": 5
+          },
+          "transfer_limit": 3,
+          "movement_limits": {
+            "configured_movement": 3,
+            "actual_movement": 3
+          },
+          "admission_profile_id": "native-completed/1c325d13d0372112cf312b4a2cc991bb6e0c89b7a610887dfcd79742d36d3692",
+          "model_backend_id": "native-model/3a41720821468b1d0042f8783941a2a28698488f749909bd179f6cd9ae774f38"
+        },
+        "ready_pool_count": 0,
+        "initialized_engines": 0,
+        "remote_calls": 0,
+        "full_execution_guard_retained": true
+      },
+      {
+        "model": "7b",
+        "pass": true,
+        "static_adapter_count": 500,
+        "profile_manifest": {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d89_7b_initialization/manifest.json",
+          "sha256": "7ba165a97559ac375dea3e4c5690023c045c591b7de6c08a28adbe9a63069468"
+        },
+        "service_profile": {
+          "kind": "native_service_profiles_v1",
+          "profile_sha256": "9d5714f6dc8d00f3aef1a775dfb7e563d2e7404ae54b77f9d4c2554f18aeccb8",
+          "supported_classes": 20,
+          "initial_samples": 90,
+          "source_run_sha256": [
+            "60d2f9e7ec28f2a1a2a0884a216919e5561aa86c75708b3079698d7f5e97c2c5"
+          ],
+          "beta": 0.5
+        },
+        "preparation_profile": {
+          "kind": "native_preparation_profiles_v1",
+          "profile_sha256": "188dd702796cea71058d999f787e368c8bbb363a3b5dff6a2866a23a32cdf9b7",
+          "layout_partition": "exact_content_v1",
+          "supported_classes": 24,
+          "initial_samples": 72,
+          "source_run_sha256": [
+            "60d2f9e7ec28f2a1a2a0884a216919e5561aa86c75708b3079698d7f5e97c2c5"
+          ],
+          "beta": 0.5,
+          "size_edges_bytes": [],
+          "activation_layout_available": true
+        },
+        "actual_observation_binding": {
+          "kind": "ieee_online_observation_binding_v1",
+          "window_s": 5,
+          "demand_windows": {
+            "configured_demand": 5,
+            "runner_demand": 5,
+            "actual_demand": 5,
+            "preload_demand": 5
+          },
+          "transfer_limit": 3,
+          "movement_limits": {
+            "configured_movement": 3,
+            "actual_movement": 3
+          },
+          "admission_profile_id": "native-completed/47d9ea8e982a8238d1ff1928fc0b7152c64976f271e40165c532179a2cc2d2ad",
+          "model_backend_id": "native-model/47195242726318d3e564d57bae4d182750991d6941d839eb9b20d205001bdfb6"
+        },
+        "ready_pool_count": 0,
+        "initialized_engines": 0,
+        "remote_calls": 0,
+        "full_execution_guard_retained": true
+      }
+    ],
+    "pass": true,
+    "full_qualified": false
+  },
+  "regression": {
+    "passed": 430,
+    "seconds": 36.065,
+    "complete_log": "results/ieee_tc/p2_backend_qualification/d89_20260927/export_regression1.log"
+  },
+  "failed_diagnostic_attempts_retained": 2,
+  "new_model_runs": 0,
+  "remote_calls": 0,
+  "protected_entries_unchanged": 147,
+  "raw_evidence": [
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d89_20260927/export_profiles.py",
+      "sha256": "7085ed300f1c6f4eeee2e37ec2d0d903094079eac476396e7c4b9fa3fd67d8c5"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d89_20260927/export_regression1.log",
+      "sha256": "d78518a87fbc9b8543567a3e460f99477847218f53023982cdb4d6023a5c9f6e"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d89_20260927/verify_runner_binding.py",
+      "sha256": "50f554c8d848d8e90f5a8204d91323e9d9e2c854e5a6715706208e39c0d861fa"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d89_20260927/verify_runner_binding_v2.py",
+      "sha256": "98d1dd029d443b6d33d61f74561f6b0f8f9c4a9c1f83b90c5469ee740898abc2"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d89_20260927/verify_runner_binding_v3.py",
+      "sha256": "de97d49efbe659a028c96bc0481dc382af8c25a7bcc17e14ebaf5cbdd354d6a0"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d89_20260927/runner_binding_attempt1.log",
+      "sha256": "6cbfd417bc3ca9a679a84330588ce751a34b3fa4d2faf31b67441997b90cb385"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d89_20260927/runner_binding_attempt2.log",
+      "sha256": "57381ef2289b18f2d9f03b382df1cf2990c1c8ba6c014014bc5418e01d880aa5"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d89_20260927/runner_binding_attempt3.log",
+      "sha256": "2b5c031b896fb7d7b969259c82d033051f90c1b5aa24835377f1db9b8753b98b"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d89_20260927/runner_binding_attempt3.json",
+      "sha256": "2e69a1e7dd301bfd9552f3bd81db3d440a9e66a2c1e40b845634ec59bdfe7f0c"
+    },
+    {
+      "path": "scripts/ieee_tc_preflight.py",
+      "sha256": "39f631bdd1d06184281570e2d30f5ae2290c9ce8954434e56fc79b48375bf5a1"
+    },
+    {
+      "path": "tests/test_ieee_tc_launch.py",
+      "sha256": "71ea14494fbf3c5c24ca5ad6ac5cb9b9599dd7bb3e770b21c56fd6c18ac113c3"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d89_3b_initialization/manifest.json",
+      "sha256": "332f914d31dca776b0fdf52faad6241e04a3f3713db3e9289f5b5ecd551a9e0e"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d89_7b_initialization/manifest.json",
+      "sha256": "7ba165a97559ac375dea3e4c5690023c045c591b7de6c08a28adbe9a63069468"
+    }
+  ],
+  "full_qualified": false,
+  "production_profile_frozen": false,
+  "next": "Actual integrated Full activation/lifecycle qualification; baseline matrix remains paused"
+}

@@ -250,6 +250,123 @@ class SourceProfileDomainCoverage(unittest.TestCase):
             source_profile_class_coverage(payload,identities)
 
 
+class MeasuredSourceProfileExport(unittest.TestCase):
+    """Synthetic timestamp fixtures only; never model profiling measurements."""
+    def setUp(self):
+        import copy
+        from tests.test_ieee_tc_preparation_cost import PreparationIntervals
+        from tests.test_ieee_tc_transfer_pressure import ActivationPreparation
+        self.payload, self.identities = SourceProfileDomainCoverage().fixture()
+        fixture = ActivationPreparation()
+        self.addCleanup(fixture.doCleanups)
+        *_, native = fixture.make()
+        p = self.payload
+        p.update(runtime_boundary='dedicated_subprocess',
+                 model_config_source='initialized_model_config_v1',
+                 physical_allocation=dict(released=True), sources_before=native,
+                 remote_transfers=[])
+        p['model_config'].update(timing_contract='ieee_tc_native_v1',
+            ieee_physical_allocation=True, ieee_admission_profile=dict(window_s=5.))
+        self.context = dict(backend_environment_sha256='b'*64,
+            resource_envelope_sha256='c'*64, input_contract_sha256='d'*64)
+        for q in p['requests']:
+            aid, e = q['adapter_id'], q['source_evidence']
+            old = e['source_admission']
+            tier, is_native = old['source']['tier'], old['source']['native']
+            fixture = PreparationIntervals().inputs('host' if tier == 'gpu' else tier, is_native)
+            a, n, r = fixture['admission'], fixture['native'], fixture['remote']
+            old['source'].update(owner_id=a['source']['owner_id'],path=a['source']['path'])
+            a.update(source=old['source'],service_class=old['service_class'],
+                     admitted_after_accept=old['admitted_after_accept'],clock_id=n['clock_id'])
+            n.update(lora_name=aid,lease_id=q['request_id'])
+            if r:
+                r.update(artifact_id=aid, transfer_id=q['request_id'],
+                         remote_pack_performed=False,published_archive_verified=True)
+                p['remote_transfers'].append(copy.deepcopy(r))
+                e['remote_preparation'] = r
+            e.update(state='released',source_admission=a,receipt=n,
+                pending_kv_admission=dict(state='closed',close_receipt=dict(closed=True)))
+            first, last = 154., 155.
+            q.update(admitted_monotonic_s=100.,acquired_monotonic_s=100. if tier=='gpu' else 153.,
+                first_token_monotonic_s=first,last_token_monotonic_s=last,
+                admission_clock_id=n['clock_id'],native_clock_id=n['clock_id'],
+                protected_at_admission=True,native_events=[{},dict(token_count=2)],
+                timing=dict(native_output_tokens=2,native_terminal_observed=True,
+                    native_clock_id=n['clock_id'],native_first_token_monotonic_s=first,
+                    native_last_token_monotonic_s=last,native_decode_ms=1000.,native_tpot_ms=1000.,
+                    native_dispatch_monotonic_s=153.,worker_wall_e2e_ms=2001.,
+                    worker_completion_notification_ms=1.))
+
+    def export(self, **changes):
+        from scripts.ieee_tc_preflight import measured_source_profile_payloads
+        args = dict(source_run_sha256='e'*64, identities=self.identities,
+                    context=self.context,model_config=self.payload['model_config'])
+        return measured_source_profile_payloads(self.payload, **(args | changes))
+
+    def test_native_loaders_recompute_distinct_service_and_preparation_intervals(self):
+        from faaslora.experiment.instance_pool import FrozenServiceProfiles
+        from faaslora.preloading.preloading_planner import FrozenPreparationProfiles
+        from scripts.ieee_tc_preflight import digest
+        service, preparation, coverage = self.export()
+        self.assertTrue(coverage['class_domain_covered'])
+        self.assertEqual((len(service['samples']),len(preparation['samples'])),(10,8))
+        self.assertFalse(service['full_qualified'])
+        self.assertFalse(preparation['numerical_adapter_correctness_qualified'])
+        with tempfile.TemporaryDirectory() as tmp:
+            loaded=[]
+            for i,(payload,cls) in enumerate(((service,FrozenServiceProfiles),
+                                           (preparation,FrozenPreparationProfiles))):
+                path=Path(tmp)/f'{i}.json'
+                path.write_text(json.dumps(payload))
+                loaded.append(cls.load(path,expected_sha256=digest(path),
+                    model_config=self.payload['model_config'],expected_context=self.context,beta=.5))
+            self.assertEqual({v.d_ms for k,v in loaded[0].profiles.items() if k.tier=='remote'},{53000.})
+            self.assertEqual({v for k,v in loaded[1].profiles.items() if k.tier=='remote'},{42000.})
+            self.assertEqual({v for k,v in loaded[1].profiles.items() if k.tier=='host'},{3000.})
+            self.assertTrue(loaded[1].identity()['activation_layout_available'])
+
+    def test_missing_sha_context_and_changed_runtime_reject(self):
+        for changes in (dict(source_run_sha256='not-a-sha'),dict(context={}),
+                        dict(model_config=self.payload['model_config'] | {'dtype':'different'})):
+            with self.subTest(changes=changes), self.assertRaises(ValueError): self.export(**changes)
+        self.payload['model_config'].pop('ieee_admission_profile')
+        with self.assertRaisesRegex(ValueError,'admission runtime'): self.export()
+
+    def test_missing_native_completion_or_open_ownership_is_not_exported(self):
+        import copy
+        original=copy.deepcopy(self.payload)
+        for mutate in (
+            lambda q:q['source_evidence']['pending_kv_admission'].update(state='pending'),
+            lambda q:q['timing'].update(native_output_tokens=1),
+            lambda q:q['timing'].update(native_first_token_monotonic_s=153.5),
+            lambda q:q['timing'].update(native_tpot_ms=900.),
+            lambda q:q.update(native_clock_id='other'),
+            lambda q:q['source_evidence']['receipt'].update(native_load_invoked=False)):
+            self.payload=copy.deepcopy(original)
+            mutate(self.payload['requests'][0])
+            with self.assertRaises(ValueError): self.export()
+
+    def test_remote_evidence_must_be_the_same_original_transfer(self):
+        self.payload['requests'][0]['source_evidence']['remote_preparation']['transfer_id']='missing'
+        with self.assertRaisesRegex(ValueError,'published transfer'): self.export()
+
+    def test_only_warmup_cannot_fill_missing_classes(self):
+        self.payload['source_profile_spec']['waves'][0]['role']='kernel_warmup_retained'
+        with self.assertRaisesRegex(ValueError,'missing source/service'): self.export()
+
+    def test_extra_warmup_retained_in_raw_but_not_exported(self):
+        import copy
+        p=self.payload
+        p['source_profile_spec']['waves'].append(copy.deepcopy(p['source_profile_spec']['waves'][0]))
+        p['source_profile_spec']['waves'][-1]['role']='kernel_warmup_retained'
+        p['profile_waves'].append(dict(complete=True))
+        for lane,q in enumerate(copy.deepcopy(p['requests'][:2])):
+            q['request_id']=f'source-profile/w5/l{lane}'
+            p['requests'].append(q)
+        s,d,_=self.export()
+        self.assertEqual((len(p['requests']),len(s['samples']),len(d['samples'])),(12,10,8))
+
+
 class DevelopmentControlDerivation(unittest.TestCase):
     def fixture(self):
         waves,requests=[],[]

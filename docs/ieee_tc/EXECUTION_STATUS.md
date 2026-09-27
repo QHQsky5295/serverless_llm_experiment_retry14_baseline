@@ -1,6 +1,33 @@
 # IEEE TC execution status
 
-## Current checkpoint — 2026-09-27 D88 BOTH admission source runs complete
+## Current checkpoint — 2026-09-27 D89 measured initialization exported and bound
+
+D89BOTHofflineexportsCOMPLETE. Newexisting-preflight helper
+measured_source_profile_payloads converts strict D88 native events; unchanged
+runtime loaders recompute serviceD/T/O and loadingd,excludeexplicitwarmup.
+3B40service/360samples+96preparation/288samples;7B20/90+24/72.
+Directories paper_results/ieee_tc/p2_backend/d89_{3b,7b}_initialization contain
+service/preparationJSON+manifest(context,binding,means,coverage,raw/sourceSHAs).
+Allstatic500/model covered;onlytinyexistingPEFTconfigsread,noGPU/network/newinput.
+ActualScenarioRunner+ExperimentStackconstructionBOTHpass with original D88
+requested_model_config (PARENTbeforechildresolution),500identities,emptyready
+pool/uninitializedengine;Fullguardstillrejects. W5/movement3 actualownersmatch.
+IMPORTANT use original requested_model_config for next Full descriptor, NOT
+already-resolved contract.model_config as parent: that changes provenance
+requested_enforce_eager auto→False on second resolution. No productionchange.
+Rawd89/runner_binding_attempt3.json SHA2e69a1e7dd301bfd9552f3bd81db3d440a9e66a2c1e40b845634ec59bdfe7f0c.
+Firstdriverwrongsizefieldandsecondwrongconfigurationstagefailuresretained;
+no guardrelaxation/rerun. Driversv1/v2/v3 kept. Exportdriver SHA-bound,do not
+edit in place. Preflight source SHA inexportmanifests captures this helperversion.
+6newtestspass;430related/basicpass36.065s,fulllograwd89/export_regression1.log.
+147protectedunchanged;GPUcomputeempty,remoteunitsSTOPPED,baselinesPAUSED.
+D88evidence56049e1873b3e94427e7be728a4f08030a9e30c5 PUSHED/freshSHAverified;
+rawd88/7b_evidence_push_receipt.json. D89code/data backupNEXT thenactualFull
+activation/lifecycle qualification. No new parameter selection, no sourceprofile
+reruns, no remote publication/coverage or baseline resumption. Full/M1/M2/A/S
+NOTqualified/started. See D89_MEASURED_PROFILE_EXPORT.md for immediate table.
+
+## D88 completed admission source checkpoint (historical details below)
 
 LATEST22:48:7B attempt1 COMPLETE92/92(90representative+2warmup),allpendingclosed.
 Sourcec642fdfc3bffc5eee09f70777b0570954235e58a;20service/24preparation/6content
