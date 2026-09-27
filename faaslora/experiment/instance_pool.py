@@ -802,8 +802,8 @@ class InstanceSlot:
     ieee_last_dispatch_at: float = 0.0
     ieee_utilization_sample: Optional[Dict[str, Any]] = None
 
-    def commit_native_sources(self, snapshot: NativeSourceSnapshot) -> bool:
-        """Commit a received view without mutating legacy hints or taking pins."""
+    def accepts_native_sources(self, snapshot: NativeSourceSnapshot) -> bool:
+        """Validate without publication, so a multi-owner view can commit atomically."""
         if not isinstance(snapshot, NativeSourceSnapshot):
             raise TypeError('native source commit requires a validated immutable snapshot')
         previous = self.native_source_state
@@ -815,10 +815,18 @@ class InstanceSlot:
             if snapshot.epoch == previous.epoch:
                 if replace(snapshot, captured_monotonic_s=previous.captured_monotonic_s) != previous:
                     raise ValueError('same native epoch reported different source state')
-                if snapshot.captured_monotonic_s <= previous.captured_monotonic_s:
+                # Readers of the same in-flight observation may publish its
+                # identical immutable result. Older observations still reject.
+                if snapshot.captured_monotonic_s < previous.captured_monotonic_s:
                     return False
             elif snapshot.captured_monotonic_s < previous.captured_monotonic_s:
                 raise ValueError('new native epoch predates the committed state')
+        return True
+
+    def commit_native_sources(self, snapshot: NativeSourceSnapshot) -> bool:
+        """Commit a received view without mutating legacy hints or taking pins."""
+        if not self.accepts_native_sources(snapshot):
+            return False
         self.native_source_state = snapshot
         return True
 

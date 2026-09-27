@@ -1,6 +1,38 @@
 # IEEE TC execution status
 
+## Latest — D96 shared source observation CPU-verified; return to canonical Full replay
+
+2026-09-28 05:04. Supersedes older NEXT/LIVE. No live GPU/remote services;
+baselines9e2cf289 remain PAUSED. D95 backed up19f8ace, no repeat work.
+Actual CPU probe:32 concurrent observers /2 replicas invoked64source reads;
+rejected multireplica collection partially published first member. Two red tests
+failed. Candidate shares only IN-FLIGHT same-member read (not TTL/cache), validates
+ALL before publication, recomputes each request's live counts/feasibility, retains
+selected-source checks. Counterexample now2calls; next wave refreshes. Cancellation,
+failed-read sibling cleanup, membership/engine replacement covered. 57targeted
+PASS0.415s; final895related regression PASS49.104s. Rawd96_20260928; D96doc immediate
+status table and curated20260928_d96_shared_source_observation.json eightSHArefs.
+
+Separate native probe found1/32acquisitions accepted fromsameepoch whileactual
+CPUobject/slots unchanged,31stale. This globalepoch guard is NOT changed in D96.
+Do not stack per-copy epoch optimization before measuring this candidate. NoGPU
+latency/SLO improvement established, noFullqualification. New counters retained
+evenonfailure; RPCinvocations doNOTmean confirmednativeexecution.
+
+NEXT verify/protect/secrets and scoped D96 backup, then ONE canonical3B Full4000
+W0 attempt3, sameD88/D89/configuration/deadline/trace, fresh owned result/cache roots.
+Use existingD93 run/config/activation scripts as templates, not anewframework.
+Do NOTrepeatD90prefixes,D78/D80cache/wholepool,D88/D89profiles or CPUassemblies.
+Do not spendanotherturn on redundant tests/backups or furtherlocaloptimization.
+Cleanup→validation→table before7B/next. D94+D95+D96 changes require new sourceidentity;
+do not attribute crossversionTTFT solelytoD96. Warm/Resident/M1/M2/A/S remainpending.
+
 ## Latest — D95 unsent generation boundary CPU-verified; checkpoint then source-conflict diagnosis
+
+BACKED UP: 19f8ace254b42ff8091273c58ae53faee3cfbb55 pushed and fresh remote SHA
+matched. Five scoped files, seven source/log references, 147 protected items,
+credential exclusion PASS. User manifest excluded. Source-conflict CPU work is
+now active; no need to repeat D95 backup/tests. No GPU run has started.
 
 2026-09-28. Supersedes older NEXT/LIVE. No live GPU/remote run; baselines PAUSED.
 Actual runner/proxy tests reproduce D93 req00333's pre-send rejection boundary:

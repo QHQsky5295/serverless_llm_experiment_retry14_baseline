@@ -1,0 +1,45 @@
+{
+  "kind": "cpu_correctness_and_work_count_checkpoint_v1",
+  "id": "d96_20260928_shared_source_observation",
+  "parent_commit": "19f8ace254b42ff8091273c58ae53faee3cfbb55",
+  "stage": "Prime IEEE Full development qualification",
+  "full_replay_performed": false,
+  "performance_qualified": false,
+  "baselines_paused": true,
+  "review_independence": "local-only",
+  "counterexamples": {"red_tests": 2, "failures": 2, "seconds": 0.018},
+  "work_count_fixture": {
+    "concurrent_callers": 32, "replicas": 2,
+    "before_rpc_invocations": 64, "after_rpc_invocations": 2,
+    "completed_observation_cached": false,
+    "per_request_live_counts_preserved": true,
+    "rejected_collection_partial_publication_fixed": true,
+    "native_execution_simulated": false,
+    "gpu_latency_measured": false
+  },
+  "separate_unmodified_epoch_probe": {
+    "serialized_acquisitions_using_same_epoch": 32,
+    "successful": 1, "stale_rejected": 31,
+    "same_native_cpu_object": true, "same_slot_map": true,
+    "total_loader_calls_including_setup": 1,
+    "guard_changed": false
+  },
+  "targeted": {"tests": 57, "passed": true, "seconds": 0.415},
+  "regression": {"tests": 895, "passed": true, "seconds": 49.104,
+    "environment": "/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python",
+    "memory_high_gib": 3, "memory_max_gib": 4,
+    "memory_swap_max_bytes": 0, "allowed_cpus": "2,3,26,27", "offline": true},
+  "source_sha256": {
+    "faaslora/experiment/instance_pool.py": "5dc471e606572bdf97e029922c9974f704711808e13b59cc9f3d96973847f577",
+    "scripts/run_all_experiments.py": "1c2595e72c07e6b656d65e608fef72f60bd9ef2b663ceb953c701d41b73effe9",
+    "tests/test_ieee_tc_request_lifecycle.py": "2229d54cb306604762fcb68880fee87cd17213a2241c4c976880fb4adcfb14ee",
+    "results/ieee_tc/p2_backend_qualification/d96_20260928/source_conflict_probe.log": "b292c76a04413034be150d55c053281ff65c5420e7e989653f64bc2176cb5e7b",
+    "results/ieee_tc/p2_backend_qualification/d96_20260928/red_collection.log": "633c7e406a1370ad60debe0305c718351f724ce592cda7c91e66b62b39435abe",
+    "results/ieee_tc/p2_backend_qualification/d96_20260928/green_collection1.log": "6d7dcf4451d38d7a25eab361ec8b0969509b67bfd9eee636812ad24fb0d5525e",
+    "results/ieee_tc/p2_backend_qualification/d96_20260928/green_collection2.log": "f04fd28f07a752cf0c2e2b4de7a464246f4c7bc284c46808139e05337e57606a",
+    "results/ieee_tc/p2_backend_qualification/d96_20260928/regression1.log": "fab8d3cc7b2ad31b03120146efdf3144b5c889c1b3675678975fb6ea821284dd"
+  },
+  "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "next": "One new canonical 3B Full4000 W0 development replay, same frozen configuration. No extra performance patch before it."
+}

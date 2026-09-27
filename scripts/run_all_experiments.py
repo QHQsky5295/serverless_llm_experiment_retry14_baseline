@@ -6749,6 +6749,8 @@ class ScenarioRunner:
         if self._preparation_profiles is not None and self._routing_policy != 'ieee_confirmed':
             raise ValueError('preparation profile requires IEEE source admission, not legacy routing')
         self._ieee_routing_epoch = 0
+        self._ieee_source_observation_wave = None
+        self._ieee_source_observation_stats = {}
         self._ieee_scale_controller = None
         self._ieee_control_events = []
         self._ieee_residency_tasks = {}
@@ -7788,6 +7790,54 @@ class ScenarioRunner:
         slot.ieee_utilization_sample = sample
         return dict(sample)
 
+    async def _ieee_collect_native_sources(self, slots):
+        """Share only a currently in-flight read, never cache a finished view.
+
+        Request-specific feasibility/counts/estimates are NOT shared. A waiter
+        cannot cancel another's read; the last waiter cancels and joins owned
+        reads. No polling period, TTL, sleeping or observation of future demand.
+        """
+        stats = getattr(self, '_ieee_source_observation_stats', None)
+        if stats is None:
+            stats = self._ieee_source_observation_stats = {}
+        stats['requests'] = stats.get('requests', 0) + 1
+        engines = tuple(slot.engine for slot in slots)
+        membership = tuple((id(slot), id(slot.engine)) for slot in slots)
+        wave = getattr(self, '_ieee_source_observation_wave', None)
+        joined = wave is not None and wave['membership'] == membership and not wave['task'].done()
+        if joined:
+            stats['joined'] = stats.get('joined', 0) + 1
+        else:
+            stats['collections'] = stats.get('collections', 0) + 1
+            async def collect():
+                async def read(engine):
+                    stats['rpc_invocations'] = stats.get('rpc_invocations', 0) + 1
+                    return await engine.ieee_gpu_reference(operation='source_snapshot')
+                reads = [asyncio.create_task(read(engine)) for engine in engines]
+                try:
+                    return await asyncio.gather(*reads)
+                finally:
+                    for read in reads:
+                        if not read.done():
+                            read.cancel()
+                    await asyncio.gather(*reads, return_exceptions=True)
+            wave = dict(membership=membership, task=asyncio.create_task(collect()),
+                        waiters=0, collection_id=stats['collections'])
+            self._ieee_source_observation_wave = wave
+        wave['waiters'] += 1
+        try:
+            values = await asyncio.shield(wave['task'])
+            return values, dict(collection_id=wave['collection_id'], joined=joined,
+                                collection_replica_count=len(slots))
+        finally:
+            wave['waiters'] -= 1
+            if wave['waiters'] == 0:
+                if self._ieee_source_observation_wave is wave:
+                    self._ieee_source_observation_wave = None
+                if not wave['task'].done():
+                    wave['task'].cancel()
+                await asyncio.gather(wave['task'], return_exceptions=True)
+
     async def _ieee_request_snapshot(self, trace, request_plan):
         """Commit received source and live controller state before target selection.
 
@@ -7803,10 +7853,13 @@ class ScenarioRunner:
             raise ValueError('IEEE routing requires the actual managed file source owner')
         owner = self._stack.residency_manager.local_source_references
         slots = tuple(self.instance_pool.get_slots())
-        native_views = await asyncio.gather(*(slot.engine.ieee_gpu_reference(
-            operation='source_snapshot') for slot in slots))
+        engines = tuple(slot.engine for slot in slots)
+        native_views, collection = await self._ieee_collect_native_sources(slots)
         # Scale-up/removal during RPC collection is not a complete current view.
-        if tuple(self.instance_pool.get_slots()) != slots:
+        if (tuple(self.instance_pool.get_slots()) != slots
+                or any(slot.engine is not engine for slot, engine in zip(slots, engines))):
+            stats = self._ieee_source_observation_stats
+            stats['membership_rejections'] = stats.get('membership_rejections', 0) + 1
             return None
         device_uuids = [view.get('device_uuid') for view in native_views]
         if (any(not isinstance(value, str) for value in device_uuids)
@@ -7815,6 +7868,14 @@ class ScenarioRunner:
         clock_id = local_monotonic_clock_id()
         native = [NativeSourceSnapshot.from_native(view, expected_clock_id=clock_id,
             received_monotonic_s=time.monotonic()) for view in native_views]
+        # Validate the WHOLE collection before publishing any member. There is
+        # no await between this check, publication, and request-specific state.
+        if not all(slot.accepts_native_sources(state) for slot, state in zip(slots, native)):
+            stats = self._ieee_source_observation_stats
+            stats['stale_rejections'] = stats.get('stale_rejections', 0) + 1
+            return None
+        for slot, state in zip(slots, native):
+            slot.commit_native_sources(state)
         adapter_id = trace.adapter_id
         files = owner.source_snapshot(adapter_id) if adapter_id else None
         if files is not None:
@@ -7827,11 +7888,6 @@ class ScenarioRunner:
         rows, evidence = [], {}
         capacity, active_limit = self._runtime_forward_capacity_limit(), self._runtime_max_active_loras()
         for slot, state, raw_view in zip(slots, native, native_views):
-            if not slot.commit_native_sources(state):
-                # Another request can receive a newer native epoch while this
-                # collection is awaiting a slower replica. Never rank on the
-                # rejected old view or splice it into the newer owner state.
-                return None
             admitted = slot.active_requests
             active = frozenset(aid for aid, count in slot.active_adapter_counts.items() if count > 0)
             remaining = max(0, capacity - admitted)
@@ -7863,6 +7919,7 @@ class ScenarioRunner:
                 gpu_utilization_pct=utilization['gpu_utilization_pct'],
                 last_dispatch_at=slot.ieee_last_dispatch_at, service_class=key, service=service))
             evidence[slot.instance_id] = dict(source=source,
+                source_collection=dict(collection),
                 native_owner_id=state.owner_id, native_epoch=state.epoch,
                 native_captured_monotonic_s=state.captured_monotonic_s,
                 file_owner_id=files['owner_id'] if files else None,
@@ -8325,6 +8382,8 @@ class ScenarioRunner:
             result['ieee_initial_deployment'] = copy.deepcopy(self._ieee_initial_deployment)
         if hasattr(self, '_ieee_control_events'):
             result['ieee_control_events'] = copy.deepcopy(self._ieee_control_events)
+        if hasattr(self, '_ieee_source_observation_stats'):
+            result['ieee_source_observation_stats'] = dict(self._ieee_source_observation_stats)
         if hasattr(self, '_ieee_host_capacity_events'):
             result['ieee_host_capacity_events'] = copy.deepcopy(self._ieee_host_capacity_events)
         if hasattr(self, '_ieee_residency_epochs'):
@@ -21246,7 +21305,8 @@ async def _finish_ieee_main_scenario(service, stack, claims, primary_error):
         mechanism_events={field:getattr(service,field,None) for field in (
             '_ieee_activations','_ieee_initial_deployment','_ieee_residency_epochs',
             '_ieee_file_preparation_plans','_ieee_gpu_preparation_plans',
-            '_ieee_native_host_preparations','_ieee_control_events')})
+            '_ieee_native_host_preparations','_ieee_control_events',
+            '_ieee_source_observation_stats')})
     try:
         data['coordination_after_shutdown'] = service._current_coord_metrics()
     except BaseException as exc:

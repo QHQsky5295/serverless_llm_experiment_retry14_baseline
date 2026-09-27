@@ -150,6 +150,119 @@ class PredecisionRoutingIntegration(unittest.TestCase):
         self.assertIsNone(asyncio.run(runner._ieee_request_snapshot(trace, plan)))
         self.assertEqual(a.native_source_state.epoch, 2)
 
+    def test_concurrent_readers_share_collection_but_recompute_live_capacity(self):
+        runner, slots, trace, plan, _ = self.build()
+        async def check():
+            async def request():
+                value = await runner._ieee_request_snapshot(trace, plan)
+                self.assertIsNotNone(value)
+                rows, _ = value
+                # Live controller counts must not be cached with source copies.
+                seen = rows[0].admitted_requests
+                slots[0].active_requests += 1
+                return seen
+            observed = await asyncio.gather(*(request() for _ in range(32)))
+            self.assertEqual(sorted(observed), list(range(32)))
+            self.assertEqual(sum(s.engine.ieee_gpu_reference.await_count for s in slots), 2)
+            # Completion is not a time-based cache: the next call refreshes.
+            slots[0].active_requests = 0
+            await runner._ieee_request_snapshot(trace, plan)
+            self.assertEqual(sum(s.engine.ieee_gpu_reference.await_count for s in slots), 4)
+        asyncio.run(check())
+
+    def test_rejected_multireplica_collection_does_not_partially_publish(self):
+        runner, (a, b), trace, plan, _ = self.build()
+        async def check():
+            await runner._ieee_request_snapshot(trace, plan)
+            old_a = a.native_source_state
+            b.native_source_state = replace(b.native_source_state, epoch=2)
+            self.assertIsNone(await runner._ieee_request_snapshot(trace, plan))
+            self.assertIs(a.native_source_state, old_a)
+        asyncio.run(check())
+
+    def test_cancel_one_observer_does_not_cancel_surviving_reader(self):
+        runner, slots, trace, plan, _ = self.build()
+        async def check():
+            entered, release = asyncio.Event(), asyncio.Event()
+            original = slots[0].engine.ieee_gpu_reference.side_effect
+            async def held(**kwargs):
+                entered.set()
+                await release.wait()
+                return await original(**kwargs)
+            slots[0].engine.ieee_gpu_reference.side_effect = held
+            first = asyncio.create_task(runner._ieee_request_snapshot(trace, plan))
+            await entered.wait()
+            second = asyncio.create_task(runner._ieee_request_snapshot(trace, plan))
+            await asyncio.sleep(0)
+            self.assertEqual(runner._ieee_source_observation_stats['joined'], 1)
+            first.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await first
+            self.assertFalse(second.done())
+            release.set()
+            self.assertIsNotNone(await second)
+            self.assertIsNone(runner._ieee_source_observation_wave)
+            self.assertEqual(sum(s.engine.ieee_gpu_reference.await_count for s in slots), 2)
+        asyncio.run(check())
+
+    def test_last_reader_cancellation_joins_owned_observation(self):
+        runner, slots, trace, plan, _ = self.build()
+        async def check():
+            entered, cancelled = asyncio.Event(), asyncio.Event()
+            async def held(**kwargs):
+                entered.set()
+                try:
+                    await asyncio.Future()
+                finally:
+                    cancelled.set()
+            slots[0].engine.ieee_gpu_reference.side_effect = held
+            request = asyncio.create_task(runner._ieee_request_snapshot(trace, plan))
+            await entered.wait()
+            request.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await request
+            self.assertTrue(cancelled.is_set())
+            self.assertIsNone(runner._ieee_source_observation_wave)
+            self.assertIsNone(slots[0].native_source_state)
+        asyncio.run(check())
+
+    def test_collection_error_joins_sibling_and_has_no_automatic_retry(self):
+        runner, slots, trace, plan, _ = self.build()
+        async def check():
+            entered, cancelled = asyncio.Event(), asyncio.Event()
+            async def failing(**kwargs):
+                await entered.wait()
+                raise RuntimeError('native observation failed')
+            async def sibling(**kwargs):
+                entered.set()
+                try:
+                    await asyncio.Future()
+                finally:
+                    cancelled.set()
+            slots[0].engine.ieee_gpu_reference.side_effect = failing
+            slots[1].engine.ieee_gpu_reference.side_effect = sibling
+            results = await asyncio.gather(*(runner._ieee_request_snapshot(trace, plan)
+                for _ in range(2)), return_exceptions=True)
+            self.assertTrue(all(isinstance(r, RuntimeError) for r in results))
+            self.assertTrue(cancelled.is_set())
+            self.assertIsNone(runner._ieee_source_observation_wave)
+            self.assertEqual(sum(s.engine.ieee_gpu_reference.await_count for s in slots), 2)
+            self.assertEqual(runner._ieee_source_observation_stats['collections'], 1)
+        asyncio.run(check())
+
+    def test_engine_replacement_during_collection_rejects_old_membership(self):
+        runner, slots, trace, plan, _ = self.build()
+        original_engine = slots[0].engine
+        original = original_engine.ieee_gpu_reference.side_effect
+        async def replaced(**kwargs):
+            result = await original(**kwargs)
+            slots[0].engine = SimpleNamespace(ieee_gpu_reference=AsyncMock())
+            return result
+        original_engine.ieee_gpu_reference.side_effect = replaced
+        self.assertIsNone(asyncio.run(runner._ieee_request_snapshot(trace, plan)))
+        slots[0].engine.ieee_gpu_reference.assert_not_awaited()
+        self.assertIsNone(slots[0].native_source_state)
+
     def test_duplicate_native_devices_do_not_masquerade_as_scaleout(self):
         runner, (a, b), trace, plan, _ = self.build()
         original = b.engine.ieee_gpu_reference.side_effect
