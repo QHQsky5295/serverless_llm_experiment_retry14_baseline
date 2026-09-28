@@ -1,0 +1,424 @@
+{
+  "kind": "d100_preparation_source_lifecycle_v1",
+  "parent_commit": "b1cfa3b04623c03ad59597b816b6db57d35114ee",
+  "cpu_only": true,
+  "performance_qualified": false,
+  "baselines_paused": true,
+  "hypothesis": "Confirmed source absence must retire its optimistic job and plan without poisoning a fresh target; real sibling failures must survive joined cleanup.",
+  "red": {
+    "real_eviction_tests": 2,
+    "errors": 2,
+    "queue_terminal_failure": 1,
+    "sibling_gpu_failure_hidden": true,
+    "sibling_file_failure_hidden": true
+  },
+  "fixture_limitations": "red1/red2 native cases lacked the new explicit CPU fixture profile; file_review_red used different selected targets. Only red3 and file_review_red2 reach their stated causal boundaries.",
+  "tests": {
+    "integration1.log": {
+      "tests": 139,
+      "seconds": 8.044,
+      "passed": true
+    },
+    "regression2.log": {
+      "tests": 1183,
+      "seconds": 56.433,
+      "passed": true
+    },
+    "final_integration.log": {
+      "tests": 141,
+      "seconds": 8.81,
+      "passed": true
+    },
+    "osguards1.log": {
+      "tests": 47,
+      "seconds": 0.077,
+      "passed": true
+    }
+  },
+  "distinct_regression_tests": 1230,
+  "final_source_validation": "1183 related tests plus final 141-test affected-module rerun after two-line child-outcome aggregation and 47 separate OS tests; integration subsets are not counted twice.",
+  "cases": [
+    "real eviction before native staging and before queued GPU action",
+    "actual residency task reap, full plan closure and fresh same-key execution",
+    "shared subscribers and deferred/superseded terminal history",
+    "malformed/foreign/incomplete source evidence remains failure",
+    "unacknowledged plan close and controlled handoff retain original restrictions",
+    "sibling GPU/file failure during cancellation overrides normal supersession"
+  ],
+  "source_sha256": {
+    "faaslora/preloading/preloading_planner.py": "4197a3c010b4dc11c363c5dfd85b87b3e8cfc12dd8459d611c9e5ee8c8058571",
+    "scripts/run_all_experiments.py": "16024ccec03f2722079415ee3335a5feba356896d713ef4b869af5a13976b36c",
+    "faaslora/preloading/preloading_manager.py": "825ead7f23686b8f501dd8d833cfa27111cc55fbbfda1191bed6a25b1f48654f",
+    "tests/test_ieee_tc_transfer_pressure.py": "de0c67aff17a0999a863421d1bba2757a1426f575ded9180eaf3ad5a7c73ba18",
+    "docs/ieee_tc/D100_PREPARATION_SOURCE_LIFECYCLE.md": "ba8a07d523a22f967c69523f7a3b4d4f30e9bf616884aa6747990b1f95886f86",
+    "paper_results/ieee_tc/p2_backend/20260928_d99_3b_full_w0_attempt6.json": "0de4c48d9b2029d48a6c3fdb5687419cb04f422d8fb190912ffc287ba8b04aad",
+    "results/ieee_tc/p2_backend_qualification/d98_20260928/regression.py": "4a3b39654d9de527c0a8e27efc9275b11d23f10b817ca56c9cb3dce298e59cb9",
+    "results/ieee_tc/p2_backend_qualification/d100_20260928/red1.log": "e2b1a172ef6c6b15633644f2642cf95c960a85295cfb5babaf125d8d28f2b45e",
+    "results/ieee_tc/p2_backend_qualification/d100_20260928/red2.log": "2eeb6f6fc270a42b97e9d3c7c9866dfdfbfadb1e85aaf8ab14747076c9feaf4b",
+    "results/ieee_tc/p2_backend_qualification/d100_20260928/red3.log": "a5789febac72feab132303175f6c79833a61270a0cddf05908d1adb759764095",
+    "results/ieee_tc/p2_backend_qualification/d100_20260928/green1.log": "ffac84dc1ffeb00fd9c7e66072a52385ff810489a1657001ab91305a9b684cc6",
+    "results/ieee_tc/p2_backend_qualification/d100_20260928/integration1.log": "fb11e38d2f83baa6bba141ecc83dd8b48f9510990ac0675c3a021692ba814b71",
+    "results/ieee_tc/p2_backend_qualification/d100_20260928/regression1.log": "f82e8f1bd79a98f77fe6066ae63a9dde55edc4cbaaabbefd096d2da5c77cfdac",
+    "results/ieee_tc/p2_backend_qualification/d100_20260928/review_red.log": "a7213877522749f65d998da297f5f301a4bb32ab0b3da01d6291153c269e0465",
+    "results/ieee_tc/p2_backend_qualification/d100_20260928/review_green.log": "176695ebd214dbde2c4ff6ed1b3ec864e32f572d0b233b4a4a052d24f13f5434",
+    "results/ieee_tc/p2_backend_qualification/d100_20260928/file_review_red.log": "420a65f738da98d90c29a345145a77e1279f39fe7e5d584a163b71bbceaafaa9",
+    "results/ieee_tc/p2_backend_qualification/d100_20260928/file_review_red2.log": "94dbe1a64704724db670b510715e9cb3e2f0730ab7a296deebd6b7f82e831214",
+    "results/ieee_tc/p2_backend_qualification/d100_20260928/regression2.log": "37ede39c9bbf7ac7c5bf6ea3ec1a8eff5ddd45310d9ba170390aadf5d5a499fe",
+    "results/ieee_tc/p2_backend_qualification/d100_20260928/final_integration.log": "5058d6593cfe408891ff49d1bb33a0da8da2135e7bca21c47884ae0f330648a9",
+    "results/ieee_tc/p2_backend_qualification/d100_20260928/osguards1.log": "0bd5ecd17a87786f4e6e2e1d76e8ebd3a4d17a463e92d1227391438050bad31c",
+    "results/ieee_tc/p2_backend_qualification/d100_20260928/curate.py": "0c823342029c603a7f106c1b3405853b97dd9f3b00411f952e6d5b00211c0411",
+    "results/ieee_tc/p2_backend_qualification/d100_20260928/cpu_scope_cleanup.json": "cc2610fbbd0ba1375d4997253ead85a0fa83b76ad193b1237fcd1c77c0b020d8"
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "completed_scope_cleanup": [
+    {
+      "unit": "primelora-d100-red1-20260928.scope",
+      "before": {
+        "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d100-red1-20260928.scope",
+        "TasksCurrent": "0",
+        "MemoryHigh": "3221225472",
+        "MemoryMax": "4294967296",
+        "MemorySwapMax": "0",
+        "ActiveState": "active",
+        "InvocationID": "d25cd838020443839226813a89e106a8"
+      },
+      "resources": {
+        "memory.peak": "495714304",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "after": {
+        "ControlGroup": "",
+        "TasksCurrent": "[not set]",
+        "MemoryHigh": "infinity",
+        "MemoryMax": "infinity",
+        "MemorySwapMax": "infinity",
+        "ActiveState": "inactive",
+        "InvocationID": ""
+      }
+    },
+    {
+      "unit": "primelora-d100-red2-20260928.scope",
+      "before": {
+        "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d100-red2-20260928.scope",
+        "TasksCurrent": "0",
+        "MemoryHigh": "3221225472",
+        "MemoryMax": "4294967296",
+        "MemorySwapMax": "0",
+        "ActiveState": "active",
+        "InvocationID": "b6dc72e4e2234ab68720da79ae9f6283"
+      },
+      "resources": {
+        "memory.peak": "495828992",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "after": {
+        "ControlGroup": "",
+        "TasksCurrent": "[not set]",
+        "MemoryHigh": "infinity",
+        "MemoryMax": "infinity",
+        "MemorySwapMax": "infinity",
+        "ActiveState": "inactive",
+        "InvocationID": ""
+      }
+    },
+    {
+      "unit": "primelora-d100-red3-20260928.scope",
+      "before": {
+        "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d100-red3-20260928.scope",
+        "TasksCurrent": "0",
+        "MemoryHigh": "3221225472",
+        "MemoryMax": "4294967296",
+        "MemorySwapMax": "0",
+        "ActiveState": "active",
+        "InvocationID": "2e523fd67d654f47a3dc17eb6cabcf26"
+      },
+      "resources": {
+        "memory.peak": "495681536",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "after": {
+        "ControlGroup": "",
+        "TasksCurrent": "[not set]",
+        "MemoryHigh": "infinity",
+        "MemoryMax": "infinity",
+        "MemorySwapMax": "infinity",
+        "ActiveState": "inactive",
+        "InvocationID": ""
+      }
+    },
+    {
+      "unit": "primelora-d100-green1-20260928.scope",
+      "before": {
+        "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d100-green1-20260928.scope",
+        "TasksCurrent": "0",
+        "MemoryHigh": "3221225472",
+        "MemoryMax": "4294967296",
+        "MemorySwapMax": "0",
+        "ActiveState": "active",
+        "InvocationID": "898d01a2134a475ea3c6cda5f02a9eb4"
+      },
+      "resources": {
+        "memory.peak": "497672192",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "after": {
+        "ControlGroup": "",
+        "TasksCurrent": "[not set]",
+        "MemoryHigh": "infinity",
+        "MemoryMax": "infinity",
+        "MemorySwapMax": "infinity",
+        "ActiveState": "inactive",
+        "InvocationID": ""
+      }
+    },
+    {
+      "unit": "primelora-d100-integration1-20260928.scope",
+      "before": {
+        "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d100-integration1-20260928.scope",
+        "TasksCurrent": "0",
+        "MemoryHigh": "3221225472",
+        "MemoryMax": "4294967296",
+        "MemorySwapMax": "0",
+        "ActiveState": "active",
+        "InvocationID": "7e3cfe8a85ce4bc09e2b544deb93636f"
+      },
+      "resources": {
+        "memory.peak": "496316416",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "after": {
+        "ControlGroup": "",
+        "TasksCurrent": "[not set]",
+        "MemoryHigh": "infinity",
+        "MemoryMax": "infinity",
+        "MemorySwapMax": "infinity",
+        "ActiveState": "inactive",
+        "InvocationID": ""
+      }
+    },
+    {
+      "unit": "primelora-d100-regression1-20260928.scope",
+      "before": {
+        "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d100-regression1-20260928.scope",
+        "TasksCurrent": "0",
+        "MemoryHigh": "3221225472",
+        "MemoryMax": "4294967296",
+        "MemorySwapMax": "0",
+        "ActiveState": "active",
+        "InvocationID": "ef209dc6299b4ee681ebe42766df5b26"
+      },
+      "resources": {
+        "memory.peak": "1193619456",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "after": {
+        "ControlGroup": "",
+        "TasksCurrent": "[not set]",
+        "MemoryHigh": "infinity",
+        "MemoryMax": "infinity",
+        "MemorySwapMax": "infinity",
+        "ActiveState": "inactive",
+        "InvocationID": ""
+      }
+    },
+    {
+      "unit": "primelora-d100-review-red-20260928.scope",
+      "before": {
+        "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d100-review-red-20260928.scope",
+        "TasksCurrent": "0",
+        "MemoryHigh": "3221225472",
+        "MemoryMax": "4294967296",
+        "MemorySwapMax": "0",
+        "ActiveState": "active",
+        "InvocationID": "e871d6aa5177438eaf7e6798ab2c09f0"
+      },
+      "resources": {
+        "memory.peak": "495976448",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "after": {
+        "ControlGroup": "",
+        "TasksCurrent": "[not set]",
+        "MemoryHigh": "infinity",
+        "MemoryMax": "infinity",
+        "MemorySwapMax": "infinity",
+        "ActiveState": "inactive",
+        "InvocationID": ""
+      }
+    },
+    {
+      "unit": "primelora-d100-review-green-20260928.scope",
+      "before": {
+        "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d100-review-green-20260928.scope",
+        "TasksCurrent": "0",
+        "MemoryHigh": "3221225472",
+        "MemoryMax": "4294967296",
+        "MemorySwapMax": "0",
+        "ActiveState": "active",
+        "InvocationID": "dc4e02569a3b495b9fb203b38263a44c"
+      },
+      "resources": {
+        "memory.peak": "497520640",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "after": {
+        "ControlGroup": "",
+        "TasksCurrent": "[not set]",
+        "MemoryHigh": "infinity",
+        "MemoryMax": "infinity",
+        "MemorySwapMax": "infinity",
+        "ActiveState": "inactive",
+        "InvocationID": ""
+      }
+    },
+    {
+      "unit": "primelora-d100-file-review-red-20260928.scope",
+      "before": {
+        "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d100-file-review-red-20260928.scope",
+        "TasksCurrent": "0",
+        "MemoryHigh": "3221225472",
+        "MemoryMax": "4294967296",
+        "MemorySwapMax": "0",
+        "ActiveState": "active",
+        "InvocationID": "1c21031df28d4f4abe7e5e5b2ae14b80"
+      },
+      "resources": {
+        "memory.peak": "495976448",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "after": {
+        "ControlGroup": "",
+        "TasksCurrent": "[not set]",
+        "MemoryHigh": "infinity",
+        "MemoryMax": "infinity",
+        "MemorySwapMax": "infinity",
+        "ActiveState": "inactive",
+        "InvocationID": ""
+      }
+    },
+    {
+      "unit": "primelora-d100-file-review-red2-20260928.scope",
+      "before": {
+        "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d100-file-review-red2-20260928.scope",
+        "TasksCurrent": "0",
+        "MemoryHigh": "3221225472",
+        "MemoryMax": "4294967296",
+        "MemorySwapMax": "0",
+        "ActiveState": "active",
+        "InvocationID": "8c67d8dd21f041d2b167c5e34fdd390f"
+      },
+      "resources": {
+        "memory.peak": "495910912",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "after": {
+        "ControlGroup": "",
+        "TasksCurrent": "[not set]",
+        "MemoryHigh": "infinity",
+        "MemoryMax": "infinity",
+        "MemorySwapMax": "infinity",
+        "ActiveState": "inactive",
+        "InvocationID": ""
+      }
+    },
+    {
+      "unit": "primelora-d100-regression2-20260928.scope",
+      "before": {
+        "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d100-regression2-20260928.scope",
+        "TasksCurrent": "0",
+        "MemoryHigh": "3221225472",
+        "MemoryMax": "4294967296",
+        "MemorySwapMax": "0",
+        "ActiveState": "active",
+        "InvocationID": "6fd7fc87dfdb4d80bc69821a662cd5e9"
+      },
+      "resources": {
+        "memory.peak": "1199505408",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "after": {
+        "ControlGroup": "",
+        "TasksCurrent": "[not set]",
+        "MemoryHigh": "infinity",
+        "MemoryMax": "infinity",
+        "MemorySwapMax": "infinity",
+        "ActiveState": "inactive",
+        "InvocationID": ""
+      }
+    },
+    {
+      "unit": "primelora-d100-final-integration-20260928.scope",
+      "before": {
+        "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d100-final-integration-20260928.scope",
+        "TasksCurrent": "0",
+        "MemoryHigh": "3221225472",
+        "MemoryMax": "4294967296",
+        "MemorySwapMax": "0",
+        "ActiveState": "active",
+        "InvocationID": "1fb55e9e4ef34be9be8afeedc00b354d"
+      },
+      "resources": {
+        "memory.peak": "497373184",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "after": {
+        "ControlGroup": "",
+        "TasksCurrent": "[not set]",
+        "MemoryHigh": "infinity",
+        "MemoryMax": "infinity",
+        "MemorySwapMax": "infinity",
+        "ActiveState": "inactive",
+        "InvocationID": ""
+      }
+    },
+    {
+      "unit": "primelora-d100-osguards1-20260928.scope",
+      "before": {
+        "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d100-osguards1-20260928.scope",
+        "TasksCurrent": "0",
+        "MemoryHigh": "3221225472",
+        "MemoryMax": "4294967296",
+        "MemorySwapMax": "0",
+        "ActiveState": "active",
+        "InvocationID": "6256786f89c0466aa1e7bce7248ac9cf"
+      },
+      "resources": {
+        "memory.peak": "16211968",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "after": {
+        "ControlGroup": "",
+        "TasksCurrent": "[not set]",
+        "MemoryHigh": "infinity",
+        "MemoryMax": "infinity",
+        "MemorySwapMax": "infinity",
+        "ActiveState": "inactive",
+        "InvocationID": ""
+      }
+    }
+  ],
+  "limitations": "CPU fixtures, not CUDA performance. D99 original missing-vs-identity predicate was not recorded. No Full4000, numerical LoRA, common SLO or ranking qualification.",
+  "next": "Checkpoint then canonical3B Full4000 W0 attempt7; identical configuration except new source and owned paths."
+}

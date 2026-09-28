@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from enum import Enum
 from collections import deque
 
-from .preloading_planner import PreloadingPlanner, PreloadingPlanResult
+from .preloading_planner import PreloadingPlanner, PreloadingPlanResult, PreparationPlanSuperseded
 from ..registry.schema import StorageTier, PreloadingPlan, ArtifactStatus
 from ..registry.artifact_registry import ArtifactRegistry
 from ..memory.residency_manager import ResidencyManager
@@ -149,13 +149,21 @@ class OwnedMovementQueue:
         except asyncio.CancelledError:
             job['state'] = attempt['state'] = 'cancelled'
             job['future'].cancel()
+        except PreparationPlanSuperseded as exc:
+            # A validated optimistic-plan conflict is terminal for this action,
+            # but not an uncertain physical failure. All existing subscribers
+            # observe it; a later fresh plan can submit the same target key.
+            # Never rerun the old closure or turn arbitrary RPC errors into it.
+            job['state'] = attempt['state'] = 'superseded'
+            attempt['preparation_supersession'] = dict(stage=exc.stage, receipt=copy.deepcopy(exc.receipt))
+            job['future'].set_exception(exc)
         except Exception as exc:
             job['state'] = attempt['state'] = 'failed'
             attempt['error_type'] = type(exc).__name__
             job['future'].set_exception(exc)
         finally:
             attempt['finished_at'] = time.monotonic()
-            if job['state'] in ('completed', 'cancelled', 'failed'):
+            if job['state'] in ('completed', 'cancelled', 'failed', 'superseded'):
                 job['finished_at'] = attempt['finished_at']
                 if job['state'] != 'failed':
                     self._keys.pop(job['key'], None)
@@ -218,7 +226,7 @@ class OwnedMovementQueue:
             job['intents'].pop(intent_id)
         elif not job['stop_requested']:
             return
-        if job['intents'] or job['state'] in ('completed', 'cancelled', 'failed'):
+        if job['intents'] or job['state'] in ('completed', 'cancelled', 'failed', 'superseded'):
             return
         task = job['task']
         if task is None:

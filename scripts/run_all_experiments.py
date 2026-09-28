@@ -16844,7 +16844,21 @@ class ScenarioRunner:
             staged = next((r for r in current.get('staged_sources', ()) if r['adapter_int_id'] == aid), None)
             if source is None:
                 source = staged
-            if source is None or (source['adapter_id'], source['lora_path']) != (row['adapter_id'], row['lora_path']):
+            if source is None:
+                from faaslora.preloading.preloading_planner import supersede_absent_native_source
+                try:
+                    supersede_absent_native_source(observed=current, owner_id=owner_id,
+                        planned_epoch=frozen['epoch'], adapter_int_id=aid,
+                        adapter_id=row['adapter_id'], lora_path=row['lora_path'],
+                        plan_id=plan_id, stage='native_gpu_source')
+                except PreparationPlanSuperseded as exc:
+                    evidence.update(state='superseded', preparation_supersession=dict(
+                        stage=exc.stage, receipt=exc.receipt))
+                    raise
+            if (source['adapter_id'], source['lora_path']) != (row['adapter_id'], row['lora_path']):
+                evidence.update(state='source_identity_conflict', expected_source=dict(
+                    adapter_id=row['adapter_id'], lora_path=row['lora_path']),
+                    observed_source=copy.deepcopy(source), observed_epoch=current['epoch'])
                 raise ValueError('planned native HOST source changed; next planning epoch required')
             command = dict(lease_id=uuid.uuid4().hex, adapter_int_id=aid,
                 lora_name=row['adapter_id'], lora_path=row['lora_path'],
@@ -16985,8 +16999,8 @@ class ScenarioRunner:
             result = await asyncio.gather(*waiters)
             record['state'] = 'completed'
             return result
-        except PreparationPlanSuperseded:
-            record['state'] = 'superseded'
+        except PreparationPlanSuperseded as exc:
+            record.update(state='superseded', preparation_supersession=dict(stage=exc.stage, receipt=exc.receipt))
             raise
         except BaseException as exc:
             record.update(state='cancelled' if isinstance(exc, asyncio.CancelledError) else 'failed',
@@ -16996,13 +17010,13 @@ class ScenarioRunner:
             for waiter in waiters:
                 if not waiter.done():
                     waiter.cancel()
-            _, cleanup_cancelled = await settle(asyncio.gather(*waiters, return_exceptions=True))
+            child_outcomes, cleanup_cancelled = await settle(asyncio.gather(*waiters, return_exceptions=True))
             for intent in intents:
                 _, interrupted = await settle(queue.withdraw(intent))
                 cleanup_cancelled |= interrupted
             # A different plan may still reuse our execution closure. Keep its
             # registered frozen objective/targets until that physical job ends.
-            _, interrupted = await settle(asyncio.gather(
+            movement_outcomes, interrupted = await settle(asyncio.gather(
                 *(queue.join_operation(intent) for intent in intents), return_exceptions=True))
             cleanup_cancelled |= interrupted
             try:
@@ -17021,6 +17035,19 @@ class ScenarioRunner:
                 record['finished_at'] = time.monotonic()
                 tasks.discard(plan_task)
                 task_engines.pop(plan_task, None)
+            if record['state'] == 'superseded':
+                # gather reports only its first error. A sibling may fail while
+                # joining cancellation, and a shared writer's failure can be
+                # hidden behind its subscriber's CancelledError. Both owned
+                # layers must settle without a real error before supersession
+                # can be accepted as a normal planning outcome.
+                failures = [value for value in (*child_outcomes, *movement_outcomes)
+                    if isinstance(value, BaseException)
+                    and not isinstance(value, (asyncio.CancelledError, PreparationPlanSuperseded))]
+                if failures:
+                    record.update(state='failed', error_type=type(failures[0]).__name__,
+                        settled_operation_errors=[dict(type=type(e).__name__, message=str(e)) for e in failures])
+                    raise failures[0]
             if cleanup_cancelled or cancelled:
                 raise asyncio.CancelledError()
 
@@ -17468,10 +17495,17 @@ class ScenarioRunner:
             current = next((r for r in observed['sources'] if r['adapter_int_id'] == aid_int), None)
             if current is not None:
                 if (current['adapter_id'], current['lora_path']) != (aid, row['lora_path']):
+                    record['source_identity_conflict'] = dict(adapter_int_id=aid_int,
+                        expected_source=dict(adapter_id=aid, lora_path=row['lora_path']),
+                        observed_source=copy.deepcopy(current), observed_epoch=observed['epoch'])
                     raise ValueError('mixed GPU preparation native source changed identity')
                 return feedback  # Reuse is recorded as ineligible, not zero loading.
             if source['native']:
-                raise ValueError('planned native source was invalidated; a new epoch is required')
+                from faaslora.preloading.preloading_planner import supersede_absent_native_source
+                supersede_absent_native_source(observed=observed, owner_id=gpu_objective['owner_id'],
+                    planned_epoch=gpu_objective['epoch'], adapter_int_id=aid_int,
+                    adapter_id=aid, lora_path=row['lora_path'], plan_id=native_plan_id,
+                    stage='native_staging_source')
             if source['tier'] == 'remote' and aid_int not in gpu_staging:
                 feedback['remote'] = await move(aid, 'nvme', None, candidate.density)
             feedback['native_host'] = await self._queue_ieee_native_host_preparation(slot=gpu_slot, adapter_id=aid,
@@ -17561,8 +17595,8 @@ class ScenarioRunner:
                 results = results[0] + results[1:]
             record['state'] = 'completed'
             return results
-        except PreparationPlanSuperseded:
-            record['state'] = 'superseded'
+        except PreparationPlanSuperseded as exc:
+            record.update(state='superseded', preparation_supersession=dict(stage=exc.stage, receipt=exc.receipt))
             raise
         except BaseException as exc:
             record.update(state='cancelled' if isinstance(exc, asyncio.CancelledError) else 'failed',
@@ -17572,10 +17606,10 @@ class ScenarioRunner:
             for waiter in waiters:
                 if not waiter.done():
                     waiter.cancel()
-            _, cancelled = await settle(asyncio.gather(*waiters, return_exceptions=True))
+            child_outcomes, cancelled = await settle(asyncio.gather(*waiters, return_exceptions=True))
             # A surviving subscriber may still use our physical action. The
             # creator cannot drop its pending protections while that IO lives.
-            _, interrupted = await settle(asyncio.gather(
+            movement_outcomes, interrupted = await settle(asyncio.gather(
                 *(queue.join_operation(intent) for intent in intents), return_exceptions=True))
             cancelled |= interrupted
             try:
@@ -17600,6 +17634,17 @@ class ScenarioRunner:
                 record['finished_at'] = time.monotonic()
                 self._ieee_file_plan_tasks.discard(task)
                 self._ieee_file_plan_engines.pop(task, None)
+            if record['state'] == 'superseded':
+                # A sibling file writer can fail during cancellation while the
+                # GPU group reports supersession. Joining it is not enough:
+                # preserve the real failure instead of normalizing the epoch.
+                failures = [value for value in (*child_outcomes, *movement_outcomes)
+                    if isinstance(value, BaseException)
+                    and not isinstance(value, (asyncio.CancelledError, PreparationPlanSuperseded))]
+                if failures:
+                    record.update(state='failed', error_type=type(failures[0]).__name__,
+                        settled_operation_errors=[dict(type=type(e).__name__, message=str(e)) for e in failures])
+                    raise failures[0]
             if cancelled:
                 raise asyncio.CancelledError()
 

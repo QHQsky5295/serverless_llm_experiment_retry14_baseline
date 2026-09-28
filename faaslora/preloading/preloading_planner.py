@@ -40,6 +40,52 @@ class PreparationPlanSuperseded(RuntimeError):
         super().__init__(f'native preparation snapshot superseded at {stage}')
 
 
+def supersede_absent_native_source(*, observed, owner_id, planned_epoch,
+        adapter_int_id, adapter_id, lora_path, plan_id, stage):
+    """End an optimistic objective only on a complete, later absence witness.
+
+    A missing row in an incomplete/foreign response is not proof of eviction.
+    Reuse the routing snapshot validator, and retain the exact negative view.
+    No prepare RPC/reference is issued by this boundary; callers still join
+    earlier owned work and close their plans before treating it as superseded.
+    """
+    from ..clock import local_monotonic_clock_id
+    from ..experiment.instance_pool import NativeSourceSnapshot
+    snap = NativeSourceSnapshot.from_native(observed,
+        expected_clock_id=local_monotonic_clock_id(), received_monotonic_s=time.monotonic())
+    if (snap.owner_id != owner_id or type(planned_epoch) is not int or planned_epoch < 1
+            or snap.epoch <= planned_epoch or snap.unknown_native_adapter_ids
+            or snap.unconfirmed_gpu_adapter_ids):
+        raise ValueError('native preparation absence lacks a complete later owner epoch')
+    if snap.find(adapter_id=adapter_id, adapter_int_id=adapter_int_id, lora_path=lora_path) is not None:
+        raise ValueError('native preparation source is present, not superseded')
+    staged = observed.get('staged_sources')
+    if not isinstance(staged, list):
+        raise ValueError('native preparation absence lacks staged-source coverage')
+    seen = set()
+    for row in staged:
+        aid = row.get('adapter_int_id') if isinstance(row, dict) else None
+        if (type(aid) is not int or aid <= 0 or aid in seen
+                or not isinstance(row.get('adapter_id'), str) or not row['adapter_id']
+                or not isinstance(row.get('lora_path'), str) or not Path(row['lora_path']).is_absolute()
+                or row.get('cpu_registered') is not False or row.get('gpu_slot') is not None
+                or not isinstance(row.get('native_host_source_id'), str) or not row['native_host_source_id']):
+            raise ValueError('native preparation staged-source coverage is malformed')
+        seen.add(aid)
+        if aid == adapter_int_id or row['adapter_id'] == adapter_id:
+            raise ValueError('native preparation source is staged, not absent')
+    # Footprint tensors/layouts are irrelevant to this negative witness and can
+    # be large. Preserve identities/coverage/timestamps rather than duplicate them.
+    receipt = dict(plan_id=plan_id, adapter_int_id=adapter_int_id, adapter_id=adapter_id,
+        lora_path=lora_path, expected_owner_id=owner_id, planned_epoch=planned_epoch,
+        reason='confirmed_native_source_absent', prepare_rpc_submitted=False,
+        observation={k: copy.deepcopy(observed[k]) for k in (
+            'kind', 'owner_id', 'clock_id', 'epoch', 'captured_monotonic_s',
+            'registered_cpu_adapter_ids', 'slot_adapter_ids', 'sources', 'staged_sources',
+            'unknown_native_adapter_ids', 'unconfirmed_gpu_adapter_ids', 'complete_for_native_caches')})
+    raise PreparationPlanSuperseded(receipt, stage=stage)
+
+
 class PreloadingStrategy(Enum):
     """Preloading strategy options"""
     GREEDY_VALUE = "greedy_value"          # Greedy by value per byte

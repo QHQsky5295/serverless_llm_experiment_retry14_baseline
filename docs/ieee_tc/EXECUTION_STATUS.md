@@ -1,5 +1,51 @@
 # IEEE TC execution status
 
+## Latest — D100 lifecycle correction CPU-verified; checkpoint then Full replay
+
+2026-09-28 ~12:10. Supersedes older NEXT/LIVE entries. No inference/remote job;
+baselines PAUSED. D99 evidence checkpoint b1cfa3b pushed and remotely verified.
+One candidate handles confirmed missing native sources at staging and queued
+GPU execution: complete same-owner/clock later epoch, no prepare RPC submitted,
+typed superseded queue terminal, shared subscribers/fresh same-key support,
+joined plan cleanup before normal residency replan. Identity conflicts and
+unknown/malformed coverage remain errors. No formula/config/profile/protocol/
+trace/timeout/remote change, no blind retry or new polling.
+
+Real CPU cache eviction reproduced both old ValueErrors at actual residency
+reap (red3:2errors); shared queue old outcome failed. Initial red1/red2 native
+cases had missing explicit fixture profile, not production evidence. Local
+review reproduced hidden sibling GPU and file failures during cancellation;
+joined child/physical outcomes now preserve real failure before normalizing
+supersession. First file review fixture selected different targets and failed
+earlier; corrected file_review_red2 reaches the causal assertion. Logs retained.
+
+Final validation:1183 related tests PASS56.433s; after two-line file-child
+aggregation, affected module141 PASS8.810s; qualified OS47 PASS.077s. Distinct
+1230 tests, subsets not counted twice. Earlier139integration and1181regression
+passed but are intermediate-source evidence. No CUDA/full/SLO/numerical or
+performance claim; original D99 missing-vs-identity predicate remains unknown.
+D100 doc includes immediate status table and primary vLLM/Kubernetes sources.
+
+NEXT run existing adapted curator once to preserve source/protected checks and
+stop only finished owned CPU scopes, then scoped seven-file checkpoint/push
+(3 source,1 test,doc,curated,ledger), user manifest excluded. Return to ONE
+canonical3B Full4000 W0 attempt7 with same D88/D89 configuration and fresh
+owned paths; do not stack another optimization or repeat cache/profile/prefix
+work. 7B/warmSLO/Resident/M1M2/A/S remain pending. Full goal active/incomplete.
+
+## Latest — D99 evidence backed up; D100 causal lifecycle work
+
+D99 evidence-only checkpoint b1cfa3b04623c03ad59597b816b6db57d35114ee PUSHED;
+fresh remote SHA matched. Three scoped files,22 source hashes,147 protected
+entries,47 evidence tests and secrets checks passed. Empty evidence scope
+stopped. No inference/remote/analysis job live; baselines PAUSED. Do not repeat
+projection, curation, tests or backup. Current one workstream: preparation
+source expiry must terminate its owned queue job without poisoning a fresh
+plan's physical target key. Known owner/clock/complete-state evidence must be
+distinguished from identity corruption and unknown RPC outcome. First real CPU
+eviction interleaving + actual residency reap/fresh-plan counterexamples, then
+implementation if supported. No new GPU replay yet. Full goal remains active.
+
 ## Latest — D99 Full6 failure curated; evidence checkpoint then lifecycle audit
 
 Independent pre-backup verification completed: all22 source SHA references,
