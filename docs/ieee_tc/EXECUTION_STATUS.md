@@ -1,13 +1,66 @@
 # IEEE TC execution status
 
-## CURRENT — D112 ordinary 3B Full9: fully analyzed; evidence backup pending
+## CURRENT — D113 offline control occupancy: complete, backup pending
+
+2026-09-29 00:05. Goal ACTIVE/incomplete; baselines PAUSED. This turn PROGRESS:
+extended existing control analyzer,10 targeted tests,complete D112 timeline audit,
+phase table/documentation, source/protection verification and owned cleanup.
+NO new GPU/remote run; production5442e62 unchanged. D113 uses D112 bounded
+projection only, never repeats9.49GB extraction or reconstructs artifact cache.
+
+- 4000native-contract requests,commonclock/ID/replica/order complete.
+  Observation4471.156393s. Mean/P95 seconds:
+  pre-gate247.747071/474.045999;gate→source14.023919/37.794468;
+  source→native9.538420/50.207334;native→last3.555022/8.587821;
+  last→controller3.088190/13.204306;controller→outerterminal2.550083/7.827683.
+- Mean occupancy gate→terminal29.303948, native dispatch→last3.180405;
+  peak32/25. Every replica nativepeak8. Gateends at outerterminal afterrelease,
+  hence upper envelope, not exact instrumented release. Request-s≠GPU-s.
+  4412resourcesamples;4071with pregatebacklog;3625gateoccupancy32;
+  samplemeanheldGPUutil22.564143%. Not timeweighted/kernelcausal evidence.
+- Reject simplistic totalgate8/GPUcompute-saturation interpretation. No safety
+  guard removed, no production change/accepted optimization. Controllerterminal
+  vs outerterminal mean2.550083s gap exposed; formal c_r boundary mapping still
+  needs ingress-notification audit, not silently relabeling D112 originalE2E.
+- First test failed solely due legacy top-level matplotlib import, no analysis.
+  Lazy import inside legacyplot; no newenvironment/install. Second10PASS0.054s;
+  analysis1.40s peak93456KiB. Both scopes exact-ownedemptyclosed,high/max/OOM0.
+  Verification scope exited0 and exactempty identity
+  2e201dcc855847fcbd3c381e12c6763d stopped00:05:21,events0;
+  no GPU/remote/analysis job remains.
+- 62frozenproductionsources,5analysissources and147protected unchanged;
+  plan/metricV1 exactSHA unchanged. SummarySHA
+  f9463cc0d4d8c837d9eeba5f381990eb8f6a48cf47934951cde799ac60eace30;
+  verificationSHA99f899582b38aaab781b3f388d2e5f3454ada06bf91d73f57bd54ab5cf41be42.
+  Curateddirpaper_results/ieee_tc/p2_backend/20260928_d113_control_occupancy;
+  rawresults/ieee_tc/p2_backend_qualification/d113_20260928.
+  small_analysis_sources.tar.gz preserves6smallscript/log/scopereceipts,
+  each memberSHAverified. DocD113_CONTROL_OCCUPANCY.md fulltable/caveats.
+  CSV uses csv.DictWriter standardCRLF; defaultgit whitespacecheck flagged
+  lineendCR,not changed data. Check with explicitcr-at-eol plus normal
+  blank-at-eol/blank-at-eof/space-before-tab PASS; no resultrewriting.
+  Bundle.sha256 checkPASS; scopedsecretscheckPASS; userdirtymanifestnotstaged.
+- NEXT ONE bounded actual-RPC CPU probe using saved realnativepayload:
+  test whether serialization/decode/progress-confirmation sharing execution
+  resources produces control waiting. Separate actualsocket/loop/queue timing,
+  do not injectlongsleep or call simulatedtiming E2Egain. If unsupported,
+  archive and inspect sourceconflict/preparationwait. No blindnextGPUreplay.
+  PrimaryPythonasyncio andvLLM0.30worker docs reread/webverified; nativeworker
+  mutations rely on singlethreadcore, don't parallelize them unsafely.
+- Outstanding:7BFull,warm/Resident,numericadapterqualification,baselines,
+  M1/M2,ablations/sensitivities. OncepublishedcachefulfilledD78/D80,no rebuild.
+
+## D112 completed reference — ordinary 3B Full9 fully backed up
 
 2026-09-28 23:47. Goal ACTIVE/incomplete; baselines PAUSED. This turn PROGRESS:
 projection, native timing/readiness checks, final tables, source/protection/test
 verification and exact-owned cleanup completed. NO experiment/analysis remains.
 Runtime5442e62fb977a6bd9a90ca4220e1b7d0872e3d2a unchanged/already pushed.
 DoNOTrepeat D112 replay, projection, preliminary, curation,70checks or transfers.
-Only evidence/doc/source-bundle commit/push remains before next investigation.
+Six scoped evidence/doc/source-bundle files committed/pushed as
+c03a1b1b4660b8b4bec825918a56e9eb9ec7fb56; exact remoteHEAD verified23:49.
+Userdirty manifest notstaged. No remaining D112 work; doNOTrepeat backup.
+This post-push ledger note is not a production/configuration change.
 
 - Canonical3B4000W0: planned/arrived/submitted/terminal/success/nativecontract
   ALL4000;0failure. Not numerical adapter qualification or formalSLO/ranking.
@@ -49,7 +102,7 @@ Only evidence/doc/source-bundle commit/push remains before next investigation.
   13KiB20260928_d112_analysis_sources.tar.gz preserves12small run/analyzer
   sources (including failedcuratorandD96filter), no rawlarge/weights/credentials.
   Companion.sha256:13entries and eacharchive member verified.
-- NEXTfinish explicit-scoped evidence backup, then inspect dispatch-window
+- NEXTinspect dispatch-window
   progression against this complete run before choosing ONE causal bottleneck
   probe. Do not remove identity/physical guards or raise deadlines as workaround.
   No blind nextGPUreplay. Return to Prime IEEE Full mainline, not baseline work.

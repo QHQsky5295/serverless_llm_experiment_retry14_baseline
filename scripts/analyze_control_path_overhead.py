@@ -10,14 +10,13 @@ additional online decisions.
 from __future__ import annotations
 
 import argparse
+from bisect import bisect_right
+from collections import Counter
 import csv
 import json
 import math
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
-
-import matplotlib.pyplot as plt
-
 
 OPERATIONS = [
     (
@@ -250,6 +249,7 @@ def write_manifest(rows: List[Dict[str, Any]], output: Path, source: Path) -> No
 
 
 def plot(rows: List[Dict[str, Any]], output: Path) -> None:
+    import matplotlib.pyplot as plt
     output.parent.mkdir(parents=True, exist_ok=True)
     labels = [str(row["operation_label"]) for row in rows]
     avg_ms = [float(row["avg_ms"]) for row in rows]
@@ -300,15 +300,146 @@ def plot(rows: List[Dict[str, Any]], output: Path) -> None:
     plt.close(fig)
 
 
+def analyze_native_timeline(projection: Path, deployment_path: Path,
+                            terminals_path: Path, watchdog_path: Path,
+                            output: Path) -> Dict[str, Any]:
+    """Audit a completed bounded projection, without loading the huge source tree.
+
+    These are request occupancy intervals, NOT GPU resource billing. Native
+    last-token/controller completion/outer terminal are distinct observations.
+    No extrapolation, missing-field defaults, legacy percentile or paper copy.
+    """
+    import hashlib
+    if output.exists():
+        raise FileExistsError(output)
+    rows = json.loads(projection.read_text())['requests']
+    deployment = json.loads(deployment_path.read_text())
+    with terminals_path.open() as handle:
+        terminals = [json.loads(line) for line in handle]
+    count = deployment['plan']['count']
+    by_id = {r['request_id']: r for r in terminals}
+    if (len(rows) != count or len(terminals) != count or len(by_id) != count
+            or {r['request_id'] for r in rows} != set(by_id)
+            or any(r['success'] is not True for r in rows)
+            or any(r['native_contract_matched'] is not True or r['success'] is not True for r in terminals)):
+        raise ValueError('complete native-contract population required')
+    start = deployment['arrival_start_s']
+    end = max(r['at'] for r in terminals)
+    if count <= 0 or not math.isfinite(start) or not math.isfinite(end) or end <= start:
+        raise ValueError('nonempty finite observation window required')
+    phase_names = ('arrival_to_gate', 'gate_to_source_admission',
+                   'source_to_native_dispatch', 'native_dispatch_to_last_token',
+                   'last_token_to_controller_completion', 'controller_completion_to_terminal')
+    intervals = {name: [] for name in phase_names}
+    intervals['gate_to_terminal'] = []
+    native_by_replica = {}
+    request_rows = []
+    for row in rows:
+        t = row['native_token_timing']
+        terminal = by_id[row['request_id']]
+        if t['native_clock_id'] != deployment['clock_id'] or terminal['clock_id'] != deployment['clock_id']:
+            raise ValueError('mixed timing domains')
+        if terminal['instance_id'] != row['instance_id']:
+            raise ValueError('terminal replica identity mismatch')
+        arrival = start + row['scheduled_arrival_offset_s']
+        gate = start + row['arrival_released_offset_s'] + row['dispatch_window_wait_ms']/1000
+        bounds = (arrival, gate, t['controller_admitted_monotonic_s'],
+                  t['native_dispatch_monotonic_s'], t['native_last_token_monotonic_s'],
+                  t['controller_completed_monotonic_s'], terminal['at'])
+        if bounds[0] < start or any(not math.isfinite(v) for v in bounds) or any(a > b for a,b in zip(bounds,bounds[1:])):
+            raise ValueError(('invalid ordered native intervals', row['request_id'], bounds))
+        record = dict(request_id=row['request_id'], instance_id=row['instance_id'],
+                      arrival_offset_s=arrival-start, terminal_offset_s=terminal['at']-start)
+        for name, left, right in zip(phase_names, bounds, bounds[1:]):
+            intervals[name].append((left,right))
+            record[name+'_s'] = right-left
+        intervals['gate_to_terminal'].append((gate,terminal['at']))
+        native_by_replica.setdefault(row['instance_id'], []).append((bounds[3],bounds[4]))
+        record['recorded_e2e_s'] = row['overall_e2e_ms']/1000
+        record['outer_terminal_e2e_s'] = terminal['at']-arrival
+        request_rows.append(record)
+
+    def summary(spans):
+        lengths = sorted(b-a for a,b in spans)
+        events = sorted([(a,1) for a,b in spans if a < b] + [(b,-1) for a,b in spans if a < b])
+        active = peak = 0
+        for _,delta in events:
+            active += delta
+            peak = max(peak,active)
+        if active != 0:
+            raise ValueError('unclosed occupancy events')
+        area = math.fsum(lengths)
+        return dict(n=len(lengths), total_request_seconds=area,
+                    mean_duration_s=area/len(lengths), p95_duration_s=lengths[math.ceil(.95*len(lengths))-1],
+                    mean_concurrent_requests=area/(end-start), max_concurrent_requests=peak)
+
+    indexes = {name:(sorted(a for a,b in spans),sorted(b for a,b in spans)) for name,spans in intervals.items()}
+    samples = []
+    with watchdog_path.open() as handle:
+        for line in handle:
+            sample = json.loads(line)
+            if sample['event'] != 'resource_sample' or not start <= sample['monotonic'] <= end:
+                continue
+            at = sample['monotonic']
+            held = set(sample['gpu']['service_held_gpu_uuids'])
+            rates = [d['gpu_utilization_percent'] for d in sample['gpu']['devices'] if d['gpu_uuid'] in held]
+            if len(rates) != len(held) or any(type(v) not in (float,int) or not math.isfinite(v) for v in rates):
+                raise ValueError('missing held-GPU activity observations')
+            record = dict(offset_s=at-start, held_gpus=len(held),
+                          held_gpu_utilization_mean_percent=sum(rates)/len(rates) if rates else None)
+            record.update({name:bisect_right(left,at)-bisect_right(right,at) for name,(left,right) in indexes.items()})
+            samples.append(record)
+    if not samples:
+        raise ValueError('no overlapping resource observations')
+    gpu_rates = [r['held_gpu_utilization_mean_percent'] for r in samples if r['held_gpus']]
+    if not gpu_rates:
+        raise ValueError('no held-GPU resource observations')
+    result = dict(kind='native_control_occupancy_audit_v1', formal_performance_result=False,
+        count=count, observation_s=end-start, phase_summaries={k:summary(v) for k,v in intervals.items()},
+        native_by_replica={k:summary(v) for k,v in native_by_replica.items()},
+        resource_samples=len(samples), sampled_mean_held_gpu_utilization_percent=sum(gpu_rates)/len(gpu_rates),
+        samples_with_pre_gate_backlog=sum(r['arrival_to_gate']>0 for r in samples),
+        sampled_gate_occupancy_counts=dict(Counter(r['gate_to_terminal'] for r in samples)),
+        caveats=['Occupancy is not GPU billing or kernel busy time.',
+                 'Gate end uses outer terminal after release; this is an upper envelope, not an instrumented gate-release timestamp.',
+                 'Controller completion is an earlier boundary than outer request terminal; report their gap without relabeling either.',
+                 'GPU utilization averages are sampled descriptive observations, not causal attribution or confidence intervals.'])
+    paths = [projection,deployment_path,terminals_path,watchdog_path,Path(__file__)]
+    result['source_refs'] = []
+    for path in paths:
+        h = hashlib.sha256()
+        with path.open('rb') as handle:
+            for chunk in iter(lambda:handle.read(1024*1024),b''):
+                h.update(chunk)
+        result['source_refs'].append(dict(path=str(path),sha256=h.hexdigest()))
+    output.mkdir(parents=True,exist_ok=False)
+    write_csv(request_rows,output/'request_occupancy.csv')
+    write_csv(samples,output/'sampled_occupancy.csv')
+    with (output/'summary.json').open('x') as handle:
+        json.dump(result,handle,indent=2,allow_nan=False)
+    return result
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", required=True, help="Result JSON file or directory")
-    parser.add_argument("--output", default="figs/paper/control_path", help="Output directory")
+    parser.add_argument("--output", default=None, help="Output directory; mandatory/fresh for native timeline")
+    parser.add_argument("--native-timeline", action="store_true", help="Strict bounded native projection audit; no legacy paper copies")
+    parser.add_argument("--deployment", type=Path)
+    parser.add_argument("--terminals", type=Path)
+    parser.add_argument("--watchdog", type=Path)
     parser.add_argument("--scenario", default=None, help="Optional scenario-name substring")
     args = parser.parse_args()
 
+    if args.native_timeline:
+        if not all((args.output,args.deployment,args.terminals,args.watchdog)):
+            parser.error('native timeline requires explicit output/deployment/terminals/watchdog')
+        result = analyze_native_timeline(Path(args.input),args.deployment,args.terminals,args.watchdog,Path(args.output))
+        print(json.dumps(result,indent=2,allow_nan=False))
+        return
+
     input_path = Path(args.input).expanduser().resolve()
-    output_dir = Path(args.output).expanduser().resolve()
+    output_dir = Path(args.output or "figs/paper/control_path").expanduser().resolve()
     source, scenario, summary = select_scenario(load_payloads(input_path), args.scenario)
 
     rows: List[Dict[str, Any]] = []

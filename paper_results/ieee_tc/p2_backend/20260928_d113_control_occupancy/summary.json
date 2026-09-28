@@ -1,0 +1,164 @@
+{
+  "kind": "native_control_occupancy_audit_v1",
+  "formal_performance_result": false,
+  "count": 4000,
+  "observation_s": 4471.156393072,
+  "phase_summaries": {
+    "arrival_to_gate": {
+      "n": 4000,
+      "total_request_seconds": 990988.2826159719,
+      "mean_duration_s": 247.74707065399298,
+      "p95_duration_s": 474.0459989553492,
+      "mean_concurrent_requests": 221.64026383677734,
+      "max_concurrent_requests": 485
+    },
+    "gate_to_source_admission": {
+      "n": 4000,
+      "total_request_seconds": 56095.6753844818,
+      "mean_duration_s": 14.02391884612045,
+      "p95_duration_s": 37.794468277003034,
+      "mean_concurrent_requests": 12.546122401668018,
+      "max_concurrent_requests": 32
+    },
+    "source_to_native_dispatch": {
+      "n": 4000,
+      "total_request_seconds": 38153.6787864669,
+      "mean_duration_s": 9.538419696616726,
+      "p95_duration_s": 50.207333665006445,
+      "mean_concurrent_requests": 8.533291039782357,
+      "max_concurrent_requests": 26
+    },
+    "native_dispatch_to_last_token": {
+      "n": 4000,
+      "total_request_seconds": 14220.089413529058,
+      "mean_duration_s": 3.5550223533822645,
+      "p95_duration_s": 8.587821451001219,
+      "mean_concurrent_requests": 3.180405282973976,
+      "max_concurrent_requests": 25
+    },
+    "last_token_to_controller_completion": {
+      "n": 4000,
+      "total_request_seconds": 12352.760902772105,
+      "mean_duration_s": 3.088190225693026,
+      "p95_duration_s": 13.204305834995466,
+      "mean_concurrent_requests": 2.762766456103515,
+      "max_concurrent_requests": 21
+    },
+    "controller_completion_to_terminal": {
+      "n": 4000,
+      "total_request_seconds": 10200.330627406074,
+      "mean_duration_s": 2.5500826568515187,
+      "p95_duration_s": 7.827682807008387,
+      "mean_concurrent_requests": 2.2813629698150026,
+      "max_concurrent_requests": 24
+    },
+    "gate_to_terminal": {
+      "n": 4000,
+      "total_request_seconds": 131022.53511465594,
+      "mean_duration_s": 32.755633778663984,
+      "p95_duration_s": 78.38033011900552,
+      "mean_concurrent_requests": 29.30394815034287,
+      "max_concurrent_requests": 32
+    }
+  },
+  "native_by_replica": {
+    "ieee-activation-8411c4186c2c42b492909f7cff30a66f": {
+      "n": 1056,
+      "total_request_seconds": 3825.10569203223,
+      "mean_duration_s": 3.6222591780608235,
+      "p95_duration_s": 8.739343991997885,
+      "mean_concurrent_requests": 0.8555070222905158,
+      "max_concurrent_requests": 8
+    },
+    "ieee-activation-942891bfbe6347b2a3a855d442302144": {
+      "n": 961,
+      "total_request_seconds": 3424.8356103437545,
+      "mean_duration_s": 3.5638247766324187,
+      "p95_duration_s": 8.469276364994585,
+      "mean_concurrent_requests": 0.7659843023273561,
+      "max_concurrent_requests": 8
+    },
+    "ieee-activation-59da24158a1045ee92d55d692e9c3b84": {
+      "n": 989,
+      "total_request_seconds": 3467.849832007021,
+      "mean_duration_s": 3.5064204570343995,
+      "p95_duration_s": 8.713900115006254,
+      "mean_concurrent_requests": 0.775604681907439,
+      "max_concurrent_requests": 8
+    },
+    "ieee-activation-6c14ba67edf54cc9b80193ddbf12449f": {
+      "n": 994,
+      "total_request_seconds": 3502.2982791460527,
+      "mean_duration_s": 3.5234389126217835,
+      "p95_duration_s": 8.273559150999063,
+      "mean_concurrent_requests": 0.7833092764486653,
+      "max_concurrent_requests": 8
+    }
+  },
+  "resource_samples": 4412,
+  "sampled_mean_held_gpu_utilization_percent": 22.564143245693565,
+  "samples_with_pre_gate_backlog": 4071,
+  "sampled_gate_occupancy_counts": {
+    "0": 36,
+    "4": 29,
+    "5": 38,
+    "3": 44,
+    "2": 12,
+    "1": 27,
+    "6": 38,
+    "8": 38,
+    "7": 49,
+    "9": 24,
+    "10": 44,
+    "11": 7,
+    "12": 2,
+    "13": 7,
+    "15": 6,
+    "16": 3,
+    "17": 9,
+    "20": 9,
+    "29": 27,
+    "30": 68,
+    "32": 3625,
+    "25": 6,
+    "31": 186,
+    "26": 4,
+    "27": 8,
+    "28": 26,
+    "19": 4,
+    "18": 8,
+    "21": 7,
+    "22": 5,
+    "14": 5,
+    "24": 4,
+    "23": 7
+  },
+  "caveats": [
+    "Occupancy is not GPU billing or kernel busy time.",
+    "Gate end uses outer terminal after release; this is an upper envelope, not an instrumented gate-release timestamp.",
+    "Controller completion is an earlier boundary than outer request terminal; report their gap without relabeling either.",
+    "GPU utilization averages are sampled descriptive observations, not causal attribution or confidence intervals."
+  ],
+  "source_refs": [
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d112_20260928/full_full9_request_projection.json",
+      "sha256": "1d7f0b73219040939eff4dccd62473b8f534ea84fe9a76717ade5c4e174c018c"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d112_20260928/3b_full_w0_full9/launch.launch/physical_deployment/deployment.json",
+      "sha256": "625bceee606009e98cbead419e6d8a9eecb61560a300b7583510ae8d1cce95bf"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d112_20260928/3b_full_w0_full9/launch.launch/physical_deployment/request_terminals.jsonl",
+      "sha256": "57d9ff94865026f039d3afe121064c88e98dd5b87c9a1dfa00c97791e2eaacdc"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d112_20260928/3b_full_w0_full9/launch.launch/watchdog.jsonl",
+      "sha256": "ad2bc1abb4bd970ed1da0361333546e9c0ada058c82003dbf89570a270312a66"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/analyze_control_path_overhead.py",
+      "sha256": "3032f718b59765310dd0b0b498b4c2c40f99d912953fcb8025970f6ba9eeb87b"
+    }
+  ]
+}
