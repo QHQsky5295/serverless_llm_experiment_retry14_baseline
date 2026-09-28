@@ -1543,6 +1543,150 @@ class NativeDemandTransactions(unittest.TestCase):
         self.assertIsNotNone(self.owner.source_snapshot()['sources'][0]['gpu_slot'])
 
 
+class NativeSelectedCopyWitness(unittest.TestCase):
+    """An observed copy is independent of another request's reference count."""
+
+    def setUp(self):
+        self.fixture = NativeDemandTransactions()
+        self.fixture.setUp()
+        self.fixture.demand()
+        self.fixture.release('cold-1')
+        self.owner = self.fixture.owner
+
+    def source(self):
+        view = self.owner.source_snapshot()
+        return view, next(row for row in view['sources'] if row['adapter_int_id'] == 4)
+
+    def acquire(self, view, row, lease):
+        return self.fixture.demand(lease=lease, snapshot=view, required_source_tier='gpu',
+                                   expected_source_id=row['source_id'])
+
+    def test_same_gpu_copy_supports_32_references_from_one_observation(self):
+        view, row = self.source()
+        native = self.fixture.manager._registered_adapters.cache[4]
+        slots = list(self.fixture.manager.lora_index_to_id)
+        before_loads = len(self.fixture.loads)
+        replies = [self.acquire(view, row, f'concurrent-{i}') for i in range(32)]
+        self.assertTrue(all(reply['acquired'] for reply in replies))
+        self.assertTrue(all(reply['expected_source_id'] == row['source_id'] for reply in replies))
+        self.assertEqual(self.owner.snapshot()['reference_counts']['4'], 32)
+        self.assertIs(self.fixture.manager._registered_adapters.cache[4], native)
+        self.assertEqual(self.fixture.manager.lora_index_to_id, slots)
+        self.assertEqual(len(self.fixture.loads), before_loads)
+        self.assertEqual(self.source()[1]['source_id'], row['source_id'])
+        for i in range(32):
+            self.fixture.release(f'concurrent-{i}')
+        self.assertEqual(self.owner.snapshot()['live_leases'], 0)
+
+    def test_same_host_copy_supports_32_holds_without_loading(self):
+        self.fixture.manager.deactivate(4)
+        view, row = self.source()
+        before_loads = len(self.fixture.loads)
+        replies = [self.owner.hold_host_source(lease_id=f'host-{i}', adapter_int_id=4,
+            lora_name='adapter-4', lora_path='/existing/adapter-4',
+            expected_owner_id=view['owner_id'], expected_epoch=view['epoch'],
+            expected_source_id=row['source_id']) for i in range(32)]
+        self.assertTrue(all(reply['held'] for reply in replies))
+        self.assertTrue(all(reply['expected_source_id'] == row['source_id'] for reply in replies))
+        self.assertEqual(len(self.fixture.loads), before_loads)
+        self.assertNotIn(4, self.fixture.manager._active_adapters)
+        self.assertEqual(self.owner.snapshot()['host_source_reference_counts']['4'], 32)
+        for i in range(32):
+            self.owner.release_host_source(lease_id=f'host-{i}', expected_owner_id=view['owner_id'])
+
+    def test_other_adapter_reference_does_not_invalidate_selected_copy(self):
+        view, row = self.source()
+        self.fixture.pin(2)
+        self.assertTrue(self.acquire(view, row, 'selected')['acquired'])
+
+    def test_gpu_withdrawal_rejects_old_copy_without_loading(self):
+        view, row = self.source()
+        self.fixture.manager.deactivate(4)
+        before_loads = len(self.fixture.loads)
+        reply = self.acquire(view, row, 'old-copy')
+        self.assertFalse(reply['acquired'])
+        self.assertEqual(reply['reason'], 'required_source_changed')
+        self.assertEqual(len(self.fixture.loads), before_loads)
+
+    def test_same_id_same_slot_reactivation_gets_a_new_gpu_copy_identity(self):
+        view, row = self.source()
+        self.fixture.manager.deactivate(4)
+        self.fixture.demand(lease='reload')
+        self.fixture.release('reload')
+        new_view, new_row = self.source()
+        self.assertEqual(row['gpu_slot'], new_row['gpu_slot'])
+        self.assertNotEqual(row['source_id'], new_row['source_id'])
+        reply = self.acquire(view, row, 'old-copy')
+        self.assertFalse(reply['acquired'])
+        self.assertEqual(reply['reason'], 'required_source_changed')
+        self.assertTrue(self.acquire(new_view, new_row, 'new-copy')['acquired'])
+
+    def test_host_to_gpu_transition_rejects_old_host_witness(self):
+        self.fixture.manager.deactivate(4)
+        view, row = self.source()
+        self.fixture.demand(lease='promotion')
+        self.fixture.release('promotion')
+        reply = self.owner.hold_host_source(lease_id='stale-host', adapter_int_id=4,
+            lora_name='adapter-4', lora_path='/existing/adapter-4',
+            expected_owner_id=view['owner_id'], expected_epoch=view['epoch'],
+            expected_source_id=row['source_id'])
+        self.assertFalse(reply['held'])
+        self.assertEqual(reply['reason'], 'required_source_changed')
+
+    def test_future_epoch_and_wrong_owner_are_not_authorized_by_copy(self):
+        view, row = self.source()
+        future = dict(view, epoch=view['epoch'] + 100)
+        self.assertEqual(self.acquire(future, row, 'future')['reason'], 'stale_snapshot')
+        other = dict(view, owner_id='other-owner')
+        self.assertEqual(self.acquire(other, row, 'other')['reason'], 'owner_changed')
+
+    def test_epoch_only_callers_keep_strict_snapshot_contract(self):
+        view, _ = self.source()
+        self.fixture.pin(2)
+        reply = self.fixture.demand(lease='legacy', snapshot=view, required_source_tier='gpu')
+        self.assertEqual(reply['reason'], 'stale_snapshot')
+
+    def test_copy_witness_does_not_bypass_live_host_budget(self):
+        view, row = self.source()
+        self.owner._native_host_tensor_budget = 1024
+        self.owner.host_allocation_check = Mock(return_value=dict(admitted=False))
+        self.fixture.pin(2)
+        reply = self.acquire(view, row, 'budget-reject')
+        self.assertFalse(reply['acquired'])
+        self.assertEqual(reply['reason'], 'native_host_tensor_budget')
+        self.assertNotIn('budget-reject', self.owner._leases)
+
+    def test_native_invalidated_owner_rejects_even_a_matching_witness(self):
+        view, row = self.source()
+        self.acquire(view, row, 'inflight')
+        self.fixture.manager.deactivate(4)
+        with self.assertRaisesRegex(RuntimeError, 'invalidated a referenced adapter'):
+            self.acquire(view, row, 'later')
+
+    def test_transport_retry_keeps_one_lease_but_cannot_change_copy_identity(self):
+        view, row = self.source()
+        reply = self.acquire(view, row, 'once')
+        self.assertEqual(self.acquire(view, row, 'once'), reply)
+        self.assertEqual(self.owner.snapshot()['reference_counts']['4'], 1)
+        with self.assertRaisesRegex(ValueError, 'different demand load'):
+            self.acquire(view, dict(row, source_id='different-copy'), 'once')
+
+    def test_host_eviction_reload_rejects_old_cpu_object(self):
+        self.fixture.manager.deactivate(4)
+        view, row = self.source()
+        self.fixture.manager.remove_adapter(4)
+        self.fixture.demand(lease='reload')
+        self.fixture.release('reload')
+        self.fixture.manager.deactivate(4)
+        self.assertNotEqual(self.source()[1]['source_id'], row['source_id'])
+        reply = self.owner.hold_host_source(lease_id='old-host', adapter_int_id=4,
+            lora_name='adapter-4', lora_path='/existing/adapter-4',
+            expected_owner_id=view['owner_id'], expected_epoch=view['epoch'],
+            expected_source_id=row['source_id'])
+        self.assertFalse(reply['held'])
+        self.assertEqual(reply['reason'], 'required_source_changed')
+
+
 class NativeReferences(unittest.TestCase):
     def setUp(self):
         self.manager = NativeManager()

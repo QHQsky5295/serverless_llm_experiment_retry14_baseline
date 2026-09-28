@@ -15287,6 +15287,8 @@ class ScenarioRunner:
                   'expected_owner_id': snapshot['owner_id'], 'expected_epoch': snapshot['epoch']}
         if cached_only:
             intent['required_source_tier'] = selected_source.tier
+        if guarded_source is not None:
+            intent['expected_source_id'] = guarded_source['source_id']
         # Keep the selected source and worker totals in per-request evidence.
         # The detailed tensor/alias inventory belongs to qualification/resource
         # observations, not a duplicate many-megabyte table for every request.
@@ -15312,6 +15314,9 @@ class ScenarioRunner:
                         raise ValueError('native acquisition receipt changed request/source identity')
                 if receipt['owner_id'] != intent['expected_owner_id']:
                     raise ValueError('native acquisition receipt changed worker identity')
+                if (guarded_source is not None
+                        and receipt.get('expected_source_id') != intent['expected_source_id']):
+                    raise ValueError('native acquisition did not confirm the selected copy identity')
                 if cached_only and (
                         receipt.get('required_source_tier') != intent['required_source_tier']
                         or receipt.get('source_tier_before_acquisition') != intent['required_source_tier']
@@ -15437,6 +15442,8 @@ class ScenarioRunner:
                 or not self.model_cfg.get('ieee_gpu_references')):
             raise ValueError('IEEE source admission requires native timing and references')
         slot, evidence = reservation.slot, reservation.gpu_reference_evidence
+        if source['native'] and (not isinstance(source.get('source_id'), str) or not source['source_id']):
+            raise ValueError('native source admission requires its observed copy identity')
         engine = slot.engine
         reservation.gpu_reference_engine = engine
         preparation_profile = getattr(self, '_preparation_profiles', None)
@@ -15478,7 +15485,8 @@ class ScenarioRunner:
             intent = dict(lease_id=uuid.uuid4().hex,
                 adapter_int_id=InferenceEngine._lora_int_id(reservation.adapter_id),
                 lora_name=reservation.adapter_id, lora_path=source['path'],
-                expected_owner_id=source['owner_id'], expected_epoch=source['epoch'])
+                expected_owner_id=source['owner_id'], expected_epoch=source['epoch'],
+                expected_source_id=source['source_id'])
             host = dict(state='holding', intent=intent)
             evidence['native_host_source'] = host
             self._track_native_reference_intent(reservation, intent, 'host')
@@ -15495,6 +15503,7 @@ class ScenarioRunner:
             held_at = receipt.get('held_monotonic_s')
             if (receipt.get('owner_id') != source['owner_id']
                     or receipt['epoch'] <= source['epoch']
+                    or receipt.get('expected_source_id') != source['source_id']
                     or any(receipt.get(key) != intent[key] for key in
                            ('lease_id', 'adapter_int_id', 'lora_name', 'lora_path'))
                     or receipt.get('tier') != 'host' or receipt.get('gpu_acquired') is not False

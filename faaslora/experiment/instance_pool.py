@@ -31,6 +31,7 @@ class NativeAdapterSource:
     host_representation: Optional[str] = None
     gpu_slot_capacity_bytes: Optional[int] = None
     gpu_representation: Optional[str] = None
+    source_id: Optional[str] = None
 
     @property
     def tier(self) -> str:
@@ -189,6 +190,9 @@ class NativeSourceSnapshot:
                     or not positive_int(row.get('rank')) or row.get('cpu_registered') is not True):
                 raise ValueError('native source identity/rank/CPU evidence is invalid')
             slot, confirmed = row.get('gpu_slot'), row.get('gpu_confirmed_monotonic_s')
+            source_id = row.get('source_id')
+            if source_id is not None and (not isinstance(source_id, str) or not source_id):
+                raise ValueError('native source copy identity is invalid')
             if 'gpu_slot' not in row or 'gpu_confirmed_monotonic_s' not in row:
                 raise ValueError('native source must explicitly declare GPU completion evidence')
             if slot is None:
@@ -200,7 +204,7 @@ class NativeSourceSnapshot:
                 raise ValueError('GPU source lacks matching slot/completed-copy evidence')
             sources.append(NativeAdapterSource(row['adapter_int_id'], row['adapter_id'],
                 row['lora_path'], row['rank'], slot, confirmed,
-                *footprints.get(row['adapter_int_id'], (None, None, None, None))))
+                *footprints.get(row['adapter_int_id'], (None, None, None, None)), source_id))
         known = {row.adapter_int_id for row in sources}
         names = {row.adapter_id for row in sources}
         gpu_known = {row.adapter_int_id for row in sources if row.gpu_slot is not None}
@@ -291,8 +295,11 @@ def confirmed_source_class(*, native: NativeSourceSnapshot, files: Mapping,
         if (selected.adapter_int_id != adapter_int_id or selected.adapter_id != adapter_id
                 or selected.rank != identity['rank']):
             raise ValueError('native routing source changed frozen adapter identity/rank')
+        if not selected.source_id:
+            raise ValueError('confirmed routing requires a native copy identity')
         return selected.service_class(bins, **features), dict(
             owner_id=native.owner_id, epoch=native.epoch, tier=selected.tier,
+            source_id=selected.source_id,
             path=selected.lora_path, native=True, expected_content_sha256=identity['content_sha256'],
             footprint_bytes=(selected.gpu_slot_capacity_bytes if selected.tier == 'gpu'
                              else selected.host_storage_bytes),

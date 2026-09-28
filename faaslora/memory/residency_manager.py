@@ -1480,6 +1480,9 @@ class IEEEBackendGPUReferences:
         self._source_objects: Dict[int, weakref.ReferenceType] = {}
         self._source_incarnations: Dict[int, str] = {}
         self._gpu_confirmations: Dict[int, Tuple[int, float]] = {}
+        # Copy identity is not a reference-count version. Concurrent readers
+        # may pin one unchanged copy; removal/republication creates a new ID.
+        self._gpu_source_incarnations: Dict[int, str] = {}
         self._preparations: Dict[str, Dict[str, Any]] = {}
         self._preparation_plans: Dict[str, Dict[str, Any]] = {}
         self._closed_preparation_plans: Set[str] = set()
@@ -1508,6 +1511,7 @@ class IEEEBackendGPUReferences:
                 self._poisoned = True
                 raise RuntimeError('native cache removal outside its worker thread')
             self._gpu_confirmations.pop(key, None)
+            self._gpu_source_incarnations.pop(key, None)
             self.epoch += 1
             if key in self._references or (cache is self._caches()[0] and key in self._host_references):
                 self._poisoned = True
@@ -1616,6 +1620,7 @@ class IEEEBackendGPUReferences:
         for aid, (slot, _) in tuple(self._gpu_confirmations.items()):
             if slots[slot] != aid:
                 del self._gpu_confirmations[aid]
+                self._gpu_source_incarnations.pop(aid, None)
         state = (slots, tuple(sorted(cpu)), tuple(sorted(cpu.pinned_items)),
                  tuple(sorted(gpu.pinned_items)))
         if state != self._native_state:
@@ -1837,6 +1842,8 @@ class IEEEBackendGPUReferences:
             confirmation = self._gpu_confirmations.get(aid)
             sources.append({'adapter_int_id': aid, 'adapter_id': name,
                             'lora_path': path, 'rank': rank, 'cpu_registered': True,
+                            'source_id': (self._gpu_source_incarnations[aid] if confirmation
+                                          else self._source_incarnations[aid]),
                             'gpu_slot': confirmation[0] if confirmation else None,
                             'gpu_confirmed_monotonic_s': confirmation[1] if confirmation else None})
         unknown = sorted(set(cpu) - set(self._sources))
@@ -1895,7 +1902,8 @@ class IEEEBackendGPUReferences:
 
     def hold_host_source(self, *, lease_id: str, adapter_int_id: int, lora_name: str,
                          lora_path: str, expected_owner_id: str, expected_epoch: int,
-                         reference_purpose: str = 'demand_preparation') -> Dict[str, Any]:
+                         reference_purpose: str = 'demand_preparation',
+                         expected_source_id: Optional[str] = None) -> Dict[str, Any]:
         """Protect an observed native HOST source without loading or GPU pinning.
 
         This is the source half of request admission, not GPU promotion/admission.
@@ -1907,6 +1915,9 @@ class IEEEBackendGPUReferences:
                 or adapter_int_id <= 0 or type(expected_epoch) is not int or expected_epoch < 1
                 or not isinstance(lora_name, str) or not lora_name
                 or not isinstance(lora_path, str) or not Path(lora_path).is_absolute()
+                or (expected_source_id is not None and
+                    (not isinstance(expected_source_id, str) or not expected_source_id
+                     or reference_purpose != 'demand_preparation'))
                 or reference_purpose not in ('demand_preparation', 'file_fallback')):
             raise ValueError('HOST source hold requires exact lease/source/epoch identity')
         self._refresh()
@@ -1916,18 +1927,22 @@ class IEEEBackendGPUReferences:
         if lease_id in self._host_leases:
             receipt = self._host_leases[lease_id]
             if (tuple(receipt[key] for key in ('adapter_int_id', 'lora_name', 'lora_path')) != identity
-                    or receipt.get('reference_purpose', 'demand_preparation') != reference_purpose):
+                    or receipt.get('reference_purpose', 'demand_preparation') != reference_purpose
+                    or receipt.get('expected_source_id') != expected_source_id):
                 raise ValueError('HOST source lease reused for another adapter')
             return dict(receipt)
         if (lease_id in self._host_released or lease_id in self._leases
                 or lease_id in self._released or lease_id in self._staged_host_leases):
             raise ValueError('HOST source lease is not unused')
-        if expected_epoch != self.epoch:
+        if expected_epoch > self.epoch or (expected_source_id is None and expected_epoch != self.epoch):
             return {'held': False, 'reason': 'stale_snapshot', **self.snapshot()}
         cpu, _ = self._caches()
         if (adapter_int_id not in cpu
                 or (reference_purpose == 'demand_preparation' and adapter_int_id in self._gpu_confirmations)
                 or self._sources.get(adapter_int_id) != (lora_name, lora_path)):
+            return {'held': False, 'reason': 'required_source_changed', **self.snapshot()}
+        if (expected_source_id is not None
+                and expected_source_id != self._source_incarnations.get(adapter_int_id)):
             return {'held': False, 'reason': 'required_source_changed', **self.snapshot()}
         if adapter_int_id not in self._host_references:
             borrowed = (self._borrowed_pins[adapter_int_id][0] if adapter_int_id in self._references
@@ -1941,7 +1956,8 @@ class IEEEBackendGPUReferences:
         receipt = dict(held=True, owner_id=self.owner_id, epoch=self.epoch, lease_id=lease_id,
             adapter_int_id=adapter_int_id, lora_name=lora_name, lora_path=lora_path,
             tier='host', reference_scope='native_cpu_lru_source', held_monotonic_s=time.monotonic(),
-            gpu_acquired=False, reference_purpose=reference_purpose)
+            gpu_acquired=False, reference_purpose=reference_purpose,
+            expected_source_id=expected_source_id)
         self._host_leases[lease_id] = receipt
         return dict(receipt)
 
@@ -2160,6 +2176,8 @@ class IEEEBackendGPUReferences:
             self._references[adapter_int_id] = set()
         self._references[adapter_int_id].add(lease_id)
         self._leases[lease_id] = receipt
+        if adapter_int_id not in self._gpu_confirmations:
+            self._gpu_source_incarnations[adapter_int_id] = uuid.uuid4().hex
         self._gpu_confirmations[adapter_int_id] = (receipt['slot'], acquired_at)
         self.epoch += 1
         self._refresh()
@@ -2202,16 +2220,17 @@ class IEEEBackendGPUReferences:
     def demand_load_and_acquire(self, *, lease_id: str, adapter_int_id: int,
                                 lora_name: str, lora_path: str,
                                 expected_owner_id: str, expected_epoch: int,
-                                required_source_tier: Optional[str] = None) -> Dict[str, Any]:
+                                required_source_tier: Optional[str] = None,
+                                expected_source_id: Optional[str] = None) -> Dict[str, Any]:
         return self._load_and_acquire(lease_id=lease_id, adapter_int_id=adapter_int_id,
             lora_name=lora_name, lora_path=lora_path, expected_owner_id=expected_owner_id,
             expected_epoch=expected_epoch, required_source_tier=required_source_tier,
-            loader=self.demand_loader)
+            expected_source_id=expected_source_id, loader=self.demand_loader)
 
     def _load_and_acquire(self, *, lease_id: str, adapter_int_id: int,
                          lora_name: str, lora_path: str, expected_owner_id: str,
                          expected_epoch: int, required_source_tier: Optional[str],
-                         loader) -> Dict[str, Any]:
+                         loader, expected_source_id: Optional[str] = None) -> Dict[str, Any]:
         """Native demand load -> completion -> pin, on one serialized worker.
 
         There is no await or controller-side load/query gap in this operation.
@@ -2238,6 +2257,10 @@ class IEEEBackendGPUReferences:
             raise ValueError('demand load requires adapter name and absolute materialized path')
         if required_source_tier not in (None, 'gpu', 'host'):
             raise ValueError('required source must be a native GPU or HOST source')
+        if expected_source_id is not None and (
+                not isinstance(expected_source_id, str) or not expected_source_id
+                or required_source_tier not in ('gpu', 'host')):
+            raise ValueError('copy witness requires an observed native source tier and identity')
         slots = self._refresh()
         if expected_owner_id != self.owner_id:
             return {'acquired': False, 'reason': 'owner_changed', **self.snapshot()}
@@ -2250,12 +2273,13 @@ class IEEEBackendGPUReferences:
             if (receipt['adapter_int_id'] != adapter_int_id
                     or receipt.get('acquisition_operation') != 'demand_load_and_acquire'
                     or (receipt['lora_name'], receipt['lora_path']) != source
-                    or receipt.get('required_source_tier') != required_source_tier):
+                    or receipt.get('required_source_tier') != required_source_tier
+                    or receipt.get('expected_source_id') != expected_source_id):
                 raise ValueError('lease ID reused for a different demand load')
             return dict(receipt)
         if lease_id in self._released:
             raise ValueError('released lease ID cannot be reused')
-        if expected_epoch != self.epoch:
+        if expected_epoch > self.epoch or (expected_source_id is None and expected_epoch != self.epoch):
             return {'acquired': False, 'reason': 'stale_snapshot', **self.snapshot()}
         if not callable(loader):
             raise RuntimeError('native demand loader is not attached')
@@ -2273,6 +2297,14 @@ class IEEEBackendGPUReferences:
         if required_source_tier is not None and source_tier != required_source_tier:
             return {'acquired': False, 'reason': 'required_source_changed',
                     'observed_source_tier': source_tier, **self.snapshot()}
+        if expected_source_id is not None:
+            current_source_id = (self._gpu_source_incarnations.get(adapter_int_id)
+                if source_tier == 'gpu' else self._source_incarnations.get(adapter_int_id))
+            if current_source_id != expected_source_id:
+                return {'acquired': False, 'reason': 'required_source_changed', **self.snapshot()}
+        # The worker is serialized: validate this exact copy, then all LIVE
+        # capacity/pin/budget constraints before mutation. Other references do
+        # not invalidate a copy, but no old capacity decision is reused here.
         if not gpu.pinned_items.issubset(cpu.pinned_items):
             raise RuntimeError('native GPU pin lacks matching CPU eviction protection')
         if not gpu_hit and None not in slots and not (set(gpu) - gpu.pinned_items):
@@ -2334,6 +2366,7 @@ class IEEEBackendGPUReferences:
         self._sources[adapter_int_id] = source
         receipt.update(acquisition_operation='demand_load_and_acquire',
                        lora_name=lora_name, lora_path=lora_path,
+                       expected_source_id=expected_source_id,
                        required_source_tier=required_source_tier,
                        source_tier_before_acquisition=source_tier,
                        gpu_confirmed_before_acquisition=gpu_confirmed,

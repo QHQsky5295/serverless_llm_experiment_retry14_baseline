@@ -40,6 +40,7 @@ def source_payload():
                 unconfirmed_gpu_adapter_ids=[], complete_for_native_caches=True,
                 snapshot_holds_reference=False,
                 sources=[dict(adapter_int_id=4, adapter_id='a', lora_path='/existing/a',
+                              source_id='fixture-native-copy',
                               rank=8, cpu_registered=True, gpu_slot=0,
                               gpu_confirmed_monotonic_s=9.)])
 
@@ -233,6 +234,14 @@ class ConfirmedTierComposition(unittest.TestCase):
         key, evidence = self.classify(payload)
         self.assertEqual((key.tier, key.footprint_bin), ('host', 0))
         self.assertTrue(key.representation.startswith('native_cpu_'))
+
+    def test_confirmed_routing_requires_copy_witness_not_just_global_epoch(self):
+        payload = measured_source_payload()
+        key, evidence = self.classify(payload)
+        self.assertEqual(evidence['source_id'], payload['sources'][0]['source_id'])
+        del payload['sources'][0]['source_id']
+        with self.assertRaisesRegex(ValueError, 'native copy identity'):
+            self.classify(payload)
 
     def test_file_host_nvme_and_remote_are_not_tensor_or_wire_footprints(self):
         for tier, sources, footprint_bin in [('host', [self.file('nvme'), self.file('host')], 2),

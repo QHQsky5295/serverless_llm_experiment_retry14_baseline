@@ -1,5 +1,58 @@
 # IEEE TC execution status
 
+## Latest — D98 selected-copy confirmation CPU-verified; backup then Full replay
+
+2026-09-28 ~10:08. Supersedes older NEXT/LIVE entries. No GPU or remote service
+is running. D97 evidence checkpoint 0056894 was pushed and remotely verified.
+The one candidate D98 separates native copy incarnation from reference counts:
+selected GPU/HOST source identity is carried through routing and atomically
+validated by the native owner; full live capacity/pin/budget checks remain.
+Native removal withdraws GPU identity, re-confirmation creates a new identity;
+HOST uses existing CPU-object incarnation. Full rejects missing copy identity.
+Global epoch and proactive planner/E(t)/replacement guards remain unchanged.
+No formula, profile, trace, generation, deadline, remote or tuning change.
+
+CPU controlled comparison: same object and slots, 32 shared-source acquisitions:
+GPU and HOST each 1/32 accepted under old global epoch, 32/32 under selected-copy
+contract; no extra loads, no references left. Actual controller integration
+preserves one admission after unrelated acquire/release, and whole reselection
+after real deactivate/reconfirm. Red 8 tests had 7 missing-field errors; native
+green 8 passed; integration78 PASS1.630s. Final distinct regression1215 PASS:
+1168 model/related in53.771s,47 OS guards in.132s. Qualified interpreters used.
+No CUDA performance claim, Full/SLO/numerical qualification still pending.
+
+Curated20260928_d98_selected_copy_confirmation.json SHA
+05f2958219b153624580fa2790b265b2b8619b7d2ae9fd6394cd4355dab03dff;
+15 source SHA refs,147 protected entries and unchanged plan/V1 verified.
+First curator failed on logical/physical symlink path AFTER cleaning six empty
+CPU scopes; log retained, path fixed, no experimental rerun. Initial cleanup
+resource counters were not persisted, do not fabricate them. Six tests/probe
+scopes now inactive. Both finished curator scopes were also verified empty with
+matching invocation before stop; raw curator_cleanup.json records both. No live
+CPU task remains. All actual CPU subprocesses have exited.
+
+User output-length clarification answered: native backend stopping parameters
+already reused, no bespoke generation/padded tokens/identical-text requirement;
+S12 natural EOS unchanged. Explanation doc section7 added. Next scoped10-file
+backup (3 sources,3 tests,3 docs including ledger,1curatedJSON), exclude user
+manifest. Then one canonical3B Full4000 W0 attempt5, sameD88/D89 configuration
+and1800s deadline, freshownedpaths. Do NOT stack more changes/repeat profiles,
+cache publication/prefixes or regression. Baselines remain paused. Full goal
+active;7BFull/warmSLO/Resident/M1M2/A/S/numerical discrimination pending.
+
+## Latest — D97 evidence backed up; causal source-admission work next
+
+Checkpoint00568948795e223b6b2367e364c66fd19e2863f4 PUSHED to
+faaslora_origin/retry14_continuous_queue_v2; fresh ls-remote SHA matched.
+Receipt d97_20260928/full4_evidence_push_receipt.json. Five scoped files only;
+user manifest/unrelated files excluded. Prior27sourceSHA/147protected/47qualified
+smoke checks retained; do NOT repeat curation, tests or backup. All owned CPU
+scopes including verification are already stopped. No actual GPU/remote job live.
+Next one causal CPU workstream: selected-source conflicts under unchanged copy
+identity, with live capacity/owner/tier/replacement and cancellation safeguards.
+No production change yet; no unchanged GPU replay; baselines remain paused.
+Full goal active, warm/Resident/M1M2/A/S/7BFull/numerical qualification pending.
+
 ## Latest — D97 failure analysis COMPLETE; evidence checkpoint then causal CPU work
 
 Pre-backup:27sourceSHArefs independently rechecked; companionSHA

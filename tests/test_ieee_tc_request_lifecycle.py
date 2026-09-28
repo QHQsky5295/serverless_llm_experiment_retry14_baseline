@@ -598,6 +598,49 @@ def native_reference_fixture():
 
 class SelectedSourceAdmissionIntegration(unittest.TestCase):
     """Real request/router/owner and event path; tiny fixtures, no GPU timing claim."""
+    def replace_gpu_copy(self, owner, adapter_id, lease_id):
+        aid = InferenceEngine._lora_int_id(adapter_id)
+        name, path = owner._sources[aid]
+        owner.manager.deactivate(aid)
+        current = owner.snapshot()
+        reply = owner.demand_load_and_acquire(lease_id=lease_id, adapter_int_id=aid,
+            lora_name=name, lora_path=path, expected_owner_id=current['owner_id'],
+            expected_epoch=current['epoch'])
+        self.assertTrue(reply['acquired'])
+        self.assertTrue(owner.release(lease_id=lease_id, expected_owner_id=owner.owner_id)['released'])
+
+    def test_unrelated_reference_transition_keeps_selected_copy_and_one_admission(self):
+        for tier in ('gpu', 'host'):
+            with self.subTest(tier=tier):
+                runner, slot, trace, plan, owner, observed = self.build(tier)
+                attempts = []
+                operation_name = 'demand_load_and_acquire' if tier == 'gpu' else 'hold_host_source'
+                async def interfere(*, operation, **kwargs):
+                    if operation == operation_name:
+                        attempts.append(kwargs)
+                        if len(attempts) == 1:
+                            current = owner.snapshot()
+                            identity = dict(lease_id='another-reference', adapter_int_id=kwargs['adapter_int_id'],
+                                expected_owner_id=current['owner_id'], expected_epoch=current['epoch'])
+                            if tier == 'gpu':
+                                self.assertTrue(owner.acquire(**identity)['acquired'])
+                                owner.release(lease_id='another-reference', expected_owner_id=owner.owner_id)
+                            else:
+                                self.assertTrue(owner.hold_host_source(**identity,
+                                    lora_name=kwargs['lora_name'], lora_path=kwargs['lora_path'])['held'])
+                                owner.release_host_source(lease_id='another-reference', expected_owner_id=owner.owner_id)
+                    return await observed(operation=operation, **kwargs)
+                slot.engine.ieee_gpu_reference.side_effect = interfere
+                result = asyncio.run(asyncio.wait_for(
+                    runner._exec_request(trace, 4, 0., request_plan=plan), 2.))
+                self.assertTrue(result.success, result.error)
+                guarded = [r for r in attempts if r.get('expected_source_id')]
+                self.assertEqual(len(guarded), 1)
+                self.assertFalse(result.gpu_reference_evidence.get('prior_routing_attempts'))
+                self.assertEqual(slot.active_requests, 0)
+                self.assertEqual(owner.snapshot()['live_leases'], 0)
+                self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
+
     def bind_preparation_fixture(self, runner, slot):
         from faaslora.preloading.preloading_planner import PreparationClass, FrozenPreparationProfiles
         content = runner._ieee_artifact_identities['adapter-a']['content_sha256']
@@ -803,7 +846,7 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
                 attempts.append(kwargs['lease_id'])
                 self.assertEqual(slot.active_requests, 1)
                 if len(attempts) <= 2:
-                    owner.epoch += 1  # Controlled unrelated native transition.
+                    self.replace_gpu_copy(owner, trace.adapter_id, f'replace-{len(attempts)}')
             return await observed(operation=operation, **kwargs)
         slot.engine.ieee_gpu_reference.side_effect = concurrent_epoch
         result = dict(requests=[])
@@ -904,7 +947,7 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
                 self.assertEqual(len(active), 1)
                 attempts.append(kwargs['lease_id'])
                 if len(attempts) == 1:
-                    owner.epoch += 1
+                    self.replace_gpu_copy(owner, trace.adapter_id, 'replace-pending')
             return await original_rpc(**kwargs)
 
         async def generate(**kwargs):

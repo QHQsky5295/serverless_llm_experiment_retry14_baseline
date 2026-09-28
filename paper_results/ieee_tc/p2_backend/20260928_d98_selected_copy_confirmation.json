@@ -1,0 +1,234 @@
+{
+  "kind": "d98_selected_copy_confirmation_checkpoint_v1",
+  "parent_commit": "00568948795e223b6b2367e364c66fd19e2863f4",
+  "stage": "Prime IEEE Full development",
+  "performance_qualified": false,
+  "gpu_experiment": false,
+  "review_independence": "local-only",
+  "baselines_paused": true,
+  "cases": [
+    {
+      "tier": "gpu",
+      "contract": "global_epoch",
+      "attempts": 32,
+      "accepted": 1,
+      "rejections": {
+        "stale_snapshot": 31
+      },
+      "unchanged_cpu_object": true,
+      "unchanged_slots": true,
+      "additional_loads": 0,
+      "final_live_references": 0
+    },
+    {
+      "tier": "gpu",
+      "contract": "selected_copy",
+      "attempts": 32,
+      "accepted": 32,
+      "rejections": {},
+      "unchanged_cpu_object": true,
+      "unchanged_slots": true,
+      "additional_loads": 0,
+      "final_live_references": 0
+    },
+    {
+      "tier": "host",
+      "contract": "global_epoch",
+      "attempts": 32,
+      "accepted": 1,
+      "rejections": {
+        "stale_snapshot": 31
+      },
+      "unchanged_cpu_object": true,
+      "unchanged_slots": true,
+      "additional_loads": 0,
+      "final_live_references": 0
+    },
+    {
+      "tier": "host",
+      "contract": "selected_copy",
+      "attempts": 32,
+      "accepted": 32,
+      "rejections": {},
+      "unchanged_cpu_object": true,
+      "unchanged_slots": true,
+      "additional_loads": 0,
+      "final_live_references": 0
+    }
+  ],
+  "tests": {
+    "integration1.log": {
+      "tests": 78,
+      "seconds": 1.63,
+      "passed": true
+    },
+    "regression1.log": {
+      "tests": 1168,
+      "seconds": 53.771,
+      "passed": true
+    },
+    "osguards1.log": {
+      "tests": 47,
+      "seconds": 0.132,
+      "passed": true
+    }
+  },
+  "distinct_regression_tests": 1215,
+  "source_sha256": {
+    "faaslora/memory/residency_manager.py": "c2d302a43ff2386795e3920bdcb7a6733f9119f673644c010a64b3d3e7b58f56",
+    "faaslora/experiment/instance_pool.py": "65744a7c6037b5e01ec2e1c3cfb880f9a6ffd79232af2bfa3f7f449a771636bd",
+    "scripts/run_all_experiments.py": "9cfc5dcb645b7d6cac715fa59c108df38cbb086698349de6962348b291b8faab",
+    "tests/test_ieee_tc_gpu_references.py": "d56564c5e08d1381d5052d6d87dab740414b9d63f4d8b4cc2f22794a1456986c",
+    "tests/test_ieee_tc_request_lifecycle.py": "726df41e78adfa51f340fdebd0d18673d23166e3f5fd8a7e45dd8532b6f02345",
+    "tests/test_ieee_tc_service_routing.py": "5c7343d64c9540388711cc92432058e4fbe78cfd61bae9d55f4351d7b16fd0f0",
+    "results/ieee_tc/p2_backend_qualification/d98_20260928/cpu_test_receipts.json": "c2885f298d1a5b44064e40bca70405376b77f1fc86274d564b022f0010499187",
+    "results/ieee_tc/p2_backend_qualification/d98_20260928/probe_copy_conflicts.py": "ba02b0bc2d4b6f30b39b40251c2d56bad4256f189e329cdf79ac4471003b89ef",
+    "results/ieee_tc/p2_backend_qualification/d98_20260928/copy_conflicts.json": "4e4ebd668667b8b297dcddd264cfaf5170a2974f2aa82c0464025b3f7d037a18",
+    "results/ieee_tc/p2_backend_qualification/d98_20260928/copy_conflicts.log": "ab3e8c521c6a47ac1fa0714cb899bff6e3f505a1f3b384a9d1aee81b54442ed4",
+    "results/ieee_tc/p2_backend_qualification/d98_20260928/regression.py": "4a3b39654d9de527c0a8e27efc9275b11d23f10b817ca56c9cb3dce298e59cb9",
+    "results/ieee_tc/p2_backend_qualification/d98_20260928/integration1.log": "d978fbb77da7f2ec436406f15cd486d9b2215ac6ab5f580cc97653a8967ddc25",
+    "results/ieee_tc/p2_backend_qualification/d98_20260928/regression1.log": "5c60320449d5b05b48000212e763cddec320887626431d99dd9ded426b57fa84",
+    "results/ieee_tc/p2_backend_qualification/d98_20260928/osguards1.log": "d774c20e9e761fe08328eaf91d2f0ea615f034d192ede66c0390d573630735b8",
+    "results/ieee_tc/p2_backend_qualification/d96_20260928/source_conflict_probe.log": "b292c76a04413034be150d55c053281ff65c5420e7e989653f64bc2176cb5e7b"
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "completed_scope_cleanup": [
+    {
+      "unit": "primelora-d98-copy-red-20260928.scope",
+      "before": {
+        "ControlGroup": "",
+        "TasksCurrent": "[not set]",
+        "MemoryHigh": "infinity",
+        "MemoryMax": "infinity",
+        "MemorySwapMax": "infinity",
+        "ActiveState": "inactive",
+        "InvocationID": ""
+      },
+      "after": {
+        "ControlGroup": "",
+        "TasksCurrent": "[not set]",
+        "MemoryHigh": "infinity",
+        "MemoryMax": "infinity",
+        "MemorySwapMax": "infinity",
+        "ActiveState": "inactive",
+        "InvocationID": ""
+      }
+    },
+    {
+      "unit": "primelora-d98-copy-green1-20260928.scope",
+      "before": {
+        "ControlGroup": "",
+        "TasksCurrent": "[not set]",
+        "MemoryHigh": "infinity",
+        "MemoryMax": "infinity",
+        "MemorySwapMax": "infinity",
+        "ActiveState": "inactive",
+        "InvocationID": ""
+      },
+      "after": {
+        "ControlGroup": "",
+        "TasksCurrent": "[not set]",
+        "MemoryHigh": "infinity",
+        "MemoryMax": "infinity",
+        "MemorySwapMax": "infinity",
+        "ActiveState": "inactive",
+        "InvocationID": ""
+      }
+    },
+    {
+      "unit": "primelora-d98-copy-integration-20260928.scope",
+      "before": {
+        "ControlGroup": "",
+        "TasksCurrent": "[not set]",
+        "MemoryHigh": "infinity",
+        "MemoryMax": "infinity",
+        "MemorySwapMax": "infinity",
+        "ActiveState": "inactive",
+        "InvocationID": ""
+      },
+      "after": {
+        "ControlGroup": "",
+        "TasksCurrent": "[not set]",
+        "MemoryHigh": "infinity",
+        "MemoryMax": "infinity",
+        "MemorySwapMax": "infinity",
+        "ActiveState": "inactive",
+        "InvocationID": ""
+      }
+    },
+    {
+      "unit": "primelora-d98-copy-probe-20260928.scope",
+      "before": {
+        "ControlGroup": "",
+        "TasksCurrent": "[not set]",
+        "MemoryHigh": "infinity",
+        "MemoryMax": "infinity",
+        "MemorySwapMax": "infinity",
+        "ActiveState": "inactive",
+        "InvocationID": ""
+      },
+      "after": {
+        "ControlGroup": "",
+        "TasksCurrent": "[not set]",
+        "MemoryHigh": "infinity",
+        "MemoryMax": "infinity",
+        "MemorySwapMax": "infinity",
+        "ActiveState": "inactive",
+        "InvocationID": ""
+      }
+    },
+    {
+      "unit": "primelora-d98-copy-regression-20260928.scope",
+      "before": {
+        "ControlGroup": "",
+        "TasksCurrent": "[not set]",
+        "MemoryHigh": "infinity",
+        "MemoryMax": "infinity",
+        "MemorySwapMax": "infinity",
+        "ActiveState": "inactive",
+        "InvocationID": ""
+      },
+      "after": {
+        "ControlGroup": "",
+        "TasksCurrent": "[not set]",
+        "MemoryHigh": "infinity",
+        "MemoryMax": "infinity",
+        "MemorySwapMax": "infinity",
+        "ActiveState": "inactive",
+        "InvocationID": ""
+      }
+    },
+    {
+      "unit": "primelora-d98-copy-osguards-20260928.scope",
+      "before": {
+        "ControlGroup": "",
+        "TasksCurrent": "[not set]",
+        "MemoryHigh": "infinity",
+        "MemoryMax": "infinity",
+        "MemorySwapMax": "infinity",
+        "ActiveState": "inactive",
+        "InvocationID": ""
+      },
+      "after": {
+        "ControlGroup": "",
+        "TasksCurrent": "[not set]",
+        "MemoryHigh": "infinity",
+        "MemoryMax": "infinity",
+        "MemorySwapMax": "infinity",
+        "ActiveState": "inactive",
+        "InvocationID": ""
+      }
+    }
+  ],
+  "limitations": "CPU cache fixtures, not CUDA latency proof. Full4000 replay still required; no numerical LoRA or formal SLO qualification.",
+  "next": "Scoped backup then canonical3B Full4000 W0; same input/configuration/deadline and fresh owned paths. No further optimization first."
+}
