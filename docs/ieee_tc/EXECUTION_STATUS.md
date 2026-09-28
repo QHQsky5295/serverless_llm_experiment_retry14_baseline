@@ -1,6 +1,92 @@
 # IEEE TC execution status
 
-## CURRENT — D102 CPU diagnosis complete; no production change; full-path profiling next
+## CURRENT — D103 profiling interrupted; cleaned; source-coverage counterexample next
+
+2026-09-28 17:20. Supersedes ALL historical live/NEXT instructions below.
+Goal ACTIVE/incomplete,baselines PAUSED. NoGPU/remotejob. RuntimeFull8 source
+2f1bc4ba1d9fb3a1b17428390c4c3c63dbb09f1d unchanged; evidenceHEAD e6c7831.
+
+- D103profiling didNOTcomplete. Planned4000,arrived59,submitted58;27savedrequest
+  records=11success/native-contract+1failed_untyped(req_00018)+15CancelledError.
+  Physicalsummary12noninterruptedterminal/15interrupted. DoNOTfabricateoutcomes
+  fortheotheroffered/submitted/unarrivedrequests; original4000denominator retained.
+- Native primaryexception: ieee_prepare_host ->
+  residency_manager.py:2505 proactive_host_prepare_and_acquire:
+  'replacement epoch lacks the current owned source/fallback set'. Guardchecks
+  coverage OR name/pathidentity OR missingGPUconfirmation. Whichsubcondition
+  failedisNOTyetproven. DoNOTassumeprofiler-causedorjustremoveguard.
+- GPUplan38aa40e1f6fb49a58b1ac539c82837a4 registeredepoch1/allslotsNone;
+  laterexplicitdeferrals epoch96/100; adapter416753 native_outcome_unresolved,
+  nofailedRPCreceipt. Mainfailurepropagatedthroughresidencytaskreaping.
+- LaterpublisherBrokenPipe/ConnectionReset; launchclassification
+  protocol_or_launcher_error:'external replay failed; no silent internal timer
+  fallback',serviceexit-15,replayexit1. KeepouterclassificationANDearlierservice
+  cause. Profilerterminatedbeforewrite: NOspeedscope,emptytimefile,NOCPUresult.
+- Observed346.7111347940081GPU-s only; fullgpu_secondsnull.4leasesallreleased,
+  cleanupcomplete,nativeGPUrelease/servicepathremovedtrue.190resourcesamples,
+  peak19720454144B,minhostavailable93658480640B,high/max/OOM/swap/warnings0.
+  All12remoteUUIDpairs published/contentverified,27884609Bbothends,packing0.
+- Mainexit/GPUemptyverified; exactremote3B/7B/monitorstopped17:15:31 andemptyaux
+  cleaned. Remotejournalidentifiedbyclock:transfers-663b80d656c544038e1fc3b447a0d16f.jsonl,
+  copiedonceasrawD103/remote_3b_profile1_transfers.jsonl;monitorcopiedonce. No repeats.
+- Curator collect_profile1_failure.py adaptedD101; exit0,147protected/34sourcechecks
+  PASS. Curated paper_results/ieee_tc/p2_backend/20260928_d103_controller_profile1_failure.json
+  SHA79827bcd881d581d6bc1f9b605b9aa14a892c41af12e2a418e27876ae717aaa3.
+  Table/doc D103_CONTROLLER_PROFILE_INTERRUPTED.md. Curator scope
+  primelora-d103-failure-curation-20260928.scope invocation371854d44a984f5d9ec06dd639fa7beb,
+  exactidentity+empty-verified/stopped; rawD103/curation_cleanup.log. No live task.
+- NEXT scopedbackupofD103failureevidence,then ONE CPUcounterexample usingactual
+  owner/plannerfixtures: valid source-set change afterfrozenplanregistration.
+  Read D99/D100history+currentprimarysources; isolateexactguardclausebeforefix.
+  Separate legitimateplanobsolescencefromidentity/confirmationdamage. No arbitrary
+  catch/retry,newGPUreplay,profilerlifecyclepatchorparser-sharingpatch.
+- Full8lastcomplete remains3970/4000+30TimeoutError. NeitherD103norD102advances
+  formalqualification/ranking.7B,warm/Resident,baselines,M1M2,A/S stillpending.
+
+## D103 — superseded live notes (do not restart this run)
+
+2026-09-28 17:12. Supersedes ALL historical live/NEXT instructions below.
+Goal ACTIVE/incomplete; baselines PAUSED. EvidenceHEAD e6c783110046842a9aaa0cd52b96e22de8c040de
+pushed and exactremoteHEADverified. Runtime remains Full8 production2f1bc4b;
+NO production/config strategy change during this run.
+
+- ONE live tmux tc-d103-3b-profile1; canonical3BFull4000W0 plus parent-only
+  py-spy0.4.2 sampling100Hz/GIL/threads/speedscope. Diagnostic only, NOTformal
+  performance or a successful Full qualification. No shortened/generatedtrace.
+- Raw results/ieee_tc/p2_backend_qualification/d103_20260928; launcher
+  run_3b_full_w0_profile1.sh/config3b_main_config_profile1.yaml. New threeowned
+  paths only versusFull8. profile_controller_python.sh resetsFAASLORA_PYTHON to
+  actualnativePython beforelaunch; workers are NOT recursively profiled.
+- Service primelora-tc-svc-7eab36c069a6440a823e1534d27addde.scope,
+  invocationf15daa9feed7437a99511a7f078277b6;72/80GiB,swap2GiB verified.
+  Auxiliary primelora-tc-aux-3c2957f5f8614fa5a55d102b96356681.scope,
+  invocation2d064f2a857e4b39aba61a962047173e;3/4GiB,swap0 verified.
+  ActualprofilerPID2393281,controllerPID2393282. Gateallow_exec andwatchdogready
+  present;17:11:50startup ongoing,no warning/abort. DoNOTrestart/relaunch.
+- Remote3B PID1920627 invocation5e0e2d1cc6cc4ca585bc69556256cf0e;
+  7B PID1920629 invocation2a63e91d71084fc796300d301ddb87fd;
+  monitord103profile1 PID1920632 invocation51e939641e194381858cc67b93bed33f.
+  Remote3Bclock remote-process-monotonic:4983b6cc05da4803813edb91933457ce.
+  Remote journal filename MUST be found byclockafterrun,not guessedUUID.
+  Monitor /home/lab14/primelora_remote/tc/d103_20260928/remote_monitor_3b_full_profile1.log.
+- PrelaunchbothNIC1000/full,GPUidle,hostavailable113846681600B,disk306419744768B,
+  swap0. Remoteavailable104460210176B,disk147216875520B. Original147protected
+  and34source refsPASS; prelaunchverificationSHA
+  bda16d0e5aa789936c4a6e4e18d9eadb8cf8a71485a6a0da2d8d801bd9375f54.
+  InitialsystemPythonhealthclientimportnumpyfailedbeforeHTTP; emptyfilekept,
+  existingCPUenvclienthealth subsequentlyverifiedboth. No environmentinstall.
+- NEXT monitor same run through normalterminal+GPUrelease+serialization+profiler
+  exit. Profileonlywrittenatend; absentfilewhileliveisNOTfailure. Nootherheavyjob,
+  sourcechanges,remotehash/config/cleanup. Thenidentity-scopedcleanup→validate
+  completedprofile/exit→CPUstack table+outcomestatus→interpretation→next.
+- Speedscope retains sampleordinal,notwalltimestamp (officialv0.4.2sourcechecked).
+  Use stack ancestry toseparatecontrol work from finalserialization; DON'Tmap
+  index/rate toarrivalclock orclaimnestedCPUpercentagesareadditive. Sampling
+  overheadunquantified; noneofthisrunentersformalM1/M2ranking.
+- D102completedandbackedup; no repeatparserprobes/cache/profileinitializers.
+  Prime3BFull3970/4000prior,7B,warm/Resident,baselines,M1M2,A/S remainpending.
+
+## D102 — completed CPU diagnosis (superseded next-action instructions)
 
 2026-09-28 17:07. Supersedes ALL historical live/NEXT instructions below.
 Goal ACTIVE/incomplete; baselines PAUSED. Production remains Full8 source
