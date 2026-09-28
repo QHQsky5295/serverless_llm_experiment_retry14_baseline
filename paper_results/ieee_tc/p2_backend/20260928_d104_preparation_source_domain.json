@@ -1,0 +1,80 @@
+{
+  "kind": "d104_preparation_source_domain_cpu_evidence_v1",
+  "evidence_parent_commit": "587ce9f476cbeadb21bccaa283b77c5fb13d1382",
+  "runtime_parent_commit": "2f1bc4ba1d9fb3a1b17428390c4c3c63dbb09f1d",
+  "full_replay_qualified": false,
+  "formal_performance_result": false,
+  "gpu_run_started": false,
+  "d103_exact_failed_predicate_recoverable": false,
+  "counterexample": {
+    "tests": 2,
+    "original_errors": 2,
+    "reproduced_clause": "source_set_coverage",
+    "other_source_identities_valid": true,
+    "gpu_confirmations_valid": true,
+    "cuda_execution": false,
+    "note": "CPU caches/objects with actual owner/queue; not numerical LoRA or latency evidence"
+  },
+  "regression": {
+    "model_checks": 1194,
+    "os_checks": 47,
+    "total_distinct": 1241,
+    "affected_checks_included": 277,
+    "logs": {
+      "final_regression.log": [
+        1194,
+        "54.583"
+      ],
+      "os_guards.log": [
+        47,
+        "0.102"
+      ],
+      "final_targeted.log": [
+        277,
+        "8.213"
+      ]
+    }
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c",
+  "validation": {
+    "no_old_objective_retry": true,
+    "fresh_plan_completed": true,
+    "mixed_worker_and_residency_checked": true,
+    "ready_gpu_reuse_retained": true,
+    "malformed_negative_receipts_rejected": true,
+    "all_seven_cpu_scopes_cleaned": true
+  },
+  "source_sha256": {
+    "results/ieee_tc/p2_backend_qualification/d104_20260928/source_red.log": "fc96d4bed1286756054fe5eb8660447dda2a2b3814076b6719b75083a673283f",
+    "results/ieee_tc/p2_backend_qualification/d104_20260928/source_green1.log": "e9a35c9838a888071f33bf6dca455ac978d17fe57b6c2ebd66d0e0f35ac149f1",
+    "results/ieee_tc/p2_backend_qualification/d104_20260928/targeted.log": "6f8469d59f217d9443738d7daff22ff8c21139bf550d712e738f98ebc5825f86",
+    "results/ieee_tc/p2_backend_qualification/d104_20260928/regression.log": "a17f13244f7513d45d17527a1e71ef07e11dc141f31c80e706661842898735ac",
+    "results/ieee_tc/p2_backend_qualification/d104_20260928/os_guards.log": "210d4f53b0bf5dd36146352a06bcb2c643f9cc4bcfc184199125ddd8980e9f9e",
+    "results/ieee_tc/p2_backend_qualification/d104_20260928/final_targeted.log": "0dbaa1ec6ca15e3bbdae04693d93f07332245cd5075b930f3d48407bc30cf5fb",
+    "results/ieee_tc/p2_backend_qualification/d104_20260928/final_regression.log": "e03647c238ab14fe68a0f95170e15b7f3b5381eef8c8af201506a22689a15277",
+    "results/ieee_tc/p2_backend_qualification/d104_20260928/run_regression.sh": "e2219791dd52add77cbde564fa05f8715d2e039e0e6a87fd61bbcc08e22ea4f9",
+    "results/ieee_tc/p2_backend_qualification/d104_20260928/cleanup_cpu_scopes.sh": "e76d7ef8b64e9eca5d5a04221ca40edc5e0408189dcb2390b2df2f3522c19157",
+    "results/ieee_tc/p2_backend_qualification/d104_20260928/cleanup_cpu_scopes.log": "33d0b07a7057f9f9bc45db8506b2e8bf4edeb932c67c81faeccc324ae8fe86c9",
+    "results/ieee_tc/p2_backend_qualification/d104_20260928/summarize_source_domain.py": "799efab7a96e2689616af0ee36cbb9f8ac2e7cfa38c799e6fae03d561929df0d",
+    "faaslora/memory/residency_manager.py": "ad99ef38830cee828594659353877518c65fb3d11059bfecba597fd6a138880a",
+    "faaslora/memory/gpu_monitor.py": "43c4082fbb83bea74761a65d3cca5db0629f9be8abb91442807bab3974c95216",
+    "faaslora/preloading/preloading_planner.py": "836557e4b14c2f5e207dcd18803f6b010868caac3e2f0aa64e909df89894ce1b",
+    "scripts/run_all_experiments.py": "a8f1aa4dfab05fd69423b72aac90174e2a1126c0c5fa39612212db326173f089",
+    "tests/test_ieee_tc_gpu_references.py": "5353a96c4a511170bd5e56127741d77bb6de975e3dc28734cac4726da7b99012",
+    "tests/test_ieee_tc_transfer_pressure.py": "19eab7612f722a7bfd517d22949dd0e3ff9806eefe9c29757d9958f14c68d60a",
+    "docs/ieee_tc/D104_PREPARATION_SOURCE_DOMAIN.md": "469c9da9648235ec3712080fdeaf620be201267b2eb0d55f9ee0d33d1be1ffac",
+    "paper_results/ieee_tc/p2_backend/20260928_d103_controller_profile1_failure.json": "79827bcd881d581d6bc1f9b605b9aa14a892c41af12e2a418e27876ae717aaa3",
+    "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c",
+    "docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+  },
+  "next": "One same-contract canonical 3B Full4000 W0 controller-profiling diagnostic; not a formal performance run."
+}

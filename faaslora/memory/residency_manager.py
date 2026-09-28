@@ -2409,7 +2409,7 @@ class IEEEBackendGPUReferences:
             lora_name: str, lora_path: str, expected_owner_id: str, expected_epoch: int,
             capacity_only: bool, decide, replacement_epoch=None,
             protected_adapter_ids=(), preparation_plan_id=None, fallback_costs=None,
-            host_replacement_costs=None) -> Dict[str, Any]:
+            host_replacement_costs=None, replacement_cost_provider=None) -> Dict[str, Any]:
         """Evaluate and commit HOST -> preallocated GPU on the owner thread.
 
         The engine-core bridge holds scheduling while this synchronous native
@@ -2499,10 +2499,27 @@ class IEEEBackendGPUReferences:
             rows = {row['adapter_int_id']: row for row in objective['sources']}
             mixed = objective['kind'] == 'ieee_owned_gpu_objective_v2'
             covered = set(cpu).issubset(rows) if mixed else set(rows) == set(cpu)
-            if (not covered or any(self._sources.get(aid) !=
-                    (rows[aid]['adapter_id'], rows[aid]['lora_path']) for aid in cpu)
+            if (any(self._sources.get(aid) !=
+                    (rows[aid]['adapter_id'], rows[aid]['lora_path']) for aid in set(cpu) & set(rows))
                     or any(aid not in self._gpu_confirmations for aid in slots if aid is not None)):
-                raise ValueError('replacement epoch lacks the current owned source/fallback set')
+                raise ValueError('replacement epoch source identity or GPU confirmation changed')
+            if not covered:
+                if registered is None:
+                    raise ValueError('replacement epoch lacks the current owned source/fallback set')
+                from ..preloading.preloading_planner import native_preparation_source_conflict
+                conflict = native_preparation_source_conflict(frozen=objective,
+                                                               observed=self.source_snapshot())
+                return dict(acquired=False, reason='preparation_source_set_changed',
+                    preparation_plan_id=preparation_plan_id, plan_sha256=replacement_epoch['plan_sha256'],
+                    lease_id=lease_id, expected_epoch=expected_epoch, **conflict, **self.snapshot())
+            # Source-domain validity precedes all live-victim cost lookups. The
+            # provider executes in this same serialized core operation, not a
+            # separate RPC whose observation could already have expired.
+            if replacement_cost_provider is not None:
+                if (not mixed or not callable(replacement_cost_provider)
+                        or fallback_costs is not None or host_replacement_costs is not None):
+                    raise ValueError('native replacement needs one unambiguous cost provider')
+                fallback_costs, host_replacement_costs = replacement_cost_provider()
             if mixed and (registered is None or not isinstance(fallback_costs, dict)
                     or set(fallback_costs) != {a for a in slots if a is not None}
                     or any(type(v) not in (int, float) or not math.isfinite(v) or v < 0

@@ -16770,7 +16770,7 @@ class ScenarioRunner:
         or cancellation; it never polls, evicts early or loads by a fallback path.
         """
         from faaslora.preloading.preloading_planner import (
-            validate_native_gpu_epoch, PreparationPlanSuperseded)
+            validate_native_gpu_epoch, PreparationPlanSuperseded, native_preparation_source_conflict)
         from faaslora.preloading.preloading_manager import MovementOutcome
         from faaslora.clock import local_monotonic_clock_id
         objective = copy.deepcopy(objective)
@@ -16860,6 +16860,13 @@ class ScenarioRunner:
                     adapter_id=row['adapter_id'], lora_path=row['lora_path']),
                     observed_source=copy.deepcopy(source), observed_epoch=current['epoch'])
                 raise ValueError('planned native HOST source changed; next planning epoch required')
+            cpu_ids = set(current['registered_cpu_adapter_ids'])
+            if (source['gpu_slot'] is None
+                    and not (cpu_ids.issubset(rows) if mixed else cpu_ids == set(rows))):
+                conflict = native_preparation_source_conflict(frozen=frozen, observed=current)
+                evidence.update(state='superseded', prepare_rpc_submitted=False)
+                raise PreparationPlanSuperseded(dict(plan_id=plan_id,
+                    plan_sha256=objective['plan_sha256'], **conflict), stage='native_gpu_objective')
             command = dict(lease_id=uuid.uuid4().hex, adapter_int_id=aid,
                 lora_name=row['adapter_id'], lora_path=row['lora_path'],
                 expected_owner_id=owner_id, expected_epoch=current['epoch'])
@@ -16896,9 +16903,26 @@ class ScenarioRunner:
             call = engine.ieee_prepare_host(**command, capacity_only=capacity_only,
                 replacement_epoch=objective, preparation_plan_id=plan_id,
                 **({'host_file_fallbacks': file_fallbacks} if staged is not None else {}))
+            superseded = False
             try:
                 receipt, cancelled = await settle(call)
                 receipt = checked(receipt)
+                if receipt.get('reason') == 'preparation_source_set_changed':
+                    if (receipt.get('acquired') is not False
+                            or receipt.get('preparation_plan_id') != plan_id
+                            or receipt.get('plan_sha256') != objective['plan_sha256']
+                            or receipt.get('lease_id') != command['lease_id']
+                            or type(receipt.get('expected_epoch')) is not int
+                            or receipt['expected_epoch'] != command['expected_epoch']
+                            or type(receipt.get('epoch')) is not int
+                            or receipt['epoch'] < command['expected_epoch']
+                            or type(receipt.get('planned_epoch')) is not int
+                            or receipt['planned_epoch'] != frozen['epoch']
+                            or not isinstance(receipt.get('source_observation'), dict)
+                            or receipt['source_observation'].get('epoch') != receipt['epoch']):
+                        raise ValueError('GPU objective rejection does not match its submitted command')
+                    native_preparation_source_conflict(frozen=frozen, observed=receipt['source_observation'])
+                    superseded = True
             except BaseException:
                 evidence['state'] = 'native_outcome_unresolved'
                 # The RPC may still be reclaiming against these exact copies.
@@ -16933,6 +16957,9 @@ class ScenarioRunner:
                     reused=source['gpu_slot'] is not None, release_receipt=released))
             if cancelled:
                 raise asyncio.CancelledError()
+            if superseded:
+                evidence['state'] = 'superseded'
+                raise PreparationPlanSuperseded(receipt, stage='native_gpu_objective')
             evidence['state'] = 'deferred'
             return MovementOutcome('deferred', reason=receipt['reason'])
         waiters, intents = [], []

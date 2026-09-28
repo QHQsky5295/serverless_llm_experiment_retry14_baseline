@@ -2451,6 +2451,97 @@ class AutomaticGPUReplacement(unittest.TestCase):
             for _ in range(n): runner._stack.hotness_tracker.record_arrival(name)
         return factory, data
 
+    def grow_mixed_source_domain(self, owner, fixture):
+        """Request-driven addition outside the old planning domain; no CUDA."""
+        aid = InferenceEngine._lora_int_id('new-demand')
+        result = owner.demand_load_and_acquire(lease_id='outside-plan', adapter_int_id=aid,
+            lora_name='new-demand', lora_path=str(fixture.nvme/'new-demand'),
+            expected_owner_id=owner.owner_id, expected_epoch=owner.snapshot()['epoch'])
+        self.assertTrue(result['acquired'])
+        owner.release(lease_id='outside-plan', expected_owner_id=owner.owner_id)
+        return aid
+
+    def test_mixed_worker_checks_source_domain_before_live_fallback_pricing(self):
+        from types import SimpleNamespace
+        from faaslora.memory import gpu_monitor
+        from faaslora.preloading.preloading_planner import owned_gpu_execution_objective
+        from faaslora.scheduling.resource_coordinator import (
+            CompletedLengthSnapshot, NativeIterationObservation, NativeTransferObservation)
+        from tests import test_ieee_tc_scheduler_observation as timing
+        factory, data = self.make({'c':80})
+        fixture, runner, queue, slot, owner, snapshot, loads = data
+        cid = InferenceEngine._lora_int_id('c')
+        owner.manager.deactivate(cid)
+        async def run():
+            try:
+                plan = await runner._plan_ieee_preparation_for_slot(slot=slot, mode='residency')
+                self.assertEqual([c.artifact_id for c in plan['selected']['gpu']], ['c'])
+                objective = owned_gpu_execution_objective(plan=plan, selected=plan['selected'],
+                    size_edges_bytes=runner._preparation_profiles.size_edges_bytes)
+                owner.register_preparation_plan(plan_id='mixed-growth', objective=objective,
+                    target_adapter_ids=[cid], expected_owner_id=owner.owner_id)
+                aid = self.grow_mixed_source_domain(owner, fixture)
+                self.assertNotIn(aid, {r['adapter_int_id'] for r in objective['sources']})
+                self.assertTrue(snapshot()['complete_for_native_caches'])
+                worker = gpu_monitor.IEEEWorkerObservationExtension()
+                worker.device, worker.rank = SimpleNamespace(type='cuda'), 0
+                worker.model_runner = SimpleNamespace(lora_manager=SimpleNamespace(_adapter_manager=owner.manager))
+                worker._ieee_gpu_reference_owner = owner
+                steps = NativeIterationObservation()
+                scheduler = timing.scheduler()
+                scheduler._ieee_transfers = NativeTransferObservation(steps, 2)
+                observed = timing.observe(scheduler, steps)
+                lengths = CompletedLengthSnapshot('model/backend', 'measured-profile',
+                    observed['captured_at'], {0:64., 1:128., 2:256.})
+                before, count = owner.snapshot(), len(loads)
+                with patch.object(gpu_monitor, 'torch', SimpleNamespace()), \
+                     patch.object(gpu_monitor, '_ieee_lora_host_inventory',
+                         side_effect=AssertionError('obsolete source domain reached cost inventory')) as inventory:
+                    result = worker.ieee_gpu_reference(operation='proactive_host_prepare_and_acquire',
+                        lease_id='mixed-copy', adapter_int_id=cid, lora_name='c', lora_path=str(fixture.nvme/'c'),
+                        expected_owner_id=owner.owner_id, expected_epoch=before['epoch'], capacity_only=False,
+                        replacement_epoch=objective, preparation_plan_id='mixed-growth',
+                        scheduler_observation=observed, lengths=lengths)
+                self.assertIs(result['acquired'], False)
+                self.assertEqual(result['reason'], 'preparation_source_set_changed')
+                self.assertEqual(owner.snapshot(), before)
+                self.assertEqual(len(loads), count)
+                inventory.assert_not_called()
+                owner.close_preparation_plan(plan_id='mixed-growth', expected_owner_id=owner.owner_id)
+                factory.check_clean(fixture, runner, owner)
+            finally:
+                await queue.close()
+        asyncio.run(run())
+
+    def test_mixed_residency_reap_accepts_only_completed_source_domain_closure(self):
+        factory, data = self.make({'c':80})
+        fixture, runner, queue, slot, owner, snapshot, loads = data
+        owner.manager.deactivate(InferenceEngine._lora_int_id('c'))
+        original, inserted = slot.engine.ieee_gpu_reference.side_effect, []
+        async def interleaved(**kwargs):
+            result = await original(**kwargs)
+            if kwargs['operation'] == 'register_preparation_plan' and result.get('registered') is True:
+                inserted.append(self.grow_mixed_source_domain(owner, fixture))
+            return result
+        slot.engine.ieee_gpu_reference.side_effect = interleaved
+        runner._coordination_enabled = True
+        async def run():
+            try:
+                record = {}
+                task = asyncio.create_task(runner._execute_ieee_residency_epoch(slot, record))
+                runner._ieee_residency_tasks = {id(slot.engine):task}
+                await asyncio.wait_for(asyncio.gather(task, return_exceptions=True), 3)
+                runner._reap_ieee_residency_tasks()
+                self.assertEqual(record['state'], 'superseded')
+                self.assertEqual(record['preparation_supersession']['stage'], 'native_gpu_objective')
+                self.assertEqual(len(inserted), 1)
+                slot.engine.ieee_prepare_host.assert_not_awaited()
+                self.assertTrue(runner._ieee_gpu_preparation_plans[-1]['close_receipt']['closed'])
+                factory.check_clean(fixture, runner, owner)
+            finally:
+                await queue.close()
+        asyncio.run(run())
+
     def test_native_eviction_before_gpu_action_closes_epoch_and_fresh_same_key_serves(self):
         self._check_native_source_expiry(boundary='movement')
 

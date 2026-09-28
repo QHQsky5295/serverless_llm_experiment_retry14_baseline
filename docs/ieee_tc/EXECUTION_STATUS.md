@@ -1,10 +1,53 @@
 # IEEE TC execution status
 
-## CURRENT — D103 profiling interrupted; cleaned; source-coverage counterexample next
+## CURRENT — D104 source-domain correctness verified; checkpoint before full profiling
+
+2026-09-28 17:43. Supersedes ALL historical live/NEXT notes below.
+Goal ACTIVE/incomplete; baselines PAUSED. No GPU/remote job. D104 CPU work complete;
+base HEAD 587ce9f476cbeadb21bccaa283b77c5fb13d1382, tested source changes not yet
+committed/pushed. Do NOT rerun the CPU probes or recreate delivery assets.
+
+- Two actual owner/queue counterexamples reached D103's old line2505. Only
+  source-set coverage failed: legitimate demand added an ID after registration,
+  with original source identities and GPU confirmations valid. This establishes
+  a defect path, NOT the exact missing predicate in D103's failed RPC.
+- One candidate fix: explicit expired source-domain outcome before victim cost
+  indexing/eviction; strict complete same-owner later-state evidence; old plans
+  close through existing supersession/queue lifecycle. Worker cost calculation
+  now occurs AFTER the same serialized owner's validity checks. No formula,
+  profile, config, deadline, trace, generation or remote change. No blanket catch,
+  old-objective retry, parser sharing or profiler lifecycle changes.
+- Native identity/confirmation damage, incomplete observations and malformed or
+  unknown RPC receipts still fail; invalid replies do not release file fallbacks.
+  Confirmed GPU-ready target reuse remains legal despite unrelated source growth.
+  Mixed worker+actual residency reaping tested; fresh valid plan executes.
+- Final1194 related tests PASS54.583s; separate47 OS checks PASS0.102s =1241
+  distinct checks. Final affected277 PASS8.213s included, not extra repeats.
+  Prior17/275/1193 intermediate logs retained, not final-version substitutes.
+- Seven CPU scopes exactidentity+empty-verified/stopped; high/max/OOM0.
+  Curator completed exit0,147 protected and21 source refs verified. Raw
+  results/ieee_tc/p2_backend_qualification/d104_20260928. Status table/doc
+  D104_PREPARATION_SOURCE_DOMAIN.md; curated
+  paper_results/ieee_tc/p2_backend/20260928_d104_preparation_source_domain.json
+  SHA01dfa6a7eef53bb01f6998fff5a2f793c0fd218d63e424ed73ec8d82f384d6fd.
+- NEXT scoped source/evidence backup, then ONE same-contract canonical3B
+  Full4000W0 controller-profiling diagnostic using unchanged D103 wrapper/tool.
+  Only D104 source + new owned paths differ; reuse trace/cache/profile. Still
+  diagnostic, not formal performance qualification. Keep standard resource gates,
+  external replay, actual GPU release and independent remote monitoring. No short
+  prefix, no second optimization, no duplicate run; cleanup→table→interpretation.
+- Full8 remains3970/4000 +30TimeoutError. D103profile absent; CPU cause not
+  established. No Full/SLO/numerical/ranking qualification. 7B,warm/Resident,
+  baselines,M1M2,A1–A5,S1–S13 pending. Final non-profiled qualification still needed.
+
+## D103 — completed failure evidence (superseded next action)
 
 2026-09-28 17:20. Supersedes ALL historical live/NEXT instructions below.
 Goal ACTIVE/incomplete,baselines PAUSED. NoGPU/remotejob. RuntimeFull8 source
-2f1bc4ba1d9fb3a1b17428390c4c3c63dbb09f1d unchanged; evidenceHEAD e6c7831.
+2f1bc4ba1d9fb3a1b17428390c4c3c63dbb09f1d unchanged. D103evidencecheckpoint
+587ce9f476cbeadb21bccaa283b77c5fb13d1382 pushed; exactremoteHEADverified.
+Onlydoc/ledger/curatedJSONcommitted; no userdirty or runtimechange. D102checkpoint
+e6c783110046842a9aaa0cd52b96e22de8c040de also pushed. DoNOTrepeatbackups.
 
 - D103profiling didNOTcomplete. Planned4000,arrived59,submitted58;27savedrequest
   records=11success/native-contract+1failed_untyped(req_00018)+15CancelledError.
@@ -35,7 +78,7 @@ Goal ACTIVE/incomplete,baselines PAUSED. NoGPU/remotejob. RuntimeFull8 source
   Table/doc D103_CONTROLLER_PROFILE_INTERRUPTED.md. Curator scope
   primelora-d103-failure-curation-20260928.scope invocation371854d44a984f5d9ec06dd639fa7beb,
   exactidentity+empty-verified/stopped; rawD103/curation_cleanup.log. No live task.
-- NEXT scopedbackupofD103failureevidence,then ONE CPUcounterexample usingactual
+- NEXT ONE CPUcounterexample usingactual
   owner/plannerfixtures: valid source-set change afterfrozenplanregistration.
   Read D99/D100history+currentprimarysources; isolateexactguardclausebeforefix.
   Separate legitimateplanobsolescencefromidentity/confirmationdamage. No arbitrary

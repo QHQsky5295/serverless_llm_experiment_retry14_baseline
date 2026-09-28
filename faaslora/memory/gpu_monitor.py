@@ -675,14 +675,17 @@ class IEEEWorkerObservationExtension:
             objective = kwargs.get('replacement_epoch')
             file_fallbacks = kwargs.pop('host_file_fallbacks', None)
             if objective is not None and objective.get('kind') == 'ieee_owned_gpu_objective_v2':
-                from faaslora.preloading.preloading_planner import native_gpu_fallback_costs
-                inventory = {**_ieee_lora_host_inventory(manager),
-                             **_ieee_lora_pool_inventory(manager, require_uniform_slots=True)}
-                kwargs['fallback_costs'] = native_gpu_fallback_costs(objective=objective, native_inventory=inventory)
-                if file_fallbacks is not None:
-                    from faaslora.preloading.preloading_planner import native_host_replacement_costs
-                    kwargs['host_replacement_costs'] = native_host_replacement_costs(objective=objective,
+                def replacement_cost_provider():
+                    from faaslora.preloading.preloading_planner import (
+                        native_gpu_fallback_costs, native_host_replacement_costs)
+                    inventory = {**_ieee_lora_host_inventory(manager),
+                                 **_ieee_lora_pool_inventory(manager, require_uniform_slots=True)}
+                    gpu_costs = native_gpu_fallback_costs(objective=objective, native_inventory=inventory)
+                    host_costs = (native_host_replacement_costs(objective=objective,
                         native_inventory=inventory, file_fallbacks=file_fallbacks)
+                        if file_fallbacks is not None else None)
+                    return gpu_costs, host_costs
+                kwargs['replacement_cost_provider'] = replacement_cost_provider
             def decide(victim, slots):
                 # An externally submitted native request must not be an
                 # unreferenced victim merely because it bypassed our frontend.

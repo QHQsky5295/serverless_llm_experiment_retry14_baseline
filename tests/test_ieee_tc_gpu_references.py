@@ -1917,13 +1917,18 @@ class NativeReferences(unittest.TestCase):
 
 class OwnedNativePreparationPlans(unittest.TestCase):
     """Actual runner/common queue/native owner, with native cache fixtures only."""
-    def make(self, decide=None):
+    def make(self, decide=None, *, host_capacity=None):
         from faaslora.clock import local_monotonic_clock_id
         from faaslora.preloading.preloading_manager import PreloadingManager
         from scripts.run_all_experiments import ScenarioRunner
         case = NativeObjectiveReplacement()
         case.setUp()
         owner = case.owner
+        if host_capacity is not None:
+            cache = AdapterCache(host_capacity, case.manager.deactivate)
+            for aid, model in case.manager._registered_adapters.cache.items():
+                cache[aid] = model
+            case.manager.capacity, case.manager._registered_adapters = host_capacity, cache
         runner = ScenarioRunner.__new__(ScenarioRunner)
         runner.model_cfg = {'ieee_gpu_references': True}
         runner._stack = SimpleNamespace(preloading_manager=PreloadingManager({}, Mock(), Mock(), Mock()))
@@ -1939,6 +1944,188 @@ class OwnedNativePreparationPlans(unittest.TestCase):
                                  ieee_prepare_host=AsyncMock(side_effect=prepare))
         slot = SimpleNamespace(instance_id='actual-queue-fixture', engine=engine)
         return case, runner, slot, response
+
+    def grow_sources_after_registration(self, case):
+        """An ordinary demand transaction, not an edited epoch/negative reply."""
+        self.assertEqual(case.manager.capacity, 4)
+        before = case.owner.source_snapshot()
+        case.case.demand(lease='new-demand', aid=5)
+        case.case.release('new-demand')
+        after = case.owner.source_snapshot()
+        self.assertEqual(set(after['registered_cpu_adapter_ids']),
+                         set(before['registered_cpu_adapter_ids']) | {5})
+        self.assertTrue(after['complete_for_native_caches'])
+        self.assertGreater(after['epoch'], before['epoch'])
+        return after
+
+    def test_registered_objective_source_growth_is_explicit_no_mutation_conflict(self):
+        case, _, _, _ = self.make(host_capacity=4)
+        owner, objective = case.owner, case.epoch()
+        owner.register_preparation_plan(plan_id='growth', objective=objective,
+            target_adapter_ids=[4], expected_owner_id=owner.owner_id)
+        after = self.grow_sources_after_registration(case)
+        rows = {r['adapter_int_id']: r for r in objective['sources']}
+        # Isolate the original OR guard: only coverage fails. Existing names,
+        # paths and all executable GPU confirmations still agree.
+        self.assertEqual(set(after['registered_cpu_adapter_ids']) - set(rows), {5})
+        self.assertTrue(all(owner._sources[a] == (r['adapter_id'], r['lora_path'])
+                            for a, r in rows.items()))
+        self.assertFalse(after['unconfirmed_gpu_adapter_ids'])
+        before, loads = owner.snapshot(), len(case.case.loads)
+        decide = Mock(side_effect=AssertionError('obsolete plan cannot reach admission'))
+        result = case.prepare(objective, preparation_plan_id='growth', decide=decide)
+        self.assertIs(result['acquired'], False)
+        self.assertEqual(result['reason'], 'preparation_source_set_changed')
+        self.assertEqual(result['planned_epoch'], objective['epoch'])
+        self.assertEqual(result['plan_sha256'], objective['plan_sha256'])
+        self.assertEqual(result['preparation_plan_id'], 'growth')
+        self.assertEqual(result['source_observation']['registered_cpu_adapter_ids'],
+                         after['registered_cpu_adapter_ids'])
+        self.assertEqual(owner.snapshot(), before)
+        self.assertEqual(len(case.case.loads), loads)
+        decide.assert_not_called()
+        owner.close_preparation_plan(plan_id='growth', expected_owner_id=owner.owner_id)
+
+    def test_source_growth_closes_old_queue_plan_and_fresh_plan_executes(self):
+        from faaslora.preloading.preloading_planner import PreparationPlanSuperseded
+        case, runner, slot, _ = self.make(host_capacity=4)
+        objective = case.epoch()
+        async def change():
+            self.grow_sources_after_registration(case)
+        async def run():
+            queue = runner._stack.preloading_manager.ieee_movements
+            try:
+                with self.assertRaises(PreparationPlanSuperseded) as caught:
+                    await runner._run_ieee_gpu_preparation_plan(slot=slot,
+                        objective=objective, target_adapter_ids=[4],
+                        trigger_reason='residency', after_registration=change)
+                self.assertEqual(caught.exception.stage, 'native_gpu_objective')
+                record = runner._ieee_gpu_preparation_plans[-1]
+                self.assertEqual(record['state'], 'superseded')
+                self.assertTrue(record['close_receipt']['closed'])
+                self.assertFalse(case.owner.snapshot()['pending_preparation_targets'])
+                self.assertFalse(case.owner.snapshot()['live_leases'])
+                self.assertEqual(queue.snapshot()[-1]['state'], 'superseded')
+                # Re-observe all current sources. No new demand/latency is
+                # invented for adapter5 (its observed h is zero).
+                case.content['adapter-5'] = '5' * 64
+                runner._ieee_artifact_identities['adapter-5'] = {'content_sha256': '5' * 64}
+                fresh = case.epoch()
+                self.assertNotEqual(fresh['plan_sha256'], objective['plan_sha256'])
+                result = await runner._run_ieee_gpu_preparation_plan(slot=slot,
+                    objective=fresh, target_adapter_ids=[4], trigger_reason='residency')
+                self.assertTrue(result[0]['receipt']['acquired'])
+                self.assertEqual(runner._ieee_gpu_preparation_plans[-1]['state'], 'completed')
+                self.assertFalse(case.owner.snapshot()['live_leases'])
+                self.assertFalse(case.owner.snapshot()['pending_preparation_targets'])
+            finally:
+                await queue.close()
+        asyncio.run(asyncio.wait_for(run(), 3))
+
+    def test_source_growth_does_not_hide_identity_or_confirmation_damage(self):
+        for fault in ('identity', 'unconfirmed_gpu', 'unknown_cpu'):
+            with self.subTest(fault=fault):
+                case, _, _, _ = self.make(host_capacity=4)
+                owner, objective = case.owner, case.epoch()
+                owner.register_preparation_plan(plan_id='damaged', objective=objective,
+                    target_adapter_ids=[4], expected_owner_id=owner.owner_id)
+                self.grow_sources_after_registration(case)
+                if fault == 'identity':
+                    owner._sources[3] = ('other-adapter', '/other-adapter')
+                elif fault == 'unconfirmed_gpu':
+                    owner._gpu_confirmations.pop(3)
+                else:
+                    owner._sources.pop(5)
+                before, loads = owner.snapshot(), len(case.case.loads)
+                with self.assertRaises(ValueError):
+                    case.prepare(objective, preparation_plan_id='damaged')
+                self.assertEqual(owner.snapshot(), before)
+                self.assertEqual(len(case.case.loads), loads)
+                owner.close_preparation_plan(plan_id='damaged', expected_owner_id=owner.owner_id)
+
+    def test_new_source_does_not_invalidate_confirmed_gpu_target_reuse(self):
+        case, runner, slot, _ = self.make(host_capacity=4)
+        objective = case.epoch()
+        async def change():
+            self.grow_sources_after_registration(case)
+        async def run():
+            try:
+                result = await runner._run_ieee_gpu_preparation_plan(slot=slot,
+                    objective=objective, target_adapter_ids=[3], trigger_reason='residency',
+                    after_registration=change)
+                self.assertTrue(result[0]['receipt']['preparation_reused_gpu'])
+                self.assertFalse(result[0]['receipt']['native_load_invoked'])
+                self.assertEqual(runner._ieee_gpu_preparation_plans[-1]['state'], 'completed')
+                self.assertFalse(case.owner.snapshot()['live_leases'])
+                self.assertFalse(case.owner.snapshot()['pending_preparation_targets'])
+            finally:
+                await runner._stack.preloading_manager.ieee_movements.close()
+        asyncio.run(run())
+
+    def test_source_conflict_witness_rejects_incomplete_or_contradictory_views(self):
+        from faaslora.preloading.preloading_planner import native_preparation_source_conflict
+        case, _, _, _ = self.make(host_capacity=4)
+        objective = case.epoch()
+        observed = self.grow_sources_after_registration(case)
+        for fields in (dict(epoch=objective['epoch']), dict(epoch=True), dict(owner_id='foreign'),
+                       dict(complete_for_native_caches=False), dict(sources=[]),
+                       dict(registered_cpu_adapter_ids=[5, 5]), dict(captured_monotonic_s=float('nan')),
+                       dict(unconfirmed_gpu_adapter_ids=[5])):
+            with self.subTest(fields=fields), self.assertRaises(ValueError):
+                native_preparation_source_conflict(frozen=objective, observed=observed | fields)
+        identical = copy.deepcopy(observed)
+        identical['registered_cpu_adapter_ids'].remove(5)
+        identical['sources'] = [r for r in identical['sources'] if r['adapter_int_id'] != 5]
+        identical['slot_adapter_ids'] = [None if a == 5 else a for a in identical['slot_adapter_ids']]
+        with self.assertRaisesRegex(ValueError, 'not a later changed'):
+            native_preparation_source_conflict(frozen=objective, observed=identical)
+
+    def test_source_conflict_rpc_receipt_is_bound_before_releasing_fallbacks(self):
+        from faaslora.preloading.preloading_planner import PreparationPlanSuperseded
+        # Receipt-boundary adversarial fixtures, not measured concurrent runs.
+        for fault in ('none', 'owner', 'clock', 'plan', 'hash', 'lease', 'expected_epoch',
+                      'planned_epoch', 'acquired', 'epoch', 'incomplete', 'identity', 'unknown_rpc'):
+            with self.subTest(fault=fault):
+                case, runner, slot, response = self.make(host_capacity=4)
+                objective = case.epoch()
+                async def reply(**kw):
+                    if fault == 'unknown_rpc':
+                        raise RuntimeError('unresolved source conflict RPC')
+                    observed = self.grow_sources_after_registration(case)
+                    row = response(dict(case.owner.snapshot(), acquired=False,
+                        reason='preparation_source_set_changed', preparation_plan_id=kw['preparation_plan_id'],
+                        lease_id=kw['lease_id'], plan_sha256=objective['plan_sha256'],
+                        planned_epoch=objective['epoch'], expected_epoch=kw['expected_epoch'],
+                        source_observation=observed))
+                    for flag, field in (('owner','owner_id'), ('clock','clock_id'),
+                                        ('plan','preparation_plan_id'), ('hash','plan_sha256'),
+                                        ('lease','lease_id')):
+                        if fault == flag: row[field] = 'foreign'
+                    if fault == 'expected_epoch': row['expected_epoch'] += 1
+                    if fault == 'planned_epoch': row['planned_epoch'] = True
+                    if fault == 'acquired': row['acquired'] = True
+                    if fault == 'epoch': row['epoch'] = objective['epoch']
+                    if fault == 'incomplete': observed['complete_for_native_caches'] = False
+                    if fault == 'identity': observed['sources'][0]['lora_path'] = '/wrong-source'
+                    return row
+                slot.engine.ieee_prepare_host.side_effect = reply
+                async def run():
+                    try:
+                        with self.assertRaises((RuntimeError, ValueError)) as caught:
+                            await runner._run_ieee_gpu_preparation_plan(slot=slot,
+                                objective=objective, target_adapter_ids=[4], trigger_reason='residency')
+                        record = runner._ieee_gpu_preparation_plans[-1]
+                        if fault == 'none':
+                            self.assertIsInstance(caught.exception, PreparationPlanSuperseded)
+                            self.assertEqual(record['state'], 'superseded')
+                        else:
+                            self.assertNotIsInstance(caught.exception, PreparationPlanSuperseded)
+                            self.assertEqual(record['state'], 'failed')
+                            self.assertEqual(record['attempts'][0]['state'], 'native_outcome_unresolved')
+                            self.assertNotIn('host_file_fallbacks_released', record['attempts'][0])
+                    finally:
+                        await runner._stack.preloading_manager.ieee_movements.close()
+                asyncio.run(run())
 
     def test_atomic_plan_registration_identity_and_cancellation_tombstone(self):
         case, _, _, _ = self.make()

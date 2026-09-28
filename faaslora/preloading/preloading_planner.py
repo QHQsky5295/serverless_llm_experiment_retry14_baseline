@@ -40,6 +40,62 @@ class PreparationPlanSuperseded(RuntimeError):
         super().__init__(f'native preparation snapshot superseded at {stage}')
 
 
+def native_preparation_source_conflict(*, frozen, observed):
+    """Validate a later, complete source-set conflict, without pricing it.
+
+    Used before indexing a frozen objective with live cache IDs. An objective
+    is not a cache reservation. New legitimate demand may invalidate its domain,
+    but unknown copies, identity conflicts and unconfirmed GPUs remain errors.
+    This helper neither changes the objective nor authorizes a retry or eviction.
+    Tensor footprints are irrelevant to this negative, no-operation witness.
+    """
+    rows = {r['adapter_int_id']: r for r in frozen['sources']}
+    epoch = observed.get('epoch')
+    captured = observed.get('captured_monotonic_s')
+    ids, slots, sources = (observed.get(k) for k in
+                          ('registered_cpu_adapter_ids', 'slot_adapter_ids', 'sources'))
+    if (observed.get('kind') != 'native_lora_sources_v1'
+            or observed.get('owner_id') != frozen['owner_id']
+            or type(epoch) is not int or epoch < frozen['epoch']
+            or type(captured) not in (int, float) or not math.isfinite(captured) or captured < 0
+            or observed.get('complete_for_native_caches') is not True
+            or observed.get('unknown_native_adapter_ids') != []
+            or observed.get('unconfirmed_gpu_adapter_ids') != []
+            or not isinstance(ids, list) or any(type(a) is not int or a <= 0 for a in ids)
+            or len(ids) != len(set(ids)) or not isinstance(slots, list)
+            or len(slots) != len(frozen['slot_adapter_ids'])
+            or any(a is not None and (type(a) is not int or a not in ids) for a in slots)
+            or len([a for a in slots if a is not None]) != len({a for a in slots if a is not None})
+            or not isinstance(sources, list) or len(sources) != len(ids)):
+        raise ValueError('preparation source conflict lacks a complete owned cache observation')
+    seen, names = set(), set()
+    frozen_names = {r['adapter_id']: a for a, r in rows.items()}
+    for source in sources:
+        aid = source.get('adapter_int_id') if isinstance(source, dict) else None
+        name, path = ((source.get(k) for k in ('adapter_id', 'lora_path'))
+                      if isinstance(source, dict) else (None, None))
+        if (type(aid) is not int or aid not in ids or aid in seen
+                or not isinstance(name, str) or not name or name in names
+                or not isinstance(path, str) or not Path(path).is_absolute()
+                or source.get('cpu_registered') is not True
+                or (source.get('gpu_slot') is not None and type(source['gpu_slot']) is not int)
+                or source.get('gpu_slot') != (slots.index(aid) if aid in slots else None)
+                or (name in frozen_names and frozen_names[name] != aid)
+                or (aid in rows and (name, path) != (rows[aid]['adapter_id'], rows[aid]['lora_path']))):
+            raise ValueError('preparation source identity/coverage contradicts its frozen objective')
+        seen.add(aid)
+        names.add(name)
+    covered = (set(ids).issubset(rows) if frozen['kind'] == 'ieee_owned_gpu_objective_v2'
+               else set(ids) == set(rows))
+    if covered or epoch <= frozen['epoch']:
+        raise ValueError('preparation source conflict is not a later changed source set')
+    return dict(planned_epoch=frozen['epoch'], source_observation={
+        k: copy.deepcopy(observed[k]) for k in ('kind', 'owner_id', 'epoch',
+            'captured_monotonic_s', 'registered_cpu_adapter_ids', 'slot_adapter_ids',
+            'sources', 'unknown_native_adapter_ids', 'unconfirmed_gpu_adapter_ids',
+            'complete_for_native_caches')})
+
+
 def supersede_absent_native_source(*, observed, owner_id, planned_epoch,
         adapter_int_id, adapter_id, lora_path, plan_id, stage):
     """End an optimistic objective only on a complete, later absence witness.
