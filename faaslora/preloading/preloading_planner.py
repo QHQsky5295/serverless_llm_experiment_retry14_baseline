@@ -142,6 +142,63 @@ def supersede_absent_native_source(*, observed, owner_id, planned_epoch,
     raise PreparationPlanSuperseded(receipt, stage=stage)
 
 
+def supersede_confirmed_native_file_copy(*, observed, owner_id, adapter_int_id,
+        adapter_id, lora_path, expected_rank, content_sha256, files, file_owner_id,
+        plan_id, stage):
+    """Retire a path-bound objective on verified alternative-copy evidence.
+
+    Two current SHA-confirmed file publications prove the same immutable
+    artifact, but do not make their paths interchangeable inside a native plan.
+    Keep the loaded object's binding unchanged; no load, relabel, lease or
+    success is authorized. Missing/corrupt evidence remains an error, not a
+    guessed relocation. The next ordinary epoch may select the actual source.
+    """
+    from ..clock import local_monotonic_clock_id
+    from ..experiment.instance_pool import NativeSourceSnapshot
+    clock = local_monotonic_clock_id()
+    snap = NativeSourceSnapshot.from_native(observed, expected_clock_id=clock,
+                                          received_monotonic_s=time.monotonic())
+    native = next((s for s in snap.sources if s.adapter_int_id == adapter_int_id), None)
+    if (snap.owner_id != owner_id or snap.unknown_native_adapter_ids
+            or snap.unconfirmed_gpu_adapter_ids or native is None
+            or native.adapter_id != adapter_id or native.rank != expected_rank
+            or not native.source_id or native.lora_path == lora_path
+            or not isinstance(plan_id, str) or not plan_id
+            or not isinstance(content_sha256, str) or len(content_sha256) != 64
+            or any(c not in '0123456789abcdef' for c in content_sha256)
+            or not isinstance(files, dict) or files.get('kind') != 'confirmed_file_sources_v1'
+            or files.get('owner_id') != file_owner_id or files.get('adapter_id') != adapter_id
+            or files.get('clock_id') != clock or type(files.get('epoch')) is not int
+            or files['epoch'] < 1 or files.get('snapshot_holds_reference') is not False):
+        raise ValueError('native source copy conflict lacks confirmed identity/owner evidence')
+    copies = files.get('sources')
+    if not isinstance(copies, list):
+        raise ValueError('native source copy conflict lacks confirmed file publications')
+    by_path = {}
+    for row in copies:
+        if (not isinstance(row, dict) or not isinstance(row.get('path'), str)
+                or not Path(row['path']).is_absolute() or row['path'] in by_path
+                or row.get('adapter_id') != adapter_id or row.get('tier') not in ('host','nvme')
+                or row.get('content_sha256') != content_sha256 or row.get('content_verified') is not True
+                or row.get('representation') != 'verified_regular_file_tree_v1'):
+            raise ValueError('native source copy conflict contradicts verified artifact content')
+        by_path[row['path']] = row
+    if lora_path not in by_path or native.lora_path not in by_path:
+        raise ValueError('native source copy conflict needs both confirmed file origins')
+    receipt = dict(reason='confirmed_alternative_file_copy', plan_id=plan_id,
+        adapter_int_id=adapter_int_id, adapter_id=adapter_id, content_sha256=content_sha256,
+        expected_lora_path=lora_path, observed_lora_path=native.lora_path,
+        expected_owner_id=owner_id, observed_epoch=snap.epoch, native_source_id=native.source_id,
+        native_tier=native.tier, prepare_rpc_submitted=False,
+        file_owner_id=file_owner_id, file_epoch=files['epoch'],
+        confirmed_files=[copy.deepcopy(by_path[p]) for p in (lora_path, native.lora_path)],
+        observation={k:copy.deepcopy(observed[k]) for k in (
+            'kind','owner_id','clock_id','epoch','captured_monotonic_s','slot_adapter_ids',
+            'registered_cpu_adapter_ids','sources','unknown_native_adapter_ids',
+            'unconfirmed_gpu_adapter_ids','complete_for_native_caches')})
+    raise PreparationPlanSuperseded(receipt, stage=stage)
+
+
 class PreloadingStrategy(Enum):
     """Preloading strategy options"""
     GREEDY_VALUE = "greedy_value"          # Greedy by value per byte

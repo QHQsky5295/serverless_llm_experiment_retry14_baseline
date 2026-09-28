@@ -16859,7 +16859,9 @@ class ScenarioRunner:
                 evidence.update(state='source_identity_conflict', expected_source=dict(
                     adapter_id=row['adapter_id'], lora_path=row['lora_path']),
                     observed_source=copy.deepcopy(source), observed_epoch=current['epoch'])
-                raise ValueError('planned native HOST source changed; next planning epoch required')
+                self._supersede_ieee_native_file_copy(observed=current, owner_id=owner_id,
+                    adapter_id=row['adapter_id'], source_path=row['lora_path'],
+                    plan_id=plan_id, stage='native_gpu_source_copy', record=evidence)
             cpu_ids = set(current['registered_cpu_adapter_ids'])
             if (source['gpu_slot'] is None
                     and not (cpu_ids.issubset(rows) if mixed else cpu_ids == set(rows))):
@@ -17078,6 +17080,28 @@ class ScenarioRunner:
             if cleanup_cancelled or cancelled:
                 raise asyncio.CancelledError()
 
+    def _supersede_ieee_native_file_copy(self, *, observed, owner_id, adapter_id,
+            source_path, plan_id, stage, record):
+        """A different verified origin expires a physical plan, never relabels it."""
+        from faaslora.preloading.preloading_planner import (
+            supersede_confirmed_native_file_copy, PreparationPlanSuperseded)
+        references = self._stack.residency_manager.local_source_references
+        identity = self._ieee_artifact_identities[adapter_id]
+        # Read both publications through their real owner, not directory names.
+        # Nothing is acquired or mutated; no stale file evidence authorizes IO.
+        with references.lock:
+            files = references.source_snapshot(adapter_id)
+            try:
+                supersede_confirmed_native_file_copy(observed=observed, owner_id=owner_id,
+                    adapter_int_id=InferenceEngine._lora_int_id(adapter_id), adapter_id=adapter_id,
+                    lora_path=str(source_path), expected_rank=identity['rank'],
+                    content_sha256=identity['content_sha256'], files=files,
+                    file_owner_id=references.owner_id, plan_id=plan_id, stage=stage)
+            except PreparationPlanSuperseded as exc:
+                record.update(state='superseded', preparation_supersession=dict(
+                    stage=exc.stage, receipt=exc.receipt))
+                raise
+
     async def _queue_ieee_native_host_preparation(self, *, slot, adapter_id, source_path,
             trigger_reason, plan_id, activation_id=None, density=0.):
         """Confirmed file -> native CPU tensor on the existing movement queue.
@@ -17134,7 +17158,12 @@ class ScenarioRunner:
             # Reuse requires this worker's actual immutable source identity.
             native = next((s for s in observed['sources'] if s['adapter_int_id'] == aid), None)
             if native is not None and (native['adapter_id'], native['lora_path']) != (adapter_id, str(source_path)):
-                raise ValueError('native HOST target source identity changed')
+                record['source_identity_conflict'] = dict(attempt_id=attempt_id,
+                    expected_source=dict(adapter_id=adapter_id, lora_path=str(source_path)),
+                    observed_source=copy.deepcopy(native), observed_epoch=observed['epoch'])
+                self._supersede_ieee_native_file_copy(observed=observed, owner_id=owner_id,
+                    adapter_id=adapter_id, source_path=source_path, plan_id=plan_id,
+                    stage='native_target_copy', record=record)
             if native is not None and native['gpu_slot'] is not None:
                 return MovementOutcome('completed', dict(state='already_gpu', native_source=native))
             state = references.source_snapshot(adapter_id)
@@ -17525,7 +17554,10 @@ class ScenarioRunner:
                     record['source_identity_conflict'] = dict(adapter_int_id=aid_int,
                         expected_source=dict(adapter_id=aid, lora_path=row['lora_path']),
                         observed_source=copy.deepcopy(current), observed_epoch=observed['epoch'])
-                    raise ValueError('mixed GPU preparation native source changed identity')
+                    self._supersede_ieee_native_file_copy(observed=observed,
+                        owner_id=gpu_objective['owner_id'], adapter_id=aid,
+                        source_path=row['lora_path'], plan_id=native_plan_id,
+                        stage='native_staging_copy', record=record)
                 return feedback  # Reuse is recorded as ineligible, not zero loading.
             if source['native']:
                 from faaslora.preloading.preloading_planner import supersede_absent_native_source

@@ -1042,6 +1042,67 @@ class OwnedMovements(unittest.IsolatedAsyncioTestCase):
 
 
 class OwnedNativeHostMovement(unittest.TestCase):
+    def test_modified_file_publication_cannot_expire_native_objective_as_same_content(self):
+        factory = MixedOwnedPreparation()
+        self.addCleanup(factory.doCleanups)
+        fixture, runner, queue, slot, owner, snapshot, loads = factory.make()
+        before = owner.snapshot()
+        (fixture.host/'c'/'weights').write_bytes(b'not-the-published-content')
+        with self.assertRaisesRegex(RuntimeError, 'confirmed source changed outside its managed publication'):
+            runner._supersede_ieee_native_file_copy(observed=snapshot(), owner_id=owner.owner_id,
+                adapter_id='c', source_path=fixture.host/'c', plan_id='old-copy',
+                stage='native_target_copy', record={})
+        self.assertEqual(owner.snapshot(), before)
+        self.assertFalse(loads)
+        self.assertFalse(fixture.owner.leases)
+        asyncio.run(queue.close())
+
+    def test_other_confirmed_file_copy_expires_target_without_relabelling_native(self):
+        """D105 guard counterexample: genuine published copies, actual owner."""
+        from faaslora.preloading.preloading_planner import PreparationPlanSuperseded
+        for gpu_ready in (False, True):
+            with self.subTest(gpu_ready=gpu_ready):
+                factory = MixedOwnedPreparation()
+                self.addCleanup(factory.doCleanups)
+                fixture, runner, queue, slot, owner, snapshot, loads = factory.make()
+                aid = InferenceEngine._lora_int_id('c')
+                self.assertTrue(owner.evict(adapter_int_id=aid)['evicted'])
+                files = fixture.owner.source_snapshot('c')
+                copies = {s['path']:s for s in files['sources']}
+                expected = runner._ieee_artifact_identities['c']['content_sha256']
+                self.assertEqual({s['content_sha256'] for s in copies.values()}, {expected})
+                self.assertIn(str(fixture.host/'c'), copies)
+                self.assertIn(str(fixture.nvme/'c'), copies)
+                held = fixture.owner.acquire_confirmed(path=str(fixture.host/'c'), adapter_id='c',
+                    lease_id='demand-file', expected_owner_id=files['owner_id'],
+                    expected_epoch=files['epoch'], expected_content_sha256=expected)
+                receipt = owner.demand_load_and_acquire(lease_id='demand-native', adapter_int_id=aid,
+                    lora_name='c', lora_path=str(fixture.host/'c'), expected_owner_id=owner.owner_id,
+                    expected_epoch=owner.snapshot()['epoch'])
+                self.assertTrue(receipt['acquired'])
+                owner.release(lease_id='demand-native', expected_owner_id=owner.owner_id)
+                fixture.owner.release(lease_id=held['lease_id'], expected_owner_id=held['owner_id'])
+                if not gpu_ready:
+                    owner.manager.deactivate(aid)
+                before = owner.snapshot()
+                count = len(loads)
+                self.assertTrue(snapshot()['complete_for_native_caches'])
+                async def run():
+                    try:
+                        with self.assertRaises(PreparationPlanSuperseded) as caught:
+                            await runner._queue_ieee_native_host_preparation(slot=slot, adapter_id='c',
+                                source_path=fixture.nvme/'c', trigger_reason='residency', plan_id='old-copy')
+                        self.assertEqual(caught.exception.stage, 'native_target_copy')
+                        self.assertEqual(owner.snapshot(), before)
+                        self.assertEqual(len(loads), count)
+                        self.assertEqual(next(s for s in snapshot()['sources']
+                            if s['adapter_int_id'] == aid)['lora_path'], str(fixture.host/'c'))
+                        self.assertFalse(fixture.owner.leases)
+                        self.assertEqual(queue.snapshot()[-1]['state'], 'superseded')
+                    finally:
+                        await queue.close()
+                asyncio.run(run())
+
     def test_delayed_physical_return_wakes_real_host_movement_without_a_new_request(self):
         async def run():
             from faaslora.clock import local_monotonic_clock_id
@@ -2450,6 +2511,179 @@ class AutomaticGPUReplacement(unittest.TestCase):
         for name, n in (counts or {'a':80,'b':1,'c':2}).items():
             for _ in range(n): runner._stack.hotness_tracker.record_arrival(name)
         return factory, data
+
+    def test_alternative_file_copy_requires_complete_matching_owner_and_content(self):
+        import copy
+        from faaslora.preloading.preloading_planner import (
+            supersede_confirmed_native_file_copy, PreparationPlanSuperseded)
+        factory, data = self.make()
+        fixture, runner, queue, slot, owner, snapshot, loads = data
+        aid = InferenceEngine._lora_int_id('c')
+        native, files = snapshot(), fixture.owner.source_snapshot('c')
+        arguments = dict(observed=native, files=files, owner_id=owner.owner_id,
+            adapter_int_id=aid, adapter_id='c', lora_path=str(fixture.host/'c'),
+            expected_rank=runner._ieee_artifact_identities['c']['rank'],
+            content_sha256=runner._ieee_artifact_identities['c']['content_sha256'],
+            file_owner_id=fixture.owner.owner_id, plan_id='old-copy', stage='test')
+        before = owner.snapshot()
+        with self.assertRaises(PreparationPlanSuperseded) as caught:
+            supersede_confirmed_native_file_copy(**arguments)
+        self.assertFalse(caught.exception.receipt['prepare_rpc_submitted'])
+        cases = []
+        for key, value in (('owner_id','foreign'), ('clock_id','foreign'),
+                           ('complete_for_native_caches',False), ('epoch',True),
+                           ('sources',[]), ('unknown_native_adapter_ids',[aid]),
+                           ('unconfirmed_gpu_adapter_ids',[aid])):
+            cases.append((f'native:{key}', dict(arguments, observed=copy.deepcopy(native) | {key:value})))
+        for key, value in (('adapter_id','foreign'), ('rank',16), ('source_id',None),
+                           ('lora_path',str(fixture.host/'c'))):
+            changed = copy.deepcopy(native)
+            next(s for s in changed['sources'] if s['adapter_int_id']==aid)[key] = value
+            cases.append((f'identity:{key}', dict(arguments, observed=changed)))
+        for key, value in (('owner_id','foreign'), ('clock_id','foreign'), ('epoch',True),
+                           ('snapshot_holds_reference',True), ('adapter_id','foreign'),
+                           ('sources',[])):
+            cases.append((f'files:{key}', dict(arguments, files=copy.deepcopy(files) | {key:value})))
+        for key, value in (('content_sha256','0'*64), ('content_verified',False),
+                           ('representation','unknown'), ('path','relative'),
+                           ('adapter_id','foreign'), ('tier','remote')):
+            changed = copy.deepcopy(files)
+            changed['sources'][0][key] = value
+            cases.append((f'publication:{key}', dict(arguments, files=changed)))
+        for index in range(2):
+            changed = copy.deepcopy(files)
+            changed['sources'].pop(index)
+            cases.append((f'missing-copy:{index}', dict(arguments, files=changed)))
+        for label, kw in cases:
+            with self.subTest(label=label), self.assertRaises(ValueError):
+                supersede_confirmed_native_file_copy(**kw)
+        self.assertEqual(owner.snapshot(), before)
+        self.assertFalse(loads)
+        factory.check_clean(fixture, runner, owner)
+        asyncio.run(queue.close())
+
+    def test_demand_other_copy_before_staging_closes_old_plan_and_fresh_epoch_serves(self):
+        self._check_alternative_file_copy(boundary='staging')
+
+    def test_demand_other_copy_before_host_queue_closes_old_plan_and_fresh_epoch_serves(self):
+        self._check_alternative_file_copy(boundary='native_host')
+
+    def test_handoff_other_copy_is_not_silently_replanned(self):
+        self._check_alternative_file_copy(boundary='native_host', handoff=True)
+
+    def test_native_gpu_action_rejects_old_copy_after_demand_prepared_target(self):
+        self._check_alternative_file_copy(boundary='movement')
+
+    def _check_alternative_file_copy(self, *, boundary, handoff=False):
+        from dataclasses import replace
+        from faaslora.preloading.preloading_planner import (
+            FrozenPreparationProfiles, PreparationCostModel, PreparationPlanSuperseded,
+            owned_gpu_execution_objective)
+        factory, data = self.make({'a':80})
+        fixture, runner, queue, slot, owner, snapshot, loads = data
+        aid = InferenceEngine._lora_int_id('a')
+        if handoff:
+            # Handoff uses remaining capacity rather than residency eviction.
+            owner.manager.deactivate(InferenceEngine._lora_int_id('c'))
+        # Free actual file-HOST space without altering native caches. The
+        # alternative copy is published only AFTER the old plan was frozen.
+        if not handoff:
+            for name in ('b','c'):
+                self.assertTrue(fixture.manager._delete_path(str(fixture.host/name)))
+        profiles, old = runner._preparation_profiles, slot.preparation_cost_model
+        values = dict(old.snapshot()[1])
+        key = FrozenPreparationProfiles.source_class(dict(native=True, tier='host', footprint_bytes=512,
+            representation='native_cpu_dense_ab_v1:torch.float16:unpinned',
+            expected_content_sha256=runner._ieee_artifact_identities['a']['content_sha256']),
+            profiles.size_edges_bytes)
+        values[key] = 2.  # Explicit CPU fixture only, not a production profile.
+        runner._preparation_profiles = replace(profiles, profiles=values)
+        slot.preparation_cost_model = PreparationCostModel(values, beta=.5, profile_id=old.profile_id)
+        inserted = []
+        def demand_other_copy():
+            self.assertNotIn(aid, owner.source_snapshot()['registered_cpu_adapter_ids'])
+            if handoff:
+                # Initially full file-HOST makes the handoff select its free
+                # GPU slot. These unreferenced files retire after selection.
+                for name in ('b','c'):
+                    self.assertTrue(fixture.manager._delete_path(str(fixture.host/name)))
+            fixture.manager.materialize_confirmed_source('a', fixture.nvme/'a', StorageTier.HOST)
+            files = fixture.owner.source_snapshot('a')
+            held = fixture.owner.acquire_confirmed(path=str(fixture.host/'a'), adapter_id='a',
+                lease_id='demand-file', expected_owner_id=files['owner_id'], expected_epoch=files['epoch'],
+                expected_content_sha256=runner._ieee_artifact_identities['a']['content_sha256'])
+            receipt = owner.demand_load_and_acquire(lease_id='demand-native', adapter_int_id=aid,
+                lora_name='a', lora_path=str(fixture.host/'a'), expected_owner_id=owner.owner_id,
+                expected_epoch=owner.snapshot()['epoch'])
+            self.assertTrue(receipt['acquired'])
+            owner.release(lease_id='demand-native', expected_owner_id=owner.owner_id)
+            fixture.owner.release(lease_id=held['lease_id'], expected_owner_id=held['owner_id'])
+            inserted.append(snapshot())
+        rpc = slot.engine.ieee_gpu_reference.side_effect
+        async def reference(**kw):
+            result = await rpc(**kw)
+            if (boundary=='staging' and kw['operation']=='register_preparation_plan'
+                    and result.get('registered') is True and not inserted):
+                demand_other_copy()
+            return result
+        slot.engine.ieee_gpu_reference.side_effect = reference
+        original_host = runner._queue_ieee_native_host_preparation
+        async def host(**kw):
+            if boundary=='native_host' and not inserted:
+                demand_other_copy()
+            return await original_host(**kw)
+        runner._queue_ieee_native_host_preparation = host
+        runner._coordination_enabled = True
+        async def run():
+            try:
+                if boundary=='movement':
+                    plan = await runner._plan_ieee_preparation_for_slot(slot=slot, mode='residency')
+                    self.assertEqual([c.artifact_id for c in plan['selected']['gpu']], ['a'])
+                    objective = owned_gpu_execution_objective(plan=plan, selected=plan['selected'],
+                        size_edges_bytes=runner._preparation_profiles.size_edges_bytes)
+                    async def request_won_staging(target, plan_id):
+                        self.assertEqual(target, aid)
+                        # Actual demand legally supplies the prerequisite,
+                        # but does not authorize the old path-bound objective.
+                        demand_other_copy()
+                    with self.assertRaises(PreparationPlanSuperseded) as caught:
+                        await asyncio.wait_for(runner._run_ieee_gpu_preparation_plan(slot=slot,
+                            objective=objective, target_adapter_ids=(aid,), trigger_reason='residency',
+                            prepare_source=request_won_staging), 3)
+                    self.assertEqual(caught.exception.stage, 'native_gpu_source_copy')
+                    self.assertEqual(queue.snapshot()[-1]['state'], 'superseded')
+                    record = dict(plan_sha256=plan['plan_sha256'])
+                elif handoff:
+                    with patch.object(runner, '_plan_ieee_preparation_for_slot',
+                                      wraps=runner._plan_ieee_preparation_for_slot) as planning:
+                        with self.assertRaises(PreparationPlanSuperseded):
+                            await asyncio.wait_for(factory.execute(runner, slot, mode='handoff'), 3)
+                        self.assertEqual(planning.await_count, 1)
+                else:
+                    record = {}
+                    task = asyncio.create_task(runner._execute_ieee_residency_epoch(slot, record))
+                    runner._ieee_residency_tasks = {id(slot.engine):task}
+                    await asyncio.wait_for(asyncio.gather(task, return_exceptions=True), 3)
+                    runner._reap_ieee_residency_tasks()
+                    self.assertEqual(record['state'], 'superseded')
+                    self.assertEqual(record['preparation_supersession']['stage'],
+                        'native_staging_copy' if boundary=='staging' else 'native_target_copy')
+                self.assertEqual(len(inserted), 1)
+                self.assertTrue(runner._ieee_gpu_preparation_plans[-1]['close_receipt']['closed'])
+                factory.check_clean(fixture, runner, owner)
+                self.assertEqual(loads, [('gpu','a')])  # The legitimate demand only.
+                self.assertEqual(next(s for s in snapshot()['sources'] if s['adapter_int_id']==aid)
+                                 ['lora_path'], str(fixture.host/'a'))
+                if not handoff:
+                    fresh = {}
+                    await asyncio.wait_for(runner._execute_ieee_residency_epoch(slot, fresh), 3)
+                    self.assertEqual(fresh['state'], 'completed')
+                    self.assertNotEqual(fresh['plan_sha256'], record['plan_sha256'])
+                    self.assertEqual(loads, [('gpu','a')])
+                    factory.check_clean(fixture, runner, owner)
+            finally:
+                await queue.close()
+        asyncio.run(run())
 
     def grow_mixed_source_domain(self, owner, fixture):
         """Request-driven addition outside the old planning domain; no CUDA."""

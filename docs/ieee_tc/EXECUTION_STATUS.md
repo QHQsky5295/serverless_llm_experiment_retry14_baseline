@@ -1,10 +1,56 @@
 # IEEE TC execution status
 
-## CURRENT — D105 failed early; cleaned and curated, evidence backup next
+## CURRENT — D106 confirmed-copy lifecycle candidate validated and curated
 
-2026-09-28 18:02. Supersedes ALL historical live/NEXT notes below.
+2026-09-28 18:27. Supersedes ALL historical live/NEXT notes below.
+Goal ACTIVE/incomplete; baselines PAUSED. No GPU/remote/CPU job. HEAD2b16bb2;
+candidate ready for scoped backup; userdirty preserved. Do NOT repeat tests or
+curation. Three production/test files, one doc, this ledger and one curated JSON.
+
+- Actual file/native owners reproduced D105's old fatal guard in two subcases:
+  SHA-identical HOST/NVMe copies with native HOST-only or GPU-ready state. This
+  proves a defect path, NOT the missing D105 exact failing pair or timeout cause.
+- One candidate: require complete same-owner native ID/name/rank/source evidence
+  and both current file publications with frozen content SHA; expire old path-
+  bound objective through existing joined closure. No relabel/load/success or
+  retry of old objective. Three boundaries: staging, native-HOST queue, GPU action.
+  Missing/corrupt evidence remains error; no formula/profile/config/trace/deadline/
+  remote change. Real modified-file publication rejection and25 malformed cases.
+- Actual mixed executor/residency reaping, old close and fresh next epoch PASS;
+  demand-loaded object remains bound to HOST, only legitimate demand load occurs.
+  Handoff does NOTsilently replan. Prior sibling-failure/unacknowledged-close
+  checks retained. No parser/profiler lifecycle or second optimization.
+- Final1201 related checks PASS56.176s +47 OSguards PASS0.155s =1248distinct.
+  Earlier logs retained: target6PASS; integration fixture errors then19/20;
+  handoff corrected remaining-capacity fixturePASS; initialregression1200/1201
+  due wrong expected exception type for actual modified file. Production fix
+  unchanged after initial candidate; final suite includes allnewchecks.
+- Eight CPU scopes exactidentity+empty-verified/stopped; high/max/OOM0. Curator
+  exit0,147protected and22source refs verified; sourceSHA recheckPASS18:27.
+  Curator df9138cac7c64f11b440a9a27ceabdcf also exactempty-verified/stopped18:26:48.
+  Host105GiBavailable,disk286GiB,swap0 then; recheck beforeinference.
+- Doc/table D106_CONFIRMED_ALTERNATIVE_COPY.md;curated
+  paper_results/ieee_tc/p2_backend/20260928_d106_confirmed_alternative_copy.json
+  SHA51184ccb0a8fa4aa4955c49d161e43ffc92a426bcdd8553c39f489b100fb3cd3.
+  Raw results/ieee_tc/p2_backend_qualification/d106_20260928; doNOTrecreateassets.
+- NEXT scoped secrets/diff/schema review+commit/push, verifyremoteHEAD. Then ONE
+  same-contract canonical3BFull4000W0 controller-profiling diagnostic using D103
+  tool/wrapper and D105 launcher; only D106 source and newownedpaths differ.
+  Reusepublishedcache/trace/profile, no shortprefix or newoptimization. Diagnostic
+  notformalranking; finish→cleanup→curation/table→interpretation. No blindretry.
+- LastcompleteFull8=3970/4000+30Timeout; D103/D105profiles unusable. Ordinary3B,
+  7BFull,warmSLO/Resident,baselines,M1M2,A1–A5,S1–S13,numericalLoRAqualification
+  remainpending. CPUcorrectness isnot full-replay or performancequalification.
+
+## D105 — completed failure evidence (superseded next action)
+
+2026-09-28 18:04. Supersedes ALL historical live/NEXT notes below.
 Goal ACTIVE/incomplete; baselines PAUSED. No GPU/remote/analysis job. Runtime
 00f0f8da3061f89cfbb857200da1ac9b20fd1560 unchanged; NO new production fix.
+Evidence HEAD2b16bb25c449be081673b1e187a53eb7755b2c8b committed/pushed andexact
+remoteHEADverified. Three scoped doc/ledger/curated files only; userdirty preserved.
+Schema/source19/secrets/diffchecksPASS; prior1241checksreusedwithunchangedsource.
+Do NOT repeat backup/curation/tests. No owned D105 units/GPUcompute remain18:04.
 
 - Canonical3BFull4000W0 controller profile2 interrupted: planned4000,arrived59,
   submitted58;24terminalrecords=9success/native-contract+15CancelledError.
@@ -34,7 +80,7 @@ Goal ACTIVE/incomplete; baselines PAUSED. No GPU/remote/analysis job. Runtime
   SHA3e2fcd6c1768dd86bac29af5d08d6ec918c91a8b9a2fb5439817982a5790f933.
   Raw results/ieee_tc/p2_backend_qualification/d105_20260928. DoNOTrepeatcuration,
   copies,cache/profile/prefixes or unchangedD1041241checks.
-- NEXT scoped evidence/doc/ledger validation+backup. THEN ONE actualowner CPU
+- NEXT ONE actualowner CPU
   counterexample for target source-copy conflict; read D98/D104history+primary
   vLLM source semantics. Distinguish valid cross-tier samecontent from damaged
   name/content; don't infer rootcause just from path. No blindGPUreplay/profiler

@@ -1,0 +1,88 @@
+{
+  "kind": "d106_confirmed_alternative_copy_cpu_evidence_v1",
+  "evidence_parent_commit": "2b16bb25c449be081673b1e187a53eb7755b2c8b",
+  "runtime_parent_commit": "00f0f8da3061f89cfbb857200da1ac9b20fd1560",
+  "full_replay_qualified": false,
+  "formal_performance_result": false,
+  "gpu_run_started": false,
+  "d105_exact_failed_pair_recoverable": false,
+  "counterexample": {
+    "tests": 1,
+    "subcases": 2,
+    "original_errors": 2,
+    "reproduced_clause": "different_confirmed_file_path_same_content",
+    "content_and_rank_match": true,
+    "loaded_binding_unchanged": true,
+    "extra_preparation_loads": 0,
+    "cuda_execution": false,
+    "note": "Actual file/native owners with controlled CPU cache/model fixtures"
+  },
+  "regression": {
+    "model_checks": 1201,
+    "os_checks": 47,
+    "total_distinct": 1248,
+    "logs": {
+      "final_regression.log": {
+        "count": 1201,
+        "seconds": 56.176
+      },
+      "os_guards.log": {
+        "count": 47,
+        "seconds": 0.155
+      }
+    },
+    "earlier_failed_fixture_checks_retained": true,
+    "production_unchanged_after_initial_candidate": true
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c",
+  "validation": {
+    "staging_host_queue_gpu_action_checked": true,
+    "no_old_objective_retry": true,
+    "fresh_residency_plan_completed": true,
+    "handoff_not_silently_replanned": true,
+    "malformed_evidence_cases": 25,
+    "real_file_mutation_rejected": true,
+    "no_reference_or_pending_plan_leak": true,
+    "cpu_scopes_cleaned": 8
+  },
+  "limits": [
+    "Not the missing D105 failing pair",
+    "No end-to-end or CPU-profile improvement claim",
+    "Requires both current confirmed file publications; missing evidence remains an error",
+    "Native slot/token evidence is not numerical LoRA discrimination"
+  ],
+  "source_sha256": {
+    "results/ieee_tc/p2_backend_qualification/d106_20260928/red.log": "abbd40727e60f32d7ca2dec1e8b6d59cbcd1119d1089c4d81f43817b82a0c65d",
+    "results/ieee_tc/p2_backend_qualification/d106_20260928/target.log": "3fd5dfe687fb5485b6b1a61fdb2d79d97d3dcba309e7c0e3d058f73a29e27940",
+    "results/ieee_tc/p2_backend_qualification/d106_20260928/integration.log": "1a561361309331eedd41092bf980a79ee079786770c68f3343888da4f48feafd",
+    "results/ieee_tc/p2_backend_qualification/d106_20260928/integration2.log": "9d71fa3c847fdb92f463a98b0bc3353703836e4bf33dd5d42c127a83944a3ddd",
+    "results/ieee_tc/p2_backend_qualification/d106_20260928/handoff.log": "a9c8aa82a9fe7faac418ed0b9960cb46a20e8721a08c86efafa0bd43a6c58fbf",
+    "results/ieee_tc/p2_backend_qualification/d106_20260928/regression.log": "045c06b30c88d0cce74da302c612629b8a81921e3f3207c9e178438ed827de56",
+    "results/ieee_tc/p2_backend_qualification/d106_20260928/final_regression.log": "11e410578090e5e22c992ec3c4c0f3ccf2155e01aca4385db6f5597246646043",
+    "results/ieee_tc/p2_backend_qualification/d106_20260928/os_guards.log": "f7e91986ba79377a3cce51a55dbd0ab5c44419aeed462cd21a85c14845ba1432",
+    "results/ieee_tc/p2_backend_qualification/d106_20260928/run_regression.sh": "a7c078d976b5938e9f304433210db4636c69a8eabe44e8d3b00c4723a8a9e282",
+    "results/ieee_tc/p2_backend_qualification/d106_20260928/run_final_regression.sh": "9e90b78b8f1689e8276a0f68a4d99cab3daed9c9a0516476848a17694f34c8a4",
+    "results/ieee_tc/p2_backend_qualification/d106_20260928/cleanup_cpu_scopes.sh": "74c302dab9f22993e136a7b2d9285da44705600bd43f141d3a9108b48a472688",
+    "results/ieee_tc/p2_backend_qualification/d106_20260928/cleanup_cpu_scopes.log": "c48ece5217c0ee2b01eb58434d6c99c1984750109efcd40e3e3a617d31e02f85",
+    "results/ieee_tc/p2_backend_qualification/d106_20260928/summarize_source_copy.py": "ecd7b9e8dd2ba6531f0b72b921c857fe105069dcb05d3e4f24e8837fa7912001",
+    "faaslora/preloading/preloading_planner.py": "d2802b08f3b7665796fd9077a6cadd91df9910ce7961374300e8eb95a668d973",
+    "scripts/run_all_experiments.py": "f702e357fb3f427c5288cde4f235e823bb7fbceaf39cb88d15a6fa0b2d23a3fa",
+    "tests/test_ieee_tc_transfer_pressure.py": "152678d51c6ca9ccc154324e4d9c233e13116dfff69e2b0bac67c83196a2758f",
+    "faaslora/memory/residency_manager.py": "ad99ef38830cee828594659353877518c65fb3d11059bfecba597fd6a138880a",
+    "faaslora/experiment/instance_pool.py": "65744a7c6037b5e01ec2e1c3cfb880f9a6ffd79232af2bfa3f7f449a771636bd",
+    "docs/ieee_tc/D106_CONFIRMED_ALTERNATIVE_COPY.md": "f5526d7a1314d479dcf3934f208374d63dab7a9dd8ad3c0266e06a69cedce59a",
+    "paper_results/ieee_tc/p2_backend/20260928_d105_controller_profile2_failure.json": "3e2fcd6c1768dd86bac29af5d08d6ec918c91a8b9a2fb5439817982a5790f933",
+    "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c",
+    "docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+  },
+  "next": "One same-contract canonical 3B Full4000 W0 controller-profiling diagnostic after scoped backup."
+}
