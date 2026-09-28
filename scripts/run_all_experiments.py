@@ -16770,7 +16770,8 @@ class ScenarioRunner:
         or cancellation; it never polls, evicts early or loads by a fallback path.
         """
         from faaslora.preloading.preloading_planner import (
-            validate_native_gpu_epoch, PreparationPlanSuperseded, native_preparation_source_conflict)
+            validate_native_gpu_epoch, PreparationPlanSuperseded, native_preparation_source_conflict,
+            confirmed_file_copy_pair)
         from faaslora.preloading.preloading_manager import MovementOutcome
         from faaslora.clock import local_monotonic_clock_id
         objective = copy.deepcopy(objective)
@@ -16835,6 +16836,28 @@ class ScenarioRunner:
                 raise ValueError('GPU preparation acknowledgement owner/clock differs')
             return value
         source_feedback = {}
+        def checked_binding_conflict(observed):
+            conflict = native_preparation_source_conflict(frozen=frozen, observed=observed,
+                                                        binding_targets=targets)
+            references = self._stack.residency_manager.local_source_references
+            confirmations = []
+            with references.lock:
+                for change in conflict['changed_source_bindings']:
+                    aid, name = change['adapter_int_id'], change['adapter_id']
+                    identity = self._ieee_artifact_identities[name]
+                    content = (rows[aid]['content_sha256'] if mixed else
+                        rows[aid]['host_class']['layout_id'].removeprefix('exact_content_sha256:'))
+                    if (InferenceEngine._lora_int_id(name) != aid
+                            or identity['rank'] != change['rank']
+                            or identity['content_sha256'] != content):
+                        raise ValueError('GPU objective source copy contradicts the immutable registry')
+                    files = references.source_snapshot(name)
+                    copies = confirmed_file_copy_pair(files=files, file_owner_id=references.owner_id,
+                        adapter_id=name, content_sha256=content,
+                        expected_path=change['expected_lora_path'], observed_path=change['observed_lora_path'])
+                    confirmations.append(dict(adapter_id=name, content_sha256=content,
+                        file_owner_id=references.owner_id, file_epoch=files['epoch'], confirmed_files=copies))
+            return conflict, confirmations
         async def execute(aid, attempt_id):
             row = rows[aid]
             evidence = dict(attempt_id=attempt_id, adapter_int_id=aid, state='observing')
@@ -16863,6 +16886,12 @@ class ScenarioRunner:
                     adapter_id=row['adapter_id'], source_path=row['lora_path'],
                     plan_id=plan_id, stage='native_gpu_source_copy', record=evidence)
             cpu_ids = set(current['registered_cpu_adapter_ids'])
+            if (source['gpu_slot'] is None and any(r['adapter_int_id'] in rows
+                    and r['lora_path'] != rows[r['adapter_int_id']]['lora_path'] for r in current['sources'])):
+                conflict, copies = checked_binding_conflict(current)
+                evidence.update(state='superseded', prepare_rpc_submitted=False, binding_confirmations=copies)
+                raise PreparationPlanSuperseded(dict(plan_id=plan_id,
+                    plan_sha256=objective['plan_sha256'], **conflict), stage='native_gpu_objective_binding')
             if (source['gpu_slot'] is None
                     and not (cpu_ids.issubset(rows) if mixed else cpu_ids == set(rows))):
                 conflict = native_preparation_source_conflict(frozen=frozen, observed=current)
@@ -16909,7 +16938,7 @@ class ScenarioRunner:
             try:
                 receipt, cancelled = await settle(call)
                 receipt = checked(receipt)
-                if receipt.get('reason') == 'preparation_source_set_changed':
+                if receipt.get('reason') in ('preparation_source_set_changed', 'preparation_source_binding_changed'):
                     if (receipt.get('acquired') is not False
                             or receipt.get('preparation_plan_id') != plan_id
                             or receipt.get('plan_sha256') != objective['plan_sha256']
@@ -16923,7 +16952,14 @@ class ScenarioRunner:
                             or not isinstance(receipt.get('source_observation'), dict)
                             or receipt['source_observation'].get('epoch') != receipt['epoch']):
                         raise ValueError('GPU objective rejection does not match its submitted command')
-                    native_preparation_source_conflict(frozen=frozen, observed=receipt['source_observation'])
+                    if receipt['reason'] == 'preparation_source_binding_changed':
+                        conflict, copies = checked_binding_conflict(receipt['source_observation'])
+                        if (receipt.get('native_operation_applied') is not False
+                                or receipt.get('changed_source_bindings') != conflict['changed_source_bindings']):
+                            raise ValueError('GPU binding rejection lacks its matching no-operation witness')
+                        evidence['binding_confirmations'] = copies
+                    else:
+                        native_preparation_source_conflict(frozen=frozen, observed=receipt['source_observation'])
                     superseded = True
             except BaseException:
                 evidence['state'] = 'native_outcome_unresolved'

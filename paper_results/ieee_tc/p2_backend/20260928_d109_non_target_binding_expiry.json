@@ -1,0 +1,151 @@
+{
+  "kind": "d109_non_target_binding_expiry_cpu_evidence_v1",
+  "evidence_parent_commit": "06ec406d23234c65ab105d2da51db4025ce54a82",
+  "runtime_parent_commit": "b7161bdcafe05117dcc9434f12ede5a7003c121d",
+  "full_replay_qualified": false,
+  "formal_performance_result": false,
+  "gpu_run_started": false,
+  "d107_exact_failed_pair_recoverable": false,
+  "regression": {
+    "model_checks": 1209,
+    "os_checks": 47,
+    "total_distinct": 1256,
+    "logs": {
+      "final_regression.log": {
+        "count": 1209,
+        "seconds": 57.384
+      },
+      "os_guards.log": {
+        "count": 47,
+        "seconds": 0.327
+      }
+    },
+    "new_tests_included": 8,
+    "earlier_failed_fixture_checks_retained": true,
+    "production_unchanged_after_initial_candidate": true
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c",
+  "validation": {
+    "native_no_operation_receipt_before_cost": true,
+    "actual_race_stale_then_expired": true,
+    "no_old_objective_retry": true,
+    "fresh_residency_plan_completed": true,
+    "handoff_not_silently_replanned": true,
+    "malformed_view_subcases": 16,
+    "constructed_rpc_boundary_cases": 15,
+    "actual_file_fallback_leases_retained_on_bad_reply": true,
+    "actual_file_mutation_rejected": true,
+    "native_logical_and_gpu_damage_rejected": true,
+    "cpu_scopes_cleaned": 5,
+    "cuda_executed": false
+  },
+  "source_scope": {
+    "previous_refs": 50,
+    "unchanged_refs": [
+      "results/ieee_tc/p2_backend_qualification/d101_20260928/capacity_original_probe.json",
+      "results/ieee_tc/p2_backend_qualification/d101_20260928/capacity_indexed_probe.json",
+      "results/ieee_tc/p2_backend_qualification/d101_20260928/probe_file_capacity.py",
+      "results/ieee_tc/p2_backend_qualification/d101_20260928/probe_file_capacity_indexed.py",
+      "results/ieee_tc/p2_backend_qualification/d101_20260928/regression.log",
+      "results/ieee_tc/p2_backend_qualification/d101_20260928/os_guards.log",
+      "results/ieee_tc/p2_backend_qualification/d101_20260928/run_regression.sh",
+      "results/ieee_tc/p2_backend_qualification/d101_20260928/cleanup_cpu_scopes.log",
+      "results/ieee_tc/p2_backend_qualification/d101_20260928/summarize_capacity_probe.py",
+      "docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "docs/ieee_tc/D101_FILE_CAPACITY_INDEX.md",
+      "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+      "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260509_134259_llama32_3b_main_s8/shared_artifacts/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_adapter_subset.json",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_3b_remote_content_index.json",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d89_3b_initialization/service.json",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d89_3b_initialization/preparation.json",
+      "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python",
+      "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/site-packages/pynvml.py",
+      "results/ieee_tc/p2_backend_qualification/d101_20260928/run_3b_full_w0_attempt8.sh",
+      "results/ieee_tc/p2_backend_qualification/d101_20260928/activate_services_full_attempt8.sh",
+      "results/ieee_tc/p2_backend_qualification/d101_20260928/3b_main_config_attempt8.yaml",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d103_20260928/3b_main_config_profile1.yaml",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d103_20260928/run_3b_full_w0_profile1.sh",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d103_20260928/activate_services_full_profile1.sh",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d103_20260928/profile_controller_python.sh",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d103_20260928/verify_profile1_prelaunch.py",
+      "/home/qhq/anaconda3/envs/splitwise_official_20260615/bin/py-spy",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments_user_scope.sh",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/instance_pool.py",
+      "faaslora/memory/gpu_monitor.py",
+      "tests/test_ieee_tc_gpu_references.py",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d105_20260928/3b_main_config_profile2.yaml",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d105_20260928/run_3b_full_w0_profile2.sh",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d105_20260928/activate_services_full_profile2.sh",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d105_20260928/profile_controller_python.sh",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d105_20260928/verify_profile2_prelaunch.py",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20260928_d104_preparation_source_domain.json",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d107_20260928/3b_main_config_profile3.yaml",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d107_20260928/run_3b_full_w0_profile3.sh",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d107_20260928/activate_services_full_profile3.sh",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d107_20260928/profile_controller_python.sh",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d107_20260928/verify_profile3_prelaunch.py",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20260928_d106_confirmed_alternative_copy.json"
+    ],
+    "changed_refs": [
+      "faaslora/memory/residency_manager.py",
+      "tests/test_ieee_tc_transfer_pressure.py",
+      "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "scripts/run_all_experiments.py",
+      "faaslora/preloading/preloading_planner.py"
+    ],
+    "changed_files": [
+      "faaslora/memory/residency_manager.py",
+      "faaslora/preloading/preloading_planner.py",
+      "scripts/run_all_experiments.py",
+      "tests/test_ieee_tc_transfer_pressure.py"
+    ]
+  },
+  "limits": [
+    "CPU correctness, not full-workload or performance qualification",
+    "Constructed RPC boundary receipt is not a measured native race",
+    "Actual race follows stale_snapshot and observed-event queue wake",
+    "Requires both current confirmed file publications; missing evidence remains error",
+    "No proof of the missing D107 pair or all Full8 timeout causes",
+    "Native slot/token evidence is not numerical LoRA discrimination"
+  ],
+  "references": [
+    {
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/worker_manager.py",
+      "role": "Single-core LRU operation semantics; multi-RPC non-atomicity is a local-design inference"
+    }
+  ],
+  "source_sha256": {
+    "results/ieee_tc/p2_backend_qualification/d109_20260928/target2.log": "d9bbae14175af41d0d84882459b2011ac46ebb190d5af1a5f51bc4c852479f8d",
+    "results/ieee_tc/p2_backend_qualification/d109_20260928/receipt3.log": "15285f9e00255f19ff391051fb40f5caace4d8aca7842ab154a28e2448ba3553",
+    "results/ieee_tc/p2_backend_qualification/d109_20260928/final_regression.log": "eb560b1afae9fc36b4b090012564ea8c9121f3869830ccfe990cc164b9cfe5fc",
+    "results/ieee_tc/p2_backend_qualification/d109_20260928/os_guards.log": "ef1fb368cc270d657ebf2f2cb56aeb5c67fa97ae3af4f7198f5ffc3e8865d887",
+    "results/ieee_tc/p2_backend_qualification/d109_20260928/run_final_regression.sh": "071b509783ac08e98078eaf986268cb921b32f24ee9052d592c2c595c28bc976",
+    "results/ieee_tc/p2_backend_qualification/d109_20260928/cleanup_cpu_scopes.sh": "c34c2d55fe186ced1e19f6d0d6de9c10902099404a457fd18d44a55264676219",
+    "results/ieee_tc/p2_backend_qualification/d109_20260928/cleanup_cpu_scopes.log": "357d3b6f052512f362b07bc5ba9d4752b069d3973c1f7e045cf498db30734335",
+    "results/ieee_tc/p2_backend_qualification/d109_20260928/summarize_source_copy.py": "624fa491c0b7d0eddaae58f7d782f6ea6092078e43b7a0a1d4b8712d4c46c5ed",
+    "faaslora/memory/residency_manager.py": "774fadf5908a5ecddb94d467d02f407ede9fe27acc9ff0b6263232607e35e70d",
+    "faaslora/preloading/preloading_planner.py": "07c1431720b9c41ba2bd7ee1ac7d520a0a14e618f092f665400d7fbece767508",
+    "scripts/run_all_experiments.py": "a9fed71615dc4014290183556f95dfb6d017b0131cc004b18524a1b00bac67c3",
+    "tests/test_ieee_tc_transfer_pressure.py": "1f783955666dd699d87673c5691ddda3e78084085f8a6714949550fc5871a41e",
+    "faaslora/experiment/instance_pool.py": "65744a7c6037b5e01ec2e1c3cfb880f9a6ffd79232af2bfa3f7f449a771636bd",
+    "faaslora/memory/gpu_monitor.py": "43c4082fbb83bea74761a65d3cca5db0629f9be8abb91442807bab3974c95216",
+    "tests/test_ieee_tc_gpu_references.py": "5353a96c4a511170bd5e56127741d77bb6de975e3dc28734cac4726da7b99012",
+    "docs/ieee_tc/D109_NON_TARGET_BINDING_EXPIRY.md": "0a844abd55f311c60da4c1f902fbb879cb11a2bba221529f2066d79ad50ffc8e",
+    "paper_results/ieee_tc/p2_backend/20260928_d108_non_target_source_probe.json": "5df6564602cb24393739c4389ff38d2cb98569b7874efbc52c2bb836eb07eaea",
+    "results/ieee_tc/p2_backend_qualification/d108_20260928/candidate_target1.log": "32fdc196ede586a0d84dde46b8b44f4872e5ee17ab46863f6ac29af11f4d0a4d",
+    "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c",
+    "docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+  },
+  "next": "Scoped backup then ONE same-contract canonical 3B Full4000 W0 controller-profiling diagnostic"
+}

@@ -2499,10 +2499,25 @@ class IEEEBackendGPUReferences:
             rows = {row['adapter_int_id']: row for row in objective['sources']}
             mixed = objective['kind'] == 'ieee_owned_gpu_objective_v2'
             covered = set(cpu).issubset(rows) if mixed else set(rows) == set(cpu)
-            if (any(self._sources.get(aid) !=
-                    (rows[aid]['adapter_id'], rows[aid]['lora_path']) for aid in set(cpu) & set(rows))
+            if (any(self._sources.get(aid, (None, None))[0] !=
+                    rows[aid]['adapter_id'] for aid in set(cpu) & set(rows))
                     or any(aid not in self._gpu_confirmations for aid in slots if aid is not None)):
                 raise ValueError('replacement epoch source identity or GPU confirmation changed')
+            rebound = any(self._sources[aid][1] != rows[aid]['lora_path']
+                          for aid in set(cpu) & set(rows))
+            if rebound:
+                if registered is None:
+                    raise ValueError('replacement epoch source identity or GPU confirmation changed')
+                from ..preloading.preloading_planner import native_preparation_source_conflict
+                # Demand may reload an unreferenced, non-target object from a
+                # different file tier. It expires this path-bound objective,
+                # not the source owner. No pricing/admission/mutation occurred.
+                conflict = native_preparation_source_conflict(frozen=objective,
+                    observed=self.source_snapshot(), binding_targets=registered['identity'][1])
+                return dict(acquired=False, reason='preparation_source_binding_changed',
+                    native_operation_applied=False, preparation_plan_id=preparation_plan_id,
+                    plan_sha256=replacement_epoch['plan_sha256'], lease_id=lease_id,
+                    expected_epoch=expected_epoch, **conflict, **self.snapshot())
             if not covered:
                 if registered is None:
                     raise ValueError('replacement epoch lacks the current owned source/fallback set')

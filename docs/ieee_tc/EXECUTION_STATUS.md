@@ -1,12 +1,79 @@
 # IEEE TC execution status
 
-## CURRENT — D108 non-target source counterexample complete; candidate NOT implemented
+## CURRENT — D109 candidate and CPU validation complete; backup next
 
-2026-09-28 18:54. Supersedes ALL historical live/NEXT notes below.
+2026-09-28 19:14. Supersedes ALL historical live/NEXT notes below.
+Goal ACTIVE/incomplete; baselines PAUSED. No GPU/remote/analysis job remains.
+HEAD06ec406d23234c65ab105d2da51db4025ce54a82; D109 candidate still UNCOMMITTED.
+
+- Single D108-proven contract defect fixed: non-target same-content copy change
+  expires the old path-bound objective before cost/admission/eviction. Native
+  explicit no-operation receipt, strict controller identity/content evidence,
+  actual stale-race handling, existing joined closure. No second optimization;
+  nine equations/profile/config/trace/deadline/generation/remote unchanged.
+- Final1209 related checks PASS57.384s +47 OSguards PASS0.327s =1256distinct.
+  Eight new tests included; 16 malformed view/target subcases and15 constructed
+  RPC boundary cases. Actual native negative receipt+real stale race separately
+  checked; constructed receipt not claimed as measured concurrency. Invalid/lost
+  reply retains ACTUAL file leases/deletion protection. Real changed-file bytes
+  still fail. Fresh residency completes; handoff never silently replans.
+- Earlier logs preserved: five targeted PASS0.424s; target2 one new test had15
+  errors due non-staged fixture; receipt3 valid case expected raise instead of
+  actual outer superseded return. Only fixtures/assertions corrected; production
+  unchanged after initial candidate. Do NOTrepeat old D108 error-expected probe.
+- Five CPU scopes exactidentity+empty-checked/stopped19:11; high/max/OOM0.
+  Curator exited0; actualemptyadbf717859b848489bb3ebc69dfacd00 stopped19:13:36,
+  high/max/OOM0. 147protected entries unchanged; previous50refs:45unchanged,
+  fivekeys/four intendedsourcefiles changed (runner has absolute/relative keys).
+- Doc/status table D109_NON_TARGET_BINDING_EXPIRY.md; curated
+  paper_results/ieee_tc/p2_backend/20260928_d109_non_target_binding_expiry.json
+  SHA4b05d85b9fb4fc5da393f4f3bde395f89425e779ab314615f247df70a35c4100.
+  Rawresults/ieee_tc/p2_backend_qualification/d109_20260928; firsttargetlog remains
+  d108_20260928/candidate_target1.log. No data/weights/cache regeneration.
+- NEXT source/secrets/diff/scoped backup of seven files, then ONE same-contract
+  canonical3BFull4000W0 controller-profiling diagnostic usingD107 launcher and
+  existingpy-spy0.4.2. Only source/newownedpaths differ. No shortprefix/reprofile/
+  deadline change/newoptimization. Cleanup->table->interpretation before next.
+- CPU correctness is NOTFull/performance/SLO/numerical qualification. Lastcomplete
+  Full3970/4000+30Timeout unchanged; 3B/7BFull,warm/Resident,baselines,M1M2,
+  A1-A5/S1-S13 pending. Host106GiBavailable,disk286GiB,swap0; recheckbeforelaunch.
+
+## D109 — superseded in-progress notes (do not repeat tests)
+
+2026-09-28 19:06. Supersedes ALL historical live/NEXT notes below.
+Goal ACTIVE/incomplete; baselines PAUSED. No GPU/remote/heavy job running.
+HEAD06ec406d23234c65ab105d2da51db4025ce54a82 already pushed; D109 production
+candidate UNCOMMITTED in planner, native owner and runner, with transfer tests.
+Do NOT repeat D108 counterexample (it intentionally expects the old error).
+
+- Single D108-proven hypothesis: legal non-target path rebinding invalidates a
+  frozen objective, not the serving system. Explicit native no-operation receipt
+  before pricing/admission/eviction; strict controller identity/content proof;
+  existing joined plan closure. No formula/config/trace/deadline/remote changes.
+- First five targeted tests PASS0.424s: native negative receipt without mutation,
+  damaged logical/GPU state remains fatal, malformed views rejected, actual
+  residency reaping and fresh epoch, observation-to-RPC stale deferral then expiry.
+  Raw log retained at d108_20260928/candidate_target1.log (not a new D108 probe).
+  Empty target scope primelora-d109-target-20260928.scope invocation
+  8c9eaf5b53a1459b9c104605f39e148b awaits identity/empty-checked cleanup.
+- NEXT add adversarial receipt/current-file-content checks, then full regression
+  and separate OS guards; cleanup -> curated status table -> scoped backup.
+  Only then same-contract canonical Full4000 diagnostic; no blind GPU retry.
+  CPU tests do not establish performance or full-workload qualification.
+- Last complete Full remains3970/4000+30Timeout; 3B/7B Full, warm/Resident,
+  baselines, M1M2/A1-A5/S1-S13 and numerical adapter qualification pending.
+  Once-only published delivery cache already fulfilled; NEVER rebuild it.
+
+## D108 — completed evidence (superseded next action)
+
+2026-09-28 18:53. Supersedes ALL historical live/NEXT notes below.
 Goal ACTIVE/incomplete; baselines PAUSED. No GPU/remote/analysis job.
 Runtime b7161bdcafe05117dcc9434f12ede5a7003c121d unchanged. D107evidence
 30165e382965d320531347d3ba65c477d0362263 pushed/exactremoteverified18:48;
 three scopedfiles, no userdirty staged. Do NOT repeat D107backup/curation/copies.
+D108 evidence06ec406d23234c65ab105d2da51db4025ce54a82 also committed/pushed,
+exactremoteHEADverified18:53:32;three scopedfiles,source/schema/secrets/diffPASS.
+Don'trepeatD108backup/probe/curation. Thispostpushledgernoteisnotruntimechange.
 
 - D108 actualowner/file-publication CPUprobe reproduces D107nativeguard on a
   legal NON-targetcopychange: targetcunchanged,non-targetbNVMe→HOSTsameSHA;
@@ -29,8 +96,7 @@ three scopedfiles, no userdirty staged. Do NOT repeat D107backup/curation/copies
   paper_results/ieee_tc/p2_backend/20260928_d108_non_target_source_probe.json
   SHA5df6564602cb24393739c4389ff38d2cb98569b7874efbc52c2bb836eb07eaea.
   Rawresults/ieee_tc/p2_backend_qualification/d108_20260928.
-- NEXT source/schema/secrets/diffchecks+scopeddoc/ledger/JSONbackup; THEN ONE
-  candidate to unify legitimate non-target bindingexpiry beforecost/eviction.
+- NEXT ONE candidate to unify legitimate non-target bindingexpiry beforecost/eviction.
   Mustcover observation→nativecommit race; explicitplan/hash/lease/epoch-bound
   no-operationreceipt+strictcontroller validation+existingjoinedclosure.
   Preserve identity/content/rank/owner/clock/GPUconfirmation/physicalguards;

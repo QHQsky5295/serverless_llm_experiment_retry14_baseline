@@ -40,16 +40,23 @@ class PreparationPlanSuperseded(RuntimeError):
         super().__init__(f'native preparation snapshot superseded at {stage}')
 
 
-def native_preparation_source_conflict(*, frozen, observed):
+def native_preparation_source_conflict(*, frozen, observed, binding_targets=None):
     """Validate a later, complete source-set conflict, without pricing it.
 
     Used before indexing a frozen objective with live cache IDs. An objective
     is not a cache reservation. New legitimate demand may invalidate its domain,
     but unknown copies, identity conflicts and unconfirmed GPUs remain errors.
+    With explicit binding_targets, validate a non-target physical-path change
+    instead of source-domain growth. This is only a no-operation witness: the
+    controller must separately verify the changed copies' immutable content.
     This helper neither changes the objective nor authorizes a retry or eviction.
     Tensor footprints are irrelevant to this negative, no-operation witness.
     """
     rows = {r['adapter_int_id']: r for r in frozen['sources']}
+    if binding_targets is not None and (not isinstance(binding_targets, (list, tuple))
+            or not binding_targets or any(type(a) is not int or a not in rows for a in binding_targets)
+            or len(set(binding_targets)) != len(binding_targets)):
+        raise ValueError('source binding conflict requires the frozen target identities')
     epoch = observed.get('epoch')
     captured = observed.get('captured_monotonic_s')
     ids, slots, sources = (observed.get(k) for k in
@@ -68,7 +75,7 @@ def native_preparation_source_conflict(*, frozen, observed):
             or len([a for a in slots if a is not None]) != len({a for a in slots if a is not None})
             or not isinstance(sources, list) or len(sources) != len(ids)):
         raise ValueError('preparation source conflict lacks a complete owned cache observation')
-    seen, names = set(), set()
+    seen, names, bindings = set(), set(), []
     frozen_names = {r['adapter_id']: a for a, r in rows.items()}
     for source in sources:
         aid = source.get('adapter_int_id') if isinstance(source, dict) else None
@@ -81,19 +88,72 @@ def native_preparation_source_conflict(*, frozen, observed):
                 or (source.get('gpu_slot') is not None and type(source['gpu_slot']) is not int)
                 or source.get('gpu_slot') != (slots.index(aid) if aid in slots else None)
                 or (name in frozen_names and frozen_names[name] != aid)
-                or (aid in rows and (name, path) != (rows[aid]['adapter_id'], rows[aid]['lora_path']))):
+                or (aid in rows and name != rows[aid]['adapter_id'])
+                or (aid in rows and path != rows[aid]['lora_path']
+                    and (binding_targets is None or aid in binding_targets))):
             raise ValueError('preparation source identity/coverage contradicts its frozen objective')
+        if binding_targets is not None:
+            if (type(source.get('rank')) is not int or source['rank'] <= 0
+                    or not isinstance(source.get('source_id'), str) or not source['source_id']
+                    or (source['gpu_slot'] is not None and (
+                        type(source.get('gpu_confirmed_monotonic_s')) not in (int, float)
+                        or not math.isfinite(source['gpu_confirmed_monotonic_s'])
+                        or source['gpu_confirmed_monotonic_s'] < 0))
+                    or (source['gpu_slot'] is None and source.get('gpu_confirmed_monotonic_s') is not None)):
+                raise ValueError('source binding conflict lacks native object identity')
+            if aid in rows and path != rows[aid]['lora_path']:
+                bindings.append(dict(adapter_int_id=aid, adapter_id=name,
+                    expected_lora_path=rows[aid]['lora_path'], observed_lora_path=path,
+                    native_source_id=source['source_id'], rank=source['rank']))
         seen.add(aid)
         names.add(name)
     covered = (set(ids).issubset(rows) if frozen['kind'] == 'ieee_owned_gpu_objective_v2'
                else set(ids) == set(rows))
-    if covered or epoch <= frozen['epoch']:
+    if (covered if binding_targets is None else not bindings) or epoch <= frozen['epoch']:
         raise ValueError('preparation source conflict is not a later changed source set')
-    return dict(planned_epoch=frozen['epoch'], source_observation={
+    result = dict(planned_epoch=frozen['epoch'], source_observation={
         k: copy.deepcopy(observed[k]) for k in ('kind', 'owner_id', 'epoch',
             'captured_monotonic_s', 'registered_cpu_adapter_ids', 'slot_adapter_ids',
             'sources', 'unknown_native_adapter_ids', 'unconfirmed_gpu_adapter_ids',
             'complete_for_native_caches')})
+    if binding_targets is not None:
+        result['changed_source_bindings'] = bindings
+    return result
+
+
+def confirmed_file_copy_pair(*, files, file_owner_id, adapter_id, content_sha256,
+                            expected_path, observed_path):
+    """Validate two current publications, without a lease, read or replacement.
+
+    Shared by target-copy and whole-objective invalidation. A path conflict is
+    not by itself evidence of unchanged content. Footprint pricing is unrelated
+    to this strictly negative witness and is not reconstructed from stale data.
+    """
+    from ..clock import local_monotonic_clock_id
+    if (not isinstance(content_sha256, str) or len(content_sha256) != 64
+            or any(c not in '0123456789abcdef' for c in content_sha256)
+            or expected_path == observed_path
+            or not isinstance(files, dict) or files.get('kind') != 'confirmed_file_sources_v1'
+            or files.get('owner_id') != file_owner_id or files.get('adapter_id') != adapter_id
+            or files.get('clock_id') != local_monotonic_clock_id()
+            or type(files.get('epoch')) is not int or files['epoch'] < 1
+            or files.get('snapshot_holds_reference') is not False):
+        raise ValueError('native source copy conflict lacks confirmed identity/owner evidence')
+    copies = files.get('sources')
+    if not isinstance(copies, list):
+        raise ValueError('native source copy conflict lacks confirmed file publications')
+    by_path = {}
+    for row in copies:
+        if (not isinstance(row, dict) or not isinstance(row.get('path'), str)
+                or not Path(row['path']).is_absolute() or row['path'] in by_path
+                or row.get('adapter_id') != adapter_id or row.get('tier') not in ('host','nvme')
+                or row.get('content_sha256') != content_sha256 or row.get('content_verified') is not True
+                or row.get('representation') != 'verified_regular_file_tree_v1'):
+            raise ValueError('native source copy conflict contradicts verified artifact content')
+        by_path[row['path']] = row
+    if expected_path not in by_path or observed_path not in by_path:
+        raise ValueError('native source copy conflict needs both confirmed file origins')
+    return [copy.deepcopy(by_path[p]) for p in (expected_path, observed_path)]
 
 
 def supersede_absent_native_source(*, observed, owner_id, planned_epoch,
@@ -171,27 +231,16 @@ def supersede_confirmed_native_file_copy(*, observed, owner_id, adapter_int_id,
             or files.get('clock_id') != clock or type(files.get('epoch')) is not int
             or files['epoch'] < 1 or files.get('snapshot_holds_reference') is not False):
         raise ValueError('native source copy conflict lacks confirmed identity/owner evidence')
-    copies = files.get('sources')
-    if not isinstance(copies, list):
-        raise ValueError('native source copy conflict lacks confirmed file publications')
-    by_path = {}
-    for row in copies:
-        if (not isinstance(row, dict) or not isinstance(row.get('path'), str)
-                or not Path(row['path']).is_absolute() or row['path'] in by_path
-                or row.get('adapter_id') != adapter_id or row.get('tier') not in ('host','nvme')
-                or row.get('content_sha256') != content_sha256 or row.get('content_verified') is not True
-                or row.get('representation') != 'verified_regular_file_tree_v1'):
-            raise ValueError('native source copy conflict contradicts verified artifact content')
-        by_path[row['path']] = row
-    if lora_path not in by_path or native.lora_path not in by_path:
-        raise ValueError('native source copy conflict needs both confirmed file origins')
+    copies = confirmed_file_copy_pair(files=files, file_owner_id=file_owner_id,
+        adapter_id=adapter_id, content_sha256=content_sha256,
+        expected_path=lora_path, observed_path=native.lora_path)
     receipt = dict(reason='confirmed_alternative_file_copy', plan_id=plan_id,
         adapter_int_id=adapter_int_id, adapter_id=adapter_id, content_sha256=content_sha256,
         expected_lora_path=lora_path, observed_lora_path=native.lora_path,
         expected_owner_id=owner_id, observed_epoch=snap.epoch, native_source_id=native.source_id,
         native_tier=native.tier, prepare_rpc_submitted=False,
         file_owner_id=file_owner_id, file_epoch=files['epoch'],
-        confirmed_files=[copy.deepcopy(by_path[p]) for p in (lora_path, native.lora_path)],
+        confirmed_files=copies,
         observation={k:copy.deepcopy(observed[k]) for k in (
             'kind','owner_id','clock_id','epoch','captured_monotonic_s','slot_adapter_ids',
             'registered_cpu_adapter_ids','sources','unknown_native_adapter_ids',

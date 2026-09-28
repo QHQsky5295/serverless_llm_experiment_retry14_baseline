@@ -3178,6 +3178,349 @@ class AutomaticGPUReplacement(unittest.TestCase):
         asyncio.run(run())
 
 
+class NonTargetBindingExpiry(unittest.TestCase):
+    """D108 counterexample, actual owners; no GPU or benchmark weights."""
+    def test_binding_receipt_validation_keeps_actual_fallback_leases_on_bad_reply(self):
+        from faaslora.preloading.preloading_planner import (
+            PreparationPlanSuperseded, native_preparation_source_conflict)
+        # Adversarial RPC-boundary fixture, not a claimed native interleaving:
+        # construct a negative receipt from actual changed owner state. The
+        # separate race test checks the real stale-epoch result without forging it.
+        faults = ('valid', 'applied', 'missing_applied', 'changed_bindings',
+                  'owner', 'clock', 'plan', 'hash', 'lease', 'expected_epoch',
+                  'planned_epoch', 'acquired', 'rank', 'incomplete', 'lost_reply')
+        for fault in faults:
+            with self.subTest(fault=fault):
+                factory = AutomaticGPUReplacement()
+                self.addCleanup(factory.doCleanups)
+                base, data = factory.make({'a':80})
+                fixture, runner, queue, slot, owner, snapshot, loads = data
+                from tests.test_ieee_tc_gpu_references import AdapterCache
+                cache = AdapterCache(2, owner.manager.deactivate)
+                for aid, value in owner.manager._registered_adapters.cache.items():
+                    cache[aid] = value
+                owner.manager.capacity, owner.manager._registered_adapters = 2, cache
+                held_refs = []
+                async def boundary(**kw):
+                    held_refs.extend(r['file_reference'] for r in kw['host_file_fallbacks'].values()
+                                     if r['file_reference'])
+                    self.assertTrue(held_refs)
+                    self.change_copy(fixture, runner, owner)
+                    if fault == 'lost_reply':
+                        raise ConnectionError('controlled lost binding reply')
+                    observed = snapshot()
+                    conflict = native_preparation_source_conflict(frozen=kw['replacement_epoch'],
+                        observed=observed, binding_targets=[kw['adapter_int_id']])
+                    receipt = dict(owner.snapshot(), clock_id=observed['clock_id'],
+                        acquired=False, native_operation_applied=False,
+                        reason='preparation_source_binding_changed',
+                        preparation_plan_id=kw['preparation_plan_id'],
+                        plan_sha256=kw['replacement_epoch']['plan_sha256'], lease_id=kw['lease_id'],
+                        expected_epoch=kw['expected_epoch'], **conflict)
+                    if fault == 'applied': receipt['native_operation_applied'] = True
+                    if fault == 'missing_applied': receipt.pop('native_operation_applied')
+                    if fault == 'changed_bindings': receipt['changed_source_bindings'] = []
+                    if fault == 'owner': receipt['owner_id'] = 'foreign'
+                    if fault == 'clock': receipt['clock_id'] = 'foreign'
+                    if fault == 'plan': receipt['preparation_plan_id'] = 'foreign'
+                    if fault == 'hash': receipt['plan_sha256'] = '0'*64
+                    if fault == 'lease': receipt['lease_id'] = 'foreign'
+                    if fault == 'expected_epoch': receipt['expected_epoch'] += 1
+                    if fault == 'planned_epoch': receipt['planned_epoch'] += 1
+                    if fault == 'acquired': receipt['acquired'] = True
+                    if fault == 'rank':
+                        next(r for r in receipt['source_observation']['sources']
+                             if r['adapter_id']=='b')['rank'] += 1
+                    if fault == 'incomplete':
+                        receipt['source_observation']['complete_for_native_caches'] = False
+                    return receipt
+                slot.engine.ieee_prepare_host.side_effect = boundary
+                async def run():
+                    try:
+                        if fault == 'valid':
+                            result = await asyncio.wait_for(base.execute(runner, slot, mode='residency'), 3)
+                            self.assertEqual(result['state'], 'superseded')
+                        else:
+                            with self.assertRaises((RuntimeError, ValueError, ConnectionError)) as caught:
+                                await asyncio.wait_for(base.execute(runner, slot, mode='residency'), 3)
+                            self.assertNotIsInstance(caught.exception, PreparationPlanSuperseded)
+                        record = runner._ieee_gpu_preparation_plans[-1]
+                        attempt = record['attempts'][-1]
+                        self.assertTrue(held_refs)
+                        self.assertTrue(record['close_receipt']['closed'])
+                        if fault == 'valid':
+                            self.assertEqual(record['state'], 'superseded')
+                            self.assertTrue(attempt['host_file_fallbacks_released'])
+                            base.check_clean(fixture, runner, owner)
+                        else:
+                            self.assertEqual(record['state'], 'failed')
+                            self.assertEqual(attempt['state'], 'native_outcome_unresolved')
+                            self.assertNotIn('host_file_fallbacks_released', attempt)
+                            for ref in held_refs:
+                                self.assertIn(ref['lease_id'], fixture.owner.leases)
+                                self.assertFalse(fixture.manager._delete_path(ref['path']))
+                        self.assertNotIn(('gpu','a'), loads)
+                    finally:
+                        await queue.close()
+                asyncio.run(run())
+
+    def test_modified_file_cannot_turn_non_target_change_into_normal_expiry(self):
+        from faaslora.preloading.preloading_planner import PreparationPlanSuperseded
+        base, data = self.make()
+        fixture, runner, queue, slot, owner, snapshot, loads = data
+        original = slot.engine.ieee_gpu_reference.side_effect
+        async def reference(**kw):
+            result = await original(**kw)
+            if kw['operation']=='register_preparation_plan' and result.get('registered'):
+                self.change_copy(fixture, runner, owner)
+                # Real changed bytes after the immutable publication, not a
+                # fabricated content_sha256 in an RPC response.
+                path = next(p for p in (fixture.host/'b').rglob('*') if p.is_file())
+                path.write_bytes(path.read_bytes()+b'changed-after-publication')
+            return result
+        slot.engine.ieee_gpu_reference.side_effect = reference
+        async def run():
+            try:
+                objective = await self.objective(runner, slot)
+                with self.assertRaises((ValueError, RuntimeError)) as caught:
+                    await asyncio.wait_for(runner._run_ieee_gpu_preparation_plan(slot=slot,
+                        objective=objective, target_adapter_ids=[InferenceEngine._lora_int_id('c')],
+                        trigger_reason='residency'), 3)
+                self.assertNotIsInstance(caught.exception, PreparationPlanSuperseded)
+                self.assertEqual(runner._ieee_gpu_preparation_plans[-1]['state'], 'failed')
+                slot.engine.ieee_prepare_host.assert_not_awaited()
+                self.assertEqual(loads, [('gpu','b')])
+            finally:
+                await queue.close()
+        asyncio.run(run())
+
+    def test_handoff_binding_expiry_closes_without_implicit_replanning(self):
+        from faaslora.preloading.preloading_planner import PreparationPlanSuperseded
+        base, data = self.make()
+        fixture, runner, queue, slot, owner, snapshot, loads = data
+        original = slot.engine.ieee_gpu_reference.side_effect
+        async def reference(**kw):
+            result = await original(**kw)
+            if kw['operation']=='register_preparation_plan' and result.get('registered'):
+                self.change_copy(fixture, runner, owner)
+            return result
+        slot.engine.ieee_gpu_reference.side_effect = reference
+        async def run():
+            try:
+                objective = await self.objective(runner, slot)
+                with patch.object(runner, '_plan_ieee_preparation_for_slot',
+                                  side_effect=AssertionError('handoff implicitly replanned')):
+                    with self.assertRaises(PreparationPlanSuperseded):
+                        await asyncio.wait_for(runner._run_ieee_gpu_preparation_plan(slot=slot,
+                            objective=objective, target_adapter_ids=[InferenceEngine._lora_int_id('c')],
+                            trigger_reason='handoff', activation_id='controlled-fixture'), 3)
+                self.assertEqual(len(runner._ieee_gpu_preparation_plans), 1)
+                slot.engine.ieee_prepare_host.assert_not_awaited()
+                base.check_clean(fixture, runner, owner)
+            finally:
+                await queue.close()
+        asyncio.run(run())
+
+    def make(self):
+        factory = AutomaticGPUReplacement()
+        self.addCleanup(factory.doCleanups)
+        base, data = factory.make({'c':80})
+        fixture, runner, queue, slot, owner, snapshot, loads = data
+        owner.manager.deactivate(InferenceEngine._lora_int_id('c'))
+        return base, data
+
+    def change_copy(self, fixture, runner, owner):
+        bid = InferenceEngine._lora_int_id('b')
+        files = fixture.owner.source_snapshot('b')
+        expected = runner._ieee_artifact_identities['b']['content_sha256']
+        by_path = {s['path']:s for s in files['sources']}
+        self.assertEqual(by_path[str(fixture.nvme/'b')]['content_sha256'], expected)
+        self.assertEqual(by_path[str(fixture.host/'b')]['content_sha256'], expected)
+        self.assertNotIn(bid, owner.snapshot()['pending_preparation_targets'])
+        self.assertTrue(owner.evict(adapter_int_id=bid)['evicted'])
+        held = fixture.owner.acquire_confirmed(path=str(fixture.host/'b'), adapter_id='b',
+            lease_id='binding-demand-file', expected_owner_id=files['owner_id'],
+            expected_epoch=files['epoch'], expected_content_sha256=expected)
+        receipt = owner.demand_load_and_acquire(lease_id='binding-demand', adapter_int_id=bid,
+            lora_name='b', lora_path=str(fixture.host/'b'), expected_owner_id=owner.owner_id,
+            expected_epoch=owner.snapshot()['epoch'])
+        self.assertTrue(receipt['acquired'])
+        owner.release(lease_id='binding-demand', expected_owner_id=owner.owner_id)
+        fixture.owner.release(lease_id=held['lease_id'], expected_owner_id=held['owner_id'])
+
+    async def objective(self, runner, slot):
+        from faaslora.preloading.preloading_planner import owned_gpu_execution_objective
+        plan = await runner._plan_ieee_preparation_for_slot(slot=slot, mode='residency')
+        self.assertEqual([c.artifact_id for c in plan['selected']['gpu']], ['c'])
+        return owned_gpu_execution_objective(plan=plan, selected=plan['selected'],
+            size_edges_bytes=runner._preparation_profiles.size_edges_bytes)
+
+    def prepare(self, fixture, owner, objective, **kwargs):
+        return owner.proactive_host_prepare_and_acquire(lease_id='binding-prepare',
+            adapter_int_id=InferenceEngine._lora_int_id('c'), lora_name='c',
+            lora_path=str(fixture.nvme/'c'), expected_owner_id=owner.owner_id,
+            expected_epoch=owner.snapshot()['epoch'], capacity_only=False,
+            replacement_epoch=objective, preparation_plan_id='binding', **kwargs)
+
+    def test_native_commit_returns_explicit_unapplied_binding_conflict_before_pricing(self):
+        base, data = self.make()
+        fixture, runner, queue, slot, owner, snapshot, loads = data
+        async def run():
+            objective = await self.objective(runner, slot)
+            cid = InferenceEngine._lora_int_id('c')
+            owner.register_preparation_plan(plan_id='binding', objective=objective,
+                target_adapter_ids=[cid], expected_owner_id=owner.owner_id)
+            try:
+                self.change_copy(fixture, runner, owner)
+                before, count = owner.snapshot(), len(loads)
+                pricing, admission = Mock(), Mock()
+                result = self.prepare(fixture, owner, objective,
+                    replacement_cost_provider=pricing, decide=admission)
+                self.assertIs(result['acquired'], False)
+                self.assertIs(result['native_operation_applied'], False)
+                self.assertEqual(result['reason'], 'preparation_source_binding_changed')
+                self.assertEqual(result['plan_sha256'], objective['plan_sha256'])
+                self.assertEqual(result['preparation_plan_id'], 'binding')
+                self.assertEqual(result['lease_id'], 'binding-prepare')
+                self.assertEqual(result['expected_epoch'], before['epoch'])
+                self.assertTrue(result['source_observation']['complete_for_native_caches'])
+                self.assertEqual([r['adapter_id'] for r in result['changed_source_bindings']], ['b'])
+                self.assertEqual(owner.snapshot(), before)
+                self.assertEqual(len(loads), count)
+                pricing.assert_not_called()
+                admission.assert_not_called()
+            finally:
+                owner.close_preparation_plan(plan_id='binding', expected_owner_id=owner.owner_id)
+                await queue.close()
+                base.check_clean(fixture, runner, owner)
+        asyncio.run(run())
+
+    def test_native_logical_or_gpu_damage_remains_fatal(self):
+        for fault in ('name', 'gpu_confirmation'):
+            with self.subTest(fault=fault):
+                base, data = self.make()
+                fixture, runner, queue, slot, owner, snapshot, loads = data
+                async def run():
+                    objective = await self.objective(runner, slot)
+                    cid, bid = (InferenceEngine._lora_int_id(n) for n in ('c','b'))
+                    owner.register_preparation_plan(plan_id='binding', objective=objective,
+                        target_adapter_ids=[cid], expected_owner_id=owner.owner_id)
+                    try:
+                        self.change_copy(fixture, runner, owner)
+                        if fault == 'name': owner._sources[bid] = ('foreign', str(fixture.host/'b'))
+                        else: owner._gpu_confirmations.pop(bid)
+                        with self.assertRaisesRegex(ValueError, 'source identity or GPU confirmation'):
+                            self.prepare(fixture, owner, objective, decide=Mock())
+                    finally:
+                        owner.close_preparation_plan(plan_id='binding', expected_owner_id=owner.owner_id)
+                        await queue.close()
+                asyncio.run(run())
+
+    def test_binding_observation_rejects_damaged_or_nonconflicting_views(self):
+        import copy
+        from faaslora.preloading.preloading_planner import native_preparation_source_conflict
+        base, data = self.make()
+        fixture, runner, queue, slot, owner, snapshot, loads = data
+        async def run():
+            objective = await self.objective(runner, slot)
+            cid, bid = (InferenceEngine._lora_int_id(n) for n in ('c','b'))
+            self.change_copy(fixture, runner, owner)
+            view = snapshot()
+            changes = [dict(owner_id='foreign'), dict(epoch=objective['epoch']), dict(epoch=True),
+                dict(complete_for_native_caches=False), dict(sources=[]),
+                dict(unknown_native_adapter_ids=[bid]), dict(unconfirmed_gpu_adapter_ids=[bid])]
+            for fields in changes:
+                with self.subTest(fields=fields), self.assertRaises(ValueError):
+                    native_preparation_source_conflict(frozen=objective, observed=view|fields,
+                                                      binding_targets=[cid])
+            for key, value in (('adapter_id','foreign'), ('rank',0), ('source_id',None),
+                               ('gpu_confirmed_monotonic_s',None), ('lora_path','relative')):
+                altered = copy.deepcopy(view)
+                next(r for r in altered['sources'] if r['adapter_int_id']==bid)[key] = value
+                with self.subTest(field=key), self.assertRaises(ValueError):
+                    native_preparation_source_conflict(frozen=objective, observed=altered,
+                                                      binding_targets=[cid])
+            for targets in ([], [True], [cid,cid], [bid]):
+                with self.subTest(targets=targets), self.assertRaises(ValueError):
+                    native_preparation_source_conflict(frozen=objective, observed=view,
+                                                      binding_targets=targets)
+            await queue.close()
+        asyncio.run(run())
+
+    def test_observed_non_target_change_closes_old_residency_and_fresh_epoch_completes(self):
+        base, data = self.make()
+        fixture, runner, queue, slot, owner, snapshot, loads = data
+        original, changed = slot.engine.ieee_gpu_reference.side_effect, []
+        async def reference(**kw):
+            result = await original(**kw)
+            if kw['operation']=='register_preparation_plan' and result.get('registered') and not changed:
+                self.change_copy(fixture, runner, owner)
+                changed.append(True)
+            return result
+        slot.engine.ieee_gpu_reference.side_effect = reference
+        runner._coordination_enabled = True
+        async def run():
+            try:
+                old = {}
+                task = asyncio.create_task(runner._execute_ieee_residency_epoch(slot, old))
+                runner._ieee_residency_tasks = {id(slot.engine):task}
+                await asyncio.wait_for(asyncio.gather(task, return_exceptions=True), 3)
+                runner._reap_ieee_residency_tasks()
+                self.assertEqual(old['state'], 'superseded')
+                self.assertEqual(old['preparation_supersession']['stage'], 'native_gpu_objective_binding')
+                slot.engine.ieee_prepare_host.assert_not_awaited()
+                self.assertEqual(loads, [('gpu','b')])
+                base.check_clean(fixture, runner, owner)
+                fresh = {}
+                await asyncio.wait_for(runner._execute_ieee_residency_epoch(slot, fresh), 3)
+                self.assertEqual(fresh['state'], 'completed')
+                self.assertNotEqual(old['plan_sha256'], fresh['plan_sha256'])
+                self.assertIn(InferenceEngine._lora_int_id('c'), owner.snapshot()['slot_adapter_ids'])
+                base.check_clean(fixture, runner, owner)
+            finally:
+                await queue.close()
+        asyncio.run(run())
+
+    def test_change_between_observation_and_rpc_defers_then_expires_without_old_mutation(self):
+        from faaslora.preloading.preloading_planner import PreparationPlanSuperseded
+        base, data = self.make()
+        fixture, runner, queue, slot, owner, snapshot, loads = data
+        prepare = slot.engine.ieee_prepare_host.side_effect
+        seen, receipts = asyncio.Event(), []
+        async def race(**kw):
+            self.change_copy(fixture, runner, owner)
+            result = await prepare(**kw)
+            receipts.append(result)
+            seen.set()
+            return result
+        slot.engine.ieee_prepare_host.side_effect = race
+        async def run():
+            objective = await self.objective(runner, slot)
+            task = asyncio.create_task(runner._run_ieee_gpu_preparation_plan(slot=slot,
+                objective=objective, target_adapter_ids=[InferenceEngine._lora_int_id('c')],
+                trigger_reason='residency'))
+            try:
+                await asyncio.wait_for(seen.wait(), 3)
+                # Wait for the actual queue deferral before sending the owner's
+                # observed-state event. This is not production polling policy.
+                async def deferred():
+                    while not any(r['state']=='deferred' for r in queue.snapshot()):
+                        await asyncio.sleep(0)
+                await asyncio.wait_for(deferred(), 3)
+                self.assertEqual(receipts[0]['reason'], 'stale_snapshot')
+                queue.wake(owner_id=owner.owner_id)
+                with self.assertRaises(PreparationPlanSuperseded):
+                    await asyncio.wait_for(task, 3)
+                self.assertEqual(slot.engine.ieee_prepare_host.await_count, 1)
+                self.assertEqual(loads, [('gpu','b')])
+                base.check_clean(fixture, runner, owner)
+            finally:
+                if not task.done(): task.cancel()
+                await asyncio.gather(task, return_exceptions=True)
+                await queue.close()
+        asyncio.run(run())
+
+
 class AutomaticFileReplacement(unittest.TestCase):
     """Actual mixed runner, real file allocation and native cache references."""
     def make(self, counts=None):
