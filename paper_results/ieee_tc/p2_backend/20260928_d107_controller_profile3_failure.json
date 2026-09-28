@@ -1,0 +1,1182 @@
+{
+  "kind": "d107_interrupted_controller_profiling_v1",
+  "runtime_source_commit": "b7161bdcafe05117dcc9434f12ede5a7003c121d",
+  "production_changed": false,
+  "formal_performance_result": false,
+  "full_replay_qualified": false,
+  "population": {
+    "planned": 4000,
+    "arrived": 67,
+    "submitted": 66,
+    "terminal_records": 27,
+    "success_native_contract": 11,
+    "cancelled": 16,
+    "failed_untyped": 0,
+    "physical_terminal_noninterrupted": 11
+  },
+  "failed_request_records": [
+    {
+      "at": 98973.606917255,
+      "canonical_prompt_sha256": null,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "completion_token_ids_sha256": null,
+      "error_type": "CancelledError",
+      "event": "request_interrupted",
+      "instance_id": null,
+      "native_contract_matched": false,
+      "request_id": "req_00020",
+      "source_request_sha256": "9fa3d11f81640a178522f76994d097fbf61e62f0bbc6d1df1370afb0f4275535",
+      "success": false,
+      "target_tokens": 256
+    },
+    {
+      "at": 98973.607393108,
+      "canonical_prompt_sha256": null,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "completion_token_ids_sha256": null,
+      "error_type": "CancelledError",
+      "event": "request_interrupted",
+      "instance_id": null,
+      "native_contract_matched": false,
+      "request_id": "req_00026",
+      "source_request_sha256": "bb9f07104617f59cb089bd50634c95dfaf92f316acf1c2801a4ada67df1fbf6d",
+      "success": false,
+      "target_tokens": 256
+    },
+    {
+      "at": 98973.607727531,
+      "canonical_prompt_sha256": null,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "completion_token_ids_sha256": null,
+      "error_type": "CancelledError",
+      "event": "request_interrupted",
+      "instance_id": null,
+      "native_contract_matched": false,
+      "request_id": "req_00019",
+      "source_request_sha256": "d254b710ad49312ef59089c6dcd862ca262d88cf781ba5b2900ab1d5150c5bee",
+      "success": false,
+      "target_tokens": 256
+    },
+    {
+      "at": 98973.608495309,
+      "canonical_prompt_sha256": null,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "completion_token_ids_sha256": null,
+      "error_type": "CancelledError",
+      "event": "request_interrupted",
+      "instance_id": null,
+      "native_contract_matched": false,
+      "request_id": "req_00022",
+      "source_request_sha256": "6a20cd12033050f3fa28bf84381284bca827a65e541813fc91f13565a66bf5b6",
+      "success": false,
+      "target_tokens": 256
+    },
+    {
+      "at": 98973.609592964,
+      "canonical_prompt_sha256": null,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "completion_token_ids_sha256": null,
+      "error_type": "CancelledError",
+      "event": "request_interrupted",
+      "instance_id": null,
+      "native_contract_matched": false,
+      "request_id": "req_00023",
+      "source_request_sha256": "741c176cd8e2737baff9f82079e70f79bf079243f7b6bc6d03441ace137cf029",
+      "success": false,
+      "target_tokens": 256
+    },
+    {
+      "at": 98973.610207965,
+      "canonical_prompt_sha256": null,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "completion_token_ids_sha256": null,
+      "error_type": "CancelledError",
+      "event": "request_interrupted",
+      "instance_id": null,
+      "native_contract_matched": false,
+      "request_id": "req_00025",
+      "source_request_sha256": "b374bbeee7c6d79939acbe4690b1d2261e223b34072aac865545a2b67112851e",
+      "success": false,
+      "target_tokens": 256
+    },
+    {
+      "at": 98973.614278634,
+      "canonical_prompt_sha256": null,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "completion_token_ids_sha256": null,
+      "error_type": "CancelledError",
+      "event": "request_interrupted",
+      "instance_id": null,
+      "native_contract_matched": false,
+      "request_id": "req_00024",
+      "source_request_sha256": "51dbb2b4fe6f34d33279010ea7992aaadc68629059b6db08963a155090012f73",
+      "success": false,
+      "target_tokens": 67
+    },
+    {
+      "at": 98973.615075086,
+      "canonical_prompt_sha256": null,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "completion_token_ids_sha256": null,
+      "error_type": "CancelledError",
+      "event": "request_interrupted",
+      "instance_id": null,
+      "native_contract_matched": false,
+      "request_id": "req_00021",
+      "source_request_sha256": "dd880d45a9cd5e901fea6a52871ddef8c32e75d5f3d85e39ad633de8c241b182",
+      "success": false,
+      "target_tokens": 89
+    },
+    {
+      "at": 98973.703946306,
+      "canonical_prompt_sha256": null,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "completion_token_ids_sha256": null,
+      "error_type": "CancelledError",
+      "event": "request_interrupted",
+      "instance_id": null,
+      "native_contract_matched": false,
+      "request_id": "req_00016",
+      "source_request_sha256": "b789d990b60e1366f355fc17da64877bd3f9624b6d6a48a375a832affb8f280a",
+      "success": false,
+      "target_tokens": 173
+    },
+    {
+      "at": 98973.704331473,
+      "canonical_prompt_sha256": null,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "completion_token_ids_sha256": null,
+      "error_type": "CancelledError",
+      "event": "request_interrupted",
+      "instance_id": null,
+      "native_contract_matched": false,
+      "request_id": "req_00018",
+      "source_request_sha256": "eb6444cce55178ebce30b9b71814406c06a555a631c1f82c36f8051aa7553df6",
+      "success": false,
+      "target_tokens": 183
+    },
+    {
+      "at": 98973.704514302,
+      "canonical_prompt_sha256": null,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "completion_token_ids_sha256": null,
+      "error_type": "CancelledError",
+      "event": "request_interrupted",
+      "instance_id": null,
+      "native_contract_matched": false,
+      "request_id": "req_00015",
+      "source_request_sha256": "b953ee5548b29309bd2efa481ccfa034e713b54347c29d4536e0abeb680b8719",
+      "success": false,
+      "target_tokens": 256
+    },
+    {
+      "at": 98973.704704955,
+      "canonical_prompt_sha256": null,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "completion_token_ids_sha256": null,
+      "error_type": "CancelledError",
+      "event": "request_interrupted",
+      "instance_id": null,
+      "native_contract_matched": false,
+      "request_id": "req_00017",
+      "source_request_sha256": "8d67b9c689e6e0c96fd98766be685eaf78643c845d0fd7c5818120b0aad669a5",
+      "success": false,
+      "target_tokens": 256
+    },
+    {
+      "at": 98973.704887305,
+      "canonical_prompt_sha256": null,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "completion_token_ids_sha256": null,
+      "error_type": "CancelledError",
+      "event": "request_interrupted",
+      "instance_id": null,
+      "native_contract_matched": false,
+      "request_id": "req_00010",
+      "source_request_sha256": "bfb0f4da4f7db5e4756e1b3f72254f083416024f9125803c53adad00a902e867",
+      "success": false,
+      "target_tokens": 253
+    },
+    {
+      "at": 98973.705070858,
+      "canonical_prompt_sha256": null,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "completion_token_ids_sha256": null,
+      "error_type": "CancelledError",
+      "event": "request_interrupted",
+      "instance_id": null,
+      "native_contract_matched": false,
+      "request_id": "req_00012",
+      "source_request_sha256": "6adbd1c257aa533e0fa79e1b1f0880b69256de817e049969020f8ce7566c0aca",
+      "success": false,
+      "target_tokens": 256
+    },
+    {
+      "at": 98973.70525452,
+      "canonical_prompt_sha256": null,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "completion_token_ids_sha256": null,
+      "error_type": "CancelledError",
+      "event": "request_interrupted",
+      "instance_id": null,
+      "native_contract_matched": false,
+      "request_id": "req_00011",
+      "source_request_sha256": "1418766c602ded1e549a6f9af16a52dd1ab2fe223c63a9fab758d851bf0eefd5",
+      "success": false,
+      "target_tokens": 256
+    },
+    {
+      "at": 98973.705515035,
+      "canonical_prompt_sha256": null,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "completion_token_ids_sha256": null,
+      "error_type": "CancelledError",
+      "event": "request_interrupted",
+      "instance_id": null,
+      "native_contract_matched": false,
+      "request_id": "req_00014",
+      "source_request_sha256": "d61fd292a96ab9303a20bbe216fbbca87412ae07bd2e97461e8e34aa28fcab67",
+      "success": false,
+      "target_tokens": 203
+    }
+  ],
+  "primary_service_error": {
+    "stage": "main_execution",
+    "type": "RuntimeError",
+    "message": "subprocess_native_rpc_failed_no_retry: RuntimeError: Exception: Call to ieee_prepare_host method failed: replacement epoch source identity or GPU confirmation changed",
+    "traceback": "Traceback (most recent call last):\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 22686, in _main_async_impl\n    result, coord_m = await runner.run()\n                      ^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 14487, in run\n    all_raw, _tb1 = await self._run_continuous_observed(\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 12596, in _run_continuous_observed\n    await self._maybe_run_live_scale_control_evaluation(\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 11833, in _maybe_run_live_scale_control_evaluation\n    return await self._evaluate_ieee_live_control(result=result, coord_enabled=coord_enabled,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 12145, in _evaluate_ieee_live_control\n    self._reap_ieee_residency_tasks()  # Surface failure; do not silently restart the same plan.\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 12282, in _reap_ieee_residency_tasks\n    task.result()  # A failed epoch is evidence, not a swallowed warning/retry.\n    ^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 12306, in _execute_ieee_residency_epoch\n    result = await self._run_ieee_owned_preparation_plan(slot=slot, mode='residency',\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 17294, in _run_ieee_owned_preparation_plan\n    result = await self._run_ieee_file_preparation_plan(plan=plan, target_engine=slot.engine,\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 17652, in _run_ieee_file_preparation_plan\n    results = await asyncio.gather(*waiters)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 17593, in execute_gpu\n    result = await self._run_ieee_gpu_preparation_plan(slot=gpu_slot,\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_manager.py\", line 264, in join_operation\n    return await asyncio.shield(self._intents[intent_id]['future'])\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_manager.py\", line 135, in _execute\n    result = await job['action'](attempt['attempt_id'])\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 16910, in execute\n    receipt, cancelled = await settle(call)\n                         ^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 16827, in settle\n    return await asyncio.shield(task), cancelled\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 5730, in ieee_prepare_host\n    return await self._rpc('ieee_prepare_host', **command)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 5351, in _rpc\n    raise RuntimeError(self._with_worker_log_context(\nRuntimeError: subprocess_native_rpc_failed_no_retry: RuntimeError: Exception: Call to ieee_prepare_host method failed: replacement epoch source identity or GPU confirmation changed\nworker_root=/tmp/faaslora_worker_uf2x1zfy\nworker_log=/tmp/faaslora_worker_uf2x1zfy/worker.log\nworker_log_tail:\n%).\n(EngineCore pid=3312254) INFO 09-28 18:34:22 [gpu_worker.py:888] Free memory on device (23.29/23.56 GiB) on startup. Desired GPU memory utilization is (0.72, 16.96 GiB). Actual usage is 7.9 GiB for consumed memory (weights + non-torch), 0.38 GiB for peak activation, and 0.05 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=9111509976` (8.49 GiB) to fit into requested memory, or `--kv-cache-memory=15902046208` (14.81 GiB) to fully utilize gpu memory. Current kv cache memory in use is 8.69 GiB.\n(EngineCore pid=3312254) INFO 09-28 18:34:23 [jit_monitor.py:85] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.\n(EngineCore pid=3312254) INFO 09-28 18:34:23 [core.py:372] init engine (profile, create kv cache, warmup model) took 10.75 s (compilation: 0.27 s)\n(EngineCore pid=3312254) WARNING 09-28 18:34:25 [scheduler.py:224] Using custom scheduler class faaslora.scheduling.vllm_ieee_scheduler.IEEENativeAsyncScheduler. This scheduler interface is not public and compatibility may not be maintained. If you have subclassed Scheduler instead of AsyncScheduler, you will see degraded performance due to async scheduling being disabled.\n(EngineCore pid=3312254) INFO 09-28 18:34:25 [kernel.py:416] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'], gelu_and_mul_sparse=['triton', 'native'])\n  OK: vLLM engine ready (TP=1, real LoRA, max_loras=8)\nWARNING 09-28 18:35:06 [input_processor.py:315] Passing raw prompts to InputProcessor is deprecated and will be removed in the future. You should instead pass the outputs of Renderer.render_cmpl() or Renderer.render_chat().\nWARNING 09-28 18:35:09 [input_processor.py:196] vLLM has deprecated support for supporting different tokenizers for different LoRAs. By default, vLLM uses base model's tokenizer. If you are using a LoRA with its own tokenizer, consider specifying `--tokenizer [lora_path]` to use the LoRA tokenizer.\n(EngineCore pid=3312254) WARNING 09-28 18:35:09 [jit_monitor.py:141] Triton kernel JIT compilation during inference: _lora_shrink_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.\n(EngineCore pid=3312254) ERROR 09-28 18:35:25 [core.py:1609] Invocation of ieee_prepare_host method failed\n(EngineCore pid=3312254) ERROR 09-28 18:35:25 [core.py:1609] Traceback (most recent call last):\n(EngineCore pid=3312254) ERROR 09-28 18:35:25 [core.py:1609]   File \"/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py\", line 1599, in _invoke_utility_method\n(EngineCore pid=3312254) ERROR 09-28 18:35:25 [core.py:1609]     result = get_result()\n(EngineCore pid=3312254) ERROR 09-28 18:35:25 [core.py:1609]              ^^^^^^^^^^^^\n(EngineCore pid=3312254) ERROR 09-28 18:35:25 [core.py:1609]   File \"/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py\", line 1554, in <lambda>\n(EngineCore pid=3312254) ERROR 09-28 18:35:25 [core.py:1609]     and method(*self._convert_msgspec_args(method, args))\n(EngineCore pid=3312254) ERROR 09-28 18:35:25 [core.py:1609]         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n(EngineCore pid=3312254) ERROR 09-28 18:35:25 [core.py:1609]   File \"/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/vllm_ieee_scheduler.py\", line 85, in _core_prepare_host\n(EngineCore pid=3312254) ERROR 09-28 18:35:25 [core.py:1609]     result = core.collective_rpc('ieee_gpu_reference', kwargs={\n(EngineCore pid=3312254) ERROR 09-28 18:35:25 [core.py:1609]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n(EngineCore pid=3312254) ERROR 09-28 18:35:25 [core.py:1609]   File \"/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py\", line 971, in collective_rpc\n(EngineCore pid=3312254) ERROR 09-28 18:35:25 [core.py:1609]     return self.model_executor.collective_rpc(method, timeout, args, kwargs)\n(EngineCore pid=3312254) ERROR 09-28 18:35:25 [core.py:1609]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n(EngineCore pid=3312254) ERROR 09-28 18:35:25 [core.py:1609]   File \"/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/executor/uniproc_executor.py\", line 103, in collective_rpc\n(EngineCore pid=3312254) ERROR 09-28 18:35:25 [core.py:1609]     result = run_method(self.driver_worker, method, args, kwargs)\n(EngineCore pid=3312254) ERROR 09-28 18:35:25 [core.py:1609]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n(EngineCore pid=3312254) ERROR 09-28 18:35:25 [core.py:1609]   File \"/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py\", line 510, in run_method\n(EngineCore pid=3312254) ERROR 09-28 18:35:25 [core.py:1609]     return func(*args, **kwargs)\n(EngineCore pid=3312254) ERROR 09-28 18:35:25 [core.py:1609]            ^^^^^^^^^^^^^^^^^^^^^\n(EngineCore pid=3312254) ERROR 09-28 18:35:25 [core.py:1609]   File \"/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py\", line 750, in ieee_gpu_reference\n(EngineCore pid=3312254) ERROR 09-28 18:35:25 [core.py:1609]     result = owner.proactive_host_prepare_and_acquire(**kwargs, decide=decide)\n(EngineCore pid=3312254) ERROR 09-28 18:35:25 [core.py:1609]              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n(EngineCore pid=3312254) ERROR 09-28 18:35:25 [core.py:1609]   File \"/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py\", line 2505, in proactive_host_prepare_and_acquire\n(EngineCore pid=3312254) ERROR 09-28 18:35:25 [core.py:1609]     raise ValueError('replacement epoch source identity or GPU confirmation changed')\n(EngineCore pid=3312254) ERROR 09-28 18:35:25 [core.py:1609] ValueError: replacement epoch source identity or GPU confirmation changed\n"
+  },
+  "outer_launcher": {
+    "classification": "protocol_or_launcher_error",
+    "error": "external replay failed; no silent internal timer fallback",
+    "service_returncode": 0,
+    "replay_returncode": 1,
+    "caveat": "service return code belongs to profiler wrapper; zero does not certify service success"
+  },
+  "profiler": {
+    "finalized": true,
+    "full_workload_coverage": false,
+    "output_bytes": 1595034,
+    "tool": "py-spy 0.4.2",
+    "rate_hz": 100,
+    "gil_only": true,
+    "threads": [
+      {
+        "name": "Thread 3304222 \"\"",
+        "samples": 4398
+      },
+      {
+        "name": "Thread 3319370 \"asyncio_0\"",
+        "samples": 75
+      },
+      {
+        "name": "Thread 3326959 \"asyncio_1\"",
+        "samples": 4
+      },
+      {
+        "name": "Thread 3326961 \"asyncio_2\"",
+        "samples": 7
+      },
+      {
+        "name": "Thread 3326962 \"asyncio_3\"",
+        "samples": 8
+      },
+      {
+        "name": "Thread 3326963 \"asyncio_4\"",
+        "samples": 6
+      },
+      {
+        "name": "Thread 3326965 \"asyncio_6\"",
+        "samples": 2
+      },
+      {
+        "name": "Thread 3326967 \"asyncio_7\"",
+        "samples": 1
+      },
+      {
+        "name": "Thread 3327022 \"asyncio_8\"",
+        "samples": 7
+      },
+      {
+        "name": "Thread 3327026 \"asyncio_10\"",
+        "samples": 7
+      },
+      {
+        "name": "Thread 3327027 \"asyncio_11\"",
+        "samples": 7
+      },
+      {
+        "name": "Thread 3327030 \"asyncio_12\"",
+        "samples": 3
+      },
+      {
+        "name": "Thread 3327520 \"asyncio_13\"",
+        "samples": 3
+      },
+      {
+        "name": "Thread 3327521 \"asyncio_14\"",
+        "samples": 1
+      },
+      {
+        "name": "Thread 3327522 \"asyncio_15\"",
+        "samples": 12
+      },
+      {
+        "name": "Thread 3327534 \"asyncio_17\"",
+        "samples": 2
+      },
+      {
+        "name": "Thread 3327537 \"asyncio_18\"",
+        "samples": 3
+      },
+      {
+        "name": "Thread 3327538 \"asyncio_19\"",
+        "samples": 1
+      },
+      {
+        "name": "Thread 3327539 \"asyncio_20\"",
+        "samples": 1
+      },
+      {
+        "name": "Thread 3327540 \"asyncio_21\"",
+        "samples": 1
+      },
+      {
+        "name": "Thread 3327702 \"asyncio_24\"",
+        "samples": 5
+      },
+      {
+        "name": "Thread 3327704 \"asyncio_25\"",
+        "samples": 6
+      },
+      {
+        "name": "Thread 3327705 \"asyncio_26\"",
+        "samples": 2
+      }
+    ],
+    "total_samples": 4562,
+    "reported_sampling_errors": 2,
+    "inclusive_project_frames": [
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "<module>",
+        "samples": 4139,
+        "fraction": 0.9072775098640947
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/__init__.py",
+        "function": "<module>",
+        "samples": 2032,
+        "fraction": 0.4454186760192898
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/experiment_stack.py",
+        "function": "<module>",
+        "samples": 2027,
+        "fraction": 0.44432266549758875
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/coordination/__init__.py",
+        "function": "<module>",
+        "samples": 2017,
+        "fraction": 0.44213064445418676
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/coordination/coordinator.py",
+        "function": "<module>",
+        "samples": 2017,
+        "fraction": 0.44213064445418676
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/serving/__init__.py",
+        "function": "<module>",
+        "samples": 2016,
+        "fraction": 0.4419114423498466
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/serving/inference_engine.py",
+        "function": "<module>",
+        "samples": 2016,
+        "fraction": 0.4419114423498466
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/serving/vllm_wrapper.py",
+        "function": "<module>",
+        "samples": 2015,
+        "fraction": 0.44169224024550635
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "main",
+        "samples": 1894,
+        "fraction": 0.41516878562034193
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_main_async_impl",
+        "samples": 852,
+        "fraction": 0.1867601928978518
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "run",
+        "samples": 685,
+        "fraction": 0.15015344147303814
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_prepare_request_execution_plan_cache",
+        "samples": 664,
+        "fraction": 0.14555019728189392
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_prepare_request_execution_plan",
+        "samples": 663,
+        "fraction": 0.1453309951775537
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "prepare_request",
+        "samples": 662,
+        "fraction": 0.1451117930732135
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_prepare_vllm_prompt",
+        "samples": 649,
+        "fraction": 0.14226216571679087
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/datasets/workload_generator.py",
+        "function": "canonical_fixed_prompt",
+        "samples": 490,
+        "fraction": 0.10740903112669882
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_rpc",
+        "samples": 351,
+        "fraction": 0.07693993862341078
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_send_rpc_on_channel",
+        "samples": 343,
+        "fraction": 0.07518632178868917
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "ieee_gpu_reference",
+        "samples": 326,
+        "fraction": 0.07145988601490574
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "execute",
+        "samples": 220,
+        "fraction": 0.048224462954844366
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_manager.py",
+        "function": "_execute",
+        "samples": 194,
+        "fraction": 0.042525208241999124
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "main_async",
+        "samples": 189,
+        "fraction": 0.041429197720298114
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/datasets/workload_generator.py",
+        "function": "load",
+        "samples": 189,
+        "fraction": 0.041429197720298114
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_exec_request",
+        "samples": 165,
+        "fraction": 0.036168347216133274
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_run_offered_request",
+        "samples": 165,
+        "fraction": 0.036168347216133274
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "serve",
+        "samples": 165,
+        "fraction": 0.036168347216133274
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "run_one",
+        "samples": 165,
+        "fraction": 0.036168347216133274
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_exec_request_in_reservation",
+        "samples": 162,
+        "fraction": 0.03551074090311267
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "function": "_local_file_inventory",
+        "samples": 149,
+        "fraction": 0.032661113546690046
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_get_prompt_guard_tokenizer",
+        "samples": 148,
+        "fraction": 0.03244191144234985
+      }
+    ],
+    "leaf_frames": [
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/json/decoder.py",
+        "function": "raw_decode",
+        "samples": 360,
+        "fraction": 0.0789127575624726
+      },
+      {
+        "file": "",
+        "function": "thread (3304222): MainThread",
+        "samples": 236,
+        "fraction": 0.051731696624287594
+      },
+      {
+        "file": "<frozen importlib._bootstrap_external>",
+        "function": "_compile_bytecode",
+        "samples": 211,
+        "fraction": 0.04625164401578255
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/dataclasses.py",
+        "function": "_create_fn",
+        "samples": 189,
+        "fraction": 0.041429197720298114
+      },
+      {
+        "file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/transformers/utils/import_utils.py",
+        "function": "fetch__all__",
+        "samples": 128,
+        "fraction": 0.028057869355545814
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/datasets/workload_generator.py",
+        "function": "<lambda>",
+        "samples": 128,
+        "fraction": 0.028057869355545814
+      },
+      {
+        "file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/transformers/tokenization_utils_tokenizers.py",
+        "function": "_decode",
+        "samples": 120,
+        "fraction": 0.0263042525208242
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/json/encoder.py",
+        "function": "iterencode",
+        "samples": 119,
+        "fraction": 0.026085050416484
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/datasets/workload_generator.py",
+        "function": "canonical_fixed_prompt",
+        "samples": 107,
+        "fraction": 0.02345462516440158
+      },
+      {
+        "file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/transformers/utils/import_utils.py",
+        "function": "create_import_structure_from_path",
+        "samples": 104,
+        "fraction": 0.022797018851380975
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py",
+        "function": "deepcopy",
+        "samples": 100,
+        "fraction": 0.021920210434020166
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py",
+        "function": "_reconstruct",
+        "samples": 79,
+        "fraction": 0.01731696624287593
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/typing.py",
+        "function": "inner",
+        "samples": 78,
+        "fraction": 0.01709776413853573
+      },
+      {
+        "file": "<frozen importlib._bootstrap>",
+        "function": "_call_with_frames_removed",
+        "samples": 67,
+        "fraction": 0.014686540990793511
+      },
+      {
+        "file": "<string>",
+        "function": "<module>",
+        "samples": 64,
+        "fraction": 0.014028934677772907
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+        "function": "__fspath__",
+        "samples": 59,
+        "fraction": 0.012932924156071899
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+        "function": "_parse_path",
+        "samples": 57,
+        "fraction": 0.012494519947391494
+      },
+      {
+        "file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/transformers/tokenization_utils_tokenizers.py",
+        "function": "_convert_encoding",
+        "samples": 55,
+        "fraction": 0.012056115738711091
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/datasets/workload_generator.py",
+        "function": "<genexpr>",
+        "samples": 53,
+        "fraction": 0.011617711530030689
+      },
+      {
+        "file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/transformers/tokenization_utils_tokenizers.py",
+        "function": "convert_to_native_format",
+        "samples": 50,
+        "fraction": 0.010960105217010083
+      },
+      {
+        "file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/transformers/utils/generic.py",
+        "function": "<genexpr>",
+        "samples": 38,
+        "fraction": 0.008329679964927663
+      },
+      {
+        "file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/transformers/tokenization_utils_tokenizers.py",
+        "function": "_encode_plus",
+        "samples": 38,
+        "fraction": 0.008329679964927663
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+        "function": "__init__",
+        "samples": 37,
+        "fraction": 0.008110477860587462
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py",
+        "function": "_deepcopy_dict",
+        "samples": 34,
+        "fraction": 0.007452871547566856
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_main_async_impl",
+        "samples": 33,
+        "fraction": 0.007233669443226655
+      },
+      {
+        "file": "<frozen importlib._bootstrap>",
+        "function": "__enter__",
+        "samples": 28,
+        "fraction": 0.006137658921525646
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "function": "_local_file_inventory",
+        "samples": 27,
+        "fraction": 0.005918456817185445
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/re/_compiler.py",
+        "function": "_optimize_charset",
+        "samples": 26,
+        "fraction": 0.005699254712845244
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_blocking_rpc_roundtrip",
+        "samples": 26,
+        "fraction": 0.005699254712845244
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+        "function": "stat",
+        "samples": 25,
+        "fraction": 0.0054800526085050415
+      }
+    ],
+    "exclusive_nearest_project_frames": [
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/serving/vllm_wrapper.py",
+        "function": "<module>",
+        "samples": 2015,
+        "fraction": 0.44169224024550635
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/datasets/workload_generator.py",
+        "function": "canonical_fixed_prompt",
+        "samples": 444,
+        "fraction": 0.09732573432704954
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_send_rpc_on_channel",
+        "samples": 335,
+        "fraction": 0.07343270495396756
+      },
+      {
+        "file": "",
+        "function": "no_project_frame",
+        "samples": 261,
+        "fraction": 0.05721174923279263
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "<module>",
+        "samples": 210,
+        "fraction": 0.04603244191144235
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_get_prompt_guard_tokenizer",
+        "samples": 148,
+        "fraction": 0.03244191144234985
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "function": "_local_file_inventory",
+        "samples": 138,
+        "fraction": 0.03024989039894783
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/datasets/workload_generator.py",
+        "function": "<lambda>",
+        "samples": 128,
+        "fraction": 0.028057869355545814
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_run_ieee_file_preparation_plan",
+        "samples": 90,
+        "fraction": 0.01972818939061815
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/datasets/workload_generator.py",
+        "function": "load",
+        "samples": 61,
+        "fraction": 0.013371328364752301
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/datasets/workload_generator.py",
+        "function": "<genexpr>",
+        "samples": 53,
+        "fraction": 0.011617711530030689
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "function": "_source_observation",
+        "samples": 47,
+        "fraction": 0.010302498903989479
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_finish_ieee_main_scenario",
+        "samples": 35,
+        "fraction": 0.0076720736519070585
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_main_async_impl",
+        "samples": 34,
+        "fraction": 0.007452871547566856
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_blocking_rpc_roundtrip",
+        "samples": 26,
+        "fraction": 0.005699254712845244
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "main",
+        "samples": 25,
+        "fraction": 0.0054800526085050415
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_planner.py",
+        "function": "owned_preparation_inputs",
+        "samples": 24,
+        "fraction": 0.00526085050416484
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_queue_ieee_file_preparation",
+        "samples": 21,
+        "fraction": 0.004603244191144235
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_manager.py",
+        "function": "_execute",
+        "samples": 19,
+        "fraction": 0.004164839982463832
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "function": "_expected_content",
+        "samples": 18,
+        "fraction": 0.00394563787812363
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_run_continuous_observed",
+        "samples": 17,
+        "fraction": 0.003726435773783428
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/storage/http_artifact_store.py",
+        "function": "<genexpr>",
+        "samples": 16,
+        "fraction": 0.0035072336694432268
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py",
+        "function": "load_nvml_binding",
+        "samples": 16,
+        "fraction": 0.0035072336694432268
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_planner.py",
+        "function": "generate_ieee_epoch",
+        "samples": 15,
+        "fraction": 0.003288031565103025
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/instance_pool.py",
+        "function": "_footprints",
+        "samples": 15,
+        "fraction": 0.003288031565103025
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "function": "_validated_source",
+        "samples": 14,
+        "fraction": 0.003068829460762823
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/storage/http_artifact_store.py",
+        "function": "_extract_verified",
+        "samples": 14,
+        "fraction": 0.003068829460762823
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/storage/http_artifact_store.py",
+        "function": "routing_identity",
+        "samples": 13,
+        "fraction": 0.002849627356422622
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py",
+        "function": "cg_path",
+        "samples": 13,
+        "fraction": 0.002849627356422622
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "function": "<genexpr>",
+        "samples": 12,
+        "fraction": 0.00263042525208242
+      }
+    ],
+    "caveat": "Interrupted run only; GIL sample attribution, not wall-time phase durations; inclusive counts overlap; ordinal indices are not arrival timestamps; profiler overhead unmeasured; time receipt measures profiler wrapper, not application RSS/CPU"
+  },
+  "physical_gpu_seconds": null,
+  "physical_gpu_seconds_observed": 361.1592227360088,
+  "window_gpu_seconds": {
+    "arrival": 329.53357989100914,
+    "cleanup": 0.0,
+    "drain": 0.0,
+    "pre_arrival": 31.625642844999675
+  },
+  "allocations": 4,
+  "all_allocations_released": true,
+  "cleanup_complete": true,
+  "resources": {
+    "samples": 197,
+    "peak_bytes": 19968495616,
+    "min_host_available_bytes": 93360402432,
+    "events": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    },
+    "max_swap_bytes": 0,
+    "warnings": 0,
+    "abort_events": []
+  },
+  "remote": {
+    "uuid_pairs": 12,
+    "request_packing": 0,
+    "original_journal": "/home/lab14/primelora_remote/tc/d80_20260927/3b/transfers-873b6e43e0a24ca7be0162f0c0368ea1.jsonl",
+    "clock_id": "remote-process-monotonic:ecec12a020cf4688acb77b62e88d81e6",
+    "states": {
+      "published": 12
+    },
+    "client_received_bytes": 27884609,
+    "server_socket_written_bytes": 27884609
+  },
+  "gpu_plans": [
+    {
+      "plan_id": "437932963ab644518524d54c838f4f27",
+      "state": "failed",
+      "error_type": "RuntimeError",
+      "objective_sha256": "f43b9cd08f821b56c378bde041804baf742441d3ef66b7aca12da5ec2935f6c0",
+      "owner_id": "bdd0c96d986447a7a5c0acd2accb0781",
+      "target_replica": "ieee-activation-e0b5c52f3efd45dfb482d4ce913c19f8",
+      "started_at": 98955.682649978,
+      "finished_at": 98973.553083703,
+      "attempt_states": {
+        "deferred": 11,
+        "completed": 6,
+        "native_outcome_unresolved": 2
+      },
+      "unresolved_attempts": [
+        {
+          "adapter_int_id": 441461,
+          "attempt_id": "545e8ea6756746f495361ceac71de26c",
+          "lease_id": "e7943de0ff314ffb83c55d9db9e5785b",
+          "state": "native_outcome_unresolved"
+        },
+        {
+          "adapter_int_id": 497501,
+          "attempt_id": "d3a16f906a3844be911851705d3b7eb1",
+          "lease_id": "07ac75d12f65405fa67ffec78bc3a65e",
+          "state": "native_outcome_unresolved"
+        }
+      ],
+      "close_receipt": {
+        "closed": true,
+        "plan_id": "437932963ab644518524d54c838f4f27",
+        "owner_id": "bdd0c96d986447a7a5c0acd2accb0781",
+        "epoch": 112,
+        "slot_adapter_ids": [
+          963725,
+          267597,
+          982478,
+          803545,
+          530107,
+          131076,
+          291372,
+          938881
+        ],
+        "reference_counts": {
+          "963725": 1,
+          "131076": 1,
+          "530107": 1,
+          "291372": 1,
+          "938881": 1,
+          "803545": 1,
+          "267597": 1,
+          "982478": 1
+        },
+        "live_leases": 8,
+        "released_leases": 17,
+        "host_source_reference_counts": {},
+        "live_host_source_leases": 0,
+        "staged_host_adapter_ids": [],
+        "live_staged_host_leases": 0,
+        "pending_preparation_targets": [],
+        "snapshot_holds_reference": false,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_host_allocator_policy": {
+          "policy": "uncached_background_v1",
+          "verified": true,
+          "allocator_settings": {
+            "PYTORCH_CUDA_ALLOC_CONF": "max_split_size_mb:17592186044415",
+            "max_split_size": -1048576,
+            "garbage_collection_threshold": 0.0,
+            "expandable_segments": false,
+            "pinned_num_register_threads": 1,
+            "release_lock_on_cudamalloc": false,
+            "pinned_use_cuda_host_register": false,
+            "graph_capture_record_stream_reuse": false,
+            "max_round_threshold": -1,
+            "max_cached_size": 0,
+            "roundup_power2_divisions": {
+              "1": 0,
+              "2": 0,
+              "4": 0,
+              "8": 0,
+              "16": 0,
+              "32": 0,
+              "64": 0,
+              "128": 0,
+              "256": 0,
+              "512": 0,
+              "1024": 0,
+              "2048": 0,
+              "4096": 0,
+              "8192": 0,
+              "16384": 0,
+              "32768": 0
+            }
+          },
+          "verified_scope": "effective_uncached_pinned_allocation_limit",
+          "last_allocator_update": "max_split_size_mb:17592186044415",
+          "background_event_processing_requested": true,
+          "background_event_processing_readback": null,
+          "background_readback_limitation": "torch_2_13_snapshot_does_not_export_background_flag",
+          "persistent_cache_enabled": false,
+          "immediate_release_guaranteed": false
+        },
+        "worker_pid": 3312254,
+        "worker_rank": 0,
+        "completion_fence_scope": "current_worker_cuda_stream",
+        "production_launch_authorized": false,
+        "timing": {
+          "parent_rpc_channel_acquire_ms": 0.7357939903158695,
+          "parent_rpc_response_pickup_delay_ms": 0.0,
+          "parent_rpc_send_flush_ms": 0.09455000690650195,
+          "parent_rpc_request_bytes": 229,
+          "parent_rpc_response_bytes": 1864,
+          "parent_rpc_wait_response_ms": 45.6214450096013,
+          "parent_rpc_thread_resume_delay_ms": 0.2536773681640625
+        }
+      }
+    }
+  ],
+  "native_host_preparations": [
+    {
+      "adapter_id": "research_lora_0008",
+      "target_replica": "ieee-activation-e0b5c52f3efd45dfb482d4ce913c19f8",
+      "source_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d107_20260928/3b_nvme_profile3/tc_ieee_full/research_lora_0008",
+      "plan_id": "437932963ab644518524d54c838f4f27",
+      "attempt_count": 0,
+      "attempt_states": []
+    },
+    {
+      "adapter_id": "finance_lora",
+      "target_replica": "ieee-activation-e0b5c52f3efd45dfb482d4ce913c19f8",
+      "source_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d107_20260928/3b_nvme_profile3/tc_ieee_full/finance_lora",
+      "plan_id": "437932963ab644518524d54c838f4f27",
+      "attempt_count": 0,
+      "attempt_states": []
+    },
+    {
+      "adapter_id": "legal_lora",
+      "target_replica": "ieee-activation-e0b5c52f3efd45dfb482d4ce913c19f8",
+      "source_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d107_20260928/3b_nvme_profile3/tc_ieee_full/legal_lora",
+      "plan_id": "437932963ab644518524d54c838f4f27",
+      "attempt_count": 4,
+      "attempt_states": [
+        "deferred",
+        "deferred",
+        "deferred",
+        "completed"
+      ]
+    },
+    {
+      "adapter_id": "medical_lora",
+      "target_replica": "ieee-activation-e0b5c52f3efd45dfb482d4ce913c19f8",
+      "source_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d107_20260928/3b_nvme_profile3/tc_ieee_full/medical_lora",
+      "plan_id": "437932963ab644518524d54c838f4f27",
+      "attempt_count": 3,
+      "attempt_states": [
+        "deferred",
+        "deferred",
+        "completed"
+      ]
+    },
+    {
+      "adapter_id": "education_lora_0007",
+      "target_replica": "ieee-activation-e0b5c52f3efd45dfb482d4ce913c19f8",
+      "source_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d107_20260928/3b_nvme_profile3/tc_ieee_full/education_lora_0007",
+      "plan_id": "437932963ab644518524d54c838f4f27",
+      "attempt_count": 4,
+      "attempt_states": [
+        "deferred",
+        "deferred",
+        "deferred",
+        "deferred"
+      ]
+    },
+    {
+      "adapter_id": "finance_lora_0013",
+      "target_replica": "ieee-activation-e0b5c52f3efd45dfb482d4ce913c19f8",
+      "source_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d107_20260928/3b_nvme_profile3/tc_ieee_full/finance_lora_0013",
+      "plan_id": "437932963ab644518524d54c838f4f27",
+      "attempt_count": 0,
+      "attempt_states": []
+    },
+    {
+      "adapter_id": "code_lora",
+      "target_replica": "ieee-activation-e0b5c52f3efd45dfb482d4ce913c19f8",
+      "source_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d107_20260928/3b_nvme_profile3/tc_ieee_full/code_lora",
+      "plan_id": "437932963ab644518524d54c838f4f27",
+      "attempt_count": 0,
+      "attempt_states": []
+    },
+    {
+      "adapter_id": "code_lora_0015",
+      "target_replica": "ieee-activation-e0b5c52f3efd45dfb482d4ce913c19f8",
+      "source_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d107_20260928/3b_nvme_profile3/tc_ieee_full/code_lora_0015",
+      "plan_id": "437932963ab644518524d54c838f4f27",
+      "attempt_count": 0,
+      "attempt_states": []
+    }
+  ],
+  "source_observation_stats": {
+    "requests": 25,
+    "collections": 13,
+    "joined": 12,
+    "rpc_invocations": 13
+  },
+  "cause_boundary": "Native guard checks all overlapping CPU source identities and GPU confirmations; exact failed predicate and pair not recorded. Not the D105 parent target-only path guard.",
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "unchanged_sources": 50,
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "source_sha256": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d107_20260928/collect_profile3_failure.py": "da1bcf75e0a0924463093878fcd6df5492dab852ea04661e6377b4ac5161a7a9",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d107_20260928/prelaunch_verification.json": "06ca4321ceeb186bb98b191ddf5ed7c30cde53be3d8dffa94971fa6507a78dce",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d107_20260928/3b_full_w0_profile3/launch.json": "b323163ee6322682d53cc59a1f096e150a75a1bd2363ddf5b62d2584f605665a",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d107_20260928/controller_profile3_time.txt": "d41334deed93ebf711e05c245d034677887e166317570ce5937b3a447aa53933",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d107_20260928/controller_profile3.speedscope.json": "3333345e25cb3f13e38a9a7c52c9c0e04fc6dc74941df357eab20ba01680fd5f",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d107_20260928/remote_activation.log": "c2c59cac632d500155d66af1152e1f8358d8426f822ded5391b12360e46efb1a",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d107_20260928/remote_stop_profile3.log": "9c75a410136fca0d90937b139f99a6fccb62fd8732530edbaf73715c6203292d",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d107_20260928/local_aux_cleanup_profile3.log": "682790b0ffbfcd3a22a063d91719a85f5aaae5562e37731b8632dee584ad72a4",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d107_20260928/remote_3b_profile3_transfers.jsonl": "e75cf382193551a33856eb8e3209baaa192416f1d3c7afbf2e2c1c87f41826a0",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d107_20260928/remote_monitor_profile3_final.log": "9afceb26009243269950a87e8938b5c388a0ec5ebad702c8f124be881ec97fd1",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d107_20260928/3b_full_w0_profile3/launch.launch/service.log": "d6889152b5da4e53d56caec74afd0e93a77dd0cea68b5e54e3e7a9eea856e22b",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d107_20260928/3b_full_w0_profile3/launch.launch/watchdog.jsonl": "176a2d389bb236b4b8c832d0a133835769950d1d3498f94a891015fed35e4318",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d107_20260928/3b_full_w0_profile3/launch.launch/watchdog.stderr": "8f7e5c39c5cbb726ca69693331948a10a4b3ddd99a7231bb67cdf17aad4af82b",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d107_20260928/3b_full_w0_profile3/launch.launch/replay.jsonl": "9c1fae79b21ab3422c2ca74cd4fa0b448ac0e823d40837b401f25b6e5073db24",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d107_20260928/3b_full_w0_profile3/launch.launch/service_ingress.jsonl": "44e8f2ca340c5fe01c9e63f41f86ee162be05e157d7ac1a991bb32ffed83c34e",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d107_20260928/3b_full_w0_profile3/launch.launch/physical_deployment/main_outcome.json": "e0aad30ba437fbfcd518a16470b56fb9a580a339a9ebbffb8cf801b9b44daeb3",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d107_20260928/3b_full_w0_profile3/launch.launch/physical_deployment/summary.json": "38cdbbe1f562366f9ab51480a29983f979a122e999e418e93e6745a554afcecc",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d107_20260928/3b_full_w0_profile3/launch.launch/physical_deployment/request_terminals.jsonl": "67f098b4a5ea716fbf4588607cb986cb21ecf1ac45056d0ca05dc64fcd966cb9",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d107_20260928/3b_full_w0_profile3/launch.launch/exec_receipt.json": "b78822e4de1160aa3a8782c1d80cf3a5924c2c49688ff2f354b047a6c7ba8c54"
+  },
+  "next": "Test one actual-owner counterexample for non-target source-copy change within frozen native objective; retain confirmation/content guards and joined closure; no blind full replay or profiler patch"
+}
