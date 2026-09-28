@@ -1,11 +1,95 @@
 # IEEE TC execution status
 
-## CURRENT — D104 source-domain correctness verified; checkpoint before full profiling
+## CURRENT — D105 failed early; cleaned and curated, evidence backup next
 
-2026-09-28 17:43. Supersedes ALL historical live/NEXT notes below.
+2026-09-28 18:02. Supersedes ALL historical live/NEXT notes below.
+Goal ACTIVE/incomplete; baselines PAUSED. No GPU/remote/analysis job. Runtime
+00f0f8da3061f89cfbb857200da1ac9b20fd1560 unchanged; NO new production fix.
+
+- Canonical3BFull4000W0 controller profile2 interrupted: planned4000,arrived59,
+  submitted58;24terminalrecords=9success/native-contract+15CancelledError.
+  Physical9noninterrupted/15interrupted. Preserve missing/unarrived outcomes;
+  do not invent remaining request latencies or count tiny prefix as qualification.
+- Primary ValueError 'native HOST target source identity changed', controller
+  _queue_ieee_native_host_preparation execute line17137. Checks native adapter
+  name/path against task name/selected path BEFOREfile-reference acquisition.
+  Failing snapshot and exact pair not saved; neither exact adapter nor legal
+  cross-tier copy mismatch versus identity damage proven. Different fromD103.
+  D104 still NOTfull-replay-qualified. No guard bypass/catch-and-retry.
+- Plan94a17251eb0f4daba317658ae372257c failed,4deferred/1completed attempts,
+  close acknowledged. Six nativeHOST preparationrecords(no file-heldattempts),
+  allrequestedNVMe paths; doesNOTprove which failed/why or that allsix failed.
+  LaterreplayConnectionReset→outerprotocol_or_launcher_error,service-15/replay1.
+  speedscope ANDtime0B: NO usableprofile/CPU attribution, don't claim completion.
+- Observed356.32732690899866GPU-s only;fullnull;4leasesallreleased,cleanupcomplete.
+  190resourcesamples,peak19528437760B,minhost94120902656B;high/max/OOM/swap0.
+  11remoteUUIDpairsallpublished/contentverified,25563136Bbothends,packing0.
+- Actualmain/profiler/GPUexitverified; exactownedremote3B/7B/monitor andlocalaux
+  stopped17:58:54. Matchingjournalbyclock copiedonce as remote_3b_profile2_transfers.jsonl
+  fromtransfers-1f3f211067cd4fb49cf27a5bb7925070.jsonl. Monitorcopiedonce4.98MB.
+  Curator147protected/44sourcesPASS; exactemptyc77e206e6acd4da1901b9a09baad0990
+  scopestopped18:02:15,high/max/OOM0. Host106GiBfree/disk286GiB/swap0then.
+- Doc/table D105_CONTROLLER_PROFILE_SOURCE_CONFLICT.md;curated
+  paper_results/ieee_tc/p2_backend/20260928_d105_controller_profile2_failure.json
+  SHA3e2fcd6c1768dd86bac29af5d08d6ec918c91a8b9a2fb5439817982a5790f933.
+  Raw results/ieee_tc/p2_backend_qualification/d105_20260928. DoNOTrepeatcuration,
+  copies,cache/profile/prefixes or unchangedD1041241checks.
+- NEXT scoped evidence/doc/ledger validation+backup. THEN ONE actualowner CPU
+  counterexample for target source-copy conflict; read D98/D104history+primary
+  vLLM source semantics. Distinguish valid cross-tier samecontent from damaged
+  name/content; don't infer rootcause just from path. No blindGPUreplay/profiler
+  lifecycle patch or second optimization before causal evidence.
+- Ordinary3BFull,7B,warm/Resident,baselines,M1M2,A1–A5,S1–S13 pending; lastcomplete
+  Full8=3970/4000+30Timeout. No SLO/numerical/ranking qualification.
+
+## D105 — superseded live notes (do not restart this run)
+
+2026-09-28 17:55. Supersedes ALL historical live/NEXT notes below.
+Goal ACTIVE/incomplete; baselines PAUSED. ONE live canonical3BFull4000W0
+diagnostic, tmux tc-d105-3b-profile2. Runtime HEAD00f0f8da3061f89cfbb857200da1ac9b20fd1560
+already pushed/verified; no source/config strategy changes during inference.
+
+- Raw results/ieee_tc/p2_backend_qualification/d105_20260928. Reused D103
+  wrapper/tool (py-spy0.4.2,100Hz,GIL,threads,speedscope), only D104 source and
+  new owned output/NVMe/HOST paths differ. Same config confirmed; no reprofile,
+  generated trace/cache or short prefix. Detailed profiling NOTformal ranking.
+- Service primelora-tc-svc-cf9bacc2da4e4e78b640b701a3775d46.scope,
+  invocation32c0f865d66e4c1ca3dde42e0d3d7aa4;72/80GiB,swap2GiB verified.
+  Aux primelora-tc-aux-e154037b3d844ff3b55506be41a52748.scope,
+  invocation989755a57ee142dbbf582d809d2d72d4;3/4GiB,swap0 verified.
+  allow_exec=true,watchdog_ready present. ActualprofilerPID2872037/controller
+  PID2872038, bothstarted17:54:20; wrapper resets worker Python so no recursive
+  profiling. Startup ongoing17:55, no warning/abort/high/max/OOM/swap events.
+- Remote3B PID1955796 invocation464a10760b704399afb7b32ceb068cb8;
+  7B PID1955798 invocation959d2282c1e74ef3b489ab54afb9d416;
+  monitord105profile2 PID1955801 invocation9f0655bfbfc34a229c17159a8380b06b.
+  Remote3Bclock remote-process-monotonic:8b3d35bad8d14f0f99bc7a07e8d4d1ba.
+  Monitor /home/lab14/primelora_remote/tc/d105_20260928/remote_monitor_3b_full_profile2.log.
+  Correct transfer journal MUST be identified by clock AFTER run, not guessedUUID.
+  Immediate first health probe preceded listening: connectionrefused/emptyfile
+  retained. SamePIDs/invocations subsequently listening and both authenticated
+  health verified; no restart. *_ready.json holds successful receipts.
+- Prelaunch147protected and44source refs verified; prelaunch_verification.json
+  SHA2f3a611ecdb9018755180e68af64868fd86092a07beedf183a68efb919a2cc45.
+  Localhostavailable113900486656B,disk306427527168B,swap0,GPUcomputeempty;
+  remoteavailable104480198656B,disk147172294656B. BothNIC1000/full.
+- NEXT monitor SAME run to terminal, GPU release, serialization and profiler exit.
+  Profile only written at exit; absent while running NOTfailure. No second heavy
+  job, source modifications, remote hash/config/restart/cleanup during inference.
+  Then exactowned cleanup→boundedcuration/status+CPUstack table→interpretation.
+  Speedscope sample index is NOTwalltime; separate business/serialization by stack
+  ancestry, don't add nested percentages or claim measured profiler overhead.
+- D1041241checks/backups COMPLETE; do not repeat. Full8 remains3970/4000+30Timeout;
+  D103 profile absent. No Full/SLO/numerical/ranking qualification. Final ordinary
+  nonprofiledqualification,7B,warm/Resident,baselines,M1M2,A1–A5,S1–S13 pending.
+
+## D104 — completed checkpoint (superseded next action)
+
+2026-09-28 17:45. Supersedes ALL historical live/NEXT notes below.
 Goal ACTIVE/incomplete; baselines PAUSED. No GPU/remote job. D104 CPU work complete;
-base HEAD 587ce9f476cbeadb21bccaa283b77c5fb13d1382, tested source changes not yet
-committed/pushed. Do NOT rerun the CPU probes or recreate delivery assets.
+candidate HEAD 00f0f8da3061f89cfbb857200da1ac9b20fd1560 committed/pushed, exact
+remote HEAD verified. Nine scoped source/tests/evidence/doc files only; userdirty
+preserved. Do NOT repeat backup/CPU probes or recreate delivery assets.
 
 - Two actual owner/queue counterexamples reached D103's old line2505. Only
   source-set coverage failed: legitimate demand added an ID after registration,
@@ -30,7 +114,10 @@ committed/pushed. Do NOT rerun the CPU probes or recreate delivery assets.
   D104_PREPARATION_SOURCE_DOMAIN.md; curated
   paper_results/ieee_tc/p2_backend/20260928_d104_preparation_source_domain.json
   SHA01dfa6a7eef53bb01f6998fff5a2f793c0fd218d63e424ed73ec8d82f384d6fd.
-- NEXT scoped source/evidence backup, then ONE same-contract canonical3B
+- Curator scope6ba5406cfcaf4ea691a155c7ab05c6af exactidentity+empty-verified
+  stopped; raw curator_cleanup.log. No D104 live scopes. Host106GiB available,
+  disk286GiB free,swap0 at17:45. Recheck before inference, not a future guarantee.
+- NEXT ONE same-contract canonical3B
   Full4000W0 controller-profiling diagnostic using unchanged D103 wrapper/tool.
   Only D104 source + new owned paths differ; reuse trace/cache/profile. Still
   diagnostic, not formal performance qualification. Keep standard resource gates,
