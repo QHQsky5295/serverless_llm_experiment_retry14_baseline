@@ -1,0 +1,3163 @@
+{
+  "kind": "d97_full4_failure_breakdown_v1",
+  "formal_performance_result": false,
+  "projection_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d97_20260928/full_attempt4_request_projection.json",
+  "projection_sha256": "a4f9a19d40f3f56850fc1d43b7d81fcf36c3da027f33759c3b1397d62660d110",
+  "returned_categories": {
+    "parent_native_ownership_unresolved": 147,
+    "subprocess_native_ownership_unresolved": 1
+  },
+  "returned_generation_submission_states": {
+    "not_submitted": 148
+  },
+  "first_timeout": {
+    "request_id": "req_00513",
+    "instance_id": null,
+    "failure_observation": {
+      "kind": "controller_task_exception_v1",
+      "exception_type": "TimeoutError",
+      "observed_monotonic_s": 62193.917817016,
+      "observed_offset_s": 2438.0438603810035,
+      "elapsed_since_offered_ms": 1804502.02650344,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "native_completion_inferred": false,
+      "gpu_release_inferred": false
+    },
+    "generation_submission": null,
+    "source_admission_present": false,
+    "source_tier": null,
+    "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+  },
+  "first_returned_error": {
+    "request_id": "req_01159",
+    "instance_id": "ieee-activation-5a08f4c18e1d424bb4b360a9fb69a7d4",
+    "failure_observation": {
+      "kind": "native_request_execution_error_v1",
+      "exception_type": "RuntimeError",
+      "observed_monotonic_s": 62708.447459776,
+      "observed_offset_s": 2952.5734648709986,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "elapsed_since_offered_ms": 1719405.063152859,
+      "native_terminal_observed": false,
+      "gpu_release_inferred": false
+    },
+    "generation_submission": {
+      "state": "not_submitted",
+      "boundary": "parent_rpc_handoff_v1"
+    },
+    "source_admission_present": true,
+    "source_tier": "nvme",
+    "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+  },
+  "returned_requests": [
+    {
+      "request_id": "req_01158",
+      "instance_id": "ieee-activation-79e9de01e40a438fbbb51044d590d49c",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 62743.467348639,
+        "observed_offset_s": 2987.593373364005,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1754631.7644772863,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01159",
+      "instance_id": "ieee-activation-5a08f4c18e1d424bb4b360a9fb69a7d4",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 62708.447459776,
+        "observed_offset_s": 2952.5734648709986,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1719405.063152859,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01278",
+      "instance_id": "ieee-activation-1ac6013da4eb483d81ba762f4b490f78",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 62890.111207045,
+        "observed_offset_s": 3134.237217821006,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1781309.5616473001,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "gpu",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01309",
+      "instance_id": "ieee-activation-1ac6013da4eb483d81ba762f4b490f78",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 62890.560307507,
+        "observed_offset_s": 3134.6863182460074,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1754602.730599523,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01353",
+      "instance_id": "ieee-activation-70aaa2ffd4b4474ca4f611674ba8edaf",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 62968.190672417,
+        "observed_offset_s": 3212.3167033309946,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1798837.0719070444,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01355",
+      "instance_id": "ieee-activation-70aaa2ffd4b4474ca4f611674ba8edaf",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 62968.338778298,
+        "observed_offset_s": 3212.4648108679976,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1797180.234451982,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01356",
+      "instance_id": "ieee-activation-70aaa2ffd4b4474ca4f611674ba8edaf",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 62968.995171964,
+        "observed_offset_s": 3213.1211919690104,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1796212.7199078533,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01388",
+      "instance_id": "ieee-activation-6dc5d0fee6b5431a8335033ee15e8b15",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 62993.48971119,
+        "observed_offset_s": 3237.615733972001,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1799538.9498380902,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01389",
+      "instance_id": "ieee-activation-6dc5d0fee6b5431a8335033ee15e8b15",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 62993.688682939,
+        "observed_offset_s": 3237.814707837002,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1799594.7237824367,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01392",
+      "instance_id": "ieee-activation-6dc5d0fee6b5431a8335033ee15e8b15",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 62994.355543033,
+        "observed_offset_s": 3238.48149225401,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1799498.1376855285,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01393",
+      "instance_id": "ieee-activation-6dc5d0fee6b5431a8335033ee15e8b15",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 62993.566743473,
+        "observed_offset_s": 3237.692755394004,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1797826.0638046484,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01467",
+      "instance_id": "ieee-activation-86a46509536c4b5c8201ab99fd5afe62",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63041.593753395,
+        "observed_offset_s": 3285.7197562110014,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1796046.0177313872,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01468",
+      "instance_id": "ieee-activation-86a46509536c4b5c8201ab99fd5afe62",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63043.128207882,
+        "observed_offset_s": 3287.2542104680033,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1794143.9123112648,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01469",
+      "instance_id": "ieee-activation-86a46509536c4b5c8201ab99fd5afe62",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63043.369443947,
+        "observed_offset_s": 3287.4954609449996,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1793791.2354048388,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01470",
+      "instance_id": "ieee-activation-86a46509536c4b5c8201ab99fd5afe62",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63043.523195975,
+        "observed_offset_s": 3287.649205460999,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1793923.2685713505,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01475",
+      "instance_id": "ieee-activation-86a46509536c4b5c8201ab99fd5afe62",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63045.763630252,
+        "observed_offset_s": 3289.889642604001,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1788801.7557936984,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01492",
+      "instance_id": "ieee-activation-c378c9b746f54473ad8014e3fa10adfd",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63067.01763505,
+        "observed_offset_s": 3311.1436649099996,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1786180.7285086324,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01581",
+      "instance_id": "ieee-activation-cf834dfdbdca415981d089353817c147",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63159.34317993,
+        "observed_offset_s": 3403.4691726510064,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1794211.2285439507,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01588",
+      "instance_id": "ieee-activation-cf834dfdbdca415981d089353817c147",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63165.588890435,
+        "observed_offset_s": 3409.7148897330044,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1795755.8862845178,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01589",
+      "instance_id": "ieee-activation-cf834dfdbdca415981d089353817c147",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63166.054097067,
+        "observed_offset_s": 3410.180084969994,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1796165.2171874011,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01593",
+      "instance_id": "ieee-activation-6c5abfcfee004163913fbe977b333fc4",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63170.159658418,
+        "observed_offset_s": 3414.2856743660013,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1799618.485721592,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01595",
+      "instance_id": "ieee-activation-6c5abfcfee004163913fbe977b333fc4",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63170.75765791,
+        "observed_offset_s": 3414.8836484549975,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1798528.389513347,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01596",
+      "instance_id": "ieee-activation-6c5abfcfee004163913fbe977b333fc4",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63170.428942855,
+        "observed_offset_s": 3414.554969249999,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1797984.277187621,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01644",
+      "instance_id": "ieee-activation-40c05d8bfc104474bf27ff852e5939f1",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63208.78281609,
+        "observed_offset_s": 3452.9088483120067,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1799524.6911312204,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01645",
+      "instance_id": "ieee-activation-40c05d8bfc104474bf27ff852e5939f1",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63209.095978237,
+        "observed_offset_s": 3453.2220110960043,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1799836.406237606,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01690",
+      "instance_id": "ieee-activation-54e5819d4956481bbf0044546c310bcf",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63234.382493664,
+        "observed_offset_s": 3478.5085302990046,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1795587.6700084773,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "2f4d618cbf57d6bd96e879e65772ebb7dba47e97958973384ccc070d6dcc7410"
+    },
+    {
+      "request_id": "req_01691",
+      "instance_id": "ieee-activation-54e5819d4956481bbf0044546c310bcf",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63234.443330011,
+        "observed_offset_s": 3478.569354077008,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1794619.637509015,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01697",
+      "instance_id": "ieee-activation-6b2868274d3d4ecda8d3bbaf059af908",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63243.277395016,
+        "observed_offset_s": 3487.403418392998,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1799306.6929291307,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01698",
+      "instance_id": "ieee-activation-6b2868274d3d4ecda8d3bbaf059af908",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63243.197723332,
+        "observed_offset_s": 3487.3237511920015,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1797932.5864123383,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01775",
+      "instance_id": "ieee-activation-0faf796839a340afa2830673c1943366",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63276.632800964,
+        "observed_offset_s": 3520.758819016999,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1799628.4765334786,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01777",
+      "instance_id": "ieee-activation-0faf796839a340afa2830673c1943366",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63276.972749421,
+        "observed_offset_s": 3521.098780009008,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1799307.3638407951,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01778",
+      "instance_id": "ieee-activation-0faf796839a340afa2830673c1943366",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63277.035860716,
+        "observed_offset_s": 3521.161890031006,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1799063.2019053956,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01827",
+      "instance_id": "ieee-activation-1751654855244c0a899975082969edc7",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63307.51873333,
+        "observed_offset_s": 3551.6447678629993,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1798966.640574181,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01828",
+      "instance_id": "ieee-activation-1751654855244c0a899975082969edc7",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63307.389188972,
+        "observed_offset_s": 3551.5152240130046,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1797515.025648747,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01829",
+      "instance_id": "ieee-activation-1751654855244c0a899975082969edc7",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63308.807449947,
+        "observed_offset_s": 3552.9334825480037,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1798731.3703501276,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01831",
+      "instance_id": "ieee-activation-1751654855244c0a899975082969edc7",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63309.262749417,
+        "observed_offset_s": 3553.3887680929984,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1795729.927913555,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01841",
+      "instance_id": "ieee-activation-94c814b113cf49838427b9df501b84b3",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63326.287131392,
+        "observed_offset_s": 3570.413156246992,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1797208.810543867,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01892",
+      "instance_id": "ieee-activation-9e2640972bd84d2094f4e109c42752ec",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63358.364126299,
+        "observed_offset_s": 3602.490135330001,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1793968.4506833944,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01926",
+      "instance_id": "ieee-activation-4dd5365d23144cafa00d245677ca84f1",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63391.141548088,
+        "observed_offset_s": 3635.2675656820065,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1794343.8920522458,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01927",
+      "instance_id": "ieee-activation-4dd5365d23144cafa00d245677ca84f1",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63392.967934597,
+        "observed_offset_s": 3637.093926950998,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1795112.6285043429,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "gpu",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01933",
+      "instance_id": "ieee-activation-4dd5365d23144cafa00d245677ca84f1",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63401.596738115,
+        "observed_offset_s": 3645.722720015001,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1795601.3897537703,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "gpu",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01936",
+      "instance_id": "ieee-activation-4dd5365d23144cafa00d245677ca84f1",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63402.604723838,
+        "observed_offset_s": 3646.730738973005,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1792521.752690656,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01937",
+      "instance_id": "ieee-activation-4dd5365d23144cafa00d245677ca84f1",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63402.411568578,
+        "observed_offset_s": 3646.5375916890043,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1790579.7402790925,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01938",
+      "instance_id": "ieee-activation-4dd5365d23144cafa00d245677ca84f1",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63402.038623128,
+        "observed_offset_s": 3646.164649505001,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1790079.293746334,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01940",
+      "instance_id": "ieee-activation-4dd5365d23144cafa00d245677ca84f1",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63402.247740745,
+        "observed_offset_s": 3646.3737692450013,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1787428.7085150206,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01977",
+      "instance_id": "ieee-activation-12f4b0a69fb3413997a957fc26768dcc",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63439.094290879,
+        "observed_offset_s": 3683.2203106660018,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1793860.4244965683,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01979",
+      "instance_id": "ieee-activation-d8114f8a870149c8bd0c293e12b99689",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63444.467553114,
+        "observed_offset_s": 3688.5935818740036,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1798380.0637313034,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_01981",
+      "instance_id": "ieee-activation-d8114f8a870149c8bd0c293e12b99689",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63444.776420285,
+        "observed_offset_s": 3688.9024381760028,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1796923.0871323016,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02027",
+      "instance_id": "ieee-activation-07623309bde64070a5ccb9044c8fa3b1",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63475.037829388,
+        "observed_offset_s": 3719.163854694998,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1791290.1040083524,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02028",
+      "instance_id": "ieee-activation-07623309bde64070a5ccb9044c8fa3b1",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63474.861043954,
+        "observed_offset_s": 3718.9870540030024,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1789406.7355520744,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02030",
+      "instance_id": "ieee-activation-07623309bde64070a5ccb9044c8fa3b1",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63474.703696278,
+        "observed_offset_s": 3718.829714832995,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1788643.7235457632,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02031",
+      "instance_id": "ieee-activation-07623309bde64070a5ccb9044c8fa3b1",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63475.143071896,
+        "observed_offset_s": 3719.2690940139946,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1789004.9014328178,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02260",
+      "instance_id": "ieee-activation-65e4e84a741c467ab4c889873b312de2",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63644.081418331,
+        "observed_offset_s": 3888.207374468002,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1798821.9221974942,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02261",
+      "instance_id": "ieee-activation-65e4e84a741c467ab4c889873b312de2",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63644.445863952,
+        "observed_offset_s": 3888.571856112001,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1799140.3795189834,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02262",
+      "instance_id": "ieee-activation-a90fc16429b040de989275825e208f66",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63641.146327261,
+        "observed_offset_s": 3885.272305687002,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1795030.9001999411,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02263",
+      "instance_id": "ieee-activation-65e4e84a741c467ab4c889873b312de2",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63643.933149833,
+        "observed_offset_s": 3888.059156604002,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1797810.4955627425,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02264",
+      "instance_id": "ieee-activation-65e4e84a741c467ab4c889873b312de2",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63644.381394012,
+        "observed_offset_s": 3888.507408399004,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1797941.5247625292,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02265",
+      "instance_id": "ieee-activation-65e4e84a741c467ab4c889873b312de2",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63644.004134591,
+        "observed_offset_s": 3888.1301508929973,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1794370.6027057415,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02266",
+      "instance_id": "ieee-activation-65e4e84a741c467ab4c889873b312de2",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63644.188667639,
+        "observed_offset_s": 3888.3146819930043,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1793824.6288161245,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02436",
+      "instance_id": "ieee-activation-0cd4c62de7d74c27a3309b8f4b1486f4",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63773.931514176,
+        "observed_offset_s": 4018.0575485600057,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1799068.5005558552,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02482",
+      "instance_id": "ieee-activation-66e464373b3341fc926dffdb125ec828",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63803.770520441,
+        "observed_offset_s": 4047.8965513390067,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1795638.5767143727,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02484",
+      "instance_id": "ieee-activation-66e464373b3341fc926dffdb125ec828",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63803.933469783,
+        "observed_offset_s": 4048.0594892910012,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1794414.5136287697,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02490",
+      "instance_id": "ieee-activation-fc669ea6a8224b58b1a52fe9fef958aa",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63810.232278664,
+        "observed_offset_s": 4054.358253642,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1797614.3361767898,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02527",
+      "instance_id": "ieee-activation-4c2657cb3c59483d9e89bb19fb689105",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63849.498252937,
+        "observed_offset_s": 4093.624242433005,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1795868.6443647675,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02531",
+      "instance_id": "ieee-activation-2ec1e41df5524271abecb3a5c9a1f09a",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63855.922042964,
+        "observed_offset_s": 4100.048054671002,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1798452.3515460023,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02532",
+      "instance_id": "ieee-activation-2ec1e41df5524271abecb3a5c9a1f09a",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63856.543464609,
+        "observed_offset_s": 4100.669471703004,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1795047.0084766857,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02533",
+      "instance_id": "ieee-activation-2ec1e41df5524271abecb3a5c9a1f09a",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63856.21059195,
+        "observed_offset_s": 4100.3366051320045,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1794453.7182454078,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02534",
+      "instance_id": "ieee-activation-2ec1e41df5524271abecb3a5c9a1f09a",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63856.448174888,
+        "observed_offset_s": 4100.574200755,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1793772.6737316845,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02535",
+      "instance_id": "ieee-activation-2ec1e41df5524271abecb3a5c9a1f09a",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63856.668940045,
+        "observed_offset_s": 4100.794969812996,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1793750.0746408768,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02559",
+      "instance_id": "ieee-activation-2f87eba56ab84a5a96d678cbe176d8b9",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63887.221119248,
+        "observed_offset_s": 4131.347146101005,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1798218.4076976846,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02561",
+      "instance_id": "ieee-activation-2f87eba56ab84a5a96d678cbe176d8b9",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63887.372217773,
+        "observed_offset_s": 4131.498249983,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1796534.0490094898,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02562",
+      "instance_id": "ieee-activation-2f87eba56ab84a5a96d678cbe176d8b9",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63887.339455804,
+        "observed_offset_s": 4131.465485725006,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1796493.3978648987,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02563",
+      "instance_id": "ieee-activation-2f87eba56ab84a5a96d678cbe176d8b9",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63887.443822029,
+        "observed_offset_s": 4131.569853858004,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1796555.9321203327,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02637",
+      "instance_id": "ieee-activation-ffa1f7e6315e4e9ebb663226f89a8a5c",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63937.576724239,
+        "observed_offset_s": 4181.702750568998,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1798142.876988066,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02638",
+      "instance_id": "ieee-activation-ffa1f7e6315e4e9ebb663226f89a8a5c",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63930.869205157,
+        "observed_offset_s": 4174.995230822002,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1791227.797655498,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02639",
+      "instance_id": "ieee-activation-ffa1f7e6315e4e9ebb663226f89a8a5c",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63938.245854089,
+        "observed_offset_s": 4182.371856459002,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1798574.6705611746,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02688",
+      "instance_id": "ieee-activation-d0b406909edf40349c804bcac45b6a32",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63970.8503843,
+        "observed_offset_s": 4214.976400574,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1793429.4187624766,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02731",
+      "instance_id": "ieee-activation-87f826bf0e384b73897880caae3c92cf",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64004.702886808,
+        "observed_offset_s": 4248.828862923998,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1799512.3117155016,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02734",
+      "instance_id": "ieee-activation-87f826bf0e384b73897880caae3c92cf",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64004.953062466,
+        "observed_offset_s": 4249.079084347999,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1798186.8915074226,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02736",
+      "instance_id": "ieee-activation-87f826bf0e384b73897880caae3c92cf",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64004.811959231,
+        "observed_offset_s": 4248.937959881005,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1797708.1587030264,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "host",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02750",
+      "instance_id": "ieee-activation-0916f3b5b8ef4fe38a01f90fffe02954",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64015.761969991,
+        "observed_offset_s": 4259.8879892469995,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1799466.0780073756,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02752",
+      "instance_id": "ieee-activation-0916f3b5b8ef4fe38a01f90fffe02954",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64015.547213176,
+        "observed_offset_s": 4259.673175687007,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1796952.7682010448,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02755",
+      "instance_id": "ieee-activation-0916f3b5b8ef4fe38a01f90fffe02954",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64015.654765749,
+        "observed_offset_s": 4259.7807744750025,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1796241.0939940456,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02796",
+      "instance_id": "ieee-activation-ad5a74312e7c462bb991d3172eb75ebf",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64059.647186689,
+        "observed_offset_s": 4303.773209646999,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1798302.0163334003,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02811",
+      "instance_id": "ieee-activation-2cb29848ed294308adf9806da4e053bf",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64068.022755247,
+        "observed_offset_s": 4312.148785744008,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1791844.7200396622,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02944",
+      "instance_id": "ieee-activation-2677be61728a422dbae4d444c39a3ac9",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64190.964202177,
+        "observed_offset_s": 4435.090230965994,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1789912.5957731232,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02946",
+      "instance_id": "ieee-activation-2677be61728a422dbae4d444c39a3ac9",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64190.826410228,
+        "observed_offset_s": 4434.952427550001,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1788640.0648791024,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02990",
+      "instance_id": "ieee-activation-801fae79ae874ecebb9e1c776d931a66",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64240.883834632,
+        "observed_offset_s": 4485.009845087996,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1799400.2488355543,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02991",
+      "instance_id": "ieee-activation-801fae79ae874ecebb9e1c776d931a66",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64240.980233717,
+        "observed_offset_s": 4485.106237938999,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1798517.042687534,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_02992",
+      "instance_id": "ieee-activation-801fae79ae874ecebb9e1c776d931a66",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64241.071972307,
+        "observed_offset_s": 4485.197984055005,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1798561.1718449215,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03053",
+      "instance_id": "ieee-activation-541ca64dd9c7428ea565e420c5a22232",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64288.152986305,
+        "observed_offset_s": 4532.279001202005,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1793875.2669948516,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03081",
+      "instance_id": "ieee-activation-b07460fe76584856926fc34b1c4036a1",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64328.191553609,
+        "observed_offset_s": 4572.317573256005,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1799509.2102951892,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03140",
+      "instance_id": "ieee-activation-24f97554fdd445e7ba96b5165f004940",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64374.608380061,
+        "observed_offset_s": 4618.734397439002,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1791765.7466211314,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "host",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03141",
+      "instance_id": "ieee-activation-24f97554fdd445e7ba96b5165f004940",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64374.195849424,
+        "observed_offset_s": 4618.321864598001,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1790102.5977065219,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03142",
+      "instance_id": "ieee-activation-24f97554fdd445e7ba96b5165f004940",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64373.93743023,
+        "observed_offset_s": 4618.063385605004,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1788473.5189668208,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03143",
+      "instance_id": "ieee-activation-24f97554fdd445e7ba96b5165f004940",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64374.451477427,
+        "observed_offset_s": 4618.577489900003,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1784199.8386854026,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "host",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03145",
+      "instance_id": "ieee-activation-24f97554fdd445e7ba96b5165f004940",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64373.768340099,
+        "observed_offset_s": 4617.894360011,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1782650.9727887094,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03279",
+      "instance_id": "ieee-activation-21650e0c12ee4d38afa431d9c0f5332e",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64545.181756466,
+        "observed_offset_s": 4789.307730869004,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1788419.8524510358,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03280",
+      "instance_id": "ieee-activation-21650e0c12ee4d38afa431d9c0f5332e",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64544.760132704,
+        "observed_offset_s": 4788.886131618005,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1787333.3095049674,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03281",
+      "instance_id": "ieee-activation-21650e0c12ee4d38afa431d9c0f5332e",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64544.923900794,
+        "observed_offset_s": 4789.049914678006,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1786383.332570462,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "host",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03285",
+      "instance_id": "ieee-activation-21650e0c12ee4d38afa431d9c0f5332e",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64552.562103759,
+        "observed_offset_s": 4796.688108058006,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1791200.9597730937,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03333",
+      "instance_id": "ieee-activation-536db8d85daf4529a343ef6aeb781ed6",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64592.212052825,
+        "observed_offset_s": 4836.338087076998,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1799552.2193859578,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03334",
+      "instance_id": "ieee-activation-536db8d85daf4529a343ef6aeb781ed6",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64592.327369054,
+        "observed_offset_s": 4836.453357365004,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1798281.9782756486,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "host",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03369",
+      "instance_id": "ieee-activation-90e6bfad043741c38196b45b9952c737",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64614.441524208,
+        "observed_offset_s": 4858.5675188919995,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1798573.3019730542,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03370",
+      "instance_id": "ieee-activation-90e6bfad043741c38196b45b9952c737",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64614.563326671,
+        "observed_offset_s": 4858.689329715002,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1796803.280444372,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03372",
+      "instance_id": "ieee-activation-90e6bfad043741c38196b45b9952c737",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64615.349208524,
+        "observed_offset_s": 4859.475208882002,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1794464.9912153764,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "remote",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03373",
+      "instance_id": "ieee-activation-90e6bfad043741c38196b45b9952c737",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64615.035291466,
+        "observed_offset_s": 4859.16129708301,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1793997.3433018823,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "host",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03386",
+      "instance_id": "ieee-activation-fa7c5c605be644b380685663cce5b1e8",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64633.763634302,
+        "observed_offset_s": 4877.889664276001,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1797676.289184448,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03390",
+      "instance_id": "ieee-activation-fa7c5c605be644b380685663cce5b1e8",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64641.677796126,
+        "observed_offset_s": 4885.803809493998,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1796415.2978362835,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03391",
+      "instance_id": "ieee-activation-fa7c5c605be644b380685663cce5b1e8",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64641.985377732,
+        "observed_offset_s": 4886.111394970001,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1796427.0192070615,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "remote",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03398",
+      "instance_id": "ieee-activation-ad47fc8f809344c0969227f7ccb4c200",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64651.012639121,
+        "observed_offset_s": 4895.138664245002,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1798879.7435754458,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03401",
+      "instance_id": "ieee-activation-ad47fc8f809344c0969227f7ccb4c200",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64651.075808075,
+        "observed_offset_s": 4895.201815686007,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1793501.7348144248,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "host",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03415",
+      "instance_id": "ieee-activation-2cea89bfeb3942a7a6d86c0ed7571f28",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64669.268033077,
+        "observed_offset_s": 4913.394068086003,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1792691.5934918872,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "host",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03422",
+      "instance_id": "ieee-activation-2cea89bfeb3942a7a6d86c0ed7571f28",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64678.510537131,
+        "observed_offset_s": 4922.636564203007,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1798325.834222538,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "host",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03424",
+      "instance_id": "ieee-activation-2cea89bfeb3942a7a6d86c0ed7571f28",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64678.250797392,
+        "observed_offset_s": 4922.376828460001,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1796272.6338188876,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03451",
+      "instance_id": "ieee-activation-70aaa2ffd4b4474ca4f611674ba8edaf",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 62967.957468933,
+        "observed_offset_s": 3212.0834874639986,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 69678.43527894001,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03465",
+      "instance_id": "ieee-activation-6f086c9a4b5e48e0b665712339f03b63",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64711.168432653,
+        "observed_offset_s": 4955.294422751002,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1792181.1643891851,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03468",
+      "instance_id": "ieee-activation-6f086c9a4b5e48e0b665712339f03b63",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64718.864280843,
+        "observed_offset_s": 4962.990289287001,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1794759.5115465228,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03484",
+      "instance_id": "ieee-activation-1b967f6b196a41f7a62d918ae4902d55",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64740.863159395,
+        "observed_offset_s": 4984.9891959929955,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1795762.8413939967,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03524",
+      "instance_id": "ieee-activation-133e57b622f847689282a2288cc93e79",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64812.526905669,
+        "observed_offset_s": 5056.6529128610055,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1798578.1791268745,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03527",
+      "instance_id": "ieee-activation-133e57b622f847689282a2288cc93e79",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64812.270552608,
+        "observed_offset_s": 5056.396560492001,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1794112.1233124358,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "host",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03529",
+      "instance_id": "ieee-activation-133e57b622f847689282a2288cc93e79",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64812.39470393,
+        "observed_offset_s": 5056.520704618,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1787159.716001057,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03530",
+      "instance_id": "ieee-activation-133e57b622f847689282a2288cc93e79",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64811.962031494,
+        "observed_offset_s": 5056.088033517997,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1786552.9898015666,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03531",
+      "instance_id": "ieee-activation-133e57b622f847689282a2288cc93e79",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64812.111230304,
+        "observed_offset_s": 5056.237257392,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1783999.7810431232,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03609",
+      "instance_id": "ieee-activation-ca94886e922943889109e3c15e6312e1",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64960.101410687,
+        "observed_offset_s": 5204.227417881004,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1794932.7706642072,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03626",
+      "instance_id": "ieee-activation-4df975d2780941458900537984790901",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 65002.299580937,
+        "observed_offset_s": 5246.425613293999,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1799201.9652227103,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03628",
+      "instance_id": "ieee-activation-4df975d2780941458900537984790901",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 65002.18678891,
+        "observed_offset_s": 5246.312746111005,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1797382.9270039499,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03629",
+      "instance_id": "ieee-activation-4df975d2780941458900537984790901",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 65002.147083421,
+        "observed_offset_s": 5246.273095691002,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1795997.0432160264,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "host",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03638",
+      "instance_id": "ieee-activation-4df975d2780941458900537984790901",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 64994.851349681,
+        "observed_offset_s": 5238.977382435005,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1774128.7629739454,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03639",
+      "instance_id": "ieee-activation-4df975d2780941458900537984790901",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 65002.009403841,
+        "observed_offset_s": 5246.135435158001,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1780407.7034532893,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "host",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03684",
+      "instance_id": "ieee-activation-5d93b05fec984b0baf1c31da959197ad",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 65088.510019596,
+        "observed_offset_s": 5332.635988582995,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1794819.412578967,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03685",
+      "instance_id": "ieee-activation-5d93b05fec984b0baf1c31da959197ad",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 65088.767890573,
+        "observed_offset_s": 5332.893906416997,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1794229.9621726123,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03687",
+      "instance_id": "ieee-activation-5d93b05fec984b0baf1c31da959197ad",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 65088.64819601,
+        "observed_offset_s": 5332.774217275,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1791571.7522176276,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03741",
+      "instance_id": "ieee-activation-7b9931e6f567403c8d6f9c820dd6a4e3",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 65167.852704093,
+        "observed_offset_s": 5411.978713399003,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1796230.0390063028,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "remote",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03743",
+      "instance_id": "ieee-activation-7b9931e6f567403c8d6f9c820dd6a4e3",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 65167.531389959,
+        "observed_offset_s": 5411.657410793996,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1793271.5923125506,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03745",
+      "instance_id": "ieee-activation-7b9931e6f567403c8d6f9c820dd6a4e3",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 65167.660075112,
+        "observed_offset_s": 5411.7860844120005,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1786183.2077487926,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03776",
+      "instance_id": "ieee-activation-dce42301dfd34de9ba72893756bf6014",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 65211.958480328,
+        "observed_offset_s": 5456.084495277006,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1799578.81137808,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "remote",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03777",
+      "instance_id": "ieee-activation-dce42301dfd34de9ba72893756bf6014",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 65211.778728269,
+        "observed_offset_s": 5455.904732725001,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1796574.6813028818,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03841",
+      "instance_id": "ieee-activation-36d96a3ec91244f0a2e6c8b5eb521ec7",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 65273.934933688,
+        "observed_offset_s": 5518.06095164,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1788702.3281353612,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "remote",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03848",
+      "instance_id": "ieee-activation-9a5a25ab54d04502b432e77d9ed051f1",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63520.460649085,
+        "observed_offset_s": 3764.586656943997,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 21074.20958681905,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03849",
+      "instance_id": "ieee-activation-9a5a25ab54d04502b432e77d9ed051f1",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63520.625221606,
+        "observed_offset_s": 3764.751242596998,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 20419.81216181739,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "host",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03893",
+      "instance_id": "ieee-activation-99bbcd051fb94a8787e7f4f2c0065ed0",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 65361.778254026,
+        "observed_offset_s": 5605.904289984006,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 1793960.4232542696,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "gpu",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03902",
+      "instance_id": "ieee-activation-160c014b284b44c189d5457f958c60f4",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63597.123242736,
+        "observed_offset_s": 3841.2492655130045,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 18482.11272674962,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "remote",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03908",
+      "instance_id": "ieee-activation-c09f6295d5be43e5835b2ab31525edb7",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63615.366849557,
+        "observed_offset_s": 3859.4928709850064,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 20807.017026876565,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "remote",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03955",
+      "instance_id": "ieee-activation-1dcd38a4cc4a4500b35a82b3b7a26c44",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63680.791476375,
+        "observed_offset_s": 3924.9175119770007,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 25867.52609138057,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "remote",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03956",
+      "instance_id": "ieee-activation-1dcd38a4cc4a4500b35a82b3b7a26c44",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63680.903200398,
+        "observed_offset_s": 3925.029217875999,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 23276.774562400533,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "remote",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03957",
+      "instance_id": "ieee-activation-1dcd38a4cc4a4500b35a82b3b7a26c44",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63681.038765111,
+        "observed_offset_s": 3925.164799787999,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 20716.668226719776,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "remote",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    },
+    {
+      "request_id": "req_03958",
+      "instance_id": "ieee-activation-1dcd38a4cc4a4500b35a82b3b7a26c44",
+      "failure_observation": {
+        "kind": "native_request_execution_error_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 63680.450061567,
+        "observed_offset_s": 3924.5760978389953,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "elapsed_since_offered_ms": 19247.631423590065,
+        "native_terminal_observed": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": {
+        "state": "not_submitted",
+        "boundary": "parent_rpc_handoff_v1"
+      },
+      "source_admission_present": true,
+      "source_tier": "nvme",
+      "error_sha256": "04cb568fc085b2711be6246b32ca4d51abbfe1e9aea5e088f8bab342b937944d"
+    }
+  ],
+  "caveat": "Missing evidence is not proof of no dispatch. not_submitted describes this generation, not other unsettled RPC ownership or physical release."
+}

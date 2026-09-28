@@ -1,6 +1,387 @@
 # IEEE TC execution status
 
+## Latest — D97 failure analysis COMPLETE; evidence checkpoint then causal CPU work
+
+Pre-backup:27sourceSHArefs independently rechecked; companionSHA
+cac752703733baefaefa6692048b7a64728f8ea4a5de15a1cccb19151eaa0da6;
+147protected/plan/V1unchanged.47qualifiedsmokepassed. Completedcurator/error/
+breakdown/bothsmokescopes allverifiedempty+sameinvocationthenstopped.
+Verificationjob49883 alsofinishedexit0; stopitsemptyownedresourcegroup.
+Noactualjoblive. NEXTscopedbackup thenactualcausalwork,notanotheranalysisloop.
+
+2026-09-28 ~09:48. Supersedes ALL older LIVE/NEXT instructions. Projection
+session19283 FINISHEDexit0,743.62s,RSS72192KiB; unitb403b3d9 emptyverifiedand
+stopped. Curatorsession62655 FINISHEDexit0. NOGPU/remote/tmux/analysisjoblive.
+Completedcurator/error-audit/breakdown/smoke scopes needemptycheck/stop only.
+No production source changes; baselinesPAUSED;goalactive/incomplete.
+
+Curated20260928_d97_3b_full_w0_attempt4.json SHA9167a9a706b6b24c14b1b7fb6ede4c93
+fa0ca601e6182db55d53701786ac11fd;27sourceSHArefs and147protectedPASS.
+Companion20260928_d97_3b_full_w0_failure_breakdown.json verifiedprojectionSHA
+a4f9a19d40f3f56850fc1d43b7d81fcf36c3da027f33759c3b1397d62660d110.
+148RuntimeErrors:147direct+1subprocesswrappednativeRPCownershipunresolved;
+ALL148explicitthisgenerationnot_submitted. NotproofotherRPCssettled orphysical
+release; no observedlengthmismatchamongreturnederrors. FirstTimeoutreq00513
+62193.917817;firstreturnedreq01159 62708.447460. Missingtimeoutsourcefields
+notproofofnodispatch. Preserve2243Timeout+1609success=4000totalwith148errors.
+
+Conditional1609successmeanTTFT1084.327598s=dispatch1081.057257+service3.270341;
+nativeTTFT.198014s,TPOT20.852019ms.927successwithselected-sourceretry,
+11727retainedretries/max112. Notfullperformance/CI.122quarantinereleasesmean
+15.947154s/P9528.610816s;zero-readywithqueue457(284no_free_device,
+74activation_scheduled,99no_action). D97recoveryworksbutlongqueue/rootcause
+persists; NEXTsource-admission/observation/cancellationcausaltest,notmoreblind
+restart/recoveryorunchangedfullreplay. Twounpublishedremotefetchcausesremain
+unresolved,donotprelabelnetworkfailure/cancellation.
+
+UpdatedD97failuretable/outputlengthrationale;nofrozenprotocol/plan/runtimechange.
+Evidence smoke47tests PASS1.895s inQUALIFIEDcondaLLM_vllm0102. Initialsystem
+/usr/binpython3.10attempt18tests hadmissingnumpyerror+1asyncassertionfailure;
+preservedfull4_evidence_smoke_system_python_failure.log,nocodechange. Correct
+environmentpassed; doNOTrepeat1201regression orrerunthisCPUcheckwithoutreason.
+NEXT source/protected/secretschecks,5-fileevidencecheckpoint+push(ledger,
+D97failuretable,outputlengthrationale,2curatedJSON),userdirtymanifestEXCLUDED.
+ThenONEcausalCPUworkstream; doNOTrepeatcuration/backups/cache/profile/prefixes.
+WarmSLO/Resident/M1M2/A/S/7BFull/numericalqualificationstillpending.
+
+## Latest — D97 Full4000 attempt4 FINISHED/FAILED/CLEANED; streaming analysis LIVE
+
+09:32 verified CURRENT CPUanalysis: execsession19283,
+unitprimelora-d97-full4-project-20260928.scope,invocationb403b3d9d6f54b9c80378bec6f807765;
+jqPID1384783,parenttimePID1384765,actualACTIVE/R/CPUtimeadvancing.
+Inputfd4position628154368of3655870499B;RSS~9MiB,scopeMemoryHigh3GiB/Max4GiB/
+swap0,CPUs2,3,26,27,high/max/OOM/swap0. ExistingD96projectionunchanged.
+Outputfull_attempt4_request_projection.json stays0untilreducefinishes; NOTfailure.
+full_attempt4_projection_time.txt isownedtimeoutput,notinput(fd3);doNOTmistake
+its0positionforstalledinput. Continue SAMEsession/unit; no duplicate/restart.
+Curator summarize_full_attempt4.py PREPARED/syntaxverified,NOTexecuted; preserves
+all4000,131published+2notpublished,quarantineandfailureevidence. RunonlyAFTER
+projectionexit0, inbounded4GiBscope; thenupdatefailuretable,source/protected/
+secrets/smokeandbackup. No runtime/sourcechange ornextGPUrun.
+
+FourcompletedmetadataCPUscopes(preliminary,transfer-audit,preliminary2,
+preliminary3) verifiedempty/invocationstablethenstopped;receipt
+metadata_scopes_cleanup.log. Onlyanalysisabove remainsLIVE, noGPU/remote/tmux.
+Currentturn=PROGRESS(actualterminal/cleanup/preliminarytable)+VERIFIEDWAIT
+onstreaminganalysis. Goalactive/fullscopeunchanged; noFull/SLO/numerical/ranking
+qualification. BaselinesPAUSED; doNOTrepeatcache/profiles/prefixes.
+
+2026-09-28 ~09:27. Supersedes ALL older LIVE/NEXT instructions. Actual service
+inactive/ControlGroupgone,tmuxgone,nativeGPUcensusempty;launch.jsonpass=true,
+service0/watchdog0,nativecontextreleaseconfirmed. Mainrun_completed=true,error
+null,cleanupcomplete,no cleanup/measurementerrors orinterruptedreplays.
+ALL4000submitted/terminal:1609success/native matched,2243TimeoutError,148returned
+failures/nullerror_type.40.225%success; NOFull/SLO/rankingqualification/7Badvance.
+124physicalleasesALLreleased,measurement_complete,U22228.467893916GPU-s;
+noteligible_correctness/n_correct=null. Originalruntime1136success+473success
+across90replacementruntimes;122quarantinesreleased. Recoveryactuallyserves,
+butrecurrence/longqueue persists; NOTrootcausefixed orformalperformancegain.
+
+6008resource samples:peak27793170432B,minhost91341680640B,high/max/OOM/OOMkill/
+swap0,no warning/abort.133server/clientUUIDs+bytes match,306356296wireB,
+131published/5105585540verifiedlogicalB,2NOTPUBLISHED(0and2313559wireB),packing0.
+DoNOTassumeall133contentverified orcalltwounpublishednetworkfailures/cancelled
+withouttimeline. Preliminarycollector'sfirstallpublishedassertionandsecond
+missingpayloadfieldexception preserved inpreliminary_first_assertion.log;
+finalcollector explicitlyretainsnonpublication/absentfields,doesNOTfillzero.
+Rawfull_attempt4_preliminary.json+collect_full4_preliminary.py complete.
+Immediatefailuretable docs/ieee_tc/D97_FULL_W0_ATTEMPT4.md created,notcommitted.
+
+AFTERinference originalremoteinvocations/PIDs checkedandstopped:3B8c2160c9,
+7Bfe3613ad,monitorc7d97044;allinactive/MainPID0/success. Copiedremotejournal
+transfers-2f7d73cde5c44d84a343be4b8f6ad721.jsonl toremote_3b_full_attempt4_transfers;
+clock8e042961cf2e44a79bb2a8b3672cbf93. Finalremote_monitor_full_attempt4_final.log
+100743417Bcopied. Matchingemptylocalauxa9d7751b stopped,receiptretained.
+MetadataCPUunit58c45320emptyverifiedandstopped. OthercompletedcollectorCPU
+scopesneedemptycheck/stop (preliminary,transfer-audit,preliminary2,preliminary3).
+
+Fullresult3655870499B in3b_outputs_attempt4; NEVERfullJSONload/plainjq.
+Preparedproject_full_attempt4.sh reusesIDENTICALD96streamprojection withnew
+exclusiveoutput/timefile. NOTyetlaunched atthisentry. Next bounded4GiB CPU
+projection, thenadaptD96curator preserving2unpublished/148failures/quarantine
+evidence→checks/protected/secrets/scopedbackup→causalCPUoptimization.
+RuntimeHEADd6733aa unchanged;outputlengthrationalealsoawaitscheckpoint.
+No7B/baselines orcache/profile/prefixrepeats. Goalactive/fullscopeunchanged.
+Thisgoalturn actualterminal/cleanup+validatedpreliminaryevidence=PROGRESS.
+Observercells2179/2182finished;2188stoppedONLYobserver afterwatchdogterminal
+rowlackedmonotonic;actualterminalverifiedindependently,NOTinferredfrompollerror.
+
+## LIVE — D97 canonical 3B Full4000 W0 attempt4, 2026-09-28 07:40:46
+
+09:04:58 latest SAME LIVE run:4000created/submitted,replay_complete1;
+3509terminal =1454success/native matched+1928TimeoutError+127returned failures/
+nullerror_type;491awaitterminal. ActualACTIVE/sameinvocation8c0943a4e63046fb
+b63c256c59cfdc22 through12read-onlypolls;watchdog4983age0.983s,service21.291GiB/
+host90.095GiBavailable/disk302.003GiB;high/max/OOM/OOMkill/swap0,no warning/abort.
+No main_outcome/terminal launch receipt; actualexperimentNOTfinished/cleaned.
+Observercell2175 completedits12polls; doNOTrestarttheactualexperiment.
+09:05boundedservice-tail:scale_up91,zeroavailableintervals stilloccur;
+fail_reasons1928Timeout+126nativeRPCownershipunresolved+1nativeRPCfailed_no_retry.
+These areLIVEcategories,notfinalphysicalleasecounts orcompleteerrorattribution.
+
+Previousgoalturn=PROGRESS(outputlengthrationale)+VERIFIEDWAIT; currentturn=
+VERIFIEDWAIT onactualsameinvocation,notblocked. Fullplanreadinexistingcontext,
+SHAfe6c05b0recheckedunchanged;runtimeHEADd6733aa unchanged. No source/config/
+remote changes/tests/cleanup/newexperiment. Explanationdocstilluncommitted for
+post-runcheckpoint; usermanifest/unrelatedfilesuntouched. Continue SAMErun to
+originalterminal thenownedcleanup→validation→failuretable→causalnextstep.
+DoNOTadvance7B/baselines orstackepochchanges. Goalactive/fullscopeunchanged.
+
+08:57:08 SAME LIVE run: all4000created/submitted, replay_complete1;
+3082terminal = 1401success/native matched + 1582TimeoutError + 99returned
+failures/nullerror_type; 918awaitterminal. ActualACTIVE/sameinvocation
+8c0943a4e63046fbb63c256c59cfdc22,watchdog4519age0.898s,service22.126GiB/
+host88.387GiBavailable/disk302.314GiB;high/max/OOM/OOMkill/swap0,no warning/abort.
+No main_outcome/terminal launch receipt. Arrivals COMPLETE since08:48:26,
+NOTwhole-runterminal orcleanup. Continue SAMEoriginaldeadlines andownedcleanup.
+
+User output-length question resolved with direct primary evidence and actual
+code audit: new OUTPUT_LENGTH_PROTOCOL_RATIONALE_20260928.md (notyetcommitted).
+HydraServe§8.4 fixes512input/output forconsolidation; S-LoRA§7.2 pre-samples
+per-request lengths; Anyscale officialbenchmark guideexplicitly recommends
+ignore-eos/fixedlength. Noneprovesuniversal100%exact-countqualification or
+naturalapplicationrequirements. Keepcurrentfixedworkcontract; S12naturalEOS
+retained/noactual==cap. V1/plan/runtime/deadlineunchanged. NumericalLoRAproof
+andjointSLOseparate; existingzero-weightlimitationunchanged. All1401successes
+native matched; majorobservedfailuresarenotestablishedasrandomlengthmismatch.
+
+Research-lookup boundedpublicquery session57055 ENDEDexit1 at08:54:24 due
+Parallel300stimeout; PIDs909825/909918absent08:57. No inferencewasstopped.
+Sourceclaimsverifieddirectlywithwebprimarytexts,notfailedsearchoutput.
+No live observer exec cell. Thisturn re-readFULLplan/ledger/V1 andmade
+explanationdocument plusVERIFIEDWAIT; no code/config/remote changes orheavyjob.
+Next SAMErunterminal→ownedcleanup→validation→failuretable→causalnextstep.
+No7B/baseline/epochpatch yet; fullqualificationalreadyfailed. Goalactive,
+formalwarmSLO/Resident/M1M2/A/S/numericalqualificationpending.
+
+08:47:37 SAME LIVE run: 3974 created/submitted, 2389 terminal = 1366 success/
+native matched + 955 TimeoutError + 68 returned failures/null error_type;
+1585 submitted not terminal, 26 planned requests not yet submitted. Actual
+scope ACTIVE/same invocation8c0943a4e63046fbb63c256c59cfdc22, watchdog3956
+age0.275s; service18.014GiB/host92.237GiB available/disk302.465GiB, high/max/OOM/
+OOMkill/swap0, no warning/abort. No outcome or terminal launch receipt yet.
+
+User added question about output-length matching vs probabilistic generation.
+Read FULL METRIC_PROTOCOL_FROZEN_V1, actual D97 config and worker/controller/
+physical-terminal code; checked official vLLM0.30 sampling_params.py and bench
+serve/endpoint_request_func.py. Current contract deliberately requests per-item
+target=min(source_expected_output_tokens,256), temperature0/top_p1,ignore_eos,
+no stop. Actual native token count and length finish are required, NOT identical
+text across systems or prediction of natural output length. Completion/token
+contract, adapter numerical correctness and joint SLO are separate. Length
+matching controls decode/KV/resource work; it is NOT a universal requirement for
+natural EOS serving. Plan S12 explicitly does NOT require actual==cap and remains
+pending. User asked for explanation, NOT authorization to weaken current run;
+V1, plan, runtime, deadlines and current data were NOT changed. No new assets.
+Official sources: https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/sampling_params.py
+https://docs.vllm.ai/en/v0.30.0/cli/bench/serve/
+Local references: runner4343/4427/4475/16328; metrics_collector199; V1 section3.
+
+Observercell2144 was explicitly terminated ONLY to answer the new question;
+actual experiment was NOT stopped and independently rechecked ACTIVE afterward.
+No live observer exec cell remains. Previous turn verified wait/replacement
+evidence; this turn verified wait plus actual contract audit/user explanation.
+Continue same actual run through arrivals/original deadlines/owned cleanup,
+then validate and failure table before next causal change. No7B/baselines or
+new experiment. Goal active and scope unchanged; no qualification/ranking claim.
+
+08:40:45 latest SAME LIVE run: 3684 created/submitted; 1836 terminal = 1315
+success/native matched + 488 TimeoutError + 33 returned failures/null error_type;
+1848 submitted still not terminal. Actual scope ACTIVE/same invocation8c0943a4
+e63046fbb63c256c59cfdc22, watchdog3550 age0.403s; service19.867GiB, host90.014GiB
+available, disk302.786GiB; high/max/OOM/OOMkill/swap0, no warning/abort.
+Main_outcome/terminal launch receipt absent. NOT run completion or cleanup.
+
+08:40:33 request-ledger audit: 1136 successes on four original runtimes plus
+179 successes/native-matched on SEVENTEEN replacement runtimes. Actual recovery
+has repeatedly served work, but recurrence/churn is substantial; this is NOT
+proof of stable throughput, root-cause resolution or Full qualification. Live
+service log at08:40:27 shows scale_up23 and another member added after an
+available-runtime-zero interval. Need final physical lease/census and activation
+records before claiming exact released/reused GPU counts or activation types.
+Other failures are NOT all one known error: sampled fail_reasons includes
+"native RPC ownership unresolved; new generation" and at least one
+"subprocess_native_rpc_failed_no_retry: RuntimeEr". Preserve full errors after
+outcome; do not classify null error_type as success or TimeoutError.
+
+Current turn VERIFIED WAIT plus evidence of repeated replacement serving and
+recurring failures. Previous turn actual replacement-service evidence. Same
+source/config/timeout/remote conditions unchanged; no extra heavy task, cleanup,
+restart or code edit. Plan SHA unchanged; full plan previously read in current
+context. Observercell2139 finished12polls; actual experiment remains LIVE.
+Continue SAME original replay/deadlines to terminal, then owned cleanup,
+validation and immediate failure/status table BEFORE causal optimization/7B/
+baseline. Do not soften reference/physical guards or stack untested fixes while
+live. Full completion already failed; formal warmSLO/Resident/M1M2/A/S remain
+pending. Goal active, not blocked; no superiority claim.
+
+08:32:11 latest SAME LIVE run: 3305 submitted, 1183 terminal = 1150 success/
+native matched + 31 TimeoutError + 2 returned failures with null error_type.
+Actual scope ACTIVE/same invocation8c0943a4e63046fbb63c256c59cfdc22, watchdog3042
+age0.511s; service23.588GiB, host85.975GiB available, disk303.459GiB; high/max/
+OOM/OOMkill/swap0, no warning/abort, main_outcome/terminal receipt absent.
+
+New actual recovery-path evidence, NOT whole-run qualification: after available
+replicas fell4→3→1, old members were removed (3ab5af... at08:31:10,5a08f4... at
+08:31:19); new member79e9de01e40a438fbbb51044d590d49c onGPU1 appeared and by
+08:31:59 had ELEVEN actual successful native-contract-matched terminals. Its
+first success req01140 terminal62743.733368975. Another new member48321361...
+was added08:32:09; no success claim for that member yet. Need final physical
+lease/census journals to verify release/reuse; dashboard removals alone are not
+physical proof. Existing whole-run completion requirement ALREADY failed.
+
+Returned failures: req01159 onold5a08f4... at62708.458996688 and req01158 onNEW
+79e9de... at62743.573459573. Live fail_reasons identifies BOTH as "native RPC
+ownership unresolved; new generation". Thus recurrence remains even on a new
+runtime; do not claim root cause fixed or combine these with TimeoutError.
+Wait for retained full request errors before assigning exact RPC boundary.
+
+This goal turn gained actual replacement-service evidence and VERIFIED WAIT.
+No source/config/timeout/remote edits/tests/cleanup/extra experiment. Prior turn
+gained first-timeout evidence. Plan unchanged; full plan remains read in context.
+Observercell2132 completed12polls, NOT actual experiment; current unit remains
+LIVE. Continue SAME run to original terminal and owned cleanup, then validate
+failure/status table and causal next step. No7B/baseline/source-epoch patch yet.
+Goalactive; formal warmSLO/Resident/M1M2/A/S and numerical qualification pending.
+
+08:22:35 FIRST TIMEOUT: 2724 submitted, 939 terminal = 938 success/native
+matched + 1 TimeoutError. At 08:22:50, exact failure is req00513, terminal
+1804.496833s after planned arrival under unchanged 1800s deadline. This attempt
+CANNOT qualify as 4000/4000 success. It is still LIVE, not cleaned or complete.
+The null terminal instance_id follows the exception/result=None path; it does
+NOT establish that timeout preceded selection or native dispatch. Preserve
+retained failure observations for post-run causal analysis.
+
+Actual service ACTIVE with SAME invocation 8c0943a4e63046fbb63c256c59cfdc22;
+watchdog2474 age0.178s, service21.658GiB, host87.677GiB available, disk304.213GiB,
+high/max/OOM/OOMkill/swap all zero; no warning/abort, main_outcome/launch terminal
+absent. 08:22:50 terminal audit: 2752 submitted/945 terminal; four instances
+250/236/228/230 successes. Thus current timeout is NOT evidence all replicas
+already stopped. Observercell2127 ended at first failure, NOT experiment exit.
+This goal turn yielded decisive negative qualification evidence and VERIFIED
+WAIT on the same actual live run. No runtime/config/timeout/remote changes.
+
+NEXT continue SAME run through original arrivals/deadlines and owned cleanup;
+then validate, immediate failure/status table, causal diagnosis. Do NOT advance
+7B or baselines, restart, extend timeout, stack source-epoch optimization or
+repeat cache/profiles. D97 quarantine recovery and early queueing remain distinct
+questions; no actual recovery conclusion yet. Full plan read earlier in the
+same task remains in context and its SHA unchanged; current ledger rechecked.
+Goal remains active; no formal SLO/ranking/numerical qualification.
+
+08:15:21 latest VERIFIED WAIT: 2132 created/submitted, 744 terminal/success/
+native-contract-matched, 1388 submitted not terminal, no failures yet. Actual
+scope ACTIVE with SAME invocation 8c0943a4e63046fbb63c256c59cfdc22 throughout
+10 read-only polls. Watchdog 2046 age 0.024s; service 20.871 GiB, host available
+88.383 GiB, disk free 304.277 GiB; high/max/OOM/OOMkill/swap all zero, no
+warning/abort; main_outcome and terminal launch receipt absent. Subsequent
+08:15:44 passive request audit: 2183 submitted, 753 terminal, 1430 pending;
+four actual instances have 201/188/181/183 successes. Oldest pending req00513
+age 1402.460s; earlier oldest req00206 is now terminal. Continued progress does
+NOT establish quarantine recovery or remove the long-wait problem.
+
+This turn re-read FULL authoritative plan and current ledger; plan SHA remains
+fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c. User's
+once-only delivery-cache approval is ALREADY fulfilled by D78/D80; no duplicate
+publication or new assets. Source d6733aa remains unchanged; no tests, remote
+operations, cleanup, configuration change or new experiment while inference is
+live. Observer cell 2122 finished its ten polls; this is NOT experiment terminal.
+Continue THIS invocation to terminal, then owned cleanup, validation and status
+table before another optimization, 7B or baseline. Goal remains active; this is
+VERIFIED WAIT, not blocked. Full/SLO/numerical/ranking qualification and all
+formal comparisons remain pending. Latest user report separates completed
+delivery/profile work from the still-running Full qualification.
+
+08:03:50 latest VERIFIED WAIT:1224created/submitted,449terminal/449success/
+449nativecontractmatched,775submitted notterminal,no failures yet. Sameactual
+ACTIVEscope/invocation8c0943a4e63046fbb63c256c59cfdc22 atallpolls,again08:04:10.
+Watchdog1364age0.433s,service19.181GiB/host89.708GiBavailable/disk304.662GiB,
+high/max/OOM/OOMkill/swap0,no warning/abort;main_outcome/terminalreceipt absent.
+Passive per-instance terminalaudit08:04:10 confirms FOUR runtimes completework:
+126/113/105/110success respectively. Oldestpending req00206 age1019.893s;
+previousoldest req00166 (age681.55sat07:57:42) isNOWterminal. Thus completions
+continue; this doesNOTidentify exactwaitingcause orprove quarantine recovery.
+No source/config/remote changes/tests/cleanup/newexperiment. PlanSHAfe6c05b0
+unchanged; previouslyreadfullplan stillapplies. Current/previousturnVERIFIEDWAIT.
+Observercell2111 finishedits10polls, NOTtheactualexperiment. Continue sameunit
+throughterminal, thencleanup→validation→status table before any optimization,
+7B orbaseline. Goalactive; Full/SLO/formalcomparison stillunqualified.
+
+07:56:05 latest VERIFIED WAIT:793created/submitted,322terminal/322success/
+322nativecontractmatched,471submitted notterminal,no failures yet. Sameactual
+ACTIVEscope/invocation8c0943a4e63046fbb63c256c59cfdc22 atall10polls. Watchdog906
+age0.406s,service18.358GiB/host90.375GiBavailable/disk304.796GiB,high/max/OOM/
+OOMkill/swap0,no warning/abort;main_outcome/terminal launch receipt absent.
+First500inputs submitted by07:51:59 (236completed then); doNOTequate submission
+with completion orclaim churn qualification. Request completions continue while
+pendingpopulation grows. Source/config/remote unchanged; noextraexperiment/test/
+cleanup. PlanSHAstillfe6c05b0. Previous/currentgoalturn=VERIFIEDWAIT,notblocked.
+Observertoolcell2106 finished its10polls; theACTUALexperiment is STILLrunning.
+Continue sameliveunit, doNOTrestart becauseobserverreturned. Next afteractual
+terminal remainscleanup→validation→table, then causaldecision. Allformal work
+and7B/baselineadvance remainpending; goalactive/incomplete.
+
+07:48:55 latest VERIFIED WAIT:353created/submitted,182terminal/182success/
+182native-contractmatched,171submitted notterminal,no failures yet. Sameactual
+ACTIVEscope/invocation8c0943a4e63046fbb63c256c59cfdc22. Watchdog481age0.507s,
+service17.328GiB/host91.412GiBavailable/disk304.968GiB,high/max/OOM/OOMkill/
+swap0,no warning/abort;main_outcome andterminal launch receipt absent. Polls
+07:45:01 108/96,07:46:07 154/133,07:46:57 187/152,07:48:01 305/170 showed
+continuedcompletions ANDincreasingwaiting population. Fourruntime members
+appearednaturally; sampledlegacycache/utilfields areNOTproof ofnativeinactivity.
+Thisturn re-readfullplan/ledger andverifiedSAMElivehandle; no source/config/
+remote edits,newtest/experiment, restart orcleanup. Previousgoalturn=PROGRESS
+(D97implementation/testing/push/launch); currentturn=VERIFIEDWAIT. Continue
+THISrun throughterminal, thencleanup→validation→table. NotFull/SLO/recovery
+qualification orsuperiority. DoNOTjump to7B/baselines orstackoptimization.
+
+07:42:44 VERIFIED progress:20created/submitted,13terminal/13success/native
+contractmatched,no failures yet. ActualscopeACTIVE/same8c0943a4 invocation;
+watchdog116 age0.018s,service12.716GiB/host95.168GiBavailable,high/max/OOM/
+OOMkill/swap0,no warning/abort;main_outcome absent. Initialruntime serving,
+NOTcompletequalification or proofquarantine recovery; observeactualrelease/
+reactivation later. Thisturnimplemented/tested/backedupD97 andlaunchedonefull
+replay, then VERIFIED WAIT. No config/source/remote changes afterlaunch.
+Continue SAMErun, no duplicate/7B/baseline, source-epoch optimization orcache
+regeneration. Plan/metric protocol were read FULL beforelaunch, unchanged.
+
+Supersedes ALL older NEXT/LIVE entries. Source d6733aa8607e1fc4f66be3b261f555253c1a1f87
+PUSHED/freshremoteSHA matched. Tmux tc-d97-3b-full4; actual service scope
+243d5b4748d34148a2ccdb48dc85bbae/invocation8c0943a4e63046fbb63c256c59cfdc22,
+aux ee9c9d86771a46cdaa5b0441578c6588/invocationa9d7751b27394134a880c1220b4131d6.
+Existingcanonicalrunner/external4000trace/physicalledger,60snotice,1800sdeadline,
+sameD88/D89configuration; ONLYtestedsource andfreshownedoutput/cachepaths differ.
+Rawd97_20260928/3b_full_w0_attempt4/launch.json andlaunch.launch/;
+3b_full_w0_attempt4_console.log. Do NOT launch another/restart this attempt.
+
+Prelaunch17SHArefs/147protectedPASS,bothauthenticatedDIRECTHTTPhealthPASS,
+localeno1np0/remoteno1 each1000Mb/s/full;host107GiBavailable/swap0/disk307GiB/
+GPUidle. Remote existingpublishedD78cache reused unchanged.3Bserviceinvocation
+8c2160c94a8243e694cf46a58535a80b PID1145475;7Bfe3613ad470947419b465f5592d7a84c
+PID1145477;monitorc7d97044c81d499195d046a6680e4b60 PID1145480,
+unitprimelora-artifact-monitor-d97full4.service,
+log /home/lab14/primelora_remote/tc/d97_20260928/remote_monitor_3b_full_attempt4.log.
+Snapshot29:service3.15GiB/host104.43GiBavailable,high/max/OOM/OOMkill/swap0,
+no warning/abort. Initialpreparation underway; NOTFull/SLO/performancequalified.
+
+NEXT monitor THIS actualinvocation toterminal; no source/config/remotechanges,
+remotehash/cleanup/restart, concurrentheavytests ornewexperiment. Fullrequest
+replayarrivals span3963.9s plusoriginaldeadline drain; do not infer completion
+from elapsedtime. Afterterminal:ownedcleanup→validation→failure/status table,
+then decide causalnextstep. D97 targets lostcapacityafterquarantine; DOESNOT
+prove earlysource-conflict/queue problem solved. No7Buntil3Bqualified;baselines
+9e2cf289PAUSED. Cache/profiles/prefixes done, doNOTrepeat. WarmSLO/Resident/
+M1M2/A/S andnumericaldiscrimination remainpending. Goalactive/incomplete.
+
 ## Latest — D97 event-driven quarantine recovery CPU-verified; backup then Full replay
+
+BACKEDUP d6733aa8607e1fc4f66be3b261f555253c1a1f87 PUSHED/freshremoteSHA matched.
+Six scoped files/1201 distinct qualified tests/8current+4historicalSHArefs/
+147protected/secrets PASS. Usermanifest excluded. Five finishedCPUscopes verified
+Tasks0/procs empty/populated0 andstopped; no GPU/services live. DoNOTrepeatbackup
+orregression. Attempt4 run/config/remoteactivation templates prepared by copying
+existingD96 templates with ONLYsourceSHA andfreshD97/output/cache paths changed;
+NOTyetlaunched. Nextprelaunchchecks thenONEcanonical3B4000. Rawpushreceipt saved.
 
 2026-09-28 07:35. Supersedes ALL older LIVE/NEXT instructions. No inference or
 remote service is running; CPU jobs finished. Baselines PAUSED. Production runner
