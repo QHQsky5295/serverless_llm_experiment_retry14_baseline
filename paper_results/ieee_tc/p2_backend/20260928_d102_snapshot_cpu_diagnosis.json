@@ -1,0 +1,193 @@
+{
+  "kind": "d102_native_snapshot_cpu_diagnosis_v1",
+  "runtime_commit": "2f1bc4ba1d9fb3a1b17428390c4c3c63dbb09f1d",
+  "evidence_parent_commit": "8aa3607defd14cdc491708079cb3053d98546f62",
+  "production_changed": false,
+  "formal_performance_result": false,
+  "full_replay_qualified": false,
+  "probe": {
+    "kind": "d102_native_snapshot_parse_cpu_probe_v1",
+    "formal_performance_result": false,
+    "no_gpu_artifact_or_rpc_io": true,
+    "source_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d88_20260927/3b_admission_source_attempt4.json",
+    "source_sha256": "7377ed4e706e1eb81db79d89d780d1205d04e76345f5ede8b8a6c9c81397e953",
+    "retained_views": 291,
+    "unique_views": 291,
+    "selected_owners": 1,
+    "readiness_only_excluded": 288,
+    "registered_count_distribution": {
+      "1": 35,
+      "0": 30,
+      "3": 32,
+      "4": 31,
+      "6": 32,
+      "7": 20,
+      "2": 19,
+      "5": 19,
+      "8": 73
+    },
+    "selected": [
+      {
+        "path": [
+          "sources_after"
+        ],
+        "payload_sha256": "862203599f42b8508dfeb30b5c5564dbe2a165879115d36f44f1fd70ca98468d",
+        "owner_id": "88e701c8f8fa49578fac04115c596ce1",
+        "epoch": 4913,
+        "registered": 8,
+        "host_allocations": 1792,
+        "native_sources": 8
+      }
+    ],
+    "samples": [
+      {
+        "trial": 0,
+        "group_repetitions": 1,
+        "conversion_calls": 1,
+        "seconds": 0.002460249001160264
+      },
+      {
+        "trial": 0,
+        "group_repetitions": 32,
+        "conversion_calls": 32,
+        "seconds": 0.08305437200760935
+      },
+      {
+        "trial": 1,
+        "group_repetitions": 1,
+        "conversion_calls": 1,
+        "seconds": 0.004465243997401558
+      },
+      {
+        "trial": 1,
+        "group_repetitions": 32,
+        "conversion_calls": 32,
+        "seconds": 0.09504696298972704
+      },
+      {
+        "trial": 2,
+        "group_repetitions": 1,
+        "conversion_calls": 1,
+        "seconds": 0.002535976003855467
+      },
+      {
+        "trial": 2,
+        "group_repetitions": 32,
+        "conversion_calls": 32,
+        "seconds": 0.07749140000669286
+      }
+    ],
+    "profile": "         756290 function calls in 0.287 seconds\n\n   Ordered by: cumulative time\n   List reduced from 37 to 20 due to restriction <20>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n        1    0.000    0.000    0.287    0.287 probe_snapshot_parse_qualified.py:62(parse_group)\n       64    0.000    0.000    0.287    0.004 probe_snapshot_parse_qualified.py:65(<genexpr>)\n       32    0.004    0.000    0.287    0.009 instance_pool.py:153(from_native)\n       32    0.121    0.004    0.279    0.009 instance_pool.py:76(_footprints)\n      544    0.018    0.000    0.050    0.000 {built-in method builtins.sum}\n   246944    0.039    0.000    0.039    0.000 {method 'get' of 'dict' objects}\n      672    0.007    0.000    0.031    0.000 {built-in method builtins.any}\n    57600    0.021    0.000    0.021    0.000 instance_pool.py:147(<genexpr>)\n    57632    0.014    0.000    0.014    0.000 {built-in method builtins.sorted}\n    57600    0.012    0.000    0.012    0.000 instance_pool.py:121(<genexpr>)\n    12704    0.007    0.000    0.011    0.000 instance_pool.py:109(<genexpr>)\n    57344    0.011    0.000    0.011    0.000 instance_pool.py:98(bytes_value)\n    85344    0.008    0.000    0.008    0.000 {built-in method builtins.isinstance}\n    57344    0.008    0.000    0.008    0.000 {method 'add' of 'set' objects}\n    57600    0.006    0.000    0.006    0.000 instance_pool.py:124(<genexpr>)\n    57376    0.005    0.000    0.005    0.000 instance_pool.py:106(<genexpr>)\n      256    0.000    0.000    0.001    0.000 pathlib.py:1157(__init__)\n      256    0.001    0.000    0.001    0.000 <string>:2(__init__)\n      256    0.000    0.000    0.001    0.000 pathlib.py:358(__init__)\n      640    0.000    0.000    0.000    0.000 instance_pool.py:180(<genexpr>)\n\n\n",
+    "parsed_answer_sha256": "6c81a4db66669bad04a9e7cf0600083d732a06976f16fcffd5c6ea727b39d371",
+    "production_source_sha256": "65744a7c6037b5e01ec2e1c3cfb880f9a6ffd79232af2bfa3f7f449a771636bd",
+    "caveat": "Largest retained allocation graph per actual owner; observations are earlier qualified D88 profiling state, not Full8 or all routing waves. Receipt time equals captured time for pure-parser validation only. Repeated identical payloads measure duplicate CPU work, not GPU latency, concurrent RPC time, or timeout causality."
+  },
+  "samplers": [
+    {
+      "version": "0.4.1",
+      "samples": 294,
+      "frames": [
+        {
+          "name": "cpu_witness",
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d102_20260928/sampler_witness.py",
+          "line": 18,
+          "col": null
+        },
+        {
+          "name": "<module>",
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d102_20260928/sampler_witness.py",
+          "line": 22,
+          "col": null
+        },
+        {
+          "name": "thread (2231712)",
+          "file": "",
+          "line": 0,
+          "col": null
+        },
+        {
+          "name": "cpu_witness",
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d102_20260928/sampler_witness.py",
+          "line": 19,
+          "col": null
+        }
+      ],
+      "clean_exit": false,
+      "formal_performance_result": false
+    },
+    {
+      "version": "0.4.2",
+      "samples": 248,
+      "frames": [
+        {
+          "name": "cpu_witness",
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d102_20260928/sampler_witness.py",
+          "line": 19,
+          "col": null
+        },
+        {
+          "name": "<module>",
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d102_20260928/sampler_witness.py",
+          "line": 22,
+          "col": null
+        },
+        {
+          "name": "thread (2300367)",
+          "file": "",
+          "line": 0,
+          "col": null
+        },
+        {
+          "name": "cpu_witness",
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d102_20260928/sampler_witness.py",
+          "line": 18,
+          "col": null
+        }
+      ],
+      "clean_exit": true,
+      "formal_performance_result": false
+    }
+  ],
+  "input_rejection": "Full8 retained readiness payload lacked native_footprints; no timing result",
+  "decision": "No parser-sharing implementation accepted; profile unchanged full controller next",
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "unchanged_prelaunch_sources": 24,
+  "prior_smoke_reuse": "D101 Full8 47 evidence checks; unchanged source, not rerun",
+  "source_sha256": {
+    "results/ieee_tc/p2_backend_qualification/d102_20260928/sampler_witness.speedscope.json": "ffb83653553a8ddb72d1755f1807341b860e9987366ca90186bd6b440e2945fc",
+    "results/ieee_tc/p2_backend_qualification/d102_20260928/run_sampler_witness.sh": "ec4a8f99d42730e704082fd8f11662e0afad11d735962a98fbc3c26e158b0df1",
+    "results/ieee_tc/p2_backend_qualification/d102_20260928/snapshot_probe.log": "944b6ec0fe1abaa923c738d0c842d47a203d135f1d29fca402bac7535740f21d",
+    "results/ieee_tc/p2_backend_qualification/d102_20260928/snapshot_probe_time.txt": "2e229da21f3b34ec24296ae44c8b0ba5dba0eeb13cb8c35a03b82a4458fbf23f",
+    "results/ieee_tc/p2_backend_qualification/d102_20260928/run_snapshot_qualified.sh": "859beb00b9a48203e78028fdcf763de7da4741cde8db17b5c82a33810195a156",
+    "results/ieee_tc/p2_backend_qualification/d102_20260928/run_sampler_witness_v042.sh": "3d9a8c8f412f83a3e907e98991eab2235c013fd287b21496194b5d33d3ea6ab8",
+    "results/ieee_tc/p2_backend_qualification/d102_20260928/sampler_witness.log": "d8abd68ee1db15e1d909392e18ef7c6d48462ee723a381f2aca4d1a1c8dd343c",
+    "results/ieee_tc/p2_backend_qualification/d102_20260928/sampler_witness_v042.speedscope.json": "af27c0690145d33357e382c50e433ab8518a344560a2d32034f27cf98bc9e8cb",
+    "results/ieee_tc/p2_backend_qualification/d102_20260928/summarize_snapshot_probe.py": "84536005c4cead930c95931da0c64b4a7c09456fd00db5161b4525afe49fb35f",
+    "results/ieee_tc/p2_backend_qualification/d102_20260928/snapshot_qualified_time.txt": "b0d77b6803e008f6148a6d139c3def429d47cd2dc982e40d6ac0d2e515b2e97f",
+    "results/ieee_tc/p2_backend_qualification/d102_20260928/run_snapshot_probe.sh": "c4b28cafc6290f1b0394e4efc0dd2cd6139b4e5ad3f7262e5982e653563838ef",
+    "results/ieee_tc/p2_backend_qualification/d102_20260928/snapshot_qualified.log": "2dadab7a833b08c79d72f10e43e3dec2428a1fe12abe11a15baa6a9cffcd06a5",
+    "results/ieee_tc/p2_backend_qualification/d102_20260928/sampler_witness_scope.txt": "b91923912b4e680fc4c28fe8027a19f00373e93b7a05dfd42f657977d8547092",
+    "results/ieee_tc/p2_backend_qualification/d102_20260928/cleanup_cpu_scopes.sh": "b97694f445f5882f6d59aafa4292dd79f2be334f0407e512518554b95d184571",
+    "results/ieee_tc/p2_backend_qualification/d102_20260928/sampler_witness.py": "8c9b51b064809e55e1aa45afddb70b6c960954ede6ab00f5e25d0655ec64e3f3",
+    "results/ieee_tc/p2_backend_qualification/d102_20260928/probe_snapshot_parse_qualified.py": "5d36837ae3472a31dc374ba8cd1b137f7987f4b67bc86be12077b5f17362e0c9",
+    "results/ieee_tc/p2_backend_qualification/d102_20260928/snapshot_parse_qualified_probe.json": "9f8ad798f161a82dc57de8627275355a14d20529a81f81749e5fad32b0911b81",
+    "results/ieee_tc/p2_backend_qualification/d102_20260928/snapshot_probe_scope.txt": "be93b37ada168625d0ca09919fa4c3042be9845cf9d0d15cd4c9f1b0dab7ce25",
+    "results/ieee_tc/p2_backend_qualification/d102_20260928/sampler_witness_v042_time.txt": "27c2b519d87f4f756c2a8fd882c3c8e83144216e037a9eecbb04026b4d9d3958",
+    "results/ieee_tc/p2_backend_qualification/d102_20260928/snapshot_qualified_scope.txt": "5691cbb3e3cac045c7518b609fe6bf02a90f6a4a9ac193c7151098852621c00c",
+    "results/ieee_tc/p2_backend_qualification/d102_20260928/cleanup_cpu_scopes.log": "a1606cde24284448d23a87a903486cbe8c9c86fdb899c17b0785d83808a0f2de",
+    "results/ieee_tc/p2_backend_qualification/d102_20260928/probe_snapshot_parse.py": "46acf22eb09aa52d6e3d267676425b8e0e1982b0501203c8503fab6d40d6e032",
+    "results/ieee_tc/p2_backend_qualification/d102_20260928/sampler_witness_v042_scope.txt": "ae7553d46851c069bd3bf6a8ff223f4a536fba6912fb67c6e1c573c69f33ce83",
+    "docs/ieee_tc/D102_NATIVE_SNAPSHOT_CPU_DIAGNOSIS.md": "4a0188e05082f53cc2e6f5cd2f85de5198068d78f97d60c66775d2448f9e7fba",
+    "docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "faaslora/experiment/instance_pool.py": "65744a7c6037b5e01ec2e1c3cfb880f9a6ffd79232af2bfa3f7f449a771636bd",
+    "results/ieee_tc/p2_backend_qualification/d101_20260928/full_attempt8_evidence_verification.json": "0e77ec8d4d5cb5117c07c8fce5b1ba16f5c48aa7659ca1541e47577172720b7b"
+  },
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+}

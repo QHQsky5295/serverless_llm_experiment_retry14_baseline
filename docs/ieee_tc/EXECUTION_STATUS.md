@@ -1,11 +1,51 @@
 # IEEE TC execution status
 
-## CURRENT — D101 Full8 fully curated; no live jobs; evidence backup next
+## CURRENT — D102 CPU diagnosis complete; no production change; full-path profiling next
+
+2026-09-28 17:07. Supersedes ALL historical live/NEXT instructions below.
+Goal ACTIVE/incomplete; baselines PAUSED. Production remains Full8 source
+2f1bc4ba1d9fb3a1b17428390c4c3c63dbb09f1d. No GPU/remote job or new Full replay.
+
+- D102 parser hypothesis measured on retained, SHA-qualified D88 source payload:
+  one owner,8 registered adapters,1792 HOST allocations. One parse2.460/4.465/
+  2.536ms;32 repeats83.054/95.047/77.491ms. Outputs identical. NOT Full8's
+  routing-wave distribution; no timeout attribution or performance improvement.
+- Initial Full8-readiness input correctly rejected for missing native_footprints;
+  failed probe retained. No invented footprint and no repeated large-run scan.
+- Decision: do NOT implement parse-sharing from this evidence. Need actual
+  complete controller CPU profile; retain formulas/config/deadline/trace.
+- Existing py-spy0.4.1 sampled294 stacks but had ECHILD shutdown error; notused.
+  Existing0.4.2 sampled248,actual native Python3.12.12 child completed,exit0
+  (3.07s,10752KiB peakRSS). No install/ptrace/sysctl changes. Witness is CPU-only,
+  not a serving/performance result or guarantee of profiler overhead.
+- All four CPU-probe scopes identity+empty-verified/stopped17:05. Curator exit0,
+  147protected+24unchangedsourcechecks PASS; prior47 evidence-smoke reused with
+  unchanged source. Curator94b3faa648054e96ac653af1ca4c296d also exactidentity+
+  empty-verified/stopped; rawD102/curation_cleanup.log. No live analysis task.
+- Table/doc D102_NATIVE_SNAPSHOT_CPU_DIAGNOSIS.md; curated
+  paper_results/ieee_tc/p2_backend/20260928_d102_snapshot_cpu_diagnosis.json
+  SHA f4cb0e1c53e36d66e1d68c499fb3e3d9946499f14267d07ea4d5f41e87d7fa36.
+  Raw results/ieee_tc/p2_backend_qualification/d102_20260928; don't rerun probes.
+- NEXT scoped evidence backup, then ONE profiling diagnostic of unchanged
+  Full4000W0 controller using qualified existing py-spy0.4.2. Canonical external
+  replay/resource gate retained; wrapper only, no shortened/generated trace,
+  no source change. Profile business interval separately from finalserialization.
+  NOT formalperformance or a new optimization-qualification claim. No blindretry.
+- Full8 remains3970/4000native-contract-matched,30TimeoutError. Prime3BFull,
+  7BFull,warm/Resident,baselines,M1M2,A/S all incomplete. Once-only published
+  delivery cache already fulfilled; NEVER rebuild/duplicate pools.
+
+## D101 Full8 — completed checkpoint (superseded next-action instructions)
 
 2026-09-28 16:42. Supersedes ALL historical live/NEXT instructions below.
 Goal ACTIVE/incomplete; baselines PAUSED. Runtime2f1bc4ba1d9fb3a1b17428390c4c3c63dbb09f1d
 unchanged. Inference,remote,projection,curation andevidencecheckallfinished.
 Allownedanalysisunits exactidentity+emptyverified/stopped; no job to restart.
+- Evidencecommit8aa3607defd14cdc491708079cb3053d98546f62 pushed16:43:22 to
+  faaslora_origin/retry14_continuous_queue_v2; exactremoteHEADverified.
+  Fourfilesonly(doc,ledger,two curatedJSON); no runtimechange/userdirty staged.
+  DoNOTrepeatbackup,projection,curation,smoke. CurrentHEAD8aa3607; runtimeidentity
+  in Full8 remains2f1bc4b. Thispost-push ledgerupdateisnotanewruntimeconfiguration.
 
 - Full4000:3970success/native-contract-matched,30TimeoutError,0otherreturned.
   Completeexecutionbutfailedqualification; no formalSLO/numerical/rankingclaim.
@@ -30,7 +70,7 @@ Allownedanalysisunits exactidentity+emptyverified/stopped; no job to restart.
   full_attempt8_evidence_verification.json,full_attempt8_evidence_smoke.log,
   metadata_scopes_cleanup_full8.log,analysis_scopes_cleanup_full8.log.
   No need to repeat extraction,curation,smoke,cache/download/profile/prefixes.
-- NEXT scopedevidencebackup,then ONEcausalCPUprofile usingrecordednativeview,
+- NEXT ONEcausalCPUprofile usingrecordednativeview,
   checkingrepeatedNativeSourceSnapshot.from_native/footprintconversionperwaiter.
   Thisisacandidateonly,runtimecost/timeoutcausalitynotmeasured;requirehistory,
   primarysources,measuredprofilebeforeimplementation. DoNOTweakenowner/freshness/
