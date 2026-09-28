@@ -1,0 +1,99 @@
+{
+  "kind": "d110_profile4_postrun_evidence_verification_v1",
+  "pass_checks": true,
+  "source_refs_checked": 56,
+  "test_fixture_change": {
+    "path": "tests/test_ieee_tc_external_replay.py",
+    "before_sha256": "0e1358daf979697b2df4aff783f70ad55c49a622d29ad78cc98953a01d09d0e0",
+    "after_sha256": "f7217e085e02e331c962312aefe8ef1aaa1b37c7041e23d493149bd26b020074",
+    "reason": "Deterministic receive-prefix gate; real socket validation retained; no production change"
+  },
+  "source_commit": "244ceb6571c3f1d04a9f24594115f3433115d619",
+  "formal_performance_result": false,
+  "refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20260928_d110_3b_full_w0_profile4.json",
+      "sha256": "1697c656f400efd7c1551df1b63f7f52c86d9fcfb290c934f2e0a1caf9c6ef41"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20260928_d110_3b_full_w0_failure_breakdown.json",
+      "sha256": "73a2b0d046b36d51b3c399afac69d1ad2fd8bf628cf9013f59e091e26ff6a74c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d110_20260928/summarize_full_profile4.py",
+      "sha256": "a971df541fb4caa281b394729855f4727a7e6809218e3adc21890708e1520818"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d110_20260928/collect_profile4_failure_breakdown.py",
+      "sha256": "c54408f2354c6a3e58e87bbb90e3fcf0eb4fd87a42de78d3b136b507d2d3c685"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d110_20260928/curate_full_profile4.sh",
+      "sha256": "ce7cdfc46aadd131447ef741e97e06cb78d2e8b22e17dd2f926c155bf832f90a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d110_20260928/verify_profile4_evidence.sh",
+      "sha256": "ea6112c2e8f9e3bfec7914bf8d15c0b7ce8d2c2a9f0b7c29d8a739e84b3380ce"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d110_20260928/verify_profile4_evidence2.sh",
+      "sha256": "01386f6cc0e78c54476944abb379b93611c50cc91c87e51c82d3ec338a7873e9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d110_20260928/verify_profile4_evidence3.sh",
+      "sha256": "0b9efea687fcfb770f8af27073971e95356b4f390abb77930c3696e52e7adc5e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_external_replay.py",
+      "sha256": "f7217e085e02e331c962312aefe8ef1aaa1b37c7041e23d493149bd26b020074"
+    }
+  ],
+  "verification_refs": [
+    {
+      "sha256": "d360dd6b8dd33537b6f0a1056c8bef92aedcd183089b780e459fa2e8c46515a1",
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d110_20260928/full_profile4_evidence_verification.json"
+    },
+    {
+      "sha256": "abcc8d325537be0818e5e50bf74fd05a1d65bd465b17ca72cbef08014383b5f6",
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d110_20260928/full_profile4_evidence_smoke.log"
+    },
+    {
+      "sha256": "289965afa308909146296bc21d020fef72520550cc70d64b749485165ae6167d",
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d110_20260928/full_profile4_evidence_smoke2.log"
+    },
+    {
+      "sha256": "29d317a79c8b40724b89dd4826a77f8a2cf20edcbf04aa400eb2dbc84935eed7",
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d110_20260928/full_profile4_evidence_smoke3.log"
+    },
+    {
+      "sha256": "b79966aee0c13e368a8797f7edaa3f10d553a721ac2278320500092c96ba11e0",
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d110_20260928/analysis_scopes_cleanup_profile4.log"
+    },
+    {
+      "sha256": "b7c0d50a891e4f5c439e78a3d44681cfe4205f4472db0ffe21efba6f8a5c29d7",
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d110_20260928/metadata_scopes_cleanup_profile4.log"
+    }
+  ],
+  "smoke_attempts": [
+    {
+      "tests": 47,
+      "passed": 46,
+      "failed": 1,
+      "reason": "Original test assumed replay incomplete when start() caller resumes."
+    },
+    {
+      "tests": 47,
+      "passed": 46,
+      "errors": 1,
+      "reason": "Added complete-case assertion incorrectly used last event rather than ingress-terminal event."
+    },
+    {
+      "tests": 47,
+      "passed": 47,
+      "seconds": 1.757
+    }
+  ],
+  "production_changed": false,
+  "protected_entries_unchanged": 147,
+  "analysis_cleanup_complete": true
+}

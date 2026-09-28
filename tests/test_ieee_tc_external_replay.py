@@ -220,6 +220,9 @@ class OpenLoopTransport(unittest.IsolatedAsyncioTestCase):
         await ingress.close()
         self.assertEqual(sum(e['event']=='request_received' for e in events), 5)
         self.assertEqual(sum(e['event']=='request_dequeued' for e in events), 5)
+        terminal = [e for e in events if e['event']=='service_ingress_terminal']
+        self.assertEqual(len(terminal), 1)
+        self.assertTrue(terminal[0]['complete'])
 
     async def test_observer_gets_prior_received_history_once_then_live_arrivals(self):
         publisher = await self.start_publisher()
@@ -246,14 +249,38 @@ class OpenLoopTransport(unittest.IsolatedAsyncioTestCase):
         publisher = await self.start_publisher()
         events = []
         ingress = ExternalReplayIngress(self.plan, self.context, emit=events.append)
-        await ingress.start()
-        await ingress.close()
-        self.assertEqual(events[-1]['event'], 'service_ingress_terminal')
-        self.assertEqual(events[-1]['N_plan'], 5)
-        self.assertFalse(events[-1]['complete'])
-        self.assertEqual(events[-1]['N_received'], len(ingress.records))
-        publisher.cancel()
-        await asyncio.gather(publisher, return_exceptions=True)
+        prefix_received = asyncio.Event()
+        release_tail = asyncio.Event()
+        read_transport = ingress._read_transport
+
+        async def held_transport():
+            # Exercise the real socket and packet validation, but stop reception
+            # at a known prefix. start() is not a guarantee that a short replay
+            # has not already finished by the time its caller resumes.
+            source = read_transport()
+            try:
+                async for item in source:
+                    yield item
+                    prefix_received.set()
+                    await release_tail.wait()
+            finally:
+                await source.aclose()
+
+        ingress._read_transport = held_transport
+        try:
+            await ingress.start()
+            await prefix_received.wait()
+            self.assertEqual(list(ingress.records), ['0'])
+            await ingress.close()
+            self.assertEqual(events[-1]['event'], 'service_ingress_terminal')
+            self.assertEqual(events[-1]['N_plan'], 5)
+            self.assertFalse(events[-1]['complete'])
+            self.assertEqual(events[-1]['N_received'], 1)
+            self.assertEqual(events[-1]['N_received'], len(ingress.records))
+        finally:
+            await ingress.close()
+            publisher.cancel()
+            await asyncio.gather(publisher, return_exceptions=True)
 
     async def test_clock_or_plan_mismatch_is_not_silent_fallback(self):
         for changed in (dict(self.context, clock_id='another-host'),
