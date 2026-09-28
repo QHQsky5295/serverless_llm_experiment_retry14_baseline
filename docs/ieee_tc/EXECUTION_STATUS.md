@@ -1,11 +1,73 @@
 # IEEE TC execution status
 
-## CURRENT — D111 causal CPU validation passed; candidate ready for backup / Full
+## CURRENT — D112 ordinary 3B Full9: fully analyzed; evidence backup pending
 
-2026-09-28 21:49. Goal ACTIVE/incomplete; baselines PAUSED. No GPU/remote run
+2026-09-28 23:47. Goal ACTIVE/incomplete; baselines PAUSED. This turn PROGRESS:
+projection, native timing/readiness checks, final tables, source/protection/test
+verification and exact-owned cleanup completed. NO experiment/analysis remains.
+Runtime5442e62fb977a6bd9a90ca4220e1b7d0872e3d2a unchanged/already pushed.
+DoNOTrepeat D112 replay, projection, preliminary, curation,70checks or transfers.
+Only evidence/doc/source-bundle commit/push remains before next investigation.
+
+- Canonical3B4000W0: planned/arrived/submitted/terminal/success/nativecontract
+  ALL4000;0failure. Not numerical adapter qualification or formalSLO/ranking.
+  All4000ID/prompt/native-token checks; timing maxerror0.992767ms,TPOT/error
+  dispatch/service decomposition0. Native selectedsource4000/4000 confirmed
+  pre-generation with clock/tier/order matching;GPU2460/HOST652/NVMe743/Remote145.
+- Mean/P95 TTFT271.850703/507.604630s,E2E277.952591/515.315555s.
+  Mean dispatch261.770959s =window245.487414+slot14.023888+arrivalrelease2.259656.
+  Mean serviceTTFT10.079744s =pre-native9.538420+native.541324.
+  Native decode3.013698s,worker-completion.051245,worker→controller3.036945s.
+  TPOTmean32.354962ms/P9575.468296ms. Nested spans and P95 never summed.
+  D110profiler differs; no single-change causal gain/pairedCI claim.
+- Physical17920.27838478402GPU-s,4leasesallreleased,1initial+3natural,
+  0quarantine/replacements.5101resource samples,peak36525568000B,
+  minhost82589007872B,high/max/OOM/swap/warnings0.
+  GPUreleasedbefore JSONserialization; postrelease serialization not GPU time.
+- Remote132UUIDpairs,132contentverifiedpublished,306360162Bbothends,packing0.
+  Journaltransfers-ea079e4e3eaf47bebdde42dc4fae0fec.jsonl matchedclock
+  396cebb9473941329267a80b0833fd12; copiedONCEplusmonitor.
+  Remote3B/7B/monitor andemptylocalaux stopped23:22:30; publishedcacheunchanged.
+- Full9493608892B immutable; boundedD96jq projection1170.78s,
+  peakRSS137856KiB,exit0; projection33837876B. Neverwholeload/repeat.
+- Firstcuration passedrequestchecks thenfailed one nonexistent legacy source
+  filename; originalscript SHA33ee5055c6228a17d2565d747bb5de5810d89c4f19107e1d5467ab0df8a63e7d
+  retained as summarize_full_full9_attempt1.py with wrapperlog. Second only
+  corrected source reference, no data/formula/production changes; SUCCESS.
+- 62frozenrefs+33curatedsources+147protected unchanged;70 evidencechecks
+  PASS2.404s. Sourceobservations12783requests/1035collections/11748joined/
+  4057RPC/4054parses,8507stale,3membershiprejections. Not failure request counts.
+- All5postprocessscopes exactempty cleaned;metadata earlier/projection/
+  curate1/curate2/evidence at23:46:43,events0. No GPU or remote/analysis jobs.
+  Logs metadata_cleanup_full9.log/analysis_scopes_cleanup_full9.log.
+- Raw results/ieee_tc/p2_backend_qualification/d112_20260928.
+  Curated paper_results/ieee_tc/p2_backend/20260928_d112_3b_full_w0_full9.json
+  SHA222ae5b62e5a75fb81f700b08276eb9e3586a5768f6653b4e280f55a74d4290d;
+  evidence verification20260928_d112_evidence_verification.json
+  SHA90759c615db2843d995e6aefb601f479f231da0da715f65a4f1b6507343a6de8.
+  DocD112_FULL_W0_FULL9.md has complete status/timing/readiness tables.
+  13KiB20260928_d112_analysis_sources.tar.gz preserves12small run/analyzer
+  sources (including failedcuratorandD96filter), no rawlarge/weights/credentials.
+  Companion.sha256:13entries and eacharchive member verified.
+- NEXTfinish explicit-scoped evidence backup, then inspect dispatch-window
+  progression against this complete run before choosing ONE causal bottleneck
+  probe. Do not remove identity/physical guards or raise deadlines as workaround.
+  No blind nextGPUreplay. Return to Prime IEEE Full mainline, not baseline work.
+  7BFull,warm/Resident,formalmatrices/ablations/sensitivities and numericaladapter
+  qualification remain pending. Once-only publishedcachefulfilledD78/D80;
+  NEVERrebuild. Sourceplan andmetricV1 SHA unchanged/fulltextread retained.
+
+## D111 completed reference — shared parser backed, Full pending at that point
+
+2026-09-28 21:50. Goal ACTIVE/incomplete; baselines PAUSED. No GPU/remote run
 started this turn. D111 modifies ONLY scripts/run_all_experiments.py production
 collection parsing; tests/test_ieee_tc_request_lifecycle.py adds/extends checks.
+Runtime/evidence5442e62fb977a6bd9a90ca4220e1b7d0872e3d2a committed/pushed;
+exact faaslora_origin/retry14_continuous_queue_v2 HEAD verified21:50.
 Base HEAD6593db7, runtime parent244ceb657. Candidate not Full-qualified yet.
+Five scoped files only; diff/source26/protection147/tests275/secrets checks
+passed. Userdirty manifest notstaged. DoNOTrepeat D111 probes/tests/backup.
+This goal turn PROGRESS. This post-push ledger note is not a runtime change.
 
 - Same D102-qualified actual D88 payload: oneowner/8adapters/1792HOSTallocations,
   actual runner collection with explicit fake RPC/file/NVML boundaries. First
@@ -24,12 +86,15 @@ Base HEAD6593db7, runtime parent244ceb657. Candidate not Full-qualified yet.
   Curated20260928_d111_shared_snapshot_parsing.json
   SHAeb57f019112f8b0dcdfab305dc985843d98e47d96401e989d956ae2d6f617873;
   26sourcechecks and147protected unchanged; gitdiffcheckPASS.
-- NEXT: scoped candidatecommit/push; then ONE ordinary canonical3BFull4000W0 with same frozen
+- NEXT: preflight and ONE ordinary canonical3BFull4000W0 with same frozen
   inputs/config/initializers, newownedpaths and noadditionaloptimizer. No py-spy;
   therefore don'tattribute a D110-to-next timingdelta wholly to this candidate.
 - Once-only published cache fulfilledD78/D80; NEVERrebuild. OldD110 allcomplete,
   doNOTredo replay/projection/curation/copy/tests/backup. Ordinary3BFull,7BFull,
   warm/reference,baselines,formalmatrices andnumericadapterqualification pending.
+- Latest21:50 hostMemAvailable114491949056B,swap0,disk300476743680B,GPUempty,
+  no primelora scopes/services active. Recheck at next launch. All next-run
+  paths/config/remoteactivation/standardmonitor still NOTprepared or started.
 
 ## D110 completed reference — superseded CURRENT, not a command to rerun
 

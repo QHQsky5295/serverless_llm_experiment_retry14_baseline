@@ -1,0 +1,50 @@
+{
+  "kind": "d112_full9_postrun_evidence_verification_v1",
+  "pass_checks": true,
+  "frozen_source_refs_checked": 62,
+  "curated_source_refs_checked": 33,
+  "source_commit": "5442e62fb977a6bd9a90ca4220e1b7d0872e3d2a",
+  "formal_performance_result": false,
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20260928_d112_3b_full_w0_full9.json",
+      "sha256": "222ae5b62e5a75fb81f700b08276eb9e3586a5768f6653b4e280f55a74d4290d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d112_20260928/summarize_full_full9.py",
+      "sha256": "bd092e6de8a2da8874cf2aa00ba519ec0cefff659505f3a27f215dad6b3091c4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d112_20260928/collect_full9_preliminary.py",
+      "sha256": "8b6b65004301aa88469f60efec4811839e585b1666cffb207b653f6261deeddf"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d112_20260928/curate_full_full9.sh",
+      "sha256": "6dd81bfe5c63c6668176f9ee51397f0a9638d64f10c4c600520d6543f3e1fa43"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d112_20260928/verify_full9_evidence.sh",
+      "sha256": "98f819d78ec357d162be7149b975177de78cb0956cf07ee0040bd6bf3d98a50e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_gpu_lifecycle.py",
+      "sha256": "69daf1e6349f64ebd3f09f2fc68ed6c12901687aa51f0183f1c1acff62b475e2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_external_replay.py",
+      "sha256": "f7217e085e02e331c962312aefe8ef1aaa1b37c7041e23d493149bd26b020074"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_native_timing.py",
+      "sha256": "056dbb6a4fab04792836fdd0791584883c4e869ca491f58257ab0cdfcf6d0b71"
+    }
+  ]
+}
