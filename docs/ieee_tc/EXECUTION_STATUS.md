@@ -1,5 +1,156 @@
 # IEEE TC execution status
 
+## Latest — D99 Full6 failure curated; evidence checkpoint then lifecycle audit
+
+Independent pre-backup verification completed: all22 source SHA references,
+147 protected entries, plan/V1 hashes and diff check PASS. The completed evidence
+smoke scope0839cc877d7e4fa3a47c3c0e6d75d833 was independently verified with an
+existing empty cgroup/procs and populated0, then stopped. No experiment remains
+live. Next is the scoped three-file evidence checkpoint, then causal CPU work.
+
+2026-09-28 ~11:48. SupersedesALLolderLIVE/NEXT. NO inference/remote/analysisjob.
+Projection22709 FINISHED0,301.27s/RSS32640KiB;curator15524 FINISHED0.
+Bothscopeinvocations d70a74fe/cbdc730b emptyverified+stopped. Evidence smoke92890
+FINISHED47PASS1.999s; its empty0839cc877d7e4fa3a47c3c0e6d75d833 scope stillneeds
+ownedstop beforebackup. Runtimeaf27f30unchanged;baselinesPAUSED.
+
+Curated20260928_d99_3b_full_w0_attempt6.json SHA
+0de4c48d9b2029d48a6c3fdb5687419cb04f422d8fb190912ffc287ba8b04aad;
+22sourceSHArefs/147protectedPASS.1145started=843success+302cancelled,
+4000planned/1249created/1218submitted/1180received;2855notstarted NOTallfuture.
+59UUIDpairsexact/allpublished/contentverified,136927913wireB/2290473252logicalB,
+packing0. FouractualGPUleasesreleased,U_obs4955.087244incomplete, noOOM/high/max/
+swap/nohardkill;allownedHOST/NVMe removed.
+
+Residency65complete/102superseded/1failed/1cancelled;file69/102/1/1;GPU25/103/1.
+ALL102residencysupersession stages=native_registration. Nativefilefallbackholds
+NOTobserved; D99newbranchNOTtriggered; doNOTattribute843vs623successdifference
+toD99. FailedGPUplan6dce87dec90347b89ad710cbe49b5d76 has26deferred/2completed/
+2observing (267597,291372); exactfirstfailingpredicate stillunrecorded. Native
+andfilecloseconfirmed;3HOSTleasesinintermediateGPUclose arenotfinalcleanup.
+4quarantinereleases happenwhole-cancel/shutdown,notnormalrecoveryproof.
+
+Conditional843successmeanuserTTFT99.434136s=dispatch86.717025+service12.717111;
+nativeTTFT.386690s,E2E104.267422s,TPOT25.373965ms.43success/48retainedsource
+retries/max2. Source2070requests/268collections/997RPC/1802joined/1membership/
+1139stalereject;collectionsNOTRPC. NoFull/SLO/numerical/performancequalification.
+
+Read-onlynextworkevidence: four explicit source-changed/missing boundaries in
+runner16848/17446/17471/17474; OwnedMovementQueue marksALLExceptionfailed,
+retainskey and rejectsnewsubmit. Thusmerelyraisingtyped supersessioninsidequeue
+isNOTsufficient; needonecoherent outcome/lifecycle/closure/sharedsubscriber test.
+No newproductionedit made. D99failuretable updatedwithfactsandcausalbounds.
+
+NEXT verify22refs/protected/secrets,scoped3-fileevidencebackup (ledger,D99Full6doc,
+curatedJSON),neverstageusermanifest. ThenONEcausalCPUpreparationlifecycleworkstream,
+notblindGPUrerun,anotherisolatedtextcatch,orendlessevidence/backup loops.
+DoNOTrepeatprojection/curation/smoke/1221regression. Fullgoalactive/incomplete;
+thisturndecisivefailure/cleanup/analysis=PROGRESS afterverifiedwait.
+
+## Latest — D99 Full4000 attempt6 FAILED/CLEANED; streaming analysis LIVE
+
+2026-09-28 ~11:41. Supersedes ALL older LIVE/NEXT instructions. Actual service
+inactive/pathgone, tmuxgone,nativeGPUcomputeempty. Original ValueError
+`planned native HOST source changed; next planning epoch required` at runner
+16848 GPU movement execution, thenplan/reap→whole-runexit. Outerexternalreplay
+failure/-15/protocol_or_launcher_error isSECONDARY, notoriginalcause.
+
+4000planned/1249created/1218publisher submitted/1180ingressreceived/1145started:
+843success/native matched+302CancelledError interruptions;2855notstarted isNOT
+allunarrived. FourphysicalleasesALLreleased, native_context_releaseconfirmed,
+servicepathremoved,nohardkill. U_obs4955.087243931GPU-s,incomplete; n_correct/
+gpu_seconds null.1380resource samples peak22074290176B,minhost94228971520B,
+high/max/OOM/OOMkill0.59remote responses136927913wireB/requestpacking0;
+clientUUID/contentvalidation pendingprojection. NoFull/SLO/numericalqualification.
+
+AFTERinference original3B9a5fac66/7B416bb329/monitor9ea6727e invocations+PIDs
+checkedthenstopped; allinactive/MainPID0/success. Journal
+transfers-db32bc29605148b1b62a8ec17fc3f00a.jsonl clockdff765fc7a7d4c60b4f13b7928fe9af6
+copied;finalremote monitor24MiBcopied. Localauxmatchingf59124de verifiedactual
+path/procs/populated0 andstopped. Initialread-onlyemptycheckhadpathtypo, caused
+NOstop;correctexistingpath andpopulation independentlychecked before actualstop.
+
+Immediatefailuretable D99_FULL_W0_ATTEMPT6.md created, notcommitted. Rawmain
+outcome1647829753B; NEVERfullPythonJSONload/plainjq. ExistingD98streamprojection
+adapted toretainpreparation_supersession/close_receipt/native_fallbacks andflat
+attemptfields. CURRENTCPUanalysis execsession22709,
+unitprimelora-d99-full6-project-20260928.scope,3/4GiBswap0auxCPUs;
+outputfull_attempt6_analysis_projection.json stays0untilreduceends,notfailure.
+Noactualinference/remote remains. Monitor SAMEanalysis, no duplicate/restart.
+
+NEXT finishprojection→adaptcurator preserve843/302/alltransferstates→status table/
+source/protected/secrets/evidencesmoke/backuponly. THENone systematiccausalCPU
+audit ofpreparation source-change boundaries,notanotherisolatedtextcatch/GPU
+retry. ActualmissingvsidentitymismatchpredicateNOTrecorded inoriginal guard;
+doNOTclaimwhich. EarlierD99fixedfilefallback boundary only; entireoptimistic
+preparationlifecycle stillhasfatalnormal-state-change paths. Sourceaf27f30
+unchanged,baselinesPAUSED. Fullgoalactive;thisturndecisivefailure/cleanup=PROGRESS.
+Observer2399 completed12polls,NOTlive.7B/warmSLO/Resident/M1M2/A/S allpending.
+
+## LIVE — D99 canonical 3B Full4000 W0 attempt6, 2026-09-28 11:15:04
+
+11:26:53 SAMEactualinvocation609b0d2148b6443894aff816ff4cd98e verifiedACTIVE:
+518created/submitted,445terminal/445success/native matched,73pending,no failures.
+Fouractualruntimes have127/122/82/114terminals. Oldestpendingreq00299age282.758s;
+thenreq00334age239.806s. Thus all earlierreq00000–00298 areterminal atthissample,
+NOTproofno long-wait problem. 11:26:21 watchdog667age.806s/service18.666GiB/
+host89.374GiBavailable/disk300.010GiB,high/max/OOM/OOMkill/swap0,no warning/abort;
+main_outcome/launchterminal absent. First500submitted, NOTfirst500completed.
+
+Currentgoalturn=VERIFIEDWAIT onthisactualhandle (10polls plusrequest-ageaudit),
+prior=PROGRESS(D99fix/testing/backup/launch). Observercell2394 completed10polls,
+NOTactualexperimentterminal; no liveobservercell. PlanSHAfe6c05b0/V1SHA5f0732ef
+unchanged;fullplan alreadyread in currentcontext. Sourceaf27f30unchanged; no
+newtests/source/remote/configchanges/cleanup/restart/otherexperiment. Continue
+SAMErun tooriginalterminal thenownedcleanup→validation→status table. Full/SLO/
+numerical/rankingqualification stillpending,baselinesPAUSED,goalACTIVE.
+
+11:17:02 SAMEactualinvocation609b0d2148b6443894aff816ff4cd98e verifiedACTIVE:
+20created/submitted/received,14terminal/14success/nativecontractmatched,
+6pending,no failures yet. Watchdog116age.145s;service12.328GiB/host94.770GiB
+available,high/max/OOM/OOMkill/swap0,no warning/abort;main_outcome/launchterminal
+absent. Initialserviceisworking, NOTFull/SLOqualification. Thisturncausalfix,
+tests,backup,launch=PROGRESS plusVERIFIEDWAIT. Continue SAMErun, no duplicate,
+otherexperiment or source/remote/configchanges. Allsource/plan/V1 checks remain
+asabove; fullplan read in this context, unchanged. No live toolobserver cell.
+
+Supersedes ALL older LIVE/NEXT entries. Source af27f30431011f321ad74c01b034be977d2b3eb7
+PUSHED/freshremoteSHA matched. Six scopedfiles/13sourceSHA/147protected/secrets/
+1221distinctqualifiedtests PASS; usermanifest excluded. AllsixCPUtest/curator
+scopes finished/emptyverified/stopped. No repeatbackup/test/curation needed.
+
+Actual LIVE service primelora-tc-svc-ab076b4b684843fda853740452301d48.scope,
+invocation609b0d2148b6443894aff816ff4cd98e. Aux
+primelora-tc-aux-ddd21f1849e3498dacf23a12e85f8728.scope,
+invocationf59124debfb64836a4085ad1ec9b58b8. Tmux tc-d99-3b-full6.
+72/80GiB/swap2 actualservice and3/4GiB/swap0aux limits verified BEFOREworker
+loading. Sample16 high/max/OOM/swap0,no warnings/abort;initialpreparation underway.
+NotFull/SLO/numerical/performancequalification. No source/configchanges afterlaunch.
+
+Samecanonicalrunner/external4000 W0 trace/60snotice/1800splanned-arrivaldeadline,
+originalD88/D89configuration exceptnewsource andfreshownedpaths.
+Rawd99_20260928/3b_full_w0_attempt6/launch.json andlaunch.launch/;
+3b_full_w0_attempt6_console.log. AUTHORITATIVEoutcome whenavailable is
+launch.launch/physical_deployment/main_outcome.json, NOTlaunchroot.
+24prelaunchSHArefs/147protectedPASS;bothdirectauthenticatedhealthPASS;
+bothNIC1000/full,107GiBavailable/swap0/disk302GiB/GPUidle beforelaunch.
+Prelaunchstdout containedone harmlessvLLMimportINFO; originalverbatim saved
+prelaunch_verification_with_import_log.txt, JSONcopy removesONLYthatprefix.
+No preflight rerun/resultchange. LocalethtoolnotonPATH; actualNICreadvia sysfs.
+
+Remote existingpublishedD78/D80cacheREUSED,notregenerated.3Binvocation
+9a5fac66c14a481d9f2b80a58e8312ce PID1430704;7B416bb329f8c54b85aade7ca69ccc80a1
+PID1430706;monitor9ea6727ee28f444196f22e4222442520 PID1430709,
+unitprimelora-artifact-monitor-d99full6.service,
+log/home/lab14/primelora_remote/tc/d99_20260928/remote_monitor_3b_full_attempt6.log.
+3Bclockremote-process-monotonic:dff765fc7a7d4c60b4f13b7928fe9af6.
+
+NEXT monitor SAMEactualinvocation throughoriginalarrival/deadline/terminal;
+no duplicate/restart/source/remotechanges orconcurrentheavywork. Thenownedcleanup,
+validation,status table BEFORE7B/nextoptimization. Baselines9e2cf289PAUSED;
+warmSLO/Resident/M1M2/A1–A5/S1–S13/numericaldiscrimination pending.
+Usercacheapproval alreadyfulfilled, donotrebuild. FullgoalACTIVE/incomplete.
+
 ## Latest — D99 native fallback conflict CPU-verified; checkpoint then Full replay
 
 2026-09-28 ~11:12. Supersedes ALL older LIVE/NEXT entries. No inference/remote

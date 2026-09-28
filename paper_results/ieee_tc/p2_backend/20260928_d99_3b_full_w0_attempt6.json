@@ -1,0 +1,725 @@
+{
+  "kind": "d99_interrupted_canonical_full_v1",
+  "model": "3b",
+  "workload": "W0",
+  "execution_commit": "af27f30431011f321ad74c01b034be977d2b3eb7",
+  "full_qualified": false,
+  "formal_performance_result": false,
+  "baselines": "paused",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "population": {
+    "planned": 4000,
+    "publisher_submitted": 1218,
+    "runner_started": 1145,
+    "success": 843,
+    "native_contract_matched": 843,
+    "runner_not_started": 2855,
+    "event_counts": {
+      "request_terminal": 843,
+      "request_interrupted": 302
+    },
+    "failure_observations": {
+      "CancelledError": 302
+    },
+    "replay_event_counts": {
+      "replay_ready": 1,
+      "request_created": 1249,
+      "request_submitted": 1218,
+      "replay_incomplete": 1
+    },
+    "ingress_event_counts": {
+      "service_ingress_identity": 1,
+      "service_ingress_started": 1,
+      "request_received": 1180,
+      "request_dequeued": 1145,
+      "service_ingress_terminal": 1
+    }
+  },
+  "original_failure": {
+    "stage": "main_execution",
+    "type": "ValueError",
+    "message": "planned native HOST source changed; next planning epoch required",
+    "traceback": "Traceback (most recent call last):\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 22582, in _main_async_impl\n    result, coord_m = await runner.run()\n                      ^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 14487, in run\n    all_raw, _tb1 = await self._run_continuous_observed(\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 12596, in _run_continuous_observed\n    await self._maybe_run_live_scale_control_evaluation(\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 11833, in _maybe_run_live_scale_control_evaluation\n    return await self._evaluate_ieee_live_control(result=result, coord_enabled=coord_enabled,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 12145, in _evaluate_ieee_live_control\n    self._reap_ieee_residency_tasks()  # Surface failure; do not silently restart the same plan.\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 12282, in _reap_ieee_residency_tasks\n    task.result()  # A failed epoch is evidence, not a swallowed warning/retry.\n    ^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 12306, in _execute_ieee_residency_epoch\n    result = await self._run_ieee_owned_preparation_plan(slot=slot, mode='residency',\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 17211, in _run_ieee_owned_preparation_plan\n    result = await self._run_ieee_file_preparation_plan(plan=plan, target_engine=slot.engine,\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 17559, in _run_ieee_file_preparation_plan\n    results = await asyncio.gather(*waiters)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 17500, in execute_gpu\n    result = await self._run_ieee_gpu_preparation_plan(slot=gpu_slot,\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_manager.py\", line 256, in join_operation\n    return await asyncio.shield(self._intents[intent_id]['future'])\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_manager.py\", line 135, in _execute\n    result = await job['action'](attempt['attempt_id'])\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 16848, in execute\n    raise ValueError('planned native HOST source changed; next planning epoch required')\nValueError: planned native HOST source changed; next planning epoch required\n"
+  },
+  "outer_launcher": {
+    "error": "external replay failed; no silent internal timer fallback",
+    "classification": "protocol_or_launcher_error",
+    "service_returncode": -15,
+    "watchdog_returncode": 0,
+    "note": "retained outer label; original GPU preparation source-change error is separately preserved; not an established external interference"
+  },
+  "cleanup": {
+    "complete": true,
+    "roots": [
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d99_20260928/3b_nvme_attempt6/tc_ieee_full",
+        "device": 2050,
+        "inode": 106204861
+      },
+      {
+        "path": "/dev/shm/tc-d99-3b-attempt6/tc_ieee_full",
+        "device": 27,
+        "inode": 3409
+      }
+    ],
+    "inventory_before": null,
+    "inventory_after": null
+  },
+  "resources": {
+    "samples": 1380,
+    "peak_bytes": 22074290176,
+    "min_host_available_bytes": 94228971520,
+    "max_events": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    },
+    "max_swap_bytes": 0
+  },
+  "physical": {
+    "allocation_journals": [
+      {
+        "events": 5,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d99_20260928/3b_full_w0_attempt6/launch.launch/physical_allocations/0b62edec8c8e45b993b776577f6bcb55.jsonl",
+        "released": true,
+        "sha256": "f5630690826df2a0fb3937cfca1f60b8848629b8ef9f671db40b6b8efafd7dde"
+      },
+      {
+        "events": 5,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d99_20260928/3b_full_w0_attempt6/launch.launch/physical_allocations/0c0f175102d34dfe8478cf2bd7a564e7.jsonl",
+        "released": true,
+        "sha256": "848fcb6e8a3c0009391b4f1113245a69dbf5ea0137e58c0c9c058aad5596d7b5"
+      },
+      {
+        "events": 5,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d99_20260928/3b_full_w0_attempt6/launch.launch/physical_allocations/5766ceb029064a6984ba13c5fada06b8.jsonl",
+        "released": true,
+        "sha256": "5e0177d80818e349d09fc5a67090317c24aaaffd185c5e60b94e844c395708b2"
+      },
+      {
+        "events": 5,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d99_20260928/3b_full_w0_attempt6/launch.launch/physical_allocations/d8bdc59c901043e6ab37a18746cce906.jsonl",
+        "released": true,
+        "sha256": "a930bad37eb5ec3d7d09a776a2c874c0afca178b638a3045172c3ef244193b1a"
+      }
+    ],
+    "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+    "contract": "physical_gpu_owner_union_v1",
+    "correctness_qualification": "not_inferred_from_token_contract",
+    "deployment_contract": "physical_gpu_deployment_v1",
+    "device_intervals": {
+      "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036": [
+        [
+          72649.148194538,
+          73872.286467142
+        ]
+      ],
+      "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946": [
+        [
+          72565.828100907,
+          73881.524923171
+        ]
+      ],
+      "GPU-c4663821-4888-e199-7151-d6298f8d45a5": [
+        [
+          72652.067386136,
+          73862.253714719
+        ]
+      ],
+      "GPU-dadf0267-9617-8824-cddb-82fba48a7b97": [
+        [
+          72647.071240596,
+          73853.137061076
+        ]
+      ]
+    },
+    "eligible_correctness": false,
+    "gpu_seconds": null,
+    "gpu_seconds_observed": 4955.087243931019,
+    "gpu_seconds_per_correct_request": null,
+    "gpu_seconds_per_offered_observed": 1.2387718109827548,
+    "measurement_complete": false,
+    "n_correct": null,
+    "n_interrupted": 302,
+    "n_native_contract_complete": 843,
+    "n_plan": 4000,
+    "n_terminal": 843,
+    "observed_until_s": 73950.42247049,
+    "open_lease_ids": [],
+    "owner_and_native_census_qualification_required": true,
+    "owner_event_count": 8,
+    "request_terminals_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d99_20260928/3b_full_w0_attempt6/launch.launch/physical_deployment/request_terminals.jsonl",
+    "request_terminals_sha256": "68ec4ebda07dba321d02196385758f6f62ced67a862ff45ff59e1c7c34f30f71",
+    "window_gpu_seconds": {
+      "arrival": 4907.30801702202,
+      "cleanup": 0.0,
+      "drain": 0.0,
+      "pre_arrival": 47.77922690899868
+    }
+  },
+  "source_observation_stats": {
+    "requests": 2070,
+    "collections": 268,
+    "rpc_invocations": 997,
+    "joined": 1802,
+    "membership_rejections": 1,
+    "stale_rejections": 1139
+  },
+  "selected_source_retries": {
+    "successes_with_retries": 43,
+    "retained_retries": 48,
+    "max_per_success": 2
+  },
+  "failed_gpu_preparation": [
+    {
+      "plan_id": "6dce87dec90347b89ad710cbe49b5d76",
+      "objective_sha256": "be2d6ecff4dc950f5165e7d609c2b1d870c79182bdcae42ad99bad4d88da2e52",
+      "owner_id": "7277940a3e994fd9a0df42b3d8f8668f",
+      "target_replica": "ieee-activation-87ea2ac504ee4dbebaf65e4384b2ef4f",
+      "trigger_reason": "residency",
+      "activation_id": null,
+      "capacity_only": false,
+      "state": "failed",
+      "attempts": [
+        {
+          "attempt_id": "80fb91274c8d4787a471d02f95a27f2d",
+          "adapter_int_id": 441461,
+          "state": "deferred",
+          "lease_id": "9843a7c17e48471280c6a38363b45b26",
+          "host_file_fallbacks": {},
+          "host_file_fallbacks_released": true
+        },
+        {
+          "attempt_id": "9412a6366db548f99b1b533bde7aeb95",
+          "adapter_int_id": 441461,
+          "state": "deferred",
+          "lease_id": "f82617327ce5491c8fb2e3600076fa96",
+          "host_file_fallbacks": {},
+          "host_file_fallbacks_released": true
+        },
+        {
+          "attempt_id": "ff7a35cbee9f48c6aa1b9b3ef295bb5a",
+          "adapter_int_id": 441461,
+          "state": "deferred",
+          "lease_id": "6592d653ec9b4489a07edea1c7f3e42e",
+          "host_file_fallbacks": {},
+          "host_file_fallbacks_released": true
+        },
+        {
+          "attempt_id": "f8bd4bc07b5249cc93552a5fe0af25c5",
+          "adapter_int_id": 441461,
+          "state": "deferred",
+          "lease_id": "1e867f727ea14c0ca443bd11ec534a7d",
+          "host_file_fallbacks": {},
+          "host_file_fallbacks_released": true
+        },
+        {
+          "attempt_id": "abd84092ceb846b898a8a7ecb4e459fa",
+          "adapter_int_id": 441461,
+          "state": "deferred",
+          "lease_id": "848bdf73d7e54f4bba974227803d137a",
+          "host_file_fallbacks": {},
+          "host_file_fallbacks_released": true
+        },
+        {
+          "attempt_id": "dc08279cfd98481abbab136c3e2cb261",
+          "adapter_int_id": 441461,
+          "state": "deferred",
+          "lease_id": "c07e217a59a346ef9e72084c823c7634",
+          "host_file_fallbacks": {},
+          "host_file_fallbacks_released": true
+        },
+        {
+          "attempt_id": "d4e6cc6d46d5466fbba5b45a2e98afab",
+          "adapter_int_id": 441461,
+          "state": "deferred",
+          "lease_id": "d80c02497832403087a088b4ccbc6e5e",
+          "host_file_fallbacks": {},
+          "host_file_fallbacks_released": true
+        },
+        {
+          "attempt_id": "7ee687a0a28349dd93630dfa4107edaf",
+          "adapter_int_id": 441461,
+          "state": "deferred",
+          "lease_id": "2fd0cb85afd64c49a7896a475533cd67",
+          "host_file_fallbacks": {},
+          "host_file_fallbacks_released": true
+        },
+        {
+          "attempt_id": "41c4cb87288f429894b29f5d59162c89",
+          "adapter_int_id": 441461,
+          "state": "deferred",
+          "lease_id": "7fc263be999d48e7abaf99c34c6e520c",
+          "host_file_fallbacks": {},
+          "host_file_fallbacks_released": true
+        },
+        {
+          "attempt_id": "b00e446a308a40e4b5f1f017c8fe0225",
+          "adapter_int_id": 441461,
+          "state": "deferred",
+          "lease_id": "4d79e902e14949989528da21cf0d010a",
+          "host_file_fallbacks": {},
+          "host_file_fallbacks_released": true
+        },
+        {
+          "attempt_id": "2d7368d03cf24f5e8cdfed12be8e15ac",
+          "adapter_int_id": 441461,
+          "state": "deferred",
+          "lease_id": "87d98e7eb7534b2eb6a4608142c70ae3",
+          "host_file_fallbacks": {},
+          "host_file_fallbacks_released": true
+        },
+        {
+          "attempt_id": "dc692447e694421d884a2874be7cbf32",
+          "adapter_int_id": 441461,
+          "state": "deferred",
+          "lease_id": "8d8ae933bb4f4527b3fb70c18ff11bfa",
+          "host_file_fallbacks": {},
+          "host_file_fallbacks_released": true
+        },
+        {
+          "attempt_id": "2fb099677970453086c2f1cab767d5b8",
+          "adapter_int_id": 441461,
+          "state": "deferred",
+          "lease_id": "4831c7deca854d639ad7f8db8fd189a4",
+          "host_file_fallbacks": {},
+          "host_file_fallbacks_released": true
+        },
+        {
+          "attempt_id": "ac24522980e94591ab273c62cbdb2a38",
+          "adapter_int_id": 441461,
+          "state": "deferred",
+          "lease_id": "bb41f861b35e4f86ad38fcf3b21c1f9a",
+          "host_file_fallbacks": {},
+          "host_file_fallbacks_released": true
+        },
+        {
+          "attempt_id": "0f446fc7a2ba4b47adff02e1c6189888",
+          "adapter_int_id": 441461,
+          "state": "deferred",
+          "lease_id": "d2a8d96ce0d741dda6b54ad6bf91a697",
+          "host_file_fallbacks": {},
+          "host_file_fallbacks_released": true
+        },
+        {
+          "attempt_id": "f684351792c4405c91c51ad23d52054a",
+          "adapter_int_id": 441461,
+          "state": "deferred",
+          "lease_id": "b3fa57752a594779a30108d49ff18b8d",
+          "host_file_fallbacks": {},
+          "host_file_fallbacks_released": true
+        },
+        {
+          "attempt_id": "182dbc499532480d943a6ff78a037188",
+          "adapter_int_id": 441461,
+          "state": "deferred",
+          "lease_id": "8618182f1fe646d190fb9dd63781259d",
+          "host_file_fallbacks": {},
+          "host_file_fallbacks_released": true
+        },
+        {
+          "attempt_id": "3614af14cde54b5fb3acf9ed055cca06",
+          "adapter_int_id": 928886,
+          "state": "deferred",
+          "lease_id": "ea877c1e0b074169902306df315fe28d",
+          "host_file_fallbacks": {},
+          "host_file_fallbacks_released": true
+        },
+        {
+          "attempt_id": "e879ba4dd0be4db4bc82e5b4f4ea4f10",
+          "adapter_int_id": 441461,
+          "state": "deferred",
+          "lease_id": "ef076f5758d54398ad79f727f22028b4",
+          "host_file_fallbacks": {},
+          "host_file_fallbacks_released": true
+        },
+        {
+          "attempt_id": "be3e13cc813d43af85f41001c0807b08",
+          "adapter_int_id": 441461,
+          "state": "completed",
+          "lease_id": "224353f20e674549b0967cb1b2a8a0c9",
+          "host_file_fallbacks": {},
+          "host_file_fallbacks_released": true
+        },
+        {
+          "attempt_id": "83d0e9d8ecff4f3da09ddbf815591437",
+          "adapter_int_id": 928886,
+          "state": "deferred",
+          "lease_id": "8ed62c3a1dca406ba057f35d4c65025b",
+          "host_file_fallbacks": {},
+          "host_file_fallbacks_released": true
+        },
+        {
+          "attempt_id": "1f22f66186d54a7aa0eebedb91e86e75",
+          "adapter_int_id": 928886,
+          "state": "deferred",
+          "lease_id": "3aafc7ab52d34331a7306b9fd7573b0f",
+          "host_file_fallbacks": {},
+          "host_file_fallbacks_released": true
+        },
+        {
+          "attempt_id": "0cedd11392f94eee904711d5f10863d6",
+          "adapter_int_id": 928886,
+          "state": "deferred",
+          "lease_id": "f943e8f9ea954f0d8abfcc0b9acae973",
+          "host_file_fallbacks": {},
+          "host_file_fallbacks_released": true
+        },
+        {
+          "attempt_id": "12fc54a1cfae4fba81e5673b1130737c",
+          "adapter_int_id": 928886,
+          "state": "completed",
+          "lease_id": "5675b905d54742abb775850370f4fceb",
+          "host_file_fallbacks": {},
+          "host_file_fallbacks_released": true
+        },
+        {
+          "attempt_id": "bdf2d41d8b084b38b13f4426099bd420",
+          "adapter_int_id": 267597,
+          "state": "deferred",
+          "lease_id": "f789b1fb6de348af874ff819faa88d41",
+          "host_file_fallbacks": {},
+          "host_file_fallbacks_released": true
+        },
+        {
+          "attempt_id": "aff0b8e80c04457e84e97ecaf8ba3b8b",
+          "adapter_int_id": 267597,
+          "state": "deferred",
+          "lease_id": "8856f5e176254b8ca3ff66ee4af19290",
+          "host_file_fallbacks": {},
+          "host_file_fallbacks_released": true
+        },
+        {
+          "attempt_id": "88494ad4074f45498bb7fd9c7679ba0a",
+          "adapter_int_id": 267597,
+          "state": "deferred",
+          "lease_id": "bc06539e967544a9ab1b10c8c97852c7",
+          "host_file_fallbacks": {},
+          "host_file_fallbacks_released": true
+        },
+        {
+          "attempt_id": "a0fdb7d145454e96947ff35c07bf3812",
+          "adapter_int_id": 267597,
+          "state": "deferred",
+          "lease_id": "73afbf4d69c649c795adc928505d6a8d",
+          "host_file_fallbacks": {},
+          "host_file_fallbacks_released": true
+        },
+        {
+          "attempt_id": "a76d3512c0744c48b134c33d83652d4e",
+          "adapter_int_id": 267597,
+          "state": "observing"
+        },
+        {
+          "attempt_id": "44a636c7df054767a5f2370c78a0e4ab",
+          "adapter_int_id": 291372,
+          "state": "observing"
+        }
+      ],
+      "started_at": 72931.762651412,
+      "error_type": "ValueError",
+      "close_receipt": {
+        "closed": true,
+        "plan_id": "6dce87dec90347b89ad710cbe49b5d76",
+        "owner_id": "7277940a3e994fd9a0df42b3d8f8668f",
+        "epoch": 1477,
+        "slot_adapter_ids": [
+          194910,
+          616194,
+          605763,
+          398804,
+          570270,
+          624445,
+          290186,
+          311044
+        ],
+        "reference_counts": {},
+        "live_leases": 0,
+        "released_leases": 202,
+        "host_source_reference_counts": {
+          "938881": 1,
+          "726295": 1,
+          "170491": 1
+        },
+        "live_host_source_leases": 3,
+        "staged_host_adapter_ids": [],
+        "live_staged_host_leases": 0,
+        "pending_preparation_targets": [],
+        "snapshot_holds_reference": false,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_host_allocator_policy": {
+          "policy": "uncached_background_v1",
+          "verified": true,
+          "allocator_settings": {
+            "PYTORCH_CUDA_ALLOC_CONF": "max_split_size_mb:17592186044415",
+            "max_split_size": -1048576,
+            "garbage_collection_threshold": 0,
+            "expandable_segments": false,
+            "pinned_num_register_threads": 1,
+            "release_lock_on_cudamalloc": false,
+            "pinned_use_cuda_host_register": false,
+            "graph_capture_record_stream_reuse": false,
+            "max_round_threshold": -1,
+            "max_cached_size": 0,
+            "roundup_power2_divisions": {
+              "1": 0,
+              "2": 0,
+              "4": 0,
+              "8": 0,
+              "16": 0,
+              "32": 0,
+              "64": 0,
+              "128": 0,
+              "256": 0,
+              "512": 0,
+              "1024": 0,
+              "2048": 0,
+              "4096": 0,
+              "8192": 0,
+              "16384": 0,
+              "32768": 0
+            }
+          },
+          "verified_scope": "effective_uncached_pinned_allocation_limit",
+          "last_allocator_update": "max_split_size_mb:17592186044415",
+          "background_event_processing_requested": true,
+          "background_event_processing_readback": null,
+          "background_readback_limitation": "torch_2_13_snapshot_does_not_export_background_flag",
+          "persistent_cache_enabled": false,
+          "immediate_release_guaranteed": false
+        },
+        "worker_pid": 2573236,
+        "worker_rank": 0,
+        "completion_fence_scope": "current_worker_cuda_stream",
+        "production_launch_authorized": false,
+        "timing": {
+          "parent_rpc_channel_acquire_ms": 84.43811400502454,
+          "parent_rpc_response_pickup_delay_ms": 0,
+          "parent_rpc_send_flush_ms": 1.0758629941847175,
+          "parent_rpc_request_bytes": 230,
+          "parent_rpc_response_bytes": 1801,
+          "parent_rpc_wait_response_ms": 805.1963190082461,
+          "parent_rpc_thread_resume_delay_ms": 3140.463352203369
+        }
+      },
+      "finished_at": 73822.551461574
+    }
+  ],
+  "failed_file_preparation": [
+    {
+      "plan_id": "1234b3cfb4c64f8a987a8ceb079cc132",
+      "objective_sha256": "5b4a47d9833d6add65d1549e496c67b4f137bcdb7f4aafa27f0fd7b7745416eb",
+      "target_replica": "ieee-activation-87ea2ac504ee4dbebaf65e4384b2ef4f",
+      "trigger_reason": "residency",
+      "activation_id": null,
+      "state": "failed",
+      "started_at": 72931.745641478,
+      "results": [],
+      "native_fallbacks": [],
+      "error_type": "ValueError",
+      "shared_target_joins": [],
+      "close_receipt": {
+        "owner_id": "a7367beb5d7c42a9bfccb7da534a2aa0",
+        "plan_id": "1234b3cfb4c64f8a987a8ceb079cc132",
+        "closed": true
+      },
+      "finished_at": 73822.720394839
+    }
+  ],
+  "file_preparation_supersession_stages": {},
+  "mechanism_counts": {
+    "_ieee_activations": {
+      "runtime_ready": 4
+    },
+    "_ieee_residency_epochs": {
+      "completed": 65,
+      "superseded": 102,
+      "failed": 1,
+      "cancelled": 1
+    },
+    "_ieee_file_preparation_plans": {
+      "completed": 69,
+      "superseded": 102,
+      "failed": 1,
+      "cancelled": 1
+    },
+    "_ieee_gpu_preparation_plans": {
+      "completed": 25,
+      "superseded": 103,
+      "failed": 1
+    },
+    "_ieee_native_host_preparations": {
+      "not_a_state_event": 42
+    },
+    "_ieee_control_events": {
+      "not_a_state_event": 381
+    },
+    "_ieee_runtime_quarantine_events": {
+      "released": 4
+    }
+  },
+  "remote": {
+    "uuid_pairs": 59,
+    "wire_bytes": 136927913,
+    "verified_logical_bytes": 2290473252,
+    "request_packing": 0,
+    "server_journal": "transfers-db32bc29605148b1b62a8ec17fc3f00a.jsonl"
+  },
+  "conditional_success_latency_ms": {
+    "overall_ttft_ms": {
+      "n": 843,
+      "mean": 99434.1359818131,
+      "p50_type1": 74812.83736602927,
+      "p95_type1": 251741.75018227834
+    },
+    "overall_e2e_ms": {
+      "n": 843,
+      "mean": 104267.42157487002,
+      "p50_type1": 80771.44359250087,
+      "p95_type1": 258030.11782825342
+    },
+    "dispatch_admission_wait_ms": {
+      "n": 843,
+      "mean": 86717.02476374904,
+      "p50_type1": 63425.09689152939,
+      "p95_type1": 234399.23874035594
+    },
+    "runtime_slot_wait_ms": {
+      "n": 843,
+      "mean": 13711.297371770028,
+      "p50_type1": 11951.439447002485,
+      "p95_type1": 33543.14860400336
+    },
+    "service_ttft_ms": {
+      "n": 843,
+      "mean": 12717.111218064061,
+      "p50_type1": 1327.97502700123,
+      "p95_type1": 76237.71039300482
+    },
+    "vllm_ttft_ms": {
+      "n": 843,
+      "mean": 386.69018363957804,
+      "p50_type1": 198.78189399605617,
+      "p95_type1": 1203.6396359908395
+    },
+    "pre_runtime_service_shell_ms": {
+      "n": 843,
+      "mean": 12330.421034424482,
+      "p50_type1": 722.6921300025424,
+      "p95_type1": 75592.14492300816
+    },
+    "parent_rpc_overhead_ms": {
+      "n": 843,
+      "mean": 2253.216724978898,
+      "p50_type1": 1704.4971089926548,
+      "p95_type1": 6461.568336002529
+    },
+    "tpot_ms": {
+      "n": 843,
+      "mean": 25.373965331044115,
+      "p50_type1": 18.93263509806346,
+      "p95_type1": 61.41490088905104
+    }
+  },
+  "conditional_latency_caveat": "843 completed requests only, not the full4000 workload or numerical adapter qualification; no ranking/CI",
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "next": "After evidence backup: audit optimistic preparation source-change boundaries as one lifecycle; actual causal tests, retain ownership and genuine errors. No isolated exception-text patch or blind GPU rerun.",
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d99_20260928/3b_full_w0_attempt6/launch.json",
+      "sha256": "e312e3cb4783dfadc7f06f2b14e8383028bae484868cf88c934a95a9291494fc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d99_20260928/3b_full_w0_attempt6/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "466863affe476867f34c9c628b12da14b8f187748925edfcfda390571640ad5e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d99_20260928/3b_full_w0_attempt6/launch.launch/physical_deployment/summary.json",
+      "sha256": "753125d97cf8131d9a7e8259e905ef2e374c4ed7c680919633fe90cc0afd3e21"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d99_20260928/3b_full_w0_attempt6/launch.launch/physical_deployment/request_terminals.jsonl",
+      "sha256": "68ec4ebda07dba321d02196385758f6f62ced67a862ff45ff59e1c7c34f30f71"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d99_20260928/3b_full_w0_attempt6/launch.launch/watchdog.jsonl",
+      "sha256": "756fd1a2b91e0235dd8ec809477e0d0970cec51426657b727d7ea37e90605105"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d99_20260928/3b_full_w0_attempt6/launch.launch/service_ingress.jsonl",
+      "sha256": "9a498691e0a5fca5930c372fd262144ab089076d498b92b7401958f03b492b65"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d99_20260928/3b_full_w0_attempt6/launch.launch/replay.jsonl",
+      "sha256": "0b64f006deb4a03cfa296a247eaf83e28d63c55a5d0cd67d6f8194f1c2544b1d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d99_20260928/3b_full_w0_attempt6/launch.launch/service.log",
+      "sha256": "68afcafaf86f9f5b5902d3738ad896d39813454ea982b21acd1e6ac4896f32dd"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d99_20260928/3b_main_config_attempt6.yaml",
+      "sha256": "14abd33e093a9a2e9b5a7926396b38b2f26eea52fde987c4ad8047c689c94ab0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d99_20260928/run_3b_full_w0_attempt6.sh",
+      "sha256": "e310ba72d0075cc3b02a0047c80dfeb3cc7c32abb7ef7c447aa8c3a6f649a59f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d99_20260928/remote_3b_full_attempt6_transfers.jsonl",
+      "sha256": "d4f92b220c7e520137d82a3165cb04c2668574f7820c92086b767e5d99dd5163"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d99_20260928/remote_monitor_full_attempt6_final.log",
+      "sha256": "14efd6f2487599621c45a662528a634fce6ab5a3029d4deeda4c418a05f95fa1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d99_20260928/remote_stop_full_attempt6.log",
+      "sha256": "c59566db0cd6da42c7bf51996d79f951d042f40841ff35494472eb80dcb5536c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d99_20260928/local_aux_cleanup_attempt6.log",
+      "sha256": "883c84d1ef764b42fbda6f0111ef64a4261c355cbd42b8b7a3e85b7b8d7fe344"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d99_20260928/summarize_full_attempt6.py",
+      "sha256": "7df4245a765db9035ad4c61c8cf96ff9cf1065203283c30dc822a275d919cc7e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d99_20260928/full_attempt6_analysis_projection.json",
+      "sha256": "b327ae65fb7c560d655e30fd3f93c1f8289066c401772c869b07b4397710e2ea"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d99_20260928/project_full_attempt6.jq",
+      "sha256": "8d550bcfb7c4dde57f55c7e4c491a39711feb1ec0ac99c4bd0e601d4af6e7d45"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d99_20260928/project_full_attempt6.sh",
+      "sha256": "56de86632239cc9788f35d0176e17e10caf0b1dc7947966a471c863f9aee313f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d99_20260928/full_attempt6_projection_time.txt",
+      "sha256": "11def98c001483a133678feb8b577060c9510a7248b357b3a2ad2b3f1cca876d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "6993dc222e2347f0fe99934b74169f757cea419ad4eca6a9131467cc84b1b543"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "sha256": "c2d302a43ff2386795e3920bdcb7a6733f9119f673644c010a64b3d3e7b58f56"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_planner.py",
+      "sha256": "cc30801865762ae851794a58c60ec5761b03efe9346e794397637fe38d70ee9a"
+    }
+  ]
+}
