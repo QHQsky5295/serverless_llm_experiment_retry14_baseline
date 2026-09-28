@@ -1,0 +1,662 @@
+{
+  "kind": "d98_interrupted_canonical_full_v1",
+  "model": "3b",
+  "workload": "W0",
+  "execution_commit": "f7616621ea0bfa86128253592214ff190d2f6153",
+  "full_qualified": false,
+  "formal_performance_result": false,
+  "baselines": "paused",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "population": {
+    "planned": 4000,
+    "publisher_submitted": 1187,
+    "runner_started": 1127,
+    "success": 623,
+    "native_contract_matched": 623,
+    "runner_not_started": 2873,
+    "event_counts": {
+      "request_terminal": 623,
+      "request_interrupted": 504
+    },
+    "failure_observations": {
+      "CancelledError": 504
+    },
+    "replay_event_counts": {
+      "replay_ready": 1,
+      "request_created": 1188,
+      "request_submitted": 1187,
+      "replay_incomplete": 1
+    },
+    "ingress_event_counts": {
+      "service_ingress_identity": 1,
+      "service_ingress_started": 1,
+      "request_received": 1155,
+      "request_dequeued": 1127,
+      "service_ingress_terminal": 1
+    }
+  },
+  "original_failure": {
+    "stage": "main_execution",
+    "type": "ValueError",
+    "message": "native file fallback changed; a new planning epoch is required",
+    "traceback": "Traceback (most recent call last):\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 22556, in _main_async_impl\n    result, coord_m = await runner.run()\n                      ^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 14485, in run\n    all_raw, _tb1 = await self._run_continuous_observed(\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 12594, in _run_continuous_observed\n    await self._maybe_run_live_scale_control_evaluation(\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 11833, in _maybe_run_live_scale_control_evaluation\n    return await self._evaluate_ieee_live_control(result=result, coord_enabled=coord_enabled,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 12145, in _evaluate_ieee_live_control\n    self._reap_ieee_residency_tasks()  # Surface failure; do not silently restart the same plan.\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 12282, in _reap_ieee_residency_tasks\n    task.result()  # A failed epoch is evidence, not a swallowed warning/retry.\n    ^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 12306, in _execute_ieee_residency_epoch\n    result = await self._run_ieee_owned_preparation_plan(slot=slot, mode='residency',\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 17209, in _run_ieee_owned_preparation_plan\n    result = await self._run_ieee_file_preparation_plan(plan=plan, target_engine=slot.engine,\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 17533, in _run_ieee_file_preparation_plan\n    results = await asyncio.gather(*waiters)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 17474, in execute_gpu\n    result = await self._run_ieee_gpu_preparation_plan(slot=gpu_slot,\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 16980, in _run_ieee_gpu_preparation_plan\n    await after_registration()\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 17363, in protect_native_fallbacks\n    raise ValueError('native file fallback changed; a new planning epoch is required')\nValueError: native file fallback changed; a new planning epoch is required\n"
+  },
+  "outer_launcher": {
+    "error": "external replay failed; no silent internal timer fallback",
+    "classification": "protocol_or_launcher_error",
+    "service_returncode": -15,
+    "watchdog_returncode": 0,
+    "note": "retained outer label; original residency fallback error is separately preserved; not an established external interference"
+  },
+  "cleanup": {
+    "complete": true,
+    "roots": [
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d98_20260928/3b_nvme_attempt5/tc_ieee_full",
+        "device": 2050,
+        "inode": 106204802
+      },
+      {
+        "path": "/dev/shm/tc-d98-3b-attempt5/tc_ieee_full",
+        "device": 27,
+        "inode": 3398
+      }
+    ],
+    "inventory_before": null,
+    "inventory_after": null
+  },
+  "resources": {
+    "samples": 1323,
+    "peak_bytes": 21028569088,
+    "min_host_available_bytes": 94812094464,
+    "max_events": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    },
+    "max_swap_bytes": 0
+  },
+  "physical": {
+    "allocation_journals": [
+      {
+        "events": 5,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d98_20260928/3b_full_w0_attempt5/launch.launch/physical_allocations/1cc0168ee96b479c93fc20298b0c0dbb.jsonl",
+        "released": true,
+        "sha256": "25eef90853729bf4e496f7cdc01eb06b13d8c043aa7f920c24ac5b56d8210e8a"
+      },
+      {
+        "events": 5,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d98_20260928/3b_full_w0_attempt5/launch.launch/physical_allocations/1f2fc3fa87044e8292318e0e25095de3.jsonl",
+        "released": true,
+        "sha256": "24a941d77fffb1ca6ca0499dc142c8ca9120d1484d45f2b6e1a2352c135de032"
+      },
+      {
+        "events": 5,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d98_20260928/3b_full_w0_attempt5/launch.launch/physical_allocations/6f1e3d2f75ac40df9ac0e61f61e8eda9.jsonl",
+        "released": true,
+        "sha256": "29fe46e90725d931b0c039f5c67f289b928d9f6e9de53f7c922c4efa00f0cece"
+      },
+      {
+        "events": 5,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d98_20260928/3b_full_w0_attempt5/launch.launch/physical_allocations/9a8d7f1a7c9f49afbef9bf788d65b596.jsonl",
+        "released": true,
+        "sha256": "bbe394fbc29290d02ed20cb898b2fa0dce07f93378c14d3767a94245362281d3"
+      }
+    ],
+    "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+    "contract": "physical_gpu_owner_union_v1",
+    "correctness_qualification": "not_inferred_from_token_contract",
+    "deployment_contract": "physical_gpu_deployment_v1",
+    "device_intervals": {
+      "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036": [
+        [
+          69258.886715914,
+          70445.889494696
+        ]
+      ],
+      "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946": [
+        [
+          69177.432908693,
+          70455.228528453
+        ]
+      ],
+      "GPU-c4663821-4888-e199-7151-d6298f8d45a5": [
+        [
+          69261.07344361,
+          70437.299332333
+        ]
+      ],
+      "GPU-dadf0267-9617-8824-cddb-82fba48a7b97": [
+        [
+          69256.847245889,
+          70428.931813898
+        ]
+      ]
+    },
+    "eligible_correctness": false,
+    "gpu_seconds": null,
+    "gpu_seconds_observed": 4813.108855273997,
+    "gpu_seconds_per_correct_request": null,
+    "gpu_seconds_per_offered_observed": 1.203277213818499,
+    "measurement_complete": false,
+    "n_correct": null,
+    "n_interrupted": 504,
+    "n_native_contract_complete": 623,
+    "n_plan": 4000,
+    "n_terminal": 623,
+    "observed_until_s": 70503.390071522,
+    "open_lease_ids": [],
+    "owner_and_native_census_qualification_required": true,
+    "owner_event_count": 8,
+    "request_terminals_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d98_20260928/3b_full_w0_attempt5/launch.launch/physical_deployment/request_terminals.jsonl",
+    "request_terminals_sha256": "d769a470825df4d53521876a3609585018f4badf88459e85b80c80a96b0ca906",
+    "window_gpu_seconds": {
+      "arrival": 4765.063646729992,
+      "cleanup": 0.0,
+      "drain": 0.0,
+      "pre_arrival": 48.04520854400471
+    }
+  },
+  "source_observation_stats": {
+    "requests": 1671,
+    "collections": 216,
+    "joined": 1455,
+    "rpc_invocations": 776,
+    "stale_rejections": 972
+  },
+  "selected_source_retries": {
+    "successes_with_retries": 35,
+    "retained_retries": 41,
+    "max_per_success": 3
+  },
+  "failed_native_fallback_plan": {
+    "plan_id": "9ce3743d0eca413dad78c243df7f2ada",
+    "objective_sha256": "c33e10e217b489c6d2a21ff4b85c5b57eddcd4a2cdb260cf3fe7b1a7ce942e14",
+    "target_replica": "ieee-activation-0a13e15cf1484e1f912c38b7ccbe5ada",
+    "trigger_reason": "residency",
+    "activation_id": null,
+    "state": "failed",
+    "registration": {
+      "owner_id": "1f254800bea84725b0d070932faf1fad",
+      "plan_id": "9ce3743d0eca413dad78c243df7f2ada",
+      "registered": true,
+      "physical_resources_reserved": false,
+      "targets": 9
+    },
+    "started_at": 70375.911877069,
+    "results": [],
+    "native_fallbacks": [
+      {
+        "adapter_id": "code_lora",
+        "lease_id": "64d8029f844b4f9c85a736ad48e31888",
+        "owner_id": "00899df7f1124450b18116bf2a852070",
+        "state": "released",
+        "receipt": {
+          "held": true,
+          "owner_id": "00899df7f1124450b18116bf2a852070",
+          "epoch": 1197,
+          "lease_id": "64d8029f844b4f9c85a736ad48e31888",
+          "adapter_int_id": 291372,
+          "lora_name": "code_lora",
+          "lora_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d98_20260928/3b_nvme_attempt5/tc_ieee_full/code_lora",
+          "tier": "host",
+          "reference_scope": "native_cpu_lru_source",
+          "held_monotonic_s": 70389.315732421,
+          "gpu_acquired": false,
+          "reference_purpose": "file_fallback",
+          "expected_source_id": null,
+          "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+          "native_host_allocator_policy": {
+            "policy": "uncached_background_v1",
+            "verified": true,
+            "allocator_settings": {
+              "PYTORCH_CUDA_ALLOC_CONF": "max_split_size_mb:17592186044415",
+              "max_split_size": -1048576,
+              "garbage_collection_threshold": 0.0,
+              "expandable_segments": false,
+              "pinned_num_register_threads": 1,
+              "release_lock_on_cudamalloc": false,
+              "pinned_use_cuda_host_register": false,
+              "graph_capture_record_stream_reuse": false,
+              "max_round_threshold": -1,
+              "max_cached_size": 0,
+              "roundup_power2_divisions": {
+                "1": 0,
+                "2": 0,
+                "4": 0,
+                "8": 0,
+                "16": 0,
+                "32": 0,
+                "64": 0,
+                "128": 0,
+                "256": 0,
+                "512": 0,
+                "1024": 0,
+                "2048": 0,
+                "4096": 0,
+                "8192": 0,
+                "16384": 0,
+                "32768": 0
+              }
+            },
+            "verified_scope": "effective_uncached_pinned_allocation_limit",
+            "last_allocator_update": "max_split_size_mb:17592186044415",
+            "background_event_processing_requested": true,
+            "background_event_processing_readback": null,
+            "background_readback_limitation": "torch_2_13_snapshot_does_not_export_background_flag",
+            "persistent_cache_enabled": false,
+            "immediate_release_guaranteed": false
+          },
+          "worker_pid": 1940813,
+          "worker_rank": 0,
+          "completion_fence_scope": "current_worker_cuda_stream",
+          "production_launch_authorized": false,
+          "timing": {
+            "parent_rpc_channel_acquire_ms": 8.791651998762973,
+            "parent_rpc_response_pickup_delay_ms": 0.0,
+            "parent_rpc_send_flush_ms": 0.29148999601602554,
+            "parent_rpc_request_bytes": 485,
+            "parent_rpc_response_bytes": 1798,
+            "parent_rpc_wait_response_ms": 27.29194900894072,
+            "parent_rpc_thread_resume_delay_ms": 0.12326240539550781
+          }
+        },
+        "release_receipt": {
+          "released": true,
+          "already_released": false,
+          "owner_id": "00899df7f1124450b18116bf2a852070",
+          "epoch": 1219,
+          "slot_adapter_ids": [
+            938324,
+            356962,
+            503820,
+            170491,
+            527924,
+            131076,
+            769541,
+            683755
+          ],
+          "reference_counts": {
+            "170491": 1,
+            "131076": 1
+          },
+          "live_leases": 2,
+          "released_leases": 173,
+          "host_source_reference_counts": {
+            "803545": 1
+          },
+          "live_host_source_leases": 1,
+          "staged_host_adapter_ids": [],
+          "live_staged_host_leases": 0,
+          "pending_preparation_targets": [],
+          "snapshot_holds_reference": false,
+          "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+          "native_host_allocator_policy": {
+            "policy": "uncached_background_v1",
+            "verified": true,
+            "allocator_settings": {
+              "PYTORCH_CUDA_ALLOC_CONF": "max_split_size_mb:17592186044415",
+              "max_split_size": -1048576,
+              "garbage_collection_threshold": 0.0,
+              "expandable_segments": false,
+              "pinned_num_register_threads": 1,
+              "release_lock_on_cudamalloc": false,
+              "pinned_use_cuda_host_register": false,
+              "graph_capture_record_stream_reuse": false,
+              "max_round_threshold": -1,
+              "max_cached_size": 0,
+              "roundup_power2_divisions": {
+                "1": 0,
+                "2": 0,
+                "4": 0,
+                "8": 0,
+                "16": 0,
+                "32": 0,
+                "64": 0,
+                "128": 0,
+                "256": 0,
+                "512": 0,
+                "1024": 0,
+                "2048": 0,
+                "4096": 0,
+                "8192": 0,
+                "16384": 0,
+                "32768": 0
+              }
+            },
+            "verified_scope": "effective_uncached_pinned_allocation_limit",
+            "last_allocator_update": "max_split_size_mb:17592186044415",
+            "background_event_processing_requested": true,
+            "background_event_processing_readback": null,
+            "background_readback_limitation": "torch_2_13_snapshot_does_not_export_background_flag",
+            "persistent_cache_enabled": false,
+            "immediate_release_guaranteed": false
+          },
+          "worker_pid": 1940813,
+          "worker_rank": 0,
+          "completion_fence_scope": "current_worker_cuda_stream",
+          "production_launch_authorized": false,
+          "timing": {
+            "parent_rpc_channel_acquire_ms": 3.2436299952678382,
+            "parent_rpc_response_pickup_delay_ms": 0.0,
+            "parent_rpc_send_flush_ms": 0.4222770076012239,
+            "parent_rpc_request_bytes": 228,
+            "parent_rpc_response_bytes": 1781,
+            "parent_rpc_wait_response_ms": 375.0637750054011,
+            "parent_rpc_thread_resume_delay_ms": 0.7715225219726562
+          }
+        }
+      },
+      {
+        "adapter_id": "code_lora_0039",
+        "lease_id": "19b0ab93be3840e6a10efb04182e99f5",
+        "owner_id": "00899df7f1124450b18116bf2a852070",
+        "state": "rejected",
+        "receipt": {
+          "held": false,
+          "reason": "stale_snapshot",
+          "owner_id": "00899df7f1124450b18116bf2a852070",
+          "epoch": 1210,
+          "slot_adapter_ids": [
+            938324,
+            356962,
+            503820,
+            170491,
+            527924,
+            131076,
+            769541,
+            683755
+          ],
+          "reference_counts": {
+            "356962": 2,
+            "170491": 1,
+            "131076": 1
+          },
+          "live_leases": 4,
+          "released_leases": 171,
+          "host_source_reference_counts": {
+            "291372": 1,
+            "803545": 1
+          },
+          "live_host_source_leases": 2,
+          "staged_host_adapter_ids": [],
+          "live_staged_host_leases": 0,
+          "pending_preparation_targets": [
+            252156,
+            312822,
+            523333,
+            751303,
+            766766,
+            767794,
+            860137,
+            952585
+          ],
+          "snapshot_holds_reference": false,
+          "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+          "native_host_allocator_policy": {
+            "policy": "uncached_background_v1",
+            "verified": true,
+            "allocator_settings": {
+              "PYTORCH_CUDA_ALLOC_CONF": "max_split_size_mb:17592186044415",
+              "max_split_size": -1048576,
+              "garbage_collection_threshold": 0.0,
+              "expandable_segments": false,
+              "pinned_num_register_threads": 1,
+              "release_lock_on_cudamalloc": false,
+              "pinned_use_cuda_host_register": false,
+              "graph_capture_record_stream_reuse": false,
+              "max_round_threshold": -1,
+              "max_cached_size": 0,
+              "roundup_power2_divisions": {
+                "1": 0,
+                "2": 0,
+                "4": 0,
+                "8": 0,
+                "16": 0,
+                "32": 0,
+                "64": 0,
+                "128": 0,
+                "256": 0,
+                "512": 0,
+                "1024": 0,
+                "2048": 0,
+                "4096": 0,
+                "8192": 0,
+                "16384": 0,
+                "32768": 0
+              }
+            },
+            "verified_scope": "effective_uncached_pinned_allocation_limit",
+            "last_allocator_update": "max_split_size_mb:17592186044415",
+            "background_event_processing_requested": true,
+            "background_event_processing_readback": null,
+            "background_readback_limitation": "torch_2_13_snapshot_does_not_export_background_flag",
+            "persistent_cache_enabled": false,
+            "immediate_release_guaranteed": false
+          },
+          "worker_pid": 1940813,
+          "worker_rank": 0,
+          "completion_fence_scope": "current_worker_cuda_stream",
+          "production_launch_authorized": false,
+          "timing": {
+            "parent_rpc_channel_acquire_ms": 323.2131209952058,
+            "parent_rpc_response_pickup_delay_ms": 0.0,
+            "parent_rpc_send_flush_ms": 0.6208759878063574,
+            "parent_rpc_request_bytes": 495,
+            "parent_rpc_response_bytes": 1867,
+            "parent_rpc_wait_response_ms": 390.5396639893297,
+            "parent_rpc_thread_resume_delay_ms": 2.303600311279297
+          }
+        }
+      }
+    ],
+    "error_type": "ValueError",
+    "shared_target_joins": [],
+    "close_receipt": {
+      "owner_id": "1f254800bea84725b0d070932faf1fad",
+      "plan_id": "9ce3743d0eca413dad78c243df7f2ada",
+      "closed": true
+    },
+    "finished_at": 70408.639765933
+  },
+  "mechanism_counts": {
+    "_ieee_activations": {
+      "runtime_ready": 4
+    },
+    "_ieee_residency_epochs": {
+      "completed": 121,
+      "superseded": 110,
+      "cancelled": 1,
+      "failed": 1
+    },
+    "_ieee_file_preparation_plans": {
+      "completed": 125,
+      "superseded": 110,
+      "cancelled": 1,
+      "failed": 1
+    },
+    "_ieee_gpu_preparation_plans": {
+      "completed": 31,
+      "superseded": 110,
+      "cancelled": 1,
+      "failed": 1
+    },
+    "_ieee_native_host_preparations": {
+      "not_a_state_event": 41
+    },
+    "_ieee_control_events": {
+      "not_a_state_event": 338
+    },
+    "_ieee_runtime_quarantine_events": {
+      "released": 4
+    }
+  },
+  "remote": {
+    "uuid_pairs": 51,
+    "wire_bytes": 118361506,
+    "verified_logical_bytes": 1983508420,
+    "request_packing": 0,
+    "server_journal": "transfers-3c53d3d82f7e48749afe8d7260fe25ef.jsonl"
+  },
+  "conditional_success_latency_ms": {
+    "overall_ttft_ms": {
+      "n": 623,
+      "mean": 140686.84059064838,
+      "p50_type1": 114332.84631713468,
+      "p95_type1": 380555.8638802322
+    },
+    "overall_e2e_ms": {
+      "n": 623,
+      "mean": 146398.34897144636,
+      "p50_type1": 122002.51049878716,
+      "p95_type1": 389049.78486095206
+    },
+    "dispatch_admission_wait_ms": {
+      "n": 623,
+      "mean": 125239.54758776235,
+      "p50_type1": 107402.75483233563,
+      "p95_type1": 365554.13549033983
+    },
+    "runtime_slot_wait_ms": {
+      "n": 623,
+      "mean": 19545.21188552627,
+      "p50_type1": 15679.87389699556,
+      "p95_type1": 48172.47073199542
+    },
+    "service_ttft_ms": {
+      "n": 623,
+      "mean": 15447.293002886046,
+      "p50_type1": 1047.2050590033177,
+      "p95_type1": 90322.55071900727
+    },
+    "vllm_ttft_ms": {
+      "n": 623,
+      "mean": 329.858421418646,
+      "p50_type1": 156.38836700236425,
+      "p95_type1": 1158.997435006313
+    },
+    "pre_runtime_service_shell_ms": {
+      "n": 623,
+      "mean": 15117.4345814674,
+      "p50_type1": 488.1103230000008,
+      "p95_type1": 90196.28243999614
+    },
+    "parent_rpc_overhead_ms": {
+      "n": 623,
+      "mean": 2989.562891783389,
+      "p50_type1": 1982.5252299924614,
+      "p95_type1": 8635.07608800137
+    },
+    "tpot_ms": {
+      "n": 623,
+      "mean": 24.16659840239799,
+      "p50_type1": 18.93850746161591,
+      "p95_type1": 50.46075472769603
+    }
+  },
+  "conditional_latency_caveat": "623 completed requests only, not the full4000 workload or numerical adapter qualification; no ranking/CI",
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "next": "After evidence backup: causal stale-native-fallback supersession test; keep ownership, cleanup and genuine errors strict. No blind GPU rerun.",
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d98_20260928/3b_full_w0_attempt5/launch.json",
+      "sha256": "123ef9f54b9f50d41788ddd9f1717ef5e43d0f4afa51fed4e6036130df2592fc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d98_20260928/3b_full_w0_attempt5/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "9a782a2c84a3483fa4390fe97f66d7d467fda937a4377dbb7686b37eeb5bce09"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d98_20260928/3b_full_w0_attempt5/launch.launch/physical_deployment/summary.json",
+      "sha256": "d426348e58a15a8f610a0bf3ea7987c9c857821d57431a47bda47fc727957e7e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d98_20260928/3b_full_w0_attempt5/launch.launch/physical_deployment/request_terminals.jsonl",
+      "sha256": "d769a470825df4d53521876a3609585018f4badf88459e85b80c80a96b0ca906"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d98_20260928/3b_full_w0_attempt5/launch.launch/watchdog.jsonl",
+      "sha256": "ee4d6f39030bbf0aa6f3a5e054160d25477847d9d4d6b730379d97487aecd3d7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d98_20260928/3b_full_w0_attempt5/launch.launch/service_ingress.jsonl",
+      "sha256": "01ea4f6abbf8b0c079c3baf20689e3ae02b84412f383264d8a61cfb332b09693"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d98_20260928/3b_full_w0_attempt5/launch.launch/replay.jsonl",
+      "sha256": "1fccc40f911850d0d45ec3dcf1784809ba9a44bc3b438b2fb9e766b1f51ad497"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d98_20260928/3b_full_w0_attempt5/launch.launch/service.log",
+      "sha256": "040168e210e00a2edb63b88766703ca066552ac0f8500a3e34438706fa894aa4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d98_20260928/3b_main_config_attempt5.yaml",
+      "sha256": "4aea16eebde0285019ae38b2d770acb2ea865944990c0dad837caafc283ca800"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d98_20260928/run_3b_full_w0_attempt5.sh",
+      "sha256": "8ab416e172620dcd0f2ec68d005130c8a0ede1d1d0dfb1f899d93557fc8c1cf0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d98_20260928/remote_3b_full_attempt5_transfers.jsonl",
+      "sha256": "e558923a2cf5b029452a99d7d0df5fb425053e129d3978a55065167c28d090d2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d98_20260928/remote_monitor_full_attempt5_final.log",
+      "sha256": "47c455f08b3e94efa15bc650387ba35288995fb0cd88b882654ba0a1f67f113a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d98_20260928/remote_stop_full_attempt5.log",
+      "sha256": "7380ee4422be622db2ec871e2ae5686f2cb3a612b179ec6016e9d9fbc50b2bd2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d98_20260928/local_aux_cleanup_attempt5.log",
+      "sha256": "883c84d1ef764b42fbda6f0111ef64a4261c355cbd42b8b7a3e85b7b8d7fe344"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d98_20260928/summarize_full_attempt5.py",
+      "sha256": "c4086e1941c17657c84dc13558ab057825022034eaa5cabceda094d0eb27521a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d98_20260928/full_attempt5_analysis_projection.json",
+      "sha256": "f4396184d9f695b30a26427abf472d4d739cd5637293dad82364839ae6ba6aa7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d98_20260928/full_attempt5_failed_native_fallback_plan.json",
+      "sha256": "438e91f7d8fe539273fb6e2924e4c67db5fe89e7fd83a105137f1b24f5525288"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d98_20260928/project_full_attempt5.jq",
+      "sha256": "bd7f87d01eb7dc183cc87c1c7935d9b73edb69624b160f115ace9b027f139932"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d98_20260928/project_full_attempt5.sh",
+      "sha256": "e303d3342963010163e9c1551016a815460aba157e89ae77c62650297e79cd0c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d98_20260928/full_attempt5_projection_time.txt",
+      "sha256": "069242ea7b916511752568d86e60cf15e8b390af13b4b479e8b57594ac625717"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "9cfc5dcb645b7d6cac715fa59c108df38cbb086698349de6962348b291b8faab"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "sha256": "c2d302a43ff2386795e3920bdcb7a6733f9119f673644c010a64b3d3e7b58f56"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_planner.py",
+      "sha256": "326c712b52094a4bd01f4b46a8b489f3e024efa5307d94880cbb45c7f18a0403"
+    }
+  ]
+}

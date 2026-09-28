@@ -1,6 +1,164 @@
 # IEEE TC execution status
 
+## Latest — D98 failure validated; user asks why old ran and new fails
+
+Pre-backup independent23sourceSHArefs,147protected,plan/V1 and secret exclusion
+PASS;47qualified evidence-smoke PASS1.580s. Verificationjob72908 finished0;
+empty owned6ca253d51a1942debcb009fcf4ceb6e1 scope cleanup beforecommit. New
+evidenceverification/smoke receipts saved in rawD98. NEXT four-filebackup then
+actualcausalCPUwork; doNOTrepeatcuration/projection/tests withoutnewreason.
+
+2026-09-28 ~10:56. Supersedes ALL old LIVE/NEXT entries. No GPU/remote/CPU task
+remains. Projection16647 complete207.15s/RSS27648KiB,curator26082 complete0;
+both empty matchinginvocations stopped. Evidence smoke54424 complete47PASS
+1.580s;its empty matching922fc8a6 scope stopped. No runtimecodechange.
+Curated20260928_d98_3b_full_w0_attempt5.json SHA7d78f5167ac8bdf32e927e3d1a99c30f
+3f5eabf8657770a6fba2a8368388d7c8;23sourceSHArefs/147protected PASS in curator.
+51remoteUUIDpairs/contentverifiedpublished,118361506wireB/1983508420logicalB.
+1127started=623success+504cancelled;4000planned,1187publishersubmitted.
+Originalnativefallbackstale_snapshot;failedplan9ce3743d0eca413dad78c243df7f2ada
+two raw views match:code_lora held thenreleased;code_lora_0039 rejected epoch1210;
+closedtrue/results[]. 4physicalleasesreleased,U_obs4813.108855274,incomplete.
+
+User latest objective REPLACES output-length question with WHY old worked/new
+fails. Read actual legacy/P1/P0/D90/history/currentguard/tests, explanation doc
+WHY_LEGACY_RUNS_AND_IEEE_FAILURES_20260928.md created,notyetcommitted. Keyactual
+test test_lost_native_source_stops_before_file_io_and_returns_earlier_holds
+EXPECTSValueError:checks safe local rejection/cleanup, not whole-service
+continuation. This is a concrete test-contract gap, NOT proof all guards wrong.
+Old successful results remain valid for their old contract; IEEE path is
+substantial reconstruction, not mere parameter tuning. D90prefix3Baggregate8
+versuscanonical32 cannot prove full-concurrency coverage. Acknowledge implementation/
+integration responsibility; no blame on user/hardware/random output. Numerical
+adapter limitation and fullplan scope unchanged. Explanationcontainsno sourcefix.
+
+Conditional623successmeanTTFT140.686841s=dispatch125.239548+service15.447293;
+nativeTTFT.329858s,TPOT24.166598ms.35successwith41retainedsource-retries/max3;
+doNOTcomparetruncatedsubsetwitholdfullrun. SourceRPC776/collections216/requests
+1671/join1455/stalereject972. Residency121completed/110superseded/1cancelled/
+1failed. D98failuretableupdatedand immediateoriginalerror evidence complete.
+
+NEXT independent23refs/secrets/protectedchecks thenSCOPED4-file evidencebackup:
+ledger,D98_FULL_W0_ATTEMPT5,WHY_LEGACY_RUNS_AND_IEEE_FAILURES,curatedJSON; neverstage
+usermanifest. Then answeruser clearly andONEcausalCPU supersession workstream,
+not unchangedGPUreplay ormoreendlessevidence/backup loops. BaselinesPAUSED;
+7BFull/warmSLO/Resident/M1M2/A/S/numericalqualification pending. Goalactive;
+thisturn decisivefailure/cleanup/analysis/explanation=PROGRESS,notblocked.
+
+## Latest — D98 Full4000 attempt5 FINISHED/FAILED/CLEANED; streaming analysis LIVE
+
+2026-09-28 ~10:47. Supersedes ALL earlier LIVE/NEXT experiment instructions.
+Runtimef761662 unchanged; baselinesPAUSED. Actualserviceinactive/pathgone,
+tmuxgone/nativeGPUcompute census empty. Original errorValueError:
+`native file fallback changed; a new planning epoch is required` in
+protect_native_fallbacks→GPU/filepreparation→residencytask→control-loopreap.
+Outerexternalreplay failure/classification is SECONDARY; doNOTreplaceoriginal.
+
+Population4000planned/1188created/1187publishersubmitted/1155ingressreceived/
+1127tasks=623success/native matched+504whole-runCancelledError;2873notstarted
+includesfuture/buffered/inflight,notallunarrived. NOFull/SLO/rankingqualification.
+4physicalleasesALLreleased,native_context_releaseconfirmed,service_path_removed,
+nohardkill. U_obs4813.108855274GPU-s,incomplete,NOTfullcost.1323resourcesamples
+peak21028569088B/minhost94812094464B;high/max/OOM/OOMkill/swap0,no warning/abort.
+Remote51responses/118361506wireB,packing0;clientUUIDpaircheckpendingprojection.
+
+AFTERinference originalremoteinvocations/PIDs checked/stopped;3B,7B,monitorall
+inactive/MainPID0/success. Currentjournaltransfers-3c53d3d82f7e48749afe8d7260fe25ef
+clock318eea9ccd2e4253be16b3712d55af40 copied,finalremotemonitorcopied. Emptylocal
+aux1f852a57... identity/Tasks0/procs/populated0 checkedthenstopped. Rawremote_stop_
+full_attempt5.log/local_aux_cleanup_attempt5.log. NoGPU/remotejobremains.
+
+Immediatefailuretable docs/ieee_tc/D98_FULL_W0_ATTEMPT5.md andraw
+full_attempt5_preliminary.json created,NOTyetcommitted. Mainoutcome~1.1GiB;
+NEVERfullPythonJSONload/plainjq. D96streamfilteradaptedtoD93interrupted-main
+schema;smallfixturePASS. CURRENTanalysisexecsession16647,
+unitprimelora-d98-full5-project-20260928.scope,
+invocationd0debd02991d4a18a733b62fde974dff,ACTIVE2tasks/~11MiBmemory,
+3/4GiBswap0auxCPUs. Targetfull_attempt5_analysis_projection.json stays0until
+reduceends;notfailure. Monitor SAMEsession; no duplicate/overwrite/restart.
+Projectionkeepsrequest/sourceconflictfields andselectedflatmechanismmetadata;
+nonempty native_fallbacks is NOTkept; exactrejectionreceiptneedsboundedtargeted
+inspectionfromrawbeforecausalclaim. Rawunchanged. Sourcecodeprotect_native_
+fallbacksusesfreshsource_snapshotthenhold_host_source(reference_purpose=
+file_fallback,expected_epoch) andraisesValueErrorforheldfalse; exactrejectreason
+notyetestablished. DoNOTswallowallerrors/relaxownerchecks/addold-planretry.
+
+NEXT finishSAMEprojection→boundedcurator with623/504/51UUID/cleanupvalidation→
+updatefailuretable→protected/source/secrets/smoke/scopedbackup. ThenONEcausalCPU
+preparation-supersession workstream; no unchangedGPUreplay/7B/baselines orcache/
+profile/prefix repeats. Fullgoalactive/incomplete. Thisturndecisivefailure+
+ownedcleanup/table=PROGRESS, notblocked. Observer2313 terminated ONLYobserver
+uponinterruption; actualrunterminateditself. Latestobserver'soutcome_exists was
+lookingatwrongroot; authoritativefileisphysical_deployment/main_outcome.json.
+
+## LIVE — D98 canonical 3B Full4000 W0 attempt5, 2026-09-28 10:18:36
+
+10:32:06 latest SAME LIVE invocation58954fc1daa248c496481daaea6a8f73 through
+ten45s read-only polls:637created/submitted,442terminal/success/native matched,
+195pending,no failures yet. First500submitted by10:29:50 (370terminal then),
+NOT500completed. Watchdog798 age0.868s;service18.606GiB,host89.603GiBavailable,
+disk301.087GiB,high/max/OOM/OOMkill/swap0,no warning/abort;outcome/terminal
+launch receipt absent. Observercell2309 FINISHED its ten polls, NOTthe actual
+experiment. Actual service remains LIVE; do NOT restart because observer ended.
+Thisgoalturn=VERIFIEDWAIT,prior=launchPROGRESS+wait. No source/config/remote
+change,other heavy job,cleanup,optimization ornewexperiment. Fullplan previously
+read in same context remains unchanged(SHAfe6c05b0);continue SAMErun tooriginal
+terminal,thenownedcleanup→validation→table. NoFull/SLO/ranking/numerical claim.
+
+10:23:38 latest verified SAME LIVE invocation58954fc1daa248c496481daaea6a8f73:
+143created/submitted,130terminal/130success/130native-contractmatched,13pending,
+no failures yet. Watchdog298 age0.019s;service16.503GiB,host91.448GiBavailable,
+disk301.454GiB;high/max/OOM/OOMkill/swap0,no warning/abort. Main_outcome and
+terminal launch receipt absent. Four actual runtime IDs have successful requests
+(passive10:22 audit), not merely four dashboard entries. This is EARLY progress,
+NOT Full/SLO/numerical qualification or evidence of whole-run improvement.
+Currentturn=PROGRESS(one canonical launch) plusVERIFIEDWAIT,notblocked. No runtime/
+remote/config changes afterlaunch. Continue SAME invocation; next is actualterminal,
+ownedcleanup,validation,status table. No7B/baseline/newoptimization whilelive.
+
+Supersedes ALL older NEXT/LIVE instructions. Source f7616621ea0bfa86128253592214ff190d2f6153
+unchanged/PUSHED. Tmux tc-d98-3b-full5; actual service
+primelora-tc-svc-23bd5943812849a682dbfd7d8113411c.scope,
+invocation58954fc1daa248c496481daaea6a8f73 ACTIVE. Aux
+primelora-tc-aux-f85b482a0ca84ea2b1f7e4bcfad042b2.scope,
+invocation1f852a57d795420ba86bb5d8c6c650ba; watchdogPID1919040,
+externalpublisherPID1918859. Actual worker domain72/80GiB/swap2 verified before
+exec, auxiliary3/4GiB/swap0. Do NOT restart/duplicate or reuse D97 handles.
+
+Canonical existing runner/external4000 W0 trace/physical ledger,60snotice,
+1800splanned-arrivaldeadline, identicalD97/D88/D89 configuration except fresh
+owned output/cache roots and testedsource. Raw d98_20260928/3b_full_w0_attempt5/
+launch.json and launch.launch/;3b_full_w0_attempt5_console.log. No terminal
+receipt yet; initial preparation in progress, NOTFull/SLO/numericalqualification.
+
+Prelaunch26source/input/templateSHArefs and147protected PASS,plan/V1unchanged.
+Both authenticated DIRECTHTTP health passed; bothNIC1000Mb/s/full. Host~107GiB
+available/swap0/disk~302GiB/GPUidle beforelaunch. PublishedD78/D80 cache REUSED,
+not rebuilt/re-downloaded. Remote3B invocationab22d25cc14348b0af3076873df30929
+PID1365816;7Bcba4b6dfda10435294325712850623b5 PID1365818;
+monitor854cbbe878c442d589eec27cea9e5e73 PID1365821,
+unitprimelora-artifact-monitor-d98full5.service,
+log /home/lab14/primelora_remote/tc/d98_20260928/remote_monitor_3b_full_attempt5.log.
+
+NEXT monitor SAME actual invocation through original arrivals/deadlines/terminal.
+No source/config/remote changes, hash scans, cleanup/restart, concurrent heavy
+tests or optimization while live. Then ownedcleanup→validation→status table
+before7B/nextwork. D98 CPU evidence does NOT prove end-to-end improvement.
+Baselines9e2cf289 PAUSED;7BFull/warmSLO/Resident/M1M2/A/S/numerical discrimination
+pending. Fullgoal active/incomplete. Do NOT repeat cache/profiles/prefixes/
+regression/backup. This turn launch plus verified actual-handle waiting.
+
 ## Latest — D98 selected-copy confirmation CPU-verified; backup then Full replay
+
+BACKED UP: f7616621ea0bfa86128253592214ff190d2f6153 pushed; fresh remote SHA
+matched. Ten scoped files,15 source SHA refs,147 protected entries and1215
+distinct qualified regression tests passed. Receipt d98_20260928/checkpoint_push_receipt.json.
+No live GPU/remote/CPU job. All eight completed scopes stopped after ownership
+and empty checks. Host available114926526464B,swap0,disk325082591232B,GPUidle.
+Do NOT repeat the backup, tests, curation or copy-cache work. NEXT prepare and
+launch canonical3B4000 attempt5 from existing D97 templates, then monitor same
+actual handle through terminal/owned cleanup/validation/status table. No further
+optimization before replay; baselines paused; full goal remains incomplete.
 
 2026-09-28 ~10:08. Supersedes older NEXT/LIVE entries. No GPU or remote service
 is running. D97 evidence checkpoint 0056894 was pushed and remotely verified.
