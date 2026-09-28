@@ -1,6 +1,47 @@
 # IEEE TC execution status
 
-## CURRENT — D107 interrupted diagnostic curated; no live job
+## CURRENT — D108 non-target source counterexample complete; candidate NOT implemented
+
+2026-09-28 18:54. Supersedes ALL historical live/NEXT notes below.
+Goal ACTIVE/incomplete; baselines PAUSED. No GPU/remote/analysis job.
+Runtime b7161bdcafe05117dcc9434f12ede5a7003c121d unchanged. D107evidence
+30165e382965d320531347d3ba65c477d0362263 pushed/exactremoteverified18:48;
+three scopedfiles, no userdirty staged. Do NOT repeat D107backup/curation/copies.
+
+- D108 actualowner/file-publication CPUprobe reproduces D107nativeguard on a
+  legal NON-targetcopychange: targetcunchanged,non-targetbNVMe→HOSTsameSHA;
+  frozen source domain stillcoversCPU,allnamesmatch,GPUconfirmationscomplete.
+  Epoch20→29fromactualevict+demandload/acquire/release,notmanuallyeditedmaps.
+  Controlbeforechange reachespricing sentinel; changedcaseValueErrorbefore
+  pricing/admission,noextra preparationload/eviction/statechange;closedclean.
+  This proves adefectpath, NOT the missingD107pair norFull8timeoutcause.
+- ReusedAutomaticGPUReplacement/MixedOwnedPreparation+existingnativecachefixtures;
+  nocuda/newweights/trace/pool. Newprobe1PASS +21existingtestsauto-discovered
+  fromimportedTestCase=22totalPASS2.051s. DoNOTrepeatjusttoreducecount.
+  Rawprobe_non_target_source_copy.py/probe.log preserved. No productionpatchyet.
+- Probeandcurator bounded3/4GiB,swap0,CPU2,3,26,27 viauser services;exit0,
+  automaticallycollected. Endcgrouppeak/eventsNOTcaptured; don't inventzero.
+  CurrentprimaryvLLM0.30worker_manager revisited: serializedLRUoperations ≠
+  atomicmultiRPCplan. Owner_validate_source_binding permitsnon-targetreload
+  afterretirement; frozenwhole-objectivepathcheck currentlytreatsitfatal.
+- Curator147protected/50unchangedsourcesPASS. Doc/status table
+  D108_NON_TARGET_SOURCE_COUNTEREXAMPLE.md; curated
+  paper_results/ieee_tc/p2_backend/20260928_d108_non_target_source_probe.json
+  SHA5df6564602cb24393739c4389ff38d2cb98569b7874efbc52c2bb836eb07eaea.
+  Rawresults/ieee_tc/p2_backend_qualification/d108_20260928.
+- NEXT source/schema/secrets/diffchecks+scopeddoc/ledger/JSONbackup; THEN ONE
+  candidate to unify legitimate non-target bindingexpiry beforecost/eviction.
+  Mustcover observation→nativecommit race; explicitplan/hash/lease/epoch-bound
+  no-operationreceipt+strictcontroller validation+existingjoinedclosure.
+  Preserve identity/content/rank/owner/clock/GPUconfirmation/physicalguards;
+  unknownRPCoutcome remainsunresolved; don'treleasefallbackrefs onbadreply.
+  DoNOT merelyaddparentcheck/blanketcatch/old-planretry, parser/profilerchange,
+  deadline/config/formulachange, orblindFull replay. Tests first, then fullreplay.
+- LastcompleteFull8=3970/4000+30Timeout; D107interrupted11success+16cancel.
+  NoFull/SLO/numerical/rankingqualification. 3BFull,7B,warm/Resident,baselines,
+  M1M2,A1–A5,S1–S13 pending. Publishedonce-onlycache alreadyfulfilled;no rebuild.
+
+## D107 — completed evidence (superseded next action)
 
 2026-09-28 18:46. Supersedes ALL historical live/NEXT notes below.
 Goal ACTIVE/incomplete, baselines PAUSED. Runtime b7161bdcafe05117dcc9434f12ede5a7003c121d

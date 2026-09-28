@@ -1,0 +1,81 @@
+{
+  "kind": "d108_non_target_source_probe_v1",
+  "runtime_source_commit": "b7161bdcafe05117dcc9434f12ede5a7003c121d",
+  "evidence_parent_commit": "30165e382965d320531347d3ba65c477d0362263",
+  "production_changed": false,
+  "full_replay_qualified": false,
+  "formal_performance_result": false,
+  "gpu_run_started": false,
+  "probe": {
+    "kind": "d108_actual_owner_non_target_copy_counterexample_v1",
+    "result": "original_guard_reproduced",
+    "target": "c",
+    "changed_non_target": "b",
+    "source_domain_covered": true,
+    "gpu_confirmations_complete": true,
+    "changed_source_same_content": true,
+    "target_path_unchanged": true,
+    "source_names_unchanged": true,
+    "copy_paths_distinct": true,
+    "no_preparation_load_or_eviction": true,
+    "control_reached_pricing": true,
+    "changed_case_reached_pricing": false,
+    "planned_epoch": 20,
+    "observed_epoch": 29,
+    "cuda_executed": false,
+    "reproduces_missing_d107_pair": false
+  },
+  "checks": {
+    "new_counterexample": 1,
+    "existing_discovered": 21,
+    "total": 22,
+    "seconds": 2.051,
+    "note": "Imported TestCase also discovered by unittest; not independent performance repetitions"
+  },
+  "resource_limits": {
+    "memory_high_bytes": 3221225472,
+    "memory_max_bytes": 4294967296,
+    "swap_max_bytes": 0,
+    "cpus": [
+      2,
+      3,
+      26,
+      27
+    ],
+    "service_exit": 0,
+    "automatically_collected": true,
+    "cgroup_events_recorded": false,
+    "peak_bytes": null
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "unchanged_sources": 50,
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "references": [
+    {
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/worker_manager.py",
+      "role": "Serialized native LRU request operations do not make a multi-RPC preparation plan atomic; not performance evidence"
+    }
+  ],
+  "source_sha256": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d108_20260928/probe_non_target_source_copy.py": "50a6edaed30809a2e9bae8bf8c5f4694a4208ce16fd27b45e1ba866bf9aebdcc",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d108_20260928/probe.log": "8fb290d99a3e120f39c111b4b444869ec9984d9118bd2aa6acd1dcccd9c3ccab",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d108_20260928/collect_probe.py": "dcd8bc4433d6214837c0441881dc5641978a21aa23556b4fa1ebab873224a159",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py": "ad99ef38830cee828594659353877518c65fb3d11059bfecba597fd6a138880a",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_planner.py": "d2802b08f3b7665796fd9077a6cadd91df9910ce7961374300e8eb95a668d973",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py": "f702e357fb3f427c5288cde4f235e823bb7fbceaf39cb88d15a6fa0b2d23a3fa",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_transfer_pressure.py": "152678d51c6ca9ccc154324e4d9c233e13116dfff69e2b0bac67c83196a2758f",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_gpu_references.py": "5353a96c4a511170bd5e56127741d77bb6de975e3dc28734cac4726da7b99012",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D108_NON_TARGET_SOURCE_COUNTEREXAMPLE.md": "9b62f98ad994fa789dcab288f15a9315b79c64ea47ee91177dc662e7126f51ad",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20260928_d107_controller_profile3_failure.json": "6724b9d09a41880c5b4f97bf6d24d2f39f11edc799d46e27459ed25710b0c4c0",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "next": "One principled candidate for explicitly expired non-target source binding, preserving identity/GPU guards and checked no-operation receipts; tests before any complete GPU replay"
+}
