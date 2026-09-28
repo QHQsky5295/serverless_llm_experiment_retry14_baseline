@@ -24,6 +24,109 @@ def descriptor():
     return dict(adapter_id='a', source_tier='remote', target_tier='nvme', file_owner_id='files')
 
 
+class FileCapacityIndex(unittest.TestCase):
+    """Exact old predicate with linear inventory indexing, no GPU or real pool."""
+
+    @staticmethod
+    def reference(owner, inventory, sources):
+        protected = {p for plan in owner._file_preparation_plans.values() for p in plan['targets']}
+        held = {Path(row[1]) for row in owner.leases.values()}
+        moving = set(owner.materializations.values())
+        rows = []
+        for path, source in sorted(sources.items()):
+            usable = sum(item['allocated_bytes'] for item in inventory['allocations']
+                if item['kind'] == 'file' and item['device'] == path.parent.stat().st_dev
+                and item['external_link_count'] == 0
+                and item.get('pending_increment_bytes', 0) == 0
+                and all(path in Path(p).parents for p in item['paths']))
+            rows.append(dict(path=str(path), usable_bytes=usable,
+                eligible=bool(usable) and usable == source['allocated_file_bytes']
+                    and path not in protected | held | moving))
+        return rows
+
+    def make(self):
+        from faaslora.memory.residency_manager import LocalSourceReferences
+        owner = LocalSourceReferences.__new__(LocalSourceReferences)
+        owner._file_preparation_plans = {}
+        owner.leases = {}
+        owner.materializations = {}
+        return owner
+
+    @staticmethod
+    def allocation(paths, *, device=1, size=4096, external=0, pending=0, kind='file'):
+        return dict(paths=[str(p) for p in paths], device=device, allocated_bytes=size,
+                    external_link_count=external, pending_increment_bytes=pending, kind=kind)
+
+    def test_index_preserves_shared_links_devices_growth_and_protection(self):
+        import copy
+        owner = self.make()
+        a, b, c, d = (Path('/nvme')/x for x in 'abcd')
+        h = Path('/host/a')
+        owner._file_preparation_plans = {'plan': {'targets': [b]}}
+        owner.leases = {'lease': ('b', str(c))}
+        owner.materializations = {'transfer': d}
+        sources = {p: dict(allocated_file_bytes=4096) for p in (a,b,c,d,h,a/'nested')}
+        sources[a]['allocated_file_bytes'] = 8192
+        rows = [self.allocation([a/'x', a/'second']),
+                self.allocation([a/'nested/x']),
+                self.allocation([a/'shared', b/'shared']),
+                self.allocation([a/'external'], external=1),
+                self.allocation([a/'growing'], pending=4096),
+                self.allocation([a/'wrong-device'], device=9),
+                self.allocation([Path('/nvme/ab/x')]),
+                self.allocation([a], kind='directory'),
+                self.allocation([b/'x']), self.allocation([c/'x']), self.allocation([d/'x']),
+                self.allocation([h/'x'], device=2)]
+        inv = dict(allocations=rows)
+        before = copy.deepcopy((inv, sources, owner.__dict__))
+        def stat(p, *args, **kwargs):
+            return NS(st_dev=2 if str(p).startswith('/host') else 1)
+        with patch.object(Path, 'stat', stat):
+            expected = self.reference(owner, inv, sources)
+            actual = owner._file_replacement_capacity_from_inventory(inv, sources)
+        self.assertEqual(actual, expected)
+        self.assertEqual((inv, sources, owner.__dict__), before)
+        by_path = {r['path']: r for r in actual}
+        self.assertTrue(by_path[str(a)]['eligible'])
+        self.assertTrue(by_path[str(h)]['eligible'])
+        for p in (b,c,d): self.assertFalse(by_path[str(p)]['eligible'])
+
+    def test_randomized_index_is_exact_including_empty_and_nested_paths(self):
+        import random
+        rng = random.Random(101)
+        owner = self.make()
+        paths = [Path('/root')/str(i) for i in range(8)] + [Path('/root/0/nested')]
+        with patch.object(Path, 'stat', lambda *a, **k: NS(st_dev=1)):
+            for trial in range(100):
+                sources = {p: dict(allocated_file_bytes=rng.randrange(6)*4096) for p in paths}
+                inv = dict(allocations=[self.allocation(
+                    [rng.choice(paths)/str(j) for j in range(rng.randrange(4))],
+                    device=rng.choice((1,2)), size=rng.randrange(5)*4096,
+                    external=rng.choice((0,0,1)), pending=rng.choice((0,0,4096)),
+                    kind=rng.choice(('file','file','directory'))) for _ in range(24)])
+                with self.subTest(trial=trial):
+                    self.assertEqual(owner._file_replacement_capacity_from_inventory(inv, sources),
+                                     self.reference(owner, inv, sources))
+
+    def test_device_lookup_once_per_parent_not_per_source_times_inode(self):
+        owner = self.make()
+        paths = [Path('/nvme')/str(i) for i in range(100)]
+        sources = {p: dict(allocated_file_bytes=4096) for p in paths}
+        inv = dict(allocations=[self.allocation([p/'weights']) for p in paths])
+        calls = []
+        def stat(p, *args, **kwargs):
+            calls.append(p)
+            return NS(st_dev=1)
+        with patch.object(Path, 'stat', stat):
+            rows = owner._file_replacement_capacity_from_inventory(inv, sources)
+        self.assertEqual(calls, [Path('/nvme')])
+        self.assertTrue(all(r['usable_bytes'] == 4096 and r['eligible'] for r in rows))
+        with patch.object(Path, 'stat', side_effect=AssertionError('empty inventory needs no IO')):
+            self.assertEqual(owner._file_replacement_capacity_from_inventory(inv, {}), [])
+            rows = owner._file_replacement_capacity_from_inventory({'allocations': []}, sources)
+        self.assertTrue(all(r['usable_bytes'] == 0 and not r['eligible'] for r in rows))
+
+
 class ManagedHostOwnership(unittest.TestCase):
     def make(self):
         fixture = lifecycle_fixtures.LocalSourceOwnership()

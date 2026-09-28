@@ -1,0 +1,102 @@
+{
+  "kind": "d101_ephemeral_file_capacity_index_cpu_evidence_v1",
+  "evidence_parent_commit": "ae8a5caffaadadad6b45a9750b26cf1ccb9b3a3c",
+  "runtime_parent_commit": "6815beea8453ba56894e206a0ac4ad914ce7b3cf",
+  "full_replay_qualified": false,
+  "formal_performance_result": false,
+  "original": {
+    "kind": "d101_file_capacity_original_cpu_probe_v1",
+    "no_gpu_or_artifact_io": true,
+    "formal_performance_result": false,
+    "sources": 133,
+    "allocations": 1199,
+    "file_allocations": 1064,
+    "samples": [
+      {
+        "trial": 0,
+        "seconds": 5.917740765988128,
+        "stat_calls": 141512
+      },
+      {
+        "trial": 1,
+        "seconds": 5.810549570989679,
+        "stat_calls": 141512
+      },
+      {
+        "trial": 2,
+        "seconds": 5.857326780009316,
+        "stat_calls": 141512
+      }
+    ],
+    "profile": "         47086736 function calls (44045152 primitive calls) in 23.185 seconds\n\n   Ordered by: cumulative time\n   List reduced from 45 to 18 due to restriction <18>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n        1    0.001    0.001   23.185   23.185 residency_manager.py:265(_file_replacement_capacity_from_inventory)\n      133    0.001    0.000   23.184    0.174 {built-in method builtins.sum}\n     1197    0.487    0.000   23.183    0.019 residency_manager.py:272(<genexpr>)\n   133256    0.071    0.000   20.693    0.000 {built-in method builtins.all}\n   266512    0.373    0.000   20.665    0.000 residency_manager.py:276(<genexpr>)\n   133256    0.947    0.000   17.770    0.000 <frozen _collections_abc>:1032(__contains__)\n  1587952    0.712    0.000   13.201    0.000 <frozen _collections_abc>:1022(__iter__)\n  1586888    1.841    0.000   12.489    0.000 pathlib.py:277(__getitem__)\n  1596208    1.328    0.000    9.089    0.000 pathlib.py:420(_from_parsed_parts)\n  1596208    1.513    0.000    6.421    0.000 pathlib.py:380(with_segments)\n  1729464    1.301    0.000    4.348    0.000 pathlib.py:1157(__init__)\n  1596340    1.108    0.000    3.795    0.000 pathlib.py:519(__eq__)\n  1729464    1.870    0.000    3.047    0.000 pathlib.py:358(__init__)\n  3334192    2.454    0.000    2.656    0.000 pathlib.py:484(_str_normcase)\n6349680/3308096    1.455    0.000    2.188    0.000 {built-in method builtins.len}\n   133256    0.092    0.000    2.080    0.000 pathlib.py:741(parents)\n   133256    0.127    0.000    1.988    0.000 pathlib.py:268(__init__)\n   274768    0.205    0.000    1.845    0.000 pathlib.py:551(drive)\n\n\n",
+    "answer_sha256": "c0a48e9ecfbfde97167b92359e46a069f08361ad5331c068664d1aca4343085c",
+    "source_sha256": "abbdb4add92a6e8b3947eca570865bff710e6460837a8d2cb628e2dc95713d81",
+    "index_sha256": "bd1826c58f00ea30dee1d3829dc11727a975127db701a1eee6c6c86b4a38f275",
+    "production_source_sha256": "c2d302a43ff2386795e3920bdcb7a6733f9119f673644c010a64b3d3e7b58f56",
+    "caveat": "Reconstructed source membership and empty protection sets; Path.stat only returns captured device. Not an actual request/epoch latency or full-run causal proof."
+  },
+  "indexed": {
+    "kind": "d101_file_capacity_indexed_cpu_probe_v1",
+    "no_gpu_or_artifact_io": true,
+    "formal_performance_result": false,
+    "sources": 133,
+    "allocations": 1199,
+    "file_allocations": 1064,
+    "samples": [
+      {
+        "trial": 0,
+        "seconds": 0.059045064001111314,
+        "stat_calls": 2
+      },
+      {
+        "trial": 1,
+        "seconds": 0.05142975399212446,
+        "stat_calls": 2
+      },
+      {
+        "trial": 2,
+        "seconds": 0.049903989987797104,
+        "stat_calls": 2
+      }
+    ],
+    "profile": "         352815 function calls (328663 primitive calls) in 0.176 seconds\n\n   Ordered by: cumulative time\n   List reduced from 46 to 18 due to restriction <18>\n\n   ncalls  tottime  percall  cumtime  percall filename:lineno(function)\n        1    0.007    0.007    0.176    0.176 residency_manager.py:265(_file_replacement_capacity_from_inventory)\n     1064    0.007    0.000    0.144    0.000 {method 'intersection' of 'set' objects}\n    12608    0.007    0.000    0.103    0.000 <frozen _collections_abc>:1022(__iter__)\n    12608    0.014    0.000    0.096    0.000 pathlib.py:277(__getitem__)\n    11677    0.010    0.000    0.064    0.000 pathlib.py:420(_from_parsed_parts)\n    11677    0.011    0.000    0.045    0.000 pathlib.py:380(with_segments)\n    14341    0.014    0.000    0.033    0.000 pathlib.py:524(__hash__)\n    12741    0.009    0.000    0.031    0.000 pathlib.py:1157(__init__)\n    12741    0.013    0.000    0.022    0.000 pathlib.py:358(__init__)\n    18853    0.016    0.000    0.018    0.000 pathlib.py:484(_str_normcase)\n50432/26280    0.011    0.000    0.017    0.000 {built-in method builtins.len}\n     1064    0.001    0.000    0.016    0.000 pathlib.py:741(parents)\n     1064    0.001    0.000    0.015    0.000 pathlib.py:268(__init__)\n     1197    0.001    0.000    0.014    0.000 pathlib.py:551(drive)\n     1064    0.001    0.000    0.013    0.000 pathlib.py:407(_load_parts)\n     1064    0.006    0.000    0.011    0.000 pathlib.py:387(_parse_path)\n    11677    0.006    0.000    0.010    0.000 pathlib.py:429(_format_parsed_parts)\n    24152    0.006    0.000    0.009    0.000 pathlib.py:274(__len__)\n\n\n",
+    "answer_sha256": "c0a48e9ecfbfde97167b92359e46a069f08361ad5331c068664d1aca4343085c",
+    "source_sha256": "abbdb4add92a6e8b3947eca570865bff710e6460837a8d2cb628e2dc95713d81",
+    "index_sha256": "bd1826c58f00ea30dee1d3829dc11727a975127db701a1eee6c6c86b4a38f275",
+    "production_source_sha256": "5a67ae25351f08a7655b78653fb675dbab4385a27eafd0decc3d1246fd97ec62",
+    "caveat": "Reconstructed source membership and empty protection sets; Path.stat only returns captured device. Not an actual request/epoch latency or full-run causal proof.",
+    "identical_answer_sha256": true,
+    "unprofiled_mean_ratio_original_over_indexed": 109.65050394355642
+  },
+  "identical_outputs": true,
+  "regression": {
+    "model_checks": 1186,
+    "os_checks": 47,
+    "total_distinct": 1233
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "source_sha256": {
+    "results/ieee_tc/p2_backend_qualification/d101_20260928/capacity_original_probe.json": "9aab0f925ef50deb36165ac5a276ba9d2c1ac34cc3d62ec3b36630e7861b4d4a",
+    "results/ieee_tc/p2_backend_qualification/d101_20260928/capacity_indexed_probe.json": "cc54e9826245713594c680aaef331d37e131582c29e3b91156fdfb2f6c033ab3",
+    "results/ieee_tc/p2_backend_qualification/d101_20260928/probe_file_capacity.py": "2b2d2dbb4b7e0f24fffee41bfdac9401e322d96e0767080abffe75f722f6edc5",
+    "results/ieee_tc/p2_backend_qualification/d101_20260928/probe_file_capacity_indexed.py": "d76c176f615a8392df8b33b4d1206c622b5cf5e9c3769ecccdf9279ba50825ca",
+    "results/ieee_tc/p2_backend_qualification/d101_20260928/regression.log": "7f5e367f1f4e8a5326bc9e4c493d62f6aab1c8ba1008d56f4bc87cb78c9704c8",
+    "results/ieee_tc/p2_backend_qualification/d101_20260928/os_guards.log": "99eca69dbb41aa99fe1400e09a6a2e9d180aee262c21e5c62f0296ef29806624",
+    "results/ieee_tc/p2_backend_qualification/d101_20260928/run_regression.sh": "201acba2fa0fad201970dca86c31007f098379d3f052545dc8720f42609d130d",
+    "results/ieee_tc/p2_backend_qualification/d101_20260928/cleanup_cpu_scopes.log": "96cf855f1f7c1ca46dc2ed70a0ca9b1f007abf9cb793b064e9101343f831d3cd",
+    "results/ieee_tc/p2_backend_qualification/d101_20260928/summarize_capacity_probe.py": "1f37e4d5a6702f71d5cbf2823c25e811350e83759874958654f3d9064123f876",
+    "faaslora/memory/residency_manager.py": "5a67ae25351f08a7655b78653fb675dbab4385a27eafd0decc3d1246fd97ec62",
+    "tests/test_ieee_tc_transfer_pressure.py": "abde254ab459f8951e24ad963ac45d378874f3ac84cc95f137a2108dad0f12b8",
+    "docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "docs/ieee_tc/D101_FILE_CAPACITY_INDEX.md": "302e572c11024e28277f322113509ceed0cbb15916e8904d8c572b56ff5f4544"
+  },
+  "next": "Same-contract independent 3B Full4000 W0 attempt8; no timeout/cache/profile changes."
+}

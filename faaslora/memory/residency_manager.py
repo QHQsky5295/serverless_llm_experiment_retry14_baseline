@@ -263,20 +263,43 @@ class LocalSourceReferences:
         return self._file_replacement_capacity_from_inventory(inventory, sources)
 
     def _file_replacement_capacity_from_inventory(self, inventory, sources):
-        """Derive capacity from an already confirmed owner view, under its lock."""
+        """Derive capacity from an already confirmed owner view, under its lock.
+
+        An inode contributes only to source trees containing *all* its known
+        paths on the same device, without external links or unsettled growth.
+        Intersect ancestors once per inode instead of rescanning every inode
+        for every source. This is an ephemeral index of this inventory, never
+        cached across observations or used to bypass execution revalidation.
+        """
         protected = {p for plan in self._file_preparation_plans.values() for p in plan['targets']}
         held = {Path(row[1]) for row in self.leases.values()}
         moving = set(self.materializations.values())
+        blocked = protected | held | moving
+        usable_by_path = dict.fromkeys(sources, 0)
+        source_paths_by_device, parent_devices = {}, {}
+        if any(item['kind'] == 'file' for item in inventory['allocations']):
+            for path in sources:
+                parent = path.parent
+                if parent not in parent_devices:
+                    parent_devices[parent] = parent.stat().st_dev
+                source_paths_by_device.setdefault(parent_devices[parent], set()).add(path)
+        for item in inventory['allocations']:
+            if (item['kind'] != 'file' or item['external_link_count'] != 0
+                    or item.get('pending_increment_bytes', 0) != 0):
+                continue
+            candidates = source_paths_by_device.get(item['device'], set())
+            for name in item['paths']:
+                candidates = candidates.intersection(Path(name).parents)
+                if not candidates:
+                    break
+            for path in candidates:
+                usable_by_path[path] += item['allocated_bytes']
         rows = []
         for path, source in sorted(sources.items()):
-            usable = sum(item['allocated_bytes'] for item in inventory['allocations']
-                if item['kind'] == 'file' and item['device'] == path.parent.stat().st_dev
-                and item['external_link_count'] == 0
-                and item.get('pending_increment_bytes', 0) == 0
-                and all(path in Path(p).parents for p in item['paths']))
+            usable = usable_by_path[path]
             rows.append(dict(path=str(path), usable_bytes=usable,
                 eligible=bool(usable) and usable == source['allocated_file_bytes']
-                    and path not in protected | held | moving))
+                    and path not in blocked))
         return rows
 
     def _reclaim_for_file_preparation(self, transfer_id, target, required, payload_required, limit_bytes, before, content):

@@ -1,6 +1,38 @@
 # IEEE TC execution status
 
-## CURRENT — D100 Full7 failed, cleaned and fully analyzed; evidence backup next
+## CURRENT — D101 indexed capacity validated; backup then Full8
+
+2026-09-28 14:34. This section supersedes ALL previous LIVE/NEXT instructions.
+Full goal ACTIVE/incomplete; baselines PAUSED. No GPU/remote/CPU job remains.
+D100 complete failure evidence pushed ae8a5caffaadadad6b45a9750b26cf1ccb9b3a3c;
+remote HEAD verified. Don't repeat D100 analysis/backup.
+
+- D101 single hypothesis tested: synchronous file-capacity helper repeats an
+  all-inode scan per source. Saved D100 census133sources/1199allocations shows
+  original5.918/5.811/5.857s,141512statcalls; index0.059/0.051/0.050s,2calls.
+  Exact outputSHA matches. Mocked recorded-device lookup/no actual file IO;
+  reconstructed source/protection state, NOT measured live epoch/end-to-end.
+- Only productionchange: ephemeral per-inventory ancestor/device index in
+  LocalSourceReferences._file_replacement_capacity_from_inventory. Same usable
+  bytes,protected/held/moving exclusion; no persistent cache or relaxedguards.
+  Nine equations/profile/config/trace/deadline/remote unchanged.
+- 1186CPU checksPASS55.068s +47OSguardsPASS0.216s=1233distinct; all5CPUscopes
+  identity+emptychecked/stopped14:33:19. No repeated regressions needed.
+- Doc D101_FILE_CAPACITY_INDEX.md and curated20260928_d101_file_capacity_index.json
+  SHA b1f3c41fa3df6edf9945d5a199be9e97c6beba1896ff5b8f9df67271ddf251ef.
+  Source/protected147 validated; next scopedbackup5files, then same-contract
+  independent3BFull4000W0attempt8. No further speculativeoptimization.
+- RawD101 results/ieee_tc/p2_backend_qualification/d101_20260928; original/index
+  CPUprobe/scripts/testlogs retained, no artifact regeneration. Full8 NOTstarted.
+- After backup: adapt existing D100 launch/config/remoteactivation/prelaunch
+  with new owned d101/attempt8 paths and finalcommit only; compareparsedconfig
+  excluding3ownedpaths. Recheckidle/resource/NIC/remoteprotectedserviceidentity,
+  start existingpublishedservices/monitor once, launch canonicaltmuxFull8.
+- AfterFull8:cleanup→analysis→table→interpretation; doNOTjump to7B/baselines
+  untilqualification. W0historicalcomparisonlimitedtooneoptimizationsource,
+  noformalpairedCI/CE ranking/claimof109xend-to-end.
+
+## Completed D100 Full7 — failure evidence (superseded work instructions)
 
 2026-09-28 14:24. Supersedes ALL historical LIVE/NEXT instructions.
 Full goal ACTIVE/incomplete; baselines PAUSED. No inference, artifact service,
@@ -81,8 +113,7 @@ scopes identity+empty-verified and stopped; receipts rawD100. Runtime source
   D100confirmed sourceabsence terminates oldqueuejob without poisoningfreshplan.
   Complete docs/raw/evidence for each remain. These are NOToverallqualification.
 - D100 final1230distinct CPUchecks passed,sourcecheckpoint6815beea pushed/remotely
-  verified. No repeat regression/backup ofunchangedsource. D100Full7 is the first
-  fullvalidation ofthat checkpoint. Need evidence-only checkpoint afteranalysis.
+  verified. Full7 complete failure evidence archived/pushedae8a5ca; no repeat.
 - Earlier full failures retained: D96Full3 1417success/2581timeout/2returned,
   D97Full4 1609/2243/148;D98Full5interrupted623success+504cancelled;
   D99Full6interrupted843success+302cancelled. DoNOTcompareconditionaltruncated
