@@ -13,7 +13,7 @@ from types import MethodType, SimpleNamespace
 import unittest
 from unittest.mock import AsyncMock, Mock, patch
 
-from faaslora.experiment.instance_pool import InstanceSlot
+from faaslora.experiment.instance_pool import InstanceSlot, NativeSourceSnapshot
 from scripts.run_all_experiments import (
     ScenarioRunner, RequestExecutionPlan, RuntimeRequestReservation, ScenarioResult, aggregate_runs,
     InferenceEngine, SubprocessInferenceEngineProxy)
@@ -164,11 +164,64 @@ class PredecisionRoutingIntegration(unittest.TestCase):
             observed = await asyncio.gather(*(request() for _ in range(32)))
             self.assertEqual(sorted(observed), list(range(32)))
             self.assertEqual(sum(s.engine.ieee_gpu_reference.await_count for s in slots), 2)
+            self.assertEqual(parser.call_count, 2)
+            self.assertEqual(runner._ieee_source_observation_stats['parse_invocations'], 2)
             # Completion is not a time-based cache: the next call refreshes.
             slots[0].active_requests = 0
             await runner._ieee_request_snapshot(trace, plan)
             self.assertEqual(sum(s.engine.ieee_gpu_reference.await_count for s in slots), 4)
-        asyncio.run(check())
+            self.assertEqual(parser.call_count, 4)
+        with patch.object(NativeSourceSnapshot, 'from_native', wraps=NativeSourceSnapshot.from_native) as parser:
+            asyncio.run(check())
+
+    def test_shared_validation_failure_is_not_published_or_retried(self):
+        runner, slots, trace, plan, _ = self.build()
+        original = slots[1].engine.ieee_gpu_reference.side_effect
+        async def invalid(**kwargs):
+            return (await original(**kwargs)) | dict(clock_id='wrong-clock')
+        slots[1].engine.ieee_gpu_reference.side_effect = invalid
+        async def check():
+            outcomes = await asyncio.gather(*(runner._ieee_request_snapshot(trace, plan)
+                for _ in range(32)), return_exceptions=True)
+            self.assertTrue(all(isinstance(value, ValueError) for value in outcomes))
+            self.assertEqual(parser.call_count, 2)
+            self.assertTrue(all(slot.native_source_state is None for slot in slots))
+            self.assertEqual(sum(s.engine.ieee_gpu_reference.await_count for s in slots), 2)
+            self.assertIsNone(runner._ieee_source_observation_wave)
+            with self.assertRaisesRegex(ValueError, 'owner/epoch/clock'):
+                await runner._ieee_request_snapshot(trace, plan)
+            self.assertEqual(parser.call_count, 4)
+        with patch.object(NativeSourceSnapshot, 'from_native', wraps=NativeSourceSnapshot.from_native) as parser:
+            asyncio.run(check())
+
+    def test_shared_parsed_state_rechecks_freshness_for_every_waiter(self):
+        runner, slots, trace, plan, _ = self.build()
+        async def check():
+            async def request():
+                value = await runner._ieee_request_snapshot(trace, plan)
+                if value is not None:
+                    slots[1].native_source_state = replace(slots[1].native_source_state, epoch=2)
+                return value
+            outcomes = await asyncio.gather(*(request() for _ in range(32)))
+            self.assertEqual(sum(value is not None for value in outcomes), 1)
+            self.assertEqual(runner._ieee_source_observation_stats['stale_rejections'], 31)
+            self.assertEqual(parser.call_count, 2)
+            self.assertEqual(slots[1].native_source_state.epoch, 2)
+        with patch.object(NativeSourceSnapshot, 'from_native', wraps=NativeSourceSnapshot.from_native) as parser:
+            asyncio.run(check())
+
+    def test_obsolete_membership_is_rejected_before_shared_parsing(self):
+        runner, slots, trace, plan, _ = self.build()
+        original = slots[0].engine.ieee_gpu_reference.side_effect
+        async def obsolete(**kwargs):
+            value = await original(**kwargs)
+            slots.pop()
+            return value | dict(clock_id='invalid-obsolete-clock')
+        slots[0].engine.ieee_gpu_reference.side_effect = obsolete
+        with patch.object(NativeSourceSnapshot, 'from_native', wraps=NativeSourceSnapshot.from_native) as parser:
+            self.assertIsNone(asyncio.run(runner._ieee_request_snapshot(trace, plan)))
+            parser.assert_not_called()
+        self.assertIsNone(slots[0].native_source_state)
 
     def test_rejected_multireplica_collection_does_not_partially_publish(self):
         runner, (a, b), trace, plan, _ = self.build()

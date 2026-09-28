@@ -1,13 +1,49 @@
 # IEEE TC execution status
 
-## CURRENT — D110 diagnostic complete; evidence backup pending
+## CURRENT — D111 causal CPU validation passed; candidate ready for backup / Full
 
-2026-09-28 21:31. Supersedes ALL historical LIVE/NEXT notes in archived ledgers.
+2026-09-28 21:49. Goal ACTIVE/incomplete; baselines PAUSED. No GPU/remote run
+started this turn. D111 modifies ONLY scripts/run_all_experiments.py production
+collection parsing; tests/test_ieee_tc_request_lifecycle.py adds/extends checks.
+Base HEAD6593db7, runtime parent244ceb657. Candidate not Full-qualified yet.
+
+- Same D102-qualified actual D88 payload: oneowner/8adapters/1792HOSTallocations,
+  actual runner collection with explicit fake RPC/file/NVML boundaries. First
+  probe failed ONLY frozenset summary serialization; raw failed source/log kept.
+- Before2:32waiters share1RPC but parse32times. Candidate:1RPC/1parse;
+  all normalized routing row hashes and livecounts0..31 identical, sourceSHA
+  unchanged, next request freshRPC. No long-lived/finished-view cache.
+- Three32-waiter CPU wave timings before293.484/87.709/87.742ms,
+  after6.185/6.455/6.020ms. Diagnostic only, not GPU/E2E/timeout causality/CI.
+- Parser moved inside same in-flight collection; immutable return. Eachwaiter
+  still checks membership/currentepoch/wholecollection beforepublication and
+  recalculates files/counts/feasibility/cost. Nativeguard/formulas/timeoutunchanged.
+- 275targetedtests PASS6.047s; noGPUstarted, high/max/OOM0 in completedprobes/tests.
+  Doc D111_SHARED_SNAPSHOT_PARSING.md contains full table/caveats/sourcebasis.
+- All4 probe/test scopes plus curation exactempty stopped; nojobs remain.
+  Curated20260928_d111_shared_snapshot_parsing.json
+  SHAeb57f019112f8b0dcdfab305dc985843d98e47d96401e989d956ae2d6f617873;
+  26sourcechecks and147protected unchanged; gitdiffcheckPASS.
+- NEXT: scoped candidatecommit/push; then ONE ordinary canonical3BFull4000W0 with same frozen
+  inputs/config/initializers, newownedpaths and noadditionaloptimizer. No py-spy;
+  therefore don'tattribute a D110-to-next timingdelta wholly to this candidate.
+- Once-only published cache fulfilledD78/D80; NEVERrebuild. OldD110 allcomplete,
+  doNOTredo replay/projection/curation/copy/tests/backup. Ordinary3BFull,7BFull,
+  warm/reference,baselines,formalmatrices andnumericadapterqualification pending.
+
+## D110 completed reference — superseded CURRENT, not a command to rerun
+
+2026-09-28 21:34. Supersedes ALL historical LIVE/NEXT notes in archived ledgers.
 Goal ACTIVE/incomplete; baselines PAUSED. No GPU, remote, replay or analysis job
 remains. Runtime244ceb6571c3f1d04a9f24594115f3433115d619 unchanged/already pushed.
 This goal turn PROGRESS: full projection/curation, failure classification,
 test synchronization repair, final checks and exact-owned cleanup completed.
 Do NOT repeat D110 replay, projection, curation, remote copies or 47 checks.
+Evidence commit6593db70a38e0337f72e690fcff0f7ebdd09b1ee pushed;
+exact faaslora_origin/retry14_continuous_queue_v2 HEAD verified21:34.
+Seven scoped files only, checksum15/source56/protection147/secrets/diff checks
+passed; userdirty manifest not staged. Do NOT repeat backup. This post-push
+ledger update is not a runtime/configuration change.
 
 - Canonical3BFull4000W0 profiling4: all4000planned/arrived/submitted/terminal;
   2904success/nativecontract,999TimeoutError,97RuntimeError. Complete execution
@@ -65,9 +101,7 @@ Do NOT repeat D110 replay, projection, curation, remote copies or 47 checks.
   smoke071b619d1e3640929d4514ba0c81d562/smoke2 5d98c4833af9469c970f2ed41d73b654/
   smoke3 8eea8ce3fec4419f8feaf7441390e52a exact-empty checked/stopped21:29:21.
   All high/max/OOM0. Raw analysis_scopes_cleanup_profile4.log.
-- NEXT source/schema/diff/secrets checks and scoped evidence backup, including
-  only ledger/archive/D110doc/3curatedJSON/test fixture. Do not stage userdirty.
-  THEN ONE causal CPU probe of repeated parsing in the actual coalesced native
+- NEXT ONE causal CPU probe of repeated parsing in the actual coalesced native
   observation path. D102 old8-adapter snapshot probe not sufficient alone;
   don't repeat it unchanged or infer all timeouts explained by23.39%samples.
   Retain same-source owner/epoch/clock/content/freshness and physical guards.

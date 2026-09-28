@@ -1,0 +1,622 @@
+{
+  "kind": "d111_shared_snapshot_parsing_evidence_v1",
+  "parent_head": "6593db70a38e0337f72e690fcff0f7ebdd09b1ee",
+  "formal_performance_result": false,
+  "full_qualification": false,
+  "before": {
+    "kind": "d111_actual_coalesced_collection_cpu_probe_v1",
+    "phase": "before",
+    "formal_performance_result": false,
+    "gpu_or_remote_started": false,
+    "source_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d88_20260927/3b_admission_source_attempt4.json",
+    "source_sha256": "7377ed4e706e1eb81db79d89d780d1205d04e76345f5ede8b8a6c9c81397e953",
+    "selected": [
+      {
+        "path": [
+          "sources_after"
+        ],
+        "payload_sha256": "862203599f42b8508dfeb30b5c5564dbe2a165879115d36f44f1fd70ca98468d",
+        "owner_id": "88e701c8f8fa49578fac04115c596ce1",
+        "epoch": 4913,
+        "registered": 8,
+        "host_allocations": 1792,
+        "native_sources": 8
+      }
+    ],
+    "samples": [
+      {
+        "trial": 0,
+        "waiters": 1,
+        "parse_calls": 1,
+        "parse_ns": 2393145,
+        "collection_and_request_ns": 3134955,
+        "normalized_rows_sha256": "68d6f6402832990205d9780f9211796c35f0905d7d78eaf44501e3225df22233",
+        "collections": [
+          1
+        ],
+        "joined": 0,
+        "live_counts": [
+          0
+        ],
+        "fresh_rpc_after_wave": true
+      },
+      {
+        "trial": 0,
+        "waiters": 32,
+        "parse_calls": 32,
+        "parse_ns": 284867306,
+        "collection_and_request_ns": 293484478,
+        "normalized_rows_sha256": "7bfd2a2294fda054602cc26be040d162db194ba6e2d862b36628523f99303158",
+        "collections": [
+          1
+        ],
+        "joined": 31,
+        "live_counts": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31
+        ],
+        "fresh_rpc_after_wave": true
+      },
+      {
+        "trial": 1,
+        "waiters": 1,
+        "parse_calls": 1,
+        "parse_ns": 2852830,
+        "collection_and_request_ns": 3228687,
+        "normalized_rows_sha256": "68d6f6402832990205d9780f9211796c35f0905d7d78eaf44501e3225df22233",
+        "collections": [
+          1
+        ],
+        "joined": 0,
+        "live_counts": [
+          0
+        ],
+        "fresh_rpc_after_wave": true
+      },
+      {
+        "trial": 1,
+        "waiters": 32,
+        "parse_calls": 32,
+        "parse_ns": 81491975,
+        "collection_and_request_ns": 87709395,
+        "normalized_rows_sha256": "7bfd2a2294fda054602cc26be040d162db194ba6e2d862b36628523f99303158",
+        "collections": [
+          1
+        ],
+        "joined": 31,
+        "live_counts": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31
+        ],
+        "fresh_rpc_after_wave": true
+      },
+      {
+        "trial": 2,
+        "waiters": 1,
+        "parse_calls": 1,
+        "parse_ns": 2584740,
+        "collection_and_request_ns": 2914984,
+        "normalized_rows_sha256": "68d6f6402832990205d9780f9211796c35f0905d7d78eaf44501e3225df22233",
+        "collections": [
+          1
+        ],
+        "joined": 0,
+        "live_counts": [
+          0
+        ],
+        "fresh_rpc_after_wave": true
+      },
+      {
+        "trial": 2,
+        "waiters": 32,
+        "parse_calls": 32,
+        "parse_ns": 81690958,
+        "collection_and_request_ns": 87742161,
+        "normalized_rows_sha256": "7bfd2a2294fda054602cc26be040d162db194ba6e2d862b36628523f99303158",
+        "collections": [
+          1
+        ],
+        "joined": 31,
+        "live_counts": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31
+        ],
+        "fresh_rpc_after_wave": true
+      }
+    ],
+    "parsed_sha256": "93abe6dbe7dbe690f6dd40d8154c228b21ecb8996ccdf38b2a910d36e8e36534",
+    "input_unchanged": true,
+    "source_code_sha256": {
+      "scripts/run_all_experiments.py": "a9fed71615dc4014290183556f95dfb6d017b0131cc004b18524a1b00bac67c3",
+      "faaslora/experiment/instance_pool.py": "65744a7c6037b5e01ec2e1c3cfb880f9a6ffd79232af2bfa3f7f449a771636bd",
+      "tests/test_ieee_tc_request_lifecycle.py": "726df41e78adfa51f340fdebd0d18673d23166e3f5fd8a7e45dd8532b6f02345"
+    },
+    "caveat": "Historical 8-adapter/1792-allocation payload, one actual owner, actual runner collection path with fake RPC/file/NVML boundaries. Not the D110 live wave distribution. Counts are causal work evidence; CPU timing is diagnostic, not E2E/timeout causality or independent workload CI."
+  },
+  "after": {
+    "kind": "d111_actual_coalesced_collection_cpu_probe_v1",
+    "phase": "after",
+    "formal_performance_result": false,
+    "gpu_or_remote_started": false,
+    "source_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d88_20260927/3b_admission_source_attempt4.json",
+    "source_sha256": "7377ed4e706e1eb81db79d89d780d1205d04e76345f5ede8b8a6c9c81397e953",
+    "selected": [
+      {
+        "path": [
+          "sources_after"
+        ],
+        "payload_sha256": "862203599f42b8508dfeb30b5c5564dbe2a165879115d36f44f1fd70ca98468d",
+        "owner_id": "88e701c8f8fa49578fac04115c596ce1",
+        "epoch": 4913,
+        "registered": 8,
+        "host_allocations": 1792,
+        "native_sources": 8
+      }
+    ],
+    "samples": [
+      {
+        "trial": 0,
+        "waiters": 1,
+        "parse_calls": 1,
+        "parse_ns": 2591602,
+        "collection_and_request_ns": 3250273,
+        "normalized_rows_sha256": "68d6f6402832990205d9780f9211796c35f0905d7d78eaf44501e3225df22233",
+        "collections": [
+          1
+        ],
+        "joined": 0,
+        "live_counts": [
+          0
+        ],
+        "fresh_rpc_after_wave": true
+      },
+      {
+        "trial": 0,
+        "waiters": 32,
+        "parse_calls": 1,
+        "parse_ns": 2929430,
+        "collection_and_request_ns": 6185378,
+        "normalized_rows_sha256": "7bfd2a2294fda054602cc26be040d162db194ba6e2d862b36628523f99303158",
+        "collections": [
+          1
+        ],
+        "joined": 31,
+        "live_counts": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31
+        ],
+        "fresh_rpc_after_wave": true
+      },
+      {
+        "trial": 1,
+        "waiters": 1,
+        "parse_calls": 1,
+        "parse_ns": 2631101,
+        "collection_and_request_ns": 2986106,
+        "normalized_rows_sha256": "68d6f6402832990205d9780f9211796c35f0905d7d78eaf44501e3225df22233",
+        "collections": [
+          1
+        ],
+        "joined": 0,
+        "live_counts": [
+          0
+        ],
+        "fresh_rpc_after_wave": true
+      },
+      {
+        "trial": 1,
+        "waiters": 32,
+        "parse_calls": 1,
+        "parse_ns": 2992859,
+        "collection_and_request_ns": 6454508,
+        "normalized_rows_sha256": "7bfd2a2294fda054602cc26be040d162db194ba6e2d862b36628523f99303158",
+        "collections": [
+          1
+        ],
+        "joined": 31,
+        "live_counts": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31
+        ],
+        "fresh_rpc_after_wave": true
+      },
+      {
+        "trial": 2,
+        "waiters": 1,
+        "parse_calls": 1,
+        "parse_ns": 2576110,
+        "collection_and_request_ns": 2940677,
+        "normalized_rows_sha256": "68d6f6402832990205d9780f9211796c35f0905d7d78eaf44501e3225df22233",
+        "collections": [
+          1
+        ],
+        "joined": 0,
+        "live_counts": [
+          0
+        ],
+        "fresh_rpc_after_wave": true
+      },
+      {
+        "trial": 2,
+        "waiters": 32,
+        "parse_calls": 1,
+        "parse_ns": 2661471,
+        "collection_and_request_ns": 6020394,
+        "normalized_rows_sha256": "7bfd2a2294fda054602cc26be040d162db194ba6e2d862b36628523f99303158",
+        "collections": [
+          1
+        ],
+        "joined": 31,
+        "live_counts": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31
+        ],
+        "fresh_rpc_after_wave": true
+      }
+    ],
+    "parsed_sha256": "93abe6dbe7dbe690f6dd40d8154c228b21ecb8996ccdf38b2a910d36e8e36534",
+    "input_unchanged": true,
+    "source_code_sha256": {
+      "scripts/run_all_experiments.py": "01b50c8d0c37c76f8a0f27fa20f681bace199a94ae3442d77bee28c4324426d3",
+      "faaslora/experiment/instance_pool.py": "65744a7c6037b5e01ec2e1c3cfb880f9a6ffd79232af2bfa3f7f449a771636bd",
+      "tests/test_ieee_tc_request_lifecycle.py": "7e221a38d4704fb9aec8e10b91c8abafd99f1cf3ee20e352d7ec4c81bec3023d"
+    },
+    "caveat": "Historical 8-adapter/1792-allocation payload, one actual owner, actual runner collection path with fake RPC/file/NVML boundaries. Not the D110 live wave distribution. Counts are causal work evidence; CPU timing is diagnostic, not E2E/timeout causality or independent workload CI."
+  },
+  "regression": {
+    "passed": 275,
+    "seconds": 6.047
+  },
+  "first_probe_failure": "diagnostic summary frozenset serialization; source/log retained",
+  "cleanup": [
+    {
+      "unit": "primelora-d111-probe-after-20260928.scope",
+      "invocation_id": "c7f269b34e0548af8ddc5e6fd8c54e44",
+      "empty_before_stop": true,
+      "memory_events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0"
+      },
+      "active_state_after": "inactive"
+    },
+    {
+      "unit": "primelora-d111-regression-20260928.scope",
+      "invocation_id": "09f9408ca9ca45b1a14cec46182a0def",
+      "empty_before_stop": true,
+      "memory_events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0"
+      },
+      "active_state_after": "inactive"
+    }
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "source_refs": [
+    {
+      "path": "docs/ieee_tc/D111_SHARED_SNAPSHOT_PARSING.md",
+      "bytes": 5528,
+      "sha256": "e4f6116779c4759ab05d264bca37a7d3dd483150ef0d9537ea4a438625566369"
+    },
+    {
+      "path": "faaslora/experiment/instance_pool.py",
+      "bytes": 78828,
+      "sha256": "65744a7c6037b5e01ec2e1c3cfb880f9a6ffd79232af2bfa3f7f449a771636bd"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d111_20260928/after.log",
+      "bytes": 3662,
+      "sha256": "07408aeedecc8b75fdda9c9dc544ccf80edfdb09c2356f3964eb991c2785dc4e"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d111_20260928/after_memory_events.txt",
+      "bytes": 53,
+      "sha256": "28fe05a1d7b8467a03fb54454f7b6a130fab752864d0454f5f6c4a4b6ce307f2"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d111_20260928/after_scope.txt",
+      "bytes": 250,
+      "sha256": "0500c2f1c01dd2de111a39a64a998814867745a7a763a990616cc579d2446728"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d111_20260928/after_time.txt",
+      "bytes": 863,
+      "sha256": "efa56a48a196989b9831beae5085ffc826e67147d8ff0f598441b127d864f716"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d111_20260928/before.log",
+      "bytes": 2192,
+      "sha256": "f77853691371952142ace37c41e66dd5e80b993f745ba1f433829fc448662205"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d111_20260928/before2.log",
+      "bytes": 3675,
+      "sha256": "e04c37cf1990a77e5563c29ae3ee4623ee825fd30a349ecc4ae53ea3bf080fec"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d111_20260928/before2_memory_events.txt",
+      "bytes": 53,
+      "sha256": "28fe05a1d7b8467a03fb54454f7b6a130fab752864d0454f5f6c4a4b6ce307f2"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d111_20260928/before2_scope.txt",
+      "bytes": 252,
+      "sha256": "7dc2799260279dbd10451e976145447bbec2a7965f6a0b2045fe0c0d336c15e1"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d111_20260928/before2_time.txt",
+      "bytes": 861,
+      "sha256": "40a363036b6c92b2658ca6a69fb856df9633edae3d7e92109c79f3118914f415"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d111_20260928/before_scope.txt",
+      "bytes": 251,
+      "sha256": "1af741a53f4c2c9d909a6a7795039fba5698c1d00d0832fb34832d5ceae00b9b"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d111_20260928/before_time.txt",
+      "bytes": 906,
+      "sha256": "3631ddd4f891ccdeb609588d88676068f96995590b5f809cd3530683dea99c2b"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d111_20260928/collection_after.json",
+      "bytes": 4921,
+      "sha256": "d2152baf8f4e36de1309814c770e40b38b18062558777109eb969da141bcce76"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d111_20260928/collection_before.json",
+      "bytes": 4933,
+      "sha256": "c32ee33bf74aa2e59e577ac8c484d8187debc37d39c1608f64f2efe16531d5d0"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d111_20260928/curate.py",
+      "bytes": 3334,
+      "sha256": "10c96d6e7c064242a612fd6e3056aa5d05da26cfeb05a074522a2866d055c2d9"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d111_20260928/probe_source_collection.py",
+      "bytes": 6173,
+      "sha256": "8aa77690b54bfa74d2dd1dacf90697b76e26c77fb883f35af195a20d44652fa1"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d111_20260928/probe_source_collection_attempt1.py",
+      "bytes": 5970,
+      "sha256": "0941a233e30bca7e540d3ab91831f91694d32d06b617bffcbf0ecd4e0906ac85"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d111_20260928/regression.log",
+      "bytes": 74570,
+      "sha256": "f092a1c4171d2343d83999a776d6ff149cefc40de537ea997fd566a26a501326"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d111_20260928/regression_memory_events.txt",
+      "bytes": 53,
+      "sha256": "28fe05a1d7b8467a03fb54454f7b6a130fab752864d0454f5f6c4a4b6ce307f2"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d111_20260928/regression_scope.txt",
+      "bytes": 249,
+      "sha256": "5524f31d658dbaa21583a68a8791092f245bb3e5b8fbc36a1e6bf11ce289ccf3"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d111_20260928/regression_time.txt",
+      "bytes": 968,
+      "sha256": "a5db77ee610d7de7141062d22f40001a722bbc630cffa520ed6a4452c5b40fb7"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d111_20260928/run_probe.sh",
+      "bytes": 1168,
+      "sha256": "8f57afb95bdb4bcc2fa123989d1ca5c08e5e9f037dc5c048e448cc75c5d58f26"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d111_20260928/run_regression.sh",
+      "bytes": 1240,
+      "sha256": "3cf307591c1fa0fa905b0ae6851a2ab70c8fe4ea80e7fc5091003e623d8e55d3"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "bytes": 1157087,
+      "sha256": "01b50c8d0c37c76f8a0f27fa20f681bace199a94ae3442d77bee28c4324426d3"
+    },
+    {
+      "path": "tests/test_ieee_tc_request_lifecycle.py",
+      "bytes": 222366,
+      "sha256": "7e221a38d4704fb9aec8e10b91c8abafd99f1cf3ee20e352d7ec4c81bec3023d"
+    }
+  ],
+  "next_action": "One ordinary canonical 3B Full W0 after candidate backup; no second optimization."
+}

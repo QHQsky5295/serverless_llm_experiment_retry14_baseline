@@ -7796,6 +7796,8 @@ class ScenarioRunner:
     async def _ieee_collect_native_sources(self, slots):
         """Share only a currently in-flight read, never cache a finished view.
 
+        Parse each received replica once into immutable state inside the shared
+        collection. Publication/freshness remain each waiter's responsibility.
         Request-specific feasibility/counts/estimates are NOT shared. A waiter
         cannot cancel another's read; the last waiter cancels and joins owned
         reads. No polling period, TTL, sleeping or observation of future demand.
@@ -7813,12 +7815,32 @@ class ScenarioRunner:
         else:
             stats['collections'] = stats.get('collections', 0) + 1
             async def collect():
+                from faaslora.clock import local_monotonic_clock_id
+                from faaslora.experiment.instance_pool import NativeSourceSnapshot
                 async def read(engine):
                     stats['rpc_invocations'] = stats.get('rpc_invocations', 0) + 1
                     return await engine.ieee_gpu_reference(operation='source_snapshot')
                 reads = [asyncio.create_task(read(engine)) for engine in engines]
                 try:
-                    return await asyncio.gather(*reads)
+                    views = await asyncio.gather(*reads)
+                    # Preserve rejection-before-validation for obsolete members.
+                    # Every waiter rechecks membership after its own final await.
+                    if (tuple(self.instance_pool.get_slots()) != slots
+                            or any(slot.engine is not engine for slot, engine in zip(slots, engines))):
+                        return None
+                    device_uuids = tuple(view.get('device_uuid') for view in views)
+                    if (any(not isinstance(value, str) for value in device_uuids)
+                            or len(set(device_uuids)) != len(device_uuids)):
+                        raise ValueError('IEEE TP=1 replicas require distinct native physical GPU identities')
+                    clock_id = local_monotonic_clock_id()
+                    native = []
+                    for view in views:
+                        stats['parse_invocations'] = stats.get('parse_invocations', 0) + 1
+                        native.append(NativeSourceSnapshot.from_native(view,
+                            expected_clock_id=clock_id, received_monotonic_s=time.monotonic()))
+                    # No raw mutable payload escapes to a waiter. This operation
+                    # validates observations, not current feasibility or a lease.
+                    return tuple(zip(native, device_uuids))
                 finally:
                     for read in reads:
                         if not read.done():
@@ -7849,28 +7871,21 @@ class ScenarioRunner:
         received controller view. Selection/reservation follows without yielding;
         selected-copy revalidation remains a separate required transaction.
         """
-        from faaslora.clock import local_monotonic_clock_id
         from faaslora.experiment.instance_pool import (
-            NativeSourceSnapshot, ReplicaRoutingSnapshot, confirmed_source_class)
+            ReplicaRoutingSnapshot, confirmed_source_class)
         if self._stack is None:
             raise ValueError('IEEE routing requires the actual managed file source owner')
         owner = self._stack.residency_manager.local_source_references
         slots = tuple(self.instance_pool.get_slots())
         engines = tuple(slot.engine for slot in slots)
-        native_views, collection = await self._ieee_collect_native_sources(slots)
+        observations, collection = await self._ieee_collect_native_sources(slots)
         # Scale-up/removal during RPC collection is not a complete current view.
-        if (tuple(self.instance_pool.get_slots()) != slots
+        if (observations is None or tuple(self.instance_pool.get_slots()) != slots
                 or any(slot.engine is not engine for slot, engine in zip(slots, engines))):
             stats = self._ieee_source_observation_stats
             stats['membership_rejections'] = stats.get('membership_rejections', 0) + 1
             return None
-        device_uuids = [view.get('device_uuid') for view in native_views]
-        if (any(not isinstance(value, str) for value in device_uuids)
-                or len(set(device_uuids)) != len(device_uuids)):
-            raise ValueError('IEEE TP=1 replicas require distinct native physical GPU identities')
-        clock_id = local_monotonic_clock_id()
-        native = [NativeSourceSnapshot.from_native(view, expected_clock_id=clock_id,
-            received_monotonic_s=time.monotonic()) for view in native_views]
+        native = tuple(state for state, _ in observations)
         # Validate the WHOLE collection before publishing any member. There is
         # no await between this check, publication, and request-specific state.
         if not all(slot.accepts_native_sources(state) for slot, state in zip(slots, native)):
@@ -7890,7 +7905,7 @@ class ScenarioRunner:
         self._ieee_routing_epoch += 1
         rows, evidence = [], {}
         capacity, active_limit = self._runtime_forward_capacity_limit(), self._runtime_max_active_loras()
-        for slot, state, raw_view in zip(slots, native, native_views):
+        for slot, (state, device_uuid) in zip(slots, observations):
             admitted = slot.active_requests
             active = frozenset(aid for aid, count in slot.active_adapter_counts.items() if count > 0)
             remaining = max(0, capacity - admitted)
@@ -7898,7 +7913,7 @@ class ScenarioRunner:
                 # Historical forwarding does not expose native load ownership.
                 # Do not fabricate zero pending work and call it IEEE-qualified.
                 raise ValueError('untracked legacy forwarding cannot enter IEEE routing state')
-            utilization = self._sample_ieee_gpu_utilization(slot, device_uuid=raw_view.get('device_uuid'))
+            utilization = self._sample_ieee_gpu_utilization(slot, device_uuid=device_uuid)
             key = service = source = None
             feasible = remaining > 0 and (not adapter_id or adapter_id in active or len(active) < active_limit)
             if feasible:
