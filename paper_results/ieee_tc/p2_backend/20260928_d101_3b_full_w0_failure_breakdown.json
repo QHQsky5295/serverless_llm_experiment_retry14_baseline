@@ -1,0 +1,581 @@
+{
+  "kind": "d101_full8_failure_breakdown_v1",
+  "formal_performance_result": false,
+  "projection_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d101_20260928/full_attempt8_request_projection.json",
+  "projection_sha256": "571d9bf7a1f3c8723a054ecb43e2c86a63a4553a3cb4956d577069a5b81311d9",
+  "population": {
+    "planned": 4000,
+    "success": 3970,
+    "timeout": 30,
+    "returned_error": 0
+  },
+  "returned_categories": {},
+  "returned_error_messages": {},
+  "returned_generation_submission_states": {},
+  "first_timeout": {
+    "request_id": "req_01685",
+    "instance_id": null,
+    "failure_observation": {
+      "kind": "controller_task_exception_v1",
+      "exception_type": "TimeoutError",
+      "observed_monotonic_s": 88204.839969557,
+      "observed_offset_s": 3478.6935592910013,
+      "elapsed_since_offered_ms": 1800231.3572188579,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "native_completion_inferred": false,
+      "gpu_release_inferred": false
+    },
+    "generation_submission": null,
+    "source_admission_present": false,
+    "source_tier": null,
+    "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+  },
+  "first_returned_error": null,
+  "timeout_generation_submission_states": {
+    "unrecorded": 30
+  },
+  "timeout_requests": [
+    {
+      "request_id": "req_01685",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 88204.839969557,
+        "observed_offset_s": 3478.6935592910013,
+        "elapsed_since_offered_ms": 1800231.3572188579,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_01808",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 88269.057599869,
+        "observed_offset_s": 3542.911189603008,
+        "elapsed_since_offered_ms": 1806835.5670444143,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_01882",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 88323.800043343,
+        "observed_offset_s": 3597.653633077003,
+        "elapsed_since_offered_ms": 1800118.0438588634,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_01907",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 88348.482295036,
+        "observed_offset_s": 3622.33588477,
+        "elapsed_since_offered_ms": 1800501.8374524952,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_01922",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 88376.610680217,
+        "observed_offset_s": 3650.4642699510005,
+        "elapsed_since_offered_ms": 1813475.9295731927,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_01930",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 88376.610590917,
+        "observed_offset_s": 3650.4641806510044,
+        "elapsed_since_offered_ms": 1804932.2916892124,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_01951",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 88392.979240429,
+        "observed_offset_s": 3666.83283016301,
+        "elapsed_since_offered_ms": 1800617.8033075412,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_01952",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 88395.88108737,
+        "observed_offset_s": 3669.734677104003,
+        "elapsed_since_offered_ms": 1800270.954874999,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_01984",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 88420.646033343,
+        "observed_offset_s": 3694.499623077005,
+        "elapsed_since_offered_ms": 1800604.6302486355,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_02014",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 88448.163618265,
+        "observed_offset_s": 3722.0172079990007,
+        "elapsed_since_offered_ms": 1812487.6593539813,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_02046",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 88481.976333623,
+        "observed_offset_s": 3755.8299233569996,
+        "elapsed_since_offered_ms": 1813214.2598285573,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_02183",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 88566.719366214,
+        "observed_offset_s": 3840.5729559480096,
+        "elapsed_since_offered_ms": 1802426.1644898797,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_02246",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 88605.543504147,
+        "observed_offset_s": 3879.397093881009,
+        "elapsed_since_offered_ms": 1803731.4425595978,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_02247",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 88605.543283371,
+        "observed_offset_s": 3879.396873104997,
+        "elapsed_since_offered_ms": 1802979.0683869796,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_02324",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 88652.110330514,
+        "observed_offset_s": 3925.963920248003,
+        "elapsed_since_offered_ms": 1800880.5576686573,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_02325",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 88652.424375658,
+        "observed_offset_s": 3926.2779653920006,
+        "elapsed_since_offered_ms": 1800064.5616902183,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_02340",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 88665.364662047,
+        "observed_offset_s": 3939.2182517809997,
+        "elapsed_since_offered_ms": 1800125.0968737733,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_02449",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 88752.444409101,
+        "observed_offset_s": 4026.297998834998,
+        "elapsed_since_offered_ms": 1800128.7292732303,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_02567",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 88875.634516007,
+        "observed_offset_s": 4149.488105741009,
+        "elapsed_since_offered_ms": 1812933.9217810484,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_02639",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 88926.275036506,
+        "observed_offset_s": 4200.12862624001,
+        "elapsed_since_offered_ms": 1816331.4403421828,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_02671",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 88931.232699818,
+        "observed_offset_s": 4205.086289552011,
+        "elapsed_since_offered_ms": 1800126.5994580172,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_02694",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 88951.895968534,
+        "observed_offset_s": 4225.7495582679985,
+        "elapsed_since_offered_ms": 1801729.2335609673,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_02842",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 89090.728011674,
+        "observed_offset_s": 4364.581601408005,
+        "elapsed_since_offered_ms": 1802039.7656230927,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_02968",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 89204.256024788,
+        "observed_offset_s": 4478.109614522007,
+        "elapsed_since_offered_ms": 1806125.8632250102,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_03099",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 89322.112527338,
+        "observed_offset_s": 4595.966117072006,
+        "elapsed_since_offered_ms": 1805626.8359898531,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_03127",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 89337.573613923,
+        "observed_offset_s": 4611.427203657004,
+        "elapsed_since_offered_ms": 1802178.1649607145,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_03144",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 89360.570356781,
+        "observed_offset_s": 4634.423946515002,
+        "elapsed_since_offered_ms": 1800043.3350953246,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_03213",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 89459.596226349,
+        "observed_offset_s": 4733.449816082997,
+        "elapsed_since_offered_ms": 1800128.1951418351,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_03234",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 89502.643101164,
+        "observed_offset_s": 4776.496690897999,
+        "elapsed_since_offered_ms": 1817528.3319044684,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_03263",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 89502.90543352,
+        "observed_offset_s": 4776.75902325401,
+        "elapsed_since_offered_ms": 1800000.9513545956,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    }
+  ],
+  "returned_requests": [],
+  "caveat": "Missing evidence is not proof of no dispatch. not_submitted describes this generation, not other unsettled RPC ownership or physical release."
+}
