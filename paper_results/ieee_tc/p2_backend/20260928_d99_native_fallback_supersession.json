@@ -1,0 +1,200 @@
+{
+  "kind": "d99_native_fallback_supersession_v1",
+  "parent_commit": "210f202fc21d55969b4fb5c071ae7bb0a8917b91",
+  "cpu_only": true,
+  "performance_qualified": false,
+  "baselines_paused": true,
+  "hypothesis": "Known no-hold conflicts must close the obsolete objective, not abort unrelated service.",
+  "red": {
+    "tests": 2,
+    "errors": 2,
+    "real_native_reference_transition": true
+  },
+  "initial_green_failure": "One fixture assertion wrongly required file replacement after a new mixed plan completed GPU promotion; source fix unchanged.",
+  "tests": {
+    "integration1.log": {
+      "tests": 132,
+      "seconds": 8.24,
+      "passed": true
+    },
+    "regression1.log": {
+      "tests": 1174,
+      "seconds": 52.764,
+      "passed": true
+    },
+    "osguards1.log": {
+      "tests": 47,
+      "seconds": 0.125,
+      "passed": true
+    }
+  },
+  "distinct_regression_tests": 1221,
+  "cases": [
+    "file-only stale hold: actual reap continues; fresh plan completes",
+    "mixed GPU/file stale hold: registered plans close before fresh plan completes",
+    "actual removed native source: no file eviction under old objective",
+    "unknown/malformed/owner/clock rejection remains failure",
+    "lost hold reply retains uncertain ownership",
+    "failed prior release overrides supersession",
+    "external cancellation remains cancellation after acknowledged cleanup"
+  ],
+  "source_sha256": {
+    "faaslora/preloading/preloading_planner.py": "cc30801865762ae851794a58c60ec5761b03efe9346e794397637fe38d70ee9a",
+    "scripts/run_all_experiments.py": "6993dc222e2347f0fe99934b74169f757cea419ad4eca6a9131467cc84b1b543",
+    "tests/test_ieee_tc_transfer_pressure.py": "61708722a3c5a2d3c43bb1115ec0e66f663b306828a9c586b0ed415b31b80359",
+    "docs/ieee_tc/D99_NATIVE_FALLBACK_SUPERSESSION.md": "f8e91b0f44dbbd4ebab6aaf46557e71c00da86d015e3073521ae599badf428b8",
+    "results/ieee_tc/p2_backend_qualification/d98_20260928/full_attempt5_failed_native_fallback_plan.json": "438e91f7d8fe539273fb6e2924e4c67db5fe89e7fd83a105137f1b24f5525288",
+    "results/ieee_tc/p2_backend_qualification/d98_20260928/regression.py": "4a3b39654d9de527c0a8e27efc9275b11d23f10b817ca56c9cb3dce298e59cb9",
+    "results/ieee_tc/p2_backend_qualification/d99_20260928/red1.log": "c201b8c095147e61c93ab0f71dcabeb9575bc6cd4490c0609265d5ff459ef173",
+    "results/ieee_tc/p2_backend_qualification/d99_20260928/green1.log": "8eeafb00f8f2f21ff0f74976a2088988ec5067e9ee21c534522bd5ce45e28a8d",
+    "results/ieee_tc/p2_backend_qualification/d99_20260928/integration1.log": "d54bd4ea1a7ec441e99ea5c4084dc80e4a1c5af2d6889e2e25114b536cead0de",
+    "results/ieee_tc/p2_backend_qualification/d99_20260928/regression1.log": "d20d0a5849a9c32a1061d366a436f5b8d41b1260db621dd53b5caae7a6d9d340",
+    "results/ieee_tc/p2_backend_qualification/d99_20260928/osguards1.log": "547ef8f9ea11b5dde48ce8aeb309f97a220b064125832db35f9347e18beceb67",
+    "results/ieee_tc/p2_backend_qualification/d99_20260928/curate.py": "9bec4f5c7d29e8cad72a35020f82622fa76ea29f5d75235d99cd1f769ffddd88",
+    "results/ieee_tc/p2_backend_qualification/d99_20260928/cpu_scope_cleanup.json": "50491d6321607b6ef8a10d1bca2443157203cf48911aa8717988067f4a050ab0"
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "completed_scope_cleanup": [
+    {
+      "unit": "primelora-d99-fallback-red-20260928.scope",
+      "before": {
+        "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d99-fallback-red-20260928.scope",
+        "TasksCurrent": "0",
+        "MemoryHigh": "3221225472",
+        "MemoryMax": "4294967296",
+        "MemorySwapMax": "0",
+        "ActiveState": "active",
+        "InvocationID": "ed9548e8f6454eb9b37d30b261a9242c"
+      },
+      "resources": {
+        "memory.peak": "495738880",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "after": {
+        "ControlGroup": "",
+        "TasksCurrent": "[not set]",
+        "MemoryHigh": "infinity",
+        "MemoryMax": "infinity",
+        "MemorySwapMax": "infinity",
+        "ActiveState": "inactive",
+        "InvocationID": ""
+      }
+    },
+    {
+      "unit": "primelora-d99-fallback-green1-20260928.scope",
+      "before": {
+        "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d99-fallback-green1-20260928.scope",
+        "TasksCurrent": "0",
+        "MemoryHigh": "3221225472",
+        "MemoryMax": "4294967296",
+        "MemorySwapMax": "0",
+        "ActiveState": "active",
+        "InvocationID": "93e5656947114a48bafd4b8c1b6bce17"
+      },
+      "resources": {
+        "memory.peak": "498065408",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "after": {
+        "ControlGroup": "",
+        "TasksCurrent": "[not set]",
+        "MemoryHigh": "infinity",
+        "MemoryMax": "infinity",
+        "MemorySwapMax": "infinity",
+        "ActiveState": "inactive",
+        "InvocationID": ""
+      }
+    },
+    {
+      "unit": "primelora-d99-fallback-integration-20260928.scope",
+      "before": {
+        "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d99-fallback-integration-20260928.scope",
+        "TasksCurrent": "0",
+        "MemoryHigh": "3221225472",
+        "MemoryMax": "4294967296",
+        "MemorySwapMax": "0",
+        "ActiveState": "active",
+        "InvocationID": "d6257c3c0ce24aca9e17afada122d065"
+      },
+      "resources": {
+        "memory.peak": "496128000",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "after": {
+        "ControlGroup": "",
+        "TasksCurrent": "[not set]",
+        "MemoryHigh": "infinity",
+        "MemoryMax": "infinity",
+        "MemorySwapMax": "infinity",
+        "ActiveState": "inactive",
+        "InvocationID": ""
+      }
+    },
+    {
+      "unit": "primelora-d99-fallback-regression-20260928.scope",
+      "before": {
+        "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d99-fallback-regression-20260928.scope",
+        "TasksCurrent": "0",
+        "MemoryHigh": "3221225472",
+        "MemoryMax": "4294967296",
+        "MemorySwapMax": "0",
+        "ActiveState": "active",
+        "InvocationID": "df23805fb60149b79f8f987aa5de00b2"
+      },
+      "resources": {
+        "memory.peak": "1186811904",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "after": {
+        "ControlGroup": "",
+        "TasksCurrent": "[not set]",
+        "MemoryHigh": "infinity",
+        "MemoryMax": "infinity",
+        "MemorySwapMax": "infinity",
+        "ActiveState": "inactive",
+        "InvocationID": ""
+      }
+    },
+    {
+      "unit": "primelora-d99-fallback-osguards-20260928.scope",
+      "before": {
+        "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d99-fallback-osguards-20260928.scope",
+        "TasksCurrent": "0",
+        "MemoryHigh": "3221225472",
+        "MemoryMax": "4294967296",
+        "MemorySwapMax": "0",
+        "ActiveState": "active",
+        "InvocationID": "deb050d9018446fea0ee55568980c850"
+      },
+      "resources": {
+        "memory.peak": "16220160",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "after": {
+        "ControlGroup": "",
+        "TasksCurrent": "[not set]",
+        "MemoryHigh": "infinity",
+        "MemoryMax": "infinity",
+        "MemorySwapMax": "infinity",
+        "ActiveState": "inactive",
+        "InvocationID": ""
+      }
+    }
+  ],
+  "limitations": "CPU fixture, not CUDA performance. No Full4000, numerical LoRA, warm SLO or ranking qualification.",
+  "next": "Checkpoint then canonical3B Full4000 W0 attempt6; identical configuration except new source and owned paths."
+}

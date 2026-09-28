@@ -12307,7 +12307,9 @@ class ScenarioRunner:
                 capacity_only=not self._coordination_enabled)
             record.update(state=result.get('state', 'completed'), plan_sha256=result['plan']['plan_sha256'])
             if record['state'] == 'superseded':
-                record['native_registration_rejection'] = result['native_registration_rejection']
+                record['preparation_supersession'] = result['preparation_supersession']
+                if 'native_registration_rejection' in result:
+                    record['native_registration_rejection'] = result['native_registration_rejection']
             return result
         except BaseException as exc:
             record.update(state='cancelled' if isinstance(exc, asyncio.CancelledError) else 'failed',
@@ -17215,8 +17217,11 @@ class ScenarioRunner:
             # The file/native executors have joined/closed their ownership.
             # Keep partial physical work in their journals, not a fake empty
             # successful result. A later normal control tick observes anew.
-            return dict(plan=plan, results=None, state='superseded',
-                        native_registration_rejection=exc.receipt)
+            outcome = dict(plan=plan, results=None, state='superseded',
+                           preparation_supersession=dict(stage=exc.stage, receipt=exc.receipt))
+            if exc.stage == 'native_registration':
+                outcome['native_registration_rejection'] = exc.receipt
+            return outcome
         return dict(plan=plan, results=result)
 
     async def _run_ieee_file_preparation_plan(self, *, plan, target_engine,
@@ -17347,8 +17352,11 @@ class ScenarioRunner:
                     observed = await target_engine.ieee_gpu_reference(operation='source_snapshot')
                     if observed['owner_id'] != owner_id:
                         raise ValueError('native file fallback owner changed')
+                    if (observed.get('clock_id') != local_monotonic_clock_id()
+                            or type(observed.get('epoch')) is not int or observed['epoch'] < 1):
+                        raise ValueError('native file fallback observation is invalid')
                     evidence = dict(adapter_id=aid, lease_id=uuid.uuid4().hex,
-                                    owner_id=owner_id, state='holding')
+                                    owner_id=owner_id, expected_epoch=observed['epoch'], state='holding')
                     native_fallbacks.append(evidence)
                     receipt, cancelled = await settle(target_engine.ieee_gpu_reference(
                         operation='hold_host_source', lease_id=evidence['lease_id'],
@@ -17360,7 +17368,25 @@ class ScenarioRunner:
                         raise ValueError('native fallback hold outcome is unresolved')
                     evidence.update(state='held' if receipt['held'] else 'rejected', receipt=receipt)
                     if not receipt['held']:
-                        raise ValueError('native file fallback changed; a new planning epoch is required')
+                        # A known negative ACK owns no new reference. Retire
+                        # this objective through the normal joined cleanup,
+                        # then let a later residency tick observe/plan anew.
+                        # Unknown/malformed replies and owner changes remain
+                        # errors; never infer supersession from exception text.
+                        epoch = receipt.get('epoch')
+                        reason = receipt.get('reason')
+                        superseded = type(epoch) is int and (
+                            reason == 'stale_snapshot' and epoch > observed['epoch']
+                            or reason == 'required_source_changed' and epoch >= observed['epoch'])
+                        if not superseded:
+                            raise ValueError('native file fallback rejection is not a validated conflict')
+                        if cancelled:
+                            raise asyncio.CancelledError()
+                        conflict = dict(plan_id=plan_id, adapter_id=aid,
+                            lease_id=evidence['lease_id'], expected_epoch=observed['epoch'],
+                            acknowledgement=receipt)
+                        record['preparation_supersession'] = dict(stage='native_file_fallback', receipt=conflict)
+                        raise PreparationPlanSuperseded(conflict, stage='native_file_fallback')
                     if cancelled:
                         raise asyncio.CancelledError()
                 record['fallback_binding'] = references.bind_file_native_fallbacks(plan_id=plan_id,

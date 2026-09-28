@@ -2518,6 +2518,78 @@ class AutomaticFileReplacement(unittest.TestCase):
             await queue.close()
         asyncio.run(run())
 
+    def test_stale_native_fallback_closes_epoch_and_next_epoch_serves(self):
+        self._check_stale_fallback_supersession(mixed=False)
+
+    def test_stale_native_fallback_closes_registered_gpu_plan_before_next_epoch(self):
+        self._check_stale_fallback_supersession(mixed=True)
+
+    def _check_stale_fallback_supersession(self, *, mixed):
+        factory, data = self.make({'a':80,'d':1,'b':100,'c':100} if mixed else None)
+        fixture, runner, queue, slot, owner, snapshot, loads = data
+        original = slot.engine.ieee_gpu_reference.side_effect
+        conflicts = []
+        async def interleaved(**kw):
+            if kw['operation'] == 'hold_host_source' and kw['lora_name'] == 'c' and not conflicts:
+                # A real, unrelated acquire/release between observation and
+                # hold, not a forged stale reply or a manually incremented epoch.
+                before = owner.source_snapshot()
+                b = InferenceEngine._lora_int_id('b')
+                held = owner.acquire(lease_id='intervening-demand', adapter_int_id=b,
+                    expected_owner_id=owner.owner_id, expected_epoch=before['epoch'])
+                self.assertTrue(held['acquired'])
+                owner.release(lease_id='intervening-demand', expected_owner_id=owner.owner_id)
+                self.assertEqual(owner.source_snapshot()['slot_adapter_ids'], before['slot_adapter_ids'])
+                reply = await original(**kw)
+                self.assertIs(reply['held'], False)
+                self.assertEqual(reply['reason'], 'stale_snapshot')
+                self.assertGreater(reply['epoch'], kw['expected_epoch'])
+                conflicts.append(reply)
+                return reply
+            return await original(**kw)
+        slot.engine.ieee_gpu_reference.side_effect = interleaved
+        runner._coordination_enabled = True
+        async def run():
+            try:
+                with patch.object(runner, '_plan_ieee_preparation_for_slot',
+                                  wraps=runner._plan_ieee_preparation_for_slot) as planning:
+                    record = {}
+                    task = asyncio.create_task(runner._execute_ieee_residency_epoch(slot, record))
+                    runner._ieee_residency_tasks = {id(slot.engine): task}
+                    await asyncio.wait_for(asyncio.gather(task, return_exceptions=True), 3)
+                    # Actual controller reap used to propagate this expected
+                    # conflict and terminate the entire replay (D98 attempt5).
+                    runner._reap_ieee_residency_tasks()
+                    self.assertEqual(task.result()['state'], 'superseded')
+                    self.assertEqual(record['state'], 'superseded')
+                    self.assertEqual(record['preparation_supersession']['stage'], 'native_file_fallback')
+                    self.assertNotIn('native_registration_rejection', record)
+                    self.assertIsNone(task.result()['results'])
+                    self.assertEqual(planning.await_count, 1)  # No old-plan retry.
+                    self.assertFalse(fixture.owner._file_replacement_events)
+                    self.assertFalse(loads)
+                    file_record = runner._ieee_file_preparation_plans[-1]
+                    self.assertEqual(file_record['state'], 'superseded')
+                    self.assertEqual([r['state'] for r in file_record['native_fallbacks']],
+                                     ['released', 'rejected'])
+                    if mixed:
+                        self.assertEqual(runner._ieee_gpu_preparation_plans[-1]['state'], 'superseded')
+                    factory.check_clean(fixture, runner, owner)
+                    next_record = {}
+                    await asyncio.wait_for(runner._execute_ieee_residency_epoch(slot, next_record), 3)
+                    self.assertEqual(next_record['state'], 'completed')
+                    self.assertNotEqual(next_record['plan_sha256'], record['plan_sha256'])
+                    self.assertEqual(planning.await_count, 2)
+                    if mixed:
+                        self.assertIn(InferenceEngine._lora_int_id('a'), owner.snapshot()['slot_adapter_ids'])
+                        self.assertIn(('gpu','a'), loads)
+                    else:
+                        self.assertTrue(fixture.owner._file_replacement_events)
+                    factory.check_clean(fixture, runner, owner)
+            finally:
+                await queue.close()
+        asyncio.run(run())
+
     def test_cpu_fallback_lease_does_not_deadlock_same_epoch_gpu_replacement(self):
         factory,data = self.make({'a':80,'d':1,'b':100,'c':100})
         fixture,runner,queue,slot,owner,snapshot,loads = data
@@ -2540,18 +2612,139 @@ class AutomaticFileReplacement(unittest.TestCase):
         factory,data = self.make()
         fixture,runner,queue,slot,owner,snapshot,loads=data
         original=slot.engine.ieee_gpu_reference.side_effect
+        removed=[]
         async def reject(**kw):
-            if kw['operation']=='hold_host_source' and kw['lora_name']=='c':
-                return dict(await original(operation='source_snapshot'),held=False,reason='required_source_changed')
+            if (kw['operation']=='source_snapshot' and owner._host_leases and not removed):
+                # The frozen objective's fallback disappears BEFORE the fresh
+                # hold observation; the real owner reports source_changed.
+                owner.manager.remove_adapter(InferenceEngine._lora_int_id('c'))
+                removed.append(True)
             return await original(**kw)
         slot.engine.ieee_gpu_reference.side_effect=reject
         async def run():
-            with self.assertRaisesRegex(ValueError,'fallback changed'):
-                await factory.execute(runner,slot,mode='residency')
+            result=await factory.execute(runner,slot,mode='residency')
+            self.assertEqual(result['state'],'superseded')
+            self.assertEqual(result['preparation_supersession']['receipt']['acknowledgement']['reason'],
+                             'required_source_changed')
             self.assertFalse(fixture.owner._file_replacement_events)
             self.assertFalse((fixture.host/'a').exists())
             factory.check_clean(fixture,runner,owner)
             await queue.close()
+        asyncio.run(run())
+
+    def test_unknown_or_malformed_fallback_rejection_is_not_superseded(self):
+        from faaslora.preloading.preloading_planner import PreparationPlanSuperseded
+        for fault in ('unknown_reason','missing_epoch','backward_epoch','same_epoch_stale',
+                      'wrong_owner','wrong_clock','nonbool_held'):
+            with self.subTest(fault=fault):
+                factory,data=self.make()
+                fixture,runner,queue,slot,owner,snapshot,loads=data
+                original=slot.engine.ieee_gpu_reference.side_effect
+                async def reject(**kw):
+                    if kw['operation']=='hold_host_source' and kw['lora_name']=='c':
+                        receipt=dict(await original(operation='source_snapshot'), held=False,
+                                     reason='stale_snapshot', epoch=kw['expected_epoch']+1)
+                        if fault=='unknown_reason': receipt['reason']='unclassified_failure'
+                        if fault=='missing_epoch': receipt.pop('epoch')
+                        if fault=='backward_epoch': receipt['epoch']=kw['expected_epoch']-1
+                        if fault=='same_epoch_stale': receipt['epoch']=kw['expected_epoch']
+                        if fault=='wrong_owner': receipt['owner_id']='different-owner'
+                        if fault=='wrong_clock': receipt['clock_id']='different-clock'
+                        if fault=='nonbool_held': receipt['held']=0
+                        return receipt
+                    return await original(**kw)
+                slot.engine.ieee_gpu_reference.side_effect=reject
+                async def run():
+                    try:
+                        with self.assertRaises((ValueError, RuntimeError)) as caught:
+                            await factory.execute(runner,slot,mode='residency')
+                        self.assertNotIsInstance(caught.exception,PreparationPlanSuperseded)
+                        self.assertNotEqual(runner._ieee_file_preparation_plans[-1]['state'],'superseded')
+                        self.assertFalse(fixture.owner._file_replacement_events)
+                        self.assertFalse(loads)
+                        self.assertFalse(owner._host_leases)  # Earlier acknowledged b released.
+                    finally:
+                        await queue.close()
+                asyncio.run(run())
+
+    def test_lost_fallback_hold_reply_retains_unknown_ownership(self):
+        factory,data=self.make()
+        fixture,runner,queue,slot,owner,snapshot,loads=data
+        original=slot.engine.ieee_gpu_reference.side_effect
+        async def lost(**kw):
+            result=await original(**kw)
+            if kw['operation']=='hold_host_source' and kw['lora_name']=='c':
+                self.assertTrue(result['held'])
+                raise ConnectionError('controlled lost hold acknowledgement')
+            return result
+        slot.engine.ieee_gpu_reference.side_effect=lost
+        async def run():
+            try:
+                with self.assertRaisesRegex(RuntimeError,'fallback ownership is unresolved'):
+                    await factory.execute(runner,slot,mode='residency')
+                record=runner._ieee_file_preparation_plans[-1]
+                self.assertEqual(record['state'],'closure_unresolved')
+                self.assertEqual([r['state'] for r in record['native_fallbacks']],['released','holding'])
+                self.assertEqual(owner.snapshot()['live_host_source_leases'],1)
+                self.assertTrue(fixture.owner._file_preparation_plans)
+                self.assertFalse(fixture.owner._file_replacement_events)
+            finally:
+                await queue.close()
+        asyncio.run(run())
+
+    def test_unacknowledged_prior_hold_release_overrides_supersession(self):
+        factory,data=self.make()
+        fixture,runner,queue,slot,owner,snapshot,loads=data
+        original=slot.engine.ieee_gpu_reference.side_effect
+        async def reject(**kw):
+            if kw['operation']=='hold_host_source' and kw['lora_name']=='c':
+                return dict(await original(operation='source_snapshot'),held=False,
+                            reason='required_source_changed')
+            if kw['operation']=='release_host_source':
+                return dict(await original(operation='source_snapshot'),released=False)
+            return await original(**kw)
+        slot.engine.ieee_gpu_reference.side_effect=reject
+        async def run():
+            try:
+                with self.assertRaisesRegex(RuntimeError,'fallback ownership is unresolved'):
+                    await factory.execute(runner,slot,mode='residency')
+                self.assertEqual(runner._ieee_file_preparation_plans[-1]['state'],'closure_unresolved')
+                self.assertEqual(owner.snapshot()['live_host_source_leases'],1)
+                self.assertTrue(fixture.owner._file_preparation_plans)
+                self.assertFalse(fixture.owner._file_replacement_events)
+            finally:
+                await queue.close()
+        asyncio.run(run())
+
+    def test_cancel_during_negative_hold_ack_stays_cancelled_after_cleanup(self):
+        factory,data=self.make()
+        fixture,runner,queue,slot,owner,snapshot,loads=data
+        original=slot.engine.ieee_gpu_reference.side_effect
+        async def run():
+            entered, proceed=asyncio.Event(),asyncio.Event()
+            async def held_reply(**kw):
+                if kw['operation']=='hold_host_source' and kw['lora_name']=='c':
+                    reply=dict(await original(operation='source_snapshot'),held=False,
+                               reason='required_source_changed')
+                    entered.set()
+                    await proceed.wait()
+                    return reply
+                return await original(**kw)
+            slot.engine.ieee_gpu_reference.side_effect=held_reply
+            task=asyncio.create_task(factory.execute(runner,slot,mode='residency'))
+            try:
+                await asyncio.wait_for(entered.wait(),3)
+                task.cancel()
+                await asyncio.sleep(0)
+                self.assertFalse(task.done())
+                proceed.set()
+                with self.assertRaises(asyncio.CancelledError): await task
+                self.assertEqual(runner._ieee_file_preparation_plans[-1]['state'],'cancelled')
+                factory.check_clean(fixture,runner,owner)
+            finally:
+                proceed.set()
+                await asyncio.gather(task,return_exceptions=True)
+                await queue.close()
         asyncio.run(run())
 
     def test_file_completion_releases_cpu_fallback_before_deferred_gpu_group_finishes(self):

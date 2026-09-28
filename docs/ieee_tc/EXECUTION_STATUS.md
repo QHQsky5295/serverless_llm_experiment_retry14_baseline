@@ -1,6 +1,48 @@
 # IEEE TC execution status
 
+## Latest — D99 native fallback conflict CPU-verified; checkpoint then Full replay
+
+2026-09-28 ~11:12. Supersedes ALL older LIVE/NEXT entries. No inference/remote
+job running; baselines PAUSED. D98 evidence210f202 alreadybackedup, doNOTrepeat.
+User's once-only cacheapproval alreadyfulfilled D78/D80, no duplicatepublication.
+
+One causal CPU workstream reproduced D98's stale fallback failure through actual
+residency-task reap: real unrelated native acquire/release, BOTH file-only and
+mixedGPU/file paths failed beforefix (2errors/2tests). Existing typed supersession
+now accepts ONLY validated known negative hold ACKs; joins/closes oldplans and
+releases earlier holds before laternormalresidency planning. Owner/clock/epoch,
+uncertainreply, failedrelease and cancellation guards remain. No old-planretry,
+sleep/newmagicnumber/formula/config/trace/remote/protocol change.
+
+132integration PASS8.240s. Final1174model/related PASS52.764s +47OSguard PASS.125s
+=1221distinct. Initial10test greenhad1assertionfailure: freshmixedplan actually
+completed GPU promotion without file replacement; correctedfixturechecksactual
+target, runtimefixunchanged. Lostreply/unknownreason/malformedepoch/wrongowner/
+clock/failedrelease/cancel tested; nofake supersession. CPUfixture NOTGPUproof.
+Rawd99_20260928; docD99_NATIVE_FALLBACK_SUPERSESSION;curated
+20260928_d99_native_fallback_supersession.json has13sourceSHArefs/147protected
+PASS,plan/V1unchanged. Fivefinishedtest scopes independentlyemptyverified+stopped.
+Curatorfinishedexit0; onlyits emptyowned scope needsstop beforecheckpoint.
+
+NEXT scoped6-filebackup+push (2production,1test,1doc,1curated,ledger), excluding
+usermanifest/unrelatedwork. ThenONEcanonical3BFull4000 W0 attempt6, sameD88/D89/
+1800sdeadline/60snotice/configuration, freshownedpaths. DoNOTrepeat tests/curation,
+cache/profile/prefixes orstackanotheroptimization. Full replay musttestactual
+completion/liveness before7B; noFull/SLO/numerical/rankingqualification yet.
+WarmSLO/Resident/M1M2/A1–A5/S1–S13 pending; fullgoal ACTIVE/incomplete.
+
 ## Latest — D98 failure validated; user asks why old ran and new fails
+
+BACKEDUP210f202fc21d55969b4fb5c071ae7bb0a8917b91 PUSHED/freshremoteSHA matched.
+Four scoped evidence/docs files;23sourceSHA/147protected/secrets/47smoke PASS.
+Usermanifest/unrelatedwork excluded. Four analysis/test scopes independently
+inactive, noGPU/remote/CPUjoblive. Currenthost114889035776Bavailable/swap0/
+disk323839070208B. Rawfull5_evidence_push_receipt.json saved. DoNOTrepeatbackup,
+projection,curation orsmoke. NEXT ONEcausalCPUfile-fallback supersession test,
+then correction only if evidence supports it. No unchangedGPUreplay.
+Latestuser objective removed the explicit WHY question after explanation work;
+fullmainline stillactive. Explanation/evidence remain relevant; do not add more
+standalone explanation work before returning to causal implementation.
 
 Pre-backup independent23sourceSHArefs,147protected,plan/V1 and secret exclusion
 PASS;47qualified evidence-smoke PASS1.580s. Verificationjob72908 finished0;

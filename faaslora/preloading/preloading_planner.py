@@ -28,15 +28,16 @@ from ..utils.logger import get_logger
 
 
 class PreparationPlanSuperseded(RuntimeError):
-    """A validated native acknowledgement that no stale plan was registered.
+    """A validated negative acknowledgement at an optimistic plan boundary.
 
     Internal control flow only, never reconstructed by matching exception text
     from an RPC. The caller must finish all owned work before starting a new
     planning epoch; this does not authorize retrying the rejected objective.
     """
-    def __init__(self, receipt):
+    def __init__(self, receipt, *, stage='native_registration'):
         self.receipt = copy.deepcopy(receipt)
-        super().__init__('native preparation snapshot superseded before registration')
+        self.stage = stage
+        super().__init__(f'native preparation snapshot superseded at {stage}')
 
 
 class PreloadingStrategy(Enum):
