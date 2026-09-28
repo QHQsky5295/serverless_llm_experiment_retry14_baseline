@@ -1,12 +1,70 @@
 # IEEE TC execution status
 
-## CURRENT — D113 offline control occupancy: complete, backup pending
+## CURRENT — D114 native async transport: tested candidate, backup pending
+
+2026-09-29 00:21. Goal ACTIVE/incomplete; baselines PAUSED. Previous goal turn
+D113 was PROGRESS. This turn PROGRESS: actual TCP causal probe,one transport
+candidate implementation,227native+288legacytests,retained-payload before/after,
+phase-status table/document and source/protection verification. NO GPU/remote
+experiment started. Candidate full validation remains REQUIRED; not a claim
+that D112's whole waiting time is explained or end-to-end performance improved.
+
+- ParentHEAD2943c7187195b3f9afbf6f06c0bc283d370ff27f,runtimebefore5442e62.
+  Candidate ONLY scripts/run_all_experiments.py plus two tests. RuntimeSHA
+  b2e4f65e4a20c4c56f27df9fff88075c17570021e3035ed83634badef75cdd18.
+  Native I/O now nonblocking socket connect/send/recv/close; legacyunchanged.
+  Same30sconnect/300soperation/8MiBprotocol,channelpool,owner guards/progress
+  ordering/cancelunknown/no-blindretry. No capacity/timeout/formula/config tuning.
+  parent_rpc_transport=native_async_socket_v1; threadresume0 denotes no thread
+  stage, not zero whole controlwait. JSON encode/decode not separately optimized.
+- Originalactualproxy+TCP,event-held32generationreplies saturate default32
+  executorworkers; newcontrolopenfuturequeued/notrunning,workerhasnotseen it.
+  Releasing generation permits progress. Onegenerationcontrolproceedsnormally.
+  AftercandidatecontrolcompletesBEFORErelease at1and32; noexecutorsubmission
+  incontrolprobe. Separate32generationregression forbidsANYexecutor use.
+  No timedinjection/newGPUowners/weights/trace. Conditionssynthetic dependency
+  fixture, NOT D112saturation proof or walltime acceleration measurement.
+- RetainedD88actual8adapter1792HOSTallocation reply1328413B; complete
+  nontransportbody SHA4efdcb0d7483c21656f6132caadd535f8ad1c9d5bb35791d622eddf879c461c4
+  identical before/after. OriginalsourceSHA7377ed4e706e1eb81db79d89d780d1205d04e76345f5ede8b8a6c9c81397e953.
+- FirstCPUprobe failed onlycomparisonincludingoldtransporttiming. Prior
+  source/logretainedattempt1_sources.tar.gz; corrected compares completebody
+  excludingonlytransporttiming. Beforeprobe source retainedbefore_sources.tar.gz.
+  Rawafter production_optimization:false is stale templatelabel; curatedcorrects
+  candidatemetadata explicitly, no rawobservations overwritten.
+- Native227PASS3.224s,existingbasic288PASS28.840s. Candidateprobe10.83swall
+  includingimports,peakRSS1686928KiB. Allcompletedscopeshigh/max/OOM0.
+  Fourprobe/testscopes verifiedexactownedemptyandstoppedbycurator.
+- 62priorfrozenrefschecked;3expectedchangedrefs(twoaliasesofrunner plus
+  request_lifecycle),allothersunchanged.147protectedunchanged. Candidateprobe
+  sourceSHAsverified;beforecodecheckedagainstparentGit andarchivedprobescript.
+  MetricV1/sourceplanunchanged. No oldfig/resultwrites,cache rebuildorGPUrun.
+- Curatedpaper_results/ieee_tc/p2_backend/20260929_d114_native_async_transport
+  summarySHAa76afd819eee82d9974770e0d2634fd180bf57f0e38b1a4ffd5f836343901d5a;
+  36KiBsmall_sources.tar.gz17members verified,companionSHA256SUMS.
+  Rawresults/ieee_tc/p2_backend_qualification/d114_20260929;
+  DocD114_NATIVE_ASYNC_TRANSPORT.md fulltable/sourcebasis/limits.
+  Curationscope5b37c5bc383d4ff8ab2941e353f4f812 exactemptychecked/stopped,
+  events0. No experiment/analysisjob remains; doNOTrepeat completedD114 checks.
+- NEXT preflight/backup and ONE ordinary canonical3B4000W0 Full10 candidate
+  replay, same D112trace/subset/config/D89initializers/remote publishedcache.
+  No py-spy or furtheroptimizer. D113 E2Econtroller-vsouterboundary mapping
+  remains pending formalmetricreconciliation; don't silently overwriteoldE2E.
+  NoD115config/path/remoteactivation preparedyet. Afterfulljudgecandidate,
+  continuePrimeFull/7B,thenwarm/Resident andbaseline mainline. Allformalmatrices,
+  ablations/sensitivities/numericadapterqualification remain pending.
+
+## D113 completed reference — offline control occupancy backed up
 
 2026-09-29 00:05. Goal ACTIVE/incomplete; baselines PAUSED. This turn PROGRESS:
 extended existing control analyzer,10 targeted tests,complete D112 timeline audit,
 phase table/documentation, source/protection verification and owned cleanup.
 NO new GPU/remote run; production5442e62 unchanged. D113 uses D112 bounded
 projection only, never repeats9.49GB extraction or reconstructs artifact cache.
+Ten scopedfiles committed/pushed2943c7187195b3f9afbf6f06c0bc283d370ff27f;
+exactremoteHEAD verified2026-09-29 00:06:30. Userdirtymanifestnotstaged.
+DoNOTrepeat D113 analysis/tests/verification/backup. This postpushledgernote
+is not a production/configuration change; no D113 work remains.
 
 - 4000native-contract requests,commonclock/ID/replica/order complete.
   Observation4471.156393s. Mean/P95 seconds:

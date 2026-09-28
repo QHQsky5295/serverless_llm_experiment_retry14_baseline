@@ -2527,7 +2527,7 @@ class ControllerNativeReferenceLifecycle(unittest.TestCase):
         slot.engine.generate_prepared = proxy.generate_prepared
         slot.engine.ieee_retire_generation = AsyncMock(
             side_effect=ValueError('unknown native generation binding; reference retained'))
-        proxy._blocking_rpc_roundtrip = Mock(side_effect=AssertionError('no send expected'))
+        proxy._native_rpc_roundtrip = AsyncMock(side_effect=AssertionError('no send expected'))
         return service, slot, trace, plan, owner, proxy
 
     def test_unsent_proxy_refusal_releases_unused_reference_without_native_retirement(self):
@@ -2536,7 +2536,7 @@ class ControllerNativeReferenceLifecycle(unittest.TestCase):
         result = asyncio.run(service._exec_request(trace, 4, 0., request_plan=plan))
         self.assertFalse(result.success)
         self.assertIn('new generation withheld', result.error)
-        proxy._blocking_rpc_roundtrip.assert_not_called()
+        proxy._native_rpc_roundtrip.assert_not_awaited()
         slot.engine.ieee_retire_generation.assert_not_awaited()
         self.assertEqual(result.gpu_reference_evidence['state'], 'released')
         self.assertEqual(result.gpu_reference_evidence['generation_submission']['state'], 'not_submitted')
@@ -2559,7 +2559,7 @@ class ControllerNativeReferenceLifecycle(unittest.TestCase):
             with self.assertRaises(asyncio.CancelledError):
                 await task
         asyncio.run(check())
-        proxy._blocking_rpc_roundtrip.assert_not_called()
+        proxy._native_rpc_roundtrip.assert_not_awaited()
         slot.engine.ieee_retire_generation.assert_not_awaited()
         self.assertEqual(owner.snapshot()['live_leases'], 0)
         self.assertEqual(slot.active_requests, 0)
@@ -2568,11 +2568,11 @@ class ControllerNativeReferenceLifecycle(unittest.TestCase):
 
     def test_proxy_handoff_with_lost_reply_keeps_native_ownership(self):
         service, slot, trace, plan, owner, proxy = self.proxy_submission_fixture()
-        proxy._blocking_rpc_roundtrip.side_effect = OSError('reply lost after possible submission')
+        proxy._native_rpc_roundtrip.side_effect = OSError('reply lost after possible submission')
         result = asyncio.run(service._exec_request(trace, 4, 0., request_plan=plan))
         self.assertFalse(result.success)
         self.assertEqual(result.gpu_reference_evidence['generation_submission']['state'], 'may_execute')
-        proxy._blocking_rpc_roundtrip.assert_called_once()
+        proxy._native_rpc_roundtrip.assert_awaited_once()
         slot.engine.ieee_retire_generation.assert_awaited_once()
         self.assertEqual(owner.snapshot()['live_leases'], 1)
         self.assertEqual(slot.active_requests, 1)
@@ -3466,7 +3466,7 @@ class NativeRPCOwnership(unittest.TestCase):
             self.assertNotIn('_native_submission_evidence', frame['kwargs'])
             self.assertEqual(frame['kwargs'], {'prompt': 'existing'})
             return b'{"ok":true,"result":{}}', 0., 0., time.time()
-        proxy._blocking_rpc_roundtrip = Mock(side_effect=reply)
+        proxy._native_rpc_roundtrip = AsyncMock(side_effect=reply)
         asyncio.run(proxy._rpc('generate', prompt='existing', _native_submission_evidence=evidence))
         self.assertEqual(evidence['state'], 'may_execute')
         self.assertNotIn('native_terminal_observed', evidence)
@@ -3475,24 +3475,24 @@ class NativeRPCOwnership(unittest.TestCase):
     def test_encoding_failure_has_no_uncertain_native_operation(self):
         proxy = self.proxy()
         evidence = {'state': 'unobserved'}
-        proxy._blocking_rpc_roundtrip = Mock()
+        proxy._native_rpc_roundtrip = AsyncMock()
         with self.assertRaisesRegex(RuntimeError, 'serializable'):
             asyncio.run(proxy._rpc('generate', bad=object(), _native_submission_evidence=evidence))
-        proxy._blocking_rpc_roundtrip.assert_not_called()
+        proxy._native_rpc_roundtrip.assert_not_awaited()
         self.assertEqual(evidence['state'], 'not_submitted')
         self.assertFalse(proxy._native_rpc_uncertain)
 
     def test_generation_rechecks_uncertainty_after_waiting_for_channel(self):
         proxy = self.proxy()
         evidence = {'state': 'unobserved'}
-        proxy._blocking_rpc_roundtrip = Mock()
+        proxy._native_rpc_roundtrip = AsyncMock()
         async def channel():
             proxy._native_rpc_uncertain['other'] = {'cmd': 'generate'}
             return object()
         proxy._acquire_rpc_channel.side_effect = channel
         with self.assertRaisesRegex(RuntimeError, 'new generation withheld'):
             asyncio.run(proxy._rpc('generate', _native_submission_evidence=evidence))
-        proxy._blocking_rpc_roundtrip.assert_not_called()
+        proxy._native_rpc_roundtrip.assert_not_awaited()
         self.assertEqual(evidence['state'], 'not_submitted')
         self.assertEqual(set(proxy._native_rpc_uncertain), {'other'})
 
@@ -3510,31 +3510,30 @@ class NativeRPCOwnership(unittest.TestCase):
 
     def test_unknown_native_outcome_is_not_reexecuted_by_transport_retry(self):
         proxy = self.proxy()
-        proxy._blocking_rpc_roundtrip = Mock(side_effect=OSError('reply lost after submit'))
+        proxy._native_rpc_roundtrip = AsyncMock(side_effect=OSError('reply lost after submit'))
         with self.assertRaisesRegex(RuntimeError, 'reply lost after submit'):
             asyncio.run(proxy._rpc('generate', prompt='existing'))
-        self.assertEqual(proxy._blocking_rpc_roundtrip.call_count, 1)
+        proxy._native_rpc_roundtrip.assert_awaited_once()
         proxy._open_rpc_channel.assert_not_awaited()
         proxy._release_rpc_channel.assert_not_awaited()
 
-    def test_cancelled_thread_roundtrip_cannot_return_its_channel_to_the_pool(self):
+    def test_cancelled_native_roundtrip_cannot_return_its_channel_to_the_pool(self):
         proxy = self.proxy()
-        started, finish = threading.Event(), threading.Event()
-        def blocking(*args):
+        started = asyncio.Event()
+        async def blocked(*args, **kwargs):
             started.set()
-            if not finish.wait(2.):
-                raise RuntimeError('test roundtrip was not joined')
-            return b'{"ok": true, "result": {}}\n', 0., 0., time.time()
-        proxy._blocking_rpc_roundtrip = Mock(side_effect=blocking)
+            await asyncio.Future()
+        proxy._native_rpc_roundtrip = AsyncMock(side_effect=blocked)
         async def check():
             task = asyncio.create_task(proxy._rpc('ieee_gpu_reference', operation='acquire'))
             try:
-                self.assertTrue(await asyncio.to_thread(started.wait, 1.))
+                await asyncio.wait_for(started.wait(), 1.)
                 task.cancel()
                 with self.assertRaises(asyncio.CancelledError):
                     await task
             finally:
-                finish.set()
+                if not task.done(): task.cancel()
+                await asyncio.gather(task, return_exceptions=True)
         asyncio.run(check())
         proxy._release_rpc_channel.assert_not_awaited()
         proxy._drop_rpc_channel.assert_awaited_once()
@@ -3544,11 +3543,12 @@ class NativeRPCOwnership(unittest.TestCase):
     def test_real_socket_shutdown_unblocks_cancelled_receiver_without_pool_reuse(self):
         proxy = self.proxy()
         client, server = socket.socketpair()
+        client.setblocking(False)
         channel = SimpleNamespace(sock=client, recv_buffer=bytearray())
         proxy._acquire_rpc_channel.return_value = channel
         proxy._open_rpc_channel.return_value = channel
         proxy._drop_rpc_channel = MethodType(SubprocessInferenceEngineProxy._drop_rpc_channel, proxy)
-        # The production blocking receiver is used, with no responding backend.
+        # The production native receiver is used, with no responding backend.
         async def check():
             task = asyncio.create_task(proxy._rpc('ieee_gpu_reference', operation='acquire'))
             try:

@@ -5252,12 +5252,14 @@ class SubprocessInferenceEngineProxy:
             if _native_submission_evidence is not None:
                 _native_submission_evidence.update(state='may_execute', attempt_id=attempt_id,
                     handoff_monotonic_s=time.monotonic())
-            raw, send_flush_ms, wait_response_ms, parent_response_read_wall_time = await asyncio.to_thread(
-                self._blocking_rpc_roundtrip,
-                channel,
-                payload_bytes,
-                **({'on_progress': receive_progress} if _native_event_observer is not None else {}),
-            )
+            if native:
+                raw, send_flush_ms, wait_response_ms, parent_response_read_wall_time = await self._native_rpc_roundtrip(
+                    channel, payload_bytes,
+                    on_progress=deliver_progress if _native_event_observer is not None else None)
+            else:
+                raw, send_flush_ms, wait_response_ms, parent_response_read_wall_time = await asyncio.to_thread(
+                    self._blocking_rpc_roundtrip, channel, payload_bytes,
+                    **({'on_progress': receive_progress} if _native_event_observer is not None else {}))
             parent_roundtrip_resume_wall_time = time.time()
             if not raw:
                 raise RuntimeError("subprocess_engine_empty_response")
@@ -5299,7 +5301,8 @@ class SubprocessInferenceEngineProxy:
                 result_timing["parent_rpc_request_bytes"] = len(payload_bytes)
                 result_timing["parent_rpc_response_bytes"] = len(raw)
                 result_timing["parent_rpc_wait_response_ms"] = wait_response_ms
-                result_timing["parent_rpc_thread_resume_delay_ms"] = max(
+                result_timing["parent_rpc_transport"] = 'native_async_socket_v1' if native else 'blocking_socket_v1'
+                result_timing["parent_rpc_thread_resume_delay_ms"] = 0.0 if native else max(
                     0.0,
                     (
                         parent_roundtrip_resume_wall_time
@@ -5454,6 +5457,20 @@ class SubprocessInferenceEngineProxy:
             channel.recv_buffer.extend(chunk)
 
     async def _open_rpc_channel(self) -> _BlockingRPCChannel:
+        if self.model_cfg.get('timing_contract') == 'ieee_tc_native_v1':
+            # Dedicated workers publish numeric loopback IPv4 addresses. No
+            # thread may be held while waiting for native replies: generation
+            # and reconciliation must not compete for executor capacity.
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.setblocking(False)
+            try:
+                sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+                async with asyncio.timeout(30.0):
+                    await asyncio.get_running_loop().sock_connect(sock, (self._host, self._port))
+                return _BlockingRPCChannel(sock=sock)
+            except BaseException:
+                sock.close()
+                raise
         opening = asyncio.create_task(asyncio.to_thread(self._open_blocking_rpc_channel))
         try:
             return await asyncio.shield(opening)
@@ -5470,6 +5487,41 @@ class SubprocessInferenceEngineProxy:
             if not opening.cancelled() and opening.exception() is None:
                 await self._drop_rpc_channel(opening.result())
             raise
+
+    async def _native_rpc_roundtrip(self, channel, payload_bytes, *, on_progress=None):
+        """Same bounded newline protocol, using readiness-driven native I/O.
+
+        Preserve the existing 300s per socket operation guard and progress
+        ordering. Cancellation stops the local wait, not native execution; the
+        caller still withdraws the channel and retains uncertain ownership.
+        """
+        loop = asyncio.get_running_loop()
+        started = time.perf_counter()
+        async with asyncio.timeout(300.0):
+            await loop.sock_sendall(channel.sock, payload_bytes)
+        send_ms = (time.perf_counter() - started) * 1000.0
+        waiting = time.perf_counter()
+        while True:
+            newline = channel.recv_buffer.find(b'\n')
+            if newline >= 0:
+                if newline > _RPC_FRAME_MAX_BYTES:
+                    raise ValueError('dedicated RPC frame exceeds protocol byte limit')
+                raw = bytes(channel.recv_buffer[:newline + 1])
+                del channel.recv_buffer[:newline + 1]
+                if on_progress is not None:
+                    frame = json.loads(raw.decode('utf-8'))
+                    if 'native_event' in frame:
+                        await on_progress(frame)
+                        continue
+                received = time.time()
+                return raw, send_ms, (time.perf_counter() - waiting) * 1000.0, received
+            if len(channel.recv_buffer) > _RPC_FRAME_MAX_BYTES:
+                raise ValueError('dedicated RPC frame exceeds protocol byte limit')
+            async with asyncio.timeout(300.0):
+                chunk = await loop.sock_recv(channel.sock, 65536)
+            if not chunk:
+                raise RuntimeError('subprocess_engine_empty_response')
+            channel.recv_buffer.extend(chunk)
 
     async def _acquire_rpc_channel(self) -> _BlockingRPCChannel:
         await self._ensure_rpc_channel_pool()
@@ -5505,7 +5557,10 @@ class SubprocessInferenceEngineProxy:
         except (OSError, AttributeError):
             pass
         try:
-            await asyncio.to_thread(channel.sock.close)
+            if self.model_cfg.get('timing_contract') == 'ieee_tc_native_v1':
+                channel.sock.close()
+            else:
+                await asyncio.to_thread(channel.sock.close)
         except Exception:
             pass
         if channel in self._rpc_channels:

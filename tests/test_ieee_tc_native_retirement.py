@@ -4,6 +4,7 @@ import importlib.util
 from pathlib import Path
 import sys
 import json
+import socket
 import tempfile
 import threading
 from types import ModuleType, SimpleNamespace as NS
@@ -37,6 +38,111 @@ def frontend_type():
     with patch.dict(sys.modules, modules):
         spec.loader.exec_module(module)
     return module.IEEENativeAsyncLLM
+
+
+class NativeAsyncTransport(unittest.IsolatedAsyncioTestCase):
+    async def test_control_progresses_while_32_generation_replies_are_pending(self):
+        """No sleeps or throughput claim: the control must break a dependency."""
+        entered, release = asyncio.Event(), asyncio.Event()
+        seen, handlers = [], set()
+        async def handle(reader, writer):
+            handlers.add(asyncio.current_task())
+            try:
+                while line := await reader.readline():
+                    request = json.loads(line)
+                    if request['cmd'] == 'generate':
+                        seen.append(request['kwargs']['id'])
+                        if len(seen) == 32: entered.set()
+                        await release.wait()
+                        result = {'id': request['kwargs']['id']}
+                    else:
+                        self.assertEqual(request['cmd'],'ieee_close_pending')
+                        result = {'closed':True,'intent_id':request['kwargs']['intent_id']}
+                    writer.write((json.dumps({'ok':True,'result':result})+'\n').encode())
+                    await writer.drain()
+            finally:
+                writer.close()
+                await writer.wait_closed()
+                handlers.discard(asyncio.current_task())
+        server = await asyncio.start_server(handle,'127.0.0.1',0)
+        with tempfile.TemporaryDirectory() as root:
+            proxy = SubprocessInferenceEngineProxy(process=NS(poll=lambda:None),host='127.0.0.1',
+                port=server.sockets[0].getsockname()[1],model_cfg={'timing_contract':'ieee_tc_native_v1'},
+                cost_model={},device_id=0,workdir=Path(root),log_path=Path(root)/'none')
+            proxy._rpc_pool_size = 32
+            tasks = []
+            try:
+                loop = asyncio.get_running_loop()
+                with patch.object(loop,'run_in_executor',side_effect=AssertionError('native I/O used executor')):
+                    tasks = [asyncio.create_task(proxy._rpc('generate',id=i)) for i in range(32)]
+                    await asyncio.wait_for(entered.wait(),3)
+                    result = await asyncio.wait_for(proxy.ieee_close_pending(intent_id='control'),3)
+                    self.assertTrue(result['closed'])
+                    self.assertEqual(result['timing']['parent_rpc_transport'],'native_async_socket_v1')
+                    self.assertTrue(all(not t.done() for t in tasks))
+                    release.set()
+                    values = await asyncio.wait_for(asyncio.gather(*tasks),3)
+                    self.assertEqual(sorted(v['id'] for v in values),list(range(32)))
+                    self.assertTrue(all(v['timing']['parent_rpc_thread_resume_delay_ms'] == 0 for v in values))
+                    await proxy._close_all_rpc_channels()
+            finally:
+                release.set()
+                for task in tasks: task.cancel()
+                await asyncio.gather(*tasks,return_exceptions=True)
+                await proxy._close_all_rpc_channels()
+                server.close()
+                await server.wait_closed()
+                await asyncio.gather(*list(handlers),return_exceptions=True)
+
+    async def test_cancelled_native_connect_closes_socket_without_executor(self):
+        proxy = SubprocessInferenceEngineProxy.__new__(SubprocessInferenceEngineProxy)
+        proxy.model_cfg = {'timing_contract':'ieee_tc_native_v1'}
+        proxy._host, proxy._port = '127.0.0.1',1
+        entered = asyncio.Event()
+        sockets = []
+        async def connect(sock, address):
+            sockets.append(sock)
+            entered.set()
+            await asyncio.Future()
+        loop = asyncio.get_running_loop()
+        with patch.object(loop,'sock_connect',side_effect=connect), \
+             patch.object(loop,'run_in_executor',side_effect=AssertionError('native connect used executor')):
+            task = asyncio.create_task(proxy._open_rpc_channel())
+            await asyncio.wait_for(entered.wait(),1)
+            task.cancel()
+            with self.assertRaises(asyncio.CancelledError): await task
+        self.assertEqual(len(sockets),1)
+        self.assertEqual(sockets[0].fileno(),-1)
+
+    async def test_native_framing_preserves_following_frame_and_rejects_oversize(self):
+        from scripts.run_all_experiments import _BlockingRPCChannel
+        for oversized in (False,True):
+            client, server = socket.socketpair()
+            client.setblocking(False)
+            server.setblocking(False)
+            channel = _BlockingRPCChannel(client)
+            async def peer():
+                loop = asyncio.get_running_loop()
+                await loop.sock_recv(server,1024)
+                await loop.sock_sendall(server,b'x'*34+b'\n' if oversized else b'{}\n{"ok":true}\n')
+                if not oversized: await loop.sock_recv(server,1024)
+            task = asyncio.create_task(peer())
+            try:
+                with patch('scripts.run_all_experiments._RPC_FRAME_MAX_BYTES',32):
+                    if oversized:
+                        with self.assertRaisesRegex(ValueError,'protocol byte limit'):
+                            await SubprocessInferenceEngineProxy._native_rpc_roundtrip(None,channel,b'{}\n')
+                    else:
+                        first = await SubprocessInferenceEngineProxy._native_rpc_roundtrip(None,channel,b'{}\n')
+                        second = await SubprocessInferenceEngineProxy._native_rpc_roundtrip(None,channel,b'{}\n')
+                        self.assertEqual(first[0],b'{}\n')
+                        self.assertEqual(second[0],b'{"ok":true}\n')
+                await asyncio.wait_for(task,1)
+            finally:
+                task.cancel()
+                await asyncio.gather(task,return_exceptions=True)
+                client.close()
+                server.close()
 
 
 class RuntimeQuarantine(unittest.IsolatedAsyncioTestCase):
@@ -364,9 +470,10 @@ class NativeRetirement(unittest.TestCase):
             self.assertEqual(engine.ieee_gpu_reference.await_count, 1)
         asyncio.run(check())
 
-    def test_cancelled_channel_open_joins_and_closes_the_actual_socket(self):
+    def test_legacy_cancelled_channel_open_joins_and_closes_the_actual_socket(self):
         async def check():
             proxy = SubprocessInferenceEngineProxy.__new__(SubprocessInferenceEngineProxy)
+            proxy.model_cfg = {'timing_contract':'legacy'}
             started, finish = threading.Event(), threading.Event()
             channel = object()
             def opening():
