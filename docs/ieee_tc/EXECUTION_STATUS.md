@@ -1,6 +1,320 @@
 # IEEE TC execution status
 
-## CURRENT — D124 candidate verified; ordinary Full next, no live job
+## CURRENT — D125 Full4000 diagnostic complete; qualification FAILED
+
+2026-09-30 20:49. Goal ACTIVE/incomplete. Current turn PROGRESS. No subagents.
+Baselines PAUSED. No GPU/remote/analysis/test job remains. All exact-owned domains
+closed. D78/D80 once-only delivery cache authorization already fulfilled; NEVER rebuild.
+Do NOT repeat D125 replay/projection/metadata/curation/failure/test/bundle work.
+
+- Planned/submitted/started/terminal4000;3456 native-contract successes,
+  524TimeoutError,20RuntimeError (17parent+3subprocessownershipunresolved).
+  All-correct gateFAILS. Numericadapter/commonwarmSLO remainpending; noM1/M2rank.
+- Conditional3456 mean/P95/P99TTFT882.915085/1785.200278/1796.354608s;
+  controllerE2E888.134610/1790.791201/1798.612494s, NOTclientreceipt.
+  Dispatch880.155105s=window875.873124+slot2.761062+release1.520920;
+  service2.759980=prenative2.473673+native.286307;
+  decode3.590042,worker→controller1.584736s;TPOT35.300291/P9559.949057ms.
+- All3456timingTTFT/E2E/dispatch/decomposition/TPOTmaxerrors0ms,
+  unchanged1mstolerancePASS. D124boundaryfixsupported; copycandidate NOTproven
+  sufficientFullimprovement. No change toformula,deadline,capacity,threads,guards.
+  GPU1160/HOST1272/NVMe924/Remote100confirmed,conflicts0(successsubsetonly).
+- Firsttimeoutreq01539offset3366.969737s;firstownershipreturnreq03011offset
+  4491.386125s. Earlyqueue/timeoutprecederecovery. 524timeoutgenerationunrecorded
+  ≠nodispatch/zerowait;20returnednot_submittedonlydescribestheirgeneration.
+  Initialfourruntimes3001successes;24replacementruntimes455successes.
+- Physical23059.33509171981GPU-s,36leases/35quarantinesallreleased,noopenleases.
+  Allcleanupcomplete;6482samples,peak40832913408B,minhost79962181632B,
+  high/max/OOM/swap/warnings0. Execution/launcherpass≠qualifiedFull.
+- Remote129UUID/artifactbytepairs129137809Bbothends,packing0;
+  128published/1notpublished. Fullowner/span/job/requestcrosscheckPASS for
+  req03300'scomplete780745BarchivefollowedbysubscriberTimeoutErrorcancellation.
+  Contentnotpublished/notverified, notnetworkbyteloss; notalltimeoutcauses.
+- Projection45356andobservationcell4745FINISHEDexit0:35:04.25,RSS92928KiB,
+  output31744572B,SHAa1940952e8f1db0b691de80cee1082fb5f21e10f0141a1e50aae3e184ee17200.
+  Exactf043db73c34d4b39a1b071efd4acdc34emptyclosed20:44:17.
+  Original11510552337B SHA93c17465221aed19dc993bf04cbfbefa720b692e6cf4465e88aef76b33f648a2.
+  NEVERwholeload/reprojectagain; smallprojectionreusable.
+- Curation19965exit0:36.47s/RSS266576KiB;failure.64s/122780KiB;
+  actual3/4GiBswap0CPU2,3,26,27,events0. Exactbc0748fe9e514add88e2175726b16266
+  emptyclosed20:45:12. No curatorretry or data/criterion weakening.
+- Finalcurated20260930_d125_7b_full_w0_full1.json SHA
+  c416733c929a7ccd58045f71e882a59f463d377b6261bade62def383da7d3498;
+  failurebreakdownSHAf5e33da0e720ea7dd14c7e4dbf6cf938b5779b1770c417a6abe2479bf91bb8a4.
+  DocD125_FULL_W0_FULL1.md containsfinalstate/phase/failuretables and decision.
+- Evidence30586exit0:71testsPASS3.083s;130frozenrefs,39curatedrehashed,
+  147protectedPASS. Hugeoriginalhashreusedwithstat, notreread. VerificationSHA
+  966650d0960c87baf8d3575a9d8fac64497ad3c6c2aa1522aed7cc9ddde5729d.
+  Exactb845127004eb4dce9a2696feb3f8eb01emptyclosed20:46:41,memoryevents0.
+- Small55member49150BanalysisbundleSHA
+  a97ccf2402e4e5962fddaa3cfe5c08bff042449d480269f20859b3a8d90ef8df,
+  individualmembersverified. Fullskills/plan/status/metricV1read; Feishuabsent.
+  Scopedbackupnext(afterdiff/checksum/secrets), servingruntimee7alreadybacked.
+
+NEXT: finish scopedD125backup, then a SINGLE evidence-led PrimeFullbottleneck:
+useexistingD125smallrequestprojection+D123CPUevidence/sourcehistory to distinguish
+global-entrybacklog fromtimeoccupyinglimitedserviceopportunities. Consultprimary
+implementation/literature before a falsifiable causal test/optimization. DoNOT
+repeat identicalFull, oldlargeprojections, blanketincreasecapacity/thread/deadline
+or removephysical/ownershipguards. D124timingretain;copyremaincomponent-supported
+candidate,notFullcausalwin. AfterPrimeFull,warm/Resident→Serverless→vLLM→S-LoRA→
+dLoRA3B→Loquetier→HydraServe→M1/M2→A1–A5/S1–S13 remainpending. EntiregoalACTIVE.
+
+## D125 projection-stage history — superseded by completed analysis above
+
+2026-09-30 20:27. Goal ACTIVE/incomplete. Current turn PROGRESS. No subagents.
+Previous turn PROGRESS (run completion, cleanup, metadata and projection launch).
+Baselines PAUSED. Request/replay/launcher finished; exact-owned cleanup complete.
+No GPU/remote service is running. ONE CPU-heavy job: new D125 streaming projection.
+
+- All4000 terminals:3456success/native_contract_matched,524TimeoutError,
+  20returnedfailures with null terminal error_type. All-correct gateFAILED;
+  numericaladapter/commonSLO remainpending. DoNOT call successful qualifiedFull.
+- Finalmain/replay/watchdogexit0,launchpass=true, nativeGPUreleaseconfirmed,
+  servicepathremoved.36physicalleases released/noopen,23059.33509171981GPU-s;
+  windows pre47.79901311098365/arrival15808.675131062744/
+  drain7151.112570960191/cleanup51.7483765858924.35quarantinesreleased.
+- 6482resource samples,peak40832913408B,minhost79962181632B;
+  high/max/OOM/swap/warningsall0. IncludesresultserializationafterGPUrelease.
+  Rawresult11510552337B written20:05:54;serviceinactive/launchready20:07:33.
+- Localexactemptyauxclosed20:07:44; remote3B/7B/monitor exactIDs/PIDs stopped
+  20:07:45. Allstoplogs retained. No cache/weight/trace regeneration.
+- Copied remotejournaltransfers-8566d2902a8b4a53b3d69c990de693ce.jsonl ONCE,
+  localremote_7b_full1_transfers.jsonl SHA
+  8a7f41746218a8545fcb0b7c1083823c1405e33fcefff6a47176a3c277a1b359;
+  remote_monitor_full1_final.log SHA
+  3f8637b1e2e2819c5f8a12567c74649b5118fec55da71d032850b6a27861bf48.
+  BothmatchremoteSHA.129UUID/artifactpairs,129137809Bbothends,packing0;
+  128published/1notpublished(code_lora_0099,242537bf3c584484b62451aa70d6fa4b).
+  Unpublishedreceived780745B,archiveverifiedtrue/contentfalse,no payloadverified;
+  doNOT invent cancellationcause or validcachehit. Fullauditpending.
+- MetadatareuseD119passed1.52s/RSS220104KiB in3/4GiBswap0 CPU2,3,26,27;
+  exactmetadata scope5a0a1c03fe544d4f81d147c2b1c28c4b emptyclosed.
+  full_full1_preliminary.json SHA
+  874a38245d0bbae84218e2cf4a54ea4ada4a108fe4d65d518bc007643600d9f6.
+- LIVEprojection: unified exec session45356, unit
+  primelora-d125-full1-project-20260930.scope,
+  invocationf043db73c34d4b39a1b071efd4acdc34,actual3/4GiBswap0CPUs2,3,26,27.
+  ExistingD96project_full_attempt3.jq, ONCEnewD125raw→
+  d125_20260930/full_full1_request_projection.json. DoNOT wholeload or restart.
+  time/scope receipts full_full1_projection_{time,scope}.txt.20:09events0.
+- Preliminarystatus table docs/ieee_tc/D125_FULL_W0_FULL1.md written;
+  latency/failure/timingvalidation and D124decision NOTcompleted.
+  Previousobservationcells4684/4707/4711finished, NOTrunningexperimenthandles.
+  No optimizer, capacity/deadline/thread/guard change; no newGPUrun/test/backup.
+
+NEXT: wait exactprojection45356 toexit, inspect exit/time/actualscope and
+cleanupthatemptydomain. Adapt existingD119curator/failureaudit to OBSERVEDD125
+population/size/journal and retain alltimingviolations; 1unpublishedtransfer is
+diagnostic, notpermission to inventcontentvalidation. Fullstatstable/interpretation,
+source/protected checks, testedscopedbackup. No repeatedoldlargeJSONprojection.
+Thendecide candidate/nextPrimeFullstep fromevidence; warm/Resident→baselines→
+M1/M2→A1–A5/S1–S13 remainpending. EntiregoalACTIVE.
+
+20:12:22 checkpoint: projection45356 STILL LIVE, jqPID2783789, elapsed3:25,
+CPU3:24, rchar1143332847B, RSS12056KiB; exactscopeabove2tasks,current10424320B,
+high/max/OOMall0. Finalprojectionfile isnotready; doNOTread/restart it.
+Prepared (NOTexecuted) D125summarize_full_full1.py,collect_full1_failure_breakdown.py,
+curate_full_full1.sh,cleanup_projection_full1.sh using existingD119scripts.
+Only observedD125counts/sizes/identities plus D123record-all-timing-violations
+handling; toleranceunchanged1ms. Remoteexpected128published+1notpublished,
+conditionalvalidation remainsstrict, no falsecontentpass. Exactprojectcleanup
+expects invocationf043db73c34d4b39a1b071efd4acdc34. ShellsyntaxchecksPASS;
+curation/failureaudits NOT run, doNOTclaimfinalstats. Beforecurationverifyfinal
+projectiontimeExitstatus0, cleanupitsactualemptyresource domain, then runcurator
+inprimelora-d125-full1-curate-20260930.scope actual3/4GiBswap0CPU2,3,26,27.
+GitdiffcheckPASS; usermanifest/unrelateduntrackedpreserved. No newbackup yet
+becausefinalanalysis/testedcheckpoint isnotready. Servingruntimee7alreadybacked.
+Useronce-onlycacheauthorization reconfirmed; alreadyfulfilledD78/D80,
+NEVERrebuildpublishedcache. FinalD125doccurrentlyexplicitPRELIMINARYstatustable.
+
+20:26:59 checkpoint: SAMEprojection45356 LIVE, exactinvocationunchanged,
+jqPID2783789elapsed18:02/CPU18:01,rchar5983236079B of11510552337B source,
+RSS44480KiB,scope2tasks/current43745280B,high/max/OOMall0,disk240832892928B.
+Observationcell4730finished15polls; thisisNOTprojectioncompletion.
+No largefilewholeload/reprojection/newGPUjob/test/remoteoperation/backup.
+ReadfullAGENTS/plan/status/metricV1/monitor+analyze skills thisturn.
+One bounded direct-record analysis changes unpublished-transfer explanation:
+
+- RemoteUUID242537bf3c584484b62451aa70d6fa4b outcome sent,read/write780745B;
+  localarchivecompleteandverified;body275557.939614691,extractstart275557.939679471,
+  clientend275557.999528606, loadingstart275557.786223007, extractdurationnull.
+- Samefileowner011c6036f1174af08a798a700bf6aa05/adaptercode_lora_0099 and
+  containingI/Ospan links pressure313e24fb3517480988a44297d768e02d:
+  operation_outcome cancelled,caller_cancelledtrue,errorCancelledError,
+  io_started275557.784389969/io_joined275557.999871948/finished275558.009436967.
+- coordination_after_shutdown.ieee_movements jobe59c71ef08344b6398739ac5007af0df
+  statecancelled,unique demand subscription2d528d0eb29e407bb7971be2e784001d,
+  plan_idrequest:req_03300,withdrawn275557.948074521.
+  replayplanned273757.9452582016,contract1800splanned_arrivaldeadline;
+  loadingbegan1799.840965safterarrival,withdrawal2.816msafterdeadline.
+  requestterminalTimeoutError at275558.114980423,clockssame.
+  This supports timeout-associated demand cancellation, NOTbyte-loss;
+  doesNOTexplain allpriorwait or all524timeouts.
+- Addedmatching check+fulltransfer/pressure/job/request evidence retention to
+  PREPAREDcurator; syntaxASTPASS, notexecutedbeforeprojectionfinishes.
+  D125docupdated direct-recordfinding; finalcrosscheck/latency/failurespending.
+  GitdiffcheckPASS. No servingruntime/config/thresholdchanges. No speculative
+  optimizer accepted. NEXTremains exactprojection→emptycleanup→curation→table/
+  tests/source/protectedverification→backup→evidence-basedPrimeFullnextstep.
+
+## D125 launch and historical live checkpoints (superseded by completion above)
+
+2026-09-30 19:45. Goal ACTIVE/incomplete. Current turn VERIFIED WAIT. No subagents.
+Previous turn VERIFIED WAIT. D125 launch turn was PROGRESS; exact live service
+invocation repeatedly polled at45s intervals, never restarted.
+D124 previous turn PROGRESS; its tests/micro/backup are complete, do NOT repeat.
+Baselines PAUSED. Only one heavy run: ordinary 7B W0 Full4000, no prefix/profiler.
+
+- Runtime HEAD e7d4c91aa4347f26a1f08672b54a5ad4b3228d78, already backed.
+  Same D119 model/workload/config except three fresh owned paths; D89 profiles.
+  Only D124 timing interval and preparation-copy candidate differ from D123 runtime.
+  cap2/slots4/cpu24/.70, 1800s planned-arrival protection unchanged.
+  Source4000/selected4000, viewSHA
+  a5331be2e2204483f18206825d9aaa18cbaa259fe0babfc303f989055819430d.
+  fixed_length_greedy_v1, real published delivery, no new cache/weights/trace.
+- Raw results/ieee_tc/p2_backend_qualification/d125_20260930;
+  run 7b_full_w0_full1; launcher log full1_console.log;
+  launch evidence 7b_full_w0_full1/launch.launch/.
+  tmux tc-d125-full1 started18:17:15. DO NOT launch duplicate or modify runtime.
+- Service primelora-tc-svc-09bcef61bfa14b20bc099a54c88ea642.scope,
+  invocation b94b9b492d3b448bb266e5289b790c89;
+  aux primelora-tc-aux-cb5a52372bb94bd3b012b0b3a2e68b5f.scope,
+  invocation61fa7a7966244155b68ebc78d3191d7c.
+  Actual service72/80GiBswap2 CPU4-23,28-47;
+  aux3/4GiBswap0 CPU2,3,26,27; watchdog/publisher separately verified.
+  deployment_notice270684.173485817, replay_t0=270744.173485817,
+  last planned arrival274708.0823889389 (common monotonic clock).
+- Remote D80 3B/7B services active before inference; invocation respectively
+  4007a21f66ae4769b286665a4c17edd2 /05550087e4564ee4a53a40575cd633ec.
+  monitor primelora-artifact-monitor-d125full1.service,
+  invocationde88cbacbc284ffaa072e5ff02d73ef4;
+  /home/lab14/primelora_remote/tc/d125_20260930/remote_monitor_7b_full_full1.log.
+  Both healthPASS prepublished_gzip_v1/timingv2. NEVER rebuild D78 published cache.
+  No remote management/config/hash/cleanup during inference.
+- Prelaunch130source refs and147protectedPASS; receiptSHA
+  ff03e949dbadeb952226b78553b602169bcb17a7a681ccb55930dc6b3d345538.
+  Local112.5GBavailable/disk252.65GB; remote102.15GBavailable/146.06GBdisk;
+  localeno1np0/remoteeno1 both1000/full. Qualified check, not future guarantee.
+  Empty prelaunch scope3623d319701a4ee08d90c537f176632a and healthscope
+  d0e91fb489bb48c08837a9e14d1ae8e4 exactly stopped, memory.events0.
+  First37watchdogsamples: nohigh/max/OOM/swap/warning/escaped/foreigncompute;
+  oneownedGPU loading. No performance conclusion from startup.
+
+NEXT: monitor this exact run to terminal; no extra probes/edits/heavy work.
+Then exact-owned cleanup, bounded existing analysis/table, timing/native/source
+and full-population checks, GPU lifecycle, failed requests, D124 acceptance decision.
+Do not whole-load/reproject old D119/D118/D123 huge originals. Preserve all failures.
+If justified follow with 3BFull, then warm/Resident→baselines→M1/M2→A1–A5/S1–S13.
+Numeric adapter distinction and formal SLO remain pending; this is development.
+
+Live checkpoint18:21:02: 75 terminals/75 success/75native_contract_matched,
+0returned failures so far; latestsubmitted req00086. Not final completion or
+numericadapterqualification. Watchdogsample223, 4ownedGPUs, hostavailable
+97720356864B, servicecurrent14837551104B/peak17804238848B, disk251965861888B;
+high/max/OOM/swap/warnings/foreigncompute/escaped all0. watchdog.stderr empty.
+Business replay remains LIVE; preserve exact scopes above and DO NOT rerun.
+No new source optimizer/testing/backup needed while this run is active.
+
+Live checkpoint18:29:26: same exact service invocation, 443terminals/443success/
+443native_contract_matched, no returnedfailures. Latest publisherreq00532,
+so arrival crossed first500 rotation; successful-prefix completion is NOTfull
+qualification. Lastliveconsole531arrived/440done/91backlog; not a synchronized
+final population tally. Conditional displayed TTFT is rising; doNOTclaim queue
+resolved or compare this partial with D119Full/D123profiled prefix.
+Watchdogsample721: 4ownedGPUs, available94718832640B, current18242101248B,
+peak18259025920B,disk251500208128B; high/max/OOM/swap/warning/foreigncompute/
+escapedall0. No restart, addedprobe, runtimeedit, remoteoperation or hashscan.
+Continue exact LIVErun; no newheavyjob. End→cleanup→validate→table→interpret.
+
+Live checkpoint18:38:54: 850terminals/850success/850native_contract_matched,
+0returnedfailures, latestpublisherreq01161. Same service invocation active527tasks.
+Lastliveconsole1155arrived/845done/310backlog, conditionalTTFTcontinuesrising;
+no finalperformance/Full/numericadapter/SLO qualification claim.
+Watchdogsample1281: 4ownedGPUs, available92453351424B,
+current20787978240B/peak20863315968B,disk251192037376B;
+high/max/OOM/swap/warning/foreigncompute/escapedall0. No newheavywork, optimizer,
+test, sourceedit, remoteoperation, scan or backup. Observational toolcell4647
+finished its10polls; it is NOT the experiment. tmux/service continueLIVE.
+Next turn keepmonitoring exact D125 until realterminal, then existing cleanup/
+boundedanalysis/table/decision. Never restart merely because monitoringcellended.
+
+Live checkpoint18:51:35: 1372terminals/1372success/1372native_contract_matched,
+0returnedfailures. Latestpublisherreq02108 (2109submitted); lastliveconsole
+2108arrived/1366done/742backlog, asynchronous snapshots, notfinalmetrics.
+Same exact invocation remainsactive527tasks; detailedCPUprofiler stillabsent.
+Watchdogsample2032: 4ownedGPUs, available90639912960B,
+current24113881088B/peak24159137792B,disk250751459328B;
+high/max/OOM/swap/warning/foreigncompute/escapedall0.
+Currentturn15confirmedpolls45sapart, toolcell4650finishedobservationonly;
+experiment remainsLIVE in tmux/exact scopes. No other task/replay/optimizer,
+remotechanges/hashscan, tests or source changes. Previous turn VERIFIEDWAIT.
+Continue same D125; doNOT infer completion/timeout from endedobservationcell.
+
+Live checkpoint19:04:13: 1879terminals/1879success/1879native_contract_matched,
+0returnedfailures. Latestpublisherreq03068; lastliveconsole3064arrived/1875done/
+1189backlog, asynchronous snapshots. Overallcompleted1879/4000, NOT100%Full
+completion. Statusreportclarified that nofailures means observedterminals only; all4000
+remain denominator. ConditionalTTFTcontinueshigh; no final qualification/claim.
+Exactsame serviceinvocation active527tasks; watchdogsample2779, 4ownedGPUs,
+available87391760384B,current27185434624B/peak27207659520B,disk250496278528B;
+high/max/OOM/swap/warning/foreigncompute/escapedall0.
+Currentturn15polls45sapart; toolcell4653finishedobservationonly, notexperiment.
+No runtime/config change, probe, tests, remoteoperation, scan, cleanup or backup.
+Continue exactLIVE D125 torealterminal. Do not launchanotherheavyjob or duplicate.
+
+Live checkpoint19:19:32: 2492terminals/2481success/2481native_contract_matched,
+11TimeoutError. Latestpublisherreq03802 (3803submitted); lastliveconsole
+3777arrived/2485done/1292backlog, asynchronous snapshots, NOTfinalmetrics.
+Full4000 all-correct gate cannot pass this attempt because returnedfailures exist;
+retain remainder/cleanup evidence, no deadline change or success-only selection.
+DoNOT infer numericadapter/SLO qualification or causal optimizer improvement.
+Same exact serviceinvocation active527tasks; watchdogsample3687, 4ownedGPUs,
+available83858169856B,current31077879808B/peak31096963072B,disk250152910848B;
+high/max/OOM/swap/warning/foreigncompute/escapedall0. Timeoutcause notproven
+by resource safety or livequeue alone. Fullrun remainsLIVE.
+Observationcell4657 finished15polls (continued across contextcompaction), not
+experimentcompletion. ReadfullAGENTS/plan/status/monitor skill; goalstillACTIVE.
+No runtime/config change, probe, tests, remoteoperation, scan, cleanup or backup.
+Only ledger checkpoint edited. Continue same exact D125 torealterminal, then
+cleanup/validation/table/interpretation; no addedheavyjob or duplicate launch.
+
+Live checkpoint19:32:11: 2992terminals/2975success/2975native_contract_matched,
+17TimeoutError. Publisherreplay_complete observed19:24:38; all4000arrived,
+1008notterminal atlatest requestaudit. Lastliveconsole4000arrived/2986done/
+1014backlog isasynchronous, notfinalmetrics. OrdinaryFull remainsinDRAIN,
+notcompleted. All-correct gatefailed; no finalSLO/numericadapter/performanceclaim.
+Same exact serviceinvocation active527tasks; watchdogsample4435, 4ownedGPUs,
+available81721077760B,current33458544640B/peak33552990208B,disk249889742848B;
+high/max/OOM/swap/warning/foreigncompute/escapedall0. GPUholding continues.
+Currentturn15confirmed45spolls, observationcell4670finished, NOTexperiment.
+Readfullplan/status/AGENTS/monitor skill. No runtime/config change, tests, probes,
+remoteoperation, scan, cleanup or backup. Only ledgercheckpoint edited.
+Continue exactLIVE D125 throughactualterminal/release, then boundedvalidation/
+table/interpretation. BaselinesstillPAUSED; no duplicate/newheavyjob.
+
+Live checkpoint19:45:02: 3629terminals/3211success/3211native_contract_matched,
+401TimeoutError plus17failureterminals withnullerror_type. All4000arrived;
+371notterminal. Lastconsole3619done/381backlog isasynchronous, notfinalmetrics.
+At19:33:10 firsttwo nulltypefailures appeared: req03011 activation9cbcc8...
+andreq03014 activation0562b...; service.log19:33:17 explicitly showed
+native RPC ownership unresolved; new generation =2, readyinst/runtimes0 and
+ownedreplica removals. Laterall17nulltypefailures needfullerror reconciliation;
+doNOT automatically labelall17samecause. Service autonomouslyretired/recreated
+replicas, observedGPUholding1–4; no manualrestart or remoteoperation.
+Firsttimeout/backlog precededthisrecovery; donotattributeearlydelayonlytolater
+ownership/quarantine. Failedattempt remains retained, NOTcompletequalifiedFull.
+Same exact serviceinvocation active515tasks; watchdogsample5196, 4ownedGPUs,
+available81430134784B,current33489313792B/peak34640678912B,disk249521926144B;
+high/max/OOM/swap/warning/foreigncompute/escapedall0. Resource safety alone
+doesnotproveperformancecause. NativecountNOTnumericadapterproof.
+Currentturn15confirmed45spolls, observationcell4678closed, NOTexperiment.
+Readfullplan/status/AGENTS/monitor skill; oneboundedread oflivefailureterminals/
+logtail fornewfailuretype, no offlineanalysis/probe/tests/configchange/backup.
+Continue exactD125 toactualterminal/release, then cleanup→boundedvalidation/
+table→interpretation→next. BaselinesPAUSED; no newheavyjob or duplicatelaunch.
+
+## Previous checkpoint — D124 candidate verified and backed
 
 2026-09-30 18:08. Goal ACTIVE/incomplete. Current turn PROGRESS. No subagents.
 Baselines PAUSED. No GPU/real-remote job started this turn; D78/D80 cache unchanged.
@@ -43,7 +357,13 @@ Do NOT repeat D123 analysis/replay, D124 timing/probe/tests/curation/bundle.
   verified. NewCSV CRLF→LF formatting only after diffcheck; values unchanged.
   Scoped backup next; NEVERstage usermanifest.
 
-NEXT AFTER BACKUP: ordinary 7B Full4000, no detailedCPUprofiler/prefix, same
+Postbackup2026-09-30 18:10: D124twelvefiles committed/pushed
+e7d4c91aa4347f26a1f08672b54a5ad4b3228d78, exactremoteHEAD verified.
+Only usermanifest tracked dirty before this note; old/unrelated files preserved.
+Allprimelorascopesinactive/GPUempty, disk252668096512B. DoNOTrepeatbackup.
+This ledger note is not a serving/config change. Wholegoal remainsACTIVE.
+
+NEXT: ordinary 7B Full4000, no detailedCPUprofiler/prefix, same
 D119configuration/D89profiles/realpublished delivery. Only D124timing+copydiff.
 Verify completion/timing/backlog/GPUlifecycle/cleanup, then3BFull ifappropriate.
 Do not add more component probes. Candidate NOTaccepted as Full improvement.
