@@ -1495,8 +1495,9 @@ class IEEEBackendGPUReferences:
         self._host_released: Set[str] = set()
         self._host_references: Dict[int, Set[str]] = {}
         self._host_borrowed_pins: Dict[int, bool] = {}
-        # Immutable identity within this worker incarnation. An eviction does
-        # not authorize reusing its integer ID for different weights/path.
+        # Logical identity survives eviction; the last physical source path is
+        # historical once its native copy retires. Live copies and selected
+        # preparation sources, not an obsolete path, constrain subsequent loads.
         self._sources: Dict[int, Tuple[str, str]] = {}
         # Identity must not itself retain evicted CPU weights. A native integer
         # ID and slot position alone cannot distinguish replacement/reuse.
@@ -1557,10 +1558,11 @@ class IEEEBackendGPUReferences:
         """Logical identity survives eviction; a physical file path need not.
 
         The controller holds a SHA-confirmed file source during loading. A
-        native object/lease/plan still binds its exact source path, so it cannot
-        be relabelled in place. Once all native residency and preparation have
-        retired, the same immutable adapter may be loaded from a different
-        managed tier. A different logical name can never reuse this integer ID.
+        native object/lease still binds its exact source path and cannot be
+        relabelled in place. Each preparation plan binds the source it actually
+        selected, not this ID's last evicted path. With the old copy retired,
+        loading the same immutable adapter from that selected tier is legal.
+        A different logical name can never reuse this integer ID.
         """
         old = self._sources.get(adapter_int_id)
         staged = self._staged_host.get(adapter_int_id)
@@ -1570,11 +1572,18 @@ class IEEEBackendGPUReferences:
             return
         cpu, gpu = self._caches()
         live = (adapter_int_id in cpu or adapter_int_id in gpu
-                or adapter_int_id in self._references or adapter_int_id in self._host_references
-                or staged is not None or any(adapter_int_id in plan['identity'][1]
-                                             for plan in self._preparation_plans.values()))
+                or adapter_int_id in self._references or adapter_int_id in self._host_references)
         if old[0] != source[0] or live:
             raise ValueError('native integer ID reused for a different adapter source')
+        for plan in self._preparation_plans.values():
+            if adapter_int_id in plan['identity'][1]:
+                # Registration validated complete, unique source coverage.
+                # All overlapping plans must agree; completion of one target
+                # does not retire the plan's protection before plan close.
+                row = next(r for r in plan['objective']['sources']
+                           if r['adapter_int_id'] == adapter_int_id)
+                if (row['adapter_id'], row['lora_path']) != source:
+                    raise ValueError('native integer ID reused for a different adapter source')
 
     def staged_models(self):
         return {aid: row['model'] for aid, row in self._staged_host.items()}

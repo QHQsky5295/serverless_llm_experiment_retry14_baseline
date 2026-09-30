@@ -1,0 +1,23 @@
+{
+  "bundle": "20261001_d134_plan_source_binding_sources.tar.gz",
+  "member_sha256": {
+    "cleanup_verify.log": "ccc791a92ae853adaadefdc2fcb41ea989597b7bdab4d7eff83d6752eb698bcc",
+    "cleanup_verify.sh": "6ac0aa38ce94d7ac5c526d2445f60ee21753ab46eca7a80c9c36b5ff31fc9951",
+    "curate_and_bundle.py": "b34ef212e2792154b27f2ec5e9dfedcbcab3dcf820d3fa4b17637ea90f199112",
+    "finalize.sh": "92fe51b241380db8a7715032093ea2f027bd21dbf5e2d245852ccf6dce9a7a53",
+    "finalize_scope.txt": "cd956f736edf2a88ba70defee20929afed0852417e618b5195a10a890e1773d5",
+    "green.log": "0087e857678587d61b5a00d7a1ef0afdd6d28bfa516f23f322640450fefe8227",
+    "green_scope.txt": "3058d9b9a4832365e46c407517b9b6e831a22d6aa17dc940d3df4e58b93b5b7c",
+    "green_time.txt": "361f540f82e6a3f7844d05bad7d402412be5f637880d3db24e5c138e071df3f9",
+    "red.log": "c170e885ad052dff1d24a42ef40984665030edbea524a8d7be7c6f02bce5b092",
+    "red_scope.txt": "11008bb0b73cfaaf9ddaad3813389ad234c0d92e375944fc9c96beeb5a59e36d",
+    "red_time.txt": "ee0c0dc6ae6d4d42d01b32c4afa74b20e38d773b5bf5a1d4a05674d3e115d1da",
+    "test_plan_source_binding.sh": "803e1d091053a56be140f96f784f38d13bfea0ba1488546eb6098fba17a182aa",
+    "verification.json": "c37dd204a48a503df93800693a8cabbba2b5e3cb45697ef30171b964ef547a3d",
+    "verify.log": "b303b6e8b9b91b8cb04aba4a1e27c00526197bde4adad049168a28588c2d2cfd",
+    "verify_plan_source_binding.sh": "bc011e929874dc19dcbe810ec8c9a929dd7488edd8900a9b1e44589dec9bd1c1",
+    "verify_scope.txt": "ae9bbfdc80f0793e0561eb13bdd0fa2753af0ba7ec986461d7ad6e35643a61eb",
+    "verify_time.txt": "037c543139dc9c8327645510fd48f4ef238d45bfd4ca459dfccb0cf568d9485e"
+  },
+  "member_checks_pass": true
+}

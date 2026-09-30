@@ -1357,13 +1357,50 @@ class NativeDemandTransactions(unittest.TestCase):
         self.release('cold-1')
         self.owner.evict(adapter_int_id=4)
         # A still-live owner target, not a synthetic latency/profile sample.
-        self.owner._preparation_plans['pending'] = {'identity': ('fixture', (4,))}
+        self.owner._preparation_plans['pending'] = {'identity': ('fixture', (4,)),
+            'objective': {'sources': [dict(adapter_int_id=4, adapter_id='adapter-4',
+                                          lora_path='/existing/adapter-4')]}}
         with self.assertRaisesRegex(ValueError, 'different adapter source'):
             self.owner._validate_source_binding(4, ('adapter-4', '/new-tier/adapter-4'))
         del self.owner._preparation_plans['pending']
         self.owner._staged_host[4] = {'source': ('adapter-4', '/existing/adapter-4')}
         with self.assertRaisesRegex(ValueError, 'different adapter source'):
             self.owner._validate_source_binding(4, ('adapter-4', '/new-tier/adapter-4'))
+
+    def test_new_plan_binds_its_selected_source_not_the_retired_copy(self):
+        self.demand()
+        self.release('cold-1')
+        new = ('adapter-4', '/new-tier/adapter-4')
+        plans = self.owner._preparation_plans
+        def plan(source, targets=(4,)):
+            return dict(identity=('fixture', targets), pending=set(targets),
+                objective=dict(sources=[dict(adapter_int_id=4,
+                    adapter_id=source[0], lora_path=source[1])]))
+        plans['new'] = plan(new)
+        # Matching intent cannot authorize relabelling an existing GPU/CPU copy.
+        with self.assertRaisesRegex(ValueError, 'different adapter source'):
+            self.owner._validate_source_binding(4, new)
+        self.manager.deactivate(4)
+        with self.assertRaisesRegex(ValueError, 'different adapter source'):
+            self.owner._validate_source_binding(4, new)
+        # Ordinary eviction remains governed by the unchanged actual owner.
+        self.assertTrue(self.owner.evict(adapter_int_id=4)['evicted'])
+        self.owner._validate_source_binding(4, new)
+        plans['same'] = plan(new)
+        self.owner._validate_source_binding(4, new)
+        plans['old'] = plan(('adapter-4', '/existing/adapter-4'))
+        with self.assertRaisesRegex(ValueError, 'different adapter source'):
+            self.owner._validate_source_binding(4, new)
+        plans['old']['pending'].clear()  # A completed target still has an owner.
+        with self.assertRaisesRegex(ValueError, 'different adapter source'):
+            self.owner._validate_source_binding(4, new)
+        del plans['old']
+        with self.assertRaisesRegex(ValueError, 'different adapter source'):
+            self.owner._validate_source_binding(4, ('different-adapter', new[1]))
+        self.owner._staged_host[4] = {'source': new}
+        self.owner._validate_source_binding(4, new)
+        with self.assertRaisesRegex(ValueError, 'different adapter source'):
+            self.owner._validate_source_binding(4, ('adapter-4', '/third/adapter-4'))
 
     def test_failed_or_incomplete_load_never_publishes_ready(self):
         for callback in (Mock(side_effect=RuntimeError('copy failed')), Mock()):

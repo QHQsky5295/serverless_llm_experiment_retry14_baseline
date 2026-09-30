@@ -1,0 +1,1187 @@
+{
+  "kind": "d134_plan_selected_source_binding_v1",
+  "evidence_parent_commit": "f5e10dbb051f1568d92ab29a6fe44827af8e1a07",
+  "d133_runtime_commit": "30b07158788d080e5c51b93eedfa59a0a02bb2ca",
+  "production_changed": [
+    "faaslora/memory/residency_manager.py"
+  ],
+  "decision": "correctness_candidate_passed_cpu_regression_ordinary_Full_required",
+  "full_replay_qualified": false,
+  "formal_performance_result": false,
+  "cuda_executed": false,
+  "red_green": {
+    "red": "same_source_guard_and_unresolved_transfer_reproduced",
+    "green": "same_real_owner_selector_case_completed_and_released",
+    "cpu_test_only": true,
+    "independent_performance_repetitions": 0
+  },
+  "d133_observations": {
+    "logical_adapters": 500,
+    "native_integer_ids": 500,
+    "collisions": [],
+    "failed_adapter": "medical_lora_0014",
+    "native_id": 683755,
+    "content_sha256": "8e55e0c8fa3c7364767884cc0626af153e64de0a162bc675c9326ed70cba50c9",
+    "old_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d133_20261001/7b_nvme_full1/tc_ieee_full/medical_lora_0014",
+    "new_path": "/dev/shm/tc-d133-7b-full1/tc_ieee_full/medical_lora_0014",
+    "native_host_preparations": [
+      {
+        "adapter_id": "medical_lora_0014",
+        "target_replica": "ieee-activation-649ad3b68d854c458b8a0278f4861618",
+        "source_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d133_20261001/7b_nvme_full1/tc_ieee_full/medical_lora_0014",
+        "content_sha256": "8e55e0c8fa3c7364767884cc0626af153e64de0a162bc675c9326ed70cba50c9",
+        "plan_id": "7760b1fda0854acd92abc8e9ad6ef8ee",
+        "trigger_reason": "residency",
+        "activation_id": null,
+        "attempts": [
+          {
+            "attempt_id": "f619e5b981a7436d98307714fb8f3dfb",
+            "file_reference": {
+              "owner_id": "5573849a7a1f457890f0a2ada1d7fea8",
+              "lease_id": "6986a37d5a6941fd991dbc8f8d60111a",
+              "adapter_id": "medical_lora_0014",
+              "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d133_20261001/7b_nvme_full1/tc_ieee_full/medical_lora_0014",
+              "tier": "nvme",
+              "device": 2050,
+              "inode": 106567989,
+              "state": "held",
+              "content_verified": true,
+              "capacity_reserved": false,
+              "confirmed_source": {
+                "adapter_id": "medical_lora_0014",
+                "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d133_20261001/7b_nvme_full1/tc_ieee_full/medical_lora_0014",
+                "tier": "nvme",
+                "content_sha256": "8e55e0c8fa3c7364767884cc0626af153e64de0a162bc675c9326ed70cba50c9",
+                "content_verified": true,
+                "representation": "verified_regular_file_tree_v1",
+                "file_path_bytes": 20938675,
+                "allocated_file_bytes": 20971520,
+                "allocated_bytes": 20975616,
+                "unique_file_count": 10
+              },
+              "file_footprint": {
+                "scope": "linked_inode_storage_v1",
+                "logical_file_bytes": 20938675,
+                "file_path_bytes": 20938675,
+                "allocated_bytes": 20975616,
+                "allocated_file_bytes": 20971520,
+                "unique_file_count": 10,
+                "tier_totals_additive": true,
+                "content_verified": false,
+                "capacity_reserved": false,
+                "physical_release_proven": false
+              }
+            },
+            "state": "deferred",
+            "command": {
+              "lease_id": "216ebc67010d4fa6bade1035db1381e7",
+              "adapter_int_id": 683755,
+              "lora_name": "medical_lora_0014",
+              "lora_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d133_20261001/7b_nvme_full1/tc_ieee_full/medical_lora_0014",
+              "expected_owner_id": "d1bbd3f987b9457fa23a8f9b1754308e",
+              "expected_epoch": 282,
+              "native_host_tensor_budget_bytes": 2147483648,
+              "preparation_plan_id": "7760b1fda0854acd92abc8e9ad6ef8ee"
+            },
+            "receipt": {
+              "held": false,
+              "reason": "stale_snapshot",
+              "owner_id": "d1bbd3f987b9457fa23a8f9b1754308e",
+              "epoch": 285,
+              "slot_adapter_ids": [
+                963725,
+                530107,
+                982478,
+                291372
+              ],
+              "reference_counts": {},
+              "live_leases": 0,
+              "released_leases": 29,
+              "host_source_reference_counts": {},
+              "live_host_source_leases": 0,
+              "staged_host_adapter_ids": [],
+              "live_staged_host_leases": 0,
+              "pending_preparation_targets": [
+                683755
+              ],
+              "snapshot_holds_reference": false,
+              "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+              "native_host_allocator_policy": {
+                "policy": "uncached_background_v1",
+                "verified": true,
+                "allocator_settings": {
+                  "PYTORCH_CUDA_ALLOC_CONF": "max_split_size_mb:17592186044415",
+                  "max_split_size": -1048576,
+                  "garbage_collection_threshold": 0,
+                  "expandable_segments": false,
+                  "pinned_num_register_threads": 1,
+                  "release_lock_on_cudamalloc": false,
+                  "pinned_use_cuda_host_register": false,
+                  "graph_capture_record_stream_reuse": false,
+                  "max_round_threshold": -1,
+                  "max_cached_size": 0,
+                  "roundup_power2_divisions": {
+                    "1": 0,
+                    "2": 0,
+                    "4": 0,
+                    "8": 0,
+                    "16": 0,
+                    "32": 0,
+                    "64": 0,
+                    "128": 0,
+                    "256": 0,
+                    "512": 0,
+                    "1024": 0,
+                    "2048": 0,
+                    "4096": 0,
+                    "8192": 0,
+                    "16384": 0,
+                    "32768": 0
+                  }
+                },
+                "verified_scope": "effective_uncached_pinned_allocation_limit",
+                "last_allocator_update": "max_split_size_mb:17592186044415",
+                "background_event_processing_requested": true,
+                "background_event_processing_readback": null,
+                "background_readback_limitation": "torch_2_13_snapshot_does_not_export_background_flag",
+                "persistent_cache_enabled": false,
+                "immediate_release_guaranteed": false
+              },
+              "worker_pid": 4013937,
+              "worker_rank": 0,
+              "completion_fence_scope": "current_worker_cuda_stream",
+              "production_launch_authorized": false,
+              "timing": {
+                "parent_rpc_channel_acquire_ms": 0.8380709914490581,
+                "parent_rpc_response_pickup_delay_ms": 0,
+                "parent_rpc_send_flush_ms": 0.09702297393232584,
+                "parent_rpc_request_bytes": 575,
+                "parent_rpc_response_bytes": 1716,
+                "parent_rpc_wait_response_ms": 33.180882048327476,
+                "parent_rpc_transport": "native_async_socket_v1",
+                "parent_rpc_thread_resume_delay_ms": 0
+              }
+            },
+            "file_reference_released": true
+          },
+          {
+            "attempt_id": "e8b844803ce54afc9bc0e7c3f9c1b78c",
+            "file_reference": {
+              "owner_id": "5573849a7a1f457890f0a2ada1d7fea8",
+              "lease_id": "e412c5d803e6499eada601a1d43cfb23",
+              "adapter_id": "medical_lora_0014",
+              "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d133_20261001/7b_nvme_full1/tc_ieee_full/medical_lora_0014",
+              "tier": "nvme",
+              "device": 2050,
+              "inode": 106567989,
+              "state": "held",
+              "content_verified": true,
+              "capacity_reserved": false,
+              "confirmed_source": {
+                "adapter_id": "medical_lora_0014",
+                "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d133_20261001/7b_nvme_full1/tc_ieee_full/medical_lora_0014",
+                "tier": "nvme",
+                "content_sha256": "8e55e0c8fa3c7364767884cc0626af153e64de0a162bc675c9326ed70cba50c9",
+                "content_verified": true,
+                "representation": "verified_regular_file_tree_v1",
+                "file_path_bytes": 20938675,
+                "allocated_file_bytes": 20971520,
+                "allocated_bytes": 20975616,
+                "unique_file_count": 10
+              },
+              "file_footprint": {
+                "scope": "linked_inode_storage_v1",
+                "logical_file_bytes": 20938675,
+                "file_path_bytes": 20938675,
+                "allocated_bytes": 20975616,
+                "allocated_file_bytes": 20971520,
+                "unique_file_count": 10,
+                "tier_totals_additive": true,
+                "content_verified": false,
+                "capacity_reserved": false,
+                "physical_release_proven": false
+              }
+            },
+            "state": "deferred",
+            "command": {
+              "lease_id": "2f3cdcc4483742b78c7b2776734fe5cd",
+              "adapter_int_id": 683755,
+              "lora_name": "medical_lora_0014",
+              "lora_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d133_20261001/7b_nvme_full1/tc_ieee_full/medical_lora_0014",
+              "expected_owner_id": "d1bbd3f987b9457fa23a8f9b1754308e",
+              "expected_epoch": 285,
+              "native_host_tensor_budget_bytes": 2147483648,
+              "preparation_plan_id": "7760b1fda0854acd92abc8e9ad6ef8ee"
+            },
+            "receipt": {
+              "held": false,
+              "reason": "stale_snapshot",
+              "owner_id": "d1bbd3f987b9457fa23a8f9b1754308e",
+              "epoch": 294,
+              "slot_adapter_ids": [
+                963725,
+                204296,
+                982478,
+                826726
+              ],
+              "reference_counts": {
+                "826726": 1,
+                "204296": 1
+              },
+              "live_leases": 2,
+              "released_leases": 29,
+              "host_source_reference_counts": {},
+              "live_host_source_leases": 0,
+              "staged_host_adapter_ids": [],
+              "live_staged_host_leases": 0,
+              "pending_preparation_targets": [
+                683755
+              ],
+              "snapshot_holds_reference": false,
+              "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+              "native_host_allocator_policy": {
+                "policy": "uncached_background_v1",
+                "verified": true,
+                "allocator_settings": {
+                  "PYTORCH_CUDA_ALLOC_CONF": "max_split_size_mb:17592186044415",
+                  "max_split_size": -1048576,
+                  "garbage_collection_threshold": 0,
+                  "expandable_segments": false,
+                  "pinned_num_register_threads": 1,
+                  "release_lock_on_cudamalloc": false,
+                  "pinned_use_cuda_host_register": false,
+                  "graph_capture_record_stream_reuse": false,
+                  "max_round_threshold": -1,
+                  "max_cached_size": 0,
+                  "roundup_power2_divisions": {
+                    "1": 0,
+                    "2": 0,
+                    "4": 0,
+                    "8": 0,
+                    "16": 0,
+                    "32": 0,
+                    "64": 0,
+                    "128": 0,
+                    "256": 0,
+                    "512": 0,
+                    "1024": 0,
+                    "2048": 0,
+                    "4096": 0,
+                    "8192": 0,
+                    "16384": 0,
+                    "32768": 0
+                  }
+                },
+                "verified_scope": "effective_uncached_pinned_allocation_limit",
+                "last_allocator_update": "max_split_size_mb:17592186044415",
+                "background_event_processing_requested": true,
+                "background_event_processing_readback": null,
+                "background_readback_limitation": "torch_2_13_snapshot_does_not_export_background_flag",
+                "persistent_cache_enabled": false,
+                "immediate_release_guaranteed": false
+              },
+              "worker_pid": 4013937,
+              "worker_rank": 0,
+              "completion_fence_scope": "current_worker_cuda_stream",
+              "production_launch_authorized": false,
+              "timing": {
+                "parent_rpc_channel_acquire_ms": 0.7748579955659807,
+                "parent_rpc_response_pickup_delay_ms": 0,
+                "parent_rpc_send_flush_ms": 0.08511601481586695,
+                "parent_rpc_request_bytes": 576,
+                "parent_rpc_response_bytes": 1740,
+                "parent_rpc_wait_response_ms": 186.8205610080622,
+                "parent_rpc_transport": "native_async_socket_v1",
+                "parent_rpc_thread_resume_delay_ms": 0
+              }
+            },
+            "file_reference_released": true
+          },
+          {
+            "attempt_id": "88d33d4ca9ba4971a51213524bf3adc9",
+            "file_reference": {
+              "owner_id": "5573849a7a1f457890f0a2ada1d7fea8",
+              "lease_id": "fe3c92f299c645f597d87771c3851816",
+              "adapter_id": "medical_lora_0014",
+              "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d133_20261001/7b_nvme_full1/tc_ieee_full/medical_lora_0014",
+              "tier": "nvme",
+              "device": 2050,
+              "inode": 106567989,
+              "state": "held",
+              "content_verified": true,
+              "capacity_reserved": false,
+              "confirmed_source": {
+                "adapter_id": "medical_lora_0014",
+                "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d133_20261001/7b_nvme_full1/tc_ieee_full/medical_lora_0014",
+                "tier": "nvme",
+                "content_sha256": "8e55e0c8fa3c7364767884cc0626af153e64de0a162bc675c9326ed70cba50c9",
+                "content_verified": true,
+                "representation": "verified_regular_file_tree_v1",
+                "file_path_bytes": 20938675,
+                "allocated_file_bytes": 20971520,
+                "allocated_bytes": 20975616,
+                "unique_file_count": 10
+              },
+              "file_footprint": {
+                "scope": "linked_inode_storage_v1",
+                "logical_file_bytes": 20938675,
+                "file_path_bytes": 20938675,
+                "allocated_bytes": 20975616,
+                "allocated_file_bytes": 20971520,
+                "unique_file_count": 10,
+                "tier_totals_additive": true,
+                "content_verified": false,
+                "capacity_reserved": false,
+                "physical_release_proven": false
+              }
+            },
+            "state": "completed",
+            "command": {
+              "lease_id": "7c1245c3049e4307bf6e45e999a5c9c0",
+              "adapter_int_id": 683755,
+              "lora_name": "medical_lora_0014",
+              "lora_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d133_20261001/7b_nvme_full1/tc_ieee_full/medical_lora_0014",
+              "expected_owner_id": "d1bbd3f987b9457fa23a8f9b1754308e",
+              "expected_epoch": 298,
+              "native_host_tensor_budget_bytes": 2147483648,
+              "preparation_plan_id": "7760b1fda0854acd92abc8e9ad6ef8ee"
+            },
+            "receipt": {
+              "held": true,
+              "owner_id": "d1bbd3f987b9457fa23a8f9b1754308e",
+              "epoch": 301,
+              "lease_id": "7c1245c3049e4307bf6e45e999a5c9c0",
+              "adapter_int_id": 683755,
+              "lora_name": "medical_lora_0014",
+              "lora_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d133_20261001/7b_nvme_full1/tc_ieee_full/medical_lora_0014",
+              "tier": "host",
+              "reference_scope": "native_cpu_lru_source",
+              "held_monotonic_s": 306486.343268377,
+              "gpu_acquired": false,
+              "reference_purpose": "demand_preparation",
+              "expected_source_id": null,
+              "acquisition_operation": "prepare_file_host_and_hold",
+              "native_host_source_id": "478bb881ee2c45a99632bc32bd4afe65",
+              "native_load_invoked": true,
+              "allocation": {
+                "admitted": true,
+                "reason": null,
+                "before": {
+                  "kind": "native_pinned_host_allocator_v1",
+                  "available": true,
+                  "pinned_allocated_bytes": 285229900,
+                  "pinned_active_bytes": 285229900,
+                  "pinned_cached_bytes": 0,
+                  "pinned_blocks": 3691,
+                  "pinned_active_blocks": 3691,
+                  "registered_pinned_storage_bytes": 285212672,
+                  "registered_pageable_storage_bytes": 0,
+                  "staged_only_pinned_storage_bytes": 0,
+                  "staged_only_pageable_storage_bytes": 0,
+                  "native_pageable_storage_bytes": 0,
+                  "registered_exclusive_storage_bytes": 285212672,
+                  "accounted_tensor_bytes": 285229900,
+                  "scope": "process_pinned_allocator_plus_registered_pageable_tensors",
+                  "total_host_memory_covered": false
+                },
+                "contract": {
+                  "kind": "dense_safetensors_native_host_loading_v1",
+                  "source_file_bytes": 16811112,
+                  "tensor_count": 256,
+                  "converted_pageable_bytes": 16777216,
+                  "additional_pinned_upper_bytes": 16777216,
+                  "peak_additional_tensor_bytes": 50365544,
+                  "resident_pinned_upper_bytes": 16777216,
+                  "transient_tensor_upper_bytes": 33588328,
+                  "pinned_allocation_policy": "uncached_v1",
+                  "dtype": "torch.float16",
+                  "total_host_memory_covered": false
+                },
+                "tensor_budget_bytes": 2147483648,
+                "allocator_policy": {
+                  "policy": "uncached_background_v1",
+                  "verified": true,
+                  "allocator_settings": {
+                    "PYTORCH_CUDA_ALLOC_CONF": "max_split_size_mb:17592186044415",
+                    "max_split_size": -1048576,
+                    "garbage_collection_threshold": 0,
+                    "expandable_segments": false,
+                    "pinned_num_register_threads": 1,
+                    "release_lock_on_cudamalloc": false,
+                    "pinned_use_cuda_host_register": false,
+                    "graph_capture_record_stream_reuse": false,
+                    "max_round_threshold": -1,
+                    "max_cached_size": 0,
+                    "roundup_power2_divisions": {
+                      "1": 0,
+                      "2": 0,
+                      "4": 0,
+                      "8": 0,
+                      "16": 0,
+                      "32": 0,
+                      "64": 0,
+                      "128": 0,
+                      "256": 0,
+                      "512": 0,
+                      "1024": 0,
+                      "2048": 0,
+                      "4096": 0,
+                      "8192": 0,
+                      "16384": 0,
+                      "32768": 0
+                    }
+                  },
+                  "verified_scope": "effective_uncached_pinned_allocation_limit",
+                  "last_allocator_update": "max_split_size_mb:17592186044415",
+                  "background_event_processing_requested": true,
+                  "background_event_processing_readback": null,
+                  "background_readback_limitation": "torch_2_13_snapshot_does_not_export_background_flag",
+                  "persistent_cache_enabled": false,
+                  "immediate_release_guaranteed": false
+                },
+                "workspace_projection": {
+                  "admitted": true,
+                  "accounted_bytes": 285229900,
+                  "incoming_peak_bytes": 50365544,
+                  "reserved_for_cache_growth_and_demand_bytes": 620791312,
+                  "projected_bytes": 956386756,
+                  "tensor_budget_bytes": 2147483648,
+                  "reason": null
+                },
+                "total_host_memory_covered": false,
+                "after": {
+                  "kind": "native_pinned_host_allocator_v1",
+                  "available": true,
+                  "pinned_allocated_bytes": 302007116,
+                  "pinned_active_bytes": 302007116,
+                  "pinned_cached_bytes": 0,
+                  "pinned_blocks": 3947,
+                  "pinned_active_blocks": 3947,
+                  "registered_pinned_storage_bytes": 301989888,
+                  "registered_pageable_storage_bytes": 0,
+                  "staged_only_pinned_storage_bytes": 0,
+                  "staged_only_pageable_storage_bytes": 0,
+                  "native_pageable_storage_bytes": 0,
+                  "registered_exclusive_storage_bytes": 301989888,
+                  "accounted_tensor_bytes": 302007116,
+                  "scope": "process_pinned_allocator_plus_registered_pageable_tensors",
+                  "total_host_memory_covered": false
+                }
+              },
+              "load_started_monotonic_s": 306486.154947338,
+              "load_completed_monotonic_s": 306486.343274079,
+              "total_host_memory_covered": false,
+              "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+              "native_host_allocator_policy": {
+                "policy": "uncached_background_v1",
+                "verified": true,
+                "allocator_settings": {
+                  "PYTORCH_CUDA_ALLOC_CONF": "max_split_size_mb:17592186044415",
+                  "max_split_size": -1048576,
+                  "garbage_collection_threshold": 0,
+                  "expandable_segments": false,
+                  "pinned_num_register_threads": 1,
+                  "release_lock_on_cudamalloc": false,
+                  "pinned_use_cuda_host_register": false,
+                  "graph_capture_record_stream_reuse": false,
+                  "max_round_threshold": -1,
+                  "max_cached_size": 0,
+                  "roundup_power2_divisions": {
+                    "1": 0,
+                    "2": 0,
+                    "4": 0,
+                    "8": 0,
+                    "16": 0,
+                    "32": 0,
+                    "64": 0,
+                    "128": 0,
+                    "256": 0,
+                    "512": 0,
+                    "1024": 0,
+                    "2048": 0,
+                    "4096": 0,
+                    "8192": 0,
+                    "16384": 0,
+                    "32768": 0
+                  }
+                },
+                "verified_scope": "effective_uncached_pinned_allocation_limit",
+                "last_allocator_update": "max_split_size_mb:17592186044415",
+                "background_event_processing_requested": true,
+                "background_event_processing_readback": null,
+                "background_readback_limitation": "torch_2_13_snapshot_does_not_export_background_flag",
+                "persistent_cache_enabled": false,
+                "immediate_release_guaranteed": false
+              },
+              "worker_pid": 4013937,
+              "worker_rank": 0,
+              "completion_fence_scope": "current_worker_cuda_stream",
+              "production_launch_authorized": false,
+              "timing": {
+                "parent_rpc_channel_acquire_ms": 0.5141079891473055,
+                "parent_rpc_response_pickup_delay_ms": 0,
+                "parent_rpc_send_flush_ms": 0.03199599450454116,
+                "parent_rpc_request_bytes": 576,
+                "parent_rpc_response_bytes": 5152,
+                "parent_rpc_wait_response_ms": 663.38702297071,
+                "parent_rpc_transport": "native_async_socket_v1",
+                "parent_rpc_thread_resume_delay_ms": 0
+              }
+            },
+            "release_receipt": {
+              "released": true,
+              "already_released": false,
+              "owner_id": "d1bbd3f987b9457fa23a8f9b1754308e",
+              "epoch": 303,
+              "slot_adapter_ids": [
+                963725,
+                204296,
+                982478,
+                826726
+              ],
+              "reference_counts": {
+                "826726": 1
+              },
+              "live_leases": 1,
+              "released_leases": 30,
+              "host_source_reference_counts": {},
+              "live_host_source_leases": 0,
+              "staged_host_adapter_ids": [],
+              "live_staged_host_leases": 0,
+              "pending_preparation_targets": [
+                683755
+              ],
+              "snapshot_holds_reference": false,
+              "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+              "native_host_allocator_policy": {
+                "policy": "uncached_background_v1",
+                "verified": true,
+                "allocator_settings": {
+                  "PYTORCH_CUDA_ALLOC_CONF": "max_split_size_mb:17592186044415",
+                  "max_split_size": -1048576,
+                  "garbage_collection_threshold": 0,
+                  "expandable_segments": false,
+                  "pinned_num_register_threads": 1,
+                  "release_lock_on_cudamalloc": false,
+                  "pinned_use_cuda_host_register": false,
+                  "graph_capture_record_stream_reuse": false,
+                  "max_round_threshold": -1,
+                  "max_cached_size": 0,
+                  "roundup_power2_divisions": {
+                    "1": 0,
+                    "2": 0,
+                    "4": 0,
+                    "8": 0,
+                    "16": 0,
+                    "32": 0,
+                    "64": 0,
+                    "128": 0,
+                    "256": 0,
+                    "512": 0,
+                    "1024": 0,
+                    "2048": 0,
+                    "4096": 0,
+                    "8192": 0,
+                    "16384": 0,
+                    "32768": 0
+                  }
+                },
+                "verified_scope": "effective_uncached_pinned_allocation_limit",
+                "last_allocator_update": "max_split_size_mb:17592186044415",
+                "background_event_processing_requested": true,
+                "background_event_processing_readback": null,
+                "background_readback_limitation": "torch_2_13_snapshot_does_not_export_background_flag",
+                "persistent_cache_enabled": false,
+                "immediate_release_guaranteed": false
+              },
+              "worker_pid": 4013937,
+              "worker_rank": 0,
+              "completion_fence_scope": "current_worker_cuda_stream",
+              "production_launch_authorized": false,
+              "timing": {
+                "parent_rpc_channel_acquire_ms": 0.9906850173138082,
+                "parent_rpc_response_pickup_delay_ms": 0,
+                "parent_rpc_send_flush_ms": 0.05289196269586682,
+                "parent_rpc_request_bytes": 228,
+                "parent_rpc_response_bytes": 1729,
+                "parent_rpc_wait_response_ms": 49.96838205261156,
+                "parent_rpc_transport": "native_async_socket_v1",
+                "parent_rpc_thread_resume_delay_ms": 0
+              }
+            },
+            "file_reference_released": true
+          }
+        ]
+      },
+      {
+        "adapter_id": "medical_lora_0014",
+        "target_replica": "ieee-activation-649ad3b68d854c458b8a0278f4861618",
+        "source_path": "/dev/shm/tc-d133-7b-full1/tc_ieee_full/medical_lora_0014",
+        "content_sha256": "8e55e0c8fa3c7364767884cc0626af153e64de0a162bc675c9326ed70cba50c9",
+        "plan_id": "91755aed1ab846b3b3e40a3f8af43bf9",
+        "trigger_reason": "residency",
+        "activation_id": null,
+        "attempts": [
+          {
+            "attempt_id": "addd4ff24f7540fe851755a93ec88a7c",
+            "file_reference": {
+              "owner_id": "5573849a7a1f457890f0a2ada1d7fea8",
+              "lease_id": "d072a5473fcc459b8de8b75e426cf5f8",
+              "adapter_id": "medical_lora_0014",
+              "path": "/dev/shm/tc-d133-7b-full1/tc_ieee_full/medical_lora_0014",
+              "tier": "host",
+              "device": 27,
+              "inode": 5289,
+              "state": "held",
+              "content_verified": true,
+              "capacity_reserved": false,
+              "confirmed_source": {
+                "adapter_id": "medical_lora_0014",
+                "path": "/dev/shm/tc-d133-7b-full1/tc_ieee_full/medical_lora_0014",
+                "tier": "host",
+                "content_sha256": "8e55e0c8fa3c7364767884cc0626af153e64de0a162bc675c9326ed70cba50c9",
+                "content_verified": true,
+                "representation": "verified_regular_file_tree_v1",
+                "file_path_bytes": 20938675,
+                "allocated_file_bytes": 20971520,
+                "allocated_bytes": 20971520,
+                "unique_file_count": 10
+              },
+              "file_footprint": {
+                "scope": "linked_inode_storage_v1",
+                "logical_file_bytes": 20938675,
+                "file_path_bytes": 20938675,
+                "allocated_bytes": 20971520,
+                "allocated_file_bytes": 20971520,
+                "unique_file_count": 10,
+                "tier_totals_additive": true,
+                "content_verified": false,
+                "capacity_reserved": false,
+                "physical_release_proven": false
+              }
+            },
+            "state": "deferred",
+            "command": {
+              "lease_id": "5f6d549d725a41f2b00e21019b8c0970",
+              "adapter_int_id": 683755,
+              "lora_name": "medical_lora_0014",
+              "lora_path": "/dev/shm/tc-d133-7b-full1/tc_ieee_full/medical_lora_0014",
+              "expected_owner_id": "d1bbd3f987b9457fa23a8f9b1754308e",
+              "expected_epoch": 1397,
+              "native_host_tensor_budget_bytes": 2147483648,
+              "preparation_plan_id": "91755aed1ab846b3b3e40a3f8af43bf9"
+            },
+            "receipt": {
+              "held": false,
+              "reason": "stale_snapshot",
+              "owner_id": "d1bbd3f987b9457fa23a8f9b1754308e",
+              "epoch": 1411,
+              "slot_adapter_ids": [
+                959603,
+                204296,
+                904661,
+                530107
+              ],
+              "reference_counts": {
+                "530107": 1,
+                "959603": 1
+              },
+              "live_leases": 2,
+              "released_leases": 153,
+              "host_source_reference_counts": {},
+              "live_host_source_leases": 0,
+              "staged_host_adapter_ids": [],
+              "live_staged_host_leases": 0,
+              "pending_preparation_targets": [
+                616194,
+                683755
+              ],
+              "snapshot_holds_reference": false,
+              "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+              "native_host_allocator_policy": {
+                "policy": "uncached_background_v1",
+                "verified": true,
+                "allocator_settings": {
+                  "PYTORCH_CUDA_ALLOC_CONF": "max_split_size_mb:17592186044415",
+                  "max_split_size": -1048576,
+                  "garbage_collection_threshold": 0,
+                  "expandable_segments": false,
+                  "pinned_num_register_threads": 1,
+                  "release_lock_on_cudamalloc": false,
+                  "pinned_use_cuda_host_register": false,
+                  "graph_capture_record_stream_reuse": false,
+                  "max_round_threshold": -1,
+                  "max_cached_size": 0,
+                  "roundup_power2_divisions": {
+                    "1": 0,
+                    "2": 0,
+                    "4": 0,
+                    "8": 0,
+                    "16": 0,
+                    "32": 0,
+                    "64": 0,
+                    "128": 0,
+                    "256": 0,
+                    "512": 0,
+                    "1024": 0,
+                    "2048": 0,
+                    "4096": 0,
+                    "8192": 0,
+                    "16384": 0,
+                    "32768": 0
+                  }
+                },
+                "verified_scope": "effective_uncached_pinned_allocation_limit",
+                "last_allocator_update": "max_split_size_mb:17592186044415",
+                "background_event_processing_requested": true,
+                "background_event_processing_readback": null,
+                "background_readback_limitation": "torch_2_13_snapshot_does_not_export_background_flag",
+                "persistent_cache_enabled": false,
+                "immediate_release_guaranteed": false
+              },
+              "worker_pid": 4013937,
+              "worker_rank": 0,
+              "completion_fence_scope": "current_worker_cuda_stream",
+              "production_launch_authorized": false,
+              "timing": {
+                "parent_rpc_channel_acquire_ms": 0.4776360001415014,
+                "parent_rpc_response_pickup_delay_ms": 0,
+                "parent_rpc_send_flush_ms": 0.04369800444692373,
+                "parent_rpc_request_bytes": 497,
+                "parent_rpc_response_bytes": 1750,
+                "parent_rpc_wait_response_ms": 40.50116299185902,
+                "parent_rpc_transport": "native_async_socket_v1",
+                "parent_rpc_thread_resume_delay_ms": 0
+              }
+            },
+            "file_reference_released": true
+          },
+          {
+            "attempt_id": "756a0811283b44928bd957948f35d74c",
+            "file_reference": {
+              "owner_id": "5573849a7a1f457890f0a2ada1d7fea8",
+              "lease_id": "f4ed6ca8bfcd4f429936cee71192aca4",
+              "adapter_id": "medical_lora_0014",
+              "path": "/dev/shm/tc-d133-7b-full1/tc_ieee_full/medical_lora_0014",
+              "tier": "host",
+              "device": 27,
+              "inode": 5289,
+              "state": "held",
+              "content_verified": true,
+              "capacity_reserved": false,
+              "confirmed_source": {
+                "adapter_id": "medical_lora_0014",
+                "path": "/dev/shm/tc-d133-7b-full1/tc_ieee_full/medical_lora_0014",
+                "tier": "host",
+                "content_sha256": "8e55e0c8fa3c7364767884cc0626af153e64de0a162bc675c9326ed70cba50c9",
+                "content_verified": true,
+                "representation": "verified_regular_file_tree_v1",
+                "file_path_bytes": 20938675,
+                "allocated_file_bytes": 20971520,
+                "allocated_bytes": 20971520,
+                "unique_file_count": 10
+              },
+              "file_footprint": {
+                "scope": "linked_inode_storage_v1",
+                "logical_file_bytes": 20938675,
+                "file_path_bytes": 20938675,
+                "allocated_bytes": 20971520,
+                "allocated_file_bytes": 20971520,
+                "unique_file_count": 10,
+                "tier_totals_additive": true,
+                "content_verified": false,
+                "capacity_reserved": false,
+                "physical_release_proven": false
+              }
+            },
+            "state": "native_outcome_unresolved",
+            "command": {
+              "lease_id": "67d9d3eea1ca436e85ffdabd561f610f",
+              "adapter_int_id": 683755,
+              "lora_name": "medical_lora_0014",
+              "lora_path": "/dev/shm/tc-d133-7b-full1/tc_ieee_full/medical_lora_0014",
+              "expected_owner_id": "d1bbd3f987b9457fa23a8f9b1754308e",
+              "expected_epoch": 1411,
+              "native_host_tensor_budget_bytes": 2147483648,
+              "preparation_plan_id": "91755aed1ab846b3b3e40a3f8af43bf9"
+            }
+          }
+        ]
+      }
+    ],
+    "prior_success_source_observations": [
+      {
+        "request_id": "req_00050",
+        "source": {
+          "owner_id": "d1bbd3f987b9457fa23a8f9b1754308e",
+          "epoch": 340,
+          "tier": "host",
+          "source_id": "478bb881ee2c45a99632bc32bd4afe65",
+          "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d133_20261001/7b_nvme_full1/tc_ieee_full/medical_lora_0014",
+          "native": true,
+          "expected_content_sha256": "8e55e0c8fa3c7364767884cc0626af153e64de0a162bc675c9326ed70cba50c9",
+          "footprint_bytes": 16777216,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed"
+        }
+      },
+      {
+        "request_id": "req_00108",
+        "source": {
+          "owner_id": "d1bbd3f987b9457fa23a8f9b1754308e",
+          "epoch": 524,
+          "tier": "host",
+          "source_id": "478bb881ee2c45a99632bc32bd4afe65",
+          "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d133_20261001/7b_nvme_full1/tc_ieee_full/medical_lora_0014",
+          "native": true,
+          "expected_content_sha256": "8e55e0c8fa3c7364767884cc0626af153e64de0a162bc675c9326ed70cba50c9",
+          "footprint_bytes": 16777216,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed"
+        }
+      }
+    ],
+    "failed_plan": {
+      "plan_id": "91755aed1ab846b3b3e40a3f8af43bf9",
+      "objective_sha256": "5f109fbc24e4f56373630609f4e15345477a44b33086afc6f379a0a2438326f5",
+      "owner_id": "d1bbd3f987b9457fa23a8f9b1754308e",
+      "target_replica": "ieee-activation-649ad3b68d854c458b8a0278f4861618",
+      "trigger_reason": "residency",
+      "activation_id": null,
+      "targets": [
+        683755,
+        616194
+      ],
+      "capacity_only": false,
+      "state": "failed",
+      "attempts": [],
+      "started_at": 307021.673475933,
+      "registration": {
+        "registered": true,
+        "plan_id": "91755aed1ab846b3b3e40a3f8af43bf9",
+        "owner_id": "d1bbd3f987b9457fa23a8f9b1754308e",
+        "epoch": 1391,
+        "slot_adapter_ids": [
+          527924,
+          204296,
+          904661,
+          279027
+        ],
+        "reference_counts": {
+          "904661": 1,
+          "204296": 1
+        },
+        "live_leases": 2,
+        "released_leases": 151,
+        "host_source_reference_counts": {},
+        "live_host_source_leases": 0,
+        "staged_host_adapter_ids": [],
+        "live_staged_host_leases": 0,
+        "pending_preparation_targets": [
+          616194,
+          683755
+        ],
+        "snapshot_holds_reference": false,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_host_allocator_policy": {
+          "policy": "uncached_background_v1",
+          "verified": true,
+          "allocator_settings": {
+            "PYTORCH_CUDA_ALLOC_CONF": "max_split_size_mb:17592186044415",
+            "max_split_size": -1048576,
+            "garbage_collection_threshold": 0,
+            "expandable_segments": false,
+            "pinned_num_register_threads": 1,
+            "release_lock_on_cudamalloc": false,
+            "pinned_use_cuda_host_register": false,
+            "graph_capture_record_stream_reuse": false,
+            "max_round_threshold": -1,
+            "max_cached_size": 0,
+            "roundup_power2_divisions": {
+              "1": 0,
+              "2": 0,
+              "4": 0,
+              "8": 0,
+              "16": 0,
+              "32": 0,
+              "64": 0,
+              "128": 0,
+              "256": 0,
+              "512": 0,
+              "1024": 0,
+              "2048": 0,
+              "4096": 0,
+              "8192": 0,
+              "16384": 0,
+              "32768": 0
+            }
+          },
+          "verified_scope": "effective_uncached_pinned_allocation_limit",
+          "last_allocator_update": "max_split_size_mb:17592186044415",
+          "background_event_processing_requested": true,
+          "background_event_processing_readback": null,
+          "background_readback_limitation": "torch_2_13_snapshot_does_not_export_background_flag",
+          "persistent_cache_enabled": false,
+          "immediate_release_guaranteed": false
+        },
+        "worker_pid": 4013937,
+        "worker_rank": 0,
+        "completion_fence_scope": "current_worker_cuda_stream",
+        "production_launch_authorized": false,
+        "timing": {
+          "parent_rpc_channel_acquire_ms": 13.027932960540056,
+          "parent_rpc_response_pickup_delay_ms": 0,
+          "parent_rpc_send_flush_ms": 0.15813298523426056,
+          "parent_rpc_request_bytes": 296528,
+          "parent_rpc_response_bytes": 1774,
+          "parent_rpc_wait_response_ms": 73.10451095690951,
+          "parent_rpc_transport": "native_async_socket_v1",
+          "parent_rpc_thread_resume_delay_ms": 0
+        }
+      },
+      "error_type": "UnresolvedTransferOperation",
+      "close_receipt": {
+        "closed": true,
+        "plan_id": "91755aed1ab846b3b3e40a3f8af43bf9",
+        "owner_id": "d1bbd3f987b9457fa23a8f9b1754308e",
+        "epoch": 1411,
+        "slot_adapter_ids": [
+          959603,
+          204296,
+          904661,
+          530107
+        ],
+        "reference_counts": {
+          "530107": 1,
+          "959603": 1
+        },
+        "live_leases": 2,
+        "released_leases": 153,
+        "host_source_reference_counts": {},
+        "live_host_source_leases": 0,
+        "staged_host_adapter_ids": [],
+        "live_staged_host_leases": 0,
+        "pending_preparation_targets": [],
+        "snapshot_holds_reference": false,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_host_allocator_policy": {
+          "policy": "uncached_background_v1",
+          "verified": true,
+          "allocator_settings": {
+            "PYTORCH_CUDA_ALLOC_CONF": "max_split_size_mb:17592186044415",
+            "max_split_size": -1048576,
+            "garbage_collection_threshold": 0,
+            "expandable_segments": false,
+            "pinned_num_register_threads": 1,
+            "release_lock_on_cudamalloc": false,
+            "pinned_use_cuda_host_register": false,
+            "graph_capture_record_stream_reuse": false,
+            "max_round_threshold": -1,
+            "max_cached_size": 0,
+            "roundup_power2_divisions": {
+              "1": 0,
+              "2": 0,
+              "4": 0,
+              "8": 0,
+              "16": 0,
+              "32": 0,
+              "64": 0,
+              "128": 0,
+              "256": 0,
+              "512": 0,
+              "1024": 0,
+              "2048": 0,
+              "4096": 0,
+              "8192": 0,
+              "16384": 0,
+              "32768": 0
+            }
+          },
+          "verified_scope": "effective_uncached_pinned_allocation_limit",
+          "last_allocator_update": "max_split_size_mb:17592186044415",
+          "background_event_processing_requested": true,
+          "background_event_processing_readback": null,
+          "background_readback_limitation": "torch_2_13_snapshot_does_not_export_background_flag",
+          "persistent_cache_enabled": false,
+          "immediate_release_guaranteed": false
+        },
+        "worker_pid": 4013937,
+        "worker_rank": 0,
+        "completion_fence_scope": "current_worker_cuda_stream",
+        "production_launch_authorized": false,
+        "timing": {
+          "parent_rpc_channel_acquire_ms": 0.2363750245422125,
+          "parent_rpc_response_pickup_delay_ms": 0,
+          "parent_rpc_send_flush_ms": 0.04520901711657643,
+          "parent_rpc_request_bytes": 229,
+          "parent_rpc_response_bytes": 1756,
+          "parent_rpc_wait_response_ms": 42.912397999316454,
+          "parent_rpc_transport": "native_async_socket_v1",
+          "parent_rpc_thread_resume_delay_ms": 0
+        }
+      },
+      "finished_at": 307034.500758238
+    },
+    "latest_pre_failure_negative_receipt": {
+      "held": false,
+      "reason": "stale_snapshot",
+      "owner_id": "d1bbd3f987b9457fa23a8f9b1754308e",
+      "epoch": 1411,
+      "slot_adapter_ids": [
+        959603,
+        204296,
+        904661,
+        530107
+      ],
+      "reference_counts": {
+        "530107": 1,
+        "959603": 1
+      },
+      "live_leases": 2,
+      "released_leases": 153,
+      "host_source_reference_counts": {},
+      "live_host_source_leases": 0,
+      "staged_host_adapter_ids": [],
+      "live_staged_host_leases": 0,
+      "pending_preparation_targets": [
+        616194,
+        683755
+      ],
+      "snapshot_holds_reference": false,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "native_host_allocator_policy": {
+        "policy": "uncached_background_v1",
+        "verified": true,
+        "allocator_settings": {
+          "PYTORCH_CUDA_ALLOC_CONF": "max_split_size_mb:17592186044415",
+          "max_split_size": -1048576,
+          "garbage_collection_threshold": 0,
+          "expandable_segments": false,
+          "pinned_num_register_threads": 1,
+          "release_lock_on_cudamalloc": false,
+          "pinned_use_cuda_host_register": false,
+          "graph_capture_record_stream_reuse": false,
+          "max_round_threshold": -1,
+          "max_cached_size": 0,
+          "roundup_power2_divisions": {
+            "1": 0,
+            "2": 0,
+            "4": 0,
+            "8": 0,
+            "16": 0,
+            "32": 0,
+            "64": 0,
+            "128": 0,
+            "256": 0,
+            "512": 0,
+            "1024": 0,
+            "2048": 0,
+            "4096": 0,
+            "8192": 0,
+            "16384": 0,
+            "32768": 0
+          }
+        },
+        "verified_scope": "effective_uncached_pinned_allocation_limit",
+        "last_allocator_update": "max_split_size_mb:17592186044415",
+        "background_event_processing_requested": true,
+        "background_event_processing_readback": null,
+        "background_readback_limitation": "torch_2_13_snapshot_does_not_export_background_flag",
+        "persistent_cache_enabled": false,
+        "immediate_release_guaranteed": false
+      },
+      "worker_pid": 4013937,
+      "worker_rank": 0,
+      "completion_fence_scope": "current_worker_cuda_stream",
+      "production_launch_authorized": false,
+      "timing": {
+        "parent_rpc_channel_acquire_ms": 0.4776360001415014,
+        "parent_rpc_response_pickup_delay_ms": 0,
+        "parent_rpc_send_flush_ms": 0.04369800444692373,
+        "parent_rpc_request_bytes": 497,
+        "parent_rpc_response_bytes": 1750,
+        "parent_rpc_wait_response_ms": 40.50116299185902,
+        "parent_rpc_transport": "native_async_socket_v1",
+        "parent_rpc_thread_resume_delay_ms": 0
+      }
+    },
+    "exact_failure_internal_sources_exported": false,
+    "causal_scope": "CPU counterexample proves a defect path; no fabricated complete D133 internal dictionary"
+  },
+  "verification": {
+    "kind": "d134_plan_source_binding_verification_v1",
+    "protected": {
+      "kind": "protected_artifact_verification",
+      "pass": true,
+      "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+      "changed": [],
+      "entry_count": 147,
+      "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+    },
+    "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c",
+    "source_refs": [
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "sha256": "bc13c9d4705e126ff9f5068e78db5a68e69ea6282b0ab75631b70e61ae14923b"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_gpu_references.py",
+        "sha256": "2fcba12c0dd387f2840a7a211b4fe7e60a48cff67d05a3ef2aae096e206cb8ba"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_transfer_pressure.py",
+        "sha256": "48f6ad8c868a23870cf9ef406d7c7614c52190670ad97144c0f03f6700c2b875"
+      }
+    ],
+    "unchanged_d133_frozen_sources": 157,
+    "tests": 1059,
+    "test_seconds": 130.232,
+    "red_log_sha256": "c170e885ad052dff1d24a42ef40984665030edbea524a8d7be7c6f02bce5b092",
+    "green_log_sha256": "0087e857678587d61b5a00d7a1ef0afdd6d28bfa516f23f322640450fefe8227",
+    "full_replay_qualified": false,
+    "formal_performance_result": false
+  },
+  "resource_limits": {
+    "memory_high_bytes": 3221225472,
+    "memory_max_bytes": 4294967296,
+    "swap_max_bytes": 0,
+    "cpus": [
+      2,
+      3,
+      26,
+      27
+    ]
+  },
+  "unchanged": {
+    "formulas": true,
+    "profile": true,
+    "capacity": true,
+    "timeout": true,
+    "workload": true,
+    "remote": true
+  },
+  "references": [
+    {
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/worker_manager.py",
+      "role": "Native object identity and single-operation serialization, not multi-RPC atomicity or performance proof"
+    },
+    {
+      "url": "https://www.usenix.org/conference/osdi24/presentation/wu-bingyang",
+      "role": "Request/adapter dynamic orchestration context; not evidence for this local invariant"
+    }
+  ],
+  "source_sha256": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d133_20261001/full_full1_outcome_projection.json": "a9c0ce5096d9861559e6bfc3420ac75c14ad5734e64c2a9a9ee11ac8bad336b4",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d134_20261001/verification.json": "c37dd204a48a503df93800693a8cabbba2b5e3cb45697ef30171b964ef547a3d",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d134_20261001/red.log": "c170e885ad052dff1d24a42ef40984665030edbea524a8d7be7c6f02bce5b092",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d134_20261001/green.log": "0087e857678587d61b5a00d7a1ef0afdd6d28bfa516f23f322640450fefe8227",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d134_20261001/verify.log": "b303b6e8b9b91b8cb04aba4a1e27c00526197bde4adad049168a28588c2d2cfd",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d134_20261001/test_plan_source_binding.sh": "803e1d091053a56be140f96f784f38d13bfea0ba1488546eb6098fba17a182aa",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d134_20261001/verify_plan_source_binding.sh": "bc011e929874dc19dcbe810ec8c9a929dd7488edd8900a9b1e44589dec9bd1c1",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d134_20261001/cleanup_verify.sh": "6ac0aa38ce94d7ac5c526d2445f60ee21753ab46eca7a80c9c36b5ff31fc9951",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d134_20261001/cleanup_verify.log": "ccc791a92ae853adaadefdc2fcb41ea989597b7bdab4d7eff83d6752eb698bcc",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d134_20261001/curate_and_bundle.py": "b34ef212e2792154b27f2ec5e9dfedcbcab3dcf820d3fa4b17637ea90f199112",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D134_PLAN_SELECTED_SOURCE_BINDING.md": "309c1c17c6b610ac0c713d45e37a6880734b4995763beb18f59c6768a768d0e2"
+  },
+  "next": "Scoped backup then one ordinary7B Full4000; do not replay the failed run unchanged or stack another optimizer"
+}

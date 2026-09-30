@@ -1,6 +1,58 @@
 # IEEE TC execution status
 
-## CURRENT — D133 FAILED/interrupted; evidence complete, backup pending
+## CURRENT — D134 plan-selected source binding; verified, backup pending
+
+2026-10-01 04:55 finalization: regression2553 finished0,1059testsPASS130.232s;
+command2:20.62/RSS1176392KiB,147protected/157unchangedfrozenrefsPASS.
+Actual38be64820be64fa69a1aba300263bdcf events0,exactemptyclosed04:53:14.
+Curator/bundle completed0,actuald59c5a1bdf6a4e46946e77e54c69606a events0,
+exactemptyclosed04:55. No liveGPU/remote/analysisjobs. DoNOTrepeattests/probe.
+Curated20261001_d134_plan_source_binding.json SHA
+33a23b4b19115e662319ea318c48e644d794f7c434c1e62f0c07e574bacbf450;
+17member46991BbundleSHA0a4d79dda30f4767bf9b794410b389147865468a36f81f195b2244a98a32f0a9.
+Doccomplete/tablechecked; sourceSHA/docsSHA incuratedevidence,doNOTcasuallyedit.
+Next NINEscopedfilesbackup,thenordinary7B W0 Full4000 sameD133config/D89profiles
+exceptfreshownedpaths. No fullcandidateacceptance orbaselinequalification yet.
+
+2026-10-01 04:51. Goal ACTIVE/incomplete; PROGRESS. No subagents. Baselines PAUSED.
+D133 failed Full/evidence/backed f5e10db below; do not repeat it or projection.
+Reconstructed prior NVMe native load epoch301/release303 and req50/108 source;
+new HOST preparation plan registered1391, stale negative reply1411, then same
+epoch failed. 500logical IDs map to500native ints; collision0. FailedID683755
+onlymedical_lora_0014. At1411 no targetGPU/ref/staging, pendingtargetstillpresent.
+Exact historicalinternal_sources at failure isnotexported: do not fabricate it.
+One real-owner/selector CPU counterexample added toexisting transfer tests.
+RED session6746 completed1:1test/0.179s reproduces sameguard andUnresolvedTransfer;
+command7.78s/RSS938648KiB. Actualf340b4446948449caf1d6ef18548806b,
+3/4GiBswap0CPU2,3,26,27,events0,exactemptyclosed04:48:15.
+ONE candidate implemented: source-binding guard consults each targetingplan's
+actual selected source, not automatic historical-path protection; live old
+CPU/GPU/reference and conflictingstaged/plan sources still reject. Same-source
+staging remains usable; logical name alwaysimmutable. No formula/profile/
+capacity/deadline/loader/controllerchange, retry,TTL orfallback. Onlyproduction
+file residency_manager.py plus2existingtestfiles. No newGPUorremotejob.
+GREEN identicaltest session52044 finished0:1test/.124s; actual
+5d8ca788c3094dcb990ffce23a972674 events0,exactemptyclosed04:50:21.
+Added fullHOST staging and hostile/multiple-plan unitcases forfinalregression.
+Fullregression launchedONCE04:50:21, session2553,
+primelora-d134-verify-20261001.scope; actualidentityinverify_scope.txt.
+ResumeSAMEhandle; no secondtest/replay. Sourcehashesfrozenbeforetest.
+Raw results/ieee_tc/p2_backend_qualification/d134_20261001.
+DocD134_PLAN_SELECTED_SOURCE_BINDING.md status table present, finalcounts pending.
+CurrentprimaryvLLM0.30worker_manager/dLoRA paper rechecked; object/plan lifetime
+principles only, no upstream performance inferred. Full plan/ledger/metric read.
+Next regressionterminal→exactemptycleanup→curation/table→scopedbackup→ordinary
+7B Full4000 withfreshpaths. No baseline or otheroptimizer beforethisclosure.
+Warm/Resident,M1/M2,A1–A5/S1–S13 outstanding. Once-onlycache NEVERrebuild.
+
+## Previous — D133 FAILED/interrupted; evidence complete and backed
+
+2026-10-01 04:44 backup completed: seven explicit evidence files committed and
+pushed as f5e10dbb051f1568d92ab29a6fe44827af8e1a07, exact remote HEAD verified.
+Staged whitespace check, bundle SHA/50 member hashes/13 verification refs and
+57 staged/archive credential checks passed. No user files staged. No serving
+change or repeated experiment. Next: reconstruct source-binding rejection from
+retained D133 observations; no guard removal, blind replay or baseline launch.
 
 2026-10-01 04:38. Goal ACTIVE/incomplete. No subagents. Baselines PAUSED.
 This continuation made PROGRESS from verifiedwait to observedterminalfailure.

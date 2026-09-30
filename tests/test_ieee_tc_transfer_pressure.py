@@ -2576,6 +2576,67 @@ class IntegratedNativeHostReplacement(unittest.TestCase):
 
 class AutomaticGPUReplacement(unittest.TestCase):
     """Automatic received-owner selection through the real mixed executor."""
+    def test_evicted_target_reloads_from_the_source_selected_by_its_new_plan(self):
+        self._check_evicted_target_new_plan_source()
+
+    def test_evicted_target_new_plan_can_stage_with_a_full_native_host_cache(self):
+        self._check_evicted_target_new_plan_source(full_host=True)
+
+    def _check_evicted_target_new_plan_source(self, *, full_host=False):
+        # D133: the historical native copy came from NVMe. After it retires,
+        # the *new* plan selects the same confirmed content from file-HOST.
+        # That plan owns its selected source, not the retired historical path.
+        factory, data = self.make({'c': 80})
+        fixture, runner, queue, slot, owner, snapshot, loads = data
+        aid = InferenceEngine._lora_int_id('c')
+        old_source = next(s for s in snapshot()['sources'] if s['adapter_int_id'] == aid)
+        self.assertEqual(old_source['lora_path'], str(fixture.nvme/'c'))
+        self.assertTrue(owner.evict(adapter_int_id=aid)['evicted'])
+        if full_host:
+            from tests.test_ieee_tc_gpu_references import AdapterCache
+            old_cache = owner.manager._registered_adapters
+            self.assertEqual(len(old_cache), 1)
+            cache = AdapterCache(1, owner.manager.deactivate)
+            for key, value in old_cache.cache.items():
+                cache[key] = value
+            owner.manager.capacity, owner.manager._registered_adapters = 1, cache
+            owner._observe_native_removal(cache)
+        files = fixture.owner.source_snapshot('c')['sources']
+        self.assertEqual({s['path'] for s in files}, {str(fixture.nvme/'c'), str(fixture.host/'c')})
+        self.assertEqual({s['content_sha256'] for s in files},
+                         {runner._ieee_artifact_identities['c']['content_sha256']})
+        witnessed = []
+        rpc = slot.engine.ieee_gpu_reference.side_effect
+        async def reference(**kw):
+            if kw['operation'] == 'prepare_file_host_and_hold' and kw['adapter_int_id'] == aid:
+                self.assertNotIn(aid, owner.source_snapshot()['registered_cpu_adapter_ids'])
+                self.assertNotIn(aid, owner._references)
+                self.assertNotIn(aid, owner._host_references)
+                self.assertNotIn(aid, owner._staged_host)
+                self.assertEqual(owner._sources[aid], ('c', str(fixture.nvme/'c')))
+                plan = owner._preparation_plans[kw['preparation_plan_id']]
+                self.assertIn(aid, plan['pending'])
+                row = next(s for s in plan['objective']['sources'] if s['adapter_int_id'] == aid)
+                self.assertEqual((row['adapter_id'], row['lora_path']), ('c', str(fixture.host/'c')))
+                witnessed.append(kw['preparation_plan_id'])
+            return await rpc(**kw)
+        slot.engine.ieee_gpu_reference.side_effect = reference
+        async def run():
+            try:
+                await asyncio.wait_for(factory.execute(runner, slot, mode='residency'), 3)
+                self.assertEqual(len(witnessed), 1)
+                current = next(s for s in snapshot()['sources'] if s['adapter_int_id'] == aid)
+                self.assertIsNotNone(current['gpu_slot'])
+                self.assertEqual(current['lora_path'], str(fixture.host/'c'))
+                self.assertEqual(loads, [('host', 'c'), ('gpu', 'c')])
+                prepared = runner._ieee_native_host_preparations[-1]['attempts'][-1]['receipt']
+                self.assertEqual(prepared['tier'], 'staging' if full_host else 'host')
+                self.assertTrue(runner._ieee_gpu_preparation_plans[-1]['close_receipt']['closed'])
+                factory.check_clean(fixture, runner, owner)
+            finally:
+                await queue.close()
+        asyncio.run(run())
+
     def make(self, counts=None):
         from faaslora.experiment.hotness_tracker import HotnessTracker
         factory = MixedOwnedPreparation()
