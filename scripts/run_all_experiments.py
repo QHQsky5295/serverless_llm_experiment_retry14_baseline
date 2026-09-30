@@ -13281,6 +13281,10 @@ class ScenarioRunner:
                 record.update(preparation_state='cancelled' if isinstance(exc, asyncio.CancelledError) else 'failed',
                               preparation_error=type(exc).__name__)
             record['preparation_terminal_at'] = time.monotonic()
+            # Also covers cancellation before the coroutine's first instruction,
+            # when its normal ownership wrapper has not run yet.
+            self._ieee_file_plan_tasks.discard(task)
+            self._ieee_file_plan_engines.pop(task, None)
 
         try:
             plan = None
@@ -13290,7 +13294,7 @@ class ScenarioRunner:
                 view = files.preparation_snapshot(manifests=manifests,
                     limits={tier: int(manager.tier_capacities[StorageTier(tier)].total_bytes)
                             for tier in files.roots})
-                plan = self._stack.plan_ieee_owned_preparation(mode='handoff', native_snapshot=None,
+                plan = await self._stack.plan_ieee_owned_preparation_async(mode='handoff', native_snapshot=None,
                     file_snapshot=view, identities=self._ieee_artifact_identities,
                     adapter_int_ids={a: InferenceEngine._lora_int_id(a) for a in self._ieee_artifact_identities},
                     profiles=profiles, costs=profiles.new_replica(),
@@ -13306,6 +13310,12 @@ class ScenarioRunner:
                     plan=plan, target_engine=None, target_replica=activation_id,
                     activation_id=activation_id, activation_ready=initialized,
                     delayed=policy == 'delayed'))
+                if not hasattr(self, '_ieee_file_plan_tasks'):
+                    self._ieee_file_plan_tasks = set()
+                if not hasattr(self, '_ieee_file_plan_engines'):
+                    self._ieee_file_plan_engines = {}
+                self._ieee_file_plan_tasks.add(preparation)
+                self._ieee_file_plan_engines[preparation] = None
                 preparation.add_done_callback(preparation_done)
                 record['preparation_state'] = 'pending'
             else:
@@ -17403,7 +17413,7 @@ class ScenarioRunner:
         files = manager.local_source_references.preparation_snapshot(manifests=manifests,
             limits={tier: int(manager.tier_capacities[StorageTier(tier)].total_bytes)
                     for tier in manager.local_source_references.roots})
-        return self._stack.plan_ieee_owned_preparation(mode=mode, native_snapshot=native,
+        return await self._stack.plan_ieee_owned_preparation_async(mode=mode, native_snapshot=native,
             file_snapshot=files, identities=self._ieee_artifact_identities,
             adapter_int_ids={aid: InferenceEngine._lora_int_id(aid) for aid in self._ieee_artifact_identities},
             profiles=self._preparation_profiles, costs=slot.preparation_cost_model,
@@ -17438,6 +17448,29 @@ class ScenarioRunner:
     async def _run_ieee_file_preparation_plan(self, *, plan, target_engine,
             target_replica, activation_id=None, replacement_costs=None,
             gpu_slot=None, capacity_only=False, activation_ready=None, delayed=False):
+        # Own the task BEFORE the new pure-computation await. Startup may
+        # publish its engine while validation is pending; retirement/shutdown
+        # must already be able to find and join this preparation owner.
+        task = asyncio.current_task()
+        if not hasattr(self, '_ieee_file_plan_tasks'):
+            self._ieee_file_plan_tasks = set()
+        if not hasattr(self, '_ieee_file_plan_engines'):
+            self._ieee_file_plan_engines = {}
+        self._ieee_file_plan_tasks.add(task)
+        self._ieee_file_plan_engines[task] = target_engine
+        try:
+            return await self._execute_ieee_file_preparation_plan(plan=plan,
+                target_engine=target_engine, target_replica=target_replica,
+                activation_id=activation_id, replacement_costs=replacement_costs,
+                gpu_slot=gpu_slot, capacity_only=capacity_only,
+                activation_ready=activation_ready, delayed=delayed)
+        finally:
+            self._ieee_file_plan_tasks.discard(task)
+            self._ieee_file_plan_engines.pop(task, None)
+
+    async def _execute_ieee_file_preparation_plan(self, *, plan, target_engine,
+            target_replica, activation_id=None, replacement_costs=None,
+            gpu_slot=None, capacity_only=False, activation_ready=None, delayed=False):
         """Execute selected HOST/NVMe plans, including Remote->NVMe->HOST.
 
         All final and intermediate targets are protected before queue dispatch.
@@ -17450,9 +17483,8 @@ class ScenarioRunner:
         if (not self.model_cfg.get('ieee_gpu_references') or self._stack is None
                 or not isinstance(target_replica, str) or not target_replica):
             raise ValueError('file plan requires the managed native deployment')
-        from faaslora.preloading.preloading_planner import copy_ieee_preparation_plan
-        plan = copy_ieee_preparation_plan(plan)
-        selected = self._stack.preloading_planner.validate_ieee_execution_plan(plan)
+        from faaslora.preloading.planning_cpu import run_planning_cpu
+        plan, selected = await run_planning_cpu(self._stack, 'validate_execution', {'plan': plan})
         preinit = activation_ready is not None
         if preinit and (plan['source_view']['native'] is not None
                 or plan['source_view']['activation_id'] != activation_id
@@ -17538,13 +17570,7 @@ class ScenarioRunner:
         if not hasattr(self, '_ieee_file_preparation_plans'):
             self._ieee_file_preparation_plans = []
         self._ieee_file_preparation_plans.append(record)
-        if not hasattr(self, '_ieee_file_plan_tasks'):
-            self._ieee_file_plan_tasks = set()
         task = asyncio.current_task()
-        self._ieee_file_plan_tasks.add(task)
-        if not hasattr(self, '_ieee_file_plan_engines'):
-            self._ieee_file_plan_engines = {}
-        self._ieee_file_plan_engines[task] = target_engine
         intents, waiters, native_fallbacks, fallback_intents = [], [], [], []
         fallback_cleanup_lock = asyncio.Lock()
         fallback_ready = asyncio.Event()
@@ -17820,8 +17846,6 @@ class ScenarioRunner:
                 raise
             finally:
                 record['finished_at'] = time.monotonic()
-                self._ieee_file_plan_tasks.discard(task)
-                self._ieee_file_plan_engines.pop(task, None)
             if record['state'] == 'superseded':
                 # A sibling file writer can fail during cancellation while the
                 # GPU group reports supersession. Joining it is not enough:
@@ -21721,6 +21745,7 @@ async def _finish_ieee_main_scenario(service, stack, claims, primary_error):
         launch_contract=getattr(service,'_ieee_full_launch_contract',None),
         interrupted_replays=getattr(service,'_interrupted_replay_evidence',[]),
         remote_transfers=service._remote_transfer_evidence,
+        planning_cpu_events=getattr(getattr(stack, '_ieee_planning_cpu', None), 'events', []),
         transfer_pressure=service._adapter_transfer_pressure_evidence,
         local_transfers=stack.residency_manager.local_transfer_evidence,
         # Preserve each independent event journal even if a live inventory

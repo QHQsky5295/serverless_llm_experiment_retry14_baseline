@@ -1,0 +1,29 @@
+{
+  "bundle": "20260930_d128_planning_cpu_sources.tar.gz",
+  "member_sha256": {
+    "curate_and_bundle.py": "ccf6fe90910f8ab0cfa3606351d88d69856f8c0ec831e8b5a9d75f2acf46ae1e",
+    "finalize.sh": "c30eab6268962984ce995337ffaeb96f5a09e98187d615af8308cd681a0ab2c9",
+    "finalize_scope.txt": "50d598da1c31e852f81cdcde903e10667efaf23d8497d7acc46453ade12d3cb7",
+    "planning_cpu_probe.json": "d1278441b9a91e8b9c6b92c5fa46e96ef9a1874e250f4ffc7642a72fdf525814",
+    "probe1.log": "1db880890276667e886ead093f12a9a1ba20816879e9e3e9dbedb97f9137eb10",
+    "probe1_scope.txt": "948d4f92e5848d3288d3dde83f857628cafb1eedbf93790db391215f4a33baf3",
+    "probe1_time.txt": "0635cbefdfa94957038b28621cdf89598ce3aece945795d16a21246c52bb2a3a",
+    "probe_planning_cpu.py": "522507af64ab0fb7617b6fffe7b2860850537d758ce5e691c8d837c19bcf868c",
+    "probe_planning_cpu.sh": "187949d0ab8cc4e74938d97039da8fa30e821db5e4b17c18a3be247d890eb60b",
+    "probe_source_tracked.patch": "19d09ef63883daa8aac7c4148dc544377aa2c76174408f80f329346d66a42b7a",
+    "test_planning_cpu.sh": "fdc263a79ee43014ccea0151a1e3c645c2f784bc52851e2dbf7a8e01e0f9c07a",
+    "test_planning_cpu2.sh": "3bd1a4e1f90e6462ab85dbc2cc257cc8dbee63d627e66ed31d407cae065129e4",
+    "tests1.log": "2cac006b8f732ebde7fe961c410e8fa391cb912aac132463b289d643b3b1a755",
+    "tests1_scope.txt": "710bac62b384628bc4220135d80924c07b0bd3a425660fe4656a68a337e74620",
+    "tests1_time.txt": "fb726fa632cb0253165c948d5b616a003f53b24fea92cc2760d955a489a3f1d8",
+    "tests2.log": "cbe74ae188c67c07561a54a0b6b21c507897b594ed294d6faddc39919f69dbcb",
+    "tests2_scope.txt": "12ccad39169d17584370f7f38d7840c7a012ff541fdb49673754a55eda9f8e7a",
+    "tests2_time.txt": "b1ff27ec90077930649cc223d3ddf34b91647f76a0237b0c8792506bc4567d6f",
+    "verification.json": "06ac1f2892d764ec098c75a48ef3c09aa59ee52e3ce7611de7bc96e87df19b81",
+    "verify.log": "f162ae209ef4d6ed1031f30d202dd9d5f7ce3a263a18881f8422dcc56ebf567b",
+    "verify_planning_cpu.sh": "ae0ec54960b7139779ea0e364d796f11e0573b0dfde3af01361997bf065ed073",
+    "verify_scope.txt": "6c93d170b8ff60f4434c42b7aa4c36a1adba69ba68c5ec6feb1f8c18f4c74df2",
+    "verify_time.txt": "67540da7fe472706ae10b2509f46464e52f9a20762455323bc129d6cdd081703"
+  },
+  "member_checks_pass": true
+}

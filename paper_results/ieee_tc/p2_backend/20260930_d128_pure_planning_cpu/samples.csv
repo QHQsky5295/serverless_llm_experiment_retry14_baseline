@@ -1,0 +1,14 @@
+case,method,trial,elapsed_ms,ready_callback_delay_ms,callback_before_result,exact_value_equal
+owned_epoch,spawn_cold,-1,11644.795023,3.644156,True,True
+owned_epoch,inline,0,1.145679,1.219694,False,True
+owned_epoch,spawn_warm,0,2.251764,0.236398,True,True
+owned_epoch,spawn_warm,1,2.050876,0.206313,True,True
+owned_epoch,inline,1,1.007122,1.053619,False,True
+owned_epoch,inline,2,0.958116,1.001818,False,True
+owned_epoch,spawn_warm,2,1.996928,0.186137,True,True
+validate_execution,inline,0,1.170875,1.215808,False,True
+validate_execution,spawn_warm,0,2.292629,0.205151,True,True
+validate_execution,spawn_warm,1,2.18881,0.175688,True,True
+validate_execution,inline,1,1.138107,1.182442,False,True
+validate_execution,inline,2,1.111945,1.153573,False,True
+validate_execution,spawn_warm,2,2.147615,0.178477,True,True

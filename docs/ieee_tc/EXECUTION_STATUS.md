@@ -1,6 +1,55 @@
 # IEEE TC execution status
 
-## CURRENT — D126/D127 complete; return to one control-path architecture question
+## CURRENT — D128 pure-planning process candidate verified; next ordinary 7B Full
+
+2026-09-30 21:39. Goal ACTIVE/incomplete. Currentturn PROGRESS; no subagents.
+BaselinesPAUSED. No GPU/remote/replay/test/analysis jobs remain. D78/D80 once-only
+published cache unchanged, NEVERrebuild. DoNOTrepeat D125–D127 or D128micro/tests.
+
+- ONEcandidate implemented: faaslora/preloading/planning_cpu.py isolates frozen
+  owned-input/selector and copy/validation computations in one spawned CPU
+  process, oneinflight. Source/demand/cost payload detached beforefirstawait;
+  originalformulas,DPbound,livephysicalchecks,capacity/deadlineunchanged.
+  No decoderchange,blanketthreadincrease,staleTTL,errorfallbackornewweights/trace.
+- Process inherits servicecgroup/CPU; startup stays inmeasured preparation.
+  Cancellationjoins purework then discards result; queuedcancel doesn'tsubmit;
+  stack.stopjoins process. Preparation task ownership now registered BEFORE
+  asyncvalidation and atactivationcreation; neverstartedcancel cleanupincluded.
+  receiptsrecord CPU/wall/bytes/PID/cgroup/affinity/planSHA/failures.
+- Sameinput4adapter ownerfixture,3alternatingtrials: planningtotal1.036972→
+  2.099856ms while readycallback1.091710→.209616ms; validationtotal1.140309→
+  2.209685ms while callback1.183941→.186439ms. Coldcall11644.795ms/callback3.644ms.
+  All13valuecomparisons exact. Responsivenesscomponent supported, totaloverhead
+  increased; NOT500adapter evidence/Fullspeedup/seedCI. Fullacceptancepending.
+- First211tests had2newfixtureerrors: received_at20precededcurrentfileclock.
+  Originalinvariant correctlyrejected; fixedtestactualtime,notcriterion.
+  Failurelog/timekept. Corrected3spawn+8activationtestsPASS. First35.10s/
+  RSS1162864KiB; probe22.25s/RSS1171900KiB; actual3/4GiBswap0CPU2,3,26,27.
+- FINAL845testsPASS107.625s,command117.25s/RSS1176624KiB;147protected,
+  metricV1/planSHA,6finalsourceSHA PASS,high/max/OOM0.
+  Exacttest1 4f32f707520c4dbc8ba41ebd09d25fb5,
+  test2 5df520fc4127460883ae80621b184665,
+  probe1 48711cc105f946aca3edd99c44acbcfb,
+  verify1d0e105887234a41bd5dc99355ae15ec emptyclosed.
+- Rawresults/ieee_tc/p2_backend_qualification/d128_20260930;
+  curatedpaper_results/ieee_tc/p2_backend/20260930_d128_pure_planning_cpu/:
+  summary.json,samples.csv,summary_table.csv. DocD128_PURE_PLANNING_CPU.md
+  hasfirstprinciples/currentofficialvLLM/Pythonreferences andfulltradetable.
+  Probe sourcebasee1f7f6e+savedtrackedpatch; finalrunner differsONLYadditional
+  neverstarted-cancel callbackcleanup, reconstructedprobeSHAcheckedexact.
+- FinalcuratorPASS,23member54288Bbundle SHA
+  27635dbdb2b7b7b0664f3499e12d396207f47059cdd51ef3e69b94a9d5405a49.
+  Finalizeunitinvocationaaf2e9ceccfc4740bfcbefcf677dce25 empty,events0;
+  exactemptyclose andscopedbackupnext. Neverstageusergeneratedmanifest.
+
+NEXT: scopedtestedbackup, then ordinary7B4000W0 sameD125config/D89profiles,
+noCPUprofiler/noprefix, newownedpaths/executionidentity. Recordworkerstartup/
+receipts/plan supersession,all4000completion/timing/GPUlifecycle/cleanup. No more
+samecomponentprobes. If justified3BFull; warm/Resident→Serverless→vLLM→S-LoRA→
+dLoRA3B→Loquetier→HydraServe→M1/M2→A1–A5/S1–S13 remainpending. FormalSLO and
+numericadapterqualification stillpending; doNOT call candidate a systemwin.
+
+## Previous checkpoint — D126/D127 complete; return to one control-path architecture question
 
 2026-09-30 21:15. Goal ACTIVE/incomplete. Currentturn PROGRESS, no subagents.
 No GPU/remote/analysis/test jobs live. BaselinesPAUSED. ServingHEAD61c9bcf unchanged
@@ -45,6 +94,13 @@ capacity/deadlineincrease,moretinydecoderprobesoridenticalFull. ChooseONE
 falsifiablecandidate, boundedverification thenordinaryFull ifsupported.
 PrimeFull→warm/Resident→Serverless→vLLM→S-LoRA→dLoRA3B→Loquetier→HydraServe
 →M1/M2→A1–A5/S1–S13 remainpending. No formalSLO/numericadapter qualification.
+
+Postbackup2026-09-30 21:17:13files committed/pushed
+e1f7f6e6d81420298fd0cf1e66f0345104cdd355; exactremoteHEADverified.
+Per-commandCRLF-awaregitdiffcheckPASS;bundle/memberSHA and41payloadsecretchecks
+PASS. Usermanifest/unrelatedfilesneverstaged. No GPU/analysis/remotejob remains.
+This ledgernote isnotruntime change. DoNOTrepeatD126/D127tests/probe/backup;
+continue NEXTabove. Fullgoal remainsACTIVE/incomplete.
 
 ## Previous checkpoint — D126 offline occupancy complete; no new optimizer accepted
 

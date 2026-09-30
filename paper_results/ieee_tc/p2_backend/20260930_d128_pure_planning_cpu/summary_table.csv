@@ -1,0 +1,5 @@
+case,metric,inline,spawn_warm,relative_reduction
+owned_epoch,elapsed_ms,1.0369723333333334,2.099856,-1.0249874876121734
+owned_epoch,ready_callback_delay_ms,1.0917103333333333,0.209616,0.8079930237904988
+validate_execution,elapsed_ms,1.140309,2.2096846666666665,-0.9377946387046551
+validate_execution,ready_callback_delay_ms,1.183941,0.18643866666666667,0.8425270628632113

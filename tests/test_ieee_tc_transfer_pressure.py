@@ -20,6 +20,25 @@ from tests import test_ieee_tc_scheduler_observation as hook_fixtures
 from tests import test_ieee_tc_request_lifecycle as lifecycle_fixtures
 
 
+def setUpModule():
+    # These tests isolate physical file/native ownership, not CPU placement.
+    # Use the SAME serialized message and selector without spawning a process
+    # for every small fixture. Real spawn/cancel/containment is tested separately.
+    import pickle
+    from faaslora.preloading.planning_cpu import execute_planning_message
+    async def inline(worker, operation, limit, args):
+        value, receipt = execute_planning_message(pickle.dumps((operation, limit, args), protocol=5))
+        worker.events.append(receipt)
+        return pickle.loads(value)
+    global _planning_cpu_patch
+    _planning_cpu_patch = patch('faaslora.preloading.planning_cpu.IEEEPlanningCPU.run', inline)
+    _planning_cpu_patch.start()
+
+
+def tearDownModule():
+    _planning_cpu_patch.stop()
+
+
 def descriptor():
     return dict(adapter_id='a', source_tier='remote', target_tier='nvme', file_owner_id='files')
 

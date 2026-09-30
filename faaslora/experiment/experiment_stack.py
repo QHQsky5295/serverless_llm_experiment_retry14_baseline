@@ -943,6 +943,16 @@ class ExperimentStack:
             content_sha_by_adapter=content_sha_by_adapter, profiles=profiles, costs=costs,
             demand=self.hotness_tracker.snapshot())
 
+    async def plan_ieee_owned_preparation_async(self, **received):
+        """Freeze one ingress/cost epoch, then compute without blocking requests.
+
+        This only changes execution placement. A returned plan is not a claim on
+        current storage; unchanged native/file execution rechecks remain required.
+        """
+        from ..preloading.planning_cpu import freeze_owned_planning, run_planning_cpu
+        args = freeze_owned_planning(demand=self.hotness_tracker.snapshot(), **received)
+        return await run_planning_cpu(self, 'owned_epoch', args)
+
     async def start(self):
         await self.registry.start()
         await self.gpu_monitor.start()
@@ -950,6 +960,9 @@ class ExperimentStack:
         await self.preloading_manager.start()
 
     async def stop(self):
+        planner_cpu = getattr(self, '_ieee_planning_cpu', None)
+        if planner_cpu is not None:
+            await planner_cpu.close()
         await self.preloading_manager.stop()
         await self.residency_manager.stop()
         self.gpu_monitor.stop_monitoring()
