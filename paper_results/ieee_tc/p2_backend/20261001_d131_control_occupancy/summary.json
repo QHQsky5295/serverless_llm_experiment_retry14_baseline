@@ -1,0 +1,2333 @@
+{
+  "kind": "native_control_occupancy_audit_v1",
+  "formal_performance_result": false,
+  "count": 4000,
+  "observation_s": 5744.973213270016,
+  "phase_summaries": {
+    "arrival_to_gate": {
+      "n": 3749,
+      "total_request_seconds": 3364286.2650024137,
+      "mean_duration_s": 897.3823059488967,
+      "p95_duration_s": 1772.2793414649204,
+      "mean_concurrent_requests": 585.6052134814873,
+      "max_concurrent_requests": 1217
+    },
+    "gate_to_source_admission": {
+      "n": 3749,
+      "total_request_seconds": 9859.186600575747,
+      "mean_duration_s": 2.6298177115432777,
+      "p95_duration_s": 7.355932829959784,
+      "mean_concurrent_requests": 1.7161414395810453,
+      "max_concurrent_requests": 8
+    },
+    "source_to_native_dispatch": {
+      "n": 3749,
+      "total_request_seconds": 8673.658186568355,
+      "mean_duration_s": 2.3135924744114043,
+      "p95_duration_s": 8.12842057296075,
+      "mean_concurrent_requests": 1.5097821807999943,
+      "max_concurrent_requests": 8
+    },
+    "native_dispatch_to_last_token": {
+      "n": 3749,
+      "total_request_seconds": 15536.610940538056,
+      "mean_duration_s": 4.144201371175795,
+      "p95_duration_s": 9.899464908987284,
+      "mean_concurrent_requests": 2.7043835303967727,
+      "max_concurrent_requests": 8
+    },
+    "last_token_to_controller_completion": {
+      "n": 3749,
+      "total_request_seconds": 5688.345741294383,
+      "mean_duration_s": 1.5172968101612117,
+      "p95_duration_s": 10.168861693004146,
+      "mean_concurrent_requests": 0.9901431268913784,
+      "max_concurrent_requests": 7
+    },
+    "controller_completion_to_terminal": {
+      "n": 3749,
+      "total_request_seconds": 2400.46679295809,
+      "mean_duration_s": 0.6402952235150947,
+      "p95_duration_s": 1.582652526034508,
+      "mean_concurrent_requests": 0.4178377694457089,
+      "max_concurrent_requests": 7
+    },
+    "gate_to_terminal": {
+      "n": 3749,
+      "total_request_seconds": 42158.26826193463,
+      "mean_duration_s": 11.245203590806783,
+      "p95_duration_s": 27.205609105003532,
+      "mean_concurrent_requests": 7.338288047114899,
+      "max_concurrent_requests": 8
+    }
+  },
+  "population": {
+    "planned": 4000,
+    "terminal": 4000,
+    "native_success": 3749,
+    "failed": 251
+  },
+  "phase_population": "native_success_only",
+  "failures": [
+    {
+      "request_id": "req_01520",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 297798.080963984,
+      "terminal_at": 297797.965873295,
+      "observation_minus_terminal_s": 0.11509068903978914
+    },
+    {
+      "request_id": "req_01528",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 297802.4185445,
+      "terminal_at": 297802.41770613,
+      "observation_minus_terminal_s": 0.0008383700042031705
+    },
+    {
+      "request_id": "req_01545",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 297823.791516156,
+      "terminal_at": 297823.789138533,
+      "observation_minus_terminal_s": 0.0023776229936629534
+    },
+    {
+      "request_id": "req_01563",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 297837.260536972,
+      "terminal_at": 297837.254161253,
+      "observation_minus_terminal_s": 0.006375719036441296
+    },
+    {
+      "request_id": "req_01623",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 297887.234052888,
+      "terminal_at": 297887.105550448,
+      "observation_minus_terminal_s": 0.12850243999855593
+    },
+    {
+      "request_id": "req_01644",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 297897.998915388,
+      "terminal_at": 297897.99570233,
+      "observation_minus_terminal_s": 0.003213057992979884
+    },
+    {
+      "request_id": "req_01665",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 297907.056282447,
+      "terminal_at": 297906.946818868,
+      "observation_minus_terminal_s": 0.10946357902139425
+    },
+    {
+      "request_id": "req_01754",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 297955.771107495,
+      "terminal_at": 297955.769127841,
+      "observation_minus_terminal_s": 0.0019796540145762265
+    },
+    {
+      "request_id": "req_01755",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 297955.95868424,
+      "terminal_at": 297955.855441835,
+      "observation_minus_terminal_s": 0.10324240499176085
+    },
+    {
+      "request_id": "req_01798",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 297978.419460134,
+      "terminal_at": 297978.418072288,
+      "observation_minus_terminal_s": 0.0013878460158593953
+    },
+    {
+      "request_id": "req_01814",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 297984.629694309,
+      "terminal_at": 297984.628135904,
+      "observation_minus_terminal_s": 0.001558405056130141
+    },
+    {
+      "request_id": "req_01831",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 298015.376657294,
+      "terminal_at": 298015.374804391,
+      "observation_minus_terminal_s": 0.001852902991231531
+    },
+    {
+      "request_id": "req_01936",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 298099.299607694,
+      "terminal_at": 298099.232180983,
+      "observation_minus_terminal_s": 0.06742671097163111
+    },
+    {
+      "request_id": "req_01992",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 298147.42474117,
+      "terminal_at": 298147.336906209,
+      "observation_minus_terminal_s": 0.08783496101386845
+    },
+    {
+      "request_id": "req_02044",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 298185.87038407,
+      "terminal_at": 298185.868872827,
+      "observation_minus_terminal_s": 0.001511242997366935
+    },
+    {
+      "request_id": "req_02088",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 298216.196195775,
+      "terminal_at": 298216.194910178,
+      "observation_minus_terminal_s": 0.0012855969835072756
+    },
+    {
+      "request_id": "req_02152",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 298264.341461931,
+      "terminal_at": 298264.340067557,
+      "observation_minus_terminal_s": 0.0013943740050308406
+    },
+    {
+      "request_id": "req_02377",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 298404.941561917,
+      "terminal_at": 298404.939278602,
+      "observation_minus_terminal_s": 0.0022833149996586144
+    },
+    {
+      "request_id": "req_02498",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 298516.95677517,
+      "terminal_at": 298516.901138903,
+      "observation_minus_terminal_s": 0.05563626700313762
+    },
+    {
+      "request_id": "req_02534",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 298551.28551397,
+      "terminal_at": 298551.284075987,
+      "observation_minus_terminal_s": 0.0014379830099642277
+    },
+    {
+      "request_id": "req_02555",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 298566.72999123,
+      "terminal_at": 298566.72847559,
+      "observation_minus_terminal_s": 0.0015156400040723383
+    },
+    {
+      "request_id": "req_02661",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 298637.421613461,
+      "terminal_at": 298637.41982233,
+      "observation_minus_terminal_s": 0.0017911309842020273
+    },
+    {
+      "request_id": "req_02725",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 298691.843944233,
+      "terminal_at": 298691.842458824,
+      "observation_minus_terminal_s": 0.0014854090404696763
+    },
+    {
+      "request_id": "req_03320",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299279.882727082,
+      "terminal_at": 299279.879388982,
+      "observation_minus_terminal_s": 0.0033380999811924994
+    },
+    {
+      "request_id": "req_03335",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299286.225369809,
+      "terminal_at": 299286.214152058,
+      "observation_minus_terminal_s": 0.011217751016374677
+    },
+    {
+      "request_id": "req_03343",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299315.170695518,
+      "terminal_at": 299315.168784957,
+      "observation_minus_terminal_s": 0.0019105610554106534
+    },
+    {
+      "request_id": "req_03347",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299315.256455557,
+      "terminal_at": 299315.243189263,
+      "observation_minus_terminal_s": 0.013266294030472636
+    },
+    {
+      "request_id": "req_03348",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299313.63466892,
+      "terminal_at": 299287.178250619,
+      "observation_minus_terminal_s": 26.456418301037047
+    },
+    {
+      "request_id": "req_03349",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299314.869246604,
+      "terminal_at": 299314.862591485,
+      "observation_minus_terminal_s": 0.006655118952039629
+    },
+    {
+      "request_id": "req_03350",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299314.869178186,
+      "terminal_at": 299314.863822668,
+      "observation_minus_terminal_s": 0.005355518020223826
+    },
+    {
+      "request_id": "req_03351",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299314.869087429,
+      "terminal_at": 299314.862151057,
+      "observation_minus_terminal_s": 0.006936372024938464
+    },
+    {
+      "request_id": "req_03352",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299314.868400946,
+      "terminal_at": 299314.860340634,
+      "observation_minus_terminal_s": 0.008060312015004456
+    },
+    {
+      "request_id": "req_03353",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299314.868128238,
+      "terminal_at": 299314.860787708,
+      "observation_minus_terminal_s": 0.007340529991779476
+    },
+    {
+      "request_id": "req_03354",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299314.867882056,
+      "terminal_at": 299314.861044184,
+      "observation_minus_terminal_s": 0.006837871973402798
+    },
+    {
+      "request_id": "req_03355",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299314.868288392,
+      "terminal_at": 299314.864047176,
+      "observation_minus_terminal_s": 0.004241216054651886
+    },
+    {
+      "request_id": "req_03356",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299314.869264993,
+      "terminal_at": 299314.864257424,
+      "observation_minus_terminal_s": 0.005007568979635835
+    },
+    {
+      "request_id": "req_03357",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299314.867925006,
+      "terminal_at": 299314.864454359,
+      "observation_minus_terminal_s": 0.0034706470323726535
+    },
+    {
+      "request_id": "req_03358",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299314.86955419,
+      "terminal_at": 299314.864632346,
+      "observation_minus_terminal_s": 0.004921843996271491
+    },
+    {
+      "request_id": "req_03359",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299314.869227707,
+      "terminal_at": 299314.864775416,
+      "observation_minus_terminal_s": 0.004452291002962738
+    },
+    {
+      "request_id": "req_03360",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299314.869203659,
+      "terminal_at": 299314.864938751,
+      "observation_minus_terminal_s": 0.00426490802783519
+    },
+    {
+      "request_id": "req_03361",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299314.868064545,
+      "terminal_at": 299314.865137371,
+      "observation_minus_terminal_s": 0.0029271739767864347
+    },
+    {
+      "request_id": "req_03362",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299314.869152785,
+      "terminal_at": 299314.86523125,
+      "observation_minus_terminal_s": 0.003921534982509911
+    },
+    {
+      "request_id": "req_03363",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299314.86946413,
+      "terminal_at": 299314.865402869,
+      "observation_minus_terminal_s": 0.004061261017341167
+    },
+    {
+      "request_id": "req_03364",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299314.867736002,
+      "terminal_at": 299314.865515225,
+      "observation_minus_terminal_s": 0.0022207770380191505
+    },
+    {
+      "request_id": "req_03365",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299314.869488193,
+      "terminal_at": 299314.865799489,
+      "observation_minus_terminal_s": 0.003688703989610076
+    },
+    {
+      "request_id": "req_03366",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299314.86951114,
+      "terminal_at": 299314.865896157,
+      "observation_minus_terminal_s": 0.003614982997532934
+    },
+    {
+      "request_id": "req_03367",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299314.869320762,
+      "terminal_at": 299314.866077508,
+      "observation_minus_terminal_s": 0.0032432539737783372
+    },
+    {
+      "request_id": "req_03368",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299314.867957051,
+      "terminal_at": 299314.866281427,
+      "observation_minus_terminal_s": 0.001675624051131308
+    },
+    {
+      "request_id": "req_03369",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299314.868231952,
+      "terminal_at": 299314.866456362,
+      "observation_minus_terminal_s": 0.0017755900043994188
+    },
+    {
+      "request_id": "req_03370",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299314.868260627,
+      "terminal_at": 299314.866582974,
+      "observation_minus_terminal_s": 0.0016776529955677688
+    },
+    {
+      "request_id": "req_03371",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299314.869384933,
+      "terminal_at": 299314.8666827,
+      "observation_minus_terminal_s": 0.002702232974115759
+    },
+    {
+      "request_id": "req_03372",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299314.868091363,
+      "terminal_at": 299314.86687521,
+      "observation_minus_terminal_s": 0.0012161529739387333
+    },
+    {
+      "request_id": "req_03373",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299314.869528449,
+      "terminal_at": 299314.867159187,
+      "observation_minus_terminal_s": 0.002369262045249343
+    },
+    {
+      "request_id": "req_03374",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299314.869409004,
+      "terminal_at": 299314.867347773,
+      "observation_minus_terminal_s": 0.0020612310036085546
+    },
+    {
+      "request_id": "req_03375",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299315.989319393,
+      "terminal_at": 299315.988280522,
+      "observation_minus_terminal_s": 0.001038871007040143
+    },
+    {
+      "request_id": "req_03376",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299316.495601894,
+      "terminal_at": 299316.495030802,
+      "observation_minus_terminal_s": 0.00057109200861305
+    },
+    {
+      "request_id": "req_03377",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299316.847303646,
+      "terminal_at": 299316.846741801,
+      "observation_minus_terminal_s": 0.0005618449649773538
+    },
+    {
+      "request_id": "req_03378",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299316.955287229,
+      "terminal_at": 299316.954833741,
+      "observation_minus_terminal_s": 0.00045348796993494034
+    },
+    {
+      "request_id": "req_03379",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299318.708415942,
+      "terminal_at": 299318.707677545,
+      "observation_minus_terminal_s": 0.0007383969496004283
+    },
+    {
+      "request_id": "req_03380",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299320.848892486,
+      "terminal_at": 299320.847754917,
+      "observation_minus_terminal_s": 0.0011375690228305757
+    },
+    {
+      "request_id": "req_03381",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299321.796175687,
+      "terminal_at": 299321.795429083,
+      "observation_minus_terminal_s": 0.0007466039969585836
+    },
+    {
+      "request_id": "req_03383",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299322.443942946,
+      "terminal_at": 299322.443426909,
+      "observation_minus_terminal_s": 0.0005160369910299778
+    },
+    {
+      "request_id": "req_03384",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299323.450156734,
+      "terminal_at": 299323.449532989,
+      "observation_minus_terminal_s": 0.0006237449706532061
+    },
+    {
+      "request_id": "req_03385",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299323.977635438,
+      "terminal_at": 299323.97717758,
+      "observation_minus_terminal_s": 0.0004578579682856798
+    },
+    {
+      "request_id": "req_03386",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299324.696624038,
+      "terminal_at": 299324.695354673,
+      "observation_minus_terminal_s": 0.0012693649623543024
+    },
+    {
+      "request_id": "req_03387",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299328.615620189,
+      "terminal_at": 299328.601739158,
+      "observation_minus_terminal_s": 0.013881031016353518
+    },
+    {
+      "request_id": "req_03389",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299330.944265589,
+      "terminal_at": 299330.94357974,
+      "observation_minus_terminal_s": 0.0006858489941805601
+    },
+    {
+      "request_id": "req_03390",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299333.872549611,
+      "terminal_at": 299333.871191165,
+      "observation_minus_terminal_s": 0.0013584460248239338
+    },
+    {
+      "request_id": "req_03391",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299334.168019529,
+      "terminal_at": 299334.166773977,
+      "observation_minus_terminal_s": 0.0012455520336516201
+    },
+    {
+      "request_id": "req_03392",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299334.719040774,
+      "terminal_at": 299334.717704442,
+      "observation_minus_terminal_s": 0.001336332003120333
+    },
+    {
+      "request_id": "req_03393",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299336.365649113,
+      "terminal_at": 299336.364408879,
+      "observation_minus_terminal_s": 0.001240234007127583
+    },
+    {
+      "request_id": "req_03394",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299337.355531281,
+      "terminal_at": 299337.354503391,
+      "observation_minus_terminal_s": 0.0010278899571858346
+    },
+    {
+      "request_id": "req_03395",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299338.017755245,
+      "terminal_at": 299338.016738918,
+      "observation_minus_terminal_s": 0.0010163269471377134
+    },
+    {
+      "request_id": "req_03396",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299338.077658211,
+      "terminal_at": 299338.076490595,
+      "observation_minus_terminal_s": 0.0011676159920170903
+    },
+    {
+      "request_id": "req_03397",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299338.655329102,
+      "terminal_at": 299338.654276733,
+      "observation_minus_terminal_s": 0.0010523690143600106
+    },
+    {
+      "request_id": "req_03398",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299340.741855058,
+      "terminal_at": 299340.740720795,
+      "observation_minus_terminal_s": 0.0011342630023136735
+    },
+    {
+      "request_id": "req_03399",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299341.958588045,
+      "terminal_at": 299341.957510405,
+      "observation_minus_terminal_s": 0.0010776399867609143
+    },
+    {
+      "request_id": "req_03400",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299343.841308826,
+      "terminal_at": 299343.840455019,
+      "observation_minus_terminal_s": 0.0008538070251233876
+    },
+    {
+      "request_id": "req_03401",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299346.183552875,
+      "terminal_at": 299346.182679208,
+      "observation_minus_terminal_s": 0.0008736670133657753
+    },
+    {
+      "request_id": "req_03402",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299346.190726552,
+      "terminal_at": 299346.190119561,
+      "observation_minus_terminal_s": 0.0006069910014048219
+    },
+    {
+      "request_id": "req_03403",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299348.223557804,
+      "terminal_at": 299348.222170747,
+      "observation_minus_terminal_s": 0.0013870570110157132
+    },
+    {
+      "request_id": "req_03404",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299350.684361289,
+      "terminal_at": 299350.682849135,
+      "observation_minus_terminal_s": 0.0015121540054678917
+    },
+    {
+      "request_id": "req_03405",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299351.927078989,
+      "terminal_at": 299351.925820862,
+      "observation_minus_terminal_s": 0.001258126983884722
+    },
+    {
+      "request_id": "req_03406",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299352.067144368,
+      "terminal_at": 299352.065947196,
+      "observation_minus_terminal_s": 0.0011971720377914608
+    },
+    {
+      "request_id": "req_03407",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299352.571871874,
+      "terminal_at": 299352.57021754,
+      "observation_minus_terminal_s": 0.0016543339588679373
+    },
+    {
+      "request_id": "req_03408",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299353.229301634,
+      "terminal_at": 299353.228212285,
+      "observation_minus_terminal_s": 0.0010893490398302674
+    },
+    {
+      "request_id": "req_03409",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299355.878927716,
+      "terminal_at": 299355.877631351,
+      "observation_minus_terminal_s": 0.0012963649933226407
+    },
+    {
+      "request_id": "req_03410",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299357.855019603,
+      "terminal_at": 299357.854167274,
+      "observation_minus_terminal_s": 0.0008523289579898119
+    },
+    {
+      "request_id": "req_03411",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299358.900761709,
+      "terminal_at": 299358.899292247,
+      "observation_minus_terminal_s": 0.0014694620040245354
+    },
+    {
+      "request_id": "req_03412",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299359.086698526,
+      "terminal_at": 299359.085238609,
+      "observation_minus_terminal_s": 0.0014599169953726232
+    },
+    {
+      "request_id": "req_03413",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299362.075818596,
+      "terminal_at": 299362.074499725,
+      "observation_minus_terminal_s": 0.0013188709854148328
+    },
+    {
+      "request_id": "req_03414",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299363.072452282,
+      "terminal_at": 299363.071301979,
+      "observation_minus_terminal_s": 0.0011503029963932931
+    },
+    {
+      "request_id": "req_03415",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299365.185622885,
+      "terminal_at": 299365.184350267,
+      "observation_minus_terminal_s": 0.0012726180138997734
+    },
+    {
+      "request_id": "req_03416",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299365.275322515,
+      "terminal_at": 299365.273905429,
+      "observation_minus_terminal_s": 0.0014170859940350056
+    },
+    {
+      "request_id": "req_03417",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299365.97460721,
+      "terminal_at": 299365.973107927,
+      "observation_minus_terminal_s": 0.001499283011071384
+    },
+    {
+      "request_id": "req_03418",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299366.556299199,
+      "terminal_at": 299366.554939979,
+      "observation_minus_terminal_s": 0.0013592200120911002
+    },
+    {
+      "request_id": "req_03419",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299366.72989274,
+      "terminal_at": 299366.728533336,
+      "observation_minus_terminal_s": 0.0013594040065072477
+    },
+    {
+      "request_id": "req_03420",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299366.801328502,
+      "terminal_at": 299366.799889515,
+      "observation_minus_terminal_s": 0.001438987033907324
+    },
+    {
+      "request_id": "req_03421",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299366.81214389,
+      "terminal_at": 299366.811520884,
+      "observation_minus_terminal_s": 0.0006230060243979096
+    },
+    {
+      "request_id": "req_03422",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299368.793969144,
+      "terminal_at": 299368.792725839,
+      "observation_minus_terminal_s": 0.0012433049851097167
+    },
+    {
+      "request_id": "req_03423",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299369.913130678,
+      "terminal_at": 299369.911690359,
+      "observation_minus_terminal_s": 0.001440318999812007
+    },
+    {
+      "request_id": "req_03424",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299370.588581456,
+      "terminal_at": 299370.587640659,
+      "observation_minus_terminal_s": 0.0009407969773747027
+    },
+    {
+      "request_id": "req_03425",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299373.830577215,
+      "terminal_at": 299373.828943979,
+      "observation_minus_terminal_s": 0.001633236010093242
+    },
+    {
+      "request_id": "req_03426",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299373.945720508,
+      "terminal_at": 299373.944613295,
+      "observation_minus_terminal_s": 0.0011072129709646106
+    },
+    {
+      "request_id": "req_03427",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299374.116790143,
+      "terminal_at": 299374.056869832,
+      "observation_minus_terminal_s": 0.059920311032328755
+    },
+    {
+      "request_id": "req_03428",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299375.611131223,
+      "terminal_at": 299375.610262078,
+      "observation_minus_terminal_s": 0.0008691449766047299
+    },
+    {
+      "request_id": "req_03430",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299376.66111784,
+      "terminal_at": 299376.659154638,
+      "observation_minus_terminal_s": 0.0019632019684650004
+    },
+    {
+      "request_id": "req_03431",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299376.667487333,
+      "terminal_at": 299376.666640889,
+      "observation_minus_terminal_s": 0.0008464439888484776
+    },
+    {
+      "request_id": "req_03432",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299376.675648218,
+      "terminal_at": 299376.674219576,
+      "observation_minus_terminal_s": 0.0014286420191638172
+    },
+    {
+      "request_id": "req_03433",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299377.124937171,
+      "terminal_at": 299377.12389699,
+      "observation_minus_terminal_s": 0.0010401810286566615
+    },
+    {
+      "request_id": "req_03434",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299378.774660512,
+      "terminal_at": 299378.773370761,
+      "observation_minus_terminal_s": 0.0012897509732283652
+    },
+    {
+      "request_id": "req_03435",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299379.637164867,
+      "terminal_at": 299379.636211702,
+      "observation_minus_terminal_s": 0.0009531649993732572
+    },
+    {
+      "request_id": "req_03436",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299379.637237295,
+      "terminal_at": 299379.636484529,
+      "observation_minus_terminal_s": 0.0007527659763582051
+    },
+    {
+      "request_id": "req_03437",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299380.279358179,
+      "terminal_at": 299380.27834683,
+      "observation_minus_terminal_s": 0.0010113490279763937
+    },
+    {
+      "request_id": "req_03438",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299380.30331507,
+      "terminal_at": 299380.302544537,
+      "observation_minus_terminal_s": 0.0007705329917371273
+    },
+    {
+      "request_id": "req_03439",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299380.629933336,
+      "terminal_at": 299380.629219189,
+      "observation_minus_terminal_s": 0.0007141469977796078
+    },
+    {
+      "request_id": "req_03440",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299381.089978166,
+      "terminal_at": 299381.089079872,
+      "observation_minus_terminal_s": 0.0008982939762063324
+    },
+    {
+      "request_id": "req_03441",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299381.102714777,
+      "terminal_at": 299381.101864821,
+      "observation_minus_terminal_s": 0.0008499560062773526
+    },
+    {
+      "request_id": "req_03442",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299383.699358842,
+      "terminal_at": 299383.698634279,
+      "observation_minus_terminal_s": 0.0007245629676617682
+    },
+    {
+      "request_id": "req_03443",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299383.704718243,
+      "terminal_at": 299383.703848795,
+      "observation_minus_terminal_s": 0.0008694480056874454
+    },
+    {
+      "request_id": "req_03444",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299384.126368917,
+      "terminal_at": 299384.125537673,
+      "observation_minus_terminal_s": 0.0008312439895235002
+    },
+    {
+      "request_id": "req_03445",
+      "exception_type": "RuntimeError",
+      "observation_kind": "native_request_execution_error_v1",
+      "observed_at": 299384.114175054,
+      "terminal_at": 299384.118461181,
+      "observation_minus_terminal_s": -0.004286126990336925
+    },
+    {
+      "request_id": "req_03446",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299384.48145787,
+      "terminal_at": 299384.48069713,
+      "observation_minus_terminal_s": 0.0007607399602420628
+    },
+    {
+      "request_id": "req_03447",
+      "exception_type": "RuntimeError",
+      "observation_kind": "native_request_execution_error_v1",
+      "observed_at": 299384.724911922,
+      "terminal_at": 299384.730467644,
+      "observation_minus_terminal_s": -0.005555721989367157
+    },
+    {
+      "request_id": "req_03448",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299385.13729739,
+      "terminal_at": 299385.13590992,
+      "observation_minus_terminal_s": 0.0013874700525775552
+    },
+    {
+      "request_id": "req_03449",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299385.270468006,
+      "terminal_at": 299385.269610382,
+      "observation_minus_terminal_s": 0.0008576240506954491
+    },
+    {
+      "request_id": "req_03450",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299385.895844712,
+      "terminal_at": 299385.89503043,
+      "observation_minus_terminal_s": 0.0008142819860950112
+    },
+    {
+      "request_id": "req_03451",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299386.887537846,
+      "terminal_at": 299386.88687567,
+      "observation_minus_terminal_s": 0.0006621759966947138
+    },
+    {
+      "request_id": "req_03452",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299387.056106169,
+      "terminal_at": 299387.054840155,
+      "observation_minus_terminal_s": 0.001266014005523175
+    },
+    {
+      "request_id": "req_03453",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299391.136971517,
+      "terminal_at": 299391.135695859,
+      "observation_minus_terminal_s": 0.001275658025406301
+    },
+    {
+      "request_id": "req_03454",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299393.111867464,
+      "terminal_at": 299393.110531681,
+      "observation_minus_terminal_s": 0.0013357829884625971
+    },
+    {
+      "request_id": "req_03455",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299394.064822506,
+      "terminal_at": 299394.063410938,
+      "observation_minus_terminal_s": 0.0014115679659880698
+    },
+    {
+      "request_id": "req_03456",
+      "exception_type": "RuntimeError",
+      "observation_kind": "native_request_execution_error_v1",
+      "observed_at": 299393.536030173,
+      "terminal_at": 299394.04765221,
+      "observation_minus_terminal_s": -0.511622036981862
+    },
+    {
+      "request_id": "req_03459",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299401.297720873,
+      "terminal_at": 299401.29675384,
+      "observation_minus_terminal_s": 0.0009670329745858908
+    },
+    {
+      "request_id": "req_03460",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299404.968241506,
+      "terminal_at": 299404.965740948,
+      "observation_minus_terminal_s": 0.002500558039173484
+    },
+    {
+      "request_id": "req_03461",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299405.168149943,
+      "terminal_at": 299405.1404381,
+      "observation_minus_terminal_s": 0.027711843024007976
+    },
+    {
+      "request_id": "req_03462",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299405.112426917,
+      "terminal_at": 299405.109691482,
+      "observation_minus_terminal_s": 0.0027354350313544273
+    },
+    {
+      "request_id": "req_03463",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299405.11259459,
+      "terminal_at": 299405.110700703,
+      "observation_minus_terminal_s": 0.0018938870052807033
+    },
+    {
+      "request_id": "req_03464",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299405.869827372,
+      "terminal_at": 299405.868399465,
+      "observation_minus_terminal_s": 0.0014279070310294628
+    },
+    {
+      "request_id": "req_03466",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299412.251506592,
+      "terminal_at": 299412.249598437,
+      "observation_minus_terminal_s": 0.0019081549835391343
+    },
+    {
+      "request_id": "req_03468",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299413.613028637,
+      "terminal_at": 299413.611556434,
+      "observation_minus_terminal_s": 0.0014722030027769506
+    },
+    {
+      "request_id": "req_03471",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299417.844498148,
+      "terminal_at": 299417.839794205,
+      "observation_minus_terminal_s": 0.004703943035565317
+    },
+    {
+      "request_id": "req_03473",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299419.510800727,
+      "terminal_at": 299419.510069463,
+      "observation_minus_terminal_s": 0.0007312640082091093
+    },
+    {
+      "request_id": "req_03474",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299419.425029931,
+      "terminal_at": 299419.404856853,
+      "observation_minus_terminal_s": 0.020173077995423228
+    },
+    {
+      "request_id": "req_03475",
+      "exception_type": "RuntimeError",
+      "observation_kind": "native_request_execution_error_v1",
+      "observed_at": 299419.404357567,
+      "terminal_at": 299419.501413294,
+      "observation_minus_terminal_s": -0.09705572697566822
+    },
+    {
+      "request_id": "req_03476",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299420.551618481,
+      "terminal_at": 299420.549599785,
+      "observation_minus_terminal_s": 0.002018695988226682
+    },
+    {
+      "request_id": "req_03477",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299424.198396005,
+      "terminal_at": 299424.197530341,
+      "observation_minus_terminal_s": 0.0008656640420667827
+    },
+    {
+      "request_id": "req_03478",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299425.509887604,
+      "terminal_at": 299425.508947659,
+      "observation_minus_terminal_s": 0.0009399449918419123
+    },
+    {
+      "request_id": "req_03479",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299426.549183968,
+      "terminal_at": 299426.547750295,
+      "observation_minus_terminal_s": 0.001433672965504229
+    },
+    {
+      "request_id": "req_03481",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299427.558229538,
+      "terminal_at": 299427.557538825,
+      "observation_minus_terminal_s": 0.0006907129427418113
+    },
+    {
+      "request_id": "req_03482",
+      "exception_type": "RuntimeError",
+      "observation_kind": "native_request_execution_error_v1",
+      "observed_at": 299427.538118174,
+      "terminal_at": 299427.551067177,
+      "observation_minus_terminal_s": -0.012949002964887768
+    },
+    {
+      "request_id": "req_03484",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299433.911153194,
+      "terminal_at": 299433.910517527,
+      "observation_minus_terminal_s": 0.0006356670055538416
+    },
+    {
+      "request_id": "req_03487",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299438.996228174,
+      "terminal_at": 299438.994721005,
+      "observation_minus_terminal_s": 0.0015071690431796014
+    },
+    {
+      "request_id": "req_03489",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299440.537328995,
+      "terminal_at": 299440.535734213,
+      "observation_minus_terminal_s": 0.0015947819920256734
+    },
+    {
+      "request_id": "req_03490",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299442.551029532,
+      "terminal_at": 299442.549337201,
+      "observation_minus_terminal_s": 0.0016923309885896742
+    },
+    {
+      "request_id": "req_03491",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299445.045764305,
+      "terminal_at": 299445.045092458,
+      "observation_minus_terminal_s": 0.0006718469667248428
+    },
+    {
+      "request_id": "req_03493",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299446.465927709,
+      "terminal_at": 299446.44460963,
+      "observation_minus_terminal_s": 0.021318079030606896
+    },
+    {
+      "request_id": "req_03494",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299448.877378268,
+      "terminal_at": 299448.876720435,
+      "observation_minus_terminal_s": 0.0006578330066986382
+    },
+    {
+      "request_id": "req_03497",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299453.309947404,
+      "terminal_at": 299453.308276562,
+      "observation_minus_terminal_s": 0.0016708420007489622
+    },
+    {
+      "request_id": "req_03498",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299454.365938715,
+      "terminal_at": 299453.951731846,
+      "observation_minus_terminal_s": 0.414206868968904
+    },
+    {
+      "request_id": "req_03500",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299457.480826043,
+      "terminal_at": 299457.479220639,
+      "observation_minus_terminal_s": 0.0016054040170274675
+    },
+    {
+      "request_id": "req_03504",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299464.012953589,
+      "terminal_at": 299464.011149247,
+      "observation_minus_terminal_s": 0.0018043419695459306
+    },
+    {
+      "request_id": "req_03505",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299467.826277895,
+      "terminal_at": 299467.799454425,
+      "observation_minus_terminal_s": 0.026823470019735396
+    },
+    {
+      "request_id": "req_03506",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299468.652141577,
+      "terminal_at": 299468.58005653,
+      "observation_minus_terminal_s": 0.07208504696609452
+    },
+    {
+      "request_id": "req_03509",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299471.609434433,
+      "terminal_at": 299471.606116443,
+      "observation_minus_terminal_s": 0.0033179899910464883
+    },
+    {
+      "request_id": "req_03511",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299477.535786487,
+      "terminal_at": 299477.53488804,
+      "observation_minus_terminal_s": 0.000898447004146874
+    },
+    {
+      "request_id": "req_03514",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299482.090648049,
+      "terminal_at": 299482.088680427,
+      "observation_minus_terminal_s": 0.0019676220254041255
+    },
+    {
+      "request_id": "req_03517",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299484.504542917,
+      "terminal_at": 299484.503804438,
+      "observation_minus_terminal_s": 0.0007384790224023163
+    },
+    {
+      "request_id": "req_03520",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299488.523783764,
+      "terminal_at": 299488.521770626,
+      "observation_minus_terminal_s": 0.0020131379715166986
+    },
+    {
+      "request_id": "req_03522",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299497.878699003,
+      "terminal_at": 299497.877652417,
+      "observation_minus_terminal_s": 0.0010465860250405967
+    },
+    {
+      "request_id": "req_03776",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299911.113255265,
+      "terminal_at": 299911.111753362,
+      "observation_minus_terminal_s": 0.00150190299609676
+    },
+    {
+      "request_id": "req_03777",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299911.029551064,
+      "terminal_at": 299911.028652102,
+      "observation_minus_terminal_s": 0.0008989620255306363
+    },
+    {
+      "request_id": "req_03781",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299911.113122499,
+      "terminal_at": 299911.035907303,
+      "observation_minus_terminal_s": 0.07721519604092464
+    },
+    {
+      "request_id": "req_03783",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299910.44494076,
+      "terminal_at": 299909.861926897,
+      "observation_minus_terminal_s": 0.5830138629535213
+    },
+    {
+      "request_id": "req_03784",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299910.949012935,
+      "terminal_at": 299910.947878767,
+      "observation_minus_terminal_s": 0.0011341680074110627
+    },
+    {
+      "request_id": "req_03785",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299910.948939572,
+      "terminal_at": 299910.948197521,
+      "observation_minus_terminal_s": 0.0007420509937219322
+    },
+    {
+      "request_id": "req_03786",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299911.151397068,
+      "terminal_at": 299911.149748903,
+      "observation_minus_terminal_s": 0.0016481649945490062
+    },
+    {
+      "request_id": "req_03787",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299911.151241455,
+      "terminal_at": 299911.150523648,
+      "observation_minus_terminal_s": 0.0007178069790825248
+    },
+    {
+      "request_id": "req_03788",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299911.542235401,
+      "terminal_at": 299911.541614016,
+      "observation_minus_terminal_s": 0.0006213849992491305
+    },
+    {
+      "request_id": "req_03789",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299912.320522592,
+      "terminal_at": 299912.319785372,
+      "observation_minus_terminal_s": 0.000737219990696758
+    },
+    {
+      "request_id": "req_03790",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299915.434853807,
+      "terminal_at": 299915.434276458,
+      "observation_minus_terminal_s": 0.0005773489829152822
+    },
+    {
+      "request_id": "req_03791",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299915.434967176,
+      "terminal_at": 299915.434581508,
+      "observation_minus_terminal_s": 0.00038566801231354475
+    },
+    {
+      "request_id": "req_03794",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299917.853136376,
+      "terminal_at": 299917.852574486,
+      "observation_minus_terminal_s": 0.0005618900177069008
+    },
+    {
+      "request_id": "req_03795",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299917.887555072,
+      "terminal_at": 299917.886358726,
+      "observation_minus_terminal_s": 0.0011963460128754377
+    },
+    {
+      "request_id": "req_03796",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299918.490178516,
+      "terminal_at": 299918.488734145,
+      "observation_minus_terminal_s": 0.0014443710097111762
+    },
+    {
+      "request_id": "req_03797",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299918.708144714,
+      "terminal_at": 299918.706518944,
+      "observation_minus_terminal_s": 0.001625770004466176
+    },
+    {
+      "request_id": "req_03798",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299918.719372968,
+      "terminal_at": 299918.718958103,
+      "observation_minus_terminal_s": 0.0004148650332354009
+    },
+    {
+      "request_id": "req_03799",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299918.708333061,
+      "terminal_at": 299918.707121745,
+      "observation_minus_terminal_s": 0.001211316033732146
+    },
+    {
+      "request_id": "req_03800",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299919.166346706,
+      "terminal_at": 299919.165734506,
+      "observation_minus_terminal_s": 0.0006122000049799681
+    },
+    {
+      "request_id": "req_03801",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299919.166247368,
+      "terminal_at": 299919.16601257,
+      "observation_minus_terminal_s": 0.00023479800438508391
+    },
+    {
+      "request_id": "req_03802",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299919.849278535,
+      "terminal_at": 299919.848217731,
+      "observation_minus_terminal_s": 0.001060804002918303
+    },
+    {
+      "request_id": "req_03803",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299921.435893196,
+      "terminal_at": 299921.435335482,
+      "observation_minus_terminal_s": 0.000557713967282325
+    },
+    {
+      "request_id": "req_03804",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299922.19307765,
+      "terminal_at": 299922.192484157,
+      "observation_minus_terminal_s": 0.0005934929940849543
+    },
+    {
+      "request_id": "req_03805",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299922.542054169,
+      "terminal_at": 299922.541379362,
+      "observation_minus_terminal_s": 0.0006748070009052753
+    },
+    {
+      "request_id": "req_03806",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299925.127465961,
+      "terminal_at": 299925.126518034,
+      "observation_minus_terminal_s": 0.0009479269501753151
+    },
+    {
+      "request_id": "req_03807",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299926.633578259,
+      "terminal_at": 299926.633041542,
+      "observation_minus_terminal_s": 0.0005367169505916536
+    },
+    {
+      "request_id": "req_03808",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299929.580961479,
+      "terminal_at": 299929.58052016,
+      "observation_minus_terminal_s": 0.00044131901813670993
+    },
+    {
+      "request_id": "req_03809",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299929.576053717,
+      "terminal_at": 299929.575184613,
+      "observation_minus_terminal_s": 0.0008691039984114468
+    },
+    {
+      "request_id": "req_03810",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299931.994410667,
+      "terminal_at": 299931.967458845,
+      "observation_minus_terminal_s": 0.026951821986585855
+    },
+    {
+      "request_id": "req_03811",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299932.40325363,
+      "terminal_at": 299932.402304358,
+      "observation_minus_terminal_s": 0.0009492719545960426
+    },
+    {
+      "request_id": "req_03812",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299933.387556801,
+      "terminal_at": 299933.386758182,
+      "observation_minus_terminal_s": 0.0007986190030351281
+    },
+    {
+      "request_id": "req_03813",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299935.052346229,
+      "terminal_at": 299935.051729906,
+      "observation_minus_terminal_s": 0.0006163229700177908
+    },
+    {
+      "request_id": "req_03814",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299935.328758612,
+      "terminal_at": 299935.327775583,
+      "observation_minus_terminal_s": 0.0009830289636738598
+    },
+    {
+      "request_id": "req_03815",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299937.841270285,
+      "terminal_at": 299937.838978978,
+      "observation_minus_terminal_s": 0.0022913070279173553
+    },
+    {
+      "request_id": "req_03816",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299938.363829858,
+      "terminal_at": 299938.362877801,
+      "observation_minus_terminal_s": 0.0009520570165477693
+    },
+    {
+      "request_id": "req_03817",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299941.197982142,
+      "terminal_at": 299941.197318545,
+      "observation_minus_terminal_s": 0.0006635969621129334
+    },
+    {
+      "request_id": "req_03818",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299942.479156983,
+      "terminal_at": 299942.478506882,
+      "observation_minus_terminal_s": 0.0006501010502688587
+    },
+    {
+      "request_id": "req_03819",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299944.486126043,
+      "terminal_at": 299944.485329267,
+      "observation_minus_terminal_s": 0.0007967760320752859
+    },
+    {
+      "request_id": "req_03820",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299944.602304761,
+      "terminal_at": 299944.598770614,
+      "observation_minus_terminal_s": 0.0035341469920240343
+    },
+    {
+      "request_id": "req_03821",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299946.924509907,
+      "terminal_at": 299946.923800562,
+      "observation_minus_terminal_s": 0.0007093450403772295
+    },
+    {
+      "request_id": "req_03822",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299948.44302777,
+      "terminal_at": 299948.442283126,
+      "observation_minus_terminal_s": 0.0007446439703926444
+    },
+    {
+      "request_id": "req_03823",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299948.949471824,
+      "terminal_at": 299948.948603886,
+      "observation_minus_terminal_s": 0.0008679379825480282
+    },
+    {
+      "request_id": "req_03824",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299949.187124611,
+      "terminal_at": 299949.186441625,
+      "observation_minus_terminal_s": 0.0006829859921708703
+    },
+    {
+      "request_id": "req_03825",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299952.162623386,
+      "terminal_at": 299952.161902364,
+      "observation_minus_terminal_s": 0.0007210220210254192
+    },
+    {
+      "request_id": "req_03826",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299952.969019661,
+      "terminal_at": 299952.967834797,
+      "observation_minus_terminal_s": 0.001184864027891308
+    },
+    {
+      "request_id": "req_03827",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299954.236326007,
+      "terminal_at": 299954.235325275,
+      "observation_minus_terminal_s": 0.0010007320088334382
+    },
+    {
+      "request_id": "req_03828",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299957.467597614,
+      "terminal_at": 299957.466357147,
+      "observation_minus_terminal_s": 0.0012404670123942196
+    },
+    {
+      "request_id": "req_03829",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299959.515394981,
+      "terminal_at": 299959.514739362,
+      "observation_minus_terminal_s": 0.0006556190201081336
+    },
+    {
+      "request_id": "req_03830",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299960.048397529,
+      "terminal_at": 299960.047264972,
+      "observation_minus_terminal_s": 0.0011325569939799607
+    },
+    {
+      "request_id": "req_03831",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299962.250273966,
+      "terminal_at": 299962.249131365,
+      "observation_minus_terminal_s": 0.001142601016908884
+    },
+    {
+      "request_id": "req_03832",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299962.260396375,
+      "terminal_at": 299962.259639385,
+      "observation_minus_terminal_s": 0.0007569899898953736
+    },
+    {
+      "request_id": "req_03833",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299962.41908096,
+      "terminal_at": 299962.417960168,
+      "observation_minus_terminal_s": 0.0011207920033484697
+    },
+    {
+      "request_id": "req_03834",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299963.007089509,
+      "terminal_at": 299963.006058325,
+      "observation_minus_terminal_s": 0.0010311839869245887
+    },
+    {
+      "request_id": "req_03835",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299967.044581964,
+      "terminal_at": 299967.044022835,
+      "observation_minus_terminal_s": 0.0005591289955191314
+    },
+    {
+      "request_id": "req_03836",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299968.76969214,
+      "terminal_at": 299968.769196852,
+      "observation_minus_terminal_s": 0.0004952879971824586
+    },
+    {
+      "request_id": "req_03837",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299969.138893791,
+      "terminal_at": 299969.13727759,
+      "observation_minus_terminal_s": 0.0016162010142579675
+    },
+    {
+      "request_id": "req_03838",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299969.519755468,
+      "terminal_at": 299969.519310463,
+      "observation_minus_terminal_s": 0.00044500501826405525
+    },
+    {
+      "request_id": "req_03839",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299969.510916794,
+      "terminal_at": 299969.510439693,
+      "observation_minus_terminal_s": 0.00047710101353004575
+    },
+    {
+      "request_id": "req_03840",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299973.579814185,
+      "terminal_at": 299973.578584695,
+      "observation_minus_terminal_s": 0.0012294899788685143
+    },
+    {
+      "request_id": "req_03841",
+      "exception_type": "RuntimeError",
+      "observation_kind": "native_request_execution_error_v1",
+      "observed_at": 299973.568690488,
+      "terminal_at": 299973.786822389,
+      "observation_minus_terminal_s": -0.21813190099783242
+    },
+    {
+      "request_id": "req_03842",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299976.747351408,
+      "terminal_at": 299976.746479361,
+      "observation_minus_terminal_s": 0.0008720469777472317
+    },
+    {
+      "request_id": "req_03843",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299978.481579224,
+      "terminal_at": 299978.480993542,
+      "observation_minus_terminal_s": 0.0005856819916516542
+    },
+    {
+      "request_id": "req_03844",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299978.8358085,
+      "terminal_at": 299978.834832934,
+      "observation_minus_terminal_s": 0.0009755659848451614
+    },
+    {
+      "request_id": "req_03846",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299981.618132287,
+      "terminal_at": 299981.617076252,
+      "observation_minus_terminal_s": 0.0010560349910520017
+    },
+    {
+      "request_id": "req_03847",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299982.303519003,
+      "terminal_at": 299982.302475054,
+      "observation_minus_terminal_s": 0.001043948985170573
+    },
+    {
+      "request_id": "req_03850",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299994.414563498,
+      "terminal_at": 299994.413812536,
+      "observation_minus_terminal_s": 0.0007509620045311749
+    },
+    {
+      "request_id": "req_03852",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299996.71191638,
+      "terminal_at": 299996.710522036,
+      "observation_minus_terminal_s": 0.0013943439698778093
+    },
+    {
+      "request_id": "req_03853",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 299997.875761875,
+      "terminal_at": 299997.874715518,
+      "observation_minus_terminal_s": 0.0010463570361025631
+    },
+    {
+      "request_id": "req_03854",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 300000.477913662,
+      "terminal_at": 300000.477251597,
+      "observation_minus_terminal_s": 0.0006620649946853518
+    },
+    {
+      "request_id": "req_03859",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 300010.275021337,
+      "terminal_at": 300010.273879535,
+      "observation_minus_terminal_s": 0.0011418020003475249
+    },
+    {
+      "request_id": "req_03862",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 300014.400499538,
+      "terminal_at": 300014.400178391,
+      "observation_minus_terminal_s": 0.00032114697387441993
+    },
+    {
+      "request_id": "req_03863",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 300016.528866506,
+      "terminal_at": 300016.527428582,
+      "observation_minus_terminal_s": 0.0014379239873960614
+    },
+    {
+      "request_id": "req_03865",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 300020.211761137,
+      "terminal_at": 300020.195649835,
+      "observation_minus_terminal_s": 0.01611130201490596
+    },
+    {
+      "request_id": "req_03866",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 300020.410917373,
+      "terminal_at": 300020.410102887,
+      "observation_minus_terminal_s": 0.0008144860039465129
+    },
+    {
+      "request_id": "req_03867",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 300022.1514594,
+      "terminal_at": 300022.15044032,
+      "observation_minus_terminal_s": 0.0010190799948759377
+    },
+    {
+      "request_id": "req_03868",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 300023.222616182,
+      "terminal_at": 300023.221336578,
+      "observation_minus_terminal_s": 0.0012796039809472859
+    },
+    {
+      "request_id": "req_03869",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 300026.192909752,
+      "terminal_at": 300026.192351986,
+      "observation_minus_terminal_s": 0.0005577660049311817
+    },
+    {
+      "request_id": "req_03870",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 300026.193023154,
+      "terminal_at": 300026.192645187,
+      "observation_minus_terminal_s": 0.00037796696415171027
+    },
+    {
+      "request_id": "req_03871",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 300028.601724129,
+      "terminal_at": 300028.600977435,
+      "observation_minus_terminal_s": 0.0007466939860023558
+    },
+    {
+      "request_id": "req_03872",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 300028.610581937,
+      "terminal_at": 300028.610197858,
+      "observation_minus_terminal_s": 0.000384079001378268
+    },
+    {
+      "request_id": "req_03875",
+      "exception_type": "TimeoutError",
+      "observation_kind": "controller_task_exception_v1",
+      "observed_at": 300033.923690994,
+      "terminal_at": 300033.922353935,
+      "observation_minus_terminal_s": 0.0013370589585974813
+    }
+  ],
+  "native_by_replica": {
+    "ieee-activation-3e0e7100b9194df291e51346b4deb55a": {
+      "n": 848,
+      "total_request_seconds": 3491.1449037175043,
+      "mean_duration_s": 4.116916160044227,
+      "p95_duration_s": 10.033226379018743,
+      "mean_concurrent_requests": 0.6076868897584222,
+      "max_concurrent_requests": 2
+    },
+    "ieee-activation-b0967090f654477f8be264fd02780afb": {
+      "n": 832,
+      "total_request_seconds": 3332.464119630342,
+      "mean_duration_s": 4.005365528401853,
+      "p95_duration_s": 10.17076392704621,
+      "mean_concurrent_requests": 0.580066084891894,
+      "max_concurrent_requests": 2
+    },
+    "ieee-activation-b9f63d4fdff84f309e1c21e50500d679": {
+      "n": 816,
+      "total_request_seconds": 3260.4599899601308,
+      "mean_duration_s": 3.995661752402121,
+      "p95_duration_s": 10.036658801953308,
+      "mean_concurrent_requests": 0.5675326705490921,
+      "max_concurrent_requests": 2
+    },
+    "ieee-activation-a5f4eaeed07543b3af5f5f93a13ecb4c": {
+      "n": 833,
+      "total_request_seconds": 3454.3756398538826,
+      "mean_duration_s": 4.146909531637314,
+      "p95_duration_s": 9.799319651036058,
+      "mean_concurrent_requests": 0.6012866399228458,
+      "max_concurrent_requests": 2
+    },
+    "ieee-activation-64f911c59a07459f9214074e08826fcd": {
+      "n": 1,
+      "total_request_seconds": 0.7868238349910825,
+      "mean_duration_s": 0.7868238349910825,
+      "p95_duration_s": 0.7868238349910825,
+      "mean_concurrent_requests": 0.0001369586603421647,
+      "max_concurrent_requests": 1
+    },
+    "ieee-activation-b7b19bf24b2641e59efa1807c89fb27d": {
+      "n": 76,
+      "total_request_seconds": 370.3770205558394,
+      "mean_duration_s": 4.87338184941894,
+      "p95_duration_s": 9.449734226975124,
+      "mean_concurrent_requests": 0.06446975587289507,
+      "max_concurrent_requests": 2
+    },
+    "ieee-activation-867290c746254c889c6760be7ec09c5d": {
+      "n": 3,
+      "total_request_seconds": 9.893790439935401,
+      "mean_duration_s": 3.297930146645134,
+      "p95_duration_s": 3.8256365319830365,
+      "mean_concurrent_requests": 0.0017221647643338436,
+      "max_concurrent_requests": 1
+    },
+    "ieee-activation-b504851e6645480db91a6497200106e5": {
+      "n": 2,
+      "total_request_seconds": 6.514850008999929,
+      "mean_duration_s": 3.2574250044999644,
+      "p95_duration_s": 3.4363366609904915,
+      "mean_concurrent_requests": 0.0011340087703022904,
+      "max_concurrent_requests": 1
+    },
+    "ieee-activation-642589d120aa49d28525a2bda7bed07f": {
+      "n": 72,
+      "total_request_seconds": 412.9145443721209,
+      "mean_duration_s": 5.734924227390568,
+      "p95_duration_s": 8.786679013981484,
+      "mean_concurrent_requests": 0.07187405911977988,
+      "max_concurrent_requests": 2
+    },
+    "ieee-activation-20f83b28193d4595956264d7c72e9601": {
+      "n": 71,
+      "total_request_seconds": 375.0140289562405,
+      "mean_duration_s": 5.281887731778036,
+      "p95_duration_s": 8.719401647045743,
+      "mean_concurrent_requests": 0.06527689773905561,
+      "max_concurrent_requests": 2
+    },
+    "ieee-activation-955c697791af40d7b221d7816b4453ca": {
+      "n": 60,
+      "total_request_seconds": 314.0374207388377,
+      "mean_duration_s": 5.233957012313962,
+      "p95_duration_s": 8.388437880959827,
+      "mean_concurrent_requests": 0.05466299129358148,
+      "max_concurrent_requests": 2
+    },
+    "ieee-activation-0c9eac30bde34d7e8c80a5927291da5c": {
+      "n": 36,
+      "total_request_seconds": 154.88763431395637,
+      "mean_duration_s": 4.302434286498788,
+      "p95_duration_s": 8.789435042010155,
+      "mean_concurrent_requests": 0.026960549434101703,
+      "max_concurrent_requests": 2
+    },
+    "ieee-activation-9c4ec9ecd6ca46169d0964496394930e": {
+      "n": 4,
+      "total_request_seconds": 21.212392279005144,
+      "mean_duration_s": 5.303098069751286,
+      "p95_duration_s": 7.66570865403628,
+      "mean_concurrent_requests": 0.003692339631803285,
+      "max_concurrent_requests": 2
+    },
+    "ieee-activation-8c35970e9ce74ab2bf108c8a06ceae6c": {
+      "n": 36,
+      "total_request_seconds": 132.95738155313302,
+      "mean_duration_s": 3.6932605986981395,
+      "p95_duration_s": 8.66964482399635,
+      "mean_concurrent_requests": 0.023143255262882977,
+      "max_concurrent_requests": 2
+    },
+    "ieee-activation-3fcb4f895512496fb7e0613c7111406c": {
+      "n": 33,
+      "total_request_seconds": 123.67748042411404,
+      "mean_duration_s": 3.747802437094365,
+      "p95_duration_s": 7.945060864964034,
+      "mean_concurrent_requests": 0.02152794727370318,
+      "max_concurrent_requests": 2
+    },
+    "ieee-activation-24580cf0c8f34af29bd095fa07fe2d45": {
+      "n": 26,
+      "total_request_seconds": 75.89291989902267,
+      "mean_duration_s": 2.918958457654718,
+      "p95_duration_s": 7.938919682987034,
+      "mean_concurrent_requests": 0.013210317451737034,
+      "max_concurrent_requests": 2
+    }
+  },
+  "resource_samples": 5669,
+  "sampled_mean_held_gpu_utilization_percent": 36.61529519100594,
+  "samples_with_pre_gate_backlog": 5553,
+  "sampled_gate_occupancy_counts": {
+    "0": 241,
+    "2": 101,
+    "4": 27,
+    "6": 119,
+    "8": 4833,
+    "7": 206,
+    "5": 52,
+    "3": 47,
+    "1": 43
+  },
+  "caveats": [
+    "Occupancy is not GPU billing or kernel busy time.",
+    "Gate end uses outer terminal after release; this is an upper envelope, not an instrumented gate-release timestamp.",
+    "Controller completion is an earlier boundary than outer request terminal; report their gap without relabeling either.",
+    "GPU utilization averages are sampled descriptive observations, not causal attribution or confidence intervals.",
+    "All offered IDs and failures are retained. Phase intervals and reconstructed occupancy cover ONLY native successes, not all active work. Failed work may persist beyond its request terminal; absent native events are not proof of no dispatch or release."
+  ],
+  "control_observations": {
+    "first_failed_terminal_offset_s": 3353.484499532962,
+    "first_failure_observation_offset_s": 3353.599590222002,
+    "first_quarantine_offset_s": 4870.380718987959,
+    "by_phase": {
+      "after_first_failure_before_quarantine": {
+        "samples": 504,
+        "mean_active_requests": 6.64484126984127,
+        "mean_queue_depth": 1009.1805555555555,
+        "positive_queue_samples": 504,
+        "positive_queue_below_capacity_samples": 374,
+        "active_count_histogram": {
+          "5": 48,
+          "7": 197,
+          "8": 130,
+          "6": 96,
+          "2": 5,
+          "4": 20,
+          "3": 8
+        },
+        "ready_capacity_histogram": {
+          "8": 504
+        }
+      },
+      "after_first_quarantine": {
+        "samples": 353,
+        "mean_active_requests": 4.6770538243626065,
+        "mean_queue_depth": 309.8696883852691,
+        "positive_queue_samples": 351,
+        "positive_queue_below_capacity_samples": 158,
+        "active_count_histogram": {
+          "2": 32,
+          "1": 6,
+          "0": 58,
+          "4": 38,
+          "3": 15,
+          "6": 48,
+          "5": 28,
+          "8": 60,
+          "7": 68
+        },
+        "ready_capacity_histogram": {
+          "2": 31,
+          "0": 58,
+          "4": 42,
+          "6": 47,
+          "8": 175
+        }
+      },
+      "before_first_failure": {
+        "samples": 1185,
+        "mean_active_requests": 6.572995780590717,
+        "mean_queue_depth": 587.4050632911392,
+        "positive_queue_samples": 1151,
+        "positive_queue_below_capacity_samples": 771,
+        "active_count_histogram": {
+          "2": 35,
+          "1": 8,
+          "4": 55,
+          "6": 212,
+          "8": 360,
+          "7": 403,
+          "3": 21,
+          "5": 91
+        },
+        "ready_capacity_histogram": {
+          "2": 23,
+          "4": 1,
+          "6": 1,
+          "8": 1160
+        }
+      }
+    },
+    "caveat": "Direct controller samples, not continuous occupancy or kernel activity. active_requests counts bound requests in currently routable slots; queue_depth also includes requests outside those slots. Successful native occupancy is conditional; never subtract it to infer all non-native work."
+  },
+  "source_refs": [
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d131_20261001/full_full1_request_projection.json",
+      "sha256": "5b9f1066b6deededfb46e854d41de913ead105b055b9a9c4daff4269add95097"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d131_20261001/7b_full_w0_full1/launch.launch/physical_deployment/deployment.json",
+      "sha256": "e9e21e53fec3a0c109dd2ad3e98c83fbd03c4cf205a30d265072a871861af0c3"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d131_20261001/7b_full_w0_full1/launch.launch/physical_deployment/request_terminals.jsonl",
+      "sha256": "d33cd71ea6b4facaf621fa12f87e81b24c7e08eb3be9a7704f3833319238c1c2"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d131_20261001/7b_full_w0_full1/launch.launch/watchdog.jsonl",
+      "sha256": "32b24237b34064a6810e40958e5e6b9d19372ed5300e254f21f776e48277e739"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/analyze_control_path_overhead.py",
+      "sha256": "6b4c37fb39c6171dc6afe8e09d9fd44a1e087e598252e04ffdc66c635e2031a5"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d131_20261001/7b_full_w0_full1/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "97b79bbc1b1bd09519540a47a7f34502f1e30c26247fd654a46580ba648c2101"
+    }
+  ]
+}

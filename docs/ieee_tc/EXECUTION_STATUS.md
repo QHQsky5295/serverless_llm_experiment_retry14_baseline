@@ -1,6 +1,294 @@
 # IEEE TC execution status
 
-## CURRENT — D130 sealed planning transaction: regression complete, Full pending
+## CURRENT — D131 complete/failed and verified; scoped backup next
+
+2026-10-01 03:35. Goal ACTIVE/incomplete. No subagents. Baselines PAUSED.
+No active GPU/replay/remote/analysis/test job. DoNOTrepeat D131 Full,
+projection,curation,occupancy,verification orbundle. No servingedit thisturn.
+Finalverification30899 finished0:71testsPASS1.942s,command22.14s/RSS935288KiB;
+150frozenrefs,38curatedrefs rehashed,1largehash+stat reused,147protectedPASS.
+ReceiptSHAa42cadb2686360b4e693e4e0a7387e11063511171a92c63011fa0bcee5c3cc09.
+Actualed0d5b861b75488a95043cdb0af80500 emptyclosed03:34:33,events0.
+59member50468BbundleSHA719b14f9f33c195d78a2061f32bce54a7e8ce9e0079994640b3d237c3fd7cdf8;
+actualbundle9b713b4159374e059ae0920ccf3bdab4 emptyclosed03:35,events0.
+CuratedfullSHAaca3a98098141c568de3c4221eba9229dcc3a2013640c1b5d9e4c9435a33b1e3;
+failureSHAa2342780f461a592059eed31b59b473a85551f33d12bdf16b45c16cf50093280;
+occupancySHAa47b38107a25f65702e6fb69f19bf9f375a5416fec97ee270dfdca60ca9ba65e.
+DocD131_FULL_W0_FULL1.md SHA1026bdcc6c5cfb5bab9f7029ec5872d3467db10959984645b64b25a9f3c0d587
+includedinverification;donoteditcasually. Alltablesandinterpretationcomplete.
+NEXT: diff/checksum/secrets→explicitpathscommit/push,thenONEevidence-led
+mainlinequestion. D131vsD129 morecompletions334;conditionalTTFTmean-9.71%,
+P95-.79%,GPU-s-.44%,conditionalTPOT+6.35%;n1/differentpopulations,NOcausalCI.
+Fullstillfails;SLOupperbound93.725%,NOTmeasuredSLO. No acceptedformalwin.
+Stageevidence:arrival→gate897.382306s,gate→source2.629818s,source→native
+2.313592s,native→last4.144201s,last→controller1.517297s,controller→outer
+.640295s;gate→outer11.245204s isUPPERenvelope,notexactrelease/GPUbilling.
+13replicaspeak2 cover3743success,3replicaspeak1 covers6;globalpeak8.
+Firstfailure3353.484500s precedesquarantine4870.380719s;prefailure1185samples
+meanqueue587.405063,771sampledqueue+active<capacity,NOTcontinuouscausalidle.
+Warm/Resident,baselines,M1/M2,A1–A5/S1–S13 outstanding. No newoptimizer yet.
+
+Earlier03:34 checkpoint (superseded):
+Requestcuration57673/failure completed0,41.59s/RSS294508KiB and.67s/131328KiB.
+Actual1fb75b2322254242a63faa5705dd4ab4 emptyclosed03:30:19,events0.
+Occupancy61321 completed0,2.71s/RSS287084KiB;
+actual684f7600a7474f1990c7c4e97ff225ea emptyclosed03:30:52,events0.
+All4000IDs preserved.3749native-success,245TimeoutError,6RuntimeError:
+5parentownership,1subprocessownership;all6currentgenerationsnot_submitted.
+All3749timingerrors0ms,pre-dispatchtierGPU1146/HOST1506/NVMe991/Remote106,
+conflicts0. FailedmissingeventsNOTproofofnodispatch. FullstillNOTqualified.
+ConditionalTTFTmean902.616520s/P951776.621256s/TPOTmean36.676079ms;
+dispatch900.012124s/service2.604396s/native.290804s. NoformalSLO/ranking.
+Planning1760owned_execution_epoch,1759completed/1cancel-discard,originalpure
+validationpresent;CPUs724.174217245999,payload9151358118B.NOTGPU/networkcost.
+CompleteD131docnowcontainsstatus/latency/phases/planning/historicaltables.
+No servingchange/newoptimizer. EvidenceverificationpreparedfromD129 with
+actualD131counts/SHA,launchedONCE03:34;resume recordedhandle.
+NEXT: verificationterminal→exactemptycleanup→smallbundle/scopedbackup.
+
+Earlier03:29 checkpoint (superseded):
+Projection73614 finished0 ONCE:40:14.40/RSS96768KiB,33157697B output.
+Exact8ac0bdc3087c4720bfcfb3c589b4dc6d emptyclosed03:29:12,events0.
+Existingcurate_full_full1.sh launchedONCE inactual3/4GiBswap0CPU2,3,26,27;
+session57673,unitprimelora-d131-full1-curate-20261001.scope. ResumeSAMEhandle.
+DoNOTrepeat projection/replay orwholeload13292883550B original.
+NEXT: curate/failure terminal→actualidentity emptycleanup→preparedoccupancy
+audit→complete tables/interpretation→verification/backup. No newoptimizer yet.
+
+The following projection-wait checkpoints are superseded:
+2026-10-01 03:19. Goal ACTIVE/incomplete. No subagents. Baselines PAUSED.
+Latest continuation VERIFIEDWAIT on SAME projection73614, not a blocker:
+03:19:29 actualPID3093587 LIVE,elapsed30m58sCPU30m57s;sourcefd10304036864/
+13292883550B,scopeMemoryCurrent70684672B;latestmemoryevents0.
+Actualscope invocation8ac0bdc3087c4720bfcfb3c589b4dc6d unchanged.
+No newresult, experiment, optimization, remoteoperation or secondprojection.
+ResumeSAMEhandle; finalreceipt/emptycleanup thenexistingcurators.
+Do NOT restart D131 or rebuild the once-only D78/D80 delivery cache.
+
+- SAME Full ended at02:44; tmux absent/serviceinactive verified02:46.
+  launch.pass=true; service/replay/watchdog returncodes0; actualGPUrelease and
+  servicepathremoval true. All19leases released, openleaseempty.
+  Full completion FAILED:4000planned/submitted/terminal,3749native-contract
+  success,245TimeoutError and6returnedfailures (exactclasses pendingprojection).
+  Numericadapter correctness/commonwarmSLO remainpending; no formalranking.
+- PhysicalGPU22987.041394051746s; mutuallyexclusive prearrival34.44668172200909,
+  arrival15767.08309720183,drain7095.622046380071,cleanup89.88956874783617s.
+  Nativecorrectness isNOT numericaladapter proof; n_correct remainsnull.
+- Final original13292883550B. Normalmetadata90812052B. NEVERwholeloadoriginal;
+  projectionrunningbelow, doNOTstartasecondpass.
+- Allremoteowned3b/7b/monitoridentities verified andstopped02:47:25 ONLYafter
+  localterminal/actualrelease. Localaux exactcab10eb83a9e447cb44ff32762983cac
+  emptyclosed02:47:26,events0. No remotechangesduringinference.
+- Copiedremotejournal/monitorONCE; bothlocalSHA=remoteSHA. Journal
+  transfers-62aac73cdcde40a69723b65b6703ffdd.jsonl matchesD131healthclock7f9e49….
+  LocaljournalSHA6dd7dbc0f6be9684b2e4da27cf78b9bd5dc5ff0db62e72679c149b7b5409c54b;
+  monitorSHA226432011681afc52bca6e156f25cea33475d7cda721dc9ecf4e1004a748e6fa.
+  131UUIDpairs,130699314Bbothends,allpublished/contentverified,packing0.
+- Boundedpreliminary session89851 finished0,1.62s/RSS248756KiB.
+  Actual3/4GiBswap0CPU2,3,26,27; metadata invocationb3b6409b533248dba6aa56cf4fe10baa
+  exactemptyclosed. 6626resource samples:peak47477280768B,
+  minhostavailable76229046272B,high/max/OOM/swap/warnings0.
+  15quarantinesreleased;initialfour3329success,replacement12runtimes420success.
+  This metadataaudit isNOT finalnative/timing/failedrequestaudit.
+- ONE unchangedD96streamingprojection launched02:48, execsession73614 LIVE.
+  scopeprimelora-d131-full1-project-20261001.scope,
+  invocation8ac0bdc3087c4720bfcfb3c589b4dc6d,actual3/4GiBswap0CPU2,3,26,27.
+  Outputfull_full1_request_projection.json isPARTIALuntilsessionexit0/time receipt.
+  Resume SAME73614; doNOTparsepartialoutput orrepeatprojection.
+  Earlier11GBprojectiontook34minutes; timealoneisnotproofithung.
+- FullAGENTS/1525lineplan/metricV1/ledger reread; monitor/analyze-results/
+  academic-plotting/run-experiment skills read. No productionchange/newoptimizer.
+
+NEXT: awaitSAMEprojection→exactownedemptycleanup→existingD131curator/failure
+audit→table/interpretation→testedbackup. CuratorspreparedNOTexecuted.
+No baseline/newGPUexperiment before thisclosedloop.
+Warm/Resident,baselines,M1/M2,A1–A5/S1–S13 remainoutstanding.
+
+02:51 checkpoint: SAMEprojection73614 LIVE, invocation8ac0bdc… unchanged.
+ActualjqPID3093587/timePID3093539;elapsed2m43s,CPU2m42s,RSS10252KiB.
+Sourcefdposition933085184/13292883550B provesreadprogress; output0expected
+untiljqfinalemission. Allmemoryevents/swap0. DoNOTrestartorparsepartialoutput.
+cleanup_projection_full1.sh preparedwithactualinvocation,syntaxPASS, NOTrun;
+guardsTasks0/emptycgroup andmustonlyexecuteafter73614terminalreceipt.
+DocD131_FULL_W0_FULL1.md addedwithprovisionalstatus/GPUwindowtables,
+clearfailedcompletion/remainingnativeaudit/numerical/SLOcaveats. Nofinallatency,
+comparativerankingorCI. No productionedit/committhisturn;D130backupunchanged.
+
+02:57 continuation: previousgoalturnPROGRESS (finalization/cleanup/remotejoin/
+boundedmetadata/oneprojectionlaunch); thisturnVERIFIEDWAIT onSAME73614.
+Liveinvocation8ac0bdc3087c4720bfcfb3c589b4dc6d,PID3093587,CPU9m11s,
+sourcefdposition3106656256/13292883550B,scopeMemoryCurrent23199744B,
+high/max/OOM/swap0. write_stdin73614 stillrunning, NOTobservationfailure.
+DoNOTrelaunchorparsepartialoutput. Bothfullplan/ledger read again.
+ReusedD129run_occupancy_audit1.sh forD131 paths,syntaxPASS,NOTexecuted;
+usesunchangedanalyze_control_path_overhead.py --native-timeline --allow-failed,
+all4000IDs retained; runONLYaftercurationandactualcurationscopecleanup.
+Read-onlysourceinspection confirmsparentownership guards at5192/5243 and
+nativeRPCerrorwrapper5355; service.log onlytruncatedlivelabels, NOTfullfailure
+classification. No newoptimizerselected/implemented. D123/D126 historical
+profiles arecontext, not D131latencyestimates. Finishcurrentevidencefirst.
+
+03:01 SAMEaudit continuation, VERIFIEDWAIT (notblocked). Projection73614,
+actualinvocation8ac0bdc3087c4720bfcfb3c589b4dc6d andPID3093587 remainLIVE;
+sourcefdposition4386443264/13292883550B,scopeMemoryCurrent30973952B,
+allmemoryevents0. Sameonepass, no restart, no partialJSONread.
+Read-onlyfollow-up: NativeSourceSnapshot._footprints isinstance_pool.py:77,
+notGPUenginecode; itvalidatesdistinctstorageunion/sharededges/representations.
+Localinventoryresidency_manager.py:101 scansandchecksactualinodes. Theseare
+semanticchecks, notsafe toremovebasedonoldhotspotpercentages. No TTL,capacity,
+formula,physicalguardorcodecchange. No newoptimizerselected/implemented.
+CurrentD131 latency/failure/occupancycurators stillNOTexecuted. Needfinish73614,
+ownedemptycleanup,thencurate/occupancy/table/backup. BaselinesstayPAUSED.
+
+03:06 SAMEpostrun-audit continuation: previousturnVERIFIEDWAIT; currentturn
+verifiedwait plusderivedqualificationbound. 251failures implyN_good<=3749,
+soA_joint<=93.725%<95%evenifallnative-successeswerecorrectandwithinthresholds.
+AddedthisUPPERBOUND (NOTmeasuredSLO) toD131doc. Warmthresholds/numericalproof
+stillpending; thiscannotqualifyanysuccesssubsetorcostranking.
+Projection73614/invocation8ac0bdc3087c4720bfcfb3c589b4dc6d stillLIVE03:06:13,
+jqPID3093587 elapsed17m42sCPU17m41s,sourcefd5928718336/13292883550B,
+scopeMemoryCurrent41443328B,latestmemoryevents0. Disk215216553984Bavailable.
+No code/configchange, rerun, secondprojection, remoteoperation ornewoptimizer.
+ResumeSAMEhandle; neverinterpretincompleteprojectionasfinaldata.
+
+## Previous — D131 all requests terminal; SAME process finalizing (superseded)
+
+2026-10-01 02:35. Goal ACTIVE/incomplete; terminal evidence + verified wait on finalization.
+No subagents. Baselines PAUSED. D131 already has terminal request failures;
+all4000-native-completion gate is not met. DoNOTstop/restart to erase failures.
+D130 runtime d0384e4bba5a53f5d05e5a01ff5f52501d23ddd9 backed/verified below.
+ALL4000requeststerminalby02:29,livefinal3749success/251failed(245timeouts,
+5parentownership-unresolved,1subprocessRPCerror). Exactcontract/categories/
+timing/physicaltotals stillrequirepostrun audit. No formalqualification.
+At02:33:40 SAMEtmux/serviceinvocationLIVE,125tasks,controller1761828 actively
+running; no final launch.json/physicalsummary yet. DO NOT restart.
+GPUclear observedfrom02:30 watchdogonward, butnormalfullresultnotyetpresent
+in7b_outputs_full1; finalizationongoing. Mainoutcome90812052B exists (<128MiB),
+doNOTwholeloadbeforeguardedpostrunanalysis. Source resultcouldbeverylarge.
+Watchdog6003:hostavailable80490778624B,servicecurrent32010829824B,
+peak39772622848B,allmemoryevents0,GPUcleartrue,noabort. No remoteoperations.
+DoNOTrunpostrunhelpersuntilserviceexit/finalreceipt/actualGPUreleasechecked.
+02:35:05SAMEtmux/serviceLIVE125tasks. NormalJSONnowactivelybeingwritten:
+7b_outputs_full1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d131_7b_full_w0_full1.json
+observedsize1313009827B,NOTfinal/parsableevidenceyet. No launch.json/physical
+summaryyet. Watchdog6088:hostavailable78688313344B,current35133308928B,
+peak39772622848B,allmemoryevents0,GPUcleartrue,noabort. DoNOTparse/project
+thispartialfileorlaunchagain; waitSAMEfinalizationhandle.
+No formula/config/capacity/deadline change. Full4000/source42 exploratory,formal0;
+same D129 config except3ownedpaths, sameD89 profiles, no profiler/prefix.
+
+- Raw results/ieee_tc/p2_backend_qualification/d131_20261001.
+- Prelaunch session33336 finished0;150refs,147protected,trace/subset/profile/
+  candidate/source/config checksPASS. ReceiptSHA
+  669e4313c7cd3dca70c32a74c213a76801be9372cae1542df5d88dac1e0f1e04.
+  Scope97c623968e4943dab1f790451cfc2221 exactemptyclosed,events0.
+- Both actualNICs1000/full verified00:51, no changes made. Remoteavailable
+  101993488384B,disk145689206784B, independentartifactdiskgatePASS.
+  Reusedonce-onlycache, no packing/rebuild. Commonartifactservices started:
+  3bPID800714/invocation89ffdcc2648d4fed936d740596e0dc6c;
+  7bPID800716/invocation743624fab66f4356998683793245009b;
+  monitorPID800719/a081960568c44dd5b59c2ac0debabc57,
+  primelora-artifact-monitor-d131full1.service. Remote log
+  /home/lab14/primelora_remote/tc/d131_20261001/remote_monitor_7b_full_full1.log.
+- AuthenticatedbothhealthPASS,deliveryprepublished_gzip_v1/timingartifact_timing_v2.
+  Healthscope9385a0becf2a42968aa4d4c2674dbe66 finished0/events0,exactempty
+  closedbeforeFull. No remote management/hash/cleanup during inference.
+
+- LaunchedONCE00:52:15 in tmux tc-d131-7b-full1, stillLIVE. NOexecsessionID;
+  monitor tmux/existinglog, doNOTlaunchagain. Root full1_console.log;
+  launch.launch/service.log,replay.jsonl,service_ingress.jsonl,watchdog.jsonl,
+  physical_allocations/*.jsonl. Final launch.json notexpecteduntilcompletion.
+- Actualservice scope primelora-tc-svc-a2f8a035386d4d65b9eb4a5fb32dc837.scope,
+  invocationecf81aa3bdfb47088bf21c71745df849,72/80GiBswap2.
+  Auxprimelora-tc-aux-4e3970affbb14df2a5f7c0213e32cd5d.scope,
+  invocationcab10eb83a9e447cb44ff32762983cac,3/4GiBswap0.
+  Controller1761828 andchildren1764652/1764653/1766901/1769190/1769191
+  actuallyinservicecgroup,allCPU4–23,28–47. NativePID1769191 start_ticks29442233,
+  firstlease34d50bfd462f44998689566da04ace66,GPU0,TP1; foreigncompute/escaped0.
+  Initialsample servicepeak7018557440B,hostavailable107941904384B,
+  high/max/OOM/swap0. These are earlysamples,notcomplete-run guarantees.
+- Firstearly3requestsreturnednative success,0failure inlivecounter; request7
+  submittedby00:53:54. NOTall4000/finalmetrics/SLOqualification. Existing5000ms/
+  liveCE remainlegacydevelopmentdisplay,notfrozenmetricV1evaluation.
+
+- Latestuseronce-onlydeliverycacheapproval acknowledgedandchecked against
+  D78/D80: alreadyfulfilled,1000publishedarchives,total1581215261B. No new
+  cachebuild,weight/tracegeneration,remotechangeorcredentialpublication.
+- 01:08 SAMEtmux/serviceinvocation confirmedLIVE. Lastboundedlivecounter:
+  arrived822/4000,done582,ok582,fail0,backlog240,elapsed14m47s;
+  fourruntimes,scaleup3/down0. Provisionalmean/P95TTFT76.792/154.069s,
+  serviceTTFT2.456s,TPOT34.5ms. NOTfinalType1metrics,allcorrectproof,SLOorwin.
+  Queueaccumulation remainsobserved; doNOTadjustconditionsduringFull.
+- Watchdogsample940:hostavailable93142863872B,servicepeak20501839872B,
+  high/max/OOM/oomkill/swap0,warningfalse,abort[];allfourcomputeprocesses
+  inactualservicecgroup/CPUset,escaped/foreigncompute0. Disk227557306368B.
+  Theseareobservationssofar,notcomplete-run guarantees. No extraprofiling.
+- Postrunhelpers preparedONLY00:56–01:02 byreusingD129,syntaxchecksPASS:
+  exact-ownedstop_services/stop_remote_after/cleanup_local_aux_full1.sh;
+  collect_full1_preliminary.py,inspect_full1_metadata.sh;
+  project_full_full1.sh (unchangedD96streamingjq);
+  summarize_full_full1.py,collect_full1_failure_breakdown.py,
+  curate_full_full1.sh. NONEexecuted. DoNOTmistakescriptsforresults.
+  Curatorusesactualcountchecks,matchingfileidentity/remoteclock,native/timing/
+  source/tier/physicalchecks;newowned_execution_epoch requiresfrozenvalidation
+  receipt. No assumptionsofsuccessorwin; numerical/commonSLOstillpending.
+  Remotejournalfilename andpostrunanalysisinvocations unknownuntilactualrun
+  completion; copy/cleanuphelpersmustbindmeasuredidentities,notinventthem.
+  Checkfinalschema/statusfirst; preserveunexpectedfailure,don'tloosenchecks.
+  Prelimrecordsoriginalstat;metadata<128MiB;largeoriginalNEVERwholeload.
+  Projectiononceafterreleaseinactual3/4GiBswap0CPU2,3,26,27;don'trestarton
+  toolyield. Currentread-onlymonitor usesmonitor-experiment; Feishuabsent.
+- 01:09:48finalpoll SAMEtmuxLIVE,final launch.json stillabsent as expected.
+  Arrived879/4000,done657,ok657,fail0,backlog222,elapsed16m17s.
+  Watchdog1038:hostavailable92818661376B,peak20911423488B,events/swap0,
+  no warning/abort. No performanceconclusion fromthispartialrun.
+- 02:16:28continuationpoll SAMEtmuxLIVE;serviceactualinvocationreconfirmed02:15.
+  Arrived4000/4000,done3489,ok3338,fail151,backlog511,elapsed1h22m57s.
+  Livelabels146TimeoutError,4parentownership-unresolved,1subprocessRPCerror;
+  finalfullprojectionmustestablishactualcategories/messages,notlivetruncation.
+  Publisherlastrecordreplay_complete directlyconfirms
+  N_plan=N_arrived=N_submitted=4000; req_03999 submitted. Thisisarrival/replay
+  completion,NOTserviceterminal/cleanup. SAMEFullnowdraining,doNOTstopit.
+  Watchdog4985:hostavailable80916643840B,peak38569865216B,
+  disk225788403712B,allmemoryevents/swap0,no warning/abort.
+  Liveconditionalmean/P95TTFT795.931/1678.406s,service2.643s,TPOT37.3ms;
+  notfinalType1/SLOorcomparison. No restart/profiling/remoteoperation.
+  02:16census(sample4985):threeheldGPUs,foreigncompute/escapedowned0.
+  Liveavailableruntimes4→1→0around02:14,then1by02:16;notashutdown.
+  Read-onlyboundedleasejournalchecksconfirmfirstfourreleaseevents(return0):
+  GPU1/94c449cb967a4c4f979e615862026d89 at299325.916642424;
+  GPU0/34d50bfd462f44998689566da04ace66 at299336.206645888;
+  GPU2/9d0ce5548a8646e0bb1df5ccb42d3c12 at299345.874710474;
+  GPU3/3993fdb1d01a4c9fa37897efa667a029 at299355.987327942.
+  Newworker_spawn onallsameGPUsinactualservicescope:
+  64022e8cd4d54168903fcd6bdad42fc3/PID2714504 at299328.844076132;
+  690239558857494ea332deb497c8829b/PID2716459 at299338.857845869;
+  2ccb3aa549234d6c93cdb0d58bbd98f2/PID2717897 at299347.298836599;
+  9e587d2ba718453c9f9f001da47dd9a6/PID2719903 at299357.177098671.
+  Theseareobservedlifecycletransitions,NOTyetcompletequarantinecausalproof.
+  Earliesttimeoutsbelowpredatethesereleases;donotattributeallfailures tolater
+  replacement. Noagentstop/restartorremotechangesmade.
+  Boundedterminaltailconfirmsreturnedfailuresreq_03445,03447,03456,03475,
+  03482 withnative_contract_matchedfalseanderror_typenull;nullisNOTsuccess
+  orprovederrorclassification. Fullretainedfailure_observationneededlater.
+  Boundedlast100terminalrecords directlyconfirmfirstfourTimeoutError:
+  req_01520 at297797.965873295;req_01528 at297802.417706130;
+  req_01545 at297823.789138533;req_01563 at297837.254161253.
+  Allnative_contract_matchedfalse. Errorreason isknown,mechanisticcauseNOTyet
+  established. MissinginstancefielddoesNOTprovenoearlierdispatch/nativework.
+  ContinueSAMErunthroughterminal/physicalrelease; preservefailedpopulation.
+  FullmetricV1reread;postrunmetadata/projection/curator/failure/cleanuphelpers
+  reviewedread-only. StillNOTexecuted; no newoptimizerorproductionedit.
+
+NEXT: monitor SAMEFull withboundedexistinglogs; no secondoptimizer duringrun.
+DoNOTrepeat prelaunch/probe/tests orstartbaseline/otherheavyjob.
+AfterFull: ownedcleanup→strict4000/failed/native/timing/resourceaudit→table→
+interpretation→backup. No qualification/ranking claim before those finish.
+analyze-results andacademic-plotting skills readFULL02:22 forpostrunwork;
+noanalysis/figuregenerationexecutedyet. Failurestatustableappropriate,n1noCI.
+Warm/Resident,baselines,M1/M2,A1–A5/S1–S13 remainoutstanding.
+
+## Previous — D130 sealed planning transaction: regression complete, Full pending
 
 2026-10-01 00:48. Goal ACTIVE/incomplete; PROGRESS. No subagents. Baselines PAUSED.
 Latest user approval of once-only delivery cache was already fulfilled D78/D80;
@@ -28,7 +316,7 @@ do NOT regenerate published archives, weights, or workloads.
   output28283→14142B. Coldsealed12899.237565ms retained separately.
   This is NOT500-adapter/Full evidence and has no seed CI. Do NOT repeat probe.
 - Raw results/ieee_tc/p2_backend_qualification/d130_20261001. Changed5tracked
-  source/testfiles only; user manifest and unrelated files untouched. No live
+  source/testfiles only; user manifest and unrelated files untouched.
   GPUfree,available113072553984B,disk228864483328B before final regression.
 - Sources rechecked: official vLLM CPU/GIL blog and v0.30.0 core_client.py;
   Python3.12 copy docs. Borrow execution-context/message-boundary principles,
@@ -46,8 +334,16 @@ do NOT regenerate published archives, weights, or workloads.
   Bundle/finalize925c0d6110c74f8d9c2455c1a2ca0590 exited0, exactemptydomain
   closed00:48,events0. DoNOTrepeat completedtests/probe/curation.
 
-NEXT: verified scoped Git checkpoint; next ordinary7B Full4000 same frozen
-D129 configuration/profiles, fresh owned paths, no detailed profiler/prefix.
+Backupcompleted00:49:13explicitfiles committed/pushed
+d0384e4bba5a53f5d05e5a01ff5f52501d23ddd9; exactremoteHEADverified.
+CRLF-awarestageddiffcheck/bundleSHA/6sourceSHA/31payloadsecretschecksPASS.
+Usermanifest/unrelatedfilesnotstaged. DoNOTrepeatbackup.
+
+NEXT: D131 ordinary7B Full4000 same frozen D129 configuration/profiles,
+freshownedpaths results/ieee_tc/p2_backend_qualification/d131_20261001,
+no detailedprofiler/prefix. ExistingD129launch/preflight reused, no newframework.
+BeforeFull reread fullplan/ledger, verify147protected/source/config/resources,
+thenstartsameimmutable remote service. At00:50prelaunchprepared, NOTyetlaunched.
 Warm/Resident, baselines, M1/M2, A1–A5/S1–S13 remain outstanding.
 
 ## Previous — D129 Full4000 evidence complete and backed; qualification FAILED
