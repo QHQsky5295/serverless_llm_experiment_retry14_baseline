@@ -1,0 +1,64 @@
+{
+  "kind": "d126_occupancy_verification_v1",
+  "pass_checks": true,
+  "formal_performance_result": false,
+  "source_refs_rehashed": 6,
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c",
+  "phase_sums_pass": true,
+  "all_offered_ids_retained": true,
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20260930_d126_control_occupancy/control_observations.csv",
+      "sha256": "f2f02a001e72a65c423fbe58fc03a17171f63e9143db77706f428ba094fd8214"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20260930_d126_control_occupancy/sampled_occupancy.csv",
+      "sha256": "acfe437ecbb6b33c2c969bf9e06a79a6deb34f84b827b1c6df174ac3fba1db25"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20260930_d126_control_occupancy/summary.json",
+      "sha256": "e366042d59a8f55be335792641aac636e568bbed9a4f2300467c441cf320f21f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20260930_d126_control_occupancy/request_occupancy.csv",
+      "sha256": "2d14155b2cf752fc419afb18ca7c57dd7558a7573a1c27495ccc7a813e6cc577"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d126_20260930/run_occupancy_audit1.sh",
+      "sha256": "6995b9ad14af72b624a26f97ed2cdb5d7d2c7ff0032afe74671d5da710ebd82a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d126_20260930/verify_occupancy.sh",
+      "sha256": "af9bc00d72fb56a0e40f9c85a4b2ec906db77d5a3ad011543adf498fc2a1f97e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d126_20260930/cleanup_occupancy1.sh",
+      "sha256": "6484c469bf45ebfa1503c7fd06dcfbf9aea3a71d915d727b6fd9d521ce972aab"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d126_20260930/cleanup_occupancy1.log",
+      "sha256": "29f82ffb833003f4e318af6f0de5841e64537e021e76873064caa57af304901d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d126_20260930/scope_before1.txt",
+      "sha256": "dff757fe5851c592524cb5d8a9f39bb234ef985eae3d20fa145a659dd8cc8f75"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d126_20260930/audit_time1.txt",
+      "sha256": "b9ec612dc15234b161c9f2bc42be4cb37de4e64feaeddff4fb0b0c7e29fd63f2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D126_CONTROL_OCCUPANCY.md",
+      "sha256": "927f97b02e92f2b8bd6d02302aa10e75add48279d5e96712ce9bb2129f4b5cd0"
+    }
+  ]
+}

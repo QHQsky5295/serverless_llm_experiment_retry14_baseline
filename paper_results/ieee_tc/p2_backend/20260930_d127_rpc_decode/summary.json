@@ -1,0 +1,726 @@
+{
+  "kind": "d127_saved_rpc_decode_probe_v1",
+  "formal_performance_result": false,
+  "production_changed": false,
+  "production_candidate_accepted": false,
+  "skipped_models": {
+    "3b": "source container 253310434 bytes; not measured; retain initial size-guard failure"
+  },
+  "msgspec_version": "0.21.1",
+  "historical_targeted_samples": 37606,
+  "total_historical_gil_samples": 279902,
+  "exact_stack_lines": [
+    {
+      "parent_line": 5266,
+      "leaf": "raw_decode",
+      "leaf_file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/json/decoder.py",
+      "leaf_line": 354,
+      "samples": 37014
+    },
+    {
+      "parent_line": 5266,
+      "leaf": "_send_rpc_on_channel",
+      "leaf_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "leaf_line": 5266,
+      "samples": 554
+    },
+    {
+      "parent_line": 5266,
+      "leaf": "decode",
+      "leaf_file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/json/decoder.py",
+      "leaf_line": 338,
+      "samples": 7
+    },
+    {
+      "parent_line": 5266,
+      "leaf": "decode",
+      "leaf_file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/json/decoder.py",
+      "leaf_line": 339,
+      "samples": 5
+    },
+    {
+      "parent_line": 5256,
+      "leaf": "_send_rpc_on_channel",
+      "leaf_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "leaf_line": 5256,
+      "samples": 4
+    },
+    {
+      "parent_line": 5295,
+      "leaf": "_send_rpc_on_channel",
+      "leaf_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "leaf_line": 5295,
+      "samples": 3
+    },
+    {
+      "parent_line": 5293,
+      "leaf": "_send_rpc_on_channel",
+      "leaf_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "leaf_line": 5293,
+      "samples": 2
+    },
+    {
+      "parent_line": 5294,
+      "leaf": "_send_rpc_on_channel",
+      "leaf_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "leaf_line": 5294,
+      "samples": 2
+    },
+    {
+      "parent_line": 5266,
+      "leaf": "loads",
+      "leaf_file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/json/__init__.py",
+      "leaf_line": 334,
+      "samples": 2
+    },
+    {
+      "parent_line": 5279,
+      "leaf": "_send_rpc_on_channel",
+      "leaf_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "leaf_line": 5279,
+      "samples": 2
+    },
+    {
+      "parent_line": 5268,
+      "leaf": "_send_rpc_on_channel",
+      "leaf_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "leaf_line": 5268,
+      "samples": 1
+    },
+    {
+      "parent_line": 5269,
+      "leaf": "_send_rpc_on_channel",
+      "leaf_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "leaf_line": 5269,
+      "samples": 1
+    },
+    {
+      "parent_line": 5234,
+      "leaf": "_send_rpc_on_channel",
+      "leaf_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "leaf_line": 5234,
+      "samples": 1
+    },
+    {
+      "parent_line": 5266,
+      "leaf": "raw_decode",
+      "leaf_file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/json/decoder.py",
+      "leaf_line": 344,
+      "samples": 1
+    },
+    {
+      "parent_line": 5247,
+      "leaf": "_send_rpc_on_channel",
+      "leaf_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "leaf_line": 5247,
+      "samples": 1
+    },
+    {
+      "parent_line": 5266,
+      "leaf": "loads",
+      "leaf_file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/json/__init__.py",
+      "leaf_line": 346,
+      "samples": 1
+    },
+    {
+      "parent_line": 5244,
+      "leaf": "_send_rpc_on_channel",
+      "leaf_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "leaf_line": 5244,
+      "samples": 1
+    },
+    {
+      "parent_line": 5242,
+      "leaf": "_send_rpc_on_channel",
+      "leaf_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "leaf_line": 5242,
+      "samples": 1
+    },
+    {
+      "parent_line": 5303,
+      "leaf": "_send_rpc_on_channel",
+      "leaf_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "leaf_line": 5303,
+      "samples": 1
+    },
+    {
+      "parent_line": 5253,
+      "leaf": "_send_rpc_on_channel",
+      "leaf_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "leaf_line": 5253,
+      "samples": 1
+    },
+    {
+      "parent_line": 5304,
+      "leaf": "_send_rpc_on_channel",
+      "leaf_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "leaf_line": 5304,
+      "samples": 1
+    }
+  ],
+  "cases": [
+    {
+      "model": "7b",
+      "wire_bytes": 479167,
+      "wire_sha256": "df5fd71e69f3cde63064c1c3ab22f5f1b8ac56922d1877eaa10e7dd4a562b6e9",
+      "decoded_canonical_sha256": "ef996a33e9f756bff1d66014e5f0f7bda223fbc7f9c968f82e014c4c8978ee58",
+      "registered_adapters": 2,
+      "host_allocations": 512,
+      "samples": [
+        {
+          "trial": 0,
+          "order": 0,
+          "repetition": 0,
+          "method": "stdlib",
+          "elapsed_ms": 5.198752,
+          "ready_callback_delay_ms": 5.236709
+        },
+        {
+          "trial": 0,
+          "order": 0,
+          "repetition": 1,
+          "method": "stdlib",
+          "elapsed_ms": 5.300349,
+          "ready_callback_delay_ms": 5.315296
+        },
+        {
+          "trial": 0,
+          "order": 0,
+          "repetition": 2,
+          "method": "stdlib",
+          "elapsed_ms": 5.129989,
+          "ready_callback_delay_ms": 5.143639
+        },
+        {
+          "trial": 0,
+          "order": 0,
+          "repetition": 3,
+          "method": "stdlib",
+          "elapsed_ms": 5.160893,
+          "ready_callback_delay_ms": 5.175814
+        },
+        {
+          "trial": 0,
+          "order": 0,
+          "repetition": 4,
+          "method": "stdlib",
+          "elapsed_ms": 5.279914,
+          "ready_callback_delay_ms": 5.303419
+        },
+        {
+          "trial": 0,
+          "order": 0,
+          "repetition": 5,
+          "method": "stdlib",
+          "elapsed_ms": 5.255746,
+          "ready_callback_delay_ms": 5.282994
+        },
+        {
+          "trial": 0,
+          "order": 0,
+          "repetition": 6,
+          "method": "stdlib",
+          "elapsed_ms": 5.413504,
+          "ready_callback_delay_ms": 5.43952
+        },
+        {
+          "trial": 0,
+          "order": 0,
+          "repetition": 7,
+          "method": "stdlib",
+          "elapsed_ms": 5.297571,
+          "ready_callback_delay_ms": 5.323044
+        },
+        {
+          "trial": 0,
+          "order": 0,
+          "repetition": 8,
+          "method": "stdlib",
+          "elapsed_ms": 5.428025,
+          "ready_callback_delay_ms": 5.456035
+        },
+        {
+          "trial": 0,
+          "order": 0,
+          "repetition": 9,
+          "method": "stdlib",
+          "elapsed_ms": 6.261673,
+          "ready_callback_delay_ms": 6.285214
+        },
+        {
+          "trial": 0,
+          "order": 1,
+          "repetition": 0,
+          "method": "msgspec",
+          "elapsed_ms": 2.380682,
+          "ready_callback_delay_ms": 2.392948
+        },
+        {
+          "trial": 0,
+          "order": 1,
+          "repetition": 1,
+          "method": "msgspec",
+          "elapsed_ms": 2.369967,
+          "ready_callback_delay_ms": 2.381452
+        },
+        {
+          "trial": 0,
+          "order": 1,
+          "repetition": 2,
+          "method": "msgspec",
+          "elapsed_ms": 2.39994,
+          "ready_callback_delay_ms": 2.412135
+        },
+        {
+          "trial": 0,
+          "order": 1,
+          "repetition": 3,
+          "method": "msgspec",
+          "elapsed_ms": 2.516294,
+          "ready_callback_delay_ms": 2.529433
+        },
+        {
+          "trial": 0,
+          "order": 1,
+          "repetition": 4,
+          "method": "msgspec",
+          "elapsed_ms": 2.379522,
+          "ready_callback_delay_ms": 2.391878
+        },
+        {
+          "trial": 0,
+          "order": 1,
+          "repetition": 5,
+          "method": "msgspec",
+          "elapsed_ms": 2.582875,
+          "ready_callback_delay_ms": 2.595906
+        },
+        {
+          "trial": 0,
+          "order": 1,
+          "repetition": 6,
+          "method": "msgspec",
+          "elapsed_ms": 2.382523,
+          "ready_callback_delay_ms": 2.39449
+        },
+        {
+          "trial": 0,
+          "order": 1,
+          "repetition": 7,
+          "method": "msgspec",
+          "elapsed_ms": 2.416032,
+          "ready_callback_delay_ms": 2.428777
+        },
+        {
+          "trial": 0,
+          "order": 1,
+          "repetition": 8,
+          "method": "msgspec",
+          "elapsed_ms": 2.661066,
+          "ready_callback_delay_ms": 2.675824
+        },
+        {
+          "trial": 0,
+          "order": 1,
+          "repetition": 9,
+          "method": "msgspec",
+          "elapsed_ms": 2.622321,
+          "ready_callback_delay_ms": 2.63462
+        },
+        {
+          "trial": 1,
+          "order": 0,
+          "repetition": 0,
+          "method": "msgspec",
+          "elapsed_ms": 2.482773,
+          "ready_callback_delay_ms": 2.494709
+        },
+        {
+          "trial": 1,
+          "order": 0,
+          "repetition": 1,
+          "method": "msgspec",
+          "elapsed_ms": 3.067308,
+          "ready_callback_delay_ms": 3.079482
+        },
+        {
+          "trial": 1,
+          "order": 0,
+          "repetition": 2,
+          "method": "msgspec",
+          "elapsed_ms": 2.601902,
+          "ready_callback_delay_ms": 2.614098
+        },
+        {
+          "trial": 1,
+          "order": 0,
+          "repetition": 3,
+          "method": "msgspec",
+          "elapsed_ms": 2.577367,
+          "ready_callback_delay_ms": 2.589541
+        },
+        {
+          "trial": 1,
+          "order": 0,
+          "repetition": 4,
+          "method": "msgspec",
+          "elapsed_ms": 2.475883,
+          "ready_callback_delay_ms": 2.487162
+        },
+        {
+          "trial": 1,
+          "order": 0,
+          "repetition": 5,
+          "method": "msgspec",
+          "elapsed_ms": 2.765807,
+          "ready_callback_delay_ms": 2.778015
+        },
+        {
+          "trial": 1,
+          "order": 0,
+          "repetition": 6,
+          "method": "msgspec",
+          "elapsed_ms": 2.513112,
+          "ready_callback_delay_ms": 2.525444
+        },
+        {
+          "trial": 1,
+          "order": 0,
+          "repetition": 7,
+          "method": "msgspec",
+          "elapsed_ms": 2.599583,
+          "ready_callback_delay_ms": 2.613029
+        },
+        {
+          "trial": 1,
+          "order": 0,
+          "repetition": 8,
+          "method": "msgspec",
+          "elapsed_ms": 2.402919,
+          "ready_callback_delay_ms": 2.416248
+        },
+        {
+          "trial": 1,
+          "order": 0,
+          "repetition": 9,
+          "method": "msgspec",
+          "elapsed_ms": 2.596155,
+          "ready_callback_delay_ms": 2.60829
+        },
+        {
+          "trial": 1,
+          "order": 1,
+          "repetition": 0,
+          "method": "stdlib",
+          "elapsed_ms": 5.544468,
+          "ready_callback_delay_ms": 5.559659
+        },
+        {
+          "trial": 1,
+          "order": 1,
+          "repetition": 1,
+          "method": "stdlib",
+          "elapsed_ms": 6.006836,
+          "ready_callback_delay_ms": 6.028565
+        },
+        {
+          "trial": 1,
+          "order": 1,
+          "repetition": 2,
+          "method": "stdlib",
+          "elapsed_ms": 5.635386,
+          "ready_callback_delay_ms": 5.649207
+        },
+        {
+          "trial": 1,
+          "order": 1,
+          "repetition": 3,
+          "method": "stdlib",
+          "elapsed_ms": 5.915193,
+          "ready_callback_delay_ms": 5.928558
+        },
+        {
+          "trial": 1,
+          "order": 1,
+          "repetition": 4,
+          "method": "stdlib",
+          "elapsed_ms": 5.191583,
+          "ready_callback_delay_ms": 5.203763
+        },
+        {
+          "trial": 1,
+          "order": 1,
+          "repetition": 5,
+          "method": "stdlib",
+          "elapsed_ms": 5.365448,
+          "ready_callback_delay_ms": 5.378911
+        },
+        {
+          "trial": 1,
+          "order": 1,
+          "repetition": 6,
+          "method": "stdlib",
+          "elapsed_ms": 5.153484,
+          "ready_callback_delay_ms": 5.16631
+        },
+        {
+          "trial": 1,
+          "order": 1,
+          "repetition": 7,
+          "method": "stdlib",
+          "elapsed_ms": 5.735471,
+          "ready_callback_delay_ms": 5.756496
+        },
+        {
+          "trial": 1,
+          "order": 1,
+          "repetition": 8,
+          "method": "stdlib",
+          "elapsed_ms": 5.837589,
+          "ready_callback_delay_ms": 5.864799
+        },
+        {
+          "trial": 1,
+          "order": 1,
+          "repetition": 9,
+          "method": "stdlib",
+          "elapsed_ms": 5.557439,
+          "ready_callback_delay_ms": 5.585027
+        },
+        {
+          "trial": 2,
+          "order": 0,
+          "repetition": 0,
+          "method": "stdlib",
+          "elapsed_ms": 5.526488,
+          "ready_callback_delay_ms": 5.552576
+        },
+        {
+          "trial": 2,
+          "order": 0,
+          "repetition": 1,
+          "method": "stdlib",
+          "elapsed_ms": 5.761539,
+          "ready_callback_delay_ms": 5.788875
+        },
+        {
+          "trial": 2,
+          "order": 0,
+          "repetition": 2,
+          "method": "stdlib",
+          "elapsed_ms": 5.768556,
+          "ready_callback_delay_ms": 5.795208
+        },
+        {
+          "trial": 2,
+          "order": 0,
+          "repetition": 3,
+          "method": "stdlib",
+          "elapsed_ms": 5.707547,
+          "ready_callback_delay_ms": 5.722654
+        },
+        {
+          "trial": 2,
+          "order": 0,
+          "repetition": 4,
+          "method": "stdlib",
+          "elapsed_ms": 5.469818,
+          "ready_callback_delay_ms": 5.484072
+        },
+        {
+          "trial": 2,
+          "order": 0,
+          "repetition": 5,
+          "method": "stdlib",
+          "elapsed_ms": 6.129608,
+          "ready_callback_delay_ms": 6.143082
+        },
+        {
+          "trial": 2,
+          "order": 0,
+          "repetition": 6,
+          "method": "stdlib",
+          "elapsed_ms": 5.297481,
+          "ready_callback_delay_ms": 5.30969
+        },
+        {
+          "trial": 2,
+          "order": 0,
+          "repetition": 7,
+          "method": "stdlib",
+          "elapsed_ms": 5.300275,
+          "ready_callback_delay_ms": 5.313423
+        },
+        {
+          "trial": 2,
+          "order": 0,
+          "repetition": 8,
+          "method": "stdlib",
+          "elapsed_ms": 5.460963,
+          "ready_callback_delay_ms": 5.472899
+        },
+        {
+          "trial": 2,
+          "order": 0,
+          "repetition": 9,
+          "method": "stdlib",
+          "elapsed_ms": 5.36063,
+          "ready_callback_delay_ms": 5.372927
+        },
+        {
+          "trial": 2,
+          "order": 1,
+          "repetition": 0,
+          "method": "msgspec",
+          "elapsed_ms": 2.531215,
+          "ready_callback_delay_ms": 2.543939
+        },
+        {
+          "trial": 2,
+          "order": 1,
+          "repetition": 1,
+          "method": "msgspec",
+          "elapsed_ms": 2.581175,
+          "ready_callback_delay_ms": 2.594219
+        },
+        {
+          "trial": 2,
+          "order": 1,
+          "repetition": 2,
+          "method": "msgspec",
+          "elapsed_ms": 2.673822,
+          "ready_callback_delay_ms": 2.685658
+        },
+        {
+          "trial": 2,
+          "order": 1,
+          "repetition": 3,
+          "method": "msgspec",
+          "elapsed_ms": 2.538368,
+          "ready_callback_delay_ms": 2.551625
+        },
+        {
+          "trial": 2,
+          "order": 1,
+          "repetition": 4,
+          "method": "msgspec",
+          "elapsed_ms": 2.587485,
+          "ready_callback_delay_ms": 2.599582
+        },
+        {
+          "trial": 2,
+          "order": 1,
+          "repetition": 5,
+          "method": "msgspec",
+          "elapsed_ms": 2.545712,
+          "ready_callback_delay_ms": 2.557735
+        },
+        {
+          "trial": 2,
+          "order": 1,
+          "repetition": 6,
+          "method": "msgspec",
+          "elapsed_ms": 2.804528,
+          "ready_callback_delay_ms": 2.816922
+        },
+        {
+          "trial": 2,
+          "order": 1,
+          "repetition": 7,
+          "method": "msgspec",
+          "elapsed_ms": 3.158448,
+          "ready_callback_delay_ms": 3.171687
+        },
+        {
+          "trial": 2,
+          "order": 1,
+          "repetition": 8,
+          "method": "msgspec",
+          "elapsed_ms": 2.687791,
+          "ready_callback_delay_ms": 2.700512
+        },
+        {
+          "trial": 2,
+          "order": 1,
+          "repetition": 9,
+          "method": "msgspec",
+          "elapsed_ms": 2.595031,
+          "ready_callback_delay_ms": 2.608022
+        }
+      ],
+      "mean_decode_ms": {
+        "stdlib": 5.515073933333333,
+        "msgspec": 2.5832535333333335
+      }
+    }
+  ],
+  "valid_number_and_unicode_equality": true,
+  "invalid_json_behavior": [
+    {
+      "wire": "{\"x\":NaN}",
+      "stdlib": "accepted",
+      "msgspec": "DecodeError"
+    },
+    {
+      "wire": "{\"x\":Infinity}",
+      "stdlib": "accepted",
+      "msgspec": "DecodeError"
+    },
+    {
+      "wire": "{\"x\":-Infinity}",
+      "stdlib": "accepted",
+      "msgspec": "DecodeError"
+    },
+    {
+      "wire": "{",
+      "stdlib": "JSONDecodeError",
+      "msgspec": "DecodeError"
+    },
+    {
+      "wire": "{\"x\":\"\\ud800\"}",
+      "stdlib": "accepted",
+      "msgspec": "DecodeError"
+    }
+  ],
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20260930_d123_7b_full_w0_prefix1.json",
+      "sha256": "93614036c20e9b978fe5e98c99163f77235ee1e7a7770110e36bcea63c271b65",
+      "bytes": 59169
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d123_20260930/controller_prefix1.speedscope.json",
+      "sha256": "8dccc353466561f6b63e5856948bfc306448b00bedf9bd3621a1ffdf506ed652",
+      "bytes": 31053756
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20260930_d121_preparation_copy/summary.json",
+      "sha256": "bf981b7482fcab9485d76945e684920902cad42ed34f8c6d8fb53309be651d47",
+      "bytes": 3853
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d88_20260927/7b_admission_source_attempt1.json",
+      "sha256": "60d2f9e7ec28f2a1a2a0884a216919e5561aa86c75708b3079698d7f5e97c2c5",
+      "bytes": 20341207
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d127_20260930/probe_rpc_decode_attempt2.py",
+      "sha256": "1f023bb3dc536d1a6772126e9cba61bb2f829b8130b93bd160a6b9d63f4149a9"
+    }
+  ],
+  "caveats": [
+    "D123 profiling predates D124; fractions are not D125 wall-time shares.",
+    "Saved native components have fewer registered adapters than current cache capacity.",
+    "CPU repeats are not independent workload repeats; no seed-level CI or Full benefit.",
+    "No wire encoding, source/epoch/physical validation, timeout or capacity changed."
+  ],
+  "decision": "component_only_not_selected_as_standalone_Full_optimizer",
+  "verification": {
+    "source_refs_checked": 5,
+    "d126_refs_checked": 11,
+    "smoke_tests": 288,
+    "smoke_s": 22.535,
+    "production_changes": false
+  },
+  "probe_sha256": "08477a00a3fa9576cdfae52dbe23c376ab6c90e241ca77012efa8cc1d7968b6e"
+}

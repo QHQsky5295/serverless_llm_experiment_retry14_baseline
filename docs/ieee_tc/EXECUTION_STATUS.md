@@ -1,6 +1,88 @@
 # IEEE TC execution status
 
-## CURRENT — D125 Full4000 diagnostic complete; qualification FAILED
+## CURRENT — D126/D127 complete; return to one control-path architecture question
+
+2026-09-30 21:15. Goal ACTIVE/incomplete. Currentturn PROGRESS, no subagents.
+No GPU/remote/analysis/test jobs live. BaselinesPAUSED. ServingHEAD61c9bcf unchanged
+(runtimee7d4c91); no codec/capacity/deadline/thread/guard changes. Once-onlycache
+fulfilledD78/D80; NEVERrebuild. D125/D126/D127 completed work MUSTNOTberepeated.
+
+- D126 final tables/sources verified:6inputSHA,all4000IDs,additivephase checks,
+  metricV1/planSHA,147protectedPASS. Basic288testsPASS22.535s;wholeverify32.07s/
+  RSS1166252KiB;actual3/4GiBswap0CPU2,3,26,27,events0.
+  Exact6750e92e139342688d71f98f9178a66eemptyclosed beforeD127.
+- D127 reusedD123profile31MB toattributeRPC:37014samplesraw_decodeunder5266,
+  554atline5266itself,within37606sendRPC/all279902GIL. HistoricalNOTD125wall.
+  Same479167B savedD887Bresponse(2adapters/512alloc),msgspec0.21.1:
+  3alternatingrounds×10each,stdlibmean5.515074ms→msgspec2.583254ms;
+  canonicaldecodedvaluesSHAidentical,largeint/double/UnicodePASS.
+  NonfiniteJSON/isolatedsurrogatebehavior differs;no silentfallback proposed.
+- Firstprobe rejected3B253310434Bcontainer by24MBinputguardBEFOREload;
+  exit1/3.77s/RSS345216KiBretained. Probe2 measuredONLY7B20.34MBsource;
+  3Bexplicitnotmeasured,nohugeprojection/raiseRAM.4.32s/RSS345216KiBexit0.
+  Exactprobe1 5c546dd1a42a4346ade5b736cf06cb48 andprobe2
+  6d0073d8b6a545df9b500fa4a8c632e4emptyclosed,events0.
+- Decision:componenteffectsupported,NOTselectedasstandaloneFulloptimizer;
+  doesn'testablishmulti-secondwaitcause. No onlinechange/Fullretry. Archive
+  thismicro;donotrepeatit. DocsD126_CONTROL_OCCUPANCY.md and
+  D127_RPC_DECODE_DIAGNOSTIC.md contain tables/boundaries/primarysources.
+- CuratedD1264files+verification;D127summary/samples. Finalcurationchecked
+  allsourceSHA andD126references;29member12033Bsmallbundle
+  20260930_d126_d127_analysis_sources.tar.gz SHA
+  89e609ce74fdcf454356dbdb252b98b0dcec6abdcb1b2ef79338a955c1b90dd4.
+  Membersverified;checksumPASS(correctcwdafteronewrongcwdread,notrepackage).
+  Finalizeexit0 exactc95ba81f5e7942ff8b33be4c5f8d6234emptyclosed;noheavyjob.
+  Finalize.28s/RSS48000KiB,events0.13stagedfiles/41payloadsecretchecksPASS.
+  CSVretainsanalyzer'sCRLF(likeD120);defaultdiffcheckreportedonlyCRaswhitespace.
+  Recheckwithper-commandcr-at-eol(no repoconfigchange),preservesverifiedSHAs.
+  Scopedbackupnext;NEVERstageusergeneratedmanifest.
+
+NEXT: inspect one architecture question using CURRENTcode+existingCPUevidence:
+which frozen-snapshot preparation computations can be separated from request
+event-loop advancement without changing demand/cost epoch,selectedset,live
+physicalrechecks,cancellation/ownershiprelease. No blanketthreads,staleTTL,
+capacity/deadlineincrease,moretinydecoderprobesoridenticalFull. ChooseONE
+falsifiablecandidate, boundedverification thenordinaryFull ifsupported.
+PrimeFull→warm/Resident→Serverless→vLLM→S-LoRA→dLoRA3B→Loquetier→HydraServe
+→M1/M2→A1–A5/S1–S13 remainpending. No formalSLO/numericadapter qualification.
+
+## Previous checkpoint — D126 offline occupancy complete; no new optimizer accepted
+
+2026-09-30. Goal ACTIVE/incomplete. Current turn PROGRESS, no subagents.
+No GPU/remote/analysis job live. Baselines PAUSED. D125 backup COMPLETE at
+61c9bcfff368916f200744f4300d234efe51be1c; do NOT repeat backup/replay/projection.
+D78/D80 once-only published delivery cache fulfilled; NEVER rebuild.
+
+- D126 reuses D125 31.7MB projection + normal outcome + deployment/terminal/
+  watchdog via UNMODIFIED analyze_control_path_overhead.py --native-timeline
+  --allow-failed. Analysis3472 exit0,2.60s/RSS259048KiB; actual3/4GiBswap0,
+  CPU2,3,26,27; events0. Exact604c6eaf67584cbb83270b5c16c35003emptyclosed20:54:38.
+- All4000IDs retained;3456native-success/544failed. Successconditional phase
+  means: arrival→gate877.394043s,gate→source2.761062,source→native2.473673,
+  native→last3.876349,last→controller1.629483,controller→terminal.697782.
+  Gate→terminal11.438349s isupperenvelope(actualreleaseearlier),NOTGPUbilling.
+  Observation5763.144352s;5687resourcesamplesutilsamplemean35.853719%,notcausal.
+- Firstfailureterminal3366.880645s,quarantine4490.755947s. Beforefailure
+  1160controlsamplesmeanqueue575.069828;earlybacklogcannotbeexplainedsolelyby
+  laterquarantine. activebinding≠gate≠nativeoccupancy;failureworkmaypersist.
+- Curated20260930_d126_control_occupancy/{summary.json,request_occupancy.csv,
+  sampled_occupancy.csv,control_observations.csv}; summarySHA
+  e366042d59a8f55be335792641aac636e568bbed9a4f2300467c441cf320f21f.
+  DocD126_CONTROL_OCCUPANCY.md hasfullconditional/phase/failuretables+caveats.
+- Read fullplan/status/metricV1 + analyze-results/run-experiment/academic-plotting.
+  Sourcechecks: parent_rpcjsonloads syncinloop; workerjsonencoding; native
+  HOSTallocation/alias validation; preparation copies/selector. PrimaryPython
+  asyncio + officialvLLMperf/0.30serialization read. No codec/thread/process/
+  stale-cache/capacity/deadline/guard change implemented or accepted.
+
+NEXT: verify D126 sources/protected state, scoped checkpoint. Singlecausal
+controlCPUcandidate only after existingD123exactcallstack attribution; then
+bounded same-input validation and ordinaryFull ifsupported. No identicalFull
+retry or more oldlargeprojection. Warm/Resident/baselines/M1M2/A1A5/S1S13 remain
+pending; fullgoalACTIVE. D125 timingfixretain,copycomponentcandidate alone
+doesNOTestablishqualifiedFull orcausalwhole-system improvement.
+
+## Previous checkpoint — D125 Full4000 diagnostic complete; qualification FAILED
 
 2026-09-30 20:49. Goal ACTIVE/incomplete. Current turn PROGRESS. No subagents.
 Baselines PAUSED. No GPU/remote/analysis/test job remains. All exact-owned domains
@@ -59,6 +141,28 @@ repeat identicalFull, oldlargeprojections, blanketincreasecapacity/thread/deadli
 or removephysical/ownershipguards. D124timingretain;copyremaincomponent-supported
 candidate,notFullcausalwin. AfterPrimeFull,warm/Resident→Serverless→vLLM→S-LoRA→
 dLoRA3B→Loquetier→HydraServe→M1/M2→A1–A5/S1–S13 remainpending. EntiregoalACTIVE.
+
+Postbackup2026-09-30 20:52: eightD125files committed/pushed
+61c9bcfff368916f200744f4300d234efe51be1c; exactremoteHEADverified.
+Bundlechecksum,gitdiff,63staged/archivepayloadsecretschecksPASS;
+usermanifest/unrelatedfilesneverstaged. No heavyjobremains,lastdisk240804945920B.
+This postpushledgernote isnotruntime/config change. DoNOTrepeatD125closure/backup.
+
+Boundedsourcefollow-up(noedit/noexperiment) reviewedD120/D121docs andcurrent
+run_all_experiments.py:11644–11743,14425–14635,15156ff,15831ff,15956ff.
+Externalreplayglobalgate=runtime_groups×runtimecap; run_one holds it through
+_exec_request and _finish_runtime_request_reservation, thenreleases beforeouter
+terminal. Consequentlysuccessgate→outer isoccupancyupperenvelope, NOTnative-only
+capacity. No proofyettoincreasegate/cap; cancellation/ownerreleasecannotbedropped.
+ExistingD120run_occupancy_audit2.sh + scripts/analyze_control_path_overhead.py
+acceptallow-failed and smallprojection, preserveallIDs; D125sameanalysisNOTrunyet.
+D123oldCPUsummaryreusedwithoutreprofiling: _footprints11.2511% allGILsamples,
+sendRPC13.4354%,fileinventory4.4048%,sourceobservation2.5341%; samplefractions
+notcurrentD125walltime. D124targetedcopiesalreadychanged, no extrapolatedshares.
+CurrentNativeSourceSnapshot._footprints independentlyvalidatesallstorageunion/
+sharing/capacitymetadata; currentfile_source_snapshot restats managedsources.
+DoNOTcache stalephysicalstate ordeletechecks; nextcandidate stillrequiresprimary
+sourcecomparison and causalvalidation. No optimizerselected/implemented yet.
 
 ## D125 projection-stage history — superseded by completed analysis above
 
