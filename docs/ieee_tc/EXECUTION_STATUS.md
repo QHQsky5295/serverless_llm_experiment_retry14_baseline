@@ -1,6 +1,177 @@
 # IEEE TC execution status
 
-## CURRENT — D114 native async transport: tested candidate, backup pending
+## CURRENT — D115 curation COMPLETE; evidence closure; no live job
+
+2026-09-30 10:35. Goal ACTIVE/incomplete; baselines PAUSED. Current turn
+PROGRESS. D115 projection/curation finished Sep29, NOT live. No GPU/replay,
+remote, projection or analysis job remains. DoNOT repeat those runs or copies.
+Last curation scope exact-owned/empty stopped Sep30 10:26; events saved, all0.
+Production2697758 unchanged. D114 candidate NOT Full-qualified.
+
+- 4000/4000 native-contract successes; service exit1/launch.pass=false because
+  one residency failure, same chain in file/GPU plan. Physical4leases released,
+  noquarantines. Total16103.305610239011GPU-s complete; no resource-winner claim.
+  Error native file pressure subscription is not available; root cause unproven.
+- Curated20260929_d115_3b_full_w0_full10.json
+  SHAfd3e460a1cd676f2c7cc282dde1a2b7074b81efa1a758b95345a615b7db9768b.
+  Mean/P95TTFT128.577329/296.831144s; controllerE2E134.607933/304.333317s;
+  outerterminal137.004243/307.454002s; neither clientreceipt.
+  MeanTPOT33.906219ms/P9578.432320ms. Fulltable D115_FULL_W0_FULL10.md.
+  D112 n1 descriptive contrast only: meanTTFT-52.70%,P95-41.52%,GPU-s-10.14%,
+  meanTPOT+4.79%. No CI/causal or formal ranking claim.
+- Timingmaxerror0.196654ms,TPOTerror0; source4000/4000confirmed,tierconflicts0;
+  GPU2428/HOST732/NVMe690/Remote150. Numericadapterproof andwarmSLO NOTqualified.
+- 132remoteUUID/byte/contentpairs;306360162Bonbothends;5139892912logicalB;
+  requestpacking0.4752resourcesamples,peak39357952000B,minhost82589106176B;
+  high/max/OOM/swap/warnings0.69frozenrefs and147protected unchanged.
+- Projection69694371B SHA1683109776c5c0352ee7ec14f2064b82b10e688c1e7614a14cad0c17bd90e7fa;
+ 1124.05s/RSS277632KiB/exit0. Curation29.46s/RSS200264KiB/exit0. No9GBwholeload.
+  Metadata,projection,curation scopes allclosed; lastcurator invocation
+ 1f709ff2d5c548a2843948c93e730cc3. memory.events0. Logs retained.
+- HOST/NVMe workspace cleanup remains false/shutdown_unresolved; retainedroots
+  sameidentity. DoNOT delete or claim workspace cleanup success.
+- Latesthostavailable112970850304B,disk275176345600B,GPUempty,0primeloraunits.
+  Plan/metricV1 reread; sourceplanSHAunchanged. No secret/userdirty staging.
+
+Finalevidence70checksPASS1.968s + jqfixturePASS;69frozen/34smallcuratedrefs/
+147protectedchecked.9.19GBoriginalhashreusedfromcuratorplusstat,notrehashed.
+Verificationd95a3d95c6b70877ad4699a9c77444294cc173233070673f212c8c66f36e4d06.
+37,754Bbundle50membersSHA6c949b4ad21ae26b28e70736fbf482fac0fcb43b3cf093d7c9462a5433ac5355;
+eachmemberverified. Initialpackagingcheckselfmatchedliteral; attempt1script/
+partialarchivepreserved, correctedanchoredPEMcheckpasses. Notanexperimentfailure.
+Evidenceinvocation94573a71349146388db7d26abdcafe5a exactemptyclosed,events0.
+NEXT Git backup, then ONE
+minimal causal failure validation (retiring target vs non-target broadcast vs
+uncertain member). DoNOT blindly run Full11. ReturnPrimeFull/7B aftercorrectness;
+warm/Resident/baselines/M1M2/A1–A5/S1–S13/numericadapterproof remainpending.
+
+## D115 historical checkpoint — projection was live; superseded above
+
+2026-09-29 02:04. Goal ACTIVE/incomplete; baselines PAUSED. Previous goal turn
+PROGRESS. Current turn PROGRESS: prepared bounded failed-outcome curator while
+verifying the same projection advancing. Prior turn same live replay reached all4000 native
+successes; identified real residency failure at shutdown, verified physical
+release and main exit, stopped exact-owned remote/aux services, copied remote
+evidence ONCE, completed bounded metadata check and launched ONE stream projection.
+No production code/config change, new optimizer, GPU replay or cache rebuild.
+D114 candidate NOT accepted as Full-qualified. DoNOT rerun blindly or suppress
+the recorded exception. Full latency/source/remote/protection curation pending.
+
+Actual run finished: service exit1, replay0, watchdog0, launch.pass=false;
+native_gpu_context_release_confirmed=true, service_path_removed=true.
+All4000 planned/terminal/success/nativecontract matched,0request failures;
+numerical adapter proof and formal SLO NOT qualified. Four physical leases
+released, noopenleases, measurement_complete=true. GPU-s16103.305610239011:
+pre48.10997727900394,arrival15754.069256878807,drain204.41446136019658,
+cleanup96.71191472100327. DoNOT use failed Full as formal resource winner.
+
+ONE failed residency epoch: targetieee-activation-8c3c1220292d452ab5d3c43e3e1eb2b5,
+started124205.662886491,terminal124266.729466565; last request terminal
+124266.217899361, gap0.511567204s. Error native file pressure subscription is
+not available, from SharedFileTransferDomain.attach resource_coordinator.py217,
+via native_HOST staging inside GPU/file residency preparation. At shutdown
+raises IEEE shutdown preserved a failed residency epoch. One failed fileplan
+and one failed GPUplan are same chain, not three independent failures.
+Epoch counts completed151/superseded308/failed1. No quarantines.
+Time adjacency suggests shutdown coordination; NOT root-cause proof. Inspect
+target vs broadcast subscriber retirement/uncertain state before any fix.
+No swallowed exception, arbitrary timeout change or physical guard removal.
+
+Raw results/ieee_tc/p2_backend_qualification/d115_20260929.
+Failure retains requests in main_outcome.json: completed_scenario_windows.requests,
+NOT standalone3b_outputs_full10. Original9187872294B, NEVER whole-load.
+Source metadata before final property ends at byte35696635. Exact prefix/boundary
+assertions used by inspect_full10_metadata.py (adapted existing preliminary);
+all original errors retained. 0.75s,176116KiBpeakRSS,exit0; high/max/OOM0.
+full_full10_metadata_preliminary.json
+SHA8c3fd75be251a70b0cfac1961e4170b4cb0a52a2311841ba5d9553c867290239.
+Metadata scope1b37d95cbf904b2898ae52e356d8bee1 verifiedexactempty and stopped;
+memory.events saved. DoNOT repeat metadata extraction.
+Normal-success preparatory collect/project scripts NEVER EXECUTED; renamed
+*_NOT_RUN_normal_path and guarded against accidental use. Failed outcome is
+intentional evidence, not a reason to run those whole-load success adapters.
+
+LIVE ANALYSIS (not GPU inference):
+tmux primelora-d115-full10-project, startedapproximately01:54:05.
+scope primelora-d115-full10-project-20260929.scope,
+InvocationID2835caab8eab4b22b86a74410c1c45c7, jqPID4107442 (verify current),
+3/4GiB high/max,swap0,CPUs2,3,26,27.02:04:39 active2tasks,
+memory203800576B, jqCPU10:33/RSS199832KiB, actual progress.
+InputFDposition5320859648/9187872294B verified afterthisobservation.
+project_full10_outcome.sh + project_full10_outcome.jq reuse D96 projection,
+adapt ONLY schema; all non-request metadata/errors and all requests retained.
+Tiny synthetic projection assertion PASS before launch. Output
+full_full10_outcome_projection.json remains0until whole reduction ends: NORMAL.
+Time full_full10_outcome_projection_time.txt; wrapper
+full_full10_projection_wrapper.log; limits/identity full_full10_projection_scope.txt.
+DoNOT start duplicate projection, whole-load9GiB, or treat output0 as stalled.
+Await actual tmux/process completion, then checktimeexit/rowcount/schema.
+Current tables/docD115_FULL_W0_FULL10.md are PRELIMINARY, not yet backed up.
+Prepared but NOT EXECUTED summarize_full_full10.py, adapting D112curator:
+SHA6582bcf1939cb7366030317003e704ae35a45aac18616cf696e5eddc74537f11;
+curate_full_full10.sh SHA1b1f5b02a573bf23e07921ac8fc0b0758a42a01b12d4fb42f5ec0aaffcd0ecec.
+SyntaxchecksPASS. It reads ONLY bounded outcomeprojection, preservesfailedcleanup,
+validatesretainedrootidentities andall4000native/timing/readiness records, pairs
+remoteUUID/bytes,checks69frozenrefs/147protected,andaddsactualouterterminal/gap
+metricswithoutclaimingclientreceipt. Wholeoriginal9GiB is hashedstreaminglyonly,
+neverjsonloaded. Prospectiveunitprimelora-d115-full10-curate-20260929.scope,
+3/4GiB/swap0/sameauxCPUs, existingCPUenv. Must awaitprojectionexit0 thenexact-owned
+emptycleanup ofprojectionscope; wrapperrequiresprojectioninactive. No curated
+JSON/time/log existsyet. Donotlaunchsecondprojection or useNOT_RUNscripts.
+
+Remote3B/7B/monitor stopped01:50:30 by exactinvocation/PIDs; localemptyaux
+stopped01:50:31. Main/service scope inactive, GPU compute empty. NO remote or
+GPU service remains. Original runtime IDs below are HISTORY, not live handles.
+stop_services_full10.sh/log andcleanup_local_aux_full10.sh/log retained.
+Remote rg unavailable; only subsequent read-only config lookup usedgrep;
+stop/cleanup already succeeded, doNOTrepeat.
+Remote journal /home/lab14/primelora_remote/tc/d80_20260927/3b/
+transfers-085455d634784028967260619da9ec03.jsonl copiedONCE to
+remote_3b_full10_transfers.jsonl,
+SHA57f6b8c6e1ec130fbbf108b521fe30006d4b42b32178b64dc22cc9f6e7cb6f59.
+Remote monitor copiedONCE toremote_monitor_full10_final.log,
+SHA24ce8f978527f589c3f9b0caed4e687e7957ff983acc0b2ff710c0d78f342ab3.
+Both localSHA==remoteSHA; pertransferUUID/bytes join still PENDING.
+Published cache unchanged. Failed-run HOST/NVMe roots intentionally RETAINED
+with cleanup.complete=false/reasonshutdown_unresolved; doNOT claim workspace
+cleanup success or delete before ownership/evidence review. Roots:
+3b_nvme_full10/tc_ieee_full and/dev/shm/tc-d115-3b-full10/tc_ieee_full.
+Latestpostexit MemAvailable111388660KiB,disk276295192576B; recheckbeforeheavywork.
+
+Runtime/evidenceHEAD2697758908ab644f84c191a0318f01cbea8f7a55 alreadypushed.
+RuntimeSHA b2e4f65e4a20c4c56f27df9fff88075c17570021e3035ed83634badef75cdd18.
+D114227native+288legacytests/probe COMPLETE; doNOT repeat.
+D115 reused D112config except3freshpaths; D88/D89profiles unchanged.
+Prelaunch69refs/147protected PASS;
+prelaunch_verification.json SHA17d9df8a67ae7b95a6e57d78c0c21dd1fb3ee1c4997f09f8664a789813c2d6c2.
+Postrun fullsource/protectionverification still pending, not implied by preflight.
+Full60snotice,traceSHA4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d,
+viewSHA0d998f48a006d638dda9b8d714f667fe3a87f4d2c88044ce19a816b308494a37.
+Arrivalstart120251.205380899/end124215.11428402095; clock
+linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834].
+Historicalservice primelora-tc-svc-16ee4f86ca8743e293af67feb1723916.scope
+invocation9912a26394b142f19ade1bdd71484779; originaltmuxprimelora-d115-full10 ended.
+Historicalremote3B17e9dba803b041f6afa9a3f50352016d/PID2453893,
+7Bb5ace292784c4b008c5f0d5100c72d56/PID2453899,
+monitorab6a0fd076a8483c9f68212192f208d3/PID2453904 allstopped.
+3Bremoteclockremote-process-monotonic:630b3ec1ed4a4e6a880945b21df5842d.
+
+Read-only completion-boundary audit previously COMPLETE:
+D115_COMPLETION_BOUNDARY_SOURCE_AUDIT.md
+SHAb4d5981d2f9268918716d7e8b477c75ae7174d41a5fdfa6802d6b77689a6b03c.
+Notyetcommitted; include eventualD115checkpoint togetherwithpreliminary/finaldoc.
+Controller t_end beforeawaitedreservationcleanup; outerterminal afterwards,
+beforefinalsyncbookkeeping. UnixreplayNOresponsepath: neitherclientreceipt.
+Keep internalcontroller/outerterminal columns distinct; formal E2E reconciliation
+pending. MetricV1 unchanged. Noindependent-agentPASS underno-subagentrule.
+
+NEXT finishuniqueprojection -> boundedcuration/timing/remote/resources ->
+source/protectedverification -> finalfailurestatus table/doc -> backup.
+Onlythen one causal minimal validation of observed shutdown failure; doNOT
+blindnextGPUrun. ReturnPrimeFull/7B aftercorrectness; baseline remains paused.
+Allwarm/Resident/M1M2/ablations/sensitivities/numericadapterproof stillpending.
+
+## D114 completed reference — tested/backed candidate before Full10
 
 2026-09-29 00:21. Goal ACTIVE/incomplete; baselines PAUSED. Previous goal turn
 D113 was PROGRESS. This turn PROGRESS: actual TCP causal probe,one transport
@@ -8,6 +179,10 @@ candidate implementation,227native+288legacytests,retained-payload before/after,
 phase-status table/document and source/protection verification. NO GPU/remote
 experiment started. Candidate full validation remains REQUIRED; not a claim
 that D112's whole waiting time is explained or end-to-end performance improved.
+Eight scopedfiles committed/pushed2697758908ab644f84c191a0318f01cbea8f7a55;
+exactremoteHEAD verified00:22:10. DoNOTrepeat D114 probes/tests/curation/backup.
+This postpushledgernote is not a production change. Latest hostavailable
+113858985984B,swap0,disk290711842816B,GPUempty,noactiveprimelorascopes.
 
 - ParentHEAD2943c7187195b3f9afbf6f06c0bc283d370ff27f,runtimebefore5442e62.
   Candidate ONLY scripts/run_all_experiments.py plus two tests. RuntimeSHA
@@ -46,7 +221,7 @@ that D112's whole waiting time is explained or end-to-end performance improved.
   DocD114_NATIVE_ASYNC_TRANSPORT.md fulltable/sourcebasis/limits.
   Curationscope5b37c5bc383d4ff8ab2941e353f4f812 exactemptychecked/stopped,
   events0. No experiment/analysisjob remains; doNOTrepeat completedD114 checks.
-- NEXT preflight/backup and ONE ordinary canonical3B4000W0 Full10 candidate
+- NEXT preflight and ONE ordinary canonical3B4000W0 Full10 candidate
   replay, same D112trace/subset/config/D89initializers/remote publishedcache.
   No py-spy or furtheroptimizer. D113 E2Econtroller-vsouterboundary mapping
   remains pending formalmetricreconciliation; don't silently overwriteoldE2E.
