@@ -1,0 +1,2321 @@
+{
+  "kind": "d123_prefix1_failure_breakdown_v1",
+  "formal_performance_result": false,
+  "source_script_sha256": "ac83d28b0a8e3946e7b4cc85c373e86dfdd7cd46043c4ed6cd3fd766c7233965",
+  "projection_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d123_20260930/prefix1_request_projection.json",
+  "projection_sha256": "ba69bdf9d93d75909d0c4bc3f4c0e90f8bf208e66f8dfa5b7d65ac8ed741c312",
+  "population": {
+    "planned": 1000,
+    "source_count": 4000,
+    "success": 916,
+    "timeout": 84,
+    "returned_error": 0
+  },
+  "failure_observation_clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+  "returned_categories": {},
+  "returned_error_messages": {},
+  "returned_generation_submission_states": {},
+  "first_timeout": {
+    "request_id": "req_00369",
+    "instance_id": null,
+    "failure_observation": {
+      "kind": "controller_task_exception_v1",
+      "exception_type": "TimeoutError",
+      "observed_monotonic_s": 266346.169925543,
+      "observed_offset_s": 2249.536751439038,
+      "elapsed_since_offered_ms": 1808518.9577836427,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "native_completion_inferred": false,
+      "gpu_release_inferred": false
+    },
+    "request_phase_fields": {
+      "scheduled_arrival_offset_s": 441.0177936553955,
+      "dispatch_window_wait_ms": 0.0,
+      "runtime_slot_wait_ms": 0.0,
+      "arrival_release_lateness_ms": 0.0,
+      "dispatch_admission_wait_ms": 0.0,
+      "readiness_tier_before_dispatch": ""
+    },
+    "native_token_timing_present": true,
+    "generation_submission": null,
+    "source_admission_present": false,
+    "source_tier": null,
+    "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+  },
+  "first_returned_error": null,
+  "timeout_generation_submission_states": {
+    "unrecorded": 84
+  },
+  "timeout_requests": [
+    {
+      "request_id": "req_00369",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266346.169925543,
+        "observed_offset_s": 2249.536751439038,
+        "elapsed_since_offered_ms": 1808518.9577836427,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 441.0177936553955,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00370",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266346.637606071,
+        "observed_offset_s": 2250.0044319670415,
+        "elapsed_since_offered_ms": 1807807.5745146489,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 442.1968574523926,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00386",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266357.071595868,
+        "observed_offset_s": 2260.4384217640036,
+        "elapsed_since_offered_ms": 1804388.5083576315,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 456.04991340637207,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00456",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266462.976501987,
+        "observed_offset_s": 2366.343327883049,
+        "elapsed_since_offered_ms": 1805872.390154167,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 560.4709377288818,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00465",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266473.59275007,
+        "observed_offset_s": 2376.9595759660006,
+        "elapsed_since_offered_ms": 1807948.8604813814,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 569.0107154846191,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00918",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266960.49276022,
+        "observed_offset_s": 2863.859586116043,
+        "elapsed_since_offered_ms": 1809994.840022293,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1053.86474609375,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00921",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266964.819424733,
+        "observed_offset_s": 2868.18625062902,
+        "elapsed_since_offered_ms": 1810815.2217288734,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1057.3710289001465,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00922",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266964.754809923,
+        "observed_offset_s": 2868.1216358190286,
+        "elapsed_since_offered_ms": 1810648.806000303,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1057.4728298187256,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00924",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266967.462403802,
+        "observed_offset_s": 2870.8292296980508,
+        "elapsed_since_offered_ms": 1808411.1369703896,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1062.4180927276611,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00925",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266964.754875858,
+        "observed_offset_s": 2868.1217017540475,
+        "elapsed_since_offered_ms": 1805481.6642174264,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1062.640037536621,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00926",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266964.75493829,
+        "observed_offset_s": 2868.121764186013,
+        "elapsed_since_offered_ms": 1804921.0939437035,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1063.2006702423096,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00927",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266967.120011407,
+        "observed_offset_s": 2870.486837303033,
+        "elapsed_since_offered_ms": 1807235.7596510556,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1063.2510776519775,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00928",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266964.754906453,
+        "observed_offset_s": 2868.121732349042,
+        "elapsed_since_offered_ms": 1804869.4854923524,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1063.2522468566895,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00929",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266964.819500234,
+        "observed_offset_s": 2868.1863261300023,
+        "elapsed_since_offered_ms": 1803605.0311165745,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1064.5812950134277,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00930",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266964.819242729,
+        "observed_offset_s": 2868.1860686250147,
+        "elapsed_since_offered_ms": 1802874.0054078517,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1065.312063217163,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00931",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266964.81914165,
+        "observed_offset_s": 2868.1859675460146,
+        "elapsed_since_offered_ms": 1802550.353150873,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1065.6356143951416,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00932",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266964.81956686,
+        "observed_offset_s": 2868.1863927560044,
+        "elapsed_since_offered_ms": 1801766.0112099838,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1066.4203815460205,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00933",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266964.819626195,
+        "observed_offset_s": 2868.1864520910312,
+        "elapsed_since_offered_ms": 1801753.478229337,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1066.4329738616943,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00934",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266964.819046144,
+        "observed_offset_s": 2868.1858720400487,
+        "elapsed_since_offered_ms": 1801618.170700327,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1066.5677013397217,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00935",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266964.819527135,
+        "observed_offset_s": 2868.186353031022,
+        "elapsed_since_offered_ms": 1801268.9011725015,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1066.9174518585205,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00936",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266964.819286311,
+        "observed_offset_s": 2868.1861122070113,
+        "elapsed_since_offered_ms": 1801262.0685516158,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1066.9240436553955,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00937",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266964.819326573,
+        "observed_offset_s": 2868.1861524690175,
+        "elapsed_since_offered_ms": 1800515.5172456289,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1067.6706352233887,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00938",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266964.819463485,
+        "observed_offset_s": 2868.186289381003,
+        "elapsed_since_offered_ms": 1800406.893323874,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1067.779396057129,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00939",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266964.81919695,
+        "observed_offset_s": 2868.186022846028,
+        "elapsed_since_offered_ms": 1800078.0898015946,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1068.1079330444336,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00940",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266964.819599824,
+        "observed_offset_s": 2868.1864257200505,
+        "elapsed_since_offered_ms": 1800078.029189899,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1068.1083965301514,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00941",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266964.819381505,
+        "observed_offset_s": 2868.1862074010423,
+        "elapsed_since_offered_ms": 1800069.618808513,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1068.1165885925293,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00942",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266967.462114095,
+        "observed_offset_s": 2870.8289399910136,
+        "elapsed_since_offered_ms": 1802312.62262346,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1068.5163173675537,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00943",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266967.462227664,
+        "observed_offset_s": 2870.829053560039,
+        "elapsed_since_offered_ms": 1801582.7194841113,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1069.2463340759277,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00944",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266967.479720404,
+        "observed_offset_s": 2870.8465463000466,
+        "elapsed_since_offered_ms": 1801598.5413867165,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1069.24800491333,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00945",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266967.462429787,
+        "observed_offset_s": 2870.8292556829983,
+        "elapsed_since_offered_ms": 1800657.0583410794,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1070.172197341919,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00946",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266967.462293152,
+        "observed_offset_s": 2870.829119048023,
+        "elapsed_since_offered_ms": 1800641.2185048102,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1070.187900543213,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00947",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266967.462197443,
+        "observed_offset_s": 2870.829023339029,
+        "elapsed_since_offered_ms": 1800602.5867240387,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1070.2264366149902,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00948",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266967.462369396,
+        "observed_offset_s": 2870.8291952920263,
+        "elapsed_since_offered_ms": 1800397.1751046483,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1070.432020187378,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00949",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266967.462253842,
+        "observed_offset_s": 2870.829079738003,
+        "elapsed_since_offered_ms": 1800378.7566331448,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1070.4503231048584,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00950",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266967.462342652,
+        "observed_offset_s": 2870.829168548051,
+        "elapsed_since_offered_ms": 1800368.2844538125,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1070.4608840942383,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00951",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266967.479789065,
+        "observed_offset_s": 2870.8466149610467,
+        "elapsed_since_offered_ms": 1800312.1625226922,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1070.5344524383545,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00952",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266970.12157924,
+        "observed_offset_s": 2873.4884051360423,
+        "elapsed_since_offered_ms": 1802234.058288508,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1071.2543468475342,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00953",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266970.124581925,
+        "observed_offset_s": 2873.491407821013,
+        "elapsed_since_offered_ms": 1800937.7102349536,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1072.5536975860596,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00954",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266970.124429735,
+        "observed_offset_s": 2873.49125563103,
+        "elapsed_since_offered_ms": 1800925.9995122557,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1072.5652561187744,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00955",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266970.141809863,
+        "observed_offset_s": 2873.5086357590044,
+        "elapsed_since_offered_ms": 1800553.7483688677,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1072.9548873901367,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00956",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266970.124496112,
+        "observed_offset_s": 2873.49132200802,
+        "elapsed_since_offered_ms": 1800535.8986529172,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1072.9554233551025,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00957",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266970.124606595,
+        "observed_offset_s": 2873.4914324910496,
+        "elapsed_since_offered_ms": 1800501.0493428563,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1072.9903831481934,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00958",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266970.124529404,
+        "observed_offset_s": 2873.491355300008,
+        "elapsed_since_offered_ms": 1800500.3789663897,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1072.9909763336182,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00959",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266970.124555446,
+        "observed_offset_s": 2873.491381341999,
+        "elapsed_since_offered_ms": 1800462.5975437812,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1073.0287837982178,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00960",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266970.14187752,
+        "observed_offset_s": 2873.5087034160388,
+        "elapsed_since_offered_ms": 1800168.8558513415,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1073.3398475646973,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00961",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266970.141910245,
+        "observed_offset_s": 2873.508736141026,
+        "elapsed_since_offered_ms": 1800148.0393484235,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1073.3606967926025,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00962",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266970.449161854,
+        "observed_offset_s": 2873.8159877500148,
+        "elapsed_since_offered_ms": 1800002.0820340724,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1073.8139057159424,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00963",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266970.46371077,
+        "observed_offset_s": 2873.830536666035,
+        "elapsed_since_offered_ms": 1800006.9664145703,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1073.8235702514648,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00964",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266970.463836541,
+        "observed_offset_s": 2873.830662437016,
+        "elapsed_since_offered_ms": 1800006.56384998,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1073.8240985870361,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00965",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266970.466476781,
+        "observed_offset_s": 2873.833302677027,
+        "elapsed_since_offered_ms": 1800000.9242895758,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1073.8323783874512,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00966",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266973.288236544,
+        "observed_offset_s": 2876.655062440026,
+        "elapsed_since_offered_ms": 1802497.4849253776,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1074.1575775146484,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00967",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266973.288266748,
+        "observed_offset_s": 2876.6550926440395,
+        "elapsed_since_offered_ms": 1802457.5943225063,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1074.1974983215332,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00968",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266973.288074214,
+        "observed_offset_s": 2876.6549001100357,
+        "elapsed_since_offered_ms": 1801893.2175996597,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1074.761682510376,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00969",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266973.506746233,
+        "observed_offset_s": 2876.8735721289995,
+        "elapsed_since_offered_ms": 1801360.2264106157,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1075.5133457183838,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00970",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266973.288285457,
+        "observed_offset_s": 2876.6551113530295,
+        "elapsed_since_offered_ms": 1801131.8302556174,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1075.523281097412,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00971",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266973.287885567,
+        "observed_offset_s": 2876.654711463023,
+        "elapsed_since_offered_ms": 1801124.2930670269,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1075.530418395996,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00972",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266973.288098082,
+        "observed_offset_s": 2876.654923978029,
+        "elapsed_since_offered_ms": 1800996.9707156997,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1075.657953262329,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00973",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266973.288360931,
+        "observed_offset_s": 2876.6551868270035,
+        "elapsed_since_offered_ms": 1800996.2493727799,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1075.6589374542236,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00974",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266973.288312496,
+        "observed_offset_s": 2876.6551383920014,
+        "elapsed_since_offered_ms": 1800680.057901889,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1075.9750804901123,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00975",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266973.288335454,
+        "observed_offset_s": 2876.655161350034,
+        "elapsed_since_offered_ms": 1800666.8724706396,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1075.9882888793945,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00976",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266973.288396618,
+        "observed_offset_s": 2876.655222514004,
+        "elapsed_since_offered_ms": 1800618.56518063,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1076.036657333374,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00977",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266973.288171379,
+        "observed_offset_s": 2876.6549972750363,
+        "elapsed_since_offered_ms": 1800617.60370509,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1076.0373935699463,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00978",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266973.288026086,
+        "observed_offset_s": 2876.654851982021,
+        "elapsed_since_offered_ms": 1800613.8992995257,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1076.0409526824951,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00979",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266973.506680268,
+        "observed_offset_s": 2876.8735061640036,
+        "elapsed_since_offered_ms": 1800427.537536074,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1076.4459686279297,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00980",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266973.506775326,
+        "observed_offset_s": 2876.8736012220033,
+        "elapsed_since_offered_ms": 1800379.6169995912,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1076.493984222412,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00981",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266973.523662767,
+        "observed_offset_s": 2876.890488663048,
+        "elapsed_since_offered_ms": 1800156.903305382,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1076.733585357666,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00982",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266973.523489959,
+        "observed_offset_s": 2876.8903158550384,
+        "elapsed_since_offered_ms": 1800150.4019146087,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1076.7399139404297,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00983",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266973.523615919,
+        "observed_offset_s": 2876.8904418150196,
+        "elapsed_since_offered_ms": 1800126.279751421,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1076.7641620635986,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00984",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266973.525569,
+        "observed_offset_s": 2876.8923948960146,
+        "elapsed_since_offered_ms": 1800111.6179184755,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1076.780776977539,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00985",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266973.523569721,
+        "observed_offset_s": 2876.890395616996,
+        "elapsed_since_offered_ms": 1800072.1220726846,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1076.8182735443115,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00986",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266977.206884464,
+        "observed_offset_s": 2880.5737103600404,
+        "elapsed_since_offered_ms": 1803223.261751642,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1077.3504486083984,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00987",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266977.206690281,
+        "observed_offset_s": 2880.5735161770135,
+        "elapsed_since_offered_ms": 1803212.804125622,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1077.3607120513916,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00988",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266977.206791001,
+        "observed_offset_s": 2880.573616897047,
+        "elapsed_since_offered_ms": 1802913.2660974865,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1077.6603507995605,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00989",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266977.561620219,
+        "observed_offset_s": 2880.928446115053,
+        "elapsed_since_offered_ms": 1803258.7435851456,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1077.6697025299072,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00990",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266977.206728026,
+        "observed_offset_s": 2880.573553922004,
+        "elapsed_since_offered_ms": 1802903.508069343,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1077.6700458526611,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00991",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266977.206919087,
+        "observed_offset_s": 2880.573744983005,
+        "elapsed_since_offered_ms": 1802889.3882935517,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1077.6843566894531,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00992",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266977.206989578,
+        "observed_offset_s": 2880.5738154739956,
+        "elapsed_since_offered_ms": 1802870.4196304898,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1077.7033958435059,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00993",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266977.206942373,
+        "observed_offset_s": 2880.573768269038,
+        "elapsed_since_offered_ms": 1802778.9970745798,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1077.794771194458,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00994",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266977.207028971,
+        "observed_offset_s": 2880.5738548670197,
+        "elapsed_since_offered_ms": 1802778.3970270539,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1077.7954578399658,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00995",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266977.20660018,
+        "observed_offset_s": 2880.5734260760364,
+        "elapsed_since_offered_ms": 1802726.3935290393,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1077.847032546997,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00996",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266977.206965278,
+        "observed_offset_s": 2880.5737911740434,
+        "elapsed_since_offered_ms": 1802151.5423337114,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1078.422248840332,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00997",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266977.206857418,
+        "observed_offset_s": 2880.5736833140254,
+        "elapsed_since_offered_ms": 1801911.7456004024,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1078.661937713623,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00998",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266977.206756877,
+        "observed_offset_s": 2880.5735827730387,
+        "elapsed_since_offered_ms": 1801161.2864778726,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1079.412296295166,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    },
+    {
+      "request_id": "req_00999",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 266977.206816584,
+        "observed_offset_s": 2880.5736424800125,
+        "elapsed_since_offered_ms": 1801159.3625422684,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 1079.4142799377441,
+        "dispatch_window_wait_ms": 0.0,
+        "runtime_slot_wait_ms": 0.0,
+        "arrival_release_lateness_ms": 0.0,
+        "dispatch_admission_wait_ms": 0.0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    }
+  ],
+  "returned_requests": [],
+  "caveat": "Missing evidence is not proof of no dispatch. not_submitted describes this generation, not other unsettled RPC ownership or physical release."
+}
