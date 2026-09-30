@@ -1,6 +1,149 @@
 # IEEE TC execution status
 
-## CURRENT — D117 terminal lifecycle checked/curated; backup then Full11
+## CURRENT — D118 evidence COMPLETE; Git backup next
+
+2026-09-30 13:00. GoalACTIVE/incomplete; baselinesPAUSED. Current turn PROGRESS.
+No GPU/replay/remote/projection/curation/evidence job remains.
+Runtime48f808abaf6defe16da0329a07d7af197200b72c unchanged/alreadybacked.
+DoNOT repeat D118 replay, extraction, curation, cachecreation or remote copies.
+
+- Canonical3B4000W0: all4000 planned/submitted/started/terminal/nativecontract
+  successes; failure0. Service/replay/watchdog exit0, launch.pass=true,
+  contextrelease/servicepathremoved true.4physicalleases released; HOST/NVMe
+  ownedroots removed.1initial+3natural,0quarantines. FormalSLO/numericaladapter
+  qualification NOTpassed; full_qualified=false,n_correct=null.
+- Mean/P95TTFT122.146518/268.605684s; controllerE2E127.878409/276.160061s;
+  outerterminal130.181999/278.812444s, neitherclientreceipt.
+  Mean dispatch114.177866s (=window99.994035+slot11.679442+release2.504390).
+  service7.968652s=prenative7.493005+native.475647. Native decode2.955939s,
+  worker→controller2.728811s,controller→outer2.303560s.
+  TPOTmean29.955123ms/P9564.782991ms. Largewaiting remains, no G1/G2 claim.
+- All4000timing/native-token/prompt checksPASS,maxerror.631621ms/TPOT0;
+  all4000confirmedpre-generation source/owner/clock/order,tierconflicts0;
+  GPU2499/HOST662/NVMe703/Remote136. Not completeA4/numericadapterproof.
+- GPU-s15866.211830008018:pre1.97572975201183,arrival15596.300385459821,
+  drain171.15499266819097,cleanup96.78072212799452. Serializationafterrelease
+  NOT GPUtime.4637samples,peak36339179520B,minhost81774051328B,
+  high/max/OOM/swap/warnings0.79frozenrefs/147protected unchanged.
+- Preparingepochs133completed/355superseded/1cancelled; fileplans136/356/1,
+  GPUplans26/355/1; failed0. One nested CancelledError chain targetsinitial,
+  epoch248409.928077192→249003.680066676, terminal .716359s afterlastrequest.
+  About593.752s beforecancel isNOTcompletedusefulpreparation. Shutdownsource
+  andtimingconsistent; noexplicitreasonfield,don'tclaimdirectreasoninstrumentation.
+- Remote132UUID/byte/contentpairs,306360162Bbothends,5139892912logicalB,
+  requestpacking0. Remote3B/7B/monitor exactstopped12:27:01,localaux12:27:43;
+  bothjournal/monitor copiedONCE withremote/localSHAequal. No morecopies.
+- Full9175523925B SHA b3d629acec5438eabc36a52e615ed7e81b11975a94eec1991a67b38274ae0cd0;
+  normalmetadata34827363B. Projection33920359B done1138.77s/137856KiBRSS/exit0;
+  originalneverwholeloaded. Projection exactemptyclosed12:50:25,events0.
+  Curator28.59s/166076KiBRSS/exit0; scopeead0154ca942445f8aeb0a5bea77e1e4
+  exactemptyclosed12:51:53,events0. Metadataalreadyclosed12:30:42,events0.
+- Curated20260930_d118_3b_full_w0_full11.json
+  SHA ff39d2b0fbb952f6bf1d0601115eff9888895b13d0a9b6c2d062c2fbef376eaf.
+  Full qualification/timing/mechanism tables now in D118_FULL_W0_FULL11.md.
+  No n1CI/ranking plot; internalE2Eboundary and numericalproof caveats retained.
+- Evidencecheck reused D115's70checks PASS1.944s plusnormaljqfixture,
+  79frozen/39curatedrefs and147protected checks. Largehashreusedplusstat.
+  VerificationSHA154972a3baa2ce5fb63d7ce7dcfc2219143e7f135d5c0832826864ac263f755e.
+  Evidenceinvocation97b5412fccb449b59397c76573be5a4c exactemptyclosed,events0.
+  34500B/51memberbundle eachSHAchecked;
+  SHA7ac0b475140554f9959f5aefff69931c5e1c04d1071bf945c1002f0bd4015127.
+  sha256sumcheckPASS(corrected initialworkingdirectory only; no bundlererun).
+  Secretchecks/Gitbackup pending. Userdirtymanifest neverstage.
+- Latest12:56hostavailable112686280704B,disk265657602048B,GPUempty,noother
+  primeloraunits; recheckbeforeheavy. MetricV1 andplanfullreread/SHAunchanged.
+
+NEXT secrets/diff→commit/push. Then7BFull,warm/Resident,baselines,M1M2/A1–A5/S1–S13.
+No new optimization beforeevidenceclosure. OncepublishedcachefulfilledD78/D80.
+
+## D118 historical LIVE checkpoint — superseded by completion above
+
+Latest verified11:58:26Sep30: same tmux and service invocation42a00... LIVE,
+527tasks; console3229/4000arrived,2996done/2996ok/0fail,233backlog,4runtimes,
+3naturalscaleups/0downs. Success prefix is NOT full qualification or proof
+all earlier requests finished. Watchdogsample2978:service31612416000B,
+hostavailable85462892544B,disk270880612352B,4heldGPUs; high/max/OOM/swap/
+warnings0. Full result/cleanup/qualification remainpending. DoNOTrerun.
+Previous goal turn VERIFIEDWAIT:1833→2359successes; current turn VERIFIEDWAIT
+on same livehandles:2442→2996successes. Earlier checkpoints11:28:471035successes,
+11:37:121634successes,11:49:042359successes preserved
+in live logs. Full AGENTS/plan/status andmonitor-experiment reread; sourceplan
+SHA unchanged. Runtime HEAD48f808abaf6defe16da0329a07d7af197200b72c unchanged.
+No new optimization/configuration/profile/data/remoteaction; initial
+D117closure/backup+D118launch was PROGRESS. Assistant read-only polling
+cells3977/3985/3993 completed; these were NOT experiment workers. Underlying
+tmux/service/replay/watchdog remain LIVE; no new assistant polling cell remains.
+Read-only postprocessing preparation: D96normal and D115failed jq filters,
+D112projectionwrapper, complete D115curator and D118owned-stop scripts read.
+No analysis executed or scripts copied/modified. D115curator asserts its own
+failed-cleanup error/4000success population/clock; never copy those assertions
+blindly to D118. Choose schema and checks from actual final state. Stop scripts
+remain unexecuted; no remote action occurred during this turn.
+Prepared ONLY exact-owned stop_services_full11.sh and locallyguarded
+stop_remote_after_full11.sh (bashsyntaxPASS), NEITHERexecuted. Requiresfinal
+launchreceipt,inactive localservice andphysicalcontextrelease/GPUempty; it
+mustNOTrun during inference. Existingremote services remainrunning.
+No projection/curation/remotejournalcopy/backup afterlaunch hasrun. Next keep
+monitoring same run; afterterminal inspect actual success/failure schema before
+selecting existing D96normal or D115failed streaming projection. DoNOTprepare
+a wholeload of main_outcome.json (failed schema can exceed9GB).
+
+2026-09-30 11:10:20. Same single run launched11:08:06 in tmux
+`primelora-d118-full11`. Main remains running; NO final launch.json or full
+result yet. Request injection ongoing(index26 lastsubmitted, notcompleted).
+One initial runtime joined11:10:04, activation27aff8f495f64a27a676e570843000b5;
+GPU0PID863581 observed17382MiB. Not proof of Full success. DoNOTrerun wrapper,
+preflight, health, probes or remote activation; existing services healthy.
+Update11:11:04:liveconsole50/4000arrived,19done/19ok/0fail,oneinstance,
+0scaleups/downs atthatprint. This is startup-prefix provisional state only;
+no finalperformance/SLO/ranking interpretation. Nativecontrolmayextendpool;
+doNOTforceactivation oralterthresholds midrun. Serviceactive349tasks.
+
+LIVE local units:
+- serviceprimelora-tc-svc-4d8edcd80adb4b8f82be34db2ab88aea.scope,
+  InvocationID42a00b8a90db4035847c727b96f59221;
+- auxprimelora-tc-aux-7912a26385b44ddf8e9cb39449984f27.scope,
+  InvocationID693e5187f9b2472eb4ebf24759d9cae6.
+Actualservice72/80GiB/swap2,aux3/4GiB/swap0;CPUsservice4–23,28–47,
+aux2,3,26,27. Watchdogsample131:service4595924992B,host108291633152B,
+memoryhigh/max/OOM/swap/warnings0,oneheldGPU. Rawdisk275070861312B atsample34;
+continueexisting30sdisk/1sresourcewatchdog, no secondmonitor/replay.
+Logs under raw/3b_full_w0_full11/launch.launch/{service.log,watchdog.jsonl,
+replay.jsonl}; wrapperfull11_wrapper.log. Standard monitoring only, no py-spy.
+Preserve pending E2Econtroller-vsouterterminal distinction and numericaladapter
+qualification limitation. Next await same4000run -> actualcleanup/release ->
+copyremotejournalONCE -> boundedprojection/validation -> status table -> backup.
+No wholeload of eventual largeJSON; reuse established streaming projection.
+No remoteconfig/restart/hash/cleanup during inference. Never infer experiment
+completion from a silent log or output notcreated until runend. GoalACTIVE.
+
+## D118 prelaunch record — completed, do not repeat
+
+2026-09-30 11:07. Goal ACTIVE/incomplete; baselines PAUSED. D117 backed and
+complete below. D118 prepares ONE ordinary canonical3B4000W0 Full11, no new
+optimization/profiler/profile/trace/weight/cache creation. Runtime HEAD
+48f808abaf6defe16da0329a07d7af197200b72c. Same D115 config except three fresh
+owned paths;79source refs/147protected/resourcepreflight PASS. ReceiptSHA
+359b24530c93e68e10202930e8048e5664ef684f6a8b397f4bdf5ea66eaf0240.
+Raw results/ieee_tc/p2_backend_qualification/d118_20260930. Both plan and metric
+V1 fulltext reread this turn, exact unchanged SHA rechecked before launch.
+Initial health request occurred before listeners ready (connection refused);
+preserved failed emptyhealth3b/log. Same service invocations remained running;
+second healthcheck bothPASS, no restart/config change. Not an inference attempt.
+3Bclock663902cd638d4088bb7c7c42ea3a00c5;7Bclock7cf1b5f72ea54797b0683a1f363c1a15.
+Remote local/remoteNIC1000/full; service limits unchanged. Remote LIVE:
+3B bb333dd1881943fab22f76965c143ba7/PID3920373;
+7B ae3e6d40e2804f9fb92f91b092d3febb/PID3920375;
+monitor f2aafcfc800a4ce7b0ee7bc4f6153e50/PID3920378,
+unitprimelora-artifact-monitor-d118full11.service.
+Remote monitor /home/lab14/primelora_remote/tc/d118_20260930/remote_monitor_3b_full_full11.log.
+Prelaunchscope1b890f6b679d400297de53c6d120ad8f exactemptyclosed,events0.
+Prepared run_3b_full_w0_full11.sh launched once as recorded above; monitor
+existingwatchdog/replay/service only. No hash/cleanup/remoteconfig during inference.
+Fullstatus/performance/notnumericadapterproof stillpending. Following order:
+cleanup→validation→table→backup; then7BFull,warm/Resident,baselines,M1M2/A1–A5/S1–S13.
+
+## D117 completed reference — checked/curated/backed
 
 2026-09-30 11:01. Goal ACTIVE/incomplete; baselines PAUSED. D117 actual run()
 CPU branch probe complete before/after; 599 launch/basic/transfer/lifecycle
@@ -21,7 +164,11 @@ plan andmetricV1unchanged. Before/after exactempty scopesclosed; curator
 No GPU/remote/analysisworker remains. SummarySHA
 ed7f37cd813f87de418f10a37e63047b430e54a2ac5c3257c9edd0971819688f;
 21member sourcebundle eachSHAchecked, SHA256SUMSPASS. Status table/source
-basis in D117_TERMINAL_LIFECYCLE.md. No needrepeatcuration/tests. Backup next,
+basis in D117_TERMINAL_LIFECYCLE.md. No needrepeatcuration/tests. Eight scoped
+paths committed/pushed48f808abaf6defe16da0329a07d7af197200b72c; exactremoteHEAD
+verified11:04. Staged28entriessecretcheck/diff/bundleSHApassed; userdirtymanifest
+notstaged. DoNOTrepeatbackup. Thispostpushledgernote isnotaproductionchange.
+Next preflight/remote existingserviceactivation/freshpaths,
 then ONE ordinary canonical3BFull11 using existing D115 inputs/config/profile
 and fresh owned paths, no additional optimization. No performance claim yet.
 7BFull,warm/Resident,numericadapterqualification,baselines,M1/M2,A1–A5/S1–S13
