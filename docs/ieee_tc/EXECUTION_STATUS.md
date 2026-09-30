@@ -1,6 +1,50 @@
 # IEEE TC execution status
 
-## CURRENT — D119 complete unsuccessful Full; evidence checked, backup next
+## CURRENT — D120 offline occupancy complete; backup next, no GPU job
+
+2026-09-30 15:41. Goal ACTIVE/incomplete; baselines PAUSED. Current goal turn
+PROGRESS: D120 existing analyzer extended, 21 tests PASS, full offered population
+retained in offline occupancy analysis, diagnostic tables and source/protection
+verification complete. NO production/configuration/GPU/remote change or new replay.
+D119 and D118 backups already complete; do NOT repeat their runs or analyses.
+
+- D120 input is D119 bounded projection and normal control outcome, never the
+  9.48 GB original. All4000 terminal retained:2890 native-contract success,
+  1110 failure; missing failure stages stay missing. Successful phases only.
+  First analysis rejected a wrong assumed failure-observation ordering; first
+  source/log retained, analyzer fixed to match actual producer boundaries.
+  Second21tests PASS0.176s; analysis2.26s/RSS213704KiB/exit0. DoNOT rerun.
+- Success-only mean seconds: pregate957.259510,gate→source3.008479,
+  source→native2.841817,native→last3.739423,last→controller1.824671,
+  controller→outer.737410,gate→outer12.151800. Last is upperenvelope afterrelease.
+  Mean gate/native contribution6.137508/1.888670; NOTall-work occupancy.
+  5646utilizationsamples mean33.795006%,not timeweighted/kernel saturationproof.
+- Independent control beforefirstfailure923samples:meanactive6.503792,
+  queue649.770314;910positivequeue,584belowreadycapacity withqueue. Active means
+  bound in currentlyroutable slots, NOTglobalgate/GPUactivity;drainingexcluded.
+  Firstfailedterminaloffset2878.662652s,firstquarantine4098.851197s. Backlog
+  predates quarantine; no single control/compute causal explanation proved.
+- Curated20260930_d120_control_occupancy/summary.json SHA
+  26ea0ce8153066693e44118fb29a0fd701089dd5efde15520201e1cc96141e73.
+  Verification94productionrefs/6analysisrefs/147protected PASS;
+  verificationSHA83a6529cbf4a2819afc93164991070fb566d7040afca322c1849f37d9a011f41.
+  Fifteen-member small sourcebundle verified. Finaltable D120_CONTROL_OCCUPANCY.md.
+  Inspection/firstanalysis/secondanalysis scopes exact-owned empty closed;
+  allmemoryevents0. Finalverification54ffaba8c3bf48638f79417c41bf1d5d exactempty
+  closed15:41:11; all events0. NoGPU/remote/analysisjob remains. Initial cleanup
+  command had wrong cwd and failed before any action; corrected once, receipt
+  retained. Bundle checksum PASS. Scoped Gitbackup next; no repeated verification.
+
+NEXT: finish secrets/diff/Gitbackup, then ONE causal
+validation chosen after cap2 history/physical KV review. cap2/max_num_seqs2
+originate d5cd9a9 Apr13;Apr22cb53f04 notes max_loras8 squeezed KV to1.36x,
+but current slots4 and backend.30 differ. This does NOT prove cap4 feasible.
+No D121 config/probe or optimizer accepted/prepared yet. No blind7BFull2,
+deadline increase or guard removal. Mainline remains Prime Full → warm/Resident
+→ baselines → M1/M2 → A1–A5/S1–S13. Numeric adapter qualification unresolved.
+Once-only remote cache fulfilledD78/D80, NEVER rebuild. Userdirtymanifest notstage.
+
+## D119 completed reference — superseded by D120 CURRENT above
 
 2026-09-30 15:21. Goal ACTIVE/incomplete; baselines PAUSED. Current goal turn
 PROGRESS: same streaming projection completed, bounded curation/failure audit,
@@ -47,14 +91,25 @@ Do NOT repeat D119 replay, metadata, projection, curators, remote copies or test
   EvidenceInvocation1746d3a5319544e381037ab7f1c09a23 exactemptyclosed15:20:48,events0.
   Sourcebundle43186B/57memberseachSHAchecked,
   SHA3db99a50e31757a30a89da4cbe39f635eb366bdabd6bba36ffeddab3f2dc7925.
-  Gitsecrets/diff/checksum/backup pending. Neverstageuserdirtymanifest/oldfigs.
+  Nine scopedfiles committed/pushed4ee00af92510a920354e9da04460c4307afe8659;
+  exactremoteHEADverified15:23.65entrysecret/diff/bundlechecksPASS;
+  userdirtymanifestnotstaged. DoNOTrepeatbackup. Thispostpushledgernote isnot
+  aproductionchange. Neverstageuserdirtymanifest/oldfigs.
 
-NEXT finishGitbackup, then ONE evidence-backed dispatch-window/active-slot
+NEXT ONE evidence-backed dispatch-window/active-slot
 occupancy and cancellation/ownership causal probe using existinganalysis first.
 Don'tblind7BFull2, raise1800sdeadline or removeownershipguards. Needactualheld
 vsnative-generating intervals before claimingGPUcompute saturation. No production
 optimization accepted this run. Warm/Resident,numericadapterqualification,
 baselines,M1M2,A1–A5/S1–S13remain. OncecachefulfilledD78/D80,NEVERrebuild.
+
+Postbackup read-only reuse check: D113analyzer analyze_native_timeline currently
+REQUIRES allnative-success population. DoNOT directlyrun itonfailedD119,filter
+out1110failures or assign theirdefaultzero phases asmeasuredzero. Nextinspect
+existingcontrol/terminal evidence forobservedactivecounts andmissingintervals;
+anysuccess-subset occupancy must beexplicitlyconditional andnotallrunoccupancy.
+No D120wrapper/analyzer/codechange/probe or newmeasurement prepared/run yet.
+Alltoolpollsessionsended; nojobremains. Thisread-onlycheck isnotcausalproof.
 
 ## D119 historical projection checkpoint — superseded by completion above
 

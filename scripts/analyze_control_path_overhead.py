@@ -302,7 +302,8 @@ def plot(rows: List[Dict[str, Any]], output: Path) -> None:
 
 def analyze_native_timeline(projection: Path, deployment_path: Path,
                             terminals_path: Path, watchdog_path: Path,
-                            output: Path) -> Dict[str, Any]:
+                            output: Path, *, allow_failed: bool = False,
+                            control_outcome_path: Optional[Path] = None) -> Dict[str, Any]:
     """Audit a completed bounded projection, without loading the huge source tree.
 
     These are request occupancy intervals, NOT GPU resource billing. Native
@@ -312,6 +313,8 @@ def analyze_native_timeline(projection: Path, deployment_path: Path,
     import hashlib
     if output.exists():
         raise FileExistsError(output)
+    if projection.stat().st_size >= 256 * 1024**2:
+        raise ValueError('bounded request projection required')
     rows = json.loads(projection.read_text())['requests']
     deployment = json.loads(deployment_path.read_text())
     with terminals_path.open() as handle:
@@ -320,9 +323,12 @@ def analyze_native_timeline(projection: Path, deployment_path: Path,
     by_id = {r['request_id']: r for r in terminals}
     if (len(rows) != count or len(terminals) != count or len(by_id) != count
             or {r['request_id'] for r in rows} != set(by_id)
-            or any(r['success'] is not True for r in rows)
-            or any(r['native_contract_matched'] is not True or r['success'] is not True for r in terminals)):
+            or any(type(r['success']) is not bool or r['success'] != by_id[r['request_id']]['success'] for r in rows)
+            or any(type(r['success']) is not bool or (r['success'] and r['native_contract_matched'] is not True) for r in terminals)
+            or (not allow_failed and any(r['success'] is not True for r in rows))):
         raise ValueError('complete native-contract population required')
+    if any(r['clock_id'] != deployment['clock_id'] for r in terminals):
+        raise ValueError('mixed timing domains')
     start = deployment['arrival_start_s']
     end = max(r['at'] for r in terminals)
     if count <= 0 or not math.isfinite(start) or not math.isfinite(end) or end <= start:
@@ -334,14 +340,40 @@ def analyze_native_timeline(projection: Path, deployment_path: Path,
     intervals['gate_to_terminal'] = []
     native_by_replica = {}
     request_rows = []
+    failures = []
     for row in rows:
-        t = row['native_token_timing']
         terminal = by_id[row['request_id']]
+        arrival = start + row['scheduled_arrival_offset_s']
+        if not math.isfinite(arrival) or not start <= arrival <= terminal['at'] <= end:
+            raise ValueError('invalid request terminal interval')
+        if not row['success']:
+            observation = row['failure_observation']
+            if observation['clock_id'] != deployment['clock_id']:
+                raise ValueError('mixed failure timing domains')
+            observed = observation['observed_monotonic_s']
+            if not math.isfinite(observed) or observed < arrival:
+                raise ValueError('invalid failure observation interval')
+            # Task-exception collection happens AFTER the outer finally emits
+            # terminal; returned execution errors are built BEFORE that finally.
+            kind = observation['kind']
+            if ((kind == 'controller_task_exception_v1' and observed < terminal['at'])
+                    or (kind == 'native_request_execution_error_v1' and observed > terminal['at'])
+                    or kind not in ('controller_task_exception_v1','native_request_execution_error_v1')):
+                raise ValueError('failure observation does not match its producer boundary')
+            failures.append(dict(request_id=row['request_id'], exception_type=observation['exception_type'],
+                observation_kind=kind,observed_at=observed,terminal_at=terminal['at'],
+                observation_minus_terminal_s=observed-terminal['at']))
+            # Default zero/empty stages in failed results are NOT measurements.
+            request_rows.append(dict(request_id=row['request_id'], instance_id=row.get('instance_id'),
+                arrival_offset_s=arrival-start, terminal_offset_s=terminal['at']-start,
+                **{name+'_s':None for name in phase_names}, recorded_e2e_s=None,
+                outer_terminal_e2e_s=terminal['at']-arrival, success=False))
+            continue
+        t = row['native_token_timing']
         if t['native_clock_id'] != deployment['clock_id'] or terminal['clock_id'] != deployment['clock_id']:
             raise ValueError('mixed timing domains')
         if terminal['instance_id'] != row['instance_id']:
             raise ValueError('terminal replica identity mismatch')
-        arrival = start + row['scheduled_arrival_offset_s']
         gate = start + row['arrival_released_offset_s'] + row['dispatch_window_wait_ms']/1000
         bounds = (arrival, gate, t['controller_admitted_monotonic_s'],
                   t['native_dispatch_monotonic_s'], t['native_last_token_monotonic_s'],
@@ -357,6 +389,7 @@ def analyze_native_timeline(projection: Path, deployment_path: Path,
         native_by_replica.setdefault(row['instance_id'], []).append((bounds[3],bounds[4]))
         record['recorded_e2e_s'] = row['overall_e2e_ms']/1000
         record['outer_terminal_e2e_s'] = terminal['at']-arrival
+        record['success'] = True
         request_rows.append(record)
 
     def summary(spans):
@@ -370,7 +403,8 @@ def analyze_native_timeline(projection: Path, deployment_path: Path,
             raise ValueError('unclosed occupancy events')
         area = math.fsum(lengths)
         return dict(n=len(lengths), total_request_seconds=area,
-                    mean_duration_s=area/len(lengths), p95_duration_s=lengths[math.ceil(.95*len(lengths))-1],
+                    mean_duration_s=area/len(lengths) if lengths else None,
+                    p95_duration_s=lengths[math.ceil(.95*len(lengths))-1] if lengths else None,
                     mean_concurrent_requests=area/(end-start), max_concurrent_requests=peak)
 
     indexes = {name:(sorted(a for a,b in spans),sorted(b for a,b in spans)) for name,spans in intervals.items()}
@@ -396,6 +430,9 @@ def analyze_native_timeline(projection: Path, deployment_path: Path,
         raise ValueError('no held-GPU resource observations')
     result = dict(kind='native_control_occupancy_audit_v1', formal_performance_result=False,
         count=count, observation_s=end-start, phase_summaries={k:summary(v) for k,v in intervals.items()},
+        population=dict(planned=count,terminal=count,native_success=count-len(failures),failed=len(failures)),
+        phase_population='native_success_only' if failures else 'complete_native_success_population',
+        failures=failures,
         native_by_replica={k:summary(v) for k,v in native_by_replica.items()},
         resource_samples=len(samples), sampled_mean_held_gpu_utilization_percent=sum(gpu_rates)/len(gpu_rates),
         samples_with_pre_gate_backlog=sum(r['arrival_to_gate']>0 for r in samples),
@@ -404,7 +441,54 @@ def analyze_native_timeline(projection: Path, deployment_path: Path,
                  'Gate end uses outer terminal after release; this is an upper envelope, not an instrumented gate-release timestamp.',
                  'Controller completion is an earlier boundary than outer request terminal; report their gap without relabeling either.',
                  'GPU utilization averages are sampled descriptive observations, not causal attribution or confidence intervals.'])
+    if failures:
+        result['caveats'].append('All offered IDs and failures are retained. Phase intervals and reconstructed occupancy cover ONLY native successes, not all active work. Failed work may persist beyond its request terminal; absent native events are not proof of no dispatch or release.')
     paths = [projection,deployment_path,terminals_path,watchdog_path,Path(__file__)]
+    controls = []
+    if control_outcome_path is not None:
+        if control_outcome_path.stat().st_size >= 128 * 1024**2:
+            raise ValueError('bounded normal control outcome required')
+        outcome = json.loads(control_outcome_path.read_text())
+        events = outcome['mechanism_events']['_ieee_control_events']
+        quarantines = outcome['mechanism_events']['_ieee_runtime_quarantine_events']
+        if not events or any(q['clock_id'] != deployment['clock_id'] for q in quarantines):
+            raise ValueError('missing control events or mixed quarantine clocks')
+        first_failure = min((f['terminal_at'] for f in failures), default=None)
+        first_failure_observation = min((f['observed_at'] for f in failures), default=None)
+        first_quarantine = min((q['started_monotonic_s'] for q in quarantines), default=None)
+        previous_at = start
+        for event in events:
+            at = event['observed_at']
+            if not math.isfinite(at) or not previous_at <= at <= end:
+                raise ValueError('invalid control observation order')
+            previous_at = at
+            names = ('queue_depth','active_requests','ready_capacity','ready_instances','pending_instances')
+            if any(type(event[k]) is not int or event[k] < 0 for k in names):
+                raise ValueError('invalid observed control counts')
+            if event['active_requests'] > event['ready_capacity']:
+                raise ValueError('observed active requests exceed ready capacity')
+            phase = ('after_first_quarantine' if first_quarantine is not None and at >= first_quarantine
+                     else 'after_first_failure_before_quarantine' if first_failure is not None and at >= first_failure
+                     else 'before_first_failure')
+            controls.append(dict(offset_s=at-start,phase=phase,**{k:event[k] for k in names},
+                action=event['action'],outcome=event['outcome'],
+                successful_native_occupancy=bisect_right(indexes['native_dispatch_to_last_token'][0],at)
+                    -bisect_right(indexes['native_dispatch_to_last_token'][1],at)))
+        result['control_observations'] = dict(
+            first_failed_terminal_offset_s=first_failure-start if first_failure is not None else None,
+            first_failure_observation_offset_s=first_failure_observation-start if first_failure_observation is not None else None,
+            first_quarantine_offset_s=first_quarantine-start if first_quarantine is not None else None,
+            by_phase={phase:dict(samples=len(group),
+                mean_active_requests=math.fsum(e['active_requests'] for e in group)/len(group),
+                mean_queue_depth=math.fsum(e['queue_depth'] for e in group)/len(group),
+                positive_queue_samples=sum(e['queue_depth'] > 0 for e in group),
+                positive_queue_below_capacity_samples=sum(e['queue_depth'] > 0 and e['active_requests'] < e['ready_capacity'] for e in group),
+                active_count_histogram=dict(Counter(e['active_requests'] for e in group)),
+                ready_capacity_histogram=dict(Counter(e['ready_capacity'] for e in group)))
+                for phase in sorted({e['phase'] for e in controls})
+                for group in [[e for e in controls if e['phase']==phase]]},
+            caveat='Direct controller samples, not continuous occupancy or kernel activity. active_requests counts bound requests in currently routable slots; queue_depth also includes requests outside those slots. Successful native occupancy is conditional; never subtract it to infer all non-native work.')
+        paths.append(control_outcome_path)
     result['source_refs'] = []
     for path in paths:
         h = hashlib.sha256()
@@ -415,6 +499,8 @@ def analyze_native_timeline(projection: Path, deployment_path: Path,
     output.mkdir(parents=True,exist_ok=False)
     write_csv(request_rows,output/'request_occupancy.csv')
     write_csv(samples,output/'sampled_occupancy.csv')
+    if controls:
+        write_csv(controls,output/'control_observations.csv')
     with (output/'summary.json').open('x') as handle:
         json.dump(result,handle,indent=2,allow_nan=False)
     return result
@@ -428,13 +514,16 @@ def main() -> None:
     parser.add_argument("--deployment", type=Path)
     parser.add_argument("--terminals", type=Path)
     parser.add_argument("--watchdog", type=Path)
+    parser.add_argument("--allow-failed", action="store_true", help="Retain all offered IDs; compute conditional success phases without imputing failed stages")
+    parser.add_argument("--control-outcome", type=Path, help="Bounded normal outcome with independent control/quarantine observations")
     parser.add_argument("--scenario", default=None, help="Optional scenario-name substring")
     args = parser.parse_args()
 
     if args.native_timeline:
         if not all((args.output,args.deployment,args.terminals,args.watchdog)):
             parser.error('native timeline requires explicit output/deployment/terminals/watchdog')
-        result = analyze_native_timeline(Path(args.input),args.deployment,args.terminals,args.watchdog,Path(args.output))
+        result = analyze_native_timeline(Path(args.input),args.deployment,args.terminals,args.watchdog,Path(args.output),
+            allow_failed=args.allow_failed,control_outcome_path=args.control_outcome)
         print(json.dumps(result,indent=2,allow_nan=False))
         return
 
