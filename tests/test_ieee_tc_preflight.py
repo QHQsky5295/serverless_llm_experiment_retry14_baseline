@@ -9,6 +9,71 @@ from scripts import ieee_tc_preflight as p
 
 
 class ForwardedCommandCLI(unittest.TestCase):
+    def test_publisher_records_prefix_scope_and_rejects_whole_source_prefix(self):
+        import io
+        from types import SimpleNamespace
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root/'trace.json'
+            source.write_text(json.dumps(dict(requests=[dict(request_id=str(i), arrival_time_s=i)
+                                                       for i in range(3)])))
+            args = SimpleNamespace(replay_trace=source, replay_profile='W0', tiny_witness=False,
+                diagnostic_prefix_count=2, output=root/'out.jsonl', gate_socket=str(root/'socket'),
+                gate_nonce='fixture')
+            observed = []
+            async def publisher(plan, address, nonce, start, emit):
+                observed.extend(e.request_id for e in plan.entries)
+                self.assertEqual(await start(), {'fixture':'origin'})
+                emit(dict(event='replay_ready', plan=plan.identity()))
+            with patch('faaslora.datasets.workload_generator.publish_frozen_replay', publisher), \
+                    patch.object(p, 'cg_path', return_value=Path('/fixture')), \
+                    patch.object(p, 'cgroup_snapshot', return_value={'memory.max':p.POLICY['aux_max_bytes']}), \
+                    patch('sys.stdin', io.StringIO('{"fixture":"origin"}\n')), \
+                    patch('builtins.print'):
+                p.replay_publisher(args)
+                args.diagnostic_prefix_count = 3
+                args.output = root/'rejected.jsonl'
+                with self.assertRaisesRegex(ValueError, 'proper prefix'):
+                    p.replay_publisher(args)
+            self.assertEqual(observed, ['0','1'])
+            event = json.loads((root/'out.jsonl').read_text())
+            self.assertEqual(event['replay_scope'], 'diagnostic_prefix_v1')
+            self.assertEqual(event['plan']['source_count'], 3)
+            self.assertEqual(event['diagnostic_prefix_count'], 2)
+            self.assertFalse(args.output.exists())
+
+    def test_invalid_prefix_is_rejected_before_resources_or_workers(self):
+        import os
+        for options in (dict(diagnostic_prefix_count=0, replay_trace='trace'),
+                        dict(diagnostic_prefix_count=True, replay_trace='trace'),
+                        dict(diagnostic_prefix_count=2),
+                        dict(diagnostic_prefix_count=2, replay_trace='trace', tiny=True),
+                        dict(diagnostic_prefix_count=2, replay_trace='trace', http_replay_config='http')):
+            with self.subTest(options=options), patch.object(p, 'require_watchdog_primitives') as guard:
+                with self.assertRaisesRegex(ValueError, 'diagnostic prefix'):
+                    p.gated_launch(['/bin/true'], Path('/unused'), **options)
+                guard.assert_not_called()
+        with patch.dict(os.environ, FAASLORA_FORMAL_RUN='1'), \
+                patch.object(p, 'require_watchdog_primitives') as guard:
+            with self.assertRaisesRegex(ValueError, 'diagnostic prefix'):
+                p.gated_launch(['/bin/true'], Path('/unused'),
+                    diagnostic_prefix_count=2, replay_trace='trace')
+            guard.assert_not_called()
+
+    def test_prefix_cli_is_explicit_and_forwards_the_original_source(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp)/'launch.json'
+            argv = ['preflight', 'gated-launch', '--output', str(output),
+                    '--replay-trace', '/existing/trace.json', '--diagnostic-prefix-count', '1000',
+                    '--exec', '/bin/echo', '--config', 'child.json']
+            with patch('sys.argv', argv), patch.object(p, 'check_plan'), \
+                    patch.object(p, 'gated_launch', return_value={'pass':True}) as launch, \
+                    patch('builtins.print'):
+                p.main()
+            self.assertEqual(launch.call_args.kwargs['diagnostic_prefix_count'], 1000)
+            self.assertEqual(launch.call_args.kwargs['replay_trace'], Path('/existing/trace.json'))
+            self.assertEqual(launch.call_args.args[0], ['/bin/echo', '--config', 'child.json'])
+
     def test_complete_failed_http_work_is_not_a_broken_measurement_or_a_pass(self):
         ready = dict(event='replay_ready', plan=dict(count=2, view_sha256='frozen'))
         rows = [ready,

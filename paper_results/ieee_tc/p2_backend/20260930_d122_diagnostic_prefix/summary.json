@@ -1,0 +1,44 @@
+{
+  "kind": "d122_diagnostic_prefix_contract_v1",
+  "parent_commit": "716e6a5cb6cc9dd264509520c57f4e08320f3a87",
+  "serving_optimizer_changed": false,
+  "measurement_interface_changed": true,
+  "formal_performance_result": false,
+  "gpu_or_remote_experiment_run": false,
+  "tests": {
+    "preflight": {
+      "count": 66,
+      "seconds": 1.036,
+      "passed": true
+    },
+    "core": {
+      "count": 455,
+      "seconds": 37.085,
+      "passed": true
+    }
+  },
+  "initial_suite": {
+    "total": 232,
+    "passed": 228,
+    "failures": 2,
+    "errors": 2,
+    "cause": "launcher tests were run with the model interpreter lacking pidfd_send_signal"
+  },
+  "next_diagnostic_input": {
+    "plan": {
+      "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_131528_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+      "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+      "view_sha256": "0a5dfcf8048abdc8fc1e3a8ccaf92bfb925a9db326c8d27507663bede96a0981",
+      "count": 1000,
+      "source_count": 4000,
+      "profile": "W0",
+      "rate_scale": 1.0
+    },
+    "tiny_witness": false,
+    "replay_scope": "diagnostic_prefix_v1",
+    "diagnostic_prefix_count": 1000
+  },
+  "next_diagnostic_first_offset_s": 0.0,
+  "next_diagnostic_last_offset_s": 1079.4142799377441,
+  "note": "Original indexed input checked only; diagnostic GPU replay not yet run"
+}

@@ -243,6 +243,29 @@ class IEEEIntegratedLaunchContract(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(RuntimeError,'ingress has not started'):
             self.service._require_ieee_full_qualification()
 
+    async def test_prefix_is_diagnostic_not_full_and_keeps_notice_gate(self):
+        from dataclasses import replace
+        replay = self.service._external_replay
+        # Explicit synthetic parent population for this component wiring test;
+        # the separate file/transport tests bind real prefix indices and SHA.
+        replay.plan = replace(replay.plan, source_count=2)
+        replay.context['plan'] = replay.plan.identity()
+        with self.assertRaisesRegex(ValueError, 'silently'):
+            self.service._require_ieee_full_qualification()
+        replay.context.update(replay_scope='diagnostic_prefix_v1', diagnostic_prefix_count=1)
+        self.service._require_ieee_full_qualification()
+        contract = self.service._ieee_full_launch_contract
+        self.assertEqual(contract['contract'], 'ieee_diagnostic_prefix_replay_v1')
+        self.assertFalse(contract['formal_comparison_qualified'])
+        self.assertEqual(contract['request_timeout_s'], 1800.)
+        self.assertEqual(contract['input_plan']['source_count'], 2)
+        self.assertEqual(contract['input_plan']['count'], 1)
+        with patch.dict(os.environ, FAASLORA_FORMAL_RUN='1'), self.assertRaisesRegex(ValueError, 'nonformal'):
+            self.service._require_ieee_full_qualification()
+        replay.context['replay_t0_s'] += 1
+        with self.assertRaisesRegex(RuntimeError, 'common deployment notice'):
+            self.service._require_ieee_full_qualification()
+
 
 class IEEEOnlineObservationBinding(unittest.TestCase):
     def setUp(self):
@@ -1758,17 +1781,27 @@ class ExternalDispatcherIntegration(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(cancelled, [0])
 
     async def test_main_starts_receiving_before_initialization_and_logs_every_receipt(self):
+        await self._main_receives_original_view(prefix=None)
+
+    async def test_main_prefix_receives_only_bound_original_requests_and_preserves_lifecycle(self):
+        await self._main_receives_original_view(prefix=2)
+
+    async def _main_receives_original_view(self, prefix):
         with tempfile.TemporaryDirectory(prefix='ptci-') as tmp:
             root = Path(tmp)
             source = root/'source.json'
             source.write_text(json.dumps({'requests':[
-                {'request_id':str(i), 'arrival_time_s':i*.01, 'adapter_id':'adapter-a'} for i in range(3)]}))
-            plan = FrozenReplayPlan.load(source)
+                {'request_id':str(i), 'arrival_time_s':i*.01, 'adapter_id':'adapter-a',
+                 'body':{'messages':[{'role':'user','content':'test'}]}} for i in range(3)]}))
+            plan = FrozenReplayPlan.load(source, count=prefix)
+            expected = len(plan.entries)
             now = time.perf_counter()
             origin = {'clock_id':local_monotonic_clock_id(), 'deployment_notice_s':now,
                       'replay_t0_s':now+.005}
             context = {**origin, 'plan':plan.identity(), 'address':str(root/'socket'),
                        'nonce':'test', 'frame_limit':16384, 'tiny_witness':False}
+            if prefix is not None:
+                context.update(replay_scope='diagnostic_prefix_v1', diagnostic_prefix_count=prefix)
             receipt = root/'exec_receipt.json'
             receipt.write_text(json.dumps({'external_replay':context}))
             events = []
@@ -1779,24 +1812,35 @@ class ExternalDispatcherIntegration(unittest.IsolatedAsyncioTestCase):
             while not events:
                 await asyncio.sleep(.001)
             async def initialize_then_serve(*args, external_replay, **kwargs):
-                self.assertFalse(external_replay.background_task.done())
+                _, traces, meta = runner._load_shared_trace_requests(str(source),
+                    allowed_adapter_ids=['adapter-a'], external_replay=external_replay)
+                self.assertEqual([t.request_id for t in traces], [e.request_id for e in plan.entries])
+                self.assertEqual(meta['replay_plan']['source_count'], 3)
+                if prefix is not None:
+                    with self.assertRaisesRegex(ValueError, 'nonformal'):
+                        runner._load_shared_trace_requests(str(source),
+                            external_replay=external_replay, formal_run=True)
                 await asyncio.sleep(.05)  # Backend still starting; frontend must receive.
-                self.assertEqual(len(external_replay.records), 3)
+                self.assertEqual(len(external_replay.records), expected)
                 async for _ in external_replay.receive():
                     pass
                 return 'served'
             with patch.dict(os.environ, {'FAASLORA_TC_EXTERNAL_REPLAY':'1',
+                                         'FAASLORA_FORMAL_RUN':'0',
+                                         'FAASLORA_TC_DIAGNOSTIC_PREFIX_COUNT':str(prefix) if prefix else '',
                                          'FAASLORA_TC_LAUNCH_RECEIPT':str(receipt)}), \
                  patch('scripts.ieee_tc_preflight.verify_current_service', return_value={'pid':0}), \
                  patch.object(runner, '_main_async_impl', side_effect=initialize_then_serve):
                 self.assertEqual(await runner.main_async('unused-config'), 'served')
             await publisher
             log = [json.loads(x) for x in (root/'service_ingress.jsonl').read_text().splitlines()]
-            self.assertEqual(sum(x['event']=='request_received' for x in log), 3)
-            self.assertEqual(sum(x['event']=='request_dequeued' for x in log), 3)
+            self.assertEqual(sum(x['event']=='request_received' for x in log), expected)
+            self.assertEqual(sum(x['event']=='request_dequeued' for x in log), expected)
             self.assertTrue(next(x for x in log if x['event']=='service_ingress_terminal')['complete'])
             resource = json.loads((root/'physical_deployment/summary.json').read_text())
-            self.assertEqual(resource['n_plan'], 3)
+            self.assertEqual(resource['n_plan'], expected)
+            deployed = json.loads((root/'physical_deployment/deployment.json').read_text())
+            self.assertEqual(deployed['plan']['source_count'], 3)
             self.assertEqual(resource['n_terminal'], 0)  # Mock service did not report terminals.
             self.assertFalse(resource['measurement_complete'])
             self.assertIsNone(resource['gpu_seconds_per_correct_request'])

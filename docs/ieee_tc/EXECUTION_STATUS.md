@@ -1,6 +1,46 @@
 # IEEE TC execution status
 
-## CURRENT — D121 bounded copy diagnosis complete; no production candidate
+## CURRENT — D122 explicit diagnostic prefix verified; GPU profile next
+
+2026-09-30 16:21. Goal ACTIVE/incomplete; baselines PAUSED. This goal turn
+PROGRESS: existing integrated replay now supports an explicit nonformal original
+prefix; 521 final tests PASS. Measurement-interface change only, no serving
+optimizer, model configuration, GPU replay or remote operation. No performance
+improvement or Full qualification claimed. Once-only cache fulfilledD78/D80.
+
+- Four production files: workload_generator, preflight, canonical runner and
+  scope wrapper. Optional FAASLORA_TC_DIAGNOSTIC_PREFIX_COUNT propagates exact
+  prefix through publisher, receipt, ingress, shared loader and lifecycle.
+  Default full-source guard remains; prefix has distinct contract identity,
+  retains original source_count/SHA, rejects formal/tiny/rate/identity mismatch.
+  Same60snotice/1800sdeadline, physical owners, generation and all IEEE mechanisms.
+- Final system-Python launcher66 PASS1.036s; replay/launch/lifecycle/basic455
+  PASS37.085s. Initial mixed-environment232 tests:228passes/2failures/2errors
+  because model Python lacks pidfd_send_signal. Log/wrapper/time retained;
+  correct OS interpreter used, no safety change. One publisher test added after
+  first attempt; no GPU test/service. DoNOT repeat these suites.
+- Actual original7B first1000 input view checked, not replayed. Fullsource4000,
+  same sourceSHA/offsets/order; no tracecopy or reducedadapteruniverse.
+- Curated20260930_d122_diagnostic_prefix/summary.json SHA
+  57f55221ffc0b81da08de2eb50280e571a8d4ade0f9383597fcecf4b63c996c2;
+  verificationSHAf266677bbdf57a667de6857a34f57c678e8c17ccfecff5ba5f28ee0303ab51d0.
+  94inheritedrefs checked,5expectedchangedaliases,147protected unchanged;
+  plan/metricV1unchanged.13memberbundle eachSHAverified. Table and source basis
+  D122_DIAGNOSTIC_PREFIX_CONTRACT.md. Testscopes9a2c9cba04804319ad02a086b9a517e7
+  andef9f4b1c260a46b8a787cbe35938b770 exactemptyclosed, events0.
+  Curatorbf1e1142e0004906b170b11183244c9e finishedexit0 andexactemptyclosed
+  16:21:13,events0; nojobremains. ScopedGitbackup isnext. One readonlystatuscommand usedwrongcwd and
+  failed to read rawlogs; corrected once, no analysis/run repeat or file change.
+
+NEXT backup testedinterface, then ONE current7B first1000W0 controller profile
+using D119configuration/D89profiles and D110profiler wrapper withfreshownedpaths.
+No D123configuration/wrapper/profile/remoteactivation prepared yet. No blanket
+threading/capacity change, blindunchangedFull or raiseddeadline. A prefix result
+cannot qualify4000Full. Aftermeasuredcause return ordinaryFull validation, then
+warm/Resident→baselines→M1M2→A1–A5/S1–S13. Numericadapterproof remains pending;
+doNOTregenerateweights. Userdirtymanifest NEVERstage. No subagents used.
+
+## D121 completed reference — no production candidate; do not repeat
 
 2026-09-30 16:00. Goal ACTIVE/incomplete; baselines PAUSED. This goal turn
 PROGRESS: D119 bounded saved-view inspection, one retained-state CPU diagnostic,
@@ -30,14 +70,29 @@ claimed. DoNOT repeat D120 or D121 analysis. Once-only cache fulfilledD78/D80.
   events0; firstinspect903aa79350ed46d2a13710dd24ff1c4f closed15:53:32.
   Curatorc4a87e547f774528a5d75bec2b877e98 exactemptyclosed16:01,events0.
   Firstcleanupcommandwrongcwd failedbeforeaction; correctedonce. BundlecheckPASS.
-  NoGPU/remote/analysisjob remains. Gitbackup next.
+  NoGPU/remote/analysisjob remains. Sixscopedfilescommitted/pushed
+  716e6a5cb6cc9dd264509520c57f4e08320f3a87; exactremoteHEADverified16:02.
+  Diff/bundle/31stagedandnestedarchiveentrysecretchecksPASS,userdirtymanifest
+  notstaged. DoNOTrepeatD121backup/measurement. Thispostpushnote isnotproduction.
 
-NEXT: secrets/diff and Gitbackup; then ONEcurrent7B1000request
+NEXT: ONEcurrent7B1000request
 development-prefix CPUprofile usingexistingrunner/profiler, nooptimizerbefore
 actual evidence. Notanotherunchanged4000Full/ranking. Snapshotcomponentprobe
 alone cannotselectrepresentation/concurrencychange. No raisedtimeouts/removed
 ownershipguards. MainlinePrimeFull→warm/Resident→baselines→M1M2→A1–A5/S1–S13.
 Numericadapterqualification pending; doNOTregenerateweights. Usermanifestnotstage.
+
+Postbackup read-only next-run interface check: FrozenReplayPlan.load already
+supports count asanexplicitdiagnosticindexview, butcanonical publisher at
+ieee_tc_preflight.py1432 usesfullsource (excepttinywitness), and main runner
+23287 rebuildsfullplan. Fullguard14004 intentionally requirescount==source_count;
+sharedtraceloader22209 ignoresconfiguredtotal_requests in favoroffullsource.
+Thus DO NOTsetFAASLORA_TOTAL_REQUESTS=1000 andclaimprefix, orremoveFullguard.
+Beforeany1000diagnostic, reuseanexistingmatchingprefixexecutionpath oraddan
+explicitdiagnostic-only indexed-view contract end-to-end withtests; no copied
+trace/newweights and no Fullqualificationlabel. NoD122config/wrapper/profile/
+remoteactivationorproductionchange prepared. D121mainquestionremainsunproven,
+don'trepeatcomponentmicrotest. Allprimelorascopesinactive16:03; nojobremains.
 
 ## D120 completed reference — backed, do not repeat
 

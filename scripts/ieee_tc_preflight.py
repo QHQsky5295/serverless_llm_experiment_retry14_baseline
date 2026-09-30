@@ -1135,13 +1135,20 @@ def completed_http_failure(path: Path, ready: dict) -> dict:
 
 
 def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_growth=0,
-                 replay_trace=None, replay_profile='W0', http_replay_config=None) -> dict:
+                 replay_trace=None, replay_profile='W0', http_replay_config=None,
+                 diagnostic_prefix_count=None) -> dict:
     """Existing runner launch with a bounded gate and a real independent watcher.
 
     The supervisor and watcher share the <=4 GiB auxiliary scope; serving is a
     sibling scope. This is a qualification launcher, NOT a complete performance
     campaign gate (external replay and native GPU lifecycle remain required).
     """
+    if diagnostic_prefix_count is not None:
+        if (type(diagnostic_prefix_count) is not int or diagnostic_prefix_count <= 0
+                or tiny or replay_trace is None or http_replay_config is not None
+                or os.environ.get('FAASLORA_FORMAL_RUN', '0').strip().lower()
+                in {'1', 'true', 'yes', 'on'}):
+            raise ValueError('diagnostic prefix requires nonformal Unix frozen replay, not tiny/HTTP')
     require_watchdog_primitives()
     if http_replay_config is not None and (tiny or replay_trace is not None):
         raise ValueError('HTTP replay and Unix/tiny replay are distinct explicit transports')
@@ -1246,6 +1253,8 @@ def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_grow
                                 '--output', str(evidence/'replay.jsonl')]
                 if tiny:
                     publish_args.append('--tiny-witness')
+                if diagnostic_prefix_count is not None:
+                    publish_args.extend(['--diagnostic-prefix-count', str(diagnostic_prefix_count)])
                 publisher = subprocess.Popen(publish_args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                                              stderr=watch_error, text=True, bufsize=1, env=publish_env)
                 if not select.select([publisher.stdout], [], [], 180 if http_replay_config else 15)[0]:
@@ -1255,6 +1264,12 @@ def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_grow
                 replay_ready = json.loads(ready_line)
                 if replay_ready['event'] != 'replay_ready':
                     raise RuntimeError('external replay did not validate its frozen trace')
+                if diagnostic_prefix_count is not None and (
+                        replay_ready.get('replay_scope') != 'diagnostic_prefix_v1'
+                        or replay_ready.get('diagnostic_prefix_count') != diagnostic_prefix_count
+                        or replay_ready['plan']['count'] != diagnostic_prefix_count
+                        or not diagnostic_prefix_count < replay_ready['plan']['source_count']):
+                    raise ValueError('publisher diagnostic prefix differs from requested population')
                 if http_replay_config and replay_ready.get('imported_backend_modules') != []:
                     raise RuntimeError('HTTP publisher imported serving backends')
                 result['replay_process'] = next(p for p in owned_pids(auxiliary) if p['pid'] == publisher.pid)
@@ -1318,6 +1333,9 @@ def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_grow
                         'tiny_witness': tiny, 'publisher_process': result['replay_process'],
                         'transport': replay_ready.get('transport', 'unix'),
                         'result_path': str(evidence/'replay.jsonl')}
+                    if diagnostic_prefix_count is not None:
+                        receipt['external_replay'].update(replay_scope='diagnostic_prefix_v1',
+                            diagnostic_prefix_count=diagnostic_prefix_count)
                     if http_replay_config is not None:
                         if replay_ready.get('config_sha256') != digest(Path(http_replay_config)):
                             raise ValueError('HTTP publisher input changed during qualification')
@@ -1326,6 +1344,10 @@ def gated_launch(command: list[str], output: Path, *, tiny=False, predicted_grow
                     publisher.stdin.flush()
                     publisher.stdin.close()
                     result['external_replay'] = {**origin, 'plan': replay_ready['plan']}
+                    if diagnostic_prefix_count is not None:
+                        result['external_replay'].update(replay_scope='diagnostic_prefix_v1',
+                            diagnostic_prefix_count=diagnostic_prefix_count,
+                            formal_comparison_qualified=False)
                 with (evidence/'exec_receipt.json').open('x') as f:
                     json.dump(receipt, f, indent=2)
                 channel.sendall(json.dumps(receipt).encode()+b'\n')
@@ -1429,13 +1451,24 @@ def replay_publisher(args):
     import asyncio
     sys.path.insert(0, str(ROOT))
     from faaslora.datasets.workload_generator import FrozenReplayPlan, publish_frozen_replay
+    prefix = args.diagnostic_prefix_count
+    if prefix is not None and args.tiny_witness:
+        raise ValueError('diagnostic prefix cannot reuse the tiny witness contract')
     plan = FrozenReplayPlan.load(args.replay_trace, profile=args.replay_profile,
-                                count=32 if args.tiny_witness else None,
+                                count=32 if args.tiny_witness else prefix,
                                 rate_scale=8. if args.tiny_witness else 1.)
+    diagnostic = {} if prefix is None else dict(replay_scope='diagnostic_prefix_v1',
+                                                diagnostic_prefix_count=prefix)
+    if diagnostic:
+        plan.validate_launch_context(dict(plan=plan.identity(), tiny_witness=False, **diagnostic),
+            formal_run=os.environ.get('FAASLORA_FORMAL_RUN', '0').strip().lower()
+            in {'1', 'true', 'yes', 'on'})
     if cgroup_snapshot(cg_path())['memory.max'] != POLICY['aux_max_bytes']:
         raise RuntimeError('external publisher must be inside shared bounded auxiliary scope')
     with args.output.open('x') as log:
         def emit(event):
+            if event['event'] == 'replay_ready':
+                event = dict(event, **diagnostic)
             log.write(json.dumps(event, separators=(',', ':'))+'\n')
             log.flush()
             if event['event'] == 'replay_ready':
@@ -4286,12 +4319,16 @@ def main():
     parser.add_argument('--tiny-witness', action='store_true')
     parser.add_argument('--replay-trace', type=Path)
     parser.add_argument('--replay-profile', choices=['W0', 'W1'], default='W0')
+    parser.add_argument('--diagnostic-prefix-count', type=int,
+                        help='Explicit nonformal prefix of the original trace; never Full qualification')
     parser.add_argument('--http-replay-config', type=Path,
                         help='Explicit existing Serverless HTTP publisher configuration')
     parser.add_argument('--nvml-binding', type=Path)
     parser.add_argument('--nvml-sha256')
     parser.add_argument('--exec', dest='command', nargs=argparse.REMAINDER)
     args = parser.parse_args()
+    if args.diagnostic_prefix_count is not None and args.action not in {'gated-launch', '_replay-publisher'}:
+        parser.error('--diagnostic-prefix-count applies only to integrated replay diagnostics')
     if args.source_profile_spec and (args.action != 'backend-model-check'
                                     or args.qualification_mode != 'native_source_matrix'):
         parser.error('--source-profile-spec applies only to backend-model-check native_source_matrix')
@@ -4331,7 +4368,8 @@ def main():
         result = gated_launch(command, args.output, tiny=args.tiny_witness,
                               predicted_growth=int(args.predicted_growth_gib*GIB),
                               replay_trace=args.replay_trace, replay_profile=args.replay_profile,
-                              http_replay_config=args.http_replay_config)
+                              http_replay_config=args.http_replay_config,
+                              diagnostic_prefix_count=args.diagnostic_prefix_count)
     elif args.action == 'artifact-audit':
         if not args.path or not args.output:
             parser.error('artifact-audit requires existing pool path(s) and new output')

@@ -14000,8 +14000,12 @@ class ScenarioRunner:
         replay.raise_if_failed()
         replay.background_task  # Raises if ingress was not started before setup.
         context = replay.context
+        replay_scope = replay.plan.validate_launch_context(context,
+            formal_run=os.environ.get('FAASLORA_FORMAL_RUN', '0').strip().lower()
+            in {'1', 'true', 'yes', 'on'})
         require(context.get('tiny_witness') is False
-            and len(replay.plan.entries) == replay.plan.source_count
+            and (len(replay.plan.entries) == replay.plan.source_count
+                 or replay_scope == 'diagnostic_prefix_v1')
             and replay.plan.rate_scale == 1.
             and math.isclose(context['replay_t0_s'] - context['deployment_notice_s'],
                              60., rel_tol=0., abs_tol=1e-6)
@@ -14012,7 +14016,9 @@ class ScenarioRunner:
             'common deployment notice, full request map and lifecycle clock required')
         require(self._dispatch_admission_mode() == 'open_loop_trace_replay',
             'external arrivals must not be globally workload-capped')
-        self._ieee_full_launch_contract = dict(contract='ieee_full_integrated_replay_v1',
+        self._ieee_full_launch_contract = dict(contract=(
+            'ieee_diagnostic_prefix_replay_v1' if replay_scope == 'diagnostic_prefix_v1'
+            else 'ieee_full_integrated_replay_v1'), replay_scope=replay_scope,
             service_profile_id=self._service_profiles.profile_id,
             preparation_profile_id=self._preparation_profiles.profile_id,
             content_manifest_sha256=remote.content_manifest_sha256,
@@ -14386,7 +14392,7 @@ class ScenarioRunner:
             context = json.loads(Path(launch_receipt).read_text()).get('external_replay')
             if context is not None:
                 if context['tiny_witness'] or int(self.wl_cfg.get('multi_cycle_phases', 1)) != 1:
-                    raise ValueError('model replay requires a continuous full-trace origin')
+                    raise ValueError('model replay requires a continuous frozen-input origin')
                 if supplied is None or supplied.context != context:
                     raise RuntimeError('external ingress must start before model initialization')
                 frozen = supplied.plan
@@ -18330,6 +18336,8 @@ def _load_shared_trace_requests(
     path_like: str,
     *,
     allowed_adapter_ids: Optional[Collection[str]] = None,
+    external_replay=None,
+    formal_run: bool = False,
 ) -> Tuple[Path, List[RequestTrace], Dict[str, Any]]:
     path = Path(path_like).expanduser()
     if not path.is_absolute():
@@ -18402,6 +18410,17 @@ def _load_shared_trace_requests(
         )
         if key in payload
     }
+    if external_replay is not None:
+        plan = external_replay.plan
+        scope = plan.validate_launch_context(external_replay.context, formal_run=formal_run)
+        if (str(path) != plan.path or _sha256_file(path) != plan.source_sha256
+                or len(traces) != plan.source_count):
+            raise ValueError('shared trace source differs from the guarded replay view')
+        if scope == 'diagnostic_prefix_v1':
+            traces = traces[:len(plan.entries)]
+        if [t.request_id for t in traces] != [e.request_id for e in plan.entries]:
+            raise ValueError('shared trace request map differs from guarded replay view')
+        metadata.update(replay_scope=scope, replay_plan=plan.identity())
     return path, traces, metadata
 
 
@@ -21954,7 +21973,7 @@ async def _main_async_impl(
     if os.environ.get('FAASLORA_TC_EXTERNAL_REPLAY') == '1':
         if (num_runs != 1 or not only_scenario or not shared_trace_path_override
                 or int(wl_cfg_yaml.get('multi_cycle_phases', 1)) != 1 or quick):
-            raise ValueError('external replay requires one explicit scenario/run and the full shared trace')
+            raise ValueError('external replay requires one explicit scenario/run and the frozen shared trace')
         receipt_path = os.environ.get('FAASLORA_TC_LAUNCH_RECEIPT')
         if not receipt_path:
             raise RuntimeError('external replay requires the guarded auxiliary launcher')
@@ -21962,6 +21981,9 @@ async def _main_async_impl(
         if (not context or context['plan']['source_path'] != str(Path(shared_trace_path_override).resolve())
                 or context['plan']['source_sha256'] != _sha256_file(shared_trace_path_override)):
             raise ValueError('runner shared input differs from auxiliary frozen replay')
+        if external_replay is None or external_replay.context != context:
+            raise ValueError('runner requires the already-started guarded replay view')
+        external_replay.plan.validate_launch_context(context, formal_run=formal_run)
     confidence_level = float(exp_cfg.get("confidence_level", 0.95))
     model_name = model_cfg.get("name", "Qwen/Qwen2.5-0.5B-Instruct")
     backend = str(model_cfg.get("backend", "vllm")).lower()
@@ -22204,6 +22226,8 @@ async def _main_async_impl(
         shared_trace_path, traces, shared_trace_metadata = _load_shared_trace_requests(
             shared_trace_path_override,
             allowed_adapter_ids=adapter_ids,
+            external_replay=external_replay,
+            formal_run=formal_run,
         )
         _assert_all_requests_bind_lora(traces, context=f"shared trace {shared_trace_path}")
         total_requests = len(traces)
@@ -23275,6 +23299,8 @@ async def _main_async_impl(
 async def main_async(*args, **kwargs):
     """Accept and preserve arrived work while existing startup runs in parallel."""
     if os.environ.get('FAASLORA_TC_EXTERNAL_REPLAY') != '1':
+        if os.environ.get('FAASLORA_TC_DIAGNOSTIC_PREFIX_COUNT'):
+            raise ValueError('diagnostic prefix requires guarded external replay')
         return await _main_async_impl(*args, **kwargs)
     from scripts.ieee_tc_preflight import verify_current_service
     from faaslora.datasets.workload_generator import FrozenReplayPlan, ExternalReplayIngress
@@ -23284,7 +23310,13 @@ async def main_async(*args, **kwargs):
     context = json.loads(receipt_path.read_text())['external_replay']
     if context['tiny_witness']:
         raise ValueError('a tiny replay witness cannot authorize model initialization')
-    plan = FrozenReplayPlan.load(context['plan']['source_path'], profile=context['plan']['profile'])
+    plan = FrozenReplayPlan.from_launch_context(context,
+        formal_run=os.environ.get('FAASLORA_FORMAL_RUN', '0').strip().lower()
+        in {'1', 'true', 'yes', 'on'})
+    requested_prefix = os.environ.get('FAASLORA_TC_DIAGNOSTIC_PREFIX_COUNT')
+    if requested_prefix and (context.get('replay_scope') != 'diagnostic_prefix_v1'
+            or int(requested_prefix) != context.get('diagnostic_prefix_count')):
+        raise ValueError('requested diagnostic population differs from launch receipt')
     deployment = PhysicalGPUDeployment(root=receipt_path.parent/'physical_deployment',
         plan=plan, context=context)
     with (receipt_path.parent/'service_ingress.jsonl').open('x') as log:

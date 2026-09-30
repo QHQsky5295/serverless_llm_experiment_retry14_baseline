@@ -51,10 +51,40 @@ class FrozenViews(unittest.TestCase):
     def test_invalid_trace_or_transform_rejected(self):
         row = {'request_id':'one', 'arrival_time_s':0}
         for rows, kwargs in [([], {}), ([row,row], {}), ([dict(row, arrival_time_s=math.nan)], {}),
-                             ([row], {'rate_scale':0}), ([row], {'count':2}),
+                             ([row], {'rate_scale':0}), ([row], {'count':2}), ([row], {'count':True}),
                              ([row], {'profile':'W2'})]:
             with self.assertRaises(ValueError):
                 self.load_rows(rows, **kwargs)
+
+    def test_integrated_prefix_needs_explicit_scope_and_retains_full_source_identity(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d)/'trace.json'
+            raw = json.dumps({'requests':[dict(request_id=str(i), arrival_time_s=2*i)
+                                         for i in range(5)]})
+            path.write_text(raw)
+            full = FrozenReplayPlan.load(path)
+            prefix = FrozenReplayPlan.load(path, count=2)
+            context = dict(plan=prefix.identity(), tiny_witness=False,
+                replay_scope='diagnostic_prefix_v1', diagnostic_prefix_count=2)
+            self.assertEqual(FrozenReplayPlan.from_launch_context(context), prefix)
+            self.assertEqual(prefix.entries, full.entries[:2])
+            self.assertEqual(prefix.source_sha256, full.source_sha256)
+            self.assertEqual(FrozenReplayPlan.from_launch_context(
+                dict(plan=full.identity(), tiny_witness=False), formal_run=True), full)
+            bad = [dict(context, replay_scope='full_source_v1'),
+                   dict(context, replay_scope='unknown'), dict(context, tiny_witness=True),
+                   dict(context, diagnostic_prefix_count=True), dict(context, diagnostic_prefix_count=0),
+                   dict(context, diagnostic_prefix_count=3),
+                   dict(context, diagnostic_prefix_count=5, plan=full.identity()),
+                   dict(plan=prefix.identity(), tiny_witness=False),
+                   dict(context, plan=dict(prefix.identity(), source_sha256='changed')),
+                   dict(context, plan=dict(prefix.identity(), rate_scale=8.))]
+            for item in bad:
+                with self.subTest(context=item), self.assertRaises(ValueError):
+                    FrozenReplayPlan.from_launch_context(item)
+            with self.assertRaisesRegex(ValueError, 'nonformal'):
+                FrozenReplayPlan.from_launch_context(context, formal_run=True)
+            self.assertEqual(path.read_text(), raw)
 
 
 class CanonicalHTTPInput(unittest.TestCase):

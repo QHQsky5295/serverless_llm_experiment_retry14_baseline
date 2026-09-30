@@ -17,6 +17,13 @@ fi
 
 cd "$ROOT_DIR"
 
+if [[ -n "${FAASLORA_TC_DIAGNOSTIC_PREFIX_COUNT:-}" ]]; then
+  if [[ "${FAASLORA_TC_QUALIFICATION:-0}" != "1" || "${FAASLORA_TC_EXTERNAL_REPLAY:-0}" != "1" ]]; then
+    echo "[ERROR] Diagnostic prefix requires the guarded external replay" >&2
+    exit 1
+  fi
+fi
+
 # TC qualification never takes the historical unbounded fallback. The auxiliary
 # scope covers supervisor + watcher (and the later external replay), while the
 # actual runner/descendants enter a separately verified service scope.
@@ -31,6 +38,9 @@ if [[ "${FAASLORA_TC_QUALIFICATION:-0}" == "1" ]]; then
   if [[ "${FAASLORA_TC_EXTERNAL_REPLAY:-0}" == "1" ]]; then
     : "${FAASLORA_SHARED_TRACE_PATH:?External replay requires the existing frozen trace}"
     TC_REPLAY_ARGS=(--replay-trace "$FAASLORA_SHARED_TRACE_PATH" --replay-profile "${FAASLORA_TC_REPLAY_PROFILE:-W0}")
+    if [[ -n "${FAASLORA_TC_DIAGNOSTIC_PREFIX_COUNT:-}" ]]; then
+      TC_REPLAY_ARGS+=(--diagnostic-prefix-count "$FAASLORA_TC_DIAGNOSTIC_PREFIX_COUNT")
+    fi
   fi
   exec systemd-run --user --scope --collect --unit="$TC_AUX_UNIT" \
     -p MemoryHigh=3G -p MemoryMax=4G -p MemorySwapMax=0 \

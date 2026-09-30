@@ -93,7 +93,7 @@ class FrozenReplayPlan:
         if len({r[1] for r in indexed}) != len(indexed):
             raise ValueError('duplicate request ID in frozen trace')
         if count is not None:
-            if not isinstance(count, int) or not 0 < count <= len(indexed):
+            if type(count) is not int or not 0 < count <= len(indexed):
                 raise ValueError('diagnostic prefix exceeds existing trace')
             indexed = indexed[:count]
         base, phase_base, previous = indexed[0][0], 0., 0.
@@ -116,6 +116,36 @@ class FrozenReplayPlan:
                 'view_sha256': hashlib.sha256(json.dumps(view, separators=(',', ':')).encode()).hexdigest(),
                 'count': len(self.entries), 'source_count': self.source_count,
                 'profile': self.profile, 'rate_scale': self.rate_scale}
+
+    def validate_launch_context(self, context, *, formal_run=False):
+        """Bind an integrated launch to a full source or an explicit diagnostic.
+
+        A prefix is a different measurement population, never a shortened Full
+        qualification. This does not change arrival offsets or physical owners.
+        """
+        scope = context.get('replay_scope', 'full_source_v1')
+        if context.get('tiny_witness') is not False or self.rate_scale != 1.:
+            raise ValueError('integrated replay cannot use tiny/rate-scaled witness input')
+        if context.get('plan') != self.identity():
+            raise ValueError('integrated replay source/view identity differs')
+        count = context.get('diagnostic_prefix_count')
+        if scope == 'diagnostic_prefix_v1':
+            if (formal_run or type(count) is not int
+                    or not 0 < count == len(self.entries) < self.source_count):
+                raise ValueError('diagnostic prefix requires a proper prefix and nonformal run')
+        elif scope != 'full_source_v1' or count is not None or len(self.entries) != self.source_count:
+            raise ValueError('full source replay cannot silently use a diagnostic prefix')
+        return scope
+
+    @classmethod
+    def from_launch_context(cls, context, *, formal_run=False):
+        # Do not infer permission to truncate from the advertised plan count.
+        count = (context.get('diagnostic_prefix_count')
+                 if context.get('replay_scope') == 'diagnostic_prefix_v1' else None)
+        plan = cls.load(context['plan']['source_path'],
+                        profile=context['plan']['profile'], count=count)
+        plan.validate_launch_context(context, formal_run=formal_run)
+        return plan
 
 
 def render_role_lines(messages):
