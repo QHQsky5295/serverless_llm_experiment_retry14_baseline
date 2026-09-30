@@ -1,0 +1,6 @@
+case,metric,two_round_trips,sealed_transaction,relative_reduction
+frozen_plan_pipeline,elapsed_ms,6.900001,2.930867,0.5752367282265611
+frozen_plan_pipeline,ready_callback_delay_ms,0.19085366666666667,0.24388533333333334,-0.27786558986728055
+frozen_plan_pipeline,worker_calls,2,1,0.5
+frozen_plan_pipeline,worker_input_bytes,21117,6999,0.6685608751243074
+frozen_plan_pipeline,worker_output_bytes,28283,14142,0.49998232153590494

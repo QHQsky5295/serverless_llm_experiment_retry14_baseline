@@ -8,7 +8,8 @@ import unittest
 from unittest.mock import patch
 
 from faaslora.preloading.planning_cpu import (
-    IEEEPlanningCPU, execute_planning_message, freeze_owned_planning)
+    IEEEPlanningCPU, execute_planning_message, freeze_owned_planning,
+    ValidatedPreparationPlan, execution_preparation_input)
 from faaslora.registry.schema import StorageTier
 
 
@@ -110,6 +111,112 @@ class PlanningCPU(unittest.IsolatedAsyncioTestCase):
                 await task
             self.assertNotIn(task, runner._ieee_file_plan_tasks)
             self.assertNotIn(task, runner._ieee_file_plan_engines)
+
+    async def test_fused_epoch_is_equal_immutable_and_has_no_second_cpu_transaction(self):
+        args, runner, _ = await asyncio.to_thread(self.inputs)
+        limit = runner._stack.preloading_planner.max_dp_buffer_bytes
+        expected_bytes, _ = execute_planning_message(pickle.dumps(('owned_epoch', limit, args), protocol=5))
+        expected = pickle.loads(expected_bytes)
+        expected_selection = runner._stack.preloading_planner.validate_ieee_execution_plan(expected)
+        worker = runner._stack._ieee_planning_cpu = IEEEPlanningCPU()
+        self.addAsyncCleanup(worker.close)
+        task = asyncio.create_task(worker.run('owned_execution_epoch', limit, args))
+        await asyncio.sleep(0)
+        args['native_snapshot']['owner_id'] = 'later-parent-mutation'
+        args['demand'].counts['a'] = 999
+        sealed = await task
+        self.assertIs(type(sealed), ValidatedPreparationPlan)
+        self.assertEqual(sealed, expected)
+        self.assertEqual(sealed['plan_sha256'], expected['plan_sha256'])
+        self.assertEqual(tuple(sealed), tuple(expected))
+        with self.assertRaises((AttributeError, TypeError)):
+            sealed._payload = b'changed'
+        with self.assertRaises(TypeError):
+            sealed['mode'] = 'handoff'
+        with self.assertRaisesRegex(TypeError, 'local-only'):
+            pickle.dumps(sealed)
+        # Public reads are detached: changing a diagnostic view cannot change
+        # the sealed execution input, including after an await/cancellation.
+        view = sealed['source_view']
+        view['native']['owner_id'] = 'changed-diagnostic-copy'
+        exported = copy.deepcopy(sealed)
+        self.assertIs(type(exported), dict)
+        exported['selected']['gpu'] = ()
+        self.assertEqual(sealed.snapshot(), expected)
+        with patch('faaslora.preloading.planning_cpu.run_planning_cpu',
+                   side_effect=AssertionError('second CPU transaction')):
+            first, selected = await execution_preparation_input(runner._stack, sealed)
+            self.assertEqual((first, selected), (expected, expected_selection))
+            first['source_view']['native']['owner_id'] = 'execution-copy-mutation'
+            second, _ = await execution_preparation_input(runner._stack, sealed)
+            self.assertEqual(second, expected)
+        self.assertEqual(len(worker.events), 1)
+        event = worker.events[0]
+        self.assertTrue(event['frozen_execution_validated'])
+        self.assertGreaterEqual(event['frozen_validation_seconds'], 0)
+        self.assertEqual(event['cpu_affinity'], sorted(os.sched_getaffinity(0)))
+        with open('/proc/self/cgroup') as handle:
+            self.assertEqual(event['cgroup'], handle.read().strip())
+        # Mutable exports retain the original full-validator route, including
+        # selection and source tamper rejection; no trusted boolean is enough.
+        with self.assertRaisesRegex(ValueError, 'selected target'):
+            await execution_preparation_input(runner._stack, exported)
+        bad = sealed.snapshot()
+        bad['source_view']['native']['owner_id'] = 'tampered'
+        with self.assertRaisesRegex(ValueError, 'physical owner view'):
+            await execution_preparation_input(runner._stack, bad)
+        ordinary, chosen = await execution_preparation_input(runner._stack, sealed.snapshot())
+        self.assertEqual((ordinary, chosen), (expected, expected_selection))
+        self.assertEqual([e['operation'] for e in worker.events],
+                         ['owned_execution_epoch'] + ['validate_execution']*3)
+        pid = event['worker_pid']
+        await worker.close()
+        with self.assertRaises(ProcessLookupError):
+            os.kill(pid, 0)
+
+    async def test_fused_cancel_joins_without_publishing_or_running_queued_work(self):
+        args, runner, _ = await asyncio.to_thread(self.inputs, 'handoff')
+        worker = IEEEPlanningCPU()
+        self.addAsyncCleanup(worker.close)
+        limit = runner._stack.preloading_planner.max_dp_buffer_bytes
+        first = asyncio.create_task(worker.run('owned_execution_epoch', limit, args))
+        await asyncio.sleep(0)
+        second = asyncio.create_task(worker.run('owned_execution_epoch', limit, args))
+        await asyncio.sleep(0)
+        second.cancel()
+        with self.assertRaises(asyncio.CancelledError):
+            await second
+        first.cancel()
+        await asyncio.sleep(0)
+        first.cancel()
+        with self.assertRaises(asyncio.CancelledError):
+            await first
+        self.assertEqual(len(worker.events), 1)
+        self.assertTrue(worker.events[0]['frozen_execution_validated'])
+        self.assertEqual(worker.events[0]['state'], 'cancelled_result_discarded')
+        pid = worker.events[0]['worker_pid']
+        await worker.close()
+        with self.assertRaises(ProcessLookupError):
+            os.kill(pid, 0)
+
+    async def test_fused_worker_runs_original_validator_before_freezing(self):
+        args, runner, _ = await asyncio.to_thread(self.inputs)
+        limit = runner._stack.preloading_planner.max_dp_buffer_bytes
+        from faaslora.preloading.preloading_planner import PreloadingPlanner
+        original = PreloadingPlanner.validate_ieee_execution_plan
+        with patch.object(PreloadingPlanner, 'validate_ieee_execution_plan',
+                          autospec=True, side_effect=original) as validate:
+            payload, receipt = execute_planning_message(
+                pickle.dumps(('owned_execution_epoch', limit, args), protocol=5))
+            self.assertEqual(validate.call_count, 1)
+        sealed = ValidatedPreparationPlan._from_worker_result(payload, receipt)
+        self.assertEqual(sealed['selected'], original(runner._stack.preloading_planner, sealed.snapshot()))
+        with patch.object(PreloadingPlanner, 'validate_ieee_execution_plan',
+                          side_effect=ValueError('frozen-validation-rejected')):
+            with self.assertRaisesRegex(ValueError, 'frozen-validation-rejected'):
+                execute_planning_message(pickle.dumps(('owned_execution_epoch', limit, args), protocol=5))
+        with self.assertRaisesRegex(ValueError, 'completed worker transaction'):
+            ValidatedPreparationPlan._from_worker_result(payload, dict(receipt, frozen_execution_validated=False))
 
 
 if __name__ == '__main__':

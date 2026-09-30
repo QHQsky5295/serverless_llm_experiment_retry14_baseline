@@ -1,6 +1,56 @@
 # IEEE TC execution status
 
-## CURRENT — D129 Full4000 evidence complete; qualification FAILED; backup next
+## CURRENT — D130 sealed planning transaction: regression complete, Full pending
+
+2026-10-01 00:48. Goal ACTIVE/incomplete; PROGRESS. No subagents. Baselines PAUSED.
+Latest user approval of once-only delivery cache was already fulfilled D78/D80;
+do NOT regenerate published archives, weights, or workloads.
+
+- D129 complete/failed/backed below; do NOT repeat its replay or projection.
+  HEAD837b23165de159ffe9982d7f93c1a50aee4505c5 backed. D130 is a targeted
+  replacement of the D128 pure-planning transaction boundary, not a second
+  independent optimizer or accepted Full performance improvement.
+- Implemented owned_execution_epoch: unchanged construction AND original pure
+  validator execute in one child transaction, returning immutable local bytes
+  containing plan+selection. Original validator still recomputes selection.
+  Exported mutable dictionaries must be validated again. Live owner/epoch/
+  content/budget/reservation/registration checks, formulas and limits unchanged.
+  Cancellation still joins worker and discards result; queued cancellation
+  cannot publish. Parent opens one private execution copy. No TTL/cached boolean,
+  codec dependency, deadline/capacity change or physical guard removal.
+- Initial214tests PASS58.869s (command68.67s/RSS1174364KiB), actual3/4GiBswap0
+  CPU2,3,26,27. Scope69bda41f27b94d42b2f43f09d14b4069 exactemptyclosed.
+- Probe1 finished once: session15203 exit0,24.45s/RSS1166600KiB; scope
+  52bd68d830df4d82b67ba0c3455c8c93 exactemptyclosed; all memory events0.
+  Four-adapter fixture, three alternating warm repetitions, identical plan/
+  selection/hash. Two round-trips vs sealed:6.900001→2.930867ms (-57.52%);
+  callback.190854→.243885ms (worse); calls2→1; input21117→6999B;
+  output28283→14142B. Coldsealed12899.237565ms retained separately.
+  This is NOT500-adapter/Full evidence and has no seed CI. Do NOT repeat probe.
+- Raw results/ieee_tc/p2_backend_qualification/d130_20261001. Changed5tracked
+  source/testfiles only; user manifest and unrelated files untouched. No live
+  GPUfree,available113072553984B,disk228864483328B before final regression.
+- Sources rechecked: official vLLM CPU/GIL blog and v0.30.0 core_client.py;
+  Python3.12 copy docs. Borrow execution-context/message-boundary principles,
+  not vLLM speedups or novel algorithm claims. Activation pure validation now
+  precedes engine startup rather than overlapping it: Full must include cost.
+
+- Final848testsPASS134.839s,command145.57s/RSS1174696KiB;147protected and
+  plan/metric/sixsourceSHA PASS. Actual3/4GiBswap0CPU2,3,26,27,events0;
+  exact337b8261d094463dbbbe179fd548c2bb emptyclosed. Session43294 finished0.
+- ReusedD128 curator produced7samples/5summaryrows/JSON,18member50859Bbundle
+  SHA8519b5081b43c893297024465c4a7e1e93f7f0955c20f67c9452808761af3a6b.
+  AllsourceSHAunchangedbetweenprobe/finaltest/curation. Curateddirectory
+  paper_results/ieee_tc/p2_backend/20261001_d130_sealed_planning_transaction.
+  DocD130_SEALED_PLANNING_TRANSACTION.md containscomplete table/limitations.
+  Bundle/finalize925c0d6110c74f8d9c2455c1a2ca0590 exited0, exactemptydomain
+  closed00:48,events0. DoNOTrepeat completedtests/probe/curation.
+
+NEXT: verified scoped Git checkpoint; next ordinary7B Full4000 same frozen
+D129 configuration/profiles, fresh owned paths, no detailed profiler/prefix.
+Warm/Resident, baselines, M1/M2, A1–A5/S1–S13 remain outstanding.
+
+## Previous — D129 Full4000 evidence complete and backed; qualification FAILED
 
 2026-10-01 00:26. Goal ACTIVE/incomplete. Current turn PROGRESS. No subagents.
 Baselines PAUSED. No GPU/replay/remote/analysis/test job remains; all exact-owned
@@ -81,8 +131,31 @@ Do NOT repeat D129 replay/projection/metadata/curation/occupancy/tests/bundle.
 - ReadfullAGENTS/1525lineplan/1034lineledger/metricV1 and
   monitor/analyze-results/academic-plotting/github-sync skills this turn.
 
-NEXT: scopedD129backup(afterdiff/memberSHA/secretschecks), preserveuserfiles.
-Then ONEevidence-led Primearchitecture question usingexistingD129receipts/current
+Backupcompleted00:29:13scopedfiles committed/pushed
+837b23165de159ffe9982d7f93c1a50aee4505c5; exactremoteHEADverified.
+CRLF-awaregitdiffcheck,bundle/memberSHA,21verificationrefs and74staged/archive
+payloadsecretschecksPASS. Usermanifest/unrelatedfilesneverstaged.
+No livejobs. Thispostpushledgernote isnotruntime/config change; doNOTrepeatbackup.
+
+Boundedread-onlyfollow-up afterbackup, NOnewprobe/optimizer:
+planning_cpu.py currentlycopiesfullplan back toparent, then runner17486 sends
+it back for validate_execution. Planner2041recomputes frozen selection and
+hashes fullsourceview; later runner physicalregistration/livechecks areseparate.
+Stack946 freezes beforeawait; normalrunner17422 and activation13297 consume
+returnedmutableplans, so a claimed validated-handle shortcut wouldrequire real
+immutability/executionownership, notbool flags or removaloftamperchecks.
+Potentialdirection: fuse pureconstruction+purevalidation insideONEworker
+transaction, returnimmutablevalidatedexecutioninput once, retainALLliveowner/
+budget/epochchecks. NOTselected/implemented/proven; mustauditcaller mutation,
+controlledhandoff reuse andlogserialization beforechanginginterface.
+RereadcurrentprimaryofficialvLLM CPU/GIL blog andv0.30core_client.py:
+https://vllm.ai/blog/2024-09-05-perf-update
+https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/engine/core_client.py
+Asyncutility usescall IDs/futures andmessage-scopedtransfer; supportsseparating
+executioncontexts, NOTproofthatPrime'sfullviewtransferischeap orsamemechanism.
+No upstreamperformancefactor attributedtoPrime; no newdependency/codecchange.
+
+NEXT: ONEevidence-led Primearchitecture question usingexistingD129receipts/current
 code andprimaryliterature; no more samecomponentprobes oroldlargeprojections.
 Warm/Resident→Serverless→vLLM→S-LoRA→dLoRA3B→Loquetier→HydraServe→M1/M2→
 A1–A5/S1–S13 remainoutstanding. BaselinesPAUSED,wholegoalACTIVE/incomplete.

@@ -1,0 +1,531 @@
+{
+  "kind": "d130_sealed_planning_transaction_component_v1",
+  "samples": [
+    {
+      "case": "frozen_plan_pipeline",
+      "method": "sealed_cold",
+      "trial": -1,
+      "elapsed_ms": 12899.237565,
+      "ready_callback_delay_ms": 7.499854,
+      "callback_before_result": true,
+      "exact_value_equal": true,
+      "worker_calls": 1,
+      "worker_input_bytes": 6999,
+      "worker_output_bytes": 14142
+    },
+    {
+      "case": "frozen_plan_pipeline",
+      "method": "two_round_trips",
+      "trial": 0,
+      "elapsed_ms": 12.020392,
+      "ready_callback_delay_ms": 0.261694,
+      "callback_before_result": true,
+      "exact_value_equal": true,
+      "worker_calls": 2,
+      "worker_input_bytes": 21117,
+      "worker_output_bytes": 28283
+    },
+    {
+      "case": "frozen_plan_pipeline",
+      "method": "sealed_transaction",
+      "trial": 0,
+      "elapsed_ms": 3.118216,
+      "ready_callback_delay_ms": 0.29681,
+      "callback_before_result": true,
+      "exact_value_equal": true,
+      "worker_calls": 1,
+      "worker_input_bytes": 6999,
+      "worker_output_bytes": 14142
+    },
+    {
+      "case": "frozen_plan_pipeline",
+      "method": "sealed_transaction",
+      "trial": 1,
+      "elapsed_ms": 2.922937,
+      "ready_callback_delay_ms": 0.246164,
+      "callback_before_result": true,
+      "exact_value_equal": true,
+      "worker_calls": 1,
+      "worker_input_bytes": 6999,
+      "worker_output_bytes": 14142
+    },
+    {
+      "case": "frozen_plan_pipeline",
+      "method": "two_round_trips",
+      "trial": 1,
+      "elapsed_ms": 4.622356,
+      "ready_callback_delay_ms": 0.168216,
+      "callback_before_result": true,
+      "exact_value_equal": true,
+      "worker_calls": 2,
+      "worker_input_bytes": 21117,
+      "worker_output_bytes": 28283
+    },
+    {
+      "case": "frozen_plan_pipeline",
+      "method": "two_round_trips",
+      "trial": 2,
+      "elapsed_ms": 4.057255,
+      "ready_callback_delay_ms": 0.142651,
+      "callback_before_result": true,
+      "exact_value_equal": true,
+      "worker_calls": 2,
+      "worker_input_bytes": 21117,
+      "worker_output_bytes": 28283
+    },
+    {
+      "case": "frozen_plan_pipeline",
+      "method": "sealed_transaction",
+      "trial": 2,
+      "elapsed_ms": 2.751448,
+      "ready_callback_delay_ms": 0.188682,
+      "callback_before_result": true,
+      "exact_value_equal": true,
+      "worker_calls": 1,
+      "worker_input_bytes": 6999,
+      "worker_output_bytes": 14142
+    }
+  ],
+  "summary": [
+    {
+      "case": "frozen_plan_pipeline",
+      "metric": "elapsed_ms",
+      "two_round_trips": 6.900001,
+      "sealed_transaction": 2.930867,
+      "relative_reduction": 0.5752367282265611
+    },
+    {
+      "case": "frozen_plan_pipeline",
+      "metric": "ready_callback_delay_ms",
+      "two_round_trips": 0.19085366666666667,
+      "sealed_transaction": 0.24388533333333334,
+      "relative_reduction": -0.27786558986728055
+    },
+    {
+      "case": "frozen_plan_pipeline",
+      "metric": "worker_calls",
+      "two_round_trips": 2,
+      "sealed_transaction": 1,
+      "relative_reduction": 0.5
+    },
+    {
+      "case": "frozen_plan_pipeline",
+      "metric": "worker_input_bytes",
+      "two_round_trips": 21117,
+      "sealed_transaction": 6999,
+      "relative_reduction": 0.6685608751243074
+    },
+    {
+      "case": "frozen_plan_pipeline",
+      "metric": "worker_output_bytes",
+      "two_round_trips": 28283,
+      "sealed_transaction": 14142,
+      "relative_reduction": 0.49998232153590494
+    }
+  ],
+  "worker_events": [
+    {
+      "operation": "owned_execution_epoch",
+      "captured_monotonic_s": 293567.23061015,
+      "detached_monotonic_s": 293567.230723299,
+      "submitted_monotonic_s": 293567.232199427,
+      "state": "completed",
+      "caller_cancelled": false,
+      "worker_pid": 1611481,
+      "worker_started_monotonic_s": 293580.022326217,
+      "worker_finished_monotonic_s": 293580.128910857,
+      "worker_cpu_seconds": 0.10635968399999918,
+      "input_bytes": 6999,
+      "output_bytes": 14142,
+      "plan_sha256": "01f066d3a85c41b75b84314f04ced6749821f784376f776dade5fc55e82b444b",
+      "cpu_affinity": [
+        2,
+        3,
+        26,
+        27
+      ],
+      "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d130-probe1-20261001.scope",
+      "frozen_execution_validated": true,
+      "frozen_validation_seconds": 0.000577926984988153,
+      "plan_keys": [
+        "kind",
+        "mode",
+        "source_snapshot_id",
+        "profile_id",
+        "cost_sequence",
+        "demand_observed_at",
+        "window_seconds",
+        "total_arrivals",
+        "arrival_counts",
+        "remaining_bytes",
+        "options",
+        "cost_estimates",
+        "replacement_policy",
+        "size_edges_bytes",
+        "plan_sha256",
+        "physical_resources_reserved",
+        "selected",
+        "diagnostics",
+        "source_view"
+      ],
+      "joined_monotonic_s": 293580.129537761
+    },
+    {
+      "operation": "owned_epoch",
+      "captured_monotonic_s": 293580.129933938,
+      "detached_monotonic_s": 293580.13008606,
+      "submitted_monotonic_s": 293580.130089987,
+      "state": "completed",
+      "caller_cancelled": false,
+      "worker_pid": 1611481,
+      "worker_started_monotonic_s": 293580.13076007,
+      "worker_finished_monotonic_s": 293580.134830704,
+      "worker_cpu_seconds": 0.004068569999999383,
+      "input_bytes": 6989,
+      "output_bytes": 14002,
+      "plan_sha256": "01f066d3a85c41b75b84314f04ced6749821f784376f776dade5fc55e82b444b",
+      "cpu_affinity": [
+        2,
+        3,
+        26,
+        27
+      ],
+      "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d130-probe1-20261001.scope",
+      "joined_monotonic_s": 293580.135742915
+    },
+    {
+      "operation": "validate_execution",
+      "captured_monotonic_s": 293580.13620604,
+      "detached_monotonic_s": 293580.136666319,
+      "submitted_monotonic_s": 293580.136672629,
+      "state": "completed",
+      "caller_cancelled": false,
+      "worker_pid": 1611481,
+      "worker_started_monotonic_s": 293580.137384387,
+      "worker_finished_monotonic_s": 293580.14135556,
+      "worker_cpu_seconds": 0.003969528999999028,
+      "input_bytes": 14128,
+      "output_bytes": 14281,
+      "plan_sha256": "01f066d3a85c41b75b84314f04ced6749821f784376f776dade5fc55e82b444b",
+      "cpu_affinity": [
+        2,
+        3,
+        26,
+        27
+      ],
+      "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d130-probe1-20261001.scope",
+      "joined_monotonic_s": 293580.141724778
+    },
+    {
+      "operation": "owned_execution_epoch",
+      "captured_monotonic_s": 293580.142233827,
+      "detached_monotonic_s": 293580.14236167,
+      "submitted_monotonic_s": 293580.142364466,
+      "state": "completed",
+      "caller_cancelled": false,
+      "worker_pid": 1611481,
+      "worker_started_monotonic_s": 293580.142644553,
+      "worker_finished_monotonic_s": 293580.144716119,
+      "worker_cpu_seconds": 0.0020711319999993094,
+      "input_bytes": 6999,
+      "output_bytes": 14142,
+      "plan_sha256": "01f066d3a85c41b75b84314f04ced6749821f784376f776dade5fc55e82b444b",
+      "cpu_affinity": [
+        2,
+        3,
+        26,
+        27
+      ],
+      "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d130-probe1-20261001.scope",
+      "frozen_execution_validated": true,
+      "frozen_validation_seconds": 0.0005841529928147793,
+      "plan_keys": [
+        "kind",
+        "mode",
+        "source_snapshot_id",
+        "profile_id",
+        "cost_sequence",
+        "demand_observed_at",
+        "window_seconds",
+        "total_arrivals",
+        "arrival_counts",
+        "remaining_bytes",
+        "options",
+        "cost_estimates",
+        "replacement_policy",
+        "size_edges_bytes",
+        "plan_sha256",
+        "physical_resources_reserved",
+        "selected",
+        "diagnostics",
+        "source_view"
+      ],
+      "joined_monotonic_s": 293580.145056302
+    },
+    {
+      "operation": "owned_execution_epoch",
+      "captured_monotonic_s": 293580.145435165,
+      "detached_monotonic_s": 293580.14554615,
+      "submitted_monotonic_s": 293580.14554884,
+      "state": "completed",
+      "caller_cancelled": false,
+      "worker_pid": 1611481,
+      "worker_started_monotonic_s": 293580.145807157,
+      "worker_finished_monotonic_s": 293580.1478083,
+      "worker_cpu_seconds": 0.002000997999999754,
+      "input_bytes": 6999,
+      "output_bytes": 14142,
+      "plan_sha256": "01f066d3a85c41b75b84314f04ced6749821f784376f776dade5fc55e82b444b",
+      "cpu_affinity": [
+        2,
+        3,
+        26,
+        27
+      ],
+      "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d130-probe1-20261001.scope",
+      "frozen_execution_validated": true,
+      "frozen_validation_seconds": 0.0005677370354533195,
+      "plan_keys": [
+        "kind",
+        "mode",
+        "source_snapshot_id",
+        "profile_id",
+        "cost_sequence",
+        "demand_observed_at",
+        "window_seconds",
+        "total_arrivals",
+        "arrival_counts",
+        "remaining_bytes",
+        "options",
+        "cost_estimates",
+        "replacement_policy",
+        "size_edges_bytes",
+        "plan_sha256",
+        "physical_resources_reserved",
+        "selected",
+        "diagnostics",
+        "source_view"
+      ],
+      "joined_monotonic_s": 293580.148121816
+    },
+    {
+      "operation": "owned_epoch",
+      "captured_monotonic_s": 293580.148382707,
+      "detached_monotonic_s": 293580.148483884,
+      "submitted_monotonic_s": 293580.148485786,
+      "state": "completed",
+      "caller_cancelled": false,
+      "worker_pid": 1611481,
+      "worker_started_monotonic_s": 293580.148730926,
+      "worker_finished_monotonic_s": 293580.150155632,
+      "worker_cpu_seconds": 0.0014245069999994087,
+      "input_bytes": 6989,
+      "output_bytes": 14002,
+      "plan_sha256": "01f066d3a85c41b75b84314f04ced6749821f784376f776dade5fc55e82b444b",
+      "cpu_affinity": [
+        2,
+        3,
+        26,
+        27
+      ],
+      "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d130-probe1-20261001.scope",
+      "joined_monotonic_s": 293580.150447507
+    },
+    {
+      "operation": "validate_execution",
+      "captured_monotonic_s": 293580.150598636,
+      "detached_monotonic_s": 293580.150736576,
+      "submitted_monotonic_s": 293580.150738222,
+      "state": "completed",
+      "caller_cancelled": false,
+      "worker_pid": 1611481,
+      "worker_started_monotonic_s": 293580.150976006,
+      "worker_finished_monotonic_s": 293580.152559638,
+      "worker_cpu_seconds": 0.0015834990000005433,
+      "input_bytes": 14128,
+      "output_bytes": 14281,
+      "plan_sha256": "01f066d3a85c41b75b84314f04ced6749821f784376f776dade5fc55e82b444b",
+      "cpu_affinity": [
+        2,
+        3,
+        26,
+        27
+      ],
+      "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d130-probe1-20261001.scope",
+      "joined_monotonic_s": 293580.15284586
+    },
+    {
+      "operation": "owned_epoch",
+      "captured_monotonic_s": 293580.153135729,
+      "detached_monotonic_s": 293580.153219394,
+      "submitted_monotonic_s": 293580.153221041,
+      "state": "completed",
+      "caller_cancelled": false,
+      "worker_pid": 1611481,
+      "worker_started_monotonic_s": 293580.153437525,
+      "worker_finished_monotonic_s": 293580.154662974,
+      "worker_cpu_seconds": 0.0012254479999995738,
+      "input_bytes": 6989,
+      "output_bytes": 14002,
+      "plan_sha256": "01f066d3a85c41b75b84314f04ced6749821f784376f776dade5fc55e82b444b",
+      "cpu_affinity": [
+        2,
+        3,
+        26,
+        27
+      ],
+      "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d130-probe1-20261001.scope",
+      "joined_monotonic_s": 293580.154918314
+    },
+    {
+      "operation": "validate_execution",
+      "captured_monotonic_s": 293580.155058798,
+      "detached_monotonic_s": 293580.15517556,
+      "submitted_monotonic_s": 293580.155177034,
+      "state": "completed",
+      "caller_cancelled": false,
+      "worker_pid": 1611481,
+      "worker_started_monotonic_s": 293580.155391542,
+      "worker_finished_monotonic_s": 293580.156789711,
+      "worker_cpu_seconds": 0.0013981039999997336,
+      "input_bytes": 14128,
+      "output_bytes": 14281,
+      "plan_sha256": "01f066d3a85c41b75b84314f04ced6749821f784376f776dade5fc55e82b444b",
+      "cpu_affinity": [
+        2,
+        3,
+        26,
+        27
+      ],
+      "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d130-probe1-20261001.scope",
+      "joined_monotonic_s": 293580.157048088
+    },
+    {
+      "operation": "owned_execution_epoch",
+      "captured_monotonic_s": 293580.157347043,
+      "detached_monotonic_s": 293580.157427846,
+      "submitted_monotonic_s": 293580.157429468,
+      "state": "completed",
+      "caller_cancelled": false,
+      "worker_pid": 1611481,
+      "worker_started_monotonic_s": 293580.157686924,
+      "worker_finished_monotonic_s": 293580.159618027,
+      "worker_cpu_seconds": 0.0019306510000003385,
+      "input_bytes": 6999,
+      "output_bytes": 14142,
+      "plan_sha256": "01f066d3a85c41b75b84314f04ced6749821f784376f776dade5fc55e82b444b",
+      "cpu_affinity": [
+        2,
+        3,
+        26,
+        27
+      ],
+      "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d130-probe1-20261001.scope",
+      "frozen_execution_validated": true,
+      "frozen_validation_seconds": 0.0005503009888343513,
+      "plan_keys": [
+        "kind",
+        "mode",
+        "source_snapshot_id",
+        "profile_id",
+        "cost_sequence",
+        "demand_observed_at",
+        "window_seconds",
+        "total_arrivals",
+        "arrival_counts",
+        "remaining_bytes",
+        "options",
+        "cost_estimates",
+        "replacement_policy",
+        "size_edges_bytes",
+        "plan_sha256",
+        "physical_resources_reserved",
+        "selected",
+        "diagnostics",
+        "source_view"
+      ],
+      "joined_monotonic_s": 293580.159895193
+    }
+  ],
+  "adapter_count": 4,
+  "source_snapshot_id": "351fe34c973b3a8bec14807594b009150921921ae56430922fbb1f67b4e66db8",
+  "plan_sha256": "01f066d3a85c41b75b84314f04ced6749821f784376f776dade5fc55e82b444b",
+  "formal_performance_result": false,
+  "full_candidate_accepted": false,
+  "limitations": [
+    "Four-adapter controlled fixture, not complete 500-adapter workload.",
+    "Warm component times do not exclude cold process startup from production lifecycle.",
+    "Three local trials are not independent workload seeds or system-level confidence intervals.",
+    "Execution-time physical owners/checks are unchanged; later state may supersede a plan."
+  ],
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/planning_cpu.py",
+      "sha256": "f0c4d7f34abaf336873bf97a26cb51e870972de08688cf53f89a5b1ba44d3779"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_planner.py",
+      "sha256": "bc64eac2ab5e9d91556d8911b6d194b3b712314631a71d079ecb0fe7ca44e598"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/experiment_stack.py",
+      "sha256": "3ad62858a11efa629ba1c1676149dc3b8f44c1433a70982385caa60bdf701619"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "b0025a6ccbebccc9bbb2eb23b903b31e5a6b4c58190c2f1bb4c70ca386ff711b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_planning_cpu.py",
+      "sha256": "81ff482a67a13790c697ecf8a01759aa50909a816649cecd7869310421e1b926"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_transfer_pressure.py",
+      "sha256": "d7e736219f34c8b174856efb7dcd455166636ea0545f22457be6b195cceae188"
+    }
+  ],
+  "decision": "candidate_for_ordinary_Full_not_system_performance_accepted",
+  "final_test_count": 848,
+  "verification": {
+    "kind": "d130_planning_cpu_verification_v1",
+    "protected": {
+      "kind": "protected_artifact_verification",
+      "pass": true,
+      "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+      "changed": [],
+      "entry_count": 147,
+      "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+    },
+    "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c",
+    "source_refs": [
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/planning_cpu.py",
+        "sha256": "f0c4d7f34abaf336873bf97a26cb51e870972de08688cf53f89a5b1ba44d3779"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/experiment_stack.py",
+        "sha256": "3ad62858a11efa629ba1c1676149dc3b8f44c1433a70982385caa60bdf701619"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_planner.py",
+        "sha256": "bc64eac2ab5e9d91556d8911b6d194b3b712314631a71d079ecb0fe7ca44e598"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "sha256": "b0025a6ccbebccc9bbb2eb23b903b31e5a6b4c58190c2f1bb4c70ca386ff711b"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_planning_cpu.py",
+        "sha256": "81ff482a67a13790c697ecf8a01759aa50909a816649cecd7869310421e1b926"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_transfer_pressure.py",
+        "sha256": "d7e736219f34c8b174856efb7dcd455166636ea0545f22457be6b195cceae188"
+      }
+    ],
+    "formal_performance_result": false
+  },
+  "probe_sha256": "883fe64ab50d6bf272a1f02e9d37f897edf7a9050c45a47d2e2f530b2918e17a",
+  "source_base": "837b23165de159ffe9982d7f93c1a50aee4505c5"
+}

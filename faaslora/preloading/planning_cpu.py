@@ -11,6 +11,7 @@ import multiprocessing
 import os
 import pickle
 import time
+from collections.abc import Mapping
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass, replace
 from functools import lru_cache
@@ -24,6 +25,61 @@ class FrozenCostEpoch:
 
     def snapshot(self):
         return self.sequence, dict(self.estimates)
+
+
+@dataclass(frozen=True, slots=True, init=False, eq=False)
+class ValidatedPreparationPlan(Mapping):
+    """An immutable, locally produced computation result, not a resource lease.
+
+    Only the worker result path constructs this envelope after the unchanged
+    selector and frozen-input validator finish in the same transaction. The
+    byte string has no mutable aliases. Reads/export/deepcopy produce ordinary
+    detached dictionaries; those exports are NOT validated envelopes and must
+    pass the normal validator if resubmitted. Live physical checks are never
+    certified by this type. Pickle is trusted local IPC only, not artifact input.
+    """
+    _payload: bytes
+    _plan_sha256: str
+    _keys: tuple
+
+    @classmethod
+    def _from_worker_result(cls, payload, receipt):
+        if (type(payload) is not bytes
+                or receipt.get('operation') != 'owned_execution_epoch'
+                or receipt.get('frozen_execution_validated') is not True):
+            raise ValueError('validated preparation requires a completed worker transaction')
+        value = object.__new__(cls)
+        object.__setattr__(value, '_payload', payload)
+        object.__setattr__(value, '_plan_sha256', receipt['plan_sha256'])
+        object.__setattr__(value, '_keys', tuple(receipt['plan_keys']))
+        return value
+
+    def execution_copy(self):
+        """One private execution image of the already validated frozen bytes."""
+        return pickle.loads(self._payload)
+
+    def snapshot(self):
+        return self.execution_copy()[0]
+
+    def __getitem__(self, key):
+        if key == 'plan_sha256':
+            return self._plan_sha256
+        return self.snapshot()[key]
+
+    def __iter__(self):
+        return iter(self._keys)
+
+    def __len__(self):
+        return len(self._keys)
+
+    def __deepcopy__(self, memo):
+        # Explicit mutable export loses the execution certificate by design.
+        result = self.snapshot()
+        memo[id(self)] = result
+        return result
+
+    def __reduce_ex__(self, protocol):
+        raise TypeError('validated execution envelopes are local-only; export a snapshot')
 
 
 def freeze_owned_planning(*, demand, costs, profiles, **received):
@@ -50,7 +106,8 @@ def execute_planning_message(message):
     start, cpu = time.monotonic(), time.process_time()
     operation, max_dp_buffer_bytes, args = pickle.loads(message)
     planner = _pure_selector(max_dp_buffer_bytes)
-    if operation == 'owned_epoch':
+    validation_seconds = None
+    if operation in ('owned_epoch', 'owned_execution_epoch'):
         args = dict(args)
         mode, demand, costs = (args.pop(name) for name in ('mode', 'demand', 'costs'))
         profiles = args['profiles']
@@ -60,6 +117,14 @@ def execute_planning_message(message):
             source_snapshot_id=inputs['source_snapshot_id'],
             source_view=inputs['source_view'], size_edges_bytes=profiles.size_edges_bytes)
         value = dict(plan, source_view=inputs['source_view'])
+        if operation == 'owned_execution_epoch':
+            # This private plan has never left the computation owner. Validate
+            # the exact epoch once, then freeze plan AND selected set together.
+            # No second parent->worker round trip or mutable public alias.
+            began = time.monotonic()
+            selected = planner.validate_ieee_execution_plan(value)
+            validation_seconds = time.monotonic()-began
+            value = (value, selected)
     elif operation == 'validate_execution':
         plan = copy_ieee_preparation_plan(args['plan'])
         value = (plan, planner.validate_ieee_execution_plan(plan))
@@ -74,6 +139,9 @@ def execute_planning_message(message):
         output_bytes=len(payload), plan_sha256=plan['plan_sha256'],
         cpu_affinity=sorted(os.sched_getaffinity(0)),
         cgroup=cgroup)
+    if operation == 'owned_execution_epoch':
+        receipt.update(frozen_execution_validated=True,
+            frozen_validation_seconds=validation_seconds, plan_keys=tuple(value[0]))
     return payload, receipt
 
 
@@ -130,6 +198,8 @@ class IEEEPlanningCPU:
                 if cancelled:
                     event['state'] = 'cancelled_result_discarded'
                     raise asyncio.CancelledError()
+                if operation == 'owned_execution_epoch':
+                    return ValidatedPreparationPlan._from_worker_result(payload, receipt)
                 return pickle.loads(payload)
             except BaseException as exc:
                 event.update(error_type=type(exc).__name__, joined_monotonic_s=time.monotonic())
@@ -158,3 +228,15 @@ async def run_planning_cpu(stack, operation, args):
     if worker is None:
         worker = stack._ieee_planning_cpu = IEEEPlanningCPU()
     return await worker.run(operation, stack.preloading_planner.max_dp_buffer_bytes, args)
+
+
+async def execution_preparation_input(stack, plan):
+    """Open sealed local results; validate ordinary/imported mutable plans.
+
+    This is a representation contract, not an exception fallback. A mutated
+    export never inherits a certificate. Physical owner/epoch/content/budget
+    checks still occur afterwards in the normal execution path.
+    """
+    if type(plan) is ValidatedPreparationPlan:
+        return plan.execution_copy()
+    return await run_planning_cpu(stack, 'validate_execution', {'plan': plan})

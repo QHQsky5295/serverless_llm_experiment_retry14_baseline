@@ -1,0 +1,8 @@
+case,method,trial,elapsed_ms,ready_callback_delay_ms,callback_before_result,exact_value_equal,worker_calls,worker_input_bytes,worker_output_bytes
+frozen_plan_pipeline,sealed_cold,-1,12899.237565,7.499854,True,True,1,6999,14142
+frozen_plan_pipeline,two_round_trips,0,12.020392,0.261694,True,True,2,21117,28283
+frozen_plan_pipeline,sealed_transaction,0,3.118216,0.29681,True,True,1,6999,14142
+frozen_plan_pipeline,sealed_transaction,1,2.922937,0.246164,True,True,1,6999,14142
+frozen_plan_pipeline,two_round_trips,1,4.622356,0.168216,True,True,2,21117,28283
+frozen_plan_pipeline,two_round_trips,2,4.057255,0.142651,True,True,2,21117,28283
+frozen_plan_pipeline,sealed_transaction,2,2.751448,0.188682,True,True,1,6999,14142

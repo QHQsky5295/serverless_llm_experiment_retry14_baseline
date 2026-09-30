@@ -17483,8 +17483,8 @@ class ScenarioRunner:
         if (not self.model_cfg.get('ieee_gpu_references') or self._stack is None
                 or not isinstance(target_replica, str) or not target_replica):
             raise ValueError('file plan requires the managed native deployment')
-        from faaslora.preloading.planning_cpu import run_planning_cpu
-        plan, selected = await run_planning_cpu(self._stack, 'validate_execution', {'plan': plan})
+        from faaslora.preloading.planning_cpu import execution_preparation_input
+        plan, selected = await execution_preparation_input(self._stack, plan)
         preinit = activation_ready is not None
         if preinit and (plan['source_view']['native'] is not None
                 or plan['source_view']['activation_id'] != activation_id

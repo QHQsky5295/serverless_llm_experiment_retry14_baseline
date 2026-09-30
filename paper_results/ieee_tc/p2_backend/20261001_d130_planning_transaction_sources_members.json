@@ -1,0 +1,24 @@
+{
+  "bundle": "20261001_d130_planning_transaction_sources.tar.gz",
+  "member_sha256": {
+    "curate_and_bundle.py": "d24514a093e4f3d267b1dbe4b4494211a1ed2d0735643850a825baab6be5a0f6",
+    "finalize.sh": "e2ad39e9d3b98437b8de530314c260aa27c60bba0d523b6ea10fbc9467439a9b",
+    "finalize_scope.txt": "52f92e547548fa69b2386c821751d917658f7724b1d2027bd59bc49ed74586ab",
+    "planning_cpu_probe.json": "883fe64ab50d6bf272a1f02e9d37f897edf7a9050c45a47d2e2f530b2918e17a",
+    "probe1.log": "0ce6072104bc86f00ac9376b847965601768eb0f27b538838205d3e09e7b6ecd",
+    "probe1_scope.txt": "9ed54bfce5680514268eefe655952cb7865cf907a890e4a3b46e0832c61c2eb9",
+    "probe1_time.txt": "a86b95067d414f15fdcf6a38b126b3902f8a0c48b7f3cc02b12985c50eecbc34",
+    "probe_planning_cpu.py": "06121818a8f5b0251c5aeac3bea988e8434cf8975f216689e647e644434ff695",
+    "probe_planning_cpu.sh": "e9170ba0508bb0d64e5e6a99c3bae72b3aa49f671fc1dd6fe2cb5b49e808ba12",
+    "test_planning_cpu.sh": "4753f0104cd2859b58e52854af5472f8eb6cb4e4575d53c3930fdaf99f34308a",
+    "tests1.log": "c791e2b99eb5ed75cd981964a953f81e79aa9f0d9c2336995edb5e37a0c5780c",
+    "tests1_scope.txt": "c9b95cd2212b16f49960e5fd4a723834c42229ae72dc2b9f26c12af927340395",
+    "tests1_time.txt": "12da79116d5d869c02c244d5b1452447fc2571435d1adb48251095186462cec5",
+    "verification.json": "531f73af29b18d2bc5ca2d22abf4d4b5663c87f7fad8548eb5b94e45f958a264",
+    "verify.log": "a6fe44624d84570ab37ca05b5b8daa137a84dfe00ca8910360e92ec435d41960",
+    "verify_planning_cpu.sh": "818da8b8a1fa3e07ba11ac0e1f471061f341845fc8b188a031024cb617c3d6bb",
+    "verify_scope.txt": "cdb8349478b0fc0ae80633796749ee8a72216722226aa63f7991d4e140bae3de",
+    "verify_time.txt": "84ac0de087230541de473c3c31434c39d9837e4cfdd17c4b6011f0cdbee2c291"
+  },
+  "member_checks_pass": true
+}

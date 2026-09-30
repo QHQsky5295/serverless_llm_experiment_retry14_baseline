@@ -951,7 +951,7 @@ class ExperimentStack:
         """
         from ..preloading.planning_cpu import freeze_owned_planning, run_planning_cpu
         args = freeze_owned_planning(demand=self.hotness_tracker.snapshot(), **received)
-        return await run_planning_cpu(self, 'owned_epoch', args)
+        return await run_planning_cpu(self, 'owned_execution_epoch', args)
 
     async def start(self):
         await self.registry.start()
