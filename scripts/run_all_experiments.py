@@ -14543,6 +14543,7 @@ class ScenarioRunner:
                         scheduled_arrival_offset_s=scheduled_offset_s,
                         admission_start_offset_s=max(0.0, admission_start_at - replay_t0),
                         admitted_offset_s=max(0.0, admitted_at - replay_t0),
+                        dispatch_admitted_at=admitted_at,
                         arrival_released_offset_s=max(0.0, arrival_released_at - replay_t0),
                     )
                     if self._external_replay is not None:
@@ -15158,7 +15159,10 @@ class ScenarioRunner:
         arrival_released_offset_s: Optional[float] = None,
         admission_start_offset_s: Optional[float] = None,
         admitted_offset_s: Optional[float] = None,
+        dispatch_admitted_at: Optional[float] = None,
     ) -> RequestResult:
+        if dispatch_admitted_at is None:
+            dispatch_admitted_at = time.perf_counter()
         reservation = RuntimeRequestReservation(str(trace.request_id))
         live = getattr(self, '_live_runtime_reservations', None)
         if live is None:
@@ -15174,7 +15178,8 @@ class ScenarioRunner:
                 arrival_release_lateness_ms=arrival_release_lateness_ms,
                 scheduled_arrival_offset_s=scheduled_arrival_offset_s,
                 arrival_released_offset_s=arrival_released_offset_s,
-                admission_start_offset_s=admission_start_offset_s, admitted_offset_s=admitted_offset_s)
+                admission_start_offset_s=admission_start_offset_s, admitted_offset_s=admitted_offset_s,
+                dispatch_admitted_at=dispatch_admitted_at)
         finally:
             try:
                 await self._finish_runtime_request_reservation(reservation)
@@ -15954,6 +15959,7 @@ class ScenarioRunner:
         arrival_released_offset_s: Optional[float] = None,
         admission_start_offset_s: Optional[float] = None,
         admitted_offset_s: Optional[float] = None,
+        dispatch_admitted_at: Optional[float] = None,
     ) -> RequestResult:
         # B2: 由 Router 选择实例，与线上路径一致
         adapter_id = trace.adapter_id
@@ -15963,7 +15969,11 @@ class ScenarioRunner:
         adapter_path_resolution_us = 0.0
         gpu_admission_decision_us = 0.0
         selected_instance_age_s = 0.0
-        runtime_slot_wait_started = time.perf_counter()
+        # Partition at the SAME global-admission boundary used by run_one.
+        # Starting another clock here drops request lookup/reservation setup
+        # (D123: three >1 ms errors in dispatch, TTFT and E2E alike).
+        runtime_slot_wait_started = (time.perf_counter() if dispatch_admitted_at is None
+                                     else dispatch_admitted_at)
         slot = None
         ieee_routing = getattr(self, '_routing_policy', None) == 'ieee_confirmed'
         if ieee_routing and request_plan is None:
@@ -16048,10 +16058,11 @@ class ScenarioRunner:
                     await asyncio.wait_for(cond.wait(), timeout=0.1)
                 except asyncio.TimeoutError:
                     pass
+        admitted_perf_counter = (_reservation.ieee_observation.admitted_at if ieee_routing
+                                 else time.perf_counter())
         runtime_slot_wait_ms = max(
             0.0,
-            ((_reservation.ieee_observation.admitted_at if ieee_routing else time.perf_counter())
-             - runtime_slot_wait_started) * 1000.0,
+            (admitted_perf_counter - runtime_slot_wait_started) * 1000.0,
         )
         dispatch_admission_wait_ms = max(
             0.0,
@@ -16061,8 +16072,6 @@ class ScenarioRunner:
             admitted_offset_s = float(admitted_offset_s) + (runtime_slot_wait_ms / 1000.0)
         self._release_live_waiting_trace(trace)
         self._observe_live_started_lora(adapter_id)
-        admitted_perf_counter = (_reservation.ieee_observation.admitted_at if ieee_routing
-                                 else time.perf_counter())
         _engine = slot.engine if slot else self.engine
         _coord = slot.coordinator if slot else self.coordinator
         inflight_request_key: Optional[str] = None
@@ -17441,7 +17450,8 @@ class ScenarioRunner:
         if (not self.model_cfg.get('ieee_gpu_references') or self._stack is None
                 or not isinstance(target_replica, str) or not target_replica):
             raise ValueError('file plan requires the managed native deployment')
-        plan = copy.deepcopy(plan)
+        from faaslora.preloading.preloading_planner import copy_ieee_preparation_plan
+        plan = copy_ieee_preparation_plan(plan)
         selected = self._stack.preloading_planner.validate_ieee_execution_plan(plan)
         preinit = activation_ready is not None
         if preinit and (plan['source_view']['native'] is not None

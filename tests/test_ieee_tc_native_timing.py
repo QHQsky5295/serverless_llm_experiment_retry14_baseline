@@ -233,12 +233,31 @@ class EngineTimingIntegration(unittest.TestCase):
         ticks = iter(100. + i*.01 for i in range(100))
         with patch('scripts.run_all_experiments.time.perf_counter', side_effect=lambda: next(ticks)), \
              patch('faaslora.metrics.metrics_collector.local_monotonic_clock_id', return_value='clock-a'):
-            result = asyncio.run(runner._exec_request(trace, max_tokens=2, temperature=0.))
+            # The outer admission ended at 99.5, before wrapper/slot setup at
+            # 100+. That real interval must not disappear between two timers.
+            result = asyncio.run(runner._exec_request(trace, max_tokens=2, temperature=0.,
+                dispatch_admitted_at=99.5, dispatch_admission_wait_ms=1500.,
+                dispatch_window_wait_ms=1250., arrival_release_lateness_ms=250.,
+                admitted_offset_s=1.5, scheduled_arrival_offset_s=0.,
+                arrival_released_offset_s=.25))
         self.assertTrue(result.success, result.error)
         self.assertEqual(result.timing_contract, 'ieee_tc_native_v1')
         self.assertAlmostEqual(result.tpot_ms, 1.)
         self.assertGreater(result.service_e2e_ms-result.service_ttft_ms, result.tpot_ms)
         self.assertAlmostEqual(result.native_token_timing['worker_completion_notification_ms'], 4.)
+        native = result.native_token_timing
+        admitted = native['controller_admitted_monotonic_s']
+        self.assertAlmostEqual(result.runtime_slot_wait_ms, (admitted-99.5)*1000.)
+        self.assertGreaterEqual(result.runtime_slot_wait_ms, 500.)
+        self.assertAlmostEqual(result.dispatch_admission_wait_ms, (admitted-98.)*1000.)
+        self.assertAlmostEqual(result.admitted_offset_s, admitted-98.)
+        self.assertAlmostEqual(result.dispatch_admission_wait_ms,
+            result.arrival_release_lateness_ms + result.dispatch_window_wait_ms
+            + result.runtime_slot_wait_ms)
+        self.assertAlmostEqual(result.overall_ttft_ms,
+            (native['native_first_token_monotonic_s']-98.)*1000.)
+        self.assertAlmostEqual(result.overall_e2e_ms,
+            (native['controller_completed_monotonic_s']-98.)*1000.)
 
 
 class FixedWorkContract(unittest.TestCase):

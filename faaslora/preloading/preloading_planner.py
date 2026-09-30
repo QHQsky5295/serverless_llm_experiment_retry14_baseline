@@ -612,6 +612,32 @@ class PreparationCostModel:
             return True
 
 
+def freeze_preparation_source_view(view):
+    """Detach a received JSON value and bind the exact canonical bytes once.
+
+    These owner messages have JSON value semantics, not arbitrary Python
+    object/alias semantics. Encoding is already required for the source hash;
+    decoding those same bytes isolates every mutable child without a second
+    generic Python deepcopy traversal. Do not cache mutable views or skip
+    execution-time owner/epoch/content/budget validation.
+    """
+    wire = json.dumps(view, sort_keys=True, separators=(',', ':'), allow_nan=False)
+    detached = json.loads(wire)
+    if detached != view:
+        raise ValueError('preparation source view must preserve JSON-native value types')
+    return detached, hashlib.sha256(wire.encode()).hexdigest()
+
+
+def copy_ieee_preparation_plan(plan):
+    """Copy Python selection objects normally; detach the JSON owner view once."""
+    if 'source_view' not in plan:
+        # Historical explicit file/native-only plans do not carry a joint view.
+        return copy.deepcopy(plan)
+    view = plan['source_view']
+    detached, _ = freeze_preparation_source_view(view)
+    return copy.deepcopy(plan, {id(view): detached})
+
+
 def owned_preparation_inputs(*, native_snapshot, file_snapshot, identities,
                              adapter_int_ids, profiles, expected_clock_id, received_at,
                              activation_id=None):
@@ -743,9 +769,7 @@ def owned_preparation_inputs(*, native_snapshot, file_snapshot, identities,
     if prospective:
         view.update(activation_id=activation_id, inherited_layout=layout,
                     native_owner_exists=False, gpu_budget_basis='frozen_initialization_layout')
-    view = copy.deepcopy(view)
-    digest = hashlib.sha256(json.dumps(view, sort_keys=True,
-        separators=(',', ':'), allow_nan=False).encode()).hexdigest()
+    view, digest = freeze_preparation_source_view(view)
     return dict(options=tuple(options), budgets=budgets, source_snapshot_id=digest, source_view=view)
 
 

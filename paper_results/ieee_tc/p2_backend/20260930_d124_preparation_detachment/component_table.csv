@@ -1,0 +1,4 @@
+case,repeats,reference_mean_ms,candidate_mean_ms,relative_decrease
+actual_owned_inputs_four_adapter_owner_fixture,3,1.0505766666666667,0.604413,0.42468453833291564
+actual_plan_copy_and_selector_validation_four_adapter_owner_fixture,3,1.5289036666666667,1.2537103333333333,0.17999389976826535
+retained_7b_native_JSON_component_only,3,38.796560666666664,13.169824666666667,0.6605414387161913

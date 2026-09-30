@@ -1,6 +1,55 @@
 # IEEE TC execution status
 
-## CURRENT — D123 diagnostic complete; backup next, no live job
+## CURRENT — D124 candidate verified; ordinary Full next, no live job
+
+2026-09-30 18:08. Goal ACTIVE/incomplete. Current turn PROGRESS. No subagents.
+Baselines PAUSED. No GPU/real-remote job started this turn; D78/D80 cache unchanged.
+Do NOT repeat D123 analysis/replay, D124 timing/probe/tests/curation/bundle.
+
+- D124 fixed actual missing timing interval: pass global-admission timestamp G
+  into reservation path, end wait/start service at one T. Original raw formula
+  (G-A)+(T-S) omitted S-G. D123916success signed gaps allnonnegative,
+  mean.043464436ms,max3.948904981ms; three >1ms unchanged failures.
+  Old rows/files untouched. Absolute boundary recovery is controller completion,
+  not client receipt. Timing feeds online TTFT control, new runtime identity.
+- One optimizer candidate: freeze JSON owner view via SAME canonical bytes→
+  json.loads+SHA; detach all mutable values, reject type coercion/nonfinite/cycles.
+  Whole plan retains ordinary deepcopy for Python/dataclass/tuple components.
+  All owner/epoch/content/budget/live/source/selection guards unchanged.
+  No capacity/thread/timeout/feedback formula changes; no filelock guard removal.
+- New actual-line D123 GIL attribution confirms both deepcopies prominent;
+  no complete source_view in normalmainoutcome. No huge raw re-projection.
+- Paired component CPU3trials, alternating order, reference source5e3407b:
+  4adapter owned-input fixture1.050577→.604413ms; copy+selector1.528904→1.253710ms;
+  real retainedD88 7B native component38.796561→13.169825ms (66.05% mean decrease).
+  Same values/SHA/selected, copy isolation and tamper rejectionPASS.
+  Fixture isnot500workload; D88nativeonly2adapters/512alloc. NOFullspeedupclaim/CI.
+- Tests209 timing/lifecycle/retirement BEFOREpreparationcandidate;
+  189 preparation/copy/transfer plus425smoke/launch/replay WITHcandidate, allPASS.
+  Native microenvironment unchanged;3/4GiBswap0CPU2,3,26,27, nohigh/max/OOM.
+- Firstmicrofailed wrongD121summarypath; source/log/timeexit1retained, nofinaldata;
+  secondonlypathfixed,11.42sRSS1066052KiBexit0. Two curator errors (trailingstdout
+  logregex; generatedregexsyntax) retained; correctedcurator only, no test/probe rerun.
+- Curated paper_results/ieee_tc/p2_backend/20260930_d124_preparation_detachment/:
+  summarySHA6c7e1278dc23f023789989a54bb08575a103c1a8cad727b7708b2a534e23b0e5;
+  table/sampleCSV;46smallmembers48312BbundleSHA
+  8a7d1557422abd9d1c396f13726664f0a7923ac57be4e9624f61fbf5727177f1.
+  Protected147PASS. Doc D124_TIMING_AND_PREPARATION_DETACHMENT.md has table,
+  first-principles literature/code references, equality scope and failure history.
+- All exact-owned timing/preparation/probe2/verify/curate/curate2 scopes emptyclosed;
+  finalcurate3 identity6d9b9a8803764279aa320aaa107e10cf emptyclosed18:08:14,
+  memory.events0. No live work.
+  Bundle checksum and57staged/archivepayload secrets checksPASS;13sourcerefsSHA
+  verified. NewCSV CRLF→LF formatting only after diffcheck; values unchanged.
+  Scoped backup next; NEVERstage usermanifest.
+
+NEXT AFTER BACKUP: ordinary 7B Full4000, no detailedCPUprofiler/prefix, same
+D119configuration/D89profiles/realpublished delivery. Only D124timing+copydiff.
+Verify completion/timing/backlog/GPUlifecycle/cleanup, then3BFull ifappropriate.
+Do not add more component probes. Candidate NOTaccepted as Full improvement.
+Then warm/Resident→baselines→M1/M2→A1–A5/S1–S13, allstillpending.
+
+## Previous checkpoint — D123 diagnostic complete and backed
 
 2026-09-30 17:39. Goal ACTIVE/incomplete. Previous goal turn VERIFIEDWAIT;
 current turn PROGRESS: D123 finished, exact cleanup, CPU/request analysis,
@@ -74,7 +123,14 @@ D123 replay/profile/projection/CPU/metadata/curation/copy/tests/bundle.
   Initial bundlechecksum callwrongcwd failed; correctedcheckPASS, NOrepackage.
   Git diffPASS; stagedsecrets check/commit/push next. Neverstage usermanifest.
 
-NEXT: finish scoped Git backup. Then reconcile small timing boundary using
+Postbackup2026-09-30: nine scopedfiles committed/pushed
+5e3407b16b62e5c8a85e81027b4c24f55e367a65; exactremoteHEAD verified.
+Diff/bundle/memberSHA/83staged-and-archive-entrysecrets checksPASS;
+userdirtymanifest neverstaged. DoNOTrepeat backup or completedD123 checks.
+This postpush ledger note is not a runtime change. Old1439line historySHA
+verified identical afterarchive. No analysis/GPU/remote job remains.
+
+Historical D123 NEXT (completed by D124 above): reconcile small timing boundary using
 existing records/source, and ONE bounded causal test of actual preparation
 copy/validation path before selecting an optimizer. Use current primary-source
 literature/code and preserve all owner/content/epoch/budget checks. No blind
