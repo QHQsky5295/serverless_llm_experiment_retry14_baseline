@@ -152,13 +152,104 @@ class NativeSourceSnapshot:
 
     @classmethod
     def from_native(cls, payload, *, expected_clock_id: str, received_monotonic_s: float):
+        return cls._from_payload(payload, expected_clock_id=expected_clock_id,
+            received_monotonic_s=received_monotonic_s, kind='native_lora_sources_v1',
+            footprint_key='native_footprints', footprint_reader=cls._footprints)
+
+    def routing_wire(self, *, device_uuid: str):
+        """Project a fully validated observation, not a lease or cached verdict.
+
+        The dedicated frontend validates the complete native allocation graph
+        before this projection. Routing needs its measured per-source classes,
+        not the graph's tensor/alias edges. Other native consumers keep the
+        complete graph. The receiver still validates identity and freshness.
+        """
+        if not isinstance(device_uuid, str) or not device_uuid:
+            raise ValueError('routing observation requires a native device UUID')
+        footprints = None
+        if self.host_tensor_storage_bytes is not None:
+            footprints = dict(host_tensor_storage_bytes=self.host_tensor_storage_bytes,
+                gpu_pool_storage_bytes=self.gpu_pool_storage_bytes,
+                sources=[dict(adapter_int_id=s.adapter_int_id,
+                    host_storage_bytes=s.host_storage_bytes,
+                    host_representation=s.host_representation,
+                    gpu_slot_capacity_bytes=s.gpu_slot_capacity_bytes,
+                    gpu_representation=s.gpu_representation) for s in self.sources])
+        return dict(kind='native_lora_routing_sources_v1', device_uuid=device_uuid,
+            owner_id=self.owner_id, epoch=self.epoch, clock_id=self.clock_id,
+            captured_monotonic_s=self.captured_monotonic_s,
+            snapshot_holds_reference=False,
+            slot_adapter_ids=list(self.slot_adapter_ids),
+            registered_cpu_adapter_ids=list(self.registered_cpu_adapter_ids),
+            unknown_native_adapter_ids=list(self.unknown_native_adapter_ids),
+            unconfirmed_gpu_adapter_ids=list(self.unconfirmed_gpu_adapter_ids),
+            complete_for_native_caches=not self.unknown_native_adapter_ids and not self.unconfirmed_gpu_adapter_ids,
+            sources=[dict(adapter_int_id=s.adapter_int_id, adapter_id=s.adapter_id,
+                lora_path=s.lora_path, rank=s.rank, source_id=s.source_id,
+                cpu_registered=True, gpu_slot=s.gpu_slot,
+                gpu_confirmed_monotonic_s=s.gpu_confirmed_monotonic_s) for s in self.sources],
+            routing_footprints=footprints)
+
+    @staticmethod
+    def _routing_footprints(payload, slots, registered):
+        """Validate the compact local RPC schema; do not fabricate alias edges.
+
+        Distinct storage unions were checked by _footprints at the producer.
+        Per-adapter capacities can overlap, so their sum is not a union check.
+        """
+        if payload is None:
+            return {}, None, None
+        if not isinstance(payload, dict):
+            raise ValueError('invalid routing footprint projection')
+        host_bytes = payload.get('host_tensor_storage_bytes')
+        gpu_bytes = payload.get('gpu_pool_storage_bytes')
+        rows = payload.get('sources')
+        if (type(host_bytes) is not int or host_bytes < 0
+                or type(gpu_bytes) is not int or gpu_bytes <= 0
+                or not isinstance(rows, list)):
+            raise ValueError('invalid routing footprint totals')
+        result = {}
+        for row in rows:
+            if not isinstance(row, dict):
+                raise ValueError('invalid routing source footprint')
+            aid = row.get('adapter_int_id')
+            host = row.get('host_storage_bytes')
+            slot = row.get('gpu_slot_capacity_bytes')
+            host_repr, gpu_repr = row.get('host_representation'), row.get('gpu_representation')
+            if (type(aid) is not int or aid not in registered or aid in result
+                    or type(host) is not int or not 0 < host <= host_bytes
+                    or type(slot) is not int or slot <= 0 or slot * len(slots) != gpu_bytes
+                    or not isinstance(host_repr, str) or not host_repr.startswith('native_cpu_dense_ab_v1:')
+                    or not isinstance(gpu_repr, str) or not gpu_repr.startswith('native_gpu_dense_slot_v1:')):
+                raise ValueError('inconsistent routing source footprint/representation')
+            result[aid] = (host, host_repr, slot, gpu_repr)
+        return result, host_bytes, gpu_bytes
+
+    @classmethod
+    def from_routing_wire(cls, payload, *, expected_clock_id: str, received_monotonic_s: float):
+        if (not isinstance(payload, dict) or 'routing_footprints' not in payload
+                or 'native_footprints' in payload
+                or not isinstance(payload.get('device_uuid'), str) or not payload['device_uuid']):
+            raise ValueError('invalid native routing observation schema')
+        state = cls._from_payload(payload, expected_clock_id=expected_clock_id,
+            received_monotonic_s=received_monotonic_s, kind='native_lora_routing_sources_v1',
+            footprint_key='routing_footprints', footprint_reader=cls._routing_footprints)
+        if payload['routing_footprints'] is not None:
+            ids = {row['adapter_int_id'] for row in payload['routing_footprints']['sources']}
+            if ids != {source.adapter_int_id for source in state.sources}:
+                raise ValueError('routing footprints do not exactly cover known sources')
+        return state
+
+    @classmethod
+    def _from_payload(cls, payload, *, expected_clock_id, received_monotonic_s,
+                      kind, footprint_key, footprint_reader):
         def positive_int(value):
             return type(value) is int and value > 0
 
         def instant(value):
             return type(value) in (int, float) and math.isfinite(value) and value > 0
 
-        if (not isinstance(payload, dict) or payload.get('kind') != 'native_lora_sources_v1'
+        if (not isinstance(payload, dict) or payload.get('kind') != kind
                 or payload.get('clock_id') != expected_clock_id or not expected_clock_id
                 or payload.get('snapshot_holds_reference') is not False
                 or not isinstance(payload.get('owner_id'), str) or not payload['owner_id']
@@ -181,7 +272,7 @@ class NativeSourceSnapshot:
                 raise ValueError('native source snapshot has invalid/duplicate integer IDs')
         if not slots or not set(mapped).issubset(registered):
             raise ValueError('native source slot/CPU mapping is inconsistent')
-        footprints, host_bytes, gpu_bytes = cls._footprints(payload.get('native_footprints'), slots, registered)
+        footprints, host_bytes, gpu_bytes = footprint_reader(payload.get(footprint_key), slots, registered)
         sources = []
         for row in payload['sources']:
             if (not isinstance(row, dict) or not positive_int(row.get('adapter_int_id'))

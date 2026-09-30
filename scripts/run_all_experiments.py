@@ -4709,6 +4709,20 @@ class InferenceEngine:
             raise RuntimeError("invalid single-worker reference acknowledgement")
         return results[0]
 
+    async def ieee_routing_sources(self) -> Dict[str, Any]:
+        """Fresh, fully validated native state projected in the dedicated frontend.
+
+        This executes after the native GPU-core RPC, not inside its execution
+        loop. It neither caches a completed observation nor reserves a source.
+        Admission/planning continue to request the original full inventories.
+        """
+        from faaslora.clock import local_monotonic_clock_id
+        from faaslora.experiment.instance_pool import NativeSourceSnapshot
+        payload = await self.ieee_gpu_reference(operation='source_snapshot')
+        state = NativeSourceSnapshot.from_native(payload,
+            expected_clock_id=local_monotonic_clock_id(), received_monotonic_s=time.monotonic())
+        return state.routing_wire(device_uuid=payload.get('device_uuid'))
+
     async def ieee_generation_observation(self) -> Dict[str, Any]:
         """Read-only exact frontend IDs; not a native retirement acknowledgement."""
         if not self.model_cfg.get('ieee_gpu_references', False):
@@ -5218,7 +5232,7 @@ class SubprocessInferenceEngineProxy:
             asyncio.run_coroutine_threadsafe(deliver_progress(frame), loop).result()
         def retain_uncertain() -> None:
             if not dispatch_started or not native or cmd in ('ieee_worker_observation', 'ieee_scheduler_observation',
-                                     'ieee_generation_observation', 'shutdown'):
+                                     'ieee_generation_observation', 'ieee_routing_sources', 'shutdown'):
                 return
             if cmd == 'ieee_gpu_reference' and kwargs.get('operation') in ('snapshot', 'source_snapshot'):
                 return
@@ -5848,6 +5862,9 @@ class SubprocessInferenceEngineProxy:
                              ('register_preparation_plan', 'finish_preparation_target', 'close_preparation_plan')))):
                     del self._native_rpc_uncertain[key]
         return result
+
+    async def ieee_routing_sources(self) -> Dict[str, Any]:
+        return await self._rpc('ieee_routing_sources')
 
     async def unload_lora_adapter(self, adapter_id: str) -> bool:
         result = await self._rpc("unload_lora_adapter", adapter_id=adapter_id)
@@ -7874,7 +7891,7 @@ class ScenarioRunner:
                 from faaslora.experiment.instance_pool import NativeSourceSnapshot
                 async def read(engine):
                     stats['rpc_invocations'] = stats.get('rpc_invocations', 0) + 1
-                    return await engine.ieee_gpu_reference(operation='source_snapshot')
+                    return await engine.ieee_routing_sources()
                 reads = [asyncio.create_task(read(engine)) for engine in engines]
                 try:
                     views = await asyncio.gather(*reads)
@@ -7891,7 +7908,7 @@ class ScenarioRunner:
                     native = []
                     for view in views:
                         stats['parse_invocations'] = stats.get('parse_invocations', 0) + 1
-                        native.append(NativeSourceSnapshot.from_native(view,
+                        native.append(NativeSourceSnapshot.from_routing_wire(view,
                             expected_clock_id=clock_id, received_monotonic_s=time.monotonic()))
                     # No raw mutable payload escapes to a waiter. This operation
                     # validates observations, not current feasibility or a lease.

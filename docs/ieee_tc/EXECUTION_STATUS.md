@@ -1,8 +1,59 @@
 # IEEE TC execution status
 
-## CURRENT — D131 complete/failed and verified; scoped backup next
+## CURRENT — D132 fresh validated routing projection candidate
 
-2026-10-01 03:35. Goal ACTIVE/incomplete. No subagents. Baselines PAUSED.
+2026-10-01 04:02. Goal ACTIVE/incomplete. No subagents. Baselines PAUSED.
+D131 complete/failed/backed; do NOT repeat it. Once-only cache already fulfilled.
+ONE candidate now implemented, not accepted as Full performance improvement:
+fresh source_snapshot is fully validated in the dedicated frontend (not GPU
+core), then native identity/classes/totals are projected before TCP to router.
+Parent validates compact schema and unchanged identity/clock/coverage. No TTL,
+bool bypass, formula/config/capacity/deadline change, new codec or removed guard.
+Planning/admission full inventory paths remain unchanged. Read-only cancellation
+does not invent native ownership; existing current-wave sharing and per-waiter
+membership/epoch rechecks remain. Original _footprints validates actual alias
+graph on EVERY producer call, not cached verdict.
+Changed instance_pool.py, run_all_experiments.py, dedicated_engine_worker.py and
+three existing test files. User manifest/unrelated files untouched.
+Initial262 tests PASS4.168s; command12.15s/RSS985156KiB. Actual3/4GiBswap0,
+CPU2,3,26,27; invocationb3f047c49a6649ee96ce924a525fc9eb,events0.
+Raw results/ieee_tc/p2_backend_qualification/d132_20261001; session25009 finished0.
+Testdomain exactemptyclosed03:52:24. No GPU/remote job.
+ONE probe completed/session57175 exit0,19.45s/RSS1133944KiB. Actualseparate
+worker inheritedsamecgroup/CPU; invocatione99a9a78afd64bb4bbbc5400417fb1af,
+allmemoryevents0,exactemptyclosed03:56:16. DoNOTrepeatprobe.
+Historical2-adapter/512allocation state, original full validator, actualdedicated
+TCP/proxy; native GPU collection replaced by SAMEretainedstate.62exact-equal
+responses (2cold+3trials*2methods*10). stdlibJSONunchanged.
+Warmmeans old→compact:RPC+parentvalidation19.809265→1.776892ms,
+parentvalidation.944488→.086930ms,heartbeatmax13.518934→.626171ms,
+response479168→1881.966667B. ComponentsONLY, no500adapter/GPU/Full/CIclaim.
+DocD132_VALIDATED_ROUTING_PROJECTION.md table/interpretationcomplete.
+OneA/Aroutingtest addedafterprobe;servingcodeunchanged. Final925testsPASS
+131.360s,command142.72s/RSS1177496KiB;147protected,plan/metric/sourcesPASS.
+Verify session12999 finished0; exactdae75ea9f5b84aa382446fcfa7124c35 empty
+closed04:01:35,events0. VerificationSHAd3dafaff918516a26c83bfa6ae265bd3b6e9c3d0a79a0ab3db4819116ba0eced.
+Curator completed0 in11331c29010b4958bdca3357907863c5,events0; emptycleanup
+prepared. Curated62samples/4rows/summaryJSON, final925testreceipt embedded.
+SummarySHA3d996a9b59bbc8c49a0faf3cf891e441cd15465360e72853b1198e7b0d5c3c47.
+24member56079BbundleSHAffba6aa1eaca73dbf6c396ce72650d7b544fe2b9d09908c74b6ac03c4320c8af.
+No test/probe/curation rerun needed. No GPU/remote job, no newoptimizer.
+NEXT: exactemptyfinalizecleanup→testedbackup→ordinary7B Full.
+No repeated codec probe/syntheticadapterpool orclaimthat18mscomponentchange
+provestheroughly900s queue resolved. FullcandidateNOTyetaccepted.
+Full plan/metric/ledger and vLLM/run-experiment skills read. Current primary
+vLLM CPU/GIL blog, v0.30 core_client.py and Python asyncio-dev rechecked; principles
+only, no borrowed benchmark result. IEEE core/formulas unchanged.
+
+## Previous — D131 complete/failed, verified and backed
+
+2026-10-01 03:39. Goal ACTIVE/incomplete. No subagents. Baselines PAUSED.
+Backupcompleted:12explicitfiles committed/pushed
+0ab3152b2740859e5705e34c61458d16c556021f,exactremoteHEADverified03:36:48.
+CRLF-awarecached/diffcheck,bundle/memberSHA,21verificationrefs and71staged/
+archivepayloadsecretschecksPASS.Usermanifest/unrelatedfilesNEVERstaged.
+No repeatbackup needed. Currentread-onlyfollow-up examines source-observation
+work/physicalinventory;no newcandidate selected,implementation orprobe.
 No active GPU/replay/remote/analysis/test job. DoNOTrepeat D131 Full,
 projection,curation,occupancy,verification orbundle. No servingedit thisturn.
 Finalverification30899 finished0:71testsPASS1.942s,command22.14s/RSS935288KiB;
@@ -16,8 +67,8 @@ failureSHAa2342780f461a592059eed31b59b473a85551f33d12bdf16b45c16cf50093280;
 occupancySHAa47b38107a25f65702e6fb69f19bf9f375a5416fec97ee270dfdca60ca9ba65e.
 DocD131_FULL_W0_FULL1.md SHA1026bdcc6c5cfb5bab9f7029ec5872d3467db10959984645b64b25a9f3c0d587
 includedinverification;donoteditcasually. Alltablesandinterpretationcomplete.
-NEXT: diff/checksum/secrets→explicitpathscommit/push,thenONEevidence-led
-mainlinequestion. D131vsD129 morecompletions334;conditionalTTFTmean-9.71%,
+NEXT: ONEevidence-led mainlinequestion; backupaboveDONE.
+D131vsD129 morecompletions334;conditionalTTFTmean-9.71%,
 P95-.79%,GPU-s-.44%,conditionalTPOT+6.35%;n1/differentpopulations,NOcausalCI.
 Fullstillfails;SLOupperbound93.725%,NOTmeasuredSLO. No acceptedformalwin.
 Stageevidence:arrival→gate897.382306s,gate→source2.629818s,source→native
@@ -27,6 +78,32 @@ Stageevidence:arrival→gate897.382306s,gate→source2.629818s,source→native
 Firstfailure3353.484500s precedesquarantine4870.380719s;prefailure1185samples
 meanqueue587.405063,771sampledqueue+active<capacity,NOTcontinuouscausalidle.
 Warm/Resident,baselines,M1/M2,A1–A5/S1–S13 outstanding. No newoptimizer yet.
+
+Read-onlyfollow-up03:37–03:39 (NO newprobe/productionedit):
+- D123 oldfootprint11.25%/RPC13.44% samplesonlyidentifycode,cannotbetreatedas
+  currentD131wallfractions. D127codecprobealreadyarchived;donotrepeatit.
+- runner7851 gathers freshfullsource_snapshot for allreplicas,thenparent
+  NativeSourceSnapshot.from_native validateslargealias/storage inventories.
+  D111alreadysharesonein-flightread/parse; finishedviewsareNOTcached.
+- gpu_monitor753 buildsbothregistered andstagedfullinventory; detailedworker
+  resultpassescollectiveRPC→InferenceEngine4688→dedicatedworker205→TCP→parent.
+  RoutingonlyconsumesimmutableNativeSourceSnapshot source/class/totals plus
+  deviceUUID;planning/replacement requirefullinventoriesandmustretainthem.
+- CandidateQUESTION: deriveandvalidatecompactroutingobservation inexisting
+  dedicatedworker AFTER freshfullnativeRPC,transmittypednecessaryfields,keep
+  wholecollectionmembership/epoch/source-revalidationandALLphysicalguards.
+  ThiswouldNOTbeTTL/stalecache/boolvalidationbypass. Needproveexactsame
+  dataclassvalues/clock,unknown/unconfirmedhandling,cancellation/protocolerror
+  behavior andsame-sourceA/A beforeselection/implementation. Placementmustnot
+  addheavyvalidationinsidetheGPUcore;dedicatedworkerandcorearedistinct.
+  No method/schemahasbeenchanged. Checkotherconsumers/fakesfirst,onebounded
+  diagnostic only ifthisaddressesmeasuredpath;ordinaryFullstillrequired.
+- ReopenedcurrentprimaryofficialvLLM CPU/GIL blog andv0.30core_client.py,
+  Python3.12asyncio blocking-code docs. Principlesonly,notborrowedspeedup:
+  https://vllm.ai/blog/2024-09-05-perf-update
+  https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/engine/core_client.py
+  https://docs.python.org/3.12/library/asyncio-dev.html#running-blocking-code
+UsercacheapprovalalreadyfulfilledD78/D80,neverrebuild. No livejobs.
 
 Earlier03:34 checkpoint (superseded):
 Requestcuration57673/failure completed0,41.59s/RSS294508KiB and.67s/131328KiB.

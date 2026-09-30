@@ -98,6 +98,8 @@ class PredecisionRoutingIntegration(unittest.TestCase):
                     device_uuid=f'GPU-00010203-0405-0607-0809-0a0b0c0d0e0{ordinal}',
                     slot_adapter_ids=[None, None], registered_cpu_adapter_ids=[])
             slot.engine.ieee_gpu_reference = AsyncMock(side_effect=snapshot)
+            slot.engine.ieee_routing_sources = AsyncMock(
+                side_effect=MethodType(InferenceEngine.ieee_routing_sources, slot.engine))
         runner._sample_ieee_gpu_utilization = Mock(side_effect=lambda slot, **kw: dict(
             source='fixture-native-busy', device_id=slot.device_id, device_uuid=kw['device_uuid'],
             gpu_utilization_pct=0., sampled_monotonic_s=time.monotonic()))
@@ -133,12 +135,12 @@ class PredecisionRoutingIntegration(unittest.TestCase):
 
     def test_membership_change_during_collection_retries_without_selection(self):
         runner, slots, trace, plan, _ = self.build()
-        original = slots[0].engine.ieee_gpu_reference.side_effect
+        original = slots[0].engine.ieee_routing_sources.side_effect
         async def changing(**kwargs):
             result = await original(**kwargs)
             slots.pop()
             return result
-        slots[0].engine.ieee_gpu_reference.side_effect = changing
+        slots[0].engine.ieee_routing_sources.side_effect = changing
         self.assertIsNone(asyncio.run(runner._ieee_request_snapshot(trace, plan)))
         self.assertEqual(runner.router.selection_count, 0)
         self.assertEqual(slots[0].active_requests, 0)
@@ -163,35 +165,35 @@ class PredecisionRoutingIntegration(unittest.TestCase):
                 return seen
             observed = await asyncio.gather(*(request() for _ in range(32)))
             self.assertEqual(sorted(observed), list(range(32)))
-            self.assertEqual(sum(s.engine.ieee_gpu_reference.await_count for s in slots), 2)
+            self.assertEqual(sum(s.engine.ieee_routing_sources.await_count for s in slots), 2)
             self.assertEqual(parser.call_count, 2)
             self.assertEqual(runner._ieee_source_observation_stats['parse_invocations'], 2)
             # Completion is not a time-based cache: the next call refreshes.
             slots[0].active_requests = 0
             await runner._ieee_request_snapshot(trace, plan)
-            self.assertEqual(sum(s.engine.ieee_gpu_reference.await_count for s in slots), 4)
+            self.assertEqual(sum(s.engine.ieee_routing_sources.await_count for s in slots), 4)
             self.assertEqual(parser.call_count, 4)
-        with patch.object(NativeSourceSnapshot, 'from_native', wraps=NativeSourceSnapshot.from_native) as parser:
+        with patch.object(NativeSourceSnapshot, 'from_routing_wire', wraps=NativeSourceSnapshot.from_routing_wire) as parser:
             asyncio.run(check())
 
     def test_shared_validation_failure_is_not_published_or_retried(self):
         runner, slots, trace, plan, _ = self.build()
-        original = slots[1].engine.ieee_gpu_reference.side_effect
+        original = slots[1].engine.ieee_routing_sources.side_effect
         async def invalid(**kwargs):
             return (await original(**kwargs)) | dict(clock_id='wrong-clock')
-        slots[1].engine.ieee_gpu_reference.side_effect = invalid
+        slots[1].engine.ieee_routing_sources.side_effect = invalid
         async def check():
             outcomes = await asyncio.gather(*(runner._ieee_request_snapshot(trace, plan)
                 for _ in range(32)), return_exceptions=True)
             self.assertTrue(all(isinstance(value, ValueError) for value in outcomes))
             self.assertEqual(parser.call_count, 2)
             self.assertTrue(all(slot.native_source_state is None for slot in slots))
-            self.assertEqual(sum(s.engine.ieee_gpu_reference.await_count for s in slots), 2)
+            self.assertEqual(sum(s.engine.ieee_routing_sources.await_count for s in slots), 2)
             self.assertIsNone(runner._ieee_source_observation_wave)
             with self.assertRaisesRegex(ValueError, 'owner/epoch/clock'):
                 await runner._ieee_request_snapshot(trace, plan)
             self.assertEqual(parser.call_count, 4)
-        with patch.object(NativeSourceSnapshot, 'from_native', wraps=NativeSourceSnapshot.from_native) as parser:
+        with patch.object(NativeSourceSnapshot, 'from_routing_wire', wraps=NativeSourceSnapshot.from_routing_wire) as parser:
             asyncio.run(check())
 
     def test_shared_parsed_state_rechecks_freshness_for_every_waiter(self):
@@ -207,18 +209,18 @@ class PredecisionRoutingIntegration(unittest.TestCase):
             self.assertEqual(runner._ieee_source_observation_stats['stale_rejections'], 31)
             self.assertEqual(parser.call_count, 2)
             self.assertEqual(slots[1].native_source_state.epoch, 2)
-        with patch.object(NativeSourceSnapshot, 'from_native', wraps=NativeSourceSnapshot.from_native) as parser:
+        with patch.object(NativeSourceSnapshot, 'from_routing_wire', wraps=NativeSourceSnapshot.from_routing_wire) as parser:
             asyncio.run(check())
 
     def test_obsolete_membership_is_rejected_before_shared_parsing(self):
         runner, slots, trace, plan, _ = self.build()
-        original = slots[0].engine.ieee_gpu_reference.side_effect
+        original = slots[0].engine.ieee_routing_sources.side_effect
         async def obsolete(**kwargs):
             value = await original(**kwargs)
             slots.pop()
             return value | dict(clock_id='invalid-obsolete-clock')
-        slots[0].engine.ieee_gpu_reference.side_effect = obsolete
-        with patch.object(NativeSourceSnapshot, 'from_native', wraps=NativeSourceSnapshot.from_native) as parser:
+        slots[0].engine.ieee_routing_sources.side_effect = obsolete
+        with patch.object(NativeSourceSnapshot, 'from_routing_wire', wraps=NativeSourceSnapshot.from_routing_wire) as parser:
             self.assertIsNone(asyncio.run(runner._ieee_request_snapshot(trace, plan)))
             parser.assert_not_called()
         self.assertIsNone(slots[0].native_source_state)
@@ -237,12 +239,12 @@ class PredecisionRoutingIntegration(unittest.TestCase):
         runner, slots, trace, plan, _ = self.build()
         async def check():
             entered, release = asyncio.Event(), asyncio.Event()
-            original = slots[0].engine.ieee_gpu_reference.side_effect
+            original = slots[0].engine.ieee_routing_sources.side_effect
             async def held(**kwargs):
                 entered.set()
                 await release.wait()
                 return await original(**kwargs)
-            slots[0].engine.ieee_gpu_reference.side_effect = held
+            slots[0].engine.ieee_routing_sources.side_effect = held
             first = asyncio.create_task(runner._ieee_request_snapshot(trace, plan))
             await entered.wait()
             second = asyncio.create_task(runner._ieee_request_snapshot(trace, plan))
@@ -255,7 +257,7 @@ class PredecisionRoutingIntegration(unittest.TestCase):
             release.set()
             self.assertIsNotNone(await second)
             self.assertIsNone(runner._ieee_source_observation_wave)
-            self.assertEqual(sum(s.engine.ieee_gpu_reference.await_count for s in slots), 2)
+            self.assertEqual(sum(s.engine.ieee_routing_sources.await_count for s in slots), 2)
         asyncio.run(check())
 
     def test_last_reader_cancellation_joins_owned_observation(self):
@@ -268,7 +270,7 @@ class PredecisionRoutingIntegration(unittest.TestCase):
                     await asyncio.Future()
                 finally:
                     cancelled.set()
-            slots[0].engine.ieee_gpu_reference.side_effect = held
+            slots[0].engine.ieee_routing_sources.side_effect = held
             request = asyncio.create_task(runner._ieee_request_snapshot(trace, plan))
             await entered.wait()
             request.cancel()
@@ -292,38 +294,38 @@ class PredecisionRoutingIntegration(unittest.TestCase):
                     await asyncio.Future()
                 finally:
                     cancelled.set()
-            slots[0].engine.ieee_gpu_reference.side_effect = failing
-            slots[1].engine.ieee_gpu_reference.side_effect = sibling
+            slots[0].engine.ieee_routing_sources.side_effect = failing
+            slots[1].engine.ieee_routing_sources.side_effect = sibling
             results = await asyncio.gather(*(runner._ieee_request_snapshot(trace, plan)
                 for _ in range(2)), return_exceptions=True)
             self.assertTrue(all(isinstance(r, RuntimeError) for r in results))
             self.assertTrue(cancelled.is_set())
             self.assertIsNone(runner._ieee_source_observation_wave)
-            self.assertEqual(sum(s.engine.ieee_gpu_reference.await_count for s in slots), 2)
+            self.assertEqual(sum(s.engine.ieee_routing_sources.await_count for s in slots), 2)
             self.assertEqual(runner._ieee_source_observation_stats['collections'], 1)
         asyncio.run(check())
 
     def test_engine_replacement_during_collection_rejects_old_membership(self):
         runner, slots, trace, plan, _ = self.build()
         original_engine = slots[0].engine
-        original = original_engine.ieee_gpu_reference.side_effect
+        original = original_engine.ieee_routing_sources.side_effect
         async def replaced(**kwargs):
             result = await original(**kwargs)
-            slots[0].engine = SimpleNamespace(ieee_gpu_reference=AsyncMock())
+            slots[0].engine = SimpleNamespace(ieee_routing_sources=AsyncMock())
             return result
-        original_engine.ieee_gpu_reference.side_effect = replaced
+        original_engine.ieee_routing_sources.side_effect = replaced
         self.assertIsNone(asyncio.run(runner._ieee_request_snapshot(trace, plan)))
-        slots[0].engine.ieee_gpu_reference.assert_not_awaited()
+        slots[0].engine.ieee_routing_sources.assert_not_awaited()
         self.assertIsNone(slots[0].native_source_state)
 
     def test_duplicate_native_devices_do_not_masquerade_as_scaleout(self):
         runner, (a, b), trace, plan, _ = self.build()
-        original = b.engine.ieee_gpu_reference.side_effect
+        original = b.engine.ieee_routing_sources.side_effect
         async def duplicate(**kwargs):
             view = await original(**kwargs)
             view['device_uuid'] = 'GPU-00010203-0405-0607-0809-0a0b0c0d0e00'
             return view
-        b.engine.ieee_gpu_reference.side_effect = duplicate
+        b.engine.ieee_routing_sources.side_effect = duplicate
         with self.assertRaisesRegex(ValueError, 'distinct native physical GPU'):
             asyncio.run(runner._ieee_request_snapshot(trace, plan))
         self.assertEqual(runner.router.selection_count, 0)
@@ -646,6 +648,8 @@ def native_reference_fixture():
     async def rpc(*, operation, **kwargs):
         return {**getattr(owner, operation)(**kwargs), 'clock_id': local_monotonic_clock_id()}
     slot.engine.ieee_gpu_reference = AsyncMock(side_effect=rpc)
+    slot.engine.ieee_routing_sources = AsyncMock(
+        side_effect=MethodType(InferenceEngine.ieee_routing_sources, slot.engine))
     return runner, slot, trace, plan, owner, rpc
 
 

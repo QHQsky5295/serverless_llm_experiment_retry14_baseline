@@ -196,6 +196,108 @@ class CommittedNativeSources(unittest.TestCase):
             self.parse(payload)
 
 
+class ProjectedNativeSources(CommittedNativeSources):
+    """The same identity/alias/representation tests across the real wire schema."""
+    def parse(self, payload=None):
+        state = super().parse(payload)
+        wire = json.loads(json.dumps(state.routing_wire(device_uuid='GPU-fixture')))
+        projected = NativeSourceSnapshot.from_routing_wire(wire,
+            expected_clock_id='clock', received_monotonic_s=21.)
+        self.assertEqual(state, projected)
+        self.assertNotIn('native_footprints', wire)
+        return projected
+
+    def test_compact_wire_rejects_identity_capacity_and_shape_corruption(self):
+        state = super().parse(measured_source_payload())
+        changes = [lambda p: p.update(kind='native_lora_sources_v1'),
+            lambda p: p.update(clock_id='other'),
+            lambda p: p.update(epoch=True),
+            lambda p: p.update(captured_monotonic_s=30.),
+            lambda p: p.update(device_uuid=''),
+            lambda p: p.update(native_footprints={}),
+            lambda p: p.pop('routing_footprints'),
+            lambda p: p['routing_footprints'].update(host_tensor_storage_bytes=0),
+            lambda p: p['routing_footprints'].update(gpu_pool_storage_bytes=1024),
+            lambda p: p['routing_footprints'].update(sources=[]),
+            lambda p: p['routing_footprints']['sources'].append(p['routing_footprints']['sources'][0]),
+            lambda p: p['routing_footprints']['sources'][0].update(adapter_int_id=True),
+            lambda p: p['routing_footprints']['sources'][0].update(host_storage_bytes=513),
+            lambda p: p['routing_footprints']['sources'][0].update(gpu_slot_capacity_bytes=0),
+            lambda p: p['routing_footprints']['sources'][0].update(host_representation='file'),
+            lambda p: p['sources'][0].update(gpu_confirmed_monotonic_s=None)]
+        for index, change in enumerate(changes):
+            with self.subTest(index=index):
+                wire = state.routing_wire(device_uuid='GPU-fixture')
+                change(wire)
+                with self.assertRaises(ValueError):
+                    NativeSourceSnapshot.from_routing_wire(wire,
+                        expected_clock_id='clock', received_monotonic_s=21.)
+
+    def test_measured_empty_cache_and_shared_known_sources_preserve_union(self):
+        empty = measured_source_payload()
+        empty.update(sources=[], slot_adapter_ids=[None, None], registered_cpu_adapter_ids=[])
+        empty['native_footprints'].update(slot_adapter_ids=[None, None],
+            registered_cpu_adapter_ids=[], host_allocations=[], host_adapter_footprints=[],
+            host_tensor_storage_bytes=0)
+        self.assertEqual(self.parse(empty).host_tensor_storage_bytes, 0)
+        shared = measured_source_payload()
+        shared['registered_cpu_adapter_ids'].append(5)
+        shared['sources'].append(shared['sources'][0] | dict(adapter_int_id=5, adapter_id='b',
+            lora_path='/existing/b', gpu_slot=None, gpu_confirmed_monotonic_s=None))
+        fp = shared['native_footprints']
+        fp['registered_cpu_adapter_ids'].append(5)
+        fp['host_allocations'][0]['adapter_ids'].append(5)
+        fp['host_adapter_footprints'][0]['exclusive_storage_bytes'] = 0
+        fp['host_adapter_footprints'].append(fp['host_adapter_footprints'][0] | dict(adapter_int_id=5))
+        state = self.parse(shared)
+        self.assertEqual(sum(s.host_storage_bytes for s in state.sources), 1024)
+        self.assertEqual(state.host_tensor_storage_bytes, 512)
+
+    def test_dedicated_producer_freshly_validates_full_graph_each_time(self):
+        from faaslora.clock import local_monotonic_clock_id
+        from scripts.run_all_experiments import InferenceEngine
+        payload = measured_source_payload() | dict(clock_id=local_monotonic_clock_id(), device_uuid='GPU-fixture')
+        engine = SimpleNamespace(ieee_gpu_reference=AsyncMock(return_value=payload))
+        async def check():
+            first = await InferenceEngine.ieee_routing_sources(engine)
+            payload['epoch'] = 2
+            second = await InferenceEngine.ieee_routing_sources(engine)
+            self.assertEqual((first['epoch'], second['epoch']), (1, 2))
+            payload['native_footprints']['host_adapter_footprints'][0]['exclusive_storage_bytes'] = 0
+            with self.assertRaisesRegex(ValueError, 'exclusive capacity'):
+                await InferenceEngine.ieee_routing_sources(engine)
+            payload['clock_id'] = 'wrong-clock'
+            with self.assertRaisesRegex(ValueError, 'owner/epoch/clock'):
+                await InferenceEngine.ieee_routing_sources(engine)
+        asyncio.run(check())
+        self.assertEqual(engine.ieee_gpu_reference.await_count, 4)
+        self.assertTrue(all(call.kwargs == {'operation': 'source_snapshot'}
+            for call in engine.ieee_gpu_reference.await_args_list))
+
+    def test_same_source_AA_preserves_service_classes_and_routing_decisions(self):
+        bins = ServiceClassBins((16,), (32,), (8,), (512,), (1,))
+        native, projected = [], []
+        for name, tier in (('a', 'gpu'), ('b', 'host')):
+            payload = measured_source_payload()
+            if tier == 'host':
+                payload.update(slot_adapter_ids=[None, None])
+                payload['native_footprints']['slot_adapter_ids'] = [None, None]
+                payload['sources'][0].update(gpu_slot=None, gpu_confirmed_monotonic_s=None)
+            old = NativeSourceSnapshot.from_native(payload,
+                expected_clock_id='clock', received_monotonic_s=20.)
+            new = self.parse(payload)
+            for state, rows in ((old, native), (new, projected)):
+                key = state.sources[0].service_class(bins, prompt_tokens=16,
+                    declared_output_tokens=32, admitted_after_accept=2)
+                rows.append(candidate(name, service_class=key,
+                    service=ServiceComponents(0. if key.tier == 'gpu' else 100., 20., 30.)))
+        self.assertEqual(native, projected)
+        for capacity in (0, 1, 2):
+            a = tuple(dataclasses.replace(row, available_slots=capacity) for row in native)
+            b = tuple(dataclasses.replace(row, available_slots=capacity) for row in projected)
+            self.assertEqual(Router.select_ieee_snapshot(a, 10), Router.select_ieee_snapshot(b, 10))
+
+
 class ConfirmedTierComposition(unittest.TestCase):
     def setUp(self):
         self.identity = dict(adapter_id='a', rank=8, content_sha256='a'*64,

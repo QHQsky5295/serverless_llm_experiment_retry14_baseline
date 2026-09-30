@@ -1,0 +1,30 @@
+{
+  "bundle": "20261001_d132_routing_projection_sources.tar.gz",
+  "member_sha256": {
+    "cleanup_probe1.sh": "7fb9681ff556984de94f99ebd37e263102c9754bc8777f765f114b0ef43e8a0c",
+    "cleanup_tests1.sh": "49efb3230652f53a6374647e94d1fc4f3922f4bf419e64335aca96f27954c055",
+    "cleanup_verify.sh": "8e41162c673f1cb83686963eb8f30ea204b13f7c937f139b205752adc33ccdf3",
+    "curate_and_bundle.py": "e01dc7598e6ea50f0cf6087c71a6c52fa2901a954df8356a87ce3f5f3edddf14",
+    "finalize.sh": "c8bd01b600855196b2777b4ef2808014f9d1efa194d673287aebdaece48e9d55",
+    "finalize_scope.txt": "bf6676cc48612f458b35bda6a5d020af622da06d128657bf90ae369eb513f67b",
+    "probe1.log": "a7ec6c978d78b4a3602e1ed998e4f35699765a0fbf1784bd4636730c8f972ea1",
+    "probe1_scope.txt": "27bbee37c23ab424dc3d0da95efe987c78b10e43ab90baccba9da9f56ac6f531",
+    "probe1_time.txt": "8d051d1a01145015cc0279e6fcb186ebdd74b8f7ddd4140e291e6470becc9e21",
+    "probe_routing_projection.py": "b2ef46aa967dce39049c10f7496b230c8aec0446eb51cfe2825968fe8da003bc",
+    "probe_routing_projection.sh": "a496f767a970d5fb158975d1a224e37dd29171f4a2100ee88879810738bdd064",
+    "routing_projection_probe.json": "694ac134b3171c58c4f51185eca8533840082d401ef27e655881a788512ec0d7",
+    "test_routing_projection.sh": "3baad6a2123ce1ce7188ac4f5c9de362c8080971d3acb9c820db43f2ad20f444",
+    "tests1.log": "948d4528ecceb8cce7c6f9b2678f022401d7dad9231b134d305fdd5b9b1de1af",
+    "tests1_scope.txt": "42a01d39f105a8842254065988fe777351142e55c698ea77a2a93d32f9c75310",
+    "tests1_time.txt": "5a0f763123628aff33859fd0ef4f89ae11aa76fded525f206c61fa7572ab4ea0",
+    "verification.json": "d3dafaff918516a26c83bfa6ae265bd3b6e9c3d0a79a0ab3db4819116ba0eced",
+    "verify.log": "49e04a37e899234520e5902bc72a17635786612ad49c885c409ed964d4c25520",
+    "verify_routing_projection.sh": "28dbc79008d890dd80d14de50650f4a441a21359b293759bb5c55b0ed2b23d85",
+    "verify_scope.txt": "dc41587111bd6c5483ea2b774c81aa3aabb1e204d5b3d30f7ebeaf476e1811bd",
+    "verify_time.txt": "0895ce6fbb7ee88321baf4037511cbca07cf279c17b7b4aa3fc01ed1aa876d62",
+    "worker.log": "e1a989fb3f8612af75c9a6efabc1bbb7d973165c628063039295ba2b201b582d",
+    "worker_payload.json": "ed30aac2f657f7243c73b7dd1fb0650b3b13b0828fc66d5f6835bce687bf2dbf",
+    "worker_ready.json": "d8f53dddfd1c5b649b526f1c363fd31d58410dee80a66cff686753f87c1eb4da"
+  },
+  "member_checks_pass": true
+}

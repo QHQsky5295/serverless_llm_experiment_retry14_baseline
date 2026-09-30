@@ -1,0 +1,851 @@
+{
+  "kind": "d132_validated_routing_projection_component_v1",
+  "formal_performance_result": false,
+  "full_candidate_accepted": false,
+  "samples": [
+    {
+      "method": "full_parent_validation",
+      "trial": -1,
+      "repetition": 0,
+      "elapsed_ms": 21.140387,
+      "parent_validation_ms": 1.131882,
+      "max_parent_heartbeat_lateness_ms": 9.252653,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": -1,
+      "repetition": 0,
+      "elapsed_ms": 1.865635,
+      "parent_validation_ms": 0.082316,
+      "max_parent_heartbeat_lateness_ms": 0.527201,
+      "response_bytes": 1882,
+      "worker_validation_projection_ms": 1.002476,
+      "exact_value_equal": true
+    },
+    {
+      "method": "full_parent_validation",
+      "trial": 0,
+      "repetition": 0,
+      "elapsed_ms": 220.342279,
+      "parent_validation_ms": 1.256432,
+      "max_parent_heartbeat_lateness_ms": 214.537283,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "full_parent_validation",
+      "trial": 0,
+      "repetition": 1,
+      "elapsed_ms": 14.07169,
+      "parent_validation_ms": 1.009249,
+      "max_parent_heartbeat_lateness_ms": 7.172828000000001,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "full_parent_validation",
+      "trial": 0,
+      "repetition": 2,
+      "elapsed_ms": 12.839198,
+      "parent_validation_ms": 0.918566,
+      "max_parent_heartbeat_lateness_ms": 6.068789,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "full_parent_validation",
+      "trial": 0,
+      "repetition": 3,
+      "elapsed_ms": 12.050587,
+      "parent_validation_ms": 0.880433,
+      "max_parent_heartbeat_lateness_ms": 6.393258,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "full_parent_validation",
+      "trial": 0,
+      "repetition": 4,
+      "elapsed_ms": 12.004117,
+      "parent_validation_ms": 0.909495,
+      "max_parent_heartbeat_lateness_ms": 6.387876,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "full_parent_validation",
+      "trial": 0,
+      "repetition": 5,
+      "elapsed_ms": 12.773072,
+      "parent_validation_ms": 0.984947,
+      "max_parent_heartbeat_lateness_ms": 6.020596,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "full_parent_validation",
+      "trial": 0,
+      "repetition": 6,
+      "elapsed_ms": 13.74974,
+      "parent_validation_ms": 1.005162,
+      "max_parent_heartbeat_lateness_ms": 6.983068,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "full_parent_validation",
+      "trial": 0,
+      "repetition": 7,
+      "elapsed_ms": 13.833031,
+      "parent_validation_ms": 1.012746,
+      "max_parent_heartbeat_lateness_ms": 7.038781999999999,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "full_parent_validation",
+      "trial": 0,
+      "repetition": 8,
+      "elapsed_ms": 13.907347,
+      "parent_validation_ms": 1.015756,
+      "max_parent_heartbeat_lateness_ms": 7.1018539999999994,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "full_parent_validation",
+      "trial": 0,
+      "repetition": 9,
+      "elapsed_ms": 14.0743,
+      "parent_validation_ms": 1.012676,
+      "max_parent_heartbeat_lateness_ms": 7.259047000000001,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": 0,
+      "repetition": 0,
+      "elapsed_ms": 1.722458,
+      "parent_validation_ms": 0.087489,
+      "max_parent_heartbeat_lateness_ms": 0.49532299999999996,
+      "response_bytes": 1882,
+      "worker_validation_projection_ms": 0.961765,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": 0,
+      "repetition": 1,
+      "elapsed_ms": 1.618875,
+      "parent_validation_ms": 0.079452,
+      "max_parent_heartbeat_lateness_ms": 0.64208,
+      "response_bytes": 1882,
+      "worker_validation_projection_ms": 0.909676,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": 0,
+      "repetition": 2,
+      "elapsed_ms": 1.534985,
+      "parent_validation_ms": 0.076202,
+      "max_parent_heartbeat_lateness_ms": 0.5581020000000001,
+      "response_bytes": 1882,
+      "worker_validation_projection_ms": 0.892425,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": 0,
+      "repetition": 3,
+      "elapsed_ms": 1.521483,
+      "parent_validation_ms": 0.075554,
+      "max_parent_heartbeat_lateness_ms": 0.543912,
+      "response_bytes": 1882,
+      "worker_validation_projection_ms": 0.886986,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": 0,
+      "repetition": 4,
+      "elapsed_ms": 1.522217,
+      "parent_validation_ms": 0.075536,
+      "max_parent_heartbeat_lateness_ms": 0.544106,
+      "response_bytes": 1882,
+      "worker_validation_projection_ms": 0.867024,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": 0,
+      "repetition": 5,
+      "elapsed_ms": 1.508862,
+      "parent_validation_ms": 0.074832,
+      "max_parent_heartbeat_lateness_ms": 0.530524,
+      "response_bytes": 1882,
+      "worker_validation_projection_ms": 0.878757,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": 0,
+      "repetition": 6,
+      "elapsed_ms": 1.499353,
+      "parent_validation_ms": 0.074898,
+      "max_parent_heartbeat_lateness_ms": 0.521094,
+      "response_bytes": 1882,
+      "worker_validation_projection_ms": 0.871851,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": 0,
+      "repetition": 7,
+      "elapsed_ms": 1.524602,
+      "parent_validation_ms": 0.073895,
+      "max_parent_heartbeat_lateness_ms": 0.546343,
+      "response_bytes": 1882,
+      "worker_validation_projection_ms": 0.885579,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": 0,
+      "repetition": 8,
+      "elapsed_ms": 1.500097,
+      "parent_validation_ms": 0.075134,
+      "max_parent_heartbeat_lateness_ms": 0.5221549999999999,
+      "response_bytes": 1882,
+      "worker_validation_projection_ms": 0.869936,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": 0,
+      "repetition": 9,
+      "elapsed_ms": 1.539896,
+      "parent_validation_ms": 0.075543,
+      "max_parent_heartbeat_lateness_ms": 0.5656859999999999,
+      "response_bytes": 1882,
+      "worker_validation_projection_ms": 0.891128,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": 1,
+      "repetition": 0,
+      "elapsed_ms": 1.518262,
+      "parent_validation_ms": 0.076399,
+      "max_parent_heartbeat_lateness_ms": 0.539782,
+      "response_bytes": 1882,
+      "worker_validation_projection_ms": 0.878755,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": 1,
+      "repetition": 1,
+      "elapsed_ms": 1.507219,
+      "parent_validation_ms": 0.082103,
+      "max_parent_heartbeat_lateness_ms": 0.5292110000000001,
+      "response_bytes": 1882,
+      "worker_validation_projection_ms": 0.869785,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": 1,
+      "repetition": 2,
+      "elapsed_ms": 1.509541,
+      "parent_validation_ms": 0.074887,
+      "max_parent_heartbeat_lateness_ms": 0.5318080000000001,
+      "response_bytes": 1882,
+      "worker_validation_projection_ms": 0.877895,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": 1,
+      "repetition": 3,
+      "elapsed_ms": 1.515554,
+      "parent_validation_ms": 0.076431,
+      "max_parent_heartbeat_lateness_ms": 0.5381400000000001,
+      "response_bytes": 1882,
+      "worker_validation_projection_ms": 0.878807,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": 1,
+      "repetition": 4,
+      "elapsed_ms": 1.517684,
+      "parent_validation_ms": 0.075133,
+      "max_parent_heartbeat_lateness_ms": 0.5416970000000001,
+      "response_bytes": 1882,
+      "worker_validation_projection_ms": 0.870343,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": 1,
+      "repetition": 5,
+      "elapsed_ms": 1.50514,
+      "parent_validation_ms": 0.076514,
+      "max_parent_heartbeat_lateness_ms": 0.5280130000000001,
+      "response_bytes": 1882,
+      "worker_validation_projection_ms": 0.874335,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": 1,
+      "repetition": 6,
+      "elapsed_ms": 1.511846,
+      "parent_validation_ms": 0.075114,
+      "max_parent_heartbeat_lateness_ms": 0.5346519999999999,
+      "response_bytes": 1882,
+      "worker_validation_projection_ms": 0.876603,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": 1,
+      "repetition": 7,
+      "elapsed_ms": 1.498632,
+      "parent_validation_ms": 0.074675,
+      "max_parent_heartbeat_lateness_ms": 0.521811,
+      "response_bytes": 1882,
+      "worker_validation_projection_ms": 0.868952,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": 1,
+      "repetition": 8,
+      "elapsed_ms": 1.496593,
+      "parent_validation_ms": 0.073854,
+      "max_parent_heartbeat_lateness_ms": 0.519466,
+      "response_bytes": 1882,
+      "worker_validation_projection_ms": 0.873778,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": 1,
+      "repetition": 9,
+      "elapsed_ms": 1.806599,
+      "parent_validation_ms": 0.07438,
+      "max_parent_heartbeat_lateness_ms": 0.843286,
+      "response_bytes": 1882,
+      "worker_validation_projection_ms": 0.868769,
+      "exact_value_equal": true
+    },
+    {
+      "method": "full_parent_validation",
+      "trial": 1,
+      "repetition": 0,
+      "elapsed_ms": 14.246682,
+      "parent_validation_ms": 1.003608,
+      "max_parent_heartbeat_lateness_ms": 7.498441,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "full_parent_validation",
+      "trial": 1,
+      "repetition": 1,
+      "elapsed_ms": 13.359818,
+      "parent_validation_ms": 0.998975,
+      "max_parent_heartbeat_lateness_ms": 6.542606,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "full_parent_validation",
+      "trial": 1,
+      "repetition": 2,
+      "elapsed_ms": 13.652906,
+      "parent_validation_ms": 0.990918,
+      "max_parent_heartbeat_lateness_ms": 6.876779,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "full_parent_validation",
+      "trial": 1,
+      "repetition": 3,
+      "elapsed_ms": 13.72507,
+      "parent_validation_ms": 0.997959,
+      "max_parent_heartbeat_lateness_ms": 6.952898,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "full_parent_validation",
+      "trial": 1,
+      "repetition": 4,
+      "elapsed_ms": 13.580112,
+      "parent_validation_ms": 0.964011,
+      "max_parent_heartbeat_lateness_ms": 6.806948,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "full_parent_validation",
+      "trial": 1,
+      "repetition": 5,
+      "elapsed_ms": 12.841459,
+      "parent_validation_ms": 0.909302,
+      "max_parent_heartbeat_lateness_ms": 6.109734,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "full_parent_validation",
+      "trial": 1,
+      "repetition": 6,
+      "elapsed_ms": 12.327582,
+      "parent_validation_ms": 0.861726,
+      "max_parent_heartbeat_lateness_ms": 6.665247,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "full_parent_validation",
+      "trial": 1,
+      "repetition": 7,
+      "elapsed_ms": 12.049393,
+      "parent_validation_ms": 0.881903,
+      "max_parent_heartbeat_lateness_ms": 6.431669,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "full_parent_validation",
+      "trial": 1,
+      "repetition": 8,
+      "elapsed_ms": 11.813888,
+      "parent_validation_ms": 0.828756,
+      "max_parent_heartbeat_lateness_ms": 6.178428,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "full_parent_validation",
+      "trial": 1,
+      "repetition": 9,
+      "elapsed_ms": 11.836085,
+      "parent_validation_ms": 0.82069,
+      "max_parent_heartbeat_lateness_ms": 6.22609,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "full_parent_validation",
+      "trial": 2,
+      "repetition": 0,
+      "elapsed_ms": 12.238551,
+      "parent_validation_ms": 0.914912,
+      "max_parent_heartbeat_lateness_ms": 6.618475,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "full_parent_validation",
+      "trial": 2,
+      "repetition": 1,
+      "elapsed_ms": 12.419618,
+      "parent_validation_ms": 0.884601,
+      "max_parent_heartbeat_lateness_ms": 5.656908,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "full_parent_validation",
+      "trial": 2,
+      "repetition": 2,
+      "elapsed_ms": 12.508956,
+      "parent_validation_ms": 0.977394,
+      "max_parent_heartbeat_lateness_ms": 6.857073,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "full_parent_validation",
+      "trial": 2,
+      "repetition": 3,
+      "elapsed_ms": 13.535582,
+      "parent_validation_ms": 0.973964,
+      "max_parent_heartbeat_lateness_ms": 6.75682,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "full_parent_validation",
+      "trial": 2,
+      "repetition": 4,
+      "elapsed_ms": 13.26316,
+      "parent_validation_ms": 0.913493,
+      "max_parent_heartbeat_lateness_ms": 6.476412,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "full_parent_validation",
+      "trial": 2,
+      "repetition": 5,
+      "elapsed_ms": 12.456529,
+      "parent_validation_ms": 0.893015,
+      "max_parent_heartbeat_lateness_ms": 6.78493,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "full_parent_validation",
+      "trial": 2,
+      "repetition": 6,
+      "elapsed_ms": 12.022739,
+      "parent_validation_ms": 0.898009,
+      "max_parent_heartbeat_lateness_ms": 6.380217,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "full_parent_validation",
+      "trial": 2,
+      "repetition": 7,
+      "elapsed_ms": 12.360393,
+      "parent_validation_ms": 0.898889,
+      "max_parent_heartbeat_lateness_ms": 6.716187,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "full_parent_validation",
+      "trial": 2,
+      "repetition": 8,
+      "elapsed_ms": 12.466215,
+      "parent_validation_ms": 0.889048,
+      "max_parent_heartbeat_lateness_ms": 5.745636,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "full_parent_validation",
+      "trial": 2,
+      "repetition": 9,
+      "elapsed_ms": 11.927842,
+      "parent_validation_ms": 0.828001,
+      "max_parent_heartbeat_lateness_ms": 6.32314,
+      "response_bytes": 479168,
+      "worker_validation_projection_ms": null,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": 2,
+      "repetition": 0,
+      "elapsed_ms": 1.36213,
+      "parent_validation_ms": 0.066011,
+      "max_parent_heartbeat_lateness_ms": 0.38301300000000005,
+      "response_bytes": 1882,
+      "worker_validation_projection_ms": 0.783134,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": 2,
+      "repetition": 1,
+      "elapsed_ms": 1.821341,
+      "parent_validation_ms": 0.069867,
+      "max_parent_heartbeat_lateness_ms": 0.8568439999999999,
+      "response_bytes": 1882,
+      "worker_validation_projection_ms": 0.830943,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": 2,
+      "repetition": 2,
+      "elapsed_ms": 1.412883,
+      "parent_validation_ms": 0.070857,
+      "max_parent_heartbeat_lateness_ms": 0.43269,
+      "response_bytes": 1882,
+      "worker_validation_projection_ms": 0.823597,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": 2,
+      "repetition": 3,
+      "elapsed_ms": 1.425917,
+      "parent_validation_ms": 0.069986,
+      "max_parent_heartbeat_lateness_ms": 0.4465619999999999,
+      "response_bytes": 1882,
+      "worker_validation_projection_ms": 0.838171,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": 2,
+      "repetition": 4,
+      "elapsed_ms": 1.551736,
+      "parent_validation_ms": 0.069088,
+      "max_parent_heartbeat_lateness_ms": 0.588017,
+      "response_bytes": 1881,
+      "worker_validation_projection_ms": 0.81288,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": 2,
+      "repetition": 5,
+      "elapsed_ms": 3.499075,
+      "parent_validation_ms": 0.179884,
+      "max_parent_heartbeat_lateness_ms": 0.998324,
+      "response_bytes": 1882,
+      "worker_validation_projection_ms": 2.019808,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": 2,
+      "repetition": 6,
+      "elapsed_ms": 3.321454,
+      "parent_validation_ms": 0.165367,
+      "max_parent_heartbeat_lateness_ms": 0.8307329999999999,
+      "response_bytes": 1882,
+      "worker_validation_projection_ms": 2.006016,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": 2,
+      "repetition": 7,
+      "elapsed_ms": 2.930703,
+      "parent_validation_ms": 0.141911,
+      "max_parent_heartbeat_lateness_ms": 1.106621,
+      "response_bytes": 1882,
+      "worker_validation_projection_ms": 1.552093,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": 2,
+      "repetition": 8,
+      "elapsed_ms": 2.518891,
+      "parent_validation_ms": 0.123456,
+      "max_parent_heartbeat_lateness_ms": 1.0500159999999998,
+      "response_bytes": 1882,
+      "worker_validation_projection_ms": 1.510442,
+      "exact_value_equal": true
+    },
+    {
+      "method": "compact_worker_validation",
+      "trial": 2,
+      "repetition": 9,
+      "elapsed_ms": 2.582734,
+      "parent_validation_ms": 0.123456,
+      "max_parent_heartbeat_lateness_ms": 0.995118,
+      "response_bytes": 1882,
+      "worker_validation_projection_ms": 1.518687,
+      "exact_value_equal": true
+    }
+  ],
+  "summary": [
+    {
+      "metric": "elapsed_ms",
+      "full_parent_validation": 19.8092647,
+      "compact_worker_validation": 1.7768920666666668,
+      "relative_reduction": 0.9102999483536274
+    },
+    {
+      "metric": "parent_validation_ms",
+      "full_parent_validation": 0.9444878666666666,
+      "compact_worker_validation": 0.08693026666666667,
+      "relative_reduction": 0.9079604198903419
+    },
+    {
+      "metric": "max_parent_heartbeat_lateness_ms",
+      "full_parent_validation": 13.518933966666667,
+      "compact_worker_validation": 0.6261709666666666,
+      "relative_reduction": 0.9536819272724756
+    },
+    {
+      "metric": "response_bytes",
+      "full_parent_validation": 479168,
+      "compact_worker_validation": 1881.9666666666667,
+      "relative_reduction": 0.9960724283201995
+    }
+  ],
+  "source_record": {
+    "model": "7b",
+    "source_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d88_20260927/7b_admission_source_attempt1.json",
+    "source_sha256": "60d2f9e7ec28f2a1a2a0884a216919e5561aa86c75708b3079698d7f5e97c2c5",
+    "manifest_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d89_7b_initialization/manifest.json",
+    "manifest_sha256": "7ba165a97559ac375dea3e4c5690023c045c591b7de6c08a28adbe9a63069468",
+    "retained_views": 75,
+    "complete_views": 3,
+    "selected_path": [
+      "sources_after"
+    ],
+    "selected_owner_id": "5e6332d532c54c17a767f1d2388a38be",
+    "epoch": 1229,
+    "cpu_adapters": 2,
+    "host_allocations": 512,
+    "canonical_json_bytes": 438752,
+    "view_sha256": "9a6e7eed580a4be604fd7b1c4c9dcabef5523b78a88a45e4e110a295250d8760",
+    "samples": [
+      {
+        "trial": 0,
+        "deepcopy_ms": 34.537031,
+        "canonical_json_ms": 6.879479,
+        "sha256_ms": 1.190761,
+        "total_ms": 42.607271,
+        "ready_callback_delay_ms": 42.647711
+      },
+      {
+        "trial": 1,
+        "deepcopy_ms": 45.674107,
+        "canonical_json_ms": 6.459829,
+        "sha256_ms": 1.080119,
+        "total_ms": 53.214055,
+        "ready_callback_delay_ms": 53.252019
+      },
+      {
+        "trial": 2,
+        "deepcopy_ms": 17.055595,
+        "canonical_json_ms": 6.651421,
+        "sha256_ms": 1.192273,
+        "total_ms": 24.899289,
+        "ready_callback_delay_ms": 24.927151
+      }
+    ]
+  },
+  "worker_pid": 3831059,
+  "worker_cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d132-probe1-20261001.scope\n",
+  "worker_exit": 0,
+  "native_sources": 2,
+  "native_registered": 2,
+  "host_allocations": 512,
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/instance_pool.py",
+      "sha256": "e8f1fff8fd6139f35de0a0f0073d0fbb884aa29fafd0be51d0bcd2d97d6889f6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "a8b8630c88b2bc5a0c4e0c4e80937a803dd19a1a0e7f18fc3deba6f75a8fd560"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/dedicated_engine_worker.py",
+      "sha256": "49623bdcd7ac0a3af6d8f9b640ab27b682047d0f2ac03beb32f633865d4fc55c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_service_routing.py",
+      "sha256": "f4fe818e8487edc954a18f824bcadb8f60f6aec35d6111dcff4a1a8415efa023"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_request_lifecycle.py",
+      "sha256": "2886d754546eb4b0509c8c92cc8ed28546610499ff944f1bef1f8418e3a09ebc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_service_events.py",
+      "sha256": "cc0bb92a4cd76ab5dfc4f838a14f7efd6fcbefec89ef02a4f4d58ad1e38f06a5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d132_20261001/probe_routing_projection.py",
+      "sha256": "b2ef46aa967dce39049c10f7496b230c8aec0446eb51cfe2825968fe8da003bc"
+    }
+  ],
+  "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "limitations": [
+    "Historical two-adapter state, not current 24-adapter cache or 500-adapter Full.",
+    "Actual dedicated TCP and producer/receiver code; native GPU collection replaced by retained state.",
+    "Three local alternating trials are not independent trace seeds or a system-level CI.",
+    "Heartbeat samples add common diagnostic overhead; no heartbeat added to production.",
+    "No cache lifetime, admission/physical guard, backend capacity or formula changed."
+  ],
+  "decision": "candidate_for_ordinary_Full_not_system_performance_accepted",
+  "final_test_count": 925,
+  "verification": {
+    "kind": "d132_routing_projection_verification_v1",
+    "protected": {
+      "kind": "protected_artifact_verification",
+      "pass": true,
+      "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+      "changed": [],
+      "entry_count": 147,
+      "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+    },
+    "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c",
+    "source_refs": [
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/instance_pool.py",
+        "sha256": "e8f1fff8fd6139f35de0a0f0073d0fbb884aa29fafd0be51d0bcd2d97d6889f6"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "sha256": "a8b8630c88b2bc5a0c4e0c4e80937a803dd19a1a0e7f18fc3deba6f75a8fd560"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/dedicated_engine_worker.py",
+        "sha256": "49623bdcd7ac0a3af6d8f9b640ab27b682047d0f2ac03beb32f633865d4fc55c"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_service_routing.py",
+        "sha256": "a8c55877897f3781b0b84fed6efefb39b7334ddc056d24431d2fe80a7024e7d0"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_request_lifecycle.py",
+        "sha256": "2886d754546eb4b0509c8c92cc8ed28546610499ff944f1bef1f8418e3a09ebc"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_service_events.py",
+        "sha256": "cc0bb92a4cd76ab5dfc4f838a14f7efd6fcbefec89ef02a4f4d58ad1e38f06a5"
+      }
+    ],
+    "probe_sha256": "694ac134b3171c58c4f51185eca8533840082d401ef27e655881a788512ec0d7",
+    "serving_source_unchanged_since_probe": true,
+    "added_after_probe": "test_same_source_AA_preserves_service_classes_and_routing_decisions",
+    "formal_performance_result": false
+  },
+  "probe_sha256": "694ac134b3171c58c4f51185eca8533840082d401ef27e655881a788512ec0d7",
+  "source_base": "0ab3152b2740859e5705e34c61458d16c556021f"
+}
