@@ -1,0 +1,102 @@
+{
+  "kind": "d121_retained_native_snapshot_copy_diagnostic_v1",
+  "production_modified": false,
+  "gpu_or_remote_started": false,
+  "formal_performance_result": false,
+  "models": [
+    {
+      "model": "3b",
+      "source_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d88_20260927/3b_admission_source_attempt4.json",
+      "source_sha256": "7377ed4e706e1eb81db79d89d780d1205d04e76345f5ede8b8a6c9c81397e953",
+      "manifest_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d89_3b_initialization/manifest.json",
+      "manifest_sha256": "332f914d31dca776b0fdf52faad6241e04a3f3713db3e9289f5b5ecd551a9e0e",
+      "retained_views": 291,
+      "complete_views": 3,
+      "selected_path": [
+        "sources_after"
+      ],
+      "selected_owner_id": "88e701c8f8fa49578fac04115c596ce1",
+      "epoch": 4913,
+      "cpu_adapters": 8,
+      "host_allocations": 1792,
+      "canonical_json_bytes": 1214755,
+      "view_sha256": "01fc8eb7098904403be96be59e39c5dca4ecc74f549628531b0278fec84e2cf9",
+      "samples": [
+        {
+          "trial": 0,
+          "deepcopy_ms": 344.409188,
+          "canonical_json_ms": 19.179167,
+          "sha256_ms": 3.160654,
+          "total_ms": 366.749009,
+          "ready_callback_delay_ms": 366.839476
+        },
+        {
+          "trial": 1,
+          "deepcopy_ms": 49.768351,
+          "canonical_json_ms": 17.830475,
+          "sha256_ms": 3.035691,
+          "total_ms": 70.634517,
+          "ready_callback_delay_ms": 70.670233
+        },
+        {
+          "trial": 2,
+          "deepcopy_ms": 47.203678,
+          "canonical_json_ms": 18.270703,
+          "sha256_ms": 3.030887,
+          "total_ms": 68.505268,
+          "ready_callback_delay_ms": 68.536965
+        }
+      ]
+    },
+    {
+      "model": "7b",
+      "source_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d88_20260927/7b_admission_source_attempt1.json",
+      "source_sha256": "60d2f9e7ec28f2a1a2a0884a216919e5561aa86c75708b3079698d7f5e97c2c5",
+      "manifest_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d89_7b_initialization/manifest.json",
+      "manifest_sha256": "7ba165a97559ac375dea3e4c5690023c045c591b7de6c08a28adbe9a63069468",
+      "retained_views": 75,
+      "complete_views": 3,
+      "selected_path": [
+        "sources_after"
+      ],
+      "selected_owner_id": "5e6332d532c54c17a767f1d2388a38be",
+      "epoch": 1229,
+      "cpu_adapters": 2,
+      "host_allocations": 512,
+      "canonical_json_bytes": 438752,
+      "view_sha256": "9a6e7eed580a4be604fd7b1c4c9dcabef5523b78a88a45e4e110a295250d8760",
+      "samples": [
+        {
+          "trial": 0,
+          "deepcopy_ms": 34.537031,
+          "canonical_json_ms": 6.879479,
+          "sha256_ms": 1.190761,
+          "total_ms": 42.607271,
+          "ready_callback_delay_ms": 42.647711
+        },
+        {
+          "trial": 1,
+          "deepcopy_ms": 45.674107,
+          "canonical_json_ms": 6.459829,
+          "sha256_ms": 1.080119,
+          "total_ms": 53.214055,
+          "ready_callback_delay_ms": 53.252019
+        },
+        {
+          "trial": 2,
+          "deepcopy_ms": 17.055595,
+          "canonical_json_ms": 6.651421,
+          "sha256_ms": 1.192273,
+          "total_ms": 24.899289,
+          "ready_callback_delay_ms": 24.927151
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "Historical D88 profile snapshots, not D119 online or maximum cache occupancy.",
+    "Native component only; no 500-artifact file view, DP, IO, RPC, or complete plan measured.",
+    "Ready callback delay demonstrates local non-yielding work, not D119 queue causality.",
+    "Three CPU repetitions are not independent workload runs or a seed confidence interval."
+  ]
+}

@@ -1,6 +1,45 @@
 # IEEE TC execution status
 
-## CURRENT — D120 offline occupancy complete; backup next, no GPU job
+## CURRENT — D121 bounded copy diagnosis complete; no production candidate
+
+2026-09-30 16:00. Goal ACTIVE/incomplete; baselines PAUSED. This goal turn
+PROGRESS: D119 bounded saved-view inspection, one retained-state CPU diagnostic,
+diagnostic table,94source/147protected checks and small evidence bundle done.
+NO production/configuration/GPU/remote change. No improvement/Full qualification
+claimed. DoNOT repeat D120 or D121 analysis. Once-only cache fulfilledD78/D80.
+
+- D119normal60,920,330B contains17native source observations,none withcomplete
+  footprints; no source_view/fullpreparation epoch. No9.48GBreprojection.
+- D88SHA-bound realnative states:3B8adapters/1792allocations;7B2/512.
+  copy+JSON+SHA milliseconds3B366.749009/70.634517/68.505268;
+  7B42.607271/53.214055/24.899289. Localreadycallbackdelayedaccordingly.
+  Componentonly,NOTD119maximumstate/full500fileplan/DP/IO/RPCorqueuecause.
+  All3samplesretained,noCI/outlierfilter/extrapolation. Nooptimizationaccepted.
+- ActualCPUprobe4.88s,RSS911232KiB,exit0,events0. Initialprobe rejected
+  253MB3Bsourcebeforeload due128MiBscriptcutoff; preservedsource/log. D114had
+  alreadyparsedthisexactsourcewithin4GiB; secondchecks exactknownsizes+SHA,
+  samehardlimit. Initialviewswrapperfailed affinitygatebeforeanalysis;
+  correctedexplicit taskset only, noresourcechanges. Bothfailedattemptskept.
+- Raw results/ieee_tc/p2_backend_qualification/d121_20260930;
+  curated20260930_d121_preparation_copy/summary.json SHA
+  bf981b7482fcab9485d76945e684920902cad42ed34f8c6d8fb53309be651d47;
+  verificationSHA8f752be6b7bec2f62219907dc6475633693b6547847e053ea26ffe1578914fd7.
+  23memberbundleSHAverified;94frozenrefs/147protected/plan/metricunchanged.
+  Syntaxandsamplearithmetic/alias/contentinvariantsPASS. Table/sourcebasis:
+  D121_PREPARATION_COPY_DIAGNOSTIC.md. Fourviews/copy scopesexactemptyclosed,
+  events0; firstinspect903aa79350ed46d2a13710dd24ff1c4f closed15:53:32.
+  Curatorc4a87e547f774528a5d75bec2b877e98 exactemptyclosed16:01,events0.
+  Firstcleanupcommandwrongcwd failedbeforeaction; correctedonce. BundlecheckPASS.
+  NoGPU/remote/analysisjob remains. Gitbackup next.
+
+NEXT: secrets/diff and Gitbackup; then ONEcurrent7B1000request
+development-prefix CPUprofile usingexistingrunner/profiler, nooptimizerbefore
+actual evidence. Notanotherunchanged4000Full/ranking. Snapshotcomponentprobe
+alone cannotselectrepresentation/concurrencychange. No raisedtimeouts/removed
+ownershipguards. MainlinePrimeFull→warm/Resident→baselines→M1M2→A1–A5/S1–S13.
+Numericadapterqualification pending; doNOTregenerateweights. Usermanifestnotstage.
+
+## D120 completed reference — backed, do not repeat
 
 2026-09-30 15:41. Goal ACTIVE/incomplete; baselines PAUSED. Current goal turn
 PROGRESS: D120 existing analyzer extended, 21 tests PASS, full offered population
@@ -33,9 +72,12 @@ D119 and D118 backups already complete; do NOT repeat their runs or analyses.
   allmemoryevents0. Finalverification54ffaba8c3bf48638f79417c41bf1d5d exactempty
   closed15:41:11; all events0. NoGPU/remote/analysisjob remains. Initial cleanup
   command had wrong cwd and failed before any action; corrected once, receipt
-  retained. Bundle checksum PASS. Scoped Gitbackup next; no repeated verification.
+  retained. Bundle checksum PASS. Eleven scoped files committed/pushed as
+  a7d86736eaa658e606629a472d1b8fa0786912a7; exactremoteHEADverified15:43.
+  Diff and26staged/archive entrysecretchecks PASS; userdirtymanifestnotstaged.
+  No repeated verification/backup needed. Thispostpushledgernote isnotproduction.
 
-NEXT: finish secrets/diff/Gitbackup, then ONE causal
+NEXT: ONE causal
 validation chosen after cap2 history/physical KV review. cap2/max_num_seqs2
 originate d5cd9a9 Apr13;Apr22cb53f04 notes max_loras8 squeezed KV to1.36x,
 but current slots4 and backend.30 differ. This does NOT prove cap4 feasible.
@@ -43,6 +85,25 @@ No D121 config/probe or optimizer accepted/prepared yet. No blind7BFull2,
 deadline increase or guard removal. Mainline remains Prime Full → warm/Resident
 → baselines → M1/M2 → A1–A5/S1–S13. Numeric adapter qualification unresolved.
 Once-only remote cache fulfilledD78/D80, NEVER rebuild. Userdirtymanifest notstage.
+
+Postbackup bounded read-only audit15:45: history origin confirmed via gitblame
+configs/experiments.yaml283–305 andcb53f04diff. D119 savedtwo replacementworker
+errorlogtails report4880KVtokens/4.77x at1024; these are NOTfirstfourruntime
+measurements or validation ofmax_num_seqs4. Currentgate remains groupcount×cap2
+forfullprepare/generate/cleanup; effectivecapclampedmax_num_seqs. No cap change.
+D119sourceobservationstats11124requests/7298collections/6684RPC/6622parses/
+3826joins/981stalerejections/53membershiprejections. D111same-inflightparse
+optimization already present; D114nonblockingtransport already present. DoNOT
+repeat theirold32-executor or32-parser probes. Currentowned_preparation_inputs
+stillvalidates nativefootprints, deepcopies andhasheswholeplan; fileinventory
+scans/statvalidatesownedtrees. D110CPUprofile identifies these ascandidates,
+but itisolder3B/differentcode anddoesNOTprove D119timingcause. NoD121measurement
+orproductioncandidateprepared. ChooseONE actual-state causalprobe/profiling,
+not speculativecap4 tuning or another unchangedFull. OfficialvLLM.30optimization/
+scheduler andPython3.12timeout docs revisited; noframeworkinstall/versionchange.
+Latest15:45allprimelorascopesinactive, noanalysis/GPU/remotejob; plan/metricSHA
+unchanged. Lastresourcecheck112653266944Bavailable,disk255837126656B; recheck
+beforeheavy. Sourceplan1525lines/statusfullreread; noadditionalagentused.
 
 ## D119 completed reference — superseded by D120 CURRENT above
 
