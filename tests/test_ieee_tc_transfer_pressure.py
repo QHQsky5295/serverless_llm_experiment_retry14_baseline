@@ -594,6 +594,9 @@ class SharedPressure(unittest.IsolatedAsyncioTestCase):
         runner, first, left = self.make()
         _, second, right = self.make()
         runner.instance_pool = NS(get_slots=lambda: [NS(engine=first), NS(engine=first), NS(engine=second)])
+        # Production activation subscribes before publishing each runtime.
+        await runner._attach_ieee_file_pressure(first)
+        await runner._attach_ieee_file_pressure(second)
         async def body():
             self.assertEqual(left.snapshot()['active_transfers'], 1)
             self.assertEqual(right.snapshot()['active_transfer_ids'], left.snapshot()['active_transfer_ids'])
@@ -620,6 +623,64 @@ class SharedPressure(unittest.IsolatedAsyncioTestCase):
         release.set()
         self.assertEqual(await task, 'preactivation-copy')
         self.assertEqual(ledger.snapshot()['active_transfers'], 0)
+
+    async def test_non_target_retirement_does_not_rejoin_a_stale_pool_member(self):
+        from faaslora.experiment.instance_pool import InstancePool
+        runner, target, left = self.make()
+        _, other, right = self.make()
+        runner.instance_pool = InstancePool()
+        runner.instance_pool.add_instance(target, None, instance_id='target')
+        runner.instance_pool.add_instance(other, None, instance_id='other')
+        await runner._attach_ieee_file_pressure(target)
+        await runner._attach_ieee_file_pressure(other)
+        domain = runner._shared_file_pressure
+        original = domain.attach
+        entered, proceed = asyncio.Event(), asyncio.Event()
+        async def hold(engine):
+            if engine is target:
+                entered.set()
+                await proceed.wait()
+            return await original(engine)
+        domain.attach = hold
+        async def body():
+            self.assertEqual(left.snapshot()['active_transfers'], 1)
+            self.assertEqual(right.snapshot()['active_transfers'], 0)
+            return 'target-still-live'
+        transfer = asyncio.create_task(runner._run_ieee_file_transfer('a', 'nvme', 'native_host', target, body))
+        await entered.wait()
+        runner.instance_pool.get_slot('other').status = 'draining'
+        await domain.retire(other)
+        proceed.set()
+        self.assertEqual(await transfer, 'target-still-live')
+        self.assertEqual(domain.members[id(other)]['state'], 'retired')
+        self.assertEqual(left.snapshot()['active_transfers'], 0)
+
+    async def test_explicit_target_is_rechecked_after_attach_before_transfer(self):
+        runner, engine, ledger = self.make()
+        await runner._attach_ieee_file_pressure(engine)
+        domain = runner._shared_file_pressure
+        original = domain.attach
+        async def withdraw_after_attach(target):
+            result = await original(target)
+            await domain.retire(target)
+            return result
+        domain.attach = withdraw_after_attach
+        body = AsyncMock()
+        with self.assertRaisesRegex(RuntimeError, 'target file pressure subscription is not available'):
+            await runner._run_ieee_file_transfer('a', 'nvme', 'native_host', engine, body)
+        body.assert_not_awaited()
+        self.assertEqual(ledger.snapshot()['active_transfers'], 0)
+        self.assertFalse(domain.active)
+        self.assertEqual(runner._adapter_transfer_pressure_evidence[-1]['operation_outcome'], 'failed')
+
+    async def test_unattached_required_target_cannot_authorize_transfer(self):
+        runner, engine, _ = self.make()
+        domain = runner._ieee_file_pressure_domain()
+        body = AsyncMock()
+        with self.assertRaisesRegex(RuntimeError, 'target file pressure subscription is not available'):
+            await domain.run('a', 'remote', 'nvme', body, required_engine=engine)
+        body.assert_not_awaited()
+        self.assertFalse(domain.active)
 
     async def test_join_and_finish_race_keeps_pressure_until_join_acknowledges(self):
         runner, engine, ledger = self.make()

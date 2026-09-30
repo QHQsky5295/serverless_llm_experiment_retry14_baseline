@@ -1,6 +1,50 @@
 # IEEE TC execution status
 
-## CURRENT — D115 curation COMPLETE; evidence closure; no live job
+## CURRENT — D116 CPU membership candidate tested/curated; backup next
+
+2026-09-30 10:49. Goal ACTIVE/incomplete; baselines PAUSED. This turn PROGRESS:
+D115evidenceclosed/backed; one D116 causal CPU counterexample and candidate,
+350native +401legacy/launch checksPASS. NO new GPU/remote experiment. No full
+qualification or performance-gain claim. D115backupd36581421413e0a4bc70354bdf191fa06375435e
+pushed/exactremoteHEADverified; doNOTrepeatD115curation/checks/replay/backup.
+
+D116hypothesis: _run_ieee_file_transfer capturesrunningpool thenawaits attach;
+a non-target retiresduringawait and stale list reattach wrongly rejects targetIO.
+Realrunner/domain/InstancePool +existingnativefixture,eventsnoGPU/sleep:
+bothlivecompletesbefore/after; non-targetretirefailsbefore/completesafter;
+targetretirecorrectlyfailsboth. D115sameerrorconsistent, buterror-member not
+instrumented soNOT fullhistoricalroot-causeproof.
+Candidate ONLYrunner18040 andresource_coordinator domain.run plus tests:
+membership belongs to activation/retirement, no pertransferpoolre-enrollment;
+explicittargetstillattaches andrequired_engine recheckedwithstart/retire lock.
+Uncertainmembers/lostreply/cancel/bytebudgets/physicalreleaseguards unchanged.
+RunnerSHA194008ffdbed73d0e82ff760941534ee4be4124c9698d0fddebc9160cf97241f;
+resourcecoordSHA60281e8ea2de21e8fd7e10cba5c15970795a27fea2a814297488fb716a5e45fd.
+Beforeprobe7.91s/RSS930464KiB; afterprobePASS;350checks15.045s;
+401legacy/launchchecks47.844s. No failed test execution this candidate.
+
+Allcuration COMPLETE; no GPU/remote/analysisjob remains. Raw
+results/ieee_tc/p2_backend_qualification/d116_20260930. CuratorreusesD11569MB
+projection,not9GBoriginal.69frozenrefs:3expectedchanges(twoaliasesrunner+test);
+resourcecoordnotinoldmanifest, independentlycheckedagainstbeforeGit/afterSHA.
+Firstcuratorassertedwrongmanifestcoverageandstoppedbeforesideeffects; attempt1
+source/logpreserved. SecondSUCCESS,nometrics/production/testchangeor rerun.
+147protected/plan/metricV1unchanged. Fiveprobe/test/curationscopes exactempty
+closed,events0; lastcurator898c4b2041d94b98921b6097f3f6d4be stopped10:49.
+Curatedpaper_results/ieee_tc/p2_backend/20260930_d116_pressure_membership:
+summarySHA92a50dce49971f57fe1d654fb51ee253701d6de71a2cb0268cc859ed52241a54;
+30membersbundleeachSHAverified. DoNOTrepeat probes/751checks/curation.
+NEXT diff/checksum/secrets andcommit/pushD116candidate+evidence.
+
+Next before Full: one explicit terminal lifecycle mismatch foundinD115.
+LastIEEEcontrolno_action, butrun() legacyafter-singlephase branch14572ffinjects
+_scale_down_one_instance andlater_cleanup_extra_instances. D115tailphysical
+scale_downc9ac... atrequest4000 isNOTnaturalIEEEcontroldecision. NotchangedbyD116.
+Audit/jointhisterminalpath againstunified_shutdown_instance_pool; doNOTcount
+legacytailasnaturalorblindFull11. Thenreturn3BFull/7B,warm/Resident,baselines,
+M1M2/A1–A5/S1–S13. Numericadapterproofstillpending; doNOTregenerateweights.
+
+## D115 completed reference — evidence closed and backed up
 
 2026-09-30 10:35. Goal ACTIVE/incomplete; baselines PAUSED. Current turn
 PROGRESS. D115 projection/curation finished Sep29, NOT live. No GPU/replay,

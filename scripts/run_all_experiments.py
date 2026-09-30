@@ -18038,18 +18038,17 @@ class ScenarioRunner:
                 await self._attach_ieee_host_budget(engine)
             return await operation()
         domain = self._ieee_file_pressure_domain()
-        engines = [engine]
-        pool = getattr(self, 'instance_pool', None)
-        if pool is not None:
-            engines.extend(slot.engine for slot in pool.get_slots())
-        else:
-            engines.append(getattr(self, 'engine', None))
-        for target in engines:
-            if target is not None:
-                await self._attach_ieee_host_budget(target)
-                await domain.attach(target)  # Same physical engine is idempotent.
+        # Runtime activation joins the domain before pool publication. Its
+        # membership lock, not an earlier routing-pool list, decides recipients
+        # of new pressure intervals. Reattaching every captured pool member here
+        # could resurrect a retiring non-target or reject another owner's work.
+        # The explicit IO target must still be attached and is rechecked under
+        # the same lock that publishes this interval and handles retirement.
+        if engine is not None:
+            await self._attach_ieee_file_pressure(engine)
         try:
-            return await domain.run(adapter_id, source_tier, target_tier, operation)
+            return await domain.run(adapter_id, source_tier, target_tier, operation,
+                                    required_engine=engine)
         finally:
             for owner_id, target in getattr(self, '_ieee_gpu_movement_owners', {}).items():
                 member = domain.members.get(id(target))

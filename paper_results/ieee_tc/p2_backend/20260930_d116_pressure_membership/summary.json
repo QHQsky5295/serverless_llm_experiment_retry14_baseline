@@ -1,0 +1,373 @@
+{
+  "kind": "d116_pressure_membership_candidate_v1",
+  "before": {
+    "kind": "d116_pressure_membership_cpu_probe_before_v1",
+    "rows": [
+      {
+        "retire_role": null,
+        "attach_calls": [
+          "target",
+          "target",
+          "other"
+        ],
+        "result": "completed",
+        "error": null,
+        "operation_calls": [
+          {
+            "target": 1,
+            "other": 1
+          }
+        ],
+        "live_pool": [
+          "target",
+          "other"
+        ],
+        "members": [
+          {
+            "owner_id": "9770d28f653444589963d78db2418e45",
+            "state": "attached",
+            "caller_cancelled": false
+          },
+          {
+            "owner_id": "ca1cea6688b647f7872494c6ba931652",
+            "state": "attached",
+            "caller_cancelled": false
+          }
+        ],
+        "transfer_records": 1
+      },
+      {
+        "retire_role": "other",
+        "attach_calls": [
+          "target",
+          "target",
+          "other"
+        ],
+        "result": null,
+        "error": "native file pressure subscription is not available",
+        "operation_calls": [],
+        "live_pool": [
+          "target"
+        ],
+        "members": [
+          {
+            "owner_id": "f262f0f04ea046b687e583be9be93356",
+            "state": "attached",
+            "caller_cancelled": false
+          },
+          {
+            "owner_id": "d0cec18eebf849d8993742c7b6b0f6c3",
+            "state": "retired",
+            "caller_cancelled": false
+          }
+        ],
+        "transfer_records": 0
+      },
+      {
+        "retire_role": "target",
+        "attach_calls": [
+          "target"
+        ],
+        "result": null,
+        "error": "native file pressure subscription is not available",
+        "operation_calls": [],
+        "live_pool": [
+          "other"
+        ],
+        "members": [
+          {
+            "owner_id": "9d3cf9638c194ac6af7abd5ea3be6151",
+            "state": "retired",
+            "caller_cancelled": false
+          },
+          {
+            "owner_id": "e80718cf2abd47c3967acf19840104ff",
+            "state": "attached",
+            "caller_cancelled": false
+          }
+        ],
+        "transfer_records": 0
+      }
+    ],
+    "reproduction_pass": true,
+    "performance_measurement": false,
+    "gpu_used": false,
+    "historical_run_causal_attribution": "consistent counterexample, no D115 failing-member timestamp",
+    "source_sha256": {
+      "scripts/run_all_experiments.py": "b2e4f65e4a20c4c56f27df9fff88075c17570021e3035ed83634badef75cdd18",
+      "faaslora/scheduling/resource_coordinator.py": "0df2cf9ce0af378c743a46446dec78adead2d021a8f7d36520446daed26283af",
+      "faaslora/experiment/instance_pool.py": "65744a7c6037b5e01ec2e1c3cfb880f9a6ffd79232af2bfa3f7f449a771636bd",
+      "tests/test_ieee_tc_transfer_pressure.py": "1f783955666dd699d87673c5691ddda3e78084085f8a6714949550fc5871a41e"
+    }
+  },
+  "after": {
+    "kind": "d116_pressure_membership_cpu_probe_after_v1",
+    "rows": [
+      {
+        "retire_role": null,
+        "attach_calls": [
+          "target"
+        ],
+        "result": "completed",
+        "error": null,
+        "operation_calls": [
+          {
+            "target": 1,
+            "other": 1
+          }
+        ],
+        "live_pool": [
+          "target",
+          "other"
+        ],
+        "members": [
+          {
+            "owner_id": "2750cf0ece474381b13b5e03d61ca275",
+            "state": "attached",
+            "caller_cancelled": false
+          },
+          {
+            "owner_id": "10d7c2ad0d294d678e1deb452a65e5c8",
+            "state": "attached",
+            "caller_cancelled": false
+          }
+        ],
+        "transfer_records": 1
+      },
+      {
+        "retire_role": "other",
+        "attach_calls": [
+          "target"
+        ],
+        "result": "completed",
+        "error": null,
+        "operation_calls": [
+          {
+            "target": 1,
+            "other": 0
+          }
+        ],
+        "live_pool": [
+          "target"
+        ],
+        "members": [
+          {
+            "owner_id": "74f4c5c5cb6f4779b9406d777f5d0c73",
+            "state": "attached",
+            "caller_cancelled": false
+          },
+          {
+            "owner_id": "cfdcc93c5b124d35894857c49fd95d5f",
+            "state": "retired",
+            "caller_cancelled": false
+          }
+        ],
+        "transfer_records": 1
+      },
+      {
+        "retire_role": "target",
+        "attach_calls": [
+          "target"
+        ],
+        "result": null,
+        "error": "native file pressure subscription is not available",
+        "operation_calls": [],
+        "live_pool": [
+          "other"
+        ],
+        "members": [
+          {
+            "owner_id": "93ea353bc7804c96b8ea327e1b977686",
+            "state": "retired",
+            "caller_cancelled": false
+          },
+          {
+            "owner_id": "6f13beca70f2431fa56d678ec689e520",
+            "state": "attached",
+            "caller_cancelled": false
+          }
+        ],
+        "transfer_records": 0
+      }
+    ],
+    "reproduction_pass": true,
+    "performance_measurement": false,
+    "gpu_used": false,
+    "historical_run_causal_attribution": "consistent counterexample, no D115 failing-member timestamp",
+    "source_sha256": {
+      "scripts/run_all_experiments.py": "194008ffdbed73d0e82ff760941534ee4be4124c9698d0fddebc9160cf97241f",
+      "faaslora/scheduling/resource_coordinator.py": "60281e8ea2de21e8fd7e10cba5c15970795a27fea2a814297488fb716a5e45fd",
+      "faaslora/experiment/instance_pool.py": "65744a7c6037b5e01ec2e1c3cfb880f9a6ffd79232af2bfa3f7f449a771636bd",
+      "tests/test_ieee_tc_transfer_pressure.py": "f622bfaff924684c7fcba30fbd038a6743a4941cc81018be0adb38870b6d35db"
+    }
+  },
+  "tests": {
+    "tests": {
+      "count": 350,
+      "seconds": 15.045,
+      "pass_checks": true
+    },
+    "regression": {
+      "count": 401,
+      "seconds": 47.844,
+      "pass_checks": true
+    }
+  },
+  "frozen_source_refs_checked": 69,
+  "expected_changes": [
+    {
+      "path": "tests/test_ieee_tc_transfer_pressure.py",
+      "before": "1f783955666dd699d87673c5691ddda3e78084085f8a6714949550fc5871a41e",
+      "after": "f622bfaff924684c7fcba30fbd038a6743a4941cc81018be0adb38870b6d35db"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "before": "b2e4f65e4a20c4c56f27df9fff88075c17570021e3035ed83634badef75cdd18",
+      "after": "194008ffdbed73d0e82ff760941534ee4be4124c9698d0fddebc9160cf97241f"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "before": "b2e4f65e4a20c4c56f27df9fff88075c17570021e3035ed83634badef75cdd18",
+      "after": "194008ffdbed73d0e82ff760941534ee4be4124c9698d0fddebc9160cf97241f"
+    }
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "cleanup": [
+    {
+      "unit": "primelora-d116-before-20260930.scope",
+      "invocation": "751e4fa5485d4083b2e54e7ee903efdd",
+      "tasks": 0,
+      "populated": 0,
+      "stopped": true
+    },
+    {
+      "unit": "primelora-d116-after-20260930.scope",
+      "invocation": "8ca74ba5854948b5a51b53f8ff51d50d",
+      "tasks": 0,
+      "populated": 0,
+      "stopped": true
+    },
+    {
+      "unit": "primelora-d116-regression-20260930.scope",
+      "invocation": "3a56bf2535b740b3a2bde7c3be23c290",
+      "tasks": 0,
+      "populated": 0,
+      "stopped": true
+    },
+    {
+      "unit": "primelora-d116-curate-20260930.scope",
+      "invocation": "1fd6cd18b10b4f39af2659f25a25a182",
+      "tasks": 0,
+      "populated": 0,
+      "stopped": true
+    }
+  ],
+  "historical_context": {
+    "final_pressure": {
+      "file_owner_id": "3455b39806564eea8c144a59a2b3cd1b",
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "active_transfer_ids": [],
+      "members": [
+        {
+          "owner_id": "7db252038743402a9a61f9166cda0a1f",
+          "state": "retired",
+          "caller_cancelled": false
+        },
+        {
+          "owner_id": "08efb8ab0e0840498aa1298c1a3bdcc6",
+          "state": "retired",
+          "caller_cancelled": false
+        },
+        {
+          "owner_id": "2e50540187404b6e8e1033f24a33d571",
+          "state": "retired",
+          "caller_cancelled": false
+        },
+        {
+          "owner_id": "f3282b4501aa4f6a91a14ea436e2729e",
+          "state": "retired",
+          "caller_cancelled": false
+        }
+      ],
+      "physical_capacity_reserved": false
+    },
+    "tail_scale_down": [
+      {
+        "timestamp": 1790617029.147754,
+        "request_index": 4000,
+        "queue_visible_request_count": 4000,
+        "arrived_request_count": 4000,
+        "event_type": "physical_scale_down",
+        "instance_id": "ieee-activation-c9ac10d6cf9641c8a896cbed368e408c",
+        "device_id": 2,
+        "runtime_kind": "dedicated",
+        "scale_down_min_idle_s": null
+      }
+    ],
+    "last_online_control": {
+      "action": "no_action",
+      "target_instances": 4,
+      "current_instances": 4,
+      "reason": "within_limits",
+      "observed_at": 124265.791809032,
+      "queue_depth": 0,
+      "active_requests": 1,
+      "ready_capacity": 32,
+      "ready_instances": 4,
+      "pending_instances": 0,
+      "active_saturation": 0.03125,
+      "p95_ttft_ms": 75569.31832789269,
+      "ttft_sample_count": 38,
+      "ratios": {
+        "queue": 0.0,
+        "active": 0.03571428571428571,
+        "ttft": 15.113863665578538
+      },
+      "score": 15.113863665578538,
+      "all_low": false,
+      "low_since": null,
+      "outcome": "no_action"
+    },
+    "activations": [
+      {
+        "activation_id": "ieee-activation-8c3c1220292d452ab5d3c43e3e1eb2b5",
+        "category": "initial",
+        "state": "runtime_ready",
+        "native_owner_id": "917e8fb140c1421d94265fd134bec84b"
+      },
+      {
+        "activation_id": "ieee-activation-01826bbd6fd044a1b39b77e3406e1d5b",
+        "category": "natural_scaleout",
+        "state": "runtime_ready",
+        "native_owner_id": "4dfa97f93ba94fbb8846ac8eeeba3777"
+      },
+      {
+        "activation_id": "ieee-activation-c9ac10d6cf9641c8a896cbed368e408c",
+        "category": "natural_scaleout",
+        "state": "runtime_ready",
+        "native_owner_id": "51113cb11ebc4e2db17232a3f43ba549"
+      },
+      {
+        "activation_id": "ieee-activation-23140de24ba74c19a48daef6652ee5f0",
+        "category": "natural_scaleout",
+        "state": "runtime_ready",
+        "native_owner_id": "f4f6201718e9489f9b15257c838d23e5"
+      }
+    ],
+    "failing_member_at_error": "not instrumented; no retrospective identity claim"
+  },
+  "production_candidate": true,
+  "full_qualified": false,
+  "formal_performance_result": false,
+  "source_parent_commit": "d36581421413e0a4bc70354bdf191fa06375435e",
+  "additional_source_verification": "resource_coordinator absent in D115 prelaunch69; before Git and after probe SHA checked independently",
+  "first_curation_failure": "manifest coverage assertion assumed resource_coordinator was in prelaunch69; before side effects; attempt1 preserved",
+  "next": "Audit explicit legacy terminal retirement ordering, then canonical Full; no blind replay."
+}

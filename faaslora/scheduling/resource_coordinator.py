@@ -278,7 +278,7 @@ class SharedFileTransferDomain:
         if cancelled:
             raise asyncio.CancelledError()
 
-    async def run(self, adapter_id, source_tier, target_tier, operation):
+    async def run(self, adapter_id, source_tier, target_tier, operation, *, required_engine=None):
         if (not isinstance(adapter_id, str) or not adapter_id
                 or source_tier not in ('remote', 'nvme', 'host')
                 or target_tier not in ('nvme', 'host', 'native_host') or source_tier == target_tier):
@@ -293,6 +293,13 @@ class SharedFileTransferDomain:
         unresolved_error = None
         try:
             async with self.lock:
+                # Target ownership and transfer publication share the same
+                # linearization point as retirement. A prior attach alone is
+                # not permission to use an owner after it has withdrawn.
+                if required_engine is not None:
+                    member = self.members.get(id(required_engine))
+                    if member is None or member['state'] != 'attached':
+                        raise RuntimeError('target file pressure subscription is not available')
                 self.active[record['transfer_id']] = entry
                 for member in self.members.values():
                     if member['state'] in ('retiring', 'retired'):
