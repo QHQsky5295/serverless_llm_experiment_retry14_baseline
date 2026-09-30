@@ -169,6 +169,49 @@ class ControlTimelineTest(unittest.TestCase):
         path.write_text(json.dumps(x))
         with self.assertRaisesRegex(ValueError,'exceed ready'): self.run_audit(control_outcome_path=path)
 
+    def test_control_lifetime_does_not_extend_request_window(self):
+        path=self.control_outcome()
+        x=json.loads(path.read_text())
+        events=x['mechanism_events']['_ieee_control_events']
+        before=dict(events[0],observed_at=99)
+        after=dict(events[-1],observed_at=107.0008,queue_depth=0,active_requests=0)
+        x['mechanism_events']['_ieee_control_events']=[before,*events,after]
+        path.write_text(json.dumps(x))
+        r=self.run_audit(control_outcome_path=path)
+        c=r['control_observations']
+        self.assertEqual(r['observation_s'],7)
+        self.assertEqual(c['source_event_count'],5)
+        self.assertEqual(c['in_request_window_count'],3)
+        self.assertEqual(sum(v['samples'] for v in c['by_phase'].values()),3)
+        self.assertEqual([v['boundary'] for v in c['outside_request_window']],
+            ['before_request_window','after_request_window'])
+        self.assertEqual([v['event'] for v in c['outside_request_window']],[before,after])
+        import csv
+        with (self.root/'output/control_observations.csv').open() as f:
+            rows=list(csv.DictReader(f))
+        self.assertEqual([float(v['offset_s']) for v in rows],[0,6,7])
+
+    def test_control_outside_window_still_validates_counts(self):
+        path=self.control_outcome()
+        x=json.loads(path.read_text())
+        events=x['mechanism_events']['_ieee_control_events']
+        events.append(dict(events[-1],observed_at=108,active_requests=3))
+        path.write_text(json.dumps(x))
+        with self.assertRaisesRegex(ValueError,'exceed ready'):
+            self.run_audit(control_outcome_path=path)
+
+    def test_control_outside_window_still_validates_order_and_finiteness(self):
+        path=self.control_outcome()
+        x=json.loads(path.read_text())
+        events=x['mechanism_events']['_ieee_control_events']
+        for at in (98,float('nan'),float('inf')):
+            with self.subTest(at=at):
+                x['mechanism_events']['_ieee_control_events']=[dict(events[0],observed_at=99),
+                    *events,dict(events[-1],observed_at=at)]
+                path.write_text(json.dumps(x))
+                with self.assertRaisesRegex(ValueError,'control observation order'):
+                    self.run_audit(control_outcome_path=path)
+
     def test_control_wrong_quarantine_clock_rejected(self):
         path=self.control_outcome()
         x=json.loads(path.read_text())

@@ -456,10 +456,14 @@ def analyze_native_timeline(projection: Path, deployment_path: Path,
         first_failure = min((f['terminal_at'] for f in failures), default=None)
         first_failure_observation = min((f['observed_at'] for f in failures), default=None)
         first_quarantine = min((q['started_monotonic_s'] for q in quarantines), default=None)
-        previous_at = start
-        for event in events:
+        # Control sampling and request completion have distinct lifetimes.
+        # Validate the entire chronological source history, then retain samples
+        # outside the request window separately rather than moving its boundary.
+        previous_at = -math.inf
+        outside_window = []
+        for index, event in enumerate(events):
             at = event['observed_at']
-            if not math.isfinite(at) or not previous_at <= at <= end:
+            if not math.isfinite(at) or at < previous_at:
                 raise ValueError('invalid control observation order')
             previous_at = at
             names = ('queue_depth','active_requests','ready_capacity','ready_instances','pending_instances')
@@ -467,6 +471,11 @@ def analyze_native_timeline(projection: Path, deployment_path: Path,
                 raise ValueError('invalid observed control counts')
             if event['active_requests'] > event['ready_capacity']:
                 raise ValueError('observed active requests exceed ready capacity')
+            if not start <= at <= end:
+                outside_window.append(dict(source_index=index, offset_s=at-start,
+                    boundary='before_request_window' if at < start else 'after_request_window',
+                    event=event))
+                continue
             phase = ('after_first_quarantine' if first_quarantine is not None and at >= first_quarantine
                      else 'after_first_failure_before_quarantine' if first_failure is not None and at >= first_failure
                      else 'before_first_failure')
@@ -475,6 +484,8 @@ def analyze_native_timeline(projection: Path, deployment_path: Path,
                 successful_native_occupancy=bisect_right(indexes['native_dispatch_to_last_token'][0],at)
                     -bisect_right(indexes['native_dispatch_to_last_token'][1],at)))
         result['control_observations'] = dict(
+            source_event_count=len(events), in_request_window_count=len(controls),
+            outside_request_window=outside_window,
             first_failed_terminal_offset_s=first_failure-start if first_failure is not None else None,
             first_failure_observation_offset_s=first_failure_observation-start if first_failure_observation is not None else None,
             first_quarantine_offset_s=first_quarantine-start if first_quarantine is not None else None,
@@ -487,7 +498,7 @@ def analyze_native_timeline(projection: Path, deployment_path: Path,
                 ready_capacity_histogram=dict(Counter(e['ready_capacity'] for e in group)))
                 for phase in sorted({e['phase'] for e in controls})
                 for group in [[e for e in controls if e['phase']==phase]]},
-            caveat='Direct controller samples, not continuous occupancy or kernel activity. active_requests counts bound requests in currently routable slots; queue_depth also includes requests outside those slots. Successful native occupancy is conditional; never subtract it to infer all non-native work.')
+            caveat='Direct controller samples, not continuous occupancy or kernel activity. All source samples are validated; outside-request-window samples are retained separately and excluded from by_phase and the in-window CSV. active_requests counts bound requests in currently routable slots; queue_depth also includes requests outside those slots. Successful native occupancy is conditional; never subtract it to infer all non-native work.')
         paths.append(control_outcome_path)
     result['source_refs'] = []
     for path in paths:

@@ -1,0 +1,79 @@
+{
+  "kind": "d135_full1_failure_breakdown_v1",
+  "formal_performance_result": false,
+  "source_script_sha256": "faad027e993c3151b4de5c988ad42b7687356eb7b7c12d72402e43c97f2265ad",
+  "projection_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d135_20261001/full_full1_request_projection.json",
+  "projection_sha256": "731143d8f445eb32a1f078f474b76f2180ff6f69a07b83f472f568576ba13615",
+  "population": {
+    "planned": 4000,
+    "success": 3999,
+    "timeout": 1,
+    "returned_error": 0
+  },
+  "failure_observation_clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+  "returned_categories": {},
+  "returned_error_messages": {},
+  "returned_generation_submission_states": {},
+  "first_timeout": {
+    "request_id": "req_03061",
+    "instance_id": null,
+    "failure_observation": {
+      "kind": "controller_task_exception_v1",
+      "exception_type": "TimeoutError",
+      "observed_monotonic_s": 314116.980454789,
+      "observed_offset_s": 4572.260788630985,
+      "elapsed_since_offered_ms": 1821661.471080326,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "native_completion_inferred": false,
+      "gpu_release_inferred": false
+    },
+    "request_phase_fields": {
+      "scheduled_arrival_offset_s": 2750.599317550659,
+      "dispatch_window_wait_ms": 0,
+      "runtime_slot_wait_ms": 0,
+      "arrival_release_lateness_ms": 0,
+      "dispatch_admission_wait_ms": 0,
+      "readiness_tier_before_dispatch": ""
+    },
+    "native_token_timing_present": true,
+    "generation_submission": null,
+    "source_admission_present": false,
+    "source_tier": null,
+    "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+  },
+  "first_returned_error": null,
+  "timeout_generation_submission_states": {
+    "unrecorded": 1
+  },
+  "timeout_requests": [
+    {
+      "request_id": "req_03061",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "TimeoutError",
+        "observed_monotonic_s": 314116.980454789,
+        "observed_offset_s": 4572.260788630985,
+        "elapsed_since_offered_ms": 1821661.471080326,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 2750.599317550659,
+        "dispatch_window_wait_ms": 0,
+        "runtime_slot_wait_ms": 0,
+        "arrival_release_lateness_ms": 0,
+        "dispatch_admission_wait_ms": 0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "e401b65fcca0547cf45ec84c77aa1986955ced94f309518fee5bfabfdbfaeaf3"
+    }
+  ],
+  "returned_requests": [],
+  "caveat": "Missing evidence is not proof of no dispatch. not_submitted describes this generation, not other unsettled RPC ownership or physical release."
+}
