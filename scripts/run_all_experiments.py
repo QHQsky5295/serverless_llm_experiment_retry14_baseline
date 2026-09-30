@@ -14444,6 +14444,7 @@ class ScenarioRunner:
         coord_enabled = (
             self.baseline_type == "faaslora_full" and self._coordination_enabled
         )
+        ieee_control = getattr(self, '_routing_policy', None) == 'ieee_confirmed'
         if self.engine.backend == "transformers":
             self.engine.set_hf_max_adapters_for_scenario(
                 self.baseline_type, self.coord_cfg, self.engine.model_cfg
@@ -14567,8 +14568,13 @@ class ScenarioRunner:
             )
             elapsed = time.perf_counter() - t0
             result.requests.extend(all_raw)
-            await self._wait_for_pending_scale_up_tasks()
-            if self.baseline_type in ("faaslora_full", "faaslora_no_coord"):
+            # Natural IEEE control ends with the replay. Pending activation,
+            # residency and movement tasks belong to the common shutdown owner,
+            # which joins them before any engine is retired. Do not inject a
+            # legacy scale-down decision merely because every request ended.
+            if not ieee_control:
+                await self._wait_for_pending_scale_up_tasks()
+            if not ieee_control and self.baseline_type in ("faaslora_full", "faaslora_no_coord"):
                 if self._should_trigger_scale_down():
                     warm_size = self._get_dynamic_warm_pool_size()
                     await self._trigger_scale_down_all_instances(warm_pool_size=warm_size)
@@ -14652,7 +14658,8 @@ class ScenarioRunner:
         coord_m = _merge_coordinator_metrics(coord_views) if coord_views else {}
         result.aggregate(elapsed, coord_m)
         self._attach_control_path_background_metrics(result)
-        await self._cleanup_extra_instances()
+        if not ieee_control:
+            await self._cleanup_extra_instances()
         return result, coord_m
 
     @staticmethod

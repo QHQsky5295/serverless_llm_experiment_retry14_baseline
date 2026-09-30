@@ -21,6 +21,43 @@ def ieee_control_fixture():
         ttft_upper_ms=1000, ttft_lower_ms=500, ttft_window_s=100, scale_down_cooldown_s=3)
 
 
+async def terminal_run_observation(policy):
+    """Exercise actual run() terminal branches; no serving/timing measurement.
+
+    The replay and aggregation are explicit fixture boundaries. Background
+    control/retirement calls are recorded, not emulated as performance results.
+    """
+    r = runner.ScenarioRunner.__new__(runner.ScenarioRunner)
+    events = []
+    r.name, r.baseline_type, r._coordination_enabled = 'terminal-fixture', 'faaslora_full', True
+    r._routing_policy = policy
+    r.engine = SimpleNamespace(backend='vllm')
+    r.wl_cfg, r._ttft_slo_ms, r._external_replay = {}, 1000., None
+    r.traces = [SimpleNamespace(request_id='q', adapter_id='a')]
+    r._assert_clean_gpu_environment = Mock()
+    r._begin_instance_lifecycle_tracking = Mock()
+    r._prepare_request_execution_plan_cache = Mock(return_value={})
+    r._attach_ieee_file_pressure = AsyncMock()
+    r._ensure_min_instances = AsyncMock()
+    async def replay(**kwargs):
+        events.append('requests_terminal')
+        return [SimpleNamespace(success=True, request_id='q')], time.perf_counter()
+    r._run_continuous_observed = replay
+    r._wait_for_pending_scale_up_tasks = AsyncMock(side_effect=lambda: events.append('join_pending_activation'))
+    r._should_trigger_scale_down = Mock(return_value=False)
+    async def legacy_scale():
+        events.append('legacy_scale_down')
+        return dict(event_type='physical_scale_down', instance_id='fixture')
+    r._scale_down_one_instance = AsyncMock(side_effect=legacy_scale)
+    r._cancel_runtime_gpu_forward_tasks = AsyncMock(side_effect=lambda: events.append('forward_settled'))
+    r._coordinator_metric_views = Mock(return_value=[])
+    r._attach_control_path_background_metrics = Mock()
+    r._cleanup_extra_instances = AsyncMock(side_effect=lambda: events.append('legacy_extra_cleanup'))
+    with patch.object(runner.ScenarioResult, 'aggregate', side_effect=lambda *a, **k: events.append('aggregate')):
+        result, _ = await r.run()
+    return r, result, events
+
+
 class IEEEFrozenInputAssembly(unittest.TestCase):
     def test_remote_setup_reads_only_verified_metadata_without_payload(self):
         from faaslora.storage.http_artifact_store import HttpArtifactStoreClient
@@ -1960,6 +1997,82 @@ class DeploymentTerminalIntegration(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(r._cleanup_removed_slot.await_count, 2)
         self.assertEqual(set(slots), {'0'})
         self.assertEqual(slots['0'].status, 'draining')
+
+
+class IEEETerminalLifecycle(unittest.IsolatedAsyncioTestCase):
+    async def test_ieee_run_does_not_inject_terminal_control_or_partial_cleanup(self):
+        r, result, events = await terminal_run_observation('ieee_confirmed')
+        self.assertEqual(events, ['requests_terminal', 'forward_settled', 'aggregate'])
+        self.assertEqual(result.scale_down_events, 0)
+        self.assertEqual(result.scale_down_event_log, [])
+        self.assertEqual(len(result.requests), 1)
+        r._wait_for_pending_scale_up_tasks.assert_not_awaited()
+        r._should_trigger_scale_down.assert_not_called()
+        r._scale_down_one_instance.assert_not_awaited()
+        r._cleanup_extra_instances.assert_not_awaited()
+
+    async def test_historical_run_keeps_terminal_policy(self):
+        r, result, events = await terminal_run_observation('least_loaded')
+        self.assertEqual(events, ['requests_terminal', 'join_pending_activation',
+            'legacy_scale_down', 'forward_settled', 'aggregate', 'legacy_extra_cleanup'])
+        self.assertEqual(result.scale_down_events, 1)
+        r._cleanup_extra_instances.assert_awaited_once()
+
+    async def shutdown_fixture(self, failed_residency=False):
+        from faaslora.experiment.instance_pool import InstancePool
+        r, result, events = await terminal_run_observation('ieee_confirmed')
+        r.instance_pool = InstancePool()
+        engines = [object(), object()]
+        for i, engine in enumerate(engines):
+            r.instance_pool.add_instance(engine, None, instance_id=str(i))
+        started = [asyncio.Event() for _ in range(3)]
+        async def background(name, event):
+            event.set()
+            try:
+                if name == 'residency' and failed_residency:
+                    raise RuntimeError('original residency failure')
+                await asyncio.Future()
+            finally:
+                events.append(name+'_settled')
+        tasks = [asyncio.create_task(background(name, event)) for name, event in
+                 zip(('residency','movement_plan','activation'), started)]
+        for event in started:
+            await event.wait()
+        r._ieee_residency_tasks = {id(engines[0]): tasks[0]}
+        r._ieee_gpu_plan_tasks = {tasks[1]}
+        r._pending_scale_up_tasks = {tasks[2]}
+        async def close_movements():
+            self.assertTrue(tasks[0].done() and tasks[1].done())
+            events.append('movements_closed')
+        r._stack = SimpleNamespace(preloading_manager=SimpleNamespace(
+            ieee_movements=SimpleNamespace(bound=True,close=close_movements)))
+        async def retire(slot, **kwargs):
+            self.assertTrue(all(task.done() for task in tasks))
+            self.assertIn('movements_closed', events)
+            self.assertTrue(r._instance_pool_closing)
+            self.assertEqual(kwargs['removal_reason'], 'shutdown')
+            events.append('retired_'+slot.instance_id)
+        r._cleanup_removed_slot = AsyncMock(side_effect=retire)
+        return r, result, events, tasks
+
+    async def test_common_shutdown_settles_all_background_owners_before_retirement(self):
+        r, result, events, tasks = await self.shutdown_fixture()
+        await r._shutdown_instance_pool()
+        self.assertTrue(all(task.done() for task in tasks))
+        self.assertEqual([x for x in events if x.startswith('retired_')], ['retired_0','retired_1'])
+        self.assertLess(events.index('activation_settled'), events.index('retired_0'))
+        self.assertEqual(r.instance_pool.get_all_slots(), [])
+        self.assertEqual(result.scale_down_events, 0)
+
+    async def test_terminal_background_failure_remains_failure_after_other_owners_release(self):
+        r, result, events, tasks = await self.shutdown_fixture(failed_residency=True)
+        with self.assertRaisesRegex(RuntimeError, 'preserved a failed residency epoch') as raised:
+            await r._shutdown_instance_pool()
+        self.assertEqual(str(raised.exception.__cause__), 'original residency failure')
+        self.assertTrue(all(task.done() for task in tasks))
+        self.assertEqual(r.instance_pool.get_all_slots(), [])
+        self.assertEqual(result.scale_down_events, 0)
+        self.assertEqual([x for x in events if x.startswith('retired_')], ['retired_0','retired_1'])
 
 
 class MainOutcomeRetention(unittest.IsolatedAsyncioTestCase):

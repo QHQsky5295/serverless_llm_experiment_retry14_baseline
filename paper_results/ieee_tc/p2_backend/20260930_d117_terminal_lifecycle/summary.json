@@ -1,0 +1,215 @@
+{
+  "kind": "d117_terminal_lifecycle_candidate_v1",
+  "before": {
+    "kind": "d117_terminal_branch_before_v1",
+    "rows": [
+      {
+        "policy": "ieee_confirmed",
+        "events": [
+          "requests_terminal",
+          "join_pending_activation",
+          "legacy_scale_down",
+          "forward_settled",
+          "aggregate",
+          "legacy_extra_cleanup"
+        ],
+        "scale_down_events": 1
+      },
+      {
+        "policy": "least_loaded",
+        "events": [
+          "requests_terminal",
+          "join_pending_activation",
+          "legacy_scale_down",
+          "forward_settled",
+          "aggregate",
+          "legacy_extra_cleanup"
+        ],
+        "scale_down_events": 1
+      }
+    ],
+    "performance_measurement": false,
+    "source_sha256": {
+      "scripts/run_all_experiments.py": "194008ffdbed73d0e82ff760941534ee4be4124c9698d0fddebc9160cf97241f",
+      "tests/test_ieee_tc_launch.py": "4c1193b20d2262dce8a2508cfef4ef796ebfbcd151399bd8980f35b57b5ba53b"
+    }
+  },
+  "after": {
+    "kind": "d117_terminal_branch_after_v1",
+    "rows": [
+      {
+        "policy": "ieee_confirmed",
+        "events": [
+          "requests_terminal",
+          "forward_settled",
+          "aggregate"
+        ],
+        "scale_down_events": 0
+      },
+      {
+        "policy": "least_loaded",
+        "events": [
+          "requests_terminal",
+          "join_pending_activation",
+          "legacy_scale_down",
+          "forward_settled",
+          "aggregate",
+          "legacy_extra_cleanup"
+        ],
+        "scale_down_events": 1
+      }
+    ],
+    "performance_measurement": false,
+    "source_sha256": {
+      "scripts/run_all_experiments.py": "2813b2fd961825a3efcbe5f50724f8e86d8b3e39254496b96027573350726e53",
+      "tests/test_ieee_tc_launch.py": "f059162b2ec6730448a02103347687455dd72c63df7852216dcff34a7aec7e08"
+    }
+  },
+  "tests": {
+    "count": 599,
+    "seconds": 49.27,
+    "passed": true
+  },
+  "historical_context": {
+    "final_pressure": {
+      "file_owner_id": "3455b39806564eea8c144a59a2b3cd1b",
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "active_transfer_ids": [],
+      "members": [
+        {
+          "owner_id": "7db252038743402a9a61f9166cda0a1f",
+          "state": "retired",
+          "caller_cancelled": false
+        },
+        {
+          "owner_id": "08efb8ab0e0840498aa1298c1a3bdcc6",
+          "state": "retired",
+          "caller_cancelled": false
+        },
+        {
+          "owner_id": "2e50540187404b6e8e1033f24a33d571",
+          "state": "retired",
+          "caller_cancelled": false
+        },
+        {
+          "owner_id": "f3282b4501aa4f6a91a14ea436e2729e",
+          "state": "retired",
+          "caller_cancelled": false
+        }
+      ],
+      "physical_capacity_reserved": false
+    },
+    "tail_scale_down": [
+      {
+        "timestamp": 1790617029.147754,
+        "request_index": 4000,
+        "queue_visible_request_count": 4000,
+        "arrived_request_count": 4000,
+        "event_type": "physical_scale_down",
+        "instance_id": "ieee-activation-c9ac10d6cf9641c8a896cbed368e408c",
+        "device_id": 2,
+        "runtime_kind": "dedicated",
+        "scale_down_min_idle_s": null
+      }
+    ],
+    "last_online_control": {
+      "action": "no_action",
+      "target_instances": 4,
+      "current_instances": 4,
+      "reason": "within_limits",
+      "observed_at": 124265.791809032,
+      "queue_depth": 0,
+      "active_requests": 1,
+      "ready_capacity": 32,
+      "ready_instances": 4,
+      "pending_instances": 0,
+      "active_saturation": 0.03125,
+      "p95_ttft_ms": 75569.31832789269,
+      "ttft_sample_count": 38,
+      "ratios": {
+        "queue": 0.0,
+        "active": 0.03571428571428571,
+        "ttft": 15.113863665578538
+      },
+      "score": 15.113863665578538,
+      "all_low": false,
+      "low_since": null,
+      "outcome": "no_action"
+    },
+    "activations": [
+      {
+        "activation_id": "ieee-activation-8c3c1220292d452ab5d3c43e3e1eb2b5",
+        "category": "initial",
+        "state": "runtime_ready",
+        "native_owner_id": "917e8fb140c1421d94265fd134bec84b"
+      },
+      {
+        "activation_id": "ieee-activation-01826bbd6fd044a1b39b77e3406e1d5b",
+        "category": "natural_scaleout",
+        "state": "runtime_ready",
+        "native_owner_id": "4dfa97f93ba94fbb8846ac8eeeba3777"
+      },
+      {
+        "activation_id": "ieee-activation-c9ac10d6cf9641c8a896cbed368e408c",
+        "category": "natural_scaleout",
+        "state": "runtime_ready",
+        "native_owner_id": "51113cb11ebc4e2db17232a3f43ba549"
+      },
+      {
+        "activation_id": "ieee-activation-23140de24ba74c19a48daef6652ee5f0",
+        "category": "natural_scaleout",
+        "state": "runtime_ready",
+        "native_owner_id": "f4f6201718e9489f9b15257c838d23e5"
+      }
+    ],
+    "failing_member_at_error": "not instrumented; no retrospective identity claim"
+  },
+  "frozen_source_refs_checked": 69,
+  "expected_changes": [
+    {
+      "path": "tests/test_ieee_tc_transfer_pressure.py",
+      "before": "1f783955666dd699d87673c5691ddda3e78084085f8a6714949550fc5871a41e",
+      "after": "f622bfaff924684c7fcba30fbd038a6743a4941cc81018be0adb38870b6d35db"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "before": "b2e4f65e4a20c4c56f27df9fff88075c17570021e3035ed83634badef75cdd18",
+      "after": "2813b2fd961825a3efcbe5f50724f8e86d8b3e39254496b96027573350726e53"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "before": "b2e4f65e4a20c4c56f27df9fff88075c17570021e3035ed83634badef75cdd18",
+      "after": "2813b2fd961825a3efcbe5f50724f8e86d8b3e39254496b96027573350726e53"
+    }
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "cleanup": [
+    {
+      "unit": "primelora-d117-before-20260930.scope",
+      "invocation": "e4a73535609f4f43a0e19ed3ca57d5b5",
+      "tasks": 0,
+      "populated": 0,
+      "stopped": true
+    },
+    {
+      "unit": "primelora-d117-after-20260930.scope",
+      "invocation": "eb302bb915d24e3c8a9bdc4466d2656a",
+      "tasks": 0,
+      "populated": 0,
+      "stopped": true
+    }
+  ],
+  "source_parent_commit": "0ef466c75bd18985a005635bb72ebb36baaf7e18",
+  "full_qualified": false,
+  "formal_performance_result": false,
+  "test_scope": "actual run/shutdown methods, explicit fixture replay/native cleanup; no GPU latency observation",
+  "change": "IEEE terminal path delegates activation/residency/movement settlement and all retirement to existing common shutdown owner; legacy unchanged",
+  "next": "ONE canonical 3B Full11, same config/inputs/profile; no additional optimizer"
+}

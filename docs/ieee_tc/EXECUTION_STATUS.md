@@ -1,8 +1,35 @@
 # IEEE TC execution status
 
-## CURRENT — D116 CPU membership candidate tested/curated; backup next
+## CURRENT — D117 terminal lifecycle checked/curated; backup then Full11
 
-2026-09-30 10:49. Goal ACTIVE/incomplete; baselines PAUSED. This turn PROGRESS:
+2026-09-30 11:01. Goal ACTIVE/incomplete; baselines PAUSED. D117 actual run()
+CPU branch probe complete before/after; 599 launch/basic/transfer/lifecycle
+checks PASS49.270s. No GPU or remote experiment started. Full qualification
+still required. One explicit mismatch: natural IEEE replay injected legacy
+terminal scale-down despite no online scale-down decision. Candidate removes
+IEEE-only legacy terminal activation join/scale-down/partial extra cleanup;
+common shutdown settles preparation owners before retiring all runtimes.
+Legacy policy unchanged. Failed residency remains a failure after other
+owners release. No IEEE formula, timeout, resource boundary or data change.
+RunnerSHA2813b2fd961825a3efcbe5f50724f8e86d8b3e39254496b96027573350726e53;
+testlaunchSHAf059162b2ec6730448a02103347687455dd72c63df7852216dcff34a7aec7e08.
+Raw results/ieee_tc/p2_backend_qualification/d117_20260930. Before/after done,
+doNOTrepeat probes/599tests. Curation complete:69frozenrefs checked with3
+expected changes; D116resourcecoord/test independentlyunchanged;147protected,
+plan andmetricV1unchanged. Before/after exactempty scopesclosed; curator
+2582ca130981408dabcad8f9dd22c97c exactemptyclosed, allmemory.events0.
+No GPU/remote/analysisworker remains. SummarySHA
+ed7f37cd813f87de418f10a37e63047b430e54a2ac5c3257c9edd0971819688f;
+21member sourcebundle eachSHAchecked, SHA256SUMSPASS. Status table/source
+basis in D117_TERMINAL_LIFECYCLE.md. No needrepeatcuration/tests. Backup next,
+then ONE ordinary canonical3BFull11 using existing D115 inputs/config/profile
+and fresh owned paths, no additional optimization. No performance claim yet.
+7BFull,warm/Resident,numericadapterqualification,baselines,M1/M2,A1–A5/S1–S13
+remain pending. Once-only published cache already fulfilled; NEVER rebuild.
+
+## D116 completed reference — candidate tested/curated/backed
+
+2026-09-30 10:50. Goal ACTIVE/incomplete; baselines PAUSED. This turn PROGRESS:
 D115evidenceclosed/backed; one D116 causal CPU counterexample and candidate,
 350native +401legacy/launch checksPASS. NO new GPU/remote experiment. No full
 qualification or performance-gain claim. D115backupd36581421413e0a4bc70354bdf191fa06375435e
@@ -34,7 +61,11 @@ closed,events0; lastcurator898c4b2041d94b98921b6097f3f6d4be stopped10:49.
 Curatedpaper_results/ieee_tc/p2_backend/20260930_d116_pressure_membership:
 summarySHA92a50dce49971f57fe1d654fb51ee253701d6de71a2cb0268cc859ed52241a54;
 30membersbundleeachSHAverified. DoNOTrepeat probes/751checks/curation.
-NEXT diff/checksum/secrets andcommit/pushD116candidate+evidence.
+Nineexactpathscommitted/pushed0ef466c75bd18985a005635bb72ebb36baaf7e18;
+exactremoteHEADverified10:50. diff/checksums/memberSHA/38entrysecretcheckPASS;
+userdirtymanifestnotstaged. DoNOTrepeatD116backup/tests/curation. Thispostpush
+ledgernoteisnotaproductionchange. Hostavailable112913756160B,disk275122163712B,
+swap1060864B,GPUempty,noprimelorascopes. Recheckbeforeheavywork.
 
 Next before Full: one explicit terminal lifecycle mismatch foundinD115.
 LastIEEEcontrolno_action, butrun() legacyafter-singlephase branch14572ffinjects
