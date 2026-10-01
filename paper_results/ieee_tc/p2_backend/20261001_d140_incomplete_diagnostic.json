@@ -1,0 +1,116 @@
+{
+  "kind": "d140_incomplete_diagnostic_audit_v1",
+  "formal_performance_result": false,
+  "planned_prefix": 1000,
+  "source_workload_count": 4000,
+  "observed_terminal_count": 162,
+  "observed_success": 90,
+  "observed_native_matches": 90,
+  "physical": {
+    "eligible_correctness": false,
+    "gpu_seconds": null,
+    "gpu_seconds_observed": 1041.3007413510932,
+    "measurement_complete": false,
+    "n_correct": null,
+    "n_interrupted": 72,
+    "n_native_contract_complete": 90,
+    "n_plan": 1000,
+    "n_terminal": 90
+  },
+  "resource": {
+    "samples": 384,
+    "peak_bytes": 20096225280,
+    "min_host_available_bytes": 92685787136,
+    "events": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    },
+    "max_swap_bytes": 0,
+    "warnings": 0,
+    "abort_reasons": []
+  },
+  "cleanup_errors": [],
+  "main_error": {
+    "stage": "main_execution",
+    "type": "ValueError",
+    "message": "preparation source identity/coverage contradicts its frozen objective",
+    "traceback": "Traceback (most recent call last):\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 22896, in _main_async_impl\n    result, coord_m = await runner.run()\n                      ^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 14614, in run\n    all_raw, _tb1 = await self._run_continuous_observed(\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 12705, in _run_continuous_observed\n    await self._maybe_run_live_scale_control_evaluation(\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 11942, in _maybe_run_live_scale_control_evaluation\n    return await self._evaluate_ieee_live_control(result=result, coord_enabled=coord_enabled,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 12254, in _evaluate_ieee_live_control\n    self._reap_ieee_residency_tasks()  # Surface failure; do not silently restart the same plan.\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 12391, in _reap_ieee_residency_tasks\n    task.result()  # A failed epoch is evidence, not a swallowed warning/retry.\n    ^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 12415, in _execute_ieee_residency_epoch\n    result = await self._run_ieee_owned_preparation_plan(slot=slot, mode='residency',\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 17471, in _run_ieee_owned_preparation_plan\n    result = await self._run_ieee_file_preparation_plan(plan=plan, target_engine=slot.engine,\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 17501, in _run_ieee_file_preparation_plan\n    return await self._execute_ieee_file_preparation_plan(plan=plan,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 17846, in _execute_ieee_file_preparation_plan\n    results = await asyncio.gather(*waiters)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 17787, in execute_gpu\n    result = await self._run_ieee_gpu_preparation_plan(slot=gpu_slot,\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_manager.py\", line 264, in join_operation\n    return await asyncio.shield(self._intents[intent_id]['future'])\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_manager.py\", line 135, in _execute\n    result = await job['action'](attempt['attempt_id'])\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 17032, in execute\n    conflict, copies = checked_binding_conflict(current)\n                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 16981, in checked_binding_conflict\n    conflict = native_preparation_source_conflict(frozen=frozen, observed=observed,\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_planner.py\", line 94, in native_preparation_source_conflict\n    raise ValueError('preparation source identity/coverage contradicts its frozen objective')\nValueError: preparation source identity/coverage contradicts its frozen objective\n"
+  },
+  "launcher_classification": "protocol_or_launcher_error",
+  "launcher_error": "external replay failed; no silent internal timer fallback",
+  "remote": {
+    "uuid_pairs": 31,
+    "received_bytes": 52228851,
+    "sent_bytes": 52228851,
+    "request_packing": 0,
+    "states": {
+      "published": 31
+    }
+  },
+  "profiler": {
+    "lag_warning_count": 162,
+    "max_lag_seconds": 46.84,
+    "final_profile_exists": false,
+    "quality_qualified": false
+  },
+  "mechanism_counts": {
+    "_ieee_activations": {
+      "runtime_ready": 4
+    },
+    "_ieee_residency_epochs": {
+      "completed": 16,
+      "superseded": 18,
+      "failed": 1,
+      "cancelled": 3
+    },
+    "_ieee_file_preparation_plans": {
+      "completed": 19,
+      "superseded": 19,
+      "failed": 1,
+      "cancelled": 3
+    },
+    "_ieee_gpu_preparation_plans": {
+      "completed": 9,
+      "superseded": 19,
+      "failed": 1,
+      "cancelled": 3
+    },
+    "_ieee_native_host_preparations": {
+      "not_a_state_event": 24
+    },
+    "_ieee_control_events": {
+      "not_a_state_event": 99
+    },
+    "_ieee_runtime_quarantine_events": {}
+  },
+  "failed_record_counts": {
+    "_ieee_residency_epochs": 1,
+    "_ieee_file_preparation_plans": 1,
+    "_ieee_gpu_preparation_plans": 1
+  },
+  "physical_summary_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d140_20261001/7b_full_w0_prefix1/launch.launch/physical_deployment/summary.json",
+  "cleanup": {
+    "complete": true,
+    "roots": [
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d140_20261001/7b_nvme_prefix1/tc_ieee_full",
+        "device": 2050,
+        "inode": 109731574
+      },
+      {
+        "path": "/dev/shm/tc-d140-7b-prefix1/tc_ieee_full",
+        "device": 27,
+        "inode": 5655
+      }
+    ]
+  },
+  "interpretation": {
+    "complete_performance": false,
+    "observed_failure": "controller preparation consistency ValueError, followed by replay termination",
+    "exact_failed_snapshot_preserved": false,
+    "cpu_hotspot_attribution_supported": false,
+    "source_binding_hypothesis": "another selected target path versus the frozen objective; not uniquely established"
+  }
+}

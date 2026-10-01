@@ -1,8 +1,119 @@
 # IEEE TC execution status
 
-## CURRENT — D139 RPC recovery completed; performance still OPEN
+## CURRENT — D140 failed diagnostic audited; no live experiment
 
-2026-10-01 13:25. Goal ACTIVE/incomplete. Current turn PROGRESS: recovered the
+2026-10-01 13:55. Goal ACTIVE/incomplete. Current turn PROGRESS: SAME D140
+diagnostic exited with a preparation consistency failure; exact cleanup,
+bounded failure audit and small evidence bundle completed. No serving change,
+GPU rerun or baseline. Once-only published cache already fulfilled; NEVER rebuild.
+3B/7B performance OPEN. Baselines PAUSED. All LIVE text below is historical.
+
+- D140 ran ONCE13:36:31–13:43; controller raised ValueError at
+  native_preparation_source_conflict: source identity/coverage contradicts frozen
+  objective. External replay failed afterward. Preserve launch classification
+  protocol_or_launcher_error but do NOT call this purely external interference.
+  Agent sent no manual signal. Supervisor's final service returncode -15 is
+  cleanup, not evidence of an agent-initiated abort. No retry launched.
+- Original4000/W0/source42, diagnosticprefix1000/formal0. Recorded162 request
+  outcomes:90 native-contract complete,72 interrupted. Rest not fabricatedtimeouts.
+  ObservedGPU1041.300741351s only; completeGPU-s null. Four leases allreleased.
+  Onefailedresidency/file/GPU preparation chain, not three independent failures.
+- Profiler162lagwarnings/max46.84s, finalspeedscopeMISSING; no reliableCPUhotspot
+  result. Do NOT repeat same100Hz all-subprocess setup. Keep ordinaryD137/D138
+  performance evidence separate. CPU cause remains unestablished.
+- 384resource samples,peak20096225280B,minhost92685787136B,events/swap/warnings0.
+  LocalGPUclear/servicepathremoved/ownedHOST&NVMecleanupcomplete. Exactremote
+  3b/7b/monitor stopped13:44:50; auxiliary29f3...confirmedempty/events0/closed.
+  No remote mutation duringinference. Journal f97e790a16534376a2fa45ef76b703ca
+  matches healthclock85bad03b54c64d059dd4350266588f6b:31UUIDpairs,52228851B
+  bothends,31published,packing0. Local/remoteSHAequal2223145a3748ba5bd66e0c282256e8c2f34a29e63e34a94c07b94985b6e0b5a5;
+  monitorSHA549eb85488dd26f159d45a0f4237a33fae8345753ed4e9cca723fc6902499089.
+- Metadata16694completed0;actual14b2e6f9ab5d48e6b2ceb7f03590f149,2.85s,
+  RSS291624KiB,3/4GiBswap0CPU2,3,26,27,events0; emptyclosed13:50:30.
+  Original133MiBmain_outcome retained; whitespace-only56MiBcompact alreadymade.
+  Reuse prefix1_failed_mechanisms.json11KiB and summary; don'tdump wholeoutcome.
+- FailedGPUplan38c1dab7ec3b49eabbe19edb37912c6c has3targets880770/904661/170491,
+  registeredepoch29,closed195; onlyGPUattempt880770 stateobserving. Failure-time
+  fullsourcesnapshot NOTpreserved. Anotherselectedtargetbinding branch is a
+  hypothesis, not establishedrootcause. Review D109(non-target) and D134(new
+  selectedpath after retirement) before any fix; keep actualidentitydamage fatal.
+- EvidencechecksPASS:192unchangedprelaunchrefs/147protected/Plan/V1, bounded
+  audit, scriptcompile/syntax, known-token/private-key scan, archiveSHAcontents.
+  Verificationattempt1 rejected9MiBrawmonitor;attempt2 scanner selfmatched
+  literal;attempt3 generatedsyntaxerror beforeactions. Allretained. Attempt4
+  excludesrawmonitorfromsmallbundle butpinsSHA; actualPEMline scan, syntaxfailure
+  retainedasfailedsource. No GPU/test replay or modifiedcurated values.
+  CuratedSHA6bb86591353627bbe4ee324b87b5cdad7d8a190ababf6f5eb504f6c1a8a42991.
+  VerificationSHAf539a6e6da83f357104761397622cca0e51bbd37d263321157fec90b5bb4562b.
+  Bundle58members/86955B SHA f1e6c02b487fb87e414c46a95d42748a1ab3add1bd2ec9aa1e50166eeffd6138.
+  Same25608completed0;actual3c3b5534744f43ae989a6948602bb6da/events0;exact
+  emptycleanup completed. Earlierfailedverificationdomainsalsoemptyclosed.
+  No liveexec/tmux/GPU/remote service. Finalbackup pending below.
+
+NEXT after scoped evidence backup: reuse CPU owner/planner fixtures to test
+multi-target preparation where anotherselectedtarget has a different confirmed
+file origin. First establish legal plannedsource vs later expiry vs actual
+damage; don't weaken guard, catchall or retry. No GPU needed for this nextstep.
+Only after a falsifiable candidate/relevant correctness checks should current
+CPU diagnostic or ordinaryFull resume. Do not increase cap/deadline, repeatold
+projection/tests, rebuildcache or restorebaseline prematurely. 3BTPOT/outputhash,
+bothFullperformance, warm/Resident,M1M2/A1–A5/S1–S13 remainOPEN.
+Sealed docD140_CURRENT_CPU_DIAGNOSTIC.md containsfailuretable; do noteditafterseal.
+
+## D140 launch history — superseded, not a live launch instruction
+
+2026-10-01 13:37. Goal ACTIVE/incomplete. Previous turn PROGRESS (D139 recovery
+andbackup); current turn PROGRESS: launched ONE current-version 7B diagnostic
+with subprocess GIL sampling. No serving/config optimizer, newweight/trace/cache
+or baseline. BaselinesPAUSED; BOTH3B/7BperformanceOPEN. D139sealed/backed78ce501.
+
+Raw results/ieee_tc/p2_backend_qualification/d140_20261001.
+SAME tmux tc-d140-7b-prefix1 launchedONCE13:36:31, currentlyLIVE. Do NOTrestart.
+Parentcontroller1201023; py-spy1201022; time1201009 observed13:37:10.
+Startup frontendchildren1203280/1203281 observed; actual GPUcore roles pending
+runtime worker evidence. Sampler already reports transient stack/process-read
+warnings; retain/count, do not assume completecoverage or abort/restart forwarn.
+Nofinalprofile/results yet. No actual launch.json terminalreceipt yet.
+
+- Backed runtimeHEAD78ce501fee27e2ca517423140e498fc1f12f0cac; servingunchanged
+  D137/D138. SameD1377Bconfig except3freshownedpaths+1000prefixcount; D122existing
+  first1000indexview/source4000/W0/formal0; no newtrace/profile.
+- ExactD123wrapper reused, only--subprocesses added (100Hz,GIL,threads,
+  fullfilenames,speedscope). Nativechildren use realPython,notwrapper. Native C
+  extensions releasingGIL notcovered; profileoverhead meansnoformalranking.
+- Preflight192refs/147protected/Plan1525lines/V1312lines PASS.
+  SHA0ff53fab1178d053685101e2a0888182002e581fe069c2e01b8f536df6af613d.
+  7Bcap2/seq2/slots4/cpu24/FP16TP1,currentprofiles,deadline1800 unchanged.
+  Predictedgrowth32GiB,localdisk182103834624B,hostavailable112608296960B before
+  launch. BothNIC1000/full. Old100Mbpscauseunestablished; noagentNICchange.
+- Actualserviceprimelora-tc-svc-181832d131004293988a1ad8842c9cf6.scope,
+  invocation61dd185a693a420580b92c6f7746e271,72/80GiBswap2CPU4–23,28–47.
+  Actualauxprimelora-tc-aux-42f48498462f4b83bde52eec39ca6e64.scope,
+  invocation29f3efed79974eb08ec64bd9b992864d,3/4GiBswap0CPU2,3,26,27.
+  LimitsreadbackPASS; initialservice650264576B. Watchdog/replay separate.
+- Prelaunch77525completed0; actualebbb3a84216f4beebc7f4015d9c8a145emptyclosed;
+  health40f4c4bb1aa445bdaef21ef5923b9515completed0/emptyclosed. Events0.
+- Remote3bPID1772827/8ade36d9616849b5b91eba243ea47d71;
+  7bPID1772829/12ae151f4ba245c8a70964f0fdf0c96c;
+  monitorPID1772832/296f8f0c22814f27abc286e1895e6f1e,
+  unitprimelora-artifact-monitor-d140prefix1.service. BothhealthPASS;
+  7Bclockremote-process-monotonic:85bad03b54c64d059dd4350266588f6b.
+  Remote log/home/lab14/primelora_remote/tc/d140_20261001/remote_monitor_7b_full_prefix1.log.
+  D78publishedcache reusedunchanged. No remoteadjustment duringinference.
+- stop_services_prefix1.sh and stop_remote_after_prefix1.sh prepared with
+  actualidentities; executeONLYafterlocalterminal/GPUrelease/serviceinactive.
+  Localauxcleanup notyetprepared/executed. No network copy/hash duringrun.
+
+NEXT: monitor SAMEcurrentrun, observe actualfrontend/planner/GPUcorePIDs;
+terminal→physicalcleanup→exactremotestop/copy→boundedanalysis→rolehotspottable
+andinterpretation→scopedbackup. Existingfirst1000runtimeprofile adds missing
+currentCPUevidence, notrepeatobsoleteD123result. No speculativeoptimizer,
+cap/deadlineincrease or safetyguardremoval. 3BTPOT/outputdifferences remainOPEN;
+Warm/Resident,M1M2/A1–A5/S1–S13 allpending. SeeD140_CURRENT_CPU_DIAGNOSTIC.md.
+
+## D139 RPC recovery closure — completed, not a new execution instruction
+
+2026-10-01 13:30. Goal ACTIVE/incomplete. Current turn PROGRESS: recovered the
 already-retained RPC fields for D137/D138, each all4000 requests; no GPU replay,
 new workload/cache, serving/config change or baseline. D138 remains sealed.
 No live experiment/analysis handle. Once-only publishedcache NEVER rebuild.
@@ -43,7 +154,14 @@ No live experiment/analysis handle. Once-only publishedcache NEVER rebuild.
   Bundle28members/33919B SHA8611489e1d4ce89a8066bf7d765142edbceb5e5d3558941bb701aa87b4cf58cd.
   Exactemptyclosed13:28:52/events0;11.19s/RSS1174964KiB. Closure receipt saved
   paper_results/ieee_tc/p2_backend/20261001_d139_evidence_closure.json.
-  ChecksumPASS. Scopedbackup next; no liveanalysis handle.
+  ChecksumPASS. No liveanalysis handle.
+
+BACKUP DONE:78ce501fee27e2ca517423140e498fc1f12f0cac pushed to
+faaslora_origin/retry14_continuous_queue_v2; exactremoteHEAD verified.
+12explicitstagedfiles/39payloadsecretschecks/closureSHAchecksPASS;user manifest
+excluded. CSVCRLF handledwithcr-at-eol,otherwhitespacechecksretained. Neither
+sealedCSVbytes nor pastfigures changed. This backupdoesnotmeanFullperformance
+qualified. No optimizer/profile/replay prepared or launched this turn.
 
 NEXT: afterevidencebackup, adapt existing D123 first1000request 7B diagnostic
 wrapper to currentcode, keepcurrentconfig/realremote and record actualparent,

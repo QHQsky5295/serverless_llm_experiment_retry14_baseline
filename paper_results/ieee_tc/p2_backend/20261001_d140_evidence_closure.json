@@ -1,0 +1,23 @@
+{
+  "kind": "d140_post_verification_cleanup_v1",
+  "execution_completed": false,
+  "evidence_checks_pass": true,
+  "verification_attempt": 4,
+  "verification_scope_invocation": "3c3b5534744f43ae989a6948602bb6da",
+  "verification_returncode": 0,
+  "verification_scope_closed_at": "2026-10-01T13:56:02+08:00",
+  "verification_memory_events": {"low": 0, "high": 0, "max": 0, "oom": 0, "oom_kill": 0, "oom_group_kill": 0},
+  "all_d140_analysis_domains_closed": true,
+  "local_gpu_and_service_released": true,
+  "remote_services_stopped": true,
+  "verification_sha256": "f539a6e6da83f357104761397622cca0e51bbd37d263321157fec90b5bb4562b",
+  "bundle_sha256": "f1e6c02b487fb87e414c46a95d42748a1ab3add1bd2ec9aa1e50166eeffd6138",
+  "bundle_members": 58,
+  "bundle_bytes": 86955,
+  "local_receipts": [
+    {"path": "results/ieee_tc/p2_backend_qualification/d140_20261001/evidence_cleanup4.log", "sha256": "42d370ecb3b72d99695a70467dc816ca7b46e99554c7d5843fab27b497ceffa6"},
+    {"path": "results/ieee_tc/p2_backend_qualification/d140_20261001/evidence4.log", "sha256": "b5f76ab3ffcdb456d0dcb24b24b960d4ad84917bea3c44ba16f3fd6cd619e675"},
+    {"path": "results/ieee_tc/p2_backend_qualification/d140_20261001/evidence_time4.txt", "sha256": "de948433a83082d78665243c97ed24f73969a1c5265490062b31942addc48437"}
+  ],
+  "next_step": "CPU-only multi-target source-binding counterexample; no same-configuration profiler retry"
+}
