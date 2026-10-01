@@ -1482,12 +1482,15 @@ class OwnedPreparationPlanning(unittest.TestCase):
         fixture, runner, queue, slot, _ = self.make()
         self.addCleanup(lambda: asyncio.run(queue.close()))
         owner = fixture.owner
-        with (patch.object(owner, '_source_observation', wraps=owner._source_observation) as observed,
+        with (patch.object(owner, '_validated_source', wraps=owner._validated_source) as observed,
+              patch.object(owner, '_source_observation', side_effect=AssertionError('duplicate tree scan')),
               patch.object(owner, 'inventory', wraps=owner.inventory) as inventory):
             plan = self.plan(runner, slot)
         inventory.assert_called_once()
         paths = [call.args[0] for call in observed.call_args_list]
         self.assertCountEqual(paths, list(owner._confirmed_sources))
+        self.assertTrue(all(call.kwargs['_observation'] is not None
+                            for call in observed.call_args_list))
         files = plan['source_view']['files']
         self.assertEqual(files['epoch'], owner.source_epoch)
         for artifact in files['artifacts'].values():

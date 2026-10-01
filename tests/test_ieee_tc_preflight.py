@@ -8,6 +8,22 @@ from unittest.mock import patch
 from scripts import ieee_tc_preflight as p
 
 
+class ApprovedPlanIdentity(unittest.TestCase):
+    def test_current_binding_matches_explicitly_approved_prime_first_plan(self):
+        self.assertEqual(p.SNAPSHOT.name, 'PLAN_APPROVED_20261002_PRIME_FIRST.md')
+        self.assertEqual(p.check_plan(),
+            '0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7')
+
+    def test_plan_mismatch_still_refuses_instead_of_selecting_a_fallback(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            source, approved = Path(tmp)/'plan', Path(tmp)/'approved'
+            source.write_text('changed')
+            approved.write_text('original')
+            with patch.object(p, 'PLAN', source), patch.object(p, 'SNAPSHOT', approved):
+                with self.assertRaisesRegex(RuntimeError, 'Plan changed'):
+                    p.check_plan()
+
+
 class ForwardedCommandCLI(unittest.TestCase):
     def test_publisher_records_prefix_scope_and_rejects_whole_source_prefix(self):
         import io

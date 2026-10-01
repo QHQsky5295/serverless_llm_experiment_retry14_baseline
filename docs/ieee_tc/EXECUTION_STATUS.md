@@ -1,6 +1,56 @@
 # IEEE TC execution status
 
-## CURRENT — D152 finished, analyzed and sealed; backup pending
+## CURRENT — D153 CPU qualified; preparing checkpoint, Full replay not launched
+
+03:05 +08 D153 seal COMPLETE, backup pending. Curated
+paper_results/ieee_tc/p2_backend/20261002_d153_file_observation.json
+SHA40358c5acae7d448cdeb4e0cefdd57c1e06f080452031b099e9286efe2302cbe.
+Bundle45members239944B SHAe4b67a786e9d214f271494cdeb9db88802915ebd562b71f9117fc5b80b606a2e;
+checksums/syntax/secrets/147protectedPASS. SealedD153doc don'teditafterthis.
+PreflightSNAPSHOT nowexplicit20261002approvedmirror; oldsnapshotretained and
+mismatchstillrejects. verify1 rejectedoldpointer(exit1,
+actualfb9aaf52d80c483fab7397c40ccc5ded); retainedscript/log.
+preflight1wrongmodelinterpreterlackedpidfds:68tests2fail2error,exit1,
+actual53614131170f4bc6a17d9cf7fc03a334,session42774closed;
+preflight2qualified/usr/bin/python3:68PASS1.184s,exit0,
+actualef0eea922da64130a899a61a0c619ac2,session60759closed.
+verify2/session84867CLOSED0 actual1d72f46557df48d7bc3f83fc64b12cbf;
+allabsencesverified; no livejobs. No servingchangeafter813tests.
+
+2026-10-02 02:59 +08. Goal ACTIVE. Only Prime7B; externalbaselinesPAUSED.
+D152 remains sealed/backed; no repeat original parsing/closure. D153 single
+candidate in faaslora/memory/residency_manager.py derives confirmed file
+signatures/footprints and budgets from one fresh double-checked owner inventory.
+No cross-callcache or removal of execution/physicalchecks. Extentsettlement
+skips only when no closed unsettledwriter; ordinaryinventory stillfull.
+Targeted18PASS1.421s, regression813PASS131.814s(command144.02s/RSS1200136KiB).
+targeted1/session54921 CLOSED0 actual0ffa72e945804136bc2d5ceaec964a54;
+regression1/session52090 CLOSED0 actuala4d7e7c65cb448db8158c20c9c3b3721;
+micro1/session31678 CLOSED0 actual6955eb57ff4c4a8f968826252ea652b7.
+Allscopeabsences verified; finalcgroupcounters unavailableafterautomaticremoval.
+Raw results/ieee_tc/p2_backend_qualification/d153_20261002.
+Component tinyfixture7trees:500names old9inventories/3143stats/56.185ms vs
+new1/48/36.492ms,3alternatingpairs;exactoutputexceptcapturetimes.
+4names3.854→3.563ms. Not servinggain,CI,orG1G2acceptance.
+Historicalcalleraudit570D143samples:59LocalSource.source_snapshot inclusive,
+57frompreparation;39inventory(30_file_inventory/9_source_observation),
+29NativeSource._footprints;18file/16GPUexecutionobjectives. NotCPUpercentages
+orcurrentfrequency;overlapnotadditive. ThreefilesAST/byteidentitybeforecandidate.
+Caller audit scope nowabsent; historicalInvocationIDNOTcaptured. No rerun.
+Doc D153_FILE_OBSERVATION_DIAGNOSIS.md has qualification/componenttable.
+NEXT seal/backup then one ordinaryFull4000/W0 sameD152parameters/profiles,
+no profiler/prefix/capchange. D154 launch not yet prepared orauthorizedasformal.
+No liveGPU/remote/testjob. Sourcecurrentlydirtycandidate; HEAD53efe130.
+
+## PRIOR — D152 finished, analyzed, sealed and BACKED
+
+02:40 +08 backup COMPLETE53efe130e6871d387af128c3101aed4cef635b30,
+pushedfaaslora_origin/retry14_continuous_queue_v2; exactremoteHEADverified.
+14explicitfiles/91payload syntax/secrets/bundle/diffPASS; usermanifestexcluded.
+Push88371/verify98154 CLOSED0. Plan amendment and verbatim history included.
+No liveGPU/remote/analysis/exec jobs. Do NOTrepeat closure/tests/publication.
+Read-only nextbottleneck source/history/primary-reference audit in progress;
+no new candidate/configuration or GPU run selected. Serving unchanged26fa0a0.
 
 2026-10-02 02:36 +08. Goal ACTIVE/incomplete; this turn PROGRESS. No live
 exec/session/GPU/remote/analysis job. Runtime remains backed
@@ -67,8 +117,7 @@ SHA0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7.
 No oldrunidentity rewritten. Planchange is sequencing/acceptanceclarification,
 not metricdefinition change. FullPlan/status/V1/skills read this continuation.
 
-NEXT explicit newdocs/curated/archive/Planbackup,
-neverstage usermanifest. Then source/history/primaryreference diagnosis of
+NEXT source/history/primaryreference diagnosis of
 remaining non-generation waiting; no blindcap/deadline increase or rerun.
 Need newmetric oldPrime gap audit and legitimate commonreference calibration;
 don't resume externalbaseline campaign. Bothmodelperformance/numericadapter/

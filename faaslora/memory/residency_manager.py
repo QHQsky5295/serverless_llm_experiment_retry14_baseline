@@ -98,7 +98,8 @@ def _file_extents_initialized(fd, size):
     return True
 
 
-def _local_file_inventory(roots, *, writing_inodes=(), allocation_bounds=None):
+def _local_file_inventory(roots, *, writing_inodes=(), allocation_bounds=None,
+                          _observed_stats=None):
     """Inventory linked storage, not RSS, content hashes, or reclaimable bytes.
 
     Call under the cooperative file owner. Active writers must be listed and
@@ -109,6 +110,7 @@ def _local_file_inventory(roots, *, writing_inodes=(), allocation_bounds=None):
     extent sharing, page cache and unlinked-open files are outside this scope.
     """
     allocations, observations = {}, []
+    captured = {} if _observed_stats is not None else None
     writing_inodes = set(writing_inodes)
     allocation_bounds = allocation_bounds or {}
     def signature_for(info, key):
@@ -136,6 +138,8 @@ def _local_file_inventory(roots, *, writing_inodes=(), allocation_bounds=None):
             key = (info.st_dev, info.st_ino)
             signature = signature_for(info, key)
             observations.append((path, key, signature))
+            if captured is not None:
+                captured[path] = info
             item = allocations.setdefault(key, dict(
                 device=info.st_dev, inode=info.st_ino, kind=kind,
                 logical_bytes=info.st_size if kind == 'file' else 0,
@@ -156,6 +160,10 @@ def _local_file_inventory(roots, *, writing_inodes=(), allocation_bounds=None):
         if ((info.st_dev, info.st_ino) != key or
                 signature_for(info, key) != signature):
             raise RuntimeError('managed inode changed while collecting footprint')
+    if captured is not None:
+        # Ephemeral evidence for this locked observation only. Expose nothing
+        # until the fresh second-stat check succeeds; never reuse across calls.
+        _observed_stats.update(captured)
     items = list(allocations.values())
     for item in items:
         del item['signature']
@@ -709,12 +717,13 @@ class LocalSourceReferences:
         return signatures, {key: footprint[key] for key in
             ('file_path_bytes', 'allocated_file_bytes', 'allocated_bytes', 'unique_file_count')}
 
-    def _validated_source(self, path):
+    def _validated_source(self, path, *, _observation=None):
         record = self._confirmed_sources.get(path)
         if record is None:
             return None
         try:
-            signatures, footprint = self._source_observation(path)
+            signatures, footprint = (self._source_observation(path)
+                                      if _observation is None else _observation)
             if signatures != record['signatures']:
                 # Preserve the FIRST mismatching observation. Withdrawal below
                 # makes a later lookup report only "unverified"; rescanning now
@@ -817,7 +826,7 @@ class LocalSourceReferences:
                         file_footprint={key: value for key, value in footprint.items()
                                         if key not in ('allocations', 'tiers')})
 
-    def inventory(self):
+    def inventory(self, *, _observed_stats=None):
         """Owner snapshot, including retained and private-stage paths.
 
         A transfer writes outside this lock. Unqualified transfers have unknown
@@ -827,18 +836,19 @@ class LocalSourceReferences:
         with self.lock:
             if set(self.materializations) - set(self._prepared_transfers) - self._budgeted_materializations:
                 raise RuntimeError('file inventory requires quiescent managed writes')
-            view = self._file_inventory()
+            view = self._file_inventory(_observed_stats=_observed_stats)
             held = {key for record in self._prepared_transfers.values() for key in record['files']}
             view['transfer_held_file_bytes'] = sum(item['allocated_bytes'] for item in view['allocations']
                 if (item['device'], item['inode']) in held)
             return dict(owner_id=self.owner_id, **view)
 
-    def _file_inventory(self, *, after_managed_root_deletion=False):
+    def _file_inventory(self, *, after_managed_root_deletion=False, _observed_stats=None):
         writing = {key for record in self._prepared_transfers.values() for key in record['files']}
         roots = ({tier: root for tier, root in self.roots.items() if root.exists()}
                  if after_managed_root_deletion else self.roots)
         view = _local_file_inventory(roots, writing_inodes=writing,
-                                     allocation_bounds=self._file_allocations)
+                                     allocation_bounds=self._file_allocations,
+                                     _observed_stats=_observed_stats)
         actual = {(item['device'], item['inode']): item for item in view['allocations']}
         for transfer_id, record in self._prepared_transfers.items():
             for key, expected in record['files'].items():
@@ -891,6 +901,11 @@ class LocalSourceReferences:
         No polling delay or sync. If normal background conversion has not
         finished, the next ordinary budget snapshot retains/rechecks the bound.
         """
+        if not any(bound['writer_closed'] and not bound['settled']
+                   for bound in self._file_allocations.values()):
+            # Nothing can settle. The caller's subsequent inventory still
+            # validates every path/bound; this skips no capacity observation.
+            return
         view = self._file_inventory()
         for item in view['allocations']:
             key = item['device'], item['inode']
@@ -1124,6 +1139,48 @@ class LocalSourceReferences:
             sort_keys=True, separators=(',', ':')).encode()
         return hashlib.sha256(contents).hexdigest()
 
+    def _planning_source_observations(self, inventory, observed_stats):
+        """Index one fresh inventory by adapter tree; caller holds the lock.
+
+        Paths and signatures come from the very same double-checked inventory
+        as the budget. Inodes count once within each source tree, while alias
+        paths count separately for logical file_path_bytes, just as in an
+        individual source inventory. No index survives the planning call.
+        """
+        from ..storage.http_artifact_store import _verified_file_signature
+        roots = set(self.roots.values())
+        if any(not stat_types.S_ISDIR(observed_stats[root].st_mode) for root in roots):
+            raise RuntimeError('managed source root is unavailable')
+        indexed, seen = {}, {}
+        for allocation in inventory['allocations']:
+            inode = allocation['device'], allocation['inode']
+            for name in allocation['paths']:
+                item = Path(name)
+                if item in roots:
+                    continue
+                # Managed roots are nonoverlapping; find the direct child once
+                # per actual path, not once per candidate/absent adapter.
+                root = next(root for root in roots if root in item.parents)
+                relative = item.relative_to(root)
+                source = root / relative.parts[0]
+                signatures, footprint = indexed.setdefault(source, ({}, dict(
+                    file_path_bytes=0, allocated_file_bytes=0,
+                    allocated_bytes=0, unique_file_count=0)))
+                info = observed_stats[item]
+                signature = _verified_file_signature(info)
+                signatures[str(item.relative_to(source))] = (
+                    signature[:-2] if stat_types.S_ISDIR(info.st_mode) else signature)
+                if allocation['kind'] == 'file':
+                    footprint['file_path_bytes'] += allocation['logical_bytes']
+                source_inodes = seen.setdefault(source, set())
+                if inode not in source_inodes:
+                    source_inodes.add(inode)
+                    footprint['allocated_bytes'] += allocation['allocated_bytes']
+                    if allocation['kind'] == 'file':
+                        footprint['allocated_file_bytes'] += allocation['allocated_bytes']
+                        footprint['unique_file_count'] += 1
+        return indexed
+
     def preparation_snapshot(self, *, manifests, limits):
         """One physical file-owner view for automatic candidate production.
 
@@ -1143,23 +1200,43 @@ class LocalSourceReferences:
                 raise RuntimeError('preparation requires actual destination allocation units')
             if any(path.name not in manifests for path in self._confirmed_sources):
                 raise ValueError('confirmed file owner contains adapters outside the frozen universe')
+            observed_stats = {}
+            inventory = self.inventory(_observed_stats=observed_stats)
+            observations = self._planning_source_observations(inventory, observed_stats)
             artifacts = {}
             for aid, files in sorted(manifests.items()):
                 _quote_artifact_id(aid)
                 content = self._expected_content(files)
-                observed = self.source_snapshot(aid)
-                if any(row['content_sha256'] != content for row in observed['sources']):
+                sources = []
+                for tier, root in self.roots.items():
+                    path = root / aid
+                    observation = observations.get(path)
+                    if path in self._confirmed_sources:
+                        # Missing trees mismatch the published signatures and
+                        # withdraw confirmation through the same validator.
+                        record = self._validated_source(path, _observation=(
+                            observation if observation is not None else ({}, dict(
+                                file_path_bytes=0, allocated_file_bytes=0,
+                                allocated_bytes=0, unique_file_count=0))))
+                        sources.append(copy.deepcopy(record['public']))
+                    elif observation is not None:
+                        detail = dict(owner_id=self.owner_id, source_epoch=self.source_epoch,
+                            path=str(path), adapter_id=aid, tier=tier,
+                            active_transfer_ids=sorted(key for key, destination in
+                                self.materializations.items() if destination == path))
+                        raise RuntimeError('local copy exists without verified source publication: '
+                                           + json.dumps(detail, sort_keys=True))
+                if any(row['content_sha256'] != content for row in sources):
                     raise ValueError('preparation file source differs from frozen manifest')
                 artifacts[aid] = dict(content_sha256=content,
                     logical_payload_bytes=sum(size for size, _ in files.values()),
-                    sources=observed['sources'],
+                    sources=sources,
                     targets={tier: dict(tier=tier, representation='verified_regular_file_tree_v1',
                         content_sha256=content, footprint_bytes=sum(
                             ((size+unit-1)//unit)*unit for size, _ in files.values()),
                         path=str(self.roots[tier]/aid)) for tier, unit in units.items()})
             # Source validation can advance source_epoch without a content change.
             # Do not capture a budget earlier, or revalidate during serialization.
-            inventory = self.inventory()
             budget = self._file_budget_from_inventory(limits, inventory)
             host = self._host_budget_from_inventory(inventory)
             sources = {Path(row['path']): row for artifact in artifacts.values()
