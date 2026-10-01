@@ -271,7 +271,7 @@ class ProjectedNativeSources(CommittedNativeSources):
                 await InferenceEngine.ieee_routing_sources(engine)
         asyncio.run(check())
         self.assertEqual(engine.ieee_gpu_reference.await_count, 4)
-        self.assertTrue(all(call.kwargs == {'operation': 'source_snapshot'}
+        self.assertTrue(all(call.kwargs == {'operation': 'routing_source_snapshot'}
             for call in engine.ieee_gpu_reference.await_args_list))
 
     def test_same_source_AA_preserves_service_classes_and_routing_decisions(self):

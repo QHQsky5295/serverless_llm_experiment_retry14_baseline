@@ -201,6 +201,20 @@ class NativeRPCFailureContext(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(send.await_count, 1)
                 self.assertEqual(recv.await_count, failed_phase == 'socket_receive')
 
+    async def test_failed_readonly_routing_snapshot_does_not_claim_mutation(self):
+        from scripts.run_all_experiments import _BlockingRPCChannel
+        proxy = self.proxy()
+        proxy._open_rpc_channel.return_value = _BlockingRPCChannel(NS())
+        loop = asyncio.get_running_loop()
+        with patch.object(loop, 'sock_sendall', AsyncMock()), \
+             patch.object(loop, 'sock_recv', AsyncMock(side_effect=TimeoutError())):
+            with self.assertRaises(RuntimeError) as caught:
+                await proxy._rpc('ieee_gpu_reference', operation='routing_source_snapshot')
+        self.assertEqual(caught.exception.native_rpc_failure['operation'], 'routing_source_snapshot')
+        self.assertTrue(caught.exception.native_rpc_failure['dispatch_handoff_started'])
+        self.assertFalse(proxy._native_rpc_uncertain)
+        proxy._drop_rpc_channel.assert_awaited_once()
+
     async def test_actual_guard_expiry_is_distinct_from_external_cancellation(self):
         from scripts.run_all_experiments import _BlockingRPCChannel
         proxy = self.proxy()

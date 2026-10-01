@@ -4694,7 +4694,8 @@ class InferenceEngine:
             raise RuntimeError("native references currently require TP=PP=1")
         if self.backend != "vllm" or self.engine is None or self._engine_dead:
             raise RuntimeError("native references require a live vLLM engine")
-        if operation not in ("snapshot", "source_snapshot", "acquire", "release", "evict", "begin_use", "end_use",
+        if operation not in ("snapshot", "source_snapshot", "routing_source_snapshot",
+                             "acquire", "release", "evict", "begin_use", "end_use",
                              "demand_load_and_acquire", "hold_host_source", "release_host_source",
                              "prepare_file_host_and_hold", "configure_host_budget",
                              "register_preparation_plan", "finish_preparation_target", "close_preparation_plan"):
@@ -4719,7 +4720,7 @@ class InferenceEngine:
         """
         from faaslora.clock import local_monotonic_clock_id
         from faaslora.experiment.instance_pool import NativeSourceSnapshot
-        payload = await self.ieee_gpu_reference(operation='source_snapshot')
+        payload = await self.ieee_gpu_reference(operation='routing_source_snapshot')
         state = NativeSourceSnapshot.from_native(payload,
             expected_clock_id=local_monotonic_clock_id(), received_monotonic_s=time.monotonic())
         return state.routing_wire(device_uuid=payload.get('device_uuid'))
@@ -5261,7 +5262,8 @@ class SubprocessInferenceEngineProxy:
             if not dispatch_started or not native or cmd in ('ieee_worker_observation', 'ieee_scheduler_observation',
                                      'ieee_generation_observation', 'ieee_routing_sources', 'shutdown'):
                 return
-            if cmd == 'ieee_gpu_reference' and kwargs.get('operation') in ('snapshot', 'source_snapshot'):
+            if cmd == 'ieee_gpu_reference' and kwargs.get('operation') in (
+                    'snapshot', 'source_snapshot', 'routing_source_snapshot'):
                 return
             ref = kwargs.get('gpu_reference') or {}
             self._native_rpc_uncertain[attempt_id] = {

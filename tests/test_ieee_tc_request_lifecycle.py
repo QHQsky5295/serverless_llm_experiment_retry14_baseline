@@ -255,7 +255,7 @@ class PredecisionRoutingIntegration(unittest.TestCase):
             slot.service_cost_model = ServiceCostModel(beta=.25, profile_id='test-fixture-only',
                 profiles={key: ServiceComponents(100. if index == 0 else 10., 20., 30.)})
             async def snapshot(*, operation, replica=slot.instance_id, ordinal=index):
-                self.assertEqual(operation, 'source_snapshot')
+                self.assertEqual(operation, 'routing_source_snapshot')
                 return source_payload() | dict(owner_id=replica, clock_id=local_monotonic_clock_id(),
                     captured_monotonic_s=time.monotonic(), sources=[],
                     device_uuid=f'GPU-00010203-0405-0607-0809-0a0b0c0d0e0{ordinal}',
@@ -809,7 +809,9 @@ def native_reference_fixture():
         manager.activate(aid)
     owner = IEEEBackendGPUReferences(manager, Mock(), demand_loader=load)
     async def rpc(*, operation, **kwargs):
-        return {**getattr(owner, operation)(**kwargs), 'clock_id': local_monotonic_clock_id(),
+        # Mirror the actual worker's readonly routing-to-owner dispatch.
+        owner_operation = 'source_snapshot' if operation == 'routing_source_snapshot' else operation
+        return {**getattr(owner, owner_operation)(**kwargs), 'clock_id': local_monotonic_clock_id(),
                 'device_uuid': 'GPU-fixture'}
     slot.engine.ieee_gpu_reference = AsyncMock(side_effect=rpc)
     slot.engine.ieee_routing_sources = AsyncMock(
@@ -829,7 +831,7 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
                 in_producer = False
                 projected_epochs = []
                 async def guarded(*, operation, **kwargs):
-                    if operation == 'source_snapshot':
+                    if operation in ('source_snapshot', 'routing_source_snapshot'):
                         self.assertTrue(in_producer, 'full source graph escaped projection boundary')
                     value = await observed(operation=operation, **kwargs)
                     if operation == 'source_snapshot':
@@ -866,7 +868,7 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
         async def changed(*, operation, **kwargs):
             nonlocal source_calls
             value = await observed(operation=operation, **kwargs)
-            if operation == 'source_snapshot':
+            if operation == 'routing_source_snapshot':
                 source_calls += 1
                 if source_calls == 2:
                     value['native_footprints']['host_adapter_footprints'][0]['exclusive_storage_bytes'] = 0
@@ -990,7 +992,7 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
 
         async def observed(*, operation, **kwargs):
             value = await rpc(operation=operation, **kwargs)
-            if operation == 'source_snapshot':
+            if operation in ('source_snapshot', 'routing_source_snapshot'):
                 ids, slots = value['registered_cpu_adapter_ids'], value['slot_adapter_ids']
                 value['device_uuid'] = 'GPU-00010203-0405-0607-0809-0a0b0c0d0e0f'
                 value['native_footprints'] = dict(uniform_slot_layout=True,
@@ -1621,7 +1623,7 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
         calls = 0
         async def becomes_native(*, operation, **kwargs):
             nonlocal calls
-            if operation == 'source_snapshot':
+            if operation == 'routing_source_snapshot':
                 calls += 1
                 if calls == 2:
                     ControllerNativeReferenceLifecycle.preload_native(owner)
@@ -3116,7 +3118,7 @@ class ControllerNativeReferenceLifecycle(unittest.TestCase):
             runner._resolve_lora.return_value = ('adapter-a', str(source), 1., 'nvme', 0., 0.)
             snapshots = []
             async def fail_after_file_resolution(*, operation, **kwargs):
-                if operation == 'source_snapshot':
+                if operation == 'routing_source_snapshot':
                     snapshots.append(operation)
                     if len(snapshots) == 2:
                         raise RuntimeError('snapshot unavailable')
@@ -3163,7 +3165,7 @@ class ControllerNativeReferenceLifecycle(unittest.TestCase):
         runner._begin_scaleup_runtime_request_labels.side_effect = ValueError('pre-generation stop')
         async def measured(*, operation, **kwargs):
             value = await rpc(operation=operation, **kwargs)
-            if operation == 'source_snapshot':
+            if operation == 'routing_source_snapshot':
                 value['native_footprints'] = dict(uniform_slot_layout=True,
                     host_footprint_scope='native_registered_tensor_storage_capacity',
                     host_budget_reserved=False, host_allocator_overhead_included=False,
@@ -3260,7 +3262,7 @@ class ControllerNativeReferenceLifecycle(unittest.TestCase):
     def test_worker_conflict_does_not_load_or_generate_or_claim_an_unknown_lease(self):
         runner, slot, trace, plan, owner, rpc = native_reference_fixture()
         async def reject(*, operation, **kwargs):
-            if operation == 'source_snapshot':
+            if operation == 'routing_source_snapshot':
                 return await rpc(operation=operation)
             snapshot = await rpc(operation='snapshot')
             return snapshot if operation == 'snapshot' else {

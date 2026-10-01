@@ -1489,6 +1489,55 @@ class NativeDemandTransactions(unittest.TestCase):
             self.assertEqual(live_staged['native_staging_footprints']['host_tensor_storage_bytes'], 48)
             event.synchronize.assert_called_once_with()  # Observation adds no fence.
 
+    def test_routing_snapshot_observes_fresh_sources_without_allocator_inventory(self):
+        self.demand()
+        worker = gpu_monitor.IEEEWorkerObservationExtension()
+        worker.device = SimpleNamespace(type='cuda')
+        worker.rank = 0
+        worker.model_runner = SimpleNamespace(lora_manager=SimpleNamespace(_adapter_manager=self.manager))
+        worker._ieee_gpu_reference_owner = self.owner
+        worker._ieee_host_allocator_policy = {'verified': False}
+        torch = SimpleNamespace(cuda=SimpleNamespace(get_device_properties=Mock(
+            return_value=SimpleNamespace(uuid=SimpleNamespace(bytes=list(range(16)))))))
+        with patch.object(gpu_monitor, 'torch', torch), \
+             patch.object(gpu_monitor, '_ieee_lora_host_inventory',
+                          return_value={'host_tensor_storage_bytes': 16}) as host, \
+             patch.object(gpu_monitor, '_ieee_lora_pool_inventory',
+                          return_value={'slot_capacity_bytes': 32}) as pool, \
+             patch.object(gpu_monitor, '_ieee_pinned_host_observation') as allocator, \
+             patch.object(self.owner, 'staged_models') as staged:
+            first = worker.ieee_gpu_reference(operation='routing_source_snapshot')
+            self.assertEqual(first['sources'][0]['adapter_id'], 'adapter-4')
+            self.assertFalse(first['snapshot_holds_reference'])
+            self.assertEqual(first['device_uuid'], 'GPU-00010203-0405-0607-0809-0a0b0c0d0e0f')
+            self.assertEqual(first['native_footprints'], dict(host_tensor_storage_bytes=16,
+                                                            slot_capacity_bytes=32))
+            self.assertIn('clock_id', first)
+            self.assertIn('staged_sources', first)  # Owner invariants are not bypassed.
+            self.assertNotIn('native_staging_footprints', first)
+            self.assertNotIn('native_host_allocator', first)
+            host.assert_called_once_with(self.manager)
+            pool.assert_called_once_with(self.manager, require_uniform_slots=True)
+            staged.assert_not_called()
+            allocator.assert_not_called()
+            self.release('cold-1')
+            self.demand('second', aid=5)
+            host.return_value = {'host_tensor_storage_bytes': 48}
+            second = worker.ieee_gpu_reference(operation='routing_source_snapshot')
+            self.assertGreater(second['epoch'], first['epoch'])
+            self.assertEqual(second['sources'][-1]['adapter_id'], 'adapter-5')
+            self.assertEqual(second['native_footprints']['host_tensor_storage_bytes'], 48)
+            self.assertEqual(first['native_footprints']['host_tensor_storage_bytes'], 16)
+            self.assertEqual(host.call_count, 2)
+            self.assertEqual(pool.call_count, 2)
+            staged.assert_not_called()
+            allocator.assert_not_called()
+            # The fresh owner still rejects replacement under a live lease.
+            self.manager._registered_adapters[5] = NativeAdapter()
+            with self.assertRaisesRegex(RuntimeError, 'source object'):
+                worker.ieee_gpu_reference(operation='routing_source_snapshot')
+            self.assertEqual(host.call_count, 2)
+
     def test_actual_engine_rpc_forwards_demand_transaction(self):
         engine = InferenceEngine({'ieee_gpu_references': True}, {})
         receipt = {'acquired': True, 'gpu_resident_before_load': False}
@@ -1502,6 +1551,10 @@ class NativeDemandTransactions(unittest.TestCase):
         self.assertEqual(asyncio.run(engine.ieee_gpu_reference(operation='source_snapshot')), receipt)
         engine.engine.collective_rpc.assert_awaited_once_with(
             'ieee_gpu_reference', kwargs={'operation': 'source_snapshot'})
+        engine.engine.collective_rpc.reset_mock()
+        self.assertEqual(asyncio.run(engine.ieee_gpu_reference(operation='routing_source_snapshot')), receipt)
+        engine.engine.collective_rpc.assert_awaited_once_with(
+            'ieee_gpu_reference', kwargs={'operation': 'routing_source_snapshot'})
 
     def test_replaced_cpu_object_cannot_keep_the_prior_source_identity(self):
         self.demand()

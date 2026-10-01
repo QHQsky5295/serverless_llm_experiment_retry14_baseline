@@ -1,6 +1,53 @@
 # IEEE TC execution status
 
-## CURRENT — D150 analyzed and sealed; Git backup next
+## CURRENT — D151 qualified; explicit backup then safe capacity recovery
+
+2026-10-02 00:57 +08. Goal ACTIVE/incomplete, turn PROGRESS. ONE candidate:
+fresh readonly native routing observation omits unused staging/allocator payload,
+but preserves owner refresh/invariants, registered graph validation and all
+physical/planning source_snapshot consumers. No cache/TTL, formula/config/cap/
+timeout/lease/workload/backend/remote changes. Source parent805bf611. See sealed
+D151_NATIVE_ROUTING_OBSERVATION.md. All tests/verification CLOSED; no live
+GPU/remote/analysis/exec jobs. Ordinary Full NOT prepared/launched, no gain claim.
+
+- RED5:2failures/2errors; firstGREEN one faulty cache-view mutation injection;
+  correctedtestGREEN2 5PASS/.012s. Regression1 737/14fail/75errors and
+  regression2 737/2fail/1error were missing operation mappings/injections in
+  old CPU fixtures. Production candidate unchanged after first implementation.
+  Final737PASS24.735s/command35.43s/RSS1211732KiB. All attempts retained.
+- Actual scopes3/4GiBswap0CPU2,3,26,27, automatically removed/absence verified.
+  Final cgroup events unavailable after removal, not invented. All handles
+  76025/99956/66320/98941/28675/1397/13382 CLOSED. Verify actual
+  5d8e17d9fbca458d97d899b22bde5045 exit0; cleanup receipt next.
+- Verification233frozenrefs/147protected/Plan/V1/sourcevariants/syntax/secrets
+  PASS. CuratedSHA787af8b2ae362f5de084fbd7632a1883d8931682acbdd44f5ddc9b7353e697da;
+  44member441749B bundleSHA46e6712b6b9cfc093ce2a7490b131ce18f766e9cfd26582ff293d496e613ae9b.
+  Rawd151_20261002. Verification's own log/time/cleanup local, not in prior bundle.
+
+NEXT explicit12file diff/checksums/secrets -> commit/push; usermanifest excluded.
+Then safe provenrebuildable capacity audit (free160986337280B <150GiB), no new
+heavy launch before fresh safety gate. No deletion/largecompression this turn.
+Do NOTrepeat tests/D150analysis/immutablecache creation. Bothmodelperformance,
+numericadapter/103outputhash/warm/Resident/M1M2/A1-A5/S1-S13 remainOPEN;
+baselinesPAUSED. FullPlan/status/V1 and applicable skills readFULL this turn.
+
+## D150 backed completion — completed history
+
+00:35:11 +08 BACKUP COMPLETE805bf611c4da5ca38575889d8b32eb6481b8d82e,
+pushedfaaslora_origin/retry14_continuous_queue_v2; exactremoteHEAD verified.
+12explicitfiles/77payload syntax/secrets/checksums/diffPASS; usermanifestexcluded.
+Push62703/verify46831 CLOSED0. No liveGPU/remote/analysis/exec handles. Current
+servingruntime remainsD1499c73e33; no sourcechange inD150closure. Thisnote is
+theonlyledgerdelta aftercheckpoint. Do NOTrepeat D150closure/analysis/tests or
+once-only deliverycache creation. GoalACTIVE/incomplete; turn PROGRESS.
+NEXT source/history/primary-reference diagnosis ofremainingnon-nativewaiting;
+do notblindlyrerun/tunecap/deadline. No nextoptimizer implemented/GPUprepared.
+Beforefutureheavy, safeprovenrebuildablecapacityaudit required (lastfree~149.91GiB).
+No deletion/largecompression yet. Bothmodelperformance/numericadapter/warm/
+Resident/M1M2/A1-A5/S1-S13 remainOPEN; baselinesPAUSED. New103outputhashchanges
+vsD148 mustremainvisible, notexplainedbyassertion. FinaltablesinD150doc sealed.
+
+## D150 sealed closure history — completed
 
 00:34 +08 verification38217 CLOSED0:233frozenrefs/44curatedrefs/147protected,
 Plan/V1/Full/phases/contracts/cleanup PASS. SHA

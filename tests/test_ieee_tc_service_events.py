@@ -199,7 +199,7 @@ class NativeWorkerRPCEvents(unittest.IsolatedAsyncioTestCase):
             async def ieee_close_pending(self, **command):
                 return {'intent_id': command['intent_id'], 'closed': True}
             async def ieee_gpu_reference(self, **command):
-                if command == {'operation': 'source_snapshot'}:
+                if command in ({'operation': 'source_snapshot'}, {'operation': 'routing_source_snapshot'}):
                     from faaslora.clock import local_monotonic_clock_id
                     from tests.test_ieee_tc_service_routing import measured_source_payload
                     return measured_source_payload() | dict(clock_id=local_monotonic_clock_id(),

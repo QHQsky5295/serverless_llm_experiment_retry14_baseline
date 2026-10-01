@@ -521,7 +521,8 @@ class IEEEWorkerObservationExtension:
         Proactive preparation is reachable only through the same-owner core
         bridge; ordinary request-driven loading does not evaluate soft E(t).
         """
-        if operation not in ('snapshot', 'source_snapshot', 'acquire', 'release', 'evict', 'begin_use', 'end_use',
+        if operation not in ('snapshot', 'source_snapshot', 'routing_source_snapshot',
+                             'acquire', 'release', 'evict', 'begin_use', 'end_use',
                              'demand_load_and_acquire', 'hold_host_source', 'release_host_source',
                              'prepare_file_host_and_hold', 'configure_host_budget',
                              'register_preparation_plan', 'finish_preparation_target', 'close_preparation_plan',
@@ -753,23 +754,28 @@ class IEEEWorkerObservationExtension:
                     'scheduler_held_during_commit': True,
                     'physical_increment_reserved_bytes': 0}
             result = owner.proactive_host_prepare_and_acquire(**kwargs, decide=decide)
+        elif operation == 'routing_source_snapshot':
+            # Use the same live owner read/invariants, not a cached verdict.
+            result = owner.source_snapshot(**kwargs)
         else:
             result = getattr(owner, operation)(**kwargs)
-        if operation == 'source_snapshot':
+        if operation in ('source_snapshot', 'routing_source_snapshot'):
             # Same serialized owner invocation: neither source identity nor
             # cache membership can change between these two read-only views.
             host = _ieee_lora_host_inventory(manager)
             result['native_footprints'] = {
                 **host,
                 **_ieee_lora_pool_inventory(manager, require_uniform_slots=True)}
-            staged = owner.staged_models()
-            # With no staged models these are the same current physical set.
-            # Copy only the measured plain payload to keep independent return
-            # values; never memoize tensor observations across owner calls.
-            result['native_staging_footprints'] = (
-                _ieee_lora_host_inventory(manager, staged_models=staged)
-                if staged else copy.deepcopy(host))
-            result['native_host_allocator'] = _ieee_pinned_host_observation(result['native_staging_footprints'])
+            if operation == 'source_snapshot':
+                # Physical/planning consumers still need the full allocation
+                # view. Routing validates only the complete registered graph
+                # in its frontend and does not consume staging/allocator data.
+                staged = owner.staged_models()
+                # This reuse is within one observation, never across calls.
+                result['native_staging_footprints'] = (
+                    _ieee_lora_host_inventory(manager, staged_models=staged)
+                    if staged else copy.deepcopy(host))
+                result['native_host_allocator'] = _ieee_pinned_host_observation(result['native_staging_footprints'])
             # CUDA ordinals can be remapped in dedicated workers; publish the
             # actual device identity so controller NVML queries cannot sample
             # a different physical GPU with a coincidentally equal index.
