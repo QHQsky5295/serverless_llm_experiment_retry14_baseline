@@ -1,0 +1,83 @@
+{
+  "kind": "legacy_current_3b_recorded_workload_audit_v1",
+  "formal_performance_result": false,
+  "reuse_classification": "R2",
+  "audited_at": "2026-10-01T10:07:41+08:00",
+  "method": "Read two existing 12.3 MB legacy JSON files and the existing bounded D118 projection; sum request input_tokens/output_tokens; sort by request_id before exact ID, adapter, scheduled-arrival and token-count comparisons. No GPU run, raw D118 reload, new trace, or source mutation.",
+  "measurement_caveat": "Legacy token totals are recorded fields, not independently reverified native token counts. Missing old prompt hashes prevent content-equality verification. Same token counts do not prove same prompt text. Contract differences remain; no causal performance ratio or confidence interval.",
+  "sources": {
+    "legacy_local": {
+      "path": "/home/qhq/serverless_llm_experiment/results/experiment_results_full_vllm_auto_a500_r4000_c4_faaslora_full_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_max2_auto.json",
+      "bytes": 12323842,
+      "sha256": "7e084b6d60c8ca34a78cf117a2a3e251ea188e934c6b4e3739604f328918949e",
+      "request_path": "detailed_results.faaslora_full.requests"
+    },
+    "legacy_remote": {
+      "path": "/home/qhq/serverless_llm_experiment/results/experiment_results_full_vllm_auto_a500_r4000_c4_faaslora_full_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real_remote_v1_faaslora_vllm_real_remote_v1.json",
+      "bytes": 12324296,
+      "sha256": "ed4a934211ee36301fc87adaa1d295908bcfd230e2ad38fcac34b9fb6f2c0f02",
+      "request_path": "detailed_results.faaslora_full.requests"
+    },
+    "d118": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d118_20260930/full_full11_request_projection.json",
+      "bytes": 33920359,
+      "sha256": "b40fe880592473f74a654323f8f291c910af0517cd8acf67dfa67fa3abb6a840",
+      "request_path": "requests"
+    }
+  },
+  "legacy_local": {
+    "count": 4000,
+    "unique_ids": 4000,
+    "success": 4000,
+    "input_tokens": 2981921,
+    "output_tokens": 447515,
+    "max_input": 985,
+    "max_output": 394,
+    "prompt_hash_records": 0,
+    "generation_contracts": [null]
+  },
+  "legacy_remote": {
+    "count": 4000,
+    "unique_ids": 4000,
+    "success": 4000,
+    "input_tokens": 2981921,
+    "output_tokens": 447447,
+    "max_input": 985,
+    "max_output": 394,
+    "prompt_hash_records": 0,
+    "generation_contracts": [null]
+  },
+  "d118": {
+    "count": 4000,
+    "unique_ids": 4000,
+    "success": 4000,
+    "input_tokens": 2594938,
+    "output_tokens": 458224,
+    "max_input": 760,
+    "max_output": 256,
+    "prompt_hash_records": 4000,
+    "generation_contracts": ["fixed_length_greedy_v1"]
+  },
+  "local_vs_remote": {
+    "ids_identical": true,
+    "adapter_map_identical": true,
+    "arrival_map_identical": true,
+    "input_tokens_equal": 4000,
+    "output_tokens_equal": 3789
+  },
+  "remote_vs_d118": {
+    "ids_identical": true,
+    "adapter_map_identical": true,
+    "arrival_map_identical": true,
+    "input_tokens_equal": 4,
+    "output_tokens_equal": 3807
+  },
+  "d118_input_count_audit": {
+    "native_prompt_count_matches": 4000,
+    "content_max": 759,
+    "content_total": 2590938,
+    "native_minus_content_unique": [1],
+    "method": "Compare input_tokens to native_token_timing.actual_prompt_tokens, sum canonical_prompt_tokens, and record all unique input_tokens minus canonical_prompt_tokens values in the existing D118 projection."
+  },
+  "interpretation": "Recorded input workload decreases and output total increases modestly; large TTFT differences cannot be attributed to a proportionally larger token workload from these counts alone. Queue amplification near capacity remains possible; no isolated bottleneck attribution is established. Current performance remains OPEN."
+}
