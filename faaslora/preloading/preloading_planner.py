@@ -46,8 +46,10 @@ def native_preparation_source_conflict(*, frozen, observed, binding_targets=None
     Used before indexing a frozen objective with live cache IDs. An objective
     is not a cache reservation. New legitimate demand may invalidate its domain,
     but unknown copies, identity conflicts and unconfirmed GPUs remain errors.
-    With explicit binding_targets, validate a non-target physical-path change
-    instead of source-domain growth. This is only a no-operation witness: the
+    With explicit binding_targets, validate a physical-path change anywhere
+    in the objective, including another selected target supplied by demand.
+    Target selection does not reserve every not-yet-loaded native source.
+    This is only a no-operation witness: the
     controller must separately verify the changed copies' immutable content.
     This helper neither changes the objective nor authorizes a retry or eviction.
     Tensor footprints are irrelevant to this negative, no-operation witness.
@@ -55,7 +57,9 @@ def native_preparation_source_conflict(*, frozen, observed, binding_targets=None
     rows = {r['adapter_int_id']: r for r in frozen['sources']}
     if binding_targets is not None and (not isinstance(binding_targets, (list, tuple))
             or not binding_targets or any(type(a) is not int or a not in rows for a in binding_targets)
-            or len(set(binding_targets)) != len(binding_targets)):
+            or len(set(binding_targets)) != len(binding_targets)
+            or (frozen['kind'] == 'ieee_owned_gpu_objective_v2'
+                and set(binding_targets) != {r['adapter_int_id'] for r in frozen['gpu_candidates']})):
         raise ValueError('source binding conflict requires the frozen target identities')
     epoch = observed.get('epoch')
     captured = observed.get('captured_monotonic_s')
@@ -90,7 +94,7 @@ def native_preparation_source_conflict(*, frozen, observed, binding_targets=None
                 or (name in frozen_names and frozen_names[name] != aid)
                 or (aid in rows and name != rows[aid]['adapter_id'])
                 or (aid in rows and path != rows[aid]['lora_path']
-                    and (binding_targets is None or aid in binding_targets))):
+                    and binding_targets is None)):
             raise ValueError('preparation source identity/coverage contradicts its frozen objective')
         if binding_targets is not None:
             if (type(source.get('rank')) is not int or source['rank'] <= 0

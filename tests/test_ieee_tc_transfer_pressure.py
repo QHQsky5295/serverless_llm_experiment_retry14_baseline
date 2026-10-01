@@ -2576,6 +2576,124 @@ class IntegratedNativeHostReplacement(unittest.TestCase):
 
 class AutomaticGPUReplacement(unittest.TestCase):
     """Automatic received-owner selection through the real mixed executor."""
+    def test_other_selected_target_copy_expires_whole_plan_before_gpu_mutation(self):
+        self._check_selected_sibling_copy()
+
+    def test_other_selected_target_damage_is_not_accepted_as_expiry(self):
+        for fault in ('name', 'content'):
+            with self.subTest(fault=fault):
+                self._check_selected_sibling_copy(fault=fault)
+
+    def test_native_commit_rejects_selected_sibling_change_before_pricing(self):
+        self._check_selected_sibling_copy(native_boundary=True)
+
+    def _check_selected_sibling_copy(self, *, fault=None, native_boundary=False):
+        from faaslora.preloading.preloading_planner import (
+            owned_gpu_execution_objective, PreparationPlanSuperseded)
+        factory, data = self.make({'a':80, 'c':79})
+        fixture, runner, queue, slot, owner, snapshot, loads = data
+        aid, cid = (InferenceEngine._lora_int_id(name) for name in ('a','c'))
+        owner.manager.deactivate(cid)
+        for name in ('b','c'):
+            self.assertTrue(fixture.manager._delete_path(str(fixture.host/name)))
+        observed = []
+        reference = slot.engine.ieee_gpu_reference.side_effect
+        async def capture(**kw):
+            result = await reference(**kw)
+            if kw['operation'] == 'source_snapshot':
+                observed.append(result)
+            return result
+        slot.engine.ieee_gpu_reference.side_effect = capture
+        async def run():
+            waiting_sibling = asyncio.Event()
+            never_ready = asyncio.Event()
+            try:
+                plan = await runner._plan_ieee_preparation_for_slot(slot=slot, mode='residency')
+                self.assertEqual({c.artifact_id for c in plan['selected']['gpu']}, {'a','c'})
+                objective = owned_gpu_execution_objective(plan=plan, selected=plan['selected'],
+                    size_edges_bytes=runner._preparation_profiles.size_edges_bytes)
+                self.assertEqual(next(s for s in objective['sources'] if s['adapter_int_id']==aid)
+                                 ['lora_path'], str(fixture.nvme/'a'))
+                async def demand_after_registration():
+                    # A legitimate first demand supplies a different confirmed
+                    # copy for another selected target. Registration is not a
+                    # lease on every source; the old objective must not apply.
+                    fixture.manager.materialize_confirmed_source('a', fixture.nvme/'a', StorageTier.HOST)
+                    files = fixture.owner.source_snapshot('a')
+                    held = fixture.owner.acquire_confirmed(path=str(fixture.host/'a'), adapter_id='a',
+                        lease_id='sibling-demand-file', expected_owner_id=files['owner_id'],
+                        expected_epoch=files['epoch'],
+                        expected_content_sha256=runner._ieee_artifact_identities['a']['content_sha256'])
+                    try:
+                        receipt = owner.demand_load_and_acquire(lease_id='sibling-demand',
+                            adapter_int_id=aid, lora_name='a', lora_path=str(fixture.host/'a'),
+                            expected_owner_id=owner.owner_id, expected_epoch=owner.snapshot()['epoch'])
+                        self.assertTrue(receipt['acquired'])
+                        owner.release(lease_id='sibling-demand', expected_owner_id=owner.owner_id)
+                    finally:
+                        fixture.owner.release(lease_id=held['lease_id'], expected_owner_id=held['owner_id'])
+                    if fault == 'name':
+                        owner._sources[aid] = ('foreign', str(fixture.host/'a'))
+                    elif fault == 'content':
+                        changed_file = next(p for p in (fixture.host/'a').rglob('*') if p.is_file())
+                        changed_file.write_bytes(changed_file.read_bytes()+b'changed-after-publication')
+                async def prepare_source(target, plan_id):
+                    if target == aid:
+                        waiting_sibling.set()
+                        await never_ready.wait()
+                    else:
+                        self.assertEqual(target, cid)
+                        await waiting_sibling.wait()
+                if native_boundary:
+                    # Test the serialized native commit itself, independently
+                    # of a prior controller-side source check. No fake receipt.
+                    registered = owner.register_preparation_plan(plan_id='selected-sibling',
+                        objective=objective, target_adapter_ids=[aid,cid], expected_owner_id=owner.owner_id)
+                    self.assertTrue(registered['registered'])
+                    try:
+                        await demand_after_registration()
+                        before = owner.snapshot()
+                        pricing, admission = Mock(), Mock()
+                        result = owner.proactive_host_prepare_and_acquire(lease_id='selected-sibling-op',
+                            adapter_int_id=cid, lora_name='c', lora_path=str(fixture.nvme/'c'),
+                            expected_owner_id=owner.owner_id, expected_epoch=before['epoch'],
+                            capacity_only=False, replacement_epoch=objective,
+                            preparation_plan_id='selected-sibling', replacement_cost_provider=pricing,
+                            decide=admission)
+                        self.assertIs(result['acquired'], False)
+                        self.assertIs(result['native_operation_applied'], False)
+                        self.assertEqual(result['reason'], 'preparation_source_binding_changed')
+                        self.assertEqual([r['adapter_id'] for r in result['changed_source_bindings']], ['a'])
+                        self.assertEqual(result['plan_sha256'], objective['plan_sha256'])
+                        self.assertEqual(result['preparation_plan_id'], 'selected-sibling')
+                        self.assertEqual(owner.snapshot(), before)
+                        pricing.assert_not_called()
+                        admission.assert_not_called()
+                        self.assertEqual(loads, [('gpu','a')])
+                    finally:
+                        owner.close_preparation_plan(plan_id='selected-sibling', expected_owner_id=owner.owner_id)
+                    factory.check_clean(fixture, runner, owner)
+                    return
+                expectation = (ValueError, RuntimeError) if fault else PreparationPlanSuperseded
+                with self.assertRaises(expectation) as caught:
+                    await asyncio.wait_for(runner._run_ieee_gpu_preparation_plan(slot=slot,
+                        objective=objective, target_adapter_ids=[aid,cid], trigger_reason='residency',
+                        prepare_source=prepare_source, after_registration=demand_after_registration), 3)
+                if fault:
+                    self.assertNotIsInstance(caught.exception, PreparationPlanSuperseded)
+                    self.assertEqual(runner._ieee_gpu_preparation_plans[-1]['state'], 'failed')
+                else:
+                    self.assertEqual(caught.exception.stage, 'native_gpu_objective_binding')
+                self.assertTrue(observed[-1]['complete_for_native_caches'])
+                self.assertGreater(observed[-1]['epoch'], objective['epoch'])
+                self.assertEqual(loads, [('gpu','a')])
+                slot.engine.ieee_prepare_host.assert_not_awaited()
+                self.assertTrue(runner._ieee_gpu_preparation_plans[-1]['close_receipt']['closed'])
+                factory.check_clean(fixture, runner, owner)
+            finally:
+                await queue.close()
+        asyncio.run(run())
+
     def test_evicted_target_reloads_from_the_source_selected_by_its_new_plan(self):
         self._check_evicted_target_new_plan_source()
 
@@ -3583,7 +3701,7 @@ class NonTargetBindingExpiry(unittest.TestCase):
                 with self.subTest(field=key), self.assertRaises(ValueError):
                     native_preparation_source_conflict(frozen=objective, observed=altered,
                                                       binding_targets=[cid])
-            for targets in ([], [True], [cid,cid], [bid]):
+            for targets in ([], [True], [cid,cid], [bid], [cid,bid]):
                 with self.subTest(targets=targets), self.assertRaises(ValueError):
                     native_preparation_source_conflict(frozen=objective, observed=view,
                                                       binding_targets=targets)

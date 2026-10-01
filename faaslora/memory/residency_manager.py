@@ -2518,8 +2518,8 @@ class IEEEBackendGPUReferences:
                 if registered is None:
                     raise ValueError('replacement epoch source identity or GPU confirmation changed')
                 from ..preloading.preloading_planner import native_preparation_source_conflict
-                # Demand may reload an unreferenced, non-target object from a
-                # different file tier. It expires this path-bound objective,
+                # Demand may supply an unleased source (including a selected
+                # sibling) from another tier. It expires this bound objective,
                 # not the source owner. No pricing/admission/mutation occurred.
                 conflict = native_preparation_source_conflict(frozen=objective,
                     observed=self.source_snapshot(), binding_targets=registered['identity'][1])

@@ -1,6 +1,54 @@
 # IEEE TC execution status
 
-## CURRENT — D140 failed diagnostic audited; no live experiment
+## CURRENT — D141 selected-sibling plan expiry corrected; no live experiment
+
+2026-10-01 14:13. Goal ACTIVE/incomplete. Current turn PROGRESS: CPU causal
+counterexample RED→GREEN; one minimal helper correction plus a comment update;
+1,071 affected regression tests PASS. No GPU replay or remote operation.
+Once-only published cache already fulfilled, NEVER rebuild. Baselines PAUSED.
+3B/7B performance remains OPEN; correctness is not a measured speedup.
+
+- Another selected target can legitimately be loaded by demand from a different
+  confirmed file before its planned operation. Selection is not a source lease.
+  Its changed binding must expire the old objective before pricing/admission/
+  mutation, not terminate the whole service. Keep content/identity/owner/clock/
+  epoch checks, both-file publication proof and normal plan cancellation/close.
+- Only preloading_planner.native_preparation_source_conflict behavior changed:
+  allow selected-sibling negative expiry witness; require exact frozen GPU target
+  set for v2. residency_manager change is comment only. No formula, workload,
+  profile, capacity, generation, timeout, backend or remote configuration change.
+- Same initial test SHA50f6cfdab0e690edd85774ace40540c4748aae2ec29473fe60d6bdb96a322f56
+  RED1 failed matching guard (0.134s), GREEN1 passed (0.097s). Test then refactored
+  to add genuine name/content damage and direct native no-operation cases.
+  Expanded cases PASS; price/admission not called, no extra GPU preparation,
+  exact cleanup. CPU fixtures, NOT CUDA/numeric qualification/performance repeats.
+- D140 exact failure snapshot still absent. Counterexample proves a defect path,
+  not unique historical attribution. D109 non-target and D134 new-plan binding
+  evidence reused, not rerun or rewritten.
+- Regression attempt1 stopped at affinity precheck before unittest: AllowedCPUs
+  property lacked effective local cpuset delegation. Exact empty934f804a... closed.
+  Attempt2 used existing taskset2,3,26,27;3/4GiB swap0 actually read back.
+  Actual95a61ff4986f4acea25f317b5cdea1cb,1,071tests/135.116s,147protected and
+  186otherD140frozen sources/Plan/V1 PASS; all memoryevents0; emptyclosed14:11:48.
+  RED1/GREEN1 also emptyclosed. No live tmux, scope worker or GPU.
+- Curation/bundle PASS; actualcb60008f119f4d50b06c5d7ca05c310a exited0,
+  emptyclosed14:12:56,events0. Raw results/ieee_tc/p2_backend_qualification/d141_20261001.
+  CuratedSHA1c5b9b7ffa61ee69754fbd7f38b7c1041cad778d9d53d371c9abeb9b438efa8f.
+  Bundle25members/52717B SHAdacf98f8339cc64231c3ed41cd6eda3909ce1b4f2266f7a6962ea5da330921fe.
+  DocD141_SELECTED_SIBLING_PLAN_EXPIRY.md is now SHA-pinned, do not edit casually.
+  Initial failed launcher remains preserved. No rawlarge data copied.
+
+NEXT: scoped backup of tested correction, then current control-path diagnostic
+with lower perturbation and failure-persistent output (reuse existing tooling).
+Do NOT repeat D140100Hz subprocess profile:162lagwarnings/max46.84s/finalprofile
+missing cannot identify CPU hotspots. No speculative cap/deadline increase or
+second optimizer before evidence. Reuse completed D137/D138/D139 projections;
+do NOT reparse original9–15GB JSON or repeat obsolete D123/D127 probes.
+After causal candidate validation, ordinary Full requalification required.
+3BTPOT/outputhash, bothFullperformance, warm/Resident, numericadapter identity,
+baseline qualification, M1M2/A1–A5/S1–S13 all remain OPEN.
+
+## D140 closure — completed history, not a current execution instruction
 
 2026-10-01 13:55. Goal ACTIVE/incomplete. Current turn PROGRESS: SAME D140
 diagnostic exited with a preparation consistency failure; exact cleanup,
@@ -48,7 +96,11 @@ GPU rerun or baseline. Once-only published cache already fulfilled; NEVER rebuil
   Bundle58members/86955B SHA f1e6c02b487fb87e414c46a95d42748a1ab3add1bd2ec9aa1e50166eeffd6138.
   Same25608completed0;actual3c3b5534744f43ae989a6948602bb6da/events0;exact
   emptycleanup completed. Earlierfailedverificationdomainsalsoemptyclosed.
-  No liveexec/tmux/GPU/remote service. Finalbackup pending below.
+  No liveexec/tmux/GPU/remote service.
+  BACKUPDONE acee2f5ffd8b914d16be7722f2b3160ca8881455 pushed to
+  faaslora_origin/retry14_continuous_queue_v2; exactremoteHEAD verified.
+  Sevenexplicitfiles/64payloadssecretscheck/closurehashesPASS; usermanifest
+  excluded. This note is the only new ledger delta after that backup.
 
 NEXT after scoped evidence backup: reuse CPU owner/planner fixtures to test
 multi-target preparation where anotherselectedtarget has a different confirmed

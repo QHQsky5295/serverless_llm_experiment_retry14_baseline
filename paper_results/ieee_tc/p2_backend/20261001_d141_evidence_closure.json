@@ -1,0 +1,27 @@
+{
+  "kind": "d141_cpu_correctness_evidence_closure_v1",
+  "full_replay_qualified": false,
+  "formal_performance_result": false,
+  "finalizer_exit_status": 0,
+  "finalizer_scope": "primelora-d141-finalize-20261001.scope",
+  "finalizer_invocation_id": "cb60008f119f4d50b06c5d7ca05c310a",
+  "empty_scope_closed_after": "2026-10-01T14:12:56+08:00",
+  "memory_events": {"low": 0, "high": 0, "max": 0, "oom": 0, "oom_kill": 0, "oom_group_kill": 0},
+  "tests": 1071,
+  "test_seconds": 135.116,
+  "protected_entries": 147,
+  "unchanged_d140_sources": 186,
+  "curated_sha256": "1c5b9b7ffa61ee69754fbd7f38b7c1041cad778d9d53d371c9abeb9b438efa8f",
+  "bundle_sha256": "dacf98f8339cc64231c3ed41cd6eda3909ce1b4f2266f7a6962ea5da330921fe",
+  "bundle_members": 25,
+  "bundle_bytes": 52717,
+  "raw_directory": "results/ieee_tc/p2_backend_qualification/d141_20261001",
+  "raw_sha256": {
+    "finalize.cleanup.txt": "eb2526853e55ffdea36955461519cee4ba1418db2cd9a94aa29b5020d49cf5c8",
+    "finalize.log": "a91be47a3895eed574c1f0c6e30c43b9153ca4b5da83fed299bd619c92c5be0c",
+    "finalize.sh": "88b9b3fa3c82cb60debbf242c7e044ff8365271bd9584399556f6e2b1281649a",
+    "finalize_scope.txt": "0553ae34813a45e3323435d8fc959be645248526e86bc11def363e8b36c6d1a1",
+    "finalize_time.txt": "ea628f791cce0b55dcf0a44de8dad9446b0256c3545d0a16da64a98f7efd2eac",
+    "verification.json": "91f0cd3df48456a4fdf14bd837f80fdeb5a8a08586d1eca14a817679aaeac4c2"
+  }
+}
