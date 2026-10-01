@@ -1,6 +1,169 @@
 # IEEE TC execution status
 
-## CURRENT — D149 QUALIFIED; scoped backup next, then ordinary Full
+## CURRENT — D150 analyzed and sealed; Git backup next
+
+00:34 +08 verification38217 CLOSED0:233frozenrefs/44curatedrefs/147protected,
+Plan/V1/Full/phases/contracts/cleanup PASS. SHA
+9f8367a8cb426802ef39e9c8abd9590b5c870021dd0a04bdc8ad42e78e81308a.
+Actualf7d39e71a2354258ab749c5c5f47075c auto-removed/absenceverified/logsaved.
+Tiny66member54506B evidencebundle produced andmemberSHAre-readPASS,
+SHAbff2cba36ce53305f0634f2da36c78a069d13f7efd454a85da8aea52b7d19799;
+actual5864f6f231004181b5324eb316d1e6ea auto-removed/absenceverified00:33:57.
+No largecompression/deletion/duplicate dataset; onlyboundedbackupbundle.
+D150_FULL_W0_FULL1.md nowsealed, doNOTeditwithoutnewseal. No livehandles/jobs.
+Freshdisk160962781184B (~149.91GiB), stillnonewheavy; smallanalysiscompleted.
+NEXT explicit12file syntax/secrets/checksum/diff -> commit/push, then remaining
+non-inference waiting diagnosis with existingevidence. Do NOTrepeatD150tests,
+projection/analysis/seal/cachecreation. GoalACTIVE/PROGRESS, baselinesPAUSED.
+
+00:31 +08 allanalyses COMPLETE, no liveGPU/remote/exec/session. Projection94650
+closed0/79.69s/RSS100224KiB,34390795B; actuala6e1f9e15d58448ea1d8f6d1e3c70a1f
+auto-removed/absenceverified. Curation4836 closed0/7.22s/RSS416112KiB,
+actualff8b1f86b3104b979f6bcc362626a19e auto-removed/absenceverified; failure0.
+Occupancy39507 closed0/3.14s/RSS408620KiB; actualc285f200b424480fb295354ad0d25268
+auto-removed/absenceverified, events0 printedatend in tooltranscript.
+Do NOT rerun analysis or reproject/hash oldgiantfiles. Earlier LIVE below ishistory.
+CuratedSHAee01b56e9f44d8eced77528e99b488e3efb1515d7edba0d0fd9e5a3c729f72d2.
+4000native/0fail,timingerrors0,confirmed4000/conflicts0;remote132/131480060B.
+Mean/P95TTFT296.677792/553.254599s,GPU17958.297896,TPOT41.273491/69.890503ms.
+VsD148meanTTFT-49.874%,P95-51.511%,GPU-12.483%;nativeTTFT+15.589% retained.
+Inputs/countsallmatch;103outputhashdifferencesOPEN. No numeric/SLO/G1G2claim.
+Occupancy native4.867887s,gate→terminal8.732492s upperenvelope (notpermitrelease),
+meanconcurrency4.345730/7.795796; servicewait still294.697270s,99.332%TTFT.
+Controls1986allinwindow/0outside;planning1829/1828complete/1cancelled_result_discarded.
+DocD150_FULL_W0_FULL1.md finaldiagnostictables/interpretation prepared, UNSEALED.
+NEXT evidenceverification/smallbundle -> explicitbackup. No servingchange,
+newoptimizer orGPU prepared. FullPlan/status/V1 readFULL; four skills read.
+GoalACTIVE/PROGRESS; allformal and3Bissues OPEN; baselinesPAUSED.
+
+## D150 terminal and processing history — superseded by CURRENT
+
+2026-10-02 00:20 +08 terminal evidence: launch PASS, service/replay/watchdog
+returncodes0; native release and service-path removal confirmed. 4000 native
+contract completions/0 failures, physical17958.297896314005GPU-s,4 allocations
+all released/0open. Numeric adapter and commonSLO qualification remain OPEN.
+Local service AND aux automatically inactive/removed; actualInvocation empty,
+TasksCurrent notset, aux PIDs3701037/3701314 and cgroup path absent at00:20:27.
+Do NOT execute prepared manual auxcleanup (its retained-ID prerequisite no
+longer applies). No liveexec/session/monitor;7305 and earliercells CLOSED.
+Normal source272774929B/main_outcome169417509B, not yet analyzed or hashed.
+Metadata completed0/3.65s/RSS391908KiB; actualfd0027a85a9e41f3a4e3fd8c8db4e1e2
+automatically removed, absence verified bycleanup_metadata_full1.sh/log.
+Final analysis cgroup counters unavailable after automatic removal, not invented.
+Compact112703435B under unchanged128MiBguard. Preliminary4547samples:
+peak20423520256B/minhost94001831936B/service swap/events0/no warnings;
+remote132/131480060B bothends/allpublished/packing0;1initial+3natural/0quarantine.
+ONE projection LIVE session94650, unitprimelora-d150-full1-project-20261001.scope,
+actuala6e1f9e15d58448ea1d8f6d1e3c70a1f. Actual3/4GiBswap0CPU2,3,26,27;
+sameD96streamer, onlythis272.8MBoriginal. No partialoutputread/hash.
+Curation/occupancy helpers remainprepared NOTexecuted. ProvisionalD150status
+table saved; no comparative latency or gain yet.
+Remote exact-owned stop COMPLETE00:25:45: all3 units inactive/MainPID0/success.
+Session88414 closed0. Matching journal transfers-6244054724e5427ba64434ae54892b12.jsonl
+copied after stop; source/copySHA d82dae7a136ccbacd13ece31c6d5889e834e3f27388f28e9c2091ec77a2a5319;
+monitor f4b28409adf078d7b895f37d15fb725506c47e0f502fedf49a1ccd8491a9d33a.
+Copy session32080 closed0. Remote has no rg; fallback grep located frozenclock.
+Aftermetadata disk160999014400B slightlybelow150GiB. No newheavyGPU/build/
+compression permitted; smallboundedCPUanalysis (<256MiB outputexpected) only,
+100GiBstop unchanged. No deletion/compression; futureheavy requires newcapacitycheck.
+NEXT remote stop/copy -> bounded metadata -> ONEprojection -> curation and
+occupancy -> diagnostic table/interpretation -> protected/secrets/backup.
+Do not reparse D137/D145/D148 giant originals or repeat candidate tests/cache
+publication. Goal ACTIVE; turn PROGRESS (ordinary Full complete). Baselines
+PAUSED; bothmodelperformance/warm/Resident/M1M2/A1-A5/S1-S13 remainOPEN.
+
+## D150 launch and monitoring history — superseded by CURRENT
+
+2026-10-01 23:07 +08. ONE ordinary Full launched23:02:08 in tmux
+tc-d150-7b-full1; source9c73e33ad4c68d27d881f47ac81af8d579ec0f3b backed.
+Same4000/source42/W0/config/D89profiles; no profiler/prefix. D149 fresh validated
+source projection is the sole new runtime candidate. No serving/config/timeout/
+cap change during this run. Baselines PAUSED; goal ACTIVE/incomplete.
+
+- Service primelora-tc-svc-86bc8a80fc0a444ca42ec035ce5ea83b.scope,
+  actuald34e597e8fac446fa486de007b4eefac,72/80GiBswap2 read back.
+- Aux primelora-tc-aux-5470a89aabd847c49a40b7b5c427b3b0.scope,
+  actual13efd326658647e38e9832a3ab55515e,3/4GiBswap0 read back.
+  Replay3701037,startticks37417601 inauxCPU2,3,26,27.
+- Nativecores3704297/3709703/3709806/3709916 verified by watchdog sample282
+  in EXACT service domain and CPU4-23,28-47; all4 physicalGPUs held.
+  Sample282 service16987086848B,peak18867638272B,host96245424128B,
+  swap0/high/max/oom/oomkill0,no warning/abort; disk160922296320B.
+- Remote3B2429650/04d60463d9a34e31ba533689e5cf91c7;
+  7B2429652/c7f02aae303a4d24b0f39d09b2a34150;
+  monitor2429655/64859df2a13c4685be679d504e8a0015,
+  primelora-artifact-monitor-d150full1.service. BothNIC1000/full atprelaunch.
+  7Bclock remote-process-monotonic:cc2dbc89e23543d8a7e37305d21d21f0.
+  Remote log /home/lab14/primelora_remote/tc/d150_20261001/remote_monitor_7b_full_full1.log.
+  ImmutableD78/D80 cache unchanged; no management/hash/cleanup during inference.
+- Preflight233reference-path entries/147protected/Plan/V1 PASS,
+  SHA601597db10aeb812999dd0732e8c7350fd1f542a76d610fcfe5a91a75afc4df9.
+  Actual1c15f97e7263425ca8925400457068fe and health839477bd151d4413ab81ba6cde7aa3e6
+  completed/empty/events0/stopped. Localprelaunch161787949056B passed150GiB
+  gate withpredicted32GiBgrowth; runningstop100GiB unchanged.
+- Raw results/ieee_tc/p2_backend_qualification/d150_20261001.
+  launch.json notyetpresent. No exec cell/session; actualrun is tmux/systemd.
+  Exact owned localaux and remote stop helpers prepared, NOTexecuted.
+
+NEXT monitor SAME actualinvocation -> true terminal/physical release -> exact
+owned remote stop/copy and auxcleanup -> bounded metadata/projection/curation/
+table/interpretation -> backup. No analysis/hash ofpartialresults; never reparse
+D137/D145/D148 giant originals, repeatqualification or rebuildremote cache.
+Bothmodelperformance/numericadapter/warm/Resident/M1M2/A1-A5/S1-S13 remainOPEN.
+Latestgoalturn VERIFIED WAIT with ownership checks; launchturn PROGRESS.
+
+23:10 continuation: fullPlan/status/V1 reread aftercompaction; run-experiment,
+monitor-experiment,analyze-results,academic-plotting skills readFULL.
+Prepared eight postcleanup helpers by reusing D148 (metadata/projection/
+curation/failure/occupancy/stopped-remote-copy), changing only D150 paths,
+actual service identity, remoteclock and backedruntime. Curator now compares
+to SEALED D148 projection/curated SHA, not D137's multiple-change endpoint;
+n=1 still cannot establish statistical superiority. ShellsyntaxPASS. NOTRUN.
+No oldgiantJSON read/hash or partial result analysis, no newservingchange.
+Watchdog3701314 confirmed alongside replay3701037 in exactauxCPU2,3,26,27.
+Remote journal filename remainsunknown; discover by frozenclock ONLYafterstop.
+No live toolhandles; SAME tmux/service/aux remainslive. Currentturn evidence:
+resourceownership and postcleanup preparation; no performanceclosure claim.
+
+23:15:23 latest: SAME service actuald34e597e8fac446fa486de007b4eefac active533tasks.
+Livebanner arrived576/done552/ok552/fail0/backlog24,4runtimes; no terminal
+launch.json. Sample783 service17645625344B,host95732461568B,swap0,
+high/max/oom/oomkill0,no warning/abort,disk160552693760B.
+Monitorcell7283 finished its six45s polls normally and is CLOSED; this is NOT
+the serving run's completion. No exec session/live toolhandle remains.
+SAME tmux/service/aux continue; never restart. No source/config/remotechanges,
+old giant reparse, cache rebuild or partial-result analysis. Currentgoalturn
+VERIFIED WAIT; priorgoalturn launch PROGRESS. GoalACTIVE, notblocked.
+NEXT unchanged: monitor exactrun -> true terminal+release -> exactcleanup ->
+prepared bounded analysis/table/interpretation -> backup. Baselinespaused.
+
+2026-10-02 00:15:50 continuation VERIFIED WAIT: SAME service/aux IDs confirmed,
+allactive; monitorcell7303 completed its20polls and CLOSED normally (7301/7297/7292 also
+CLOSED). This is NOT underlyingruncompletion. No liveexecsession/toolhandle;
+servingis SAMEtmux. Livebanner4000arrived/3894done/3894ok/0fail,4runtimes,
+106backlog. Allarrived since00:09:48; draincontinues. Sample4362
+service20332969984B,host95269961728B,swap/events0,no warning/abort,
+disk158337064960B. No terminalreceipt. Plan/V1SHAunchanged,
+HEAD9c73e33unchanged; same monitoring task, no newexperiment/optimization.
+FullPlan/status were read preceding continuation; currentliveledger/monitor
+skill reread and actualstate checked. Previousgoalturn VERIFIED WAIT;
+currentalso VERIFIED WAIT, notblocked. Preparedpostcleanuphelpers remain
+UNEXECUTED; no new source/config/remoteaction, no partialresult analysis.
+
+## D149 QUALIFIED AND BACKED — completed history
+
+22:57:45 +08 BACKUP COMPLETE9c73e33ad4c68d27d881f47ac81af8d579ec0f3b,
+pushedfaaslora_origin/retry14_continuous_queue_v2; exactremoteHEADverified.
+Sevenexplicitfiles/30payload syntax/checksums/secrets/diffPASS, usermanifest
+excluded. First precommit scanner matched its own public private-key-marker
+test expression; corrected scanner to actual anchored PEM-header syntax,
+no secret printed or source/evidence changed. Push34154/verify61531 CLOSED0.
+All CPU/GPU/remotejobs and toolhandles CLOSED; no nextGPU prepared/launched.
+Do NOT repeat candidate qualification, D148 closure or once-only cachecreation.
+NEXT reuse ordinaryFull helpers, same config/profiles and fresh safety check.
+Freshfree161788661760B/MemAvailable110736028KiB; no newdeletion/compression.
+This backupnote is the onlynew ledgerdelta after checkpoint. Goal ACTIVE,
+turn PROGRESS; bothmodelperformance and allformal questions remain OPEN.
 
 2026-10-01 22:56 +08. ONE source candidate: the two selected-source rechecks
 now use the existing freshly/full-validated frontend projection. No source
