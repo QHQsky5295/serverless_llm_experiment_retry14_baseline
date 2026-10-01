@@ -1,0 +1,166 @@
+{
+  "kind": "d145_full1_failure_breakdown_v1",
+  "formal_performance_result": false,
+  "source_script_sha256": "bf28c9bab694f8f92e94a925c316840fab356ced1c457c38ed0a250fca60e105",
+  "projection_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d145_20261001/full_full1_request_projection.json",
+  "projection_sha256": "f74271d4196f5a8dfe1b7ff0aee59efef517e5f2d461ce0b2f1c55377f9db074",
+  "population": {
+    "planned": 4000,
+    "success": 3996,
+    "timeout": 0,
+    "returned_error": 4
+  },
+  "failure_observation_clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+  "returned_categories": {
+    "other_returned_error": 4
+  },
+  "returned_error_messages": {
+    "RuntimeError: subprocess_native_rpc_failed_no_retry: TimeoutError:\nworker_root=/tmp/faaslora_worker_stzlt5sf\nworker_log=/tmp/faaslora_worker_stzlt5sf/worker.log\nworker_log_tail:\neCore pid=1861977) INFO 10-01 16:08:10 [topk_topp_sampler.py:78] Using FlashInfer for top-p & top-k sampling.\n(EngineCore pid=1861977) INFO 10-01 16:08:10 [utils.py:320] Using LBNHC KV cache layout.\n(EngineCore pid=1861977) INFO 10-01 16:08:13 [caching.py:343] reconstructed serializable fn from standalone compile artifacts. num_artifacts=3 num_submods=33\n(EngineCore pid=1861977) INFO 10-01 16:08:13 [decorators.py:313] Directly load AOT compilation from path /home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/model_20260926/candidate_cache/torch_compile_cache/torch_aot_compile/42df2a24e86d2114e18615b53c301ed7b9b7c0ed8e8874e83e9acbed6c4640da/rank_0_0/model\n(EngineCore pid=1861977) INFO 10-01 16:08:13 [monitor.py:53] torch.compile took 0.31 s in total\n(EngineCore pid=1861977) WARNING 10-01 16:08:13 [utils.py:279] Using default LoRA kernel configs\n(EngineCore pid=1861977) INFO 10-01 16:08:14 [monitor.py:81] Initial profiling/warmup run took 0.60 s\n(EngineCore pid=1861977) \nCapturing CUDA graphs (PIECEWISE):   0%|          | 0/6 [00:00<?, ?it/s]\nCapturing CUDA graphs (PIECEWISE):  17%|\u2588\u258b        | 1/6 [00:00<00:00,  8.85it/s]\nCapturing CUDA graphs (PIECEWISE):  33%|\u2588\u2588\u2588\u258e      | 2/6 [00:00<00:00,  4.94it/s]\nCapturing CUDA graphs (PIECEWISE):  67%|\u2588\u2588\u2588\u2588\u2588\u2588\u258b   | 4/6 [00:00<00:00,  6.97it/s]\nCapturing CUDA graphs (PIECEWISE): 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 6/6 [00:00<00:00,  7.83it/s]\nCapturing CUDA graphs (PIECEWISE): 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 6/6 [00:00<00:00,  7.36it/s]\n(EngineCore pid=1861977) \nCapturing CUDA graphs (FULL):   0%|          | 0/2 [00:00<?, ?it/s]\nCapturing CUDA graphs (FULL): 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 2/2 [00:00<00:00, 11.28it/s]\nCapturing CUDA graphs (FULL): 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 2/2 [00:00<00:00, 11.26it/s]\n(EngineCore pid=1861977) INFO 10-01 16:08:17 [model_runner.py:1066] Graph capturing finished in 2 secs, took 0.07 GiB\n(EngineCore pid=1861977) INFO 10-01 16:08:18 [gpu_worker.py:640] Available KV cache memory: 2.39 GiB\n(EngineCore pid=1861977) INFO 10-01 16:08:18 [gpu_worker.py:655] CUDA graph memory profiling is enabled (default since v0.21.0). The current --gpu-memory-utilization=0.7000 is equivalent to --gpu-memory-utilization=0.6966 without CUDA graph memory profiling. To maintain the same effective KV cache size as before, increase --gpu-memory-utilization to 0.7034. To disable, set VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS=0.\n(EngineCore pid=1861977) INFO 10-01 16:08:18 [kv_cache_utils.py:2395] GPU KV cache size: 4,880 tokens, Maximum concurrency for 1,024 tokens per request: 4.77x\n(EngineCore pid=1861977) INFO 10-01 16:08:18 [kernel_warmup.py:172] JIT kernel warmup starting.\n(EngineCore pid=1861977) INFO 10-01 16:08:18 [kernel_warmup.py:185] JIT kernel warmup finished in 0.00s.\n(EngineCore pid=1861977) \nCapturing CUDA graphs (PIECEWISE):   0%|          | 0/6 [00:00<?, ?it/s]\nCapturing CUDA graphs (PIECEWISE):  33%|\u2588\u2588\u2588\u258e      | 2/6 [00:00<00:00,  7.84it/s]\nCapturing CUDA graphs (PIECEWISE):  67%|\u2588\u2588\u2588\u2588\u2588\u2588\u258b   | 4/6 [00:00<00:00,  9.46it/s]\nCapturing CUDA graphs (PIECEWISE): 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 6/6 [00:00<00:00, 10.19it/s]\nCapturing CUDA graphs (PIECEWISE): 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 6/6 [00:00<00:00,  9.76it/s]\n(EngineCore pid=1861977) \nCapturing CUDA graphs (FULL):   0%|          | 0/4 [00:00<?, ?it/s]\nCapturing CUDA graphs (FULL):  50%|\u2588\u2588\u2588\u2588\u2588     | 2/4 [00:00<00:00, 12.87it/s]\nCapturing CUDA graphs (FULL): 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 4/4 [00:00<00:00, 12.71it/s]\nCapturing CUDA graphs (FULL): 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 4/4 [00:00<00:00, 12.72it/s]\n(EngineCore pid=1861977) INFO 10-01 16:08:20 [model_runner.py:1066] Graph capturing finished in 2 secs, took 0.03 GiB\n(EngineCore pid=1861977) INFO 10-01 16:08:20 [gpu_worker.py:825] CUDA graph pool memory: 0.03 GiB (actual), 0.08 GiB (estimated), difference: 0.05 GiB (141.2%).\n(EngineCore pid=1861977) INFO 10-01 16:08:20 [gpu_worker.py:888] Free memory on device (23.29/23.56 GiB) on startup. Desired GPU memory utilization is (0.7, 16.49 GiB). Actual usage is 13.94 GiB for consumed memory (weights + non-torch), 0.17 GiB for peak activation, and 0.03 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=2371280487` (2.21 GiB) to fit into requested memory, or `--kv-cache-memory=9667737600` (9.0 GiB) to fully utilize gpu memory. Current kv cache memory in use is 2.39 GiB.\n(EngineCore pid=1861977) INFO 10-01 16:08:21 [jit_monitor.py:85] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.\n(EngineCore pid=1861977) INFO 10-01 16:08:22 [core.py:372] init engine (profile, create kv cache, warmup model) took 11.64 s (compilation: 0.31 s)\n(EngineCore pid=1861977) WARNING 10-01 16:08:22 [scheduler.py:224] Using custom scheduler class faaslora.scheduling.vllm_ieee_scheduler.IEEENativeAsyncScheduler. This scheduler interface is not public and compatibility may not be maintained. If you have subclassed Scheduler instead of AsyncScheduler, you will see degraded performance due to async scheduling being disabled.\n(EngineCore pid=1861977) INFO 10-01 16:08:22 [kernel.py:416] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'], gelu_and_mul_sparse=['triton', 'native'])\n  OK: vLLM engine ready (TP=1, real LoRA, max_loras=4)\nWARNING 10-01 16:08:22 [input_processor.py:315] Passing raw prompts to InputProcessor is deprecated and will be removed in the future. You should instead pass the outputs of Renderer.render_cmpl() or Renderer.render_chat().\nWARNING 10-01 16:08:23 [input_processor.py:196] vLLM has deprecated support for supporting different tokenizers for different LoRAs. By default, vLLM uses base model's tokenizer. If you are using a LoRA with its own tokenizer, consider specifying `--tokenizer [lora_path]` to use the LoRA tokenizer.\n(EngineCore pid=1861977) WARNING 10-01 16:08:23 [jit_monitor.py:141] Triton kernel JIT compilation during inference: _lora_shrink_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.": 2,
+    "RuntimeError: subprocess_native_rpc_failed_no_retry: TimeoutError:\nworker_root=/tmp/faaslora_worker_3i9axwpj\nworker_log=/tmp/faaslora_worker_3i9axwpj/worker.log\nworker_log_tail:\ndel_runner.py:428] Model loading took 13.78 GiB memory and 6.369908 seconds\n(EngineCore pid=1856562) INFO 10-01 16:07:03 [topk_topp_sampler.py:78] Using FlashInfer for top-p & top-k sampling.\n(EngineCore pid=1856562) INFO 10-01 16:07:03 [utils.py:320] Using LBNHC KV cache layout.\n(EngineCore pid=1856562) INFO 10-01 16:07:05 [caching.py:343] reconstructed serializable fn from standalone compile artifacts. num_artifacts=3 num_submods=33\n(EngineCore pid=1856562) INFO 10-01 16:07:05 [decorators.py:313] Directly load AOT compilation from path /home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/model_20260926/candidate_cache/torch_compile_cache/torch_aot_compile/42df2a24e86d2114e18615b53c301ed7b9b7c0ed8e8874e83e9acbed6c4640da/rank_0_0/model\n(EngineCore pid=1856562) INFO 10-01 16:07:05 [monitor.py:53] torch.compile took 0.29 s in total\n(EngineCore pid=1856562) WARNING 10-01 16:07:05 [utils.py:279] Using default LoRA kernel configs\n(EngineCore pid=1856562) INFO 10-01 16:07:06 [monitor.py:81] Initial profiling/warmup run took 0.48 s\n(EngineCore pid=1856562) \nCapturing CUDA graphs (PIECEWISE):   0%|          | 0/6 [00:00<?, ?it/s]\nCapturing CUDA graphs (PIECEWISE):  33%|\u2588\u2588\u2588\u258e      | 2/6 [00:00<00:00,  7.19it/s]\nCapturing CUDA graphs (PIECEWISE):  67%|\u2588\u2588\u2588\u2588\u2588\u2588\u258b   | 4/6 [00:00<00:00,  9.04it/s]\nCapturing CUDA graphs (PIECEWISE): 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 6/6 [00:00<00:00,  9.72it/s]\nCapturing CUDA graphs (PIECEWISE): 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 6/6 [00:00<00:00,  9.27it/s]\n(EngineCore pid=1856562) \nCapturing CUDA graphs (FULL):   0%|          | 0/2 [00:00<?, ?it/s]\nCapturing CUDA graphs (FULL): 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 2/2 [00:00<00:00, 13.16it/s]\nCapturing CUDA graphs (FULL): 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 2/2 [00:00<00:00, 13.15it/s]\n(EngineCore pid=1856562) INFO 10-01 16:07:08 [model_runner.py:1066] Graph capturing finished in 2 secs, took 0.07 GiB\n(EngineCore pid=1856562) INFO 10-01 16:07:09 [gpu_worker.py:640] Available KV cache memory: 2.39 GiB\n(EngineCore pid=1856562) INFO 10-01 16:07:09 [gpu_worker.py:655] CUDA graph memory profiling is enabled (default since v0.21.0). The current --gpu-memory-utilization=0.7000 is equivalent to --gpu-memory-utilization=0.6966 without CUDA graph memory profiling. To maintain the same effective KV cache size as before, increase --gpu-memory-utilization to 0.7034. To disable, set VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS=0.\n(EngineCore pid=1856562) INFO 10-01 16:07:09 [kv_cache_utils.py:2395] GPU KV cache size: 4,880 tokens, Maximum concurrency for 1,024 tokens per request: 4.77x\n(EngineCore pid=1856562) INFO 10-01 16:07:09 [kernel_warmup.py:172] JIT kernel warmup starting.\n(EngineCore pid=1856562) INFO 10-01 16:07:09 [kernel_warmup.py:185] JIT kernel warmup finished in 0.00s.\n(EngineCore pid=1856562) \nCapturing CUDA graphs (PIECEWISE):   0%|          | 0/6 [00:00<?, ?it/s]\nCapturing CUDA graphs (PIECEWISE):  33%|\u2588\u2588\u2588\u258e      | 2/6 [00:00<00:00,  8.79it/s]\nCapturing CUDA graphs (PIECEWISE):  67%|\u2588\u2588\u2588\u2588\u2588\u2588\u258b   | 4/6 [00:00<00:00, 10.44it/s]\nCapturing CUDA graphs (PIECEWISE): 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 6/6 [00:00<00:00, 11.10it/s]\nCapturing CUDA graphs (PIECEWISE): 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 6/6 [00:00<00:00, 10.70it/s]\n(EngineCore pid=1856562) \nCapturing CUDA graphs (FULL):   0%|          | 0/4 [00:00<?, ?it/s]\nCapturing CUDA graphs (FULL):  50%|\u2588\u2588\u2588\u2588\u2588     | 2/4 [00:00<00:00, 13.53it/s]\nCapturing CUDA graphs (FULL): 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 4/4 [00:00<00:00, 13.79it/s]\nCapturing CUDA graphs (FULL): 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 4/4 [00:00<00:00, 13.74it/s]\n(EngineCore pid=1856562) INFO 10-01 16:07:11 [model_runner.py:1066] Graph capturing finished in 2 secs, took 0.03 GiB\n(EngineCore pid=1856562) INFO 10-01 16:07:11 [gpu_worker.py:825] CUDA graph pool memory: 0.03 GiB (actual), 0.08 GiB (estimated), difference: 0.05 GiB (141.2%).\n(EngineCore pid=1856562) INFO 10-01 16:07:11 [gpu_worker.py:888] Free memory on device (23.29/23.56 GiB) on startup. Desired GPU memory utilization is (0.7, 16.49 GiB). Actual usage is 13.94 GiB for consumed memory (weights + non-torch), 0.17 GiB for peak activation, and 0.03 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=2371280487` (2.21 GiB) to fit into requested memory, or `--kv-cache-memory=9667737600` (9.0 GiB) to fully utilize gpu memory. Current kv cache memory in use is 2.39 GiB.\n(EngineCore pid=1856562) INFO 10-01 16:07:12 [jit_monitor.py:85] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.\n(EngineCore pid=1856562) INFO 10-01 16:07:12 [core.py:372] init engine (profile, create kv cache, warmup model) took 9.54 s (compilation: 0.29 s)\n(EngineCore pid=1856562) WARNING 10-01 16:07:12 [scheduler.py:224] Using custom scheduler class faaslora.scheduling.vllm_ieee_scheduler.IEEENativeAsyncScheduler. This scheduler interface is not public and compatibility may not be maintained. If you have subclassed Scheduler instead of AsyncScheduler, you will see degraded performance due to async scheduling being disabled.\n(EngineCore pid=1856562) INFO 10-01 16:07:12 [kernel.py:416] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'], gelu_and_mul_sparse=['triton', 'native'])\n  OK: vLLM engine ready (TP=1, real LoRA, max_loras=4)\nWARNING 10-01 16:07:34 [input_processor.py:315] Passing raw prompts to InputProcessor is deprecated and will be removed in the future. You should instead pass the outputs of Renderer.render_cmpl() or Renderer.render_chat().\nWARNING 10-01 16:07:35 [input_processor.py:196] vLLM has deprecated support for supporting different tokenizers for different LoRAs. By default, vLLM uses base model's tokenizer. If you are using a LoRA with its own tokenizer, consider specifying `--tokenizer [lora_path]` to use the LoRA tokenizer.\n(EngineCore pid=1856562) WARNING 10-01 16:07:35 [jit_monitor.py:141] Triton kernel JIT compilation during inference: _lora_shrink_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.": 1,
+    "RuntimeError: subprocess_native_rpc_failed_no_retry: TimeoutError:\nworker_root=/tmp/faaslora_worker_oq77kbc8\nworker_log=/tmp/faaslora_worker_oq77kbc8/worker.log\nworker_log_tail:\nel_runner.py:428] Model loading took 13.78 GiB memory and 6.787554 seconds\n(EngineCore pid=2266510) INFO 10-01 17:32:51 [topk_topp_sampler.py:78] Using FlashInfer for top-p & top-k sampling.\n(EngineCore pid=2266510) INFO 10-01 17:32:51 [utils.py:320] Using LBNHC KV cache layout.\n(EngineCore pid=2266510) INFO 10-01 17:32:54 [caching.py:343] reconstructed serializable fn from standalone compile artifacts. num_artifacts=3 num_submods=33\n(EngineCore pid=2266510) INFO 10-01 17:32:54 [decorators.py:313] Directly load AOT compilation from path /home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/model_20260926/candidate_cache/torch_compile_cache/torch_aot_compile/42df2a24e86d2114e18615b53c301ed7b9b7c0ed8e8874e83e9acbed6c4640da/rank_0_0/model\n(EngineCore pid=2266510) INFO 10-01 17:32:54 [monitor.py:53] torch.compile took 0.30 s in total\n(EngineCore pid=2266510) WARNING 10-01 17:32:54 [utils.py:279] Using default LoRA kernel configs\n(EngineCore pid=2266510) INFO 10-01 17:32:54 [monitor.py:81] Initial profiling/warmup run took 0.49 s\n(EngineCore pid=2266510) \nCapturing CUDA graphs (PIECEWISE):   0%|          | 0/6 [00:00<?, ?it/s]\nCapturing CUDA graphs (PIECEWISE):  33%|\u2588\u2588\u2588\u258e      | 2/6 [00:00<00:00,  6.56it/s]\nCapturing CUDA graphs (PIECEWISE):  67%|\u2588\u2588\u2588\u2588\u2588\u2588\u258b   | 4/6 [00:00<00:00,  8.15it/s]\nCapturing CUDA graphs (PIECEWISE): 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 6/6 [00:00<00:00,  8.56it/s]\nCapturing CUDA graphs (PIECEWISE): 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 6/6 [00:00<00:00,  8.23it/s]\n(EngineCore pid=2266510) \nCapturing CUDA graphs (FULL):   0%|          | 0/2 [00:00<?, ?it/s]\nCapturing CUDA graphs (FULL): 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 2/2 [00:00<00:00, 10.74it/s]\nCapturing CUDA graphs (FULL): 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 2/2 [00:00<00:00, 10.72it/s]\n(EngineCore pid=2266510) INFO 10-01 17:32:57 [model_runner.py:1066] Graph capturing finished in 2 secs, took 0.07 GiB\n(EngineCore pid=2266510) INFO 10-01 17:32:58 [gpu_worker.py:640] Available KV cache memory: 2.39 GiB\n(EngineCore pid=2266510) INFO 10-01 17:32:58 [gpu_worker.py:655] CUDA graph memory profiling is enabled (default since v0.21.0). The current --gpu-memory-utilization=0.7000 is equivalent to --gpu-memory-utilization=0.6966 without CUDA graph memory profiling. To maintain the same effective KV cache size as before, increase --gpu-memory-utilization to 0.7034. To disable, set VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS=0.\n(EngineCore pid=2266510) INFO 10-01 17:32:58 [kv_cache_utils.py:2395] GPU KV cache size: 4,880 tokens, Maximum concurrency for 1,024 tokens per request: 4.77x\n(EngineCore pid=2266510) INFO 10-01 17:32:58 [kernel_warmup.py:172] JIT kernel warmup starting.\n(EngineCore pid=2266510) INFO 10-01 17:32:58 [kernel_warmup.py:185] JIT kernel warmup finished in 0.00s.\n(EngineCore pid=2266510) \nCapturing CUDA graphs (PIECEWISE):   0%|          | 0/6 [00:00<?, ?it/s]\nCapturing CUDA graphs (PIECEWISE):  33%|\u2588\u2588\u2588\u258e      | 2/6 [00:00<00:00,  8.09it/s]\nCapturing CUDA graphs (PIECEWISE):  67%|\u2588\u2588\u2588\u2588\u2588\u2588\u258b   | 4/6 [00:00<00:00,  9.93it/s]\nCapturing CUDA graphs (PIECEWISE): 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 6/6 [00:00<00:00, 10.51it/s]\nCapturing CUDA graphs (PIECEWISE): 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 6/6 [00:00<00:00, 10.10it/s]\n(EngineCore pid=2266510) \nCapturing CUDA graphs (FULL):   0%|          | 0/4 [00:00<?, ?it/s]\nCapturing CUDA graphs (FULL):  50%|\u2588\u2588\u2588\u2588\u2588     | 2/4 [00:00<00:00, 13.15it/s]\nCapturing CUDA graphs (FULL): 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 4/4 [00:00<00:00, 13.15it/s]\nCapturing CUDA graphs (FULL): 100%|\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588| 4/4 [00:00<00:00, 13.14it/s]\n(EngineCore pid=2266510) INFO 10-01 17:33:00 [model_runner.py:1066] Graph capturing finished in 2 secs, took 0.03 GiB\n(EngineCore pid=2266510) INFO 10-01 17:33:00 [gpu_worker.py:825] CUDA graph pool memory: 0.03 GiB (actual), 0.08 GiB (estimated), difference: 0.05 GiB (141.2%).\n(EngineCore pid=2266510) INFO 10-01 17:33:00 [gpu_worker.py:888] Free memory on device (23.29/23.56 GiB) on startup. Desired GPU memory utilization is (0.7, 16.49 GiB). Actual usage is 13.94 GiB for consumed memory (weights + non-torch), 0.17 GiB for peak activation, and 0.03 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=2371280487` (2.21 GiB) to fit into requested memory, or `--kv-cache-memory=9667737600` (9.0 GiB) to fully utilize gpu memory. Current kv cache memory in use is 2.39 GiB.\n(EngineCore pid=2266510) INFO 10-01 17:33:01 [jit_monitor.py:85] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.\n(EngineCore pid=2266510) INFO 10-01 17:33:01 [core.py:372] init engine (profile, create kv cache, warmup model) took 10.19 s (compilation: 0.30 s)\n(EngineCore pid=2266510) WARNING 10-01 17:33:01 [scheduler.py:224] Using custom scheduler class faaslora.scheduling.vllm_ieee_scheduler.IEEENativeAsyncScheduler. This scheduler interface is not public and compatibility may not be maintained. If you have subclassed Scheduler instead of AsyncScheduler, you will see degraded performance due to async scheduling being disabled.\n(EngineCore pid=2266510) INFO 10-01 17:33:02 [kernel.py:416] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'], gelu_and_mul_sparse=['triton', 'native'])\n  OK: vLLM engine ready (TP=1, real LoRA, max_loras=4)\nWARNING 10-01 17:33:05 [input_processor.py:315] Passing raw prompts to InputProcessor is deprecated and will be removed in the future. You should instead pass the outputs of Renderer.render_cmpl() or Renderer.render_chat().\nWARNING 10-01 17:33:05 [input_processor.py:196] vLLM has deprecated support for supporting different tokenizers for different LoRAs. By default, vLLM uses base model's tokenizer. If you are using a LoRA with its own tokenizer, consider specifying `--tokenizer [lora_path]` to use the LoRA tokenizer.\n(EngineCore pid=2266510) WARNING 10-01 17:33:05 [jit_monitor.py:141] Triton kernel JIT compilation during inference: _lora_shrink_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.": 1
+  },
+  "returned_generation_submission_states": {
+    "unrecorded": 4
+  },
+  "first_timeout": null,
+  "first_returned_error": {
+    "request_id": "req_03843",
+    "instance_id": null,
+    "failure_observation": {
+      "kind": "controller_task_exception_v1",
+      "exception_type": "RuntimeError",
+      "observed_monotonic_s": 354368.261239585,
+      "observed_offset_s": 5090.746316676028,
+      "elapsed_since_offered_ms": 1356747.5335644558,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "native_completion_inferred": false,
+      "gpu_release_inferred": false
+    },
+    "request_phase_fields": {
+      "scheduled_arrival_offset_s": 3733.9987831115723,
+      "dispatch_window_wait_ms": 0,
+      "runtime_slot_wait_ms": 0,
+      "arrival_release_lateness_ms": 0,
+      "dispatch_admission_wait_ms": 0,
+      "readiness_tier_before_dispatch": ""
+    },
+    "native_token_timing_present": true,
+    "generation_submission": null,
+    "source_admission_present": false,
+    "source_tier": null,
+    "error_sha256": "26294b418286072c76bf2bd5ad7e9b45f419c432985be58407a261834b3263c4"
+  },
+  "timeout_generation_submission_states": {},
+  "timeout_requests": [],
+  "returned_requests": [
+    {
+      "request_id": "req_03842",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 354368.261329671,
+        "observed_offset_s": 5090.746406762046,
+        "elapsed_since_offered_ms": 1358481.783120078,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 3732.264623641968,
+        "dispatch_window_wait_ms": 0,
+        "runtime_slot_wait_ms": 0,
+        "arrival_release_lateness_ms": 0,
+        "dispatch_admission_wait_ms": 0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "6100a8be726ec3da08d6d8b73a3245dee27a04a837c3dfa28d9af55f6c56c4c6"
+    },
+    {
+      "request_id": "req_03843",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 354368.261239585,
+        "observed_offset_s": 5090.746316676028,
+        "elapsed_since_offered_ms": 1356747.5335644558,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 3733.9987831115723,
+        "dispatch_window_wait_ms": 0,
+        "runtime_slot_wait_ms": 0,
+        "arrival_release_lateness_ms": 0,
+        "dispatch_admission_wait_ms": 0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "26294b418286072c76bf2bd5ad7e9b45f419c432985be58407a261834b3263c4"
+    },
+    {
+      "request_id": "req_03844",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 354368.261375818,
+        "observed_offset_s": 5090.746452909021,
+        "elapsed_since_offered_ms": 1356393.925290613,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 3734.352527618408,
+        "dispatch_window_wait_ms": 0,
+        "runtime_slot_wait_ms": 0,
+        "arrival_release_lateness_ms": 0,
+        "dispatch_admission_wait_ms": 0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "6100a8be726ec3da08d6d8b73a3245dee27a04a837c3dfa28d9af55f6c56c4c6"
+    },
+    {
+      "request_id": "req_03996",
+      "instance_id": null,
+      "failure_observation": {
+        "kind": "controller_task_exception_v1",
+        "exception_type": "RuntimeError",
+        "observed_monotonic_s": 354601.526376326,
+        "observed_offset_s": 5324.011453417013,
+        "elapsed_since_offered_ms": 1364124.7022420866,
+        "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+        "native_completion_inferred": false,
+        "gpu_release_inferred": false
+      },
+      "request_phase_fields": {
+        "scheduled_arrival_offset_s": 3959.8867511749268,
+        "dispatch_window_wait_ms": 0,
+        "runtime_slot_wait_ms": 0,
+        "arrival_release_lateness_ms": 0,
+        "dispatch_admission_wait_ms": 0,
+        "readiness_tier_before_dispatch": ""
+      },
+      "native_token_timing_present": true,
+      "generation_submission": null,
+      "source_admission_present": false,
+      "source_tier": null,
+      "error_sha256": "4b5ce671bbd1bc552bb9e80c29fba087646dcb8c1a80e396cce34d9d94733d01"
+    }
+  ],
+  "caveat": "Missing evidence is not proof of no dispatch. not_submitted describes this generation, not other unsettled RPC ownership or physical release."
+}

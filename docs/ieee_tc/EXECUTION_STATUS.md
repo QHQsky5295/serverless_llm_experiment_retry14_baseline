@@ -1,6 +1,255 @@
 # IEEE TC execution status
 
-## CURRENT — D144 candidate qualified; backup then ordinary Full
+## CURRENT — D145 diagnostic SEALED; scoped backup pending
+
+18:54 +08 closure PASS:216frozenrefs/44curatedrefs rechecked,147protected
+unchanged. Existing giantoriginal streamSHA reused withstat, no reparse/hash.
+Failurepopulation3996/4,controls2053/2052/1outside,alltiming/remote/cleanup
+invariants verified. D145_FULL_W0_FULL1.md contains final diagnostic tables,
+conditional comparison and failure boundary; SHApinned, do not editafterseal.
+VerificationSHAf509fc500e0abf58a63d558be2bc3e0bea974abbbc14b26d2a31c0005d0032da.
+Verification actual910a165269e34f78804a307175748ce0 completed0/2.52s/RSS27696KiB,
+empty/events0 cleanup18:53:31. Existing unchanged tests reused, notrerun.
+Bundle64members58086B SHAafb300b2f0a7f2286a3275ad8f7e77e4a15447296d37ac82dd36c4755d81ce93;
+actual8a564a77fa4c466bb134c1c27d5ea13d completed0, exactempty/events0 cleaned.
+No livehandles/analysis/GPU/remotejobs. NEXT explicitD145docs+curated+bundle
+secrets/checksum/diff -> commit/push; usermanifest/unrelatedfilesexcluded.
+Then new source-based bottleneck diagnosis, not another speculativefullrun.
+No newservingchange or optimizer selected. GoalACTIVE/incomplete.
+
+## D145 finished-analysis state — superseded by CURRENT above
+
+2026-10-01 18:48 +08. Goal ACTIVE/incomplete. D145 ordinary7BFull4000,
+projection, curation/failure breakdown and failure-aware occupancy all FINISHED.
+NO live exec cell/session/GPU/inference/analysis job. Historical LIVE handles
+below are closed; NEVER wait on or restart them. Baselines remain PAUSED.
+
+- 3996 native-contract successes/4 failures; full-completion FAIL, numeric
+  adapter/commonSLO still pending. Serving fc486083 unchanged/backed.
+- All four error firstlines: RuntimeError: subprocess_native_rpc_failed_no_retry:
+  TimeoutError:. Outer RuntimeError classifier timeout0 does NOT mean no nested
+  timeout. Actual RPC operation/phase not recorded; cause UNKNOWN. No evidence
+  these are outer1800s deadline errors. Generation state unrecorded; null/default
+  fields do not prove zero work/no dispatch. Three quarantines all released.
+- Before first error, long queue already existed; arrival window ended18.756min
+  earlier. Do not attribute all queueing to later quarantines.
+- Curated SHA8a75bdc7f4600094f31ce92201acb6a13d9b8c3760d60665af2eb1414be7733f.
+  Successful mean/P95TTFT678.390986/1316.054617s; TPOT40.859549/68.869382ms.
+  mean dispatch675.934327s, serviceTTFT2.456658s, nativeTTFT.341165s.
+  All3996 reliable timing errors0ms; confirmedpre-generation3996/conflicts0.
+  Physical21346.039381GPU-s,6leasesallreleased. Remote132/131480060bytes,
+  requestpacking0, immutablecacheunchanged. Fullnotacceptedperformancegain.
+- Occupancy all4000IDs/3996native/4failed; phasepopulationnative_success_only.
+  Gate→terminalmean10.308862s is UPPER ENVELOPE, NOT measuredpermitrelease.
+  Native4.712198s; meanconcurrency3.534531(native)/7.732484(upperenvelope).
+  Controls2053total/2052inwindow/1afterwindow preserved. No causalGPUproof.
+- Projection completed0 at18:37:18,43:44.88,RSS99840KiB,original14869059366B
+  readONCE,projection34384866B. NEVER reproject/re-hash giantoriginal.
+  Actuald7ce840a89db418ea1749078629b4d56 cleaned18:37:39.
+- Curation actual327593c6e1b24e39b38dfa1a72bc465d completed0,48.07s,
+  RSS367428KiB; exactempty cleaned18:39:10. Failurecollector completed0.
+- Occupancy actual2a7b1258d4af462da0d7d8e15ce8fe3d completed0 at18:39:14;
+  exactTasks0/cgroupempty/events0 cleanup18:47:50, inactive confirmed; receipt
+  cleanup_occupancy_full1.log. Previous metadata/projection/curation cleanup
+  stdout exists in tool transcript, not raw*_cleanup.log; do not fabricate logs.
+- Last18:47disk162918825984B(~151.73GiB),hostavailable113723953152B.
+  Recheck and reclaim only provenrebuildable/duplicate resources beforebigRun.
+- Plan/currentledger/V1 and analyze-results/github-sync/monitor skills readFULL
+  this turn; no serving/analyzer changes or repeated regression tests.
+
+NEXT: final D145 diagnostic table/interpretation -> verify sources/protected147/
+secrets and small evidence bundle -> explicit scopedcommit/push. Reuse D137
+closure but adapt failures3996/4 and actual cleanup evidence; no repeats of
+95tests/legacy3Baudit. RPC-only analyzer NOTapplicable; no guardweakening.
+Only after D145 closure select new evidence-backed optimization; actual RPC
+timeout phase currentlyunknown. No cap/deadline increase. Numericadapter,
+3BTPOT/outputhash, bothmodelperformance,warm/Resident,M1M2/A1-A5/S1-S13 OPEN.
+
+## D145 analysis history — superseded by CURRENT above
+
+2026-10-01 17:56 +08. Goal ACTIVE/incomplete; this turn PROGRESS: terminal
+cleanup, stopped remote services, copied matching remote evidence, completed
+bounded metadata audit, started one streaming request projection. No new GPU
+run, serving edit, optimization selection or baseline work. The user-approved
+once-only delivery cache remains D78/D80; NEVER rebuild.
+
+- D145 terminal launch PASS; service/replay/watchdog returncodes all0, native
+  GPU context release and service-path removal confirmed. All4000 terminal,
+  3996 native-contract successes/4 RuntimeError failures. Full completion FAIL;
+  numerical adapter and common SLO qualification still pending.
+- Physical measurement complete:21346.03938088799 GPU-s,6 allocations all
+  released,0 open leases. Three native-ownership quarantines all released.
+  First quarantine354366.783569071,req03842/03844; last354601.48183647,
+  req03996. Complete request errors still pending projection; this does NOT
+  establish root cause or explain all waiting.
+- Metadata6226samples:peak53154447360B,minhost73221296128B,swap0,
+  high/max/oom/oom_kill0,no warning/abort. Remote132 UUID pairs,allpublished,
+  client/server bytes both131480060,logical3300789780B,requestpacking0.
+- 17:52 terminal service inactive/GPUempty; exact remote3B/7B/monitor stopped
+  with frozen identities,allinactive/MainPID0. Local auxiliary exact
+  e212cd03e1ba4a0fa4e973e3a08e7cbd empty/events0 and stopped17:52:26.
+- Remote journal discovered by frozen clock:
+  /home/lab14/primelora_remote/tc/d80_20260927/7b/transfers-095485df19224b5c929684a45bb87d2b.jsonl.
+  Copied AFTER stop; source/copy SHA34898fde7e8c03f837d639a8614e1ca728ed7c33d44cc1da486395dbc015cbc8;
+  monitorSHAd8cab00b941c083a8dc2111d3e9ea234b94babab1cd3e176f6baeeb7d69a5859.
+- Metadata actuala11377c470304d3983ff2aa320a6dde0,3/4GiBswap0/taskset2,3,26,27;
+  PASS3.19s/RSS315712KiB,empty/events0,stopped17:53:33. Both whitespace
+  fixtures passed. Source133795919B/compact89727383B,allvalues retained,
+ 128MiB guard unchanged. PreliminarySHA
+  6a6e831ad0f0f4d327a878324596bd97343fd9f66dfe66e513ba5eb3dbbbe3c4.
+  Terminal launchSHA681158ea3dc1e005609785db564997f981f64351b1bd23616163bb8480db92c3.
+- **ONE LIVE CPU projection** started17:53:33,exec_command session99752,
+  unitprimelora-d145-full1-project-20261001.scope,
+  actualInvocationd7ce840a89db418ea1749078629b4d56. Actual3/4GiBswap0/
+  taskset2,3,26,27; unchangedD96 jq streaming projection. Source14869059366B
+  read ONCE; partial output must NOT be read/hashed/parsed. Previous D137
+  same-size projection took46min, so do not infer a stall from zero output
+  before final reduction. Do NOT relaunch, reparse or run heavy parallel work.
+  Latest18:23:17 SAME actualInvocation verifiedactive2tasks/68489216B,events0;
+  source offset10160427008B of14869059366B, steadily increasing. No partial
+  output read/hash/parse. Monitorcell6889 completed/closed; monitorcell6892
+  LIVE, polling SAME exec_command session99752 every45s. Session99752 is the
+  projection, not GPU replay. Resume cell6892 with functions.wait; do not
+  launch a duplicate monitor/projection. Loop40polls stops on commandexit.
+- Lastdisk162971496448B at18:20,hostavailable110909648KiB.
+  One projection only; recheck before another heavy task. No deletions.
+- Plan/V1 readFULL aftercompaction; unchanged protocol used. monitor-experiment,
+  analyze-results,academic-plotting,github-sync SKILL.md readFULL. No plotted
+  figure selected; failed qualification uses provisional status table.
+
+17:58 static postprocessing audit found D139 RPC-only analyzer requires
+native_contract_completion_pass and4000native successes (analyze_control_path_overhead.py
+lines520-566), so prepared run_rpc_audit1.sh is NOT applicable to D145. Do NOT
+execute it or weaken that guard. Existing curator reports conditional RPC
+fields, and existing --native-timeline --allow-failed retains all4000 IDs and
+failure clocks; use these for D145. No analyzer/source edits or repeated tests.
+Previous goal turn PROGRESS (cleanup/metadata); this turn has new applicability
+evidence plus verified SAME projection wait. Fullplan/ledger/skills reread;
+completeV1 already read preceding turn, reread before actualcomparison.
+
+NEXT: poll SAME projection -> verify Exit0/all4000 and source identity ->
+capture exact projection empty-domain cleanup -> run prepared bounded curation
+and failure breakdown -> failure-aware occupancy and conditional RPC fields -> table/interpretation/seal/
+backup. cleanup_metadata_full1.sh now exists with actual identity, alreadyrun.
+Other prepared helpers remain unexecuted. Do not repeat metadata/remote copy/
+old projections/D144 tests. Full exception text is the next new evidence;
+no speculative patch or cap/deadline change. Baselines PAUSED;3BTPOT/outputhash,
+bothmodelperformance,numericadapter,warm/Resident,M1M2/A1-A5/S1-S13 OPEN.
+18:00 prepared cleanup_projection_full1.sh by reusing exact empty-domain
+protocol, bound to actuald7ce840a89db418ea1749078629b4d56; syntaxPASS, NOTrun.
+It requiresTasks0/cgroupempty and cannot stop the live projection. New
+D145_FULL_W0_FULL1.md is an unsealed provisional status table, not a formal
+comparison. Current serving code remains backedfc486083; no new tests or
+source changes. No backup claim for provisional D145 documents yet.
+18:11 new lightweight timeline evidence (no secondary heavy analysis):
+deploymentarrival_end353241.4238260309; firstfailureterminal354366.783730505,
+18.7559984minlater. Service logalreadydone3731/fail0/backlog269 beforeerrors.
+Therefore laterquarantines cannot explain all earlierbacklog; keep failure
+correctness andthroughput/controlwaiting asdistinctquestions. Added to
+provisionalD145doc; exactlatencydecompositionstillpendingprojection. No causal
+CPU/GPU-specific claim. PreviousgoalturnPROGRESS(analyzerapplicability)+
+verifiedwait; currentturnnewtemporal evidence+verifiedSAMEprocesswait.
+
+## D145 launch/save history — superseded by CURRENT above
+
+2026-10-01 16:06:08. Launched ONCE in tmux tc-d145-7b-full1. Runtime backed
+fc48608387e75d4400034ee412d3456c835ba41c. Goal ACTIVE/incomplete; launch turn
+PROGRESS (ordinary Full launched, not another diagnostic). Baselines PAUSED.
+Latest user cache permission already fulfilled D78/D80; NEVER rebuild.
+
+- Reused D137 ordinary launcher/config/remote helpers. Exactly three fresh
+  owned paths, otherwise identical 7B configuration/D89 profiles. Full4000,
+  source42/W0/formal0; no prefix or detailed stack/CPU profiler. New D144
+  candidate only since D143; comparison to D137 also contains D141 correctness
+  delta, so not an isolated causal estimate or formal SLO comparison.
+- Preflight PASS216refs/147protected/Plan/V1; SHA
+  26039dcdaf3e98e23031f8c5e275d98a14a5724ce74521e7777aa547a08a2dd4.
+  Actual8b13d994524f49189e389e26f1ccaf9e emptyclosed/events0; health actual
+  767a6845b1be424c988cee124af77ec8 emptyclosed/events0. Predictedgrowth32GiB;
+  latest prelaunch local free178151333888B,hostavailable112424366080B.
+- Actual service primelora-tc-svc-46f7a42b36914d08af1aef936f577752.scope,
+  Invocation a7c0d7d9c1df471e8111176d0dc8a5c7,72/80GiB/swap2/CPU4-23,28-47.
+  Aux primelora-tc-aux-7b16694bb9d447769eb74d80de743d98.scope,
+  Invocation e212cd03e1ba4a0fa4e973e3a08e7cbd,3/4GiB/swap0/CPU2,3,26,27.
+  Limits read back. Replay publisher1853942;watchdog1853984.
+- Remote3b PID1918283/6f3e7a1bf1c04a1a9086e84fa46d42b1;
+  7b PID1918285/360a8200c5264d8fb0735eafbb38b45b;
+  monitor1918289/fbcc9cc86e9d4d5d8469839c49e75fd3,
+  unit primelora-artifact-monitor-d145full1.service. BothNIC1000/full.
+  7B healthclock remote-process-monotonic:edf4d3248d484db5a297c3d8a45d0e89.
+  Remote log /home/lab14/primelora_remote/tc/d145_20261001/remote_monitor_7b_full_full1.log.
+  Exact stop helpers prepared, NOT executed. No remote management/hash/copy/
+  cleanup during inference. Cache unchanged; no new weights/traces/pools.
+- Raw results/ieee_tc/p2_backend_qualification/d145_20261001.
+  Last startup sample55:service6559006720B,host105597747200B,events0/no warning.
+  No terminal launch.json or final performance result yet. Old apparent running
+  run-* scopes all TasksCurrent0; not active competing analyses, untouched.
+
+Latest17:42:42 SAME run LIVE, exact Invocation verified; requests all terminal:
+arrived4000/done4000/ok3996/fail4, backlog0. Request phase ended; result-save/
+final cleanup still running. Full-completion requirement NOT passed.
+Service125tasks; actual domain
+unchanged. Four GPU cores1856562/1861679/1861977/1862164 previously verified
+in exact domain/CPU4-23,28-47. Sample5715: service40164638720B,
+host75120238592B,swap0/events0/no warning. Last disk check17:42:59
+175291957248B, watchdog ongoing; exact aux Invocation active/5tasks last
+confirmed16:47:23.
+No terminal launch.json, serving/config change,
+remote management or second experiment. Previous and current turn VERIFIED
+Current turn gained new failure evidence: request_terminals req_03842/03843/03844
+RuntimeError at354366.783730505/354366.784857652/354366.785862901; native
+contract false. Bounded service tail says subprocess_native_rpc_failed_no_re...
+(truncated display; full error cause not yet available); live runtimes fell4->2.
+Fourth RuntimeError req_03996 at354601.481890174. All four native_contract=false;
+no timeout observed in these terminal rows. Full error text not yet inspected.
+No OOM/high/max/swap or safety abort observed. Continue SAME saving process,
+no retry or safety change. Normal source JSON now writing:2781019661B at
+17:42:59 (fresh mtime), NOT complete, no reading/hashing/projection yet.
+GPUcompute list empty17:40:42, but final launch receipt absent; wait for actual
+terminal release/cleanup confirmation. Old terminal banner (cost/local-sim/5000ms) is legacy display, not
+frozen V1 qualification; use postcleanup physical/native/remote evidence.
+Monitoring cells6781/6796/6799/6814/6826/6831/6835 completed and closed.
+No live exec cell/session. Actual experiment is tmux/service/aux above; NEVER
+relaunch. Continue lightweight polling of that exact invocation and writing
+file. Inspect normal versus interrupted final schema before analysis.
+Frozen V1 reread fully this turn; SHA unchanged. analyze-results and
+academic-plotting SKILL.md read fully, latter's plotting references not yet
+selected/read (no figure generated). No result analysis or new GPU run.
+
+During this wait, reused D137 raw postcleanup helpers into d145 (PREPARED ONLY):
+collect_full1_preliminary.py,inspect_full1_metadata.sh,project_full_full1.sh,
+summarize_full_full1.py,curate_full_full1.sh,collect_full1_failure_breakdown.py,
+run_occupancy_audit1.sh. Existing D138 compare_request_contracts reused verbatim;
+compares only the already sealed34MB D137 projection, never its15GB original.
+On current failed requests the cross-token contract comparison is explicitly
+unavailable, not silently matching missing fields; failure tables still retained.
+Curator corrects the two previously nonexistent parent_response_* names to the
+actual parent_rpc_* producer fields (D139 evidence). No serving change.
+Bound D145 remoteclock/service unit/runtimecommit in raw helpers. Shellsyntax
+PASS; Python syntax/functional execution still pending after inference.
+cleanup_local_aux_full1.sh bound to exact actual auxiliary identity, NOT run.
+run_rpc_audit1.sh reuses unchanged D139 analyzer, single D1457B only, explicit
+future sealed SHA argument; no repeat of previous audits/tests. Remote journal
+filename still unknown: discover/copy ONLY after terminal and exact remote stop.
+No new outputdata/projection/curatedresult produced; do not run helpers early.
+16:42 static reread of prepared metadata/projection/curation/failure helpers:
+normal outcome and exact terminal/resource prerequisites retained; no execution,
+source change or acceptance of a performance result. Source-reference map does
+not pin the mutable status ledger. Reuse existing helpers only after cleanup.
+16:49 prepared copy_remote_full1.sh by reusing D143's copy protocol. Exact
+journal still unknown and must be discovered by frozen health clock AFTER
+shutdown, then passed as a validated explicit path. Helper requires terminal
+physical release, inactive local service/no GPU, stopped remote services, fresh
+outputs, matching clock and source/copy SHA. Syntax PASS only; NEVER executed
+during inference. Curator source_refs includes this helper; no serving edit.
+
+NEXT: monitor SAME run -> terminal/physical cleanup -> exact remote stop/copy
+-> bounded analysis/table/interpretation -> scoped backup. Do not repeat D144
+tests or old giant projections; no second optimizer/cap/deadline changes.
+3BTPOT/outputhash,bothmodelperformance,numericadapter,warm/Resident,baseline,
+M1M2/A1-A5/S1-S13 remain OPEN. Do not infer SLO qualification from token counts.
+
+## D144 candidate qualified and BACKED — completed history
 
 2026-10-01 15:49. D143 diagnostic BACKED f70595dc98fb9b2ae013171142bbb87085faa991;
 remote exactHEADverified. Sixexplicitfiles/61payloadsecrets/checksum/diffPASS,
@@ -41,682 +290,28 @@ taggedsourceprovided actualisPinnedPtr implementation instead.
   bundle37members105940B SHA19100fc752c6bdfb3072684eb3e0de847a183ab3423308fb2fe3c92f5e18b3cc.
   DocD144_SAME_OBSERVATION_HOST_INVENTORY.md SHApinned; do not editafterseal.
   Only3source/testfiles changed; not usermanifest. No liveexec/tmux/GPU/scope.
-  Sourcecandidate qualified butNOTbacked yet.
+  Sourcecandidate qualified; backup completed below.
 
-NEXT: scopedcandidatebackup -> ordinary7BFull
+BACKUPDONE fc48608387e75d4400034ee412d3456c835ba41c pushed to
+faaslora_origin/retry14_continuous_queue_v2; exactremoteHEAD verified15:57:03.
+Eightexplicitfiles/45payloadsecrets/checksum/diffPASS; usermanifestexcluded.
+No liveexec/tmux/GPU/analysisscope; bothremoteartifactservicesandmonitorstopped.
+Lastdisk178149642240B; recheckbeforeheavy. Thisbackupnote is theonlynewledger
+deltaaftercheckpoint. Do NOT repeat RED/GREEN/regression/equivalence/curation.
+
+NEXT: reuse existing ordinaryFull launcher/preflight/remotehelpers for ordinary7BFull
 4000/currentprofiles/config,noprofiler. No claimedTTFT/SLO/GPU-simprovementyet.
 Bothmodelperformance,3BTPOT/outputhash,numericadapter,warm/Resident,baseline,
 M1M2/A1-A5/S1-S13 remainOPEN. BaselinesPAUSED. No nextGPUprepared/launched.
 
-## D143 diagnostic closure — completed history
+## Recent history archive
 
-2026-10-01 15:43. Goal ACTIVE/incomplete. Current turn PROGRESS: SAME D143
-completed normally, owned cleanup, role-stack/terminal/remote audit and small
-evidence bundle finished. No serving/config optimizer or second GPU replay.
-Once-only published cache fulfilled D78/D80; latest user permission does NOT
-require regeneration. Baselines PAUSED; both model performance OPEN.
-
-- ONE prefix1000/source4000/W0/formal0, runtimea494c90c. Terminal at15:33,
-  service/replay/watchdog rc0, passtrue, native GPU release/pathremovedtrue.
-  1000terminal/native-contract matches,0failure; NOT numerical/SLO qualified.
-  Physical5416.631581816GPU-s;4leases/allreleased/noquarantine; windows
-  prearrival37.818030767,arrival4275.725444120,drain1008.015154813,cleanup95.072952116.
-  Full originalrequestJSON3533678036B retained, NOT whole-loaded/projected;
-  do not claim complete request-latency identity audit from terminal counters.
-- Exactremote3b/7b/monitor stopped15:33:58 AFTERlocalrelease, localaux exact
-  emptyclosed15:33:59/events0. Remotejournal525a729fb15243808a102cda5aa804da
-  matchesactualhealthclock,60UUIDpairs/74953014Bbothends/allpublished/packing0.
-  Local/remoteSHA658c74e8198c3a056313b9d8a8c4145ab9da82565613f663fd59e2ac50e8c3dd;
-  monitorSHA1bf7219272db43ec0ee906a859679e2f818dca8581588b1eb07a9a1880e22fc6.
-  Remote rg unavailable; used grep fallback afterclosure. No remotemutation
-  duringrun.1620resourcesamples/peak22831726592B/minhost90508509184B/events0/swap0.
-- CPUcollector sixfixturesPASS0.061s; actualafb275a6abe64915be3cf9e6750f5806,
-  0.62s/RSS21888KiB,exactemptyclosed15:34:44/events0.10processesallmainpresent,
-  nofinalpartiallines; controller3+fourcores1each=7truncated100framestacks,
-  explicitly retained. GILbias/idleframes; NOTCPU-time percentages. Controller
-  maxlag7.359162s/maxinterval9.360193s, requestwindow570samples,postrequests108.
-  PostrequestJSONsaving is NOTonlineTTFT cause. Fourcores businessHOSTinventory
-  inclusive162/665,144/644,156/643,157/641; add immediateHOSTcaller150/135/140/142.
-  Same-nameGPUhelperfewevents kept separately. No actualspeedup/causalclaim.
-- Preliminaryf127f300ea7f4469ad758d3919adcc8c completed1.10s/RSS115700KiB,
-  emptyclosed15:35:58/events0. Curator1 rejected incorrectzero-truncation
-  assumption, nooutputs; failedsource/log retained,9467792d52314e4cbc5f43b5321e66ec
-  emptyclosed/events0. Curator2 explicitlyretainsmissingcoverage; same86331
-  completed0,actual981bd0b0a24547d682c85e450f83f4b8,1.13s/RSS27360KiB,
-  emptyclosed/events0. AllCPUanalysisactual3/4GiBswap0CPU2,3,26,27.
-- 206prelaunchrefs/147protected/Plan/V1/syntax/secretschecksPASS; no retests
-  ofoldobserver or giantprojection. CuratedSHA
-  6182bb7d990a9d31a0c995b533f1607591670787fd63400b2ff5a0684dda5dcd.
-  Bundle55members188537B SHAaee9f340491982eefb72028cf52c1350444cd2bb45634eb6935ec5e91f16044f.
-  Finaldiagnostictables D143_PREFIX_DIAGNOSTIC_RESULTS.md nowSHAsealed;
-  don'teditcasually. Raw d143_20261001. No liveexec/tmux/GPU/analysisscope.
-
-NEXT: explicit scoped backup -> one evidence-led candidate about redundant
-nativeHOST tensor introspection WITHIN one serialized source observation.
-Current code walks registered tensors twice whenstagedempty and queries
-is_pinned twicefornewallocation; no optimization implemented yet. Confirm
-native API/mutation/lifetime contract and compareequivalentoutputs/cost before
-candidate. No stale cross-epoch cache, guard removal, cap/deadlineincrease.
-Then ordinaryFull, not another diagnostic-only loop.3BTPOT/outputhash,numeric
-adapter,warm/Resident,baselines,M1M2/A1–A5/S1–S13 stillOPEN.
-
-## D143 launch history — completed, not a new launch instruction
-
-2026-10-01 15:06:08 launched ONCE, tmux tc-d143-7b-prefix1. Do not restart.
-Runtime backed a494c90c017e5307ff59f1d9ff7c4dde214d6bbf. Current turn PROGRESS.
-Actual controller1586316, time1586302; worker/core role coverage still pending.
-Raw d143_20261001; output 7b_full_w0_prefix1, formal0/originalprefix1000.
-Source4000/W0/source42, no generation/config optimizer or new weight/cache.
-
-- Preflight1 rejected configuration BEFORE remote/GPU: copied numeric strings
-  accidentally changed pinned33554432->33754432 and bin27.43356142744625->
-  27.43376142744625. Failed YAML/log retained; restored exact D137 values,
-  reviewed remaining helpers. No guard weakened. Exact46940cdd9333446994cfd683db55afdf
-  empty closed/events0. No inference or remote action in that failed attempt.
-- Preflight2 PASS206refs/147protected/Plan/V1, receipt SHA
-  b95b0b5968ceadaa3e2fb87f1b3b2e9c756ba59334a445abe574eb3ee6ee67e9.
-  Actual38127212d52f435ea6530fb12dfff036 emptyclosed/events0. Health actual
-  9f57fa86607540b0876b24a1d44a4f5d emptyclosed/events0. Both NIC1000/full.
-- Service primelora-tc-svc-35d671eb99a34407aaa05d676b41a08d.scope,
-  invocation078cb6910ae24f4882795c4b045d4ce4,72/80GiB swap2 CPU4-23,28-47.
-  Aux primelora-tc-aux-11f02aa273744fa3822b7dea9733e03a.scope,
-  invocation7f6f44d06bb345b8bfb8cd5989f46b86,3/4GiB swap0 CPU2,3,26,27.
-  Actual limits read back, controller stack files writing; no final result yet.
-- Remote3b1845892/7559fffdb4734165830e64c16056a275;
-  7b1845894/06e76361825e4e138c0310cf6f618bbd;
-  monitor1845897/04152391994542d9ab6a71ded215183e,
-  unit primelora-artifact-monitor-d143prefix1.service. Health clock
-  remote-process-monotonic:7ea05c3d766348c187c75532b68ad9c4.
-  Monitor /home/lab14/primelora_remote/tc/d143_20261001/remote_monitor_7b_full_prefix1.log.
-  Exact stop helpers prepared, NOT executed; only AFTER local terminal/release.
-  No remote management/hash/copy/cache work during inference.
-
-Latest15:30:37 SAME run LIVE in terminal/resource/output cleanup. All GPU
-compute processes have exited, but authoritative launch.json is NOT yet present;
-service Tasks127 and aux Tasks3 remain active. Do NOT manage remote or start
-analysis until the complete terminal/release receipt. Earlier15:28:31 displayed
-arrived1000/done950/ok950/fail0; provisional only, not numerical/SLO qualification. Four GPU
-cores1588955/1593229/1593524/1593723; frontends1588162/1592121/1592192/1592287;
-planner1587114 observed in planning_cpu.execute_planning_message and
-preloading_planner.owned_preparation_inputs; controller1586316. All ten have
-separate metadata/JSONL, but full per-role completeness/lag analysis still
-pending. At15:26 sample1193 service22017970176B,host91493441536B,events0/swap0/no warning.
-No serving change, remote management or analysis launched. Raw-only D143
-collect_prefix1_cpu.py/test_cpu_collection.py/collect_prefix1_cpu.sh prepared,
-not executed: bounded1MiB records, actual times/lag, main-thread occurrence
-counts with idle/GIL bias explicit, no CPU-time percentages. D138 preliminary
-collector adapted and exact-owned aux cleanup prepared, likewise not executed.
-Complete Plan/ledger/MetricV1 reread after compaction. Latestcache permission
-already fulfilled D78/D80; no rebuild or new weights/traces.
-No live exec cell/session handle; tmux/service/aux are the live run to monitor.
-
-NEXT: monitor SAME run and actual process-role coverage -> terminal -> owned
-physical cleanup -> exact remote stop/copy -> bounded role-stack table and
-interpretation -> checkpoint. No performance claim from partial/profiler run.
-Both model performance/numeric identity/warm/Resident/remaining plan OPEN.
-Baseline stays PAUSED. Do not re-run failed observer, tests or huge projections.
-
-## D143 CPU qualification and backup — completed history
-
-2026-10-01 15:02. Goal ACTIVE/incomplete. Current turn PROGRESS: replacement
-observer implemented and qualified without changing serving policy, equations,
-profiles, limits or workload. Baselines PAUSED; both model performance OPEN.
-Once-only published cache already fulfilled; NEVER rebuild.
-
-- Python-frame diagnostic is opt-in `python_frames_v1`, formally forbidden.
-  Ordinary Python frame references, no C-watchdog/signals/ptrace/local values.
-  Actual time/lag/process CPU/observer CPU recorded; GIL bias and idle frames
-  explicit. No catch-up or inference of zero cost from missing observations.
-- 337 affected CPU tests PASS/78.572s, including six observer tests. Actual
-  08c360e12fe942b38625079fdee6e295 empty closed; all memory events zero.
-  CPU import pair in native environment: off/on both IMPORT_COMPLETE and rc0,
-  no model loaded. Actual440515eefb8641a3aa9fd62872e69261 empty closed/events0.
-  Three complete samples/23854B, full main-thread coverage, max interval
-  2.005679s/max scheduling delay0.005258s. Observer CPU before last sample
-  0.00115767s excludes final sample; NOT a serving-overhead measurement.
-- Curator97687 completed0, actual c4a10429c953460aabf0a01fd3f420d2 empty
-  closed/events0; actual3/4GiB swap0 CPU2,3,26,27. 147 protected/Plan/V1/source
-  SHA/syntax/secrets checks PASS. No repeated tests, GPU or remote operations.
-  CuratedSHA296bc27e4552731be1da9a367737b0b52bec63582c253b1f6d68789e8f55c547;
-  bundle25members31914B SHA2ffcb18926b865c2769c462f17db4bff82f1fd3b06fc75ea57ccfc3986163f3f.
-  D143_COOPERATIVE_DIAGNOSTIC.md is sealed; do not edit after qualification.
-- Raw d143_20261001 contains reused preflight/remote/launch helpers, NOT run.
-  Same D137 7B config except three fresh paths and original1000 prefix count;
-  no new trace, weights, pool or cache. HEAD placeholders remain to be frozen
-  after backup. No live GPU, tmux or analysis scope. Lastdisk181893455872B.
-
-BACKUP DONE: a494c90c017e5307ff59f1d9ff7c4dde214d6bbf pushed to
-faaslora_origin/retry14_continuous_queue_v2; exact remote HEAD verified.
-Eight explicit files/33 payload secret checks/checksum/diff PASS; user manifest
-excluded. Launch HEAD now frozen to this checkpoint. No live experiment.
-
-NEXT: bounded preflight/remote
-activation/health -> exact empty cleanup -> ONE current 7B prefix diagnostic.
-Verify controller/frontend/planner/GPU-core role coverage, terminal cleanup,
-bounded table/interpretation, then causal serving candidate and ordinary Full.
-Do NOT repeat D140100Hz, D142C-watchdog, completed tests or huge projections.
-No capacity/deadline increase. 3B TPOT/output hash, numeric adapter identity,
-warm/Resident, baseline qualification, M1M2/A1-A5/S1-S13 all remain OPEN.
-
-## D142 observer rejection — completed history, not current execution
-
-2026-10-01 14:45. Goal ACTIVE/incomplete. Current turn PROGRESS: one diagnostic
-launch failed before any request; CPU-only import pair located a crash in the
-observer itself. Observer withdrawn; serving restored EXACTLY to D141d12075c.
-No new serving optimization/performance gain. BaselinesPAUSED; bothmodelsOPEN.
-Once-onlypublishedcache fulfilled,NEVERrebuild. Do not repeat D142 Cwatchdog.
-
-- Qualification checkpointf5f62c2c9fe0f2b1daa19b32134cd69300177065 was pushed
-  and exactremoteHEADverified before launch. Its335CPUtest pass is insufficient
-  for actual runtime compatibility; original qualification doc/bundle retained.
-- ONE7Bprefix1000 launched14:34:40 from backedf5f62c2; controller1451248
-  signal11 after6.17s,servicerc139,0arrived/0submitted. Source4000/W0/formal0.
-  Only422B partialstackfile, no frontend/planner/GPUcore rolecoverage. No TTFT/
-  TPOT/fullGPU-s; not a slow performancepoint or systemcapacity failure.
-- Actualservice3fb290a6fbed48d2860141e5431fb32c / cb1b6c5b8d7c4db39643bb5fa386d61c;
-  auxdae5ca5ee82149f3bdc7ad0e7c26d644 /958837916f964c01b6d6bb65f7b4dd85.
-  Sevenresourcesamples,peak524550144B,minhost111864242176B,events/swap/warnings0.
-  AllsampledGPUcontexts clear,terminalrelease/pathremovedtrue; exactauxclosed.
-- BothNIC1000/full. Remote3b1822648/bf7e469afd4941099fdcaffcac67876e,
-  7b1822650/7c5d6cd73e584082b7042a05e6026a5d,
-  monitor1822653/57aac8f997ff4af08b6f19b49ac90657 all exact-stopped AFTERterminal.
-  Monitorcopiedonce/SHAequal a14d07591fe6d5e618faca7f8f1634e6785ac4cedd6b83e0eda0e052fa8c07d4.
-  No matchinghealthclock transferjournalfound; no fabricatedemptyjournal.
-  No remotechange/cachecreation duringrun. Prelaunch/healthscopesemptyclosed.
-- CPUimport pair firstattempt:hostGDB failedloadingCondaGLIBCXX beforeinferiors.
-  Retained; scope534a79425b2042d6ba5655e8063fb341emptyclosed/events0.
-  CorrecteddebuggerLD path ONLY; originalrestoredforinferior. Native3.12.12,
-  CUDA_VISIBLE_DEVICESempty/no modelload: offIMPORT_COMPLETE/normalexit;
-  onSIGSEGV in faulthandler_thread→PyCode_Addr2Line(co=NULL). GDBrc0 isNOT
-  inferiorsuccess. Exact0cd961ad814f4e249155bce7c0a214b9emptyclosed/events0.
-  CurrentupstreamCPythonissues checked, exactsamebugnotproven. No install,
-  Pythonupgrade,sysctl/ptracechange or repeatedGPUreplay.
-- Removedoptinhook/helper/newactivetest; production__init__/logger byteequal
-  d12075c. Failing source/tests remain in backedf5f62c2+qualificationarchive.
-  All206prelaunchrefs checked against currentunchanged/archivedwithdrawnsource,
-  147protected/Plan/V1PASS. No servingregression rerun needed for exactrestore.
-- Failureaudit84299completed0,actuale54678c37b1f4a57844662b3e55b91b5emptyclosed.
-  CuratedSHAa7f7fa0b2008ab329ef790fe5ad401cc4ed2f7aeaaf35a22277d224feb2d8504.
-  Bundle78members136209B SHA9eacf779abb23f9d613d7644cfe9963e70953a6a77266d23aa7b027023f93071;
-  actual7b1dff05aca546f997e8aac6831dcbafemptyclosed/events0. Status table in
-  sealedD142_DIAGNOSTIC_WITHDRAWAL.md; don'teditafterseal. Rawd142_20261001.
-
-BACKUPDONE:30c5977836ceacf887829d0aa057a251e7c5e71d pushed to
-faaslora_origin/retry14_continuous_queue_v2; exactremoteHEADverified.
-Nineexplicitfiles/86payloadsecretschecks/checksum/diffPASS; usermanifestexcluded.
-No liveGPU,experimentoranalysisscope. Thisnoteisonlynewledgerdeltaafterbackup.
-
-NEXT: ONLY bounded replacement observation
-qualification: Python sys._current_frames under GIL, actualtimestamps/lag/CPUtime,
-not unsafe Cwatchdog. CandidateNOTimplemented; qualify with existingimport-only
-pair and CPUfixtures before any GPUreplay. No diagnostictool rabbit-hole; then
-ONEcurrentprefix to choose causal servingcandidate→ordinaryFull. Do not repeat
-D140100Hz,D142Cwatchdog, oldD123/D127 or hugeD137/D138JSONprojections. No cap/
-deadlineincrease or safetyweakening. 3BTPOT/outputhash,numericadapter,warm/
-Resident,M1M2/A1–A5/S1–S13 allOPEN. Lastdisk181901082624B; recheckheavy.
-
-## D142 CPU qualification history — superseded by withdrawal above
-
-2026-10-01. Goal ACTIVE/incomplete. Current turn PROGRESS: opt-in periodic
-Python stack observer qualified with335 affected CPU tests/75.091s. No new
-serving policy, formula, profile, capacity, deadline, workload or remote change.
-Baselines PAUSED; BOTH3B/7Bperformance OPEN. Once-onlycache NEVER rebuild.
-
-- D140100Hz all-subprocess py-spy failed to retain a final profile and caused
-  162lagwarnings/max46.84s; do NOTrepeat. New observer uses CPython3.12
-  faulthandler every2s, immediate separatePID/starttick output, no locals/ptrace/
-  signalinstallation. Includes idlethreads; NOTCPUtime profile, no measured
-  overhead claim. Actualcontroller/frontend/planner/GPUcorecoverage pending.
-- Defaultoff/lightweight; rejectsformal, invalidflag, foreignscope, nonprefix,
-  unapprovedreceipt. Two independentCPUprocesses retained completed observations
-  after abrupt_exit23. Repeatedcallidempotent; existingoutputnot overwritten.
-  EnabledONLYafterlaunchgate via diagnosticwrapper, not replay/monitor scopes.
-- Actualtestscope6ee228d145ed41fe92b735dd2fa9076c,3/4GiBswap0taskset2,3,26,27;
-  testsfinished14:24:16,emptyclosed14:25:10,events0. No tests rerun.
-- Curator42477completed0,actualaf195ff49e284ec2a8b524c327f87e80,exactempty
-  cleanupdone,eventsrecorded.147protected/Plan/V1/codeSHA/scriptssyntaxPASS.
-  CuratedSHA83aee57b9174caeec2c14ead89439295aa2a052ae61231edfb94f17fb5f7a719;
-  bundle13members25089B SHAd9cf1c3f764692885e95204568260d4837f6a7d64b753006830fdfbf8ebc2031.
-  SealedD142_STACK_DIAGNOSTIC_QUALIFICATION.md is CPUqualification only.
-- ReusedD140launch/preflight/remotehelpers prepared in d142_20261001,NOTrun.
-  SameD1377Bconfig except3freshpaths/prefix1000; D122existingindexview/source
-  4000/source42/W0/formal0. Oneprelaunchassert escaping typo fixedbeforeexecution.
-  RuntimeHEAD placeholders must be frozen to newbackup beforepreflight.
-
-NEXT: backup testedobserver→freeze newHEAD→boundedpreflight/remoteactivation/
-health→exactemptycleanup→ONEcurrent7Bprefix diagnostic. Then terminal→physical
-cleanup→exactremoteclosure→boundedrole-stacktable→interpretation→backup.
-No speculative optimizer/cap/deadline increase. OrdinaryFull still required
-after evidence-led candidate. 3BTPOT/outputhash, numericadapteridentity,
-warm/Resident,M1M2/A1–A5/S1–S13 remainOPEN. No liveGPU or analysis handle.
-
-## D141 closure — completed history, not a current execution instruction
-
-2026-10-01 14:13. Goal ACTIVE/incomplete. Current turn PROGRESS: CPU causal
-counterexample RED→GREEN; one minimal helper correction plus a comment update;
-1,071 affected regression tests PASS. No GPU replay or remote operation.
-Once-only published cache already fulfilled, NEVER rebuild. Baselines PAUSED.
-3B/7B performance remains OPEN; correctness is not a measured speedup.
-
-- Another selected target can legitimately be loaded by demand from a different
-  confirmed file before its planned operation. Selection is not a source lease.
-  Its changed binding must expire the old objective before pricing/admission/
-  mutation, not terminate the whole service. Keep content/identity/owner/clock/
-  epoch checks, both-file publication proof and normal plan cancellation/close.
-- Only preloading_planner.native_preparation_source_conflict behavior changed:
-  allow selected-sibling negative expiry witness; require exact frozen GPU target
-  set for v2. residency_manager change is comment only. No formula, workload,
-  profile, capacity, generation, timeout, backend or remote configuration change.
-- Same initial test SHA50f6cfdab0e690edd85774ace40540c4748aae2ec29473fe60d6bdb96a322f56
-  RED1 failed matching guard (0.134s), GREEN1 passed (0.097s). Test then refactored
-  to add genuine name/content damage and direct native no-operation cases.
-  Expanded cases PASS; price/admission not called, no extra GPU preparation,
-  exact cleanup. CPU fixtures, NOT CUDA/numeric qualification/performance repeats.
-- D140 exact failure snapshot still absent. Counterexample proves a defect path,
-  not unique historical attribution. D109 non-target and D134 new-plan binding
-  evidence reused, not rerun or rewritten.
-- Regression attempt1 stopped at affinity precheck before unittest: AllowedCPUs
-  property lacked effective local cpuset delegation. Exact empty934f804a... closed.
-  Attempt2 used existing taskset2,3,26,27;3/4GiB swap0 actually read back.
-  Actual95a61ff4986f4acea25f317b5cdea1cb,1,071tests/135.116s,147protected and
-  186otherD140frozen sources/Plan/V1 PASS; all memoryevents0; emptyclosed14:11:48.
-  RED1/GREEN1 also emptyclosed. No live tmux, scope worker or GPU.
-- Curation/bundle PASS; actualcb60008f119f4d50b06c5d7ca05c310a exited0,
-  emptyclosed14:12:56,events0. Raw results/ieee_tc/p2_backend_qualification/d141_20261001.
-  CuratedSHA1c5b9b7ffa61ee69754fbd7f38b7c1041cad778d9d53d371c9abeb9b438efa8f.
-  Bundle25members/52717B SHAdacf98f8339cc64231c3ed41cd6eda3909ce1b4f2266f7a6962ea5da330921fe.
-  DocD141_SELECTED_SIBLING_PLAN_EXPIRY.md is now SHA-pinned, do not edit casually.
-  Initial failed launcher remains preserved. No rawlarge data copied.
-
-BACKUP DONE: d12075c6cf283204b7d7023cd4598872c664d981 pushed to
-faaslora_origin/retry14_continuous_queue_v2; exact remote HEAD verified14:14:25.
-Nine explicit files / 34 staged-or-archive payload secret checks / checksum /
-diff checks PASS; user manifest excluded. No live GPU/worker/analysis handle.
-This backup note is the only new ledger delta after that checkpoint.
-
-NEXT: current control-path diagnostic
-with lower perturbation and failure-persistent output (reuse existing tooling).
-Do NOT repeat D140100Hz subprocess profile:162lagwarnings/max46.84s/finalprofile
-missing cannot identify CPU hotspots. No speculative cap/deadline increase or
-second optimizer before evidence. Reuse completed D137/D138/D139 projections;
-do NOT reparse original9–15GB JSON or repeat obsolete D123/D127 probes.
-After causal candidate validation, ordinary Full requalification required.
-3BTPOT/outputhash, bothFullperformance, warm/Resident, numericadapter identity,
-baseline qualification, M1M2/A1–A5/S1–S13 all remain OPEN.
-
-## D140 closure — completed history, not a current execution instruction
-
-2026-10-01 13:55. Goal ACTIVE/incomplete. Current turn PROGRESS: SAME D140
-diagnostic exited with a preparation consistency failure; exact cleanup,
-bounded failure audit and small evidence bundle completed. No serving change,
-GPU rerun or baseline. Once-only published cache already fulfilled; NEVER rebuild.
-3B/7B performance OPEN. Baselines PAUSED. All LIVE text below is historical.
-
-- D140 ran ONCE13:36:31–13:43; controller raised ValueError at
-  native_preparation_source_conflict: source identity/coverage contradicts frozen
-  objective. External replay failed afterward. Preserve launch classification
-  protocol_or_launcher_error but do NOT call this purely external interference.
-  Agent sent no manual signal. Supervisor's final service returncode -15 is
-  cleanup, not evidence of an agent-initiated abort. No retry launched.
-- Original4000/W0/source42, diagnosticprefix1000/formal0. Recorded162 request
-  outcomes:90 native-contract complete,72 interrupted. Rest not fabricatedtimeouts.
-  ObservedGPU1041.300741351s only; completeGPU-s null. Four leases allreleased.
-  Onefailedresidency/file/GPU preparation chain, not three independent failures.
-- Profiler162lagwarnings/max46.84s, finalspeedscopeMISSING; no reliableCPUhotspot
-  result. Do NOT repeat same100Hz all-subprocess setup. Keep ordinaryD137/D138
-  performance evidence separate. CPU cause remains unestablished.
-- 384resource samples,peak20096225280B,minhost92685787136B,events/swap/warnings0.
-  LocalGPUclear/servicepathremoved/ownedHOST&NVMecleanupcomplete. Exactremote
-  3b/7b/monitor stopped13:44:50; auxiliary29f3...confirmedempty/events0/closed.
-  No remote mutation duringinference. Journal f97e790a16534376a2fa45ef76b703ca
-  matches healthclock85bad03b54c64d059dd4350266588f6b:31UUIDpairs,52228851B
-  bothends,31published,packing0. Local/remoteSHAequal2223145a3748ba5bd66e0c282256e8c2f34a29e63e34a94c07b94985b6e0b5a5;
-  monitorSHA549eb85488dd26f159d45a0f4237a33fae8345753ed4e9cca723fc6902499089.
-- Metadata16694completed0;actual14b2e6f9ab5d48e6b2ceb7f03590f149,2.85s,
-  RSS291624KiB,3/4GiBswap0CPU2,3,26,27,events0; emptyclosed13:50:30.
-  Original133MiBmain_outcome retained; whitespace-only56MiBcompact alreadymade.
-  Reuse prefix1_failed_mechanisms.json11KiB and summary; don'tdump wholeoutcome.
-- FailedGPUplan38c1dab7ec3b49eabbe19edb37912c6c has3targets880770/904661/170491,
-  registeredepoch29,closed195; onlyGPUattempt880770 stateobserving. Failure-time
-  fullsourcesnapshot NOTpreserved. Anotherselectedtargetbinding branch is a
-  hypothesis, not establishedrootcause. Review D109(non-target) and D134(new
-  selectedpath after retirement) before any fix; keep actualidentitydamage fatal.
-- EvidencechecksPASS:192unchangedprelaunchrefs/147protected/Plan/V1, bounded
-  audit, scriptcompile/syntax, known-token/private-key scan, archiveSHAcontents.
-  Verificationattempt1 rejected9MiBrawmonitor;attempt2 scanner selfmatched
-  literal;attempt3 generatedsyntaxerror beforeactions. Allretained. Attempt4
-  excludesrawmonitorfromsmallbundle butpinsSHA; actualPEMline scan, syntaxfailure
-  retainedasfailedsource. No GPU/test replay or modifiedcurated values.
-  CuratedSHA6bb86591353627bbe4ee324b87b5cdad7d8a190ababf6f5eb504f6c1a8a42991.
-  VerificationSHAf539a6e6da83f357104761397622cca0e51bbd37d263321157fec90b5bb4562b.
-  Bundle58members/86955B SHA f1e6c02b487fb87e414c46a95d42748a1ab3add1bd2ec9aa1e50166eeffd6138.
-  Same25608completed0;actual3c3b5534744f43ae989a6948602bb6da/events0;exact
-  emptycleanup completed. Earlierfailedverificationdomainsalsoemptyclosed.
-  No liveexec/tmux/GPU/remote service.
-  BACKUPDONE acee2f5ffd8b914d16be7722f2b3160ca8881455 pushed to
-  faaslora_origin/retry14_continuous_queue_v2; exactremoteHEAD verified.
-  Sevenexplicitfiles/64payloadssecretscheck/closurehashesPASS; usermanifest
-  excluded. This note is the only new ledger delta after that backup.
-
-NEXT after scoped evidence backup: reuse CPU owner/planner fixtures to test
-multi-target preparation where anotherselectedtarget has a different confirmed
-file origin. First establish legal plannedsource vs later expiry vs actual
-damage; don't weaken guard, catchall or retry. No GPU needed for this nextstep.
-Only after a falsifiable candidate/relevant correctness checks should current
-CPU diagnostic or ordinaryFull resume. Do not increase cap/deadline, repeatold
-projection/tests, rebuildcache or restorebaseline prematurely. 3BTPOT/outputhash,
-bothFullperformance, warm/Resident,M1M2/A1–A5/S1–S13 remainOPEN.
-Sealed docD140_CURRENT_CPU_DIAGNOSTIC.md containsfailuretable; do noteditafterseal.
-
-## D140 launch history — superseded, not a live launch instruction
-
-2026-10-01 13:37. Goal ACTIVE/incomplete. Previous turn PROGRESS (D139 recovery
-andbackup); current turn PROGRESS: launched ONE current-version 7B diagnostic
-with subprocess GIL sampling. No serving/config optimizer, newweight/trace/cache
-or baseline. BaselinesPAUSED; BOTH3B/7BperformanceOPEN. D139sealed/backed78ce501.
-
-Raw results/ieee_tc/p2_backend_qualification/d140_20261001.
-SAME tmux tc-d140-7b-prefix1 launchedONCE13:36:31, currentlyLIVE. Do NOTrestart.
-Parentcontroller1201023; py-spy1201022; time1201009 observed13:37:10.
-Startup frontendchildren1203280/1203281 observed; actual GPUcore roles pending
-runtime worker evidence. Sampler already reports transient stack/process-read
-warnings; retain/count, do not assume completecoverage or abort/restart forwarn.
-Nofinalprofile/results yet. No actual launch.json terminalreceipt yet.
-
-- Backed runtimeHEAD78ce501fee27e2ca517423140e498fc1f12f0cac; servingunchanged
-  D137/D138. SameD1377Bconfig except3freshownedpaths+1000prefixcount; D122existing
-  first1000indexview/source4000/W0/formal0; no newtrace/profile.
-- ExactD123wrapper reused, only--subprocesses added (100Hz,GIL,threads,
-  fullfilenames,speedscope). Nativechildren use realPython,notwrapper. Native C
-  extensions releasingGIL notcovered; profileoverhead meansnoformalranking.
-- Preflight192refs/147protected/Plan1525lines/V1312lines PASS.
-  SHA0ff53fab1178d053685101e2a0888182002e581fe069c2e01b8f536df6af613d.
-  7Bcap2/seq2/slots4/cpu24/FP16TP1,currentprofiles,deadline1800 unchanged.
-  Predictedgrowth32GiB,localdisk182103834624B,hostavailable112608296960B before
-  launch. BothNIC1000/full. Old100Mbpscauseunestablished; noagentNICchange.
-- Actualserviceprimelora-tc-svc-181832d131004293988a1ad8842c9cf6.scope,
-  invocation61dd185a693a420580b92c6f7746e271,72/80GiBswap2CPU4–23,28–47.
-  Actualauxprimelora-tc-aux-42f48498462f4b83bde52eec39ca6e64.scope,
-  invocation29f3efed79974eb08ec64bd9b992864d,3/4GiBswap0CPU2,3,26,27.
-  LimitsreadbackPASS; initialservice650264576B. Watchdog/replay separate.
-- Prelaunch77525completed0; actualebbb3a84216f4beebc7f4015d9c8a145emptyclosed;
-  health40f4c4bb1aa445bdaef21ef5923b9515completed0/emptyclosed. Events0.
-- Remote3bPID1772827/8ade36d9616849b5b91eba243ea47d71;
-  7bPID1772829/12ae151f4ba245c8a70964f0fdf0c96c;
-  monitorPID1772832/296f8f0c22814f27abc286e1895e6f1e,
-  unitprimelora-artifact-monitor-d140prefix1.service. BothhealthPASS;
-  7Bclockremote-process-monotonic:85bad03b54c64d059dd4350266588f6b.
-  Remote log/home/lab14/primelora_remote/tc/d140_20261001/remote_monitor_7b_full_prefix1.log.
-  D78publishedcache reusedunchanged. No remoteadjustment duringinference.
-- stop_services_prefix1.sh and stop_remote_after_prefix1.sh prepared with
-  actualidentities; executeONLYafterlocalterminal/GPUrelease/serviceinactive.
-  Localauxcleanup notyetprepared/executed. No network copy/hash duringrun.
-
-NEXT: monitor SAMEcurrentrun, observe actualfrontend/planner/GPUcorePIDs;
-terminal→physicalcleanup→exactremotestop/copy→boundedanalysis→rolehotspottable
-andinterpretation→scopedbackup. Existingfirst1000runtimeprofile adds missing
-currentCPUevidence, notrepeatobsoleteD123result. No speculativeoptimizer,
-cap/deadlineincrease or safetyguardremoval. 3BTPOT/outputdifferences remainOPEN;
-Warm/Resident,M1M2/A1–A5/S1–S13 allpending. SeeD140_CURRENT_CPU_DIAGNOSTIC.md.
-
-## D139 RPC recovery closure — completed, not a new execution instruction
-
-2026-10-01 13:30. Goal ACTIVE/incomplete. Current turn PROGRESS: recovered the
-already-retained RPC fields for D137/D138, each all4000 requests; no GPU replay,
-new workload/cache, serving/config change or baseline. D138 remains sealed.
-No live experiment/analysis handle. Once-only publishedcache NEVER rebuild.
-
-- Existing analyzer extended with opt-in --rpc-breakdown; pinned curated SHA
-  and input SHA, complete IDs/native generation/transport/clock/replica checks,
-  Type-1 quantiles, explicit missing/null/invalid/zero counts and no overwrite.
-  Previous curator queried nonexistent parent_response_* keys; actual
-  parent_rpc_response_pickup_delay_ms etc are present. No originaldata lost.
-- 14newRPCtests +24affectedtimeline regressiontests=38PASS,0.160s. No other
-  completed test suite/projection replayed. 3B/7B audit0.78/0.75s,peakRSS
-  129024/130944KiB,3/4GiBswap0CPU2,3,26,27,events0.
-- Actual audit InvocationID1b5be5d2e365438c8a67cd1014797104,finished0at13:20:50;
-  exact empty cleanup completed. Prior small inspectioncc806df2cbd44ace9ee3ef55602c0890
-  also emptyclosed/events0. No current primelora scope/GPU process observed.
-- Both model projections:22stored diagnostic fields have4000finite nonnegative
-  values. Completeness of storage is NOT proof everyzero is measured: native
-  async threadresume=structural0; IEEE resolution/admission legacytimers=default0.
-  routing includes await and excludes snapshotNone earlycontinues,NOTtotalCPU.
-- Mean/P95 pickup7B1095.831894/5969.025135ms;
-  3B1264.889093/7246.434450ms. Parentchannelmean7B.017296/3B.081575ms;
-  responses~1774bytes. Monotonicworker→controller gapmeans1096.602607/1265.689866ms.
-  Supports nontrivialcompletionhandoffwait,not enlargedpoolasfirsthypothesis.
-  Does NOT prove JSON/GIL/sourceinventory cause or remoteartifactnetworkdelay.
-- Result SHA3B0cc93b11529db20f721a380931d21626c1ae73bf0a8b03a69be1fec96b1b057e,
-  7B4a9c56e0894a2746577eba14c4affa7a3f62321adc038e66d62599b9f3cf826b.
-  Data paper_results/ieee_tc/p2_backend/20261001_d139_rpc_{3b,7b}; raw
-  results/ieee_tc/p2_backend_qualification/d139_20261001. Complete perrequestCSV
-  localonly; smalltables/source/tests/receipts forbackup. Finalinterpretationtable
-  docs/ieee_tc/D139_CONTROL_PATH_DIAGNOSIS.md. Now SHApinned; do not editsealeddoc.
-- Verificationattempt1 stoppedbeforewritingoutputs: schedulerfile absent from
-  D138prelaunchSHAmap, NOTa servingchange. Failedreceipt retained; exactempty
-  5343201821594e5681c922b6d3376666closed/events0. Attempt2 uses exactD138runtime
-  git2608d027 for that file, otherfive servingfiles matchrecordedSHA. No audit/test
-  rerun. Independent8000rowCSV stats, inputSHA,147protected,Plan/V1 PASS.
-  Same12893completed0at13:27:53,actual2188d68987e74b3c9b6eed073fedab91/events0.
-  VerificationSHA c205423e2c8a192dad2e3f59fa81f63cc1528900cc3ccf7cd65ab9c42c21678a.
-  Bundle28members/33919B SHA8611489e1d4ce89a8066bf7d765142edbceb5e5d3558941bb701aa87b4cf58cd.
-  Exactemptyclosed13:28:52/events0;11.19s/RSS1174964KiB. Closure receipt saved
-  paper_results/ieee_tc/p2_backend/20261001_d139_evidence_closure.json.
-  ChecksumPASS. No liveanalysis handle.
-
-BACKUP DONE:78ce501fee27e2ca517423140e498fc1f12f0cac pushed to
-faaslora_origin/retry14_continuous_queue_v2; exactremoteHEAD verified.
-12explicitstagedfiles/39payloadsecretschecks/closureSHAchecksPASS;user manifest
-excluded. CSVCRLF handledwithcr-at-eol,otherwhitespacechecksretained. Neither
-sealedCSVbytes nor pastfigures changed. This backupdoesnotmeanFullperformance
-qualified. No optimizer/profile/replay prepared or launched this turn.
-
-NEXT: afterevidencebackup, adapt existing D123 first1000request 7B diagnostic
-wrapper to currentcode, keepcurrentconfig/realremote and record actualparent,
-frontend,planner AND GPUcore with py-spy subprocess support. Primarypy-spy0.4.2
-and Python3.12 async docs checked. No profiler/wrapper/replay prepared/launched
-yet. Old parent-onlyD123profile/JSONmicro cannot answer currentcause; don'trepeat.
-Existing generateRPC fields do NOT time source_snapshot/preparation/retirement
-calls, so boundedcurrentprofile adds missing evidence. No caps/deadlinechanges,
-guardremoval or speculativeoptimizer. Afteronecandidatevalidated,ordinaryFull.
-3BTPOT/outputhash differences and7B/3Bperformance remainOPEN. BaselinesPAUSED;
-Warm/Resident,M1M2/A1–A5/S1–S13 stillpending. Lastdisk182119997440B; recheckheavy.
-
-## D138 closure and initial D139 diagnosis — historical, superseded above
-
-2026-10-01 13:10. Goal ACTIVE/incomplete. Current turn PROGRESS: same evidence
-session4277 completed0; verification, small bundle and exact-owned cleanup done.
-No live experiment or analysis handle. No serving/config change, new optimizer,
-GPU replay or baseline. Once-only published cache fulfilled; NEVER rebuild.
-3B AND 7B performance remain OPEN. Baselines remain PAUSED.
-
-- SAME projection2846 completed0 at12:48:28; exact emptydomain closed12:48:45,
-  memory events0. 27:47.70/RSS97536KiB. Output33831248B SHA
-  8221aaf5f60fad975eb4ae92bd9b5d2a0a7cc5d9b0e07bc3e00d6389b30322eb.
-  NEVER reproject original9.4GB. Monitoring cells6327/6334/6337 all finished.
-- Curator8268 completed0, actual d5b76f96f6ea4c4ebc0c0216b9832d1b,
-  31.41s/RSS363440KiB; failure audit0.57s/RSS97304KiB. Emptyclosed12:49:56.
-  Occupancy25366 completed0, actual f9258f03291b41dba280dcdb16b0873a,
-  2.87s/RSS339676KiB; emptyclosed12:50:29. Both analysis domains events0.
-  Occupancy helper retained old D137 service precheck; actual cleanup targeted
-  exact D138 empty domain correctly. Executed helper retained unchanged, actual
-  D138 service/occupancy inactive supplement verified. Not a wrong-process stop.
-- All4000 native-contract success,0fail; exact prompt/input/target/count/timing
-  matches withinrun, maximum timeline/TPOT recompute error0ms. Numeric adapter
-  qualification and commonwarmSLO PENDING; n_correct null/eligiblefalse.
-- D118/D138 all4000 IDs,adapter,arrival,prompt/source hashes,input/target/actual
-  counts and contracts match. OutputtokenID hashes:3748same/252different(6.3%).
-  All differentIDs retained. Cause UNPROVEN. vLLM0.30 official reproducibility/
-  batch-invariance docs identify a possible cause, NOT evidence of this cause.
-  No historical env reconstructed from today's default; no new env flag set.
-- 3B mean/P95 TTFT12.588626567/45.713687960s; controllerE2E17.517594720s;
-  dispatch8.540798232s(67.85%meanTTFT); serviceTTFT4.047828335/native.581056899s.
-  Mean/P95 TPOT38.582978680/98.346633191ms. GPU15861.330546541s.
-  D118 descriptive change: TTFTmean -89.69%,P95 -82.98%; TPOTmean +28.80%,
-  P95 +51.81%; GPU -0.0308%(no material resource gain). Both n1/multiplechanges/
-  outputdifferences; no isolated causal estimate, CI or formal winner.
-- Stage means:arrival→gate4.458793090s,gate→source4.082005143,
-  source→native3.466771436,native→last4.157320471,last→controller1.352704580,
-  controller→outer.975115882. Gate→outer14.033917513s is upperenvelope,not
-  exactpermitrelease or GPU billing. Native meanconcurrency4.190201/peak23,
-  perreplicapeak8. 1462controlsamples/921queuepositive&activebelowcapacity;
-  samples do not prove continuous idle or causal source of waiting.
-- Final tables/interpretation saved docs/ieee_tc/D138_FULL_W0_FULL1.md. Its
-  preverification wording about pending seal is superseded here; document SHA
-  pinned in verifier, do not casually edit. CuratedSHA
-  b20177aa13cc677fea2c151d752d1ede10a78d01de2d258fc02303c0624d87bb;
-  failureSHA a8409a86632bcfcd14d2d01247e9fe6aa7e5cfd3ae230a6c02c7c2e8f208572d;
-  occupancySHA d49ae6eeb3b2c81eb00ce85100b8af99fd28f44c75bce4ec0fca7d3d7b1e5649.
-- Verifier4277 completed0,2.66s/RSS28964KiB, actual
-  bd7ba7f8714b446e809e4ae76e164de0. 184frozen/43curated rehashed/147protected
-  PASS,9.4GB source stat+alreadysealedhash reused,95tests reused from sealed
-  D137 (test/analyzer code unchanged), NOT rerun. New crossrun function fixtures
-  captured separately. EvidenceSHA
-  795a10b12fb56adaa8aadbbeb1aea93e6e86e53522c9d88f8db0c8e96bc43521.
-  Exactemptyclosed13:01:18, memoryevents0.
-- Small bundle complete67members/53168B, SHA
-  fc602a8dd0bbe08534ddded90e96080254b206b496d82d31e7e3ae9816f3ad01;
-  checksum/memberchecksPASS. Actualbundle78aa7951bf5544e2a814d543ba7d3db4,
-  completed0 and exactemptycleanup done,events0. Initial cleanup syntax command
-  used wrong cwd and stopped before execution; corrected cwd ran helper ONCE.
-  No rawlarge data or model copied. Lastdisk182146555904B, recheck beforeheavy.
-
-Backup DONE: 35b3e84c601ea99cda7762f3262ac7d9b2dae0e8 pushed to
-faaslora_origin/retry14_continuous_queue_v2; exact remoteHEAD verified this turn.
-Precommit13explicitfiles/80payloads secrets and bundle-member hashes PASS;
-user manifest excluded. csv.writer outputs CRLF; ordinary diff-check flagged
-those line terminators only. Recheck with cr-at-eol (all other whitespace rules
-retained) PASS. No sealed CSV bytes/values/hashes changed to silence the check.
-D139 read-only follow-up in docs/ieee_tc/D139_CONTROL_PATH_DIAGNOSIS.md:
-permit covers source/preparation/generation/confirmed retirement; cannot early
-release on lasttoken alone. Full native source graph is still built in GPU core
-despite D132 frontendprojection. Current version's inputqueue utility handling
-and UniProc synchronous worker call confirm possible scheduling competition,
-NOT measured causal contribution. Current localsourceSHA and primary official
-docs checked; vLLMskill read with optimizationreference, generic targets not used.
-No serving edit, no new test/profile/replay prepared or launched. No live handles.
-NEXT: reuse existing evidence to recover actual source/retirement call timing;
-if insufficient, adapt existing D123 bounded current-version diagnostic to
-cover actual core as well as parent (same originalprefix/config, no newtrace).
-Do not repeat old decoder/projection microtest or infer current profile fromold.
-3B outputdifferences/TPOT regression remain explicitly OPEN. Do NOT run baseline, blindly
-increase capacity/deadline, remove guards, repeat completed tests/projections or
-declare 3B finished. Warm/Resident, baselinequalification, M1M2/A1–A5/S1–S13 pending.
-
-## D138 historical wait through12:40 — superseded, not execution instructions
-
-2026-10-01 12:40. Goal ACTIVE/incomplete. Previous turn VERIFIED WAIT;
-current turn VERIFIED WAIT on SAME2846 plus bounded-curator comparison
-extension and isolated fixture checks. No new serving optimizer or replay.
-No subagents. Baselines PAUSED; 3B/7B performance OPEN. No serving/config change,
-new optimizer or new replay. Once-only cache already fulfilled; NEVER rebuild.
-
-- SAME D138 normal exit verified12:19:15: service inactive/tmux finished,
-  launch.pass true, service/replay/watchdog returncodes0; actual native GPU
-  release and service path removal true. Launch SHA
-  48533d56fc48673ecd2e769e04950416c12f20fabc5fc76a40e35845c9f80bd0.
-- All4000 planned/arrived/submitted/terminal and native-contract matches,0fail.
-  Numerical adapter/common warm SLO still PENDING, n_correct null/eligiblefalse.
-  DO NOT close 3B performance from completion or claim formal qualification.
-- Physical15861.330546540965GPU-s; four leases/allreleased/noopen/noquarantine.
-  Windows36.03676840296248prearrival/15708.746717182745arrival/
-  18.813937864266336drain/97.73312309099128cleanup. No formal cost ranking.
-- Exact remote3b/7b/monitor stopped12:19:28 after localterminal/GPUrelease;
-  local aux f2dee3270e6246c1970e1510d60207c4 confirmedempty,events0,closed12:19:29.
-  Do NOT repeat cleanup. No remote configuration/management during inference.
-- Remotejournal transfers-34483b35f5c0466e8444ecd2c7968bb9.jsonl matches
-  healthclock remote-process-monotonic:679f672f06904165afbb229e1bb32e70.
-  Copied ONCE; local/remote SHA equal:
-  journal a3d288495fe38932fe39c8e266440ae4da96bc4a6edc8f3d0c716dbfb1744b8a;
-  monitor 773b57fa4ceff1e9c7ca5636bab9d8c57ce1653a6e32e61060dfaa6268cc8606.
-  132UUIDpairs,306360162Bbothends,5139892912Blogical,allpublished/verified,packing0.
-- Metadata session31657 completed0,3.26s/RSS313656KiB. Actual
-  317073ed84204f1881b2f9d124f71680,3/4GiBswap0CPU2,3,26,27,events0;
-  exactemptyclosed12:20:40. Whitespace-only137586951→89976825B,fixturesPASS,
-  completevalues/numeric lexemes/line boundaries preserved;128MiBguard unchanged.
-  PreliminarySHA eff18aba7af785d81711e81cfbebd7eddf07f94b744735d58abcd999160783c9.
-  4557samples,peak37299908608B,minhost79907352576B,high/max/OOM/swap/warnings0.
-- Original normal JSON9401622521B, inode109731443,
-  mtime_ns1790828305989859516. NEVER whole-load or repeat projection.
-- ONE unchanged D96 streaming projection launched12:20:40:
-  exec session2846 LIVE; primelora-d138-full1-project-20261001.scope,
-  actual InvocationID8cbc472b763f427a922a06c2022b3de0,3/4GiBswap0CPU2,3,26,27.
-  Actual timePID882202/jqPID882352,Tasks2/MemoryCurrent9678848 at12:23.
-  Output full_full1_request_projection.json is PARTIAL until exit0/time receipt.
-  Resume SAME session; no second pass. cleanup_projection_full1.sh prepared
-  with actual identity,syntaxPASS,NOTexecuted; requires emptydomain afterexit.
-  At12:26:52 SAME2846/InvocationID confirmed LIVE: jq882352 CPU6m11s,
-  sourcefd4position2137767936/9401622521B,MemoryCurrent23080960B,events0.
-  This is verified progress of the same analysis, not a new run/result.
-  Latest12:32:10 SAMEactualidentity/PID LIVE, CPU11m29s,
-  sourcefd4position3948826624/9401622521B,MemoryCurrent40501248B;
-  latestcheckedmemoryevents0. Read-only polling cell6327 completed allsix
-  observations; it is NOT the actual analysis handle. Resume2846 only.
-  No new analysis output/optimizer/config/remoteoperation/replay this turn.
-  Latest12:39:26 SAMEactualidentity/PID LIVE,CPU18m45s,
-  sourcefd4position6392455168/9401622521B,MemoryCurrent68669440B;
-  latestcheckedmemoryevents0. Pollingcell6334 completed; notanalysis2846.
-- Existing summarize_full_full1.py,collect_full1_failure_breakdown.py,
-  curate_full_full1.sh,run_occupancy_audit1.sh prepared/reviewed,NOTexecuted.
-  Currentcurator now additionallyreuses D137 ID-sorted historicalaudit pattern
-  tocompare D118/D138 all4000offered: adapter/arrival/prompt/input/target/native
-  count/outputhash/sourceitemSHA. ReadsONLYexisting34MBD118projection, verifies
-  pinnedsourceandsealedref; no original9GBparse. Missingfields/duplicates fail;
-  outputdifferences preserved,notwinnerfiltered. Actualcomparison NOTexecuted.
-  AST-extractedfunction fixturesPASS (reorder,outputchange,targetunchanged,
-  duplicate/missingIDs,missingprompt). Toolcapturenotedtruthfully in
-  contract_audit_fixture_tool_capture.txt; notredirectedexperimentlog.
-  New source_refs includepreviouscurated/projection andfixturecapture. Ordinary
-  serving/source/config unchanged. D138doc hasprovisionalaudit-methodnote.
-  Normal schema confirmed. All postrunanalysis actualdomain identities except
-  metadata/projection remain unknown; bind observed ones later,not inheritedIDs.
-- docs/ieee_tc/D138_FULL_W0_FULL1.md added with provisional status/GPU/remote/
-  resource tables and source SHA. Final latency/timing/occupancy/comparison
-  NOT yet claimed. Finish tables before evidenceverification/scopedbackup.
-- Full1525linePlan/1778priorledger/312MetricV1 reread aftercompaction. Skills
-  monitor-experiment/analyze-results/academic-plotting/github-sync read fully.
-  Feishu absent/W&B not enabled. Plan/V1 unchanged. User files untouched.
-  Superseded1778lineledger archived verbatim, SHA verified equal to original;
-  activeledger condensed254lines beforethisnote. No historical evidence lost.
-
-NEXT: SAME2846→actualterminalreceipt→exactemptycleanup→existingcuration/failure→
-exactcuratoremptycleanup→occupancyaudit→fulltables/interpretation→verification/
-bundle/scopedbackup. No newoptimizer/GPUrun/baseline beforeclosure.
-Then evidence-led 3B/7B performance gap work; no blind capacity/deadline increase,
-guard removal, repeated completed probes, old large projections or winnerfilter.
-Warm/Resident,baselinequalification,M1M2/A1–A5/S1–S13 all remain outstanding.
-
-## D138 execution identity (not a new launch instruction)
-
-Raw results/ieee_tc/p2_backend_qualification/d138_20261001.
-Started ONCE11:02:08 tmux tc-d138-3b-full1, NORMAL FINISHED12:19; neverrestart.
-RuntimeHEAD2608d027d82df5a79719153e114ff06a7a70679b, production identical
-233ccc29 (docs/evidence-only commit). Multi-change requalification since
-D118runtime48f808ab; not isolated causal ablation or formal comparison.
-Same D1183B config except3freshownedpaths; Full4000/source42/W0/formal0,
-sameD89profiles; cap8/seq8/slots8/cpu32/batch4096/gpu.72/context1024/FP16TP1,
-no prefix/chunked prefill/profiler,deadline1800,source weights/traceunchanged.
-Trace sourceSHA4ea5d026da3820301e753ad6b03ea776e25a5c3f01921933bd124598eb26018d;
-viewSHA0d998f48a006d638dda9b8d714f667fe3a87f4d2c88044ce19a816b308494a37;
-subsetSHA6c5fc286e3cef00efdd6b84e26c841f3b09d20b17a57b8f6a394b8d27bb1e86b.
-Preflight184refs/147protected PASS,receipt1368a6f5c216d96fd21c32abe36e28fe8ba06f8596f8a25ce0c1aea7b7b1a0d2.
-BothNIC1000/full,nochanges. Allprelaunch/healthscopes closed beforelaunch.
-Actualserviceunitprimelora-tc-svc-1f05557629544bcb813b18787c26af99.scope,
-invocation66ecce9242f84e359eefc18dd39a9a1a,72/80GiBswap2CPU4–23,28–47.
-Actualauxprimelora-tc-aux-4590b9aa7523492da77c0f2ed966ea6f.scope,
-invocationf2dee3270e6246c1970e1510d60207c4,3/4GiBswap0CPU2,3,26,27.
-Allfour leases endedrelease/worker_returncode0:
-GPU0/5fd74446d375418491065591a0ca22e9 at335016.171668082;
-GPU1/3e46c5bca3dd49de91649f73837194a8 at335025.572814232;
-GPU2/01d8bdd6b1054062bb7004256bb258fa at335035.353050915;
-GPU3/bbf99349c8254c3c894fd343714e2e44 at335044.559847262.
-Exactremote3bPID1582707/c396658a91dd498c90ff3211f4aa76e4;
-7bPID1582709/84734126467248f7ba4bada8ce80341e;
-monitorPID1582712/a75037f098e64b448272836cfea7338f,
-unitprimelora-artifact-monitor-d138full1.service,allstopped.
-Remote monitor /home/lab14/primelora_remote/tc/d138_20261001/remote_monitor_3b_full_full1.log.
-Diskfree rose duringrun,NOagentcleanup/compression; causeunestablished,
-do not infer contamination/performance causality fromfree-spacechangealone.
+D138 closure, D139–D143 diagnostics and D144 qualification remain fully
+preserved in [the verbatim ledger archive](EXECUTION_HISTORY_THROUGH_D145_LAUNCH_20261001.md).
+All936lines verified byte-identical before removal from active ledger;
+SHA03b4a33bbb4eca65400049eb411b24a871704a8ef1aee34ceb4cf10ce81a0496.
+Historical LIVE/NEXT instructions there are superseded by CURRENT above.
+Do not repeat completed tests, diagnostics, projections or remote publication.
 
 ## Completed checkpoints — DO NOT REPEAT
 
