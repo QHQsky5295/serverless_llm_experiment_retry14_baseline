@@ -16,6 +16,62 @@ import threading
 from dataclasses import dataclass
 
 
+_diagnostic_stack_file = None
+
+
+def enable_diagnostic_stack_sampling():
+    """Opt-in stack observations, not a CPU-time profiler or serving policy.
+
+    The C watchdog writes each observation immediately, including when Python
+    is blocked. Keep its descriptor open until interpreter exit. Only children
+    of an explicitly nonformal, gated diagnostic may enable it; no signals,
+    ptrace permissions, locals, or timing corrections are installed.
+    """
+    import os
+    global _diagnostic_stack_file
+    flag = os.environ.get('FAASLORA_TC_STACK_SAMPLING')
+    if flag is None or flag == '0':
+        return
+    if flag != '1' or os.environ.get('FAASLORA_FORMAL_RUN') != '0':
+        raise ValueError('stack sampling requires an explicit nonformal diagnostic')
+    if _diagnostic_stack_file is not None:
+        return
+    receipt_path = Path(os.environ['FAASLORA_TC_LAUNCH_RECEIPT']).resolve(strict=True)
+    receipt = json.loads(receipt_path.read_text())
+    cgroup_rows = Path('/proc/self/cgroup').read_text().splitlines()
+    unified = [row[3:] for row in cgroup_rows if row.startswith('0::')]
+    actual = Path('/sys/fs/cgroup') / unified[0].lstrip('/') if len(unified) == 1 else None
+    expected = Path(receipt['service_identity']['path'])
+    replay = receipt.get('external_replay', {})
+    if (receipt.get('allow_exec') is not True or actual is None
+            or not actual.is_relative_to(expected)
+            or replay.get('replay_scope') != 'diagnostic_prefix_v1'
+            or type(replay.get('diagnostic_prefix_count')) is not int
+            or replay['diagnostic_prefix_count'] <= 0):
+        raise ValueError('stack sampling is outside its gated diagnostic service')
+    import atexit
+    import faulthandler
+    pid = os.getpid()
+    ticks = int(Path('/proc/self/stat').read_text().rsplit(') ', 1)[1].split()[19])
+    directory = receipt_path.parent/'diagnostic_stacks'
+    directory.mkdir(mode=0o700, exist_ok=True)
+    if directory.is_symlink():
+        raise ValueError('stack output must not be a symlink')
+    stem = directory/f'{pid}-{ticks}'
+    with stem.with_suffix('.json').open('x') as stream:
+        json.dump(dict(kind='diagnostic_periodic_python_stacks_v1', pid=pid,
+            parent_pid=os.getppid(), start_ticks=ticks, cgroup=str(actual),
+            executable=sys.executable, argv=sys.argv,
+            main_thread_ident=threading.main_thread().ident,
+            capture_start_monotonic_s=time.monotonic(), period_seconds=2.0,
+            all_threads=True, includes_idle_threads=True, cpu_time_profile=False,
+            formal_performance_result=False), stream, indent=2)
+    _diagnostic_stack_file = stem.with_suffix('.stacks.txt').open('xb', buffering=0)
+    faulthandler.dump_traceback_later(2.0, repeat=True,
+        file=_diagnostic_stack_file, exit=False)
+    atexit.register(faulthandler.cancel_dump_traceback_later)
+
+
 @dataclass
 class LogConfig:
     """Logging configuration"""

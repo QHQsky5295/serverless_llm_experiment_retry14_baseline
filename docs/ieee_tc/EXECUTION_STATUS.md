@@ -1,6 +1,41 @@
 # IEEE TC execution status
 
-## CURRENT — D141 selected-sibling plan expiry corrected; no live experiment
+## CURRENT — D142 diagnostic observer qualified; replay not launched
+
+2026-10-01. Goal ACTIVE/incomplete. Current turn PROGRESS: opt-in periodic
+Python stack observer qualified with335 affected CPU tests/75.091s. No new
+serving policy, formula, profile, capacity, deadline, workload or remote change.
+Baselines PAUSED; BOTH3B/7Bperformance OPEN. Once-onlycache NEVER rebuild.
+
+- D140100Hz all-subprocess py-spy failed to retain a final profile and caused
+  162lagwarnings/max46.84s; do NOTrepeat. New observer uses CPython3.12
+  faulthandler every2s, immediate separatePID/starttick output, no locals/ptrace/
+  signalinstallation. Includes idlethreads; NOTCPUtime profile, no measured
+  overhead claim. Actualcontroller/frontend/planner/GPUcorecoverage pending.
+- Defaultoff/lightweight; rejectsformal, invalidflag, foreignscope, nonprefix,
+  unapprovedreceipt. Two independentCPUprocesses retained completed observations
+  after abrupt_exit23. Repeatedcallidempotent; existingoutputnot overwritten.
+  EnabledONLYafterlaunchgate via diagnosticwrapper, not replay/monitor scopes.
+- Actualtestscope6ee228d145ed41fe92b735dd2fa9076c,3/4GiBswap0taskset2,3,26,27;
+  testsfinished14:24:16,emptyclosed14:25:10,events0. No tests rerun.
+- Curator42477completed0,actualaf195ff49e284ec2a8b524c327f87e80,exactempty
+  cleanupdone,eventsrecorded.147protected/Plan/V1/codeSHA/scriptssyntaxPASS.
+  CuratedSHA83aee57b9174caeec2c14ead89439295aa2a052ae61231edfb94f17fb5f7a719;
+  bundle13members25089B SHAd9cf1c3f764692885e95204568260d4837f6a7d64b753006830fdfbf8ebc2031.
+  SealedD142_STACK_DIAGNOSTIC_QUALIFICATION.md is CPUqualification only.
+- ReusedD140launch/preflight/remotehelpers prepared in d142_20261001,NOTrun.
+  SameD1377Bconfig except3freshpaths/prefix1000; D122existingindexview/source
+  4000/source42/W0/formal0. Oneprelaunchassert escaping typo fixedbeforeexecution.
+  RuntimeHEAD placeholders must be frozen to newbackup beforepreflight.
+
+NEXT: backup testedobserver→freeze newHEAD→boundedpreflight/remoteactivation/
+health→exactemptycleanup→ONEcurrent7Bprefix diagnostic. Then terminal→physical
+cleanup→exactremoteclosure→boundedrole-stacktable→interpretation→backup.
+No speculative optimizer/cap/deadline increase. OrdinaryFull still required
+after evidence-led candidate. 3BTPOT/outputhash, numericadapteridentity,
+warm/Resident,M1M2/A1–A5/S1–S13 remainOPEN. No liveGPU or analysis handle.
+
+## D141 closure — completed history, not a current execution instruction
 
 2026-10-01 14:13. Goal ACTIVE/incomplete. Current turn PROGRESS: CPU causal
 counterexample RED→GREEN; one minimal helper correction plus a comment update;
@@ -38,7 +73,13 @@ Once-only published cache already fulfilled, NEVER rebuild. Baselines PAUSED.
   DocD141_SELECTED_SIBLING_PLAN_EXPIRY.md is now SHA-pinned, do not edit casually.
   Initial failed launcher remains preserved. No rawlarge data copied.
 
-NEXT: scoped backup of tested correction, then current control-path diagnostic
+BACKUP DONE: d12075c6cf283204b7d7023cd4598872c664d981 pushed to
+faaslora_origin/retry14_continuous_queue_v2; exact remote HEAD verified14:14:25.
+Nine explicit files / 34 staged-or-archive payload secret checks / checksum /
+diff checks PASS; user manifest excluded. No live GPU/worker/analysis handle.
+This backup note is the only new ledger delta after that checkpoint.
+
+NEXT: current control-path diagnostic
 with lower perturbation and failure-persistent output (reuse existing tooling).
 Do NOT repeat D140100Hz subprocess profile:162lagwarnings/max46.84s/finalprofile
 missing cannot identify CPU hotspots. No speculative cap/deadline increase or
