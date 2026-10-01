@@ -1,0 +1,30 @@
+# D155 single capacity candidate. Only max_num_seqs/runtime_concurrency_cap
+# differ from the existing llama2_7b_main_v2_publicmix model profile.
+# Qualification index only; not a new workload or a frozen Full configuration.
+model_profiles:
+  llama2_7b_main_v2_publicmix:
+    model:
+      name: "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf"
+      backend: "vllm"
+      device_id: 0
+      visible_device_ids: [0, 1, 2, 3]
+      tensor_parallel_size: 1
+      gpu_memory_utilization: 0.70
+      max_model_len: 1024
+      max_loras: 4
+      max_lora_rank: 64
+      enable_lora: true
+      enforce_eager: "auto"
+      dtype: "float16"
+      max_num_seqs: 4
+      max_num_batched_tokens: 1024
+      max_output_tokens_cap: null
+      max_input_len: null
+      runtime_concurrency_cap: 4
+      enable_chunked_prefill: true
+      enable_prefix_caching: false
+      vllm_use_v1: true
+      vllm_attention_backend: "FLASH_ATTN"
+      vllm_use_flashinfer_sampler: true
+    storage:
+      remote_dir: "artifacts/frozen/llama2_7b_a500_v2_publicmix"

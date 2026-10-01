@@ -1,13 +1,86 @@
 # IEEE TC execution status
 
-## CURRENT — D155 capacity audit COMPLETE; next single candidate cap=4 qualification
+## CURRENT — D156 cap=4 bootstrap COMPLETE; prepare admission-enabled class profile next
+
+05:10 +08 seal COMPLETE:147protected/config/trace/raw/remote/Plan/V1 SHAs PASS;
+source syntax and actualbootstrap12native checks PASS.29member smallbundle12998B,
+SHA08edc11c8384ae6083231e8afb13f56dd20bf055daaf0c6c924bfe70c6d070aa.
+Sealactual7e3039dc2fb8415e8432dfef41e9088c,exited0/finalevents0,scopeabsent.
+D156doc/result nowSEALED by verificationmanifest; don'tedit. Curation10.63s/
+RSS1176060KiB. Disk161567154176B (~150.47GiB), recheck150GiBfloor before
+nextheavy; no unsafe cleanup. Backup checkpoint pending; no livejobs.
+
+2026-10-02 05:07 +08. GoalACTIVE, Prime7B only. No live GPU/remote/analysis job.
+D156 actual bootstrap2 PASS:12/12 native token/source/timing/retirement checks.
+Four native decode intervals intersect5.0070s(warmup),5.0506s/2.8809s(measured).
+Measuredwave nativeTTFT250.893/233.430ms,TPOT34.475/33.322ms, noCI/mainranking.
+StartupfreeKV278blocks vs maxdeclared4contexts need256; block16tokens/8MiB.
+NotcontinuousKV/preemption or fullphysicaladmissionproof. U114.038600675GPU-s,
+oneactuallease released; profileworkspaces removed. n_correct=null.
+Remote12pairs/65204801onlinebytes/pack0, contentSHAverified. Peak5416239104B,
+observedhigh/max/OOM/swap0. Numericadapter/commonSLO/G1G2 stillOPEN.
+ResultSHA befd3161e9ef2cd81b2271ba08777dd61fc623219a4babfeec5f34b6773f84ac.
+Serviceactualaea5686a4ac844bb9c5595b936894bfe / f757d22d0c054074a8e6df7179df7b7e;
+auxactual5854b37b19e942a4971b1e142ca26cff / a12e3e2da10d430688acd5eaba3d18c6.
+Bothscopesautomaticallyremoved/nativePID1117836absent. Exactremote3services
+stopped05:04:35,success. Remotejournal359475af4bf745b8b0694993b8ce48f3,
+clock695cea944a90406fadb1f81dd97d6b86; copySHAsmatched. Stopcommand52458
+exit127 ONLY because subsequentrgnotinstalled; grep fallback foundexactjournal,
+copy28521closed0. No remote restart. Preserve this toolingerror.
+Curation83185closed0,actuald63097717f94459fab73b420a9a1be56,scopeabsent.
+Newcompleted-length audit passed unchanged strictmeasured_admission_initializer;
+source-onlyGPUtimings NOT Full/admissionprofile. NewCSV/table/doc D156.
+Bootstrap1 wasonly31-digitauxname rejectedpreGPU; source/configunchanged in2.
+NEXT seal/backup thisqualification; then prepareadmission-enabled 3round source
+matrix forcap4 usingexistingrepresentatives/waves/[1,2,4]admittedbins, no fresh
+workload/weights oroldtimingrelabel. Aftercoverage→ordinaryFull4000W0.
+DoNOTrepeatD155/bootstrap2 oradvance3B/baselines beforeactualmodelacceptance.
+
+## D156 preparation history — superseded by completed state above
+
+2026-10-02 05:01 +08. D155 remains complete/backed; not repeated.
+D156 candidate config changes ONLY max_num_seqs/runtime_concurrency_cap 2→4,
+SHA4aba5abd28e11cb8518b2d4fc5938276b5b67e52f4f077f871d9d730fbfbe733.
+Bootstrap spec SHA10d85d3354222b7c7e222b80099d6e62b156a56454fb5c9ad3d1bbbb41420959:
+three four-lane GPU-ready waves (one retained warmup), six existing D84
+representatives, 12 observations; source42 unchanged; no new weights/trace.
+Source-only completed lengths bootstrap, not a Full run/admission profile/SLO.
+No serving source edits. Native-source existing collector reused unchanged.
+Inputs/config-diff/147protected/Plan/V1 PASS under3/4GiB/swap0:
+prepare1 actualaec9b1c8610c4251933e315ed752dd54, session25287closed0,
+scope automatically removed. Raw d156_20261002/ bootstrap_inputs.json.
+Remote exact3B2924062/a486fad1f16a42c49ebe070f569874a5;
+7B2924064/882bd27170b34b40b79ea268c1785b92;
+monitor2924068/87ba3159b45f4e65b1050e210ff7eff8,
+unitprimelora-artifact-monitor-d156bootstrap1.service.
+BothNIC1000/full; published cache reused unchanged.
+First health probe raced listener startup (connection refused, exit1); retained
+empty health_3b.json. Both listener presence then verified; fresh health2 files
+PASS, no service restart, no GPU attempt yet. Health scopes removed.
+NEXT launch ONE guarded tmux bootstrap; check actual KV/native overlap/tokens/
+retirement, then table; fresh admission-enabled class profile still pending.
+G1/G2/numericadapter/commonreference and 3B/baseline work remain open/paused.
+
+## PRIOR — D155 capacity audit COMPLETE; selected cap=4 qualification
+
+04:51 +08 BACKUP COMPLETE6399ad2b0c60dacabfcffde46791af2dc9302a2e,
+pushedfaaslora_origin/retry14_continuous_queue_v2; independentremoteHEADmatches.
+Push62340/verify4501closed0.10explicitfiles/19payloadssecretsPASS; curated/source
+checksums,32tests,bundle,syntax and CRLF-preservingdiffcheckPASS. Usermanifest
+notstaged. Onlylocalbackupreceipt addedaftercommit. No livejobs, GPUidle.
+Disk161616203776B (~150.52GiB): close tonew-heavy150GiBgate, recheck before
+qualification and accountforcompiler/profilegrowth; do not weakenfloor.
+Nextcap4 remains ONE selectedcandidate, no servingconfigurationedited/launched.
+This goal turn PROGRESS (newcompletecapacityaudit+tests+table+backup), not
+modelacceptance. NEXT prepare/qualify4concurrent native-source index with
+freshmodelidentity; no repeat D155 analysis/tests or D154 fullreplay.
 
 04:50 +08 D155 seal complete:147protectedPASS, exactanalysis/scopeabsence,
 Plan/V1/sourceSHAs/syntax/tests/bundlechecksPASS.10memberbundle5259B,
 SHA91223deed5c1dab7ed29c976355a3ff2542ce4ac2f767619a9df79cf6faaeca3.
 Sealactualec104dad15704de0941c90b9db87c8d7 exited0; finalmemoryevents0,
 nowinactive/emptyID. D155doc sealed by verificationmanifest; doNOTedit it.
-Backup pending; no sourcecandidate or GPUlaunch. Only offlineanalyzer changed.
+Backup was pending atseal time; completedabove. Only offlineanalyzer changed.
 
 2026-10-02 04:49 +08. GoalACTIVE, Prime7B only, no liveGPU/remote/analysis job.
 D154 remains SEALED/BACKED d410447; no repeated replay or giant projection.
@@ -36,7 +109,7 @@ then builditsadmission/service/preparationprofiles and fullclasscoverage before
 ordinaryFull4000. No newweights/traces, no deadlineincrease, no secondoptimizer.
 If capacitycandidatefails preservefailure; don'tblindretry. Allcommonreference/
 numericadapter/G1G2/oldPrimeacceptance stillOPEN; baselines and3BstayPAUSED.
-NEXT complete D155secrets/backup, then prepare ONEcap4qualification.
+NEXT prepare ONEcap4qualification; D155secrets/backup completedabove.
 Skills analyze-results/academic-plotting/vLLM/github-sync read; vLLM official0.30
 source+docscheckedonline. GenericskilltargetspeedsNOTouracceptanceprotocol.
 

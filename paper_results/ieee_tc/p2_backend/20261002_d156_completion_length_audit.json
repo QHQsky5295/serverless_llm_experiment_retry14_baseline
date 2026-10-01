@@ -1,0 +1,126 @@
+{
+  "kind": "native_completed_output_length_initialization_audit_v1",
+  "development_only": true,
+  "production_profile_frozen": false,
+  "aggregation": "deduplicate_original_request_identity_not_wave_repetitions",
+  "models": {
+    "7b": {
+      "source_run": {
+        "path": "results/ieee_tc/p2_backend_qualification/d156_20261002/7b_cap4_bootstrap2.json",
+        "sha256": "befd3161e9ef2cd81b2271ba08777dd61fc623219a4babfeec5f34b6773f84ac"
+      },
+      "model_config": {
+        "name": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+        "backend": "vllm",
+        "device_id": 0,
+        "visible_device_ids": [
+          0
+        ],
+        "tensor_parallel_size": 1,
+        "gpu_memory_utilization": 0.7,
+        "max_model_len": 1024,
+        "max_loras": 4,
+        "max_lora_rank": 64,
+        "enable_lora": true,
+        "enforce_eager": false,
+        "dtype": "float16",
+        "max_num_seqs": 4,
+        "max_num_batched_tokens": 1024,
+        "max_output_tokens_cap": 256,
+        "max_input_len": 759,
+        "runtime_concurrency_cap": 4,
+        "enable_chunked_prefill": true,
+        "enable_prefix_caching": false,
+        "vllm_use_v1": true,
+        "vllm_attention_backend": "FLASH_ATTN",
+        "vllm_use_flashinfer_sampler": true,
+        "timing_contract": "ieee_tc_native_v1",
+        "ieee_worker_observation": true,
+        "ieee_gpu_references": true,
+        "ieee_scheduler_observation": true,
+        "ieee_input_upper_bounds": [
+          759
+        ],
+        "generation_contract": "fixed_length_greedy_v1",
+        "canonical_prompt_renderer": "role_lines_v1",
+        "ieee_physical_allocation": true,
+        "ieee_host_budget_bytes": 17179869184,
+        "ieee_native_host_tensor_budget_bytes": 2147483648,
+        "ieee_native_host_workspace": {
+          "kind": "native_host_workspace_contract_v1",
+          "dtype": "torch.float16",
+          "source_audit_sha256": "224b9337ecaba2590ac888e9d0e3b9eb41a17074ce77b952e98e935259adf60f",
+          "max_resident_pinned_bytes": 33554432,
+          "max_transient_tensor_bytes": 67143184
+        },
+        "ieee_native_host_allocator_policy": "uncached_background_v1",
+        "max_cpu_loras": 24,
+        "requested_enforce_eager": "auto",
+        "resolved_enforce_eager": false,
+        "skip_stale_gpu_cleanup": true
+      },
+      "same_backend": "0.30.0",
+      "input_upper_bounds": [
+        759
+      ],
+      "samples": [
+        {
+          "source_request_id": "req_00015",
+          "native_prompt_tokens": 760,
+          "completed_output_tokens": 256,
+          "prompt_sha256": "039bcf72147c0c0f0ee9f3c186b3e2ef9a3ea76f1e988c288777bca8247b93f6",
+          "content_prompt_tokens": 759
+        },
+        {
+          "source_request_id": "req_00017",
+          "native_prompt_tokens": 760,
+          "completed_output_tokens": 256,
+          "prompt_sha256": "7d3c13b791d1c420eaf20bc54c563741a7e3ee50915c5978e22292c1c65661f3",
+          "content_prompt_tokens": 759
+        },
+        {
+          "source_request_id": "req_00000",
+          "native_prompt_tokens": 759,
+          "completed_output_tokens": 152,
+          "prompt_sha256": "b7025ee17c560bbec4a2f379e8c1aa851137a8e1a1d7eca56d1f203d03ef73dc",
+          "content_prompt_tokens": 758
+        },
+        {
+          "source_request_id": "req_00005",
+          "native_prompt_tokens": 760,
+          "completed_output_tokens": 256,
+          "prompt_sha256": "5e8d5e33f109baf084f8127db7dbdeccce5e4df0f8e77333ca3ad7883f109ccd",
+          "content_prompt_tokens": 759
+        },
+        {
+          "source_request_id": "req_00021",
+          "native_prompt_tokens": 572,
+          "completed_output_tokens": 89,
+          "prompt_sha256": "4d005a03641d42a40de41c1fa6fca4eb2ae3d41c64d2ebf713373c025a7473c1",
+          "content_prompt_tokens": 571
+        },
+        {
+          "source_request_id": "req_00002",
+          "native_prompt_tokens": 359,
+          "completed_output_tokens": 123,
+          "prompt_sha256": "4e7ad26aefe1e8726f64e2390cb3b4721b0a65c1100abc2786974bafc3d70887",
+          "content_prompt_tokens": 358
+        }
+      ],
+      "unique_original_requests": 6,
+      "unobserved_bucket_ids": [],
+      "observed_buckets": [
+        {
+          "bucket": 0,
+          "unique_requests": 3,
+          "completed_output_mean": 121.33333333333333
+        },
+        {
+          "bucket": 1,
+          "unique_requests": 3,
+          "completed_output_mean": 256
+        }
+      ]
+    }
+  }
+}

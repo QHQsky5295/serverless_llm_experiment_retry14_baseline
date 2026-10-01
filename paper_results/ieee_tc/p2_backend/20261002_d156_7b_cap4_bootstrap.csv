@@ -1,0 +1,13 @@
+wave,role,request_id,source_request_id,adapter_id,native_tokens,native_ttft_ms,native_tpot_ms,decode_overlap_four_s
+0,kernel_warmup_retained,source-profile/w0/l0,req_00015,code_lora_0015,256,317.7664140239358,34.682601866513195,5.007027774001472
+0,kernel_warmup_retained,source-profile/w0/l1,req_00017,education_lora_0007,256,319.5234079612419,34.255426302187,5.007027774001472
+0,kernel_warmup_retained,source-profile/w0/l2,req_00000,finance_lora,152,242.46812897035852,34.846950145839216,5.007027774001472
+0,kernel_warmup_retained,source-profile/w0/l3,req_00005,legal_lora,256,251.20149803115055,32.76686091364051,5.007027774001472
+1,representative_measurement,source-profile/w1/l0,req_00015,code_lora_0015,256,262.3675880022347,35.360632164805544,5.050630480982363
+1,representative_measurement,source-profile/w1/l1,req_00017,education_lora_0007,256,247.90577602107078,34.51748165101105,5.050630480982363
+1,representative_measurement,source-profile/w1/l2,req_00000,finance_lora,152,247.0419310266152,35.10396746341879,5.050630480982363
+1,representative_measurement,source-profile/w1/l3,req_00005,legal_lora,256,246.2575000245124,32.917952003852264,5.050630480982363
+2,representative_measurement,source-profile/w2/l0,req_00000,finance_lora,152,253.75552295008674,35.31793400025402,2.880860241013579
+2,representative_measurement,source-profile/w2/l1,req_00005,legal_lora,256,250.43981295311823,30.27224666279211,2.880860241013579
+2,representative_measurement,source-profile/w2/l2,req_00021,medical_lora,89,264.1725039575249,34.66472275018036,2.880860241013579
+2,representative_measurement,source-profile/w2/l3,req_00002,writing_lora_0011,123,165.35266098799184,33.03423584448403,2.880860241013579
