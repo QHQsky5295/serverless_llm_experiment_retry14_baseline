@@ -1,6 +1,71 @@
 # IEEE TC execution status
 
-## CURRENT — D154 ordinary 7B Full sealed; checkpoint backup pending
+## CURRENT — D155 capacity audit COMPLETE; next single candidate cap=4 qualification
+
+04:50 +08 D155 seal complete:147protectedPASS, exactanalysis/scopeabsence,
+Plan/V1/sourceSHAs/syntax/tests/bundlechecksPASS.10memberbundle5259B,
+SHA91223deed5c1dab7ed29c976355a3ff2542ce4ac2f767619a9df79cf6faaeca3.
+Sealactualec104dad15704de0941c90b9db87c8d7 exited0; finalmemoryevents0,
+nowinactive/emptyID. D155doc sealed by verificationmanifest; doNOTedit it.
+Backup pending; no sourcecandidate or GPUlaunch. Only offlineanalyzer changed.
+
+2026-10-02 04:49 +08. GoalACTIVE, Prime7B only, no liveGPU/remote/analysis job.
+D154 remains SEALED/BACKED d410447; no repeated replay or giant projection.
+D155 extends existing offline analyzer only; serving source39cc3c1 unchanged.
+32 tests PASS (8new+24timeline),0.141s body; command8.86s/RSS1082172KiB.
+Audit10.88s/RSS1445280KiB; actualscopea9946ef3c54f4866973bed192b9b1f75,
+3/4GiBswap0CPU2,3,26,27; finalmemoryevents0, automaticremoval verified.
+Execsession95513 CLOSED0. Raw results/ieee_tc/p2_backend_qualification/d155_20261002.
+408 distinct admission snapshots/816occurrences,408consistentduplicates:
+4replicas minimumfreeKV178/180/178/178blocks, each16tokens/8MiB; maxfree304,
+admittedmax2. Event-selected, NOTcontinuousKV/preemption evidence; totalsunknown.
+Curated paper_results/ieee_tc/p2_backend/20261002_d155_admission_capacity/summary.json
+SHAe179c24144e84bc9b2c4e70106c6809ea9e2d06acfd7e03c6d8d2e85a87fffe9.
+Doc/table D155_ADMISSION_CAPACITY_AUDIT.md has fullreasoning and nextqualification.
+
+Single next hypothesis SELECTED, not implemented/qualified:7B max_num_seqs and
+runtime/requested concurrency2→4, otherwise same .70/TP1/FP16/slots4/rank64/
+maxlen1024/batchtokens1024/prefixfalse. Candidate4 boundedby4LoRAslots and
+floor(observedmaxfree304/ceil(1024/16))=4. This is candidate-screening arithmetic,
+NOT paperformula/onlinepolicy or safetyproof. Reobserve actualKVatstartup.
+Reuse native_source_matrix with existing4concurrentrequest/artifact indices;
+mustprove actualnativeoverlap, correcttokens/source, retirement and resources.
+New capacity changesruntime/profileidentity; doNOTrelabelD89cap2timings or weaken
+measured_admission_initializer's strictidentity. Collectnewconfigurationevidence
+then builditsadmission/service/preparationprofiles and fullclasscoverage before
+ordinaryFull4000. No newweights/traces, no deadlineincrease, no secondoptimizer.
+If capacitycandidatefails preservefailure; don'tblindretry. Allcommonreference/
+numericadapter/G1G2/oldPrimeacceptance stillOPEN; baselines and3BstayPAUSED.
+NEXT complete D155secrets/backup, then prepare ONEcap4qualification.
+Skills analyze-results/academic-plotting/vLLM/github-sync read; vLLM official0.30
+source+docscheckedonline. GenericskilltargetspeedsNOTouracceptanceprotocol.
+
+## PRIOR — D154 ordinary 7B Full sealed and BACKED; 7B goal still open
+
+04:32 +08 backup COMPLETE d4104476451037a6b019a015732284af5b312afc,
+pushed faaslora_origin/retry14_continuous_queue_v2; remote HEAD independently
+verified. Push68724/verify92865 CLOSED0. Twelve explicit files/76payloads
+syntax/secrets/bundlePASS; usermanifest excluded. Existing CSV CRLF preserved
+byte-for-byte with sealed SHAs; Git whitespace check with cr-at-eol passed
+(default check flagged only CSV line terminators). No data rewrite to pass check.
+No live GPU/remote/analysis/exec job; all D154 closure complete, don't repeat.
+Serving source still39cc3c1, d410447 is evidence-only checkpoint.
+
+Read-only next-path review: global dispatch limit is runtime_groups*runtime_cap,
+7B maximum8, and its permit covers source preparation, native generation AND
+acknowledged cleanup (run_one serve finally). Slot.active_requests is likewise
+released only after pending/native GPU/HOST acknowledgements. Do not conflate
+these limits with raw native iteration capacity, remove cleanup, or free at last
+token. D154 gate→terminal remains an upper envelope, not exact release tracing.
+Pure file/GPU execution-objective construction still synchronous on mainloop at
+run_all_experiments.py:17637/17697/17878; already-created CPU planning worker
+currently supports owned_execution_epoch/validate_execution only. This is an
+audit observation, NOT yet selected candidate or proof of dominant bottleneck.
+Historical D143 frame counts are not current CPU percentages. Relevant official
+vLLM performance blog (2024-09-05-perf-update) and Python3.12 asyncio blocking
+guidance rechecked online; their speedups are not borrowed as ours. NEXT choose
+one measured structural hypothesis, test minimally, then Full; no baseline or
+3B transition until actual model acceptance, no replay without new hypothesis.
 
 2026-10-02 04:30 +08. Goal ACTIVE; PROGRESS, no live jobs. D154 completed,
 validated, tabled and sealed. Source39cc3c1 unchanged; no nextoptimizer selected.

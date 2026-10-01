@@ -1,0 +1,41 @@
+{
+  "kind": "d155_capacity_audit_verification_v1",
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "actual_capacity_invocation": "a9946ef3c54f4866973bed192b9b1f75",
+  "analysis_scope_absent": true,
+  "gpu_idle": true,
+  "tests": 32,
+  "final_memory_events_all_zero": true,
+  "source_refs": [
+    {
+      "path": "scripts/analyze_control_path_overhead.py",
+      "sha256": "1d8dcb97f54419839f2e30a830a7d9f488d82ce3c5c35b7fead3a3cc53b8721b"
+    },
+    {
+      "path": "tests/test_ieee_tc_capacity_audit.py",
+      "sha256": "f401d89a39542938945f8706f34d6166399f0747731f6a116672bf8d3fa7d4e4"
+    },
+    {
+      "path": "docs/ieee_tc/D155_ADMISSION_CAPACITY_AUDIT.md",
+      "sha256": "819cc9f5f8a6992baa0fbf092a861d53aa0e7a6c5280c557e2f8546f80002d97"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/20261002_d155_admission_capacity/summary.json",
+      "sha256": "e179c24144e84bc9b2c4e70106c6809ea9e2d06acfd7e03c6d8d2e85a87fffe9"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/20261002_d155_admission_capacity/capacity_by_replica.csv",
+      "sha256": "2f03a590e5495a063cc2cc62d533c80b8cc2a04341a22f748238e369c5f74861"
+    }
+  ],
+  "serving_changes": false,
+  "new_gpu_run": false,
+  "new_configuration_qualified": false
+}

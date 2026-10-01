@@ -648,12 +648,108 @@ def analyze_rpc_breakdown(projection: Path, deployment_path: Path,
     return result
 
 
+def summarize_admission_capacity(outcome: Dict[str, Any]) -> Dict[str, Any]:
+    """Describe retained admission snapshots, never infer continuous KV use.
+
+    These records are selected by preparation/admission events. A repeated
+    snapshot is counted once; its multiplicity is retained. Missing scheduler
+    pool/preemption fields cannot be recovered from the admission projection.
+    """
+    snapshots = {}
+    occurrences = 0
+    pending = [outcome['mechanism_events']]
+    required = ('replica_id', 'epoch', 'captured_at', 'admitted',
+                'kv_tokens_per_block', 'kv_bytes_per_block',
+                'kv_unreserved_free_blocks', 'scheduled_tokens',
+                'iteration_token_budget')
+    while pending:
+        node = pending.pop()
+        if isinstance(node, dict):
+            if 'kv_unreserved_free_blocks' in node:
+                if any(key not in node for key in required):
+                    raise ValueError('incomplete retained admission snapshot')
+                if not isinstance(node['replica_id'], str) or not node['replica_id']:
+                    raise ValueError('missing replica identity')
+                if type(node['epoch']) is not int or node['epoch'] < 0:
+                    raise ValueError('invalid admission epoch')
+                if (type(node['captured_at']) not in (int, float)
+                        or not math.isfinite(node['captured_at'])):
+                    raise ValueError('invalid snapshot time')
+                for key in required[4:]:
+                    if type(node[key]) is not int or node[key] < 0:
+                        raise ValueError('invalid native capacity value')
+                if min(node['kv_tokens_per_block'], node['kv_bytes_per_block'],
+                       node['iteration_token_budget']) <= 0:
+                    raise ValueError('zero native capacity unit')
+                if node['scheduled_tokens'] > node['iteration_token_budget']:
+                    raise ValueError('native token budget exceeded')
+                admitted = node['admitted']
+                if not isinstance(admitted, list):
+                    raise ValueError('missing admitted demand population')
+                ids = [r['request_id'] for r in admitted]
+                if len(ids) != len(set(ids)):
+                    raise ValueError('duplicate admitted demand')
+                key = (node['replica_id'], node['epoch'], node['captured_at'])
+                if key in snapshots and snapshots[key] != node:
+                    raise ValueError('conflicting duplicate snapshot identity')
+                snapshots[key] = node
+                occurrences += 1
+            pending.extend(node.values())
+        elif isinstance(node, list):
+            pending.extend(node)
+    if not snapshots:
+        raise ValueError('no retained admission snapshots; capacity unknown')
+    rows = []
+    for replica in sorted({key[0] for key in snapshots}):
+        group = [s for key, s in snapshots.items() if key[0] == replica]
+        geometry = {(s['kv_tokens_per_block'], s['kv_bytes_per_block'],
+                     s['iteration_token_budget']) for s in group}
+        if len(geometry) != 1:
+            raise ValueError('capacity geometry changed within replica')
+        tokens, size, budget = geometry.pop()
+        free = sorted(s['kv_unreserved_free_blocks'] for s in group)
+        rows.append(dict(replica_id=replica, distinct_snapshots=len(group),
+            first_captured_at=min(s['captured_at'] for s in group),
+            last_captured_at=max(s['captured_at'] for s in group),
+            kv_tokens_per_block=tokens, kv_bytes_per_block=size,
+            iteration_token_budget=budget, free_blocks_min=free[0],
+            free_blocks_p50=free[math.ceil(len(free)*.5)-1],
+            free_blocks_max=free[-1],
+            admitted_demand_max=max(len(s['admitted']) for s in group),
+            scheduled_tokens_max=max(s['scheduled_tokens'] for s in group)))
+    return dict(kind='retained_admission_capacity_audit_v1',
+        source_occurrences=occurrences, distinct_snapshots=len(snapshots),
+        duplicate_occurrences=occurrences-len(snapshots), replicas=rows,
+        continuous_kv_exhaustion=None, preemption_total=None,
+        qualified_runtime_capacity=None,
+        caveat='Event-selected admission snapshots, not continuous scheduler samples. '
+            'Admitted includes controller-pending demand, not only executing sequences. '
+            'Free blocks are not total pool capacity. No safety or speedup claim for a new configuration.')
+
+
+def analyze_admission_capacity(source: Path, output: Path) -> Dict[str, Any]:
+    import hashlib
+    if source.stat().st_size >= 128 * 1024**2:
+        raise ValueError('bounded normal control outcome required')
+    if output.exists():
+        raise FileExistsError(output)
+    encoded = source.read_bytes()
+    result = summarize_admission_capacity(json.loads(encoded))
+    result['source_ref'] = dict(path=str(source), sha256=hashlib.sha256(encoded).hexdigest())
+    output.mkdir(parents=True, exist_ok=False)
+    write_csv(result['replicas'], output/'capacity_by_replica.csv')
+    with (output/'summary.json').open('x') as handle:
+        json.dump(result, handle, indent=2, allow_nan=False)
+    return result
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", required=True, help="Result JSON file or directory")
     parser.add_argument("--output", default=None, help="Output directory; mandatory/fresh for native timeline")
     parser.add_argument("--native-timeline", action="store_true", help="Strict bounded native projection audit; no legacy paper copies")
     parser.add_argument("--rpc-breakdown", action="store_true", help="Audit retained native-async RPC fields, no new experiment or legacy paper copies")
+    parser.add_argument("--admission-capacity", action="store_true", help="Audit retained admission KV snapshots; no serving or capacity configuration change")
     parser.add_argument("--sealed-summary", type=Path)
     parser.add_argument("--sealed-sha256")
     parser.add_argument("--deployment", type=Path)
@@ -663,6 +759,13 @@ def main() -> None:
     parser.add_argument("--control-outcome", type=Path, help="Bounded normal outcome with independent control/quarantine observations")
     parser.add_argument("--scenario", default=None, help="Optional scenario-name substring")
     args = parser.parse_args()
+
+    if args.admission_capacity:
+        if args.native_timeline or args.rpc_breakdown or not args.output:
+            parser.error('admission capacity audit requires explicit fresh output and no other audit mode')
+        print(json.dumps(analyze_admission_capacity(Path(args.input), Path(args.output)),
+                         indent=2, allow_nan=False))
+        return
 
     if args.rpc_breakdown:
         if args.native_timeline or not all((args.output,args.deployment,args.terminals,args.sealed_summary,args.sealed_sha256)):

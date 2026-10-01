@@ -1,0 +1,16 @@
+{
+  "bundle": "20261002_d155_analysis_sources.tar.gz",
+  "member_sha256": {
+    "run_capacity_audit1.sh": "348b696e8aabecb9478f89e0f2a484c97cc1a782c666c79c33323de27c802fa1",
+    "seal_evidence.py": "789b6bfc44acd7a33582b90fbe2556b3b36aa3252347c97d618b9875cf2cc942",
+    "run_seal.sh": "1ef511d5ebf6eef918bdace1bd0df516a09190238e9b2b42cad73e404a9a9f93",
+    "capacity1_scope.txt": "cab0a5ac1bc0a952f5a734b134bee58570c901dc4309b897a6da3e1d02e3cd80",
+    "capacity1_sources.sha256": "0837712890de2b8e0356141bcbdc8b03869cef0de2473acc5baeb47214c271b9",
+    "tests1.log": "c0c8ad001c5fa2fcbe20092720aa87e01366377b0b0e5f9045b15c762a009e55",
+    "tests1_time.txt": "ba6318ac1d0c046336324a04d7c779eaca46e29983c0ed92091d90153b160a97",
+    "capacity1.log": "c0190566ab29375568964f0de790be56413a5e27a773292dd95f400a0bce6989",
+    "capacity1_time.txt": "0e6ff0888f530dd286dbb2c13cbc7736b4ad4de1fb55ae074031b954b5f84bba",
+    "capacity1_memory_events.txt": "28fe05a1d7b8467a03fb54454f7b6a130fab752864d0454f5f6c4a4b6ce307f2"
+  },
+  "member_checks_pass": true
+}

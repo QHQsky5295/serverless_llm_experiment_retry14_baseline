@@ -1,0 +1,72 @@
+{
+  "kind": "retained_admission_capacity_audit_v1",
+  "source_occurrences": 816,
+  "distinct_snapshots": 408,
+  "duplicate_occurrences": 408,
+  "replicas": [
+    {
+      "replica_id": "1d702759d3ea4ad1af4b73a349e0b640",
+      "distinct_snapshots": 97,
+      "first_captured_at": 389150.665061855,
+      "last_captured_at": 392975.961297971,
+      "kv_tokens_per_block": 16,
+      "kv_bytes_per_block": 8388608,
+      "iteration_token_budget": 1024,
+      "free_blocks_min": 178,
+      "free_blocks_p50": 216,
+      "free_blocks_max": 304,
+      "admitted_demand_max": 2,
+      "scheduled_tokens_max": 761
+    },
+    {
+      "replica_id": "291ce1ce9eaa4d669a7b74978cec17b2",
+      "distinct_snapshots": 93,
+      "first_captured_at": 389158.939190967,
+      "last_captured_at": 392974.10109882,
+      "kv_tokens_per_block": 16,
+      "kv_bytes_per_block": 8388608,
+      "iteration_token_budget": 1024,
+      "free_blocks_min": 180,
+      "free_blocks_p50": 233,
+      "free_blocks_max": 304,
+      "admitted_demand_max": 2,
+      "scheduled_tokens_max": 761
+    },
+    {
+      "replica_id": "814dc69252b4438aafab8a03dea6ae55",
+      "distinct_snapshots": 109,
+      "first_captured_at": 389102.760980159,
+      "last_captured_at": 392995.43781246,
+      "kv_tokens_per_block": 16,
+      "kv_bytes_per_block": 8388608,
+      "iteration_token_budget": 1024,
+      "free_blocks_min": 178,
+      "free_blocks_p50": 241,
+      "free_blocks_max": 304,
+      "admitted_demand_max": 2,
+      "scheduled_tokens_max": 2
+    },
+    {
+      "replica_id": "b1eb167292ee48b7aa17bace7a0b7b31",
+      "distinct_snapshots": 109,
+      "first_captured_at": 389173.211482288,
+      "last_captured_at": 392988.415772914,
+      "kv_tokens_per_block": 16,
+      "kv_bytes_per_block": 8388608,
+      "iteration_token_budget": 1024,
+      "free_blocks_min": 178,
+      "free_blocks_p50": 245,
+      "free_blocks_max": 304,
+      "admitted_demand_max": 2,
+      "scheduled_tokens_max": 761
+    }
+  ],
+  "continuous_kv_exhaustion": null,
+  "preemption_total": null,
+  "qualified_runtime_capacity": null,
+  "caveat": "Event-selected admission snapshots, not continuous scheduler samples. Admitted includes controller-pending demand, not only executing sequences. Free blocks are not total pool capacity. No safety or speedup claim for a new configuration.",
+  "source_ref": {
+    "path": "results/ieee_tc/p2_backend_qualification/d154_20261002/full_full1_main_outcome_compact.json",
+    "sha256": "2c5d17d718f27a491e8f6ad655ea198c6917543727cfc837769589681b7c7c0f"
+  }
+}
