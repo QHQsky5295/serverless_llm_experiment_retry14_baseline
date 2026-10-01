@@ -10686,6 +10686,30 @@ class ScenarioRunner:
                 util_pct = float(getattr(info, "utilization_percent", 0.0) or 0.0)
                 if used_gb > 0.05 or util_pct > 0.0:
                     return used_gb, total_gb, util_pct
+        if getattr(self, '_routing_policy', None) == 'ieee_confirmed':
+            # The stack monitor accounts for its initial runtime, not every
+            # scaled-out physical GPU. Observe the latter directly, rather
+            # than synchronously spawning nvidia-smi on the request event loop.
+            # Do not expand monitor.devices (that would also expand budgets),
+            # cache readings, or reinterpret the existing monitor branch above.
+            # This remains a best-effort legacy hint; authoritative IEEE routing
+            # uses the separate UUID-bound utilization/source observations.
+            try:
+                import pynvml
+                if not self._ieee_nvml_initialized:
+                    pynvml.nvmlInit()
+                    self._ieee_nvml_initialized = True
+                handle = pynvml.nvmlDeviceGetHandleByIndex(device_id)
+                # v2 separates driver-reserved memory, matching the CLI's
+                # memory.used meaning; v1 folds that reservation into used.
+                memory = pynvml.nvmlDeviceGetMemoryInfo(handle, version=pynvml.nvmlMemory_v2)
+                utilization = pynvml.nvmlDeviceGetUtilizationRates(handle)
+                return (float(memory.used) / (1024 ** 3),
+                        float(memory.total) / (1024 ** 3), float(utilization.gpu))
+            except Exception:
+                # Preserve missing-hint semantics; never spawn a CLI or invent
+                # a zero observation when the native device query is unavailable.
+                return (used_gb, total_gb, util_pct) if total_gb > 0 else None
         try:
             import subprocess
             out = subprocess.check_output(

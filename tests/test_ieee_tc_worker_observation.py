@@ -7,7 +7,87 @@ import unittest
 from unittest.mock import AsyncMock, Mock, patch
 
 from faaslora.memory import gpu_monitor as monitor
-from scripts.run_all_experiments import InferenceEngine, SubprocessInferenceEngineProxy
+from scripts.run_all_experiments import InferenceEngine, ScenarioRunner, SubprocessInferenceEngineProxy
+
+
+class ControllerRuntimeDeviceQuery(unittest.TestCase):
+    """Observe scaled-out physical devices without expanding runtime budgets."""
+    def runner(self, info=None, policy='ieee_confirmed'):
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._routing_policy = policy
+        runner._ieee_nvml_initialized = False
+        observed = SimpleNamespace(devices=[0], device_count=1,
+            get_current_memory_info=Mock(return_value=info))
+        runner._stack = SimpleNamespace(gpu_monitor=observed)
+        return runner
+
+    def nvml(self):
+        return SimpleNamespace(nvmlInit=Mock(), nvmlMemory_v2=0x02000028,
+            nvmlDeviceGetHandleByIndex=Mock(side_effect=lambda i: ('physical', i)),
+            nvmlDeviceGetMemoryInfo=Mock(return_value=SimpleNamespace(
+                used=6 * 1024**3, total=24 * 1024**3)),
+            nvmlDeviceGetUtilizationRates=Mock(return_value=SimpleNamespace(gpu=73)))
+
+    def test_scaled_out_device_uses_fresh_nvml_not_synchronous_subprocess(self):
+        runner, nvml = self.runner(), self.nvml()
+        with patch.dict('sys.modules', pynvml=nvml), patch('subprocess.check_output') as cli:
+            self.assertEqual(runner._gpu_runtime_snapshot(3), (6., 24., 73.))
+            nvml.nvmlDeviceGetMemoryInfo.return_value.used = 7 * 1024**3
+            nvml.nvmlDeviceGetUtilizationRates.return_value.gpu = 21
+            self.assertEqual(runner._gpu_runtime_snapshot(3), (7., 24., 21.))
+            cli.assert_not_called()
+        nvml.nvmlInit.assert_called_once_with()
+        self.assertEqual(nvml.nvmlDeviceGetHandleByIndex.call_args_list,
+                         [unittest.mock.call(3), unittest.mock.call(3)])
+        self.assertEqual(nvml.nvmlDeviceGetMemoryInfo.call_count, 2)
+        nvml.nvmlDeviceGetMemoryInfo.assert_called_with(('physical', 3), version=nvml.nvmlMemory_v2)
+        self.assertEqual(runner._stack.gpu_monitor.devices, [0])
+        self.assertEqual(runner._stack.gpu_monitor.device_count, 1)
+
+    def test_existing_monitor_branch_is_not_reinterpreted(self):
+        info = SimpleNamespace(used_bytes=6 * 1024**3,
+            total_bytes=24 * 1024**3, utilization_percent=25.)
+        runner, nvml = self.runner(info), self.nvml()
+        with patch.dict('sys.modules', pynvml=nvml), patch('subprocess.check_output') as cli:
+            self.assertEqual(runner._gpu_runtime_snapshot(0), (6., 24., 25.))
+            cli.assert_not_called()
+        nvml.nvmlInit.assert_not_called()
+
+    def test_empty_device_is_observed_not_invented_as_missing(self):
+        runner, nvml = self.runner(), self.nvml()
+        nvml.nvmlDeviceGetMemoryInfo.return_value.used = 0
+        nvml.nvmlDeviceGetUtilizationRates.return_value.gpu = 0
+        with patch.dict('sys.modules', pynvml=nvml), patch('subprocess.check_output') as cli:
+            self.assertEqual(runner._gpu_runtime_snapshot(2), (0., 24., 0.))
+            cli.assert_not_called()
+
+    def test_unavailable_hint_does_not_trigger_cli_or_become_zero_observation(self):
+        for failed_call in ('nvmlInit', 'nvmlDeviceGetHandleByIndex',
+                            'nvmlDeviceGetMemoryInfo', 'nvmlDeviceGetUtilizationRates'):
+            runner, nvml = self.runner(), self.nvml()
+            getattr(nvml, failed_call).side_effect = RuntimeError('unavailable')
+            with self.subTest(call=failed_call), patch.dict('sys.modules', pynvml=nvml), \
+                    patch('subprocess.check_output') as cli:
+                self.assertIsNone(runner._gpu_runtime_snapshot(3))
+                cli.assert_not_called()
+            self.assertEqual(runner._ieee_nvml_initialized, failed_call != 'nvmlInit')
+
+    def test_prior_valid_empty_monitor_read_survives_optional_hint_failure(self):
+        info = SimpleNamespace(used_bytes=0, total_bytes=24 * 1024**3,
+                               utilization_percent=0.)
+        runner, nvml = self.runner(info), self.nvml()
+        nvml.nvmlDeviceGetMemoryInfo.side_effect = RuntimeError('unavailable')
+        with patch.dict('sys.modules', pynvml=nvml), patch('subprocess.check_output') as cli:
+            self.assertEqual(runner._gpu_runtime_snapshot(0), (0., 24., 0.))
+            cli.assert_not_called()
+
+    def test_legacy_cli_path_and_units_are_unchanged(self):
+        runner, nvml = self.runner(policy='adapter_affinity'), self.nvml()
+        with patch.dict('sys.modules', pynvml=nvml), \
+                patch('subprocess.check_output', return_value='6144, 24576, 73\n') as cli:
+            self.assertEqual(runner._gpu_runtime_snapshot(3), (6., 24., 73.))
+            self.assertEqual(cli.call_args.args[0][-2:], ['-i', '3'])
+        nvml.nvmlInit.assert_not_called()
 
 
 class PassiveControllerObservation(unittest.TestCase):

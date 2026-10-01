@@ -1,6 +1,85 @@
 # IEEE TC execution status
 
-## CURRENT — D146 failure context qualified; backup next, then Prime bottleneck
+## CURRENT — D147 qualified; backup then capacity reclamation/ordinary Full
+
+2026-10-01 19:39 +08. D147 candidate2 QUALIFIED, not yet Full-performance
+accepted. No liveexec/session/GPU/remote/CPUjob; all scopes empty/events0/stopped.
+Do NOT repeat completed tests, query microtests or D143 stack accounting.
+
+- Green2 sixPASS/.008s, actual9666671689aa4c0ca21647412c8bae8a cleaned.
+- Observe2 actualf4405fdaaad44aa29ade3129f7d8bd60 completed0/16.41s,
+  RSS1139108KiB; exactempty/events0 cleaned. Nativeenv, CUDAuninitialized.
+  All32 paired idle queries agree within CLI rounding; first candidate's
+  reserved-memory mismatch resolved with explicit NVML memoryv2. On physical
+  1/2/3 median query59.7824/66.9568/61.0174ms -> .0923/.1295/.1069ms.
+  Initialdevice0 branch unchanged, its variation NOTcausal. These are query
+  diagnostics, not end-to-end gains or independent replay repeats.
+  ResultSHA15e915f8c1ea29ce4fd43cf3dab7b3924b2857c7cc2bbd14f39b139bfea7dc51.
+- Finalregression543PASS22.880s/command33.41s/RSS1193040KiB;
+  actual23022241cc55420a81f11a17395116e5 exactempty/events0 cleaned19:38:06.
+- Verification204unique sources (216 historical path entries normalized)/147protected/Plan/V1/sourcevariants/syntax/secrets
+  and archive re-read PASS. Actual972dba01e1b545dea35301c7a1c1b10d complete0,
+  10.22s/RSS1140732KiB; empty/events0 stopped19:39. No global resource changes.
+  CuratedSHA4660f4579a003af2ab7e7038c0c439178e55e3e955838d9956696cc9c916a4a6.
+  Bundle49members546769B SHA6a0400e02005a4e91f64575550d52fa77b3954163ab8c262587b759b5226d063.
+  D147_DIRECT_DEVICE_QUERY.md includes two diagnostic tables and caveats,
+  SHApinned; do not editafterseal. Verificationownlog/cleanup localnotinbundle.
+
+NEXT explicitsevenfile backup (no usermanifest), safe reclaimable disk audit,
+then ordinary7BFull with unchanged config/profiles/no profiler. Full performance
+and D145failures NOT resolved by microtest. No newoptimizer while testingthis.
+Disk~151.7GiB; no deletion/compression yet. Baselines PAUSED. Bothmodels,
+3BTPOT/outputhash,numericadapter,warm/Resident,M1M2/A1-A5/S1-S13 remainOPEN.
+GoalACTIVE; latest once-onlyremote cache permission alreadyfulfilledD78/D80.
+
+## D147 qualification history — superseded by CURRENT
+
+2026-10-01 19:34 +08. Goal ACTIVE; Prime-first, baselines PAUSED. No GPU
+inference or remote operation. D146 already BACKED7f42cbd; do not repeat it.
+Read full Plan/status/V1 and vLLM/optimization, run-experiment, github-sync,
+academic-plotting skills. Primary NVIDIA NVML/SMI and vLLM CPU/GIL docs checked.
+
+D143 archived controller samples establish a concrete synchronous subprocess
+path: 570 request-window main samples; snapshot inclusive43, check_output42.
+Of the42: request execution16, reservation cleanup16, live display10.
+Counts are NOT wall/CPU percentages; no new GPU profiling or giant JSON read.
+Initial TP1 stack monitor only covers device0; scaled-out device queries use
+CLI. Do NOT expand monitor.devices, because this also changes accounting.
+Candidate only substitutes fresh NVML queries for this IEEE hint CLI path;
+UUID-bound authoritative utilization, equations, budgets, polling cadence,
+timeouts and request ownership unchanged. Legacy branch unchanged.
+
+- First6 targetedtests RED6failures, then GREEN6/.008s. First affectedregression
+  543PASS22.685s,33.30scommand/RSS1192120KiB. All exact domains empty/events0.
+- First idle-query microtest nativeenvironment passed execution17.99s but
+  candidate1 NOT accepted: v1 memory.used includes driver reservation while
+  CLI excludes it. Old means0.455566GiB vs0.014648GiB are semantic difference,
+  not mere display rounding. Raw firstresult SHA
+  b4620467bfc5a8df442a28c56145b7627697df2d5c0cff5233ddd85fbe7ce1d5.
+  Firstsource/test snapshots preserved as candidate1_runner.py/candidate1_tests.py.
+- Bounded API probe actual6e85416f8d92496b97a2ee80beb03739 confirmed device3:
+  v1 used489160704; v2 used15400960/reserved473759744/total25769803776.
+  Probe stdout in tool transcript; exact empty/events0 cleanup saved.
+- Candidate2 requests nvmlMemory_v2 explicitly; tests assert version. Actual
+  returned bytes remain unrounded (CLI MiB rounding separately qualified).
+  Current green2 execsession76681; next check completion/identity/cleanup,
+  then ONE regression2 and observe2. No repeats of D143 stack aggregation;
+  observe2 reuses sealed first counts, checks all32 idle pairs within CLI
+  rounding and records timings. Ordinary Full remains PENDING, not a gain.
+
+Raw d147_20261001; no D147 curated/seal/commit yet. Disk~151.7GiB; proven
+rebuildable cleanup still needed before largeFull; no deletion/compression.
+Next finish candidate2 tests/evidence/table/seal/backup, then reclaim safe
+capacity and ordinary Full. No newcap/deadline/config tuning. Bothmodel
+performance,3BTPOT/outputhash,numericadapter,warm/Resident,formalM1M2/A1-A5/
+S1-S13 OPEN. Once-only immutable remote cache already fulfilled, never rebuild.
+
+## D146 qualified and BACKED — completed history
+
+19:16 +08 backup COMPLETE7f42cbdd143ab917927237abcf136bc2dc18e608,
+pushedfaaslora_origin/retry14_continuous_queue_v2; exactremoteHEADverified.
+Sevenexplicitfiles/30payload secrets/checksum/diffPASS; usermanifestexcluded.
+No liveexec/session/GPU/analysis/remotejob. Do NOT repeat D146 tests/sealing.
 
 2026-10-01 19:16 +08. D146 bounded failure-observation change COMPLETE:
 same RuntimeError/message, connect30s/send-recv300s, no retry/ownership/release/
@@ -27,8 +106,8 @@ failures stillunknown; don't infer poolstarvation/retirementbug/D144causality.
   SHApinned, do noteditafterseal. Rawd146_20261001 contains actualreceipts.
   Scopeverification's ownlog/time/cleanup remainlocal, notinthealreadycreatedbundle.
 
-NEXT explicit7file diff/secrets/checksum -> commit/pushbackup. Then returnto
-evidence-backed non-inferencewaitingcandidate; noGPUreplay justforlogging.
+NEXT returnto evidence-backed non-inferencewaitingcandidate;
+noGPUreplay justforlogging. Backupabove supersedes thepreviouspendingstep.
 Disk~151.7GiB needs provenrebuildablecleanup before nextlargeFull; no deletions
 orcompressionyet. BaselinesPAUSED; bothmodelperformance,3BTPOT/outputhash,
 numericadapter,warm/Resident,M1M2/A1-A5/S1-S13 remainOPEN. GoalACTIVE.
