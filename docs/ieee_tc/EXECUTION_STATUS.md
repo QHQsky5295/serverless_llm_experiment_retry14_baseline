@@ -1,6 +1,280 @@
 # IEEE TC execution status
 
-## CURRENT — D147 qualified; backup then capacity reclamation/ordinary Full
+## CURRENT — D148 analysis/closure COMPLETE; explicit backup NEXT
+
+2026-10-01 22:40 +08. No liveexec/session/analysis/GPU/remotejob. D148 ordinary
+Full4000native/0fail, allcleanup; projection65337/monitors7135,7175 CLOSED,
+curation18032 CLOSED0 (50.37s/RSS395052KiB), failurecollector0/.53s;
+actual56c5ac2607cf403c9e142ee6eac3e5f1 empty/events0 stopped22:33:14.
+Occupancy13635 CLOSED0; actuald13fd7de43374752a77243f587fde700 empty/events0
+stopped22:33:48, cleanup_occupancy_full1.log retained. Do NOT repeat anyanalysis.
+
+CuratedSHAa0f8d157150b73fb4d36fa2e6d1a9549da05a0e4ee8de50577fa919d4706d535.
+TTFTmean/P95591.861802/1140.989671s; TPOT42.494351/71.297526ms.
+Dispatch589.561252s=99.6113%meanTTFT, service2.300550/native.353400s.
+20519.801810GPU-s; all4000 timingerrors0,132remote/131480060B/packing0.
+RelativeD137:meanTTFT-1.952%,P95-.030%,GPU+.985%,TPOTmean+8.918%/P95+13.376%.
+NOTanacceptedFullperformancegain; n1/multiplesourcedeltas/noCI. D1453996/4
+conditionalpopulation preserved. D137inputs/countsallmatch,110outputhashchanges
+OPEN; numericaladapter/warm/Resident/formalqualificationstillOPEN.
+Occupancy native4.879046s vs gate→terminal9.998352s upperenvelope, NOT exactpermit
+release. Meanconcurrency3.814354/7.816538; sampledheldGPUutil40.9638%, notcausal.
+Controls2015/2014inwindow/1after retained. Planning2047receipts:2046complete,
+1cancelled_result_discarded withCancelledError inendingreceipt; no requestfailure.
+
+Verification6116 CLOSED0/PASS225frozenrefs/44curatedrefs/147protected, original
+15.29GB hashreusedwithstat (neverreparse). Actual2af0278972fe4f45baf014ffff427af4
+empty/events0 stopped22:38:24. VerificationSHA
+bf94e667b3b100ebc985a5b3347b677a2aec7dc9eb0170484a87b7e3e4c7acb8.
+Bundle73members83655B SHAd06b202016e83a4ad9fdae7b17770668f853fc70878acb3fc185d8ed6c13df5f,
+membersre-readPASS; actual9182c20663e54caea8dcf14d74ad8513 empty/events0 cleaned.
+Firstcleanupwrapper usedwrongcwd andfailed beforeopeninglog/executingcleanup;
+correctedrootcommand ranONCE; no repeatedexperiment or bundle. Cleanupownfinal
+logs arelocal,notreconstructed. D148_FULL_W0_FULL1.md nowfinaldiagnostic tables/
+interpretation,SHApinned; don'teditafterseal. Sourceaudit/maintenance evidence
+included asboundedexplicit bundlemembers. No servingchange/newcandidate.
+
+NEXT explicit12file secrets/checksum/diff review -> commit/push; usermanifest/
+unrelateduntrackedneverstage. Then majorremainingnon-nativewaiting diagnosis,
+notanotherdevicequerymicrotest orblindcap/deadline increase. BaselinesPAUSED;
+3BperformanceandallformalM1M2/A1-A5/S1-S13 remainOPEN. GoalACTIVE; thisturn
+PROGRESS (finishedcuration,phaseanalysis,finaltables,sealedclosure).
+
+## D148 curation history — superseded by CURRENT
+
+2026-10-01 22:32 +08. Projection65337 EXIT0, monitor7175 CLOSED (7135alsoCLOSED).
+44:46.59/RSS99456KiB,34391135B output. Exactb950242006254cc986cfc50f9ff71342
+empty/events0/stopped22:31:58; cleanupstdout in tooltranscript, notinventedlog.
+Do NOT wait/restart thosehandles or reproject/re-hash original foranalysis.
+ONEcuration LIVE execsession18032, primelora-d148-full1-curate-20261001.scope,
+actual56c5ac2607cf403c9e142ee6eac3e5f1. Actual3/4GiBswap0 CPU2,3,26,27,
+MemoryCurrent393990144B/6tasks lastchecked. This also runsfailurecollector.
+Prepared cleanup_curation_full1.sh boundtoactual identity, NOTexecuted.
+Freshdisk161737080832B/hostavailable110885604KiB; nonewGPU/remoteoperation.
+Next truecurationexit -> exactemptycleanup -> preparedoccupancy -> finaltable/
+interpretation/seal/backup. Goalturn PROGRESS (projectioncomplete, curationlaunched).
+FullPlan/V1 remainunchanged; allformal/3B/numericqualification issuesOPEN.
+
+## D148 postprocessing history — superseded by CURRENT
+
+2026-10-01 21:48 +08. Full native4000/0fail and exactcleanup done. Metadata and
+remote pairing COMPLETE (below). ONE streaming projection launched21:46:54,
+exec_command session65337; unitprimelora-d148-full1-project-20261001.scope,
+actualInvocationb950242006254cc986cfc50f9ff71342. Actual3/4GiBswap0,
+CPU2,3,26,27;2tasks/events0 lastchecked. NoGPU/remote/cachemaintenance live.
+Monitor SAME session; never restart or parse/hash partial output.
+Latest21:51:26 SAME actualInvocation verifiedactive2tasks/12214272B;
+jqPID3383655 sourceoffset1589997568B (was607166464B), steadily advancing.
+Monitorcell7132 completed/closed; actualprojection session65337 STILL LIVE.
+Currentgoalturn VERIFIED WAIT (plus closure-protocol applicability inspection),
+previousgoalturn PROGRESS. No duplicateprojection/remoteoperation/newGPUrun.
+Original15289629214B is read ONCE by unchanged D96 streaming projector. Prior same-size
+projection took~44min; zero output during reduction is not proof of a stall.
+Latest21:53:32 SAME invocation remainsactive2tasks/17145856B/events0.
+Monitorcell7135 LIVE, polling SAME session65337 every45s, max40polls, yielding
+each poll. Resume with functions.wait(7135); do NOT start another monitor or
+projection. A monitorcycle limit/observation timeout is NOT terminal evidence.
+22:00:18 latest SAME projectionactive2tasks/31145984B/events0;7135 stillLIVE.
+Currentturn also gained a bounded read-only source finding, preserved in raw
+postcleanup_readonly_source_audit1.md: request compact evidence drops only
+native_footprints, not native_staging_footprints; D132 projection presently
+routing-only. Existing D143 source_snapshot44 samples belong to residency_manager;
+that module has TWO same-name definitions, so caller/line evidence is needed
+before classifying all44 as file or native. Not all can be called GPU queries.
+No newaggregation/GPUprobe/servingedit/
+optimizerselection; waitforD148phases. Do not infer onlinecost from savedJSONsize.
+Next: projection completion -> exactempty cleanup -> prepared curation/failure
+and occupancy -> finaltable/interpretation/seal/backup. No new optimizer yet.
+
+22:13:31 continued VERIFIED WAIT on SAME actualprojection b950242006254cc986cfc50f9ff71342:
+active2tasks/61423616B; jq sourceoffset9147240448B of15289629214B (was7620227072B
+at22:09:01), steadily advancing. Monitorcell7135 stillLIVE, SAME session65337;
+do NOT duplicate monitor/projector or parse/hash partialoutput. Cyclelimit is
+not terminal. Disk161789595648B,hostavailable110587028KiB; Plan/V1SHAunchanged.
+NoGPU/remoteoperation/maintenance or servingchange. FullPlan/status/V1 reread;
+monitor/vLLM+optimization/analyze-results/academic-plotting/github-sync skills
+readfull. Sourceaudit now records primarytaggedvLLM worker/model_manager/
+lora_weights links and mutation-boundary caveats; no cross-callinventorycache
+approved, no candidate selected. AllcompleteD147tests,metadata/copy/cachecleanup
+remaincomplete; do NOTrepeat. ProvisionalD148doc/sourceaudit unsealed/unbacked,
+servingstillbacked1eaf15a4. GoalACTIVE; wait -> curation/table/backup remainsNEXT.
+
+22:19:00 nextgoalturn VERIFIED WAIT: exactsameprojection Invocationactive2tasks,
+72867840B,high/max/oom/oomkill0; sourceoffset11010625536B, progressing.
+Monitor7135 continues polling65337; no terminaloutput yet. Previousgoalturn
+also VERIFIED WAIT with read-onlyprimarysourcefinding. No blocker: actual
+streamingjob islive. No newexperiment/optimizer/replay/analysis selected;
+no partialoutputread/hash, no oldgiantfiles processed. Preparedcurator,
+failurecollector andempty-domaincleanup reread; no changes/noexecution.
+Next unchanged: trueprojectionexit -> exactcleanup -> curation -> occupancy ->
+finaltable/interpretation/backup. Bothmodelperformance/formal goals remainOPEN.
+
+22:25:59 monitor7135 CLOSED normally atcyclelimit; actualprojector65337 remains
+LIVE, exactInvocationb950242006254cc986cfc50f9ff71342 active2tasks/87977984B,
+sourceoffset13369278464B. ONEreplacementmonitorcell7175 nowLIVE pollingSAME65337
+every45s,20pollmax; each observation uses set-e and actualInvocationcheck.
+Resume7175 with functions.wait; never wait7135 or duplicateprojector/monitor.
+Currentgoalturn VERIFIED WAIT, not blocked; no newserving/GPU/remote actions.
+
+Maintenance COMPLETED (do NOT repeat): audit87641/actualf503c2466aa54f5abab696a5020d375a
+closed0; exactempty stopped21:45:24,high11754/max0/OOM0 (filecache reclamation,
+maintenance only). Reviewed auditSHA3b7ebafd2420aa73f5575eafbac26ad87a1b4e9e098b5651d7c576314356cd5b.
+Apply90031/actual36546d70ce7f42d28f43ee85ff3ad8b9 closed0,empty/events0 stopped21:46:54.
+Only35 publicdownload archives+35headers removed,14663053312allocatedB;
+officialPyPI SHA and HEAD proof, no open refs/environment symlinks/direct project
+configrefs; fourrepos trackedstates identical. Environments/JIT/model/artifacts/
+rawresults untouched. CompletionSHA537784465d396ce18eae77fec0c8cabe3e07a1693a09770b1e2e38993ff4d339.
+Preprojection free161806897152B/host113311686656B,256MiB predictedoutputgrowth,
+Plan150GiBstartgate PASS. No compression or originaldata deletion.
+D148_FULL_W0_FULL1.md has provisionalstatus table and maintenance disclosure.
+Plan/V1 SHAunchanged; bothmodels/numericadapter/warm/Resident/formal allOPEN;
+baselinesPAUSED. GoalACTIVE; thisturnPROGRESS: metadata/remoteverification,
+safe recovery of capacity and once-onlyprojection launched. Servingbacked1eaf15a4.
+
+## D148 terminal/metadata history — superseded by CURRENT
+
+2026-10-01 21:34 +08. SAME ordinary Full finished normally; do NOT relaunch.
+launch.json pass=true, service/replay/watchdog returncodes0, native GPU release
+and service path removal confirmed. All4000 native-contract completions,0fail;
+numeric adapter/commonSLO qualification remains OPEN (n_correct=null).
+Physical summary measurement_complete=true:20519.80180997704GPU-s,
+4allocations/4released/0open. Pre-arrival37.74262093100697,
+arrival15781.683877044823,drain4610.408991132164,
+cleanup89.9663208690472GPU-s. No detailed latency claim yet.
+Normal source15289629214B; main_outcome156879054B; terminals2448936B.
+Do NOT whole-load giant source; existing bounded metadata/streaming projection
+helpers prepared only. D137/D145 giant originals must not be reprocessed.
+Local service inactive/GPUempty21:32:19; exact aux empty/events0/stopped21:32:21.
+Remote3B/7B/monitor exact identities stopped, allinactive/MainPID0/success21:32:20.
+No live exec cell/session/GPU/remote/analysis job. Historical LIVE below superseded.
+
+Remote journal identified by frozen health clock:
+/home/lab14/primelora_remote/tc/d80_20260927/7b/transfers-7127877529df4979ab820945e2084aa4.jsonl.
+Next copy stopped-service evidence with existing helper; then proven-owned
+rebuildable-cache capacity audit (current free147358121984B/~137.24GiB,
+MemAvailable110671612KiB). No deletion/compression performed. Do not launch new
+heavy work below150GiB; safe light audit/copy allowed. Preserve unique raw data.
+Then metadata -> ONE projection -> curation/occupancy -> table/interpretation
+-> scoped backup. Runtime remains backed1eaf15a4; no new optimizer selected.
+Plan/status/V1 reread FULL after compaction; analyze-results/academic-plotting
+skills read. Goal ACTIVE; this turn PROGRESS (normal terminal and exactcleanup).
+BaselinesPAUSED; bothmodelperformance/3B/numeric/warm/Resident/formal allOPEN.
+
+21:44 postcleanup progress: remote evidence copied and source/copy SHA matched.
+Journal8695bb610be0de46c0868c028592c5af4a0f59ab5edf71481131130165b441c1;
+monitor eb17ec98addc0b9a84e9352eb48b4fa8f971ab84d8b2ce818af1758938a486f5.
+Metadata actual5a33144d8c984a1ea5854865ead8883e completed0/3.55s/RSS364260KiB,
+exactempty/events0 stopped21:39:17. Compact104450418B fits unchanged128MiBguard.
+PreliminarySHAa44eb56573a3d75d0c71f2c2c3be3f84a607c3963d4f1fee218e21e40e02e96c:
+4000success/0fail,132matchedpublished transfers131480060B/packing0;
+6039resourcesamples,peak54801080320B,minhost73518608384B,swap/events0/no warnings;
+1initial+3naturalscaleout,0quarantine. D148 provisionalstatus table created.
+No latency/SLO claim yet. Only LIVE CPU maintenance is bounded public-download
+cache audit (session87641), actualf503c2466aa54f5abab696a5020d375a,
+primelora-d148-cache-audit1-20261001.scope,3/4GiBswap0/CPU2,3,26,27.
+Read-only candidate verification against official public wheelSHA/HEAD;
+NOdeletion yet, no environment/uniqueartifact/result modifications. This audit
+has memory.high reclamation events from filecache, not OOM; it is NOT a measured
+inference experiment. Waitforaudit, reviewexplicitallowlist/SHA, then scoped
+maintenanceapply if valid. Existing finished run cache dirs mostlyempty; failed
+D133/D115 remainprotected, not deleted. No giantprojection started yet.
+
+## D148 launch/save history — superseded by CURRENT
+
+2026-10-01 19:49:05 +08. Launched ONCE in tmux tc-d148-7b-full1;
+ordinary 4000/source42/W0, backed runtime1eaf15a4. No profiler/prefix.
+Preflight PASS225 reference-path entries/147 protected/Plan/V1, SHA
+454b8d102e011cd91baeae4eb5a27f019fa1cc0de042bc32270c355902031c59.
+Actual preflight815784d3b1de48f29b5d46b58975c116 and health
+1d8e7218e5194d7bb391bf59f73fdc37 both empty/events0/stopped; handles closed.
+Fresh disk162934022144B/host113522024448B passed planned32GiB growth gate.
+No deletions/compression or new cache publication.
+
+- Service primelora-tc-svc-a5ca47c39263418daa5f50c917161233.scope,
+  actual40ca6d259e6c469ea6e8d0cfa3826723; limits72/80GiB,swap2 read back.
+- Aux primelora-tc-aux-8af03bdfb52a4e19ae9ce74839358f58.scope,
+  actual92607fdb22fd404b82a5ba55c99a8403; limits3/4GiB,swap0 read back.
+  Replay2849543/watchdog2849558 are in aux CPU2,3,26,27.
+  Verify spawned native workers in service CPU4-23,28-47 as they appear.
+- Remote3b2185271/75347dc8fc124e1aab086524fd1c05ee;
+  7b2185273/49916ec17998419388a5048948c875a6;
+  monitor2185276/9caeedcc963d4fdc90aa93cf7a8b7485,
+  primelora-artifact-monitor-d148full1.service. Both NIC1000/full.
+  7B healthclock remote-process-monotonic:c42c17f372ff4e81a9a35242467fcb4a.
+  Remote log /home/lab14/primelora_remote/tc/d148_20261001/remote_monitor_7b_full_full1.log.
+  Exact stop/cleanup helpers prepared, NOT run. No remote management/hash/
+  cleanup during inference. Immutable D78/D80 cache unchanged.
+
+NEXT monitor SAME invocation -> terminal/physical release -> exact remote stop
+and evidence copy -> bounded analysis/table/interpretation -> backup. No
+second GPU run, new optimizer or configuration/deadline/cap change during it.
+No terminal result/performance gain yet. Formal/numeric/3B/warm/reference
+items below all remain OPEN. This turn PROGRESS: ordinary Full launched.
+
+21:26:55 latest: SAME run still LIVE saving/cleanup, exact Invocation verified,
+Tasks125. All4000 arrived/done/ok,fail0/backlog0 in final live banner.
+No terminal launch.json yet; never relaunch or postprocess incomplete outputs.
+GPU compute list empty at21:17:04 but terminal release receipt still pending.
+main_outcome.json156879054B exists, NOT parsed/hashed; request_terminals2448936B.
+Normal source JSON is WRITING:10344944069B at21:26:55, steadily growing;
+do NOT read/hash/project until terminal and source stable.
+Legacy console table is NOT frozen V1 performance/cost/SLO qualification.
+Sample5793:service49707405312B,hostavailable74224029696B,swap0/events0,
+no warning/abort. Latest watchdog disk152371572736B;
+running stop threshold100GiB unchanged (150GiB is new
+heavy-launch threshold, not a reason to abort an otherwise healthy live run).
+Monitorcells7077/7080/7083/7086/7088/7090/7092/7095 completed and closed;
+no live tool handles. Actual serving run remains live as above.
+Actual experiment remains tmux/service/aux above, not an exec session.
+Prior and current goalturns VERIFIED WAIT on live actual service; launchturn
+was PROGRESS. Goal ACTIVE, no blocker/completion claim. Plan/V1 SHA unchanged.
+No remote management, hash/copy, analysis, new optimization or second run.
+Four native GPU worker PIDs2852708/2857503/
+2857803/2858012 verified in exact service domain and CPU4-23,28-47 at19:51.
+Sample172:service15343702016B,hostavailable98156994560B,swap0,
+high/max/oom/oom_kill0,no warning/abort. No terminal result yet.
+Prepared (not executed) D145 metadata/projection/curation/failure/occupancy/
+stopped-remote-copy helpers by reusing existing scripts, changing only D148
+paths, actual service identity, remote clock and backed runtime. All shell
+syntax PASS. Failure context is already retained by unchanged D96 projection
+and existing failure-observation collector; no new projection or serving edit.
+D137 sealed34MB projection remains the reusable input audit, not its15GB raw.
+D145 comparison will retain its3996/4 population difference, not fabricate
+complete paired output identity. No data analyzed/old giant files reread.
+Do NOT run postprocessing or remote stop/copy before actual terminal cleanup.
+
+## D148 preparation — superseded by LIVE above
+
+2026-10-01. D147 backup remains 1eaf15a4eb82abd847b6b8cd08eff97b06b6ef24.
+Prepared D148 by reusing D145 launcher/config/preflight/remote helpers under
+results/ieee_tc/p2_backend_qualification/d148_20261001. Nothing launched yet.
+Same 4000/source42/W0, config/profile/generation/real immutable delivery;
+only three fresh owned output/cache paths and backed runtime identity differ.
+No profiler/prefix, no new weights/traces/cache publication. D146 observation
+and D147 query implementation are the declared source deltas. This remains
+development validation, not formal SLO/ranking or an isolated causal estimate.
+Plan/status/V1 and run-experiment/monitor-experiment skills read in full.
+Next: bounded preflight, remote activation/health, exact empty-domain cleanup,
+then ONE ordinary 7B Full. Check actual resource limits and worker ownership.
+All previous performance/numeric-adapter/warm/reference/formal items OPEN;
+baselines PAUSED. Do not repeat D147 tests or completed microtests.
+
+## D147 qualified/backed — completed history
+
+19:41 +08 BACKUP COMPLETE1eaf15a4eb82abd847b6b8cd08eff97b06b6ef24,
+pushedfaaslora_origin/retry14_continuous_queue_v2; exactremoteHEADverified.
+Sevenexplicitfiles/56payload secrets/checksum/diffPASS; usermanifestexcluded.
+All test/microtest/verification handles CLOSED; no liveGPU/remote/CPUjob.
+NEXT ordinaryFull preparation; do not repeat qualification. Recheck capacity
+using Plan formula, not an extra invented gate: with prior predictedgrowth32GiB,
+required=max(150,100+1.5*32)=150GiB. Current~151.7GiB is above that threshold;
+earlier 'cleanup needed' was caution, NOT a demonstrated launch prohibition.
+If fresh full preflight passes all disk/memory/identity/protected gates, ordinary
+Full may proceed with unchanged watchdog. Reclaim only provenrebuildable owned
+cache when needed; no broad deletion/scan, no compression concurrent with run.
+No ordinaryFull scripts prepared/launched yet. All openperformance/formal items
+below remainOPEN. ThisturnPROGRESS: evidence-backed querycandidate qualified,
+firstsemantic mismatch corrected and bothattempts preserved, sourcebacked.
 
 2026-10-01 19:39 +08. D147 candidate2 QUALIFIED, not yet Full-performance
 accepted. No liveexec/session/GPU/remote/CPUjob; all scopes empty/events0/stopped.
