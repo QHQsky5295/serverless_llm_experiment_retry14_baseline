@@ -1,6 +1,54 @@
 # IEEE TC execution status
 
-## CURRENT — D143 diagnostic completed and audited; evidence backup next
+## CURRENT — D144 candidate qualified; backup then ordinary Full
+
+2026-10-01 15:49. D143 diagnostic BACKED f70595dc98fb9b2ae013171142bbb87085faa991;
+remote exactHEADverified. Sixexplicitfiles/61payloadsecrets/checksum/diffPASS,
+user manifest excluded. D143 closed, don'trerun. Allremotesinactive/cacheunchanged.
+
+D144 bounded candidate in gpu_monitor.py: queryis_pinned onceperview (still
+comparealiases), andwhenstagedempty copythecurrentregisteredplaininventory
+instead ofwalkingthesametensorsagain. No cross-callcache, formula/capacity/
+timeout/backend/workload/remote changes. Nonemptystaging still fullyobserved.
+IEEEowner,epoch,leases,budgets,content,errors,fences remainunchanged.
+PrimaryvLLM0.30 model_manager.list_adapters/UniProcExecutor plus PyTorch2.13
+Memory.cpp verifiedonline; localowner.staged_models inspected. Thirdparty
+genericperformancetargets notused. DocsPytorch2.13webpagesunavailable; native
+taggedsourceprovided actualisPinnedPtr implementation instead.
+
+- Two minimaltests RED:9pinqueriesfor6views;empty-stagingquery2inventories.
+  Actualc7f1cbd7858a4579b8ce1a3672e4fe47 emptyclosed15:47:14/events0.
+- SAMEtests GREEN aftercandidate:2PASS0.005s, actual294e5f85469a440b9ee0329f658cbc34,
+  emptyclosed/events0. Extendedtestalso checksindependentreturnedpayloads,
+  nextobservationfreshness andnonemptystagingstilltwo inventories. No GPUused.
+- ONEregression completed628PASS77.150s,command86.41s/RSS1122388KiB;
+  actualbf26b36d67434255a3701fa70181320a,emptyclosed15:51:03/events0.
+  Do NOT rerun. All actual3/4GiBswap0/taskset2,3,26,27; rawd144_20261001.
+- Seven existingtinyCPUfixture cases compare exactbackedf70595helper output/
+  errors to candidate: all equal. shared/partial/packed/stagedalias9->6pinqueries,
+  empty0->0;invalidextraTensor4->2,pinningconflict7->4 withsameerrors. RealCPU
+  Torch2.8.0+cu128/CUDA_VISIBLEempty, NOTnative2.13CUDAperformancequalification.
+  Actualfa521b88303a4ab7ad1c92ec040238df emptyclosed15:52:48/events0.
+- Curator1 failed BEFOREoutputs: preflight refs mixabsolute/relativepaths,
+  changedfile allowlist comparedonlyrelativepaths. Retainedfailedsource/log;
+  cd435e4ab8424ffbaf96e05a3665d17c emptyclosed15:55:15/events0.
+  Curator2 normalizesidentity;206prelaunchrefs checked, declared3changedfiles
+  againstexactparentSHA andallotherrefsagainstcurrentbytes;147protected/Plan/V1/
+  source/syntax/secretsPASS.
+  Actual4ece9a4811d24efe81063f6e21b60b3d complete0/.73s/RSS31100KiB,
+  exactemptyclosed/events0. No tests or GPU rerun tofixanalysispathhandling.
+- CuratedSHA61a5ecc421d798cb383be44dc984afa99f5caa5ab8fa39d4cee910d9071b5ee8;
+  bundle37members105940B SHA19100fc752c6bdfb3072684eb3e0de847a183ab3423308fb2fe3c92f5e18b3cc.
+  DocD144_SAME_OBSERVATION_HOST_INVENTORY.md SHApinned; do not editafterseal.
+  Only3source/testfiles changed; not usermanifest. No liveexec/tmux/GPU/scope.
+  Sourcecandidate qualified butNOTbacked yet.
+
+NEXT: scopedcandidatebackup -> ordinary7BFull
+4000/currentprofiles/config,noprofiler. No claimedTTFT/SLO/GPU-simprovementyet.
+Bothmodelperformance,3BTPOT/outputhash,numericadapter,warm/Resident,baseline,
+M1M2/A1-A5/S1-S13 remainOPEN. BaselinesPAUSED. No nextGPUprepared/launched.
+
+## D143 diagnostic closure — completed history
 
 2026-10-01 15:43. Goal ACTIVE/incomplete. Current turn PROGRESS: SAME D143
 completed normally, owned cleanup, role-stack/terminal/remote audit and small

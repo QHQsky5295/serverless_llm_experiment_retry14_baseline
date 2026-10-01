@@ -8,6 +8,7 @@ memory usage, peak allocation, and KV cache statistics.
 import time
 import threading
 import os
+import copy
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass
@@ -75,11 +76,15 @@ def _ieee_lora_host_inventory(manager: Any, *, staged_models=None) -> Dict[str, 
         if pointer <= 0 or capacity <= 0:
             raise ValueError(f'empty native CPU LoRA storage: {name}')
         key = (str(tensor.device), pointer)
+        # One fresh query per view in this serialized observation. Repeating
+        # the native pointer query for a new allocation adds no independent
+        # evidence; other aliased views still undergo their own consistency check.
+        pinned = bool(tensor.is_pinned())
         if key not in allocations:
             allocations[key] = {'allocation_id': len(allocations), 'device': str(tensor.device),
-                'allocated_bytes': capacity, 'pinned': bool(tensor.is_pinned()), 'adapter_ids': []}
+                'allocated_bytes': capacity, 'pinned': pinned, 'adapter_ids': []}
         allocation = allocations[key]
-        if allocation['allocated_bytes'] != capacity or allocation['pinned'] != bool(tensor.is_pinned()):
+        if allocation['allocated_bytes'] != capacity or allocation['pinned'] != pinned:
             raise ValueError('aliased native CPU storage has inconsistent capacity/pinning')
         if aid not in allocation['adapter_ids']:
             allocation['adapter_ids'].append(aid)
@@ -753,11 +758,17 @@ class IEEEWorkerObservationExtension:
         if operation == 'source_snapshot':
             # Same serialized owner invocation: neither source identity nor
             # cache membership can change between these two read-only views.
+            host = _ieee_lora_host_inventory(manager)
             result['native_footprints'] = {
-                **_ieee_lora_host_inventory(manager),
+                **host,
                 **_ieee_lora_pool_inventory(manager, require_uniform_slots=True)}
-            result['native_staging_footprints'] = _ieee_lora_host_inventory(manager,
-                staged_models=owner.staged_models())
+            staged = owner.staged_models()
+            # With no staged models these are the same current physical set.
+            # Copy only the measured plain payload to keep independent return
+            # values; never memoize tensor observations across owner calls.
+            result['native_staging_footprints'] = (
+                _ieee_lora_host_inventory(manager, staged_models=staged)
+                if staged else copy.deepcopy(host))
             result['native_host_allocator'] = _ieee_pinned_host_observation(result['native_staging_footprints'])
             # CUDA ordinals can be remapped in dedicated workers; publish the
             # actual device identity so controller NVML queries cannot sample

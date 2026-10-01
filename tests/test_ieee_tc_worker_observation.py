@@ -89,6 +89,27 @@ class NativeHostFootprint(unittest.TestCase):
                   8: SimpleNamespace(id=8, rank=4, loras={'shared': shared})}
         return SimpleNamespace(list_adapters=lambda: dict(models)), models
 
+    def test_pinning_is_observed_once_per_view_not_twice_for_new_storage(self):
+        import torch
+        native, _ = self.native_models()
+        observe = torch.Tensor.is_pinned
+        observed = []
+        def counted(tensor):
+            observed.append(id(tensor))
+            return observe(tensor)
+        with patch.object(torch.Tensor, 'is_pinned', counted):
+            result = monitor._ieee_lora_host_inventory(native)
+        self.assertEqual(len(observed), len(result['host_tensor_views']))
+        self.assertEqual(result['host_tensor_storage_bytes'], 768)
+
+    def test_single_observation_still_checks_pinning_of_aliased_views(self):
+        import torch
+        native, models = self.native_models()
+        incompatible = models[7].loras['shared'].lora_b
+        with patch.object(torch.Tensor, 'is_pinned', lambda tensor: tensor is incompatible):
+            with self.assertRaisesRegex(ValueError, 'inconsistent capacity/pinning'):
+                monitor._ieee_lora_host_inventory(native)
+
     def test_shared_allocations_count_once_and_view_bytes_are_not_residency(self):
         native, models = self.native_models()
         result = monitor._ieee_lora_host_inventory(native)

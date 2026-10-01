@@ -1443,7 +1443,7 @@ class NativeDemandTransactions(unittest.TestCase):
             get_device_properties=Mock(return_value=SimpleNamespace(uuid=SimpleNamespace(bytes=list(range(16)))))))
         with patch.object(gpu_monitor, 'torch', torch), \
              patch.object(gpu_monitor, '_ieee_lora_pool_inventory') as inventory, \
-             patch.object(gpu_monitor, '_ieee_lora_host_inventory', return_value={'host_tensor_storage_bytes': 16}), \
+             patch.object(gpu_monitor, '_ieee_lora_host_inventory', return_value={'host_tensor_storage_bytes': 16}) as host_inventory, \
              patch.dict('sys.modules', {
             'vllm': SimpleNamespace(__version__='0.30.0'),
             'vllm.lora.request': SimpleNamespace(LoRARequest=lambda **kw: SimpleNamespace(**kw))}):
@@ -1459,12 +1459,34 @@ class NativeDemandTransactions(unittest.TestCase):
             event.record.assert_called_once_with('native-stream')
             event.synchronize.assert_called_once_with()
             inventory.return_value = {'slot_capacity_bytes': 32}
+            host_inventory.reset_mock()
             sources = worker.ieee_gpu_reference(operation='source_snapshot')
             self.assertEqual(sources['device_uuid'], 'GPU-00010203-0405-0607-0809-0a0b0c0d0e0f')
             self.assertEqual(sources['sources'][0]['adapter_id'], 'adapter-4')
             self.assertIn('clock_id', sources)
             self.assertEqual(sources['native_footprints'], {'host_tensor_storage_bytes': 16,
                                                            'slot_capacity_bytes': 32})
+            host_inventory.assert_called_once_with(self.manager)
+            self.assertEqual(sources['native_staging_footprints'], {'host_tensor_storage_bytes': 16})
+            # Reuse is bounded to this serialized observation, never another
+            # owner epoch; the two returned payloads retain independent values.
+            host_inventory.return_value = {'host_tensor_storage_bytes': 32,
+                                           'host_allocations': [{'allocated_bytes': 32}]}
+            fresh = worker.ieee_gpu_reference(operation='source_snapshot')
+            self.assertEqual(fresh['native_staging_footprints']['host_tensor_storage_bytes'], 32)
+            fresh['native_staging_footprints']['host_allocations'][0]['allocated_bytes'] = 999
+            self.assertEqual(fresh['native_footprints']['host_allocations'][0]['allocated_bytes'], 32)
+            staged = {5: object()}
+            host_inventory.reset_mock()
+            host_inventory.side_effect = [{'host_tensor_storage_bytes': 32},
+                                          {'host_tensor_storage_bytes': 48}]
+            with patch.object(worker._ieee_gpu_reference_owner, 'staged_models', return_value=staged):
+                live_staged = worker.ieee_gpu_reference(operation='source_snapshot')
+            self.assertEqual(host_inventory.call_count, 2)
+            self.assertEqual(host_inventory.call_args_list[0].args, (self.manager,))
+            self.assertEqual(host_inventory.call_args_list[1].kwargs, {'staged_models': staged})
+            self.assertEqual(live_staged['native_footprints']['host_tensor_storage_bytes'], 32)
+            self.assertEqual(live_staged['native_staging_footprints']['host_tensor_storage_bytes'], 48)
             event.synchronize.assert_called_once_with()  # Observation adds no fence.
 
     def test_actual_engine_rpc_forwards_demand_transaction(self):
