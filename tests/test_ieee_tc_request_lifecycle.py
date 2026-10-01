@@ -50,6 +50,169 @@ def fixture():
     return runner, slot, trace, plan
 
 
+class DispatchPermitOwnership(unittest.TestCase):
+    """Real outer gate, deterministic interleavings; no inference benchmark."""
+
+    def runner(self, capacity=1):
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._dispatch_admitted_requests = 0
+        runner._current_dispatch_capacity_limit = Mock(return_value=capacity)
+        return runner
+
+    def test_new_arrival_cannot_take_a_permit_already_due_to_an_older_waiter(self):
+        runner = self.runner()
+        async def check():
+            order = []
+            async def request(label):
+                await runner._acquire_dispatch_admission()
+                order.append(label)
+                await runner._release_dispatch_admission()
+            await runner._acquire_dispatch_admission()
+            older = asyncio.create_task(request('older'))
+            await asyncio.sleep(0)  # Older request has entered the real gate.
+            newcomer = asyncio.create_task(request('newcomer'))
+            # The newcomer is runnable before the awakened old request. A
+            # notification alone is not ownership of the released permit.
+            await runner._release_dispatch_admission()
+            await asyncio.gather(older, newcomer)
+            self.assertEqual(order, ['older', 'newcomer'])
+            self.assertEqual(runner._dispatch_admitted_requests, 0)
+        asyncio.run(check())
+
+    def test_cancellation_while_queued_does_not_release_someone_elses_permit(self):
+        runner = self.runner()
+        async def check():
+            await runner._acquire_dispatch_admission()
+            cancelled = asyncio.create_task(runner._acquire_dispatch_admission())
+            later = asyncio.create_task(runner._acquire_dispatch_admission())
+            await asyncio.sleep(0)
+            cancelled.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await cancelled
+            self.assertEqual(runner._dispatch_admitted_requests, 1)
+            self.assertFalse(later.done())
+            await runner._release_dispatch_admission()
+            await later
+            await runner._release_dispatch_admission()
+            self.assertEqual(runner._dispatch_admitted_requests, 0)
+        asyncio.run(check())
+
+    def test_cancelled_ticket_may_be_discarded_before_its_task_unwinds(self):
+        runner = self.runner()
+        async def check():
+            await runner._acquire_dispatch_admission()
+            cancelled = asyncio.create_task(runner._acquire_dispatch_admission())
+            later = asyncio.create_task(runner._acquire_dispatch_admission())
+            await asyncio.sleep(0)
+            cancelled.cancel()
+            # No yield between cancellation and capacity change.
+            await runner._release_dispatch_admission()
+            with self.assertRaises(asyncio.CancelledError):
+                await cancelled
+            await later
+            self.assertEqual(runner._dispatch_admitted_requests, 1)
+            await runner._release_dispatch_admission()
+            self.assertEqual(runner._dispatch_admitted_requests, 0)
+        asyncio.run(check())
+
+    def test_cancel_after_grant_returns_permit_to_next_waiter(self):
+        runner = self.runner()
+        async def check():
+            await runner._acquire_dispatch_admission()
+            cancelled = asyncio.create_task(runner._acquire_dispatch_admission())
+            later = asyncio.create_task(runner._acquire_dispatch_admission())
+            await asyncio.sleep(0)
+            await runner._release_dispatch_admission()
+            self.assertEqual(runner._dispatch_admitted_requests, 1)
+            cancelled.cancel()  # Already granted, but not resumed yet.
+            with self.assertRaises(asyncio.CancelledError):
+                await cancelled
+            await later
+            self.assertEqual(runner._dispatch_admitted_requests, 1)
+            await runner._release_dispatch_admission()
+            self.assertEqual(runner._dispatch_admitted_requests, 0)
+        asyncio.run(check())
+
+    def test_capacity_growth_grants_only_available_permits_in_order(self):
+        runner = self.runner()
+        async def check():
+            await runner._acquire_dispatch_admission()
+            tasks = [asyncio.create_task(runner._acquire_dispatch_admission()) for _ in range(3)]
+            await asyncio.sleep(0)
+            runner._current_dispatch_capacity_limit.return_value = 3
+            await runner._notify_dispatch_capacity_changed(wake_all=True)
+            self.assertEqual(runner._dispatch_admitted_requests, 3)
+            await asyncio.sleep(0)
+            self.assertEqual([t.done() for t in tasks], [True, True, False])
+            await runner._release_dispatch_admission()
+            await asyncio.gather(*tasks)
+            self.assertEqual(runner._dispatch_admitted_requests, 3)
+            for _ in range(3):
+                await runner._release_dispatch_admission()
+            self.assertEqual(runner._dispatch_admitted_requests, 0)
+        asyncio.run(check())
+
+    def test_shrink_does_not_revoke_owners_or_grant_until_below_new_limit(self):
+        runner = self.runner(3)
+        async def check():
+            for _ in range(3):
+                await runner._acquire_dispatch_admission()
+            later = asyncio.create_task(runner._acquire_dispatch_admission())
+            await asyncio.sleep(0)
+            runner._current_dispatch_capacity_limit.return_value = 1
+            await runner._notify_dispatch_capacity_changed(wake_all=True)
+            for remaining in (2, 1):
+                await runner._release_dispatch_admission()
+                await asyncio.sleep(0)
+                self.assertEqual(runner._dispatch_admitted_requests, remaining)
+                self.assertFalse(later.done())
+            await runner._release_dispatch_admission()
+            await later
+            self.assertEqual(runner._dispatch_admitted_requests, 1)
+            await runner._release_dispatch_admission()
+        asyncio.run(check())
+
+    def test_slot_only_notification_does_not_change_outer_permit_ownership(self):
+        runner = self.runner()
+        async def check():
+            await runner._acquire_dispatch_admission()
+            waiting = asyncio.create_task(runner._acquire_dispatch_admission())
+            await asyncio.sleep(0)
+            runner._current_dispatch_capacity_limit.return_value = 2
+            await runner._notify_dispatch_capacity_changed(notify_admission=False)
+            await asyncio.sleep(0)
+            self.assertFalse(waiting.done())
+            self.assertEqual(runner._dispatch_admitted_requests, 1)
+            await runner._release_dispatch_admission()
+            await waiting
+            await runner._release_dispatch_admission()
+        asyncio.run(check())
+
+    def test_bounded_queue_makes_progress_without_reordering(self):
+        runner = self.runner(2)
+        async def check():
+            order, peak = [], 0
+            async def request(index):
+                nonlocal peak
+                await runner._acquire_dispatch_admission()
+                peak = max(peak, runner._dispatch_admitted_requests)
+                order.append(index)
+                await asyncio.sleep(0)
+                await runner._release_dispatch_admission()
+            await asyncio.gather(*(request(i) for i in range(64)))
+            self.assertEqual(order, list(range(64)))
+            self.assertEqual(peak, 2)
+            self.assertEqual(runner._dispatch_admitted_requests, 0)
+            self.assertEqual(len(runner._dispatch_admission_queue()), 0)
+        asyncio.run(check())
+
+    def test_unowned_release_is_not_silently_clamped(self):
+        runner = self.runner()
+        with self.assertRaisesRegex(RuntimeError, 'permit ownership underflow'):
+            asyncio.run(runner._release_dispatch_admission())
+        self.assertEqual(runner._dispatch_admitted_requests, 0)
+
+
 class PredecisionRoutingIntegration(unittest.TestCase):
     """Actual runner/router calls with explicit native-measurement fixtures, no GPU."""
     def test_ieee_full_cannot_silently_start_legacy_preloading(self):

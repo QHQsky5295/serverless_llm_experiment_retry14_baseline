@@ -1,0 +1,29 @@
+{
+  "bundle": "20261001_d136_dispatch_permits_sources.tar.gz",
+  "member_sha256": {
+    "cleanup_green.log": "9908d6ce3b5ff18495aebdfb6e8dc9d7e7bdb6bd6d6370f5c22571ff633446d1",
+    "cleanup_green.sh": "062aff88071dbec0a94bc52861908d15c53f13af04836e8806f5bf927f3be0bf",
+    "cleanup_inspect1.log": "05dfc8799d5fea2af3fe530ba2cca90befb45454842a8d06e58896b2091885b8",
+    "cleanup_inspect1.sh": "9306a69097c78169021937a099f881e92a68079a3546b543fc22b348d7febaba",
+    "cleanup_red.log": "df5f8f43cf7c27e972bebf02773ac4917d77b9c2a7af56dfab4d19a20ee0794e",
+    "cleanup_red.sh": "72357649cc827fc35db50cdbdf0b5afbd5e92852ba42d23c81c7a997d9faedcf",
+    "cleanup_verify.log": "e4853ff6b0c70349a72b3ef7df909d11698e715b27420277fc45b2d1df8f350a",
+    "cleanup_verify.sh": "7a6f0d0671e7c4f73f6f848761a30ffc3c5308c4767488f08cb6bda5e6b68c7b",
+    "curate_and_bundle.py": "5772d9b5e157635d56ffdc2e40f81123ac7ee164b93e7432c84c582a87ecc22b",
+    "finalize.sh": "b7183c2239db6d792228400abfc2cbef2308fe8cace98120d2c81d814e3663a5",
+    "finalize_scope.txt": "c6e1a7feb7aa30722c2348b34f417928c5f4a92df52c7e6c6e95ef77ab18cd4b",
+    "green.log": "101cf9310e18a80e5afb482660e7c4f550b4075f02ffb9c5db059998124691ba",
+    "green_scope.txt": "164b2b00636baeca3ac704e1f32dd87d459773b3b6181030d301d1b63e2e9740",
+    "green_time.txt": "4539c22f9659b16d2a9dcd805d8f5b53ec369f7a7a9c7ad58b19d99b390b1068",
+    "red.log": "d0791a8689169d60681ef3d558d969b441e47e06b775e013b7958d8859e69061",
+    "red_scope.txt": "74b7ac49e7f37cfde3de79fbc1faa068e779accbd6d0a866113ee51c3eeaeb81",
+    "red_time.txt": "14a397ef3313358c592e48b29b53ef6eb43ee02d2282c1764072f97b897dd05f",
+    "test_dispatch_permits.sh": "2e898612b1cc54783b3ee9c5e0589e82d3bc4d88f68ac3469c46e2f07145be08",
+    "verification.json": "ef9d31b0d034d819ffd45e598d996f8aa2660ad68fb6d837d045756a3fe80c6f",
+    "verify.log": "6311fcb77818a8a6edeaa3543deb9bd67de0b5ba3954fcec6d1c763ca9afe6a7",
+    "verify_dispatch_permits.sh": "afdfac9d9dd5ff9a83333c641d94ecb79ef0232137280e85855ff2cdd79577c5",
+    "verify_scope.txt": "16c6cc8b616956aaa06d0146a718191a686c936c0e73a78175e12984047fa8ff",
+    "verify_time.txt": "91df296187f75e90ebe12ac98de59d0303890029a90870541e5cfab6eae2ce50"
+  },
+  "member_checks_pass": true
+}

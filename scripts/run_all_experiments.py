@@ -65,7 +65,7 @@ import tempfile
 import time
 import uuid
 from bisect import bisect_right
-from collections import defaultdict
+from collections import defaultdict, deque
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from types import SimpleNamespace
@@ -6922,7 +6922,7 @@ class ScenarioRunner:
         self._live_waiting_traces_by_id: Dict[str, Any] = {}
         self._background_planning_us: List[float] = []
         self._dispatch_admitted_requests: int = 0
-        self._dispatch_admission_condition: Optional[asyncio.Condition] = None
+        self._dispatch_admission_waiters = deque()
         self._runtime_slot_capacity_condition: Optional[asyncio.Condition] = None
         self._unsettled_runtime_reservations: Dict[str, RuntimeRequestReservation] = {}
         self._live_runtime_reservations: Dict[str, RuntimeRequestReservation] = {}
@@ -11701,12 +11701,31 @@ class ScenarioRunner:
             self._dispatch_capacity_limit_for_runtime_groups(runtime_groups),
         )
 
-    def _dispatch_admission_cond(self) -> asyncio.Condition:
-        cond = getattr(self, "_dispatch_admission_condition", None)
-        if cond is None:
-            cond = asyncio.Condition()
-            self._dispatch_admission_condition = cond
-        return cond
+    def _dispatch_admission_queue(self):
+        waiters = getattr(self, "_dispatch_admission_waiters", None)
+        if waiters is None:
+            waiters = self._dispatch_admission_waiters = deque()
+        return waiters
+
+    def _grant_dispatch_admission(self) -> None:
+        """Transfer available permits to queued requests before waking them.
+
+        All callers run on the controller event loop; this transaction has no
+        await. A granted but not yet resumed waiter owns its count, so a newer
+        arrival cannot steal its place. Capacity changes retain existing owners
+        and only govern future grants. This does not reserve KV or a GPU slot.
+        """
+        waiters = self._dispatch_admission_queue()
+        if not waiters:
+            return
+        limit = self._current_dispatch_capacity_limit()
+        while waiters and int(getattr(self, '_dispatch_admitted_requests', 0) or 0) < limit:
+            waiter = waiters.popleft()
+            if waiter.done():
+                continue
+            self._dispatch_admitted_requests = int(
+                getattr(self, '_dispatch_admitted_requests', 0) or 0) + 1
+            waiter.set_result(None)
 
     def _runtime_slot_capacity_cond(self) -> asyncio.Condition:
         cond = getattr(self, "_runtime_slot_capacity_condition", None)
@@ -11722,13 +11741,8 @@ class ScenarioRunner:
         notify_admission: bool = True,
         slot_wake_all: Optional[bool] = None,
     ) -> None:
-        admission_cond = getattr(self, "_dispatch_admission_condition", None)
-        if notify_admission and admission_cond is not None:
-            async with admission_cond:
-                if wake_all:
-                    admission_cond.notify_all()
-                else:
-                    admission_cond.notify(1)
+        if notify_admission:
+            self._grant_dispatch_admission()
         runtime_cond = getattr(self, "_runtime_slot_capacity_condition", None)
         if runtime_cond is None:
             return
@@ -11741,22 +11755,30 @@ class ScenarioRunner:
                 runtime_cond.notify(1)
 
     async def _acquire_dispatch_admission(self) -> None:
-        cond = self._dispatch_admission_cond()
-        async with cond:
-            while int(getattr(self, "_dispatch_admitted_requests", 0) or 0) >= self._current_dispatch_capacity_limit():
-                await cond.wait()
-            self._dispatch_admitted_requests = int(
-                getattr(self, "_dispatch_admitted_requests", 0) or 0
-            ) + 1
+        waiters = self._dispatch_admission_queue()
+        waiter = asyncio.get_running_loop().create_future()
+        waiters.append(waiter)
+        self._grant_dispatch_admission()
+        try:
+            await waiter
+        except asyncio.CancelledError:
+            # Cancellation while queued cancels the Future. After a grant the
+            # completed Future is not cancelled: return that owned permit once.
+            if waiter.cancelled():
+                # A capacity notification may already have discarded this
+                # cancelled ticket before its task gets CPU to unwind.
+                if waiter in waiters:
+                    waiters.remove(waiter)
+            else:
+                self._dispatch_admitted_requests -= 1
+            self._grant_dispatch_admission()
+            raise
 
     async def _release_dispatch_admission(self) -> None:
-        cond = self._dispatch_admission_cond()
-        async with cond:
-            self._dispatch_admitted_requests = max(
-                0,
-                int(getattr(self, "_dispatch_admitted_requests", 0) or 0) - 1,
-            )
-            cond.notify(1)
+        if int(getattr(self, '_dispatch_admitted_requests', 0) or 0) < 1:
+            raise RuntimeError('dispatch admission permit ownership underflow')
+        self._dispatch_admitted_requests -= 1
+        self._grant_dispatch_admission()
 
     def _live_scale_eval_period_s(self) -> float:
         try:
@@ -14508,7 +14530,7 @@ class ScenarioRunner:
         self._run_started_at = time.perf_counter()
         self._begin_instance_lifecycle_tracking()
         self._dispatch_admitted_requests = 0
-        self._dispatch_admission_condition = None
+        self._dispatch_admission_waiters = deque()
         self._runtime_slot_capacity_condition = None
         request_plan_cache = self._prepare_request_execution_plan_cache(
             self.engine,

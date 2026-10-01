@@ -1,0 +1,282 @@
+{
+  "kind": "d136_dispatch_permit_ownership_v1",
+  "parent_commit": "220f4303ecb69339c0d9575fda76cd2db66efaeb",
+  "production_changed": [
+    "scripts/run_all_experiments.py"
+  ],
+  "decision": "CPU queue ownership candidate; ordinary Full required",
+  "full_replay_qualified": false,
+  "formal_performance_result": false,
+  "cuda_executed": false,
+  "red_green": {
+    "red_order": [
+      "newcomer",
+      "older"
+    ],
+    "green_order": [
+      "older",
+      "newcomer"
+    ],
+    "red_tests": 1,
+    "green_tests": 9,
+    "independent_performance_repetitions": 0
+  },
+  "verification": {
+    "kind": "d136_dispatch_permit_verification_v1",
+    "protected": {
+      "kind": "protected_artifact_verification",
+      "pass": true,
+      "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+      "changed": [],
+      "entry_count": 147,
+      "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+    },
+    "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c",
+    "source_refs": [
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "sha256": "b726449fa1e351b2a5e592454265ed3093320e28a371ed0d89eb789bf1770b69"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_request_lifecycle.py",
+        "sha256": "a1f1a3c3beb2cee2cb1574337ea2e7d793a404611702bf2d53749d1312c99856"
+      }
+    ],
+    "unchanged_d135_frozen_sources": 166,
+    "tests": 1068,
+    "test_seconds": 134.48,
+    "red_log_sha256": "d0791a8689169d60681ef3d558d969b441e47e06b775e013b7958d8859e69061",
+    "green_log_sha256": "101cf9310e18a80e5afb482660e7c4f550b4075f02ffb9c5db059998124691ba",
+    "full_replay_qualified": false,
+    "formal_performance_result": false
+  },
+  "d135_order_diagnostic": {
+    "population": 3999,
+    "missing_request_ids": [
+      "req_03061"
+    ],
+    "top_advanced": [
+      {
+        "request_id": "req_02789",
+        "offered_rank_in_observed_population": 2789,
+        "admission_rank": 2035,
+        "admission_minus_offered_rank": -754,
+        "arrival_offset_s": 2497.567768096924,
+        "gate_offset_s": 2497.7349146589986
+      },
+      {
+        "request_id": "req_03236",
+        "offered_rank_in_observed_population": 3235,
+        "admission_rank": 2492,
+        "admission_minus_offered_rank": -743,
+        "arrival_offset_s": 2963.1522159576416,
+        "gate_offset_s": 2963.360361098952
+      },
+      {
+        "request_id": "req_03752",
+        "offered_rank_in_observed_population": 3751,
+        "admission_rank": 3061,
+        "admission_minus_offered_rank": -690,
+        "arrival_offset_s": 3636.904565811157,
+        "gate_offset_s": 3637.160612476
+      },
+      {
+        "request_id": "req_02327",
+        "offered_rank_in_observed_population": 2327,
+        "admission_rank": 1718,
+        "admission_minus_offered_rank": -609,
+        "arrival_offset_s": 2132.223924636841,
+        "gate_offset_s": 2132.434164562961
+      },
+      {
+        "request_id": "req_01895",
+        "offered_rank_in_observed_population": 1895,
+        "admission_rank": 1437,
+        "admission_minus_offered_rank": -458,
+        "arrival_offset_s": 1809.7396774291992,
+        "gate_offset_s": 1809.7428664649487
+      },
+      {
+        "request_id": "req_01683",
+        "offered_rank_in_observed_population": 1683,
+        "admission_rank": 1332,
+        "admission_minus_offered_rank": -351,
+        "arrival_offset_s": 1677.8337860107422,
+        "gate_offset_s": 1689.001253979979
+      },
+      {
+        "request_id": "req_01468",
+        "offered_rank_in_observed_population": 1468,
+        "admission_rank": 1177,
+        "admission_minus_offered_rank": -291,
+        "arrival_offset_s": 1493.1102981567383,
+        "gate_offset_s": 1493.380228627997
+      },
+      {
+        "request_id": "req_01103",
+        "offered_rank_in_observed_population": 1103,
+        "admission_rank": 900,
+        "admission_minus_offered_rank": -203,
+        "arrival_offset_s": 1155.173671722412,
+        "gate_offset_s": 1156.103632362967
+      },
+      {
+        "request_id": "req_01104",
+        "offered_rank_in_observed_population": 1104,
+        "admission_rank": 901,
+        "admission_minus_offered_rank": -203,
+        "arrival_offset_s": 1155.2049674987793,
+        "gate_offset_s": 1156.1038448069594
+      },
+      {
+        "request_id": "req_00774",
+        "offered_rank_in_observed_population": 774,
+        "admission_rank": 631,
+        "admission_minus_offered_rank": -143,
+        "arrival_offset_s": 838.5159358978271,
+        "gate_offset_s": 843.088026145997
+      }
+    ],
+    "top_delayed": [
+      {
+        "request_id": "req_02035",
+        "offered_rank_in_observed_population": 2035,
+        "admission_rank": 2789,
+        "admission_minus_offered_rank": 754,
+        "arrival_offset_s": 1931.8320636749268,
+        "gate_offset_s": 3305.3126866069506
+      },
+      {
+        "request_id": "req_02492",
+        "offered_rank_in_observed_population": 2492,
+        "admission_rank": 3236,
+        "admission_minus_offered_rank": 744,
+        "arrival_offset_s": 2258.3776874542236,
+        "gate_offset_s": 3875.8522506769514
+      },
+      {
+        "request_id": "req_01718",
+        "offered_rank_in_observed_population": 1718,
+        "admission_rank": 2327,
+        "admission_minus_offered_rank": 609,
+        "arrival_offset_s": 1695.4462432861328,
+        "gate_offset_s": 2792.7609524639556
+      },
+      {
+        "request_id": "req_01437",
+        "offered_rank_in_observed_population": 1437,
+        "admission_rank": 1895,
+        "admission_minus_offered_rank": 458,
+        "arrival_offset_s": 1466.5001602172852,
+        "gate_offset_s": 2332.592784696957
+      },
+      {
+        "request_id": "req_01332",
+        "offered_rank_in_observed_population": 1332,
+        "admission_rank": 1697,
+        "admission_minus_offered_rank": 365,
+        "arrival_offset_s": 1392.8336200714111,
+        "gate_offset_s": 2118.8295161599526
+      },
+      {
+        "request_id": "req_01177",
+        "offered_rank_in_observed_population": 1177,
+        "admission_rank": 1468,
+        "admission_minus_offered_rank": 291,
+        "arrival_offset_s": 1263.9990901947021,
+        "gate_offset_s": 1853.470508784987
+      },
+      {
+        "request_id": "req_00900",
+        "offered_rank_in_observed_population": 900,
+        "admission_rank": 1103,
+        "admission_minus_offered_rank": 203,
+        "arrival_offset_s": 1019.4393329620361,
+        "gate_offset_s": 1380.5693802449969
+      },
+      {
+        "request_id": "req_00901",
+        "offered_rank_in_observed_population": 901,
+        "admission_rank": 1104,
+        "admission_minus_offered_rank": 203,
+        "arrival_offset_s": 1019.7638130187988,
+        "gate_offset_s": 1381.9341039779829
+      },
+      {
+        "request_id": "req_00631",
+        "offered_rank_in_observed_population": 631,
+        "admission_rank": 777,
+        "admission_minus_offered_rank": 146,
+        "arrival_offset_s": 746.9184284210205,
+        "gate_offset_s": 981.7356524469797
+      },
+      {
+        "request_id": "req_00533",
+        "offered_rank_in_observed_population": 533,
+        "admission_rank": 590,
+        "admission_minus_offered_rank": 57,
+        "arrival_offset_s": 670.3503723144531,
+        "gate_offset_s": 796.1815241199802
+      }
+    ],
+    "caveat": "Offered order is not directly observed gate-entry order; rank displacement alone does not prove barging or identify the failed request stage. Near-ties use request ID. No latency counterfactual."
+  },
+  "d135_timeout_cause_established": false,
+  "unchanged": {
+    "formulas": true,
+    "capacity_function": true,
+    "timeout": true,
+    "workload": true,
+    "profiles": true,
+    "runtime_slot_guards": true,
+    "native_ownership_guards": true,
+    "remote": true
+  },
+  "resource_limits": {
+    "memory_high_bytes": 3221225472,
+    "memory_max_bytes": 4294967296,
+    "swap_max_bytes": 0,
+    "cpus": [
+      2,
+      3,
+      26,
+      27
+    ]
+  },
+  "references": [
+    {
+      "url": "https://github.com/python/cpython/blob/v3.12.12/Lib/asyncio/locks.py",
+      "role": "Condition notification vs Semaphore permit-before-wake ownership and cancellation"
+    },
+    {
+      "url": "https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/v1/engine/async_llm.py",
+      "role": "Frontend outstanding-request admission; not native max_num_seqs or borrowed performance"
+    },
+    {
+      "url": "https://github.com/vllm-project/vllm/blob/v0.30.0/vllm/v1/core/sched/scheduler.py",
+      "role": "Separate native running sequence/token constraints"
+    }
+  ],
+  "source_sha256": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261001_d135_control_occupancy/request_occupancy.csv": "6f2397cc0acf41bb8a8a29e5f49fbd430c01dba641a63d77ef9ed8d3ed9169bb",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261001_d135_evidence_verification.json": "2de8ecb22a9de42969f81ca806fd1bb45097abb5eef9dfe2f3d794ccec119a35",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d136_20261001/verification.json": "ef9d31b0d034d819ffd45e598d996f8aa2660ad68fb6d837d045756a3fe80c6f",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d136_20261001/red.log": "d0791a8689169d60681ef3d558d969b441e47e06b775e013b7958d8859e69061",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d136_20261001/green.log": "101cf9310e18a80e5afb482660e7c4f550b4075f02ffb9c5db059998124691ba",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d136_20261001/verify.log": "6311fcb77818a8a6edeaa3543deb9bd67de0b5ba3954fcec6d1c763ca9afe6a7",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d136_20261001/test_dispatch_permits.sh": "2e898612b1cc54783b3ee9c5e0589e82d3bc4d88f68ac3469c46e2f07145be08",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d136_20261001/verify_dispatch_permits.sh": "afdfac9d9dd5ff9a83333c641d94ecb79ef0232137280e85855ff2cdd79577c5",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d136_20261001/cleanup_inspect1.sh": "9306a69097c78169021937a099f881e92a68079a3546b543fc22b348d7febaba",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d136_20261001/cleanup_inspect1.log": "05dfc8799d5fea2af3fe530ba2cca90befb45454842a8d06e58896b2091885b8",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d136_20261001/cleanup_red.sh": "72357649cc827fc35db50cdbdf0b5afbd5e92852ba42d23c81c7a997d9faedcf",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d136_20261001/cleanup_red.log": "df5f8f43cf7c27e972bebf02773ac4917d77b9c2a7af56dfab4d19a20ee0794e",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d136_20261001/cleanup_green.sh": "062aff88071dbec0a94bc52861908d15c53f13af04836e8806f5bf927f3be0bf",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d136_20261001/cleanup_green.log": "9908d6ce3b5ff18495aebdfb6e8dc9d7e7bdb6bd6d6370f5c22571ff633446d1",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d136_20261001/cleanup_verify.sh": "7a6f0d0671e7c4f73f6f848761a30ffc3c5308c4767488f08cb6bda5e6b68c7b",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d136_20261001/cleanup_verify.log": "e4853ff6b0c70349a72b3ef7df909d11698e715b27420277fc45b2d1df8f350a",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D136_DISPATCH_PERMIT_OWNERSHIP.md": "daaa30453531a9eca5cefbf463394e1c4d7472e7e81f41bf2e3b9ce76b7d8c85",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d136_20261001/curate_and_bundle.py": "5772d9b5e157635d56ffdc2e40f81123ac7ee164b93e7432c84c582a87ecc22b"
+  },
+  "next": "Scoped backup, then one ordinary 7B W0 Full4000, same D135 config and D89 profiles except fresh owned paths"
+}

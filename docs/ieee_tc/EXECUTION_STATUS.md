@@ -1,6 +1,62 @@
 # IEEE TC execution status
 
-## CURRENT — D135 complete/failed; full evidence verified, backup next
+## CURRENT — D136 FIFO dispatch permit candidate verified; backup pending
+
+2026-10-01 08:07. Finalregression34666 completed0 ONCE:1068testsPASS134.480s,
+command2:24.10/RSS1176684KiB,147protected/166unchangedD135frozenrefs/plan/metric
+PASS. Actual9d9b678be739402f8be23bc46611cb69 emptyclosed08:05:50,events0.
+Curator completed0,23member46412BbundleSHA
+8c3cf885c05bdbab5070cbc0006840cd39cf4edfc6a78443d05741700c443281;
+actual6c429948fdf74f11839bb81fa8e0a6a4 emptyclosed08:07,events0.
+Curated20261001_d136_dispatch_permits.json SHA
+40d7d7b7e4826cc8628433a894c6ec6ad98732aca1b3ff74a37102d45d4ba247.
+Doc/tablefinal; itsSHA incuratedrefs,doNOTeditcasually. NOlivejobs.
+DoNOTrepeatRED/GREEN/regression/curation/bundle. Reused ONLYexistingD135CSV:
+3999observedgate-boundaries,req03061missing. Largestoffered-vs-gaterank swaps:
+req02789 gained754positions,req02035 delayed754;req03236 gained743,
+req02492 delayed744;req03752 gained690/occupiedobservedgaterank3061at3637.1606s.
+This stronglymotivatesfairnesscandidate butofferedorder≠observedgateentryorder;
+no fabricatedfailedrequesthistoryorprovenentiretimeoutcausality. No GPUperfclaim.
+NEXT eight explicitfilesbackup,then ONEordinary7B Full4000sameD135config/D89profiles
+exceptfreshownedD137paths. No secondoptimizer or capacity/deadlinechange.
+
+2026-10-01 08:02. Goal ACTIVE/incomplete; PROGRESS. No subagents. Baselines PAUSED.
+D135 completed/failed/backed220f430, never repeat replay/projection/curation/backup.
+Read-only D136 inspected existing 34MB projection and source, no original15GB
+whole-load. req03061 ingress/dequeue~3ms afterarrival; native evidence missing,
+NOTproof of no dispatch. Exact timeout stage still unproven. Success-stage
+means and native peak2/replica motivate queue/control examination, not capacity
+inflation. Emptyinspect1 cd42f6342ea045dbad7ae8527ddaa3e6 closed07:55:12,events0.
+ONE candidate: FIFO outer dispatch permits granted BEFORE waiter wake, preserving
+original capacity function/timeout/formulas/runtime-slot/native ownership guards.
+Old Condition allows a runnable newcomer to steal released capacity; deterministic
+actual-runner RED41777 reproduced [newcomer,older],1test/.002s,exit1. Exact
+36fdc91d3869499080293a0cbe6bba58 emptyclosed08:00:43,events0.
+GREEN89284 completed0:9tests/.005s covers same interleaving,cancel before/after
+grant,cancel-before-unwind,growth/shrink,slot-only notification,64 FIFO tasks and
+underflow. Exactad9a34c2b20e4238bb61756ba3cafab7 emptyclosed08:01:32,events0.
+No newGPU/remote run or cache rebuild. Only productionfile scripts/run_all_experiments.py
+and existingtest tests/test_ieee_tc_request_lifecycle.py changed. No failure
+attribution or throughput benefit claimed. No extra instrumentation/optimizer.
+CurrentprimaryPython3.12.12Condition/Semaphore andvLLM0.30AsyncLLM/scheduler read.
+DocD136_DISPATCH_PERMIT_OWNERSHIP.md contains evidence table and limitations.
+Final regression launchedONCE08:02, execsession34666,
+primelora-d136-verify-20261001.scope, actualidentity inverify_scope.txt.
+3/4GiBswap0CPU2,3,26,27; sourceSHAfrozen; restore/resume SAMEhandle, no repeat.
+NEXT finaltests/protected/sourcechecks→exactemptycleanup→curatedtable/bundle→
+scopedbackup→ONEordinary7B Full4000 sameD135config/D89profiles, freshD137paths.
+Do not start Full beforeclosure or claim D135lone timeout solved. Warm/Resident,
+baseline/M1M2/A1–A5/S1–S13 outstanding. Fullplan1525/ledger/metric readthisturn.
+
+## Previous — D135 complete/failed; full evidence verified and backed
+
+2026-10-01 07:46 backup completed:14explicit files committed/pushed
+220f4303ecb69339c0d9575fda76cd2db66efaeb, exact remote HEAD verified07:45:48.
+CRLF-aware staged whitespace,bundleSHA/78memberSHA/32verificationrefs/92payload
+credential checksPASS. Usermanifest/unrelatedfiles neverstaged. No livejobs.
+Do NOT repeat backup/tests/replay/projection. Next ONE evidence-led diagnosis
+of remaining timeout and large pre-service queue; no new candidate selected.
+Only postpush ledgernote is ours dirty. Whole goal remains ACTIVE/incomplete.
 
 2026-10-01 07:44. Goal ACTIVE/incomplete; this turn PROGRESS after verified wait.
 No subagents. Baselines PAUSED. No GPU/remote/analysis job remains; exact-owned
