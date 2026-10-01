@@ -1,0 +1,132 @@
+{
+  "kind": "d142_rejected_stack_observer_v1",
+  "formal_performance_result": false,
+  "decision": "withdraw observer; restore exact pre-diagnostic serving files",
+  "experiment": {
+    "N_plan": 1000,
+    "source_workload_count": 4000,
+    "N_arrived": 0,
+    "N_submitted": 0,
+    "N_terminal": 0,
+    "N_correct": null,
+    "gpu_seconds": null,
+    "service_returncode": 139,
+    "sampled_gpu_contexts_present": false,
+    "complete_performance_data": false
+  },
+  "resources": {
+    "samples": 7,
+    "peak_bytes": 524550144,
+    "min_host_available_bytes": 111864242176,
+    "events": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    },
+    "max_swap_bytes": 0,
+    "warnings": 0,
+    "abort_reasons": []
+  },
+  "cleanup": {
+    "prelaunch": {
+      "sha256": "f1b51948bf424774da04d30304ecba7f6af491cfe01ea66b7de08eb57ca4215b",
+      "memory_events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      }
+    },
+    "health": {
+      "sha256": "70724729a4d908ad8d18767b0d2c4cea0047efc6cdbad1caea3c2755796759f4",
+      "memory_events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      }
+    },
+    "prefix1_aux": {
+      "sha256": "6c6081819c9981f1e12f06270042079dd7f6f2a6704afbdac747a35cb8b1b79d",
+      "memory_events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      }
+    },
+    "import": {
+      "sha256": "77160c55cd6ff860dfac140899f0fd8d8c446d4c72bfb001166b33586b34948e",
+      "memory_events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      }
+    },
+    "import2": {
+      "sha256": "df165d32330e86e79a33989d02aa5f2018c02fcf9b1bb7cecc33cfcf790baea0",
+      "memory_events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      }
+    },
+    "qualification": {
+      "sha256": "dc6668b2733df6031b884b6178db2b4e0de0b32c47e973ea1be3aaa3b89a8097",
+      "memory_events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      }
+    }
+  },
+  "prelaunch_ref_count": 206,
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "fe6c05b008c01b89316b7953d73fc7ad9e3b4763e35bd63d3c46594049310c5c"
+  },
+  "causal_probe": {
+    "disabled": "imports completed normally",
+    "enabled": "SIGSEGV in faulthandler_thread -> PyCode_Addr2Line(co=NULL)",
+    "interpreter": "Anaconda CPython3.12.12",
+    "gpu_models_loaded": false,
+    "first_attempt": "debugger GLIBCXX load failure before either inferior started",
+    "corrected_debugger": "clean debugger LD_LIBRARY_PATH only; original path restored for inferior",
+    "repeated_gpu_replays": 0,
+    "upstream_issue_equivalence_proven": false
+  },
+  "diagnostic_quality_qualified": false,
+  "remote": {
+    "monitor_sha256": "a14d07591fe6d5e618faca7f8f1634e6785ac4cedd6b83e0eda0e052fa8c07d4",
+    "services_stopped": true,
+    "packing_path_changed": false,
+    "cache_rebuilt": false,
+    "transfer_journal_with_health_clock_found": false
+  },
+  "restored_source_sha256": {
+    "faaslora/utils/logger.py": "0c7ea8cab462c753a1bc1b9b917504b4e2c8345b77f9e3cd7964992c04a465e9",
+    "faaslora/__init__.py": "ec8214e29209990476e14a65e1050de5c0b1e106a67c4ac85d787bb731e25e60"
+  },
+  "qualification_checkpoint": "f5f62c2c9fe0f2b1daa19b32134cd69300177065",
+  "performance_gate": "both models still open; ordinary Full and SLO/numeric qualification pending"
+}

@@ -1,6 +1,58 @@
 # IEEE TC execution status
 
-## CURRENT — D142 diagnostic observer qualified; replay not launched
+## CURRENT — D142 observer rejected and withdrawn; no live experiment
+
+2026-10-01 14:45. Goal ACTIVE/incomplete. Current turn PROGRESS: one diagnostic
+launch failed before any request; CPU-only import pair located a crash in the
+observer itself. Observer withdrawn; serving restored EXACTLY to D141d12075c.
+No new serving optimization/performance gain. BaselinesPAUSED; bothmodelsOPEN.
+Once-onlypublishedcache fulfilled,NEVERrebuild. Do not repeat D142 Cwatchdog.
+
+- Qualification checkpointf5f62c2c9fe0f2b1daa19b32134cd69300177065 was pushed
+  and exactremoteHEADverified before launch. Its335CPUtest pass is insufficient
+  for actual runtime compatibility; original qualification doc/bundle retained.
+- ONE7Bprefix1000 launched14:34:40 from backedf5f62c2; controller1451248
+  signal11 after6.17s,servicerc139,0arrived/0submitted. Source4000/W0/formal0.
+  Only422B partialstackfile, no frontend/planner/GPUcore rolecoverage. No TTFT/
+  TPOT/fullGPU-s; not a slow performancepoint or systemcapacity failure.
+- Actualservice3fb290a6fbed48d2860141e5431fb32c / cb1b6c5b8d7c4db39643bb5fa386d61c;
+  auxdae5ca5ee82149f3bdc7ad0e7c26d644 /958837916f964c01b6d6bb65f7b4dd85.
+  Sevenresourcesamples,peak524550144B,minhost111864242176B,events/swap/warnings0.
+  AllsampledGPUcontexts clear,terminalrelease/pathremovedtrue; exactauxclosed.
+- BothNIC1000/full. Remote3b1822648/bf7e469afd4941099fdcaffcac67876e,
+  7b1822650/7c5d6cd73e584082b7042a05e6026a5d,
+  monitor1822653/57aac8f997ff4af08b6f19b49ac90657 all exact-stopped AFTERterminal.
+  Monitorcopiedonce/SHAequal a14d07591fe6d5e618faca7f8f1634e6785ac4cedd6b83e0eda0e052fa8c07d4.
+  No matchinghealthclock transferjournalfound; no fabricatedemptyjournal.
+  No remotechange/cachecreation duringrun. Prelaunch/healthscopesemptyclosed.
+- CPUimport pair firstattempt:hostGDB failedloadingCondaGLIBCXX beforeinferiors.
+  Retained; scope534a79425b2042d6ba5655e8063fb341emptyclosed/events0.
+  CorrecteddebuggerLD path ONLY; originalrestoredforinferior. Native3.12.12,
+  CUDA_VISIBLE_DEVICESempty/no modelload: offIMPORT_COMPLETE/normalexit;
+  onSIGSEGV in faulthandler_thread→PyCode_Addr2Line(co=NULL). GDBrc0 isNOT
+  inferiorsuccess. Exact0cd961ad814f4e249155bce7c0a214b9emptyclosed/events0.
+  CurrentupstreamCPythonissues checked, exactsamebugnotproven. No install,
+  Pythonupgrade,sysctl/ptracechange or repeatedGPUreplay.
+- Removedoptinhook/helper/newactivetest; production__init__/logger byteequal
+  d12075c. Failing source/tests remain in backedf5f62c2+qualificationarchive.
+  All206prelaunchrefs checked against currentunchanged/archivedwithdrawnsource,
+  147protected/Plan/V1PASS. No servingregression rerun needed for exactrestore.
+- Failureaudit84299completed0,actuale54678c37b1f4a57844662b3e55b91b5emptyclosed.
+  CuratedSHAa7f7fa0b2008ab329ef790fe5ad401cc4ed2f7aeaaf35a22277d224feb2d8504.
+  Bundle78members136209B SHA9eacf779abb23f9d613d7644cfe9963e70953a6a77266d23aa7b027023f93071;
+  actual7b1dff05aca546f997e8aac6831dcbafemptyclosed/events0. Status table in
+  sealedD142_DIAGNOSTIC_WITHDRAWAL.md; don'teditafterseal. Rawd142_20261001.
+
+NEXT: scopedrollback/failurebackup, then ONLY bounded replacement observation
+qualification: Python sys._current_frames under GIL, actualtimestamps/lag/CPUtime,
+not unsafe Cwatchdog. CandidateNOTimplemented; qualify with existingimport-only
+pair and CPUfixtures before any GPUreplay. No diagnostictool rabbit-hole; then
+ONEcurrentprefix to choose causal servingcandidate→ordinaryFull. Do not repeat
+D140100Hz,D142Cwatchdog, oldD123/D127 or hugeD137/D138JSONprojections. No cap/
+deadlineincrease or safetyweakening. 3BTPOT/outputhash,numericadapter,warm/
+Resident,M1M2/A1–A5/S1–S13 allOPEN. Lastdisk181901082624B; recheckheavy.
+
+## D142 CPU qualification history — superseded by withdrawal above
 
 2026-10-01. Goal ACTIVE/incomplete. Current turn PROGRESS: opt-in periodic
 Python stack observer qualified with335 affected CPU tests/75.091s. No new
