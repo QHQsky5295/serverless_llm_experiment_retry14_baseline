@@ -809,7 +809,8 @@ def native_reference_fixture():
         manager.activate(aid)
     owner = IEEEBackendGPUReferences(manager, Mock(), demand_loader=load)
     async def rpc(*, operation, **kwargs):
-        return {**getattr(owner, operation)(**kwargs), 'clock_id': local_monotonic_clock_id()}
+        return {**getattr(owner, operation)(**kwargs), 'clock_id': local_monotonic_clock_id(),
+                'device_uuid': 'GPU-fixture'}
     slot.engine.ieee_gpu_reference = AsyncMock(side_effect=rpc)
     slot.engine.ieee_routing_sources = AsyncMock(
         side_effect=MethodType(InferenceEngine.ieee_routing_sources, slot.engine))
@@ -818,6 +819,69 @@ def native_reference_fixture():
 
 class SelectedSourceAdmissionIntegration(unittest.TestCase):
     """Real request/router/owner and event path; tiny fixtures, no GPU timing claim."""
+    def test_source_selection_and_acquisition_use_fresh_validated_projection(self):
+        for tier in ('gpu', 'host', 'nvme', 'remote'):
+            with self.subTest(tier=tier):
+                runner, slot, trace, plan, owner, observed = self.build(
+                    tier if tier in ('gpu', 'host') else 'remote')
+                if tier in ('nvme', 'remote'):
+                    self.file_source(runner, trace, publish=tier == 'nvme')
+                in_producer = False
+                projected_epochs = []
+                async def guarded(*, operation, **kwargs):
+                    if operation == 'source_snapshot':
+                        self.assertTrue(in_producer, 'full source graph escaped projection boundary')
+                    value = await observed(operation=operation, **kwargs)
+                    if operation == 'source_snapshot':
+                        value['native_staging_footprints'] = {'unconsumed_inventory': [1, 2, 3]}
+                    return value
+                async def project():
+                    nonlocal in_producer
+                    in_producer = True
+                    try:
+                        value = await InferenceEngine.ieee_routing_sources(slot.engine)
+                        projected_epochs.append(value['epoch'])
+                        return value
+                    finally:
+                        in_producer = False
+                slot.engine.ieee_gpu_reference.side_effect = guarded
+                slot.engine.ieee_routing_sources.side_effect = project
+                result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+                self.assertTrue(result.success, result.error)
+                self.assertEqual(result.readiness_tier_before_dispatch, tier)
+                self.assertEqual(len(projected_epochs), 1 if tier == 'gpu' else 2 if tier == 'host' else 3)
+                if tier != 'gpu':
+                    evidence = result.gpu_reference_evidence['snapshot_before_acquisition']
+                    self.assertEqual(evidence['kind'], 'native_lora_routing_sources_v1')
+                    self.assertNotIn('native_footprints', evidence)
+                    self.assertNotIn('native_staging_footprints', evidence)
+                    self.assertEqual(evidence['gpu_pool_storage_bytes'], 2048)
+                self.assertEqual(slot.active_requests, 0)
+                self.assertEqual(owner.snapshot()['live_leases'], 0)
+                self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
+
+    def test_projected_acquisition_revalidates_graph_after_host_reference(self):
+        runner, slot, trace, plan, owner, observed = self.build('host')
+        source_calls = 0
+        async def changed(*, operation, **kwargs):
+            nonlocal source_calls
+            value = await observed(operation=operation, **kwargs)
+            if operation == 'source_snapshot':
+                source_calls += 1
+                if source_calls == 2:
+                    value['native_footprints']['host_adapter_footprints'][0]['exclusive_storage_bytes'] = 0
+            return value
+        slot.engine.ieee_gpu_reference.side_effect = changed
+        with self.assertRaisesRegex(ValueError, 'exclusive capacity'):
+            asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+        self.assertEqual(source_calls, 2)
+        self.assertEqual(slot.engine.ieee_routing_sources.await_count, 2)
+        self.assertFalse(any(call.kwargs['operation'] == 'demand_load_and_acquire'
+            for call in slot.engine.ieee_gpu_reference.await_args_list))
+        slot.engine.generate_prepared.assert_not_awaited()
+        self.assertEqual(slot.active_requests, 0)
+        self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
+
     def replace_gpu_copy(self, owner, adapter_id, lease_id):
         aid = InferenceEngine._lora_int_id(adapter_id)
         name, path = owner._sources[aid]

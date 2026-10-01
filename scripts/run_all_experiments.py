@@ -4714,7 +4714,8 @@ class InferenceEngine:
 
         This executes after the native GPU-core RPC, not inside its execution
         loop. It neither caches a completed observation nor reserves a source.
-        Admission/planning continue to request the original full inventories.
+        Source rechecks/acquisition consume this same verified source view.
+        Physical admission/planning still request the original full inventories.
         """
         from faaslora.clock import local_monotonic_clock_id
         from faaslora.experiment.instance_pool import NativeSourceSnapshot
@@ -15474,9 +15475,12 @@ class ScenarioRunner:
         from faaslora.experiment.instance_pool import NativeSourceSnapshot
         native_id = InferenceEngine._lora_int_id(adapter_id)
         async def observe_source():
-            value = await engine.ieee_gpu_reference(operation='source_snapshot')
+            # Same fresh native observation and full graph validation, in the
+            # dedicated frontend. This consumer needs source identity and its
+            # measured class, not the tensor/alias graph or staging inventory.
+            value = await engine.ieee_routing_sources()
             validate_snapshot(value)
-            state = NativeSourceSnapshot.from_native(
+            state = NativeSourceSnapshot.from_routing_wire(
                 value, expected_clock_id=clock_id, received_monotonic_s=time.monotonic())
             if reservation.slot is None or reservation.slot.engine is not engine:
                 raise ValueError('native source snapshot is not bound to the selected runtime')
@@ -15485,7 +15489,7 @@ class ScenarioRunner:
                              if source.adapter_int_id == native_id), None)
             if selected is not None and selected.adapter_id != adapter_id:
                 raise ValueError('native cached integer ID belongs to another adapter')
-            compact = {key: item for key, item in value.items() if key != 'native_footprints'}
+            compact = dict(value)
             compact['selected_source_footprint'] = asdict(selected) if selected else None
             compact['host_tensor_storage_bytes'] = state.host_tensor_storage_bytes
             compact['gpu_pool_storage_bytes'] = state.gpu_pool_storage_bytes
@@ -15691,8 +15695,8 @@ class ScenarioRunner:
             # class. This is a received native view, not a global cross-owner
             # lock; the selected lower copy is then protected below.
             previous_owner = slot.native_source_state.owner_id
-            native = NativeSourceSnapshot.from_native(
-                await engine.ieee_gpu_reference(operation='source_snapshot'),
+            native = NativeSourceSnapshot.from_routing_wire(
+                await engine.ieee_routing_sources(),
                 expected_clock_id=local_monotonic_clock_id(), received_monotonic_s=time.monotonic())
             if native.owner_id != previous_owner or not slot.commit_native_sources(native):
                 evidence['native_source_conflict'] = 'native owner/epoch changed during source admission'

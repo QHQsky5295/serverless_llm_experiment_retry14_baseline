@@ -1,6 +1,67 @@
 # IEEE TC execution status
 
-## CURRENT — D148 analysis/closure COMPLETE; explicit backup NEXT
+## CURRENT — D149 QUALIFIED; scoped backup next, then ordinary Full
+
+2026-10-01 22:56 +08. ONE source candidate: the two selected-source rechecks
+now use the existing freshly/full-validated frontend projection. No source
+cache/TTL, native ownership, physical admission/planner, equations, caps,
+timeouts, profiles, workload, backend or immutable delivery changes. See
+D149_SELECTED_SOURCE_PROJECTION.md (sealed). Baselines PAUSED, goal ACTIVE.
+No GPU/remote task launched; all CPU tests and verification are closed.
+
+History/source audit used D148 phases, D143 samples, D132 boundaries and primary
+vLLM/asyncio references. D148 still NOT accepted Full improvement. D149 hypothesis
+is reduced centralized message/validation overhead; no whole-system gain yet.
+Do NOT repeat D132 old component probe, D148 analysis, or remote publication.
+
+- RED two tests:3failures/1error (old direct graph boundary plus incorrect test
+  expectation of returned failure); original test patch/log preserved. Corrected
+  expectation to existing ValueError, not production error semantics.
+  Actual a4f61695257046018467c3ce96c73c13 empty/events0 stopped22:51:03.
+- GREEN2PASS/.098s, actual eb758d8eaa2d4cc9beb3803d6c1f71be empty/events0
+  stopped22:52:43. Four source tiers retain source/lease behavior; bad graph
+  rejected after HOST hold with cleanup. Fixture adds real producer UUID field.
+- Affected regression700PASS25.238s/command36.70s/RSS1210360KiB;
+  actual6db71f8dc93e48c2842b689cf66499de empty/events0 and stopped.
+  Includes actual dedicated RPC, equal projected states, ownership/cancellation,
+  native retirement, storage graph, routing and basic smoke. Do NOT repeat.
+- Verification225frozenrefs/147protected/Plan/V1/source/test/secrets/syntax PASS.
+  actual9da8f7f8df2243eebd22ec1a0d27d73f empty/events0 stopped; all actual
+  scopes3/4GiBswap0CPU2,3,26,27. Sessions41241/59973/10797/52723 CLOSED.
+- CuratedSHA8a3025bbb0cc5ece1d576d9897f9d9b4171964f9a611f4ed77e65b91469c2700;
+  bundle23members310528B SHAc7531cc7bf37d99a7c19baf9693a8709958b142b3228f9efdaa2b80b5b0e5a3d.
+  Verification's own log/time/cleanup remain local post-bundle, not fabricated.
+  Raw results/ieee_tc/p2_backend_qualification/d149_20261001; new doc state table.
+
+NEXT explicit7file diff/checksum/secrets -> commit/push; then reuse D148 ordinary
+Full helpers with current frozen config/profiles/4000/no profiler, fresh safety
+checks and owned output paths. No nextGPU prepared/launched. 1107B outputhash
+changes,3BTPOT/old gap,numericadapter,warm/Resident and allformal work remainOPEN.
+User manifest and unrelated files untouched/neverstage. No disk deletion or
+compression except small evidence bundle; last freshfree161800941568B needs
+recheck before newheavy. Current goalturn PROGRESS (candidate qualified).
+
+## D148 COMPLETE AND BACKED — completed history
+
+22:41:45 +08 BACKUP COMPLETE09989a0e7592491e66369c027d971fb5fed4ad45,
+pushedfaaslora_origin/retry14_continuous_queue_v2; exactremoteHEADverified.
+12explicitfiles/85payload secrets+syntax+checksums+diffPASS; usermanifestexcluded.
+Push27269/verify63775 CLOSED0; allownedGPU/analysis/remotejobs stopped, no live
+handles. No servingedit since1eaf15a4. Do NOT repeat D148 analysis/sealing/
+tests/projection or once-onlyremote publication. Thisbackupnote is theonlynew
+ledgerdelta aftercheckpoint. Lastdisk161804890112B/hostavailable110689460KiB;
+freshcheckbeforefutureheavywork. No newdeletion/compression since documented
+publicwheelcache cleanup; uniqueoriginals protected.
+
+NEXT majorremainingnon-nativewaiting diagnosis using existing D148 phases,
+D143 historical profiles and native source consumers; selectONE evidence-backed
+candidate after source/primaryreference verification, minimalqualification then
+ordinaryFull. No nextGPUprepared/launched, no newcandidateimplemented. 1107B
+outputhashchanges remainunresolved;3BTPOT andoldperformancegapalsoOPEN. Do not
+close performancegoal or resumebaselines on zero failures alone. GoalACTIVE;
+thisturnPROGRESS (fullphaseanalysis/table/seal and remoteverifiedbackup).
+
+## D148 closure history — completed
 
 2026-10-01 22:40 +08. No liveexec/session/analysis/GPU/remotejob. D148 ordinary
 Full4000native/0fail, allcleanup; projection65337/monitors7135,7175 CLOSED,
