@@ -1,6 +1,128 @@
 # IEEE TC execution status
 
-## CURRENT — D153 CPU qualified; preparing checkpoint, Full replay not launched
+## CURRENT — D154 ordinary 7B Full sealed; checkpoint backup pending
+
+2026-10-02 04:30 +08. Goal ACTIVE; PROGRESS, no live jobs. D154 completed,
+validated, tabled and sealed. Source39cc3c1 unchanged; no nextoptimizer selected.
+4000native/0fail; numericaladapter/commonSLO remainOPEN, n_correct=null.
+U16052.781459837977GPU-s (vsD152 +0.366%); mean/P95/P99TTFT
+103.898017548/210.479250493/220.402708432s (mean +6.060%,P95 -0.072%).
+TPOTmean/P9536.847975193/56.133295002ms. NOT model acceptance or G1/G2 proof.
+Dispatch102.435813815s=98.593%TTFT; service1.462203733/native.326907505s.
+Phases arrival→gate101.177903361; gate→source1.257910454;
+source→dispatch1.135296228; native4.354499659; last→controller.559013280;
+controller→terminal.317432635s. Gate→terminal7.624152256 is UPPER ENVELOPE.
+Native/gate-envelope averageconcurrency4.355350/7.625642,max8. Control1763total,
+1762inwindow/1656queued/783belowreadycapacity,1postwindowretained. Planning1954
+completed,935.311941workerCPU-s. Outputhash123changed vsD152,all15otherfields
+4000match; numericalcauseOPEN. Timingerrors0,dispatch4000/conflicts0.
+Resources4080samples/peak20384194560B/minhost92605038592B/swap-events0.
+132publishedtransfers/131480060B/packing0. Fourphysicalleasesallreleased.
+Decision: retain semantically qualified redundant-scan simplification, NOT a
+demonstrated performance gain. No repeatedmicrotests/replay; next inspect
+remaining request-pipeline non-generation occupation with source/history/primary
+references. No blindcap/deadlineincrease; baselinesPAUSED until bothmodelgoals.
+
+Postprocessing complete:
+- localabsence04:22:01; exactremote stop thenSHAverifiedcopy. No active remote.
+- metadata2361 CLOSED0/4.13s/RSS448864KiB,actualc2406f98860b43dd80b63b15dae1f17b.
+- projection38714 CLOSED0/79.36s/RSS99840KiB,actual346633f706484b9d937f5a15a8a71a19.
+  271585048Boriginal streamedONCE; neverreproject. ProjectionSHA
+  fe4583726bfebf2befc321b3a92bf911836edc57a3fa417eec2021e256757f24.
+- curation65999 CLOSED0/7.69s/RSS464960KiB,actual5619225f222c49fdaf4588d1c7f43450.
+- occupancy82482 CLOSED0,actual66a661417d5a427db612913f1d395057;
+  finalevents0 shown; otherauto-removedscopefinalcountersunavailable,not0.
+- verification94172 CLOSED0,actuald46e142259d1408db18dad5c5990c838;
+  266frozenrefs/47curatedrefs/147protected/Plan/V1PASS,SHAbba003fb52a8614eca2eeac71a118618d0e191a6072b999cad3b5c528d279c82.
+- bundlecompletedexit0,actualab9e31d81def4cd98840c023fd4f61b8;
+  allscopeabsencesverified.65members56994B,SHAd34860f355e84431ee74c0f1c814a36c3f0759634dbd1dc680c3672465d37d84.
+Sealed docs/ieee_tc/D154_FULL_W0_FULL1.md DON'TEDIT. Curated
+paper_results/ieee_tc/p2_backend/20261002_d154_7b_full_w0_full1.json
+SHAdf5139616f6d2e24d139b26c9766c93400839321a84ab07cac12c73792d905f2.
+128MiBguardunchanged,compact129733056B. No newGPUrun/sourcechange.
+NEXT explicit checkpointchecks/backup then focusedread-only bottleneck audit.
+Prior current entries below retained as historical, superseded by this closure.
+
+2026-10-02 04:24 +08. D154 launch PASS, all4000 terminal/native-contract successes,
+no failures. Local service/aux automatically removed; exact PID/cgroup/GPU
+absence receipt04:22:01. Remote exact3B/7B/monitor stopped after localrelease;
+copies SHAverified. Journal transfers-d8e65a825b6b4ce8854eaa3a8c6d5a70.jsonl,
+clock matches frozen2b08d4753ddd40518b9d22609fc55d65. No liveGPU/remote jobs.
+Preliminary U16052.781459837977GPU-s/all4released;132published UUIDpairs,
+131480060online bytes/3300789780logical bytes/packing0. Resources4080samples,
+peak20384194560B/minhost92605038592B/swap0/high-max-oom0/no warning.
+Numericaladapter/formalSLO stillpending; no comparative interpretation yet.
+Metadata2361 CLOSED0/4.13s/RSS448864KiB, actualc2406f98860b43dd80b63b15dae1f17b;
+absenceverified04:23:45. Metadata128MiBguardunchanged. Single bounded projection
+LIVEsession38714, unitprimelora-d154-full1-project-20261002.scope. Never reproject
+original after success. Curation/table/seal/backup stillpending. Source unchanged
+39cc3c1. FullPlan/status/V1 and analysis/plotting skills reread this continuation.
+GoalACTIVE; baselinesPAUSED; no nextcandidate or GPUrunselected.
+Disk afterworkspacecleanup161741139968B; recheck150GiBgate beforeheavylaunch.
+NEXT finishprojection→exactanalysiscleanup→curation/table→interpretation/backup.
+Below04:09 RUNNING record retained as history, superseded by this terminal state.
+
+2026-10-02 04:09 +08. ONE ordinary Full launched03:09:28 in tmux
+tc-d154-7b-full1. Source39cc3c1147f1699a4e7cddb54996be2564a895c3 BACKED.
+4000/source42/W0,sameD152config/D89profiles,no profiler/prefix. D153 file
+observation is solecandidate; approvedPlanpointer is provenance-only update.
+Do NOTrelaunch orchange code/config/remote duringinference. GoalACTIVE.
+BaselinePAUSED; bothmodelacceptance/newmetricoldPrime gap stillOPEN.
+
+- Service primelora-tc-svc-3bfabb65d8a64a77a5d47380c926f69f.scope,
+  actualfb3a7d977e9c43b0bae3b8e82cc790bd,72/80GiBswap2readback.
+- Aux primelora-tc-aux-318ecb4a5f8e4fd18f56487c98ee456e.scope,
+  actuala3ac14f901b44b7583cda07827d43f74,3/4GiBswap0readback.
+  Replay614753/watchdog614760verifiedexactauxCPU2,3,26,27. Nativecores618019,
+  622796,622884,623230 observed in service group; firstcore's CPU4–23,28–47
+  verified earlier. Sample3541memory20289523712B/peak20300824576B,
+  host94739906560B,swap/events0,no warning/abort/foreignGPU. Disk159156215808B.
+  Disk now below150GiB new-heavy-run gate, above100GiB running stop floor;
+  do not clean/compress during inference. Recheck after native workspace cleanup
+  and audit only reconstructible owned data if space remains insufficient.
+  Live04:09:17:3591/4000reported-success,3675arrived,0fail; incomplete,no comparison.
+  Full native-contract cross-source validation is pending, not inferred from banner.
+- Remote3B2767751/fa041c728de74c0c9cb00d62e724c751;
+  7B2767753/940a068243f846a2968f56528cb8e16f;
+  monitor2767756/9accccc401234562856b1efa23b39afe,
+  unitprimelora-artifact-monitor-d154full1.service.
+  7Bclockremote-process-monotonic:2b08d4753ddd40518b9d22609fc55d65.
+  Monitor/home/lab14/primelora_remote/tc/d154_20261002/remote_monitor_7b_full_full1.log.
+  BothNIC1000/full; immutableD78/D80deliverycache unchanged.
+- Prelaunch266refs/147protected/Plan/V1PASS;
+  SHAa63468029ab5b1a1e2b2aa1a9a459a6e7fe70aa71d0d36ecf56d21584603b740.
+  prelaunch28293closed0 actual676d6ed9b4f740efaf29d5004e7d7f1b;
+  healthreturned0 actualbb858db8c23540b8a48da088350b01c8;
+  bothabsenceverified, finaleventsunavailableafterremoval.
+- Rawresults/ieee_tc/p2_backend_qualification/d154_20261002.
+  stop_services_full1.sh/stop_remote_after_full1.sh/copy_remote_full1.sh
+  preparedwithactualidentities/clock; shellsyntaxPASS, NOTexecuted.
+  Six D152 analysis helpers reused for D154 paths/service/remote clock and
+  D152 sealed prior-comparison SHAs; syntax PASS, NOTexecuted. Localauxcleanup
+  and automatic-removal verification helpers likewise prepared, NOTexecuted.
+  Analysis scope InvocationIDs/cleanup helpers await actual post-run launches.
+  DoNOTpartialparse/hashresults. FullPlan/status/V1 reread aftercompaction.
+  Monitoring cells7583/7597/7604/7608/7611/7614/7617 closed normally; not experiment completion.
+  tmux run remains LIVE. No outstanding tool session/monitor cell to resume.
+  03:56:54 exact service/aux InvocationIDs revalidated active; 04:09:17 service
+  still active exactID/tasks533. This continuation is a VERIFIED WAIT, not a
+  newly completed experiment. Plan/V1 hashes unchanged from full prior reading.
+
+NEXT monitorSAMErun→terminal/nativephysicalrelease→exactremote stop/copy and
+localauxclosure→boundedmetadata/ONEprojection/curation/table→interpretation.
+CompareusingsealedD152projection/curated,not itsoriginal. No secondoptimizer,
+cap/deadlinechange,duplicateprofile/cachepublication orbulkI/O duringrun.
+
+## D153 checkpoint and D154 preparation — completed history
+
+03:08 +08 D153 backup COMPLETE39cc3c1147f1699a4e7cddb54996be2564a895c3,
+pushedfaaslora_origin/retry14_continuous_queue_v2; exactremoteHEADverified.
+Push84503/verify46575closed0;10explicitfiles/54payloadchecksPASS.
+Onlyuserlora_manifestdirty; runtimefrozen. D154 reusedD152sixlaunch/configscripts,
+freshpaths only, verification adaptedtoD153identity/newapprovedPlan. Notyet
+launched; currentlypreparingboundedprelaunch/remotehealth. NoGPUorremotejobyet.
+FullPlan/status/V1 read; beforeD154Plan/status reread includingtruncatedgap.
+Priorentriesbelowhistorical; doNOTrepeatD153tests/seal/publication.
 
 03:05 +08 D153 seal COMPLETE, backup pending. Curated
 paper_results/ieee_tc/p2_backend/20261002_d153_file_observation.json
