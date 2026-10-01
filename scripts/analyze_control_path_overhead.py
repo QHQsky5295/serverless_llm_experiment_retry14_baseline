@@ -517,11 +517,145 @@ def analyze_native_timeline(projection: Path, deployment_path: Path,
     return result
 
 
+def analyze_rpc_breakdown(projection: Path, deployment_path: Path,
+                          terminals_path: Path, sealed_summary: Path,
+                          sealed_sha256: str, output: Path) -> Dict[str, Any]:
+    """Recover retained RPC observations, not a new performance measurement.
+
+    Pin the previous curator and only read its bounded, SHA-verified sources.
+    Unknown/invalid diagnostic values are counted, never imputed as zero.
+    Wall-clock and clamped producer measurements are explicitly descriptive.
+    """
+    import hashlib
+
+    if output.exists():
+        raise FileExistsError(output)
+
+    def bounded_bytes(path):
+        if path.stat().st_size >= 256 * 1024**2:
+            raise ValueError('bounded input required')
+        return path.read_bytes()
+
+    sealed_bytes = bounded_bytes(sealed_summary)
+    if hashlib.sha256(sealed_bytes).hexdigest() != sealed_sha256:
+        raise ValueError('sealed summary SHA mismatch')
+    sealed = json.loads(sealed_bytes)
+    refs = {str(Path(r['path']).resolve()): r['sha256'] for r in sealed['source_refs']}
+    inputs = []
+    payloads = []
+    for path in (projection, deployment_path, terminals_path):
+        data = bounded_bytes(path)
+        sha = hashlib.sha256(data).hexdigest()
+        if refs.get(str(path.resolve())) != sha:
+            raise ValueError('input not pinned by sealed summary')
+        inputs.append(dict(path=str(path.resolve()), sha256=sha))
+        payloads.append(data)
+    rows = json.loads(payloads[0])['requests']
+    deployment = json.loads(payloads[1])
+    terminals = [json.loads(line) for line in payloads[2].splitlines()]
+    count = deployment['plan']['count']
+    by_id = {r['request_id']: r for r in terminals}
+    if (type(count) is not int or count <= 0 or len(rows) != count
+            or len(terminals) != count or len(by_id) != count
+            or {r['request_id'] for r in rows} != set(by_id)
+            or not sealed['native_contract_completion_pass']
+            or sealed['population']['native_contract_matched'] != count):
+        raise ValueError('complete native population required')
+    # These are the actual producers' names; the former parent_response_* names
+    # do not exist in RequestResult. Neither aliasing nor defaulting is allowed.
+    rpc_names = ('worker_rpc_handler_wall_ms', 'worker_rpc_queue_ms',
+                 'parent_rpc_wall_ms', 'parent_rpc_overhead_ms',
+                 'parent_rpc_channel_acquire_ms',
+                 'parent_rpc_response_pickup_delay_ms',
+                 'parent_rpc_thread_resume_delay_ms')
+    native_names = (*rpc_names, 'parent_rpc_send_flush_ms',
+                    'parent_rpc_wait_response_ms', 'parent_rpc_request_bytes',
+                    'parent_rpc_response_bytes', 'admission_to_engine_dispatch_ms',
+                    'engine_entry_to_queue_ms', 'native_engine_queue_ms',
+                    'native_prefill_ms', 'native_decode_ms',
+                    'worker_completion_notification_ms',
+                    'worker_to_controller_completion_ms')
+    outer_names = ('routing_decision_us', 'adapter_path_resolution_us',
+                   'gpu_admission_decision_us', 'control_path_total_us')
+    observations = {name: [] for name in (*native_names, *outer_names)}
+    coverage = {name: Counter() for name in observations}
+    invalid_ids = {name: [] for name in observations}
+    diagnostics = []
+    for row in sorted(rows, key=lambda r: r['request_id']):
+        terminal = by_id[row['request_id']]
+        timing = row['native_token_timing']
+        if (row['success'] is not True or terminal['success'] is not True
+                or terminal['native_contract_matched'] is not True
+                or row['output_contract_match'] is not True
+                or row['generation_contract'] != 'fixed_length_greedy_v1'
+                or row['completion_token_source'] != 'vllm_token_ids'
+                or timing['native_terminal_observed'] is not True
+                or timing['timing_contract'] != 'ieee_tc_native_v1'
+                or timing['parent_rpc_transport'] != 'native_async_socket_v1'
+                or terminal['clock_id'] != deployment['clock_id']
+                or timing['native_clock_id'] != deployment['clock_id']
+                or terminal['instance_id'] != row['instance_id']):
+            raise ValueError('native timing/transport/identity contract mismatch')
+        for name in rpc_names:
+            if name in timing and name in row and timing[name] != row[name]:
+                raise ValueError('outer/native RPC values disagree')
+        record = dict(request_id=row['request_id'], instance_id=row['instance_id'])
+        for name in observations:
+            source = timing if name in native_names else row
+            value = source.get(name)
+            status = ('missing' if name not in source else 'null' if value is None
+                      else 'invalid' if type(value) not in (int, float)
+                      or not math.isfinite(value) or value < 0 else 'valid')
+            coverage[name][status] += 1
+            if status == 'valid':
+                observations[name].append(value)
+                coverage[name]['zero'] += int(value == 0)
+            else:
+                invalid_ids[name].append(row['request_id'])
+            record[name] = value if status == 'valid' else None
+        diagnostics.append(record)
+    metrics = []
+    for name, values in observations.items():
+        values.sort()
+        unit = 'bytes' if name.endswith('_bytes') else 'us' if name.endswith('_us') else 'ms'
+        metrics.append(dict(field=name, unit=unit, offered=count,
+            **{key: coverage[name][key] for key in ('valid','missing','null','invalid','zero')},
+            mean=math.fsum(values)/len(values) if values else None,
+            p50=values[math.ceil(.5*len(values))-1] if values else None,
+            p95=values[math.ceil(.95*len(values))-1] if values else None,
+            max=max(values) if values else None))
+    result = dict(kind='retained_rpc_observation_audit_v1', formal_performance_result=False,
+        new_experiment=False, population=dict(planned=count, terminal=count, native_success=count),
+        complete_field_coverage=all(c['valid'] == count for c in coverage.values()),
+        quantile='Type-1', metric_protocol_sha256=sealed['metric_protocol_sha256'],
+        metrics=metrics, invalid_or_absent_request_ids=invalid_ids,
+        source_refs=[*inputs,dict(path=str(sealed_summary.resolve()),sha256=sealed_sha256),
+                     dict(path=str(Path(__file__).resolve()),sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())],
+        caveats=[
+            'Native contract completion is not numerical adapter or common-SLO qualification.',
+            'Pickup and worker RPC queue use same-host wall timestamps and clamp negative differences; raw parent read timestamps are not retained, so clock effects cannot be reconstructed.',
+            'Pickup spans response serialization/loopback/event-loop read availability; it is neither remote artifact network delay nor an isolated CPU function duration.',
+            'Native async transport sets thread resume to structural zero; this is not an independently measured absence of scheduling delay.',
+            'Legacy outer control timers can be structural/default zero; a recorded zero is not proof of zero mechanism overhead.',
+            'RPC metrics are generation-call observations, not durations of source_snapshot, preparation or retirement RPCs.',
+            'Overlapping RPC/native/control spans and their percentiles must not be summed as disjoint phases.',
+            'Missing/invalid fields retain their request IDs and counts; available-value summaries are diagnostic only.'])
+    output.mkdir(parents=True, exist_ok=False)
+    write_csv(metrics, output/'rpc_metrics.csv')
+    write_csv(diagnostics, output/'request_rpc_observations.csv')
+    with (output/'summary.json').open('x') as handle:
+        json.dump(result, handle, indent=2, allow_nan=False)
+    return result
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", required=True, help="Result JSON file or directory")
     parser.add_argument("--output", default=None, help="Output directory; mandatory/fresh for native timeline")
     parser.add_argument("--native-timeline", action="store_true", help="Strict bounded native projection audit; no legacy paper copies")
+    parser.add_argument("--rpc-breakdown", action="store_true", help="Audit retained native-async RPC fields, no new experiment or legacy paper copies")
+    parser.add_argument("--sealed-summary", type=Path)
+    parser.add_argument("--sealed-sha256")
     parser.add_argument("--deployment", type=Path)
     parser.add_argument("--terminals", type=Path)
     parser.add_argument("--watchdog", type=Path)
@@ -529,6 +663,14 @@ def main() -> None:
     parser.add_argument("--control-outcome", type=Path, help="Bounded normal outcome with independent control/quarantine observations")
     parser.add_argument("--scenario", default=None, help="Optional scenario-name substring")
     args = parser.parse_args()
+
+    if args.rpc_breakdown:
+        if args.native_timeline or not all((args.output,args.deployment,args.terminals,args.sealed_summary,args.sealed_sha256)):
+            parser.error('RPC audit requires explicit fresh output/deployment/terminals/sealed-summary/sealed-sha256 and no native-timeline')
+        result = analyze_rpc_breakdown(Path(args.input),args.deployment,args.terminals,
+                                      args.sealed_summary,args.sealed_sha256,Path(args.output))
+        print(json.dumps(result,indent=2,allow_nan=False))
+        return
 
     if args.native_timeline:
         if not all((args.output,args.deployment,args.terminals,args.watchdog)):

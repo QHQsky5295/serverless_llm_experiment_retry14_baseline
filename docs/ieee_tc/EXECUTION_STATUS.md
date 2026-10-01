@@ -1,8 +1,64 @@
 # IEEE TC execution status
 
-## CURRENT — D138 complete, analyzed and verified; backup pending
+## CURRENT — D139 RPC recovery completed; performance still OPEN
 
-2026-10-01 13:03. Goal ACTIVE/incomplete. Current turn PROGRESS: same evidence
+2026-10-01 13:25. Goal ACTIVE/incomplete. Current turn PROGRESS: recovered the
+already-retained RPC fields for D137/D138, each all4000 requests; no GPU replay,
+new workload/cache, serving/config change or baseline. D138 remains sealed.
+No live experiment/analysis handle. Once-only publishedcache NEVER rebuild.
+
+- Existing analyzer extended with opt-in --rpc-breakdown; pinned curated SHA
+  and input SHA, complete IDs/native generation/transport/clock/replica checks,
+  Type-1 quantiles, explicit missing/null/invalid/zero counts and no overwrite.
+  Previous curator queried nonexistent parent_response_* keys; actual
+  parent_rpc_response_pickup_delay_ms etc are present. No originaldata lost.
+- 14newRPCtests +24affectedtimeline regressiontests=38PASS,0.160s. No other
+  completed test suite/projection replayed. 3B/7B audit0.78/0.75s,peakRSS
+  129024/130944KiB,3/4GiBswap0CPU2,3,26,27,events0.
+- Actual audit InvocationID1b5be5d2e365438c8a67cd1014797104,finished0at13:20:50;
+  exact empty cleanup completed. Prior small inspectioncc806df2cbd44ace9ee3ef55602c0890
+  also emptyclosed/events0. No current primelora scope/GPU process observed.
+- Both model projections:22stored diagnostic fields have4000finite nonnegative
+  values. Completeness of storage is NOT proof everyzero is measured: native
+  async threadresume=structural0; IEEE resolution/admission legacytimers=default0.
+  routing includes await and excludes snapshotNone earlycontinues,NOTtotalCPU.
+- Mean/P95 pickup7B1095.831894/5969.025135ms;
+  3B1264.889093/7246.434450ms. Parentchannelmean7B.017296/3B.081575ms;
+  responses~1774bytes. Monotonicworker→controller gapmeans1096.602607/1265.689866ms.
+  Supports nontrivialcompletionhandoffwait,not enlargedpoolasfirsthypothesis.
+  Does NOT prove JSON/GIL/sourceinventory cause or remoteartifactnetworkdelay.
+- Result SHA3B0cc93b11529db20f721a380931d21626c1ae73bf0a8b03a69be1fec96b1b057e,
+  7B4a9c56e0894a2746577eba14c4affa7a3f62321adc038e66d62599b9f3cf826b.
+  Data paper_results/ieee_tc/p2_backend/20261001_d139_rpc_{3b,7b}; raw
+  results/ieee_tc/p2_backend_qualification/d139_20261001. Complete perrequestCSV
+  localonly; smalltables/source/tests/receipts forbackup. Finalinterpretationtable
+  docs/ieee_tc/D139_CONTROL_PATH_DIAGNOSIS.md. Now SHApinned; do not editsealeddoc.
+- Verificationattempt1 stoppedbeforewritingoutputs: schedulerfile absent from
+  D138prelaunchSHAmap, NOTa servingchange. Failedreceipt retained; exactempty
+  5343201821594e5681c922b6d3376666closed/events0. Attempt2 uses exactD138runtime
+  git2608d027 for that file, otherfive servingfiles matchrecordedSHA. No audit/test
+  rerun. Independent8000rowCSV stats, inputSHA,147protected,Plan/V1 PASS.
+  Same12893completed0at13:27:53,actual2188d68987e74b3c9b6eed073fedab91/events0.
+  VerificationSHA c205423e2c8a192dad2e3f59fa81f63cc1528900cc3ccf7cd65ab9c42c21678a.
+  Bundle28members/33919B SHA8611489e1d4ce89a8066bf7d765142edbceb5e5d3558941bb701aa87b4cf58cd.
+  Exactemptyclosed13:28:52/events0;11.19s/RSS1174964KiB. Closure receipt saved
+  paper_results/ieee_tc/p2_backend/20261001_d139_evidence_closure.json.
+  ChecksumPASS. Scopedbackup next; no liveanalysis handle.
+
+NEXT: afterevidencebackup, adapt existing D123 first1000request 7B diagnostic
+wrapper to currentcode, keepcurrentconfig/realremote and record actualparent,
+frontend,planner AND GPUcore with py-spy subprocess support. Primarypy-spy0.4.2
+and Python3.12 async docs checked. No profiler/wrapper/replay prepared/launched
+yet. Old parent-onlyD123profile/JSONmicro cannot answer currentcause; don'trepeat.
+Existing generateRPC fields do NOT time source_snapshot/preparation/retirement
+calls, so boundedcurrentprofile adds missing evidence. No caps/deadlinechanges,
+guardremoval or speculativeoptimizer. Afteronecandidatevalidated,ordinaryFull.
+3BTPOT/outputhash differences and7B/3Bperformance remainOPEN. BaselinesPAUSED;
+Warm/Resident,M1M2/A1–A5/S1–S13 stillpending. Lastdisk182119997440B; recheckheavy.
+
+## D138 closure and initial D139 diagnosis — historical, superseded above
+
+2026-10-01 13:10. Goal ACTIVE/incomplete. Current turn PROGRESS: same evidence
 session4277 completed0; verification, small bundle and exact-owned cleanup done.
 No live experiment or analysis handle. No serving/config change, new optimizer,
 GPU replay or baseline. Once-only published cache fulfilled; NEVER rebuild.
@@ -59,13 +115,25 @@ GPU replay or baseline. Once-only published cache fulfilled; NEVER rebuild.
   used wrong cwd and stopped before execution; corrected cwd ran helper ONCE.
   No rawlarge data or model copied. Lastdisk182146555904B, recheck beforeheavy.
 
-NEXT: explicitfiles diff/secrets/checksum→commit/push→verify remoteHEAD.
+Backup DONE: 35b3e84c601ea99cda7762f3262ac7d9b2dae0e8 pushed to
+faaslora_origin/retry14_continuous_queue_v2; exact remoteHEAD verified this turn.
 Precommit13explicitfiles/80payloads secrets and bundle-member hashes PASS;
 user manifest excluded. csv.writer outputs CRLF; ordinary diff-check flagged
 those line terminators only. Recheck with cr-at-eol (all other whitespace rules
 retained) PASS. No sealed CSV bytes/values/hashes changed to silence the check.
-Then one evidence-led question for large 3B/7B performance gap, TPOT regression
-and output differences; no optimizer chosen yet. Do NOT run baseline, blindly
+D139 read-only follow-up in docs/ieee_tc/D139_CONTROL_PATH_DIAGNOSIS.md:
+permit covers source/preparation/generation/confirmed retirement; cannot early
+release on lasttoken alone. Full native source graph is still built in GPU core
+despite D132 frontendprojection. Current version's inputqueue utility handling
+and UniProc synchronous worker call confirm possible scheduling competition,
+NOT measured causal contribution. Current localsourceSHA and primary official
+docs checked; vLLMskill read with optimizationreference, generic targets not used.
+No serving edit, no new test/profile/replay prepared or launched. No live handles.
+NEXT: reuse existing evidence to recover actual source/retirement call timing;
+if insufficient, adapt existing D123 bounded current-version diagnostic to
+cover actual core as well as parent (same originalprefix/config, no newtrace).
+Do not repeat old decoder/projection microtest or infer current profile fromold.
+3B outputdifferences/TPOT regression remain explicitly OPEN. Do NOT run baseline, blindly
 increase capacity/deadline, remove guards, repeat completed tests/projections or
 declare 3B finished. Warm/Resident, baselinequalification, M1M2/A1–A5/S1–S13 pending.
 
@@ -324,7 +392,7 @@ D128runtime75deef6,D125result61c9bcf,D126/D127e1f7f6e alreadybacked.
   No global kill/ray-stop/reset/reboot. Only exact-owned identity cleanup.
   No remoteconfig/restart/hash/cleanup during inference.
   Inference disk150/100GiB unchanged;artifactnodeindependentincrementalrule.
-- At12:20 allserving/remote/auxdomains closed; ONLY D138 projection below LIVE.
+- Historical12:20 onlyD138projectionwaslive; CURRENT overrides: allfinished.
   Lastdisk182296768512B afterclosure; recheckbeforeheavy,not a futureguarantee.
 - Contentindices inputs/20260927_3b_remote_content_index.json
   SHAbd1826c58f00ea30dee1d3829dc11727a975127db701a1eee6c6c86b4a38f275;

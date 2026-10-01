@@ -1,0 +1,29 @@
+{
+  "kind": "d139_offline_rpc_recovery_closure_v1",
+  "analysis_complete": true,
+  "new_gpu_experiment": false,
+  "formal_performance_qualified": false,
+  "verification_attempt": 2,
+  "verification_exit_code": 0,
+  "verification_wall_seconds": 11.19,
+  "verification_peak_rss_kib": 1174964,
+  "verification_sha256": "c205423e2c8a192dad2e3f59fa81f63cc1528900cc3ccf7cd65ab9c42c21678a",
+  "bundle_sha256": "8611489e1d4ce89a8066bf7d765142edbceb5e5d3558941bb701aa87b4cf58cd",
+  "bundle_bytes": 33919,
+  "bundle_members": 28,
+  "bundle_checksum_check": "pass",
+  "unit": "primelora-d139-evidence2-20261001.scope",
+  "invocation_id": "2188d68987e74b3c9b6eed073fedab91",
+  "cleanup_at": "2026-10-01T13:28:52+08:00",
+  "cleanup_requires": ["exact invocation", "TasksCurrent=0", "empty cgroup.procs", "populated=0"],
+  "post_cleanup_state": "inactive",
+  "memory_events": {"low": 0, "high": 0, "max": 0, "oom": 0, "oom_kill": 0, "oom_group_kill": 0},
+  "receipt_sha256": {
+    "results/ieee_tc/p2_backend_qualification/d139_20261001/evidence2.log": "8a30649f694d44935c9bcf302130efd88ec6666c1eb28b7a13ff7249e89f229d",
+    "results/ieee_tc/p2_backend_qualification/d139_20261001/evidence_scope2.txt": "b340e9c0997ca0bf9a5d6dcb439e2eedff737f7b13b6d80822066d986ccb68bf",
+    "results/ieee_tc/p2_backend_qualification/d139_20261001/evidence_time2.txt": "e9585e0e413e7b1c17e7bdc1408f1c9555b82f030ec9852c89ac8231365d9e2d",
+    "results/ieee_tc/p2_backend_qualification/d139_20261001/evidence_cleanup2.log": "2661de9d94f814f2a4ed3d2d101ac3344446acb6073bc43cebf36cdcb266c27e"
+  },
+  "prior_verification_failure": "Scheduler source was absent from D138 prelaunch SHA map. Attempt 1 stopped before producing outputs; attempt 2 verified this file against exact runtime commit 2608d027d82df5a79719153e114ff06a7a70679b. No serving change, data change or audit/test rerun.",
+  "next": "Current-version first-1000 diagnostic CPU profile including actual controller/frontend/planner/native GPU core; not prepared or launched at this closure."
+}
