@@ -2301,6 +2301,29 @@ class TestNativeSourceProfilePreview(unittest.TestCase):
         p=self.fixture();p['source_profile_spec']['purpose']='integration_pilot'
         with self.assertRaises(ValueError):plot_paper_figures.tc_native_source_rows(p)
 
+    def test_explicit_source_identity_requires_exact_match_and_keeps_data_checks(self):
+        p = self.fixture()
+        p['source_profile_spec']['purpose'] = 'new_capacity_source_calibration_development_only'
+        with self.assertRaises(ValueError):
+            plot_paper_figures.tc_native_source_rows(p)
+        rows = plot_paper_figures.tc_native_source_rows(p, expected_purpose=p['source_profile_spec']['purpose'])
+        self.assertEqual(rows[0]['actual_tokens'], 2)
+        for purpose in ('', ' ', 'different'):
+            with self.subTest(purpose=purpose), self.assertRaises(ValueError):
+                plot_paper_figures.tc_native_source_rows(p, expected_purpose=purpose)
+        p['requests'][0]['actual_tokens'] = 1
+        with self.assertRaises(ValueError):
+            plot_paper_figures.tc_native_source_rows(p, expected_purpose=p['source_profile_spec']['purpose'])
+
+    def test_source_cli_forwards_explicit_identity(self):
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(sys, 'argv', [
+                'plot_paper_figures.py', '--figure', 'tc_native_source_profile',
+                '--input', 'source.json', '--out-dir', tmp,
+                '--source-profile-purpose', 'source_capacity_development']), mock.patch.object(
+                    plot_paper_figures, 'plot_tc_native_source_profile') as plotter:
+            plot_paper_figures.main()
+        self.assertEqual(plotter.call_args.kwargs['expected_purpose'], 'source_capacity_development')
+
 
 if __name__ == "__main__":
     unittest.main()

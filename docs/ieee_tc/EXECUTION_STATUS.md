@@ -1,6 +1,81 @@
 # IEEE TC execution status
 
-## CURRENT — D156 cap=4 bootstrap COMPLETE; prepare admission-enabled class profile next
+## CURRENT — D157 cap4 source calibration COMPLETE; sealing/backup next
+
+05:35 +08 evidenceverificationPASS SHA61b606b02363a85952fd53bf7d408c19de40875393468530c846aefed7934158.
+Doc/result/figures/profiles nowSEALED, doNOTedit. Complete58member35338B bundle
+20261002_d157_analysis_sources_complete3.tar.gz SHA45e457596cb2eef648786edb7dc2decf71f7c85c052758d383460303ee51fe11.
+Bundle3 actualbc77804a4e634354979611b5c7b29871 exited0/events0/scopeabsent.
+Seal1 actuald876501e1fac4d4baba0de17256b3385 exit1: symlinkrelativepath issue;
+seal2 actual5a03c69c6ac54790973fcd28f3762bf1 verified all evidence then packaging
+failed at old check_health.sh name (actualcheck_health1.sh). Partial6925B bundle
+retained20261002_d157_analysis_sources.tar.gz, NOT complete/notforpublication;
+complete3 only is selected. Bothfailure scripts/logs included in completebundle.
+No GPU repeat or changed measureddata; backup pending. NextordinaryFull needs
+freshD158paths+HEAD, same generatedD157Fullconfig except threeowned paths.
+
+05:30 +08 goalACTIVE/PROGRESS. No live GPU/remote/analysis jobs.
+Source1 PASS184/184 (180representative),30/30serviceclasses,24preparationclasses
+each6observations,500static/sixexactfilecontentclasses. StrictprofileexportPASS.
+RawSHA542b258cdf2d95035ad86597ae79f597d81475e23333a34ed05ea1ec25bae4b3.
+U585.0443832949968GPU-s/singlelease released;184remoteUUIDpairs/995431947wireB,
+pack0;591resourcesamples/peak5413052416B/observedmemoryevents+swap0.
+No numericaladapter/commonSLO/G1G2 qualification, n_correctnull. No serving edit.
+Sourcecontrols retained D88 exact; onlycapacity+newmeasured initialization.
+Physical/local absence and exactremote stop/copy complete; journal48e3e6b96db34456b33087b0b2c5b579,
+remoteclock81ff915daec54d238ee3347b8044aebf. stop97057/copy56013closed0.
+Analysis1 ff49d00cec8744a98c80d1eb31f2783d/85216exit1: wrong plotting environment;
+analysis2 13f9aeac24604d6c831f74ecd92b76ad/93219exit1: oldpurpose label rejected.
+Both retained/no GPU rerun. Analysis3 992688a8be01418b98c72551c9a89608/52934CLOSED0,
+scope absent/finalmemoryevents0.46testsPASS7.498s; explicitplotpurpose interface,
+all strictdata checks unchanged; baseconda plotting,existingCPUenv analysis.
+Plot3/summary3/export3/assembly3 all0; manual3PNG/TNR/PDF QA complete.
+Newprofiles d157_7b_initialization/service d7b359b9...; preparation57b2d1d5...;
+main_assembly3.json PASSactualmain4000/500/onecap4/fourcap16, noengine/network.
+Doc/table D157_CAP4_ADMISSION_SOURCE.md; generatedFullparentconfiginD157raw.
+NEXT seal/backup then ordinaryFull4000W0 usingnewprofile/parent. DoNOTreprofile,
+rebootstrap, or advance3B/baselines. Current disk near150GiB: recheck beforeheavy.
+
+## D157 launch history — completed, superseded by closure above
+
+05:20 +08 same run active in tmux tc-d157-7b-source1; do NOT restart.
+Service42471725ef7548b087ec11d390767311 actual474767ea09454474a7a2d9cfaaa8f72c;
+aux115376acebd440c3ba73e074146a02ae actual3b3c851fcdc3401c942d5bd85748f77e.
+NativePID1175604/start39658441 inside service CPU4–23,28–47. Sample215:
+peak5413052416B,host108567822336B,swap/events0,no warnings/foreign compute.
+Healthclock remote-process-monotonic:81ff915daec54d238ee3347b8044aebf.
+NEXT monitor same source1→physical cleanup→exactremote stop/copy→strict
+classcoverage/profile export/table/backup. No timing profile yet qualified.
+
+2026-10-02 05:15 +08. PreviousgoalturnPROGRESS/D156completebacked26e44a2.
+ReadfullPlan/status/V1 thisturn; no servingcodechanges. Use sameD156cap4config.
+D15746waves/184samples(4warmup+180representative),sixexistingD84representatives,
+threeinterleavedrounds/fivesources,admittedbins[1,2,4]. No newtrace/weights.
+SpecSHA1d29c6fbcb3232d8d62f14d23fcfae1b342311268d2ba3ce5ec33bc047559055.
+NewcontractSHA875f90f6133eb2632d0ec07db03b0c3e05f22b03b1dea14e1cf51e5400562d58
+holdsD88coordination/settings/betas EXACT; onlycapacity/modelidentity/fresh
+D156lengthinitializerchanged. No reuse/relabelofoldtimeprofile.
+Prepare1PASS184indexed/500static/6representative/147protected/strictassembly,
+actuald489d6acadcf453e804cd15f8a5c44d6,session11699closed0,scopeabsent.
+Remoteactivatedsource1 exact3B2938819/e4f612301bc24c26b183baa15889154d;
+7B2938821/ab1d1eee19824250984b4e508aa88f32;
+monitor2938824/d74ef3a976dd4eecae3f5cd79d7ef11b,
+unitprimelora-artifact-monitor-d157source1.service. HealthbothPASS.
+BothNIC1000/full; no remoteconfig/cachechanges. Disk161564647424B meets150GiB,
+remainingmargin~0.47GiB; running100GiBfloorunchanged.
+Launch completed05:15:12; then exactcleanup→classcoverage/token/time/admission
+verification→profileexport/table→backup→ordinaryFull4000. DoNOTrepeatD156.
+G1G2/numericadapter/commonreferencesstillOPEN; baselines/3BremainPAUSED.
+
+## PRIOR — D156 cap=4 bootstrap COMPLETE and backed
+
+05:11 +08 BACKUP COMPLETE26e44a2014a9178148afddf1b18447fd6b6e5ab3;
+pushedfaaslora_origin/retry14_continuous_queue_v2, exactremoteHEADverified.
+Push37635/verify45769closed0;11explicitfiles/39payloadssecretsPASS; usermanifest
+excluded. Diff/checksum/nativequalification/inputscope/syntaxPASS. No livejobs.
+Onlythispost-backupreceipt localdirty. TurnPROGRESS:actualcap4bootstrap+new
+strictlengthbinding+table+backup complete, NOT7Bacceptance. Nextadmission-enabled
+sourceprofilecap4 thenFull; don'tretestsealedbootstrap orD155. GoalACTIVE.
 
 05:10 +08 seal COMPLETE:147protected/config/trace/raw/remote/Plan/V1 SHAs PASS;
 source syntax and actualbootstrap12native checks PASS.29member smallbundle12998B,

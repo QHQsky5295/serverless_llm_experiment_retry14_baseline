@@ -1,0 +1,106 @@
+{
+  "kind": "d157_source_profile_evidence_verification_v1",
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "actual_native_qualification_pass": true,
+  "native_contract_samples": 184,
+  "service_classes": 30,
+  "preparation_classes": 24,
+  "class_domain_covered": true,
+  "no_live_gpu_or_qualification_scopes": true,
+  "serving_code_changed": false,
+  "full_qualified": false,
+  "visual_review": "all three PNG rendered views inspected; no text overlaps or clipping; TNR embedded",
+  "source_refs": [
+    {
+      "path": "paper_results/ieee_tc/p2_backend/20261002_d157_7b_admission_source.json",
+      "sha256": "7244ece347a382d3ca27335d6a7f2f88540e72d07edf9b1077346a239e1b8a19"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d157_7b_initialization/manifest.json",
+      "sha256": "51419cc52b607deb61c71554163ceeda4f6dfda91916bf39af8965cc4c7676ad"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d157_7b_initialization/service.json",
+      "sha256": "d7b359b9b2ab23658df73e199983d7ed161310a568e962158c23c77c2dd9f8b1"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d157_7b_initialization/preparation.json",
+      "sha256": "57b2d1d51dd5675e1bc16f7429c131c7fbc4d46ca139abe9d78b3e6f315816be"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/20261002_d157_7b_admission_source_spec.json",
+      "sha256": "1d29c6fbcb3232d8d62f14d23fcfae1b342311268d2ba3ce5ec33bc047559055"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/20261002_d157_7b_development_contract.json",
+      "sha256": "875f90f6133eb2632d0ec07db03b0c3e05f22b03b1dea14e1cf51e5400562d58"
+    },
+    {
+      "path": "docs/ieee_tc/D157_CAP4_ADMISSION_SOURCE.md",
+      "sha256": "67eab8d8ae8dcd9d192f998869a2ba26b6702c61c6a93f94378b450eb69046a3"
+    },
+    {
+      "path": "scripts/plot_paper_figures.py",
+      "sha256": "b91774a2d1ce745e7924a5af755a9b23eaca307f47f33114a8449ea4dc97c71e"
+    },
+    {
+      "path": "tests/test_v2_analysis_tools.py",
+      "sha256": "321c57ebc84574cc74db9000299ccb31512044efcc44dba810824c6057c9d338"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d157_20261002/main_assembly3.json",
+      "sha256": "b5b8b2cd97454151f34735ceea94d9521aa9619d88358488125b7246c3d61aa0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d157_20261002/7b_main_config_full1.yaml",
+      "sha256": "be050c55bd2da69256683cf431412c9b622ffb0615e5cf92a3c0cc6b73d9b7a9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d157_20261002/remote_monitor_source1_final.log",
+      "sha256": "5727004a087cf61485102df4410f17b3c5f8547e18f9d2c352a0448feea09e38"
+    },
+    {
+      "path": "figs/ieee_tc/p2_backend/d157_7b_admission_source1/all_observations.csv",
+      "sha256": "2afe4315b0289add578cafb9a65e355b340a580a766e05df4f705d9249df6218"
+    },
+    {
+      "path": "figs/ieee_tc/p2_backend/d157_7b_admission_source1/manifest.json",
+      "sha256": "854c060b369f674fe67b8d1deb731912ebeeebaa18ed03e867a60ec521de0fa9"
+    },
+    {
+      "path": "figs/ieee_tc/p2_backend/d157_7b_admission_source1/source_D_ms.pdf",
+      "sha256": "3e40ac93a260733f6ae567fcef27342ed1507fd0cce49e1f5e73bbf0efdb19ad"
+    },
+    {
+      "path": "figs/ieee_tc/p2_backend/d157_7b_admission_source1/source_D_ms.png",
+      "sha256": "923f4b600385b61691db791c061264472278ab62a1d4f97a0a226123639c11e1"
+    },
+    {
+      "path": "figs/ieee_tc/p2_backend/d157_7b_admission_source1/source_TPOT_ms.pdf",
+      "sha256": "47e21327c5ef7a913514f1c9f4af4baee762e9514f07b9faba14b35f7ca72c63"
+    },
+    {
+      "path": "figs/ieee_tc/p2_backend/d157_7b_admission_source1/source_TPOT_ms.png",
+      "sha256": "77c935e54a79813ba957b80ba756f00eb1c1ebeebcfb2083c01d15680c7c1e08"
+    },
+    {
+      "path": "figs/ieee_tc/p2_backend/d157_7b_admission_source1/source_T_ms.pdf",
+      "sha256": "e80b4afb00da789d13a827a2f63546f0732466497ca64e7f8cfa0072e57f4f74"
+    },
+    {
+      "path": "figs/ieee_tc/p2_backend/d157_7b_admission_source1/source_T_ms.png",
+      "sha256": "ce041d634db7e54dc192b8eb755b2abd7782b7e16ea52894ffa8c81df0877f99"
+    },
+    {
+      "path": "figs/ieee_tc/p2_backend/d157_7b_admission_source1/summary.csv",
+      "sha256": "7f781f6dd8b7d181f43fc5064d39a01d1646075906c09b27507b19c228fbddd0"
+    }
+  ]
+}

@@ -3442,7 +3442,8 @@ def plot_tc_serverless_wait_audit(inputs: Sequence[Path], out_dir: Path,
     (out_dir/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
 
 
-def tc_native_source_rows(payload: dict) -> List[dict]:
+def tc_native_source_rows(payload: dict, *, expected_purpose: str =
+        'representative_static_content_classes_development_profile_not_formal_S1') -> List[dict]:
     """Strict descriptive export; initialization observations are not run repeats."""
     if (payload.get('kind') != 'backend_native_native_source_matrix_qualification_v1'
             or payload.get('pass') is not True or payload.get('stage') != 'complete'
@@ -3451,8 +3452,8 @@ def tc_native_source_rows(payload: dict) -> List[dict]:
             or payload.get('artifact_mode') != 'prepublished_gzip_v1_real_remote_no_fallback'):
         raise ValueError('source profile is incomplete or has the wrong delivery contract')
     spec = payload['source_profile_spec']
-    if spec['purpose'] != 'representative_static_content_classes_development_profile_not_formal_S1':
-        raise ValueError('representative source plot must not relabel an integration pilot')
+    if not isinstance(expected_purpose, str) or not expected_purpose.strip() or spec['purpose'] != expected_purpose:
+        raise ValueError('source plot purpose differs from the explicitly selected analysis identity')
     expected = {}
     for i, wave in enumerate(spec['waves']):
         if wave['role'] not in ('kernel_warmup_retained', 'representative_measurement'):
@@ -3530,7 +3531,8 @@ def _tc_drawn_tick_labels(ax) -> list:
     return labels
 
 
-def plot_tc_native_source_profile(inputs: Sequence[Path], out_dir: Path) -> None:
+def plot_tc_native_source_profile(inputs: Sequence[Path], out_dir: Path, *, expected_purpose: str =
+        'representative_static_content_classes_development_profile_not_formal_S1') -> None:
     """Single-run profile preview, not S1 or a causal system-ranking figure."""
     from matplotlib import font_manager
     import subprocess
@@ -3540,7 +3542,7 @@ def plot_tc_native_source_profile(inputs: Sequence[Path], out_dir: Path) -> None
         raise ValueError('source preview output must be new/empty')
     path = inputs[0]
     raw = _load_json(path)
-    rows = tc_native_source_rows(raw)
+    rows = tc_native_source_rows(raw, expected_purpose=expected_purpose)
     launch_path = path.with_name(path.stem + '_launch.json')
     launch = _load_json(launch_path)
     if (launch.get('pass') is not True or launch['service_returncode'] != 0
@@ -3621,6 +3623,7 @@ def plot_tc_native_source_profile(inputs: Sequence[Path], out_dir: Path) -> None
                            text_clipping=False,text_overlap=False,font_path=font,
                            manual_visual_review='required'))
     manifest=dict(kind='development_native_source_profile_preview_v1',formal_S1=False,
+        source_profile_purpose=raw['source_profile_spec']['purpose'],expected_purpose=expected_purpose,
         independent_runs=1,ci=None,warmup_retained_but_not_in_means=True,
         warmup_requests=len(rows)-len(selected),measured_requests=len(selected),
         limitations=['not Full qualification or a causal system comparison',
@@ -3681,11 +3684,14 @@ def main() -> None:
             "matrix before generating any artifact."
         ),
     )
+    parser.add_argument('--source-profile-purpose',
+        default='representative_static_content_classes_development_profile_not_formal_S1',
+        help='Exact declared purpose for source-profile analysis; does not grant formal qualification.')
     args = parser.parse_args()
 
     out_dir = args.out_dir.resolve()
     if args.figure == 'tc_native_source_profile':
-        plot_tc_native_source_profile(args.input, out_dir)
+        plot_tc_native_source_profile(args.input, out_dir, expected_purpose=args.source_profile_purpose)
         return
     if args.figure == 'tc_serverless_wait_audit':
         plot_tc_serverless_wait_audit(args.input, out_dir)

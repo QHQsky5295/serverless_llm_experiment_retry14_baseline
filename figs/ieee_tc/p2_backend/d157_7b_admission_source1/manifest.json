@@ -1,0 +1,67 @@
+{
+  "kind": "development_native_source_profile_preview_v1",
+  "formal_S1": false,
+  "source_profile_purpose": "D157_7b_cap4_admission_enabled_source_calibration_development_only",
+  "expected_purpose": "D157_7b_cap4_admission_enabled_source_calibration_development_only",
+  "independent_runs": 1,
+  "ci": null,
+  "warmup_retained_but_not_in_means": true,
+  "warmup_requests": 4,
+  "measured_requests": 180,
+  "limitations": [
+    "not Full qualification or a causal system comparison",
+    "within-run rounds are not independent experimental repeats",
+    "NVMe source may be page-cache resident",
+    "variable prompt/token/concurrency composition; see all_observations.csv"
+  ],
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d157_20261002/7b_cap4_source1.json",
+      "sha256": "542b258cdf2d95035ad86597ae79f597d81475e23333a34ed05ea1ec25bae4b3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d157_20261002/7b_cap4_source1_launch.json",
+      "sha256": "d8c72267eb65ed0afb0568b882f9a9b78c99733d68def6dddbc11b23f3d63748"
+    }
+  ],
+  "script_sha256": "b91774a2d1ce745e7924a5af755a9b23eaca307f47f33114a8449ea4dc97c71e",
+  "qa": [
+    {
+      "metric": "D_ms",
+      "width_inches": 3.45,
+      "height_inches": 2.65,
+      "text_clipping": false,
+      "text_overlap": false,
+      "font_path": "/home/qhq/.local/share/fonts/msttcorefonts-times/times.ttf",
+      "manual_visual_review": "required"
+    },
+    {
+      "metric": "T_ms",
+      "width_inches": 3.45,
+      "height_inches": 2.65,
+      "text_clipping": false,
+      "text_overlap": false,
+      "font_path": "/home/qhq/.local/share/fonts/msttcorefonts-times/times.ttf",
+      "manual_visual_review": "required"
+    },
+    {
+      "metric": "TPOT_ms",
+      "width_inches": 3.45,
+      "height_inches": 2.65,
+      "text_clipping": false,
+      "text_overlap": false,
+      "font_path": "/home/qhq/.local/share/fonts/msttcorefonts-times/times.ttf",
+      "manual_visual_review": "required"
+    }
+  ],
+  "files": {
+    "source_TPOT_ms.pdf": "47e21327c5ef7a913514f1c9f4af4baee762e9514f07b9faba14b35f7ca72c63",
+    "source_T_ms.pdf": "e80b4afb00da789d13a827a2f63546f0732466497ca64e7f8cfa0072e57f4f74",
+    "all_observations.csv": "2afe4315b0289add578cafb9a65e355b340a580a766e05df4f705d9249df6218",
+    "source_TPOT_ms.png": "77c935e54a79813ba957b80ba756f00eb1c1ebeebcfb2083c01d15680c7c1e08",
+    "summary.csv": "7f781f6dd8b7d181f43fc5064d39a01d1646075906c09b27507b19c228fbddd0",
+    "source_T_ms.png": "ce041d634db7e54dc192b8eb755b2abd7782b7e16ea52894ffa8c81df0877f99",
+    "source_D_ms.pdf": "3e40ac93a260733f6ae567fcef27342ed1507fd0cce49e1f5e73bbf0efdb19ad",
+    "source_D_ms.png": "923f4b600385b61691db791c061264472278ab62a1d4f97a0a226123639c11e1"
+  }
+}
