@@ -16,6 +16,110 @@ import threading
 from dataclasses import dataclass
 
 
+_diagnostic_stack_state = None
+
+
+def _diagnostic_thread_frames():
+    """Copy frame locations while holding ordinary Python references, no locals."""
+    threads = []
+    frames = sys._current_frames()
+    try:
+        for ident, frame in frames.items():
+            locations = []
+            while frame is not None and len(locations) < 100:
+                locations.append((frame.f_code.co_filename, frame.f_code.co_name, frame.f_lineno))
+                frame = frame.f_back
+            threads.append(dict(ident=ident, frames=locations, truncated=frame is not None))
+        return threads
+    finally:
+        # Do not retain application frames/locals between observations.
+        frame = None
+        frames.clear()
+
+
+def enable_diagnostic_stack_sampling():
+    """Cooperative observations, not a CPU-time profiler or serving policy.
+
+    Unlike an asynchronous C stack walk, this observer uses Python frame
+    references under the GIL. Its own scheduling can be delayed: record actual
+    times and do not treat samples as an unbiased profile. No signal/ptrace.
+    """
+    import os
+    global _diagnostic_stack_state
+    flag = os.environ.get('FAASLORA_TC_STACK_SAMPLING')
+    if flag is None or flag == '0':
+        return
+    if flag != 'python_frames_v1' or os.environ.get('FAASLORA_FORMAL_RUN') != '0':
+        raise ValueError('stack sampling requires an explicit nonformal Python-frame diagnostic')
+    pid = os.getpid()
+    if _diagnostic_stack_state is not None:
+        if _diagnostic_stack_state[0] != pid:
+            raise ValueError('fork-inherited diagnostic observer is not active in this process')
+        return
+    receipt_path = Path(os.environ['FAASLORA_TC_LAUNCH_RECEIPT']).resolve(strict=True)
+    receipt = json.loads(receipt_path.read_text())
+    unified = [r[3:] for r in Path('/proc/self/cgroup').read_text().splitlines() if r.startswith('0::')]
+    actual = Path('/sys/fs/cgroup') / unified[0].lstrip('/') if len(unified) == 1 else None
+    expected = Path(receipt['service_identity']['path'])
+    replay = receipt.get('external_replay', {})
+    if (receipt.get('allow_exec') is not True or actual is None
+            or not actual.is_relative_to(expected)
+            or replay.get('replay_scope') != 'diagnostic_prefix_v1'
+            or type(replay.get('diagnostic_prefix_count')) is not int
+            or replay['diagnostic_prefix_count'] <= 0):
+        raise ValueError('stack sampling is outside its gated diagnostic service')
+    import atexit
+    ticks = int(Path('/proc/self/stat').read_text().rsplit(') ', 1)[1].split()[19])
+    directory = receipt_path.parent/'diagnostic_stacks'
+    directory.mkdir(mode=0o700, exist_ok=True)
+    if directory.is_symlink():
+        raise ValueError('stack output must not be a symlink')
+    stem = directory/f'{pid}-{ticks}'
+    with stem.with_suffix('.json').open('x') as stream:
+        json.dump(dict(kind='diagnostic_python_frames_v1', pid=pid, parent_pid=os.getppid(),
+            start_ticks=ticks, cgroup=str(actual), executable=sys.executable,
+            main_thread_ident=threading.main_thread().ident,
+            capture_start_monotonic_s=time.monotonic(), period_seconds=2.0,
+            max_frames_per_thread=100, includes_idle_threads=True,
+            cpu_time_profile=False, formal_performance_result=False,
+            gil_scheduling_bias=True, final_partial_line_possible=True), stream, indent=2)
+    output = stem.with_suffix('.stacks.jsonl').open('xb', buffering=0)
+    stop = threading.Event()
+
+    def observe():
+        previous = time.monotonic()
+        previous_cpu = time.process_time()
+        next_due = previous + 2.0
+        observer_cpu = 0.0
+        index = 0
+        while not stop.wait(max(0.0, next_due-time.monotonic())):
+            started = time.monotonic()
+            cpu = time.process_time()
+            own_cpu = time.thread_time()
+            threads = _diagnostic_thread_frames()
+            snapshot_done = time.monotonic()
+            index += 1
+            row = dict(event='python_frames', index=index, pid=pid,
+                scheduled_monotonic_s=next_due, observed_monotonic_s=started,
+                interval_seconds=started-previous, scheduler_delay_seconds=started-next_due,
+                process_cpu_seconds=cpu, process_cpu_delta_seconds=cpu-previous_cpu,
+                observer_thread_ident=threading.get_ident(),
+                observer_cpu_seconds_before_sample=observer_cpu,
+                snapshot_wall_seconds=snapshot_done-started, threads=threads)
+            payload = (json.dumps(row, separators=(',', ':'), allow_nan=False)+'\n').encode()
+            if output.write(payload) != len(payload):
+                raise OSError('incomplete diagnostic observation write')
+            observer_cpu += time.thread_time()-own_cpu
+            previous, previous_cpu = started, cpu
+            # No catch-up burst after GIL/I/O delays; preserve the observed gap.
+            next_due = time.monotonic()+2.0
+
+    thread = threading.Thread(target=observe, name='tc-python-frame-observer', daemon=True)
+    _diagnostic_stack_state = (pid, stop, thread, output)
+    atexit.register(stop.set)
+    thread.start()
+
+
 @dataclass
 class LogConfig:
     """Logging configuration"""

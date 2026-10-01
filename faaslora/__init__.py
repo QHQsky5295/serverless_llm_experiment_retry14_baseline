@@ -8,6 +8,12 @@ stack or pull in vLLM when a caller only needs dataset utilities.
 
 from importlib import import_module
 
+# Detailed observations are opt-in and forbidden in formal performance runs.
+import os as _os
+if _os.environ.get('FAASLORA_TC_STACK_SAMPLING') not in (None, '0'):
+    from .utils.logger import enable_diagnostic_stack_sampling
+    enable_diagnostic_stack_sampling()
+
 __version__ = "0.1.0"
 __author__ = "FaaSLoRA Team"
 

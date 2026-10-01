@@ -1,6 +1,43 @@
 # IEEE TC execution status
 
-## CURRENT — D142 observer rejected and withdrawn; no live experiment
+## CURRENT — D143 cooperative diagnostic qualified; GPU observation pending
+
+2026-10-01 15:02. Goal ACTIVE/incomplete. Current turn PROGRESS: replacement
+observer implemented and qualified without changing serving policy, equations,
+profiles, limits or workload. Baselines PAUSED; both model performance OPEN.
+Once-only published cache already fulfilled; NEVER rebuild.
+
+- Python-frame diagnostic is opt-in `python_frames_v1`, formally forbidden.
+  Ordinary Python frame references, no C-watchdog/signals/ptrace/local values.
+  Actual time/lag/process CPU/observer CPU recorded; GIL bias and idle frames
+  explicit. No catch-up or inference of zero cost from missing observations.
+- 337 affected CPU tests PASS/78.572s, including six observer tests. Actual
+  08c360e12fe942b38625079fdee6e295 empty closed; all memory events zero.
+  CPU import pair in native environment: off/on both IMPORT_COMPLETE and rc0,
+  no model loaded. Actual440515eefb8641a3aa9fd62872e69261 empty closed/events0.
+  Three complete samples/23854B, full main-thread coverage, max interval
+  2.005679s/max scheduling delay0.005258s. Observer CPU before last sample
+  0.00115767s excludes final sample; NOT a serving-overhead measurement.
+- Curator97687 completed0, actual c4a10429c953460aabf0a01fd3f420d2 empty
+  closed/events0; actual3/4GiB swap0 CPU2,3,26,27. 147 protected/Plan/V1/source
+  SHA/syntax/secrets checks PASS. No repeated tests, GPU or remote operations.
+  CuratedSHA296bc27e4552731be1da9a367737b0b52bec63582c253b1f6d68789e8f55c547;
+  bundle25members31914B SHA2ffcb18926b865c2769c462f17db4bff82f1fd3b06fc75ea57ccfc3986163f3f.
+  D143_COOPERATIVE_DIAGNOSTIC.md is sealed; do not edit after qualification.
+- Raw d143_20261001 contains reused preflight/remote/launch helpers, NOT run.
+  Same D137 7B config except three fresh paths and original1000 prefix count;
+  no new trace, weights, pool or cache. HEAD placeholders remain to be frozen
+  after backup. No live GPU, tmux or analysis scope. Lastdisk181893455872B.
+
+NEXT: explicit checkpoint backup -> freeze HEAD -> bounded preflight/remote
+activation/health -> exact empty cleanup -> ONE current 7B prefix diagnostic.
+Verify controller/frontend/planner/GPU-core role coverage, terminal cleanup,
+bounded table/interpretation, then causal serving candidate and ordinary Full.
+Do NOT repeat D140100Hz, D142C-watchdog, completed tests or huge projections.
+No capacity/deadline increase. 3B TPOT/output hash, numeric adapter identity,
+warm/Resident, baseline qualification, M1M2/A1-A5/S1-S13 all remain OPEN.
+
+## D142 observer rejection — completed history, not current execution
 
 2026-10-01 14:45. Goal ACTIVE/incomplete. Current turn PROGRESS: one diagnostic
 launch failed before any request; CPU-only import pair located a crash in the
@@ -43,7 +80,12 @@ Once-onlypublishedcache fulfilled,NEVERrebuild. Do not repeat D142 Cwatchdog.
   actual7b1dff05aca546f997e8aac6831dcbafemptyclosed/events0. Status table in
   sealedD142_DIAGNOSTIC_WITHDRAWAL.md; don'teditafterseal. Rawd142_20261001.
 
-NEXT: scopedrollback/failurebackup, then ONLY bounded replacement observation
+BACKUPDONE:30c5977836ceacf887829d0aa057a251e7c5e71d pushed to
+faaslora_origin/retry14_continuous_queue_v2; exactremoteHEADverified.
+Nineexplicitfiles/86payloadsecretschecks/checksum/diffPASS; usermanifestexcluded.
+No liveGPU,experimentoranalysisscope. Thisnoteisonlynewledgerdeltaafterbackup.
+
+NEXT: ONLY bounded replacement observation
 qualification: Python sys._current_frames under GIL, actualtimestamps/lag/CPUtime,
 not unsafe Cwatchdog. CandidateNOTimplemented; qualify with existingimport-only
 pair and CPUfixtures before any GPUreplay. No diagnostictool rabbit-hole; then
