@@ -7,6 +7,7 @@ import json
 import socket
 import tempfile
 import threading
+import time
 from types import ModuleType, SimpleNamespace as NS
 import unittest
 from unittest.mock import AsyncMock, patch
@@ -143,6 +144,143 @@ class NativeAsyncTransport(unittest.IsolatedAsyncioTestCase):
                 await asyncio.gather(task,return_exceptions=True)
                 client.close()
                 server.close()
+
+
+class NativeRPCFailureContext(unittest.IsolatedAsyncioTestCase):
+    """Failure-only evidence; no retry, release or successful reply changes."""
+    def proxy(self):
+        from tests.test_ieee_tc_request_lifecycle import NativeRPCOwnership
+        return NativeRPCOwnership().proxy()
+
+    async def test_connect_failure_is_unsent_and_keeps_operation(self):
+        proxy = self.proxy()
+        proxy._host, proxy._port = '127.0.0.1', 1
+        proxy._open_rpc_channel = SubprocessInferenceEngineProxy._open_rpc_channel.__get__(proxy)
+        sockets = []
+        async def connect(sock, address):
+            sockets.append(sock)
+            raise TimeoutError()
+        with patch.object(asyncio.get_running_loop(), 'sock_connect', side_effect=connect):
+            with self.assertRaises(RuntimeError) as caught:
+                await proxy._rpc('ieee_close_pending', intent_id='owned-request')
+        context = caught.exception.native_rpc_failure
+        self.assertEqual(context['cmd'], 'ieee_close_pending')
+        self.assertEqual(context['phase'], 'socket_connect')
+        self.assertEqual(context['exception_type'], 'TimeoutError')
+        self.assertEqual(context['guard_s'], 30.)
+        self.assertFalse(context['guard_expired'])  # Injected I/O exception, not timer expiry.
+        self.assertFalse(context['dispatch_handoff_started'])
+        self.assertFalse(proxy._native_rpc_uncertain)
+        self.assertEqual(sockets[0].fileno(), -1)
+
+    async def test_send_and_receive_failures_keep_unknown_ownership(self):
+        from scripts.run_all_experiments import _BlockingRPCChannel
+        for failed_phase in ('socket_send', 'socket_receive'):
+            with self.subTest(phase=failed_phase):
+                proxy = self.proxy()
+                proxy._open_rpc_channel.return_value = _BlockingRPCChannel(NS())
+                loop = asyncio.get_running_loop()
+                send = AsyncMock(side_effect=TimeoutError() if failed_phase == 'socket_send' else None)
+                recv = AsyncMock(side_effect=TimeoutError())
+                with patch.object(loop, 'sock_sendall', send), patch.object(loop, 'sock_recv', recv):
+                    with self.assertRaises(RuntimeError) as caught:
+                        await proxy._rpc('ieee_gpu_reference', operation='release', prompt='DO_NOT_RECORD')
+                context = caught.exception.native_rpc_failure
+                self.assertEqual(context['phase'], failed_phase)
+                self.assertEqual(context['operation'], 'release')
+                self.assertEqual(context['guard_s'], 300.)
+                self.assertFalse(context['guard_expired'])
+                self.assertTrue(context['dispatch_handoff_started'])
+                self.assertEqual(context['exception_type'], 'TimeoutError')
+                self.assertGreaterEqual(context['phase_elapsed_ms'], 0.)
+                self.assertNotIn('DO_NOT_RECORD', json.dumps(context))
+                self.assertLess(len(json.dumps(context)), 2048)
+                self.assertEqual(set(proxy._native_rpc_uncertain), {context['attempt_id']})
+                proxy._drop_rpc_channel.assert_awaited_once()
+                proxy._release_rpc_channel.assert_not_awaited()
+                self.assertEqual(send.await_count, 1)
+                self.assertEqual(recv.await_count, failed_phase == 'socket_receive')
+
+    async def test_actual_guard_expiry_is_distinct_from_external_cancellation(self):
+        from scripts.run_all_experiments import _BlockingRPCChannel
+        proxy = self.proxy()
+        proxy._open_rpc_channel.return_value = _BlockingRPCChannel(NS())
+        original_timeout = asyncio.timeout
+        async def never_send(*args):
+            await asyncio.Future()
+        with patch.object(asyncio.get_running_loop(), 'sock_sendall', side_effect=never_send), \
+             patch('scripts.run_all_experiments.asyncio.timeout', side_effect=lambda delay: original_timeout(0)) as guard:
+            with self.assertRaises(RuntimeError) as caught:
+                await proxy._rpc('ieee_close_pending', intent_id='owned')
+        guard.assert_called_once_with(300.)
+        self.assertTrue(caught.exception.native_rpc_failure['guard_expired'])
+        self.assertEqual(caught.exception.native_rpc_failure['phase'], 'socket_send')
+        self.assertEqual(len(proxy._native_rpc_uncertain), 1)
+
+    async def test_response_errors_are_not_reported_as_transport_timeouts(self):
+        for raw, phase in ((b'not-json\n', 'response_decode'),
+                           (b'{"ok":false,"error":"backend refused"}\n', 'response_validate')):
+            with self.subTest(phase=phase):
+                proxy = self.proxy()
+                proxy._native_rpc_roundtrip = AsyncMock(return_value=(raw, 0., 0., time.time()))
+                with self.assertRaises(RuntimeError) as caught:
+                    await proxy._rpc('ieee_close_pending', intent_id='owned')
+                context = caught.exception.native_rpc_failure
+                self.assertEqual(context['phase'], phase)
+                self.assertNotIn('guard_s', context)
+                self.assertTrue(context['dispatch_handoff_started'])
+                proxy._native_rpc_roundtrip.assert_awaited_once()
+
+    async def test_concurrent_failures_keep_call_local_operation_and_attempt(self):
+        proxy = self.proxy()
+        entered, release = asyncio.Event(), asyncio.Event()
+        calls = []
+        async def failed(channel, payload, **kwargs):
+            calls.append(json.loads(payload))
+            if len(calls) == 2: entered.set()
+            await release.wait()
+            raise TimeoutError()
+        proxy._native_rpc_roundtrip = AsyncMock(side_effect=failed)
+        tasks = [asyncio.create_task(proxy._rpc('ieee_gpu_reference', operation=op))
+                 for op in ('acquire', 'release')]
+        try:
+            await asyncio.wait_for(entered.wait(), 1.)
+            release.set()
+            errors = await asyncio.gather(*tasks, return_exceptions=True)
+        finally:
+            release.set()
+            for task in tasks: task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
+        contexts = [e.native_rpc_failure for e in errors]
+        self.assertEqual([c['operation'] for c in contexts], ['acquire', 'release'])
+        self.assertEqual(len({c['attempt_id'] for c in contexts}), 2)
+        self.assertEqual(set(proxy._native_rpc_uncertain), {c['attempt_id'] for c in contexts})
+
+    async def test_outer_and_inner_collectors_keep_bounded_context_without_fake_completion(self):
+        from tests.test_ieee_tc_request_lifecycle import replay_fixture, fixture
+        proxy = self.proxy()
+        proxy._native_rpc_roundtrip = AsyncMock(side_effect=TimeoutError())
+        with self.assertRaises(RuntimeError) as caught:
+            await proxy._rpc('generate', prompt='DO_NOT_RECORD')
+        error = caught.exception
+        expected = dict(error.native_rpc_failure)
+        error.native_rpc_failure['untrusted_payload'] = {'prompt': 'DO_NOT_RECORD'}
+        runner = replay_fixture()
+        runner._exec_request.side_effect = error
+        result, _ = await runner.run()
+        inner, slot, trace, plan = fixture()
+        inner.model_cfg['timing_contract'] = 'ieee_tc_native_v1'
+        slot.engine.generate_prepared.side_effect = error
+        rows = result.requests + [await inner._exec_request(trace, 4, 0., request_plan=plan)]
+        for row in rows:
+            context = row.failure_observation['native_rpc']
+            self.assertEqual(context, expected)
+            self.assertIsNot(context, error.native_rpc_failure)
+            self.assertFalse(row.success)
+            self.assertIsNone(row.ttft_ms)
+            self.assertIsNone(row.output_tokens)
+            self.assertFalse(row.failure_observation['gpu_release_inferred'])
+            self.assertNotIn('DO_NOT_RECORD', json.dumps(row.failure_observation))
 
 
 class RuntimeQuarantine(unittest.IsolatedAsyncioTestCase):

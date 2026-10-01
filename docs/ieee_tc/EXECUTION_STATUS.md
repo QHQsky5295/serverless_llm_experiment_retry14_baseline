@@ -1,6 +1,76 @@
 # IEEE TC execution status
 
-## CURRENT — D145 diagnostic SEALED; scoped backup pending
+## CURRENT — D146 failure context qualified; backup next, then Prime bottleneck
+
+2026-10-01 19:16 +08. D146 bounded failure-observation change COMPLETE:
+same RuntimeError/message, connect30s/send-recv300s, no retry/ownership/release/
+formula/config changes. Operation, call-local phase, originalexceptionclass,
+attempt, parentclock, dispatchhandoff and actualguardexpiry now survive both
+existing requestfailure collectors. Scalarallowlist; no prompt/kwargs/tokens.
+CPython3.12.12 primary timeouts.py readonline; unavailable docs notused.
+No GPUrun selected/launched and no performance gain claimed. D145's four
+failures stillunknown; don't infer poolstarvation/retirementbug/D144causality.
+
+- Red6tests/8subcaseerrors reproduce missingattribute, notunderlyingD145timeout.
+  Actual923c40e44ed64631a4d33db0b95431df empty/events0 cleaned.
+- Same6tests GREEN0.031s, actualdef1eda2d5484c59b3139e0f1b59932b empty/events0.
+- ONEaffectedregression508PASS22.810s, command31.22s/RSS1081892KiB;
+  actual4773f20c81744bb5a42ba50c928a9ee0 empty/events0 cleaned19:13:16.
+  Allactual3/4GiBswap0/taskset2,3,26,27, CPU Python3.12.12. Do NOTrepeat.
+- Verification216frozenrefs, declared2changedsource/testfiles checkedagainst
+  parentd0cfbf31;147protected/Plan/V1/syntax/secrets/bundle PASS.
+  Actualbbc8a69e4f264ab8908986e47182eb7d complete0/1.25s/RSS85648KiB,
+  exactempty/events0 stopped; no livehandles/jobs.
+- CuratedSHA3cc80f33368b81926bbfa0f0affdb47b52a5a5ef53baa772a12d52dca16b17b2.
+  Bundle23members270791B SHA5b77e9332eec624e01b5299393cde12cfbbc5fc5a693e6561a1bde5547856288.
+  D146_NATIVE_RPC_FAILURE_CONTEXT.md has status/semantics/boundaries table;
+  SHApinned, do noteditafterseal. Rawd146_20261001 contains actualreceipts.
+  Scopeverification's ownlog/time/cleanup remainlocal, notinthealreadycreatedbundle.
+
+NEXT explicit7file diff/secrets/checksum -> commit/pushbackup. Then returnto
+evidence-backed non-inferencewaitingcandidate; noGPUreplay justforlogging.
+Disk~151.7GiB needs provenrebuildablecleanup before nextlargeFull; no deletions
+orcompressionyet. BaselinesPAUSED; bothmodelperformance,3BTPOT/outputhash,
+numericadapter,warm/Resident,M1M2/A1-A5/S1-S13 remainOPEN. GoalACTIVE.
+
+## D145 backed closure — completed history
+
+18:56 +08 D145 backup COMPLETE d0cfbf31dc70b9e50c21cab8e38e8644ef47c101,
+pushedfaaslora_origin/retry14_continuous_queue_v2; exactremoteHEAD verified.
+13explicitfiles/77payload secrets+syntax+bundlePASS; usermanifestexcluded.
+CSVnativeCRLF retained to preserve sealedSHA; diffcheck withcr-at-eolPASS,
+no trailing-space exclusions beyond recognizingCSVlineendings. No servingedit.
+Allownedanalysis/inference/remotejobs inactive; NOlivehandles. GoalACTIVE.
+NEXT useexistinghistory/source to narrow RPCfailure and non-inferencewaiting;
+disk151.7GiB free needs safe provenrebuildable cleanup before furtherlargework.
+Do not repeat D145 closure/projection/tests or immutable deliverycachecreation.
+
+19:00 continuation read-only source/history work: D139/D143/D136 fullyread;
+vLLMskill + optimization/troubleshooting references fullyread. Generic skill
+QPS/quantization/cap/timeout suggestions NOTapplied; frozen V1 controls.
+Primary vLLM CPU/GIL performance note and tagged0.30 core/UniProc source
+rechecked online; Python3.12asyncio-dev page returned503, no claim frommissingpage.
+Currentsource confirms _rpc wraps first_exc withoutcmd/operation/phase,
+while failed_request outercollector stores onlytype/text. No oldlog canbe
+assumed to contain those fields. Native control calls usefreshconnections;
+generation usespool; doNOTinfer poolstarvation fromerrortype. _exec_request
+finally/earlyselectedsource paths bothcanpropagateouterexceptions.
+Fourrequest ingress/terminal rows inspected(nooriginalgiantJSON): 03842-44
+arrivedanddequeued nearplannedtime;03996serverreceived~22.06s late. Notproof
+of300sRPCphase orcause. Existingnative retirement/pending/frontend code also
+read; NOdemonstratedretirementfencebug orperformancecandidate selected.
+Next boundedtask: preserve exactRPCoperation/phase failurecontext viaexisting
+error path, qualify onlyaffectedCPUtests withoutchangingfailure/retry/timeout/
+ownership semantics; first inspectexistingtests/collector beforeediting.
+This is measurementcompleteness, NOT a claimedservingoptimization andNOT
+authorizationforanotherGPUdiagnostic alone. Then returnto oneevidence-backed
+non-inferencewaitingcandidate and ordinaryFull. No newfiles/scriptsprepared,
+no servingchange, no newrun. Do not repeat closedD143sampling/D144microtests.
+Source main_outcome/projection/curated data remain frozen; no deletion/compression
+performed. All formal andpreviousopenissues stayOPEN. ThisturnPROGRESS: sealed
+andbackedD145; nextdirection constrainedbyactualmissingfailureevidence.
+
+## D145 closure — completed history
 
 18:54 +08 closure PASS:216frozenrefs/44curatedrefs rechecked,147protected
 unchanged. Existing giantoriginal streamSHA reused withstat, no reparse/hash.

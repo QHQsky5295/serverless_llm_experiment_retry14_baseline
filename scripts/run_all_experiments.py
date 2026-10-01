@@ -4856,6 +4856,31 @@ def _encode_rpc_frame(payload: Dict[str, Any]) -> bytes:
     return body + b'\n'
 
 
+def _record_native_rpc_transport_failure(exc, *, phase, started, guard=None, guard_s=None):
+    """Annotate the same exception, without changing cancellation or ownership."""
+    exc._native_rpc_transport_failure = {
+        'phase': phase,
+        'phase_elapsed_ms': (time.perf_counter() - started) * 1000.,
+    }
+    if guard is not None:
+        exc._native_rpc_transport_failure.update(
+            guard_s=guard_s, guard_expired=guard.expired())
+
+
+def _native_rpc_failure_fields(exc) -> dict:
+    """Only bounded scalar diagnostics cross into request-level evidence."""
+    context = getattr(exc, 'native_rpc_failure', None)
+    if not isinstance(context, dict) or context.get('contract') != 'native_rpc_failure_v1':
+        return {}
+    names = ('contract', 'attempt_id', 'cmd', 'operation', 'phase', 'exception_type',
+             'dispatch_handoff_started', 'observed_monotonic_s', 'clock_id',
+             'rpc_elapsed_ms', 'phase_elapsed_ms', 'guard_s', 'guard_expired')
+    return {'native_rpc': {key: value[:192] if isinstance(value, str) else value
+                          for key in names if key in context
+                          for value in (context[key],)
+                          if value is None or type(value) in (str, bool, int, float)}}
+
+
 @dataclass
 class _BlockingRPCChannel:
     sock: socket.socket
@@ -5206,6 +5231,7 @@ class SubprocessInferenceEngineProxy:
             raise RuntimeError('native RPC ownership unresolved; new generation withheld')
         attempt_id = uuid.uuid4().hex
         dispatch_started = False
+        rpc_phase = 'channel_acquire'
         progress_open = True
         progress_events = []
         owner_task = asyncio.current_task()
@@ -5250,7 +5276,8 @@ class SubprocessInferenceEngineProxy:
             *,
             rpc_channel_acquire_ms: float,
         ) -> Dict[str, Any]:
-            nonlocal dispatch_started
+            nonlocal dispatch_started, rpc_phase
+            rpc_phase = 'handoff_validation'
             # Another exchange can become unresolved while this call waits for
             # a channel. Recheck at the actual handoff, not just at entry.
             if native and cmd == 'generate' and self._native_rpc_uncertain:
@@ -5259,6 +5286,7 @@ class SubprocessInferenceEngineProxy:
             if _native_event_observer is not None:
                 payload['native_event_rpc_id'] = attempt_id
             payload["client_send_wall_time"] = time.time()
+            rpc_phase = 'request_encode'
             payload_bytes = _encode_rpc_frame(payload)
             # From this boundary the executor thread may send even if its
             # awaiting coroutine is cancelled. This is NOT a native-start ack.
@@ -5267,6 +5295,7 @@ class SubprocessInferenceEngineProxy:
                 _native_submission_evidence.update(state='may_execute', attempt_id=attempt_id,
                     handoff_monotonic_s=time.monotonic())
             if native:
+                rpc_phase = 'native_exchange'
                 raw, send_flush_ms, wait_response_ms, parent_response_read_wall_time = await self._native_rpc_roundtrip(
                     channel, payload_bytes,
                     on_progress=deliver_progress if _native_event_observer is not None else None)
@@ -5275,9 +5304,11 @@ class SubprocessInferenceEngineProxy:
                     self._blocking_rpc_roundtrip, channel, payload_bytes,
                     **({'on_progress': receive_progress} if _native_event_observer is not None else {}))
             parent_roundtrip_resume_wall_time = time.time()
+            rpc_phase = 'response_decode'
             if not raw:
                 raise RuntimeError("subprocess_engine_empty_response")
             response = json.loads(raw.decode("utf-8"))
+            rpc_phase = 'response_validate'
             if _native_event_observer is not None and response.get('native_event_rpc_id') != attempt_id:
                 raise ValueError('service terminal RPC identity mismatch')
             if not response.get("ok"):
@@ -5306,6 +5337,7 @@ class SubprocessInferenceEngineProxy:
                 if progress_events[-1]['token_count'] != result.get('output_tokens'):
                     raise ValueError('service progress/terminal token count mismatch')
             if isinstance(result, dict):
+                rpc_phase = 'result_timing'
                 result_timing = _attach_parent_rpc_breakdown(
                     result.get("timing"),
                     channel_acquire_ms=rpc_channel_acquire_ms,
@@ -5355,6 +5387,21 @@ class SubprocessInferenceEngineProxy:
                     self._rpc_channel_queue.put_nowait(None)
             raise
         except Exception as first_exc:
+            if native:
+                from faaslora.clock import local_monotonic_clock_id
+                failure_context = {
+                    'contract': 'native_rpc_failure_v1',
+                    'attempt_id': attempt_id,
+                    'cmd': cmd[:192],
+                    'operation': str(kwargs['operation'])[:192] if 'operation' in kwargs else None,
+                    'phase': rpc_phase,
+                    'exception_type': type(first_exc).__name__,
+                    'dispatch_handoff_started': dispatch_started,
+                    'observed_monotonic_s': time.perf_counter(),
+                    'clock_id': local_monotonic_clock_id(),
+                    'rpc_elapsed_ms': (time.perf_counter() - channel_acquire_started_at) * 1000.,
+                }
+                failure_context.update(getattr(first_exc, '_native_rpc_transport_failure', {}))
             if channel is not None:
                 abandoned, channel = channel, None
                 retain_uncertain()
@@ -5365,9 +5412,11 @@ class SubprocessInferenceEngineProxy:
                 # Native generate/begin-use may have committed before the reply
                 # was lost. The controller owns the unresolved attempt; neither
                 # blind resubmission nor closing the socket proves completion.
-                raise RuntimeError(self._with_worker_log_context(
+                failure = RuntimeError(self._with_worker_log_context(
                     f'subprocess_native_rpc_failed_no_retry: {type(first_exc).__name__}: {first_exc}'
-                )) from None
+                ))
+                failure.native_rpc_failure = failure_context
+                raise failure from None
             if cmd == "shutdown":
                 raise
             if self._process.poll() is None and not self._engine_dead:
@@ -5477,13 +5526,17 @@ class SubprocessInferenceEngineProxy:
             # and reconciliation must not compete for executor capacity.
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.setblocking(False)
+            started, guard = time.perf_counter(), None
             try:
                 sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-                async with asyncio.timeout(30.0):
+                async with asyncio.timeout(30.0) as guard:
                     await asyncio.get_running_loop().sock_connect(sock, (self._host, self._port))
                 return _BlockingRPCChannel(sock=sock)
-            except BaseException:
+            except BaseException as exc:
                 sock.close()
+                if isinstance(exc, Exception):
+                    _record_native_rpc_transport_failure(exc, phase='socket_connect',
+                        started=started, guard=guard, guard_s=30.)
                 raise
         opening = asyncio.create_task(asyncio.to_thread(self._open_blocking_rpc_channel))
         try:
@@ -5511,31 +5564,40 @@ class SubprocessInferenceEngineProxy:
         """
         loop = asyncio.get_running_loop()
         started = time.perf_counter()
-        async with asyncio.timeout(300.0):
-            await loop.sock_sendall(channel.sock, payload_bytes)
-        send_ms = (time.perf_counter() - started) * 1000.0
-        waiting = time.perf_counter()
-        while True:
-            newline = channel.recv_buffer.find(b'\n')
-            if newline >= 0:
-                if newline > _RPC_FRAME_MAX_BYTES:
+        phase, phase_started, guard = 'socket_send', started, None
+        try:
+            async with asyncio.timeout(300.0) as guard:
+                await loop.sock_sendall(channel.sock, payload_bytes)
+            send_ms = (time.perf_counter() - started) * 1000.0
+            waiting = time.perf_counter()
+            while True:
+                phase, phase_started, guard = 'frame_decode', time.perf_counter(), None
+                newline = channel.recv_buffer.find(b'\n')
+                if newline >= 0:
+                    if newline > _RPC_FRAME_MAX_BYTES:
+                        raise ValueError('dedicated RPC frame exceeds protocol byte limit')
+                    raw = bytes(channel.recv_buffer[:newline + 1])
+                    del channel.recv_buffer[:newline + 1]
+                    if on_progress is not None:
+                        frame = json.loads(raw.decode('utf-8'))
+                        if 'native_event' in frame:
+                            phase, phase_started = 'progress_observer', time.perf_counter()
+                            await on_progress(frame)
+                            continue
+                    received = time.time()
+                    return raw, send_ms, (time.perf_counter() - waiting) * 1000.0, received
+                if len(channel.recv_buffer) > _RPC_FRAME_MAX_BYTES:
                     raise ValueError('dedicated RPC frame exceeds protocol byte limit')
-                raw = bytes(channel.recv_buffer[:newline + 1])
-                del channel.recv_buffer[:newline + 1]
-                if on_progress is not None:
-                    frame = json.loads(raw.decode('utf-8'))
-                    if 'native_event' in frame:
-                        await on_progress(frame)
-                        continue
-                received = time.time()
-                return raw, send_ms, (time.perf_counter() - waiting) * 1000.0, received
-            if len(channel.recv_buffer) > _RPC_FRAME_MAX_BYTES:
-                raise ValueError('dedicated RPC frame exceeds protocol byte limit')
-            async with asyncio.timeout(300.0):
-                chunk = await loop.sock_recv(channel.sock, 65536)
-            if not chunk:
-                raise RuntimeError('subprocess_engine_empty_response')
-            channel.recv_buffer.extend(chunk)
+                phase, phase_started = 'socket_receive', time.perf_counter()
+                async with asyncio.timeout(300.0) as guard:
+                    chunk = await loop.sock_recv(channel.sock, 65536)
+                if not chunk:
+                    raise RuntimeError('subprocess_engine_empty_response')
+                channel.recv_buffer.extend(chunk)
+        except Exception as exc:
+            _record_native_rpc_transport_failure(exc, phase=phase, started=phase_started,
+                guard=guard, guard_s=300.)
+            raise
 
     async def _acquire_rpc_channel(self) -> _BlockingRPCChannel:
         await self._ensure_rpc_channel_pool()
@@ -12592,6 +12654,7 @@ class ScenarioRunner:
                     'clock_id': local_monotonic_clock_id(),
                     'native_completion_inferred': False,
                     'gpu_release_inferred': False,
+                    **_native_rpc_failure_fields(exc),
                 },
             )
         if not isinstance(item, RequestResult) or item.request_id != trace.request_id:
@@ -16697,6 +16760,7 @@ class ScenarioRunner:
                     'elapsed_since_offered_ms': overall_error_ms,
                     'native_terminal_observed': _reservation.native_terminal_observed,
                     'gpu_release_inferred': False,
+                    **_native_rpc_failure_fields(exc),
                 } if native_failure else {}),
                 readiness_tier_before_dispatch=readiness_tier_before_dispatch,
                 adapter_gpu_ready_before_dispatch=bool(adapter_id and readiness_tier_before_dispatch == "gpu"),
