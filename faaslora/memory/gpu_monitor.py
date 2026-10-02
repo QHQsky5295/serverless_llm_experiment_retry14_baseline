@@ -458,12 +458,19 @@ def _ieee_slot_tensor_comparison(source, actual):
             'exact_value_match': finite and bool(torch.equal(actual, expected))}
 
 
-def _ieee_slot_readback(target, slot):
+def _ieee_slot_readback(target, slot, *, absent_unpacked=False):
+    # Native embedding A has [slot, vocab, rank], while the other dense
+    # buffers have [slot, 1, rows, cols]. The 3-D representation is admitted
+    # only for an absent module whose official resetter was already checked.
+    layout_ok = (torch.is_tensor(target) and
+                 ((target.ndim == 4 and target.shape[1] == 1)
+                  or (absent_unpacked and target.ndim == 3)))
     if (not torch.is_tensor(target) or target.device.type != 'cuda'
-            or target.ndim != 4 or target.shape[1] != 1
+            or not layout_ok
             or not 0 <= slot < target.shape[0]):
         raise ValueError('slot audit requires the qualified dense native CUDA slot')
-    return target[slot, 0].detach().to(device='cpu', copy=True).contiguous()
+    matrix = target[slot] if target.ndim == 3 else target[slot, 0]
+    return matrix.detach().to(device='cpu', copy=True).contiguous()
 
 
 def _ieee_lora_slot_content_audit(manager, adapter_ids):
@@ -495,9 +502,17 @@ def _ieee_lora_slot_content_audit(manager, adapter_ids):
             layer = manager._get_lora_layer_weights(loaded, name)
             for side in ('a', 'b'):
                 targets = getattr(module, f'lora_{side}_stacked')
-                if (not isinstance(targets, (list, tuple))
+                absent_unpacked = torch.is_tensor(targets)
+                if absent_unpacked:
+                    # HOST contract above proves the official resetter. These
+                    # raw embedding/logits buffers must also be entirely zero;
+                    # do not skip them or infer they are irrelevant to execution.
+                    if layer is not None:
+                        raise ValueError('slot audit has no qualified populated unpacked setter')
+                    targets = [targets]
+                elif (not isinstance(targets, (list, tuple))
                         or len(targets) != module.n_slices or not targets):
-                    raise ValueError('slot audit encountered an unsupported tensor collection')
+                    raise ValueError(f'slot audit encountered an unsupported tensor collection: {name}.{side}')
                 sources = None if layer is None else getattr(layer, f'lora_{side}')
                 if sources is None:
                     sources = [None] * len(targets)
@@ -506,8 +521,11 @@ def _ieee_lora_slot_content_audit(manager, adapter_ids):
                 if not isinstance(sources, (list, tuple)) or len(sources) != len(targets):
                     raise ValueError('slot audit source/target slice counts differ')
                 for index, (source, target) in enumerate(zip(sources, targets)):
-                    comparison = _ieee_slot_tensor_comparison(source, _ieee_slot_readback(target, slot))
-                    tensors.append({'module': name, 'side': side, 'slice': index, **comparison})
+                    actual = (_ieee_slot_readback(target, slot, absent_unpacked=True)
+                              if absent_unpacked else _ieee_slot_readback(target, slot))
+                    comparison = _ieee_slot_tensor_comparison(source, actual)
+                    tensors.append({'module': name, 'side': side, 'slice': index,
+                                    'absent_unpacked': absent_unpacked, **comparison})
         rows.append({'adapter_int_id': aid, 'slot': slot, 'rank': int(loaded.rank),
                      'tensors': tensors, 'tensor_count': len(tensors),
                      'exact_content_pass': bool(tensors) and all(t['exact_value_match'] for t in tensors)})

@@ -605,7 +605,8 @@ class NativeSlotContentAudit(unittest.TestCase):
         with patch.object(monitor, '_ieee_lora_pool_inventory', side_effect=pool), \
                 patch.object(monitor, '_ieee_host_copy_contract') as contract, \
                 patch.object(monitor, '_ieee_slot_readback',
-                    side_effect=lambda target, slot: target[slot, 0].clone()) as read:
+                    side_effect=lambda target, slot, **kw:
+                        (target[slot] if target.ndim == 3 else target[slot, 0]).clone()) as read:
             result = monitor._ieee_lora_slot_content_audit(native, [7] if ids is None else ids)
         return result, contract, read
 
@@ -624,6 +625,53 @@ class NativeSlotContentAudit(unittest.TestCase):
         self.assertFalse(result['semantic_full_pool_qualification'])
         self.assertFalse(result['performance_sample'])
         self.assertEqual(sum(t['source_absent'] for t in result['adapters'][0]['tensors']), 4)
+
+    def absent_unpacked_fixture(self):
+        import torch
+        native, registry = self.fixture()
+        native.modules['embedding'] = SimpleNamespace(
+            lora_a_stacked=torch.zeros((2, 8, 4), dtype=torch.float16),
+            lora_b_stacked=torch.zeros((2, 1, 3, 4), dtype=torch.float16))
+        native.modules['logits'] = SimpleNamespace(
+            lora_a_stacked=torch.zeros((2, 1, 4, 3), dtype=torch.float16),
+            lora_b_stacked=torch.zeros((2, 1, 8, 4), dtype=torch.float16))
+        return native, registry
+
+    def test_absent_embedding_and_logits_all_four_raw_buffers_checked(self):
+        native, _ = self.absent_unpacked_fixture()
+        result, _, read = self.audit(native)
+        self.assertTrue(result['exact_content_pass'])
+        tensors = result['adapters'][0]['tensors']
+        self.assertEqual(len(tensors), 12)
+        self.assertEqual(read.call_count, 12)
+        raw = [t for t in tensors if t['absent_unpacked']]
+        self.assertEqual(len(raw), 4)
+        self.assertTrue(all(t['source_absent'] and t['actual_nonzero_elements'] == 0 for t in raw))
+        self.assertEqual(next(t['shape'] for t in raw if t['module'] == 'embedding' and t['side'] == 'a'), [8,4])
+
+    def test_residue_in_every_absent_raw_buffer_cannot_pass(self):
+        for name in ('embedding', 'logits'):
+            for side in ('a','b'):
+                native, _ = self.absent_unpacked_fixture()
+                target = getattr(native.modules[name], f'lora_{side}_stacked')
+                target[1].reshape(-1)[-1] = 1
+                result, _, _ = self.audit(native)
+                with self.subTest(name=name, side=side):
+                    self.assertFalse(result['exact_content_pass'])
+                    self.assertEqual(sum(t['mismatched_elements'] for t in result['adapters'][0]['tensors']), 1)
+
+    def test_populated_unpacked_layer_not_silently_treated_as_absent(self):
+        native, _ = self.absent_unpacked_fixture()
+        original = native._get_lora_layer_weights
+        native._get_lora_layer_weights = lambda loaded, name: (
+            SimpleNamespace() if name == 'embedding' else original(loaded,name))
+        with self.assertRaisesRegex(ValueError, 'populated unpacked setter'):
+            self.audit(native)
+
+    def test_absent_layout_flag_cannot_turn_cpu_tensor_into_gpu_evidence(self):
+        import torch
+        with self.assertRaisesRegex(ValueError, 'native CUDA'):
+            monitor._ieee_slot_readback(torch.zeros((2,8,4)), 1, absent_unpacked=True)
 
     def test_wrong_weight_padding_and_missing_slice_cannot_pass(self):
         for module, index, row, col in [('linear', 0, 0, 0), ('linear', 0, 3, 3),

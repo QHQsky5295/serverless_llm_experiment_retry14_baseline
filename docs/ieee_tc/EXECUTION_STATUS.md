@@ -1,6 +1,119 @@
 # IEEE TC execution status
 
+## CURRENT — D166 actual 7B slot-content COMPLETE, tabled; seal/backup pending
+
+18:12 +08 seal COMPLETE, document/result SEALED; doNOTedit/retest.
+CuratedSHA54b318efcfd8df839d5741de20d487ec7b0e95155294bb8cd35b24064440604a;
+79member123612B bundleSHA81eeac4e75d0eddd2be2dd14ff28804686d969317fd69ac13ae731f5fc370514.
+147protected/Plan/V1/allcuratedsourceSHAsPASS; onlytwooptindiagnosticfunctions
+changed, othermonitorfunctions and ordinaryrunner/preflight/planner/residency
+byte/ASTsame. Seal7099CLOSED0, actual545444b0782f4374840cc0e4f535636a/events0;
+automaticremovalverified. Initialcleanupconveniencecall fromfiguredata cwd used
+relative rawpath and failedreadonly; correctedfromreporoot, no rerun/evidencechange.
+No liveGPU/remote/analysisjobs. NEXT stagedsecrets/diff/bundlecheck andbackup,
+then remainingcheckpoint/execution-map/commonwarm work; notanother22prefix.
+
+18:10 +08 attempt3 COMPLETE22/22;44snapshots x452tensorcomparisons=19888,
+mismatched_elements0,absent8624,actualslots0/1/2/3,12IDs/4weightSHAs/ranks8,16.
+Registry→actualGPUslot qualified for these snapshots ONLY; checkpoint loader/
+per-tokenmapping/fullpool/n_correct/commonwarm/G1G2 stillOPEN. No performanceclaim.
+Onelease387.762329310s released;399resourcesamples/peak5702578176B/
+minhost106507923456B/events-swap0. Actualservice404399e467314cc6bb45913a2ec127e3,
+service/watchdog0; exactaux/service/GPUabsenceverified18:08:14. No remotejobs.
+LaunchSHAac4c035919614b30b9b6efbf6b1ca36727d64c9163479a0839050365af689b68.
+Curate52192CLOSED0/12.41s/RSS1265692KiB; actuala584ba31a3344fd7b82e89e9d4c825c3,
+events0/automaticremovalverified. Allidentity/nativecount/content/protected147PASS.
+Raw96,810,390B retained; no needreparse. CuratedCSV44rows+JSON includesbothfailures.
+Doc D166_NATIVE_SLOT_CONTENT_RUN.md updated with exacttable/boundaries.
+NEXT seal/secrets/backup then remaining actual7B correctness/commonreference
+work; doNOTrepeat22prefix/CPUtests orstart3B/baselines beforeactualG1G2acceptance.
+
+18:06 +08 SAMEattempt3 remainsLIVE, exactservice404399e467314cc6bb45913a2ec127e3
+unitprimelora-tc-svc-c975c7834dee4d28b9264cee67c25f35.scope; auxactual
+212c979624ea4498ad2a4c8659e8524a. Watchdog290882/start44250200 inauxCPUs;
+native292534 verifiedexactservicecgroup/CPU4–23,28–47. Banner15/22 passed
+before+aftercontent/nativecount checks; no prematureclaimbefore finalcuration.
+Servicepeak5702578176B,host108473991168B/events+swap0/no warning.
+No remote/serviceconfig/cleanup duringrun. Preparedcuration/seal/checkstaged,
+NOTexecuted; samecurationhandlesfailedattempt1/2 plus eventual3, allretained.
+NEXT monitorSAMErun→actualphysicalrelease→cleanup→44snapshotvalidation/table→backup.
+
+18:01 +08 regression815PASS74.700s, actualb4a53016e7cf48db8935573fd9341f61,
+events0/automaticremovalverified; sourceSHAsunchangedaftertests. Prefix/config
+unchanged; attempt3 launchedfresh tmux tc-d166-7b-slot3 using corrected checker.
+Auxunitprimelora-tc-aux-bd7ca50155b842e4b8ab5be2a4b888d2.scope, actualIDsawaitcapture.
+Curate.py preparedNOTexecuted; preservesbothfailures and remaining correctness/
+SLO boundaries. No remote launch, no ordinaryFull replay. NEXTmonitorSAMErun.
+
+17:56 +08 attempt2 COMPLETE/FAILED at first slot_content_before, beforegeneration.
+Native actual inventory452tensors includes raw lm_head + embedding3D-A/4D-B;
+D165 checker only handled list/tuple. This is unsupportedcheckerlayout, NOT
+weightmismatch. OneGPU48.535512155s released, native249914/proxy248914 exited;
+service2/watchdog0/physical+scopeabsence verified17:52:37. RawSHA
+0cd93e13150957ec4ad0dc5ae456f01f3aa41f3b3cc4b7be91ca7c704fa7ce38, failuresretained/tabled.
+Explicit absent-unpacked content branch added to diagnostic ONLY; mandatory
+officialresetter/version/layout HOST contract unchanged, populatedraw rejected.
+Read officialembeddingonline + installedfixedlogits (webfetchfailedhonestly).
+No native setter/servingpolicy/IEEEformula changes. Fournewnegative/layouttests.
+Targeted17PASS.044s; actual54ea86d00fbf436fbebc929367779e02/84599CLOSED0,
+events0/cleanupverified. Existingregression LIVE tmux tc-d166-regression1.
+NEXT regressionterminal→table→fresh attempt3 withsame22/config after tests;
+no blindretry/guardweakening or baselineadvance. GoalACTIVE/PROGRESS.
+
+17:52 +08 attempt2 LIVE since17:50:54 in tmux tc-d166-7b-slot2. Same original
+22prefix, fresh explicit HOST config verified exactly against D156spec/D164Full.
+Prepare2actual89afe00e0e764ddda0376b8e114da59d/39311CLOSED0/absenceverified;
+inputSHA56d474d9d69e4724162ccb0a5f938b32d9415a8e7a61576ccd5bf5fdd8f66a16.
+Serviceprimelora-tc-svc-397e164e6cd64684abd386483b711dbb.scope,
+actual5e512e3734c94f2c94e661abba8e3e36,72/80GiBswap2readback;
+auxprimelora-tc-aux-e0283de8c8ee47c89c5028b79d7bd852.scope,
+actual275a808c8bf54f609c8dc71529530d68,3/4GiBswap0. Watchdog247898/start44190216.
+Latestservice3.114GB/peak3.718GB/host109.214GB/events0,no warning. No remote
+service/newweights/newtrace. Nativeworker/startup pending, not qualificationyet.
+NEXT monitorSAMEattempt→exactrelease→contentanalysis/status table/backup.
+
+17:50 +08 attempt1 failed BEFORE native runtime/GPU allocation: frozen model
+parent omitted HOST allocator policy, whereas inherited environment declared it.
+D156 source spec normally adds four HOST contract fields; isolated mode doesnot.
+No guard weakened/no serving edit. Fresh config explicitly reuses exact four
+D156/D164Full HOST fields; inputs2 verifier prepared/started39311, notyetterminal.
+Attempt1 rawSHA b3fa1a0721d888690ee20f7147a9e1d3dab3351f3c05b0c6701c9d9499370ab0,
+launch3efe6ba68f64397cf922c83da5382ccdaa3d88bfc0ac8ad67d559c35db06f867.
+Serviceactual67f7a71e34004794aa3f93d9d1427061 returned2,watchdog0;
+physicalabsence/aux+serviceautomaticremoval verified17:49:55. Failuretabled.
+Next attempt2 only after freshconfig verification; originalprefix22 unchanged.
+
+2026-10-02 17:46 +08. FullPlan/status/V1 read after compaction; run/monitor/
+academic-plotting/github-sync used. User once-only remote cache approval already
+fulfilled D78/D80; reuse, no regeneration or remote activation for local diagnostic.
+D165 remains SEALED/BACKED17468f24; no repeated CPU tests/Full or serving edits.
+Reused D152 strict public-download auditor: reviewed new allowlistSHA
+1a8e073911745e4c99528c080eaef1ad34e93ee4220b3dcb553d256ef8f64557,
+5publicarchives+5headers removed,2192306176allocatedB freed. Installedenvs,
+compiler cache,models/LoRA/traces/rawresults untouched; allguardsPASS.
+Audit28224/apply7625CLOSED0, actualafa6b35235c64ce09994457bf49a8726 /
+5df38101aa634183a8666a9c142f70de, automaticremovalverified. Disk162941956096B.
+Inputprepare81133CLOSED0, actual4dd19987a78a4a45b278f5966b55b377;
+22originalprefix/12IDs/4weightSHAs/ranks8,16/147protectedPASS.
+Shortestprefixcontainingfirstmedical + finance, no output-based selection.
+InputSHA5cc582ee4ff99715a4da6a5544a1cae5cc5deb357dd32a517aa1a56f420d5007.
+Launchscript prepared via existing D156 gated native runner, unchangedcap4/
+nativeenv and D165 opt-in native_slot_content. NOT YET LAUNCHED.
+NEXT one actualGPUdiagnostic→actualrelease→contenttable/backup, thenremaining
+checkpoint/execution-map/commonwarm evidence. G1G2/7BacceptanceOPEN;3B/baselinesPAUSED.
+
 ## CURRENT — D165 isolated native slot-content qualification interface
+
+17:32 +08 BACKUP COMPLETE17468f24b517eb255eb1df67b9999dcda3608834;
+pushedfaaslora_origin/retry14_continuous_queue_v2 and independentremoteHEADmatch.
+Push16894/verify88374CLOSED0.13explicitfiles/47staged+archivepayloads secrets/
+diff/checksum/syntax/147protectedPASS; userdirtymanifestexcluded. No livejobs.
+ThisgoalturnPROGRESS (implemented/tested/tabled/backed diagnostic), NOT7Bacceptance.
+Onlythispostbackupreceipt localdirty. Disk160766468096B below150GiBnew-heavy;
+recheck/audit only reconstructible cache before necessary native run, nofloorrelaxation.
+NEXT actual7B slot-content diagnostic using new opt-in existing preflight, no
+repeat CPUtests/D164/cachecreation; then remaining checkpoint/execution-map and
+commonwarm measurement. 3B/externalbaselines stillPAUSED until actualmodelgoals.
 
 17:31 +08 evidence seal COMPLETE. 147protected/Plan/V1/D164/sourceSHAs PASS;
 584pre-existing functions outside explicit diagnostic wiring AST-identical,

@@ -1,0 +1,39 @@
+# D166 isolated slot-content qualification. D156 model plus the exact existing
+# D156 bootstrap/D164 Full HOST contract, explicit rather than environment-only.
+# Not a new serving candidate, workload or performance configuration.
+model_profiles:
+  llama2_7b_main_v2_publicmix:
+    model:
+      name: "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf"
+      backend: "vllm"
+      device_id: 0
+      visible_device_ids: [0, 1, 2, 3]
+      tensor_parallel_size: 1
+      gpu_memory_utilization: 0.70
+      max_model_len: 1024
+      max_loras: 4
+      max_lora_rank: 64
+      enable_lora: true
+      enforce_eager: "auto"
+      dtype: "float16"
+      max_num_seqs: 4
+      max_num_batched_tokens: 1024
+      max_output_tokens_cap: null
+      max_input_len: null
+      runtime_concurrency_cap: 4
+      enable_chunked_prefill: true
+      enable_prefix_caching: false
+      vllm_use_v1: true
+      vllm_attention_backend: "FLASH_ATTN"
+      vllm_use_flashinfer_sampler: true
+      ieee_host_budget_bytes: 17179869184
+      ieee_native_host_tensor_budget_bytes: 2147483648
+      ieee_native_host_workspace:
+        kind: native_host_workspace_contract_v1
+        dtype: torch.float16
+        source_audit_sha256: 224b9337ecaba2590ac888e9d0e3b9eb41a17074ce77b952e98e935259adf60f
+        max_resident_pinned_bytes: 33554432
+        max_transient_tensor_bytes: 67143184
+      ieee_native_host_allocator_policy: uncached_background_v1
+    storage:
+      remote_dir: "artifacts/frozen/llama2_7b_a500_v2_publicmix"

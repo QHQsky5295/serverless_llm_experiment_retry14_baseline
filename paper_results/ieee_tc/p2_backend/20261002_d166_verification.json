@@ -1,0 +1,37 @@
+{
+  "passed": true,
+  "base_commit": "17468f24b517eb255eb1df67b9999dcda3608834",
+  "tests": [
+    {
+      "phase": "targeted1",
+      "count": 17,
+      "seconds": 0.044,
+      "invocation_id": "54ea86d00fbf436fbebc929367779e02",
+      "maximum_rss_kib": 1164728
+    },
+    {
+      "phase": "regression1",
+      "count": 815,
+      "seconds": 74.7,
+      "invocation_id": "b4a53016e7cf48db8935573fd9341f61",
+      "maximum_rss_kib": 1196616
+    }
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "unchanged_functions": 30,
+  "changed_functions": [
+    "_ieee_lora_slot_content_audit",
+    "_ieee_slot_readback"
+  ],
+  "document_sha256": "f327cef114b215c84d4d7a3308a485b50c0d7a827f8f96f6c339b99f227e5c05",
+  "curated_sha256": "54b318efcfd8df839d5741de20d487ec7b0e95155294bb8cd35b24064440604a",
+  "csv_sha256": "a658810696cde383ba647c9681a22e7864c07860318655acbb4d6c2f372c7673",
+  "config_sha256": "860ca68e3f092007f4f2b60837385b42301779cdb9ea99c0efc33f7d04e8df86"
+}
