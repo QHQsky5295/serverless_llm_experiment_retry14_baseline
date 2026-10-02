@@ -1,6 +1,118 @@
 # IEEE TC execution status
 
-## CURRENT — D161 retained RPC/source-stage diagnosis SEALED; backup next
+## CURRENT — D162 current 7B prefix diagnostic COMPLETE/SEALED, backup pending
+
+2026-10-02 15:06 +08. Goal ACTIVE/PROGRESS. SAME run completed1000/1000native,
+0fail,4physicalleasesreleased/0quarantine. No live GPU/remote/analysis/tool jobs.
+No serving edits:11a5432 runtime/ccde021 launch; cap4/D157profiles unchanged.
+Full Plan/status/V1 and run/monitor/analysis/academic-plotting/github-sync read.
+Once-onlydeliverycache reused, no recreation. Do NOT repeat completed D162
+observer qualification/run/analysis or old D161/D160 closure.
+
+U4499.054580241034GPU-s diagnostic ONLY; initial1/natural3;60publishedUUIDpairs,
+74953014wireB/1474429899logicalB/packing0. Resources1202samples/peak19012448256B/
+minhost93334138880B,events/swap/warnings0. Nativecount is NOT numericaladapter,
+commonSLO, G1/G2 or oldPrimeacceptance. No per-request latencyidentityaudit or CI.
+69,442,442BnormalJSON preserved without reparse; compactmetadata48,238,669B
+allfields/ASCIIindent-only, unchanged128MiBguard. Protected147/frozen322PASS.
+
+New diagnosis:10roles=controller1/planner1/frontends4/GPUcores4. Controller
+538businesssamples:71RPCjsonloads,23fileinventory,20execution_copy via
+Mapping.__contains__→__getitem__→snapshot,17execution_bundle_copy. The source
+checks source_view membership then opens bundle; redundant whole-plan decode
+is a concrete next candidate, NOT established servinggain. GPU HOST inventory
+inclusive128/552,116/531,89/529,98/527 remains another cue, not simultaneous
+optimizer. Mainthreadcomplete/partial0;7allperiodtruncated,4businessGPUtruncated.
+Occurrences NOT CPUpercentages; no causal attribution of all waiting.
+Doc/table D162_CURRENT_PREFIX_DIAGNOSTIC.md nowSEALED, doNOTedit.
+CuratedSHAea9ae817196f8f8f5ccf2a5869469690ceb5e4aa53e5c53a606e337c21f9c8d5.
+
+Closure: monitor8176 endedafter8polls with terminalreceipt, not interruption.
+Localabsence14:56:17; exactremote stop14:56:18(session70429CLOSED0).
+Copy93347CLOSED0/journal d3723247174c40b393dc4a3eded26297, exactclock/SHAverified.
+CPUcollector df46528c3eba495d8c5ddfc6853c56ce exit0/.52s/RSS21888KiB;
+metadata a1cfe3262f004f43b3b65472825016e0/session67819 exit0/1.57s/RSS171896KiB;
+curation e403304ef362436bb8156fe4a57bbae4/session89501 exit0/1.14s/RSS26248KiB.
+All3/4GiBswap0CPU2,3,26,27/finalevents0; automaticremoval/emptyID/emptyCGverified.
+Seal c448b24179fc4b469c657c76a177f5be/session12024CLOSED0,finalevents0/absent.
+VerificationSHA40723305e277ee7e30733723be50d0fcf07b97ca3f6838c5df0450e44b6ee504,
+44newrefs/322frozen/147protectedPASS.45member58471BbundleSHA
+2725446ed386a59354388162ff3081662b61432d59227bf307f23eb5bed24805.
+Read-only guessed historical filenames returned sed errors; no files changed.
+No failed GPU or analysis attempts. Current disk161498959872B(~150.41GiB),
+recheckbeforeheavy; neverlower150/100GiBfloors. Remote remains stopped.
+
+NEXT scopedsecrets/checksum/diff/syntax backup; then ONE immutable-plan membership
+candidate: avoid materializing a complete certified snapshot for key presence.
+CurrentCPythonMapping source/asyncio primarydocs checked; first preserve key/
+missing/unhashable/export/certificate semantics, then component/minimalregression,
+then ordinary Full4000. Not yet implemented; don't also changeRPCcoding, tensor
+inventory, cap/profile/deadline or statefreshness. Actual7B G1G2/commonreference/
+numeric/oldPrimeacceptance stillOPEN, before3B and externalbaselines. Later full
+matrix remains outstanding. This goalturn is PROGRESS, not completedgoal.
+
+## D162 observation history — superseded by completed state above
+
+2026-10-02 14:42 +08. Goal ACTIVE/PROGRESS. ONE run launched14:35:07 in
+tmux tc-d162-7b-prefix1, still same active run; DO NOT restart. No serving
+changes: D159 runtime11a5432, evidenceHEADccde021, cap4/D157profiles and D160
+Full configuration except three fresh owned paths and explicit prefix1000.
+Existing D122 source42 index + unchanged D143 python_frames_v1 observer;
+formal0, diagnostic only, NOT a new full performance result or G1/G2 acceptance.
+Full Plan1537/status1074 read after compaction; run/monitor skills followed.
+Once-only remote delivery-cache approval already fulfilledD78/D80: reuse, no
+new weights/traces/whole-pool copy or per-request packing. No remote operations
+after inference launch. Current question: what current control operations are
+observed during remaining pre-source/completion waits, including GPU-ready hits?
+Old D143 cap2 occurrence percentages cannot answer current-version attribution.
+
+- Raw results/ieee_tc/p2_backend_qualification/d162_20261002.
+- Service primelora-tc-svc-6a3cd29c678841fea006eb99dfd594a1.scope,
+  actual ada0c5f86b6e42d1a1d79078f3b94d82; aux
+  primelora-tc-aux-c20065e2272e4effa0392a8171f0fcd7.scope,
+  actual f8ad4587fa8a4ce6aaa0c7e6083f877d. Both active14:41:23,544/5tasks.
+  Replay3577391/start43015572 CPU2,3,26,27; controller3577602/start43015664.
+  Native cores3580427/3584939/3585110/3585252 observed sample405 in exact service
+  cgroup, CPU4–23,28–47. Sample405 memorycurrent17408774144B/peak19012448256B,
+  host95487356928B/swap-events0/no warning/abort/foreigncompute.
+  Disk160717312000B below150GiB new-heavy gate but above100GiB runningfloor;
+  do NOT clean/compress during run or relax either threshold.
+- notice430156.606610995/t0430216.606610995 exactly60s;
+  prefixview0a5dfcf8048abdc8fc1e3a8ccaf92bfb925a9db326c8d27507663bede96a0981,
+  source4000/count1000/W0. Frame metadata recorded for controller/planner/frontends/
+  GPU-core processes; role/sample coverage to validate after terminal.
+- Remote3B3808104/cd1c30c0a032486db0dc078c898f6527;
+  7B3808106/7dd6d787d6854afbac6fd741bbfca6c5;
+  monitor3808109/51f1b364a54a47c7a023b7fa21405ff9,
+  unit primelora-artifact-monitor-d162prefix1.service.
+  Frozen7Bclockremote-process-monotonic:cc74da05e0764097b028e0bf87ad3d35.
+  Monitor/home/lab14/primelora_remote/tc/d162_20261002/remote_monitor_7b_full_prefix1.log.
+  BothNIC1000/full, bothhealthPASS, published cache unchanged.
+- prelaunch322refs/147protected/Plan/V1PASS,
+  SHA91e70ed08347531997985008aa6f3be42ba6b5694cb4f1018d0a1ed24752105d.
+  Actual61df1b1049214cdc895430722d868a66/session41189CLOSED0;
+  healthactualf608d2196e8a4e44b8a168697afb2940 returned0; bothscopes absent.
+
+NEXT monitor SAME handle; prepare exact-owned terminal cleanup/copy and reuse
+bounded CPU-frame/metadata analysis, execute ONLY after actual physicalrelease.
+No Cwatchdog/ptrace/new observer/cap/profile/deadline change or second optimizer.
+Then table/interpretation/seal/backup before selecting one source-grounded change
+and ordinary Full. Both models actual numeric/commonreference/G1G2 remainOPEN;
+7B acceptance before3B/externalbaselines. No outstanding tool session, actual
+tmux/service/remote run LIVE. Prior entries below are completed history.
+
+## PRIOR — D161 retained RPC/source-stage diagnosis SEALED and BACKED
+
+14:29 +08 backupCOMPLETEccde02142b1846965795551d3317979086c6b150;
+pushedfaaslora_origin/retry14_continuous_queue_v2 and independentremoteHEADmatch.
+Push18317/verify88539 CLOSED0;12explicitfiles/25payloads secrets/checksum/
+scopeddiff/syntaxPASS; usermanifestexcluded. No livejobs/toolsession.
+Onlythispostbackupreceipt localdirty; runtime11a5432 unchanged. Thisgoalturn
+PROGRESS,newRPC+conditional-sourceanalysis/table, NOT7Bacceptance.
+Disk161776226304B(~150.66GiB), recheckbeforeheavy; don'trelax150/100GiBfloors.
+NEXT ONEcurrent7Bprefixdiagnostic. Notyetprepared/launched. ReuseD143observer
+andD160currentcap4/D157profiles, no repeatedD161closure/tests/cachecreation.
+FullPlan/status/V1beforelaunch. BothmodelsactualG1G2stillOPEN;7Bbefore3B/baselines.
 
 14:28 +08 sealCOMPLETE:8source refs/weightedTTFT-TPOTreconciliation/147protected/
 Plan/V1/unchangedserving+observer/syntaxPASS. VerificationSHA
