@@ -1,6 +1,163 @@
 # IEEE TC execution status
 
+## CURRENT — D164 ordinary 7B Full COMPLETE, tabled and SEALED
+
+2026-10-02 16:59 +08. No live GPU/remote/analysis jobs. Same run completed,
+not repeated; serving1acd8f4 unchanged. FullPlan1537/status1340/V1312 and
+analysis/academic-plotting/github-sync read after compaction. Latest cache
+approval already fulfilledD78/D80: reuse, no regeneration/per-request packing.
+
+Native4000/0fail; mean/P95/P99TTFT4.666023437/11.316413800/16.880609884s,
+vsD160 mean-0.268%,P95+1.913%,P99+0.749%; TPOTmean44.134842ms/P9581.865101ms
+(+0.179%/+4.626%),U15929.859233GPU-s(-0.229%). n1noCI, NOT established gain.
+All4leasesreleased; n_correct/commonwarm/Resident/G1G2/oldPrimecomparisonOPEN.
+15nonoutputfields4000matchD160;115outputhashdifferences require diagnosis.
+Timingerrors0ms/dispatchtiers4000/conflicts0. Remote132UUIDpairs/131480060wireB/
+pack0;4048resourcesamples/peak20787318784B/minhost92473409536B/events-swap0.
+Stageandmultimetric tables in D164_FULL_W0_FULL1.md; comparisonCSV retains
+all regressions. Keep qualified membership simplification as representation
+cleanup, not serving contribution; do not repeat same hypothesis.
+
+Analysis allCOMPLETE: metadata2 actuala5ba057fa5134d96a4d8af54b5ad344a/24321exit0,
+directlosslesscompact130090703B under unchanged128MiB. NOmetadata1failure.
+Projection334e3a43738e4ac1a4b8c35bef995f24/91709exit0/80.27s/RSS99072KiB;
+275085675Boriginal streamedONCE, SHA355f5676102038367e991f0ab4101635dad54f96e55aa353d0dee1046cf52567.
+Curationd82c0e9d2afa4c259e49859e75bb728c/79185exit0/7.79s/RSS471788KiB.
+Occupancy41b14bc2a7624ead84b036495673c77f/83485exit0/3.26s/RSS464408KiB,
+finalevents0; allabsenceverified. No failedGPU/analysisattempt. Monitorpattern
+exit1 alreadydistinguished from actualrunreturn0 in terminalhistory below.
+
+Seal3b337ac40564426fb56a22e78ee7f0df/2939CLOSED0; absence16:58:49.
+322frozen/46rehashedcurated/147protectedPASS; largeoriginalhash+statreused,
+verificationSHA178c46b79eeff7b28ba13c0e2b4732eff7a02f1431209b6c610074fa1d9f12d4.
+CuratedSHA7076db88971a1a1de7ece273ba82aa8882e7ad92b2cdf32e35d121d105b98bab.
+Bundlebf859733dd4745738239fc5f1c45afd4 returned0/absenceverified16:59,
+60members39904B/SHAf06c2450d9ac44146d71cb803c96b9191796bcc370fa9032364f4252fcd1e380.
+Doc/curated SEALED, doNOTedit/reanalyze. Backup pending.
+Disk160741892096B below150GiBnewheavyfloor; no new heavy launch or relaxation.
+NEXT backup then close the actual numerical/common-reference measurement
+gaps using existing interfaces, not another repetition of the same microchange.
+No new candidate/run yet. 7B acceptance before3B/externalbaselines unchanged.
+ThisgoalturnPROGRESS (analysis/table/seal), NOTmodel or whole-goal completion.
+
+## D164 terminal analysis history — superseded by completed record above
+
+2026-10-02 16:45 +08. SAME D164 completed, NOT relaunched. All4000 banner/native
+terminal successes,0failure; actual service/replay/watchdog return0, all4physical
+leases released and service path removed. LaunchSHA
+3edc1c176d6db880861f266529e7085001281d4b2de35d3788cea8b4039bd3c1.
+Exactlocalabsence16:42:48, exactremote3services stopped16:42:49(success/MainPID0),
+stop56851CLOSED0. Remote journal2e2b62949b034b22a73e6d924042e107 matches healthclock;
+copy37538CLOSED0, bothSHAsmatched. No live GPU/remote service. Monitor8270 ended
+poll57 when final logtail had no Live line (exit1); rechecked actualscopes/logs/
+terminal, no false restart. This was an observation-pattern exit, NOTrunfailure.
+
+Full Plan/status/V1 and monitor/analyze-results/academic-plotting/github-sync
+read this turn (truncatedPlan gap repaired). Preliminary U15929.859233295952,
+132publishedUUIDpairs/131480060wireB/pack0,4048samples/peak20787318784B/
+minhost92473409536B,events-swap-warnings0. n_correct/commonSLO/G1G2stillOPEN.
+Metadata2 actuala5ba057fa5134d96a4d8af54b5ad344a/session24321CLOSED0, direct
+losslesscompact130090703B under unchanged128MiBguard; absenceverified16:44:30.
+ONEprojection running session91709, actual334e3a43738e4ac1a4b8c35bef995f24,
+unitprimelora-d164-full1-project-20261002.scope. Reuse after success; never
+reproject original275085675B. Curation/occupancy/table/seal/backup pending.
+Serving1acd8f4 unchanged. NEXT finishsameprojection→exactcleanup→curation/table.
+ThisgoalturnPROGRESS(completedrun/cleanup/metadata), not7Bacceptance. Earlier
+LIVE entries below are historical. Baselines/3B remainPAUSED.
+
+## D164 observation history — superseded by terminal record above
+
+15:53 +08 VERIFIED WAIT: same experiment still LIVE. Eight light polls50s
+apart15:47:05–15:52:57 each verified exact service InvocationID44e8b9abc6b74796a4e19095f1e78d97.
+Monitor cell8262 CLOSED normally after8polls; NOT experiment termination.
+Latest banner1013arrived/966reported-success/0fail of4000,532service tasks.
+Sample1135 service18176622592B/host95120326656B,swap/events0/no warnings;
+disk159967277056B below150GiBnew-heavy but above100GiBrunningfloor.
+No new experiment, remote operations, heavy analysis, hashing, cleanup or
+serving/configuration changes. No outstanding toolsession; actual tmux/service/
+remote experiment remains live. Prepared8postrun helpers remain UNEXECUTED.
+NEXT monitor SAMErun until terminal/release, then exact-owned closure and
+prepared bounded analysis. This turn PROGRESS(preparation)+VERIFIED WAIT,
+not model/goal completion; actual7B acceptance before3B/baselines unchanged.
+
+15:46 +08 continuation PROGRESS/verified same run, no relaunch. Full Plan1537,
+status1279 and V1312 read after compaction; run/monitor skills followed.
+Exact service/aux InvocationIDs revalidated active15:43:46 (532/5 tasks).
+All four native cores3838044/3843356/3843473/3843637 captured in service cgroup,
+CPU4–23,28–47, watchdog sample591. Sample717 service17605308416B,
+host95368097792B, swap/events0, no warning/abort; disk160299859968B is below
+new-heavy150GiB but above running100GiB. No cleanup/threshold relaxation.
+Banner519/4000 reported successes,528arrived,0fail; incomplete, not acceptance.
+Latest user once-only delivery-cache approval already fulfilled D78/D80; reused
+published artifacts, no regeneration/remote operations during inference.
+
+Prepared NOT executed: exact local absence helper using actual seven owned PIDs;
+seven metadata/projection/curation/failure/occupancy helpers reused from D160.
+Shell5/AST3 syntax PASS. Metadata directly removes only indentation/newlines
+from original into compact2, preserving128MiB guard; no invented pass1/source.
+Curator compares sealed D160 projection/curated SHAs, NOT D162 prefix or old
+giant originals; retains current runtime1acd8f4 and sole D163 candidate identity.
+Removed old nonexistent/failed-pass1 references, not measurement checks.
+cleanup_metadata_full1.sh still needs actual future analysis InvocationIDs;
+do not copy old IDs. No serving edits, remote changes, GPU launch or analysis.
+NEXT monitor SAME live run, then terminal/release/exact cleanup/copy before
+bounded analysis/table/seal/backup. Actual7B G1G2 remains OPEN before3B/baselines.
+
+2026-10-02 15:36 +08. PreviousgoalturnPROGRESS(D163qualified/backed1acd8f4).
+ThisturnPROGRESS: ONEordinaryFull launched15:33:46 in tmux tc-d164-7b-full1.
+Serving/evidenceHEAD1acd8f43676e5e1fc25afada5736c0607032ebb0 alreadyBACKED.
+Full1537Plan/1236status/312V1 and run-experiment/monitor-experiment read.
+4000/source42/W0/fixednativecontract, sameD160cap4/D157profiles except three
+freshownedpaths. D163 immutable-membership issolecandidate; no observer/prefix,
+capacity/profile/SLO changes orremote cache recreation. Formal0; G1G2stillOPEN.
+Raw results/ieee_tc/p2_backend_qualification/d164_20261002.
+
+- serviceprimelora-tc-svc-f75b863601e84d63be61ef2cc1a575cc.scope,
+  actual44e8b9abc6b74796a4e19095f1e78d97,72/80GiBswap2verified.
+- auxprimelora-tc-aux-d985f0241abd4a50b5613132abf467fb.scope,
+  actual31de7ad1b7594d3f80574796b816f03f,3/4GiBswap0verified.
+  AuxPIDs3834703/3834731/3834809, watchdog3834809/start43367491;
+  3834731/watchdog CPU2,3,26,27 actualcgroupverified. Firstnative3838044 actual
+  servicecgroup/CPU4–23,28–47 verified. OthernativeIDs pendingcapture.
+  Sample95:service7149887488B/host104975814656B/swap-events0/no warnings.
+  Initialdisk161465225216B passes150GiBnewheavyfloor; running100GiBunchanged.
+- Externalnotice433675.168805268/t0433735.168805268 exactly60s;
+  W0viewa5331be2e2204483f18206825d9aaa18cbaa259fe0babfc303f989055819430d.
+- Remote3B3872178/c13237495e774bfda9f69aef180fa7f5;
+  7B3872180/876f672e3dae4383b7a705e8f427153d;
+  monitor3872183/3f09563c3d994bfdb56d7c5a725a4e8e,
+  unitprimelora-artifact-monitor-d164full1.service.
+  7Bclockremote-process-monotonic:95be067eaf8c4f2795a9bbac708e021f.
+  Monitor/home/lab14/primelora_remote/tc/d164_20261002/remote_monitor_7b_full_full1.log.
+  BothNIC1000/full;bothhealthPASS; publishedcache unchanged.
+- prelaunch322refs/147protected/Plan/V1PASS;
+  SHAe56efbb96ac900c54486e2fc04b8c30e79ba239e877f7fd9b1593095942eb785.
+  actual77957351fd2e42fc9fded3952a1551e0/session52329CLOSED0;
+  healthactualca8f8f97474e4600be5d926e7b7189ce/returned0;
+  bothscopesautomaticallyremoved/inactive/emptyIDverified.
+
+Prepared NOTexecuted: exact-owned remote stop/copy3helpers boundtoactualIDs/
+clock/service; bashsyntaxPASS. Localabsencehelper awaitsallactualnativePIDs.
+One absent guessedcleanupfilename returnedreadonlysederror, no statechange.
+NEXT monitorSAMErun→actualterminal+physicalrelease→exactremote stop/SHAcopy→
+boundedmetadata/ONEprojection→D160comparison/table→backup. No remoteoperations,
+heavyanalysis,bulkhash,cleanup orsecondoptimizer duringinference. 7Bactual
+acceptance before3B/externalbaselines; numerical/commonreferences remainOPEN.
+
 ## CURRENT — D163 single immutable-plan membership candidate qualification
+
+15:29 +08 BACKUP COMPLETE1acd8f43676e5e1fc25afada5736c0607032ebb0;
+pushedfaaslora_origin/retry14_continuous_queue_v2, independentremoteHEADmatches.
+Push81958/verify18970CLOSED0.10explicitfiles/43staged+archivepayloads secrets/
+checksum/scopeddiffPASS;822regressionsPASS, userdirtymanifestexcluded.
+No liveGPU/remote/test/tooljobs. Onlythispostbackupreceiptlocaldirty.
+ThisgoalturnPROGRESS (onecandidateimplemented/qualified/tabled/backed), NOT
+modelacceptance. NEXT D164ordinaryFull4000W0 sameD160cap4/D157profiles, fresh
+threeownedpaths/currentHEAD1acd8f4; noobserver/prefix/newprofiles/cachecreation.
+Fullnotyetprepared/launched. ReuseD160fullrunner/cleanup/analysis withnewpaths
+andcomparesealedD160projection/curated, doNOTreparseitsoriginalorretargetD162
+diagnostic asmainresult. ReadfullPlan/status/V1beforelaunch, recheck150GiBdisk.
+7BactualG1G2/numeric/commonreferences/oldPrimeacceptance OPEN before3B/baselines.
 
 15:28 +08 sealCOMPLETE. 147protected/Plan/V1/D160/D162 sourceSHAs PASS;
 original worker/formula/exportAST and runner/planner/residency filesunchanged.
