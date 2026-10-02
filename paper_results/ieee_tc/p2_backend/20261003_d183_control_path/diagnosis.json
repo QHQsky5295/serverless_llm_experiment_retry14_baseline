@@ -1,0 +1,694 @@
+{
+  "kind": "d183_retained_control_path_diagnosis_v1",
+  "new_inference_run": false,
+  "source_run": "D182",
+  "run_count": 1,
+  "formal_qualification": false,
+  "n_correct": null,
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "protection_before": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "protection_after": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "sources": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d183_20261003/analyze.py": "88d3a7bc64c29d93e04b5e55a298db51d835802aaa5921441b14e80d22900b75",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d182_20261003/full_full1_request_projection.json": "d548f108f6b3872ccfaa4152c65b4899aa2035595225481159d5492a42e2c7ab",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261003_d182_7b_full_w0_full1.json": "19c0aa6d4853b3dbb7730823a12a6efc9f9e93f72cf3350a545e005d34ad6c99",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/analyze_control_path_overhead.py": "7a7e623537dcb21e0c78607642cc76b26343958bf84a35ed7b8d1ed16cf34174",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py": "fe92d88153bbc14b8ed04b01206523d1c9f5343702aac901d389869fd2ae40a1"
+  },
+  "groups": [
+    {
+      "group": "all",
+      "field": "arrival_release_lateness_ms",
+      "n": 4000,
+      "unit": "ms",
+      "mean": 326.5337931077811,
+      "p50": 25.652699056081474,
+      "p95": 1650.898383173626,
+      "max": 12858.951685018837
+    },
+    {
+      "group": "all",
+      "field": "dispatch_window_wait_ms",
+      "n": 4000,
+      "unit": "ms",
+      "mean": 299.4778963699209,
+      "p50": 3.908826969563961,
+      "p95": 2142.456242989283,
+      "max": 24280.33746103756
+    },
+    {
+      "group": "all",
+      "field": "runtime_slot_wait_ms",
+      "n": 4000,
+      "unit": "ms",
+      "mean": 1109.2561123848864,
+      "p50": 803.9552610134706,
+      "p95": 3281.4576479722746,
+      "max": 6959.863924013916
+    },
+    {
+      "group": "all",
+      "field": "recorded_routing_ms",
+      "n": 4000,
+      "unit": "ms",
+      "mean": 582.82124225175,
+      "p50": 367.88327899999996,
+      "p95": 1983.562404,
+      "max": 4939.646304
+    },
+    {
+      "group": "all",
+      "field": "runtime_wait_outside_recorded_routing_ms",
+      "n": 4000,
+      "unit": "ms",
+      "mean": 526.4348701331363,
+      "p50": 259.2080960009563,
+      "p95": 2091.769674033546,
+      "max": 5320.57292702042
+    },
+    {
+      "group": "all",
+      "field": "dispatch_admission_wait_ms",
+      "n": 4000,
+      "unit": "ms",
+      "mean": 1735.2678018625884,
+      "p50": 1321.858336275909,
+      "p95": 4443.981911230367,
+      "max": 24392.153166001663
+    },
+    {
+      "group": "all",
+      "field": "source_to_generation_handoff_ms",
+      "n": 4000,
+      "unit": "ms",
+      "mean": 583.6963182047039,
+      "p50": 284.5473439665511,
+      "p95": 2442.768946988508,
+      "max": 9983.79038501298
+    },
+    {
+      "group": "all",
+      "field": "generation_handoff_to_native_ms",
+      "n": 4000,
+      "unit": "ms",
+      "mean": 70.60745789360953,
+      "p50": 32.12348400847986,
+      "p95": 391.4648659992963,
+      "max": 1166.7975210002623
+    },
+    {
+      "group": "all",
+      "field": "overall_ttft_ms",
+      "n": 4000,
+      "unit": "ms",
+      "mean": 2730.1940070074197,
+      "p50": 2256.760685821064,
+      "p95": 6375.893346092198,
+      "max": 25690.528251056094
+    },
+    {
+      "group": "all",
+      "field": "offered_to_task_ms",
+      "n": 4000,
+      "unit": "ms",
+      "mean": 1.8612646177934948,
+      "p50": 1.4429243747144938,
+      "p95": 4.37029852764681,
+      "max": 122.48693057335913
+    },
+    {
+      "group": "all",
+      "field": "task_to_client_submit_ms",
+      "n": 4000,
+      "unit": "ms",
+      "mean": 0.6831154172250535,
+      "p50": 0.25344500318169594,
+      "p95": 0.32740499591454864,
+      "max": 154.11020099418238
+    },
+    {
+      "group": "all",
+      "field": "client_submit_to_server_receive_ms",
+      "n": 4000,
+      "unit": "ms",
+      "mean": 323.98941307276255,
+      "p50": 22.043383039999753,
+      "p95": 1646.8364769825712,
+      "max": 12846.095325017814
+    },
+    {
+      "group": "all",
+      "field": "server_receive_to_service_dequeue_ms",
+      "n": 4000,
+      "unit": "ms",
+      "mean": 48.332425405082176,
+      "p50": 0.8053010096773505,
+      "p95": 158.56777504086494,
+      "max": 24279.339870030526
+    },
+    {
+      "group": "gpu",
+      "field": "arrival_release_lateness_ms",
+      "n": 1300,
+      "unit": "ms",
+      "mean": 323.5972331399367,
+      "p50": 32.79305744217709,
+      "p95": 1549.4380641612224,
+      "max": 4005.683557013981
+    },
+    {
+      "group": "gpu",
+      "field": "dispatch_window_wait_ms",
+      "n": 1300,
+      "unit": "ms",
+      "mean": 199.37696596016534,
+      "p50": 3.9554060203954577,
+      "p95": 842.7176550030708,
+      "max": 11552.508416993078
+    },
+    {
+      "group": "gpu",
+      "field": "runtime_slot_wait_ms",
+      "n": 1300,
+      "unit": "ms",
+      "mean": 1254.938232370903,
+      "p50": 919.8781060404144,
+      "p95": 3537.6632919651456,
+      "max": 6086.6352139855735
+    },
+    {
+      "group": "gpu",
+      "field": "recorded_routing_ms",
+      "n": 1300,
+      "unit": "ms",
+      "mean": 587.8423066192307,
+      "p50": 374.678331,
+      "p95": 2030.458346,
+      "max": 4529.969454
+    },
+    {
+      "group": "gpu",
+      "field": "runtime_wait_outside_recorded_routing_ms",
+      "n": 1300,
+      "unit": "ms",
+      "mean": 667.0959257516722,
+      "p50": 354.54261397270966,
+      "p95": 2418.9843149727694,
+      "max": 4952.135358975245
+    },
+    {
+      "group": "gpu",
+      "field": "dispatch_admission_wait_ms",
+      "n": 1300,
+      "unit": "ms",
+      "mean": 1777.912431471005,
+      "p50": 1388.2066971273161,
+      "p95": 4443.981911230367,
+      "max": 11794.361388892867
+    },
+    {
+      "group": "gpu",
+      "field": "source_to_generation_handoff_ms",
+      "n": 1300,
+      "unit": "ms",
+      "mean": 1.2668974994448945,
+      "p50": 1.324819982983172,
+      "p95": 1.7598370322957635,
+      "max": 7.990974991116673
+    },
+    {
+      "group": "gpu",
+      "field": "generation_handoff_to_native_ms",
+      "n": 1300,
+      "unit": "ms",
+      "mean": 96.30450274222173,
+      "p50": 36.375846015289426,
+      "p95": 428.5615080152638,
+      "max": 1050.9109570411965
+    },
+    {
+      "group": "gpu",
+      "field": "overall_ttft_ms",
+      "n": 1300,
+      "unit": "ms",
+      "mean": 2220.5950958386975,
+      "p50": 1864.816424145829,
+      "p95": 4914.622014213819,
+      "max": 12214.121487864759
+    },
+    {
+      "group": "gpu",
+      "field": "offered_to_task_ms",
+      "n": 1300,
+      "unit": "ms",
+      "mean": 1.8004564410791948,
+      "p50": 1.42839050386101,
+      "p95": 4.266605421435088,
+      "max": 33.742954197805375
+    },
+    {
+      "group": "gpu",
+      "field": "task_to_client_submit_ms",
+      "n": 1300,
+      "unit": "ms",
+      "mean": 0.6519168745189046,
+      "p50": 0.25390496011823416,
+      "p95": 0.3249970031902194,
+      "max": 145.07052500266582
+    },
+    {
+      "group": "gpu",
+      "field": "client_submit_to_server_receive_ms",
+      "n": 1300,
+      "unit": "ms",
+      "mean": 321.1448598243386,
+      "p50": 28.7871589534916,
+      "p95": 1540.2181879617274,
+      "max": 4003.4944750368595
+    },
+    {
+      "group": "gpu",
+      "field": "server_receive_to_service_dequeue_ms",
+      "n": 1300,
+      "unit": "ms",
+      "mean": 44.23597559820897,
+      "p50": 0.8735799929127097,
+      "p95": 194.51463501900434,
+      "max": 2706.9723809836432
+    },
+    {
+      "group": "host",
+      "field": "arrival_release_lateness_ms",
+      "n": 1746,
+      "unit": "ms",
+      "mean": 322.6095982103151,
+      "p50": 20.449993899092078,
+      "p95": 1669.6690018870868,
+      "max": 3918.4252150007524
+    },
+    {
+      "group": "host",
+      "field": "dispatch_window_wait_ms",
+      "n": 1746,
+      "unit": "ms",
+      "mean": 322.3528414822991,
+      "p50": 3.8982010446488857,
+      "p95": 2329.9374480266124,
+      "max": 11305.221828981303
+    },
+    {
+      "group": "host",
+      "field": "runtime_slot_wait_ms",
+      "n": 1746,
+      "unit": "ms",
+      "mean": 1048.1094726052493,
+      "p50": 728.0816240236163,
+      "p95": 3179.95213001268,
+      "max": 5529.812239983585
+    },
+    {
+      "group": "host",
+      "field": "recorded_routing_ms",
+      "n": 1746,
+      "unit": "ms",
+      "mean": 588.8571603424971,
+      "p50": 376.19980699999996,
+      "p95": 1928.071633,
+      "max": 3898.7437769999997
+    },
+    {
+      "group": "host",
+      "field": "runtime_wait_outside_recorded_routing_ms",
+      "n": 1746,
+      "unit": "ms",
+      "mean": 459.25231226275224,
+      "p50": 125.1196490225485,
+      "p95": 2045.2358970129337,
+      "max": 5320.57292702042
+    },
+    {
+      "group": "host",
+      "field": "dispatch_admission_wait_ms",
+      "n": 1746,
+      "unit": "ms",
+      "mean": 1693.0719122978635,
+      "p50": 1316.2430332158692,
+      "p95": 4320.740164257586,
+      "max": 11385.589897225145
+    },
+    {
+      "group": "host",
+      "field": "source_to_generation_handoff_ms",
+      "n": 1746,
+      "unit": "ms",
+      "mean": 618.3260613610023,
+      "p50": 318.84224398527294,
+      "p95": 2184.6334129804745,
+      "max": 5186.251914012246
+    },
+    {
+      "group": "host",
+      "field": "generation_handoff_to_native_ms",
+      "n": 1746,
+      "unit": "ms",
+      "mean": 52.04765247381751,
+      "p50": 39.70752999885008,
+      "p95": 198.05182999698445,
+      "max": 990.9031320130453
+    },
+    {
+      "group": "host",
+      "field": "overall_ttft_ms",
+      "n": 1746,
+      "unit": "ms",
+      "mean": 2712.102728282429,
+      "p50": 2309.184510842897,
+      "p95": 5945.991791551933,
+      "max": 11877.378729230259
+    },
+    {
+      "group": "host",
+      "field": "offered_to_task_ms",
+      "n": 1746,
+      "unit": "ms",
+      "mean": 1.7902807784701493,
+      "p50": 1.4263581833802164,
+      "p95": 4.326634632889181,
+      "max": 19.50881240190938
+    },
+    {
+      "group": "host",
+      "field": "task_to_client_submit_ms",
+      "n": 1746,
+      "unit": "ms",
+      "mean": 0.49473523293122573,
+      "p50": 0.25373499374836683,
+      "p95": 0.3287149593234062,
+      "max": 63.65573703078553
+    },
+    {
+      "group": "host",
+      "field": "client_submit_to_server_receive_ms",
+      "n": 1746,
+      "unit": "ms",
+      "mean": 320.32458219891373,
+      "p50": 17.559706000611186,
+      "p95": 1664.8266289848834,
+      "max": 3916.882338002324
+    },
+    {
+      "group": "host",
+      "field": "server_receive_to_service_dequeue_ms",
+      "n": 1746,
+      "unit": "ms",
+      "mean": 39.9424067254294,
+      "p50": 0.8006889838725328,
+      "p95": 156.1992570059374,
+      "max": 2706.693677988369
+    },
+    {
+      "group": "nvme",
+      "field": "arrival_release_lateness_ms",
+      "n": 818,
+      "unit": "ms",
+      "mean": 316.1614324199036,
+      "p50": 24.160479835700244,
+      "p95": 1771.7746598646045,
+      "max": 3623.7091717193834
+    },
+    {
+      "group": "nvme",
+      "field": "dispatch_window_wait_ms",
+      "n": 818,
+      "unit": "ms",
+      "mean": 325.79858718761005,
+      "p50": 3.838356991764158,
+      "p95": 2412.16779203387,
+      "max": 7524.534081981983
+    },
+    {
+      "group": "nvme",
+      "field": "runtime_slot_wait_ms",
+      "n": 818,
+      "unit": "ms",
+      "mean": 1062.7193621401464,
+      "p50": 733.5176670458168,
+      "p95": 3123.586790985428,
+      "max": 6959.863924013916
+    },
+    {
+      "group": "nvme",
+      "field": "recorded_routing_ms",
+      "n": 818,
+      "unit": "ms",
+      "mean": 577.8372339535453,
+      "p50": 364.906742,
+      "p95": 2023.3668519999999,
+      "max": 3710.649889
+    },
+    {
+      "group": "nvme",
+      "field": "runtime_wait_outside_recorded_routing_ms",
+      "n": 818,
+      "unit": "ms",
+      "mean": 484.8821281866012,
+      "p50": 170.11895800063166,
+      "p95": 2001.8155959701558,
+      "max": 5032.311654017552
+    },
+    {
+      "group": "nvme",
+      "field": "dispatch_admission_wait_ms",
+      "n": 818,
+      "unit": "ms",
+      "mean": 1704.67938174766,
+      "p50": 1257.588145963382,
+      "p95": 4454.9642850179225,
+      "max": 9227.351369860116
+    },
+    {
+      "group": "nvme",
+      "field": "source_to_generation_handoff_ms",
+      "n": 818,
+      "unit": "ms",
+      "mean": 853.5932921934708,
+      "p50": 582.6114179799333,
+      "p95": 2384.584045037627,
+      "max": 5561.886744981166
+    },
+    {
+      "group": "nvme",
+      "field": "generation_handoff_to_native_ms",
+      "n": 818,
+      "unit": "ms",
+      "mean": 69.24392179128301,
+      "p50": 18.508238019421697,
+      "p95": 405.83535097539425,
+      "max": 1166.7975210002623
+    },
+    {
+      "group": "nvme",
+      "field": "overall_ttft_ms",
+      "n": 818,
+      "unit": "ms",
+      "mean": 2948.6582611560393,
+      "p50": 2516.4782216306776,
+      "p95": 6491.582732065581,
+      "max": 11004.722386889625
+    },
+    {
+      "group": "nvme",
+      "field": "offered_to_task_ms",
+      "n": 818,
+      "unit": "ms",
+      "mean": 1.990773316520018,
+      "p50": 1.4669981319457293,
+      "p95": 4.510479862801731,
+      "max": 122.48693057335913
+    },
+    {
+      "group": "nvme",
+      "field": "task_to_client_submit_ms",
+      "n": 818,
+      "unit": "ms",
+      "mean": 1.129401107173536,
+      "p50": 0.25231397012248635,
+      "p95": 0.3242770326323807,
+      "max": 154.11020099418238
+    },
+    {
+      "group": "nvme",
+      "field": "client_submit_to_server_receive_ms",
+      "n": 818,
+      "unit": "ms",
+      "mean": 313.04125799621005,
+      "p50": 21.396955009549856,
+      "p95": 1769.8985559982248,
+      "max": 3621.4238880202174
+    },
+    {
+      "group": "nvme",
+      "field": "server_receive_to_service_dequeue_ms",
+      "n": 818,
+      "unit": "ms",
+      "mean": 45.199019510983796,
+      "p50": 0.7867279928177595,
+      "p95": 164.1868599690497,
+      "max": 2707.1913259569556
+    },
+    {
+      "group": "remote",
+      "field": "arrival_release_lateness_ms",
+      "n": 136,
+      "unit": "ms",
+      "mean": 467.3702879008488,
+      "p50": 25.592062273062766,
+      "p95": 1646.6830789577216,
+      "max": 12858.951685018837
+    },
+    {
+      "group": "remote",
+      "field": "dispatch_window_wait_ms",
+      "n": 136,
+      "unit": "ms",
+      "mean": 804.3398837052176,
+      "p50": 3.3945399918593466,
+      "p95": 6077.657726011239,
+      "max": 24280.33746103756
+    },
+    {
+      "group": "remote",
+      "field": "runtime_slot_wait_ms",
+      "n": 136,
+      "unit": "ms",
+      "mean": 781.6262504262234,
+      "p50": 489.1499689547345,
+      "p95": 2827.7296500164084,
+      "max": 5009.38759901328
+    },
+    {
+      "group": "remote",
+      "field": "recorded_routing_ms",
+      "n": 136,
+      "unit": "ms",
+      "mean": 487.3125813970588,
+      "p50": 270.187727,
+      "p95": 1749.008955,
+      "max": 4939.646304
+    },
+    {
+      "group": "remote",
+      "field": "runtime_wait_outside_recorded_routing_ms",
+      "n": 136,
+      "unit": "ms",
+      "mean": 294.3136690291645,
+      "p50": 96.9988489687704,
+      "p95": 1129.1528469825203,
+      "max": 2748.4907169984585
+    },
+    {
+      "group": "remote",
+      "field": "dispatch_admission_wait_ms",
+      "n": 136,
+      "unit": "ms",
+      "mean": 2053.3364220322896,
+      "p50": 1095.0403329334222,
+      "p95": 8482.388779579196,
+      "max": 24392.153166001663
+    },
+    {
+      "group": "remote",
+      "field": "source_to_generation_handoff_ms",
+      "n": 136,
+      "unit": "ms",
+      "mean": 4083.1006611688817,
+      "p50": 4059.653909993358,
+      "p95": 7447.331355011556,
+      "max": 9983.79038501298
+    },
+    {
+      "group": "remote",
+      "field": "generation_handoff_to_native_ms",
+      "n": 136,
+      "unit": "ms",
+      "mean": 71.45035856613985,
+      "p50": 12.082937988452613,
+      "p95": 399.4814609759487,
+      "max": 763.6304610059597
+    },
+    {
+      "group": "remote",
+      "field": "overall_ttft_ms",
+      "n": 136,
+      "unit": "ms",
+      "mean": 6519.621928180962,
+      "p50": 6336.313990934286,
+      "p95": 11773.205176577903,
+      "max": 25690.528251056094
+    },
+    {
+      "group": "remote",
+      "field": "offered_to_task_ms",
+      "n": 136,
+      "unit": "ms",
+      "mean": 2.574869747417431,
+      "p50": 1.6740761930122972,
+      "p95": 5.010126857087016,
+      "max": 50.09015102405101
+    },
+    {
+      "group": "remote",
+      "field": "task_to_client_submit_ms",
+      "n": 136,
+      "unit": "ms",
+      "mean": 0.7155287474982769,
+      "p50": 0.2525479649193585,
+      "p95": 0.3745380090549588,
+      "max": 51.66470602853224
+    },
+    {
+      "group": "remote",
+      "field": "client_submit_to_server_receive_ms",
+      "n": 136,
+      "unit": "ms",
+      "mean": 464.07988940593305,
+      "p50": 9.494440979324281,
+      "p95": 1644.1876459866762,
+      "max": 12846.095325017814
+    },
+    {
+      "group": "remote",
+      "field": "server_receive_to_service_dequeue_ms",
+      "n": 136,
+      "unit": "ms",
+      "mean": 214.04921500053365,
+      "p50": 0.7105019758455455,
+      "p95": 99.90690200356767,
+      "max": 24279.339870030526
+    }
+  ],
+  "caveats": [
+    "recorded_routing_ms includes awaits; it is not exclusive CPU execution.",
+    "Recorded routing excludes collection rejection returning None before the timer update.",
+    "Residual includes unrecorded retries, pending registration, selected-source protection, event-loop resumption and capacity waits; it is not a named RPC duration.",
+    "Actual selected-tier groups are conditional, not matched causal populations.",
+    "External arrival subspans overlap legacy dispatch fields and must not be summed twice.",
+    "No new performance result, CI, numerical correctness, common SLO or G1/G2 acceptance."
+  ]
+}

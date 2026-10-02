@@ -1,6 +1,54 @@
 # IEEE TC execution status
 
-## CURRENT — D182 complete, analyzed and SEALED; backup NEXT
+## CURRENT — D183 offline control-path diagnosis verified and SEALED; backup pending
+
+2026-10-03 07:53+08. Goal ACTIVE/currentturn PROGRESS. Prime7B only.
+Full Plan/status/V1 reread. optimize-for-gpu/vLLM, analyze-results,
+run-experiment/academic-plotting followed; github-sync checkpoint pending.
+Runtime unchanged a4f4c0630534ed2c4b6f20f4f84e1f262884904f; HEAD2f03cb5.
+Once-only cache approval fulfilled D78/D80, not recreated. No remote/GPU action.
+
+Reused D182 sealed34MB projection and existing analyze_rpc_breakdown; no raw
+reprojection, no new generation, no serving/helper code changes. Exact4000
+population/sourceSHA/clock checks passed. New request/control/RPC tables under
+paper_results/ieee_tc/p2_backend/20261003_d183_control_path; doc
+D183_CONTROL_PATH_DIAGNOSIS.md. No CI/new performance/model qualification.
+Mean gate→sourceadmission1109.256ms = recordedrouting582.821 + residual526.435.
+GPU-selected1300:1254.938 =587.842+667.096ms; aftersourceadmission→generation
+handoff1.267ms. GPU reference acquire is BEFORE sourceadmission, not free.
+Arrival→server326.534ms = offered→task1.861+task→submit.683+
+submit→receive323.989ms (local Unix socket, NOT remote HTTP; mixed span).
+Generationresponsepickup437.978ms, channel.014ms/sendflush.113ms; wallclock
+producer caveat retained. Structuralzero admission/resolve timers doNOTprove
+zero mechanism overhead. Routing timer excludes None-return rejected reads;
+residual includes retries/capacity/pending/protection/resumption, not one RPC.
+
+CPU analyze1 actualaf89758567b64e9895204276f09c7ba4/session75153CLOSED0,
+wall10.83s/RSS1101552KiB,3/4GiBswap0CPUs2,3,26,27; finalevents/swap0,
+scopeinactive/emptyidentity/pathabsent. All147protected before/afterPASS.
+No other live handles. Usermanifest/unrelated files untouched. D182sealed
+doc/results remain unchanged. No hypothesis implemented yet.
+NEXT inspect whether selected pending registration+source protection can be
+one frontend-owned transaction, preserving registration ordering, owner/epoch,
+leases, cancellation/lost replies and whole-router conflict retry; bounded
+dependency/correctness study before serving change. No immediate GPU rerun.
+DoNOT infer residual as single-RPC time or stack another speculative optimizer.
+Still actualnumeric/commonwarm/Resident/oldPrime-newmetrics/G1G2 OPEN before3B/
+baselines. M1/M2/A1–A5/S1–S13 retained, no stage advance.
+Disk160845385728B(~149.8GiB)<NEWheavy150GiB. Auditedrecovery/freshpreflight
+required before newGPU/build; existing150/100GiB floors unchanged.
+
+Finalization actuale6e57d85a2e34bb48ab162c2c0a39b94/session90406CLOSED0;
+sameCPU3/4GiBswap0/CPUs2,3,26,27; finalevents/swap0, scopeinactive/pathabsent.
+4000rows/65summaryrows recalculated exactly; sources pinnedSHA unchanged;
+10 serving/helper/history paths byteidenticaltoHEAD,147protectedPASS;
+newlocalwrapper syntaxsmokePASS. No servingtest rerun or newqualification claim.
+DiagnosisSHAa96c6f6874afa91ca38a94e4ce52f198461f161c4ca42d7d915c4ce6e9bb7086.
+10member23530B sourcebundleSHA
+8f5fb45f316f1a5e00d00d54935eaf8c5e9f9f879bf22299ae0fcb965d19d99b.
+Doc/curated nowSEALED via evidencehash binding; doNOTedit. ResultcheckpointNEXT.
+
+## D182 complete, analyzed, SEALED and BACKED — reference
 
 2026-10-03 07:34+08. Goal ACTIVE/currentturn PROGRESS. Prime7B only.
 Full Plan/status/V1 reread; analyze-results/academic-plotting/run-experiment and
@@ -63,8 +111,11 @@ Bundleactual8248bfa6b2034210a3387612f6f547e7 PASS/scopeabsent/events0:
 SHA56022a69d2e3aeb81b227edff044285814af34ea379475e453e7c45ea75236cd.
 DocD182_FULL_W0_FULL1.md andcurated nowSEALED; doNOTedit afterevidencebinding.
 
-NEXT explicit16-path secret/diff/checksum check→commit/push backup, then next
-Prime7B bottleneck investigation using historicalevidence+primarysources.
+Backup complete: 2f03cb52167daafc45f58720fcdaa5e13010fd90, push and independent
+ls-remote match. Exact16paths/107staged+archiveentries passed credential/scope
+checks; usermanifestexcluded. Checksum, fullworkingdiffcheck and stagedcheck
+(CSV cr-at-eol explicit, sealedbytes unchanged) PASS. No remaining toolhandles.
+NEXT Prime7B bottleneck investigation using historicalevidence+primarysources.
 DoNOTstart3B/baselines, reprofile/replayoldhypotheses, weakenreference orinvent
 numericalcorrectness. D182positivevsD179 doesNOTcloseoldPrimecomparison/G1G2.
 Disk160860921856B(~149.81GiB), belowNEWheavy150GiB; controlledCPUanalysisdone.
