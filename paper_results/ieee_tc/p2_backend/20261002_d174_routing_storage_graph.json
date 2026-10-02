@@ -1,0 +1,292 @@
+{
+  "kind": "routing_storage_graph_qualification_v1",
+  "base_commit": "bd7cb1c527216b009548bf78779ba4fadf2c6936",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "probe": {
+    "kind": "d174_live_storage_graph_projection_component_v1",
+    "parent_commit": "bd7cb1c527216b009548bf78779ba4fadf2c6936",
+    "original_monitor_sha256": "eadf4faacae49ec2f956231127aa27907c19d851ca4bd0958cc0539de6bfae96",
+    "torch_version": "2.13.0+cu130",
+    "cases": [
+      {
+        "case": "shared",
+        "complete_default_equal": true,
+        "projected_graph_equal": true,
+        "work_counts": {
+          "original": {
+            "is_pinned": 6,
+            "stride": 6,
+            "element_size": 6,
+            "storage_offset": 6
+          },
+          "candidate_full": {
+            "is_pinned": 6,
+            "stride": 6,
+            "element_size": 6,
+            "storage_offset": 6
+          },
+          "candidate_routing": {
+            "is_pinned": 6,
+            "stride": 0,
+            "element_size": 0,
+            "storage_offset": 0
+          }
+        },
+        "expected_error": null
+      },
+      {
+        "case": "partial",
+        "complete_default_equal": true,
+        "projected_graph_equal": true,
+        "work_counts": {
+          "original": {
+            "is_pinned": 6,
+            "stride": 6,
+            "element_size": 6,
+            "storage_offset": 6
+          },
+          "candidate_full": {
+            "is_pinned": 6,
+            "stride": 6,
+            "element_size": 6,
+            "storage_offset": 6
+          },
+          "candidate_routing": {
+            "is_pinned": 6,
+            "stride": 0,
+            "element_size": 0,
+            "storage_offset": 0
+          }
+        },
+        "expected_error": null
+      },
+      {
+        "case": "packed",
+        "complete_default_equal": true,
+        "projected_graph_equal": true,
+        "work_counts": {
+          "original": {
+            "is_pinned": 6,
+            "stride": 6,
+            "element_size": 6,
+            "storage_offset": 6
+          },
+          "candidate_full": {
+            "is_pinned": 6,
+            "stride": 6,
+            "element_size": 6,
+            "storage_offset": 6
+          },
+          "candidate_routing": {
+            "is_pinned": 6,
+            "stride": 0,
+            "element_size": 0,
+            "storage_offset": 0
+          }
+        },
+        "expected_error": null
+      },
+      {
+        "case": "empty",
+        "complete_default_equal": true,
+        "projected_graph_equal": true,
+        "work_counts": {
+          "original": {
+            "is_pinned": 0,
+            "stride": 0,
+            "element_size": 0,
+            "storage_offset": 0
+          },
+          "candidate_full": {
+            "is_pinned": 0,
+            "stride": 0,
+            "element_size": 0,
+            "storage_offset": 0
+          },
+          "candidate_routing": {
+            "is_pinned": 0,
+            "stride": 0,
+            "element_size": 0,
+            "storage_offset": 0
+          }
+        },
+        "expected_error": null
+      },
+      {
+        "case": "staged_alias",
+        "complete_default_equal": true,
+        "projected_graph_equal": true,
+        "work_counts": {
+          "original": {
+            "is_pinned": 6,
+            "stride": 6,
+            "element_size": 6,
+            "storage_offset": 6
+          },
+          "candidate_full": {
+            "is_pinned": 6,
+            "stride": 6,
+            "element_size": 6,
+            "storage_offset": 6
+          },
+          "candidate_routing": {
+            "is_pinned": 6,
+            "stride": 0,
+            "element_size": 0,
+            "storage_offset": 0
+          }
+        },
+        "expected_error": null
+      },
+      {
+        "case": "unsupported_tensor",
+        "complete_default_equal": true,
+        "projected_graph_equal": true,
+        "work_counts": {
+          "original": {
+            "is_pinned": 2,
+            "stride": 2,
+            "element_size": 2,
+            "storage_offset": 2
+          },
+          "candidate_full": {
+            "is_pinned": 2,
+            "stride": 2,
+            "element_size": 2,
+            "storage_offset": 2
+          },
+          "candidate_routing": {
+            "is_pinned": 2,
+            "stride": 0,
+            "element_size": 0,
+            "storage_offset": 0
+          }
+        },
+        "expected_error": "unsupported native HOST tensor field: bias"
+      },
+      {
+        "case": "pinning_disagreement",
+        "complete_default_equal": true,
+        "projected_graph_equal": true,
+        "work_counts": {
+          "original": {
+            "is_pinned": 4,
+            "stride": 3,
+            "element_size": 3,
+            "storage_offset": 3
+          },
+          "candidate_full": {
+            "is_pinned": 4,
+            "stride": 3,
+            "element_size": 3,
+            "storage_offset": 3
+          },
+          "candidate_routing": {
+            "is_pinned": 4,
+            "stride": 0,
+            "element_size": 0,
+            "storage_offset": 0
+          }
+        },
+        "expected_error": "aliased native CPU storage has inconsistent capacity/pinning"
+      }
+    ],
+    "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d169_20261002/7b_probe1.json",
+    "source_sha256": "ead0c5c81acc52c502874e9d45cfba111665f875220e23467c2e716a0d770602",
+    "retained_snapshots": [
+      {
+        "snapshot": 0,
+        "registered_adapters": 8,
+        "host_views": 2048,
+        "json_representation_bytes_before": 755574,
+        "json_representation_bytes_after": 336182,
+        "reduction_fraction": 0.5550640969646917,
+        "exact_source_and_routing_equal": true
+      },
+      {
+        "snapshot": 1,
+        "registered_adapters": 12,
+        "host_views": 3072,
+        "json_representation_bytes_before": 1074629,
+        "json_representation_bytes_after": 444997,
+        "reduction_fraction": 0.5859063918803605,
+        "exact_source_and_routing_equal": true
+      },
+      {
+        "snapshot": 2,
+        "registered_adapters": 20,
+        "host_views": 5120,
+        "json_representation_bytes_before": 1713722,
+        "json_representation_bytes_after": 662970,
+        "reduction_fraction": 0.6131402876312494,
+        "exact_source_and_routing_equal": true
+      },
+      {
+        "snapshot": 3,
+        "registered_adapters": 24,
+        "host_views": 6144,
+        "json_representation_bytes_before": 2031752,
+        "json_representation_bytes_after": 771272,
+        "reduction_fraction": 0.6203906776023845,
+        "exact_source_and_routing_equal": true
+      }
+    ],
+    "cuda_executed": false,
+    "end_to_end_performance_measured": false,
+    "caveat": "Deterministic work counts and JSON representation sizes, not actual native RPC bytes/time or workload repetitions."
+  },
+  "cleanup": [
+    {
+      "phase": "tests1",
+      "actual_invocation_id": "f8ec26a75c294cd2bfc35bf9b60594bb",
+      "returncode": 1,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    },
+    {
+      "phase": "probe1",
+      "actual_invocation_id": "9518c739c83f4612b2f4caa53a0fec35",
+      "returncode": 0,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    },
+    {
+      "phase": "tests2",
+      "actual_invocation_id": "ff4f62b9014147b4b4ffafa30206eb22",
+      "returncode": 0,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    },
+    {
+      "phase": "regression1",
+      "actual_invocation_id": "c92290ee825f435582196e8ad5d30e53",
+      "returncode": 0,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    }
+  ],
+  "source_sha256": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py": "79c949439c6ab76c984d1378484588e1b13944e13def47eb40f33dc2a08a68fe",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_worker_observation.py": "28054e27d2428d2058ae2727157b4a799846ebbfb7b12c80f9aeccbb4169ba0b",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_gpu_references.py": "bb324cf61b3f3656172813d5003399b01a7dab58cd75c193054ce2b28023896d",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d174_20261002/probe1.json": "334c0a84e0d0c374534a58d7598d9d08f37344dc9d2945c953bfe1a18361ea59",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d174_20261002/probe.py": "85cf9f4f2a56dcc46dff3659ad4e6d8b8371114935699516892371c5f576ff3c",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d169_20261002/7b_probe1.json": "ead0c5c81acc52c502874e9d45cfba111665f875220e23467c2e716a0d770602"
+  },
+  "tests_targeted": 26,
+  "tests_regression": 942,
+  "test_counts_overlap": true,
+  "failed_test_attempts_preserved": 1,
+  "no_new_gpu_run": true,
+  "end_to_end_improvement_qualified": false,
+  "n_correct": null,
+  "formal_g1_g2_qualified": false,
+  "common_reference_frozen": false,
+  "table_sha256": "20d2940e0c01b4036488b7e1ccae26baebb36c51eaa06aeaba8250d7919163f4",
+  "document_sha256": "5b57fb4cd0ce563b0b84f982b97a073a30e6a95de092f309a24f6e21aec4013c"
+}

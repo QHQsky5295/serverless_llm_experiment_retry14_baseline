@@ -1,6 +1,85 @@
 # IEEE TC execution status
 
+## CURRENT — D174 routing storage-graph candidate QUALIFIED and SEALED
+
+2026-10-02 22:59 +08. Goal ACTIVE/turnPROGRESS, Prime7B only. No live GPU,
+remote, analysis or tool jobs. Full Plan/status/V1 and selected skills read;
+Plan/V1 unchanged. User once-only cache approval already fulfilled D78/D80,
+no recreation. Added primary-source comparison requirement recorded in D174 doc.
+D173 sealed/backed remains unchanged; no repeated analysis or Full replay.
+
+Single candidate: routing omits unconsumed HOST tensor-view descriptions at
+producer, same-traversal dtype aggregation. Every current tensor/storage/pinning/
+alias/representation check remains; full physical endpoint yields identical
+values. Frontend graph validation/owner/epoch/source checks unchanged. No cross-
+call cache, CPU validation moved into GPU loop, cap/profile/timeout/SLO changes.
+Eightnew tests; targeted26PASS.018s, regression942PASS100.519s (overlapcounts).
+Seven exact-parent helper fixtures same full output/error; projectedgraph equal;
+pinning calls6→6, descriptive stride/element_size/offset6→0 for normalfixtures.
+Four retainedD169 snapshots8/12/20/24adapters: JSONrepresentation
+755574→336182/1074629→444997/1713722→662970/2031752→771272B,
+55.5064–62.0391% smaller; exact validatedsource/routingequal. NOT actual RPC
+wire bytes/time, CPUpercentages, CI or end-to-endgain. Doc+CSVqualificationtable.
+
+tests1 failed1/26: ownersnegative alteredalready-private row, not conflict.
+Exact failedtest/log preserved; tests2 targetsactualsharedallocation, production
+code unchanged/no weakenedcheck. tests1 actualf8ec26a75c294cd2bfc35bf9b60594bb /
+96603exit1; tests2ff4f62b9014147b4b4ffafa30206eb22 /5919exit0;
+probe19518c739c83f4612b2f4caa53a0fec35 /68425exit0;
+regression1c92290ee825f435582196e8ad5d30e53 /tmuxended. All3/4GiBswap0
+CPU2,3,26,27/finalevents0; actualscopeautomaticremoval verified.
+
+Sealactualcefb8989012546ff9b76071a09b7b006 /40786CLOSED0/events0/scopeabsent.
+147protected/Plan/V1/exact4doctable rows/sourceSHA/non-targetASTPASS.
+Only HOST helper + one worker routing-call changed; remaining monitor AST,
+runner/instance_pool/residency/planner identical. CuratedSHA
+3901559beb1460488ebcb79253bd86f49c75b1acbd94e8a21eac39c9002e9c01.
+38member118528B bundleSHA
+b690019fa0bba13a9b3454e2bd831df35392d16956b9eeb509a6053cff94733b.
+Doc/result nowSEALED; doNOTedit/retest. NEXT scopedsecret/diff/checksumbackup,
+auditedreconstructiblespace recovery then ONEordinary7BFull4000W0 sameD173cap4/
+D157profiles withfreshownedpaths. FullNOTyetprepared/launched. Diskbelow150GiB
+newheavyfloor; no lowering/no uniqueevidence deletion. Actual7BnewmetricoldPrime/
+numerical/commonreference/Resident/G1G2 acceptance OPEN;3B/externalbaselinesPAUSED.
+Alllatermatrices retained. This qualifies representation only, notmodelacceptance.
+
+## D174 preparation history — superseded by completed record above
+
+2026-10-02 22:51 +08. Goal ACTIVE, Prime7B only. Full Plan/status/V1 read;
+serving-llms-vllm/optimization/run-experiment/academic-plotting/github-sync read.
+D173 complete/sealed/backed, NOT repeated. Remote once-only cache already D78/D80;
+no remote operations/cache creation. No live GPU or CPU test job yet.
+ONE candidate removes unconsumed HOST descriptive tensor-view materialization
+from routing only; full current storage/alias graph and per-view validations
+remain, full physical/planning endpoint unchanged. Same-traversal dtype reduction
+replaces scan of that descriptive table. No cached state or validation moved to
+GPU loop. Three source/test files edited; new D174 doc/wrapper, no tests run yet.
+User's added primary-source/comparative-implementation directive recorded in doc;
+not assuming other systems lack the issue. Official vLLM .30 sources/blog and
+dLoRA paper checked. OldD144/D151/D132 work not proposed anew. Plan/V1 unchanged.
+NEXT bounded targeted/regression/component checks, table, protected+secrets and
+backup; then one ordinaryFull if qualified and diskgate satisfied. Currentdisk
+160498597888B below150GiB new-heavyfloor; CPU-only bounded work permitted, no
+floor relaxation. G1G2/numeric/commonreferences/oldPrime acceptance OPEN;
+3B/externalbaselines remainPAUSED; no model or performance acceptance yet.
+
 ## CURRENT — D173 ordinary 7B Full COMPLETE, analyzed/tabled and SEALED
+
+22:33 +08 BACKUP COMPLETEbd7cb1c527216b009548bf78779ba4fadf2c6936,
+pushed faaslora_origin/retry14_continuous_queue_v2; independentremoteHEADmatch.
+Push67724/verify58093CLOSED0.16explicitfiles/86staged+archivepayloads secret/
+checksum/PythonAST/shellsyntax/11exacttable/diffchecksPASS; usermanifestexcluded.
+Bundleactual68f1212115654380998a43ad78e5a06b ended0/finalevents-swap0 and
+automaticremoval/inactive/emptyID/emptyCG verified. TiminggapSHA
+d72030ceca028405830febe7fe6a0255a77ab78234c514cbc08f71c77f86c60d.
+No live jobs. Only this post-backup receipt newlydirty. GoalACTIVE/turnPROGRESS,
+notmodelacceptance. D173 fullyclosed; doNOTrepeatanalysis/projection/seal/tests.
+Disk160511733760B below150GiBnew-heavyfloor; boundedCPU-only work allowed,
+recover only audited reconstructible space before GPU, nofloorrelaxation.
+NEXT inspect current source/HOST-confirmation path against history and primary
+official implementation, choose ONE structural bottleneck hypothesis; no new
+candidate yet. 7Bnew-metricoldPrime/numeric/commonreferences/G1G2 stillOPEN;
+3B/externalbaselines and later fullmatrix remain paused/pending.
 
 2026-10-02 22:29 +08. Goal ACTIVE; previous turn VERIFIED WAIT, this turn
 PROGRESS. SAME run finished, no restart. Monitor8726 ended poll21 at22:10:51

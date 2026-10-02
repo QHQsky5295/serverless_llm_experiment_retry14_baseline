@@ -258,6 +258,125 @@ class NativeHostFootprint(unittest.TestCase):
         self.assertFalse(result['host_allocator_overhead_included'])
 
 
+class NativeHostRoutingProjection(unittest.TestCase):
+    def native_models(self):
+        return NativeHostFootprint().native_models()
+
+    def test_projection_is_exact_full_graph_without_descriptive_views(self):
+        native, models = self.native_models()
+        layer = models[8].loras['shared']
+        models[8].loras['shared'] = SimpleNamespace(
+            lora_a=[layer.lora_a[:1, :4], None], lora_b=[layer.lora_b[:4, :1], None])
+        full = monitor._ieee_lora_host_inventory(native)
+        projected = monitor._ieee_lora_host_inventory(native, include_tensor_views=False)
+        self.assertNotIn('host_tensor_views', projected)
+        self.assertEqual(projected, {k: v for k, v in full.items() if k != 'host_tensor_views'})
+        self.assertEqual(projected['host_tensor_storage_bytes'], 768)
+        self.assertEqual(projected['host_adapter_footprints'][1]['exclusive_storage_bytes'], 0)
+        self.assertTrue(projected['host_adapter_footprints'][1]['has_packed_modules'])
+
+    def test_projection_does_not_query_unused_view_description(self):
+        import torch
+        native, _ = self.native_models()
+        with patch.object(torch.Tensor, 'stride', side_effect=AssertionError('unused stride')), \
+             patch.object(torch.Tensor, 'element_size', side_effect=AssertionError('unused view bytes')), \
+             patch.object(torch.Tensor, 'storage_offset', side_effect=AssertionError('unused offset')):
+            self.assertEqual(monitor._ieee_lora_host_inventory(
+                native, include_tensor_views=False)['host_tensor_storage_bytes'], 768)
+
+    def test_projection_still_queries_every_view_pinning_each_call(self):
+        import torch
+        native, _ = self.native_models()
+        original, observed = torch.Tensor.is_pinned, []
+        def counted(tensor):
+            observed.append(id(tensor))
+            return original(tensor)
+        with patch.object(torch.Tensor, 'is_pinned', counted):
+            for _ in range(2):
+                monitor._ieee_lora_host_inventory(native, include_tensor_views=False)
+        self.assertEqual(len(observed), 12)
+        self.assertEqual(observed[:6], observed[6:])
+
+    def test_projection_detects_alias_pinning_conflict(self):
+        import torch
+        native, models = self.native_models()
+        conflicting = models[7].loras['shared'].lora_b
+        with patch.object(torch.Tensor, 'is_pinned', lambda t: t is conflicting):
+            with self.assertRaisesRegex(ValueError, 'inconsistent capacity/pinning'):
+                monitor._ieee_lora_host_inventory(native, include_tensor_views=False)
+
+    def test_projection_observes_mutated_storage_and_membership_not_cached_verdict(self):
+        import torch
+        native, models = self.native_models()
+        first = monitor._ieee_lora_host_inventory(native, include_tensor_views=False)
+        models[7].loras['private'].lora_a = torch.empty((4, 32), dtype=torch.float32)
+        second = monitor._ieee_lora_host_inventory(native, include_tensor_views=False)
+        self.assertEqual(second['host_tensor_storage_bytes'], 1152)
+        self.assertEqual(second['host_adapter_footprints'][0]['dtypes'], ['torch.float16', 'torch.float32'])
+        del models[7]
+        third = monitor._ieee_lora_host_inventory(native, include_tensor_views=False)
+        self.assertEqual(third['host_tensor_storage_bytes'], 512)
+        self.assertEqual(third['host_adapter_footprints'][0]['exclusive_storage_bytes'], 512)
+        self.assertEqual(first['host_tensor_storage_bytes'], 768)
+
+    def test_projection_preserves_representation_and_extra_tensor_rejections(self):
+        import torch
+        for case in ('extra', 'meta', 'sparse', '3d', 'missing', 'empty', 'bad_id'):
+            native, models = self.native_models()
+            layer = models[8].loras['shared']
+            if case == 'extra': layer.extra = {'nested': [torch.empty(2)]}
+            elif case == 'meta': layer.lora_a = torch.empty((4, 8), device='meta')
+            elif case == 'sparse': layer.lora_a = torch.empty((4, 8)).to_sparse()
+            elif case == '3d': layer.lora_a = torch.empty((2, 4, 8))
+            elif case == 'missing': layer.lora_a = None
+            elif case == 'empty': layer.lora_a = torch.empty((0, 8))
+            elif case == 'bad_id': models[8].id = 9
+            errors = []
+            for projected in (False, True):
+                with self.subTest(case=case, projected=projected):
+                    with self.assertRaises(ValueError) as caught:
+                        monitor._ieee_lora_host_inventory(native, include_tensor_views=not projected)
+                    errors.append(str(caught.exception))
+            self.assertEqual(errors[0], errors[1])
+
+    def test_projected_graph_retains_frontend_union_and_exclusive_checks(self):
+        import copy
+        from faaslora.experiment.instance_pool import NativeSourceSnapshot
+        native, _ = self.native_models()
+        full = monitor._ieee_lora_host_inventory(native)
+        projected = monitor._ieee_lora_host_inventory(native, include_tensor_views=False)
+        pool = dict(uniform_slot_layout=True, slot_adapter_ids=[7, None],
+            registered_cpu_adapter_ids=[7, 8], slot_capacity_bytes=32, pool_allocated_bytes=64,
+            pool_tensor_views=[{'dtype': 'torch.float16'}])
+        self.assertEqual(NativeSourceSnapshot._footprints({**full, **pool}, (7, None), (7, 8)),
+                         NativeSourceSnapshot._footprints({**projected, **pool}, (7, None), (7, 8)))
+        for case in ('union', 'exclusive', 'owners'):
+            bad = copy.deepcopy(projected)
+            if case == 'union': bad['host_tensor_storage_bytes'] += 1
+            elif case == 'exclusive': bad['host_adapter_footprints'][0]['exclusive_storage_bytes'] += 1
+            else: next(row for row in bad['host_allocations'] if len(row['adapter_ids']) == 2)['adapter_ids'] = [7]
+            with self.subTest(case=case), self.assertRaises(ValueError):
+                NativeSourceSnapshot._footprints({**bad, **pool}, (7, None), (7, 8))
+
+    def test_staged_alias_empty_and_explicit_boolean_contract(self):
+        native, models = self.native_models()
+        staged = {9: SimpleNamespace(id=9, rank=4, loras=models[8].loras)}
+        full = monitor._ieee_lora_host_inventory(native, staged_models=staged)
+        projected = monitor._ieee_lora_host_inventory(native, staged_models=staged, include_tensor_views=False)
+        self.assertEqual(projected, {k: v for k, v in full.items() if k != 'host_tensor_views'})
+        self.assertEqual(projected['host_staged_adapter_ids'], [9])
+        with self.assertRaisesRegex(ValueError, 'staged and registered'):
+            monitor._ieee_lora_host_inventory(native, staged_models={8: models[8]}, include_tensor_views=False)
+        models.clear()
+        empty = monitor._ieee_lora_host_inventory(native, include_tensor_views=False)
+        self.assertNotIn('host_tensor_views', empty)
+        self.assertEqual(empty['host_allocations'], [])
+        self.assertEqual(empty['host_adapter_footprints'], [])
+        for invalid in (None, 0, 1, 'false'):
+            with self.subTest(value=invalid), self.assertRaisesRegex(ValueError, 'explicit boolean'):
+                monitor._ieee_lora_host_inventory(native, include_tensor_views=invalid)
+
+
 class NativePinnedHostAccounting(unittest.TestCase):
     def test_background_candidate_reads_native_config_without_assuming_immediate_return(self):
         setting = 'pinned_max_cached_size_mb:0,pinned_use_background_threads:True'

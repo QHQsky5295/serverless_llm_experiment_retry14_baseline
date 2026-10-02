@@ -1,0 +1,54 @@
+{
+  "passed": true,
+  "base_commit": "bd7cb1c527216b009548bf78779ba4fadf2c6936",
+  "non_projection_serving_ast_unchanged": true,
+  "tests_passed": {
+    "targeted": 26,
+    "regression": 942
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "cleanup": [
+    {
+      "phase": "tests1",
+      "actual_invocation_id": "f8ec26a75c294cd2bfc35bf9b60594bb",
+      "returncode": 1,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    },
+    {
+      "phase": "probe1",
+      "actual_invocation_id": "9518c739c83f4612b2f4caa53a0fec35",
+      "returncode": 0,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    },
+    {
+      "phase": "tests2",
+      "actual_invocation_id": "ff4f62b9014147b4b4ffafa30206eb22",
+      "returncode": 0,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    },
+    {
+      "phase": "regression1",
+      "actual_invocation_id": "c92290ee825f435582196e8ad5d30e53",
+      "returncode": 0,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    }
+  ],
+  "curated_sha256": "3901559beb1460488ebcb79253bd86f49c75b1acbd94e8a21eac39c9002e9c01",
+  "table_sha256": "20d2940e0c01b4036488b7e1ccae26baebb36c51eaa06aeaba8250d7919163f4",
+  "document_sha256": "5b57fb4cd0ce563b0b84f982b97a073a30e6a95de092f309a24f6e21aec4013c"
+}

@@ -1,0 +1,5 @@
+snapshot,registered_adapters,host_views,json_representation_bytes_before,json_representation_bytes_after,reduction_fraction,exact_source_and_routing_equal
+0,8,2048,755574,336182,0.5550640969646917,True
+1,12,3072,1074629,444997,0.5859063918803605,True
+2,20,5120,1713722,662970,0.6131402876312494,True
+3,24,6144,2031752,771272,0.6203906776023845,True

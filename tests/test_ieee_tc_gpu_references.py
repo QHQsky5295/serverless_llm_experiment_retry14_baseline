@@ -1516,7 +1516,7 @@ class NativeDemandTransactions(unittest.TestCase):
             self.assertIn('staged_sources', first)  # Owner invariants are not bypassed.
             self.assertNotIn('native_staging_footprints', first)
             self.assertNotIn('native_host_allocator', first)
-            host.assert_called_once_with(self.manager)
+            host.assert_called_once_with(self.manager, include_tensor_views=False)
             pool.assert_called_once_with(self.manager, require_uniform_slots=True)
             staged.assert_not_called()
             allocator.assert_not_called()

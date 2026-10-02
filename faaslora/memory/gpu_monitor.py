@@ -40,14 +40,22 @@ from ..utils.config import Config
 from ..utils.logger import get_logger
 
 
-def _ieee_lora_host_inventory(manager: Any, *, staged_models=None) -> Dict[str, Any]:
+def _ieee_lora_host_inventory(manager: Any, *, staged_models=None,
+                              include_tensor_views: bool = True) -> Dict[str, Any]:
     """Storage reachable from dense native CPU adapters, without materialization.
 
     A LoRAModel clone/packed layer may share a storage. Charge its capacity once
     per worker, retain adapter-to-allocation edges, and do not confuse a view's
     numel with the backing storage. This excludes allocator overhead, staging,
     tmpfs files and page cache; it is not process RSS or a HOST-budget lease.
+
+    Routing consumes the complete storage/alias graph but not the descriptive
+    tensor-view table. Its projection still visits and validates EVERY current
+    tensor; it neither caches a previous inventory nor relocates frontend graph
+    validation into the serialized GPU execution loop.
     """
+    if type(include_tensor_views) is not bool:
+        raise ValueError('native HOST tensor-view projection requires an explicit boolean')
     models = manager.list_adapters()  # Native read-only cache copy, no LRU touch.
     if staged_models:
         if set(models) & set(staged_models):
@@ -56,6 +64,7 @@ def _ieee_lora_host_inventory(manager: Any, *, staged_models=None) -> Dict[str, 
     allocations = {}
     views = []
     adapters = []
+    adapter_dtypes = {}
 
     def contains_tensor(value):
         if torch.is_tensor(value):
@@ -88,11 +97,14 @@ def _ieee_lora_host_inventory(manager: Any, *, staged_models=None) -> Dict[str, 
             raise ValueError('aliased native CPU storage has inconsistent capacity/pinning')
         if aid not in allocation['adapter_ids']:
             allocation['adapter_ids'].append(aid)
-        views.append({'adapter_int_id': aid, 'name': name,
-            'allocation_id': allocation['allocation_id'], 'shape': list(tensor.shape),
-            'stride': list(tensor.stride()), 'dtype': str(tensor.dtype),
-            'view_bytes': int(tensor.numel()) * int(tensor.element_size()),
-            'storage_offset_elements': int(tensor.storage_offset())})
+        dtype = str(tensor.dtype)
+        adapter_dtypes[aid].add(dtype)
+        if include_tensor_views:
+            views.append({'adapter_int_id': aid, 'name': name,
+                'allocation_id': allocation['allocation_id'], 'shape': list(tensor.shape),
+                'stride': list(tensor.stride()), 'dtype': dtype,
+                'view_bytes': int(tensor.numel()) * int(tensor.element_size()),
+                'storage_offset_elements': int(tensor.storage_offset())})
         return allocation['allocation_id']
 
     if torch is None:
@@ -105,6 +117,7 @@ def _ieee_lora_host_inventory(manager: Any, *, staged_models=None) -> Dict[str, 
         if getattr(model, 'is_3d_lora_weight', False):
             raise ValueError('3D native HOST representation is not qualified')
         used, packed = set(), False
+        adapter_dtypes[aid] = set()
         for name, layer in sorted(model.loras.items()):
             if not isinstance(name, str) or not name:
                 raise ValueError('native HOST module name is invalid')
@@ -142,9 +155,9 @@ def _ieee_lora_host_inventory(manager: Any, *, staged_models=None) -> Dict[str, 
         # registered adapter. Actual release also depends on execution references.
         adapter['exclusive_storage_bytes'] = sum(row['allocated_bytes'] for row in used
                                                 if len(row['adapter_ids']) == 1)
-        adapter['dtypes'] = sorted({v['dtype'] for v in views
-                                   if v['adapter_int_id'] == adapter['adapter_int_id']})
-    return {'host_allocations': physical, 'host_tensor_views': views,
+        adapter['dtypes'] = sorted(adapter_dtypes[adapter['adapter_int_id']])
+    return {'host_allocations': physical,
+            **({'host_tensor_views': views} if include_tensor_views else {}),
             'host_adapter_footprints': adapters,
             'host_tensor_storage_bytes': sum(row['allocated_bytes'] for row in physical),
             'host_footprint_scope': ('native_registered_and_staged_tensor_storage_capacity'
@@ -877,7 +890,9 @@ class IEEEWorkerObservationExtension:
         if operation in ('source_snapshot', 'routing_source_snapshot'):
             # Same serialized owner invocation: neither source identity nor
             # cache membership can change between these two read-only views.
-            host = _ieee_lora_host_inventory(manager)
+            host = (_ieee_lora_host_inventory(manager, include_tensor_views=False)
+                    if operation == 'routing_source_snapshot'
+                    else _ieee_lora_host_inventory(manager))
             result['native_footprints'] = {
                 **host,
                 **_ieee_lora_pool_inventory(manager, require_uniform_slots=True)}
