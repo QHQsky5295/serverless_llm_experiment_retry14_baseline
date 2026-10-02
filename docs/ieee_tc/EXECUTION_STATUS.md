@@ -1,6 +1,143 @@
 # IEEE TC execution status
 
-## CURRENT — D159 fused execution objectives QUALIFIED/SEALED; backup pending
+## CURRENT — D160 ordinary 7B Full W0 analyzed/tabled/SEALED; backup pending
+
+2026-10-02 14:06 +08. Goal ACTIVE/PROGRESS. D160 completed4000native/0failure;
+no live GPU/remote/analysis/tool jobs. D159 sole candidate runtime11a5432 unchanged.
+Mean/P95/P99TTFT4.678565588/11.104037948/16.755107238s, versusD158 -27.010%/
+-35.356%/-44.232%. TPOTmean/P9544.056091963/78.245302140ms:mean+0.921%,P95-5.251%.
+U15966.353155035002GPU-s (+0.069%); all4released. Numericadapter/commonSLO/
+G1G2 remainOPEN,n_correctnull; n1noCI, NOTmodelacceptance orresourcegain.
+Dispatch2.876250918s=61.477%TTFT; source→dispatch1.382736770s;
+native4.979539395/last→controller.567400209/controller→terminal.400696384s.
+Gate→terminal8.939861999s UPPERenvelope, notexactpermitrelease. 15nonoutput
+fields4000matchD158;127outputhashdifferencesOPEN. Timingerrors0ms,tiers4000/conflicts0.
+Remote132published/131480060wireB/packing0, noonce-onlycache recreation.
+Resources4055samples,peak20444213248B/minhost92474380288B,events/swap/warnings0.
+Planning1858receipts:1856owned(1855completed+1cancelleddiscarded),2initcompleted;
+CPU1016.950546913+0.063301133s. Objectiveworker substage75.659msmean,606.791msP95.
+Control1763inwindow/1007queued/943belowreadycapacity; notproofGPUidle.
+
+Analysis COMPLETE: metadata1 c7aac6c0e3804d279e064ed520f5a1d1/32011exit1
+BEFOREload:indentation-only135945146B exceedsunchanged128MiBguard. Retained.
+metadata2 b4b1a4cfdba2440eaa7b52d891df0af3/83258exit0/4.52s/RSS461168KiB:
+addlosslessJSONnewline removal,131304262B, allfields/numericlexemesoriginalunchanged.
+No memorythresholdchange orGPUrerun. Projection58476exit0/80.83s/RSS99072KiB,
+actualef961cfb849c42609350e8d18211d703;274117163Bsource streamedONCE.
+ProjectionSHA9ea2d9c097bd16b0b75cdb3b272f2bf36833a4b999d17434d1dd46153cf5d6fb.
+Curation4206exit0/8.22s/RSS476012KiB actual3fe8bed426ec497fb7656a9bf10e5e52.
+Occupancy60326exit0/3.21s actual567e107576964b3eb5ef750897f6c20d,finalevents0.
+Verify79148exit0 actual625b2ac11bfa42068a4b6ccb333b07b1:311frozen/51curated/
+147protectedPASS,SHA133aac17696c52e0a71c0e38f427a06c0181cc79230400d9c0ff697fb208f03c.
+Bundle64members40989B SHAfc86c9e0129d5ae750935c6465ab8e66cab4e8dcf036549db3400c06df87f781,
+actual0269581790af4673afa386a0d1b24a67/exit0. Allscopeabsencesverified.
+Doc D160_FULL_W0_FULL1.md andcurated nowSEALED, doNOTedit. CuratedSHA
+67db3cf4b7a3f7a26d6cbd8f355b398945439f855fc9e1cd0254104fbdc9d777.
+Disk161795526656B (~150.68GiB); recheckbeforeheavy, nofloorrelaxation.
+NEXT scopedsyntax/secrets/checksum andbackup; thenread-onlysource/history/primary
+reference diagnosis ofremainingnon-generationwait. No newcandidate/runselected.
+DoNOTrepeatD159tests/D160projection/calibration/cachepublication. Actual7Bacceptance
+before3B/externalbaseline remainsmandatory. Alllatermatrixretained.
+
+## D160 terminal history — superseded by completed analysis above
+
+2026-10-02 13:50 +08. SAME D160 finished, not relaunched. 13:49:27 launch
+pass=true; service/replay/watchdog return0, native GPU release and service path
+removal confirmed. LaunchSHA98f21b50605ba155862074d86ad26d61236a8c8d4f38631a85a72c93b611f6c2.
+Banner4000/4000success,0failure is NOT numeric/SLO/G1G2 acceptance.
+Exact local scope/PID/GPU absence verified13:49:42; final cgroup counters after
+automatic removal unavailable, not claimed zero. Exact remote services and
+monitor stopped13:49:43, MainPID0/Resultsuccess; stop46354 CLOSED0.
+Copy41970 CLOSED0; remote journal09547072eefc885b04940592b504378da500edc2d811a80950baa1bf1e8dcd6c
+and monitor039af26b3554c5e13d32a5a0718232de49eac2049e887f75e56ad4e4aa63879d
+match remote source SHAs. No live inference/remote/tool session. Monitoring
+cell8043 ended normally after63polls; no interventions during inference.
+Full Plan/status/V1 and analyze-results/academic-plotting/monitor skills read.
+NEXT boundedmetadata→ONEstreamingprojection→curation/occupancy→comparative
+table/interpretation/seal/backup. No numerical gain claimed before validation.
+7B actual acceptance remains OPEN; 3B/externalbaselines PAUSED. Goal ACTIVE,
+this turn PROGRESS. Do not recreate remote cache/retest D159/reproject D158.
+
+## D160 observation history — superseded by terminal state above
+
+12:55 +08 VERIFIED WAIT thisgoalturn; previousgoalturnPROGRESS(D160launch).
+FullPlan1537lines/status andmonitor-experiment read; SAMEtmux/service/aux
+revalidatedlive12:47:53,then8lightpolls50sapart through12:55:03.
+ExactserviceInvocationID b02b72c8dcf247dfa7f7d7a85605befc checkedoneachpoll,
+533tasks. Latestbanner741/4000success,747arrived,0fail. Sample871:
+service16.695663GiB,host88.703667GiB,disk150.199482GiB,swap/events0,
+no warning/abort/foreignGPU. These areincompleteobservations,NOTacceptance.
+Monitorcell8040 CLOSEDnormally after8polls; NOTexperimenttermination.
+No newcode/config/remote changes, heavyanalysis, bulkI/O, cleanup orrestart.
+No outstandingtoolsession; actualtmux/service/remoteexperimentstillLIVE.
+NEXTmonitorSAMErun untilterminal, then exactownedcleanup+preparedanalysis.
+3B/baselinesstayPAUSED until actualper-modelgoals; no Plan/V1change.
+
+12:46 +08 continuation state: SAMErun remains active, exactserviceInvocationID
+b02b72c8dcf247dfa7f7d7a85605befc reverified/533tasks. Banner166/4000success,
+170arrived,0fail; incomplete, NOTnative/numerical/SLOacceptance. Sample346:
+service16.2029GiB,host88.9966GiB,swap/events0,no warnings/foreigncompute,
+disk150.5935GiB. Nativecores3068435/3073231/3073612/3073930 observedallinside
+exactservicecgroup withCPU4–23,28–47. Replay/watchdogremainseparate.
+No remote change/hash/cleanup/build orsecondoptimizer duringinference.
+PreparedNOTexecuted: exactremote stop/copy, exactlocalabsence/auxcleanup,
+boundedmetadata/ONEprojection/curation/failure/occupancy scriptsreusedfromD158;
+shell/4ASTsyntaxPASS. Newcurator compares sealedD158projection/curatedSHAs and
+auditsD159execution_objectives receiptinsideworker; no metricweakening.
+Postrunanalysiscleanup identities MUSTcome fromactualfuturelaunches,notguesses;
+cleanup_metadata_full1.sh andevidence/sealhelpers NOTprepared yet.
+No livefunctions/toolsession; actualtmux/service/remoteexperimentstillLIVE.
+ThisgoalturnPROGRESS (D160 launched), NOTcompletedmodel. NEXTmonitorSAMEhandle;
+fullcleanup→validation→table→backup onlyafteractualterminal/physicalrelease.
+
+2026-10-02 12:41 +08. ONE Full launched12:40:20 in tmux tc-d160-7b-full1.
+Runtime/evidenceHEAD11a5432ecac7ca6214417ffc471c834b6edeb3e3 alreadyBACKED.
+4000/source42/W0/fixednativecontract, sameD158 configuration except threefresh
+ownedpaths. D159 CPUexecutionplacement issolecandidate; no secondoptimizer,
+profiler, diagnosticprefix, capacity/profilechange or remote cache recreation.
+ReadfullPlan/status/V1 and run-experiment/monitor-experiment skills thisturn.
+Raw results/ieee_tc/p2_backend_qualification/d160_20261002. DoNOTrelaunch.
+
+- serviceprimelora-tc-svc-e8f24d386a694532b07696e17a696e1f.scope,
+  actualb02b72c8dcf247dfa7f7d7a85605befc,72/80GiBswap2verified.
+- auxprimelora-tc-aux-cf939d83ef2549fab79a51edac046699.scope,
+  actual6cf2dfe92a9342a0ad98533cf5e17191,3/4GiBswap0verified.
+  Replay3065490/start42326796 andwatchdog3065497/start42326882 exactaux
+  CPU2,3,26,27. Nativeworkers pendingcapture. Sample35:service3288608768B,
+  host108774916096B,swap/events0,no warnings/foreigncompute.
+  Initialdisk162672603136B passes150GiBnewheavygate;running100GiBunchanged.
+- Externalnotice423269.070846577/t0423329.070846577 exactly60s;
+  traceviewa5331be2e2204483f18206825d9aaa18cbaa259fe0babfc303f989055819430d.
+- Remote3B3654299/4123e27451d74ed1a3535defb7a93d42;
+  7B3654301/211a92065e964fbcbe0aa3ec8551fcf7;
+  monitord160full1 PID3654304/04f89d32746441eabfb33e167db3be3c.
+  7Bclockremote-process-monotonic:e6112f99e41e40a3b01e6bd7fceadfff.
+  Monitor/home/lab14/primelora_remote/tc/d160_20261002/remote_monitor_7b_full_full1.log.
+  BothNIC1000/full; bothhealthPASS; immutablepublishedcache unchanged.
+- prelaunch311refs/147protected/Plan/V1PASS,
+  SHA9c8daf92fbd74e2b889002d0118782f2194bef917fd3f1004f404f0a6e34d237;
+  actual07b5ff508aff4f09a04a929f678a7cd4/session92584CLOSED0.
+  healthactuala9793de97e8e4b5280f9499944388c1a returned0;
+  bothscopesautomaticallyremoved/absenceverified. No failedlaunchattempt.
+
+NEXT monitor SAMErun→actualterminal/physicalrelease→exact-ownedremote stop and
+SHAverifiedcopy→boundedmetadata/ONEprojection→D158comparisontable→backup.
+No remoteoperations/hash/cleanup/build duringinference. DoNOTretestD159,
+reprojectD158 orrecollectD157profiles. Actual7B G1G2/numeric/commonreferences
+remainOPEN;3B andexternalbaselinesPAUSED. Runcompletion isnotmodelacceptance.
+
+## PRIOR — D159 fused execution objectives QUALIFIED/SEALED and BACKED
+
+12:32 +08 backup COMPLETE11a5432ecac7ca6214417ffc471c834b6edeb3e3;
+pushedfaaslora_origin/retry14_continuous_queue_v2 and independentremoteHEADmatch.
+Push10625/verify51294 CLOSED0.10explicitfiles/53staged+archivepayloads checked;
+userdirtymanifestexcluded,diff/checksum/816regressions/147protectedPASS.
+No livejobs. This goalturn PROGRESS, NOT7Bperformanceacceptance.
+DoNOTretest/reseal/recreateonce-onlyremote cache. NextD160ordinaryFull4000W0
+sameD158cap4/newD157profiles, freshpaths andcurrentruntimeHEAD11a5432.
+No newFull launch/config yet. ReuseD158launch+postprocesshelpers, adaptfrozen
+priorcomparisonD158 and newsourcecheckpoint; readfullPlan/status/V1beforelaunch.
+Onlythispost-backupreceipt dirty. 7Bactualacceptancebefore3B/baselines unchanged.
 
 2026-10-02 12:30 +08. Candidate qualification COMPLETE, no live GPU/remote/test.
 regression2 816PASS139.897s(command152.11s/RSS1199084KiB), actual
