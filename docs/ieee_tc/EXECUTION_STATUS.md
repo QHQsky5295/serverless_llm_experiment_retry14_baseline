@@ -1,6 +1,143 @@
 # IEEE TC execution status
 
-## CURRENT — D157 cap4 source calibration COMPLETE; sealing/backup next
+## CURRENT — D158 cap4 Full COMPLETE, analyzed/tabled/sealed; backup next
+
+12:01 +08. GoalACTIVE/PROGRESS, no live GPU/remote/analysis job. D158 runnotrepeated.
+4000native/0failure, numericadapter/commonSLO/G1G2 stillOPEN,n_correctnull.
+U15955.403561064915GPU-s/all4released. Mean/P95/P99TTFT6.409877344/17.177111366/
+30.044413724s; TPOTmean/P9543.653935559/82.581508708ms. VsD154 meanTTFT-93.831%,
+P95-91.839%,U-0.607%,BUTTPOTmean+18.470%/P95+47.117%; NOTmodelacceptance.
+Dispatch4.347203608s=67.820%TTFT; service2.062673737/native.438309931s.
+Phasesarrival→gate2.485875241;gate→source1.861328367;source→dispatch1.624363805;
+native4.913926683;last→controller.679276340;controller→terminal.475202973s.
+Gate→terminal9.554098167s UPPERenvelope;native/gatemeanconcurrency4.942781/9.610198,
+max15/16. Controls1706allinwindow,1058queued/945belowreadycapacity.
+Planning1866receipts:1865completed+1cancelleddiscarded,906.173312workerCPU-s.
+15nonoutputfields4000matchD154;123outputhashchangesOPEN. Timingerrors0ms;
+dispatchtiers4000/conflicts0. Remote132pairs131480060wireB/allpublished/packing0.
+Resources4053samples/peak20526383104B/minhost93204672512B/swap-events0/no warning.
+
+Copy87848CLOSED0; remotejournal+monitorSHAverified. Metadata43359CLOSED0/4.18s/
+RSS434120KiBactual48bfa7388feb464e9cec23713f37302c. Projection79391CLOSED0/
+81.25s/RSS99840KiBactual0e8723c64b83473bad043b471219222a;272793836Bsource
+streamedONCE. ProjectionSHA794da4a0a41a07c782f065247eac475f131903ecb48b2d018527352015e3aad4.
+Curation74957CLOSED0/8.58s/RSS452120KiBactual8b4d78acd8724ef7b930246f524e270e.
+Occupancy40419CLOSED0/3.19sactual7821916901924e1ebceaef5967ff6ae0,finalevents0.
+Verification42829CLOSED0actual18c75473e26148c1a9191412aa60530a,300frozenrefs/
+47curatedrefs/147protectedPASS,SHA d12158e0ffede7eb7c4aa10472ddf8d456f4b3617383d469f7c00838cb64e25c.
+Bundleexit0actualdfd20a4be1d840e4b72d0195d16d10c7,61members39629B,
+SHA6ca3d02e043ff919a09c0b20fe8b9111e9d98673d608902f67031fbd7b5f98f7.
+Allscopeabsencesverified. Compact126043991B retains128MiBguard.
+CuratedSHA bfaed07c833b33dc64f2a4768eda53990068c0ed17baf93c318eecb76d420c23.
+Doc D158_FULL_W0_FULL1.md SEALED,DONOTedit. Fullcomparative/stagetablesready;
+noCI/numericqualification. Servingunchanged39cc3c1. Backup checkpointpending.
+NEXT backup then source/history/primary-reference audit of remainingpostgate
+control/preparationdelay. Retaincap4asdevelopmentcandidate,notformalwinner;
+doNOTrepeatcalibration orblindcapincrease. Actual7Bacceptancebefore3B/baselines.
+
+## D158 terminal history — completed and superseded by closure above
+
+11:47 +08 terminal recheck: SAME D158 finished06:49,4000/4000 banner success.
+launch.pass=true, service/replay/watchdog return0, physicalrelease/pathremoved
+confirmed; launchSHA900180c159d9d055b29fd7c4129c9d48ae6a9bb0f0b77b94aa26e244d3f12223.
+Earlier monitoring messages were last observations, NOT current live state.
+No repeated launch/profile/cache preparation. tmux/scopes/PIDs/GPU absent;
+verify_local_full1_cleanup.sh PASS11:47:28. Exact remote services+monitor stopped
+11:47:29, MainPID0/Resultsuccess; stop session80090 CLOSED0. Remote monitor has
+post-inference idle tail until shutdown: preserve, but do not count tail as the
+inference measurement window. No remote changes occurred during inference.
+Actual journal transfers-a06e30014e084e43a1c5e118ac620adc.jsonl in remoteD80/7b;
+frozenclock37295317e6ed45eb821274319e387def. SHAverifiedcopy pending next.
+Nativecontract/numericaladapter/commonSLO/G1G2 still pending; banner latency and
+legacy cost/SLO NOT final evaluation. NEXT copy→boundedmetadata→ONEprojection→
+curation/table/figure→interpretation/backup. Baselines/3B remain PAUSED.
+
+## D158 observation history — superseded by terminal state above
+
+05:56:37 +08 verified wait: full Plan/status read this turn; run-experiment and
+monitor-experiment followed. SAME tmux tc-d158-7b-full1 and exact service
+InvocationID f06a18ca5374415a83378e405226042a remain active,533tasks.
+Eight 50-second-spaced light polls completed (exec cell7881 CLOSED normally);
+this is NOT experiment termination. Latest banner797/4000success,802arrived,
+0fail. Watchsample924 service16.8318GiB,host88.6918GiB,events/swap0,no warning;
+disk149.0542GiB above100GiBrunningfloor/below150GiBnew-heavyfloor. No new GPU
+run, source/config/remote changes, analysis, bulk hashing, or cleanup performed.
+Previous and current goal turns VERIFIED WAIT, not blocked/not completed.
+NEXT poll SAME live handle; only after terminal+physicalrelease run the prepared
+exact-owned cleanup and bounded postprocessing. No outstanding monitor/tool
+session, but tmux/service/remote remain LIVE. Do not restart or reprofile.
+
+05:48 +08 continuation: full Plan/status/V1 and run-experiment reread; SAME
+tmux run remains live, no repeated launch/profile/test. Live banner285/4000
+reported successes,306arrived,0fail; incomplete, NOT final native/numeric/SLO
+acceptance. Four native cores1292310/1297311/1297612/1297737 observed in exact
+service cgroup with CPU4–23,28–47. Replay1288932/watchdog1288936 inaux.
+Service/aux actualInvocationIDs revalidated active,533/5tasks. Sample435:
+servicecurrent16.2017GiB/peak18.0157GiB,host88.9905GiB,swap/events0,no warning.
+Disk149.4211GiB is below new-heavy150GiB gate but above running100GiB floor;
+do NOT clean/compress during inference, recheck after owned native cleanup.
+Actual service.log now present at launch.launch/service.log; prior absence
+was not a stopped-run finding. No remote changes/hash/extra probes.
+
+Prepared ONLY, NOT executed: exact-owned remote stop/copy and local-absence
+helpers adapted from D154 actual IDs;7 metadata/projection/curation/occupancy
+helpers reused with fresh paths and sealed D154 comparison SHAs. Shell/AST
+syntax PASS. Keep128MiB metadata guard, ONE streaming projection, all failure
+and numerical/SLO caveats. Post-run analysis cleanup InvocationIDs must be
+captured from actual launches (no guessed IDs). Source serving unchanged.
+This continuation is a VERIFIED WAIT, not a newly completed experiment.
+
+2026-10-02 05:41 +08. PreviousgoalturnPROGRESS (D157complete/backed2c3d4d6).
+ThisturnPROGRESS: freshFullprelaunchPASS and ONEactualFullstarted05:40:59 in
+tmux tc-d158-7b-full1. Rawresults/ieee_tc/p2_backend_qualification/d158_20261002.
+Serving source39cc3c1 unchanged; evidenceHEAD2c3d4d6bab50275991025d2c79b175909aaaa75f.
+Same4000/source42/W0/fixednativecontract, no profiler/prefix. ExactD157parent
+configuration except threefreshownedpaths; versusD154 onlycap2→4+newmeasured
+profiles/lengthbinding. AllD88/D154 controlthresholds/window/cooldown unchanged.
+No oldprofile relabel; no newtrace/weights/cachegeneration. G1G2 stillOPEN.
+
+- serviceprimelora-tc-svc-dfd79a7266164dd6b618f5de5176f088.scope,
+  actualf06a18ca5374415a83378e405226042a.
+- auxprimelora-tc-aux-7fbea46f21c142679502de2f4a04aef8.scope,
+  actual41e91347bc764ddeb9c465ef7470b5f6;3/4GiBswap0 verified.
+  Replay1288932/start39810757/CPU2,3,26,27 inaux. Nativeworker pendingcapture.
+  Watchsample18 no warning/abort,service1673850880B/host110702579712B.
+- Externalnotice398108.706786477/t0398168.706786477 exactly60s;4000plan,
+  viewa5331be2e2204483f18206825d9aaa18cbaa259fe0babfc303f989055819430d.
+- Remote3B2969058/79a234da230b4e0a9a56b5f82f9229e8;
+  7B2969060/474129f7ef96401fbdaa8c71ea7c1154;
+  monitord158full1 PID2969063/6ea9834c984f452dbb15be64acae72b1.
+  7Bclockremote-process-monotonic:37295317e6ed45eb821274319e387def.
+  Monitor/home/lab14/primelora_remote/tc/d158_20261002/remote_monitor_7b_full_full1.log.
+  BothNIC1000/full, healthbothPASS, publishedservicesunchanged.
+- prelaunch300refs/147protected/fullPlan/V1PASS;
+  SHA f6e99d47bb58a2b056ee33f10c1b231d116fa7533375327be43be21b19815335.
+  prelaunchactual475edc9624064353a901519012a19c7c/67746CLOSED0;
+  healthactual67bab28245994700b54d289dac07187e returned0; bothscopesremoved.
+  Initialdisk161490014208B (~150.40GiB) passes150GiBnewheavyfloor.
+
+NEXT monitor SAMErun→actualterminal/physicalrelease→exactownedremote stop and
+SHAverifiedcopy→boundedmetadata/ONEprojection→D154comparison/table→backup.
+No remotechange/hash/cleanup/build duringinference; no secondoptimizer/replay.
+Baselines/3Bpaused until actualper-modelacceptance. No formalSLO/numeric claim.
+
+## PRIOR — D157 cap4 source calibration COMPLETE and BACKED
+
+05:36 +08 backupCOMPLETE2c3d4d6bab50275991025d2c79b175909aaaa75f, pushed
+faaslora_origin/retry14_continuous_queue_v2; independentremoteHEADmatches.
+Push79107/verify37131CLOSED0.23explicitfiles/81payloadsecretsPASS; checksum/
+46analysis-tests/syntax/sealedrefs/diffPASS. Usermanifestexcluded. No livejobs.
+This goal turn PROGRESS (actual184samplecalibration,completecoverage,strictnew
+profiles,mainassembly,figures,backup), NOT7Bacceptance. DoNOTrepeatcompletedD157.
+NextD158 ordinaryFull4000W0: reuseD157raw/7b_main_config_full1.yaml, changingONLY
+threeownedoutput/NVMe/HOSTpaths; usecurrentHEAD2c3d4d6, unchangedserving39cc3c1.
+ReuseD154launcher/prelaunch/remotehealth/cleanup withnewpaths/identities and
+newprofileprovenance. D154same-configcomparisonassert needsdeclaredcap/profile
+differences, not oldcap2 assertion. Profilesalreadyqualified, no more GPU probes.
+No Full D158 prepared/launched yet. Beforeheavy readfullPlan/status/V1 and
+recheckdisk150GiB: current161490214912B (~150.40GiB). Neverweakenfloor.
+G1G2/numericadapter/commonwarm/Resident references andoldPrimecomparison open;
+3B/externalbaselinesstayPAUSED. Onlythispost-backupreceipt isnewlocaldirty.
 
 05:35 +08 evidenceverificationPASS SHA61b606b02363a85952fd53bf7d408c19de40875393468530c846aefed7934158.
 Doc/result/figures/profiles nowSEALED, doNOTedit. Complete58member35338B bundle
