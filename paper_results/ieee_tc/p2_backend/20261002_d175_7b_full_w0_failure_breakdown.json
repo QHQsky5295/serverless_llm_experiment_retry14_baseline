@@ -1,0 +1,23 @@
+{
+  "kind": "d175_full1_failure_breakdown_v1",
+  "formal_performance_result": false,
+  "source_script_sha256": "e8b6223e26c49c5c600a566fdb886dfa990426ac38ef72ba84e5482637be6c97",
+  "projection_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d175_20261002/full_full1_request_projection.json",
+  "projection_sha256": "0c6e3127c172706cb5cc1d389d52c25d931f3c73977b3b566f919036866170a3",
+  "population": {
+    "planned": 4000,
+    "success": 4000,
+    "timeout": 0,
+    "returned_error": 0
+  },
+  "failure_observation_clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+  "returned_categories": {},
+  "returned_error_messages": {},
+  "returned_generation_submission_states": {},
+  "first_timeout": null,
+  "first_returned_error": null,
+  "timeout_generation_submission_states": {},
+  "timeout_requests": [],
+  "returned_requests": [],
+  "caveat": "Missing evidence is not proof of no dispatch. not_submitted describes this generation, not other unsettled RPC ownership or physical release."
+}
