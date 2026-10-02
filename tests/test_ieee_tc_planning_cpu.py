@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 from faaslora.preloading.planning_cpu import (
     IEEEPlanningCPU, execute_planning_message, freeze_owned_planning,
-    ValidatedPreparationPlan, execution_preparation_input)
+    ValidatedPreparationPlan, execution_preparation_input, execution_preparation_bundle)
 from faaslora.registry.schema import StorageTier
 
 
@@ -217,6 +217,83 @@ class PlanningCPU(unittest.IsolatedAsyncioTestCase):
                 execute_planning_message(pickle.dumps(('owned_execution_epoch', limit, args), protocol=5))
         with self.assertRaisesRegex(ValueError, 'completed worker transaction'):
             ValidatedPreparationPlan._from_worker_result(payload, dict(receipt, frozen_execution_validated=False))
+
+    async def test_objectives_equal_original_functions_and_share_single_transaction(self):
+        from faaslora.preloading.preloading_planner import (
+            owned_gpu_execution_objective, owned_file_execution_objective)
+        args, runner, _ = await asyncio.to_thread(self.inputs)
+        worker = runner._stack._ieee_planning_cpu = IEEEPlanningCPU()
+        self.addAsyncCleanup(worker.close)
+        sealed = await worker.run('owned_execution_epoch',
+            runner._stack.preloading_planner.max_dp_buffer_bytes, args)
+        edges = runner._preparation_profiles.size_edges_bytes
+        with patch('faaslora.preloading.planning_cpu.run_planning_cpu',
+                   side_effect=AssertionError('second CPU transaction')):
+            plan, selected, bundle = await execution_preparation_bundle(
+                runner._stack, sealed, size_edges_bytes=edges)
+            self.assertTrue(selected['gpu'])
+            self.assertEqual(bundle['gpu'], owned_gpu_execution_objective(
+                plan=plan, selected=selected, size_edges_bytes=edges))
+            if selected['host'] or selected['nvme']:
+                self.assertEqual(bundle['file'], owned_file_execution_objective(
+                    plan=plan, selected=selected, file_plan_id=bundle['file_plan_id']))
+            self.assertFalse(bundle['gpu']['physical_resources_reserved'])
+            bundle['gpu']['owner_id'] = 'mutated-private-copy'
+            _, _, again = await execution_preparation_bundle(runner._stack, sealed,
+                size_edges_bytes=edges)
+            self.assertNotEqual(again['gpu']['owner_id'], 'mutated-private-copy')
+            with self.assertRaisesRegex(ValueError, 'size classes'):
+                await execution_preparation_bundle(runner._stack, sealed,
+                    size_edges_bytes=tuple(edges)+(99999999,))
+        self.assertEqual(len(worker.events), 1)
+        self.assertTrue(worker.events[0]['execution_objectives_prepared'])
+        self.assertGreaterEqual(worker.events[0]['execution_objectives_seconds'], 0)
+        # A mutable export cannot carry a forged objective past revalidation.
+        bad = sealed.snapshot()
+        bad['source_view']['native']['owner_id'] = 'tampered'
+        with self.assertRaisesRegex(ValueError, 'physical owner view'):
+            await execution_preparation_bundle(runner._stack, bad, size_edges_bytes=edges)
+        plain, chosen, rebuilt = await execution_preparation_bundle(runner._stack,
+            sealed.snapshot(), size_edges_bytes=edges)
+        self.assertEqual((plain, chosen), (plan, selected))
+        self.assertEqual(rebuilt['gpu'], again['gpu'])
+        self.assertNotEqual(rebuilt['file_plan_id'], again['file_plan_id'])
+
+    async def test_objective_validation_failure_does_not_publish_a_sealed_plan(self):
+        args, runner, _ = await asyncio.to_thread(self.inputs)
+        limit = runner._stack.preloading_planner.max_dp_buffer_bytes
+        with patch('faaslora.preloading.preloading_planner.owned_gpu_execution_objective',
+                   side_effect=ValueError('objective-validation-rejected')):
+            with self.assertRaisesRegex(ValueError, 'objective-validation-rejected'):
+                execute_planning_message(pickle.dumps(('owned_execution_epoch', limit, args), protocol=5))
+
+    async def test_initialized_objective_uses_detached_snapshot_and_joined_cancellation(self):
+        from faaslora.preloading.preloading_planner import owned_gpu_execution_objective
+        args, runner, _ = await asyncio.to_thread(self.inputs)
+        limit = runner._stack.preloading_planner.max_dp_buffer_bytes
+        payload, _ = execute_planning_message(pickle.dumps(('owned_epoch', limit, args), protocol=5))
+        plan = pickle.loads(payload)
+        selected = runner._stack.preloading_planner.validate_ieee_execution_plan(plan)
+        # Existing initialized plans use the same pure entry without replacing
+        # their observation. Pre-init binding/epoch rejection is covered by the
+        # real mixed-executor tests in test_ieee_tc_transfer_pressure.
+        kw = dict(plan=plan, selected=selected,
+                  size_edges_bytes=runner._preparation_profiles.size_edges_bytes)
+        expected = owned_gpu_execution_objective(**kw)
+        worker = IEEEPlanningCPU()
+        self.addAsyncCleanup(worker.close)
+        task = asyncio.create_task(worker.run('initialized_gpu_objective', limit, kw))
+        await asyncio.sleep(0)
+        plan['source_view']['native']['owner_id'] = 'parent-mutated'
+        self.assertEqual(await task, expected)
+        kw['plan'] = pickle.loads(payload)
+        task = asyncio.create_task(worker.run('initialized_gpu_objective', limit, kw))
+        await asyncio.sleep(0)
+        task.cancel()
+        with self.assertRaises(asyncio.CancelledError):
+            await task
+        self.assertEqual(worker.events[-1]['state'], 'cancelled_result_discarded')
+        self.assertEqual(len({r['worker_pid'] for r in worker.events}), 1)
 
 
 if __name__ == '__main__':

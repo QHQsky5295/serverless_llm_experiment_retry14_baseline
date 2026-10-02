@@ -17616,8 +17616,13 @@ class ScenarioRunner:
         if (not self.model_cfg.get('ieee_gpu_references') or self._stack is None
                 or not isinstance(target_replica, str) or not target_replica):
             raise ValueError('file plan requires the managed native deployment')
-        from faaslora.preloading.planning_cpu import execution_preparation_input
-        plan, selected = await execution_preparation_input(self._stack, plan)
+        from faaslora.preloading.planning_cpu import execution_preparation_bundle, run_planning_cpu
+        # Explicit file-only plans predate native source views and need no
+        # native profile. This is a separate supported plan contract, not a
+        # missing-profile fallback: a GPU target without classes is rejected.
+        plan, selected, objectives = await execution_preparation_bundle(self._stack, plan,
+            size_edges_bytes=(self._preparation_profiles.size_edges_bytes
+                              if 'source_view' in plan else None))
         preinit = activation_ready is not None
         if preinit and (plan['source_view']['native'] is not None
                 or plan['source_view']['activation_id'] != activation_id
@@ -17628,14 +17633,11 @@ class ScenarioRunner:
             raise ValueError('delayed handoff requires the same pre-init plan')
         if selected['gpu'] and gpu_slot is None and not preinit:
             raise ValueError('file executor cannot silently drop selected native GPU targets')
-        gpu_objective = None
+        gpu_objective = objectives['gpu']
         if selected['gpu'] and not preinit:
-            from faaslora.preloading.preloading_planner import owned_gpu_execution_objective
             if (gpu_slot.engine is not target_engine or gpu_slot.instance_id != target_replica
                     or replacement_costs is not None):
                 raise ValueError('mixed plan requires its actual slot; file-only replacement is not a joint objective')
-            gpu_objective = owned_gpu_execution_objective(plan=plan, selected=selected,
-                size_edges_bytes=self._preparation_profiles.size_edges_bytes)
         mode = plan['mode']
         if mode == 'handoff' and not activation_id:
             raise ValueError('file handoff requires its actual activation identity')
@@ -17677,7 +17679,7 @@ class ScenarioRunner:
                 tier = 'nvme' if source['tier'] == 'remote' else source['tier']
                 targets[tier, aid] = dict(tier=tier, adapter_id=aid,
                     content_sha256=self._ieee_artifact_identities[aid]['content_sha256'])
-        plan_id = uuid.uuid4().hex
+        plan_id = objectives['file_plan_id']
         # Validate before registering any ownership or starting pre-init IO.
         from dataclasses import asdict
         from faaslora.clock import local_monotonic_clock_id
@@ -17693,9 +17695,7 @@ class ScenarioRunner:
         owned_file_replacement = (plan.get('replacement_policy') == 'owned_native_and_file_replacement_v2'
                                   and bool(recipes))
         if owned_file_replacement:
-            from faaslora.preloading.preloading_planner import owned_file_execution_objective
-            replacement_epoch = owned_file_execution_objective(plan=plan, file_plan_id=plan_id,
-                                                               selected=selected)
+            replacement_epoch = objectives['file']
         registration = references.register_file_preparation_plan(plan_id=plan_id, targets=targets.values())
         record = dict(plan_id=plan_id, objective_sha256=plan['plan_sha256'],
             target_replica=target_replica, trigger_reason=mode, activation_id=activation_id,
@@ -17874,10 +17874,10 @@ class ScenarioRunner:
                     target_engine = gpu_slot.engine
                     self._ieee_file_plan_engines[task] = target_engine
                     observed = await target_engine.ieee_gpu_reference(operation='source_snapshot')
-                    from faaslora.preloading.preloading_planner import owned_gpu_execution_objective
-                    gpu_objective = owned_gpu_execution_objective(plan=plan, selected=selected,
-                        size_edges_bytes=self._preparation_profiles.size_edges_bytes,
-                        initialized_snapshot=observed)
+                    gpu_objective = await run_planning_cpu(self._stack, 'initialized_gpu_objective',
+                        dict(plan=plan, selected=selected,
+                             size_edges_bytes=self._preparation_profiles.size_edges_bytes,
+                             initialized_snapshot=observed))
                 result = await self._run_ieee_gpu_preparation_plan(slot=gpu_slot,
                     objective=gpu_objective, target_adapter_ids=tuple(gpu_recipes),
                     trigger_reason=mode, activation_id=activation_id, capacity_only=capacity_only,

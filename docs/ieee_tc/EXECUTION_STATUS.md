@@ -1,6 +1,95 @@
 # IEEE TC execution status
 
-## CURRENT — D158 cap4 Full COMPLETE, analyzed/tabled/sealed; backup next
+## CURRENT — D159 fused execution objectives QUALIFIED/SEALED; backup pending
+
+2026-10-02 12:30 +08. Candidate qualification COMPLETE, no live GPU/remote/test.
+regression2 816PASS139.897s(command152.11s/RSS1199084KiB), actual
+940d747b12dc4f309fa208d6ca29e03f exited0 and scopeabsence verified12:27:20.
+Do NOT repeat targeted/regression checks or old D158 projection/calibration.
+Source original selector/objective functions byte-identical to bd3fc57;
+only execution placement/envelope changed. Correctness is NOT servinggain.
+Doc D159_EXECUTION_OBJECTIVES.md nowSEALED with failure and qualificationtable.
+CuratedSHA b9aa4069a588467463ebb3961e625822f5b8bd3be07e5e002b8df6704b57f663.
+43member326352B evidencebundleSHA
+f50f811325809bb5f783cc6c3fa02e71892ecb63ab6025794625843986a58500.
+Verify1 actualee37c5f7a48043cc946fb5626aaa81d6 exited0/9.05s,147protected/
+Plan/V1/D158/sourcechecksPASS, absenceverified12:29:53. Bundle excludes its
+active verify log; terminalreceipt preservedoutsidebundle and inthisledger.
+
+Disk maintenance COMPLETE: reused unchangedD152 public-wheelaudit+guards;
+reviewedallowlistSHA2be67f416990c47040b5e3f3b3180bdefe0b6a3fa9d191f13a196a3b496451d3.
+5publicdownloads+5headers removed,allocated2334081024B. RegistrySHA/size/HEAD,
+openfile/link/mount/reference/exactfileidentity andprojectgitguardsPASS.
+Installedenvs/vLLMcompilecache/models/LoRA/traces/rawresults unchanged.
+Auditactuala1e0937698bf42af992481eee8cf3dab/applye0c016ac8c3c45b0b88c34095aea883c
+both0/scopesabsent. Available162690375680B(~151.52GiB), recheckbeforeheavy.
+NEXT scopedsecrets/diff/membercheck+backup, thenD160 ordinary7BFull4000W0 with
+sameD158 cap4/profiles/controls/trace andfreshownedpaths. No morebootstrap/profile
+collection; candidate requires actualnetbenefit test, no performanceclaimyet.
+Bothper-modelgoals/numeric/commonwarm/Resident/G1G2 remainOPEN;3B/baselinesPAUSED.
+
+### D159 qualification history (superseded by closure above)
+
+2026-10-02 12:24 +08. Only Prime7B optimization; no GPU or remote service run.
+Latest user once-only delivery-cache approval is already implemented D78/D80;
+reuse immutable published objects, NEVER rebuild a second pool or put packing
+back on request path. Plan/V1 unchanged. D158 remains sealed/backed.
+
+Single candidate: original pure GPU/file execution-objective functions now run
+inside the existing single planning worker transaction; no extra worker/RPC for
+ordinary owned epochs. Pre-init actual-snapshot binding goes to SAME worker.
+All live registration/owner/epoch/reservation/commit/cleanup checks unchanged.
+History D153 caller observations + D158 stage table and official vLLM/Python
+sources documented in D159_EXECUTION_OBJECTIVES.md. No performance claim yet.
+
+targeted1 9tests/1error retained: handoff does not contain residency size-edge
+field; now explicitly supplied by frozen profile, not an invented default.
+Actualf1b1fdec2e7247a0922bef443e259c60 exited1, absence verified.
+targeted2 9PASS62.157s,command72.51s/RSS1176392KiB;
+actualf765b6ff3c4e411190510880ffc6c323 exited0, absence verified.
+regression1 816tests/2fail5error retained: all7 legacy file-only paths lack a
+native profile by design. Explicit file-only contract now supplies N/A classes;
+GPU targets still reject absent classes. No test weakening/timeout changes.
+Actual1aba46f627c641b2b05ed59e2e39cdcd exited1, absence verified.
+regression2 was launched in tmux tc-d159-regression2, bounded scope
+primelora-d159-regression2-20261002.scope; completedabove. Raw d159_20261002.
+
+Disk160359530496B below150GiBnewheavyfloor. Readonly storage inspection found
+public pip downloads; reused D152 strict public-wheel auditor wrappers prepared
+but NOTexecuted. No deletions, no vLLM compilation cache change. Need reviewed
+allowlist/SHA/open-file/link/reference checks before any permitted reclamation.
+NEXT regressionterminal→exactcleanup→qualificationtable→auditedcachemaintenance
+→seal/backup→ordinaryFull4000W0 sameD158cap4profiles. No repeatedcalibration.
+7B actualG1G2/numeric/commonreferences OPEN; 3B and externalbaselines PAUSED.
+
+## PRIOR — D158 cap4 Full COMPLETE, analyzed/tabled/sealed and BACKED
+
+12:04 +08 backup COMPLETEbd3fc57f4f93dfcafd8add8582514c58f281b2be;
+pushedfaaslora_origin/retry14_continuous_queue_v2,remoteHEADindependentlymatches.
+Push69311/verify94767CLOSED0.12explicitfiles/73payloadscredential-syntax-member
+hashchecksPASS;userdirtymanifestexcluded. Initialgit-addinvocationhadwrongcwd
+andstagednothing; correctedfromreporootbeforechecks. No measurementrerun.
+CurrentnextworkREADONLY: post-gate execution-objective synchronousCPU audit,
+reusingD153historicalcallerobservationsandD158stagetable; no newcandidate
+implemented orGPUrunselected. OfficialvLLMCPU-processseparationblog/Python3.12
+blocking-codeguidancecheckedonline. GoalACTIVE,7BacceptanceOPEN,3B/baselinesPAUSED.
+
+Next-path inspection only: three synchronous calls remain in current runner
+at17637/17697/17878 (owned GPU/file objective derivation). Existing pure worker
+supports owned_execution_epoch/validate_execution only. Functions compute frozen
+costs/candidates/deepcopies/JSON hashes+original validators; live registration,
+reservation and commit occur later. Possible offloading/fusion must preserve
+those exact values and post-await ownership/cancellation/staleness checks;
+do not add a synchronous fallback, extra workers, blindcapacity, or deletechecks.
+This is NOT yet a selected/measured optimizer. D153's34inclusivehistoricalframes
+cannot be used as current CPUpercentages. One ad-hoc jq schema inspection returned
+null-plan error without writing files; no result or cause inferred from it.
+Use bounded/scoped inspection if actual plan payload needed, neverwhole-load
+giant normalresults. AllD158analysis/closurealreadycomplete; doNOTrepeat them.
+Onlythispost-backupstatusreceipt isnewdirty; servingcodeunchanged. No tool
+sessions leftlive. NextcontinuationreadfullPlan/status/V1 thenfinishone evidence-
+based candidate selection. Before any newheavylaunch recheck150GiBdiskgate;
+near-floor state does not authorize thresholdrelaxation or deletingrawresults.
 
 12:01 +08. GoalACTIVE/PROGRESS, no live GPU/remote/analysis job. D158 runnotrepeated.
 4000native/0failure, numericadapter/commonSLO/G1G2 stillOPEN,n_correctnull.

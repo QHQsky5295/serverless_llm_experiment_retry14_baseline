@@ -11,6 +11,7 @@ import multiprocessing
 import os
 import pickle
 import time
+import uuid
 from collections.abc import Mapping
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass, replace
@@ -46,7 +47,8 @@ class ValidatedPreparationPlan(Mapping):
     def _from_worker_result(cls, payload, receipt):
         if (type(payload) is not bytes
                 or receipt.get('operation') != 'owned_execution_epoch'
-                or receipt.get('frozen_execution_validated') is not True):
+                or receipt.get('frozen_execution_validated') is not True
+                or receipt.get('execution_objectives_prepared') is not True):
             raise ValueError('validated preparation requires a completed worker transaction')
         value = object.__new__(cls)
         object.__setattr__(value, '_payload', payload)
@@ -56,6 +58,10 @@ class ValidatedPreparationPlan(Mapping):
 
     def execution_copy(self):
         """One private execution image of the already validated frozen bytes."""
+        return pickle.loads(self._payload)[:2]
+
+    def execution_bundle_copy(self):
+        """Detached plan, selection and pure objectives from the SAME epoch."""
         return pickle.loads(self._payload)
 
     def snapshot(self):
@@ -99,14 +105,39 @@ def _pure_selector(max_dp_buffer_bytes):
     return PreloadingPlanner({'preloading': {'max_dp_buffer_bytes': max_dp_buffer_bytes}}, None)
 
 
+def _execution_objectives(plan, selected, size_edges_bytes):
+    """Derive, but never register/reserve, the original execution objectives.
+
+    Fusing this with selection avoids sending the complete frozen epoch back
+    into the CPU queue a second time. The UUID identifies future file ownership;
+    allocating an identifier is NOT acquiring that ownership. Pre-init GPU
+    binding necessarily waits for a real initialized snapshot in a later call.
+    """
+    from .preloading_planner import (
+        owned_file_execution_objective, owned_gpu_execution_objective)
+    if selected['gpu'] and size_edges_bytes is None:
+        raise ValueError('GPU execution requires explicit frozen profile size classes')
+    bundle = dict(file_plan_id=uuid.uuid4().hex, gpu=None, file=None,
+                  size_edges_bytes=None if size_edges_bytes is None else tuple(size_edges_bytes))
+    if selected['gpu'] and plan['source_view']['native'] is not None:
+        bundle['gpu'] = owned_gpu_execution_objective(plan=plan, selected=selected,
+            size_edges_bytes=bundle['size_edges_bytes'])
+    if (plan.get('replacement_policy') == 'owned_native_and_file_replacement_v2'
+            and (selected['host'] or selected['nvme'])):
+        bundle['file'] = owned_file_execution_objective(plan=plan, selected=selected,
+            file_plan_id=bundle['file_plan_id'])
+    return bundle
+
+
 def execute_planning_message(message):
-    """Pure worker entry. Both branches use the original formulas/checks."""
+    """Pure worker entry. All branches use the original formulas/checks."""
     from .preloading_planner import (
         owned_preparation_inputs, copy_ieee_preparation_plan)
     start, cpu = time.monotonic(), time.process_time()
     operation, max_dp_buffer_bytes, args = pickle.loads(message)
     planner = _pure_selector(max_dp_buffer_bytes)
     validation_seconds = None
+    objectives_seconds = None
     if operation in ('owned_epoch', 'owned_execution_epoch'):
         args = dict(args)
         mode, demand, costs = (args.pop(name) for name in ('mode', 'demand', 'costs'))
@@ -124,10 +155,21 @@ def execute_planning_message(message):
             began = time.monotonic()
             selected = planner.validate_ieee_execution_plan(value)
             validation_seconds = time.monotonic()-began
-            value = (value, selected)
+            began = time.monotonic()
+            objectives = _execution_objectives(value, selected, profiles.size_edges_bytes)
+            objectives_seconds = time.monotonic()-began
+            value = (value, selected, objectives)
     elif operation == 'validate_execution':
         plan = copy_ieee_preparation_plan(args['plan'])
         value = (plan, planner.validate_ieee_execution_plan(plan))
+    elif operation == 'validate_execution_bundle':
+        plan = copy_ieee_preparation_plan(args['plan'])
+        selected = planner.validate_ieee_execution_plan(plan)
+        value = (plan, selected, _execution_objectives(plan, selected, args['size_edges_bytes']))
+    elif operation == 'initialized_gpu_objective':
+        from .preloading_planner import owned_gpu_execution_objective
+        plan = args['plan']
+        value = owned_gpu_execution_objective(**args)
     else:
         raise ValueError('unknown pure planning operation')
     payload = pickle.dumps(value, protocol=5)
@@ -141,7 +183,8 @@ def execute_planning_message(message):
         cgroup=cgroup)
     if operation == 'owned_execution_epoch':
         receipt.update(frozen_execution_validated=True,
-            frozen_validation_seconds=validation_seconds, plan_keys=tuple(value[0]))
+            frozen_validation_seconds=validation_seconds, plan_keys=tuple(value[0]),
+            execution_objectives_prepared=True, execution_objectives_seconds=objectives_seconds)
     return payload, receipt
 
 
@@ -240,3 +283,20 @@ async def execution_preparation_input(stack, plan):
     if type(plan) is ValidatedPreparationPlan:
         return plan.execution_copy()
     return await run_planning_cpu(stack, 'validate_execution', {'plan': plan})
+
+
+async def execution_preparation_bundle(stack, plan, *, size_edges_bytes):
+    """Open the fused private result, or validate an ordinary imported plan.
+
+    No live resources cross into the worker. Callers must retain their normal
+    registration, epoch, cancellation, reservation and commit checks afterwards.
+    """
+    if type(plan) is ValidatedPreparationPlan:
+        result = plan.execution_bundle_copy()
+    else:
+        result = await run_planning_cpu(stack, 'validate_execution_bundle',
+            dict(plan=plan, size_edges_bytes=size_edges_bytes))
+    expected_edges = None if size_edges_bytes is None else tuple(size_edges_bytes)
+    if expected_edges != result[2]['size_edges_bytes']:
+        raise ValueError('execution profile size classes differ from frozen planning')
+    return result

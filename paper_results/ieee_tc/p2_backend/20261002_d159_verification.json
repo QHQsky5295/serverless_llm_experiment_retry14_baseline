@@ -1,0 +1,13 @@
+{
+  "pass_": true,
+  "document_sha256": "fc9dbd2cae79905602148ebfa9a8d25531ab26ca98f7a42fbed63f8e35b3f373",
+  "curated_sha256": "b9aa4069a588467463ebb3961e625822f5b8bd3be07e5e002b8df6704b57f663",
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  }
+}

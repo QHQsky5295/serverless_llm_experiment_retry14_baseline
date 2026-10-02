@@ -1,0 +1,88 @@
+{
+  "kind": "d159_fused_execution_objective_qualification_v1",
+  "base_commit": "bd3fc57f4f93dfcafd8add8582514c58f281b2be",
+  "source_sha256": {
+    "faaslora/preloading/planning_cpu.py": "e88fa09a5d464035d6b07e3569092e6858bcfd35532305b61141b4d92973ce69",
+    "scripts/run_all_experiments.py": "3f6f650916d8aeedd62c2e844e7ce0d8e7f8fd239b7f26a5806257214d421e0a",
+    "tests/test_ieee_tc_planning_cpu.py": "6deb5a63ef2bea28eec431e573a5ab968f42a3e28a979998ec0a9449b40df984",
+    "faaslora/preloading/preloading_planner.py": "148217788f7182b9dc1c1db382dd32ce0e547818512d677ccd23cb25b010df98"
+  },
+  "tests": [
+    {
+      "phase": "targeted1",
+      "count": 9,
+      "exit_code": 1,
+      "body_seconds": 62.91,
+      "maximum_rss_kib": 1177960,
+      "actual_invocation_id": "f1b1fdec2e7247a0922bef443e259c60",
+      "cleanup_verified": true,
+      "final_memory_events": "unavailable_after_automatic_removal"
+    },
+    {
+      "phase": "targeted2",
+      "count": 9,
+      "exit_code": 0,
+      "body_seconds": 62.157,
+      "maximum_rss_kib": 1176392,
+      "actual_invocation_id": "f765b6ff3c4e411190510880ffc6c323",
+      "cleanup_verified": true,
+      "final_memory_events": "unavailable_after_automatic_removal"
+    },
+    {
+      "phase": "regression1",
+      "count": 816,
+      "exit_code": 1,
+      "body_seconds": 148.64,
+      "maximum_rss_kib": 1198776,
+      "actual_invocation_id": "1aba46f627c641b2b05ed59e2e39cdcd",
+      "cleanup_verified": true,
+      "final_memory_events": "unavailable_after_automatic_removal"
+    },
+    {
+      "phase": "regression2",
+      "count": 816,
+      "exit_code": 0,
+      "body_seconds": 139.897,
+      "maximum_rss_kib": 1199084,
+      "actual_invocation_id": "940d747b12dc4f309fa208d6ca29e03f",
+      "cleanup_verified": true,
+      "final_memory_events": "unavailable_after_automatic_removal"
+    }
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "frozen_references": {
+    "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261002_d158_7b_full_w0_full1.json": "bfaed07c833b33dc64f2a4768eda53990068c0ed17baf93c318eecb76d420c23"
+  },
+  "pure_original_objective_functions_unchanged": true,
+  "performance_run_completed": false,
+  "formal_g1_g2_qualified": false,
+  "qualification": "correctness_and_containment_only",
+  "public_download_cleanup": {
+    "audit_sha256": "2be67f416990c47040b5e3f3b3180bdefe0b6a3fa9d191f13a196a3b496451d3",
+    "selected_archives": 5,
+    "removed_files": 10,
+    "freed_file_allocated_bytes": 2334081024,
+    "tracked_projects_unchanged": true,
+    "installed_environments_untouched": true,
+    "after": {
+      "total": 3540727054336,
+      "used": 3198101143552,
+      "available": 162690375680
+    }
+  },
+  "next": "Ordinary 7B W0 Full4000, same D158 cap4/profiles; recheck prelaunch gates.",
+  "caveats": [
+    "No serving speedup inferred from unit tests.",
+    "New GPU/file output materialization may add IPC size; full replay must measure net effect.",
+    "Common numerical identity, warm SLO, Resident budgets and model acceptance remain open."
+  ]
+}
