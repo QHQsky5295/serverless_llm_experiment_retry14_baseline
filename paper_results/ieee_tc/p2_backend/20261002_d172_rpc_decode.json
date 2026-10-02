@@ -1,0 +1,344 @@
+{
+  "kind": "native_rpc_decoder_qualification_v1",
+  "base_commit": "8647f89dd18cdaefa175471d025f7ce23d68a53b",
+  "summary": [
+    {
+      "snapshot": 0,
+      "bytes": 1518630,
+      "original_ms": 48.48010948432299,
+      "candidate_ms": 14.245556550061641,
+      "relative_reduction": 0.7061566753542867
+    },
+    {
+      "snapshot": 1,
+      "bytes": 2215094,
+      "original_ms": 38.66159203268277,
+      "candidate_ms": 14.967994149386262,
+      "relative_reduction": 0.6128458927213086
+    },
+    {
+      "snapshot": 2,
+      "bytes": 3609914,
+      "original_ms": 58.167186084513865,
+      "candidate_ms": 27.866608167338807,
+      "relative_reduction": 0.5209221892417129
+    },
+    {
+      "snapshot": 3,
+      "bytes": 4304329,
+      "original_ms": 59.59022301637257,
+      "candidate_ms": 45.739168715469226,
+      "relative_reduction": 0.23243836991678532
+    }
+  ],
+  "probe": {
+    "kind": "retained_native_json_decode_component_v1",
+    "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d169_20261002/7b_probe1.json",
+    "source_sha256": "ead0c5c81acc52c502874e9d45cfba111665f875220e23467c2e716a0d770602",
+    "msgspec_version": "0.21.1",
+    "snapshots": 4,
+    "measurements": [
+      {
+        "snapshot": 0,
+        "repeat": 0,
+        "decoder": "original",
+        "iterations": 20,
+        "bytes": 1518630,
+        "mean_decode_ms": 38.985425551072694,
+        "exact_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 0,
+        "repeat": 0,
+        "decoder": "candidate",
+        "iterations": 20,
+        "bytes": 1518630,
+        "mean_decode_ms": 17.00965235067997,
+        "exact_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 0,
+        "repeat": 1,
+        "decoder": "candidate",
+        "iterations": 20,
+        "bytes": 1518630,
+        "mean_decode_ms": 16.63528234930709,
+        "exact_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 0,
+        "repeat": 1,
+        "decoder": "original",
+        "iterations": 20,
+        "bytes": 1518630,
+        "mean_decode_ms": 71.88983735104557,
+        "exact_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 0,
+        "repeat": 2,
+        "decoder": "original",
+        "iterations": 20,
+        "bytes": 1518630,
+        "mean_decode_ms": 34.565065550850704,
+        "exact_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 0,
+        "repeat": 2,
+        "decoder": "candidate",
+        "iterations": 20,
+        "bytes": 1518630,
+        "mean_decode_ms": 9.09173495019786,
+        "exact_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 1,
+        "repeat": 0,
+        "decoder": "original",
+        "iterations": 20,
+        "bytes": 2215094,
+        "mean_decode_ms": 29.932097499840893,
+        "exact_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 1,
+        "repeat": 0,
+        "decoder": "candidate",
+        "iterations": 20,
+        "bytes": 2215094,
+        "mean_decode_ms": 14.180754599510692,
+        "exact_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 1,
+        "repeat": 1,
+        "decoder": "candidate",
+        "iterations": 20,
+        "bytes": 2215094,
+        "mean_decode_ms": 14.091090849251486,
+        "exact_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 1,
+        "repeat": 1,
+        "decoder": "original",
+        "iterations": 20,
+        "bytes": 2215094,
+        "mean_decode_ms": 30.158182699233294,
+        "exact_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 1,
+        "repeat": 2,
+        "decoder": "original",
+        "iterations": 20,
+        "bytes": 2215094,
+        "mean_decode_ms": 55.89449589897413,
+        "exact_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 1,
+        "repeat": 2,
+        "decoder": "candidate",
+        "iterations": 20,
+        "bytes": 2215094,
+        "mean_decode_ms": 16.632136999396607,
+        "exact_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 2,
+        "repeat": 0,
+        "decoder": "original",
+        "iterations": 20,
+        "bytes": 3609914,
+        "mean_decode_ms": 47.433040698524565,
+        "exact_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 2,
+        "repeat": 0,
+        "decoder": "candidate",
+        "iterations": 20,
+        "bytes": 3609914,
+        "mean_decode_ms": 27.30891474930104,
+        "exact_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 2,
+        "repeat": 1,
+        "decoder": "candidate",
+        "iterations": 20,
+        "bytes": 3609914,
+        "mean_decode_ms": 28.74585445097182,
+        "exact_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 2,
+        "repeat": 1,
+        "decoder": "original",
+        "iterations": 20,
+        "bytes": 3609914,
+        "mean_decode_ms": 50.0563140027225,
+        "exact_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 2,
+        "repeat": 2,
+        "decoder": "original",
+        "iterations": 20,
+        "bytes": 3609914,
+        "mean_decode_ms": 77.01220355229452,
+        "exact_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 2,
+        "repeat": 2,
+        "decoder": "candidate",
+        "iterations": 20,
+        "bytes": 3609914,
+        "mean_decode_ms": 27.54505530174356,
+        "exact_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 3,
+        "repeat": 0,
+        "decoder": "original",
+        "iterations": 20,
+        "bytes": 4304329,
+        "mean_decode_ms": 58.74189989990555,
+        "exact_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 3,
+        "repeat": 0,
+        "decoder": "candidate",
+        "iterations": 20,
+        "bytes": 4304329,
+        "mean_decode_ms": 45.68306909932289,
+        "exact_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 3,
+        "repeat": 1,
+        "decoder": "candidate",
+        "iterations": 20,
+        "bytes": 4304329,
+        "mean_decode_ms": 31.537451248732395,
+        "exact_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 3,
+        "repeat": 1,
+        "decoder": "original",
+        "iterations": 20,
+        "bytes": 4304329,
+        "mean_decode_ms": 59.24657869909424,
+        "exact_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 3,
+        "repeat": 2,
+        "decoder": "original",
+        "iterations": 20,
+        "bytes": 4304329,
+        "mean_decode_ms": 60.78219045011792,
+        "exact_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 3,
+        "repeat": 2,
+        "decoder": "candidate",
+        "iterations": 20,
+        "bytes": 4304329,
+        "mean_decode_ms": 59.9969857983524,
+        "exact_tree_and_float_bits": true
+      }
+    ],
+    "no_gpu_run": true,
+    "no_end_to_end_performance_claim": true,
+    "caveat": "Three alternating component rounds, not independent workload repetitions; no CI."
+  },
+  "cleanup": [
+    {
+      "phase": "cache_audit1",
+      "actual_invocation_id": "a24d309b26204f36a1e3e54e26163c4c",
+      "returncode": 0,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    },
+    {
+      "phase": "cache_apply1",
+      "actual_invocation_id": "936182f8ea6b4478889bf015afd9a0a9",
+      "returncode": 0,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    },
+    {
+      "phase": "probe1",
+      "actual_invocation_id": "28a18bef765942a588a165d596ae58a6",
+      "returncode": 0,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    },
+    {
+      "phase": "tests1",
+      "actual_invocation_id": "5dc14f6715454a8781b373af17c0dbd4",
+      "returncode": 1,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    },
+    {
+      "phase": "tests2",
+      "actual_invocation_id": "2eba1832c82943f8a725311e3b97a963",
+      "returncode": 0,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    },
+    {
+      "phase": "regression1",
+      "actual_invocation_id": "93c313d13b864f8d87431b7fc54fe799",
+      "returncode": 0,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    }
+  ],
+  "cache_maintenance": {
+    "audit_sha256": "17c5e93e58ae86639c18438dab16762c16870037abe10953290683c59cfa9356",
+    "selected_archives": 1,
+    "removed_files": 2,
+    "freed_file_allocated_bytes": 509206528,
+    "tracked_projects_unchanged": true,
+    "installed_environments_untouched": true,
+    "after": {
+      "total": 3540727054336,
+      "used": 3199377330176,
+      "available": 161414189056
+    }
+  },
+  "source_sha256": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py": "e9a4c28e18eca85f50a32fd98a52093ea612d0bd522e73ee67c3b30cc8b98955",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_rpc_decode.py": "3d5258f6800c7781f3dd21118be3bfa788e3f09f9c39e5096c5d528ee0c7543c",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d172_20261002/decoder_probe1.json": "5052a0eb3d93c8889139e52adf7d4b545ac67c6e4e87947ecec51a43a8505d06",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d172_20261002/probe.py": "7f8fff3fb092cab7b29bb4c1d17d1c9a80be90113f3d524f700399c995cb51ff",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d172_20261002/public_download_cache_complete1.json": "1b60fa0513f082ef0a7a26fddb771a1f607dd838b80453ec60a8f4d4c7b06dd7",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d169_20261002/7b_probe1.json": "ead0c5c81acc52c502874e9d45cfba111665f875220e23467c2e716a0d770602"
+  },
+  "tests_targeted": 55,
+  "tests_regression": 849,
+  "failed_test_attempts_preserved": 1,
+  "source_sha256_after_tests": "e9a4c28e18eca85f50a32fd98a52093ea612d0bd522e73ee67c3b30cc8b98955",
+  "no_new_gpu_run": true,
+  "end_to_end_improvement_qualified": false,
+  "n_correct": null,
+  "formal_g1_g2_qualified": false,
+  "common_reference_frozen": false,
+  "table_sha256": "1a3b7876a5ac5aed9d2e38c6c21b159e9d17952af9d4843507c0fd6da3774afd",
+  "document_sha256": "457a0d57d9fe6cbc4d9d0e1e7ef11044279de3a20cc1a54bdf0318685cec7e84"
+}

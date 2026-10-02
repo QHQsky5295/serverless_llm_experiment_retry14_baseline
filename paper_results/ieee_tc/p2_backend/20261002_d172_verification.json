@@ -1,0 +1,70 @@
+{
+  "passed": true,
+  "base_commit": "8647f89dd18cdaefa175471d025f7ce23d68a53b",
+  "non_decoder_serving_ast_unchanged": true,
+  "tests_passed": {
+    "targeted": 55,
+    "regression": 849
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "cleanup": [
+    {
+      "phase": "cache_audit1",
+      "actual_invocation_id": "a24d309b26204f36a1e3e54e26163c4c",
+      "returncode": 0,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    },
+    {
+      "phase": "cache_apply1",
+      "actual_invocation_id": "936182f8ea6b4478889bf015afd9a0a9",
+      "returncode": 0,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    },
+    {
+      "phase": "probe1",
+      "actual_invocation_id": "28a18bef765942a588a165d596ae58a6",
+      "returncode": 0,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    },
+    {
+      "phase": "tests1",
+      "actual_invocation_id": "5dc14f6715454a8781b373af17c0dbd4",
+      "returncode": 1,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    },
+    {
+      "phase": "tests2",
+      "actual_invocation_id": "2eba1832c82943f8a725311e3b97a963",
+      "returncode": 0,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    },
+    {
+      "phase": "regression1",
+      "actual_invocation_id": "93c313d13b864f8d87431b7fc54fe799",
+      "returncode": 0,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    }
+  ],
+  "curated_sha256": "4f7921d9bc83e1d481c4af05229fa64c147d822d5c5ca7146f5720514fbe2fc1",
+  "table_sha256": "1a3b7876a5ac5aed9d2e38c6c21b159e9d17952af9d4843507c0fd6da3774afd",
+  "document_sha256": "457a0d57d9fe6cbc4d9d0e1e7ef11044279de3a20cc1a54bdf0318685cec7e84"
+}

@@ -4864,6 +4864,19 @@ def _encode_rpc_frame(payload: Dict[str, Any]) -> bytes:
     return body + b'\n'
 
 
+def _decode_native_rpc_frame(raw: bytes):
+    """Decode the unchanged JSON wire directly from bytes in the native path.
+
+    msgspec is already a dependency of the qualified vLLM runtime. Do not build
+    an intermediate Unicode copy or coerce fields to a typed projection: owner,
+    epoch, allocation graph and all downstream validation remain unchanged.
+    Invalid JSON (including nonfinite JSON constants) raises; no parser fallback
+    or replacement with null. Legacy backends retain their original decoder.
+    """
+    from msgspec import json as native_json
+    return native_json.decode(raw)
+
+
 def _record_native_rpc_transport_failure(exc, *, phase, started, guard=None, guard_s=None):
     """Annotate the same exception, without changing cancellation or ownership."""
     exc._native_rpc_transport_failure = {
@@ -5316,7 +5329,8 @@ class SubprocessInferenceEngineProxy:
             rpc_phase = 'response_decode'
             if not raw:
                 raise RuntimeError("subprocess_engine_empty_response")
-            response = json.loads(raw.decode("utf-8"))
+            response = (_decode_native_rpc_frame(raw) if native
+                        else json.loads(raw.decode("utf-8")))
             rpc_phase = 'response_validate'
             if _native_event_observer is not None and response.get('native_event_rpc_id') != attempt_id:
                 raise ValueError('service terminal RPC identity mismatch')
@@ -5588,7 +5602,7 @@ class SubprocessInferenceEngineProxy:
                     raw = bytes(channel.recv_buffer[:newline + 1])
                     del channel.recv_buffer[:newline + 1]
                     if on_progress is not None:
-                        frame = json.loads(raw.decode('utf-8'))
+                        frame = _decode_native_rpc_frame(raw)
                         if 'native_event' in frame:
                             phase, phase_started = 'progress_observer', time.perf_counter()
                             await on_progress(frame)

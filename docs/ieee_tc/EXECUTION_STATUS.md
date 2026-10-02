@@ -1,6 +1,56 @@
 # IEEE TC execution status
 
-## CURRENT — D171 provisional 7B timing-gap analysis COMPLETE/SEALED; backup next
+## CURRENT — D172 native JSON decoder candidate QUALIFIED and SEALED
+
+2026-10-02 20:57 +08. Goal ACTIVE/PROGRESS; Prime7B only. Full Plan/status/V1
+read after compaction; run/monitor/analyze/academic-plotting/github-sync followed.
+User once-only delivery-cache approval already fulfilled D78/D80; no recreation
+or remote operation. D171 sealed/backed8647f89, not repeated. No live GPU/jobs.
+
+ONE serving candidate: native receive decodes unchanged JSON directly from bytes
+using existing msgspec0.21.1. Sender/worker/framing/cap/profile/timeouts/9equations/
+epoch/physical owner/progress/cancellation validation unchanged. Non-decoder AST
+identical. Strict nonfinite rejection disclosed; no parser fallback/null coercion.
+Four retained D169 actual snapshots exact tree/types/floatbits; three alternating
+component means48.480→14.246/38.662→14.968/58.167→27.867/59.590→45.739ms.
+Not independent workloads/CI or established end-to-end gain. Doc+24row table
+D172_NATIVE_RPC_DECODE.md complete/SEALED. Do not rerun component qualification.
+
+tests1 54/1error was invalidUTF8 expectation, failure source/log preserved;
+tests2 55PASS.862s/nativeenv0.21.1; regression849PASS152.670s/CPUenv0.20.0.
+Counts overlap. All6prior CPU tasks finalevents/swap0/automaticremoval verified.
+Regression66236CLOSED0, actual93c313d13b864f8d87431b7fc54fe799.
+Verify68359CLOSED0, actual09747f7d521948ae8edba422f92e1461;
+finalevents/swap0 and actualabsence20:57:15 verified. 147protected/Plan/V1/
+sources/tests/AST/table/bundle checksPASS. Read-only post-seal conveniencecheck
+initially used figure-data cwd, corrected to repo root; no data/rerun change.
+
+Disk maintenance reused strictD152 publiccache audit: ONEofficialvLLM0.15wheel
+download+header removed afterSHA/size/HEAD/open-file/link/reference guards;
+509206528allocatedB freed. Installedenvs/compiler/models/LoRA/trace/rawevidence
+untouched. Actualaudit a24d309b26204f36a1e3e54e26163c4c/apply936182f8ea6b4478889bf015afd9a0a9.
+Disk161398829056B near150GiBfloor; recheckbeforeheavy, no floor relaxation.
+
+NEXT scoped backup then ONE ordinary7BFull4000W0 usingD164cap4/D157profiles,
+freshownedpaths/currentcandidate, no profiler/prefix/secondoptimizer. Needactual
+end-to-end test, not more microbenchmarks. Fullnotyetprepared/launched. Numeric/
+commonwarm/Resident/oldPrime-newmetrics/G1G2 stillOPEN. 7Bbefore3B/baselines.
+
+## CURRENT — D171 provisional 7B timing-gap analysis COMPLETE/SEALED and BACKED
+
+20:36 +08 backup COMPLETE 8647f89dd18cdaefa175471d025f7ce23d68a53b,
+pushed faaslora_origin/retry14_continuous_queue_v2; independent remote HEAD
+matched. Push65815/verify73609 CLOSED0. 11 explicit files/33 archive+staged
+entries passed scoped secret checks, CRLF-aware whitespace check, checksum,
+32 tests and 147 protected entries. User dirty manifest/unrelated files untouched.
+Only this post-backup receipt newly dirty. No live jobs. Disk160906625024B.
+This turn PROGRESS; goal ACTIVE, not model acceptance. D171 is complete: do NOT
+repeat its analysis/curation/seal; D170 warm and D78/D80 cache also not repeated.
+NEXT ONE candidate investigation of pre-engine waiting, grounded in D161/D162
+and official implementation; no blind cap/timeout/SLO change. No candidate
+selected or new GPU launch yet. Need audited space recovery before heavy work.
+7B correctness, old-Prime new-metric gap, common reference/Resident and G1/G2
+still OPEN; 3B optimization/external baselines and later matrices wait for 7B.
 
 20:34 +08 seal PASS: curated SHA361bb4bc1ff7c49ac23449227d4dd31d7829cc87fbc86d7847c0658bb5dd7a15;
 22-member 329560-byte bundle SHA89fcdff6f3bf85b65e9b2ccb649972909ff4f1d62fc6de69aadec8010b481a3c.
