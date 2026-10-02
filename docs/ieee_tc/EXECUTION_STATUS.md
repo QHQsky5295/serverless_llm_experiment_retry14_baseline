@@ -1,6 +1,62 @@
 # IEEE TC execution status
 
+## CURRENT — D167 checkpoint-derived content check COMPLETE, backup pending
+
+Offline reuse COMPLETE, no GPU replay or remote operations. All 44 D166 snapshots
+and 19,888 tensors match independently derived checkpoint/config bytes; 0 failed
+tensors. Wrong medical/zero-rank8/omitted-scaling controls rejected with 256/256/
+128 tensor mismatches. 14 artifact tests PASS (7 new); existing 72 preflight
+tests PASS. Serving source and pre-existing preflight AST unchanged; only two
+offline helper additions. Correctness table in D167_CHECKPOINT_SLOT_CONTENT.md.
+The observed snapshots are qualified; per-token execution mapping, full-pool,
+n_correct, common warm-SLO, Resident/G1G2 and old/new Prime acceptance remain OPEN.
+This is evidence progress, NOT a performance experiment or model acceptance.
+
+Tests actual 8ec9011e2f9d453080a6799e86ae3fa2 / session61057 CLOSED0;
+analysis actual 8cf8638ef21648a0a31975b0637f228c / session87673 CLOSED0,
+18.84s/RSS1,180,204KiB. Both 3/4GiB swap0 CPU2,3,26,27/events0, automatic
+removal verified. D166 raw parsed once for NEW digest question, not repeated
+old curation. All inputs/protected147 and Plan/V1/source SHAs checked. No new
+weights/trace/cache, no deleted evidence. Verification97714 CLOSED0 and bundle
+checksum PASS; exact verification receipt below. A convenience read used the
+figure-data cwd and returned missing paths; corrected to repo root, no data
+change or rerun. NEXT secrets/diff/backup, then remaining 7B correctness and
+common measurement using existing scaffolding. Do NOT repeat D166/D167 checks.
+
+18:33 +08 verification actual 92d3d426a1be4da48cccbe7c3563cd9b, events0,
+automatic-removal/inactive/emptyID verified. Curated SHA
+b5c660a626c2fd75736e5140fbf5510d13d56af622ab7eb405ec2f3cf6a1996d;
+21-member 122,569-byte bundle SHA
+74b3b12abcc516a74a526d87715596244a71a62fc5acda899a4409b706a5a3d9.
+Document/results now sealed; no further edits/reanalysis. No live GPU/remote/
+analysis/tool jobs. Goal ACTIVE, current turn PROGRESS; not model acceptance.
+
+### D167 preparation history (superseded by completed record above)
+
+Full authoritative Plan/status read after compaction. D166 remains sealed/backed;
+no repeat GPU prefix, ordinary Full, remote cache preparation or pool generation.
+Latest once-only cache approval is already fulfilled by D78/D80 and remains in
+the Plan. Current task reuses D166 actual slot digests to independently derive
+expected bytes from existing safetensors/config (FP16 cast then B scaling, QKV
+packing, padding/absent modules). Offline preflight helper and negative controls
+added, NOT yet tested/run. No serving mechanism/formula changes. No performance,
+per-token execution-map, full-pool, common SLO or G1/G2 claim. Only Prime7B;
+3B/external baselines remain paused. After bounded test/analysis: table, protected
+checks and backup, then remaining correctness/common-reference mainline.
+
 ## CURRENT — D166 actual 7B slot-content COMPLETE, tabled; seal/backup pending
+
+18:13 +08 BACKUP COMPLETEe35ef2c6a4021ff118fc9b5651f2670b0fac4d46,
+pushedfaaslora_origin/retry14_continuous_queue_v2; independentremoteHEADmatch.
+Push5916/verify14533CLOSED0.11explicitfiles/90staged+archiveentries secrets/
+diff/checksum/17targeted+815regression/147protectedPASS; userdirtymanifestexcluded.
+No liveGPU/remote/analysis/tooljobs. Onlythispostbackupreceipt localdirty.
+ThisgoalturnPROGRESS(actualGPUcontentqualification+diagnosticlayoutfix+table+backup),
+NOT7B or goalacceptance. Completedcachemaintenance and prefixchecks NOTtorepeat.
+NEXT remainingcheckpoint→native registration and per-tokenexecution-map evidence,
+then existingwarm-reference scaffolding for frozenV1 commonmeasurement; don't
+reopenD63looseprobabilitycontrols or rerunFullwithoutnewhypothesis. Actual7B
+G1G2/NewmetricoldPrimecomparison before3B/externalbaselines unchanged.
 
 18:12 +08 seal COMPLETE, document/result SEALED; doNOTedit/retest.
 CuratedSHA54b318efcfd8df839d5741de20d487ec7b0e95155294bb8cd35b24064440604a;

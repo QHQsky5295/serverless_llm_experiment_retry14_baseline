@@ -2,12 +2,124 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+import copy
+import hashlib
 from unittest.mock import patch
 
 import numpy as np
 from safetensors.numpy import save_file
 
 from scripts import ieee_tc_preflight as p
+
+
+class CheckpointSlotAudit(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.weights = Path(self.tmp.name)/'adapter_model.safetensors'
+        self.config = dict(peft_type='LORA', bias='none', r=1, lora_alpha=2,
+                           target_modules=['q_proj', 'k_proj', 'v_proj', 'o_proj'])
+        self.base = dict(model_type='llama', hidden_size=2, intermediate_size=3,
+                         num_hidden_layers=1, vocab_size=5,
+                         num_attention_heads=1, num_key_value_heads=1)
+        self.tensors = {}
+        for i, name in enumerate(self.config['target_modules'], 1):
+            prefix = f'base_model.model.model.layers.0.self_attn.{name}'
+            self.tensors[prefix+'.lora_A.weight'] = np.array([[i, -i]], dtype=np.float32)
+            self.tensors[prefix+'.lora_B.weight'] = np.array([[i], [-i]], dtype=np.float32)
+        save_file(self.tensors, str(self.weights))
+
+    def expected(self):
+        return p.checkpoint_slot_fingerprints(self.weights, self.config, self.base, 4)
+
+    @staticmethod
+    def observed(expected):
+        return [dict(r, all_finite=True, exact_value_match=True, mismatched_elements=0,
+                     actual_nonzero_elements=r['expected_nonzero_elements'],
+                     expected_padded_sha256=r['checkpoint_padded_sha256'],
+                     actual_slot_sha256=r['checkpoint_padded_sha256']) for r in expected]
+
+    def test_all_modules_padding_qkv_order_and_scaling(self):
+        before = self.weights.read_bytes()
+        rows = self.expected()
+        self.assertEqual(len(rows), 18)
+        for index in range(3):
+            row = next(r for r in rows if r['module'].endswith('qkv_proj')
+                       and r['slice'] == index and r['side'] == 'b')
+            correct = np.zeros((2, 4), dtype='<f2')
+            correct[:, 0] = [2*(index+1), -2*(index+1)]
+            self.assertEqual(row['checkpoint_padded_sha256'],
+                             hashlib.sha256(correct.tobytes()).hexdigest())
+        self.assertEqual(sum(r['source_absent'] for r in rows), 10)
+        self.assertEqual(before, self.weights.read_bytes())
+        result = p.validate_checkpoint_slot_snapshot(rows, self.observed(rows))
+        self.assertTrue(result['passed'])
+        self.assertFalse(result['per_token_execution_mapping_qualified'])
+
+    def test_cast_precedes_scaling(self):
+        key = next(k for k in self.tensors if 'q_proj.lora_B' in k)
+        self.tensors[key][:] = 1.00049
+        save_file(self.tensors, str(self.weights))
+        self.config['lora_alpha'] = 3
+        row = next(r for r in self.expected() if r['checkpoint_key'] == key)
+        padded = np.zeros((2, 4), dtype='<f2')
+        padded[:, 0] = np.float16(float(np.float16(1.00049))*3)
+        self.assertEqual(row['checkpoint_padded_sha256'],
+                         hashlib.sha256(padded.tobytes()).hexdigest())
+
+    def test_wrong_source_scaled_value_slice_or_padding_is_rejected(self):
+        rows = self.expected()
+        observed = self.observed(rows)
+        index = next(i for i, r in enumerate(rows) if r['module'].endswith('qkv_proj')
+                     and r['slice'] == 0 and r['side'] == 'b')
+        for field, bad in [('actual_slot_sha256', 'f'*64),
+                           ('expected_padded_sha256', 'e'*64),
+                           ('source_absent', True), ('shape', [4, 2]),
+                           ('source_shape', [1, 2]), ('all_finite', False),
+                           ('actual_nonzero_elements', 3)]:
+            with self.subTest(field=field):
+                broken = copy.deepcopy(observed)
+                broken[index][field] = bad
+                self.assertFalse(p.validate_checkpoint_slot_snapshot(rows, broken)['passed'])
+        # A real wrong Q/K assignment has a valid digest, not just malformed text.
+        broken = copy.deepcopy(observed)
+        other = next(r for r in rows if r['module'].endswith('qkv_proj')
+                     and r['slice'] == 1 and r['side'] == 'b')
+        broken[index]['actual_slot_sha256'] = other['checkpoint_padded_sha256']
+        self.assertFalse(p.validate_checkpoint_slot_snapshot(rows, broken)['passed'])
+
+    def test_missing_duplicate_and_extra_snapshots_rejected(self):
+        rows = self.expected()
+        obs = self.observed(rows)
+        for broken in (obs[:-1], obs+[obs[0]], []):
+            with self.assertRaises(ValueError):
+                p.validate_checkpoint_slot_snapshot(rows, broken)
+
+    def test_checkpoint_missing_or_extra_tensor_rejected(self):
+        for tensors in (dict(list(self.tensors.items())[:-1]),
+                        dict(self.tensors, surprise=np.zeros((1,), dtype=np.float32))):
+            save_file(tensors, str(self.weights))
+            with self.assertRaisesRegex(ValueError, 'inventory'):
+                self.expected()
+
+    def test_unsupported_config_and_geometry_rejected(self):
+        for field, value in [('use_rslora', True), ('rank_pattern', {'q_proj':2}),
+                             ('r', 5), ('lora_alpha', float('nan')),
+                             ('target_modules', ['q_proj'])]:
+            original = self.config.copy()
+            self.config[field] = value
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                self.expected()
+            self.config = original
+        self.base['num_key_value_heads'] = 2
+        with self.assertRaisesRegex(ValueError, 'geometry'):
+            self.expected()
+
+    def test_nonfinite_checkpoint_not_repaired(self):
+        self.tensors[next(iter(self.tensors))][:] = np.nan
+        save_file(self.tensors, str(self.weights))
+        with self.assertRaisesRegex(ValueError, 'shape/dtype/value'):
+            self.expected()
 
 
 class ExistingArtifactAudit(unittest.TestCase):

@@ -1,0 +1,33 @@
+{
+  "passed": true,
+  "base_commit": "e35ef2c6a4021ff118fc9b5651f2670b0fac4d46",
+  "only_new_preflight_functions": [
+    "checkpoint_slot_fingerprints",
+    "validate_checkpoint_slot_snapshot"
+  ],
+  "existing_preflight_ast_unchanged": true,
+  "serving_source_unchanged": true,
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "cleanup": [
+    {
+      "phase": "tests1",
+      "actual_invocation_id": "8ec9011e2f9d453080a6799e86ae3fa2",
+      "cleanup": "automatic_removal_verified"
+    },
+    {
+      "phase": "analysis1",
+      "actual_invocation_id": "8cf8638ef21648a0a31975b0637f228c",
+      "cleanup": "automatic_removal_verified"
+    }
+  ],
+  "curated_sha256": "b5c660a626c2fd75736e5140fbf5510d13d56af622ab7eb405ec2f3cf6a1996d",
+  "table_sha256": "b1484fb8ad21c80c7a9becb91a4de06b3260a2fbca6204cff96b94f3132bacb6",
+  "document_sha256": "5111ff4b65ca668dc4da8d1388b4e739639bf9b97cca35c4dfaa88cca75c277d"
+}

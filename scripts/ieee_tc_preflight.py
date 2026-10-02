@@ -94,6 +94,123 @@ def artifact_tensor_facts(path: Path) -> dict:
                 note='Nonzero operands do not alone prove a nonzero BA product or training quality.')
 
 
+def checkpoint_slot_fingerprints(weights: Path, config: dict, base: dict,
+                                 max_rank: int) -> list[dict]:
+    """Independent offline expectations for dense TP=1 Llama attention LoRA.
+
+    Reads existing safetensors one tensor at a time; no vLLM loader, GPU, or
+    checkpoint writes. Restricted to the audited FP16 q/k/v/o contract. This
+    verifies content at recorded snapshots, not per-token execution arithmetic.
+    """
+    import numpy as np
+    from safetensors import safe_open
+
+    unsupported = ('use_rslora', 'use_dora', 'use_qalora', 'fan_in_fan_out',
+                   'rank_pattern', 'alpha_pattern', 'modules_to_save', 'lora_bias',
+                   'layers_to_transform', 'layer_replication', 'target_parameters',
+                   'alora_invocation_tokens')
+    targets = {'q_proj', 'k_proj', 'v_proj', 'o_proj'}
+    rank, alpha = config.get('r'), config.get('lora_alpha')
+    if (base.get('model_type') != 'llama' or config.get('peft_type') != 'LORA'
+            or config.get('bias') != 'none' or any(config.get(k) for k in unsupported)
+            or not isinstance(config.get('target_modules'), list)
+            or set(config['target_modules']) != targets
+            or type(rank) is not int or type(max_rank) is not int
+            or not 0 < rank <= max_rank or type(alpha) not in (int, float)
+            or not math.isfinite(alpha) or alpha <= 0):
+        raise ValueError('unsupported checkpoint-to-slot contract')
+    dims = [base.get(k) for k in ('hidden_size', 'intermediate_size',
+                                  'num_hidden_layers', 'vocab_size',
+                                  'num_attention_heads', 'num_key_value_heads')]
+    if (any(type(v) is not int or v <= 0 for v in dims)
+            or dims[4] != dims[5] or dims[0] % dims[4]):
+        raise ValueError('only audited dense non-GQA Llama TP=1 geometry is supported')
+    hidden, intermediate, layers, vocab = dims[:4]
+    layout = [('lm_head', 0, None, hidden, vocab, True),
+              ('model.embed_tokens', 0, None, vocab, hidden, True)]
+    for layer in range(layers):
+        p = f'model.layers.{layer}'
+        layout.extend([(p+'.mlp.down_proj', 0, None, intermediate, hidden, False),
+                       (p+'.mlp.gate_up_proj', 0, None, hidden, intermediate, False),
+                       (p+'.mlp.gate_up_proj', 1, None, hidden, intermediate, False)])
+        layout.extend((p+'.self_attn.qkv_proj', i, p+'.self_attn.'+name,
+                       hidden, hidden, False)
+                      for i, name in enumerate(('q_proj', 'k_proj', 'v_proj')))
+        layout.append((p+'.self_attn.o_proj', 0, p+'.self_attn.o_proj',
+                       hidden, hidden, False))
+    expected_keys = {f'base_model.model.{source}.lora_{side}.weight'
+                     for _, _, source, _, _, _ in layout if source
+                     for side in ('A', 'B')}
+    rows = []
+    with safe_open(str(weights), framework='numpy') as reader:
+        if set(reader.keys()) != expected_keys:
+            raise ValueError('checkpoint tensor inventory differs from the full declared contract')
+        for module, index, source, input_dim, output_dim, unpacked in layout:
+            for side in ('a', 'b'):
+                shape = ((max_rank, input_dim) if side == 'a'
+                         else (output_dim, max_rank))
+                if module == 'model.embed_tokens' and side == 'a':
+                    shape = (vocab, max_rank)
+                padded = np.zeros(shape, dtype='<f2')
+                key = None
+                source_shape = None
+                if source:
+                    key = f'base_model.model.{source}.lora_{side.upper()}.weight'
+                    value = reader.get_tensor(key)
+                    source_shape = [rank, input_dim] if side == 'a' else [output_dim, rank]
+                    if (list(value.shape) != source_shape or value.dtype.kind != 'f'
+                            or not np.isfinite(value).all()):
+                        raise ValueError('invalid checkpoint tensor shape/dtype/value')
+                    # v0.30 casts to FP16 before folding alpha/r into B.
+                    # Use independent NumPy operations, not the native loader.
+                    value = value.astype('<f2')
+                    if side == 'b':
+                        value = (value.astype('float32') * (alpha/rank)).astype('<f2')
+                    if not np.isfinite(value).all():
+                        raise ValueError('checkpoint conversion is nonfinite')
+                    padded[:source_shape[0], :source_shape[1]] = value
+                    del value
+                rows.append(dict(module=module, side=side, slice=index,
+                    absent_unpacked=unpacked, shape=list(shape), dtype='torch.float16',
+                    source_shape=source_shape, source_absent=source is None,
+                    checkpoint_key=key, checkpoint_padded_sha256=
+                    hashlib.sha256(padded.tobytes()).hexdigest(),
+                    expected_nonzero_elements=int(np.count_nonzero(padded))))
+    return rows
+
+
+def validate_checkpoint_slot_snapshot(expected: list[dict], observed: list[dict]) -> dict:
+    """Exact independently derived digest/geometry check; never ignore missing rows."""
+    def indexed(rows):
+        result = {}
+        for row in rows:
+            key = (row['module'], row['side'], row['slice'])
+            if key in result:
+                raise ValueError('duplicate slot tensor identity')
+            result[key] = row
+        return result
+    reference, actual = indexed(expected), indexed(observed)
+    if not reference or reference.keys() != actual.keys():
+        raise ValueError('slot tensor inventory mismatch')
+    failures = []
+    fields = ('shape', 'dtype', 'source_shape', 'source_absent', 'absent_unpacked',
+              'expected_nonzero_elements')
+    for key, ref in reference.items():
+        row = actual[key]
+        if (any(row.get(k) != ref[k] for k in fields)
+                or row.get('all_finite') is not True
+                or row.get('exact_value_match') is not True
+                or row.get('mismatched_elements') != 0
+                or row.get('actual_nonzero_elements') != ref['expected_nonzero_elements']
+                or row.get('expected_padded_sha256') != ref['checkpoint_padded_sha256']
+                or row.get('actual_slot_sha256') != ref['checkpoint_padded_sha256']):
+            failures.append(dict(module=key[0], side=key[1], slice=key[2]))
+    return dict(passed=not failures, compared_tensors=len(reference),
+                failed_tensors=len(failures), failures=failures,
+                per_token_execution_mapping_qualified=False,
+                semantic_full_pool_qualification=False, performance_sample=False)
+
+
 def audit_artifact_pools(paths: list[Path], expected_adapters: int) -> dict:
     """Content audit of existing pools; complete scan is NOT a serving qualification."""
     if expected_adapters <= 0:

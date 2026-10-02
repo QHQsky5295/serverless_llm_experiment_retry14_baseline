@@ -1,0 +1,26 @@
+{
+  "passed": true,
+  "member_sha256": {
+    "raw/analysis1.log": "8e2b42624686e6ecf4ea46954fbeef501e0fe6b6bbff73a31a77a17363359f17",
+    "raw/analysis1_memory_events.txt": "28fe05a1d7b8467a03fb54454f7b6a130fab752864d0454f5f6c4a4b6ce307f2",
+    "raw/analysis1_scope.txt": "49f7ca8123dfedcc7f1a100f0b14eb3fa161857831c86d3282365bb6c52290f9",
+    "raw/analysis1_swap.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "raw/analysis1_time.txt": "7899e4bbb2c1c2cfacc8f99c07517b0ab480e33ed397cf3c2ed634f97f16579c",
+    "raw/analyze.py": "ca3a2c24c1a106458982585f43ff9e148c5cd1f2d643ecb34ec1c4b473d5c997",
+    "raw/checkpoint_fingerprints.json": "598c347849e7803c91bf3a95463548b42661478efb263a212aee34178acea2cb",
+    "raw/cleanup_verified.json": "02029063e42a1a68f3473a521423b9c53b2eeffcdadff7d4e94d3479cc4af6c0",
+    "raw/run_cpu.sh": "a0eb433fefba8b6248e46d455a5161e370c353d2346b43bf41b03e665684d76d",
+    "raw/tests1.log": "1e04640f1c8d3a12a099881f9f4a36e674718e17887a5a5c9ac2cd9584405403",
+    "raw/tests1_memory_events.txt": "28fe05a1d7b8467a03fb54454f7b6a130fab752864d0454f5f6c4a4b6ce307f2",
+    "raw/tests1_scope.txt": "ca726824661aef4efbcce584952450035510e76d539a83650193238fd141563c",
+    "raw/tests1_swap.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "raw/tests1_time.txt": "a90be435edc94017c2fe58622032bd741d98e0bb4fcc66006e10a0eac3d33d1c",
+    "raw/verify.py": "4e05d8e0497cbc9b1a0666525e1cbab93b4f4fefcd9d4be36be6d83ec52721c3",
+    "scripts/ieee_tc_preflight.py": "1b36bf825aa26c56343bb0497072b6056577449cbb4d2e1b977598b64cdb3a58",
+    "tests/test_ieee_tc_artifact_audit.py": "3cf40e629088eefddd62432a7a77646b8fe7023606986f93f77f9587792b2044",
+    "docs/ieee_tc/D167_CHECKPOINT_SLOT_CONTENT.md": "5111ff4b65ca668dc4da8d1388b4e739639bf9b97cca35c4dfaa88cca75c277d",
+    "paper_results/ieee_tc/p2_backend/20261002_d167_checkpoint_slot_content.json": "b5c660a626c2fd75736e5140fbf5510d13d56af622ab7eb405ec2f3cf6a1996d",
+    "paper_results/ieee_tc/p2_backend/20261002_d167_checkpoint_slot_content.csv": "b1484fb8ad21c80c7a9becb91a4de06b3260a2fbca6204cff96b94f3132bacb6",
+    "paper_results/ieee_tc/p2_backend/20261002_d167_verification.json": "59e750e7136c58bcf7f0534b7bb44565d8cebc0e3853c30889fa11eee790586e"
+  }
+}
