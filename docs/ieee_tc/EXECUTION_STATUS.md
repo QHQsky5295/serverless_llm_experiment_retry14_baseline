@@ -1,6 +1,73 @@
 # IEEE TC execution status
 
-## CURRENT — D168 common warm-reference input index COMPLETE; backup pending
+## CURRENT — D169 common warm runtime/probe COMPLETE and SEALED, backup pending
+
+19:29 +08 seal COMPLETE. CuratedSHA
+6a288d09587488d3bb74d9fbf448c9e9cd6a153186dcffac0f5a6e234b31b3ad;
+51member124183B bundleSHA
+b5bae030b9c04207f5ead189b3f4a576ce0f2085392f821c879190490a77942f.
+Only4newpreflighthelpers+3opt-inwiringfunctions; allotherpreflightAST/serving
+sourceunchanged,147protected/Plan/V1/sourceSHAsPASS. Doc/results nowSEALED.
+verify1 failed at log-parser assertion: CLI-negative tests print usage before
+separate ok line; original verifier/log retained. Corrected verifier counts72
+unique preflight tests plus sole named warm error against complete85 summary;
+no GPU/test rerun or metric weakening. verify2 actual
+3f5ef9007f034e4ea6b198be6ce04d37/session64083CLOSED0/events0/absenceverified.
+No livejobs; original37MBraw retained andbound, not addedtoGit. NEXT scoped
+secrets/diff/checksum/backup then warm1536+16warmup via SAMEindex/config/mode.
+DoNOTrepeatcompleted32probe, content/index audits, or recreate remote cache.
+Check measurement-output size before fullcalibration; reuse bounded projection
+if needed, no giant whole-load or relaxed4GiBanalysisguard. G1G2stillOPEN.
+
+19:22 +08 actualprobe COMPLETE32/32native,4/4batches. All8 GPUready and actual
+decodeintersection .192102/1.590025/.061170/2.270834s. KVrequired283/336/453/496,
+actualfree1022before/after,block16. No queuecarryover; originalprompt/nativehash/
+tokens/timeidentity/releasechecksPASS. U117.769190706GPU-s/singlelease released;
+144samples/peak7570870272B/minhost106752929792B/events+swap0. No performanceranking.
+Service/watchdog0; exactscope/PID/GPUabsenceverified19:21. Curate1 actual
+fe7f086914274edfbfbe67bd7808ca9a/session7297CLOSED0/events0/automaticremovalverified.
+37MBraw parsedONCE; curated JSON/CSV + doc nowcomplete.147protectedPASS.
+No live GPU/remote/analysis/tooljob. NEXT scopedverification/secrets/backup,
+then D1681536warmmeasurements+16warmup withsameconfig; doNOTrepeat32probe or
+tests without sourcechange. Full/numeric/commonwarmthresholds/G1G2stillOPEN.
+
+19:20 +08 warmtests2 PASS13/.459s, actuala3a04c54c1bb454cbb6a41f905247a6d,
+session82790CLOSED0/events0/automaticremovalverified. Prepare1 passed sealed
+input/configdiff/fullpoolrank16/147protected; actual62d4775b020f4d7a8ee4ac5c45bc3e63,
+session74626CLOSED0/events0/automaticremovalverified. ONEprobe32requests/4batches
+launched tmux tc-d169-7b-probe1; no reference measurement yet. Service
+primelora-tc-svc-b027ea1e83d5417d81acde55031c4c3c.scope actual
+f2a5be6accb749adac2fea5f75710159; aux
+primelora-tc-aux-e693a130b54c4c7c824d4fe6d4b54b24.scope actual
+a3f31da0adac4b9cadbad95de6185895. Limits72/80GiBswap2 and3/4GiBswap0
+read back. Prelaunchdisk162762813440B/host112554930176B. No remote operations.
+NEXT monitorSAMEprobe→actualrelease/cleanup→table/seal/backup; no restart.
+
+2026-10-02 19:15 +08. Goal ACTIVE, Prime7B only. Full Plan/status/V1 read;
+run-experiment/monitor/vLLM + optimization reference used. D168 sealed/backed,
+not repeated. Remote once-only cache approval fulfilled D78/D80; no recreation.
+New opt-in existing preflight mode binds D168 index and measures GPU-ready
+native batches without Prime pending admission. Full/serving code unchanged.
+Candidate reference config explicitly8slots/seqs,rank16,.92officialdefault,
+same TP1FP16/prefixoff/external envelope; NOT newFull config. Needactualprobe.
+tests1 ran85:72existing+13warm;1warmasync error because OS Python lacks
+asyncio.timeout. Native runtime is3.12; warm tests will use existing3.12CPUenv,
+no implementation fallback. Originalfailure retained, noGPUallocation.
+tests1 actualce19c751a2c34c32b05e3d5e268fe73a/session1037 CLOSED1/events0;
+scope automaticremoval/inactive/emptyID/emptyCGverified. No livejobs currently.
+NEXT warmtests2→input/config/protectedchecks→onegatednativebatch8probe→table
+andbackup. No full1536measurement yet; commonwarm/numeric/G1G2 remainOPEN.
+No repeatD166/D167/D168 orFullwithoutnewhypothesis. Baselines/3BPAUSED.
+
+## CURRENT — D168 common warm-reference input index COMPLETE and BACKED
+
+Backup COMPLETE547142f901853cb94233a0a6755eacca18a74afd, pushed to
+faaslora_origin/retry14_continuous_queue_v2; independent remoteHEADmatches.
+Push44629/verify39335 CLOSED0.10scopedfiles/30staged+archiveentries passed
+secrets/diff/checksum/smoke/protected checks; usermanifest excluded. No livejobs.
+Only this post-backup receipt newlydirty. GoalACTIVE/thisturnPROGRESS, NOTmodel
+acceptance. NEXT actual warm runtime/batch feasibility implementation, using
+the sealed D168 index; doNOTrepeat79tests/indexanalysis/contentchecks orcache.
 
 Seal COMPLETE, doc/index/CSV now immutable. Verification actual
 bf8a40de1d814350864e14a307c12acf exited0/events0; automatic-removal/inactive/

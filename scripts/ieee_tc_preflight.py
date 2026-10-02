@@ -2913,6 +2913,193 @@ def warm_reference_input_index(plan, measurements):
         semantic_full_pool_qualification=False, formal_g1_g2_qualified=False)
 
 
+def validate_warm_reference_index(index, plan):
+    """Bind a sealed input-only index to the original trace before GPU startup."""
+    from bisect import bisect_left
+    if (index.get('kind') != 'ieee_tc_warm_reference_input_index_v1'
+            or index.get('metric_protocol_id') != 'primelora_tc_metrics_v1'
+            or index.get('source') != plan.identity()
+            or index.get('samples_per_group_per_round') != 256
+            or index.get('rounds') != 3 or index.get('repeated_input_index') is not True
+            or index.get('measured_warm_reference') is not False
+            or index.get('thresholds') is not None
+            or plan.profile != 'W0' or plan.rate_scale != 1.
+            or len(plan.entries) != plan.source_count):
+        raise ValueError('warm reference index/entire source identity mismatch')
+    bounds = index['finite_upper_bounds']
+    if (bounds != sorted(set(bounds)) or any(type(b) is not int or b <= 0 for b in bounds)
+            or len(index['groups']) != len(bounds)+1):
+        raise ValueError('invalid warm reference group boundaries')
+    seen = set()
+    for number, group in enumerate(index['groups']):
+        if (group['group_id'] != number or len(group['selected']) != 256
+                or group['lower_exclusive'] != (bounds[number-1] if number else None)
+                or group['upper_inclusive'] != (bounds[number] if number < len(bounds) else None)):
+            raise ValueError('warm reference group size/order/bounds mismatch')
+        for selected in group['selected']:
+            position = selected['source_index']
+            if type(position) is not int or not 0 <= position < len(plan.entries) or position in seen:
+                raise ValueError('duplicate or invalid warm source index')
+            seen.add(position)
+            entry = plan.entries[position]
+            row = json.loads(entry.source_json)
+            length, target = selected['native_prompt_tokens'], selected['target_tokens']
+            if (selected['source_request_id'] != entry.request_id
+                    or selected['source_row_sha256'] != entry.source_sha256
+                    or selected['adapter_id'] != row['adapter_id']
+                    or type(target) is not int or target < 2
+                    or target != min(row['expected_output_tokens'], 256)
+                    or type(length) is not int or length <= 0 or length+target > 1024
+                    or bisect_left(bounds, length) != number
+                    or any(not isinstance(selected.get(key), str)
+                           or re.fullmatch('[0-9a-f]{64}', selected[key]) is None
+                           for key in ('canonical_prompt_sha256', 'native_prompt_token_ids_sha256'))):
+                raise ValueError('warm selected request/input contract mismatch')
+    return index
+
+
+def warm_reference_batches(index, phase):
+    """Eight-lane batches; probe selection uses input capacity, never latency."""
+    if phase not in ('probe', 'measure'):
+        raise ValueError('explicit warm reference probe or measure phase required')
+    groups = [(g['group_id'], [g['selected'][i:i+8] for i in range(0, 256, 8)])
+              for g in index['groups']]
+    if phase == 'probe':
+        for group_id, batches in groups:
+            # The largest full declared KV demand and adapter count need not
+            # occur in the same batch. Stable first tie wins; no output selection.
+            positions = {max(range(len(batches)), key=lambda i: sum(
+                math.ceil((r['native_prompt_tokens']+r['target_tokens'])/16)
+                for r in batches[i])), max(range(len(batches)), key=lambda i: len(
+                    {r['adapter_id'] for r in batches[i]}))}
+            for i in sorted(positions):
+                yield dict(phase='capacity_probe', round=None, group_id=group_id,
+                           batch_index=i, selected=batches[i])
+    else:
+        for group_id, batches in groups:
+            yield dict(phase='warmup', round=None, group_id=group_id,
+                       batch_index=0, selected=batches[0])
+        for round_id in range(3):
+            for group_id, batches in groups:
+                for i, selected in enumerate(batches):
+                    yield dict(phase='measurement', round=round_id, group_id=group_id,
+                               batch_index=i, selected=selected)
+
+
+def validate_warm_native_sample(selected, timing, actual_tokens, adapter_int_id):
+    """Native timestamps/IDs only; never proxy wall time or retokenized text."""
+    values = [timing[k] for k in ('native_dispatch_monotonic_s',
+              'native_first_token_monotonic_s', 'native_last_token_monotonic_s')]
+    if any(not isinstance(v, (int, float)) or isinstance(v, bool) or not math.isfinite(v)
+           for v in values):
+        raise ValueError('finite native warm timing required')
+    dispatch, first, last = values
+    target = selected['target_tokens']
+    ttft, tpot = (first-dispatch)*1000., (last-first)*1000./(target-1)
+    if (actual_tokens != target or timing.get('native_terminal_observed') is not True
+            or timing.get('actual_prompt_tokens') != selected['native_prompt_tokens']
+            or timing.get('native_prompt_token_ids_sha256') != selected['native_prompt_token_ids_sha256']
+            or timing.get('gpu_reference_adapter_int_id') != adapter_int_id
+            or not dispatch <= first <= last or ttft <= 0 or tpot <= 0
+            or abs(timing['native_ttft_ms']-ttft) > 1.
+            or abs(timing['native_tpot_ms']-tpot) > 1.):
+        raise ValueError('warm native input/token/adapter/timeline mismatch')
+    return dict(ttft_ms=ttft, tpot_ms=tpot)
+
+
+async def qualify_warm_reference(engine, plan, adapters, index, phase, result):
+    """GPU-ready native batches without Prime routing/planning/admission.
+
+    Preparation and ownership checks precede the timed native generation. Each
+    batch drains and releases before the next; no unrelated activity runs during
+    a measured batch. This is calibration evidence, never a Full performance run.
+    """
+    import asyncio
+    result.update(warm_phase=phase, batch_size=8, warm_batches=[],
+                  measured_warm_reference=False, common_reference_frozen=False,
+                  semantic_full_pool_qualification=False, formal_g1_g2_qualified=False)
+    for serial, specification in enumerate(warm_reference_batches(index, phase)):
+        batch = {k: v for k, v in specification.items() if k != 'selected'}
+        batch.update(serial=serial, pass_native=False, request_indices=[])
+        result['warm_batches'].append(batch)
+        prepared_cases = []
+        result['stage'] = f'warm_batch_prepare:{serial}'
+        for selected in specification['selected']:
+            entry = plan.entries[selected['source_index']]
+            row = json.loads(entry.source_json)
+            aid, target = selected['adapter_id'], selected['target_tokens']
+            prepared = engine.prepare_request('', target, row['expected_input_tokens'],
+                                               chat_messages=row['body']['messages'])
+            prompt_sha = hashlib.sha256(prepared.prompt.encode()).hexdigest()
+            if prepared.max_tokens != target or prompt_sha != selected['canonical_prompt_sha256']:
+                raise RuntimeError('warm prepared input differs from sealed index')
+            snapshot = await engine.ieee_gpu_reference(operation='snapshot')
+            reference = await engine.ieee_gpu_reference(operation='demand_load_and_acquire',
+                lease_id=f'warm/{serial}/{entry.request_id}', adapter_int_id=engine._lora_int_id(aid),
+                lora_name=aid, lora_path=adapters[aid]['path'],
+                expected_owner_id=snapshot['owner_id'], expected_epoch=snapshot['epoch'])
+            if reference.get('acquired') is not True:
+                raise RuntimeError('warm GPU-ready acquisition conflict; no hidden retry')
+            case = dict(selected, batch_serial=serial, phase=batch['phase'],
+                        round=batch['round'], group_id=batch['group_id'],
+                        reference=reference, prompt_sha256=prompt_sha, pass_native=False)
+            batch['request_indices'].append(len(result['requests']))
+            result['requests'].append(case)
+            prepared_cases.append((selected, prepared, aid, reference, case))
+        batch['sources_before'] = await engine.ieee_gpu_reference(operation='source_snapshot')
+        slots = batch['sources_before']['slot_adapter_ids']
+        required = {engine._lora_int_id(r['adapter_id']) for r in specification['selected']}
+        if (batch['sources_before']['complete_for_native_caches'] is not True
+                or not required.issubset(set(slots))):
+            raise RuntimeError('warm batch not actually GPU-ready before native submission')
+        native = batch['scheduler_before'] = await engine.ieee_scheduler_observation()
+        needed = sum(math.ceil((r['native_prompt_tokens']+r['target_tokens'])/
+                     native['kv_tokens_per_block']) for r in specification['selected'])
+        batch['full_declared_kv_blocks'] = needed
+        if (native['admitted'] or native['unretired_iterations'] or native['native_deferred_free_batches']
+                or native['kv_unreserved_free_blocks'] < needed):
+            raise RuntimeError('warm no-carryover/full-context capacity screen failed; not proof of infeasibility')
+
+        async def generate(item):
+            selected, prepared, aid, reference, case = item
+            generated = await engine.generate_prepared(request_plan=prepared,
+                lora_path=adapters[aid]['path'], adapter_id=aid, temperature=0., top_p=1.,
+                generation_seed=42, return_timing=True, gpu_reference=reference)
+            case.update(actual_tokens=generated[2], timing=generated[3])
+            case.update(validate_warm_native_sample(selected, generated[3], generated[2],
+                                                    engine._lora_int_id(aid)))
+            case['pass_native'] = True
+
+        result['stage'] = f'warm_batch_generate:{serial}'
+        tasks = [asyncio.create_task(generate(item)) for item in prepared_cases]
+        try:
+            async with asyncio.timeout(1800.):
+                await asyncio.gather(*tasks)
+        except BaseException:
+            for task in tasks:
+                if not task.done():
+                    task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
+            raise  # Outer physical-runtime shutdown retains uncertain ownership.
+        for _, _, _, reference, case in prepared_cases:
+            case['release'] = await engine.ieee_gpu_reference(operation='release',
+                lease_id=reference['lease_id'], expected_owner_id=reference['owner_id'])
+            if case['release'].get('released') is not True:
+                raise RuntimeError('warm native generation reference not released')
+        after = batch['scheduler_after'] = await engine.ieee_scheduler_observation()
+        if after['admitted'] or after['unretired_iterations'] or after['native_deferred_free_batches']:
+            raise RuntimeError('warm batch has unretired work')
+        starts = [c['timing']['native_first_token_monotonic_s'] for *_, c in prepared_cases]
+        ends = [c['timing']['native_last_token_monotonic_s'] for *_, c in prepared_cases]
+        batch['all_decode_intersection_s'] = max(0., min(ends)-max(starts))
+        batch['pass_native'] = True
+        print(json.dumps(dict(event='warm_reference_batch', serial=serial, phase=batch['phase'],
+              group_id=batch['group_id'], round=batch['round'], count=len(prepared_cases),
+              all_decode_intersection_s=batch['all_decode_intersection_s'])), flush=True)
+    result['calibration_candidate_complete'] = True
+    result['measured_warm_reference'] = phase == 'measure'
+
+
 async def collect_native_source_wave(boundary, slot, cases, result):
     """Measure real selected-source admission/preparation on one native worker.
 
@@ -4082,7 +4269,7 @@ async def initialize_qualification_runtime(model_config, mode):
     """
     from scripts.run_all_experiments import SubprocessInferenceEngineProxy
     physical = mode in ('native_lifecycle', 'native_capacity_wait', 'native_source_matrix',
-                        'native_slot_content')
+                        'native_slot_content', 'native_warm_reference')
     if physical and model_config.get('ieee_physical_allocation') is not True:
         raise ValueError('physical qualification requires actual GPU allocation before startup')
     if not physical and mode != 'cancel_pairs_subprocess':
@@ -4117,7 +4304,10 @@ async def qualify_slot_content_snapshot(engine, adapter_int_id):
 async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                               trace: Path, count: int, mode: str = 'sequential',
                               artifact_audit: Path | None = None,
-                              source_profile_spec: Path | None = None) -> dict:
+                              source_profile_spec: Path | None = None,
+                              warm_reference_index: Path | None = None,
+                              warm_reference_index_sha256: str | None = None,
+                              warm_reference_phase: str | None = None) -> dict:
     """Existing engine + old trace prefix, not a replacement performance runner.
 
     Sequential local-artifact qualification deliberately does not claim main
@@ -4129,18 +4319,25 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
             or prior.get('pass') is not True or prior.get('stage') != 'complete'
             or Path(prior['environment']).resolve() != Path(sys.prefix).resolve()):
         raise RuntimeError('model qualification requires completed CUDA check in this environment')
-    limit = 1000 if mode == 'native_source_matrix' else 100
+    limit = 4000 if mode == 'native_warm_reference' else (1000 if mode == 'native_source_matrix' else 100)
     if type(count) is not int or not 1 <= count <= limit:
         raise ValueError(f'qualification uses a 1..{limit} existing request prefix, not a regenerated trace')
     if (mode == 'native_source_matrix') != (source_profile_spec is not None):
         raise ValueError('native source matrix requires its explicit frozen profiling specification')
+    warm_args = (warm_reference_index, warm_reference_index_sha256, warm_reference_phase)
+    if mode == 'native_warm_reference':
+        if (not all(warm_args) or warm_reference_phase not in ('probe', 'measure')
+                or count != 4000 or digest(warm_reference_index) != warm_reference_index_sha256):
+            raise ValueError('warm reference requires full source and explicit sealed index/phase')
+    elif any(v is not None for v in warm_args):
+        raise ValueError('warm reference arguments apply only to native_warm_reference')
     if mode not in ('sequential', 'concurrent_pairs', 'cancel_pairs', 'cancel_pairs_retain_adapter',
                     'cancel_pairs_subprocess', 'native_cancel_reference',
                     'native_adapter_reference', 'native_numeric_reference', 'native_source_intervals',
                     'native_lifecycle', 'native_capacity_wait', 'native_source_matrix',
-                    'native_slot_content') or (
+                    'native_slot_content', 'native_warm_reference') or (
                     mode not in ('sequential', 'native_source_intervals', 'native_capacity_wait',
-                                 'native_source_matrix', 'native_slot_content') and count != 4):
+                                 'native_source_matrix', 'native_slot_content', 'native_warm_reference') and count != 4):
         raise ValueError('concurrent qualification requires exactly the original four-request prefix')
     result = {'kind': 'backend_native_model_prefix_qualification_v1', 'pass': False,
               'full_model_qualification': False, 'production_launch_authorized': False,
@@ -4180,7 +4377,7 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
         if mode in ('native_cancel_reference', 'native_adapter_reference', 'native_numeric_reference'):
             cfg['ieee_gpu_references'] = False
         if mode in ('native_lifecycle', 'native_capacity_wait', 'native_source_matrix',
-                    'native_slot_content'):
+                    'native_slot_content', 'native_warm_reference'):
             cfg['ieee_physical_allocation'] = True
             if mode != 'native_source_matrix':
                 result['input_mode'] = ('existing_four_request_prefix_dedicated_physical_lifecycle'
@@ -4192,6 +4389,15 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
         result['model_config'] = cfg
         plan = FrozenReplayPlan.load(trace, count=count)
         result['trace'] = plan.identity()
+        warm_index = None
+        if mode == 'native_warm_reference':
+            warm_index = validate_warm_reference_index(json.loads(warm_reference_index.read_text()), plan)
+            if (cfg.get('enable_prefix_caching') is not False
+                    or cfg.get('max_num_seqs', 0) < 8 or cfg.get('max_loras', 0) < 8):
+                raise ValueError('eight-lane warm reference needs explicit prefix-off/eight native slots')
+            result.update(warm_reference_index_sha256=warm_reference_index_sha256,
+                input_mode='sealed_existing_input_groups_gpu_ready_native_batches',
+                measurement_boundary='native_dispatch_to_native_tokens_no_prime_pending_admission')
         pool = (ROOT/source['storage']['remote_dir']).resolve(strict=True)
         if mode == 'native_source_matrix':
             spec, bins, identities, waves, index = source_profile_inputs(source_profile_spec, plan, cfg, pool)
@@ -4208,7 +4414,11 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
             source_boundary, source_paths = source_profile_boundary(cfg, spec, identities, index)
             result['owned_profile_workspaces'] = {k: str(v) for k, v in source_paths.items()}
         adapters = {}
-        for entry in plan.entries if mode != 'native_source_matrix' else ():
+        inventory_entries = plan.entries if mode != 'native_source_matrix' else ()
+        if warm_index is not None:
+            inventory_entries = [plan.entries[r['source_index']]
+                                 for g in warm_index['groups'] for r in g['selected']]
+        for entry in inventory_entries:
             row = json.loads(entry.source_json)
             aid = row['adapter_id']
             path = (pool/aid).resolve(strict=True)
@@ -4272,7 +4482,7 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                           'model': cfg['name'], 'requests': count}), flush=True)
         result['requested_model_config'] = dict(cfg)
         if mode in ('cancel_pairs_subprocess', 'native_lifecycle', 'native_capacity_wait',
-                    'native_source_matrix', 'native_slot_content'):
+                    'native_source_matrix', 'native_slot_content', 'native_warm_reference'):
             engine = await initialize_qualification_runtime(cfg, mode)
         else:
             # Retain ownership even if direct initialization raises, so the
@@ -4299,7 +4509,9 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                 include_pairs=(mode == 'native_cancel_reference'), numeric_controls=numeric_controls)
             return result
         result['sources_before'] = await engine.ieee_gpu_reference(operation='source_snapshot')
-        if mode == 'native_source_matrix':
+        if mode == 'native_warm_reference':
+            await qualify_warm_reference(engine, plan, adapters, warm_index, warm_reference_phase, result)
+        elif mode == 'native_source_matrix':
             await qualify_native_source_matrix(engine, source_boundary, bins, waves, result)
         elif mode == 'native_source_intervals':
             await qualify_native_source_intervals(engine, plan, adapters, result)
@@ -4539,6 +4751,9 @@ def main():
     parser.add_argument('--artifact-audit', type=Path)
     parser.add_argument('--source-profile-spec', type=Path,
                         help='Explicit original-input index and resource contract for native source profiling')
+    parser.add_argument('--warm-reference-index', type=Path)
+    parser.add_argument('--warm-reference-index-sha256')
+    parser.add_argument('--warm-reference-phase', choices=['probe', 'measure'])
     parser.add_argument('--materialized-support-root', type=Path, action='append', default=[],
                         help='Existing local metadata root corresponding to ordinary files in the remote pool')
     parser.add_argument('--host-copy-lifecycle', action='store_true',
@@ -4553,7 +4768,7 @@ def main():
                         'cancel_pairs_retain_adapter', 'cancel_pairs_subprocess',
                         'native_cancel_reference', 'native_adapter_reference', 'native_numeric_reference',
                         'native_source_intervals', 'native_lifecycle', 'native_capacity_wait',
-                        'native_source_matrix', 'native_slot_content'], default='sequential')
+                        'native_source_matrix', 'native_slot_content', 'native_warm_reference'], default='sequential')
     parser.add_argument('--gate-socket')
     parser.add_argument('--gate-nonce')
     parser.add_argument('--tiny-witness', action='store_true')
@@ -4572,6 +4787,9 @@ def main():
     if args.source_profile_spec and (args.action != 'backend-model-check'
                                     or args.qualification_mode != 'native_source_matrix'):
         parser.error('--source-profile-spec applies only to backend-model-check native_source_matrix')
+    if any((args.warm_reference_index, args.warm_reference_index_sha256, args.warm_reference_phase)) and (
+            args.action != 'backend-model-check' or args.qualification_mode != 'native_warm_reference'):
+        parser.error('warm-reference arguments apply only to backend-model-check native_warm_reference')
     if args.materialized_support_root and args.action != 'artifact-index':
         parser.error('--materialized-support-root applies only to artifact-index')
     if args.host_copy_lifecycle and args.action != 'backend-host-check':
@@ -4629,7 +4847,8 @@ def main():
         import asyncio
         result = asyncio.run(backend_model_check(args.runtime_receipt, args.config,
             args.model_profile, args.replay_trace, args.request_count, args.qualification_mode,
-            args.artifact_audit, args.source_profile_spec))
+            args.artifact_audit, args.source_profile_spec, args.warm_reference_index,
+            args.warm_reference_index_sha256, args.warm_reference_phase))
     elif args.action == 'backend-peft-reference':
         if not all((args.native_observation,args.replay_trace,args.output)):
             parser.error('backend-peft-reference requires existing native observation, trace and new output')

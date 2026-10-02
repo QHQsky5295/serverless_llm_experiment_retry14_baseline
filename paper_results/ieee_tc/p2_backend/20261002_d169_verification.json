@@ -1,0 +1,60 @@
+{
+  "passed": true,
+  "base_commit": "547142f901853cb94233a0a6755eacca18a74afd",
+  "allowed_preflight_wiring": [
+    "backend_model_check",
+    "initialize_qualification_runtime",
+    "main"
+  ],
+  "new_preflight_helpers": [
+    "qualify_warm_reference",
+    "validate_warm_native_sample",
+    "validate_warm_reference_index",
+    "warm_reference_batches"
+  ],
+  "other_preflight_ast_unchanged": true,
+  "serving_source_unchanged": true,
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "cleanup": [
+    {
+      "phase": "tests1",
+      "actual_invocation_id": "ce19c751a2c34c32b05e3d5e268fe73a",
+      "returncode": 1,
+      "cleanup": "automatic_removal_verified"
+    },
+    {
+      "phase": "warmtests2",
+      "actual_invocation_id": "a3a04c54c1bb454cbb6a41f905247a6d",
+      "returncode": 0,
+      "cleanup": "automatic_removal_verified"
+    },
+    {
+      "phase": "prepare1",
+      "actual_invocation_id": "62d4775b020f4d7a8ee4ac5c45bc3e63",
+      "returncode": 0,
+      "cleanup": "automatic_removal_verified"
+    },
+    {
+      "phase": "curate1",
+      "actual_invocation_id": "fe7f086914274edfbfbe67bd7808ca9a",
+      "returncode": 0,
+      "cleanup": "automatic_removal_verified"
+    },
+    {
+      "phase": "verify1",
+      "actual_invocation_id": "2af9901deb5a40cc8e1eab2b971d2840",
+      "returncode": 1,
+      "cleanup": "automatic_removal_verified"
+    }
+  ],
+  "curated_sha256": "6a288d09587488d3bb74d9fbf448c9e9cd6a153186dcffac0f5a6e234b31b3ad",
+  "table_sha256": "6c4af9630dda73e848cc4acf71fefd747c6034b8278ae4e7d55e006039b87a97",
+  "document_sha256": "1246c18717a41f0ef91bc56bc2e1cdb5cc1e068dc413bda85ba587db0ff1e001"
+}
