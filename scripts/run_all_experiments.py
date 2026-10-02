@@ -4701,6 +4701,7 @@ class InferenceEngine:
         if self.backend != "vllm" or self.engine is None or self._engine_dead:
             raise RuntimeError("native references require a live vLLM engine")
         if operation not in ("snapshot", "source_snapshot", "routing_source_snapshot", "source_identity_snapshot",
+                             "request_source_snapshot",
                              "acquire", "release", "evict", "begin_use", "end_use",
                              "demand_load_and_acquire", "hold_host_source", "release_host_source",
                              "prepare_file_host_and_hold", "configure_host_budget",
@@ -4731,6 +4732,21 @@ class InferenceEngine:
             expected_clock_id=local_monotonic_clock_id(), received_monotonic_s=time.monotonic())
         return state.routing_wire(device_uuid=payload.get('device_uuid'))
 
+    async def ieee_request_sources(self, *, requested_adapter_ids) -> Dict[str, Any]:
+        """Fresh complete identities plus measured footprints for current targets.
+
+        Scoped graph validation remains in this frontend, outside the serialized
+        GPU loop. This is not a physical-budget/eviction inventory or a lease.
+        """
+        from faaslora.clock import local_monotonic_clock_id
+        from faaslora.experiment.instance_pool import NativeSourceSnapshot
+        scope = NativeSourceSnapshot._request_scope(requested_adapter_ids)
+        payload = await self.ieee_gpu_reference(operation='request_source_snapshot',
+            requested_adapter_ids=list(scope))
+        state = NativeSourceSnapshot.from_request_native(payload, requested_adapter_ids=scope,
+            expected_clock_id=local_monotonic_clock_id(), received_monotonic_s=time.monotonic())
+        return state.request_wire(device_uuid=payload.get('device_uuid'))
+
     async def ieee_source_identities(self) -> Dict[str, Any]:
         """Fresh native identities for an already-selected lower-tier recheck.
 
@@ -4741,7 +4757,7 @@ class InferenceEngine:
         from faaslora.clock import local_monotonic_clock_id
         from faaslora.experiment.instance_pool import NativeSourceSnapshot
         payload = await self.ieee_gpu_reference(operation='source_identity_snapshot')
-        if any(key in payload for key in ('native_footprints', 'native_staging_footprints',
+        if any(key in payload for key in ('native_footprints', 'native_request_footprints', 'native_staging_footprints',
                                          'native_host_allocator')):
             raise ValueError('identity-only native endpoint returned a physical inventory')
         state = NativeSourceSnapshot.from_native(payload,
@@ -5296,11 +5312,12 @@ class SubprocessInferenceEngineProxy:
             asyncio.run_coroutine_threadsafe(deliver_progress(frame), loop).result()
         def retain_uncertain() -> None:
             if not dispatch_started or not native or cmd in ('ieee_worker_observation', 'ieee_scheduler_observation',
-                                     'ieee_generation_observation', 'ieee_routing_sources',
+                                     'ieee_generation_observation', 'ieee_routing_sources', 'ieee_request_sources',
                                      'ieee_source_identities', 'shutdown'):
                 return
             if cmd == 'ieee_gpu_reference' and kwargs.get('operation') in (
-                    'snapshot', 'source_snapshot', 'routing_source_snapshot', 'source_identity_snapshot'):
+                    'snapshot', 'source_snapshot', 'routing_source_snapshot', 'source_identity_snapshot',
+                    'request_source_snapshot'):
                 return
             ref = kwargs.get('gpu_reference') or {}
             self._native_rpc_uncertain[attempt_id] = {
@@ -5974,6 +5991,9 @@ class SubprocessInferenceEngineProxy:
 
     async def ieee_routing_sources(self) -> Dict[str, Any]:
         return await self._rpc('ieee_routing_sources')
+
+    async def ieee_request_sources(self, *, requested_adapter_ids) -> Dict[str, Any]:
+        return await self._rpc('ieee_request_sources', requested_adapter_ids=list(requested_adapter_ids))
 
     async def ieee_source_identities(self) -> Dict[str, Any]:
         return await self._rpc('ieee_source_identities')
@@ -6933,7 +6953,7 @@ class ScenarioRunner:
         if self._preparation_profiles is not None and self._routing_policy != 'ieee_confirmed':
             raise ValueError('preparation profile requires IEEE source admission, not legacy routing')
         self._ieee_routing_epoch = 0
-        self._ieee_source_observation_wave = None
+        self._ieee_source_observation_waves = {}
         self._ieee_source_observation_stats = {}
         self._ieee_scale_controller = None
         self._ieee_control_events = []
@@ -7977,7 +7997,7 @@ class ScenarioRunner:
         slot.ieee_utilization_sample = sample
         return dict(sample)
 
-    async def _ieee_collect_native_sources(self, slots):
+    async def _ieee_collect_native_sources(self, slots, *, requested_adapter_ids):
         """Share only a currently in-flight read, never cache a finished view.
 
         Parse each received replica once into immutable state inside the shared
@@ -7986,14 +8006,20 @@ class ScenarioRunner:
         cannot cancel another's read; the last waiter cancels and joins owned
         reads. No polling period, TTL, sleeping or observation of future demand.
         """
+        from faaslora.experiment.instance_pool import NativeSourceSnapshot
+        scope = NativeSourceSnapshot._request_scope(requested_adapter_ids)
         stats = getattr(self, '_ieee_source_observation_stats', None)
         if stats is None:
             stats = self._ieee_source_observation_stats = {}
         stats['requests'] = stats.get('requests', 0) + 1
         engines = tuple(slot.engine for slot in slots)
         membership = tuple((id(slot), id(slot.engine)) for slot in slots)
-        wave = getattr(self, '_ieee_source_observation_wave', None)
-        joined = wave is not None and wave['membership'] == membership and not wave['task'].done()
+        waves = getattr(self, '_ieee_source_observation_waves', None)
+        if waves is None:
+            waves = self._ieee_source_observation_waves = {}
+        key = (membership, scope)
+        wave = waves.get(key)
+        joined = wave is not None and not wave['task'].done()
         if joined:
             stats['joined'] = stats.get('joined', 0) + 1
         else:
@@ -8003,7 +8029,7 @@ class ScenarioRunner:
                 from faaslora.experiment.instance_pool import NativeSourceSnapshot
                 async def read(engine):
                     stats['rpc_invocations'] = stats.get('rpc_invocations', 0) + 1
-                    return await engine.ieee_routing_sources()
+                    return await engine.ieee_request_sources(requested_adapter_ids=list(scope))
                 reads = [asyncio.create_task(read(engine)) for engine in engines]
                 try:
                     views = await asyncio.gather(*reads)
@@ -8020,7 +8046,7 @@ class ScenarioRunner:
                     native = []
                     for view in views:
                         stats['parse_invocations'] = stats.get('parse_invocations', 0) + 1
-                        native.append(NativeSourceSnapshot.from_routing_wire(view,
+                        native.append(NativeSourceSnapshot.from_request_wire(view, requested_adapter_ids=scope,
                             expected_clock_id=clock_id, received_monotonic_s=time.monotonic()))
                     # No raw mutable payload escapes to a waiter. This operation
                     # validates observations, not current feasibility or a lease.
@@ -8032,17 +8058,17 @@ class ScenarioRunner:
                     await asyncio.gather(*reads, return_exceptions=True)
             wave = dict(membership=membership, task=asyncio.create_task(collect()),
                         waiters=0, collection_id=stats['collections'])
-            self._ieee_source_observation_wave = wave
+            waves[key] = wave
         wave['waiters'] += 1
         try:
             values = await asyncio.shield(wave['task'])
             return values, dict(collection_id=wave['collection_id'], joined=joined,
-                                collection_replica_count=len(slots))
+                                collection_replica_count=len(slots), requested_adapter_ids=list(scope))
         finally:
             wave['waiters'] -= 1
             if wave['waiters'] == 0:
-                if self._ieee_source_observation_wave is wave:
-                    self._ieee_source_observation_wave = None
+                if waves.get(key) is wave:
+                    del waves[key]
                 if not wave['task'].done():
                     wave['task'].cancel()
                 await asyncio.gather(wave['task'], return_exceptions=True)
@@ -8062,7 +8088,9 @@ class ScenarioRunner:
         owner = self._stack.residency_manager.local_source_references
         slots = tuple(self.instance_pool.get_slots())
         engines = tuple(slot.engine for slot in slots)
-        observations, collection = await self._ieee_collect_native_sources(slots)
+        requested_ids = [InferenceEngine._lora_int_id(trace.adapter_id)] if trace.adapter_id else []
+        observations, collection = await self._ieee_collect_native_sources(slots,
+            requested_adapter_ids=requested_ids)
         # Scale-up/removal during RPC collection is not a complete current view.
         if (observations is None or tuple(self.instance_pool.get_slots()) != slots
                 or any(slot.engine is not engine for slot, engine in zip(slots, engines))):

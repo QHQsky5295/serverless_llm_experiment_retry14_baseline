@@ -72,26 +72,36 @@ class NativeSourceSnapshot:
     unconfirmed_gpu_adapter_ids: tuple
     host_tensor_storage_bytes: Optional[int] = None
     gpu_pool_storage_bytes: Optional[int] = None
+    footprint_adapter_ids: Optional[tuple] = None
 
     def identity_view(self):
         """Exact readiness/copy identity projection, never a capacity observation."""
         return replace(self, sources=tuple(replace(source, host_storage_bytes=None,
             host_representation=None, gpu_slot_capacity_bytes=None, gpu_representation=None)
-            for source in self.sources), host_tensor_storage_bytes=None, gpu_pool_storage_bytes=None)
+            for source in self.sources), host_tensor_storage_bytes=None, gpu_pool_storage_bytes=None,
+            footprint_adapter_ids=None)
 
     @staticmethod
-    def _footprints(payload, slots, registered):
+    def _footprints(payload, slots, registered, *, requested_adapter_ids=None):
         """Validate storage unions separately from per-adapter footprint sums."""
         if payload is None:
             return {}, None, None  # Readiness-only view: service_class explicitly rejects it.
         if (not isinstance(payload, dict)
                 or payload.get('uniform_slot_layout') is not True
-                or payload.get('host_footprint_scope') != 'native_registered_tensor_storage_capacity'
+                or payload.get('host_footprint_scope') != (
+                    'native_registered_tensor_storage_capacity' if requested_adapter_ids is None
+                    else 'native_requested_tensor_storage_capacity')
                 or payload.get('host_budget_reserved') is not False
                 or payload.get('host_allocator_overhead_included') is not False
                 or payload.get('slot_adapter_ids') != list(slots)
                 or payload.get('registered_cpu_adapter_ids') != list(registered)):
             raise ValueError('native footprints differ from source snapshot/qualified representation')
+        covered = set(registered)
+        if requested_adapter_ids is not None:
+            if (payload.get('host_requested_adapter_ids') != list(requested_adapter_ids)
+                    or 'host_tensor_storage_bytes' in payload):
+                raise ValueError('request-scoped HOST inventory changed target scope or claims global capacity')
+            covered &= set(requested_adapter_ids)
         slot_bytes, gpu_bytes = payload.get('slot_capacity_bytes'), payload.get('pool_allocated_bytes')
         if (type(slot_bytes) is not int or slot_bytes <= 0 or type(gpu_bytes) is not int
                 or gpu_bytes != slot_bytes * len(slots)):
@@ -110,7 +120,8 @@ class NativeSourceSnapshot:
                     or type(allocation.get('pinned')) is not bool):
                 raise ValueError('invalid native HOST allocation capacity')
         host_bytes = sum(a['allocated_bytes'] for a in allocations)
-        if type(payload.get('host_tensor_storage_bytes')) is not int or payload['host_tensor_storage_bytes'] != host_bytes:
+        host_key = 'host_tensor_storage_bytes' if requested_adapter_ids is None else 'requested_host_storage_bytes'
+        if type(payload.get(host_key)) is not int or payload[host_key] != host_bytes:
             raise ValueError('native HOST total is not the distinct storage union')
         if any(not isinstance(v, dict) or not isinstance(v.get('dtype'), str) or not v['dtype']
                for v in gpu_views):
@@ -122,7 +133,7 @@ class NativeSourceSnapshot:
             if not isinstance(adapter, dict):
                 raise ValueError('invalid native HOST adapter footprint')
             aid, ids = adapter.get('adapter_int_id'), adapter.get('allocation_ids')
-            if (type(aid) is not int or aid not in registered or aid in result
+            if (type(aid) is not int or aid not in covered or aid in result
                     or not isinstance(ids, list) or not ids
                     or any(type(index) is not int or index not in owners for index in ids)
                     or len(set(ids)) != len(ids)):
@@ -144,7 +155,7 @@ class NativeSourceSnapshot:
             if adapter['has_packed_modules']:
                 host_representation += ':packed'
             result[aid] = (capacity, host_representation, slot_bytes, gpu_representation)
-        if set(result) != set(registered):
+        if set(result) != covered:
             raise ValueError('native HOST footprints do not cover the CPU cache')
         for index, allocation in enumerate(allocations):
             if not owners[index] or allocation.get('adapter_ids') != sorted(owners[index]):
@@ -152,9 +163,80 @@ class NativeSourceSnapshot:
         for adapter in adapters:
             exclusive = sum(allocations[index]['allocated_bytes'] for index in adapter['allocation_ids']
                             if owners[index] == {adapter['adapter_int_id']})
-            if type(adapter.get('exclusive_storage_bytes')) is not int or adapter['exclusive_storage_bytes'] != exclusive:
+            exclusive_key = ('exclusive_storage_bytes' if requested_adapter_ids is None
+                             else 'within_observation_exclusive_bytes')
+            if (type(adapter.get(exclusive_key)) is not int or adapter[exclusive_key] != exclusive
+                    or (requested_adapter_ids is not None and 'exclusive_storage_bytes' in adapter)):
                 raise ValueError('native HOST exclusive capacity incorrectly includes sharing')
-        return result, host_bytes, gpu_bytes
+        return result, host_bytes if requested_adapter_ids is None else None, gpu_bytes
+
+    @staticmethod
+    def _request_scope(ids):
+        if (not isinstance(ids, (list, tuple)) or any(type(aid) is not int or aid <= 0 for aid in ids)
+                or list(ids) != sorted(set(ids))):
+            raise ValueError('request footprint scope requires sorted unique positive adapter IDs')
+        return tuple(ids)
+
+    @classmethod
+    def from_request_native(cls, payload, *, requested_adapter_ids, expected_clock_id, received_monotonic_s):
+        scope = cls._request_scope(requested_adapter_ids)
+        if (not isinstance(payload, dict) or 'native_request_footprints' not in payload
+                or payload['native_request_footprints'] is None or 'native_footprints' in payload):
+            raise ValueError('request observation requires scoped native footprints')
+        state = cls._from_payload(payload, expected_clock_id=expected_clock_id,
+            received_monotonic_s=received_monotonic_s, kind='native_lora_sources_v1',
+            footprint_key='native_request_footprints', footprint_reader=lambda p, s, r:
+                cls._footprints(p, s, r, requested_adapter_ids=scope))
+        return replace(state, footprint_adapter_ids=scope)
+
+    def request_wire(self, *, device_uuid):
+        if self.footprint_adapter_ids is None or self.host_tensor_storage_bytes is not None:
+            raise ValueError('request projection needs scoped measured state, not global capacity')
+        value = self.identity_view().routing_wire(device_uuid=device_uuid)
+        del value['routing_footprints']
+        value['kind'] = 'native_lora_request_sources_v1'
+        value['request_footprints'] = dict(requested_adapter_ids=list(self.footprint_adapter_ids),
+            gpu_pool_storage_bytes=self.gpu_pool_storage_bytes,
+            sources=[dict(adapter_int_id=s.adapter_int_id, host_storage_bytes=s.host_storage_bytes,
+                host_representation=s.host_representation, gpu_slot_capacity_bytes=s.gpu_slot_capacity_bytes,
+                gpu_representation=s.gpu_representation) for s in self.sources
+                if s.adapter_int_id in self.footprint_adapter_ids])
+        return value
+
+    @classmethod
+    def from_request_wire(cls, payload, *, requested_adapter_ids, expected_clock_id, received_monotonic_s):
+        scope = cls._request_scope(requested_adapter_ids)
+        if (not isinstance(payload, dict) or 'request_footprints' not in payload
+                or 'routing_footprints' in payload or 'native_footprints' in payload
+                or not isinstance(payload.get('device_uuid'), str) or not payload['device_uuid']):
+            raise ValueError('invalid request-scoped routing wire')
+        def read(p, slots, registered):
+            if (not isinstance(p, dict) or set(p) != {'requested_adapter_ids', 'gpu_pool_storage_bytes', 'sources'}
+                    or p['requested_adapter_ids'] != list(scope)
+                    or type(p['gpu_pool_storage_bytes']) is not int or p['gpu_pool_storage_bytes'] <= 0
+                    or not isinstance(p['sources'], list)):
+                raise ValueError('request routing footprint scope/totals invalid')
+            result = {}
+            covered = set(scope) & set(registered)
+            for row in p['sources']:
+                if not isinstance(row, dict):
+                    raise ValueError('request routing footprint row invalid')
+                aid, host, slot = row.get('adapter_int_id'), row.get('host_storage_bytes'), row.get('gpu_slot_capacity_bytes')
+                hr, gr = row.get('host_representation'), row.get('gpu_representation')
+                if (type(aid) is not int or aid not in covered or aid in result
+                        or type(host) is not int or host <= 0 or type(slot) is not int or slot <= 0
+                        or slot * len(slots) != p['gpu_pool_storage_bytes']
+                        or not isinstance(hr, str) or not hr.startswith('native_cpu_dense_ab_v1:')
+                        or not isinstance(gr, str) or not gr.startswith('native_gpu_dense_slot_v1:')):
+                    raise ValueError('request routing footprint/representation invalid')
+                result[aid] = (host, hr, slot, gr)
+            if set(result) != covered:
+                raise ValueError('request routing footprints do not cover the requested registered sources')
+            return result, None, p['gpu_pool_storage_bytes']
+        state = cls._from_payload(payload, expected_clock_id=expected_clock_id,
+            received_monotonic_s=received_monotonic_s, kind='native_lora_request_sources_v1',
+            footprint_key='request_footprints', footprint_reader=read)
+        return replace(state, footprint_adapter_ids=scope)
 
     @classmethod
     def from_native(cls, payload, *, expected_clock_id: str, received_monotonic_s: float):
@@ -170,6 +252,8 @@ class NativeSourceSnapshot:
         not the graph's tensor/alias edges. Other native consumers keep the
         complete graph. The receiver still validates identity and freshness.
         """
+        if self.footprint_adapter_ids is not None:
+            raise ValueError('request-scoped state cannot be published as full routing state')
         if not isinstance(device_uuid, str) or not device_uuid:
             raise ValueError('routing observation requires a native device UUID')
         footprints = None
@@ -900,6 +984,8 @@ class InstanceSlot:
     runtime_forwarding_started_at: float = 0.0
     native_source_state: Optional[NativeSourceSnapshot] = None
     native_source_identity_state: Optional[NativeSourceSnapshot] = None
+    native_source_footprint_frontier: Dict[int, NativeAdapterSource] = field(default_factory=dict)
+    native_source_capacity_frontier: Dict[str, int] = field(default_factory=dict)
     service_cost_model: Optional[ServiceCostModel] = None
     service_class_bins: Optional[ServiceClassBins] = None
     preparation_cost_model: Optional[Any] = None
@@ -913,6 +999,16 @@ class InstanceSlot:
             raise TypeError('native source commit requires a validated immutable snapshot')
         if not self._accepts_native_source_view(snapshot, self.native_source_state):
             return False
+        previous = self.native_source_state
+        if previous is not None and snapshot.epoch == previous.epoch:
+            for name, old_capacity in self.native_source_capacity_frontier.items():
+                capacity = getattr(snapshot, name)
+                if capacity is not None and capacity != old_capacity:
+                    raise ValueError('same native epoch reported different observed capacity')
+            for source in snapshot.sources:
+                old = self.native_source_footprint_frontier.get(source.adapter_int_id)
+                if source.host_storage_bytes is not None and old is not None and source != old:
+                    raise ValueError('same native epoch reported different source footprint')
         identity = self.native_source_identity_state
         return identity is None or self._accepts_native_source_view(snapshot.identity_view(), identity)
 
@@ -925,7 +1021,18 @@ class InstanceSlot:
             if snapshot.epoch < previous.epoch:
                 return False
             if snapshot.epoch == previous.epoch:
-                if replace(snapshot, captured_monotonic_s=previous.captured_monotonic_s) != previous:
+                compared, old = snapshot, previous
+                scoped = snapshot.footprint_adapter_ids is not None or previous.footprint_adapter_ids is not None
+                if scoped:
+                    compared, old = snapshot.identity_view(), previous.identity_view()
+                    prior = {s.adapter_int_id: s for s in previous.sources if s.host_storage_bytes is not None}
+                    if any(s.host_storage_bytes is not None and s.adapter_int_id in prior
+                           and s != prior[s.adapter_int_id] for s in snapshot.sources):
+                        raise ValueError('same native epoch reported different source footprint')
+                    if (snapshot.gpu_pool_storage_bytes is not None and previous.gpu_pool_storage_bytes is not None
+                            and snapshot.gpu_pool_storage_bytes != previous.gpu_pool_storage_bytes):
+                        raise ValueError('same native epoch reported different GPU pool capacity')
+                if replace(compared, captured_monotonic_s=old.captured_monotonic_s) != old:
                     raise ValueError('same native epoch reported different source state')
                 # Readers of the same in-flight observation may publish its
                 # identical immutable result. Older observations still reject.
@@ -956,6 +1063,17 @@ class InstanceSlot:
         """Commit a received view without mutating legacy hints or taking pins."""
         if not self.accepts_native_sources(snapshot):
             return False
+        if self.native_source_state is None or self.native_source_state.epoch != snapshot.epoch:
+            self.native_source_footprint_frontier.clear()
+            self.native_source_capacity_frontier.clear()
+        # Retain same-epoch consistency evidence only, never reuse these values
+        # to classify a later request. Its own fresh scoped read remains required.
+        self.native_source_footprint_frontier.update(
+            (s.adapter_int_id, s) for s in snapshot.sources if s.host_storage_bytes is not None)
+        for name in ('host_tensor_storage_bytes', 'gpu_pool_storage_bytes'):
+            capacity = getattr(snapshot, name)
+            if capacity is not None:
+                self.native_source_capacity_frontier[name] = capacity
         self.native_source_state = snapshot
         return True
 

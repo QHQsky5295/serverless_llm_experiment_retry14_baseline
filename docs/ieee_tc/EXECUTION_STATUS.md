@@ -1,6 +1,67 @@
 # IEEE TC execution status
 
-## CURRENT — D180 scoped-footprint dependency study PASS; production implementation NEXT
+## CURRENT — D181 request-scoped routing CPU QUALIFIED and SEALED; backup NEXT
+
+2026-10-03 05:53+08. Goal ACTIVE/currentturn PROGRESS. Prime7B only.
+FullPlan/status/V1 read, primaryvLLM.30 source andCPUblog rechecked. Skill vLLM,
+run-experiment, analyze-results/academic-plotting andgithub-sync followed.
+Once-onlydeliverycache approval fulfilledD78/D80; no recreation/remoteoperation.
+No live GPU/CPUanalysis/remote/tooljobs. D179 notrerun; no newperformanceclaim.
+Candidate parent512b1be; LAST completeFull source4ba3ffd; thiscandidate
+CPUqualified only, ordinaryFull NEXT afterbackup/resourcepreflight.
+
+Final regression2 974PASS100.743s, actualc6e82fc68f704fb692a576f182bebd84;
+regression1 973PASS100.151s, actual8ef7a6a123fd44f192ce21eab2c7abb4. Bothtmux
+terminal/automatic_scope_absence; events-swap0. Regression1 archivedexactsource
+before adding sameepoch globalcapacity frontier+negative test; otherwise a full
+HOSTunion observation could be forgotten across scopedreads. Final16newtestmethods,
+including cross-target cancellation; counts overlap, not independentreplicates.
+Targeted102PASS andinitial102/1fixtureERROR preserved as detailedbelow.
+Alltests3/4GiBswap0CPU2,3,26,27, noCUDAmodel/inference; originalfailuresretained.
+
+Seal1 actual10aad2c6726940e6b9d3c92ffa8840cb/session32857CLOSED0; scopeabsent/
+events-swap0. Exact functionAST changes checked, allnon-targetcodeAST unchanged;
+nativeowner/residency/planner/planningCPU/resourcecoordinator byteidentical.
+147protected/PlanV1/SHA/checksum/tablechecksPASS. DocD181_REQUEST_SCOPED_ROUTING.md
+andcurated SEALED; doNOTedit afterbundle. Curated
+paper_results/ieee_tc/p2_backend/20261003_d181_request_scoped_routing.json
+SHAa40a5820fcd65f9355e0f5656a3635eb76599b79ccccceb92074ced715683f33.
+44member480378B evidencebundleSHA
+ee82f854b322985b22a991c456a074f3b939e17cea19e2c7878f0cc1dc8e427d.
+Rawd181_20261003 retained. Verification table delivered, no fakeperformancegraph/CI.
+
+NEXT backup exact14paths excludingusermanifest; then ordinary7BFull withsame
+D177cap4/D157profiles/4000source42W0/60snotice/1800s/generationcontract.
+No secondoptimization/configchange or repeats ofD180/D178. Measure totalRPCs/
+collections aswellaswaiting/TTFT/TPOT/physicalU: targetsharing may increasecalls.
+Allactualnumeric/commonreference/oldPrime-newmetrics/G1G2 OPEN before3B/baselines;
+entire latermatrix retained. Disk161592389632B near150GiB; freshfullresource
+preflight REQUIRED beforeGPU. No loweredfloors or historicalrawdeletion.
+
+## D181 implementation/test history — terminal, not live
+
+2026-10-03 05:45+08. Goal ACTIVE/currentturn PROGRESS. Prime7B only.
+Full Plan/status read aftercompaction; plan0c808509/V1 unchanged. D180 sealed
+and backed512b1be retained. Onecandidate implements freshallidentity + requested
+HOSTfootprint initialrouting; fullplanner/physical/admission and selectedload/
+conflict observations unchanged. Scope-aware in-flight sharing, sameepoch
+footprintconsistency frontier; no cachedfinishedclasses/TTL/config/formula/SLOchange.
+Doc D181_REQUEST_SCOPED_ROUTING.md DRAFT. Production NOTqualified/committed;
+noGPUreplay/remotejob. Newtests and fixtures never enter performanceevidence.
+
+Targeted tests1 actualf93fba661bc64a09a527cd4fc3921050/session82404CLOSED1:
+102tests/oneERROR .340s. SelectedSourceAdmissionIntegration fixture missing
+ieee_request_sources method. Exact failedfixture snapshots and logs retained
+in d181_20261003; production unchanged forcorrection. Fixture now mirrors
+scopednative endpoint, oldfull endpoint stilltested onload/conflict.
+tests2 actual8c42d5d548004d80af679e1acbf15d03/session80718CLOSED0:
+102PASS .309s. Both3/4GiBswap0CPU2,3,26,27; events-swap0 and automatic
+scopeabsenceverified. Added cross-target cancellation testcase AFTERtests2;
+tests2 source snapshot retained. Next fullCPUregression in tmux, then seal/
+diagnostic table/backup before ordinary7B Full. Actualnumeric/commonreference/
+oldPrime-newmetrics/G1G2 OPEN; 3B/externalbaselines stillpaused.
+
+## D180 scoped-footprint dependency study PASS and BACKED — reference, not live
 
 2026-10-03 05:22+08. Goal ACTIVE/currentturn PROGRESS. Prime7B only.
 Read FULL Plan/status/V1 aftercompaction; optimize-for-gpu/vLLM, run-experiment,
@@ -38,7 +99,10 @@ Curated20261003_d180_request_scoped_footprint.json
 SHAa60f6ab26e9c09bb9db6eb6f38329a74c125e374efadb7ac0051841edf137302.
 13member15573B evidencebundleSHA
 ae47f656367a2c8d3adf6fa419a091ec1b49e81202a0b3f6fab855a739d1860d.
-Backup pending exact6path checksum/secrets/diff gate; doNOTstage usermanifest.
+Backup completed05:24+08: 512b1be2d73924c59e7e36b1e80cf4e56669bd15;
+push and independent ls-remote matched. Exact6paths/19staged+archiveentries
+credential/scopechecksPASS; checksum/diffPASS; usermanifestexcluded.
+FinalGPUcensus empty/noexperiment scopes; disk161621999616B near150GiB.
 
 NEXT implement explicitrequest-scopedfootprint schema/path; independentfreshness
 frontier andoverlapconsistency, target-awareinflightsharing, cancellation/invalidation

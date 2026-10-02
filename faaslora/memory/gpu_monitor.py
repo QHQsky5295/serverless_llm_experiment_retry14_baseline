@@ -41,7 +41,8 @@ from ..utils.logger import get_logger
 
 
 def _ieee_lora_host_inventory(manager: Any, *, staged_models=None,
-                              include_tensor_views: bool = True) -> Dict[str, Any]:
+                              include_tensor_views: bool = True,
+                              requested_adapter_ids=None) -> Dict[str, Any]:
     """Storage reachable from dense native CPU adapters, without materialization.
 
     A LoRAModel clone/packed layer may share a storage. Charge its capacity once
@@ -53,10 +54,21 @@ def _ieee_lora_host_inventory(manager: Any, *, staged_models=None,
     tensor-view table. Its projection still visits and validates EVERY current
     tensor; it neither caches a previous inventory nor relocates frontend graph
     validation into the serialized GPU execution loop.
+
+    An explicit requested_adapter_ids scope measures only those current native
+    objects. Its induced union/exclusive edges have distinct field names: they
+    are never a complete-cache footprint or reclaimable-memory observation.
     """
     if type(include_tensor_views) is not bool:
         raise ValueError('native HOST tensor-view projection requires an explicit boolean')
     models = manager.list_adapters()  # Native read-only cache copy, no LRU touch.
+    if requested_adapter_ids is not None:
+        if (not isinstance(requested_adapter_ids, (list, tuple))
+                or any(type(aid) is not int or aid <= 0 for aid in requested_adapter_ids)
+                or list(requested_adapter_ids) != sorted(set(requested_adapter_ids))
+                or staged_models or include_tensor_views):
+            raise ValueError('request-scoped HOST observation needs explicit sorted IDs and no staging/views')
+        models = {aid: models[aid] for aid in requested_adapter_ids if aid in models}
     if staged_models:
         if set(models) & set(staged_models):
             raise ValueError('native CPU object cannot be both staged and registered')
@@ -156,7 +168,7 @@ def _ieee_lora_host_inventory(manager: Any, *, staged_models=None,
         adapter['exclusive_storage_bytes'] = sum(row['allocated_bytes'] for row in used
                                                 if len(row['adapter_ids']) == 1)
         adapter['dtypes'] = sorted(adapter_dtypes[adapter['adapter_int_id']])
-    return {'host_allocations': physical,
+    result = {'host_allocations': physical,
             **({'host_tensor_views': views} if include_tensor_views else {}),
             'host_adapter_footprints': adapters,
             'host_tensor_storage_bytes': sum(row['allocated_bytes'] for row in physical),
@@ -164,6 +176,14 @@ def _ieee_lora_host_inventory(manager: Any, *, staged_models=None,
                                      if staged_models else 'native_registered_tensor_storage_capacity'),
             'host_staged_adapter_ids': sorted(staged_models or ()),
             'host_allocator_overhead_included': False, 'host_budget_reserved': False}
+    if requested_adapter_ids is not None:
+        # A target-induced graph is NOT the global union or an eviction credit.
+        result['host_footprint_scope'] = 'native_requested_tensor_storage_capacity'
+        result['host_requested_adapter_ids'] = list(requested_adapter_ids)
+        result['requested_host_storage_bytes'] = result.pop('host_tensor_storage_bytes')
+        for adapter in adapters:
+            adapter['within_observation_exclusive_bytes'] = adapter.pop('exclusive_storage_bytes')
+    return result
 
 
 def _ieee_pinned_host_observation(inventory: Dict[str, Any]) -> Dict[str, Any]:
@@ -650,6 +670,7 @@ class IEEEWorkerObservationExtension:
         bridge; ordinary request-driven loading does not evaluate soft E(t).
         """
         if operation not in ('snapshot', 'source_snapshot', 'routing_source_snapshot', 'source_identity_snapshot',
+                             'request_source_snapshot',
                              'acquire', 'release', 'evict', 'begin_use', 'end_use',
                              'demand_load_and_acquire', 'hold_host_source', 'release_host_source',
                              'prepare_file_host_and_hold', 'configure_host_budget',
@@ -882,6 +903,14 @@ class IEEEWorkerObservationExtension:
                     'scheduler_held_during_commit': True,
                     'physical_increment_reserved_bytes': 0}
             result = owner.proactive_host_prepare_and_acquire(**kwargs, decide=decide)
+        elif operation == 'request_source_snapshot':
+            if set(kwargs) != {'requested_adapter_ids'}:
+                raise ValueError('request source observation requires an explicit target scope')
+            result = owner.source_snapshot()
+            result['native_request_footprints'] = {
+                **_ieee_lora_host_inventory(manager, include_tensor_views=False,
+                    requested_adapter_ids=kwargs['requested_adapter_ids']),
+                **_ieee_lora_pool_inventory(manager, require_uniform_slots=True)}
         elif operation in ('routing_source_snapshot', 'source_identity_snapshot'):
             # Use the same live owner read/invariants, not a cached verdict.
             result = owner.source_snapshot(**kwargs)
@@ -906,7 +935,8 @@ class IEEEWorkerObservationExtension:
                     _ieee_lora_host_inventory(manager, staged_models=staged)
                     if staged else copy.deepcopy(host))
                 result['native_host_allocator'] = _ieee_pinned_host_observation(result['native_staging_footprints'])
-        if operation in ('source_snapshot', 'routing_source_snapshot', 'source_identity_snapshot'):
+        if operation in ('source_snapshot', 'routing_source_snapshot', 'source_identity_snapshot',
+                         'request_source_snapshot'):
             # CUDA ordinals can be remapped in dedicated workers; publish the
             # actual device identity so controller NVML queries cannot sample
             # a different physical GPU with a coincidentally equal index.

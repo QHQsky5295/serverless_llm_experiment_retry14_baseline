@@ -205,6 +205,9 @@ async def _run_worker(payload_path: Path, ready_path: Path) -> None:
                     elif cmd == 'ieee_routing_sources':
                         result = await engine.ieee_routing_sources()
                         response = {"ok": True, "result": result}
+                    elif cmd == 'ieee_request_sources':
+                        result = await engine.ieee_request_sources(**kwargs)
+                        response = {"ok": True, "result": result}
                     elif cmd == 'ieee_source_identities':
                         result = await engine.ieee_source_identities()
                         response = {"ok": True, "result": result}

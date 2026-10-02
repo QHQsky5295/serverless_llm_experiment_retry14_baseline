@@ -1,0 +1,89 @@
+{
+  "kind": "native_request_scoped_routing_qualification_v1",
+  "base_commit": "512b1be2d73924c59e7e36b1e80cf4e56669bd15",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "rows": [
+    {
+      "phase": "tests1",
+      "tests": 102,
+      "errors": 1,
+      "status": "fixture_error_preserved"
+    },
+    {
+      "phase": "tests2",
+      "tests": 102,
+      "errors": 0,
+      "status": "pass"
+    },
+    {
+      "phase": "regression1",
+      "tests": 973,
+      "errors": 0,
+      "status": "pass_before_capacity_frontier_guard"
+    },
+    {
+      "phase": "regression2",
+      "tests": 974,
+      "errors": 0,
+      "status": "pass_final_source"
+    }
+  ],
+  "cleanup": [
+    {
+      "phase": "tests1",
+      "actual_invocation_id": "f93fba661bc64a09a527cd4fc3921050",
+      "returncode": 1,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    },
+    {
+      "phase": "tests2",
+      "actual_invocation_id": "8c42d5d548004d80af679e1acbf15d03",
+      "returncode": 0,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    },
+    {
+      "phase": "regression1",
+      "actual_invocation_id": "8ef7a6a123fd44f192ce21eab2c7abb4",
+      "returncode": 0,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    },
+    {
+      "phase": "regression2",
+      "actual_invocation_id": "c6e82fc68f704fb692a576f182bebd84",
+      "returncode": 0,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    }
+  ],
+  "dependency_study_sha256": "a60f6ab26e9c09bb9db6eb6f38329a74c125e374efadb7ac0051841edf137302",
+  "source_sha256": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py": "fe92d88153bbc14b8ed04b01206523d1c9f5343702aac901d389869fd2ae40a1",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/dedicated_engine_worker.py": "9b564de884a7aa076dc8040b06a1820ca963acfb119257632f5353180e6b60bd",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py": "1be491ae0caab2075e6d1569deb69243bc04dc73fd09edf4e1918a5a947227c0",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/instance_pool.py": "ab0d2de2a06dc503a22fd6d5ef6eb012d29e66cba1d8b224920b18ca4e9d61a3",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d181_20261003/verify.py": "b50feee6c5a7dabc9e449511c227b6f5881640533a62650850b524d7b1384c55",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d181_20261003/run_cpu.sh": "fa21d7cd28973935801d577d386b342802332964cdd5be385ad44014570401a8",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_request_footprints.py": "98df8fc82708089e80f97e2853699ca7a0ddf861b7f1ebcf765d2805bd260731",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_request_lifecycle.py": "f9bd7462bb50ab8a11ed5912c56da00239a4f59068332ba34b8d7c15402230d3"
+  },
+  "tests_targeted": 102,
+  "tests_regression": 974,
+  "new_test_methods": 16,
+  "test_counts_overlap": true,
+  "failed_test_attempts": 1,
+  "no_new_gpu_run": true,
+  "end_to_end_improvement_qualified": false,
+  "n_correct": null,
+  "formal_g1_g2_qualified": false,
+  "common_reference_frozen": false,
+  "table_sha256": "21172216d87e295d30ae2af474c4804a40354d8ed3fb946dcd5e1ad35c3122fc",
+  "document_sha256": "b612096e380b274ef7df2b5b6c9d094b7301f81d9b0a25369bbfcbe3fe0acbff"
+}

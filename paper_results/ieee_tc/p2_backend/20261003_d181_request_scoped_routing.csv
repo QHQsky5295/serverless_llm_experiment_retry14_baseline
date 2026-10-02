@@ -1,0 +1,5 @@
+phase,tests,errors,status
+tests1,102,1,fixture_error_preserved
+tests2,102,0,pass
+regression1,973,0,pass_before_capacity_frontier_guard
+regression2,974,0,pass_final_source
