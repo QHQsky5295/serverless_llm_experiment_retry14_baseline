@@ -1,6 +1,105 @@
 # IEEE TC execution status
 
-## CURRENT — D169 common warm runtime/probe COMPLETE and SEALED, backup pending
+## CURRENT — D170 7B common warm measurement COMPLETE/SEALED; backup pending
+
+20:16 +08 sealPASS, doc/curated/tables now immutable, doNOTedit/re-curate.
+CuratedSHA0ebc7587effe293dcb986d33fb932c100cbcb3384c56ab2c0b0bec73b2bdd88c.
+53member83467B evidencebundleSHA
+b532d480f7d8fa7064e46c2c14d99d6bc3b43a73b78613d3456be3261a7e90d3.
+Verify1 actual2bceee7e0d16449a99b5701fa9757fd9/session73018CLOSED0,
+events/swap0/automaticremovalverified. All source/configbyteidentical6a15274;
+147protected/Plan/V1/sources/tables/projectionfixturesPASS. AllpriorCPUscopes
+absent withfinalevents0, includingretainedfailedprepare1/2. No livejobs.
+NEXT scopeddiff/secrets/checksumbackup then new provisionaltiminggap from D164
+retainedprojection. Commonreferencegloballyunfrozen/numeric/G1G2 stillOPEN.
+
+
+20:14 +08 curation COMPLETE1552/1552nativechecks (1536measurement+16warmup),
+194batches/allrequiredGPUready/KV/drain/release/input/token/timingchecksPASS.
+WarmTTFT598.018378/927.065033ms,TPOT29.823099/42.672637ms by≤616/>616nativeinput.
+Candidate5T/2P thresholds2990.091890/4635.325166ms,59.646198/85.345274ms.
+NOT globallyfrozencommonreference, n_correct/numerical/fullpool/G1G2remainOPEN.
+U1429.338594330GPU-s/singlelease released;1499resourcesamples/peak12596813824B/
+minhost99741794304B/observedmemoryevents+swap0/warnings0. No remote use.
+Projection69103CLOSED0, actual56719c5d94164b6f99c6dacbb834321e, twofixturesPASS;
+raw1763970424B streamedONCE→29031137B projection. Scopeabsent/events0.
+Curate75104CLOSED0, actualf3601432fb844fb6b8927a75d53ab63e, scopeabsent.
+Tables/doc complete; exact finalCPU counters/seal/backup pending. No liveGPU,
+remoteoranalysisjob. DoNOTreprojectraw/replay/repeatprobe. Postwriteavailable
+160967503872B slightlybelow150GiBnew-heavyfloor; recoveronlyauditedspace before
+nextheavy, nofloorrelaxation. NEXT verify/seal/scopedbackup→provisionaltiminggap
+fromretainedD164Fullprojection, notformalG1G2; nevergiantoldrawreparse.
+
+
+20:07 +08 SAME run terminal, launch.pass=true/service+watchdog0/physicalrelease
+andservicepathremoved confirmed. ExactPID/GPU/scopeabsence20:06:54, no remote
+service was started. All194batches ended; complete1536+16nativechecks still
+await independent curation, not inferred from progress messages. No replay.
+One boundedstreamingprojection launched in primelora-d170-project1-20261002.scope,
+session69103 LIVE. Twoexactprojectionfixtures/AST PASS; raw1.7GiB is never
+whole-loaded. Project source once; doNOTrestart whileactive orreparseafterpass.
+FullPlan(repairedtruncatedmiddle)/V1/currentledger and monitor/analyze/plotting/
+github-sync skills read thisturn. PreviousgoalturnPROGRESS; currentPROGRESS.
+No serving/config/remote changes. NEXT projectionterminal/cleanup→curation→
+reference table/doc/seal/backup. G1G2/numerical/oldPrimecomparison stillOPEN.
+
+
+19:52 +08 continuation checkpoint: SAME run live, exactserviceInvocationID
+b078bcdf6d1f4b428ea90d6ae05e0a13 reverified/218tasks. First512-request round
+complete; serial80 = 632/1536 measured requests plus16warmup completed.
+Sample611:current5441118208B/peak5706108928B,host106796007424B,events/swap0,
+no warnings/aborts. These are incomplete observations, NOT final reference or
+G1G2 acceptance. Four50s-spaced light polls completed, exec8583 CLOSED normally;
+no live tool session, actualtmux/service experiment still LIVE. DoNOTrestart.
+Prepared, NOTexecuted: exactowned cleanup, D96-style streaming projection,
+two structural projection fixtures, D169-style curation with exactinput/native
+checks and per-group/per-round means. No serving code or frozenconfig changes.
+No GPU replay/cachegeneration/remoteoperation/analysis during inference.
+NEXT monitor SAMEhandle toactualterminal, then cleanup→projectionfixtures and
+ONEboundedprojection→curation→table/seal/backup. D170notyetcommitted; last
+backedruntime6a15274. This goalturnPROGRESS(actualmeasurementlaunch); goalACTIVE.
+3B/externalbaselines PAUSED until actual7B/new-metric acceptance; entire later
+matrix remains pending, no partial sample can close n_correct/G1G2/oldPrimegap.
+
+19:43 +08 ONE actual measure1 started19:40:44 in tmux tc-d170-7b-measure1.
+Service primelora-tc-svc-3bfbb824545248308ed14a73a3a2ceb3.scope,
+actualb078bcdf6d1f4b428ea90d6ae05e0a13; aux
+primelora-tc-aux-7e68b0a182db4f0bb50cc2c1ac84de69.scope,
+actualb1e4d789b9254280a4729087e7a6afc5. Native721356/start44853369 exactservice
+CPU4–23,28–47; watchdog719257/start44850432 exactauxCPU2,3,26,27.
+Actual72/80GiBswap2 and3/4GiBswap0 verified. Sample71 peak5706108928B,
+host108504145920B,events/swap0/no warnings; firstwarmupbatch complete.
+Prepare3finalevents0/automaticremovalverified. SAME run, doNOTrestart.
+Exactterminalcleanup and bounded streaming projection PREPARED, NOTexecuted.
+No source/config/remote changes or heavy analysis during inference.
+
+
+2026-10-02 19:41 +08. Goal ACTIVE; Prime7B only. D169 sealed/backed6a15274,
+not repeated. Full Plan/status/V1 and run/monitor/analyze/plotting skills read.
+Reuse D168 index + exact D169 batch8 config/source, 1536 measured+16 warmup
+calls/194 batches. No serving changes/remote operations/new cache or inputs.
+Raw results/ieee_tc/p2_backend_qualification/d170_20261002. Launch measure1
+prepared, NOT yet started. Output linear sizing1.846GB; preserve observations,
+use bounded analysis; unchanged service72/80GiB and all disk/host gates.
+Prepare1 failed generator len(), actualf22a674d90eb4a859ef3cabaa4ff580a/89956exit1;
+prepare2 stat.st_size() error, actualebd3690006f144cda840436a2200ac5f/71949exit1;
+both retained scripts/logs, no GPU launch. Prepare3 passed, actual
+929e6fdb22b0407fa654e6639f6a06f8/8014exit0. Final counters and absence to verify.
+No threshold/native numerical/G1G2 acceptance yet. 3B/externalbaselines PAUSED.
+NEXT launch once and monitor exact identity→cleanup→reference table→backup.
+
+## CURRENT — D169 common warm runtime/probe COMPLETE, SEALED and BACKED
+
+Backup COMPLETE6a15274af4062c3a66fe7d51e7d7f910bcac895f, pushed to
+faaslora_origin/retry14_continuous_queue_v2; independentremoteHEADmatches.
+Push72927/verify75520 CLOSED0.11explicitfiles/62staged+archiveentries passed
+secrets/diff/checksum/test/protected checks; usermanifestexcluded. No livejobs.
+Onlythispost-backupreceipt newlydirty. GoalACTIVE/thisturnPROGRESS, notmodel
+acceptance. NEXT actual1536warmmeasurement+16warmup, using D168sealedindex,
+D169qualifiedconfig and existing preflight native_warm_reference measure phase.
+DoNOTrepeat32probe/CPUtests/content/index/cache work. Beforelaunch boundoutput
+growth (probe37MB), retain4GiBanalysislimit/useexistingstreamprojectionifneeded;
+no giantwhole-load. No launch/newcandidate yet;7B before3B/baselines unchanged.
 
 19:29 +08 seal COMPLETE. CuratedSHA
 6a288d09587488d3bb74d9fbf448c9e9cd6a153186dcffac0f5a6e234b31b3ad;
