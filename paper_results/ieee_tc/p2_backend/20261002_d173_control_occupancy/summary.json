@@ -1,0 +1,202 @@
+{
+  "kind": "native_control_occupancy_audit_v1",
+  "formal_performance_result": false,
+  "count": 4000,
+  "observation_s": 3971.1039962619543,
+  "phase_summaries": {
+    "arrival_to_gate": {
+      "n": 4000,
+      "total_request_seconds": 4921.9275079792715,
+      "mean_duration_s": 1.2304818769948178,
+      "p95_duration_s": 6.267671897367109,
+      "mean_concurrent_requests": 1.2394355606431708,
+      "max_concurrent_requests": 34
+    },
+    "gate_to_source_admission": {
+      "n": 4000,
+      "total_request_seconds": 6270.239164727915,
+      "mean_duration_s": 1.5675597911819787,
+      "p95_duration_s": 3.964881706982851,
+      "mean_concurrent_requests": 1.5789662448100483,
+      "max_concurrent_requests": 15
+    },
+    "source_to_native_dispatch": {
+      "n": 4000,
+      "total_request_seconds": 5595.486603045836,
+      "mean_duration_s": 1.398871650761459,
+      "p95_duration_s": 4.982318894995842,
+      "mean_concurrent_requests": 1.4090506338572175,
+      "max_concurrent_requests": 12
+    },
+    "native_dispatch_to_last_token": {
+      "n": 4000,
+      "total_request_seconds": 20351.676257256244,
+      "mean_duration_s": 5.087919064314061,
+      "p95_duration_s": 12.209157356002834,
+      "mean_concurrent_requests": 5.1249416475653895,
+      "max_concurrent_requests": 16
+    },
+    "last_token_to_controller_completion": {
+      "n": 4000,
+      "total_request_seconds": 2228.9442832130007,
+      "mean_duration_s": 0.5572360708032502,
+      "p95_duration_s": 2.0555564910173416,
+      "mean_concurrent_requests": 0.5612908363294267,
+      "max_concurrent_requests": 14
+    },
+    "controller_completion_to_terminal": {
+      "n": 4000,
+      "total_request_seconds": 1358.2818319188082,
+      "mean_duration_s": 0.33957045797970203,
+      "p95_duration_s": 1.201444745005574,
+      "mean_concurrent_requests": 0.34204136512097755,
+      "max_concurrent_requests": 14
+    },
+    "gate_to_terminal": {
+      "n": 4000,
+      "total_request_seconds": 35804.6281401618,
+      "mean_duration_s": 8.95115703504045,
+      "p95_duration_s": 17.021340763021726,
+      "mean_concurrent_requests": 9.01629072768306,
+      "max_concurrent_requests": 16
+    }
+  },
+  "population": {
+    "planned": 4000,
+    "terminal": 4000,
+    "native_success": 4000,
+    "failed": 0
+  },
+  "phase_population": "complete_native_success_population",
+  "failures": [],
+  "native_by_replica": {
+    "ieee-activation-90c556561c444ce99c138477fd406c50": {
+      "n": 989,
+      "total_request_seconds": 4862.582858520967,
+      "mean_duration_s": 4.9166661865732735,
+      "p95_duration_s": 12.292092436982784,
+      "mean_concurrent_requests": 1.2244914419511985,
+      "max_concurrent_requests": 4
+    },
+    "ieee-activation-05d7791d0cfb446782330710b969ec44": {
+      "n": 1014,
+      "total_request_seconds": 5059.1717667367775,
+      "mean_duration_s": 4.989321268971181,
+      "p95_duration_s": 11.990115775028244,
+      "mean_concurrent_requests": 1.273996292088808,
+      "max_concurrent_requests": 4
+    },
+    "ieee-activation-6f1462a9aed044aaa59fb173e6b51507": {
+      "n": 934,
+      "total_request_seconds": 4933.906835354341,
+      "mean_duration_s": 5.282555498238052,
+      "p95_duration_s": 12.491128754045349,
+      "mean_concurrent_requests": 1.2424521845810848,
+      "max_concurrent_requests": 4
+    },
+    "ieee-activation-e95d345dde774e7e827b757d9fc7dca1": {
+      "n": 1063,
+      "total_request_seconds": 5496.014796644158,
+      "mean_duration_s": 5.170286732496856,
+      "p95_duration_s": 12.052652729966212,
+      "mean_concurrent_requests": 1.3840017289442985,
+      "max_concurrent_requests": 4
+    }
+  },
+  "resource_samples": 3918,
+  "sampled_mean_held_gpu_utilization_percent": 45.45118683001532,
+  "samples_with_pre_gate_backlog": 1166,
+  "sampled_gate_occupancy_counts": {
+    "0": 46,
+    "4": 255,
+    "3": 109,
+    "2": 68,
+    "1": 34,
+    "8": 427,
+    "10": 247,
+    "7": 411,
+    "6": 403,
+    "5": 306,
+    "9": 319,
+    "11": 223,
+    "13": 137,
+    "12": 147,
+    "16": 567,
+    "15": 113,
+    "14": 106
+  },
+  "caveats": [
+    "Occupancy is not GPU billing or kernel busy time.",
+    "Gate end uses outer terminal after release; this is an upper envelope, not an instrumented gate-release timestamp.",
+    "Controller completion is an earlier boundary than outer request terminal; report their gap without relabeling either.",
+    "GPU utilization averages are sampled descriptive observations, not causal attribution or confidence intervals."
+  ],
+  "control_observations": {
+    "source_event_count": 1765,
+    "in_request_window_count": 1765,
+    "outside_request_window": [],
+    "first_failed_terminal_offset_s": null,
+    "first_failure_observation_offset_s": null,
+    "first_quarantine_offset_s": null,
+    "by_phase": {
+      "before_first_failure": {
+        "samples": 1765,
+        "mean_active_requests": 8.141076487252125,
+        "mean_queue_depth": 1.9495750708215298,
+        "positive_queue_samples": 943,
+        "positive_queue_below_capacity_samples": 855,
+        "active_count_histogram": {
+          "4": 142,
+          "3": 83,
+          "0": 11,
+          "1": 20,
+          "10": 107,
+          "7": 182,
+          "6": 210,
+          "5": 189,
+          "8": 180,
+          "2": 40,
+          "9": 144,
+          "11": 99,
+          "12": 64,
+          "16": 91,
+          "15": 79,
+          "13": 67,
+          "14": 57
+        },
+        "ready_capacity_histogram": {
+          "4": 24,
+          "12": 3,
+          "16": 1738
+        }
+      }
+    },
+    "caveat": "Direct controller samples, not continuous occupancy or kernel activity. All source samples are validated; outside-request-window samples are retained separately and excluded from by_phase and the in-window CSV. active_requests counts bound requests in currently routable slots; queue_depth also includes requests outside those slots. Successful native occupancy is conditional; never subtract it to infer all non-native work."
+  },
+  "source_refs": [
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d173_20261002/full_full1_request_projection.json",
+      "sha256": "a427471718e425b333b73425a6a04a48e06a97baeb31278eb6147a74cd095cdd"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d173_20261002/7b_full_w0_full1/launch.launch/physical_deployment/deployment.json",
+      "sha256": "de5e3a06f0ee3391ef6de4e48096483eeac8fbf6ac237462c1114f132ea295d1"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d173_20261002/7b_full_w0_full1/launch.launch/physical_deployment/request_terminals.jsonl",
+      "sha256": "fa7423a7b270193d9ecd2369901cd98ef5d89c00fad5e66fa07d13e306fb5570"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d173_20261002/7b_full_w0_full1/launch.launch/watchdog.jsonl",
+      "sha256": "72628b69f6595635d15b4d28a0ded652353a419c9744cbe20bcb9dae93f63ef3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/analyze_control_path_overhead.py",
+      "sha256": "7a7e623537dcb21e0c78607642cc76b26343958bf84a35ed7b8d1ed16cf34174"
+    },
+    {
+      "path": "results/ieee_tc/p2_backend_qualification/d173_20261002/full_full1_main_outcome_compact3.json",
+      "sha256": "170ab65310bfb3b5c1aa98c2f59ce3cfa28bba79383f3cbe5b7940aca47ce0b4"
+    }
+  ]
+}
