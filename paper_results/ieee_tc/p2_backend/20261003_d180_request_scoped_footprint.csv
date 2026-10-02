@@ -1,0 +1,5 @@
+snapshot,registered_adapters,full_tensor_checks,target_tensor_checks,check_reduction_fraction,compared_targets,gpu_targets,host_targets
+0,8,2048,256,0.875,8,8,0
+1,12,3072,256,0.9166666666666666,12,8,4
+2,20,5120,256,0.95,20,8,12
+3,24,6144,256,0.9583333333333334,24,8,16

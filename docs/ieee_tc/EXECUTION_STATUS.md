@@ -1,6 +1,54 @@
 # IEEE TC execution status
 
-## CURRENT — D179 complete, analyzed and SEALED; backup pending
+## CURRENT — D180 scoped-footprint dependency study PASS; production implementation NEXT
+
+2026-10-03 05:22+08. Goal ACTIVE/currentturn PROGRESS. Prime7B only.
+Read FULL Plan/status/V1 aftercompaction; optimize-for-gpu/vLLM, run-experiment,
+analyze-results/academic-plotting and github-sync applied. Once-only remotecache
+approval alreadyfulfilled D78/D80; no remoteoperation/recreation. No live GPU,
+remote, CPUanalysis or tool jobs. D179 notrerun; production still4ba3ffd,
+evidenceHEAD74c417e. Productioncode unchanged; D178958regression qualification
+reused, notclaimednewlytested. Actual7B numerical/commonreference/oldPrime-newmetrics/
+G1G2 OPEN before3B/externalbaselines; alllatermatrix retained.
+
+ONEnewhypothesis: routing Eq2 consumes currenttarget footprint but currentworker
+walks ALLregisteredHOSTtensors. Preserve freshcompleteowner/epoch/slot/sourceidentity;
+measure onlyrequestedtarget forrouting. OfficialvLLM.30 worker_manager and CPU
+performanceblog rechecked; no borrowedhardware speedupclaim. Legacyhint wholesale
+removal REJECTED asunproven: IEEEscale-down stillconsumes slot.load_queue_depth.
+
+CPUprobe1 derivedD174, savedD16938MBsource SHAead0c5c81acc52c502874e9d45cfba111665f875220e23467c2e716a0d770602.
+64targets from4snapshots;192Eq2classcomparisons equal + allidentityfields equal.
+FullHOSTtensorchecks2048/3072/5120/6144→256pertarget (87.5–95.833%feweritems),
+NOT measuredlatency/RPCspeedup. 32GPU+32HOSTtargets. Fivefixturepositives/three
+negativecasesPASS. Sharedstorage counterexample: targetreachable512B,
+globalexclusive0B; isolatedexclusive512B MUST NOT be budget/evictioncredit.
+Unrelatedmalformedtensor rejectedglobal/notobservedtarget: explicitvalidation
+scopedifference, NOTglobal-safetyequivalence. D1794578reads/2138collections;
+targetscoping mayincreaseRPCs; missingpercollectiontarget distribution NOTinvented.
+
+Probeactual204014b8ae83422cb14c3bf6b382a320/session79761CLOSED0,
+16.15s includingimports/verification, peakRSS1154824KiB;3/4GiBswap0CPU2,3,26,27,
+events-swap0/scopeautomaticremovalverified. Curateactual
+4153907c0ca44b7892b285f42c7c5e81/session39729CLOSED0,9.02s/events-swap0/
+scopeautomaticremovalverified. 147protected/PlanV1/sourceSHA checksPASS.
+Exacttables generated; no fakeperformancefigure/CI. Raw d180_20261003 retained.
+DocD180_REQUEST_SCOPED_FOOTPRINT_STUDY.md andcurated nowSEALED (bundlebindsdoc).
+Curated20261003_d180_request_scoped_footprint.json
+SHAa60f6ab26e9c09bb9db6eb6f38329a74c125e374efadb7ac0051841edf137302.
+13member15573B evidencebundleSHA
+ae47f656367a2c8d3adf6fa419a091ec1b49e81202a0b3f6fab855a739d1860d.
+Backup pending exact6path checksum/secrets/diff gate; doNOTstage usermanifest.
+
+NEXT implement explicitrequest-scopedfootprint schema/path; independentfreshness
+frontier andoverlapconsistency, target-awareinflightsharing, cancellation/invalidation
+tests. Keepglobalphysical/planner/admission validation andselectedsource leases.
+No TTL/completed-statecache, futureinfo, guessedfootprints, config/formula/profile/
+SLOchanges ornewweights/trace. Thenordinary7BFull netbenefit check. Noothercandidate
+stacked; doNOTrepeatD180probe/study orD178hypothesis. NewGPUrequiresfreshresource
+preflight; disknear150GiB, immutablefloor. Goal remainsACTIVE.
+
+## D179 complete, analyzed, SEALED and BACKED — reference, not live
 
 2026-10-03 04:57+08. Goal ACTIVE/currentturn PROGRESS. Prime7B only.
 D179 SAME4000 ordinaryFull complete, no newGPU/restart/configurationchange.
@@ -51,8 +99,11 @@ scopeabsent/events0;78members50731B/contentsverified/checksumPASS.
 BundleSHA44694b51ec1dc43288b9ff1564ec371577c12095ff5351582cc85ae3db07fe33.
 D179doc andcurated nowSEALED: doNOTedit; evidencehashbindsdoc.
 
-NEXT explicit16path stagedscope/secretscheck→commit/push→independentremoteSHA.
-Then next first-principles Prime7B bottleneck investigation using history/primarysources.
+Backup completed05:00+08: 74c417e3cba3c5c4358e89240b1036565cea12ba,
+push and independent ls-remote match;16explicitpaths/94staged+archiveentries
+secret/scopechecksPASS, usermanifestexcluded. Defaultdiffcheck flaggedCSV CRLF;
+cr-at-eol checkPASS withoutchangingsealedbytes ordisablingotherwhitespacechecks.
+NEXT next first-principles Prime7B bottleneck investigation using history/primarysources.
 Actualnumeric/commonwarm/Resident/oldPrime-newmetrics/G1G2 stillOPEN before3B/baselines.
 Disk161643339776B near150GiB; freshpreflightbeforeanynewheavy, floorsunchanged.
 Below launch/monitor LIVE/NEXT strings are historical only, superseded here.
