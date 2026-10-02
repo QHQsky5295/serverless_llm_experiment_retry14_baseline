@@ -1,0 +1,98 @@
+{
+  "kind": "d161_retained_control_evidence_verification_v1",
+  "verified_at": "2026-10-02T06:27:41.511620+00:00",
+  "checks_pass": true,
+  "formal_performance_result": false,
+  "new_inference": false,
+  "serving_source_commit": "11a5432ecac7ca6214417ffc471c834b6edeb3e3",
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d160_20261002/7b_full_w0_full1/launch.launch/physical_deployment/deployment.json",
+      "sha256": "49f0c5a05e7cdeb284ffc56e923b22f067127d0b27cea8f2aadc7f4e2193e0e1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d160_20261002/7b_full_w0_full1/launch.launch/physical_deployment/request_terminals.jsonl",
+      "sha256": "f385c68e82cfeb87edd2abb9b5d334fcddb8e14927464f2a696e33b9fbe30255"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d160_20261002/full_full1_request_projection.json",
+      "sha256": "9ea2d9c097bd16b0b75cdb3b272f2bf36833a4b999d17434d1dd46153cf5d6fb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d161_20261002/group_selected_sources1.py",
+      "sha256": "c89c709233962ba8984385c2f7cf217d664d3214a23811c1d9ad247d18609c72"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261002_d160_7b_full_w0_full1.json",
+      "sha256": "67db3cf4b7a3f7a26d6cbd8f355b398945439f855fc9e1cd0254104fbdc9d777"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261002_d160_control_occupancy/request_occupancy.csv",
+      "sha256": "5d645c5c38157e6d5da154c8d3f010844e2d183a723eebf9246e464aff1f1e7f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261002_d160_evidence_verification.json",
+      "sha256": "133aac17696c52e0a71c0e38f427a06c0181cc79230400d9c0ff697fb208f03c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/analyze_control_path_overhead.py",
+      "sha256": "1d8dcb97f54419839f2e30a830a7d9f488d82ce3c5c35b7fead3a3cc53b8721b"
+    }
+  ],
+  "curated_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261002_d161_rpc_7b/request_rpc_observations.csv",
+      "sha256": "c075a19f8205d966a4a08fa8c5a718ca143cc3c2ea221068a6517b51b8553510"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261002_d161_rpc_7b/rpc_metrics.csv",
+      "sha256": "91bac7211c07acf08bbfbef2407b08b6ed4248e781b51d40b1235d70ce4a504f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261002_d161_rpc_7b/summary.json",
+      "sha256": "1905e1b7e362baa8134b608eb80366d6faa3d6d4ce5069f92b44eb49f9481a3e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261002_d161_selected_sources/metrics.csv",
+      "sha256": "8600626b9ff2ee518cc9b182ab011099ca51cc012e1fafcaad872ad93326f4a1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261002_d161_selected_sources/request_stages.csv",
+      "sha256": "d5098a883f92b5f56eee00ba058c2fd02296359107b57112a3d7a8428e74799c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261002_d161_selected_sources/summary.json",
+      "sha256": "38f28eec37df98d6fc5cf3c8141d64ea3dc11e78470b61047951385af2a0470a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D161_RETAINED_CONTROL_DIAGNOSIS.md",
+      "sha256": "524547efb7ce8d8a73b2100d704518593fc9c38537769d62cb9e3a4fbb32dcf4"
+    }
+  ],
+  "weighted_group_reconciliation_pass": true,
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "closures": [
+    {
+      "unit": "primelora-d161-rpc-audit1-20261002.scope",
+      "actual_invocation_id": "95b35c5c2da245a089cb9564023684bc",
+      "inactive": true,
+      "cgroup_absent": true,
+      "final_counters": "zero observed in completed tool output; removed scope cannot be reread"
+    },
+    {
+      "unit": "primelora-d161-source-audit1-20261002.scope",
+      "actual_invocation_id": "8243061947c14fc296adfaa6354decb2",
+      "inactive": true,
+      "cgroup_absent": true,
+      "final_counters": "zero observed in completed tool output; removed scope cannot be reread"
+    }
+  ],
+  "next": "One current cap4 prefix diagnostic using unchanged python_frames_v1; not yet launched"
+}

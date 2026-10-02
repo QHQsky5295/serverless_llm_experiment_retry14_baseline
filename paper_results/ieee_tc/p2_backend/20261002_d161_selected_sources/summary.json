@@ -1,0 +1,545 @@
+{
+  "kind": "conditional_selected_source_stage_audit_v1",
+  "new_experiment": false,
+  "formal_performance_result": false,
+  "quantile": "Type-1",
+  "native_completed": 4000,
+  "population": {
+    "gpu_native": 1399,
+    "host_file": 8,
+    "host_native": 1533,
+    "nvme_file": 922,
+    "remote_file": 138
+  },
+  "metrics": [
+    {
+      "source": "gpu_native",
+      "field": "arrival_to_gate_s",
+      "unit": "s",
+      "count": 1399,
+      "mean": 1.010397783262233,
+      "p50": 0.19133130280533805,
+      "p95": 4.090803412371315,
+      "max": 15.609836120391265
+    },
+    {
+      "source": "gpu_native",
+      "field": "gate_to_source_admission_s",
+      "unit": "s",
+      "count": 1399,
+      "mean": 1.792049486988886,
+      "p50": 1.4371288290130906,
+      "p95": 4.08052606403362,
+      "max": 9.520867787010502
+    },
+    {
+      "source": "gpu_native",
+      "field": "source_to_native_dispatch_s",
+      "unit": "s",
+      "count": 1399,
+      "mean": 0.1631356669334662,
+      "p50": 0.08294405799824744,
+      "p95": 0.6042420269805007,
+      "max": 1.0321020610281266
+    },
+    {
+      "source": "gpu_native",
+      "field": "native_dispatch_to_last_token_s",
+      "unit": "s",
+      "count": 1399,
+      "mean": 4.861083736776918,
+      "p50": 3.7115245669847354,
+      "p95": 11.674762906972319,
+      "max": 17.293414240994025
+    },
+    {
+      "source": "gpu_native",
+      "field": "last_token_to_controller_completion_s",
+      "unit": "s",
+      "count": 1399,
+      "mean": 0.5715322265298465,
+      "p50": 0.30897311196895316,
+      "p95": 2.008488599967677,
+      "max": 3.354858888022136
+    },
+    {
+      "source": "gpu_native",
+      "field": "controller_completion_to_terminal_s",
+      "unit": "s",
+      "count": 1399,
+      "mean": 0.41137008851302026,
+      "p50": 0.23529247200349346,
+      "p95": 1.3376275959890336,
+      "max": 3.9330385089851916
+    },
+    {
+      "source": "gpu_native",
+      "field": "ttft_s",
+      "unit": "s",
+      "count": 1399,
+      "mean": 3.417842258193052,
+      "p50": 2.9571296376525424,
+      "p95": 7.438677333528176,
+      "max": 18.383164024387952
+    },
+    {
+      "source": "gpu_native",
+      "field": "tpot_s",
+      "unit": "s",
+      "count": 1399,
+      "mean": 0.044196928683621205,
+      "p50": 0.0384672404588748,
+      "p95": 0.07963224339764566,
+      "max": 0.406396026792936
+    },
+    {
+      "source": "gpu_native",
+      "field": "routing_observation_s",
+      "unit": "s",
+      "count": 1399,
+      "mean": 0.7030698186147248,
+      "p50": 0.49554006300000003,
+      "p95": 2.2617692039999997,
+      "max": 4.779314919
+    },
+    {
+      "source": "gpu_native",
+      "field": "lora_io_s",
+      "unit": "s",
+      "count": 1399,
+      "mean": 0.0,
+      "p50": 0.0,
+      "p95": 0.0,
+      "max": 0.0
+    },
+    {
+      "source": "host_file",
+      "field": "arrival_to_gate_s",
+      "unit": "s",
+      "count": 8,
+      "mean": 0.0750417762028519,
+      "p50": 0.02975186612457037,
+      "p95": 0.3325108585995622,
+      "max": 0.3325108585995622
+    },
+    {
+      "source": "host_file",
+      "field": "gate_to_source_admission_s",
+      "unit": "s",
+      "count": 8,
+      "mean": 0.8850897546144552,
+      "p50": 0.4357028899830766,
+      "p95": 2.617059540003538,
+      "max": 2.617059540003538
+    },
+    {
+      "source": "host_file",
+      "field": "source_to_native_dispatch_s",
+      "unit": "s",
+      "count": 8,
+      "mean": 1.0387855601438787,
+      "p50": 0.673680001986213,
+      "p95": 2.077314702037256,
+      "max": 2.077314702037256
+    },
+    {
+      "source": "host_file",
+      "field": "native_dispatch_to_last_token_s",
+      "unit": "s",
+      "count": 8,
+      "mean": 7.257008550994215,
+      "p50": 4.738993927021511,
+      "p95": 13.173280221002642,
+      "max": 13.173280221002642
+    },
+    {
+      "source": "host_file",
+      "field": "last_token_to_controller_completion_s",
+      "unit": "s",
+      "count": 8,
+      "mean": 0.3422335012583062,
+      "p50": 0.2859576739720069,
+      "p95": 0.6451870040036738,
+      "max": 0.6451870040036738
+    },
+    {
+      "source": "host_file",
+      "field": "controller_completion_to_terminal_s",
+      "unit": "s",
+      "count": 8,
+      "mean": 0.20580576223437674,
+      "p50": 0.0663910600123927,
+      "p95": 0.7595666050328873,
+      "max": 0.7595666050328873
+    },
+    {
+      "source": "host_file",
+      "field": "ttft_s",
+      "unit": "s",
+      "count": 8,
+      "mean": 2.2843646344554145,
+      "p50": 1.9631014147307724,
+      "p95": 3.5032811281853355,
+      "max": 3.5032811281853355
+    },
+    {
+      "source": "host_file",
+      "field": "tpot_s",
+      "unit": "s",
+      "count": 8,
+      "mean": 0.04169268098739402,
+      "p50": 0.04228388849399327,
+      "p95": 0.05181128738972879,
+      "max": 0.05181128738972879
+    },
+    {
+      "source": "host_file",
+      "field": "routing_observation_s",
+      "unit": "s",
+      "count": 8,
+      "mean": 0.49095027300000005,
+      "p50": 0.214572449,
+      "p95": 1.91514003,
+      "max": 1.91514003
+    },
+    {
+      "source": "host_file",
+      "field": "lora_io_s",
+      "unit": "s",
+      "count": 8,
+      "mean": 0.7359631800209172,
+      "p50": 0.507360138988588,
+      "p95": 1.5631193550070748,
+      "max": 1.5631193550070748
+    },
+    {
+      "source": "host_native",
+      "field": "arrival_to_gate_s",
+      "unit": "s",
+      "count": 1533,
+      "mean": 1.3276533935683343,
+      "p50": 0.3011737893684767,
+      "p95": 6.194358728651423,
+      "max": 16.842714956204873
+    },
+    {
+      "source": "host_native",
+      "field": "gate_to_source_admission_s",
+      "unit": "s",
+      "count": 1533,
+      "mean": 1.4440243595642897,
+      "p50": 1.1085825289483182,
+      "p95": 3.86453065299429,
+      "max": 7.602289594011381
+    },
+    {
+      "source": "host_native",
+      "field": "source_to_native_dispatch_s",
+      "unit": "s",
+      "count": 1533,
+      "mean": 2.0058124637069406,
+      "p50": 1.3771693640155718,
+      "p95": 5.20582601899514,
+      "max": 15.440653649973683
+    },
+    {
+      "source": "host_native",
+      "field": "native_dispatch_to_last_token_s",
+      "unit": "s",
+      "count": 1533,
+      "mean": 4.9406945526777815,
+      "p50": 3.8068444409873337,
+      "p95": 11.997333856998011,
+      "max": 16.04167884797789
+    },
+    {
+      "source": "host_native",
+      "field": "last_token_to_controller_completion_s",
+      "unit": "s",
+      "count": 1533,
+      "mean": 0.5851646434933458,
+      "p50": 0.30485937296180055,
+      "p95": 2.11940794903785,
+      "max": 3.9558142729802057
+    },
+    {
+      "source": "host_native",
+      "field": "controller_completion_to_terminal_s",
+      "unit": "s",
+      "count": 1533,
+      "mean": 0.39856382047718625,
+      "p50": 0.22785148996626958,
+      "p95": 1.3988695310545154,
+      "max": 4.083593093964737
+    },
+    {
+      "source": "host_native",
+      "field": "ttft_s",
+      "unit": "s",
+      "count": 1533,
+      "mean": 5.183221616364163,
+      "p50": 4.380874473950826,
+      "p95": 12.265491121914238,
+      "max": 22.50248403957812
+    },
+    {
+      "source": "host_native",
+      "field": "tpot_s",
+      "unit": "s",
+      "count": 1533,
+      "mean": 0.044592177341601306,
+      "p50": 0.04000560071378691,
+      "p95": 0.0823764434971963,
+      "max": 0.23518580633875294
+    },
+    {
+      "source": "host_native",
+      "field": "routing_observation_s",
+      "unit": "s",
+      "count": 1533,
+      "mean": 0.6640480944383561,
+      "p50": 0.495671777,
+      "p95": 2.016273295,
+      "max": 4.731685006
+    },
+    {
+      "source": "host_native",
+      "field": "lora_io_s",
+      "unit": "s",
+      "count": 1533,
+      "mean": 1.3764265632839778,
+      "p50": 0.7291408590390347,
+      "p95": 4.449091323011089,
+      "max": 14.662080387992319
+    },
+    {
+      "source": "nvme_file",
+      "field": "arrival_to_gate_s",
+      "unit": "s",
+      "count": 922,
+      "mean": 1.4282836322077963,
+      "p50": 0.37676465848926455,
+      "p95": 6.124900934286416,
+      "max": 17.101374079764355
+    },
+    {
+      "source": "nvme_file",
+      "field": "gate_to_source_admission_s",
+      "unit": "s",
+      "count": 922,
+      "mean": 1.667319224725203,
+      "p50": 1.36817129899282,
+      "p95": 3.827261512982659,
+      "max": 6.979730125982314
+    },
+    {
+      "source": "nvme_file",
+      "field": "source_to_native_dispatch_s",
+      "unit": "s",
+      "count": 922,
+      "mean": 1.5714520701179948,
+      "p50": 1.2098187519586645,
+      "p95": 3.953537449997384,
+      "max": 6.368114796990994
+    },
+    {
+      "source": "nvme_file",
+      "field": "native_dispatch_to_last_token_s",
+      "unit": "s",
+      "count": 922,
+      "mean": 5.128131046672081,
+      "p50": 3.953786048979964,
+      "p95": 12.059204811987001,
+      "max": 15.59991191199515
+    },
+    {
+      "source": "nvme_file",
+      "field": "last_token_to_controller_completion_s",
+      "unit": "s",
+      "count": 922,
+      "mean": 0.5569410717937794,
+      "p50": 0.3032121369615197,
+      "p95": 1.8835192889673635,
+      "max": 3.4938962269807234
+    },
+    {
+      "source": "nvme_file",
+      "field": "controller_completion_to_terminal_s",
+      "unit": "s",
+      "count": 922,
+      "mean": 0.40452951578585755,
+      "p50": 0.2222860199981369,
+      "p95": 1.38967948500067,
+      "max": 4.59848561702529
+    },
+    {
+      "source": "nvme_file",
+      "field": "ttft_s",
+      "unit": "s",
+      "count": 922,
+      "mean": 5.071175462365935,
+      "p50": 4.323900856310502,
+      "p95": 11.036280789645389,
+      "max": 21.76437776593957
+    },
+    {
+      "source": "nvme_file",
+      "field": "tpot_s",
+      "unit": "s",
+      "count": 922,
+      "mean": 0.043544841887478786,
+      "p50": 0.039405380647090794,
+      "p95": 0.07132986049982719,
+      "max": 0.19777004871450896
+    },
+    {
+      "source": "nvme_file",
+      "field": "routing_observation_s",
+      "unit": "s",
+      "count": 922,
+      "mean": 0.6738365998665943,
+      "p50": 0.512378526,
+      "p95": 1.953440172,
+      "max": 4.727975966
+    },
+    {
+      "source": "nvme_file",
+      "field": "lora_io_s",
+      "unit": "s",
+      "count": 922,
+      "mean": 1.1550981662582243,
+      "p50": 0.7776441409951076,
+      "p95": 3.3368577510118484,
+      "max": 5.670296951022465
+    },
+    {
+      "source": "remote_file",
+      "field": "arrival_to_gate_s",
+      "unit": "s",
+      "count": 138,
+      "mean": 2.1792008221669095,
+      "p50": 0.33872324193362147,
+      "p95": 11.370164927095175,
+      "max": 24.210703223012388
+    },
+    {
+      "source": "remote_file",
+      "field": "gate_to_source_admission_s",
+      "unit": "s",
+      "count": 138,
+      "mean": 1.25247350772944,
+      "p50": 0.8887754780007526,
+      "p95": 3.6598457770305686,
+      "max": 5.8206773909623735
+    },
+    {
+      "source": "remote_file",
+      "field": "source_to_native_dispatch_s",
+      "unit": "s",
+      "count": 138,
+      "mean": 5.58420783060095,
+      "p50": 5.670400311995763,
+      "p95": 10.353454602998681,
+      "max": 13.73943907697685
+    },
+    {
+      "source": "remote_file",
+      "field": "native_dispatch_to_last_token_s",
+      "unit": "s",
+      "count": 138,
+      "mean": 5.487128907696519,
+      "p50": 4.8088482359889895,
+      "p95": 12.09010185097577,
+      "max": 14.603265576006379
+    },
+    {
+      "source": "remote_file",
+      "field": "last_token_to_controller_completion_s",
+      "unit": "s",
+      "count": 138,
+      "mean": 0.41110374562929897,
+      "p50": 0.15326404199004173,
+      "p95": 1.9328485989826731,
+      "max": 3.2669116189936176
+    },
+    {
+      "source": "remote_file",
+      "field": "controller_completion_to_terminal_s",
+      "unit": "s",
+      "count": 138,
+      "mean": 0.30186801977654704,
+      "p50": 0.09587502398062497,
+      "p95": 1.2993006640463136,
+      "max": 2.2822821789886802
+    },
+    {
+      "source": "remote_file",
+      "field": "ttft_s",
+      "unit": "s",
+      "count": 138,
+      "mean": 9.369011616934532,
+      "p50": 9.154476736614015,
+      "p95": 17.175488280772697,
+      "max": 31.503627098805737
+    },
+    {
+      "source": "remote_file",
+      "field": "tpot_s",
+      "unit": "s",
+      "count": 138,
+      "mean": 0.04022587745632079,
+      "p50": 0.03783230979849274,
+      "p95": 0.059328155495071165,
+      "max": 0.1576002168294508
+    },
+    {
+      "source": "remote_file",
+      "field": "routing_observation_s",
+      "unit": "s",
+      "count": 138,
+      "mean": 0.4467783589202899,
+      "p50": 0.32130733,
+      "p95": 1.261767316,
+      "max": 2.887057718
+    },
+    {
+      "source": "remote_file",
+      "field": "lora_io_s",
+      "unit": "s",
+      "count": 138,
+      "mean": 5.228949002007552,
+      "p50": 5.284257702005561,
+      "p95": 9.894678066018969,
+      "max": 13.455370199983008
+    }
+  ],
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d160_20261002/full_full1_request_projection.json",
+      "sha256": "9ea2d9c097bd16b0b75cdb3b272f2bf36833a4b999d17434d1dd46153cf5d6fb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261002_d160_control_occupancy/request_occupancy.csv",
+      "sha256": "5d645c5c38157e6d5da154c8d3f010844e2d183a723eebf9246e464aff1f1e7f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261002_d160_7b_full_w0_full1.json",
+      "sha256": "67db3cf4b7a3f7a26d6cbd8f355b398945439f855fc9e1cd0254104fbdc9d777"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261002_d160_evidence_verification.json",
+      "sha256": "133aac17696c52e0a71c0e38f427a06c0181cc79230400d9c0ff697fb208f03c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d161_20261002/group_selected_sources1.py",
+      "sha256": "c89c709233962ba8984385c2f7cf217d664d3214a23811c1d9ad247d18609c72"
+    }
+  ],
+  "caveats": [
+    "Source groups are selected by this execution, not common randomized causal groups.",
+    "Generation count/recorded identity does not prove numerical adapter correctness or common SLO.",
+    "Routing and lora_io timers overlap timeline stages; do not add their means/percentiles.",
+    "lora_io and routing spans include awaits and controller scheduling, not isolated disk/network/CPU service.",
+    "No direct per-operation source RPC/CPU duration is retained; no bottleneck function is proven."
+  ]
+}

@@ -1,6 +1,70 @@
 # IEEE TC execution status
 
-## CURRENT — D160 ordinary 7B Full W0 analyzed/tabled/SEALED; backup pending
+## CURRENT — D161 retained RPC/source-stage diagnosis SEALED; backup next
+
+14:28 +08 sealCOMPLETE:8source refs/weightedTTFT-TPOTreconciliation/147protected/
+Plan/V1/unchangedserving+observer/syntaxPASS. VerificationSHA
+a59a909c4a62a8b01578dc0cb7dd23143a980cad08e9e27c9c43fc8c4dd4bd90.
+13member10008B smallbundleSHA
+5f5aeb22811bd50b1d333a28aafba4be1140be1d30acb08dc4b73f5496955081.
+Sealactual2eb88d93d3e6458da8b26a0445746e5a returned0/finalevents0;
+automaticremoval/inactive/emptyID/emptyCG verified. No livejobs.
+Doc and curated nowSEALED, doNOTedit/reanalyze. BundlechecksumPASS.
+Nextstagedchecks/backup thennewcurrent-prefixdiagnostic; notprepared/launched.
+
+2026-10-02 14:27 +08. Goal ACTIVE/PROGRESS; no live GPU/remote/analysis jobs.
+Serving unchanged D159 11a5432. FullPlan1537/status/V1312 and analysis/vLLM/
+plotting/github-sync skills read. User once-onlycache approval alreadyfulfilled;
+no cache creation or remote operation. D160/D158 closures NOT repeated.
+
+New offline recovery reuses D16034MBprojection and sealed timeline only:
+RPC22fields x4000 valid; pickupmean/P95478.953/1909.015ms, nativeworkerqueue
+2.238/1.703ms, channel.014650/.017668ms; no remote-network/isolatedCPU attribution.
+Selectedgroups GPU1399/HOSTnative1533/HOSTfile8/NVMe922/remote138; GPUgroup
+meanTTFT3.417842s,gate→source1.792049s/source→dispatch.163136s. HOSTnative
+source→dispatch2.005812s. Conditionalgroups NOTcausal tier contrasts.
+Doc D161_RETAINED_CONTROL_DIAGNOSIS.md includes exacttables/limits/nextquestion.
+No mainlatency/U/numerical/SLO values changed. 7B G1G2/numeric/commonreferences
+remainOPEN;3B/externalbaselinesPAUSED. No servingcandidate selected.
+
+RPC scope95b35c5c2da245a089cb9564023684bc exited0/.78s/RSS130944KiB;
+source scope8243061947c14fc296adfaa6354decb2/session18453 CLOSED0/12.16s/
+RSS1182776KiB. Both3/4GiBswap0CPU2,3,26,27,finalmemoryevents0 observed;
+automaticremoval/inactive/emptyIDverified. Microstatistics+4000identity/source/
+timelinereconciliationPASS. Analyzerunchanged;no repeated D159regressions.
+Readonly absent-path lookups caused sed/rg errors only, no data altered.
+
+NEXT seal/checksum/secrets/backup D161, then ONE current7B1000prefix CPU-frame
+diagnostic using unchangedD143observer/currentD160cap4/D157profiles/Fulllauncher.
+Rationale: current pre-source and completionwaits persist evenforGPUready, but
+retainedlogs lack operationCPU attribution; oldD143cap2stacks notcurrentevidence.
+No Cwatchdog/ptrace/newinstrumentationframework/cap/deadlinechange. Diagnostic
+NOTyetprepared/launched. After evidence chooseONEoptimizer,thenminimaltests+
+ordinaryFull; don'tloopoldcomponenttests or skipactualper-modelacceptance.
+
+## PRIOR — D160 ordinary 7B Full W0 analyzed/tabled/SEALED and BACKED
+
+14:10 +08 backup COMPLETE1267d15c0dad1ffd3aae983777cfc574f96a94c9;
+pushedfaaslora_origin/retry14_continuous_queue_v2 and independentremoteHEADmatch.
+Push14812/verify44045 CLOSED0.12explicitfiles/76staged+archivepayloads checked;
+AST7/shellsyntax/checksum/scopeddiff/311sources/147protectedPASS.
+Userdirtymanifestexcluded. No livejobs, no servingchanges beyond D159.
+DoNOTrepeatD160analysis/seal/replay, D159tests, D157profiles orremote cache.
+Onlythispost-backupreceipt localdirty. Goal ACTIVE, thisturnPROGRESS.
+
+Read-only next-path inspection: _ieee_request_snapshot still gathers fresh
+native sources then selected-copy protection separately; HOST preparation takes
+a fresh source view before demand_load_and_acquire. Confirmed identity/epoch
+and cancellation ownership are required; no decision to remove those checks.
+Native routing D151 already omits unused staging output but keeps live graph
+validation. Current source paths are scripts/run_all_experiments.py,
+faaslora/memory/residency_manager.py and faaslora/experiment/instance_pool.py;
+three guessed runtime file paths and faaslora/engine.py were absent (readonly
+rg errors only, no evidence altered). No new optimizer/configuration/GPUrun
+selected. NEXT use D160 stage evidence plus source/history/primary-reference
+diagnosis, select ONE falsifiable bottleneck; do not recycle D159 hypothesis or
+infer CPUpercentages from old D143 samples. Preserve current full sequence:
+actual7B G1G2/numeric/commonreference acceptance before3B/externalbaselines.
 
 2026-10-02 14:06 +08. Goal ACTIVE/PROGRESS. D160 completed4000native/0failure;
 no live GPU/remote/analysis/tool jobs. D159 sole candidate runtime11a5432 unchanged.

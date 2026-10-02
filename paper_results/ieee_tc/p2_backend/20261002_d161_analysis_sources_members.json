@@ -1,0 +1,19 @@
+{
+  "bundle": "20261002_d161_analysis_sources.tar.gz",
+  "member_sha256": {
+    "7b_rpc1.log": "2c7afd01ae342ab99d7e07cf4b6627f0fce33ab1d16906384a070e4c3e0c5d11",
+    "7b_time1.txt": "daa0e5792b11c2a6e6f3722d19ca55e55ed40d713f58b4bdab6abce87659f40c",
+    "check_staged.py": "633aa7236e346f07a9d3473eb114e715cefff9ab94e5c058779b4c9e1ce2febb",
+    "group_selected_sources1.py": "c89c709233962ba8984385c2f7cf217d664d3214a23811c1d9ad247d18609c72",
+    "rpc_scope1.txt": "2d1ea945dfcc58ae2b9080545dfa462e62e69eac97bf0ea9b1f217e597e34ec0",
+    "run_rpc_audit1.sh": "6ac05a0f015ab4f2769b74ae4bdedecfbbc1f563bfca89a5f9bb180fe910d0b6",
+    "run_seal1.sh": "36bd14c8d96d01bb5a20a64a6edc1d26e547dc684e67ca0371ac5f453d0b5a9b",
+    "run_source_audit1.sh": "cdaad5af6892774556e1e52f32b716cc92de50164de7677a8ea52db4722f582d",
+    "seal_evidence1.py": "162120373e60820e8288b2b57d86ab8dfb52892c91cea327d267d9a0f6a488d0",
+    "seal_scope1.txt": "960ce0e2fd116bf0d7a17ca57f6a38644ce6cfda952b7064e7e7815d1aace688",
+    "source1.log": "d653150ae6efec3a7820997040c22242781e009ffbe96f3f0f6bb02f8ba9047f",
+    "source_scope1.txt": "5f52db73d076b7c91e9543a1a14efa669b49bab5136001be53728829a6cb728d",
+    "source_time1.txt": "e898687f7e1b5e71f41cbfb1cadb0cbe275e457edbee804a276cc509ccd7903b"
+  },
+  "member_checks_pass": true
+}
