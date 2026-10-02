@@ -1,0 +1,323 @@
+{
+  "kind": "d163_immutable_plan_membership_qualification_v1",
+  "base_commit": "2765a51bd844bd38f4b6bfde79905757c9dacdb2",
+  "source_sha256": {
+    "faaslora/preloading/planning_cpu.py": "94e16c8af9957d1faa5f8b1bee8a8cba9de80d6bb09ff27251d9163d3695763e",
+    "tests/test_ieee_tc_planning_cpu.py": "04450c841e91b1536078bf12fbd22ee8225ef58949dd4e48448b88de8b0e0f76",
+    "faaslora/preloading/preloading_planner.py": "148217788f7182b9dc1c1db382dd32ce0e547818512d677ccd23cb25b010df98",
+    "scripts/run_all_experiments.py": "3f6f650916d8aeedd62c2e844e7ce0d8e7f8fd239b7f26a5806257214d421e0a",
+    "faaslora/memory/residency_manager.py": "a766a754e5a1172fbef29c0bb8575ad76270d42787f5fc6f48204ca51f095d98"
+  },
+  "tests": [
+    {
+      "phase": "targeted1",
+      "count": 6,
+      "exit_code": 0,
+      "body_seconds": 0.003,
+      "maximum_rss_kib": 1095404,
+      "actual_invocation_id": "afd163bbde244bd285484cb943739890",
+      "cleanup_verified": true,
+      "final_memory_events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0"
+      },
+      "final_swap_bytes": 0,
+      "raw_log_sha256": "7178e9089a2c41545b27dd970ede1f93f9859ea2a33809c773504d55377c905c"
+    },
+    {
+      "phase": "regression1",
+      "count": 822,
+      "exit_code": 0,
+      "body_seconds": 148.908,
+      "maximum_rss_kib": 1199924,
+      "actual_invocation_id": "1ab89f8ffefb48b0bb4f688ecf4068d6",
+      "cleanup_verified": true,
+      "final_memory_events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0"
+      },
+      "final_swap_bytes": 0,
+      "raw_log_sha256": "6a6b7f212669607c4bbdef654087791b9203331970e00bdfaff1717edb93749b"
+    },
+    {
+      "phase": "micro1",
+      "count": null,
+      "exit_code": 0,
+      "body_seconds": null,
+      "maximum_rss_kib": 1164496,
+      "actual_invocation_id": "b11171097c2c4b339920d34e3e396726",
+      "cleanup_verified": true,
+      "final_memory_events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0"
+      },
+      "final_swap_bytes": 0,
+      "raw_log_sha256": "8b6b6b2878d7ed014ea1445330a3764e8d79211260e2c47d97242b05002404d5"
+    }
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "frozen_references": {
+    "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261002_d160_7b_full_w0_full1.json": "67db3cf4b7a3f7a26d6cbd8f355b398945439f855fc9e1cd0254104fbdc9d777",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261002_d162_prefix_diagnostic.json": "ea9ae817196f8f8f5ccf2a5869469690ceb5e4aa53e5c53a606e337c21f9c8d5"
+  },
+  "component": {
+    "kind": "d163_immutable_plan_membership_component_v1",
+    "fixtures": [
+      {
+        "mode": "residency",
+        "payload_bytes": 15284,
+        "plan_sha256": "84e9a41f3eef29d885f5333132bcf89807f58fc1aa1d9ff9bff5bb39e622f16f",
+        "plan_keys": [
+          "kind",
+          "mode",
+          "source_snapshot_id",
+          "profile_id",
+          "cost_sequence",
+          "demand_observed_at",
+          "window_seconds",
+          "total_arrivals",
+          "arrival_counts",
+          "remaining_bytes",
+          "options",
+          "cost_estimates",
+          "replacement_policy",
+          "size_edges_bytes",
+          "plan_sha256",
+          "physical_resources_reserved",
+          "selected",
+          "diagnostics",
+          "source_view"
+        ],
+        "independent_serving_run": false
+      },
+      {
+        "mode": "handoff",
+        "payload_bytes": 13998,
+        "plan_sha256": "ec4dca240f721d2c1b634e96d7fe7feee5f618ef7393f6faead255dde2aeaecb",
+        "plan_keys": [
+          "kind",
+          "mode",
+          "source_snapshot_id",
+          "profile_id",
+          "cost_sequence",
+          "demand_observed_at",
+          "window_seconds",
+          "total_arrivals",
+          "arrival_counts",
+          "remaining_bytes",
+          "options",
+          "cost_estimates",
+          "plan_sha256",
+          "physical_resources_reserved",
+          "selected",
+          "diagnostics",
+          "source_view"
+        ],
+        "independent_serving_run": false
+      }
+    ],
+    "groups": [
+      {
+        "mode": "residency",
+        "variant": "legacy",
+        "paired_component_repeats": 3,
+        "mean_member_then_open_ns": 235724.84666666668,
+        "counted_decodes_per_operation": 2
+      },
+      {
+        "mode": "residency",
+        "variant": "candidate",
+        "paired_component_repeats": 3,
+        "mean_member_then_open_ns": 120170.43000000001,
+        "counted_decodes_per_operation": 1
+      },
+      {
+        "mode": "handoff",
+        "variant": "legacy",
+        "paired_component_repeats": 3,
+        "mean_member_then_open_ns": 207494.14666666667,
+        "counted_decodes_per_operation": 2
+      },
+      {
+        "mode": "handoff",
+        "variant": "candidate",
+        "paired_component_repeats": 3,
+        "mean_member_then_open_ns": 103453.78666666667,
+        "counted_decodes_per_operation": 1
+      }
+    ],
+    "rows": [
+      {
+        "mode": "residency",
+        "repeat": 0,
+        "variant": "legacy",
+        "iterations": 100,
+        "mean_member_then_open_ns": 234493.38,
+        "counted_decodes_per_operation": 2,
+        "exact_output": true
+      },
+      {
+        "mode": "residency",
+        "repeat": 0,
+        "variant": "candidate",
+        "iterations": 100,
+        "mean_member_then_open_ns": 119050.66,
+        "counted_decodes_per_operation": 1,
+        "exact_output": true
+      },
+      {
+        "mode": "residency",
+        "repeat": 1,
+        "variant": "candidate",
+        "iterations": 100,
+        "mean_member_then_open_ns": 118829.85,
+        "counted_decodes_per_operation": 1,
+        "exact_output": true
+      },
+      {
+        "mode": "residency",
+        "repeat": 1,
+        "variant": "legacy",
+        "iterations": 100,
+        "mean_member_then_open_ns": 237176.42,
+        "counted_decodes_per_operation": 2,
+        "exact_output": true
+      },
+      {
+        "mode": "residency",
+        "repeat": 2,
+        "variant": "legacy",
+        "iterations": 100,
+        "mean_member_then_open_ns": 235504.74,
+        "counted_decodes_per_operation": 2,
+        "exact_output": true
+      },
+      {
+        "mode": "residency",
+        "repeat": 2,
+        "variant": "candidate",
+        "iterations": 100,
+        "mean_member_then_open_ns": 122630.78,
+        "counted_decodes_per_operation": 1,
+        "exact_output": true
+      },
+      {
+        "mode": "handoff",
+        "repeat": 0,
+        "variant": "legacy",
+        "iterations": 100,
+        "mean_member_then_open_ns": 208292.13,
+        "counted_decodes_per_operation": 2,
+        "exact_output": true
+      },
+      {
+        "mode": "handoff",
+        "repeat": 0,
+        "variant": "candidate",
+        "iterations": 100,
+        "mean_member_then_open_ns": 102910.77,
+        "counted_decodes_per_operation": 1,
+        "exact_output": true
+      },
+      {
+        "mode": "handoff",
+        "repeat": 1,
+        "variant": "candidate",
+        "iterations": 100,
+        "mean_member_then_open_ns": 103808.43,
+        "counted_decodes_per_operation": 1,
+        "exact_output": true
+      },
+      {
+        "mode": "handoff",
+        "repeat": 1,
+        "variant": "legacy",
+        "iterations": 100,
+        "mean_member_then_open_ns": 207588.33,
+        "counted_decodes_per_operation": 2,
+        "exact_output": true
+      },
+      {
+        "mode": "handoff",
+        "repeat": 2,
+        "variant": "legacy",
+        "iterations": 100,
+        "mean_member_then_open_ns": 206601.98,
+        "counted_decodes_per_operation": 2,
+        "exact_output": true
+      },
+      {
+        "mode": "handoff",
+        "repeat": 2,
+        "variant": "candidate",
+        "iterations": 100,
+        "mean_member_then_open_ns": 103642.16,
+        "counted_decodes_per_operation": 1,
+        "exact_output": true
+      }
+    ],
+    "exact_output": true,
+    "inference": false,
+    "formal_result": false,
+    "evidence_base_commit": "2765a51bd844bd38f4b6bfde79905757c9dacdb2",
+    "source_refs": [
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d163_20261002/compare_membership.py",
+        "sha256": "c5cf7b7e7b56591ca9ac347f3bf85d2f315d5ef1352ac0d194053f54ba27ccd5"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/planning_cpu.py",
+        "sha256": "94e16c8af9957d1faa5f8b1bee8a8cba9de80d6bb09ff27251d9163d3695763e"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_planning_cpu.py",
+        "sha256": "04450c841e91b1536078bf12fbd22ee8225ef58949dd4e48448b88de8b0e0f76"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_transfer_pressure.py",
+        "sha256": "e267b019e9168bb9ba0eecf0843511e23f99fa63daea576a6b05cd600d85d139"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_planner.py",
+        "sha256": "148217788f7182b9dc1c1db382dd32ce0e547818512d677ccd23cb25b010df98"
+      }
+    ],
+    "caveats": [
+      "Existing tiny planner correctness fixtures, not representative live full epochs.",
+      "Three paired CPU repetitions are not workload runs or a confidence interval.",
+      "Payload decode count reduction is exact; timing cannot be extrapolated to TTFT or GPU-s.",
+      "Ordinary Full4000 without observer remains necessary; no extra profile or capacity change."
+    ]
+  },
+  "original_formulas_worker_and_exports_unchanged": true,
+  "performance_run_completed": false,
+  "formal_g1_g2_qualified": false,
+  "qualification": "representation_correctness_and_component_only",
+  "next": "Ordinary 7B Full4000 W0 without observer; same D160 cap4 and D157 profiles.",
+  "caveats": [
+    "Tiny fixture timings are not serving latency or a confidence interval.",
+    "Additional immutable key-index creation is part of the candidate and must be included in Full.",
+    "Numerical adapter identity, common warm/Resident references and G1/G2 remain open."
+  ]
+}

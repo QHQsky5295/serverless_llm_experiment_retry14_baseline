@@ -1,0 +1,5 @@
+mode,variant,paired_component_repeats,mean_member_then_open_ns,counted_decodes_per_operation
+residency,legacy,3,235724.84666666668,2
+residency,candidate,3,120170.43000000001,1
+handoff,legacy,3,207494.14666666667,2
+handoff,candidate,3,103453.78666666667,1

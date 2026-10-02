@@ -5,12 +5,94 @@ import os
 import pickle
 import time
 import unittest
+from collections.abc import Mapping
 from unittest.mock import patch
 
 from faaslora.preloading.planning_cpu import (
     IEEEPlanningCPU, execute_planning_message, freeze_owned_planning,
     ValidatedPreparationPlan, execution_preparation_input, execution_preparation_bundle)
 from faaslora.registry.schema import StorageTier
+
+
+class ValidatedPlanMembership(unittest.TestCase):
+    """Representation-only fixtures; actual worker validation is tested below."""
+    def setUp(self):
+        self.plan = dict(plan_sha256='fixture-sha', source_view={'native': {'epoch': 3}},
+                         selected={'gpu': ['a'], 'host': [], 'nvme': []})
+        self.bundle = (self.plan, self.plan['selected'], {'size_edges_bytes': (16, 32)})
+        self.payload = pickle.dumps(self.bundle, protocol=5)
+        self.receipt = dict(operation='owned_execution_epoch', frozen_execution_validated=True,
+                            execution_objectives_prepared=True, plan_sha256='fixture-sha',
+                            plan_keys=list(self.plan))
+        self.sealed = ValidatedPreparationPlan._from_worker_result(self.payload, self.receipt)
+
+    def test_present_absent_and_keys_view_do_not_decode(self):
+        expected = {key: Mapping.__contains__(self.sealed, key)
+                    for key in (*self.plan, 'absent', None, 0, b'source_view')}
+        with patch('faaslora.preloading.planning_cpu.pickle.loads',
+                   side_effect=AssertionError('membership must not open payload')):
+            for key, present in expected.items():
+                self.assertEqual(key in self.sealed, present)
+                self.assertEqual(key in self.sealed.keys(), present)
+            self.assertEqual(tuple(self.sealed), tuple(self.plan))
+            self.assertEqual(len(self.sealed), len(self.plan))
+
+    def test_unhashable_keys_preserve_dict_errors(self):
+        for key in ([], {}, {'source_view'}, bytearray(b'source_view')):
+            with self.subTest(key=type(key).__name__):
+                with self.assertRaises(TypeError):
+                    Mapping.__contains__(self.sealed, key)
+                with patch('faaslora.preloading.planning_cpu.pickle.loads',
+                           side_effect=AssertionError('unhashable lookup decoded payload')):
+                    with self.assertRaises(TypeError):
+                        key in self.sealed
+                    with self.assertRaises(TypeError):
+                        key in self.sealed.keys()
+
+    def test_equal_hashable_keys_match_mapping_lookup(self):
+        class Alias:
+            def __hash__(self):
+                return hash('source_view')
+            def __eq__(self, other):
+                return other == 'source_view'
+        alias = Alias()
+        self.assertEqual(alias in self.sealed, Mapping.__contains__(self.sealed, alias))
+        self.assertTrue(alias in self.sealed)
+
+    def test_key_index_is_immutable_and_detached_from_receipt(self):
+        self.receipt['plan_keys'].clear()
+        self.assertIn('source_view', self.sealed)
+        with self.assertRaises(TypeError):
+            self.sealed._key_index['injected'] = None
+        with self.assertRaises((AttributeError, TypeError)):
+            self.sealed._key_index = {}
+        self.assertNotIn('injected', self.sealed)
+
+    def test_exports_do_not_change_membership_or_execution(self):
+        exported = copy.deepcopy(self.sealed)
+        del exported['source_view']
+        exported['injected'] = True
+        self.assertIn('source_view', self.sealed)
+        self.assertNotIn('injected', self.sealed)
+        self.assertEqual(self.sealed.execution_bundle_copy(), self.bundle)
+        with self.assertRaises(KeyError):
+            self.sealed['injected']
+        with self.assertRaisesRegex(TypeError, 'local-only'):
+            pickle.dumps(self.sealed)
+
+    def test_member_then_execute_decodes_once_with_identical_output(self):
+        loads = pickle.loads
+        with patch('faaslora.preloading.planning_cpu.pickle.loads', wraps=loads) as decode:
+            legacy_edges = (16, 32) if Mapping.__contains__(self.sealed, 'source_view') else None
+            expected = asyncio.run(execution_preparation_bundle(None, self.sealed,
+                size_edges_bytes=legacy_edges))
+            self.assertEqual(decode.call_count, 2)
+        with patch('faaslora.preloading.planning_cpu.pickle.loads', wraps=loads) as decode:
+            edges = (16, 32) if 'source_view' in self.sealed else None
+            actual = asyncio.run(execution_preparation_bundle(None, self.sealed,
+                size_edges_bytes=edges))
+            self.assertEqual(decode.call_count, 1)
+        self.assertEqual(actual, expected)
 
 
 class PlanningCPU(unittest.IsolatedAsyncioTestCase):
@@ -210,6 +292,12 @@ class PlanningCPU(unittest.IsolatedAsyncioTestCase):
                 pickle.dumps(('owned_execution_epoch', limit, args), protocol=5))
             self.assertEqual(validate.call_count, 1)
         sealed = ValidatedPreparationPlan._from_worker_result(payload, receipt)
+        self.assertEqual(tuple(sealed.snapshot()), receipt['plan_keys'])
+        with patch('faaslora.preloading.planning_cpu.pickle.loads',
+                   side_effect=AssertionError('actual worker receipt membership decoded payload')):
+            self.assertIn('source_view', sealed)
+            self.assertIn('plan_sha256', sealed)
+            self.assertNotIn('missing', sealed)
         self.assertEqual(sealed['selected'], original(runner._stack.preloading_planner, sealed.snapshot()))
         with patch.object(PreloadingPlanner, 'validate_ieee_execution_plan',
                           side_effect=ValueError('frozen-validation-rejected')):

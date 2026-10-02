@@ -16,6 +16,7 @@ from collections.abc import Mapping
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass, replace
 from functools import lru_cache
+from types import MappingProxyType
 
 
 @dataclass(frozen=True)
@@ -42,6 +43,7 @@ class ValidatedPreparationPlan(Mapping):
     _payload: bytes
     _plan_sha256: str
     _keys: tuple
+    _key_index: Mapping
 
     @classmethod
     def _from_worker_result(cls, payload, receipt):
@@ -54,6 +56,9 @@ class ValidatedPreparationPlan(Mapping):
         object.__setattr__(value, '_payload', payload)
         object.__setattr__(value, '_plan_sha256', receipt['plan_sha256'])
         object.__setattr__(value, '_keys', tuple(receipt['plan_keys']))
+        # The same worker emits these keys from the validated frozen plan.
+        # No mutable alias escapes; this indexes representation, not live state.
+        object.__setattr__(value, '_key_index', MappingProxyType(dict.fromkeys(value._keys)))
         return value
 
     def execution_copy(self):
@@ -74,6 +79,14 @@ class ValidatedPreparationPlan(Mapping):
 
     def __iter__(self):
         return iter(self._keys)
+
+    def __contains__(self, key):
+        # Mapping's default calls __getitem__, unnecessarily decoding the whole
+        # execution bundle for a key-only question. Preserve the hash fast path
+        # and ordinary dict key semantics (including unhashable-key errors).
+        if key == 'plan_sha256':
+            return True
+        return key in self._key_index
 
     def __len__(self):
         return len(self._keys)

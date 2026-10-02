@@ -1,6 +1,54 @@
 # IEEE TC execution status
 
-## CURRENT — D162 current 7B prefix diagnostic COMPLETE/SEALED, backup pending
+## CURRENT — D163 single immutable-plan membership candidate qualification
+
+15:28 +08 sealCOMPLETE. 147protected/Plan/V1/D160/D162 sourceSHAs PASS;
+original worker/formula/exportAST and runner/planner/residency filesunchanged.
+CuratedSHA0ae2f98f02371cc924d80f6ea4c42756a48ed0efbdfe427d1360b3e9b1730c41;
+verification1aa4856d1ca1f96e52378e87925897fee8d6968230c853e9081b2427fa8cfb0b.
+33member57037B bundleSHAaea1c9824a78dbd854b46541195ccb7ef709f6a65f05aaabb548da048ef919fc.
+verify1 actualbf835056738d433b90aa76959f19b273/session17482CLOSED0,finalevents0,
+automaticremoval verified15:27:56. Doc/result SEALED, doNOTeditorretest.
+No livejobs. Candidate/source SHA94e16c8af9957d1faa5f8b1bee8a8cba9de80d6bb09ff27251d9163d3695763e.
+Disk161471758336B(~150.38GiB): recheck150GiBnewheavyfloor; no relaxation.
+NEXT exactstagedchecks/backup thenD164ordinaryFull sameD160cap4/D157profiles,
+freshthreeownedpaths andcandidateidentity; no observer/prefix. Notpreparedyet.
+
+15:27 +08 qualificationCOMPLETE, no liveGPU/remote/testjobs. New6PASS.003s,
+regression822PASS148.908s(command161.57s/RSS1199924KiB). Actualtargeted
+afd163bbde244bd285484cb943739890/session19958CLOSED0; regression
+1ab89f8ffefb48b0bb4f688ecf4068d6/tmuxended; micro
+b11171097c2c4b339920d34e3e396726/session58075CLOSED0. All exactcleanupverified,
+3/4GiBswap0CPU2,3,26,27/finalmemoryevents0. No failedexecutionattempt.
+Existingtinyfixture paired3x100:residency235.725→120.170us, handoff207.494→
+103.454us; exactdecodes2→1/outputsame. NOTservingbenefit/CI/modelacceptance.
+DocD163 tablecomplete; candidateonlykeyindex/membership, otherformulas/livechecks
+unchanged. NEXT seal/backup then ordinaryFull4000 sameD160parameters/profiles.
+DoNOTrepeatD162diagnosis/D163tests orremote cachecreation. G1G2 stillOPEN.
+
+2026-10-02. Goal ACTIVE; Prime7B only. D162 sealed/backed2765a51, not repeated.
+Full authoritativePlan/status/V1 and run-experiment/analyze-results/academic-
+plotting/github-sync read. CPython/asyncio/vLLM primarysources recheckedonline.
+One candidate only: immutable key index avoids payload materialization for
+membership; original worker formulas/validation/execution/live checks unchanged.
+Six new representation tests and existing actual-worker check prepared, notyet
+run. Reuse D159 boundedtest protocol/D153 component method/existingfixtures.
+Raw d163_20261002. No GPU/remote launch, no cachecreation, cap/profile/SLO change.
+NEXT minimalqualification→table/seal/backup→ordinaryFull4000 sameD160config.
+7B G1G2/numerical/commonreference/oldPrimeacceptance stillOPEN;3B/baselinesPAUSED.
+Only own two source/test files plus D163 doc/status edited; usermanifestuntouched.
+
+## CURRENT — D162 current 7B prefix diagnostic COMPLETE/SEALED and BACKED
+
+15:08 +08 backup COMPLETE2765a51bd844bd38f4b6bfde79905757c9dacdb2;
+pushedfaaslora_origin/retry14_continuous_queue_v2 and independentremoteHEADmatch.
+Push91685/verify68573CLOSED0.8explicitfiles/53staged+archivepayloads secrets/
+syntax/checksum/scopeddiffPASS; userdirtymanifestexcluded. No livejobs/tools.
+Onlythispostbackupreceipt localdirty; servingruntime11a5432 unchanged.
+ThisgoalturnPROGRESS (completed diagnostic/newcause evidence/table/backup),
+NOT7Bacceptance. NEXT ONEimmutable-plan membership candidate qualification,
+thenordinaryFull; notyetimplemented. No repeatedD162analysis orobservertests.
+ReadfullPlan/status/V1 first; actual7Bacceptance before3B/baselines remains.
 
 2026-10-02 15:06 +08. Goal ACTIVE/PROGRESS. SAME run completed1000/1000native,
 0fail,4physicalleasesreleased/0quarantine. No live GPU/remote/analysis/tool jobs.

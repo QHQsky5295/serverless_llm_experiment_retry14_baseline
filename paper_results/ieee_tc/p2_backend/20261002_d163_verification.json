@@ -1,0 +1,15 @@
+{
+  "pass_": true,
+  "document_sha256": "43817224c0de0c64bc6a9c7d6f895905908345324aec1e83c1e4e9c7cc7ff102",
+  "curated_sha256": "0ae2f98f02371cc924d80f6ea4c42756a48ed0efbdfe427d1360b3e9b1730c41",
+  "csv_sha256": "036359e324a50d07de84498a88f03f48d73943c5228f1cec0fc9ce77ae07bd82",
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "formula_worker_and_export_AST_unchanged": true
+}
