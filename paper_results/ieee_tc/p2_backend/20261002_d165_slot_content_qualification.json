@@ -1,0 +1,107 @@
+{
+  "kind": "d165_slot_content_checker_qualification_v1",
+  "base_commit": "70029ba3ff68c4914e1d4a08c40b18298758aa56",
+  "source_sha256": {
+    "faaslora/memory/gpu_monitor.py": "5e478fc037645e9b84e956a6f089815be6fae9607a3295abb0f04f6fc71de21a",
+    "scripts/run_all_experiments.py": "5289472807106155194829c7121a4ed61e7d052664f3168087a21c285018c276",
+    "scripts/ieee_tc_preflight.py": "9449bfd83a19b8677c0a1e76e1bc4dd150abf220b1e426f887ba94679ef3fe45",
+    "tests/test_ieee_tc_worker_observation.py": "9fbb965881a768ac2a8cd100425513f88c1fe5aabff56472dc42e29a25f5aed8",
+    "tests/test_ieee_tc_preflight.py": "41e12f09568c76a0a7dfae61261970a01c79cf3bc7328256eaa3df45711167b2",
+    "faaslora/preloading/planning_cpu.py": "94e16c8af9957d1faa5f8b1bee8a8cba9de80d6bb09ff27251d9163d3695763e",
+    "faaslora/preloading/preloading_planner.py": "148217788f7182b9dc1c1db382dd32ce0e547818512d677ccd23cb25b010df98",
+    "faaslora/memory/residency_manager.py": "a766a754e5a1172fbef29c0bb8575ad76270d42787f5fc6f48204ca51f095d98",
+    "faaslora/experiment/instance_pool.py": "e8f1fff8fd6139f35de0a0f0073d0fbb884aa29fafd0be51d0bcd2d97d6889f6"
+  },
+  "tests": [
+    {
+      "phase": "targeted1",
+      "count": 13,
+      "exit_code": 0,
+      "body_seconds": 0.173,
+      "maximum_rss_kib": 1164888,
+      "actual_invocation_id": "b62c9e31b4164cd7a1a99c9602ec33eb",
+      "cleanup_verified": true,
+      "final_memory_events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0"
+      },
+      "final_swap_bytes": 0,
+      "raw_log_sha256": "b07130299a783e2b9b6aec258ad1c40fcae51ce7907cedd785c37bfa3cc95087"
+    },
+    {
+      "phase": "regression1",
+      "count": 811,
+      "exit_code": 0,
+      "body_seconds": 74.901,
+      "maximum_rss_kib": 1199536,
+      "actual_invocation_id": "2946c2b01387419ba4c1d1e826293f3f",
+      "cleanup_verified": true,
+      "final_memory_events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0"
+      },
+      "final_swap_bytes": 0,
+      "raw_log_sha256": "155099a9d3a5585ecc313d916e9901d511473171d9fc8a2287a2f81e90a329aa"
+    },
+    {
+      "phase": "verify1",
+      "count": 72,
+      "exit_code": 0,
+      "body_seconds": 1.045,
+      "maximum_rss_kib": 39552,
+      "actual_invocation_id": "5d9a53f19cea42b1ba4d7d6c7a6e36e5",
+      "cleanup_verified": true,
+      "final_memory_events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0"
+      },
+      "final_swap_bytes": 0,
+      "raw_log_sha256": "dc3e4481b9fd7a4b6ab8c54e0d5f3a67aaa5c83b150e35453555085c964be910"
+    }
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "frozen_references": {
+    "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261002_d164_7b_full_w0_full1.json": "7076db88971a1a1de7ece273ba82aa8882e7ad92b2cdf32e35d121d105b98bab"
+  },
+  "installed_native_source_sha256": {
+    "layers/base_linear.py": "11929fcd89bef08ca7e1e672cf6063c718bce4ba02a2fb8254dada7793a6c5f3",
+    "layers/column_parallel_linear.py": "317e651f98f461da3037853d7970297e19f1423a1f04dd14cb151f4ece8a028d",
+    "model_manager.py": "6695bb7d6373d8f29bb13d6ae31e2ef2a98f8c23a6f37f9147d67cafca5f3302"
+  },
+  "unchanged_functions_checked": 584,
+  "qualification": "CPU_checker_and_negative_controls_only",
+  "actual_gpu_slot_audit_completed": false,
+  "checkpoint_to_registered_qualified": false,
+  "per_token_execution_mapping_qualified": false,
+  "semantic_full_pool_qualification": false,
+  "formal_g1_g2_qualified": false,
+  "warm_reference_completed": false,
+  "performance_run_completed": false,
+  "next": "One necessary actual7B isolated slot-content measurement, then remaining numerical/common-reference evidence.",
+  "caveats": [
+    "Test groups overlap; counts are not independent experiments.",
+    "Zero weights are output-equivalent; numerical closeness is not identity discrimination.",
+    "No serving policy, formula, metric or remote delivery configuration changed."
+  ]
+}

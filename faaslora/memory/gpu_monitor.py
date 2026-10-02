@@ -428,6 +428,103 @@ def _ieee_copy_signature(tensor):
             tuple(tensor.stride()), str(tensor.dtype))
 
 
+def _ieee_slot_tensor_comparison(source, actual):
+    """Compare one CPU readback, including native zero padding, without tolerance.
+
+    This is a content check, not a kernel/output correctness test. Keeping only
+    one slot tensor on CPU at a time avoids materializing another adapter pool.
+    """
+    import hashlib
+    if (not torch.is_tensor(actual) or actual.device.type != 'cpu'
+            or actual.ndim != 2 or not actual.is_contiguous()):
+        raise ValueError('slot audit requires a contiguous two-dimensional CPU readback')
+    expected = torch.zeros_like(actual)
+    if source is not None:
+        if (not torch.is_tensor(source) or source.device.type != 'cpu'
+                or source.ndim != 2 or source.dtype != actual.dtype
+                or any(a > b for a, b in zip(source.shape, actual.shape))):
+            raise ValueError('slot audit source has incompatible shape, dtype or device')
+        expected[:source.shape[0], :source.shape[1]].copy_(source)
+    finite = bool(torch.isfinite(actual).all() and torch.isfinite(expected).all())
+    def sha(tensor):
+        return hashlib.sha256(tensor.detach().contiguous().view(torch.uint8).numpy().tobytes()).hexdigest()
+    return {'shape': list(actual.shape), 'dtype': str(actual.dtype),
+            'source_shape': None if source is None else list(source.shape),
+            'source_absent': source is None, 'all_finite': finite,
+            'mismatched_elements': int(torch.count_nonzero(actual != expected)),
+            'expected_nonzero_elements': int(torch.count_nonzero(expected)),
+            'actual_nonzero_elements': int(torch.count_nonzero(actual)),
+            'expected_padded_sha256': sha(expected), 'actual_slot_sha256': sha(actual),
+            'exact_value_match': finite and bool(torch.equal(actual, expected))}
+
+
+def _ieee_slot_readback(target, slot):
+    if (not torch.is_tensor(target) or target.device.type != 'cuda'
+            or target.ndim != 4 or target.shape[1] != 1
+            or not 0 <= slot < target.shape[0]):
+        raise ValueError('slot audit requires the qualified dense native CUDA slot')
+    return target[slot, 0].detach().to(device='cpu', copy=True).contiguous()
+
+
+def _ieee_lora_slot_content_audit(manager, adapter_ids):
+    """Isolated qualification: registered native tensors -> actual GPU slots.
+
+    Caller must synchronize the device first and exclude concurrent serving.
+    This does not authenticate checkpoint loading or prove per-token execution
+    mappings; these remain separate obligations, including for zero adapters.
+    """
+    if (not isinstance(adapter_ids, list) or not adapter_ids
+            or any(type(aid) is not int or aid <= 0 for aid in adapter_ids)
+            or len(set(adapter_ids)) != len(adapter_ids)):
+        raise ValueError('slot audit requires unique positive integer adapter IDs')
+    pool = _ieee_lora_pool_inventory(manager, require_uniform_slots=True)
+    slot_ids = list(pool['slot_adapter_ids'])
+    registered = manager.list_adapters()
+    if not set(adapter_ids).issubset(pool['active_gpu_adapter_ids']):
+        raise ValueError('slot audit cannot infer content for an inactive adapter')
+    rows = []
+    for aid in adapter_ids:
+        # Reject version/setter/layout variants whose transformations have not
+        # been audited. This operation only validates; it does not load/copy.
+        _ieee_host_copy_contract(manager, aid)
+        loaded, slot = registered[aid], slot_ids.index(aid)
+        if loaded.id != aid:
+            raise ValueError('registered native model identity differs from its slot ID')
+        tensors = []
+        for name, module in sorted(manager.modules.items()):
+            layer = manager._get_lora_layer_weights(loaded, name)
+            for side in ('a', 'b'):
+                targets = getattr(module, f'lora_{side}_stacked')
+                if (not isinstance(targets, (list, tuple))
+                        or len(targets) != module.n_slices or not targets):
+                    raise ValueError('slot audit encountered an unsupported tensor collection')
+                sources = None if layer is None else getattr(layer, f'lora_{side}')
+                if sources is None:
+                    sources = [None] * len(targets)
+                elif torch.is_tensor(sources):
+                    sources = [sources]
+                if not isinstance(sources, (list, tuple)) or len(sources) != len(targets):
+                    raise ValueError('slot audit source/target slice counts differ')
+                for index, (source, target) in enumerate(zip(sources, targets)):
+                    comparison = _ieee_slot_tensor_comparison(source, _ieee_slot_readback(target, slot))
+                    tensors.append({'module': name, 'side': side, 'slice': index, **comparison})
+        rows.append({'adapter_int_id': aid, 'slot': slot, 'rank': int(loaded.rank),
+                     'tensors': tensors, 'tensor_count': len(tensors),
+                     'exact_content_pass': bool(tensors) and all(t['exact_value_match'] for t in tensors)})
+    after = _ieee_lora_pool_inventory(manager, require_uniform_slots=True)
+    current = manager.list_adapters()
+    if (after['slot_adapter_ids'] != slot_ids
+            or any(current.get(aid) is not registered[aid] for aid in adapter_ids)):
+        raise RuntimeError('native slot or registered model changed during content audit')
+    return {'kind': 'native_registered_to_gpu_slot_content_v1',
+            'slot_adapter_ids': slot_ids, 'adapters': rows,
+            'exact_content_pass': all(row['exact_content_pass'] for row in rows),
+            'checkpoint_to_registered_qualified': False,
+            'per_token_execution_mapping_qualified': False,
+            'semantic_full_pool_qualification': False,
+            'performance_sample': False}
+
+
 def _ieee_copy2d_layout(source, destination):
     """Byte geometry for a dense pinned HOST -> row-pitched CUDA rectangle."""
     if (source.device.type != 'cpu' or destination.device.type != 'cuda'
@@ -788,9 +885,12 @@ class IEEEWorkerObservationExtension:
                 'completion_fence_scope': 'current_worker_cuda_stream',
                 'production_launch_authorized': False}
 
-    def ieee_worker_observation(self, *, synchronize: bool = False) -> Dict[str, Any]:
+    def ieee_worker_observation(self, *, synchronize: bool = False,
+                                audit_adapter_ids: Optional[List[int]] = None) -> Dict[str, Any]:
         if type(synchronize) is not bool:
             raise ValueError('synchronize must be an explicit boolean')
+        if audit_adapter_ids is not None and synchronize is not True:
+            raise ValueError('isolated slot content audit requires an explicit device barrier')
         if torch is None or self.device is None or self.device.type != 'cuda':
             raise RuntimeError('native CUDA worker is required')
         from faaslora.metrics.metrics_collector import local_monotonic_clock_id
@@ -800,6 +900,8 @@ class IEEEWorkerObservationExtension:
         manager = runner.lora_manager._adapter_manager
         if synchronize:
             torch.cuda.synchronize(self.device)
+        content = ({} if audit_adapter_ids is None else
+                   {'slot_content_audit': _ieee_lora_slot_content_audit(manager, audit_adapter_ids)})
         with torch.cuda.device(self.device):
             free_bytes, total_bytes = torch.cuda.mem_get_info(self.device)
             allocated_bytes = torch.cuda.memory_allocated(self.device)
@@ -833,6 +935,7 @@ class IEEEWorkerObservationExtension:
             'native_host_allocator_policy': self._ieee_host_allocator_policy,
             **pool,
             **host,
+            **content,
         }
 
 

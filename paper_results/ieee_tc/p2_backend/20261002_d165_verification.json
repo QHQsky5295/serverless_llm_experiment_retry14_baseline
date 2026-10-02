@@ -1,0 +1,21 @@
+{
+  "pass_": true,
+  "document_sha256": "582122ebfc881a6c403345e84cc86377e3d6146d352ee69bae4c914128de7ae1",
+  "curated_sha256": "c25031d5725c7ee4d15a446c55934b5f50f8d56c10cb1f8683a6aaf0ec60b8ed",
+  "csv_sha256": "7065d147f423cf9a5c8385846d4ac1b524e4803e4b5593b81e3d89efa1893373",
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "unchanged_functions_checked": 584,
+  "non_diagnostic_source_unchanged": [
+    "faaslora/preloading/planning_cpu.py",
+    "faaslora/preloading/preloading_planner.py",
+    "faaslora/memory/residency_manager.py",
+    "faaslora/experiment/instance_pool.py"
+  ]
+}

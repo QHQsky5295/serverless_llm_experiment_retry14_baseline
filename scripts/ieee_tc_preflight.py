@@ -3881,13 +3881,37 @@ async def initialize_qualification_runtime(model_config, mode):
     cost makes them interchangeable with dedicated-runtime measurements.
     """
     from scripts.run_all_experiments import SubprocessInferenceEngineProxy
-    physical = mode in ('native_lifecycle', 'native_capacity_wait', 'native_source_matrix')
+    physical = mode in ('native_lifecycle', 'native_capacity_wait', 'native_source_matrix',
+                        'native_slot_content')
     if physical and model_config.get('ieee_physical_allocation') is not True:
         raise ValueError('physical qualification requires actual GPU allocation before startup')
     if not physical and mode != 'cancel_pairs_subprocess':
         raise ValueError('this qualification does not use a dedicated runtime')
     return await SubprocessInferenceEngineProxy.spawn(model_cfg=model_config, cost_model={},
                                                      device_id=0, runtime_gpu_ids=[0])
+
+
+async def qualify_slot_content_snapshot(engine, adapter_int_id):
+    """Explicit diagnostic barrier; never used by ordinary Full request paths."""
+    native = await engine.ieee_scheduler_observation()
+    if native['admitted'] or native['unretired_iterations'] or native['native_deferred_free_batches']:
+        raise RuntimeError('slot content qualification requires a drained native scheduler')
+    observation = await engine.ieee_worker_observation(synchronize=True,
+                                                       audit_adapter_ids=[adapter_int_id])
+    workers = observation.get('workers')
+    if not isinstance(workers, list) or len(workers) != 1:
+        raise RuntimeError('slot content qualification requires one actual TP=1 worker')
+    audit = workers[0].get('slot_content_audit', {})
+    rows = audit.get('adapters', [])
+    valid = (audit.get('kind') == 'native_registered_to_gpu_slot_content_v1'
+             and audit.get('exact_content_pass') is True
+             and len(rows) == 1 and rows[0].get('adapter_int_id') == adapter_int_id
+             and rows[0].get('exact_content_pass') is True
+             and rows[0].get('tensor_count', 0) > 0
+             and workers[0].get('device_barrier_used') is True)
+    return {'scheduler_before': native, 'worker_observation': observation,
+            'pass': bool(valid), 'performance_sample': False,
+            'semantic_full_pool_qualification': False}
 
 
 async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
@@ -3913,9 +3937,10 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
     if mode not in ('sequential', 'concurrent_pairs', 'cancel_pairs', 'cancel_pairs_retain_adapter',
                     'cancel_pairs_subprocess', 'native_cancel_reference',
                     'native_adapter_reference', 'native_numeric_reference', 'native_source_intervals',
-                    'native_lifecycle', 'native_capacity_wait', 'native_source_matrix') or (
+                    'native_lifecycle', 'native_capacity_wait', 'native_source_matrix',
+                    'native_slot_content') or (
                     mode not in ('sequential', 'native_source_intervals', 'native_capacity_wait',
-                                 'native_source_matrix') and count != 4):
+                                 'native_source_matrix', 'native_slot_content') and count != 4):
         raise ValueError('concurrent qualification requires exactly the original four-request prefix')
     result = {'kind': 'backend_native_model_prefix_qualification_v1', 'pass': False,
               'full_model_qualification': False, 'production_launch_authorized': False,
@@ -3954,11 +3979,16 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                    max_output_tokens_cap=256)
         if mode in ('native_cancel_reference', 'native_adapter_reference', 'native_numeric_reference'):
             cfg['ieee_gpu_references'] = False
-        if mode in ('native_lifecycle', 'native_capacity_wait', 'native_source_matrix'):
+        if mode in ('native_lifecycle', 'native_capacity_wait', 'native_source_matrix',
+                    'native_slot_content'):
             cfg['ieee_physical_allocation'] = True
             if mode != 'native_source_matrix':
                 result['input_mode'] = ('existing_four_request_prefix_dedicated_physical_lifecycle'
                     if mode == 'native_lifecycle' else 'existing_prefix_controlled_native_capacity')
+        if mode == 'native_slot_content':
+            result['input_mode'] = 'existing_prefix_isolated_slot_content_qualification'
+            result['performance_sample'] = False
+            result['semantic_full_pool_qualification'] = False
         result['model_config'] = cfg
         plan = FrozenReplayPlan.load(trace, count=count)
         result['trace'] = plan.identity()
@@ -4042,7 +4072,7 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                           'model': cfg['name'], 'requests': count}), flush=True)
         result['requested_model_config'] = dict(cfg)
         if mode in ('cancel_pairs_subprocess', 'native_lifecycle', 'native_capacity_wait',
-                    'native_source_matrix'):
+                    'native_source_matrix', 'native_slot_content'):
             engine = await initialize_qualification_runtime(cfg, mode)
         else:
             # Retain ownership even if direct initialization raises, so the
@@ -4075,7 +4105,7 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
             await qualify_native_source_intervals(engine, plan, adapters, result)
         elif mode == 'native_capacity_wait':
             await qualify_native_capacity_wait(engine, plan, adapters, result)
-        elif mode not in ('sequential', 'native_lifecycle'):
+        elif mode not in ('sequential', 'native_lifecycle', 'native_slot_content'):
             result['stage'] = mode
             await qualify_concurrent_pairs(engine, plan, adapters, result,
                 cancel_first=mode.startswith('cancel_pairs'),
@@ -4085,7 +4115,7 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                 result['proxy_engine_dead_after'] = engine._engine_dead
                 if result['proxy_uncertain_after'] or result['proxy_engine_dead_after']:
                     raise RuntimeError('subprocess cancellation ownership remains unresolved')
-        for entry in plan.entries if mode in ('sequential', 'native_lifecycle') else ():
+        for entry in plan.entries if mode in ('sequential', 'native_lifecycle', 'native_slot_content') else ():
             row = json.loads(entry.source_json)
             aid, target = row['adapter_id'], min(row['expected_output_tokens'], 256)
             path = adapters[aid]['path']
@@ -4109,6 +4139,11 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
             case['reference'] = reference
             if reference.get('acquired') is not True:
                 raise RuntimeError('native qualification load/acquisition conflict; no hidden retry')
+            if mode == 'native_slot_content':
+                result['stage'] = 'slot_content_before:' + entry.request_id
+                case['slot_content_before'] = await qualify_slot_content_snapshot(engine, engine._lora_int_id(aid))
+                if case['slot_content_before']['pass'] is not True:
+                    raise RuntimeError('registered-to-GPU slot content mismatch before generation')
             result['stage'] = 'generate:' + entry.request_id
             generated = await asyncio.wait_for(engine.generate_prepared(request_plan=prepared,
                 lora_path=path, adapter_id=aid, temperature=0., top_p=1., generation_seed=42,
@@ -4116,6 +4151,11 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
             case['actual_tokens'], case['timing'] = generated[2], generated[3]
             if generated[2] != target or generated[3]['native_terminal_observed'] is not True:
                 raise RuntimeError('native generation contract or terminal mismatch')
+            if mode == 'native_slot_content':
+                result['stage'] = 'slot_content_after:' + entry.request_id
+                case['slot_content_after'] = await qualify_slot_content_snapshot(engine, engine._lora_int_id(aid))
+                if case['slot_content_after']['pass'] is not True:
+                    raise RuntimeError('registered-to-GPU slot content mismatch after generation')
             result['stage'] = 'release:' + entry.request_id
             case['release'] = await engine.ieee_gpu_reference(operation='release',
                 lease_id=reference['lease_id'], expected_owner_id=reference['owner_id'])
@@ -4313,7 +4353,7 @@ def main():
                         'cancel_pairs_retain_adapter', 'cancel_pairs_subprocess',
                         'native_cancel_reference', 'native_adapter_reference', 'native_numeric_reference',
                         'native_source_intervals', 'native_lifecycle', 'native_capacity_wait',
-                        'native_source_matrix'], default='sequential')
+                        'native_source_matrix', 'native_slot_content'], default='sequential')
     parser.add_argument('--gate-socket')
     parser.add_argument('--gate-nonce')
     parser.add_argument('--tiny-witness', action='store_true')

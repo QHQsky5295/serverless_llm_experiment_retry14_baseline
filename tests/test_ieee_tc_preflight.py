@@ -994,5 +994,62 @@ class MeasuredAdmissionInitializer(unittest.TestCase):
             self.derive()
 
 
+class SlotContentQualification(unittest.TestCase):
+    def engine(self):
+        from types import SimpleNamespace
+        from unittest.mock import AsyncMock
+        return SimpleNamespace(
+            ieee_scheduler_observation=AsyncMock(return_value={
+                'admitted': [], 'unretired_iterations': [], 'native_deferred_free_batches': []}),
+            ieee_worker_observation=AsyncMock(return_value={'workers': [{
+                'device_barrier_used': True,
+                'slot_content_audit': {'kind': 'native_registered_to_gpu_slot_content_v1',
+                    'exact_content_pass': True, 'adapters': [{'adapter_int_id': 7,
+                        'exact_content_pass': True, 'tensor_count': 2}]}}]}))
+
+    def test_isolated_snapshot_is_not_performance_or_full_semantic_qualification(self):
+        import asyncio
+        engine = self.engine()
+        result = asyncio.run(p.qualify_slot_content_snapshot(engine, 7))
+        self.assertTrue(result['pass'])
+        self.assertFalse(result['performance_sample'])
+        self.assertFalse(result['semantic_full_pool_qualification'])
+        engine.ieee_worker_observation.assert_awaited_once_with(synchronize=True, audit_adapter_ids=[7])
+
+    def test_busy_native_scheduler_is_rejected_before_barrier(self):
+        import asyncio
+        for field in ('admitted', 'unretired_iterations', 'native_deferred_free_batches'):
+            engine = self.engine()
+            engine.ieee_scheduler_observation.return_value[field] = ['live']
+            with self.subTest(field=field), self.assertRaisesRegex(RuntimeError, 'drained'):
+                asyncio.run(p.qualify_slot_content_snapshot(engine, 7))
+            engine.ieee_worker_observation.assert_not_called()
+
+    def test_mismatch_absent_empty_and_wrong_identity_never_pass(self):
+        import asyncio
+        mutations = (
+            lambda worker: worker.pop('slot_content_audit'),
+            lambda worker: worker.update(device_barrier_used=False),
+            lambda worker: worker['slot_content_audit'].update(exact_content_pass=False),
+            lambda worker: worker['slot_content_audit']['adapters'][0].update(adapter_int_id=8),
+            lambda worker: worker['slot_content_audit']['adapters'][0].update(exact_content_pass=False),
+            lambda worker: worker['slot_content_audit']['adapters'][0].update(tensor_count=0),
+        )
+        for number, mutate in enumerate(mutations):
+            engine = self.engine()
+            mutate(engine.ieee_worker_observation.return_value['workers'][0])
+            with self.subTest(number=number):
+                self.assertFalse(asyncio.run(p.qualify_slot_content_snapshot(engine, 7))['pass'])
+
+    def test_multiple_or_missing_workers_are_not_tp1_evidence(self):
+        import asyncio
+        for count in (0, 2):
+            engine = self.engine()
+            workers = engine.ieee_worker_observation.return_value['workers']
+            engine.ieee_worker_observation.return_value['workers'] = workers * count
+            with self.subTest(count=count), self.assertRaisesRegex(RuntimeError, 'one actual'):
+                asyncio.run(p.qualify_slot_content_snapshot(engine, 7))
+
+
 if __name__ == '__main__':
     unittest.main()

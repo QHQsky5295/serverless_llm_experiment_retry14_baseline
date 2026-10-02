@@ -4577,7 +4577,8 @@ class InferenceEngine:
         import hashlib
         return (int(hashlib.md5(adapter_id.encode()).hexdigest(), 16) % 999999) + 1
 
-    async def ieee_worker_observation(self, *, synchronize: bool = False) -> Dict[str, Any]:
+    async def ieee_worker_observation(self, *, synchronize: bool = False,
+                                      audit_adapter_ids: Optional[List[int]] = None) -> Dict[str, Any]:
         """Strict qualification RPC; unlike shutdown helpers, never swallows errors."""
         if not self.model_cfg.get("ieee_worker_observation", False):
             raise RuntimeError("native worker observation was not enabled at engine creation")
@@ -4586,7 +4587,12 @@ class InferenceEngine:
         rpc = getattr(self.engine, "collective_rpc", None)
         if not callable(rpc):
             raise RuntimeError("backend lacks native worker collective RPC")
-        observations = rpc("ieee_worker_observation", kwargs={"synchronize": synchronize})
+        kwargs = {"synchronize": synchronize}
+        if audit_adapter_ids is not None:
+            if synchronize is not True:
+                raise ValueError("isolated slot content audit requires an explicit device barrier")
+            kwargs["audit_adapter_ids"] = audit_adapter_ids
+        observations = rpc("ieee_worker_observation", kwargs=kwargs)
         if inspect.isawaitable(observations):
             observations = await observations
         if not isinstance(observations, list) or not observations:
@@ -5854,8 +5860,14 @@ class SubprocessInferenceEngineProxy:
         )
         return float(result.get("load_ms", 0.0)), bool(result.get("ok", False))
 
-    async def ieee_worker_observation(self, *, synchronize: bool = False) -> Dict[str, Any]:
-        return await self._rpc("ieee_worker_observation", synchronize=synchronize)
+    async def ieee_worker_observation(self, *, synchronize: bool = False,
+                                      audit_adapter_ids: Optional[List[int]] = None) -> Dict[str, Any]:
+        kwargs = {"synchronize": synchronize}
+        if audit_adapter_ids is not None:
+            if synchronize is not True:
+                raise ValueError("isolated slot content audit requires an explicit device barrier")
+            kwargs["audit_adapter_ids"] = audit_adapter_ids
+        return await self._rpc("ieee_worker_observation", **kwargs)
 
     async def ieee_scheduler_observation(self) -> Dict[str, Any]:
         return await self._rpc("ieee_scheduler_observation")

@@ -1,6 +1,62 @@
 # IEEE TC execution status
 
+## CURRENT — D165 isolated native slot-content qualification interface
+
+17:31 +08 evidence seal COMPLETE. 147protected/Plan/V1/D164/sourceSHAs PASS;
+584pre-existing functions outside explicit diagnostic wiring AST-identical,
+planner/residency/pool source unchanged. Actualseal7557fbff25a045da8f91aebc0c8c1d09,
+session50238CLOSED0/finalevents-swap0/automaticremovalverified. CuratedSHA
+c25031d5725c7ee4d15a446c55934b5f50f8d56c10cb1f8683a6aaf0ec60b8ed.
+34member389114B bundleSHAae6d995e4a4d0026c65e32bd3b7e7c6b95e28a2025a29b27cb741f49506a8bd7.
+D165doc/result nowSEALED, doNOTedit/retest. Onlycheckpoint/backup pending.
+No actualGPUqualification/newperformance or commonwarm result claimed.
+
+17:26 +08 checker CPU qualification COMPLETE, no live GPU/remote/test jobs.
+targeted13PASS.173s(command10.92s/RSS1164888KiB), actualb62c9e31b4164cd7a1a99c9602ec33eb,
+session97069CLOSED0; regression811PASS74.901s(command87.26s/RSS1199536KiB),
+actual2946c2b01387419ba4c1d1e826293f3f/tmuxended; preflight72PASS1.045s
+(command1.22s/RSS39552KiB), actual5d9a53f19cea42b1ba4d7d6c7a6e36e5/session70565CLOSED0.
+All3/4GiBswap0CPU2,3,26,27/events0; exact automatic-removal receipts verified.
+Counts overlap (13new included in broader suites), not896 independent checks.
+No failed test attempt. Prepared nonexistent guessed source-profiling test name
+replaced BEFORE execution by existing source-profile modules; no serving workaround.
+Doc status table updated; actualGPU/native numerical/commonwarm/G1G2 stillOPEN.
+NEXT evidence checks/backup, then necessary actual7B slot-content diagnostic and
+remaining checkpoint/execution-map/commonreference evidence. DoNOTrepeatD165CPUtests
+without changed source; no Full rerun for this opt-in non-performance checker.
+
+2026-10-02. Goal ACTIVE, only Prime7B; no new GPU/remote run. Full Plan/status/V1
+read after compaction; run-experiment/vLLM/academic-plotting/github-sync followed.
+Latest once-only cache approval already fulfilled D78/D80, no regeneration.
+D164 remains sealed/backed70029ba; do NOT repeat its analysis or membership tests.
+New opt-in worker content audit and existing preflight native_slot_content mode
+implemented; CPU tests NOT yet run. Checks registered native CPU tensors against
+actual GPU slots including padding/absent slices; default Full unchanged.
+Not a performance optimizer, checkpoint/numerical execution mapping/full-pool
+qualification remain explicitly false. D63 loose-probability diagnostic NOT repeated.
+Doc D165_NATIVE_SLOT_CONTENT_QUALIFIER.md records scope/primary sources/status.
+No warm-reference implementation yet; no new thresholds or serving configuration.
+Disk160723996672B below150GiBnew-heavyfloor; only3/4GiBswap0 CPU tests next.
+NEXT qualify checker→status table→checkpoint backup→necessary actual7B measurement;
+7B actual G1/G2 acceptance before3B/externalbaselines unchanged.
+
 ## CURRENT — D164 ordinary 7B Full COMPLETE, tabled and SEALED
+
+17:02 +08 BACKUP COMPLETE70029ba3ff68c4914e1d4a08c40b18298758aa56;
+pushedfaaslora_origin/retry14_continuous_queue_v2 and independentremoteHEADmatch.
+Push48238/verify29514CLOSED0.13explicitfiles/73staged+archivepayloads secretsPASS;
+syntax/11comparisonrows/refs/bundlePASS. Initial post-seal conveniencecheck used
+unavailable hashlib.file_digest in systemPython and stopped before hashes;
+corrected to bounded SHA256 chunks and all checks passed, no result changes.
+Commit/push proceeded after original bounded evidence verification; convenience
+recheck was completed afterward. CSV final blank line/CRLF retained to preserve
+sealed hashes; whitespacecheck excludes only those layout conditions.
+Userdirtymanifestexcluded. No serving edits or new run. Only backupreceipt dirty.
+Read-only numerical-control history confirms prior D63 matching also accepts
+wrong adapter/base; do not repeat text/loose-tolerance tests or invent qualification.
+Existing warm-reference reuse audit read; no new reference implementation yet.
+NEXT necessary current-source numerical-path/common-warm measurement work;
+old fields stay unknown. Actual7B acceptance before3B/baselines unchanged.
 
 2026-10-02 16:59 +08. No live GPU/remote/analysis jobs. Same run completed,
 not repeated; serving1acd8f4 unchanged. FullPlan1537/status1340/V1312 and

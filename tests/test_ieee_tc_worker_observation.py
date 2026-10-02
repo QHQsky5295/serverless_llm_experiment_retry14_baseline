@@ -570,5 +570,147 @@ class WorkerObservationContract(unittest.TestCase):
         proxy._rpc.assert_awaited_once_with('ieee_worker_observation', synchronize=True)
 
 
+class NativeSlotContentAudit(unittest.TestCase):
+    """CPU tensor/negative-control tests, not actual CUDA qualification."""
+
+    def fixture(self):
+        import torch
+        a = torch.arange(6, dtype=torch.float16).reshape(2, 3)
+        b = torch.arange(8, dtype=torch.float16).reshape(4, 2)
+        layers = {'linear': SimpleNamespace(lora_a=a, lora_b=b),
+                  'packed': SimpleNamespace(lora_a=[a, None], lora_b=[b, None])}
+        modules = {}
+        for name, sources in [('linear', [(a, b)]), ('packed', [(a, b), (None, None)]),
+                              ('absent', [(None, None)])]:
+            aa, bb = [], []
+            for sa, sb in sources:
+                ta, tb = torch.zeros((2, 1, 4, 3)), torch.zeros((2, 1, 4, 4))
+                ta, tb = ta.half(), tb.half()
+                if sa is not None:
+                    ta[1, 0, :2, :3] = sa
+                    tb[1, 0, :4, :2] = sb
+                aa.append(ta)
+                bb.append(tb)
+            modules[name] = SimpleNamespace(n_slices=len(sources), lora_a_stacked=aa, lora_b_stacked=bb)
+        loaded = SimpleNamespace(id=7, rank=2)
+        registry = {7: loaded}
+        native = SimpleNamespace(modules=modules, lora_index_to_id=[None, 7],
+            list_adapters=lambda: dict(registry),
+            _get_lora_layer_weights=lambda _, name: layers.get(name))
+        return native, registry
+
+    def audit(self, native, ids=None):
+        pool = lambda *a, **kw: {'slot_adapter_ids': list(native.lora_index_to_id),
+                                 'active_gpu_adapter_ids': [7]}
+        with patch.object(monitor, '_ieee_lora_pool_inventory', side_effect=pool), \
+                patch.object(monitor, '_ieee_host_copy_contract') as contract, \
+                patch.object(monitor, '_ieee_slot_readback',
+                    side_effect=lambda target, slot: target[slot, 0].clone()) as read:
+            result = monitor._ieee_lora_slot_content_audit(native, [7] if ids is None else ids)
+        return result, contract, read
+
+    def test_dense_packed_missing_and_absent_modules_check_all_values(self):
+        native, _ = self.fixture()
+        before = list(native.lora_index_to_id)
+        result, contract, read = self.audit(native)
+        self.assertTrue(result['exact_content_pass'])
+        self.assertEqual(result['adapters'][0]['tensor_count'], 8)
+        self.assertEqual(read.call_count, 8)
+        contract.assert_called_once_with(native, 7)
+        self.assertEqual(native.lora_index_to_id, before)
+        self.assertEqual(result['adapters'][0]['slot'], 1)
+        self.assertFalse(result['checkpoint_to_registered_qualified'])
+        self.assertFalse(result['per_token_execution_mapping_qualified'])
+        self.assertFalse(result['semantic_full_pool_qualification'])
+        self.assertFalse(result['performance_sample'])
+        self.assertEqual(sum(t['source_absent'] for t in result['adapters'][0]['tensors']), 4)
+
+    def test_wrong_weight_padding_and_missing_slice_cannot_pass(self):
+        for module, index, row, col in [('linear', 0, 0, 0), ('linear', 0, 3, 3),
+                                        ('packed', 1, 0, 0), ('absent', 0, 0, 0)]:
+            native, _ = self.fixture()
+            native.modules[module].lora_b_stacked[index][1, 0, row, col] += 1
+            result, _, _ = self.audit(native)
+            with self.subTest(module=module, index=index, row=row, col=col):
+                self.assertFalse(result['exact_content_pass'])
+                tensors = result['adapters'][0]['tensors']
+                self.assertEqual(sum(t['mismatched_elements'] for t in tensors), 1)
+
+    def test_zero_weights_pass_only_for_zero_slot_and_are_not_identity_proof(self):
+        import torch
+        source = torch.zeros((2, 3), dtype=torch.float16)
+        actual = torch.zeros((4, 3), dtype=torch.float16)
+        match = monitor._ieee_slot_tensor_comparison(source, actual)
+        self.assertTrue(match['exact_value_match'])
+        self.assertEqual(match['expected_nonzero_elements'], 0)
+        actual[0, 0] = 1
+        self.assertFalse(monitor._ieee_slot_tensor_comparison(source, actual)['exact_value_match'])
+
+    def test_nonfinite_even_equal_infinities_are_rejected_without_tolerance(self):
+        import torch
+        for value in (float('nan'), float('inf'), -float('inf')):
+            source = torch.full((2, 3), value, dtype=torch.float16)
+            result = monitor._ieee_slot_tensor_comparison(source, source.clone())
+            self.assertFalse(result['all_finite'])
+            self.assertFalse(result['exact_value_match'])
+
+    def test_invalid_adapter_ids_and_inactive_ids_fail(self):
+        for ids in ([], [True], [0], [-1], [7, 7], (7,), ['7'], [8]):
+            native, _ = self.fixture()
+            with self.subTest(ids=ids), self.assertRaises(ValueError):
+                self.audit(native, ids)
+
+    def test_unqualified_copy_contract_fails_before_readback(self):
+        native, _ = self.fixture()
+        pool = {'slot_adapter_ids': [None, 7], 'active_gpu_adapter_ids': [7]}
+        with patch.object(monitor, '_ieee_lora_pool_inventory', return_value=pool), \
+                patch.object(monitor, '_ieee_host_copy_contract', side_effect=ValueError('setter')), \
+                patch.object(monitor, '_ieee_slot_readback') as read:
+            with self.assertRaisesRegex(ValueError, 'setter'):
+                monitor._ieee_lora_slot_content_audit(native, [7])
+            read.assert_not_called()
+
+    def test_slot_change_or_same_id_model_replacement_invalidates_observation(self):
+        for change in ('slot', 'model'):
+            native, registry = self.fixture()
+            before = {'slot_adapter_ids': [None, 7], 'active_gpu_adapter_ids': [7]}
+            def inventory(*args, **kwargs):
+                if inventory.calls:
+                    if change == 'slot':
+                        return {**before, 'slot_adapter_ids': [7, None]}
+                    registry[7] = SimpleNamespace(id=7, rank=2)
+                inventory.calls += 1
+                return before
+            inventory.calls = 0
+            with patch.object(monitor, '_ieee_lora_pool_inventory', side_effect=inventory), \
+                    patch.object(monitor, '_ieee_host_copy_contract'), \
+                    patch.object(monitor, '_ieee_slot_readback',
+                        side_effect=lambda target, slot: target[slot, 0].clone()):
+                with self.subTest(change=change), self.assertRaisesRegex(RuntimeError, 'changed during'):
+                    monitor._ieee_lora_slot_content_audit(native, [7])
+
+    def test_readback_does_not_accept_cpu_tensor_as_gpu_evidence(self):
+        import torch
+        with self.assertRaisesRegex(ValueError, 'native CUDA'):
+            monitor._ieee_slot_readback(torch.zeros((2, 1, 2, 3)), 1)
+
+    def test_worker_and_both_facades_require_explicit_barrier(self):
+        worker = monitor.IEEEWorkerObservationExtension()
+        with self.assertRaisesRegex(ValueError, 'explicit device barrier'):
+            worker.ieee_worker_observation(audit_adapter_ids=[7])
+        engine = InferenceEngine({'ieee_worker_observation': True, 'tensor_parallel_size': 1}, {})
+        engine.engine = SimpleNamespace(collective_rpc=AsyncMock(return_value=[{'pid': 1}]))
+        proxy = SubprocessInferenceEngineProxy.__new__(SubprocessInferenceEngineProxy)
+        proxy._rpc = AsyncMock(return_value={})
+        for facade in (engine, proxy):
+            with self.assertRaisesRegex(ValueError, 'explicit device barrier'):
+                asyncio.run(facade.ieee_worker_observation(audit_adapter_ids=[7]))
+            asyncio.run(facade.ieee_worker_observation(synchronize=True, audit_adapter_ids=[7]))
+        engine.engine.collective_rpc.assert_awaited_once_with('ieee_worker_observation',
+            kwargs={'synchronize': True, 'audit_adapter_ids': [7]})
+        proxy._rpc.assert_awaited_once_with('ieee_worker_observation',
+                                         synchronize=True, audit_adapter_ids=[7])
+
+
 if __name__ == '__main__':
     unittest.main()
