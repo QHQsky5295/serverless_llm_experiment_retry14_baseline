@@ -255,7 +255,7 @@ class PredecisionRoutingIntegration(unittest.TestCase):
             slot.service_cost_model = ServiceCostModel(beta=.25, profile_id='test-fixture-only',
                 profiles={key: ServiceComponents(100. if index == 0 else 10., 20., 30.)})
             async def snapshot(*, operation, replica=slot.instance_id, ordinal=index):
-                self.assertEqual(operation, 'routing_source_snapshot')
+                self.assertIn(operation, ('routing_source_snapshot', 'source_identity_snapshot'))
                 return source_payload() | dict(owner_id=replica, clock_id=local_monotonic_clock_id(),
                     captured_monotonic_s=time.monotonic(), sources=[],
                     device_uuid=f'GPU-00010203-0405-0607-0809-0a0b0c0d0e0{ordinal}',
@@ -263,6 +263,8 @@ class PredecisionRoutingIntegration(unittest.TestCase):
             slot.engine.ieee_gpu_reference = AsyncMock(side_effect=snapshot)
             slot.engine.ieee_routing_sources = AsyncMock(
                 side_effect=MethodType(InferenceEngine.ieee_routing_sources, slot.engine))
+            slot.engine.ieee_source_identities = AsyncMock(
+                side_effect=MethodType(InferenceEngine.ieee_source_identities, slot.engine))
         runner._sample_ieee_gpu_utilization = Mock(side_effect=lambda slot, **kw: dict(
             source='fixture-native-busy', device_id=slot.device_id, device_uuid=kw['device_uuid'],
             gpu_utilization_pct=0., sampled_monotonic_s=time.monotonic()))
@@ -810,12 +812,15 @@ def native_reference_fixture():
     owner = IEEEBackendGPUReferences(manager, Mock(), demand_loader=load)
     async def rpc(*, operation, **kwargs):
         # Mirror the actual worker's readonly routing-to-owner dispatch.
-        owner_operation = 'source_snapshot' if operation == 'routing_source_snapshot' else operation
+        owner_operation = ('source_snapshot' if operation in
+                           ('routing_source_snapshot', 'source_identity_snapshot') else operation)
         return {**getattr(owner, owner_operation)(**kwargs), 'clock_id': local_monotonic_clock_id(),
                 'device_uuid': 'GPU-fixture'}
     slot.engine.ieee_gpu_reference = AsyncMock(side_effect=rpc)
     slot.engine.ieee_routing_sources = AsyncMock(
         side_effect=MethodType(InferenceEngine.ieee_routing_sources, slot.engine))
+    slot.engine.ieee_source_identities = AsyncMock(
+        side_effect=MethodType(InferenceEngine.ieee_source_identities, slot.engine))
     return runner, slot, trace, plan, owner, rpc
 
 
@@ -851,7 +856,9 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
                 result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
                 self.assertTrue(result.success, result.error)
                 self.assertEqual(result.readiness_tier_before_dispatch, tier)
-                self.assertEqual(len(projected_epochs), 1 if tier in ('gpu', 'host') else 3)
+                self.assertEqual(len(projected_epochs), 1 if tier in ('gpu', 'host') else 2)
+                self.assertEqual(slot.engine.ieee_source_identities.await_count,
+                                 0 if tier in ('gpu', 'host') else 1)
                 if tier == 'host':
                     evidence = result.gpu_reference_evidence['snapshot_before_acquisition']
                     self.assertEqual(evidence['kind'], 'held_native_host_source_v1')
@@ -1742,9 +1749,9 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
         calls = 0
         async def becomes_native(*, operation, **kwargs):
             nonlocal calls
-            if operation == 'routing_source_snapshot':
+            if operation == 'source_identity_snapshot':
                 calls += 1
-                if calls == 2:
+                if calls == 1:
                     ControllerNativeReferenceLifecycle.preload_native(owner)
             return await rpc(operation=operation, **kwargs)
         slot.engine.ieee_gpu_reference.side_effect = becomes_native

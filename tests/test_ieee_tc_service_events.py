@@ -199,14 +199,20 @@ class NativeWorkerRPCEvents(unittest.IsolatedAsyncioTestCase):
             async def ieee_close_pending(self, **command):
                 return {'intent_id': command['intent_id'], 'closed': True}
             async def ieee_gpu_reference(self, **command):
-                if command in ({'operation': 'source_snapshot'}, {'operation': 'routing_source_snapshot'}):
+                if command in ({'operation': 'source_snapshot'}, {'operation': 'routing_source_snapshot'},
+                               {'operation': 'source_identity_snapshot'}):
                     from faaslora.clock import local_monotonic_clock_id
                     from tests.test_ieee_tc_service_routing import measured_source_payload
-                    return measured_source_payload() | dict(clock_id=local_monotonic_clock_id(),
+                    value = measured_source_payload() | dict(clock_id=local_monotonic_clock_id(),
                         device_uuid='GPU-loopback-test')
+                    if command['operation'] == 'source_identity_snapshot':
+                        value.pop('native_footprints')
+                    return value
                 return {'command': command, 'registered': True}
             async def ieee_routing_sources(self):
                 return await InferenceEngine.ieee_routing_sources(self)
+            async def ieee_source_identities(self):
+                return await InferenceEngine.ieee_source_identities(self)
             async def generate(self, **kwargs):
                 if kwargs.get('pending_admission_id') != 'pending-test':
                     raise ValueError('dedicated generation lost its pending identity')
@@ -256,6 +262,11 @@ class NativeWorkerRPCEvents(unittest.IsolatedAsyncioTestCase):
                     expected_clock_id=local_monotonic_clock_id(), received_monotonic_s=time.monotonic()))
                 self.assertNotIn('native_footprints', routing)
                 self.assertIn('native_footprints', full)
+                identities = await proxy.ieee_source_identities()
+                observed_identity = NativeSourceSnapshot.from_routing_wire(identities,
+                    expected_clock_id=local_monotonic_clock_id(), received_monotonic_s=time.monotonic())
+                self.assertEqual(observed_identity, compact.identity_view())
+                self.assertIsNone(identities['routing_footprints'])
                 self.assertFalse(proxy._native_rpc_uncertain)
                 if large_control_payload:
                     objective = {'candidates': [dict(adapter_id='adapter_'+str(i),
@@ -341,7 +352,7 @@ class NativeWorkerRPCEvents(unittest.IsolatedAsyncioTestCase):
 
 class BoundedDedicatedRPC(unittest.TestCase):
     def test_readonly_routing_cancellation_does_not_create_native_ownership(self):
-        async def check():
+        async def check(method):
             proxy = SubprocessInferenceEngineProxy.__new__(SubprocessInferenceEngineProxy)
             proxy.model_cfg = {'timing_contract': 'ieee_tc_native_v1'}
             proxy._engine_dead = False
@@ -351,11 +362,13 @@ class BoundedDedicatedRPC(unittest.TestCase):
             proxy._drop_rpc_channel = AsyncMock()
             proxy._native_rpc_roundtrip = AsyncMock(side_effect=asyncio.CancelledError)
             with self.assertRaises(asyncio.CancelledError):
-                await proxy.ieee_routing_sources()
+                await getattr(proxy, method)()
             self.assertFalse(proxy._native_rpc_uncertain)
             proxy._native_rpc_roundtrip.assert_awaited_once()
             proxy._drop_rpc_channel.assert_awaited_once()
-        asyncio.run(check())
+        for method in ('ieee_routing_sources', 'ieee_source_identities'):
+            with self.subTest(method=method):
+                asyncio.run(check(method))
 
     def test_encoding_limit_is_wire_bytes_and_includes_all_fields(self):
         from scripts import run_all_experiments as r

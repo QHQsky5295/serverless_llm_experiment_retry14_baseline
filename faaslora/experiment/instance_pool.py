@@ -73,6 +73,12 @@ class NativeSourceSnapshot:
     host_tensor_storage_bytes: Optional[int] = None
     gpu_pool_storage_bytes: Optional[int] = None
 
+    def identity_view(self):
+        """Exact readiness/copy identity projection, never a capacity observation."""
+        return replace(self, sources=tuple(replace(source, host_storage_bytes=None,
+            host_representation=None, gpu_slot_capacity_bytes=None, gpu_representation=None)
+            for source in self.sources), host_tensor_storage_bytes=None, gpu_pool_storage_bytes=None)
+
     @staticmethod
     def _footprints(payload, slots, registered):
         """Validate storage unions separately from per-adapter footprint sums."""
@@ -893,6 +899,7 @@ class InstanceSlot:
     runtime_forwarding_active: int = 0
     runtime_forwarding_started_at: float = 0.0
     native_source_state: Optional[NativeSourceSnapshot] = None
+    native_source_identity_state: Optional[NativeSourceSnapshot] = None
     service_cost_model: Optional[ServiceCostModel] = None
     service_class_bins: Optional[ServiceClassBins] = None
     preparation_cost_model: Optional[Any] = None
@@ -904,7 +911,14 @@ class InstanceSlot:
         """Validate without publication, so a multi-owner view can commit atomically."""
         if not isinstance(snapshot, NativeSourceSnapshot):
             raise TypeError('native source commit requires a validated immutable snapshot')
-        previous = self.native_source_state
+        if not self._accepts_native_source_view(snapshot, self.native_source_state):
+            return False
+        identity = self.native_source_identity_state
+        return identity is None or self._accepts_native_source_view(snapshot.identity_view(), identity)
+
+    @staticmethod
+    def _accepts_native_source_view(snapshot, previous):
+        """Compare observations of the same schema, preserving the version frontier."""
         if previous is not None:
             if snapshot.owner_id != previous.owner_id or snapshot.clock_id != previous.clock_id:
                 raise ValueError('native source owner changed; explicit replica recovery required')
@@ -919,6 +933,23 @@ class InstanceSlot:
                     return False
             elif snapshot.captured_monotonic_s < previous.captured_monotonic_s:
                 raise ValueError('new native epoch predates the committed state')
+        return True
+
+    def commit_native_source_identity(self, snapshot: NativeSourceSnapshot) -> bool:
+        """Publish a fresh identity-only recheck without replacing measured classes.
+
+        Keep an independent monotonic frontier: a delayed full observation may
+        not overwrite an identity transition that was already observed. Missing
+        footprint fields are not zero bytes or an authorization to route/load.
+        """
+        if not isinstance(snapshot, NativeSourceSnapshot) or snapshot != snapshot.identity_view():
+            raise ValueError('identity-only native observation must not contain footprint evidence')
+        previous = self.native_source_state
+        if previous is not None and not self._accepts_native_source_view(snapshot, previous.identity_view()):
+            return False
+        if not self._accepts_native_source_view(snapshot, self.native_source_identity_state):
+            return False
+        self.native_source_identity_state = snapshot
         return True
 
     def commit_native_sources(self, snapshot: NativeSourceSnapshot) -> bool:

@@ -4700,7 +4700,7 @@ class InferenceEngine:
             raise RuntimeError("native references currently require TP=PP=1")
         if self.backend != "vllm" or self.engine is None or self._engine_dead:
             raise RuntimeError("native references require a live vLLM engine")
-        if operation not in ("snapshot", "source_snapshot", "routing_source_snapshot",
+        if operation not in ("snapshot", "source_snapshot", "routing_source_snapshot", "source_identity_snapshot",
                              "acquire", "release", "evict", "begin_use", "end_use",
                              "demand_load_and_acquire", "hold_host_source", "release_host_source",
                              "prepare_file_host_and_hold", "configure_host_budget",
@@ -4727,6 +4727,23 @@ class InferenceEngine:
         from faaslora.clock import local_monotonic_clock_id
         from faaslora.experiment.instance_pool import NativeSourceSnapshot
         payload = await self.ieee_gpu_reference(operation='routing_source_snapshot')
+        state = NativeSourceSnapshot.from_native(payload,
+            expected_clock_id=local_monotonic_clock_id(), received_monotonic_s=time.monotonic())
+        return state.routing_wire(device_uuid=payload.get('device_uuid'))
+
+    async def ieee_source_identities(self) -> Dict[str, Any]:
+        """Fresh native identities for an already-selected lower-tier recheck.
+
+        No footprint is needed to ask whether a faster native copy appeared.
+        This is not the routing/class, physical-budget or planning endpoint.
+        The native owner still validates live cache/slot/pin/copy invariants.
+        """
+        from faaslora.clock import local_monotonic_clock_id
+        from faaslora.experiment.instance_pool import NativeSourceSnapshot
+        payload = await self.ieee_gpu_reference(operation='source_identity_snapshot')
+        if any(key in payload for key in ('native_footprints', 'native_staging_footprints',
+                                         'native_host_allocator')):
+            raise ValueError('identity-only native endpoint returned a physical inventory')
         state = NativeSourceSnapshot.from_native(payload,
             expected_clock_id=local_monotonic_clock_id(), received_monotonic_s=time.monotonic())
         return state.routing_wire(device_uuid=payload.get('device_uuid'))
@@ -5279,10 +5296,11 @@ class SubprocessInferenceEngineProxy:
             asyncio.run_coroutine_threadsafe(deliver_progress(frame), loop).result()
         def retain_uncertain() -> None:
             if not dispatch_started or not native or cmd in ('ieee_worker_observation', 'ieee_scheduler_observation',
-                                     'ieee_generation_observation', 'ieee_routing_sources', 'shutdown'):
+                                     'ieee_generation_observation', 'ieee_routing_sources',
+                                     'ieee_source_identities', 'shutdown'):
                 return
             if cmd == 'ieee_gpu_reference' and kwargs.get('operation') in (
-                    'snapshot', 'source_snapshot', 'routing_source_snapshot'):
+                    'snapshot', 'source_snapshot', 'routing_source_snapshot', 'source_identity_snapshot'):
                 return
             ref = kwargs.get('gpu_reference') or {}
             self._native_rpc_uncertain[attempt_id] = {
@@ -5956,6 +5974,9 @@ class SubprocessInferenceEngineProxy:
 
     async def ieee_routing_sources(self) -> Dict[str, Any]:
         return await self._rpc('ieee_routing_sources')
+
+    async def ieee_source_identities(self) -> Dict[str, Any]:
+        return await self._rpc('ieee_source_identities')
 
     async def unload_lora_adapter(self, adapter_id: str) -> bool:
         result = await self._rpc("unload_lora_adapter", adapter_id=adapter_id)
@@ -15776,9 +15797,9 @@ class ScenarioRunner:
             # lock; the selected lower copy is then protected below.
             previous_owner = slot.native_source_state.owner_id
             native = NativeSourceSnapshot.from_routing_wire(
-                await engine.ieee_routing_sources(),
+                await engine.ieee_source_identities(),
                 expected_clock_id=local_monotonic_clock_id(), received_monotonic_s=time.monotonic())
-            if native.owner_id != previous_owner or not slot.commit_native_sources(native):
+            if native.owner_id != previous_owner or not slot.commit_native_source_identity(native):
                 evidence['native_source_conflict'] = 'native owner/epoch changed during source admission'
                 return False
             aid = InferenceEngine._lora_int_id(reservation.adapter_id)

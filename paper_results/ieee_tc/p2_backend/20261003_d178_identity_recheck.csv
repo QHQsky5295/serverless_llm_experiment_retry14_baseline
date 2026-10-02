@@ -1,0 +1,11 @@
+tier,version,routing_graph_queries,identity_only_queries,total_fresh_source_queries,demand_transactions,host_holds,host_releases,success,dispatch_tier,live_gpu_leases,live_host_leases
+gpu,parent,1,0,1,1,0,0,True,gpu,0,0
+gpu,candidate,1,0,1,1,0,0,True,gpu,0,0
+host,parent,1,0,1,1,1,1,True,host,0,0
+host,candidate,1,0,1,1,1,1,True,host,0,0
+host_file,parent,3,0,3,1,0,0,True,host,0,0
+host_file,candidate,2,1,3,1,0,0,True,host,0,0
+nvme,parent,3,0,3,1,0,0,True,nvme,0,0
+nvme,candidate,2,1,3,1,0,0,True,nvme,0,0
+remote,parent,3,0,3,1,0,0,True,remote,0,0
+remote,candidate,2,1,3,1,0,0,True,remote,0,0

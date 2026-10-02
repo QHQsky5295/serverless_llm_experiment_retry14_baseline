@@ -649,7 +649,7 @@ class IEEEWorkerObservationExtension:
         Proactive preparation is reachable only through the same-owner core
         bridge; ordinary request-driven loading does not evaluate soft E(t).
         """
-        if operation not in ('snapshot', 'source_snapshot', 'routing_source_snapshot',
+        if operation not in ('snapshot', 'source_snapshot', 'routing_source_snapshot', 'source_identity_snapshot',
                              'acquire', 'release', 'evict', 'begin_use', 'end_use',
                              'demand_load_and_acquire', 'hold_host_source', 'release_host_source',
                              'prepare_file_host_and_hold', 'configure_host_budget',
@@ -882,7 +882,7 @@ class IEEEWorkerObservationExtension:
                     'scheduler_held_during_commit': True,
                     'physical_increment_reserved_bytes': 0}
             result = owner.proactive_host_prepare_and_acquire(**kwargs, decide=decide)
-        elif operation == 'routing_source_snapshot':
+        elif operation in ('routing_source_snapshot', 'source_identity_snapshot'):
             # Use the same live owner read/invariants, not a cached verdict.
             result = owner.source_snapshot(**kwargs)
         else:
@@ -906,6 +906,7 @@ class IEEEWorkerObservationExtension:
                     _ieee_lora_host_inventory(manager, staged_models=staged)
                     if staged else copy.deepcopy(host))
                 result['native_host_allocator'] = _ieee_pinned_host_observation(result['native_staging_footprints'])
+        if operation in ('source_snapshot', 'routing_source_snapshot', 'source_identity_snapshot'):
             # CUDA ordinals can be remapped in dedicated workers; publish the
             # actual device identity so controller NVML queries cannot sample
             # a different physical GPU with a coincidentally equal index.
