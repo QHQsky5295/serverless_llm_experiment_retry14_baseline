@@ -2830,6 +2830,89 @@ async def qualify_native_cancel_reference(engine, plan, adapters, result, *, inc
     result.update(stage='complete', **{'pass': True})
 
 
+def warm_reference_input_index(plan, measurements):
+    """Index existing inputs for V1 calibration, without using measured latency.
+
+    Type-1 quartiles use *executed native* prompt lengths from the whole source.
+    Equal boundaries are merged. Each group uses 256 distinct existing requests
+    (at least two target tokens), evenly spaced in original arrival order. The
+    same input index is repeated for three rounds; it is not three new traces.
+    This fixes input selection only, NOT batch feasibility or numeric thresholds.
+    """
+    from bisect import bisect_left
+    if (plan.profile != 'W0' or plan.rate_scale != 1.0
+            or len(plan.entries) != plan.source_count or not plan.entries):
+        raise ValueError('warm reference requires the entire unchanged W0 source')
+    by_id = {}
+    for row in measurements:
+        rid = row['request_id']
+        if rid in by_id:
+            raise ValueError('duplicate measured request identity')
+        by_id[rid] = row
+    if set(by_id) != {e.request_id for e in plan.entries}:
+        raise ValueError('warm reference requires complete measured input identity')
+    records = []
+    for index, entry in enumerate(plan.entries):
+        source, measured = json.loads(entry.source_json), by_id[entry.request_id]
+        expected = source['expected_output_tokens']
+        if type(expected) is not int or expected <= 0:
+            raise ValueError('invalid original output target')
+        target = min(expected, 256)
+        native = measured['native_token_timing']
+        length = native['actual_prompt_tokens']
+        if (type(length) is not int or not 0 < length <= 1024
+                or length + target > 1024
+                or measured['adapter_id'] != source['adapter_id']
+                or measured['generation_contract'] != 'fixed_length_greedy_v1'
+                or measured['source_expected_output_tokens'] != expected
+                or measured['requested_completion_tokens'] != target
+                or measured['input_tokens'] != length):
+            raise ValueError('measured input differs from the frozen generation contract')
+        prompt_sha = measured['canonical_prompt_sha256']
+        native_sha = native['native_prompt_token_ids_sha256']
+        if any(not isinstance(s, str) or re.fullmatch('[0-9a-f]{64}', s) is None
+               for s in (prompt_sha, native_sha)):
+            raise ValueError('complete canonical/native prompt hashes required')
+        records.append(dict(source_index=index, source_request_id=entry.request_id,
+            source_row_sha256=entry.source_sha256, adapter_id=source['adapter_id'],
+            target_tokens=target, native_prompt_tokens=length,
+            canonical_prompt_sha256=prompt_sha, native_prompt_token_ids_sha256=native_sha))
+    lengths = sorted(r['native_prompt_tokens'] for r in records)
+    quartiles = [lengths[math.ceil(len(lengths)*q/4)-1] for q in (1, 2, 3)]
+    bounds = sorted(set(q for q in quartiles if q < lengths[-1]))
+    groups = []
+    for number in range(len(bounds)+1):
+        population = [r for r in records
+                      if bisect_left(bounds, r['native_prompt_tokens']) == number]
+        eligible = [r for r in population if r['target_tokens'] >= 2]
+        if len(eligible) < 256:
+            raise ValueError(f'input group {number} lacks 256 distinct TPOT-eligible requests')
+        selected = [eligible[i*len(eligible)//256] for i in range(256)]
+        groups.append(dict(group_id=number,
+            lower_exclusive=None if number == 0 else bounds[number-1],
+            upper_inclusive=bounds[number] if number < len(bounds) else None,
+            source_count=len(population), tpot_eligible_count=len(eligible),
+            excluded_single_token_count=len(population)-len(eligible),
+            native_prompt_range=[min(r['native_prompt_tokens'] for r in population),
+                                 max(r['native_prompt_tokens'] for r in population)],
+            selected_prompt_range=[min(r['native_prompt_tokens'] for r in selected),
+                                   max(r['native_prompt_tokens'] for r in selected)],
+            selected_target_range=[min(r['target_tokens'] for r in selected),
+                                   max(r['target_tokens'] for r in selected)],
+            selected_unique_requests=len({r['source_request_id'] for r in selected}),
+            selected_unique_adapters=len({r['adapter_id'] for r in selected}),
+            selected=selected))
+    return dict(kind='ieee_tc_warm_reference_input_index_v1', source=plan.identity(),
+        metric_protocol_id='primelora_tc_metrics_v1',
+        input_selection='evenly_spaced_original_order_within_executed_length_group',
+        group_boundary_method='type1_quartiles_merged_equal_boundaries',
+        raw_quartiles=quartiles, finite_upper_bounds=bounds,
+        samples_per_group_per_round=256, rounds=3, repeated_input_index=True,
+        groups=groups, batch_size=None, batch_feasibility_qualified=False,
+        measured_warm_reference=False, thresholds=None,
+        semantic_full_pool_qualification=False, formal_g1_g2_qualified=False)
+
+
 async def collect_native_source_wave(boundary, slot, cases, result):
     """Measure real selected-source admission/preparation on one native worker.
 

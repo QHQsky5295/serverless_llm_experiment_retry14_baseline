@@ -1,0 +1,3 @@
+group,population,eligible,selected,adapters,input_min,input_max,selected_input_min,selected_input_max,target_min,target_max,batch8_max_distinct_adapters,batch8_max_declared_context_tokens
+0,1039,1039,256,88,14,616,17,616,6,244,8,5311
+1,2961,2961,256,94,626,760,666,760,6,256,8,7865

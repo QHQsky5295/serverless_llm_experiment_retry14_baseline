@@ -1,6 +1,55 @@
 # IEEE TC execution status
 
-## CURRENT — D167 checkpoint-derived content check COMPLETE, backup pending
+## CURRENT — D168 common warm-reference input index COMPLETE; backup pending
+
+Seal COMPLETE, doc/index/CSV now immutable. Verification actual
+bf8a40de1d814350864e14a307c12acf exited0/events0; automatic-removal/inactive/
+emptyID/emptyControlGroup verified. Pre-existing preflight AST and serving
+source byte-identical;147protected/Plan/V1/sourceSHAsPASS.20member131799Bbundle
+SHAde0116fbe9c98b8e4e2b891a35d2db5e807f00158c99339b065b3ab90648b458,
+checksumPASS. No livejobs. NEXT scopedstagedchecks/backup; doNOTretest/reindex.
+
+2026-10-02 18:49 +08. Goal ACTIVE/PROGRESS, Prime7B only. Full Plan/status/V1
+and run/analyze-results/vLLM/academic-plotting/github-sync read after compaction.
+D167 sealed/backed881d048, not repeated. User cache approval already fulfilled
+D78/D80; no recreation or remote operations. No GPU run or serving optimization.
+
+New pure preflight index reuses D164 retained34MB projection ONLY for executed
+input lengths/identity, never its latency or success ranking. All4000 source42
+rows bound; Type1 quartiles616/760/760 merge to two groups1039/2961. Each selects
+256 distinct original requests, targets>=2, for three future rounds (1536 calls,
+NOT already run). Actualadapter counts88/94; batch8 needs up to8IDs, total declared
+contexts5311/7865tokens. Actualbatch feasibility/SLOthresholds remainUNQUALIFIED.
+Doc/table D168_WARM_REFERENCE_INPUT_INDEX.md; indexSHA
+563abfbdeb74c1bc03e42a26c34d48d634c342ac4fa43bd00c5ff8dd82269793.
+
+Tests79PASS1.153s(7new+72preflight), actual8a0da61436e4425f85aa6e8a211ced41,
+session75567CLOSED0; analysis actual5272fa78d0794325b53062f3edb867d7,
+session12442CLOSED0. Both3/4GiBswap0CPU2,3,26,27/events0, automatic-removal/
+inactive/emptyInvocationID/emptyControlGroup verified.147protectedPASS.
+No liveGPU/remote/analysis/tooljob. Disk162781646848B, hostavailable112212520960B;
+recheckunchanged150/100GiB and102GiBidle gates before newheavywork.
+
+NEXT verify/secrets/scopedbackup, then actual warm-reference implementation and
+batch8 physicalfeasibility via existing preflight/runtime; no newframework, no
+oldprofile relabel or repeatedindexanalysis. Request→adapter executionmapping,
+numericfullpool/n_correct/commonwarm/Resident/G1G2/oldPrimeacceptance stillOPEN.
+7Bactualacceptance before3B/externalbaselines unchanged. HistoricalNEXTbelow
+superseded; do not repeat completed content checks or Full without newhypothesis.
+
+## CURRENT — D167 checkpoint-derived content check COMPLETE and BACKED
+
+Backup COMPLETE 881d0485716a091fabd300e830afa280951381aa, pushed to
+faaslora_origin/retry14_continuous_queue_v2; independent remote HEAD matches.
+Push31593/verify15958 CLOSED0. Ten scoped files / 31 staged+archive payloads
+passed secrets/diff/checksum checks; user manifest excluded. No live GPU/remote/
+analysis/tool jobs. Only this post-backup receipt is newly dirty. Disk available
+162,800,771,072 B; recheck unchanged 150/100GiB gates before new heavy work.
+Goal ACTIVE / this turn PROGRESS; D167 complete is NOT 7B G1/G2 acceptance.
+NEXT remaining actual execution-map evidence and common warm-reference via
+existing preflight/runtime interfaces, then new-metric old/new Prime comparison.
+Do not recreate published cache, rerun 22-prefix, repeat D167 analysis, or launch
+Full without a new falsifiable serving hypothesis. 7B before 3B/baselines.
 
 Offline reuse COMPLETE, no GPU replay or remote operations. All 44 D166 snapshots
 and 19,888 tensors match independently derived checkpoint/config bytes; 0 failed

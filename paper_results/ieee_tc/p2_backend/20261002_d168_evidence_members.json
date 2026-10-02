@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "member_sha256": {
+    "raw/analysis1.log": "e78e68c620f3090127b629fdc14019a253209166518acbbf37239da46597e9b2",
+    "raw/analysis1_memory_events.txt": "28fe05a1d7b8467a03fb54454f7b6a130fab752864d0454f5f6c4a4b6ce307f2",
+    "raw/analysis1_scope.txt": "fd17130e7970a15ada3c93cce07ba103a7a9771ce19903c31178f6f9adcb4196",
+    "raw/analysis1_swap.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "raw/analysis1_time.txt": "ea989b9408b100ebdb82dcb21d9e1f87703191d7f97145ca8cbdf973ef07c4ad",
+    "raw/analyze.py": "3c38fd722ba96ea7194bedabc111313393d5dfcbb419e5e08168fad6c6533aed",
+    "raw/cleanup_verified.json": "2b42457328da370bafbb044fd82d0402555136c2930cf92c243537a58d8f4919",
+    "raw/run_cpu.sh": "cd2cade74f11804ee2e49eb0b87fd92af92a9d22fdc481d1cf7c69616ff5b488",
+    "raw/tests1.log": "6be47cde82c943cc47a2b760c4897b07babaee8140c9cd7fdd66b5e05db6f2ea",
+    "raw/tests1_memory_events.txt": "28fe05a1d7b8467a03fb54454f7b6a130fab752864d0454f5f6c4a4b6ce307f2",
+    "raw/tests1_scope.txt": "a503bf248f79eeb4fdcdd273e18663573329c6246714a2249ee9e94e33584ae2",
+    "raw/tests1_swap.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "raw/tests1_time.txt": "fc6621db0bd9e98fb99f03fd3270ced9e8e9c277264970dc550ffafdf6f9b45c",
+    "raw/verify.py": "fd1bc8d4de97a94eee6d71fb4ecc07249334f06a380a16d03a50066c6b0eb485",
+    "scripts/ieee_tc_preflight.py": "7910c1851df6201cd9c7eefae2b1e34bb8fcdeddfd4273ebb0d0234b905b7791",
+    "tests/test_ieee_tc_warm_reference.py": "fbd3d4aa0b6edd744612ec9383a4c77b85f2e2c1e1b1d81d7d5b1cad4234ad10",
+    "docs/ieee_tc/D168_WARM_REFERENCE_INPUT_INDEX.md": "0e4715afe92abb224e111884c10bb74b0eb91e1ed55a61d480b5318a26b8cdac",
+    "paper_results/ieee_tc/p2_backend/20261002_d168_warm_input_index.json": "563abfbdeb74c1bc03e42a26c34d48d634c342ac4fa43bd00c5ff8dd82269793",
+    "paper_results/ieee_tc/p2_backend/20261002_d168_warm_input_index.csv": "12ea1921b2453b634eda2011f3a8aaa8fcced23649fa7f89eab605b80db60e92",
+    "paper_results/ieee_tc/p2_backend/20261002_d168_verification.json": "0e8200c9178f5416254379d6d9e211c09f2ae213787e2b832923341f09395a88"
+  }
+}
