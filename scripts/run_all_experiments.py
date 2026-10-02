@@ -15458,6 +15458,7 @@ class ScenarioRunner:
         self, reservation: RuntimeRequestReservation, engine, adapter_id: str,
         local_path: Optional[str] = None, *, cached_only: bool = False,
         selected_source: Optional[Dict[str, Any]] = None,
+        held_host_source: Optional[Dict[str, Any]] = None,
     ) -> Optional[Dict[str, Any]]:
         """Connect one selected request to the native load/reference owner.
 
@@ -15465,7 +15466,9 @@ class ScenarioRunner:
         A miss permits ordinary path resolution; a stale view is re-observed,
         while an unknown mutation remains owned. Ordinary cached-only callers
         have no pre-dispatch claim. IEEE admission instead supplies its explicit
-        selected GPU view and retries whole selection on conflict. Neither path
+        selected GPU view and retries whole selection on conflict. An admitted
+        HOST request can instead present its acknowledged, still-held CPU copy
+        witness to the same native compare/load/acquire transaction. Neither path
         claims proactive E(t) admission or all-tier physical byte reservations.
         """
         from faaslora.clock import local_monotonic_clock_id
@@ -15523,12 +15526,47 @@ class ScenarioRunner:
             compact['gpu_pool_storage_bytes'] = state.gpu_pool_storage_bytes
             return value, selected, compact
         guarded_source = selected_source
+        if held_host_source is not None:
+            host = evidence.get('native_host_source', {})
+            admitted = evidence.get('source_admission', {}).get('source', {})
+            validate_snapshot(held_host_source)
+            if (guarded_source is not None or not cached_only
+                    or reservation.ieee_observation is None
+                    or reservation.slot is None or reservation.slot.engine is not engine
+                    or reservation.gpu_reference_engine is not engine
+                    or host.get('state') != 'held' or host.get('receipt') != held_host_source
+                    or admitted.get('native') is not True or admitted.get('tier') != 'host'
+                    or held_host_source.get('held') is not True
+                    or held_host_source.get('gpu_acquired') is not False
+                    or held_host_source.get('reference_scope') != 'native_cpu_lru_source'
+                    or held_host_source.get('tier') != 'host'
+                    or held_host_source.get('adapter_int_id') != native_id
+                    or held_host_source.get('lora_name') != adapter_id
+                    or held_host_source.get('lora_path') != admitted.get('path')
+                    or held_host_source.get('owner_id') != admitted.get('owner_id')
+                    or not admitted.get('source_id')
+                    or held_host_source.get('expected_source_id') != admitted['source_id']
+                    or held_host_source['epoch'] <= admitted.get('epoch', held_host_source['epoch'])
+                    or any(held_host_source.get(k) != host.get('intent', {}).get(k)
+                           for k in ('lease_id', 'adapter_int_id', 'lora_name', 'lora_path',
+                                     'expected_source_id'))):
+                raise ValueError('native preparation requires its acknowledged held HOST copy')
         if guarded_source is not None:
             if not cached_only or guarded_source['tier'] != 'gpu' or not guarded_source['native']:
                 raise ValueError('pre-admission executable guard requires the selected GPU source')
             snapshot = dict(owner_id=guarded_source['owner_id'], epoch=guarded_source['epoch'], clock_id=clock_id)
             selected_source = SimpleNamespace(tier='gpu', lora_path=guarded_source['path'])
             snapshot_evidence = dict(snapshot, selected_routing_source=dict(guarded_source))
+        elif held_host_source is not None:
+            # This is a protected copy, not a cached claim of the current tier.
+            # The serialized native owner checks its incarnation, current tier,
+            # pins and budgets before any load. A promotion/conflict is resolved
+            # through the ordinary fresh-observation path below.
+            snapshot = dict(owner_id=held_host_source['owner_id'],
+                epoch=held_host_source['epoch'], clock_id=clock_id)
+            selected_source = SimpleNamespace(tier='host', lora_path=held_host_source['lora_path'])
+            snapshot_evidence = dict(snapshot, kind='held_native_host_source_v1',
+                held_source_receipt=dict(held_host_source))
         else:
             snapshot, selected_source, snapshot_evidence = await observe_source()
         if cached_only and selected_source is None:
@@ -15547,6 +15585,8 @@ class ScenarioRunner:
             intent['required_source_tier'] = selected_source.tier
         if guarded_source is not None:
             intent['expected_source_id'] = guarded_source['source_id']
+        elif held_host_source is not None:
+            intent['expected_source_id'] = held_host_source['expected_source_id']
         # Keep the selected source and worker totals in per-request evidence.
         # The detailed tensor/alias inventory belongs to qualification/resource
         # observations, not a duplicate many-megabyte table for every request.
@@ -15572,7 +15612,7 @@ class ScenarioRunner:
                         raise ValueError('native acquisition receipt changed request/source identity')
                 if receipt['owner_id'] != intent['expected_owner_id']:
                     raise ValueError('native acquisition receipt changed worker identity')
-                if (guarded_source is not None
+                if ('expected_source_id' in intent
                         and receipt.get('expected_source_id') != intent['expected_source_id']):
                     raise ValueError('native acquisition did not confirm the selected copy identity')
                 if cached_only and (
@@ -15610,6 +15650,15 @@ class ScenarioRunner:
                 self._settle_native_reference_intent(reservation, 'gpu', 'no_acquisition')
                 return None
             if receipt.get('reason') in ('all_gpu_slots_pinned', 'all_cpu_entries_pinned'):
+                if held_host_source is not None and 'expected_source_id' in intent:
+                    # Exact-copy validation may legally survive unrelated epoch
+                    # advances. Bind waiting to this NEW atomic capacity receipt,
+                    # not to the older source-hold epoch. No capacity is granted.
+                    if (receipt['owner_id'] != intent['expected_owner_id']
+                            or receipt['epoch'] < intent['expected_epoch']):
+                        raise ValueError('held HOST capacity receipt changed native ownership')
+                    intent['expected_epoch'] = receipt['epoch']
+                    del intent['expected_source_id']
                 # This explicit worker outcome has no native load/pin side
                 # effects. Cancellation while waiting may release our source
                 # hold; interrupted acquisition RPCs above remain unresolved.
@@ -15640,6 +15689,9 @@ class ScenarioRunner:
                 evidence['state'] = 'source_unavailable'
                 evidence.setdefault('cache_source_rechecks', []).append({
                     'intent': dict(intent), 'conflict': dict(receipt)})
+                # The held CPU copy remains protected, but a fresh observation
+                # may legitimately select its now-confirmed GPU incarnation.
+                intent.pop('expected_source_id', None)
                 snapshot, selected_source, snapshot_evidence = await observe_source()
                 if snapshot['owner_id'] != intent['expected_owner_id']:
                     raise ValueError('native cache owner changed during source re-resolution')
@@ -15841,7 +15893,8 @@ class ScenarioRunner:
             return evidence['receipt']
         if source['native']:
             receipt = await self._acquire_runtime_gpu_reference(reservation, reservation.slot.engine,
-                reservation.adapter_id, cached_only=True)
+                reservation.adapter_id, cached_only=True,
+                held_host_source=evidence['native_host_source']['receipt'])
             if receipt is None:
                 raise RuntimeError('protected native HOST source disappeared before acquisition')
         else:

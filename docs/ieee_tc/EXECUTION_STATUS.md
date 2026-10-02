@@ -1,6 +1,57 @@
 # IEEE TC execution status
 
+## CURRENT — D176 held-HOST copy transaction QUALIFIED and SEALED
+
+01:18 +08 sealPASS, doc/curated nowSEALED; doNOTedit/retest. Exacttwo target
+runner functions only; all remaining AST plus nativeworker/owner/pool/planner
+byteidentical.147protected/Plan/V1/sourceSHAs/tablechecksPASS. Verify19888CLOSED0,
+actualf510d5b2e78a4179baf856198d06cb1a/events-swap0/automaticremovalverified.
+CuratedSHAb96c8455fee603c67098ce7ef00dcce42de998f90786e99173d975b00812350e;
+31member326346BbundleSHA6b50e7c211d95e663fb4e792490e586415f46d5853227abbba4b4d99526dee1d.
+No livejobs. Disk161273073664B justabove150GiB; recheckbeforeFull, nofloorrelaxation.
+NEXT scopedsecrets/diff/checksumbackup then ONEordinaryFull4000W0 sameD175
+cap4/D157profiles exceptfreshownedpaths/currentcandidate. Fullnotpreparedyet.
+ThisturnPROGRESS, goalACTIVE; numerical/commonreference/oldPrime/G1G2 remainOPEN.
+
+01:17 +08 qualification complete; no live GPU/remote/test/tooljobs. Targeted45
+PASS1.262s, actual404ebaccf2e84df8be52d049a6efe23f/session59646CLOSED0;
+regression947PASS99.951s, actual02d78cea595d4f71a96ddc463cbe4fba/tmuxended;
+exact-parent probe8fixturesPASS, actual763446ab186d4bf9a0ea366dba8c2937/
+24789CLOSED0. All3/4GiBswap0CPU2,3,26,27; finalevents0/automaticremovalverified.
+HOST graphqueries2→1; GPU1→1/NVMe3→3/remote3→3, all loadtransactions1,
+dispatchtierunchanged/leaks0. NOT GPUperformance ormodelacceptance. Five new
+tests plus initial/conflict negativegraph and capacityepoch cases; no failed
+attempts. Doc/table updated. NEXT boundedseal/protected/sourcechecks/backup,
+then ONEordinaryFull sameD175cap4/D157profiles. No requalification/cachecreation.
+
+2026-10-03 01:11 +08. Goal ACTIVE, Prime7B only. Full Plan/status/V1 and vLLM/
+optimization/run-experiment/academic-plotting/github-sync read. D175 sealed/backed
+95de3c3, not repeated. User once-only remote cache approval fulfilled D78/D80;
+no new cache/remote operations/GPU launch. Official vLLM .30 source, CPU blog and
+dLoRA checked; candidate is one fewer full source observation after acknowledged
+HOST pin, using existing native exact-copy transaction. Native worker/owner and
+nine formulas unchanged; initial/conflict graph checks and live capacity remain.
+Changed runner+tests only, new D176 doc and reused bounded CPU wrapper. NOT yet
+tested/qualified; no performance claim. Tests cover held identity, unrelatedepoch,
+promotion, invalidreceipt/graph, lostreply and capacitywait. NEXT bounded tests/
+regression→table/evidence/backup→one ordinaryFull sameD175 cap4/D157profiles if
+qualified; no otheroptimizer. All numerical/commonreference/oldPrime/G1G2 gates
+OPEN,3B/externalbaselines PAUSED. Plan/V1 unchanged; no livejobs currently.
+
 ## CURRENT — D175 ordinary 7B Full COMPLETE, tabled and SEALED
+
+00:55 +08 BACKUP COMPLETE95de3c348a59529cfe57ea5aa2501cdb9e534372,
+pushedfaaslora_origin/retry14_continuous_queue_v2; independentremoteHEADmatch.
+Push41760/verify29277CLOSED0.16explicitfiles/124staged+archivepayloads passed
+secret/diff/checksum/10PythonAST/shellsyntax/147protectedchecks; usermanifest
+excluded. Bundleactual77c2f78c0bbc49019bfc137cd997b2ec exit0/events-swap0;
+automaticremoval/inactive/emptyID/emptyControlGroup verified. No livejobs.
+Onlythispost-backupreceipt newlydirty. GoalACTIVE/turnPROGRESS, NOT7Bacceptance.
+D175fullyclosed; doNOTrepeatprojection/curation/seal/qualification orcachework.
+NEXT current-source/history/primary-source diagnosis of remainingpre-engine
+waiting, selectONEnew structuralhypothesis; noneyetimplemented. Actual7B
+numerical/commonreference/oldPrime-newmetrics/G1G2remainOPEN before3B/baselines.
+Disk161297678336B near150GiBnew-heavyfloor; recheckbeforeheavy, neverrelax.
 
 2026-10-03 00:52 +08. Goal ACTIVE, turn PROGRESS; Prime7B only. No live GPU,
 remote, analysis or tool job. SAME run not replayed; runtime5b80a897 unchanged.

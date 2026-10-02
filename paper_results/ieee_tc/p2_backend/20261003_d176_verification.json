@@ -1,0 +1,52 @@
+{
+  "passed": true,
+  "base_commit": "95de3c348a59529cfe57ea5aa2501cdb9e534372",
+  "non_target_serving_ast_unchanged": true,
+  "byte_identical_files": [
+    "faaslora/memory/gpu_monitor.py",
+    "faaslora/experiment/instance_pool.py",
+    "faaslora/memory/residency_manager.py",
+    "faaslora/preloading/preloading_planner.py"
+  ],
+  "tests_passed": {
+    "targeted": 45,
+    "regression": 947
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "cleanup": [
+    {
+      "phase": "tests1",
+      "actual_invocation_id": "404ebaccf2e84df8be52d049a6efe23f",
+      "returncode": 0,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    },
+    {
+      "phase": "regression1",
+      "actual_invocation_id": "02d78cea595d4f71a96ddc463cbe4fba",
+      "returncode": 0,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    },
+    {
+      "phase": "probe1",
+      "actual_invocation_id": "763446ab186d4bf9a0ea366dba8c2937",
+      "returncode": 0,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    }
+  ],
+  "curated_sha256": "b96c8455fee603c67098ce7ef00dcce42de998f90786e99173d975b00812350e",
+  "table_sha256": "4163978cada5bbe67dc79c6b8e5108ed39323af618ff979c784705f4e43acae7",
+  "document_sha256": "bad95dcb5926f38a3f4832efc04f1f38b03618a93c828ea3b69107a50f45a6f1"
+}

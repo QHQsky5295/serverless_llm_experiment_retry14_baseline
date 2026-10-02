@@ -851,8 +851,13 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
                 result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
                 self.assertTrue(result.success, result.error)
                 self.assertEqual(result.readiness_tier_before_dispatch, tier)
-                self.assertEqual(len(projected_epochs), 1 if tier == 'gpu' else 2 if tier == 'host' else 3)
-                if tier != 'gpu':
+                self.assertEqual(len(projected_epochs), 1 if tier in ('gpu', 'host') else 3)
+                if tier == 'host':
+                    evidence = result.gpu_reference_evidence['snapshot_before_acquisition']
+                    self.assertEqual(evidence['kind'], 'held_native_host_source_v1')
+                    self.assertEqual(evidence['held_source_receipt']['expected_source_id'],
+                                     result.gpu_reference_evidence['receipt']['expected_source_id'])
+                elif tier != 'gpu':
                     evidence = result.gpu_reference_evidence['snapshot_before_acquisition']
                     self.assertEqual(evidence['kind'], 'native_lora_routing_sources_v1')
                     self.assertNotIn('native_footprints', evidence)
@@ -862,7 +867,7 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
                 self.assertEqual(owner.snapshot()['live_leases'], 0)
                 self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
 
-    def test_projected_acquisition_revalidates_graph_after_host_reference(self):
+    def test_projected_routing_validates_graph_before_host_reference(self):
         runner, slot, trace, plan, owner, observed = self.build('host')
         source_calls = 0
         async def changed(*, operation, **kwargs):
@@ -870,19 +875,133 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
             value = await observed(operation=operation, **kwargs)
             if operation == 'routing_source_snapshot':
                 source_calls += 1
-                if source_calls == 2:
+                if source_calls == 1:
                     value['native_footprints']['host_adapter_footprints'][0]['exclusive_storage_bytes'] = 0
             return value
         slot.engine.ieee_gpu_reference.side_effect = changed
         with self.assertRaisesRegex(ValueError, 'exclusive capacity'):
             asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
-        self.assertEqual(source_calls, 2)
-        self.assertEqual(slot.engine.ieee_routing_sources.await_count, 2)
+        self.assertEqual(source_calls, 1)
+        self.assertEqual(slot.engine.ieee_routing_sources.await_count, 1)
         self.assertFalse(any(call.kwargs['operation'] == 'demand_load_and_acquire'
             for call in slot.engine.ieee_gpu_reference.await_args_list))
         slot.engine.generate_prepared.assert_not_awaited()
         self.assertEqual(slot.active_requests, 0)
         self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
+
+    def test_held_host_copy_survives_unrelated_epoch_advance_without_another_graph(self):
+        runner, slot, trace, plan, owner, observed = self.build('host')
+        async def advancing(*, operation, **kwargs):
+            value = await observed(operation=operation, **kwargs)
+            if operation == 'hold_host_source':
+                other = owner.hold_host_source(lease_id='other-reader',
+                    adapter_int_id=kwargs['adapter_int_id'], lora_name=kwargs['lora_name'],
+                    lora_path=kwargs['lora_path'], expected_owner_id=owner.owner_id,
+                    expected_epoch=owner.snapshot()['epoch'])
+                self.assertTrue(other['held'])
+                owner.release_host_source(lease_id='other-reader', expected_owner_id=owner.owner_id)
+            return value
+        slot.engine.ieee_gpu_reference.side_effect = advancing
+        result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+        self.assertTrue(result.success, result.error)
+        self.assertEqual(slot.engine.ieee_routing_sources.await_count, 1)
+        evidence = result.gpu_reference_evidence
+        self.assertEqual(evidence['stale_rechecks'], 0)
+        self.assertEqual(evidence['receipt']['source_tier_before_acquisition'], 'host')
+        self.assertEqual(evidence['receipt']['expected_source_id'],
+                         evidence['native_host_source']['receipt']['expected_source_id'])
+        self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
+        self.assertEqual(owner.snapshot()['live_leases'], 0)
+
+    def promote_held_host(self, owner, kwargs):
+        current = owner.snapshot()
+        promoted = owner.demand_load_and_acquire(lease_id='concurrent-promotion',
+            adapter_int_id=kwargs['adapter_int_id'], lora_name=kwargs['lora_name'],
+            lora_path=kwargs['lora_path'], expected_owner_id=owner.owner_id,
+            expected_epoch=current['epoch'])
+        self.assertTrue(promoted['acquired'])
+        owner.release(lease_id='concurrent-promotion', expected_owner_id=owner.owner_id)
+
+    def test_held_host_promotion_reobserves_gpu_without_rewriting_dispatch_tier(self):
+        runner, slot, trace, plan, owner, observed = self.build('host')
+        attempts = []
+        async def promoting(*, operation, **kwargs):
+            if operation == 'demand_load_and_acquire':
+                attempts.append(dict(kwargs))
+                if len(attempts) == 1:
+                    self.promote_held_host(owner, kwargs)
+            return await observed(operation=operation, **kwargs)
+        slot.engine.ieee_gpu_reference.side_effect = promoting
+        result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+        self.assertTrue(result.success, result.error)
+        self.assertEqual(len(attempts), 2)
+        self.assertEqual(attempts[0]['required_source_tier'], 'host')
+        self.assertTrue(attempts[0]['expected_source_id'])
+        self.assertEqual(attempts[1]['required_source_tier'], 'gpu')
+        self.assertNotIn('expected_source_id', attempts[1])
+        self.assertEqual(slot.engine.ieee_routing_sources.await_count, 2)
+        self.assertEqual(result.readiness_tier_before_dispatch, 'host')
+        self.assertEqual(result.gpu_reference_evidence['stale_rechecks'], 1)
+        self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
+        self.assertEqual(owner.snapshot()['live_leases'], 0)
+
+    def test_host_conflict_reobservation_still_validates_full_graph(self):
+        runner, slot, trace, plan, owner, observed = self.build('host')
+        calls = 0
+        async def corrupt(*, operation, **kwargs):
+            nonlocal calls
+            if operation == 'demand_load_and_acquire':
+                calls += 1
+                self.promote_held_host(owner, kwargs)
+            value = await observed(operation=operation, **kwargs)
+            if operation == 'routing_source_snapshot' and calls:
+                value['native_footprints']['host_adapter_footprints'][0]['exclusive_storage_bytes'] = 0
+            return value
+        slot.engine.ieee_gpu_reference.side_effect = corrupt
+        with self.assertRaisesRegex(ValueError, 'exclusive capacity'):
+            asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+        self.assertEqual(calls, 1)  # Explicit no-acquisition conflict, no second native load.
+        slot.engine.generate_prepared.assert_not_awaited()
+        self.assertEqual(owner.snapshot()['live_leases'], 0)
+        self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
+        self.assertEqual(slot.active_requests, 0)
+
+    def test_invalid_held_host_receipt_is_not_permission_to_skip_observation(self):
+        for field, wrong in (('expected_source_id', 'other-copy'), ('owner_id', 'other-owner'),
+                ('clock_id', 'other-clock'), ('epoch', 0), ('lora_name', 'other-adapter'),
+                ('lora_path', '/other/path'), ('lease_id', 'other-lease'),
+                ('gpu_acquired', True), ('tier', 'gpu'), ('held', False)):
+            with self.subTest(field=field):
+                runner, slot, trace, plan, owner, _ = self.build('host')
+                acquire = runner._acquire_runtime_gpu_reference
+                async def altered(*args, **kwargs):
+                    kwargs['held_host_source'] = {**kwargs['held_host_source'], field: wrong}
+                    return await acquire(*args, **kwargs)
+                runner._acquire_runtime_gpu_reference = altered
+                with self.assertRaises(ValueError):
+                    asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+                self.assertFalse(any(c.kwargs['operation'] == 'demand_load_and_acquire'
+                    for c in slot.engine.ieee_gpu_reference.await_args_list))
+                slot.engine.generate_prepared.assert_not_awaited()
+                self.assertEqual(owner.snapshot()['live_leases'], 0)
+                self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
+
+    def test_lost_load_reply_after_held_host_keeps_gpu_ownership_unresolved(self):
+        runner, slot, trace, plan, owner, observed = self.build('host')
+        async def lose(*, operation, **kwargs):
+            value = await observed(operation=operation, **kwargs)
+            if operation == 'demand_load_and_acquire':
+                raise ConnectionError('lost held-source load reply')
+            return value
+        slot.engine.ieee_gpu_reference.side_effect = lose
+        with self.assertRaises(ConnectionError):
+            asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+        self.assertEqual(owner.snapshot()['live_leases'], 1)
+        self.assertEqual(slot.active_requests, 1)
+        self.assertEqual(slot.status, 'draining')
+        self.assertEqual(runner._unsettled_runtime_reservations[trace.request_id]
+                         .gpu_reference_evidence['state'], 'acquiring')
+        slot.engine.generate_prepared.assert_not_awaited()
 
     def replace_gpu_copy(self, owner, adapter_id, lease_id):
         aid = InferenceEngine._lora_int_id(adapter_id)
@@ -3530,6 +3649,13 @@ class NativeCapacityWait(unittest.TestCase):
                 entered = asyncio.Event()
                 async def observe(*, operation, **kwargs):
                     value = await rpc(operation=operation, **kwargs)
+                    if operation == 'hold_host_source':
+                        other = owner.hold_host_source(lease_id='other-host-reader',
+                            adapter_int_id=kwargs['adapter_int_id'], lora_name=kwargs['lora_name'],
+                            lora_path=kwargs['lora_path'], expected_owner_id=owner.owner_id,
+                            expected_epoch=owner.snapshot()['epoch'])
+                        self.assertTrue(other['held'])
+                        owner.release_host_source(lease_id='other-host-reader', expected_owner_id=owner.owner_id)
                     if value.get('reason') == 'all_gpu_slots_pinned':
                         entered.set()
                     return value
@@ -3542,6 +3668,7 @@ class NativeCapacityWait(unittest.TestCase):
                 self.assertTrue(result.success, result.error)
                 evidence = result.gpu_reference_evidence
                 interval, wait = evidence['service_intervals'], evidence['capacity_waits'][0]
+                self.assertGreater(wait['epoch'], evidence['native_host_source']['receipt']['epoch'])
                 self.assertEqual(result.readiness_tier_before_dispatch, 'host')
                 self.assertLessEqual(interval['admitted_monotonic_s'], wait['start_monotonic_s'])
                 self.assertLessEqual(wait['end_monotonic_s'], interval['acquired_monotonic_s'])
