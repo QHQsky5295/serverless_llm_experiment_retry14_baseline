@@ -1,6 +1,57 @@
 # IEEE TC execution status
 
-## CURRENT — D170 7B common warm measurement COMPLETE/SEALED; backup pending
+## CURRENT — D171 provisional 7B timing-gap analysis COMPLETE/SEALED; backup next
+
+20:34 +08 seal PASS: curated SHA361bb4bc1ff7c49ac23449227d4dd31d7829cc87fbc86d7847c0658bb5dd7a15;
+22-member 329560-byte bundle SHA89fcdff6f3bf85b65e9b2ccb649972909ff4f1d62fc6de69aadec8010b481a3c.
+147 protected entries/Plan/V1/input SHAs/32 tests/table counts PASS. Existing
+analyzer AST identical except new offline helper; serving code unchanged.
+verify1/session20987 CLOSED0, scope absent, final memory events/swap zero.
+Actual verify invocation a72547e3c7e04dcfa0d6775c5ad7b699. CSV exports use Python
+csv's standard CRLF; default Git whitespace check flags CR on each record.
+Explicit cr-at-eol check passes with other whitespace checks retained; sealed
+CSV bytes are not rewritten. Scoped secret check PASS: 11 files/33 entries.
+Doc/curated/CSVs now sealed, do not rewrite. NEXT scoped secrets/diff/checksum
+backup. No live jobs, no new GPU candidate launched, all qualification caveats remain.
+
+Reused D164 retained 34 MB request projection with D170 candidate thresholds.
+No GPU replay, no new data/cache, no serving/config/remote changes. All 4000 native
+timelines reconstruct; 2110 timing-joint passes = 52.75% upper bound, NOT formal
+joint SLO. TTFT-only 1660, TPOT-only 91, both-miss 139; at least 1690 additional
+timing passes needed for 95%. 1547/1799 TTFT misses exhaust their deadline before
+engine dispatch. Mean arrival→admission 2.850748 s, admission→dispatch 1.386105 s,
+together 90.80% of mean TTFT. Conditional tier tables are not causal effects.
+Native numerical correctness/n_correct, globally frozen warm, Resident budget,
+old Prime new-metric comparison and G1/G2 acceptance remain OPEN. No CI at n=1.
+Doc D171_PROVISIONAL_TIMING_GAP.md + JSON/2 CSV tables complete. 32 tests PASS
+(8 new + 24 existing). tests1 actual f9e83061d5124bfd8e66c7e2f199ec8e/session80654
+and analyze1 actual 5f637545fc1d49c69ce7064a9c122b6b/session44069 CLOSED0;
+both scopes absent, memory events/swap zero; analysis 9.66 s / RSS1102156 KiB.
+No live jobs. Disk ~149.86 GiB below new-heavy gate; bounded offline only.
+NEXT seal + scoped backup; then ONE evidence-grounded pre-engine/queue candidate,
+with historical D161/D162 evidence and current official sources, after audited
+space recovery before any GPU work. Do not reanalyze/replay this completed D171.
+Prime7B before3B beforeexternalbaselines; later matrices still OPEN. Goal ACTIVE.
+
+## CURRENT — D170 7B common warm measurement COMPLETE/SEALED and BACKED
+
+20:18 +08 backup COMPLETEef38f25735c0d781330b35f4cb254ca1b06d7f7c, pushed
+faaslora_origin/retry14_continuous_queue_v2; independentremoteHEADmatched.
+Push38893/verify60903CLOSED0.11explicitfiles/64staged+archiveentries passed
+secrets/diff/checksum/projectionfixtures/nativecuration/147protectedchecks;
+userdirtymanifest excluded. No liveGPU/remote/analysis/tooljobs. Onlythis
+post-backupreceipt newlydirty. GoalACTIVE/thisturnPROGRESS, notmodelacceptance.
+DoNOTrepeatD170measurement/projection/curation/seal orD169probe/index/cache.
+NEXT ONEprovisional7Btiming-gap analysis from sealedD16434MBprojection with
+D170candidate thresholds. Correctnessunknown staysunknown: timing-only bounds
+are notformaljointSLO; commonbatchcontractstillnotgloballyfrozen. No new GPU
+run orservingcandidate selected. Needactualnew-metricoldPrimegap/numerical/
+Residentbudget/G1G2 acceptance before3Boptimization/externalbaselines.
+Disk160926638080B(~149.87GiB), below150GiBnewheavygate; do notlowerthreshold,
+deleteuniqueevidence orstartheavy. Boundedofflineanalysis canproceed. Audit
+reconstructiblecache orlosslessarchival onlybetweenheavyjobs, notrepeatedhashes
+ofgiantoldD137/D145/D148. Alllatermatrixandfailedcauses remainOPEN.
+
 
 20:16 +08 sealPASS, doc/curated/tables now immutable, doNOTedit/re-curate.
 CuratedSHA0ebc7587effe293dcb986d33fb932c100cbcb3384c56ab2c0b0bec73b2bdd88c.

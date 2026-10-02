@@ -300,6 +300,84 @@ def plot(rows: List[Dict[str, Any]], output: Path) -> None:
     plt.close(fig)
 
 
+def provisional_timing_bound(rows, thresholds, *, offered_count):
+    """Timing-only upper bound, never substitute for adapter correctness.
+
+    All quantities are unrounded seconds. Success is an observed terminal, not
+    z_r. Unknown correctness is deliberately retained as None. Missing successful
+    measurements are errors; known failures contribute zero before timing checks.
+    Threshold groups must be a contiguous, disjoint partition of positive input
+    lengths. This does not freeze a common reference or qualify G1/G2.
+    """
+    def finite(value, name):
+        if type(value) not in (int, float) or not math.isfinite(value) or value < 0:
+            raise ValueError(f'invalid {name}')
+        return value
+
+    if type(offered_count) is not int or offered_count <= 0 or len(rows) != offered_count:
+        raise ValueError('incomplete offered population')
+    if len({r['request_id'] for r in rows}) != offered_count:
+        raise ValueError('duplicate offered population')
+    if not thresholds or thresholds[0]['lower_exclusive'] is not None or thresholds[-1]['upper_inclusive'] is not None:
+        raise ValueError('threshold partition must cover all lengths')
+    ids = set()
+    for i, t in enumerate(thresholds):
+        if t['group_id'] in ids:
+            raise ValueError('duplicate threshold group')
+        ids.add(t['group_id'])
+        lo, hi = t['lower_exclusive'], t['upper_inclusive']
+        if i and lo != thresholds[i-1]['upper_inclusive']:
+            raise ValueError('noncontiguous threshold partition')
+        if i and (type(lo) is not int or lo < 1):
+            raise ValueError('invalid length boundary')
+        if i < len(thresholds)-1 and (type(hi) is not int or hi <= (lo or 0)):
+            raise ValueError('invalid length boundary')
+        for name in ('ttft_s', 'tpot_s'):
+            if finite(t[name], name) == 0:
+                raise ValueError('zero threshold')
+    decisions = []
+    for r in rows:
+        if type(r['success']) is not bool:
+            raise ValueError('success must be boolean')
+        d = dict(request_id=r['request_id'], outcome='failure', group_id=None,
+                 ttft_pass=False, tpot_pass=None, timing_joint_pass=False)
+        if r['success']:
+            length, n = r['prompt_tokens'], r['token_count']
+            if type(length) is not int or length < 1 or type(n) is not int or n < 1:
+                raise ValueError('invalid native token count')
+            t = next(t for t in thresholds if
+                     (t['lower_exclusive'] is None or length > t['lower_exclusive']) and
+                     (t['upper_inclusive'] is None or length <= t['upper_inclusive']))
+            tp = finite(r['ttft_s'], 'TTFT') <= t['ttft_s']
+            if n == 1:
+                if r['tpot_s'] is not None:
+                    raise ValueError('single-token TPOT must be N/A')
+                pp = None
+            else:
+                pp = finite(r['tpot_s'], 'TPOT') <= t['tpot_s']
+            joint = tp and pp is not False
+            outcome = ('timing_pass' if joint else 'both_miss' if not tp and pp is False
+                       else 'ttft_only_miss' if not tp else 'tpot_only_miss')
+            d.update(group_id=t['group_id'], outcome=outcome, ttft_pass=tp,
+                     tpot_pass=pp, timing_joint_pass=joint)
+        decisions.append(d)
+    counts = Counter(d['outcome'] for d in decisions)
+    eligible = [d for d in decisions if d['tpot_pass'] is not None]
+    return dict(kind='provisional_timing_only_upper_bound_v1', offered_count=offered_count,
+                correctness_qualified=False, n_correct=None, formal_joint_slo=None,
+                formal_g1_g2_qualified=False,
+                timing_joint_pass_count=counts['timing_pass'],
+                joint_upper_bound=counts['timing_pass']/offered_count,
+                ttft_upper_bound=sum(d['ttft_pass'] for d in decisions)/offered_count,
+                timing_tpot_eligible_count=len(eligible),
+                timing_tpot_conditional_rate=(sum(d['tpot_pass'] for d in eligible)/len(eligible)
+                                              if eligible else None),
+                required_joint_count=math.ceil(0.95*offered_count),
+                minimum_additional_timing_passes=max(0, math.ceil(0.95*offered_count)-counts['timing_pass']),
+                outcome_counts={k: counts[k] for k in ('timing_pass', 'ttft_only_miss',
+                                'tpot_only_miss', 'both_miss', 'failure')}, decisions=decisions)
+
+
 def analyze_native_timeline(projection: Path, deployment_path: Path,
                             terminals_path: Path, watchdog_path: Path,
                             output: Path, *, allow_failed: bool = False,

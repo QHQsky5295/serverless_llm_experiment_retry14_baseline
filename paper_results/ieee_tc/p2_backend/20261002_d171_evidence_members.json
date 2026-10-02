@@ -1,0 +1,28 @@
+{
+  "passed": true,
+  "member_sha256": {
+    "raw/analyze.py": "d55412694b5ac6a13a6229113871df5e5a233e5a41610b2a480a1221e87b9fce",
+    "raw/analyze1.log": "b6ed88ef6f84931b9cb4070d483a99868fac8fbff31fb4262f82fae8107b5d61",
+    "raw/analyze1_memory_events.txt": "28fe05a1d7b8467a03fb54454f7b6a130fab752864d0454f5f6c4a4b6ce307f2",
+    "raw/analyze1_scope.txt": "42448dacc03c145454ea95e0502787b9f17ab855c89bd605e1af16b85b430130",
+    "raw/analyze1_swap.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "raw/analyze1_time.txt": "66b41bed06a43e29254610fbfb7f504934d706b7344229ecf6f2c73ce1e60346",
+    "raw/check_staged.py": "a32edc9a7e84f8d53b9ec4bfa28ad287afa121258246448772c52847a0f68008",
+    "raw/cleanup_verified.json": "fb91426f621411b839af4e3b3ae505ca63be6f9d823c8ee94590bd4af2dad566",
+    "raw/run_cpu.sh": "825a006a861afa19857f67267eabdb286c62f043aeede2ddc97a4de6035c6e00",
+    "raw/tests1.log": "fbf1ac5358c6413dc65c472c716609dbffe1d715fff39c3bcdfab191b55f9094",
+    "raw/tests1_memory_events.txt": "28fe05a1d7b8467a03fb54454f7b6a130fab752864d0454f5f6c4a4b6ce307f2",
+    "raw/tests1_scope.txt": "acac7726ea4277ded6143945003cc9fd7225aec3071c0e3925627619e8b6a4db",
+    "raw/tests1_swap.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "raw/tests1_time.txt": "a3e3fe4120000ee872b415d2530a593304f62eb6a0239000a490e32e0f8777e8",
+    "raw/verify.py": "84f4e3c50f35afc72183cabe295d7ddfb35c154f0447db02cf45864006c424c0",
+    "docs/ieee_tc/D171_PROVISIONAL_TIMING_GAP.md": "1697befde8abd34d7618ce443f03e2871507241e2096b60dac7f593a999fffed",
+    "paper_results/ieee_tc/p2_backend/20261002_d171_timing_gap.json": "361bb4bc1ff7c49ac23449227d4dd31d7829cc87fbc86d7847c0658bb5dd7a15",
+    "paper_results/ieee_tc/p2_backend/20261002_d171_verification.json": "6038e9113ed79d4b04bb4b2cadd52683a94a045072d85bbc07de5bfff474bb92",
+    "paper_results/ieee_tc/p2_backend/20261002_d171_timing_groups.csv": "57c2b475bd98d67a42cb29f28a017571394f5a4fd8773816154cd9070216743b",
+    "paper_results/ieee_tc/p2_backend/20261002_d171_timing_requests.csv": "367edc128c12a15f385cbd42f92b7606efe86e2fbe0847cab1fb965b0c6e5832",
+    "scripts/analyze_control_path_overhead.py": "7a7e623537dcb21e0c78607642cc76b26343958bf84a35ed7b8d1ed16cf34174",
+    "tests/test_ieee_tc_timing_bound.py": "ddc7967f89353f2dbbc0b855258afb4fbed71d8eeda5fa43e6feb02263a6d80d"
+  },
+  "source_raw_retained_and_bound": true
+}
