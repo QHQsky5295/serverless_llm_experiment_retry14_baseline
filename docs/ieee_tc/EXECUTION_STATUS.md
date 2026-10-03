@@ -1,6 +1,66 @@
 # IEEE TC execution status
 
-## CURRENT — D190 analyzed and SEALED; backup next
+## CURRENT — D191 offline diagnosis SEALED; backup next
+
+2026-10-03 13:24+08. Previous goal turn PROGRESS; current turn PROGRESS.
+Goal ACTIVE. Full Plan/status/V1 retained/read in current context; hashes
+revalidated unchanged. Current authoritative HEAD6ee3883/runtime8a106bb5.
+optimize-for-gpu/vLLM+optimization reference, analyze-results/academic-plotting/
+github-sync followed. Primary vLLM CPU blog/.30core-client/serial-utils, Python
+asyncio and msgspec type docs checked. No serving change/GPU/remote action.
+D78/D80 once-only published delivery cache reused, not recreated.
+
+D191 reuses sealed D19034378192B projection and unchanged existing RPC analyzer;
+previous D185 table reused from sealed D186, no old full reparse. All4000rows,
+65groups/65comparisonrows/field-clock contracts PASS. Exact full stage tables
+in D191_CONTROL_PATH_DIAGNOSIS.md, now SEALED by evidence binding; doNOTedit.
+D185→D190 preengine2387.840→2101.355ms. Recordedrouting620.808→563.304ms,
+residual474.286→415.139ms. Residual NOToneRPC; routing includesawaits. Current
+GPU-selected1232 vs1266 different conditional populations. Ingress submit→receive
+280.481ms is localUnixsocket, not174artifactHTTP; responsepickup352.058ms has
+producerwallclock/clampingcaveat. No new performance/causal/SLO/model acceptance.
+
+Analysisactual80469b22e671495bb5998c17570adecf/session73697 CLOSED0,
+9.98s/RSS1103248KiB. Finalizeactual47b762a448c343ebaea0fa907fa71b8e/
+session88024 CLOSED0. Both3/4GiBswap0CPUs2,3,26,27, finalmemoryevents-swap0,
+automatic_scope_removal/pathabsence verified. No liveGPU/remote/CPU/tooljobs.
+147protected/PlanV1/sourceSHA/tablechecksPASS;10serving/helper/historypaths
+byteidenticaltoHEAD; newwrapper syntaxsmokePASS. DiagnosisSHA
+63ac85c180b41fca4758a8fa3185360494cf18400de0d14f7caac2c4509d74e6.
+10member24329B bundleSHA
+8345169a1db93db713c8408c63593b626ea1f47087865fbfdee0133e62b1e7e7.
+Rawd191_20261003 and curatedcontroltables retained, no failedanalysis.
+
+NEXT exact13pathbackupchecks/push, then ONE bounded producer-side RPC encoding
+study using existing real snapshots plus request/reply fixtures. D172 modified
+DECODING only; D187 frontend encoding frames and current stdlib producer code
+provide a distinct question. No new candidate accepted/implemented. Direct
+msgspec encoder substitution REJECTED as unqualified: nonfinite→null and wider
+type acceptance differ. Study must include all finite-primitive validation,
+integer/floatbits/Unicode/key/nesting/8MiB framing/error semantics and full cost;
+no fallback/null substitution/newdependency/newweights/trace. If no supported
+net component gain, archive without speculativeFull; doNOTrepeatD172/D190 or
+new profiler loop. Only a qualified single candidate proceeds to ordinaryFull.
+
+Actual7B numerical/130outputhashdifferences/commonwarm/Resident/oldPrime-newmetrics/
+G1G2 OPEN before3B/baselines. CompleteM1M2/A1–A5/S1–S13 retained. Disk
+160664141824B belowNEWheavy150GiB; nextGPU/build needs auditedrecovery/fresh
+preflight, unchanged150/100GiB andmemoryfloors. Usermanifest/unrelateddirtyfiles
+untouched. No blocker/newauthorityneeded.
+
+## D190 analyzed, SEALED and BACKED — reference
+
+Backup complete2026-10-03 13:13+08:
+6ee3883a916a834a08e342154659a88bd924bd89; push session58391 CLOSED0 and
+independentls-remote session67678 CLOSED0 match. Exact16paths/97staged+nested
+archiveentries credential/scopechecksPASS; checksum/working+stageddiffchecks/
+7PythonAST/shellsyntaxsmokePASS. Usermanifestexcluded. FinalGPUcensus empty,
+no experiment scopes orremainingtooljobs. GoalACTIVE/currentturnPROGRESS.
+D190sealed doc/curated/bundle unchanged. NEXT retainedphase/control evidence
+andhistory/primary-source-guided next7B bottleneckinvestigation, NOTanother
+D190replay ornewcandidate chosenyet. Actual7B acceptance stillOPEN before3B/
+baselines; all latermatrixretained. Freshdiskrecovery/preflight beforeanynew
+GPU/build, unchanged150/100GiBfloors. No blocker/newauthorityneeded.
 
 2026-10-03 13:11+08. Previous goal turn VERIFIED_WAIT; current turn PROGRESS.
 Goal ACTIVE. Full Plan/status/V1 read after compaction; hashes unchanged.

@@ -1,0 +1,16 @@
+{
+  "bundle": "20261003_d191_analysis_sources.tar.gz",
+  "member_sha256": {
+    "analyze.py": "068aaf4daa36e6ed87827adf619bb12005926768d601ca8dc0e57bea22fbb03c",
+    "run_cpu.sh": "054a5e5a3b973d3969cfcb635e0666435e3bec20b520b22ad9d1ee55ab67d94f",
+    "finalize.py": "6523d1a9032a4e1c82a11ca08273f24e44c64e343610332bde1a0e66d4126403",
+    "check_staged.py": "fad4b086cfe8c4cc8e84d813531b8787dcbca6343150c55152c1d800d150ece5",
+    "analyze1_scope.txt": "c357cbe63d44997c63992b64bd6ceeb2751ed84ae961de69dd083f7a9f6848ab",
+    "analyze1_time.txt": "049ee8c9a4e19d0c9030dc4f19be420f86f956b944f990ea3bd3d860a28a0149",
+    "analyze1_memory_events.txt": "28fe05a1d7b8467a03fb54454f7b6a130fab752864d0454f5f6c4a4b6ce307f2",
+    "analyze1_swap.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "analyze1.log": "c0743131c46be83ffdd19d7393313d6d60ad1a237b231ada1410a8956fe2d3ca",
+    "analyze_control_path_overhead.py": "7a7e623537dcb21e0c78607642cc76b26343958bf84a35ed7b8d1ed16cf34174"
+  },
+  "member_checks_pass": true
+}
