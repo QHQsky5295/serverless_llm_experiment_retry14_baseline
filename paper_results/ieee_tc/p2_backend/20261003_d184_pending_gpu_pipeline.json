@@ -1,0 +1,59 @@
+{
+  "kind": "ordered_pending_gpu_pipeline_qualification_v1",
+  "base_commit": "99ea14a6e035ca1116cde3e04eedfac35d54e744",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "rows": [
+    {
+      "phase": "tests1",
+      "tests": 103,
+      "errors": 0,
+      "status": "pass",
+      "elapsed_test_s": 2.834
+    },
+    {
+      "phase": "regression1",
+      "tests": 1005,
+      "errors": 0,
+      "status": "pass",
+      "elapsed_test_s": 101.959
+    }
+  ],
+  "cleanup": [
+    {
+      "phase": "tests1",
+      "actual_invocation_id": "059ed3d45c3b4480a404d2e77a804258",
+      "returncode": 0,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    },
+    {
+      "phase": "regression1",
+      "actual_invocation_id": "cd187ddca6c14e0fb4ab79a476039d0e",
+      "returncode": 0,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    }
+  ],
+  "source_sha256": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py": "8217c089f51dd195cef17a7ff0a69e83bd14d96436c179b651c66c460257acac",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/dedicated_engine_worker.py": "cdadcdaa0a579c1016b4efc7847cff7f631d3bb5340c98f9aeddc6a5bbfa288b",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_pending_gpu_pipeline.py": "9feff7433c6f37686e5def3e52eeb6419c3935f2433f5e997af38c6b1b6585f1",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d184_20261003/run_cpu.sh": "73e0ea2fcf9ead8f1bf266c7f8589038c214128bc42b6a805f58c53cbb0166ab",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d184_20261003/verify.py": "b655ff27713df6ffacbc33825e1b072ac03feee0aeb8d551d02d8c66aee17004"
+  },
+  "new_test_methods": 11,
+  "tests_regression": 1005,
+  "tests_targeted_executions": 103,
+  "targeted_repeated_imported_tests": 36,
+  "test_counts_overlap": true,
+  "no_new_gpu_run": true,
+  "end_to_end_improvement_qualified": false,
+  "n_correct": null,
+  "formal_g1_g2_qualified": false,
+  "common_reference_frozen": false,
+  "table_sha256": "f42fe04068ae33a0a5b8471e5a267010ff5034e6dc5a56bc329acef1ae1862a1",
+  "document_sha256": "c656fee529ff4f0f369463716bdd21d6cac38e45df4b8393261df22dbe664d74"
+}

@@ -193,6 +193,9 @@ async def _run_worker(payload_path: Path, ready_path: Path) -> None:
                     elif cmd == "ieee_register_pending":
                         result = await engine.ieee_register_pending(**kwargs)
                         response = {"ok": True, "result": result}
+                    elif cmd == "ieee_register_pending_gpu_reference":
+                        result = await engine.ieee_register_pending_gpu_reference(**kwargs)
+                        response = {"ok": True, "result": result}
                     elif cmd == "ieee_close_pending":
                         result = await engine.ieee_close_pending(**kwargs)
                         response = {"ok": True, "result": result}

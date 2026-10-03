@@ -1,6 +1,49 @@
 # IEEE TC execution status
 
-## CURRENT — D183 offline control-path diagnosis verified and SEALED; backup pending
+## CURRENT — D184 ordered pending/GPU pipeline CPU QUALIFIED, SEALED; backup pending
+
+2026-10-03 08:17+08. Goal ACTIVE/currentturn PROGRESS. Full Plan/status/V1 and
+optimize-for-gpu/vLLM/run-experiment/github-sync read. D183 sealed unchanged.
+Once-only cache approval already fulfilled D78/D80, no remote action/recreation.
+ONE candidate: pending registration then exact selected-GPU acquire in the
+dedicated frontend, removing one controller roundtrip. Not atomic across owners;
+HOST/file/source-only paths unchanged. Both native receipts checked; known
+conflict whole-router retry; unknown partial outcome retains all ownership.
+No native owner/planner/formula/config/profile/SLO/timeout/weights/trace change.
+New tests include ordering, invalid receipts, real owner lifecycle/conflict and
+actual worker/proxy cancellation. D184 doc now SEALED after CPU qualification;
+backup and ordinary complete 7B replay pending. DoNOT treat this as measured gain.
+Disk160816599040B belowNEWheavy150GiB; no GPU/build. CPU3/4GiBswap0CPUs2,3,26,27
+only. GPU census empty; no other experiment scopes at08:11. Usermanifest and
+unrelated dirty files untouched. Actual7B numeric/commonwarm/Resident/oldPrime-
+newmetrics/G1G2 remain OPEN before3B/baselines; later matrix fully retained.
+
+08:23+08 update: targeted103PASS/2.834s, actual059ed3d45c3b4480a404d2e77a804258,
+session40543 CLOSED0. It includes36 imported lifecycle tests discovered twice;
+only changed newtest import to module form before finalregression, no serving
+change. Both exactsourcearchives retained. Regression1005PASS/101.959s,
+actualcd187ddca6c14e0fb4ab79a476039d0e, tmuxended. Elevennewtestmethods including
+actualworker/proxy cancellation atpending/GPU stages. Both3/4GiBswap0CPUs2,3,26,27,
+memoryevents/swap0; inactive/emptyidentity/pathabsent,147protectedPASS.
+Doc now containsvalidationtable; fixturesNOTperformanceevidence or modelacceptance.
+NoGPU/remotejobs. Native model correctness and performance are not qualified.
+
+08:26+08 seal1 actualcb92b4bb0ca24ca5b8bc146dc7382243/session76818 CLOSED0,
+3/4GiBswap0CPUs2,3,26,27; events/swap0, inactive/emptyidentity/pathabsent.
+Exact5changed+2addedrunnerfunctions and worker dispatcher checked; allotherAST
+unchanged. Nativeowner/monitor/frontend/instancepool/planner/admission files
+byteidentical to99ea14a. PlanV1/147protected/sourcearchives/tablechecksPASS.
+Curated20261003_d184_pending_gpu_pipeline.json
+SHA6a95dea609c513ab87f68a16e3d0b3de46b7d23dfb29cf860b3d8d980d86c9b5;
+30member882860B bundleSHA
+45c9d1437094315b6301577509cb74e3ca043ca83dbd7092782e44816ff0727a.
+DocD184_PENDING_GPU_PIPELINE.md andcurated bound/SEALED; doNOTedit afterseal.
+Gitbackup next, then auditeddisposable-cache recovery/freshpreflight before
+ordinary7BFull. Disk160813154304B belowNEWheavy150GiB, floorunchanged. No
+secondcandidate/configchange/retestloop. LastcompleteD182 sourcea4f4c06 stays
+comparisonreference; 7Bacceptance before3B/baselines remains OPEN. GoalACTIVE.
+
+## D183 offline control-path diagnosis SEALED and BACKED — reference
 
 2026-10-03 07:53+08. Goal ACTIVE/currentturn PROGRESS. Prime7B only.
 Full Plan/status/V1 reread. optimize-for-gpu/vLLM, analyze-results,
@@ -46,7 +89,13 @@ newlocalwrapper syntaxsmokePASS. No servingtest rerun or newqualification claim.
 DiagnosisSHAa96c6f6874afa91ca38a94e4ce52f198461f161c4ca42d7d915c4ce6e9bb7086.
 10member23530B sourcebundleSHA
 8f5fb45f316f1a5e00d00d54935eaf8c5e9f9f879bf22299ae0fcb965d19d99b.
-Doc/curated nowSEALED via evidencehash binding; doNOTedit. ResultcheckpointNEXT.
+Doc/curated nowSEALED via evidencehash binding; doNOTedit.
+Backup complete:99ea14a6e035ca1116cde3e04eedfac35d54e744, push and independent
+ls-remote match. Exact12paths/22staged+archiveentries passed secret/scope checks;
+checksum, working/stageddiffchecksPASS (CSVcr-at-eol explicit). Usermanifest
+excluded. FinalGPUcensus empty/noexperiment scopes/toolhandles. GoalACTIVE;
+currentturnPROGRESS. Continue the single dependency question above, not another
+D182 replay or qualification loop. No new external authority needed.
 
 ## D182 complete, analyzed, SEALED and BACKED — reference
 

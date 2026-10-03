@@ -4691,6 +4691,42 @@ class InferenceEngine:
             raise ValueError('pending demand lacks withdrawal or native retirement proof')
         return dict(intent_id=intent_id, closed=True, receipt=result)
 
+    async def ieee_register_pending_gpu_reference(self, *, intent_id, prompt,
+                                                   max_tokens, adapter_id,
+                                                   gpu_reference_intent):
+        """Ordered native registration and selected-GPU protection in one RPC.
+
+        This is not atomic across the scheduler and GPU owners. Both native
+        acknowledgements are required; source conflicts still return to the
+        whole router, and a lost reply leaves both possible mutations owned.
+        HOST/file paths have intervening controller updates and do not use it.
+        """
+        from faaslora.clock import local_monotonic_clock_id
+        ref = gpu_reference_intent
+        expected_fields = {'lease_id', 'adapter_int_id', 'lora_name', 'lora_path',
+                           'expected_owner_id', 'expected_epoch',
+                           'required_source_tier', 'expected_source_id'}
+        if (not isinstance(ref, dict) or set(ref) != expected_fields
+                or not isinstance(adapter_id, str) or not adapter_id
+                or ref['lora_name'] != adapter_id
+                or type(ref['adapter_int_id']) is not int
+                or ref['adapter_int_id'] != self._lora_int_id(adapter_id)
+                or ref['required_source_tier'] != 'gpu'
+                or type(ref['expected_epoch']) is not int or ref['expected_epoch'] < 1
+                or any(not isinstance(ref[k], str) or not ref[k] for k in
+                       ('lease_id', 'lora_path', 'expected_owner_id', 'expected_source_id'))
+                or not Path(ref['lora_path']).is_absolute()):
+            raise ValueError('combined registration requires an exact selected GPU reference')
+        pending = await self.ieee_register_pending(intent_id=intent_id, prompt=prompt,
+            max_tokens=max_tokens, adapter_id=adapter_id)
+        if (not isinstance(pending, dict) or pending.get('kind') != 'ieee_pending_admission_v1'
+                or pending.get('intent_id') != intent_id or pending.get('state') != 'pending'
+                or pending.get('clock_id') != local_monotonic_clock_id()
+                or pending.get('physical_kv_reservation') is not False):
+            raise ValueError('GPU protection requires native pending acknowledgement')
+        reference = await self.ieee_gpu_reference(operation='demand_load_and_acquire', **ref)
+        return dict(kind='ieee_pending_gpu_reference_v1', pending=pending, reference=reference)
+
     async def ieee_gpu_reference(self, *, operation: str, **kwargs) -> Dict[str, Any]:
         """Forward an explicit native owner operation; no inferred success."""
         if not self.model_cfg.get("ieee_gpu_references", False):
@@ -5320,12 +5356,14 @@ class SubprocessInferenceEngineProxy:
                     'request_source_snapshot'):
                 return
             ref = kwargs.get('gpu_reference') or {}
+            if cmd == 'ieee_register_pending_gpu_reference':
+                ref = kwargs.get('gpu_reference_intent') or {}
             self._native_rpc_uncertain[attempt_id] = {
                 'cmd': cmd, 'operation': kwargs.get('operation'),
                 'intent_id': kwargs.get('intent_id'),
                 'preparation_plan_id': kwargs.get('preparation_plan_id', kwargs.get('plan_id')),
                 'transfer_id': kwargs.get('transfer_id'),
-                'owner_id': ref.get('owner_id', kwargs.get('expected_owner_id')),
+                'owner_id': ref.get('owner_id', ref.get('expected_owner_id', kwargs.get('expected_owner_id'))),
                 'lease_id': ref.get('lease_id', kwargs.get('lease_id'))}
 
         async def _send_rpc_on_channel(
@@ -5956,6 +5994,9 @@ class SubprocessInferenceEngineProxy:
 
     async def ieee_generation_observation(self) -> Dict[str, Any]:
         return await self._rpc('ieee_generation_observation')
+
+    async def ieee_register_pending_gpu_reference(self, **kwargs) -> Dict[str, Any]:
+        return await self._rpc('ieee_register_pending_gpu_reference', **kwargs)
 
     _lora_int_id = staticmethod(InferenceEngine._lora_int_id)
 
@@ -15508,6 +15549,7 @@ class ScenarioRunner:
         local_path: Optional[str] = None, *, cached_only: bool = False,
         selected_source: Optional[Dict[str, Any]] = None,
         held_host_source: Optional[Dict[str, Any]] = None,
+        pending_request_plan: Optional[RequestExecutionPlan] = None,
     ) -> Optional[Dict[str, Any]]:
         """Connect one selected request to the native load/reference owner.
 
@@ -15531,6 +15573,12 @@ class ScenarioRunner:
                 or (not cached_only and (
                     not isinstance(local_path, str) or not Path(local_path).is_absolute()))):
             raise ValueError('native reference requires the original adapter and absolute source')
+        if pending_request_plan is not None and (
+                not cached_only or held_host_source is not None
+                or selected_source is None or selected_source.get('tier') != 'gpu'
+                or selected_source.get('native') is not True
+                or self.model_cfg.get('ieee_admission_profile') is None):
+            raise ValueError('combined pending admission requires a selected native GPU source')
         await self._attach_ieee_host_budget(engine)
         held_file = evidence.get('local_source_reference', {})
         if not cached_only and held_file.get('state') == 'held':
@@ -15651,7 +15699,11 @@ class ScenarioRunner:
             # Record intent BEFORE awaiting: cancellation can lose a reply even
             # after the worker has pinned the adapter. Never return its capacity.
             evidence['state'] = 'acquiring'
-            receipt = await engine.ieee_gpu_reference(operation='demand_load_and_acquire', **intent)
+            if pending_request_plan is not None:
+                receipt = await self._register_ieee_pending_admission(reservation,
+                    pending_request_plan, gpu_reference_intent=intent)
+            else:
+                receipt = await engine.ieee_gpu_reference(operation='demand_load_and_acquire', **intent)
             validate_snapshot(receipt)
             if type(receipt.get('acquired')) is not bool:
                 raise ValueError('native acquisition response lacks an explicit outcome')
@@ -15764,8 +15816,11 @@ class ScenarioRunner:
             evidence['state'] = 'rejected'
             raise RuntimeError(f"native reference acquisition conflict: {receipt.get('reason')}")
 
-    async def _register_ieee_pending_admission(self, reservation, request_plan):
+    async def _register_ieee_pending_admission(self, reservation, request_plan, *,
+                                               gpu_reference_intent=None):
         if self.model_cfg.get('ieee_admission_profile') is None:
+            if gpu_reference_intent is not None:
+                raise ValueError('combined source admission requires a native pending profile')
             return  # Source-only qualification has no proactive E(t) policy.
         from faaslora.clock import local_monotonic_clock_id
         engine = reservation.slot.engine
@@ -15773,19 +15828,30 @@ class ScenarioRunner:
         pending = dict(intent_id=uuid.uuid4().hex, state='registering')
         reservation.ieee_pending_admission = pending
         reservation.gpu_reference_evidence['pending_kv_admission'] = pending
-        reply = await engine.ieee_register_pending(intent_id=pending['intent_id'],
-            prompt=request_plan.prompt, max_tokens=request_plan.max_tokens,
-            adapter_id=reservation.adapter_id)
-        if (reply.get('kind') != 'ieee_pending_admission_v1'
+        command = dict(intent_id=pending['intent_id'], prompt=request_plan.prompt,
+            max_tokens=request_plan.max_tokens, adapter_id=reservation.adapter_id)
+        if gpu_reference_intent is None:
+            reply = await engine.ieee_register_pending(**command)
+            reference = None
+        else:
+            result = await engine.ieee_register_pending_gpu_reference(**command,
+                gpu_reference_intent=gpu_reference_intent)
+            if (not isinstance(result, dict)
+                    or result.get('kind') != 'ieee_pending_gpu_reference_v1'
+                    or not isinstance(result.get('reference'), dict)):
+                raise ValueError('combined pending/source admission lacks native receipts')
+            reply, reference = result.get('pending'), result['reference']
+        if (not isinstance(reply, dict) or reply.get('kind') != 'ieee_pending_admission_v1'
                 or reply.get('intent_id') != pending['intent_id']
                 or reply.get('state') != 'pending'
                 or reply.get('clock_id') != local_monotonic_clock_id()
                 or reply.get('physical_kv_reservation') is not False):
             raise ValueError('controller demand lacks native pending acknowledgement')
         pending.update(state='pending', receipt=reply)
+        return reference
 
     async def _ieee_protect_selected_source(self, reservation, source, service_class,
-                                            *, collect_profile_only=False):
+                                            *, collect_profile_only=False, pending_request_plan=None):
         """Protect the selected copy before committing admission/class.
 
         Controller count reservation precedes this transaction. Known conflicts
@@ -15801,6 +15867,8 @@ class ScenarioRunner:
                 or not self.model_cfg.get('ieee_gpu_references')):
             raise ValueError('IEEE source admission requires native timing and references')
         slot, evidence = reservation.slot, reservation.gpu_reference_evidence
+        if pending_request_plan is not None and (source['tier'] != 'gpu' or not source['native']):
+            raise ValueError('combined source protection only supports native GPU copies')
         if source['native'] and (not isinstance(source.get('source_id'), str) or not source['source_id']):
             raise ValueError('native source admission requires its observed copy identity')
         engine = slot.engine
@@ -15838,7 +15906,8 @@ class ScenarioRunner:
                 return False
         if source['tier'] == 'gpu':
             if await self._acquire_runtime_gpu_reference(reservation, engine,
-                    reservation.adapter_id, cached_only=True, selected_source=source) is None:
+                    reservation.adapter_id, cached_only=True, selected_source=source,
+                    pending_request_plan=pending_request_plan) is None:
                 return False
         elif source['native'] and source['tier'] == 'host':
             intent = dict(lease_id=uuid.uuid4().hex,
@@ -16302,15 +16371,19 @@ class ScenarioRunner:
                         _reservation.ieee_routing_attempts)
                     # Owner acknowledgement is the linearization point for
                     # pending demand, before any source preparation/admission.
-                    await self._register_ieee_pending_admission(_reservation, request_plan)
+                    source = source_evidence[slot.instance_id]['source']
+                    combined_gpu = (selected_readiness_tier == 'gpu' and source['native']
+                                    and self.model_cfg.get('ieee_admission_profile') is not None)
+                    if not combined_gpu:
+                        await self._register_ieee_pending_admission(_reservation, request_plan)
                     if selected_readiness_tier not in ('gpu', 'backbone'):
                         if _reservation.request_id in slot.ieee_pending_load_ids:
                             raise RuntimeError('duplicate IEEE pending adapter-load request')
                         slot.ieee_pending_load_ids.add(_reservation.request_id)
                         _reservation.ieee_load_pending = True
                     if not await self._ieee_protect_selected_source(_reservation,
-                            source_evidence[slot.instance_id]['source'],
-                            selected_ieee_decision.service_class):
+                            source, selected_ieee_decision.service_class,
+                            **({'pending_request_plan': request_plan} if combined_gpu else {})):
                         await self._finish_runtime_request_reservation(_reservation)
                         _reservation.gpu_reference_evidence.pop('prior_routing_attempts', None)
                         _reservation.ieee_routing_attempts.append(_reservation.gpu_reference_evidence)

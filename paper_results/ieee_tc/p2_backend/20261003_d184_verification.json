@@ -1,0 +1,43 @@
+{
+  "passed": true,
+  "base_commit": "99ea14a6e035ca1116cde3e04eedfac35d54e744",
+  "non_target_serving_ast_unchanged": true,
+  "byte_identical_files": [
+    "faaslora/memory/gpu_monitor.py",
+    "faaslora/memory/residency_manager.py",
+    "faaslora/experiment/instance_pool.py",
+    "faaslora/preloading/preloading_planner.py",
+    "faaslora/preloading/planning_cpu.py",
+    "faaslora/scheduling/resource_coordinator.py",
+    "faaslora/scheduling/vllm_ieee_frontend.py"
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "cleanup": [
+    {
+      "phase": "tests1",
+      "actual_invocation_id": "059ed3d45c3b4480a404d2e77a804258",
+      "returncode": 0,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    },
+    {
+      "phase": "regression1",
+      "actual_invocation_id": "cd187ddca6c14e0fb4ab79a476039d0e",
+      "returncode": 0,
+      "cleanup": "automatic_removal_verified",
+      "final_memory_events_zero": true,
+      "final_swap_zero": true
+    }
+  ],
+  "curated_sha256": "6a95dea609c513ab87f68a16e3d0b3de46b7d23dfb29cf860b3d8d980d86c9b5",
+  "table_sha256": "f42fe04068ae33a0a5b8471e5a267010ff5034e6dc5a56bc329acef1ae1862a1",
+  "document_sha256": "c656fee529ff4f0f369463716bdd21d6cac38e45df4b8393261df22dbe664d74"
+}
