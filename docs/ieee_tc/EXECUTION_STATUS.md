@@ -1,6 +1,90 @@
 # IEEE TC execution status
 
-## CURRENT — D203 ordinary 7B Full COMPLETE, analyzed and SEALED; backup next
+## CURRENT — D204 retained-data diagnosis COMPLETE and SEALED; backup next
+
+2026-10-03 21:08+08. Goal ACTIVE/current turn PROGRESS. No serving/code/config/
+formula/SLO changes, GPU replay, remote management, new weights or traces.
+D203 retained34MBprojection + D195projection + D196table reused; no big-log
+reprojection. Once-only cache permission fulfilled D78/D80, not regenerated.
+analyze-results/vLLM+reference/run-experiment/academic-plotting/github-sync read.
+Full Plan/status/V1 read, hashes unchanged, no subagents.
+
+D203 preengine1447.966992ms. D195->D203 six nonoverlap meanms:
+arrival223.603735->194.293671;gate198.569185->123.963843;
+routing519.377555->341.223842;residual414.846893->296.681148;
+source-to-handoff539.380491->441.574187;handoff-to-native65.913325->50.230300.
+One run each, noCI or causal attribution.205TTFT-onlymisses have2050.550355ms
+source-to-handoff vs350.114900ms in3711timingpasses; conditionalnotcausal.
+Eight500-request index groups timingpass470/469/469/471/463/469/439/461,
+so not merely startup. Same161preengine-only thresholdcrossings;
+3711/4000timing-only still89short3800, NOformalSLO/modelacceptance.
+
+Outputchanged126same3874:finance11/103,medical2/66,other113/3831.
+RetainednativeadapterintIDs matchlogicalmapping4000/4000 inbothversions;
+notper-tokenexecution/numericproof. SourcecontentSHAequal672pairs;3328native
+sourcepairshavenocomparablefileSHA, explicitUNKNOWN, notfilled. Outputhashes
+alone cannot recover firstdivergenttoken/logits. OfficialvLLM0.30 defaults do
+notguaranteereproducibility; batchinvariance supportsCC>=8.0 andhasLoRA branch,
+but not testedhere andNOTproofwhy126changed. No toggledbackendflag/tolerance.
+
+AllCPU3/4GiBswap0CPUs2,3,26,27; scopes/pathsgone,GPUempty,events/swap0:
+analyze1 session11110 CLOSED1/id7dd3cfe6b37546b68983f1a4b129eab3,
+10.68s/RSS1107260KiB; incorrectuniversalfileSHAassumption raisedKeyError on
+native source; originalscript/log/partialtables retained. analyze2 separate
+outputdir, session71305 CLOSED0/idd976272d79854f8dad5d84c78269486a,
+11.15s/RSS1110264KiB; only offline schema coverage corrected. finalize1 session
+16583 CLOSED0/idc4f8f5b0677a437ba01ff2fa78e1106d;147protectedPASS, independent
+CSVsummary/documenttables/sourceSHA/syntaxsmokePASS, productiontreeunchanged.
+Read-only searches with guessed missingpaths failed then corrected; no serving
+or GPU measurement failure. No live tool/GPU/remote jobs. Disk160080211968B,
+belowNEWheavy150GiB; CPUanalysisonly, safetyfloorsunchanged.
+
+Doc D204_REMAINING_MISSES_AND_IDENTITY.md SEALED (doNOTeditafterbinding).
+Curated39c0a6d608dc0f2d652a75620ef066fb7ccb35092e5421f85c65cc5eded0e1ab;
+17member28611B bundle024a903561b4af739c5146df6c437967ba7b83cf5c4b88ae64a245fe93bb731b.
+Rawresults/ieee_tc/p2_backend_qualification/d204_20261003; validcurated
+paper_results/ieee_tc/p2_backend/20261003_d204_control_path_attempt2.
+Failedfirst20261003_d204_control_path remainslocalprotected, notformalresult.
+
+NEXT exact18path backup, then inspect native token-to-adapter/slot execution
+observation boundary using existing22requests/4contentclasses/checkpointslot
+evidence; one minimal falsifiable identity diagnostic, not repeatedlooseD63
+probabilitytest. Performance question remains selected-source preparation
+queue vsactualwork; doNOTspeculatively rerunFull or repeatD176/D184/D202.
+7Bnumeric/commonwarm/Resident/old-newG1G2 OPEN, then3B,thenbaselines.
+All M1M2/A1–A5/S1–S13 retained; no goal/modelcompletion.
+
+## D204 preparation history — superseded by COMPLETE above
+
+2026-10-03 continuation. Full Plan/status/V1 read; analyze-results, vLLM and
+optimization reference, run-experiment and academic-plotting read. No subagents.
+Latest once-only remote cache approval already fulfilled by D78/D80; no rebuild,
+remote operation or GPU replay. D203 remains COMPLETE/SEALED/BACKED below.
+Only bounded D196 analysis wrapper adapted to D203, adding retained timing-outcome
+and output-hash/adapter-identity joins against D195; no raw log reprojection.
+Current official vLLM0.30 reproducibility/batch-invariance and LoRA kernel source
+read: default output reproducibility is not guaranteed; NOT proof of the cause
+of126differences. No backend flag, numerical tolerance or SLO changes.
+NEXT one CPU-only3/4GiBswap0CPU2,3,26,27 analysis -> cleanup -> exact table and
+interpretation -> scoped backup. New GPU/build below150GiB remains disallowed;
+latestdisk160098562048B, availablememory112895528960B, GPU/scopesempty.
+All7Bnumeric/commonwarm/Resident/old-newG1G2,3B and later matrix gaps OPEN.
+
+## Previous checkpoint — D203 ordinary 7B Full COMPLETE, analyzed, SEALED and BACKED
+
+Backup verified2026-10-03 20:46+08:
+81984d41240b09b8d3615ecf4e4b18fa204cbc28. Push46638 CLOSED0;
+independent ls-remote51034 CLOSED0 exactmatch.16explicitpaths/103staged+archive
+entries passed scope/secrets; bundle checksum and diff(cr-at-eol)PASS.
+Usermanifest/unrelated work excluded; no staged files remain. No live GPU,
+experiment scopes/tmux/tool sessions; remote remains stopped. No need to repeat
+D203 qualification, analysis or backup. Lastdisk160103985152B; fresh gate before
+newheavy, currently below150GiB. Goal ACTIVE, no model acceptance.
+NEXT retained-data current-stage/remaining-miss and output-identity audit with
+history/current official implementation; one falsifiable hypothesis before
+new optimization/replay. SevenB must satisfy actual G1/G2 old-new target before
+3B/baselines. All numerical/reference/legacy comparison and full matrix gaps
+below remain OPEN; D203 merely improved over D195, not final acceptance.
 
 2026-10-03 20:45+08. Goal ACTIVE/current turn PROGRESS. Same D203 Full ended,
 all cleanup/analysis complete; no GPU/remote/tmux/analysis/tool sessions live.

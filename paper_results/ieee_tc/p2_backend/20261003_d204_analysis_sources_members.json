@@ -1,0 +1,23 @@
+{
+  "bundle": "20261003_d204_analysis_sources.tar.gz",
+  "member_sha256": {
+    "analyze.py": "f7804e6cd154f46a7af6c1d73b64af2b4369e750ace19049369685f5b91e443b",
+    "analyze2.py": "e1bf11146edb863ef2a984127c83e63d7e7ffa5c7d11154d7f793f895cf7bfc0",
+    "run_cpu.sh": "93eeee409e0a93aeb95d87462033a54fff9e28c764e3079a79d61845d2f2f51a",
+    "run_cpu2.sh": "aa14e3c34782edf00ac57e0570e3f68f6528ff34f1befae9166bf48f2ad7cc1c",
+    "finalize1.py": "6176a5a55d7e5c232452e4dcdaefe2239f9cd2e648019ba69c36cf4d529263d1",
+    "check_staged.py": "0e0d5c4fee2ae5df27b5e60f1a33a066b1375257e603e1501dac2113c0c52ba4",
+    "analyze1_scope.txt": "c7ec9d1c9da2d0c373938742ec885dd127ca9e3454105c60503e7f2cfc46e575",
+    "analyze1_time.txt": "ca7dd21e7a309fdf64aa6b86f99421df0b1b71531c0168bd726f8c4ed6d7a7b4",
+    "analyze1_memory_events.txt": "28fe05a1d7b8467a03fb54454f7b6a130fab752864d0454f5f6c4a4b6ce307f2",
+    "analyze1_swap.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "analyze1.log": "107218ff6d81f6216e28a5b6bbce4753bd594c8d43a66d0a98b3b8a8bb08a84e",
+    "analyze2_scope.txt": "6a7739a2b89979c0ffa6fd4bc3ca6d63c162c8f229f0398fbb985cde076f48bf",
+    "analyze2_time.txt": "72c47106c82353dcb18e6b0c07c6d7a6f454fd7987f17d8b353da1621a5dffa3",
+    "analyze2_memory_events.txt": "28fe05a1d7b8467a03fb54454f7b6a130fab752864d0454f5f6c4a4b6ce307f2",
+    "analyze2_swap.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "analyze2.log": "04e8e48fed0146beb9d7a4572360776d570eece040ee834db13d038f7975e8ec",
+    "analyze_control_path_overhead.py": "b36d3edc8efa790385f3a1dfa9d4b0e65b12d59d9b50c61bb5658be1880ea1ab"
+  },
+  "member_checks_pass": true
+}
