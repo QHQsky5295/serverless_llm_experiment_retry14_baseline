@@ -1,6 +1,65 @@
 # IEEE TC execution status
 
-## CURRENT — D200 detailed 7B prefix COMPLETE, SEALED; backup pending
+## CURRENT — D201 native-wait association COMPLETE and SEALED
+
+2026-10-03 18:33+08. Goal ACTIVE/current turn PROGRESS. Full Plan/status/V1
+reread; unchanged. analyze-results/run-experiment/academic-plotting/vLLM/
+github-sync read; no subagents. User once-only remote delivery cache permission
+already fulfilled D78/D80, not regenerated. No GPU replay/remote operation,
+serving change or optimizer added. Current runtime still D198 diagnostics,
+last ordinary Full D195. Latest evidence HEAD before backup1852c43.
+
+Official vLLM0.30 core/UniProc/client and local call-chain audited. Synchronous
+utility executes in core before returning Future; client async does not move
+owner work off-thread. Same-thread Prime preparation/inventory can occupy the
+query path, not proof all wait is queueing or native inference bottleneck.
+Reused exact SHA-sealed D200 bounded frame reader/control qualification;
+no new framework or big-log projection. Capture interval must entirely fit
+[frontend_native_send,native_begin); process incarnation and main thread match.
+159 unique process/sample pairs cover226/4204calls; 1boundary-ambiguous capture,
+0missing/truncated in-intervalmain. HOST deepcopyline940 occurs48times
+(11/12/10/15); HOST pointercheckadd103 occurs59times. NOTCPU/wall percentages,
+not latency attribution/critical-path savings. Full counts and allotherframes
+retained; unsampled calls not zero. 8boundaryfixturesPASS.
+
+Association1 session32248 CLOSED0,actual85a69431dba240a883b2ebc9ff29518d,
+3/4GiBswap0CPU2,3,26,27,peak109821952B/events0/scope+pathabsent.
+Curate1 immediateCLOSED0,actualaf02bac61f2744e8875d216a63695e30,sameenvelope,
+events/swap0/scopeidentityempty. No live jobs/tool sessions.147protectedPASS.
+One read-only receipt command used wrong cwd; corrected; checksumPASS and
+no analysis failure/artifact rewrite. No production tests needed (no edits).
+Doc D201_NATIVE_WAIT_ASSOCIATION.md + primary exacttable SEALED.
+Curatedc55ee1c3190a26724240d35ab21847187b0d314d6fc7d252bab0d54d6152604d;
+verificationf8ed73d05081aa8da95fb2cc62300c35ed023584213b34bdbb885b6897bcd2dc;
+11member31930B bundleccb5c2788b2a97aae291a1920d925831576bf7b810f1d3beb104391685c092eb.
+Rawresults/ieee_tc/p2_backend_qualification/d201_20261003. Disk161228591104B,
+freshgate before heavy task. No cleanup/deletion or environment install.
+
+NEXT exact scoped backup, then ONE physical-HOST-consumer representation
+candidate. Auditdynamicconsumers; keep fresh fullallocation/alias/dtype/pinning/
+staged/allocator graph, GPU pool_tensor_views, owner/admission/formulas and
+D144 mutable-return isolation. Existing host_tensor_views has no explicit
+runtimeconsumer outsideproducer; remove only proven unused work, not physical
+checks or stale-cache shortcut. Reuseactualsnapshots/tinyfixtures then ordinary
+4000Full if qualified. D174 applied onlyrouting; D144 duplicate-pin/traversal,
+D181targetscope/D194planning alreadydone, don'trepeat. No speculativeFull,
+off-threadowner mutation, capacity/timeoutincrease or D197encoderrevisit.
+SevenBnumeric/128hashchanges/commonwarm/Resident/old-new/G1G2remainOPEN;
+7Bacceptance→3B→baselines; allM1M2/A1–A5/S1–S13retained.
+
+## Previous checkpoint — D200 detailed 7B prefix COMPLETE, SEALED and BACKED
+
+Backup verified2026-10-03 18:14+08:1852c43aa55b89923e23c591ecf68137e3d0c965.
+Pushsession97990 CLOSED0; independent ls-remotesession81035 CLOSED0 exactmatch.
+9explicitpaths/90staged+archive entries passed scope/secrets; usermanifest and
+unrelated files excluded. Bundle checksum PASS; standard CSV CRLF triggered
+plain git whitespace diagnostic, rerun explicit cr-at-eol check PASS with other
+whitespace rules retained; sealed CSV bytes NOT rewritten. No production change
+or new smoke needed; existing qualified analyzers passed actual D200 data.
+All experiment scopes and GPU compute absent, no live tool sessions. Remote
+owned services stopped and copied; no runtime to restart. Finaldisk161245675520B.
+NEXT official/local vLLM utility scheduling/response audit, one evidence-backed
+hypothesis, then minimal qualification; no speculative Full. Goal remainsACTIVE.
 
 2026-10-03 18:11+08. Goal ACTIVE/current turn PROGRESS. Full Plan/status/V1
 reread after compaction; hashes unchanged. monitor-experiment/analyze-results/

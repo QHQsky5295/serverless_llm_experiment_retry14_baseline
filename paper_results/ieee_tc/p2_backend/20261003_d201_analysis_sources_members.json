@@ -1,0 +1,13 @@
+{
+  "associate_existing.py": "3214ea26f04ec7294cbbc2bf297d8c3e8e39584989e6041d6a4660c665352704",
+  "association1.json": "eb6b944829c11ff88ad6736a366949d9ba85b5601947e751e8f34f8b42dca051",
+  "association1.log": "99f5d33538a5ed5bae8a7ad22db300bf4735a1ad04c8850c78a789ccdeab2df9",
+  "association1_memory.events": "28fe05a1d7b8467a03fb54454f7b6a130fab752864d0454f5f6c4a4b6ce307f2",
+  "association1_memory.peak": "1ce1a7d59f11be540d0f4665da57a79ac1e777bceb09885870891cd6cb256c1a",
+  "association1_scope.txt": "0bed680e4b5830f498394799573005373d3008b91f45ad986fc4e68b19f6ed6c",
+  "association1_swap.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+  "association1_time.txt": "d108c032d3d81d50f2e3bd4460402265502cd752a766931905b93ccdcffb196b",
+  "curate1.py": "832e392041911af4a0e18b259c0f15483ef7383c4bcd8c1143f77dfffb24223d",
+  "run_association1.sh": "d290ccbe5613891dd54a50ecc4eb5d4710142950524e8729e2da2e8bef98ed22",
+  "run_curate1.sh": "b9cc424125320389340287045fb9afc86e22d3451d2473348fdaaa439e4a5754"
+}

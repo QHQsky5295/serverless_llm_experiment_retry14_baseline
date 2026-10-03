@@ -1,0 +1,85 @@
+{
+  "kind": "d201_association_verification_v1",
+  "checks_pass": true,
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "serving_changed": false,
+  "new_gpu_replay": false,
+  "formal_performance_result": false,
+  "association_scope": {
+    "unit": "primelora-d201-association1-20261003.scope",
+    "invocation_id": "85a69431dba240a883b2ebc9ff29518d",
+    "path_absent": true,
+    "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    }
+  },
+  "curated_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D201_NATIVE_WAIT_ASSOCIATION.md",
+      "sha256": "161a6b68db780c61ffe631447bc87aaab501038091d94618c062a32d165c9f72"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261003_d201_native_wait_association.json",
+      "sha256": "c55ee1c3190a26724240d35ab21847187b0d314d6fc7d252bab0d54d6152604d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261003_d201_native_wait_table.md",
+      "sha256": "3162d4ea15dc44f0b16fa39710f72082b49acfffc66bdf32f28bd5fee487317c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261003_d201_analysis_sources.tar.gz",
+      "sha256": "ccb5c2788b2a97aae291a1920d925831576bf7b810f1d3beb104391685c092eb"
+    }
+  ],
+  "source_code_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+      "sha256": "32d91de0cc0aef002a40d4d06d784eec6f676d82a7d32b2d93db8c3d294907e3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/instance_pool.py",
+      "sha256": "ab0d2de2a06dc503a22fd6d5ef6eb012d29e66cba1d8b224920b18ca4e9d61a3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_planner.py",
+      "sha256": "148217788f7182b9dc1c1db382dd32ce0e547818512d677ccd23cb25b010df98"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/vllm_ieee_scheduler.py",
+      "sha256": "ccb7f1a79ef0b5db84b62f2bb8807cfc2490edca0104b051db230f97f5d8ce41"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/dedicated_engine_worker.py",
+      "sha256": "a391d47419b8f1c0430852565d253d53cf6691165f011567cb87796251286355"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "783ba102660c7131cdbdc521c86db309a17749d0d84e420814f4d516a00e9798"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+      "sha256": "268bf40534a853812867ae8e80040f190983cb364b41182b55969aace20c93f5"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core_client.py",
+      "sha256": "fd6ca0cb7499b3086eef2fc57674b7ace56ef1c648f09e92e144b255b79018f8"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/executor/uniproc_executor.py",
+      "sha256": "3cb039b80fe9b03dc1122f93c1f8a4098ef1355104b317ff6df25358f4349494"
+    }
+  ],
+  "next": "One consumer-specific physical HOST observation candidate, not implemented or accepted"
+}

@@ -1,0 +1,1789 @@
+{
+  "kind": "d201_native_wait_stack_association_v1",
+  "new_gpu_replay": false,
+  "serving_change": false,
+  "formal_performance_result": false,
+  "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+  "interval": "frontend_native_send <= entire capture < native_begin",
+  "processes": [
+    {
+      "process_identity": "2364655-52787994",
+      "pid": 2364655,
+      "attempts": 1068,
+      "attempts_with_sample": 57,
+      "counts": {
+        "all_samples": 554,
+        "inside_samples": 43,
+        "inside_truncated_main": 0
+      },
+      "nearest": [
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "add",
+          "line": 103,
+          "samples": 18
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "ieee_gpu_reference",
+          "line": 940,
+          "samples": 11
+        },
+        {
+          "file": "",
+          "function": "no_project_frame",
+          "line": 0,
+          "samples": 8
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "demand_loader",
+          "line": 713,
+          "samples": 3
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_planner.py",
+          "function": "validate_native_gpu_epoch",
+          "line": 1180,
+          "samples": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "add",
+          "line": 352,
+          "samples": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "add",
+          "line": 116,
+          "samples": 1
+        }
+      ],
+      "callers": [
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "ieee_gpu_reference",
+          "line": 940,
+          "caller_file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "caller_function": "run_method",
+          "caller_line": 510,
+          "occurrences": 11
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "add",
+          "line": 103,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "_ieee_lora_host_inventory",
+          "caller_line": 156,
+          "occurrences": 10
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "add",
+          "line": 103,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "_ieee_lora_host_inventory",
+          "caller_line": 155,
+          "occurrences": 8
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "demand_load_and_acquire",
+          "line": 2349,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 922,
+          "occurrences": 7
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "ieee_gpu_reference",
+          "line": 922,
+          "caller_file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "caller_function": "run_method",
+          "caller_line": 510,
+          "occurrences": 7
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "ieee_gpu_reference",
+          "line": 909,
+          "caller_file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "caller_function": "run_method",
+          "caller_line": 510,
+          "occurrences": 6
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/vllm_ieee_scheduler.py",
+          "function": "_core_prepare_host",
+          "line": 85,
+          "caller_file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "caller_function": "<lambda>",
+          "caller_line": 1554,
+          "occurrences": 6
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "ieee_gpu_reference",
+          "line": 915,
+          "caller_file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "caller_function": "run_method",
+          "caller_line": 510,
+          "occurrences": 4
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "_load_and_acquire",
+          "line": 2464,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "demand_load_and_acquire",
+          "caller_line": 2349,
+          "occurrences": 4
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_lora_host_inventory",
+          "line": 156,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "host_allocation_check",
+          "caller_line": 739,
+          "occurrences": 4
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "proactive_host_prepare_and_acquire",
+          "line": 2762,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 909,
+          "occurrences": 4
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "host_allocation_check",
+          "line": 739,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "_load_and_acquire",
+          "caller_line": 2445,
+          "occurrences": 4
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_lora_host_inventory",
+          "line": 156,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 926,
+          "occurrences": 4
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "ieee_gpu_reference",
+          "line": 926,
+          "caller_file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "caller_function": "run_method",
+          "caller_line": 510,
+          "occurrences": 4
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "ieee_gpu_reference",
+          "line": 928,
+          "caller_file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "caller_function": "run_method",
+          "caller_line": 510,
+          "occurrences": 3
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_lora_host_inventory",
+          "line": 155,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 915,
+          "occurrences": 3
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "demand_loader",
+          "line": 713,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "_load_and_acquire",
+          "caller_line": 2464,
+          "occurrences": 3
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_lora_host_inventory",
+          "line": 155,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "host_allocation_check",
+          "caller_line": 739,
+          "occurrences": 3
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "host_allocation_check",
+          "line": 739,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "_load_and_acquire",
+          "caller_line": 2482,
+          "occurrences": 3
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "_load_and_acquire",
+          "line": 2445,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "proactive_host_prepare_and_acquire",
+          "caller_line": 2762,
+          "occurrences": 3
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_lora_host_inventory",
+          "line": 156,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 928,
+          "occurrences": 2
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "_load_and_acquire",
+          "line": 2482,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "demand_load_and_acquire",
+          "caller_line": 2349,
+          "occurrences": 2
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_planner.py",
+          "function": "validate_native_gpu_epoch",
+          "line": 1180,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "proactive_host_prepare_and_acquire",
+          "caller_line": 2541,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "proactive_host_prepare_and_acquire",
+          "line": 2541,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 909,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_lora_host_inventory",
+          "line": 156,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 915,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_lora_host_inventory",
+          "line": 155,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "replacement_cost_provider",
+          "caller_line": 840,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "replacement_cost_provider",
+          "line": 840,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "proactive_host_prepare_and_acquire",
+          "caller_line": 2638,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "proactive_host_prepare_and_acquire",
+          "line": 2638,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 909,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_lora_host_inventory",
+          "line": 155,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 928,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "_load_and_acquire",
+          "line": 2482,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "proactive_host_prepare_and_acquire",
+          "caller_line": 2762,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "add",
+          "line": 352,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "add",
+          "caller_line": 338,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "add",
+          "line": 338,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "_ieee_lora_pool_inventory",
+          "caller_line": 362,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_lora_pool_inventory",
+          "line": 362,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "demand_loader",
+          "caller_line": 710,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "demand_loader",
+          "line": 710,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "_load_and_acquire",
+          "caller_line": 2464,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "_load_and_acquire",
+          "line": 2445,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "demand_load_and_acquire",
+          "caller_line": 2349,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "add",
+          "line": 116,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "_ieee_lora_host_inventory",
+          "caller_line": 156,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "process_identity": "2368679-52793241",
+      "pid": 2368679,
+      "attempts": 1050,
+      "attempts_with_sample": 49,
+      "counts": {
+        "all_samples": 531,
+        "inside_samples": 34,
+        "inside_truncated_main": 0,
+        "capture_boundary_ambiguous_samples": 1
+      },
+      "nearest": [
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "ieee_gpu_reference",
+          "line": 940,
+          "samples": 12
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "add",
+          "line": 103,
+          "samples": 9
+        },
+        {
+          "file": "",
+          "function": "no_project_frame",
+          "line": 0,
+          "samples": 6
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "demand_loader",
+          "line": 713,
+          "samples": 2
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "completion_fence",
+          "line": 699,
+          "samples": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "add",
+          "line": 342,
+          "samples": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "add",
+          "line": 116,
+          "samples": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/utils/logger.py",
+          "function": "diagnostic_control_event",
+          "line": 60,
+          "samples": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_host_copy_contract",
+          "line": 442,
+          "samples": 1
+        }
+      ],
+      "callers": [
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "ieee_gpu_reference",
+          "line": 940,
+          "caller_file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "caller_function": "run_method",
+          "caller_line": 510,
+          "occurrences": 12
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "ieee_gpu_reference",
+          "line": 922,
+          "caller_file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "caller_function": "run_method",
+          "caller_line": 510,
+          "occurrences": 6
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "demand_load_and_acquire",
+          "line": 2349,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 922,
+          "occurrences": 5
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "add",
+          "line": 103,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "_ieee_lora_host_inventory",
+          "caller_line": 156,
+          "occurrences": 5
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "ieee_gpu_reference",
+          "line": 909,
+          "caller_file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "caller_function": "run_method",
+          "caller_line": 510,
+          "occurrences": 5
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/vllm_ieee_scheduler.py",
+          "function": "_core_prepare_host",
+          "line": 85,
+          "caller_file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "caller_function": "<lambda>",
+          "caller_line": 1554,
+          "occurrences": 5
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "add",
+          "line": 103,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "_ieee_lora_host_inventory",
+          "caller_line": 155,
+          "occurrences": 4
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_lora_host_inventory",
+          "line": 156,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "host_allocation_check",
+          "caller_line": 739,
+          "occurrences": 4
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "host_allocation_check",
+          "line": 739,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "_load_and_acquire",
+          "caller_line": 2445,
+          "occurrences": 4
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "proactive_host_prepare_and_acquire",
+          "line": 2762,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 909,
+          "occurrences": 4
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "demand_loader",
+          "line": 713,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "_load_and_acquire",
+          "caller_line": 2464,
+          "occurrences": 2
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "_load_and_acquire",
+          "line": 2464,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "demand_load_and_acquire",
+          "caller_line": 2349,
+          "occurrences": 2
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_lora_host_inventory",
+          "line": 155,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "host_allocation_check",
+          "caller_line": 739,
+          "occurrences": 2
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "host_allocation_check",
+          "line": 739,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "_load_and_acquire",
+          "caller_line": 2482,
+          "occurrences": 2
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "_load_and_acquire",
+          "line": 2445,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "proactive_host_prepare_and_acquire",
+          "caller_line": 2762,
+          "occurrences": 2
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "_load_and_acquire",
+          "line": 2445,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "demand_load_and_acquire",
+          "caller_line": 2349,
+          "occurrences": 2
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "completion_fence",
+          "line": 699,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "release",
+          "caller_line": 2328,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "release",
+          "line": 2328,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 922,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_lora_host_inventory",
+          "line": 156,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 928,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "ieee_gpu_reference",
+          "line": 928,
+          "caller_file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "caller_function": "run_method",
+          "caller_line": 510,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "add",
+          "line": 342,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "add",
+          "caller_line": 338,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "add",
+          "line": 338,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "_ieee_lora_pool_inventory",
+          "caller_line": 362,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_lora_pool_inventory",
+          "line": 362,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 931,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "ieee_gpu_reference",
+          "line": 931,
+          "caller_file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "caller_function": "run_method",
+          "caller_line": 510,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "_load_and_acquire",
+          "line": 2482,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "demand_load_and_acquire",
+          "caller_line": 2349,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_lora_host_inventory",
+          "line": 156,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "replacement_cost_provider",
+          "caller_line": 840,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "replacement_cost_provider",
+          "line": 840,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "proactive_host_prepare_and_acquire",
+          "caller_line": 2638,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "proactive_host_prepare_and_acquire",
+          "line": 2638,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 909,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "add",
+          "line": 116,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "_ieee_lora_host_inventory",
+          "caller_line": 156,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/utils/logger.py",
+          "function": "diagnostic_control_event",
+          "line": 60,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 950,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "ieee_gpu_reference",
+          "line": 950,
+          "caller_file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "caller_function": "run_method",
+          "caller_line": 510,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_lora_host_inventory",
+          "line": 155,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 915,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "ieee_gpu_reference",
+          "line": 915,
+          "caller_file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "caller_function": "run_method",
+          "caller_line": 510,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "_load_and_acquire",
+          "line": 2482,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "proactive_host_prepare_and_acquire",
+          "caller_line": 2762,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_host_copy_contract",
+          "line": 442,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "preparation_loader",
+          "caller_line": 719,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "preparation_loader",
+          "line": 719,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "_load_and_acquire",
+          "caller_line": 2464,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "_load_and_acquire",
+          "line": 2464,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "proactive_host_prepare_and_acquire",
+          "caller_line": 2762,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_lora_host_inventory",
+          "line": 155,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 926,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "ieee_gpu_reference",
+          "line": 926,
+          "caller_file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "caller_function": "run_method",
+          "caller_line": 510,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "process_identity": "2369096-52793462",
+      "pid": 2369096,
+      "attempts": 1045,
+      "attempts_with_sample": 68,
+      "counts": {
+        "all_samples": 533,
+        "inside_samples": 43,
+        "inside_truncated_main": 0
+      },
+      "nearest": [
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "add",
+          "line": 103,
+          "samples": 19
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "ieee_gpu_reference",
+          "line": 940,
+          "samples": 10
+        },
+        {
+          "file": "",
+          "function": "no_project_frame",
+          "line": 0,
+          "samples": 9
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "demand_loader",
+          "line": 713,
+          "samples": 3
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "add",
+          "line": 116,
+          "samples": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_host_copy_contract",
+          "line": 442,
+          "samples": 1
+        }
+      ],
+      "callers": [
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "add",
+          "line": 103,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "_ieee_lora_host_inventory",
+          "caller_line": 156,
+          "occurrences": 12
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "ieee_gpu_reference",
+          "line": 940,
+          "caller_file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "caller_function": "run_method",
+          "caller_line": 510,
+          "occurrences": 10
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "ieee_gpu_reference",
+          "line": 928,
+          "caller_file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "caller_function": "run_method",
+          "caller_line": 510,
+          "occurrences": 7
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_lora_host_inventory",
+          "line": 156,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "host_allocation_check",
+          "caller_line": 739,
+          "occurrences": 7
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "ieee_gpu_reference",
+          "line": 909,
+          "caller_file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "caller_function": "run_method",
+          "caller_line": 510,
+          "occurrences": 7
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/vllm_ieee_scheduler.py",
+          "function": "_core_prepare_host",
+          "line": 85,
+          "caller_file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "caller_function": "<lambda>",
+          "caller_line": 1554,
+          "occurrences": 7
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "add",
+          "line": 103,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "_ieee_lora_host_inventory",
+          "caller_line": 155,
+          "occurrences": 7
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "demand_load_and_acquire",
+          "line": 2349,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 922,
+          "occurrences": 6
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "ieee_gpu_reference",
+          "line": 922,
+          "caller_file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "caller_function": "run_method",
+          "caller_line": 510,
+          "occurrences": 6
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "host_allocation_check",
+          "line": 739,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "_load_and_acquire",
+          "caller_line": 2445,
+          "occurrences": 5
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_lora_host_inventory",
+          "line": 156,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 928,
+          "occurrences": 4
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "proactive_host_prepare_and_acquire",
+          "line": 2762,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 909,
+          "occurrences": 4
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "_load_and_acquire",
+          "line": 2445,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "proactive_host_prepare_and_acquire",
+          "caller_line": 2762,
+          "occurrences": 3
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_lora_host_inventory",
+          "line": 155,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 928,
+          "occurrences": 3
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_lora_host_inventory",
+          "line": 156,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 926,
+          "occurrences": 2
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "ieee_gpu_reference",
+          "line": 926,
+          "caller_file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "caller_function": "run_method",
+          "caller_line": 510,
+          "occurrences": 2
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_lora_host_inventory",
+          "line": 155,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 915,
+          "occurrences": 2
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "ieee_gpu_reference",
+          "line": 915,
+          "caller_file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "caller_function": "run_method",
+          "caller_line": 510,
+          "occurrences": 2
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "_load_and_acquire",
+          "line": 2445,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "demand_load_and_acquire",
+          "caller_line": 2349,
+          "occurrences": 2
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_lora_host_inventory",
+          "line": 155,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "replacement_cost_provider",
+          "caller_line": 840,
+          "occurrences": 2
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "replacement_cost_provider",
+          "line": 840,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "proactive_host_prepare_and_acquire",
+          "caller_line": 2638,
+          "occurrences": 2
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "proactive_host_prepare_and_acquire",
+          "line": 2638,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 909,
+          "occurrences": 2
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "host_allocation_check",
+          "line": 739,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "_load_and_acquire",
+          "caller_line": 2482,
+          "occurrences": 2
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "_load_and_acquire",
+          "line": 2482,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "demand_load_and_acquire",
+          "caller_line": 2349,
+          "occurrences": 2
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "demand_loader",
+          "line": 713,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "_load_and_acquire",
+          "caller_line": 2464,
+          "occurrences": 2
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "_load_and_acquire",
+          "line": 2464,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "demand_load_and_acquire",
+          "caller_line": 2349,
+          "occurrences": 2
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "add",
+          "line": 116,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "_ieee_lora_host_inventory",
+          "caller_line": 156,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_host_copy_contract",
+          "line": 442,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "decide",
+          "caller_line": 862,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "decide",
+          "line": 862,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "proactive_host_prepare_and_acquire",
+          "caller_line": 2710,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "proactive_host_prepare_and_acquire",
+          "line": 2710,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 909,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "demand_loader",
+          "line": 713,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "preparation_loader",
+          "caller_line": 730,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "preparation_loader",
+          "line": 730,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "_load_and_acquire",
+          "caller_line": 2464,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "_load_and_acquire",
+          "line": 2464,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "proactive_host_prepare_and_acquire",
+          "caller_line": 2762,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "process_identity": "2369310-52793709",
+      "pid": 2369310,
+      "attempts": 1041,
+      "attempts_with_sample": 52,
+      "counts": {
+        "all_samples": 537,
+        "inside_samples": 39,
+        "inside_truncated_main": 0
+      },
+      "nearest": [
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "ieee_gpu_reference",
+          "line": 940,
+          "samples": 15
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "add",
+          "line": 103,
+          "samples": 13
+        },
+        {
+          "file": "",
+          "function": "no_project_frame",
+          "line": 0,
+          "samples": 4
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "demand_loader",
+          "line": 713,
+          "samples": 3
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "<genexpr>",
+          "line": 217,
+          "samples": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_planner.py",
+          "function": "validate_native_gpu_epoch",
+          "line": 1180,
+          "samples": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "add",
+          "line": 116,
+          "samples": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_lora_host_inventory",
+          "line": 149,
+          "samples": 1
+        }
+      ],
+      "callers": [
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "ieee_gpu_reference",
+          "line": 940,
+          "caller_file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "caller_function": "run_method",
+          "caller_line": 510,
+          "occurrences": 15
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "ieee_gpu_reference",
+          "line": 909,
+          "caller_file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "caller_function": "run_method",
+          "caller_line": 510,
+          "occurrences": 9
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/vllm_ieee_scheduler.py",
+          "function": "_core_prepare_host",
+          "line": 85,
+          "caller_file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "caller_function": "<lambda>",
+          "caller_line": 1554,
+          "occurrences": 9
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "add",
+          "line": 103,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "_ieee_lora_host_inventory",
+          "caller_line": 156,
+          "occurrences": 7
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "proactive_host_prepare_and_acquire",
+          "line": 2762,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 909,
+          "occurrences": 7
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "ieee_gpu_reference",
+          "line": 922,
+          "caller_file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "caller_function": "run_method",
+          "caller_line": 510,
+          "occurrences": 7
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "add",
+          "line": 103,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "_ieee_lora_host_inventory",
+          "caller_line": 155,
+          "occurrences": 6
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "host_allocation_check",
+          "line": 739,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "_load_and_acquire",
+          "caller_line": 2445,
+          "occurrences": 6
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "demand_load_and_acquire",
+          "line": 2349,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 922,
+          "occurrences": 6
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_lora_host_inventory",
+          "line": 155,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "host_allocation_check",
+          "caller_line": 739,
+          "occurrences": 5
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "host_allocation_check",
+          "line": 739,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "_load_and_acquire",
+          "caller_line": 2482,
+          "occurrences": 4
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_lora_host_inventory",
+          "line": 156,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "host_allocation_check",
+          "caller_line": 739,
+          "occurrences": 4
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "_load_and_acquire",
+          "line": 2445,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "proactive_host_prepare_and_acquire",
+          "caller_line": 2762,
+          "occurrences": 4
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "proactive_host_prepare_and_acquire",
+          "line": 2638,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 909,
+          "occurrences": 2
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_lora_host_inventory",
+          "line": 156,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 928,
+          "occurrences": 2
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "ieee_gpu_reference",
+          "line": 928,
+          "caller_file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "caller_function": "run_method",
+          "caller_line": 510,
+          "occurrences": 2
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "_load_and_acquire",
+          "line": 2482,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "proactive_host_prepare_and_acquire",
+          "caller_line": 2762,
+          "occurrences": 2
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "_load_and_acquire",
+          "line": 2445,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "demand_load_and_acquire",
+          "caller_line": 2349,
+          "occurrences": 2
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "_load_and_acquire",
+          "line": 2482,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "demand_load_and_acquire",
+          "caller_line": 2349,
+          "occurrences": 2
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "demand_loader",
+          "line": 713,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "_load_and_acquire",
+          "caller_line": 2464,
+          "occurrences": 2
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "_load_and_acquire",
+          "line": 2464,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "demand_load_and_acquire",
+          "caller_line": 2349,
+          "occurrences": 2
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_lora_host_inventory",
+          "line": 155,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "replacement_cost_provider",
+          "caller_line": 840,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "replacement_cost_provider",
+          "line": 840,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "proactive_host_prepare_and_acquire",
+          "caller_line": 2638,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "<genexpr>",
+          "line": 217,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "_ieee_pinned_host_observation",
+          "caller_line": 217,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_pinned_host_observation",
+          "line": 217,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "host_allocation_check",
+          "caller_line": 739,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_planner.py",
+          "function": "validate_native_gpu_epoch",
+          "line": 1180,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_planner.py",
+          "caller_function": "native_host_replacement_costs",
+          "caller_line": 1126,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_planner.py",
+          "function": "native_host_replacement_costs",
+          "line": 1126,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "replacement_cost_provider",
+          "caller_line": 843,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "replacement_cost_provider",
+          "line": 843,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "proactive_host_prepare_and_acquire",
+          "caller_line": 2638,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "demand_loader",
+          "line": 713,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "preparation_loader",
+          "caller_line": 730,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "preparation_loader",
+          "line": 730,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "_load_and_acquire",
+          "caller_line": 2464,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "_load_and_acquire",
+          "line": 2464,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "proactive_host_prepare_and_acquire",
+          "caller_line": 2762,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_lora_host_inventory",
+          "line": 155,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 926,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "ieee_gpu_reference",
+          "line": 926,
+          "caller_file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "caller_function": "run_method",
+          "caller_line": 510,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "add",
+          "line": 116,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "_ieee_lora_host_inventory",
+          "caller_line": 155,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_lora_host_inventory",
+          "line": 156,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 915,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "ieee_gpu_reference",
+          "line": 915,
+          "caller_file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "caller_function": "run_method",
+          "caller_line": 510,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "_ieee_lora_host_inventory",
+          "line": 149,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "host_allocation_check",
+          "caller_line": 739,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "host_allocation_check",
+          "line": 739,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "file_host_loader",
+          "caller_line": 766,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "function": "file_host_loader",
+          "line": 766,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "caller_function": "prepare_file_host_and_hold",
+          "caller_line": 2183,
+          "occurrences": 1
+        },
+        {
+          "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "function": "prepare_file_host_and_hold",
+          "line": 2183,
+          "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "caller_function": "ieee_gpu_reference",
+          "caller_line": 922,
+          "occurrences": 1
+        }
+      ]
+    }
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261003_d200_prefix_diagnostic.json",
+      "sha256": "23ffb565ccfb93f74bc4283bca82b56eab417989e4eeb4b4a4626176819e683d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d200_20261003/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2361577-52784454.control.jsonl",
+      "bytes": 5799222,
+      "sha256": "295324c95723422f93293407fef4e772102f602f02053a86f3bf3e696fa5ff63"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d200_20261003/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2362678-52785546.control.jsonl",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d200_20261003/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2363620-52786717.control.jsonl",
+      "bytes": 1855238,
+      "sha256": "cc25ba291b929f630b733fc4f8315d09b5c73714edba0c30dab60a484d035d67"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d200_20261003/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2364655-52787994.control.jsonl",
+      "bytes": 731915,
+      "sha256": "145d718083c93ddc966b718967b1145d5187b1992c2c7774e46d3e7206793407"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d200_20261003/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2367724-52792001.control.jsonl",
+      "bytes": 1823703,
+      "sha256": "ba7dba70d2635b467f810f576181474f58aa9f41138db06b1a4f29084b3e3e9e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d200_20261003/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2368025-52792207.control.jsonl",
+      "bytes": 1815061,
+      "sha256": "a58a43e64a839d4ef7f9fea34f7daacafd994ca1973c5cc48b6fcbdaf5c5a0ba"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d200_20261003/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2368325-52792418.control.jsonl",
+      "bytes": 1808035,
+      "sha256": "13d5d3a8359d595ecc03498c7d43ef46710f772beffd58effc14820c77d56932"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d200_20261003/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2368679-52793241.control.jsonl",
+      "bytes": 719600,
+      "sha256": "febdb90af1bb927ac07a944474c148c9679858b683324d5ce1477ce9dd753ec3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d200_20261003/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2369096-52793462.control.jsonl",
+      "bytes": 716195,
+      "sha256": "41c63e925b02ef9cfb843dba30cdc402cd81e07b311448dbbdd82e55a365189d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d200_20261003/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2369310-52793709.control.jsonl",
+      "bytes": 713386,
+      "sha256": "144909ad055829e21a715987aa2592b778156b45d74eefd56ab7db3168e01db2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d200_20261003/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2364655-52787994.json",
+      "bytes": 747,
+      "sha256": "1ecfe2796579ffbeadc0a6c5488532a2904020e0d21f8f3d70b8dc700f1f37d9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d200_20261003/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2364655-52787994.stacks.jsonl",
+      "bytes": 3275449,
+      "sha256": "c02fe5ac275cb374ed671265fb2d1a340afa98096ff9ee02257dfc1f99b1f5f8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d200_20261003/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2368679-52793241.json",
+      "bytes": 747,
+      "sha256": "7a6dc7fb1f8ffc2c81d15a5c089d01f0efbd99920caf02f1a2daca4c46bb64cc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d200_20261003/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2368679-52793241.stacks.jsonl",
+      "bytes": 3136069,
+      "sha256": "18ba039f4a4d3c4acdfc408eda95efe30b170bcb239ba869b29d2c5001e12493"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d200_20261003/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2369096-52793462.json",
+      "bytes": 747,
+      "sha256": "c4759235a003891eff976785d91a47adff69a69ab8bc301722acfc6ecedd22cb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d200_20261003/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2369096-52793462.stacks.jsonl",
+      "bytes": 3157044,
+      "sha256": "cc933237e313293ef18caab8d62020dc6e14d47429bb494a0eb50ffda52b1bba"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d200_20261003/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2369310-52793709.json",
+      "bytes": 746,
+      "sha256": "82eccfbe864483f1c0abdb00d29d59a759d2ba083db823ba0ddef090c7da056b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d200_20261003/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2369310-52793709.stacks.jsonl",
+      "bytes": 3175010,
+      "sha256": "fcc9a6401b4bf2a13ef8cfc442c627e6553dbd03d60dc85987b793335359182c"
+    }
+  ],
+  "caveats": [
+    "Same-process capture-window association, not causal CPU/wall-time attribution.",
+    "2-second GIL-scheduled Python sampling; native C/CUDA internals unavailable.",
+    "Queries without in-interval samples remain unsampled, not zero-cost.",
+    "Concurrent waiting calls do not duplicate a process/sample in counts.",
+    "Inclusive caller occurrences overlap and must not be summed as time.",
+    "No latency, SLO, numerical-correctness or G1/G2 improvement claim."
+  ],
+  "raw_association": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d201_20261003/association1.json",
+    "sha256": "eb6b944829c11ff88ad6736a366949d9ba85b5601947e751e8f34f8b42dca051"
+  },
+  "nearest_totals": [
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+      "function": "add",
+      "line": 103,
+      "samples": 59
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+      "function": "ieee_gpu_reference",
+      "line": 940,
+      "samples": 48
+    },
+    {
+      "file": "",
+      "function": "no_project_frame",
+      "line": 0,
+      "samples": 27
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+      "function": "demand_loader",
+      "line": 713,
+      "samples": 11
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+      "function": "add",
+      "line": 116,
+      "samples": 4
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_planner.py",
+      "function": "validate_native_gpu_epoch",
+      "line": 1180,
+      "samples": 2
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+      "function": "_ieee_host_copy_contract",
+      "line": 442,
+      "samples": 2
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+      "function": "add",
+      "line": 352,
+      "samples": 1
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+      "function": "completion_fence",
+      "line": 699,
+      "samples": 1
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+      "function": "add",
+      "line": 342,
+      "samples": 1
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/utils/logger.py",
+      "function": "diagnostic_control_event",
+      "line": 60,
+      "samples": 1
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+      "function": "<genexpr>",
+      "line": 217,
+      "samples": 1
+    },
+    {
+      "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+      "function": "_ieee_lora_host_inventory",
+      "line": 149,
+      "samples": 1
+    }
+  ],
+  "analysis_memory_peak_bytes": 109821952,
+  "analysis_memory_events": {
+    "low": 0,
+    "high": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0,
+    "oom_group_kill": 0
+  },
+  "source_runtime_commit": "1852c43aa55b89923e23c591ecf68137e3d0c965"
+}
