@@ -1,0 +1,58 @@
+{
+  "kind": "d206_execution_observer_evidence_verification_v1",
+  "passed": true,
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "protection": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "scope_receipts": {
+    "tests1": {
+      "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d206-tests1-20261003.scope",
+      "MemoryHigh": "3221225472",
+      "MemoryMax": "4294967296",
+      "MemorySwapMax": "0",
+      "InvocationID": "69b86c389dc64f0e93ea9a18dd5c8a84",
+      "exitcode": 0,
+      "test_count": 494,
+      "released": true
+    },
+    "tests2": {
+      "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d206-tests2-20261003.scope",
+      "MemoryHigh": "3221225472",
+      "MemoryMax": "4294967296",
+      "MemorySwapMax": "0",
+      "InvocationID": "f90f839be9274b119075df39c076af67",
+      "exitcode": 0,
+      "test_count": 496,
+      "released": true
+    }
+  },
+  "changed_runtime_only_observer_and_three_opt_in_rpcs": true,
+  "unchanged_sources": [
+    "scripts/ieee_tc_preflight.py",
+    "faaslora/memory/residency_manager.py",
+    "faaslora/preloading/preloading_planner.py",
+    "faaslora/experiment/instance_pool.py",
+    "scripts/dedicated_engine_worker.py"
+  ],
+  "tests_final": 496,
+  "new_tests": 14,
+  "failed_tests": 0,
+  "syntax_smoke": true,
+  "gpu_measurement": false,
+  "numeric_correctness_qualified": false,
+  "n_correct": null,
+  "bundle_members": 39,
+  "bundle_bytes": 1164889,
+  "artifacts": {
+    "paper_results/ieee_tc/p2_backend/20261003_d206_execution_observer.json": "7f44ff456079a7646dca4da50c2dcccd6cd3abec525c8c4d688b1d18f5e501df",
+    "paper_results/ieee_tc/p2_backend/20261003_d206_execution_observer.csv": "8f78a88cf914cd7076da557eefb4b03f87213e683b4c8424be7076e34cebda6a",
+    "docs/ieee_tc/D206_NATIVE_EXECUTION_OBSERVER.md": "dfe5c74a008205c728c198ff1e08649972a62fb5259c32c14e0c268305a4e027",
+    "paper_results/ieee_tc/p2_backend/20261003_d206_analysis_sources.tar.gz": "19c4f473800ed0daffaed3bd7463a333dfcfed18661f994b6ee4f33d54d19f36"
+  }
+}

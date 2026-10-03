@@ -1011,5 +1011,264 @@ class NativeSlotContentAudit(unittest.TestCase):
                                          synchronize=True, audit_adapter_ids=[7])
 
 
+class NativeExecutionObserver(unittest.TestCase):
+    """Fake device plumbing only; never claimed as CUDA or graph evidence."""
+
+    @contextmanager
+    def fixture(self, **limits):
+        import copy
+        device = FakeDevice()
+        class Tensor:
+            def __init__(self, data, pointer=None):
+                self.data = list(data)
+                self.device, self.dtype = device, 'int64'
+                self.shape = (len(data),)
+                self.pointer = id(self) if pointer is None else pointer
+            def data_ptr(self): return self.pointer
+            def stride(self): return (1,)
+            def detach(self): return self
+            def cpu(self): return self
+            def tolist(self): return list(self.data)
+            def item(self): return self.data[0]
+            def __getitem__(self, index): return Tensor(self.data[index], self.pointer)
+        def metadata(n):
+            meta = SimpleNamespace(token_lora_mapping=Tensor([0] * n),
+                token_indices_sorted_by_lora_ids=Tensor(list(range(n))),
+                num_tokens_per_lora=Tensor([n, 0, 0]),
+                lora_token_start_loc=Tensor([0, n, 0, 0]),
+                active_lora_ids=Tensor([0, -1, -1]))
+            meta.meta_args = lambda count, specialize: (
+                meta.token_lora_mapping[:count], meta.token_indices_sorted_by_lora_ids[:count],
+                meta.num_tokens_per_lora, meta.lora_token_start_loc, meta.active_lora_ids,
+                Tensor([False]), Tensor([3]))
+            return meta
+        punica = SimpleNamespace(token_mapping_meta=metadata(2), prompt_mapping_meta=metadata(1),
+            token_lora_indices=Tensor([0, 0]), sampler_indices=Tensor([0]))
+        module = SimpleNamespace(punica_wrapper=punica, lora_a_stacked=[Tensor([1, 2])],
+                                 lora_b_stacked=[Tensor([3, 4])])
+        manager = SimpleNamespace(moe_ep_load_spec=None, modules={'layer': module},
+            punica_wrapper_mapping={'language_model': punica}, lora_index_to_id=[7, None])
+        model = SimpleNamespace(compute_logits=Mock(return_value='native_logits'),
+                                named_modules=lambda: [('layer', module)])
+        runner = SimpleNamespace(lora_manager=SimpleNamespace(_adapter_manager=manager),
+            vllm_config=SimpleNamespace(parallel_config=SimpleNamespace(tensor_parallel_size=1,
+                pipeline_parallel_size=1, data_parallel_size=1, use_ubatching=False)),
+            speculative_config=None, model_config=SimpleNamespace(is_encoder_decoder=False),
+            is_pooling_model=False, lora_config=SimpleNamespace(specialize_active_lora=False),
+            model=model, input_batch=SimpleNamespace(req_ids=['r1'], num_reqs=1,
+                                                    request_lora_mapping=[7]),
+            num_scheduled_tokens=SimpleNamespace(np=[2]), _model_forward=Mock(return_value='hidden'))
+        runner.get_model = lambda: model
+        def execute(scheduled):
+            self.assertEqual(runner._model_forward(input_ids=Tensor([4, 5])), 'hidden')
+            self.assertEqual(model.compute_logits(Tensor([1])), 'native_logits')
+            return 'native_result'
+        runner.execute_model = Mock(side_effect=execute)
+        worker = SimpleNamespace(device=device, model_runner=runner,
+            ieee_gpu_reference=Mock(side_effect=lambda **kw: copy.deepcopy(kw)))
+        stream = SimpleNamespace(cuda_stream=123, synchronize=Mock())
+        fake = SimpleNamespace(is_tensor=lambda t: isinstance(t, Tensor),
+            cuda=SimpleNamespace(current_stream=lambda dev: stream, synchronize=Mock()))
+        context = SimpleNamespace(ubatch_slices=None, skip_compiled=False,
+                                  cudagraph_runtime_mode='FULL')
+        modules = {'vllm': SimpleNamespace(__version__='0.30.0'),
+            'vllm.forward_context': SimpleNamespace(get_forward_context=lambda: context),
+            'vllm.utils.gpu_sync_debug': SimpleNamespace(gpu_sync_allowed=nullcontext)}
+        with patch.object(monitor, 'torch', fake), patch.dict('sys.modules', modules):
+            observer = monitor._IEEENativeExecutionObserver(worker, diagnostic_id='unit_only',
+                max_iterations=limits.get('max_iterations', 10),
+                max_buffer_bytes=limits.get('max_buffer_bytes', 1024 * 1024))
+            yield SimpleNamespace(observer=observer, worker=worker, runner=runner,
+                manager=manager, module=module, punica=punica, context=context,
+                scheduled=SimpleNamespace(num_scheduled_tokens={'r1': 2}),
+                Tensor=Tensor, stream=stream)
+
+    def begin(self, f):
+        return f.worker.ieee_gpu_reference(operation='begin_use', backend_request_id='r1',
+            adapter_int_id=7, lease_id='lease', expected_owner_id='owner')
+
+    def end(self, f):
+        return f.worker.ieee_gpu_reference(operation='end_use', backend_request_id='r1',
+            lease_id='lease', expected_owner_id='owner')
+
+    def test_two_execution_boundaries_bind_independent_request_and_preserve_results(self):
+        from scripts.ieee_tc_preflight import validate_native_lora_execution_metadata
+        with self.fixture() as f:
+            self.begin(f)
+            self.assertEqual(f.runner.execute_model(f.scheduled), 'native_result')
+            self.end(f)
+            result = f.observer.read()
+            self.assertFalse(result['failed'])
+            self.assertIsNone(result['n_correct'])
+            self.assertFalse(result['kernel_arithmetic_qualified'])
+            self.assertEqual(result['bindings']['r1']['forwards'], 1)
+            events = result['events']
+            self.assertEqual([e['kind'] for e in events], ['begin_use', 'execute_begin',
+                'forward_before', 'forward_return', 'logits_before', 'logits_return',
+                'execute_return', 'end_use'])
+            for event in (events[2], events[4]):
+                obs = event['observation']
+                self.assertEqual(obs['cudagraph_runtime_mode'], 'FULL')  # fake label only
+                self.assertTrue(validate_native_lora_execution_metadata(obs, {'r1': 7})['metadata_matches'])
+            f.observer.restore()
+            self.assertIsInstance(f.runner._model_forward, Mock)
+            self.assertIsInstance(f.runner.model.compute_logits, Mock)
+
+    def test_drain_retains_coverage_counters_and_failure_state(self):
+        with self.fixture() as f:
+            self.begin(f)
+            f.runner.execute_model(f.scheduled)
+            before = f.observer.read(drain=True)
+            after = f.observer.read()
+            self.assertTrue(before['events'])
+            self.assertEqual(after['events'], [])
+            self.assertEqual(after['last_sequence'], before['last_sequence'])
+            self.assertEqual(after['bindings'], before['bindings'])
+            self.end(f)
+            f.observer.restore()
+
+    def test_unbound_or_mismatched_batch_is_rejected_before_forward(self):
+        for change in ('unbound', 'wrong_id', 'wrong_count', 'unknown_request'):
+            with self.subTest(change=change), self.fixture() as f:
+                if change != 'unbound': self.begin(f)
+                if change == 'wrong_id': f.runner.input_batch.request_lora_mapping = [8]
+                if change == 'wrong_count': f.runner.num_scheduled_tokens.np = [1]
+                if change == 'unknown_request': f.runner.input_batch.req_ids = ['other']
+                with self.assertRaises(RuntimeError): f.runner.execute_model(f.scheduled)
+                self.assertTrue(f.observer.read()['failed'])
+                original = next(row[2] for row in f.observer.installed if row[1] == '_model_forward')
+                original.assert_not_called()
+
+    def test_changed_wrapper_weight_or_metadata_pointer_is_rejected(self):
+        for change in ('wrapper', 'weight', 'metadata', 'detached', 'model'):
+            with self.subTest(change=change), self.fixture() as f:
+                self.begin(f)
+                if change == 'wrapper': f.module.punica_wrapper = object()
+                elif change == 'weight': f.module.lora_a_stacked[0].pointer += 1
+                elif change == 'metadata': f.punica.token_mapping_meta.token_lora_mapping.pointer += 1
+                elif change == 'detached': f.runner.model.named_modules = lambda: []
+                else: f.runner.model = SimpleNamespace()
+                with self.assertRaises(RuntimeError): f.runner.execute_model(f.scheduled)
+                self.assertTrue(f.observer.failed)
+
+    def test_wrong_group_rows_are_retained_for_offline_rejection_not_silently_fixed(self):
+        from scripts.ieee_tc_preflight import validate_native_lora_execution_metadata
+        with self.fixture() as f:
+            self.begin(f)
+            f.punica.token_mapping_meta.token_indices_sorted_by_lora_ids.data = [0, 0]
+            f.runner.execute_model(f.scheduled)
+            obs = next(e['observation'] for e in f.observer.events if e['kind'] == 'forward_before')
+            with self.assertRaisesRegex(ValueError, 'duplicate'):
+                validate_native_lora_execution_metadata(obs, {'r1': 7})
+
+    def test_missing_logits_boundary_cannot_complete_iteration(self):
+        with self.fixture() as f:
+            self.begin(f)
+            original = next(row[2] for row in f.observer.installed if row[1] == 'execute_model')
+            original.side_effect = lambda scheduled: f.runner._model_forward(input_ids=f.Tensor([1, 2]))
+            with self.assertRaisesRegex(RuntimeError, 'coverage'): f.runner.execute_model(f.scheduled)
+            self.assertEqual(f.observer.events[-1]['kind'], 'execute_error')
+            self.assertTrue(f.observer.failed)
+
+    def test_native_errors_preserved_and_not_recorded_as_returned(self):
+        with self.fixture() as f:
+            self.begin(f)
+            original = next(row[2] for row in f.observer.installed if row[1] == '_model_forward')
+            original.side_effect = ValueError('native failure')
+            with self.assertRaisesRegex(ValueError, 'native failure'): f.runner.execute_model(f.scheduled)
+            self.assertNotIn('forward_return', [e['kind'] for e in f.observer.events])
+            self.assertTrue(f.observer.failed)
+
+    def test_no_silent_truncation_at_buffer_or_iteration_limit(self):
+        with self.fixture(max_buffer_bytes=1) as f:
+            with self.assertRaisesRegex(RuntimeError, 'buffer exhausted'): self.begin(f)
+            self.assertTrue(f.observer.failed)
+        with self.fixture(max_iterations=1) as f:
+            self.begin(f)
+            f.runner.execute_model(f.scheduled)
+            with self.assertRaisesRegex(RuntimeError, 'excessive'): f.runner.execute_model(f.scheduled)
+            self.assertTrue(f.observer.failed)
+
+    def test_duplicate_begin_and_removal_while_active_are_rejected(self):
+        with self.fixture() as f:
+            self.begin(f)
+            with self.assertRaisesRegex(RuntimeError, 'duplicate'): self.begin(f)
+            with self.assertRaisesRegex(RuntimeError, 'active'): f.observer.restore()
+            self.end(f)
+            f.observer.restore()
+            self.assertEqual(f.observer.installed, [])
+
+    def test_unsupported_graph_bypass_or_microbatch_is_not_fallback(self):
+        for name, value in (('skip_compiled', True), ('ubatch_slices', [1])):
+            with self.subTest(name=name), self.fixture() as f:
+                self.begin(f)
+                setattr(f.context, name, value)
+                with self.assertRaisesRegex(RuntimeError, 'unsupported'):
+                    f.runner.execute_model(f.scheduled)
+
+    def test_other_thread_and_changed_boundary_owner_rejected(self):
+        with self.fixture() as f:
+            f.observer.thread -= 1
+            with self.assertRaisesRegex(RuntimeError, 'thread'): self.begin(f)
+            self.assertTrue(f.observer.failed)
+            f.runner._model_forward = Mock()
+            previous = f.runner.model.compute_logits
+            with self.assertRaisesRegex(RuntimeError, 'another owner'): f.observer.restore()
+            self.assertIs(f.runner.model.compute_logits, previous)  # no partial unhook
+
+    def test_start_read_stop_worker_rpc_and_absent_or_nonqualification_rejected(self):
+        with self.fixture() as f:
+            f.observer.restore()
+            command = dict(action='start', qualification_only=True, diagnostic_id='unit_rpc',
+                           max_iterations=8, max_buffer_bytes=65536)
+            call = monitor.IEEEWorkerObservationExtension.ieee_worker_observation
+            for invalid in ({'action': 'start'}, {'action': 'read', 'qualification_only': True}):
+                with self.assertRaises(ValueError):
+                    call(f.worker, synchronize=True, execution_observer=invalid)
+            started = call(f.worker, synchronize=True, execution_observer=command)
+            self.assertEqual(started['iterations'], 0)
+            with self.assertRaisesRegex(RuntimeError, 'already installed'):
+                call(f.worker, synchronize=True, execution_observer=command)
+            self.begin(f)
+            f.runner.execute_model(f.scheduled)
+            self.end(f)
+            read = call(f.worker, synchronize=True,
+                        execution_observer=dict(action='read', qualification_only=True))
+            self.assertEqual(read['bindings']['r1']['logits'], 1)
+            stopped = call(f.worker, synchronize=True,
+                           execution_observer=dict(action='stop', qualification_only=True))
+            self.assertEqual(stopped['events'], [])
+            self.assertFalse(hasattr(f.worker, '_ieee_execution_observer'))
+
+    def test_partial_install_rolls_back_prior_boundaries(self):
+        with self.fixture() as f:
+            f.observer.restore()
+            original_forward = f.runner._model_forward
+            original_execute = f.runner.execute_model
+            original_reference = f.worker.ieee_gpu_reference
+            f.runner.model.compute_logits = None
+            with self.assertRaisesRegex(RuntimeError, 'not callable'):
+                monitor._IEEENativeExecutionObserver(f.worker, diagnostic_id='rollback',
+                    max_iterations=2, max_buffer_bytes=65536)
+            self.assertIs(f.runner._model_forward, original_forward)
+            self.assertIs(f.runner.execute_model, original_execute)
+            self.assertIs(f.worker.ieee_gpu_reference, original_reference)
+
+    def test_qualification_rpc_requires_barrier_and_forwards_opt_in_only(self):
+        engine = InferenceEngine({'ieee_worker_observation': True, 'tensor_parallel_size': 1}, {})
+        engine.backend, engine.engine = 'vllm', SimpleNamespace(collective_rpc=AsyncMock(return_value=[{}]))
+        proxy = SubprocessInferenceEngineProxy.__new__(SubprocessInferenceEngineProxy)
+        proxy._rpc = AsyncMock(return_value={})
+        command = {'action': 'read', 'qualification_only': True}
+        for facade in (engine, proxy):
+            with self.assertRaisesRegex(ValueError, 'barrier'):
+                asyncio.run(facade.ieee_worker_observation(execution_observer=command))
+            asyncio.run(facade.ieee_worker_observation(synchronize=True, execution_observer=command))
+        engine.engine.collective_rpc.assert_awaited_once_with('ieee_worker_observation',
+            kwargs={'synchronize': True, 'execution_observer': command})
+        proxy._rpc.assert_awaited_once_with('ieee_worker_observation',
+            synchronize=True, execution_observer=command)
+
+
 if __name__ == '__main__':
     unittest.main()

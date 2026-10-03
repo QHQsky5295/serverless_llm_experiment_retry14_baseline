@@ -651,10 +651,305 @@ def _ieee_pitched_host_copy(copies, device, completion_fence):
                 completion_fence()
 
 
+class _IEEENativeExecutionObserver:
+    """Bounded, opt-in diagnostic at native forward/logits boundaries.
+
+    Installed after warmup in an isolated qualification, never a Full monitor.
+    Device readback perturbs timing. Graph mode is observed, not changed; this
+    proves metadata presence at the call boundary, NOT kernel arithmetic.
+    Intended request identities come from successful begin_use, not the batch.
+    """
+
+    def __init__(self, worker, *, diagnostic_id, max_iterations, max_buffer_bytes):
+        import re
+        import vllm
+        if (not isinstance(diagnostic_id, str)
+                or not re.fullmatch(r'[a-zA-Z0-9_-]{1,80}', diagnostic_id)
+                or type(max_iterations) is not int or not 1 <= max_iterations <= 10000
+                or type(max_buffer_bytes) is not int
+                or not 1 <= max_buffer_bytes <= 32 * 1024**2):
+            raise ValueError('invalid bounded execution diagnostic contract')
+        runner = worker.model_runner
+        parallel = runner.vllm_config.parallel_config
+        if (vllm.__version__ != '0.30.0' or worker.device.type != 'cuda'
+                or any(getattr(parallel, name) != 1 for name in
+                       ('tensor_parallel_size', 'pipeline_parallel_size', 'data_parallel_size'))
+                or parallel.use_ubatching or runner.speculative_config is not None
+                or runner.model_config.is_encoder_decoder or runner.is_pooling_model):
+            raise RuntimeError('execution observation requires dense TP/PP/DP=1 non-speculative generation')
+        self.worker, self.runner = worker, runner
+        self.model, self.raw_model = runner.model, runner.get_model()
+        self.manager = runner.lora_manager._adapter_manager
+        if (self.manager.moe_ep_load_spec is not None or not self.manager.modules
+                or any(name.endswith('.experts') for name in self.manager.modules)):
+            raise RuntimeError('execution observation requires a nonempty dense LoRA manager')
+        wrappers = list(self.manager.punica_wrapper_mapping.values())
+        if len(wrappers) != 1:
+            raise RuntimeError('execution observation requires one dense Punica wrapper')
+        self.punica = wrappers[0]
+        self.diagnostic_id = diagnostic_id
+        self.max_iterations, self.max_buffer_bytes = max_iterations, max_buffer_bytes
+        self.thread = threading.get_ident()
+        self.iteration = 0
+        self.current = None
+        self.bindings, self.events = {}, []
+        self.buffer_bytes = 0
+        self.sequence = 0
+        self.failed = False
+        self.installed = []
+        self.layer_identity = self._layers()
+        self.metadata_identity = self._metadata_buffers()
+        try:
+            self._replace(worker, 'ieee_gpu_reference', self._reference)
+            self._replace(runner, 'execute_model', self._execute)
+            self._replace(runner, '_model_forward', self._forward)
+            self._replace(runner.model, 'compute_logits', self._logits)
+        except BaseException:
+            self.restore()
+            raise
+
+    def _replace(self, target, name, wrapper):
+        original = getattr(target, name)
+        if not callable(original):
+            raise RuntimeError('native observer boundary is not callable: ' + name)
+        local = name in vars(target)
+        def observed(*args, **kwargs):
+            if threading.get_ident() != self.thread:
+                self.failed = True
+                raise RuntimeError('native execution observer crossed its owner thread')
+            try:
+                return wrapper(original, *args, **kwargs)
+            except BaseException:
+                self.failed = True
+                raise
+        setattr(target, name, observed)
+        self.installed.append((target, name, original, local, observed))
+
+    def restore(self):
+        if self.current is not None or any(not b['ended'] for b in self.bindings.values()):
+            raise RuntimeError('cannot remove an active native execution observer')
+        for target, name, original, local, observed in self.installed:
+            if getattr(target, name) is not observed:
+                raise RuntimeError('native observer boundary was replaced by another owner')
+        for target, name, original, local, observed in reversed(self.installed):
+            if local:
+                setattr(target, name, original)
+            else:
+                delattr(target, name)
+        self.installed.clear()
+
+    def _tensor_identity(self, value):
+        if not torch.is_tensor(value) or value.device != self.worker.device:
+            raise RuntimeError('execution metadata/weight is not on the owning CUDA device')
+        return dict(pointer=int(value.data_ptr()), shape=list(value.shape),
+                    stride=list(value.stride()), dtype=str(value.dtype), device=str(value.device))
+
+    def _layers(self):
+        if self.runner.model is not self.model or self.runner.get_model() is not self.raw_model:
+            raise RuntimeError('native executed model object changed')
+        executed = {id(module): name for name, module in self.raw_model.named_modules()}
+        rows = []
+        for name, module in sorted(self.manager.modules.items()):
+            if id(module) not in executed or module.punica_wrapper is not self.punica:
+                raise RuntimeError('LoRA layer is detached or uses a different execution wrapper')
+            def tensors(value):
+                if isinstance(value, (tuple, list)):
+                    if not value:
+                        raise RuntimeError('empty native LoRA layer buffers')
+                    return [tensors(v) for v in value]
+                return self._tensor_identity(value)
+            rows.append(dict(name=name, module_id=id(module),
+                executed_module_name=executed[id(module)],
+                wrapper_id=id(module.punica_wrapper),
+                a=tensors(module.lora_a_stacked), b=tensors(module.lora_b_stacked)))
+        return rows
+
+    def _metadata_buffers(self):
+        return {label: {name: self._tensor_identity(getattr(meta, name)) for name in
+                ('token_lora_mapping', 'token_indices_sorted_by_lora_ids',
+                 'active_lora_ids', 'num_tokens_per_lora', 'lora_token_start_loc')}
+            for label, meta in (('token', self.punica.token_mapping_meta),
+                                ('sampler', self.punica.prompt_mapping_meta))}
+
+    def _emit(self, kind, **fields):
+        import json
+        row = dict(sequence=self.sequence + 1, kind=kind, iteration=self.iteration,
+                   monotonic_s=time.monotonic(), **fields)
+        size = len(json.dumps(row, sort_keys=True, separators=(',', ':')).encode())
+        if self.buffer_bytes + size > self.max_buffer_bytes:
+            self.failed = True
+            raise RuntimeError('native execution diagnostic buffer exhausted; no silent truncation')
+        self.events.append(row)
+        self.buffer_bytes += size
+        self.sequence += 1
+
+    def _reference(self, original, *, operation, **kwargs):
+        if operation == 'begin_use':
+            req = kwargs['backend_request_id']
+            if req in self.bindings or len(self.bindings) >= 64:
+                self.failed = True
+                raise RuntimeError('duplicate or excessive execution diagnostic request binding')
+        result = original(operation=operation, **kwargs)
+        if operation == 'begin_use':
+            binding = {key: kwargs[key] for key in
+                       ('backend_request_id', 'adapter_int_id', 'lease_id', 'expected_owner_id')}
+            binding.update(ended=False, forwards=0, logits=0, scheduled_tokens=0)
+            self.bindings[req] = binding
+            self._emit('begin_use', binding=dict(binding), receipt=dict(result))
+        elif operation == 'end_use':
+            req = kwargs['backend_request_id']
+            if (req not in self.bindings or self.bindings[req]['ended']
+                    or self.bindings[req]['lease_id'] != kwargs['lease_id']):
+                self.failed = True
+                raise RuntimeError('unknown/mismatched native diagnostic terminal')
+            self.bindings[req]['ended'] = True
+            self._emit('end_use', backend_request_id=req, receipt=dict(result))
+        return result
+
+    def _execute(self, original, scheduler_output, *args, **kwargs):
+        if self.current is not None or self.iteration >= self.max_iterations:
+            self.failed = True
+            raise RuntimeError('nested or excessive native execution diagnostic iteration')
+        self.iteration += 1
+        counts = dict(scheduler_output.num_scheduled_tokens)
+        self.current = dict(counts=counts, forwards=0, logits=0, rows=None)
+        try:
+            self._emit('execute_begin', scheduled=counts)
+            result = original(scheduler_output, *args, **kwargs)
+            expected = int(bool(counts))
+            if self.current['forwards'] != expected or self.current['logits'] != expected:
+                raise RuntimeError('native execution boundary coverage is incomplete')
+            self._emit('execute_return', forward_calls=self.current['forwards'],
+                       logits_calls=self.current['logits'])
+            return result
+        except BaseException as exc:
+            self.failed = True
+            # A failed observer stays failed even if a caller drains its events.
+            if self.buffer_bytes < self.max_buffer_bytes - 1024:
+                self._emit('execute_error', error_type=type(exc).__name__)
+            raise
+        finally:
+            self.current = None
+
+    def _snapshot(self, padded_rows, graph_mode):
+        if (self.current is None or self.worker.model_runner is not self.runner
+                or self.runner.lora_manager._adapter_manager is not self.manager
+                or self._layers() != self.layer_identity
+                or self._metadata_buffers() != self.metadata_identity):
+            raise RuntimeError('native execution owner/layer/buffer identity changed')
+        batch = self.runner.input_batch
+        requests = list(batch.req_ids[:batch.num_reqs])
+        counts = [int(v) for v in self.runner.num_scheduled_tokens.np[:batch.num_reqs]]
+        aids = [int(v) for v in batch.request_lora_mapping[:batch.num_reqs]]
+        if (len(set(requests)) != len(requests) or len(counts) != len(requests)
+                or len(aids) != len(requests)
+                or dict(zip(requests, counts)) != self.current['counts']
+                or any(c <= 0 for c in counts) or padded_rows < sum(counts)):
+            raise RuntimeError('native scheduled rows/order/padding do not match the iteration')
+        rows = []
+        for req, aid, count in zip(requests, aids, counts):
+            bound = self.bindings.get(req)
+            if bound is None or bound['ended'] or bound['adapter_int_id'] != aid:
+                raise RuntimeError('native batch differs from independent begin_use binding')
+            rows.append(dict(backend_request_id=req, adapter_int_id=aid,
+                             scheduled_tokens=count, sampled_tokens=1))
+        from vllm.utils.gpu_sync_debug import gpu_sync_allowed
+        with gpu_sync_allowed():
+            stream = torch.cuda.current_stream(self.worker.device)
+            stream.synchronize()
+            def values(tensor):
+                self._tensor_identity(tensor)
+                return tensor.detach().cpu().tolist()
+            def meta_values(meta, real_rows):
+                # Use the SAME native selection of specialized/default grid as
+                # the kernels. Padded tail is described, not assigned requests.
+                args = meta.meta_args(real_rows, self.runner.lora_config.specialize_active_lora)
+                return dict(token_lora_mapping=values(args[0]),
+                    token_indices_sorted_by_lora_ids=values(args[1]),
+                    num_tokens_per_lora=values(args[2]), lora_token_start_loc=values(args[3]),
+                    active_lora_ids=values(args[4]), no_lora=bool(args[5].item()),
+                    launch_lora_count=int(args[6].item()))
+            result = dict(kind='native_lora_forward_metadata_v1', requests=rows,
+                slot_adapter_ids=list(self.manager.lora_index_to_id),
+                token_slot_indices=values(self.punica.token_lora_indices),
+                sampler_slot_indices=values(self.punica.sampler_indices),
+                token_kernel_meta=meta_values(self.punica.token_mapping_meta, sum(counts)),
+                sampler_kernel_meta=meta_values(self.punica.prompt_mapping_meta, len(rows)),
+                padded_forward_rows=padded_rows, real_token_rows=sum(counts),
+                cudagraph_runtime_mode=graph_mode, stream_id=int(stream.cuda_stream),
+                layer_and_buffer_identity_matches=True)
+        return result
+
+    def _forward(self, original, *args, **kwargs):
+        from vllm.forward_context import get_forward_context
+        context = get_forward_context()
+        if context.ubatch_slices is not None or context.skip_compiled:
+            raise RuntimeError('unsupported microbatch/compiled bypass in execution diagnostic')
+        inputs = kwargs.get('input_ids')
+        if inputs is None:
+            raise RuntimeError('execution diagnostic requires native token input IDs')
+        if self.current is None or self.current['forwards']:
+            raise RuntimeError('unbound or repeated native forward')
+        observed = self._snapshot(int(inputs.shape[0]), str(context.cudagraph_runtime_mode))
+        self.current.update(rows=observed['requests'], padded_rows=observed['padded_forward_rows'],
+                            graph_mode=observed['cudagraph_runtime_mode'])
+        self._emit('forward_before', observation=observed)
+        result = original(*args, **kwargs)
+        # Do not let a CUDA failure masquerade as a completed boundary.
+        from vllm.utils.gpu_sync_debug import gpu_sync_allowed
+        with gpu_sync_allowed():
+            torch.cuda.current_stream(self.worker.device).synchronize()
+        self.current['forwards'] += 1
+        for row in observed['requests']:
+            binding = self.bindings[row['backend_request_id']]
+            binding['forwards'] += 1
+            binding['scheduled_tokens'] += row['scheduled_tokens']
+        self._emit('forward_return')
+        return result
+
+    def _logits(self, original, hidden_states, *args, **kwargs):
+        if (self.current is None or self.current['forwards'] != 1 or self.current['logits']
+                or int(hidden_states.shape[0]) != len(self.current['rows'])):
+            raise RuntimeError('unbound/repeated native sampler rows')
+        observed = self._snapshot(self.current['padded_rows'], self.current['graph_mode'])
+        if observed['requests'] != self.current['rows']:
+            raise RuntimeError('request rows changed between forward and logits')
+        self._emit('logits_before', observation=observed)
+        result = original(hidden_states, *args, **kwargs)
+        from vllm.utils.gpu_sync_debug import gpu_sync_allowed
+        with gpu_sync_allowed():
+            torch.cuda.current_stream(self.worker.device).synchronize()
+        self.current['logits'] += 1
+        for row in observed['requests']:
+            self.bindings[row['backend_request_id']]['logits'] += 1
+        self._emit('logits_return')
+        return result
+
+    def read(self, *, drain=False):
+        if self.current is not None or threading.get_ident() != self.thread:
+            raise RuntimeError('execution diagnostic read requires its idle owner thread')
+        from faaslora.metrics.metrics_collector import local_monotonic_clock_id
+        result = dict(kind='ieee_native_execution_observer_v1', diagnostic_id=self.diagnostic_id,
+            worker_pid=os.getpid(), worker_thread=self.thread, device=str(self.worker.device),
+            clock_id=local_monotonic_clock_id(), model_id=id(self.model), raw_model_id=id(self.raw_model),
+            manager_id=id(self.manager), wrapper_id=id(self.punica),
+            iterations=self.iteration, last_sequence=self.sequence, failed=self.failed,
+            bindings=copy.deepcopy(self.bindings), events=copy.deepcopy(self.events),
+            layer_identity=copy.deepcopy(self.layer_identity),
+            metadata_identity=copy.deepcopy(self.metadata_identity),
+            timing_qualified=False, kernel_arithmetic_qualified=False, n_correct=None)
+        if drain:
+            self.events.clear()
+            self.buffer_bytes = 0
+        return result
+
+
 class IEEEWorkerObservationExtension:
     """Native qualification and opt-in reference operations via worker extension.
 
-    No scheduler, eviction, admission or inference method is overridden. An
+    Default observation overrides no inference methods. The explicit isolated
+    execution observer temporarily wraps native boundaries without changing
+    scheduling, eviction, admission, graph mode or model return values. An
     unsynchronized observation is NOT confirmed readiness or a dispatch lease.
     The optional device barrier is for isolated qualification/profiling only;
     never call it as per-request monitoring in a performance campaign.
@@ -958,13 +1253,36 @@ class IEEEWorkerObservationExtension:
                 'production_launch_authorized': False}
 
     def ieee_worker_observation(self, *, synchronize: bool = False,
-                                audit_adapter_ids: Optional[List[int]] = None) -> Dict[str, Any]:
+                                audit_adapter_ids: Optional[List[int]] = None,
+                                execution_observer: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         if type(synchronize) is not bool:
             raise ValueError('synchronize must be an explicit boolean')
         if audit_adapter_ids is not None and synchronize is not True:
             raise ValueError('isolated slot content audit requires an explicit device barrier')
         if torch is None or self.device is None or self.device.type != 'cuda':
             raise RuntimeError('native CUDA worker is required')
+        if execution_observer is not None:
+            if synchronize is not True or audit_adapter_ids is not None:
+                raise ValueError('execution diagnostic needs its own explicit barrier observation')
+            command = dict(execution_observer)
+            action = command.pop('action', None)
+            if command.pop('qualification_only', None) is not True:
+                raise ValueError('execution observer cannot be used as performance monitoring')
+            observer = getattr(self, '_ieee_execution_observer', None)
+            if action == 'start':
+                if observer is not None:
+                    raise RuntimeError('native execution observer already installed')
+                torch.cuda.synchronize(self.device)
+                observer = _IEEENativeExecutionObserver(self, **command)
+                self._ieee_execution_observer = observer
+            elif action not in ('read', 'stop') or command or observer is None:
+                raise ValueError('invalid or absent native execution observer command')
+            if action == 'stop':
+                observer.restore()
+            result = observer.read(drain=action == 'read')
+            if action == 'stop':
+                del self._ieee_execution_observer
+            return result
         from faaslora.metrics.metrics_collector import local_monotonic_clock_id
         import vllm
 

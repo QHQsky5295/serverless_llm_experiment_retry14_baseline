@@ -1,0 +1,3 @@
+check,tests,passed,evidence,gpu_qualified,numeric_qualified
+tests1,494,True,CPU fixture regression,False,False
+tests2,496,True,CPU fixture regression,False,False

@@ -1,0 +1,115 @@
+{
+  "kind": "d206_execution_observer_cpu_qualification_v1",
+  "passed": true,
+  "sources": [
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu_model_runner.py",
+      "sha256": "87c29d08c0bbf66993d8b984811e7325e35e6436242a773feb55ec88f16b2c51",
+      "upstream_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/worker/gpu_model_runner.py"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu_input_batch.py",
+      "sha256": "18cf455c9d0eea61cc581c7932f2e6cd09786914e82dd35eef1c1430da359a0f",
+      "upstream_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/worker/gpu_input_batch.py"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/lora_model_runner_mixin.py",
+      "sha256": "fef6092a15d8d37f6fa22495e6106e2e5280180908d61ce43d9ff5bf4eef3f2f",
+      "upstream_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/worker/lora_model_runner_mixin.py"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/worker_manager.py",
+      "sha256": "7807187ddfd128f6a6dc31820b435dc954f2e9122d254ce7d6484b44076e3522",
+      "upstream_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/worker_manager.py"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/model_manager.py",
+      "sha256": "6695bb7d6373d8f29bb13d6ae31e2ef2a98f8c23a6f37f9147d67cafca5f3302",
+      "upstream_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/model_manager.py"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/punica_wrapper/punica_base.py",
+      "sha256": "8942ccc3f4a27d26ee444c3f03df9715139dfa5becb23ee679707b98b628f12c",
+      "upstream_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/punica_wrapper/punica_base.py"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/punica_wrapper/punica_gpu.py",
+      "sha256": "7ddedad89b6721751012af6f72bd85d0f8e2f6e9b288fc1909b08a732c360919",
+      "upstream_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/punica_wrapper/punica_gpu.py"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/punica_wrapper/utils.py",
+      "sha256": "1d926bd9cc9118719f64a9706d1c0f433a12f3605cfb10f125e1217231109158",
+      "upstream_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/punica_wrapper/utils.py"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/ops/triton_ops/lora_kernel_metadata.py",
+      "sha256": "7669eeeb491e89df7ef4ff050a79d3934ce7a63b146fe93239f081d176c68881",
+      "upstream_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/ops/triton_ops/lora_kernel_metadata.py"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/ops/triton_ops/lora_shrink_op.py",
+      "sha256": "036dfc7f2216de0e9e5da12698fa9c921d076cbc2fda053409ff94a2c4779fa4",
+      "upstream_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/ops/triton_ops/lora_shrink_op.py"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/ops/triton_ops/lora_expand_op.py",
+      "sha256": "caa1b9dcfc877af1d95fdbe8302efedfb061c3c63709897a4d905264e5464005",
+      "upstream_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/ops/triton_ops/lora_expand_op.py"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/forward_context.py",
+      "sha256": "cc1473477dcc7b762c3901b25cc7bf35c06a2c42f193136fed553abf6fe33f0e",
+      "upstream_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/forward_context.py"
+    }
+  ],
+  "scopes": {
+    "tests1": {
+      "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d206-tests1-20261003.scope",
+      "MemoryHigh": "3221225472",
+      "MemoryMax": "4294967296",
+      "MemorySwapMax": "0",
+      "InvocationID": "69b86c389dc64f0e93ea9a18dd5c8a84",
+      "exitcode": 0,
+      "test_count": 494,
+      "released": true
+    },
+    "tests2": {
+      "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d206-tests2-20261003.scope",
+      "MemoryHigh": "3221225472",
+      "MemoryMax": "4294967296",
+      "MemorySwapMax": "0",
+      "InvocationID": "f90f839be9274b119075df39c076af67",
+      "exitcode": 0,
+      "test_count": 496,
+      "released": true
+    }
+  },
+  "new_tests": 14,
+  "summary": [
+    {
+      "check": "tests1",
+      "tests": 494,
+      "passed": true,
+      "evidence": "CPU fixture regression",
+      "gpu_qualified": false,
+      "numeric_qualified": false
+    },
+    {
+      "check": "tests2",
+      "tests": 496,
+      "passed": true,
+      "evidence": "CPU fixture regression",
+      "gpu_qualified": false,
+      "numeric_qualified": false
+    }
+  ],
+  "parent_commit": "0a6c22ebf666a9f97d36c90639927ea1e8b0ad65",
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "default_performance_hook_installed": false,
+  "gpu_measurement": false,
+  "graph_replay_qualified": false,
+  "numerical_correctness_qualified": false,
+  "n_correct": null,
+  "observer_bridge_to_existing_prefix_pending": true
+}

@@ -1,6 +1,65 @@
 # IEEE TC execution status
 
-## CURRENT — D205 execution-metadata checker CPU QUALIFIED and SEALED
+## CURRENT — D206 native execution observer CPU QUALIFIED and SEALED
+
+2026-10-03 22:07+08. Goal ACTIVE/current turn PROGRESS. Full Plan/status read;
+vLLM+troubleshooting, run-experiment, academic-plotting, github-sync read.
+No subagents, GPU replay, optimizer/config/formula/SLO changes, remote operation
+or cache creation. Latest once-only permission already fulfilled D78/D80.
+No system comparison/config selection; V1 unchanged. No model acceptance.
+
+ONE isolated observer added in gpu_monitor + existing observation RPC optional
+argument through InferenceEngine/proxy. Default None installs NOTHING in Full.
+Native begin/end binding independent of batch; execute/forward/logits boundaries,
+actual GPU metadata readback/stream fence, padding/graph mode, all real scheduled
+rows, actual executed model-tree module identity/Punica/A-B and metadata pointers.
+Bounded64bindings/<=10000iterations/<=32MiB serialized buffer; explicit fail,
+no silent truncation. Drain retains counters/sequence/failure; install rollback,
+atomic owner check before restore. Dense TP/PP/DP1/nonspec/no ubatching only.
+No site-package patch or default inference policy change. Metadata collector
+does NOT certify arithmetic/graph replay/fullpool/n_correct. Ordinary runtime
+last measured remains D203/D202. Official fixed-v0.30 runner fetched/read;
+Punica URL fetch failed, installed exact D205 source SHA reused, not invented.
+
+Raw results/ieee_tc/p2_backend_qualification/d206_20261003. Sequential scopes
+3/4GiBswap0CPU2,3,26,27; terminal events/swap0, actual paths+units absent:
+- tests1 session71031 CLOSED0/id69b86c389dc64f0e93ea9a18dd5c8a84;
+  494PASS19.793s (initial12 new tests). Source/log retained.
+- tests2 session63695 CLOSED0/idf90f839be9274b119075df39c076af67;
+  496PASS20.416s after model-tree identity/atomic-unhook/rollback additions;
+  final14newtests. CPU fake tensors/graph label, NOT actual GPU execution.
+- curate1 session23740 CLOSED0/id52d05dcbf78b4646bcae2d9f44a2e14c;
+ 147protected/sourceSHA/syntax/unchanged AST outside observer+three opt-in RPCs
+ PASS; owner/planner/instance/dedicated-worker/preflight unchanged.
+No failed test/curation attempts. One initial read-only scope absence check
+guessed uid1000; corrected to actual recorded uid1001 and verified explicitly.
+No live GPU/experiment/tool sessions. Remote stopped/untouched. Disk160034369536B
+belowNEWheavy150GiB; no GPU/build or deletion/relaxed floor this turn.
+
+Doc D206_NATIVE_EXECUTION_OBSERVER.md SEALED; do NOT edit after binding.
+Curated7f44ff456079a7646dca4da50c2dcccd6cd3abec525c8c4d688b1d18f5e501df;
+39member1164889B bundle19c4f473800ed0daffaed3bd7463a333dfcfed18661f994b6ee4f33d54d19f36.
+CPU qualification/status CSV table, no performance figure or ranking.
+NEXT exact11path tested backup, then connect existing preflight short-prefix
+qualification to start/read/stop + external lease/adapter/sequence/whole-iteration
+checks; lightweight integration check -> fresh disk/resource gate and ONE existing
+22request/four-content-class actualGPU diagnostic. Reuse D166/D167 content proof;
+no repeated D205CPU probe, D206tests or speculativeFull/new framework. Isolated
+local-artifact diagnostic needs no remote service. Preserve failures/missing.
+All numeric/126output differences/commonwarm/Resident/legacyG1G2 remainOPEN.
+7Bacceptance->3B->baselines; all M1M2/A1–A5/S1–S13 remain outstanding.
+
+## Previous checkpoint — D205 execution-metadata checker CPU QUALIFIED, SEALED and BACKED
+
+Backup verified2026-10-03 21:40+08:
+0a6c22ebf666a9f97d36c90639927ea1e8b0ad65. Push46148 CLOSED0;
+independent ls-remote33898 CLOSED0 exactmatch.11explicitfiles/128staged+archive
+entries scope/secretsPASS; bundle checksum/diff(cr-at-eol)PASS, usermanifest
+excluded. No staged files, experiment scopes, GPU compute or live tool sessions.
+Remote remains stopped/untouched. Plan/V1 SHA unchanged. Lastdisk160057401344B
+belowNEWheavy150GiB; no GPU/build before freshgate and audited reclaim.
+NEXT isolated execution observer qualification below; do NOT repeat D205 CPU
+checker/probe or backup. All numeric/G1G2/model/formal gaps stay OPEN.
 
 2026-10-03 21:38+08. Goal ACTIVE/current turn PROGRESS. Full Plan/status read;
 vLLM+troubleshooting, run-experiment, academic-plotting, github-sync read.

@@ -4578,7 +4578,8 @@ class InferenceEngine:
         return (int(hashlib.md5(adapter_id.encode()).hexdigest(), 16) % 999999) + 1
 
     async def ieee_worker_observation(self, *, synchronize: bool = False,
-                                      audit_adapter_ids: Optional[List[int]] = None) -> Dict[str, Any]:
+                                      audit_adapter_ids: Optional[List[int]] = None,
+                                      execution_observer: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Strict qualification RPC; unlike shutdown helpers, never swallows errors."""
         if not self.model_cfg.get("ieee_worker_observation", False):
             raise RuntimeError("native worker observation was not enabled at engine creation")
@@ -4588,6 +4589,10 @@ class InferenceEngine:
         if not callable(rpc):
             raise RuntimeError("backend lacks native worker collective RPC")
         kwargs = {"synchronize": synchronize}
+        if execution_observer is not None:
+            if synchronize is not True or audit_adapter_ids is not None:
+                raise ValueError("execution diagnostic needs its own explicit barrier observation")
+            kwargs['execution_observer'] = execution_observer
         if audit_adapter_ids is not None:
             if synchronize is not True:
                 raise ValueError("isolated slot content audit requires an explicit device barrier")
@@ -5974,8 +5979,13 @@ class SubprocessInferenceEngineProxy:
         return float(result.get("load_ms", 0.0)), bool(result.get("ok", False))
 
     async def ieee_worker_observation(self, *, synchronize: bool = False,
-                                      audit_adapter_ids: Optional[List[int]] = None) -> Dict[str, Any]:
+                                      audit_adapter_ids: Optional[List[int]] = None,
+                                      execution_observer: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         kwargs = {"synchronize": synchronize}
+        if execution_observer is not None:
+            if synchronize is not True or audit_adapter_ids is not None:
+                raise ValueError("execution diagnostic needs its own explicit barrier observation")
+            kwargs['execution_observer'] = execution_observer
         if audit_adapter_ids is not None:
             if synchronize is not True:
                 raise ValueError("isolated slot content audit requires an explicit device barrier")
