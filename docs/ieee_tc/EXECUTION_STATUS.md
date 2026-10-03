@@ -1,6 +1,114 @@
 # IEEE TC execution status
 
-## CURRENT — D209 acquisition identity CPU QUALIFIED and SEALED, backup pending
+## CURRENT — D210 ordinary 7B Full COMPLETE, analyzed; 7B formal acceptance still open
+
+2026-10-04 01:46+08. Goal ACTIVE/current turn PROGRESS. D210 completed and
+closed; do NOT repeat this replay or add another optimizer before the next
+acceptance evidence. Full Plan/status/V1 reread; analyze-results and
+academic-plotting read. No baselines/3B started.
+
+D210 ordinary same-config 7B W0 replay (D209 candidate, current HEAD
+be7c2951a64d7f381eb0a4345f5701561dcf3549) completed 4000/4000 terminal,
+4000/4000 success, 4000/4000 native contract, zero terminal errors. Launch
+pass/service/replay/watchdog return 0; native GPU context released and local
+scope/GPU cleanup verified. Remote stopped only after local release; exact
+transfer journal copied and SHA-checked. No remote reconfiguration or packing.
+
+D210 vs prior D203 one-run descriptive evidence: mean TTFT 1650.511 vs
+1741.609ms (5.23% lower); P95 TTFT 3415.442 vs 3853.586ms (11.37% lower);
+mean E2E 6034.115 vs 6173.824ms (2.26% lower); mean TPOT 38.397 vs
+38.587ms (0.49% lower), but P95 TPOT 63.920 vs 63.039ms (1.40% higher).
+Physical GPU U=15916.823905 GPU-s vs D203 15926.245594 (-0.059%); this is not
+yet a lifecycle saving claim. Remote 132 pairs/131480060 client and server
+bytes/3300789780 verified logical bytes/packing0. Service peak20272316416B,
+minimum host available92068065280B, swap/high/max/OOM/watchdog warnings all0.
+
+Offline projection and occupancy audit ran under 3/4GiB CPU scopes with source
+and compact SHA retained. Curated result JSON SHA
+597620d2ef2d927c971136a56be337887e5bd201895320ea7bf21d6e43028c66; CSV SHA
+7ae260cb0b5d2827e3a0f318487a80a51d10879959727a643f2aef5f84fc0eca.
+Figure PDF SHA fe72e897f468fe53c0a01e695a2dfdb361c99482da35ed2e95ac2020a3b8a043;
+figure visually inspected, single-column/TNR layout, no overlap. D210 report:
+docs/ieee_tc/D210_7B_ORDINARY_FULL.md. The first 128MiB metadata projection
+attempt is retained as attempt1; final 165266073B compact projection uses the
+previously qualified 192MiB bounded path, original 498984004B outcome remains.
+
+This is observation/contract evidence, not formal G1/G2 acceptance: numerical
+adapter correctness, common warm SLO thresholds, Resident GPU budget reference,
+and paired multi-block evidence remain open. P95 TPOT trade-off is retained.
+NEXT: verify/backup this D210 evidence, then perform the necessary 7B common
+warm/Resident reference and correctness acceptance work before 3B or baselines;
+do not declare the model accepted from this single improvement.
+
+### D210 live/replay history (superseded by COMPLETE above)
+
+2026-10-04 00:29+08. This turn PROGRESS: one qualified ordinary replay launched
+00:11:47 in tmux tc_d210_full1, now VERIFIED WAIT, goal ACTIVE. Do NOT launch
+another replay/optimizer/qualification or stop based on observation timeout.
+Service primelora-tc-svc-77e8c69b01e547a78275658afd562ee0.scope,
+invocation b3359f20fd7e42199afba473684542ca/inode16524917,72/80GiBswap2.
+Aux primelora-tc-aux-e41fba3b3ec440ce8804ea3fa07fbf1d.scope,
+invocation42585c2ff6e1458db99213aeeb966b37,3/4GiBswap0CPU2,3,26,27.
+Deploymentnotice551157.263463389/businessstart551217.263463389;
+plannedarrivalend555181.172366511. Detailed observers OFF,4000W0 unchanged.
+
+Latest physical_deployment/request_terminals.jsonl:876terminal/876success/
+876native_contract_matched/error_types empty. Partial ONLY; numerical/full/SLO/
+performance acceptance unknown. Early monitor looked for request_terminal in
+replay.jsonl (which only logs creation/submission); those zero counts were NOT
+actual absence of service terminal records. Correct source now used above.
+Watchdog1035/monotonic552205.321853412:service17849155584B,hostavailable
+95135272960B,events/swap0,no warning/abort/foreign/escaped. ActualGPUworkers
+4049851/4054776/4055069/4055288 all service-owned, originalCPUaffinity preserved.
+Freshdisk161290977280B; running100GiB safe. No other heavy/analysis/tool sessions.
+Prelaunch/health scopes inactive/identity+paths empty. No remote operations since
+activation/health; readonly published cache reused without repacking.
+7Bhealthclock remote-process-monotonic:254154de56494625aaba44191e5bd06a.
+Exact-owned remote stop/copy wrappers prepared/bashed-n PASS, NOT executed;
+must wait local terminal + physical release. No local cleanup wrapper prepared
+yet; adapt existing D203 wrapper to exact live identities/PIDs after terminal.
+
+NEXT monitor SAME tmux/service/watchdog -> terminal/local release -> exact remote
+stop/copy -> bounded existing D203 metadata/projection/curation/occupancy/timing
+analysis -> table/interpretation/scoped backup. Avoid whole-loading large source
+JSON or reprojecting historic D20334MB projection. No Git mutation while running.
+All numerical/commonreference/legacy G1G2 and subsequent matrix gaps remain OPEN.
+
+### D210 prelaunch history (superseded by LIVE above)
+
+2026-10-04 00:11+08. Goal ACTIVE/current turn PROGRESS. Full Plan/status/V1
+reread after compaction; combined-output Plan-tail truncation repaired by
+explicit tail read. run-experiment/monitor-experiment read; no subagents.
+D209 already SEALED/BACKED, no repeat tests/probe or additional optimizer.
+Once-only published cache permission fulfilled D78/D80; reused, not recreated.
+
+Raw results/ieee_tc/p2_backend_qualification/d210_20261004. Reused D203 ordinary
+4000 W0 launch/config/prelaunch; only freshowned paths/current source identities.
+D157cap4/profile/generation/60snotice/1800s qualification unchanged; detailed
+frame/control/execution observers OFF. Current HEADbe7c2951; no runtime edits.
+Prelaunch078ec3e435bb6fcca8b9c21c9150d97db0fa521b4752c408e5981f5ec42c986e:
+614source refs/147protected/resourcePASS, session90968 CLOSED0. Health CLOSED0.
+Remote activated only BEFORE measurement; NIC1000/full and authenticated health
+PASS. 3Bpid1813549/id de107771cd5544868a3210f635259bfb;
+7Bpid1813551/id97ca094dd9de49e1b5d0aee40ca4dd78;
+monitor-d210full1pid1813554/id72aa8b760743474f9c707a572f749370.
+NEXT ONE ordinaryFull in tmux -> actualworker/resource checks -> terminal/local
+release -> exact-owned remote stop/copy -> bounded reused analysis/table/backup.
+No remote config/hash/cleanup/restart during replay; no second experiment.
+Numerical/output-difference/commonwarm/Resident/old-newG1G2 remain OPEN. Current
+candidate is CPU-qualified only, not performance/model acceptance. 7B then3B then
+baselines; all M1M2/A1–A5/S1–S13 retained.
+
+## Previous checkpoint — D209 acquisition identity CPU QUALIFIED, SEALED and BACKED
+
+Backup verified2026-10-04 00:01+08:
+be7c2951a64d7f381eb0a4345f5701561dcf3549. Push44490 CLOSED0; independent
+ls-remote42250 CLOSED0 exactmatch.10explicitfiles/126staged+archiveentries
+scope/secretsPASS; checksum/diff/syntax/smoke/qualificationPASS; usermanifest
+excluded. No stagedfiles, GPUcompute, experiment scopes/tmux or live tools.
+Remote remains stopped/untouched. D209 DONE, doNOTrepeat tests/probe/backup.
+NEXT one ordinary same-config7B4000Full after fresh resource/source gate, then
+cleanup/table/interpretation. GoalACTIVE; no performance/model/G1G2 acceptance.
 
 2026-10-03 23:59+08. Goal ACTIVE/current turn PROGRESS. Full Plan/status/V1 read after compaction;
 optimize-for-gpu, vLLM+optimization reference, run-experiment, analyze-results and

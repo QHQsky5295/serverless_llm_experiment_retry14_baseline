@@ -1,0 +1,11 @@
+{
+  "figure": "d210_vs_d203_latency",
+  "width_in": 3.45,
+  "font": "Times New Roman",
+  "data_sha256": "1d774868e1c0948988ea8760f56b7de879b0ac3f8ad3ca234fb1458f643acff0",
+  "run_set": [
+    "20261003_d203_7b_full_w0_full1",
+    "20261004_d210_7b_full_w0_full1"
+  ],
+  "caveat": "All 4000 requests completed with native contract, but numerical adapter correctness, common warm SLO thresholds, and formal G1/G2 acceptance remain pending. D210 is descriptive, not a CI or baseline comparison."
+}
