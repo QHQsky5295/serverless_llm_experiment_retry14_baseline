@@ -22,6 +22,7 @@ from typing import Dict, List, Optional, Set, Tuple, Any
 from dataclasses import dataclass
 from enum import Enum
 from contextlib import contextmanager
+from types import MappingProxyType
 
 from .gpu_monitor import GPUMemoryMonitor
 from ..registry.schema import ArtifactMetadata, StorageTier, ArtifactStatus
@@ -233,6 +234,8 @@ class LocalSourceReferences:
         self._file_replacement_contexts = {}
         self._file_replacement_events = []
         self._file_change_callbacks = {}
+        self._preparation_target_binding = None
+        self._preparation_targets = None
         self.source_epoch = 0
 
     def subscribe_file_changes(self, subscriber_id, callback):
@@ -1126,18 +1129,29 @@ class LocalSourceReferences:
 
     @staticmethod
     def _expected_content(files):
-        from ..storage.http_artifact_store import _canonical_member_name
-        if not files:
-            raise ValueError('preparation requires frozen payload files')
-        for name, (size, digest) in files.items():
-            _canonical_member_name(name)
-            if (type(size) is not int or size < 0 or not isinstance(digest, str)
-                    or len(digest) != 64 or any(c not in '0123456789abcdef' for c in digest)):
-                raise ValueError('preparation requires frozen file sizes and SHA256')
-        contents = json.dumps([dict(path=name, size_bytes=size, sha256=digest)
-            for name, (size, digest) in sorted(files.items())],
-            sort_keys=True, separators=(',', ':')).encode()
-        return hashlib.sha256(contents).hexdigest()
+        from ..storage.http_artifact_store import preparation_content_sha256
+        return preparation_content_sha256(files)
+
+    def _static_preparation_targets(self, manifests, units):
+        """One bounded static template bound to content, subset and live geometry.
+
+        Caller holds the owner lock and has just measured destination units.
+        Geometry/content changes replace this template, never its live sources,
+        epoch, budget, reservation, or execution-time checks.
+        """
+        binding = (manifests.binding,
+                   tuple((tier, str(root), units[tier]) for tier, root in sorted(self.roots.items())))
+        if binding != self._preparation_target_binding:
+            targets = {}
+            for aid, row in manifests.descriptions.items():
+                targets[aid] = MappingProxyType({tier: MappingProxyType(dict(
+                    tier=tier, representation='verified_regular_file_tree_v1',
+                    content_sha256=row['content_sha256'], footprint_bytes=sum(
+                        ((size+unit-1)//unit)*unit for size, _ in row['files'].values()),
+                    path=str(self.roots[tier]/aid))) for tier, unit in units.items()})
+            self._preparation_targets = MappingProxyType(targets)
+            self._preparation_target_binding = binding
+        return self._preparation_targets
 
     def _planning_source_observations(self, inventory, observed_stats):
         """Index one fresh inventory by adapter tree; caller holds the lock.
@@ -1192,21 +1206,25 @@ class LocalSourceReferences:
         archive peak is unknown until HTTP headers and is checked at execution.
         The snapshot neither reserves space nor claims native tensor ownership.
         """
-        from ..storage.http_artifact_store import _quote_artifact_id
+        from ..storage.http_artifact_store import FrozenPreparationDescriptions
         with self.lock:
             self._settle_file_allocations()
             units = {tier: os.statvfs(root).f_frsize for tier, root in self.roots.items()}
             if any(type(unit) is not int or unit <= 0 for unit in units.values()):
                 raise RuntimeError('preparation requires actual destination allocation units')
+            # Only this immutable, validating representation can reuse identity
+            # work. Mutable dictionaries are detached and validated every call.
+            if type(manifests) is not FrozenPreparationDescriptions:
+                manifests = FrozenPreparationDescriptions(manifests)
+            targets = self._static_preparation_targets(manifests, units)
             if any(path.name not in manifests for path in self._confirmed_sources):
                 raise ValueError('confirmed file owner contains adapters outside the frozen universe')
             observed_stats = {}
             inventory = self.inventory(_observed_stats=observed_stats)
             observations = self._planning_source_observations(inventory, observed_stats)
             artifacts = {}
-            for aid, files in sorted(manifests.items()):
-                _quote_artifact_id(aid)
-                content = self._expected_content(files)
+            for aid, description in manifests.descriptions.items():
+                content = description['content_sha256']
                 sources = []
                 for tier, root in self.roots.items():
                     path = root / aid
@@ -1229,12 +1247,9 @@ class LocalSourceReferences:
                 if any(row['content_sha256'] != content for row in sources):
                     raise ValueError('preparation file source differs from frozen manifest')
                 artifacts[aid] = dict(content_sha256=content,
-                    logical_payload_bytes=sum(size for size, _ in files.values()),
+                    logical_payload_bytes=description['logical_payload_bytes'],
                     sources=sources,
-                    targets={tier: dict(tier=tier, representation='verified_regular_file_tree_v1',
-                        content_sha256=content, footprint_bytes=sum(
-                            ((size+unit-1)//unit)*unit for size, _ in files.values()),
-                        path=str(self.roots[tier]/aid)) for tier, unit in units.items()})
+                    targets={tier: dict(target) for tier, target in targets[aid].items()})
             # Source validation can advance source_epoch without a content change.
             # Do not capture a budget earlier, or revalidate during serialization.
             budget = self._file_budget_from_inventory(limits, inventory)

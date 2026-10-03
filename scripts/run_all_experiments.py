@@ -13534,7 +13534,7 @@ class ScenarioRunner:
         try:
             plan = None
             if policy != 'no_handoff':
-                manifests = self._remote_artifact_client.preparation_manifests(self._ieee_artifact_identities)
+                manifests = self._remote_artifact_client.preparation_descriptions(self._ieee_artifact_identities)
                 manager = self._stack.residency_manager
                 view = files.preparation_snapshot(manifests=manifests,
                     limits={tier: int(manager.tier_capacities[StorageTier(tier)].total_bytes)
@@ -17743,7 +17743,7 @@ class ScenarioRunner:
         await self._attach_ieee_host_budget(slot.engine)
         native = await slot.engine.ieee_gpu_reference(operation='source_snapshot')
         manager = self._stack.residency_manager
-        manifests = self._remote_artifact_client.preparation_manifests(self._ieee_artifact_identities)
+        manifests = self._remote_artifact_client.preparation_descriptions(self._ieee_artifact_identities)
         files = manager.local_source_references.preparation_snapshot(manifests=manifests,
             limits={tier: int(manager.tier_capacities[StorageTier(tier)].total_bytes)
                     for tier in manager.local_source_references.roots})

@@ -22,6 +22,8 @@ import urllib.parse
 import urllib.request
 import uuid
 from contextlib import contextmanager
+from collections.abc import Mapping
+from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from types import MappingProxyType
 from typing import Any, Dict, List, Optional, Tuple
@@ -29,6 +31,72 @@ from typing import Any, Dict, List, Optional, Tuple
 
 class RemoteArtifactError(RuntimeError):
     """Raised when a remote artifact operation fails."""
+
+
+def preparation_content_sha256(files):
+    """Canonical file identity shared by immutable descriptions and live owners."""
+    if not files:
+        raise ValueError('preparation requires frozen payload files')
+    for name, (size, digest) in files.items():
+        _canonical_member_name(name)
+        if (type(size) is not int or size < 0 or not isinstance(digest, str)
+                or len(digest) != 64 or any(c not in '0123456789abcdef' for c in digest)):
+            raise ValueError('preparation requires frozen file sizes and SHA256')
+    contents = json.dumps([dict(path=name, size_bytes=size, sha256=digest)
+        for name, (size, digest) in sorted(files.items())],
+        sort_keys=True, separators=(',', ':')).encode()
+    return hashlib.sha256(contents).hexdigest()
+
+
+@dataclass(frozen=True, slots=True, init=False, eq=False)
+class FrozenPreparationDescriptions(Mapping):
+    """Detached, validated static file metadata; never a residency observation.
+
+    Public construction validates mutable input. Selection only shares already
+    immutable records. No trusted flag, object-address cache, or dynamic state
+    enters this representation. Destination geometry belongs to the live owner.
+    """
+    descriptions: Mapping
+    binding: tuple
+
+    def __init__(self, manifests):
+        descriptions = {}
+        for aid, source in sorted(manifests.items()):
+            if not isinstance(aid, str) or aid.strip() != aid:
+                raise ValueError('preparation requires canonical adapter IDs')
+            _quote_artifact_id(aid)
+            # Copy mutable pairs as well as their containing dictionaries.
+            files = {name: (size, digest) for name, (size, digest) in source.items()}
+            content = preparation_content_sha256(files)
+            descriptions[aid] = MappingProxyType(dict(files=MappingProxyType(files),
+                content_sha256=content,
+                logical_payload_bytes=sum(size for size, _ in files.values())))
+        object.__setattr__(self, 'descriptions', MappingProxyType(descriptions))
+        object.__setattr__(self, 'binding', tuple(
+            (aid, row['content_sha256']) for aid, row in descriptions.items()))
+
+    def __getitem__(self, aid):
+        return self.descriptions[aid]['files']
+
+    def __iter__(self):
+        return iter(self.descriptions)
+
+    def __len__(self):
+        return len(self.descriptions)
+
+    def select(self, artifact_ids):
+        ids = tuple(artifact_ids)
+        if len(ids) != len(set(ids)) or any(a not in self.descriptions for a in ids):
+            raise ValueError('preparation requires unique frozen artifact identities')
+        ids = tuple(sorted(ids))
+        if ids == tuple(self.descriptions):
+            return self
+        selected = object.__new__(FrozenPreparationDescriptions)
+        object.__setattr__(selected, 'descriptions', MappingProxyType(
+            {aid: self.descriptions[aid] for aid in ids}))
+        object.__setattr__(selected, 'binding', tuple(
+            (aid, self.descriptions[aid]['content_sha256']) for aid in ids))
+        return selected
 
 
 @contextmanager
@@ -132,6 +200,7 @@ class HttpArtifactStoreClient:
             raise ValueError('unknown required artifact delivery mode')
         self.required_delivery_mode = required_delivery_mode
         self._content_manifest = None
+        self._preparation_descriptions = None
         self.content_manifest_sha256 = None
         self._opener = (
             urllib.request.build_opener()
@@ -183,7 +252,11 @@ class HttpArtifactStoreClient:
         digest = hashlib.sha256(encoded).hexdigest()
         if self._content_manifest is not None and digest != self.content_manifest_sha256:
             raise ValueError('artifact content manifest is already frozen')
+        if self._content_manifest is not None:
+            return digest
+        descriptions = FrozenPreparationDescriptions(manifests)
         self._content_manifest = MappingProxyType(manifests)
+        self._preparation_descriptions = descriptions
         self.content_manifest_sha256 = digest
         return digest
 
@@ -224,6 +297,12 @@ class HttpArtifactStoreClient:
                 or any(a not in self._content_manifest for a in ids)):
             raise ValueError('preparation requires unique frozen artifact identities')
         return {a: dict(self._content_manifest[a]) for a in ids}
+
+    def preparation_descriptions(self, artifact_ids):
+        """Validated immutable metadata for repeated planning, not live tiers."""
+        if self._preparation_descriptions is None:
+            raise ValueError('preparation requires unique frozen artifact identities')
+        return self._preparation_descriptions.select(artifact_ids)
 
     def health(self) -> Dict[str, Any]:
         return self._json_request("/health")

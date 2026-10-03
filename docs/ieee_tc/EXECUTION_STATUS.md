@@ -1,6 +1,77 @@
 # IEEE TC execution status
 
-## CURRENT — D188 static/dynamic dependency study completed and SEALED; backup next
+## CURRENT — D189 CPU qualified and SEALED; backup then ordinary 7B Full
+
+2026-10-03 11:35+08. Goal ACTIVE/currentturn PROGRESS. D189 is the ONLY candidate;
+CPU qualified, NOT performance/model/G1G2 acceptance. Full Plan/status/V1 read
+after compaction and hashes unchanged. Skills optimize-for-gpu/vLLM optimization,
+run/monitor/analyze-results/academic-plotting/github-sync followed. Production
+edits only storage/owner static representation and TWO runner preparation calls.
+No formula/profile/config/SLO/timeout/weights/trace/remote change. D78/D80 once-only
+delivery cache remains untouched. D188 sealed evidence remains backed40e92a0.
+
+Targeted21PASS/14.446s (13new+8existing), actual4c3ee4f9bb9846b098b5efebf6751e03,
+session64053closed0. Regression1062PASS/115.049s, command127.45s/RSS1211112KiB,
+actual99774dd2cbce4ee08e5f5962b88cead3, tmuxended. Both3/4GiBswap0CPU2,3,26,27;
+events/swap0 and automatic scope/pathabsence verified. Existing actual owner,
+budget/cancel/retire regressions retained. CPU metadata only; no model inference.
+No production/test failure or rerun. Source snapshots preserved before both tests.
+
+Curation1 actual6379c693f6a84d39a9eea1832f28e929/session62913closed1:
+preflight stdout contains one platform INFO prefix before JSON. Original scripts
+and logs preserved, no outputs had been emitted; strict prefix+JSON parsing only
+in curation2. Production/tests/protection thresholds unchanged. Curation2
+actual509ea54860c44234a438a6cdf80abfd8/session8043closed0. Both3/4GiBswap0,
+events/swap0/scopeabsence verified. AST confirms exact two runner attribute edits,
+declared storage/owner methods only, original content-validation AST unchanged.
+147protected/PlanV1/source snapshots/doc-table checksPASS.
+
+DocD189_STATIC_PREPARATION_DESCRIPTIONS.md andcurated SEALED; doNOTedit afterseal.
+CuratedSHA7a148b19070c2b0e0d3241adec3dea43782403cb6d12bd52dafcd246cf283dd9;
+34member1070218B bundleSHAcea72a69ed928c9211e194c2dba26a1ced7cd4d6c90a8ff51e9c66c70fb1e1d4.
+Two-row qualification table/CSV delivered; no misleading performance graph/CI.
+No liveGPU/remote/CPU/tooljobs. Usermanifest/unrelated dirty work untouched.
+NEXT exact11pathbackup; then freshresourcepreflight and ONEordinary7B4000W0 at
+D185cap4/D157profiles/60snotice/fixedoutput/1800s; new owned output/cache paths
+only. DoNOTrepeat D188/D187/microqualification or stack another optimizer. Setup
+and metadata remain inside service lifecycle. Compare full TTFT/TPOT/physicalU/
+phases and SAME provisional reference; no formal qualification from nativecounts.
+Actual7B numeric/commonwarm/Resident/oldPrime-newmetrics/G1G2 remainOPEN before
+3B/baselines. EntireM1M2/A1–A5/S1–S13retained; diskNEW150/running100GiB and
+memoryfloors unchanged. No blocker/newauthority required.
+
+### D189 implementation and qualification history — terminal
+
+2026-10-03 11:19+08. D188 backup confirmed:
+40e92a0301688046f428da258bebb48da3a19639; push session13422 closed0 and
+independent ls-remote session44076 matches. D188 sealed doc/results unchanged.
+Full Plan/status/V1 reread after compaction; optimize-for-gpu/vLLM optimization
+reference/run-experiment/github-sync read. Primary vLLM CPU blog/.30core-client
+and Python asyncio docs rechecked. No GPU/remote jobs; once-only D78/D80 cache
+already fulfilled, reused rather than recreated. Goal ACTIVE, turn PROGRESS.
+
+Next ONE D189 candidate: immutable validated artifact descriptions; owner-bound
+static targets keyed by content/subset and current roots/allocation units. Mutable
+inputs remain validated on every call. Fresh inventory, source withdrawal,
+epochs/budgets/reservations/rechecks remain live. No algorithm/config/profile/
+metric change or new data. CPU correctness before ordinary same-config 7B Full;
+no repeated D188 study/D187 diagnostic. Actual 7B acceptance still OPEN before
+3B/baselines; later complete matrix retained. Disk161539588096B near NEW150GiB,
+host available112251248640B; fresh launch gate required, floors unchanged.
+
+11:28+08: D189 candidate implemented in storage/residency and TWO runner call
+sites only. Frozen descriptions validate/copy input; one content/subset/geometry
+bound target template; all fresh inventory/source/budget semantics retained.
+tests1:21PASS/14.446s, actual4c3ee4f9bb9846b098b5efebf6751e03/session64053
+CLOSED0; events/swap0 and automatic scope absence verified,147protectedPASS.
+Source/test snapshot archived before execution; no failed attempt. Regression1
+RUNNING in tmux tc_d189_regression1, actual99774dd2cbce4ee08e5f5962b88cead3,
+unitprimelora-d189-regression1-20261003.scope;3/4GiBswap0CPU2,3,26,27 verified.
+No GPU/remote job or performance conclusion. D189 doc DRAFT, targeted table
+delivered. Next SAME regression→cleanup→table/seal/backup→ordinary7BFull;
+no newcandidate/microstudy. Actual7B/model/G1G2 gates and latermatrix unchanged.
+
+## D188 static/dynamic dependency study completed, SEALED and BACKED — reference
 
 2026-10-03 11:11+08. GoalACTIVE/currentturnPROGRESS; previousPROGRESS.
 Full Plan/status/V1 retained in currentcontext; hashes rechecked unchanged.
