@@ -1,6 +1,76 @@
 # IEEE TC execution status
 
-## CURRENT — D193 planning snapshot dependency study supports ONE candidate
+## CURRENT — D194 CPU qualification SEALED; backup then ordinary Full
+
+2026-10-03 14:23+08. Goal ACTIVE/currentturn PROGRESS. Full Plan/status/V1
+read after compaction; run-experiment/analyze-results/academic-plotting/
+optimize-for-gpu/github-sync read. Once-only D78/D80 delivery cache approval
+already fulfilled; no recreation or remote operation. Runtime candidate only
+changes initialized-planner observation to existing complete registered graph;
+physical admission/allocator checks, formulas and configuration unchanged.
+
+Targeted75PASS102.841s; regression1070PASS147.218s, actualea0da105e1864d5b9ba75aa8466a3927.
+Both terminal/events-swap0/scopes absent; test groups overlap, not independent
+replicates. No failing test or production change after qualification.
+Curation1 actual52b9173ddff94900922cfd5abbe258a0 failed before any curated output:
+unchanged resource coordinator path incorrectly named memory instead of scheduling.
+Original scripts/log/resource receipts retained. Only metadata path repaired;
+no test/runtime/guard relaxation. Curation2 actualdc528ad462714571a64994a353ee00f6,
+session8096 CLOSED0;3/4GiBswap0CPU2,3,26,27, events-swap0/actualscopeabsent.
+Exact single endpoint AST/all other production AST,147protected/PlanV1/source
+SHA/document table checks PASS. CuratedSHA
+e5841b3e140a04a39d0ce0ab4f60d2d715bbe89fa88b44689db01e43a6f971e2;
+34member1145450B bundleSHA
+d10a01c6c1e1481988ab32ed7a8c1defdf3eecd4bb8978a835e2c0768245e4e0.
+DocD194_PLANNING_SNAPSHOT_IMPLEMENTATION.md and curated SEALED; doNOTedit.
+No liveGPU/remote/CPU/tooljobs. No new model/numeric/performance acceptance.
+
+NEXT exact11path backup; audited disposable-cache recovery and fresh preflight;
+then ONE ordinary sameD190 7B4000W0/cap4/D157profile/60snotice/fixedoutput/1800s.
+No further component study or stacked optimizer. Actual7B numeric/commonwarm/
+Resident/oldPrime-newmetrics/G1G2 OPEN before3B/externalbaselines; all M1M2/
+A1–A5/S1–S13 retained. Disk160694923264B below NEWheavy150GiB; running100GiB
+and memory floors unchanged. Usermanifest/unrelatedwork preserved.
+
+## D194 qualification history — terminal, do NOT rerun
+
+2026-10-03 14:14+08. Previous goalturn PROGRESS, currentturn PROGRESS.
+FullPlan/status/V1 retained/read in currentcontext, hashes unchanged; current
+state inspected. vLLM/optimization reference plus optimize-for-gpu/run-experiment/
+analyze-results/academic-plotting/github-sync followed. PrimaryvLLMCPUblog and
+fixed.30core-client rechecked. D193 SEALED/backed5f57edc retainedunchanged.
+
+ONE productionbehaviorchange: _plan_ieee_preparation_for_slot requests existing
+routing_source_snapshot COMPLETEregistered graph, notcompactroutingwire or
+targetscopedfootprints. GPUmonitor androutingdoc comments clarify consumers;
+allnativeowner/selector/CPUplanner/physicalexecution checks unchanged. Sixfixture
+dispatch/faultinjectors acceptthe existingoperation, no assertionremoved.
+Eightnewtests coverfullgraph/runnerdecisions/currentprotection/invalidcapacity/
+cancel-before-submit/deferredallocator/actualworker-proxy-forwardertransport.
+No newGPU/remote/config/profile/formula/SLO/weights/trace; D78/D80cacheuntouched.
+
+Targetedtests1 75PASS102.841s; actuala02955c10f594107afd3d62407f3bf30/
+session77538 CLOSED0, events-swap0 andscopeabsenceverified. Exactpretestsource
+archive retained. CPUregression1 RUNNING in tmux tc_d194_regression1,
+actualea0da105e1864d5b9ba75aa8466a3927,unitprimelora-d194-regression1-20261003.scope.
+Same3/4GiBswap0CPU2,3,26,27; noGPUorremotejob. DoNOTrelaunch ifobservationtimesout.
+No qualification/performanceacceptanceyet. D194doc DRAFT,curatorpreparednotrun.
+NEXT SAMEregression→scopeclosure/table→curate/seal/backup→auditeddiskrecovery/
+freshpreflight→ordinarysameD1907BFull. No secondoptimizer/microstudy/prefix.
+Actual7B numeric/commonwarm/Resident/oldPrime-newmetrics/G1G2 OPEN before3B/
+baselines; allM1M2/A1–A5/S1–S13 retained. DiskbelowNEWheavy150GiB, running100GiB/
+memoryfloorsunchanged. Usermanifest/unrelatedworkpreserved. GoalACTIVE.
+
+## D193 planning snapshot dependency study supports ONE candidate — reference
+
+Backup complete2026-10-03 14:03+08:
+5f57edc2850e95f13464dcca5ccf0e9f14005675; pushsession55887 CLOSED0 andindependent
+ls-remotesession8947 CLOSED0 match. Exact7paths/22staged+archiveentries passed
+credential/scope checks; checksums/AST-shell/table/working+stageddiffchecksPASS.
+Usermanifest excluded. FinalGPUcensus empty; noexperiment scopes/tooljobs.
+GoalACTIVE/currentturnPROGRESS. D193doc/results sealedunchanged. NEXT direct
+singlecandidate correctnessqualification below, notanotherstudy/repeatedFull.
+Actual7Bacceptance stillOPEN before3B/baselines; latermatrixretained.
 
 2026-10-03 14:02+08. Goal ACTIVE/current turn PROGRESS. Full Plan/status/V1
 read after compaction; hashes unchanged. optimize-for-gpu/run-experiment/

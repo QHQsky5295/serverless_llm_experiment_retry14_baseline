@@ -4759,7 +4759,8 @@ class InferenceEngine:
         This executes after the native GPU-core RPC, not inside its execution
         loop. It neither caches a completed observation nor reserves a source.
         Source rechecks/acquisition consume this same verified source view.
-        Physical admission/planning still request the original full inventories.
+        Physical admission keeps allocator/staging inventories; initialized
+        planning keeps the complete registered graph, not this compact wire.
         """
         from faaslora.clock import local_monotonic_clock_id
         from faaslora.experiment.instance_pool import NativeSourceSnapshot
@@ -17741,7 +17742,13 @@ class ScenarioRunner:
             raise ValueError('automatic preparation requires measured profiles and real source owners')
         self._preparation_profiles.validate_runtime(slot.engine.model_cfg)
         await self._attach_ieee_host_budget(slot.engine)
-        native = await slot.engine.ieee_gpu_reference(operation='source_snapshot')
+        # Despite its historical name, this endpoint returns the full fresh
+        # registered HOST allocation/alias graph and GPU pool geometry. Only
+        # descriptive HOST views and unused allocator/staging reports are
+        # omitted. Do not substitute ieee_routing_sources' compact wire or a
+        # request-scoped footprint: planning needs global capacity and victims.
+        # Physical execution/deferred-capacity checks keep their full reports.
+        native = await slot.engine.ieee_gpu_reference(operation='routing_source_snapshot')
         manager = self._stack.residency_manager
         manifests = self._remote_artifact_client.preparation_descriptions(self._ieee_artifact_identities)
         files = manager.local_source_references.preparation_snapshot(manifests=manifests,

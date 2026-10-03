@@ -926,9 +926,9 @@ class IEEEWorkerObservationExtension:
                 **host,
                 **_ieee_lora_pool_inventory(manager, require_uniform_slots=True)}
             if operation == 'source_snapshot':
-                # Physical/planning consumers still need the full allocation
-                # view. Routing validates only the complete registered graph
-                # in its frontend and does not consume staging/allocator data.
+                # Physical observation/admission consumers need staging and
+                # allocator evidence. Routing and initialized planning consume
+                # the complete registered graph above, not these extra reports.
                 staged = owner.staged_models()
                 # This reuse is within one observation, never across calls.
                 result['native_staging_footprints'] = (

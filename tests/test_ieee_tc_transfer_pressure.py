@@ -1415,7 +1415,7 @@ class OwnedPreparationPlanning(unittest.TestCase):
                                                        sort_keys=True, allow_nan=False))
         engine.model_cfg = model
         async def observation(**command):
-            if command['operation'] == 'source_snapshot':
+            if command['operation'] in ('source_snapshot', 'routing_source_snapshot'):
                 return copy.deepcopy(native)
             if command['operation'] == 'snapshot':
                 return dict(owner_id=native['owner_id'], worker_pid=os.getpid(), clock_id=clock)
@@ -1686,7 +1686,7 @@ class ActivationPreparation(unittest.TestCase):
         runner._warmup_engine_hot_set = AsyncMock(side_effect=AssertionError('legacy warmup'))
         engine.shutdown = AsyncMock()
         async def rpc(*, operation, **kw):
-            if operation == 'source_snapshot': return copy.deepcopy(native)
+            if operation in ('source_snapshot', 'routing_source_snapshot'): return copy.deepcopy(native)
             if operation == 'snapshot': return dict(owner_id=native['owner_id'],worker_pid=os.getpid(),clock_id=clock)
             if operation == 'configure_host_budget':
                 return dict(configured=True,owner_id=native['owner_id'],worker_pid=os.getpid(),
@@ -1953,7 +1953,7 @@ class MixedOwnedPreparation(unittest.TestCase):
                     has_packed_modules=False) for j, aid in enumerate(registered)])
             return dict(source, native_footprints=inv, clock_id=local_monotonic_clock_id())
         async def reference(*, operation, **kw):
-            result = snapshot() if operation == 'source_snapshot' else getattr(owner, operation)(**kw)
+            result = snapshot() if operation in ('source_snapshot', 'routing_source_snapshot') else getattr(owner, operation)(**kw)
             return dict(result, worker_pid=os.getpid(), clock_id=local_monotonic_clock_id())
         async def prepare(**kw):
             from faaslora.preloading.preloading_planner import (native_gpu_fallback_costs,
@@ -2021,7 +2021,7 @@ class MixedOwnedPreparation(unittest.TestCase):
             return observed
         old_rpc=slot.engine.ieee_gpu_reference.side_effect
         async def reference(*,operation,**kw):
-            return complete_snapshot() if operation=='source_snapshot' else await old_rpc(operation=operation,**kw)
+            return complete_snapshot() if operation in ('source_snapshot', 'routing_source_snapshot') else await old_rpc(operation=operation,**kw)
         slot.engine.ieee_gpu_reference.side_effect=reference
         profiles=runner._preparation_profiles
         values={key:(5. if key.tier=='host' and key.size_bin==0 and
@@ -2603,7 +2603,7 @@ class AutomaticGPUReplacement(unittest.TestCase):
         reference = slot.engine.ieee_gpu_reference.side_effect
         async def capture(**kw):
             result = await reference(**kw)
-            if kw['operation'] == 'source_snapshot':
+            if kw['operation'] in ('source_snapshot', 'routing_source_snapshot'):
                 observed.append(result)
             return result
         slot.engine.ieee_gpu_reference.side_effect = capture
@@ -3432,7 +3432,7 @@ class AutomaticGPUReplacement(unittest.TestCase):
             original=slot.engine.ieee_gpu_reference.side_effect
             async def missing(*,operation,**kw):
                 row=await original(operation=operation,**kw)
-                if operation=='source_snapshot': row.pop('replacement_protected_adapter_ids')
+                if operation in ('source_snapshot', 'routing_source_snapshot'): row.pop('replacement_protected_adapter_ids')
                 return row
             slot.engine.ieee_gpu_reference.side_effect=missing
             with self.assertRaisesRegex(ValueError,'reference/target protection'):
