@@ -1,6 +1,126 @@
 # IEEE TC execution status
 
-## CURRENT — D199 offline control-boundary analysis CPU QUALIFIED and SEALED
+## CURRENT — D200 detailed 7B prefix COMPLETE, SEALED; backup pending
+
+2026-10-03 18:11+08. Goal ACTIVE/current turn PROGRESS. Full Plan/status/V1
+reread after compaction; hashes unchanged. monitor-experiment/analyze-results/
+run-experiment/academic-plotting/github-sync read. No subagents or optimizer.
+Latest once-only cache permission already fulfilled D78/D80; reused, not rebuilt.
+
+D200 ended:1000/1000 terminal/native-contract successes, zero failures, numeric
+n_correct UNKNOWN. launch pass/service-replay-watchdog0, physical release true;
+launchSHAc8f083b721368eb9fa0e5bf4908a81b29a9ef3d64127a68a6e3f691557577d03.
+Four physical leases/4452.071693249978GPU-s. Exact local service/aux paths and
+ten observed PIDs absent; GPU census empty; tmux ended. Only then exact-owned
+three remote services stopped (57398 CLOSED0), allinactive/MainPID0. Transfer
+journal transfers-981699c3da6f4a13a75dfb14e95c6f1b.jsonl copied with SHA check
+(91954 CLOSED0). 60UUID pairs/allpublished/74953014wireB/1474429899logicalB,
+requestpacking0/no byte mismatches. No remote changes during inference.
+1191watchdogsamples/servicepeak18999349248B/minhost92882001920B/events-swap0,
+no warning/foreigncompute/escaped workers. Remote/local runtime now STOPPED.
+
+Reuse D187 collection/curation, only D200 identities/paths and D199 boundaries
+added. No production code changes. Analysis sequential3/4GiBswap0CPU2,3,26,27:
+- boundaries1 actual4f58160d4d854163afd2a6d4f5f49f3c/session15587 CLOSED0;
+- metadata actual245057c1874643929bb63dd7676a3693/session31782 CLOSED0;
+- frames actualb372a59811a14a1cb71db16c25bf77f9/immediate CLOSED0;
+- curation actual2750a8509b5443a8aba318f8a342e493/session72138 CLOSED0.
+Allterminalmemory.events0; actual identity/path absence checked in seal.
+46244boundaryevents/4204attempts ALLcomplete-success, no partial/orphan/cancel/
+error; count agrees with source_stats4204RPC. ALLbusiness includingdrain.
+Means ms:parenttotal179.796957; frontend-send→native-begin96.328020;
+nativewall12.315801/nativeCPU9.520286; native-ready→frontendreceive24.726790;
+frontend-ready→parentreceive35.193664. NOT pure queue/transport times, not
+request critical-path attribution; fourconcurrentRPCs not additiveasTTFT.
+Tenprocessframe populations:controller/planner/fourfrontends/fourGPUcores;
+6truncatedstacks/0missingmain/0partial. OccurrencesNOTCPUpercentages.
+Controller537businesssamples, nearestproject decode45/fileinventory26/planning17.
+No ordinaryFull comparison/n1CI/performance/model/SLO qualification inferred.
+
+Doc D200_CONTROL_BOUNDARY_PREFIX.md and exact-stage Markdown/CSV tables SEALED.
+Curated23ffb565ccfb93f74bc4283bca82b56eab417989e4eeb4b4a4626176819e683d;
+verification56c032f3f2160c258fc86918ab949ab1647e0bbbee9c2895e4b760c89dee9691.
+Bundle81members736572B SHAd4c8a06afaf5a0aab48158deaa9cc54c56db9d77988ee282b5af3844d2aead1d.
+147protected/537prelaunchrefs PASS. Full raw request JSON not reparsed; no new
+native-timeline/dispatch completeness or E2E identity claim from this prefix.
+seal1 session16563 CLOSED1: path cache1 nonexistent (actual cache), before
+result artifacts; original helper/log retained, no GPU rerun. Failedscope
+c7a68fa362cc4e508f8b633c89185ad4 absent; terminal counters not captured.
+seal2 corrected only exact archive path/new attempt, session59160 CLOSED0,
+actualbf7bbe7b25954331ad39479e3b7ce662; events0/scopeidentity/path absent.
+No live tool sessions. Lastdisk161249439744B; freshgate before any nextheavy.
+
+NEXT backup exact D200 checkpoint, then read actual vLLM0.30 utility scheduling/
+response + Prime caller against official docs/code and historical optimizations;
+one falsifiable hypothesis before any serving change. D197 summary production
+still DEFERRED; no repeat serializer study/stale confirmed-state shortcut or
+speculative Full. SevenB numeric/commonwarm/Resident/old-new/G1G2 gaps OPEN.
+7B acceptance→3B→baselines; entire M1M2/A1–A5/S1–S13 still retained.
+
+## D200 launch history — superseded by COMPLETE above
+
+17:46+08 last read:34terminal records,968control-event lines across tenprocess
+files (one startup-only process has0events); not complete or success acceptance.
+watchdogsample152: service14967316480B/hostavailable97511907328B/events-swap0,
+no foreigncompute/escaped/guardabort. tmux live. Prior D199curate/D200cache1/
+cache2audit-apply/prelaunch/health scopes all not-found/identity+path empty.
+No live tool sessions; ONLY GPUdiagnostic+ownaux+three remote services active.
+
+17:45+08 actual worker check: watchdogsample108,monotonic527952.964302317;
+GPUcomputePIDs2364655/2368679/2369096/2369310 all service_member=true and
+affinity4–23,28–47. Service memory17061773312B/hostavailable95008206848B;
+memory.events all0/swap0/guardwarningfalse/no abort. Actual workers verified,
+not merely launcher. No analysis/remote management during live measurement.
+
+2026-10-03 17:44+08. Goal ACTIVE/current turn PROGRESS. Full Plan/status/V1
+read; full Plan/status reread before GPU launch (large grouped output truncated,
+801–1537/status reread separately to EOF). Plan/V1 unchanged. No new optimizer.
+D199 backup c75ef3750b4fc739f9351f713578fb2bbe9f3ca1 verified below.
+D200 ONE detailed diagnostic launched in tmux tc_d200_prefix1; raw
+results/ieee_tc/p2_backend_qualification/d200_20261003. Do NOT launch another.
+Same D195 config/D157 cap4/60s/source42/fixedoutput/1800s; only prefix1000 and
+three fresh owned paths differ. D198 boundaries + existing 2s frame observer.
+Prelaunch4e04fad348e3e3f4c35c86870ac59a35592622cb9e8a1abdeff825b796d02362,
+537refs/147protected PASS; prelaunchsession60394 CLOSED0, health CLOSED0.
+Actual service primelora-tc-svc-5c3eb2f2a2c14d249e224f5311a2b94e.scope,
+invocation03661341910f44188c81ffede5224537, inode16281283, 72/80GiBswap2.
+Aux primelora-tc-aux-dfbd3ac771f348919fc489b5daaba34f.scope,
+invocationb7721e1d3b674280a2825cbf4079c77d,3/4GiBswap0CPU2,3,26,27.
+Deploymentnotice527844.502615776/businessstart527904.502615776.
+Initial live samples: no guard events/foreign compute/escaped workers; GPU
+workers still starting at this record. Need verify actual GPU processes next.
+Once-only D78/D80 remote cache reused, no repacking. BothNIC1000/full prelaunch.
+Remote services ACTIVE: 3Bpid1451251/id2bfcb78c0818438daa6d1a03cc42d170;
+7Bpid1451253/id14ae44c2bd5f461db9227a961fe3cc57;
+monitor-d200prefix1 pid1451256/ide5020271cb6c4780905090375efacf15.
+7B healthclockremote-process-monotonic:d79dce1802504d40b319489cb4591e6f.
+Exact remote stop/copy scripts prepared, MUST NOT execute before local terminal
+and physical release; no remote operations, hash/cleanup/config change during run.
+Cache2 audit/apply completed49806/45551 CLOSED0; identities
+a10851c61fa24ff1b0218eab094252ba/c8d4d676fea74ce3ba990a2ce9ba76d4.
+52publicwheelarchives/104files875450368allocatedB reclaimed after exact public
+SHA/size/HEAD/reference/ownership/openfile checks; fourtrackedprojects unchanged,
+installedenvs/models/results/custombuilds untouched. Both3/4GiB/events-swap0.
+AuditSHA706b48b37ff17689f204bc15ccc16667cbce6cb2045f41665e09db264164e06d;
+newlaunchdisk161602117632B above150GiB; running100GiBfloor unchanged.
+Cache1 read-only9archive audit not applied, superseded. No stale deletion retry.
+NEXT monitor -> exact localrelease -> exact remotestop/copy -> bounded D199
+analysis + existing stack/native terminal analysis -> table/interpretation/backup.
+No claim of current completeness, numericalcorrectness, SLO or performance gain.
+7B acceptance -> 3B -> baselines; all later matrix retained. D200doc DRAFT.
+
+## D199 completed — offline control-boundary analysis CPU QUALIFIED and SEALED
+
+Backup verified2026-10-03 17:36+08: c75ef3750b4fc739f9351f713578fb2bbe9f3ca1,
+pushsession51612 CLOSED0, independent ls-remotesession28448 CLOSED0 exactmatch.
+9explicitpaths/42staged+archiveentries passed scope/secret check; checksum/diff
+PASS. First checksum invocation used wrong cwd (read-only missing file), rerun
+in bundle directory PASS; no evidence or test failure. D199 doc/results sealed.
+D200 prep history: cache1 read-only10–30MiB audit ended96663 CLOSED0; only158302208B
+eligible under previous package allowlist, not applied. Fresh metadata inspection
+identified additional exact public scientific/build-tool wheel names; cache2
+read-only audit started with expanded explicit names, same SHA/size/HEAD/ref/
+ownership/open-file checks. No GPU/remote changes. Do not apply stale cache1.
 
 2026-10-03 17:34+08. Goal ACTIVE/current turn PROGRESS. Full Plan/status/V1
 reread; hashes unchanged. analyze-results/run-experiment/academic-plotting/
