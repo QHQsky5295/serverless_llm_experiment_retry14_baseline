@@ -1,6 +1,67 @@
 # IEEE TC execution status
 
-## CURRENT — D207 actual 22-request execution metadata QUALIFIED, SEALED; backup NEXT
+## CURRENT — D208 isolated LoRA coordinate arithmetic QUALIFIED and SEALED
+
+2026-10-03 23:31+08. Goal ACTIVE/current turn PROGRESS. Full Plan/status/V1
+read after compaction; grouped output truncation repaired by separate fullread.
+analyze-results/vLLM+troubleshooting/run-experiment/monitor-experiment/
+academic-plotting/github-sync read; no subagents. No production code/config/
+formula/SLO/native-package change, remote operation or cache generation.
+Once-only cache permission fulfilled D78/D80. D207 already backed, not repeated.
+
+ONE minimal arithmetic question following D63/D167/D207: installed native
+shrink/expand on coordinate inputs must equal directly read checkpoint columns.
+Official v0.30 test_punica_ops.py/utils.py fetched/read; generic broad tolerance
+NOT imported. Four existing content classes, all32layers qkv/o, FP16/4slots/
+rank64padding,16even A-input coordinates/all64 B-rank coordinates, mixed base
+rows and two slot assignments. Native eager + CUDA Graph replay checked.
+No new model/adapter/workload, no new observation framework or Full run.
+
+Raw results/ieee_tc/p2_backend_qualification/d208_20261003. arithmetic1 PASS,
+512 combinations/673710080 compared elements/0 mismatches, maxabs0. Each128
+layer/module/op reference group distinguishes nonzero-adapter swap and base;
+combined16782968 differing elements. Elements/padding/repeated coordinates NOT
+independent samples, no performance/CI/Full/n_correct upgrade. Arbitrary-input
+roundoff/fullmodel arithmetic and D203126hashdifferences remain unproven.
+
+Service b741410a96a44636b72b4a2a705ac28e / invocation240e1426d709418b9cf9430459fd389b,
+inode16495613, actualGPU0worker3849963 service-owned CPUs4–23,28–47.
+Auxe03a7ae7d7234f4aa3edacbb8a73a234. 22watchdogsamples/peak782970880B/
+minhost111552618496B, allguardevents/swap0. Service/watchdog0, physicalcontext
+release/pathremovedtrue; exactcleanup23:26:54. No GPU/tmux/scopes/remote live.
+GPU script20.305s diagnosticwall, NOT inference timing or lifecycle saving.
+
+Curate1 session6376 CLOSED0, CPU3/4GiBswap0/CPUs2,3,26,27; terminalevents/swap0,
+unitidentity/pathabsent. Independently checked full512keycoverage/128controls/
+sourceSHA/actualworker/resource/147protected/PlanV1/runtimeunchanged, syntax and
+shell smokePASS. No GPU/curation failure. One launcher-preparation JS index
+typo before writes and one extra-newline archivalcopy corrected before curation;
+not measurement attempts. Exact prelaunchprotocol retained and SHA matched.
+
+Doc D208_LORA_COORDINATE_ARITHMETIC.md/table SEALED, doNOT edit after binding.
+24member bundle SHA b479466b36c2b9118575e38de62e5436546f75be323f627105b3a9470cfffe61.
+NEXT exact7path checked backup, then RETURN mainline. Do NOT repeat D166/D167/
+D207/D208 or broaden kernel proof absent a specific new failure/hypothesis.
+Remaining: audit output-difference using evidence capable of distinguishing
+batching arithmetic from wrong adapter; commonwarm/Resident and necessary
+matched old-newPrime evidence for actual7BG1G2, then3B, thenbaselines. Existing
+126outputhashes alone cannot recover firstdivergenttokens/logits. No silent
+batch-invariance toggle, tolerance change or speculative Full. AllM1M2/A1–A5/
+S1–S13 remain pending. Native-count completion != formal numerical acceptance.
+
+## Previous checkpoint — D207 actual 22-request execution metadata QUALIFIED, SEALED and BACKED
+
+Backup verified2026-10-03 23:11+08:
+8efaad5dc7c169881f1ea21d3b5cac96d319c4be. Push25309 CLOSED0; independent
+ls-remote97019 CLOSED0 exactmatch.13explicitfiles/120staged+archive entries
+scope/secretsPASS; diff/checksumPASS; usermanifestexcluded. No stagedfiles,
+GPUcompute/runningexperiment scopes/tmux/tool sessions; remote untouched/stopped.
+Latestdisk162280996864B; freshgate before newheavy, floorsunchanged.
+D207 qualification and backup DONE; do NOT repeat them. NEXT remaining
+correctness/output-difference and common-reference evidence for actual old-new
+7B G1G2 acceptance, not a further observation framework or speculative Full.
+Read V1 FULL before comparison/config selection. 3B/baselines/latermatrix remain
+pending; goal ACTIVE, not model completion. Details and retained failures below.
 
 2026-10-03 23:10+08. Goal ACTIVE/current turn PROGRESS. Full Plan/status read
 after compaction; no subagents. vLLM/troubleshooting/run/monitor/academic-plotting/

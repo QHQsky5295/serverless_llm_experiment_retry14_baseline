@@ -1,0 +1,5 @@
+op,mode,cases,elements,mismatches,max_abs_error
+expand,cuda_graph_replay,128,335544320,0,0.0
+expand,eager,128,335544320,0,0.0
+shrink,cuda_graph_replay,128,1310720,0,0.0
+shrink,eager,128,1310720,0,0.0

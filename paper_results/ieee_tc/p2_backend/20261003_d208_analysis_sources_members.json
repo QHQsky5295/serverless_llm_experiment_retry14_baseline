@@ -1,0 +1,122 @@
+[
+  {
+    "name": "D208_LORA_COORDINATE_ARITHMETIC.md",
+    "size": 4745,
+    "sha256": "e1b92d06c65c35322e24d2e51118cc2717e6a5aa85e0fbe8165ed724604057fd"
+  },
+  {
+    "name": "arithmetic1.json",
+    "size": 31484,
+    "sha256": "e46bd3faea7d306b7ed566333eb780b56ad17bc19e37e2c6a5c5e29d4c9b705e"
+  },
+  {
+    "name": "arithmetic1_cleanup.txt",
+    "size": 338,
+    "sha256": "7344e293e85e86716402cb985ffaaf544cde07ddd26a2cd27630db8bc9c3765c"
+  },
+  {
+    "name": "arithmetic1_launch.json",
+    "size": 10615,
+    "sha256": "5083d5a219c985f278a51c13aa004d7ba9b51b7db0f4f11ecb71d7b99ccdd5ca"
+  },
+  {
+    "name": "arithmetic1_launch.launch/exec_receipt.json",
+    "size": 11865,
+    "sha256": "2c43443b9d9b967bc94cd79bef35827985b6b52ca2276dfd654cb521109db410"
+  },
+  {
+    "name": "arithmetic1_launch.launch/service.log",
+    "size": 846,
+    "sha256": "43765aca2405a9d6db711f97ad1d647e5a38048aee649c38b1eaa25c412b34f6"
+  },
+  {
+    "name": "arithmetic1_launch.launch/watchdog.jsonl",
+    "size": 126292,
+    "sha256": "2e8bbdb0b947f830f75080d5217f5064bea1ad6cd3fe21ac548ae61816e672d2"
+  },
+  {
+    "name": "arithmetic1_launch.launch/watchdog.stderr",
+    "size": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "arithmetic1_protected_before.json",
+    "size": 274,
+    "sha256": "6ecc930a70810595f453198ba8a3d825f96f1a25f5b6cc0d61aff2b0ab9a4c3f"
+  },
+  {
+    "name": "arithmetic1_rows.jsonl",
+    "size": 177376,
+    "sha256": "372c023bf9284fa50687c147174f0c37d68dc0d3d1d8c87ece2f59f238670e49"
+  },
+  {
+    "name": "arithmetic1_sources.sha256",
+    "size": 740,
+    "sha256": "18800429d8f61bf4f5edf93e095914ec861601362031703601f7274e7bd7dec3"
+  },
+  {
+    "name": "curate.py",
+    "size": 7353,
+    "sha256": "d5bb9cf09a2f7c664c4fcf30156ef81f814399b445f83272f6c8fc41576b8162"
+  },
+  {
+    "name": "installed_source/vllm/lora/ops/triton_ops/kernel_utils.py",
+    "size": 10577,
+    "sha256": "0c30484ae5c097800589aab000b96c226c9ec275ab6c4a462838f76569b62e68"
+  },
+  {
+    "name": "installed_source/vllm/lora/ops/triton_ops/lora_expand_op.py",
+    "size": 8966,
+    "sha256": "caa1b9dcfc877af1d95fdbe8302efedfb061c3c63709897a4d905264e5464005"
+  },
+  {
+    "name": "installed_source/vllm/lora/ops/triton_ops/lora_kernel_metadata.py",
+    "size": 7695,
+    "sha256": "7669eeeb491e89df7ef4ff050a79d3934ce7a63b146fe93239f081d176c68881"
+  },
+  {
+    "name": "installed_source/vllm/lora/ops/triton_ops/lora_shrink_op.py",
+    "size": 8676,
+    "sha256": "036dfc7f2216de0e9e5da12698fa9c921d076cbc2fda053409ff94a2c4779fa4"
+  },
+  {
+    "name": "installed_source/vllm/lora/punica_wrapper/punica_gpu.py",
+    "size": 24504,
+    "sha256": "7ddedad89b6721751012af6f72bd85d0f8e2f6e9b288fc1909b08a732c360919"
+  },
+  {
+    "name": "official_test_punica_ops.py",
+    "size": 16223,
+    "sha256": "1a5f6f8b0e623fcaaaeee77d65773599fdd58339d389fe8142c86f32cc60477f"
+  },
+  {
+    "name": "official_test_utils.py",
+    "size": 12710,
+    "sha256": "92292ef30a02680a3a64a5ef0d32d6b95d2c981367d0aee48600a9747014669f"
+  },
+  {
+    "name": "probe.py",
+    "size": 10589,
+    "sha256": "8b691621a92cbf38daa811e7e86d96f70dc5af8a80c29b22b564b20ddf434b81"
+  },
+  {
+    "name": "protocol_before.md",
+    "size": 2765,
+    "sha256": "a1b37268125526bfadc4f2d07a5cbb4f4cce748fcad1370fd1cc126cf6848b01"
+  },
+  {
+    "name": "run_cpu.sh",
+    "size": 2090,
+    "sha256": "7dc59b54302d50a32bb72fdd5474e173d5fd99a7f3d34e2ed41db0da9497a378"
+  },
+  {
+    "name": "run_gpu1.sh",
+    "size": 2409,
+    "sha256": "8d1de639a8b89c890b30d93629d4e828e2f42203d7d6364731b8eea35481d94d"
+  },
+  {
+    "name": "verify_cleanup1.sh",
+    "size": 1241,
+    "sha256": "6eb5e68e0ebea110caf4c668abe5550e82231500877d1f61180605c0fbfec84c"
+  }
+]
