@@ -1,0 +1,47 @@
+{
+  "kind": "d207_evidence_verification_v1",
+  "passed": true,
+  "protection": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "actual_gpu_diagnostic_passed": true,
+  "qualification_not_performance": true,
+  "syntax_smoke": true,
+  "allowed_runtime_nodes": {
+    "faaslora/memory/gpu_monitor.py": [
+      "_IEEENativeExecutionObserver"
+    ],
+    "scripts/ieee_tc_preflight.py": [
+      "backend_model_check",
+      "initialize_qualification_runtime",
+      "main",
+      "qualify_execution_observer",
+      "require_native_execution_drained",
+      "validate_native_execution_journal"
+    ]
+  },
+  "unchanged_sources": [
+    "scripts/run_all_experiments.py",
+    "faaslora/memory/residency_manager.py",
+    "faaslora/preloading/preloading_planner.py",
+    "faaslora/experiment/instance_pool.py",
+    "scripts/dedicated_engine_worker.py",
+    "faaslora/scheduling/vllm_ieee_frontend.py",
+    "faaslora/scheduling/vllm_ieee_scheduler.py",
+    "configs/ieee_tc/20261002_d166_7b_slot_content.yaml"
+  ],
+  "bundle_members": 80,
+  "bundle_bytes": 2041377,
+  "artifacts": {
+    "docs/ieee_tc/D207_NATIVE_EXECUTION_PREFIX.md": "6934aa43e44a204ef92b1b3b42d0be7de92d15dde2fe36a2775c8569415c4867",
+    "paper_results/ieee_tc/p2_backend/20261003_d207_analysis_sources.tar.gz": "ac2f3dd3f3809ca2295eb9b06d053c80cff6f4b8947783e877664a5d093101a7",
+    "paper_results/ieee_tc/p2_backend/20261003_d207_execution_prefix.json": "c55595d89796854604502b911a71856a3a3c626383e53c872b7d3917ded3db2c",
+    "paper_results/ieee_tc/p2_backend/20261003_d207_attempts.csv": "4926cd8bcddf3c90cdf520cf87d793c63365f28bb6f788d64848e6dc1670290e",
+    "paper_results/ieee_tc/p2_backend/20261003_d207_requests.csv": "256205fdae379b5ea36e99a307e0925baa7562816023e533ca04c2261734cd3a"
+  }
+}

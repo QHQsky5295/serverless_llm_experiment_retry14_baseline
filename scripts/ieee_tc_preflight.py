@@ -4269,7 +4269,7 @@ async def initialize_qualification_runtime(model_config, mode):
     """
     from scripts.run_all_experiments import SubprocessInferenceEngineProxy
     physical = mode in ('native_lifecycle', 'native_capacity_wait', 'native_source_matrix',
-                        'native_slot_content', 'native_warm_reference')
+                        'native_slot_content', 'native_warm_reference', 'native_execution_metadata')
     if physical and model_config.get('ieee_physical_allocation') is not True:
         raise ValueError('physical qualification requires actual GPU allocation before startup')
     if not physical and mode != 'cancel_pairs_subprocess':
@@ -4386,6 +4386,203 @@ def validate_native_lora_execution_metadata(observation: dict,
                 full_pool_qualified=False, n_correct=None)
 
 
+def require_native_execution_drained(snapshot):
+    """Native admitted is a list of request rows, not an integer counter."""
+    if (not isinstance(snapshot['admitted'], list) or snapshot['admitted']
+            or any(type(snapshot[k]) is not int or snapshot[k] != 0
+                   for k in ('unretired_iterations', 'native_deferred_free_batches'))
+            or any(type(snapshot[k]) is not int or snapshot[k] < 0
+                   for k in ('scheduled_sequence', 'completed_sequence'))
+            or snapshot['scheduled_sequence'] != snapshot['completed_sequence']):
+        raise ValueError('execution qualification boundary is not drained')
+
+
+def validate_native_execution_journal(journal, expected_leases, worker, scheduler_before,
+                                      scheduler_after):
+    """Join isolated D206 evidence to independent leases and scheduler counters.
+
+    The caller validates the ordinary worker's live process/cgroup separately.
+    This check covers metadata boundaries, not kernel arithmetic, concurrent
+    workloads, the complete adapter pool, or performance. Missing data fail.
+    """
+    if not isinstance(journal, list) or len(journal) < 2 or not expected_leases:
+        raise ValueError('execution journal needs start/stop and external leases')
+    identities = ('diagnostic_id', 'worker_pid', 'worker_thread', 'device', 'clock_id',
+                  'model_id', 'raw_model_id', 'manager_id', 'wrapper_id',
+                  'layer_identity', 'metadata_identity', 'execution_contract')
+    start = journal[0]
+    if (start.get('worker_pid') != worker['pid'] or start.get('clock_id') != worker['clock_id']
+            or start.get('device') != worker['local_device'] or not start.get('layer_identity')
+            or not start.get('metadata_identity') or start.get('events') != []
+            or start.get('bindings') != {} or start.get('native_requests') != {}
+            or start.get('iterations') != 0
+            or start.get('last_sequence') != 0
+            or start.get('execution_contract') != 'vllm_v2_split_forward_sample_v1'):
+        raise ValueError('execution observer did not start empty on the verified worker')
+    for snap in (scheduler_before, scheduler_after):
+        require_native_execution_drained(snap)
+    if scheduler_before['scheduler_owner_id'] != scheduler_after['scheduler_owner_id']:
+        raise ValueError('native scheduler owner changed')
+    native_to_external, external_to_lease = {}, {}
+    for lease, expected in expected_leases.items():
+        if (not isinstance(lease, str) or not lease or type(expected['adapter_int_id']) is not int
+                or expected['adapter_int_id'] <= 0 or not expected['owner_id']
+                or type(expected['target_tokens']) is not int or expected['target_tokens'] <= 0):
+            raise ValueError('invalid independent request lease contract')
+        receipt = expected['retirement']
+        retired = receipt['native_retirement']
+        internal, external = retired['request_id'], retired['external_request_id']
+        if (receipt['gpu_reference_lease_id'] != lease
+                or receipt['gpu_reference_owner_id'] != expected['owner_id']
+                or retired.get('retired') is not True
+                or retired.get('kind') != 'ieee_native_request_retirement_v1'
+                or retired.get('clock_id') != worker['clock_id']
+                or not isinstance(internal, str) or not internal
+                or not isinstance(external, str) or not external
+                or internal in native_to_external or external in external_to_lease):
+            raise ValueError('missing/duplicate independent native retirement identity')
+        native_to_external[internal] = external
+        external_to_lease[external] = lease
+    sequence = iteration = nonempty = 0
+    timestamp = -1.
+    bindings, native_requests, used_leases, modes = {}, {}, set(), set()
+    current, stage = None, None
+    for snapshot in journal:
+        if (snapshot.get('kind') != 'ieee_native_execution_observer_v1'
+                or snapshot.get('failed') is not False
+                or any(snapshot.get(k) != start.get(k) for k in identities)
+                or snapshot.get('timing_qualified') is not False
+                or snapshot.get('kernel_arithmetic_qualified') is not False
+                or snapshot.get('n_correct') is not None):
+            raise ValueError('failed, changed or overclaimed execution observation')
+        for event in snapshot['events']:
+            sequence += 1
+            now = event['monotonic_s']
+            if (event['sequence'] != sequence or type(now) not in (float, int)
+                    or not math.isfinite(now) or now < timestamp):
+                raise ValueError('missing, duplicate or unordered execution events')
+            timestamp = now
+            kind = event['kind']
+            if kind == 'execute_begin':
+                if current is not None or event['iteration'] != iteration + 1:
+                    raise ValueError('nested or missing execution iteration')
+                iteration += 1
+                current = event['scheduled']
+                if (not isinstance(current, dict) or any(req not in native_to_external
+                        or native_to_external[req] not in bindings
+                        or bindings[native_to_external[req]]['ended']
+                        or type(n) is not int or n <= 0 for req, n in current.items())):
+                    raise ValueError('execution precedes independent binding or follows terminal')
+                stage = 'forward_before' if current else 'iteration_return'
+                continue
+            if event['iteration'] != iteration:
+                raise ValueError('event belongs to a missing execution iteration')
+            if kind in ('begin_use', 'end_use'):
+                if current is not None:
+                    raise ValueError('binding changed inside a native iteration')
+                receipt = event['receipt']
+                if kind == 'begin_use':
+                    bound = event['binding']
+                    req, lease = bound['backend_request_id'], bound['lease_id']
+                    if req in bindings or lease in used_leases or lease not in expected_leases:
+                        raise ValueError('duplicate or unexpected native request/lease')
+                    external = expected_leases[lease]
+                    if external_to_lease.get(req) != lease:
+                        raise ValueError('native begin differs from frontend external identity')
+                    expected = dict(backend_request_id=req, lease_id=lease,
+                        adapter_int_id=external['adapter_int_id'], expected_owner_id=external['owner_id'],
+                        ended=False, forwards=0, logits=0, scheduled_tokens=0)
+                    if bound != expected:
+                        raise ValueError('native begin binding differs from external request')
+                    bindings[req] = expected
+                    used_leases.add(lease)
+                else:
+                    req = event['backend_request_id']
+                    if req not in bindings or bindings[req]['ended']:
+                        raise ValueError('missing, duplicate or unexecuted native terminal')
+                    bindings[req]['ended'] = True
+                bound = bindings[req]
+                if (receipt['backend_request_id'] != req or receipt['lease_id'] != bound['lease_id']
+                        or receipt['adapter_int_id'] != bound['adapter_int_id']
+                        or receipt['owner_id'] != bound['expected_owner_id']
+                        or receipt['backend_terminal'] is not (kind == 'end_use')):
+                    raise ValueError('native acknowledgement differs from independent lease')
+                continue
+            if current is None or kind != stage:
+                raise ValueError('incomplete or reordered forward/logits/return coverage')
+            if kind in ('forward_before', 'logits_before'):
+                obs = event['observation']
+                actual = {r['backend_request_id']: r['scheduled_tokens'] for r in obs['requests']}
+                if (actual != current or obs['layer_and_buffer_identity_matches'] is not True
+                        or obs['real_token_rows'] != sum(current.values())
+                        or type(obs['padded_forward_rows']) is not int
+                        or obs['padded_forward_rows'] < obs['real_token_rows']
+                        or not isinstance(obs['cudagraph_runtime_mode'], str)
+                        or not obs['cudagraph_runtime_mode'] or type(obs['stream_id']) is not int):
+                    raise ValueError('execution rows/padding/device identity mismatch')
+                validate_native_lora_execution_metadata(obs,
+                    {req: bindings[native_to_external[req]]['adapter_int_id'] for req in current})
+                if kind == 'forward_before':
+                    forward = obs
+                    modes.add(obs['cudagraph_runtime_mode'])
+                    stage = 'forward_return'
+                else:
+                    if obs != forward:
+                        raise ValueError('metadata changed between forward and logits')
+                    stage = 'logits_return'
+            elif kind == 'forward_return':
+                for req, count in current.items():
+                    row = native_requests.setdefault(req, dict(
+                        adapter_int_id=bindings[native_to_external[req]]['adapter_int_id'],
+                        forwards=0, logits=0, scheduled_tokens=0))
+                    row['forwards'] += 1
+                    row['scheduled_tokens'] += count
+                stage = 'forward_phase_return'
+            elif kind == 'forward_phase_return':
+                stage = 'sampling_begin'
+            elif kind == 'sampling_begin':
+                stage = 'logits_before'
+            elif kind == 'logits_return':
+                for req in current:
+                    native_requests[req]['logits'] += 1
+                stage = 'iteration_return'
+            elif kind == 'iteration_return':
+                calls = int(bool(current))
+                if event['forward_calls'] != calls or event['logits_calls'] != calls:
+                    raise ValueError('wrong native execution call count')
+                nonempty += calls
+                current, stage = None, None
+        if (snapshot['last_sequence'] != sequence or snapshot['iterations'] != iteration
+                or snapshot['bindings'] != bindings or snapshot['native_requests'] != native_requests
+                or current is not None):
+            raise ValueError('drained observation counters differ from retained events')
+    if (used_leases != set(expected_leases) or any(not b['ended'] for b in bindings.values())
+            or nonempty != scheduler_after['scheduled_sequence'] - scheduler_before['scheduled_sequence']
+            or set(native_requests) != set(native_to_external)
+            or any(b['forwards'] != b['logits'] or b['logits'] <
+                   expected_leases[external_to_lease[native_to_external[req]]]['target_tokens']
+                   for req, b in native_requests.items())):
+        raise ValueError('whole-run scheduled iteration/request coverage is incomplete')
+    return dict(kind='native_execution_journal_validation_v1', metadata_matches=True,
+        requests=len(bindings), iterations=iteration, nonempty_iterations=nonempty,
+        events=sequence, graph_modes=sorted(modes),
+        timing_qualified=False, kernel_arithmetic_qualified=False,
+        full_pool_qualified=False, n_correct=None)
+
+
+async def qualify_execution_observer(engine, action, *, diagnostic_id=None):
+    """Existing opt-in RPC only, preserving the raw response for the caller."""
+    command = dict(action=action, qualification_only=True)
+    if action == 'start':
+        command.update(diagnostic_id=diagnostic_id, max_iterations=10000,
+                       max_buffer_bytes=32 * 1024**2)
+    response = await engine.ieee_worker_observation(synchronize=True, execution_observer=command)
+    workers = response.get('workers')
+    if not isinstance(workers, list) or len(workers) != 1:
+        raise RuntimeError('execution observer requires exactly one native TP=1 worker')
+    return workers[0]
+
+
 async def qualify_slot_content_snapshot(engine, adapter_int_id):
     """Explicit diagnostic barrier; never used by ordinary Full request paths."""
     native = await engine.ieee_scheduler_observation()
@@ -4443,9 +4640,10 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                     'cancel_pairs_subprocess', 'native_cancel_reference',
                     'native_adapter_reference', 'native_numeric_reference', 'native_source_intervals',
                     'native_lifecycle', 'native_capacity_wait', 'native_source_matrix',
-                    'native_slot_content', 'native_warm_reference') or (
+                    'native_slot_content', 'native_warm_reference', 'native_execution_metadata') or (
                     mode not in ('sequential', 'native_source_intervals', 'native_capacity_wait',
-                                 'native_source_matrix', 'native_slot_content', 'native_warm_reference') and count != 4):
+                                 'native_source_matrix', 'native_slot_content', 'native_warm_reference',
+                                 'native_execution_metadata') and count != 4):
         raise ValueError('concurrent qualification requires exactly the original four-request prefix')
     result = {'kind': 'backend_native_model_prefix_qualification_v1', 'pass': False,
               'full_model_qualification': False, 'production_launch_authorized': False,
@@ -4463,6 +4661,7 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
     if mode == 'native_source_intervals':
         result['input_mode'] = 'existing_trace_prefix_sequential_source_profiling'
     engine, source_boundary, source_paths = None, None, None
+    execution_observer_active = False
     try:
         import asyncio
         import yaml
@@ -4485,7 +4684,7 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
         if mode in ('native_cancel_reference', 'native_adapter_reference', 'native_numeric_reference'):
             cfg['ieee_gpu_references'] = False
         if mode in ('native_lifecycle', 'native_capacity_wait', 'native_source_matrix',
-                    'native_slot_content', 'native_warm_reference'):
+                    'native_slot_content', 'native_warm_reference', 'native_execution_metadata'):
             cfg['ieee_physical_allocation'] = True
             if mode != 'native_source_matrix':
                 result['input_mode'] = ('existing_four_request_prefix_dedicated_physical_lifecycle'
@@ -4494,6 +4693,12 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
             result['input_mode'] = 'existing_prefix_isolated_slot_content_qualification'
             result['performance_sample'] = False
             result['semantic_full_pool_qualification'] = False
+        if mode == 'native_execution_metadata':
+            if count > 64:
+                raise ValueError('isolated execution observer supports at most 64 bound requests')
+            result.update(input_mode='existing_prefix_isolated_native_execution_metadata',
+                          performance_sample=False, semantic_full_pool_qualification=False,
+                          execution_journal=[], execution_expected_leases={})
         result['model_config'] = cfg
         plan = FrozenReplayPlan.load(trace, count=count)
         result['trace'] = plan.identity()
@@ -4590,7 +4795,8 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                           'model': cfg['name'], 'requests': count}), flush=True)
         result['requested_model_config'] = dict(cfg)
         if mode in ('cancel_pairs_subprocess', 'native_lifecycle', 'native_capacity_wait',
-                    'native_source_matrix', 'native_slot_content', 'native_warm_reference'):
+                    'native_source_matrix', 'native_slot_content', 'native_warm_reference',
+                    'native_execution_metadata'):
             engine = await initialize_qualification_runtime(cfg, mode)
         else:
             # Retain ownership even if direct initialization raises, so the
@@ -4617,6 +4823,11 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                 include_pairs=(mode == 'native_cancel_reference'), numeric_controls=numeric_controls)
             return result
         result['sources_before'] = await engine.ieee_gpu_reference(operation='source_snapshot')
+        if mode == 'native_execution_metadata':
+            require_native_execution_drained(result['scheduler_before'])
+            result['execution_journal'].append(await qualify_execution_observer(
+                engine, 'start', diagnostic_id='native_prefix_' + uuid.uuid4().hex))
+            execution_observer_active = True
         if mode == 'native_warm_reference':
             await qualify_warm_reference(engine, plan, adapters, warm_index, warm_reference_phase, result)
         elif mode == 'native_source_matrix':
@@ -4625,7 +4836,7 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
             await qualify_native_source_intervals(engine, plan, adapters, result)
         elif mode == 'native_capacity_wait':
             await qualify_native_capacity_wait(engine, plan, adapters, result)
-        elif mode not in ('sequential', 'native_lifecycle', 'native_slot_content'):
+        elif mode not in ('sequential', 'native_lifecycle', 'native_slot_content', 'native_execution_metadata'):
             result['stage'] = mode
             await qualify_concurrent_pairs(engine, plan, adapters, result,
                 cancel_first=mode.startswith('cancel_pairs'),
@@ -4635,7 +4846,8 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                 result['proxy_engine_dead_after'] = engine._engine_dead
                 if result['proxy_uncertain_after'] or result['proxy_engine_dead_after']:
                     raise RuntimeError('subprocess cancellation ownership remains unresolved')
-        for entry in plan.entries if mode in ('sequential', 'native_lifecycle', 'native_slot_content') else ():
+        for entry in plan.entries if mode in ('sequential', 'native_lifecycle', 'native_slot_content',
+                                             'native_execution_metadata') else ():
             row = json.loads(entry.source_json)
             aid, target = row['adapter_id'], min(row['expected_output_tokens'], 256)
             path = adapters[aid]['path']
@@ -4659,6 +4871,10 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
             case['reference'] = reference
             if reference.get('acquired') is not True:
                 raise RuntimeError('native qualification load/acquisition conflict; no hidden retry')
+            if mode == 'native_execution_metadata':
+                result['execution_expected_leases'][reference['lease_id']] = dict(
+                    request_id=entry.request_id, adapter_int_id=engine._lora_int_id(aid),
+                    owner_id=reference['owner_id'], target_tokens=target)
             if mode == 'native_slot_content':
                 result['stage'] = 'slot_content_before:' + entry.request_id
                 case['slot_content_before'] = await qualify_slot_content_snapshot(engine, engine._lora_int_id(aid))
@@ -4669,6 +4885,17 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                 lora_path=path, adapter_id=aid, temperature=0., top_p=1., generation_seed=42,
                 return_timing=True, gpu_reference=reference), timeout=1800.)
             case['actual_tokens'], case['timing'] = generated[2], generated[3]
+            if mode == 'native_execution_metadata':
+                # Retain/drain even before checking output, without deriving
+                # expected adapter identities from the observed batch itself.
+                # Idempotent existing retirement returns the frontend's exact
+                # external->internal map plus core acknowledgement. It does
+                # not generate, submit or retire the request a second time.
+                case['execution_retirement'] = await engine.ieee_retire_generation(
+                    gpu_reference=reference, abort=False)
+                result['execution_expected_leases'][reference['lease_id']]['retirement'] = (
+                    case['execution_retirement'])
+                result['execution_journal'].append(await qualify_execution_observer(engine, 'read'))
             if generated[2] != target or generated[3]['native_terminal_observed'] is not True:
                 raise RuntimeError('native generation contract or terminal mismatch')
             if mode == 'native_slot_content':
@@ -4685,10 +4912,18 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
             print(json.dumps({'event': 'model_qualification_request', 'request_id': entry.request_id,
                               'target_tokens': target, 'actual_tokens': generated[2]}), flush=True)
         result['stage'] = 'final_observations_and_eviction'
+        if execution_observer_active:
+            result['execution_journal'].append(await qualify_execution_observer(engine, 'stop'))
+            execution_observer_active = False
         result['workers_after'] = await engine.ieee_worker_observation()
         for worker in result['workers_after']['workers']:
             validate_model_worker(worker, service, local_monotonic_clock_id())
         result['scheduler_after'] = await engine.ieee_scheduler_observation()
+        if mode == 'native_execution_metadata':
+            result['execution_validation'] = validate_native_execution_journal(
+                result['execution_journal'], result['execution_expected_leases'],
+                result['workers_before']['workers'][0], result['scheduler_before'],
+                result['scheduler_after'])
         result['sources_after'] = await engine.ieee_gpu_reference(operation='source_snapshot')
         present_ids = set(result['sources_after']['registered_cpu_adapter_ids'])
         known_ids = {engine._lora_int_id(aid) for aid in adapters}
@@ -4712,6 +4947,14 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
         import traceback
         result.update(error_type=type(error).__name__, error=str(error), traceback=traceback.format_exc())
     finally:
+        if execution_observer_active and engine is not None:
+            # Preserve failed/partial evidence; never suppress the primary
+            # failure or use a second inference attempt as a fallback.
+            try:
+                result['execution_journal'].append(await qualify_execution_observer(engine, 'read'))
+                result['execution_journal'].append(await qualify_execution_observer(engine, 'stop'))
+            except Exception as error:
+                result['execution_observer_cleanup_error'] = str(error)
         if source_boundary is not None:
             queue = source_boundary._stack.preloading_manager.ieee_movements
             try:
@@ -4876,7 +5119,8 @@ def main():
                         'cancel_pairs_retain_adapter', 'cancel_pairs_subprocess',
                         'native_cancel_reference', 'native_adapter_reference', 'native_numeric_reference',
                         'native_source_intervals', 'native_lifecycle', 'native_capacity_wait',
-                        'native_source_matrix', 'native_slot_content', 'native_warm_reference'], default='sequential')
+                        'native_source_matrix', 'native_slot_content', 'native_warm_reference',
+                        'native_execution_metadata'], default='sequential')
     parser.add_argument('--gate-socket')
     parser.add_argument('--gate-nonce')
     parser.add_argument('--tiny-witness', action='store_true')

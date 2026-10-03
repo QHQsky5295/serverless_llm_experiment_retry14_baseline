@@ -1,6 +1,150 @@
 # IEEE TC execution status
 
-## CURRENT — D206 native execution observer CPU QUALIFIED and SEALED
+## CURRENT — D207 actual 22-request execution metadata QUALIFIED, SEALED; backup NEXT
+
+2026-10-03 23:10+08. Goal ACTIVE/current turn PROGRESS. Full Plan/status read
+after compaction; no subagents. vLLM/troubleshooting/run/monitor/academic-plotting/
+github-sync read; grouped academic read truncation repaired by individual fullread.
+Once-only published-cache approval fulfilled D78/D80, no regeneration or remote
+operation. No optimizer/configuration/equation/SLO or native site-package changes.
+No system comparison/config selection, V1 unchanged. Production Full still has
+NO execution observer. Changes only observer class + opt-in preflight qualification.
+
+Actual V2 source matched official v0.30 hash; previous D206 assumed older runner.
+Forward and sample are separate native calls. FULL graph replay / PIECEWISE outer
+call / NONE model forward explicitly observed. Internal request IDs retained
+verbatim, joined offline to input-side lease via EXISTING frontend exact-ID +
+core retirement acknowledgement. No suffix removal, adapter/order guessing,
+disabled randomization, eager bypass or loosened arithmetic tolerance.
+
+D207 attempt4 COMPLETE/pass:22/22 correct native-count contracts,3917tokens;
+3961iterations=3917nonempty+44empty,31468events/24drainedsnapshots. Independent
+native scheduled/completed deltas both3917. Every real forward/logits mapping
+matches intended adapter, physical slot and GPU metadata/layer/buffer identity.
+Actual graph modes FULL/NONE only; PIECEWISE still CPU-only. Four content classes
+reuse D166inputs; no newweights/trace/contentreaudit. Does NOT qualify numerical
+arithmetic, concurrentFull/fullpool/n_correct,126outputchanges or formalG1G2.
+Raw35555149B SHA993c2956ee2c007dd678327932dc5368e4f454f43595587e8d3197088a46467d;
+launchd8a47fdcad9ce9f9336f94f4bce50c708c7f626f658e2c0ba4aa153fc1541489.
+Service24c20e6f2a2e45ae87251d87393528b9/invocation405173e431a146c3b32d32f300ee4626,
+auxf17bf7b4769440279cf3a3f3a270ad95, nativeworker3749672 actualservice-owned/
+CPUs4–23,28–47. return0/watchdog0, physicallease released/pathsgone/GPUempty,
+exactcleanup23:06:14. No liveGPU/tmux/remote/tool sessions.
+
+All three failures retained: attempt1 pre-request admitted=[] schema;
+attempt2 pre-request absent oldrunner _model_forward; attempt3 firstrequest
+observer compared external/internalID, nativecoreexception,0completed/partial
+journal=startonly. Not numeric/servingperformance failures. All released, guards0.
+FinalCPU tests4 416PASS20.225s/id2089ff8f4ee7437b919a0edf45de6f2e; earlier
+tests1/2/3/regression retained (overlap, notindependent).3/4GiBswap0events0.
+Bounded inspect4 session93325 CLOSED0; actualmetadata printed, scopegone.
+Curate1 session40444 CLOSED0/id8da81aa9213547c8801c125596fed75e;3/4GiBswap0,
+protected147/actualinput-SHA/independentjournal/ASTscope/unchanged serving
+policy and frontend/scheduler/owner/config checksPASS. No curation failure.
+
+Doc D207_NATIVE_EXECUTION_PREFIX.md SEALED6934aa43e44a204ef92b1b3b42d0be7de92d15dde2fe36a2775c8569415c4867;
+curatedc55595d89796854604502b911a71856a3a3c626383e53c872b7d3917ded3db2c;
+80member2041377B bundleac2f3dd3f3809ca2295eb9b06d053c80cff6f4b8947783e877664a5d093101a7.
+Qualification/attempt/request tables delivered, no speedupfigure/ranking. Do NOT
+repeat D205/D206/D207 probes or22requestrun absent a new actual hypothesis.
+NEXT exact13path checked backup, then remaining correctness/output-difference
+evidence and common-reference/newmetric old-newPrime acceptance. Read V1 FULL
+before comparing or selecting configuration. Return mainline, not more observer
+framework: actual7BG1G2acceptance→3B→baselines. Commonwarm/Resident/numeric and
+legacycomparison stillOPEN; all M1M2/A1–A5/S1–S13 retained, not finished.
+
+### D207 preparation and failed-attempt history (superseded above)
+
+23:02+08 update: attempt3 installed observer, but first native request rejected
+because external req_1 != vLLM randomized req_1-ab14385f; adapter963725 unchanged.
+Completed0/22; no numeric mismatch concluded. Native core died from observer
+exception, partialjournal=startonly; failure/tail retained. launch285a6985a4ca515fe2224641b64cfb3ede351f7811ae9e9c8786e3f1925dea82,
+service8f62138b8cde4944b1ad73f9013e25c4/invocation4cf9895be6474e8784bea51f92fdcc03;
+return2/watchdog0, release/pathgone true, exactcleanup22:56:10. AllGPU/scopesgone.
+Correction reuses existing idempotent native retirement receipt (frontend exact
+external/internal map + core retired acknowledgement). Observer collects internal
+IDs verbatim in separate counters; offline checker joins ONLY independent receipt,
+not suffix removal/adapter/order inference. Existing frontend/owner unchanged.
+Tests4 416PASS20.225s/id2089ff8f4ee7437b919a0edf45de6f2e/session4760 CLOSED0,
+3/4GiBswap0/events0/pathabsent,147protectedPASS. NEXT preparedattempt4 sameinputs/
+config aftergate, newpaths. Noobserver data accepted yet; allG1G2gapsremainOPEN.
+
+2026-10-03 22:55+08 continuation. Full Plan/status reread after compaction;
+skills vLLM/troubleshooting/run/monitor/academic-plotting/github-sync read.
+Attempt1 native admitted=[] schema error before requests, fixed; tests2
+34PASS1.681s/id2ae3289130c84c498780f845d4feffbc. Attempt2 observer assumed
+older runner `_model_forward`, absent in actual `vllm.v1.worker.gpu.model_runner`.
+No requests submitted/no journal. launch877ba8d843e9ef1ef30f2c859fe5e3cf35ddd2f8f1b646909a1d8ef214fa22d1,
+service d5d2fbb8eaa341bfa0265d02225bd7a7/invocation8dd62442608b4f6c93bde6645a0371ea,
+return2/watchdog0, physicalrelease/pathremoved true. Exact cleanup verified
+22:45:58, service+aux72adc254e61b42b98d0e4f75c491e6a0/path absent/GPUempty.
+
+One diagnostic-only correction targets actual nativeV2 explicitly, no default
+serving policy/site-package/config/formula/SLO change. FULL graphmanager replay,
+PIECEWISE outer call and NONE forward observed; native prepare_inputs batch
+bound across separate execute_model/sample_tokens; no double-counted PW child.
+Execution contract vllm_v2_split_forward_sample_v1; checker requires split
+events and actual request-state/lora identity. Official V2 runner exactSHA
+174c93db921c23cf0396eee4764be25b2bd2d4b6a06e9fa41ce3598b884ce8ce matchesinstalled.
+Tests3 414PASS20.539s/session24652 CLOSED0/id3f90f697428c42ce9af64b2cb38fc243,
+3/4GiBswap0CPU2,3,26,27, events/swap0, scopeidentity/path absent. Same tests
+overlap preceding groups; no numeric/actualCUDA qualification yet. Source
+curl/check session4710 CLOSED0. No remote/cache generation or subagents.
+NEXT fresh source/resource gates and SAME22request config under new attempt3,
+not anotherFull/optimizer. D207doc DRAFT, noD207commit yet. Allcorrectness/G1G2/
+7Bacceptance then3B/baseline/formalmatrixgaps OPEN.
+
+### D207 preparation history (superseded above)
+
+2026-10-03 continuation. Goal ACTIVE/current turn PROGRESS. Full Plan/status,
+vLLM/troubleshooting, run-experiment, monitor-experiment, academic-plotting and
+github-sync read. No subagents. Existing preflight gained only opt-in
+native_execution_metadata plus journal checker; production serving unchanged.
+Independent input leases/owner/adapter/target, native begin/end, all ordered
+forward/logits boundaries and independent scheduled/completed counter deltas
+checked. No timing/arithmetic/fullpool/n_correct upgrade. Reuse D16622request
+configuration/content evidence; no content re-audit or optimizer/config change.
+
+Raw results/ieee_tc/p2_backend_qualification/d207_20261003.
+CPU3/4GiBswap0CPUs2,3,26,27, events/swap0, units/paths absent:
+tests1 session46537 CLOSED0/idb49d47a9b7e64acda59565664ed074f4,
+33PASS1.677s (9new tests); regression1 session13055 CLOSED0/
+id33603cdeb68546a5a3f1964362491bd1,376PASS19.617s (groups overlap).
+One premature read of terminal regression files, later captured/verified.
+147protectedPASS. Doc D207_NATIVE_EXECUTION_PREFIX.md DRAFT/table.
+
+Disk belowNEWheavy150GiB; cache1 PyPI-only5–200MiB read-only audit found only
+187609088B; NOT APPLIED. session25966 CLOSED0/idd2772e4ffed64b70a1fd9cb83e61aa5c.
+cache2 one official PyTorch CUDA2.0.1+cu118 cp39 archive SHA matched index,
+but urllibHEAD403, session84639 CLOSED1; no deletion/outputaudit, log/source kept.
+cache3 same public URL via curlHEAD200/size, exactSHA
+eb55f29db5744eda8a96f5594e637daed0d52278273005de759970e67cfa6a5a,
+fresh reference/owner/open-file guards. audit25447 CLOSED0/
+id5e9887208165418dbcc1b50f4794519a; audited2267332608allocatedB.
+Reviewed auditSHAa750b307d1acb75d8ad0faafa96486b257bd4d4bf4d0ac1a2eac30e0993cfe63.
+Apply43193 CLOSED0/id80c28ab4422a411883e1125384a6273e: exact one archive+header
+removed,2267332608B freed, four tracked repos/installed environments unchanged.
+Unit/path absent, events/swap0. Disk162355134464B aboveNEWheavy150GiB.
+All cache scopes same3/4GiBswap0; no model/results changes. Original audits kept.
+
+NEXT freshgate then ONE existing22request actualGPU diagnostic in tmux,
+prepared run_7b_execution1.sh (new paths only, D166 config unchanged).
+No remote service/cache regeneration needed. Whole numerical/126outputdifferences/
+commonwarm/Resident/old-newG1G2 remainOPEN. 7Bacceptance->3B->baselines unchanged.
+AllM1M2/A1–A5/S1–S13 retained. Do NOT redo D205/D206 or these CPU tests.
+
+## Previous checkpoint — D206 native execution observer CPU QUALIFIED, SEALED and BACKED
+
+Backup verified2026-10-03 22:09+08:
+82ac6b5e21457ddfb0a667597a39e874d1561974. Push21943 CLOSED0;
+independent ls-remote36584 CLOSED0 exactmatch.11explicitfiles/62staged+archive
+entries scope/secretsPASS; bundle/diff(cr-at-eol)PASS; usermanifestexcluded.
+Verification6acc1bcf7ab46880c01afdd779e91f2327a112be74222dd9d8b1cf22945d9458.
+No stagedfiles, live experiment scopes/GPU compute/tool sessions; remote remains
+stopped/untouched. Lastdisk160026431488B belowNEWheavy150GiB. Do NOT repeat
+D206 tests/backup or D205 probe. NEXT existing preflight integration -> matching
+lightweight check -> fresh resource/reclaim gate -> ONE22request actualGPU
+diagnostic as below. All correctness/acceptance/later-matrix gaps remainOPEN.
 
 2026-10-03 22:07+08. Goal ACTIVE/current turn PROGRESS. Full Plan/status read;
 vLLM+troubleshooting, run-experiment, academic-plotting, github-sync read.

@@ -672,13 +672,20 @@ class _IEEENativeExecutionObserver:
         runner = worker.model_runner
         parallel = runner.vllm_config.parallel_config
         if (vllm.__version__ != '0.30.0' or worker.device.type != 'cuda'
+                or type(runner).__module__ != 'vllm.v1.worker.gpu.model_runner'
+                or type(runner).__name__ != 'GPUModelRunner'
                 or any(getattr(parallel, name) != 1 for name in
                        ('tensor_parallel_size', 'pipeline_parallel_size', 'data_parallel_size'))
                 or parallel.use_ubatching or runner.speculative_config is not None
-                or runner.model_config.is_encoder_decoder or runner.is_pooling_model):
-            raise RuntimeError('execution observation requires dense TP/PP/DP=1 non-speculative generation')
+                or runner.model_config.is_encoder_decoder or runner.is_pooling_model
+                or runner.pcp_manager is not None or runner.batch_sharder is not None
+                or runner.uses_inputs_embeds or runner.execute_model_state is not None):
+            raise RuntimeError('execution observation requires idle native V2 dense TP/PP/DP=1 generation')
         self.worker, self.runner = worker, runner
         self.model, self.raw_model = runner.model, runner.get_model()
+        self.graph_manager = runner.cudagraph_manager
+        if self.graph_manager is None:
+            raise RuntimeError('execution qualification requires initialized native graph manager')
         self.manager = runner.lora_manager._adapter_manager
         if (self.manager.moe_ep_load_spec is not None or not self.manager.modules
                 or any(name.endswith('.experts') for name in self.manager.modules)):
@@ -693,6 +700,7 @@ class _IEEENativeExecutionObserver:
         self.iteration = 0
         self.current = None
         self.bindings, self.events = {}, []
+        self.native_requests = {}
         self.buffer_bytes = 0
         self.sequence = 0
         self.failed = False
@@ -702,7 +710,11 @@ class _IEEENativeExecutionObserver:
         try:
             self._replace(worker, 'ieee_gpu_reference', self._reference)
             self._replace(runner, 'execute_model', self._execute)
-            self._replace(runner, '_model_forward', self._forward)
+            self._replace(runner, 'prepare_inputs', self._prepare_inputs)
+            self._replace(runner, 'sample_tokens', self._sample)
+            self._replace(self.graph_manager, 'run_fullgraph', self._fullgraph)
+            self._replace(self.graph_manager, 'run_pw_graph', self._piecewise)
+            self._replace(self.model, 'forward', self._eager)
             self._replace(runner.model, 'compute_logits', self._logits)
         except BaseException:
             self.restore()
@@ -817,19 +829,54 @@ class _IEEENativeExecutionObserver:
             self._emit('execute_begin', scheduled=counts)
             result = original(scheduler_output, *args, **kwargs)
             expected = int(bool(counts))
-            if self.current['forwards'] != expected or self.current['logits'] != expected:
+            if self.current['forwards'] != expected or self.current['logits'] != 0:
                 raise RuntimeError('native execution boundary coverage is incomplete')
-            self._emit('execute_return', forward_calls=self.current['forwards'],
-                       logits_calls=self.current['logits'])
+            if counts:
+                state = self.runner.execute_model_state
+                if result is not None or state is None or state.input_batch is not self.current['batch']:
+                    raise RuntimeError('native V2 forward did not retain the observed input batch')
+                self._emit('forward_phase_return')
+            else:
+                self._emit('iteration_return', forward_calls=0, logits_calls=0)
+                self.current = None
             return result
         except BaseException as exc:
             self.failed = True
             # A failed observer stays failed even if a caller drains its events.
             if self.buffer_bytes < self.max_buffer_bytes - 1024:
                 self._emit('execute_error', error_type=type(exc).__name__)
+            self.current = None
+            raise
+
+    def _sample(self, original, *args, **kwargs):
+        if self.current is None or self.current['forwards'] != 1 or self.current['logits']:
+            raise RuntimeError('unbound or repeated native V2 sampling phase')
+        state = self.runner.execute_model_state
+        if state is None or state.input_batch is not self.current['batch']:
+            raise RuntimeError('native V2 sampling input changed after forward')
+        try:
+            self._emit('sampling_begin')
+            result = original(*args, **kwargs)
+            if self.current['logits'] != 1:
+                raise RuntimeError('native sampling boundary coverage is incomplete')
+            self._emit('iteration_return', forward_calls=1, logits_calls=1)
+            return result
+        except BaseException as exc:
+            self.failed = True
+            if self.buffer_bytes < self.max_buffer_bytes - 1024:
+                self._emit('execute_error', error_type=type(exc).__name__)
             raise
         finally:
             self.current = None
+
+    def _prepare_inputs(self, original, scheduler_output, batch_req_state, batch_desc):
+        if self.current is None or 'batch' in self.current or batch_desc.num_ubatches != 1:
+            raise RuntimeError('unsupported repeated/microbatched native input preparation')
+        batch = original(scheduler_output, batch_req_state, batch_desc)
+        if batch.num_draft_tokens or batch.num_tokens != sum(self.current['counts'].values()):
+            raise RuntimeError('unsupported draft or mismatched native input rows')
+        self.current.update(batch=batch, descriptor=batch_desc)
+        return batch
 
     def _snapshot(self, padded_rows, graph_mode):
         if (self.current is None or self.worker.model_runner is not self.runner
@@ -837,20 +884,25 @@ class _IEEENativeExecutionObserver:
                 or self._layers() != self.layer_identity
                 or self._metadata_buffers() != self.metadata_identity):
             raise RuntimeError('native execution owner/layer/buffer identity changed')
-        batch = self.runner.input_batch
+        batch = self.current['batch']
         requests = list(batch.req_ids[:batch.num_reqs])
-        counts = [int(v) for v in self.runner.num_scheduled_tokens.np[:batch.num_reqs]]
-        aids = [int(v) for v in batch.request_lora_mapping[:batch.num_reqs]]
+        counts = [int(v) for v in batch.num_scheduled_tokens]
+        indices = [int(v) for v in batch.idx_mapping_np]
+        aids = [int(self.runner.lora_state.lora_ids[i]) for i in indices]
         if (len(set(requests)) != len(requests) or len(counts) != len(requests)
                 or len(aids) != len(requests)
+                or any(self.runner.req_states.req_id_to_index.get(req) != idx
+                       or self.runner.lora_state.lora_requests[req].lora_int_id != aid
+                       for req, idx, aid in zip(requests, indices, aids))
                 or dict(zip(requests, counts)) != self.current['counts']
                 or any(c <= 0 for c in counts) or padded_rows < sum(counts)):
             raise RuntimeError('native scheduled rows/order/padding do not match the iteration')
         rows = []
         for req, aid, count in zip(requests, aids, counts):
-            bound = self.bindings.get(req)
-            if bound is None or bound['ended'] or bound['adapter_int_id'] != aid:
-                raise RuntimeError('native batch differs from independent begin_use binding')
+            # Native IDs are randomized by vLLM after begin_use. Collect them
+            # verbatim; the independent frontend/core retirement receipt joins
+            # them to external leases offline. Never strip a suffix or infer a
+            # request identity from the adapter, execution order, or batch.
             rows.append(dict(backend_request_id=req, adapter_int_id=aid,
                              scheduled_tokens=count, sampled_tokens=1))
         from vllm.utils.gpu_sync_debug import gpu_sync_allowed
@@ -880,28 +932,53 @@ class _IEEENativeExecutionObserver:
                 layer_and_buffer_identity_matches=True)
         return result
 
-    def _forward(self, original, *args, **kwargs):
-        from vllm.forward_context import get_forward_context
-        context = get_forward_context()
-        if context.ubatch_slices is not None or context.skip_compiled:
-            raise RuntimeError('unsupported microbatch/compiled bypass in execution diagnostic')
-        inputs = kwargs.get('input_ids')
-        if inputs is None:
-            raise RuntimeError('execution diagnostic requires native token input IDs')
+    def _fullgraph(self, original, descriptor):
+        if self.current is None or descriptor is not self.current.get('descriptor'):
+            raise RuntimeError('native graph descriptor differs from prepared batch')
+        return self._forward(original, 'FULL', descriptor)
+
+    def _piecewise(self, original, model, model_inputs):
+        if model is not self.model:
+            raise RuntimeError('piecewise graph uses a different model')
+        return self._forward(original, 'PIECEWISE', model, model_inputs)
+
+    def _eager(self, original, *args, **kwargs):
+        # Native PIECEWISE may call model.forward inside run_pw_graph. The outer
+        # boundary already records it; do not double-count or alter that path.
+        if self.current is not None and self.current.get('inside_forward') == 'PIECEWISE':
+            return original(*args, **kwargs)
+        return self._forward(original, 'NONE', *args, **kwargs)
+
+    def _forward(self, original, mode, *args, **kwargs):
         if self.current is None or self.current['forwards']:
             raise RuntimeError('unbound or repeated native forward')
-        observed = self._snapshot(int(inputs.shape[0]), str(context.cudagraph_runtime_mode))
+        descriptor = self.current['descriptor']
+        if descriptor.cg_mode.name != mode or self.runner.cudagraph_manager is not self.graph_manager:
+            raise RuntimeError('native graph mode/manager differs from prepared batch')
+        batch = self.current['batch']
+        if mode != 'FULL':
+            inputs = args[1].get('input_ids') if mode == 'PIECEWISE' else kwargs.get('input_ids')
+            if inputs is not batch.input_ids:
+                raise RuntimeError('native forward input differs from prepared batch')
+        observed = self._snapshot(int(batch.num_tokens_after_padding), mode)
         self.current.update(rows=observed['requests'], padded_rows=observed['padded_forward_rows'],
                             graph_mode=observed['cudagraph_runtime_mode'])
         self._emit('forward_before', observation=observed)
-        result = original(*args, **kwargs)
+        self.current['inside_forward'] = mode
+        try:
+            result = original(*args, **kwargs)
+        finally:
+            self.current.pop('inside_forward', None)
         # Do not let a CUDA failure masquerade as a completed boundary.
         from vllm.utils.gpu_sync_debug import gpu_sync_allowed
         with gpu_sync_allowed():
             torch.cuda.current_stream(self.worker.device).synchronize()
         self.current['forwards'] += 1
         for row in observed['requests']:
-            binding = self.bindings[row['backend_request_id']]
+            binding = self.native_requests.setdefault(row['backend_request_id'],
+                dict(adapter_int_id=row['adapter_int_id'], forwards=0, logits=0, scheduled_tokens=0))
+            if binding['adapter_int_id'] != row['adapter_int_id']:
+                raise RuntimeError('native request changed adapter during execution')
             binding['forwards'] += 1
             binding['scheduled_tokens'] += row['scheduled_tokens']
         self._emit('forward_return')
@@ -921,7 +998,7 @@ class _IEEENativeExecutionObserver:
             torch.cuda.current_stream(self.worker.device).synchronize()
         self.current['logits'] += 1
         for row in observed['requests']:
-            self.bindings[row['backend_request_id']]['logits'] += 1
+            self.native_requests[row['backend_request_id']]['logits'] += 1
         self._emit('logits_return')
         return result
 
@@ -935,8 +1012,10 @@ class _IEEENativeExecutionObserver:
             manager_id=id(self.manager), wrapper_id=id(self.punica),
             iterations=self.iteration, last_sequence=self.sequence, failed=self.failed,
             bindings=copy.deepcopy(self.bindings), events=copy.deepcopy(self.events),
+            native_requests=copy.deepcopy(self.native_requests),
             layer_identity=copy.deepcopy(self.layer_identity),
             metadata_identity=copy.deepcopy(self.metadata_identity),
+            execution_contract='vllm_v2_split_forward_sample_v1',
             timing_qualified=False, kernel_arithmetic_qualified=False, n_correct=None)
         if drain:
             self.events.clear()

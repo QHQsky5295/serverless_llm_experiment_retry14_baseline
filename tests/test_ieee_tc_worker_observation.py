@@ -1048,38 +1048,62 @@ class NativeExecutionObserver(unittest.TestCase):
                                  lora_b_stacked=[Tensor([3, 4])])
         manager = SimpleNamespace(moe_ep_load_spec=None, modules={'layer': module},
             punica_wrapper_mapping={'language_model': punica}, lora_index_to_id=[7, None])
-        model = SimpleNamespace(compute_logits=Mock(return_value='native_logits'),
+        model = SimpleNamespace(forward=Mock(return_value='hidden'),
+                                compute_logits=Mock(return_value='native_logits'),
                                 named_modules=lambda: [('layer', module)])
-        runner = SimpleNamespace(lora_manager=SimpleNamespace(_adapter_manager=manager),
+        runner_type = type('GPUModelRunner', (SimpleNamespace,),
+                           {'__module__': 'vllm.v1.worker.gpu.model_runner'})
+        batch = SimpleNamespace(req_ids=['r1'], num_reqs=1, idx_mapping_np=[0],
+            num_scheduled_tokens=[2], num_tokens=2, num_tokens_after_padding=2,
+            num_draft_tokens=0, input_ids=Tensor([4, 5]))
+        descriptor = SimpleNamespace(cg_mode=SimpleNamespace(name=limits.get('mode', 'FULL')),
+                                     num_ubatches=1)
+        graph = SimpleNamespace(run_fullgraph=Mock(return_value='hidden'),
+            run_pw_graph=Mock(side_effect=lambda m, kw: m.forward(**kw)))
+        runner = runner_type(lora_manager=SimpleNamespace(_adapter_manager=manager),
             vllm_config=SimpleNamespace(parallel_config=SimpleNamespace(tensor_parallel_size=1,
                 pipeline_parallel_size=1, data_parallel_size=1, use_ubatching=False)),
             speculative_config=None, model_config=SimpleNamespace(is_encoder_decoder=False),
             is_pooling_model=False, lora_config=SimpleNamespace(specialize_active_lora=False),
-            model=model, input_batch=SimpleNamespace(req_ids=['r1'], num_reqs=1,
-                                                    request_lora_mapping=[7]),
-            num_scheduled_tokens=SimpleNamespace(np=[2]), _model_forward=Mock(return_value='hidden'))
+            model=model, lora_state=SimpleNamespace(lora_ids=[7],
+                lora_requests={'r1': SimpleNamespace(lora_int_id=7)}),
+            req_states=SimpleNamespace(req_id_to_index={'r1': 0}),
+            pcp_manager=None, batch_sharder=None, uses_inputs_embeds=False,
+            execute_model_state=None, cudagraph_manager=graph,
+            prepare_inputs=Mock(return_value=batch))
         runner.get_model = lambda: model
         def execute(scheduled):
-            self.assertEqual(runner._model_forward(input_ids=Tensor([4, 5])), 'hidden')
+            if not scheduled.num_scheduled_tokens: return 'empty_result'
+            actual = runner.prepare_inputs(scheduled, None, descriptor)
+            if descriptor.cg_mode.name == 'FULL':
+                out = graph.run_fullgraph(descriptor)
+            elif descriptor.cg_mode.name == 'PIECEWISE':
+                out = graph.run_pw_graph(model, {'input_ids': actual.input_ids})
+            else:
+                out = model.forward(input_ids=actual.input_ids)
+            self.assertEqual(out, 'hidden')
+            runner.execute_model_state = SimpleNamespace(input_batch=actual)
+            return None
+        def sample(*args):
             self.assertEqual(model.compute_logits(Tensor([1])), 'native_logits')
+            runner.execute_model_state = None
             return 'native_result'
         runner.execute_model = Mock(side_effect=execute)
+        runner.sample_tokens = Mock(side_effect=sample)
         worker = SimpleNamespace(device=device, model_runner=runner,
             ieee_gpu_reference=Mock(side_effect=lambda **kw: copy.deepcopy(kw)))
         stream = SimpleNamespace(cuda_stream=123, synchronize=Mock())
         fake = SimpleNamespace(is_tensor=lambda t: isinstance(t, Tensor),
             cuda=SimpleNamespace(current_stream=lambda dev: stream, synchronize=Mock()))
-        context = SimpleNamespace(ubatch_slices=None, skip_compiled=False,
-                                  cudagraph_runtime_mode='FULL')
         modules = {'vllm': SimpleNamespace(__version__='0.30.0'),
-            'vllm.forward_context': SimpleNamespace(get_forward_context=lambda: context),
             'vllm.utils.gpu_sync_debug': SimpleNamespace(gpu_sync_allowed=nullcontext)}
         with patch.object(monitor, 'torch', fake), patch.dict('sys.modules', modules):
             observer = monitor._IEEENativeExecutionObserver(worker, diagnostic_id='unit_only',
                 max_iterations=limits.get('max_iterations', 10),
                 max_buffer_bytes=limits.get('max_buffer_bytes', 1024 * 1024))
             yield SimpleNamespace(observer=observer, worker=worker, runner=runner,
-                manager=manager, module=module, punica=punica, context=context,
+                manager=manager, module=module, punica=punica, batch=batch,
+                descriptor=descriptor, graph=graph,
                 scheduled=SimpleNamespace(num_scheduled_tokens={'r1': 2}),
                 Tensor=Tensor, stream=stream)
 
@@ -1091,33 +1115,37 @@ class NativeExecutionObserver(unittest.TestCase):
         return f.worker.ieee_gpu_reference(operation='end_use', backend_request_id='r1',
             lease_id='lease', expected_owner_id='owner')
 
+    def run_iteration(self, f):
+        self.assertIsNone(f.runner.execute_model(f.scheduled))
+        return f.runner.sample_tokens(None)
+
     def test_two_execution_boundaries_bind_independent_request_and_preserve_results(self):
         from scripts.ieee_tc_preflight import validate_native_lora_execution_metadata
         with self.fixture() as f:
             self.begin(f)
-            self.assertEqual(f.runner.execute_model(f.scheduled), 'native_result')
+            self.assertEqual(self.run_iteration(f), 'native_result')
             self.end(f)
             result = f.observer.read()
             self.assertFalse(result['failed'])
             self.assertIsNone(result['n_correct'])
             self.assertFalse(result['kernel_arithmetic_qualified'])
-            self.assertEqual(result['bindings']['r1']['forwards'], 1)
+            self.assertEqual(result['native_requests']['r1']['forwards'], 1)
             events = result['events']
             self.assertEqual([e['kind'] for e in events], ['begin_use', 'execute_begin',
-                'forward_before', 'forward_return', 'logits_before', 'logits_return',
-                'execute_return', 'end_use'])
-            for event in (events[2], events[4]):
+                'forward_before', 'forward_return', 'forward_phase_return', 'sampling_begin',
+                'logits_before', 'logits_return', 'iteration_return', 'end_use'])
+            for event in (events[2], events[6]):
                 obs = event['observation']
                 self.assertEqual(obs['cudagraph_runtime_mode'], 'FULL')  # fake label only
                 self.assertTrue(validate_native_lora_execution_metadata(obs, {'r1': 7})['metadata_matches'])
             f.observer.restore()
-            self.assertIsInstance(f.runner._model_forward, Mock)
+            self.assertIsInstance(f.graph.run_fullgraph, Mock)
             self.assertIsInstance(f.runner.model.compute_logits, Mock)
 
     def test_drain_retains_coverage_counters_and_failure_state(self):
         with self.fixture() as f:
             self.begin(f)
-            f.runner.execute_model(f.scheduled)
+            self.run_iteration(f)
             before = f.observer.read(drain=True)
             after = f.observer.read()
             self.assertTrue(before['events'])
@@ -1127,16 +1155,16 @@ class NativeExecutionObserver(unittest.TestCase):
             self.end(f)
             f.observer.restore()
 
-    def test_unbound_or_mismatched_batch_is_rejected_before_forward(self):
-        for change in ('unbound', 'wrong_id', 'wrong_count', 'unknown_request'):
+    def test_inconsistent_native_request_state_rejected_before_forward(self):
+        for change in ('wrong_id', 'wrong_count', 'unknown_request'):
             with self.subTest(change=change), self.fixture() as f:
-                if change != 'unbound': self.begin(f)
-                if change == 'wrong_id': f.runner.input_batch.request_lora_mapping = [8]
-                if change == 'wrong_count': f.runner.num_scheduled_tokens.np = [1]
-                if change == 'unknown_request': f.runner.input_batch.req_ids = ['other']
+                self.begin(f)
+                if change == 'wrong_id': f.runner.lora_state.lora_ids = [8]
+                if change == 'wrong_count': f.batch.num_scheduled_tokens = [1]
+                if change == 'unknown_request': f.batch.req_ids = ['other']
                 with self.assertRaises(RuntimeError): f.runner.execute_model(f.scheduled)
                 self.assertTrue(f.observer.read()['failed'])
-                original = next(row[2] for row in f.observer.installed if row[1] == '_model_forward')
+                original = next(row[2] for row in f.observer.installed if row[1] == 'run_fullgraph')
                 original.assert_not_called()
 
     def test_changed_wrapper_weight_or_metadata_pointer_is_rejected(self):
@@ -1156,7 +1184,7 @@ class NativeExecutionObserver(unittest.TestCase):
         with self.fixture() as f:
             self.begin(f)
             f.punica.token_mapping_meta.token_indices_sorted_by_lora_ids.data = [0, 0]
-            f.runner.execute_model(f.scheduled)
+            self.run_iteration(f)
             obs = next(e['observation'] for e in f.observer.events if e['kind'] == 'forward_before')
             with self.assertRaisesRegex(ValueError, 'duplicate'):
                 validate_native_lora_execution_metadata(obs, {'r1': 7})
@@ -1164,16 +1192,16 @@ class NativeExecutionObserver(unittest.TestCase):
     def test_missing_logits_boundary_cannot_complete_iteration(self):
         with self.fixture() as f:
             self.begin(f)
-            original = next(row[2] for row in f.observer.installed if row[1] == 'execute_model')
-            original.side_effect = lambda scheduled: f.runner._model_forward(input_ids=f.Tensor([1, 2]))
-            with self.assertRaisesRegex(RuntimeError, 'coverage'): f.runner.execute_model(f.scheduled)
+            original = next(row[2] for row in f.observer.installed if row[1] == 'sample_tokens')
+            original.side_effect = None
+            with self.assertRaisesRegex(RuntimeError, 'coverage'): self.run_iteration(f)
             self.assertEqual(f.observer.events[-1]['kind'], 'execute_error')
             self.assertTrue(f.observer.failed)
 
     def test_native_errors_preserved_and_not_recorded_as_returned(self):
         with self.fixture() as f:
             self.begin(f)
-            original = next(row[2] for row in f.observer.installed if row[1] == '_model_forward')
+            original = next(row[2] for row in f.observer.installed if row[1] == 'run_fullgraph')
             original.side_effect = ValueError('native failure')
             with self.assertRaisesRegex(ValueError, 'native failure'): f.runner.execute_model(f.scheduled)
             self.assertNotIn('forward_return', [e['kind'] for e in f.observer.events])
@@ -1185,7 +1213,7 @@ class NativeExecutionObserver(unittest.TestCase):
             self.assertTrue(f.observer.failed)
         with self.fixture(max_iterations=1) as f:
             self.begin(f)
-            f.runner.execute_model(f.scheduled)
+            self.run_iteration(f)
             with self.assertRaisesRegex(RuntimeError, 'excessive'): f.runner.execute_model(f.scheduled)
             self.assertTrue(f.observer.failed)
 
@@ -1198,11 +1226,12 @@ class NativeExecutionObserver(unittest.TestCase):
             f.observer.restore()
             self.assertEqual(f.observer.installed, [])
 
-    def test_unsupported_graph_bypass_or_microbatch_is_not_fallback(self):
-        for name, value in (('skip_compiled', True), ('ubatch_slices', [1])):
+    def test_unsupported_microbatch_or_speculation_is_not_fallback(self):
+        for name in ('microbatch', 'speculation'):
             with self.subTest(name=name), self.fixture() as f:
                 self.begin(f)
-                setattr(f.context, name, value)
+                if name == 'microbatch': f.descriptor.num_ubatches = 2
+                else: f.batch.num_draft_tokens = 1
                 with self.assertRaisesRegex(RuntimeError, 'unsupported'):
                     f.runner.execute_model(f.scheduled)
 
@@ -1211,7 +1240,7 @@ class NativeExecutionObserver(unittest.TestCase):
             f.observer.thread -= 1
             with self.assertRaisesRegex(RuntimeError, 'thread'): self.begin(f)
             self.assertTrue(f.observer.failed)
-            f.runner._model_forward = Mock()
+            f.graph.run_fullgraph = Mock()
             previous = f.runner.model.compute_logits
             with self.assertRaisesRegex(RuntimeError, 'another owner'): f.observer.restore()
             self.assertIs(f.runner.model.compute_logits, previous)  # no partial unhook
@@ -1230,11 +1259,11 @@ class NativeExecutionObserver(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, 'already installed'):
                 call(f.worker, synchronize=True, execution_observer=command)
             self.begin(f)
-            f.runner.execute_model(f.scheduled)
+            self.run_iteration(f)
             self.end(f)
             read = call(f.worker, synchronize=True,
                         execution_observer=dict(action='read', qualification_only=True))
-            self.assertEqual(read['bindings']['r1']['logits'], 1)
+            self.assertEqual(read['native_requests']['r1']['logits'], 1)
             stopped = call(f.worker, synchronize=True,
                            execution_observer=dict(action='stop', qualification_only=True))
             self.assertEqual(stopped['events'], [])
@@ -1243,14 +1272,14 @@ class NativeExecutionObserver(unittest.TestCase):
     def test_partial_install_rolls_back_prior_boundaries(self):
         with self.fixture() as f:
             f.observer.restore()
-            original_forward = f.runner._model_forward
+            original_forward = f.graph.run_fullgraph
             original_execute = f.runner.execute_model
             original_reference = f.worker.ieee_gpu_reference
             f.runner.model.compute_logits = None
             with self.assertRaisesRegex(RuntimeError, 'not callable'):
                 monitor._IEEENativeExecutionObserver(f.worker, diagnostic_id='rollback',
                     max_iterations=2, max_buffer_bytes=65536)
-            self.assertIs(f.runner._model_forward, original_forward)
+            self.assertIs(f.graph.run_fullgraph, original_forward)
             self.assertIs(f.runner.execute_model, original_execute)
             self.assertIs(f.worker.ieee_gpu_reference, original_reference)
 
@@ -1268,6 +1297,71 @@ class NativeExecutionObserver(unittest.TestCase):
             kwargs={'synchronize': True, 'execution_observer': command})
         proxy._rpc.assert_awaited_once_with('ieee_worker_observation',
             synchronize=True, execution_observer=command)
+
+    def test_v2_graph_and_eager_paths_preserve_distinct_native_boundaries(self):
+        for mode in ('FULL', 'PIECEWISE', 'NONE'):
+            with self.subTest(mode=mode), self.fixture(mode=mode) as f:
+                self.begin(f)
+                self.assertIsNone(f.runner.execute_model(f.scheduled))
+                self.assertEqual(f.observer.current['forwards'], 1)
+                self.assertEqual(f.observer.current['logits'], 0)
+                with self.assertRaisesRegex(RuntimeError, 'idle'):
+                    f.observer.read()
+                self.assertEqual(f.runner.sample_tokens(None), 'native_result')
+                self.end(f)
+                record = f.observer.read()
+                self.assertEqual(record['execution_contract'], 'vllm_v2_split_forward_sample_v1')
+                events = record['events']
+                self.assertEqual(sum(e['kind'] == 'forward_before' for e in events), 1)
+                self.assertEqual(events[2]['observation']['cudagraph_runtime_mode'], mode)
+                f.observer.restore()
+
+    def test_empty_iteration_needs_no_forward_or_sample(self):
+        with self.fixture() as f:
+            self.assertEqual(f.runner.execute_model(SimpleNamespace(num_scheduled_tokens={})), 'empty_result')
+            self.assertEqual([e['kind'] for e in f.observer.read()['events']],
+                             ['execute_begin', 'iteration_return'])
+            f.observer.restore()
+
+    def test_sampling_cannot_switch_or_skip_the_forward_batch(self):
+        for change in ('switched', 'missing', 'second_execute'):
+            with self.subTest(change=change), self.fixture() as f:
+                self.begin(f)
+                f.runner.execute_model(f.scheduled)
+                if change == 'second_execute':
+                    with self.assertRaisesRegex(RuntimeError, 'nested'):
+                        f.runner.execute_model(f.scheduled)
+                else:
+                    f.runner.execute_model_state = (None if change == 'missing' else
+                                                    SimpleNamespace(input_batch=object()))
+                    with self.assertRaisesRegex(RuntimeError, 'input changed'):
+                        f.runner.sample_tokens(None)
+
+    def test_unsupported_runner_is_rejected_before_installation(self):
+        with self.fixture() as f:
+            f.observer.restore()
+            original = f.runner.execute_model
+            f.worker.model_runner = SimpleNamespace(**vars(f.runner))
+            with self.assertRaisesRegex(RuntimeError, 'native V2'):
+                monitor._IEEENativeExecutionObserver(f.worker, diagnostic_id='wrong_runner',
+                    max_iterations=10, max_buffer_bytes=65536)
+            self.assertIs(f.worker.model_runner.execute_model, original)
+
+    def test_internal_id_is_collected_without_suffix_or_adapter_based_inference(self):
+        with self.fixture() as f:
+            self.begin(f)
+            f.batch.req_ids = ['native-unrelated-name']
+            f.runner.req_states.req_id_to_index = {'native-unrelated-name': 0}
+            f.runner.lora_state.lora_requests = {'native-unrelated-name': SimpleNamespace(lora_int_id=7)}
+            f.scheduled.num_scheduled_tokens = {'native-unrelated-name': 2}
+            self.run_iteration(f)
+            self.end(f)
+            row = f.observer.read()
+            self.assertEqual(set(row['bindings']), {'r1'})
+            self.assertEqual(set(row['native_requests']), {'native-unrelated-name'})
+            self.assertEqual(row['bindings']['r1']['forwards'], 0)
+            self.assertEqual(row['native_requests']['native-unrelated-name']['forwards'], 1)
+            f.observer.restore()
 
 
 if __name__ == '__main__':

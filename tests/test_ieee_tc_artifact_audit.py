@@ -146,6 +146,191 @@ class NativeExecutionMetadataAudit(unittest.TestCase):
                 p.validate_native_lora_execution_metadata(broken, bindings)
 
 
+class NativeExecutionJournalAudit(unittest.TestCase):
+    """Offline coverage fixtures: never native numerical/GPU qualification."""
+
+    def fixture(self):
+        start = dict(kind='ieee_native_execution_observer_v1', diagnostic_id='unit',
+            execution_contract='vllm_v2_split_forward_sample_v1',
+            worker_pid=123, worker_thread=456, device='cuda:0', clock_id='clock',
+            model_id=1, raw_model_id=2, manager_id=3, wrapper_id=4,
+            layer_identity=[{'fixture': True}], metadata_identity={'fixture': True},
+            events=[], bindings={}, native_requests={}, iterations=0, last_sequence=0, failed=False,
+            timing_qualified=False, kernel_arithmetic_qualified=False, n_correct=None)
+        worker = dict(pid=123, local_device='cuda:0', clock_id='clock')
+        before = dict(scheduler_owner_id='scheduler', scheduled_sequence=10,
+            completed_sequence=10, admitted=[], unretired_iterations=0, native_deferred_free_batches=0)
+        after = dict(before, scheduled_sequence=12, completed_sequence=12)
+        expected = {'lease': dict(request_id='source1', adapter_int_id=11, owner_id='owner', target_tokens=2)}
+        expected['lease']['retirement'] = dict(gpu_reference_owner_id='owner', gpu_reference_lease_id='lease',
+            native_retirement=dict(kind='ieee_native_request_retirement_v1', retired=True,
+                request_id='r0', external_request_id='external0', clock_id='clock'))
+        mid = copy.deepcopy(start)
+        def emit(kind, **fields):
+            mid['last_sequence'] += 1
+            mid['events'].append(dict(kind=kind, sequence=mid['last_sequence'],
+                iteration=mid['iterations'], monotonic_s=float(mid['last_sequence']), **fields))
+        bound = dict(backend_request_id='external0', adapter_int_id=11, lease_id='lease',
+            expected_owner_id='owner', ended=False, forwards=0, logits=0, scheduled_tokens=0)
+        receipt = dict(backend_request_id='external0', adapter_int_id=11, lease_id='lease',
+                       owner_id='owner', backend_terminal=False)
+        emit('begin_use', binding=copy.deepcopy(bound), receipt=copy.deepcopy(receipt))
+        for n in (3, 1):
+            mid['iterations'] += 1
+            emit('execute_begin', scheduled={'r0': n})
+            obs, _ = NativeExecutionMetadataAudit().observation(ids=(11,), counts=(n,))
+            obs.update(real_token_rows=n, padded_forward_rows=n + 1,
+                cudagraph_runtime_mode='FULL', stream_id=0, layer_and_buffer_identity_matches=True)
+            emit('forward_before', observation=copy.deepcopy(obs))
+            emit('forward_return')
+            emit('forward_phase_return')
+            emit('sampling_begin')
+            emit('logits_before', observation=copy.deepcopy(obs))
+            emit('logits_return')
+            emit('iteration_return', forward_calls=1, logits_calls=1)
+            native = mid['native_requests'].setdefault('r0', dict(adapter_int_id=11,
+                forwards=0, logits=0, scheduled_tokens=0))
+            native['forwards'] += 1
+            native['logits'] += 1
+            native['scheduled_tokens'] += n
+        # Empty native iterations are explicit, not counted as scheduled work.
+        mid['iterations'] += 1
+        emit('execute_begin', scheduled={})
+        emit('iteration_return', forward_calls=0, logits_calls=0)
+        receipt['backend_terminal'] = True
+        emit('end_use', backend_request_id='external0', receipt=receipt)
+        bound['ended'] = True
+        mid['bindings']['external0'] = bound
+        stop = copy.deepcopy(mid)
+        stop['events'] = []
+        return [start, mid, stop], expected, worker, before, after
+
+    def test_complete_drained_journal_matches_independent_schedule(self):
+        args = self.fixture()
+        original = copy.deepcopy(args)
+        result = p.validate_native_execution_journal(*args)
+        self.assertEqual((result['requests'], result['iterations'], result['nonempty_iterations']), (1, 3, 2))
+        self.assertFalse(result['kernel_arithmetic_qualified'])
+        self.assertFalse(result['timing_qualified'])
+        self.assertFalse(result['full_pool_qualified'])
+        self.assertIsNone(result['n_correct'])
+        self.assertEqual(args, original)
+
+    def test_independent_request_binding_cannot_follow_wrong_observed_batch(self):
+        for field, value in [('adapter_int_id', 22), ('owner_id', 'another'), ('target_tokens', 3)]:
+            args = self.fixture()
+            args[1]['lease'][field] = value
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                p.validate_native_execution_journal(*args)
+
+    def test_independent_scheduler_catches_omitted_whole_iterations(self):
+        for which, changes in [(4, dict(scheduled_sequence=13, completed_sequence=13)),
+                               (4, dict(completed_sequence=11)),
+                               (4, dict(scheduler_owner_id='different')),
+                               (3, dict(admitted=[{'request_id': 'unfinished'}])),
+                               (4, dict(unretired_iterations=1)),
+                               (4, dict(native_deferred_free_batches=1))]:
+            args = self.fixture()
+            args[which].update(changes)
+            with self.subTest(changes=changes), self.assertRaises(ValueError):
+                p.validate_native_execution_journal(*args)
+
+    def test_native_drained_schema_rejects_numeric_admitted_and_fake_counters(self):
+        _, _, _, before, _ = self.fixture()
+        p.require_native_execution_drained(before)
+        for changes in (dict(admitted=0), dict(admitted=False), dict(admitted={}),
+                        dict(scheduled_sequence=True), dict(completed_sequence=-1),
+                        dict(unretired_iterations=False), dict(native_deferred_free_batches=None)):
+            with self.subTest(changes=changes), self.assertRaises(ValueError):
+                p.require_native_execution_drained(dict(before, **changes))
+
+    def test_missing_duplicate_reordered_and_error_events_are_rejected(self):
+        for change in ('missing', 'duplicate', 'reorder', 'error', 'iteration', 'time'):
+            args = self.fixture()
+            events = args[0][1]['events']
+            if change == 'missing': del events[4]
+            if change == 'duplicate': events.insert(4, copy.deepcopy(events[4]))
+            if change == 'reorder': events[3], events[4] = events[4], events[3]
+            if change == 'error': events[3]['kind'] = 'execute_error'
+            if change == 'iteration': events[3]['iteration'] = 999
+            if change == 'time': events[3]['monotonic_s'] = float('nan')
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                p.validate_native_execution_journal(*args)
+
+    def test_changed_worker_layer_identity_failure_and_claim_flags_rejected(self):
+        for field, value in [('worker_pid', 987), ('worker_thread', 789), ('clock_id', 'different'),
+                ('device', 'cuda:1'), ('model_id', 999), ('layer_identity', []),
+                ('metadata_identity', {}), ('failed', True), ('timing_qualified', True),
+                ('kernel_arithmetic_qualified', True), ('n_correct', 1)]:
+            args = self.fixture()
+            args[0][1][field] = value
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                p.validate_native_execution_journal(*args)
+
+    def test_both_forward_and_logits_must_use_correct_real_rows(self):
+        for index in (2, 6):
+            for field, value in [('real_token_rows', 99), ('padded_forward_rows', 0),
+                                  ('layer_and_buffer_identity_matches', False),
+                                  ('cudagraph_runtime_mode', ''), ('stream_id', None)]:
+                args = self.fixture()
+                args[0][1]['events'][index]['observation'][field] = value
+                with self.subTest(index=index, field=field), self.assertRaises(ValueError):
+                    p.validate_native_execution_journal(*args)
+        args = self.fixture()
+        args[0][1]['events'][6]['observation']['token_slot_indices'] = [0, 0, 0]
+        with self.assertRaises(ValueError): p.validate_native_execution_journal(*args)
+
+    def test_terminal_ack_binding_counters_and_drain_sequence_are_required(self):
+        for change in ('terminal', 'binding', 'counter', 'sequence', 'target'):
+            args = self.fixture()
+            mid = args[0][1]
+            if change == 'terminal': mid['events'][-1]['receipt']['backend_terminal'] = False
+            if change == 'binding': mid['events'][0]['receipt']['adapter_int_id'] = 22
+            if change == 'counter': mid['native_requests']['r0']['logits'] -= 1
+            if change == 'sequence': mid['last_sequence'] += 1
+            if change == 'target': args[1]['unexpected'] = dict(args[1]['lease'])
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                p.validate_native_execution_journal(*args)
+
+    def test_randomized_internal_id_requires_exact_independent_retirement(self):
+        for field, value in [('request_id', 'r0-wrong'), ('external_request_id', 'external1'),
+                             ('clock_id', 'wrong-clock'), ('retired', False)]:
+            args = self.fixture()
+            args[1]['lease']['retirement']['native_retirement'][field] = value
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                p.validate_native_execution_journal(*args)
+
+    def test_observer_rpc_is_opt_in_and_bounded(self):
+        import asyncio
+        from types import SimpleNamespace
+        from unittest.mock import AsyncMock
+        engine = SimpleNamespace(ieee_worker_observation=AsyncMock(return_value={'workers': [{'raw': True}]}))
+        result = asyncio.run(p.qualify_execution_observer(engine, 'start', diagnostic_id='unit'))
+        self.assertEqual(result, {'raw': True})
+        engine.ieee_worker_observation.assert_awaited_once_with(synchronize=True, execution_observer={
+            'action': 'start', 'qualification_only': True, 'diagnostic_id': 'unit',
+            'max_iterations': 10000, 'max_buffer_bytes': 32 * 1024**2})
+        for action in ('read', 'stop'):
+            engine.ieee_worker_observation.reset_mock()
+            asyncio.run(p.qualify_execution_observer(engine, action))
+            engine.ieee_worker_observation.assert_awaited_once_with(synchronize=True,
+                execution_observer={'action': action, 'qualification_only': True})
+        for workers in ([], [{}, {}]):
+            engine.ieee_worker_observation.return_value = {'workers': workers}
+            with self.assertRaises(RuntimeError): asyncio.run(p.qualify_execution_observer(engine, 'read'))
+
+    def test_execution_mode_uses_existing_physical_subprocess(self):
+        import asyncio
+        from unittest.mock import AsyncMock
+        from scripts.run_all_experiments import SubprocessInferenceEngineProxy
+        cfg = {'ieee_physical_allocation': True}
+        with patch.object(SubprocessInferenceEngineProxy, 'spawn', new_callable=AsyncMock) as spawn:
+            asyncio.run(p.initialize_qualification_runtime(cfg, 'native_execution_metadata'))
+            spawn.assert_awaited_once_with(model_cfg=cfg, cost_model={}, device_id=0, runtime_gpu_ids=[0])
+        with self.assertRaises(ValueError):
+            asyncio.run(p.initialize_qualification_runtime({}, 'native_execution_metadata'))
+
+
 class CheckpointSlotAudit(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
