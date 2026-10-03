@@ -1,6 +1,68 @@
 # IEEE TC execution status
 
-## CURRENT — D195 completed, analyzed and SEALED; backup then next 7B diagnosis
+## CURRENT — D196 retained-data diagnosis SEALED; backup next
+
+2026-10-03 16:17+08. Goal ACTIVE/current turn PROGRESS (previous PROGRESS).
+Full Plan/status/V1 reread after compaction; hashes unchanged. analyze-results,
+academic-plotting/optimize-for-gpu/github-sync followed. No subagents or claimed
+independent semantic review. Runtime a0c4a9d unchanged; HEAD a42f250. Once-only
+D78/D80 delivery cache approval already fulfilled, no recreation/remote operation.
+No inference, serving/helper/config/profile/metric change or new candidate.
+
+D196 reuses sealed D195 34407428B projection and unchanged RPC analyzer;
+previous D190 stages reused from sealed D191, not old large-file reparse.
+4000 rows/65 groups/65 comparison rows/complete field-clock contracts PASS.
+D190→D195 preengine2101.355→1961.691ms (85.641% of current meanTTFT).
+Recordedrouting563.304→519.378ms, residual415.139→414.847ms; residual NOT
+singleRPC and routing includesawaits. GPU-selected1232→1165 are different
+conditional populations: runtime1051.791ms, residual531.903ms, source→handoff
+1.219ms. Ingress220.884ms is localUnixsocket, NOT174HTTP. Generationpickup
+261.818ms has wallclock/clamping caveat, NOTsourceRPC latency. No causal/model/
+formalSLO/G1G2 acceptance; D195 allregressions and numeric128hashchanges remain.
+
+Analysisactual026c90f010da4e07a38efc71c16ef3fa/session70636 CLOSED0,
+wall10.41s/RSS1102588KiB. Finalizeactualcf30173b2cd44d70a35675dcee295f7b/
+session27704 CLOSED0. Both3/4GiBswap0CPU2,3,26,27, finalevents-swap0,
+scopeinactive/identityempty/actualpathabsence verified. No liveGPU/remote/CPU
+experiment/toolhandles. 147protected/PlanV1/sourceSHA, all65groups, sixstage
+and sixGPUconditional documentrows PASS;10serving/helper/historypaths unchanged.
+Threewrapper syntaxsmokes/shellsyntax PASS; no repeatedserving qualification.
+DiagnosisSHA cc0d7f9e5f89867cfdb25891e6b40463d94c7e913aff8879d8d6f12047271b9f.
+VerificationSHA0c78e63390dc5b8d5e87f8738522025c5ddaf366974f7e13c140d136f71b2f79.
+10member24432B sourcebundleSHA
+a54619fa65336ab0397ffa10bb8ec51b937b03a7eed3faefeb39257148fed570.
+Doc D196_CONTROL_PATH_DIAGNOSIS.md and curated SEALED. Pre-commit check found
+one extra blank EOF line in the doc; original retained losslessly as
+20261003_d196_document_before_format.md.gz (uncompressedSHA bf68ff8269797e88fdc60305883ae7de043283b57879e39ebf262c7d5d1592cd).
+Only the last newline removed, currentSHA6b7037e7cc6fa2e9e980c8d99fc944be08a75f28b08453794b0028a6210a8a6b.
+Explicit format-correction receipt binds both; original verification/bundle
+unchanged, no numerical or claim edits/reanalysis. Exact15path backup below.
+
+NEXT exact15pathbackup then ONE bounded dependency question: fresh request-source
+GPU pool observation, physical layout versus dynamic slot/active/registered state.
+Inspect native setter/lifetime and retained snapshots before any representation
+candidate; repeated construction existence is NOT measured dominant cost.
+No TTL/whole-manager snapshotcache/removedsafetycheck/newformula/config, no blind
+Full or repeated D192 encoder/D187 profiler. Reject direction if no sound lifetime
+or component evidence. PrimaryvLLMCPUblog/.30model-manager/Pythonasyncio checked.
+Actual7B numeric/commonwarm/Resident/oldPrime-newmetrics/G1G2 OPEN before3B/
+baselines; entireM1M2/A1–A5/S1–S13 retained. Disk160718295040B belowNEWheavy150GiB:
+auditedrecovery/freshgate beforeGPU/build, running100GiB/memoryfloors unchanged.
+Usermanifest/unrelatedwork preserved. No current blocker/new authority needed.
+
+## D195 completed, analyzed, SEALED and BACKED — reference
+
+Backup verified2026-10-03 16:02:49+08:
+a42f250785ce697750ebc3a7963ff06ef30f0f32; pushsession16413 CLOSED0 and independent
+ls-remotesession76171 CLOSED0 match. Exact16paths/97staged+archiveentries passed
+credential/scope checks; bundlechecksum/working+stageddiffchecks/7PythonAST and
+22shellsyntax checksPASS. Usermanifest excluded. No serving changes or repeated
+qualification tests. FinalGPUcensus empty/noexperiment scopes/toolhandles.
+Goal ACTIVE/currentturn PROGRESS. D195sealed doc/results unchanged. NEXT retained
+phase/control evidence plushistory/primarysources for next7B bottleneck diagnosis;
+no newcandidate selected, no D195 rerun/newprofiling withoutnewhypothesis.
+Actual7B acceptance OPEN before3B/baselines; complete latermatrix retained.
+Freshdiskrecovery/preflight required before nextGPU/build, floorsunchanged.
 
 2026-10-03 16:00+08. Goal ACTIVE/current turn PROGRESS (previous PROGRESS).
 Full Plan/status/V1 reread after compaction; hashes unchanged. run-experiment,

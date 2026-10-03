@@ -1,0 +1,12 @@
+{
+  "kind": "d196_document_format_correction_v1",
+  "reason": "Pre-commit diff check detected one extra blank line at EOF after evidence binding.",
+  "transformation": "Remove exactly the last newline byte; preserve every other byte.",
+  "original_document_sha256": "bf68ff8269797e88fdc60305883ae7de043283b57879e39ebf262c7d5d1592cd",
+  "current_document_sha256": "6b7037e7cc6fa2e9e980c8d99fc944be08a75f28b08453794b0028a6210a8a6b",
+  "original_lossless_archive": "20261003_d196_document_before_format.md.gz",
+  "original_archive_sha256": "d74637386803a9361bfe301f24fbdc3a08b419301acd3253ea970c184978e0ca",
+  "unchanged_verification_sha256": "0c78e63390dc5b8d5e87f8738522025c5ddaf366974f7e13c140d136f71b2f79",
+  "original_evidence_not_rewritten": true,
+  "raw_checker": "results/ieee_tc/p2_backend_qualification/d196_20261003/check_staged_format.py"
+}
