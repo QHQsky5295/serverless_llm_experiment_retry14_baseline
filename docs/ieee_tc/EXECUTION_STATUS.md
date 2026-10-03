@@ -43,6 +43,33 @@ budget. The next run must use the existing 7B W0 trace, complete 4000/4000
 under the fixed contract, release all service scopes, and then be repeated for
 the V1 reference protocol; no ranking or figure is justified before that.
 
+## CURRENT — D213 7B Resident repeat1 COMPLETE and eligible; reference mean pending
+
+2026-10-04 05:36+08. Goal ACTIVE/current turn PROGRESS. The full Plan, this
+status file and METRIC_PROTOCOL_FROZEN_V1 were reread before acceptance. The
+ordinary vLLM Resident candidate completed the existing W0 trace in full:
+4000/4000 records, 4000/4000 successful requests, all HTTP 200, and strict
+`fixed_length_greedy_v1` validation passed for native `vllm_token_ids`, target
+length, prompt hash and timing decomposition. Descriptive values are mean
+TTFT 232.078 ms, P95 TTFT 276.110 ms, mean E2E 3092.043 ms, P95 E2E
+6977.803 ms, and mean TPOT 25.300 ms. These are one seed-42 repeat, not a
+formal ranking.
+
+The systemd journal records the owned four-GPU service envelope from
+04:21:49 to 05:32:17 (4228 s). The runner stopped all four owned vLLM trees;
+the unit became inactive and post-run `nvidia-smi` showed no compute apps.
+The conservative lifecycle envelope is therefore 16912 GPU-s for this repeat.
+The compact receipt is
+`paper_results/ieee_tc/p2_backend_qualification/d213_vllm_7b_w0_resident_repeat1_seed42_fixed.json`.
+
+Paper-evidence interpretation: D213 is the first complete ordinary-vLLM
+Resident repeat eligible for the three-repeat reference set. Its lifecycle
+envelope is not yet a frozen `U_ref`, and no G2 budget or ranking is derived
+from one repeat. Repeat2 and repeat3 must use the same trace, subset,
+generation contract and resource envelope, then the reference mean and
+SLO/budget audit can be computed. No performance figure is generated yet;
+the single-repeat status table is the appropriate artifact.
+
 ## CURRENT — D212 vLLM fixed-output path CPU QUALIFIED; Resident replay still pending
 
 2026-10-04 03:47+08. Goal ACTIVE/current turn PROGRESS. Before any comparison,
