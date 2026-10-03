@@ -1,0 +1,52 @@
+{
+  "campaign_id": "D213",
+  "status": "complete_correct_reference_candidate",
+  "system": "vLLM",
+  "model": "llama2_7b_main_v2_publicmix",
+  "workload": "W0",
+  "repeat": 2,
+  "source_trace_seed": 42,
+  "trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+  "adapter_subset_sha256": "aa94b21e129a5efde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016",
+  "generation_contract": "fixed_length_greedy_v1",
+  "completion_token_source": "vllm_token_ids",
+  "deployment": {
+    "data_parallel_replicas": 4,
+    "tensor_parallel_size": 1,
+    "gpu_ids": [0, 1, 2, 3],
+    "adapter_count": 500,
+    "registration_mode": "static",
+    "vllm_commit": "7400e9d9f9e86179c79dcbd7855a426134da43ec"
+  },
+  "qualification": {
+    "expected_requests": 4000,
+    "completed_records": 4000,
+    "successful_requests": 4000,
+    "generation_contract_gates": "pass",
+    "token_hash_decomposition_gates": "pass",
+    "elapsed_sec": 3964.4009308050154,
+    "mean_ttft_ms": 231.09066326584434,
+    "p95_ttft_ms": 274.7706715017557,
+    "mean_e2e_ms": 3089.8797425094526,
+    "p95_e2e_ms": 6968.415727373213,
+    "mean_service_ttft_ms": 219.62754285041592,
+    "mean_service_e2e_ms": 3078.4166220940238,
+    "mean_tpot_ms": 25.26842208323136,
+    "all_http_statuses": 200
+  },
+  "lifecycle_gpu_envelope": {
+    "allocation_start_evidence": "systemd unit start 2026-10-04T05:35:44+08:00",
+    "release_evidence": "runner stopped all four owned vLLM process trees at 2026-10-04T06:46:15+08:00; force-stop cleanup completed 2026-10-04T06:46:21+08:00; unit inactive and nvidia-smi empty after completion",
+    "resident_gpu_count": 4,
+    "cgroup_envelope_seconds": 4237.0,
+    "conservative_gpu_seconds": 16948.0,
+    "measurement_note": "The envelope includes deployment/startup and shutdown; it is a conservative Resident upper-bound until the three-repeat reference mean is frozen."
+  },
+  "artifacts": {
+    "result_dir": "/home/qhq/serverless_llm_baselines/results/ieee_tc_resident_reference/d213_vllm_7b_w0_resident_repeat2_seed42_fixed",
+    "replay_sha256": "c04a8de8d428a148137db63bcdf821149cfeaaccf5a51d1353c3ed7081517845",
+    "summary_sha256": "86f1599951364efbbcac890fa7cd027b644945e6b07a0987515d49cc6c0ed70d",
+    "launch_spec_sha256": "340d6b0f49f0ae7b88169e8a944bef1886e13ac01beec2f2c2406282a763eb15"
+  },
+  "interpretation": "This is one complete ordinary-vLLM Resident W0 repeat. It is eligible for the three-repeat reference set, but no reference mean, G2 budget, ranking, or claim of optimality is frozen from this single repeat."
+}

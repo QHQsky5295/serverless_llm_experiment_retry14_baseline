@@ -1,5 +1,32 @@
 # IEEE TC execution status
 
+## CURRENT — D213 7B Resident repeat2 COMPLETE and eligible; reference mean pending
+
+2026-10-04 06:47+08. Goal ACTIVE/current turn PROGRESS. The full Plan, this
+status file and METRIC_PROTOCOL_FROZEN_V1 were reread before acceptance. The
+ordinary vLLM Resident candidate completed the same existing W0 trace as
+repeat1: 4000/4000 records, 4000/4000 successful requests, all HTTP 200, and
+strict `fixed_length_greedy_v1` validation passed for native `vllm_token_ids`,
+target length, prompt hash and timing decomposition. Descriptive values are
+mean TTFT 231.091 ms, P95 TTFT 274.771 ms, mean E2E 3089.880 ms, P95 E2E
+6968.416 ms, and mean TPOT 25.268 ms. These values are a second seed-42
+repeat under the same trace/subset and are not a formal ranking.
+
+The systemd journal records the owned four-GPU service envelope from
+05:35:44 to 06:46:21 (4237 s). The runner stopped all four owned vLLM trees;
+the unit became inactive and post-run `nvidia-smi` showed no compute apps.
+The conservative lifecycle envelope is therefore 16948 GPU-s for this
+repeat. The compact receipt is
+`paper_results/ieee_tc/p2_backend_qualification/d213_vllm_7b_w0_resident_repeat2_seed42_fixed.json`.
+
+Paper-evidence interpretation: D213 now has two complete ordinary-vLLM
+Resident repeats eligible for the three-repeat reference set. The lifecycle
+envelopes remain conservative per-repeat observations; they are not yet a
+frozen `U_ref`, G2 budget, or acceptance threshold. Repeat3 must use the same
+trace, subset, generation contract and resource envelope. No performance
+figure or PrimeLoRA ranking is justified before that reference protocol and
+the common warm-SLO audit are complete.
+
 ## CURRENT — D212 ordinary vLLM fixed-output qualification PASS; Resident replay still pending
 
 2026-10-04 04:16+08. Goal ACTIVE/current turn PROGRESS. The full Plan, this
