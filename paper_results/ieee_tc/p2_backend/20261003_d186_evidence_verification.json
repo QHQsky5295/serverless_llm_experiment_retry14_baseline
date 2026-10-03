@@ -1,0 +1,48 @@
+{
+  "kind": "d186_offline_evidence_verification_v1",
+  "passed": true,
+  "protection": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "request_count": 4000,
+  "summary_rows": 65,
+  "sources_unchanged": [
+    "scripts/run_all_experiments.py",
+    "scripts/analyze_control_path_overhead.py",
+    "faaslora/preloading/planning_cpu.py",
+    "faaslora/memory/gpu_monitor.py",
+    "faaslora/experiment/instance_pool.py",
+    "faaslora/scheduling/vllm_ieee_frontend.py",
+    "faaslora/memory/residency_manager.py",
+    "faaslora/datasets/workload_generator.py",
+    "scripts/dedicated_engine_worker.py",
+    "docs/ieee_tc/D185_FULL_W0_FULL1.md"
+  ],
+  "syntax_smoke": true,
+  "analysis_scope_released": true,
+  "analysis_invocation_id": "22f373af898749b68c2955bf3a5848dc",
+  "artifacts": {
+    "paper_results/ieee_tc/p2_backend/20261003_d186_control_path/control_spans.csv": "7d740dc64311bf6cec2cb5809b6789233505a8623a9bf9ea7d60243e665a4a7b",
+    "paper_results/ieee_tc/p2_backend/20261003_d186_control_path/d182_d185_stage_comparison.csv": "cb4dad8407e4387c78a672cc920a2d17a618d5d87c70c127463fd585b64d8308",
+    "paper_results/ieee_tc/p2_backend/20261003_d186_control_path/diagnosis.json": "88cdd729055940e37ef8622ed4c279274aaa09f626c39065b96260cc46f0465b",
+    "paper_results/ieee_tc/p2_backend/20261003_d186_control_path/request_control_spans.csv": "d8781273b705654e9976b020181d9a712990b507b035aef68c39e966035a0c74",
+    "paper_results/ieee_tc/p2_backend/20261003_d186_control_path/request_rpc_observations.csv": "9209371f2929aee8f78d7f57a550178cc64e334030634537913c1d0fd45bd5e6",
+    "paper_results/ieee_tc/p2_backend/20261003_d186_control_path/rpc_metrics.csv": "286149ca797068701d4d5f36a47ed5ef3c86d5f72ce131101d2a479c272c8f79",
+    "paper_results/ieee_tc/p2_backend/20261003_d186_control_path/summary.json": "32d24a47fc86ec79b0cd6fb248d728b2d3f08b88a53a802d59bc687b05ca9132",
+    "docs/ieee_tc/D186_CONTROL_PATH_DIAGNOSIS.md": "c178afb29738475f9ce7181608959fb37f77c5aa816253aa2abd0578a782f902",
+    "paper_results/ieee_tc/p2_backend/20261003_d186_analysis_sources.tar.gz": "03168ad88e6b4b7c9209aac75a25adcfca6d42ce53502602c1bff4548ee59f52"
+  },
+  "bundle_members": 10,
+  "bundle_bytes": 24379,
+  "prior_table_sources": {
+    "paper_results/ieee_tc/p2_backend/20261003_d183_control_path/control_spans.csv": "54421b5e5858c9d53ebcfb645b2e97bd8a68eb4aa9152ff8d498cc344528373f",
+    "paper_results/ieee_tc/p2_backend/20261003_d183_evidence_verification.json": "754b211c44f693267198586c78bc96a2597a65fd863d51bb0fd0837bd646221c"
+  },
+  "comparison_rows": 65,
+  "document_stage_table_checked": true
+}

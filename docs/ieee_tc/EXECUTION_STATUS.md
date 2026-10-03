@@ -1,6 +1,61 @@
 # IEEE TC execution status
 
-## CURRENT — D185 analyzed and SEALED; Git backup NEXT
+## CURRENT — D186 control-path diagnosis SEALED; backup then current CPU diagnosis
+
+2026-10-03 10:22+08. GoalACTIVE/currentturnPROGRESS. FullPlan/status/V1 read
+aftercompaction; optimize-for-gpu/vLLM optimization reference, analyze-results,
+run-experiment, academic-plotting/github-sync skills read. Plan/V1 unchanged.
+No servingchange/GPUreplay/remoteaction. Once-onlyD78/D80cache not recreated.
+Runtime2615d240b567043e4ca92b0debc30a0480e0b347, evidenceHEAD4bad7ef retained.
+D185 notrerun andall sealedhistory unchanged; actual7B acceptance stillOPEN.
+
+Reused D185 sealed34MBprojection andexisting D183/analyze_rpc_breakdown.
+4000rows/65groups/completefield-clockcontractsPASS; prior D182 table reused
+directlyfromsealedD183, nooldlargefile reparse. Stagecomparison65rows and
+precise doc table delivered. D182→D185 preengine2389.572→2387.840ms;
+routing+37.987ms, unrecordedresidual-52.149ms, source→handoff+18.237ms,
+handoff→native+3.997ms. NotanisolatedRPC causal effect ornetbenefit claim.
+GPUselected1266vs1300 conditionalgroups differ; nofakepairedsubpopulation.
+Ingresssubmit→receive339.988ms/localUnixsocket; responsepickup448.252ms with
+producerwallclock/clampingcaveat, notremoteHTTP orsourceRPC latency.
+
+Analysisactual22f373af898749b68c2955bf3a5848dc/session51547CLOSED0,
+wall10.71s/RSS1103164KiB. Finalizeactual38f02ec568c74287809a5c65d0077137/
+session91984CLOSED0. Both3/4GiBswap0CPU2,3,26,27; finalmemoryevents/swap0,
+automaticremoval/pathabsence verified. No liveGPU/CPU/remote/tooljobs.
+147protected/PlanV1/sourceSHA checksPASS,10serving/helper/historypaths unchanged;
+newwrapper syntaxsmokePASS. Sourcebundle10members24379B contentsverified,
+SHA03168ad88e6b4b7c9209aac75a25adcfca6d42ce53502602c1bff4548ee59f52.
+DiagnosisSHA88cdd729055940e37ef8622ed4c279274aaa09f626c39065b96260cc46f0465b.
+DocD186_CONTROL_PATH_DIAGNOSIS.md nowSEALED viaevidencebinding; doNOTedit.
+Usermanifest/unrelateddirtyfiles untouched. NEXT exact13path Gitbackupchecks.
+
+Then reuseexisting python_frames_v1/1000source42prefix forCURRENTimplementation
+CPUcallerdiagnosis, notanotherordinaryD185Full orrepeatedfunctionqualification.
+D162hotspotorder predatesmanychanges, no longerassumedcurrent. No newoptimizer
+selected; obtaincurrentevidence before changing owner/file/native/control paths.
+NoSLO/configuration/formulachange. Freshresourcepreflight beforediagnosticGPU;
+disk161771876352BnearNEW150GiB, running100GiBfloorunchanged.
+Actual7B numeric/110outputhashdifferences/commonwarm/Resident/oldPrime-newmetrics/
+G1G2 OPEN before3B/baselines; entireM1M2/A1–A5/S1–S13 matrixretained.
+
+## D185 analyzed, SEALED and BACKED — reference
+
+Backup complete2026-10-03 10:07+08:
+4bad7ef55f68d9077c0259e1bf6d1d1da738d4d1; push andindependentls-remote match.
+Exact17paths/99staged+nestedarchiveentries credential/scopecheckPASS;
+bundlechecksum/contents, fullworkingdiff andstageddiff(cr-at-eol explicit),
+7PythonAST/shellsyntax smokePASS. Usermanifest excluded; servingcode unchanged.
+No liveGPU/remote/CPU/toolhandles. GoalACTIVE/currentturnPROGRESS.
+Disk161782697984B, nearNEW150GiB; freshpreflight required beforeanynextheavy.
+No cleanup ornewGPU needed now. D185 doc/curated/correction SEALED, noedit.
+NEXT history/primary-source-guided investigation of remainingpreengine control
+waiting using existingboundedprojections; notanotherD185replay or repeated
+qualification. No newcandidate selected. Actual7B numerical/commonreference/
+Resident/oldPrime-newmetrics/G1G2 OPEN before3B/externalbaselines, latermatrix
+fullyretained. Netbenefit NOTestablished despiteP95singlepair improvement.
+
+### D185 sealing history
 
 2026-10-03 10:05+08. GoalACTIVE/currentturnPROGRESS. Previous goalturnPROGRESS.
 Plan/status/V1 fullyread in currentcontext, hashes unchanged; github-sync skill
