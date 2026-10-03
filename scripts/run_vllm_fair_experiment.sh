@@ -947,7 +947,6 @@ for replica_idx in $(seq 0 $((DP_REPLICAS - 1))); do
     --max-loras "${MAX_LORAS}"
     --max-cpu-loras "${MAX_CPU_LORAS}"
     --max-lora-rank "${MAX_LORA_RANK}"
-    --disable-log-requests
   )
   if [[ "${VLLM_LORA_REGISTRATION_MODE_EFFECTIVE}" == "static" ]]; then
     server_cmd+=(--lora-modules "${VLLM_LORA_MODULES[@]}")
