@@ -1,6 +1,264 @@
 # IEEE TC execution status
 
-## CURRENT — D202 physical HOST representation CPU QUALIFIED and SEALED
+## CURRENT — D203 ordinary 7B Full COMPLETE, analyzed and SEALED; backup next
+
+2026-10-03 20:45+08. Goal ACTIVE/current turn PROGRESS. Same D203 Full ended,
+all cleanup/analysis complete; no GPU/remote/tmux/analysis/tool sessions live.
+FULL Plan/status read for this task; V1 FULL reread before comparisons; hashes
+unchanged. monitor-experiment/analyze-results/run-experiment/academic-plotting/
+github-sync read; no subagents. No serving/code/threshold/configuration edits.
+
+D195 -> D203 (one development replay each, NOT causal/CI/model acceptance):
+meanTTFT2.290592642511532->1.7416089653320668s; P955.207960044150241->
+3.8535859030671418s; P998.059697074699216->5.9235012114513665s;
+meanTPOT40.26261691433204->38.58740864479467ms;
+P95TPOT66.60925991794404->63.038562519337844ms;
+U15915.263361512974->15926.245593711035GPU-s (+.069%, no resource saving).
+Same provisional D170 timing joint3476->3711/4000=92.775%, +235/+5.875pp;
+still89short3800. TTFT-only205/TPOT-only75/both9/failure0. n_correct UNKNOWN,
+commonwarm/Resident not frozen, NOformalG1G2 or legacy-Prime superiority.
+15nonoutputfields identical;3874outputhashsame/126changed OPEN. Dispatch4000
+complete/conflicts0:GPU1189/HOST1802/NVMe873/remote136. AlltimeidentitiesPASS.
+Source4337reads/4145collections/16511RPC/192joins/274stale rejects.
+Ownedplanner2797complete/708.411902008CPU-s (+sideeffect); init2complete.
+Meanpreengine1.447966992s;161requests' preengine span alone exceeds threshold.
+Retain D202 candidate; still 7B UNACCEPTED. No blind Full without new hypothesis.
+
+Successful offline scopes3/4GiBswap0CPU2,3,26,27, terminal events/swap0,
+identity/path absence verified:
+- metadata5:97583 CLOSED0/894e5a9fe73a4ec1841af9c5e762c0d9;
+- projection:73044 CLOSED0/327728052db74524a778ee2e4d004bf6;
+- curation:7872 CLOSED0/c68e6246a4f7402b96caace77c78d86d;
+- occupancy:38953 CLOSED0/12bf3659a50a45f48de1667b533ec027;
+- timing:71332 CLOSED0/ab9e76eb3f2f42458b33b81403d859d1;
+- evidence:10665 CLOSED0/a8d302de3707458a859d40c2fef39d1e;
+- bundle:23272 CLOSED0/0d77932f0b724b009054fcaee867c6a9.
+Metadata4 size-guard failure retained as below, not GPU failure; no rerun of
+projection or inference. One template-preparation assertion and a doc patch
+context mismatch occurred before writes; corrected. One bundle receipt read
+used wrong cwd, corrected; checksumPASS. No additional measurement failure.
+
+Doc D203_7B_ORDINARY_FULL.md exacttable and caveats SEALED; do NOT edit after
+verification binding. Curated8b92e298f7093295a5b062f45e8502d4c68b9d71e93aa606049116be044763e3;
+requestprojection34389917B SHA3e5250e0b34c152f06e7c520bd84469cfa483e2f6414da5d428f848929ffc8cc;
+verification10149d2e36f6b3690c09f14cf5a60f43c5c86be28eebe05210610c581177c1be;
+87member54106B bundlebe6cdb5f7e2d651e480f5ae0b3b92e6c2a9eff1a6a35fa4a118d25cf6f8fa5e0.
+548frozenrefs/147protected PASS; current analyzer matches D199 qualification,
+all old helper ASTs and timing tests unchanged. Prior31/71 tests reused and
+actual D203 full-data checks passed. No new production tests needed.
+NEXT exact16path scoped backup, then retained-data remaining-control/identity
+audit against history + official source; one hypothesis/minimal validation.
+No repeated D200/D201 or same optimizer/Full without new evidence. Keep
+7Bacceptance->3B->baselines and allM1M2/A1–A5/S1–S13 outstanding. Latestdisk
+160106127360B BELOW NEWheavy150GiB; fresh resource gate/reclaim audit required
+before any GPU/build, not a reason to relax floors or delete unique evidence.
+
+## D203 collection history — superseded by COMPLETE above
+
+2026-10-03 20:29+08 analysis continuation, goal ACTIVE/PROGRESS.
+Metadata4 session89280 CLOSED1 after successful stream projection exceeded
+128MiB input-size guard (173117160B). No Python collector ran, no OOM evidence;
+jq exit0/peak728448KiB. Original wrapper/source/output retained; actualscope
+4c10f0f1e1cc4514967b4e459657dcf9 absent; final cgroup counters unavailable.
+Metadata5 reuses same projection, no reprojection/GPU rerun. New per-run
+192MiB cap justified by previous same-schema RSS and conservative expansion;
+3/4GiBswap0 unchanged. Exact two-field control/quarantine projection817902B
+keeps shared analyzer128MiB guard unchanged; parent full evidence retained.
+97583 CLOSED0, actual894e5a9fe73a4ec1841af9c5e762c0d9, peak610660KiB/events-swap0;
+cleanup_metadata5_full1.sh verified scope+path absent/GPUempty.
+Preliminary4000success/native contracts; fourleasesreleased;
+U15926.245593711035GPU-s,132UUID/allpublished/131480060wireB/
+3300789780logicalB/requestpacking0/no mismatches. 4063watchdogsamples,
+servicepeak20148785152B/minhost92553940992B/events-swap0/warnings0.
+Numerical/SLO/performance qualification remains OPEN.
+Request projection LIVE session73044,
+primelora-d203-full1-project-20261003.scope actual327728052db74524a778ee2e4d004bf6,
+3/4GiBswap0CPU2,3,26,27. Existing D96 streaming jq unchanged.
+NEXT wait SAME projection->prepared cleanup_projection_full1.sh->existing
+curation/occupancy/timing->table->backup. No optimizer or new GPU run.
+
+2026-10-03 20:22+08. Current turn PROGRESS after verified wait. SAME Full ended,
+4000terminal/4000success/4000native-contract, error_types empty; numeric correctness
+and formal SLO/G1G2 still UNKNOWN. launch pass/service-replay-watchdog0,
+native_gpu_context_release_confirmed/service_path_removed true. tmux absent,
+exact service/aux invocation and cgroup paths absent; six recorded PIDs absent,
+GPU compute empty. Local cleanup receipt recorded20:19:30. No new GPU replay.
+Only after local release, exact-owned remote3B/7B/monitor stopped; stop21985
+CLOSED0, allinactive/MainPID0. Journal found by frozen healthclock:
+transfers-258535c3794b42d4bdb15bcaadab0c72.jsonl. Copy31392 CLOSED0; localjournal
+SHA342e454b70324433f179729283a5a0ee95b602c717346dc26229ee26ab5cfa1a,
+monitor35a46797fcf41ff801a4f2241992fb763b0a33402aca065581a3c38d5a0c1052.
+No remote management during inference; no cache regeneration.
+
+Plan/status already FULL read for continuous D203 task; hashes unchanged,
+V1 FULL reread before analysis. Existing D195 metadata/request projection,
+curation/failure/occupancy/timing wrappers adapted only to D203 paths/identities
+and previous D195 comparison; no serving/formula/configuration change. Metadata
+scope primelora-d203-full1-metadata4-20261003.scope LIVE, session89280;
+3/4GiBswap0CPU2,3,26,27, tinyfixturesPASS. Source main_outcome522819369B;
+streaming projection before bounded JSON load. All original sources retained.
+NEXT wait SAME analysis; verify cleanup; bounded request projection -> full
+curation/occupancy/timing -> exact table/interpretation -> scoped backup.
+No further optimizer/3B/baseline before D203 closure. Lastdisk160405495808B,
+NEWheavy150GiB not met; CPU bounded analysis allowed, safety floors unchanged.
+All numerical/commonwarm/Resident/old-newG1G2 and later matrix remain OPEN.
+
+## D203 live-monitor history — superseded by TERMINAL above
+
+2026-10-03 20:07+08 same ongoing monitor, previous/current VERIFIED WAIT;
+goal ACTIVE. FULL Plan/status/AGENTS/V1 read after compaction; unchanged SHA.
+monitor-experiment/analyze-results/run-experiment/academic-plotting read;
+grouped skill output truncation repaired by separate missing-span read.
+Latest3563terminal/3563success/3563native-contract/error_types empty, still
+partial and NOT numeric/full/SLO/performance acceptance. Same live tmux,
+service/aux invocation IDs and four native GPU workers service-owned.
+Watchdog3356/monotonic536472.716791287:service20003020800B,
+hostavailable95990538240B, events/swap0/no warning/abort/foreign/escaped.
+Disk158055075840B: running100GiB safe, NEWheavy150GiB not met. No new
+experiment/optimizer, large-log analysis, remote management, cleanup or live
+tool session. D195 existing bounded metadata/request projection, curator,
+timing/occupancy and evidence wrappers read only; 15 templates also cached
+in functions store d195_scripts, NOT adapted or executed for D203 yet.
+Once-only readonly delivery-cache approval already fulfilled D78/D80; reuse,
+no regeneration. NEXT continue SAME Full; confirmed terminal/local release
+-> prepared exact remote stop/copy -> adapt existing bounded D195 analysis
+-> full table/interpretation/backup. All acceptance and later matrix gaps OPEN.
+
+2026-10-03 19:56+08 same ongoing monitor, previous/current VERIFIED WAIT;
+goal ACTIVE. Same live tmux/service/aux IDs and four owned native workers.
+Plan/V1 SHA unchanged from full task read; monitor-experiment reread. Latest
+3040terminal/3040success/3040native-contract/error_types empty. Still partial,
+not numerical/full/SLO/performance acceptance. Watchdog2749/monotonic
+535857.757065129:service19541774336B, hostavailable94885326848B, events/swap0,
+no warning/abort/foreign/escaped. Disk158530756608B; running100GiB safe,
+newheavy150GiB not met. No new experiment, code, analysis, remote management,
+cleanup or live tool session. Continue SAME Full, then local terminal/release,
+prepared exact remote stop/copy, bounded existing analysis/table/backup.
+All numerical/reference/old-new/G1G2 and remaining matrix gaps stay OPEN.
+
+2026-10-03 19:49+08 same ongoing monitor, previous/current VERIFIED WAIT;
+goal ACTIVE. Same tmux/service/aux identities and four owned GPU workers live.
+Plan/V1 SHA unchanged from full task read; monitor-experiment reread. Latest
+2517terminal/2517success/2517native-contract, error_types empty; NOT full,
+numeric, SLO or performance acceptance. Watchdog2317/monotonic535420.08886423:
+service19164942336B, hostavailable95112548352B, events/swap0/no warning/abort/
+foreign/escaped. Disk158814269440B, running100GiB safe/newheavy150GiB not met.
+No new experiments/code/analysis/remote management/cleanup/tool sessions.
+NEXT keep this exact replay, then verified localrelease -> prepared remote
+stop/copy -> bounded D195 analysis/table/backup. All acceptance gaps remain OPEN.
+
+2026-10-03 19:43+08 same-task monitor continuation; previous/current VERIFIED
+WAIT, goal ACTIVE. Plan/V1 hashes remain unchanged from full task read;
+monitor-experiment reread. No new task, optimizer, analysis or remote changes.
+Latest2024terminal/2024success/2024native-contract, error_types empty; still
+partial, not numeric/full/SLO/performance acceptance. tmux tc_d203_full1 and
+exact service/aux IDs below active; same four GPU workers service-owned.
+Watchdog1958/monotonic535056.356041721:service18536136704B, hostavailable
+95256092672B, events/swap0/no warning/abort/foreign/escaped. Disk159137865728B,
+running100GiB safe/newheavy150GiB not passed. No live tool sessions, no cleanup
+or extra workload. NEXT continue SAME run to terminal and verified release;
+then prepared remote stop/copy -> bounded D195 analysis/table/backup. All
+7B acceptance/3B/baseline/formal/ablation/sensitivity work remains OPEN.
+
+2026-10-03 19:37+08 ongoing-monitor continuation, previous/current VERIFIED
+WAIT; goal ACTIVE. Same live tmux tc_d203_full1 and exact service/aux invocation
+IDs below, no new replay or production changes. Plan/V1 SHA unchanged from full
+read of this continuous task; monitor-experiment reread. Latest1525terminal/
+1525success/1525native-contract/error_types empty. Partial only, not full/numeric/
+SLO/performance acceptance. Watchdog1600/monotonic534693.630221785: service
+18148175872B, hostavailable95432777728B, events/swap0/no warning/abort/foreign/
+escaped. Four same native GPU PIDs still service-owned. Disk159427059712B above
+running100GiB but below newheavy150GiB; no extra heavy work or cleanup. No tool
+sessions or remote management. NEXT same replay monitoring; ONLY after local
+terminal/release execute prepared exact-owned remote stop/copy, then bounded
+D195 analysis adaptation/table/backup. No baseline/3B resumed; all gaps OPEN.
+
+2026-10-03 19:30+08 ongoing-monitor continuation: previous/current turns
+VERIFIED WAIT on same live handle; goal ACTIVE. Plan/V1 SHA rechecked unchanged
+from full read in this continuous monitoring task; monitor-experiment reread.
+No new task/replay/optimizer/analysis/remote management/cleanup/backup. Latest
+1069terminal/1069success/1069native-contract, error_types empty; partial only,
+numeric/full/SLO/performance acceptance NOT established. Same four GPU PIDs
+and service/aux invocation IDs below, both active; tmux tc_d203_full1 alive.
+Watchdog1186/monotonic534274.213385683:service18105544704B, hostavailable
+95398572032B, events/swap0/no warning/abort/foreign/escaped. Disk159549440000B:
+above running100GiB but below NEWheavy150GiB; no other heavy work. No live tool
+sessions. Continue exact Full; terminal->local release->remote stop/copy->bounded
+existing analysis/table/backup. All 7B/3B and later acceptance gaps remain OPEN.
+
+2026-10-03 19:22+08 continuation: previous turn PROGRESS (qualified ordinary
+Full launched); this turn VERIFIED WAIT on the same live tmux/service/aux.
+Full Plan/status and monitor-experiment read, no truncation. No new replay,
+optimizer, analysis, remote operation, cleanup or backup during measurement.
+Only D195 exact local cleanup wrapper adapted to current identities, bash-n
+PASS, NOT executed. analyze-results skill inspected; no results interpretation.
+Live sample696/monotonic533777.731856753:517terminal/517success/517native
+contracts, no error_type. Numeric correctness and full completion UNKNOWN;
+do NOT label this partial population as performance acceptance. Four native
+PIDs2744241/2749026/2749402/2749657 still service-owned. Service/aux invocation
+IDs below unchanged; both active, tmux tc_d203_full1 alive. Service17176203264B,
+hostavailable95960543232B, events/swap0/no warning/abort/foreign/escaped.
+Disk160102776832B, running100GiB floor safe, NEWheavy150GiB not passed.
+No live tool sessions. Remote remains untouched during this run. NEXT continue
+this exact replay -> confirm local terminal/releases -> exact remote stop/copy
+-> bounded existing D195 analysis/table/backup. Goal ACTIVE, all later work OPEN.
+
+19:13+08 monitor: sample168/monotonic533242.800717055,46terminal records;
+NOT complete/native/numeric/performance acceptance. Four actual GPU workers
+2744241/2749026/2749402/2749657 all service_member=true, CPUs4–23,28–47.
+Service15317975040B/hostavailable97029894144B/events-swap0/no warning/abort/
+foreigncompute/escapedworkers. tmux alive. Disk160672710656B below NEWheavy
+150GiB but above unchanged RUNNING100GiB floor; no other heavy work allowed.
+No live tool sessions; only this GPU replay/aux and owned remote services live.
+No remote management since health/start; cleanup scripts are prepared but
+must NOT run until confirmed local terminal and physical release. Continue
+monitoring this exact run, no second replay/optimization/qualification.
+
+Launched2026-10-03 19:10+08 in tmux tc_d203_full1. Raw
+results/ieee_tc/p2_backend_qualification/d203_20261003. Existing D195 ordinary
+4000 config unchanged except owned paths; diagnostic prefix/frame/control OFF.
+Prelaunch0586567f3ea5c862ed2e49e7180804f1de6458fc6c34e46c17e2a122a7b28a63:
+548source references/147protected/resource pass; session60778 CLOSED0.
+Prelaunch actual13a35835166d4e418e7ea1f7ab6804e4; health actual
+3fc0bb56b64d41cea35488d238c44f97 immediateCLOSED0. Both scopes absent.
+Service primelora-tc-svc-b45ff477137e448999b428d39a8e14f0.scope,
+invocationbcd562dc2b5148a59aed8c38d466e933/inode16336682,72/80GiBswap2.
+Aux primelora-tc-aux-7fb06b5a677d4b62b58776aefd5653ac.scope,
+invocation85dc6c7dc6fa4137b23d912186204f66,3/4GiBswap0CPU2,3,26,27.
+Deploymentnotice533073.53751656/businessstart533133.53751656. Native GPU
+worker2744241 observed; verify all scale-out workers from live watchdog next.
+Remote ACTIVE, both NIC1000/full and health checked before measurement:
+3Bpid1536346/id987612c9cfd2405eadc6e096b071535d;
+7Bpid1536348/ide8904853bdeb472595e5a9f54718339c;
+monitor-d203full1pid1536351/id0845c03e49ad4254ab473f32ef132b61.
+7Bclockremote-process-monotonic:a211cea09c844dcfa7e40d11d0a5ef83.
+Exact stop/copy scripts prepared, NOT executed; only after local terminal and
+physical release. No remote management/cleanup/hash scans during replay.
+NEXT monitor actual workers/resources -> existing cleanup -> bounded D195
+analysis adaptation -> exact table/interpretation -> scoped backup. No result
+or model qualification yet. All later acceptance/matrix gaps remain OPEN.
+
+2026-10-03 19:09+08 preparation history. Full Plan/status/V1 reread; grouped output truncation in
+status tail corrected by explicit bounded reread. run-experiment/monitor-experiment
+read; no subagents. D202 checkpoint below already backed; no repeated tests or
+optimizer. Reuse D195 ordinary4000 config/launcher/preflight with only fresh
+d203_20261003 output paths and current source/evidence identity. Prefix and
+detailed frame/control observer OFF. Candidate/evidence HEAD2fc3630d.
+Latest census GPUempty/no experiment scopes/tmux; remote was stopped. Disk
+161182912512B and hostavailable112587755520B, fresh prelaunch still required.
+User once-only cache permission already fulfilled D78/D80, not regenerated.
+NEXT bounded prelaunch + owned remote activation/health, then ONE ordinaryFull;
+monitor actual workers, retain failures, cleanup->table->backup. No performance
+claim; all numeric/commonwarm/Resident/old-new/G1G2 and later work remain OPEN.
+
+## Previous checkpoint — D202 physical HOST representation CPU QUALIFIED, SEALED and BACKED
+
+Backup verified2026-10-03 19:00+08:2fc3630d684e73f5bfbae1b49f1ac937488444bf.
+Push69680 CLOSED0; independent ls-remote44698 CLOSED0 exactmatch.10explicitpaths/
+114staged+archiveentries scope/secretPASS; checksum/diffPASS. Usermanifest and
+unrelated files excluded. No live GPU/tmux/analysis/tool sessions; remote still
+stopped. Lastdisk161197293568B, freshgate before newheavy. NEXT ordinary4000Full
+below; backup DONE, no need to repeat qualification or add an optimizer.
 
 2026-10-03 18:59+08. Goal ACTIVE/current turn PROGRESS. Full Plan/status/V1
 read; Plan/status reread before qualification (one grouped output truncated,
