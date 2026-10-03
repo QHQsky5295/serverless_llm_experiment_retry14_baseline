@@ -23,6 +23,26 @@ runs, with common delivery and strict 4000-request acceptance. No figure is
 generated for this short qualification; a status record is the appropriate
 artifact.
 
+## CURRENT — D213 ordinary vLLM Resident semantic audit PASS; complete reference pending
+
+2026-10-04 04:22+08. Goal ACTIVE/current turn PROGRESS. The full Plan, this
+status file and METRIC_PROTOCOL_FROZEN_V1 were reread before the audit. The
+ordinary baseline runner, replay client and generated DP4/TP1 launch
+specification were checked read-only. Neither source contains
+`faaslora_full`, `ieee_confirmed`, confirmed-tier propagation, Prime handoff,
+hierarchical residency, forwarding or Prime admission/scale-control logic.
+The specification contains only ordinary vLLM LoRA, batching, KV/cache and
+round-robin endpoint settings; its four services use the existing static
+500-adapter pool. The audit is documented in
+`docs/ieee_tc/D213_VLLM_RESIDENT_SEMANTIC_AUDIT.md`.
+
+Paper-evidence interpretation: the ordinary vLLM implementation is now a
+valid Resident candidate in semantics, and D212 supplies its fixed-output
+measurement qualification. This does not freeze a numeric reference or a G2
+budget. The next run must use the existing 7B W0 trace, complete 4000/4000
+under the fixed contract, release all service scopes, and then be repeated for
+the V1 reference protocol; no ranking or figure is justified before that.
+
 ## CURRENT — D212 vLLM fixed-output path CPU QUALIFIED; Resident replay still pending
 
 2026-10-04 03:47+08. Goal ACTIVE/current turn PROGRESS. Before any comparison,
