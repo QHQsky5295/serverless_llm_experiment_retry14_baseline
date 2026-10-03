@@ -4729,6 +4729,10 @@ class InferenceEngine:
 
     async def ieee_gpu_reference(self, *, operation: str, **kwargs) -> Dict[str, Any]:
         """Forward an explicit native owner operation; no inferred success."""
+        from faaslora.utils.logger import diagnostic_control_event
+        diagnostic_id = kwargs.get('_diagnostic_control_id')
+        if diagnostic_id is not None and operation != 'request_source_snapshot':
+            raise ValueError('control diagnosis is restricted to a read-only request snapshot')
         if not self.model_cfg.get("ieee_gpu_references", False):
             raise RuntimeError("native GPU reference owner was not enabled")
         if (int(self.model_cfg.get("tensor_parallel_size", 1)) != 1
@@ -4746,9 +4750,11 @@ class InferenceEngine:
         rpc = getattr(self.engine, "collective_rpc", None)
         if not callable(rpc):
             raise RuntimeError("backend lacks native worker collective RPC")
+        diagnostic_control_event(diagnostic_id, 'frontend_native_send')
         results = rpc("ieee_gpu_reference", kwargs={"operation": operation, **kwargs})
         if inspect.isawaitable(results):
             results = await results
+        diagnostic_control_event(diagnostic_id, 'frontend_native_received')
         if not isinstance(results, list) or len(results) != 1 or not isinstance(results[0], dict):
             raise RuntimeError("invalid single-worker reference acknowledgement")
         return results[0]
@@ -4769,7 +4775,8 @@ class InferenceEngine:
             expected_clock_id=local_monotonic_clock_id(), received_monotonic_s=time.monotonic())
         return state.routing_wire(device_uuid=payload.get('device_uuid'))
 
-    async def ieee_request_sources(self, *, requested_adapter_ids) -> Dict[str, Any]:
+    async def ieee_request_sources(self, *, requested_adapter_ids,
+                                   _diagnostic_control_id=None) -> Dict[str, Any]:
         """Fresh complete identities plus measured footprints for current targets.
 
         Scoped graph validation remains in this frontend, outside the serialized
@@ -4777,12 +4784,18 @@ class InferenceEngine:
         """
         from faaslora.clock import local_monotonic_clock_id
         from faaslora.experiment.instance_pool import NativeSourceSnapshot
+        from faaslora.utils.logger import diagnostic_control_event
+        diagnostic_control_event(_diagnostic_control_id, 'frontend_begin')
         scope = NativeSourceSnapshot._request_scope(requested_adapter_ids)
+        diagnostic = ({'_diagnostic_control_id': _diagnostic_control_id}
+                      if _diagnostic_control_id is not None else {})
         payload = await self.ieee_gpu_reference(operation='request_source_snapshot',
-            requested_adapter_ids=list(scope))
+            requested_adapter_ids=list(scope), **diagnostic)
         state = NativeSourceSnapshot.from_request_native(payload, requested_adapter_ids=scope,
             expected_clock_id=local_monotonic_clock_id(), received_monotonic_s=time.monotonic())
-        return state.request_wire(device_uuid=payload.get('device_uuid'))
+        wire = state.request_wire(device_uuid=payload.get('device_uuid'))
+        diagnostic_control_event(_diagnostic_control_id, 'frontend_ready')
+        return wire
 
     async def ieee_source_identities(self) -> Dict[str, Any]:
         """Fresh native identities for an already-selected lower-tier recheck.
@@ -5321,6 +5334,11 @@ class SubprocessInferenceEngineProxy:
         if native and cmd == 'generate' and self._native_rpc_uncertain:
             raise RuntimeError('native RPC ownership unresolved; new generation withheld')
         attempt_id = uuid.uuid4().hex
+        from faaslora.utils.logger import diagnostic_control_enabled, diagnostic_control_event
+        diagnostic_id = (attempt_id if native and cmd == 'ieee_request_sources'
+                         and diagnostic_control_enabled() else None)
+        diagnostic_outcome = 'error'
+        diagnostic_control_event(diagnostic_id, 'parent_begin')
         dispatch_started = False
         rpc_phase = 'channel_acquire'
         progress_open = True
@@ -5372,18 +5390,21 @@ class SubprocessInferenceEngineProxy:
             *,
             rpc_channel_acquire_ms: float,
         ) -> Dict[str, Any]:
-            nonlocal dispatch_started, rpc_phase
+            nonlocal dispatch_started, rpc_phase, diagnostic_outcome
             rpc_phase = 'handoff_validation'
             # Another exchange can become unresolved while this call waits for
             # a channel. Recheck at the actual handoff, not just at entry.
             if native and cmd == 'generate' and self._native_rpc_uncertain:
                 raise RuntimeError('native RPC ownership unresolved; new generation withheld')
             payload = {"cmd": cmd, "kwargs": kwargs}
+            if diagnostic_id is not None:
+                payload['_diagnostic_control_id'] = diagnostic_id
             if _native_event_observer is not None:
                 payload['native_event_rpc_id'] = attempt_id
             payload["client_send_wall_time"] = time.time()
             rpc_phase = 'request_encode'
             payload_bytes = _encode_rpc_frame(payload)
+            diagnostic_control_event(diagnostic_id, 'parent_send', byte_count=len(payload_bytes))
             # From this boundary the executor thread may send even if its
             # awaiting coroutine is cancelled. This is NOT a native-start ack.
             dispatch_started = True
@@ -5400,6 +5421,7 @@ class SubprocessInferenceEngineProxy:
                     self._blocking_rpc_roundtrip, channel, payload_bytes,
                     **({'on_progress': receive_progress} if _native_event_observer is not None else {}))
             parent_roundtrip_resume_wall_time = time.time()
+            diagnostic_control_event(diagnostic_id, 'parent_received', byte_count=len(raw))
             rpc_phase = 'response_decode'
             if not raw:
                 raise RuntimeError("subprocess_engine_empty_response")
@@ -5454,6 +5476,7 @@ class SubprocessInferenceEngineProxy:
                     * 1000.0,
                 )
                 result["timing"] = result_timing
+            diagnostic_outcome = 'success'
             return result
 
         channel = None
@@ -5471,6 +5494,7 @@ class SubprocessInferenceEngineProxy:
                 rpc_channel_acquire_ms=rpc_channel_acquire_ms,
             )
         except asyncio.CancelledError:
+            diagnostic_outcome = 'cancelled'
             # asyncio.to_thread cancellation does not stop send/recv. This
             # channel still belongs to that roundtrip and cannot serve another
             # request. Withdraw the transport, without claiming native abort.
@@ -5549,6 +5573,7 @@ class SubprocessInferenceEngineProxy:
                     await self._drop_rpc_channel(channel)
                 elif cmd != "shutdown":
                     await self._release_rpc_channel(channel)
+            diagnostic_control_event(diagnostic_id, 'parent_terminal', outcome=diagnostic_outcome)
 
     async def _ensure_rpc_channel_pool(self) -> None:
         if self._rpc_channel_queue is not None:

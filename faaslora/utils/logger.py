@@ -19,6 +19,48 @@ from dataclasses import dataclass
 _diagnostic_stack_state = None
 
 
+def diagnostic_control_enabled():
+    """Only an actually qualified, current-process diagnostic may emit events."""
+    import os
+    return (_diagnostic_stack_state is not None
+            and _diagnostic_stack_state[0] == os.getpid())
+
+
+def diagnostic_control_event(attempt_id, boundary, *, byte_count=None, outcome=None):
+    """Bounded read-only source-RPC observations, never a serving metric.
+
+    Missing terminal events remain incomplete. Async thread CPU deltas include
+    other tasks and must not be interpreted as per-request CPU consumption.
+    Emission overhead is deliberately not subtracted from observed intervals.
+    """
+    if attempt_id is None:
+        return
+    import os
+    import uuid
+    from faaslora.clock import local_monotonic_clock_id
+    if not diagnostic_control_enabled():
+        raise ValueError('control observation requires a qualified diagnostic process')
+    if not isinstance(attempt_id, str) or uuid.UUID(attempt_id).hex != attempt_id:
+        raise ValueError('invalid control observation identity')
+    if boundary not in ('parent_begin', 'parent_send', 'parent_received', 'parent_terminal',
+                        'worker_received', 'frontend_begin', 'frontend_native_send',
+                        'frontend_native_received', 'frontend_ready', 'native_begin', 'native_ready'):
+        raise ValueError('invalid control observation boundary')
+    if byte_count is not None and (type(byte_count) is not int or byte_count < 0
+                                  or boundary not in ('parent_send', 'parent_received')):
+        raise ValueError('invalid control observation byte count')
+    if ((boundary == 'parent_terminal' and outcome not in ('success', 'error', 'cancelled'))
+            or (boundary != 'parent_terminal' and outcome is not None)):
+        raise ValueError('invalid control observation outcome')
+    row = dict(event='request_source_control_boundary_v1', attempt_id=attempt_id,
+        boundary=boundary, pid=os.getpid(), thread_ident=threading.get_ident(),
+        clock_id=local_monotonic_clock_id(), monotonic_s=time.monotonic(),
+        thread_cpu_s=time.thread_time(), byte_count=byte_count, outcome=outcome)
+    payload = (json.dumps(row, separators=(',', ':'), allow_nan=False)+'\n').encode()
+    if _diagnostic_stack_state[4].write(payload) != len(payload):
+        raise OSError('incomplete diagnostic control observation write')
+
+
 def _diagnostic_thread_frames():
     """Copy frame locations while holding ordinary Python references, no locals."""
     threads = []
@@ -82,8 +124,11 @@ def enable_diagnostic_stack_sampling():
             capture_start_monotonic_s=time.monotonic(), period_seconds=2.0,
             max_frames_per_thread=100, includes_idle_threads=True,
             cpu_time_profile=False, formal_performance_result=False,
-            gil_scheduling_bias=True, final_partial_line_possible=True), stream, indent=2)
+            gil_scheduling_bias=True, final_partial_line_possible=True,
+            control_boundaries='request_source_control_boundary_v1',
+            control_overhead_included=True), stream, indent=2)
     output = stem.with_suffix('.stacks.jsonl').open('xb', buffering=0)
+    control_output = stem.with_suffix('.control.jsonl').open('xb', buffering=0)
     stop = threading.Event()
 
     def observe():
@@ -115,7 +160,7 @@ def enable_diagnostic_stack_sampling():
             next_due = time.monotonic()+2.0
 
     thread = threading.Thread(target=observe, name='tc-python-frame-observer', daemon=True)
-    _diagnostic_stack_state = (pid, stop, thread, output)
+    _diagnostic_stack_state = (pid, stop, thread, output, control_output)
     atexit.register(stop.set)
     thread.start()
 

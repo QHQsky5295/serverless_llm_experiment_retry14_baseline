@@ -133,6 +133,13 @@ async def _run_worker(payload_path: Path, ready_path: Path) -> None:
                     rpc = json.loads(line.decode("utf-8"))
                     cmd = rpc.get("cmd")
                     kwargs = rpc.get("kwargs", {}) or {}
+                    diagnostic_id = rpc.get('_diagnostic_control_id')
+                    if diagnostic_id is not None:
+                        from faaslora.utils.logger import diagnostic_control_event
+                        if cmd != 'ieee_request_sources' or '_diagnostic_control_id' in kwargs:
+                            raise ValueError('control diagnosis requires an unambiguous read-only source RPC')
+                        diagnostic_control_event(diagnostic_id, 'worker_received')
+                        kwargs = dict(kwargs, _diagnostic_control_id=diagnostic_id)
                     try:
                         worker_rpc_queue_ms = max(
                             0.0,

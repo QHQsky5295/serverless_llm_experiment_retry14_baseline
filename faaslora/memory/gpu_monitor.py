@@ -37,7 +37,7 @@ def _cuda_available() -> bool:
         return False
 
 from ..utils.config import Config
-from ..utils.logger import get_logger
+from ..utils.logger import get_logger, diagnostic_control_event
 
 
 def _ieee_lora_host_inventory(manager: Any, *, staged_models=None,
@@ -669,6 +669,10 @@ class IEEEWorkerObservationExtension:
         Proactive preparation is reachable only through the same-owner core
         bridge; ordinary request-driven loading does not evaluate soft E(t).
         """
+        diagnostic_id = kwargs.pop('_diagnostic_control_id', None)
+        if diagnostic_id is not None and operation != 'request_source_snapshot':
+            raise ValueError('control diagnosis is restricted to a read-only request snapshot')
+        diagnostic_control_event(diagnostic_id, 'native_begin')
         if operation not in ('snapshot', 'source_snapshot', 'routing_source_snapshot', 'source_identity_snapshot',
                              'request_source_snapshot',
                              'acquire', 'release', 'evict', 'begin_use', 'end_use',
@@ -943,6 +947,7 @@ class IEEEWorkerObservationExtension:
             import uuid
             device_uuid = torch.cuda.get_device_properties(self.device).uuid
             result['device_uuid'] = 'GPU-' + str(uuid.UUID(bytes=bytes(device_uuid.bytes)))
+        diagnostic_control_event(diagnostic_id, 'native_ready')
         return {**result, 'clock_id': local_monotonic_clock_id(),
                 'native_host_allocator_policy': self._ieee_host_allocator_policy,
                 'worker_pid': os.getpid(), 'worker_rank': int(self.rank),
