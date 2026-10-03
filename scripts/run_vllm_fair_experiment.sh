@@ -108,6 +108,12 @@ if [[ ! -x "${VLLM_PYTHON}" ]]; then
   echo "[ERROR] vLLM python not found or not executable: ${VLLM_PYTHON}" >&2
   exit 1
 fi
+# vLLM 0.30 may JIT-build FlashInfer kernels during engine warmup.  The
+# selected Python environment owns the matching ``ninja`` executable; make
+# that environment visible to child workers without relying on the caller's
+# interactive PATH.
+VLLM_PYTHON_BIN_DIR="$(dirname "${VLLM_PYTHON}")"
+export PATH="${VLLM_PYTHON_BIN_DIR}:${PATH}"
 case "${VLLM_LORA_REGISTRATION_MODE}" in
   static|dynamic|dynamic_remote|static_remote) ;;
   *)
