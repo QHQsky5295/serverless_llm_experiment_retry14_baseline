@@ -164,6 +164,7 @@ class FixedLengthGenerationContractTest(unittest.TestCase):
                 prompt_guard_max_output_tokens_cap=0,
                 sglang_native_generate=False,
                 slora_native_generate=True,
+                vllm_native_generate=False,
                 generation_seed=42,
                 empty_success_retries=0,
                 empty_success_retry_delay_s=0.0,
@@ -190,6 +191,40 @@ class FixedLengthGenerationContractTest(unittest.TestCase):
         self.assertEqual(params["temperature"], 0.0)
         self.assertEqual(params["top_p"], 1.0)
         self.assertNotIn("stop_sequences", params)
+
+    def test_vllm_return_token_ids_are_the_fixed_length_source(self) -> None:
+        generated_text: list[str] = []
+        generated_ids: list[int] = []
+        stats: dict[str, int] = {}
+        server_metrics: dict[str, object] = {}
+
+        replay._apply_response_payload(
+            {
+                "choices": [
+                    {"text": "a", "token_ids": [11]},
+                ]
+            },
+            generated_text_parts=generated_text,
+            generated_token_ids=generated_ids,
+            native_token_stats=stats,
+            server_metrics=server_metrics,
+        )
+        replay._apply_response_payload(
+            {
+                "choices": [
+                    {"text": "b", "token_ids": [12, 13]},
+                ]
+            },
+            generated_text_parts=generated_text,
+            generated_token_ids=generated_ids,
+            native_token_stats=stats,
+            server_metrics=server_metrics,
+        )
+
+        self.assertEqual(generated_ids, [11, 12, 13])
+        self.assertEqual(stats["token_events"], 3)
+        self.assertEqual(stats["integer_token_ids"], 3)
+        self.assertEqual(stats.get("invalid_token_ids", 0), 0)
 
     def _valid_payload(self) -> dict[str, object]:
         result = {

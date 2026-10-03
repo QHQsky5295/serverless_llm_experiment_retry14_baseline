@@ -904,6 +904,30 @@ def _apply_response_payload(
             native_token_stats["invalid_token_ids"] = (
                 native_token_stats.get("invalid_token_ids", 0) + 1
             )
+    # vLLM's OpenAI-compatible API can return the generated token-id delta
+    # when the request carries ``return_token_ids=true``.  Keep this separate
+    # from the S-LoRA ``token`` event shape, but aggregate both into the same
+    # native token audit so the fixed-output contract has one source of truth.
+    for choice in obj.get("choices") or []:
+        if not isinstance(choice, dict) or "token_ids" not in choice:
+            continue
+        token_ids = choice.get("token_ids")
+        if not isinstance(token_ids, list):
+            native_token_stats["invalid_token_ids"] = (
+                native_token_stats.get("invalid_token_ids", 0) + 1
+            )
+            continue
+        native_token_stats["token_events"] = native_token_stats.get("token_events", 0) + len(token_ids)
+        for token_id in token_ids:
+            if isinstance(token_id, int) and not isinstance(token_id, bool):
+                generated_token_ids.append(token_id)
+                native_token_stats["integer_token_ids"] = (
+                    native_token_stats.get("integer_token_ids", 0) + 1
+                )
+            else:
+                native_token_stats["invalid_token_ids"] = (
+                    native_token_stats.get("invalid_token_ids", 0) + 1
+                )
     error = str(obj.get("error")) if obj.get("error") else None
     usage = obj["usage"] if isinstance(obj.get("usage"), dict) else {}
     metrics_source = None
@@ -1151,6 +1175,7 @@ def _replay_one(
     prompt_guard_max_output_tokens_cap: int,
     sglang_native_generate: bool,
     slora_native_generate: bool,
+    vllm_native_generate: bool,
     generation_seed: Optional[int],
     empty_success_retries: int,
     empty_success_retry_delay_s: float,
@@ -1182,6 +1207,11 @@ def _replay_one(
         body["ignore_eos"] = True
         for stop_field in ("stop", "stop_sequences", "stop_token_ids"):
             body.pop(stop_field, None)
+        if vllm_native_generate:
+            # vLLM 0.30 exposes native output IDs in its OpenAI protocol.  This
+            # is required to distinguish an observed fixed-length completion
+            # from a trace/usage fallback; it does not alter decoding.
+            body["return_token_ids"] = True
     request_seed = _derive_request_generation_seed(
         generation_seed,
         item.get("request_id"),
@@ -1409,6 +1439,7 @@ def _replay_one(
         generated_text_candidate = "".join(generated_text_parts)
         observable_success_payload = bool(
             generated_text_candidate
+            or generated_token_ids
             or usage
             or server_metrics
         )
@@ -1453,6 +1484,8 @@ def _replay_one(
         )
     if fixed_length_contract and slora_native_generate:
         completion_token_source = "slora_native_sse_token_id"
+    elif fixed_length_contract and vllm_native_generate:
+        completion_token_source = "vllm_token_ids"
     elif usage_completion_tokens is None:
         completion_token_source = "server_metrics" if server_completion_tokens is not None else (
             (
@@ -1474,7 +1507,7 @@ def _replay_one(
         )
         or 0
     )
-    if fixed_length_contract and slora_native_generate:
+    if fixed_length_contract and (slora_native_generate or vllm_native_generate):
         completion_tokens = len(generated_token_ids)
     else:
         completion_tokens = int(
@@ -1709,6 +1742,9 @@ def _replay_one(
         "native_sse_token_event_count": native_token_stats.get("token_events", 0),
         "native_sse_integer_token_id_count": native_token_stats.get("integer_token_ids", 0),
         "native_sse_invalid_token_id_count": native_token_stats.get("invalid_token_ids", 0),
+        "native_token_event_count": native_token_stats.get("token_events", 0),
+        "native_integer_token_id_count": native_token_stats.get("integer_token_ids", 0),
+        "native_invalid_token_id_count": native_token_stats.get("invalid_token_ids", 0),
         "guard_prompt_tokens": local_prompt_tokens_override,
         "guard_max_tokens": guard_max_tokens,
         "request_attempts": request_attempts,
@@ -1920,6 +1956,14 @@ def main() -> int:
     ap.add_argument("--prompt-guard-max-output-tokens-cap", type=int, default=0)
     ap.add_argument("--sglang-native-generate", action="store_true")
     ap.add_argument("--slora-native-generate", action="store_true")
+    ap.add_argument(
+        "--vllm-native-generate",
+        action="store_true",
+        help=(
+            "Use vLLM's OpenAI return_token_ids field for the fixed-length "
+            "contract; token IDs remain server-observed rather than text-retokenized."
+        ),
+    )
     ap.add_argument(
         "--empty-success-retries",
         type=int,
@@ -2162,13 +2206,24 @@ def main() -> int:
         requests_list = requests_list[: int(args.max_requests)]
     if not requests_list:
         raise RuntimeError("trace contains no requests")
-    if args.sglang_native_generate and args.slora_native_generate:
-        raise RuntimeError("--sglang-native-generate and --slora-native-generate are mutually exclusive")
+    native_mode_count = sum(
+        bool(value)
+        for value in (
+            args.sglang_native_generate,
+            args.slora_native_generate,
+            args.vllm_native_generate,
+        )
+    )
+    if native_mode_count > 1:
+        raise RuntimeError(
+            "--sglang-native-generate, --slora-native-generate, and "
+            "--vllm-native-generate are mutually exclusive"
+        )
     if args.generation_contract == GENERATION_CONTRACT_FIXED_LENGTH_GREEDY_V1:
-        if not args.slora_native_generate:
+        if not (args.slora_native_generate or args.vllm_native_generate):
             raise RuntimeError(
-                "this replay client's fixed_length_greedy_v1 contract currently requires "
-                "--slora-native-generate so integer SSE token.id values are authoritative"
+                "fixed_length_greedy_v1 requires either --slora-native-generate "
+                "or --vllm-native-generate so native output token IDs are authoritative"
             )
         if not args.convert_chat_to_prompt:
             raise RuntimeError(
@@ -2503,6 +2558,7 @@ def main() -> int:
                 ),
                 sglang_native_generate=bool(args.sglang_native_generate),
                 slora_native_generate=bool(args.slora_native_generate),
+                vllm_native_generate=bool(args.vllm_native_generate),
                 generation_seed=args.generation_seed,
                 empty_success_retries=int(args.empty_success_retries or 0),
                 empty_success_retry_delay_s=float(args.empty_success_retry_delay_s or 0.0),
@@ -2688,7 +2744,13 @@ def main() -> int:
             "completion_token_source": (
                 "slora_native_sse_token_id"
                 if args.generation_contract == GENERATION_CONTRACT_FIXED_LENGTH_GREEDY_V1
-                else None
+                and args.slora_native_generate
+                else (
+                    "vllm_token_ids"
+                    if args.generation_contract == GENERATION_CONTRACT_FIXED_LENGTH_GREEDY_V1
+                    and args.vllm_native_generate
+                    else None
+                )
             ),
         },
         "generation_contract_request_map_sha256": _sha256_canonical_json(

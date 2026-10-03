@@ -43,6 +43,9 @@ VLLM_MIN_OUTPUT_TOKENS="${VLLM_MIN_OUTPUT_TOKENS:-1}"
 VLLM_INCLUDE_STREAM_USAGE="${VLLM_INCLUDE_STREAM_USAGE:-1}"
 VLLM_EMPTY_SUCCESS_RETRIES="${VLLM_EMPTY_SUCCESS_RETRIES:-2}"
 VLLM_EMPTY_SUCCESS_RETRY_DELAY_S="${VLLM_EMPTY_SUCCESS_RETRY_DELAY_S:-0.5}"
+VLLM_GENERATION_CONTRACT="${VLLM_GENERATION_CONTRACT:-${FAIR_GENERATION_CONTRACT:-legacy}}"
+VLLM_FIXED_OUTPUT_MAX_TOKENS="${VLLM_FIXED_OUTPUT_MAX_TOKENS:-${FAIR_FIXED_OUTPUT_MAX_TOKENS:-256}}"
+VLLM_FIXED_PROMPT_MAX_TOKENS="${VLLM_FIXED_PROMPT_MAX_TOKENS:-${FAIR_FIXED_PROMPT_MAX_TOKENS:-759}}"
 VLLM_HOST_MIN_MEM_GB="${VLLM_HOST_MIN_MEM_GB:-32}"
 VLLM_HOST_WARN_MEM_GB="${VLLM_HOST_WARN_MEM_GB:-48}"
 VLLM_MEM_WATCH_INTERVAL_S="${VLLM_MEM_WATCH_INTERVAL_S:-2}"
@@ -74,6 +77,17 @@ VLLM_ABORT_FAILURES_MIN_DONE="${VLLM_ABORT_FAILURES_MIN_DONE:-32}"
 VLLM_EXPECTED_REPLAY_TOTAL="${TOTAL_REQUESTS}"
 if [[ "${VLLM_MAX_REPLAY_REQUESTS}" =~ ^[0-9]+$ ]] && (( VLLM_MAX_REPLAY_REQUESTS > 0 && VLLM_MAX_REPLAY_REQUESTS < TOTAL_REQUESTS )); then
   VLLM_EXPECTED_REPLAY_TOTAL="${VLLM_MAX_REPLAY_REQUESTS}"
+fi
+case "${VLLM_GENERATION_CONTRACT}" in
+  legacy|fixed_length_greedy_v1) ;;
+  *)
+    echo "[ERROR] VLLM_GENERATION_CONTRACT must be legacy or fixed_length_greedy_v1; got ${VLLM_GENERATION_CONTRACT}" >&2
+    exit 1
+    ;;
+esac
+if [[ "${VLLM_GENERATION_CONTRACT}" == "fixed_length_greedy_v1" ]]; then
+  [[ "${VLLM_FIXED_OUTPUT_MAX_TOKENS}" =~ ^[1-9][0-9]*$ ]] || { echo "[ERROR] VLLM_FIXED_OUTPUT_MAX_TOKENS must be positive" >&2; exit 1; }
+  [[ "${VLLM_FIXED_PROMPT_MAX_TOKENS}" =~ ^[1-9][0-9]*$ ]] || { echo "[ERROR] VLLM_FIXED_PROMPT_MAX_TOKENS must be positive" >&2; exit 1; }
 fi
 
 mkdir -p "${RESULT_DIR}" "${LOG_DIR}" "${SHARED_INPUT_DIR}"
@@ -825,6 +839,7 @@ echo "      disable_frontend_multiprocessing=${VLLM_DISABLE_FRONTEND_MULTIPROCES
 echo "      host_memory_guard_hard=${VLLM_HOST_MIN_MEM_GB}GiB warn=${VLLM_HOST_WARN_MEM_GB}GiB watch_interval=${VLLM_MEM_WATCH_INTERVAL_S}s"
 echo "      smoke_only=${VLLM_SMOKE_ONLY} smoke_max_tokens=${VLLM_SMOKE_MAX_TOKENS}"
 echo "      max_replay_requests=${VLLM_MAX_REPLAY_REQUESTS} expected_replay_total=${VLLM_EXPECTED_REPLAY_TOTAL} abort_after_failures=${VLLM_ABORT_AFTER_FAILURES} abort_failures_min_done=${VLLM_ABORT_FAILURES_MIN_DONE}"
+echo "      generation_contract=${VLLM_GENERATION_CONTRACT} fixed_output_max_tokens=${VLLM_FIXED_OUTPUT_MAX_TOKENS} fixed_prompt_max_tokens=${VLLM_FIXED_PROMPT_MAX_TOKENS}"
 echo "      min_output_tokens=${VLLM_MIN_OUTPUT_TOKENS} include_stream_usage=${VLLM_INCLUDE_STREAM_USAGE} empty_success_retries=${VLLM_EMPTY_SUCCESS_RETRIES}"
 echo "      launch_spec=${LAUNCH_SPEC_PATH}"
 echo "      lora_modules=${LORA_MODULES_TXT}"
@@ -1079,6 +1094,14 @@ fi
 
 echo "[4/5] Replaying shared trace with unified live metrics"
 REPLAY_EXTRA_ARGS=()
+REPLAY_EXTRA_ARGS+=(
+  --generation-contract "${VLLM_GENERATION_CONTRACT}"
+  --fixed-output-max-tokens "${VLLM_FIXED_OUTPUT_MAX_TOKENS}"
+  --fixed-prompt-max-tokens "${VLLM_FIXED_PROMPT_MAX_TOKENS}"
+)
+if [[ "${VLLM_GENERATION_CONTRACT}" == "fixed_length_greedy_v1" ]]; then
+  REPLAY_EXTRA_ARGS+=(--vllm-native-generate)
+fi
 if [[ "${VLLM_INCLUDE_STREAM_USAGE}" == "1" ]]; then
   REPLAY_EXTRA_ARGS+=(--include-stream-usage)
 fi
@@ -1149,11 +1172,21 @@ if [[ "${REPLAY_STATUS}" -ne 0 ]]; then
 fi
 require_host_memory "after vLLM replay"
 
-PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" \
-  "${ROOT_DIR}/scripts/validate_replay_results.py" \
-  --system "vLLM" \
-  --replay "${REPLAY_PATH}" \
+VALIDATE_REPLAY_ARGS=(
+  --system "vLLM"
+  --replay "${REPLAY_PATH}"
   --expected-total "${VLLM_EXPECTED_REPLAY_TOTAL}"
+)
+if [[ "${VLLM_GENERATION_CONTRACT}" == "fixed_length_greedy_v1" ]]; then
+  VALIDATE_REPLAY_ARGS+=(
+    --require-generation-contract "fixed_length_greedy_v1"
+    --fixed-output-max-tokens "${VLLM_FIXED_OUTPUT_MAX_TOKENS}"
+    --fixed-prompt-max-tokens "${VLLM_FIXED_PROMPT_MAX_TOKENS}"
+    --fixed-completion-token-source "vllm_token_ids"
+  )
+fi
+PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" \
+  "${ROOT_DIR}/scripts/validate_replay_results.py" "${VALIDATE_REPLAY_ARGS[@]}"
 
 PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" - "${REPLAY_PATH}" <<'PY'
 import json

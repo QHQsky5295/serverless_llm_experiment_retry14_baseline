@@ -59,6 +59,7 @@ def _validate_fixed_length_greedy_v1(
     results: list[dict[str, Any]],
     fixed_output_max_tokens: int,
     fixed_prompt_max_tokens: int,
+    completion_token_source: str = "slora_native_sse_token_id",
 ) -> list[str]:
     errors: list[str] = []
     observed_contract = str(payload.get("generation_contract") or "")
@@ -90,7 +91,7 @@ def _validate_fixed_length_greedy_v1(
         "top_p": 1.0,
         "ignore_eos": True,
         "stop_sequences": [],
-        "completion_token_source": "slora_native_sse_token_id",
+        "completion_token_source": completion_token_source,
     }
     for key, expected in expected_policy.items():
         if policy.get(key) != expected:
@@ -137,16 +138,28 @@ def _validate_fixed_length_greedy_v1(
             )
         if result.get("output_contract_match") is not True:
             errors.append(f"{prefix}: output_contract_match is not true")
-        if str(result.get("completion_token_source") or "") != "slora_native_sse_token_id":
+        if str(result.get("completion_token_source") or "") != completion_token_source:
             errors.append(
-                f"{prefix}: completion_token_source must be slora_native_sse_token_id"
+                f"{prefix}: completion_token_source must be {completion_token_source}"
             )
-        integer_ids = int(result.get("native_sse_integer_token_id_count") or 0)
-        token_events = int(result.get("native_sse_token_event_count") or 0)
-        invalid_ids = int(result.get("native_sse_invalid_token_id_count") or 0)
+        integer_ids = int(
+            result.get("native_integer_token_id_count")
+            if result.get("native_integer_token_id_count") is not None
+            else result.get("native_sse_integer_token_id_count") or 0
+        )
+        token_events = int(
+            result.get("native_token_event_count")
+            if result.get("native_token_event_count") is not None
+            else result.get("native_sse_token_event_count") or 0
+        )
+        invalid_ids = int(
+            result.get("native_invalid_token_id_count")
+            if result.get("native_invalid_token_id_count") is not None
+            else result.get("native_sse_invalid_token_id_count") or 0
+        )
         if integer_ids != observed or token_events != observed or invalid_ids != 0:
             errors.append(
-                f"{prefix}: SSE token audit mismatch events={token_events} "
+                f"{prefix}: native token audit mismatch events={token_events} "
                 f"integer_ids={integer_ids} invalid_ids={invalid_ids} observed={observed}"
             )
         for hash_field in ("canonical_prompt_sha256", "completion_token_ids_sha256"):
@@ -245,6 +258,12 @@ def _main() -> int:
         default=759,
         help="Expected prompt cap when validating fixed_length_greedy_v1.",
     )
+    parser.add_argument(
+        "--fixed-completion-token-source",
+        default="slora_native_sse_token_id",
+        choices=("slora_native_sse_token_id", "vllm_token_ids"),
+        help="Native completion token source expected by fixed_length_greedy_v1.",
+    )
     args = parser.parse_args()
 
     system = args.system
@@ -321,6 +340,7 @@ def _main() -> int:
             results=ok,
             fixed_output_max_tokens=int(args.fixed_output_max_tokens),
             fixed_prompt_max_tokens=int(args.fixed_prompt_max_tokens),
+            completion_token_source=str(args.fixed_completion_token_source),
         )
         if contract_errors:
             print(

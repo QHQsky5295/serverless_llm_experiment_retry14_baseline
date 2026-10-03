@@ -1481,6 +1481,9 @@ run_vllm() {
     VLLM_USE_FLASHINFER_SAMPLER="${vllm_use_flashinfer_sampler}" \
     VLLM_ATTENTION_BACKEND="${vllm_attention_backend}" \
     VLLM_TIMEOUT_S="${vllm_timeout_s}" \
+    VLLM_GENERATION_CONTRACT="${GENERATION_CONTRACT}" \
+    VLLM_FIXED_OUTPUT_MAX_TOKENS="${FIXED_OUTPUT_MAX_TOKENS}" \
+    VLLM_FIXED_PROMPT_MAX_TOKENS="${FIXED_PROMPT_MAX_TOKENS}" \
     bash "${BASELINES_ROOT}/scripts/run_vllm_fair_experiment.sh"
   if [[ "${VLLM_SMOKE_ONLY:-0}" == "1" ]]; then
     log "vLLM smoke-only run completed; skipping formal summary validation"
