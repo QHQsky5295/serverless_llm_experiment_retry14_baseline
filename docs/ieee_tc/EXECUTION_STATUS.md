@@ -1,6 +1,319 @@
 # IEEE TC execution status
 
-## CURRENT — D194 CPU qualification SEALED; backup then ordinary Full
+## CURRENT — D195 completed, analyzed and SEALED; backup then next 7B diagnosis
+
+2026-10-03 16:00+08. Goal ACTIVE/current turn PROGRESS (previous PROGRESS).
+Full Plan/status/V1 reread after compaction; hashes unchanged. run-experiment,
+monitor-experiment, analyze-results, academic-plotting and github-sync followed.
+Runtime/backed a0c4a9d24b4fe42625a4fb9bd80f6c5a8f4d8fed unchanged. Once-only
+D78/D80 delivery cache already fulfilled/reused; not recreated. No new candidate,
+GPU replay, remote operation or configuration change in this continuation.
+
+D195 ordinary4000 replay COMPLETE, nativecountcontracts4000/failure0;
+numerical n_correct UNKNOWN. D190→D195 meanTTFT2.433103089→2.290592643s
+(-5.857%), P955.351091139→5.207960044s(-2.675%), P997.788593317→8.059697075s
+(+3.481%, regression). MeanTPOT39.830671→40.262617ms(regression),
+P9567.727418→66.609260ms; internalE2E7.069757720→6.895221204s.
+PhysicalU15919.807325829→15915.263361513GPU-s(-.02854%): no established saving.
+SAME D170 provisionaltimingjoint3375→3476/4000=86.900%(+2.525pp),324short3800.
+Keepcandidate/observations, NOToverall dominance/modelacceptance/formalSLO/G1G2.
+All11metricCSV/documenttable and timing/failure/control tables delivered; n1/noCI.
+
+All15nonoutputfields4000match;3872outputhashsame/128changes OPEN. Exacttiming
+reconstruction1.39e-17s; dispatch4000complete/conflicts0:GPU1165/HOST1773/NVMe928/
+remote134. Preengine1.961691184s/85.6412%TTFT;321alreadydeadlinebeforeengine.
+Control1861/749queued/723belowreadycapacity, sampledNOTcontinuousGPUidleproof.
+Planning2196=2init+2194owned;owned2193completed+1cancelled_result_discarded,
+CancelledError1 retained. OwnedCPU565.902328697s; source4520reads/4218collections/
+16806RPC/302joins/442stale. 76successfulrequests78retriesmax2. Allnegative
+effects preserved. SameD170 reference differences remain disclosed/unfrozen.
+
+LaunchSHA4c68f499bf275a9ad562c0f8c028d70815cd73537779a59271f7d1c836516c64,
+allreturncodes0/physicalrelease confirmed by15:39:33. Local15:40:24 bothactual
+scopepaths/replayPID1515648 absent/noGPU. Remote exact3 stopped15:40:25 only
+AFTERrelease, allinactive/PID0; journal matchedhealthclock andcopiedafterstop.
+132UUIDpairs/allpublished/131480060wireB/3300789780logicalB/packing0.
+4051resourcesamples/peak20549513216B/minhost92408328192B/events-swap-warning0.
+Finalserviceeventfiles unavailableafterautomaticremoval, notfilledzero.
+
+CPU3/4GiBswap0CPUs2,3,26,27; allCLOSED0/events-swap0/scopeabsence verified:
+metadata4actuald8a3eb92ec294dc9a090f8ccb267deb3/session95051;
+projection2645a888d75443b3b8de4f84902dce2a/session23998;
+curation13499fd018ac45e0a39b6878fc641310/session32187;
+timing88675bdf8f0d4bca8720e807599091f3/session66969;
+occupancy3feb1a64a3814a7bb7b60154f13fb8b2/session36952.
+Metadata121405834B/same128MiBguard; requestprojection34407428B SHA
+805a6b8c5aa8f89b7394a4eba8b593f5ada95c6f3048f5a9f2d6c1c06e759697.
+ExistingD190 exactcount/boundedpipeline reused; no oldfullreparse/newhelper.
+CuratedSHA31594e530d42341c2eb876e18daf2d7a3f39a4c9cb728cd14f3b4bda45da4134.
+
+Evidence1actual3f1e24aa471143a5921ada90650519aa/session14917CLOSED0:
+478prelaunchsources/50curatedsources/147protected/PlanV1/all11tablerowsPASS.
+SHAfab20fa1951444dae7f2ac93bcdee54dbd5194956ab497da838c40338a44c5a5.
+Cleanup15:59:17/events-swap0/scopeabsent. No failedD195analysis. Bundleactual
+adee65586f9244258ee6dd323b2ef9d7 completed0/events-swap0/scopeabsent:
+81members51077B,SHA66877990bead8c39e4afe7f879cdb877c6165f60fcd32405a7dd1b1499fddc22.
+DocD195_FULL_W0_FULL1.md/curated/bundle SEALED; doNOTedit afterbinding.
+No liveGPU/remote/CPUanalysis/toolhandles. Usermanifest/unrelatedwork untouched.
+
+NEXT exactpathGit checks/backup, then retainedphase/control evidence and
+history/primary-source-guided next7B bottleneck investigation. No newcandidate
+selected; doNOTrepeatD193/D194/D195 ornewprofiling withoutnewhypothesis.
+Actual7B numerical/commonwarm/Resident/oldPrime-newmetrics/G1G2 OPEN before3B/
+externalbaselines. EntireM1M2/A1–A5/S1–S13 retained. Disk160746721280B below
+NEWheavy150GiB: auditedrecovery/freshpreflight beforeanynewGPU/build; boundedCPU
+analysisallowed. NEW150/running100GiB/memoryfloors unchanged. No blocker.
+
+## D195 launch and monitoring history — terminal, do NOT relaunch
+
+2026-10-03 15:31:28+08 continuation = VERIFIED_WAIT (previous VERIFIED_WAIT).
+Same ongoing monitoring task; full Plan/status/V1 retained in current context,
+hashes unchanged; monitor skill reread. SAME actual service/aux identities ACTIVE
+and tmux live at15:27:57 and each bounded poll through15:31:28. Completion
+3590→3620→3652→3686→3728; latest arrived3731/4000, fail0.
+Watchdog3616 current20398018560B/peak20404916224B/host available94917128192B,
+events0/swap0/no warning or abort/disk158410231808B. No terminal result or
+qualification. No source change, remote contact, analysis, cleanup, restart or
+new experiment. Continue SAME run then existing terminal physical release→
+exact remote stop/copy→bounded analysis/table→backup. Goal ACTIVE;
+actual7B numeric/common-reference/oldPrime-newmetrics/G1G2 OPEN before3B/
+baselines. Entire later matrix and NEW150/running100GiB floors retained.
+
+2026-10-03 15:27:13+08 continuation = VERIFIED_WAIT (previous VERIFIED_WAIT).
+Same ongoing monitoring task; full Plan/status/V1 retained in current context,
+hashes unchanged; monitor skill reread. SAME actual service/aux identities ACTIVE
+and tmux live at15:23:42 and each bounded poll through15:27:13. Completion
+3424→3476→3513→3540→3564; latest arrived3572/4000, fail0.
+Watchdog3365 current20323131392B/peak20366286848B/host available95144853504B,
+events0/swap0/no warning or abort/disk158469599232B. Last500 requests ongoing,
+not terminal or qualification. No source change, remote contact, analysis,
+cleanup, restart or new experiment. Continue SAME run then existing terminal
+physical release→exact remote stop/copy→bounded analysis/table→backup.
+Goal ACTIVE; actual7B numeric/common-reference/oldPrime-newmetrics/G1G2 OPEN
+before3B/baselines. Entire later matrix and NEW150/running100GiB floors retained.
+
+2026-10-03 15:23:03+08 continuation = VERIFIED_WAIT (previous VERIFIED_WAIT).
+Same ongoing monitoring task; full Plan/status/V1 retained in current context,
+hashes unchanged; monitor skill reread. SAME actual service/aux identities ACTIVE
+and tmux live at15:19:28 and each bounded poll through15:23:03. Completion
+3174→3207→3256→3313→3388; latest arrived3395/4000, fail0.
+Watchdog3118 current20071624704B/peak20166250496B/host available94754443264B,
+events0/swap0/no warning or abort/disk158629462016B. No terminal result or
+qualification. No source change, remote contact, analysis, cleanup, restart or
+new experiment. Continue SAME run then existing terminal physical release→
+exact remote stop/copy→bounded analysis/table→backup. Goal ACTIVE;
+actual7B numeric/common-reference/oldPrime-newmetrics/G1G2 OPEN before3B/
+baselines. Entire later matrix and NEW150/running100GiB floors retained.
+
+2026-10-03 15:18:43+08 continuation = VERIFIED_WAIT (previous VERIFIED_WAIT).
+Same ongoing monitoring task; full Plan/status/V1 retained in current context,
+hashes unchanged; monitor skill reread. SAME actual service/aux identities ACTIVE
+and tmux live at15:15:15 and each bounded poll through15:18:43. Completion
+2930→2969→3045→3080→3141; latest arrived3149/4000, fail0.
+Watchdog2861 current19957256192B/peak20013830144B/host available94731542528B,
+events0/swap0/no warning or abort/disk158788284416B. Past three quarters,
+not terminal or qualification. No source change, remote contact, analysis,
+cleanup, restart or new experiment. Continue SAME run then existing terminal
+physical release→exact remote stop/copy→bounded analysis/table→backup.
+Goal ACTIVE; actual7B numeric/common-reference/oldPrime-newmetrics/G1G2 OPEN
+before3B/baselines. Entire later matrix and NEW150/running100GiB floors retained.
+
+2026-10-03 15:14:36+08 continuation = VERIFIED_WAIT (previous VERIFIED_WAIT).
+Same ongoing monitoring task; full Plan/status/V1 retained in current context,
+hashes unchanged; monitor skill reread. SAME actual service/aux identities ACTIVE
+and tmux live at15:11:08 and each bounded poll through15:14:36. Completion
+2628→2685→2766→2816→2874; latest arrived2885/4000, fail0.
+Watchdog2617 current19648647168B/peak19985575936B/host available94767120384B,
+events0/swap0/no warning or abort/disk159060037632B. No terminal result or
+qualification. No source change, remote contact, analysis, cleanup, restart or
+new experiment. Continue SAME run then existing terminal physical release→
+exact remote stop/copy→bounded analysis/table→backup. Goal ACTIVE;
+actual7B numeric/common-reference/oldPrime-newmetrics/G1G2 OPEN before3B/
+baselines. Entire later matrix and NEW150/running100GiB floors retained.
+
+2026-10-03 15:10:26+08 continuation = VERIFIED_WAIT (previous VERIFIED_WAIT).
+Same ongoing monitoring task; full Plan/status/V1 retained in current context,
+hashes unchanged; monitor skill reread. SAME actual service/aux identities ACTIVE
+and tmux live at15:07:03 and each bounded poll through15:10:26. Completion
+2328→2397→2456→2515→2559; latest arrived2565/4000, fail0.
+Watchdog2371 current19465334784B/peak19985575936B/host available94695178240B,
+events0/swap0/no warning or abort/disk159184957440B. No terminal result or
+qualification. No source change, remote contact, analysis, cleanup, restart or
+new experiment. Continue SAME run then existing terminal physical release→
+exact remote stop/copy→bounded analysis/table→backup. Goal ACTIVE;
+actual7B numeric/common-reference/oldPrime-newmetrics/G1G2 OPEN before3B/
+baselines. Entire later matrix and NEW150/running100GiB floors retained.
+
+2026-10-03 15:06:19+08 continuation = VERIFIED_WAIT (previous VERIFIED_WAIT).
+Same ongoing monitoring task; full Plan/status/V1 retained in current context,
+hashes unchanged; monitor skill reread. SAME actual service/aux identities ACTIVE
+and tmux live at15:02:31 and every bounded poll through15:06:19. Completion
+1938→2011→2080→2175→2250; latest arrived2256/4000, fail0.
+Watchdog2127 current19195023360B/peak19985575936B/host available94832361472B,
+events0/swap0/no warning or abort/disk159373639680B. Past half the workload,
+not terminal or qualification. D190 postterminal cleanup/stop/copy scripts read
+ONLY, not adapted or executed. No source change, remote contact, analysis,
+cleanup, restart or new experiment. Continue SAME run then existing terminal
+physical release→exact remote stop/copy→bounded analysis/table→backup.
+Goal ACTIVE; actual7B numeric/common-reference/oldPrime-newmetrics/G1G2 OPEN
+before3B/baselines. Entire later matrix and NEW150/running100GiB floors retained.
+
+2026-10-03 15:01:39+08 continuation = VERIFIED_WAIT (previous VERIFIED_WAIT).
+Full Plan/status/V1 and monitor-experiment skill read after compaction; Plan/V1
+hashes unchanged. Latest cache approval is already fulfilled by D78/D80; the
+once-only published objects are reused, not recreated or changed during inference.
+SAME actual service/aux InvocationIDs ACTIVE and tmux live at14:58:18 and every
+bounded poll through15:01:39. Completion1580→1722→1824→1884;
+latest arrived1891/4000, fail0. Watchdog1850 current18837897216B,
+peak19985575936B/host available95043809280B; memory events0/swap0/no warning
+or abort, foreign/escaped/unresolved compute lists empty; disk159607263232B.
+Below NEW-heavy150GiB but above RUNNING100GiB: continue SAME run, no cleanup
+during inference or lowered floor. No source change, remote contact, analysis,
+restart, maintenance or new experiment. No terminal result or qualification.
+NEXT same-handle monitoring→terminal local physical release→exact remote stop/
+copy→existing bounded analysis/table→interpretation/backup. Goal ACTIVE;
+actual7B numerical/common-reference/oldPrime-newmetrics/G1G2 remain OPEN before
+3B/external baselines. Entire later matrix retained; no current blocker.
+
+2026-10-03 14:53:28+08 continuation=VERIFIED_WAIT (previousVERIFIED_WAIT).
+Sameongoingmonitor task; fullPlan/status/V1 retained in currentcontext, hashes
+unchanged; monitor skill reread. SAMEactualservice+aux ACTIVE/tmuxlive at14:50:45
+andeverypoll through14:53:28. Completion1097→1130→1155→1181→1211,
+latestarrived1220/4000/fail0. Sample1366current18303877120B/peak19985575936B/
+hostavailable95326912512B/events-swap0/noabort-warning/disk159883612160B.
+No sourcechange, remotecontact, analysis, cleanup, restart ornewexperiment.
+ContinueSAMErun then existingterminalphysicalrelease→exactremote stop/copy→
+boundedanalysis/table→backup. GoalACTIVE; actual7B numeric/commonreference/
+oldPrime-newmetrics/G1G2 OPEN before3B/baselines; entirelatermatrix retained.
+NEW150/running100GiB andmemoryfloors unchanged; no terminalqualificationclaim.
+
+2026-10-03 14:49:57+08 continuation=VERIFIED_WAIT (previousVERIFIED_WAIT).
+Sameongoingmonitor task; fullPlan/status/V1 retained in currentcontext, hashes
+unchanged; monitor skill reread. SAMEactualservice+aux ACTIVE/tmuxlive at14:46:25
+andeverypoll through14:49:57. Completion812→841→869→893→919→1028,
+latestarrived1032/4000/fail0. Pastonequarter, notterminalorqualification.
+Sample1157current18244886528B/peak19985575936B/hostavailable95189155840B,
+events-swap0/noabort-warning/disk160101269504B. No sourcechange/remotecontact/
+analysis/cleanup/restart/newexperiment. ContinueSAMErun then existingterminal
+physicalrelease→exactremote stop/copy→boundedanalysis/table→backup. GoalACTIVE;
+actual7B numeric/commonreference/oldPrime-newmetrics/G1G2 OPEN before3B/baselines;
+entirelatermatrix and NEW150/running100GiB/memoryfloors retained.
+
+2026-10-03 14:45:37+08 continuation=VERIFIED_WAIT (previousVERIFIED_WAIT).
+Sameongoingmonitor task; fullPlan/status/V1 retained in currentcontext, hashes
+unchanged; monitor skill reread. SAMEactualservice+aux ACTIVE/tmuxlive at14:42:47
+andeverypoll through14:45:37. Completion537→566→656→721→778,
+latestarrived780/4000/fail0. Sample901current17920462848B/peak19985575936B/
+hostavailable95335903232B/events-swap0/noabort-warning/disk160247230464B.
+No sourcechange, remotecontact, analysis, cleanup, restart ornewexperiment.
+ContinueSAMErun then existingterminalphysicalrelease→exactremote stop/copy→
+boundedanalysis/table→backup. GoalACTIVE; actual7B numeric/commonreference/
+oldPrime-newmetrics/G1G2 OPEN before3B/baselines; entirelatermatrix retained.
+NEW150/running100GiB andmemoryfloors unchanged; no terminalqualificationclaim.
+
+2026-10-03 14:41:54+08 continuation=VERIFIED_WAIT (previousVERIFIED_WAIT).
+Sameongoingmonitor task; fullPlan/status/V1 retained in currentcontext, hashes
+unchanged; monitor skill reread. SAMEactualservice+aux ACTIVE/tmuxlive at14:38:59
+andeverypoll through14:41:54. Completion369→398→427→474→502,
+latestarrived509/4000/fail0. First500boundarypassed, notterminaloracceptance.
+Sample681current17558773760B/peak19985575936B/hostavailable95309516800B,
+events-swap0/noabort-warning/disk160531709952B. No sourcechange/remotecontact/
+analysis/cleanup/restart/newexperiment. ContinueSAMErun then existingterminal
+physicalrelease→exactremote stop/copy→boundedanalysis/table→backup. GoalACTIVE;
+actual7B numeric/commonreference/oldPrime-newmetrics/G1G2 OPEN before3B/baselines,
+latermatrix retained. NEW150/running100GiB andmemoryfloors unchanged.
+
+2026-10-03 14:32+08. GoalACTIVE/currentturnPROGRESS. FullPlan/status/V1 read
+and hashes rechecked unchanged; run-experiment/monitor-experiment followed.
+ONE heavyjob started14:30:23 in tmux tc_d195_full1, source/backed
+a0c4a9d24b4fe42625a4fb9bd80f6c5a8f4d8fed. D194sealedqualification unchanged.
+SameD190cap4/D157/source42W0/4000/500pool/fixedoutput/60snotice/1800s,
+threefreshownedoutput/cachepaths only. No newcandidate/profile/configuration.
+
+Actualservice primelora-tc-svc-421be5687325441d84c68bae5ec2ce04.scope,
+cfd37b2208cd460a8283a0ad551fe5ad;72/80GiBswap2CPU4-23,28-47.
+Actualaux primelora-tc-aux-6cc2baae72334c37bb07a03b5e866550.scope,
+780e4d1f64704a60bb69cdcf119c148f;3/4GiBswap0CPU2,3,26,27.
+BothACTIVE/tmuxlive14:32:05. Rawd195_20261003/7b_full_w0_full1/launch.launch/
+service.log andwatchdog.jsonl; functionstore d195_poll boundedmonitor.
+ReplayPID1515648; no finalresultyet. DoNOTrelaunch onobservationtimeout.
+
+Prelaunch478sources/147protected/PlanV1/resourcesPASS,
+SHA54dd4d48c3e45e31c3afa6b1d9da6114df181365d397cc00d05b42c55740bb5e.
+Prelaunchactualfbc9d2f3ba3045de8ea297a93ba387ae/session18906CLOSED0;
+healthactualec7c4f1cfcd545a5ac0aac06eccb18a6/CLOSED0; scopesabsent.
+Theirfinalmemoryevents unavailableafterautomaticremoval, notfilledzero.
+BothNIC1000/full; once-onlyD78/D80publishedcache reused, NOTrecreated.
+Remoteactual3bad410d9fa44f43f3afb8f5b91da66bec/PID1245725;
+7b56129c73a06f47548e634562f915c167/PID1245727;
+monitorprimelora-artifact-monitor-d195full1.service,
+ea69ac466bae45f6bd02b3a63fa7618f/PID1245730.
+7bhealthclockremote-process-monotonic:a3a25eb317484016806c4f7914f7e34c.
+
+First5completed/fail0, initialruntimes1; incomplete, no performance/numeric/
+model/SLO/G1G2 acceptance. Sample99current9105047552B/hostavailable103378538496B,
+events-swap0/noabort-warning/disk161639956480B; foreign/escaped/unresolvedempty.
+NEXT monitorSAMErun→terminalactualphysicalrelease→exactremote stop/journalcopy
+→reuseD190boundedmetadata/projection/curation/timing/table→interpret/backup.
+NevercopyoldcleanupInvocationIDs. No remoteconfiguration/restart/hash/maintenance,
+sourcechange/install/secondheavy/analysis/compression/cleanup duringinference.
+Actual7B numeric/commonwarm/Resident/oldPrime-newmetrics/G1G2 OPEN before3B/
+baselines; entireM1M2/A1–A5/S1–S13retained. NEW150/running100GiB andmemoryfloors
+unchanged. D195docDRAFT/live, notsealed. Usermanifest/unrelatedwork untouched.
+
+## D195 monitoring history — ongoing
+
+2026-10-03 14:38:09+08 continuation=VERIFIED_WAIT (previousPROGRESS).
+Sameongoingmonitor task; fullPlan/status/V1 retained in currentcontext, hashes
+unchanged; monitor-experiment reread. SAMEactualservice+aux ACTIVE/tmuxlive
+at14:34:37 andeveryboundedpoll through14:38:09. Completion95→141→180→242→316,
+latestarrived323/4000/fail0. Sample459current17373335552B/peak19985575936B/
+hostavailable95589580800B/events-swap0/noabort-warning/disk160584757248B.
+BelowNEWheavy150GiB butaboveRUNNING100GiB; no cleanupduringinference orlowered
+floor. D190postterminal cleanup/stop/copy scripts readONLY, notadapted/executed.
+No remotecontact/sourcechange/analysis/restart/newexperiment. No terminal
+result or qualification. ContinueSAMErun then existingphysicalrelease→exactremote
+stop/copy→boundedanalysis/table→backup. GoalACTIVE; actual7B numeric/commonwarm/
+Resident/oldPrime-newmetrics/G1G2 OPEN before3B/baselines; entirelatermatrix retained.
+
+14:33:40+08 livecheck: SAMEactualservice+aux ACTIVE/tmuxlive; done5→55,
+latestarrived58/4000/fail0, fourruntimes. GPUworkers1518500/1523429/1523555/
+1523709 verified allsameownedservicecgroup/affinity4-23,28-47; no foreign,
+escaped or unresolved compute processes. Sample193current15610408960B/
+peak19985575936B/hostavailable96616710144B/events-swap0/noabort-warning/
+disk161151008768B. NearNEW150GiB floor, wellaboveRUNNING100GiB; no maintenance
+duringinference or loweredfloor. No sourcechange/remoteoperation/analysis/
+restart/cleanup/secondexperiment afterlaunch. ContinueSAMEjob→terminalclosure/
+table/backup. GoalACTIVE/currentturnPROGRESS; actual7Bacceptance stillOPEN.
+
+## D195 prelaunch history — completed
+
+2026-10-03 14:29+08. GoalACTIVE/currentturnPROGRESS. FullPlan/status/V1 read
+in currentcontext, hashes unchanged. D194 SEALED unchanged and BACKED
+a0c4a9d24b4fe42625a4fb9bd80f6c5a8f4d8fed; pushsession4523 CLOSED0 and independent
+ls-remotesession82632 CLOSED0 match. Exact11paths/67staged+archiveentries
+credential/scopechecks PASS, checksum/diffchecks PASS. Usermanifest excluded.
+No serving/config/profile change afterqualification, no secondoptimizer.
+
+D195 prepared using D190 launchscripts, threefreshownedpaths only; same4000W0/
+source42/cap4/D157/60snotice/fixedoutput/1800s. DocD195_FULL_W0_FULL1.md DRAFT.
+No GPU/remote job yet. Once-only D78/D80 cache NOTrecreated.
+Disk recovery reusesD185 audit/apply, 30–220MiB and explicit observed public
+scientific-wheel allowlist; exactregistrySHA/size/HEAD and ownership/ref/open-file/
+environment-link checks retained. 23archives46files1004318720allocatedB removed;
+installedenvs/custombuilds/compiler caches/models/results unchanged, tracked
+fourprojectstate unchanged. AuditSHA
+8abacff492bb5e5b551c52cded6a70df42871d7de79ec1e5c102118e3972cfc7.
+Audit actualf3e6b94e0e244cc691ba20d1e3d0bc14/session93542CLOSED0;
+apply actuala3e66e9fa4f5417685aefbe798a7eed2/session80731CLOSED0.
+Both3/4GiBswap0CPU2,3,26,27, events-swap0/scopeabsent.
+Afteravailable161682432000B; freshfullpreflight stillrequired before GPU.
+
+NEXT prelaunch→unchangedremotehealth→oneordinary7BFull, not component retesting.
+Actual7B numeric/commonwarm/Resident/oldPrime-newmetrics/G1G2 OPEN before3B/
+baselines; complete latermatrix and safetyfloors retained. No blocker.
+
+## D194 CPU qualification SEALED — reference
 
 2026-10-03 14:23+08. Goal ACTIVE/currentturn PROGRESS. Full Plan/status/V1
 read after compaction; run-experiment/analyze-results/academic-plotting/
