@@ -1,0 +1,15 @@
+{
+  "kind": "d185_document_format_correction_v1",
+  "prior_verification_sha256": "f7ad7ced9f501d1ff0e893d90db19128ecec72db0181d6dcce854090d58fea08",
+  "old_document": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d185_20261003/document_before_table_format.md",
+    "sha256": "f01b7ae81b66bbca01fc86f1e2f8f8fd352af26194d135013daba946f26f1186"
+  },
+  "current_document": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D185_FULL_W0_FULL1.md",
+    "sha256": "683ea511d652adf0cb698d6628a724fe400626dd570361f62c54981a6a2fa9f4"
+  },
+  "exact_change": "Remove one leading plus from first comparison-table row",
+  "numerical_values_changed": false,
+  "prior_numeric_checks_reused": true
+}
