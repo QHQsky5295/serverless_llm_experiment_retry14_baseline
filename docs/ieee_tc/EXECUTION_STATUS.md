@@ -1,6 +1,65 @@
 # IEEE TC execution status
 
-## CURRENT — D192 encoder study REJECTS prototype; SEALED, backup next
+## CURRENT — D193 planning snapshot dependency study supports ONE candidate
+
+2026-10-03 14:02+08. Goal ACTIVE/current turn PROGRESS. Full Plan/status/V1
+read after compaction; hashes unchanged. optimize-for-gpu/run-experiment/
+analyze-results/academic-plotting/github-sync followed. Primary vLLM CPU blog,
+v0.30 core-client and Python asyncio docs checked. D192 remains rejected/backed
+dad2fb427dfc51029b5cd19a49265f533464c861, unchanged. Runtime8a106bb5 unchanged.
+User once-only cache approval fulfilled D78/D80; no recreation/remote operation.
+
+ONE D193 CPU dependency study reuses D192 method/D169 four retained graphs and
+existing planning composition fixtures. Projection retains ALL registered HOST
+union/alias/credit graph, GPU geometry, owner/epoch/identities/slots/replacement
+protection. Omits descriptive HOST tensor views, staging graph/allocator report
+only from this planning observation. Not routing_wire or request-scoped budget.
+Fourparsedstates equal, 28corruption checks identically rejected; four fixture
+handoff/residency x protected/unprotected cases have samebudget/selection/objectives
+except expected provenancehashes. 24timingrows, alloutliers retained.
+Full→projected meanms:116.792563→95.728060;111.100663→52.221676;
+182.087642→30.312095;200.510064→35.570229. Bytes reduced75.793–80.406%.
+Large first/secondcase variation explicitlyreported; n3component NOTseedCI,
+NOTD190current message distribution/inventory/RPC/wholeplanner orservinggain.
+
+Probe actuala0efe2a5f8b64cd185733befea55753b/session89380 CLOSED0,
+38.18s/RSS1181496KiB. Curationactual2be99bfe1753413e81c91c931b1b22ad/
+session89641 CLOSED0. Both3/4GiBswap0CPU2,3,26,27/events-swap0 andactualscope
+absenceverified. No liveGPU/remote/CPU/tooljobs. No failedexperiment.
+147protected/PlanV1/sourceSHA/exact4rowtable/AST-shellchecksPASS.
+ProbeSHA71e1b074762109b95c4d23382f41859883ae3198488a7dc68e520c175be3e667.
+CuratedSHA03e8de3349ed67babf2c9b4e7a426ce839b81be3cd871a38815b4e12bf5810e6.
+15member16419B bundleSHA
+76028cd0b2aee7d0bbd8beb4164a73103e9f18fc5636c9e09edb13d5d2bd1eca.
+DocD193_PLANNING_SNAPSHOT_STUDY.md/curated SEALED; doNOTedit afterbinding.
+No serving/faaslora/scripts/tests/config changes; usermanifest/unrelatedwork preserved.
+
+NEXT exact7pathbackup, then directly qualify ONE initialized-planner snapshot
+candidate using existing routing_source_snapshot COMPLETEregistered nativegraph.
+Only _plan_ieee_preparation_for_slot changes snapshotkind; doNOTchange allocator
+consumer _refresh_ieee_deferred_host_capacity or actualexecution checks.
+Preserve freshallregistered measurement/owneridentity/epoch/physicalunion/alias/
+protection/fullGPUgeometry; no TTL/cachedstate/newplannerworker/config/formula.
+Test actualworker/proxy forwarding, realowner freshness/sharedstorage negatives,
+planning budget/selection/objectives, cancellation and deferredcapacity consumers,
+then ordinary7BFull afterbackup andfreshresourcegate. No repeatedD193study/D192
+encoder/D187profiler. Actual7B numeric/130outputhashchanges/commonwarm/Resident/
+oldPrime-newmetrics/G1G2 stillOPEN before3B/baselines. AlllaterM1M2/A1–A5/S1–S13
+retained. Disk belowNEWheavy150GiB; auditedrecovery/freshgate beforeGPU/build,
+running100GiB/memoryfloors unchanged. No blocker/newauthority required.
+
+## D192 encoder study REJECTS prototype; SEALED and BACKED — reference
+
+Backup verified2026-10-03 13:42+08:
+dad2fb427dfc51029b5cd19a49265f533464c861; push session85695 CLOSED0 and
+independent ls-remote session10505 CLOSED0 match. Exact7paths/22staged+nested
+archiveentries passed credential/scope checks; checksum, syntax/table checks,
+working+staged diff checks PASS. Usermanifest excluded. No live GPU/experiment
+CPU/remote/tool jobs. Finaldisk160726601728B below NEW150GiB, floors unchanged.
+Goal ACTIVE/current turn PROGRESS. D192 sealed doc/results unchanged; reject
+prototype, not a new optimizer. NEXT return to retained D191 control dependency
+evidence; no immediate GPU replay/repeated encoding study. Actual7B acceptance
+before3B/baselines and all later matrices remain OPEN.
 
 2026-10-03 13:41+08. Goal ACTIVE/current turn PROGRESS. Full Plan/status/V1
 read after compaction; hashes unchanged. D191 backed ba299b41cfb359e3f772c65954a5bf02b2896bef

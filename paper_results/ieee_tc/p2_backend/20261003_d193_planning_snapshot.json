@@ -1,0 +1,823 @@
+{
+  "kind": "d193_planning_snapshot_study_curated_v1",
+  "status": "supports_one_candidate_qualification_not_serving_acceptance",
+  "probe": {
+    "kind": "d193_planning_native_projection_dependency_study_v1",
+    "parent_commit": "dad2fb427dfc51029b5cd19a49265f533464c861",
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+    "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "protected_artifacts": {
+      "kind": "protected_artifact_verification",
+      "pass": true,
+      "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+      "changed": [],
+      "entry_count": 147,
+      "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+    },
+    "unchanged_sources": {
+      "faaslora/preloading/preloading_planner.py": "148217788f7182b9dc1c1db382dd32ce0e547818512d677ccd23cb25b010df98",
+      "faaslora/preloading/planning_cpu.py": "94e16c8af9957d1faa5f8b1bee8a8cba9de80d6bb09ff27251d9163d3695763e",
+      "faaslora/memory/gpu_monitor.py": "1be491ae0caab2075e6d1569deb69243bc04dc73fd09edf4e1918a5a947227c0",
+      "faaslora/experiment/instance_pool.py": "ab0d2de2a06dc503a22fd6d5ef6eb012d29e66cba1d8b224920b18ca4e9d61a3",
+      "scripts/run_all_experiments.py": "822bae01abdfd5f6abac940f8ce31b021175f35ec130fc9d8cc8438154dddc1c",
+      "tests/test_ieee_tc_planning_cpu.py": "04450c841e91b1536078bf12fbd22ee8225ef58949dd4e48448b88de8b0e0f76",
+      "tests/test_ieee_tc_transfer_pressure.py": "e267b019e9168bb9ba0eecf0843511e23f99fa63daea576a6b05cd600d85d139",
+      "tests/test_ieee_tc_worker_observation.py": "28054e27d2428d2058ae2727157b4a799846ebbfb7b12c80f9aeccbb4169ba0b"
+    },
+    "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d169_20261002/7b_probe1.json",
+    "source_sha256": "ead0c5c81acc52c502874e9d45cfba111665f875220e23467c2e716a0d770602",
+    "snapshots": [
+      {
+        "snapshot": 0,
+        "registered": 8,
+        "full_json_bytes": 1388807,
+        "projected_json_bytes": 336182,
+        "removed_host_views": 2048,
+        "full_registered_union_equal": true,
+        "identities_equal": true,
+        "retained_top_level_keys": [
+          "captured_monotonic_s",
+          "clock_id",
+          "complete_for_native_caches",
+          "completion_fence_scope",
+          "device_uuid",
+          "epoch",
+          "kind",
+          "native_footprints",
+          "native_host_allocator_policy",
+          "owner_id",
+          "production_launch_authorized",
+          "registered_cpu_adapter_ids",
+          "replacement_protected_adapter_ids",
+          "slot_adapter_ids",
+          "snapshot_holds_reference",
+          "sources",
+          "staged_sources",
+          "timing",
+          "unconfirmed_gpu_adapter_ids",
+          "unknown_native_adapter_ids",
+          "worker_pid",
+          "worker_rank"
+        ],
+        "retained_footprint_keys": [
+          "active_gpu_adapter_ids",
+          "empty_slot_capacity_bytes",
+          "host_adapter_footprints",
+          "host_allocations",
+          "host_allocator_overhead_included",
+          "host_budget_reserved",
+          "host_footprint_scope",
+          "host_staged_adapter_ids",
+          "host_tensor_storage_bytes",
+          "lora_slots",
+          "occupied_slot_capacity_bytes",
+          "pool_allocated_bytes",
+          "pool_allocations",
+          "pool_tensor_views",
+          "registered_cpu_adapter_ids",
+          "slot_adapter_ids",
+          "slot_capacity_bytes",
+          "slot_capacity_scope",
+          "uniform_slot_layout"
+        ]
+      },
+      {
+        "snapshot": 1,
+        "registered": 12,
+        "full_json_bytes": 2025691,
+        "projected_json_bytes": 444997,
+        "removed_host_views": 3072,
+        "full_registered_union_equal": true,
+        "identities_equal": true,
+        "retained_top_level_keys": [
+          "captured_monotonic_s",
+          "clock_id",
+          "complete_for_native_caches",
+          "completion_fence_scope",
+          "device_uuid",
+          "epoch",
+          "kind",
+          "native_footprints",
+          "native_host_allocator_policy",
+          "owner_id",
+          "production_launch_authorized",
+          "registered_cpu_adapter_ids",
+          "replacement_protected_adapter_ids",
+          "slot_adapter_ids",
+          "snapshot_holds_reference",
+          "sources",
+          "staged_sources",
+          "timing",
+          "unconfirmed_gpu_adapter_ids",
+          "unknown_native_adapter_ids",
+          "worker_pid",
+          "worker_rank"
+        ],
+        "retained_footprint_keys": [
+          "active_gpu_adapter_ids",
+          "empty_slot_capacity_bytes",
+          "host_adapter_footprints",
+          "host_allocations",
+          "host_allocator_overhead_included",
+          "host_budget_reserved",
+          "host_footprint_scope",
+          "host_staged_adapter_ids",
+          "host_tensor_storage_bytes",
+          "lora_slots",
+          "occupied_slot_capacity_bytes",
+          "pool_allocated_bytes",
+          "pool_allocations",
+          "pool_tensor_views",
+          "registered_cpu_adapter_ids",
+          "slot_adapter_ids",
+          "slot_capacity_bytes",
+          "slot_capacity_scope",
+          "uniform_slot_layout"
+        ]
+      },
+      {
+        "snapshot": 2,
+        "registered": 20,
+        "full_json_bytes": 3301339,
+        "projected_json_bytes": 662970,
+        "removed_host_views": 5120,
+        "full_registered_union_equal": true,
+        "identities_equal": true,
+        "retained_top_level_keys": [
+          "captured_monotonic_s",
+          "clock_id",
+          "complete_for_native_caches",
+          "completion_fence_scope",
+          "device_uuid",
+          "epoch",
+          "kind",
+          "native_footprints",
+          "native_host_allocator_policy",
+          "owner_id",
+          "production_launch_authorized",
+          "registered_cpu_adapter_ids",
+          "replacement_protected_adapter_ids",
+          "slot_adapter_ids",
+          "snapshot_holds_reference",
+          "sources",
+          "staged_sources",
+          "timing",
+          "unconfirmed_gpu_adapter_ids",
+          "unknown_native_adapter_ids",
+          "worker_pid",
+          "worker_rank"
+        ],
+        "retained_footprint_keys": [
+          "active_gpu_adapter_ids",
+          "empty_slot_capacity_bytes",
+          "host_adapter_footprints",
+          "host_allocations",
+          "host_allocator_overhead_included",
+          "host_budget_reserved",
+          "host_footprint_scope",
+          "host_staged_adapter_ids",
+          "host_tensor_storage_bytes",
+          "lora_slots",
+          "occupied_slot_capacity_bytes",
+          "pool_allocated_bytes",
+          "pool_allocations",
+          "pool_tensor_views",
+          "registered_cpu_adapter_ids",
+          "slot_adapter_ids",
+          "slot_capacity_bytes",
+          "slot_capacity_scope",
+          "uniform_slot_layout"
+        ]
+      },
+      {
+        "snapshot": 3,
+        "registered": 24,
+        "full_json_bytes": 3936172,
+        "projected_json_bytes": 771272,
+        "removed_host_views": 6144,
+        "full_registered_union_equal": true,
+        "identities_equal": true,
+        "retained_top_level_keys": [
+          "captured_monotonic_s",
+          "clock_id",
+          "complete_for_native_caches",
+          "completion_fence_scope",
+          "device_uuid",
+          "epoch",
+          "kind",
+          "native_footprints",
+          "native_host_allocator_policy",
+          "owner_id",
+          "production_launch_authorized",
+          "registered_cpu_adapter_ids",
+          "replacement_protected_adapter_ids",
+          "slot_adapter_ids",
+          "snapshot_holds_reference",
+          "sources",
+          "staged_sources",
+          "timing",
+          "unconfirmed_gpu_adapter_ids",
+          "unknown_native_adapter_ids",
+          "worker_pid",
+          "worker_rank"
+        ],
+        "retained_footprint_keys": [
+          "active_gpu_adapter_ids",
+          "empty_slot_capacity_bytes",
+          "host_adapter_footprints",
+          "host_allocations",
+          "host_allocator_overhead_included",
+          "host_budget_reserved",
+          "host_footprint_scope",
+          "host_staged_adapter_ids",
+          "host_tensor_storage_bytes",
+          "lora_slots",
+          "occupied_slot_capacity_bytes",
+          "pool_allocated_bytes",
+          "pool_allocations",
+          "pool_tensor_views",
+          "registered_cpu_adapter_ids",
+          "slot_adapter_ids",
+          "slot_capacity_bytes",
+          "slot_capacity_scope",
+          "uniform_slot_layout"
+        ]
+      }
+    ],
+    "measurements": [
+      {
+        "snapshot": 0,
+        "variant": "full",
+        "repeat": 0,
+        "iterations": 5,
+        "mean_ms": 147.0920699997805,
+        "includes_projection": true,
+        "parser_and_canonical_detach_included": true
+      },
+      {
+        "snapshot": 0,
+        "variant": "planning_projection",
+        "repeat": 0,
+        "iterations": 5,
+        "mean_ms": 226.76787801319733,
+        "includes_projection": true,
+        "parser_and_canonical_detach_included": true
+      },
+      {
+        "snapshot": 0,
+        "variant": "planning_projection",
+        "repeat": 1,
+        "iterations": 5,
+        "mean_ms": 30.618411186151206,
+        "includes_projection": true,
+        "parser_and_canonical_detach_included": true
+      },
+      {
+        "snapshot": 0,
+        "variant": "full",
+        "repeat": 1,
+        "iterations": 5,
+        "mean_ms": 101.69767899205908,
+        "includes_projection": true,
+        "parser_and_canonical_detach_included": true
+      },
+      {
+        "snapshot": 0,
+        "variant": "full",
+        "repeat": 2,
+        "iterations": 5,
+        "mean_ms": 101.58793880837038,
+        "includes_projection": true,
+        "parser_and_canonical_detach_included": true
+      },
+      {
+        "snapshot": 0,
+        "variant": "planning_projection",
+        "repeat": 2,
+        "iterations": 5,
+        "mean_ms": 29.79789162054658,
+        "includes_projection": true,
+        "parser_and_canonical_detach_included": true
+      },
+      {
+        "snapshot": 1,
+        "variant": "full",
+        "repeat": 0,
+        "iterations": 5,
+        "mean_ms": 194.78777039330453,
+        "includes_projection": true,
+        "parser_and_canonical_detach_included": true
+      },
+      {
+        "snapshot": 1,
+        "variant": "planning_projection",
+        "repeat": 0,
+        "iterations": 5,
+        "mean_ms": 19.269418984185904,
+        "includes_projection": true,
+        "parser_and_canonical_detach_included": true
+      },
+      {
+        "snapshot": 1,
+        "variant": "planning_projection",
+        "repeat": 1,
+        "iterations": 5,
+        "mean_ms": 18.481178395450115,
+        "includes_projection": true,
+        "parser_and_canonical_detach_included": true
+      },
+      {
+        "snapshot": 1,
+        "variant": "full",
+        "repeat": 1,
+        "iterations": 5,
+        "mean_ms": 67.55962738534436,
+        "includes_projection": true,
+        "parser_and_canonical_detach_included": true
+      },
+      {
+        "snapshot": 1,
+        "variant": "full",
+        "repeat": 2,
+        "iterations": 5,
+        "mean_ms": 70.95459121046588,
+        "includes_projection": true,
+        "parser_and_canonical_detach_included": true
+      },
+      {
+        "snapshot": 1,
+        "variant": "planning_projection",
+        "repeat": 2,
+        "iterations": 5,
+        "mean_ms": 118.91443157801405,
+        "includes_projection": true,
+        "parser_and_canonical_detach_included": true
+      },
+      {
+        "snapshot": 2,
+        "variant": "full",
+        "repeat": 0,
+        "iterations": 5,
+        "mean_ms": 221.16494982037693,
+        "includes_projection": true,
+        "parser_and_canonical_detach_included": true
+      },
+      {
+        "snapshot": 2,
+        "variant": "planning_projection",
+        "repeat": 0,
+        "iterations": 5,
+        "mean_ms": 32.06088598817587,
+        "includes_projection": true,
+        "parser_and_canonical_detach_included": true
+      },
+      {
+        "snapshot": 2,
+        "variant": "planning_projection",
+        "repeat": 1,
+        "iterations": 5,
+        "mean_ms": 28.949275403283536,
+        "includes_projection": true,
+        "parser_and_canonical_detach_included": true
+      },
+      {
+        "snapshot": 2,
+        "variant": "full",
+        "repeat": 1,
+        "iterations": 5,
+        "mean_ms": 212.50440758885816,
+        "includes_projection": true,
+        "parser_and_canonical_detach_included": true
+      },
+      {
+        "snapshot": 2,
+        "variant": "full",
+        "repeat": 2,
+        "iterations": 5,
+        "mean_ms": 112.59356939699501,
+        "includes_projection": true,
+        "parser_and_canonical_detach_included": true
+      },
+      {
+        "snapshot": 2,
+        "variant": "planning_projection",
+        "repeat": 2,
+        "iterations": 5,
+        "mean_ms": 29.926124203484505,
+        "includes_projection": true,
+        "parser_and_canonical_detach_included": true
+      },
+      {
+        "snapshot": 3,
+        "variant": "full",
+        "repeat": 0,
+        "iterations": 5,
+        "mean_ms": 232.44505481561646,
+        "includes_projection": true,
+        "parser_and_canonical_detach_included": true
+      },
+      {
+        "snapshot": 3,
+        "variant": "planning_projection",
+        "repeat": 0,
+        "iterations": 5,
+        "mean_ms": 35.795855801552534,
+        "includes_projection": true,
+        "parser_and_canonical_detach_included": true
+      },
+      {
+        "snapshot": 3,
+        "variant": "planning_projection",
+        "repeat": 1,
+        "iterations": 5,
+        "mean_ms": 33.73160039773211,
+        "includes_projection": true,
+        "parser_and_canonical_detach_included": true
+      },
+      {
+        "snapshot": 3,
+        "variant": "full",
+        "repeat": 1,
+        "iterations": 5,
+        "mean_ms": 226.7079598037526,
+        "includes_projection": true,
+        "parser_and_canonical_detach_included": true
+      },
+      {
+        "snapshot": 3,
+        "variant": "full",
+        "repeat": 2,
+        "iterations": 5,
+        "mean_ms": 142.37717660143971,
+        "includes_projection": true,
+        "parser_and_canonical_detach_included": true
+      },
+      {
+        "snapshot": 3,
+        "variant": "planning_projection",
+        "repeat": 2,
+        "iterations": 5,
+        "mean_ms": 37.183231581002474,
+        "includes_projection": true,
+        "parser_and_canonical_detach_included": true
+      }
+    ],
+    "negative_checks": [
+      {
+        "snapshot": 0,
+        "case": "host_union",
+        "identical_rejection": [
+          "ValueError",
+          "native HOST total is not the distinct storage union"
+        ]
+      },
+      {
+        "snapshot": 0,
+        "case": "alias_owners",
+        "identical_rejection": [
+          "ValueError",
+          "native HOST shared allocation owners disagree"
+        ]
+      },
+      {
+        "snapshot": 0,
+        "case": "exclusive_credit",
+        "identical_rejection": [
+          "ValueError",
+          "native HOST exclusive capacity incorrectly includes sharing"
+        ]
+      },
+      {
+        "snapshot": 0,
+        "case": "gpu_capacity",
+        "identical_rejection": [
+          "ValueError",
+          "native GPU pool/slot capacities are inconsistent"
+        ]
+      },
+      {
+        "snapshot": 0,
+        "case": "slot_mapping",
+        "identical_rejection": [
+          "ValueError",
+          "native footprints differ from source snapshot/qualified representation"
+        ]
+      },
+      {
+        "snapshot": 0,
+        "case": "owner_identity",
+        "identical_rejection": [
+          "ValueError",
+          "native source snapshot lacks owner/epoch/clock identity"
+        ]
+      },
+      {
+        "snapshot": 0,
+        "case": "unconfirmed",
+        "identical_rejection": [
+          "ValueError",
+          "native source snapshot coverage is inconsistent"
+        ]
+      },
+      {
+        "snapshot": 1,
+        "case": "host_union",
+        "identical_rejection": [
+          "ValueError",
+          "native HOST total is not the distinct storage union"
+        ]
+      },
+      {
+        "snapshot": 1,
+        "case": "alias_owners",
+        "identical_rejection": [
+          "ValueError",
+          "native HOST shared allocation owners disagree"
+        ]
+      },
+      {
+        "snapshot": 1,
+        "case": "exclusive_credit",
+        "identical_rejection": [
+          "ValueError",
+          "native HOST exclusive capacity incorrectly includes sharing"
+        ]
+      },
+      {
+        "snapshot": 1,
+        "case": "gpu_capacity",
+        "identical_rejection": [
+          "ValueError",
+          "native GPU pool/slot capacities are inconsistent"
+        ]
+      },
+      {
+        "snapshot": 1,
+        "case": "slot_mapping",
+        "identical_rejection": [
+          "ValueError",
+          "native footprints differ from source snapshot/qualified representation"
+        ]
+      },
+      {
+        "snapshot": 1,
+        "case": "owner_identity",
+        "identical_rejection": [
+          "ValueError",
+          "native source snapshot lacks owner/epoch/clock identity"
+        ]
+      },
+      {
+        "snapshot": 1,
+        "case": "unconfirmed",
+        "identical_rejection": [
+          "ValueError",
+          "native source snapshot coverage is inconsistent"
+        ]
+      },
+      {
+        "snapshot": 2,
+        "case": "host_union",
+        "identical_rejection": [
+          "ValueError",
+          "native HOST total is not the distinct storage union"
+        ]
+      },
+      {
+        "snapshot": 2,
+        "case": "alias_owners",
+        "identical_rejection": [
+          "ValueError",
+          "native HOST shared allocation owners disagree"
+        ]
+      },
+      {
+        "snapshot": 2,
+        "case": "exclusive_credit",
+        "identical_rejection": [
+          "ValueError",
+          "native HOST exclusive capacity incorrectly includes sharing"
+        ]
+      },
+      {
+        "snapshot": 2,
+        "case": "gpu_capacity",
+        "identical_rejection": [
+          "ValueError",
+          "native GPU pool/slot capacities are inconsistent"
+        ]
+      },
+      {
+        "snapshot": 2,
+        "case": "slot_mapping",
+        "identical_rejection": [
+          "ValueError",
+          "native footprints differ from source snapshot/qualified representation"
+        ]
+      },
+      {
+        "snapshot": 2,
+        "case": "owner_identity",
+        "identical_rejection": [
+          "ValueError",
+          "native source snapshot lacks owner/epoch/clock identity"
+        ]
+      },
+      {
+        "snapshot": 2,
+        "case": "unconfirmed",
+        "identical_rejection": [
+          "ValueError",
+          "native source snapshot coverage is inconsistent"
+        ]
+      },
+      {
+        "snapshot": 3,
+        "case": "host_union",
+        "identical_rejection": [
+          "ValueError",
+          "native HOST total is not the distinct storage union"
+        ]
+      },
+      {
+        "snapshot": 3,
+        "case": "alias_owners",
+        "identical_rejection": [
+          "ValueError",
+          "native HOST shared allocation owners disagree"
+        ]
+      },
+      {
+        "snapshot": 3,
+        "case": "exclusive_credit",
+        "identical_rejection": [
+          "ValueError",
+          "native HOST exclusive capacity incorrectly includes sharing"
+        ]
+      },
+      {
+        "snapshot": 3,
+        "case": "gpu_capacity",
+        "identical_rejection": [
+          "ValueError",
+          "native GPU pool/slot capacities are inconsistent"
+        ]
+      },
+      {
+        "snapshot": 3,
+        "case": "slot_mapping",
+        "identical_rejection": [
+          "ValueError",
+          "native footprints differ from source snapshot/qualified representation"
+        ]
+      },
+      {
+        "snapshot": 3,
+        "case": "owner_identity",
+        "identical_rejection": [
+          "ValueError",
+          "native source snapshot lacks owner/epoch/clock identity"
+        ]
+      },
+      {
+        "snapshot": 3,
+        "case": "unconfirmed",
+        "identical_rejection": [
+          "ValueError",
+          "native source snapshot coverage is inconsistent"
+        ]
+      }
+    ],
+    "fixture_checks": [
+      {
+        "mode": "handoff",
+        "protected_adapter_ids": [],
+        "selections_equal": true,
+        "budgets_equal": true,
+        "objectives_equal_except_provenance": true,
+        "provenance_hash_changed": true
+      },
+      {
+        "mode": "handoff",
+        "protected_adapter_ids": [
+          938516
+        ],
+        "selections_equal": true,
+        "budgets_equal": true,
+        "objectives_equal_except_provenance": true,
+        "provenance_hash_changed": true
+      },
+      {
+        "mode": "residency",
+        "protected_adapter_ids": [],
+        "selections_equal": true,
+        "budgets_equal": true,
+        "objectives_equal_except_provenance": true,
+        "provenance_hash_changed": true
+      },
+      {
+        "mode": "residency",
+        "protected_adapter_ids": [
+          938516
+        ],
+        "selections_equal": true,
+        "budgets_equal": true,
+        "objectives_equal_except_provenance": true,
+        "provenance_hash_changed": true
+      }
+    ],
+    "production_changed": false,
+    "gpu_execution": false,
+    "remote_operation": false,
+    "caveat": "Retained D169 graphs and metadata fixtures; not D190 live size distribution or serving speedup. No inventory construction/RPC latency measured."
+  },
+  "groups": [
+    {
+      "snapshot": 0,
+      "registered": 8,
+      "full_bytes": 1388807,
+      "projected_bytes": 336182,
+      "full_ms": 116.79256260006999,
+      "projected_ms": 95.72806027329837,
+      "byte_reduction": 0.7579346878291944,
+      "time_reduction": 0.18035825105492628
+    },
+    {
+      "snapshot": 1,
+      "registered": 12,
+      "full_bytes": 2025691,
+      "projected_bytes": 444997,
+      "full_ms": 111.10066299637158,
+      "projected_ms": 52.22167631921669,
+      "byte_reduction": 0.7803233563263103,
+      "time_reduction": 0.5299607139075112
+    },
+    {
+      "snapshot": 2,
+      "registered": 20,
+      "full_bytes": 3301339,
+      "projected_bytes": 662970,
+      "full_ms": 182.08764226874337,
+      "projected_ms": 30.312095198314637,
+      "byte_reduction": 0.7991814836343678,
+      "time_reduction": 0.8335301900742007
+    },
+    {
+      "snapshot": 3,
+      "registered": 24,
+      "full_bytes": 3936172,
+      "projected_bytes": 771272,
+      "full_ms": 200.5100637402696,
+      "projected_ms": 35.57022926009571,
+      "byte_reduction": 0.8040553105911022,
+      "time_reduction": 0.8226012769804335
+    }
+  ],
+  "source_sha256": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d193_20261003/probe.py": "7c0d1234bb1d99d145d159a68ed793d97981e45185362c926b3e86c154b01809",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d193_20261003/run_cpu.sh": "5ef11dbb931b7a3476c6d4c22b38e18abfc6c1af0a5117205dcdb514984bfd7f",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d193_20261003/probe1.json": "71e1b074762109b95c4d23382f41859883ae3198488a7dc68e520c175be3e667",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d193_20261003/probe1.csv": "7f3429f8d0de4f0f8a54740ea0a40226f8fc19299beef9a78299ca632f081c88",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d193_20261003/probe1.log": "297527883bca70c0f3947feeb1e7d0a9198416ebb26f625ab86dd9015f32d888",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d193_20261003/probe1_scope.txt": "f675267309c65d2ae100cfab73a12009cd9d07c3c75bf031bc4997b4be8cde25",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d193_20261003/probe1_time.txt": "3a7b7ec04b651783322b09348878b3476e8b972442a99d941c73a421e69d280b",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d193_20261003/probe1_memory_events.txt": "28fe05a1d7b8467a03fb54454f7b6a130fab752864d0454f5f6c4a4b6ce307f2",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d193_20261003/probe1_swap.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d193_20261003/probe1_protected_before.json": "6ecc930a70810595f453198ba8a3d825f96f1a25f5b6cc0d61aff2b0ab9a4c3f",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d193_20261003/probe1_protected_after.json": "6ecc930a70810595f453198ba8a3d825f96f1a25f5b6cc0d61aff2b0ab9a4c3f",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d193_20261003/curate.py": "2e675c18e69bd790cb59114a7709431ff8dbfff579a2e21c7957fc642a1cea4d",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d193_20261003/run_curate.sh": "ec7271e7f36714797872d47d2eb2e6fd6499d078aff3ba4cab034dc97cf57e22",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d193_20261003/check_staged.py": "6f6b5fee06c702d69269b57d273c86ca8e71fc04a1d0976c6d4807f938b79f6a",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D193_PLANNING_SNAPSHOT_STUDY.md": "0e24ebf80689e9771356f807bebb577d932365021549b2f18a6592857fbdd3e5"
+  },
+  "protected_after": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "probe_scope_absent": true,
+  "probe_memory_events": {
+    "low": "0",
+    "high": "0",
+    "max": "0",
+    "oom": "0",
+    "oom_kill": "0",
+    "oom_group_kill": "0"
+  },
+  "probe_swap_bytes": 0,
+  "plot_decision": "Exact component table, all outliers retained; no serving-performance figure or seed CI.",
+  "production_changed": false,
+  "gpu_execution": false,
+  "remote_operation": false,
+  "evidence_bundle": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261003_d193_planning_snapshot_evidence.tar.gz",
+    "sha256": "76028cd0b2aee7d0bbd8beb4164a73103e9f18fc5636c9e09edb13d5d2bd1eca",
+    "bytes": 16419,
+    "members": 15
+  },
+  "output_csv_sha256": "e56fd379bca453aa0ae076f2e41c13cdea2b20468180473cb881136a7264353e",
+  "table_sha256": "e56790bad66e06409f5a56ae24e80a84700939d7f55f83e0109ec8740ae66e0a"
+}
