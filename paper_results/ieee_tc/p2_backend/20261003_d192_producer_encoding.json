@@ -1,0 +1,1715 @@
+{
+  "kind": "d192_producer_encoding_study_curated_v1",
+  "status": "reject_guarded_encoder_prototype_no_full_replay",
+  "probe": {
+    "kind": "d192_retained_producer_encoding_study_v1",
+    "parent_commit": "ba299b41cfb359e3f772c65954a5bf02b2896bef",
+    "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d169_20261002/7b_probe1.json",
+    "source_sha256": "ead0c5c81acc52c502874e9d45cfba111665f875220e23467c2e716a0d770602",
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+    "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "unchanged_sources": {
+      "scripts/run_all_experiments.py": "822bae01abdfd5f6abac940f8ce31b021175f35ec130fc9d8cc8438154dddc1c",
+      "scripts/dedicated_engine_worker.py": "cdadcdaa0a579c1016b4efc7847cff7f631d3bb5340c98f9aeddc6a5bbfa288b",
+      "faaslora/experiment/instance_pool.py": "ab0d2de2a06dc503a22fd6d5ef6eb012d29e66cba1d8b224920b18ca4e9d61a3",
+      "tests/test_ieee_tc_rpc_decode.py": "3d5258f6800c7781f3dd21118be3bfa788e3f09f9c39e5096c5d528ee0c7543c"
+    },
+    "msgspec_version": "0.21.1",
+    "torch_version": "2.13.0+cu130",
+    "protected_artifacts": {
+      "kind": "protected_artifact_verification",
+      "pass": true,
+      "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+      "changed": [],
+      "entry_count": 147,
+      "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+    },
+    "shapes": [
+      {
+        "snapshot": 0,
+        "shape": "historical_full_native_graph",
+        "original_bytes": 1518630,
+        "guarded_bytes": 1388829,
+        "type_counts": {
+          "dict": 9129,
+          "dict_keys_str": 58075,
+          "bool": 4591,
+          "str": 13716,
+          "int": 53399,
+          "float": 15,
+          "list": 12792,
+          "NoneType": 1
+        },
+        "exact_decoded_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 0,
+        "shape": "current_routing_projection",
+        "original_bytes": 5249,
+        "guarded_bytes": 4994,
+        "type_counts": {
+          "dict": 19,
+          "dict_keys_str": 123,
+          "bool": 11,
+          "str": 44,
+          "int": 67,
+          "float": 9,
+          "list": 6
+        },
+        "exact_decoded_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 0,
+        "shape": "current_request_projection",
+        "original_bytes": 3578,
+        "guarded_bytes": 3393,
+        "type_counts": {
+          "dict": 12,
+          "dict_keys_str": 88,
+          "bool": 11,
+          "str": 30,
+          "int": 46,
+          "float": 9,
+          "list": 7
+        },
+        "exact_decoded_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 0,
+        "shape": "current_identity_projection",
+        "original_bytes": 3259,
+        "guarded_bytes": 3088,
+        "type_counts": {
+          "dict": 10,
+          "dict_keys_str": 80,
+          "bool": 11,
+          "str": 28,
+          "int": 41,
+          "float": 9,
+          "list": 5,
+          "NoneType": 1
+        },
+        "exact_decoded_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 1,
+        "shape": "historical_full_native_graph",
+        "original_bytes": 2215094,
+        "guarded_bytes": 2025713,
+        "type_counts": {
+          "dict": 13237,
+          "dict_keys_str": 84795,
+          "bool": 6651,
+          "str": 19888,
+          "int": 78019,
+          "float": 15,
+          "list": 18952,
+          "NoneType": 9
+        },
+        "exact_decoded_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 1,
+        "shape": "current_routing_projection",
+        "original_bytes": 7496,
+        "guarded_bytes": 7133,
+        "type_counts": {
+          "dict": 27,
+          "dict_keys_str": 175,
+          "bool": 15,
+          "str": 64,
+          "int": 91,
+          "float": 9,
+          "list": 6,
+          "NoneType": 8
+        },
+        "exact_decoded_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 1,
+        "shape": "current_request_projection",
+        "original_bytes": 4873,
+        "guarded_bytes": 4620,
+        "type_counts": {
+          "dict": 16,
+          "dict_keys_str": 120,
+          "bool": 15,
+          "str": 42,
+          "int": 58,
+          "float": 9,
+          "list": 7,
+          "NoneType": 8
+        },
+        "exact_decoded_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 1,
+        "shape": "current_identity_projection",
+        "original_bytes": 4554,
+        "guarded_bytes": 4315,
+        "type_counts": {
+          "dict": 14,
+          "dict_keys_str": 112,
+          "bool": 15,
+          "str": 40,
+          "int": 53,
+          "float": 9,
+          "list": 5,
+          "NoneType": 9
+        },
+        "exact_decoded_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 2,
+        "shape": "historical_full_native_graph",
+        "original_bytes": 3609914,
+        "guarded_bytes": 3301361,
+        "type_counts": {
+          "dict": 21453,
+          "dict_keys_str": 138235,
+          "bool": 10771,
+          "str": 32232,
+          "int": 127271,
+          "float": 15,
+          "list": 31272,
+          "NoneType": 25
+        },
+        "exact_decoded_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 2,
+        "shape": "current_routing_projection",
+        "original_bytes": 11989,
+        "guarded_bytes": 11410,
+        "type_counts": {
+          "dict": 43,
+          "dict_keys_str": 279,
+          "bool": 23,
+          "str": 104,
+          "int": 139,
+          "float": 9,
+          "list": 6,
+          "NoneType": 24
+        },
+        "exact_decoded_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 2,
+        "shape": "current_request_projection",
+        "original_bytes": 7462,
+        "guarded_bytes": 7073,
+        "type_counts": {
+          "dict": 24,
+          "dict_keys_str": 184,
+          "bool": 23,
+          "str": 66,
+          "int": 82,
+          "float": 9,
+          "list": 7,
+          "NoneType": 24
+        },
+        "exact_decoded_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 2,
+        "shape": "current_identity_projection",
+        "original_bytes": 7143,
+        "guarded_bytes": 6768,
+        "type_counts": {
+          "dict": 22,
+          "dict_keys_str": 176,
+          "bool": 23,
+          "str": 64,
+          "int": 77,
+          "float": 9,
+          "list": 5,
+          "NoneType": 25
+        },
+        "exact_decoded_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 3,
+        "shape": "historical_full_native_graph",
+        "original_bytes": 4304329,
+        "guarded_bytes": 3936194,
+        "type_counts": {
+          "dict": 25561,
+          "dict_keys_str": 164955,
+          "bool": 12831,
+          "str": 38404,
+          "int": 151893,
+          "float": 15,
+          "list": 37432,
+          "NoneType": 33
+        },
+        "exact_decoded_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 3,
+        "shape": "current_routing_projection",
+        "original_bytes": 14229,
+        "guarded_bytes": 13542,
+        "type_counts": {
+          "dict": 51,
+          "dict_keys_str": 331,
+          "bool": 27,
+          "str": 124,
+          "int": 163,
+          "float": 9,
+          "list": 6,
+          "NoneType": 32
+        },
+        "exact_decoded_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 3,
+        "shape": "current_request_projection",
+        "original_bytes": 8750,
+        "guarded_bytes": 8293,
+        "type_counts": {
+          "dict": 28,
+          "dict_keys_str": 216,
+          "bool": 27,
+          "str": 78,
+          "int": 94,
+          "float": 9,
+          "list": 7,
+          "NoneType": 32
+        },
+        "exact_decoded_tree_and_float_bits": true
+      },
+      {
+        "snapshot": 3,
+        "shape": "current_identity_projection",
+        "original_bytes": 8433,
+        "guarded_bytes": 7990,
+        "type_counts": {
+          "dict": 26,
+          "dict_keys_str": 208,
+          "bool": 27,
+          "str": 76,
+          "int": 89,
+          "float": 9,
+          "list": 5,
+          "NoneType": 33
+        },
+        "exact_decoded_tree_and_float_bits": true
+      },
+      {
+        "snapshot": -1,
+        "shape": "existing_small_primitive_fixture",
+        "original_bytes": 305,
+        "guarded_bytes": 262,
+        "type_counts": {
+          "dict": 2,
+          "dict_keys_str": 11,
+          "str": 2,
+          "int": 5,
+          "bool": 1,
+          "list": 3,
+          "NoneType": 1,
+          "float": 5
+        },
+        "exact_decoded_tree_and_float_bits": true
+      }
+    ],
+    "valid_fixture_count": 4,
+    "edge_semantics": [
+      {
+        "case": "nan",
+        "original": {
+          "encode": "accepted",
+          "bytes": 11,
+          "newline": true,
+          "native_decode": "rejected",
+          "decode_exception": "DecodeError"
+        },
+        "guarded": {
+          "encode": "rejected",
+          "exception": "ValueError"
+        }
+      },
+      {
+        "case": "infinity",
+        "original": {
+          "encode": "accepted",
+          "bytes": 16,
+          "newline": true,
+          "native_decode": "rejected",
+          "decode_exception": "DecodeError"
+        },
+        "guarded": {
+          "encode": "rejected",
+          "exception": "ValueError"
+        }
+      },
+      {
+        "case": "negative_infinity",
+        "original": {
+          "encode": "accepted",
+          "bytes": 17,
+          "newline": true,
+          "native_decode": "rejected",
+          "decode_exception": "DecodeError"
+        },
+        "guarded": {
+          "encode": "rejected",
+          "exception": "ValueError"
+        }
+      },
+      {
+        "case": "bytes",
+        "original": {
+          "encode": "rejected",
+          "exception": "TypeError"
+        },
+        "guarded": {
+          "encode": "rejected",
+          "exception": "TypeError"
+        }
+      },
+      {
+        "case": "set",
+        "original": {
+          "encode": "rejected",
+          "exception": "TypeError"
+        },
+        "guarded": {
+          "encode": "rejected",
+          "exception": "TypeError"
+        }
+      },
+      {
+        "case": "integer_key",
+        "original": {
+          "encode": "accepted",
+          "bytes": 11,
+          "newline": true,
+          "native_decode": "accepted"
+        },
+        "guarded": {
+          "encode": "rejected",
+          "exception": "TypeError"
+        }
+      },
+      {
+        "case": "colliding_keys",
+        "original": {
+          "encode": "accepted",
+          "bytes": 21,
+          "newline": true,
+          "native_decode": "accepted"
+        },
+        "guarded": {
+          "encode": "rejected",
+          "exception": "TypeError"
+        }
+      },
+      {
+        "case": "cycle",
+        "original": {
+          "encode": "rejected",
+          "exception": "ValueError"
+        },
+        "guarded": {
+          "encode": "rejected",
+          "exception": "ValueError"
+        }
+      },
+      {
+        "case": "lone_surrogate",
+        "original": {
+          "encode": "accepted",
+          "bytes": 16,
+          "newline": true,
+          "native_decode": "rejected",
+          "decode_exception": "DecodeError"
+        },
+        "guarded": {
+          "encode": "rejected",
+          "exception": "UnicodeEncodeError"
+        }
+      },
+      {
+        "case": "ascii_old_exact_limit",
+        "original": {
+          "encode": "accepted",
+          "bytes": 8388609,
+          "newline": true,
+          "native_decode": "accepted"
+        },
+        "guarded": {
+          "encode": "accepted",
+          "bytes": 8388608,
+          "newline": true,
+          "native_decode": "accepted"
+        }
+      },
+      {
+        "case": "ascii_old_limit_plus_one",
+        "original": {
+          "encode": "rejected",
+          "exception": "ValueError"
+        },
+        "guarded": {
+          "encode": "accepted",
+          "bytes": 8388609,
+          "newline": true,
+          "native_decode": "accepted"
+        }
+      },
+      {
+        "case": "unicode_old_over_limit",
+        "original": {
+          "encode": "rejected",
+          "exception": "ValueError"
+        },
+        "guarded": {
+          "encode": "accepted",
+          "bytes": 4194312,
+          "newline": true,
+          "native_decode": "accepted"
+        }
+      },
+      {
+        "case": "both_over_limit",
+        "original": {
+          "encode": "rejected",
+          "exception": "ValueError"
+        },
+        "guarded": {
+          "encode": "rejected",
+          "exception": "ValueError"
+        }
+      }
+    ],
+    "measurements": [
+      {
+        "snapshot": 0,
+        "shape": "historical_full_native_graph",
+        "repeat": 0,
+        "encoder": "original",
+        "iterations": 20,
+        "wire_bytes": 1518630,
+        "mean_encode_ms": 32.8487104998203,
+        "validation_included": false
+      },
+      {
+        "snapshot": 0,
+        "shape": "historical_full_native_graph",
+        "repeat": 0,
+        "encoder": "guarded",
+        "iterations": 20,
+        "wire_bytes": 1388829,
+        "mean_encode_ms": 40.86367294949014,
+        "validation_included": true
+      },
+      {
+        "snapshot": 0,
+        "shape": "historical_full_native_graph",
+        "repeat": 1,
+        "encoder": "guarded",
+        "iterations": 20,
+        "wire_bytes": 1388829,
+        "mean_encode_ms": 29.311856898129918,
+        "validation_included": true
+      },
+      {
+        "snapshot": 0,
+        "shape": "historical_full_native_graph",
+        "repeat": 1,
+        "encoder": "original",
+        "iterations": 20,
+        "wire_bytes": 1518630,
+        "mean_encode_ms": 18.799753350322135,
+        "validation_included": false
+      },
+      {
+        "snapshot": 0,
+        "shape": "historical_full_native_graph",
+        "repeat": 2,
+        "encoder": "original",
+        "iterations": 20,
+        "wire_bytes": 1518630,
+        "mean_encode_ms": 17.98529840016272,
+        "validation_included": false
+      },
+      {
+        "snapshot": 0,
+        "shape": "historical_full_native_graph",
+        "repeat": 2,
+        "encoder": "guarded",
+        "iterations": 20,
+        "wire_bytes": 1388829,
+        "mean_encode_ms": 29.387099150335416,
+        "validation_included": true
+      },
+      {
+        "snapshot": 0,
+        "shape": "current_routing_projection",
+        "repeat": 0,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 5249,
+        "mean_encode_ms": 0.044669439957942814,
+        "validation_included": false
+      },
+      {
+        "snapshot": 0,
+        "shape": "current_routing_projection",
+        "repeat": 0,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 4994,
+        "mean_encode_ms": 0.044983830011915416,
+        "validation_included": true
+      },
+      {
+        "snapshot": 0,
+        "shape": "current_routing_projection",
+        "repeat": 1,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 4994,
+        "mean_encode_ms": 0.04708480497356504,
+        "validation_included": true
+      },
+      {
+        "snapshot": 0,
+        "shape": "current_routing_projection",
+        "repeat": 1,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 5249,
+        "mean_encode_ms": 0.04677188000641763,
+        "validation_included": false
+      },
+      {
+        "snapshot": 0,
+        "shape": "current_routing_projection",
+        "repeat": 2,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 5249,
+        "mean_encode_ms": 0.04521428520092741,
+        "validation_included": false
+      },
+      {
+        "snapshot": 0,
+        "shape": "current_routing_projection",
+        "repeat": 2,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 4994,
+        "mean_encode_ms": 0.046108755050227046,
+        "validation_included": true
+      },
+      {
+        "snapshot": 0,
+        "shape": "current_request_projection",
+        "repeat": 0,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 3578,
+        "mean_encode_ms": 0.035038955102209,
+        "validation_included": false
+      },
+      {
+        "snapshot": 0,
+        "shape": "current_request_projection",
+        "repeat": 0,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 3393,
+        "mean_encode_ms": 0.03418442502152175,
+        "validation_included": true
+      },
+      {
+        "snapshot": 0,
+        "shape": "current_request_projection",
+        "repeat": 1,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 3393,
+        "mean_encode_ms": 0.033593029947951436,
+        "validation_included": true
+      },
+      {
+        "snapshot": 0,
+        "shape": "current_request_projection",
+        "repeat": 1,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 3578,
+        "mean_encode_ms": 0.03416051506064832,
+        "validation_included": false
+      },
+      {
+        "snapshot": 0,
+        "shape": "current_request_projection",
+        "repeat": 2,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 3578,
+        "mean_encode_ms": 0.0338023851509206,
+        "validation_included": false
+      },
+      {
+        "snapshot": 0,
+        "shape": "current_request_projection",
+        "repeat": 2,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 3393,
+        "mean_encode_ms": 0.03468209004495293,
+        "validation_included": true
+      },
+      {
+        "snapshot": 0,
+        "shape": "current_identity_projection",
+        "repeat": 0,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 3259,
+        "mean_encode_ms": 0.031809784995857626,
+        "validation_included": false
+      },
+      {
+        "snapshot": 0,
+        "shape": "current_identity_projection",
+        "repeat": 0,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 3088,
+        "mean_encode_ms": 0.030257350008469075,
+        "validation_included": true
+      },
+      {
+        "snapshot": 0,
+        "shape": "current_identity_projection",
+        "repeat": 1,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 3088,
+        "mean_encode_ms": 0.02953871007775888,
+        "validation_included": true
+      },
+      {
+        "snapshot": 0,
+        "shape": "current_identity_projection",
+        "repeat": 1,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 3259,
+        "mean_encode_ms": 0.032618760014884174,
+        "validation_included": false
+      },
+      {
+        "snapshot": 0,
+        "shape": "current_identity_projection",
+        "repeat": 2,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 3259,
+        "mean_encode_ms": 0.03254255483625457,
+        "validation_included": false
+      },
+      {
+        "snapshot": 0,
+        "shape": "current_identity_projection",
+        "repeat": 2,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 3088,
+        "mean_encode_ms": 0.030052005022298545,
+        "validation_included": true
+      },
+      {
+        "snapshot": 1,
+        "shape": "historical_full_native_graph",
+        "repeat": 0,
+        "encoder": "original",
+        "iterations": 20,
+        "wire_bytes": 2215094,
+        "mean_encode_ms": 25.77258859819267,
+        "validation_included": false
+      },
+      {
+        "snapshot": 1,
+        "shape": "historical_full_native_graph",
+        "repeat": 0,
+        "encoder": "guarded",
+        "iterations": 20,
+        "wire_bytes": 2025713,
+        "mean_encode_ms": 42.18970925139729,
+        "validation_included": true
+      },
+      {
+        "snapshot": 1,
+        "shape": "historical_full_native_graph",
+        "repeat": 1,
+        "encoder": "guarded",
+        "iterations": 20,
+        "wire_bytes": 2025713,
+        "mean_encode_ms": 45.753877400420606,
+        "validation_included": true
+      },
+      {
+        "snapshot": 1,
+        "shape": "historical_full_native_graph",
+        "repeat": 1,
+        "encoder": "original",
+        "iterations": 20,
+        "wire_bytes": 2215094,
+        "mean_encode_ms": 25.112208849168383,
+        "validation_included": false
+      },
+      {
+        "snapshot": 1,
+        "shape": "historical_full_native_graph",
+        "repeat": 2,
+        "encoder": "original",
+        "iterations": 20,
+        "wire_bytes": 2215094,
+        "mean_encode_ms": 28.7534715491347,
+        "validation_included": false
+      },
+      {
+        "snapshot": 1,
+        "shape": "historical_full_native_graph",
+        "repeat": 2,
+        "encoder": "guarded",
+        "iterations": 20,
+        "wire_bytes": 2025713,
+        "mean_encode_ms": 46.86929474992212,
+        "validation_included": true
+      },
+      {
+        "snapshot": 1,
+        "shape": "current_routing_projection",
+        "repeat": 0,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 7496,
+        "mean_encode_ms": 0.06589736498426646,
+        "validation_included": false
+      },
+      {
+        "snapshot": 1,
+        "shape": "current_routing_projection",
+        "repeat": 0,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 7133,
+        "mean_encode_ms": 0.06488548999186605,
+        "validation_included": true
+      },
+      {
+        "snapshot": 1,
+        "shape": "current_routing_projection",
+        "repeat": 1,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 7133,
+        "mean_encode_ms": 0.0640104099875316,
+        "validation_included": true
+      },
+      {
+        "snapshot": 1,
+        "shape": "current_routing_projection",
+        "repeat": 1,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 7496,
+        "mean_encode_ms": 0.06369677023030818,
+        "validation_included": false
+      },
+      {
+        "snapshot": 1,
+        "shape": "current_routing_projection",
+        "repeat": 2,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 7496,
+        "mean_encode_ms": 0.06697258504573256,
+        "validation_included": false
+      },
+      {
+        "snapshot": 1,
+        "shape": "current_routing_projection",
+        "repeat": 2,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 7133,
+        "mean_encode_ms": 0.06420030986191705,
+        "validation_included": true
+      },
+      {
+        "snapshot": 1,
+        "shape": "current_request_projection",
+        "repeat": 0,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 4873,
+        "mean_encode_ms": 0.04631757503375411,
+        "validation_included": false
+      },
+      {
+        "snapshot": 1,
+        "shape": "current_request_projection",
+        "repeat": 0,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 4620,
+        "mean_encode_ms": 0.04610049014445394,
+        "validation_included": true
+      },
+      {
+        "snapshot": 1,
+        "shape": "current_request_projection",
+        "repeat": 1,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 4620,
+        "mean_encode_ms": 0.046574079897254705,
+        "validation_included": true
+      },
+      {
+        "snapshot": 1,
+        "shape": "current_request_projection",
+        "repeat": 1,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 4873,
+        "mean_encode_ms": 0.04856204992393032,
+        "validation_included": false
+      },
+      {
+        "snapshot": 1,
+        "shape": "current_request_projection",
+        "repeat": 2,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 4873,
+        "mean_encode_ms": 0.04742664023069665,
+        "validation_included": false
+      },
+      {
+        "snapshot": 1,
+        "shape": "current_request_projection",
+        "repeat": 2,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 4620,
+        "mean_encode_ms": 0.04543409508187324,
+        "validation_included": true
+      },
+      {
+        "snapshot": 1,
+        "shape": "current_identity_projection",
+        "repeat": 0,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 4554,
+        "mean_encode_ms": 0.04560250003123656,
+        "validation_included": false
+      },
+      {
+        "snapshot": 1,
+        "shape": "current_identity_projection",
+        "repeat": 0,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 4315,
+        "mean_encode_ms": 0.04360319493571296,
+        "validation_included": true
+      },
+      {
+        "snapshot": 1,
+        "shape": "current_identity_projection",
+        "repeat": 1,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 4315,
+        "mean_encode_ms": 0.04336922487709671,
+        "validation_included": true
+      },
+      {
+        "snapshot": 1,
+        "shape": "current_identity_projection",
+        "repeat": 1,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 4554,
+        "mean_encode_ms": 0.04443035984877497,
+        "validation_included": false
+      },
+      {
+        "snapshot": 1,
+        "shape": "current_identity_projection",
+        "repeat": 2,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 4554,
+        "mean_encode_ms": 0.04227405006531626,
+        "validation_included": false
+      },
+      {
+        "snapshot": 1,
+        "shape": "current_identity_projection",
+        "repeat": 2,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 4315,
+        "mean_encode_ms": 0.03975115483626723,
+        "validation_included": true
+      },
+      {
+        "snapshot": 2,
+        "shape": "historical_full_native_graph",
+        "repeat": 0,
+        "encoder": "original",
+        "iterations": 20,
+        "wire_bytes": 3609914,
+        "mean_encode_ms": 41.06803635077085,
+        "validation_included": false
+      },
+      {
+        "snapshot": 2,
+        "shape": "historical_full_native_graph",
+        "repeat": 0,
+        "encoder": "guarded",
+        "iterations": 20,
+        "wire_bytes": 3301361,
+        "mean_encode_ms": 71.90833915083203,
+        "validation_included": true
+      },
+      {
+        "snapshot": 2,
+        "shape": "historical_full_native_graph",
+        "repeat": 1,
+        "encoder": "guarded",
+        "iterations": 20,
+        "wire_bytes": 3301361,
+        "mean_encode_ms": 72.02820934762713,
+        "validation_included": true
+      },
+      {
+        "snapshot": 2,
+        "shape": "historical_full_native_graph",
+        "repeat": 1,
+        "encoder": "original",
+        "iterations": 20,
+        "wire_bytes": 3609914,
+        "mean_encode_ms": 40.945901098893955,
+        "validation_included": false
+      },
+      {
+        "snapshot": 2,
+        "shape": "historical_full_native_graph",
+        "repeat": 2,
+        "encoder": "original",
+        "iterations": 20,
+        "wire_bytes": 3609914,
+        "mean_encode_ms": 40.75861534802243,
+        "validation_included": false
+      },
+      {
+        "snapshot": 2,
+        "shape": "historical_full_native_graph",
+        "repeat": 2,
+        "encoder": "guarded",
+        "iterations": 20,
+        "wire_bytes": 3301361,
+        "mean_encode_ms": 71.15874474984594,
+        "validation_included": true
+      },
+      {
+        "snapshot": 2,
+        "shape": "current_routing_projection",
+        "repeat": 0,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 11989,
+        "mean_encode_ms": 0.09161972004221752,
+        "validation_included": false
+      },
+      {
+        "snapshot": 2,
+        "shape": "current_routing_projection",
+        "repeat": 0,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 11410,
+        "mean_encode_ms": 0.09107365011004731,
+        "validation_included": true
+      },
+      {
+        "snapshot": 2,
+        "shape": "current_routing_projection",
+        "repeat": 1,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 11410,
+        "mean_encode_ms": 0.09242691012332216,
+        "validation_included": true
+      },
+      {
+        "snapshot": 2,
+        "shape": "current_routing_projection",
+        "repeat": 1,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 11989,
+        "mean_encode_ms": 0.08897412015357986,
+        "validation_included": false
+      },
+      {
+        "snapshot": 2,
+        "shape": "current_routing_projection",
+        "repeat": 2,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 11989,
+        "mean_encode_ms": 0.08902612491510808,
+        "validation_included": false
+      },
+      {
+        "snapshot": 2,
+        "shape": "current_routing_projection",
+        "repeat": 2,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 11410,
+        "mean_encode_ms": 0.09127181489020586,
+        "validation_included": true
+      },
+      {
+        "snapshot": 2,
+        "shape": "current_request_projection",
+        "repeat": 0,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 7462,
+        "mean_encode_ms": 0.05959982983767986,
+        "validation_included": false
+      },
+      {
+        "snapshot": 2,
+        "shape": "current_request_projection",
+        "repeat": 0,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 7073,
+        "mean_encode_ms": 0.058591130073182285,
+        "validation_included": true
+      },
+      {
+        "snapshot": 2,
+        "shape": "current_request_projection",
+        "repeat": 1,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 7073,
+        "mean_encode_ms": 0.05976642481982708,
+        "validation_included": true
+      },
+      {
+        "snapshot": 2,
+        "shape": "current_request_projection",
+        "repeat": 1,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 7462,
+        "mean_encode_ms": 0.058177954924758524,
+        "validation_included": false
+      },
+      {
+        "snapshot": 2,
+        "shape": "current_request_projection",
+        "repeat": 2,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 7462,
+        "mean_encode_ms": 0.05864381499122828,
+        "validation_included": false
+      },
+      {
+        "snapshot": 2,
+        "shape": "current_request_projection",
+        "repeat": 2,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 7073,
+        "mean_encode_ms": 0.05965758493402973,
+        "validation_included": true
+      },
+      {
+        "snapshot": 2,
+        "shape": "current_identity_projection",
+        "repeat": 0,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 7143,
+        "mean_encode_ms": 0.05687190510798246,
+        "validation_included": false
+      },
+      {
+        "snapshot": 2,
+        "shape": "current_identity_projection",
+        "repeat": 0,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 6768,
+        "mean_encode_ms": 0.05810008995467797,
+        "validation_included": true
+      },
+      {
+        "snapshot": 2,
+        "shape": "current_identity_projection",
+        "repeat": 1,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 6768,
+        "mean_encode_ms": 0.05656935507431626,
+        "validation_included": true
+      },
+      {
+        "snapshot": 2,
+        "shape": "current_identity_projection",
+        "repeat": 1,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 7143,
+        "mean_encode_ms": 0.05604882986517623,
+        "validation_included": false
+      },
+      {
+        "snapshot": 2,
+        "shape": "current_identity_projection",
+        "repeat": 2,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 7143,
+        "mean_encode_ms": 0.057424745173193514,
+        "validation_included": false
+      },
+      {
+        "snapshot": 2,
+        "shape": "current_identity_projection",
+        "repeat": 2,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 6768,
+        "mean_encode_ms": 0.05598674004431814,
+        "validation_included": true
+      },
+      {
+        "snapshot": 3,
+        "shape": "historical_full_native_graph",
+        "repeat": 0,
+        "encoder": "original",
+        "iterations": 20,
+        "wire_bytes": 4304329,
+        "mean_encode_ms": 48.66362065076828,
+        "validation_included": false
+      },
+      {
+        "snapshot": 3,
+        "shape": "historical_full_native_graph",
+        "repeat": 0,
+        "encoder": "guarded",
+        "iterations": 20,
+        "wire_bytes": 3936194,
+        "mean_encode_ms": 81.56484059873037,
+        "validation_included": true
+      },
+      {
+        "snapshot": 3,
+        "shape": "historical_full_native_graph",
+        "repeat": 1,
+        "encoder": "guarded",
+        "iterations": 20,
+        "wire_bytes": 3936194,
+        "mean_encode_ms": 84.49894369987305,
+        "validation_included": true
+      },
+      {
+        "snapshot": 3,
+        "shape": "historical_full_native_graph",
+        "repeat": 1,
+        "encoder": "original",
+        "iterations": 20,
+        "wire_bytes": 4304329,
+        "mean_encode_ms": 46.9220693979878,
+        "validation_included": false
+      },
+      {
+        "snapshot": 3,
+        "shape": "historical_full_native_graph",
+        "repeat": 2,
+        "encoder": "original",
+        "iterations": 20,
+        "wire_bytes": 4304329,
+        "mean_encode_ms": 47.81133930082433,
+        "validation_included": false
+      },
+      {
+        "snapshot": 3,
+        "shape": "historical_full_native_graph",
+        "repeat": 2,
+        "encoder": "guarded",
+        "iterations": 20,
+        "wire_bytes": 3936194,
+        "mean_encode_ms": 80.96052524924744,
+        "validation_included": true
+      },
+      {
+        "snapshot": 3,
+        "shape": "current_routing_projection",
+        "repeat": 0,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 14229,
+        "mean_encode_ms": 0.10595951025607064,
+        "validation_included": false
+      },
+      {
+        "snapshot": 3,
+        "shape": "current_routing_projection",
+        "repeat": 0,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 13542,
+        "mean_encode_ms": 0.10461483499966562,
+        "validation_included": true
+      },
+      {
+        "snapshot": 3,
+        "shape": "current_routing_projection",
+        "repeat": 1,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 13542,
+        "mean_encode_ms": 0.10508690000278875,
+        "validation_included": true
+      },
+      {
+        "snapshot": 3,
+        "shape": "current_routing_projection",
+        "repeat": 1,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 14229,
+        "mean_encode_ms": 0.10381289990618825,
+        "validation_included": false
+      },
+      {
+        "snapshot": 3,
+        "shape": "current_routing_projection",
+        "repeat": 2,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 14229,
+        "mean_encode_ms": 0.10295558487996459,
+        "validation_included": false
+      },
+      {
+        "snapshot": 3,
+        "shape": "current_routing_projection",
+        "repeat": 2,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 13542,
+        "mean_encode_ms": 0.10458948003361002,
+        "validation_included": true
+      },
+      {
+        "snapshot": 3,
+        "shape": "current_request_projection",
+        "repeat": 0,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 8750,
+        "mean_encode_ms": 0.06711964000714943,
+        "validation_included": false
+      },
+      {
+        "snapshot": 3,
+        "shape": "current_request_projection",
+        "repeat": 0,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 8293,
+        "mean_encode_ms": 0.06628578004892915,
+        "validation_included": true
+      },
+      {
+        "snapshot": 3,
+        "shape": "current_request_projection",
+        "repeat": 1,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 8293,
+        "mean_encode_ms": 0.0675011650309898,
+        "validation_included": true
+      },
+      {
+        "snapshot": 3,
+        "shape": "current_request_projection",
+        "repeat": 1,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 8750,
+        "mean_encode_ms": 0.06720400502672419,
+        "validation_included": false
+      },
+      {
+        "snapshot": 3,
+        "shape": "current_request_projection",
+        "repeat": 2,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 8750,
+        "mean_encode_ms": 0.06675268989056349,
+        "validation_included": false
+      },
+      {
+        "snapshot": 3,
+        "shape": "current_request_projection",
+        "repeat": 2,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 8293,
+        "mean_encode_ms": 0.06627014983678237,
+        "validation_included": true
+      },
+      {
+        "snapshot": 3,
+        "shape": "current_identity_projection",
+        "repeat": 0,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 8433,
+        "mean_encode_ms": 0.06583310983842239,
+        "validation_included": false
+      },
+      {
+        "snapshot": 3,
+        "shape": "current_identity_projection",
+        "repeat": 0,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 7990,
+        "mean_encode_ms": 0.062073375156614936,
+        "validation_included": true
+      },
+      {
+        "snapshot": 3,
+        "shape": "current_identity_projection",
+        "repeat": 1,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 7990,
+        "mean_encode_ms": 0.06197817012434825,
+        "validation_included": true
+      },
+      {
+        "snapshot": 3,
+        "shape": "current_identity_projection",
+        "repeat": 1,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 8433,
+        "mean_encode_ms": 0.06594127014977857,
+        "validation_included": false
+      },
+      {
+        "snapshot": 3,
+        "shape": "current_identity_projection",
+        "repeat": 2,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 8433,
+        "mean_encode_ms": 0.06433274509618059,
+        "validation_included": false
+      },
+      {
+        "snapshot": 3,
+        "shape": "current_identity_projection",
+        "repeat": 2,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 7990,
+        "mean_encode_ms": 0.06250481004826725,
+        "validation_included": true
+      },
+      {
+        "snapshot": -1,
+        "shape": "existing_small_primitive_fixture",
+        "repeat": 0,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 305,
+        "mean_encode_ms": 0.008614885155111551,
+        "validation_included": false
+      },
+      {
+        "snapshot": -1,
+        "shape": "existing_small_primitive_fixture",
+        "repeat": 0,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 262,
+        "mean_encode_ms": 0.007115780026651919,
+        "validation_included": true
+      },
+      {
+        "snapshot": -1,
+        "shape": "existing_small_primitive_fixture",
+        "repeat": 1,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 262,
+        "mean_encode_ms": 0.0065271000494249165,
+        "validation_included": true
+      },
+      {
+        "snapshot": -1,
+        "shape": "existing_small_primitive_fixture",
+        "repeat": 1,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 305,
+        "mean_encode_ms": 0.00822508503915742,
+        "validation_included": false
+      },
+      {
+        "snapshot": -1,
+        "shape": "existing_small_primitive_fixture",
+        "repeat": 2,
+        "encoder": "original",
+        "iterations": 200,
+        "wire_bytes": 305,
+        "mean_encode_ms": 0.008171889930963516,
+        "validation_included": false
+      },
+      {
+        "snapshot": -1,
+        "shape": "existing_small_primitive_fixture",
+        "repeat": 2,
+        "encoder": "guarded",
+        "iterations": 200,
+        "wire_bytes": 262,
+        "mean_encode_ms": 0.006533319829031825,
+        "validation_included": true
+      }
+    ],
+    "production_code_changed": false,
+    "cuda_executed": false,
+    "current_projections_of_historical_observations": true,
+    "caveat": "Three alternating CPU component rounds, not independent workload runs or end-to-end gains; rejection sets differ."
+  },
+  "groups": [
+    {
+      "snapshot": -1,
+      "shape": "existing_small_primitive_fixture",
+      "original_bytes": 305,
+      "guarded_bytes": 262,
+      "original_ms": 0.00833728670841083,
+      "guarded_ms": 0.006725399968369554,
+      "reduction_fraction": 0.1933346898596123
+    },
+    {
+      "snapshot": 0,
+      "shape": "current_identity_projection",
+      "original_bytes": 3259,
+      "guarded_bytes": 3088,
+      "original_ms": 0.03232369994899879,
+      "guarded_ms": 0.0299493550361755,
+      "reduction_fraction": 0.07345523305096856
+    },
+    {
+      "snapshot": 0,
+      "shape": "current_request_projection",
+      "original_bytes": 3578,
+      "guarded_bytes": 3393,
+      "original_ms": 0.03433395177125931,
+      "guarded_ms": 0.03415318167147537,
+      "reduction_fraction": 0.005265053699273153
+    },
+    {
+      "snapshot": 0,
+      "shape": "current_routing_projection",
+      "original_bytes": 5249,
+      "guarded_bytes": 4994,
+      "original_ms": 0.045551868388429284,
+      "guarded_ms": 0.046059130011902503,
+      "reduction_fraction": -0.011135912563403653
+    },
+    {
+      "snapshot": 0,
+      "shape": "historical_full_native_graph",
+      "original_bytes": 1518630,
+      "guarded_bytes": 1388829,
+      "original_ms": 23.21125408343505,
+      "guarded_ms": 33.18754299931849,
+      "reduction_fraction": -0.4298039597525718
+    },
+    {
+      "snapshot": 1,
+      "shape": "current_identity_projection",
+      "original_bytes": 4554,
+      "guarded_bytes": 4315,
+      "original_ms": 0.04410230331510926,
+      "guarded_ms": 0.0422411915496923,
+      "reduction_fraction": 0.04219987677558212
+    },
+    {
+      "snapshot": 1,
+      "shape": "current_request_projection",
+      "original_bytes": 4873,
+      "guarded_bytes": 4620,
+      "original_ms": 0.04743542172946036,
+      "guarded_ms": 0.046036221707860626,
+      "reduction_fraction": 0.029496944911332822
+    },
+    {
+      "snapshot": 1,
+      "shape": "current_routing_projection",
+      "original_bytes": 7496,
+      "guarded_bytes": 7133,
+      "original_ms": 0.06552224008676906,
+      "guarded_ms": 0.06436540328043823,
+      "reduction_fraction": 0.017655635778002506
+    },
+    {
+      "snapshot": 1,
+      "shape": "historical_full_native_graph",
+      "original_bytes": 2215094,
+      "guarded_bytes": 2025713,
+      "original_ms": 26.546089665498585,
+      "guarded_ms": 44.93762713391334,
+      "reduction_fraction": -0.6928153148038922
+    },
+    {
+      "snapshot": 2,
+      "shape": "current_identity_projection",
+      "original_bytes": 7143,
+      "guarded_bytes": 6768,
+      "original_ms": 0.056781826715450734,
+      "guarded_ms": 0.05688539502443746,
+      "reduction_fraction": -0.0018239693045757853
+    },
+    {
+      "snapshot": 2,
+      "shape": "current_request_projection",
+      "original_bytes": 7462,
+      "guarded_bytes": 7073,
+      "original_ms": 0.05880719991788889,
+      "guarded_ms": 0.059338379942346364,
+      "reduction_fraction": -0.009032567869226064
+    },
+    {
+      "snapshot": 2,
+      "shape": "current_routing_projection",
+      "original_bytes": 11989,
+      "guarded_bytes": 11410,
+      "original_ms": 0.08987332170363516,
+      "guarded_ms": 0.09159079170785844,
+      "reduction_fraction": -0.01910989792818373
+    },
+    {
+      "snapshot": 2,
+      "shape": "historical_full_native_graph",
+      "original_bytes": 3609914,
+      "guarded_bytes": 3301361,
+      "original_ms": 40.92418426589575,
+      "guarded_ms": 71.69843108276837,
+      "reduction_fraction": -0.7519819238649651
+    },
+    {
+      "snapshot": 3,
+      "shape": "current_identity_projection",
+      "original_bytes": 8433,
+      "guarded_bytes": 7990,
+      "original_ms": 0.06536904169479385,
+      "guarded_ms": 0.06218545177641015,
+      "reduction_fraction": 0.04870179883082563
+    },
+    {
+      "snapshot": 3,
+      "shape": "current_request_projection",
+      "original_bytes": 8750,
+      "guarded_bytes": 8293,
+      "original_ms": 0.06702544497481237,
+      "guarded_ms": 0.0666856983055671,
+      "reduction_fraction": 0.005068920756482053
+    },
+    {
+      "snapshot": 3,
+      "shape": "current_routing_projection",
+      "original_bytes": 14229,
+      "guarded_bytes": 13542,
+      "original_ms": 0.10424266501407449,
+      "guarded_ms": 0.1047637383453548,
+      "reduction_fraction": -0.004998657039418093
+    },
+    {
+      "snapshot": 3,
+      "shape": "historical_full_native_graph",
+      "original_bytes": 4304329,
+      "guarded_bytes": 3936194,
+      "original_ms": 47.79900978319347,
+      "guarded_ms": 82.34143651595029,
+      "reduction_fraction": -0.7226598812283812
+    }
+  ],
+  "source_sha256": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d192_20261003/probe.py": "edcef292cd830be35f05632a03728810e2b46abf2d095a221f98051154a49b33",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d192_20261003/run_cpu.sh": "f4431071583df880f54db665eafad0c59028242253d3c2d90318f9953044cae0",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d192_20261003/probe1.json": "329dc91e3266a7d3f1fdad4a0bf765af4ec36e4836901004528fb4be6899eb4c",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d192_20261003/probe1.csv": "2d38d5186eaf0b451a60a7ba9d7116822cc5389eba89bde9b2cbec882b46dca6",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d192_20261003/probe1.log": "31ea773ed59321acfef5d287f4f691b75596f3d2bdf871ff80b661b81db64055",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d192_20261003/probe1_scope.txt": "5636830bbb2fb92a2d77f7b891bd55bbaf526af7a687e3b6b43b61bd729e48eb",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d192_20261003/probe1_time.txt": "83628a86227dc7b28f70be43c9275a7dcdffddd62a22f19f919e8365cd29cc4b",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d192_20261003/probe1_memory_events.txt": "28fe05a1d7b8467a03fb54454f7b6a130fab752864d0454f5f6c4a4b6ce307f2",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d192_20261003/probe1_swap.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d192_20261003/probe1_protected_before.json": "6ecc930a70810595f453198ba8a3d825f96f1a25f5b6cc0d61aff2b0ab9a4c3f",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d192_20261003/probe1_protected_after.json": "6ecc930a70810595f453198ba8a3d825f96f1a25f5b6cc0d61aff2b0ab9a4c3f",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d192_20261003/curate.py": "8fdd46fd9ae7a9a998c8e9de5685f20a4965d9be6ff7e01624e788430b1f414a",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d192_20261003/run_curate.sh": "525adeeaff2db98b104ccb57b1df4d4bca5254677c2c4d04894ce89cfba98d36",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d192_20261003/check_staged.py": "534465de9c5f908f67eef1475dadbb5e86dcc209f8b91a36c2e3d6e4664fa5f6",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D192_PRODUCER_ENCODING_STUDY.md": "1e05e3966afc315d89fa294fecb760c97141b36899b9cfda42f9d01386cc76d8"
+  },
+  "protected_after": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "probe_scope_absent": true,
+  "probe_memory_events": {
+    "low": "0",
+    "high": "0",
+    "max": "0",
+    "oom": "0",
+    "oom_kill": "0",
+    "oom_group_kill": "0"
+  },
+  "probe_swap_bytes": 0,
+  "plot_decision": "Complete component table; no serving-performance figure or seed CI.",
+  "production_changed": false,
+  "gpu_execution": false,
+  "remote_operation": false,
+  "evidence_bundle": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261003_d192_producer_encoding_evidence.tar.gz",
+    "sha256": "10efdaf28309de7ca1ce6fa99af1a40313d672be2b0f674f3db902845bf2d417",
+    "bytes": 18858,
+    "members": 15
+  },
+  "output_csv_sha256": "b002fac53e9be4f79cfc37c37ee5b2295e1acd39918492bb8c5ae1d8c0624a2a",
+  "table_sha256": "932c27e10ffe60fb8bd12c1c1479c9f0e8f46e6dc45cbb5b2e03bf5a84a0caba"
+}

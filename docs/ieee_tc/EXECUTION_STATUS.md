@@ -1,6 +1,71 @@
 # IEEE TC execution status
 
-## CURRENT — D191 offline diagnosis SEALED; backup next
+## CURRENT — D192 encoder study REJECTS prototype; SEALED, backup next
+
+2026-10-03 13:41+08. Goal ACTIVE/current turn PROGRESS. Full Plan/status/V1
+read after compaction; hashes unchanged. D191 backed ba299b41cfb359e3f772c65954a5bf02b2896bef
+and independently verified. D192 is CPU-only, no serving change/newGPU/remote
+operation. Once-only D78/D80 delivery cache untouched, not recreated.
+optimize-for-gpu/run-experiment/analyze-results/academic-plotting/github-sync
+followed; current primary msgspec/Python JSON/vLLM.30 serial-utils checked.
+
+Reused D172 alternating component method and retained D169 observations, with
+CURRENT routing/request/identity projections. 17shapes/102timingrows/4valid
+fixtures/13boundarycases retained. Decoder trees/types/floatbits equal for valid
+cases; rejection sets NOTidentical: nonfinite/surrogate failure stage, nonstring
+keys and encoded-byte boundary differ. No complete production qualification.
+Allvalidation included: four historical graphs original23.211/26.546/40.924/47.799ms
+versus guarded33.188/44.938/71.698/82.341ms. Current compact projections original
+.032–.104ms, no consistent gain. These are projections of old snapshots, NOT
+D190 live message-size distribution. Reject THIS guarded encoder prototype;
+do NOTimplement, removevalidation, retest samehypothesis or run correspondingFull.
+
+Probeactual1032ef3910434c38a2c299eef201b087/session51149 CLOSED0,
+wall47.12s/RSS1159388KiB. Curationactual58a2839415cd4bc4ae7526317fedd6a5/
+session83618 CLOSED0. Both3/4GiBswap0CPUs2,3,26,27, finalevents/swap0 and actual
+scopeabsence verified. No liveGPU/remote/CPU/tooljobs. 147protected/PlanV1/source
+and exact17row documenttable checksPASS. Production faaslora/scripts/tests/
+configs-ieee unchanged; usermanifest/unrelateddirtyfiles preserved.
+CuratedSHA5ea1997cb7d6f707495716fbb536e6527ded12f975866eaddf6d698f2024daa4;
+15member18858B evidencebundleSHA
+10efdaf28309de7ca1ce6fa99af1a40313d672be2b0f674f3db902845bf2d417.
+DocD192_PRODUCER_ENCODING_STUDY.md/curated SEALED; doNOTedit afterbinding.
+Rawd192_20261003 retained, no failedexperiment or changedservingconfiguration.
+
+NEXT exact7path Gitbackup then return to D191 control stages and dependencies:
+request advancement/resource-release notification/preparation work; inspect
+history and official implementations before choosing ONE new falsifiable
+hypothesis. No next optimizer selected, no newprofile/full replay authorized
+by this negative component result. Actual7B numerical/130outputhashdifferences/
+commonwarm/Resident/oldPrime-newmetrics/G1G2 stillOPEN before3B/externalbaselines.
+Full M1M2/A1–A5/S1–S13 retained. Disk belowNEWheavy150GiB, bounded CPU only until
+audited recovery/freshgate; unchangedNEW150/running100GiB/memoryfloors.
+
+## D191 BACKED; D192 preparation — history
+
+2026-10-03 13:31+08. Goal ACTIVE; current turn PROGRESS. Full Plan/status/V1
+reread after compaction, hashes unchanged. D191 exact13path checkpoint
+ba299b41cfb359e3f772c65954a5bf02b2896bef pushed; session5729 CLOSED0 and independent
+ls-remote session76915 CLOSED0 match. D191 sealed document/results unchanged.
+No GPU/experiment scopes or remaining tool jobs; unrelated podman scope untouched.
+Runtime8a106bb5 unchanged; D78/D80 once-only published cache not recreated.
+
+Next ONE CPU-only D192 encoder semantics/component study, reusing D172's
+alternating measurement and retained D169 source input, adding CURRENT routing
+and request projections. Include complete finite-primitive validation overhead;
+test type/float bits/Unicode/keys/cycles/8MiB/error differences. Not a production
+change or accepted optimizer. Current compact messages must be reported separately
+from historical large native graphs; old large sizes do not prove current wire cost.
+No GPU replay unless a single semantically qualified candidate has relevant gain.
+Primary msgspec/Python JSON/vLLM.30 serial-utils checked; direct encoder swap
+remains unqualified. No new dependencies, weights, traces or remote action.
+
+Actual7B numeric/commonwarm/Resident/oldPrime-newmetrics/G1G2 OPEN before3B/
+external baselines. All later matrices retained. Fresh disk160740782080B still
+below NEW-heavy150GiB: no newGPU/build, bounded CPU study only; safety floors
+unchanged. Usermanifest/unrelated work preserved.
+
+## D191 offline diagnosis SEALED — history
 
 2026-10-03 13:24+08. Previous goal turn PROGRESS; current turn PROGRESS.
 Goal ACTIVE. Full Plan/status/V1 retained/read in current context; hashes
