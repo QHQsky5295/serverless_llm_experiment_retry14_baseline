@@ -12,6 +12,140 @@ from safetensors.numpy import save_file
 from scripts import ieee_tc_preflight as p
 
 
+class NativeExecutionMetadataAudit(unittest.TestCase):
+    """Pure metadata fixtures, never GPU or model-numerical qualification."""
+    @staticmethod
+    def meta(slots, capacity=4):
+        active = sorted(set(slots))
+        all_base = active == [-1]
+        counts = [] if all_base else [slots.count(a) for a in active]
+        starts = [0]
+        for count in counts:
+            starts.append(starts[-1] + count)
+        return dict(token_lora_mapping=list(slots),
+                    token_indices_sorted_by_lora_ids=sorted(range(len(slots)), key=slots.__getitem__),
+                    active_lora_ids=([] if all_base else active) + [-1] * (capacity + 1 - (0 if all_base else len(active))),
+                    num_tokens_per_lora=counts + [0] * (capacity + 1 - len(counts)),
+                    lora_token_start_loc=starts + [0] * (capacity + 2 - len(starts)),
+                    no_lora=all_base, launch_lora_count=capacity + 1)
+
+    def observation(self, ids=(11, 22, 0), counts=(2, 1, 2), layout=(22, None, 11, 33)):
+        bindings = {f'r{i}': aid for i, aid in enumerate(ids)}
+        slots = [layout.index(aid) if aid else -1 for aid in ids]
+        tokens = [s for s, n in zip(slots, counts) for _ in range(n)]
+        return dict(kind='native_lora_forward_metadata_v1', slot_adapter_ids=list(layout),
+                    requests=[dict(backend_request_id=f'r{i}', adapter_int_id=aid,
+                                   scheduled_tokens=n, sampled_tokens=1)
+                              for i, (aid, n) in enumerate(zip(ids, counts))],
+                    token_slot_indices=tokens, sampler_slot_indices=slots,
+                    token_kernel_meta=self.meta(tokens), sampler_kernel_meta=self.meta(slots)), bindings
+
+    def test_mixed_prefill_decode_and_base_rows(self):
+        obs, bindings = self.observation()
+        before = copy.deepcopy(obs)
+        result = p.validate_native_lora_execution_metadata(obs, bindings)
+        self.assertTrue(result['metadata_matches'])
+        self.assertEqual(result['token']['real_rows'], 5)
+        self.assertEqual(result['sampler']['real_rows'], 3)
+        self.assertFalse(result['gpu_observation_qualified'])
+        self.assertFalse(result['kernel_arithmetic_qualified'])
+        self.assertFalse(result['full_pool_qualified'])
+        self.assertIsNone(result['n_correct'])
+        self.assertEqual(obs, before)
+
+    def test_same_logical_mapping_new_slot_layout_requires_new_metadata(self):
+        old, bindings = self.observation()
+        new, _ = self.observation(layout=(11, 22, 33, None))
+        self.assertTrue(p.validate_native_lora_execution_metadata(new, bindings)['metadata_matches'])
+        for field in ('token_slot_indices', 'sampler_slot_indices', 'token_kernel_meta', 'sampler_kernel_meta'):
+            stale = copy.deepcopy(new)
+            stale[field] = old[field]
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                p.validate_native_lora_execution_metadata(stale, bindings)
+
+    def test_batch_reordering_uses_request_ids_not_row_numbers(self):
+        obs, _ = self.observation(ids=(22, 0, 11), counts=(1, 2, 2))
+        obs['requests'][0]['backend_request_id'] = 'r1'
+        obs['requests'][1]['backend_request_id'] = 'r2'
+        obs['requests'][2]['backend_request_id'] = 'r0'
+        bindings = {'r0': 11, 'r1': 22, 'r2': 0, 'not_scheduled': 33}
+        self.assertTrue(p.validate_native_lora_execution_metadata(obs, bindings)['metadata_matches'])
+
+    def test_external_binding_catches_self_consistent_wrong_adapter(self):
+        obs, bindings = self.observation(ids=(22,), counts=(4,))
+        bindings['r0'] = 11
+        with self.assertRaisesRegex(ValueError, 'identity'):
+            p.validate_native_lora_execution_metadata(obs, bindings)
+
+    def test_stale_payload_is_unused_only_for_real_all_base_branch(self):
+        obs, bindings = self.observation(ids=(0,), counts=(2,))
+        for field in ('token_kernel_meta', 'sampler_kernel_meta'):
+            obs[field]['token_lora_mapping'] = [99] * len(obs[field]['token_lora_mapping'])
+            obs[field]['token_indices_sorted_by_lora_ids'] = [99] * len(obs[field]['token_indices_sorted_by_lora_ids'])
+        result = p.validate_native_lora_execution_metadata(obs, bindings)
+        self.assertTrue(result['token']['skipped'])
+        obs['token_kernel_meta']['num_tokens_per_lora'][0] = 1
+        with self.assertRaisesRegex(ValueError, 'not reset'):
+            p.validate_native_lora_execution_metadata(obs, bindings)
+
+    def test_wrong_groups_and_silent_no_lora_branch_rejected(self):
+        mutations = [
+            ('token_lora_mapping', [2, 2, -1, -1, -1]),
+            ('token_indices_sorted_by_lora_ids', [3, 3, 2, 0, 1]),
+            ('token_indices_sorted_by_lora_ids', [3, 4, 0, 2, 1]),
+            ('token_indices_sorted_by_lora_ids', [3, 5, 2, 0, 1]),
+            ('active_lora_ids', [-1, 2, 0, -1, -1]),
+            ('num_tokens_per_lora', [2, 1, 1, 0, 0]),
+            ('num_tokens_per_lora', [2, 1, 3, 0, 0]),
+            ('lora_token_start_loc', [0, 1, 3, 5, 0, 0]),
+            ('no_lora', True), ('launch_lora_count', 2),
+        ]
+        for field, value in mutations:
+            obs, bindings = self.observation()
+            obs['token_kernel_meta'][field] = value
+            with self.subTest(field=field, value=value), self.assertRaises(ValueError):
+                p.validate_native_lora_execution_metadata(obs, bindings)
+
+    def test_wrong_sampler_groups_are_not_hidden_by_correct_token_groups(self):
+        obs, bindings = self.observation()
+        obs['sampler_kernel_meta']['active_lora_ids'][1] = 2
+        with self.assertRaisesRegex(ValueError, 'sampler'):
+            p.validate_native_lora_execution_metadata(obs, bindings)
+
+    def test_missing_or_duplicate_physical_identity(self):
+        for slots in ([22, None, None, 33], [22, 11, 11, 33], [22, None, True, 33]):
+            obs, bindings = self.observation()
+            obs['slot_adapter_ids'] = slots
+            with self.assertRaises(ValueError):
+                p.validate_native_lora_execution_metadata(obs, bindings)
+
+    def test_unsupported_or_malformed_rows(self):
+        for field, value in [('backend_request_id', 'unknown'), ('adapter_int_id', True),
+                             ('scheduled_tokens', 0), ('scheduled_tokens', 10**9),
+                             ('sampled_tokens', 2), ('sampled_tokens', True)]:
+            obs, bindings = self.observation()
+            obs['requests'][0][field] = value
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                p.validate_native_lora_execution_metadata(obs, bindings)
+        obs, bindings = self.observation()
+        obs['requests'][1]['backend_request_id'] = 'r0'
+        with self.assertRaises(ValueError):
+            p.validate_native_lora_execution_metadata(obs, bindings)
+
+    def test_missing_schema_fields_fail_instead_of_zero_fill(self):
+        obs, bindings = self.observation()
+        for field in obs:
+            broken = copy.deepcopy(obs)
+            del broken[field]
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                p.validate_native_lora_execution_metadata(broken, bindings)
+        for field in obs['token_kernel_meta']:
+            broken = copy.deepcopy(obs)
+            del broken['token_kernel_meta'][field]
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                p.validate_native_lora_execution_metadata(broken, bindings)
+
+
 class CheckpointSlotAudit(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

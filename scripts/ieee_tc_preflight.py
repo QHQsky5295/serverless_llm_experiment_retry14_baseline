@@ -4278,6 +4278,114 @@ async def initialize_qualification_runtime(model_config, mode):
                                                      device_id=0, runtime_gpu_ids=[0])
 
 
+def validate_native_lora_execution_metadata(observation: dict,
+                                             expected_request_adapters: dict) -> dict:
+    """Check serialized dense TP=1, non-speculative forward metadata, not logits.
+
+    The external request binding must NOT be derived from the observed batch.
+    GPU collection/stream ownership, graph replay, checkpoint contents and
+    numerical arithmetic require separate evidence. This offline checker never
+    upgrades a run's n_correct or calls its own fixtures GPU observations.
+    Arrays cover real rows only; kernel group counts must cover exactly those
+    rows, so graph padding cannot silently acquire a real request identity.
+    """
+    def integers(value, label):
+        if not isinstance(value, list) or any(type(v) is not int for v in value):
+            raise ValueError(f'{label} must be an integer list')
+        return value
+
+    if (not isinstance(observation, dict)
+            or observation.get('kind') != 'native_lora_forward_metadata_v1'
+            or not isinstance(expected_request_adapters, dict)
+            or not expected_request_adapters
+            or any(not isinstance(k, str) or not k or type(v) is not int or v < 0
+                   for k, v in expected_request_adapters.items())):
+        raise ValueError('explicit metadata schema and external request bindings required')
+    slots = observation.get('slot_adapter_ids')
+    if (not isinstance(slots, list) or not slots
+            or any(v is not None and (type(v) is not int or v <= 0) for v in slots)
+            or len({v for v in slots if v is not None}) != sum(v is not None for v in slots)):
+        raise ValueError('invalid or duplicate physical slot identities')
+    rows = observation.get('requests')
+    if not isinstance(rows, list) or not rows:
+        raise ValueError('forward needs explicit nonempty real request rows')
+    token_slots = integers(observation.get('token_slot_indices'), 'token slot indices')
+    sampler_slots = integers(observation.get('sampler_slot_indices'), 'sampler slot indices')
+    expected_tokens, expected_samples, seen = [], [], set()
+    for row in rows:
+        if not isinstance(row, dict):
+            raise ValueError('invalid request row')
+        req = row.get('backend_request_id')
+        aid = row.get('adapter_int_id')
+        count = row.get('scheduled_tokens')
+        if (not isinstance(req, str) or req in seen or req not in expected_request_adapters
+                or type(aid) is not int or aid != expected_request_adapters[req]
+                or type(count) is not int or count < 1
+                or type(row.get('sampled_tokens')) is not int or row['sampled_tokens'] != 1
+                or len(expected_tokens) + count > len(token_slots)):
+            raise ValueError('request identity/count mismatch or unsupported speculative rows')
+        seen.add(req)
+        if aid == 0:
+            slot = -1
+        elif aid in slots:
+            slot = slots.index(aid)
+        else:
+            raise ValueError('expected adapter has no physical slot')
+        expected_tokens.extend([slot] * count)
+        expected_samples.append(slot)
+    if token_slots != expected_tokens or sampler_slots != expected_samples:
+        raise ValueError('request-to-physical-slot conversion mismatch')
+
+    def kernel_groups(meta, expected, label):
+        if not isinstance(meta, dict) or type(meta.get('no_lora')) is not bool:
+            raise ValueError(f'{label}: missing kernel metadata or no-LoRA flag')
+        mapping = integers(meta.get('token_lora_mapping'), label + ' mapping')
+        order = integers(meta.get('token_indices_sorted_by_lora_ids'), label + ' order')
+        active = integers(meta.get('active_lora_ids'), label + ' active slots')
+        counts = integers(meta.get('num_tokens_per_lora'), label + ' counts')
+        starts = integers(meta.get('lora_token_start_loc'), label + ' starts')
+        launched = meta.get('launch_lora_count')
+        if (len(mapping) != len(expected) or len(order) != len(expected)
+                or len(active) != len(slots) + 1 or len(counts) != len(active)
+                or len(starts) != len(active) + 1 or starts[0] != 0
+                or type(launched) is not int or not 0 <= launched <= len(active)
+                or any(c < 0 for c in counts)):
+            raise ValueError(f'{label}: malformed kernel tensor dimensions/counts')
+        all_base = all(slot == -1 for slot in expected)
+        if meta['no_lora'] != all_base:
+            raise ValueError(f'{label}: wrong no-LoRA execution branch')
+        if all_base:
+            # vLLM prepare_tensors resets groups then returns without copying
+            # mapping/order. Their stale bytes are unused, not evidence of error.
+            if any(counts) or any(starts) or any(a != -1 for a in active):
+                raise ValueError(f'{label}: no-LoRA groups were not reset')
+            return dict(real_rows=len(expected), populated_groups=0, skipped=True)
+        if mapping != expected or sum(counts) != len(expected):
+            raise ValueError(f'{label}: wrong kernel mapping or missing/extra rows')
+        if sorted(order) != list(range(len(expected))):
+            raise ValueError(f'{label}: duplicate/missing/out-of-range sorted token rows')
+        cursor, used_slots = 0, set()
+        for group, (slot, count, start) in enumerate(zip(active, counts, starts)):
+            if not count:
+                continue
+            if (group >= launched or slot < -1 or slot >= len(slots)
+                    or slot in used_slots or start != cursor
+                    or any(expected[i] != slot for i in order[start:start + count])):
+                raise ValueError(f'{label}: kernel group executes wrong rows or slot')
+            used_slots.add(slot)
+            cursor += count
+        if cursor != len(expected):
+            raise ValueError(f'{label}: incomplete kernel row coverage')
+        return dict(real_rows=len(expected), populated_groups=len(used_slots), skipped=False)
+
+    token = kernel_groups(observation.get('token_kernel_meta'), expected_tokens, 'token')
+    sampler = kernel_groups(observation.get('sampler_kernel_meta'), expected_samples, 'sampler')
+    return dict(kind='native_lora_forward_metadata_validation_v1', metadata_matches=True,
+                requests=len(rows), token=token, sampler=sampler,
+                gpu_observation_qualified=False, kernel_arithmetic_qualified=False,
+                full_pool_qualified=False, n_correct=None)
+
+
 async def qualify_slot_content_snapshot(engine, adapter_int_id):
     """Explicit diagnostic barrier; never used by ordinary Full request paths."""
     native = await engine.ieee_scheduler_observation()

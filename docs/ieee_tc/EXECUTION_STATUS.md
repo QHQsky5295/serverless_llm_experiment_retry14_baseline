@@ -1,6 +1,79 @@
 # IEEE TC execution status
 
-## CURRENT — D204 retained-data diagnosis COMPLETE and SEALED; backup next
+## CURRENT — D205 execution-metadata checker CPU QUALIFIED and SEALED
+
+2026-10-03 21:38+08. Goal ACTIVE/current turn PROGRESS. Full Plan/status read;
+vLLM+troubleshooting, run-experiment, academic-plotting, github-sync read.
+No subagents, GPU replay, optimizer, configuration/formula/SLO changes, remote
+operation or cache creation. Latest once-only cache approval fulfilled D78/D80.
+No system comparison/config selection; V1 unchanged, no new acceptance claim.
+
+Actual vLLM0.30 request->batch->slot->Punica->kernel path audited using installed
+files + official fixed-version source. Existing manager already invalidates on
+slot-layout change; DO NOT reimplement it. Kernel consumes grouped sorted rows,
+counts/starts/active slots and flags, separately for token and sampler. Logical
+callID and before/after slot contents alone do not cover this execution boundary.
+
+Added ONE offline preflight validator, no production hook/caller. All previous
+preflight AST nodes and serving sources unchanged. External expected backend
+request bindings, batch order/counts, physical slot uniqueness, token/sampler
+indices, groups/permutation/counts/starts/grid/no-LoRA checked. All-base stale
+arrays explicitly unused per native early return. DenseTP1/nonspec scope only;
+pure checker NEVER self-certifies GPU collection/arithmetic/fullpool/n_correct.
+Current installed LoRAKernelMeta CPU probe8cases/34wrongcontrols rejected;
+CPU Torch2.8, NOT nativeTorch2.13/CUDA/compiled-graph qualification. New10tests.
+
+Rawresults/ieee_tc/p2_backend_qualification/d205_20261003. All3/4GiBswap0,
+CPU2,3,26,27, terminalevents/swap0, paths/unitsabsent/GPUempty:
+- tests1 session89400 CLOSED1/id94c7ee8174e64410875bd1e30872b440;
+  384run/2failure3error: four old OSguard tests used model Python withoutpidfd;
+  one old dynamic-importfixture lacked sys.modules registration for dataclass.
+- tests2 session70196 CLOSED0/idcec5ab5190044d01a676da1c1034137c;
+  337PASS21.462s. Only fixture normal-import registration repaired, guards unchanged.
+- os1 session63454 CLOSED0/id7908320ad53440b4be48c0eca25f6e42;
+  remaining47PASS.096s under qualified /usr/bin/python3. Tests2 final readonly
+  seal verification and os1 briefly overlapped; no concurrent GPU/build/inference.
+- probe1 session97917 CLOSED0/id43bcb4ac254f484aa06657db7d04aa5a;
+  9.73s/RSS1101660KiB,8cases34negativecontrols,CUDAuninitialized.
+- curate1 session75120 CLOSED1/ida043f8ac98e24de7b242da775ecc3740;
+  JSON parser rejected existing INFO stdout prefix before any curated write.
+- curate2 session85357 CLOSED1/id6a7fb690f92642dbaad125460a816e38;
+  overescaped prefix regex rejected same retained stdout before curated writes.
+- curate3 session7690 CLOSED0/idbbf3fc760b7c4d8588410b8dd081b3c5;
+  strict known-prefix parser corrected only in separate third analysis. No tests/
+  GPU rerun for curation. All scripts/logs/source snapshots/failures retained.
+Some readonly rg/sed searches used missing guessed paths; corrected, no measured
+GPU failure. No live tool/GPU/remote jobs. Disk~160068288512B stillbelowNEWheavy
+150GiB; no lowered floors or deleted data.147protectedPASS.
+
+Doc D205_NATIVE_EXECUTION_METADATA.md SEALED; do NOT edit after binding.
+Curatedfd3fc3e95c1419ae60e1ddc1dbf4b7b8c25256fdb93350be30e07b668c532385;
+verification49266635ff76d14b3a7870262406c6d73bffb196efd04d031016b9f2d1b01ba4;
+84member1171392B bundlebb90a790b3b14d10d7c4615a76b568e1f7c9134e6fa3398cf65921d06f921379.
+Correctness status table/CSV delivered, no performance ranking. Tests1/curate1/
+curate2 failures are not omitted or reclassified as GPU failures.
+
+NEXT exact11path tested backup, then isolated native forward-boundary observer
+qualification (existing worker extension/preflight, no production overhead),
+then ONE existing22request/4contentclass diagnostic only after disk/resource
+gate. Bind independent begin_use/backend IDs, actual device metadata, all real
+iterations/padding/graph path and layer wrapper/buffer identity. Python-only
+operator hook may miss CUDA graph replay; don't call eager-only evidence graph
+qualification. Reuse D166/D167 content proof; no repeated loose D63 or speculative
+Full. D204126changedoutputs/numeric/commonwarm/Resident/legacyG1G2 stillOPEN.
+7Bacceptance->3B->baselines; all M1M2/A1–A5/S1–S13 remain outstanding.
+
+## Previous checkpoint — D204 retained-data diagnosis COMPLETE, SEALED and BACKED
+
+Backup verified2026-10-03 21:10+08:
+8d45f0775842136032a5f803cfbd301c0467289d. Push9201 CLOSED0; independent
+ls-remote37620 CLOSED0 exactmatch.18explicitfiles/35staged+archiveentries
+scope/secretPASS; checksum/diff(cr-at-eol)PASS; usermanifestexcluded.
+No stagedfiles, GPUcompute or experiment scopes remain; remote untouched/stopped.
+VerificationSHAed367dd51fe40366c77e72acef3c4fce55137af5e4ce0225a50571c987903512.
+Lastdisk160086003712B stillbelownewheavy150GiB; freshgatebeforeGPU/build.
+NEXT identity-execution observation boundary audit below, not repeatD204,
+anotherFull or cachecreation. All numeric/G1G2/model/formalmatrixgaps OPEN.
 
 2026-10-03 21:08+08. Goal ACTIVE/current turn PROGRESS. No serving/code/config/
 formula/SLO changes, GPU replay, remote management, new weights or traces.

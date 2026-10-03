@@ -219,10 +219,14 @@ class ExistingContentIndex(unittest.TestCase):
         # This client is stdlib-only. Load its actual module without the package
         # facade, whose legacy remote storage imports NumPy in system Python.
         import importlib.util
+        import sys
         spec = importlib.util.spec_from_file_location('content_index_http_client',
             p.ROOT/'faaslora/storage/http_artifact_store.py')
         module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
+        # Dataclasses with postponed annotations resolve their owning module.
+        # Match normal import semantics without importing the package facade.
+        with patch.dict(sys.modules, {spec.name: module}):
+            spec.loader.exec_module(module)
         root,audit = self.make()
         result = p.index_existing_artifact_pool(root,audit,2)
         proof = result['provenance']

@@ -1,0 +1,100 @@
+{
+  "kind": "d205_execution_metadata_evidence_verification_v1",
+  "passed": true,
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "protection": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "scope_receipts": {
+    "tests1": {
+      "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d205-tests1-20261003.scope",
+      "MemoryHigh": "3221225472",
+      "MemoryMax": "4294967296",
+      "MemorySwapMax": "0",
+      "InvocationID": "94c7ee8174e64410875bd1e30872b440",
+      "exitcode": 1,
+      "test_count": 384,
+      "released": true
+    },
+    "tests2": {
+      "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d205-tests2-20261003.scope",
+      "MemoryHigh": "3221225472",
+      "MemoryMax": "4294967296",
+      "MemorySwapMax": "0",
+      "InvocationID": "cec5ab5190044d01a676da1c1034137c",
+      "exitcode": 0,
+      "test_count": 337,
+      "released": true
+    },
+    "os1": {
+      "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d205-os1-20261003.scope",
+      "MemoryHigh": "3221225472",
+      "MemoryMax": "4294967296",
+      "MemorySwapMax": "0",
+      "InvocationID": "7908320ad53440b4be48c0eca25f6e42",
+      "exitcode": 0,
+      "test_count": 47,
+      "released": true
+    },
+    "probe1": {
+      "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d205-probe1-20261003.scope",
+      "MemoryHigh": "3221225472",
+      "MemoryMax": "4294967296",
+      "MemorySwapMax": "0",
+      "InvocationID": "43bcb4ac254f484aa06657db7d04aa5a",
+      "exitcode": 0,
+      "test_count": null,
+      "released": true
+    },
+    "curate1": {
+      "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d205-curate1-20261003.scope",
+      "MemoryHigh": "3221225472",
+      "MemoryMax": "4294967296",
+      "MemorySwapMax": "0",
+      "InvocationID": "a043f8ac98e24de7b242da775ecc3740",
+      "exitcode": 1,
+      "test_count": null,
+      "released": true
+    },
+    "curate2": {
+      "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-d205-curate2-20261003.scope",
+      "MemoryHigh": "3221225472",
+      "MemoryMax": "4294967296",
+      "MemorySwapMax": "0",
+      "InvocationID": "6a7fb690f92642dbaad125460a816e38",
+      "exitcode": 1,
+      "test_count": null,
+      "released": true
+    }
+  },
+  "existing_preflight_ast_unchanged": true,
+  "serving_sources_unchanged": [
+    "scripts/run_all_experiments.py",
+    "faaslora/memory/gpu_monitor.py",
+    "faaslora/memory/residency_manager.py",
+    "faaslora/preloading/preloading_planner.py",
+    "faaslora/experiment/instance_pool.py",
+    "scripts/dedicated_engine_worker.py"
+  ],
+  "metadata_cpu_cases": 8,
+  "rejected_controls": 34,
+  "tests_after_correction": 384,
+  "failed_attempt_retained": true,
+  "syntax_smoke": true,
+  "gpu_measurement": false,
+  "numeric_correctness_qualified": false,
+  "n_correct": null,
+  "bundle_members": 84,
+  "bundle_bytes": 1171392,
+  "artifacts": {
+    "paper_results/ieee_tc/p2_backend/20261003_d205_execution_metadata.json": "fd3fc3e95c1419ae60e1ddc1dbf4b7b8c25256fdb93350be30e07b668c532385",
+    "paper_results/ieee_tc/p2_backend/20261003_d205_execution_metadata.csv": "40adeb9bc552f991bb2655d0a9f6da3c4ed92c8aa36a73fba1112a29940de455",
+    "docs/ieee_tc/D205_NATIVE_EXECUTION_METADATA.md": "dc43fc7151173e016feea060b2f666276469bf233b4d5a30bec8e0a8280570a2",
+    "paper_results/ieee_tc/p2_backend/20261003_d205_analysis_sources.tar.gz": "bb90a790b3b14d10d7c4615a76b568e1f7c9134e6fa3398cf65921d06f921379"
+  }
+}

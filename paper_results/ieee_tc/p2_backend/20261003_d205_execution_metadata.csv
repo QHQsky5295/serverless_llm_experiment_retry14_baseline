@@ -1,0 +1,9 @@
+case,specialized,requests,real_token_rows,metadata_matches,negative_controls_rejected,gpu_measurement
+mixed_prefill,False,3,5,True,5,False
+decode_reorder,False,2,2,True,5,False
+slot_reassignment,False,2,2,True,5,False
+all_base_stale_unused,False,1,2,True,2,False
+mixed_prefill,True,3,5,True,5,False
+decode_reorder,True,2,2,True,5,False
+slot_reassignment,True,2,2,True,5,False
+all_base_stale_unused,True,1,2,True,2,False

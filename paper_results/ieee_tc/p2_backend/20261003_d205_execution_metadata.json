@@ -1,0 +1,1356 @@
+{
+  "kind": "d205_installed_metadata_cpu_probe_v1",
+  "passed": true,
+  "source_sha256": "7669eeeb491e89df7ef4ff050a79d3934ce7a63b146fe93239f081d176c68881",
+  "sources": [
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu_model_runner.py",
+      "sha256": "87c29d08c0bbf66993d8b984811e7325e35e6436242a773feb55ec88f16b2c51",
+      "upstream_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/worker/gpu_model_runner.py"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu_input_batch.py",
+      "sha256": "18cf455c9d0eea61cc581c7932f2e6cd09786914e82dd35eef1c1430da359a0f",
+      "upstream_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/worker/gpu_input_batch.py"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/lora_model_runner_mixin.py",
+      "sha256": "fef6092a15d8d37f6fa22495e6106e2e5280180908d61ce43d9ff5bf4eef3f2f",
+      "upstream_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/worker/lora_model_runner_mixin.py"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/worker_manager.py",
+      "sha256": "7807187ddfd128f6a6dc31820b435dc954f2e9122d254ce7d6484b44076e3522",
+      "upstream_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/worker_manager.py"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/model_manager.py",
+      "sha256": "6695bb7d6373d8f29bb13d6ae31e2ef2a98f8c23a6f37f9147d67cafca5f3302",
+      "upstream_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/model_manager.py"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/punica_wrapper/punica_base.py",
+      "sha256": "8942ccc3f4a27d26ee444c3f03df9715139dfa5becb23ee679707b98b628f12c",
+      "upstream_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/punica_wrapper/punica_base.py"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/punica_wrapper/punica_gpu.py",
+      "sha256": "7ddedad89b6721751012af6f72bd85d0f8e2f6e9b288fc1909b08a732c360919",
+      "upstream_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/punica_wrapper/punica_gpu.py"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/punica_wrapper/utils.py",
+      "sha256": "1d926bd9cc9118719f64a9706d1c0f433a12f3605cfb10f125e1217231109158",
+      "upstream_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/punica_wrapper/utils.py"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/ops/triton_ops/lora_kernel_metadata.py",
+      "sha256": "7669eeeb491e89df7ef4ff050a79d3934ce7a63b146fe93239f081d176c68881",
+      "upstream_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/ops/triton_ops/lora_kernel_metadata.py"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/ops/triton_ops/lora_shrink_op.py",
+      "sha256": "036dfc7f2216de0e9e5da12698fa9c921d076cbc2fda053409ff94a2c4779fa4",
+      "upstream_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/ops/triton_ops/lora_shrink_op.py"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/ops/triton_ops/lora_expand_op.py",
+      "sha256": "caa1b9dcfc877af1d95fdbe8302efedfb061c3c63709897a4d905264e5464005",
+      "upstream_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/ops/triton_ops/lora_expand_op.py"
+    }
+  ],
+  "torch_version": "2.8.0+cu128",
+  "device": "cpu",
+  "cuda_initialized": false,
+  "gpu_measurement": false,
+  "model_numeric_qualified": false,
+  "n_correct": null,
+  "cases": [
+    {
+      "case": "mixed_prefill",
+      "specialized": false,
+      "expected_bindings": {
+        "r0": 11,
+        "r1": 22,
+        "r2": 0
+      },
+      "observation": {
+        "kind": "native_lora_forward_metadata_v1",
+        "slot_adapter_ids": [
+          22,
+          null,
+          11,
+          33
+        ],
+        "requests": [
+          {
+            "backend_request_id": "r0",
+            "adapter_int_id": 11,
+            "scheduled_tokens": 2,
+            "sampled_tokens": 1
+          },
+          {
+            "backend_request_id": "r1",
+            "adapter_int_id": 22,
+            "scheduled_tokens": 1,
+            "sampled_tokens": 1
+          },
+          {
+            "backend_request_id": "r2",
+            "adapter_int_id": 0,
+            "scheduled_tokens": 2,
+            "sampled_tokens": 1
+          }
+        ],
+        "token_slot_indices": [
+          2,
+          2,
+          0,
+          -1,
+          -1
+        ],
+        "sampler_slot_indices": [
+          2,
+          0,
+          -1
+        ],
+        "token_kernel_meta": {
+          "token_lora_mapping": [
+            2,
+            2,
+            0,
+            -1,
+            -1
+          ],
+          "token_indices_sorted_by_lora_ids": [
+            3,
+            4,
+            2,
+            0,
+            1
+          ],
+          "num_tokens_per_lora": [
+            2,
+            1,
+            2,
+            0,
+            0
+          ],
+          "lora_token_start_loc": [
+            0,
+            2,
+            3,
+            5,
+            0,
+            0
+          ],
+          "active_lora_ids": [
+            -1,
+            0,
+            2,
+            -1,
+            -1
+          ],
+          "no_lora": false,
+          "launch_lora_count": 5
+        },
+        "sampler_kernel_meta": {
+          "token_lora_mapping": [
+            2,
+            0,
+            -1
+          ],
+          "token_indices_sorted_by_lora_ids": [
+            2,
+            1,
+            0
+          ],
+          "num_tokens_per_lora": [
+            1,
+            1,
+            1,
+            0,
+            0
+          ],
+          "lora_token_start_loc": [
+            0,
+            1,
+            2,
+            3,
+            0,
+            0
+          ],
+          "active_lora_ids": [
+            -1,
+            0,
+            2,
+            -1,
+            -1
+          ],
+          "no_lora": false,
+          "launch_lora_count": 5
+        }
+      },
+      "result": {
+        "kind": "native_lora_forward_metadata_validation_v1",
+        "metadata_matches": true,
+        "requests": 3,
+        "token": {
+          "real_rows": 5,
+          "populated_groups": 3,
+          "skipped": false
+        },
+        "sampler": {
+          "real_rows": 3,
+          "populated_groups": 3,
+          "skipped": false
+        },
+        "gpu_observation_qualified": false,
+        "kernel_arithmetic_qualified": false,
+        "full_pool_qualified": false,
+        "n_correct": null
+      },
+      "negative_controls": [
+        {
+          "name": "external_identity",
+          "rejected": true,
+          "error": "request identity/count mismatch or unsupported speculative rows"
+        },
+        {
+          "name": "no_lora_flag",
+          "rejected": true,
+          "error": "token: wrong no-LoRA execution branch"
+        },
+        {
+          "name": "duplicate_real_row",
+          "rejected": true,
+          "error": "token: duplicate/missing/out-of-range sorted token rows"
+        },
+        {
+          "name": "zero_grid_width",
+          "rejected": true,
+          "error": "token: kernel group executes wrong rows or slot"
+        },
+        {
+          "name": "wrong_sampler_slot",
+          "rejected": true,
+          "error": "sampler: kernel group executes wrong rows or slot"
+        }
+      ]
+    },
+    {
+      "case": "decode_reorder",
+      "specialized": false,
+      "expected_bindings": {
+        "r0": 22,
+        "r1": 11
+      },
+      "observation": {
+        "kind": "native_lora_forward_metadata_v1",
+        "slot_adapter_ids": [
+          22,
+          null,
+          11,
+          33
+        ],
+        "requests": [
+          {
+            "backend_request_id": "r0",
+            "adapter_int_id": 22,
+            "scheduled_tokens": 1,
+            "sampled_tokens": 1
+          },
+          {
+            "backend_request_id": "r1",
+            "adapter_int_id": 11,
+            "scheduled_tokens": 1,
+            "sampled_tokens": 1
+          }
+        ],
+        "token_slot_indices": [
+          0,
+          2
+        ],
+        "sampler_slot_indices": [
+          0,
+          2
+        ],
+        "token_kernel_meta": {
+          "token_lora_mapping": [
+            0,
+            2
+          ],
+          "token_indices_sorted_by_lora_ids": [
+            0,
+            1
+          ],
+          "num_tokens_per_lora": [
+            1,
+            1,
+            0,
+            0,
+            0
+          ],
+          "lora_token_start_loc": [
+            0,
+            1,
+            2,
+            0,
+            0,
+            0
+          ],
+          "active_lora_ids": [
+            0,
+            2,
+            -1,
+            -1,
+            -1
+          ],
+          "no_lora": false,
+          "launch_lora_count": 5
+        },
+        "sampler_kernel_meta": {
+          "token_lora_mapping": [
+            0,
+            2
+          ],
+          "token_indices_sorted_by_lora_ids": [
+            0,
+            1
+          ],
+          "num_tokens_per_lora": [
+            1,
+            1,
+            0,
+            0,
+            0
+          ],
+          "lora_token_start_loc": [
+            0,
+            1,
+            2,
+            0,
+            0,
+            0
+          ],
+          "active_lora_ids": [
+            0,
+            2,
+            -1,
+            -1,
+            -1
+          ],
+          "no_lora": false,
+          "launch_lora_count": 5
+        }
+      },
+      "result": {
+        "kind": "native_lora_forward_metadata_validation_v1",
+        "metadata_matches": true,
+        "requests": 2,
+        "token": {
+          "real_rows": 2,
+          "populated_groups": 2,
+          "skipped": false
+        },
+        "sampler": {
+          "real_rows": 2,
+          "populated_groups": 2,
+          "skipped": false
+        },
+        "gpu_observation_qualified": false,
+        "kernel_arithmetic_qualified": false,
+        "full_pool_qualified": false,
+        "n_correct": null
+      },
+      "negative_controls": [
+        {
+          "name": "external_identity",
+          "rejected": true,
+          "error": "request identity/count mismatch or unsupported speculative rows"
+        },
+        {
+          "name": "no_lora_flag",
+          "rejected": true,
+          "error": "token: wrong no-LoRA execution branch"
+        },
+        {
+          "name": "duplicate_real_row",
+          "rejected": true,
+          "error": "token: duplicate/missing/out-of-range sorted token rows"
+        },
+        {
+          "name": "zero_grid_width",
+          "rejected": true,
+          "error": "token: kernel group executes wrong rows or slot"
+        },
+        {
+          "name": "wrong_sampler_slot",
+          "rejected": true,
+          "error": "sampler: kernel group executes wrong rows or slot"
+        }
+      ]
+    },
+    {
+      "case": "slot_reassignment",
+      "specialized": false,
+      "expected_bindings": {
+        "r0": 22,
+        "r1": 11
+      },
+      "observation": {
+        "kind": "native_lora_forward_metadata_v1",
+        "slot_adapter_ids": [
+          11,
+          22,
+          33,
+          null
+        ],
+        "requests": [
+          {
+            "backend_request_id": "r0",
+            "adapter_int_id": 22,
+            "scheduled_tokens": 1,
+            "sampled_tokens": 1
+          },
+          {
+            "backend_request_id": "r1",
+            "adapter_int_id": 11,
+            "scheduled_tokens": 1,
+            "sampled_tokens": 1
+          }
+        ],
+        "token_slot_indices": [
+          1,
+          0
+        ],
+        "sampler_slot_indices": [
+          1,
+          0
+        ],
+        "token_kernel_meta": {
+          "token_lora_mapping": [
+            1,
+            0
+          ],
+          "token_indices_sorted_by_lora_ids": [
+            1,
+            0
+          ],
+          "num_tokens_per_lora": [
+            1,
+            1,
+            0,
+            0,
+            0
+          ],
+          "lora_token_start_loc": [
+            0,
+            1,
+            2,
+            0,
+            0,
+            0
+          ],
+          "active_lora_ids": [
+            0,
+            1,
+            -1,
+            -1,
+            -1
+          ],
+          "no_lora": false,
+          "launch_lora_count": 5
+        },
+        "sampler_kernel_meta": {
+          "token_lora_mapping": [
+            1,
+            0
+          ],
+          "token_indices_sorted_by_lora_ids": [
+            1,
+            0
+          ],
+          "num_tokens_per_lora": [
+            1,
+            1,
+            0,
+            0,
+            0
+          ],
+          "lora_token_start_loc": [
+            0,
+            1,
+            2,
+            0,
+            0,
+            0
+          ],
+          "active_lora_ids": [
+            0,
+            1,
+            -1,
+            -1,
+            -1
+          ],
+          "no_lora": false,
+          "launch_lora_count": 5
+        }
+      },
+      "result": {
+        "kind": "native_lora_forward_metadata_validation_v1",
+        "metadata_matches": true,
+        "requests": 2,
+        "token": {
+          "real_rows": 2,
+          "populated_groups": 2,
+          "skipped": false
+        },
+        "sampler": {
+          "real_rows": 2,
+          "populated_groups": 2,
+          "skipped": false
+        },
+        "gpu_observation_qualified": false,
+        "kernel_arithmetic_qualified": false,
+        "full_pool_qualified": false,
+        "n_correct": null
+      },
+      "negative_controls": [
+        {
+          "name": "external_identity",
+          "rejected": true,
+          "error": "request identity/count mismatch or unsupported speculative rows"
+        },
+        {
+          "name": "no_lora_flag",
+          "rejected": true,
+          "error": "token: wrong no-LoRA execution branch"
+        },
+        {
+          "name": "duplicate_real_row",
+          "rejected": true,
+          "error": "token: duplicate/missing/out-of-range sorted token rows"
+        },
+        {
+          "name": "zero_grid_width",
+          "rejected": true,
+          "error": "token: kernel group executes wrong rows or slot"
+        },
+        {
+          "name": "wrong_sampler_slot",
+          "rejected": true,
+          "error": "sampler: kernel group executes wrong rows or slot"
+        }
+      ]
+    },
+    {
+      "case": "all_base_stale_unused",
+      "specialized": false,
+      "expected_bindings": {
+        "r0": 0
+      },
+      "observation": {
+        "kind": "native_lora_forward_metadata_v1",
+        "slot_adapter_ids": [
+          11,
+          22,
+          33,
+          null
+        ],
+        "requests": [
+          {
+            "backend_request_id": "r0",
+            "adapter_int_id": 0,
+            "scheduled_tokens": 2,
+            "sampled_tokens": 1
+          }
+        ],
+        "token_slot_indices": [
+          -1,
+          -1
+        ],
+        "sampler_slot_indices": [
+          -1
+        ],
+        "token_kernel_meta": {
+          "token_lora_mapping": [
+            1,
+            0
+          ],
+          "token_indices_sorted_by_lora_ids": [
+            1,
+            0
+          ],
+          "num_tokens_per_lora": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lora_token_start_loc": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "active_lora_ids": [
+            -1,
+            -1,
+            -1,
+            -1,
+            -1
+          ],
+          "no_lora": true,
+          "launch_lora_count": 5
+        },
+        "sampler_kernel_meta": {
+          "token_lora_mapping": [
+            1
+          ],
+          "token_indices_sorted_by_lora_ids": [
+            1
+          ],
+          "num_tokens_per_lora": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lora_token_start_loc": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "active_lora_ids": [
+            -1,
+            -1,
+            -1,
+            -1,
+            -1
+          ],
+          "no_lora": true,
+          "launch_lora_count": 5
+        }
+      },
+      "result": {
+        "kind": "native_lora_forward_metadata_validation_v1",
+        "metadata_matches": true,
+        "requests": 1,
+        "token": {
+          "real_rows": 2,
+          "populated_groups": 0,
+          "skipped": true
+        },
+        "sampler": {
+          "real_rows": 1,
+          "populated_groups": 0,
+          "skipped": true
+        },
+        "gpu_observation_qualified": false,
+        "kernel_arithmetic_qualified": false,
+        "full_pool_qualified": false,
+        "n_correct": null
+      },
+      "negative_controls": [
+        {
+          "name": "external_identity",
+          "rejected": true,
+          "error": "request identity/count mismatch or unsupported speculative rows"
+        },
+        {
+          "name": "no_lora_flag",
+          "rejected": true,
+          "error": "token: wrong no-LoRA execution branch"
+        }
+      ]
+    },
+    {
+      "case": "mixed_prefill",
+      "specialized": true,
+      "expected_bindings": {
+        "r0": 11,
+        "r1": 22,
+        "r2": 0
+      },
+      "observation": {
+        "kind": "native_lora_forward_metadata_v1",
+        "slot_adapter_ids": [
+          22,
+          null,
+          11,
+          33
+        ],
+        "requests": [
+          {
+            "backend_request_id": "r0",
+            "adapter_int_id": 11,
+            "scheduled_tokens": 2,
+            "sampled_tokens": 1
+          },
+          {
+            "backend_request_id": "r1",
+            "adapter_int_id": 22,
+            "scheduled_tokens": 1,
+            "sampled_tokens": 1
+          },
+          {
+            "backend_request_id": "r2",
+            "adapter_int_id": 0,
+            "scheduled_tokens": 2,
+            "sampled_tokens": 1
+          }
+        ],
+        "token_slot_indices": [
+          2,
+          2,
+          0,
+          -1,
+          -1
+        ],
+        "sampler_slot_indices": [
+          2,
+          0,
+          -1
+        ],
+        "token_kernel_meta": {
+          "token_lora_mapping": [
+            2,
+            2,
+            0,
+            -1,
+            -1
+          ],
+          "token_indices_sorted_by_lora_ids": [
+            3,
+            4,
+            2,
+            0,
+            1
+          ],
+          "num_tokens_per_lora": [
+            2,
+            1,
+            2,
+            0,
+            0
+          ],
+          "lora_token_start_loc": [
+            0,
+            2,
+            3,
+            5,
+            0,
+            0
+          ],
+          "active_lora_ids": [
+            -1,
+            0,
+            2,
+            -1,
+            -1
+          ],
+          "no_lora": false,
+          "launch_lora_count": 4
+        },
+        "sampler_kernel_meta": {
+          "token_lora_mapping": [
+            2,
+            0,
+            -1
+          ],
+          "token_indices_sorted_by_lora_ids": [
+            2,
+            1,
+            0
+          ],
+          "num_tokens_per_lora": [
+            1,
+            1,
+            1,
+            0,
+            0
+          ],
+          "lora_token_start_loc": [
+            0,
+            1,
+            2,
+            3,
+            0,
+            0
+          ],
+          "active_lora_ids": [
+            -1,
+            0,
+            2,
+            -1,
+            -1
+          ],
+          "no_lora": false,
+          "launch_lora_count": 4
+        }
+      },
+      "result": {
+        "kind": "native_lora_forward_metadata_validation_v1",
+        "metadata_matches": true,
+        "requests": 3,
+        "token": {
+          "real_rows": 5,
+          "populated_groups": 3,
+          "skipped": false
+        },
+        "sampler": {
+          "real_rows": 3,
+          "populated_groups": 3,
+          "skipped": false
+        },
+        "gpu_observation_qualified": false,
+        "kernel_arithmetic_qualified": false,
+        "full_pool_qualified": false,
+        "n_correct": null
+      },
+      "negative_controls": [
+        {
+          "name": "external_identity",
+          "rejected": true,
+          "error": "request identity/count mismatch or unsupported speculative rows"
+        },
+        {
+          "name": "no_lora_flag",
+          "rejected": true,
+          "error": "token: wrong no-LoRA execution branch"
+        },
+        {
+          "name": "duplicate_real_row",
+          "rejected": true,
+          "error": "token: duplicate/missing/out-of-range sorted token rows"
+        },
+        {
+          "name": "zero_grid_width",
+          "rejected": true,
+          "error": "token: kernel group executes wrong rows or slot"
+        },
+        {
+          "name": "wrong_sampler_slot",
+          "rejected": true,
+          "error": "sampler: kernel group executes wrong rows or slot"
+        }
+      ]
+    },
+    {
+      "case": "decode_reorder",
+      "specialized": true,
+      "expected_bindings": {
+        "r0": 22,
+        "r1": 11
+      },
+      "observation": {
+        "kind": "native_lora_forward_metadata_v1",
+        "slot_adapter_ids": [
+          22,
+          null,
+          11,
+          33
+        ],
+        "requests": [
+          {
+            "backend_request_id": "r0",
+            "adapter_int_id": 22,
+            "scheduled_tokens": 1,
+            "sampled_tokens": 1
+          },
+          {
+            "backend_request_id": "r1",
+            "adapter_int_id": 11,
+            "scheduled_tokens": 1,
+            "sampled_tokens": 1
+          }
+        ],
+        "token_slot_indices": [
+          0,
+          2
+        ],
+        "sampler_slot_indices": [
+          0,
+          2
+        ],
+        "token_kernel_meta": {
+          "token_lora_mapping": [
+            0,
+            2
+          ],
+          "token_indices_sorted_by_lora_ids": [
+            0,
+            1
+          ],
+          "num_tokens_per_lora": [
+            1,
+            1,
+            0,
+            0,
+            0
+          ],
+          "lora_token_start_loc": [
+            0,
+            1,
+            2,
+            0,
+            0,
+            0
+          ],
+          "active_lora_ids": [
+            0,
+            2,
+            -1,
+            -1,
+            -1
+          ],
+          "no_lora": false,
+          "launch_lora_count": 2
+        },
+        "sampler_kernel_meta": {
+          "token_lora_mapping": [
+            0,
+            2
+          ],
+          "token_indices_sorted_by_lora_ids": [
+            0,
+            1
+          ],
+          "num_tokens_per_lora": [
+            1,
+            1,
+            0,
+            0,
+            0
+          ],
+          "lora_token_start_loc": [
+            0,
+            1,
+            2,
+            0,
+            0,
+            0
+          ],
+          "active_lora_ids": [
+            0,
+            2,
+            -1,
+            -1,
+            -1
+          ],
+          "no_lora": false,
+          "launch_lora_count": 2
+        }
+      },
+      "result": {
+        "kind": "native_lora_forward_metadata_validation_v1",
+        "metadata_matches": true,
+        "requests": 2,
+        "token": {
+          "real_rows": 2,
+          "populated_groups": 2,
+          "skipped": false
+        },
+        "sampler": {
+          "real_rows": 2,
+          "populated_groups": 2,
+          "skipped": false
+        },
+        "gpu_observation_qualified": false,
+        "kernel_arithmetic_qualified": false,
+        "full_pool_qualified": false,
+        "n_correct": null
+      },
+      "negative_controls": [
+        {
+          "name": "external_identity",
+          "rejected": true,
+          "error": "request identity/count mismatch or unsupported speculative rows"
+        },
+        {
+          "name": "no_lora_flag",
+          "rejected": true,
+          "error": "token: wrong no-LoRA execution branch"
+        },
+        {
+          "name": "duplicate_real_row",
+          "rejected": true,
+          "error": "token: duplicate/missing/out-of-range sorted token rows"
+        },
+        {
+          "name": "zero_grid_width",
+          "rejected": true,
+          "error": "token: kernel group executes wrong rows or slot"
+        },
+        {
+          "name": "wrong_sampler_slot",
+          "rejected": true,
+          "error": "sampler: kernel group executes wrong rows or slot"
+        }
+      ]
+    },
+    {
+      "case": "slot_reassignment",
+      "specialized": true,
+      "expected_bindings": {
+        "r0": 22,
+        "r1": 11
+      },
+      "observation": {
+        "kind": "native_lora_forward_metadata_v1",
+        "slot_adapter_ids": [
+          11,
+          22,
+          33,
+          null
+        ],
+        "requests": [
+          {
+            "backend_request_id": "r0",
+            "adapter_int_id": 22,
+            "scheduled_tokens": 1,
+            "sampled_tokens": 1
+          },
+          {
+            "backend_request_id": "r1",
+            "adapter_int_id": 11,
+            "scheduled_tokens": 1,
+            "sampled_tokens": 1
+          }
+        ],
+        "token_slot_indices": [
+          1,
+          0
+        ],
+        "sampler_slot_indices": [
+          1,
+          0
+        ],
+        "token_kernel_meta": {
+          "token_lora_mapping": [
+            1,
+            0
+          ],
+          "token_indices_sorted_by_lora_ids": [
+            1,
+            0
+          ],
+          "num_tokens_per_lora": [
+            1,
+            1,
+            0,
+            0,
+            0
+          ],
+          "lora_token_start_loc": [
+            0,
+            1,
+            2,
+            0,
+            0,
+            0
+          ],
+          "active_lora_ids": [
+            0,
+            1,
+            -1,
+            -1,
+            -1
+          ],
+          "no_lora": false,
+          "launch_lora_count": 2
+        },
+        "sampler_kernel_meta": {
+          "token_lora_mapping": [
+            1,
+            0
+          ],
+          "token_indices_sorted_by_lora_ids": [
+            1,
+            0
+          ],
+          "num_tokens_per_lora": [
+            1,
+            1,
+            0,
+            0,
+            0
+          ],
+          "lora_token_start_loc": [
+            0,
+            1,
+            2,
+            0,
+            0,
+            0
+          ],
+          "active_lora_ids": [
+            0,
+            1,
+            -1,
+            -1,
+            -1
+          ],
+          "no_lora": false,
+          "launch_lora_count": 2
+        }
+      },
+      "result": {
+        "kind": "native_lora_forward_metadata_validation_v1",
+        "metadata_matches": true,
+        "requests": 2,
+        "token": {
+          "real_rows": 2,
+          "populated_groups": 2,
+          "skipped": false
+        },
+        "sampler": {
+          "real_rows": 2,
+          "populated_groups": 2,
+          "skipped": false
+        },
+        "gpu_observation_qualified": false,
+        "kernel_arithmetic_qualified": false,
+        "full_pool_qualified": false,
+        "n_correct": null
+      },
+      "negative_controls": [
+        {
+          "name": "external_identity",
+          "rejected": true,
+          "error": "request identity/count mismatch or unsupported speculative rows"
+        },
+        {
+          "name": "no_lora_flag",
+          "rejected": true,
+          "error": "token: wrong no-LoRA execution branch"
+        },
+        {
+          "name": "duplicate_real_row",
+          "rejected": true,
+          "error": "token: duplicate/missing/out-of-range sorted token rows"
+        },
+        {
+          "name": "zero_grid_width",
+          "rejected": true,
+          "error": "token: kernel group executes wrong rows or slot"
+        },
+        {
+          "name": "wrong_sampler_slot",
+          "rejected": true,
+          "error": "sampler: kernel group executes wrong rows or slot"
+        }
+      ]
+    },
+    {
+      "case": "all_base_stale_unused",
+      "specialized": true,
+      "expected_bindings": {
+        "r0": 0
+      },
+      "observation": {
+        "kind": "native_lora_forward_metadata_v1",
+        "slot_adapter_ids": [
+          11,
+          22,
+          33,
+          null
+        ],
+        "requests": [
+          {
+            "backend_request_id": "r0",
+            "adapter_int_id": 0,
+            "scheduled_tokens": 2,
+            "sampled_tokens": 1
+          }
+        ],
+        "token_slot_indices": [
+          -1,
+          -1
+        ],
+        "sampler_slot_indices": [
+          -1
+        ],
+        "token_kernel_meta": {
+          "token_lora_mapping": [
+            1,
+            0
+          ],
+          "token_indices_sorted_by_lora_ids": [
+            1,
+            0
+          ],
+          "num_tokens_per_lora": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lora_token_start_loc": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "active_lora_ids": [
+            -1,
+            -1,
+            -1,
+            -1,
+            -1
+          ],
+          "no_lora": true,
+          "launch_lora_count": 0
+        },
+        "sampler_kernel_meta": {
+          "token_lora_mapping": [
+            1
+          ],
+          "token_indices_sorted_by_lora_ids": [
+            1
+          ],
+          "num_tokens_per_lora": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lora_token_start_loc": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "active_lora_ids": [
+            -1,
+            -1,
+            -1,
+            -1,
+            -1
+          ],
+          "no_lora": true,
+          "launch_lora_count": 0
+        }
+      },
+      "result": {
+        "kind": "native_lora_forward_metadata_validation_v1",
+        "metadata_matches": true,
+        "requests": 1,
+        "token": {
+          "real_rows": 2,
+          "populated_groups": 0,
+          "skipped": true
+        },
+        "sampler": {
+          "real_rows": 1,
+          "populated_groups": 0,
+          "skipped": true
+        },
+        "gpu_observation_qualified": false,
+        "kernel_arithmetic_qualified": false,
+        "full_pool_qualified": false,
+        "n_correct": null
+      },
+      "negative_controls": [
+        {
+          "name": "external_identity",
+          "rejected": true,
+          "error": "request identity/count mismatch or unsupported speculative rows"
+        },
+        {
+          "name": "no_lora_flag",
+          "rejected": true,
+          "error": "token: wrong no-LoRA execution branch"
+        }
+      ]
+    }
+  ],
+  "summary": [
+    {
+      "case": "mixed_prefill",
+      "specialized": false,
+      "requests": 3,
+      "real_token_rows": 5,
+      "metadata_matches": true,
+      "negative_controls_rejected": 5,
+      "gpu_measurement": false
+    },
+    {
+      "case": "decode_reorder",
+      "specialized": false,
+      "requests": 2,
+      "real_token_rows": 2,
+      "metadata_matches": true,
+      "negative_controls_rejected": 5,
+      "gpu_measurement": false
+    },
+    {
+      "case": "slot_reassignment",
+      "specialized": false,
+      "requests": 2,
+      "real_token_rows": 2,
+      "metadata_matches": true,
+      "negative_controls_rejected": 5,
+      "gpu_measurement": false
+    },
+    {
+      "case": "all_base_stale_unused",
+      "specialized": false,
+      "requests": 1,
+      "real_token_rows": 2,
+      "metadata_matches": true,
+      "negative_controls_rejected": 2,
+      "gpu_measurement": false
+    },
+    {
+      "case": "mixed_prefill",
+      "specialized": true,
+      "requests": 3,
+      "real_token_rows": 5,
+      "metadata_matches": true,
+      "negative_controls_rejected": 5,
+      "gpu_measurement": false
+    },
+    {
+      "case": "decode_reorder",
+      "specialized": true,
+      "requests": 2,
+      "real_token_rows": 2,
+      "metadata_matches": true,
+      "negative_controls_rejected": 5,
+      "gpu_measurement": false
+    },
+    {
+      "case": "slot_reassignment",
+      "specialized": true,
+      "requests": 2,
+      "real_token_rows": 2,
+      "metadata_matches": true,
+      "negative_controls_rejected": 5,
+      "gpu_measurement": false
+    },
+    {
+      "case": "all_base_stale_unused",
+      "specialized": true,
+      "requests": 1,
+      "real_token_rows": 2,
+      "metadata_matches": true,
+      "negative_controls_rejected": 2,
+      "gpu_measurement": false
+    }
+  ]
+}
