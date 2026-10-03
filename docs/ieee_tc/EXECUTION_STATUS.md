@@ -1,6 +1,132 @@
 # IEEE TC execution status
 
-## CURRENT — D186 control-path diagnosis SEALED; backup then current CPU diagnosis
+## CURRENT — D187 completed, analyzed and SEALED; backup next
+
+2026-10-03 10:55+08. Goal ACTIVE/currentturn PROGRESS; previous VERIFIED_WAIT.
+Full Plan/status/V1 reread after compaction; hashes unchanged. monitor/run/
+analyze-results/academic-plotting/github-sync skills followed. No serving change,
+new optimizer, Full replay or configuration change. Runtime2615d24; HEAD e82a8ec.
+Once-only D78/D80 delivery cache reused unchanged, never recreated.
+
+Same D187 reached1000/1000 at10:48, 0failure; allnativecountcontracts pass.
+Local10:49:22 actualservice/aux paths and11recordedPIDs absent, GPUcensus empty;
+launch SHA7d0e0b9b3a431961cd543f1e12d9ae5592c50d041d9c8e08609b16900923f75b,
+all returncodes0/physicalrelease confirmed. Onlyafterrelease remote exactthree
+services stopped10:49:23, inactive/PID0; session61943closed0. Journal selected
+byhealthclock (remote lacks rg; safe grep fallback), copiedafterstop/session49225
+closed0; transferSHAc972b538f01de4896dbb462ea8f3dcdb5dab63a2f200da5657c992cd4c152702,
+monitorSHA5df8408267c0e945add3b87b5c09d68c3b10dc9ce95704ef60a2e2bcdc01aa53.
+60UUIDpairs/74953014wireB/1474429899logicalB/allpublished/packing0;4leasesreleased,
+physicalU4446.963003285113GPU-s diagnosticONLY. 1188samples/peak18656849920B/
+minhost93353287680B/memoryevents-swap-warning0. Finalserviceeventfiles unavailable
+afterautomaticremoval, not filledzero. No live GPU/remote/CPU/tool handles.
+
+Reused qualifiedD162/D143 boundedreader unchangedexceptlabels; old6testqualification
+reused, not rerun. FullnormalrequestJSON not reparsed. Curation verifies408prelaunch
+source refs/147protected/PlanV1; roleCSV andprecise doc tables delivered.
+Controller536window samples: preparation_snapshot95(93ownedplan+2init),
+fileinventory30/decode46/bundlecopy22nearest. Planner539:ownedinputs94/freezesource63.
+GPUHOSTinventory96/546,65/524,68/523,74/521. CountsNOTCPUpercentages andinclusive
+overlap. All10rolespresent/no missingmain/partialline;5all-window truncatedrecords,
+maxsamplelag1.243960711s. No causalwholewaiting or performancegain claim.
+Current source1144reads/1083collections/4257RPC/61joins/130stalerejections.
+
+CPUcollector actual24caf363a4ef49d7ab35b9510c5e23b7 closed0;
+metadata actualc2914e4dcd0249fcbf86c06f45963583/session38951closed0;
+curation actual0955f915993b47fe9ffe5b7efab7cc17/session81681closed0;
+seal actual70a35b05cac0409098573ccc7d5150c4/session25775closed0.
+All3/4GiBswap0CPU2,3,26,27; finalmemoryevents0, automatic scopeabsenceverified.
+CuratedSHA896bf0ede6b0849268278174c35e94e44f3891bfca90942d2276ae915d12c7c6;
+evidenceSHA9d51bcf18aa499322515064428abea7f7e6956e2ad637e8fb6f4a61651c3604b.
+47member64179B bundleSHA90a66c271d7dad3b7b3a843c1f8d58514dd3be6602ca6d4009651da7f948c11e.
+DocD187_CURRENT_PREFIX_DIAGNOSTIC.md andcurated SEALED; doNOTedit.
+NEXT exact8path backupchecks/push, then bounded dependency study of immutable
+preparation descriptions versus fresh dynamic file-owner state oncontroller loop.
+No optimizer accepted/implemented; preserve confirmedsource freshness, epoch,
+physicalbudget/reservations/cancellation/executionrecheck. RevisitD151/D153/D159/
+D163 history andprimarysources beforechange; not repeatedolddecode/Full seekingwinner.
+Actual7B numeric/commonwarm/Resident/oldPrime-newmetrics/G1G2 OPEN before3B/baselines.
+EntireM1M2/A1–A5/S1–S13 retained, NEW150/running100GiB andmemoryfloors unchanged.
+Usermanifest/unrelateddirtyfiles untouched; no new authority needed.
+
+## D187 launch and monitoring history — terminal, do NOT relaunch
+
+2026-10-03 10:29+08. GoalACTIVE/currentturnPROGRESS; previousgoalturnPROGRESS.
+FullPlan/status/V1 retained/read in currentcontext, hashes recheckedunchanged;
+run-experiment/monitor-experiment read. No serving/configurationoptimization.
+D186 sealed/backede82a8ecc852d31db5e49f093a84ef9f49db205d6 unchanged.
+Runtime2615d240b567043e4ca92b0debc30a0480e0b347, sameD185cap4/D157profiles.
+ExistingD162 python_frames_v1+qualifiedD122source42W0first1000 indices; original
+4000source/500pool/fixedoutput/60snotice/1800s unchanged, threefreshownedpaths.
+No newweights/trace/profile/cache orformalperformancecomparison. D187docDRAFT.
+
+ONEheavy in tmux tc_d187_prefix1, started10:28+08. Actualservice
+primelora-tc-svc-d5185e419c9f46fdb2796763d0387c63.scope,
+5df1ea275ce24ac4bc06d779e111a636;72/80GiBswap2CPU4-23,28-47.
+Actualaux primelora-tc-aux-25638d8b7beb4988baa7d9c5223ccb47.scope,
+370a73ee7ffa4737a5552a11d8daaf9e;3/4GiBswap0CPU2,3,26,27.
+BothACTIVE10:29. Rawresults/ieee_tc/p2_backend_qualification/d187_20261003;
+monitor7b_full_w0_prefix1/launch.launch/service.log andwatchdog.jsonl.
+Observer writesdiagnostic_stacks, controllerPID455713 observed. DoNOTrelaunch.
+
+Prelaunch408sources/147protected/PlanV1/resourcesPASS,
+SHA81bd030bb3ea9d2480e24a989dc26331d69ef46d97147b076492884addf4111b;
+actual5ca95a9391954891a369af27ef18e6f9/session37231CLOSED0/scopeabsent.
+Healthactual96f2f7816912410c8a4ec2cfb0a36511/CLOSED0/scopeabsent.
+Prelaunch/health finalevents unavailableafterautomaticremoval, notfilledzero.
+No diskcleanup needed; freshlauncher alsoenforcesfloors. BothNIC1000/full.
+Remote3Bactual1cc6873661214443a153996bd407cf34/PID981332;
+7Bactualb123661d8ee44957b12c4272d7c1665a/PID981334;
+monitorprimelora-artifact-monitor-d187prefix1.service,
+actual538ddd0a0955475bbd19c3c62c1811cb/PID981337.
+7bhealthclockremote-process-monotonic:99b0a91721e94558ab553745595e5743.
+D78/D80once-onlypublishedcache reusedunchanged, NOTrecreated.
+
+Sample24current3.479GiB/hostavailable100.943GiB/events-swap0/noabort-warning,
+disk161846775808B. Initialpreparation ongoing; no completeoutcome/qualification.
+NEXT monitorSAMEhandle through1000terminal→localphysicalrelease→exactremote
+stop/copy→reuseD162boundedCPU/terminalanalysis/table→interpret/seal/backup.
+DoNOT useoldPID/InvocationID incleanup. No remoteconfig/restart/hash/maintenance,
+sourcechange, secondGPU, heavyanalysis, compression orcleanup duringrun.
+Actual7B numeric/commonwarm/Resident/oldPrime-newmetrics/G1G2 remainOPEN before
+3B/externalbaselines; laterM1M2/A1–A5/S1–S13retained. NEW150/running100GiB
+andmemoryfloors unchanged. No performanceclaim frominstrumentedrun.
+
+10:32:13+08 livecheck: SAMEservice/auxactualIDs ACTIVE andtmuxlive, fourruntimes.
+Completion3→27→67/1000; latestarrived74/fail0. ActualGPUworkers458394/462721/
+462924/463013 allsameownedservicecgroup andaffinity4-23,28-47; unresolved/
+escaped/foreigncompute lists empty. Observer10processmetadatafiles present;
+noCPUanalysis duringinference. Sample212current15.003GiB/peak17.376GiB/
+hostavailable89.860GiB/events0/swap0/noabort-warning/disk161176301568B.
+Functionstore d187_poll holds boundedSAMEhandle monitor. No sourcechange,
+remoteoperation, restart, maintenance, cleanup ornewexperiment afterlaunch.
+D162postterminal CPUcollector readONLY forreuse, notadapted/run. Allterminal
+cleanup/analysis/table/backup pending. GoalACTIVE/currentturnPROGRESS(launch),
+no performanceacceptance. Continue SAMEjob; doNOTrelaunch onobservationtimeout.
+
+2026-10-03 10:37:04+08 continuation=VERIFIED_WAIT (previousPROGRESS).
+Sameongoingmonitor task; fullPlan/status/V1 retained in currentcontext, hashes
+unchanged, monitor skill reread. SAMEactualservice+aux ACTIVE/tmuxlive at10:33:08
+andeverypoll through10:37:04. Completion107→153→192→300→366done,
+latestarrived375/1000/fail0. Sample499current16.299GiB/peak17.376GiB/
+hostavailable88.779GiB/events0/swap0/noabort-warning/disk160730234880B.
+DiskbelowNEWheavy150GiB butaboveRUNNING100GiB; no cleanupduringinference or
+loweredfloor. D162postterminal preliminary/curator readONLY, notadapted/run.
+No sourcechange/remoteaction/newexperiment/analysis/restart/maintenance.
+No terminaloutcome orqualification. Continue SAMEhandles→terminalphysicalrelease
+→exactremote stop/copy→existingCPU/terminalanalysis/table→interpret/backup.
+GoalACTIVE; actual7B acceptanceOPEN before3B/baselines; entirelatermatrixretained.
+
+## D186 control-path diagnosis SEALED and BACKED — reference
+
+Backup complete2026-10-03 10:24+08:
+e82a8ecc852d31db5e49f093a84ef9f49db205d6; push andindependentls-remote match.
+Exact13paths/23staged+nestedarchiveentries credential/scopechecksPASS;
+bundlechecksum/contents, source/syntaxsmoke, workingdiff/stageddiffchecksPASS.
+Usermanifest excluded. BothGitsessions15494/15936closed0; finalGPUcensus empty.
+GoalACTIVE/currentturnPROGRESS; no liveGPU/CPU/remote/toolhandles.
+NEXT freshresourcepreflight andexistingcurrent-version1000prefixCPUdiagnostic,
+notanotherD185Full ornewoptimizer. Entirelatermatrix andsafetyfloorsunchanged.
 
 2026-10-03 10:22+08. GoalACTIVE/currentturnPROGRESS. FullPlan/status/V1 read
 aftercompaction; optimize-for-gpu/vLLM optimization reference, analyze-results,
