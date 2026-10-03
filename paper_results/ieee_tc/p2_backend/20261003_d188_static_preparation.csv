@@ -1,0 +1,7 @@
+case,candidates,variant,repeats,mean_ms,inventory_calls,digest_calls,setup_ms
+existing_fixture_4,4,current,3,3.3376316811578968,1,4,0.2792509621940553
+existing_fixture_4,4,static_prototype,3,3.1274363476162157,1,0,0.2792509621940553
+existing_fixture_500,500,current,3,36.68456099694595,1,500,23.608769988641143
+existing_fixture_500,500,static_prototype,3,13.320309672659883,1,0,23.608769988641143
+existing_7b_index_empty_owner,500,current,3,63.94649364907916,1,500,53.5580959985964
+existing_7b_index_empty_owner,500,static_prototype,3,11.300045007374138,1,0,53.5580959985964

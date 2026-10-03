@@ -1,6 +1,67 @@
 # IEEE TC execution status
 
-## CURRENT — D187 completed, analyzed and SEALED; backup next
+## CURRENT — D188 static/dynamic dependency study completed and SEALED; backup next
+
+2026-10-03 11:11+08. GoalACTIVE/currentturnPROGRESS; previousPROGRESS.
+Full Plan/status/V1 retained in currentcontext; hashes rechecked unchanged.
+optimize-for-gpu/vLLM+optimization reference, run/analyze-results/academic-plotting/
+github-sync used. Primary vLLM CPU blog/.30core-client andPython asyncio docs
+rechecked online; D151/D153/D159/D163 history/currentcode inspected. No GPU,
+remote operation, configuration/profile/metric change or production edit.
+Runtime2615d24 unchanged, evidenceHEAD475cd90; once-onlycache not recreated.
+
+D188 reusesD153 alternating component/fixture method. Analysis-only AST replaces
+ONLY three static expressions in CURRENTpreparation_snapshot: canonical ID,
+contentdigest andstatic targets. Entireliveinventory/source/epoch/budget path
+unchanged. Frozeninputs/templates detached; outputaliases tested. 18outputs
+identical exceptcapturetimes,3live-state negativechecks pass. Realexisting7B
+500index readwithoutdownload/copy; fixturesmetadataonly,no newweights/trace.
+
+Current→prototype meanms:4-namefixture3.337632→3.127436(setup.279251);
+500-namefixture36.684561→13.320310(setup23.608770);
+real7Bindex/emptyowner63.946494→11.300045(setup53.558096).
+Inventory1→1all; contentdigests4/500/500→0. Threealternatingcomponentcalls per
+variant, NOTindependentseeds/CI/end-to-endgain. Emptyowner NOTactualoccupancy.
+Prototype's geometry/lifetime bindings checkedoutsidecall: productioninterface
+and invalidation NOTyetqualified. DoNOTpublishprototypeasexistingservingoptimizer.
+
+Probeactual6ea683e64ebc4bb2be9b1981844f98b5/session45565closed0,
+11.91s/RSS1165992KiB. Curateactual3a94607a4be74703bcbe7c5e6d9a7e2e/
+session44796closed0. Both3/4GiBswap0CPU2,3,26,27,finalevents/swap0,
+scopeinactive/emptyidentity/pathabsenceverified. No liveGPU/remote/CPU/tooljobs.
+147protected/PlanV1/7sourceSHA and exactdocument-table checksPASS; nofailures.
+CuratedSHA d5605576a452ac642d0425d1a3da6f05b5526426d231faa45207b3d9cf33bfa9.
+14member14654B bundleSHA3167cdf671bd5a0cb860fcf5b6390761c3d33d2789227f5efcd90d6f31095abb.
+DocD188_STATIC_PREPARATION_STUDY.md andcurated SEALED, doNOTedit afterbundle.
+Rawd188_20261003; six-rowCSV andthree-rowexactcomponenttable delivered.
+
+NEXT exact7pathbackup, then directly implement ONEimmutable-static-description
+candidate. Bind frozencontent/subset andactualownerroots/allocationgranularity;
+mutableinputmustvalidate, changedbindingmustrecompileorinvalidate. NoTTL/live
+tiercache/uncheckedverifiedflag. Retainfullfreshfileinventory/secondstat/source
+withdrawal/sharedinode/pending/reservation/executionrechecks. No extra planner
+worker or newformula/config/SLO. Testisolation/invalidbindings/geometry/source
+changes andexistingbudget/cancellation/retirementregressions; then ordinary7B
+Full4000 sameD185cap4/D157configuration afterbackup/freshresourcegate.
+DoNOTrepeatD188microstudy/D187diagnostic orolddecodinghypothesis. Componentgain
+doesNOTcloseactual7B numeric/commonwarm/Resident/oldPrime-newmetrics/G1G2.
+3B/externalbaselines remainpaused; completeM1M2/A1–A5/S1–S13retained.
+Usermanifest/unrelateddirtyfiles preserved; diskNEW150/running100GiB andmemory
+floorsunchanged. No blocker/newauthority required.
+
+## D187 completed, analyzed, SEALED and BACKED — reference
+
+Backup complete2026-10-03 10:57+08:
+475cd90cd8341fbe909a5c3884b5330ff0dd4794; push and independentls-remote match.
+Exact8paths/55staged+archiveentries credential/scopechecksPASS; bundle checksum,
+source/shellsyntax/table/workingdiff/stageddiffchecksPASS; usermanifestexcluded.
+Git sessions68510/98623 CLOSED0. No liveGPU/CPU/remote/tooljobs. GoalACTIVE,
+currentturnPROGRESS. Disk161552945152B nearNEWheavy150GiB; freshpreflight required
+before any newGPU, running100GiBfloor unchanged. No new GPU task now.
+NEXT the bounded preparation-description/fresh-owner dependency study below,
+using currentD187 evidence and primarysources; not another diagnostic replay,
+not an accepted optimizer. Actual7B gates OPEN before3B/externalbaselines.
+DocD187/curated/bundle SEALED unchanged. Entirelatermatrix retained.
 
 2026-10-03 10:55+08. Goal ACTIVE/currentturn PROGRESS; previous VERIFIED_WAIT.
 Full Plan/status/V1 reread after compaction; hashes unchanged. monitor/run/
