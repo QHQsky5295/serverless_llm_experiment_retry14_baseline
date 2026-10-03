@@ -5,7 +5,9 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from scripts.analyze_control_path_overhead import analyze_rpc_breakdown
+from scripts.analyze_control_path_overhead import (
+    analyze_rpc_breakdown, analyze_control_boundaries, CONTROL_BOUNDARIES,
+)
 
 
 class RpcBreakdownTest(unittest.TestCase):
@@ -120,6 +122,178 @@ class RpcBreakdownTest(unittest.TestCase):
         with self.paths[0].open('wb') as f:
             f.truncate(256*1024**2)
         with self.assertRaisesRegex(ValueError,'bounded'): self.execute()
+
+
+class ControlBoundaryAuditTest(unittest.TestCase):
+    """Scalar synthetic chain fixtures; not measured service latency."""
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.directory = self.root/'diagnostic_stacks'
+        self.directory.mkdir()
+        self.receipt = self.root/'exec_receipt.json'
+        self.deployment = self.root/'deployment.json'
+        self.owner = '/sys/fs/cgroup/fixture.scope'
+        self.receipt.write_text(json.dumps(dict(allow_exec=True,
+            service_identity=dict(path=self.owner), external_replay=dict(
+                replay_scope='diagnostic_prefix_v1', diagnostic_prefix_count=1000))))
+        self.deployment.write_text(json.dumps(dict(contract='physical_gpu_deployment_v1',
+            clock_id='fixture-clock', arrival_start_s=200., plan=dict(count=1000))))
+        # Lexicographic file order is deliberately not causal role order.
+        self.role_pid = dict(parent=310,frontend=330,native=320)
+        self.metas, self.rows = {}, []
+        for role,pid in self.role_pid.items():
+            self.metas[pid] = dict(kind='diagnostic_python_frames_v1', pid=pid,
+                start_ticks=50+pid,cgroup=self.owner+'/'+role,
+                capture_start_monotonic_s=100.,formal_performance_result=False,
+                control_boundaries='request_source_control_boundary_v1',control_overhead_included=True)
+        for i in range(20):
+            for j,boundary in enumerate(CONTROL_BOUNDARIES):
+                role = ('parent' if boundary.startswith('parent') else
+                        'native' if boundary.startswith('native') else 'frontend')
+                pid = self.role_pid[role]
+                self.rows.append(dict(event='request_source_control_boundary_v1',
+                    attempt_id=f'{i+1:032x}',boundary=boundary,pid=pid,thread_ident=pid+1000,
+                    clock_id='fixture-clock',monotonic_s=190+i*2+j*(i+1)*.001,
+                    thread_cpu_s=10+i+j*.0001,
+                    byte_count=123 if boundary=='parent_send' else 456 if boundary=='parent_received' else None,
+                    outcome='success' if boundary=='parent_terminal' else None))
+
+    def inputs(self):
+        for pid,meta in self.metas.items():
+            stem=self.directory/f"{pid}-{meta['start_ticks']}"
+            stem.with_suffix('.json').write_text(json.dumps(meta))
+            stem.with_suffix('.control.jsonl').write_text(''.join(json.dumps(r)+'\n'
+                for r in sorted(self.rows,key=lambda r:r['monotonic_s']) if r['pid']==pid))
+
+    def execute(self):
+        return analyze_control_boundaries(self.directory,self.receipt,self.deployment,self.root/'out')
+
+    def audit(self):
+        self.inputs()
+        return self.execute()
+
+    def first(self,boundary):
+        return next(r for r in self.rows if r['attempt_id']==f'{1:032x}' and r['boundary']==boundary)
+
+    def test_complete_type_one_grouping_additivity_and_provenance(self):
+        r=self.audit()
+        self.assertTrue(r['complete_success_coverage'])
+        self.assertEqual((r['events'],r['attempts'],r['statuses']), (220,20,{'success_complete':20}))
+        m={(v['phase'],v['field']):v for v in r['metrics']}
+        self.assertAlmostEqual(m['all','parent_total_ms']['p95'],190)
+        self.assertAlmostEqual(m['all','parent_total_ms']['mean'],105)
+        self.assertEqual(m['prebusiness','parent_total_ms']['count'],5)
+        self.assertEqual(m['business','parent_total_ms']['count'],15)
+        spans=[v['mean'] for v in r['metrics'] if v['phase']=='all' and '__to__' in v['field']]
+        self.assertAlmostEqual(sum(spans),105)
+        self.assertAlmostEqual(m['all','native_thread_cpu_ms']['mean'],.1)
+        self.assertTrue(all(hashlib.sha256(Path(ref['path']).read_bytes()).hexdigest()==ref['sha256'] for ref in r['source_refs']))
+        self.assertFalse(r['new_experiment'])
+        self.assertFalse(r['formal_performance_result'])
+
+    def test_missing_success_is_incomplete_not_zero(self):
+        self.rows.remove(self.first('native_ready'))
+        r=self.audit()
+        self.assertEqual(r['statuses'],dict(success_incomplete=1,success_complete=19))
+        m=next(v for v in r['metrics'] if v['phase']=='all' and v['field']=='parent_total_ms')
+        self.assertEqual(m['count'],19)
+        self.assertAlmostEqual(m['mean'],110)
+        self.assertFalse(r['complete_success_coverage'])
+
+    def test_cancellation_allows_native_completion_after_parent_terminal(self):
+        terminal=self.first('parent_terminal')
+        terminal['outcome']='cancelled'
+        terminal['monotonic_s']=190.0055
+        self.rows.remove(self.first('parent_received'))
+        r=self.audit()
+        self.assertEqual(r['statuses'].get('cancelled'),1)
+        self.assertEqual(r['statuses'].get('success_complete'),19)
+
+    def test_errors_orphans_and_incomplete_preserved(self):
+        self.first('parent_terminal')['outcome']='error'
+        for aid,remove in ((2,('parent_begin','parent_terminal')),(3,('parent_terminal',))):
+            self.rows=[r for r in self.rows if not(r['attempt_id']==f'{aid:032x}' and r['boundary'] in remove)]
+        r=self.audit()
+        self.assertEqual(r['statuses'],dict(error=1,orphan=1,incomplete=1,success_complete=17))
+
+    def test_all_incomplete_metrics_na(self):
+        self.rows=[r for r in self.rows if r['boundary']=='parent_begin']
+        r=self.audit()
+        self.assertTrue(all(v['count']==0 and v['mean'] is None and v['p95'] is None for v in r['metrics']))
+
+    def test_partial_final_line_retained_without_fake_event(self):
+        self.inputs()
+        with next(self.directory.glob('*.control.jsonl')).open('ab') as f:
+            f.write(b'{"event":')
+        r=self.execute()
+        self.assertEqual(len(r['partial_lines']),1)
+        self.assertEqual(r['events'],220)
+        self.assertFalse(r['complete_success_coverage'])
+
+    def test_duplicate_rejects_before_output(self):
+        self.rows.append(dict(self.rows[0]))
+        with self.assertRaisesRegex(ValueError,'duplicate'): self.audit()
+        self.assertFalse((self.root/'out').exists())
+
+    def test_mixed_clock_rejects(self):
+        self.first('native_ready')['clock_id']='other'
+        with self.assertRaisesRegex(ValueError,'identity/clock'): self.audit()
+
+    def test_changed_role_thread_rejects(self):
+        self.first('native_ready')['thread_ident']+=1
+        with self.assertRaisesRegex(ValueError,'process/thread'): self.audit()
+
+    def test_wrong_causal_order_rejects(self):
+        self.first('native_begin')['monotonic_s']=190.0035
+        with self.assertRaisesRegex(ValueError,'cross-process'): self.audit()
+
+    def test_invalid_scalar_rejects(self):
+        for name,value in [('monotonic_s',True),('thread_cpu_s',float('nan')),
+                           ('byte_count',None),('outcome','success'),('attempt_id','x'*32)]:
+            with self.subTest(name=name):
+                row=self.first('parent_send')
+                old=row[name]
+                row[name]=value
+                with self.assertRaises(ValueError): self.audit()
+                row[name]=old
+                self.assertFalse((self.root/'out').exists())
+
+    def test_complete_malformed_line_is_not_treated_as_partial(self):
+        self.inputs()
+        with next(self.directory.glob('*.control.jsonl')).open('ab') as f:
+            f.write(b'{}\n')
+        with self.assertRaisesRegex(ValueError,'schema'): self.execute()
+
+    def test_nonqualified_owner_rejects(self):
+        self.metas[310]['cgroup']='/sys/fs/cgroup/fixture.scope.other'
+        with self.assertRaisesRegex(ValueError,'metadata'): self.audit()
+
+    def test_receipt_count_mismatch_rejects(self):
+        self.deployment.write_text(json.dumps(dict(contract='physical_gpu_deployment_v1',
+            clock_id='fixture-clock',arrival_start_s=200.,plan=dict(count=999))))
+        with self.assertRaisesRegex(ValueError,'receipt/deployment'): self.audit()
+
+    def test_missing_metadata_and_oversized_inputs_reject(self):
+        self.inputs()
+        meta=next(self.directory.glob('*.json'))
+        saved=meta.read_bytes()
+        meta.unlink()
+        with self.assertRaisesRegex(ValueError,'population'): self.execute()
+        meta.write_bytes(saved)
+        event=next(self.directory.glob('*.control.jsonl'))
+        with event.open('wb') as f: f.truncate(128*1024**2+1)
+        with self.assertRaisesRegex(ValueError,'bounded total'): self.execute()
+
+    def test_long_line_rejects(self):
+        self.inputs()
+        next(self.directory.glob('*.control.jsonl')).write_bytes(b'x'*8193)
+        with self.assertRaisesRegex(ValueError,'bounded event line'): self.execute()
+
+    def test_no_overwrite(self):
+        self.audit()
+        with self.assertRaises(FileExistsError): self.execute()
 
 
 if __name__ == '__main__':

@@ -1,6 +1,42 @@
 # IEEE TC execution status
 
-## CURRENT — D198 control-boundary diagnostic CPU QUALIFIED and SEALED
+## CURRENT — D199 offline control-boundary analysis CPU QUALIFIED and SEALED
+
+2026-10-03 17:34+08. Goal ACTIVE/current turn PROGRESS. Full Plan/status/V1
+reread; hashes unchanged. analyze-results/run-experiment/academic-plotting/
+github-sync read. Latest once-only remote cache permission acknowledged as
+already fulfilled D78/D80; no recreation, no remote operations this turn.
+Existing analyzer only: strict bounded ID/clock/process/role/ordering joins,
+Type-1 complete-success summaries, explicit missing/error/cancelled/orphan and
+partial-last-line counts. No serving/formula/SLO/configuration change. No
+performance gain inferred; no GPU launch. D199 doc and curated evidence SEALED.
+Tests1 31PASS .234s, actual98860922cc054a6aa5835a1e6cd84d8e/session86164 CLOSED0.
+Regression1 71PASS .357s, actualad9f576254a844a4a8664ef676563cd5/session97731 CLOSED0.
+17newtests; test groups overlap. Both3/4GiBswap0CPU2,3,26,27/events0; scope/path
+absence verified by curation. Source archives retain exact test wrapper history.
+Curate1 actual97257bc145c5498fa68e5c9cc77922c4/session40264 CLOSED0,events/swap0.
+147protected/PlanV1 unchanged; existing analyzer bodies AST unchanged; only one
+offline script changed in runtime tree. CuratedSHA
+48a9a62805f40ded7a86979b7e06066eb07b1c8fbde98c7b89b37e204009d7f1.
+24member79329B bundleSHA299c0c16fc0ba5b2b7dec429daecede04e266928798e17b70f960de0f14c36c6.
+NEXT exact scoped backup, audited disposable-cache recovery/fresh gate, then
+ONE current-source1000-prefix detailed diagnostic. Disk160749322240B last
+check is below NEWheavy150GiB. Do not relax floor, repeat D198 tests, or run
+speculative Full/new optimizer. 7B acceptance -> 3B -> baselines remains order;
+all numerical/commonreference/old-new/G1G2 and full matrix gaps retained below.
+
+## Previous checkpoint — D198 control-boundary diagnostic CPU QUALIFIED, SEALED and BACKED
+
+Backup verified2026-10-03 17:15+08:
+79dc8f12668c7d255846e97c7a461c95e8d580d4; pushsession52715 CLOSED0 and
+independent ls-remotesession95840 CLOSED0 match. Exact13paths/70staged+archive
+entries passed scope/credential checks; checksum/AST/shell/diff checks PASS.
+Usermanifest excluded. D198 sealed doc/results unchanged. Final GPU census
+empty; no experiment scopes/tool handles (unrelated podman untouched).
+NEXT strict existing-analyzer grouping qualification below, then one detailed
+prefix after fresh resource gate. No new optimizer/Full or repeated D198 tests.
+Disk160754200576B below NEWheavy150GiB; no floor relaxation or data deletion.
+Goal ACTIVE/current turn PROGRESS; all model/G1G2 and later work remain OPEN.
 
 2026-10-03 17:13+08. Goal ACTIVE/current turn PROGRESS. Full Plan/status/V1
 read after compaction; Plan/V1 hashes unchanged. optimize-for-gpu, vLLM and
@@ -34,9 +70,9 @@ CuratedSHA81ce5ed6e4c6de5313b4e62586cb643c3850255b5275593b520442a3549f73b8.
 29member1127008B bundleSHA79210323e4539b0c9e026046fdfbd2bb69f71aac65d5ee5c22ae0237a6f924de.
 Doc/curated SEALED; do NOT edit after evidence binding. Qualification table
 delivered; no misleading speedup graph. No live GPU/remote/analysis/tool jobs.
-No CUDA/model/numeric/performance acceptance. Exact13path backup NEXT.
+No CUDA/model/numeric/performance acceptance. Exact13path backup verified above.
 
-NEXT exact13path backup -> qualify strict bounded offline boundary grouping in
+NEXT qualify strict bounded offline boundary grouping in
 existing analyzer (ID/clock/completeness/order/cancel; no filled zero) -> audited
 disk recovery/fresh gate -> ONE current-source1000-prefix detailed diagnostic.
 No speculative Full/new optimizer or repeated D198 tests before new evidence.

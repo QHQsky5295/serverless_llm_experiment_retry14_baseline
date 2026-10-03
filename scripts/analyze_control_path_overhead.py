@@ -821,6 +821,239 @@ def analyze_admission_capacity(source: Path, output: Path) -> Dict[str, Any]:
     return result
 
 
+CONTROL_BOUNDARIES = (
+    'parent_begin', 'parent_send', 'worker_received', 'frontend_begin',
+    'frontend_native_send', 'native_begin', 'native_ready',
+    'frontend_native_received', 'frontend_ready', 'parent_received', 'parent_terminal',
+)
+
+
+def analyze_control_boundaries(directory: Path, receipt_path: Path,
+                               deployment_path: Path, output: Path) -> Dict[str, Any]:
+    """Join diagnostic RPC boundaries, never infer queue-only or request latency.
+
+    The producer writes one scalar event at a time under the qualified prefix
+    gate. Read bounded lines; retain incomplete/cancelled attempts and partial
+    final lines. Only complete successful chains enter interval summaries.
+    """
+    import hashlib
+    import stat
+    import uuid
+
+    if output.exists():
+        raise FileExistsError(output)
+    if directory.is_symlink() or not directory.is_dir():
+        raise ValueError('diagnostic directory must be a real directory')
+    if directory.resolve() != receipt_path.resolve().parent / 'diagnostic_stacks':
+        raise ValueError('diagnostic directory must belong to receipt')
+    source_refs = []
+
+    def bounded_json(path, limit=4*1024**2):
+        if path.is_symlink() or not stat.S_ISREG(path.stat().st_mode):
+            raise ValueError('regular nonsymlink input required')
+        with path.open('rb') as handle:
+            data = handle.read(limit+1)
+        if len(data) > limit:
+            raise ValueError('bounded JSON input required')
+        source_refs.append(dict(path=str(path.resolve()), bytes=len(data),
+                                sha256=hashlib.sha256(data).hexdigest()))
+        return json.loads(data)
+
+    def positive_int(value):
+        return type(value) is int and value > 0
+
+    def finite(value, positive=False):
+        return (type(value) in (int, float) and math.isfinite(value)
+                and (value > 0 if positive else value >= 0))
+
+    def owned_path(value, owner):
+        path = Path(value)
+        return (path.is_absolute() and '..' not in path.parts
+                and path.is_relative_to(owner))
+
+    receipt = bounded_json(receipt_path)
+    deployment = bounded_json(deployment_path)
+    replay = receipt.get('external_replay', {})
+    owner = Path(receipt['service_identity']['path'])
+    count = replay.get('diagnostic_prefix_count')
+    clock_id, start = deployment.get('clock_id'), deployment.get('arrival_start_s')
+    if (receipt.get('allow_exec') is not True or not positive_int(count)
+            or replay.get('replay_scope') != 'diagnostic_prefix_v1'
+            or not owned_path(str(owner), Path('/sys/fs/cgroup'))
+            or owner == Path('/sys/fs/cgroup')
+            or deployment.get('contract') != 'physical_gpu_deployment_v1'
+            or type(deployment.get('plan', {}).get('count')) is not int
+            or deployment['plan']['count'] != count
+            or not isinstance(clock_id, str) or not clock_id or len(clock_id) > 256
+            or not finite(start, positive=True)):
+        raise ValueError('qualified prefix receipt/deployment required')
+
+    metadata_paths = sorted(directory.glob('*.json'))
+    event_paths = sorted(directory.glob('*.control.jsonl'))
+    if (not metadata_paths or len(metadata_paths) > 256
+            or {p.stem for p in metadata_paths}
+            != {p.name.removesuffix('.control.jsonl') for p in event_paths}):
+        raise ValueError('complete bounded metadata/event file population required')
+    by_attempt, partial_lines = {}, []
+    event_count, total_bytes = 0, 0
+    expected_keys = {'event','attempt_id','boundary','pid','thread_ident','clock_id',
+                     'monotonic_s','thread_cpu_s','byte_count','outcome'}
+    for meta_path in metadata_paths:
+        meta = bounded_json(meta_path, 64*1024)
+        if (meta.get('kind') != 'diagnostic_python_frames_v1'
+                or meta.get('formal_performance_result') is not False
+                or meta.get('control_boundaries') != 'request_source_control_boundary_v1'
+                or meta.get('control_overhead_included') is not True
+                or not positive_int(meta.get('pid')) or not positive_int(meta.get('start_ticks'))
+                or meta_path.stem != f"{meta['pid']}-{meta['start_ticks']}"
+                or not owned_path(meta['cgroup'], owner)
+                or not finite(meta.get('capture_start_monotonic_s'), positive=True)):
+            raise ValueError('qualified process metadata required')
+        path = directory / (meta_path.stem+'.control.jsonl')
+        if path.is_symlink() or not stat.S_ISREG(path.stat().st_mode):
+            raise ValueError('regular nonsymlink event input required')
+        before = path.stat()
+        total_bytes += before.st_size
+        if total_bytes > 128*1024**2:
+            raise ValueError('bounded total event bytes exceeded')
+        digest, size, previous_by_thread = hashlib.sha256(), 0, {}
+        with path.open('rb') as handle:
+            line_number = 0
+            while True:
+                line = handle.readline(8193)
+                if not line:
+                    break
+                line_number += 1
+                if len(line) > 8192:
+                    raise ValueError('bounded event line exceeded')
+                digest.update(line)
+                size += len(line)
+                if not line.endswith(b'\n'):
+                    partial_lines.append(dict(path=str(path.resolve()), line=line_number, bytes=len(line)))
+                    break
+                event_count += 1
+                if event_count > 262144:
+                    raise ValueError('bounded event population exceeded')
+                row = json.loads(line)
+                if not isinstance(row, dict) or set(row) != expected_keys:
+                    raise ValueError('invalid control event schema')
+                aid, boundary = row['attempt_id'], row['boundary']
+                if (not isinstance(aid, str) or len(aid) != 32 or uuid.UUID(aid).hex != aid
+                        or boundary not in CONTROL_BOUNDARIES
+                        or row['event'] != 'request_source_control_boundary_v1'
+                        or type(row['pid']) is not int or row['pid'] != meta['pid']
+                        or not positive_int(row['thread_ident']) or row['clock_id'] != clock_id
+                        or not finite(row['monotonic_s'], positive=True)
+                        or row['monotonic_s'] < meta['capture_start_monotonic_s']
+                        or not finite(row['thread_cpu_s'])):
+                    raise ValueError('invalid control event identity/clock/time')
+                if boundary in ('parent_send', 'parent_received'):
+                    if type(row['byte_count']) is not int or row['byte_count'] < 0:
+                        raise ValueError('invalid byte measurement')
+                elif row['byte_count'] is not None:
+                    raise ValueError('unexpected byte measurement')
+                if boundary == 'parent_terminal':
+                    if row['outcome'] not in ('success', 'error', 'cancelled'):
+                        raise ValueError('invalid terminal outcome')
+                elif row['outcome'] is not None:
+                    raise ValueError('unexpected terminal outcome')
+                previous = previous_by_thread.get(row['thread_ident'])
+                if previous and (row['monotonic_s'] < previous[0] or row['thread_cpu_s'] < previous[1]):
+                    raise ValueError('nonmonotonic thread event stream')
+                previous_by_thread[row['thread_ident']] = (row['monotonic_s'], row['thread_cpu_s'])
+                attempt = by_attempt.setdefault(aid, {})
+                if boundary in attempt:
+                    raise ValueError('duplicate attempt boundary')
+                # Process incarnation, not PID alone, protects against reuse.
+                row['process_identity'] = meta_path.stem
+                attempt[boundary] = row
+        after = path.stat()
+        if ((before.st_ino,before.st_size,before.st_mtime_ns) !=
+                (after.st_ino,after.st_size,after.st_mtime_ns) or size != before.st_size):
+            raise ValueError('event input changed during analysis')
+        source_refs.append(dict(path=str(path.resolve()), bytes=size, sha256=digest.hexdigest()))
+    if not by_attempt:
+        raise ValueError('no control boundary evidence')
+
+    spans = [(a+'__to__'+b, a, b) for a,b in zip(CONTROL_BOUNDARIES, CONTROL_BOUNDARIES[1:])]
+    field_names = [name for name,_,_ in spans] + ['parent_total_ms', 'native_thread_cpu_ms']
+    samples = {(phase,name): [] for phase in ('all','prebusiness','business') for name in field_names}
+    records, statuses = [], Counter()
+    for aid, events in sorted(by_attempt.items()):
+        # In-role monotonicity is required even when cancellation leaves a
+        # native utility operation finishing after the parent's terminal event.
+        for role in (('parent_begin','parent_send','parent_received','parent_terminal'),
+                     ('worker_received','frontend_begin','frontend_native_send',
+                      'frontend_native_received','frontend_ready'), ('native_begin','native_ready')):
+            seen = [events[b] for b in role if b in events]
+            if len({(r['process_identity'],r['thread_ident']) for r in seen}) > 1:
+                raise ValueError('attempt role changed process/thread')
+            if any(a['monotonic_s'] > b['monotonic_s'] or a['thread_cpu_s'] > b['thread_cpu_s']
+                   for a,b in zip(seen,seen[1:])):
+                raise ValueError('invalid role boundary order')
+        # Parent terminal is not ordered after late worker/native completion on
+        # cancelled/error calls. Every other observed edge remains causal.
+        chain = [events[b]['monotonic_s'] for b in CONTROL_BOUNDARIES[:-1] if b in events]
+        if chain != sorted(chain):
+            raise ValueError('invalid cross-process boundary order')
+        terminal = events.get('parent_terminal')
+        outcome = terminal['outcome'] if terminal else None
+        missing = [b for b in CONTROL_BOUNDARIES if b not in events]
+        complete = not missing and outcome == 'success'
+        if outcome == 'success' and chain and terminal['monotonic_s'] < chain[-1]:
+            raise ValueError('successful terminal precedes completion')
+        status = ('success_complete' if complete else 'success_incomplete' if outcome == 'success'
+                  else outcome if outcome else 'orphan' if 'parent_begin' not in events else 'incomplete')
+        statuses[status] += 1
+        begin = events.get('parent_begin')
+        phase = ('prebusiness' if begin['monotonic_s'] < start else 'business') if begin else 'unknown'
+        record = dict(attempt_id=aid, status=status, phase=phase,
+            missing_boundaries=';'.join(missing), observed_boundaries=len(events),
+            parent_begin_s=begin['monotonic_s'] if begin else None,
+            request_bytes=events.get('parent_send',{}).get('byte_count'),
+            response_bytes=events.get('parent_received',{}).get('byte_count'))
+        record.update({name: None for name in field_names})
+        if complete:
+            for name,a,b in spans:
+                record[name] = 1000*(events[b]['monotonic_s']-events[a]['monotonic_s'])
+            record['parent_total_ms'] = 1000*(terminal['monotonic_s']-begin['monotonic_s'])
+            record['native_thread_cpu_ms'] = 1000*(events['native_ready']['thread_cpu_s']-events['native_begin']['thread_cpu_s'])
+            if not math.isclose(math.fsum(record[n] for n,_,_ in spans), record['parent_total_ms'], abs_tol=1e-6):
+                raise ValueError('boundary decomposition identity failed')
+            for name in field_names:
+                for population in ('all',phase):
+                    samples[population,name].append(record[name])
+        records.append(record)
+    metrics = []
+    for (phase,name), values in samples.items():
+        values.sort()
+        metrics.append(dict(phase=phase, field=name, unit='ms', count=len(values),
+            mean=math.fsum(values)/len(values) if values else None,
+            p50=values[math.ceil(.5*len(values))-1] if values else None,
+            p95=values[math.ceil(.95*len(values))-1] if values else None,
+            max=values[-1] if values else None))
+    result = dict(kind='diagnostic_control_boundary_audit_v1', formal_performance_result=False,
+        new_experiment=False, quantile='Type-1', clock_id=clock_id, diagnostic_prefix_count=count,
+        events=event_count, attempts=len(records), statuses=dict(statuses), partial_lines=partial_lines,
+        complete_success_coverage=(not partial_lines and statuses['success_complete'] == len(records)),
+        metrics=metrics, source_refs=source_refs, caveats=[
+            'Intervals include diagnostic emission overhead; this is not ordinary Full performance or model/SLO qualification.',
+            'Utility-send to native-begin includes transport, serialization and scheduling; it is not isolated queue or network time.',
+            'Native wall interval includes physical inventory and its instrumentation; synchronous native thread CPU is separate, not async request CPU.',
+            'Concurrent replica queries overlap. Do not sum attempts as request latency; RPC IDs are not request IDs.',
+            'Only complete successful chains enter interval summaries. Missing/cancelled/error/partial evidence is retained, not imputed zero.',
+            'Business classification uses parent begin versus arrival start; it includes drain and does not identify a request critical path.',
+            'Within-attempt adjacent means are additive for the same population; their quantiles and overlapping parent totals are not additive.'])
+    result['source_refs'].append(dict(path=str(Path(__file__).resolve()),
+        sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest()))
+    output.mkdir(parents=True, exist_ok=False)
+    write_csv(records, output/'control_attempts.csv')
+    write_csv(metrics, output/'control_intervals.csv')
+    with (output/'summary.json').open('x') as handle:
+        json.dump(result, handle, indent=2, allow_nan=False)
+    return result
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", required=True, help="Result JSON file or directory")
@@ -828,6 +1061,8 @@ def main() -> None:
     parser.add_argument("--native-timeline", action="store_true", help="Strict bounded native projection audit; no legacy paper copies")
     parser.add_argument("--rpc-breakdown", action="store_true", help="Audit retained native-async RPC fields, no new experiment or legacy paper copies")
     parser.add_argument("--admission-capacity", action="store_true", help="Audit retained admission KV snapshots; no serving or capacity configuration change")
+    parser.add_argument("--control-boundaries", action="store_true", help="Strict diagnostic source-RPC boundary audit, not serving performance")
+    parser.add_argument("--launch-receipt", type=Path)
     parser.add_argument("--sealed-summary", type=Path)
     parser.add_argument("--sealed-sha256")
     parser.add_argument("--deployment", type=Path)
@@ -837,6 +1072,15 @@ def main() -> None:
     parser.add_argument("--control-outcome", type=Path, help="Bounded normal outcome with independent control/quarantine observations")
     parser.add_argument("--scenario", default=None, help="Optional scenario-name substring")
     args = parser.parse_args()
+
+    if sum((args.control_boundaries,args.admission_capacity,args.rpc_breakdown,args.native_timeline)) > 1:
+        parser.error('choose one audit mode')
+    if args.control_boundaries:
+        if not all((args.output,args.deployment,args.launch_receipt)):
+            parser.error('control boundaries require explicit fresh output/deployment/launch-receipt')
+        result = analyze_control_boundaries(Path(args.input),args.launch_receipt,args.deployment,Path(args.output))
+        print(json.dumps(result,indent=2,allow_nan=False))
+        return
 
     if args.admission_capacity:
         if args.native_timeline or args.rpc_breakdown or not args.output:
