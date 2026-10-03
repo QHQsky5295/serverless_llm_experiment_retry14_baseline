@@ -1,0 +1,32 @@
+{
+  "campaign_id": "D212",
+  "status": "qualification_pass_not_performance_result",
+  "system": "vLLM",
+  "model": "llama2_7b_main_v2_publicmix",
+  "seed": 42,
+  "trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+  "adapter_subset_sha256": "aa94b21e129a5efde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016",
+  "generation_contract": "fixed_length_greedy_v1",
+  "completion_token_source": "vllm_token_ids",
+  "deployment": {
+    "data_parallel_replicas": 4,
+    "tensor_parallel_size": 1,
+    "registration_mode": "static",
+    "adapter_count": 500,
+    "max_requests": 100
+  },
+  "qualification": {
+    "expected_requests": 100,
+    "completed_requests": 100,
+    "successful_requests": 100,
+    "contract_token_prompt_hash_decomposition_gates": "pass",
+    "elapsed_sec": 189.8485015439801,
+    "gpu_and_service_cgroup_released": true
+  },
+  "artifacts": {
+    "baseline_result_dir": "/home/qhq/serverless_llm_baselines/results/ieee_tc_resident_qualification/d212_vllm_7b_seed42_q100_static_fixed_attempt3",
+    "replay_sha256": "143b376370f086ae41eacc6423161d7127774197e2a3c9a61046e3f44fa2d82f",
+    "summary_sha256": "09263f38769a48ceccccb6ed0826955a2726a22cea7e5309ca53d980751a743c"
+  },
+  "interpretation": "This is a short ordinary-vLLM measurement qualification only. It does not define the Resident reference, warm SLO, G1/G2 budget, or any performance ranking."
+}

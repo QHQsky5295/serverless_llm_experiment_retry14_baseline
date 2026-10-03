@@ -1,0 +1,23 @@
+{
+  "campaign_id": "d212_20261004_vllm_fixed_output_audit",
+  "operation": "reclaim_rebuildable_pip_http_cache",
+  "path": "/home/qhq/.cache/pip/http-v2",
+  "classification": "rebuildable_package_http_cache",
+  "active_install_processes_before": 0,
+  "files_before": 5266,
+  "du_bytes_before": 13996773915,
+  "df_available_kib_before": 155767036,
+  "df_available_kib_after": 176261856,
+  "files_after": 0,
+  "owner": "root",
+  "result": "complete",
+  "protected": [
+    "installed environments",
+    "model weights",
+    "LoRA artifacts",
+    "traces and adapter subsets",
+    "raw experiment results",
+    "user dirty and untracked files"
+  ],
+  "note": "No GPU, remote service, model, trace, adapter, or serving configuration was changed."
+}

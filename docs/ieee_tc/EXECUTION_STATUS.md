@@ -1,5 +1,28 @@
 # IEEE TC execution status
 
+## CURRENT — D212 ordinary vLLM fixed-output qualification PASS; Resident replay still pending
+
+2026-10-04 04:16+08. Goal ACTIVE/current turn PROGRESS. The full Plan, this
+status file and METRIC_PROTOCOL_FROZEN_V1 were reread before qualification
+analysis. After the CPU audit and two retained launch-only failures, the
+third short 7B ordinary-vLLM qualification completed with four DP=1/TP=1
+servers, static registration of the existing 500-adapter subset, and the
+existing W0 trace (seed 42, no new trace or weights). The run completed
+100/100 requests successfully under `fixed_length_greedy_v1`; the strict
+validator passed target length, native `vllm_token_ids`, prompt hash and
+decomposition gates for every request. Replay elapsed time was 189.8485 s.
+All four services exited normally and the owned GPU/cgroup scopes were
+released. Compact provenance is in
+`paper_results/ieee_tc/p2_backend_qualification/d212_vllm_7b_seed42_q100_static_fixed_attempt3.json`.
+
+Paper-evidence interpretation: this closes the ordinary-vLLM measurement
+qualification precondition, but it is not a Resident reference, warm-SLO
+sample, G1/G2 budget, or performance comparison. The next action is a
+read-only semantic audit and then the required complete Resident reference
+runs, with common delivery and strict 4000-request acceptance. No figure is
+generated for this short qualification; a status record is the appropriate
+artifact.
+
 ## CURRENT — D212 vLLM fixed-output path CPU QUALIFIED; Resident replay still pending
 
 2026-10-04 03:47+08. Goal ACTIVE/current turn PROGRESS. Before any comparison,
