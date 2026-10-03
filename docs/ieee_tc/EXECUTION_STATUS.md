@@ -1,5 +1,34 @@
 # IEEE TC execution status
 
+## CURRENT — D212 vLLM fixed-output path CPU QUALIFIED; Resident replay still pending
+
+2026-10-04 03:47+08. Goal ACTIVE/current turn PROGRESS. Before any comparison,
+the full Plan, this status file and METRIC_PROTOCOL_FROZEN_V1 were reread.
+D212 audited the ordinary vLLM runner after the D211 Resident candidate was
+rejected for retaining `faaslora_full`/`ieee_confirmed` semantics. The old
+runner did not propagate `fixed_length_greedy_v1` to replay and the replay
+client had no vLLM-native token-ID source. No GPU, remote service, model,
+trace, adapter or paper result was changed in this checkpoint.
+
+Baseline-harness commit
+`a98ee47d174e5830d1b08da56ad8b10c4e23a671` was pushed to its `origin/main`.
+It adds vLLM `return_token_ids=true`, `vllm_token_ids` validation, explicit
+generation-contract propagation, and the empty-text/native-ID observation
+fix. The pre-existing dirty Serverless changes in that repository remain
+unstaged and untouched. CPU-scoped tests passed: fixed-contract 9/9 and
+runner/config 23/23; syntax, shell and diff checks passed. A fixed-contract
+dry-run with the existing W0 trace confirmed the 256-output/759-prompt caps
+and contract reached the vLLM launch/replay specification; it is not a
+performance run.
+
+Paper-evidence interpretation: D212 repairs a measurement precondition for a
+future vLLM comparison. It does not qualify ordinary vLLM Resident, establish
+numeric adapter correctness, freeze warm SLO or budget references, or compare
+PrimeLoRA with vLLM. Next construct and read-only-audit the ordinary vLLM path
+without Prime control semantics, then run the short qualification replay before
+the required three complete Resident runs. See
+`docs/ieee_tc/D212_VLLM_FIXED_OUTPUT_PATH_AUDIT.md`.
+
 ## CURRENT — D211 Resident reference candidate rejected before formal use
 
 2026-10-04 03:12+08. Goal ACTIVE/current turn PROGRESS. A fixed-four-runtime
