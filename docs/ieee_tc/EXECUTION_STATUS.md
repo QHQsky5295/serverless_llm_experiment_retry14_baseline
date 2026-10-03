@@ -1,6 +1,61 @@
 # IEEE TC execution status
 
-## CURRENT — D196 retained-data diagnosis SEALED; backup next
+## CURRENT — D197 request GPU summary study SEALED; production change DEFERRED
+
+2026-10-03 16:43+08. Goal ACTIVE/current turn PROGRESS. Full Plan/status/V1 read
+after compaction and hashes unchanged. analyze-results, academic-plotting,
+run-experiment/github-sync followed; primary vLLM.30 manager/linear sources
+rechecked. No subagents/independent semantic-review claim. Runtime a0c4a9d and
+HEAD bac5f8f unchanged. Once-only D78/D80 delivery cache approval already fulfilled;
+not recreated, no remote operation/new GPU/serving/config/helper/test change.
+
+D197 reuses D169 retained four native graphs and current request-only consumer.
+Full fresh native inventory/physical/slot/alias checks remain upstream; explicit
+dtype summary removes descriptive GPU tables ONLY from test-only request payload.
+No cross-call cache; planner/activation/admission retain full tables. All11 source
+states/identities equal;66 timingrows/110 negativechecks/7 CPUfixturechecks PASS.
+Three alternating rounds x5calls; NOT seed CI or current D195 wire distribution.
+Byte reduction76.925–95.274%; ten component differences .557–.636ms, last1.146ms.
+Timing includes summary validation/msgpack roundtrip/consumer, NOT native inventory,
+vLLM framing/IPC queueing/CUDA/end-to-end. Cannot multiply by16806RPCs or subtract
+from D195routing519.378ms as measured saving. All outliers retained in11rowtable.
+Decision DEFER production candidate: component improvement insufficient evidence
+of main bottleneck; no speculative Full or another representation microstudy.
+
+Probe1 actual065b1237046748ceb6704bbbdabc097b/session33776 CLOSED1: selector
+assumed HOST present in snapshot0, which has only GPU. Original script/log/receipts
+preserved; no output JSON/CSV. Probe2 ONLY samples actual present tiers and records
+missing categories, no fabricated HOST or relaxed checks. actual3b923972d57949eb8f0c928dfbde4bac/
+session49336 CLOSED0,19.96s/RSS1155232KiB. Both3/4GiBswap0CPU2,3,26,27,
+events/swap0, actualscopeinactive/emptyidentity/pathabsence verified.
+ProbeSHA6e51c0f81cc8e931e7c01877378aa98099416ac696afad48124fee3146100cdc.
+
+Curation actual8250b6318a6149cdbe13bc042cf7858a/session34559 CLOSED0,
+same CPU envelope/events-swap0/scopeabsence verified. No failed curation.
+147protected/PlanV1/sourceSHA/11documentrows/AST-shell/diff checks PASS.
+CuratedSHA34b9bf5c64b831dd8e6bbbd5987618f1056d8b4c58d0b9a4db469dc89c18cef9.
+24member21081B bundleSHA27775c9d12b8581403f1cd9f421d68630587ed05678503f5a965c4c9f01ff02e.
+Doc D197_REQUEST_GPU_SUMMARY_STUDY.md/curated now SEALED; doNOTedit afterbinding.
+No liveGPU/remote/CPU/tooljobs; usermanifest/unrelatedwork untouched.
+
+NEXT exact7path backup, then return to D195/D196 request-advancement/control
+dependencies. ONE falsifiable bottleneck question from existing logs/code and
+official practice before any change; no new candidate selected. Actual7B numeric/
+128outputhashchanges/commonwarm/Resident/oldPrime-newmetrics/G1G2 OPEN before3B/
+baselines; all M1M2/A1–A5/S1–S13 retained. Disk160790265856B belowNEWheavy150GiB:
+auditedrecovery/freshgate beforeGPU/build, running100GiB/memoryfloors unchanged.
+
+## CURRENT — D196 retained-data diagnosis SEALED and BACKED
+
+Backup verified2026-10-03 16:20+08:
+bac5f8f0420100b690928a2c099d5e5ae7d8b7ee; pushsession37711 CLOSED0 and
+independent ls-remotesession28083 CLOSED0 match. Exact15paths/26staged+archive
+entries passed credential/scope checks; checksum, syntax, working/stageddiff
+checks PASS after lossless one-newline correction receipt. Usermanifest excluded.
+Final GPU census empty; no experiment scopes/toolhandles (unrelated podman untouched).
+Goal ACTIVE/current turn PROGRESS. Runtime unchanged, no new candidate selected.
+NEXT the bounded dependency investigation below; do not repeat D196/D195.
+Actual7B acceptance OPEN before3B/baselines; full later matrix and floors retained.
 
 2026-10-03 16:17+08. Goal ACTIVE/current turn PROGRESS (previous PROGRESS).
 Full Plan/status/V1 reread after compaction; hashes unchanged. analyze-results,
