@@ -15639,24 +15639,24 @@ class ScenarioRunner:
         from faaslora.experiment.instance_pool import NativeSourceSnapshot
         native_id = InferenceEngine._lora_int_id(adapter_id)
         async def observe_source():
-            # Same fresh native observation and full graph validation, in the
-            # dedicated frontend. This consumer needs source identity and its
-            # measured class, not the tensor/alias graph or staging inventory.
-            value = await engine.ieee_routing_sources()
+            # Source resolution consumes identities, not a service class or a
+            # capacity verdict. Keep the fresh serialized owner observation;
+            # actual demand loading separately checks the FULL physical budget
+            # before and after allocation. Do not duplicate that graph here.
+            value = await engine.ieee_source_identities()
             validate_snapshot(value)
             state = NativeSourceSnapshot.from_routing_wire(
                 value, expected_clock_id=clock_id, received_monotonic_s=time.monotonic())
             if reservation.slot is None or reservation.slot.engine is not engine:
                 raise ValueError('native source snapshot is not bound to the selected runtime')
-            reservation.slot.commit_native_sources(state)
+            reservation.slot.commit_native_source_identity(state)
             selected = next((source for source in state.sources
                              if source.adapter_int_id == native_id), None)
             if selected is not None and selected.adapter_id != adapter_id:
                 raise ValueError('native cached integer ID belongs to another adapter')
             compact = dict(value)
-            compact['selected_source_footprint'] = asdict(selected) if selected else None
-            compact['host_tensor_storage_bytes'] = state.host_tensor_storage_bytes
-            compact['gpu_pool_storage_bytes'] = state.gpu_pool_storage_bytes
+            compact['selected_source_identity'] = asdict(selected) if selected else None
+            compact['acquisition_observation_scope'] = 'native_identity_only_v1'
             return value, selected, compact
         guarded_source = selected_source
         if held_host_source is not None:

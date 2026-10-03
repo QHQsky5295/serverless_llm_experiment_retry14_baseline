@@ -157,3 +157,63 @@ class IdentityRecheck(unittest.TestCase):
             self.assertEqual(owner.snapshot()['live_leases'], 0)
         finally:
             case.doCleanups()
+
+
+class AcquisitionIdentityRecheck(unittest.TestCase):
+    """The fresh acquisition lookup cannot replace allocation or lifetime checks."""
+
+    def test_no_inventory_lookup_but_both_actual_budget_checks_remain(self):
+        runner, slot, trace, plan, owner, _ = lifecycle.native_reference_fixture()
+        checker = Mock(return_value={'admitted': True})
+        owner.host_allocation_check = checker
+        owner.configure_host_budget(expected_owner_id=owner.owner_id, tensor_budget_bytes=1024)
+        checker.reset_mock()
+        runner._begin_scaleup_runtime_request_labels.side_effect = ValueError('stop after copy')
+        result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+        self.assertEqual(checker.call_count, 2)
+        self.assertFalse(checker.call_args_list[0].kwargs['reuse'])
+        self.assertTrue(checker.call_args_list[1].kwargs['reuse'])
+        self.assertEqual(checker.call_args_list[0].kwargs['tensor_budget_bytes'], 1024)
+        self.assertIn('stop after copy', result.error)
+        slot.engine.ieee_routing_sources.assert_not_awaited()
+        self.assertEqual(slot.engine.ieee_source_identities.await_count, 2)
+        self.assertEqual(owner.snapshot()['live_leases'], 0)
+        self.assertEqual(result.gpu_reference_evidence['state'], 'released')
+
+    def test_allocation_budget_rejection_is_not_bypassed_by_identity_only_query(self):
+        runner, slot, trace, plan, owner, _ = lifecycle.native_reference_fixture()
+        checker = Mock(return_value={'admitted': True})
+        owner.host_allocation_check = checker
+        owner.configure_host_budget(expected_owner_id=owner.owner_id, tensor_budget_bytes=1024)
+        checker.reset_mock()
+        checker.return_value = {'admitted': False, 'reason': 'native_host_tensor_budget'}
+        loader = owner.demand_loader = Mock(wraps=owner.demand_loader)
+        result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+        self.assertFalse(result.success)
+        self.assertIn('HOST tensor budget', result.error)
+        checker.assert_called_once()
+        loader.assert_not_called()
+        slot.engine.generate_prepared.assert_not_awaited()
+        slot.engine.ieee_routing_sources.assert_not_awaited()
+        self.assertEqual(owner.snapshot()['live_leases'], 0)
+        self.assertEqual(slot.active_requests, 0)
+
+    def test_acquisition_recheck_rejects_foreign_clock_without_loading(self):
+        runner, slot, trace, plan, owner, rpc = lifecycle.native_reference_fixture()
+        calls = 0
+        async def wrong_clock(*, operation, **kwargs):
+            nonlocal calls
+            value = await rpc(operation=operation, **kwargs)
+            if operation == 'source_identity_snapshot':
+                calls += 1
+                if calls == 2:
+                    value['clock_id'] = 'foreign-clock'
+            return value
+        slot.engine.ieee_gpu_reference.side_effect = wrong_clock
+        result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+        self.assertFalse(result.success)
+        self.assertEqual(calls, 2)
+        self.assertFalse(any(c.kwargs['operation'] == 'demand_load_and_acquire'
+            for c in slot.engine.ieee_gpu_reference.await_args_list))
+        self.assertEqual(owner.snapshot()['live_leases'], 0)
+        self.assertEqual(slot.active_requests, 0)

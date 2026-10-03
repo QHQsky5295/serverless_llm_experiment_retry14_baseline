@@ -1,6 +1,71 @@
 # IEEE TC execution status
 
-## CURRENT — D208 isolated LoRA coordinate arithmetic QUALIFIED and SEALED
+## CURRENT — D209 acquisition identity CPU QUALIFIED and SEALED, backup pending
+
+2026-10-03 23:59+08. Goal ACTIVE/current turn PROGRESS. Full Plan/status/V1 read after compaction;
+optimize-for-gpu, vLLM+optimization reference, run-experiment, analyze-results and
+academic-plotting read. No subagents/GPU/remote operation. Published delivery cache
+permission fulfilled D78/D80, not regenerated. D208 COMPLETE, not repeated.
+
+One candidate only: `_acquire_runtime_gpu_reference.observe_source` consumes fresh
+identity/tier/epoch/path, not physical footprint. Reuse qualified identity-only
+endpoint and monotonic identity frontier. Original native demand transaction
+keeps before/after full HOST allocation checks, slot/copy guards and references;
+initial routing classes/planner/admission/config/formulas/SLO unchanged.
+Acquisition evidence explicitly identity-only; no invented 0 capacity.
+Official vLLM0.30 worker/model manager and CPU optimization docs checked;
+D178/D181/D202 histories distinguished. No immutable physical-descriptor cache
+implemented: consumer audit found this simpler redundant query. Runtime change
+confined to ONE runner method; native owner/worker/planner/admission unchanged.
+
+Raw results/ieee_tc/p2_backend_qualification/d209_20261003. All CPU3/4GiBswap0/
+CPUs2,3,26,27; terminal events/swap0, actual units/paths absent:
+- tests1 session79687 CLOSED1/id3cfeefd1977746bd94f4dc1b8a7df4c8:
+  222tests/1error, old fixture native_source_state.owner_id now identity-only.
+- tests2 session83761 CLOSED1: same222/1error, next old .sources assertion;
+  both corrected to explicit identity record, production candidate unchanged.
+- tests3 session2940 CLOSED0:222PASS2.862s, including3new budget/clock checks.
+- regression1 tmux ENDED/id36b025de7b0c4809b4d402b30a112882:
+  1144PASS157.105s, peak2050699264B; tests overlap, not independent repeats.
+- probe1 session60898 CLOSED0/id312059a7ac2c4147b00c1b2767e236a4:
+  exact-parent five-source pairs/10records PASS; D20334MBprojection reused.
+- curate1 session27710 CLOSED0/id85a9f923ea1b4c7e9430c2b2228acf44:
+  147protected/PlanV1/unchanged-runtime AST/sourceSHA/syntax/shell PASS.
+Failure/source snapshots retained. No GPU/inference/remote operation or live
+tool sessions/scopes/tmux. No hardware/profile/config/threshold changes.
+
+GPU/HOST component paths unchanged. HOSTfile/NVMe/Remote fullgraph1->0,
+identity1->2, initial targetgraph1->1 and totalfreshreads3->3. Each1demand
+transaction, same tier/holds/releases, no remaining references. D203 source
+populations:GPU1189/nativeHOST1766/HOSTfile36/NVMe873/Remote136. Lastthree1045/
+4000=26.125%; population coverage, NOT actualRPCcounts or latency attribution.
+
+Doc D209_ACQUISITION_IDENTITY.md SEALED35cec3282f9d6c972288d74ee44d1c7d015f198e00b2ba185f00778206476415;
+curated8946a278312da1d2e9a20878ed9f92432cd81d14017702d3b14a1c76ed08985d;
+60member2721576B evidencebundlea21feb4e99b370fafbc96d058d91554a8685a574a560cc10b433217e175b6d0c.
+Qualification table delivered; no GPU timing gain/CI claimed. DoNOTedit sealed
+doc/results. github-sync read. NEXT exact10path scoped checked backup, then
+ONE ordinary7B4000Full same D203/D157cap4config/profile, freshownedpaths,
+diagnostic observers OFF, current source/Plan/V1 identity. Reuse D203 launch/
+preflight/remote/cleanup/analysis. Lastdisk162226733056B, fresh gate beforeheavy.
+No repeat D207/D208/D209 or additional optimizer before ordinary validation.
+7B numeric/output differences/commonreference/old-newG1G2 remain OPEN, then3B,
+thenbaselines; allM1M2/A1–A5/S1–S13 retained. No additional optimization stack.
+
+## Previous checkpoint — D208 isolated LoRA coordinate arithmetic QUALIFIED, SEALED and BACKED
+
+Backup verified2026-10-03 23:34+08:
+a19365ef15f9d03885d1981b2e28c4fbbc445955. Push69434 CLOSED0; independent
+ls-remote44602 CLOSED0 exactmatch.7explicitfiles/31staged+archive entries
+scope/secretsPASS; diff/checksum/syntax/GPUqualification PASS; usermanifest
+excluded. No stagedfiles, GPUcompute, experiment scopes/tmux or tool sessions;
+remote remains stopped/untouched. Curate actuala835f487f84e4ccba3f5280586eb8812
+scope/path absent, events/swap0. Lastdisk162263064576B, freshgate before heavy.
+Curated bca88d6cdd8555632175f891f8b176428247be49a4c65c63b15782b1a1434451;
+doc e1b92d06c65c35322e24d2e51118cc2717e6a5aa85e0fbe8165ed724604057fd.
+D208 DONE; doNOTrepeatprobe/curation/backup. NEXT remaining full-request
+correctness/output-difference + common-reference/old-newPrime G1G2, as below.
+Goal ACTIVE, no model acceptance or mainmatrix completion.
 
 2026-10-03 23:31+08. Goal ACTIVE/current turn PROGRESS. Full Plan/status/V1
 read after compaction; grouped output truncation repaired by separate fullread.

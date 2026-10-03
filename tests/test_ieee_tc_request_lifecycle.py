@@ -879,9 +879,9 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
                 result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
                 self.assertTrue(result.success, result.error)
                 self.assertEqual(result.readiness_tier_before_dispatch, tier)
-                self.assertEqual(len(projected_epochs), 1 if tier in ('gpu', 'host') else 2)
+                self.assertEqual(len(projected_epochs), 1)
                 self.assertEqual(slot.engine.ieee_source_identities.await_count,
-                                 0 if tier in ('gpu', 'host') else 1)
+                                 0 if tier in ('gpu', 'host') else 2)
                 if tier == 'host':
                     evidence = result.gpu_reference_evidence['snapshot_before_acquisition']
                     self.assertEqual(evidence['kind'], 'held_native_host_source_v1')
@@ -892,7 +892,10 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
                     self.assertEqual(evidence['kind'], 'native_lora_routing_sources_v1')
                     self.assertNotIn('native_footprints', evidence)
                     self.assertNotIn('native_staging_footprints', evidence)
-                    self.assertEqual(evidence['gpu_pool_storage_bytes'], 2048)
+                    self.assertEqual(evidence['acquisition_observation_scope'], 'native_identity_only_v1')
+                    self.assertNotIn('host_tensor_storage_bytes', evidence)
+                    self.assertNotIn('gpu_pool_storage_bytes', evidence)
+                    self.assertEqual(slot.native_source_state.gpu_pool_storage_bytes, 2048)
                 self.assertEqual(slot.active_requests, 0)
                 self.assertEqual(owner.snapshot()['live_leases'], 0)
                 self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
@@ -972,13 +975,14 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
         self.assertEqual(attempts[1]['required_source_tier'], 'gpu')
         self.assertNotIn('expected_source_id', attempts[1])
         self.assertEqual(slot.engine.ieee_request_sources.await_count, 1)
-        self.assertEqual(slot.engine.ieee_routing_sources.await_count, 1)
+        slot.engine.ieee_routing_sources.assert_not_awaited()
+        self.assertEqual(slot.engine.ieee_source_identities.await_count, 1)
         self.assertEqual(result.readiness_tier_before_dispatch, 'host')
         self.assertEqual(result.gpu_reference_evidence['stale_rechecks'], 1)
         self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
         self.assertEqual(owner.snapshot()['live_leases'], 0)
 
-    def test_host_conflict_reobservation_still_validates_full_graph(self):
+    def test_host_conflict_reobservation_still_validates_native_identity(self):
         runner, slot, trace, plan, owner, observed = self.build('host')
         calls = 0
         async def corrupt(*, operation, **kwargs):
@@ -987,11 +991,11 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
                 calls += 1
                 self.promote_held_host(owner, kwargs)
             value = await observed(operation=operation, **kwargs)
-            if operation == 'routing_source_snapshot' and calls:
-                value['native_footprints']['host_adapter_footprints'][0]['exclusive_storage_bytes'] = 0
+            if operation == 'source_identity_snapshot' and calls:
+                value['sources'][0]['rank'] = 0
             return value
         slot.engine.ieee_gpu_reference.side_effect = corrupt
-        with self.assertRaisesRegex(ValueError, 'exclusive capacity'):
+        with self.assertRaisesRegex(ValueError, 'identity/rank'):
             asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
         self.assertEqual(calls, 1)  # Explicit no-acquisition conflict, no second native load.
         slot.engine.generate_prepared.assert_not_awaited()
@@ -3284,7 +3288,7 @@ class ControllerNativeReferenceLifecycle(unittest.TestCase):
             runner._resolve_lora.return_value = ('adapter-a', str(source), 1., 'nvme', 0., 0.)
             snapshots = []
             async def fail_after_file_resolution(*, operation, **kwargs):
-                if operation == 'routing_source_snapshot':
+                if operation == 'source_identity_snapshot':
                     snapshots.append(operation)
                     if len(snapshots) == 2:
                         raise RuntimeError('snapshot unavailable')
@@ -3326,7 +3330,7 @@ class ControllerNativeReferenceLifecycle(unittest.TestCase):
                              ['logical_file_bytes'], len(b'tiny-test-fixture'))
             self.assertEqual(owner.snapshot()['live_leases'], 0)
 
-    def test_measured_footprints_reach_request_without_duplicating_tensor_inventory(self):
+    def test_acquisition_identity_does_not_invent_unmeasured_footprints(self):
         runner, slot, trace, plan, owner, rpc = native_reference_fixture()
         runner._begin_scaleup_runtime_request_labels.side_effect = ValueError('pre-generation stop')
         async def measured(*, operation, **kwargs):
@@ -3344,10 +3348,12 @@ class ControllerNativeReferenceLifecycle(unittest.TestCase):
         result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
         snapshot = result.gpu_reference_evidence['snapshot_before_acquisition']
         self.assertNotIn('native_footprints', snapshot)
-        self.assertIsNone(snapshot['selected_source_footprint'])  # Correctly cold before this load.
-        self.assertEqual(snapshot['host_tensor_storage_bytes'], 0)
-        self.assertEqual(snapshot['gpu_pool_storage_bytes'], 64)
-        self.assertEqual(slot.native_source_state.gpu_pool_storage_bytes, 64)
+        self.assertIsNone(snapshot['selected_source_identity'])  # Correctly cold before this load.
+        self.assertNotIn('host_tensor_storage_bytes', snapshot)
+        self.assertNotIn('gpu_pool_storage_bytes', snapshot)
+        self.assertIsNone(slot.native_source_state)
+        self.assertIsNotNone(slot.native_source_identity_state)
+        slot.engine.ieee_routing_sources.assert_not_awaited()
         self.assertEqual(result.gpu_reference_evidence['state'], 'released')
 
     def test_actual_runner_acquires_before_generation_and_releases_after_terminal(self):
@@ -3376,8 +3382,9 @@ class ControllerNativeReferenceLifecycle(unittest.TestCase):
         self.assertEqual(result.gpu_reference_evidence['state'], 'released')
         self.assertFalse(result.gpu_reference_evidence['confirmed_dispatch_snapshot'])
         self.assertFalse(result.gpu_reference_evidence['receipt']['gpu_resident_before_load'])
-        self.assertEqual(slot.native_source_state.owner_id, owner.owner_id)
-        self.assertFalse(slot.native_source_state.sources)  # Captured before this cold load.
+        self.assertEqual(slot.native_source_identity_state.owner_id, owner.owner_id)
+        self.assertIsNone(slot.native_source_state)  # No routing/class measurement in this fixture.
+        self.assertFalse(slot.native_source_identity_state.sources)  # Captured before this cold load.
 
     def test_cancel_during_acquire_retains_unknown_native_ownership(self):
         runner, slot, trace, plan, owner, rpc = native_reference_fixture()
@@ -3428,7 +3435,7 @@ class ControllerNativeReferenceLifecycle(unittest.TestCase):
     def test_worker_conflict_does_not_load_or_generate_or_claim_an_unknown_lease(self):
         runner, slot, trace, plan, owner, rpc = native_reference_fixture()
         async def reject(*, operation, **kwargs):
-            if operation == 'routing_source_snapshot':
+            if operation == 'source_identity_snapshot':
                 return await rpc(operation=operation)
             snapshot = await rpc(operation='snapshot')
             return snapshot if operation == 'snapshot' else {
