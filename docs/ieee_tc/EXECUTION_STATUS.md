@@ -5,7 +5,9 @@
 2026-10-04 01:46+08. Goal ACTIVE/current turn PROGRESS. D210 completed and
 closed; do NOT repeat this replay or add another optimizer before the next
 acceptance evidence. Full Plan/status/V1 reread; analyze-results and
-academic-plotting read. No baselines/3B started.
+academic-plotting read. No baselines/3B started. The D210 checkpoint is
+committed and pushed at `2f366779b8a8388a550b5f03e088187ff1da294b`, with the
+user's manifest modification and unrelated dirty paths excluded.
 
 D210 ordinary same-config 7B W0 replay (D209 candidate, current HEAD
 be7c2951a64d7f381eb0a4345f5701561dcf3549) completed 4000/4000 terminal,
@@ -36,9 +38,9 @@ previously qualified 192MiB bounded path, original 498984004B outcome remains.
 This is observation/contract evidence, not formal G1/G2 acceptance: numerical
 adapter correctness, common warm SLO thresholds, Resident GPU budget reference,
 and paired multi-block evidence remain open. P95 TPOT trade-off is retained.
-NEXT: verify/backup this D210 evidence, then perform the necessary 7B common
-warm/Resident reference and correctness acceptance work before 3B or baselines;
-do not declare the model accepted from this single improvement.
+NEXT: perform the necessary 7B common warm/Resident reference and correctness
+acceptance work before 3B or baselines; do not declare the model accepted from
+this single improvement.
 
 ### D210 live/replay history (superseded by COMPLETE above)
 
