@@ -1,6 +1,68 @@
 # IEEE TC execution status
 
-## CURRENT — D201 native-wait association COMPLETE and SEALED
+## CURRENT — D202 physical HOST representation CPU QUALIFIED and SEALED
+
+2026-10-03 18:59+08. Goal ACTIVE/current turn PROGRESS. Full Plan/status/V1
+read; Plan/status reread before qualification (one grouped output truncated,
+missing span then reread in bounded chunks). Plan/V1 hashes unchanged.
+optimize-for-gpu, vLLM+optimization reference, run-experiment, analyze-results,
+academic-plotting and github-sync fully read; no subagents. User once-only
+delivery cache authorization already fulfilled D78/D80, not recreated; no
+remote operation or GPU replay this turn. Parent5fadd45fb6a8be47c7a6e39ed65d8b1f4f2ecc4d.
+
+ONE candidate: five physical HOST consumer calls use existing graph-only
+projection. All current storage/alias/dtype/pinning/staged/allocator checks,
+GPU pool_tensor_views, owner, admission, equations, config and return isolation
+retained; isolated worker observation/default helper full detail unchanged.
+Official vLLM0.30 UniProc/model manager/CPU optimization read; D144/D174/D194
+history and direct dynamic consumers audited. No stale cache/extra concurrency/
+timeout change. Runtime change only gpu_monitor.ieee_gpu_reference plus helper
+documentation; other runtime AST and owner/planner/admission source unchanged.
+
+Rawresults/ieee_tc/p2_backend_qualification/d202_20261003. AllCPU3/4GiBswap0,
+CPUs2,3,26,27; terminal events/swap0, scopes+paths absent/GPUempty:
+- tests1 79run/2fail1error, session95372 CLOSED1,
+  actualc8f34f31684140e988af5708199d6640. New fixture missed configure call and
+  valid same-observation length state; tests corrected only, runtime unchanged.
+- tests2 79PASS .047s, session27662 CLOSED0,
+  actual7cc5a12ca100432fa248b6e58cca017f.
+- regression1 1122PASS156.731s, tmux ended,
+  actual1a24cf33f08e4995aa845074942a9113; peak2052943872B. Groups overlap.
+- probe1 fixture namespace error before measurements, session38069 CLOSED1,
+  actuala807c3ac302d4df9b0a0aa7a47d9f6db. Exact parent globals lacked mocked GPU
+  pool observer. Original script retained; probe2 explicitly shares fixture.
+- probe2 PASS, session74384 CLOSED0, actuald286e5a9132f4d878dfc5302e137a3f1.
+- curate1 PASS, session84672 CLOSED0, actuale750606de0dd484b9793150f7097b7e9.
+All failure/source snapshots retained. No production safety check weakened.
+
+7exact-parent extension tinyCPU cases preserve all other fields/errors;
+same pinningcounts6(nonempty)/14(stagedalias), description queries0. Four retained
+D169 physical snapshots exact NativeSourceSnapshot/allocator equal. JSONbefore/
+after1388807/550023,2025691/766427,3301339/1199835,3936172/1415212B.
+HOSTonly deepcopy ms26.140382/9.928758,75.266975/14.411368,
+96.688978/60.121510,111.970420/30.927552; all24blocktimings preserved.
+CPU Torch2.8/three alternating blocks ten copies each, not CUDA/RPC/wallrequest,
+no n3workload CI/performance acceptance. Retained-state source SHA verified.
+Doc D202_PHYSICAL_HOST_REPRESENTATION.md + table SEALED;147protectedPASS.
+Curated0590051fcffff3eaaed25eb107789a95a51923d49db6deccbcb909ffbb3296ae;
+62member1017908B bundleb42256a2ab62dd9a266dc5e2ffc962b9943a2ce9fa783c7a323a56d024007f31.
+Lastdisk161210089472B (~150.14GiB), freshgate before newheavy. No cleanup/install.
+
+NEXT exact scoped tested backup, then ONE ordinary7B4000Full same D195/D157cap4
+config/protocol/profile, fresh owned dirs, diagnostic observer OFF. No repeat
+D200/D201 or another optimizer. Follow existing ordinary launcher/prelaunch/
+cleanup/analysis/table. Numeric correctness/128hashchanges/commonwarm/Resident/
+old-newG1G2 still OPEN. 7Bacceptance→3B→baselines; allM1M2/A1–A5/S1–S13retained.
+
+## Previous checkpoint — D201 native-wait association COMPLETE, SEALED and BACKED
+
+Backup verified2026-10-03 18:35+08:5fadd45fb6a8be47c7a6e39ed65d8b1f4f2ecc4d.
+Push58926 CLOSED0; independent ls-remote34944 CLOSED0 exactmatch.8explicitpaths/
+19staged+archiveentries passed scope/secret checks; checksum/diffPASS. No
+serving edits; CPU intervalfixtures and actual retained-data analysis passed.
+Usermanifest/unrelated files excluded. Both analysispaths absent/GPUempty;
+no live tool sessions/remote service. NEXT one audited physical-HOST
+representation candidate below; no need to repeat D200/D201 or backup them.
 
 2026-10-03 18:33+08. Goal ACTIVE/current turn PROGRESS. Full Plan/status/V1
 reread; unchanged. analyze-results/run-experiment/academic-plotting/vLLM/

@@ -1,7 +1,7 @@
 """Native observation wiring and storage accounting; fake tensors, no CUDA work."""
 import asyncio
 import os
-from contextlib import nullcontext
+from contextlib import contextmanager, nullcontext
 from types import SimpleNamespace
 import unittest
 from unittest.mock import AsyncMock, Mock, patch
@@ -375,6 +375,138 @@ class NativeHostRoutingProjection(unittest.TestCase):
         for invalid in (None, 0, 1, 'false'):
             with self.subTest(value=invalid), self.assertRaisesRegex(ValueError, 'explicit boolean'):
                 monitor._ieee_lora_host_inventory(native, include_tensor_views=invalid)
+
+
+class NativeHostPhysicalProjection(unittest.TestCase):
+    """Actual extension/CPU inventory path; CUDA and native owner are separate fixtures."""
+    def setUp(self):
+        self.native, self.models = NativeHostFootprint().native_models()
+        self.staged = {}
+        self.owner = SimpleNamespace(manager=self.native,
+            source_snapshot=Mock(side_effect=lambda: {'owner_id': 'fixture-owner', 'epoch': 3}),
+            staged_models=lambda: dict(self.staged))
+        self.worker = monitor.IEEEWorkerObservationExtension()
+        self.worker.device, self.worker.rank = SimpleNamespace(type='cuda'), 0
+        self.worker.model_runner = SimpleNamespace(lora_manager=SimpleNamespace(_adapter_manager=self.native))
+        self.worker._ieee_gpu_reference_owner = self.owner
+        self.worker._ieee_host_allocator_policy = {'verified': False}
+        self.pool = dict(uniform_slot_layout=True, slot_adapter_ids=[7, None],
+            registered_cpu_adapter_ids=[7, 8], slot_capacity_bytes=32, pool_allocated_bytes=64,
+            pool_tensor_views=[{'dtype': 'torch.float16'}])
+        self.stats = {'allocated_bytes.current': 1024, 'active_bytes.current': 256,
+                      'allocations.current': 4, 'active_requests.current': 1}
+
+    @contextmanager
+    def observations(self):
+        import torch
+        with patch.object(torch.cuda, 'get_device_properties', return_value=SimpleNamespace(
+                uuid=SimpleNamespace(bytes=list(range(16))))), \
+             patch.object(torch.cuda, 'host_memory_stats', return_value=self.stats, create=True) as allocator, \
+             patch.object(monitor, '_ieee_lora_pool_inventory', return_value=self.pool):
+            yield allocator
+
+    def snapshot(self):
+        return self.worker.ieee_gpu_reference(operation='source_snapshot')
+
+    def test_physical_snapshot_preserves_graph_allocator_and_independent_returns(self):
+        from faaslora.experiment.instance_pool import NativeSourceSnapshot
+        full = monitor._ieee_lora_host_inventory(self.native)
+        graph = {k: v for k, v in full.items() if k != 'host_tensor_views'}
+        with self.observations() as allocator:
+            expected_allocator = monitor._ieee_pinned_host_observation(full)
+            allocator.reset_mock()
+            result = self.snapshot()
+            allocator.assert_called_once_with()
+        self.assertEqual(result['native_footprints'], {**graph, **self.pool})
+        self.assertEqual(result['native_staging_footprints'], graph)
+        self.assertEqual(result['native_host_allocator'], expected_allocator)
+        self.assertEqual(NativeSourceSnapshot._footprints(result['native_footprints'], (7, None), (7, 8)),
+                         NativeSourceSnapshot._footprints({**full, **self.pool}, (7, None), (7, 8)))
+        result['native_staging_footprints']['host_allocations'][0]['adapter_ids'].append(99)
+        self.assertNotIn(99, result['native_footprints']['host_allocations'][0]['adapter_ids'])
+        self.assertEqual(result['owner_id'], 'fixture-owner')
+        self.assertEqual(result['epoch'], 3)
+        self.owner.source_snapshot.assert_called_once_with()
+
+    def test_staged_alias_and_allocator_retention_remain_charged(self):
+        self.staged[9] = SimpleNamespace(id=9, rank=4, loras=self.models[8].loras)
+        full = monitor._ieee_lora_host_inventory(self.native, staged_models=self.staged)
+        with self.observations():
+            result = self.snapshot()
+            self.assertEqual(result['native_host_allocator'], monitor._ieee_pinned_host_observation(full))
+        self.assertEqual(result['native_staging_footprints'],
+                         {k: v for k, v in full.items() if k != 'host_tensor_views'})
+        self.assertEqual(result['native_staging_footprints']['host_tensor_storage_bytes'], 768)
+        self.assertEqual(result['native_host_allocator']['registered_exclusive_storage_bytes'], 256)
+        self.assertEqual(result['native_host_allocator']['pinned_cached_bytes'], 768)
+        self.assertEqual(result['native_host_allocator']['accounted_tensor_bytes'], 1792)
+        self.assertNotIn(9, result['native_footprints']['host_allocations'][0]['adapter_ids'])
+
+    def test_physical_path_omits_description_queries_but_reobserves_pinning_and_changes(self):
+        import torch
+        original, queries = torch.Tensor.is_pinned, []
+        def pinned(tensor):
+            queries.append(id(tensor))
+            return original(tensor)
+        with self.observations() as allocator, \
+             patch.object(torch.Tensor, 'is_pinned', pinned), \
+             patch.object(torch.Tensor, 'stride', side_effect=AssertionError('unused stride')), \
+             patch.object(torch.Tensor, 'element_size', side_effect=AssertionError('unused view bytes')), \
+             patch.object(torch.Tensor, 'storage_offset', side_effect=AssertionError('unused offset')):
+            first = self.snapshot()
+            self.models[7].loras['private'].lora_a = torch.empty((4, 32), dtype=torch.float32)
+            second = self.snapshot()
+            del self.models[7]
+            third = self.snapshot()
+            self.assertEqual(allocator.call_count, 3)
+        self.assertEqual(len(queries), 14)  # 6 + 6 + 2, no duplicate/stale pinning.
+        self.assertEqual([r['native_footprints']['host_tensor_storage_bytes'] for r in (first, second, third)],
+                         [768, 1152, 512])
+        self.assertEqual(second['native_footprints']['host_adapter_footprints'][0]['dtypes'],
+                         ['torch.float16', 'torch.float32'])
+
+    def test_physical_path_rejects_bad_alias_extra_tensor_and_duplicate_stage(self):
+        import torch
+        conflict = self.models[7].loras['shared'].lora_b
+        with self.observations(), patch.object(torch.Tensor, 'is_pinned', lambda t: t is conflict):
+            with self.assertRaisesRegex(ValueError, 'inconsistent capacity/pinning'):
+                self.snapshot()
+        self.models[8].loras['shared'].extra = torch.empty(1)
+        with self.observations(), self.assertRaisesRegex(ValueError, 'unsupported.*extra'):
+            self.snapshot()
+        del self.models[8].loras['shared'].extra
+        self.staged[8] = self.models[8]
+        with self.observations(), self.assertRaisesRegex(ValueError, 'staged and registered'):
+            self.snapshot()
+
+    def test_replacement_callback_uses_same_fresh_graph_for_both_objectives(self):
+        from faaslora.metrics.metrics_collector import local_monotonic_clock_id
+        from faaslora.preloading import preloading_planner
+        from faaslora.scheduling.resource_coordinator import CompletedLengthSnapshot
+        expected = monitor._ieee_lora_host_inventory(self.native, include_tensor_views=False) | self.pool
+        objective = {'kind': 'ieee_owned_gpu_objective_v2'}
+        fallbacks = {'fixture': 'held'}
+        def execute(**kwargs):
+            self.assertEqual(kwargs['protected_adapter_ids'], (7,))
+            gpu, host = kwargs['replacement_cost_provider']()
+            return {'gpu_costs': gpu, 'host_costs': host}
+        self.owner.proactive_host_prepare_and_acquire = execute
+        observation = dict(scheduler_pid=os.getpid(), clock_id=local_monotonic_clock_id(), captured_at=1.,
+            kind='ieee_native_scheduler_observation_v1', admitted=[{'native_adapter_int_id': 7}],
+            adapter_transfers=dict(transfer_scope='replica_owned_file_preparation_and_serialized_native_v1',
+                                  active_transfers=0, active_transfer_ids=[]))
+        with self.observations(), \
+             patch.object(preloading_planner, 'native_gpu_fallback_costs', return_value={7: 1.}) as gpu, \
+             patch.object(preloading_planner, 'native_host_replacement_costs', return_value={7: 2.}) as host:
+            result = self.worker.ieee_gpu_reference(operation='proactive_host_prepare_and_acquire',
+                scheduler_observation=observation,
+                lengths=CompletedLengthSnapshot('fixture-model', 'fixture-profile', 1., {0: 8.}),
+                replacement_epoch=objective,
+                host_file_fallbacks=fallbacks)
+        gpu.assert_called_once_with(objective=objective, native_inventory=expected)
+        host.assert_called_once_with(objective=objective, native_inventory=expected, file_fallbacks=fallbacks)
+        self.assertEqual(result['gpu_costs'], {7: 1.})
+        self.assertEqual(result['host_costs'], {7: 2.})
 
 
 class NativePinnedHostAccounting(unittest.TestCase):

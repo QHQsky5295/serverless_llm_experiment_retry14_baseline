@@ -50,8 +50,9 @@ def _ieee_lora_host_inventory(manager: Any, *, staged_models=None,
     numel with the backing storage. This excludes allocator overhead, staging,
     tmpfs files and page cache; it is not process RSS or a HOST-budget lease.
 
-    Routing consumes the complete storage/alias graph but not the descriptive
-    tensor-view table. Its projection still visits and validates EVERY current
+    Runtime consumers use the complete storage/alias graph, not the descriptive
+    tensor-view table retained for isolated qualification. The projection still
+    visits and validates EVERY current
     tensor; it neither caches a previous inventory nor relocates frontend graph
     validation into the serialized GPU execution loop.
 
@@ -737,7 +738,8 @@ class IEEEWorkerObservationExtension:
                         or any(name.endswith('.experts') for name in manager.modules)):
                     raise RuntimeError('CPU-only preparation requires the qualified dense vLLM0.30/torch2.13 loader')
                 before = _ieee_pinned_host_observation(_ieee_lora_host_inventory(manager,
-                    staged_models=self._ieee_gpu_reference_owner.staged_models()))
+                    staged_models=self._ieee_gpu_reference_owner.staged_models(),
+                    include_tensor_views=False))
                 if not before['available']:
                     raise RuntimeError('native CPU-only preparation lacks allocator occupancy')
                 if reuse:
@@ -790,7 +792,7 @@ class IEEEWorkerObservationExtension:
                         raise ValueError('unregistered native staging cannot reuse a CPU entry')
                     staged = {**staged, adapter_int_id: loaded}
                 after = _ieee_pinned_host_observation(_ieee_lora_host_inventory(manager,
-                    staged_models=staged))
+                    staged_models=staged, include_tensor_views=False))
                 if not after['available'] or after['accounted_tensor_bytes'] > tensor_budget_bytes:
                     raise RuntimeError('CPU-only preparation exceeded its accounted tensor sub-budget')
                 return {**check, 'after': after, **({'_staged_model': loaded} if not register else {})}
@@ -837,7 +839,7 @@ class IEEEWorkerObservationExtension:
                 def replacement_cost_provider():
                     from faaslora.preloading.preloading_planner import (
                         native_gpu_fallback_costs, native_host_replacement_costs)
-                    inventory = {**_ieee_lora_host_inventory(manager),
+                    inventory = {**_ieee_lora_host_inventory(manager, include_tensor_views=False),
                                  **_ieee_lora_pool_inventory(manager, require_uniform_slots=True)}
                     gpu_costs = native_gpu_fallback_costs(objective=objective, native_inventory=inventory)
                     host_costs = (native_host_replacement_costs(objective=objective,
@@ -923,9 +925,10 @@ class IEEEWorkerObservationExtension:
         if operation in ('source_snapshot', 'routing_source_snapshot'):
             # Same serialized owner invocation: neither source identity nor
             # cache membership can change between these two read-only views.
-            host = (_ieee_lora_host_inventory(manager, include_tensor_views=False)
-                    if operation == 'routing_source_snapshot'
-                    else _ieee_lora_host_inventory(manager))
+            # Physical consumers also use allocations/edges/dtypes, not HOST
+            # view descriptions. Keep the full fresh graph and all checks;
+            # the isolated worker-observation endpoint retains tensor details.
+            host = _ieee_lora_host_inventory(manager, include_tensor_views=False)
             result['native_footprints'] = {
                 **host,
                 **_ieee_lora_pool_inventory(manager, require_uniform_slots=True)}
@@ -936,7 +939,7 @@ class IEEEWorkerObservationExtension:
                 staged = owner.staged_models()
                 # This reuse is within one observation, never across calls.
                 result['native_staging_footprints'] = (
-                    _ieee_lora_host_inventory(manager, staged_models=staged)
+                    _ieee_lora_host_inventory(manager, staged_models=staged, include_tensor_views=False)
                     if staged else copy.deepcopy(host))
                 result['native_host_allocator'] = _ieee_pinned_host_observation(result['native_staging_footprints'])
         if operation in ('source_snapshot', 'routing_source_snapshot', 'source_identity_snapshot',

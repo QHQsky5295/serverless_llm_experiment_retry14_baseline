@@ -1,0 +1,521 @@
+{
+  "kind": "d202_physical_host_projection_qualification_v1",
+  "parent": "5fadd45fb6a8be47c7a6e39ed65d8b1f4f2ecc4d",
+  "status": "cpu_qualified_ordinary_full_pending",
+  "tests": [
+    {
+      "phase": "tests1",
+      "tests": 79,
+      "status": "FAILED_fixture_corrected",
+      "test_body_seconds": 0.051,
+      "invocation_id": "c8f34f31684140e988af5708199d6640",
+      "scope_absent": true,
+      "memory_events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0"
+      },
+      "memory_peak_bytes": 645042176,
+      "swap_bytes": 0
+    },
+    {
+      "phase": "tests2",
+      "tests": 79,
+      "status": "PASS",
+      "test_body_seconds": 0.047,
+      "invocation_id": "7cc5a12ca100432fa248b6e58cca017f",
+      "scope_absent": true,
+      "memory_events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0"
+      },
+      "memory_peak_bytes": 645144576,
+      "swap_bytes": 0
+    },
+    {
+      "phase": "regression1",
+      "tests": 1122,
+      "status": "PASS",
+      "test_body_seconds": 156.731,
+      "invocation_id": "1a24cf33f08e4995aa845074942a9113",
+      "scope_absent": true,
+      "memory_events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0"
+      },
+      "memory_peak_bytes": 2052943872,
+      "swap_bytes": 0
+    },
+    {
+      "phase": "probe1",
+      "tests": null,
+      "status": "FAILED_fixture_namespace_corrected",
+      "test_body_seconds": null,
+      "invocation_id": "a807c3ac302d4df9b0a0aa7a47d9f6db",
+      "scope_absent": true,
+      "memory_events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0"
+      },
+      "memory_peak_bytes": 670326784,
+      "swap_bytes": 0
+    },
+    {
+      "phase": "probe2",
+      "tests": null,
+      "status": "PASS",
+      "test_body_seconds": null,
+      "invocation_id": "d286e5a9132f4d878dfc5302e137a3f1",
+      "scope_absent": true,
+      "memory_events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0"
+      },
+      "memory_peak_bytes": 790769664,
+      "swap_bytes": 0
+    }
+  ],
+  "component": {
+    "kind": "d202_physical_host_projection_component_v1",
+    "parent_commit": "5fadd45fb6a8be47c7a6e39ed65d8b1f4f2ecc4d",
+    "original_monitor_sha256": "32d91de0cc0aef002a40d4d06d784eec6f676d82a7d32b2d93db8c3d294907e3",
+    "torch_version": "2.8.0+cu128",
+    "cases": [
+      {
+        "case": "shared",
+        "all_other_fields_or_error_equal": true,
+        "work_counts": {
+          "parent": {
+            "is_pinned": 6,
+            "stride": 6,
+            "element_size": 6,
+            "storage_offset": 6
+          },
+          "candidate": {
+            "is_pinned": 6,
+            "stride": 0,
+            "element_size": 0,
+            "storage_offset": 0
+          }
+        },
+        "expected_error": null
+      },
+      {
+        "case": "partial",
+        "all_other_fields_or_error_equal": true,
+        "work_counts": {
+          "parent": {
+            "is_pinned": 6,
+            "stride": 6,
+            "element_size": 6,
+            "storage_offset": 6
+          },
+          "candidate": {
+            "is_pinned": 6,
+            "stride": 0,
+            "element_size": 0,
+            "storage_offset": 0
+          }
+        },
+        "expected_error": null
+      },
+      {
+        "case": "packed",
+        "all_other_fields_or_error_equal": true,
+        "work_counts": {
+          "parent": {
+            "is_pinned": 6,
+            "stride": 6,
+            "element_size": 6,
+            "storage_offset": 6
+          },
+          "candidate": {
+            "is_pinned": 6,
+            "stride": 0,
+            "element_size": 0,
+            "storage_offset": 0
+          }
+        },
+        "expected_error": null
+      },
+      {
+        "case": "empty",
+        "all_other_fields_or_error_equal": true,
+        "work_counts": {
+          "parent": {
+            "is_pinned": 0,
+            "stride": 0,
+            "element_size": 0,
+            "storage_offset": 0
+          },
+          "candidate": {
+            "is_pinned": 0,
+            "stride": 0,
+            "element_size": 0,
+            "storage_offset": 0
+          }
+        },
+        "expected_error": null
+      },
+      {
+        "case": "staged_alias",
+        "all_other_fields_or_error_equal": true,
+        "work_counts": {
+          "parent": {
+            "is_pinned": 14,
+            "stride": 14,
+            "element_size": 14,
+            "storage_offset": 14
+          },
+          "candidate": {
+            "is_pinned": 14,
+            "stride": 0,
+            "element_size": 0,
+            "storage_offset": 0
+          }
+        },
+        "expected_error": null
+      },
+      {
+        "case": "unsupported_tensor",
+        "all_other_fields_or_error_equal": true,
+        "work_counts": {
+          "parent": {
+            "is_pinned": 2,
+            "stride": 2,
+            "element_size": 2,
+            "storage_offset": 2
+          },
+          "candidate": {
+            "is_pinned": 2,
+            "stride": 0,
+            "element_size": 0,
+            "storage_offset": 0
+          }
+        },
+        "expected_error": "unsupported native HOST tensor field: bias"
+      },
+      {
+        "case": "pinning_disagreement",
+        "all_other_fields_or_error_equal": true,
+        "work_counts": {
+          "parent": {
+            "is_pinned": 4,
+            "stride": 3,
+            "element_size": 3,
+            "storage_offset": 3
+          },
+          "candidate": {
+            "is_pinned": 4,
+            "stride": 0,
+            "element_size": 0,
+            "storage_offset": 0
+          }
+        },
+        "expected_error": "aliased native CPU storage has inconsistent capacity/pinning"
+      }
+    ],
+    "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d169_20261002/7b_probe1.json",
+    "source_sha256": "ead0c5c81acc52c502874e9d45cfba111665f875220e23467c2e716a0d770602",
+    "retained_snapshots": [
+      {
+        "snapshot": 0,
+        "registered_adapters": 8,
+        "host_views": 2048,
+        "json_bytes_before": 1388807,
+        "json_bytes_after": 550023,
+        "host_deepcopy_before_ms": 26.1403817,
+        "host_deepcopy_after_ms": 9.9287583,
+        "host_deepcopy_reduction_fraction": 0.620175465915251,
+        "exact_source_and_allocator_equal": true
+      },
+      {
+        "snapshot": 1,
+        "registered_adapters": 12,
+        "host_views": 3072,
+        "json_bytes_before": 2025691,
+        "json_bytes_after": 766427,
+        "host_deepcopy_before_ms": 75.2669751,
+        "host_deepcopy_after_ms": 14.411367899999998,
+        "host_deepcopy_reduction_fraction": 0.8085299976403595,
+        "exact_source_and_allocator_equal": true
+      },
+      {
+        "snapshot": 2,
+        "registered_adapters": 20,
+        "host_views": 5120,
+        "json_bytes_before": 3301339,
+        "json_bytes_after": 1199835,
+        "host_deepcopy_before_ms": 96.6889781,
+        "host_deepcopy_after_ms": 60.1215099,
+        "host_deepcopy_reduction_fraction": 0.3781968629576405,
+        "exact_source_and_allocator_equal": true
+      },
+      {
+        "snapshot": 3,
+        "registered_adapters": 24,
+        "host_views": 6144,
+        "json_bytes_before": 3936172,
+        "json_bytes_after": 1415212,
+        "host_deepcopy_before_ms": 111.97041979999999,
+        "host_deepcopy_after_ms": 30.927551799999996,
+        "host_deepcopy_reduction_fraction": 0.7237881946388846,
+        "exact_source_and_allocator_equal": true
+      }
+    ],
+    "timing_blocks": [
+      {
+        "snapshot": 0,
+        "block": 0,
+        "variant": "parent",
+        "mean_copy_ms": 26.1403817
+      },
+      {
+        "snapshot": 0,
+        "block": 0,
+        "variant": "candidate",
+        "mean_copy_ms": 10.414355
+      },
+      {
+        "snapshot": 0,
+        "block": 1,
+        "variant": "candidate",
+        "mean_copy_ms": 9.653383100000001
+      },
+      {
+        "snapshot": 0,
+        "block": 1,
+        "variant": "parent",
+        "mean_copy_ms": 61.4037638
+      },
+      {
+        "snapshot": 0,
+        "block": 2,
+        "variant": "parent",
+        "mean_copy_ms": 25.7412758
+      },
+      {
+        "snapshot": 0,
+        "block": 2,
+        "variant": "candidate",
+        "mean_copy_ms": 9.9287583
+      },
+      {
+        "snapshot": 1,
+        "block": 0,
+        "variant": "parent",
+        "mean_copy_ms": 75.2669751
+      },
+      {
+        "snapshot": 1,
+        "block": 0,
+        "variant": "candidate",
+        "mean_copy_ms": 14.411367899999998
+      },
+      {
+        "snapshot": 1,
+        "block": 1,
+        "variant": "candidate",
+        "mean_copy_ms": 14.268368899999999
+      },
+      {
+        "snapshot": 1,
+        "block": 1,
+        "variant": "parent",
+        "mean_copy_ms": 70.10480390000001
+      },
+      {
+        "snapshot": 1,
+        "block": 2,
+        "variant": "parent",
+        "mean_copy_ms": 79.37343919999999
+      },
+      {
+        "snapshot": 1,
+        "block": 2,
+        "variant": "candidate",
+        "mean_copy_ms": 14.7409705
+      },
+      {
+        "snapshot": 2,
+        "block": 0,
+        "variant": "parent",
+        "mean_copy_ms": 96.6889781
+      },
+      {
+        "snapshot": 2,
+        "block": 0,
+        "variant": "candidate",
+        "mean_copy_ms": 62.084827499999996
+      },
+      {
+        "snapshot": 2,
+        "block": 1,
+        "variant": "candidate",
+        "mean_copy_ms": 24.3297637
+      },
+      {
+        "snapshot": 2,
+        "block": 1,
+        "variant": "parent",
+        "mean_copy_ms": 94.7315823
+      },
+      {
+        "snapshot": 2,
+        "block": 2,
+        "variant": "parent",
+        "mean_copy_ms": 99.6921832
+      },
+      {
+        "snapshot": 2,
+        "block": 2,
+        "variant": "candidate",
+        "mean_copy_ms": 60.1215099
+      },
+      {
+        "snapshot": 3,
+        "block": 0,
+        "variant": "parent",
+        "mean_copy_ms": 110.7463951
+      },
+      {
+        "snapshot": 3,
+        "block": 0,
+        "variant": "candidate",
+        "mean_copy_ms": 61.1943869
+      },
+      {
+        "snapshot": 3,
+        "block": 1,
+        "variant": "candidate",
+        "mean_copy_ms": 30.927551799999996
+      },
+      {
+        "snapshot": 3,
+        "block": 1,
+        "variant": "parent",
+        "mean_copy_ms": 141.2926448
+      },
+      {
+        "snapshot": 3,
+        "block": 2,
+        "variant": "parent",
+        "mean_copy_ms": 111.97041979999999
+      },
+      {
+        "snapshot": 3,
+        "block": 2,
+        "variant": "candidate",
+        "mean_copy_ms": 29.046194800000002
+      }
+    ],
+    "cuda_executed": false,
+    "end_to_end_performance_measured": false,
+    "caveat": "Saved physical states, CPU tiny storages, Python deepcopy only; not actual native RPC bytes/time or workload repeats. Mocked owner and allocator counters are not CUDA qualification."
+  },
+  "protected_after": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "source_sha256": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/tests1.log": "e30c4a3916541d0f5aaecf9868907fac942255ff02ad5c73901e9dc08270082c",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/tests1_scope.txt": "f1fcc8a91c62e188bca251b56ab3a065b97e4f795a421a5423eaee2ee6e0cdf5",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/tests1_time.txt": "bf9091005a74d67c1f3141b4ed5b8efbcedcb6e751872ebc01530636db097936",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/tests1_memory_events.txt": "28fe05a1d7b8467a03fb54454f7b6a130fab752864d0454f5f6c4a4b6ce307f2",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/tests1_swap.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/tests1_memory_peak.txt": "52371316b0b1f8d6846ee125b984c91845cddc382eadd7ad93233a8cb077d439",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/tests1_protected_before.json": "78ee4b19f9867e2aad001435eaa59ab8d00b87567e379b1272931a35a2bff701",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/tests1_protected_after.json": "f16023fe22a6573e201f6e3e931d585c0557ba5fa51a75489f23d93e380f3864",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/tests1_sources.sha256": "d92b9b6bbd9623662cbb8d801b2b17b3dfa50c01f700b39b00cac8ca78b65c34",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/tests1_sources.tar.gz": "60a2a331ca01336398c84b88206bf5db86a0f75c2db7b16e87859875f4b19ad7",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/tests2.log": "22104d51c6eee1814298f169787d12e0fa71bdc477d838fc660600f19f923aac",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/tests2_scope.txt": "eb676c6ac46753f9fcf940bcbb724c85a5174b7c0edec8aad592fa1a1fe66147",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/tests2_time.txt": "bbb3339176200b6a43c5fc72f91611c64a5c29c9b20936c702edaec6f23778f1",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/tests2_memory_events.txt": "28fe05a1d7b8467a03fb54454f7b6a130fab752864d0454f5f6c4a4b6ce307f2",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/tests2_swap.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/tests2_memory_peak.txt": "76d0c477848f09f11ed57b8846926d33775c09b02b0d039dc74d09965e763019",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/tests2_protected_before.json": "40baa62d13599a5aeffcf1d9e36028be8f8b8c6bc94336f6c00958997ddcffff",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/tests2_protected_after.json": "bec8750df0f1ee004b1eef23baaa72c1fdd78ad29489e74ecae8b55100004e60",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/tests2_sources.sha256": "fd68db7795a4a3bc0d899171f4d6fb912e0d4fb23764f1a6ab1454b07b9d5fae",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/tests2_sources.tar.gz": "81f09d0fc86cfd6ba26e5960bad8e955346031f239dd33568c36b934ca7bc1a1",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/regression1.log": "c8555ad9f37425d1664caadc25b502d1d4e6c26caa9dff9841887e87971f7760",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/regression1_scope.txt": "40b4e9c9be9e1c87da73133c837abf54842a1c711b983fb60fbfeb8e5ec07365",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/regression1_time.txt": "4bc037d9914a8e764c1024356c9dbd161c6f69938cfd95d05f039c2622cea503",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/regression1_memory_events.txt": "28fe05a1d7b8467a03fb54454f7b6a130fab752864d0454f5f6c4a4b6ce307f2",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/regression1_swap.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/regression1_memory_peak.txt": "cd29a5a65163207db3848fdc297bd3843d1d1959aa87106028c92bf1f4cbf9b4",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/regression1_protected_before.json": "3af37759a8bed7ae331bd215bad17e06069e2281b7e2bdfda86c0e457305b4ca",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/regression1_protected_after.json": "a3bdb023d728c49d2a7aee8ea97ed5e86f3bae5bc10f5a8a3482422a4414a801",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/regression1_sources.sha256": "fd68db7795a4a3bc0d899171f4d6fb912e0d4fb23764f1a6ab1454b07b9d5fae",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/regression1_sources.tar.gz": "81f09d0fc86cfd6ba26e5960bad8e955346031f239dd33568c36b934ca7bc1a1",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/probe1.log": "a2843eeeaa127390615fcf30b639367b34df94438a3f5f277653b6db0a955796",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/probe1_scope.txt": "19d4d7aebb296d789a0688a154b2ed7f7a3873de22412038996b936ebecfd1be",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/probe1_time.txt": "44fb2b37acaaac29689b21eff1df2be7b594c1a16d33feb75be0a1d864182c0d",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/probe1_memory_events.txt": "28fe05a1d7b8467a03fb54454f7b6a130fab752864d0454f5f6c4a4b6ce307f2",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/probe1_swap.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/probe1_memory_peak.txt": "565a4d3c2110aa5d24d9e65f1ab0a7eefb5712247c6fd806d7b454e6eee7b49a",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/probe1_protected_before.json": "1d5ec2c8f93764a6d47eaa05ce62082308a1263e547f79b8622fe03bded03c6d",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/probe1_protected_after.json": "82dadcc0d5d3cf64ae1d589a0a3f6fa07e36a0ffd893fcba2e8f447d306e0ee1",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/probe1_sources.sha256": "60c7fe9aeea1e838a83cd39cd04ccddd6a6b493db1abeb98567c206e91c155ea",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/probe1_sources.tar.gz": "9e5a2a74b30c4f64c210245f99a9f5dce4f3d0dbf4dff4121343d7ae1f8e9e21",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/probe2.log": "2ed65716a3ff021fa2eb6831d7a0a866d2864be0ac1e64d10f7104bb9f921ef3",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/probe2_scope.txt": "f100fe3446ee021e3f5b2540ba1b0e686e4a7ba774c7078d8aba78f013727fb6",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/probe2_time.txt": "01ba588cdf8386450f6f3d04d6497a2132f1a38ce61059f4b0419338ebe42cbe",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/probe2_memory_events.txt": "28fe05a1d7b8467a03fb54454f7b6a130fab752864d0454f5f6c4a4b6ce307f2",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/probe2_swap.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/probe2_memory_peak.txt": "9408a635282a08ede4f11e853cd26238727bf3f32e07b368e9f51b16cc60e83d",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/probe2_protected_before.json": "9b1aa07a2a0283202c0283ba84e4d16f88964afff09509c57ce174102af35c8e",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/probe2_protected_after.json": "2de0b241303145a52e598d36ceaa61e26366aac0a9bc70493005c9d67d508625",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/probe2_sources.sha256": "ecb753fb4e8d7eff9d7f45057b574c1729de922074c6471b6b86b929cc2b967b",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/probe2_sources.tar.gz": "350d869ab55423a76c365d1d4e361ad7d67ba0d514e553c34d91bf085f2f1a83",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/run_cpu.sh": "97c2e7250feb972215da90d9ce19e2f00bc52345cd934b31b1f3c922934e46c5",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/run_probe2.sh": "f733752261f70ad607e96688c0367cf837a381393a1668217d6a33480c862eb9",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/probe.py": "d5fcf36b87bec8e4df113541840014e03af5b17823f247e00fd67dd0128479fa",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/probe2.py": "0addd2031348527f540fe3467faebb5ecf4908e656e7fd4dbfac77adeda878c1",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/probe2.json": "877a8b806403b4516080d0d716da398995c1d74517f0e892707eb666b06c4475",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/probe2.csv": "7682294ba438b27f67928e959038ac812b35ffb65635f69336fd0c468682c772",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/curate.py": "38eb66165d9983987ed28d756aaf46cedde700932e4830dbc5a9c82e27071989",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d202_20261003/check_staged.py": "d2af75128cdfa3b4782175e4320c864265f3b8c99509012f2ef094ce4fb5ea12",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D202_PHYSICAL_HOST_REPRESENTATION.md": "eba2a66a6e6fa760551e6d5923776c7da05a068a3f47a663623c851c6fb19105",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py": "29220580d8d7fe423a1aa07011c394b67d0209b1984a76ca05c300393baf8a69",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_gpu_references.py": "85dfa038b9177503d9be0fba0e3304aca04053729fd0ff3707f3d091110118a1",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_worker_observation.py": "d490509e7eef18a041cbae3b30def4925be0b12727ad77532cb35e9504571315"
+  },
+  "native_owner_planner_admission_unchanged": true,
+  "runtime_change": "Existing HOST graph-only projection selected in physical consumers; helper/isolated observation behavior unchanged.",
+  "gpu_execution": false,
+  "remote_operation": false,
+  "numeric_qualification": false,
+  "performance_accepted": false,
+  "evidence_bundle": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261003_d202_physical_host_evidence.tar.gz",
+    "sha256": "b42256a2ab62dd9a266dc5e2ffc962b9943a2ce9fa783c7a323a56d024007f31",
+    "bytes": 1017908,
+    "members": 62
+  },
+  "table_sha256": "2fcf91751e4b383197da0665ed1678c9dd9b099076c021f3351732ab6cf13b15",
+  "csv_sha256": "7682294ba438b27f67928e959038ac812b35ffb65635f69336fd0c468682c772"
+}

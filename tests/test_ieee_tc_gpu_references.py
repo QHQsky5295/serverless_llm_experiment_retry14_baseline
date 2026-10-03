@@ -207,7 +207,7 @@ class NativeFileHostPreparation(unittest.TestCase):
             'vllm.utils.gpu_sync_debug': SimpleNamespace(gpu_sync_allowed=nullcontext)}
         with patch.dict(sys.modules, modules), \
              patch.object(gpu_monitor, 'torch', SimpleNamespace(__version__='2.13.0')), \
-             patch.object(gpu_monitor, '_ieee_lora_host_inventory', return_value={}), \
+             patch.object(gpu_monitor, '_ieee_lora_host_inventory', return_value={}) as inventory, \
              patch.object(gpu_monitor, '_ieee_pinned_host_observation', return_value=dict(available=True, accounted_tensor_bytes=513)) as occupancy, \
              patch.object(gpu_monitor, '_ieee_file_host_contract', return_value=dict(peak_additional_tensor_bytes=1024)) as contract:
             snap = worker.ieee_gpu_reference(operation='snapshot')
@@ -249,6 +249,12 @@ class NativeFileHostPreparation(unittest.TestCase):
             owner.release_host_source(lease_id='staging',expected_owner_id=owner.owner_id)
             owner.close_preparation_plan(plan_id='fixture-stage',expected_owner_id=owner.owner_id)
             self.assertFalse(owner.staged_models())
+            self.assertEqual(inventory.call_count, 6)  # Configure; deferred; accepted before/after twice.
+            for call in inventory.call_args_list:
+                self.assertEqual(call.args, (self.manager,))
+                self.assertIs(call.kwargs['include_tensor_views'], False)
+                self.assertIn('staged_models', call.kwargs)
+            self.assertIs(inventory.call_args_list[-1].kwargs['staged_models'][5], loaded5)
 
 
 class NativeHostWorkspace(unittest.TestCase):
@@ -1466,7 +1472,7 @@ class NativeDemandTransactions(unittest.TestCase):
             self.assertIn('clock_id', sources)
             self.assertEqual(sources['native_footprints'], {'host_tensor_storage_bytes': 16,
                                                            'slot_capacity_bytes': 32})
-            host_inventory.assert_called_once_with(self.manager)
+            host_inventory.assert_called_once_with(self.manager, include_tensor_views=False)
             self.assertEqual(sources['native_staging_footprints'], {'host_tensor_storage_bytes': 16})
             # Reuse is bounded to this serialized observation, never another
             # owner epoch; the two returned payloads retain independent values.
@@ -1484,7 +1490,9 @@ class NativeDemandTransactions(unittest.TestCase):
                 live_staged = worker.ieee_gpu_reference(operation='source_snapshot')
             self.assertEqual(host_inventory.call_count, 2)
             self.assertEqual(host_inventory.call_args_list[0].args, (self.manager,))
-            self.assertEqual(host_inventory.call_args_list[1].kwargs, {'staged_models': staged})
+            self.assertEqual(host_inventory.call_args_list[0].kwargs, {'include_tensor_views': False})
+            self.assertEqual(host_inventory.call_args_list[1].kwargs,
+                             {'staged_models': staged, 'include_tensor_views': False})
             self.assertEqual(live_staged['native_footprints']['host_tensor_storage_bytes'], 32)
             self.assertEqual(live_staged['native_staging_footprints']['host_tensor_storage_bytes'], 48)
             event.synchronize.assert_called_once_with()  # Observation adds no fence.
