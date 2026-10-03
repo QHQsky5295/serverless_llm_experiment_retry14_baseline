@@ -1,5 +1,50 @@
 # IEEE TC execution status
 
+## CURRENT — D211 Resident reference candidate rejected before formal use
+
+2026-10-04 03:12+08. Goal ACTIVE/current turn PROGRESS. A fixed-four-runtime
+7B Resident reference candidate was stopped after semantic audit, before it
+could be used to define (U_{ref}) or a G2 budget. The candidate disabled
+handoff, hierarchical residency, forwarding, scale control and effective
+capacity admission, but still ran through `faaslora_full` with
+`routing_policy=ieee_confirmed`. Its selected-replica path therefore retained
+Prime's confirmed-tier/physical IEEE routing machinery and was not the
+ordinary vLLM reference required by V1 §7. Continuing would contaminate the
+reference rather than answer the budget question. This is a protocol
+qualification rejection, not a performance result.
+
+The candidate used vLLM 0.30.0, four TP=1 dedicated runtimes, 7B W0, the
+existing 4,000-request/500-adapter seed-42 trace, and the fixed-length greedy
+contract. Config SHA `da13a1ec5c9e0954138ec9287b7ff9c341ab718ea7985ed07609f0c57c19bae9`;
+launch receipt SHA `f2eb5c1aac936cdf23df59ff8f6008000ff67ae9f7d8b35a43cc7318dc9ee0e4`.
+The first attempt was rejected before GPU startup because `max_concurrent_loads`
+did not match the measured shared movement owner; that failure is retained.
+After restoring the measured limit 3, the second attempt reached the serving
+phase, observed 1,642 received/dequeued requests and 1,624 successful live
+completions (planned denominator 4,000, no request failures observed), then
+was stopped. It ended `service_returncode=-15`, `replay_returncode=-2`,
+`classification=safety_abort_unattributed`, and watchdog return 1 because the
+forced stop did not prove native context release at the stop instant. The GPU
+was subsequently empty, the owned scopes were gone, and no partial value is
+eligible for ranking or budget estimation.
+
+All raw replay, ingress, service, watchdog and launch evidence is archived at
+`results/ieee_tc/p2_backend_qualification/d211_20261004_resident_ref1/`;
+the semantically invalid attempt is under
+`7b_resident_ref1/launch.launch.attempt2_semantic_invalid/`. The exact remote
+3B/7B transfer journals and monitor log were copied only after local release;
+remote services are now inactive, with the recorded remote NIC still
+1000/full. No remote repacking, hash scan or reconfiguration occurred.
+
+Paper-evidence interpretation: D211 does not establish a Resident reference,
+does not freeze a warm/budget manifest, and does not advance 7B acceptance.
+The next step is to construct and read-only-audit an ordinary vLLM path that
+does not import `ieee_confirmed` or `faaslora_full` control semantics, then run
+a short qualification replay before the required three complete Resident
+runs. See `docs/ieee_tc/D211_RESIDENT_REFERENCE_ATTEMPT2.md`. No figure is
+generated for this incomplete/invalid candidate; the plan calls for a status
+table rather than a misleading performance plot.
+
 ## CURRENT — D210 ordinary 7B Full COMPLETE, analyzed; 7B formal acceptance still open
 
 2026-10-04 01:46+08. Goal ACTIVE/current turn PROGRESS. D210 completed and
