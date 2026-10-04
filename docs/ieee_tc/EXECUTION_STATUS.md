@@ -51,6 +51,20 @@ This is a launch hygiene failure, not evidence against the identity-recheck
 candidate. A third bounded validation must use a new output directory and new
 workspace roots, and must leave both earlier attempts immutable.
 
+The third bounded attempt also stopped before model/GPU initialization. The
+resource preflight passed and the external replay published the same 100-request
+diagnostic prefix, but the guarded launcher rejected the attempt because the
+required SHA-locked NVML binding variables were not supplied. It therefore
+reported `explicit NVML binding and SHA required before native launch`, released
+the service scope, and left `N_arrived=N_submitted=0`; there is no algorithmic or
+performance interpretation. The retained receipt is under
+`results/ieee_tc/p2_backend_qualification/d214_20261004/7b_route_identity_validation_retry3/`.
+The next attempt adds only the already-qualified binding
+`/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/site-packages/pynvml.py`
+with SHA256
+`4251429c25f1615a4166f395d3c09fe0732bfb023864c4b7f12813373e5696ea`, plus
+fresh cache roots; the feature gate and workload remain unchanged.
+
 ## CURRENT — D213 Resident repeats COMPLETE as serving diagnostics; V1 reference REJECTED by protocol audit
 
 2026-10-04 08:20+08. Goal ACTIVE/current turn PROGRESS. Before this
