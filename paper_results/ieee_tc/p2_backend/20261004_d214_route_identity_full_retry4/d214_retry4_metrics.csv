@@ -1,0 +1,2 @@
+run,planned,terminals,success,native_contract,target_non256,gpu_seconds_observed,gpu_seconds_per_offered,ttft_e2e_avg_ms,ttft_e2e_p95_ms,ttft_service_avg_ms,ttft_service_p95_ms,tpot_ms,e2e_avg_ms,legacy_ttft_only_slo_5000_pct,formal_comparison_qualified
+d214_7b_route_identity_full_retry4,4000,4000,4000,4000,3055,15907.670118935057,3.9769175297337642,1953.0,4233.0,686.0,1875.0,37.2,6285.0,97.0,False

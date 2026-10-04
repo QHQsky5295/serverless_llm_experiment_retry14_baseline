@@ -51,11 +51,15 @@ class RouteIdentityCacheQualification(unittest.TestCase):
                 (slot,), requested_adapter_ids=[4])
             second, second_meta = await runner._ieee_collect_route_identity_cache(
                 (slot,), requested_adapter_ids=[4])
-            self.assertEqual(slot.engine.ieee_source_identities.await_count, 2)
+            # Cold scopes use one authoritative read; identity recheck begins
+            # only after a scoped footprint has been cached.
+            self.assertEqual(slot.engine.ieee_source_identities.await_count, 1)
             self.assertEqual(slot.engine.ieee_request_sources.await_count, 1)
             self.assertIsNotNone(first[0][0].sources[0].host_storage_bytes)
             self.assertIsNotNone(second[0][0].sources[0].gpu_slot_capacity_bytes)
-            self.assertEqual(first_meta['full_fallback_replica_count'], 1)
+            self.assertEqual(first_meta['full_authoritative_read_replica_count'], 1)
+            self.assertEqual(first_meta['cold_full_read_replica_count'], 1)
+            self.assertEqual(first_meta['full_fallback_replica_count'], 0)
             self.assertEqual(second_meta['mode'], 'identity_recheck_cache_v1')
             self.assertGreaterEqual(runner._ieee_route_cache_stats['hits'], 1)
 
@@ -72,6 +76,9 @@ class RouteIdentityCacheQualification(unittest.TestCase):
         slot.engine.ieee_request_sources = AsyncMock(return_value=changed_full)
         values, metadata = asyncio.run(runner._ieee_collect_route_identity_cache(
             (slot,), requested_adapter_ids=[4]))
+        self.assertEqual(slot.engine.ieee_source_identities.await_count, 1)
+        # This mock was replaced after the first cold read; the replacement
+        # records the single epoch-change fallback.
         self.assertEqual(slot.engine.ieee_request_sources.await_count, 1)
         self.assertEqual(metadata['full_fallback_replica_count'], 1)
         self.assertEqual(values[0][0].epoch, 2)

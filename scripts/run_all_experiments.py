@@ -8199,79 +8199,108 @@ class ScenarioRunner:
             async def collect():
                 from faaslora.clock import local_monotonic_clock_id
                 engines = tuple(slot.engine for slot in slots)
-                identity_tasks = [asyncio.create_task(slot.engine.ieee_source_identities())
-                                  for slot in slots]
-                identity_results = await asyncio.gather(*identity_tasks, return_exceptions=True)
-                identity_states = []
-                identity_error = False
-                for value in identity_results:
-                    if isinstance(value, BaseException):
-                        identity_error = True
-                        break
-                    try:
-                        identity_states.append((
-                            NativeSourceSnapshot.from_routing_wire(
-                                value, expected_clock_id=local_monotonic_clock_id(),
-                                received_monotonic_s=time.monotonic()),
-                            value.get('device_uuid')))
-                    except Exception:
-                        identity_error = True
-                        break
+                # A fresh identity recheck is useful only after an authoritative
+                # scoped footprint has been cached for this exact replica/scope.
+                # On a cold scope, identity followed by a full read duplicates a
+                # native RPC and cannot establish the service class by itself;
+                # read the authoritative scope once and publish the cache.  This
+                # preserves confirmed-state semantics and removes the cold-path
+                # duplicate that made D214 slower without using last-known state.
+                cached_entries = {}
+                identity_indexes = []
+                cold_full_indexes = set()
+                for index, slot in enumerate(slots):
+                    cache_key = (slot.instance_id, scope)
+                    entry = self._ieee_route_full_cache.get(cache_key)
+                    cached = entry.get('snapshot') if isinstance(entry, dict) else None
+                    cached_entries[index] = cached
+                    if cached is None:
+                        cold_full_indexes.add(index)
+                        cache_stats['misses'] = cache_stats.get('misses', 0) + 1
+                    else:
+                        identity_indexes.append(index)
+
+                identity_tasks = {
+                    index: asyncio.create_task(slots[index].engine.ieee_source_identities())
+                    for index in identity_indexes}
+                cold_full_tasks = {
+                    index: asyncio.create_task(
+                        slots[index].engine.ieee_request_sources(requested_adapter_ids=list(scope)))
+                    for index in sorted(cold_full_indexes)}
+                identity_results = {
+                    index: result for index, result in zip(
+                        identity_indexes,
+                        await asyncio.gather(*identity_tasks.values(), return_exceptions=True))}
+                cold_full_results = {
+                    index: result for index, result in zip(
+                        sorted(cold_full_indexes),
+                        await asyncio.gather(*cold_full_tasks.values()))}
                 if (tuple(self.instance_pool.get_slots()) != slots
                         or any(slot.engine is not engine for slot, engine in zip(slots, engines))):
                     cache_stats['membership_rejections'] = cache_stats.get('membership_rejections', 0) + 1
                     return None
 
-                # The compact identity endpoint must report distinct physical
-                # devices just as the full path does.  A malformed identity
-                # read does not authorize cached reuse; use the full endpoint.
-                full_indexes = set(range(len(slots))) if identity_error else set()
                 values = [None] * len(slots)
                 cache_updates = []
-                if not identity_error:
-                    for index, (slot, (identity, device_uuid)) in enumerate(zip(slots, identity_states)):
-                        cache_key = (slot.instance_id, scope)
-                        entry = self._ieee_route_full_cache.get(cache_key)
-                        cached = entry.get('snapshot') if isinstance(entry, dict) else None
-                        if (cached is not None and self._ieee_identity_equal(identity, cached)
-                                and self._ieee_route_cache_covers_scope(identity, cached, scope)):
-                            merged = self._ieee_merge_cached_route_state(identity, cached)
-                            if merged is not None:
-                                values[index] = (merged, device_uuid)
-                                cache_stats['hits'] = cache_stats.get('hits', 0) + 1
-                                continue
-                        if self._ieee_route_cache_covers_scope(identity, identity, scope):
-                            values[index] = (identity, device_uuid)
-                            cache_stats['identity_only'] = cache_stats.get('identity_only', 0) + 1
-                        else:
-                            full_indexes.add(index)
-                            cache_stats['misses'] = cache_stats.get('misses', 0) + 1
+                fallback_indexes = set()
+                identity_failure_indexes = set()
+                for index in identity_indexes:
+                    value = identity_results[index]
+                    if isinstance(value, BaseException):
+                        identity_failure_indexes.add(index)
+                        fallback_indexes.add(index)
+                        continue
+                    try:
+                        identity, device_uuid = (
+                            NativeSourceSnapshot.from_routing_wire(
+                                value, expected_clock_id=local_monotonic_clock_id(),
+                                received_monotonic_s=time.monotonic()),
+                            value.get('device_uuid'))
+                    except Exception:
+                        identity_failure_indexes.add(index)
+                        fallback_indexes.add(index)
+                        continue
+                    cached = cached_entries[index]
+                    if (self._ieee_identity_equal(identity, cached)
+                            and self._ieee_route_cache_covers_scope(identity, cached, scope)):
+                        merged = self._ieee_merge_cached_route_state(identity, cached)
+                        if merged is not None:
+                            values[index] = (merged, device_uuid)
+                            cache_stats['hits'] = cache_stats.get('hits', 0) + 1
+                            continue
+                    if self._ieee_route_cache_covers_scope(identity, identity, scope):
+                        values[index] = (identity, device_uuid)
+                        cache_stats['identity_only'] = cache_stats.get('identity_only', 0) + 1
+                    else:
+                        fallback_indexes.add(index)
+                        cache_stats['misses'] = cache_stats.get('misses', 0) + 1
 
-                # An identity RPC failure is fail-closed for the cache, but it
-                # is not a reason to reject an otherwise valid authoritative
-                # full observation.  The fallback is per current membership.
-                if full_indexes:
-                    full_tasks = [asyncio.create_task(
+                # Identity errors/mismatches fail closed for reuse, but the
+                # authoritative scoped endpoint remains the per-replica fallback.
+                fallback_tasks = {
+                    index: asyncio.create_task(
                         slots[index].engine.ieee_request_sources(requested_adapter_ids=list(scope)))
-                        for index in sorted(full_indexes)]
-                    full_results = await asyncio.gather(*full_tasks)
-                    if (tuple(self.instance_pool.get_slots()) != slots
-                            or any(slot.engine is not engine for slot, engine in zip(slots, engines))):
-                        cache_stats['membership_rejections'] = cache_stats.get('membership_rejections', 0) + 1
-                        return None
-                    for index, value in zip(sorted(full_indexes), full_results):
-                        state = NativeSourceSnapshot.from_request_wire(
-                            value, requested_adapter_ids=scope,
-                            expected_clock_id=local_monotonic_clock_id(),
-                            received_monotonic_s=time.monotonic())
-                        device_uuid = value.get('device_uuid')
-                        values[index] = (state, device_uuid)
-                        cache_updates.append((slots[index].instance_id, scope,
-                                              dict(snapshot=state, device_uuid=device_uuid)))
-                if identity_error:
-                    cache_stats['identity_failures'] = cache_stats.get('identity_failures', 0) + 1
-                if full_indexes:
-                    cache_stats['full_fallbacks'] = cache_stats.get('full_fallbacks', 0) + len(full_indexes)
+                    for index in sorted(fallback_indexes)}
+                fallback_results = {
+                    index: result for index, result in zip(
+                        sorted(fallback_indexes), await asyncio.gather(*fallback_tasks.values()))}
+                full_read_indexes = set(cold_full_indexes) | set(fallback_indexes)
+                for index in sorted(full_read_indexes):
+                    value = (cold_full_results[index] if index in cold_full_results
+                             else fallback_results[index])
+                    state = NativeSourceSnapshot.from_request_wire(
+                        value, requested_adapter_ids=scope,
+                        expected_clock_id=local_monotonic_clock_id(),
+                        received_monotonic_s=time.monotonic())
+                    device_uuid = value.get('device_uuid')
+                    values[index] = (state, device_uuid)
+                    cache_updates.append((slots[index].instance_id, scope,
+                                          dict(snapshot=state, device_uuid=device_uuid)))
+                if identity_failure_indexes:
+                    cache_stats['identity_failures'] = cache_stats.get('identity_failures', 0) + len(identity_failure_indexes)
+                if fallback_indexes:
+                    cache_stats['full_fallbacks'] = cache_stats.get('full_fallbacks', 0) + len(fallback_indexes)
+                cache_stats['cold_full_reads'] = cache_stats.get('cold_full_reads', 0) + len(cold_full_indexes)
                 if any(value is None for value in values):
                     raise RuntimeError('identity recheck collection did not resolve every replica')
 
@@ -8282,9 +8311,11 @@ class ScenarioRunner:
                 for instance_id, cache_scope, entry in cache_updates:
                     self._ieee_route_full_cache[(instance_id, cache_scope)] = entry
                 return tuple(values), dict(collection_id=stats['collections'], joined=False,
-                    mode='identity_recheck_cache_v1', identity_replica_count=len(slots),
-                    full_fallback_replica_count=len(full_indexes),
-                    identity_failure=identity_error,
+                    mode='identity_recheck_cache_v1', identity_replica_count=len(identity_indexes),
+                    full_authoritative_read_replica_count=len(full_read_indexes),
+                    full_fallback_replica_count=len(fallback_indexes),
+                    cold_full_read_replica_count=len(cold_full_indexes),
+                    identity_failure=bool(identity_failure_indexes),
                     cache_hits=cache_stats.get('hits', 0),
                     identity_only=cache_stats.get('identity_only', 0))
             wave = dict(membership=membership, task=asyncio.create_task(collect()),

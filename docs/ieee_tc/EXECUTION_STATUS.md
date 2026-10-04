@@ -1,11 +1,162 @@
 # IEEE TC execution status
 
+## CURRENT — D215 cold-scope candidate CPU QUALIFIED; GPU validation pending
+
+2026-10-04 13:25+08. D214's stage audit identified a specific control-path
+candidate rather than a generic latency tuning opportunity: on a cold
+`(replica, requested-adapter-scope)`, the identity-recheck implementation could
+perform a compact identity RPC and then an authoritative scoped RPC, although
+the compact endpoint does not carry the scoped footprint required for routing.
+D215 changes only this cold path. It performs one authoritative scoped read on a
+cold scope, publishes that measured footprint, and starts fresh identity
+rechecks only after the exact scope is cached. Identity mismatch, malformed
+coverage, epoch change, or RPC failure still fails closed to a per-replica
+authoritative read. No last-known tier, TTL, admission/profile/formula,
+workload, generation, or resource-envelope change is included.
+
+The candidate passed 294 related CPU tests (route identity, request footprints,
+identity recheck, service routing, scheduler observation and request lifecycle)
+under the bounded auxiliary scope. Python compilation and `git diff --check`
+also pass. This is semantic qualification only; it is not evidence of GPU
+performance improvement.
+
+The fresh bounded validation configuration is
+`configs/ieee_tc/20261004_d215_7b_route_identity_cold_validation.yaml`. It
+reuses the exact D214 W0 prefix, trace and adapter-subset identity, D157
+profiles, fixed-output contract, published read-only artifact delivery, and
+resource envelope, with fresh D215 output/NVMe/HOST/receipt roots. The next
+authorized action is one 100-request 7B validation. It must pass the existing
+request, native timing, physical allocation/release and transfer audits before
+its routing/control, dispatch, service-TTFT, E2E and GPU-s observations are
+compared with D210/D214. A full 4,000-request replay is allowed only if the
+bounded run reduces the predicted control-path cost without a new correctness,
+lifecycle or resource failure. 3B and external baselines remain paused.
+
+## CURRENT — D214 retry4 COMPLETE; lifecycle-qualified diagnostic, formal G1/G2 still open
+
+2026-10-04 12:45+08. The D214 route-identity recheck full replay completed and
+was closed before any new task was started. The launch, replay and watchdog
+returned 0; native GPU-context release was confirmed, the owned service path
+was removed, local `nvidia-smi` was empty, and the remote artifact service was
+stopped only after local release. The protected artifact credential was then
+rotated on both endpoints without restarting the service; the token value is
+not stored in the repository or status log.
+
+The strict lifecycle/request audit has 4,000/4,000 terminal records,
+4,000/4,000 successful requests, 4,000/4,000 native fixed-output contract
+matches, 4,000 unique request IDs, zero terminal errors, and no missing
+canonical-prompt/source/token-ID/clock/instance fields. The target is
+request-specific (`min(source_expected,256)`), so 3,055 requests have a target
+other than 256; the run must not be described as a uniform 256-token replay.
+All four physical allocation journals have exactly
+`acquire → worker_spawn → native_workers → native_workers_exited → release`,
+with zero open leases. Observed lifecycle usage is **15,907.670119 GPU-s**
+(3.976917530 GPU-s per offered request).
+
+The immutable delivery evidence contains 132 retry4 transfer records. The
+copied remote journal contains 266 lines: 132 join one-to-one with retry4
+outcome IDs, while 134 retained out-of-run records are excluded from retry4
+counts and bytes. Every joined record reports `prepublished_gzip_v1`,
+`pack_performed=false`, and no temporary archive. The main outcome records
+`remote_pack_ms=0` and
+`remote_pack_duration_basis=absent_by_published_contract`; request-time
+packaging therefore did not enter this replay. The joined server-written bytes
+are 131,480,060. The raw transfer and lifecycle sources remain unchanged.
+
+Descriptive end-of-run values are E2E TTFT mean/P95/P99
+1,953/4,233/6,262 ms, service TTFT 686/1,875/3,868 ms, TPOT 37.2 ms, and E2E
+6,285/12,522/14,907 ms. The log's 97% `slo@5000ms` is a legacy TTFT-only
+display, not the frozen joint TTFT/TPOT SLO. Relative to D210's descriptive
+1,650.511 ms mean and 3,415.442 ms P95 TTFT, retry4 is not an accepted latency
+improvement; its lifecycle value is only a diagnostic observation and is not a
+formal saving claim. The identity-recheck mechanism was active (5,160 source
+collections, 492 joins, 1,602 stale rejections), but these counters do not
+establish causal G1/G2 benefit.
+
+Compact, bounded curation (3/4 GiB auxiliary scope) is stored at
+`paper_results/ieee_tc/p2_backend/20261004_d214_route_identity_full_retry4/`;
+the JSON/CSV/status files retain source hashes and the raw evidence remains
+immutable. `formal_comparison_qualified=false` remains intentional:
+`n_correct` is not inferred from the native token contract, and common warm
+SLO/Resident reference values are not frozen. No figure or ranking is generated
+for this diagnostic; the status table is the appropriate paper artifact.
+
+The curated JSON SHA256 is
+`69b7865e299d02e9c185d77f0a175be0258702d5b1dfaaa75972bf0208ae5ccf`; the
+metrics CSV SHA256 is
+`f9422421b45c69b4e749b0ef4618da8f3ed0fc3980b3c01d497fd5c46100f685`.
+The D210/D214 stage comparison table and interpretation are in
+`d214_vs_d210_stage_comparison.{csv,md}`. It shows routing/control mean rising
+from 325.863 ms to 462.790 ms while service TTFT falls from 712.107 ms to
+686.015 ms; the added control path dominates the user-visible regression.
+
+**Decision:** D214 passes lifecycle and serving-contract integrity, but does not
+close the 7B Prime optimization gate. Before 3B or any external baseline, the
+next action is a single new, evidence-backed 7B bottleneck hypothesis (after
+the required old/new comparison and numerical-correctness/SLO audits), followed
+by a fresh validation/full replay only if that hypothesis predicts improvement.
+No blind retry or stacked optimizer is authorized.
+
+## HISTORICAL — D214 retry4 LIVE; superseded by the terminal block above
+
+2026-10-04 11:36+08 continuation: previous turn PROGRESS/VERIFIED WAIT,
+current turn VERIFIED WAIT on the same live tool session `46064`. Independent
+PID and systemd checks confirm service invocation unchanged and active; the
+replay has not terminated. Bounded terminal audit now reads 1,279 terminal /
+1,279 success / 1,279 native-contract matches, zero duplicate request IDs and
+no terminal error types. This is a partial planned-4,000 population, not
+numerical-adapter qualification, formal SLO or G1/G2 acceptance. Latest watchdog
+sample 1401: service 18,072,084,480 bytes, host available 97,054,093,312 bytes,
+free disk 177,581,068,288 bytes, service swap/events zero, no warning/abort,
+foreign compute or escaped worker. Plan/V1 SHA unchanged. No runtime edits,
+new experiment, heavy analysis, remote configuration or cleanup occurred.
+Continue THIS run to terminal; do not restart on an observation timeout. The
+credential-rotation follow-up was pending at that time and is now complete.
+
+2026-10-04 11:16+08. Goal ACTIVE/current turn VERIFIED WAIT. User's once-only
+read-only compressed delivery-cache authorization remains fulfilled by D78/D80;
+the immutable published cache is reused, not regenerated. The full Plan, status
+and V1 protocol were reread in this continuation. No baseline/3B is running.
+
+Lifecycle fix checkpoint `28b810d` and the fresh retry4 configuration `c40a823`
+were pushed to `faaslora_origin/retry14_continuous_queue_v2`; unrelated user
+changes and `configs/generated/lora_manifest_1000.json` were not staged.
+The same W0 trace SHA `efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c`
+and subset SHA `aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016`
+are reused; only output/NVMe/HOST/receipt roots changed from retry3.
+
+The protected replay is LIVE in tool session `46064`, service scope
+`primelora-tc-svc-8fc8702482d74551bf58db5771ff9db1.scope`, invocation
+`98a92d8e38b942408d811b5c299d4612`, and auxiliary scope
+`primelora-tc-aux-e1e337b26fca4c59ae2bc3acc4d4fef4.scope`. Raw receipt root:
+`results/ieee_tc/p2_backend_qualification/d214_20261004/7b_route_identity_full_retry4/`.
+At watchdog sample 242, 93 terminal records existed (partial, not acceptance).
+Four native GPU PIDs 2792275/2796895/2797323/2797552 were service-owned with
+the frozen CPU affinity. Service memory was 16,560,996,352 bytes, host available
+97,482,391,552 bytes, service swap and memory events all zero; no warning,
+abort, foreign compute or escaped worker. Free disk was 178,698,461,184 bytes.
+
+Do NOT start another replay, change runtime source/config, or alter remote
+delivery while this run is live. Next: monitor THIS session to terminal,
+verify local physical release, then exact-owned remote stop/copy, strict
+bounded analysis, status table/figure as appropriate, and backup. Formal
+numeric correctness/common-warm/Resident reference/G1G2 remain open; a raw
+development 5-second attainment value is not the frozen joint SLO.
+
+Historical security note (resolved in the terminal block above): an authenticated pre-run curl diagnostic mistakenly echoed
+the artifact access token into tool output. Its value is not stored here or in
+Git. After the live replay ends and remote evidence is retained, rotate the
+local/remote protected token together and verify authenticated access before
+the next run. Do not change the credential mid-measurement. Avoid shell tracing,
+verbose authenticated curl, or credential-bearing process-argument output.
+
 ## CURRENT — D214 7B full replay retry3 completed requests but failed strict physical-owner journal audit
 
-2026-10-04 10:xx+08. Goal ACTIVE/current turn PROGRESS. The cached-startup
+2026-10-04 11:05+08. Goal ACTIVE/current turn PROGRESS. The cached-startup
 retry3 completed the entire PrimeLoRA-only W0 replay: 4,000/4,000 requests
 arrived, submitted, terminated and succeeded under the frozen
-`fixed_length_greedy_v1` contract, with native token IDs and 256-token targets.
+`fixed_length_greedy_v1` contract, with native token IDs and per-request targets
+capped at 256 (not a uniform 256-token workload).
 The replay process returned 0 and all owned GPU contexts were released. The
 raw result and launch evidence remain immutable under
 `results/ieee_tc/p2_backend_qualification/d214_20261004/7b_outputs_full_retry3/`

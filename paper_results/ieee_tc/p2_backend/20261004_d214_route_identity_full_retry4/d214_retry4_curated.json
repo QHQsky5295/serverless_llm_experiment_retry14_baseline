@@ -1,0 +1,167 @@
+{
+  "caveat": "Descriptive replay only: numerical adapter correctness is not inferred from the token contract; the legacy 5000-ms display is TTFT-only, not the frozen joint SLO; no G1/G2 or cross-system ranking.",
+  "delivery": {
+    "copied_bytes_written_joined": 131480060,
+    "copied_lines_total": 266,
+    "copied_transfer_count_joined": 132,
+    "delivery_modes": [
+      "prepublished_gzip_v1"
+    ],
+    "main_outcome_pack_duration_basis_values": [
+      "absent_by_published_contract"
+    ],
+    "main_outcome_pack_ms_values": [
+      0.0
+    ],
+    "main_outcome_pack_performed_values": [
+      false
+    ],
+    "main_outcome_spans_additive_values": [
+      false
+    ],
+    "main_outcome_transfer_count": 132,
+    "pack_performed_values": [
+      false
+    ],
+    "unmatched_retained_lines": 134
+  },
+  "descriptive_service_metrics": {
+    "arrival_late_ms": 247.0,
+    "dispatch_wait_ms": 1267.0,
+    "e2e_avg_ms": 6285.0,
+    "e2e_p95_ms": 12522.0,
+    "e2e_p99_ms": 14907.0,
+    "gpu_ready_ms": 1659.0,
+    "legacy_slo_goodput_rps": 0.98,
+    "legacy_slo_goodput_tok_per_s": 112.45,
+    "legacy_ttft_only_slo_5000_pct": 97.0,
+    "pre_runtime_ms": 409.0,
+    "req_per_s": 1.01,
+    "rpc_overhead_ms": 289.0,
+    "runtime_e2e_ms": 4259.0,
+    "runtime_ms": 277.0,
+    "scaleup_ttft_ms": 2077.0,
+    "service_residual_ms": 759.0,
+    "tok_per_s": 115.66,
+    "tpot_ms": 37.2,
+    "ttft_e2e_avg_ms": 1953.0,
+    "ttft_e2e_p95_ms": 4233.0,
+    "ttft_e2e_p99_ms": 6262.0,
+    "ttft_service_avg_ms": 686.0,
+    "ttft_service_p95_ms": 1875.0,
+    "ttft_service_p99_ms": 3868.0,
+    "worker_wall_ms": 4365.0
+  },
+  "kind": "d214_retry4_curated_v1",
+  "mechanism": {
+    "activations": 4,
+    "control_events": 1873,
+    "residency_epochs": 2779,
+    "runtime_quarantine_events": 0,
+    "source_observation_stats": {
+      "collections": 5160,
+      "joined": 492,
+      "stale_rejections": 1602
+    }
+  },
+  "physical_gpu": {
+    "gpu_seconds_observed": 15907.670118935057,
+    "gpu_seconds_per_offered_request": 3.9769175297337642,
+    "journals": [
+      {
+        "event_order_valid": true,
+        "events": [
+          "acquire",
+          "worker_spawn",
+          "native_workers",
+          "native_workers_exited",
+          "release"
+        ],
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d214_20261004/7b_route_identity_full_retry4/launch.launch/physical_allocations/2fde08399a3f40d39f057a21d9348044.jsonl",
+        "sha256": "37539380f7c46760bf02a09fc6b5a440f140bf5adf385fd6e06fd2be1100d85e"
+      },
+      {
+        "event_order_valid": true,
+        "events": [
+          "acquire",
+          "worker_spawn",
+          "native_workers",
+          "native_workers_exited",
+          "release"
+        ],
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d214_20261004/7b_route_identity_full_retry4/launch.launch/physical_allocations/30c1a3588dc944b8937b49f7cb515511.jsonl",
+        "sha256": "5908dc4d550b6cd014517f1799c91efb9fe018cf332b45163e584066cc9c3ce4"
+      },
+      {
+        "event_order_valid": true,
+        "events": [
+          "acquire",
+          "worker_spawn",
+          "native_workers",
+          "native_workers_exited",
+          "release"
+        ],
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d214_20261004/7b_route_identity_full_retry4/launch.launch/physical_allocations/7f7ab751aebd4bb19bee2d944b279bb6.jsonl",
+        "sha256": "c44c223b94249c367d7a42d04c164a0ca361cfde3adb00395587b6695ab4e0e3"
+      },
+      {
+        "event_order_valid": true,
+        "events": [
+          "acquire",
+          "worker_spawn",
+          "native_workers",
+          "native_workers_exited",
+          "release"
+        ],
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d214_20261004/7b_route_identity_full_retry4/launch.launch/physical_allocations/f923b62e630f4d67993b75e6b3d3a5a7.jsonl",
+        "sha256": "b05efd5b0066cd1c896644b5126b980b35e943eb2d99ed00a729dbbef1696677"
+      }
+    ],
+    "n_correct": null,
+    "open_lease_ids": [],
+    "owner_event_count": 8,
+    "window_gpu_seconds": {
+      "arrival": 15773.315011247993,
+      "cleanup": 90.47852431517094,
+      "drain": 7.463424123823643,
+      "pre_arrival": 36.41315924806986
+    }
+  },
+  "population": {
+    "errors": 0,
+    "missing_required_terminal_fields": 0,
+    "native_contract_complete": 4000,
+    "planned": 4000,
+    "success": 4000,
+    "target_non256": 3055,
+    "target_tokens_sum": 458224,
+    "terminals": 4000,
+    "unique_request_ids": 4000
+  },
+  "qualification": {
+    "correctness_qualification": "not_inferred_from_token_contract",
+    "eligible_correctness": false,
+    "formal_comparison_qualified": false,
+    "launch_pass": true,
+    "native_gpu_context_release_confirmed": true,
+    "returncodes": {
+      "replay_returncode": 0,
+      "service_returncode": 0,
+      "watchdog_returncode": 0
+    },
+    "service_path_removed": true
+  },
+  "run_id": "d214_7b_route_identity_full_retry4",
+  "source_sha256": {
+    "adapter_subset_sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016",
+    "config_sha256": "753c863e3867a62b9736342009ce6864b270795fd2f8ced217e084c4bf653e25",
+    "launch_sha256": "a9fca0f72280d895d4d438d5d450de4e0f3e901c1f819043d34dcfcc2580b01e",
+    "main_outcome_sha256": "cb3d6b8f30ee30317a31cd248f7fc47c72cfdb65fe1dbf5112741185d8f209bd",
+    "physical_summary_sha256": "f9937bb3a4828dd542050d337d934c4d225eeab75df2d0e02b9a5a62ac7dbae3",
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+    "remote_transfer_copy_sha256": "2315b15279633ad11a57bebab1032854daa4074c66816e610948989d4fdfdb6f",
+    "request_terminals_sha256": "ac37f84aa2e98a3a0842e2d098d886b7cdb85647efd678ea5b7225f4f560d17d",
+    "service_log_sha256": "d0d9834103effbe1b106dad0dcdd0e46519f6b392156e21a79983127d505946f",
+    "trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c"
+  }
+}
