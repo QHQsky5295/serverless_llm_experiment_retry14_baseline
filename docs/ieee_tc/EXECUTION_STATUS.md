@@ -1,6 +1,92 @@
 # IEEE TC execution status
 
-## CURRENT — D216 scope-local identity candidate CPU QUALIFIED; bounded GPU validation pending
+## CURRENT — D216 retry7 bounded validation COMPLETE; mechanism active but candidate revoked for full-replay selection
+
+2026-10-04 16:00+08. The fresh D216 retry7 was run only after stopping and
+restarting the owned 3B/7B artifact services. The authenticated health check
+passed after the service bind completed, and the exact gated replay then used
+the immutable published 7B cache. This removes the retry5/retry6 launch-time
+authentication mismatch; neither failed attempt is treated as algorithmic or
+performance evidence.
+
+The bounded W0 prefix completed 100/100 planned, arrived, submitted,
+terminal, successful and native-contract-matched requests. All 100 actual
+output lengths equaled their per-request targets, all prompt hashes and
+dispatch-time readiness fields were present, and four physical allocation
+journals closed in the required order with zero open leases. Launch, service,
+replay and watchdog returned 0; native GPU contexts and the owned service path
+were released. Observed lifecycle usage was 852.302629 GPU-s (8.523026 per
+offered request). The fixed-output contract does not establish numerical
+adapter correctness, so `n_correct` remains unknown and the attempt is not a
+formal G1/G2 or cross-system result.
+
+The D216 source-level predicate was active: the cumulative `cache_hits`
+counter reached 30 in the final route collection, with zero identity failures.
+The emitted counters are cumulative and are retained as mechanism evidence,
+not converted to a request-level hit rate. The run contained 337 source
+snapshots/106 collection IDs; aggregate fields were 3,509 cache hits, 1,386
+identity-only observations, 1,136 full authoritative reads, 732 full
+fallbacks and 404 cold full reads. These counts are not independent samples.
+
+The primary control-path check is mixed. D216 mean/P95 control path was
+238.515/692.622 ms. Relative to D215's 236.004/947.056 ms, the mean is 1.06%
+higher while P95 is 26.84% lower. Relative to D214's 462.790-ms mean, D216 is
+lower, but that comparison alone cannot satisfy the pre-registered candidate
+gate. Because the primary mean did not decrease against the immediately prior
+candidate and only one bounded block exists, **D216 is revoked for full-replay
+selection**; no 4,000-request replay, 3B run or external baseline is
+authorized. The lower P95 is retained as a diagnostic signal for the next
+source/log audit, not as a selected advantage.
+
+The 29 joined remote transfer records are all `sent` under
+`prepublished_gzip_v1`, with `pack_performed=false`, no temporary archive and
+50,650,865 server-written bytes. The result therefore has no retry7
+authentication or request-time packaging failure. The full bounded curation
+and status table are in
+`paper_results/ieee_tc/p2_backend/20261004_d216_route_identity_scope_validation_retry7/`.
+
+**Next:** preserve retry7 and its status table, audit why scope-local reuse did
+not reduce the primary mean (collection-wave multiplicity and fallback
+population first), and propose one new falsifiable candidate only after that
+audit. D216 must not be blindly retried; 3B and external baselines remain
+paused.
+
+## CURRENT — D216 route-evidence audit corrected; candidate remains revoked
+
+2026-10-04 22:20+08. A bounded CPU-only audit of the retained D215/D216 request
+evidence found that the producer-side collection counter and the emitted
+collection label are not interchangeable. D216 reports 106 producer collections
+after shutdown but only 83 labels in request evidence; D215 reports 107 and 87.
+Seven D215 labels and nine D216 labels contain conflicting per-wave counters.
+The old collector read the global collection counter after an asynchronous native
+await, so a concurrent scope could advance it before the waiting wave emitted its
+metadata. Snapshot sums and cumulative counter sums therefore cannot be presented
+as RPC totals. Exact RPC count remains unknown.
+
+The runtime fix is narrow evidence provenance: a wave captures its ID at creation
+and all joined waiters return that ID. It does not change routing, cache
+acceptance, admission, any IEEE equation, workload, SLO, or resource profile.
+The route-identity suite plus request-footprint/service-routing/lifecycle/timing
+tests passed 275/275 under the auxiliary 3/4-GiB scope, with no GPU or remote
+service active.
+
+The corrected Type-1 control P95 values are D215 945.799 ms and D216 690.333 ms;
+the D216 mean remains 238.515 ms versus D215 236.004 ms (−1.064% lower-better
+direction, i.e. a 1.064% regression). D216 has 337 observed source snapshots
+versus 304, 76/100 requests with four source snapshots versus 65/100, and
+scaleup_affected 51/100 versus 39/100. Fallback-conditioned control means are
+306.126 ms for D216's 67 reported-fallback requests and 101.243 ms for its 33
+without reported fallback; these groups are diagnostic, not causal contrasts.
+
+The corrected audit is in
+paper_results/ieee_tc/p2_backend/20261004_d216_route_evidence_audit_v2/ and
+explicitly records the exact-RPC unknown status, Type-1 recomputation and
+population mismatch. The status-table decision is unchanged: mechanism and
+lifecycle gates pass, but D216 is revoked for full replay. No 4,000-request,
+3B or baseline run is authorized until a new falsifiable candidate explains
+fallback/membership cost without relying on future demand or test-point tuning.
+
+## HISTORICAL — D216 scope-local identity candidate CPU QUALIFIED; bounded GPU validation pending
 
 2026-10-04 14:25+08. The D215 source audit produced one falsifiable next
 hypothesis: global owner epochs advance for unrelated adapter churn, while the

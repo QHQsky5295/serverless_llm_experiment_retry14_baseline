@@ -1,0 +1,51 @@
+{
+  "caveats": [
+    "Observed labels are not unique wave identities in historical identity-cache runs.",
+    "Neither snapshot sums nor first-row-per-label sums are RPC/event totals.",
+    "Cumulative maxima are observed lower bounds, not a guaranteed end-of-run total.",
+    "Conditional groups are system-dependent populations, not causal or paired contrasts.",
+    "One run supplies no run-level confidence interval or formal G1/G2 qualification."
+  ],
+  "conditional_request_groups": {
+    "with_reported_fallback": {
+      "mean_ms": 295.4949695797102,
+      "n_requests": 69,
+      "p95_type1_ms": 980.875935
+    },
+    "without_reported_fallback": {
+      "mean_ms": 103.58771332258061,
+      "n_requests": 31,
+      "p95_type1_ms": 354.161312
+    }
+  },
+  "control_path": {
+    "mean_ms": 236.00372013999998,
+    "n_requests": 100,
+    "p95_type1_ms": 945.799135
+  },
+  "exact_rpc_count": null,
+  "formal_comparison_qualified": false,
+  "labels_with_conflicting_wave_counts": [
+    42,
+    57,
+    73,
+    76,
+    98,
+    103,
+    106
+  ],
+  "legacy_interpolated_p95_control_ms": 947.05556495,
+  "observed_collection_labels": 87,
+  "observed_cumulative_counter_maxima": {
+    "cache_hits": 22,
+    "identity_only": 16
+  },
+  "request_count": 100,
+  "source": {
+    "bytes": 6543522,
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d215_20261004/7b_outputs_validation/experiment_results_full_vllm_dedicated_a500_r100_c2_tc_ieee_full_d215_7b_route_identity_cold_validation.json",
+    "scenario": "tc_ieee_full",
+    "sha256": "2eac305a81b4d842af1c0918672ba82e5f19015b427f7ec4d48915f7f5076e56"
+  },
+  "source_snapshot_count": 304
+}

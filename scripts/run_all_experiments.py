@@ -8376,7 +8376,7 @@ class ScenarioRunner:
                     raise ValueError('IEEE TP=1 replicas require distinct native physical GPU identities')
                 for instance_id, cache_scope, entry in cache_updates:
                     self._ieee_route_full_cache[(instance_id, cache_scope)] = entry
-                return tuple(values), dict(collection_id=stats['collections'], joined=False,
+                return tuple(values), dict(collection_id=wave['collection_id'], joined=False,
                     mode='identity_recheck_cache_v1', identity_replica_count=len(identity_indexes),
                     full_authoritative_read_replica_count=len(full_read_indexes),
                     full_fallback_replica_count=len(fallback_indexes),
@@ -8394,7 +8394,9 @@ class ScenarioRunner:
                 return None, dict(collection_id=wave['collection_id'], joined=joined,
                     mode='identity_recheck_cache_v1', membership_rejected=True)
             observations, collection = values
-            return observations, dict(collection, joined=joined)
+            # The wave owns its ID at creation. A concurrent scope may advance
+            # the global counter while this collection awaits native replies.
+            return observations, dict(collection, collection_id=wave['collection_id'], joined=joined)
         finally:
             wave['waiters'] -= 1
             if wave['waiters'] == 0:

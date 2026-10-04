@@ -1,0 +1,4 @@
+control_mean_us,control_p95_us,mean_change_vs_D215_lower_better,p95_change_vs_D215_lower_better,run,source
+462790.392475,,-0.9609453283213827,,D214,D214 retry4 stage table
+236003.72014,947055.56495,0.0,0.0,D215,D215 curated validation
+238514.64515,692622.3726499998,-0.010639345042995501,0.26865709016073736,D216 retry7,this run

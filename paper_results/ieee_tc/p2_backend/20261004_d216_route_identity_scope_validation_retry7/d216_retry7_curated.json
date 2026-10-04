@@ -1,0 +1,243 @@
+{
+  "caveat": "This is a 100-request mechanism diagnostic, not a formal G1/G2 or cross-system comparison. Mean control-path cost is not lower than D215 in this single run, although the P95 is lower; no 4,000-request replay is authorized by this artifact alone.",
+  "control_path_comparison": [
+    {
+      "control_mean_us": 462790.392475,
+      "control_p95_us": null,
+      "mean_change_vs_D215_lower_better": -0.9609453283213827,
+      "p95_change_vs_D215_lower_better": null,
+      "run": "D214",
+      "source": "D214 retry4 stage table"
+    },
+    {
+      "control_mean_us": 236003.72014,
+      "control_p95_us": 947055.56495,
+      "mean_change_vs_D215_lower_better": 0.0,
+      "p95_change_vs_D215_lower_better": 0.0,
+      "run": "D215",
+      "source": "D215 curated validation"
+    },
+    {
+      "control_mean_us": 238514.64515,
+      "control_p95_us": 692622.3726499998,
+      "mean_change_vs_D215_lower_better": -0.010639345042995501,
+      "p95_change_vs_D215_lower_better": 0.26865709016073736,
+      "run": "D216 retry7",
+      "source": "this run"
+    }
+  ],
+  "delivery": {
+    "delivery_modes": [
+      "prepublished_gzip_v1"
+    ],
+    "joined_server_bytes": 50650865,
+    "joined_transfer_count": 29,
+    "main_outcome_transfer_count": 29,
+    "outcomes": [
+      "sent"
+    ],
+    "pack_performed": [
+      false
+    ],
+    "remote_journal_line_count": 29,
+    "temporary_created": [
+      false
+    ],
+    "unmatched_remote_lines": 0
+  },
+  "descriptive_metrics": {
+    "avg_control_path_total_us": 238514.64515,
+    "avg_dispatch_admission_wait_ms": 669.9439378723036,
+    "avg_e2e_ms": 7279.524378647329,
+    "avg_service_ttft_ms": 672.4038869969081,
+    "avg_tpot_ms": 34.35570309370312,
+    "avg_ttft_ms": 1342.3478248692118,
+    "cache_hit_rate": 0.72,
+    "completed_requests": null,
+    "failed_requests": null,
+    "gpu_hit_rate": 0.32,
+    "p95_control_path_total_us": 692622.3726499998,
+    "p95_dispatch_admission_wait_ms": 2358.378123067086,
+    "p95_e2e_ms": 12081.076834152918,
+    "p95_service_ttft_ms": 1877.2242620645552,
+    "p95_ttft_ms": 3021.3439109327737,
+    "p99_e2e_ms": 13643.412589129299,
+    "p99_ttft_ms": 5284.605072125564,
+    "slo_attainment": 0.98,
+    "throughput_rps": 0.5212677351751706
+  },
+  "kind": "d216_route_identity_scope_validation_curated_v1",
+  "physical_lifecycle": {
+    "gpu_seconds_observed": 852.3026291489368,
+    "gpu_seconds_per_offered_request": 8.523026291489368,
+    "journals": [
+      {
+        "event_order_valid": true,
+        "events": [
+          "acquire",
+          "worker_spawn",
+          "native_workers",
+          "native_workers_exited",
+          "release"
+        ],
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d216_20261004/7b_route_identity_scope_validation_retry7/launch.launch/physical_allocations/02af962b5e7a4402be1ebe9dad130890.jsonl",
+        "sha256": "36238ad57092a4072b478ff868e373ac37813c00d04a33b0e982d0e864aa44c7"
+      },
+      {
+        "event_order_valid": true,
+        "events": [
+          "acquire",
+          "worker_spawn",
+          "native_workers",
+          "native_workers_exited",
+          "release"
+        ],
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d216_20261004/7b_route_identity_scope_validation_retry7/launch.launch/physical_allocations/2922cb7c30e94246abefbc912ac20ba3.jsonl",
+        "sha256": "77a3af1b0bb2b342e9656725ec61a5f724b617d4995eee6c64df5255d97ef4d2"
+      },
+      {
+        "event_order_valid": true,
+        "events": [
+          "acquire",
+          "worker_spawn",
+          "native_workers",
+          "native_workers_exited",
+          "release"
+        ],
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d216_20261004/7b_route_identity_scope_validation_retry7/launch.launch/physical_allocations/4a14ef0d1d3e4ae3bdf0f2f15c9734c0.jsonl",
+        "sha256": "56e479b69594c4d00e98523ff1dc9f704575a32ef8974e337df1311092ed5b92"
+      },
+      {
+        "event_order_valid": true,
+        "events": [
+          "acquire",
+          "worker_spawn",
+          "native_workers",
+          "native_workers_exited",
+          "release"
+        ],
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d216_20261004/7b_route_identity_scope_validation_retry7/launch.launch/physical_allocations/cf41b646d6134ebeb37059bbd528a0bc.jsonl",
+        "sha256": "ac2e60c9aed5bfbb807a5da4a83173ebfbad15da4754b007be144a43f2bc9fe7"
+      }
+    ],
+    "n_correct": null,
+    "open_lease_ids": []
+  },
+  "population": {
+    "actual_equals_target": 100,
+    "dispatch_readiness_fields": 100,
+    "native_contract_matches": 100,
+    "planned": 100,
+    "prompt_hashes": 100,
+    "successful_requests": 100,
+    "terminals": 100,
+    "unique_request_ids": 100
+  },
+  "qualification": {
+    "candidate_decision": "mechanism_path_observed_mean_control_improvement_unresolved",
+    "formal_comparison_qualified": false,
+    "launch_pass": true,
+    "native_gpu_context_release_confirmed": true,
+    "replay_returncode": 0,
+    "service_path_removed": true,
+    "service_returncode": 0,
+    "watchdog_returncode": 0
+  },
+  "route_identity_evidence": {
+    "all_snapshot_counters": {
+      "cache_hits": {
+        "nonzero": 333,
+        "rows": 337,
+        "sum": 3509
+      },
+      "cold_full_read_replica_count": {
+        "nonzero": 132,
+        "rows": 337,
+        "sum": 404
+      },
+      "full_authoritative_read_replica_count": {
+        "nonzero": 328,
+        "rows": 337,
+        "sum": 1136
+      },
+      "full_fallback_replica_count": {
+        "nonzero": 240,
+        "rows": 337,
+        "sum": 732
+      },
+      "identity_only": {
+        "nonzero": 310,
+        "rows": 337,
+        "sum": 1386
+      },
+      "identity_replica_count": {
+        "nonzero": 253,
+        "rows": 337,
+        "sum": 867
+      },
+      "joined": {
+        "nonzero": 5,
+        "rows": 337,
+        "sum": 5
+      }
+    },
+    "note": "cache_hits and identity_only are cumulative runner counters; they are not converted into a per-request hit rate. The scope-local predicate is identified from the source-level counter update and retained as mechanism evidence only.",
+    "request_source_snapshot_count": 337,
+    "scope_local_counter_evidence": {
+      "interpretation": "The runner increments cache_hits only at the scope-local reuse predicate; emitted values are cumulative, not per-request events.",
+      "maximum_cumulative_value": 30,
+      "source_field": "cache_hits",
+      "value_in_last_collection": 30
+    },
+    "stale_rechecks": 4,
+    "unique_collection_counters": {
+      "cache_hits": {
+        "nonzero": 79,
+        "rows": 83,
+        "sum": 734
+      },
+      "cold_full_read_replica_count": {
+        "nonzero": 29,
+        "rows": 83,
+        "sum": 73
+      },
+      "full_authoritative_read_replica_count": {
+        "nonzero": 80,
+        "rows": 83,
+        "sum": 242
+      },
+      "full_fallback_replica_count": {
+        "nonzero": 59,
+        "rows": 83,
+        "sum": 169
+      },
+      "identity_only": {
+        "nonzero": 64,
+        "rows": 83,
+        "sum": 283
+      },
+      "identity_replica_count": {
+        "nonzero": 63,
+        "rows": 83,
+        "sum": 203
+      },
+      "joined": {
+        "nonzero": 0,
+        "rows": 83,
+        "sum": 0
+      }
+    },
+    "unique_collection_ids_in_request_evidence": 83
+  },
+  "run_id": "d216_7b_route_identity_scope_validation_retry7",
+  "source_sha256": {
+    "adapter_subset": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016",
+    "config": "a70fca3927e88e2f0a241e9e4275a5bc58c36d73107061cd4c4a6f2f8d217b7c",
+    "launch": "3205dd3bbf99a6a846e35262577561c0fd05d93058241bac2bd73b34b0dfbffe",
+    "main_outcome": "54705300d5635529dea838af43497a25b4b84c3f0cfff4173d5ab3b829e48444",
+    "physical_summary": "0d3a743f1018d5f4d4fdbca60696b7ce5a13905a63846a534ca49c6d62b3df7c",
+    "remote_transfer_journal": "f1b866dd71316445c1d7a496017ce52fe569dcb7331cb45699862cbbe29f093d",
+    "request_result_json": "ef3ec29b00d62fc29a9f1ed2bbeab1516404c38c5f87e6764e339ecd1af7ae38",
+    "trace": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c"
+  }
+}

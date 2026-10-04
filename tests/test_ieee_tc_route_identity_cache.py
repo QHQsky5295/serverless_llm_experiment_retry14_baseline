@@ -1,6 +1,10 @@
 """CPU-only qualification for the opt-in confirmed-route footprint cache."""
 
 import asyncio
+import copy
+import json
+from pathlib import Path
+import tempfile
 import time
 import unittest
 from types import SimpleNamespace
@@ -9,6 +13,7 @@ from unittest.mock import AsyncMock
 from faaslora.clock import local_monotonic_clock_id
 from faaslora.experiment.instance_pool import InstanceSlot, NativeSourceSnapshot
 from scripts.run_all_experiments import ScenarioRunner
+from scripts.analyze_control_path_overhead import summarize_route_evidence, analyze_route_evidence
 from tests.test_ieee_tc_request_footprints import full_payload, scoped_payload
 
 
@@ -60,10 +65,53 @@ class RouteIdentityCacheQualification(unittest.TestCase):
             self.assertEqual(first_meta['full_authoritative_read_replica_count'], 1)
             self.assertEqual(first_meta['cold_full_read_replica_count'], 1)
             self.assertEqual(first_meta['full_fallback_replica_count'], 0)
+            self.assertEqual(first_meta['collection_id'], 1)
             self.assertEqual(second_meta['mode'], 'identity_recheck_cache_v1')
+            self.assertEqual(second_meta['collection_id'], 2)
             self.assertGreaterEqual(runner._ieee_route_cache_stats['hits'], 1)
 
         asyncio.run(check())
+
+    def test_concurrent_scopes_keep_distinct_ids_and_joined_waiters_share_one(self):
+        runner, slot, _, full_wire = self._runner()
+
+        async def check():
+            entered = {4: asyncio.Event(), 5: asyncio.Event()}
+            release = asyncio.Event()
+
+            async def read(*, requested_adapter_ids):
+                scope = tuple(requested_adapter_ids)
+                entered[scope[0]].set()
+                await release.wait()
+                payload = scoped_payload(scope)
+                payload['clock_id'] = local_monotonic_clock_id()
+                state = NativeSourceSnapshot.from_request_native(
+                    payload, requested_adapter_ids=scope,
+                    expected_clock_id=local_monotonic_clock_id(),
+                    received_monotonic_s=time.monotonic())
+                return state.request_wire(device_uuid=full_wire['device_uuid'])
+
+            slot.engine.ieee_request_sources = AsyncMock(side_effect=read)
+            first = asyncio.create_task(runner._ieee_collect_route_identity_cache(
+                (slot,), requested_adapter_ids=[4]))
+            await entered[4].wait()
+            second = asyncio.create_task(runner._ieee_collect_route_identity_cache(
+                (slot,), requested_adapter_ids=[5]))
+            await entered[5].wait()
+            joined = asyncio.create_task(runner._ieee_collect_route_identity_cache(
+                (slot,), requested_adapter_ids=[4]))
+            await asyncio.sleep(0)
+            release.set()
+            a, b, c = await asyncio.gather(first, second, joined)
+            self.assertEqual((a[1]['collection_id'], b[1]['collection_id'],
+                              c[1]['collection_id']), (1, 2, 1))
+            self.assertTrue(c[1]['joined'])
+            self.assertEqual(slot.engine.ieee_request_sources.await_count, 2)
+            self.assertEqual(runner._ieee_source_observation_stats['collections'], 2)
+            self.assertEqual(runner._ieee_source_observation_stats['joined'], 1)
+            self.assertEqual(runner._ieee_source_observation_waves, {})
+
+        asyncio.run(asyncio.wait_for(check(), timeout=2))
 
     def test_epoch_change_forces_authoritative_full_read(self):
         runner, slot, identity_wire, full_wire = self._runner()
@@ -167,6 +215,72 @@ class RouteIdentityCacheQualification(unittest.TestCase):
             self.assertEqual(runner._ieee_route_cache_stats.get('hits', 0), 0)
 
         asyncio.run(check())
+
+
+class RouteEvidenceAudit(unittest.TestCase):
+    def _requests(self):
+        result = []
+        for index in range(20):
+            row = dict(collection_id=1, identity_replica_count=1,
+                       full_authoritative_read_replica_count=index % 2,
+                       cold_full_read_replica_count=0,
+                       full_fallback_replica_count=index % 2,
+                       cache_hits=7, identity_only=3)
+            result.append(dict(request_id=str(index), control_path_total_us=1000*(index+1),
+                gpu_reference_evidence={'routing_snapshot': {'sources': {
+                    'a': {'source_collection': row}, 'b': {'source_collection': dict(row)}}}}))
+        return result
+
+    def test_replicated_counters_and_colliding_labels_are_not_event_totals(self):
+        result = summarize_route_evidence(self._requests())
+        self.assertEqual(result['source_snapshot_count'], 40)
+        self.assertEqual(result['observed_collection_labels'], 1)
+        self.assertEqual(result['labels_with_conflicting_wave_counts'], [1])
+        self.assertEqual(result['observed_cumulative_counter_maxima']['cache_hits'], 7)
+        self.assertIsNone(result['exact_rpc_count'])
+        self.assertEqual(result['conditional_request_groups']['with_reported_fallback']['n_requests'], 10)
+
+    def test_type1_percentile_not_legacy_interpolation(self):
+        result = summarize_route_evidence(self._requests())
+        self.assertEqual(result['control_path']['p95_type1_ms'], 19)
+        self.assertEqual(result['control_path']['mean_ms'], 10.5)
+
+    def test_missing_duplicate_or_invalid_evidence_fails_closed(self):
+        mutations = (
+            lambda rows: rows[0].pop('control_path_total_us'),
+            lambda rows: rows[0].update(control_path_total_us=float('nan')),
+            lambda rows: rows[0].update(request_id=rows[1]['request_id']),
+            lambda rows: rows[0]['gpu_reference_evidence']['routing_snapshot'].update(sources={}),
+            lambda rows: rows[0]['gpu_reference_evidence']['routing_snapshot']['sources']['a']['source_collection'].update(cache_hits=-1),
+        )
+        for mutation in mutations:
+            with self.subTest(mutation=mutation):
+                rows = copy.deepcopy(self._requests())
+                mutation(rows)
+                with self.assertRaises((KeyError, ValueError)):
+                    summarize_route_evidence(rows)
+
+    def test_empty_group_is_unknown_not_zero(self):
+        rows = self._requests()
+        for row in rows:
+            for source in row['gpu_reference_evidence']['routing_snapshot']['sources'].values():
+                source['source_collection']['full_fallback_replica_count'] = 0
+        empty = summarize_route_evidence(rows)['conditional_request_groups']['with_reported_fallback']
+        self.assertEqual(empty['n_requests'], 0)
+        self.assertIsNone(empty['mean_ms'])
+        self.assertIsNone(empty['p95_type1_ms'])
+
+    def test_audit_requires_fresh_output_and_retains_source_hash(self):
+        with tempfile.TemporaryDirectory() as temp:
+            source, output = Path(temp)/'source.json', Path(temp)/'output'
+            source.write_text(json.dumps({'detailed_results': {'example': {
+                'requests': self._requests(), 'p95_control_path_total_us': 19050}}}))
+            result = analyze_route_evidence(source, output, 'example')
+            self.assertEqual(len(result['source']['sha256']), 64)
+            self.assertFalse(result['formal_comparison_qualified'])
+            self.assertEqual(result['legacy_interpolated_p95_control_ms'], 19.05)
+            with self.assertRaises(FileExistsError):
+                analyze_route_evidence(source, output, 'example')
 
 
 if __name__ == '__main__':

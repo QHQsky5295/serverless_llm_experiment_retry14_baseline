@@ -1054,6 +1054,104 @@ def analyze_control_boundaries(directory: Path, receipt_path: Path,
     return result
 
 
+def summarize_route_evidence(requests: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
+    """Audit request evidence without treating replicated/cumulative fields as RPCs.
+
+    Pre-fix identity collectors sampled the global collection number after an
+    await. An observed ID is therefore a label, not a unique wave key. Keep
+    collisions visible and do not attempt to reconstruct missing event totals.
+    """
+    if not requests:
+        raise ValueError('route audit requires nonempty request evidence')
+    ids = [r['request_id'] for r in requests]
+    if any(not isinstance(i, str) or not i for i in ids) or len(set(ids)) != len(ids):
+        raise ValueError('nonempty unique request IDs required')
+    observed_labels = {}
+    values, with_fallback, without_fallback = [], [], []
+    snapshot_count = 0
+    counters = {'cache_hits': [], 'identity_only': []}
+    wave_fields = ('identity_replica_count', 'full_authoritative_read_replica_count',
+                   'cold_full_read_replica_count', 'full_fallback_replica_count')
+    for request in requests:
+        value = request['control_path_total_us']
+        if type(value) not in (float, int) or not math.isfinite(value) or value < 0:
+            raise ValueError('complete finite control timings required')
+        sources = request['gpu_reference_evidence']['routing_snapshot']['sources']
+        if not isinstance(sources, dict) or not sources:
+            raise ValueError('complete route sources required')
+        fallback = False
+        for evidence in sources.values():
+            row = evidence['source_collection']
+            label = row['collection_id']
+            if type(label) is not int or label < 1:
+                raise ValueError('positive integer collection label required')
+            for field in wave_fields + tuple(counters):
+                if type(row[field]) is not int or row[field] < 0:
+                    raise ValueError('nonnegative integer source counters required')
+            # Duplicated snapshots of one wave agree on per-wave counts. Different
+            # signatures under one label prove that deduplication by ID is unsafe.
+            signature = tuple(row[field] for field in wave_fields)
+            observed_labels.setdefault(label, set()).add(signature)
+            for field in counters:
+                counters[field].append(row[field])
+            fallback |= row['full_fallback_replica_count'] > 0
+            snapshot_count += 1
+        values.append(float(value))
+        (with_fallback if fallback else without_fallback).append(float(value))
+
+    def distribution(xs):
+        ordered = sorted(xs)
+        return {'n_requests': len(xs),
+                'mean_ms': sum(xs) / len(xs) / 1000 if xs else None,
+                'p95_type1_ms': ordered[math.ceil(.95 * len(xs))-1] / 1000 if xs else None}
+
+    return {
+        'formal_comparison_qualified': False,
+        'request_count': len(requests),
+        'source_snapshot_count': snapshot_count,
+        'observed_collection_labels': len(observed_labels),
+        'labels_with_conflicting_wave_counts': sorted(
+            key for key, signatures in observed_labels.items() if len(signatures) > 1),
+        'observed_cumulative_counter_maxima': {k: max(v) for k, v in counters.items()},
+        'exact_rpc_count': None,
+        'control_path': distribution(values),
+        'conditional_request_groups': {
+            'with_reported_fallback': distribution(with_fallback),
+            'without_reported_fallback': distribution(without_fallback)},
+        'caveats': [
+            'Observed labels are not unique wave identities in historical identity-cache runs.',
+            'Neither snapshot sums nor first-row-per-label sums are RPC/event totals.',
+            'Cumulative maxima are observed lower bounds, not a guaranteed end-of-run total.',
+            'Conditional groups are system-dependent populations, not causal or paired contrasts.',
+            'One run supplies no run-level confidence interval or formal G1/G2 qualification.'],
+    }
+
+
+def analyze_route_evidence(source: Path, output: Path, scenario_name: str) -> Dict[str, Any]:
+    """Bounded offline audit; explicit fresh output, never legacy paper copies."""
+    import hashlib
+    if output.exists():
+        raise FileExistsError(output)
+    with source.open('rb') as handle:
+        raw = handle.read(64 * 1024**2 + 1)
+    if len(raw) > 64 * 1024**2:
+        raise ValueError('route evidence input exceeds bounded 64 MiB diagnostic limit')
+    scenario = json.loads(raw)['detailed_results'][scenario_name]
+    result = summarize_route_evidence(scenario['requests'])
+    result['source'] = {'path': str(source.resolve()), 'bytes': len(raw),
+                        'sha256': hashlib.sha256(raw).hexdigest(), 'scenario': scenario_name}
+    result['legacy_interpolated_p95_control_ms'] = (
+        scenario['p95_control_path_total_us'] / 1000)
+    output.mkdir(parents=True, exist_ok=False)
+    with (output / 'route_evidence_audit.json').open('x') as handle:
+        json.dump(result, handle, indent=2, sort_keys=True, allow_nan=False)
+        handle.write('\n')
+    rows = [dict(group='all', **result['control_path'])]
+    rows += [dict(group=k, **v) for k, v in result['conditional_request_groups'].items()]
+    write_csv(rows, output / 'control_request_groups.csv')
+    return result
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", required=True, help="Result JSON file or directory")
@@ -1062,6 +1160,7 @@ def main() -> None:
     parser.add_argument("--rpc-breakdown", action="store_true", help="Audit retained native-async RPC fields, no new experiment or legacy paper copies")
     parser.add_argument("--admission-capacity", action="store_true", help="Audit retained admission KV snapshots; no serving or capacity configuration change")
     parser.add_argument("--control-boundaries", action="store_true", help="Strict diagnostic source-RPC boundary audit, not serving performance")
+    parser.add_argument("--route-evidence", action="store_true", help="Audit historical route labels/counters and Type-1 control P95 without inferring RPC totals")
     parser.add_argument("--launch-receipt", type=Path)
     parser.add_argument("--sealed-summary", type=Path)
     parser.add_argument("--sealed-sha256")
@@ -1073,8 +1172,14 @@ def main() -> None:
     parser.add_argument("--scenario", default=None, help="Optional scenario-name substring")
     args = parser.parse_args()
 
-    if sum((args.control_boundaries,args.admission_capacity,args.rpc_breakdown,args.native_timeline)) > 1:
+    if sum((args.route_evidence,args.control_boundaries,args.admission_capacity,args.rpc_breakdown,args.native_timeline)) > 1:
         parser.error('choose one audit mode')
+    if args.route_evidence:
+        if not all((args.output, args.scenario)):
+            parser.error('route evidence requires explicit fresh output and exact scenario')
+        print(json.dumps(analyze_route_evidence(Path(args.input), Path(args.output), args.scenario),
+                         indent=2, allow_nan=False))
+        return
     if args.control_boundaries:
         if not all((args.output,args.deployment,args.launch_receipt)):
             parser.error('control boundaries require explicit fresh output/deployment/launch-receipt')
