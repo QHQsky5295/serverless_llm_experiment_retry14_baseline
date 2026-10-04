@@ -1,0 +1,3 @@
+scope,rows,cold_full_read_nonzero,cold_full_read_sum,fallback_nonzero,fallback_sum,identity_only_nonzero,identity_only_sum,cache_counter_nonzero,cache_counter_sum
+unique_collection,87,37,88,60,142,53,535,58,599
+all_snapshot,304,115,341,227,639,256,2648,270,2970

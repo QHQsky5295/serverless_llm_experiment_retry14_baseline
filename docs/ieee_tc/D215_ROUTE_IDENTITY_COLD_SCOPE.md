@@ -1,7 +1,7 @@
 # D215: cold-scope route observation candidate
 
 Date: 2026-10-04
-Status: CPU-qualified; one bounded 7B GPU validation is pending
+Status: REVOKED after bounded 7B validation; preserved for audit
 Scope: PrimeLoRA-only diagnostic; not a baseline comparison or a formal G1/G2 result
 
 ## Hypothesis
@@ -62,6 +62,28 @@ request-lifecycle suites.  Python compilation and `git diff --check` also pass.
 These tests establish semantic and ownership invariants only; they do not imply
 GPU performance improvement.
 
+## Bounded validation result and decision
+
+The authorized 100-request 7B validation passed the request/native-contract and
+physical-lifecycle gates (100/100 terminal and successful records, four exact
+owner-event journals, zero open leases, 779.891374 observed GPU-s). It did not
+pass the candidate's mechanism gate. The coordination record reports 107
+collections, 7 stale rejections and 1 joined collection. The request evidence
+contains 87 unique collection IDs; 37 include cold full reads (88 replica
+reads), while 60 include authoritative full fallbacks (142 replica reads) even
+after cached scopes existed. The per-snapshot `cache_hits` and `identity_only`
+fields are cumulative counters and are deliberately not interpreted as a
+per-request reuse rate.
+
+The diagnostic's routing/control mean/P95 was 236.004/947.056 ms and its E2E
+TTFT mean/P95 was 2,372.378/11,132.852 ms. These are not formal Prime
+performance results. The repeated fallback means the expected identity-only
+fast path was not dominant enough to support a 4,000-request replay. The
+candidate is therefore **revoked**, and no 3B or baseline run is authorized.
+The raw launch, transfer, lifecycle and result evidence remains immutable; the
+curated audit is under
+`paper_results/ieee_tc/p2_backend/20261004_d215_route_identity_cold_validation/`.
+
 ## Validation protocol
 
 Run one fresh 100-request 7B W0 prefix with the exact D214 validation trace,
@@ -79,9 +101,10 @@ request-specific targets as a uniform 256-token workload.
 
 Only if the bounded validation reduces the predicted control-path cost without a
 new correctness, lifecycle, or resource failure may a fresh 4,000-request
-replay be authorized.  If it does not, revoke D215 as an optimization candidate
-and record the next single evidence-backed hypothesis; do not stack another
-optimization or start 3B/baseline experiments.
+replay be authorized.  That condition was not met. D215 is revoked; the next
+action is a source-level audit of the cached-footprint acceptance predicate and
+one new CPU-qualified hypothesis. Do not stack another optimization or start
+3B/baseline experiments.
 
 ## Paper interpretation boundary
 

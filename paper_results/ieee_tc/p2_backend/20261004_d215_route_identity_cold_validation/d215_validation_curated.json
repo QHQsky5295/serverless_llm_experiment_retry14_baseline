@@ -1,0 +1,209 @@
+{
+  "caveat": "This is a 100-request mechanism diagnostic, not a formal G1/G2 or cross-system comparison. The fixed-output token contract does not establish numerical adapter correctness, and the legacy 5000-ms display is TTFT-only rather than the frozen joint TTFT/TPOT SLO.",
+  "delivery": {
+    "delivery_modes": [
+      "prepublished_gzip_v1"
+    ],
+    "joined_server_bytes": 50650865,
+    "joined_transfer_count": 29,
+    "main_outcome_transfer_count": 29,
+    "pack_performed": [
+      false
+    ],
+    "remote_journal_line_count": 29,
+    "temporary_created": [
+      false
+    ],
+    "unmatched_remote_lines": 0
+  },
+  "descriptive_metrics": {
+    "avg_control_path_total_us": 236003.72014,
+    "avg_dispatch_admission_wait_ms": 1719.2527131305542,
+    "avg_e2e_ms": 8622.023896734463,
+    "avg_service_ttft_ms": 653.1251131766476,
+    "avg_tpot_ms": 35.43722607939998,
+    "avg_ttft_ms": 2372.3778263072018,
+    "cache_hit_rate": 0.75,
+    "gpu_hit_rate": 0.34,
+    "p95_control_path_total_us": 947055.5649499999,
+    "p95_dispatch_admission_wait_ms": 10809.148639271732,
+    "p95_e2e_ms": 19239.45115901297,
+    "p95_service_ttft_ms": 1805.050462106009,
+    "p95_ttft_ms": 11132.851564063456,
+    "p99_e2e_ms": 23792.44928123547,
+    "p99_ttft_ms": 13472.873375137578,
+    "slo_attainment": 0.9,
+    "throughput_rps": 0.5193510228290519
+  },
+  "kind": "d215_route_identity_cold_validation_curated_v1",
+  "physical_lifecycle": {
+    "gpu_seconds_observed": 779.8913742139703,
+    "gpu_seconds_per_offered_request": 7.798913742139702,
+    "journals": [
+      {
+        "event_order_valid": true,
+        "events": [
+          "acquire",
+          "worker_spawn",
+          "native_workers",
+          "native_workers_exited",
+          "release"
+        ],
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d215_20261004/7b_route_identity_cold_validation/launch.launch/physical_allocations/00b4c3088cb6423a887fbde29d46a11e.jsonl",
+        "sha256": "bb2f8b50741f121202bdd8141b41fd500f66c0d15ca4e52e2f1c10129f2daed4"
+      },
+      {
+        "event_order_valid": true,
+        "events": [
+          "acquire",
+          "worker_spawn",
+          "native_workers",
+          "native_workers_exited",
+          "release"
+        ],
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d215_20261004/7b_route_identity_cold_validation/launch.launch/physical_allocations/62feead25cef4a74b09a9809df662a37.jsonl",
+        "sha256": "954e1b3c8a0108e83ea948d817c9d3981cfe31f076390d21e16ca4f8133a344c"
+      },
+      {
+        "event_order_valid": true,
+        "events": [
+          "acquire",
+          "worker_spawn",
+          "native_workers",
+          "native_workers_exited",
+          "release"
+        ],
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d215_20261004/7b_route_identity_cold_validation/launch.launch/physical_allocations/7158702a207842f087c9730d4a3db599.jsonl",
+        "sha256": "6f513b3e62be17b661ed458a9675b602875bebf887623155ae627936e3b319f8"
+      },
+      {
+        "event_order_valid": true,
+        "events": [
+          "acquire",
+          "worker_spawn",
+          "native_workers",
+          "native_workers_exited",
+          "release"
+        ],
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d215_20261004/7b_route_identity_cold_validation/launch.launch/physical_allocations/8af89ce53bd24bfea17bd183660599cc.jsonl",
+        "sha256": "52691ec690870adc9a7a31477c008fe9415a8a2d669af3d00d44015bd1e69347"
+      }
+    ],
+    "open_lease_ids": []
+  },
+  "population": {
+    "native_contract_matches": 100,
+    "planned": 100,
+    "request_result_json_sha256": "2eac305a81b4d842af1c0918672ba82e5f19015b427f7ec4d48915f7f5076e56",
+    "successful_requests": 100,
+    "terminals": 100,
+    "unique_request_ids": 100
+  },
+  "qualification": {
+    "candidate_decision": "revoked_after_bounded_validation",
+    "formal_comparison_qualified": false,
+    "launch_pass": true,
+    "native_gpu_context_release_confirmed": true,
+    "replay_returncode": 0,
+    "service_path_removed": true,
+    "service_returncode": 0,
+    "watchdog_returncode": 0
+  },
+  "route_identity_evidence": {
+    "all_snapshot_counters": {
+      "cache_hits": {
+        "nonzero_rows": 270,
+        "sum": 2970
+      },
+      "cold_full_read_replica_count": {
+        "nonzero_rows": 115,
+        "sum": 341
+      },
+      "full_authoritative_read_replica_count": {
+        "nonzero_rows": 296,
+        "sum": 980
+      },
+      "full_fallback_replica_count": {
+        "nonzero_rows": 227,
+        "sum": 639
+      },
+      "identity_only": {
+        "nonzero_rows": 256,
+        "sum": 2648
+      },
+      "identity_replica_count": {
+        "nonzero_rows": 235,
+        "sum": 765
+      }
+    },
+    "identity_failures_in_request_evidence": 0,
+    "main_source_observation_stats": {
+      "collections": 107,
+      "joined": 1,
+      "stale_rejections": 7
+    },
+    "note": "cache_hits and identity_only are cumulative counters emitted by the runner; they are not treated as per-request reuse events.",
+    "request_source_snapshot_count": 304,
+    "selected_request_snapshot_count": 100,
+    "unique_collection_categories": {
+      "cache_hits_counter": {
+        "nonzero": 58,
+        "rows": 87,
+        "sum": 599
+      },
+      "cold_full_read": {
+        "nonzero": 37,
+        "rows": 87,
+        "sum": 88
+      },
+      "full_fallback": {
+        "nonzero": 60,
+        "rows": 87,
+        "sum": 142
+      },
+      "identity_only": {
+        "nonzero": 53,
+        "rows": 87,
+        "sum": 535
+      }
+    },
+    "unique_collection_counters": {
+      "cache_hits": {
+        "nonzero_rows": 58,
+        "sum": 599
+      },
+      "cold_full_read_replica_count": {
+        "nonzero_rows": 37,
+        "sum": 88
+      },
+      "full_authoritative_read_replica_count": {
+        "nonzero_rows": 85,
+        "sum": 230
+      },
+      "full_fallback_replica_count": {
+        "nonzero_rows": 60,
+        "sum": 142
+      },
+      "identity_only": {
+        "nonzero_rows": 53,
+        "sum": 535
+      },
+      "identity_replica_count": {
+        "nonzero_rows": 62,
+        "sum": 168
+      }
+    },
+    "unique_collection_ids_in_request_evidence": 87
+  },
+  "run_id": "d215_7b_route_identity_cold_validation",
+  "source_sha256": {
+    "adapter_subset": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016",
+    "config": "fcf9b25669cc136312e53d53a9ebd61605ccc18e1cfc6b2b4bcdb89350a96da1",
+    "launch": "0a180236f5ab027c3ddd3eb6a309d1a2bdaa944af9ea756ce65a8b978e2f3ac1",
+    "main_outcome": "fb0befcef62534f745928163667971a6d460253d67e2d472acaceef3df8d08f8",
+    "physical_summary": "c013407d09b487380fa7e780e692b0fbe34b8bd1065ab09bc3054c8d808f9188",
+    "remote_transfer_journal": "3840e38d9b7070c4e793984ea78fb04aea2675ff2b41921eecb21c4943d7aaab",
+    "request_result_json": "2eac305a81b4d842af1c0918672ba82e5f19015b427f7ec4d48915f7f5076e56",
+    "trace": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c"
+  }
+}

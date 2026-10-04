@@ -1,6 +1,43 @@
 # IEEE TC execution status
 
-## CURRENT — D215 cold-scope candidate CPU QUALIFIED; GPU validation pending
+## CURRENT — D215 REVOKED after bounded route-identity validation; Prime gate remains open
+
+2026-10-04 14:05+08. The D215 cold-scope candidate completed its authorized
+100-request 7B diagnostic, but it did not establish the intended low-cost
+identity-recheck path. The run is retained as mechanism evidence and is
+excluded from every G1/G2, joint-SLO, resource-saving, ranking, and baseline
+denominator.
+
+The strict execution contract passed: 100/100 terminal records, 100/100
+successful requests, 100/100 fixed-output/native contract matches, four exact
+physical allocation journals, zero open leases, and 779.891374 GPU-s observed.
+The run was nevertheless not a formal comparison: the token contract does not
+prove numerical adapter correctness, and the legacy 5,000-ms display is a
+TTFT-only diagnostic rather than the frozen joint TTFT/TPOT SLO.
+
+The decisive mechanism audit is in
+`paper_results/ieee_tc/p2_backend/20261004_d215_route_identity_cold_validation/`.
+The coordination record reports 107 collections, 7 stale rejections and 1
+joined collection. Request evidence contains 87 unique collection IDs; 37
+include cold full reads (88 replica reads) and 60 include authoritative full
+fallbacks (142 replica reads). The emitted `cache_hits` and `identity_only`
+fields are cumulative counters, so they are not converted into a reuse rate.
+Repeated authoritative fallback on scopes that had already been cached means
+the proposed path was not dominant enough to justify a 4,000-request replay.
+
+Descriptive diagnostic values were routing/control mean/P95 236.004/947.056
+ms, dispatch/admission mean/P95 1,719.253/10,809.149 ms, E2E TTFT mean/P95
+2,372.378/11,132.852 ms, service TTFT mean/P95 653.125/1,805.050 ms, E2E
+mean/P95 8,622.024/19,239.451 ms, and legacy TTFT-only attainment 90%.
+These values are diagnostic only and are not compared as accepted performance
+improvements.
+
+**Decision:** revoke D215; do not run its 4,000-request replay, 3B, or any
+external baseline. The next step is a source-level audit of why the cached
+footprint is rejected after a fresh identity observation, followed by one new
+CPU-qualified hypothesis. No stacked optimizer or blind retry is authorized.
+
+## HISTORICAL — D215 cold-scope candidate CPU QUALIFIED; superseded by the terminal validation block above
 
 2026-10-04 13:25+08. D214's stage audit identified a specific control-path
 candidate rather than a generic latency tuning opportunity: on a cold
