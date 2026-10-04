@@ -38,6 +38,19 @@ directory. The gate is now stored under `resource_coordination`, so the model
 profile identity remains exactly D157; the retry must use a new output
 directory and must not overwrite that failed attempt.
 
+The second bounded attempt is also retained without scientific interpretation.
+It passed the external-replay preflight and loaded the shared W0 trace prefix
+(100 of 4,000 requests), but the runner stopped before model/GPU initialization
+because the configuration still referenced the first attempt's already-created
+NVMe and `/dev/shm` workspace roots. The runner's fail-closed contract correctly
+raised `FileExistsError: IEEE replay requires fresh per-run workspace roots`;
+`N_arrived=N_submitted=0` and no GPU inference occurred. Its launch receipt and
+service evidence are under
+`results/ieee_tc/p2_backend_qualification/d214_20261004/7b_route_identity_validation_retry2/`.
+This is a launch hygiene failure, not evidence against the identity-recheck
+candidate. A third bounded validation must use a new output directory and new
+workspace roots, and must leave both earlier attempts immutable.
+
 ## CURRENT — D213 Resident repeats COMPLETE as serving diagnostics; V1 reference REJECTED by protocol audit
 
 2026-10-04 08:20+08. Goal ACTIVE/current turn PROGRESS. Before this
