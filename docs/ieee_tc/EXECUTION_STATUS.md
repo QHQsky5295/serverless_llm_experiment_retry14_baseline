@@ -1,5 +1,32 @@
 # IEEE TC execution status
 
+## CURRENT — D214 route identity-recheck candidate CPU QUALIFIED; no GPU replay yet
+
+2026-10-04 08:35+08. Goal ACTIVE/current turn PROGRESS. After the D213
+protocol audit, the next PrimeLoRA-only candidate is a feature-gated route
+observation optimization. D210 request projection identified the remaining
+control-path cost: each confirmed route performed a full scoped native
+footprint read even when the owner/source epoch was unchanged. D214 keeps a
+fresh identity-only owner read for every replica and reuses a prior measured
+scoped footprint only on exact owner/epoch/clock/source/slot identity match;
+identity failure, unknown/unconfirmed native state, epoch change or incomplete
+footprint falls back to the original full endpoint. No IEEE equation, profile,
+admission, lease or SLO definition changed, and the gate defaults OFF.
+
+The implementation is in `scripts/run_all_experiments.py`, documented in
+`docs/ieee_tc/D214_ROUTE_IDENTITY_RECHECK_CACHE.md`, and tested by the new
+CPU-only `tests/test_ieee_tc_route_identity_cache.py`. The affected request
+footprint/lifecycle suites plus the two D214 tests ran in the declared
+auxiliary CPU domain: 199 tests passed, 0 failed, 0 swap/OOM evidence. This
+qualifies only state-machine correctness; it does not claim a latency gain.
+
+Next: create an explicit candidate configuration (without editing the user
+manifest), run one bounded 7B W0 validation replay with the existing published
+remote artifact cache and strict cleanup/dispatch evidence, then decide from
+the measured control-path and TTFT change whether one complete replay is
+scientifically justified. No new baseline, 3B, comparison, or long vLLM run is
+authorized before this Prime candidate gate is resolved.
+
 ## CURRENT — D213 Resident repeats COMPLETE as serving diagnostics; V1 reference REJECTED by protocol audit
 
 2026-10-04 08:20+08. Goal ACTIVE/current turn PROGRESS. Before this

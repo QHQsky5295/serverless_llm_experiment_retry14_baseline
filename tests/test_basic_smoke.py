@@ -212,6 +212,7 @@ class MainlineConfigSmokeTests(unittest.TestCase):
                 "FAASLORA_VLLM_USE_FLASHINFER_SAMPLER": "true",
                 "FAASLORA_ENABLE_CHUNKED_PREFILL": "true",
                 "FAASLORA_ENABLE_PREFIX_CACHING": "true",
+                "FAASLORA_IEEE_ROUTE_IDENTITY_RECHECK_CACHE": "true",
             },
             clear=False,
         ):
@@ -228,6 +229,7 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         self.assertTrue(model_cfg["vllm_use_flashinfer_sampler"])
         self.assertTrue(model_cfg["enable_chunked_prefill"])
         self.assertTrue(model_cfg["enable_prefix_caching"])
+        self.assertTrue(model_cfg["ieee_route_identity_recheck_cache"])
         self.assertEqual(
             applied,
             {
@@ -237,6 +239,7 @@ class MainlineConfigSmokeTests(unittest.TestCase):
                 "FAASLORA_VLLM_USE_FLASHINFER_SAMPLER": True,
                 "FAASLORA_ENABLE_CHUNKED_PREFILL": True,
                 "FAASLORA_ENABLE_PREFIX_CACHING": True,
+                "FAASLORA_IEEE_ROUTE_IDENTITY_RECHECK_CACHE": True,
             },
         )
 

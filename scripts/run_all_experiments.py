@@ -66,7 +66,7 @@ import time
 import uuid
 from bisect import bisect_right
 from collections import defaultdict, deque
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, Awaitable, Callable, Collection, Dict, List, Optional, Sequence, Tuple
@@ -7032,6 +7032,17 @@ class ScenarioRunner:
         self._ieee_routing_epoch = 0
         self._ieee_source_observation_waves = {}
         self._ieee_source_observation_stats = {}
+        # Candidate-only route observation optimization.  The default remains
+        # the original full scoped observation.  When enabled, each request
+        # first obtains a fresh identity-only owner view; a previously
+        # confirmed scoped footprint may be reused only when that identity and
+        # epoch are unchanged.  This is deliberately a model-configured gate,
+        # not a hidden TTL or a last-known tier shortcut.
+        self._ieee_route_identity_recheck_cache = bool(
+            self.model_cfg.get('ieee_route_identity_recheck_cache', False)
+        )
+        self._ieee_route_full_cache: Dict[Tuple[str, tuple], Dict[str, Any]] = {}
+        self._ieee_route_cache_stats: Dict[str, int] = {}
         self._ieee_scale_controller = None
         self._ieee_control_events = []
         self._ieee_residency_tasks = {}
@@ -8074,6 +8085,228 @@ class ScenarioRunner:
         slot.ieee_utilization_sample = sample
         return dict(sample)
 
+    @staticmethod
+    def _ieee_identity_equal(current, previous) -> bool:
+        """Compare only owner/source identity, never the received timestamp.
+
+        ``source_identity_snapshot`` is a live owner read.  Its capture time
+        is expected to advance on every call, while owner/epoch/source
+        identity is the evidence that a previously measured footprint still
+        describes the same native copy.  Physical capacities are intentionally
+        not part of this comparison; a capacity change must advance the
+        owner epoch and therefore invalidate the cache.
+        """
+        if current is None or previous is None:
+            return False
+        left = replace(current.identity_view(), captured_monotonic_s=0.0)
+        right = replace(previous.identity_view(), captured_monotonic_s=0.0)
+        return left == right
+
+    @staticmethod
+    def _ieee_merge_cached_route_state(identity, cached):
+        """Attach cached measured footprints to a fresh matching identity.
+
+        The returned object is a new immutable observation whose timestamp and
+        owner identity come from the current recheck.  No mutable payload from
+        the previous request is exposed to the router.
+        """
+        if cached.footprint_adapter_ids is None:
+            return None
+        old_by_id = {source.adapter_int_id: source for source in cached.sources}
+        merged = []
+        for source in identity.sources:
+            old = old_by_id.get(source.adapter_int_id)
+            if old is None:
+                return None
+            merged.append(replace(source,
+                host_storage_bytes=old.host_storage_bytes,
+                host_representation=old.host_representation,
+                gpu_slot_capacity_bytes=old.gpu_slot_capacity_bytes,
+                gpu_representation=old.gpu_representation))
+        return replace(cached,
+            owner_id=identity.owner_id,
+            epoch=identity.epoch,
+            clock_id=identity.clock_id,
+            captured_monotonic_s=identity.captured_monotonic_s,
+            slot_adapter_ids=identity.slot_adapter_ids,
+            registered_cpu_adapter_ids=identity.registered_cpu_adapter_ids,
+            sources=tuple(merged),
+            unknown_native_adapter_ids=identity.unknown_native_adapter_ids,
+            unconfirmed_gpu_adapter_ids=identity.unconfirmed_gpu_adapter_ids)
+
+    @staticmethod
+    def _ieee_route_cache_covers_scope(identity, state, scope) -> bool:
+        """Return whether cached scoped bytes can classify this request.
+
+        A target that is absent from the native identity can safely fall back
+        to the managed file source without a footprint.  A target that is
+        native/registered requires the measured target footprint and pool
+        capacity; otherwise the caller must perform a fresh scoped read.
+        """
+        if not scope:
+            return True
+        target_ids = set(scope)
+        identity_by_id = {source.adapter_int_id: source for source in identity.sources}
+        measured_by_id = {source.adapter_int_id: source for source in state.sources}
+        registered = set(identity.registered_cpu_adapter_ids)
+        slots = set(aid for aid in identity.slot_adapter_ids if aid is not None)
+        unknown = set(identity.unknown_native_adapter_ids)
+        unconfirmed = set(identity.unconfirmed_gpu_adapter_ids)
+        for adapter_int_id in target_ids:
+            if adapter_int_id not in registered and adapter_int_id not in slots:
+                continue
+            # An unknown or unconfirmed native entry must be resolved by the
+            # authoritative scoped endpoint; identity-only state is not a
+            # service class or a budget decision.
+            if adapter_int_id in unknown or adapter_int_id in unconfirmed:
+                return False
+            identity_source = identity_by_id.get(adapter_int_id)
+            source = measured_by_id.get(adapter_int_id)
+            if identity_source is None or source is None:
+                return False
+            if (state.gpu_pool_storage_bytes is None
+                    or source.host_storage_bytes is None
+                    or source.host_representation is None
+                    or source.gpu_slot_capacity_bytes is None
+                    or source.gpu_representation is None):
+                return False
+        return True
+
+    async def _ieee_collect_route_identity_cache(self, slots, *, requested_adapter_ids):
+        """Fresh identity recheck plus conditional reuse of scoped footprints.
+
+        This path is an opt-in candidate for the confirmed router.  It never
+        routes from a last-known tier: every request first reads all current
+        owner identities.  The cached bytes are used only for an unchanged
+        owner/epoch/source identity; missing, malformed or failed identity
+        evidence falls back to the original authoritative full scoped read.
+        """
+        from faaslora.experiment.instance_pool import NativeSourceSnapshot
+        scope = NativeSourceSnapshot._request_scope(requested_adapter_ids)
+        stats = self._ieee_source_observation_stats
+        cache_stats = self._ieee_route_cache_stats
+        cache_stats['requests'] = cache_stats.get('requests', 0) + 1
+        membership = tuple((id(slot), id(slot.engine)) for slot in slots)
+        waves = self._ieee_source_observation_waves
+        key = (membership, scope, 'identity_recheck_v1')
+        wave = waves.get(key)
+        joined = wave is not None and not wave['task'].done()
+        if joined:
+            stats['joined'] = stats.get('joined', 0) + 1
+        else:
+            stats['collections'] = stats.get('collections', 0) + 1
+
+            async def collect():
+                from faaslora.clock import local_monotonic_clock_id
+                engines = tuple(slot.engine for slot in slots)
+                identity_tasks = [asyncio.create_task(slot.engine.ieee_source_identities())
+                                  for slot in slots]
+                identity_results = await asyncio.gather(*identity_tasks, return_exceptions=True)
+                identity_states = []
+                identity_error = False
+                for value in identity_results:
+                    if isinstance(value, BaseException):
+                        identity_error = True
+                        break
+                    try:
+                        identity_states.append((
+                            NativeSourceSnapshot.from_routing_wire(
+                                value, expected_clock_id=local_monotonic_clock_id(),
+                                received_monotonic_s=time.monotonic()),
+                            value.get('device_uuid')))
+                    except Exception:
+                        identity_error = True
+                        break
+                if (tuple(self.instance_pool.get_slots()) != slots
+                        or any(slot.engine is not engine for slot, engine in zip(slots, engines))):
+                    cache_stats['membership_rejections'] = cache_stats.get('membership_rejections', 0) + 1
+                    return None
+
+                # The compact identity endpoint must report distinct physical
+                # devices just as the full path does.  A malformed identity
+                # read does not authorize cached reuse; use the full endpoint.
+                full_indexes = set(range(len(slots))) if identity_error else set()
+                values = [None] * len(slots)
+                cache_updates = []
+                if not identity_error:
+                    for index, (slot, (identity, device_uuid)) in enumerate(zip(slots, identity_states)):
+                        cache_key = (slot.instance_id, scope)
+                        entry = self._ieee_route_full_cache.get(cache_key)
+                        cached = entry.get('snapshot') if isinstance(entry, dict) else None
+                        if (cached is not None and self._ieee_identity_equal(identity, cached)
+                                and self._ieee_route_cache_covers_scope(identity, cached, scope)):
+                            merged = self._ieee_merge_cached_route_state(identity, cached)
+                            if merged is not None:
+                                values[index] = (merged, device_uuid)
+                                cache_stats['hits'] = cache_stats.get('hits', 0) + 1
+                                continue
+                        if self._ieee_route_cache_covers_scope(identity, identity, scope):
+                            values[index] = (identity, device_uuid)
+                            cache_stats['identity_only'] = cache_stats.get('identity_only', 0) + 1
+                        else:
+                            full_indexes.add(index)
+                            cache_stats['misses'] = cache_stats.get('misses', 0) + 1
+
+                # An identity RPC failure is fail-closed for the cache, but it
+                # is not a reason to reject an otherwise valid authoritative
+                # full observation.  The fallback is per current membership.
+                if full_indexes:
+                    full_tasks = [asyncio.create_task(
+                        slots[index].engine.ieee_request_sources(requested_adapter_ids=list(scope)))
+                        for index in sorted(full_indexes)]
+                    full_results = await asyncio.gather(*full_tasks)
+                    if (tuple(self.instance_pool.get_slots()) != slots
+                            or any(slot.engine is not engine for slot, engine in zip(slots, engines))):
+                        cache_stats['membership_rejections'] = cache_stats.get('membership_rejections', 0) + 1
+                        return None
+                    for index, value in zip(sorted(full_indexes), full_results):
+                        state = NativeSourceSnapshot.from_request_wire(
+                            value, requested_adapter_ids=scope,
+                            expected_clock_id=local_monotonic_clock_id(),
+                            received_monotonic_s=time.monotonic())
+                        device_uuid = value.get('device_uuid')
+                        values[index] = (state, device_uuid)
+                        cache_updates.append((slots[index].instance_id, scope,
+                                              dict(snapshot=state, device_uuid=device_uuid)))
+                if identity_error:
+                    cache_stats['identity_failures'] = cache_stats.get('identity_failures', 0) + 1
+                if full_indexes:
+                    cache_stats['full_fallbacks'] = cache_stats.get('full_fallbacks', 0) + len(full_indexes)
+                if any(value is None for value in values):
+                    raise RuntimeError('identity recheck collection did not resolve every replica')
+
+                device_uuids = tuple(value[1] for value in values)
+                if (any(not isinstance(value, str) for value in device_uuids)
+                        or len(set(device_uuids)) != len(device_uuids)):
+                    raise ValueError('IEEE TP=1 replicas require distinct native physical GPU identities')
+                for instance_id, cache_scope, entry in cache_updates:
+                    self._ieee_route_full_cache[(instance_id, cache_scope)] = entry
+                return tuple(values), dict(collection_id=stats['collections'], joined=False,
+                    mode='identity_recheck_cache_v1', identity_replica_count=len(slots),
+                    full_fallback_replica_count=len(full_indexes),
+                    identity_failure=identity_error,
+                    cache_hits=cache_stats.get('hits', 0),
+                    identity_only=cache_stats.get('identity_only', 0))
+            wave = dict(membership=membership, task=asyncio.create_task(collect()),
+                        waiters=0, collection_id=stats['collections'])
+            waves[key] = wave
+        wave['waiters'] += 1
+        try:
+            values = await asyncio.shield(wave['task'])
+            if values is None:
+                return None, dict(collection_id=wave['collection_id'], joined=joined,
+                    mode='identity_recheck_cache_v1', membership_rejected=True)
+            observations, collection = values
+            return observations, dict(collection, joined=joined)
+        finally:
+            wave['waiters'] -= 1
+            if wave['waiters'] == 0:
+                if waves.get(key) is wave:
+                    del waves[key]
+                if not wave['task'].done():
+                    wave['task'].cancel()
+                await asyncio.gather(wave['task'], return_exceptions=True)
+
     async def _ieee_collect_native_sources(self, slots, *, requested_adapter_ids):
         """Share only a currently in-flight read, never cache a finished view.
 
@@ -8166,8 +8399,10 @@ class ScenarioRunner:
         slots = tuple(self.instance_pool.get_slots())
         engines = tuple(slot.engine for slot in slots)
         requested_ids = [InferenceEngine._lora_int_id(trace.adapter_id)] if trace.adapter_id else []
-        observations, collection = await self._ieee_collect_native_sources(slots,
-            requested_adapter_ids=requested_ids)
+        collector = (self._ieee_collect_route_identity_cache
+            if getattr(self, '_ieee_route_identity_recheck_cache', False)
+            else self._ieee_collect_native_sources)
+        observations, collection = await collector(slots, requested_adapter_ids=requested_ids)
         # Scale-up/removal during RPC collection is not a complete current view.
         if (observations is None or tuple(self.instance_pool.get_slots()) != slots
                 or any(slot.engine is not engine for slot, engine in zip(slots, engines))):
@@ -19360,6 +19595,12 @@ def _apply_explicit_env_overrides(
         "FAASLORA_ENABLE_PREFIX_CACHING",
         model_cfg,
         "enable_prefix_caching",
+        _parse_env_bool,
+    )
+    _apply(
+        "FAASLORA_IEEE_ROUTE_IDENTITY_RECHECK_CACHE",
+        model_cfg,
+        "ieee_route_identity_recheck_cache",
         _parse_env_bool,
     )
 
