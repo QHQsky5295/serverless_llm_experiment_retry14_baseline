@@ -39,6 +39,29 @@ all denominators. The retry remains valid with the same fresh cache/workspace
 roots; only the empty receipt-parent directory is created before the next
 invocation.
 
+That guarded retry then reached model initialization but failed before any
+worker-ready event. The worker log records weight loading, torch.compile,
+FlashAttention, CUDA-graph capture and KV-cache setup; no native request
+terminal was produced. The parent reached its existing 180-second startup
+deadline and teardown retained the physical lease because no native worker
+confirmation/exit evidence had been recorded. The launch receipt reports
+`service_returncode=-15`, `replay_returncode=1`, native GPU-context release
+confirmed, and zero cgroup `max`, `oom`, or `oom_kill` events. The physical
+deployment summary therefore remains incomplete with
+`gpu_seconds_observed=182.01148`, `n_terminal=0`, `n_correct=null`, and an
+open lease journal retained as failure evidence; it is not a resource or
+performance sample.
+
+The only falsifiable working explanation is initialization variance around
+the first build of the fresh vLLM/Inductor cache: D214 bounded retry7 recorded
+an engine activation of about 155.4 seconds under the same frozen profile,
+whereas this fresh-cache attempt did not publish ready before 180 seconds.
+This is not yet established as the cause. The next attempt reuses the
+now-populated read-only compile-cache contents, changes only fresh output,
+NVMe, HOST and receipt roots, and keeps the timeout and all algorithmic
+settings unchanged. If cached initialization still misses the deadline, the
+startup qualification path will be audited before another replay.
+
 ## CURRENT — D214 7B route identity-recheck bounded validation PASS; full replay decision pending
 
 2026-10-04 09:10+08. Goal ACTIVE/current turn PROGRESS. The seventh D214
