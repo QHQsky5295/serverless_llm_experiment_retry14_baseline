@@ -44,7 +44,6 @@ model:
     max_resident_pinned_bytes: 33554432
     max_transient_tensor_bytes: 67143184
   ieee_native_host_allocator_policy: uncached_background_v1
-  ieee_route_identity_recheck_cache: true
   ieee_admission_profile:
     window_s: 5.0
     model_backend_id: native-model/2e602c91ab92eb4ce6e8c5f3be9ea0f646a86942a7a33ee57c730a3f1aab324b
@@ -74,6 +73,7 @@ workload:
   ttft_slo_ms: 5000
   request_timeout_s: 1800.0
 resource_coordination:
+  ieee_route_identity_recheck_cache: true
   min_instances: 1
   max_instances: 4
   online_hotness_window_s: 5.0

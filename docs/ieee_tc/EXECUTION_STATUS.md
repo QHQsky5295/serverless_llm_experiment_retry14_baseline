@@ -30,6 +30,14 @@ TTFT change about whether one complete replay is scientifically justified. No
 new baseline, 3B, comparison, or long vLLM run is authorized before this Prime
 candidate gate is resolved.
 
+The first launch attempt reached the runner but was rejected before model
+initialization because the controller-only gate had been placed in `model`,
+changing the frozen service-profile identity. It produced no GPU inference and
+is retained as a failed launch diagnostic under the first D214 validation
+directory. The gate is now stored under `resource_coordination`, so the model
+profile identity remains exactly D157; the retry must use a new output
+directory and must not overwrite that failed attempt.
+
 ## CURRENT — D213 Resident repeats COMPLETE as serving diagnostics; V1 reference REJECTED by protocol audit
 
 2026-10-04 08:20+08. Goal ACTIVE/current turn PROGRESS. Before this

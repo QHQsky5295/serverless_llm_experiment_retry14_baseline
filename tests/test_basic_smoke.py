@@ -229,7 +229,7 @@ class MainlineConfigSmokeTests(unittest.TestCase):
         self.assertTrue(model_cfg["vllm_use_flashinfer_sampler"])
         self.assertTrue(model_cfg["enable_chunked_prefill"])
         self.assertTrue(model_cfg["enable_prefix_caching"])
-        self.assertTrue(model_cfg["ieee_route_identity_recheck_cache"])
+        self.assertTrue(coord_cfg["ieee_route_identity_recheck_cache"])
         self.assertEqual(
             applied,
             {

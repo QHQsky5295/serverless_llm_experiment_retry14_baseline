@@ -35,8 +35,9 @@ native source/epoch，以及所选 copy 的身份”。D209 已把选中低层�
 
 ## 实现证据
 
-`ScenarioRunner._ieee_collect_route_identity_cache` 是显式配置键
-`ieee_route_identity_recheck_cache` 下的唯一候选路径。它为每个副本并发调用
+`ScenarioRunner._ieee_collect_route_identity_cache` 是
+`resource_coordination.ieee_route_identity_recheck_cache` 显式配置键下的唯一
+候选路径。该键属于控制器，不参与冻结的模型/service profile 身份。它为每个副本并发调用
 `ieee_source_identities()`；命中时复用同一 `(instance_id, requested_scope)` 的
 完整 scoped 状态，未命中时调用现有 `ieee_request_sources()`。身份 RPC 异常也
 会对当前成员集合执行完整回退。新结果只写入 `_ieee_route_full_cache`，不写旧

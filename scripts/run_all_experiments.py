@@ -7039,7 +7039,7 @@ class ScenarioRunner:
         # epoch are unchanged.  This is deliberately a model-configured gate,
         # not a hidden TTL or a last-known tier shortcut.
         self._ieee_route_identity_recheck_cache = bool(
-            self.model_cfg.get('ieee_route_identity_recheck_cache', False)
+            self.coord_cfg.get('ieee_route_identity_recheck_cache', False)
         )
         self._ieee_route_full_cache: Dict[Tuple[str, tuple], Dict[str, Any]] = {}
         self._ieee_route_cache_stats: Dict[str, int] = {}
@@ -19599,7 +19599,7 @@ def _apply_explicit_env_overrides(
     )
     _apply(
         "FAASLORA_IEEE_ROUTE_IDENTITY_RECHECK_CACHE",
-        model_cfg,
+        coord_cfg,
         "ieee_route_identity_recheck_cache",
         _parse_env_bool,
     )
