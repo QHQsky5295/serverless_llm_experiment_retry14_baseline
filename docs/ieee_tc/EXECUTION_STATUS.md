@@ -29,6 +29,16 @@ candidate check; baseline comparison and formal G1/G2 claims remain blocked
 until a complete replay passes the strict correctness, release, and evidence
 gates.
 
+The immediately following retry2 launch also exited before the guarded
+service scope was created: the preflight attempted to stat the configured
+receipt parent `.../d214_20261004/7b_route_identity_full_retry2/`, which had
+not yet been created. No model, cache, GPU context, request, or remote
+artifact transfer was started. This second result is therefore another
+`protocol_or_launcher_error`, retained in the execution log but excluded from
+all denominators. The retry remains valid with the same fresh cache/workspace
+roots; only the empty receipt-parent directory is created before the next
+invocation.
+
 ## CURRENT — D214 7B route identity-recheck bounded validation PASS; full replay decision pending
 
 2026-10-04 09:10+08. Goal ACTIVE/current turn PROGRESS. The seventh D214
