@@ -1,0 +1,90 @@
+{
+  "schema": "primelora.ieee_tc.d214_route_identity_validation_v1",
+  "campaign": "d214_20261004_route_identity_validation",
+  "run": "7b_route_identity_validation_retry7",
+  "model": "llama2_7b",
+  "scenario": "W0",
+  "purpose": "bounded_feature_validation_not_formal_performance",
+  "code_commit_prefix": "a76854f",
+  "config": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261004_d214_7b_route_identity_validation_retry3.yaml",
+    "sha256": "99b900d2d8b55e20b0f1761781e138db47bfc015882ba739ef7354aca0a21e2a"
+  },
+  "raw_result": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d214_20261004/7b_outputs_validation_retry3/experiment_results_full_vllm_dedicated_a500_r100_c2_tc_ieee_full_d214_7b_route_identity_validation_retry7.json",
+    "sha256": "1163f60f4092a2d2ea907630d80057da184cadb15ceb65d0a8f6b772a6269a9e"
+  },
+  "launch_receipt": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d214_20261004/7b_route_identity_validation_retry7/launch.json",
+    "sha256": "b1bb5ad48ffd896f7d9484b6c7997d4e342e0dd2517f4e9e8e7a268826edfd49"
+  },
+  "frozen_inputs": {
+    "trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "adapter_subset_sha256": "aa94b21e129a5efde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016",
+    "request_count_source": 4000,
+    "diagnostic_prefix_count": 100,
+    "delivery": "prepublished_gzip_v1",
+    "endpoint": "http://192.168.4.174:18081"
+  },
+  "replay": {
+    "planned": 100,
+    "arrived": 100,
+    "submitted": 100,
+    "terminal": 100,
+    "correct": 100,
+    "diagnostic_prefix_only": true,
+    "formal_comparison_qualified": false
+  },
+  "contracts": {
+    "success": 100,
+    "output_contract": 100,
+    "target_length": 100,
+    "token_source_vllm": 100,
+    "prompt_hash": 100,
+    "timing_contract": 100,
+    "native_terminal": 100,
+    "confirmed_dispatch_snapshot": 100,
+    "readiness_tier_present": 100,
+    "route_mode_identity_recheck": 100
+  },
+  "route_observation_audit": {
+    "source_collection_evidence_records": 291,
+    "source_observation_records_total": 291,
+    "collection_counter_max": 129,
+    "joined_evidence_records": 30,
+    "nonjoined_evidence_records": 261,
+    "global_counter_final_by_max": {
+      "cache_hits": 54,
+      "identity_only": 198,
+      "full_fallbacks": 4,
+      "identity_failures": 0,
+      "membership_rejections": 0
+    },
+    "interpretation": "Counters are emitted in concurrent per-request evidence; final values use the maximum observed monotone global counter. They are mechanism diagnostics, not a request-level performance denominator."
+  },
+  "timing_diagnostic": {
+    "overall_ttft_mean_ms": 65663.9848,
+    "overall_ttft_p95_ms": 92819.9169,
+    "service_ttft_mean_ms": 593.6532,
+    "service_ttft_p95_ms": 1471.2313,
+    "tpot_mean_ms": 38.2781,
+    "control_path_mean_us": 138920.5832,
+    "control_path_p95_us": 348461.8081,
+    "elapsed_s": 213.202,
+    "startup_gpu_seconds": 155.427822,
+    "ready_gpu_seconds": 513.202002,
+    "gpu_seconds_total": 668.629824,
+    "slo_attainment": 0,
+    "warning": "Overall TTFT and SLO are startup-overlapped diagnostic values and must not be used as formal ranking evidence."
+  },
+  "cleanup": {
+    "launch_pass": true,
+    "native_gpu_context_release_confirmed": true,
+    "service_path_removed": true,
+    "cleanup_released": true,
+    "local_nvidia_smi_empty": true,
+    "local_owned_processes_empty": true,
+    "remote_d214_units_stopped": true
+  },
+  "decision": "Correctness and cleanup gates pass for a complete D214 replay decision; no performance gain or baseline ranking is claimed from this 100-request diagnostic."
+}

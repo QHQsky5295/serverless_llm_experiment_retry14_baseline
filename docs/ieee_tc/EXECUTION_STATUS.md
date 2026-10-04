@@ -1,5 +1,48 @@
 # IEEE TC execution status
 
+## CURRENT — D214 7B route identity-recheck bounded validation PASS; full replay decision pending
+
+2026-10-04 09:10+08. Goal ACTIVE/current turn PROGRESS. The seventh D214
+bounded validation is the first attempt that reached the native 7B worker under
+the frozen D157 service profile. It used the existing W0 trace prefix (100 of
+4,000), the existing 500-adapter subset, `fixed_length_greedy_v1`, the
+published remote delivery contract, and only the D214
+`resource_coordination.ieee_route_identity_recheck_cache` gate. The venv
+`PATH` was made explicit so the already-qualified FlashInfer `ninja` tool was
+visible; no algorithmic or workload parameter was changed.
+
+All 100 planned requests arrived, submitted, terminated and passed the native
+output contract. The strict counts are 100/100 target-length matches,
+100/100 native `vllm_token_ids`, prompt hashes, `ieee_tc_native_v1` timing,
+native terminal observations, confirmed dispatch snapshots, and complete
+pre-dispatch readiness fields. The route evidence contains 291 per-replica
+source observations, all in `identity_recheck_cache_v1` mode. The final
+monotone mechanism counters recovered from concurrent evidence are 54 cached
+full-state reuses, 198 identity-only observations, 4 full authoritative
+fallbacks, 0 identity failures and 0 membership rejections. These are
+mechanism counters, not request-level denominators; the auditable extraction
+and caveat are in
+`paper_results/ieee_tc/p2_backend_qualification/d214_20261004_route_identity_validation/d214_7b_retry7_curated.json`.
+
+The launch receipt passed, native GPU-context release was confirmed, the owned
+service path was removed, local `nvidia-smi` was empty after completion, and
+the D214-owned remote artifact units were explicitly stopped and read back as
+inactive. Raw result SHA256 is
+`1163f60f4092a2d2ea907630d80057da184cadb15ceb65d0a8f6b772a6269a9e`, and the
+launch receipt SHA256 is
+`b1bb5ad48ffd896f7d9484b6c7997d4e342e0dd2517f4e9e8e7a268826edfd49`.
+
+The diagnostic had mean overall TTFT 65,663.985 ms and zero 5-second SLO
+attainment because the 100-request prefix overlapped model startup; these
+values are explicitly non-formal and are not a performance claim. Service-path
+TTFT was 593.653 ms mean / 1,471.231 ms P95, while the measured control path
+was 138,920.583 us mean / 348,461.808 us P95. A complete 4,000-request replay
+is now scientifically justified as a candidate check of the control-path
+hypothesis, but it is not yet started: it must use fresh output/cache roots,
+the same frozen inputs and environment, and the full replay acceptance gates.
+No baseline, 3B, comparison, or ranking is authorized before that decision is
+audited. The bounded run remains diagnostic and does not establish G1/G2.
+
 ## CURRENT — D214 route identity-recheck candidate CPU QUALIFIED; no GPU replay yet
 
 2026-10-04 08:35+08. Goal ACTIVE/current turn PROGRESS. After the D213
