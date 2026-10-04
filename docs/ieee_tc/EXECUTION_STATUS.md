@@ -76,6 +76,19 @@ This is a command/provenance error, not a route-candidate result. The next
 attempt supplies the existing subset JSON paired with the existing W0 trace;
 it does not regenerate or alter the adapter pool.
 
+The fifth bounded attempt supplied both frozen inputs and reached the full-stack
+preload path. It then failed before model initialization because the parent
+process had imported the runner's legacy allocator default
+(`expandable_segments:False`) while the frozen D157 profile requires the
+explicit `uncached_background_v1` native HOST allocator. The runner correctly
+rejected this inherited conflict (`native HOST allocator candidate conflicts
+with inherited allocator tuning`). No request was served; the service scope and
+native GPU context were released. The evidence remains at
+`results/ieee_tc/p2_backend_qualification/d214_20261004/7b_route_identity_validation_retry5/`.
+The next attempt will launch the same profile with its already-specified
+allocator policy preconfigured in the parent environment, not by changing the
+profile or candidate algorithm.
+
 ## CURRENT — D213 Resident repeats COMPLETE as serving diagnostics; V1 reference REJECTED by protocol audit
 
 2026-10-04 08:20+08. Goal ACTIVE/current turn PROGRESS. Before this
