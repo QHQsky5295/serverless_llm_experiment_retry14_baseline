@@ -8103,6 +8103,61 @@ class ScenarioRunner:
         return left == right
 
     @staticmethod
+    def _ieee_scope_identity_equal(current, cached, scope) -> bool:
+        """Check a fresh identity only for a cached GPU target scope.
+
+        The native owner epoch is intentionally global: loading or evicting an
+        unrelated adapter advances it.  A scoped request footprint, however,
+        describes only its requested adapter(s).  Reusing that footprint is
+        safe only when the fresh identity still proves the exact target copy,
+        slot, and registration, and the cached observation is complete for the
+        same scope.  Host-only targets remain on the conservative full-epoch
+        path because their measured CPU footprint can depend on allocator
+        aliasing that the compact identity endpoint does not expose.
+
+        This is not a last-known tier decision: the current identity RPC is
+        still required, and the returned identity is merged into the new
+        observation before routing/admission.
+        """
+        if current is None or cached is None or not isinstance(scope, tuple) or not scope:
+            return False
+        if current.owner_id != cached.owner_id or current.clock_id != cached.clock_id:
+            return False
+        if cached.footprint_adapter_ids != scope:
+            return False
+        current_by_id = {source.adapter_int_id: source for source in current.sources}
+        cached_by_id = {source.adapter_int_id: source for source in cached.sources}
+        registered = set(current.registered_cpu_adapter_ids)
+        unknown = set(current.unknown_native_adapter_ids)
+        unconfirmed = set(current.unconfirmed_gpu_adapter_ids)
+        for adapter_int_id in scope:
+            if (adapter_int_id not in registered or adapter_int_id in unknown
+                    or adapter_int_id in unconfirmed):
+                return False
+            current_source = current_by_id.get(adapter_int_id)
+            cached_source = cached_by_id.get(adapter_int_id)
+            if current_source is None or cached_source is None:
+                return False
+            # A host source's measured bytes may change when shared allocator
+            # ownership changes.  The identity endpoint cannot certify that
+            # alias frontier, so only a currently confirmed GPU source enters
+            # this scope-local reuse path.
+            if current_source.gpu_slot is None:
+                return False
+            identity_fields = (
+                'adapter_int_id', 'adapter_id', 'lora_path', 'rank',
+                'gpu_slot', 'source_id')
+            if any(getattr(current_source, field) != getattr(cached_source, field)
+                   for field in identity_fields):
+                return False
+            if (cached_source.gpu_slot_capacity_bytes is None
+                    or cached_source.gpu_representation is None
+                    or cached_source.host_storage_bytes is None
+                    or cached_source.host_representation is None):
+                return False
+        return True
+
+    @staticmethod
     def _ieee_merge_cached_route_state(identity, cached):
         """Attach cached measured footprints to a fresh matching identity.
 
@@ -8264,13 +8319,17 @@ class ScenarioRunner:
                         fallback_indexes.add(index)
                         continue
                     cached = cached_entries[index]
-                    if (self._ieee_identity_equal(identity, cached)
+                    scope_identity_match = self._ieee_scope_identity_equal(identity, cached, scope)
+                    if (scope_identity_match
                             and self._ieee_route_cache_covers_scope(identity, cached, scope)):
                         merged = self._ieee_merge_cached_route_state(identity, cached)
                         if merged is not None:
                             values[index] = (merged, device_uuid)
                             cache_stats['hits'] = cache_stats.get('hits', 0) + 1
+                            cache_stats['scope_local_hits'] = cache_stats.get('scope_local_hits', 0) + 1
                             continue
+                    elif cached is not None:
+                        cache_stats['scope_local_rejections'] = cache_stats.get('scope_local_rejections', 0) + 1
                     if self._ieee_route_cache_covers_scope(identity, identity, scope):
                         values[index] = (identity, device_uuid)
                         cache_stats['identity_only'] = cache_stats.get('identity_only', 0) + 1

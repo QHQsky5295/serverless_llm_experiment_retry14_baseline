@@ -10,7 +10,7 @@ import csv
 import hashlib
 import json
 import sys
-from collections import Counter
+from collections import Counter, defaultdict
 from pathlib import Path
 
 
@@ -43,6 +43,7 @@ launch = load(root / "launch.json")
 all_rows = []
 unique_rows = {}
 selected_rows = []
+scope_sequences = defaultdict(list)
 for request in requests:
     routing = request["gpu_reference_evidence"]["routing_snapshot"]
     selected_id = routing["selected_replica_id"]
@@ -53,6 +54,14 @@ for request in requests:
         selected_replica_id=selected_id,
         selected_tier=selected["source"].get("tier"),
         source_collection=dict(selected["source_collection"]),
+    ))
+    scope_sequences[(selected_id, request["adapter_id"])].append(dict(
+        request_index=len(selected_rows) - 1,
+        epoch=selected["native_epoch"],
+        owner_id=selected["native_owner_id"],
+        source_id=(selected.get("source") or {}).get("source_id"),
+        fallback_count=selected["source_collection"].get("full_fallback_replica_count", 0),
+        cold_count=selected["source_collection"].get("cold_full_read_replica_count", 0),
     ))
     for replica_id, evidence in routing["sources"].items():
         row = dict(evidence["source_collection"])
@@ -88,6 +97,38 @@ def category(rows, field):
 
 
 unique = list(unique_rows.values())
+scope_transition_rows = []
+for (replica_id, adapter_id), sequence in scope_sequences.items():
+    for previous, current in zip(sequence, sequence[1:]):
+        same_target_source = (
+            previous["owner_id"] == current["owner_id"]
+            and previous["source_id"] is not None
+            and previous["source_id"] == current["source_id"]
+        )
+        scope_transition_rows.append({
+            "replica_id": replica_id,
+            "adapter_id": adapter_id,
+            "previous_request_index": previous["request_index"],
+            "request_index": current["request_index"],
+            "previous_epoch": previous["epoch"],
+            "epoch": current["epoch"],
+            "same_target_source_id": same_target_source,
+            "epoch_advanced": current["epoch"] != previous["epoch"],
+            "fallback_count": current["fallback_count"],
+            "cold_count": current["cold_count"],
+        })
+scope_transition_summary = {
+    "consecutive_revisits": len(scope_transition_rows),
+    "same_target_source": sum(int(row["same_target_source_id"]) for row in scope_transition_rows),
+    "same_target_source_epoch_advanced": sum(
+        int(row["same_target_source_id"] and row["epoch_advanced"])
+        for row in scope_transition_rows
+    ),
+    "same_target_source_epoch_advanced_with_fallback": sum(
+        int(row["same_target_source_id"] and row["epoch_advanced"] and row["fallback_count"] > 0)
+        for row in scope_transition_rows
+    ),
+}
 stats = main.get("coordination_after_shutdown", {}).get("ieee_source_observation_stats", {})
 remote_all = [json.loads(line) for line in remote_journal.read_text().splitlines() if line.strip()]
 transfers = main.get("remote_transfers", [])
@@ -149,6 +190,7 @@ curated = {
             int(bool(row.get("source_collection", {}).get("identity_failure")))
             for row in selected_rows
         ),
+        "scope_local_transition_summary": scope_transition_summary,
         "note": "cache_hits and identity_only are cumulative counters emitted by the runner; they are not treated as per-request reuse events.",
     },
     "delivery": {
@@ -204,6 +246,14 @@ with (output_dir / "d215_route_collection_metrics.csv").open("w", newline="") as
                          c["identity_only"]["nonzero_rows"], c["identity_only"]["sum"],
                          c["cache_hits"]["nonzero_rows"], c["cache_hits"]["sum"]])
 
+with (output_dir / "d215_scope_identity_transitions.csv").open("w", newline="") as fh:
+    writer = csv.DictWriter(fh, fieldnames=(
+        "replica_id", "adapter_id", "previous_request_index", "request_index",
+        "previous_epoch", "epoch", "same_target_source_id", "epoch_advanced",
+        "fallback_count", "cold_count"))
+    writer.writeheader()
+    writer.writerows(scope_transition_rows)
+
 with (output_dir / "d215_validation_status.md").open("w") as fh:
     fh.write("# D215 7B route-identity cold-scope validation\n\n")
     fh.write("## Decision\n\n")
@@ -227,6 +277,12 @@ with (output_dir / "d215_validation_status.md").open("w") as fh:
              "fallback on cached scopes means the intended low-cost identity-recheck path was not dominant enough "
              "to justify a formal replay. This is a mechanism qualification failure, not evidence of numerical "
              "correctness or a cross-system performance result.\n\n")
+    fh.write(f"A scope-local read-only audit found {scope_transition_summary['consecutive_revisits']} consecutive "
+             f"(replica, adapter) revisits; {scope_transition_summary['same_target_source']} retained the same "
+             f"target source identity while its owner epoch advanced, and "
+             f"{scope_transition_summary['same_target_source_epoch_advanced_with_fallback']} of those transitions "
+             "also carried a full-fallback count. This is a hypothesis signal, not proof that a target footprint "
+             "is safe to reuse: aliasing and capacity invariants must be checked before any code change.\n\n")
     fh.write("## Delivery and caveats\n\n")
     fh.write(f"The outcome contains {len(transfers)} transfer records, joined one-to-one with the copied remote "
              f"journal ({len(remote_all)} lines; {len(remote_all)-len(remote_joined)} retained out-of-run lines). "

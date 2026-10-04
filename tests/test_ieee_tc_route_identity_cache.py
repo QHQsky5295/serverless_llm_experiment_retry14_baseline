@@ -71,6 +71,8 @@ class RouteIdentityCacheQualification(unittest.TestCase):
             (slot,), requested_adapter_ids=[4]))
 
         changed_identity = dict(identity_wire, epoch=2, captured_monotonic_s=time.monotonic())
+        changed_identity['sources'] = [dict(row) for row in identity_wire['sources']]
+        changed_identity['sources'][0]['source_id'] = 'target-incarnation-changed'
         changed_full = dict(full_wire, epoch=2, captured_monotonic_s=time.monotonic())
         slot.engine.ieee_source_identities = AsyncMock(return_value=changed_identity)
         slot.engine.ieee_request_sources = AsyncMock(return_value=changed_full)
@@ -83,14 +85,58 @@ class RouteIdentityCacheQualification(unittest.TestCase):
         self.assertEqual(metadata['full_fallback_replica_count'], 1)
         self.assertEqual(values[0][0].epoch, 2)
 
+    def test_scope_local_gpu_identity_reuses_footprint_across_unrelated_epoch(self):
+        runner, slot, identity_wire, _ = self._runner()
+        asyncio.run(runner._ieee_collect_route_identity_cache(
+            (slot,), requested_adapter_ids=[4]))
+        initial_full_reads = slot.engine.ieee_request_sources.await_count
+
+        # The target GPU copy is unchanged, while an unrelated HOST source is
+        # replaced and the owner epoch advances.  A global epoch comparison
+        # would reject this, although the fresh identity still proves the
+        # target copy and the cached request footprint is complete.
+        changed = dict(identity_wire, epoch=2, captured_monotonic_s=time.monotonic())
+        changed['sources'] = [dict(row) for row in identity_wire['sources']]
+        changed['sources'][1]['source_id'] = 'unrelated-incarnation'
+        slot.engine.ieee_source_identities = AsyncMock(return_value=changed)
+        values, metadata = asyncio.run(runner._ieee_collect_route_identity_cache(
+            (slot,), requested_adapter_ids=[4]))
+
+        self.assertEqual(slot.engine.ieee_request_sources.await_count, initial_full_reads)
+        self.assertEqual(values[0][0].epoch, 2)
+        self.assertEqual(values[0][0].sources[0].gpu_slot_capacity_bytes, 1024)
+        self.assertEqual(runner._ieee_route_cache_stats['scope_local_hits'], 1)
+        self.assertEqual(metadata['full_fallback_replica_count'], 0)
+
+    def test_scope_local_gpu_identity_rejects_target_copy_change(self):
+        runner, slot, identity_wire, full_wire = self._runner()
+        asyncio.run(runner._ieee_collect_route_identity_cache(
+            (slot,), requested_adapter_ids=[4]))
+
+        changed = dict(identity_wire, epoch=2, captured_monotonic_s=time.monotonic())
+        changed['sources'] = [dict(row) for row in identity_wire['sources']]
+        changed['sources'][0]['source_id'] = 'target-incarnation-changed'
+        slot.engine.ieee_source_identities = AsyncMock(return_value=changed)
+        slot.engine.ieee_request_sources = AsyncMock(return_value=dict(
+            full_wire, epoch=2, captured_monotonic_s=time.monotonic()))
+        values, metadata = asyncio.run(runner._ieee_collect_route_identity_cache(
+            (slot,), requested_adapter_ids=[4]))
+
+        self.assertEqual(slot.engine.ieee_request_sources.await_count, 1)
+        self.assertEqual(metadata['full_fallback_replica_count'], 1)
+        self.assertEqual(values[0][0].epoch, 2)
+        self.assertEqual(runner._ieee_route_cache_stats.get('scope_local_hits', 0), 0)
+
     def test_membership_change_during_fallback_does_not_publish_cache(self):
         runner, slot, identity_wire, full_wire = self._runner()
 
         async def check():
             await runner._ieee_collect_route_identity_cache((slot,), requested_adapter_ids=[4])
             cached = runner._ieee_route_full_cache[('inst-a', (4,))]
-            slot.engine.ieee_source_identities = AsyncMock(return_value=dict(
-                identity_wire, epoch=2, captured_monotonic_s=time.monotonic()))
+            changed_identity = dict(identity_wire, epoch=2, captured_monotonic_s=time.monotonic())
+            changed_identity['sources'] = [dict(row) for row in identity_wire['sources']]
+            changed_identity['sources'][0]['source_id'] = 'target-incarnation-changed'
+            slot.engine.ieee_source_identities = AsyncMock(return_value=changed_identity)
 
             async def changed_membership(**kwargs):
                 runner.instance_pool.get_slots = lambda: []

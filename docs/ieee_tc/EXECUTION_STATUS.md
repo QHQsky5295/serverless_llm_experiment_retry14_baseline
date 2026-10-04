@@ -1,5 +1,31 @@
 # IEEE TC execution status
 
+## CURRENT — D216 scope-local identity candidate CPU QUALIFIED; bounded GPU validation pending
+
+2026-10-04 14:25+08. The D215 source audit produced one falsifiable next
+hypothesis: global owner epochs advance for unrelated adapter churn, while the
+requested GPU copy can retain the same owner/source identity. D216 keeps a
+fresh identity RPC but permits reuse only for a currently confirmed GPU target
+whose adapter identity, path/rank, GPU slot, registration and cached scoped
+footprint all match. Host-only targets, target-copy changes, unknown or
+unconfirmed entries, identity failure and membership changes remain fail-closed
+to the authoritative scoped read. The nine equations, admission/budget checks,
+workload, generation contract, lifecycle accounting and resource envelope are
+unchanged.
+
+The route-identity, request-footprint, identity-recheck, service-routing,
+scheduler-observation and request-lifecycle suites pass **298 tests** under the
+bounded auxiliary resource domain. Two new tests specifically prove that an
+unrelated source incarnation/epoch change can reuse the target GPU footprint,
+while a target source-id change still forces a full read. This is semantic
+qualification only; no GPU performance result exists yet.
+
+The next authorized action is one fresh 100-request 7B W0 validation using the
+exact D215 trace, adapter subset, published delivery cache, D157 profiles and
+resource envelope. It must show a nonzero `scope_local_hits` path, reduced
+control-path cost, and no lifecycle/coverage regression before a 4,000-request
+replay can be considered. 3B and external baselines remain paused.
+
 ## CURRENT — D215 REVOKED after bounded route-identity validation; Prime gate remains open
 
 2026-10-04 14:05+08. The D215 cold-scope candidate completed its authorized

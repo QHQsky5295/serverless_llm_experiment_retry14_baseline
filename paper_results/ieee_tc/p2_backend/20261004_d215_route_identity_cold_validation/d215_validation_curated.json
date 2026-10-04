@@ -144,6 +144,12 @@
     },
     "note": "cache_hits and identity_only are cumulative counters emitted by the runner; they are not treated as per-request reuse events.",
     "request_source_snapshot_count": 304,
+    "scope_local_transition_summary": {
+      "consecutive_revisits": 48,
+      "same_target_source": 17,
+      "same_target_source_epoch_advanced": 16,
+      "same_target_source_epoch_advanced_with_fallback": 16
+    },
     "selected_request_snapshot_count": 100,
     "unique_collection_categories": {
       "cache_hits_counter": {

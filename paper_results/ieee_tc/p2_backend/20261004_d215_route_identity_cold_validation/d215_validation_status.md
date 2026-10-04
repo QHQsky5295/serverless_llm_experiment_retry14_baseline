@@ -12,6 +12,8 @@ The authoritative coordination record reports 107 collections, 7 stale rejection
 
 The emitted `cache_hits` and `identity_only` values are cumulative run counters, not per-request events; they are retained in the JSON but are not used to claim a reuse rate. The repeated authoritative fallback on cached scopes means the intended low-cost identity-recheck path was not dominant enough to justify a formal replay. This is a mechanism qualification failure, not evidence of numerical correctness or a cross-system performance result.
 
+A scope-local read-only audit found 48 consecutive (replica, adapter) revisits; 17 retained the same target source identity while its owner epoch advanced, and 16 of those transitions also carried a full-fallback count. This is a hypothesis signal, not proof that a target footprint is safe to reuse: aliasing and capacity invariants must be checked before any code change.
+
 ## Delivery and caveats
 
 The outcome contains 29 transfer records, joined one-to-one with the copied remote journal (29 lines; 0 retained out-of-run lines). All joined records use prepublished gzip delivery, with no request-time packing or temporary archive.
