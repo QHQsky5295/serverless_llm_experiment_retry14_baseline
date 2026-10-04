@@ -1,0 +1,153 @@
+{
+  "campaign_id": "D213",
+  "status": "complete_diagnostic_not_reference",
+  "system": "vLLM",
+  "model": "llama2_7b_main_v2_publicmix",
+  "workload": "W0",
+  "source_trace_seed": 42,
+  "trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+  "adapter_subset_sha256": "aa94b21e129a5efde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016",
+  "generation_contract": "fixed_length_greedy_v1",
+  "runner_sha256": "af0f6f356140eedb2ab712d32f1ad0b3e857fb22bf88b0b5acd03beb91122e54",
+  "replay_client_sha256": "46537ecd5df55be115e1d240f286a0bf072396d5d317c9f10f0596128e75c270",
+  "launch_spec_sha256": "340d6b0f49f0ae7b88169e8a944bef1886e13ac01beec2f2c2406282a763eb15",
+  "repeats": [
+    {
+      "repeat": 1,
+      "replay_path": "/home/qhq/serverless_llm_baselines/results/ieee_tc_resident_reference/d213_vllm_7b_w0_resident_repeat1_seed42_fixed/d213_vllm7b_w0_resident_repeat1_seed42_fixed_vllm_dp4_tp1_replay.json",
+      "replay_sha256": "9bf3695eba65b76c552b9f47e307f0416fcb9099774fc2ba7620e28c38683647",
+      "expected_requests": 4000,
+      "completed_records": 4000,
+      "successful_requests": 4000,
+      "native_token_source_records": 4000,
+      "output_contract_matches": 4000,
+      "prompt_hash_records": 4000,
+      "prompt_sources": [
+        "usage"
+      ],
+      "elapsed_sec": 3964.3853497459786,
+      "mean_ttft_ms": 232.07766034154338,
+      "p95_ttft_ms": 276.109762606211,
+      "mean_e2e_ms": 3092.0433563691913,
+      "p95_e2e_ms": 6977.803194429725,
+      "mean_tpot_ms": 25.299747263248076,
+      "p95_tpot_ms": 30.45772944044854,
+      "mean_service_ttft_ms": 220.72675123080262,
+      "p95_service_ttft_ms": 261.8304160423577,
+      "mean_service_e2e_ms": 3080.6924472584506,
+      "p95_service_e2e_ms": 6962.6637359615415,
+      "systemd_unit_envelope_sec": 4228.0,
+      "unit_envelope_gpu_seconds_if_all_four_held": 16912.0
+    },
+    {
+      "repeat": 2,
+      "replay_path": "/home/qhq/serverless_llm_baselines/results/ieee_tc_resident_reference/d213_vllm_7b_w0_resident_repeat2_seed42_fixed/d213_vllm7b_w0_resident_repeat2_seed42_fixed_vllm_dp4_tp1_replay.json",
+      "replay_sha256": "c04a8de8d428a148137db63bcdf821149cfeaaccf5a51d1353c3ed7081517845",
+      "expected_requests": 4000,
+      "completed_records": 4000,
+      "successful_requests": 4000,
+      "native_token_source_records": 4000,
+      "output_contract_matches": 4000,
+      "prompt_hash_records": 4000,
+      "prompt_sources": [
+        "usage"
+      ],
+      "elapsed_sec": 3964.4009308050154,
+      "mean_ttft_ms": 231.09066326584434,
+      "p95_ttft_ms": 274.7706715017557,
+      "mean_e2e_ms": 3089.8797425094526,
+      "p95_e2e_ms": 6968.415727373213,
+      "mean_tpot_ms": 25.26842208323136,
+      "p95_tpot_ms": 30.42773620319971,
+      "mean_service_ttft_ms": 219.62754285041592,
+      "p95_service_ttft_ms": 261.1478049075231,
+      "mean_service_e2e_ms": 3078.4166220940238,
+      "p95_service_e2e_ms": 6956.718500005081,
+      "systemd_unit_envelope_sec": 4237.0,
+      "unit_envelope_gpu_seconds_if_all_four_held": 16948.0
+    },
+    {
+      "repeat": 3,
+      "replay_path": "/home/qhq/serverless_llm_baselines/results/ieee_tc_resident_reference/d213_vllm_7b_w0_resident_repeat3_seed42_fixed/d213_vllm7b_w0_resident_repeat3_seed42_fixed_vllm_dp4_tp1_replay.json",
+      "replay_sha256": "dedcadf299265615d0cdd6ecaf9ccc915c1cc1a858bc5cdcf2f4c51783e82f01",
+      "expected_requests": 4000,
+      "completed_records": 4000,
+      "successful_requests": 4000,
+      "native_token_source_records": 4000,
+      "output_contract_matches": 4000,
+      "prompt_hash_records": 4000,
+      "prompt_sources": [
+        "usage"
+      ],
+      "elapsed_sec": 3964.4086043789284,
+      "mean_ttft_ms": 230.66225772057078,
+      "p95_ttft_ms": 275.2825658535585,
+      "mean_e2e_ms": 3089.3064837048582,
+      "p95_e2e_ms": 6969.347576377913,
+      "mean_tpot_ms": 25.27119655343589,
+      "p95_tpot_ms": 30.42191615300801,
+      "mean_service_ttft_ms": 219.29101618551067,
+      "p95_service_ttft_ms": 261.7354040266946,
+      "mean_service_e2e_ms": 3077.935242169798,
+      "p95_service_e2e_ms": 6954.845013096929,
+      "systemd_unit_envelope_sec": 4212.0,
+      "unit_envelope_gpu_seconds_if_all_four_held": 16848.0
+    }
+  ],
+  "lifecycle_receipts": {
+    "repeat1": {
+      "unit_start": "2026-10-04T04:21:49+08:00",
+      "unit_end_or_cleanup": "2026-10-04T05:32:17+08:00",
+      "release_evidence": "unit inactive and nvidia-smi empty after runner cleanup"
+    },
+    "repeat2": {
+      "unit_start": "2026-10-04T05:35:44+08:00",
+      "unit_end_or_cleanup": "2026-10-04T06:46:21+08:00",
+      "release_evidence": "force-stop cleanup completed, unit inactive and nvidia-smi empty"
+    },
+    "repeat3": {
+      "unit_start": "2026-10-04T06:51:09+08:00",
+      "unit_end_or_cleanup": "2026-10-04T08:01:21+08:00",
+      "release_evidence": "force-stop cleanup completed, unit inactive and nvidia-smi empty"
+    }
+  },
+  "contract_audit": {
+    "semantic_ordinary_vllm": true,
+    "remote_first_touch": false,
+    "common_notice_v1": false,
+    "auxiliary_resource_domain_separate": false,
+    "per_gpu_allocation_release_integral": false,
+    "v1_reference_eligible": false,
+    "u_ref_frozen": false,
+    "g2_budget_frozen": false
+  },
+  "blocking_reasons": [
+    {
+      "id": "remote_delivery_mismatch",
+      "severity": "blocking",
+      "evidence": "static local adapter pool; no remote artifact endpoint or first-touch delivery"
+    },
+    {
+      "id": "common_notice_mismatch",
+      "severity": "blocking",
+      "evidence": "runner starts replicas sequentially, waits for all readiness, then starts replay; it does not issue a common t=-60 s notice with business at t=0"
+    },
+    {
+      "id": "resource_domain_mismatch",
+      "severity": "blocking",
+      "evidence": "the ordinary runner launches services and replay client in the same service scope; the V1 auxiliary 3/4 GiB cpuset is not independently enforced"
+    },
+    {
+      "id": "physical_lifecycle_unverified",
+      "severity": "blocking",
+      "evidence": "receipts provide a whole-unit envelope and post-run GPU emptiness, but no per-GPU allocation/release interval ledger; summary GPU seconds are synthetic lifecycle values with startup and a 300 s tail"
+    },
+    {
+      "id": "qualification_timeout_mismatch",
+      "severity": "material",
+      "evidence": "the run was allowed 7200 s while V1 qualification protection is 1800 s; this is a launcher-contract difference even though all three traces completed"
+    }
+  ],
+  "interpretation": "All three replays are complete successful ordinary-vLLM serving diagnostics with native token IDs and the fixed-output contract. They are not eligible to define the V1 Resident reference or G2 budget because the launch, delivery, resource-domain, and physical-lifecycle contracts were not jointly satisfied.",
+  "next_action": "Reuse the ordinary vLLM semantics but construct a new protocol-compliant reference launcher: common deployment notice, published remote delivery, separate playback/monitor scope, 1800 s qualification protection, and per-GPU allocation/release event integration before any further long replay."
+}

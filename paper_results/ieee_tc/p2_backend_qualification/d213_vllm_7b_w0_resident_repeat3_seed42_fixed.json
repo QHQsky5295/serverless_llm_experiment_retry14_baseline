@@ -1,0 +1,66 @@
+{
+  "campaign_id": "D213",
+  "status": "complete_diagnostic_not_reference",
+  "system": "vLLM",
+  "model": "llama2_7b_main_v2_publicmix",
+  "workload": "W0",
+  "repeat": 3,
+  "source_trace_seed": 42,
+  "trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+  "adapter_subset_sha256": "aa94b21e129a5efde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016",
+  "generation_contract": "fixed_length_greedy_v1",
+  "completion_token_source": "vllm_token_ids",
+  "deployment": {
+    "data_parallel_replicas": 4,
+    "tensor_parallel_size": 1,
+    "gpu_ids": [0, 1, 2, 3],
+    "adapter_count": 500,
+    "registration_mode": "static",
+    "adapter_origin": "local_static_pool",
+    "remote_artifact_endpoint_used": false,
+    "vllm_commit": "7400e9d9f9e86179c79dcbd7855a426134da43ec"
+  },
+  "qualification": {
+    "expected_requests": 4000,
+    "completed_records": 4000,
+    "successful_requests": 4000,
+    "generation_contract_gates": "pass",
+    "token_hash_decomposition_gates": "pass",
+    "elapsed_sec": 3964.4086043789284,
+    "mean_ttft_ms": 230.66225772057078,
+    "p95_ttft_ms_type1": 275.2825658535585,
+    "mean_e2e_ms": 3089.3064837048582,
+    "p95_e2e_ms_type1": 6969.347576377913,
+    "mean_service_ttft_ms": 219.29101618551067,
+    "mean_service_e2e_ms": 3077.935242169798,
+    "mean_tpot_ms": 25.27119655343589,
+    "p95_tpot_ms_type1": 30.42191615300801,
+    "all_http_statuses": 200
+  },
+  "lifecycle_gpu_envelope": {
+    "allocation_start_evidence": "systemd unit start 2026-10-04T06:51:09+08:00",
+    "release_evidence": "runner stopped all four owned vLLM process trees at approximately 2026-10-04T08:01:15+08:00; force-stop cleanup completed by 08:01:21; unit inactive and nvidia-smi empty",
+    "resident_gpu_count": 4,
+    "cgroup_envelope_seconds": 4212.0,
+    "conservative_gpu_seconds_if_all_four_held": 16848.0,
+    "per_gpu_allocation_release_integral": "not recorded",
+    "measurement_note": "The whole-unit envelope is retained as a diagnostic upper-bound only. It is not a V1 physical GPU lifecycle integral and must not define U_ref or B."
+  },
+  "artifacts": {
+    "result_dir": "/home/qhq/serverless_llm_baselines/results/ieee_tc_resident_reference/d213_vllm_7b_w0_resident_repeat3_seed42_fixed",
+    "replay_sha256": "dedcadf299265615d0cdd6ecaf9ccc915c1cc1a858bc5cdcf2f4c51783e82f01",
+    "summary_sha256": "6b9e51b4dd42d707ca732a9268ed8d39e27e2c6084b7044d0d89a230141302c6",
+    "launch_spec_sha256": "340d6b0f49f0ae7b88169e8a944bef1886e13ac01beec2f2c2406282a763eb15",
+    "runner_sha256": "af0f6f356140eedb2ab712d32f1ad0b3e857fb22bf88b0b5acd03beb91122e54",
+    "replay_client_sha256": "46537ecd5df55be115e1d240f286a0bf072396d5d317c9f10f0596128e75c270"
+  },
+  "protocol_audit": {
+    "ordinary_vllm_semantics": true,
+    "common_deployment_notice_v1": false,
+    "remote_first_touch": false,
+    "separate_playback_aux_scope": false,
+    "v1_qualification_timeout_1800s": false,
+    "v1_reference_eligible": false
+  },
+  "interpretation": "A complete ordinary-vLLM fixed-output diagnostic, retained for backend and generation-contract evidence. Not eligible to define the formal Resident reference or G2 budget because the common launch, delivery, resource-domain and physical-lifecycle contracts were not satisfied jointly."
+}

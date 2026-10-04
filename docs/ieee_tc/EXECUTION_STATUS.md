@@ -1,5 +1,46 @@
 # IEEE TC execution status
 
+## CURRENT — D213 Resident repeats COMPLETE as serving diagnostics; V1 reference REJECTED by protocol audit
+
+2026-10-04 08:20+08. Goal ACTIVE/current turn PROGRESS. Before this
+classification the full Plan, this status file and METRIC_PROTOCOL_FROZEN_V1
+were reread; `analyze-results`, `run-experiment`, `academic-plotting` and
+`github-sync` instructions were reread as applicable. D213 repeat3 completed
+4000/4000 successful requests, so all three retained repeats pass the fixed
+output/native-token serving gates. Repeat3 descriptive values are mean TTFT
+230.662 ms, Type-1 P95 TTFT 275.283 ms, mean E2E 3089.306 ms, Type-1 P95 E2E
+6969.348 ms and mean TPOT 25.271 ms. GPU processes and the owned unit are
+stopped; post-run `nvidia-smi` is empty. The new repeat3 compact receipt is
+`paper_results/ieee_tc/p2_backend_qualification/d213_vllm_7b_w0_resident_repeat3_seed42_fixed.json`.
+
+The bounded CPU analysis was run in the auxiliary 3/4 GiB, CPU 2,3,26,27
+resource domain. It produced the repeat table and the fail-closed audit at
+`paper_results/ieee_tc/p2_backend_qualification/d213_vllm_7b_resident_reference_audit_v2/`;
+audit SHA `8d6948a0cedfbdf648a572c67e08eec142c43c3182d60e7e50c5abd71171de72`.
+The three replays are **not** eligible to define V1 `U_ref` or the G2 budget:
+they used a local static adapter pool rather than the common published remote
+delivery, launched four replicas sequentially and started replay only after
+all were ready rather than using the common `t=-60s` notice, placed playback
+and service in the same resource domain, and recorded only a whole-unit
+envelope—not per-GPU allocation/release integrals. The baseline summary also
+uses a synthetic startup-plus-300-second-tail lifecycle model, and the runner
+used a 7200-second timeout rather than V1's 1800-second qualification guard.
+
+This is a protocol/launcher mismatch discovered in our own reference path,
+not a vLLM performance failure and not a reason to hide the successful
+serving evidence. The prior repeat1/2 compact receipts remain immutable
+historical files; the new audit manifest supersedes only their earlier
+“eligible reference candidate” interpretation. No fourth long replay will be
+started under the same invalid contract. No figure or PrimeLoRA ranking is
+generated; a status table is the scientifically appropriate deliverable.
+
+Next: first construct and CPU-audit a protocol-compliant ordinary-vLLM
+reference launcher with common notice, published remote delivery, separated
+playback/monitor resources, 1800-second protection and per-GPU lifecycle
+events. Only after that gate passes may the three-repeat Resident reference
+be rerun. PrimeLoRA 7B formal acceptance, 3B, baselines, M1/M2, ablations and
+sensitivity experiments remain open; no configuration or SLO was changed.
+
 ## CURRENT — D213 7B Resident repeat2 COMPLETE and eligible; reference mean pending
 
 2026-10-04 06:47+08. Goal ACTIVE/current turn PROGRESS. The full Plan, this
