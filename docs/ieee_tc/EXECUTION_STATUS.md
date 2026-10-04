@@ -1,5 +1,34 @@
 # IEEE TC execution status
 
+## CURRENT — D214 7B full replay retry1 rejected before model initialization; launcher-only retry authorized
+
+2026-10-04 09:24+08. Goal ACTIVE/current turn PROGRESS. The first 4,000-request
+D214 full replay was retained as an incomplete launch attempt and is excluded
+from every performance, SLO, resource, and ranking table. Its receipt is
+`results/ieee_tc/p2_backend_qualification/d214_20261004/7b_route_identity_full_retry1/launch.json`:
+the service and replay returned 1, while native GPU-context release was
+confirmed and the owned cleanup path was already gone. No model worker reached
+inference and no request entered the algorithmic result denominator.
+
+The fail-closed launcher rejected the run during the initial background
+scale-up because the parent environment did not carry the frozen D157 native
+HOST allocator contract (`uncached_background_v1` with
+`pinned_max_cached_size_mb:0,pinned_use_background_threads:True`). This is a
+protocol/launcher error, not evidence against D214, the published remote
+delivery, or PrimeLoRA latency. The remote 7B artifact unit was stopped after
+the attempt and read back inactive; local `nvidia-smi` showed only the normal
+driver baseline (15 MiB per GPU), with no owned worker processes.
+
+The retry preserves the exact model, vLLM backend, D157 service/preparation
+profiles, W0 trace, 500-adapter subset, fixed-output contract, resource
+envelope, and D214 feature gate. It changes only the fresh output/NVMe/HOST
+roots and supplies the already-qualified allocator/PATH environment before
+the protected user-scope launch. The failed retry1 directories remain
+immutable; no old result is overwritten. The full replay remains a Prime-only
+candidate check; baseline comparison and formal G1/G2 claims remain blocked
+until a complete replay passes the strict correctness, release, and evidence
+gates.
+
 ## CURRENT — D214 7B route identity-recheck bounded validation PASS; full replay decision pending
 
 2026-10-04 09:10+08. Goal ACTIVE/current turn PROGRESS. The seventh D214
