@@ -53,6 +53,11 @@ paused.
 
 ## CURRENT — D216 route-evidence audit corrected; candidate remains revoked
 
+Backup checkpoint `32487b1` (pushed to `faaslora_origin/retry14_continuous_queue_v2`)
+seals the retained retry7 curation, corrected route-evidence audit, wave-ID
+provenance fix, and remote/metric decision document. The protected manifest,
+old figures and unrelated user files were excluded.
+
 2026-10-04 22:20+08. A bounded CPU-only audit of the retained D215/D216 request
 evidence found that the producer-side collection counter and the emitted
 collection label are not interchangeable. D216 reports 106 producer collections
