@@ -65,6 +65,17 @@ with SHA256
 `4251429c25f1615a4166f395d3c09fe0732bfb023864c4b7f12813373e5696ea`, plus
 fresh cache roots; the feature gate and workload remain unchanged.
 
+The fourth bounded attempt passed the NVML/resource gates and reached the
+runner, but stopped during remote-storage setup because the command omitted the
+already frozen 500-adapter subset path. The fail-closed error was
+`IEEE input setup requires nonempty unique adapter IDs`; no cache root was
+created, no model was initialized, and the watchdog confirmed native GPU
+contexts were released. Its complete receipt is retained at
+`results/ieee_tc/p2_backend_qualification/d214_20261004/7b_route_identity_validation_retry4/`.
+This is a command/provenance error, not a route-candidate result. The next
+attempt supplies the existing subset JSON paired with the existing W0 trace;
+it does not regenerate or alter the adapter pool.
+
 ## CURRENT — D213 Resident repeats COMPLETE as serving diagnostics; V1 reference REJECTED by protocol audit
 
 2026-10-04 08:20+08. Goal ACTIVE/current turn PROGRESS. Before this
