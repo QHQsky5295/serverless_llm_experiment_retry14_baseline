@@ -56,7 +56,7 @@ remote-journal lines were correctly excluded as out-of-run records.  Thus the
 candidate is motivated by an observed control-path regression, not by selecting
 a favorable seed or rewriting the workload.
 
-The D215 code change passed 294 related CPU tests, including the route-identity,
+The D215 code change passed 296 related CPU tests, including the route-identity,
 request-footprint, identity-recheck, service-routing, scheduler-observation and
 request-lifecycle suites.  Python compilation and `git diff --check` also pass.
 These tests establish semantic and ownership invariants only; they do not imply

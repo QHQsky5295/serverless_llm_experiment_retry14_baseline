@@ -8227,14 +8227,17 @@ class ScenarioRunner:
                     index: asyncio.create_task(
                         slots[index].engine.ieee_request_sources(requested_adapter_ids=list(scope)))
                     for index in sorted(cold_full_indexes)}
-                identity_results = {
-                    index: result for index, result in zip(
-                        identity_indexes,
-                        await asyncio.gather(*identity_tasks.values(), return_exceptions=True))}
-                cold_full_results = {
-                    index: result for index, result in zip(
-                        sorted(cold_full_indexes),
-                        await asyncio.gather(*cold_full_tasks.values()))}
+                # One gather owns both groups, so cancellation also joins/cancels
+                # the cold reads while identity reads are still in flight.
+                initial_results = await asyncio.gather(
+                    *identity_tasks.values(), *cold_full_tasks.values(),
+                    return_exceptions=True)
+                identity_results = dict(zip(identity_indexes, initial_results[:len(identity_indexes)]))
+                cold_full_results = dict(zip(
+                    sorted(cold_full_indexes), initial_results[len(identity_indexes):]))
+                for value in cold_full_results.values():
+                    if isinstance(value, BaseException):
+                        raise value
                 if (tuple(self.instance_pool.get_slots()) != slots
                         or any(slot.engine is not engine for slot, engine in zip(slots, engines))):
                     cache_stats['membership_rejections'] = cache_stats.get('membership_rejections', 0) + 1
@@ -8284,6 +8287,10 @@ class ScenarioRunner:
                 fallback_results = {
                     index: result for index, result in zip(
                         sorted(fallback_indexes), await asyncio.gather(*fallback_tasks.values()))}
+                if (tuple(self.instance_pool.get_slots()) != slots
+                        or any(slot.engine is not engine for slot, engine in zip(slots, engines))):
+                    cache_stats['membership_rejections'] = cache_stats.get('membership_rejections', 0) + 1
+                    return None
                 full_read_indexes = set(cold_full_indexes) | set(fallback_indexes)
                 for index in sorted(full_read_indexes):
                     value = (cold_full_results[index] if index in cold_full_results

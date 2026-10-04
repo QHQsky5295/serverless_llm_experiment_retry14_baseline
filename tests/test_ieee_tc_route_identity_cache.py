@@ -83,6 +83,45 @@ class RouteIdentityCacheQualification(unittest.TestCase):
         self.assertEqual(metadata['full_fallback_replica_count'], 1)
         self.assertEqual(values[0][0].epoch, 2)
 
+    def test_membership_change_during_fallback_does_not_publish_cache(self):
+        runner, slot, identity_wire, full_wire = self._runner()
+
+        async def check():
+            await runner._ieee_collect_route_identity_cache((slot,), requested_adapter_ids=[4])
+            cached = runner._ieee_route_full_cache[('inst-a', (4,))]
+            slot.engine.ieee_source_identities = AsyncMock(return_value=dict(
+                identity_wire, epoch=2, captured_monotonic_s=time.monotonic()))
+
+            async def changed_membership(**kwargs):
+                runner.instance_pool.get_slots = lambda: []
+                return dict(full_wire, epoch=2, captured_monotonic_s=time.monotonic())
+
+            slot.engine.ieee_request_sources = AsyncMock(side_effect=changed_membership)
+            values, metadata = await runner._ieee_collect_route_identity_cache(
+                (slot,), requested_adapter_ids=[4])
+            self.assertIsNone(values)
+            self.assertTrue(metadata['membership_rejected'])
+            self.assertIs(runner._ieee_route_full_cache[('inst-a', (4,))], cached)
+
+        asyncio.run(check())
+
+    def test_identity_failure_uses_authoritative_read_without_stale_reuse(self):
+        runner, slot, _, full_wire = self._runner()
+
+        async def check():
+            await runner._ieee_collect_route_identity_cache((slot,), requested_adapter_ids=[4])
+            slot.engine.ieee_source_identities = AsyncMock(side_effect=RuntimeError('unavailable'))
+            slot.engine.ieee_request_sources = AsyncMock(return_value=dict(
+                full_wire, epoch=2, captured_monotonic_s=time.monotonic()))
+            values, metadata = await runner._ieee_collect_route_identity_cache(
+                (slot,), requested_adapter_ids=[4])
+            self.assertEqual(values[0][0].epoch, 2)
+            self.assertTrue(metadata['identity_failure'])
+            self.assertEqual(metadata['full_fallback_replica_count'], 1)
+            self.assertEqual(runner._ieee_route_cache_stats.get('hits', 0), 0)
+
+        asyncio.run(check())
+
 
 if __name__ == '__main__':
     unittest.main()

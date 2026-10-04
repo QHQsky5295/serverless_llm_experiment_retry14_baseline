@@ -14,7 +14,7 @@ coverage, epoch change, or RPC failure still fails closed to a per-replica
 authoritative read. No last-known tier, TTL, admission/profile/formula,
 workload, generation, or resource-envelope change is included.
 
-The candidate passed 294 related CPU tests (route identity, request footprints,
+The candidate passed 296 related CPU tests (route identity, request footprints,
 identity recheck, service routing, scheduler observation and request lifecycle)
 under the bounded auxiliary scope. Python compilation and `git diff --check`
 also pass. This is semantic qualification only; it is not evidence of GPU
