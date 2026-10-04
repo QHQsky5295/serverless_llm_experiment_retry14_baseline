@@ -20,12 +20,15 @@ footprint/lifecycle suites plus the two D214 tests ran in the declared
 auxiliary CPU domain: 199 tests passed, 0 failed, 0 swap/OOM evidence. This
 qualifies only state-machine correctness; it does not claim a latency gain.
 
-Next: create an explicit candidate configuration (without editing the user
-manifest), run one bounded 7B W0 validation replay with the existing published
-remote artifact cache and strict cleanup/dispatch evidence, then decide from
-the measured control-path and TTFT change whether one complete replay is
-scientifically justified. No new baseline, 3B, comparison, or long vLLM run is
-authorized before this Prime candidate gate is resolved.
+The bounded candidate configuration is now
+`configs/ieee_tc/20261004_d214_7b_route_identity_validation.yaml`; it reuses the
+D210 7B W0 trace, D157 profiles and published remote delivery, changes only
+the feature gate plus new output/cache paths, and leaves the user manifest
+untouched. Next is one 100-request W0 validation replay with strict cleanup/
+dispatch evidence, followed by a decision from the measured control-path and
+TTFT change about whether one complete replay is scientifically justified. No
+new baseline, 3B, comparison, or long vLLM run is authorized before this Prime
+candidate gate is resolved.
 
 ## CURRENT — D213 Resident repeats COMPLETE as serving diagnostics; V1 reference REJECTED by protocol audit
 
