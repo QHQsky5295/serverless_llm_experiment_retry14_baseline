@@ -1,5 +1,48 @@
 # IEEE TC execution status
 
+## CURRENT — D214 7B full replay retry3 completed requests but failed strict physical-owner journal audit
+
+2026-10-04 10:xx+08. Goal ACTIVE/current turn PROGRESS. The cached-startup
+retry3 completed the entire PrimeLoRA-only W0 replay: 4,000/4,000 requests
+arrived, submitted, terminated and succeeded under the frozen
+`fixed_length_greedy_v1` contract, with native token IDs and 256-token targets.
+The replay process returned 0 and all owned GPU contexts were released. The
+raw result and launch evidence remain immutable under
+`results/ieee_tc/p2_backend_qualification/d214_20261004/7b_outputs_full_retry3/`
+and `.../7b_route_identity_full_retry3/`.
+
+The run is nevertheless **not formally qualified** and is excluded from G1,
+G2, SLO, resource and ranking tables. The service returned 1 during final
+physical-deployment reduction because one of the four allocation journals
+contained a second `native_workers_exited` event after its `release` event.
+The other journals had the required acquire → worker_spawn → native_workers →
+native_workers_exited → release order. This is a concurrent retirement
+accounting race (two shutdown paths waited on the same native worker), not an
+OOM, model, workload, remote-delivery or algorithmic failure. The reducer
+correctly failed closed rather than converting an ambiguous lifecycle into a
+GPU-s/request value. The run recorded no cgroup max/oom/oom_kill event and
+preserved its incomplete qualification receipt.
+
+The fix is limited to lifecycle evidence: `wait_workers()` now serializes
+concurrent waiters and records `native_workers_exited` exactly once; it does
+not weaken release checks or alter any PrimeLoRA routing/admission/profile
+logic. The new regression test and the lifecycle/native-retirement/launch
+suite passed (178 tests, 0 failures). A fresh retry4 will reuse only the
+already-populated compile cache and the exact trace, adapter subset, backend,
+resource envelope and D214 feature gate, while using new output/NVMe/HOST and
+receipt roots. No baseline or figure is authorized until retry4 passes the
+strict request, native-generation, dispatch/readiness, journal-order and
+cleanup gates.
+
+## CURRENT — D214 7B full replay retry3 launch evidence retained; retry4 pending
+
+The retry3 launch receipt is retained with `formal_comparison_qualified=false`
+and `pass=false` solely because of the physical-owner journal-order reducer
+failure described above; this does not invalidate the 4,000 completed request
+records as raw diagnostics. The four journal IDs and the unmodified result
+files are kept for audit. No result directory is overwritten, and no
+performance interpretation has been generated.
+
 ## CURRENT — D214 7B full replay retry1 rejected before model initialization; launcher-only retry authorized
 
 2026-10-04 09:24+08. Goal ACTIVE/current turn PROGRESS. The first 4,000-request
@@ -80,10 +123,12 @@ native terminal observations, confirmed dispatch snapshots, and complete
 pre-dispatch readiness fields. The route evidence contains 291 per-replica
 source observations, all in `identity_recheck_cache_v1` mode. The final
 monotone mechanism counters recovered from concurrent evidence are 54 cached
-full-state reuses, 198 identity-only observations, 4 full authoritative
-fallbacks, 0 identity failures and 0 membership rejections. These are
-mechanism counters, not request-level denominators; the auditable extraction
-and caveat are in
+full-state reuses and 198 identity-only observations, with 0 identity
+failures and 0 membership rejections. The per-observation
+`full_fallback_replica_count` field was observed at most 4 concurrently, but it
+is an instantaneous snapshot and must not be interpreted as a total number of
+authoritative fallbacks. These are mechanism counters, not request-level
+denominators; the auditable extraction and caveat are in
 `paper_results/ieee_tc/p2_backend_qualification/d214_20261004_route_identity_validation/d214_7b_retry7_curated.json`.
 
 The launch receipt passed, native GPU-context release was confirmed, the owned

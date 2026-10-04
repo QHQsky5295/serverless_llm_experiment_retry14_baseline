@@ -347,6 +347,11 @@ class PhysicalGPUAllocation:
         self._worker_pidfds = {}
         self._native_workers_confirmed = False
         self._worker_exit_observed = False
+        # Multiple retirement paths may converge on the same dedicated engine
+        # (for example, a scale-down task racing final service teardown).  The
+        # physical journal is a strict state machine, so worker-exit evidence
+        # must be emitted once even when waiters are concurrent.
+        self._worker_wait_lock = asyncio.Lock()
         self._mutex = threading.RLock()
         self.root.mkdir(parents=True, exist_ok=True)
         sample = self.census.sample(self.service_path)
@@ -457,17 +462,24 @@ class PhysicalGPUAllocation:
         """Wait on kernel exit notifications, never on a guessed teardown sleep."""
         if timeout_s < 0:
             raise ValueError('negative native teardown deadline')
-        pending = set(self._worker_pidfds.values())
-        deadline = time.monotonic() + timeout_s
-        while pending:
-            ready, _, _ = await asyncio.to_thread(select.select, list(pending), [], [],
-                                                  max(0., deadline - time.monotonic()))
-            if not ready:
-                self._append('release_deferred', reason='native_worker_exit_timeout')
-                raise TimeoutError('native workers have not terminated; physical lease retained')
-            pending.difference_update(ready)
-        self._worker_exit_observed = True
-        self._append('native_workers_exited', worker_pids=sorted(self._worker_pidfds))
+        async with self._worker_wait_lock:
+            # A second shutdown caller must observe the already-recorded
+            # kernel exit (or a completed release) without appending a second
+            # native_workers_exited event after release.  This preserves the
+            # one-owner journal order and does not weaken the release checks.
+            if self.released or self._worker_exit_observed:
+                return
+            pending = set(self._worker_pidfds.values())
+            deadline = time.monotonic() + timeout_s
+            while pending:
+                ready, _, _ = await asyncio.to_thread(select.select, list(pending), [], [],
+                                                      max(0., deadline - time.monotonic()))
+                if not ready:
+                    self._append('release_deferred', reason='native_worker_exit_timeout')
+                    raise TimeoutError('native workers have not terminated; physical lease retained')
+                pending.difference_update(ready)
+            self._worker_exit_observed = True
+            self._append('native_workers_exited', worker_pids=sorted(self._worker_pidfds))
 
     def release(self):
         with self._mutex:

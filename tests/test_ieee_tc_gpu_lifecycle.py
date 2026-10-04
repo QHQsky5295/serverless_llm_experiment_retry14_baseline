@@ -256,6 +256,27 @@ class DedicatedPhysicalOwner(unittest.TestCase):
         with patch('os.close'):
             owner.release()
 
+    def test_concurrent_worker_wait_records_one_exit_event(self):
+        owner = self.acquire()
+        owner._worker_pidfds = {10: 9876}
+
+        async def wait_twice():
+            await asyncio.gather(
+                owner.wait_workers(timeout_s=3.),
+                owner.wait_workers(timeout_s=3.),
+            )
+
+        with patch('select.select', return_value=([9876], [], [])) as select_fn:
+            asyncio.run(wait_twice())
+        self.assertEqual(select_fn.call_count, 1)
+        self.assertEqual([r['event'] for r in owner.events],
+                         ['acquire', 'native_workers_exited'])
+
+        with patch('os.close'):
+            owner.release()
+        self.assertEqual([r['event'] for r in owner.events],
+                         ['acquire', 'native_workers_exited', 'release'])
+
     def test_native_worker_timeout_keeps_durable_open_allocation(self):
         owner = self.acquire()
         owner._worker_pidfds = {10: 9876}
