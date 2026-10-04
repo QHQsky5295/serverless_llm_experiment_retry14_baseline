@@ -89,6 +89,18 @@ The next attempt will launch the same profile with its already-specified
 allocator policy preconfigured in the parent environment, not by changing the
 profile or candidate algorithm.
 
+The sixth bounded attempt reached the real 7B worker and began GPU model
+initialization, but FlashInfer's first sampling-kernel JIT failed with
+`FileNotFoundError: [Errno 2] No such file or directory: 'ninja'`. The qualified
+venv contains the `ninja` executable, but its `bin` directory was not present in
+the inherited worker `PATH`; this is an environment propagation failure. The
+external publisher observed 13 arrivals before the service connection closed,
+with no terminal requests, so the attempt is incomplete and cannot support a
+performance or route-semantic claim. The worker, service scope and GPU context
+were released; raw worker logs are retained under the retry6 launch evidence.
+The next attempt adds the venv `bin` directory to `PATH` only, preserving the
+same code, allocator policy, trace, adapter subset and fresh workspace rule.
+
 ## CURRENT — D213 Resident repeats COMPLETE as serving diagnostics; V1 reference REJECTED by protocol audit
 
 2026-10-04 08:20+08. Goal ACTIVE/current turn PROGRESS. Before this
