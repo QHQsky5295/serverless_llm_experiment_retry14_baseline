@@ -36,6 +36,18 @@ the local GPU process census is empty. The failed receipt is retained under the
 retry8 raw directory and is excluded from every denominator. No timeout,
 cache, route, or generation conclusion is drawn from it.
 
+The next cache-startup attempt (retry9) did reach native vLLM readiness and
+reused a previously compiled AOT artifact, but its launcher omitted the
+guarded `FAASLORA_TC_DIAGNOSTIC_PREFIX_COUNT=100` setting. The external
+publisher therefore began the full 4,000-request trace (`arrived=118/4000`)
+instead of the intended bounded prefix. I stopped the exact owned
+auxiliary/service scopes before treating it as a campaign; remote 7B was
+stopped, GPU processes are absent, and the partial receipt/logs remain under
+the retry9 raw directory. This is a launcher/protocol failure with no
+performance denominator, not a PrimeLoRA result. The corrected retry will add
+only the already-supported bounded-prefix environment variable; no
+algorithmic, cache, or resource change is authorized by this correction.
+
 
 ## CURRENT — D217 retry7 reached native vLLM initialization but did not qualify worker readiness; route candidate remains pending
 
