@@ -1,0 +1,2 @@
+confirmed_dispatch_snapshot,dispatch_tier_present,output_contract_match,prompt_hash_present,request_count,selected_epoch_not_older,selected_owner_matches_intent,source_tier_equals_dispatch_tier,stale_recheck_requests,stale_recheck_sum,successful,timing_contract_present,unique_request_ids
+4000,4000,4000,4000,4000,4000,4000,4000,252,530,4000,4000,4000

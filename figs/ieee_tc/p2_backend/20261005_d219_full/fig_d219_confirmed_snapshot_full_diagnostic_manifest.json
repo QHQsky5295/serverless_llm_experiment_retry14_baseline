@@ -1,0 +1,6 @@
+{
+  "kind": "diagnostic_figure_v1",
+  "source": "paper_results/ieee_tc/p2_backend/20261005_d219_full/curated/d219_full_curated.json",
+  "scope": "complete single-seed exploratory replay; no cross-system or held-out multi-seed claim",
+  "caption": "D219 provides descriptive dispatch-tier and latency evidence after the confirmed-snapshot cache path completed 4,000 requests. Bars are not a formal comparison."
+}
