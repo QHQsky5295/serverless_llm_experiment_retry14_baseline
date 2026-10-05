@@ -21,8 +21,8 @@ not qualify that exception, and their receipts do not capture a vLLM package or
 source identity.
 
 The prototype entrypoint and `VLLM_RESIDENT_PROTOCOL_V1=1` path are now
-fail-closed in baseline commits `0a8e5f7` plus the subsequent quarantine
-checkpoint.  Historical source and raw logs remain untouched.  D222 is a
+fail-closed in baseline commits `0a8e5f7` and `70bbbfc`.  Historical source and
+raw logs remain untouched.  D222 is a
 CPU/syntax and dry-run artifact only; D223 is a launcher/protocol failure; D224
 completed 100/100 requests with the native fixed-output token contract, but
 that contract does not prove numerical adapter correctness or physical

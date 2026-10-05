@@ -31,7 +31,8 @@ When `VLLM_RESIDENT_PROTOCOL_V1=1`, the existing runner additionally:
 The receipt helper is
 `serverless_llm_baselines/scripts/ieee_tc/resident_protocol_receipt.py`.
 The prototype source is backed up at commits `0d01e9a`, `65185e2`, `c3a0215`,
-and `0a8e5f7` on the baseline `main` remote branch.  Existing user-dirty
+and `0a8e5f7`; the fail-closed quarantine is `70bbbfc` on the baseline
+`main` remote branch.  Existing user-dirty
 baseline files were not staged.
 
 ## Validation boundary
