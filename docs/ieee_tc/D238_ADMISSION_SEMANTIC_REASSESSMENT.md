@@ -59,8 +59,8 @@ never silently applied.
 
 The current worker receipt is schema `ieee_native_request_capacity_witness_v2`
 (`schema_version=2`); the runner accepts the earlier v1 kind only when reading
-sealed historical results. The v2 receipt adds explicit replay/owner-epoch
-identity fields but does not change the non-reservation semantics above.
+sealed historical results. The version marker makes the changed witness
+contract explicit; it does not change the non-reservation semantics above.
 
 The witness also does not validate pins owned by an external native adapter
 manager or prove safe victim selection when every GPU slot is occupied. Those
