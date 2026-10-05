@@ -118,3 +118,13 @@ The detailed root-cause analysis, source-line evidence, and next action are in
 `D237_D227_RETRY2_ADMISSION_AUDIT.md`.  No full replay is authorized until a
 first-principles native physical-capacity transaction is integrated and passes
 a new bounded pressure diagnostic.
+
+### Semantic boundary correction (D238)
+
+The final sentence is a qualification requirement, not a claim that ordinary
+request-driven loading must invoke the proactive E(t) budget.  The IEEE
+semantics give request-driven loading priority over proactive preparation.
+D227 submitted no proactive residency candidate, so its zero decision count is
+insufficient coverage of the proactive path.  See
+`D238_ADMISSION_SEMANTIC_REASSESSMENT.md`; no raw D227 artifact or scope label
+is changed.

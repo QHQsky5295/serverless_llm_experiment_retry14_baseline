@@ -90,6 +90,38 @@ def _core_prepare_host(core, command):
     return result[0]
 
 
+def _core_admit_and_demand_load(core, command):
+    """Evaluate IEEE capacity and perform one native demand load atomically.
+
+    The scheduler owner captures the KV/length snapshot and holds its utility
+    call while the single UniProc worker evaluates the same proposal and loads
+    the adapter.  This is deliberately narrower than a KV allocator rewrite:
+    vLLM remains the owner of actual KV blocks, while the admission receipt
+    proves that the current physical used bytes, preallocated LoRA pool and
+    predicted KV demand were checked immediately before the load.
+    """
+    from vllm.v1.executor.uniproc_executor import UniProcExecutor
+    if (not isinstance(core.scheduler, IEEENativeAsyncScheduler)
+            or type(core.model_executor) is not UniProcExecutor):
+        raise RuntimeError('native admission requires the native UniProc owner')
+    scheduler = core.scheduler
+    if scheduler._ieee_lengths is None:
+        raise RuntimeError('native admission has no frozen completion-length profile')
+    allowed = {'lease_id', 'adapter_int_id', 'lora_name', 'lora_path',
+               'expected_owner_id', 'expected_epoch', 'required_source_tier',
+               'expected_source_id', 'capacity_only'}
+    if not isinstance(command, dict) or set(command) != allowed:
+        raise ValueError('native admission command fields differ from the contract')
+    observation = scheduler.ieee_scheduler_observation()
+    lengths = scheduler._ieee_lengths.snapshot(now=observation['captured_at'])
+    result = core.collective_rpc('ieee_gpu_reference', kwargs={
+        'operation': 'admit_and_demand_load', **command,
+        'scheduler_observation': observation, 'lengths': lengths})
+    if not isinstance(result, list) or len(result) != 1 or not isinstance(result[0], dict):
+        raise RuntimeError('native admission lacks a single-worker acknowledgement')
+    return result[0]
+
+
 class IEEENativeAsyncScheduler(AsyncScheduler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -134,6 +166,10 @@ class IEEENativeAsyncScheduler(AsyncScheduler):
         if existing is not None and existing is not _core_prepare_host:
             raise RuntimeError('native EngineCore proactive preparation bridge name collision')
         EngineCore.ieee_prepare_host = _core_prepare_host
+        existing = getattr(EngineCore, 'ieee_admit_and_demand_load', None)
+        if existing is not None and existing is not _core_admit_and_demand_load:
+            raise RuntimeError('native EngineCore admission bridge name collision')
+        EngineCore.ieee_admit_and_demand_load = _core_admit_and_demand_load
         existing = getattr(EngineCore, 'ieee_pending_admission', None)
         if existing is not None and existing is not _core_pending_admission:
             raise RuntimeError('native EngineCore pending admission bridge name collision')

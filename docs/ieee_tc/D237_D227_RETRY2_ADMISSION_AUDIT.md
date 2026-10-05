@@ -180,3 +180,14 @@ metric.  All allocation journals were released.
 
 This is an implementation qualification step, not an invitation to tune the
 metric or alter the paper equations.
+
+## Post-audit semantic correction (D238)
+
+The source-level finding above remains true for the executed bounded run: it
+emitted no proactive E(t) decision and no physical KV reservation.  A fresh
+review of the IEEE paper and implementation record narrows the causal claim,
+however.  E(t) is a proactive residency budget, while request-driven loading
+has priority and follows the backend's physical allocation rules.  Therefore
+the run demonstrates insufficient proactive-path coverage, not a proven defect
+in ordinary demand loading.  See `D238_ADMISSION_SEMANTIC_REASSESSMENT.md`;
+the raw result, hashes, and non-ranking boundary are unchanged.

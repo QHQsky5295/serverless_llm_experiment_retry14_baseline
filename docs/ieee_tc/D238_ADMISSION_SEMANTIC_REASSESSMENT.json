@@ -1,0 +1,22 @@
+{
+  "audit_id": "D238_ADMISSION_SEMANTIC_REASSESSMENT",
+  "date": "2026-10-06",
+  "status": "corrective_design_record",
+  "d227_zero_decisions_interpretation": "insufficient_proactive_coverage",
+  "demand_path_semantics": "request_priority_native_backend_allocation",
+  "current_draft_request_extension": {
+    "mode": "hard_capacity_witness",
+    "capacity_only": true,
+    "proactive_admission_evaluated": false,
+    "physical_kv_reservation": false,
+    "formal_performance_qualified": false
+  },
+  "next_diagnostic": "bounded_proactive_host_to_gpu_decision",
+  "ranking_authorized": false,
+  "sources": [
+    "storage_audit_20260915/PrimeLoRA_IEEE.pdf",
+    "docs/ieee_tc/P1_FORMULA_IMPLEMENTATION.md",
+    "faaslora/memory/residency_manager.py",
+    "docs/ieee_tc/D237_D227_RETRY2_ADMISSION_AUDIT.md"
+  ]
+}

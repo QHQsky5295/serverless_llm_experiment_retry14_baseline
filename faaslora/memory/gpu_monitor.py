@@ -9,6 +9,7 @@ import time
 import threading
 import os
 import copy
+import uuid
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass
@@ -1042,7 +1043,9 @@ class IEEEWorkerObservationExtension:
         the native LoRA copies use the current execution stream. TP/PP > 1 needs
         a multi-worker commit protocol and is deliberately not authorized here.
         Proactive preparation is reachable only through the same-owner core
-        bridge; ordinary request-driven loading does not evaluate soft E(t).
+        bridge; ordinary unqualified demand loading does not evaluate soft
+        E(t).  The qualified `admit_and_demand_load` operation is the explicit
+        same-owner request path that does.
         """
         diagnostic_id = kwargs.pop('_diagnostic_control_id', None)
         if diagnostic_id is not None and operation != 'request_source_snapshot':
@@ -1054,7 +1057,7 @@ class IEEEWorkerObservationExtension:
                              'demand_load_and_acquire', 'hold_host_source', 'release_host_source',
                              'prepare_file_host_and_hold', 'configure_host_budget',
                              'register_preparation_plan', 'finish_preparation_target', 'close_preparation_plan',
-                             'proactive_host_prepare_and_acquire'):
+                             'proactive_host_prepare_and_acquire', 'admit_and_demand_load'):
             raise ValueError('unknown GPU reference operation')
         if torch is None or self.device is None or self.device.type != 'cuda':
             raise RuntimeError('native CUDA worker is required')
@@ -1283,6 +1286,126 @@ class IEEEWorkerObservationExtension:
                     'scheduler_held_during_commit': True,
                     'physical_increment_reserved_bytes': 0}
             result = owner.proactive_host_prepare_and_acquire(**kwargs, decide=decide)
+        elif operation == 'admit_and_demand_load':
+            from dataclasses import asdict, fields
+            from faaslora.scheduling.resource_coordinator import (
+                AdmittedKVRequest, AdapterAllocationProposal, BackendAdmissionSnapshot,
+                CompletedLengthSnapshot, evaluate_ieee_admission)
+            observation = kwargs.pop('scheduler_observation')
+            lengths = kwargs.pop('lengths')
+            capacity_only = kwargs.pop('capacity_only')
+            if (observation.get('scheduler_pid') != os.getpid()
+                    or observation.get('clock_id') != local_monotonic_clock_id()
+                    or observation.get('kind') != 'ieee_native_scheduler_observation_v1'
+                    or not isinstance(lengths, CompletedLengthSnapshot)
+                    or lengths.captured_at != observation['captured_at']):
+                raise ValueError('native admission lacks a same-owner KV/length snapshot')
+            transfers = observation.get('adapter_transfers')
+            if (not isinstance(transfers, dict)
+                    or transfers.get('transfer_scope') not in (
+                        'replica_owned_file_preparation_and_serialized_native_v1',
+                        'shared_file_domain_and_serialized_native_v1')
+                    or (transfers.get('transfer_scope') == 'shared_file_domain_and_serialized_native_v1'
+                        and not transfers.get('file_domain_id'))
+                    or type(transfers.get('active_transfers')) is not int
+                    or transfers['active_transfers'] != len(transfers.get('active_transfer_ids', []))):
+                raise ValueError('native admission lacks owned file-transfer pressure')
+            allowed = {'lease_id', 'adapter_int_id', 'lora_name', 'lora_path',
+                       'expected_owner_id', 'expected_epoch', 'required_source_tier',
+                       'expected_source_id'}
+            if set(kwargs) != allowed:
+                raise ValueError('native demand admission payload differs from the contract')
+            request_key = tuple((key, repr(kwargs[key])) for key in sorted(kwargs)) + (
+                ('capacity_only', repr(capacity_only)),)
+            cached_requests = getattr(owner, '_ieee_request_capacity_receipts', None)
+            if cached_requests is None:
+                cached_requests = {}
+                owner._ieee_request_capacity_receipts = cached_requests
+            cached = cached_requests.get(kwargs['lease_id'])
+            if cached is not None:
+                if cached['request_key'] != request_key:
+                    raise ValueError('request-capacity lease reused for a different command')
+                return copy.deepcopy(cached['receipt'])
+            owner._refresh()
+            pool = _ieee_lora_pool_inventory(manager, require_uniform_slots=True)
+            free, total = map(int, torch.cuda.mem_get_info(self.device))
+            slot_bytes = pool['slot_capacity_bytes']
+            snapshot = BackendAdmissionSnapshot(
+                model_backend_id=lengths.model_backend_id, replica_id=owner.owner_id,
+                epoch=owner.epoch, captured_at=lengths.captured_at,
+                kv_layout=observation['kv_layout'], admitted=tuple(
+                    AdmittedKVRequest(**{field.name: row[field.name] for field in fields(AdmittedKVRequest)})
+                    for row in observation['admitted']),
+                scheduled_tokens=observation['scheduled_tokens'],
+                iteration_token_budget=observation['iteration_token_budget'],
+                active_transfers=transfers['active_transfers'],
+                transfer_limit=transfers['transfer_limit'],
+                kv_tokens_per_block=observation['kv_tokens_per_block'],
+                kv_bytes_per_block=observation['kv_bytes_per_block'],
+                kv_unreserved_free_blocks=observation['kv_unreserved_free_blocks'],
+                physical_limit_bytes=total, physical_used_bytes=total - free,
+                # The engine-core utility is held across this worker call, so
+                # no second native demand load can interleave this check.
+                physical_reserved_bytes=0,
+                adapter_pool_bytes=pool['pool_allocated_bytes'],
+                adapter_pool_occupied_bytes=pool['occupied_slot_capacity_bytes'],
+                adapter_pool_reserved_bytes=0)
+            proposal = AdapterAllocationProposal(kwargs['lora_name'], slot_bytes, True,
+                                                  slot_bytes, 0, 0)
+            started_ns = time.perf_counter_ns()
+            decision = evaluate_ieee_admission(snapshot, lengths, proposal,
+                                               capacity_only=capacity_only)
+            decision_us = (time.perf_counter_ns() - started_ns) / 1000.0
+            reservation = dict(
+                kind='ieee_atomic_capacity_witness_v1',
+                reservation_id=uuid.uuid4().hex,
+                owner_id=owner.owner_id,
+                epoch=owner.epoch,
+                reserved_bytes=decision.physical_increment_bytes,
+                predicted_kv_bytes=decision.predicted_kv_bytes,
+                scope='preallocated_lora_pool_and_backend_kv_atomic_check',
+                state='decision_only')
+            # This is a request-priority hard-capacity witness, not the
+            # proactive E(t) residency admission.  The backend remains the
+            # owner of actual KV blocks; no synthetic reservation is claimed.
+            admission = dict(kind='ieee_native_request_capacity_witness_v1',
+                decision=asdict(decision), decision_us=decision_us,
+                scheduler_owner_id=observation['scheduler_owner_id'],
+                scheduler_epoch=observation['epoch'],
+                worker_owner_id=owner.owner_id, worker_epoch=owner.epoch,
+                physical_capacity_qualified=False,
+                physical_kv_reservation=False,
+                proactive_admission_evaluated=False,
+                reservation=reservation,
+                snapshot=asdict(snapshot), proposal=asdict(proposal),
+                scheduler_sequences={key: observation[key] for key in
+                                     ('scheduled_sequence', 'completed_sequence')},
+                admitted_scope=observation['admitted_scope'],
+                transfer_scope=transfers['transfer_scope'])
+            if not decision.admit:
+                reservation['state'] = 'deferred'
+                result = dict(acquired=False, reason=decision.reason,
+                              owner_id=owner.owner_id, epoch=owner.epoch,
+                              admission=admission,
+                              proactive_admission_evaluated=False,
+                              request_capacity_witness=True,
+                              physical_capacity_qualified=False,
+                              request_admission_reserved=False,
+                              physical_kv_reservation=False)
+            else:
+                result = owner.demand_load_and_acquire(**kwargs)
+                admission['physical_capacity_qualified'] = bool(result.get('acquired') is True)
+                admission['post_load_owner_epoch'] = result.get('epoch')
+                admission['decision_outcome'] = 'admitted' if result.get('acquired') else 'stale_or_conflict'
+                reservation['state'] = 'committed' if result.get('acquired') else 'not_committed'
+                result.update(admission=admission,
+                              proactive_admission_evaluated=False,
+                              request_capacity_witness=True,
+                              physical_capacity_qualified=admission['physical_capacity_qualified'],
+                              request_admission_reserved=False,
+                              physical_kv_reservation=False)
+            cached_requests[kwargs['lease_id']] = dict(
+                request_key=request_key, receipt=copy.deepcopy(result))
         elif operation == 'request_source_snapshot':
             if set(kwargs) != {'requested_adapter_ids'}:
                 raise ValueError('request source observation requires an explicit target scope')
@@ -1296,6 +1419,8 @@ class IEEEWorkerObservationExtension:
             result = owner.source_snapshot(**kwargs)
         else:
             result = getattr(owner, operation)(**kwargs)
+        if operation == 'release':
+            getattr(owner, '_ieee_request_capacity_receipts', {}).pop(kwargs.get('lease_id'), None)
         if operation in ('source_snapshot', 'routing_source_snapshot'):
             # Same serialized owner invocation: neither source identity nor
             # cache membership can change between these two read-only views.

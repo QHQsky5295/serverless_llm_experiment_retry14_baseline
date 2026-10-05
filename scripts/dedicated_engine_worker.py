@@ -194,6 +194,9 @@ async def _run_worker(payload_path: Path, ready_path: Path) -> None:
                     elif cmd == "ieee_prepare_host":
                         result = await engine.ieee_prepare_host(**kwargs)
                         response = {"ok": True, "result": result}
+                    elif cmd == "ieee_admit_and_demand_load":
+                        result = await engine.ieee_admit_and_demand_load(**kwargs)
+                        response = {"ok": True, "result": result}
                     elif cmd == "ieee_transfer_event":
                         result = await engine.ieee_transfer_event(**kwargs)
                         response = {"ok": True, "result": result}

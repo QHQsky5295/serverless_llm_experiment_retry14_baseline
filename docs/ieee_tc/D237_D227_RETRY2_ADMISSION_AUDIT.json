@@ -80,5 +80,11 @@
     "Run a bounded pressure diagnostic with nonzero physical decision evidence before full replay.",
     "Bind the sibling raw result path/SHA into the next sealed launch manifest before formal reuse."
   ],
+  "semantic_correction": {
+    "record": "D238_ADMISSION_SEMANTIC_REASSESSMENT",
+    "e_t_scope": "proactive_residency_budget",
+    "ordinary_demand_zero_decisions": "insufficient_proactive_coverage_not_proven_demand_defect",
+    "raw_observations_unchanged": true
+  },
   "generated_at": "2026-10-06T00:00:00+08:00"
 }
