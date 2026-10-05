@@ -19,7 +19,7 @@ The existing D236 first-position/full-vocabulary reference remains supportive
 evidence only; it cannot replace this sequence-level gate because it uses a
 different five-arm native receipt.
 
-Launcher: `scripts/ieee_tc/run_d247_7b_peft_sequence_reference_retry4.sh`.
+Launcher: `scripts/ieee_tc/run_d247_7b_peft_sequence_reference_retry6.sh`.
 
 The launcher deliberately uses `/usr/bin/python3` for the outer resource
 supervisor and `/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python` only for the
@@ -45,3 +45,9 @@ semantic qualification.  The reference now uses explicit empty-EOS handling
 and KV caching (the serving-side inference semantics), and retry5 will rerun
 the same 22 requests under a new identity.  The retry4 result remains a
 diagnostic and is excluded from every performance denominator.
+
+Retry6 adds only a diagnostic field at each first divergence: the HF top-2
+token IDs/scores, top-1 minus top-2 margin, and whether the native token is in
+that HF top-2 set.  It does not change the generation contract or accept a
+successful subset; it is used solely to distinguish numerical near-ties from
+adapter/attention semantic errors.

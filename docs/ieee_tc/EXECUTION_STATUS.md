@@ -52,6 +52,16 @@ HF 参考在 EOS token 处提前停止，而 native `fixed_length_greedy_v1` 明
 显式空 EOS 集合和与服务一致的 KV cache，在全新身份上复核；3B、baseline、G1/G2
 仍暂停。
 
+D247 retry5 按修正后的 empty-EOS + KV-cache 语义完成并安全清理，结果为 19/22
+逐元素一致，`measurement_complete=true` 但 `pass=false`。剩余 3 条均在目标长度
+内生成完成，差异分别发生于 finance/ecommerce 请求的第 12–28 个位置，不再是 EOS
+提前停止；这说明跨 vLLM FLASH_ATTN/FlashInfer 与 HF eager/PEFT 的 FP16 数值路径
+可能在近 tie 处选择不同 token，但尚未足以把它客观归类为纯数值差异。下一步只做
+一次 retry6 margin diagnostic：记录 HF 首分歧点 top-2 分数、margin 和 native token
+是否位于 top-2，不改变生成或验收语义。若为近 tie，则将精确序列门降级为诊断证据并
+以共同 fixed-length/adapter/prompt contract 作为资格前提；若不是，则继续停在语义
+问题定位，绝不进入正式 Full/G1/G2。
+
 ## CURRENT — D246 passes real-worker token transport; independent semantic gate remains
 
 2026-10-06（D243 retry2，7B 22 请求固定输出诊断）. 在 D245 修复后，新的唯一

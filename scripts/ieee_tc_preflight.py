@@ -2861,7 +2861,8 @@ def backend_peft_sequence_reference(native_result: Path, trace: Path,
                 raise FileNotFoundError(f'missing adapter files for {aid}: {path}')
         result.update(stage='reference_model_load', reference_config=dict(
             dtype='float16', attention='eager', autocast_adapter_dtype=False,
-            use_cache=True, device='cuda:0', local_files_only=True))
+            use_cache=True, device='cuda:0', local_files_only=True,
+            divergence_margin_capture=True))
         base = AutoModelForCausalLM.from_pretrained(
             backbone, local_files_only=True, trust_remote_code=False,
             use_safetensors=True, torch_dtype=torch.float16,
@@ -2911,8 +2912,10 @@ def backend_peft_sequence_reference(native_result: Path, trace: Path,
                 output = model.generate(
                     input_ids=inputs, attention_mask=mask,
                     max_new_tokens=target, pad_token_id=tokenizer.eos_token_id,
-                    generation_config=generation_config, use_cache=True)
-            reference_ids = [int(value) for value in output[0, len(prompt_ids):].tolist()]
+                    generation_config=generation_config, use_cache=True,
+                    return_dict_in_generate=True, output_scores=True)
+            sequences = output.sequences
+            reference_ids = [int(value) for value in sequences[0, len(prompt_ids):].tolist()]
             native_ids = list((native.get('native_token_timing') or {}).get('completion_token_ids') or [])
             first_divergence = next(
                 (i for i, (left, right) in enumerate(zip(native_ids, reference_ids))
@@ -2929,8 +2932,19 @@ def backend_peft_sequence_reference(native_result: Path, trace: Path,
             if not exact:
                 record['native_prefix'] = native_ids[:min(first_divergence + 3, len(native_ids))]
                 record['reference_prefix'] = reference_ids[:min(first_divergence + 3, len(reference_ids))]
+                scores = getattr(output, 'scores', ())
+                if first_divergence < len(scores):
+                    top_values, top_ids = torch.topk(scores[first_divergence][0], k=2)
+                    native_value = scores[first_divergence][0, native_ids[first_divergence]]
+                    record.update(
+                        hf_top2_ids=[int(value) for value in top_ids.detach().cpu().tolist()],
+                        hf_top2_scores=[float(value) for value in top_values.detach().cpu().tolist()],
+                        hf_native_token_score=float(native_value.detach().cpu().item()),
+                        hf_top1_minus_top2=float((top_values[0] - top_values[1]).detach().cpu().item()),
+                        native_token_in_hf_top2=int(native_ids[first_divergence]) in
+                            set(int(value) for value in top_ids.detach().cpu().tolist()))
             result['requests'].append(record)
-            del output, inputs, mask
+            del output, sequences, inputs, mask
         sequence_pass = all(r['exact_sequence_match'] for r in result['requests'])
         result.update(stage='complete', measurement_complete=True,
                       exact_sequence_matches=sum(r['exact_sequence_match'] for r in result['requests']),
