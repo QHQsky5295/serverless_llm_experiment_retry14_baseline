@@ -92,6 +92,11 @@ D248 允许下一步进入已登记的 7B physical/admission/readiness bounded d
 仍暂停。完整裁决与 immutable hashes 见
 `docs/ieee_tc/D248_CROSS_BACKEND_SEQUENCE_RECONCILIATION.md`。
 
+D249 新鲜审计随后确认 retry6 内部证据一致，但发现旧 retry4 产物把 17/22
+精确匹配错误标成 `pass=true`。retry4 已隔离，不进入任何正确性分母；retry6
+仍保持严格 `pass=false`。因此下一项只执行预登记的 D250 7B Full/Delayed
+8-phase readiness 诊断，规格见 `docs/ieee_tc/D250_7B_READINESS_8PHASE_DIAGNOSTIC.md`。
+
 ## CURRENT — D246 passes real-worker token transport; independent semantic gate remains
 
 2026-10-06（D243 retry2，7B 22 请求固定输出诊断）. 在 D245 修复后，新的唯一

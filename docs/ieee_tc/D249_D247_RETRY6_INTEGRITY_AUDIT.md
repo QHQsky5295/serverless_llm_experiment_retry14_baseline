@@ -44,5 +44,14 @@ diagnostic, and three cross-kernel near-tie divergences were observed. It does
 not establish full-pool correctness, 4,000-request correctness, physical
 admission, common SLO, lifecycle efficiency, or a comparison win.
 
+The audit also records a reproducibility caveat: the independent PEFT reference
+uses `do_sample=false`, `temperature=1.0`, `top_p=1`, and `top_k=50` in its
+generation object. Because sampling is disabled, the Transformers greedy path
+does not apply the temperature/top-k warpers, so the effective selection is
+greedy; nevertheless, the serialized configuration is not a literal
+`temperature=0` record. This remains a protocol-identity WARN until an
+immutable effective-contract receipt is added. It does not turn the strict
+19/22 result into a pass.
+
 The next admissible work remains the pre-registered 7B physical/admission/
 readiness bounded diagnostics. External baselines and 3B remain paused.
