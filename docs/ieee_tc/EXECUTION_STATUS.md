@@ -1,5 +1,28 @@
 # IEEE TC execution status
 
+## CURRENT — D243 7B native token-capture diagnostic prepared; GPU launch held for final gates
+
+2026-10-06（D228 后的数值正确性诊断，尚未启动 GPU）. 已登记新的 22-request
+Llama-2-7B 配置 `configs/ieee_tc/20261006_d243_7b_token_capture_22req.yaml`，其
+SHA-256 为 `b57acd9c6e2e61b20535afac697be6ad81fc39767cd672262221d91cd61cb213`。
+它复用冻结的 D166/D167/D207/D208 请求与内容索引、D227/D238 的模型/profile、
+`fixed_length_greedy_v1` 合同和 D78/D80 已发布 gzip 工件；仅显式开启
+`ieee_token_id_capture`，并使用新的结果/NVMe/HOST 根目录。没有生成权重、LoRA
+工件、trace 或第二份解压池。
+
+离线 YAML、路径和 SHA 检查通过。清理遗留离线扫描后，当前一次 preflight 观察到
+`issues=[]`、`MemAvailable=121,837,080,576` 字节、推理目录剩余
+`172,863,201,280` 字节，均高于未改变的 109,521,666,048 字节内存和
+161,061,273,600 字节磁盘起始门槛；GPU 空闲状态仍需在启动前再次读取。远端
+D233 的一次性发布 gzip 缓存、内容 SHA 和独立 artifact-disk 峰值规则已具备，
+但服务 invocation、结果 sidecar 和独立 PEFT 对照仍不存在。
+
+D243 只允许作为数值诊断：必须得到 22/22 成功的固定输出、逐请求原生非负整数
+token IDs、完整 dispatch/admission/physical sidecar，并与原始 checkpoint PEFT
+参考做精确序列比较；它不能进入 G1/G2、SLO、性能排名或 baseline 分母。启动前
+会重新做本地内存/磁盘/GPU/cleanup 与远端服务状态检查；任一失败均保留证据并停
+止，不降低阈值。详细协议见 `D243_TOKEN_CAPTURE_22_DIAGNOSTIC.md/.json`。
+
 ## CURRENT — D242 registers one readiness-publication hypothesis; host gate still closed
 
 2026-10-06（离线瓶颈登记，无 GPU 重跑）. D235 的证据把下一处可证伪瓶颈

@@ -1,0 +1,48 @@
+{
+  "diagnostic_id": "D243",
+  "date": "2026-10-06",
+  "status": "prepared_held_before_gpu_launch",
+  "purpose": "bounded_native_completion_token_capture_for_D225_numerical_gate",
+  "config_path": "configs/ieee_tc/20261006_d243_7b_token_capture_22req.yaml",
+  "config_sha256": "b57acd9c6e2e61b20535afac697be6ad81fc39767cd672262221d91cd61cb213",
+  "launcher_path": "scripts/ieee_tc/run_d243_7b_token_capture_22req.sh",
+  "launcher_sha256": "e3966b7663f6d3c3016a232aad4b4d3606d99705a0fe06ac221d42794c515f7a",
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "model": "Llama-2-7b",
+  "requests": 22,
+  "seed": 42,
+  "generation_contract": "fixed_length_greedy_v1",
+  "token_capture_contract": "fixed_length_greedy_v1_native_ids_opt_in_v1",
+  "remote_delivery": {
+    "mode": "prepublished_gzip_v1",
+    "preparation_outside_inference": true,
+    "artifact_node": "primelora-artifact-174",
+    "three_b_manifest_sha256": "9fbd57b6216541d90f01e3efb7e63e849fec011c51a278259e9a54d8546d8173",
+    "seven_b_manifest_sha256": "9af659e8178ba0994452a048b92e414c93988b51698b8b247e05d04eee2cfff8",
+    "archive_bytes_total": 1581215261
+  },
+  "fresh_roots": {
+    "output": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d243_20261006/7b_token_capture_22req",
+    "nvme": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d243_20261006/7b_nvme_token_capture_22",
+    "host": "/dev/shm/tc-d243-7b-token-capture-22"
+  },
+  "acceptance": {
+    "requests_successful": 22,
+    "fixed_output_contract": "all",
+    "native_integer_token_ids": "all_successful_requests",
+    "independent_peft_reference": "required",
+    "exact_sequence_equality": "primary",
+    "physical_resource_sidecar": "required_and_bound",
+    "performance_ranking": "forbidden"
+  },
+  "preparation_evidence": {
+    "host_preflight_issues": [],
+    "host_mem_available_bytes": 121837080576,
+    "host_free_bytes": 172863201280,
+    "host_required_mem_bytes": 109521666048,
+    "host_required_free_bytes": 161061273600,
+    "remote_measured_peak_required_bytes": 97407250432,
+    "remote_cache_publication": "already_qualified_D78_D80",
+    "gpu_run": "not_started"
+  }
+}
