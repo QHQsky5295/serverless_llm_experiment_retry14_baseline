@@ -16376,11 +16376,9 @@ class ScenarioRunner:
                            'ieee_observational_capacity_witness_v2'
                         or admission['reservation'].get('schema_version') != 2
                         or admission['reservation'].get('owner_id') != receipt.get('owner_id')
-                        # The snapshot/reservation epoch is the pre-load
-                        # owner incarnation.  A successful cold load may
-                        # advance the backend epoch before its top-level
-                        # acquisition receipt is returned; validate that
-                        # post-observation receipt separately below.
+                        # Snapshot/reservation epoch is pre-load.  A cold
+                        # load may advance the native owner epoch before the
+                        # top-level acquisition receipt is returned.
                         or admission.get('worker_epoch') != admission['reservation'].get('epoch')
                         or not isinstance(admission.get('snapshot'), dict)
                         or admission.get('snapshot', {}).get('epoch') != admission.get('worker_epoch')
