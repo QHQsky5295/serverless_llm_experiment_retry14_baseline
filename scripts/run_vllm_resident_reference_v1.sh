@@ -7,6 +7,15 @@ set -euo pipefail
 # evidence.  It never edits or regenerates the shared workload.
 
 ROOT_DIR="${SLLM_BASELINES_ROOT:-/home/qhq/serverless_llm_baselines}"
+
+# This entry point is retained solely as an immutable historical prototype
+# marker.  Its old resource, timing, backend, and lifecycle assumptions are
+# not qualified for IEEE-TC evidence.  Refuse before touching inputs, remote
+# services, systemd, or GPUs.
+echo "[ERROR] run_vllm_resident_reference_v1.sh is quarantined; D222-D224 are diagnostic only." >&2
+echo "        Use the qualified common preflight/lease path when a Resident reference is reimplemented." >&2
+exit 78
+
 MODEL_PROFILE="${SLLM_MODEL_PROFILE:?SLLM_MODEL_PROFILE is required}"
 
 case "${MODEL_PROFILE}" in
