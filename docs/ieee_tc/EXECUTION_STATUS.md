@@ -5,8 +5,9 @@
 2026-10-06（语义复核）. A fresh read-only review of the IEEE PDF, the
 formula-to-code record, and the D227 trace found that \(E_i(t)\) is a proactive
 GPU-residency budget. The paper explicitly gives request-driven loading
-priority over proactive preparation. D227's 22 requests were remote/NVMe
-request misses and submitted no proactive residency candidate; its zero
+priority over proactive preparation. D227's 22 request-driven source
+resolutions (14 remote, 6 GPU, 2 HOST) submitted no proactive residency
+candidate; its zero
 admission decisions therefore show insufficient proactive coverage, not a
 proven defect in ordinary demand loading. The raw D227 contract, cleanup,
 pressure and non-ranking boundaries remain unchanged.
@@ -34,7 +35,7 @@ contracts, return code 0, and confirmed GPU-context cleanup. It is still not a
 performance or ranking result.
 
 The important raw observation is that the YAML gate was `true`, but the native
-remote/NVMe request route recorded zero GPU-admission decisions and zero
+request-driven route recorded zero proactive GPU-admission decisions and zero
 physical KV reservations. Every inspected request reports
 `physical_capacity_qualified=false`; the native pending journal explicitly
 declares that it reserves no physical KV blocks. The original D237 wording

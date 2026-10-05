@@ -1364,7 +1364,8 @@ class IEEEWorkerObservationExtension:
                                                capacity_only=capacity_only)
             decision_us = (time.perf_counter_ns() - started_ns) / 1000.0
             reservation = dict(
-                kind='ieee_observational_capacity_witness_v1',
+                kind='ieee_observational_capacity_witness_v2',
+                schema_version=2,
                 reservation_id=uuid.uuid4().hex,
                 owner_id=owner.owner_id,
                 epoch=owner.epoch,
@@ -1376,7 +1377,8 @@ class IEEEWorkerObservationExtension:
             # This is a request-priority observational witness, not the
             # proactive E(t) residency admission.  The backend remains the
             # owner of actual KV blocks; no synthetic reservation is claimed.
-            admission = dict(kind='ieee_native_request_capacity_witness_v1',
+            admission = dict(kind='ieee_native_request_capacity_witness_v2',
+                schema_version=2,
                 request_lease_id=kwargs['lease_id'],
                 decision=asdict(decision), decision_us=decision_us,
                 scheduler_owner_id=observation['scheduler_owner_id'],

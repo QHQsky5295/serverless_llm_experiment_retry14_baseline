@@ -4,6 +4,11 @@ Date: 2026-10-06 (Asia/Shanghai)
 Project: PrimeLoRA / FaaSLoRA, IEEE TC campaign  
 Status: diagnostic evidence; not a G1/G2 or baseline-ranking result
 
+The historical source-line citations below are evaluated as of the
+pre-observational-witness source snapshot `bee1a2e2`; current behavior is
+recorded separately in D238 and the current status record. Raw D227 evidence
+remains immutable.
+
 ### Historical interpretation superseded by D238
 
 The initial wording below treated the zero-decision observation as a proven
@@ -18,11 +23,11 @@ evidence and all A--F audit findings remain immutable.
 D227 retry2 was executed with the intended feature gate set to `true`, and the
 bounded run completed 22/22 native fixed-output requests with clean process and
 GPU cleanup.  It did **not** execute effective native physical GPU/KV
-admission.  The native request path registers a logical pending demand and
-protects the selected source, but does not call the physical-capacity
-admission transaction before the remote/NVMe preparation path.  The result's
-zero admission-decision count is therefore evidence of an integration gap, not
-evidence that the policy made no decision under pressure.
+admission.  The trace contains 22 request-driven source resolutions (mostly
+remote/NVMe, with native GPU/HOST hits) and no proactive HOST-to-GPU candidate.
+The result's zero proactive decision count is therefore evidence of missing
+proactive coverage, not evidence that request-priority loading made no decision
+under pressure.
 
 This distinction is material: changing counters, relabeling logical pending
 state as physical capacity, or accepting this run as an admission ablation

@@ -16358,7 +16358,10 @@ class ScenarioRunner:
             if use_native_capacity_witness:
                 admission = receipt.get('admission')
                 if (not isinstance(admission, dict)
-                        or admission.get('kind') != 'ieee_native_request_capacity_witness_v1'
+                        or admission.get('kind') not in (
+                            'ieee_native_request_capacity_witness_v1',
+                            'ieee_native_request_capacity_witness_v2',
+                        )
                         or admission.get('request_lease_id') != intent['lease_id']
                         or admission.get('physical_capacity_qualified') is not False
                         or admission.get('physical_kv_reservation') is not False
@@ -18486,6 +18489,202 @@ class ScenarioRunner:
                 outcome['native_registration_rejection'] = exc.receipt
             return outcome
         return dict(plan=plan, results=result)
+
+    async def run_ieee_proactive_admission_diagnostic(self) -> Dict[str, Any]:
+        """Exercise live HOST->GPU preparation candidates after a prefix.
+
+        This is an explicitly opt-in diagnostic, not a replay mode or a
+        performance qualification.  It reuses the live runner's measured
+        source graph, demand window, preparation profiles and native owner.
+        If the observed state contains no HOST candidate selected by the IEEE
+        planner, the diagnostic records that coverage gap and performs no
+        adapter movement or eviction.  The read-only attachment/setup step is
+        still recorded.  It never fabricates pressure, sleeps to force a decision,
+        or relabels request-driven demand loading as proactive admission.
+        """
+        import traceback
+        record: Dict[str, Any] = {
+            'kind': 'ieee_proactive_admission_diagnostic_v1',
+            'pass': False,
+            'formal_comparison_qualified': False,
+            'physical_capacity_qualified': False,
+            'physical_kv_reservation': False,
+            'proactive_path_only': True,
+            'state': 'starting',
+        }
+        self._ieee_proactive_diagnostic = record
+        try:
+            if (self._routing_policy != 'ieee_confirmed' or self._stack is None
+                    or self.instance_pool is None or self.instance_pool.count() != 1
+                    or self._preparation_profiles is None):
+                record.update(state='not_eligible', reason='requires_one_initialized_ieee_runtime_and_profiles')
+                return record
+            slot = self.instance_pool.get_slots()[0]
+            if slot.engine is None or slot.status not in ('ready', 'serving', 'running'):
+                record.update(state='not_eligible', reason='selected_replica_not_ready')
+                return record
+            record['file_pressure_attachment'] = copy.deepcopy(
+                await self._attach_ieee_file_pressure(slot.engine))
+            native_before = await slot.engine.ieee_gpu_reference(operation='routing_source_snapshot')
+            record['native_before'] = copy.deepcopy(native_before)
+            # The worker's native source snapshot is intentionally compact:
+            # it reports owner/source identity but not planner tiers.  Tier
+            # and native semantics come from the same frozen source_view that
+            # the IEEE planner uses below.
+            plan = await self._plan_ieee_preparation_for_slot(slot=slot, mode='residency')
+            source_rows = plan.get('source_view', {}).get('sources', {})
+            host_sources = [
+                dict(adapter_id=aid, selected_source=copy.deepcopy(row.get('selected_source')))
+                for aid, row in source_rows.items()
+                if isinstance(row, dict)
+                and isinstance(row.get('selected_source'), dict)
+                and row['selected_source'].get('tier') == 'host'
+                and row['selected_source'].get('native') is True
+            ]
+            record['host_source_adapter_ids'] = [row['adapter_id'] for row in host_sources]
+            if not host_sources:
+                record.update(state='no_host_source', reason='planner_source_view_has_no_native_host_candidate')
+                return record
+            selected = plan.get('selected', {})
+            def candidate_row(candidate):
+                try:
+                    row = asdict(candidate)
+                except TypeError:
+                    row = dict(candidate) if isinstance(candidate, dict) else {
+                        key: getattr(candidate, key) for key in ('artifact_id', 'target_tier', 'benefit_ms')
+                        if hasattr(candidate, key)
+                    }
+                for key in ('source_tier', 'target_tier'):
+                    value = row.get(key)
+                    if hasattr(value, 'value'):
+                        row[key] = value.value
+                return row
+            selected_gpu = [candidate_row(candidate) for candidate in selected.get('gpu', [])]
+            record.update(
+                state='planned',
+                plan_sha256=plan.get('plan_sha256'),
+                demand_observed_at=plan.get('demand_observed_at'),
+                demand_window_s=plan.get('window_seconds'),
+                selected_gpu=selected_gpu,
+                selected_host=[candidate_row(candidate) for candidate in selected.get('host', [])],
+                selected_nvme=[candidate_row(candidate) for candidate in selected.get('nvme', [])],
+            )
+            if not selected_gpu:
+                record.update(state='no_proactive_candidate',
+                              reason='planner_selected_no_gpu_target_from_live_demand_window')
+                return record
+            non_host_gpu = [row for row in selected_gpu if row.get('source_tier') != 'host']
+            if non_host_gpu:
+                record.update(state='mixed_gpu_sources',
+                              reason='frozen_plan_contains_non_host_gpu_targets',
+                              non_host_gpu=non_host_gpu)
+                return record
+            # Execute this exact frozen plan. Calling the convenience method
+            # here would sample owners and create a second plan, so its hash
+            # would no longer identify the plan that actually ran.
+            plan_records_before = {
+                row.get('plan_id') for row in getattr(self, '_ieee_gpu_preparation_plans', [])
+                if isinstance(row, dict) and row.get('plan_id')
+            }
+            outcome = dict(plan=plan, results=await self._run_ieee_file_preparation_plan(
+                plan=plan, target_engine=slot.engine, target_replica=slot.instance_id,
+                gpu_slot=slot, capacity_only=not self._coordination_enabled))
+            def movement_row(item):
+                if not isinstance(item, dict):
+                    return {'raw_type': type(item).__name__}
+                nested = item.get('result')
+                value = getattr(nested, 'value', nested)
+                row = {key: copy.deepcopy(item.get(key)) for key in ('adapter_id', 'target_tier')
+                       if key in item}
+                row['movement_state'] = getattr(nested, 'state', None)
+                row['movement_reason'] = getattr(nested, 'reason', '')
+                if isinstance(value, dict):
+                    row['value'] = copy.deepcopy(value)
+                elif value is not None:
+                    row['value_type'] = type(value).__name__
+                return row
+            record['execution'] = dict(
+                plan_sha256=plan.get('plan_sha256'),
+                result_rows=[movement_row(item) for item in outcome.get('results') or []],
+            )
+            receipts = []
+            def collect_receipts(items):
+                for item in items or []:
+                    if isinstance(item, (list, tuple)):
+                        collect_receipts(item)
+                        continue
+                    if not isinstance(item, dict):
+                        continue
+                    # Native-only execution returns the MovementOutcome value
+                    # directly (`item['receipt']`); mixed file/native
+                    # execution wraps it as `item['result'].value['receipt']`.
+                    direct = item.get('receipt')
+                    if isinstance(direct, dict):
+                        receipts.append(direct)
+                    nested = item.get('result')
+                    value = getattr(nested, 'value', nested)
+                    receipt = value.get('receipt') if isinstance(value, dict) else None
+                    if isinstance(receipt, dict):
+                        receipts.append(receipt)
+            collect_receipts(outcome.get('results'))
+            plan_records = getattr(self, '_ieee_gpu_preparation_plans', [])
+            matching_plan_records = [row for row in plan_records
+                if isinstance(row, dict)
+                and row.get('plan_id') not in plan_records_before
+                and row.get('objective_sha256') == plan.get('plan_sha256')
+                and row.get('target_replica') == slot.instance_id]
+            if not matching_plan_records:
+                # A pre-existing record with the same frozen objective is still
+                # useful only if no concurrent/new record was found; never
+                # attach an unrelated last record to this diagnostic.
+                matching_plan_records = [row for row in plan_records
+                    if isinstance(row, dict)
+                    and row.get('objective_sha256') == plan.get('plan_sha256')
+                    and row.get('target_replica') == slot.instance_id]
+            if matching_plan_records:
+                matching_plan = matching_plan_records[-1]
+                record['gpu_plan_record'] = copy.deepcopy(matching_plan)
+                # Deferral/rejection returns MovementOutcome without a value,
+                # but the worker receipt is retained in its attempt journal.
+                collect_receipts(matching_plan.get('attempts'))
+            unique_receipts = []
+            seen_receipts = set()
+            for receipt in receipts:
+                key = json.dumps(receipt, sort_keys=True, default=str,
+                                  separators=(',', ':'))
+                if key not in seen_receipts:
+                    seen_receipts.add(key)
+                    unique_receipts.append(receipt)
+            receipts = unique_receipts
+            record['typed_decision_receipts'] = receipts
+            record['proactive_decision_count'] = sum(
+                1 for receipt in receipts
+                if receipt.get('proactive_admission_evaluated') is True
+                and isinstance(receipt.get('admission'), dict)
+            )
+            record['admit_count'] = sum(
+                1 for receipt in receipts
+                if receipt.get('proactive_admission_evaluated') is True
+                and isinstance(receipt.get('admission'), dict)
+                and receipt['admission'].get('admit') is True
+            )
+            record['non_admit_decision_count'] = (
+                record['proactive_decision_count'] - record['admit_count'])
+            record['decision_coverage_pass'] = bool(record['proactive_decision_count'])
+            record['physical_capacity_qualified'] = False
+            record['physical_kv_reservation'] = False
+            # `pass` means only that a typed proactive decision was observed;
+            # it is deliberately not a physical-capacity or performance pass.
+            record['pass'] = record['decision_coverage_pass']
+            record['state'] = 'decision_observed' if record['pass'] else 'no_typed_decision'
+            return record
+        except asyncio.CancelledError:
+            record.update(state='cancelled')
+            raise
+        except Exception as exc:
+            record.update(state='failed', error_type=type(exc).__name__, error=str(exc),
+                          traceback=traceback.format_exc())
+            return record
 
     async def _run_ieee_file_preparation_plan(self, *, plan, target_engine,
             target_replica, activation_id=None, replacement_costs=None,
@@ -22802,6 +23001,7 @@ async def _finish_ieee_main_scenario(service, stack, claims, primary_error):
             '_ieee_activations','_ieee_initial_deployment','_ieee_residency_epochs',
             '_ieee_file_preparation_plans','_ieee_gpu_preparation_plans',
             '_ieee_native_host_preparations','_ieee_control_events',
+            '_ieee_proactive_diagnostic',
             '_ieee_source_observation_stats','_ieee_runtime_quarantine_events')})
     try:
         data['coordination_after_shutdown'] = service._current_coord_metrics()
@@ -23903,6 +24103,13 @@ async def _main_async_impl(
                     result, coord_m = runner.run_sync_faaslora_subprocess()
                 else:
                     result, coord_m = await runner.run()
+                if os.environ.get('FAASLORA_IEEE_PROACTIVE_DIAGNOSTIC', '').strip().lower() in {
+                        '1', 'true', 'yes', 'on'}:
+                    if (btype != 'faaslora_full' or only_scenario is None
+                            or str(sname) != str(only_scenario)):
+                        raise ValueError('proactive admission diagnostic requires --scenario selecting exactly one faaslora_full scenario')
+                    print('  [Diagnostic] exercising live IEEE HOST->GPU preparation candidates ...', flush=True)
+                    await runner.run_ieee_proactive_admission_diagnostic()
             except BaseException as exc:
                 main_error = exc
                 raise
@@ -23955,6 +24162,9 @@ async def _main_async_impl(
                     },
                     "remote_artifact_transfers": list(runner._remote_transfer_evidence),
                     "adapter_transfer_pressure": list(runner._adapter_transfer_pressure_evidence),
+                    "proactive_admission_diagnostic": copy.deepcopy(
+                        getattr(runner, '_ieee_proactive_diagnostic', None)
+                    ),
                     "local_artifact_transfers": (list(runner._stack.residency_manager.local_transfer_evidence)
                         if runner._stack is not None else []),
                     "initial_preload_accounting": {
