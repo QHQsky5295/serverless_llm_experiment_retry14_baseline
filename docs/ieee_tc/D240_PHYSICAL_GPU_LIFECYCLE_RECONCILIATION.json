@@ -1,0 +1,25 @@
+{
+  "audit_id": "D240",
+  "date": "2026-10-06",
+  "status": "measurement_correction_no_replay",
+  "protocol_semantic_change": false,
+  "finding": "legacy_primary_instance_billing_is_not_frozen_G1_physical_owner_union",
+  "evidence": {
+    "d210_legacy_gpu_seconds": 4317.010702,
+    "d210_physical_gpu_seconds": 15916.823904686957,
+    "d219_legacy_gpu_seconds": 4317.05,
+    "d219_physical_gpu_seconds": 15911.712502732873,
+    "d138_3b_legacy_gpu_seconds": 4331.333326,
+    "d138_3b_physical_gpu_seconds": 15861.330546540965,
+    "d210_d219_physical_delta_gpu_seconds": -5.111401954084
+  },
+  "formal_status": {
+    "d210": "exploratory_correctness_not_qualified",
+    "d219": "exploratory_correctness_not_qualified",
+    "d138": "diagnostic_not_qualification"
+  },
+  "required_gate": "propagate_physical_gpu_seconds_total_from_finalized_deployment_summary_and_reject_legacy_only_G1_records",
+  "raw_results_modified": false,
+  "paper_source_modified": false,
+  "gpu_replay_started": false
+}

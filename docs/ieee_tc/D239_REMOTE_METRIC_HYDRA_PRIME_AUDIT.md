@@ -24,7 +24,9 @@ The calculation precedence is:
 
 This document freezes the interpretation of those rules for the next PrimeLoRA
 qualification step. It makes no change to a run's execution key, denominator,
-threshold, or result label.
+threshold, or result label. A later reconciliation found that the first D239
+draft table used a legacy instance-billing field for GPU-s; the corrected table
+below uses the physical owner-union summaries required by G1.
 
 ## 2. Decision in one paragraph
 
@@ -228,10 +230,11 @@ complete.
 | mean runtime-slot wait (ms) | 615.8 | 485.9 | −21.1% |
 | mean control path (ms) | 325.9 | 84.7 | −74.0% |
 | completed / failed | 4,000 / 0 | 4,000 / 0 | unchanged |
-| lifecycle GPU-s | 4,317.01 | 4,317.05 | unchanged |
+| physical owner-union GPU-s (G1 quantity) | 15,916.8239 | 15,911.7125 | −0.032% |
+| legacy instance-billing GPU-s (not G1) | 4,317.01 | 4,317.05 | +0.001% |
 
 This is a partial control-path improvement, not proof that the full system is
-better. The unchanged lifecycle and higher P95 TTFT mean that the next
+better. The effectively unchanged physical lifecycle and higher P95 TTFT mean that the next
 first-principles target remains scale-out readiness/first-service tail, not
 another blind routing rewrite. The result supports a hypothesis; it does not
 prove G1/G2.
@@ -243,11 +246,11 @@ D138, but the runs changed configuration and implementation state and are not a
 registered paired experiment. They are useful for locating the current tail, not
 for claiming a causal percentage gain.
 
-| run | completed / failed | mean TTFT (ms) | P95 TTFT (ms) | mean E2E (ms) | P95 E2E (ms) | legacy 5-s SLO | lifecycle GPU-s |
+| run | completed / failed | mean TTFT (ms) | P95 TTFT (ms) | mean E2E (ms) | P95 E2E (ms) | legacy 5-s SLO | physical owner-union GPU-s |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| D112 Full9 | 4,000 / 0 | 271,850.7 | 507,618.9 | 277,952.6 | 515,324.8 | 2.925% | 4,819.68 |
-| D118 Full11 | 4,000 / 0 | 122,146.5 | 268,626.3 | 127,878.4 | 276,169.0 | 4.800% | 4,323.37 |
-| D138 confirmed Full1 | 4,000 / 0 | 12,588.6 | 45,729.9 | 17,517.6 | 52,303.0 | 39.550% | 4,331.33 |
+| D112 Full9 | 4,000 / 0 | 271,850.7 | 507,618.9 | 277,952.6 | 515,324.8 | 2.925% | not extracted in this audit |
+| D118 Full11 | 4,000 / 0 | 122,146.5 | 268,626.3 | 127,878.4 | 276,169.0 | 4.800% | not extracted in this audit |
+| D138 confirmed Full1 | 4,000 / 0 | 12,588.6 | 45,729.9 | 17,517.6 | 52,303.0 | 39.550% | 15,861.3305 |
 
 D138 is the latest complete 3B diagnostic in this audit. Its measured means
 include 8,540.8 ms dispatch/admission wait, 4,082.0 ms runtime-slot wait, and
@@ -258,6 +261,21 @@ the dominant observable terms. This is a falsifiable optimization target. It is
 not yet a qualification result because the final common warm reference, native
 correctness interpretation, and 95% joint SLO were not applied to these legacy
 records.
+
+### 7.3 Metric reconciliation that blocks ranking
+
+The result JSON carries at least two different GPU-time views. The
+`infra_gpu_seconds_total`/`instance_lifecycle_log` view is the legacy billing
+projection and, in D210/D219, contains only the primary runtime lifecycle even
+though three scale-out events and four physical allocation journals exist. The
+`physical_deployment/summary.json` view has four released allocation journals,
+per-device intervals, and the owner-union total. The latter is the only view
+that satisfies the frozen G1 definition of physical GPU holding. Until the
+runner/analyzer propagates this value into an explicit canonical field (for
+example, `physical_gpu_seconds_total`) and the figure generators reject a
+legacy-only record, no historical point is admissible for a G1 ranking. The
+legacy field may still be reported as a billing diagnostic, but it must not be
+called lifecycle GPU-s.
 
 ## 8. Consequence for the next PrimeLoRA action
 
@@ -274,4 +292,3 @@ the run is not reinterpreted as a win.
 No 3B optimization or external baseline comparison is authorized by this audit
 until the 7B gates are closed. No conclusion here authorizes H100, NVLink,
 100-Gbps/400-Gbps, or global-optimality claims.
-

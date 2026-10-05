@@ -20,15 +20,18 @@ G1 (verified physical GPU-s/request under common correctness and joint SLO) and
 G2 (scale-out/churn P95 user TTFT under a common GPU-time budget and joint SLO).
 CE and idle-ready pricing remain secondary sensitivity quantities. The audit
 also records that D210→D219 7B confirmed-snapshot Full reduced mean TTFT and
-control-path time but increased P95 TTFT and left lifecycle GPU-s unchanged;
-the next optimization target is therefore readiness/first-service tail, not
-another unvalidated routing rewrite. Existing 3B D138 is a diagnostic, not a
-qualification point: its remaining mean TTFT is dominated by observable
-dispatch/admission, runtime-slot, and LoRA-I/O terms.
+control-path time but increased P95 TTFT and changed the physical owner-union
+GPU lifecycle only from 15,916.8239 to 15,911.7125 GPU-s (−0.032%). The
+previous 4,317-GPU-s values were legacy primary-instance billing fields, not
+the frozen G1 resource quantity. The next optimization target is therefore
+readiness/first-service tail, not another unvalidated routing rewrite. Existing
+3B D138 is a diagnostic, not a qualification point: its remaining mean TTFT is
+dominated by observable dispatch/admission, runtime-slot, and LoRA-I/O terms.
 
 No metric threshold, denominator, execution key, historical result, or paper
 source was changed. PrimeLoRA 7B qualification remains the active gate; 3B and
-external baselines stay paused. Deterministic JSON/hash/whitespace checks pass;
+external baselines stay paused. The corrected physical-lifecycle reconciliation
+is documented in D240; deterministic JSON/hash/whitespace checks pass;
 the fresh same-family D239 reviewer did not return within the audit window and
 is recorded as `BLOCKED_REVIEWER_TIMEOUT`, not PASS.
 

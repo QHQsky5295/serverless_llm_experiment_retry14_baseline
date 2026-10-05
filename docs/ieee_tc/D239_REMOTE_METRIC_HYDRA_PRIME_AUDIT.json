@@ -15,7 +15,7 @@
   },
   "primary_document": {
     "path": "docs/ieee_tc/D239_REMOTE_METRIC_HYDRA_PRIME_AUDIT.md",
-    "sha256": "cad194d12dab3bcaee16c60c864a05d8cf9aba26d333ecba976dc2f913d131bb"
+    "sha256": "2df30deee6d80ed22fc2c70f13f312726058a6052ba04fb77c5621b56167d8f0"
   },
   "inputs": {
     "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
@@ -36,8 +36,13 @@
     "baselines": "paused"
   },
   "offline_evidence": {
-    "d210_d219_7b": "partial_control_path_gain_mean_latency_gain_p95_ttft_regression_lifecycle_unchanged",
+    "d210_d219_7b": "partial_control_path_gain_mean_latency_gain_p95_ttft_regression_physical_owner_union_nearly_unchanged_legacy_billing_not_g1",
     "d138_3b": "diagnostic_only_queue_admission_runtime_slot_and_lora_io_dominate_remaining_ttft"
+  },
+  "correction": {
+    "document": "docs/ieee_tc/D240_PHYSICAL_GPU_LIFECYCLE_RECONCILIATION.md",
+    "sha256": "2c5f946aef87ee6e8dae8d9433ac88d789de3fc073ec4a06329b50bc7e70e6f4",
+    "reason": "D239_first_draft_table_used_legacy_instance_billing_for_lifecycle_gpu_seconds"
   },
   "web_sources": [
     "https://www.usenix.org/system/files/conference/nsdi26/nsdi26spring_lou_prepub.pdf",
