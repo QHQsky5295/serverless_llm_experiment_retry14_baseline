@@ -1,5 +1,22 @@
 # IEEE TC execution status
 
+## CURRENT — D244 closes a profile-identity contract failure; D243 retry is held
+
+2026-10-06（D243 首次启动失败，已完成因果审计）. D243 在第一条模型请求完成前
+被冻结 service profile 校验拒绝：`ieee_token_id_capture` 是 D228 明确的纯观测
+开关，但旧的 `model_identity` 将它当作运行语义字段，导致 profile/configuration
+上下文不匹配。一次 replay header 已建立后，runner 安全停止；没有 request
+terminal、GPU allocation、token sequence、SLO 或性能数据。远端 7B 发布服务已
+停止，失败原始证据保留在唯一 D243 launch root，不进入任何分母。
+
+该问题不通过手工改 profile SHA 或放宽校验解决。D244 对第一性原则的修正是让
+`FrozenServiceProfiles.model_identity` 及 stdlib preflight identity 共同排除唯一的
+诊断字段 `ieee_token_id_capture`，与已存在的 placement-only 排除保持一致；模型、
+权重、采样、路由、准入、profile 文件、环境/资源/input context 和论文公式均不
+变。普通 backend/model 配置变化仍 fail-closed。服务路由 61 项和 token-capture
+3 项聚焦测试通过；下一次重试必须使用新结果身份，并重新执行全部本地主机/远端/
+GPU 门槛。详情见 `D244_OBSERVATION_FLAG_PROFILE_IDENTITY_FIX.md`。
+
 ## CURRENT — D243 7B native token-capture diagnostic prepared; GPU launch held for final gates
 
 2026-10-06（D228 后的数值正确性诊断，尚未启动 GPU）. 已登记新的 22-request

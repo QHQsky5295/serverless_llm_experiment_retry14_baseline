@@ -436,6 +436,7 @@ class FrozenMeasuredInitialization(unittest.TestCase):
             with self.subTest(field=field), self.assertRaisesRegex(ValueError, 'context mismatch'):
                 self.load(model_config=self.model | {field: value})
         self.load(model_config=self.model | {'visible_device_ids': [3], 'device_id': 3})
+        self.load(model_config=self.model | {'ieee_token_id_capture': True})
         for field in self.context:
             with self.subTest(field=field), self.assertRaisesRegex(ValueError, 'context mismatch'):
                 self.load(expected_context=self.context | {field: 'f'*64})

@@ -608,9 +608,11 @@ class FrozenServiceProfiles:
     """Measured initialization shared by replicas, not mutable online learning.
 
     The profile contract is exact model/configuration + environment identity.
-    Only placement IDs are excluded from model configuration: moving an otherwise
-    identical replica does not change its model profile. Resource/input hashes
-    are supplied by the frozen campaign contract, not inferred from run names.
+    Placement IDs and explicitly diagnostic-only capture switches are excluded
+    from model configuration: moving an otherwise identical replica or enabling
+    native token-ID observation does not change its measured service profile.
+    Resource/input hashes are supplied by the frozen campaign contract, not
+    inferred from run names.
     Reading this file validates its data contract; model and resource qualification
     still have to establish that its recorded source measurements are legitimate.
     """
@@ -627,7 +629,7 @@ class FrozenServiceProfiles:
         if not isinstance(model_config, Mapping):
             raise ValueError('service profile requires the actual runtime configuration')
         return {key: value for key, value in model_config.items()
-                if key not in ('visible_device_ids', 'device_id')}
+                if key not in ('visible_device_ids', 'device_id', 'ieee_token_id_capture')}
 
     def validate_runtime(self, model_config: Mapping) -> None:
         identity = json.dumps(self.model_identity(model_config), sort_keys=True, allow_nan=False)

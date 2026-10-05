@@ -3327,7 +3327,7 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
         # Keep this pre-start evidence check usable by the stdlib-only OS gate;
         # importing the experiment package would import optional serving stacks.
         return {key: value for key, value in resolve_facade_lora_capacity(config).items()
-                if key not in ('visible_device_ids', 'device_id')}
+                if key not in ('visible_device_ids', 'device_id', 'ieee_token_id_capture')}
 
     if (set(binding) != {'kind', 'audit', 'model', 'window_s'}
             or binding['kind'] != 'native_completed_length_binding_v1'):
