@@ -1,5 +1,31 @@
 # IEEE TC execution status
 
+## CURRENT — D230 retry10 bounded-launch audit complete; GPU qualification still held
+
+2026-10-05（本轮）. Before any new native-GPU process was allowed, I audited
+the retained retry9 receipt and the fresh D217 retry10 configuration. The old
+launch evidence is unambiguous: its replay receipt and service ingress both
+declared the full 4,000-request source, and it therefore cannot be used as the
+intended 100-request qualification. It remains retained as a launcher/protocol
+failure with no performance denominator.
+
+The new launcher
+`scripts/ieee_tc/run_d217_7b_confirmed_snapshot_cache_validation_retry10.sh`
+sets `FAASLORA_TC_DIAGNOSTIC_PREFIX_COUNT=100` before invoking the guarded
+external-replay wrapper, passes the retry10 YAML explicitly, and preserves the
+qualified NVML binding, allocator policy, W0 trace, fixed-output contract,
+confirmed-snapshot route gate, and fresh output/NVMe/HOST roots. A CPU-only
+static audit verified 100 requests, seed 42, the route gate, fixed generation
+contract, qualification/external-replay flags, prefix value, and fresh paths;
+`bash -n`, Python YAML validation, and `git diff --check` passed. No GPU worker,
+local experiment scope, or remote artifact service was started.
+
+This closes the retry9 launcher ambiguity without changing the algorithm or
+workload. The run remains unauthorized until the unchanged 109.5-GiB physical
+startup-memory gate passes. After that gate, retry10 may only be used as the
+pre-registered 100-request route/readiness qualification; it cannot by itself
+authorize a full replay, 3B run, baseline, or a ranking claim.
+
 ## CURRENT — D229 final remote metric and artifact-disk protocol frozen; 7B mainline still held
 
 2026-10-05（本轮）. Added `docs/ieee_tc/METRIC_PROTOCOL_FINAL_V2.md`, a single
