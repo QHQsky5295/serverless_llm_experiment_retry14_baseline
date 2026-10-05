@@ -17947,6 +17947,7 @@ class ScenarioRunner:
         owners[owner_id] = engine
         plan_id = uuid.uuid4().hex
         record = dict(plan_id=plan_id, objective_sha256=objective['plan_sha256'],
+            planning_sha256=objective.get('planning_sha256'),
             owner_id=owner_id, target_replica=slot.instance_id, trigger_reason=trigger_reason,
             activation_id=activation_id, targets=list(targets), capacity_only=capacity_only,
             state='registering', attempts=[], started_at=time.monotonic())
@@ -18632,7 +18633,7 @@ class ScenarioRunner:
             matching_plan_records = [row for row in plan_records
                 if isinstance(row, dict)
                 and row.get('plan_id') not in plan_records_before
-                and row.get('objective_sha256') == plan.get('plan_sha256')
+                and row.get('planning_sha256') == plan.get('plan_sha256')
                 and row.get('target_replica') == slot.instance_id]
             if not matching_plan_records:
                 # A pre-existing record with the same frozen objective is still
@@ -18640,7 +18641,7 @@ class ScenarioRunner:
                 # attach an unrelated last record to this diagnostic.
                 matching_plan_records = [row for row in plan_records
                     if isinstance(row, dict)
-                    and row.get('objective_sha256') == plan.get('plan_sha256')
+                    and row.get('planning_sha256') == plan.get('plan_sha256')
                     and row.get('target_replica') == slot.instance_id]
             if matching_plan_records:
                 matching_plan = matching_plan_records[-1]
