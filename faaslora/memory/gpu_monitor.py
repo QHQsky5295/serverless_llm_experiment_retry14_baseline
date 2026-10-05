@@ -1370,7 +1370,7 @@ class IEEEWorkerObservationExtension:
                 epoch=owner.epoch,
                 reserved_bytes=decision.physical_increment_bytes,
                 predicted_kv_bytes=decision.predicted_kv_bytes,
-                scope='preallocated_lora_pool_and_backend_kv_atomic_check',
+                scope='preallocated_lora_pool_and_backend_kv_observation_only_v1',
                 state='observation_only')
             # This is a request-priority observational witness, not the
             # proactive E(t) residency admission.  The backend remains the
