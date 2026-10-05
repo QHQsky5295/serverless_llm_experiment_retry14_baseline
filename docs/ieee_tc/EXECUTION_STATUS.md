@@ -1,5 +1,42 @@
 # IEEE TC execution status
 
+## CURRENT — D217 retry7 reached native vLLM initialization but did not qualify worker readiness; route candidate remains pending
+
+2026-10-05 12:56+08. A fresh D217 bounded qualification run was attempted with
+the confirmed-snapshot route gate enabled, the unchanged W0 first-100-request
+prefix, byte-verified shared trace/subset paths, the qualified NVML binding,
+the frozen allocator policy, and `FAASLORA_WORKER_START_TIMEOUT_S=600`. The
+remote 7B service authenticated successfully and delivered `finance_lora`
+from the immutable `prepublished_gzip_v1` cache: 14,718,801 archive bytes,
+`remote_pack_performed=false`, 470.49 ms end-to-end client transfer stage,
+and 20,938,675 verified extracted bytes. This is valid delivery-path evidence,
+not a request-performance sample.
+
+The run reached an owned native vLLM EngineCore on GPU0. The cold 12.55-GiB
+checkpoint load completed in 258.91 s (model load reported 300.36 s), followed
+by torch.compile (82.69 s), CUDA graph capture, KV-cache construction and
+kernel warmup. However, the dedicated worker never emitted its required
+ready-file before the 600-s startup gate; no request was admitted and
+`request_terminals.jsonl` is empty. The runner terminated with
+`RuntimeError: native worker lifetime unqualified; physical lease retained`;
+the launch receipt classifies this as `qualification_command_failure`, not an
+algorithmic or latency result. The receipt SHA256 is
+`5c858a9646b3398451a4a3a8e1e0db09a415ee5a714a9405cc9d7a89e47e231a`.
+
+The strict physical journal records acquire → worker_spawn →
+release_deferred(`native_worker_lifetime_unqualified`), so no GPU-s/request,
+route hit rate, SLO, G1/G2 value, or cross-system denominator is inferred.
+The watchdog observed the native context disappear and reported no OOM/high/max
+event; the owned local auxiliary scope and remote artifact service were then
+stopped by exact unit name. The run is retained under
+`results/ieee_tc/p2_backend_qualification/d217_20261005/7b_confirmed_snapshot_cache_validation_retry7/`
+and excluded from all rankings. This establishes that increasing the timeout
+from 180 s to 600 s was necessary but not sufficient: the remaining issue is
+the final worker-readiness/engine handoff after model initialization, not a
+proven route or workload effect. Before another heavy run, audit that
+readiness protocol and its prior successful D216 counterpart; do not simply
+increase the timeout again or advance to 3B/baselines.
+
 ## CURRENT — D217 retry2/retry3 launch-contract failures retained; confirmed-snapshot GPU validation still pending
 
 2026-10-05 12:15+08. Two fresh D217 retries were completed under distinct
