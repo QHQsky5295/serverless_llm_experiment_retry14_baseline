@@ -72,9 +72,9 @@ E2E_r=(e_r-a_r)+(d_r-e_r)+(f_r-d_r)+(l_r-f_r)+(c_r-l_r).
 
 ### 3.1 正确性和共同 SLO
 
-请求 (r) 的 `z_r=1` 必须同时满足：正常终态、正确 adapter 身份、目标输出
+请求 `$r$` 的 `z_r=1` 必须同时满足：正常终态、正确 adapter 身份、目标输出
 数量、原生 token 计数和完整时间线。固定生成合同仍为
-`fixed_length_greedy_v1`，(n_r^{target}=\min(n_r^{source\ expected},256))。
+`fixed_length_greedy_v1`，$n_r^{target}=\min(n_r^{source\ expected},256)$。
 
 \[
 TTFT_r=f_r-a_r,\qquad
@@ -103,8 +103,8 @@ I_r=z_r\mathbf1[TTFT_r\le\theta^T_r]
 A_{joint}=\frac{\sum_r I_r}{N_{plan}}.
 \]
 
-正式 G1/G2 要求 (N_{correct}=N_{plan}=4000) 且
-(A_{joint}\ge0.95)（至少 3800 个联合达标请求）。边际 TTFT、条件 TPOT、
+正式 G1/G2 要求 $N_{correct}=N_{plan}=4000$ 且
+$A_{joint}\ge0.95$（至少 3800 个联合达标请求）。边际 TTFT、条件 TPOT、
 失败和缺失字段仍逐项报告；不能用边际平均替代联合值。
 
 ### 3.2 G1：共同 SLO 下的物理资源
@@ -114,15 +114,15 @@ U=\sum_d\int a_d(t)\,dt,\qquad
 R=\frac{U}{N_{correct}}.
 \]
 
-(a_d(t)) 是物理 GPU 的实际持有指示；同卡多进程取时间并集，TP 多卡逐卡计，
+$a_d(t)$ 是物理 GPU 的实际持有指示；同卡多进程取时间并集，TP 多卡逐卡计，
 从部署准备到真实 release 全部计入。G1 在所有预登记 W0/W1/W2 和重复块满足
-正确性与联合 SLO 的配置中，最小化 (R)。
+正确性与联合 SLO 的配置中，最小化 $R$。
 
 ### 3.3 G2：共同预算下的尾延迟
 
 普通 vLLM Resident 参考按同一真实远端协议、资源包络和准备窗口完成三轮完整
-运行，按模型/场景定义 (U_{ref})，并冻结 (B=0.75U_{ref})。在
-(N_{correct}=N_{plan})、(U\le B)、(A_{joint}\ge0.95) 的配置集合中，
+运行，按模型/场景定义 $U_{ref}$，并冻结 $B=0.75U_{ref}$。在
+$N_{correct}=N_{plan}$、$U\le B$、$A_{joint}\ge0.95$ 的配置集合中，
 比较 W1/W2 的绝对 P95 TTFT，并同时报告联合 SLO。参考归一化只用于跨场景选择，
 不替代绝对 P95。
 

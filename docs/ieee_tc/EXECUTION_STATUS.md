@@ -5,7 +5,7 @@
 2026-10-05 11:55+08. A new protocol document
 `docs/ieee_tc/METRIC_PROTOCOL_REMOTE_SCOPE_FROZEN_V2.md` was added without
 modifying the frozen V1 or reclassifying any historical run. Its SHA256 is
-`64efec429ea9507739d29b5e21bb51f95473a4ebe85b7bd11544b790b6834130`.
+`485a6b7cf9fd34db5fdc87959ebbe9f757054cd7aa26a6a3efea210d91615a29`.
 It freezes the distinction required for the real-remote experiment: request-
 caused remote open/read/send/receive/write/extract, shared bandwidth, miss
 count/bytes/concurrency and legitimate residency remain in the measured service
