@@ -1,5 +1,20 @@
 # IEEE TC execution status
 
+## CURRENT — post-audit safe hold; Prime 7B acceptance remains the main line
+
+2026-10-05 18:40+08. The D222–D224 Resident audit and quarantine are complete
+and backed up. No local GPU compute process, owned experiment scope, or remote
+artifact service is active. The current host has about 105 GiB `MemAvailable`
+against the unchanged 109.5 GiB physical-startup gate and about 163 GiB free
+disk; no memory-cache purge, unrelated-process stop, threshold relaxation, or
+GPU retry is authorized. This is a safety hold, not a completed experiment.
+
+The Prime 7B line remains before 3B and external baselines. D219 is a complete
+single-seed route/full diagnostic, but numerical adapter correctness, common
+warm SLO, Resident budget, and G1/G2 remain open. The next admissible work is
+bounded CPU/offline correctness and protocol preparation, followed by one
+freshly gated 7B validation only when the unchanged resource gate passes.
+
 ## CURRENT — D222–D224 Resident-vLLM prototype RETIRED; no qualified Resident result
 
 2026-10-05 18:25+08. A post-run protocol audit found that the D222 prototype
