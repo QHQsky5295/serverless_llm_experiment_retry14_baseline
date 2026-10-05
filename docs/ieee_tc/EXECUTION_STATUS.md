@@ -15,6 +15,27 @@ warm SLO, Resident budget, and G1/G2 remain open. The next admissible work is
 bounded CPU/offline correctness and protocol preparation, followed by one
 freshly gated 7B validation only when the unchanged resource gate passes.
 
+## CURRENT — D225 output-difference audit completed; numerical gate remains open
+
+2026-10-05 19:10+08. A read-only audit paired the immutable D210 and D219 7B
+request records by all 4,000 request IDs. Adapter IDs, canonical prompt hashes,
+input lengths, requested/actual output lengths, native token source and fixed
+generation contract match for 4,000/4,000. Completion token-ID SHA differs for
+136/4,000 (3.40%). This is an observation about two separate runtime attempts,
+not evidence of an incorrect adapter: all 136 rows use a different activation
+instance, while cache-tier and ready-state changes also occur among rows whose
+hash is unchanged. The logs retain only token-ID digests, not the sequences or an
+independent semantic reference, so `N_correct` remains unknown.
+
+The audit and a falsifiable H0/H1 next gate are sealed in
+`docs/ieee_tc/D225_OUTPUT_DIFF_AND_NUMERICAL_GATE.md` and the status table in
+`paper_results/ieee_tc/p2_backend/20261005_d225_output_diff/`. The next GPU
+action, only after the unchanged memory gate passes, is a bounded 22-request
+diagnostic that reuses D166/D167/D207/D208 inputs and adds opt-in token/reference
+capture; it is not a performance run. No full replay, 3B run or external baseline
+is authorized by this audit. No local GPU process or remote artifact service was
+started for D225.
+
 ## CURRENT — D222–D224 Resident-vLLM prototype RETIRED; no qualified Resident result
 
 2026-10-05 18:25+08. A post-run protocol audit found that the D222 prototype
