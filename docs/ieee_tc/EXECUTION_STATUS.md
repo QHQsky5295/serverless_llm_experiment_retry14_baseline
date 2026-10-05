@@ -1,13 +1,12 @@
 # IEEE TC execution status
 
-## CURRENT — D230 retry10 bounded-launch audit complete; GPU qualification still held
+## CURRENT — D231 D217 retry10 bounded route qualification completed; formal gate still open
 
-2026-10-05（本轮）. Before any new native-GPU process was allowed, I audited
-the retained retry9 receipt and the fresh D217 retry10 configuration. The old
-launch evidence is unambiguous: its replay receipt and service ingress both
-declared the full 4,000-request source, and it therefore cannot be used as the
-intended 100-request qualification. It remains retained as a launcher/protocol
-failure with no performance denominator.
+2026-10-05（本轮核查）. The retained retry9 receipt remains unambiguous: its
+replay receipt and service ingress both declared the full 4,000-request source,
+so it is a launcher/protocol failure with no performance denominator. The
+retry10 directory also contained a later bounded run that had not yet been
+recorded in this status file; it is now audited below rather than rerun.
 
 The new launcher
 `scripts/ieee_tc/run_d217_7b_confirmed_snapshot_cache_validation_retry10.sh`
@@ -17,14 +16,19 @@ qualified NVML binding, allocator policy, W0 trace, fixed-output contract,
 confirmed-snapshot route gate, and fresh output/NVMe/HOST roots. A CPU-only
 static audit verified 100 requests, seed 42, the route gate, fixed generation
 contract, qualification/external-replay flags, prefix value, and fresh paths;
-`bash -n`, Python YAML validation, and `git diff --check` passed. No GPU worker,
-local experiment scope, or remote artifact service was started.
+`bash -n`, Python YAML validation, and `git diff --check` passed. No additional
+GPU worker was started by this audit.
 
-This closes the retry9 launcher ambiguity without changing the algorithm or
-workload. The run remains unauthorized until the unchanged 109.5-GiB physical
-startup-memory gate passes. After that gate, retry10 may only be used as the
-pre-registered 100-request route/readiness qualification; it cannot by itself
-authorize a full replay, 3B run, baseline, or a ranking claim.
+The bounded retry10 run itself completed 100/100 requests with zero failures,
+100/100 fixed-output contract matches, 100/100 native token-timing records and
+100/100 confirmed-dispatch snapshots. Its detailed audit is
+`docs/ieee_tc/D231_D217_RETRY10_BOUNDARY_AUDIT.md`. It is still diagnostic-only:
+the launch receipt records `production_launch_authorized=false`, every request
+has `physical_capacity_qualified=false`, no GPU-admission decision was made,
+and no independent numerical reference establishes `N_correct`. It therefore
+cannot enter the common-warm SLO, Resident budget, G1/G2 or any ranking
+denominator. The 109.5-GiB gate remains unchanged for the next authorized
+diagnostic.
 
 ## CURRENT — D229 final remote metric and artifact-disk protocol frozen; 7B mainline still held
 
