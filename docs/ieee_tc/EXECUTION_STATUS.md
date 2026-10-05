@@ -1,5 +1,40 @@
 # IEEE TC execution status
 
+## CURRENT — D217 retry2/retry3 launch-contract failures retained; confirmed-snapshot GPU validation still pending
+
+2026-10-05 12:15+08. Two fresh D217 retries were completed under distinct
+campaign directories and are retained as protocol evidence only. Retry2 passed
+the unchanged physical-memory preflight but stopped before model startup because
+the launcher did not provide the required explicit NVML binding and binding SHA;
+its receipt SHA256 is
+`517ae75931f8917816d367bafc633dddfbca5d586f6d263c42d0b212ae864834`.
+Retry3 supplied the qualified NVML binding and passed the same preflight, but the
+runner stopped during initial deployment before a native worker/GPU context was
+created. The frozen `uncached_background_v1` HOST allocator candidate conflicted
+with the runner's inherited `expandable_segments:False` aliases; its receipt
+SHA256 is
+`cec1e5665f910e467891dba73404cef9532cdf1b6682d2acabb04128d89baa1d`.
+
+Neither retry emitted request terminals, lifecycle allocations, route evidence,
+or performance measurements. Both are therefore excluded from candidate
+selection, G1/G2, figures, and all cross-system denominators. The service cgroup
+reported no OOM/high/max event, all owned scopes were stopped by exact unit name,
+the GPU terminal census confirmed no owned native context, and the remote
+published-cache service was stopped after local cleanup. The authenticated
+remote artifact path and immutable `prepublished_gzip_v1` cache were unchanged.
+
+The allocator test selection passes 16/16. It establishes the next launch
+contract without changing the algorithm: export the model's frozen
+`FAASLORA_IEEE_NATIVE_HOST_ALLOCATOR_POLICY=uncached_background_v1` before the
+fresh runner process imports `run_all_experiments.py`, so the import-time legacy
+aliases are not introduced; the child then derives the verified
+`pinned_max_cached_size_mb:0,pinned_use_background_threads:True` setting. A
+fresh retry is authorized only with this environment, the already-qualified
+NVML binding, unchanged D217 config semantics, new output/NVMe/HOST roots, and
+the unchanged memory/disk gates. No 4,000-request replay, 3B run, or external
+baseline is authorized until the 100-request route candidate produces native
+GPU evidence and passes its pre-registered mechanism and control-path checks.
+
 ## CURRENT — Remote-scope metric protocol V2 frozen; artifact-node disk gate separated from inference host
 
 2026-10-05 11:55+08. A new protocol document
