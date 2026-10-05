@@ -1,6 +1,8 @@
 # D227: explicit admission-gate diagnostic configuration
 
-Status: configuration and CPU audit prepared; no GPU or remote service run.
+Status: the original configuration/CPU-only pre-run note is retained below for
+provenance; the bounded execution and post-run interpretation are appended in
+the D237 audit.  This file is not a formal performance result.
 Date: 2026-10-05 (Asia/Shanghai)
 
 ## Purpose
@@ -73,3 +75,46 @@ startup gate.
 
 No baseline, 3B, Resident budget, SLO threshold, figure, or ranking may be
 derived from this configuration alone.
+
+## D227 retry2 execution record (2026-10-06)
+
+The first launch attempt is retained as a protocol/launcher failure: the
+guarded environment did not contain `FAASLORA_REMOTE_ARTIFACT_DELIVERY_MODE`,
+so the input setup rejected the run before model construction.  It produced no
+GPU service and is not a performance observation.  The retry used the exact
+same config and trace, with the approved prepublished read-only gzip delivery
+cache enabled on the remote artifact node.  Its launch receipt passed and the
+service, replay, watchdog, and cleanup return codes were all zero.
+
+| Item | Evidence |
+|---|---|
+| Plan SHA | `0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7` |
+| D227 config SHA | `76c9aa04f96d100211395e4267158ffc83e1ded5787f90caa470779103273c73` |
+| Trace | W0 prefix 22 of the immutable 4,000-request trace; source SHA `efb903254fdcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c`; view SHA `452bbb124b7ad73e1f337adf58e20fabc797ab74d06cdc6499e534ee3b0e39d0` |
+| Result SHA | `3f3f70f678fc196d02f7345aded579e0528d9806057b5f8ccc40b349a98ea656` |
+| Launch SHA | `d8e2ae1b3c34909e043fa0981e214b8de395a6667a69feb07363de89c1d388d8` |
+| Correctness/contract | 22/22 completed; native fixed-length output contract matched for all terminals; no request error |
+| Scope | bounded diagnostic only; `formal_comparison_qualified=false` |
+
+The run also shows why the explicit YAML gate cannot yet be interpreted as
+effective native GPU admission.  The scenario metadata has
+`effective_capacity_admission_enabled=true`, but the native route recorded
+zero GPU-admission decisions, zero admits/defers/rejects, and zero physical KV
+reservations.  Every request's source-admission record has
+`physical_capacity_qualified=false`; the native pending receipt explicitly
+declares `physical_kv_reservation=false`.  Thus the run is useful causal
+evidence of a missing native integration point, not evidence that the gate
+worked or that the admission policy is ineffective.
+
+The user-facing latency is correspondingly dominated by startup and queue
+wait (mean TTFT 101,272.7 ms; mean dispatch/admission wait 100,514.4 ms),
+while mean service TTFT is 758.2 ms.  These values must not enter a baseline
+ranking.  The physical deployment journal reports 348.72 owner-union GPU-s;
+the separate 602.51 GPU-s infrastructure billing field includes a 300-s idle
+tail and is not the lifecycle metric.  All allocation journals were released,
+and the launch receipt confirms native GPU-context release.
+
+The detailed root-cause analysis, source-line evidence, and next action are in
+`D237_D227_RETRY2_ADMISSION_AUDIT.md`.  No full replay is authorized until a
+first-principles native physical-capacity transaction is integrated and passes
+a new bounded pressure diagnostic.

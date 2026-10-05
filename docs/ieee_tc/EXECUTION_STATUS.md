@@ -1,5 +1,38 @@
 # IEEE TC execution status
 
+## CURRENT — D237 D227 retry2 exposes an unwired native physical-admission gate
+
+2026-10-06（受控诊断）. The original D227 launcher first stopped before model
+construction because the guarded environment omitted the published-remote
+delivery mode variable; that attempt is retained as a protocol/launcher
+failure. After restoring the exact approved delivery environment, retry2
+completed a bounded 22-request prefix with 22/22 native fixed-output terminal
+contracts, return code 0, and confirmed GPU-context cleanup. It is still not a
+performance or ranking result.
+
+The important result is causal: the YAML gate was `true`, but the native
+remote/NVMe request route recorded zero GPU-admission decisions and zero
+physical KV reservations. Every inspected request reports
+`physical_capacity_qualified=false`; the native pending journal explicitly
+declares that it reserves no physical KV blocks. Thus the configured gate is
+not wired into the native request path. This is a code integration issue, not
+evidence that the admission policy rejected or admitted nothing under load.
+The full replay remains held until a physical owner/epoch reservation
+transaction, release semantics, and bounded pressure tests are implemented.
+
+The retry's user TTFT is dominated by 134.4-s engine initialization and queue
+wait (mean TTFT 101.27 s; mean service TTFT 0.758 s), so no latency, SLO,
+CE, or lifecycle ranking is inferred. The physical owner-union deployment
+journal reports 348.72 GPU-s; the separate 602.51 GPU-s billing field includes
+a 300-s idle tail and is not the lifecycle metric. All leases were released.
+The current Plan startup equation is `80+4+16+2=102 GiB`; older status prose
+said 109.5 GiB as a stale byte-equivalent description. D227 used the current
+Plan SHA and 102-GiB equation; future manifests must carry the reconciled
+canonical value explicitly.
+
+Full evidence and source-line analysis are sealed in
+`docs/ieee_tc/D237_D227_RETRY2_ADMISSION_AUDIT.md` and its JSON sidecar.
+
 ## CURRENT — D236 independent PEFT reference passes; full Prime qualification remains open
 
 2026-10-05（受控数值参考）. A single guarded 7B `backend-peft-reference`

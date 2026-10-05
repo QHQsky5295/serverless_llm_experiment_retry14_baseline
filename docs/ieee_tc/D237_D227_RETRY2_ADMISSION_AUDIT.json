@@ -1,0 +1,84 @@
+{
+  "audit_skill": "experiment-audit",
+  "audit_id": "D237_D227_RETRY2_ADMISSION",
+  "date": "2026-10-06",
+  "auditor": "gpt-5.6-sol-ultra-fresh-reviewer-plus-executor-evidence",
+  "reviewer_model": "gpt-5.6-sol",
+  "reviewer_family": "openai",
+  "reviewer_reasoning": "ultra",
+  "review_independence": "same-family",
+  "acceptance_status": "provisional",
+  "overall_verdict": "warn",
+  "integrity_status": "warn",
+  "formal_comparison_qualified": false,
+  "evaluation_type": "self_supervised_proxy",
+  "audited_input_hashes": {
+    "plan": "sha256:0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+    "config": "sha256:76c9aa04f96d100211395e4267158ffc83e1ded5787f90caa470779103273c73",
+    "trace": "sha256:efb903254fdcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "trace_view": "sha256:452bbb124b7ad73e1f337adf58e20fabc797ab74d06cdc6499e534ee3b0e39d0",
+    "result": "sha256:3f3f70f678fc196d02f7345aded579e0528d9806057b5f8ccc40b349a98ea656",
+    "launch": "sha256:d8e2ae1b3c34909e043fa0981e214b8de395a6667a69feb07363de89c1d388d8"
+  },
+  "provenance_manifest": "docs/ieee_tc/D237_RESULT_PROVENANCE.json",
+  "scope": {
+    "model": "llama2_7b",
+    "requests": 22,
+    "source_requests": 4000,
+    "seed": 42,
+    "trace_profile": "W0",
+    "scenario": "tc_ieee_admission_gate_22"
+  },
+  "checks": {
+    "gt_provenance": {
+      "status": "fail",
+      "details": "Replay/ingress/terminal/result identity chains agree for 22/22, but semantic correctness is not inferred: eligible_correctness=false, correctness_qualification=not_inferred_from_token_contract, n_correct=null."
+    },
+    "score_normalization": {
+      "status": "pass",
+      "details": "Raw timing and physical evidence are present; CE is supplementary and not used for ranking."
+    },
+    "result_existence": {
+      "status": "warn",
+      "details": "All seven launch evidence hashes and terminal/summary hashes match, but the sibling raw result SHA is not recorded in launch evidence; add an explicit result-path/SHA provenance map before reuse."
+    },
+    "dead_code_or_unwired_gate": {
+      "status": "fail",
+      "details": "The configured native admission gate is not wired into the remote/NVMe request route: zero decisions, physical_kv_reservation=false, physical_capacity_qualified=false."
+    },
+    "scope": {
+      "status": "warn",
+      "details": "The diagnostic label and formal_comparison_qualified=false boundary are obeyed, but a 22-request prefix cannot support G1/G2, tail, SLO, lifecycle, or baseline claims."
+    },
+    "eval_type": "self_supervised_proxy"
+  },
+  "mechanism_evidence": {
+    "feature_gate_enabled": true,
+    "dispatch_admission_mode": "open_loop_trace_replay",
+    "control_pressure_observed": {
+      "queue_depths": [22, 18, 17],
+      "active_or_saturated_replicas": [0, 4, 4]
+    },
+    "gpu_admission_decisions": 0,
+    "gpu_admission_admits": 0,
+    "gpu_admission_defers": 0,
+    "gpu_admission_rejects": 0,
+    "physical_capacity_qualified_all_requests": false,
+    "physical_kv_reservation_observed": false,
+    "completed": 22,
+    "failed": 0
+  },
+  "claim_impact": [
+    {"claim": "D227 semantic correctness", "impact": "unknown_not_inferred"},
+    {"claim": "D227 effective admission execution", "impact": "unsupported_until_native_integration"},
+    {"claim": "D227 cleanup and contract integrity", "impact": "supported_bounded"},
+    {"claim": "G1/G2 performance or ranking", "impact": "not_applicable"}
+  ],
+  "action_items": [
+    "Integrate a physical native admission transaction at the owner linearization point.",
+    "Add reservation lifecycle and stale/cancellation/double-release tests.",
+    "Run a bounded pressure diagnostic with nonzero physical decision evidence before full replay.",
+    "Bind the sibling raw result path/SHA into the next sealed launch manifest before formal reuse."
+  ],
+  "generated_at": "2026-10-06T00:00:00+08:00"
+}
