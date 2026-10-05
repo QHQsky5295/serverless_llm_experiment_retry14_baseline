@@ -1,5 +1,26 @@
 # IEEE TC execution status
 
+## NEXT GATE — D247 independent 7B PEFT sequence reference prepared; no GPU run yet
+
+2026-10-06（D246 后的独立语义门槛）. D246 已经证明固定输出的原生 token-ID
+序列可以完整穿过真实 worker、JSON/RPC、controller 和 terminal sidecar，但其
+`n_correct` 仍为 null，不能直接作为正确性或正式资格证据。D247 注册一个只读的
+22-request 原始 checkpoint + PEFT 对照：复用 D246 的结果、W0 冻结 trace、同一
+canonical renderer、现有 7B checkpoint 和 500-adapter 池；不生成新权重、工件、负载
+或服务结果，也不进入性能分母。
+
+D247 在单张可见 GPU 上以离线 HuggingFace/PEFT、FP16、eager attention、同一
+`fixed_length_greedy_v1` 目标长度和关闭 EOS 的语义逐请求生成，并在生成前校验
+prompt hash、prompt token-ID hash、target map、adapter safetensors keys/dtype/value。
+验收要求 22/22 完成且 native token-ID 序列逐元素完全一致；任何不一致都保留首个
+分歧位置并停止，不使用文本重分词、容差或成功子集筛选。D236 的首位置参考仅作
+辅助证据，不能替代该序列级门槛。
+
+本条目前仅登记协议、脚本和静态检查，尚未启动 GPU。启动前仍需重新执行内存、磁盘、
+GPU 空闲、进程清理和结果路径唯一性检查；若 D247 通过，下一步才是按计划恢复受保护的
+7B Full/资格路径；3B、外部 baseline、G1/G2 和比较图仍暂停。详细协议见
+`docs/ieee_tc/D247_PEFT_SEQUENCE_REFERENCE.md`。
+
 ## CURRENT — D246 passes real-worker token transport; independent semantic gate remains
 
 2026-10-06（D243 retry2，7B 22 请求固定输出诊断）. 在 D245 修复后，新的唯一

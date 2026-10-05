@@ -82,3 +82,14 @@ consumers must still require `completed == total` and the physical-sidecar
 rankings.  It does not substitute for the next guarded 22-request GPU
 diagnostic, which must again run the full host, service, remote-health,
 cleanup, and physical-sidecar gates.
+
+## Integrity-audit boundary
+
+The fresh read-only audit verdict for retry1 is `WARN`: provenance and cleanup
+are coherent, while run correctness is `FAIL`.  The same-family fresh reviewer
+did not return within the audit window and is recorded as
+`BLOCKED_REVIEWER_TIMEOUT`, never as a pass.  The allowed paper statement is
+therefore limited to a completed-and-cleaned diagnostic whose requests failed
+at the token-capture evidence boundary, followed by a narrowly scoped offline
+fix.  No semantic-correctness, latency, cost, SLO, or Prime-versus-baseline
+claim is supported until retry2 and the independent PEFT reference gate pass.

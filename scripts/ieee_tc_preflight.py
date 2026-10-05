@@ -2747,6 +2747,200 @@ def backend_peft_reference(native_observation: Path, trace: Path):
     return result
 
 
+def backend_peft_sequence_reference(native_result: Path, trace: Path,
+                                    config: Path, adapter_root: Path):
+    """Compare a bounded captured native sequence against offline HF/PEFT.
+
+    This is a correctness-only witness for an existing native result.  It
+    reuses the frozen trace, checkpoint, tokenizer, and adapter pool; it does
+    not create a workload or alter the serving path.  Exact sequence equality
+    is required, and mismatches retain their first divergent position.
+    """
+    import copy
+    import contextlib
+    import gc
+    import importlib.metadata
+    import traceback
+
+    result = dict(
+        kind='existing_peft_sequence_reference_v1',
+        **{'pass': False},
+        measurement_complete=False,
+        semantic_full_pool_qualification=False,
+        production_launch_authorized=False,
+        stage='inputs',
+        source_native_path=str(native_result),
+        source_native_sha256=digest(native_result),
+        trace_path=str(trace),
+        trace_sha256=digest(trace),
+        config_path=str(config),
+        config_sha256=digest(config),
+        adapter_root=str(adapter_root),
+        requests=[],
+        limitations=[
+            'Bounded captured 7B native sequence witness; not a 4,000-request denominator.',
+            'HF/PEFT is an independent numerical reference, not the production backend.',
+        ],
+    )
+    model = base = None
+    try:
+        if os.environ.get('HF_HUB_OFFLINE') != '1' or os.environ.get('TRANSFORMERS_OFFLINE') != '1':
+            raise ValueError('independent sequence reference requires offline-only assets')
+        source = json.loads(native_result.read_text())
+        if not isinstance(source.get('detailed_results'), dict) or not source['detailed_results']:
+            raise ValueError('native result lacks detailed request records')
+        scenario = next(iter(source['detailed_results'].values()))
+        requests = list(scenario.get('requests') or [])
+        if not requests or scenario.get('completed') != len(requests) or any(
+                r.get('success') is not True or r.get('output_contract_match') is not True
+                for r in requests):
+            raise ValueError('native source is not a completed fixed-output result')
+        trace_meta = (((source.get('metadata') or {}).get('sampling_stats') or {})
+                      .get('shared_trace_metadata') or {})
+        source_trace_sha = trace_meta.get('replay_plan', {}).get('source_sha256')
+        if source_trace_sha and source_trace_sha != digest(trace):
+            raise ValueError('sequence reference trace SHA differs from native source')
+        import yaml
+        cfg = yaml.safe_load(config.read_text())['model']
+        backbone = Path(cfg['name']).resolve(strict=True)
+        result['backbone'] = snapshot_reference_backbone(backbone)
+        from transformers import AutoModelForCausalLM, AutoTokenizer
+        from peft import PeftModel, get_peft_model_state_dict
+        from safetensors.torch import load_file
+        import torch
+        if os.environ.get('CUDA_VISIBLE_DEVICES') != '0' or torch.cuda.device_count() != 1:
+            raise ValueError('sequence reference requires exactly qualified visible GPU0')
+        result['packages'] = {name: importlib.metadata.version(name)
+                              for name in ('torch', 'transformers', 'peft', 'safetensors')}
+        from scripts.run_all_experiments import InferenceEngine
+        from faaslora.datasets.workload_generator import FrozenReplayPlan
+        count = len(requests)
+        plan = FrozenReplayPlan.load(trace, count=count)
+        by_id = {entry.request_id: entry for entry in plan.entries}
+        if set(by_id) != {str(r['request_id']) for r in requests}:
+            raise ValueError('native request IDs do not match the frozen trace prefix')
+        tokenizer = AutoTokenizer.from_pretrained(
+            backbone, local_files_only=True, trust_remote_code=False)
+        renderer_cfg = dict(cfg)
+        renderer_cfg.update(
+            backend='vllm', generation_contract='fixed_length_greedy_v1',
+            canonical_prompt_renderer='role_lines_v1', max_model_len=1024,
+            max_input_len=759)
+        renderer = InferenceEngine(renderer_cfg, {})
+        renderer._prompt_guard_tokenizer = tokenizer
+        prepared_rows = []
+        for native in requests:
+            entry = by_id[str(native['request_id'])]
+            row = json.loads(entry.source_json)
+            target = min(int(row['expected_output_tokens']), 256)
+            prepared = renderer.prepare_request(
+                '', target, int(row['expected_input_tokens']),
+                chat_messages=row['body']['messages'])
+            prompt_ids = tokenizer.encode(prepared.prompt, add_special_tokens=True)
+            prompt_ids_sha = hashlib.sha256(
+                json.dumps(prompt_ids, separators=(',', ':')).encode()).hexdigest()
+            native_timing = native.get('native_token_timing') or {}
+            if (hashlib.sha256(prepared.prompt.encode()).hexdigest()
+                    != native.get('canonical_prompt_sha256')
+                    or prompt_ids_sha != native_timing.get('native_prompt_token_ids_sha256')
+                    or target != int(native.get('requested_completion_tokens') or 0)):
+                raise ValueError(f'prompt/target identity mismatch for {native["request_id"]}')
+            prepared_rows.append((native, row, prompt_ids, target))
+        result['input'] = dict(count=count, request_ids=[r[0]['request_id'] for r in prepared_rows],
+                               trace_sha256=digest(trace), prompt_identity='all_match')
+        adapter_ids = sorted({str(native['adapter_id']) for native, _, _, _ in prepared_rows})
+        adapter_paths = {aid: (adapter_root / aid).resolve(strict=True) for aid in adapter_ids}
+        for aid, path in adapter_paths.items():
+            if not (path / 'adapter_model.safetensors').is_file() or not (path / 'adapter_config.json').is_file():
+                raise FileNotFoundError(f'missing adapter files for {aid}: {path}')
+        result.update(stage='reference_model_load', reference_config=dict(
+            dtype='float16', attention='eager', autocast_adapter_dtype=False,
+            use_cache=False, device='cuda:0', local_files_only=True))
+        base = AutoModelForCausalLM.from_pretrained(
+            backbone, local_files_only=True, trust_remote_code=False,
+            use_safetensors=True, torch_dtype=torch.float16,
+            device_map={'': 'cuda:0'}, low_cpu_mem_usage=True,
+            attn_implementation='eager')
+        for index, aid in enumerate(adapter_ids):
+            path = adapter_paths[aid]
+            if model is None:
+                model = PeftModel.from_pretrained(
+                    base, str(path), adapter_name=aid, is_trainable=False,
+                    autocast_adapter_dtype=False, local_files_only=True)
+            else:
+                loaded = model.load_adapter(
+                    str(path), adapter_name=aid, is_trainable=False,
+                    autocast_adapter_dtype=False, local_files_only=True)
+                if getattr(loaded, 'unexpected_keys', ()):
+                    raise ValueError(f'unexpected adapter tensors for {aid}')
+            expected = load_file(str(path / 'adapter_model.safetensors'), device='cpu')
+            actual = get_peft_model_state_dict(model, adapter_name=aid)
+            if set(actual) != set(expected) or any(
+                    actual[k].dtype != expected[k].dtype
+                    or not torch.equal(actual[k].detach().cpu(), expected[k])
+                    for k in expected):
+                raise ValueError(f'adapter tensor identity mismatch for {aid}')
+            del expected, actual
+        result['loaded_adapters'] = adapter_ids
+        result['stage'] = 'sequence_compare'
+        for native, row, prompt_ids, target in prepared_rows:
+            aid = str(native['adapter_id'])
+            model.set_adapter(aid)
+            model.eval().requires_grad_(False)
+            inputs = torch.tensor([prompt_ids], dtype=torch.long, device='cuda:0')
+            mask = torch.ones_like(inputs)
+            generation_config = copy.deepcopy(getattr(model, 'generation_config', None))
+            if generation_config is None:
+                raise ValueError('reference model lacks generation config')
+            generation_config.do_sample = False
+            generation_config.temperature = 1.0
+            generation_config.top_p = 1.0
+            generation_config.top_k = 50
+            generation_config.eos_token_id = None
+            generation_config.forced_eos_token_id = None
+            with torch.inference_mode():
+                output = model.generate(
+                    input_ids=inputs, attention_mask=mask,
+                    max_new_tokens=target, pad_token_id=tokenizer.eos_token_id,
+                    generation_config=generation_config, use_cache=False)
+            reference_ids = [int(value) for value in output[0, len(prompt_ids):].tolist()]
+            native_ids = list((native.get('native_token_timing') or {}).get('completion_token_ids') or [])
+            first_divergence = next(
+                (i for i, (left, right) in enumerate(zip(native_ids, reference_ids))
+                 if left != right), min(len(native_ids), len(reference_ids)))
+            exact = native_ids == reference_ids
+            record = dict(request_id=native['request_id'], adapter_id=aid,
+                          target_tokens=target, native_tokens=len(native_ids),
+                          reference_tokens=len(reference_ids), exact_sequence_match=exact,
+                          first_divergent_position=None if exact else first_divergence,
+                          native_ids_sha256=hashlib.sha256(
+                              json.dumps(native_ids, separators=(',', ':')).encode()).hexdigest(),
+                          reference_ids_sha256=hashlib.sha256(
+                              json.dumps(reference_ids, separators=(',', ':')).encode()).hexdigest())
+            if not exact:
+                record['native_prefix'] = native_ids[:min(first_divergence + 3, len(native_ids))]
+                record['reference_prefix'] = reference_ids[:min(first_divergence + 3, len(reference_ids))]
+            result['requests'].append(record)
+            del output, inputs, mask
+        result.update(stage='complete', measurement_complete=True,
+                      exact_sequence_matches=sum(r['exact_sequence_match'] for r in result['requests']),
+                      exact_sequence_total=len(result['requests']),
+                      matched_reference_consistency_pass=all(
+                          r['exact_sequence_match'] for r in result['requests']),
+                      **{'pass': True})
+        verify_reference_backbone(result['backbone'])
+    except Exception as error:
+        result.update(error_type=type(error).__name__, error=str(error),
+                      traceback=traceback.format_exc())
+    finally:
+        model = base = None
+        if 'torch' in locals():
+            gc.collect()
+            if torch.cuda.is_initialized():
+                torch.cuda.empty_cache()
+    return result
+
+
 async def qualify_native_cancel_reference(engine, plan, adapters, result, *, include_pairs=True,
                                            numeric_controls=None):
     """Direct stock AsyncLLM reference; no Prime reference/load/retirement path.
@@ -5129,7 +5323,7 @@ def main():
     parser.add_argument('action', choices=['preflight', 'seal', 'verify', 'self-test', 'ray-test',
                                          'watchdog', 'watchdog-test', 'install-candidate', 'backend-check',
                                          'backend-model-check', 'backend-copy-check', 'backend-host-check',
-                                         'backend-peft-reference',
+                                         'backend-peft-reference', 'backend-peft-sequence-reference',
                                          'artifact-audit', 'artifact-index', 'artifact-disk-check', '_worker',
                                          'gated-launch', '_launch-gate', '_replay-publisher', '_replay-witness'])
     parser.add_argument('--output', type=Path)
@@ -5147,6 +5341,10 @@ def main():
     parser.add_argument('--runtime-receipt', type=Path)
     parser.add_argument('--native-observation', type=Path,
                         help='Completed existing native numeric control result for independent PEFT reference')
+    parser.add_argument('--native-result', type=Path,
+                        help='Completed native fixed-output result with captured token IDs')
+    parser.add_argument('--adapter-root', type=Path,
+                        help='Existing frozen adapter root for independent sequence reference')
     parser.add_argument('--artifact-audit', type=Path)
     parser.add_argument('--artifact-bounds', type=Path,
                         help='JSON bounds for artifact-disk-check: concurrent_packs, log_growth_bytes, safety_reserve_bytes')
@@ -5267,6 +5465,12 @@ def main():
         if not all((args.native_observation,args.replay_trace,args.output)):
             parser.error('backend-peft-reference requires existing native observation, trace and new output')
         result = backend_peft_reference(args.native_observation,args.replay_trace)
+    elif args.action == 'backend-peft-sequence-reference':
+        if not all((args.native_result, args.replay_trace, args.config,
+                    args.adapter_root, args.output)):
+            parser.error('backend-peft-sequence-reference requires native-result, replay-trace, config, adapter-root and output')
+        result = backend_peft_sequence_reference(
+            args.native_result, args.replay_trace, args.config, args.adapter_root)
     elif args.action == 'backend-copy-check':
         if not args.runtime_receipt or not args.output:
             parser.error('backend-copy-check requires the native runtime receipt and new output')
