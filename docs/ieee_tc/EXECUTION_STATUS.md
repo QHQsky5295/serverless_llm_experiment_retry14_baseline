@@ -1,5 +1,53 @@
 # IEEE TC execution status
 
+## CURRENT — D219 7B confirmed-snapshot full replay COMPLETE; formal acceptance remains open
+
+2026-10-05 15:45+08. D219 completed the frozen 7B W0 exploratory full replay
+with 4,000/4,000 terminal requests, 4,000/4,000 native fixed-output contract
+matches, zero terminal failures, and four physical allocation journals closed
+in the required acquire → worker_spawn → native_workers → native_workers_exited
+→ release order. The remote artifact service was stopped after local cleanup;
+the local GPU census is idle and no owned leases remain. The 132 joined remote
+transfer records all use the prepublished read-only gzip contract with
+`pack_performed=false`; no request-time packing was present.
+
+The confirmed-snapshot route evidence is complete at request level: dispatch
+snapshots, dispatch tiers, owner/epoch checks, source-tier equality, prompt
+hashes and timing-contract fields each cover 4,000/4,000 requests. The source
+collection mode is `confirmed_snapshot_cache_v1` for all observed rows, with no
+reported full fallback or identity-only rows. There are 252 requests with at
+least one stale recheck (530 observed rechecks); these are selected-state
+validation observations, not a causal performance estimate.
+
+Descriptive values are mean/P95 TTFT 1,508.362/3,620.021 ms, service TTFT
+694.289/1,843.545 ms, mean/P95 E2E 5,848.015/12,025.972 ms, mean TPOT
+37.566 ms, throughput 1.00853 requests/s, and legacy SLO display 98.275%.
+Observed physical GPU time is 15,911.713 GPU-s (3.977928 GPU-s per offered
+request). Relative to the immediately preceding D210 descriptive run, mean
+TTFT is lower by about 8.62% and mean E2E by about 3.08%, while P95 TTFT is
+higher by about 5.98%; physical GPU time is effectively unchanged (about
+0.00091 higher). Thus D219 is not an across-the-board improvement and does not
+close the optimization gate.
+
+The run is deliberately **not** a formal G1/G2 or cross-system result:
+`n_correct` is unknown because the native token contract does not establish
+numerical adapter correctness; common warm-derived thresholds and Resident
+budget references are not yet frozen; and there is only one exploratory seed
+with no paired held-out blocks. The 98.275% value is retained as a descriptive
+legacy field, not as the frozen joint TTFT/TPOT SLO attainment. The full
+curation, status table and diagnostic figure are in
+`paper_results/ieee_tc/p2_backend/20261005_d219_full/` and
+`figs/ieee_tc/p2_backend/20261005_d219_full/`; checkpoint `e82c62d` is pushed
+to `faaslora_origin/retry14_continuous_queue_v2`.
+
+**Next:** perform the remaining 7B numerical/output correctness audit and the
+common warm/Resident reference qualification using the frozen protocol before
+starting 3B or any external baseline. If those gates pass, use D219's frozen
+candidate only as a development input for held-out paired blocks; if they do
+not, keep Prime-only optimization focused on the measured tail/control-path
+bottleneck. Do not claim a PrimeLoRA win or start the baseline matrix from
+D219 alone.
+
 ## CURRENT — D217 retry8 launch correction prepared; retry7 evidence reclassified conservatively
 
 2026-10-05 13:12+08. The retry7 log audit does not establish a distinct
