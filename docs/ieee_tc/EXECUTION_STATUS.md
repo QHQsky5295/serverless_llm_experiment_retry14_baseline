@@ -62,6 +62,17 @@ D247 retry5 按修正后的 empty-EOS + KV-cache 语义完成并安全清理，�
 以共同 fixed-length/adapter/prompt contract 作为资格前提；若不是，则继续停在语义
 问题定位，绝不进入正式 Full/G1/G2。
 
+D247 retry6 完成了预登记的 margin diagnostic。严格谓词仍为 19/22、顶层
+`pass=false`；3 个差异位置的 native token 均在 HF top-2，FP16 top-1/top-2
+margin 为 `0.015625/0/0.015625`。所有 prompt/tokenizer/target/adapter tensor
+identity 检查、GPU-context release、service scope cleanup 通过。依据冻结 V1
+“跨后端不要求逐 token 相同、同后端变化必须审计”的条款，D248 将严格序列结果保留为
+诊断而不把近 tie 误判为 adapter 或请求语义错误；同时不把它改写成 22/22 exact pass。
+D248 允许下一步进入已登记的 7B physical/admission/readiness bounded diagnostic，
+随后才可进行 4,000-request Full qualification。3B、外部 baseline、G1/G2 和比较图
+仍暂停。完整裁决与 immutable hashes 见
+`docs/ieee_tc/D248_CROSS_BACKEND_SEQUENCE_RECONCILIATION.md`。
+
 ## CURRENT — D246 passes real-worker token transport; independent semantic gate remains
 
 2026-10-06（D243 retry2，7B 22 请求固定输出诊断）. 在 D245 修复后，新的唯一
