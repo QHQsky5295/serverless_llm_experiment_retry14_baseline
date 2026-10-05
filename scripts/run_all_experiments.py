@@ -928,6 +928,27 @@ def _sha256_file(path_like: Any) -> Optional[str]:
     return digest.hexdigest()
 
 
+def _maybe_attach_opt_in_completion_token_ids(
+    timing: Dict[str, Any], model_cfg: Dict[str, Any], token_ids: List[int]
+) -> None:
+    """Attach exact native IDs only for a bounded correctness diagnostic.
+
+    The normal serving contract stores only ``completion_token_ids_sha256``.
+    Keeping this opt-in and validating the integer sequence here prevents a
+    diagnostic flag from silently changing the ordinary Full result schema or
+    accepting text-tokenized substitutes.
+    """
+    if not bool(model_cfg.get("ieee_token_id_capture", False)):
+        return
+    captured_ids = list(token_ids)
+    if any(type(token_id) is not int or token_id < 0 for token_id in captured_ids):
+        raise ValueError("opt-in completion token capture is invalid")
+    timing["completion_token_ids"] = captured_ids
+    timing["completion_token_ids_capture_contract"] = (
+        "fixed_length_greedy_v1_native_ids_opt_in_v1"
+    )
+
+
 def _generation_contract_request_map_sha256(result: "ScenarioResult") -> str:
     rows = [
         {
@@ -4498,6 +4519,10 @@ class InferenceEngine:
                 ).hexdigest(),
                 **native_fields,
             }
+            # Diagnostic-only token capture is deliberately opt-in.
+            _maybe_attach_opt_in_completion_token_ids(
+                timing, self.model_cfg, final_token_ids
+            )
             if native_timing:
                 timing['backend_request_id'] = req_id
                 timing['native_prompt_token_ids_sha256'] = hashlib.sha256(
@@ -17215,6 +17240,16 @@ class ScenarioRunner:
                 native_token_timing = NativeV1TokenTimeline.service_breakdown(
                     engine_timing, admitted_at=admitted_perf_counter,
                     completed_at=t_end, clock_id=local_monotonic_clock_id())
+                if "completion_token_ids" in engine_timing:
+                    captured_ids = engine_timing["completion_token_ids"]
+                    if (not isinstance(captured_ids, list)
+                            or any(type(token_id) is not int or token_id < 0
+                                   for token_id in captured_ids)):
+                        raise ValueError("opt-in completion token capture is invalid")
+                    native_token_timing["completion_token_ids"] = list(captured_ids)
+                    native_token_timing["completion_token_ids_capture_contract"] = str(
+                        engine_timing.get("completion_token_ids_capture_contract", "") or ""
+                    )
                 if int(native_token_timing["native_output_tokens"]) != int(out_tokens):
                     raise ValueError("native output count changed across engine/controller boundary")
             admitted_service_ttft_ms = max(

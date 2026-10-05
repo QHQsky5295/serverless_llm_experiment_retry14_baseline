@@ -1,5 +1,22 @@
 # IEEE TC execution status
 
+## CURRENT — D228 opt-in native token capture CPU-qualified; numerical GPU gate still held
+
+2026-10-05 19:45+08. The runner now has a default-off
+`ieee_token_id_capture` diagnostic flag.  When explicitly enabled it carries
+the already observed native completion `token_ids` through the existing
+`native_token_timing` evidence object, validates non-negative integer IDs, and
+retains the compact SHA.  Ordinary Full results do not change schema or
+behavior.  The new three-case unit test passes; the existing 43 native-timing
+and EuroSys runner tests pass; Python compilation and diff checks pass.
+
+This is only preparation for the D225 bounded numerical gate.  No D228 config,
+GPU worker, remote artifact service, or token-capture result was started.  A
+future fresh 22-request config must opt in explicitly, use distinct roots, and
+compare sequences against an independent original-checkpoint PEFT reference.
+Until the unchanged 109.5-GiB physical-startup gate passes, `N_correct` remains
+unknown and no Prime replay, 3B run, baseline, SLO, or ranking is authorized.
+
 ## CURRENT — D227 admission-gate diagnostic configuration prepared; execution held
 
 2026-10-05 19:35+08. A CPU-only audit created the new bounded 7B diagnostic
