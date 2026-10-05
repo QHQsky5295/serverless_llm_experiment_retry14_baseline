@@ -1,0 +1,30 @@
+{
+  "audit_id": "D241",
+  "date": "2026-10-06",
+  "status": "implemented_unit_tested_no_gpu_replay",
+  "protocol_semantic_change": false,
+  "raw_results_modified": false,
+  "paper_source_modified": false,
+  "gpu_replay_started": false,
+  "implementation": {
+    "canonical_sidecar_contract": "physical_gpu_resource_summary_v1",
+    "canonical_field": "physical_gpu_seconds_total",
+    "runner_binding": "scripts/run_all_experiments.py binds the exact scaled result path before execution",
+    "finalization_owner": "faaslora/metrics/metrics_collector.py::PhysicalGPUDeployment.finalize",
+    "formal_gate": "scripts/plot_paper_figures.py::plot_v2_fig9_ablation with --formal-matrix"
+  },
+  "verification": {
+    "focused_physical_lifecycle_tests": "32/32",
+    "python_compile": "pass",
+    "git_diff_check": "pass",
+    "broader_launch_suite": {
+      "status": "blocked_by_environment_only",
+      "failures": 7,
+      "reasons": [
+        "NVML unavailable in current Python process",
+        "optional vllm test dependency absent"
+      ]
+    }
+  },
+  "next_gate": "PrimeLoRA 7B qualification/optimization; no baseline launch"
+}

@@ -2,6 +2,7 @@
 import unittest
 import os
 import json
+import hashlib
 import tempfile
 import asyncio
 import subprocess
@@ -430,6 +431,36 @@ class DeploymentPhysicalAccounting(unittest.TestCase):
         self.assertEqual(saved['n_terminal'], 1)
         self.assertIsNone(saved['gpu_seconds'])
         self.assertEqual(len(saved['allocation_journals'][0]['sha256']), 64)
+
+    def test_finalize_writes_canonical_physical_resource_sidecar(self):
+        owner = self.allocate(0, 1.)
+        self.release(owner, 8.)
+        self.deployment.terminal('0', at=3., result=self.result())
+        self.deployment.terminal('1', at=6., result=self.result('1'))
+        result_path = Path(self.tmp.name) / 'result.json'
+        result_path.write_text('{"schema_version": 4}\n')
+        self.deployment.bind_result_file(result_path)
+        with patch('faaslora.metrics.metrics_collector.time.monotonic', return_value=9.):
+            report = self.deployment.finalize()
+        manifest_path = self.deployment.root / 'physical_resource_summary.json'
+        manifest = json.loads(manifest_path.read_text())
+        self.assertEqual(manifest['contract'], 'physical_gpu_resource_summary_v1')
+        self.assertEqual(manifest['physical_gpu_seconds_total'], report['gpu_seconds'])
+        self.assertTrue(manifest['eligible_physical_measurement'])
+        self.assertEqual(manifest['n_plan'], 2)
+        self.assertEqual(manifest['n_terminal'], 2)
+        self.assertEqual(manifest['result_file']['path'], str(result_path.absolute()))
+        self.assertTrue(manifest['result_file']['exists'])
+        self.assertEqual(
+            manifest['result_file']['sha256'],
+            hashlib.sha256(result_path.read_bytes()).hexdigest(),
+        )
+        self.assertEqual(
+            manifest['summary_sha256'],
+            hashlib.sha256(
+                (self.deployment.root / 'summary.json').read_bytes()
+            ).hexdigest(),
+        )
 
 
 if __name__ == '__main__':

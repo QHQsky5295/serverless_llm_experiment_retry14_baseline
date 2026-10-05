@@ -1,5 +1,22 @@
 # IEEE TC execution status
 
+## CURRENT — D241 canonical physical-resource sidecar gate implemented
+
+2026-10-06（测量完整性实现，无 GPU 重跑）. D240 要求的物理生命周期验收已
+落实：受保护运行在结果 JSON 写入且所有 allocation owner 完成清理后，生成
+`physical_resource_summary.json`，其中的 `physical_gpu_seconds_total` 只来自
+最终 owner-union summary，并绑定 allocation journal、terminal、summary 和
+结果文件的 SHA-256。旧的 `infra_gpu_seconds_total` 与
+`instance_lifecycle_log` 明确不能替代该字段。正式 Fig. 9 的
+`--formal-matrix` 路径会拒绝缺少 sidecar、未完成释放、分母不完整或哈希不匹配
+的记录；旧结果没有被重写。
+
+物理生命周期单元测试 32/32 通过，Python 编译和 diff 检查通过。更大的 launch
+测试中有 7 个环境阻塞（当前 Python 无 NVML、测试环境缺少可选 vLLM），不是本次
+sidecar 变更引起的协议失败。D241 记录实现与验收；没有启动模型、远程 artifact
+服务、baseline 或正式 replay。PrimeLoRA 7B qualification/optimization 仍是
+唯一下一步活动，3B 与外部 baseline 继续暂停。
+
 ## CURRENT — D239 freezes remote latency scope, 100-Mbps interpretation, and HydraServe-aligned metrics
 
 2026-10-06（只读指标与结果审计）. A new protocol audit,

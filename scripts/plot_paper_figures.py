@@ -577,6 +577,8 @@ def _v2_ablation_audit(
     scenario: str,
     completed: int,
     label: str,
+    source: Path,
+    require_physical_resource_manifest: bool = False,
 ) -> tuple[str, str, str, str, Dict[str, int]]:
     """Fail closed on provenance, generation, dispatch, and mechanism evidence."""
     trace_sha = _v2_sha256(metadata.get("shared_trace_sha256"), f"{label}.shared_trace_sha256")
@@ -771,6 +773,46 @@ def _v2_ablation_audit(
             f"{label}: dispatch tier counts disagree with request records; "
             f"recorded={normalized_dispatch}, actual={actual_dispatch_counts}"
         )
+    if require_physical_resource_manifest:
+        evidence = coordination.get("physical_resource_evidence")
+        if not isinstance(evidence, dict):
+            raise SystemExit(f"{label}: missing physical_resource_evidence for formal G1")
+        manifest_value = evidence.get("manifest_path")
+        if not isinstance(manifest_value, str) or not manifest_value.strip():
+            raise SystemExit(f"{label}: missing physical resource manifest path for formal G1")
+        manifest_path = Path(manifest_value).expanduser()
+        if not manifest_path.is_absolute():
+            manifest_path = (source.parent / manifest_path).resolve()
+        if manifest_path.is_symlink() or not manifest_path.is_file():
+            raise SystemExit(f"{label}: physical resource manifest is not a regular file: {manifest_path}")
+        manifest = _v2_read_json(manifest_path)
+        if manifest.get("contract") != "physical_gpu_resource_summary_v1":
+            raise SystemExit(f"{label}: unsupported physical resource manifest contract")
+        if manifest.get("measurement_complete") is not True or manifest.get("eligible_physical_measurement") is not True:
+            raise SystemExit(f"{label}: physical owner-union measurement is incomplete")
+        physical_total = manifest.get("physical_gpu_seconds_total")
+        if physical_total is None or not math.isfinite(float(physical_total)) or float(physical_total) <= 0:
+            raise SystemExit(f"{label}: missing positive physical_gpu_seconds_total")
+        if int(manifest.get("n_plan", -1)) != completed or int(manifest.get("n_terminal", -1)) != completed:
+            raise SystemExit(f"{label}: physical result denominator does not cover completed requests")
+        if manifest.get("open_lease_ids"):
+            raise SystemExit(f"{label}: physical resource manifest retains open leases")
+        summary_value = manifest.get("summary_path")
+        summary_path = Path(summary_value).expanduser() if isinstance(summary_value, str) else None
+        if summary_path is None or not summary_path.is_file():
+            raise SystemExit(f"{label}: physical owner-union summary is missing")
+        summary_sha = hashlib.sha256(summary_path.read_bytes()).hexdigest()
+        if summary_sha != str(manifest.get("summary_sha256") or "").lower():
+            raise SystemExit(f"{label}: physical owner-union summary hash mismatch")
+        result_binding = manifest.get("result_file")
+        if not isinstance(result_binding, dict) or result_binding.get("exists") is not True:
+            raise SystemExit(f"{label}: physical resource manifest is not bound to an existing result file")
+        bound_path = Path(str(result_binding.get("path") or "")).expanduser()
+        if bound_path.absolute() != source.absolute():
+            raise SystemExit(f"{label}: physical resource manifest is bound to a different result file")
+        result_sha = hashlib.sha256(source.read_bytes()).hexdigest()
+        if result_sha != str(result_binding.get("sha256") or "").lower():
+            raise SystemExit(f"{label}: physical resource result-file hash mismatch")
     return (
         trace_sha,
         subset_sha,
@@ -1055,7 +1097,8 @@ def validate_v2_ablation_formal_matrix(
 
 
 def load_v2_ablation_results(
-    inputs: Sequence[Path], *, formal_matrix: bool = False
+    inputs: Sequence[Path], *, formal_matrix: bool = False,
+    require_physical_resource_manifest: bool = False,
 ) -> List[V2AblationResult]:
     results: Dict[tuple[str, str, int], V2AblationResult] = {}
     candidates = _v2_result_candidates(inputs)
@@ -1093,6 +1136,8 @@ def load_v2_ablation_results(
                 scenario=scenario,
                 completed=completed,
                 label=label,
+                source=path,
+                require_physical_resource_manifest=require_physical_resource_manifest,
             )
             metrics = {
                 key: _v2_metric(detail, summary, key, label)
@@ -1200,7 +1245,11 @@ def plot_v2_fig9_ablation(
     provenance_index = (
         build_formal_provenance_index(inputs) if formal_matrix else None
     )
-    results = load_v2_ablation_results(inputs, formal_matrix=formal_matrix)
+    results = load_v2_ablation_results(
+        inputs,
+        formal_matrix=formal_matrix,
+        require_physical_resource_manifest=formal_matrix,
+    )
     if provenance_index is not None:
         validate_formal_analysis_sources(
             provenance_index,

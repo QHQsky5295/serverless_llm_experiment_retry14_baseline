@@ -23420,6 +23420,12 @@ async def _main_async_impl(
             preset_name=preset_name,
             results_tag=results_tag,
         )
+    if physical_deployment is not None:
+        # Result serialization happens before the guarded outer wrapper seals
+        # the physical owner journals.  Bind the exact path now so the
+        # post-finalize resource sidecar can hash the immutable result without
+        # rewriting it or confusing legacy billing with physical GPU time.
+        physical_deployment.bind_result_file(results_file)
     print("=" * 70)
     print("  FaaSLoRA Complete Experiment Runner")
     print("=" * 70)
@@ -24237,6 +24243,8 @@ async def _main_async_impl(
                 scenario_coordination_meta[sname]['physical_resource_evidence'] = {
                     'contract': 'physical_gpu_deployment_v1',
                     'summary_path': str(physical_deployment.root/'summary.json'),
+                    'manifest_path': str(physical_deployment.root/'physical_resource_summary.json'),
+                    'canonical_physical_field': 'physical_gpu_seconds_total',
                     'legacy_instance_billing_is_not_physical_gpu_time': True}
             scenario_coordination_meta[sname].update(
                 {

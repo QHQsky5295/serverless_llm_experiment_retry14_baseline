@@ -175,6 +175,11 @@ class PhysicalGPUDeployment:
         self.root.mkdir(exist_ok=False)
         self._terminal_path = self.root / 'request_terminals.jsonl'
         self._terminal_path.touch(exist_ok=False)
+        # Bound by the runner before result serialization.  The deployment
+        # summary is finalized afterwards, so the physical-resource sidecar
+        # can bind the immutable owner-union measurement to the exact result
+        # file without rewriting that result.
+        self._result_file: Optional[Path] = None
         # Keep the existing launch-wide lock namespace. A second directory per
         # deployment would permit competing owners to take independent locks.
         self.allocations = self.root.parent / 'physical_allocations'
@@ -183,6 +188,77 @@ class PhysicalGPUDeployment:
             json.dump(dict(contract='physical_gpu_deployment_v1', clock_id=self.clock_id,
                 deployment_notice_s=self.notice, arrival_start_s=self.arrival_start,
                 arrival_end_s=self.arrival_end, plan=plan.identity()), handle, sort_keys=True)
+
+    def bind_result_file(self, path) -> None:
+        """Bind this deployment to the result file written by the runner.
+
+        Binding is metadata only; it never makes a missing result look valid.
+        ``finalize`` records whether the file existed and its digest at the
+        moment the physical owner journal was sealed.  A symlink is rejected
+        because a result identity must name the actual regular file.
+        """
+        candidate = Path(path).absolute()
+        if candidate.is_symlink():
+            raise ValueError('physical deployment result binding cannot be a symlink')
+        if self._result_file is not None and self._result_file != candidate:
+            raise ValueError('physical deployment result binding changed')
+        self._result_file = candidate
+
+    def _write_physical_resource_manifest(self, report: Dict[str, Any]) -> Path:
+        """Write the canonical physical GPU-time evidence after finalization.
+
+        The legacy ``infra_gpu_seconds_total`` projection is intentionally not
+        copied here.  Consumers that need G1 must read
+        ``physical_gpu_seconds_total`` from this sidecar and verify the source
+        summary/journal digests and completion invariants.
+        """
+        summary_path = self.root / 'summary.json'
+        summary_bytes = summary_path.read_bytes()
+        result_file = None
+        if self._result_file is not None:
+            result_file = {
+                'path': str(self._result_file),
+                'exists': False,
+                'sha256': None,
+            }
+            if self._result_file.exists():
+                if self._result_file.is_symlink() or not self._result_file.is_file():
+                    raise ValueError('bound physical deployment result is not a regular file')
+                encoded = self._result_file.read_bytes()
+                result_file.update(exists=True, sha256=hashlib.sha256(encoded).hexdigest())
+
+        manifest = {
+            'contract': 'physical_gpu_resource_summary_v1',
+            'deployment_contract': report.get('deployment_contract'),
+            'summary_path': str(summary_path),
+            'summary_sha256': hashlib.sha256(summary_bytes).hexdigest(),
+            'physical_gpu_seconds_total': report.get('gpu_seconds'),
+            'physical_gpu_seconds_observed': report.get('gpu_seconds_observed'),
+            'physical_gpu_seconds_per_correct_request': report.get(
+                'gpu_seconds_per_correct_request'),
+            'measurement_complete': report.get('measurement_complete') is True,
+            'eligible_physical_measurement': (
+                report.get('measurement_complete') is True
+                and report.get('gpu_seconds') is not None
+            ),
+            'n_plan': report.get('n_plan'),
+            'n_terminal': report.get('n_terminal'),
+            'n_correct': report.get('n_correct'),
+            'n_native_contract_complete': report.get('n_native_contract_complete'),
+            'n_interrupted': report.get('n_interrupted'),
+            'open_lease_ids': report.get('open_lease_ids'),
+            'allocation_journals': report.get('allocation_journals'),
+            'request_terminals_path': report.get('request_terminals_path'),
+            'request_terminals_sha256': report.get('request_terminals_sha256'),
+            'result_file': result_file,
+            'legacy_fields_not_accepted': ['infra_gpu_seconds_total',
+                                           'instance_lifecycle_log'],
+        }
+        path = self.root / 'physical_resource_summary.json'
+        with path.open('x') as handle:
+            json.dump(manifest, handle, sort_keys=True, indent=2)
+            handle.write('\n')
+        return path
 
     def terminal(self, request_id, *, at, result=None, error_type=None, interrupted=False):
         entry = self.entries.get(request_id)
@@ -295,6 +371,8 @@ class PhysicalGPUDeployment:
         report = self.summarize(observed_until_s=time.monotonic())
         with (self.root / 'summary.json').open('x') as handle:
             json.dump(report, handle, sort_keys=True, indent=2)
+            handle.write('\n')
+        self._write_physical_resource_manifest(report)
         return report
 
 
