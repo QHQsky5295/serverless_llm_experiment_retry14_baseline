@@ -43,6 +43,15 @@ D247 retry3 随后通过了 containment、NVML、watchdog 和清理门，并生�
 导入既有 renderer/workload plan 前显式加入仓库根目录，retry4 使用新的
 `d247_retry4_20261006` 身份；retry3 结果和 launch 证据均保留。
 
+D247 retry4 完成了独立原始 checkpoint + PEFT 生成并安全清理，但 22 条序列只有
+17 条逐元素一致，`matched_reference_consistency_pass=false`；5 条差异中有两条是
+HF 参考在 EOS token 处提前停止，而 native `fixed_length_greedy_v1` 明确要求
+`ignore_eos`，另有少数请求在更早位置出现后端数值分歧。因此 retry4 是有效的
+语义诊断、不是资格通过，也不进入任何性能分母。实现中的顶层 `pass` 已修正为只有
+逐序列全匹配才为 true，避免把“测量完成”误读为“语义通过”。下一步 retry5 使用
+显式空 EOS 集合和与服务一致的 KV cache，在全新身份上复核；3B、baseline、G1/G2
+仍暂停。
+
 ## CURRENT — D246 passes real-worker token transport; independent semantic gate remains
 
 2026-10-06（D243 retry2，7B 22 请求固定输出诊断）. 在 D245 修复后，新的唯一

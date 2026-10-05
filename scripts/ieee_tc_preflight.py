@@ -2861,7 +2861,7 @@ def backend_peft_sequence_reference(native_result: Path, trace: Path,
                 raise FileNotFoundError(f'missing adapter files for {aid}: {path}')
         result.update(stage='reference_model_load', reference_config=dict(
             dtype='float16', attention='eager', autocast_adapter_dtype=False,
-            use_cache=False, device='cuda:0', local_files_only=True))
+            use_cache=True, device='cuda:0', local_files_only=True))
         base = AutoModelForCausalLM.from_pretrained(
             backbone, local_files_only=True, trust_remote_code=False,
             use_safetensors=True, torch_dtype=torch.float16,
@@ -2902,13 +2902,16 @@ def backend_peft_sequence_reference(native_result: Path, trace: Path,
             generation_config.temperature = 1.0
             generation_config.top_p = 1.0
             generation_config.top_k = 50
-            generation_config.eos_token_id = None
+            # None makes Transformers fall back to model.generation_config.
+            # An empty collection is the explicit no-EOS contract required by
+            # native fixed-length/ignore_eos decoding.
+            generation_config.eos_token_id = []
             generation_config.forced_eos_token_id = None
             with torch.inference_mode():
                 output = model.generate(
                     input_ids=inputs, attention_mask=mask,
                     max_new_tokens=target, pad_token_id=tokenizer.eos_token_id,
-                    generation_config=generation_config, use_cache=False)
+                    generation_config=generation_config, use_cache=True)
             reference_ids = [int(value) for value in output[0, len(prompt_ids):].tolist()]
             native_ids = list((native.get('native_token_timing') or {}).get('completion_token_ids') or [])
             first_divergence = next(
@@ -2928,12 +2931,12 @@ def backend_peft_sequence_reference(native_result: Path, trace: Path,
                 record['reference_prefix'] = reference_ids[:min(first_divergence + 3, len(reference_ids))]
             result['requests'].append(record)
             del output, inputs, mask
+        sequence_pass = all(r['exact_sequence_match'] for r in result['requests'])
         result.update(stage='complete', measurement_complete=True,
                       exact_sequence_matches=sum(r['exact_sequence_match'] for r in result['requests']),
                       exact_sequence_total=len(result['requests']),
-                      matched_reference_consistency_pass=all(
-                          r['exact_sequence_match'] for r in result['requests']),
-                      **{'pass': True})
+                      matched_reference_consistency_pass=sequence_pass,
+                      **{'pass': sequence_pass})
         verify_reference_backbone(result['backbone'])
     except Exception as error:
         result.update(error_type=type(error).__name__, error=str(error),

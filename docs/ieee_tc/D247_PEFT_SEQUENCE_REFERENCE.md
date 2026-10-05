@@ -6,7 +6,7 @@ reuses the existing 7B checkpoint, frozen W0 trace prefix, canonical renderer,
 and 500-adapter pool.  It creates no workload, weights, remote archive, or
 serving result and does not enter a performance denominator.
 
-The reference uses FP16, eager attention, `use_cache=false`, one visible GPU,
+The reference uses FP16, eager attention, `use_cache=true`, one visible GPU,
 the same canonical prompt and target map, `temperature=0`, greedy decoding,
 EOS disabled, and the exact existing adapter tensors.  Before decoding it
 checks every adapter's safetensors keys, dtype, and values against the loaded
@@ -37,3 +37,11 @@ incomplete and excluded.  Retry4 explicitly inserts the repository root into
 the child import path before importing the existing renderer; it keeps the
 same checkpoint, trace, adapter tensors, generation contract, and resource
 limits.
+
+Retry4 completed the independent computation and matched 17/22 sequences.  The
+five mismatches include two early EOS truncations in the HF reference even
+though the native contract requires `ignore_eos`; therefore this is not yet a
+semantic qualification.  The reference now uses explicit empty-EOS handling
+and KV caching (the serving-side inference semantics), and retry5 will rerun
+the same 22 requests under a new identity.  The retry4 result remains a
+diagnostic and is excluded from every performance denominator.
