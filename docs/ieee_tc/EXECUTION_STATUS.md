@@ -1,17 +1,41 @@
 # IEEE TC execution status
 
-## CURRENT — D222 Resident-vLLM protocol wrapper implemented; no new performance result
+## CURRENT — D222–D224 Resident-vLLM prototype RETIRED; no qualified Resident result
 
-2026-10-05 17:20+08. The baseline harness now contains a separate
-`run_vllm_resident_reference_v1.sh` path (baseline commit `0d01e9a`) that
-reuses the frozen vLLM runner, W0 trace, 500-adapter subset, native fixed-output
-contract and prepublished gzip artifact endpoint. It adds distinct service and
-auxiliary resource slices, a common monotonic deployment notice with the frozen
-lead time, and a per-GPU acquire/hold/release receipt closed only after an
-independent idle NVML census. CPU/syntax checks, a four-GPU receipt round-trip,
-systemd cleanup and a dry-run contract check passed. No remote service, model
-replay or performance result was started in D222. The next evidence is a
-100-request 7B smoke; the old D213 Resident repeats remain diagnostic-only.
+2026-10-05 18:25+08. A post-run protocol audit found that the D222 prototype
+wrapper did not satisfy the frozen Resident reference contract.  The baseline
+runner used the inherited vLLM 0.10.2 environment, not the Prime/vLLM 0.30.0
+backend; its effective service cap was 96 GiB without a verified 72/80 GiB
+`MemoryHigh`/`MemoryMax` contract; the deployment notice was emitted only after
+all replicas became ready; replay used a later independent time origin; and
+the receipt recorded an initial `nvidia-smi` inventory as “acquisition” and
+closed intervals using only a final memory threshold, without a physical lease,
+owner identity, or overlap-union proof.  Dynamic remote fetch/load was also
+placed in the replay auxiliary domain.  These are protocol defects, not
+performance observations.
+
+The launch also selected `dynamic_remote`; the repository's ordinary
+remote-fair vLLM reproduction rule requires round-local `static_remote` staging
+unless a separately resource-bounded exception is qualified.  D222–D224 did
+not qualify that exception, and their receipts do not capture a vLLM package or
+source identity.
+
+The prototype entrypoint and `VLLM_RESIDENT_PROTOCOL_V1=1` path are now
+fail-closed in baseline commits `0a8e5f7` plus the subsequent quarantine
+checkpoint.  Historical source and raw logs remain untouched.  D222 is a
+CPU/syntax and dry-run artifact only; D223 is a launcher/protocol failure; D224
+completed 100/100 requests with the native fixed-output token contract, but
+that contract does not prove numerical adapter correctness or physical
+resource accounting.  D224 is therefore retained solely as a generation-
+contract diagnostic, not a Resident baseline, lifecycle GPU-s/request sample,
+joint-SLO result, G1/G2 input, or ranking point.  No 1,000-request follow-up is
+authorized from this wrapper.
+
+The next Resident reference, if needed, must reuse the existing qualified
+common preflight, resource-domain, physical lease, common-clock, and cleanup
+infrastructure.  The D222–D224 audit is recorded in
+`docs/ieee_tc/D222_RESIDENT_PROTOCOL_WRAPPER.md`; no remote service or GPU is
+running after cleanup.
 
 ## CURRENT — D219 7B confirmed-snapshot full replay COMPLETE; formal acceptance remains open
 

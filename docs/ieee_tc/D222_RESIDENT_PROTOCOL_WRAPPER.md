@@ -1,15 +1,19 @@
-# D222 — Resident-vLLM protocol wrapper (implementation checkpoint)
+# D222 — Resident-vLLM protocol wrapper (retired prototype)
 
-Status: protocol-layer implementation and CPU/contract validation complete;
-no model replay or performance result was produced in D222.
+Status: **RETIRED / NOT QUALIFIED**.  This document records an exploratory
+prototype and its later D222--D224 smoke attempts.  It is not an implementation
+checkpoint for a Resident reference and must not be used to authorize a GPU
+campaign or a resource comparison.
 
 ## What changed
 
-The baseline harness now has a separate `run_vllm_resident_reference_v1.sh`
-entrypoint. It reuses the ordinary vLLM runner, frozen trace, frozen
-500-adapter subset, native `fixed_length_greedy_v1` token path, and the
-prepublished read-only gzip artifact endpoint. It does not regenerate weights,
-traces, or extracted adapter pools.
+The baseline harness briefly had a separate
+`run_vllm_resident_reference_v1.sh` entrypoint.  It reused the ordinary vLLM
+runner, frozen trace, frozen 500-adapter subset, native
+`fixed_length_greedy_v1` token path, and the prepublished read-only gzip
+artifact endpoint.  It did not regenerate weights, traces, or extracted
+adapter pools.  The entrypoint and the `VLLM_RESIDENT_PROTOCOL_V1=1` path are
+now fail-closed and retained only as historical source evidence.
 
 When `VLLM_RESIDENT_PROTOCOL_V1=1`, the existing runner additionally:
 
@@ -26,18 +30,38 @@ When `VLLM_RESIDENT_PROTOCOL_V1=1`, the existing runner additionally:
 
 The receipt helper is
 `serverless_llm_baselines/scripts/ieee_tc/resident_protocol_receipt.py`.
-The baseline implementation is backed up at commit `0d01e9a` on its `main`
-remote branch. Existing user-dirty baseline files were not staged.
+The prototype source is backed up at commits `0d01e9a`, `65185e2`, `c3a0215`,
+and `0a8e5f7` on the baseline `main` remote branch.  Existing user-dirty
+baseline files were not staged.
 
 ## Validation boundary
 
-`bash -n`, Python byte-compilation, an actual four-GPU receipt init/notice/
-finalize round-trip, systemd slice creation/cleanup, and a vLLM dry-run with
-the historical 7B W0 trace/subset all passed. The dry-run does not create a
-physical lifecycle receipt or start a service. No remote service was started
-and no GPU inference was run in D222.
+The prototype's syntax and token-contract checks passed, but those checks did
+not establish the required protocol.  D222--D224 exposed the following
+disqualifying facts:
 
-The wrapper is therefore a qualification prerequisite, not a Resident result.
-The next step is a fresh 100-request 7B smoke using the remote 7B endpoint,
-followed by the prescribed 1,000-request compatibility run only if all
-identity, token, delivery, resource-domain, and release gates pass.
+* the runner used the inherited vLLM 0.10.2 environment rather than the frozen
+  Prime/vLLM 0.30.0 backend;
+* the effective service cap was 96 GiB with no verified `MemoryHigh`, rather
+  than the 72/80 GiB contract, and the limits were attached after anchors were
+  started;
+* the deployment notice was published only after all replicas were ready, and
+  the replay created a separate time origin after tokenizer preparation;
+* the receipt treated an initial `nvidia-smi` inventory as GPU acquisition and
+  closed all intervals from a final memory-only census, without a physical
+  lease, owner identity, or overlap-union proof;
+* remote transfer/content identity and service/auxiliary accounting were not
+  independently joined to the request path; and
+* the launch used `dynamic_remote`, whereas the repository's ordinary formal
+  remote-fair vLLM path requires round-local `static_remote` staging unless a
+  separately resource-bounded exception has been qualified; and
+* native output-token agreement proves the generation contract only, not
+  numerical adapter correctness.
+
+Accordingly, D224's 100/100 completion is retained as a **generation-contract
+diagnostic** only.  D222 and D223 are launcher/protocol failures.  None of the
+three attempts is eligible for G1/G2, joint-SLO qualification, lifecycle
+GPU-s/request, or a Resident baseline ranking.  No 1,000-request follow-up is
+authorized from this prototype.  A future Resident reference must reuse the
+already-qualified common preflight, resource-domain, physical lease, common
+clock, and cleanup infrastructure instead of extending this wrapper.

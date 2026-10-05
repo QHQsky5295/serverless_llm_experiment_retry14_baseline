@@ -1,0 +1,41 @@
+{
+  "audit_skill": "experiment-audit",
+  "date": "2026-10-05",
+  "auditor": "gpt-5.6-sol-high",
+  "review_independence": "same-family",
+  "acceptance_status": "provisional",
+  "overall_verdict": "FAIL",
+  "integrity_status": "warn",
+  "reason_code": "unqualified_protocol_and_insufficient_scope",
+  "summary": "D222-D224 are retained diagnostic attempts, not qualified Resident or G1/G2 evidence.",
+  "checks": {
+    "backend_resource_contract": "fail",
+    "common_clock": "fail",
+    "service_aux_accounting": "fail",
+    "physical_gpu_lease": "fail",
+    "remote_identity": "fail",
+    "generation_contract": "warn_limited_pass",
+    "completion_status": "warn_fail",
+    "scope": "fail"
+  },
+  "audited_files": {
+    "d224_replay": {
+      "path": "/home/qhq/serverless_llm_baselines/results/replay/d224_7b_resident_smoke100_seed42_dynamic_remote_fixed_replay.json",
+      "sha256": "92b79b9fe0b33e5ef65fafc77a9372164deb746c9a36856e203a08bb83659d3e"
+    },
+    "d224_summary": {
+      "path": "/home/qhq/serverless_llm_baselines/results/replay/d224_7b_resident_smoke100_seed42_dynamic_remote_fixed_summary.json",
+      "sha256": "40b3a2dd1d723e56b986e6df66044baa2637eb3dd7527ad638895018d6850d92"
+    },
+    "d224_lifecycle": {
+      "path": "/home/qhq/serverless_llm_baselines/results/replay/d224_7b_resident_smoke100_seed42_dynamic_remote_fixed_resident_protocol/d224_7b_resident_smoke100_seed42_dynamic_remote_fixed_lifecycle.json",
+      "sha256": "42a0765cef3c0d5ead6749db74407e492ed92f98037e306cfbba0b9d036c84c6"
+    }
+  },
+  "claims": [
+    {"id": "resident_reference", "impact": "unsupported"},
+    {"id": "lifecycle_gpu_seconds", "impact": "unsupported"},
+    {"id": "joint_slo", "impact": "unsupported"},
+    {"id": "generation_contract_smoke", "impact": "supported_limited_scope"}
+  ]
+}
