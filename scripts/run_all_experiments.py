@@ -18503,6 +18503,7 @@ class ScenarioRunner:
         or relabels request-driven demand loading as proactive admission.
         """
         import traceback
+        from faaslora.preloading.preloading_planner import PreparationPlanSuperseded
         record: Dict[str, Any] = {
             'kind': 'ieee_proactive_admission_diagnostic_v1',
             'pass': False,
@@ -18681,6 +18682,13 @@ class ScenarioRunner:
         except asyncio.CancelledError:
             record.update(state='cancelled')
             raise
+        except PreparationPlanSuperseded as exc:
+            record.update(
+                state='superseded',
+                error_type=type(exc).__name__,
+                preparation_supersession=dict(stage=exc.stage, receipt=copy.deepcopy(exc.receipt)),
+            )
+            return record
         except Exception as exc:
             record.update(state='failed', error_type=type(exc).__name__, error=str(exc),
                           traceback=traceback.format_exc())
