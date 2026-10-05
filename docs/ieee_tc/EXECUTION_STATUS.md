@@ -5,12 +5,12 @@
 2026-10-06（数值诊断失败后的进程间证据修复）. D243 retry1 completed the
 protected 22-request replay and released all four allocation owners, but all
 22 requests failed with `opt-in completion token capture is invalid`.  The
-native worker had produced a token-ID list; the dedicated parent proxy and the
-parent RPC timing annotator independently applied scalar coercion, turning that
-list into a numeric fallback before controller validation.  This is a typed
-evidence-transport defect, not evidence of a vLLM, LoRA, routing, admission or
-GPU semantic failure.  The retry is excluded from correctness, SLO, G1/G2 and
-ranking denominators.
+source-level worker contract attaches a token-ID list; the dedicated parent
+proxy and the parent RPC timing annotator independently applied scalar
+coercion, turning that list into a numeric fallback before controller
+validation.  Focused tests reproduce this path, but the GPU-level causal
+interpretation remains provisional until retry2.  The retry is excluded from
+correctness, SLO, G1/G2 and ranking denominators.
 
 D245 adds one shared validator-preserving normalizer for both parent boundaries.
 It preserves only the opt-in `completion_token_ids` list after checking
@@ -24,9 +24,12 @@ tests (87 combined).  Full evidence and the claim boundary are in
 The retry1 physical sidecar is cleanup-complete (`n_plan=22`, `n_terminal=22`,
 no open leases, 318.4623162969947 observed physical GPU-s) but reports
 `n_native_contract_complete=0` and `n_correct=null`; no low-cost or performance
-conclusion is admissible.  The next action is a fresh guarded retry with a new
-result identity, followed by the existing bounded numerical-reference scope;
-3B and all external baselines remain paused.
+conclusion is admissible.  Its metadata also reports `vllm_available=false`
+while the service log records dedicated vLLM/GPU execution attempts; this is a
+provenance warning to resolve by recording worker runtime identity in retry2,
+not evidence that the retry was eligible.  The next action is a fresh guarded
+retry with a new result identity, followed by the existing bounded
+numerical-reference scope; 3B and all external baselines remain paused.
 
 ## CURRENT — D244 closes a profile-identity contract failure; D243 retry is held
 

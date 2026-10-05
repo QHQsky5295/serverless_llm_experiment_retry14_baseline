@@ -10,13 +10,15 @@ GPU leases, but every request failed before producing a valid native output
 contract.  The run is excluded from correctness, SLO, G1/G2, and all ranking
 denominators.
 
-The failure was localized to the parent-side timing normalization boundary.  A
-worker correctly attached the opt-in `completion_token_ids` list, but the
-dedicated parent RPC proxy converted every non-scalar timing value to a numeric
-fallback.  The later controller therefore received `0.0` instead of a native
-integer list and rejected the request as `opt-in completion token capture is
-invalid`.  This is a serialization/validation defect, not evidence of a vLLM
-generation or LoRA semantic failure.
+The failure was localized, at source level and in the focused transport tests,
+to the parent-side timing normalization boundary.  The worker-side contract
+attaches the opt-in `completion_token_ids` list, but the dedicated parent RPC
+proxy converted every non-scalar timing value to a numeric fallback.  The
+later controller therefore received `0.0` instead of a native integer list and
+rejected the request as `opt-in completion token capture is invalid`.  This is
+a plausible serialization/validation defect, pending a fresh GPU retry; the
+failed run itself does not prove that vLLM generation or LoRA semantics were
+correct.
 
 ## Minimal correction
 
@@ -55,6 +57,13 @@ for cleanup (`n_plan=22`, `n_terminal=22`, no open leases,
 therefore cannot be divided by a correct-request denominator or used as a
 resource ranking point.
 
+The result metadata also says `vllm_available=false` while identifying the
+backend as vLLM and the engine as the real GPU/LoRA vLLM path.  The service log
+shows dedicated worker initialization and GPU execution attempts.  This is
+retained as a provenance metadata warning (likely parent-side lazy-import
+scope); retry2 must record the worker runtime identity explicitly.  It does
+not turn the failed retry into an eligible result.
+
 ## Offline verification after the correction
 
 The following pinned-environment tests pass:
@@ -67,6 +76,9 @@ The following pinned-environment tests pass:
 The new integration test performs newline-JSON encode/decode, both parent
 normalization stages, and proxy return-timing inspection.  It verifies that
 `[11, 12, 13]` remains an integer list and that a scalar capture fails closed.
-This closes only the known D243 retry1 serialization defect.  It does not
-substitute for the next guarded 22-request GPU diagnostic, which must again
-run the full host, service, remote-health, cleanup, and physical-sidecar gates.
+This closes the known source-level D243 retry1 serialization path.  Generic
+consumers must still require `completed == total` and the physical-sidecar
+`n_correct`/native-contract fields before plotting latency, cost, or resource
+rankings.  It does not substitute for the next guarded 22-request GPU
+diagnostic, which must again run the full host, service, remote-health,
+cleanup, and physical-sidecar gates.
