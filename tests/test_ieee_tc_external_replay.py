@@ -254,6 +254,23 @@ class OpenLoopTransport(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(terminal), 1)
         self.assertTrue(terminal[0]['complete'])
 
+    async def test_consecutive_windows_preserve_single_replay_cursor(self):
+        publisher = await self.start_publisher()
+        ingress = ExternalReplayIngress(self.plan, self.context)
+        first = []
+        async for index, _ in ingress.receive(start_index=0, count=2):
+            first.append(index)
+        second = []
+        async for index, _ in ingress.receive(start_index=2, count=3):
+            second.append(index)
+        await publisher
+        self.assertEqual(first, [0, 1])
+        self.assertEqual(second, [2, 3, 4])
+        self.assertTrue(ingress.complete)
+        with self.assertRaisesRegex(RuntimeError, 'contiguous|one service consumer'):
+            async for _ in ingress.receive(start_index=1, count=1):
+                pass
+
     async def test_observer_gets_prior_received_history_once_then_live_arrivals(self):
         publisher = await self.start_publisher()
         ingress = ExternalReplayIngress(self.plan, self.context)

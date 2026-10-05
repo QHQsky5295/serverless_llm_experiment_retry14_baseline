@@ -9,6 +9,11 @@ cross-backend sequence diagnostic, but it is not a semantic qualification pass.
 The raw result remains immutable and is not admitted to any performance,
 correctness, SLO, G1/G2, or baseline denominator.
 
+The overall D247 evidence set is `FAIL` for integrity because retry4 was
+generated before the strict predicate fix and contains a contradictory
+`pass=true` field. Retry6 alone is an internally consistent `WARN` diagnostic;
+the stale retry4 record is not silently repaired or removed.
+
 ## Evidence
 
 | item | value |

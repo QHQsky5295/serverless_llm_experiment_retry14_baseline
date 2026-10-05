@@ -389,6 +389,7 @@ class ExternalReplayIngress:
         self._ready = None
         self._error = None
         self._consumer_claimed = False
+        self._receive_cursor = 0
         self._observer = None
 
     def subscribe(self, observer):
@@ -430,19 +431,52 @@ class ExternalReplayIngress:
                         'N_received': len(self.records), 'complete': self.complete,
                         'error': type(self._error).__name__ if self._error else None})
 
-    async def receive(self):
-        if self._consumer_claimed:
-            raise RuntimeError('one service consumer per frozen replay; no second execution')
-        self._consumer_claimed = True
+    async def receive(self, *, start_index=None, count=None):
+        """Yield one contiguous window from the single frozen service stream.
+
+        The default call preserves the historical one-shot whole-stream API.
+        Registered multi-cycle diagnostics may request consecutive windows, but
+        they must continue at the ingress cursor; a second consumer or a gap is
+        rejected so the replay clock and request identity cannot be reset.
+        """
+        windowed = start_index is not None or count is not None
+        if not windowed:
+            if self._consumer_claimed:
+                raise RuntimeError('one service consumer per frozen replay; no second execution')
+            start_index, count = 0, None
+            self._consumer_claimed = True
+        else:
+            if start_index is None:
+                start_index = self._receive_cursor
+            if type(start_index) is not int or start_index < 0:
+                raise ValueError('external replay window start_index must be a nonnegative integer')
+            if count is not None and (type(count) is not int or count <= 0):
+                raise ValueError('external replay window count must be a positive integer')
+            if not self._consumer_claimed:
+                if start_index != 0:
+                    raise RuntimeError('first external replay window must start at index zero')
+                self._consumer_claimed = True
+            elif start_index != self._receive_cursor:
+                raise RuntimeError('external replay window is not contiguous')
+        consumed = 0
         await self.start()
         while True:
+            if count is not None and consumed >= count:
+                return
             item = await self._queue.get()
             if item is None:
                 self.raise_if_failed()
+                if count is not None and consumed != count:
+                    raise ValueError('incomplete external replay window')
                 return
             index, record = item
+            expected_index = start_index + consumed
+            if index != expected_index:
+                raise ValueError('external replay window changed global request order')
             record['service_dequeued_s'] = time.perf_counter()
             self._emit({'event': 'request_dequeued', **record})
+            consumed += 1
+            self._receive_cursor = index + 1
             yield index, record
 
     async def close(self):

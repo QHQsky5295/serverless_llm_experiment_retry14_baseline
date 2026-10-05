@@ -10,6 +10,11 @@ therefore remains `pass=false`; no tolerance, post-hoc rewrite, or successful
 subset enters the correctness denominator. Cleanup, GPU-context release, and
 owned-service removal are confirmed.
 
+The overall D247 evidence set is `FAIL` for integrity because retry4 predates
+the strict predicate fix and contains a contradictory `pass=true` field.
+Retry6 alone is an internally consistent `WARN` diagnostic; it does not become
+a semantic pass through the fresh audit.
+
 The audit also found that the older retry4 artifact reports 17/22 exact matches
 but `pass=true`, which contradicts the current strict predicate. Retry4 is now
 explicitly quarantined as stale contradictory evidence. Its raw files remain
@@ -110,6 +115,14 @@ D252 retry1 通过了外部 replay 顶层门，但在场景构造器内再次触
 记录了第二处边界修正：构造器只拒绝 tiny-witness，继续绑定同一 guarded receipt、
 trace request order、context 和正 phase count。D252 仍是独立失败证据，后续重试
 必须使用新的 D254 identity。
+
+D254 retry2 已进入真实 vLLM Full stack，但在首个 phase 收到 6 条请求后触发
+`external replay cannot reset at phase/drain boundaries`，随后安全退出；这是
+同一路径中第三个把单窗口 replay 假定为全 4,000 条的旧守门器。D255 记录了
+最小修正：单一 ingress consumer 加连续全局 cursor，8 个窗口严格按
+`(start_index,count)` 接续，默认一次性 API 保持不变；非连续窗口、第二 consumer
+和不完整窗口 fail-closed。D254 的 6-request partial attempt 不进入任何分母，
+下一次必须使用新 launch identity。
 
 ## CURRENT — D246 passes real-worker token transport; independent semantic gate remains
 

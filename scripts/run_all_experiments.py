@@ -13470,9 +13470,15 @@ class ScenarioRunner:
             nonlocal launched_count
             external = getattr(self, '_external_replay', None)
             if external is not None:
-                if trace_start_index != 0 or len(traces) != len(external.plan.entries):
-                    raise ValueError('external replay cannot reset at phase/drain boundaries')
-                async for local_idx, record in external.receive():
+                full_window = trace_start_index == 0 and len(traces) == len(external.plan.entries)
+                if full_window:
+                    receiver = external.receive()
+                else:
+                    receiver = external.receive(start_index=trace_start_index, count=len(traces))
+                async for global_idx, record in receiver:
+                    local_idx = global_idx - trace_start_index
+                    if local_idx < 0 or local_idx >= len(traces):
+                        raise ValueError('external replay window index is outside phase')
                     task = asyncio.create_task(run_one_fn(local_idx, traces[local_idx],
                         arrival_released_at=record['server_received_s']))
                     active_tasks.add(task)
