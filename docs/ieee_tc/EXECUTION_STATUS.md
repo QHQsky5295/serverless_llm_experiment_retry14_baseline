@@ -1,5 +1,22 @@
 # IEEE TC execution status
 
+## CURRENT — D246 passes real-worker token transport; independent semantic gate remains
+
+2026-10-06（D243 retry2，7B 22 请求固定输出诊断）. 在 D245 修复后，新的唯一
+evidence root 完成 22/22 请求，失败 0。所有请求均有
+`output_contract_match=true`、`timing_contract=ieee_tc_native_v1`、真实非负整数
+token-ID 序列及匹配 digest，序列长度逐请求等于目标长度；终端 journal 也为
+22/22 `success=true/native_contract_matched=true`。这证明类型修复已穿过真实
+worker、JSON/RPC、controller 和 terminal sidecar，不是单元测试假象。
+
+该运行仍不是 Full 正确性或性能结果。物理 sidecar 绑定结果 SHA，记录
+`n_plan=22,n_terminal=22,n_native_contract_complete=22,n_correct=null`、无 open
+lease、294.1641511830967 physical GPU-s；`n_correct` 必须等待独立原始 checkpoint
+PEFT 序列比较。D236 的首位置参考不能替代这一步。watchdog 无 OOM/high/swap
+事件并确认 GPU context 释放；远端 7B 服务已停止。详细证据见
+`docs/ieee_tc/D246_TOKEN_CAPTURE_RETRY2.md`。3B、外部 baseline、G1/G2 和正式
+Full replay 继续暂停。
+
 ## CURRENT — D245 localizes the D243 retry1 token-capture failure
 
 2026-10-06（数值诊断失败后的进程间证据修复）. D243 retry1 completed the
