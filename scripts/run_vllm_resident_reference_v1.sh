@@ -33,6 +33,13 @@ export VLLM_RESIDENT_AUX_TASKS_MAX="${VLLM_RESIDENT_AUX_TASKS_MAX:-128}"
 export VLLM_REMOTE_ARTIFACT_BANDWIDTH_MBPS="${VLLM_REMOTE_ARTIFACT_BANDWIDTH_MBPS:-250}"
 export VLLM_RESULT_TAG="${VLLM_RESULT_TAG:-${MODEL_PROFILE}_resident_v1_r${SLLM_TOTAL_REQUESTS}_a${SLLM_SELECTED_NUM_ADAPTERS}_seed${SLLM_SAMPLING_SEED:-42}}"
 
+# Keep the bearer token local; never print, commit, or place it in a result
+# manifest.  The same private file is used by the qualified Prime runner.
+if [[ -z "${PRIME_REMOTE_TOKEN:-}" && -r "/home/qhq/.config/primelora-tc-d75/artifact.token" ]]; then
+  IFS= read -r PRIME_REMOTE_TOKEN < /home/qhq/.config/primelora-tc-d75/artifact.token
+  export PRIME_REMOTE_TOKEN
+fi
+
 if [[ -z "${VLLM_REMOTE_ARTIFACT_ENDPOINT}" ]]; then
   echo "[ERROR] no prepublished artifact endpoint for ${MODEL_PROFILE}" >&2
   exit 2
