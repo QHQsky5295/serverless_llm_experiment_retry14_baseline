@@ -43,9 +43,12 @@ the configured bounded run did not exercise the proactive gate.
 The current checkpoint's request-path extension is explicitly limited to a
 serialized core-to-worker **observational capacity witness**. It calls the existing evaluator
 with `capacity_only=True`, so it does not impose the proactive soft E(t)
-pressure rule on an arriving request and never blocks the native demand load.
+pressure rule on an arriving request and never rejects the native demand load
+solely because of that soft decision. Malformed witness, owner, or contract
+data still fails closed at the live validator.
 It reports the live pre-load scheduler/KV and adapter-pool observation,
-owner/epoch, decision, and a boolean backend outcome; it does not claim a
+owner/epoch, decision, a boolean `acquired` outcome, and a categorical
+`decision_outcome`; it does not claim a
 post-load physical inventory, victim identity, workspace measurement, or KV
 reservation. It keeps
 `proactive_admission_evaluated=false` and
