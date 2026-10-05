@@ -60,6 +60,28 @@ Retry5 is excluded from all performance evidence; the next fresh retry uses
 those existing byte-verified paths and new result/cache roots. No artifact is
 regenerated or overwritten.
 
+Retry6 reached the native deployment path with all input and launch contracts
+valid. It verified one real remote `prepublished_gzip_v1` transfer
+(`finance_lora`, 14,718,801 archive bytes, 547.7 ms client stage) and created a
+GPU context of about 13.8 GiB on the owned RTX 3090. The vLLM cold checkpoint
+load did not publish the worker-ready file within the existing 180-s
+`FAASLORA_WORKER_START_TIMEOUT_S` window; the parent then retired the worker and
+the strict physical journal correctly refused a release because no native-worker
+confirmation had been recorded. The receipt SHA256 is
+`b2a0cd61e5005538102dab1c38c126010c0d497441eff4f2257ce16dd3bd541c`.
+There were zero request terminals, zero route observations and no performance
+sample; retry6 is excluded from G1/G2 and all rankings. The remote service and
+local scopes were stopped after the exact cleanup path.
+
+This establishes a launch-time, not algorithmic, constraint: D216 succeeded
+with a warm page cache, whereas retry6's cold 12.55-GiB checkpoint load exceeded
+180 s. The next fresh retry keeps the same model, vLLM, route candidate,
+workload, resource envelope, and remote cache, and exports
+`FAASLORA_WORKER_START_TIMEOUT_S=600` so the pre-existing cold-start evidence can
+complete. This is an explicit startup contract, not a performance tuning knob;
+no request is admitted until the same native-worker confirmation, lifecycle,
+generation and dispatch evidence gates pass.
+
 ## CURRENT — Remote-scope metric protocol V2 frozen; artifact-node disk gate separated from inference host
 
 2026-10-05 11:55+08. A new protocol document
