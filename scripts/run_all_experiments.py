@@ -16357,6 +16357,16 @@ class ScenarioRunner:
                 raise ValueError('native acquisition response lacks an explicit outcome')
             if use_native_capacity_witness:
                 admission = receipt.get('admission')
+                receipt_epoch = receipt.get('epoch')
+                post_epoch = (admission.get('post_observation_owner_epoch')
+                              if isinstance(admission, dict) else None)
+                lease_replayed = (admission.get('lease_replayed') is True
+                                  if isinstance(admission, dict) else False)
+                post_epoch_valid = (
+                    type(post_epoch) is int and type(receipt_epoch) is int
+                    and (post_epoch >= receipt_epoch if lease_replayed
+                         else post_epoch == receipt_epoch)
+                )
                 if (not isinstance(admission, dict)
                         # New live workers must emit the versioned v2 witness.
                         # v1 is retained only by offline readers of sealed
@@ -16385,7 +16395,7 @@ class ScenarioRunner:
                         or admission['reservation'].get('reserved_bytes') != 0
                         or admission['reservation'].get('state') != 'observation_only'
                         or admission.get('backend_receipt_epoch') != receipt.get('epoch')
-                        or admission.get('post_observation_owner_epoch') != receipt.get('epoch')):
+                        or not post_epoch_valid):
                     raise ValueError('native demand load lacks an observational capacity witness receipt')
                 # Retain the nested decision for both successful loads and
                 # explicit conflicts; failed observations must remain
