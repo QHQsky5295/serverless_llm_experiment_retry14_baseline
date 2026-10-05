@@ -13531,6 +13531,34 @@ class ScenarioRunner:
                     queue_visible_request_count=arrived_now,
                     visible_traces=waiting_traces,
                 )
+                diagnostic_during_replay = os.environ.get(
+                    'FAASLORA_IEEE_PROACTIVE_DIAGNOSTIC_DURING_REPLAY', '').strip().lower() in {
+                        '1', 'true', 'yes', 'on'}
+                if (diagnostic_during_replay
+                        and not self._ieee_proactive_diagnostic_attempted):
+                    try:
+                        min_arrived = max(1, int(os.environ.get(
+                            'FAASLORA_IEEE_PROACTIVE_DIAGNOSTIC_MIN_ARRIVED', '4')))
+                    except (TypeError, ValueError):
+                        raise ValueError(
+                            'FAASLORA_IEEE_PROACTIVE_DIAGNOSTIC_MIN_ARRIVED must be an integer')
+                    # Trigger only on naturally observed in-flight work. No
+                    # synthetic request, sleep, queue insertion or pressure is
+                    # introduced by this diagnostic gate.
+                    if (arrived_now >= min_arrived
+                            and (active_requests > 0 or backlog > 0)):
+                        self._ieee_proactive_diagnostic_attempted = True
+                        self._ieee_proactive_diagnostic_trigger = dict(
+                            kind='observed_inflight_demand_v1',
+                            min_arrived=min_arrived,
+                            arrived=arrived_now,
+                            completed=completed_now,
+                            backlog=backlog,
+                            active_requests=active_requests,
+                            busy_ratio=busy_ratio,
+                            observed_monotonic_s=time.monotonic(),
+                        )
+                        await self.run_ieee_proactive_admission_diagnostic()
                 failed_now = sum(
                     1 for item in observed_raw
                     if isinstance(item, Exception) or not getattr(item, "success", True)
@@ -15349,6 +15377,11 @@ class ScenarioRunner:
         self._dispatch_admitted_requests = 0
         self._dispatch_admission_waiters = deque()
         self._runtime_slot_capacity_condition = None
+        # A diagnostic invoked only after replay sees an empty demand window.
+        # Keep an explicit one-shot state so an opt-in in-flight diagnostic is
+        # triggered at one naturally observed queue point and is not repeated.
+        self._ieee_proactive_diagnostic_attempted = False
+        self._ieee_proactive_diagnostic_trigger = None
         request_plan_cache = self._prepare_request_execution_plan_cache(
             self.engine,
             self.traces,
@@ -18550,6 +18583,9 @@ class ScenarioRunner:
             'proactive_path_only': True,
             'state': 'starting',
         }
+        self._ieee_proactive_diagnostic_attempted = True
+        if self._ieee_proactive_diagnostic_trigger is not None:
+            record['trigger'] = copy.deepcopy(self._ieee_proactive_diagnostic_trigger)
         self._ieee_proactive_diagnostic = record
         try:
             if (self._routing_policy != 'ieee_confirmed' or self._stack is None
@@ -24170,8 +24206,9 @@ async def _main_async_impl(
                     if (btype != 'faaslora_full' or only_scenario is None
                             or str(sname) != str(only_scenario)):
                         raise ValueError('proactive admission diagnostic requires --scenario selecting exactly one faaslora_full scenario')
-                    print('  [Diagnostic] exercising live IEEE HOST->GPU preparation candidates ...', flush=True)
-                    await runner.run_ieee_proactive_admission_diagnostic()
+                    if not getattr(runner, '_ieee_proactive_diagnostic_attempted', False):
+                        print('  [Diagnostic] exercising live IEEE HOST->GPU preparation candidates ...', flush=True)
+                        await runner.run_ieee_proactive_admission_diagnostic()
             except BaseException as exc:
                 main_error = exc
                 raise
