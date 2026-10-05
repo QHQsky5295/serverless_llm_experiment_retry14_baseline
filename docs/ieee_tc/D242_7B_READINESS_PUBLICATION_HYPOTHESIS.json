@@ -1,0 +1,25 @@
+{
+  "audit_id": "D242",
+  "date": "2026-10-06",
+  "status": "offline_hypothesis_no_replay",
+  "hypothesis": "scaleout_tail_may_be_caused_by_publishing_engine_before_activation_preparation_terminal",
+  "reference_evidence": {
+    "source_document": "docs/ieee_tc/D235_SCALEUP_FIRST_SERVICE_AUDIT.md",
+    "scaleup_events": 3,
+    "activation_seconds_range": [44.91, 46.57],
+    "new_replica_first_20_gpu_ready": 10,
+    "new_replica_first_20_total": 60,
+    "earliest_observed_ttft_ms": 11288.8
+  },
+  "first_controlled_variant": "ieee_handoff_policy=delayed",
+  "required_preflight": {
+    "memory_available_gib": 102,
+    "disk_policy": "existing inference-host policy unchanged",
+    "remote_services": "stopped_until_gate_passes"
+  },
+  "formal_status": {
+    "gpu_replay_started": false,
+    "baseline_comparison_authorized": false,
+    "g1_g2_claim_authorized": false
+  }
+}

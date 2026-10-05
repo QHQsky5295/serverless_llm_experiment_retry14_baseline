@@ -1,5 +1,20 @@
 # IEEE TC execution status
 
+## CURRENT — D242 registers one readiness-publication hypothesis; host gate still closed
+
+2026-10-06（离线瓶颈登记，无 GPU 重跑）. D235 的证据把下一处可证伪瓶颈
+收敛为一个边界：新 dedicated runtime 在 engine 初始化后即可进入 confirmed
+router，而 activation preparation 可能仍在执行；D219 新副本首 60 条中只有
+10 条是 confirmed GPU source，最早首批 TTFT 达 11,288.8 ms。D242 将已存在的
+`ieee_handoff_policy=delayed` 作为第一受控变量，Full 为配对参考，NoHandoff
+只作机制边界；不复用 legacy handoff 字段，也不把非 GPU source 改称 GPU-ready。
+
+当前 inference-host `MemAvailable` 在清理遗留离线扫描进程后约 93 GiB，仍低于
+批准计划和 preflight 的 102 GiB（80+4+16+2）要求，且 swap 已有使用。因此没有
+启动模型、远端服务或 replay。D242 规定内存门通过后的顺序：数值/输出 gate、
+D226 显式 admission bounded diagnostic、Full/Delayed natural-scaleout 诊断，
+然后才考虑新的 7B 留出块。3B 和外部 baseline 继续暂停。
+
 ## CURRENT — D241 canonical physical-resource sidecar gate implemented
 
 2026-10-06（测量完整性实现，无 GPU 重跑）. D240 要求的物理生命周期验收已
