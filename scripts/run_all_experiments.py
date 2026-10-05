@@ -16358,14 +16358,28 @@ class ScenarioRunner:
             if use_native_capacity_witness:
                 admission = receipt.get('admission')
                 if (not isinstance(admission, dict)
-                        or admission.get('kind') not in (
-                            'ieee_native_request_capacity_witness_v1',
-                            'ieee_native_request_capacity_witness_v2',
-                        )
+                        # New live workers must emit the versioned v2 witness.
+                        # v1 is retained only by offline readers of sealed
+                        # historical results; accepting it here would blur the
+                        # reservation/owner contract at the live boundary.
+                        or admission.get('kind') != 'ieee_native_request_capacity_witness_v2'
+                        or admission.get('schema_version') != 2
                         or admission.get('request_lease_id') != intent['lease_id']
                         or admission.get('physical_capacity_qualified') is not False
                         or admission.get('physical_kv_reservation') is not False
-                        or admission.get('proactive_admission_evaluated') is not False):
+                        or admission.get('proactive_admission_evaluated') is not False
+                        or admission.get('worker_owner_id') != receipt.get('owner_id')
+                        or admission.get('worker_epoch') != receipt.get('epoch')
+                        or admission.get('worker_pid') != receipt.get('worker_pid')
+                        or admission.get('worker_rank') != receipt.get('worker_rank')
+                        or not isinstance(admission.get('reservation'), dict)
+                        or admission['reservation'].get('kind') !=
+                           'ieee_observational_capacity_witness_v2'
+                        or admission['reservation'].get('schema_version') != 2
+                        or admission['reservation'].get('owner_id') != receipt.get('owner_id')
+                        or admission['reservation'].get('epoch') != receipt.get('epoch')
+                        or admission['reservation'].get('reserved_bytes') != 0
+                        or admission['reservation'].get('state') != 'observation_only'):
                     raise ValueError('native demand load lacks an observational capacity witness receipt')
                 # Retain the nested decision for both successful loads and
                 # explicit conflicts; failed observations must remain
@@ -18499,8 +18513,9 @@ class ScenarioRunner:
         source graph, demand window, preparation profiles and native owner.
         If the observed state contains no HOST candidate selected by the IEEE
         planner, the diagnostic records that coverage gap and performs no
-        adapter movement or eviction.  The read-only attachment/setup step is
-        still recorded.  It never fabricates pressure, sleeps to force a decision,
+        proactive adapter movement or eviction.  The stateful attachment/setup
+        step (HOST-budget/domain binding) is still recorded and retired through
+        the normal owner path.  It never fabricates pressure, sleeps to force a decision,
         or relabels request-driven demand loading as proactive admission.
         """
         import traceback
