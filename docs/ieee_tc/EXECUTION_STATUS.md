@@ -105,6 +105,12 @@ scope cleanup 均正常，不能归类为服务或性能失败。D251 记录了�
 的 phase-count equality；修正后必须使用新的 launch identity 重试，不覆盖这次
 门控失败证据。
 
+D252 retry1 通过了外部 replay 顶层门，但在场景构造器内再次触发了相同的
+`multi_cycle_phases == 1` 旧限制，仍在模型初始化前结束，`N_arrived=0`。D253
+记录了第二处边界修正：构造器只拒绝 tiny-witness，继续绑定同一 guarded receipt、
+trace request order、context 和正 phase count。D252 仍是独立失败证据，后续重试
+必须使用新的 D254 identity。
+
 ## CURRENT — D246 passes real-worker token transport; independent semantic gate remains
 
 2026-10-06（D243 retry2，7B 22 请求固定输出诊断）. 在 D245 修复后，新的唯一

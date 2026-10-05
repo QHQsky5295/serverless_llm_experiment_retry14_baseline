@@ -15304,8 +15304,11 @@ class ScenarioRunner:
         if launch_receipt:
             context = json.loads(Path(launch_receipt).read_text()).get('external_replay')
             if context is not None:
-                if context['tiny_witness'] or int(self.wl_cfg.get('multi_cycle_phases', 1)) != 1:
+                if context['tiny_witness']:
                     raise ValueError('model replay requires a continuous frozen-input origin')
+                phase_count = int(self.wl_cfg.get('multi_cycle_phases', 1) or 1)
+                if phase_count < 1:
+                    raise ValueError('model replay requires a positive phase count')
                 if supplied is None or supplied.context != context:
                     raise RuntimeError('external ingress must start before model initialization')
                 frozen = supplied.plan

@@ -36,7 +36,9 @@ The evidence supports the following bounded statement: for the 22-request
 diagnostic, the native service honored the fixed-length output contract for all
 requests, all 12 used adapter directories were independently tensor-verified,
 all prompt/target identities matched, and 19 sequences were exactly equal;
-the remaining three differ only at FP16 near ties in the independent witness.
+the remaining three are consistent with FP16 near ties in the independent
+witness; native-side logits and tie-breaking were not captured, so the cause is
+not proven to be numerical alone.
 This is a semantic/input-contract witness, not a 4,000-request correctness
 denominator and not a performance or ranking point.
 
