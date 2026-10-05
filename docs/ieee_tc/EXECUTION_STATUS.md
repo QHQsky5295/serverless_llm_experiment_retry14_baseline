@@ -1,5 +1,37 @@
 # IEEE TC execution status
 
+## CURRENT — D239 freezes remote latency scope, 100-Mbps interpretation, and HydraServe-aligned metrics
+
+2026-10-06（只读指标与结果审计）. A new protocol audit,
+`docs/ieee_tc/D239_REMOTE_METRIC_HYDRA_PRIME_AUDIT.md`, records the current
+evidence and does not start a GPU or remote service. The current artifact route
+is 1000 Mb/s/full on both observed endpoints with zero reported NIC errors. The
+historical D77 100-Mbps/full state remains a separately labelled negotiation
+state: its physical cause was not established, so it is neither silently
+relabelled as 1-Gbps nor treated as proof of a permanent 100-Mbps device. The
+formal contract keeps request-caused remote read/send/receive/write/extract and
+contention in user TTFT/E2E, while one-time prepublished gzip construction,
+administration, scans, cleanup, and request-external packing stay outside the
+request result and are separately audited.
+
+The metric decision is now explicit: HydraServe's warm-derived TTFT/TPOT SLO
+logic is a disclosed reference, while PrimeLoRA's primary comparison remains
+G1 (verified physical GPU-s/request under common correctness and joint SLO) and
+G2 (scale-out/churn P95 user TTFT under a common GPU-time budget and joint SLO).
+CE and idle-ready pricing remain secondary sensitivity quantities. The audit
+also records that D210→D219 7B confirmed-snapshot Full reduced mean TTFT and
+control-path time but increased P95 TTFT and left lifecycle GPU-s unchanged;
+the next optimization target is therefore readiness/first-service tail, not
+another unvalidated routing rewrite. Existing 3B D138 is a diagnostic, not a
+qualification point: its remaining mean TTFT is dominated by observable
+dispatch/admission, runtime-slot, and LoRA-I/O terms.
+
+No metric threshold, denominator, execution key, historical result, or paper
+source was changed. PrimeLoRA 7B qualification remains the active gate; 3B and
+external baselines stay paused. Deterministic JSON/hash/whitespace checks pass;
+the fresh same-family D239 reviewer did not return within the audit window and
+is recorded as `BLOCKED_REVIEWER_TIMEOUT`, not PASS.
+
 ## CURRENT — D238 retry4–6 expose natural proactive-coverage conditions; no admission result
 
 2026-10-06（受控诊断审计）. Three fresh Llama-2-7B, seed-42, 22-request

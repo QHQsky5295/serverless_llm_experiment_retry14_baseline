@@ -1,0 +1,47 @@
+{
+  "audit_id": "D239",
+  "date": "2026-10-06",
+  "status": "read_only_protocol_and_result_audit",
+  "gpu_replay_started": false,
+  "remote_service_started": false,
+  "delivery_cache_mutated": false,
+  "baseline_started": false,
+  "protocol_semantic_change": false,
+  "review": {
+    "fresh_same_family_reviewer": "d239_metric_protocol_review",
+    "status": "BLOCKED_REVIEWER_TIMEOUT",
+    "pass_claimed": false,
+    "action": "retain_as_audit_block_until_fresh_review_returns"
+  },
+  "primary_document": {
+    "path": "docs/ieee_tc/D239_REMOTE_METRIC_HYDRA_PRIME_AUDIT.md",
+    "sha256": "cad194d12dab3bcaee16c60c864a05d8cf9aba26d333ecba976dc2f913d131bb"
+  },
+  "inputs": {
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+    "metric_protocol_v1_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "remote_scope_v2_sha256": "485a6b7cf9fd34db5fdc87959ebbe9f757054cd7aa26a6a3efea210d91615a29",
+    "metric_protocol_final_v2_sha256": "5878ed9ce4494edb02916962ecb588a2b32a5cf59e66211521b90b9af95a65c9",
+    "remote_boundary_recheck_sha256": "fe4d2982a3ddc8e02510c1c03a838b35d6915f55ab693344850bdd1b52245241",
+    "prime_old_new_audit_sha256": "93a2823fd0e41b0079d8b29891bc9ad076f69b94e01afd28ac75c262c7353236"
+  },
+  "decisions": {
+    "current_remote_link": "1000Mb/s_full_both_endpoints_zero_reported_nic_errors",
+    "historical_100mbps": "separate_negotiation_state_cause_unestablished_not_merged",
+    "request_caused_remote_stages": "included_in_user_ttft_e2e_and_resource_lifecycle",
+    "one_time_prep_admin_cleanup": "excluded_from_request_result_but_receipted",
+    "hydraserve_alignment": "warm_derived_ttft_tpot_reference_only_not_ce_standard",
+    "primary_objective": "G1_physical_gpu_seconds_under_joint_slo_and_G2_tail_ttft_under_common_budget",
+    "next_gate": "prime_7b_readiness_first_service_qualification",
+    "baselines": "paused"
+  },
+  "offline_evidence": {
+    "d210_d219_7b": "partial_control_path_gain_mean_latency_gain_p95_ttft_regression_lifecycle_unchanged",
+    "d138_3b": "diagnostic_only_queue_admission_runtime_slot_and_lora_io_dominate_remaining_ttft"
+  },
+  "web_sources": [
+    "https://www.usenix.org/system/files/conference/nsdi26/nsdi26spring_lou_prepub.pdf",
+    "https://github.com/LLMServe/hydraserve",
+    "https://www.usenix.org/conference/nsdi26/presentation/lou"
+  ]
+}
