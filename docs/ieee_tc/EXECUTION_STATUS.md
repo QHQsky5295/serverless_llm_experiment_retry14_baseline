@@ -64,6 +64,14 @@ not, keep Prime-only optimization focused on the measured tail/control-path
 bottleneck. Do not claim a PrimeLoRA win or start the baseline matrix from
 D219 alone.
 
+Offline inventory D220 confirms that D166/D167, D207, D208 and the D63 native /
+independent-PEFT controls already cover the four inspected 7B tensor classes;
+repeating those single-prompt or coordinate checks would add no new hypothesis.
+They still do not provide a request-bound semantic oracle for all 4,000 D219
+requests, so `N_correct` remains unknown. D170 warm measurements remain
+provisional and are not a frozen Resident budget. The next evidence must close
+one of these two distinct gaps rather than relabel existing diagnostics.
+
 ## CURRENT — D217 retry8 launch correction prepared; retry7 evidence reclassified conservatively
 
 2026-10-05 13:12+08. The retry7 log audit does not establish a distinct
