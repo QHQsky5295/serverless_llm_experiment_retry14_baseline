@@ -1,5 +1,34 @@
 # IEEE TC execution status
 
+## CURRENT — D238 retry3 completes the bounded diagnostic but still does not exercise proactive admission
+
+2026-10-06（受控诊断）. A fresh 22-request prefix was run with the protected
+`diagnostic_prefix_v1` replay scope after fixing the witness UUID binding and
+making the prefix explicit. All 22 requests completed with the native
+fixed-output terminal contract; the service, replay, watchdog, lease cleanup,
+and GPU-context release checks passed. The remote artifact unit was stopped
+after the run and no local GPU compute process remained.
+
+This is still a diagnostic-only result. The machine-readable diagnostic reports
+`state=not_eligible` and
+`reason=requires_one_initialized_ieee_runtime_and_profiles`; proactive GPU
+admission decisions and physical KV reservations are both zero. Three natural
+scale-up events occurred, but none had a planned adapter. Thus the run confirms
+bounded request-path execution and a remaining proactive-coverage gap; it does
+not qualify physical admission, ordinary demand-route correctness, G1/G2, SLO,
+lifecycle ranking, or any baseline comparison. The observed 3,926.38-ms mean
+TTFT and 10,375.84-ms mean E2E are retained only as startup/queue diagnostics.
+
+The immutable result SHA is
+`cefb72492f4c533b9c5cb813a63a20a817cc6ec2d8180507276b8a06091ff355`; the
+launch receipt SHA is
+`021b6d635259af906a4ca851c66231846026503b84d4ad1b0493294a6add0399`.
+Full evidence and the claim boundary are sealed in
+`docs/ieee_tc/D238_RETRY3_DIAGNOSTIC_AUDIT.md` and its JSON sidecar. The next
+diagnostic must create an initialized runtime/profile and use a frozen-state
+Full-versus-CapacityOnly counterfactual; sequential evaluation on one mutable
+owner is not valid.
+
 ## CURRENT — D238 corrects the D227 admission interpretation
 
 2026-10-06（语义复核）. A fresh read-only review of the IEEE PDF, the

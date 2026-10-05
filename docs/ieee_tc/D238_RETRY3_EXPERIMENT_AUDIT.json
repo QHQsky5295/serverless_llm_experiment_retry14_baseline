@@ -1,0 +1,31 @@
+{
+  "audit_skill": "experiment-audit",
+  "date": "2026-10-06",
+  "overall_verdict": "warn",
+  "integrity_status": "warn",
+  "reviewer_model": "gpt-5.6-sol",
+  "reviewer_reasoning": "ultra",
+  "review_independence": "same-family",
+  "acceptance_status": "blocked_reviewer_timeout",
+  "evaluation_type": "self_supervised_proxy",
+  "audited_input_hashes": {
+    "result": "sha256:cefb72492f4c533b9c5cb813a63a20a817cc6ec2d8180507276b8a06091ff355",
+    "launch": "sha256:021b6d635259af906a4ca851c66231846026503b84d4ad1b0493294a6add0399",
+    "config": "sha256:f30fc3fcd56316cf185790447d0f8da316c62966e5f3b9691c1dee92b5f4e5a4",
+    "plan": "sha256:0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "checks": {
+    "gt_provenance": {"status": "pass", "details": "No correctness GT claimed; frozen trace/native contract only."},
+    "score_normalization": {"status": "pass", "details": "Raw diagnostic fields only; CE/cost excluded from claims."},
+    "result_existence": {"status": "pass", "details": "22/22 terminal and native contract counts agree; hashes sealed."},
+    "dead_code": {"status": "warn", "details": "Proactive path was not eligible and emitted zero decisions; mechanism coverage is unresolved."},
+    "scope": {"status": "warn", "details": "One 22-request prefix, one model and seed; no formal comparison."},
+    "eval_type": "self_supervised_proxy"
+  },
+  "claims": [
+    {"id": "bounded_native_execution", "impact": "supported"},
+    {"id": "cleanup_release", "impact": "supported"},
+    {"id": "proactive_admission", "impact": "needs_followup"},
+    {"id": "g1_g2_or_ranking", "impact": "unsupported"}
+  ]
+}
