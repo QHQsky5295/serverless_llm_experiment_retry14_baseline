@@ -36,6 +36,22 @@ capture; it is not a performance run. No full replay, 3B run or external baselin
 is authorized by this audit. No local GPU process or remote artifact service was
 started for D225.
 
+## CURRENT — D226 found a disabled admission gate in D219
+
+2026-10-05 19:25+08. A read-only source/config audit found that D219's
+`tc_ieee_full` YAML omits `effective_capacity_admission_enabled`; the runner and
+`ResourceCoordinator` both default the missing key to `false`. D219's result
+metadata therefore records `false` and zero admission decisions/admit/defer/reject
+events. This is a static configuration fact, not evidence that the workload had
+no capacity pressure. D219 is retained as confirmed-snapshot route/full diagnostic
+only, not promoted to a complete Full mechanism result or G1/G2 denominator.
+
+The root-cause chain and the sole next variable (a new config with the gate
+explicitly true, first checked by a bounded 22-request diagnostic) are sealed in
+`docs/ieee_tc/D226_D219_ADMISSION_GATE_AUDIT.md` and its status table. The new
+diagnostic remains gated by D225 numerical correctness preparation and the
+unchanged memory/cleanup protocol; no GPU or remote service was started for D226.
+
 ## CURRENT — D222–D224 Resident-vLLM prototype RETIRED; no qualified Resident result
 
 2026-10-05 18:25+08. A post-run protocol audit found that the D222 prototype
