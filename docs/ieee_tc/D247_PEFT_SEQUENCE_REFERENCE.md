@@ -19,7 +19,7 @@ The existing D236 first-position/full-vocabulary reference remains supportive
 evidence only; it cannot replace this sequence-level gate because it uses a
 different five-arm native receipt.
 
-Launcher: `scripts/ieee_tc/run_d247_7b_peft_sequence_reference.sh`.
+Launcher: `scripts/ieee_tc/run_d247_7b_peft_sequence_reference_retry3.sh`.
 
 The launcher deliberately uses `/usr/bin/python3` for the outer resource
 supervisor and `/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python` only for the

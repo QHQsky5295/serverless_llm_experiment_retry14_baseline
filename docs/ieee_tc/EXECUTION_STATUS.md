@@ -29,6 +29,13 @@ watchdog，并通过 4-GiB systemd auxiliary scope 启动它；CUDA 环境仅作
 执行 PEFT。资源门、输入、checkpoint、adapter、生成语义和输出路径均不变，修正后需
 重新通过同一启动门运行一次。
 
+随后一次启动已通过内存/磁盘预检，但因缺少显式 NVML binding/SHA 在 GPU 加载前被
+拒绝；该 launch receipt 作为 `d247_20261006` 的失败门控证据保留，不进入分母。检查
+确认 11 个旧 `primelora-tc-aux-*` scope 均 `TasksCurrent=0`，随后只停止这些空 scope
+以释放 systemd/inotify 资源；没有触碰任何有任务的 scope。下一次使用新的
+`d247_retry3_20261006` 身份，并显式固定已验证的 NVML 路径和 SHA；若通过，才可进入
+独立 PEFT 序列比较。
+
 ## CURRENT — D246 passes real-worker token transport; independent semantic gate remains
 
 2026-10-06（D243 retry2，7B 22 请求固定输出诊断）. 在 D245 修复后，新的唯一
