@@ -34,8 +34,9 @@ authorized from this wrapper.
 The next Resident reference, if needed, must reuse the existing qualified
 common preflight, resource-domain, physical lease, common-clock, and cleanup
 infrastructure.  The D222–D224 audit is recorded in
-`docs/ieee_tc/D222_RESIDENT_PROTOCOL_WRAPPER.md`; no remote service or GPU is
-running after cleanup.
+`docs/ieee_tc/D222_RESIDENT_PROTOCOL_WRAPPER.md`; the numeric diagnostic table
+is `paper_results/ieee_tc/p2_backend_qualification/20261005_d222_d224_resident_audit/d224_diagnostic_table.md`.
+No remote service or GPU is running after cleanup.
 
 ## CURRENT — D219 7B confirmed-snapshot full replay COMPLETE; formal acceptance remains open
 
