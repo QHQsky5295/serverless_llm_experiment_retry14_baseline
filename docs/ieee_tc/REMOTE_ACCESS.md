@@ -78,6 +78,16 @@ not secretly reduced to make a particular system pass. Quota/inodes and the
 evidence behind bounds require separate readback before remote qualification.
 No measured remote profile is yet claimed and neither service is yet qualified.
 
+The executable read-only gate is now `scripts/ieee_tc_preflight.py
+artifact-disk-check`. It requires explicit existing `--path` values and a new
+JSON bounds file containing exactly `concurrent_packs`, `log_growth_bytes` and
+`safety_reserve_bytes`, then writes a new receipt. It checks free bytes and
+inodes against the independent bound, records that quota evidence is still
+required, and never creates a directory, starts a service, changes concurrency,
+packs an artifact or deletes data. The ordinary `preflight`/`gated-launch`
+actions continue to use the inference-host policy and are intentionally
+unaffected by this artifact-node action.
+
 The latest user explicitly retains legitimate Prime advantages: NVMe/HOST/GPU
 residency may reduce remote fetch count/bytes and contention. Do NOT equalize
 misses, discard caching or subtract those effects. Unrelated remote jobs,
