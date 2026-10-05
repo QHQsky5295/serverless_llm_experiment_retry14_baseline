@@ -72,7 +72,18 @@ VLLM_REMOTE_ARTIFACT_CACHE_DIR="${VLLM_REMOTE_ARTIFACT_CACHE_DIR:-${ROOT_DIR}/re
 VLLM_REMOTE_ARTIFACT_BANDWIDTH_MBPS="${VLLM_REMOTE_ARTIFACT_BANDWIDTH_MBPS:-${BASELINE_REMOTE_ARTIFACT_BANDWIDTH_MBPS:-250}}"
 VLLM_REMOTE_ARTIFACT_STAGE_WORKERS="${VLLM_REMOTE_ARTIFACT_STAGE_WORKERS:-${BASELINE_REMOTE_ARTIFACT_STAGE_WORKERS:-1}}"
 VLLM_DISABLE_FRONTEND_MULTIPROCESSING="${VLLM_DISABLE_FRONTEND_MULTIPROCESSING:-0}"
+VLLM_RESIDENT_PROTOCOL_V1="${VLLM_RESIDENT_PROTOCOL_V1:-0}"
+VLLM_RESIDENT_LEAD_S="${VLLM_RESIDENT_LEAD_S:-60}"
+VLLM_RESIDENT_SERVICE_MEMORY_MAX="${VLLM_RESIDENT_SERVICE_MEMORY_MAX:-96G}"
+VLLM_RESIDENT_AUX_MEMORY_MAX="${VLLM_RESIDENT_AUX_MEMORY_MAX:-4G}"
+VLLM_RESIDENT_SERVICE_TASKS_MAX="${VLLM_RESIDENT_SERVICE_TASKS_MAX:-512}"
+VLLM_RESIDENT_AUX_TASKS_MAX="${VLLM_RESIDENT_AUX_TASKS_MAX:-128}"
+VLLM_RESIDENT_SERVICE_CPU_AFFINITY="${VLLM_RESIDENT_SERVICE_CPU_AFFINITY:-}"
+VLLM_RESIDENT_AUX_CPU_AFFINITY="${VLLM_RESIDENT_AUX_CPU_AFFINITY:-}"
 VLLM_ABORT_AFTER_FAILURES="${VLLM_ABORT_AFTER_FAILURES:-8}"
+VLLM_SERVER_UNITS=()
+VLLM_AUX_UNIT=""
+VLLM_PROTOCOL_FINALIZED=0
 VLLM_ABORT_FAILURES_MIN_DONE="${VLLM_ABORT_FAILURES_MIN_DONE:-32}"
 VLLM_EXPECTED_REPLAY_TOTAL="${TOTAL_REQUESTS}"
 if [[ "${VLLM_MAX_REPLAY_REQUESTS}" =~ ^[0-9]+$ ]] && (( VLLM_MAX_REPLAY_REQUESTS > 0 && VLLM_MAX_REPLAY_REQUESTS < TOTAL_REQUESTS )); then
@@ -121,6 +132,27 @@ case "${VLLM_LORA_REGISTRATION_MODE}" in
     exit 1
     ;;
 esac
+case "${VLLM_RESIDENT_PROTOCOL_V1}" in
+  0|1) ;;
+  *)
+    echo "[ERROR] VLLM_RESIDENT_PROTOCOL_V1 must be 0 or 1; got ${VLLM_RESIDENT_PROTOCOL_V1}" >&2
+    exit 1
+    ;;
+esac
+if [[ "${VLLM_RESIDENT_PROTOCOL_V1}" == "1" ]]; then
+  if [[ "${VLLM_LORA_REGISTRATION_MODE}" != "dynamic_remote" ]]; then
+    echo "[ERROR] Resident-v1 requires VLLM_LORA_REGISTRATION_MODE=dynamic_remote" >&2
+    exit 1
+  fi
+  if [[ -z "${VLLM_REMOTE_ARTIFACT_ENDPOINT}" ]]; then
+    echo "[ERROR] Resident-v1 requires a prepublished remote artifact endpoint" >&2
+    exit 1
+  fi
+  if ! [[ "${VLLM_RESIDENT_LEAD_S}" =~ ^[0-9]+([.][0-9]+)?$ ]] || (( $(printf '%.0f' "${VLLM_RESIDENT_LEAD_S}") < 1 )); then
+    echo "[ERROR] VLLM_RESIDENT_LEAD_S must be positive" >&2
+    exit 1
+  fi
+fi
 if [[ ( "${VLLM_LORA_REGISTRATION_MODE}" == "dynamic_remote" || "${VLLM_LORA_REGISTRATION_MODE}" == "static_remote" ) && -z "${VLLM_REMOTE_ARTIFACT_ENDPOINT}" ]]; then
   echo "[ERROR] VLLM_LORA_REGISTRATION_MODE=${VLLM_LORA_REGISTRATION_MODE} requires VLLM_REMOTE_ARTIFACT_ENDPOINT or BASELINE_REMOTE_ARTIFACT_ENDPOINT" >&2
   exit 1
@@ -181,7 +213,161 @@ print(" ".join(str(pid) for pid in ordered))
 PY
 }
 
+resident_unit_pid() {
+  local unit="$1"
+  local pid=""
+  for _ in $(seq 1 120); do
+    pid="$(systemctl --user show "${unit}" -p MainPID --value --no-pager 2>/dev/null || true)"
+    if [[ "${pid}" =~ ^[0-9]+$ ]] && (( pid > 1 )); then
+      printf '%s\n' "${pid}"
+      return 0
+    fi
+    if ! systemctl --user is-active --quiet "${unit}" 2>/dev/null; then
+      break
+    fi
+    sleep 0.25
+  done
+  return 1
+}
+
+resident_start_domains() {
+  [[ "${VLLM_RESIDENT_PROTOCOL_V1}" == "1" ]] || return 0
+  if ! command -v systemd-run >/dev/null 2>&1 || ! command -v systemctl >/dev/null 2>&1; then
+    echo "[ERROR] Resident-v1 requires systemd-run and systemctl user units" >&2
+    return 1
+  fi
+  systemd-run --user --no-block --unit="${RESIDENT_SERVICE_ANCHOR}" \
+    --slice="${RESIDENT_SERVICE_SLICE}" --collect /bin/sleep infinity >/dev/null
+  systemd-run --user --no-block --unit="${RESIDENT_AUX_ANCHOR}" \
+    --slice="${RESIDENT_AUX_SLICE}" --collect /bin/sleep infinity >/dev/null
+  for _ in $(seq 1 40); do
+    if systemctl --user is-active --quiet "${RESIDENT_SERVICE_ANCHOR}" \
+      && systemctl --user is-active --quiet "${RESIDENT_AUX_ANCHOR}"; then
+      break
+    fi
+    sleep 0.25
+  done
+  if ! systemctl --user is-active --quiet "${RESIDENT_SERVICE_ANCHOR}" \
+    || ! systemctl --user is-active --quiet "${RESIDENT_AUX_ANCHOR}"; then
+    echo "[ERROR] failed to start Resident-v1 service/auxiliary anchors" >&2
+    return 1
+  fi
+  systemctl --user set-property --runtime "${RESIDENT_SERVICE_SLICE}" \
+    MemoryMax="${VLLM_RESIDENT_SERVICE_MEMORY_MAX}" \
+    TasksMax="${VLLM_RESIDENT_SERVICE_TASKS_MAX}" >/dev/null
+  systemctl --user set-property --runtime "${RESIDENT_AUX_SLICE}" \
+    MemoryMax="${VLLM_RESIDENT_AUX_MEMORY_MAX}" \
+    TasksMax="${VLLM_RESIDENT_AUX_TASKS_MAX}" >/dev/null
+  if [[ -n "${VLLM_RESIDENT_SERVICE_CPU_AFFINITY}" ]]; then
+    systemctl --user set-property --runtime "${RESIDENT_SERVICE_SLICE}" \
+      AllowedCPUs="${VLLM_RESIDENT_SERVICE_CPU_AFFINITY}" >/dev/null
+  fi
+  if [[ -n "${VLLM_RESIDENT_AUX_CPU_AFFINITY}" ]]; then
+    systemctl --user set-property --runtime "${RESIDENT_AUX_SLICE}" \
+      AllowedCPUs="${VLLM_RESIDENT_AUX_CPU_AFFINITY}" >/dev/null
+  fi
+}
+
+resident_init_receipt() {
+  [[ "${VLLM_RESIDENT_PROTOCOL_V1}" == "1" ]] || return 0
+  PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" \
+    "${ROOT_DIR}/scripts/ieee_tc/resident_protocol_receipt.py" init \
+    --ledger "${RESIDENT_LEDGER_PATH}" \
+    --trace "${SHARED_TRACE_PATH}" \
+    --subset "${SHARED_ADAPTER_SUBSET_PATH}" \
+    --run-tag "${RESULT_TAG}" \
+    --model-profile "${MODEL_PROFILE}" \
+    --dataset-profile "${DATASET_PROFILE}" \
+    --workload-profile "${WORKLOAD_PROFILE}" \
+    --generation-contract "${VLLM_GENERATION_CONTRACT}" \
+    --gpu-ids "${VLLM_GPU_IDS}" \
+    --lead-s "${VLLM_RESIDENT_LEAD_S}" \
+    --remote-endpoint "${VLLM_REMOTE_ARTIFACT_ENDPOINT}" \
+    --remote-cache-dir "${VLLM_REMOTE_ARTIFACT_CACHE_DIR}" \
+    --service-slice "${RESIDENT_SERVICE_SLICE}" \
+    --aux-slice "${RESIDENT_AUX_SLICE}" \
+    --service-memory-max "${VLLM_RESIDENT_SERVICE_MEMORY_MAX}" \
+    --aux-memory-max "${VLLM_RESIDENT_AUX_MEMORY_MAX}" \
+    --service-tasks-max "${VLLM_RESIDENT_SERVICE_TASKS_MAX}" \
+    --aux-tasks-max "${VLLM_RESIDENT_AUX_TASKS_MAX}" \
+    --service-cpu-affinity "${VLLM_RESIDENT_SERVICE_CPU_AFFINITY}" \
+    --aux-cpu-affinity "${VLLM_RESIDENT_AUX_CPU_AFFINITY}"
+}
+
+resident_publish_notice() {
+  [[ "${VLLM_RESIDENT_PROTOCOL_V1}" == "1" ]] || return 0
+  PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" \
+    "${ROOT_DIR}/scripts/ieee_tc/resident_protocol_receipt.py" notice \
+    --ledger "${RESIDENT_LEDGER_PATH}"
+  local target now wait_s
+  target="$(PYTHONNOUSERSITE=1 "${VLLM_PYTHON}" - "${RESIDENT_LEDGER_PATH}" <<'PY'
+import json, sys
+print(float(json.load(open(sys.argv[1], encoding='utf-8'))['replay_t0_monotonic_s']))
+PY
+)"
+  while true; do
+    now="$(PYTHONNOUSERSITE=1 "${VLLM_PYTHON}" - <<'PY'
+import time
+print(time.monotonic())
+PY
+)"
+    wait_s="$(PYTHONNOUSERSITE=1 "${VLLM_PYTHON}" - "${target}" "${now}" <<'PY'
+import sys
+print(max(0.0, float(sys.argv[1])-float(sys.argv[2])))
+PY
+)"
+    if (( $(PYTHONNOUSERSITE=1 "${VLLM_PYTHON}" - "${wait_s}" <<'PY'
+import sys
+print(1 if float(sys.argv[1]) <= 0.0 else 0)
+PY
+) )); then
+      break
+    fi
+    sleep "$(PYTHONNOUSERSITE=1 "${VLLM_PYTHON}" - "${wait_s}" <<'PY'
+import sys
+print(min(0.25, max(0.01, float(sys.argv[1]))))
+PY
+)"
+  done
+}
+
+resident_finalize_receipt() {
+  [[ "${VLLM_RESIDENT_PROTOCOL_V1}" == "1" ]] || return 0
+  [[ "${VLLM_PROTOCOL_FINALIZED:-0}" == "1" ]] && return 0
+  [[ -n "${RESIDENT_LEDGER_PATH:-}" && -f "${RESIDENT_LEDGER_PATH}" ]] || return 0
+  local units=""
+  if (( ${#VLLM_SERVER_UNITS[@]} > 0 )); then
+    units="$(IFS=,; echo "${VLLM_SERVER_UNITS[*]}")"
+  fi
+  PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" \
+    "${ROOT_DIR}/scripts/ieee_tc/resident_protocol_receipt.py" finalize \
+    --ledger "${RESIDENT_LEDGER_PATH}" \
+    --service-units "${units}" \
+    --aux-unit "${VLLM_AUX_UNIT:-}" \
+    --max-final-memory-mib 32
+  VLLM_PROTOCOL_FINALIZED=1
+}
+
+resident_stop_domains() {
+  [[ "${VLLM_RESIDENT_PROTOCOL_V1}" == "1" ]] || return 0
+  local unit
+  if [[ -n "${VLLM_AUX_UNIT:-}" ]]; then
+    systemctl --user stop "${VLLM_AUX_UNIT}" >/dev/null 2>&1 || true
+  fi
+  for unit in "${VLLM_SERVER_UNITS[@]:-}"; do
+    [[ -n "${unit}" ]] || continue
+    systemctl --user stop "${unit}" >/dev/null 2>&1 || true
+  done
+  if [[ -n "${RESIDENT_SERVICE_ANCHOR:-}" && -n "${RESIDENT_AUX_ANCHOR:-}" ]]; then
+    systemctl --user stop "${RESIDENT_SERVICE_ANCHOR}" "${RESIDENT_AUX_ANCHOR}" >/dev/null 2>&1 || true
+  fi
+  if [[ -n "${RESIDENT_SERVICE_SLICE:-}" && -n "${RESIDENT_AUX_SLICE:-}" ]]; then
+    systemctl --user stop "${RESIDENT_SERVICE_SLICE}" "${RESIDENT_AUX_SLICE}" >/dev/null 2>&1 || true
+  fi
+}
+
 stop_vllm_servers() {
+  resident_stop_domains
   if [[ -n "${VLLM_SERVER_PIDS:-}" ]]; then
     local pids=()
     local pid=""
@@ -216,6 +402,7 @@ stop_vllm_servers() {
 cleanup() {
   local status=$?
   stop_vllm_servers
+  resident_finalize_receipt || status=$?
   return "${status}"
 }
 trap cleanup EXIT INT TERM HUP
@@ -612,6 +799,20 @@ LORA_MODULES_JSON="${SHARED_INPUT_DIR}/${RESULT_TAG}_lora_modules.json"
 LORA_MODULES_TXT="${SHARED_INPUT_DIR}/${RESULT_TAG}_lora_modules.txt"
 SERVER_LOG_PREFIX="${LOG_DIR}/${RESULT_TAG}_server"
 MEM_WATCH_PATH="${LOG_DIR}/${RESULT_TAG}_vllm_mem_watch.csv"
+RESIDENT_PROTOCOL_DIR="${RESULT_DIR}/${RESULT_TAG}_resident_protocol"
+RESIDENT_LEDGER_PATH="${RESIDENT_PROTOCOL_DIR}/${RESULT_TAG}_lifecycle.json"
+RESIDENT_ORIGIN_PATH="${RESIDENT_PROTOCOL_DIR}/${RESULT_TAG}_origin.json"
+RESIDENT_SERVICE_SLICE="${VLLM_RESIDENT_SERVICE_SLICE:-${RESULT_TAG}_resident_service.slice}"
+RESIDENT_AUX_SLICE="${VLLM_RESIDENT_AUX_SLICE:-${RESULT_TAG}_resident_aux.slice}"
+RESIDENT_SERVICE_ANCHOR="${RESULT_TAG}_resident_service_anchor.service"
+RESIDENT_AUX_ANCHOR="${RESULT_TAG}_resident_aux_anchor.service"
+RESIDENT_AUX_REPLAY_UNIT="${RESULT_TAG}_resident_replay.service"
+VLLM_SERVER_UNITS=()
+VLLM_AUX_UNIT=""
+VLLM_PROTOCOL_FINALIZED=0
+if [[ "${VLLM_RESIDENT_PROTOCOL_V1}" == "1" ]]; then
+  mkdir -p "${RESIDENT_PROTOCOL_DIR}"
+fi
 
 resolve_max_cpu_loras() {
   # Keep the experiment adapter universe unchanged: every replay request remains
@@ -912,6 +1113,11 @@ if [[ "${VLLM_DRY_RUN}" == "1" ]]; then
   exit 0
 fi
 
+if [[ "${VLLM_RESIDENT_PROTOCOL_V1}" == "1" ]]; then
+  resident_start_domains
+  resident_init_receipt
+fi
+
 echo "[3/5] Starting isolated vLLM OpenAI server(s)"
 rm -f "${SERVER_LOG_PREFIX}"_r*.log
 VLLM_SERVER_PIDS=""
@@ -974,10 +1180,21 @@ for replica_idx in $(seq 0 $((DP_REPLICAS - 1))); do
     server_cmd+=(--enforce-eager)
   fi
 
-  setsid env "${env_args[@]}" "${server_cmd[@]}" > "${replica_log}" 2>&1 &
-  replica_pid=$!
+  if [[ "${VLLM_RESIDENT_PROTOCOL_V1}" == "1" ]]; then
+    replica_unit="${RESULT_TAG}_resident_vllm_r${replica_idx}.service"
+    systemd-run --user --no-block --unit="${replica_unit}" --slice="${RESIDENT_SERVICE_SLICE}" \
+      --collect --property=MemoryMax="${VLLM_RESIDENT_SERVICE_MEMORY_MAX}" \
+      --property=TasksMax="${VLLM_RESIDENT_SERVICE_TASKS_MAX}" \
+      env "${env_args[@]}" "${server_cmd[@]}" > "${replica_log}" 2>&1
+    VLLM_SERVER_UNITS+=("${replica_unit}")
+    replica_pid="$(resident_unit_pid "${replica_unit}")"
+    echo "      replica=${replica_idx} unit=${replica_unit} pid=${replica_pid} port=${replica_port} gpu_mask=${replica_gpu_mask} log=${replica_log}"
+  else
+    setsid env "${env_args[@]}" "${server_cmd[@]}" > "${replica_log}" 2>&1 &
+    replica_pid=$!
+    echo "      replica=${replica_idx} pid=${replica_pid} port=${replica_port} gpu_mask=${replica_gpu_mask} log=${replica_log}"
+  fi
   VLLM_SERVER_PIDS="${VLLM_SERVER_PIDS} ${replica_pid}"
-  echo "      replica=${replica_idx} pid=${replica_pid} port=${replica_port} gpu_mask=${replica_gpu_mask} log=${replica_log}"
 
   ready=0
   for _ in $(seq 1 360); do
@@ -1018,6 +1235,11 @@ VLLM_SERVER_STARTUP_SEC="${startup_max_sec:-0.0}"
 write_fleet_spec "${VLLM_SERVER_STARTUP_SEC}" "${VLLM_BASE_URL_LIST}" "${VLLM_REPLICA_PORTS[*]}" "${VLLM_REPLICA_GPU_MASKS[*]}"
 echo "      vllm_startup_sec=${VLLM_SERVER_STARTUP_SEC}"
 echo "      vllm_base_urls=${VLLM_BASE_URL_LIST}"
+
+if [[ "${VLLM_RESIDENT_PROTOCOL_V1}" == "1" && "${VLLM_SMOKE_ONLY}" != "1" ]]; then
+  echo "      resident_protocol=ieee_tc_resident_protocol_v1 lead_s=${VLLM_RESIDENT_LEAD_S}"
+  resident_publish_notice
+fi
 
 if [[ "${VLLM_SMOKE_ONLY}" == "1" ]]; then
   echo "[smoke] Sending one short LoRA request to each vLLM replica"
@@ -1123,12 +1345,21 @@ if [[ "${VLLM_LORA_REGISTRATION_MODE_EFFECTIVE}" == "dynamic" || "${VLLM_LORA_RE
     REPLAY_EXTRA_ARGS+=(
       --dynamic-lora-remote-endpoint "${VLLM_REMOTE_ARTIFACT_ENDPOINT}"
       --dynamic-lora-remote-timeout-s "${VLLM_TIMEOUT_S}"
-      --dynamic-lora-remote-bandwidth-mbps "${VLLM_REMOTE_ARTIFACT_BANDWIDTH_MBPS}"
     )
+    if [[ "${VLLM_RESIDENT_PROTOCOL_V1}" == "1" ]]; then
+      REPLAY_EXTRA_ARGS+=(
+        --dynamic-lora-remote-bandwidth-mib-s "${VLLM_REMOTE_ARTIFACT_BANDWIDTH_MBPS}"
+      )
+    else
+      REPLAY_EXTRA_ARGS+=(
+        --dynamic-lora-remote-bandwidth-mbps "${VLLM_REMOTE_ARTIFACT_BANDWIDTH_MBPS}"
+      )
+    fi
   fi
 fi
 set +e
-PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" \
+REPLAY_CMD=(
+  env PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}"
   "${ROOT_DIR}/scripts/replay_openai_trace.py" \
   --trace "${SHARED_TRACE_PATH}" \
   --base-url "${VLLM_BASE_URLS[0]}" \
@@ -1158,13 +1389,35 @@ PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" \
   --drop-body-field "lora_adapter_name" \
   --label "${RESULT_TAG}" \
   --output "${REPLAY_PATH}" \
-  "${REPLAY_EXTRA_ARGS[@]}" &
-REPLAY_PID=$!
+  "${REPLAY_EXTRA_ARGS[@]}"
+)
+if [[ "${VLLM_RESIDENT_PROTOCOL_V1}" == "1" ]]; then
+  VLLM_AUX_UNIT="${RESIDENT_AUX_REPLAY_UNIT}"
+  AUX_REPLAY_LOG="${LOG_DIR}/${RESULT_TAG}_resident_replay.log"
+  systemd-run --user --no-block --unit="${VLLM_AUX_UNIT}" --slice="${RESIDENT_AUX_SLICE}" \
+    --collect --property=MemoryMax="${VLLM_RESIDENT_AUX_MEMORY_MAX}" \
+    --property=TasksMax="${VLLM_RESIDENT_AUX_TASKS_MAX}" \
+    "${REPLAY_CMD[@]}" > "${AUX_REPLAY_LOG}" 2>&1
+  REPLAY_PID="$(resident_unit_pid "${VLLM_AUX_UNIT}")"
+  echo "      resident_aux_unit=${VLLM_AUX_UNIT} pid=${REPLAY_PID} log=${AUX_REPLAY_LOG}"
+else
+  "${REPLAY_CMD[@]}" &
+  REPLAY_PID=$!
+fi
 
 MONITOR_STATUS=0
 monitor_replay_and_servers "${REPLAY_PID}" || MONITOR_STATUS=$?
-wait "${REPLAY_PID}"
-REPLAY_STATUS=$?
+if [[ "${VLLM_RESIDENT_PROTOCOL_V1}" == "1" ]]; then
+  REPLAY_STATUS=0
+  while systemctl --user is-active --quiet "${VLLM_AUX_UNIT}" 2>/dev/null; do
+    sleep 0.5
+  done
+  replay_result="$(systemctl --user show "${VLLM_AUX_UNIT}" -p Result --value --no-pager 2>/dev/null || true)"
+  [[ "${replay_result}" == "success" ]] || REPLAY_STATUS=1
+else
+  wait "${REPLAY_PID}"
+  REPLAY_STATUS=$?
+fi
 set -e
 if [[ "${MONITOR_STATUS}" -ne 0 ]]; then
   echo "[ERROR] vLLM replay monitor failed status=${MONITOR_STATUS}; rejecting this run." >&2
