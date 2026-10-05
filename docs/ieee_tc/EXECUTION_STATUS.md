@@ -1,5 +1,32 @@
 # IEEE TC execution status
 
+## CURRENT — D217 retry8 launch correction prepared; retry7 evidence reclassified conservatively
+
+2026-10-05 13:12+08. The retry7 log audit does not establish a distinct
+post-initialization handoff deadlock. It establishes only that the dedicated
+worker did not publish `ready.json` before the 600-s deadline: the checkpoint
+load completed, the first CUDA-graph profiling pass and kernel warmup completed,
+and the process was then terminated without an engine-ready receipt. The strict
+allocation journal therefore remains correctly unqualified; no route,
+latency, SLO, or GPU-s/request value is inferred. The earlier wording that
+called this a proven handoff problem is superseded by this narrower statement.
+
+The source/config audit found that retry7 used the default shared vLLM cache,
+and its cold run populated a new AOT artifact (`b7a8b0...`) immediately before
+termination. The known-good D214 launcher explicitly exported the cache roots;
+the vLLM source and official compilation documentation describe the cache as a
+reusable, configuration-keyed startup artifact. A fresh retry is therefore
+justified only as a one-variable startup validation: same D217 route, trace,
+generation, resource envelope, and 100-request prefix; fresh output/NVMe/HOST
+roots; explicit reuse of the already populated cache; unchanged 600-s timeout.
+It is not a performance run and cannot authorize a full replay by itself.
+
+The retry8 configuration was corrected to the authoritative native-host source
+SHA and committed/pushed as `42fb789`; no user files were staged. The remote 7B
+artifact service was started and authenticated against the immutable published
+cache. Local disk, memory, and GPU gates passed immediately before launch.
+
+
 ## CURRENT — D217 retry7 reached native vLLM initialization but did not qualify worker readiness; route candidate remains pending
 
 2026-10-05 12:56+08. A fresh D217 bounded qualification run was attempted with
