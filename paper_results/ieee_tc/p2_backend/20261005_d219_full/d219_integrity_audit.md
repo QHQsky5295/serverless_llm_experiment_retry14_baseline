@@ -30,10 +30,12 @@ G1/G2 or cross-system claim.
   completion timestamps. Recomputed E2E and native-TPOT identities have zero
   maximum absolute error for all 4,000 rows. This validates the timing fields,
   but does not establish numerical adapter correctness or a joint SLO.
-- **Mechanism scope — qualified.** The confirmed-snapshot route is active and
-  its request-level owner/epoch/tier invariants pass. GPU admission, hierarchy
-  transition and background planning counters are zero, so no causal claim is
-  made for those mechanisms in this run.
+- **Mechanism scope — conditional WARN.** The confirmed-snapshot route is
+  active and its request-level owner/epoch/tier invariants pass. Metadata also
+  records `effective_capacity_admission_enabled=false`; GPU admission,
+  hierarchy transition and background planning counters are zero. Therefore the
+  run qualifies the route/full-replay path only, not physical-capacity admission
+  or every mechanism implied by the paper's Full label.
 
 ## Claim boundary
 

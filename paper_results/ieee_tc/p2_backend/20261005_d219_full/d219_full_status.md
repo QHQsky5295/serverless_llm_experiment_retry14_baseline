@@ -19,7 +19,10 @@ tier matched the dispatch tier for 4,000/4,000. The snapshot collector emitted
 `confirmed_snapshot_cache_v1` for all observed source rows, with zero reported
 full fallback or identity-only rows. There were 252 requests with at least one
 stale-recheck observation (530 observed rechecks in total); these are evidence
-of selected-state validation, not failures.
+of selected-state validation, not failures. The effective-capacity admission
+gate is explicitly false in the run metadata and admission/planning/promotion
+counters are zero; D219 therefore does not qualify the paper's full physical
+capacity/admission mechanism.
 
 ## Descriptive metrics
 

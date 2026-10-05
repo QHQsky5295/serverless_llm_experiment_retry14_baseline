@@ -4,6 +4,17 @@
     "delivery_modes": [
       "prepublished_gzip_v1"
     ],
+    "integrity_checks": {
+      "archive_bytes_match": 132,
+      "archive_sha256_match": 132,
+      "artifact_id_match": 132,
+      "delivery_mode_match": 132,
+      "denominator": 132,
+      "pack_false": 132,
+      "remote_span_order_valid": 132,
+      "sent_outcome": 132,
+      "timing_contract_match": 132
+    },
     "joined_payload_bytes": 131480060,
     "joined_transfer_count": 132,
     "main_outcome_transfer_count": 132,
@@ -82,11 +93,18 @@
   "gate_manifest": {
     "configured": {
       "confirmed_snapshot_cache": true,
+      "feature_gates": {
+        "coordination_enabled": true,
+        "effective_capacity_admission_enabled": false,
+        "hierarchical_residency_enabled": true,
+        "readiness_routing_enabled": false,
+        "scale_up_handoff_enabled": true
+      },
       "fixed_generation_contract": "fixed_length_greedy_v1",
       "gpu_admission_profile_present": true,
       "routing_policy": "ieee_confirmed"
     },
-    "interpretation": "The confirmed-snapshot route is exercised; zero admission/planning/promotion counters are not evidence that those mechanisms ran.",
+    "interpretation": "The confirmed-snapshot route is exercised. The metadata explicitly reports effective_capacity_admission_enabled=false; zero admission/planning/promotion counters are not evidence that those mechanisms ran, so this is not a full physical-capacity admission qualification.",
     "observed": {
       "background_planning_events": 0,
       "confirmed_snapshot_source_mode": [

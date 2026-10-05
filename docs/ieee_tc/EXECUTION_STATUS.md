@@ -17,7 +17,10 @@ hashes and timing-contract fields each cover 4,000/4,000 requests. The source
 collection mode is `confirmed_snapshot_cache_v1` for all observed rows, with no
 reported full fallback or identity-only rows. There are 252 requests with at
 least one stale recheck (530 observed rechecks); these are selected-state
-validation observations, not a causal performance estimate.
+validation observations, not a causal performance estimate. Run metadata sets
+`effective_capacity_admission_enabled=false`, and observed admission,
+planning, promotion and hierarchy-transition counters are zero; D219 therefore
+does not qualify the full physical-capacity/admission mechanism.
 
 Descriptive values, using the frozen V1 Type-1 percentile recomputation, are
 mean/P95 TTFT 1,508.362/3,619.799 ms, service TTFT 694.289/1,843.186 ms,

@@ -111,6 +111,38 @@ transfer_ids = {row.get("http_transfer_id") for row in main_transfers}
 remote_joined = [row for row in remote_all if row.get("transfer_id") in transfer_ids]
 if len(remote_joined) != len(main_transfers) or len({row.get("transfer_id") for row in remote_joined}) != len(remote_joined):
     raise RuntimeError("remote transfer journal did not join one-to-one")
+remote_by_id = {row["transfer_id"]: row for row in remote_joined}
+delivery_checks = {
+    "artifact_id_match": 0,
+    "archive_sha256_match": 0,
+    "archive_bytes_match": 0,
+    "delivery_mode_match": 0,
+    "pack_false": 0,
+    "sent_outcome": 0,
+    "timing_contract_match": 0,
+    "remote_span_order_valid": 0,
+}
+for transfer in main_transfers:
+    remote = remote_by_id[transfer["http_transfer_id"]]
+    if remote.get("artifact_id") == transfer.get("artifact_id"):
+        delivery_checks["artifact_id_match"] += 1
+    if remote.get("archive_sha256") == transfer.get("remote_archive_sha256"):
+        delivery_checks["archive_sha256_match"] += 1
+    if remote.get("archive_bytes") == remote.get("bytes_read") == remote.get("bytes_written") == transfer.get("transferred_bytes") == transfer.get("archive_bytes_declared"):
+        delivery_checks["archive_bytes_match"] += 1
+    if remote.get("delivery_mode") == transfer.get("remote_delivery_mode"):
+        delivery_checks["delivery_mode_match"] += 1
+    if remote.get("pack_performed") is False and transfer.get("remote_pack_performed") is False:
+        delivery_checks["pack_false"] += 1
+    if remote.get("outcome") == "sent":
+        delivery_checks["sent_outcome"] += 1
+    if remote.get("timing_contract") == transfer.get("remote_timing_contract"):
+        delivery_checks["timing_contract_match"] += 1
+    span_fields = ("object_open_started_ns", "object_open_completed_ns", "send_started_ns", "send_completed_ns")
+    if all(isinstance(remote.get(field), (int, float)) for field in span_fields) and (
+        remote["object_open_started_ns"] <= remote["object_open_completed_ns"] <= remote["send_started_ns"] <= remote["send_completed_ns"]
+    ):
+        delivery_checks["remote_span_order_valid"] += 1
 
 journals = []
 expected_events = ["acquire", "worker_spawn", "native_workers", "native_workers_exited", "release"]
@@ -205,6 +237,7 @@ curated = {
             "confirmed_snapshot_cache": True,
             "fixed_generation_contract": "fixed_length_greedy_v1",
             "gpu_admission_profile_present": True,
+            "feature_gates": metadata.get("feature_gates", {}),
         },
         "observed": {
             "confirmed_snapshot_source_mode": source_evidence["modes"],
@@ -215,7 +248,7 @@ curated = {
             "host_promotions": feature_activation.get("host_promotion_completed_count", 0),
             "runtime_gpu_forward_successes": feature_activation.get("runtime_gpu_forward_success_count", 0),
         },
-        "interpretation": "The confirmed-snapshot route is exercised; zero admission/planning/promotion counters are not evidence that those mechanisms ran.",
+        "interpretation": "The confirmed-snapshot route is exercised. The metadata explicitly reports effective_capacity_admission_enabled=false; zero admission/planning/promotion counters are not evidence that those mechanisms ran, so this is not a full physical-capacity admission qualification.",
     },
     "source_snapshot_evidence": source_evidence,
     "descriptive_metrics": {key: scenario.get(key) for key in metric_keys},
@@ -255,6 +288,7 @@ curated = {
         "joined_payload_bytes": sum(int(row.get("bytes_written", 0) or 0) for row in remote_joined),
         "delivery_modes": sorted({row.get("delivery_mode") for row in remote_joined}),
         "pack_performed": sorted({bool(row.get("pack_performed")) for row in remote_joined}),
+        "integrity_checks": {**delivery_checks, "denominator": len(main_transfers)},
     },
     "source_sha256": {
         "launch": sha(root / "launch.json"),
