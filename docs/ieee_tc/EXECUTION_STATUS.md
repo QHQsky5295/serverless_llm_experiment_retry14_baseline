@@ -1,5 +1,18 @@
 # IEEE TC execution status
 
+## CURRENT — D222 Resident-vLLM protocol wrapper implemented; no new performance result
+
+2026-10-05 17:20+08. The baseline harness now contains a separate
+`run_vllm_resident_reference_v1.sh` path (baseline commit `0d01e9a`) that
+reuses the frozen vLLM runner, W0 trace, 500-adapter subset, native fixed-output
+contract and prepublished gzip artifact endpoint. It adds distinct service and
+auxiliary resource slices, a common monotonic deployment notice with the frozen
+lead time, and a per-GPU acquire/hold/release receipt closed only after an
+independent idle NVML census. CPU/syntax checks, a four-GPU receipt round-trip,
+systemd cleanup and a dry-run contract check passed. No remote service, model
+replay or performance result was started in D222. The next evidence is a
+100-request 7B smoke; the old D213 Resident repeats remain diagnostic-only.
+
 ## CURRENT — D219 7B confirmed-snapshot full replay COMPLETE; formal acceptance remains open
 
 2026-10-05 15:45+08. D219 completed the frozen 7B W0 exploratory full replay
