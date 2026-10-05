@@ -65,7 +65,10 @@ an explicitly retained retry identity; it may not overwrite these files.
 
 ## Verification before retry
 
-The focused service-profile/token-capture tests pass (61 routing tests and
-3 token-capture tests).  Python compilation and `git diff --check` are required
-again after the code checkpoint.  The retry remains diagnostic-only and must
-repeat the unchanged host/remote/GPU gates before starting the 7B service.
+At the D244 checkpoint, the focused service-profile/token-capture tests pass
+(58 service-routing tests and 3 token-capture tests).  The later D245 RPC
+transport regression adds one capture test and is recorded separately; it does
+not change the D244 launch evidence.  Python compilation and `git diff --check`
+are required again after the code checkpoint.  The retry remains
+diagnostic-only and must repeat the unchanged host/remote/GPU gates before
+starting the 7B service.

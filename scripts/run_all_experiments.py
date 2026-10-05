@@ -949,6 +949,25 @@ def _maybe_attach_opt_in_completion_token_ids(
     )
 
 
+def _preserve_native_timing_value(key: str, value: Any) -> Any:
+    """Preserve the opt-in structured timing field across dedicated RPC.
+
+    Dedicated workers return timing over newline-JSON.  Ordinary timing values
+    are intentionally reduced to scalar audit values at this boundary.  An
+    explicitly enabled token diagnostic needs its already validated native ID
+    list to survive unchanged; all other fields retain the legacy scalar
+    normalization behavior at this boundary.
+    """
+    if key == "completion_token_ids":
+        if (not isinstance(value, list)
+                or any(type(token_id) is not int or token_id < 0 for token_id in value)):
+            raise ValueError("opt-in completion token capture is invalid")
+        return list(value)
+    if value is None or isinstance(value, (str, bool)):
+        return value
+    return _safe_float(value, 0.0)
+
+
 def _generation_contract_request_map_sha256(result: "ScenarioResult") -> str:
     rows = [
         {
@@ -1004,7 +1023,7 @@ def _attach_parent_rpc_breakdown(
     # numeric consumers below already use
     # ``_safe_float`` defensively.
     normalized = {
-        key: value if value is None or isinstance(value, (str, bool)) else _safe_float(value, 0.0)
+        key: _preserve_native_timing_value(key, value)
         for key, value in dict(timing or {}).items()
         if isinstance(key, str)
     }
@@ -5947,7 +5966,7 @@ class SubprocessInferenceEngineProxy:
         # Auditing also carries token identity and a typed terminal flag.
         # A numeric residual cannot substitute for a native terminal event.
         self.last_timing = {
-            key: value if value is None or isinstance(value, (str, bool)) else _safe_float(value, 0.0)
+            key: _preserve_native_timing_value(key, value)
             for key, value in timing.items()
             if isinstance(key, str)
         }

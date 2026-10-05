@@ -13,6 +13,8 @@ from scripts.run_all_experiments import (
     InferenceEngine, RequestExecutionPlan, RequestResult, ScenarioResult, ScenarioRunner,
     SubprocessInferenceEngineProxy,
     _attach_parent_rpc_breakdown,
+    _decode_native_rpc_frame,
+    _encode_rpc_frame,
 )
 
 
@@ -185,6 +187,36 @@ class EngineTimingIntegration(unittest.TestCase):
                 observed = result[3]['native_terminal_observed']
                 self.assertEqual(type(observed), type(flag))
                 self.assertEqual(observed, flag)
+
+    def test_rpc_preserves_opt_in_native_ids_across_parent_boundaries(self):
+        """The diagnostic witness must survive worker JSON and both parent normalizers."""
+        wire_payload = {
+            'ok': True,
+            'result': {
+                'ttft_ms': 500., 'tpot_ms': 300., 'output_tokens': 3,
+                'timing': {
+                    'completion_token_ids': [11, 12, 13],
+                    'completion_token_ids_capture_contract':
+                        'fixed_length_greedy_v1_native_ids_opt_in_v1',
+                    'native_terminal_observed': True,
+                },
+            },
+        }
+        decoded = _decode_native_rpc_frame(_encode_rpc_frame(wire_payload))
+        decoded['result']['timing'] = _attach_parent_rpc_breakdown(
+            decoded['result']['timing'])
+        proxy = SubprocessInferenceEngineProxy.__new__(SubprocessInferenceEngineProxy)
+        proxy._rpc = AsyncMock(return_value=decoded['result'])
+        result = asyncio.run(proxy.generate('p', None, None, 3, 1, return_timing=True))
+        self.assertEqual(result[3]['completion_token_ids'], [11, 12, 13])
+        self.assertEqual(
+            result[3]['completion_token_ids_capture_contract'],
+            'fixed_length_greedy_v1_native_ids_opt_in_v1')
+        self.assertIs(result[3]['native_terminal_observed'], True)
+
+    def test_parent_rpc_rejects_coerced_token_capture(self):
+        with self.assertRaisesRegex(ValueError, 'token capture'):
+            _attach_parent_rpc_breakdown({'completion_token_ids': 0.0})
 
     def test_native_zero_is_observed_but_single_token_is_not(self):
         result = ScenarioResult('native', 'faaslora_full', total=3)

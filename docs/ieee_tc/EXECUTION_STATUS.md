@@ -1,5 +1,33 @@
 # IEEE TC execution status
 
+## CURRENT — D245 localizes the D243 retry1 token-capture failure
+
+2026-10-06（数值诊断失败后的进程间证据修复）. D243 retry1 completed the
+protected 22-request replay and released all four allocation owners, but all
+22 requests failed with `opt-in completion token capture is invalid`.  The
+native worker had produced a token-ID list; the dedicated parent proxy and the
+parent RPC timing annotator independently applied scalar coercion, turning that
+list into a numeric fallback before controller validation.  This is a typed
+evidence-transport defect, not evidence of a vLLM, LoRA, routing, admission or
+GPU semantic failure.  The retry is excluded from correctness, SLO, G1/G2 and
+ranking denominators.
+
+D245 adds one shared validator-preserving normalizer for both parent boundaries.
+It preserves only the opt-in `completion_token_ids` list after checking
+non-negative integer IDs; ordinary timing fields keep their legacy scalar
+normalization and the default-off digest-only schema is unchanged.  A new
+encode/decode → parent-normalization → proxy-return integration test passes.
+Pinned tests pass: 58 service-routing, 4 token-capture, and 25 native-timing
+tests (87 combined).  Full evidence and the claim boundary are in
+`docs/ieee_tc/D245_TOKEN_CAPTURE_RPC_FIX.md`.
+
+The retry1 physical sidecar is cleanup-complete (`n_plan=22`, `n_terminal=22`,
+no open leases, 318.4623162969947 observed physical GPU-s) but reports
+`n_native_contract_complete=0` and `n_correct=null`; no low-cost or performance
+conclusion is admissible.  The next action is a fresh guarded retry with a new
+result identity, followed by the existing bounded numerical-reference scope;
+3B and all external baselines remain paused.
+
 ## CURRENT — D244 closes a profile-identity contract failure; D243 retry is held
 
 2026-10-06（D243 首次启动失败，已完成因果审计）. D243 在第一条模型请求完成前
@@ -13,8 +41,8 @@ terminal、GPU allocation、token sequence、SLO 或性能数据。远端 7B 发
 `FrozenServiceProfiles.model_identity` 及 stdlib preflight identity 共同排除唯一的
 诊断字段 `ieee_token_id_capture`，与已存在的 placement-only 排除保持一致；模型、
 权重、采样、路由、准入、profile 文件、环境/资源/input context 和论文公式均不
-变。普通 backend/model 配置变化仍 fail-closed。服务路由 61 项和 token-capture
-3 项聚焦测试通过；下一次重试必须使用新结果身份，并重新执行全部本地主机/远端/
+变。普通 backend/model 配置变化仍 fail-closed。D244 checkpoint 的服务路由 58
+项和 token-capture 3 项聚焦测试通过；下一次重试必须使用新结果身份，并重新执行全部本地主机/
 GPU 门槛。详情见 `D244_OBSERVATION_FLAG_PROFILE_IDENTITY_FIX.md`。
 
 ## CURRENT — D243 7B native token-capture diagnostic prepared; GPU launch held for final gates

@@ -1,6 +1,9 @@
 import unittest
 
-from scripts.run_all_experiments import _maybe_attach_opt_in_completion_token_ids
+from scripts.run_all_experiments import (
+    _maybe_attach_opt_in_completion_token_ids,
+    _preserve_native_timing_value,
+)
 
 
 class OptInCompletionTokenCaptureTests(unittest.TestCase):
@@ -27,6 +30,17 @@ class OptInCompletionTokenCaptureTests(unittest.TestCase):
                     _maybe_attach_opt_in_completion_token_ids(
                         {}, {"ieee_token_id_capture": True}, ids
                     )
+
+    def test_dedicated_rpc_preserves_only_valid_native_id_list(self):
+        self.assertEqual(
+            _preserve_native_timing_value("completion_token_ids", [0, 17, 32000]),
+            [0, 17, 32000],
+        )
+        self.assertEqual(_preserve_native_timing_value("native_ttft_ms", 12.5), 12.5)
+        with self.assertRaisesRegex(ValueError, "token capture"):
+            _preserve_native_timing_value("completion_token_ids", 0.0)
+        with self.assertRaisesRegex(ValueError, "token capture"):
+            _preserve_native_timing_value("completion_token_ids", [1, -2])
 
 
 if __name__ == "__main__":
