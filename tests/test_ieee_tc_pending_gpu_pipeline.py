@@ -272,6 +272,22 @@ class WorkerTransport(unittest.IsolatedAsyncioTestCase):
     async def test_cancel_during_gpu_does_not_clear_unknown_gpu_pin(self):
         await self.roundtrip('gpu')
 
+    async def test_capacity_witness_reply_reconciles_exact_lost_rpc(self):
+        proxy = SubprocessInferenceEngineProxy.__new__(SubprocessInferenceEngineProxy)
+        proxy._native_rpc_uncertain = {
+            'lost-witness': {
+                'cmd': 'ieee_admit_and_demand_load',
+                'owner_id': 'owner-test', 'lease_id': 'gpu-test'}}
+        proxy._rpc = AsyncMock(return_value={
+            'request_lease_id': 'gpu-test', 'owner_id': 'owner-test',
+            'acquired': False, 'reason': 'backend_load_conflict'})
+        command = dict(lease_id='gpu-test', expected_owner_id='owner-test',
+                       capacity_only=True)
+        result = await proxy.ieee_admit_and_demand_load(**command)
+        self.assertFalse(result['acquired'])
+        self.assertFalse(proxy._native_rpc_uncertain)
+        proxy._rpc.assert_awaited_once_with('ieee_admit_and_demand_load', **command)
+
 
 if __name__ == '__main__':
     unittest.main()

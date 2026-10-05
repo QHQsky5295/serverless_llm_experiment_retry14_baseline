@@ -1175,6 +1175,11 @@ class RuntimeRequestReservation:
     ieee_observation: Optional[Any] = None
     ieee_native_observer: Optional[Any] = None
     ieee_routing_attempts: List[Dict[str, Any]] = field(default_factory=list)
+    # The execution plan is carried by the reservation so the selected-source
+    # helper keeps its historical one-argument API.  A few qualification paths
+    # and tests intentionally replace that helper with a one-argument callback;
+    # passing the plan as a second positional argument would break them.
+    request_plan: Optional[RequestExecutionPlan] = None
 
     def bind(self, slot, adapter_id, adapter_reserved: bool) -> None:
         if self.bound:
@@ -4679,13 +4684,15 @@ class InferenceEngine:
         return result
 
     async def ieee_admit_and_demand_load(self, **command) -> Dict[str, Any]:
-        """Atomically qualify native capacity before a request-driven load."""
+        """Collect a serialized core-to-worker witness around native demand loading."""
         if (self.model_cfg.get('ieee_admission_profile') is None
                 or not self.model_cfg.get('ieee_gpu_references', False)
                 or not self.model_cfg.get('ieee_scheduler_observation', False)):
             raise RuntimeError('native demand admission requires explicit admission owners')
         if self.backend != 'vllm' or self.engine is None or self._engine_dead:
             raise RuntimeError('native demand admission requires a live vLLM engine')
+        if command.get('capacity_only') is not True:
+            raise ValueError('request capacity witness requires capacity_only=True')
         rpc = getattr(getattr(self.engine, 'engine_core', None), 'call_utility_async', None)
         if not callable(rpc):
             raise RuntimeError('backend lacks the native demand-admission utility')
@@ -4694,6 +4701,8 @@ class InferenceEngine:
         if (not isinstance(result, dict)
                 or result.get('clock_id') != local_monotonic_clock_id()
                 or result.get('production_launch_authorized') is not False
+                or result.get('request_lease_id') != command.get('lease_id')
+                or result.get('owner_id') != command.get('expected_owner_id')
                 or not isinstance(result.get('admission'), dict)):
             raise RuntimeError('invalid native demand-admission acknowledgement')
         return result
@@ -6044,7 +6053,22 @@ class SubprocessInferenceEngineProxy:
         return await self._rpc('ieee_prepare_host', **command)
 
     async def ieee_admit_and_demand_load(self, **command) -> Dict[str, Any]:
-        return await self._rpc('ieee_admit_and_demand_load', **command)
+        if command.get('capacity_only') is not True:
+            raise ValueError('request capacity witness requires capacity_only=True')
+        result = await self._rpc('ieee_admit_and_demand_load', **command)
+        if (not isinstance(result, dict)
+                or result.get('request_lease_id') != command.get('lease_id')
+                or result.get('owner_id') != command.get('expected_owner_id')):
+            raise ValueError('request capacity witness lacks exact lease/owner identity')
+        # An explicit success or conflict receipt reconciles this exact
+        # idempotent request operation.  A lost reply remains uncertain and
+        # continues to fence later generation until separately reconciled.
+        for key, operation in list(self._native_rpc_uncertain.items()):
+            if (operation.get('cmd') == 'ieee_admit_and_demand_load'
+                    and operation.get('lease_id') == command.get('lease_id')
+                    and operation.get('owner_id') == command.get('expected_owner_id')):
+                del self._native_rpc_uncertain[key]
+        return result
 
     async def ieee_transfer_event(self, **command):
         result = await self._rpc('ieee_transfer_event', **command)
@@ -16172,18 +16196,23 @@ class ScenarioRunner:
                     'effective_capacity_admission_enabled', False)
             or self.model_cfg.get('effective_capacity_admission_enabled', False)
         )
+        native_witness_enabled = bool(
+            effective_capacity_gate
+            and self.model_cfg.get('ieee_admission_profile') is not None
+            and self.model_cfg.get('ieee_gpu_references', False)
+            and self.model_cfg.get('ieee_scheduler_observation', False))
         # The IEEE soft E(t) rule is a proactive-residency rule.  Ordinary
         # request-driven loading remains backend-priority and must not be
         # rejected merely because the soft budget is busy.  Only use the
-        # optional hard-capacity witness when the explicit gate and logical
+        # optional observational witness when the explicit gate and logical
         # pending owner are both present; otherwise preserve the native demand
         # path (including the CPU-only/unit-test path).
         use_native_capacity_witness = bool(
             admission_request_plan is not None and pending_request_plan is None
-            and effective_capacity_gate and reservation.ieee_pending_admission is not None)
+            and native_witness_enabled and reservation.ieee_pending_admission is not None)
         if admission_request_plan is not None and pending_request_plan is not None:
             raise ValueError('native demand witness cannot be combined with pending GPU admission')
-        if admission_request_plan is not None and effective_capacity_gate \
+        if admission_request_plan is not None and native_witness_enabled \
                 and reservation.ieee_pending_admission is None:
             raise ValueError('native demand witness requires an existing pending request')
         await self._attach_ieee_host_budget(engine)
@@ -16317,14 +16346,33 @@ class ScenarioRunner:
             elif use_native_capacity_witness:
                 receipt = await engine.ieee_admit_and_demand_load(
                     # A request-driven load has priority over the proactive
-                    # soft E(t) budget.  The worker still performs the same
-                    # hard pool/headroom check and reports its snapshot.
+                    # soft E(t) budget.  The worker records an observational
+                    # snapshot; native vLLM remains the owner of loading,
+                    # eviction, and actual KV capacity.
                     **intent, capacity_only=True)
             else:
                 receipt = await engine.ieee_gpu_reference(operation='demand_load_and_acquire', **intent)
             validate_snapshot(receipt)
             if type(receipt.get('acquired')) is not bool:
                 raise ValueError('native acquisition response lacks an explicit outcome')
+            if use_native_capacity_witness:
+                admission = receipt.get('admission')
+                if (not isinstance(admission, dict)
+                        or admission.get('kind') != 'ieee_native_request_capacity_witness_v1'
+                        or admission.get('request_lease_id') != intent['lease_id']
+                        or admission.get('physical_capacity_qualified') is not False
+                        or admission.get('physical_kv_reservation') is not False
+                        or admission.get('proactive_admission_evaluated') is not False):
+                    raise ValueError('native demand load lacks an observational capacity witness receipt')
+                # Retain the nested decision for both successful loads and
+                # explicit conflicts; failed observations must remain
+                # countable without being promoted to physical qualification.
+                evidence['native_admission'] = dict(admission)
+                evidence['native_admission_receipt_identity'] = {
+                    key: receipt.get(key) for key in (
+                        'request_lease_id', 'owner_id', 'epoch', 'worker_pid',
+                        'worker_rank', 'completion_fence_scope')}
+                evidence['request_capacity_witness'] = True
             if receipt['acquired']:
                 for field in ('lease_id', 'adapter_int_id', 'lora_name', 'lora_path'):
                     if receipt.get(field) != intent[field]:
@@ -16347,16 +16395,6 @@ class ScenarioRunner:
                         or acquired_at <= 0 or acquired_at > time.monotonic()):
                     raise ValueError('native acquisition receipt has invalid completion time')
                 evidence.update(state='acquired', receipt=dict(receipt))
-                if use_native_capacity_witness:
-                    admission = receipt.get('admission')
-                    if (not isinstance(admission, dict)
-                            or admission.get('kind') != 'ieee_native_request_capacity_witness_v1'
-                            or admission.get('physical_capacity_qualified') is not True
-                            or admission.get('physical_kv_reservation') is not False
-                            or admission.get('proactive_admission_evaluated') is not False):
-                        raise ValueError('native demand load lacks a hard-capacity witness receipt')
-                    evidence['native_admission'] = dict(admission)
-                    evidence['request_capacity_witness'] = True
                 self._complete_ieee_pending_load(reservation)
                 # The backend acknowledged completed loading/copying. File input
                 # is no longer read; native tensor leases own subsequent work.
@@ -16638,7 +16676,9 @@ class ScenarioRunner:
         host.update(state='released', release_receipt=dict(released))
         self._settle_native_reference_intent(reservation, 'host', 'released')
 
-    async def _ieee_prepare_selected_adapter(self, reservation, request_plan):
+    async def _ieee_prepare_selected_adapter(self, reservation, request_plan=None):
+        if request_plan is None:
+            request_plan = reservation.request_plan
         evidence, observation = reservation.gpu_reference_evidence, reservation.ieee_observation
         source = evidence['source_admission']['source']
         if source['tier'] == 'gpu':
@@ -17088,11 +17128,15 @@ class ScenarioRunner:
         instance_id   = getattr(slot, "instance_id", None) if slot is not None else getattr(self, "_primary_instance_id", None)
         if request_plan is None:
             request_plan = self._prepare_request_execution_plan(_engine, trace, max_tokens)
+        _reservation.request_plan = request_plan
 
         # ---- LoRA resolution ----
         gpu_reference = None
         if ieee_routing and adapter_id:
-            gpu_reference = await self._ieee_prepare_selected_adapter(_reservation, request_plan)
+            # Keep the helper's established one-argument call contract.  The
+            # plan is carried on this request-owned reservation, avoiding a
+            # shared runner field and preserving patched qualification hooks.
+            gpu_reference = await self._ieee_prepare_selected_adapter(_reservation)
             local_path = gpu_reference['lora_path']
             cache_tier = readiness_tier_before_dispatch
             lora_io_ms = (_reservation.ieee_observation.acquired_at - admitted_perf_counter) * 1000.
@@ -17100,14 +17144,14 @@ class ScenarioRunner:
             if native_admission is not None:
                 if not isinstance(native_admission, dict):
                     raise ValueError('native admission evidence is not a typed receipt')
-                gpu_admission_decision_us = max(
-                    0.0, float(native_admission.get('decision_us', 0.0) or 0.0))
+                if native_admission.get('proactive_admission_evaluated') is True:
+                    gpu_admission_decision_us = max(
+                        0.0, float(native_admission.get('decision_us', 0.0) or 0.0))
                 source_admission = _reservation.gpu_reference_evidence.get('source_admission')
                 if isinstance(source_admission, dict):
                     source_admission.update(
-                        physical_capacity_qualified=(
-                            native_admission.get('physical_capacity_qualified') is True),
-                        physical_admission=native_admission,
+                        physical_capacity_qualified=False,
+                        request_capacity_witness=native_admission,
                     )
         if not ieee_routing and adapter_id and self.model_cfg.get('ieee_gpu_references', False):
             probe_started_ns = time.perf_counter_ns()

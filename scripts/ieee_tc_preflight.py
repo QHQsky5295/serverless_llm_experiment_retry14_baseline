@@ -3236,6 +3236,7 @@ async def collect_native_source_wave(boundary, slot, cases, result):
                         reservation_released=reservation.released,
                         source_evidence=reservation.gpu_reference_evidence))
                     reservation.retry_known_conflict()
+            reservation.request_plan = prepared
             reference = await boundary._ieee_prepare_selected_adapter(reservation)
             observation = reservation.ieee_observation
             observer = NativeServiceIntervalObserver(observation, clock_id=clock_id,
@@ -4079,6 +4080,7 @@ async def qualify_native_source_intervals(engine, plan, adapters, result):
         case['source_evidence'] = reservation.gpu_reference_evidence
         if not accepted:
             raise RuntimeError('serial source admission conflicted; no hidden retry')
+        reservation.request_plan = prepared
         reference = await boundary._ieee_prepare_selected_adapter(reservation)
         case['reference'] = reference
         observation = reservation.ieee_observation

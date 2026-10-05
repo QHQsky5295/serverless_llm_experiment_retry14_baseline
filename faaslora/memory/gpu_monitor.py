@@ -1043,9 +1043,11 @@ class IEEEWorkerObservationExtension:
         the native LoRA copies use the current execution stream. TP/PP > 1 needs
         a multi-worker commit protocol and is deliberately not authorized here.
         Proactive preparation is reachable only through the same-owner core
-        bridge; ordinary unqualified demand loading does not evaluate soft
-        E(t).  The qualified `admit_and_demand_load` operation is the explicit
-        same-owner request path that does.
+        bridge; ordinary demand loading does not evaluate soft E(t).  The
+        `admit_and_demand_load` operation records a serialized core-to-worker
+        observational capacity witness for a request-priority load.  It does not claim
+        proactive E(t) admission, physical KV reservation, workspace
+        qualification, or replacement-victim validation.
         """
         diagnostic_id = kwargs.pop('_diagnostic_control_id', None)
         if diagnostic_id is not None and operation != 'request_source_snapshot':
@@ -1294,6 +1296,8 @@ class IEEEWorkerObservationExtension:
             observation = kwargs.pop('scheduler_observation')
             lengths = kwargs.pop('lengths')
             capacity_only = kwargs.pop('capacity_only')
+            if capacity_only is not True:
+                raise ValueError('request capacity witness requires capacity_only=True')
             if (observation.get('scheduler_pid') != os.getpid()
                     or observation.get('clock_id') != local_monotonic_clock_id()
                     or observation.get('kind') != 'ieee_native_scheduler_observation_v1'
@@ -1321,12 +1325,15 @@ class IEEEWorkerObservationExtension:
             if cached_requests is None:
                 cached_requests = {}
                 owner._ieee_request_capacity_receipts = cached_requests
+            owner._refresh()
             cached = cached_requests.get(kwargs['lease_id'])
             if cached is not None:
                 if cached['request_key'] != request_key:
                     raise ValueError('request-capacity lease reused for a different command')
-                return copy.deepcopy(cached['receipt'])
-            owner._refresh()
+                if owner._poisoned or cached['owner_epoch'] != owner.epoch:
+                    cached_requests.pop(kwargs['lease_id'], None)
+                else:
+                    return copy.deepcopy(cached['receipt'])
             pool = _ieee_lora_pool_inventory(manager, require_uniform_slots=True)
             free, total = map(int, torch.cuda.mem_get_info(self.device))
             slot_bytes = pool['slot_capacity_bytes']
@@ -1357,55 +1364,67 @@ class IEEEWorkerObservationExtension:
                                                capacity_only=capacity_only)
             decision_us = (time.perf_counter_ns() - started_ns) / 1000.0
             reservation = dict(
-                kind='ieee_atomic_capacity_witness_v1',
+                kind='ieee_observational_capacity_witness_v1',
                 reservation_id=uuid.uuid4().hex,
                 owner_id=owner.owner_id,
                 epoch=owner.epoch,
                 reserved_bytes=decision.physical_increment_bytes,
                 predicted_kv_bytes=decision.predicted_kv_bytes,
                 scope='preallocated_lora_pool_and_backend_kv_atomic_check',
-                state='decision_only')
-            # This is a request-priority hard-capacity witness, not the
+                state='observation_only')
+            # This is a request-priority observational witness, not the
             # proactive E(t) residency admission.  The backend remains the
             # owner of actual KV blocks; no synthetic reservation is claimed.
             admission = dict(kind='ieee_native_request_capacity_witness_v1',
+                request_lease_id=kwargs['lease_id'],
                 decision=asdict(decision), decision_us=decision_us,
                 scheduler_owner_id=observation['scheduler_owner_id'],
-                scheduler_epoch=observation['epoch'],
+                scheduler_pid=observation['scheduler_pid'],
+                # The vLLM scheduler observation exposes monotonic sequence
+                # numbers, not a synthetic epoch.  Keep epoch absent rather
+                # than inventing one; the native owner epoch below is the
+                # authoritative load identity for this observational witness.
+                scheduler_epoch=None,
                 worker_owner_id=owner.owner_id, worker_epoch=owner.epoch,
+                worker_pid=os.getpid(), worker_rank=int(self.rank),
                 physical_capacity_qualified=False,
                 physical_kv_reservation=False,
                 proactive_admission_evaluated=False,
+                workspace_evidence='not_measured_for_native_demand_loader',
+                pool_replacement_evidence='delegated_to_native_lru_not_observed',
                 reservation=reservation,
                 snapshot=asdict(snapshot), proposal=asdict(proposal),
                 scheduler_sequences={key: observation[key] for key in
                                      ('scheduled_sequence', 'completed_sequence')},
                 admitted_scope=observation['admitted_scope'],
                 transfer_scope=transfers['transfer_scope'])
-            if not decision.admit:
-                reservation['state'] = 'deferred'
-                result = dict(acquired=False, reason=decision.reason,
-                              owner_id=owner.owner_id, epoch=owner.epoch,
-                              admission=admission,
-                              proactive_admission_evaluated=False,
-                              request_capacity_witness=True,
-                              physical_capacity_qualified=False,
-                              request_admission_reserved=False,
-                              physical_kv_reservation=False)
-            else:
-                result = owner.demand_load_and_acquire(**kwargs)
-                admission['physical_capacity_qualified'] = bool(result.get('acquired') is True)
-                admission['post_load_owner_epoch'] = result.get('epoch')
-                admission['decision_outcome'] = 'admitted' if result.get('acquired') else 'stale_or_conflict'
-                reservation['state'] = 'committed' if result.get('acquired') else 'not_committed'
-                result.update(admission=admission,
-                              proactive_admission_evaluated=False,
-                              request_capacity_witness=True,
-                              physical_capacity_qualified=admission['physical_capacity_qualified'],
-                              request_admission_reserved=False,
-                              physical_kv_reservation=False)
-            cached_requests[kwargs['lease_id']] = dict(
-                request_key=request_key, receipt=copy.deepcopy(result))
+            # Request-driven loading has priority over the proactive soft
+            # budget.  Keep the evaluator observational here and let the
+            # backend's own native LRU/allocator decide the actual load; a
+            # witness must never turn an unpinned-victim case into a request
+            # failure.  In particular, no physical KV reservation is claimed.
+            result = owner.demand_load_and_acquire(**kwargs)
+            admission['physical_capacity_qualified'] = False
+            admission['post_load_owner_epoch'] = result.get('epoch')
+            admission['decision_outcome'] = (
+                'backend_load_succeeded' if result.get('acquired')
+                else 'backend_load_conflict')
+            reservation['state'] = 'observation_only'
+            result.update(request_lease_id=kwargs['lease_id'], admission=admission,
+                          proactive_admission_evaluated=False,
+                          request_capacity_witness=True,
+                          physical_capacity_qualified=False,
+                          request_admission_reserved=False,
+                          physical_kv_reservation=False)
+            if result.get('acquired') is True:
+                cached_requests[kwargs['lease_id']] = dict(
+                    # The lease receipt may retain its original acquisition
+                    # epoch when an unrelated native cache change advanced the
+                    # owner epoch.  Cache validity is tied to the refreshed
+                    # owner's current state, while the receipt epoch remains
+                    # an immutable acquisition identity.
+                    request_key=request_key, owner_epoch=owner.epoch,
+                    receipt=copy.deepcopy(result))
         elif operation == 'request_source_snapshot':
             if set(kwargs) != {'requested_adapter_ids'}:
                 raise ValueError('request source observation requires an explicit target scope')

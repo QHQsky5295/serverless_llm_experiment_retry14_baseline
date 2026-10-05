@@ -91,14 +91,13 @@ def _core_prepare_host(core, command):
 
 
 def _core_admit_and_demand_load(core, command):
-    """Evaluate IEEE capacity and perform one native demand load atomically.
+    """Observe IEEE capacity state and perform one native demand load atomically.
 
     The scheduler owner captures the KV/length snapshot and holds its utility
     call while the single UniProc worker evaluates the same proposal and loads
     the adapter.  This is deliberately narrower than a KV allocator rewrite:
-    vLLM remains the owner of actual KV blocks, while the admission receipt
-    proves that the current physical used bytes, preallocated LoRA pool and
-    predicted KV demand were checked immediately before the load.
+    vLLM remains the owner of actual KV blocks.  The returned receipt is an
+    observational witness, not a KV reservation or proactive E(t) decision.
     """
     from vllm.v1.executor.uniproc_executor import UniProcExecutor
     if (not isinstance(core.scheduler, IEEENativeAsyncScheduler)
@@ -112,6 +111,8 @@ def _core_admit_and_demand_load(core, command):
                'expected_source_id', 'capacity_only'}
     if not isinstance(command, dict) or set(command) != allowed:
         raise ValueError('native admission command fields differ from the contract')
+    if command.get('capacity_only') is not True:
+        raise ValueError('request capacity witness requires capacity_only=True')
     observation = scheduler.ieee_scheduler_observation()
     lengths = scheduler._ieee_lengths.snapshot(now=observation['captured_at'])
     result = core.collective_rpc('ieee_gpu_reference', kwargs={

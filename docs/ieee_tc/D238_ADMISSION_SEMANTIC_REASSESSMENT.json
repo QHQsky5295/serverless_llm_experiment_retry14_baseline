@@ -5,7 +5,7 @@
   "d227_zero_decisions_interpretation": "insufficient_proactive_coverage",
   "demand_path_semantics": "request_priority_native_backend_allocation",
   "current_draft_request_extension": {
-    "mode": "hard_capacity_witness",
+    "mode": "observational_capacity_witness",
     "capacity_only": true,
     "proactive_admission_evaluated": false,
     "physical_kv_reservation": false,

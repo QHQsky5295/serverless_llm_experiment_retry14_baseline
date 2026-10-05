@@ -39,20 +39,22 @@ the configured bounded run did not exercise the proactive gate.
 
 ## Implementation boundary for the current draft
 
-The uncommitted request-path extension is explicitly limited to a same-owner
-**hard-capacity witness**. It calls the existing evaluator with
-`capacity_only=True`, so it does not impose the proactive soft E(t) pressure
-rule on an arriving request. It reports the live scheduler/KV observation,
-actual adapter-pool bytes, owner/epoch, decision and post-load outcome. It
-keeps `proactive_admission_evaluated=false` and
+The current checkpoint's request-path extension is explicitly limited to a
+serialized core-to-worker **observational capacity witness**. It calls the existing evaluator
+with `capacity_only=True`, so it does not impose the proactive soft E(t)
+pressure rule on an arriving request and never blocks the native demand load.
+It reports the live scheduler/KV observation, actual adapter-pool bytes,
+owner/epoch, decision and post-load outcome. It keeps
+`proactive_admission_evaluated=false` and
 `physical_kv_reservation=false`, because vLLM still owns actual KV block
 allocation and this utility does not create a backend block reservation.
 
-The witness is useful for diagnosing physical headroom and source/epoch
-consistency, but it is not a formal physical-admission qualification and it
-must not be used to claim that the request path has implemented proactive
-admission. Ordinary requests fall back to the original native demand path when
-the explicit witness gate is absent; the soft rule is never silently applied.
+The witness is useful for diagnosing source/epoch consistency and comparing
+the predicted state with the backend outcome, but it is not a formal physical-
+admission qualification and it must not be used to claim that the request path
+has implemented proactive admission. Ordinary requests preserve the native
+demand path whether or not the optional witness is enabled; the soft rule is
+never silently applied.
 
 ## Correct next diagnostic
 
@@ -83,7 +85,7 @@ The next bounded result may establish only one of the following:
 
 - **proactive decision coverage**: at least one typed decision with complete
   owner/epoch/snapshot/proposal evidence and no mutation on defer/reject;
-- **hard-capacity witness coverage**: request-priority witness receipts with
+- **observational witness coverage**: request-priority witness receipts with
   explicit `physical_kv_reservation=false` and backend-owned allocation;
 - **qualification failure**: missing candidate, stale identity, incomplete
   allocator evidence, or cleanup failure.

@@ -299,6 +299,38 @@ class NativeHookWiring(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, 'UniProc'):
                 engine_core.ieee_prepare_host(command)
 
+    def test_request_capacity_witness_is_explicitly_observational_and_true_only(self):
+        profile = dict(window_s=10., model_backend_id='m/v0.30', profile_id='frozen',
+                       profile_means=[64., 128., 256.], transfer_limit=2)
+        module, _, core = self.load_adapter(admission_profile=profile)
+        hook = module.IEEENativeAsyncScheduler(scheduler())
+        hook.next_native_output = iteration(r=8)
+        hook.schedule()
+        engine_core = core()
+        engine_core.scheduler = hook
+        uniproc = ModuleType('vllm.v1.executor.uniproc_executor')
+        uniproc.UniProcExecutor = type('UniProcExecutor', (), {})
+        engine_core.model_executor = uniproc.UniProcExecutor()
+        captured = []
+        def call(method, kwargs):
+            self.assertEqual(method, 'ieee_gpu_reference')
+            captured.append(kwargs)
+            return [{'acquired': True, 'request_lease_id': 'demand-1'}]
+        engine_core.collective_rpc = call
+        command = dict(lease_id='demand-1', adapter_int_id=4, lora_name='a',
+                       lora_path='/a', expected_owner_id='o', expected_epoch=1,
+                       required_source_tier=None, expected_source_id=None,
+                       capacity_only=True)
+        with patch.dict(sys.modules, {uniproc.__name__: uniproc}):
+            result = engine_core.ieee_admit_and_demand_load(command)
+            self.assertTrue(result['acquired'])
+            self.assertEqual(captured[0]['operation'], 'admit_and_demand_load')
+            self.assertIs(captured[0]['capacity_only'], True)
+            self.assertEqual(captured[0]['scheduler_observation']['kind'],
+                             'ieee_native_scheduler_observation_v1')
+            with self.assertRaisesRegex(ValueError, 'capacity_only=True'):
+                engine_core.ieee_admit_and_demand_load({**command, 'capacity_only': False})
+
     def test_native_success_updates_means_abort_does_not(self):
         profile = dict(window_s=10., model_backend_id='m/v0.30', profile_id='frozen',
                        profile_means=[64., 128., 256.], transfer_limit=2)

@@ -11,8 +11,8 @@ admission decisions therefore show insufficient proactive coverage, not a
 proven defect in ordinary demand loading. The raw D227 contract, cleanup,
 pressure and non-ranking boundaries remain unchanged.
 
-The current uncommitted code is being kept within that boundary: when the
-explicit gate is active it can emit a same-owner hard-capacity witness for a
+The current checkpoint is being kept within that boundary: when the explicit
+gate is active it can emit a serialized core-to-worker observational capacity witness for a
 request-driven load, using `capacity_only=true`; it leaves
 `proactive_admission_evaluated=false` and `physical_kv_reservation=false`.
 When the gate is absent, ordinary native demand loading is preserved. This
@@ -33,13 +33,15 @@ completed a bounded 22-request prefix with 22/22 native fixed-output terminal
 contracts, return code 0, and confirmed GPU-context cleanup. It is still not a
 performance or ranking result.
 
-The important result is causal: the YAML gate was `true`, but the native
+The important raw observation is that the YAML gate was `true`, but the native
 remote/NVMe request route recorded zero GPU-admission decisions and zero
 physical KV reservations. Every inspected request reports
 `physical_capacity_qualified=false`; the native pending journal explicitly
-declares that it reserves no physical KV blocks. Thus the configured gate is
-not wired into the native request path. This is a code integration issue, not
-evidence that the admission policy rejected or admitted nothing under load.
+declares that it reserves no physical KV blocks. The original D237 wording
+called this a request-path integration issue. D238 supersedes that causal
+interpretation: the run exercised demand-driven loading but did not submit a
+proactive HOST-to-GPU candidate, so it proves insufficient proactive coverage,
+not a defect in request-priority demand loading.
 The full replay remains held until a physical owner/epoch reservation
 transaction, release semantics, and bounded pressure tests are implemented.
 

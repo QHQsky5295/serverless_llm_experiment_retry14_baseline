@@ -4,6 +4,15 @@ Date: 2026-10-06 (Asia/Shanghai)
 Project: PrimeLoRA / FaaSLoRA, IEEE TC campaign  
 Status: diagnostic evidence; not a G1/G2 or baseline-ranking result
 
+### Historical interpretation superseded by D238
+
+The initial wording below treated the zero-decision observation as a proven
+native request-path integration gap.  D238's source-level semantic review
+supersedes that causal wording: the run exercised demand-driven loading but no
+proactive HOST-to-GPU (E(t)) candidate, so it establishes insufficient
+proactive coverage rather than a defect in request-priority loading.  The raw
+evidence and all A--F audit findings remain immutable.
+
 ## Executive finding
 
 D227 retry2 was executed with the intended feature gate set to `true`, and the
