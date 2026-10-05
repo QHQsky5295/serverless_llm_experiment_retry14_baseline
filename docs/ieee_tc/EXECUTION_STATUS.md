@@ -1,5 +1,28 @@
 # IEEE TC execution status
 
+## CURRENT — D235 confirmed scale-out first-service audit separates schema gap from real tail cause
+
+2026-10-05（离线代码—结果核对）. The three D219 scale-up events were
+triggered at visible request count 4 and took 44.91–46.57 s to activate. The
+legacy `scaleup_first_service_*` counters are zero by construction in the
+`ieee_confirmed` path: activation rejects legacy handoff plans and the event
+registrar strips their fields, so those counters cannot be interpreted as
+first-service readiness evidence. In contrast, all 3,003 requests served by
+the new replicas carry `confirmed_dispatch_snapshot=true`; the first 20
+requests per new replica contain only 10 GPU-ready cases out of 60 (16.7%),
+with 23 HOST, 12 NVMe and 15 Remote cases. The earliest new-replica requests
+were confirmed NVMe/Remote/NVMe and included a 11,288.8-ms TTFT.
+
+The result is diagnostic only: it does not qualify G1/G2 and does not justify
+reusing the legacy handoff. It does establish that the confirmed snapshot is
+being captured at dispatch, while a newly published replica may still be
+selected with a non-GPU source and perform demand loading. The next
+first-principles optimization must therefore create a native, evidence-bound
+ready-time preparation epoch or a measured admission objective that accounts
+for the activation source state; it must not relabel a prediction as GPU-ready.
+Details and exact hashes are in
+`docs/ieee_tc/D235_SCALEUP_FIRST_SERVICE_AUDIT.md`.
+
 ## CURRENT — D234 old/new 7B Prime audit identifies a partial gain and an unresolved tail
 
 2026-10-05（离线结果核对）. The existing 4,000-request ordinary Full (D210)
