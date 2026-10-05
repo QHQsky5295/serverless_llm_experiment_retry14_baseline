@@ -23372,8 +23372,19 @@ async def _main_async_impl(
     num_runs = max(1, int(exp_cfg.get("num_runs", 1)))
     if os.environ.get('FAASLORA_TC_EXTERNAL_REPLAY') == '1':
         if (num_runs != 1 or not only_scenario or not shared_trace_path_override
-                or int(wl_cfg_yaml.get('multi_cycle_phases', 1)) != 1 or quick):
-            raise ValueError('external replay requires one explicit scenario/run and the frozen shared trace')
+                or quick):
+            raise ValueError(
+                'external replay requires one explicit scenario/run and the frozen shared trace'
+            )
+        # The guarded replay remains one immutable arrival view even when the
+        # runner consumes it in registered multi-cycle phases.  Each phase
+        # retains the original request IDs and scheduled offsets; the phase
+        # boundary only exercises the existing scale-down/scale-up path.  The
+        # previous multi_cycle_phases==1 check incorrectly rejected the
+        # pre-registered 8-phase readiness diagnostic before model startup.
+        phase_count = int(wl_cfg_yaml.get('multi_cycle_phases', 1) or 1)
+        if phase_count < 1:
+            raise ValueError('external replay multi-cycle phase count is invalid')
         receipt_path = os.environ.get('FAASLORA_TC_LAUNCH_RECEIPT')
         if not receipt_path:
             raise RuntimeError('external replay requires the guarded auxiliary launcher')

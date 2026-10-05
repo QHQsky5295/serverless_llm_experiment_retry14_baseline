@@ -97,6 +97,14 @@ D249 新鲜审计随后确认 retry6 内部证据一致，但发现旧 retry4 �
 仍保持严格 `pass=false`。因此下一项只执行预登记的 D250 7B Full/Delayed
 8-phase readiness 诊断，规格见 `docs/ieee_tc/D250_7B_READINESS_8PHASE_DIAGNOSTIC.md`。
 
+D250 Full 的第一次启动在模型加载前被拒绝：外部 replay 校验遗留了
+`multi_cycle_phases == 1` 限制，和已批准的 8-phase readiness 协议冲突。该
+attempt 的 `N_arrived=0`、`service_returncode=1`，watchdog、GPU context 和
+scope cleanup 均正常，不能归类为服务或性能失败。D251 记录了最小修正：保留
+单一冻结 replay、单一 scenario/run、trace SHA 和 guarded receipt，仅移除错误
+的 phase-count equality；修正后必须使用新的 launch identity 重试，不覆盖这次
+门控失败证据。
+
 ## CURRENT — D246 passes real-worker token transport; independent semantic gate remains
 
 2026-10-06（D243 retry2，7B 22 请求固定输出诊断）. 在 D245 修复后，新的唯一
