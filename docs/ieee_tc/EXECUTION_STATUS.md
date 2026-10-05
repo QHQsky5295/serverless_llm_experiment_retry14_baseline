@@ -45,6 +45,21 @@ NVML binding because the launch command used the non-existent variable
 retry4 is admissible. This naming error is now corrected in the next launch
 command; no runner or algorithm code is changed.
 
+Retry5 then passed the NVML and allocator launch contracts and reached the
+runner, but the supplied adapter-subset path was not present on this checkout.
+The run therefore stopped during input resolution before model/GPU startup; its
+receipt SHA256 is
+`fe6cfa85ac21510170ee75e87b3d8c63b44b9ec3705cccf1c2a94853a3d4ffc7`.
+The replay trace was otherwise the intended frozen 4,000-request trace. A
+read-only content audit found the same trace bytes (SHA256
+`efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c`) and the
+same adapter subset bytes (SHA256
+`aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016`) in the
+retained `11_remote_fair_main_local_sim_v3/v4` shared-artifact directories.
+Retry5 is excluded from all performance evidence; the next fresh retry uses
+those existing byte-verified paths and new result/cache roots. No artifact is
+regenerated or overwritten.
+
 ## CURRENT — Remote-scope metric protocol V2 frozen; artifact-node disk gate separated from inference host
 
 2026-10-05 11:55+08. A new protocol document
