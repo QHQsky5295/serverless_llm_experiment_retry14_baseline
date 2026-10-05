@@ -18526,13 +18526,18 @@ class ScenarioRunner:
 
         This is an explicitly opt-in diagnostic, not a replay mode or a
         performance qualification.  It reuses the live runner's measured
-        source graph, demand window, preparation profiles and native owner.
-        If the observed state contains no HOST candidate selected by the IEEE
-        planner, the diagnostic records that coverage gap and performs no
-        proactive adapter movement or eviction.  The stateful attachment/setup
-        step (HOST-budget/domain binding) is still recorded and retired through
-        the normal owner path.  It never fabricates pressure, sleeps to force a decision,
-        or relabels request-driven demand loading as proactive admission.
+        source graph, demand window, preparation profiles and one selected
+        native owner.  Scale-out may naturally leave several initialized
+        replicas in the pool; that does not invalidate a per-replica
+        HOST->GPU diagnostic, so the primary runtime is selected when it is
+        still serving and a deterministic ready sibling is used only when the
+        primary has retired.  If the observed state contains no HOST candidate
+        selected by the IEEE planner, the diagnostic records that coverage gap
+        and performs no proactive adapter movement or eviction.  The stateful
+        attachment/setup step (HOST-budget/domain binding) is still recorded
+        and retired through the normal owner path.  It never fabricates
+        pressure, sleeps to force a decision, or relabels request-driven demand
+        loading as proactive admission.
         """
         import traceback
         from faaslora.preloading.preloading_planner import PreparationPlanSuperseded
@@ -18548,11 +18553,28 @@ class ScenarioRunner:
         self._ieee_proactive_diagnostic = record
         try:
             if (self._routing_policy != 'ieee_confirmed' or self._stack is None
-                    or self.instance_pool is None or self.instance_pool.count() != 1
+                    or self.instance_pool is None
                     or self._preparation_profiles is None):
-                record.update(state='not_eligible', reason='requires_one_initialized_ieee_runtime_and_profiles')
+                record.update(state='not_eligible', reason='requires_initialized_ieee_runtime_and_profiles')
                 return record
-            slot = self.instance_pool.get_slots()[0]
+            ready_slots = [slot for slot in self.instance_pool.get_slots()
+                           if slot.engine is not None
+                           and slot.status in ('ready', 'serving', 'running')]
+            record['initialized_runtime_count'] = len(ready_slots)
+            if not ready_slots:
+                record.update(state='not_eligible', reason='no_initialized_ready_ieee_runtime')
+                return record
+            primary_id = getattr(self, '_primary_instance_id', None)
+            primary = next((candidate for candidate in ready_slots
+                            if candidate.instance_id == primary_id), None)
+            slot = primary or min(
+                ready_slots,
+                key=lambda candidate: (
+                    float(getattr(candidate, 'created_at', 0.0) or 0.0),
+                    str(getattr(candidate, 'instance_id', '')),
+                ),
+            )
+            record['selected_replica_id'] = slot.instance_id
             if slot.engine is None or slot.status not in ('ready', 'serving', 'running'):
                 record.update(state='not_eligible', reason='selected_replica_not_ready')
                 return record
