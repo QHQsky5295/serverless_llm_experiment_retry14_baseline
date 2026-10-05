@@ -35,6 +35,16 @@ the unchanged memory/disk gates. No 4,000-request replay, 3B run, or external
 baseline is authorized until the 100-request route candidate produces native
 GPU evidence and passes its pre-registered mechanism and control-path checks.
 
+The immediately following retry4 also stopped before deployment and is retained
+separately. Its receipt SHA256 is
+`0f7bde9cc045042b873596f56bb87d95da14be2ce22cdfe7013a9916273a1b6c`. The
+unchanged preflight passed, but the qualification supervisor did not receive the
+NVML binding because the launch command used the non-existent variable
+`FAASLORA_TC_NVML_BINDING_SHA256`; the code contract is
+`FAASLORA_TC_NVML_SHA256`. No service log, request, model, or GPU evidence from
+retry4 is admissible. This naming error is now corrected in the next launch
+command; no runner or algorithm code is changed.
+
 ## CURRENT — Remote-scope metric protocol V2 frozen; artifact-node disk gate separated from inference host
 
 2026-10-05 11:55+08. A new protocol document
