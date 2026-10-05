@@ -1394,9 +1394,17 @@ REPLAY_CMD=(
 if [[ "${VLLM_RESIDENT_PROTOCOL_V1}" == "1" ]]; then
   VLLM_AUX_UNIT="${RESIDENT_AUX_REPLAY_UNIT}"
   AUX_REPLAY_LOG="${LOG_DIR}/${RESULT_TAG}_resident_replay.log"
+  REPLAY_SYSTEMD_ENV=()
+  if [[ -n "${PRIME_REMOTE_TOKEN:-}" ]]; then
+    # systemd-run does not inherit arbitrary shell variables into a user
+    # service.  Pass the private token only to the transient unit; it is never
+    # printed, written to the receipt, or included in the command log.
+    REPLAY_SYSTEMD_ENV+=("--setenv=PRIME_REMOTE_TOKEN=${PRIME_REMOTE_TOKEN}")
+  fi
   systemd-run --user --no-block --unit="${VLLM_AUX_UNIT}" --slice="${RESIDENT_AUX_SLICE}" \
     --collect --property=MemoryMax="${VLLM_RESIDENT_AUX_MEMORY_MAX}" \
     --property=TasksMax="${VLLM_RESIDENT_AUX_TASKS_MAX}" \
+    "${REPLAY_SYSTEMD_ENV[@]}" \
     "${REPLAY_CMD[@]}" > "${AUX_REPLAY_LOG}" 2>&1
   REPLAY_PID="$(resident_unit_pid "${VLLM_AUX_UNIT}")"
   echo "      resident_aux_unit=${VLLM_AUX_UNIT} pid=${REPLAY_PID} log=${AUX_REPLAY_LOG}"
