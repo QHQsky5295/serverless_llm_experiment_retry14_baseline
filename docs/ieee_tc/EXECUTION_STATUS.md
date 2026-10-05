@@ -34,6 +34,9 @@ GPU worker, replay request, or new result was produced; the D217 directory only
 contains the preflight receipt.  A no-write page-cache release did not clear
 the margin, so the experiment remains held rather than weakening the gate or
 terminating unrelated services.
+Because no local inference worker was admitted, the remote 7B artifact unit was
+stopped again after the health check; its managed unit and published cache
+remain unchanged for the next gated attempt.
 
 **Next:** when the host passes the unchanged startup gate, rerun the same D217
 command from its existing empty campaign directory.  Compare its bounded
