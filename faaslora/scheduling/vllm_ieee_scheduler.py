@@ -91,13 +91,15 @@ def _core_prepare_host(core, command):
 
 
 def _core_admit_and_demand_load(core, command):
-    """Observe IEEE capacity state and perform one native demand load atomically.
+    """Observe IEEE capacity state and issue one serialized native demand load.
 
-    The scheduler owner captures the KV/length snapshot and holds its utility
-    call while the single UniProc worker evaluates the same proposal and loads
-    the adapter.  This is deliberately narrower than a KV allocator rewrite:
-    vLLM remains the owner of actual KV blocks.  The returned receipt is an
-    observational witness, not a KV reservation or proactive E(t) decision.
+    The scheduler owner captures a pre-load KV/length observation and holds its
+    utility call while the single UniProc worker evaluates the same proposal
+    and issues the adapter load.  This serialized call is not an atomic KV
+    admission transaction: vLLM remains the owner of actual KV blocks and the
+    backend may advance its owner epoch while completing the load.  The
+    returned receipt is an observational witness, not a KV reservation or
+    proactive E(t) decision.
     """
     from vllm.v1.executor.uniproc_executor import UniProcExecutor
     if (not isinstance(core.scheduler, IEEENativeAsyncScheduler)

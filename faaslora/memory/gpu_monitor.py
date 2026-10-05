@@ -1471,7 +1471,6 @@ class IEEEWorkerObservationExtension:
             # CUDA ordinals can be remapped in dedicated workers; publish the
             # actual device identity so controller NVML queries cannot sample
             # a different physical GPU with a coincidentally equal index.
-            import uuid
             device_uuid = torch.cuda.get_device_properties(self.device).uuid
             result['device_uuid'] = 'GPU-' + str(uuid.UUID(bytes=bytes(device_uuid.bytes)))
         diagnostic_control_event(diagnostic_id, 'native_ready')
@@ -1532,7 +1531,6 @@ class IEEEWorkerObservationExtension:
             self._ieee_host_allocator_policy = _ieee_native_host_allocator_policy()
         if pool['pool_allocated_bytes'] > allocated_bytes:
             raise ValueError('LoRA storage inventory exceeds native allocator occupancy')
-        import uuid
         device_uuid = torch.cuda.get_device_properties(self.device).uuid
         return {
             'kind': 'ieee_native_worker_qualification_observation',

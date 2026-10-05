@@ -44,8 +44,10 @@ The current checkpoint's request-path extension is explicitly limited to a
 serialized core-to-worker **observational capacity witness**. It calls the existing evaluator
 with `capacity_only=True`, so it does not impose the proactive soft E(t)
 pressure rule on an arriving request and never blocks the native demand load.
-It reports the live scheduler/KV observation, actual adapter-pool bytes,
-owner/epoch, decision and post-load outcome. It keeps
+It reports the live pre-load scheduler/KV and adapter-pool observation,
+owner/epoch, decision, and a boolean backend outcome; it does not claim a
+post-load physical inventory, victim identity, workspace measurement, or KV
+reservation. It keeps
 `proactive_admission_evaluated=false` and
 `physical_kv_reservation=false`, because vLLM still owns actual KV block
 allocation and this utility does not create a backend block reservation.
