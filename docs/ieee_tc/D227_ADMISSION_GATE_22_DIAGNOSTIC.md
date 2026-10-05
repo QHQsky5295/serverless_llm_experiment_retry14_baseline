@@ -102,9 +102,11 @@ effective native GPU admission.  The scenario metadata has
 zero GPU-admission decisions, zero admits/defers/rejects, and zero physical KV
 reservations.  Every request's source-admission record has
 `physical_capacity_qualified=false`; the native pending receipt explicitly
-declares `physical_kv_reservation=false`.  Thus the run is useful causal
-evidence of a missing native integration point, not evidence that the gate
-worked or that the admission policy is ineffective.
+declares `physical_kv_reservation=false`.  Thus the run is evidence that this
+bounded request-driven prefix produced no proactive HOST→GPU candidate for
+the configured admission path.  It is not evidence of a request-route
+integration defect, and it does not qualify the gate as an effective
+physical-admission policy or show that the policy is ineffective.
 
 The user-facing latency is correspondingly dominated by startup and queue
 wait (mean TTFT 101,272.7 ms; mean dispatch/admission wait 100,514.4 ms),

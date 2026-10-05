@@ -1368,7 +1368,8 @@ class IEEEWorkerObservationExtension:
                 reservation_id=uuid.uuid4().hex,
                 owner_id=owner.owner_id,
                 epoch=owner.epoch,
-                reserved_bytes=decision.physical_increment_bytes,
+                reserved_bytes=0,
+                predicted_physical_increment_bytes=decision.physical_increment_bytes,
                 predicted_kv_bytes=decision.predicted_kv_bytes,
                 scope='preallocated_lora_pool_and_backend_kv_observation_only_v1',
                 state='observation_only')
@@ -1403,10 +1404,13 @@ class IEEEWorkerObservationExtension:
             # backend's own native LRU/allocator decide the actual load; a
             # witness must never turn an unpinned-victim case into a request
             # failure.  In particular, no physical KV reservation is claimed.
+            lease_replayed = kwargs['lease_id'] in owner._leases
             result = owner.demand_load_and_acquire(**kwargs)
             admission['physical_capacity_qualified'] = False
-            admission['post_load_owner_epoch'] = result.get('epoch')
-            admission['decision_outcome'] = (
+            admission['lease_replayed'] = lease_replayed
+            admission['backend_receipt_epoch'] = result.get('epoch')
+            admission['post_observation_owner_epoch'] = owner.epoch
+            admission['decision_outcome'] = ('existing_lease_replay' if lease_replayed else
                 'backend_load_succeeded' if result.get('acquired')
                 else 'backend_load_conflict')
             reservation['state'] = 'observation_only'

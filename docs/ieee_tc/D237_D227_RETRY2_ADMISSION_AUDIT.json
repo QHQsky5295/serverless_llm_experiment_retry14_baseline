@@ -44,7 +44,7 @@
     },
     "dead_code_or_unwired_gate": {
       "status": "fail",
-      "details": "The configured native admission gate is not wired into the remote/NVMe request route: zero decisions, physical_kv_reservation=false, physical_capacity_qualified=false."
+      "details": "No proactive HOST→GPU candidate was produced in this bounded request-driven prefix: zero decisions, physical_kv_reservation=false, physical_capacity_qualified=false. This supports insufficient proactive coverage for the diagnostic, not a request-route integration-defect claim; effective physical/proactive qualification remains unsupported."
     },
     "scope": {
       "status": "warn",
