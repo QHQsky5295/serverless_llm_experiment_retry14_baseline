@@ -1,5 +1,24 @@
 # IEEE TC execution status
 
+## CURRENT — D249 fresh audit closes retry6 provenance and quarantines stale retry4
+
+2026-10-06. A fresh read-only integrity audit of D247 retry6 confirms an
+internally consistent bounded diagnostic: 22/22 requests completed, 19/22
+native/HF sequences match exactly, and the three remaining first divergences
+are HF top-two near ties (margins 0.015625, 0, and 0.015625). The strict result
+therefore remains `pass=false`; no tolerance, post-hoc rewrite, or successful
+subset enters the correctness denominator. Cleanup, GPU-context release, and
+owned-service removal are confirmed.
+
+The audit also found that the older retry4 artifact reports 17/22 exact matches
+but `pass=true`, which contradicts the current strict predicate. Retry4 is now
+explicitly quarantined as stale contradictory evidence. Its raw files remain
+unchanged and are retained only for provenance. D249 permits no semantic,
+performance, SLO, G1/G2, or baseline claim from D247; the next admissible step
+is the already registered 7B physical/admission/readiness bounded diagnostic.
+Details and immutable hashes are in
+`docs/ieee_tc/D249_D247_RETRY6_INTEGRITY_AUDIT.md`.
+
 ## NEXT GATE — D247 independent 7B PEFT sequence reference prepared; no GPU run yet
 
 2026-10-06（D246 后的独立语义门槛）. D246 已经证明固定输出的原生 token-ID
