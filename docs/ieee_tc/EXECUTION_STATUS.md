@@ -36,6 +36,13 @@ watchdog，并通过 4-GiB systemd auxiliary scope 启动它；CUDA 环境仅作
 `d247_retry3_20261006` 身份，并显式固定已验证的 NVML 路径和 SHA；若通过，才可进入
 独立 PEFT 序列比较。
 
+D247 retry3 随后通过了 containment、NVML、watchdog 和清理门，并生成了唯一结果，
+但子进程在加载模型前报 `ModuleNotFoundError: scripts`；结果为
+`measurement_complete=false`、请求数 0，没有 token 或 PEFT 序列，故不构成语义失败。
+根因是 systemd 子进程 cwd 不受保证，而参考函数隐含依赖仓库根目录。修正已改为在
+导入既有 renderer/workload plan 前显式加入仓库根目录，retry4 使用新的
+`d247_retry4_20261006` 身份；retry3 结果和 launch 证据均保留。
+
 ## CURRENT — D246 passes real-worker token transport; independent semantic gate remains
 
 2026-10-06（D243 retry2，7B 22 请求固定输出诊断）. 在 D245 修复后，新的唯一

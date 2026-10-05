@@ -19,7 +19,7 @@ The existing D236 first-position/full-vocabulary reference remains supportive
 evidence only; it cannot replace this sequence-level gate because it uses a
 different five-arm native receipt.
 
-Launcher: `scripts/ieee_tc/run_d247_7b_peft_sequence_reference_retry3.sh`.
+Launcher: `scripts/ieee_tc/run_d247_7b_peft_sequence_reference_retry4.sh`.
 
 The launcher deliberately uses `/usr/bin/python3` for the outer resource
 supervisor and `/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python` only for the
@@ -29,3 +29,11 @@ the watchdog.  The supervisor is started in the shared auxiliary systemd
 scope expected by `gated-launch`; the child is then placed in its separately
 bounded service scope.  These are launcher containment corrections, not
 changes to the reference model or generation semantics.
+
+Retry3 passed the containment gate and created a bounded result, but stopped
+before model loading with `ModuleNotFoundError: scripts`: systemd had not
+preserved the repository as the child working directory.  Its result is
+incomplete and excluded.  Retry4 explicitly inserts the repository root into
+the child import path before importing the existing renderer; it keeps the
+same checkpoint, trace, adapter tensors, generation contract, and resource
+limits.

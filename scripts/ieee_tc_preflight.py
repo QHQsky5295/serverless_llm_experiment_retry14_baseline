@@ -2760,6 +2760,7 @@ def backend_peft_sequence_reference(native_result: Path, trace: Path,
     import contextlib
     import gc
     import importlib.metadata
+    import sys
     import traceback
 
     result = dict(
@@ -2812,6 +2813,11 @@ def backend_peft_sequence_reference(native_result: Path, trace: Path,
             raise ValueError('sequence reference requires exactly qualified visible GPU0')
         result['packages'] = {name: importlib.metadata.version(name)
                               for name in ('torch', 'transformers', 'peft', 'safetensors')}
+        # systemd-run does not promise the repository as the child cwd.  Make
+        # the source root explicit before importing the existing renderer and
+        # workload plan, rather than changing the renderer or duplicating it.
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
         from scripts.run_all_experiments import InferenceEngine
         from faaslora.datasets.workload_generator import FrozenReplayPlan
         count = len(requests)
