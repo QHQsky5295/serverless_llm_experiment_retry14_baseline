@@ -1,5 +1,37 @@
 # IEEE TC execution status
 
+## CURRENT — D233 remote boundary and independent artifact gate rechecked read-only
+
+2026-10-05 20:09+08. A read-only recheck found the current direct experiment
+route at `1000 Mb/s/full` on both the remote `eno1` and local `eno1np0`; both
+interfaces are up. The remote 3B/7B artifact units are inactive and no
+18080/18081 listener is present. No remote configuration, link setting,
+service restart, cache mutation, or traffic-generation action was performed.
+
+The historical D77 observation of remote `100 Mb/s/full` remains a separate
+diagnostic. Its recorded peer advertisement was limited to 10/100; the exact
+switch/port/cable cause was never established. It is not merged with the
+current 1-Gbps state and cannot be used to claim that the machine-room link is
+physically limited to 100 Mbps. The metric protocol therefore keeps
+request-triggered transfer in user TTFT/E2E, while excluding one-time
+prepublished packing, administration, scans, cleanup and unrelated remote
+work. A 100-Mbps historical point, a current 1-Gbps point and application
+no-delay sensitivity points must remain separately labelled.
+
+The approved immutable gzip delivery caches are present on the remote node:
+both manifests report `complete=true`, 500 artifacts, mode
+`published_gzip_delivery_v1`, and `preparation_outside_inference=true`; total
+archive bytes are 1,581,215,261 (about 1.47 GiB). Current remote free space is
+143,522,885,632 bytes (133.67 GiB). The previously sealed independent bound
+is 97,407,250,432 bytes (90.72 GiB), derived from the declared concurrent-pack
+peak, 64-MiB log allowance, 16-GiB safety reserve and 1.5 margin. Thus the
+artifact node passes its own measured gate despite being below the old 150-GiB
+floor; the inference host's 150/100-GiB disk and memory/OOM gates are unchanged.
+
+Evidence and calculation details are in
+`docs/ieee_tc/D233_REMOTE_BOUNDARY_RECHECK.md`. This recheck is a prerequisite
+confirmation only; it does not qualify Prime 7B or authorize a new GPU run.
+
 ## CURRENT — D232 independent PEFT-reference inputs are CPU-audited and ready
 
 2026-10-05（本轮离线核查）. The existing completed native five-arm control
