@@ -27,8 +27,8 @@ computes the independent bound
 `safety_reserve + ceil(1.5 * (concurrent_pack_peak + log_growth))` and checks
 explicit artifact-node free bytes/inodes. It does not call the inference-host
 150/100-GiB rule, start services, alter transfer concurrency, pack files or
-delete data; inference-host memory/disk gates are unchanged. The pure arithmetic
-and filesystem gate tests pass (4/4 targeted). A remote read-only census found
+delete data; inference-host memory/disk gates are unchanged. The pure arithmetic,
+filesystem and CLI gate tests pass (5/5 targeted). A remote read-only census found
 143,676,846,080 free bytes and 30,895,524 free inodes on `/home/lab14`; this is
 reported as capacity evidence only, not a launch authorization because formal
 delivery uses the already published cache and still requires explicit bound,
