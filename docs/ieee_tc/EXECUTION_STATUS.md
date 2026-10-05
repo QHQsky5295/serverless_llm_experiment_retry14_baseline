@@ -1,5 +1,24 @@
 # IEEE TC execution status
 
+## CURRENT — D232 independent PEFT-reference inputs are CPU-audited and ready
+
+2026-10-05（本轮离线核查）. The existing completed native five-arm control
+receipt `results/ieee_tc/p2_backend_qualification/model_20260926/llama2_7b_nativenumeric5_attempt1.json`
+was checked as an input to the already implemented `backend-peft-reference`
+gate; no model was loaded and no GPU or remote service was started. It is a
+completed, exploratory observation with one same-prompt source request and the
+roles nonzero-A, zero, nonzero-B, base, and nonzero-A-repeat. Its trace SHA is
+identical to the current frozen W0 trace. All three referenced adapter files
+and the local Llama-2-7B safetensors index exist and match the recorded bytes.
+
+The old native control's identical generated token sequences are not treated as
+correctness evidence. The independent reference must still recompute the
+first-position logits with the original checkpoint and PEFT, then compare them
+with the captured native first-token probabilities. A CPU-only input audit is
+sealed in `docs/ieee_tc/D232_PEFT_REFERENCE_INPUT_AUDIT.md`. Once the unchanged
+109.5-GiB memory gate passes, the next GPU action is this bounded reference
+gate—not another 4,000-request replay or a baseline.
+
 ## CURRENT — D231 D217 retry10 bounded route qualification completed; formal gate still open
 
 2026-10-05（本轮核查）. The retained retry9 receipt remains unambiguous: its
