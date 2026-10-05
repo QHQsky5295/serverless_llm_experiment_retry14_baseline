@@ -1,5 +1,43 @@
 # IEEE TC execution status
 
+## CURRENT — Remote-scope metric protocol V2 frozen; artifact-node disk gate separated from inference host
+
+2026-10-05 11:55+08. A new protocol document
+`docs/ieee_tc/METRIC_PROTOCOL_REMOTE_SCOPE_FROZEN_V2.md` was added without
+modifying the frozen V1 or reclassifying any historical run. Its SHA256 is
+`64efec429ea9507739d29b5e21bb51f95473a4ebe85b7bd11544b790b6834130`.
+It freezes the distinction required for the real-remote experiment: request-
+caused remote open/read/send/receive/write/extract, shared bandwidth, miss
+count/bytes/concurrency and legitimate residency remain in the measured service
+path; one-time published-cache construction, remote admin, hash scans, cleanup,
+logs and request-external packing do not. Those excluded activities remain
+audited and are never subtracted from E2E. All systems use the same immutable
+published gzip content while retaining their legitimate cache/residency behavior.
+
+The protocol makes the primary claim independent of CE: correct completion and
+common warm-derived joint TTFT/TPOT SLO (HydraServe-aligned 5x/2x reference
+倍率) precede G1 lifecycle physical GPU-s/request and G2 common-budget P95 TTFT.
+CE, idle-ready factors and prices are supplementary sensitivity/Pareto evidence.
+It records that the historical D77 100-Mbps observation was a separate peer-
+advertisement state; the current read-only check on 174 found local/remote
+1-Gbps full-duplex links and no NIC errors. No 10/100-Gbps or H100 claim is made.
+
+The preflight code now exposes `artifact-disk-check`, a read-only gate that
+computes the independent bound
+`safety_reserve + ceil(1.5 * (concurrent_pack_peak + log_growth))` and checks
+explicit artifact-node free bytes/inodes. It does not call the inference-host
+150/100-GiB rule, start services, alter transfer concurrency, pack files or
+delete data; inference-host memory/disk gates are unchanged. The pure arithmetic
+and filesystem gate tests pass (4/4 targeted). A remote read-only census found
+143,676,846,080 free bytes and 30,895,524 free inodes on `/home/lab14`; this is
+reported as capacity evidence only, not a launch authorization because formal
+delivery uses the already published cache and still requires explicit bound,
+quota and service checks.
+
+No D217 GPU validation was started: the unchanged inference startup gate still
+has insufficient physical headroom. Prime-only optimization remains at the
+confirmed-snapshot candidate decision; 3B and external baselines remain paused.
+
 ## CURRENT — D217 confirmed-snapshot route candidate CPU-qualified; GPU validation held by startup memory gate
 
 2026-10-05 11:25+08. A new Prime-only 7B candidate was implemented behind the

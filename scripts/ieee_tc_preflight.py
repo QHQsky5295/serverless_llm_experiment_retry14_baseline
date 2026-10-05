@@ -485,6 +485,52 @@ def artifact_disk_required(*, concurrent_packs: list[dict], log_growth_bytes: in
                 production_launch_authorized=False)
 
 
+def artifact_disk_check(paths: list[Path], *, concurrent_packs: list[dict],
+                        log_growth_bytes: int, safety_reserve_bytes: int) -> dict:
+    """Check the independent artifact-node capacity bound on explicit paths.
+
+    This gate deliberately does not call :func:`disk_required`: the inference
+    host's 150/100-GiB policy must not leak onto the artifact node.  It only
+    checks the caller-provided, positive peak bounds plus free bytes/inodes;
+    quota and service/workload qualification remain explicit follow-up gates.
+    No path is created, packed, deleted, or otherwise modified.
+    """
+    if not isinstance(paths, list) or not paths:
+        raise ValueError('artifact disk check needs at least one explicit path')
+    requirement = artifact_disk_required(
+        concurrent_packs=concurrent_packs,
+        log_growth_bytes=log_growth_bytes,
+        safety_reserve_bytes=safety_reserve_bytes)
+    issues, filesystems = [], []
+    for path in paths:
+        if not isinstance(path, Path) or not path.exists():
+            raise FileNotFoundError(path)
+        usage = shutil.disk_usage(path)
+        statvfs = os.statvfs(path)
+        row = {
+            'path': str(path.resolve()),
+            'device': os.stat(path).st_dev,
+            'free_bytes': usage.free,
+            'free_inodes': statvfs.f_favail,
+            'required_bytes': requirement['required_bytes'],
+        }
+        filesystems.append(row)
+        if usage.free < requirement['required_bytes']:
+            issues.append(f'insufficient_artifact_disk:{path}')
+        if statvfs.f_favail == 0:
+            issues.append(f'insufficient_artifact_inodes:{path}')
+    return {
+        'kind': 'artifact_filesystem_disk_gate_v1',
+        'time_unix': time.time(),
+        **requirement,
+        'filesystems': filesystems,
+        'issues': issues,
+        'pass': not issues,
+        'quota_audit_required': True,
+        'production_launch_authorized': False,
+    }
+
+
 def scalar(path: Path):
     if not path.exists():
         return None
@@ -5082,7 +5128,7 @@ def main():
                                          'watchdog', 'watchdog-test', 'install-candidate', 'backend-check',
                                          'backend-model-check', 'backend-copy-check', 'backend-host-check',
                                          'backend-peft-reference',
-                                         'artifact-audit', 'artifact-index', '_worker',
+                                         'artifact-audit', 'artifact-index', 'artifact-disk-check', '_worker',
                                          'gated-launch', '_launch-gate', '_replay-publisher', '_replay-witness'])
     parser.add_argument('--output', type=Path)
     parser.add_argument('--seal', type=Path)
@@ -5100,6 +5146,8 @@ def main():
     parser.add_argument('--native-observation', type=Path,
                         help='Completed existing native numeric control result for independent PEFT reference')
     parser.add_argument('--artifact-audit', type=Path)
+    parser.add_argument('--artifact-bounds', type=Path,
+                        help='JSON bounds for artifact-disk-check: concurrent_packs, log_growth_bytes, safety_reserve_bytes')
     parser.add_argument('--source-profile-spec', type=Path,
                         help='Explicit original-input index and resource contract for native source profiling')
     parser.add_argument('--warm-reference-index', type=Path)
@@ -5189,6 +5237,17 @@ def main():
             parser.error('artifact-index requires one existing pool, completed audit and new output')
         result = index_existing_artifact_pool(args.path[0], args.artifact_audit, args.expected_adapters,
             materialized_support_roots=tuple(args.materialized_support_root))
+    elif args.action == 'artifact-disk-check':
+        if not args.path or not args.artifact_bounds or not args.output:
+            parser.error('artifact-disk-check requires explicit --path, --artifact-bounds and new --output')
+        bounds = json.loads(args.artifact_bounds.read_text())
+        if (not isinstance(bounds, dict)
+                or set(bounds) != {'concurrent_packs', 'log_growth_bytes', 'safety_reserve_bytes'}):
+            parser.error('artifact bounds must contain exactly concurrent_packs, log_growth_bytes and safety_reserve_bytes')
+        result = artifact_disk_check(args.path,
+            concurrent_packs=bounds['concurrent_packs'],
+            log_growth_bytes=bounds['log_growth_bytes'],
+            safety_reserve_bytes=bounds['safety_reserve_bytes'])
     elif args.action == 'backend-check':
         if not args.install_receipt or not args.requirements or not args.output:
             parser.error('backend-check requires completed install receipt, requirements and new output')

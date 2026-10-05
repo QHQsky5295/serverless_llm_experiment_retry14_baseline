@@ -644,6 +644,35 @@ class ProtocolGates(unittest.TestCase):
             with self.subTest(override=override), self.assertRaises(ValueError):
                 p.artifact_disk_required(**{**args, **override})
 
+    def test_artifact_disk_check_is_explicit_and_does_not_import_inference_floor(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with patch.object(p.shutil, 'disk_usage', return_value=p.shutil._ntuple_diskusage(
+                    10_000, 9_000, 1_000)), patch.object(p.os, 'statvfs', return_value=type(
+                        'Stat', (), {'f_favail': 99})()), patch.object(p.os, 'stat', return_value=type(
+                        'Stat', (), {'st_dev': 7})()):
+                result = p.artifact_disk_check([root], concurrent_packs=[
+                    dict(max_concurrent=2, remaining_archive_bytes=100)],
+                    log_growth_bytes=20, safety_reserve_bytes=50)
+            self.assertEqual(result['required_bytes'], 380)  # 50 + ceil(1.5*220)
+            self.assertTrue(result['pass'])
+            self.assertTrue(result['inference_host_policy_unchanged'])
+            self.assertTrue(result['quota_audit_required'])
+            self.assertFalse(result['production_launch_authorized'])
+
+    def test_artifact_disk_check_reports_capacity_failure_without_mutating_path(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with patch.object(p.shutil, 'disk_usage', return_value=p.shutil._ntuple_diskusage(
+                    10_000, 9_900, 100)), patch.object(p.os, 'statvfs', return_value=type(
+                        'Stat', (), {'f_favail': 0})()):
+                result = p.artifact_disk_check([root], concurrent_packs=[
+                    dict(max_concurrent=1, remaining_archive_bytes=100)],
+                    log_growth_bytes=0, safety_reserve_bytes=100)
+            self.assertFalse(result['pass'])
+            self.assertEqual(len(result['issues']), 2)
+            self.assertTrue(root.exists())
+
     def test_cpu_sets_preserve_smt_pairs(self):
         svc = set(p.POLICY['service_cpus'])
         aux = set(p.POLICY['aux_cpus'])
