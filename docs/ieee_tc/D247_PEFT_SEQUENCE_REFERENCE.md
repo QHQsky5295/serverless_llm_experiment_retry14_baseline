@@ -20,3 +20,10 @@ evidence only; it cannot replace this sequence-level gate because it uses a
 different five-arm native receipt.
 
 Launcher: `scripts/ieee_tc/run_d247_7b_peft_sequence_reference.sh`.
+
+The launcher deliberately uses `/usr/bin/python3` for the outer resource
+supervisor and `/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python` only for the
+child PEFT process: the latter has the required CUDA/PEFT packages but its
+Python build does not expose the PID-handle signaling primitive required by
+the watchdog.  This is an interpreter-role correction, not a change to the
+reference model or generation semantics.

@@ -21,6 +21,13 @@ GPU 空闲、进程清理和结果路径唯一性检查；若 D247 通过，下�
 7B Full/资格路径；3B、外部 baseline、G1/G2 和比较图仍暂停。详细协议见
 `docs/ieee_tc/D247_PEFT_SEQUENCE_REFERENCE.md`。
 
+首次启动尝试没有创建结果或 launch receipt：CUDA/PEFT 环境的 Python 3.12.12
+缺少 watchdog 所需的 `signal.pidfd_send_signal`，因此在 GPU 加载前由门控拒绝。
+这不是请求失败或序列不一致，空路径也没有被计入实验。脚本已改为让系统
+`/usr/bin/python3` 承担外层 watchdog，让原 CUDA 环境仅作为子进程执行 PEFT；两者的
+资源门、输入、checkpoint、adapter、生成语义和输出路径均不变。修正后需重新通过同一
+启动门再运行一次。
+
 ## CURRENT — D246 passes real-worker token transport; independent semantic gate remains
 
 2026-10-06（D243 retry2，7B 22 请求固定输出诊断）. 在 D245 修复后，新的唯一

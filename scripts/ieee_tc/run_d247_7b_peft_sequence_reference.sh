@@ -25,7 +25,10 @@ export PYTHONDONTWRITEBYTECODE=1
 export PYTHONUNBUFFERED=1
 export VLLM_NO_USAGE_STATS=1
 
-exec /home/qhq/anaconda3/envs/LLM_vllm0102/bin/python scripts/ieee_tc_preflight.py \
+# The qualified CUDA environment is the child reference runner.  The outer
+# supervisor must use the system Python because its PID-handle watchdog
+# primitive is absent from the CUDA environment's Python build.
+exec /usr/bin/python3 scripts/ieee_tc_preflight.py \
   gated-launch --output "$LAUNCH" --predicted-growth-gib 16 \
   --exec /home/qhq/anaconda3/envs/LLM_vllm0102/bin/python scripts/ieee_tc_preflight.py \
     backend-peft-sequence-reference \
