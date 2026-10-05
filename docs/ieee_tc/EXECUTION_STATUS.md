@@ -19,8 +19,9 @@ qualification of (E_i(t)). The run-level TTFT/E2E and GPU-s values remain
 diagnostic only; no G1/G2, joint SLO, lifecycle ranking, or baseline comparison
 is admissible. Full evidence, hashes, and the claim boundary are sealed in
 `docs/ieee_tc/D238_RETRY456_DIAGNOSTIC_AUDIT.md` and its JSON sidecar. The
-integrity audit is `docs/ieee_tc/D238_RETRY456_EXPERIMENT_AUDIT.md`; a fresh
-reviewer was requested and will be recorded as BLOCKED if it times out.
+integrity audit is `docs/ieee_tc/D238_RETRY456_EXPERIMENT_AUDIT.md`; the fresh
+same-family reviewer did not return within the audit window and is recorded as
+BLOCKED, not PASS.
 
 The next action is not another arbitrary short prefix. First pre-register a
 legitimate later frozen-trace source window (or report that proactive coverage

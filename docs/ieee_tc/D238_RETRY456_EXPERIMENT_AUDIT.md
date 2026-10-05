@@ -10,8 +10,9 @@ The three raw artifacts exist, their bounded request counts agree, and cleanup
 evidence is present. The scope and mechanism coverage are insufficient for a
 formal experiment: no run contains a typed proactive decision, physical KV
 reservation, independent correctness denominator, or a paired Full/CapacityOnly
-counterfactual. Any fresh reviewer that does not return within the audit window
-will be recorded as `BLOCKED`, never converted into PASS.
+counterfactual. A fresh same-family reviewer was requested, did not return
+within the audit window, and was interrupted; its status is **BLOCKED**, not
+PASS. The deterministic checks below are the accepted audit evidence.
 
 ### A. Ground-truth provenance: PASS for the stated evaluation type
 
@@ -77,4 +78,3 @@ snapshot, proposal, decision and reservation receipts, plus backend allocator,
 workspace, cancellation and release evidence. If that candidate is not
 naturally produced, retain the coverage result and move to the next mainline
 qualification task without inventing a decision count.
-

@@ -6,7 +6,7 @@
   "reviewer_model": "gpt-5.6-sol",
   "reviewer_reasoning": "ultra",
   "review_independence": "same-family",
-  "acceptance_status": "pending_fresh_review",
+  "acceptance_status": "blocked_reviewer_timeout",
   "evaluation_type": "self_supervised_proxy",
   "audited_input_hashes": {
     "diagnostic_audit": "sha256:91da1e5063eccbd8a9d708a847ec8419b909a1dc55b747e3f1e16aa577000294",
