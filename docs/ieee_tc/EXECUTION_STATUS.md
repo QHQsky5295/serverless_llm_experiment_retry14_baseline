@@ -19,9 +19,10 @@ reported full fallback or identity-only rows. There are 252 requests with at
 least one stale recheck (530 observed rechecks); these are selected-state
 validation observations, not a causal performance estimate.
 
-Descriptive values are mean/P95 TTFT 1,508.362/3,620.021 ms, service TTFT
-694.289/1,843.545 ms, mean/P95 E2E 5,848.015/12,025.972 ms, mean TPOT
-37.566 ms, throughput 1.00853 requests/s, and legacy SLO display 98.275%.
+Descriptive values, using the frozen V1 Type-1 percentile recomputation, are
+mean/P95 TTFT 1,508.362/3,619.799 ms, service TTFT 694.289/1,843.186 ms,
+mean/P95 E2E 5,848.015/12,025.636 ms, mean TPOT 37.566 ms, throughput
+1.00853 requests/s, and legacy SLO display 98.275%.
 Observed physical GPU time is 15,911.713 GPU-s (3.977928 GPU-s per offered
 request). Relative to the immediately preceding D210 descriptive run, mean
 TTFT is lower by about 8.62% and mean E2E by about 3.08%, while P95 TTFT is

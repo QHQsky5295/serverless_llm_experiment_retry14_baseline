@@ -23,11 +23,17 @@ of selected-state validation, not failures.
 
 ## Descriptive metrics
 
-The run reports mean TTFT 1,508.36 ms, P95 TTFT 3,620.02 ms, mean service TTFT
-694.29 ms, P95 service TTFT 1,843.55 ms, mean E2E 5,848.01 ms, P95 E2E
-12,025.97 ms, TPOT 37.57 ms, and SLO attainment 98.275%. Observed physical
-GPU time was 15,911.71 s (3.9779 s per offered request); these numbers are
-descriptive for one complete exploratory replay.
+The run reports mean TTFT 1,508.36 ms, Type-1 P95 TTFT 3,619.80 ms, mean
+service TTFT 694.29 ms, Type-1 P95 service TTFT 1,843.19 ms, mean E2E
+5,848.01 ms, Type-1 P95 E2E 12,025.64 ms, mean TPOT 37.57 ms, and the
+legacy TTFT-only attainment field 98.275%. The Type-1 values are recomputed
+from request records using the frozen V1 definition; the producer's linear-
+interpolation percentiles remain in `descriptive_metrics` only. All 4,000
+requests contain the required external-arrival and native dispatch/first/
+last/completion timestamps, but the E2E identity has not been independently
+recomputed here. Observed physical GPU time was 15,911.71 s (3.9779 s per
+offered request); these numbers are descriptive for one complete exploratory
+replay.
 
 ## Non-qualification caveat
 

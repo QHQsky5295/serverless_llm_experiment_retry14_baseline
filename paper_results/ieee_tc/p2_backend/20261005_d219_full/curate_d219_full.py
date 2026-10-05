@@ -2,6 +2,7 @@
 import csv
 import hashlib
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -34,6 +35,15 @@ physical = load(raw / "physical_deployment/summary.json")
 
 def count(predicate):
     return sum(1 for request in requests if predicate(request))
+
+
+def type1(values, percentile):
+    """Frozen V1 percentile: x_(ceil(p*m)), one-indexed."""
+    ordered = sorted(float(value) for value in values)
+    if not ordered:
+        return None
+    index = max(0, min(len(ordered) - 1, int(math.ceil(percentile * len(ordered))) - 1))
+    return ordered[index]
 
 
 def sources(request):
@@ -115,6 +125,44 @@ metric_keys = (
     "infra_gpu_seconds_total", "infra_cost_total_usd", "infra_ce", "monetary_ce", "completed", "failed",
 )
 
+request_metric_fields = {
+    "ttft_ms": "ttft_ms",
+    "e2e_ms": "e2e_ms",
+    "service_ttft_ms": "service_ttft_ms",
+    "service_e2e_ms": "service_e2e_ms",
+    "tpot_ms": "tpot_ms",
+    "control_path_total_us": "control_path_total_us",
+    "dispatch_admission_wait_ms": "dispatch_admission_wait_ms",
+}
+protocol_type1_metrics = {}
+for metric_name, field_name in request_metric_fields.items():
+    values = [
+        request[field_name]
+        for request in requests
+        if request.get("success") is True and isinstance(request.get(field_name), (int, float))
+    ]
+    protocol_type1_metrics[metric_name] = {
+        "n": len(values),
+        "p50": type1(values, 0.50),
+        "p95": type1(values, 0.95),
+        "p99": type1(values, 0.99),
+        "quantile_definition": "type1_x_ceiling_pm_v1",
+    }
+
+native_timing_required = (
+    "planned_arrival_s", "client_submit_s", "native_dispatch_monotonic_s",
+    "native_first_token_monotonic_s", "native_last_token_monotonic_s",
+    "worker_completed_monotonic_s",
+)
+native_timing_coverage = {
+    field: count(lambda request, field=field: (
+        isinstance(request.get("external_arrival_timing", {}).get(field), (int, float))
+        if field in ("planned_arrival_s", "client_submit_s")
+        else isinstance(request.get("native_token_timing", {}).get(field), (int, float))
+    ))
+    for field in native_timing_required
+}
+
 curated = {
     "kind": "d219_confirmed_snapshot_cache_full_replay_curated_v1",
     "run_id": "d219_7b_confirmed_snapshot_cache_full_replay",
@@ -133,8 +181,44 @@ curated = {
     "population_and_invariants": invariants,
     "dispatch_tier_counts_request_level": dispatch_tiers,
     "feature_activation": feature_activation,
+    "gate_manifest": {
+        "configured": {
+            "routing_policy": "ieee_confirmed",
+            "confirmed_snapshot_cache": True,
+            "fixed_generation_contract": "fixed_length_greedy_v1",
+            "gpu_admission_profile_present": True,
+        },
+        "observed": {
+            "confirmed_snapshot_source_mode": source_evidence["modes"],
+            "readiness_aware_routing_decisions": feature_activation.get("readiness_aware_routing_decision_count", 0),
+            "gpu_admission_decisions": feature_activation.get("gpu_admission_decision_count", 0),
+            "background_planning_events": feature_activation.get("background_planning_event_count", 0),
+            "hierarchy_transitions": feature_activation.get("hierarchy_specific_online_transition_count", 0),
+            "host_promotions": feature_activation.get("host_promotion_completed_count", 0),
+            "runtime_gpu_forward_successes": feature_activation.get("runtime_gpu_forward_success_count", 0),
+        },
+        "interpretation": "The confirmed-snapshot route is exercised; zero admission/planning/promotion counters are not evidence that those mechanisms ran.",
+    },
     "source_snapshot_evidence": source_evidence,
     "descriptive_metrics": {key: scenario.get(key) for key in metric_keys},
+    "protocol_type1_metrics": protocol_type1_metrics,
+    "native_timing_field_coverage": {
+        "required_fields": list(native_timing_required),
+        "counts": native_timing_coverage,
+        "clock_ids": sorted({
+            request.get("native_token_timing", {}).get("native_clock_id")
+            for request in requests
+            if request.get("native_token_timing", {}).get("native_clock_id")
+        }),
+        "e2e_identity_recomputed": False,
+        "note": "Fields are present; cross-stage identity still requires the frozen timing audit before formal use.",
+    },
+    "slo_contract": {
+        "producer_field": "legacy_ttft_only",
+        "producer_slo_attainment": scenario.get("slo_attainment"),
+        "frozen_joint_slo_attainment": None,
+        "reason": "common warm TTFT/TPOT thresholds are not frozen for D219",
+    },
     "physical_lifecycle": {
         "n_plan": physical.get("n_plan"), "n_terminal": physical.get("n_terminal"),
         "n_native_contract_complete": physical.get("n_native_contract_complete"),
@@ -163,7 +247,7 @@ curated = {
 output_dir.mkdir(parents=True, exist_ok=True)
 (output_dir / "d219_full_curated.json").write_text(json.dumps(curated, indent=2, sort_keys=True) + "\n")
 with (output_dir / "d219_request_invariants.csv").open("w", newline="") as handle:
-    writer = csv.DictWriter(handle, fieldnames=sorted(invariants)); writer.writeheader(); writer.writerow(invariants)
+    writer = csv.DictWriter(handle, fieldnames=sorted(invariants), lineterminator="\n"); writer.writeheader(); writer.writerow(invariants)
 with (output_dir / "d219_dispatch_tiers.csv").open("w", newline="") as handle:
-    writer = csv.DictWriter(handle, fieldnames=["tier", "requests"]); writer.writeheader()
+    writer = csv.DictWriter(handle, fieldnames=["tier", "requests"], lineterminator="\n"); writer.writeheader()
     writer.writerows({"tier": tier, "requests": count} for tier, count in sorted(dispatch_tiers.items(), key=lambda item: str(item[0])))

@@ -79,7 +79,50 @@
     },
     "successful_request_count": 4000
   },
+  "gate_manifest": {
+    "configured": {
+      "confirmed_snapshot_cache": true,
+      "fixed_generation_contract": "fixed_length_greedy_v1",
+      "gpu_admission_profile_present": true,
+      "routing_policy": "ieee_confirmed"
+    },
+    "interpretation": "The confirmed-snapshot route is exercised; zero admission/planning/promotion counters are not evidence that those mechanisms ran.",
+    "observed": {
+      "background_planning_events": 0,
+      "confirmed_snapshot_source_mode": [
+        "confirmed_snapshot_cache_v1"
+      ],
+      "gpu_admission_decisions": 0,
+      "hierarchy_transitions": 0,
+      "host_promotions": 0,
+      "readiness_aware_routing_decisions": 6404,
+      "runtime_gpu_forward_successes": 0
+    }
+  },
   "kind": "d219_confirmed_snapshot_cache_full_replay_curated_v1",
+  "native_timing_field_coverage": {
+    "clock_ids": [
+      "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]"
+    ],
+    "counts": {
+      "client_submit_s": 4000,
+      "native_dispatch_monotonic_s": 4000,
+      "native_first_token_monotonic_s": 4000,
+      "native_last_token_monotonic_s": 4000,
+      "planned_arrival_s": 4000,
+      "worker_completed_monotonic_s": 4000
+    },
+    "e2e_identity_recomputed": false,
+    "note": "Fields are present; cross-stage identity still requires the frozen timing audit before formal use.",
+    "required_fields": [
+      "planned_arrival_s",
+      "client_submit_s",
+      "native_dispatch_monotonic_s",
+      "native_first_token_monotonic_s",
+      "native_last_token_monotonic_s",
+      "worker_completed_monotonic_s"
+    ]
+  },
   "physical_lifecycle": {
     "gpu_seconds_observed": 15911.712502732873,
     "gpu_seconds_per_offered_observed": 3.9779281256832184,
@@ -93,7 +136,7 @@
           "native_workers_exited",
           "release"
         ],
-        "path": "results/ieee_tc/p2_backend_qualification/d219_20261005/7b_confirmed_snapshot_cache_full_replay/launch.launch/physical_allocations/5f6382891853469faa6d08f57416fd20.jsonl",
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d219_20261005/7b_confirmed_snapshot_cache_full_replay/launch.launch/physical_allocations/5f6382891853469faa6d08f57416fd20.jsonl",
         "sha256": "7819fa9fdd01e5fb0d0a57ae65de13980e232ad09799375d78bafba6ebe72a86"
       },
       {
@@ -105,7 +148,7 @@
           "native_workers_exited",
           "release"
         ],
-        "path": "results/ieee_tc/p2_backend_qualification/d219_20261005/7b_confirmed_snapshot_cache_full_replay/launch.launch/physical_allocations/712fa9703614429b920d7f758ba3297a.jsonl",
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d219_20261005/7b_confirmed_snapshot_cache_full_replay/launch.launch/physical_allocations/712fa9703614429b920d7f758ba3297a.jsonl",
         "sha256": "c5a7c86c459bed4eb4a256212e2d711a0136010f5f4393617878f3d469730a0f"
       },
       {
@@ -117,7 +160,7 @@
           "native_workers_exited",
           "release"
         ],
-        "path": "results/ieee_tc/p2_backend_qualification/d219_20261005/7b_confirmed_snapshot_cache_full_replay/launch.launch/physical_allocations/95b0f8deca8d4881ab630bfe2624fbae.jsonl",
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d219_20261005/7b_confirmed_snapshot_cache_full_replay/launch.launch/physical_allocations/95b0f8deca8d4881ab630bfe2624fbae.jsonl",
         "sha256": "7e26783861fe3c098de760815b719c886581282fe518e59a37037e5dc6a11830"
       },
       {
@@ -129,7 +172,7 @@
           "native_workers_exited",
           "release"
         ],
-        "path": "results/ieee_tc/p2_backend_qualification/d219_20261005/7b_confirmed_snapshot_cache_full_replay/launch.launch/physical_allocations/99227aeec63843ce915430b6f3705c15.jsonl",
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d219_20261005/7b_confirmed_snapshot_cache_full_replay/launch.launch/physical_allocations/99227aeec63843ce915430b6f3705c15.jsonl",
         "sha256": "c3d2f76d4c5ab04746b59e982b6d28f256741167ca10fb557097577aeabcdb15"
       }
     ],
@@ -153,6 +196,57 @@
     "timing_contract_present": 4000,
     "unique_request_ids": 4000
   },
+  "protocol_type1_metrics": {
+    "control_path_total_us": {
+      "n": 4000,
+      "p50": 24200.019,
+      "p95": 362955.655,
+      "p99": 988798.585,
+      "quantile_definition": "type1_x_ceiling_pm_v1"
+    },
+    "dispatch_admission_wait_ms": {
+      "n": 4000,
+      "p50": 498.5542130889371,
+      "p95": 2527.592125465162,
+      "p99": 3836.9608658831567,
+      "quantile_definition": "type1_x_ceiling_pm_v1"
+    },
+    "e2e_ms": {
+      "n": 4000,
+      "p50": 4958.757155807689,
+      "p95": 12025.635744212195,
+      "p99": 14162.614694796503,
+      "quantile_definition": "type1_x_ceiling_pm_v1"
+    },
+    "service_e2e_ms": {
+      "n": 4000,
+      "p50": 4134.2662620591,
+      "p95": 11090.356729109772,
+      "p99": 12760.076388949528,
+      "quantile_definition": "type1_x_ceiling_pm_v1"
+    },
+    "service_ttft_ms": {
+      "n": 4000,
+      "p50": 523.2498729601502,
+      "p95": 1843.185990001075,
+      "p99": 3984.824576997198,
+      "quantile_definition": "type1_x_ceiling_pm_v1"
+    },
+    "tpot_ms": {
+      "n": 4000,
+      "p50": 34.70321506335351,
+      "p95": 60.47871399884267,
+      "p99": 89.19537601260734,
+      "quantile_definition": "type1_x_ceiling_pm_v1"
+    },
+    "ttft_ms": {
+      "n": 4000,
+      "p50": 1158.8352294638753,
+      "p95": 3619.7989945067093,
+      "p99": 5474.1415727185085,
+      "quantile_definition": "type1_x_ceiling_pm_v1"
+    }
+  },
   "qualification": {
     "formal_comparison_qualified": false,
     "formal_comparison_reason": "single exploratory full replay; no paired held-out seed set",
@@ -166,6 +260,12 @@
     "watchdog_returncode": 0
   },
   "run_id": "d219_7b_confirmed_snapshot_cache_full_replay",
+  "slo_contract": {
+    "frozen_joint_slo_attainment": null,
+    "producer_field": "legacy_ttft_only",
+    "producer_slo_attainment": 0.98275,
+    "reason": "common warm TTFT/TPOT thresholds are not frozen for D219"
+  },
   "source_sha256": {
     "adapter_subset": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016",
     "config": "5072d681dc961a44b03ce9f3794b5c13d878f902c6f962cfba13999d5d3a0b63",

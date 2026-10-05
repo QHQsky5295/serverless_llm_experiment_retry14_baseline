@@ -4,7 +4,8 @@ This is an offline, descriptive comparison of two complete 7B W0 replays using
 the same seed-42 trace and fixed-length generation contract. It is not a paired
 multi-seed estimate and does not qualify G1/G2. D210 is the preceding ordinary
 Full run; D219 enables the confirmed-snapshot route candidate. The values below
-come from the request-level fields in the two immutable result JSON files.
+come from the request-level fields in the two immutable result JSON files; all
+percentiles use the frozen V1 Type-1 definition (x_{(\lceil pm\rceil)}).
 
 | Metric | D210 | D219 | Relative change (lower is better) |
 |---|---:|---:|---:|
