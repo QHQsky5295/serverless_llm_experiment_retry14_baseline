@@ -13,7 +13,7 @@ proactive HOST-to-GPU (E(t)) candidate, so it establishes insufficient
 proactive coverage rather than a defect in request-priority loading.  The raw
 evidence and all A--F audit findings remain immutable.
 
-## Executive finding
+## Executive finding (historical raw finding; causal reading superseded)
 
 D227 retry2 was executed with the intended feature gate set to `true`, and the
 bounded run completed 22/22 native fixed-output requests with clean process and
@@ -26,8 +26,10 @@ evidence that the policy made no decision under pressure.
 
 This distinction is material: changing counters, relabeling logical pending
 state as physical capacity, or accepting this run as an admission ablation
-would violate the metric protocol.  The next step is code-level integration
-and a bounded pressure retest; a 4,000-request replay remains held.
+would violate the metric protocol.  The operative D238 interpretation is that
+the run lacked a proactive HOST-to-GPU candidate; it therefore establishes
+insufficient proactive coverage rather than a proven request-path defect.  A
+4,000-request replay remains held.
 
 ## Immutable inputs and execution evidence
 
