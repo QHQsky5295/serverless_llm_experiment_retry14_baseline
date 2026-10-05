@@ -25,9 +25,11 @@ arguments are not observed effective limits.
 
 ### Common deployment clock — FAIL
 
-The receipt does encode a 60-second lead, but the notice is published only
-after all replicas are ready, and replay establishes a separate origin after
-tokenizer preparation.  This is not the frozen deployment-notice timeline.
+The receipt does encode a planned 60-second lead, but the notice is published
+only after all replicas are ready.  It records no observed replay-start event;
+the replay service establishes a separate origin after tokenizer preparation.
+The recorded lead therefore proves scheduling intent, not the frozen
+deployment-notice timeline.
 
 ### Service/auxiliary accounting — FAIL
 
