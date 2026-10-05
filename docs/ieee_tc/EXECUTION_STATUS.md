@@ -1,5 +1,29 @@
 # IEEE TC execution status
 
+## CURRENT — D227 admission-gate diagnostic configuration prepared; execution held
+
+2026-10-05 19:35+08. A CPU-only audit created the new bounded 7B diagnostic
+configuration `configs/ieee_tc/20261006_d227_7b_admission_gate_22req.yaml`.
+It differs from immutable D219 only by an explicit
+`effective_capacity_admission_enabled=true`, a 22-request bounded prefix,
+fresh output/NVMe/HOST roots, and a diagnostic scenario identity.  The same
+model, frozen trace/adapter content index, generation contract, vLLM backend,
+profiles, resource envelope and remote delivery contract are retained.  YAML
+parsing, recursive intended-difference comparison, scenario-map gate merge,
+fresh-path absence and `git diff --check` all pass.  The configuration SHA is
+`76c9aa04f96d100211395e4267158ffc83e1ded5787f90caa470779103273c73`; D219's
+reference SHA remains
+`5072d681dc961a44b03ce9f3794b5c13d878f902c6f962cfba13999d5d3a0b63`.
+
+No GPU worker, local result directory, or remote artifact service was started
+for D227.  The unchanged physical-startup memory gate remains below threshold
+(about 105.6 GiB available versus 109.5 GiB required), so the 22-request run
+is not authorized yet.  The design note and status table are
+`docs/ieee_tc/D227_ADMISSION_GATE_22_DIAGNOSTIC.md` and
+`paper_results/ieee_tc/p2_backend_qualification/20261006_d227_admission_gate/d227_status.md`.
+Even after execution, D227 is diagnostic-only and cannot by itself establish
+numeric adapter correctness, common SLO, G1/G2, or a full-system ranking.
+
 ## CURRENT — post-audit safe hold; Prime 7B acceptance remains the main line
 
 2026-10-05 18:40+08. The D222–D224 Resident audit and quarantine are complete
