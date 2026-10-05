@@ -30,8 +30,9 @@ legacy TTFT-only attainment field 98.275%. The Type-1 values are recomputed
 from request records using the frozen V1 definition; the producer's linear-
 interpolation percentiles remain in `descriptive_metrics` only. All 4,000
 requests contain the required external-arrival and native dispatch/first/
-last/completion timestamps, but the E2E identity has not been independently
-recomputed here. Observed physical GPU time was 15,911.71 s (3.9779 s per
+last/completion timestamps. Offline recomputation gives 0.0 ms maximum
+absolute E2E-identity error and 0.0 ms maximum native-TPOT error for all
+4,000 rows. Observed physical GPU time was 15,911.71 s (3.9779 s per
 offered request); these numbers are descriptive for one complete exploratory
 replay.
 

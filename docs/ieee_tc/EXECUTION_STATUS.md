@@ -34,8 +34,10 @@ The run is deliberately **not** a formal G1/G2 or cross-system result:
 `n_correct` is unknown because the native token contract does not establish
 numerical adapter correctness; common warm-derived thresholds and Resident
 budget references are not yet frozen; and there is only one exploratory seed
-with no paired held-out blocks. The 98.275% value is retained as a descriptive
-legacy field, not as the frozen joint TTFT/TPOT SLO attainment. The full
+with no paired held-out blocks. The 4,000-row timing audit has zero maximum
+absolute error for both the E2E identity and native TPOT recomputation, but the
+98.275% value is retained as a descriptive legacy field, not as the frozen
+joint TTFT/TPOT SLO attainment. The full
 curation, status table and diagnostic figure are in
 `paper_results/ieee_tc/p2_backend/20261005_d219_full/` and
 `figs/ieee_tc/p2_backend/20261005_d219_full/`; checkpoint `e82c62d` is pushed

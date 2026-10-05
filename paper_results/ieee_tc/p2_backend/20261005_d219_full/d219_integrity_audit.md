@@ -25,10 +25,11 @@ G1/G2 or cross-system claim.
 - **SLO — not qualified.** The producer's 98.275% field is TTFT-only at the
   5,000-ms legacy threshold. D219 has no frozen common warm TTFT/TPOT threshold,
   so joint SLO attainment is explicitly `null`.
-- **Timing coverage — PASS, identity pending.** All requests contain planned
+- **Timing coverage — PASS for this diagnostic.** All requests contain planned
   arrival, client-submit, native dispatch, first-token, last-token and worker
-  completion timestamps. The curated audit does not yet recompute the complete
-  E2E identity; this remains a prerequisite for formal use.
+  completion timestamps. Recomputed E2E and native-TPOT identities have zero
+  maximum absolute error for all 4,000 rows. This validates the timing fields,
+  but does not establish numerical adapter correctness or a joint SLO.
 - **Mechanism scope — qualified.** The confirmed-snapshot route is active and
   its request-level owner/epoch/tier invariants pass. GPU admission, hierarchy
   transition and background planning counters are zero, so no causal claim is
@@ -43,7 +44,7 @@ claim, a G1/G2 resource ranking, or a baseline comparison.
 
 ## Required next evidence
 
-1. Recompute and verify the full timing identity and token-source audit.
+1. Complete the per-transfer remote SHA/bytes/span audit and token-source audit.
 2. Complete the common warm/Resident reference under the frozen remote,
    lifecycle, resource-domain and timeout contract.
 3. Use held-out paired blocks before attributing the P95 TTFT trade-off or

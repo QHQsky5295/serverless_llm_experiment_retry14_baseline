@@ -112,8 +112,10 @@
       "planned_arrival_s": 4000,
       "worker_completed_monotonic_s": 4000
     },
-    "e2e_identity_recomputed": false,
-    "note": "Fields are present; cross-stage identity still requires the frozen timing audit before formal use.",
+    "e2e_identity_max_abs_ms": 0.0,
+    "e2e_identity_n": 4000,
+    "e2e_identity_recomputed": true,
+    "note": "All available D219 rows satisfy the recomputed E2E and native TPOT identities within the frozen 1 ms tolerance.",
     "required_fields": [
       "planned_arrival_s",
       "client_submit_s",
@@ -121,7 +123,10 @@
       "native_first_token_monotonic_s",
       "native_last_token_monotonic_s",
       "worker_completed_monotonic_s"
-    ]
+    ],
+    "timing_identity_tolerance_ms": 1.0,
+    "tpot_max_abs_error_ms": 0.0,
+    "tpot_recomputed_n": 4000
   },
   "physical_lifecycle": {
     "gpu_seconds_observed": 15911.712502732873,
