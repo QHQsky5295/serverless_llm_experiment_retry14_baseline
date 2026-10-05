@@ -1,5 +1,32 @@
 # IEEE TC execution status
 
+## CURRENT — D234 old/new 7B Prime audit identifies a partial gain and an unresolved tail
+
+2026-10-05（离线结果核对）. The existing 4,000-request ordinary Full (D210)
+and confirmed-snapshot Full (D219) were compared field by field without
+relabeling either as a formal G1/G2 point. D219 improves mean TTFT from
+1650.5 ms to 1508.4 ms (−8.6%), mean E2E from 6034.1 ms to 5848.0 ms
+(−3.1%), dispatch-admission wait from 938.4 ms to 814.1 ms (−13.2%), runtime
+slot wait from 615.8 ms to 485.9 ms (−21.1%), and mean control-path time from
+325.9 ms to 84.7 ms (−74.0%). P95 E2E improves 3.0%.
+
+The same comparison is not uniformly better: P95 TTFT rises from 3415.8 ms to
+3620.0 ms (+6.0%), legacy TTFT attainment falls by 0.10 percentage points,
+GPU lifecycle time is unchanged (4317.01 vs 4317.05 GPU-s), and GPU cache-hit
+rate is not higher. Thus the confirmed-snapshot path has a measured control
+path benefit but has not yet demonstrated G1/G2 or a lifecycle reduction. The
+100-request D217 retry10 prefix is not a regression counterexample: its cold
+prefix cache hit rate is only 74% and its dispatch-window P95 is 10.67 s, so it
+is a separate readiness/qualification diagnostic.
+
+This evidence narrows the next first-principles optimization target to
+scale-out/readiness tail behavior, not another blind routing rewrite. Numerical
+correctness and physical admission evidence remain prerequisites; no code or
+metric threshold is changed based on these descriptive differences.
+
+Detailed values and calculation are in
+`docs/ieee_tc/D234_7B_OLD_NEW_PRIME_AUDIT.md`.
+
 ## CURRENT — D233 remote boundary and independent artifact gate rechecked read-only
 
 2026-10-05 20:09+08. A read-only recheck found the current direct experiment
