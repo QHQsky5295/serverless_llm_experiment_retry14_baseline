@@ -26,6 +26,16 @@ SHA and committed/pushed as `42fb789`; no user files were staged. The remote 7B
 artifact service was started and authenticated against the immutable published
 cache. Local disk, memory, and GPU gates passed immediately before launch.
 
+The first retry8 launch was rejected by the unchanged preflight before any
+model process or GPU worker was started: `MemAvailable` was
+107,886,551,040 bytes versus the required 109,521,666,048 bytes. This is a
+`protocol_or_launcher_error`, not a system failure or performance observation.
+Two transient auxiliary scopes created by the abandoned detached launch were
+stopped by their exact unit identities; the remote 7B service was stopped and
+the local GPU process census is empty. The failed receipt is retained under the
+retry8 raw directory and is excluded from every denominator. No timeout,
+cache, route, or generation conclusion is drawn from it.
+
 
 ## CURRENT — D217 retry7 reached native vLLM initialization but did not qualify worker readiness; route candidate remains pending
 
