@@ -1,5 +1,34 @@
 # IEEE TC execution status
 
+## CURRENT — D238 retry4–6 expose natural proactive-coverage conditions; no admission result
+
+2026-10-06（受控诊断审计）. Three fresh Llama-2-7B, seed-42, 22-request
+prefixes completed with the native fixed-output contract and complete cleanup.
+Retry4 ran the old post-drain observation and found seven HOST sources but no
+GPU target selected by the live planner. Retry5 moved the diagnostic into
+natural in-flight demand (`arrived=4`, `active=1`, `backlog=1`) and found no
+native HOST source on the selected owner. Retry6 used a larger in-flight
+window (`arrived=12`, `active=4`, `backlog=6`), found one HOST source, and
+observed a frozen Remote→GPU target for a different adapter; the diagnostic
+correctly stopped at `mixed_gpu_sources` rather than relabeling it as HOST→GPU.
+
+All three report zero proactive admission decisions, zero admit/defer/reject
+events, and `physical_kv_reservation=false`. Thus the retry sequence is a
+coverage result, not proof of an ordinary request-path defect and not a
+qualification of (E_i(t)). The run-level TTFT/E2E and GPU-s values remain
+diagnostic only; no G1/G2, joint SLO, lifecycle ranking, or baseline comparison
+is admissible. Full evidence, hashes, and the claim boundary are sealed in
+`docs/ieee_tc/D238_RETRY456_DIAGNOSTIC_AUDIT.md` and its JSON sidecar. The
+integrity audit is `docs/ieee_tc/D238_RETRY456_EXPERIMENT_AUDIT.md`; a fresh
+reviewer was requested and will be recorded as BLOCKED if it times out.
+
+The next action is not another arbitrary short prefix. First pre-register a
+legitimate later frozen-trace source window (or report that proactive coverage
+is unavailable), then use paired Full/CapacityOnly frozen owner/epoch evidence
+with typed decision, allocator/workspace, cancellation and release receipts.
+The remote artifact services are stopped and no local GPU compute process
+remains.
+
 ## CURRENT — D238 retry3 completes the bounded diagnostic but still does not exercise proactive admission
 
 2026-10-06（受控诊断）. A fresh 22-request prefix was run with the protected

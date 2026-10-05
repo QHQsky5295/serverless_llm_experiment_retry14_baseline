@@ -1,0 +1,35 @@
+{
+  "audit_skill": "experiment-audit",
+  "date": "2026-10-06",
+  "overall_verdict": "warn",
+  "integrity_status": "warn",
+  "reviewer_model": "gpt-5.6-sol",
+  "reviewer_reasoning": "ultra",
+  "review_independence": "same-family",
+  "acceptance_status": "pending_fresh_review",
+  "evaluation_type": "self_supervised_proxy",
+  "audited_input_hashes": {
+    "diagnostic_audit": "sha256:91da1e5063eccbd8a9d708a847ec8419b909a1dc55b747e3f1e16aa577000294",
+    "retry4_result": "sha256:800c05f6bbc1f11596fba9cdf73cd8230d9b52c8baafb6e4d07e5fe5dbc8f4b5",
+    "retry5_result": "sha256:4591c3de9dd28d43fe06ad02b763c7d0aa72fc0faa181ccd88c660b203589be2",
+    "retry6_result": "sha256:cbe7220ec6275ded51350ddc8da0c51f8817cd58d869b6a2f313e26e0058ca44",
+    "plan": "sha256:0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "checks": {
+    "gt_provenance": {"status": "pass", "details": "Self-supervised bounded native-contract diagnostic; no correctness GT claimed."},
+    "score_normalization": {"status": "pass", "details": "Raw diagnostic fields only; CE and legacy SLO excluded from claims."},
+    "result_existence": {"status": "pass", "details": "Three result/launch pairs exist; all are 22/22 terminal with zero failures and sealed hashes."},
+    "mechanism_coverage": {"status": "warn", "details": "Zero typed proactive decisions and zero physical KV reservations; retry4/5/6 expose distinct eligibility states."},
+    "scope": {"status": "warn", "details": "One model, one seed, three 22-request prefixes; no formal comparison or ranking."},
+    "eval_type": "self_supervised_proxy"
+  },
+  "claims": [
+    {"id": "bounded_native_execution", "impact": "supported"},
+    {"id": "cleanup_release", "impact": "supported"},
+    {"id": "natural_proactive_coverage", "impact": "supported_with_limits"},
+    {"id": "typed_proactive_admission", "impact": "unsupported_needs_followup"},
+    {"id": "g1_g2_or_ranking", "impact": "unsupported"},
+    {"id": "ordinary_request_route_defect", "impact": "not_established"}
+  ],
+  "next_action": "Pre-register a legitimate frozen-trace source window and paired Full/CapacityOnly frozen-state diagnostic; do not run another arbitrary 22-request prefix."
+}

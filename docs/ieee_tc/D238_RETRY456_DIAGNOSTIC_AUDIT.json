@@ -1,0 +1,62 @@
+{
+  "kind": "ieee_tc_d238_retry456_diagnostic_audit_v1",
+  "date": "2026-10-06",
+  "branch": "retry14_continuous_queue_v2",
+  "formal_comparison_qualified": false,
+  "g1_g2_qualified": false,
+  "evaluation_type": "self_supervised_proxy",
+  "scope": {
+    "model": "llama2-7b",
+    "seed": 42,
+    "source_trace_requests": 4000,
+    "planned_requests_per_run": 22,
+    "runs": ["retry4", "retry5", "retry6"]
+  },
+  "runs": {
+    "retry4": {
+      "result_sha256": "sha256:800c05f6bbc1f11596fba9cdf73cd8230d9b52c8baafb6e4d07e5fe5dbc8f4b5",
+      "launch_sha256": "sha256:97855436b8445b579ac7316c0e3d3f4235fc6a134fa0fb73254c66cf9d129ac6",
+      "config_sha256": "sha256:3b38cfc4dd3f1087719b5e3abf800e4edddff671b3e1815b939af6d2a1931b7a",
+      "state": "no_proactive_candidate",
+      "reason": "planner_selected_no_gpu_target_from_live_demand_window",
+      "initialized_runtime_count": 4,
+      "host_source_adapter_ids": ["code_lora", "finance_lora", "finance_lora_0013", "legal_lora", "research_lora_0008", "translate_lora", "writing_lora_0011"],
+      "selected_gpu": [],
+      "trigger": null,
+      "metrics": {"completed": 22, "failed": 0, "avg_ttft_ms": 2710.4678, "p95_ttft_ms": 5975.0615, "avg_e2e_ms": 8732.127, "p95_e2e_ms": 14312.3167, "throughput_rps": 0.316808, "infra_gpu_seconds": 420.227825, "legacy_slo_display": 0.818182},
+      "feature_activation": {"dispatch_tiers": {"gpu": 8, "host": 2, "nvme": 2, "remote": 10}, "scale_up_events": 3, "scale_up_events_with_planned_adapters": 0, "gpu_admission_observed": 0, "gpu_admission_decisions": 0, "admit": 0, "defer": 0, "reject": 0}
+    },
+    "retry5": {
+      "result_sha256": "sha256:4591c3de9dd28d43fe06ad02b763c7d0aa72fc0faa181ccd88c660b203589be2",
+      "launch_sha256": "sha256:53c8488ea59fb21267b5a45d9c82f2002d1c475570e12e1e2385cd49e717cbdc",
+      "config_sha256": "sha256:a7fb98d9aa0dc09a16e9ffc9cf04807342c7af7f22235312845529e3df1c4f42",
+      "state": "no_host_source",
+      "reason": "planner_source_view_has_no_native_host_candidate",
+      "initialized_runtime_count": 1,
+      "host_source_adapter_ids": [],
+      "selected_gpu": null,
+      "trigger": {"kind": "observed_inflight_demand_v1", "min_arrived": 4, "arrived": 4, "completed": 3, "backlog": 1, "active_requests": 1, "busy_ratio": 1.0},
+      "metrics": {"completed": 22, "failed": 0, "avg_ttft_ms": 3206.0359, "p95_ttft_ms": 10072.5784, "avg_e2e_ms": 9429.858, "p95_e2e_ms": 17867.5213, "throughput_rps": 0.2905796, "infra_gpu_seconds": 426.854988, "legacy_slo_display": 0.772727},
+      "feature_activation": {"dispatch_tiers": {"gpu": 8, "host": 5, "nvme": 1, "remote": 8}, "scale_up_events": 0, "scale_up_events_with_planned_adapters": 0, "gpu_admission_observed": 0, "gpu_admission_decisions": 0, "admit": 0, "defer": 0, "reject": 0}
+    },
+    "retry6": {
+      "result_sha256": "sha256:cbe7220ec6275ded51350ddc8da0c51f8817cd58d869b6a2f313e26e0058ca44",
+      "launch_sha256": "sha256:668b831ae220bfcda1c0738f08bc9bb5c66068594cf5ee35590844db31ddfee0",
+      "config_sha256": "sha256:be6b4fc4c6e207f1a5c681503afcf4e8377f9de9c6d0c67e3debc1e215a1f1c4",
+      "state": "mixed_gpu_sources",
+      "reason": "frozen_plan_contains_non_host_gpu_targets",
+      "initialized_runtime_count": 1,
+      "host_source_adapter_ids": ["writing_lora_0011"],
+      "selected_gpu": [{"artifact_id": "finance_lora_0013", "source_tier": "remote", "target_tier": "gpu", "footprint_bytes": 329056256, "demand_fraction": 0.25}],
+      "trigger": {"kind": "observed_inflight_demand_v1", "min_arrived": 12, "arrived": 12, "completed": 6, "backlog": 6, "active_requests": 4, "busy_ratio": 1.0},
+      "plan_sha256": "41930c75012fb3521f12340ab20016f386d5f335ef182e85acb547f25140d693",
+      "metrics": {"completed": 22, "failed": 0, "avg_ttft_ms": 3262.3128, "p95_ttft_ms": 9376.7026, "avg_e2e_ms": 9459.4655, "p95_e2e_ms": 17324.9321, "throughput_rps": 0.2929504, "infra_gpu_seconds": 426.747018, "legacy_slo_display": 0.772727},
+      "feature_activation": {"dispatch_tiers": {"gpu": 9, "host": 1, "nvme": 0, "remote": 12}, "scale_up_events": 0, "scale_up_events_with_planned_adapters": 0, "gpu_admission_observed": 0, "gpu_admission_decisions": 0, "admit": 0, "defer": 0, "reject": 0}
+    }
+  },
+  "cleanup": {"all_runs_service_returncode": 0, "all_runs_replay_returncode": 0, "all_runs_watchdog_returncode": 0, "native_gpu_context_release_confirmed": true, "service_path_removed": true, "open_leases": 0, "remote_artifact_service_inactive_after_retry6": true, "local_gpu_compute_processes_after_retry6": 0},
+  "claim_boundary": ["bounded native execution", "request-path cleanup", "natural proactive-coverage conditions"],
+  "disallowed_claims": ["typed proactive admission executed", "physical KV reservation", "G1", "G2", "joint SLO superiority", "lifecycle ranking", "baseline comparison", "ordinary demand-route defect"],
+  "next_action": "Pre-register a legitimate later frozen-trace source window or report proactive path not exercised; then collect paired Full/CapacityOnly owner-epoch evidence with typed decision and backend allocator/workspace/cancellation receipts.",
+  "plan_sha256": "sha256:0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+}
