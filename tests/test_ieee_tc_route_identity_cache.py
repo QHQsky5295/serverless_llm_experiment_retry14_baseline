@@ -216,6 +216,40 @@ class RouteIdentityCacheQualification(unittest.TestCase):
 
         asyncio.run(check())
 
+    def test_confirmed_snapshot_cache_reuses_only_authoritative_entry(self):
+        runner, slot, _, full_wire = self._runner()
+        runner._ieee_route_confirmed_snapshot_cache = True
+
+        async def check():
+            first, first_meta = await runner._ieee_collect_confirmed_snapshot_cache(
+                (slot,), requested_adapter_ids=[4])
+            # A second route view uses the previously authoritative scoped
+            # observation and does not issue an identity RPC or a duplicate
+            # full request.  The selected-source transaction is tested by the
+            # integration campaign, not inferred from this collector test.
+            second, second_meta = await runner._ieee_collect_confirmed_snapshot_cache(
+                (slot,), requested_adapter_ids=[4])
+            self.assertEqual(slot.engine.ieee_request_sources.await_count, 1)
+            self.assertEqual(slot.engine.ieee_source_identities.await_count, 0)
+            self.assertEqual(first_meta['full_authoritative_read_replica_count'], 1)
+            self.assertEqual(second_meta['confirmed_snapshot_cache_hit_replica_count'], 1)
+            self.assertEqual(second_meta['full_authoritative_read_replica_count'], 0)
+            self.assertEqual(first[0][0].identity_view(), second[0][0].identity_view())
+            self.assertEqual(second_meta['selected_revalidation'],
+                             'owner_epoch_or_selected_identity_v1')
+
+        asyncio.run(check())
+
+    def test_confirmed_snapshot_cache_rejects_missing_device_identity(self):
+        runner, slot, _, full_wire = self._runner()
+        runner._ieee_route_confirmed_snapshot_cache = True
+        bad = dict(full_wire)
+        bad.pop('device_uuid', None)
+        slot.engine.ieee_request_sources = AsyncMock(return_value=bad)
+        with self.assertRaises(ValueError):
+            asyncio.run(runner._ieee_collect_confirmed_snapshot_cache(
+                (slot,), requested_adapter_ids=[4]))
+
 
 class RouteEvidenceAudit(unittest.TestCase):
     def _requests(self):

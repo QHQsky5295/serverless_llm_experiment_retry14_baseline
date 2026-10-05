@@ -1,5 +1,46 @@
 # IEEE TC execution status
 
+## CURRENT — D217 confirmed-snapshot route candidate CPU-qualified; GPU validation held by startup memory gate
+
+2026-10-05 11:25+08. A new Prime-only 7B candidate was implemented behind the
+disabled-by-default `ieee_route_confirmed_snapshot_cache` gate.  A scoped route
+footprint is populated only by the authoritative native request endpoint.  On
+later candidate views, non-selected replicas may reuse that immutable confirmed
+observation; the selected source is still checked by its owner/epoch/source
+transaction (or by one selected-replica identity read for a non-native source).
+Any selected conflict invalidates only that `(replica, adapter-scope)` entry and
+forces a fresh authoritative read.  This is not a TTL, polling, future-demand
+oracle, or unconditional last-known tier decision.  IEEE equations, admission,
+generation, workload, profiles and resource limits are unchanged.
+
+The route-identity suite passes 14/14 under the qualified vLLM Python
+environment, including authoritative-only cache creation, no duplicate full
+read on reuse, missing device identity fail-closed behavior, epoch/source
+conflict handling, membership rejection and Type-1 route-evidence checks.
+Python compilation, YAML parsing and `git diff --check` also pass.
+The broader request-footprint, service-routing, scheduler-observation and
+request-lifecycle regression selection passes 292/292 in the bounded auxiliary
+3/4-GiB scope.
+
+One fresh D217 diagnostic configuration and distinct output/NVMe/HOST roots were
+created.  The existing remote 7B artifact unit was started through its managed
+systemd user service and authenticated health/manifest checks reported
+`prepublished_gzip_v1` and the frozen 500-adapter set.  The first launcher
+attempt stopped before execution because the new output parent did not exist;
+the second stopped in preflight with `insufficient_physical_startup_headroom`
+(`MemAvailable` about 106--108 GB versus the frozen 109.5 GB requirement).
+The failed auxiliary scopes were stopped by their exact unit names.  No model,
+GPU worker, replay request, or new result was produced; the D217 directory only
+contains the preflight receipt.  A no-write page-cache release did not clear
+the margin, so the experiment remains held rather than weakening the gate or
+terminating unrelated services.
+
+**Next:** when the host passes the unchanged startup gate, rerun the same D217
+command from its existing empty campaign directory.  Compare its bounded
+control-path mean/P95 with D215/D216, audit selected-conflict invalidations and
+all lifecycle/contract fields, then decide whether a 4,000-request replay is
+permitted.  Do not start 3B or any external baseline before that decision.
+
 ## CURRENT — D216 retry7 bounded validation COMPLETE; mechanism active but candidate revoked for full-replay selection
 
 2026-10-04 16:00+08. The fresh D216 retry7 was run only after stopping and

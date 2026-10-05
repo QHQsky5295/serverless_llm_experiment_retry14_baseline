@@ -7041,6 +7041,16 @@ class ScenarioRunner:
         self._ieee_route_identity_recheck_cache = bool(
             self.coord_cfg.get('ieee_route_identity_recheck_cache', False)
         )
+        # Candidate-only routing optimization.  A scoped footprint is first
+        # obtained from the authoritative native endpoint and then reused as a
+        # confirmed epoch token for non-selected replicas.  The selected copy
+        # is still revalidated by its owner (or by the selected replica's
+        # identity endpoint for non-native sources); any conflict invalidates
+        # only that entry and forces a fresh authoritative read.  This is not
+        # a TTL, polling, or unconditional last-known tier decision.
+        self._ieee_route_confirmed_snapshot_cache = bool(
+            self.coord_cfg.get('ieee_route_confirmed_snapshot_cache', False)
+        )
         self._ieee_route_full_cache: Dict[Tuple[str, tuple], Dict[str, Any]] = {}
         self._ieee_route_cache_stats: Dict[str, int] = {}
         self._ieee_scale_controller = None
@@ -8227,6 +8237,155 @@ class ScenarioRunner:
                 return False
         return True
 
+    def _ieee_invalidate_route_scope(self, slot, adapter_id) -> None:
+        """Drop one optimistic route entry after selected-source conflict.
+
+        The confirmed-snapshot candidate is allowed to use an older complete
+        observation only while it is not selected.  Once the selected owner
+        rejects its owner/epoch/source token, retaining that entry would make
+        the next retry repeat the same stale decision.  Invalidating the
+        precise instance/scope keeps unrelated adapters and replicas intact.
+        """
+        try:
+            from faaslora.experiment.instance_pool import NativeSourceSnapshot
+            native_id = InferenceEngine._lora_int_id(adapter_id)
+            scope = NativeSourceSnapshot._request_scope([native_id])
+        except Exception:
+            return
+        key = (getattr(slot, 'instance_id', None), scope)
+        if key in getattr(self, '_ieee_route_full_cache', {}):
+            del self._ieee_route_full_cache[key]
+            stats = getattr(self, '_ieee_route_cache_stats', {})
+            stats['selected_conflict_invalidations'] = (
+                stats.get('selected_conflict_invalidations', 0) + 1)
+
+    async def _ieee_collect_confirmed_snapshot_cache(self, slots, *, requested_adapter_ids):
+        """Collect a confirmed route view with selected-copy validation.
+
+        A cache entry is never created from a prediction: it is populated only
+        by ``ieee_request_sources`` and contains the complete native identity
+        plus the requested measured footprint.  Reuse is intentionally
+        limited to building the candidate view.  The selected source is
+        subsequently checked by ``_ieee_protect_selected_source`` and the
+        native acquisition transaction, which compare the owner/epoch/source
+        token.  Thus stale non-selected replicas cannot create a false
+        dispatch; a selected conflict causes a scoped cache miss on retry.
+        """
+        from faaslora.experiment.instance_pool import NativeSourceSnapshot
+        scope = NativeSourceSnapshot._request_scope(requested_adapter_ids)
+        stats = self._ieee_source_observation_stats
+        cache_stats = self._ieee_route_cache_stats
+        cache_stats['requests'] = cache_stats.get('requests', 0) + 1
+        membership = tuple((id(slot), id(slot.engine)) for slot in slots)
+        waves = self._ieee_source_observation_waves
+        key = (membership, scope, 'confirmed_snapshot_cache_v1')
+        wave = waves.get(key)
+        joined = wave is not None and not wave['task'].done()
+        if joined:
+            stats['joined'] = stats.get('joined', 0) + 1
+        else:
+            stats['collections'] = stats.get('collections', 0) + 1
+
+            async def collect():
+                from faaslora.clock import local_monotonic_clock_id
+                engines = tuple(slot.engine for slot in slots)
+                cached_entries = {}
+                cold_indexes = set()
+                reused_indexes = set()
+                for index, slot in enumerate(slots):
+                    cache_key = (slot.instance_id, scope)
+                    entry = self._ieee_route_full_cache.get(cache_key)
+                    cached = entry.get('snapshot') if isinstance(entry, dict) else None
+                    if cached is None:
+                        cold_indexes.add(index)
+                        cache_stats['misses'] = cache_stats.get('misses', 0) + 1
+                    else:
+                        cached_entries[index] = (cached, entry)
+                        reused_indexes.add(index)
+                        cache_stats['confirmed_snapshot_hits'] = (
+                            cache_stats.get('confirmed_snapshot_hits', 0) + 1)
+                reads = {
+                    index: asyncio.create_task(
+                        slots[index].engine.ieee_request_sources(
+                            requested_adapter_ids=list(scope)))
+                    for index in sorted(cold_indexes)}
+                results = await asyncio.gather(*reads.values(), return_exceptions=True)
+                cold_results = dict(zip(sorted(cold_indexes), results))
+                for value in cold_results.values():
+                    if isinstance(value, BaseException):
+                        raise value
+                if (tuple(self.instance_pool.get_slots()) != slots
+                        or any(slot.engine is not engine
+                               for slot, engine in zip(slots, engines))):
+                    cache_stats['membership_rejections'] = (
+                        cache_stats.get('membership_rejections', 0) + 1)
+                    return None
+
+                values = [None] * len(slots)
+                cache_updates = []
+                for index in sorted(reused_indexes):
+                    cached, entry = cached_entries[index]
+                    if not isinstance(cached, NativeSourceSnapshot):
+                        raise ValueError('confirmed route cache contains a malformed snapshot')
+                    values[index] = (cached, entry.get('device_uuid')
+                                     if isinstance(entry, dict) else None)
+                for index in sorted(cold_indexes):
+                    value = cold_results[index]
+                    state = NativeSourceSnapshot.from_request_wire(
+                        value, requested_adapter_ids=scope,
+                        expected_clock_id=local_monotonic_clock_id(),
+                        received_monotonic_s=time.monotonic())
+                    device_uuid = value.get('device_uuid')
+                    values[index] = (state, device_uuid)
+                    cache_updates.append((slots[index].instance_id, scope,
+                                          dict(snapshot=state, device_uuid=device_uuid,
+                                               confirmed_at_monotonic_s=state.captured_monotonic_s,
+                                               confirmation='authoritative_request_source_v1')))
+                if any(value is None for value in values):
+                    raise RuntimeError('confirmed snapshot collection did not resolve every replica')
+                device_uuids = tuple(value[1] for value in values)
+                # A cache hit predates the candidate's device UUID sidecar in
+                # older test fixtures.  Production entries always carry one;
+                # fail closed if a real selected set cannot establish unique
+                # physical ownership.
+                if (any(not isinstance(value, str) for value in device_uuids)
+                        or len(set(device_uuids)) != len(device_uuids)):
+                    raise ValueError('IEEE TP=1 replicas require distinct native physical GPU identities')
+                for instance_id, cache_scope, entry in cache_updates:
+                    self._ieee_route_full_cache[(instance_id, cache_scope)] = entry
+                return tuple(values), dict(
+                    collection_id=wave['collection_id'], joined=False,
+                    mode='confirmed_snapshot_cache_v1',
+                    identity_replica_count=0,
+                    confirmed_snapshot_cache_hit_replica_count=len(reused_indexes),
+                    cache_hits=cache_stats.get('confirmed_snapshot_hits', 0),
+                    identity_only=0,
+                    full_authoritative_read_replica_count=len(cold_indexes),
+                    full_fallback_replica_count=0,
+                    cold_full_read_replica_count=len(cold_indexes),
+                    reused_replica_indexes=sorted(reused_indexes),
+                    selected_revalidation='owner_epoch_or_selected_identity_v1')
+
+            wave = dict(membership=membership, task=asyncio.create_task(collect()),
+                        waiters=0, collection_id=stats['collections'])
+            waves[key] = wave
+        wave['waiters'] += 1
+        try:
+            values = await asyncio.shield(wave['task'])
+            if values is None:
+                return None, dict(collection_id=wave['collection_id'], joined=joined,
+                    mode='confirmed_snapshot_cache_v1', membership_rejected=True)
+            observations, collection = values
+            return observations, dict(collection, collection_id=wave['collection_id'], joined=joined)
+        finally:
+            wave['waiters'] -= 1
+            if wave['waiters'] == 0:
+                if waves.get(key) is wave:
+                    del waves[key]
+                if not wave['task'].done():
+                    wave['task'].cancel()
+                await asyncio.gather(wave['task'], return_exceptions=True)
+
     async def _ieee_collect_route_identity_cache(self, slots, *, requested_adapter_ids):
         """Fresh identity recheck plus conditional reuse of scoped footprints.
 
@@ -8498,9 +8657,12 @@ class ScenarioRunner:
         slots = tuple(self.instance_pool.get_slots())
         engines = tuple(slot.engine for slot in slots)
         requested_ids = [InferenceEngine._lora_int_id(trace.adapter_id)] if trace.adapter_id else []
-        collector = (self._ieee_collect_route_identity_cache
-            if getattr(self, '_ieee_route_identity_recheck_cache', False)
-            else self._ieee_collect_native_sources)
+        if getattr(self, '_ieee_route_confirmed_snapshot_cache', False):
+            collector = self._ieee_collect_confirmed_snapshot_cache
+        elif getattr(self, '_ieee_route_identity_recheck_cache', False):
+            collector = self._ieee_collect_route_identity_cache
+        else:
+            collector = self._ieee_collect_native_sources
         observations, collection = await collector(slots, requested_adapter_ids=requested_ids)
         # Scale-up/removal during RPC collection is not a complete current view.
         if (observations is None or tuple(self.instance_pool.get_slots()) != slots
@@ -8511,12 +8673,19 @@ class ScenarioRunner:
         native = tuple(state for state, _ in observations)
         # Validate the WHOLE collection before publishing any member. There is
         # no await between this check, publication, and request-specific state.
-        if not all(slot.accepts_native_sources(state) for slot, state in zip(slots, native)):
+        reused_indexes = set(collection.get('reused_replica_indexes', ()))
+        if not all(
+                index in reused_indexes or slot.accepts_native_sources(state)
+                for index, (slot, state) in enumerate(zip(slots, native))):
             stats = self._ieee_source_observation_stats
             stats['stale_rejections'] = stats.get('stale_rejections', 0) + 1
             return None
-        for slot, state in zip(slots, native):
-            slot.commit_native_sources(state)
+        # Reused entries are deliberately not published as a newer controller
+        # observation.  They are confirmed historical tokens used only to form
+        # the candidate view; the selected source owner revalidates them below.
+        for index, (slot, state) in enumerate(zip(slots, native)):
+            if index not in reused_indexes:
+                slot.commit_native_sources(state)
         adapter_id = trace.adapter_id
         files = owner.source_snapshot(adapter_id) if adapter_id else None
         if files is not None:
@@ -16267,17 +16436,20 @@ class ScenarioRunner:
                 expected_clock_id=local_monotonic_clock_id(), received_monotonic_s=time.monotonic())
             if native.owner_id != previous_owner or not slot.commit_native_source_identity(native):
                 evidence['native_source_conflict'] = 'native owner/epoch changed during source admission'
+                self._ieee_invalidate_route_scope(slot, reservation.adapter_id)
                 return False
             aid = InferenceEngine._lora_int_id(reservation.adapter_id)
             if aid in native.unknown_native_adapter_ids:
                 raise ValueError('source admission found an unowned native adapter')
             if any(row.adapter_int_id == aid for row in native.sources):
                 evidence['native_source_conflict'] = 'faster native source appeared before admission'
+                self._ieee_invalidate_route_scope(slot, reservation.adapter_id)
                 return False
         if source['tier'] == 'gpu':
             if await self._acquire_runtime_gpu_reference(reservation, engine,
                     reservation.adapter_id, cached_only=True, selected_source=source,
                     pending_request_plan=pending_request_plan) is None:
+                self._ieee_invalidate_route_scope(slot, reservation.adapter_id)
                 return False
         elif source['native'] and source['tier'] == 'host':
             intent = dict(lease_id=uuid.uuid4().hex,
@@ -16297,6 +16469,7 @@ class ScenarioRunner:
                 if receipt.get('reason') not in ('stale_snapshot', 'required_source_changed', 'owner_changed'):
                     raise ValueError('unexpected selected HOST source rejection')
                 host.update(state='rejected', conflict=dict(receipt))
+                self._ieee_invalidate_route_scope(slot, reservation.adapter_id)
                 return False
             held_at = receipt.get('held_monotonic_s')
             if (receipt.get('owner_id') != source['owner_id']
@@ -16319,6 +16492,7 @@ class ScenarioRunner:
                     expected_epoch=source['epoch'], expected_content_sha256=source['content_sha256'])
             except ConfirmedSourceConflict as exc:
                 evidence['file_source_conflict'] = str(exc)
+                self._ieee_invalidate_route_scope(slot, reservation.adapter_id)
                 return False
             reservation.local_source_owner = manager
             evidence['local_source_reference'] = reference
@@ -16328,6 +16502,7 @@ class ScenarioRunner:
             current = self._stack.residency_manager.local_source_references.source_snapshot(reservation.adapter_id)
             if current['owner_id'] != source['owner_id'] or current['epoch'] != source['epoch']:
                 evidence['file_source_conflict'] = 'Remote source view changed before admission'
+                self._ieee_invalidate_route_scope(slot, reservation.adapter_id)
                 return False
         elif source['tier'] != 'backbone':
             raise ValueError('unsupported selected source')
