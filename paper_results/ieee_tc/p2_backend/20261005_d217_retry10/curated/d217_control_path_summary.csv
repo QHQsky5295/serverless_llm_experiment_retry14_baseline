@@ -1,0 +1,4 @@
+metric,value
+mean_ms,87.59078947
+n_requests,100
+p95_type1_ms,371.93949

@@ -1,0 +1,10 @@
+{
+  "kind": "diagnostic_figure_v1",
+  "source": "paper_results/ieee_tc/p2_backend/20261005_d217_retry10/curated/d217_retry10_curated.json",
+  "scope": "100-request mechanism diagnostic; not a formal cross-run comparison",
+  "historical_bars": {
+    "D215": "prior single diagnostic",
+    "D216": "prior single diagnostic"
+  },
+  "caption": "D217 confirms request-level owner/epoch and dispatch-tier invariants. Historical control-path bars are descriptive only and are not a paired causal comparison."
+}

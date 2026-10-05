@@ -1,0 +1,2 @@
+confirmed_dispatch_snapshot,dispatch_tier_present,output_contract_match,request_count,selected_intent_receipt_owner_match,selected_receipt_epoch_not_older,source_tier_equals_dispatch_tier,stale_recheck_requests,stale_recheck_sum,successful,unique_request_ids
+100,100,100,100,100,100,100,6,6,100,100

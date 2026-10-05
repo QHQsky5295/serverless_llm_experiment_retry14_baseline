@@ -1,0 +1,4 @@
+group,n_requests,mean_ms,p95_type1_ms
+all,100,87.59078947,371.93949
+with_reported_fallback,0,,
+without_reported_fallback,100,87.59078947,371.93949
