@@ -17,8 +17,8 @@
     "gt_provenance": {"status": "pass", "details": "Native serving telemetry; no model-output ground truth."},
     "score_normalization": {"status": "pass", "details": "Absolute counts and raw timing values only."},
     "result_existence": {"status": "pass", "details": "D219 path and SHA match all D235 numerical claims."},
-    "dead_or_vacuous_metric": {"status": "warn", "details": "Legacy first-service labels are mechanically zero under ieee_confirmed."},
-    "scope": {"status": "warn", "details": "One exploratory run; not formal G1/G2 or ranking evidence."},
+    "dead_or_vacuous_metric": {"status": "warn", "details": "Legacy first-service labels are mechanically zero under ieee_confirmed; confirmed snapshots may reuse revalidated owner entries."},
+    "scope": {"status": "warn", "details": "One exploratory run; physical_capacity_qualified is false for scale-up requests; not formal G1/G2 or ranking evidence."},
     "eval_type": "self_supervised_proxy"
   },
   "claims": [

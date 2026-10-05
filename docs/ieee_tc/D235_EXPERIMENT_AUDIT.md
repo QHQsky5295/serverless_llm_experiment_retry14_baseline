@@ -11,7 +11,9 @@
 The D235 numbers are recomputed from the retained D219 request records and
 scale-up events. They are system-serving observations (confirmed routing
 snapshots and native source tiers), not semantic model ground truth. No value is
-derived from a model output and called a correctness reference.
+derived from a model output and called a correctness reference. The confirmed
+snapshot may reuse a previously collected owner entry; the selected source is
+revalidated, so “fresh” must not be read as a new full RPC for every request.
 
 ### B. Score normalization — PASS
 
@@ -40,10 +42,10 @@ diagnostic fields.
 ### E. Scope — WARN by design
 
 This is one exploratory 4,000-request 7B run with three scale-up events. The
-JSON explicitly marks it as non-formal, with no effective physical-capacity
-admission qualification and no common-warm reference. It supports the causal
-diagnostic in D235 only; it does not support superiority, G1/G2, SLO, or
-baseline-ranking claims.
+JSON explicitly marks it as non-formal; `physical_capacity_qualified` is false
+for the scale-up requests and there is no common-warm reference. It supports
+the causal diagnostic in D235 only; it does not support superiority, G1/G2,
+SLO, or baseline-ranking claims.
 
 ### F. Evaluation type — `self_supervised_proxy`
 
@@ -57,6 +59,6 @@ diagnostic, not a model-accuracy evaluation.
   diagnostic claim**.
 - First-service legacy counters are zero: **not interpretable on this path**.
 - New replicas often dispatch with non-GPU source tiers: **supported as a
-  descriptive diagnostic claim**.
+  descriptive diagnostic claim**. “GPU-ready” means the selected source tier,
+  not a physical-capacity-qualified GPU lease.
 - Prime satisfies G1/G2 or beats a baseline: **unsupported by D235**.
-

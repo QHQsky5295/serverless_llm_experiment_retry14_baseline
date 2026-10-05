@@ -36,14 +36,19 @@ load the adapter from NVMe/HOST/Remote after dispatch.
    selects the minimum measured service-class key among feasible replicas. A
    confirmed NVMe/HOST/Remote source is a valid feasible class; GPU readiness
    is not imposed as a precondition.
-5. In `scripts/run_all_experiments.py:16893–16962`, the request first commits a
-   fresh received-owner snapshot, records the selected source tier, registers a
-   pending load when that tier is not GPU, and only then proceeds to source
-   protection/admission. This is the authoritative pre-dispatch evidence path.
-6. In `faaslora/preloading/preloading_planner.py:645–774`, activation planning
-   freezes the demand window available when the plan is created. A 45-second
-   startup can therefore make that demand window stale unless a new epoch is
-   planned after startup or the ready-time demand frontier is incorporated.
+5. In `scripts/run_all_experiments.py:16893–16962`, the request commits a
+   request-specific confirmed-owner view, records the selected source tier,
+   registers a pending load when that tier is not GPU, and only then proceeds
+   to source protection/admission. The confirmed-snapshot cache may reuse a
+   previously collected owner entry, but the selected source is revalidated;
+   “fresh” here means a request-specific view, not a new RPC for every replica.
+   This is the authoritative pre-dispatch evidence path.
+6. `faaslora/preloading/preloading_planner.py:645–774` freezes the source,
+   owner and footprint inputs used by an activation plan. The actual demand
+   snapshot is frozen and checked in `scripts/run_all_experiments.py:1958–2009`
+   and `2045–2083`. A 45-second startup can therefore make that demand window
+   stale unless a new epoch is planned after startup or the ready-time demand
+   frontier is incorporated.
 
 ## D219 evidence
 
@@ -68,7 +73,9 @@ Result SHA-256: `e2a83118a59019854e1110f40c3da333e7a5be79062552bed6ab2b87e0bbdff
 - Across all requests on these replicas, the tier counts were GPU 807, HOST
   1,340, NVMe 754, and Remote 102. This is descriptive evidence only; the
   result is not G1/G2-qualified because it lacks physical-capacity admission
-  qualification and a common warm reference.
+  qualification and a common warm reference. In fact, the D219 records mark
+  `physical_capacity_qualified=false` for these requests; “GPU-ready” below
+  means the selected confirmed source tier, not a qualified GPU lease.
 
 The D219 request record for `req_00022` is especially diagnostic: its
 `routing_snapshot` selected the new replica with a confirmed NVMe service

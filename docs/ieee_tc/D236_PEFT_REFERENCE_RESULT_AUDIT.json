@@ -1,0 +1,28 @@
+{
+  "audit": "D236 independent PEFT reference result audit",
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "result_sha256": "0a9d2fa237961b79a0c282821e7161f9edd4a34bf98c7e78772aeb147566a8fe",
+  "launch_receipt_sha256": "cd49bebad07d76a4de6270013d707cb5d2316d4a343b621defe2ab020a3d8d43",
+  "trace_sha256": "efb903254fdcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+  "result": {
+    "kind": "existing_peft_numeric_reference_v1",
+    "pass": true,
+    "measurement_complete": true,
+    "stage": "complete",
+    "semantic_full_pool_qualification": false,
+    "production_launch_authorized": false,
+    "matched_reference_consistency_pass": true,
+    "roles": ["nonzero_a", "zero", "nonzero_b", "base", "nonzero_a_repeat"],
+    "source_request_id": "req_00003",
+    "prompt_identity_match": true,
+    "adapter_exact_values_and_dtype": true,
+    "full_vocab_zero_vs_base_max_abs": 0.0,
+    "full_vocab_nonzero_a_vs_base_max_abs": 0.0890493392944336,
+    "full_vocab_nonzero_b_vs_base_max_abs": 0.10040950775146484,
+    "repeat_a_identical": true,
+    "native_reference_max_abs_difference": 0.02962350845336914
+  },
+  "scope": "bounded semantic reference only",
+  "verdict": "PASS_FOR_NUMERICAL_REFERENCE; NOT_FORMAL_PERFORMANCE_OR_RANKING_EVIDENCE",
+  "memory_gate_note": "Current Plan equation is 102 GiB; historical status prose says 109.5 GiB. Reconcile before the next performance run."
+}

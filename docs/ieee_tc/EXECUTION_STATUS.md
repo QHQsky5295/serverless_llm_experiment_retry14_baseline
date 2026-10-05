@@ -1,5 +1,31 @@
 # IEEE TC execution status
 
+## CURRENT — D236 independent PEFT reference passes; full Prime qualification remains open
+
+2026-10-05（受控数值参考）. A single guarded 7B `backend-peft-reference`
+run completed with `pass=true`, `measurement_complete=true`, and
+`matched_reference_consistency_pass=true`. It evaluated the five pre-registered
+roles (nonzero-A, zero, nonzero-B, base, and nonzero-A-repeat) against the
+existing native receipt and the byte-verified frozen W0 trace. Prompt/tokenizer
+identity matched; all three adapters passed exact tensor-value/dtype checks.
+The independent full-vocabulary reference reports zero-vs-base difference 0,
+nonzero-A and nonzero-B differences, and an identical repeated-A result.
+
+This closes only the bounded numerical reference gate. The result explicitly
+remains `semantic_full_pool_qualification=false` and
+`production_launch_authorized=false`; it is not a 4,000-request correctness
+denominator, SLO result, lifecycle-budget measurement, or ranking point. The
+launch receipt and result hashes, plus the exact interpretation boundary, are
+sealed in `docs/ieee_tc/D236_PEFT_REFERENCE_RESULT_AUDIT.md` and its JSON sidecar.
+The service and auxiliary scopes were stopped, the GPU compute context was
+released, and no remote service or replay was started.
+
+The current Plan SHA `0c808509…` contains the explicit no-service startup
+equation `80+4+16+2=102 GiB`, while older status prose still says 109.5 GiB.
+D236 used the current Plan equation; this discrepancy must be reconciled and
+recorded in the next run manifest before the D227 physical-admission or any
+performance run.
+
 ## CURRENT — D235 confirmed scale-out first-service audit separates schema gap from real tail cause
 
 2026-10-05（离线代码—结果核对）. The three D219 scale-up events were
