@@ -25,5 +25,7 @@ The launcher deliberately uses `/usr/bin/python3` for the outer resource
 supervisor and `/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python` only for the
 child PEFT process: the latter has the required CUDA/PEFT packages but its
 Python build does not expose the PID-handle signaling primitive required by
-the watchdog.  This is an interpreter-role correction, not a change to the
-reference model or generation semantics.
+the watchdog.  The supervisor is started in the shared auxiliary systemd
+scope expected by `gated-launch`; the child is then placed in its separately
+bounded service scope.  These are launcher containment corrections, not
+changes to the reference model or generation semantics.

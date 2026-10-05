@@ -27,8 +27,13 @@ export VLLM_NO_USAGE_STATS=1
 
 # The qualified CUDA environment is the child reference runner.  The outer
 # supervisor must use the system Python because its PID-handle watchdog
-# primitive is absent from the CUDA environment's Python build.
-exec /usr/bin/python3 scripts/ieee_tc_preflight.py \
+# primitive is absent from the CUDA environment's Python build.  Put that
+# supervisor in the shared auxiliary cgroup expected by gated-launch; the
+# gated launcher creates the separately bounded service scope for the child.
+AUX_UNIT="primelora-tc-aux-$(/usr/bin/python3 -c 'import uuid; print(uuid.uuid4().hex)').scope"
+exec systemd-run --user --scope --collect --unit="$AUX_UNIT" \
+  -p MemoryHigh=3G -p MemoryMax=4G -p MemorySwapMax=0 \
+  taskset -c 2,3,26,27 /usr/bin/python3 scripts/ieee_tc_preflight.py \
   gated-launch --output "$LAUNCH" --predicted-growth-gib 16 \
   --exec /home/qhq/anaconda3/envs/LLM_vllm0102/bin/python scripts/ieee_tc_preflight.py \
     backend-peft-sequence-reference \
