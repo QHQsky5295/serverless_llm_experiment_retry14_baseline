@@ -17,6 +17,10 @@ G1/G2 or cross-system claim.
   4,000/4,000 terminal records, native output-contract matches, and closed
   physical allocation journals. `n_correct` remains `null`; a native token
   count is not numerical adapter correctness.
+- **Population denominators — explicit but incomplete for quality.** The
+  curated record exports `N_plan=N_arrived=N_submitted=N_terminal=4,000` and
+  explicitly records `N_correct=null` and `N_good=null`; the latter is unknown
+  because D219 has no frozen joint TTFT/TPOT SLO.
 - **Percentiles — corrected offline.** The producer uses linear interpolation,
   while the frozen protocol requires Type-1 (x_{(\lceil pm\rceil)}). The
   curated `protocol_type1_metrics` section recomputes P50/P95/P99 from all
@@ -27,9 +31,17 @@ G1/G2 or cross-system claim.
   so joint SLO attainment is explicitly `null`.
 - **Timing coverage — PASS for this diagnostic.** All requests contain planned
   arrival, client-submit, native dispatch, first-token, last-token and worker
-  completion timestamps. Recomputed E2E and native-TPOT identities have zero
-  maximum absolute error for all 4,000 rows. This validates the timing fields,
-  but does not establish numerical adapter correctness or a joint SLO.
+  completion timestamps. The audit checks timestamp ordering, timestamp
+  algebra, stored TTFT/E2E/service fields against their clock formulas, and
+  native TPOT; each has zero maximum absolute error over 4,000 rows. This
+  validates timing-field consistency, but does not establish numerical adapter
+  correctness or a joint SLO.
+- **Remote journal reconciliation — PASS for replay scope, WARN for all events.**
+  All 132 replay-linked transfers pass artifact, SHA, byte, delivery-mode,
+  no-pack, outcome, timing-contract and span-order checks. The journal also
+  contains one earlier preload/initialization event that is not request-bound
+  by the main outcome; it is retained and classified in
+  `d219_remote_unmatched.csv`, but excluded from the replay denominator.
 - **Mechanism scope — conditional WARN.** The confirmed-snapshot route is
   active and its request-level owner/epoch/tier invariants pass. Metadata also
   records `effective_capacity_admission_enabled=false`; GPU admission,
@@ -46,7 +58,8 @@ claim, a G1/G2 resource ranking, or a baseline comparison.
 
 ## Required next evidence
 
-1. Complete the per-transfer remote SHA/bytes/span audit and token-source audit.
+1. Complete the token-source/numerical adapter-correctness audit; the
+   replay-linked remote transfer audit is complete for its declared scope.
 2. Complete the common warm/Resident reference under the frozen remote,
    lifecycle, resource-domain and timeout contract.
 3. Use held-out paired blocks before attributing the P95 TTFT trade-off or

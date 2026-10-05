@@ -7,9 +7,12 @@ with 4,000/4,000 terminal requests, 4,000/4,000 native fixed-output contract
 matches, zero terminal failures, and four physical allocation journals closed
 in the required acquire → worker_spawn → native_workers → native_workers_exited
 → release order. The remote artifact service was stopped after local cleanup;
-the local GPU census is idle and no owned leases remain. The 132 joined remote
-transfer records all use the prepublished read-only gzip contract with
-`pack_performed=false`; no request-time packing was present.
+the local GPU census is idle and no owned leases remain. The remote journal
+contains 133 artifact-transfer events: 132 replay-linked records all use the
+prepublished read-only gzip contract with `pack_performed=false`; one earlier
+`finance_lora` preload/initialization event is retained and classified in
+`d219_remote_unmatched.csv`, but is excluded from the replay denominator. No
+request-time packing was present.
 
 The confirmed-snapshot route evidence is complete at request level: dispatch
 snapshots, dispatch tiers, owner/epoch checks, source-tier equality, prompt
@@ -20,7 +23,11 @@ least one stale recheck (530 observed rechecks); these are selected-state
 validation observations, not a causal performance estimate. Run metadata sets
 `effective_capacity_admission_enabled=false`, and observed admission,
 planning, promotion and hierarchy-transition counters are zero; D219 therefore
-does not qualify the full physical-capacity/admission mechanism.
+does not qualify the full physical-capacity/admission mechanism. The producer
+also labels `readiness_routing_enabled=false` for the `ieee_confirmed` policy,
+although 6,404 readiness-aware decisions are observed; this is recorded as a
+metadata predicate/schema mismatch, not as evidence that confirmed routing was
+disabled.
 
 Descriptive values, using the frozen V1 Type-1 percentile recomputation, are
 mean/P95 TTFT 1,508.362/3,619.799 ms, service TTFT 694.289/1,843.186 ms,
@@ -38,12 +45,15 @@ The run is deliberately **not** a formal G1/G2 or cross-system result:
 numerical adapter correctness; common warm-derived thresholds and Resident
 budget references are not yet frozen; and there is only one exploratory seed
 with no paired held-out blocks. The 4,000-row timing audit has zero maximum
-absolute error for both the E2E identity and native TPOT recomputation, but the
-98.275% value is retained as a descriptive legacy field, not as the frozen
+absolute error for timestamp algebra, stored TTFT/E2E/service fields, and
+native TPOT recomputation; these checks validate timing-field consistency, not
+numerical adapter correctness. The 98.275% value is retained as a descriptive
+legacy field, not as the frozen
 joint TTFT/TPOT SLO attainment. The full
 curation, status table and diagnostic figure are in
 `paper_results/ieee_tc/p2_backend/20261005_d219_full/` and
-`figs/ieee_tc/p2_backend/20261005_d219_full/`; checkpoint `e82c62d` is pushed
+`figs/ieee_tc/p2_backend/20261005_d219_full/`; the curation correction is in
+checkpoint `4e25e39`, pushed
 to `faaslora_origin/retry14_continuous_queue_v2`.
 
 **Next:** perform the remaining 7B numerical/output correctness audit and the

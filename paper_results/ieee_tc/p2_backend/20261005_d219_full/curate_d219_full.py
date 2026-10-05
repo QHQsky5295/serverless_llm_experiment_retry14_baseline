@@ -93,6 +93,16 @@ invariants = {
     "timing_contract_present": count(lambda x: x.get("timing_contract") == "ieee_tc_native_v1"),
 }
 
+population_denominators = {
+    "N_plan": physical.get("n_plan"),
+    "N_arrived": count(lambda x: isinstance(x.get("external_arrival_timing", {}).get("planned_arrival_s"), (int, float))),
+    "N_submitted": count(lambda x: isinstance(x.get("external_arrival_timing", {}).get("client_submit_s"), (int, float))),
+    "N_terminal": physical.get("n_terminal"),
+    "N_correct": physical.get("n_correct"),
+    "N_good": None,
+    "N_good_reason": "joint warm TTFT/TPOT thresholds are not frozen for D219; legacy TTFT-only attainment is not N_good",
+}
+
 source_evidence = {
     "source_rows": len(all_sources),
     "collection_ids": sorted({int(row["collection_id"]) for row in collections if "collection_id" in row}),
@@ -112,6 +122,27 @@ remote_joined = [row for row in remote_all if row.get("transfer_id") in transfer
 if len(remote_joined) != len(main_transfers) or len({row.get("transfer_id") for row in remote_joined}) != len(remote_joined):
     raise RuntimeError("remote transfer journal did not join one-to-one")
 remote_by_id = {row["transfer_id"]: row for row in remote_joined}
+remote_unmatched = [row for row in remote_all if row.get("transfer_id") not in transfer_ids]
+matched_remote_starts = [
+    row.get("handler_started_ns")
+    for row in remote_joined
+    if isinstance(row.get("handler_started_ns"), (int, float))
+]
+first_matched_remote_start = min(matched_remote_starts, default=None)
+for row in remote_unmatched:
+    # The extra row is retained rather than discarded.  A same-clock event
+    # that completed before the first replay-linked transfer is classified as
+    # pre-replay/initialization evidence and is excluded from the replay
+    # denominator; it is not request-bound by the run's main outcome.
+    row["reconciliation_class"] = (
+        "pre_replay_or_initialization_unmatched"
+        if (
+            first_matched_remote_start is not None
+            and isinstance(row.get("handler_completed_ns"), (int, float))
+            and row.get("handler_completed_ns") < first_matched_remote_start
+        )
+        else "unmatched_remote_event"
+    )
 delivery_checks = {
     "artifact_id_match": 0,
     "archive_sha256_match": 0,
@@ -196,6 +227,11 @@ native_timing_coverage = {
 }
 identity_errors_ms = []
 tpot_errors_ms = []
+stored_metric_errors_ms = {name: [] for name in (
+    "e2e_ms", "ttft_ms", "overall_e2e_ms", "overall_ttft_ms",
+    "service_e2e_ms", "service_ttft_ms",
+)}
+timestamp_order_valid = 0
 for request in requests:
     ext = request.get("external_arrival_timing", {}) or {}
     native = request.get("native_token_timing", {}) or {}
@@ -205,7 +241,28 @@ for request in requests:
         f = float(native["native_first_token_monotonic_s"])
         last = float(native["native_last_token_monotonic_s"])
         complete = float(native["worker_completed_monotonic_s"])
+        controller_complete = float(native.get("controller_completed_monotonic_s", complete))
         identity_errors_ms.append(((e - a) + (d - e) + (f - d) + (last - f) + (complete - last) - (complete - a)) * 1000.0)
+        if a <= e <= d <= f <= last <= complete <= controller_complete:
+            timestamp_order_valid += 1
+        expected = {
+            # The published request-level E2E fields use the controller's
+            # terminal notification; worker_completed is the native engine
+            # timing endpoint used for the algebraic diagnostic above.
+            "e2e_ms": (controller_complete - a) * 1000.0,
+            "ttft_ms": (f - a) * 1000.0,
+            "overall_e2e_ms": (controller_complete - a) * 1000.0,
+            "overall_ttft_ms": (f - a) * 1000.0,
+        }
+        admitted = float(native["controller_admitted_monotonic_s"])
+        expected.update({
+            "service_e2e_ms": (controller_complete - admitted) * 1000.0,
+            "service_ttft_ms": (f - admitted) * 1000.0,
+        })
+        for name, expected_value in expected.items():
+            observed = request.get(name)
+            if isinstance(observed, (int, float)):
+                stored_metric_errors_ms[name].append(float(observed) - expected_value)
         token_count = float(native["native_output_tokens"])
         observed_tpot = float(native["native_tpot_ms"])
         if token_count >= 2:
@@ -229,6 +286,7 @@ curated = {
         "formal_comparison_reason": "single exploratory full replay; no paired held-out seed set",
     },
     "population_and_invariants": invariants,
+    "population_denominators": population_denominators,
     "dispatch_tier_counts_request_level": dispatch_tiers,
     "feature_activation": feature_activation,
     "gate_manifest": {
@@ -248,6 +306,15 @@ curated = {
             "host_promotions": feature_activation.get("host_promotion_completed_count", 0),
             "runtime_gpu_forward_successes": feature_activation.get("runtime_gpu_forward_success_count", 0),
         },
+        "metadata_gate_reconciliation": {
+            "configured_readiness_routing_enabled": metadata.get("feature_gates", {}).get("readiness_routing_enabled"),
+            "observed_readiness_aware_decisions": feature_activation.get("readiness_aware_routing_decision_count", 0),
+            "predicate_schema_mismatch": (
+                metadata.get("feature_gates", {}).get("readiness_routing_enabled") is False
+                and feature_activation.get("readiness_aware_routing_decision_count", 0) > 0
+            ),
+            "interpretation": "The ieee_confirmed route is evidenced by observed readiness-aware decisions; the producer gate predicate labels readiness_routing_enabled=false for routing_policy=ieee_confirmed, so that metadata label is a schema/predicate mismatch rather than evidence that the route was disabled.",
+        },
         "interpretation": "The confirmed-snapshot route is exercised. The metadata explicitly reports effective_capacity_admission_enabled=false; zero admission/planning/promotion counters are not evidence that those mechanisms ran, so this is not a full physical-capacity admission qualification.",
     },
     "source_snapshot_evidence": source_evidence,
@@ -264,10 +331,16 @@ curated = {
         "e2e_identity_recomputed": True,
         "e2e_identity_n": len(identity_errors_ms),
         "e2e_identity_max_abs_ms": max((abs(value) for value in identity_errors_ms), default=None),
+        "timestamp_order_valid_n": timestamp_order_valid,
+        "stored_metric_recomputed_n": {name: len(values) for name, values in stored_metric_errors_ms.items()},
+        "stored_metric_max_abs_error_ms": {
+            name: max((abs(value) for value in values), default=None)
+            for name, values in stored_metric_errors_ms.items()
+        },
         "tpot_recomputed_n": len(tpot_errors_ms),
         "tpot_max_abs_error_ms": max((abs(value) for value in tpot_errors_ms), default=None),
         "timing_identity_tolerance_ms": 1.0,
-        "note": "All available D219 rows satisfy the recomputed E2E and native TPOT identities within the frozen 1 ms tolerance.",
+        "note": "The timestamp algebra, timestamp ordering, stored TTFT/E2E/service metrics, and native TPOT are independently recomputed from the recorded clock fields; numerical adapter correctness remains outside this audit.",
     },
     "slo_contract": {
         "producer_field": "legacy_ttft_only",
@@ -285,6 +358,13 @@ curated = {
     "delivery": {
         "main_outcome_transfer_count": len(main_transfers), "remote_journal_line_count": len(remote_all),
         "joined_transfer_count": len(remote_joined),
+        "unmatched_transfer_count": len(remote_unmatched),
+        "unmatched_transfer_ids": [row.get("transfer_id") for row in remote_unmatched],
+        "unmatched_reconciliation_classes": sorted({row.get("reconciliation_class") for row in remote_unmatched}),
+        "replay_join_complete": len(remote_joined) == len(main_transfers) and not (
+            {row.get("transfer_id") for row in remote_joined} ^ transfer_ids
+        ),
+        "journal_all_events_request_bound": not remote_unmatched,
         "joined_payload_bytes": sum(int(row.get("bytes_written", 0) or 0) for row in remote_joined),
         "delivery_modes": sorted({row.get("delivery_mode") for row in remote_joined}),
         "pack_performed": sorted({bool(row.get("pack_performed")) for row in remote_joined}),
@@ -308,3 +388,8 @@ with (output_dir / "d219_request_invariants.csv").open("w", newline="") as handl
 with (output_dir / "d219_dispatch_tiers.csv").open("w", newline="") as handle:
     writer = csv.DictWriter(handle, fieldnames=["tier", "requests"], lineterminator="\n"); writer.writeheader()
     writer.writerows({"tier": tier, "requests": count} for tier, count in sorted(dispatch_tiers.items(), key=lambda item: str(item[0])))
+with (output_dir / "d219_remote_unmatched.csv").open("w", newline="") as handle:
+    fields = ["transfer_id", "artifact_id", "event", "outcome", "archive_bytes", "archive_sha256",
+              "handler_started_ns", "handler_completed_ns", "reconciliation_class"]
+    writer = csv.DictWriter(handle, fieldnames=fields, extrasaction="ignore", lineterminator="\n"); writer.writeheader()
+    writer.writerows(remote_unmatched)

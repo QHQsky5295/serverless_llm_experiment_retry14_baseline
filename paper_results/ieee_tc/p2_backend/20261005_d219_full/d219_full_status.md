@@ -7,9 +7,12 @@ requests and 500 adapters. All 4,000 requests reached a terminal state and
 all 4,000 matched the native fixed-length output contract. The guarded launch,
 service, replay publisher, and watchdog returned zero; the physical deployment
 reported complete measurement and no open GPU leases. The remote artifact
-journal joined 132/132 transfer records from the local outcome (133 lines
-including the journal header/terminal record), and every joined transfer used
-the prepublished gzip delivery contract without request-time packing.
+journal contains 133 artifact-transfer events: 132/132 match the replay-scoped
+records in the local outcome, while one earlier `finance_lora`
+preload/initialization event is retained and classified in
+`curated/d219_remote_unmatched.csv` but excluded from the replay denominator.
+Every joined replay transfer used the prepublished gzip delivery contract
+without request-time packing.
 
 ## Mechanism evidence
 
@@ -34,8 +37,10 @@ from request records using the frozen V1 definition; the producer's linear-
 interpolation percentiles remain in `descriptive_metrics` only. All 4,000
 requests contain the required external-arrival and native dispatch/first/
 last/completion timestamps. Offline recomputation gives 0.0 ms maximum
-absolute E2E-identity error and 0.0 ms maximum native-TPOT error for all
-4,000 rows. Observed physical GPU time was 15,911.71 s (3.9779 s per
+timestamp-algebra error, 0.0 ms maximum error against the stored TTFT/E2E/
+service fields, and 0.0 ms maximum native-TPOT error for all 4,000 rows. These
+checks validate timing-field consistency, not numerical adapter correctness.
+Observed physical GPU time was 15,911.71 s (3.9779 s per
 offered request); these numbers are descriptive for one complete exploratory
 replay.
 

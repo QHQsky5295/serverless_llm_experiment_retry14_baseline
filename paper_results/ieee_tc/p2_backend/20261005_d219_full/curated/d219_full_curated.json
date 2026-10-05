@@ -17,11 +17,20 @@
     },
     "joined_payload_bytes": 131480060,
     "joined_transfer_count": 132,
+    "journal_all_events_request_bound": false,
     "main_outcome_transfer_count": 132,
     "pack_performed": [
       false
     ],
-    "remote_journal_line_count": 133
+    "remote_journal_line_count": 133,
+    "replay_join_complete": true,
+    "unmatched_reconciliation_classes": [
+      "pre_replay_or_initialization_unmatched"
+    ],
+    "unmatched_transfer_count": 1,
+    "unmatched_transfer_ids": [
+      "1d78170f9a584fc991eeaf0554299585"
+    ]
   },
   "descriptive_metrics": {
     "avg_e2e_ms": 5848.014681049535,
@@ -105,6 +114,12 @@
       "routing_policy": "ieee_confirmed"
     },
     "interpretation": "The confirmed-snapshot route is exercised. The metadata explicitly reports effective_capacity_admission_enabled=false; zero admission/planning/promotion counters are not evidence that those mechanisms ran, so this is not a full physical-capacity admission qualification.",
+    "metadata_gate_reconciliation": {
+      "configured_readiness_routing_enabled": false,
+      "interpretation": "The ieee_confirmed route is evidenced by observed readiness-aware decisions; the producer gate predicate labels readiness_routing_enabled=false for routing_policy=ieee_confirmed, so that metadata label is a schema/predicate mismatch rather than evidence that the route was disabled.",
+      "observed_readiness_aware_decisions": 6404,
+      "predicate_schema_mismatch": true
+    },
     "observed": {
       "background_planning_events": 0,
       "confirmed_snapshot_source_mode": [
@@ -133,7 +148,7 @@
     "e2e_identity_max_abs_ms": 0.0,
     "e2e_identity_n": 4000,
     "e2e_identity_recomputed": true,
-    "note": "All available D219 rows satisfy the recomputed E2E and native TPOT identities within the frozen 1 ms tolerance.",
+    "note": "The timestamp algebra, timestamp ordering, stored TTFT/E2E/service metrics, and native TPOT are independently recomputed from the recorded clock fields; numerical adapter correctness remains outside this audit.",
     "required_fields": [
       "planned_arrival_s",
       "client_submit_s",
@@ -142,6 +157,23 @@
       "native_last_token_monotonic_s",
       "worker_completed_monotonic_s"
     ],
+    "stored_metric_max_abs_error_ms": {
+      "e2e_ms": 0.0,
+      "overall_e2e_ms": 0.0,
+      "overall_ttft_ms": 0.0,
+      "service_e2e_ms": 0.0,
+      "service_ttft_ms": 0.0,
+      "ttft_ms": 0.0
+    },
+    "stored_metric_recomputed_n": {
+      "e2e_ms": 4000,
+      "overall_e2e_ms": 4000,
+      "overall_ttft_ms": 4000,
+      "service_e2e_ms": 4000,
+      "service_ttft_ms": 4000,
+      "ttft_ms": 4000
+    },
+    "timestamp_order_valid_n": 4000,
     "timing_identity_tolerance_ms": 1.0,
     "tpot_max_abs_error_ms": 0.0,
     "tpot_recomputed_n": 4000
@@ -218,6 +250,15 @@
     "successful": 4000,
     "timing_contract_present": 4000,
     "unique_request_ids": 4000
+  },
+  "population_denominators": {
+    "N_arrived": 4000,
+    "N_correct": null,
+    "N_good": null,
+    "N_good_reason": "joint warm TTFT/TPOT thresholds are not frozen for D219; legacy TTFT-only attainment is not N_good",
+    "N_plan": 4000,
+    "N_submitted": 4000,
+    "N_terminal": 4000
   },
   "protocol_type1_metrics": {
     "control_path_total_us": {
