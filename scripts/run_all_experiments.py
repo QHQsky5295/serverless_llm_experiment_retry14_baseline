@@ -7229,6 +7229,7 @@ class ScenarioRunner:
         self._scaleup_runtime_instance_ids: set[str] = set()
         self._scaleup_runtime_handoff_plans: Dict[str, Dict[str, Any]] = {}
         self._scaleup_runtime_lora_request_ordinals: Dict[str, int] = {}
+        self._scaleup_runtime_first_dispatch_epochs: set[str] = set()
         self._live_scale_eval_last_at: float = 0.0
         self._last_live_scale_up_completed_at: float = 0.0
         self._last_live_scale_down_completed_at: float = 0.0
@@ -13737,6 +13738,9 @@ class ScenarioRunner:
             self._scaleup_runtime_instance_ids.discard(instance_id)
             self._scaleup_runtime_handoff_plans.pop(str(instance_id), None)
             self._scaleup_runtime_lora_request_ordinals.pop(str(instance_id), None)
+            getattr(self, "_scaleup_runtime_first_dispatch_epochs", set()).discard(
+                str(instance_id)
+            )
         await self._cancel_runtime_gpu_forward_tasks(self._runtime_forward_task_key(slot))
         if getattr(slot, 'owns_engine', False):
             task = getattr(self, '_ieee_residency_tasks', {}).pop(id(slot.engine), None)
@@ -14736,7 +14740,23 @@ class ScenarioRunner:
         request_budget = max(
             0, int(handoff_plan.get("first_service_request_count", 0) or 0)
         )
-        labels["scaleup_first_service"] = request_budget > 0 and lora_ordinal < request_budget
+        if request_budget > 0:
+            # Legacy handoff variants define a bounded first-service prefix.
+            labels["scaleup_first_service"] = lora_ordinal < request_budget
+        elif getattr(self, "_routing_policy", "") == "ieee_confirmed":
+            # Native confirmed routing deliberately publishes no legacy
+            # handoff prefix. Its first-service sample is therefore the first
+            # request actually dispatched to this activation epoch, not a
+            # predicted queue prefix. Keep one binding per runtime epoch so a
+            # later request or replica cannot fill an unused sample.
+            first_dispatch_epochs = getattr(
+                self, "_scaleup_runtime_first_dispatch_epochs", None
+            )
+            if first_dispatch_epochs is None:
+                first_dispatch_epochs = set()
+                self._scaleup_runtime_first_dispatch_epochs = first_dispatch_epochs
+            labels["scaleup_first_service"] = instance_id not in first_dispatch_epochs
+            first_dispatch_epochs.add(instance_id)
         ordinals[instance_id] = lora_ordinal + 1
         return labels
 
@@ -23895,8 +23915,16 @@ async def _main_async_impl(
         sc_host = sc_host_base / sname
         ieee_workspace_claims = (_create_ieee_run_workspaces([sc_nvme,sc_host])
             if physical_deployment is not None else None)
-        v2_cold_cache_reset = ieee_workspace_claims is None and str(sname).startswith("v2_")
-        if v2_cold_cache_reset:
+        # IEEE physical runs claim fresh per-run workspace roots before any
+        # residency object is constructed.  This is the same cold-cache
+        # invariant as the disposable revision-v2 roots; the old expression
+        # reported false merely because the physical path uses ownership
+        # claims instead of the legacy destructive-reset branch.
+        v2_cold_cache_reset = (
+            ieee_workspace_claims is not None
+            or str(sname).startswith("v2_")
+        )
+        if v2_cold_cache_reset and ieee_workspace_claims is None:
             # Revision runs pre-register cold-cache semantics.  In particular,
             # no-preload variants must not inherit an NVMe path from a prior
             # seed merely because their preload() branch intentionally does

@@ -5717,6 +5717,30 @@ class RuntimeAccountingAndMetricsSmokeTests(unittest.TestCase):
         self.assertFalse(third["scaleup_first_service"])
         self.assertTrue(third["scaleup_planned_adapter_match"])
 
+    def test_begin_scaleup_runtime_request_labels_binds_confirmed_first_dispatch_once(self) -> None:
+        runner = ScenarioRunner.__new__(ScenarioRunner)
+        runner._routing_policy = "ieee_confirmed"
+        runner._scaleup_runtime_instance_ids = {"activation_1"}
+        runner._scaleup_runtime_handoff_plans = {}
+        runner._scaleup_runtime_lora_request_ordinals = {}
+
+        first = runner._begin_scaleup_runtime_request_labels(
+            slot=SimpleNamespace(instance_id="activation_1"),
+            adapter_id="adapter_a",
+            cache_tier="nvme",
+        )
+        second = runner._begin_scaleup_runtime_request_labels(
+            slot=SimpleNamespace(instance_id="activation_1"),
+            adapter_id="adapter_b",
+            cache_tier="remote",
+        )
+
+        self.assertTrue(first["on_scaleup_runtime"])
+        self.assertTrue(first["scaleup_first_service"])
+        self.assertTrue(first["scaleup_affected"])
+        self.assertFalse(second["scaleup_first_service"])
+        self.assertTrue(second["scaleup_affected"])
+
     def test_scale_up_preload_capacity_uses_exact_handoff_prefix_budget(self) -> None:
         runner = ScenarioRunner.__new__(ScenarioRunner)
         runner.preload_cfg = {
