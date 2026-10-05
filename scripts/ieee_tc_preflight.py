@@ -520,9 +520,9 @@ def artifact_disk_check(paths: list[Path], *, concurrent_packs: list[dict],
         if statvfs.f_favail == 0:
             issues.append(f'insufficient_artifact_inodes:{path}')
     return {
+        **requirement,
         'kind': 'artifact_filesystem_disk_gate_v1',
         'time_unix': time.time(),
-        **requirement,
         'filesystems': filesystems,
         'issues': issues,
         'pass': not issues,
@@ -5248,6 +5248,7 @@ def main():
             concurrent_packs=bounds['concurrent_packs'],
             log_growth_bytes=bounds['log_growth_bytes'],
             safety_reserve_bytes=bounds['safety_reserve_bytes'])
+        result['plan_sha256'] = check_plan()
     elif args.action == 'backend-check':
         if not args.install_receipt or not args.requirements or not args.output:
             parser.error('backend-check requires completed install receipt, requirements and new output')

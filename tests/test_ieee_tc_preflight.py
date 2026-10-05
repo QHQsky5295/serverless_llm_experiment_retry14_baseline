@@ -673,6 +673,25 @@ class ProtocolGates(unittest.TestCase):
             self.assertEqual(len(result['issues']), 2)
             self.assertTrue(root.exists())
 
+    def test_artifact_disk_check_cli_requires_explicit_bounds_and_writes_new_receipt(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            bounds = root / 'bounds.json'
+            output = root / 'receipt.json'
+            bounds.write_text(json.dumps({
+                'concurrent_packs': [{'max_concurrent': 1, 'remaining_archive_bytes': 10}],
+                'log_growth_bytes': 0,
+                'safety_reserve_bytes': 10,
+            }))
+            argv = ['ieee_tc_preflight.py', 'artifact-disk-check', '--path', str(root),
+                    '--artifact-bounds', str(bounds), '--output', str(output)]
+            with patch('sys.argv', argv), patch.object(p, 'check_plan', return_value='test-plan'):
+                p.main()
+            receipt = json.loads(output.read_text())
+            self.assertEqual(receipt['kind'], 'artifact_filesystem_disk_gate_v1')
+            self.assertEqual(receipt['plan_sha256'], 'test-plan')
+            self.assertTrue(receipt['pass'])
+
     def test_cpu_sets_preserve_smt_pairs(self):
         svc = set(p.POLICY['service_cpus'])
         aux = set(p.POLICY['aux_cpus'])
