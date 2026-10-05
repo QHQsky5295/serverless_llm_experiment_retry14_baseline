@@ -1,0 +1,29 @@
+{
+  "audit_skill": "experiment-audit",
+  "verdict": "WARN",
+  "reason_code": "diagnostic_scope_and_vacuous_legacy_metric",
+  "summary": "D235 numerical claims match the retained D219 JSON; the diagnostic is self-supervised serving evidence and the legacy first-service fields are undefined under ieee_confirmed.",
+  "audited_input_hashes": {
+    "d219_result": "sha256:e2a83118a59019854e1110f40c3da333e7a5be79062552bed6ab2b87e0bbdfff"
+  },
+  "reviewer_model": "gpt-5.6-sol",
+  "reviewer_reasoning": "ultra",
+  "review_independence": "same-family",
+  "acceptance_status": "provisional",
+  "generated_at": "2026-10-05T00:00:00Z",
+  "overall_verdict": "warn",
+  "integrity_status": "warn",
+  "checks": {
+    "gt_provenance": {"status": "pass", "details": "Native serving telemetry; no model-output ground truth."},
+    "score_normalization": {"status": "pass", "details": "Absolute counts and raw timing values only."},
+    "result_existence": {"status": "pass", "details": "D219 path and SHA match all D235 numerical claims."},
+    "dead_or_vacuous_metric": {"status": "warn", "details": "Legacy first-service labels are mechanically zero under ieee_confirmed."},
+    "scope": {"status": "warn", "details": "One exploratory run; not formal G1/G2 or ranking evidence."},
+    "eval_type": "self_supervised_proxy"
+  },
+  "claims": [
+    {"id": "confirmed_dispatch_snapshot", "impact": "supported_diagnostic"},
+    {"id": "scaleup_non_gpu_source_tail", "impact": "supported_descriptive"},
+    {"id": "formal_superiority", "impact": "unsupported"}
+  ]
+}
