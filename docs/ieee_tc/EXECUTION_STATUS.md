@@ -1,5 +1,38 @@
 # IEEE TC execution status
 
+## CURRENT — D229 final remote metric and artifact-disk protocol frozen; 7B mainline still held
+
+2026-10-05（本轮）. Added `docs/ieee_tc/METRIC_PROTOCOL_FINAL_V2.md`, a single
+versioned calculation entry that composes the immutable V1 and Remote Scope V2
+protocols. It freezes the HydraServe-aligned warm-reference 5x TTFT/2x TPOT
+thresholds, joint correctness/SLO denominator, physical GPU lifecycle G1,
+common-budget P95 TTFT G2, E2E decomposition, true-remote inclusion/exclusion,
+CE sensitivity, paired-run statistics, and publication/manifest checks. HydraServe
+primary sources were rechecked: its NSDI'26 paper reports warm-derived TTFT/TPOT
+SLO attainment and GPU memory-time cost, not CE as a universal primary metric;
+the official repository identifies its modified vLLM 0.4.2 implementation and
+separate remote storage server. No old protocol or result was edited.
+
+The remote artifact node was queried read-only after all services were stopped:
+`eno1` reported 1000 Mb/s/full, auto-negotiation on, link detected, and zero
+reported RX FCS/RX errors/TX errors/collisions. This is kept separate from the
+historical D77 100-Mb/s negotiation state; the cause of that earlier state is not
+claimed. Request-triggered remote read/send/receive/write/extract and contention
+remain in the user timeline; one-time published-cache creation, administration,
+hash scans, cleanup and request-external packing remain outside the request path
+and are never subtracted from E2E. No remote service was started or modified.
+
+The artifact-node gate is confirmed as an independent peak rule already present
+in `scripts/ieee_tc_preflight.py`: `required = safety_reserve + ceil(1.5 *
+(concurrent_pack_peak + log_growth))`, with explicit free-byte/inode and later
+quota evidence. It deliberately does not call the inference-host
+150/100-GiB `disk_required` rule; inference memory/OOM/disk gates are unchanged.
+The five targeted artifact-gate CPU tests passed, as did Python compilation and
+`git diff --check`; the unchanged
+109.5-GiB physical-startup memory gate still forbids the next D225/D227 GPU
+diagnostic. Prime 7B numerical correctness, common warm SLO, Resident budget and
+G1/G2 remain open; no 3B or baseline run is authorized.
+
 ## CURRENT — D228 opt-in native token capture CPU-qualified; numerical GPU gate still held
 
 2026-10-05 19:45+08. The runner now has a default-off
