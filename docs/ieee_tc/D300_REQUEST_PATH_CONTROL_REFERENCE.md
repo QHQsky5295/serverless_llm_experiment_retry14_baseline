@@ -130,3 +130,107 @@ Actual owner identities and current status are in EXECUTION_STATUS. At sample33,
 service peak5,046,140,928bytes, hostavailable107,976,048,640bytes and no memory
 events/warnings. This is a launch observation, not completion or an outcome.
 Do not launch another D300 or modify this candidate while it runs.
+
+## Completed full-run evidence — 2026-10-07
+
+All4000 native-contract requests completed, with no reported failure. Six
+physical leases on four distinct GPUs closed, including two natural retirements
+and two reacquisitions. Native GPU census is clear; service/replay/watchdog
+returned0 and the service scope was removed. Exact-owned remote services were
+stopped after local release. No performance rerun or intervening configuration
+change occurred.
+
+| Metric | D299 full W0 | D300 full W0 |
+|---|---:|---:|
+| Mean TTFT (ms) | 1306.468257 | 1390.790816 |
+| P95 TTFT (ms) | 2884.701929 | 3064.463936 |
+| Mean TPOT (ms) | 32.918675 | 33.284821 |
+| P95 TPOT (ms) | 62.482613 | 61.798980 |
+| Mean E2E (s) | 4.904404 | 5.055340 |
+| Physical GPU-s | 15845.533076 | 15569.192088 |
+| Provisional D170 joint timing upper bound | 3828/4000 (95.70%) | 3806/4000 (95.15%) |
+| Natural scale-up / scale-down actions | 3 / 0 | 5 / 2 |
+
+Each column is one complete, already-seen W0 development run. No CI or
+statistical superiority claim. GPU occupancy is1.743968%lower; mean/P95TTFT
+are6.454237%/6.231563%higher, meanE2E3.077567%higher, while P95TPOT is1.094118%
+lower. The joint timing upper bound falls0.55percentagepoints. These are a
+resource/latency tradeoff, not an across-metric improvement. Both provisional
+timing bounds exceed95%, but neither establishes formal G1/G2: numerical
+qualification, globally frozen common references and Resident budget remain
+open. Per-correct resource remainsnull. A small resource reduction is not
+rejected merely because TTFT rises, but this point cannot yet be promoted to a
+qualified resource-optimal or budget-latency-optimal configuration.
+
+The actual unheld intervals are222.209195328s onGPU2 and56.481796434s onGPU1.
+They are observed, not counterfactual savings. The complete physical integral
+includes all starts/restarts and final release: pre-arrival37.447073,
+arrival15485.627607, drain3.905246, cleanup42.212162 GPU-s. Do not substitute
+the terminal's simulated billing projection or sum overlapping activity spans.
+
+### Audit and mechanism observations
+
+- All4000 request/adapter/arrival/target/prompt/generation/token-source fields
+  matchD299; shared trace/subset identities match. All4000 binding, native-slot,
+  lease, content and clock checks pass; maximum TTFT-stage identity error is0.
+-193 output-token hashes differ fromD299. Binding consistency is not kernel
+  arithmetic qualification. Preserve the differences, without automatically
+  reopening the already bounded D295 numerical diagnostic.
+-132 remote transfers join by UUID, clock, archive/content identity and bytes;
+ 131480060wire bytes, exactly the same totals asD299. No request-time packing
+  or temporary archive. Common totals do not prove equal transfer-time spans.
+- Dispatch tiers GPU1868/HOST1136/NVMe859/remote137; tier-conditioned groups
+  are not common-request causal comparisons.
+-4038 resource samples; peak20565889024B, minimum hostavailable94115979264B,
+  high/max/OOM/swap0. Protected seal remains146/147unchanged; sole previously
+  known baseline replay-script edit has the same recorded SHA. Raw seal pass
+  remainsfalse, not replaced with an all-clean claim.
+-1860 control observations:5scale-ups,2retirements,1256lowqueue+lowactive
+  samples,1006of those still blocked only by the latency predicate. All-low
+  maximum sampled span57.843228s under the unchanged38s cooldown.
+- Mean arrival-to-admission increases from0.686342s to0.756334s; the remaining
+  means are admission-to-dispatch0.341237s, engine-entry-to-queue0.078388s,
+  nativequeue0.012781s and prefill0.202050s. Waiting before admission remains
+  the largest mean component. This decomposition localizes a question; it
+  does not prove that a particular routing or admission mechanism caused it.
+
+### Decision and return to the main line
+
+The reclamation/occupancy part of the hypothesis is observed; preservation of
+the preceding timing quality is not. Retain D300 as a complete exploratory
+resource-saving tradeoff, not a final accepted winner. Do not raise the lower
+threshold again just to create more scale-ins, and do not rerun this unchanged
+candidate seeking a better realization.
+
+Next7B question: use the saved complete request/control evidence to distinguish
+avoidable arrival-to-admission delay from necessary readiness/active-capacity
+constraints. Cross-check the existing C2-derived soft targets, the now-cap8
+runtime and earlier failed approaches against IEEE semantics and primary
+implementations before selecting ONE next candidate. Soft and hard capacities
+need not be equal; this is not permission to set both to8 by fiat. No new
+warm/source/numerical calibration,3B,baseline or figures merely to fill the gap.
+FinalG1/G2 and the full approved campaign remainactive and incomplete.
+
+### Reproducibility
+
+Curated outputs: `paper_results/ieee_tc/p2_backend/d300_full_w0/validated1/`
+and `context1/`. The existing native/context drivers gained an opt-inD300
+identity only; historical defaults and output directories remain unchanged.
+Native analysis peak734461952B; context peak1062809600B, both under3/4GiB
+bounds with no high/max/OOM; their empty owned scopes were stopped.
+The35existing native-timing/provisional-bound tests pass; test scope peak
+494972928B with no high/max/OOM. No runtime algorithm was edited for this audit.
+
+- Source SHA: `0964d7a58feeebadf607e72f6f6ea7a09b949d6df44da684bb86d0c27e8be974`.
+- Native audit SHA: `1ba3f6f5daae169f4618f413a51c6bf20c2c9833474bdf8e6c55a6f5a6f6ae99`.
+- Control CSV SHA: `08185e80608d37a54737f79173f9b3ab0901df4d45ea2395aa6659b940c94be8`.
+- Context SHA: `7339967323cc176f8c5deba102c4c9e73b232295f4aef3b8dc6f47855a62b67a`.
+- Remote journal `transfers-4fed620e4e2a48518c284170fb890217.jsonl`, SHA
+  `0ad4dd4f7161e1a56804431757c17442cc6a2e04c9f7e3e92e9360f391110b6a`.
+- Remote monitor SHA: `42b131ba1c1083f7dd6951c38213877ab00973b817cb1ef548d47c6bf7c9d253`.
+  Both remote/local pairs match; journal located by its processclock contents.
+
+During post-release collection, remote `rg` was unavailable, so the equivalent
+read-only `grep -l -F` located the journal. Two guessed local auxiliary launcher
+paths were absent; the already established systemd bounded invocation was used.
+Neither observation failure restarted inference or changed measured conditions.

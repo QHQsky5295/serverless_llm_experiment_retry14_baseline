@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""D297/D299 data-only audit using existing native and provisional timing checks.
+"""D297/D299/D300 data-only audit using existing native and provisional timing checks.
 
 This is an offline driver, not a serving change, new benchmark, or qualification.
 Use a bounded auxiliary scope after all inference processes have exited.
@@ -58,6 +58,12 @@ def main(campaign='d297'):
         OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d299_full_w0/validated1'
         SOURCE = RUN / 'experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d299_7b_full_w0.json'
         source_sha = 'df066b365fa13ecc25b225a793c362706157224965b8a7b360981d8cf45887ab'
+    elif campaign == 'd300':
+        RAW = ROOT / 'results/ieee_tc/p2_backend_qualification/d300_20261007'
+        RUN = RAW / '7b_full_w0'
+        OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d300_full_w0/validated1'
+        SOURCE = RUN / 'experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d300_7b_full_w0.json'
+        source_sha = '0964d7a58feeebadf607e72f6f6ea7a09b949d6df44da684bb86d0c27e8be974'
     elif campaign != 'd297':
         raise ValueError('unknown frozen full-run identity')
     assert sha256(PLAN) == '0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7'
@@ -198,5 +204,5 @@ def main(campaign='d297'):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--campaign', choices=('d297', 'd299'), default='d297')
+    parser.add_argument('--campaign', choices=('d297', 'd299', 'd300'), default='d297')
     main(parser.parse_args().campaign)

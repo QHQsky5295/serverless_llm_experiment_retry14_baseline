@@ -11,7 +11,62 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D300 original4000 W0 running; one request-path scale-in reference change
+## CURRENT — D300 full4000 audited; resource/latency tradeoff, 7B target still open
+
+2026-10-07 06:14+08. SAME D300 completed4000/4000native-contract requests,
+zero reported failures. Six physical leases allclosed, launch/replay/watchdog0,
+native GPU census clear and service scope removed. Source SHA
+0964d7a58feeebadf607e72f6f6ea7a09b949d6df44da684bb86d0c27e8be974.
+Captured remote monitor stopped only after local release; all three services
+inactive/PID0/success. Remote journal transfers-4fed620e4e2a48518c284170fb890217
+and monitor log copied; local/remote SHAs agree. No request-time packing/cache
+rebuild, rerun, warm/numerical repeat,3B/baseline or figure work.
+
+Native/context audits complete innewp2_backend/d300_full_w0/validated1 andcontext1;
+all4000inputfields matchD299;193outputhashchanges retained, numericalqualification
+notinferred.132remoteUUIDjoins/131480060wirebytes/no packing.4038resourcesamples,
+peak20565889024B/minhost94115979264B,high/max/OOM/swap0. Protectedseal146/147
+unchanged, soleknown baseline-script SHA unchanged.35timing tests pass.
+
+Mean/P95TTFT1.390791/3.064464s,mean/P95TPOT33.284821/61.798980ms,
+E2E5.055340s,physical15569.192088GPU-s. VersusD299:GPU1.743968%lower,
+P95TTFT6.231563%worse,P95TPOT1.094118%better;provisionaltiming3806/4000=95.15%,
+down0.55pp. NotformaljointSLO/N_correct/G1G2orCI. Retainasexploratoryresource
+tradeoff,notfinalqualifiedwinner;donotdiscardmerelybecauseTTFTrises. Fiveups/two
+downs,all6leasesclosed. Meanarrival-to-admission0.756334sremainslargeststage.
+Native/contextanalysisscopesempty/stopped;peaks734461952/1062809600B,noevents.
+Nofigures,newGPUrun,warmsource/numericalrepeat,3Borexternalbaseline.
+
+NEXT checksum/secrets/exact-stage backup, thenoneevidence-led7Bquestionabout
+avoidablearrival-to-admissiondelayversusnecessaryreadiness/capacityconstraints.
+ReviewC2softtargets/cap8historyandprimarysourcesbeforeanynewcandidate;notanother
+lowerthresholdsweeporautomaticsoft=hardtarget. D300fullreportincludesalltradeoffs.
+G1/G2,sharedfinalreferencesandfullcampaignremainopen. NorelaunchofcompletedD300.
+
+## HISTORY — D300 original4000 W0 running; one request-path scale-in reference change
+
+Live check2026-10-07 05:51:07+08: SAME service invocation6108fa3d... remains
+active, launcher2875210 and watchdog2875311 live (2736/2735s elapsed).2967/4000
+request terminal rows,0reportedfailure,0native-contract mismatch; notN_correct.
+Two natural scale-ins and two subsequent reactivations observed; currently4
+replicas, scale_up5/scale_down2. First scale-in at05:08:39 removed GPU2; lease
+1ee6babca943409da3198498c0e57151 has release828167.456849019, workerreturn0,
+GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036 absent from remainingheld census.
+GPU2 reacquired828389.666044347, an observed222.209195328s unheld interval.
+Second release: GPU1 lease3900e859356244d6b78b823bbe5cc653 at828728.669339698,
+workerreturn0; reacquired828785.151136132, gap56.481796434s. These are actual
+idle intervals, NOT complete-run netGPU-s improvement or preservedSLO evidence.
+RemainingGPUs kept serving; global all-contexts-clear is correctlyfalse during
+this partial release. No counterfactualGPU-s/performance claim.
+At sample2698: hostavailable89.0292854309082GiB, high/max/OOM0/noabort.
+Earlier sample1402 servicepeak19226914816B; latestdiskcheck161191829504B,
+above100GiBstop; no storagework during measurement. This turn reread the full
+source plan after compaction and verified continuing request completion on the
+same live handles; no rerun/config/remote change, comparative analysis or figure.
+Previously observed physical-reclamation intervals remain partial-run evidence.
+Read-only SSH at05:46 confirmed all three captured remote invocations remain
+active with the original PIDs; no service restart or configuration operation.
+Frozen metricV1 reread in full at05:50; source plan SHA still0c808509... .
 
 2026-10-07 05:06+08. Checkpoint26ec812ba5b15e8c4f5b18d1e99a58445b7c39b2
 pushed and remoteverified BEFORElaunch. Config25debb773cc004a134e026b148c23d9af2565a8a7041db98e74f438efa65a378.

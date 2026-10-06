@@ -1,8 +1,9 @@
-"""Thin post-release D299 check reusing native audits and frozen seal helpers.
+"""Thin post-release D299/D300 check reusing native audits and frozen seal helpers.
 
 No inference, figures, new metric definitions, or overwriting existing results.
 The large outcome is projected through jq streaming, never loaded as a tree.
 """
+import argparse
 import csv
 import gc
 import json
@@ -52,12 +53,25 @@ def project(outcome):
     return meta, [indexed[i] for i in range(len(indexed))]
 
 
-def main():
+def main(campaign='d299'):
+    global RAW, RUN, OUT
+    reference = 'd297'
+    health_name = 'remote_health2.json'
+    change_caveat = 'Capacity, slot, rank and memory package changed together; not single-factor ablation.'
+    if campaign == 'd300':
+        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d300_20261007'
+        RUN = RAW/'7b_full_w0'
+        OUT = ROOT/'paper_results/ieee_tc/p2_backend/d300_full_w0/context1'
+        reference = 'd299'
+        health_name = 'remote_health.json'
+        change_caveat = 'Only the request-path scale-in latency reference changes; closed-loop trajectories may all change.'
+    elif campaign != 'd299':
+        raise ValueError('unknown frozen full-run identity')
     assert not OUT.exists()
     assert p.check_plan()=='0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7'
     assert sha256(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md')=='5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22'
     audits, sources = {}, {}
-    for name in ('d297','d299'):
+    for name in (reference,campaign):
         directory=CURATED/f'{name}_full_w0/validated1'
         manifest=read(directory/'manifest.json')
         for filename,digest in manifest['outputs'].items():
@@ -67,8 +81,8 @@ def main():
         assert sha256(source)==audits[name]['evidence']['source_sha256']
         sources[name]=source
         assert all(n==4000 for n in audits[name]['control_binding_pass_counts'].values())
-    left, le, lr = audit_run(sources['d297'])
-    right, re, rr = audit_run(sources['d299'])
+    left, le, lr = audit_run(sources[reference])
+    right, re, rr = audit_run(sources[campaign])
     assert len(lr)==len(rr)==4000
     assert all(all(a[k]==b[k] for k in FIELDS) for a,b in zip(lr,rr))
     assert all(le[k]==re[k] for k in ('shared_trace_sha256','shared_adapter_subset_sha256'))
@@ -85,7 +99,7 @@ def main():
     remote={r['transfer_id']:r for r in remote_rows}
     assert len(remote)==len(remote_rows)==len(transfers)
     assert set(remote)=={r['http_transfer_id'] for r in transfers}
-    clock=read(RAW/'remote_health2.json')['health']['clock_id']
+    clock=read(RAW/health_name)['health']['clock_id']
     for r in transfers:
         s=remote[r['http_transfer_id']]
         assert r['state']=='published' and r['content_verified'] and r['published_archive_verified']
@@ -105,7 +119,7 @@ def main():
     known='/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py'
     assert seal['changed']==[known] and seal['entry_count']==147
     assert sha256(Path(known))=='04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22'
-    result=dict(kind='d299_full_context_audit_v1',reference=le,candidate=re,
+    result=dict(kind=f'{campaign}_full_context_audit_v1',reference=le,candidate=re,
         input_identity_equal=True,input_fields_checked=FIELDS,output_hash_changes=differences,
         tier_counts=tiers,terminal_meta=meta,
         remote=dict(transfers=len(transfers),wire_bytes=sum(r['transferred_bytes'] for r in transfers),
@@ -118,7 +132,7 @@ def main():
         protection_raw=seal,n_correct=None,formal_qualification=False,no_figures=True,
         replicates_per_configuration=1,confidence_interval=None,
         caveats=['Full development W0, not held-out; no statistical superiority claim.',
-                 'Capacity, slot, rank and memory package changed together; not single-factor ablation.',
+                 change_caveat,
                  'Binding and native counts do not by themselves qualify kernel arithmetic.',
                  'Warm reference remains provisional; shared final references remain open.'])
     OUT.mkdir(parents=True,exist_ok=False)
@@ -127,11 +141,11 @@ def main():
     with (OUT/'comparison.csv').open('x',newline='') as handle:
         writer=csv.DictWriter(handle,fieldnames=['metric','reference','candidate','lower_better_change_percent'])
         writer.writeheader()
-        for key,a in audits['d297']['stats'].items():
-            b=audits['d299']['stats'][key]
+        for key,a in audits[reference]['stats'].items():
+            b=audits[campaign]['stats'][key]
             change=(a-b)/a*100 if a not in (0,None) and b is not None and key not in ('completed','n_correct') else None
             writer.writerow(dict(metric=key,reference=a,candidate=b,lower_better_change_percent=change))
-    paths=[*sources.values(),outcome,journal,RAW/'remote_monitor.log',RAW/'remote_health2.json',
+    paths=[*sources.values(),outcome,journal,RAW/'remote_monitor.log',RAW/health_name,
            RUN/'launch.json',RUN/'launch.launch/watchdog.jsonl',Path(__file__),
            ROOT/'scripts/ieee_tc/plot_d290_diagnostic.py',ROOT/'scripts/ieee_tc_preflight.py']
     with (OUT/'manifest.json').open('x') as handle:
@@ -142,4 +156,6 @@ def main():
 
 
 if __name__=='__main__':
-    main()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--campaign', choices=('d299', 'd300'), default='d299')
+    main(parser.parse_args().campaign)
