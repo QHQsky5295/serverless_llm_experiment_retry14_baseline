@@ -1,5 +1,25 @@
 # IEEE TC execution status
 
+## CURRENT — D280 re-enables the audited Resident-vLLM protocol; no GPU run yet
+
+2026-10-06. The baseline harness commit `d9db181` removes only the historical
+quarantine guard around the already audited Resident-vLLM protocol path.  CPU
+checks, shell syntax, receipt compilation, frozen W0 trace/subset validation,
+DP4/TP1 launch-spec generation and the fixed-output native-token dry-run passed.
+The path now explicitly requires `dynamic_remote`, a prepublished endpoint,
+separate service/auxiliary resource domains, deployment notice timing and
+post-stop NVML release before a real receipt can close.  No model was loaded,
+no remote request was sent and no GPU performance sample was produced.
+
+The new provenance boundary is documented in
+`docs/ieee_tc/D280_RESIDENT_PROTOCOL_ENABLEMENT.md`.  D280 does not promote
+D213's local-static runs and does not freeze a Resident budget.  The next
+authorized step is a fresh remote health/resource gate followed by one
+protected 7B Resident pilot; only after that pilot passes will the three-run
+Resident reference series be considered.  Prime's combined D278+D279
+readiness diagnostic remains diagnostic-only (`n_correct=null`), so 3B and all
+external baselines remain paused.
+
 ## CURRENT — D279 completes; combined readiness diagnostic reaches the pre-registered sample count
 
 2026-10-06. The permitted identical cold replicate D279 completed with
