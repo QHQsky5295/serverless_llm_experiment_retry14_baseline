@@ -1,5 +1,48 @@
 # IEEE TC execution status
 
+## CURRENT — D293 bounded prefetch run complete; latency/resource trade-off, not acceptance
+
+2026-10-06. D293 completed 100/100 native fixed-output requests with full
+physical allocation/release evidence. Frozen V1 Type-1 recomputation gives
+mean/P95 user TTFT 2.170015/10.538035 s versus D290 13.558675/39.448237 s.
+Initial readiness fell 103.504→50.496 s, but physical GPU-s **increased**
+714.256679→769.307664 and P95 service TTFT worsened 1760.353→1933.152 ms.
+This is a single-prefix diagnostic, not a causal prefetch effect or G1/G2 pass.
+File-cache warmness is not controlled after D291/D292 startup attempts.
+No common SLO/budget is frozen; both sidecars keep `n_correct=null`.
+
+D291 failed before requests on profile identity; D292 loaded weights but
+failed before requests on parent/child derived-loader receipt equality.
+Their artifacts remain failures, not denominator entries. Existing commits
+175b37a/ec7fdb0 separate deployment loader settings/observations from
+post-ready service identity and configuration intent; D293 used 632bd7d.
+All inputs/target/native counts match D290, but six output hashes differ:
+req_00005/00059/00074/00077/00084/00091. Do not assume numerical correctness
+from success/counts or assume an adapter bug from hash inequality.
+
+Offline analyzer repaired double-counted arrival lateness in queue, uses
+Type-1 rather than legacy interpolated percentiles, rejects incomplete data,
+and preserves old figures. Audit/table/plots:
+`docs/ieee_tc/D293_PREFETCH_VALIDATION_AUDIT.md`,
+`paper_results/ieee_tc/p2_backend/d293_prefetch_audit/`,
+`figs/ieee_tc/p2_backend/d293_prefetch_audit/`.
+Twelve focused offline tests pass; TNR regular/bold embedded, 3.45-inch page.
+The initial dependency/font failures are analysis setup failures, not replays.
+
+Owned GPUs released and remote 7B artifact service stopped. Remote delivery
+cache authorization already fulfilled by D78/D80; no recreation. Both NICs
+currently report 1000/full; historical 100-Mbps cause remains unproven.
+Service peak18.048GiB/events-swap0; minimum host available87.301GiB.
+Fresh disk gate required before another heavy task; never lower 150/100GiB.
+Old seal146/147 unchanged: sole mismatch is pre-existing dirty baseline
+replay_openai_trace.py, untouched here; protected historical results unchanged.
+
+NEXT: finish six-row same-backend identity/batching audit using D225–D249
+evidence and actual source, before minimal missing-data collection or full
+7B qualification. Keep numerical/G1/G2 gaps open; 7B before3B beforebaselines.
+Do not replay D291/D292, regenerate adapters/traces/cache, announce resource
+saving, or use D290's slower point as proof of exceeding old Prime.
+
 ## CURRENT — D288 Resident reference paused by the revised Prime-first order
 
 2026-10-06. D288 launched the first full 7B Resident reference attempt under

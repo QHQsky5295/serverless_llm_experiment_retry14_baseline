@@ -1,0 +1,88 @@
+{
+  "reference": {
+    "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d290_20261006/7b_route_frontier_validation_100/experiment_results_full_vllm_dedicated_a500_r100_c2_tc_ieee_route_frontier_validation_100_d290_7b_route_frontier_validation_100.json",
+    "source_sha256": "5a2a8b1fe15a6c84a886736b3419c44a9407223943df45c9d10cd75b5aaff3a4",
+    "physical_source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d290_20261006/7b_route_frontier_validation_100/launch.launch/physical_deployment/physical_resource_summary.json",
+    "physical_sha256": "e6d86da8ad71e4928825f6c27229a2d206fd0bf2cbb983acf765a15be2fb5745",
+    "max_native_ttft_error_ms": 0.0,
+    "max_native_tpot_error_ms": 0.0,
+    "shared_trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "shared_adapter_subset_sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016"
+  },
+  "candidate": {
+    "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d293_20261006/7b_prefetch_validation_100/experiment_results_full_vllm_dedicated_a500_r100_c2_tc_ieee_prefetch_validation_100_d293_7b_prefetch_validation_100.json",
+    "source_sha256": "e20499a369f3bc5c0bb7e2bac804ead9644fb70ed48abf71c815d11cb6fbba40",
+    "physical_source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d293_20261006/7b_prefetch_validation_100/launch.launch/physical_deployment/physical_resource_summary.json",
+    "physical_sha256": "5d71f05798f2393f85ce4a2d98fcabb85bc1be0c2b52b7053f53b4d73cf14a0b",
+    "max_native_ttft_error_ms": 0.0,
+    "max_native_tpot_error_ms": 0.0,
+    "shared_trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "shared_adapter_subset_sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016"
+  },
+  "input_identity_equal": true,
+  "input_fields_checked": [
+    "request_id",
+    "adapter_id",
+    "scheduled_arrival_offset_s",
+    "source_expected_output_tokens",
+    "requested_completion_tokens",
+    "canonical_prompt_sha256",
+    "generation_contract",
+    "completion_token_source"
+  ],
+  "output_hash_changes": [
+    {
+      "request_id": "req_00005",
+      "adapter_id": "legal_lora",
+      "target_tokens": 256,
+      "reference_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "candidate_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_00059",
+      "adapter_id": "finance_lora",
+      "target_tokens": 45,
+      "reference_sha256": "94a0ef97cfdd86f6c666b2f0ccd5657975017656ecf2ffa815d11a1161fb8986",
+      "candidate_sha256": "a985dff39fdff6fa979ebbd76115a6f24cc0cfe9d1d49ea88691ad9ebb8e3f80"
+    },
+    {
+      "request_id": "req_00074",
+      "adapter_id": "medical_lora",
+      "target_tokens": 256,
+      "reference_sha256": "191f72092b57948d0e5c9de1cfe48eb891b062394e9a6228a3650ca98b5ee796",
+      "candidate_sha256": "4221eee50d9e6753af72843b415b50ec6a60a0822dbf230aafe3e5e3087fff73"
+    },
+    {
+      "request_id": "req_00077",
+      "adapter_id": "medical_lora",
+      "target_tokens": 256,
+      "reference_sha256": "4221eee50d9e6753af72843b415b50ec6a60a0822dbf230aafe3e5e3087fff73",
+      "candidate_sha256": "191f72092b57948d0e5c9de1cfe48eb891b062394e9a6228a3650ca98b5ee796"
+    },
+    {
+      "request_id": "req_00084",
+      "adapter_id": "finance_lora",
+      "target_tokens": 46,
+      "reference_sha256": "3e9cde124fc268fbd2f68b72f0683c93be744cd2b0ecfa7dd12db96f0209a408",
+      "candidate_sha256": "e02e5001da648f17b84512612f0455881319357fbc5b2bbced96c5626613b70c"
+    },
+    {
+      "request_id": "req_00091",
+      "adapter_id": "finance_lora",
+      "target_tokens": 256,
+      "reference_sha256": "49f63f849f9574140d818b861aaea0c7963cefb34b0ad3338b19d34c4b4a5ec4",
+      "candidate_sha256": "d837ad3ecff9c74a476ec653e8316f7741f2ffb87ed2ea91a0a65641b8b2f8c6"
+    }
+  ],
+  "formal_qualification": false,
+  "causal_speedup_claim": false,
+  "replicates_per_configuration": 1,
+  "confidence_interval": null,
+  "limitations": [
+    "100-request prefix only",
+    "file cache not randomized",
+    "output hash differences remain unaudited",
+    "joint SLO/reference budget not frozen"
+  ],
+  "script_sha256": "b1d62fc4c2faa6e6e776e39573a5719ad924265e059279696fc7173e584add03"
+}

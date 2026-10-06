@@ -1,0 +1,37 @@
+{
+  "analysis_version": "dispatch_wait_no_double_count_v2",
+  "cold_read_observations": 622,
+  "completed": 100,
+  "failed": 0,
+  "figure": "d290_latency_control_diagnostic",
+  "figure_size_inches": [
+    3.45,
+    4.7
+  ],
+  "font_file": "/home/qhq/.local/share/fonts/msttcorefonts-times/times.ttf",
+  "formal_qualification": false,
+  "frontier_rows": 54,
+  "interpretation": "single_prefix_diagnostic_no_causal_or_G1_G2_claim",
+  "legacy_interpolated_p95_overall_ttft_ms": 39452.91733794729,
+  "legacy_interpolated_p95_service_ttft_ms": 1770.0300102063916,
+  "mean_overall_ttft_ms": 13558.67478625034,
+  "mean_queue_admission_ms": 12863.726908507524,
+  "mean_service_ttft_ms": 694.9478777428158,
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "numerical_correctness_qualified": false,
+  "p95_overall_ttft_ms": 39448.23671411723,
+  "p95_queue_admission_ms": 38645.07809106726,
+  "p95_service_ttft_ms": 1760.352673009038,
+  "quantile_definition": "type_1_ordered_ceil_p_times_n",
+  "readiness_tier_counts": {
+    "gpu": 28,
+    "host": 34,
+    "nvme": 16,
+    "remote": 22
+  },
+  "scaleup_affected_count": 62,
+  "scenario": "tc_ieee_route_frontier_validation_100",
+  "script_sha256": "b1d62fc4c2faa6e6e776e39573a5719ad924265e059279696fc7173e584add03",
+  "source_result": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d290_20261006/7b_route_frontier_validation_100/experiment_results_full_vllm_dedicated_a500_r100_c2_tc_ieee_route_frontier_validation_100_d290_7b_route_frontier_validation_100.json",
+  "source_sha256": "5a2a8b1fe15a6c84a886736b3419c44a9407223943df45c9d10cd75b5aaff3a4"
+}
