@@ -11,7 +11,56 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D295 block1/attempt2 complete;25/27 single/concurrent exact,2 near-tie divergences
+## CURRENT — D295 all three starts complete; return to7B lifecycle/SLO optimization
+
+2026-10-07. Three registered blocks complete162 native generations, each54/54,
+with slot content and independent execution-journal validation and actual cleanup.
+Within-block single/concurrent exact counts25/27,25/27,23/27. Across starts,
+single exact22/27,24/27,25/27; concurrent24/27,26/27,23/27 (pairs1–2,1–3,2–3).
+All first differences involve a tied side and at most.03125 top2 logprob margin.
+The single-stability/batch-only explanation is contradicted, NOT established.
+No token tolerance added, no mismatch relabelled exact, no extra repeats planned.
+Raw archives/receipts and the full audit are retained; final compact data in
+`paper_results/ieee_tc/p2_backend/d295_numerical_repeat/three_blocks/`. No figures.
+Block3 service/GPU release confirmed;789 samples, peak5.298267GiB, host min
+100.030857GiB, high/max/OOM/swap0. Old seal146/147; same pre-existing baseline
+script is the sole difference. No historical results overwritten.
+
+NEXT: D296 lifecycle hypothesis (doc adjacent). Historical D293 terminal cleanup
+85.546GPU-s, independent card returns9.586/17.403/25.221/33.336s after terminal.
+Four CPU counterexamples reproduce serial dependence; candidate now groups
+shared-engine aliases and joins independent runtime returns concurrently while
+retaining physical-release checks. Focused34tests pass. Broader model-Python test
+was stopped on persistent auxiliary high reclaim (no max/OOM); old CPU environment
+passes634 assertions, with one unrelated pytest import error. The analyzer's correct
+pytest entry separately passes22; system-Python guards75pass. Failed/incomplete
+logs remain. Candidate/config are ready for backup and fresh resource gate.
+NO new GPU performance result yet. After validated backup, bounded
+7B replay must measure the candidate before acceptance/full qualification.
+Numerical/Full N_correct, commonwarm/Resident, oldPrime-newmetrics and G1/G2
+remain open. Do not revisit D295 or move to3B/baselines/figures now.
+
+## HISTORY — D295 block2 complete; single-request stability hypothesis contradicted
+
+2026-10-07. Block2/attempt1 completes54/54 diagnostic generations and cleanup.
+Within block2 single/concurrent exact25/27 (differences7/59). Across blocks1/2,
+single exact22/27 (differences9/13/59/77/84), concurrent exact24/27 (9/13/77).
+Every observed first difference has a tied side and the other top2 margin at
+most.03125. Full native execution/slot revalidation passes. Thus "single stable,
+only concurrent changes" is NOT supported; do not repeat that provisional claim.
+This is numerical sensitivity evidence, not proven kernel causality or N_correct.
+Complete the registered third start without changing configuration or tolerance,
+then end this bounded series and return to7B SLO/lifecycle optimization.
+
+Block2 raw032a8043... losslessly compressed to11,194,069bytes, gzipaea19bde...;
+only verified uncompressed duplicate removed. Receipt beside archive. Audit
+`paper_results/ieee_tc/p2_backend/d295_numerical_repeat/blocks_1_2/` validates
+both journals in23.16s, maxRSS1,733,608KiB.790 watchdog samples; service peak
+5.298527GiB, host minavailable100.046379GiB, high/max/OOM/swap0; actual GPU
+release/service removal confirmed. No figures. NEXT launcher block3/attempt1
+after fresh gate; all serving/config SHA unchanged from block1. No3B/baselines.
+
+## HISTORY — D295 block1/attempt2 complete;25/27 single/concurrent exact,2 near-tie divergences
 
 2026-10-06. Completed54 native fixed-length generations (27 per arm), with actual
 single batches1 and concurrent batches1/2/3/4; slot readback and independent

@@ -2208,6 +2208,137 @@ class MainOutcomeRetention(unittest.IsolatedAsyncioTestCase):
             self.assertTrue((root/'original-host'/'a').exists())
 
 
+class IndependentRuntimeShutdown(unittest.IsolatedAsyncioTestCase):
+    """CPU dependency witnesses, not measurements of GPU release latency."""
+
+    def make(self, count=2):
+        return DeploymentTerminalIntegration.owned_pool_runner(self, count)
+
+    async def test_independent_returns_start_before_either_finishes(self):
+        r, ids = self.make()
+        entered = [asyncio.Event(), asyncio.Event()]
+        finish = [asyncio.Event(), asyncio.Event()]
+        exited = [asyncio.Event(), asyncio.Event()]
+
+        async def cleanup(slot, **kwargs):
+            i = ids.index(slot.instance_id)
+            entered[i].set()
+            await finish[i].wait()
+            exited[i].set()
+
+        r._cleanup_removed_slot = cleanup
+        closing = asyncio.create_task(r._shutdown_instance_pool())
+        try:
+            await asyncio.wait_for(entered[0].wait(), 1.)
+            await asyncio.wait_for(entered[1].wait(), 1.)
+            self.assertTrue(all(s.status == 'draining' for s in r.instance_pool.get_all_slots()))
+            self.assertIsNone(r._select_dedicated_device_id())
+            # The independent second owner need not wait for the first return.
+            finish[1].set()
+            await asyncio.wait_for(exited[1].wait(), 1.)
+            self.assertIsNone(r.instance_pool.get_slot(ids[1]))
+            self.assertIsNotNone(r.instance_pool.get_slot(ids[0]))
+            self.assertFalse(closing.done())
+        finally:
+            for event in finish:
+                event.set()
+            await closing
+        self.assertEqual(r.instance_pool.get_all_slots(), [])
+
+    async def test_shared_engine_aliases_do_not_retire_concurrently(self):
+        r, ids = self.make(3)
+        first = r.instance_pool.get_slot(ids[0])
+        alias = r.instance_pool.get_slot(ids[1])
+        alias.engine = first.engine
+        alias.owns_engine = False
+        alias.device_id = first.device_id
+        entered = [asyncio.Event() for _ in ids]
+        release = asyncio.Event()
+        active_engines = set()
+
+        async def cleanup(slot, **kwargs):
+            i = ids.index(slot.instance_id)
+            key = id(slot.engine)
+            self.assertNotIn(key, active_engines)
+            active_engines.add(key)
+            entered[i].set()
+            try:
+                if i == 0:
+                    await release.wait()
+            finally:
+                active_engines.remove(key)
+
+        r._cleanup_removed_slot = cleanup
+        closing = asyncio.create_task(r._shutdown_instance_pool())
+        try:
+            await asyncio.wait_for(entered[0].wait(), 1.)
+            await asyncio.wait_for(entered[2].wait(), 1.)
+            self.assertFalse(entered[1].is_set())
+        finally:
+            release.set()
+            await closing
+        self.assertTrue(entered[1].is_set())
+        self.assertEqual(r.instance_pool.get_all_slots(), [])
+
+    async def test_caller_cancel_waits_for_all_started_physical_returns(self):
+        r, ids = self.make()
+        entered = [asyncio.Event(), asyncio.Event()]
+        finish = asyncio.Event()
+        cancelled = []
+
+        async def cleanup(slot, **kwargs):
+            entered[ids.index(slot.instance_id)].set()
+            try:
+                await finish.wait()
+            except asyncio.CancelledError:
+                cancelled.append(slot.instance_id)
+                raise
+
+        r._cleanup_removed_slot = cleanup
+        closing = asyncio.create_task(r._shutdown_instance_pool())
+        try:
+            await asyncio.wait_for(entered[0].wait(), 1.)
+            await asyncio.wait_for(entered[1].wait(), 1.)
+            closing.cancel()
+            await asyncio.sleep(0)
+            self.assertFalse(closing.done())
+            self.assertEqual(cancelled, [])
+            self.assertEqual(len(r.instance_pool.get_all_slots()), 2)
+        finally:
+            finish.set()
+            try:
+                await closing
+            except asyncio.CancelledError:
+                pass
+        self.assertTrue(closing.cancelled())
+        self.assertEqual(cancelled, [])
+        self.assertEqual(r.instance_pool.get_all_slots(), [])
+
+    async def test_failed_owner_is_retained_while_other_return_finishes(self):
+        r, ids = self.make()
+        entered = [asyncio.Event(), asyncio.Event()]
+        finish = asyncio.Event()
+
+        async def cleanup(slot, **kwargs):
+            i = ids.index(slot.instance_id)
+            entered[i].set()
+            await finish.wait()
+            if i == 0:
+                raise RuntimeError('physical return unconfirmed')
+
+        r._cleanup_removed_slot = cleanup
+        closing = asyncio.create_task(r._shutdown_instance_pool())
+        try:
+            await asyncio.wait_for(entered[0].wait(), 1.)
+            await asyncio.wait_for(entered[1].wait(), 1.)
+        finally:
+            finish.set()
+            with self.assertRaisesRegex(RuntimeError, 'unresolved runtime ownership'):
+                await closing
+        self.assertEqual(r.instance_pool.get_slot(ids[0]).status, 'draining')
+        self.assertIsNone(r.instance_pool.get_slot(ids[1]))
+
+
 class NativePhysicalShutdown(unittest.IsolatedAsyncioTestCase):
     def proxy(self):
         events = []

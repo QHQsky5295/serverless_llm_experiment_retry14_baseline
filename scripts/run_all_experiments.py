@@ -14376,18 +14376,39 @@ class ScenarioRunner:
             return
         cleanup_failures = [outcome for outcome in quarantine_outcomes
                             if isinstance(outcome, BaseException)]
+        runtime_groups = {}
         for slot in self.instance_pool.get_all_slots():
             instance_id = getattr(slot, "instance_id", None)
             if not instance_id:
                 continue
             slot.status = 'draining'
+            # Logical aliases may share one engine even with distinct controller
+            # identities. Retire those serially; independent physical runtimes
+            # have no remaining dependency after the shared owners above settle.
+            runtime_groups.setdefault(id(getattr(slot, 'engine', None)), []).append(slot)
+
+        async def retire_runtime(slots):
+            for slot in slots:
+                try:
+                    await self._cleanup_removed_slot(slot, removal_reason="shutdown")
+                    self.instance_pool.remove_instance(slot.instance_id)
+                except Exception as exc:
+                    # Keep the failed owner; still return other owned runtimes.
+                    # Removal follows the unchanged physical-release evidence.
+                    cleanup_failures.append(exc)
+
+        joined = asyncio.gather(*(retire_runtime(slots) for slots in runtime_groups.values()),
+                                return_exceptions=True)
+        cancelled = False
+        while not joined.done():
             try:
-                await self._cleanup_removed_slot(slot, removal_reason="shutdown")
-                self.instance_pool.remove_instance(instance_id)
-            except Exception as exc:
-                # Still retire the other owned runtimes. Durable physical owner
-                # journals retain this failed return; do not turn it into success.
-                cleanup_failures.append(exc)
+                await asyncio.shield(joined)
+            except asyncio.CancelledError:
+                # A caller cancelling cannot orphan already-started physical
+                # returns. Join them all, then propagate cancellation/failure.
+                cancelled = True
+        cleanup_failures.extend(outcome for outcome in joined.result()
+                                if isinstance(outcome, BaseException))
         if getattr(self, '_ieee_nvml_initialized', False):
             import pynvml
             pynvml.nvmlShutdown()
@@ -14397,6 +14418,8 @@ class ScenarioRunner:
         for outcome in residency_outcomes:
             if isinstance(outcome, BaseException) and not isinstance(outcome, asyncio.CancelledError):
                 raise RuntimeError('IEEE shutdown preserved a failed residency epoch') from outcome
+        if cancelled:
+            raise asyncio.CancelledError()
 
     async def _prune_dead_instance_slots(self) -> int:
         self._check_runtime_quarantines()

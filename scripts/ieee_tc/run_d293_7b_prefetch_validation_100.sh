@@ -2,8 +2,23 @@
 set -euo pipefail
 ROOT=/home/qhq/serverless_llm_experiment_retry14_baseline
 RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d293_20261006/7b_prefetch_validation_100
+CONFIG=configs/ieee_tc/20261006_d293_7b_prefetch_validation_100.yaml
+TAG=d293_7b_prefetch_validation_100
+case "${1:-d293}" in
+  d293) ;;
+  d296)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d296_20261007/7b_lifecycle_validation_100
+    CONFIG=configs/ieee_tc/20261007_d296_7b_lifecycle_validation_100.yaml
+    TAG=d296_7b_lifecycle_validation_100
+    ;;
+  *) echo 'Expected d293 or d296; no arbitrary output override' >&2; exit 2 ;;
+esac
+[[ $# -le 1 ]] || exit 2
 cd "$ROOT"
-mkdir -p "$RAW"
+[[ ! -e "$RAW" ]] || { echo "Refusing existing run: $RAW" >&2; exit 2; }
+mkdir -p "$(dirname "$RAW")"
+mkdir "$RAW"
+set -o noclobber
 exec >"$RAW/launcher.log" 2>&1
 export PATH="/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin:$PATH"
 export CUDA_HOME=/usr/local/cuda-13.0
@@ -30,7 +45,7 @@ export FAASLORA_SHARED_TRACE_PATH=/home/qhq/serverless_llm_baselines/results/pap
 export FAASLORA_SHARED_ADAPTER_SUBSET_PATH="${FAASLORA_SHARED_TRACE_PATH%_trace.json}_adapter_subset.json"
 export FAASLORA_TRACE_ROLE=exploratory
 export FAASLORA_FORMAL_RUN=0
-export FAASLORA_RESULTS_TAG=d293_7b_prefetch_validation_100
+export FAASLORA_RESULTS_TAG="$TAG"
 export FAASLORA_WORKER_START_TIMEOUT_S=600
 export FAASLORA_KEEP_DEDICATED_WORKER_LOGS=1
 export PYTHONNOUSERSITE=1
@@ -40,5 +55,5 @@ export HF_HUB_OFFLINE=1
 export TRANSFORMERS_OFFLINE=1
 export VLLM_NO_USAGE_STATS=1
 exec bash scripts/run_all_experiments_user_scope.sh \
-  --config configs/ieee_tc/20261006_d293_7b_prefetch_validation_100.yaml \
+  --config "$CONFIG" \
   --scenario tc_ieee_prefetch_validation_100 --full-stack
