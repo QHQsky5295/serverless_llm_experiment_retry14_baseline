@@ -32,7 +32,14 @@ case "${1:-d293}" in
     SCENARIO=tc_ieee_full
     PREFIX_COUNT=
     ;;
-  *) echo 'Expected d293, d296, d297, d298 or d299; no arbitrary output override' >&2; exit 2 ;;
+  d300)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d300_20261007/7b_full_w0
+    CONFIG=configs/ieee_tc/20261007_d300_7b_full_w0.yaml
+    TAG=d300_7b_full_w0
+    SCENARIO=tc_ieee_full
+    PREFIX_COUNT=
+    ;;
+  *) echo 'Expected d293, d296, d297, d298, d299 or d300; no arbitrary output override' >&2; exit 2 ;;
 esac
 [[ $# -le 1 ]] || exit 2
 cd "$ROOT"

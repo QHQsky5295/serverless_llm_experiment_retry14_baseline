@@ -1,0 +1,43 @@
+{
+  "kind": "d300_single_control_reference_candidate_v1",
+  "development_only": true,
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "config": "configs/ieee_tc/20261007_d300_7b_full_w0.yaml",
+  "config_sha256": "25debb773cc004a134e026b148c23d9af2565a8a7041db98e74f438efa65a378",
+  "reference_run": "d298_20261007/7b_capacity_validation_100",
+  "reference_source_sha256": "52666d436be444924980c26d86a01dd3e1e244bb823b17bbba1f5a0a01f5ed24",
+  "reference_audit_sha256": "42b6b895b9e255115d72160787ce2bbc760decabf645878a62359fea5e0d90bc",
+  "reference_native_audit_repeated": true,
+  "reference_requests": 100,
+  "reference_type1_p95_ms": 2339.924886357039,
+  "only_nonidentity_difference_from_d299": "resource_coordination.ieee_scaling.ttft_lower_ms",
+  "evaluation_thresholds_changed": false,
+  "d299_observed_predicate_diagnostic": {
+    "source": "paper_results/ieee_tc/p2_backend/d299_full_w0/validated1/control_samples.csv",
+    "source_sha256": "35271d728a8843b934815147a1761e7d52ee4d8c8857be7015031a62468bff38",
+    "all_low_no_pending_samples": 420,
+    "longest_sampled_span_s": 43.25253760605119,
+    "spans_at_least_38s": 1,
+    "counterfactual_gpu_s": null,
+    "counterfactual_latency": null
+  },
+  "cpu_tests": {
+    "suite": "DevelopmentControlDerivation, IEEEControlContract, IEEEActualControl, IEEETerminalLifecycle, test_ieee_tc_timing_bound, test_ieee_tc_native_timing",
+    "passed": 56,
+    "failures": 0,
+    "seconds": 31.139,
+    "scope": "primelora-tc-d300-tests.scope"
+  },
+  "configcheck_scope": "primelora-tc-d300-configcheck.scope",
+  "configcheck_invocation": "45ead1f25cbb409783c6515bd735dc2b",
+  "configcheck_memory_peak_bytes": 30662656,
+  "configcheck_memory_high_max_oom_events": [0, 0, 0],
+  "protected_raw_pass": false,
+  "protected_entries": 147,
+  "protected_only_known_change": "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py",
+  "known_change_sha256": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+  "performance_run_started": false,
+  "formal_g1_g2_qualification": false,
+  "n_correct": null
+}

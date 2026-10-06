@@ -1,0 +1,33 @@
+{
+  "kind": "lossless_existing_result_compression_v1",
+  "root": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification",
+  "relative_suffix": "launch.launch/physical_deployment/main_outcome.json",
+  "archive_suffix": ".gz",
+  "method": "Reuse gzip -1 -k, gzip -t, source and decompressed SHA verification; remove only the byte-identical uncompressed duplicate after a second verification.",
+  "authorization": "Plan section 2.8, lossless compression between experiments; unique evidence retained.",
+  "files": [
+    {"run": "d297_20261007/7b_full_w0", "source_bytes": 659119080, "source_sha256": "2400acb8ea89f2b1749ccdd87fdbbba3f743b067e4c49310aae7c0fbc7a31205", "archive_bytes": 77534736, "archive_sha256": "d323dd1f899a5af24be0511c0c120eb4fe50e05a8b20a80c578aa5887e2ebe1a"},
+    {"run": "d219_20261005/7b_confirmed_snapshot_cache_full_replay", "source_bytes": 523423727, "source_sha256": "da1a63bc6b347767c349b9276be8c018ebfc2154301f8fbe8ac32242186c76d6", "archive_bytes": 53440324, "archive_sha256": "46e605012366a94639eaecd78206a67df5ebe57a62e217533b3da23c85cb92ee"},
+    {"run": "d214_20261004/7b_route_identity_full_retry3", "source_bytes": 537394817, "source_sha256": "ebf1da2e788b41df3074058a415fd77bc7bf65d7e7cb0ff166f3e78814d3186a", "archive_bytes": 55433454, "archive_sha256": "2bd9a86c12f386ace608b94b843e243683a70a33f1585a31608f8b07da2f198f"},
+    {"run": "d214_20261004/7b_route_identity_full_retry4", "source_bytes": 528364721, "source_sha256": "cb3d6b8f30ee30317a31cd248f7fc47c72cfdb65fe1dbf5112741185d8f209bd", "archive_bytes": 53999613, "archive_sha256": "3d87ee99cbc9e99730cbc3c43c8ede1769045fa4122f93c777a58f38ba0cad2a"},
+    {"run": "d203_20261003/7b_full_w0_full1", "source_bytes": 522819369, "source_sha256": "3fdba71f828d86849faf511ebba50927c48550c39497bac508069eab529e057a", "archive_bytes": 53456290, "archive_sha256": "2cc088c6033ecb3422ed61c140220e4c993e10270f79dd9dc6163c45f195c278"}
+  ],
+  "first_roundtrip_verified": true,
+  "second_roundtrip_verified": true,
+  "uncompressed_duplicates_removed": true,
+  "regular_single_link_sources": true,
+  "protected_submission_seal_has_no_selected_source": true,
+  "open_file_check": "No source opener reported by lsof; inaccessible mount warnings retained as a visibility limitation. Local owned cgroup.procs and GPU compute census empty; remote services inactive.",
+  "performance_run_concurrent": false,
+  "compression_scope": "primelora-tc-storage-d300-verify1.scope",
+  "compression_invocation": "0abe4eaa3fd14a018ecc1e44e8011519",
+  "compression_peak_bytes": 1892986880,
+  "second_verification_scope": "primelora-tc-storage-d300-verify2.scope",
+  "second_verification_invocation": "0a07b5e904364bb08cf25c10e14fc2cf",
+  "second_verification_peak_bytes": 3178496,
+  "memory_high_max_oom_events_both_scopes": [0, 0, 0],
+  "post_cleanup_free_bytes": 162918813696,
+  "historical_references": "Historical source SHA binds decompressed bytes; request result files and all curated audits remain unchanged. For a legacy reader requiring a raw path, restore with gzip -dk after checking disk, do not rerun inference. New read-only analysis may stream gzip directly.",
+  "weights_trace_or_publication_files_changed": false,
+  "new_heavy_start_floor_bytes_unchanged": 161061273600
+}

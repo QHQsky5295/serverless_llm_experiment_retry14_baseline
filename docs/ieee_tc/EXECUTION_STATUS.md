@@ -11,7 +11,38 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D299 full4000 W0 completed and audited; 7B resource goal still open
+## CURRENT — D300 single scale-in reference candidate validated; backup before full W0
+
+2026-10-07 05:05+08. D299 remains complete; no inference currently running.
+Full plan and frozenV1 reread, prior checkpoint197a64e matches remote. Reviewed
+IEEE §3.1, D88 derivation, D297/D299 histories and Ray/Knative official docs/code.
+ONE candidate D300 changes only ttft_lower_ms from281.278192 to2339.924886ms,
+the Type-1 P95 of all100 already-audited D298 Full requests. This is an empirical
+request-path development reference, not a revised evaluation SLO or proven
+optimum. Queue/active limits,38scooldown,45swindow and every mechanism stayD299.
+See D300_REQUEST_PATH_CONTROL_REFERENCE.md for rationale and limitations.
+
+Config25debb773cc004a134e026b148c23d9af2565a8a7041db98e74f438efa65a378;
+native reference audit recomputed; exactone nonidentitydifference verified.
+56controller/lifecycle/timing tests pass. Same historical D299 observations have
+420candidate-low samples and one43.252538s span; no counterfactualGPU-s claim.
+No repeat warm/source/numerical run, figures,3B or external baseline.
+
+Storage: five completed historical main_outcome logs losslessly gzip-compressed,
+source/archive SHA round trips verified twice before rawduplicate unlink.
+Request sources and curated evidence unchanged; receipt in paper_results/ieee_tc/storage/
+20261007_completed_outcomes_lossless_compression.json. Free162918813696B;
+unchanged150/100GiB thresholds. Both compression jobs no high/max/OOM.
+146/147protected entries unchanged; soleknown baseline-script SHA unchanged.
+
+NEXT save/push tested checkpoint, stop only empty owned check scopes, then reuse
+existing remote startup/monitor and protected launcher argd300 for original4000W0.
+Do not rerunD299, do not sweep this lower threshold or change evaluation limits.
+On finish release/validate/data-only compare actualphysicalU, TTFT,TPOT,timing,
+control/release events and request identities, including all regressions.
+G1/G2, finalsharedwarm/Resident and N_correct remainopen; goal active.
+
+## HISTORY — D299 full4000 W0 completed and audited; 7B resource goal still open
 
 2026-10-07 04:46+08. Same D299 finished4000/4000native-contract requests;
 zero reported failures,4physical leases closed, service/replay/watchdog0,
