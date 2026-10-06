@@ -18,6 +18,8 @@ only.  The Resident three-repeat series is registered but paused.  The next
 main-line work is the frozen metric/remote-boundary decision note, followed by
 PrimeLoRA 7B correctness and performance optimization; 3B and all external
 baseline comparisons remain paused until the per-model Prime gate is met.
+The resulting metric/remote accounting freeze is recorded in
+`docs/ieee_tc/METRIC_REMOTE_BOUNDARY_HYDRA_FREEZE_20261006.md`.
 
 ## CURRENT — D287 7B Resident CPU-affinity pilot passes; formal reference series authorized
 
