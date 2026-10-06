@@ -31,6 +31,10 @@ next gate is rechecking the existing numerical/common-warm/physical-release
 requirements before any new 7B GPU readiness attempt; no replay is authorized
 solely by D275.
 
+Checkpoint `8cff52a` contains the implementation, test, and compact table; it
+was pushed to `faaslora_origin/retry14_continuous_queue_v2`.  The pre-existing
+dirty manifest and unrelated untracked review/figure artifacts were not staged.
+
 ## CURRENT — D274 3B historical bottleneck is profile-bound; no replay authorized
 
 2026-10-06. A CPU-only audit compared the retained exploratory D138
