@@ -1936,6 +1936,21 @@ def main() -> int:
     )
     ap.add_argument("--output", type=Path, required=True)
     ap.add_argument("--sleep-scale", type=float, default=1.0)
+    ap.add_argument(
+        "--replay-t0-monotonic",
+        type=float,
+        default=None,
+        help=(
+            "Absolute time.perf_counter() origin for the shared open-loop "
+            "business clock. When supplied, startup performed before this "
+            "process is launched remains visible as dispatch/admission wait."
+        ),
+    )
+    ap.add_argument(
+        "--replay-clock-id",
+        default=None,
+        help="Opaque clock identity recorded with --replay-t0-monotonic.",
+    )
     ap.add_argument("--timeout-s", type=float, default=600.0)
     ap.add_argument("--base-cost-usd", type=float, default=0.001)
     ap.add_argument("--input-token-cost-usd", type=float, default=0.0000015)
@@ -2322,7 +2337,14 @@ def main() -> int:
             except Exception:
                 pass
     client_prewarm_sec = time.perf_counter() - client_prewarm_started
-    start_time = time.perf_counter()
+    if args.replay_t0_monotonic is None:
+        start_time = time.perf_counter()
+        replay_time_origin = "process_start"
+    else:
+        start_time = float(args.replay_t0_monotonic)
+        if not math.isfinite(start_time):
+            raise RuntimeError("--replay-t0-monotonic must be finite")
+        replay_time_origin = "shared_external_origin"
     last_live_print_at = 0.0
     arrival_schedule = [float(item["arrival_time_s"]) * max(args.sleep_scale, 0.0) for item in requests_list]
 
@@ -2706,6 +2728,9 @@ def main() -> int:
             else ("round_robin" if len(base_urls) > 1 else "single_endpoint")
         ),
         "sleep_scale": args.sleep_scale,
+        "replay_t0_monotonic_s": start_time,
+        "replay_clock_id": args.replay_clock_id,
+        "replay_time_origin": replay_time_origin,
         "client_prewarm_sec_excluded_from_workload_clock": client_prewarm_sec,
         "elapsed_sec": elapsed_sec,
         "expected_requests": len(requests_list),

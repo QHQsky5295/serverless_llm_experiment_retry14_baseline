@@ -312,36 +312,22 @@ resident_publish_notice() {
   PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" \
     "${ROOT_DIR}/scripts/ieee_tc/resident_protocol_receipt.py" notice \
     --ledger "${RESIDENT_LEDGER_PATH}"
-  local target now wait_s
-  target="$(PYTHONNOUSERSITE=1 "${VLLM_PYTHON}" - "${RESIDENT_LEDGER_PATH}" <<'PY'
+}
+
+resident_replay_origin() {
+  PYTHONNOUSERSITE=1 "${VLLM_PYTHON}" - "${RESIDENT_LEDGER_PATH}" <<'PY'
 import json, sys
-print(float(json.load(open(sys.argv[1], encoding='utf-8'))['replay_t0_monotonic_s']))
+payload = json.load(open(sys.argv[1], encoding="utf-8"))
+print(payload["replay_t0_monotonic_s"])
 PY
-)"
-  while true; do
-    now="$(PYTHONNOUSERSITE=1 "${VLLM_PYTHON}" - <<'PY'
-import time
-print(time.monotonic())
+}
+
+resident_replay_clock_id() {
+  PYTHONNOUSERSITE=1 "${VLLM_PYTHON}" - "${RESIDENT_LEDGER_PATH}" <<'PY'
+import json, sys
+payload = json.load(open(sys.argv[1], encoding="utf-8"))
+print(payload["clock_id"])
 PY
-)"
-    wait_s="$(PYTHONNOUSERSITE=1 "${VLLM_PYTHON}" - "${target}" "${now}" <<'PY'
-import sys
-print(max(0.0, float(sys.argv[1])-float(sys.argv[2])))
-PY
-)"
-    if (( $(PYTHONNOUSERSITE=1 "${VLLM_PYTHON}" - "${wait_s}" <<'PY'
-import sys
-print(1 if float(sys.argv[1]) <= 0.0 else 0)
-PY
-) )); then
-      break
-    fi
-    sleep "$(PYTHONNOUSERSITE=1 "${VLLM_PYTHON}" - "${wait_s}" <<'PY'
-import sys
-print(min(0.25, max(0.01, float(sys.argv[1]))))
-PY
-)"
-  done
 }
 
 resident_finalize_receipt() {
@@ -1132,6 +1118,10 @@ fi
 if [[ "${VLLM_RESIDENT_PROTOCOL_V1}" == "1" ]]; then
   resident_start_domains
   resident_init_receipt
+  if [[ "${VLLM_SMOKE_ONLY}" != "1" ]]; then
+    echo "      resident_protocol=ieee_tc_resident_protocol_v1 lead_s=${VLLM_RESIDENT_LEAD_S}"
+    resident_publish_notice
+  fi
 fi
 
 echo "[3/5] Starting isolated vLLM OpenAI server(s)"
@@ -1254,11 +1244,6 @@ write_fleet_spec "${VLLM_SERVER_STARTUP_SEC}" "${VLLM_BASE_URL_LIST}" "${VLLM_RE
 echo "      vllm_startup_sec=${VLLM_SERVER_STARTUP_SEC}"
 echo "      vllm_base_urls=${VLLM_BASE_URL_LIST}"
 
-if [[ "${VLLM_RESIDENT_PROTOCOL_V1}" == "1" && "${VLLM_SMOKE_ONLY}" != "1" ]]; then
-  echo "      resident_protocol=ieee_tc_resident_protocol_v1 lead_s=${VLLM_RESIDENT_LEAD_S}"
-  resident_publish_notice
-fi
-
 if [[ "${VLLM_SMOKE_ONLY}" == "1" ]]; then
   echo "[smoke] Sending one short LoRA request to each vLLM replica"
   PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" - "${VLLM_BASE_URL_LIST}" "${LORA_MODULES_TXT}" "${VLLM_SMOKE_MAX_TOKENS}" "${VLLM_LORA_REGISTRATION_MODE_EFFECTIVE}" "${VLLM_DYNAMIC_LORA_TIMEOUT_S}" <<'PY'
@@ -1374,6 +1359,12 @@ if [[ "${VLLM_LORA_REGISTRATION_MODE_EFFECTIVE}" == "dynamic" || "${VLLM_LORA_RE
       )
     fi
   fi
+fi
+if [[ "${VLLM_RESIDENT_PROTOCOL_V1}" == "1" ]]; then
+  REPLAY_EXTRA_ARGS+=(
+    --replay-t0-monotonic "$(resident_replay_origin)"
+    --replay-clock-id "$(resident_replay_clock_id)"
+  )
 fi
 set +e
 REPLAY_CMD=(
