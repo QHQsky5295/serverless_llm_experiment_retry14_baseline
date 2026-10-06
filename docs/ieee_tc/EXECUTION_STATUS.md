@@ -1,6 +1,34 @@
 # IEEE TC execution status
 
-## CURRENT — metric boundary frozen; D278 startup latency classified as environment-stratum diagnostic
+## CURRENT — D279 7B readiness replicate live; D278 startup comparison remains non-causal diagnostic
+
+2026-10-06. D279 is still running under the explicitly permitted identical cold
+replicate contract.  At the latest observation it had 2,779/4,000 arrivals,
+2,771 completions, 2,771 successes, zero reported failures, eight scale-ups
+and five scale-downs; it remains diagnostic-only until the retained result and
+cleanup receipts are validated.  The live log reports mean/P95 user TTFT of
+about 2.3/10.6 s while the service TTFT is about 0.70/1.9 s.  These are live
+progress values, not a published performance result.
+
+The D278-versus-D219 audit is retained, but its different parent swap and
+short-window PSI observations are only a correlated host-state difference.
+`memory.swap.current` is cgroup swap usage and PSI `avg10` is a percentage of
+stall time; neither observation proves that the replay incurred swap I/O or
+that it caused the 151-s startup difference.  D278 therefore remains a
+diagnostic stratum with an unresolved cause, not an “environment pollution”
+exclusion and not evidence of an intrinsic PrimeLoRA latency regression.  The
+unfavorable D278 values remain preserved and will not be discarded merely
+because they are slow.  No causal optimization decision is made until D279's
+same-configuration evidence and the startup receipts are complete.
+
+The metric boundary remains frozen: G1/G2 require correctness and common joint
+SLO; CE is supplementary.  The no-delay storage point is a path diagnostic in
+the bandwidth sensitivity, not a measured or rigorous performance upper bound.
+The next action is to finish D279, then perform the bounded readiness audit and
+render a diagnostic table before deciding whether any further 7B Prime run is
+justified.  Baselines and 3B remain paused.
+
+## CURRENT — metric boundary frozen; D278 startup latency retained as an unresolved host-state diagnostic
 
 2026-10-06. The operational metric and remote-boundary checklist is archived in
 `docs/ieee_tc/METRIC_DECISION_FREEZE_20261006.md`; the parent V1/Remote Scope

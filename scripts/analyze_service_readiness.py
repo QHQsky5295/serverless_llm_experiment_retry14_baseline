@@ -1034,15 +1034,22 @@ def runtime_ttft_ms(record: Dict[str, Any]) -> float:
 
 
 def dispatch_wait_ms(record: Dict[str, Any]) -> float:
-    return sum(
-        as_float(record.get(key))
-        for key in (
-            "ingress_queue_wait_ms",
-            "dispatch_admission_wait_ms",
-            "dispatch_window_wait_ms",
-            "runtime_slot_wait_ms",
-        )
-    )
+    """Return the authoritative non-overlapping dispatch wait.
+
+    ``dispatch_admission_wait_ms`` spans the scheduled-arrival boundary
+    through admission and already contains the ingress/window/runtime-slot
+    components.  Summing those components again double-counts the same
+    interval.  Missing or invalid data stays unknown (NaN); it is not silently
+    converted to zero for a published diagnostic.
+    """
+    value = record.get("dispatch_admission_wait_ms")
+    if value is None or value == "":
+        return float("nan")
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError):
+        return float("nan")
+    return parsed if math.isfinite(parsed) and parsed >= 0.0 else float("nan")
 
 
 def load_scenarios(
@@ -2272,7 +2279,7 @@ def main() -> None:
         action="store_true",
         help=(
             "Enforce the fixed V2 8-cycle diagnostic protocol: 4000/4000/0, eight "
-            "complete 500-request phases, >=8 scale-ups, 100% dispatch-tier coverage, "
+            "complete 500-request phases, >=8 scale-ups, 100%% dispatch-tier coverage, "
             "zero tier conflicts, and >=20 first-service samples across at most two "
             "identically configured cold runs."
         ),

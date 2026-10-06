@@ -538,6 +538,16 @@ def _write_formal_workload_matrix(root: Path) -> None:
 
 
 class ReadinessV2Tests(unittest.TestCase):
+    def test_dispatch_wait_uses_authoritative_nonoverlapping_field(self) -> None:
+        record = {
+            "dispatch_admission_wait_ms": 17.5,
+            "ingress_queue_wait_ms": 11.0,
+            "dispatch_window_wait_ms": 13.0,
+            "runtime_slot_wait_ms": 4.0,
+        }
+        self.assertEqual(readiness.dispatch_wait_ms(record), 17.5)
+        self.assertTrue(math.isnan(readiness.dispatch_wait_ms({})))
+
     def test_strict_dispatch_validation_checks_every_successful_lora(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "strict_result.json"
