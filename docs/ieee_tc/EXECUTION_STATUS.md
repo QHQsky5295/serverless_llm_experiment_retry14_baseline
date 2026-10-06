@@ -21,7 +21,10 @@ Serviceprimelora-tc-svc-03b6fd78b5b14ff784b2ab064f16bb1f.scope invocation
 auxprimelora-tc-aux-431b908ca24247869ebb9d2f733e00cd.scope.
 Rawd303_20261007/7b_full_w0, no prefix limit; new local cold caches, same D300
 controls and D301 single fix. Initial native GPU census clean; watchdog ready.
-No final outcome yet. Do not launch another performance run or repeat D302.
+06:55:36+08: first12terminal records; same replay advancing, no resource abort.
+Observed servicepeak13764292608B, hostavailable99250900992B, high/max/OOM0.
+Live-handle checkpointb15372dc6ea9c38925f43a537a97bfcc34ddd4cd pushed and
+remoteverified. No final outcome yet; do not launch another run or repeat D302.
 
 RemoteunchangedD80 units and existing published cache, NIC1000/full.
 3Bartifact invocation1dbe1c0f69a64958922fa3454d2403a2/PID1208555;
