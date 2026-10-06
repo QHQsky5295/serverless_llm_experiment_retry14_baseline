@@ -4784,7 +4784,8 @@ class InferenceEngine:
         expected_fields = {'lease_id', 'adapter_int_id', 'lora_name', 'lora_path',
                            'expected_owner_id', 'expected_epoch',
                            'required_source_tier', 'expected_source_id'}
-        if (not isinstance(ref, dict) or set(ref) != expected_fields
+        content_fields = expected_fields | {'expected_content_sha256'}
+        if (not isinstance(ref, dict) or set(ref) not in (expected_fields, content_fields)
                 or not isinstance(adapter_id, str) or not adapter_id
                 or ref['lora_name'] != adapter_id
                 or type(ref['adapter_int_id']) is not int
@@ -4795,6 +4796,12 @@ class InferenceEngine:
                        ('lease_id', 'lora_path', 'expected_owner_id', 'expected_source_id'))
                 or not Path(ref['lora_path']).is_absolute()):
             raise ValueError('combined registration requires an exact selected GPU reference')
+        if ('expected_content_sha256' in ref and
+                (not isinstance(ref['expected_content_sha256'], str)
+                 or len(ref['expected_content_sha256']) != 64
+                 or any(c not in '0123456789abcdef'
+                        for c in ref['expected_content_sha256']))):
+            raise ValueError('combined registration requires a valid content identity')
         pending = await self.ieee_register_pending(intent_id=intent_id, prompt=prompt,
             max_tokens=max_tokens, adapter_id=adapter_id)
         if (not isinstance(pending, dict) or pending.get('kind') != 'ieee_pending_admission_v1'

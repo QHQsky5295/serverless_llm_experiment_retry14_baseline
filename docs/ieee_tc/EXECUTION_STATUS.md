@@ -1,5 +1,39 @@
 # IEEE TC execution status
 
+## CURRENT — D260 bounded RPC reproducer confirms a repairable combined-reference schema defect
+
+2026-10-06. The fresh 7B eight-request bounded reproducer
+`d260_7b_rpc_prefix8` completed with 8 arrivals and 8 terminal records (7
+successes, 1 failure). It is a diagnostic only and is excluded from all
+performance, SLO, G1/G2, and ranking denominators. The launch receipt passed
+service, watchdog, replay, cleanup, GPU-context release, and service-path
+removal checks; the failed request and all worker logs remain at the fresh
+result root
+`results/ieee_tc/p2_backend_qualification/d260_20261006/7b_rpc_prefix8`.
+
+The new worker-side error instrumentation identifies the failure before native
+GPU mutation: the controller supplied a combined GPU reference containing the
+immutable `expected_content_sha256` field introduced by D258, while
+`InferenceEngine.ieee_register_pending_gpu_reference` still required the old
+eight-field set. The worker therefore raised
+`ValueError: combined registration requires an exact selected GPU reference`,
+the parent correctly treated the reply as ownership-uncertain, and the worker
+was retired. vLLM initialization completed normally and no OOM or transport
+failure was observed. This is a data-flow contract mismatch, not evidence of
+an algorithmic readiness or capacity failure.
+
+The minimal repair accepts exactly the legacy reference or that reference plus
+one validated lower-case SHA-256 content identity; all other fields and invalid
+digests remain rejected before registration. The repair is covered by the
+pending-GPU pipeline and native-RPC ownership tests. D260 config and launcher
+identities are respectively
+`077bb73938e778b5dbad38bcdb33098a0cb53e36276a710a133a726a6b317ade` and
+`a9075a8710a3eb5fccbb1a48d4dcb9a6a0c8f386f42739da`.
+
+No new 4,000-request GPU replay is authorized until this repair is committed
+and a fresh bounded smoke confirms that the digest-bearing combined path reaches
+the native owner and returns an acknowledged receipt without uncertainty.
+
 ## CURRENT — D258 retry5 is an interrupted diagnostic; native RPC ownership failures remain unresolved
 
 2026-10-06. The fresh 7B 8-phase Full diagnostic

@@ -62,6 +62,25 @@ class FrontendSequence(unittest.IsolatedAsyncioTestCase):
                 bridge.ieee_register_pending.assert_not_awaited()
                 bridge.ieee_gpu_reference.assert_not_awaited()
 
+    async def test_digest_bearing_reference_is_forwarded_and_validated(self):
+        bridge = self.bridge()
+        request = command()
+        request['gpu_reference_intent']['expected_content_sha256'] = 'a' * 64
+        result = await InferenceEngine.ieee_register_pending_gpu_reference(bridge, **request)
+        self.assertEqual(result['kind'], 'ieee_pending_gpu_reference_v1')
+        bridge.ieee_gpu_reference.assert_awaited_once_with(
+            operation='demand_load_and_acquire', **request['gpu_reference_intent'])
+
+        for digest in ('', 'a' * 63, 'a' * 65, 'g' * 64, 123):
+            with self.subTest(digest=digest):
+                bridge = self.bridge()
+                request = command()
+                request['gpu_reference_intent']['expected_content_sha256'] = digest
+                with self.assertRaisesRegex(ValueError, 'valid content identity'):
+                    await InferenceEngine.ieee_register_pending_gpu_reference(bridge, **request)
+                bridge.ieee_register_pending.assert_not_awaited()
+                bridge.ieee_gpu_reference.assert_not_awaited()
+
     async def test_invalid_pending_ack_cannot_start_gpu_mutation(self):
         for field, value in (('kind', 'wrong'), ('intent_id', 'wrong'), ('state', 'registering'),
                 ('clock_id', 'wrong'), ('physical_kv_reservation', True)):
