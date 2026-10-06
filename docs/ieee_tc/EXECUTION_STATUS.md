@@ -75,6 +75,13 @@ bindings at the D266 failure are not yet jointly captured. The strict live
 relabeling validator therefore remains unchanged; no retry, fallback, or
 relaxed source policy is justified.
 
+The post-D269 non-GPU source-state contract check selected 31 source/identity
+tests from `tests/test_ieee_tc_gpu_references.py`; all 31 passed (103 tests
+deselected). It confirms the intended semantics: a live native copy cannot be
+relabelled to another path, while an old retired copy can be reloaded from a
+new tier when the immutable content identity agrees. This is a code-contract
+check, not a reconstruction of D266's missing old/requested source witness.
+
 D267 was a fresh configuration-only attempt. Its service profile rejected a
 hand-copied `source_audit_sha256` identity before model startup, with no GPU
 inference. The failure and its receipt are retained in
