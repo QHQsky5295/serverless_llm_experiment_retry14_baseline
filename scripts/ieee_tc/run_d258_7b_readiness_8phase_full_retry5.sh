@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT=/home/qhq/serverless_llm_experiment_retry14_baseline
-RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d258_20261006/7b_readiness_8phase_full_retry5
+RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d258_20261006/7b_readiness_8phase_full_retry6
 cd "$ROOT"
 mkdir -p "$RAW"
 exec >"$RAW/launcher.log" 2>&1
@@ -30,7 +30,7 @@ export FAASLORA_SHARED_TRACE_PATH=/home/qhq/serverless_llm_baselines/results/pap
 export FAASLORA_SHARED_ADAPTER_SUBSET_PATH="${FAASLORA_SHARED_TRACE_PATH%_trace.json}_adapter_subset.json"
 export FAASLORA_TRACE_ROLE=exploratory
 export FAASLORA_FORMAL_RUN=0
-export FAASLORA_RESULTS_TAG=d258_7b_readiness_8phase_full_retry5
+export FAASLORA_RESULTS_TAG=d258_7b_readiness_8phase_full_retry6
 export FAASLORA_WORKER_START_TIMEOUT_S=600
 export FAASLORA_KEEP_DEDICATED_WORKER_LOGS=1
 export PYTHONNOUSERSITE=1
@@ -41,4 +41,4 @@ export TRANSFORMERS_OFFLINE=1
 export VLLM_NO_USAGE_STATS=1
 exec bash scripts/run_all_experiments_user_scope.sh \
   --config configs/ieee_tc/20261006_d258_7b_readiness_8phase_full_retry5.yaml \
-  --scenario tc_ieee_readiness_8phase_full_retry5 --full-stack
+  --scenario tc_ieee_readiness_8phase_full_retry6 --full-stack

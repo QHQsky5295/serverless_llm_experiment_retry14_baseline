@@ -1,9 +1,9 @@
 # D258: fresh cold diagnostic after the D257 native binding/capacity repair.
-# Inputs, profiles and generation contract intentionally match D257; only the
-# execution identity and result/cache roots are new.
+# Retry6 uses a new result/cache identity; inputs, profiles and generation
+# contract remain identical to retry5, whose interrupted evidence is retained.
 experiment:
   num_runs: 1
-  output_dir: /home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d258_20261006/7b_readiness_8phase_full_retry5
+  output_dir: /home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d258_20261006/7b_readiness_8phase_full_retry6
 model:
   name: /home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf
   backend: vllm
@@ -117,11 +117,11 @@ cost_model: {}
 storage:
   remote_dir: /home/qhq/serverless_llm_experiment/artifacts/frozen/llama2_7b_a500_v2_publicmix
   bandwidth_mbps: 0
-  nvme_cache_dir: /home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d258_20261006/7b_nvme_readiness_8phase_full_retry5
-  host_cache_dir: /dev/shm/tc-d258-7b-readiness-8phase-full-retry5
+  nvme_cache_dir: /home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d258_20261006/7b_nvme_readiness_8phase_full_retry6
+  host_cache_dir: /dev/shm/tc-d258-7b-readiness-8phase-full-retry6
   require_memory_backed_host_cache: true
 scenarios:
-  - name: tc_ieee_readiness_8phase_full_retry5
+  - name: tc_ieee_readiness_8phase_full_retry6
     baseline_type: faaslora_full
     preloading:
       nvme_capacity_mb: 16384
