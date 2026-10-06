@@ -73,7 +73,9 @@ confirms that D269 exercised the adapter path and that ordinary stale-snapshot
 revalidation can complete, but it cannot identify D266's rejection predicate
 or establish a repair. The validator remains unchanged; no new heavy replay
 is authorized until a future witness can capture old/requested source,
-content, live-copy, and preparation-plan state at the exact rejection.
+content, live-copy, and preparation-plan state at the exact rejection. The
+side-by-side evidence and the controlled-difference table are retained in
+`paper_results/ieee_tc/p2_backend_qualification/20261006_d269_identity_diag_phase1_prefix_retry2/d266_d269_source_state_comparison.md`.
 
 ## CURRENT — D266 identity conflict unresolved; D267 configuration failure; D268 prefix diagnostic is non-causal
 
