@@ -560,11 +560,98 @@ def _resolve_vllm_enforce_eager(model_cfg: Dict[str, Any]) -> bool:
     return False
 
 
+def _safetensors_model_bytes(model_name: str) -> int:
+    """Return the unique local safetensors bytes for an observable model path.
+
+    The value is used only for the ``auto`` load-strategy decision.  Remote HF
+    identifiers and unreadable/incomplete paths deliberately return zero so the
+    runner keeps vLLM's default loader rather than guessing from model names.
+    """
+    root = Path(str(model_name or "")).expanduser()
+    if not root.is_dir():
+        return 0
+    names: set[str] = set()
+    index = root / "model.safetensors.index.json"
+    if index.is_file():
+        try:
+            payload = json.loads(index.read_text(encoding="utf-8"))
+            weight_map = payload.get("weight_map", {})
+            if isinstance(weight_map, dict):
+                names.update(str(value) for value in weight_map.values() if value)
+        except (OSError, ValueError, TypeError):
+            return 0
+    if not names:
+        names.update(path.name for path in root.glob("*.safetensors"))
+    total = 0
+    for name in names:
+        path = (root / name).resolve()
+        try:
+            if path.parent != root.resolve() or not path.is_file():
+                return 0
+            total += int(path.stat().st_size)
+        except OSError:
+            return 0
+    return max(0, total)
+
+
+def _mem_available_bytes() -> int:
+    try:
+        for line in Path("/proc/meminfo").read_text(encoding="utf-8").splitlines():
+            if line.startswith("MemAvailable:"):
+                return max(0, int(line.split()[1]) * 1024)
+    except (OSError, ValueError, IndexError):
+        pass
+    return 0
+
+
+def _resolve_vllm_safetensors_load(model_cfg: Dict[str, Any]) -> Dict[str, Any]:
+    """Resolve a vLLM weight loader without manual timing tuning.
+
+    ``auto`` selects the vLLM-supported prefetch loader only when the measured
+    local checkpoint fits twice in currently available host memory.  The
+    factor is a safety invariant for a read-prefetch plus normal model load,
+    not a performance parameter; all observations are recorded in the result.
+    """
+    requested = model_cfg.get("safetensors_load_strategy")
+    if requested is None:
+        return {
+            "requested": None,
+            "resolved": None,
+            "model_bytes": 0,
+            "mem_available_bytes": 0,
+            "decision": "not_configured",
+        }
+    requested = str(requested).strip().lower()
+    allowed = {"auto", "lazy", "eager", "prefetch", "torchao"}
+    if requested not in allowed:
+        raise ValueError(
+            "model.safetensors_load_strategy must be one of "
+            f"{sorted(allowed)}, got {requested!r}"
+        )
+    model_bytes = _safetensors_model_bytes(str(model_cfg.get("name", "")))
+    available = _mem_available_bytes()
+    if requested == "auto":
+        if model_bytes > 0 and available >= 2 * model_bytes:
+            resolved, decision = "prefetch", "auto_prefetch_memory_safe"
+        else:
+            resolved, decision = None, "auto_default_memory_unknown_or_insufficient"
+    else:
+        resolved, decision = requested, "explicit"
+    return {
+        "requested": requested,
+        "resolved": resolved,
+        "model_bytes": model_bytes,
+        "mem_available_bytes": available,
+        "decision": decision,
+    }
+
+
 def _resolve_vllm_runtime_guards(model_cfg: Dict[str, Any]) -> Dict[str, Any]:
     model_name = str(model_cfg.get("name", ""))
     tokenizer_mode = model_cfg.get("tokenizer_mode")
     enable_chunked_prefill = model_cfg.get("enable_chunked_prefill")
     enable_prefix_caching = model_cfg.get("enable_prefix_caching")
+    safetensors_load = _resolve_vllm_safetensors_load(model_cfg)
     env_updates: Dict[str, str] = {}
 
     def _set_env_if_present(cfg_key: str, env_key: str, formatter=str) -> None:
@@ -603,6 +690,7 @@ def _resolve_vllm_runtime_guards(model_cfg: Dict[str, Any]) -> Dict[str, Any]:
         "tokenizer_mode": tokenizer_mode,
         "enable_chunked_prefill": enable_chunked_prefill,
         "enable_prefix_caching": enable_prefix_caching,
+        "safetensors_load": safetensors_load,
         "env_updates": env_updates,
     }
 
@@ -3127,6 +3215,13 @@ class InferenceEngine:
 
     def _resolve_vllm_runtime_settings(self, model: str) -> Dict[str, Any]:
         settings = _resolve_vllm_runtime_guards(self.model_cfg)
+        load = dict(settings.get("safetensors_load", {}) or {})
+        self.model_cfg["resolved_safetensors_load_strategy"] = load.get("resolved")
+        self.model_cfg["safetensors_load_decision"] = load.get("decision")
+        self.model_cfg["safetensors_model_bytes"] = int(load.get("model_bytes", 0) or 0)
+        self.model_cfg["safetensors_mem_available_bytes"] = int(
+            load.get("mem_available_bytes", 0) or 0
+        )
         if _is_mistral_nemo_model(model):
             print("    runtime_guard      = mistral_nemo_safe_path")
         if settings["tokenizer_mode"] is not None:
@@ -3138,6 +3233,11 @@ class InferenceEngine:
         if settings["enable_prefix_caching"] is not None:
             print(
                 f"    prefix_caching     = {bool(settings['enable_prefix_caching'])}"
+            )
+        if load.get("requested") is not None:
+            print(
+                f"    safetensors_load   = {load.get('resolved') or 'vllm-default'} "
+                f"({load.get('decision')}, model_bytes={int(load.get('model_bytes', 0) or 0)})"
             )
         for env_key in (
             "VLLM_USE_V1",
@@ -3566,6 +3666,18 @@ class InferenceEngine:
                 max_num_seqs=self.model_cfg.get("max_num_seqs", 8),
                 max_num_batched_tokens=default_batched,
             )
+            safetensors_strategy = self.model_cfg.get(
+                "resolved_safetensors_load_strategy",
+                self.model_cfg.get("safetensors_load_strategy"),
+            )
+            if safetensors_strategy:
+                kwargs["safetensors_load_strategy"] = str(safetensors_strategy)
+                for key in (
+                    "safetensors_prefetch_num_threads",
+                    "safetensors_prefetch_block_size",
+                ):
+                    if self.model_cfg.get(key) is not None:
+                        kwargs[key] = int(self.model_cfg[key])
             if (self.model_cfg.get("ieee_worker_observation", False)
                     or self.model_cfg.get("ieee_gpu_references", False)):
                 kwargs["worker_extension_cls"] = "faaslora.memory.gpu_monitor.IEEEWorkerObservationExtension"
@@ -25127,6 +25239,15 @@ async def _main_async_impl(
             "max_output_tokens_cap": model_cfg.get("max_output_tokens_cap"),
             "max_num_seqs": model_cfg.get("max_num_seqs"),
             "max_num_batched_tokens": model_cfg.get("max_num_batched_tokens"),
+            "safetensors_load_strategy": model_cfg.get("safetensors_load_strategy"),
+            "resolved_safetensors_load_strategy": model_cfg.get(
+                "resolved_safetensors_load_strategy"
+            ),
+            "safetensors_load_decision": model_cfg.get("safetensors_load_decision"),
+            "safetensors_model_bytes": model_cfg.get("safetensors_model_bytes"),
+            "safetensors_mem_available_bytes": model_cfg.get(
+                "safetensors_mem_available_bytes"
+            ),
             "requested_runtime_concurrency_cap": model_cfg.get(
                 "requested_runtime_concurrency_cap",
                 model_cfg.get("runtime_concurrency_cap"),
