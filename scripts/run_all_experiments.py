@@ -5055,6 +5055,7 @@ def _native_rpc_failure_fields(exc) -> dict:
     if not isinstance(context, dict) or context.get('contract') != 'native_rpc_failure_v1':
         return {}
     names = ('contract', 'attempt_id', 'cmd', 'operation', 'phase', 'exception_type',
+             'error_message',
              'dispatch_handoff_started', 'observed_monotonic_s', 'clock_id',
              'rpc_elapsed_ms', 'phase_elapsed_ms', 'guard_s', 'guard_expired')
     return {'native_rpc': {key: value[:192] if isinstance(value, str) else value
@@ -5595,6 +5596,7 @@ class SubprocessInferenceEngineProxy:
                     'operation': str(kwargs['operation'])[:192] if 'operation' in kwargs else None,
                     'phase': rpc_phase,
                     'exception_type': type(first_exc).__name__,
+                    'error_message': str(first_exc)[:512],
                     'dispatch_handoff_started': dispatch_started,
                     'observed_monotonic_s': time.perf_counter(),
                     'clock_id': local_monotonic_clock_id(),

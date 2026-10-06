@@ -242,6 +242,15 @@ async def _run_worker(payload_path: Path, ready_path: Path) -> None:
                     if cmd == "shutdown":
                         break
             except Exception as exc:  # pragma: no cover - exercised via parent integration
+                # Preserve the worker-side command and bounded exception text in
+                # the dedicated log.  The parent deliberately treats a native
+                # lost/negative reply as ownership-uncertain and cannot safely
+                # recover its full exception after retiring the worker.
+                print(
+                    f"[worker-rpc-error] cmd={rpc.get('cmd')!r} "
+                    f"type={type(exc).__name__} error={str(exc)[:512]!r}",
+                    flush=True,
+                )
                 try:
                     response = {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
                     if 'native_event_rpc_id' in rpc:

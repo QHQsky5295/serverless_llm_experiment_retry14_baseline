@@ -1,5 +1,34 @@
 # IEEE TC execution status
 
+## CURRENT — D258 retry5 is an interrupted diagnostic; native RPC ownership failures remain unresolved
+
+2026-10-06. The fresh 7B 8-phase Full diagnostic
+`d258_7b_readiness_8phase_full_retry5` was started with the registered config and
+launcher identities below, but was stopped after the failure mode became
+decisive. At interruption, 177 requests had arrived, 100 had terminal records
+(81 successes and 19 failures), and the run had already recorded 15
+`subprocess_native_rpc_failed_no_retry` failures plus four
+`native RPC ownership unresolved; new generation withheld` guards. The partial
+run therefore fails the 4,000/4,000 readiness gate and is excluded from every
+performance, SLO, G1/G2, and ranking denominator. Its raw logs, watchdog trace,
+terminal journal, and worker-failure workdirs are retained at the fresh result
+root; no old result was overwritten.
+
+The failure is not attributable to host memory pressure or GPU OOM: watchdog
+samples show zero cgroup OOM/high events, host memory remained available, and
+the vLLM workers reached `engine ready` before their parent-side native RPC
+channel became unresolvable. The strict no-retry behavior is intentional and
+correct for safety, but the repeated empty/closed native exchange is a new
+runtime defect to localize before another readiness run. The interruption also
+caused the watchdog's final physical-release proof to be incomplete; current
+GPU/process checks after cleanup are clear, but this partial run cannot provide
+release evidence for a readiness claim.
+
+The next action is a source-level RPC/worker-lifecycle audit using this raw
+evidence (including the first failing request and its worker log), followed by a
+minimal focused reproducer and tests. A new GPU replay is not authorized until
+the cause is explained and the repair is test-qualified.
+
 ## CURRENT — D258 native identity/capacity repair is test-qualified; rerun still gated
 
 2026-10-06. D257 remains excluded from formal readiness because it completed
