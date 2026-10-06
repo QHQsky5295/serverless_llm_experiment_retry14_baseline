@@ -3524,6 +3524,72 @@ async def collect_native_source_wave(boundary, slot, cases, result):
         raise RuntimeError('source wave left controller/native ownership unsettled')
 
 
+def completed_warm_length_samples(run, index):
+    """Reuse completed native warm evidence, without relabelling timing profiles.
+
+    The caller verifies source/index SHA and exact backend configuration. Keep
+    the warm cohort/phase explicit; do not infer lengths from future targets.
+    The warm format does not record content-token count, so do not invent it.
+    """
+    if (run.get('kind') != 'backend_native_native_warm_reference_qualification_v1'
+            or run.get('pass') is not True or run.get('stage') != 'complete'
+            or run.get('calibration_candidate_complete') is not True
+            or run.get('batch_size') != 8
+            or index.get('kind') != 'ieee_tc_warm_reference_input_index_v1'
+            or index.get('source') != run.get('trace')
+            or index.get('samples_per_group_per_round') != 256
+            or index.get('rounds') != 3):
+        raise ValueError('completed warm source/index contract differs')
+    batches = list(warm_reference_batches(index, run['warm_phase']))
+    if len(run['warm_batches']) != len(batches):
+        raise ValueError('completed warm batch coverage differs')
+    expected = {}
+    for serial, (spec, receipt) in enumerate(zip(batches, run['warm_batches'])):
+        if (receipt.get('pass_native') is not True or receipt.get('serial') != serial
+                or any(receipt.get(k) != spec[k]
+                       for k in ('phase', 'round', 'group_id', 'batch_index'))):
+            raise ValueError('completed warm batch identity differs')
+        for selected in spec['selected']:
+            key = (serial, selected['source_request_id'])
+            if key in expected:
+                raise ValueError('duplicate completed warm selection')
+            expected[key] = (selected, spec)
+    seen, samples = set(), {}
+    for row in run['requests']:
+        key = (row['batch_serial'], row['source_request_id'])
+        if key not in expected or key in seen or row.get('pass_native') is not True:
+            raise ValueError('completed warm request coverage differs')
+        seen.add(key)
+        selected, spec = expected[key]
+        if (any(row.get(k) != v for k, v in selected.items())
+                or any(row.get(k) != spec[k] for k in ('phase', 'round', 'group_id'))
+                or row.get('prompt_sha256') != selected['canonical_prompt_sha256']):
+            raise ValueError('completed warm input identity differs')
+        timing, reference = row['timing'], row['reference']
+        counts = (row['actual_tokens'], timing['native_output_tokens'],
+                  timing['actual_prompt_tokens'])
+        if any(type(v) not in (int, float) or not math.isfinite(v)
+               or v <= 0 or int(v) != v for v in counts):
+            raise ValueError('completed warm native counts must be positive integers')
+        if (int(counts[0]) != int(counts[1]) or reference.get('acquired') is not True
+                or row['release'].get('released') is not True
+                or timing.get('gpu_reference_lease_id') != reference['lease_id']
+                or timing.get('gpu_reference_owner_id') != reference['owner_id']):
+            raise ValueError('completed warm native completion/reference differs')
+        validate_warm_native_sample(selected, timing, row['actual_tokens'],
+                                    reference['adapter_int_id'])
+        if spec['phase'] == 'warmup':
+            continue
+        sample = dict(source_request_id=row['source_request_id'],
+            native_prompt_tokens=int(counts[2]), completed_output_tokens=int(counts[1]),
+            prompt_sha256=timing['native_prompt_token_ids_sha256'])
+        if samples.setdefault(sample['source_request_id'], sample) != sample:
+            raise ValueError('repeated warm request has inconsistent completed lengths')
+    if seen != set(expected) or not samples:
+        raise ValueError('completed warm request set is incomplete')
+    return samples
+
+
 def measured_admission_initializer(binding, *, model_config, backend_version,
                                    runtime_receipt_sha256, source_trace_sha256,
                                    movement_concurrency):
@@ -3584,7 +3650,9 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
             or run['runtime_receipt_sha256'] != runtime_receipt_sha256
             or run['trace']['source_sha256'] != source_trace_sha256):
         raise ValueError('completed-length model/backend/trace identity differs')
-    if (run.get('kind') != 'backend_native_native_source_matrix_qualification_v1'
+    warm_source = run.get('kind') == 'backend_native_native_warm_reference_qualification_v1'
+    if (run.get('kind') not in ('backend_native_native_source_matrix_qualification_v1',
+                              'backend_native_native_warm_reference_qualification_v1')
             or run.get('pass') is not True or run.get('stage') != 'complete'):
         raise ValueError('completed-length source run is incomplete or failed')
     bounds = entry['input_upper_bounds']
@@ -3593,7 +3661,7 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
             or bounds != sorted(set(bounds))):
         raise ValueError('native prompt buckets differ or are invalid')
     expected, measured = {}, set()
-    for number, wave in enumerate(run['source_profile_spec']['waves']):
+    for number, wave in enumerate([] if warm_source else run['source_profile_spec']['waves']):
         if wave['role'] not in ('representative_measurement', 'kernel_warmup_retained'):
             raise ValueError('unknown completed-length source wave role')
         for lane, case in enumerate(wave['requests']):
@@ -3610,7 +3678,7 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
         return int(value)
 
     seen, samples = set(), {}
-    for row in run['requests']:
+    for row in ([] if warm_source else run['requests']):
         case_id = row['request_id']
         if (case_id in seen or case_id not in expected or row.get('pass') is not True
                 or row['source_request_id'] != expected[case_id]):
@@ -3634,6 +3702,11 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
         prior = samples.setdefault(sample['source_request_id'], sample)
         if prior != sample:
             raise ValueError('repeated original request has inconsistent native length/prompt')
+    if warm_source:
+        warm_index = verified(entry['source_warm_index'])
+        if run.get('warm_reference_index_sha256') != entry['source_warm_index']['sha256']:
+            raise ValueError('completed warm source index SHA256 differs')
+        samples = completed_warm_length_samples(run, warm_index)
     if seen != set(expected) or not samples:
         raise ValueError('completed-length source request coverage is incomplete')
     if (len(entry['samples']) != len(samples)
@@ -3664,6 +3737,10 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
         unique_original_requests=len(samples), window_s=float(window),
         transfer_limit=movement_concurrency, transfer_limit_source='owned_movement_concurrency',
         performance_samples_relabelled=False)
+    if warm_source:
+        evidence.update(source_evidence_kind=run['kind'],
+                        source_warm_index=entry['source_warm_index'],
+                        source_warm_phase=run['warm_phase'])
     profile = dict(window_s=float(window),
         model_backend_id='native-model/'+object_sha(dict(model_config=identity, backend=backend_version)),
         profile_id='native-completed/'+object_sha(evidence),

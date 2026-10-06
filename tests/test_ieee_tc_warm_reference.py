@@ -8,7 +8,8 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from scripts.ieee_tc_preflight import (warm_reference_input_index, validate_warm_reference_index,
-    warm_reference_batches, validate_warm_native_sample, qualify_warm_reference)
+    warm_reference_batches, validate_warm_native_sample, qualify_warm_reference,
+    completed_warm_length_samples)
 
 
 def fixture(lengths):
@@ -175,6 +176,58 @@ class WarmReferenceRuntimeInputs(unittest.TestCase):
                 validate_warm_native_sample(selected, dict(timing, **{field:value}), 5, 1)
         with self.assertRaises(ValueError):
             validate_warm_native_sample(selected, timing, 4, 1)
+
+
+class CompletedWarmLengthReuse(unittest.TestCase):
+    def setUp(self):
+        plan, rows = fixture([100]*512+[760]*512)
+        self.index = warm_reference_input_index(plan, rows)
+        self.run = dict(kind='backend_native_native_warm_reference_qualification_v1',
+            stage='complete', calibration_candidate_complete=True, batch_size=8,
+            trace=plan.identity(), warm_phase='measure', warm_batches=[], requests=[],
+            **{'pass': True})
+        for serial, batch in enumerate(warm_reference_batches(self.index, 'measure')):
+            meta = {k:v for k,v in batch.items() if k != 'selected'}
+            self.run['warm_batches'].append(dict(meta, serial=serial, pass_native=True))
+            for selected in batch['selected']:
+                ref = dict(acquired=True, adapter_int_id=1, owner_id='o',
+                           lease_id=f"{serial}/{selected['source_request_id']}")
+                timing = dict(native_dispatch_monotonic_s=1., native_first_token_monotonic_s=2.,
+                    native_last_token_monotonic_s=3., native_ttft_ms=1000., native_tpot_ms=1000./63,
+                    native_terminal_observed=True, native_output_tokens=64.,
+                    actual_prompt_tokens=selected['native_prompt_tokens'],
+                    native_prompt_token_ids_sha256=selected['native_prompt_token_ids_sha256'],
+                    gpu_reference_adapter_int_id=1, gpu_reference_owner_id='o',
+                    gpu_reference_lease_id=ref['lease_id'])
+                self.run['requests'].append(dict(selected, batch_serial=serial,
+                    phase=meta['phase'], round=meta['round'], group_id=meta['group_id'],
+                    reference=ref, release={'released':True}, timing=timing, actual_tokens=64,
+                    prompt_sha256=selected['canonical_prompt_sha256'], pass_native=True))
+
+    def test_deduplicates_completed_rounds_excludes_warmup_and_keeps_native_format(self):
+        samples = completed_warm_length_samples(self.run, self.index)
+        self.assertEqual(len(samples), 512)
+        self.assertTrue(all(s['completed_output_tokens'] == 64 for s in samples.values()))
+        self.assertTrue(all('content_prompt_tokens' not in s for s in samples.values()))
+        self.assertEqual(self.run['kind'], 'backend_native_native_warm_reference_qualification_v1')
+
+    def test_missing_duplicate_foreign_or_non_native_completion_is_rejected(self):
+        mutations = [lambda r:r['requests'].pop(),
+            lambda r:r['requests'].append(copy.deepcopy(r['requests'][0])),
+            lambda r:r['requests'][0].update(adapter_id='wrong'),
+            lambda r:r['requests'][0].update(actual_tokens=63),
+            lambda r:r['requests'][0]['timing'].update(native_output_tokens=64.5),
+            lambda r:r['requests'][0]['timing'].update(native_output_tokens=True),
+            lambda r:r['requests'][0]['timing'].update(native_terminal_observed=False),
+            lambda r:r['requests'][0]['timing'].update(gpu_reference_lease_id='other'),
+            lambda r:r['requests'][0]['timing'].update(native_prompt_token_ids_sha256='bad'),
+            lambda r:r['warm_batches'][0].update(pass_native=False),
+            lambda r:r.update(calibration_candidate_complete=False)]
+        for i, mutate in enumerate(mutations):
+            run = copy.deepcopy(self.run)
+            mutate(run)
+            with self.subTest(case=i), self.assertRaises(ValueError):
+                completed_warm_length_samples(run, self.index)
 
 
 class WarmReferenceExecution(unittest.IsolatedAsyncioTestCase):

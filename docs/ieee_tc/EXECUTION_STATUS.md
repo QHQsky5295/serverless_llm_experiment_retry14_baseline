@@ -11,7 +11,32 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D297 complete 7B W0 audited; targets still OPEN
+## CURRENT — D298 capacity candidate preparation; D297 remains completed Full
+
+2026-10-07 02:56+08. D170 raw JSON losslessly archived; two roundtrip SHA checks
+preceded removal of the uncompressed duplicate. Curated/projection unchanged;
+receipt in paper_results/ieee_tc/storage. Free disk161841979392B (~150.73GiB),
+unchanged150/100GiB thresholds. No live GPU/remote experiment or serving change.
+
+Recovered already-qualified D169/D170 capacity8/rank16/fraction0.92 evidence.
+Do not repeat warm/capacity measurement. D298 preregisters one capacity-aligned
+Full candidate, keeping paper/controller/metric contracts unchanged; actual
+service/preparation profiles must be refreshed, not copied from D157cap4.
+Next: strict offline native completed-length reuse + existing source collector
+preparation, then bounded qualification/Full. No winner claim, figures,3B or
+external baselines. The final reference/numerical/G1G2 gaps remain open.
+
+03:02+08 preparation completed: D170 projection/index/model/native-count checks
+reuse512unique completed requests without extra GPU calls. New means100.8641/
+125.5689, no old timings relabelled. Source contract248calls=240representative+
+8warmup, eight existing distinct adapters,31waves; config/actual child assembly
+and static500maxrank16 verified. Existing source collector unchanged. Offline
+initializer accepts explicit warm evidence in addition to existing source data.
+20targeted tests pass; combined209/213 pass with4wrong-interpreter OS errors;
+actual system Python OS suite50/50passes. Failed attempts retained. Checkpoint
+then one guarded real-remote source measurement, not a new warm/Full result yet.
+
+## HISTORY — D297 complete 7B W0 audited; targets still OPEN
 
 2026-10-07 02:36+08. Previous turns were verified waits on one job, not failed
 launches. D297 finished4000/4000 native-contract requests, no reported failures;

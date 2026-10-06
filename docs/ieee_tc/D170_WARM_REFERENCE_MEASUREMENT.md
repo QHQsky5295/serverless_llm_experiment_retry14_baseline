@@ -98,3 +98,14 @@ not independent Full-run replicates; no t-CI or superiority claim is attached.
    or advance3B optimization on the strength of this calibration.
 
 The prior Full remains D164; this isolated reference is not a new Full result.
+
+## Storage relocation, 2026-10-07 (no new measurement)
+
+The large raw JSON is now retained losslessly as `7b_measure1.json.gz` in its
+original directory. Two decompression/source SHA checks passed before removal
+of the uncompressed duplicate; decompressed SHA remains
+`dd3b9eef61a8cb02f1c880efb0e3c525f32ead2bf0e9a41ac7a5b0bcf2abbec9`.
+The compact projection and all curated measurements are unchanged. Historical
+source identities refer to decompressed content, not archive bytes. Receipt:
+`paper_results/ieee_tc/storage/20261007_d170_lossless_compression.json`.
+Do not repeat the measurement or regenerate adapters/trace because of relocation.

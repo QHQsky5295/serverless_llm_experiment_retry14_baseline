@@ -1,0 +1,19 @@
+{
+  "kind": "d298_cpu_test_record_v1",
+  "gpu_runs": 0,
+  "targeted_warm_and_completed_length_tests": {"run": 20, "passed": 20},
+  "combined_attempt1": {
+    "interpreter": "/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python",
+    "scope": "run-rcef9cf5871704360b72e65db14d0f83b.scope",
+    "tests": 213,
+    "passed": 209,
+    "failures": 2,
+    "errors": 2,
+    "seconds": 57.045,
+    "reason": "Four OS safety-gate tests were invoked in the serving/test environment lacking signal.pidfd_send_signal. The actual watchdog/gated-launch uses qualified /usr/bin/python3; no safety fallback added.",
+    "affected_tests": ["test_scope_identity_change_never_signals", "test_tiny_gate_cannot_be_used_to_launch_an_unbounded_model", "test_launch_cannot_start_model_before_auxiliary_limits_exist", "test_live_install_prevents_overlapping_model_launch"],
+    "exception": "watchdog interpreter lacks PID-handle signaling; use the qualified system Python"
+  },
+  "qualified_system_python_recheck": {"interpreter":"/usr/bin/python3", "suite":"tests.test_ieee_tc_preflight.ProtocolGates", "run":50, "passed":50, "seconds":0.162},
+  "actual_source_config_assembly_and_pool_rank": "passed; see launch_config_binding.json"
+}
