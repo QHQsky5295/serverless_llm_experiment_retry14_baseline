@@ -1,0 +1,25 @@
+{
+  "cold_read_observations": 622,
+  "completed": 100,
+  "failed": 0,
+  "figure": "d290_latency_control_diagnostic",
+  "formal_qualification": false,
+  "frontier_rows": 54,
+  "interpretation": "diagnostic_only_startup_and_dispatch_dominate",
+  "mean_overall_ttft_ms": 13558.67478625034,
+  "mean_queue_admission_ms": 12881.820719179232,
+  "mean_service_ttft_ms": 694.9478777428158,
+  "p95_overall_ttft_ms": 39452.91733794729,
+  "p95_queue_admission_ms": 38647.136423154734,
+  "p95_service_ttft_ms": 1770.0300102063916,
+  "readiness_tier_counts": {
+    "gpu": 28,
+    "host": 34,
+    "nvme": 16,
+    "remote": 22
+  },
+  "scaleup_affected_count": 62,
+  "scenario": "tc_ieee_route_frontier_validation_100",
+  "source_result": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d290_20261006/7b_route_frontier_validation_100/experiment_results_full_vllm_dedicated_a500_r100_c2_tc_ieee_route_frontier_validation_100_d290_7b_route_frontier_validation_100.json",
+  "source_sha256": "5a2a8b1fe15a6c84a886736b3419c44a9407223943df45c9d10cd75b5aaff3a4"
+}
