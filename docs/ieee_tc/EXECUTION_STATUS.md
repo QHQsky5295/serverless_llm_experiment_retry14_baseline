@@ -1,5 +1,57 @@
 # IEEE TC execution status
 
+## CURRENT — D266 identity conflict unresolved; D267 configuration failure; D268 prefix diagnostic is non-causal
+
+2026-10-06. The authorized D266 fresh cold rerun did not produce a formal
+result. At request `req_00198` (227 arrivals observed before manual stop), the
+native worker rejected adapter `education_lora_0007` with
+`ValueError: native integer ID reused for a different adapter source` during
+`_validate_source_binding`, called from `demand_load_and_acquire`. The
+terminal journal records the request as failed with no instance, prompt hash,
+or completion tokens. The worker traceback and all raw journals remain at
+`results/ieee_tc/p2_backend_qualification/d266_20261006/7b_readiness_8phase_full_retry7/`.
+The run is incomplete and is excluded from readiness, performance, SLO,
+G1/G2, and ranking denominators. Watchdog samples show no OOM/high event and
+the exact owned scopes were cleaned; the manual interruption means D266 has
+no final successful launch receipt suitable for a formal release claim.
+
+The failure is not an integer-ID hash collision: the frozen adapter IDs are
+unique. D257 had an analogous source-binding failure for a different adapter,
+and D265 succeeded for the same `education_lora_0007` request position. This
+supports a path/source-state hypothesis, but the old and requested live
+bindings at the D266 failure are not yet jointly captured. The strict live
+relabeling validator therefore remains unchanged; no retry, fallback, or
+relaxed source policy is justified.
+
+D267 was a fresh configuration-only attempt. Its service profile rejected a
+hand-copied `source_audit_sha256` identity before model startup, with no GPU
+inference. The failure and its receipt are retained in
+`paper_results/ieee_tc/p2_backend_qualification/20261006_d267_identity_diag_prefix/d267_status.md`.
+
+D268 then corrected the configuration and ran a fresh 210-request bounded
+prefix. It completed 210/210 requests with no terminal identity-conflict
+failure, ten scale-ups, seven scale-downs, clean native-context release, and
+owned service-path removal. There is no direct native identity-conflict
+counter in the terminal schema, so this is an indirect non-recurrence
+observation. The strict cleanup field
+`proves_physical_lease_release=false` remains a physical-release warning.
+This is not a repair result: the prefix retained eight
+multi-cycle phases, so it used seven 26-request phases and one 28-request
+phase rather than D266's eight 500-request phases. Its later phases reached
+88.62 s mean TTFT and 87.26 s P95 dispatch-window wait, which is a queue/drain
+effect of this diagnostic partition and not an acceptable final performance
+point. D268 metadata remains exploratory (`formal_run=false`), with empty
+frozen-settings/source-config hashes and `vllm_available=false`; its full
+evidence and caveats are summarized in
+`paper_results/ieee_tc/p2_backend_qualification/20261006_d268_identity_diag_prefix/d268_status.md`.
+
+The current decision is therefore **no repair claim and no new GPU replay**.
+The next gate is a source-level comparison of D266 and D268 replay/phase
+semantics and a controlled, falsifiable identity-state diagnostic. Only after
+that audit identifies the changed state needed to reproduce or rule out the
+conflict may another heavy readiness run be authorized. The readiness gate,
+G1/G2, and the user's latency target remain open.
+
 ## CURRENT — D265 7B eight-cycle Full readiness diagnostic completes; one gate remains open
 
 2026-10-06. The fresh 7B `d265_7b_readiness_8phase_full_retry7` diagnostic
