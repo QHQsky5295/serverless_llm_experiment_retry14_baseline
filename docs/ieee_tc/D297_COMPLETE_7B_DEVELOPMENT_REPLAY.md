@@ -96,3 +96,72 @@ SHA仍为`cc821e089b952b66bc10be13e3b8ab11700c9d77dc542c20ca7edb582b1113f8`。
 
 本轮只作轻量监控和持久记录，不并发运行分析、哈希扫描、压缩、清理或另一个
 GPU任务。真实读取/传输/竞争/本地准备继续计入服务时间，不减去实际获取时延。
+
+## 运行中核查与后处理复用（01:28+08）
+
+同一tmux和服务身份继续运行，518到达、516正常完成、0报告失败；watchdog
+sample696记录服务peak18.240692GiB、主机available89.911167GiB、high/max/OOM0，
+无安全告警。匹配的远端monitor仍active/running，无重启或配置变化。
+本段是经实时进程与递增日志证实的等待，不是完整结果或正式正确性结论。
+
+本轮只读历史核查明确后处理应复用：
+
+1. D170已完成1536个warm测量和16个warmup，文档及curated数据已封存；
+   “共同参考仍开放”表示最终共同合同/数值身份尚未验收，不表示该测量未做。
+   不重跑D169/D170，不重新解析其1.76GB原始JSON。
+2. 对本轮可复用`paper_results/ieee_tc/p2_backend/20261002_d170_warm_measurement.json`
+   及`analyze_control_path_overhead.py::provisional_timing_bound`进行候选门槛诊断。
+   逐请求输入组、原生时间线和完整offered分母必须核验；正确性未知保持未知，
+   时延两项通过比例仅是候选门槛下联合达成的上限，不是正式A_joint。
+3. D234的旧GPU量被D240更正：D219物理总量15911.7125GPU-s，旧4317.05只是
+   primary-runtime计费投影。以其封存`physical_deployment/summary.json`及
+   allocation journals为依据，不能把旧逻辑账单与本轮物理量混比。
+4. `plot_d290_diagnostic.py::audit_run`可复用当前记录的原生时间/新物理sidecar
+   验证，但`compare_diagnostics`固定写有100-request限制，且D219没有同名
+   `physical_resource_summary.json`。完整历史比较需显式记录不同schema与
+   serving版本，不直接套用短实验标签，不关闭缺字段/来源检查。
+5. 待本轮GPU真正释放后才作有界离线解析；避免同时在内存保留两个大型结果。
+   先核验并保留紧凑请求投影，再分别统计；原始证据和旧结果不动。
+
+## 待完整数据检验的资源回收假设（只读核查，未改配置）
+
+2026-10-07 01:33+08。本轮846/4000正常完成时，在线记录仍为3次扩容、
+0次缩容、4个runtime。部分运行不代表最终轨迹；本节只登记完成后的分析问题。
+
+历史与源码证据：
+
+- D88首次开发控制推导使用7B容量C=2，导出queue upper2、active upper/lower
+  0.5/0.25；TTFT lower281.278192ms来自D84 GPU-ready的acquisition→first
+  Type-1 P95。D88明确称这些为开发启发式，并预先列出下界过严的风险。
+- D156（提交26e44a2）只把max_num_seqs/runtime cap从2提高到4，用于隔离
+  容量假设。后续更新了容量相关service/preparation profile，但本轮配置仍
+  保留上述控制阈值。保留阈值本身不违反公式，也不自动意味着错误。
+- `IEEEReplicaControl.evaluate`要求queue、active saturation、最近完成请求
+  的overall TTFT P95三者严格全低，并连续满足cooldown，才能缩容。
+  `_evaluate_ieee_live_control`实际传入ready容量=ready实例数×有效cap4；
+  TTFT观测来自`overall_ttft_ms`，不是D84的acquisition→first区间。
+- 有效采样已经保存在`_ieee_control_events`，包含queue、active、capacity、
+  P95、sample count、all_low、low_since、action和outcome；无需增加在线监控。
+
+**可证伪问题：** 在低队列/低饱和度时，旧短路径TTFT下界是否持续阻止全低
+条件，从而使早期扩出的GPU持续持有？容量变化后沿用旧软目标是否也使扩容
+更积极？它们目前是待检验解释，不是已证明的资源瓶颈。
+
+完成后只复用此次完整记录：逐项报告低队列/低active/已知低P95及其交集、
+连续全低时长、pending导致的重置、实际回收及物理持卡区间。如果主要原因
+是queue/active持续偏高、无已排空候选、或未知样本，则不能归因于TTFT下界。
+即使观察到某一条件阻止回收，也不能从同一轨迹反推改变控制后的反事实GPU-s
+或SLO收益。先完成完整结果审计，再决定是否形成下一单一候选；不现在改参数。
+
+本轮联网复核：
+
+- [Knative concurrency](https://knative.dev/docs/serving/autoscaling/concurrency/)
+  区分硬容量和软目标，并以目标利用比例控制提前扩容；这支持分开审计两个量，
+  不支持按容量比例机械调整所有阈值，也不采用其默认数值。
+- [Kubernetes HPA](https://kubernetes.io/docs/concepts/workloads/autoscaling/horizontal-pod-autoscale/)
+  对多指标采用最大的副本建议，缺失指标时对缩容保守，并单独处理稳定窗口。
+  本项目继续遵守IEEE自己的max-score/全低语义，不替换为HPA算法，不把缺样本
+  填零来强行产生缩容。
+
+以上为轻量源码/历史/文献核查；没有运行重分析、增加GPU实验、改变正在测量的
+系统或把正在运行的样本用于正式配置筛选。

@@ -39,6 +39,39 @@ remote monitor/invocations, collect immutable transfer/monitor evidence, audit
 and save data without figures. Do not start warm/Resident/3B/baselines alongside.
 N_correct, commonwarm/Resident and G1/G2 remainOPEN. No completed4k result yet.
 
+01:28+08 verified wait on SAME tmux/service invocation:518arrived,516normal
+completions,0reported failures. Watchdog sample696, servicepeak18.240692GiB,
+hostavailable89.911167GiB, high/max/OOM0, no safety warning. The matching remote
+monitor invocation was independently verified active; no remote adjustment.
+Read-only preparation for final analysis recovered the COMPLETE D170 warm
+measurement (1536+16 calls); do NOT rerun it merely because the final common
+reference remains unfrozen. Reuse its sealed candidates and the D171
+`provisional_timing_bound` helper for clearly provisional timing diagnostics.
+D219's physical total is15911.7125GPU-s per D240, NOT legacy4317.05; its old
+sidecar is `physical_deployment/summary.json`. The short-run comparison helper
+hardcodes a100-request limitation and expects the newer sidecar: don't apply
+it unchanged to a full/legacy comparison or silently weaken its checks.
+Final analysis must wait for actual GPU release and run in the bounded auxiliary
+domain. No figures/new code/config/tests/heavy analysis while this run is live.
+
+01:33+08 SAME live run:846normal completions/0fail,3scale-ups/0scale-downs so far.
+Read-only D88/D156/controller audit finds old cap2-derived soft thresholds are
+retained with cap4, and the281.278ms lower threshold came from a shorter native
+measurement than the actual overall-TTFT control signal. This is a falsifiable
+post-run resource-reclamation question, NOT a proven bug or permission to retune
+mid-run. Existing control event fields suffice; evaluate all low predicates,
+continuous intervals/pending resets/retirement outcomes after completion.
+Current official Knative/HPA sources and explicit non-causal boundaries are in
+D297 doc. No next candidate selected, no source/config modification.
+
+01:36+08 quarter-run verified wait:1023arrived/1016normal completions/0fail,
+3scale-ups/0scale-downs, same active service invocation. Resource sample1143:
+hostavailable89.508228GiB, servicepeak18.240692GiB, high/max/OOM/swap0, no warning,
+disk148.657516GiB. Keep this run live; no second launch/cleanup/analysis now.
+Two documentation-only changes preserve the above reference reuse and hypothesis;
+serving code/config untouched. Final analysis and resource recovery remain after
+terminal/actual release, not after a quarter of the requests.
+
 ## HISTORY — D297 complete 7B W0 prepared; candidate unchanged
 
 2026-10-07. Previous goal turn was PROGRESS: completed D296, saved its resource/
