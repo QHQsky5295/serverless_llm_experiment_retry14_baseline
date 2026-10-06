@@ -1,6 +1,6 @@
 # IEEE TC execution status
 
-## CURRENT — D278 first-service audit closes the planned-match question; readiness gate remains open
+## CURRENT — D278 first-service audit bounds the planned-match question; readiness gate remains open
 
 2026-10-06. A CPU/offline join of the ten D278 natural scale-up epochs to
 their first actual dispatches is archived in
@@ -10,21 +10,22 @@ The ten rows all carry confirmed dispatch snapshots and complete tier fields;
 the three very large waits (159--183 s) are concentrated in the initial
 scale-out backlog, while native service TTFT remains 681.7 ms on average.
 
-The zero planned-adapter matches are explained by the current contract rather
-than a hidden last-known tier: `ieee_confirmed` deliberately rejects the
-legacy adapter-prefix handoff and starts an owner-bound native file-preparation
-plan instead.  The event counter therefore reports zero legacy planned lists,
-and D278's `proactive_admission_evaluated=false` is consistent with its gate.
-The audit does identify a falsifiable optimization question—whether a native,
-owner-bound readiness publication can reduce the first scale-out dispatch wait
-without weakening snapshot validation—but no code change or performance claim
-has been made.
+The zero planned-adapter matches are a legacy-prefix instrumentation boundary,
+not a measured native match rate.  The IEEE path deliberately rejects that
+prefix and starts owner-bound native file plans; eight activations also have
+native GPU target plans, with two of the ten first-service adapters appearing
+in those target lists.  The request field
+`proactive_admission_evaluated=false` describes the request branch, not whether
+the background native plan evaluated admission.  The audit identifies a
+falsifiable optimization question—whether an owner-bound readiness publication
+changes first-service delay—but no code change or performance claim has been
+made.
 
-The metric interpretation used from this point is frozen in
+The metric interpretation used from this point is recorded in
 `docs/ieee_tc/METRIC_PROTOCOL_FREEZE_ADDENDUM_20261006.md`; it records G1/G2
 as the primary gates, HydraServe-style warm/cold decomposition as a disclosed
 reference, and the 100-Mbps versus current 1-Gbps link as separate strata.
-Baselines and 3B remain paused.
+Baselines and 3B remain paused; D278 is not a G1/G2 or SLO result.
 
 ## CURRENT — D278 completes post-D277 replay; runtime failure removed but first-service gate remains open
 

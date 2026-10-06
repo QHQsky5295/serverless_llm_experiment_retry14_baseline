@@ -1,9 +1,11 @@
 # PrimeLoRA IEEE-TC metric protocol: remote and HydraServe addendum (2026-10-06)
 
-This addendum freezes the interpretation used by all future PrimeLoRA and
-baseline comparisons.  It is deliberately versioned: it clarifies the
-existing protocol and does not rewrite the previously frozen files or change
-the identity of any completed run.
+This addendum records an audit clarification for future PrimeLoRA and baseline
+comparisons.  It is deliberately versioned: it does not rewrite the
+previously frozen files or change the identity of any completed run.  If an
+earlier copy of this addendum conflicts with a parent protocol, that wording
+is superseded by this copy and must not be used for a ranking or configuration
+decision.
 
 ## 1. Parent documents and precedence
 
@@ -35,9 +37,10 @@ request:
  R_{\mathrm{GPU}} = U/N_{\mathrm{correct}}.
 \]
 
-Here `a_d(t)` is the number of physically allocated cards owned by the
-deployment at time `t`; it is not a legacy instance-billing estimate and is
-not replaced by GPU memory-time.
+Here `a_d(t)` is a per-card Boolean allocation indicator.  Overlapping owner
+intervals from multiple processes on one physical card are unioned and counted
+once; it is not a process count, a legacy instance-billing estimate, or GPU
+memory-time.
 
 **G2 (tail latency under the same resource budget):** use the common reference
 resource envelope `U_ref` and the pre-registered budget
@@ -53,13 +56,21 @@ its full billing factor and price assumptions, plus sensitivity results.
 The joint per-request indicator is
 
 \[
- I_r = \mathbf 1[TTFT_r\leq S_{TTFT}\;\land\;TPOT_r\leq S_{TPOT}],
- \qquad A_{joint}=\frac{1}{N_{correct}}\sum_{r\in correct} I_r .
+ I_r = \begin{cases}
+ 0,&z_r=0,\\
+ \mathbf1[TTFT_r\leq\theta_r^T],&z_r=1,n_r<2,\\
+ \mathbf1[TTFT_r\leq\theta_r^T]\mathbf1[TPOT_r\leq\theta_r^P],&z_r=1,n_r\ge2,
+ \end{cases}
+ \qquad A_{joint}=\frac{1}{N_{plan}}\sum_{r\in plan} I_r .
 \]
 
-The denominator is never silently changed to offered, submitted, or only
-successful requests.  We publish `N_plan`, `N_arrived`, `N_submitted`,
-`N_terminal`, `N_correct`, `N_good`, and the exclusion reason for every run.
+The denominator is the offered planned set (`N_plan`), as frozen in
+`METRIC_PROTOCOL_FINAL_V2.md`; a failed or incorrect request contributes zero.
+The correct-request and joint-SLO gates are both required separately:
+`N_correct == N_plan` and `A_joint >= 0.95`.  We publish `N_plan`,
+`N_arrived`, `N_submitted`, `N_terminal`, `N_correct`, `N_good`, and the
+exclusion reason for every run.  `A_P_cond` remains a descriptive conditional
+TPOT statistic and cannot replace the joint rate.
 
 ## 3. HydraServe alignment, without importing its assumptions
 
@@ -80,12 +91,13 @@ We adopt only the *structure* of that reporting:
 * decompose user TTFT and E2E into queue/admission, dispatch, artifact
   movement, service TTFT and decode components.
 
-The warm-derived thresholds sometimes used by HydraServe (TTFT up to five
-times warm TTFT and TPOT up to two times warm TPOT) are not an industry
-standard.  If used diagnostically, they must be recomputed from this machine,
-model, token-length bin and generation contract, and labelled
-`hydraserve_style_reference`, never silently substituted for the frozen joint
-SLO.
+The frozen protocol uses thresholds inspired by (but not claimed as a standard
+from) HydraServe: TTFT up to five times the common warm TTFT and TPOT up to two
+times the common warm TPOT.  They are recomputed for this machine, model,
+input-length bin and generation contract; the resulting `theta_T`/`theta_P`
+are the authoritative thresholds for the joint SLO.  A separately labelled
+`hydraserve_style_reference` diagnostic may be reported, but it cannot create
+a second threshold or replace the frozen one.
 
 ## 4. Request timestamp and decomposition contract
 
@@ -167,10 +179,15 @@ hardware limit or to erase remote work from E2E.  We make no H100, NVLink or
 Each curated request/run table must include, at minimum:
 
 `run_id, model, seed, trace_sha, subset_sha, generation_contract, link_state,
-transfer_id, logical_bytes, wire_bytes, remote_read_ms, remote_send_ms,
-client_receive_ms, local_write_ms, extract_ms, materialize_ms, tier_before,
-tier_after, cache_hit, request/dispatch/admission/service timestamps,
-TTFT_ms, TPOT_ms, E2E_ms, correct, failure_reason`.
+transfer_id, logical_bytes, wire_bytes, request/dispatch/admission/service
+timestamps, TTFT_ms, TPOT_ms, E2E_ms, correct, failure_reason`.  When the
+implementation exposes a component span, retain it with its provenance (for
+example `remote_read_ms`, `remote_send_ms`, `client_receive_ms`,
+`local_write_ms`, `extract_ms`, or `materialize_ms`).  If clocks or
+instrumentation do not expose a component separately, preserve the missing
+value and its overlap/non-additivity note; do not invent zeroes or infer a
+server span from client time.  Historical diagnostic rows are not
+retroactively reclassified solely because an optional column is absent.
 
 The analyzer rejects incomplete dispatch-tier snapshots, missing generation or
 link-state keys, mismatched trace/subset hashes, non-additive spans, or failed
@@ -184,4 +201,3 @@ This file is a clarification/addendum only.  It does not modify
 their existing diagnostic boundaries; D278's readiness gate is not silently
 converted into a G1/G2 result.  All future comparison manifests must record
 this addendum SHA and the exact link-state stratum.
-

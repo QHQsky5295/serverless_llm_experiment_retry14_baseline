@@ -24,14 +24,24 @@ The request-level extract is
   remaining seven are between 54 ms and 3.03 s of dispatch wait.  Thus the
   descriptive high mean is concentrated in the initial scale-out backlog, not
   in native service TTFT (the run's mean service TTFT is 681.7 ms).
-* All ten rows report `scaleup_planned_adapter_match=false` and
-  `proactive_admission_evaluated=false`.  This is consistent with the disabled
-  effective-capacity admission gate in D278, not evidence that a confirmed
-  snapshot was silently replaced by a last-known tier.
-* D278's feature-activation counters report ten scale-up events but zero
-  `scale_up_events_with_planned_adapters`.  The event records retain a
-  `handoff_plan_sha256` for the native preparation plan, but no legacy
-  `planned_adapters` list.
+* All ten rows report `scaleup_planned_adapter_match=false`.  This field is a
+  legacy-prefix metric and is not wired to the IEEE native plan.  The native
+  event records retain owner-bound file and, for eight of the ten activations,
+  GPU preparation plans with target adapter IDs; the target list is therefore
+  not absent, although it is not guaranteed to contain the first dispatched
+  adapter.
+* The request-level `proactive_admission_evaluated=false` field means that the
+  request itself did not run the optional proactive admission branch.  It does
+  not mean that the background native preparation plan skipped admission.  The
+  legacy `feature_gates.effective_capacity_admission_enabled` field is not the
+  IEEE admission verdict and must not be used to infer that the native gate was
+  disabled.
+* The first-service join finds native GPU target-list matches for two of the
+  ten first-service adapters; several other rows have completed native plans
+  whose target set did not include the first request's adapter.  This is
+  descriptive evidence about target selection, not a measured native match
+  rate, because the current first-service extract does not define a complete
+  plan-to-request causal join for every activation.
 
 ## Code-path interpretation
 
@@ -43,13 +53,16 @@ with engine initialization.  The request then obtains a fresh confirmed
 dispatch snapshot and native source reference.  The scale-up event serializer
 also omits the legacy adapter list for `ieee_confirmed` epochs.
 
-Therefore the zero planned-match rate is an implementation contract boundary,
-not a failed assertion of the confirmed-tier protocol.  It does expose a
-separate performance question: the native path prepares source files and
-publishes a new runtime before that runtime has a GPU-resident adapter target;
-the first dispatch can consequently use HOST/NVMe and pay queue/admission
-delay.  This is different from the reviewer’s proposed “last-known tier”
-counterfactual and must not be fixed by weakening snapshot validation.
+Therefore the zero legacy planned-match rate is an instrumentation boundary,
+not a failed assertion of the confirmed-tier protocol.  The mixed native
+evidence does expose a separate performance question: a new runtime is
+published while file and GPU preparation continue concurrently, so a first
+dispatch may legitimately observe HOST/NVMe even when a GPU target plan exists
+for that activation.  D278's initial engine/preload interval was about 204.5 s
+and the first three requests waited 159--183 s; the audit cannot attribute
+those waits to publication ordering alone.  This is different from the
+reviewer's proposed last-known-tier counterfactual and must not be fixed by
+weakening snapshot validation.
 
 ## Falsifiable optimization hypothesis (not yet implemented)
 
@@ -72,8 +85,9 @@ or a request retry is not an acceptable patch.
 
 D278 remains diagnostic-only: `N_correct` is null, the first-service minimum is
 10/20, and its high user TTFT must not be compared with D219 as a regression.
-The next permitted action is (1) record this audit and inspect the native
-publication/dispatch ordering, then (2) if no source-level change is justified,
-run the explicitly permitted identical cold replicate to seek the preregistered
-20-sample readiness gate.  Baselines remain paused.
-
+The current plan requires three pre-specified natural blocks for every A4
+variant and, only if any variant remains below 20 natural dispatch epochs,
+uniformly extends the set to at most five blocks.  Initial and controlled
+epochs cannot be used to fill that sample count.  Before any such replay, the
+execution manifest and the native plan-to-dispatch join must be reconciled;
+this audit alone does not authorize a code change or a baseline run.
