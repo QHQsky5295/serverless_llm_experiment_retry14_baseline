@@ -1,4 +1,5 @@
-"""D298 data-only Full100 audit; reuse D290 comparison/binding and D171 SLO code."""
+"""D298/D302 data-only Full100 audit; reuse existing native/binding/SLO checks."""
+import argparse
 import csv
 import json
 import math
@@ -8,7 +9,7 @@ from pathlib import Path
 from scripts import ieee_tc_preflight as p
 from scripts.ieee_tc.plot_d290_diagnostic import (
     audit_run, compare_diagnostics, write_binding_audit, sha256)
-from scripts.analyze_control_path_overhead import provisional_timing_bound
+from scripts.analyze_control_path_overhead import provisional_timing_bound, summarize_admission_waits
 
 ROOT = p.ROOT
 RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d298_20261007'
@@ -24,7 +25,21 @@ def read(path):
     return json.loads(path.read_text())
 
 
-def main():
+def main(campaign='d298'):
+    global RAW, RUN, SOURCE, REFERENCE, OUT
+    health_name = 'smoke_remote_health2.json'
+    comparison_caveat = 'D298 changes the measured capacity package versus D296, not a single-factor ablation.'
+    if campaign == 'd302':
+        REFERENCE = SOURCE
+        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d302_20261007'
+        RUN = RAW/'7b_frontier_validation_100'
+        SOURCE = RUN/'experiment_results_full_vllm_dedicated_a500_r100_c2_tc_ieee_frontier_validation_100_d302_7b_frontier_validation_100.json'
+        OUT = ROOT/'paper_results/ieee_tc/p2_backend/d302_frontier/smoke1'
+        health_name = 'remote_health.json'
+        comparison_caveat = ('D298 prefix is reused for descriptive context only: D302 also inherits D300 scale-in lower reference. '
+            'Full W0 versus D300 is still required to isolate the publication fix; prefix GPU-s is not extrapolated.')
+    elif campaign != 'd298':
+        raise ValueError('unknown frozen smoke identity')
     assert not OUT.exists(), 'never overwrite a prior audit'
     assert p.check_plan() == '0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7'
     assert sha256(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md') == '5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22'
@@ -43,7 +58,7 @@ def main():
     transfers = outcome['remote_transfers']
     assert len(remote) == len(rows) == len(transfers)
     assert set(remote) == {r['http_transfer_id'] for r in transfers}
-    clock = read(RAW/'smoke_remote_health2.json')['health']['clock_id']
+    clock = read(RAW/health_name)['health']['clock_id']
     for r in transfers:
         s = remote[r['http_transfer_id']]
         assert r['state'] == 'published' and r['content_verified'] and r['published_archive_verified']
@@ -71,12 +86,12 @@ def main():
     known = '/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py'
     assert seal['changed']==[known] and seal['entry_count']==147
     assert p.digest(Path(known))=='04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22'
-    OUT.mkdir(exist_ok=False)
+    OUT.mkdir(parents=True, exist_ok=False)
     compare_diagnostics(REFERENCE,SOURCE,OUT)
     write_binding_audit(REFERENCE,SOURCE,INDEX,OUT)
     binding = read(OUT/'binding_audit.json')
     assert all(r['control_binding_pass_count']==100 for r in binding['runs'].values())
-    result = dict(kind='d298_capacity_smoke_audit_v1',stats=stats,evidence=evidence,
+    result = dict(kind=f'{campaign}_smoke_audit_v1',stats=stats,evidence=evidence,
         timing=timing,window_gpu_seconds=physical['window_gpu_seconds'],
         tier_counts=dict(Counter(r['readiness_tier_before_dispatch'] for r in requests)),
         remote=dict(transfers=len(transfers),wire_bytes=sum(r['transferred_bytes'] for r in transfers),
@@ -89,8 +104,13 @@ def main():
         protection_raw=seal,full_qualified=False,n_correct=None,common_slo_qualified=False,
         no_figures=True,replicates_per_configuration=1,confidence_interval=None,
         caveat='Complete100-request diagnostic only; not complete4000W0, numerical correctness or formal G1/G2.',
+        comparison_caveat=comparison_caveat,
         raw_evidence=[dict(path=str(path),sha256=sha256(path)) for path in
             (SOURCE,REFERENCE,outcome_path,journal,WARM,INDEX,RAW/'smoke_remote_monitor.log',Path(__file__))])
+    if campaign == 'd302':
+        result['admission_waits'] = summarize_admission_waits(requests)
+        result['mechanism_events'] = {k:v for k,v in outcome['mechanism_events'].items()
+            if k in ('_ieee_source_observation_stats', '_ieee_route_cache_stats')}
     with (OUT/'audit.json').open('x') as stream:
         json.dump(result,stream,indent=2,allow_nan=False)
     print(json.dumps(dict(stats=stats,timing={k:v for k,v in timing.items() if k!='decisions'},
@@ -98,4 +118,6 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--campaign', choices=('d298','d302'), default='d298')
+    main(parser.parse_args().campaign)

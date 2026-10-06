@@ -11,7 +11,63 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D301 repeated-read cause reproduced/fixed; D302 validation pending
+## CURRENT — D302100 completed/audited; next full W0 for the same D301 fix
+
+2026-10-07 06:43+08. SAME D302 finished100/100native-token-contract requests,
+0failure. launcher/replay/watchdog0, physicalGPUreleaseconfirmed, servicepath
+removed. Threecapturedremoteunitsstoppedonlyafterlocalrelease;inactive/PID0/success.
+Rawsource0a90b00fec4580979f3d200dade7910f345f5c5356f8f7fe6b05bb6560a6ff0e.
+Curatedp2_backend/d302_frontier/smoke1/audit.json SHA
+1a7f9a853905ae36db594b775efc483e2eee17747eb630af046340c2c42a84bb;
+alloutputs/rawrefs verified.29transferUUIDs/50650865wirebytes,nopacking;
+remote/localjournal andmonitorSHAsagree.264resourcesamples,peak19125301248B,
+minhost94000787456B,high/max/OOM/swap0.147sealretainssoleknownbaselinescript
+mismatch;nohistoricalresultsorusergeneratedmanifestchanged.
+
+Mean/P95TTFT1000.507728/2278.951706ms,mean/P95TPOT27.283961/34.358794ms,
+physical799.428274GPU-s,timing-only99/100. NotformalN_correct/SLO/G1/G2orCI.
+D298descriptivecontext:meanTTFT12.2572%lowerbutGPU-s2.4156%higher;
+meanrouting103.884988->112.065777msworse,authoritativefinalview70->66,
+observedcachehitmax13->40. D298hasdifferentlowercontrolreference,notcausal
+effectofpublicationfix.3outputhashchangesretained,binding100/100bothruns.
+SeeD302_FRONTIER_VALIDATION.md. Nofigures,warm/profile/numericalrepeat,3B
+orbaselinework. D301testedcodecheckpoint1b336d4alreadypushedbeforelaunch.
+
+NEXT backupD302data/analysischeckpoint, thenonecomplete4000W0withD300config
+andtheD301identity-publicationfixonly. Do notrepeat100orchangecontrolthresholds.
+Recheckfullplan/V1 andnewoutput/resourcegates beforelaunch. NoGPU/remote
+inferencecurrentlyrunning;goalactive,7Btargetandfullcampaignremainopen.
+
+## HISTORY — D302 same single-candidate100 validation running, do not relaunch
+
+2026-10-07 06:40+08. D301 checkpoint1b336d4e18ecc7e1ee935fa286cbea4711167d4c
+pushed and remoteverified beforelaunch. Fullplan reread immediately beforeD302.
+Config84c48c9e780cf2e31b01f3aa931f78354d1d9a4d4133eb07fe0357dfd9cf91bc;
+only100-prefix/scenario/output/cache identities differ fromD300 configuration.
+Launched06:38:25 via existinglauncher argd302, tmuxprimelora-d302-7b, PID3292247.
+Serviceprimelora-tc-svc-8c605ee41180465abcaad53cc03b8730.scope invocation
+355d6a41430f432ca82e970411c564dc, watchdog3292261,
+auxprimelora-tc-aux-7ef89ae61f84485ab2d2c5f4e549f532.scope.
+Rawd302_20261007/7b_frontier_validation_100. 27/100terminal at06:40:42,
+no failure/memoryevents/abort; peak19125301248B,hostavailable98264129536B.
+Startfree161811652608B, same150/100GiB and72/80GiB protections.
+
+RemoteNIC1000/full; unchangedD80units andD78/D80publishedcache,no rebuild.
+Captured3Bartifact invocationbd7921094f7f468a8f6c685f65bb92c6/PID1191484;
+7Bcaaea886964b45fc9e456645b6d74763/PID1191487;
+monitor-d3024317b7ea000a4905a26d05585c27a728/PID1191491.
+Healthclockremote-process-monotonic:b78902bb54d74713a532a8c927d55f1e.
+Monitorlog/home/lab14/primelora_remote/tc/d302_20261007/remote_monitor.log.
+Beforelaunch, onehealth attempt usedOSpython lackingnumpy; no request replay
+or inference started. UsedexistingCPUenv successfully; no dependency install.
+
+NEXT finish SAMErun, verifyphysicalrelease, stoponlycapturedremoteinvocations,
+copyjournalbyclock andmonitor, then existinganalyze_d298_smoke.py --campaign d302.
+D298context hasdifferentlowercontrolreference; notsinglefactorcausalcontrast.
+Newwaitsummary andsourceprotection check beforefull4000 againstD300. No figures,
+3B/externalbaseline,warm/source/numericalrepeats. Goalactive,G1/G2stillopen.
+
+## HISTORY — D301 repeated-read cause reproduced/fixed; D302 validation pending
 
 2026-10-07. Still 7B optimization, no new performance run this turn yet.
 Full source plan and frozenV1 reread after compaction. D301 reuses complete

@@ -1,0 +1,49 @@
+{
+  "outputs": {
+    "audit.json": "1a7f9a853905ae36db594b775efc483e2eee17747eb630af046340c2c42a84bb",
+    "binding_audit.json": "0ad51b4a2b73d89ba35b33dc3b2a2fadce7301f7a0759a6830ba8af3e5bcb052",
+    "binding_status.csv": "4bdf714783a1fd457d1c4f5da8c99c8da6556f8d6a93c7b600ffa67c6cdc1df4",
+    "comparison.csv": "d39291955beaf348c243de7b1e7895b618b53818f84e2e6b33fbdcdd2631658e",
+    "comparison_manifest.json": "276e5fb61dbd6782c52650ec80bf7f759d77853b871625eb640b8c7699c0a61c",
+    "wait_context.json": "aefa340384de9d95598b864ecc7324555f8e7d70e1c64c44d95ba5e93ac4be40"
+  },
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d302_20261007/7b_frontier_validation_100/experiment_results_full_vllm_dedicated_a500_r100_c2_tc_ieee_frontier_validation_100_d302_7b_frontier_validation_100.json",
+      "sha256": "0a90b00fec4580979f3d200dade7910f345f5c5356f8f7fe6b05bb6560a6ff0e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d298_20261007/7b_capacity_validation_100/experiment_results_full_vllm_dedicated_a500_r100_c2_tc_ieee_prefetch_validation_100_d298_7b_capacity_validation_100.json",
+      "sha256": "52666d436be444924980c26d86a01dd3e1e244bb823b17bbba1f5a0a01f5ed24"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d302_20261007/7b_frontier_validation_100/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "ffa366cf482b53d803d933e94e8e011a1f46cf10d9496838c3ced55765c254f9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d302_20261007/smoke_remote_transfers.jsonl",
+      "sha256": "6c3afc577e361ca91663f9bedfa81256a316125eb27be6940a3f7935bfe7ba9e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261002_d170_warm_measurement.json",
+      "sha256": "0ebc7587effe293dcb986d33fb932c100cbcb3384c56ab2c0b0bec73b2bdd88c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json",
+      "sha256": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d302_20261007/smoke_remote_monitor.log",
+      "sha256": "9a4b1794eb4efdc6a6391e604c64adcedb2aab3ac838669efb8042071f5bbdb2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/analyze_d298_smoke.py",
+      "sha256": "118e3460852dc8f2d3ec0bd99ad431fcabd553951f05b012574a4727dec7679d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+    }
+  ],
+  "no_figures": true
+}
