@@ -1946,6 +1946,12 @@ def plot_summary(out_path: Path, summary_rows: Sequence[Dict[str, Any]]) -> None
             if value <= 0:
                 continue
             x_mid = left + value / 2.0
+            # Very narrow segments cannot carry a legible centered label at the
+            # fixed IEEE single-column size.  Keep the exact value in the CSV
+            # and table, but omit the inline annotation instead of allowing
+            # adjacent labels to overlap.
+            if value < 4.0:
+                continue
             if value >= 0.55:
                 ax_mix.text(
                     x_mid,

@@ -1,5 +1,39 @@
 # IEEE TC execution status
 
+## CURRENT — D278 completes post-D277 replay; runtime failure removed but first-service gate remains open
+
+2026-10-06. The fresh same-configuration 7B eight-phase diagnostic completed
+the full envelope: 4,000/4,000 requests arrived, submitted, terminated and
+succeeded; all 4,000 native fixed-output/token-ID contracts and dispatch-time
+tier snapshots are present; and the tier consistency validator reports zero
+invariant conflicts. Tier counts are GPU 1,165, HOST 1,823, NVMe 897 and
+Remote 115. Ten natural scale-ups and seven scale-downs occurred.
+
+The D276 native-capacity-wait failure did not recur after the D277
+lease-to-plan witness repair: no terminal error, failure observation or
+capacity-conflict diagnostic was emitted, and the physical sidecar closes with
+zero open leases. This is a runtime compatibility result, not proof that the
+repair caused every earlier failure to disappear; the run is still
+`formal_run=false` and `n_correct=null`.
+
+The pre-registered first-service minimum remains unmet: only 10 observations
+were produced, below the required 20. D278 is therefore excluded from
+readiness, joint-SLO, G1/G2, lifecycle and baseline ranking denominators. Its
+descriptive mean/P95 user TTFT is 6,895.5/22,698.6 ms, mean/P95 E2E is
+11,204.6/27,220.7 ms, service TTFT is 681.7 ms, and physical owner-union use
+is 15,349.592341 GPU-s; none is a published performance claim. Watchdog
+evidence shows minimum host `MemAvailable` 94.23 GiB, service peak 20.47 GiB,
+and zero high/OOM/oom-kill events. Local GPU cleanup completed; the managed
+remote 7B artifact service was stopped and port 18081 was inactive. The
+approved prepublished gzip cache was reused without request-time packing.
+
+The compact status and immutable hashes are in
+`paper_results/ieee_tc/p2_backend_qualification/20261006_d278_readiness_retry9/`
+and the detailed boundary is in `docs/ieee_tc/D278_7B_READINESS_POST_D277.md`.
+The next action is a CPU/offline audit of why ten scale-ups yield only ten
+first-service samples; only the explicitly permitted identical cold replicate
+may follow. Baselines and 3B remain paused.
+
 ## NEXT GATE — D278 post-repair 7B readiness diagnostic registered; launch held
 
 2026-10-06. After the CPU red/green reproducer and the 489 focused tests

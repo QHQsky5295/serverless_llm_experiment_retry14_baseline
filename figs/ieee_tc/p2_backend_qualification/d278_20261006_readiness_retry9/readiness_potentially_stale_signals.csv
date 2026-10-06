@@ -1,0 +1,1 @@
+model,scenario,run_tag,source,request_id,adapter_id,instance_id,dispatch_tier,service_tier,transition,potentially_stale_signal,selected_instance_age_s,overall_ttft_ms

@@ -1,7 +1,7 @@
 # D278: post-D277 7B readiness recheck
 
 Date: 2026-10-06
-Status: registered; GPU launch held until final preflight
+Status: complete; diagnostic-only; readiness gate not passed
 
 ## Purpose
 
@@ -49,3 +49,31 @@ The launcher syntax check and D276→D278 normalized configuration comparison
 pass.  Before launch, repeat host memory/disk/GPU/process gates, verify the
 existing remote prepublished service health without repacking, and record the
 unchanged protected-result seal state.
+
+## Final outcome
+
+The replay completed the full 4,000-request, eight-phase envelope with
+4,000/4,000 terminal successes, 4,000/4,000 native fixed-output contracts,
+complete dispatch-tier snapshots and zero tier invariant conflicts. The
+observed tiers were GPU 1,165, HOST 1,823, NVMe 897 and Remote 115. Ten
+natural scale-ups and seven scale-downs occurred. The D276 native-capacity
+failure did not recur: no terminal failure observation or capacity-conflict
+error was recorded, and all leases were released.
+
+The readiness gate remains **not passed** because only ten first-service
+observations were produced, below the pre-registered minimum of twenty. The
+run is exploratory (`formal_run=false`, `n_correct=null`) and is excluded from
+G1/G2, SLO ranking, lifecycle ranking and baseline denominators. It supports
+only the narrower runtime conclusion that the D277 lease-to-plan witness repair
+is compatible with the complete replay and removes the D276 observed failure
+under this configuration. Compact values and hashes are in
+`paper_results/ieee_tc/p2_backend_qualification/20261006_d278_readiness_retry9/`.
+The diagnostic readiness preview (not a ranking figure) is under
+`figs/ieee_tc/p2_backend_qualification/d278_20261006_readiness_retry9/`.
+
+The physical owner-union sidecar reports 15,349.592341 GPU-s with no open
+leases. Watchdog evidence shows minimum host `MemAvailable` 94.23 GiB, service
+memory peak 20.47 GiB, and zero high/OOM/oom-kill events. After local cleanup,
+the managed remote 7B artifact service was stopped and port 18081 was
+inactive. The prepublished gzip cache was reused; no request-time packing was
+performed.

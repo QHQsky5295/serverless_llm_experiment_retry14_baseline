@@ -1,0 +1,2 @@
+model,scenario,run_tag,label,first_service_n,planned_match_n,planned_miss_n,planned_match_rate_pct,gpu_ready_rate_pct,remote_cold_rate_pct,ttft_p50_match_ms,ttft_p95_match_ms,ttft_p50_miss_ms,ttft_p95_miss_ms
+meta-llama--Llama-2-7b-hf,tc_ieee_readiness_8phase_full_retry9,d278_7b_readiness_8phase_full_retry9,tc_ieee_readiness_8phase_full_retry9,10,0,10,0.0,0.0,0.0,nan,nan,1456.086043792311,175647.4058333202
