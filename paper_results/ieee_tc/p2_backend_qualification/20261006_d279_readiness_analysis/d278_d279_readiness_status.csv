@@ -1,0 +1,4 @@
+run_tag,planned,terminal,success,phases,scale_up_events,first_service_n,dispatch_tier_records,tier_invariant_conflicts,mean_ttft_ms,p95_ttft_ms,mean_service_ttft_ms,p95_service_ttft_ms,mean_dispatch_admission_wait_ms,p95_dispatch_admission_wait_ms,mean_e2e_ms,p95_e2e_ms,mean_tpot_ms,output_contract_bad,token_source,remote_pack_true,physical_gpu_seconds,n_correct,ranking_eligible
+d278_7b_readiness_8phase_full_retry9,4000,4000,4000,8,10,10,4000,0,6895.507,22698.645,681.683,1861.640,6213.825,21646.897,11204.560,27220.678,36.840,0,vllm_token_ids,0,15349.592341,null,false
+d279_7b_readiness_8phase_full_retry10,4000,4000,4000,8,10,10,4000,0,2062.525,6242.526,661.039,1690.217,1401.486,5595.343,6386.290,13728.070,37.485,0,vllm_token_ids,0,15895.425961,null,false
+combined_first_service,,,,,,,,,,,,,,,,,,,,20,,false

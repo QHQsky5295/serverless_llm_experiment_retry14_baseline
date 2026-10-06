@@ -1,0 +1,57 @@
+{
+  "analysis": "readiness_diagnostic_gate",
+  "gate_version": "eurosys27_v2_readiness_8cycle_v1",
+  "thresholds": {
+    "expected_total_per_run": 4000,
+    "expected_completed_per_run": 4000,
+    "expected_failed_per_run": 0,
+    "expected_phases_per_run": 8,
+    "min_scale_up_events_per_run": 8,
+    "min_first_service_per_model_variant_across_runs": 20,
+    "max_identical_cold_runs_per_model_variant": 2,
+    "dispatch_tier_coverage_pct": 100.0,
+    "tier_invariant_conflicts": 0
+  },
+  "aggregate_runs": false,
+  "passed": false,
+  "rerun_required": true,
+  "integrity_errors": [],
+  "sample_shortfalls": [
+    "model='meta-llama--Llama-2-7b-hf', variant='tc_ieee_readiness_8phase_full_retry10': first-service samples=10, expected >= 20"
+  ],
+  "groups": [
+    {
+      "model": "meta-llama--Llama-2-7b-hf",
+      "variant": "tc_ieee_readiness_8phase_full_retry10",
+      "run_count": 1,
+      "run_tags": [
+        "d279_7b_readiness_8phase_full_retry10"
+      ],
+      "configuration_fingerprints_identical": true,
+      "first_service_n": 10,
+      "min_first_service": 20,
+      "first_service_gate_passed": false,
+      "additional_cold_run_allowed": true,
+      "passed_integrity": true,
+      "runs": [
+        {
+          "run_tag": "d279_7b_readiness_8phase_full_retry10",
+          "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d279_20261006/7b_readiness_8phase_full_retry10/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_readiness_8phase_full_retry10_d279_7b_readiness_8phase_full_retry10.json",
+          "total": 4000,
+          "completed": 4000,
+          "failed": 0,
+          "phase_count": 8,
+          "scale_up_event_count": 10,
+          "first_service_n": 10,
+          "dispatch_tier_records": 4000,
+          "dispatch_tier_coverage_pct": 100.0,
+          "tier_invariant_conflicts": 0,
+          "cold_cache_reset_before_run": true,
+          "configuration_fingerprint": "a0d97dad566267feaef51a23cec4e76843751f94c2af99f9e098d6e5d74afdd4",
+          "passed_integrity": true,
+          "integrity_errors": []
+        }
+      ]
+    }
+  ]
+}

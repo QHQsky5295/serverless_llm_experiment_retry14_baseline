@@ -1,14 +1,23 @@
 # IEEE TC execution status
 
-## CURRENT — D279 7B readiness replicate live; D278 startup comparison remains non-causal diagnostic
+## CURRENT — D279 completes; combined readiness diagnostic reaches the pre-registered sample count
 
-2026-10-06. D279 is still running under the explicitly permitted identical cold
-replicate contract.  At the latest observation it had 2,779/4,000 arrivals,
-2,771 completions, 2,771 successes, zero reported failures, eight scale-ups
-and five scale-downs; it remains diagnostic-only until the retained result and
-cleanup receipts are validated.  The live log reports mean/P95 user TTFT of
-about 2.3/10.6 s while the service TTFT is about 0.70/1.9 s.  These are live
-progress values, not a published performance result.
+2026-10-06. The permitted identical cold replicate D279 completed with
+4,000/4,000 terminal successes, eight complete phases, ten scale-ups, complete
+dispatch tiers and zero tier-invariant conflicts.  Its single-run first-service
+count is ten, so the generic strict analyzer reports the expected
+`rerun_required=true`.  D278 contributes ten more.  An explicit allowlisted
+configuration audit found only run/output/cache identity differences between
+the parsed YAML files, with equal trace, adapter subset, generation contract,
+request-map hash, seeds and feature gates; the combined diagnostic count is
+therefore 20.  The compact table is in
+`paper_results/ieee_tc/p2_backend_qualification/20261006_d279_readiness_analysis/`.
+
+D279's descriptive mean/P95 user TTFT is 2,062.5/6,242.5 ms and service TTFT
+is 661.0 ms; its physical sidecar observes 15,895.426 GPU-s but leaves
+`n_correct=null`.  These values are diagnostic and not G1/G2 or baseline
+ranking results.  Local GPU release, service-path removal, and the owned
+remote artifact process cleanup were confirmed.
 
 The D278-versus-D219 audit is retained, but its different parent swap and
 short-window PSI observations are only a correlated host-state difference.
@@ -17,16 +26,16 @@ stall time; neither observation proves that the replay incurred swap I/O or
 that it caused the 151-s startup difference.  D278 therefore remains a
 diagnostic stratum with an unresolved cause, not an “environment pollution”
 exclusion and not evidence of an intrinsic PrimeLoRA latency regression.  The
-unfavorable D278 values remain preserved and will not be discarded merely
-because they are slow.  No causal optimization decision is made until D279's
-same-configuration evidence and the startup receipts are complete.
+unfavorable D278 values remain preserved and were not discarded merely because
+they are slow.  The completed D279 evidence does not by itself identify the
+cause, so no causal optimization decision is made from this diagnostic.
 
 The metric boundary remains frozen: G1/G2 require correctness and common joint
 SLO; CE is supplementary.  The no-delay storage point is a path diagnostic in
 the bandwidth sensitivity, not a measured or rigorous performance upper bound.
-The next action is to finish D279, then perform the bounded readiness audit and
-render a diagnostic table before deciding whether any further 7B Prime run is
-justified.  Baselines and 3B remain paused.
+The next action is to preserve the combined readiness evidence and begin the
+next pre-registered 7B Prime optimization/qualification step only after the
+CPU audit and table review.  Baselines and 3B remain paused.
 
 ## CURRENT — metric boundary frozen; D278 startup latency retained as an unresolved host-state diagnostic
 
@@ -61,7 +70,7 @@ paper-level action is a clean 7B startup/resource-stratum validation under the
 frozen contract; only after that can a causal readiness optimization or the
 formal first-service blocks be considered.  3B and all baselines remain paused.
 
-## CURRENT — D278 first-service audit bounds the planned-match question; readiness gate remains open
+## CURRENT — D278 first-service audit bounds the planned-match question before the D279 replicate
 
 2026-10-06. A CPU/offline join of the ten D278 natural scale-up epochs to
 their first actual dispatches is archived in
