@@ -11,7 +11,31 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D298 source calibration complete; Full smoke prepared
+## CURRENT — D298 Full100 smoke RUNNING; source calibration complete
+
+2026-10-07 03:19+08. Checkpoint9cd6a4aa323d7484b5b08f29e97018f74f3de0aa
+pushed/remotely verified, then SAME prepared candidate launched once in tmux
+primelora-d298-smoke. Raw d298_20261007/7b_capacity_validation_100.
+Service primelora-tc-svc-9c2f957cd5174d60a6d81d411517ba66.scope invocation
+549590abfe3842aeb4ca60ede5e00855; watchdog2397137 in aux
+primelora-tc-aux-d1e6a90a22d74e75a6c10fa7199ced67.scope. Sample21: hostavailable
+111105257472B, servicepeak1939734528B, high/max/OOM0/no warning. Stillpreparing.
+Inference startdisk161739771904B meets unchanged150GiB threshold.
+Remote monitor primelora-artifact-monitor-d298-smoke.service invocation
+85dc6cf708d94a0fb2abd7807333d3d8;7Bf3fb04d7a85e455e85f7015edce90bde;
+3Bed01e4e1cba5400fa07f7b28764412c6 (artifactonly). RemoteNIC1000/full.
+Authenticated direct health at821595.054949011 before launch uses existing
+HttpArtifactStoreClient, clock00210148961142b18fb410298f6c7c16. First manual
+urllib health used environment proxy and returned502 BEFORE inference; empty
+smoke_remote_health.json retained; direct receipt is smoke_remote_health2.json.
+Serving client already uses direct access; no serving change or rerun occurred.
+Remote monitor log/home/lab14/primelora_remote/tc/d298_smoke_20261007/remote_monitor.log.
+NEXT monitor THIS smoke to actual resource release, stop exact captured remote
+instances, collect by actual journal filename and clock/UUID matches, audit
+native/binding/timing/resource/remote data WITHOUT figures, then original4000W0
+if qualification permits. No warm repeat, fresh optimizer,3B or baseline whilelive.
+
+## D298 source calibration complete; Full smoke preparation history
 
 2026-10-07 03:17+08. SAME source job completed248/248 native-contract calls,
 240representative+8warmup, with48measured calls per source. Existing validators
