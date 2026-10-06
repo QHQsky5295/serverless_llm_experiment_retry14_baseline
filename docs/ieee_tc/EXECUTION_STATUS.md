@@ -1,5 +1,24 @@
 # IEEE TC execution status
 
+## CURRENT — D273 source-plan boundary audited; no validator change retained
+
+2026-10-06. A CPU-only falsification check examined whether the verified
+same-content path-migration shortcut could bypass an active preparation plan.
+The direct validator call accepts such a source only when no plan identity is
+carried; this is the request-side input that the controller is designed to use
+to supersede a stale plan and advance the source epoch. The complete
+transfer-pressure suite then passed 169/169 tests, including staging,
+native-HOST, handoff, movement, and native-commit supersession boundaries; the
+focused GPU-reference suite passed 135/135. The exploratory source edit was
+fully reverted and no production validator change remains.
+
+The evidence therefore distinguishes an unplanned demand that must trigger
+plan supersession from an operation explicitly owned by a frozen preparation
+plan. D273 does not identify D266's missing old/requested source state and does
+not authorize a GPU replay, readiness point, G1/G2 point, or baseline
+comparison. The audit is retained at
+`paper_results/ieee_tc/p2_backend_qualification/20261006_d273_source_plan_supersession_audit/d273_status.md`.
+
 ## CURRENT — D272 separates source-path migration from content identity
 
 2026-10-06. A CPU-only contract qualification inspected the unchanged native
