@@ -94,6 +94,8 @@ def _unit_snapshot(unit: str) -> dict[str, Any]:
             "-p",
             "AllowedCPUs",
             "-p",
+            "CPUAffinity",
+            "-p",
             "ActiveState",
             "-p",
             "MainPID",
@@ -110,6 +112,23 @@ def _unit_snapshot(unit: str) -> dict[str, Any]:
             continue
         key, value = line.split("=", 1)
         values[key] = value
+    # User-level systemd managers may expose AllowedCPUs on a slice without
+    # having the cpuset controller delegated.  The process-level affinity is
+    # the enforceable contract in that case, so record the kernel's effective
+    # mask while the unit is still active.
+    try:
+        pid = int(str(values.get("MainPID", "0")))
+    except ValueError:
+        pid = 0
+    if pid > 0:
+        status_path = Path(f"/proc/{pid}/status")
+        try:
+            for line in status_path.read_text(encoding="utf-8").splitlines():
+                if line.startswith("Cpus_allowed_list:"):
+                    values["CpusAllowedList"] = line.split(":", 1)[1].strip()
+                    break
+        except (FileNotFoundError, PermissionError, OSError):
+            values["CpusAllowedList"] = None
     return values
 
 
@@ -167,6 +186,11 @@ def init(args: argparse.Namespace) -> None:
             "auxiliary_tasks_max": int(args.aux_tasks_max),
             "service_cpu_affinity": args.service_cpu_affinity,
             "auxiliary_cpu_affinity": args.aux_cpu_affinity,
+            "cpu_affinity_enforcement": (
+                "systemd transient-unit CPUAffinity plus inherited process mask; "
+                "slice AllowedCPUs is recorded but is not treated as proof when "
+                "the user cgroup lacks delegated cpuset"
+            ),
         },
         "gpu_inventory_at_acquire": inventory,
         "lifecycle": [

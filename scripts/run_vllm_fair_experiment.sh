@@ -1213,6 +1213,7 @@ for replica_idx in $(seq 0 $((DP_REPLICAS - 1))); do
       --property=MemoryHigh="${VLLM_RESIDENT_SERVICE_MEMORY_HIGH}" \
       --property=MemorySwapMax="${VLLM_RESIDENT_SERVICE_SWAP_MAX}" \
       --property=TasksMax="${VLLM_RESIDENT_SERVICE_TASKS_MAX}" \
+      ${VLLM_RESIDENT_SERVICE_CPU_AFFINITY:+--property=CPUAffinity="${VLLM_RESIDENT_SERVICE_CPU_AFFINITY}"} \
       env "${env_args[@]}" "${server_cmd[@]}" > "${replica_log}" 2>&1
     VLLM_SERVER_UNITS+=("${replica_unit}")
     replica_pid="$(resident_unit_pid "${replica_unit}")"
@@ -1469,6 +1470,7 @@ if [[ "${VLLM_RESIDENT_PROTOCOL_V1}" == "1" ]]; then
     --property=MemoryHigh="${VLLM_RESIDENT_AUX_MEMORY_HIGH}" \
     --property=MemorySwapMax="${VLLM_RESIDENT_AUX_SWAP_MAX}" \
     --property=TasksMax="${VLLM_RESIDENT_AUX_TASKS_MAX}" \
+    ${VLLM_RESIDENT_AUX_CPU_AFFINITY:+--property=CPUAffinity="${VLLM_RESIDENT_AUX_CPU_AFFINITY}"} \
     "${REPLAY_SYSTEMD_ENV[@]}" \
     "${REPLAY_CMD[@]}" > "${AUX_REPLAY_LOG}" 2>&1
   REPLAY_PID="$(resident_unit_pid "${VLLM_AUX_UNIT}")"
