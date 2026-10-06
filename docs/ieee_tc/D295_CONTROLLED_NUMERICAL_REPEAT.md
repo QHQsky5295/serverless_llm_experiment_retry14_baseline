@@ -64,3 +64,11 @@ high/max/OOM=0。最终表在各 block 后追加，不覆盖登记。
 
 配置 SHA：`b329e9f6ad6eb517227c0aa974a03ad69d1c9fa25d06f3c76b7885405e62fd3c`。
 启动器 SHA：`c5c1f058ed79c2d5c073a5bd07a4299f4df9ee479b692d8f70b51aba92237497`。
+
+### Block1 首次启动未进入模型
+
+原启动器用了可读资源域名称，而既有 guard 要求 UUID-owned auxiliary scope。
+guard 正确拒绝；无模型启动、无 GPU 请求、无性能样本。保留原 `block_1/`
+日志和提交 `4bba237`。修正启动器使用原有 UUID 资源域规范，并强制显式 attempt
+形成新目录 `block_N_attempt_K/`；不放宽 guard，不覆盖已存在目录。该修正不改变
+测量配置或请求合同，首轮重启登记为 block1/attempt2。

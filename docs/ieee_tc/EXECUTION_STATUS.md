@@ -1,6 +1,6 @@
 # IEEE TC execution status
 
-## CURRENT — D295 controlled numerical repeat registered; launch block1 next
+## CURRENT — D295 block1 launch refused before GPU; unique retry next
 
 2026-10-06. D294's missing measurement now has an opt-in extension to the existing
 backend-model-check: same 27 original request indexes (0–21 plus59/74/77/84/91),
@@ -15,6 +15,10 @@ only the same pre-existing baseline replay script difference. Fresh disk/headroo
 gate passes narrowly; recheck before launch. No new GPU results yet. Inspect each
 block and publish status table before next; no unchecked three-block loop.
 7B acceptance, commonwarm/Resident and G1/G2 still OPEN; no3B/baselines.
+Block1 first launch was refused because the new launcher used a readable name
+instead of the existing required UUID auxiliary scope. Zero model/request work.
+Original `block_1/` and source4bba237 preserved; only launcher ownership naming
+corrected, explicit fresh attempt suffix added. Next block1/attempt2, same inputs.
 
 ## CURRENT — D294 saved binding audit passes; numerical cause remains unresolved
 

@@ -4,7 +4,9 @@ set -o noclobber
 ROOT=/home/qhq/serverless_llm_experiment_retry14_baseline
 BLOCK=${1:?explicit block 1, 2 or 3 required}
 case "$BLOCK" in 1|2|3) ;; *) exit 2 ;; esac
-RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d295_20261006/block_${BLOCK}
+ATTEMPT=${2:?explicit fresh attempt number required}
+[[ "$ATTEMPT" =~ ^[1-9][0-9]*$ ]]
+RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d295_20261006/block_${BLOCK}_attempt_${ATTEMPT}
 test ! -e "$RAW"
 mkdir -p "$RAW"
 exec >"$RAW/launcher.log" 2>&1
@@ -30,7 +32,8 @@ sha256sum scripts/ieee_tc_preflight.py scripts/run_all_experiments.py \
   configs/ieee_tc/20261006_d295_7b_numerical_repeat.yaml \
   docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md \
   /home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md > "$RAW/sources.sha256"
-exec systemd-run --user --scope --collect --unit="primelora-tc-aux-d295-block-${BLOCK}" \
+IFS= read -r UNIT_ID < /proc/sys/kernel/random/uuid
+exec systemd-run --user --scope --collect --unit="primelora-tc-aux-${UNIT_ID//-/}.scope" \
   -p MemoryHigh=3G -p MemoryMax=4G -p MemorySwapMax=0 \
   taskset -c 2,3,26,27 /usr/bin/python3 scripts/ieee_tc_preflight.py gated-launch \
   --output "$RAW/launch.json" --predicted-growth-gib 2 \
