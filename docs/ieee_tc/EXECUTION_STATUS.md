@@ -1,5 +1,31 @@
 # IEEE TC execution status
 
+## CURRENT — D285 Resident 7B pilot passes the protocol gate; reference series still open
+
+2026-10-06. A fresh 7B seed-42 pilot completed 100/100 requests with the
+fixed-length native-token contract (100/100 target matches and no trace-token
+fallback). The deployment notice was published before startup and the replay
+used the same absolute monotonic origin. Four replicas were launched
+concurrently and became ready in 72.66--73.44 seconds; the first request's
+approximately 18.98-second dispatch wait is consistent with the 60-second
+lead and measured startup, so startup was not removed from user TTFT.
+
+Unlike D282/D283, D285 records active unit snapshots while the units still
+exist: every service unit read back 72-GiB `MemoryHigh`, 80-GiB
+`MemoryMax`, 2-GiB `MemorySwapMax`, and `TasksMax=4096`; the auxiliary replay
+unit read back a separate 4-GiB/zero-swap/128-task envelope. Cgroup paths and
+PIDs are retained, final NVML cleanup succeeded, and the remote immutable
+delivery service was stopped. The audit is in
+`docs/ieee_tc/D285_RESIDENT_PILOT_RESOURCE_SNAPSHOT.md`; the cumulative pilot
+table is under
+`paper_results/ieee_tc/p2_backend_qualification/20261006_d282_d283_resident_pilot_audit/`.
+
+This closes only the 100-request Resident protocol pilot. Its descriptive
+752.28-ms mean TTFT, 25.15-ms TPOT, 97% development-threshold attainment and
+2254.870 GPU-s are not a formal budget reference. The next admissible action
+is the pre-registered 7B full Resident reference series needed to freeze
+`U_ref`/G2; 3B and external baselines remain paused.
+
 ## CURRENT — D282/D283 Resident pilots diagnose shared-clock and startup barriers; no reference budget frozen
 
 2026-10-06. D282 completed 100/100 fixed-output 7B requests and passed the

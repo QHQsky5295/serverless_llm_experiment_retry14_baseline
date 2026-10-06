@@ -1,3 +1,4 @@
 pilot,model,seed,planned_requests,completed_successes,notice_before_startup,absolute_replay_origin,replica_startup_s,valid_for_performance,reason
 D282,7B,42,100,100,no,no,"290.995;~70;~70;~69",no,"notice published after all replicas were ready and replay used process-start clock"
 D283,7B,42,100,20,"yes",yes,"66.534;68.559;66.770;68.583",no,"truncated after serialized startup exposed; replay output intentionally incomplete"
+D285,7B,42,100,100,"yes",yes,"73.442;73.112;72.890;72.662",yes,"pilot protocol gate passes; 100-request pilot is not a Resident reference repeat"
