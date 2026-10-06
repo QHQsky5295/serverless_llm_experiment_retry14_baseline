@@ -1,5 +1,36 @@
 # IEEE TC execution status
 
+## CURRENT — D275 stale selected GPU copy now re-routes without relaxing identity checks
+
+2026-10-06. A new CPU-only, falsifiable contract test isolated a race class
+that was not distinguished by D266's incomplete witness.  It selected a
+confirmed GPU copy, retired it, installed the same logical adapter and
+verified immutable content from a new managed path, and then submitted the old
+selection.  Before the change, the request raised the native source-conflict
+exception at `_validate_source_binding`; this red observation was captured
+before modifying production behavior.
+
+`IEEEBackendGPUReferences._load_and_acquire` now returns the existing typed
+`required_source_changed` result when (and only when) an observed source ID is
+stale while the current live copy proves the same logical adapter name and
+content digest.  The controller's existing whole-request re-resolution path
+therefore remains authoritative.  Future-epoch and lease checks remain strict;
+wrong logical identity, wrong content, staged-source mismatch, and callers
+without a verified digest still reach the unchanged fail-closed validator.  No
+native cache, pin, lease, or epoch is mutated by the typed conflict.
+
+The focused native-reference suite passes **135/135**; the request-lifecycle,
+pending-GPU-pipeline, and transfer-pressure suites pass **365/365** under the
+bounded CPU scope.  Evidence and the compact table are in
+`docs/ieee_tc/D275_STALE_GPU_SELECTION_RECHECK.md` and
+`paper_results/ieee_tc/p2_backend_qualification/20261006_d275_stale_selection_recheck/d275_cpu_contract.csv`.
+This closes a demonstrated stale-selection contract bug class, but does not
+reconstruct D266 (which lacks old/requested/live source and plan witnesses),
+and is not a GPU readiness, performance, SLO, G1/G2, or baseline result.  The
+next gate is rechecking the existing numerical/common-warm/physical-release
+requirements before any new 7B GPU readiness attempt; no replay is authorized
+solely by D275.
+
 ## CURRENT — D274 3B historical bottleneck is profile-bound; no replay authorized
 
 2026-10-06. A CPU-only audit compared the retained exploratory D138

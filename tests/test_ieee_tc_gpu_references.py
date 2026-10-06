@@ -1767,6 +1767,51 @@ class NativeSelectedCopyWitness(unittest.TestCase):
         self.assertEqual(reply['reason'], 'required_source_changed')
         self.assertTrue(self.acquire(new_view, new_row, 'new-copy')['acquired'])
 
+    def test_stale_gpu_selection_after_same_content_replacement_is_reroutable(self):
+        """A delayed GPU choice must become a typed re-route, not an identity crash."""
+        fixture = NativeDemandTransactions()
+        fixture.setUp()
+        content = 'a' * 64
+        first = fixture.owner.demand_load_and_acquire(
+            lease_id='initial', adapter_int_id=4, lora_name='adapter-4',
+            lora_path='/existing/adapter-4', expected_content_sha256=content,
+            expected_owner_id=fixture.owner.owner_id, expected_epoch=fixture.owner.epoch)
+        fixture.release('initial')
+        selected = fixture.owner.source_snapshot()
+        selected_row = next(row for row in selected['sources'] if row['adapter_int_id'] == 4)
+        fixture.manager.deactivate(4)
+        self.assertTrue(fixture.owner.evict(adapter_int_id=4)['evicted'])
+        replacement = fixture.owner.demand_load_and_acquire(
+            lease_id='replacement', adapter_int_id=4, lora_name='adapter-4',
+            lora_path='/managed-host/adapter-4', expected_content_sha256=content,
+            expected_owner_id=fixture.owner.owner_id, expected_epoch=fixture.owner.epoch)
+        self.assertTrue(replacement['acquired'])
+        before = fixture.owner.snapshot()
+        delayed = fixture.owner.demand_load_and_acquire(
+            lease_id='delayed-old-selection', adapter_int_id=4,
+            lora_name='adapter-4', lora_path=selected_row['lora_path'],
+            expected_content_sha256=content,
+            expected_source_id=selected_row['source_id'], required_source_tier='gpu',
+            expected_owner_id=fixture.owner.owner_id, expected_epoch=selected['epoch'])
+        self.assertFalse(delayed['acquired'])
+        self.assertEqual(delayed['reason'], 'required_source_changed')
+        self.assertEqual(fixture.owner.snapshot(), before)
+        with self.assertRaisesRegex(ValueError, 'different adapter source'):
+            fixture.owner.demand_load_and_acquire(
+                lease_id='wrong-logical-selection', adapter_int_id=4,
+                lora_name='other-adapter', lora_path=selected_row['lora_path'],
+                expected_content_sha256=content,
+                expected_source_id=selected_row['source_id'], required_source_tier='gpu',
+                expected_owner_id=fixture.owner.owner_id, expected_epoch=selected['epoch'])
+        with self.assertRaisesRegex(ValueError, 'different adapter source'):
+            fixture.owner.demand_load_and_acquire(
+                lease_id='wrong-content-selection', adapter_int_id=4,
+                lora_name='adapter-4', lora_path=selected_row['lora_path'],
+                expected_content_sha256='b' * 64,
+                expected_source_id=selected_row['source_id'], required_source_tier='gpu',
+                expected_owner_id=fixture.owner.owner_id, expected_epoch=selected['epoch'])
+        fixture.release('replacement')
+
     def test_host_to_gpu_transition_rejects_old_host_witness(self):
         self.fixture.manager.deactivate(4)
         view, row = self.source()

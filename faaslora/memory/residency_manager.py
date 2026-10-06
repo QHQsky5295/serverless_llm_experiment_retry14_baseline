@@ -2484,7 +2484,6 @@ class IEEEBackendGPUReferences:
         source = (lora_name, lora_path)
         if lease_id in self._host_leases or lease_id in self._host_released or lease_id in self._staged_host_leases:
             raise ValueError('GPU lease collides with a HOST source lease')
-        self._validate_source_binding(adapter_int_id, source, expected_content_sha256)
         if lease_id in self._leases:
             receipt = self._leases[lease_id]
             if (receipt['adapter_int_id'] != adapter_int_id
@@ -2497,8 +2496,39 @@ class IEEEBackendGPUReferences:
             return dict(receipt)
         if lease_id in self._released:
             raise ValueError('released lease ID cannot be reused')
-        if expected_epoch > self.epoch or (expected_source_id is None and expected_epoch != self.epoch):
+        # A copy witness intentionally permits an older epoch, but a caller
+        # cannot authorize work from the future.  Check this before source
+        # binding so a future snapshot remains a typed stale result.
+        if expected_epoch > self.epoch:
             return {'acquired': False, 'reason': 'stale_snapshot', **self.snapshot()}
+        if expected_source_id is not None:
+            # The router may have selected a confirmed GPU copy, then another
+            # request legally replaced that same immutable adapter before this
+            # serialized worker reached the native call.  If the current live
+            # copy proves the same logical/content identity but has a new
+            # incarnation, return the existing re-resolution signal instead of
+            # treating the delayed path as an attempted relabel.  Logical-name
+            # and content checks deliberately keep fail-closed validation for
+            # malformed or cross-adapter callers.
+            cpu, gpu = self._caches()
+            current_source_tier = None
+            current_source_id = None
+            if adapter_int_id in slots and adapter_int_id in self._gpu_confirmations:
+                current_source_tier = 'gpu'
+                current_source_id = self._gpu_source_incarnations.get(adapter_int_id)
+            elif adapter_int_id in cpu:
+                current_source_tier = 'host'
+                current_source_id = self._source_incarnations.get(adapter_int_id)
+            current_source = self._sources.get(adapter_int_id)
+            if (current_source_id is not None and current_source_id != expected_source_id
+                    and current_source is not None and current_source[0] == lora_name
+                    and expected_content_sha256 is not None
+                    and self._source_contents.get(adapter_int_id) == expected_content_sha256):
+                return {'acquired': False, 'reason': 'required_source_changed',
+                        'observed_source_tier': current_source_tier, **self.snapshot()}
+        if expected_source_id is None and expected_epoch != self.epoch:
+            return {'acquired': False, 'reason': 'stale_snapshot', **self.snapshot()}
+        self._validate_source_binding(adapter_int_id, source, expected_content_sha256)
         if not callable(loader):
             raise RuntimeError('native demand loader is not attached')
         cpu, gpu = self._caches()

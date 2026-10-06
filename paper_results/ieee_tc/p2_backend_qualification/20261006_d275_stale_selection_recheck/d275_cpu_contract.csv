@@ -1,0 +1,9 @@
+check,outcome,interpretation
+delayed_equivalent_copy_typed_reroute,PASS,"required_source_changed; no native mutation"
+replacement_state_unchanged,PASS,"live same-content replacement remains bound"
+wrong_logical_identity,PASS,"strict source conflict retained"
+wrong_content_identity,PASS,"strict source conflict retained"
+native_reference_suite,PASS,"135/135"
+request_pipeline_suites,PASS,"365/365"
+gpu_replay,NOT_RUN,"CPU contract only"
+performance_point,NOT_ELIGIBLE,"no SLO/G1/G2 evidence"
