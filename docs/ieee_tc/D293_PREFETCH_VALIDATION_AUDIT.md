@@ -119,6 +119,9 @@ high/max/OOM/oom-kill 事件与 swap 均为 0。推理机 150/100 GiB 规则没�
   预览失败保留，新稿显式注册已安装 TNR，不作字体替代。
 - 图按 academic-plotting 和 Plan §11：3.45 inch 单栏、嵌入 TNR regular/bold、
   下方加粗子标题、300 DPI PNG 与矢量 PDF；已检查渲染、字体和页面尺寸。
+- 首次备份 `24519cf` 的 CSV 默认 CRLF 被 Git whitespace 检查标记；后续仅将
+  三个新 CSV 规范为 LF，并固定 writer 的换行参数，所有数值、原始来源和图
+  不变。manifest 中的生成脚本 SHA 对应 `24519cf` 的原生成版本，不伪改来源。
 
 下一步首先沿用 D225–D249 的已有证据，对六条同后端差异审计实际权重/slot/
 request binding 与批调度；只有现有日志确实缺失时才使用已有 opt-in token

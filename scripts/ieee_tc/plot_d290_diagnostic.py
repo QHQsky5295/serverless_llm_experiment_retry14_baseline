@@ -141,7 +141,7 @@ def compare_diagnostics(reference: Path, candidate: Path, out_dir: Path) -> None
     if not same_inputs:
         raise ValueError("diagnostic comparison input identities differ")
     with (out_dir / "comparison.csv").open("w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=["metric", "reference", "candidate", "lower_better_change_percent"])
+        writer = csv.DictWriter(f, fieldnames=["metric", "reference", "candidate", "lower_better_change_percent"], lineterminator="\n")
         writer.writeheader()
         for key in left:
             a, b = left[key], right[key]
@@ -243,7 +243,7 @@ def main() -> None:
             "n": len(values),
         })
     with (data_dir / "stage_summary.csv").open("w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=["metric", "mean_ms", "p95_ms", "n"])
+        writer = csv.DictWriter(f, fieldnames=["metric", "mean_ms", "p95_ms", "n"], lineterminator="\n")
         writer.writeheader()
         writer.writerows(stage_rows)
 
