@@ -1,0 +1,11 @@
+request_id,adapter_id,activation_id,request_first_service,planned_match,readiness_tier_before_dispatch,source_tier,selected_instance_age_s,dispatch_admission_wait_ms,ttft_ms,confirmed_dispatch_snapshot,proactive_admission_evaluated,replica_mismatch,remote_mismatch,stale_rechecks
+req_00023,medical_lora,ieee-activation-a70eaeffe43c49688f7c648d35237087,true,false,host,host,0.085041,182913.542,184780.625,true,false,true,false,0
+req_00029,code_lora,ieee-activation-454620a71a70437abe9df5437375b01f,true,false,host,host,0.128030,164146.576,164484.583,true,false,true,false,0
+req_00033,finance_lora,ieee-activation-7a0ba65c02f74bda94dfddb662e70783,true,false,nvme,nvme,0.109636,159223.146,159548.575,true,false,true,false,0
+req_00538,legal_lora_0029,ieee-activation-3283d558242c45cb85166a721d831562,true,false,host,host,1.661521,194.596,762.295,true,false,true,false,0
+req_01086,writing_lora_0059,ieee-activation-5c2765bef0384a11a1d824c0030c8f4a,true,false,nvme,nvme,0.176454,1329.721,1652.822,true,false,true,false,0
+req_01574,finance_lora_0037,ieee-activation-3f0e2b2fbd7842298975bd82237818f3,true,false,nvme,nvme,6.902677,54.430,350.133,true,false,true,false,0
+req_02125,ecommerce_lora_0069,ieee-activation-4a4ca4bd14f94a30b1a240d91dd39d86,true,false,nvme,nvme,41.460278,861.331,1259.350,true,false,true,false,1
+req_02569,writing_lora_0071,ieee-activation-843c84160f5d400abb84ce3b915062eb,true,false,nvme,nvme,11.297151,679.503,984.635,true,false,true,false,0
+req_03064,support_lora_0076,ieee-activation-f472dfcc656c43df82d621202fe31f9e,true,false,nvme,nvme,0.483052,3029.821,3313.507,true,false,true,false,0
+req_03534,legal_lora_0089,ieee-activation-2c186cdb8e804e17bd5d3300d1f1bb63,true,false,nvme,nvme,0.074814,72.027,370.458,true,false,true,false,0
