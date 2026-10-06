@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT=/home/qhq/serverless_llm_experiment_retry14_baseline
-RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d261_20261006/7b_rpc_prefix8
+RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d261_20261006/7b_rpc_prefix8_retry2
 cd "$ROOT"
 mkdir -p "$RAW"
 exec >"$RAW/launcher.log" 2>&1
@@ -30,7 +30,7 @@ export FAASLORA_SHARED_TRACE_PATH=/home/qhq/serverless_llm_baselines/results/pap
 export FAASLORA_SHARED_ADAPTER_SUBSET_PATH="${FAASLORA_SHARED_TRACE_PATH%_trace.json}_adapter_subset.json"
 export FAASLORA_TRACE_ROLE=exploratory
 export FAASLORA_FORMAL_RUN=0
-export FAASLORA_RESULTS_TAG=d261_7b_rpc_prefix8
+export FAASLORA_RESULTS_TAG=d261_7b_rpc_prefix8_retry2
 export FAASLORA_WORKER_START_TIMEOUT_S=600
 export FAASLORA_KEEP_DEDICATED_WORKER_LOGS=1
 export PYTHONNOUSERSITE=1
