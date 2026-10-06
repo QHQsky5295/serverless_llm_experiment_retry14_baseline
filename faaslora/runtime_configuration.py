@@ -7,6 +7,17 @@ without removing capacity fields from profile identity.
 import copy
 
 
+# These values are derived inside the fresh worker from the local checkpoint
+# and current host memory.  They are receipts for startup observability, not
+# requested serving configuration, so they must not invalidate the parent/
+# worker configuration handshake when the available-memory reading changes by
+# a small amount during launch.
+_EPHEMERAL_STARTUP_FIELDS = frozenset({
+    'resolved_safetensors_load_strategy', 'safetensors_load_decision',
+    'safetensors_model_bytes', 'safetensors_mem_available_bytes',
+})
+
+
 def resolve_facade_lora_capacity(model_config):
     config = copy.deepcopy(model_config)
     if (str(config.get('backend', 'vllm')).lower() == 'vllm'
@@ -22,8 +33,17 @@ def initialized_worker_configuration(ready, requested):
         raise ValueError('dedicated worker lacks initialized model configuration receipt')
     actual = ready['model_config']
     expected = resolve_facade_lora_capacity(requested)
-    if actual != expected:
-        differing = sorted(key for key in set(actual) | set(expected)
-                           if key not in actual or key not in expected or actual[key] != expected[key])
+    comparable_actual = {
+        key: value for key, value in actual.items()
+        if key not in _EPHEMERAL_STARTUP_FIELDS
+    }
+    comparable_expected = {
+        key: value for key, value in expected.items()
+        if key not in _EPHEMERAL_STARTUP_FIELDS
+    }
+    if comparable_actual != comparable_expected:
+        differing = sorted(key for key in set(comparable_actual) | set(comparable_expected)
+                           if key not in comparable_actual or key not in comparable_expected
+                           or comparable_actual[key] != comparable_expected[key])
         raise ValueError('initialized worker model configuration differs: ' + ','.join(differing))
     return copy.deepcopy(actual)
