@@ -35,6 +35,14 @@ at least eight natural scale-ups and at least 20 true first-dispatch samples
 before any readiness claim. D257's seven failures remain visible and are not
 reclassified.
 
+The fresh diagnostic is registered as
+`d258_7b_readiness_8phase_full_retry5` with config SHA-256
+`fbb61e70edf83c89d1c272374a54c08e87b1ea04e3378e9eea9cc05cf50988b8` and
+launcher SHA-256
+`f561b5980f3aff4c8d8fd713b9b0f1da87d553dfe087873026307a8647d54349`.
+Its result, NVMe, and `/dev/shm` roots are fresh and its fields match D257
+after identity substitution; no old result directory is reused.
+
 ## CURRENT — D249 fresh audit closes retry6 provenance and quarantines stale retry4
 
 2026-10-06. A fresh read-only integrity audit of D247 retry6 confirms an
