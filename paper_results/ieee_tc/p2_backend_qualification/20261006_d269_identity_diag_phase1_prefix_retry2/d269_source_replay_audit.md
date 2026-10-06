@@ -7,9 +7,12 @@
   D268's 210-request prefix with eight mini-phases.
 - D269 request 198 and D266 request 198 have the same frozen source-request
   SHA. D269's terminal record is successful and has `native_contract_matched=true`.
-- D269 has no request-level adapter ID/source path in the terminal journal.
-  The request position therefore cannot be used as proof that the exact
-  `_validate_source_binding` predicate was exercised.
+- D269's retained `main_outcome.json` records a verified
+  `education_lora_0007` NVMe source and completed native host preparation,
+  while the terminal journal has no request-level adapter ID/source path. The
+  run therefore exercised the named adapter family, but request position 198
+  alone cannot prove that the exact `_validate_source_binding` predicate was
+  exercised for that request.
 
 ## Evidence limits
 

@@ -22,9 +22,12 @@ not promoted.
 This is stronger than D268 for replay-state control, but it still does **not**
 prove that the D266 identity transition was reproduced or repaired. The
 terminal schema has no adapter ID/source path, retry, or transient-conflict
-counter; the analyzer also reports `vllm_available=false` although worker logs
-show real vLLM 0.30.0/LoRA execution. Consequently the result is exploratory,
-not a readiness, performance, G1/G2, or ranking point. Descriptive mean/P95
+counter. The retained `main_outcome.json` does verify an
+`education_lora_0007` NVMe source, content digest, preparation plan, and
+completed native host preparation, but it does not link that preparation to
+request 198. The analyzer also reports `vllm_available=false` although worker
+logs show real vLLM 0.30.0/LoRA execution. Consequently the result is
+exploratory, not a readiness, performance, G1/G2, or ranking point. Descriptive mean/P95
 TTFT is 1205.5/2802.7 ms and mean/P95 E2E is 6302.1/12317.7 ms for the 500
 request prefix; these numbers are not compared with formal runs.
 

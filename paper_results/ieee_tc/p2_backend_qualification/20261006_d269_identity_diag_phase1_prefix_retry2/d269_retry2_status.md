@@ -52,9 +52,13 @@ this is a release-evidence warning, not a failure of the request run.
 
 `req_00198` has the same source-request SHA as D266's failed request position
 (`4517901c4dc45baa9743da9140157213c90e3ba4174db79ce3b0c191da89d8fc`) and
-completed successfully. This establishes transport/trace correspondence,
-not an independently observed adapter-source identity transition: the
-terminal schema has no adapter ID, source path, retry, or conflict counter.
+completed successfully. The retained `main_outcome.json` also records a
+verified `education_lora_0007` NVMe source, immutable content digest,
+preparation plan, and completed native host preparation. This establishes
+that the adapter/source path was exercised somewhere in the run, but does
+not map that preparation to request 198 or expose the exact native
+transition: the terminal schema has no adapter ID, source path, retry, or
+conflict counter.
 
 ## Descriptive measurements (not ranking evidence)
 
