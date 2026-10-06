@@ -16189,6 +16189,17 @@ class ScenarioRunner:
                 or not isinstance(blockers.get('candidates'), list) or not blockers['candidates']):
             raise RuntimeError('native capacity conflict lacks exact blocking owners')
         witnesses = getattr(self, '_native_reference_witnesses', {})
+        # Proactive native preparation has an explicit controller-owned task,
+        # but it is not a request lease and therefore cannot be represented by
+        # the per-request witness map.  A capacity wait may join that task's
+        # completion event; an unowned native pin still has no release path.
+        task_engines = getattr(self, '_ieee_gpu_plan_engines', {})
+        task_plan_ids = getattr(self, '_ieee_gpu_plan_ids', {})
+        active_preparation_tasks = [
+            (task, task_plan_ids.get(task))
+            for task, task_engine in task_engines.items()
+            if task_engine is reservation.gpu_reference_engine and not task.done()
+        ]
         candidates = []
         seen = set()
         for row in blockers['candidates']:
@@ -16197,6 +16208,12 @@ class ScenarioRunner:
                     or type(row.get('external_pin')) is not bool):
                 raise ValueError('invalid native capacity blocker identity')
             seen.add(aid)
+            preparation_plan_ids = row.get('preparation_plan_ids', [])
+            if (not isinstance(preparation_plan_ids, list)
+                    or any(not isinstance(plan_id, str) or not plan_id
+                           for plan_id in preparation_plan_ids)
+                    or len(set(preparation_plan_ids)) != len(preparation_plan_ids)):
+                raise ValueError('invalid native preparation blocker identity')
             refs, valid = [], not row['external_pin']
             for kind in ('gpu', 'host'):
                 ids = row.get(kind + '_lease_ids')
@@ -16211,6 +16228,13 @@ class ScenarioRunner:
                         valid = False
                     else:
                         refs.append(witness['completion'])
+            if valid and preparation_plan_ids:
+                # One active native GPU preparation task owns the plan's
+                # release acknowledgement.  The exact plan IDs remain in the
+                # receipt for audit; the task mapping is engine-scoped because
+                # each engine serializes its own native preparation queue.
+                refs.extend(task for task, plan_id in active_preparation_tasks
+                            if plan_id in preparation_plan_ids)
             if valid and refs:
                 candidates.append(refs)
         record = dict(reason=receipt['reason'], owner_id=receipt['owner_id'], epoch=receipt['epoch'],
@@ -16220,8 +16244,14 @@ class ScenarioRunner:
             while candidates:
                 # Unknown native outcomes cannot create capacity. Other fully
                 # owned candidates can still make progress without that slot.
+                def invalid_waiter(f):
+                    if isinstance(f, asyncio.Task):
+                        # A completed successful preparation task is a recheck
+                        # trigger. A failed/cancelled task is not capacity.
+                        return f.cancelled() or (f.done() and f.exception() is not None)
+                    return f.done() and (f.cancelled() or f.result() != 'released')
                 candidates = [refs for refs in candidates if not any(
-                    f.done() and (f.cancelled() or f.result() != 'released') for f in refs)]
+                    invalid_waiter(f) for f in refs)]
                 if not candidates:
                     break
                 if any(all(f.done() for f in refs) for refs in candidates):
@@ -16395,6 +16425,9 @@ class ScenarioRunner:
                   'adapter_int_id': native_id,
                   'lora_name': adapter_id, 'lora_path': local_path,
                   'expected_owner_id': snapshot['owner_id'], 'expected_epoch': snapshot['epoch']}
+        immutable_identity = getattr(self, '_ieee_artifact_identities', {}).get(adapter_id)
+        if isinstance(immutable_identity, dict) and immutable_identity.get('content_sha256'):
+            intent['expected_content_sha256'] = immutable_identity['content_sha256']
         if cached_only:
             intent['required_source_tier'] = selected_source.tier
         if guarded_source is not None:
@@ -16496,6 +16529,9 @@ class ScenarioRunner:
                 if ('expected_source_id' in intent
                         and receipt.get('expected_source_id') != intent['expected_source_id']):
                     raise ValueError('native acquisition did not confirm the selected copy identity')
+                if ('expected_content_sha256' in intent
+                        and receipt.get('expected_content_sha256') != intent['expected_content_sha256']):
+                    raise ValueError('native acquisition did not confirm the immutable content identity')
                 if cached_only and (
                         receipt.get('required_source_tier') != intent['required_source_tier']
                         or receipt.get('source_tier_before_acquisition') != intent['required_source_tier']
@@ -18071,7 +18107,11 @@ class ScenarioRunner:
         task_engines = getattr(self, '_ieee_gpu_plan_engines', None)
         if task_engines is None:
             task_engines = self._ieee_gpu_plan_engines = {}
+        task_plan_ids = getattr(self, '_ieee_gpu_plan_ids', None)
+        if task_plan_ids is None:
+            task_plan_ids = self._ieee_gpu_plan_ids = {}
         task_engines[plan_task] = engine
+        task_plan_ids[plan_task] = plan_id
         # Cancellation of a controller must not abandon a possibly accepted
         # native operation. Each call settles its actual RPC before cleanup.
         async def settle(awaitable):
@@ -18131,7 +18171,9 @@ class ScenarioRunner:
                     evidence.update(state='superseded', preparation_supersession=dict(
                         stage=exc.stage, receipt=exc.receipt))
                     raise
-            if (source['adapter_id'], source['lora_path']) != (row['adapter_id'], row['lora_path']):
+            if ((source['adapter_id'], source['lora_path']) != (row['adapter_id'], row['lora_path'])
+                    and (source.get('adapter_id') != row['adapter_id']
+                         or source.get('content_sha256') != row.get('content_sha256'))):
                 evidence.update(state='source_identity_conflict', expected_source=dict(
                     adapter_id=row['adapter_id'], lora_path=row['lora_path']),
                     observed_source=copy.deepcopy(source), observed_epoch=current['epoch'])
@@ -18139,8 +18181,12 @@ class ScenarioRunner:
                     adapter_id=row['adapter_id'], source_path=row['lora_path'],
                     plan_id=plan_id, stage='native_gpu_source_copy', record=evidence)
             cpu_ids = set(current['registered_cpu_adapter_ids'])
-            if (source['gpu_slot'] is None and any(r['adapter_int_id'] in rows
-                    and r['lora_path'] != rows[r['adapter_int_id']]['lora_path'] for r in current['sources'])):
+            if (source['gpu_slot'] is None and any(
+                    r['adapter_int_id'] in rows
+                    and r['lora_path'] != rows[r['adapter_int_id']]['lora_path']
+                    and (r.get('adapter_id') != rows[r['adapter_int_id']]['adapter_id']
+                         or r.get('content_sha256') != rows[r['adapter_int_id']].get('content_sha256'))
+                    for r in current['sources'])):
                 conflict, copies = checked_binding_conflict(current)
                 evidence.update(state='superseded', prepare_rpc_submitted=False, binding_confirmations=copies)
                 raise PreparationPlanSuperseded(dict(plan_id=plan_id,
@@ -18154,6 +18200,8 @@ class ScenarioRunner:
             command = dict(lease_id=uuid.uuid4().hex, adapter_int_id=aid,
                 lora_name=row['adapter_id'], lora_path=row['lora_path'],
                 expected_owner_id=owner_id, expected_epoch=current['epoch'])
+            command['expected_content_sha256'] = row.get('content_sha256') or \
+                self._ieee_artifact_identities[row['adapter_id']]['content_sha256']
             evidence.update(state='native_pending', lease_id=command['lease_id'])
             file_holds, file_fallbacks = [], {}
             if staged is not None:
@@ -18353,6 +18401,7 @@ class ScenarioRunner:
                 record['finished_at'] = time.monotonic()
                 tasks.discard(plan_task)
                 task_engines.pop(plan_task, None)
+                task_plan_ids.pop(plan_task, None)
             if record['state'] == 'superseded':
                 # gather reports only its first error. A sibling may fail while
                 # joining cancellation, and a shared writer's failure can be
@@ -18446,7 +18495,10 @@ class ScenarioRunner:
             observed = checked(await engine.ieee_gpu_reference(operation='source_snapshot'))
             # Reuse requires this worker's actual immutable source identity.
             native = next((s for s in observed['sources'] if s['adapter_int_id'] == aid), None)
-            if native is not None and (native['adapter_id'], native['lora_path']) != (adapter_id, str(source_path)):
+            if native is not None and (
+                    (native['adapter_id'], native['lora_path']) != (adapter_id, str(source_path))
+                    and (native.get('adapter_id') != adapter_id
+                         or native.get('content_sha256') != content)):
                 record['source_identity_conflict'] = dict(attempt_id=attempt_id,
                     expected_source=dict(adapter_id=adapter_id, lora_path=str(source_path)),
                     observed_source=copy.deepcopy(native), observed_epoch=observed['epoch'])
@@ -18470,7 +18522,7 @@ class ScenarioRunner:
                 command = dict(lease_id=uuid.uuid4().hex, adapter_int_id=aid,
                     lora_name=adapter_id, lora_path=str(source_path), expected_owner_id=owner_id,
                     expected_epoch=observed['epoch'], native_host_tensor_budget_bytes=budget,
-                    preparation_plan_id=plan_id)
+                    preparation_plan_id=plan_id, expected_content_sha256=content)
                 evidence.update(state='native_pending', command=command)
                 known = False
                 receipt, cancelled = await settle(engine.ieee_gpu_reference(
@@ -19092,7 +19144,9 @@ class ScenarioRunner:
             observed = await target_engine.ieee_gpu_reference(operation='source_snapshot')
             current = next((r for r in observed['sources'] if r['adapter_int_id'] == aid_int), None)
             if current is not None:
-                if (current['adapter_id'], current['lora_path']) != (aid, row['lora_path']):
+                if ((current['adapter_id'], current['lora_path']) != (aid, row['lora_path'])
+                        and (current.get('adapter_id') != aid
+                             or current.get('content_sha256') != row.get('content_sha256'))):
                     record['source_identity_conflict'] = dict(adapter_int_id=aid_int,
                         expected_source=dict(adapter_id=aid, lora_path=row['lora_path']),
                         observed_source=copy.deepcopy(current), observed_epoch=observed['epoch'])

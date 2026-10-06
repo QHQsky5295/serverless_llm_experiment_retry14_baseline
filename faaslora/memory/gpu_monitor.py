@@ -1317,7 +1317,8 @@ class IEEEWorkerObservationExtension:
             allowed = {'lease_id', 'adapter_int_id', 'lora_name', 'lora_path',
                        'expected_owner_id', 'expected_epoch', 'required_source_tier',
                        'expected_source_id'}
-            if set(kwargs) != allowed:
+            content_allowed = allowed | {'expected_content_sha256'}
+            if set(kwargs) not in (allowed, content_allowed):
                 raise ValueError('native demand admission payload differs from the contract')
             request_key = tuple((key, repr(kwargs[key])) for key in sorted(kwargs)) + (
                 ('capacity_only', repr(capacity_only)),)

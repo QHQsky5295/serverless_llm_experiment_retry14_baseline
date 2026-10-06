@@ -74,11 +74,16 @@ def _core_prepare_host(core, command):
     scheduler = core.scheduler
     if scheduler._ieee_lengths is None:
         raise RuntimeError('proactive admission has no frozen completion-length profile')
-    allowed = {'lease_id', 'adapter_int_id', 'lora_name', 'lora_path',
-               'expected_owner_id', 'expected_epoch', 'capacity_only'}
-    if not isinstance(command, dict) or set(command) not in (allowed, allowed | {'replacement_epoch'},
-            allowed | {'replacement_epoch', 'preparation_plan_id'},
-            allowed | {'replacement_epoch', 'preparation_plan_id', 'host_file_fallbacks'}):
+    legacy_allowed = {'lease_id', 'adapter_int_id', 'lora_name', 'lora_path',
+                      'expected_owner_id', 'expected_epoch', 'capacity_only'}
+    allowed = legacy_allowed | {'expected_content_sha256'}
+    accepted = (legacy_allowed, legacy_allowed | {'replacement_epoch'},
+                legacy_allowed | {'replacement_epoch', 'preparation_plan_id'},
+                legacy_allowed | {'replacement_epoch', 'preparation_plan_id', 'host_file_fallbacks'},
+                allowed, allowed | {'replacement_epoch'},
+                allowed | {'replacement_epoch', 'preparation_plan_id'},
+                allowed | {'replacement_epoch', 'preparation_plan_id', 'host_file_fallbacks'})
+    if not isinstance(command, dict) or set(command) not in accepted:
         raise ValueError('proactive preparation command fields differ from the contract')
     observation = scheduler.ieee_scheduler_observation()
     lengths = scheduler._ieee_lengths.snapshot(now=observation['captured_at'])
@@ -108,10 +113,11 @@ def _core_admit_and_demand_load(core, command):
     scheduler = core.scheduler
     if scheduler._ieee_lengths is None:
         raise RuntimeError('native admission has no frozen completion-length profile')
-    allowed = {'lease_id', 'adapter_int_id', 'lora_name', 'lora_path',
-               'expected_owner_id', 'expected_epoch', 'required_source_tier',
-               'expected_source_id', 'capacity_only'}
-    if not isinstance(command, dict) or set(command) != allowed:
+    legacy_allowed = {'lease_id', 'adapter_int_id', 'lora_name', 'lora_path',
+                      'expected_owner_id', 'expected_epoch', 'required_source_tier',
+                      'expected_source_id', 'capacity_only'}
+    allowed = legacy_allowed | {'expected_content_sha256'}
+    if not isinstance(command, dict) or set(command) not in (legacy_allowed, allowed):
         raise ValueError('native admission command fields differ from the contract')
     if command.get('capacity_only') is not True:
         raise ValueError('request capacity witness requires capacity_only=True')

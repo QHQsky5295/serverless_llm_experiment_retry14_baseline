@@ -1591,6 +1591,10 @@ class IEEEBackendGPUReferences:
         # historical once its native copy retires. Live copies and selected
         # preparation sources, not an obsolete path, constrain subsequent loads.
         self._sources: Dict[int, Tuple[str, str]] = {}
+        # A materialization path is a location.  IEEE callers also carry the
+        # immutable manifest digest so an equivalent copy in another managed
+        # tier can safely consume an existing staged object.
+        self._source_contents: Dict[int, str] = {}
         # Identity must not itself retain evicted CPU weights. A native integer
         # ID and slot position alone cannot distinguish replacement/reuse.
         self._source_objects: Dict[int, weakref.ReferenceType] = {}
@@ -1646,7 +1650,7 @@ class IEEEBackendGPUReferences:
             self._source_incarnations[adapter_int_id] = uuid.uuid4().hex
         self._source_objects[adapter_int_id] = weakref.ref(model)
 
-    def _validate_source_binding(self, adapter_int_id, source):
+    def _validate_source_binding(self, adapter_int_id, source, expected_content_sha256=None):
         """Logical identity survives eviction; a physical file path need not.
 
         The controller holds a SHA-confirmed file source during loading. A
@@ -1657,14 +1661,26 @@ class IEEEBackendGPUReferences:
         A different logical name can never reuse this integer ID.
         """
         old = self._sources.get(adapter_int_id)
+        content = self._source_contents.get(adapter_int_id)
         staged = self._staged_host.get(adapter_int_id)
-        if staged is not None and staged['source'] != source:
+        if expected_content_sha256 is not None and (
+                not isinstance(expected_content_sha256, str)
+                or len(expected_content_sha256) != 64
+                or any(c not in '0123456789abcdef' for c in expected_content_sha256)):
+            raise ValueError('native source content identity is invalid')
+        if staged is not None and staged['source'] != source and not (
+                expected_content_sha256 is not None
+                and staged.get('content_sha256') == expected_content_sha256
+                and staged['source'][0] == source[0]):
             raise ValueError('native integer ID reused for a different adapter source')
         if old is None or old == source:
             return
         cpu, gpu = self._caches()
         live = (adapter_int_id in cpu or adapter_int_id in gpu
                 or adapter_int_id in self._references or adapter_int_id in self._host_references)
+        if (expected_content_sha256 is not None and content == expected_content_sha256
+                and old[0] == source[0] and not live):
+            return
         if old[0] != source[0] or live:
             raise ValueError('native integer ID reused for a different adapter source')
         for plan in self._preparation_plans.values():
@@ -1674,8 +1690,21 @@ class IEEEBackendGPUReferences:
                 # does not retire the plan's protection before plan close.
                 row = next(r for r in plan['objective']['sources']
                            if r['adapter_int_id'] == adapter_int_id)
-                if (row['adapter_id'], row['lora_path']) != source:
+                if ((row['adapter_id'], row['lora_path']) != source and not (
+                        expected_content_sha256 is not None
+                        and row.get('content_sha256') == expected_content_sha256
+                        and row.get('adapter_id') == source[0])):
                     raise ValueError('native integer ID reused for a different adapter source')
+
+    def _source_identity_matches(self, adapter_int_id, source, expected_content_sha256=None):
+        """Match a materialized source by path or verified immutable content."""
+        current = self._sources.get(adapter_int_id)
+        if current == source:
+            return True
+        return bool(expected_content_sha256 is not None
+                    and current is not None
+                    and current[0] == source[0]
+                    and self._source_contents.get(adapter_int_id) == expected_content_sha256)
 
     def staged_models(self):
         return {aid: row['model'] for aid, row in self._staged_host.items()}
@@ -1696,6 +1725,10 @@ class IEEEBackendGPUReferences:
         if not self.manager.add_adapter(model):
             raise RuntimeError('staged native registration was not new')
         self._sources[adapter_int_id] = staged['source']
+        if staged.get('content_sha256') is not None:
+            self._source_contents[adapter_int_id] = staged['content_sha256']
+        else:
+            self._source_contents.pop(adapter_int_id, None)
         self._source_objects[adapter_int_id] = weakref.ref(model)
         self._source_incarnations[adapter_int_id] = staged['source_id']
         held = [lid for lid, aid in self._staged_host_leases.items() if aid == adapter_int_id]
@@ -1909,8 +1942,12 @@ class IEEEBackendGPUReferences:
         cpu_ids = set(self._caches()[0])
         covered = cpu_ids.issubset(rows) if mixed else set(rows) == cpu_ids
         if (tuple(frozen['slot_adapter_ids']) != slots or not covered
-                or any(self._sources.get(a) != (row['adapter_id'], row['lora_path'])
-                       for a, row in rows.items() if a in cpu_ids)):
+                or any(
+                    self._sources.get(a) != (row['adapter_id'], row['lora_path'])
+                    and not (self._sources.get(a) is not None
+                             and self._sources[a][0] == row['adapter_id']
+                             and self._source_contents.get(a) == row.get('content_sha256'))
+                    for a, row in rows.items() if a in cpu_ids)):
             raise ValueError('preparation plan requires its complete current native source epoch: '
                              f'same_epoch={self.epoch}, slots_match={tuple(frozen["slot_adapter_ids"]) == slots}, '
                              f'cpu_covered={covered}, source_identity_match='
@@ -1966,6 +2003,7 @@ class IEEEBackendGPUReferences:
             confirmation = self._gpu_confirmations.get(aid)
             sources.append({'adapter_int_id': aid, 'adapter_id': name,
                             'lora_path': path, 'rank': rank, 'cpu_registered': True,
+                            'content_sha256': self._source_contents.get(aid),
                             'source_id': (self._gpu_source_incarnations[aid] if confirmation
                                           else self._source_incarnations[aid]),
                             'gpu_slot': confirmation[0] if confirmation else None,
@@ -1978,7 +2016,8 @@ class IEEEBackendGPUReferences:
                 'slot_adapter_ids': list(slots), 'registered_cpu_adapter_ids': sorted(cpu),
                 'sources': sources, 'unknown_native_adapter_ids': unknown,
                 'staged_sources': [dict(adapter_int_id=aid, adapter_id=row['source'][0],
-                    lora_path=row['source'][1], native_host_source_id=row['source_id'],
+                    lora_path=row['source'][1], content_sha256=row.get('content_sha256'),
+                    native_host_source_id=row['source_id'],
                     cpu_registered=False, gpu_slot=None)
                     for aid, row in sorted(self._staged_host.items())],
                 'unconfirmed_gpu_adapter_ids': unconfirmed,
@@ -2017,11 +2056,24 @@ class IEEEBackendGPUReferences:
         for aid in sorted(cache):
             gpu_refs = sorted(self._references.get(aid, ()))
             host_refs = sorted(self._host_references.get(aid, ())) if tier == 'host' else []
+            preparation_plan_ids = sorted({
+                self._preparations[lease].get('plan_id')
+                for lease in gpu_refs
+                if lease in self._preparations
+                and self._preparations[lease].get('plan_id')
+            })
             borrowed = self._borrowed_pins.get(aid)
             external = (borrowed[1 if tier == 'gpu' else 0] if borrowed is not None
                         else self._host_borrowed_pins.get(aid, True))
-            rows.append(dict(adapter_int_id=aid, gpu_lease_ids=gpu_refs,
-                             host_lease_ids=host_refs, external_pin=external))
+            row = dict(adapter_int_id=aid, gpu_lease_ids=gpu_refs,
+                       host_lease_ids=host_refs, external_pin=external)
+            # Keep the legacy witness schema byte-for-byte stable when no
+            # controller-owned preparation plan is involved.  Consumers use
+            # .get(..., []) so the optional field is only present when it
+            # carries a real release owner.
+            if preparation_plan_ids:
+                row['preparation_plan_ids'] = preparation_plan_ids
+            rows.append(row)
         return dict(kind='native_pinned_capacity_v1', tier=tier, candidates=rows)
 
     def hold_host_source(self, *, lease_id: str, adapter_int_id: int, lora_name: str,
@@ -2115,7 +2167,8 @@ class IEEEBackendGPUReferences:
 
     def prepare_file_host_and_hold(self, *, lease_id, adapter_int_id, lora_name,
                                   lora_path, expected_owner_id, expected_epoch,
-                                  native_host_tensor_budget_bytes, preparation_plan_id=None):
+                                  native_host_tensor_budget_bytes, preparation_plan_id=None,
+                                  expected_content_sha256=None):
         """Protected local file -> native CPU registration/pin, without GPU load.
 
         This explicit path does not call the worker's add_adapter (which also
@@ -2136,7 +2189,7 @@ class IEEEBackendGPUReferences:
         if expected_owner_id != self.owner_id:
             return dict(held=False, reason='owner_changed', **self.snapshot())
         identity = (adapter_int_id, lora_name, lora_path, native_host_tensor_budget_bytes,
-                    preparation_plan_id)
+                    preparation_plan_id, expected_content_sha256)
         old = self._file_host_preparations.get(lease_id)
         if old is not None:
             if old['identity'] != identity:
@@ -2150,7 +2203,7 @@ class IEEEBackendGPUReferences:
         if expected_epoch != self.epoch:
             return dict(held=False, reason='stale_snapshot', **self.snapshot())
         source = (lora_name, lora_path)
-        self._validate_source_binding(adapter_int_id, source)
+        self._validate_source_binding(adapter_int_id, source, expected_content_sha256)
         if self._native_host_tensor_budget not in (None, native_host_tensor_budget_bytes):
             raise ValueError('native HOST tensor sub-budget cannot change within a worker')
         self._native_host_tensor_budget = native_host_tensor_budget_bytes
@@ -2166,7 +2219,10 @@ class IEEEBackendGPUReferences:
             if plan is None or adapter_int_id not in plan['pending']:
                 return dict(held=False, reason='host_replacement_required', **self.snapshot())
             row = next(r for r in plan['objective']['sources'] if r['adapter_int_id'] == adapter_int_id)
-            if (row['adapter_id'], row['lora_path']) != source:
+            if ((row['adapter_id'], row['lora_path']) != source and not (
+                    expected_content_sha256 is not None
+                    and row.get('content_sha256') == expected_content_sha256
+                    and row.get('adapter_id') == lora_name)):
                 raise ValueError('native staging source differs from the registered plan')
         if not callable(self.file_host_loader):
             raise RuntimeError('native CPU-only loader is not attached')
@@ -2176,7 +2232,9 @@ class IEEEBackendGPUReferences:
             if needs_staging:
                 previous = self._staged_host.get(adapter_int_id)
                 if previous is not None:
-                    if previous['source'] != source:
+                    if previous['source'] != source and not (
+                            expected_content_sha256 is not None
+                            and previous.get('content_sha256') == expected_content_sha256):
                         raise ValueError('staged native source identity changed')
                     allocation = previous['allocation']
                 else:
@@ -2194,6 +2252,7 @@ class IEEEBackendGPUReferences:
                     if (self._refresh(), tuple(cpu), tuple(cpu.pinned_items)) != before:
                         raise RuntimeError('unregistered staging mutated native residency')
                     self._staged_host[adapter_int_id] = dict(model=model, source=source,
+                        content_sha256=expected_content_sha256,
                         source_id=uuid.uuid4().hex, allocation=allocation)
                     self.epoch += 1
                 self._staged_host_leases[lease_id] = adapter_int_id
@@ -2220,6 +2279,10 @@ class IEEEBackendGPUReferences:
                     or set(cpu) != set(before[1]) | {adapter_int_id}):
                 raise RuntimeError('native HOST preparation changed GPU or unrelated CPU residency')
             self._sources[adapter_int_id] = source
+            if expected_content_sha256 is not None:
+                self._source_contents[adapter_int_id] = expected_content_sha256
+            else:
+                self._source_contents.pop(adapter_int_id, None)
             self._remember_source_object(adapter_int_id)
             self._refresh()
             receipt = self.hold_host_source(lease_id=lease_id, adapter_int_id=adapter_int_id,
@@ -2345,16 +2408,19 @@ class IEEEBackendGPUReferences:
                                 lora_name: str, lora_path: str,
                                 expected_owner_id: str, expected_epoch: int,
                                 required_source_tier: Optional[str] = None,
-                                expected_source_id: Optional[str] = None) -> Dict[str, Any]:
+                                expected_source_id: Optional[str] = None,
+                                expected_content_sha256: Optional[str] = None) -> Dict[str, Any]:
         return self._load_and_acquire(lease_id=lease_id, adapter_int_id=adapter_int_id,
             lora_name=lora_name, lora_path=lora_path, expected_owner_id=expected_owner_id,
             expected_epoch=expected_epoch, required_source_tier=required_source_tier,
-            expected_source_id=expected_source_id, loader=self.demand_loader)
+            expected_source_id=expected_source_id, expected_content_sha256=expected_content_sha256,
+            loader=self.demand_loader)
 
     def _load_and_acquire(self, *, lease_id: str, adapter_int_id: int,
                          lora_name: str, lora_path: str, expected_owner_id: str,
                          expected_epoch: int, required_source_tier: Optional[str],
-                         loader, expected_source_id: Optional[str] = None) -> Dict[str, Any]:
+                         loader, expected_source_id: Optional[str] = None,
+                         expected_content_sha256: Optional[str] = None) -> Dict[str, Any]:
         """Native demand load -> completion -> pin, on one serialized worker.
 
         There is no await or controller-side load/query gap in this operation.
@@ -2385,20 +2451,25 @@ class IEEEBackendGPUReferences:
                 not isinstance(expected_source_id, str) or not expected_source_id
                 or required_source_tier not in ('gpu', 'host')):
             raise ValueError('copy witness requires an observed native source tier and identity')
+        if expected_content_sha256 is not None and (
+                not isinstance(expected_content_sha256, str) or len(expected_content_sha256) != 64
+                or any(c not in '0123456789abcdef' for c in expected_content_sha256)):
+            raise ValueError('native source content identity is invalid')
         slots = self._refresh()
         if expected_owner_id != self.owner_id:
             return {'acquired': False, 'reason': 'owner_changed', **self.snapshot()}
         source = (lora_name, lora_path)
         if lease_id in self._host_leases or lease_id in self._host_released or lease_id in self._staged_host_leases:
             raise ValueError('GPU lease collides with a HOST source lease')
-        self._validate_source_binding(adapter_int_id, source)
+        self._validate_source_binding(adapter_int_id, source, expected_content_sha256)
         if lease_id in self._leases:
             receipt = self._leases[lease_id]
             if (receipt['adapter_int_id'] != adapter_int_id
                     or receipt.get('acquisition_operation') != 'demand_load_and_acquire'
                     or (receipt['lora_name'], receipt['lora_path']) != source
                     or receipt.get('required_source_tier') != required_source_tier
-                    or receipt.get('expected_source_id') != expected_source_id):
+                    or receipt.get('expected_source_id') != expected_source_id
+                    or receipt.get('expected_content_sha256') != expected_content_sha256):
                 raise ValueError('lease ID reused for a different demand load')
             return dict(receipt)
         if lease_id in self._released:
@@ -2410,7 +2481,10 @@ class IEEEBackendGPUReferences:
         cpu, gpu = self._caches()
         cpu_hit, gpu_hit = adapter_int_id in cpu, adapter_int_id in slots
         staged = self._staged_host.get(adapter_int_id)
-        if staged is not None and staged['source'] != source:
+        if staged is not None and staged['source'] != source and not (
+                expected_content_sha256 is not None
+                and staged.get('content_sha256') == expected_content_sha256
+                and staged['source'][0] == source[0]):
             raise ValueError('demand source differs from owned staging')
         if cpu_hit and adapter_int_id not in self._sources:
             # A pre-existing native cache entry carries no path identity. Do
@@ -2488,9 +2562,14 @@ class IEEEBackendGPUReferences:
             self._poisoned = True
             raise
         self._sources[adapter_int_id] = source
+        if expected_content_sha256 is not None:
+            self._source_contents[adapter_int_id] = expected_content_sha256
+        else:
+            self._source_contents.pop(adapter_int_id, None)
         receipt.update(acquisition_operation='demand_load_and_acquire',
                        lora_name=lora_name, lora_path=lora_path,
                        expected_source_id=expected_source_id,
+                       expected_content_sha256=expected_content_sha256,
                        required_source_tier=required_source_tier,
                        source_tier_before_acquisition=source_tier,
                        gpu_confirmed_before_acquisition=gpu_confirmed,
@@ -2510,7 +2589,8 @@ class IEEEBackendGPUReferences:
             lora_name: str, lora_path: str, expected_owner_id: str, expected_epoch: int,
             capacity_only: bool, decide, replacement_epoch=None,
             protected_adapter_ids=(), preparation_plan_id=None, fallback_costs=None,
-            host_replacement_costs=None, replacement_cost_provider=None) -> Dict[str, Any]:
+            host_replacement_costs=None, replacement_cost_provider=None,
+            expected_content_sha256=None) -> Dict[str, Any]:
         """Evaluate and commit HOST -> preallocated GPU on the owner thread.
 
         The engine-core bridge holds scheduling while this synchronous native
@@ -2530,6 +2610,10 @@ class IEEEBackendGPUReferences:
                 or not isinstance(lora_name, str) or not lora_name
                 or not isinstance(lora_path, str) or not Path(lora_path).is_absolute()):
             raise ValueError('proactive preparation requires exact source/lease/policy identity')
+        if expected_content_sha256 is not None and (
+                not isinstance(expected_content_sha256, str) or len(expected_content_sha256) != 64
+                or any(c not in '0123456789abcdef' for c in expected_content_sha256)):
+            raise ValueError('native source content identity is invalid')
         if any(type(aid) is not int or aid <= 0 for aid in protected_adapter_ids):
             raise ValueError('native pending/transfer protection requires adapter identities')
         objective = None
@@ -2546,7 +2630,7 @@ class IEEEBackendGPUReferences:
             return {'acquired': False, 'reason': 'owner_changed', **self.snapshot()}
         identity = (adapter_int_id, lora_name, lora_path, capacity_only,
                     replacement_epoch['plan_sha256'] if objective is not None else None,
-                    preparation_plan_id)
+                    preparation_plan_id, expected_content_sha256)
         if lease_id in self._preparations:
             previous = self._preparations[lease_id]
             if previous['identity'] != identity:
@@ -2567,12 +2651,14 @@ class IEEEBackendGPUReferences:
                     or adapter_int_id not in registered['pending']):
                 raise ValueError('GPU preparation lacks its registered frozen plan target')
             if (adapter_int_id in slots and adapter_int_id in self._gpu_confirmations
-                    and self._sources.get(adapter_int_id) == (lora_name, lora_path)):
+                    and self._source_identity_matches(
+                        adapter_int_id, (lora_name, lora_path), expected_content_sha256)):
                 receipt = self.acquire(lease_id=lease_id, adapter_int_id=adapter_int_id,
                     expected_owner_id=expected_owner_id, expected_epoch=expected_epoch)
                 receipt.update(preparation_reused_gpu=True, preparation_plan_id=preparation_plan_id,
                                proactive_admission_evaluated=False, native_load_invoked=False,
                                lora_name=lora_name, lora_path=lora_path,
+                               expected_content_sha256=expected_content_sha256,
                                source_tier_before_acquisition='gpu',
                                native_host_source_id=self._source_incarnations.get(adapter_int_id))
                 self._preparations[lease_id] = dict(identity=identity, receipt=copy.deepcopy(receipt),
@@ -2581,9 +2667,16 @@ class IEEEBackendGPUReferences:
         staged = self._staged_host.get(adapter_int_id)
         if staged is not None and adapter_int_id in self._staged_host_leases.values():
             return dict(acquired=False, reason='staged_source_still_referenced', **self.snapshot())
+        source = (lora_name, lora_path)
+        staged_matches = (staged is not None and (
+            staged['source'] == source
+            or (expected_content_sha256 is not None
+                and staged.get('content_sha256') == expected_content_sha256
+                and staged['source'][0] == lora_name)))
         if ((staged is None and (adapter_int_id not in cpu
-                or self._sources.get(adapter_int_id) != (lora_name, lora_path)))
-                or (staged is not None and (registered is None or staged['source'] != (lora_name, lora_path)))
+                or not self._source_identity_matches(adapter_int_id, source,
+                                                     expected_content_sha256)))
+                or (staged is not None and (registered is None or not staged_matches))
                 or adapter_int_id in slots):
             return {'acquired': False, 'reason': 'required_source_changed', **self.snapshot()}
         if not gpu.pinned_items.issubset(cpu.pinned_items):
@@ -2604,8 +2697,11 @@ class IEEEBackendGPUReferences:
                     rows[aid]['adapter_id'] for aid in set(cpu) & set(rows))
                     or any(aid not in self._gpu_confirmations for aid in slots if aid is not None)):
                 raise ValueError('replacement epoch source identity or GPU confirmation changed')
-            rebound = any(self._sources[aid][1] != rows[aid]['lora_path']
-                          for aid in set(cpu) & set(rows))
+            rebound = any(
+                not self._source_identity_matches(
+                    aid, (rows[aid]['adapter_id'], rows[aid]['lora_path']),
+                    rows[aid].get('content_sha256'))
+                for aid in set(cpu) & set(rows))
             if rebound:
                 if registered is None:
                     raise ValueError('replacement epoch source identity or GPU confirmation changed')
@@ -2762,7 +2858,8 @@ class IEEEBackendGPUReferences:
             receipt = self._load_and_acquire(lease_id=lease_id,
                 adapter_int_id=adapter_int_id, lora_name=lora_name, lora_path=lora_path,
                 expected_owner_id=self.owner_id, expected_epoch=self.epoch,
-                required_source_tier='host', loader=self.preparation_loader)
+                required_source_tier='host', loader=self.preparation_loader,
+                expected_content_sha256=expected_content_sha256)
             if not receipt['acquired']:
                 self._poisoned = True
                 raise RuntimeError('serialized preparation lost its validated HOST source/slot')

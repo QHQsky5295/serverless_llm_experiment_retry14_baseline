@@ -1,5 +1,40 @@
 # IEEE TC execution status
 
+## CURRENT — D258 native identity/capacity repair is test-qualified; rerun still gated
+
+2026-10-06. D257 remains excluded from formal readiness because it completed
+3,993/4,000 requests and exposed two separate runtime defects: six requests
+could not identify an acknowledged release owner for a proactive native
+preparation lease, and one request rejected a path change for the same
+immutable adapter content. The original D257 evidence is unchanged.
+
+D258 repair code now carries the manifest `content_sha256` through demand,
+proactive preparation, file-to-native-HOST preparation, the vLLM bridge, and
+the worker admission payload. A path change is accepted only for the same
+logical adapter, with a verified equal digest and after the old native copy is
+no longer live; legacy commands without a digest retain strict path identity.
+Native capacity receipts expose optional preparation `plan_id` witnesses, and
+the controller waits only for the matching same-engine preparation task. A
+failed or cancelled task is not treated as capacity. No polling, forced
+eviction, retry of an unresolved native RPC, or external-pin release was
+introduced.
+
+Validation completed in the qualified vLLM 0.30.0 environment:
+
+- 484 native GPU-reference, request-lifecycle, and transfer-pressure tests;
+- 177 scheduler-observation and service-event tests;
+- 289 basic smoke tests and 19 external-replay contract tests;
+- compile and `git diff --check` checks.
+
+The added tests cover digest-preserving path relocation after retirement,
+rejection of a mismatched digest, and worker-side digest publication. No GPU
+replay was started after this repair. The next gate is a fresh D258 7B
+8-phase diagnostic with the existing 4,000-request contract; it must satisfy
+4,000/4,000 terminal success, complete dispatch tiers, zero tier conflicts,
+at least eight natural scale-ups and at least 20 true first-dispatch samples
+before any readiness claim. D257's seven failures remain visible and are not
+reclassified.
+
 ## CURRENT — D249 fresh audit closes retry6 provenance and quarantines stale retry4
 
 2026-10-06. A fresh read-only integrity audit of D247 retry6 confirms an

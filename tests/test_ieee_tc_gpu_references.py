@@ -1358,6 +1358,31 @@ class NativeDemandTransactions(unittest.TestCase):
         self.assertEqual(len(self.loads), 2)
         self.release('new-source')
 
+    def test_verified_content_identity_allows_path_change_only_after_old_copy_retires(self):
+        content = 'a' * 64
+        first = self.owner.demand_load_and_acquire(
+            lease_id='content-old', adapter_int_id=4, lora_name='adapter-4',
+            lora_path='/existing/adapter-4', expected_content_sha256=content,
+            expected_owner_id=self.owner.owner_id, expected_epoch=self.owner.epoch)
+        self.assertTrue(first['acquired'])
+        self.release('content-old')
+        self.manager.deactivate(4)
+        self.assertTrue(self.owner.evict(adapter_int_id=4)['evicted'])
+        state = self.owner.snapshot()
+        moved = self.owner.demand_load_and_acquire(
+            lease_id='content-new', adapter_int_id=4, lora_name='adapter-4',
+            lora_path='/managed-host/adapter-4', expected_content_sha256=content,
+            expected_owner_id=state['owner_id'], expected_epoch=state['epoch'])
+        self.assertTrue(moved['acquired'])
+        self.assertEqual(moved['lora_path'], '/managed-host/adapter-4')
+        self.assertEqual(moved['expected_content_sha256'], content)
+        self.release('content-new')
+        with self.assertRaisesRegex(ValueError, 'different adapter source'):
+            self.owner.demand_load_and_acquire(
+                lease_id='content-bad', adapter_int_id=4, lora_name='adapter-4',
+                lora_path='/unverified/adapter-4', expected_content_sha256='b' * 64,
+                expected_owner_id=self.owner.owner_id, expected_epoch=self.owner.epoch)
+
     def test_preparation_ownership_prevents_source_rebinding_without_residency(self):
         self.demand()
         self.release('cold-1')
@@ -1457,7 +1482,7 @@ class NativeDemandTransactions(unittest.TestCase):
             receipt = worker.ieee_gpu_reference(operation='demand_load_and_acquire',
                 lease_id='dispatch-1', adapter_int_id=4, lora_name='adapter-4',
                 lora_path='/existing/adapter-4', expected_owner_id=before['owner_id'],
-                expected_epoch=before['epoch'])
+                expected_epoch=before['epoch'], expected_content_sha256='a' * 64)
             self.assertTrue(receipt['acquired'])
             self.assertFalse(receipt['production_launch_authorized'])
             native_loader.add_adapter.assert_called_once()
@@ -1469,6 +1494,7 @@ class NativeDemandTransactions(unittest.TestCase):
             sources = worker.ieee_gpu_reference(operation='source_snapshot')
             self.assertEqual(sources['device_uuid'], 'GPU-00010203-0405-0607-0809-0a0b0c0d0e0f')
             self.assertEqual(sources['sources'][0]['adapter_id'], 'adapter-4')
+            self.assertEqual(sources['sources'][0]['content_sha256'], 'a' * 64)
             self.assertIn('clock_id', sources)
             self.assertEqual(sources['native_footprints'], {'host_tensor_storage_bytes': 16,
                                                            'slot_capacity_bytes': 32})
