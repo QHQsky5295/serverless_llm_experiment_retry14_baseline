@@ -1663,6 +1663,29 @@ class IEEEBackendGPUReferences:
         old = self._sources.get(adapter_int_id)
         content = self._source_contents.get(adapter_int_id)
         staged = self._staged_host.get(adapter_int_id)
+
+        def conflict(reason, *, live=None):
+            # Keep the historical exception prefix stable while preserving the
+            # exact identity predicate that rejected this transaction. This is
+            # diagnostic evidence only; it does not relax ownership checks.
+            details = {
+                'reason': reason,
+                'adapter_int_id': adapter_int_id,
+                'old_source': old,
+                'requested_source': source,
+                'old_content_sha256': content,
+                'expected_content_sha256': expected_content_sha256,
+                'live': live,
+                'staged_source': (staged.get('source') if staged is not None else None),
+                'staged_content_sha256': (staged.get('content_sha256') if staged is not None else None),
+                'preparation_plan_ids': [
+                    plan.get('identity', (None, ()))[0]
+                    for plan in self._preparation_plans.values()
+                    if adapter_int_id in plan.get('identity', (None, ()))[1]
+                ],
+            }
+            return 'native integer ID reused for a different adapter source; ' + repr(details)
+
         if expected_content_sha256 is not None and (
                 not isinstance(expected_content_sha256, str)
                 or len(expected_content_sha256) != 64
@@ -1672,7 +1695,7 @@ class IEEEBackendGPUReferences:
                 expected_content_sha256 is not None
                 and staged.get('content_sha256') == expected_content_sha256
                 and staged['source'][0] == source[0]):
-            raise ValueError('native integer ID reused for a different adapter source')
+            raise ValueError(conflict('staged_source_mismatch', live=True))
         if old is None or old == source:
             return
         cpu, gpu = self._caches()
@@ -1682,7 +1705,7 @@ class IEEEBackendGPUReferences:
                 and old[0] == source[0] and not live):
             return
         if old[0] != source[0] or live:
-            raise ValueError('native integer ID reused for a different adapter source')
+            raise ValueError(conflict('old_source_or_live_copy_mismatch', live=live))
         for plan in self._preparation_plans.values():
             if adapter_int_id in plan['identity'][1]:
                 # Registration validated complete, unique source coverage.
@@ -1694,7 +1717,7 @@ class IEEEBackendGPUReferences:
                         expected_content_sha256 is not None
                         and row.get('content_sha256') == expected_content_sha256
                         and row.get('adapter_id') == source[0])):
-                    raise ValueError('native integer ID reused for a different adapter source')
+                    raise ValueError(conflict('preparation_plan_source_mismatch', live=live))
 
     def _source_identity_matches(self, adapter_int_id, source, expected_content_sha256=None):
         """Match a materialized source by path or verified immutable content."""
