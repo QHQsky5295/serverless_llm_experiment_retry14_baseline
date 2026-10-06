@@ -4541,7 +4541,8 @@ async def initialize_qualification_runtime(model_config, mode):
     """
     from scripts.run_all_experiments import SubprocessInferenceEngineProxy
     physical = mode in ('native_lifecycle', 'native_capacity_wait', 'native_source_matrix',
-                        'native_slot_content', 'native_warm_reference', 'native_execution_metadata')
+                        'native_slot_content', 'native_warm_reference', 'native_execution_metadata',
+                        'native_numerical_repeat')
     if physical and model_config.get('ieee_physical_allocation') is not True:
         raise ValueError('physical qualification requires actual GPU allocation before startup')
     if not physical and mode != 'cancel_pairs_subprocess':
@@ -4878,6 +4879,163 @@ async def qualify_slot_content_snapshot(engine, adapter_int_id):
             'semantic_full_pool_qualification': False}
 
 
+def numerical_repeat_indices(count):
+    """D295 preregistered existing coverage + all D290/D293 differing rows."""
+    if type(count) is not int or count != 100:
+        raise ValueError('numerical repeat requires the existing 100-request source prefix')
+    return list(range(22)) + [59, 74, 77, 84, 91]
+
+
+def compare_native_sequences(left, right):
+    """Exact sequences and first divergence at a *shared* prefix, not similarity."""
+    for key in ('source_row_sha256', 'adapter_id', 'target_tokens', 'prompt_sha256'):
+        if left[key] != right[key]:
+            raise ValueError('numerical comparison input mismatch: ' + key)
+    sequences = []
+    for case in (left, right):
+        t = case['timing']
+        ids = t['completion_token_ids']
+        if (t['completion_token_ids_capture_contract'] != 'fixed_length_greedy_v1_native_ids_opt_in_v1'
+                or t['completion_top_logprobs_contract'] != 'native_top2_plus_sampled_v1'
+                or not isinstance(ids, list) or len(ids) != case['target_tokens']
+                or any(type(v) is not int or v < 0 for v in ids)
+                or hashlib.sha256(json.dumps(ids, separators=(',', ':')).encode()).hexdigest()
+                   != t['completion_token_ids_sha256']):
+            raise ValueError('invalid native sequence capture')
+        from scripts.run_all_experiments import _validate_diagnostic_logprobs
+        probs = _validate_diagnostic_logprobs(t['completion_top_logprobs'])
+        if len(probs) != len(ids) or any(str(v) not in p for v, p in zip(ids, probs)):
+            raise ValueError('native probability coverage mismatch')
+        sequences.append(ids)
+    if left['timing']['native_prompt_token_ids_sha256'] != right['timing']['native_prompt_token_ids_sha256']:
+        raise ValueError('native prompt mismatch')
+    first = next((i for i, (a, b) in enumerate(zip(*sequences)) if a != b), None)
+    comparison = dict(exact_match=first is None, first_divergence_zero_based=first,
+                      cause_established=False, n_correct=None)
+    if first is not None:
+        comparison['shared_prefix_tokens'] = first
+        comparison['at_first_divergence'] = []
+        for case, ids in zip((left, right), sequences):
+            p = case['timing']['completion_top_logprobs'][first]
+            ordered = sorted(p.values(), reverse=True)
+            comparison['at_first_divergence'].append(dict(
+                sampled_token_id=ids[first], native_top_logprobs=p,
+                top_two_logprob_margin=ordered[0] - ordered[1]))
+    return comparison
+
+
+async def qualify_numerical_repeat(engine, plan, adapters, result):
+    """One fresh runtime, sequential then four-lane waves; no performance point.
+
+    Three independently launched runtimes are registered outside this helper.
+    Execution observer/slot readback deliberately perturb time; exact output
+    differences are retained, not retried or interpreted as adapter errors.
+    """
+    import asyncio
+    indices = numerical_repeat_indices(len(plan.entries))
+    result.update(selected_source_indices=indices, performance_sample=False,
+                  semantic_full_pool_qualification=False, n_correct=None, numerical_arms=[])
+    cases_by_arm = {}
+    for arm_name, width in (('single', 1), ('concurrent4', 4)):
+        arm = dict(name=arm_name, width=width, journal=[], expected_leases={}, waves=[])
+        result['numerical_arms'].append(arm)
+        arm['scheduler_before'] = await engine.ieee_scheduler_observation()
+        require_native_execution_drained(arm['scheduler_before'])
+        active = False
+        cases = cases_by_arm[arm_name] = {}
+        try:
+            arm['journal'].append(await qualify_execution_observer(
+                engine, 'start', diagnostic_id='numerical_' + arm_name + '_' + uuid.uuid4().hex))
+            active = True
+            for offset in range(0, len(indices), width):
+                wave = dict(source_indices=indices[offset:offset+width], slot_before=[], slot_after=[])
+                arm['waves'].append(wave)
+                prepared_cases = []
+                result['stage'] = f'numerical:{arm_name}:{offset}'
+                for index in wave['source_indices']:
+                    entry = plan.entries[index]
+                    row = json.loads(entry.source_json)
+                    aid, target = row['adapter_id'], min(row['expected_output_tokens'], 256)
+                    prepared = engine.prepare_request('', target, row['expected_input_tokens'],
+                                                       chat_messages=row['body']['messages'])
+                    if prepared.max_tokens != target:
+                        raise RuntimeError('numerical repeat changed fixed output target')
+                    snapshot = await engine.ieee_gpu_reference(operation='snapshot')
+                    reference = await engine.ieee_gpu_reference(operation='demand_load_and_acquire',
+                        lease_id=f'numerical/{arm_name}/{entry.request_id}',
+                        adapter_int_id=engine._lora_int_id(aid), lora_name=aid,
+                        lora_path=adapters[aid]['path'], expected_owner_id=snapshot['owner_id'],
+                        expected_epoch=snapshot['epoch'])
+                    case = dict(arm=arm_name, request_id=entry.request_id, source_index=index,
+                        source_row_sha256=entry.source_sha256, adapter_id=aid, target_tokens=target,
+                        prompt_sha256=hashlib.sha256(prepared.prompt.encode()).hexdigest(),
+                        reference=reference, **{'pass': False})
+                    result['requests'].append(case)
+                    cases[index] = case
+                    if reference.get('acquired') is not True:
+                        raise RuntimeError('numerical repeat acquisition conflict; no retry')
+                    arm['expected_leases'][reference['lease_id']] = dict(
+                        request_id=entry.request_id, adapter_int_id=engine._lora_int_id(aid),
+                        owner_id=reference['owner_id'], target_tokens=target)
+                    prepared_cases.append((prepared, aid, reference, case))
+                unique_ids = sorted({engine._lora_int_id(aid) for _, aid, _, _ in prepared_cases})
+                for aid_int in unique_ids:
+                    evidence = await qualify_slot_content_snapshot(engine, aid_int)
+                    wave['slot_before'].append(evidence)
+                    if evidence['pass'] is not True:
+                        raise RuntimeError('numerical repeat slot content before mismatch')
+                tasks = [asyncio.create_task(engine.generate_prepared(request_plan=prepared,
+                    lora_path=adapters[aid]['path'], adapter_id=aid, temperature=0., top_p=1.,
+                    generation_seed=42, return_timing=True, gpu_reference=reference))
+                    for prepared, aid, reference, _ in prepared_cases]
+                try:
+                    outputs = await asyncio.wait_for(asyncio.gather(*tasks), timeout=1800.)
+                finally:
+                    for task in tasks:
+                        if not task.done():
+                            task.cancel()
+                    await asyncio.gather(*tasks, return_exceptions=True)
+                for (_, aid, reference, case), output in zip(prepared_cases, outputs):
+                    case['actual_tokens'], case['timing'] = output[2], output[3]
+                    if output[2] != case['target_tokens'] or output[3]['native_terminal_observed'] is not True:
+                        raise RuntimeError('numerical repeat native terminal/length mismatch')
+                    compare_native_sequences(case, case)  # Validate capture, not a correctness oracle.
+                    retired = await engine.ieee_retire_generation(gpu_reference=reference, abort=False)
+                    case['execution_retirement'] = retired
+                    arm['expected_leases'][reference['lease_id']]['retirement'] = retired
+                for aid_int in unique_ids:
+                    evidence = await qualify_slot_content_snapshot(engine, aid_int)
+                    wave['slot_after'].append(evidence)
+                    if evidence['pass'] is not True:
+                        raise RuntimeError('numerical repeat slot content after mismatch')
+                arm['journal'].append(await qualify_execution_observer(engine, 'read'))
+                for _, _, reference, case in prepared_cases:
+                    case['release'] = await engine.ieee_gpu_reference(operation='release',
+                        lease_id=reference['lease_id'], expected_owner_id=reference['owner_id'])
+                    if case['release'].get('released') is not True:
+                        raise RuntimeError('numerical repeat reference release failed')
+                    case['pass'] = True
+                print(json.dumps(dict(event='numerical_repeat_wave', arm=arm_name,
+                                      source_indices=wave['source_indices'], complete=True)), flush=True)
+            arm['journal'].append(await qualify_execution_observer(engine, 'stop'))
+            active = False
+            arm['scheduler_after'] = await engine.ieee_scheduler_observation()
+            arm['validation'] = validate_native_execution_journal(arm['journal'], arm['expected_leases'],
+                result['workers_before']['workers'][0], arm['scheduler_before'], arm['scheduler_after'])
+            sizes = [len(event['observation']['requests']) for snap in arm['journal']
+                     for event in snap['events'] if event['kind'] == 'forward_before']
+            arm['observed_batch_sizes'] = sorted(set(sizes))
+            if not sizes or (width == 1 and max(sizes) != 1) or (width > 1 and max(sizes) <= 1):
+                raise RuntimeError('requested native single/concurrent execution not observed')
+        finally:
+            if active:
+                arm['journal'].append(await qualify_execution_observer(engine, 'read'))
+                arm['journal'].append(await qualify_execution_observer(engine, 'stop'))
+    result['single_vs_concurrent'] = [dict(source_index=i,
+        **compare_native_sequences(cases_by_arm['single'][i], cases_by_arm['concurrent4'][i]))
+        for i in indices]
+
+
 async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                               trace: Path, count: int, mode: str = 'sequential',
                               artifact_audit: Path | None = None,
@@ -4912,11 +5070,14 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
                     'cancel_pairs_subprocess', 'native_cancel_reference',
                     'native_adapter_reference', 'native_numeric_reference', 'native_source_intervals',
                     'native_lifecycle', 'native_capacity_wait', 'native_source_matrix',
-                    'native_slot_content', 'native_warm_reference', 'native_execution_metadata') or (
+                    'native_slot_content', 'native_warm_reference', 'native_execution_metadata',
+                    'native_numerical_repeat') or (
                     mode not in ('sequential', 'native_source_intervals', 'native_capacity_wait',
                                  'native_source_matrix', 'native_slot_content', 'native_warm_reference',
-                                 'native_execution_metadata') and count != 4):
+                                 'native_execution_metadata', 'native_numerical_repeat') and count != 4):
         raise ValueError('concurrent qualification requires exactly the original four-request prefix')
+    if mode == 'native_numerical_repeat':
+        numerical_repeat_indices(count)
     result = {'kind': 'backend_native_model_prefix_qualification_v1', 'pass': False,
               'full_model_qualification': False, 'production_launch_authorized': False,
               'plan_sha256': check_plan(), 'service': service, 'environment': sys.prefix,
@@ -4956,7 +5117,8 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
         if mode in ('native_cancel_reference', 'native_adapter_reference', 'native_numeric_reference'):
             cfg['ieee_gpu_references'] = False
         if mode in ('native_lifecycle', 'native_capacity_wait', 'native_source_matrix',
-                    'native_slot_content', 'native_warm_reference', 'native_execution_metadata'):
+                    'native_slot_content', 'native_warm_reference', 'native_execution_metadata',
+                    'native_numerical_repeat'):
             cfg['ieee_physical_allocation'] = True
             if mode != 'native_source_matrix':
                 result['input_mode'] = ('existing_four_request_prefix_dedicated_physical_lifecycle'
@@ -4971,6 +5133,15 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
             result.update(input_mode='existing_prefix_isolated_native_execution_metadata',
                           performance_sample=False, semantic_full_pool_qualification=False,
                           execution_journal=[], execution_expected_leases={})
+        if mode == 'native_numerical_repeat':
+            if (cfg.get('ieee_token_id_capture') is not True
+                    or cfg.get('ieee_top_logprobs_capture') is not True
+                    or cfg.get('ieee_admission_profile') is not None
+                    or cfg.get('max_num_seqs') != 4 or cfg.get('max_loras') != 4
+                    or cfg.get('enable_prefix_caching') is not False):
+                raise ValueError('numerical repeat requires explicit diagnostic capture/four-lane contract')
+            result.update(input_mode='d295_existing_27_requests_single_vs_concurrent4',
+                          performance_sample=False, semantic_full_pool_qualification=False, n_correct=None)
         result['model_config'] = cfg
         plan = FrozenReplayPlan.load(trace, count=count)
         result['trace'] = plan.identity()
@@ -5000,6 +5171,8 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
             result['owned_profile_workspaces'] = {k: str(v) for k, v in source_paths.items()}
         adapters = {}
         inventory_entries = plan.entries if mode != 'native_source_matrix' else ()
+        if mode == 'native_numerical_repeat':
+            inventory_entries = [plan.entries[i] for i in numerical_repeat_indices(count)]
         if warm_index is not None:
             inventory_entries = [plan.entries[r['source_index']]
                                  for g in warm_index['groups'] for r in g['selected']]
@@ -5068,7 +5241,7 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
         result['requested_model_config'] = dict(cfg)
         if mode in ('cancel_pairs_subprocess', 'native_lifecycle', 'native_capacity_wait',
                     'native_source_matrix', 'native_slot_content', 'native_warm_reference',
-                    'native_execution_metadata'):
+                    'native_execution_metadata', 'native_numerical_repeat'):
             engine = await initialize_qualification_runtime(cfg, mode)
         else:
             # Retain ownership even if direct initialization raises, so the
@@ -5108,6 +5281,8 @@ async def backend_model_check(runtime_receipt: Path, config: Path, profile: str,
             await qualify_native_source_intervals(engine, plan, adapters, result)
         elif mode == 'native_capacity_wait':
             await qualify_native_capacity_wait(engine, plan, adapters, result)
+        elif mode == 'native_numerical_repeat':
+            await qualify_numerical_repeat(engine, plan, adapters, result)
         elif mode not in ('sequential', 'native_lifecycle', 'native_slot_content', 'native_execution_metadata'):
             result['stage'] = mode
             await qualify_concurrent_pairs(engine, plan, adapters, result,
@@ -5398,7 +5573,7 @@ def main():
                         'native_cancel_reference', 'native_adapter_reference', 'native_numeric_reference',
                         'native_source_intervals', 'native_lifecycle', 'native_capacity_wait',
                         'native_source_matrix', 'native_slot_content', 'native_warm_reference',
-                        'native_execution_metadata'], default='sequential')
+                        'native_execution_metadata', 'native_numerical_repeat'], default='sequential')
     parser.add_argument('--gate-socket')
     parser.add_argument('--gate-nonce')
     parser.add_argument('--tiny-witness', action='store_true')

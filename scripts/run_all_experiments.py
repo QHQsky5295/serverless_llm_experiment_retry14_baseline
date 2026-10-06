@@ -1051,9 +1051,26 @@ def _preserve_native_timing_value(key: str, value: Any) -> Any:
                 or any(type(token_id) is not int or token_id < 0 for token_id in value)):
             raise ValueError("opt-in completion token capture is invalid")
         return list(value)
+    if key == "completion_top_logprobs":
+        return _validate_diagnostic_logprobs(value)
     if value is None or isinstance(value, (str, bool)):
         return value
     return _safe_float(value, 0.0)
+
+
+def _validate_diagnostic_logprobs(value: Any) -> List[Dict[str, float]]:
+    """Diagnostic transport only; missing/nonfinite probabilities never become zero."""
+    if not isinstance(value, list) or not value:
+        raise ValueError("invalid diagnostic native logprobs")
+    copied = []
+    for row in value:
+        if (not isinstance(row, dict) or len(row) < 2
+                or any(not isinstance(k, str) or not k.isdecimal()
+                       or str(int(k)) != k or type(v) not in (int, float)
+                       or not math.isfinite(v) for k, v in row.items())):
+            raise ValueError("invalid diagnostic native logprobs")
+        copied.append({k: float(v) for k, v in row.items()})
+    return copied
 
 
 def _generation_contract_request_map_sha256(result: "ScenarioResult") -> str:
@@ -4509,6 +4526,13 @@ class InferenceEngine:
                 )
             if generation_seed is not None:
                 sampling_kwargs["seed"] = int(generation_seed)
+            logprob_capture = self.model_cfg.get("ieee_top_logprobs_capture", False)
+            if logprob_capture:
+                if (logprob_capture is not True or not native_timing
+                        or self.model_cfg.get("ieee_token_id_capture") is not True
+                        or generation_contract != "fixed_length_greedy_v1"):
+                    raise ValueError("native logprobs require explicit fixed-output token diagnostic")
+                sampling_kwargs["logprobs"] = 2
             sp = SamplingParams(**sampling_kwargs)
 
             lora_req = None
@@ -4659,6 +4683,17 @@ class InferenceEngine:
             _maybe_attach_opt_in_completion_token_ids(
                 timing, self.model_cfg, final_token_ids
             )
+            if logprob_capture:
+                probabilities = current_output.logprobs
+                if probabilities is None or len(probabilities) != len(final_token_ids):
+                    raise ValueError("native diagnostic logprob coverage is incomplete")
+                rows = _validate_diagnostic_logprobs([
+                    {str(token): item.logprob for token, item in row.items()}
+                    for row in probabilities])
+                if any(str(token) not in row for token, row in zip(final_token_ids, rows)):
+                    raise ValueError("native sampled token missing from diagnostic logprobs")
+                timing["completion_top_logprobs"] = rows
+                timing["completion_top_logprobs_contract"] = "native_top2_plus_sampled_v1"
             if native_timing:
                 timing['backend_request_id'] = req_id
                 timing['native_prompt_token_ids_sha256'] = hashlib.sha256(

@@ -101,10 +101,12 @@ class NativeTokenContract(unittest.TestCase):
 
 
 class EngineTimingIntegration(unittest.TestCase):
-    def engine(self, *, native=True, ids=(11, 12, 13), stats=None, finished=True, finish_reason='length'):
+    def engine(self, *, native=True, ids=(11, 12, 13), stats=None, finished=True, finish_reason='length', logprobs=None):
         class FakeVllmEngine:
             async def generate(self, **kwargs):
-                yield SimpleNamespace(outputs=[SimpleNamespace(token_ids=list(ids), finish_reason=finish_reason)],
+                self.last_sampling_params = kwargs['sampling_params']
+                yield SimpleNamespace(outputs=[SimpleNamespace(token_ids=list(ids), finish_reason=finish_reason,
+                                                                logprobs=logprobs)],
                                       metrics=stats if stats is not None else metrics(),
                                       prompt_token_ids=[1, 2], finished=finished)
             async def ieee_retire_request(self, external, *, abort):
@@ -136,6 +138,28 @@ class EngineTimingIntegration(unittest.TestCase):
         self.assertAlmostEqual(timing['runtime_estimated_e2e_ms'], 1100.)
         self.assertEqual(timing['native_prompt_token_ids_sha256'],
                          hashlib.sha256(b'[1,2]').hexdigest())
+
+    def test_native_logprob_diagnostic_survives_actual_generation_boundary(self):
+        probabilities = [{t: SimpleNamespace(logprob=-.1), 99: SimpleNamespace(logprob=-.2)}
+                         for t in (11, 12, 13)]
+        engine = self.engine(logprobs=probabilities)
+        engine.model_cfg.update(ieee_token_id_capture=True, ieee_top_logprobs_capture=True)
+        timing = self.generate(engine)[3]
+        self.assertEqual(engine.engine.last_sampling_params.logprobs, 2)
+        self.assertEqual(timing['completion_top_logprobs'][1], {'12': -.1, '99': -.2})
+        self.assertEqual(timing['completion_token_ids'], [11, 12, 13])
+        ordinary = self.engine()
+        self.generate(ordinary)
+        self.assertFalse(hasattr(ordinary.engine.last_sampling_params, 'logprobs'))
+
+    def test_native_logprob_diagnostic_requires_complete_native_capture(self):
+        engine = self.engine()
+        engine.model_cfg.update(ieee_top_logprobs_capture=True)
+        with self.assertRaisesRegex(RuntimeError, 'explicit fixed-output'):
+            self.generate(engine)
+        engine.model_cfg['ieee_token_id_capture'] = True
+        with self.assertRaisesRegex(RuntimeError, 'coverage is incomplete'):
+            self.generate(engine)
 
     def test_actual_engine_rejects_wrong_fixed_output_and_missing_terminal(self):
         with self.assertRaisesRegex(RuntimeError, 'output length violates'):

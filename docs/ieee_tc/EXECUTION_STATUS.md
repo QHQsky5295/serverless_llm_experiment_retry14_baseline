@@ -1,5 +1,21 @@
 # IEEE TC execution status
 
+## CURRENT — D295 controlled numerical repeat registered; launch block1 next
+
+2026-10-06. D294's missing measurement now has an opt-in extension to the existing
+backend-model-check: same 27 original request indexes (0–21 plus59/74/77/84/91),
+single-request and concurrent4 arms, three separately launched native runtimes.
+Actual token IDs/top2 probabilities, slot content and forward metadata retained;
+no Full performance point, new input, kernel/precision/batch-invariance change,
+or remote service. See `D295_CONTROLLED_NUMERICAL_REPEAT.md` and new config/launcher.
+468 model/basic tests pass;75 guard tests pass in the required system Python.
+An initial combined model-Python test invocation had4 guard API failures and539
+passes; those failures remain documented, not suppressed. Old seal146/147 with
+only the same pre-existing baseline replay script difference. Fresh disk/headroom
+gate passes narrowly; recheck before launch. No new GPU results yet. Inspect each
+block and publish status table before next; no unchecked three-block loop.
+7B acceptance, commonwarm/Resident and G1/G2 still OPEN; no3B/baselines.
+
 ## CURRENT — D294 saved binding audit passes; numerical cause remains unresolved
 
 2026-10-06. Reused D290/D293 immutable logs and frozen content index only;
