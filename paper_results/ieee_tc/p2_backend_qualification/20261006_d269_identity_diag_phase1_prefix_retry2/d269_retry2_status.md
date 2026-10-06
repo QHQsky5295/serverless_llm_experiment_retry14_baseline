@@ -21,6 +21,7 @@ changed routing objective was introduced.
 | result JSON | `experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_identity_diag_phase1_prefix_retry2_d269_7b_identity_diag_phase1_prefix_retry2.json` |
 | result SHA-256 | `82ae8cc73d1a085fee37163378d302ce4950df80ea7aa3dd7fb36a7cb45eed5d` |
 | launch receipt SHA-256 | `437d8448147c5dd7ac6f5cd801929b4d99db32cb531c60314e9a130c05f4200e` |
+| native outcome SHA-256 | `7f75834d5213a835dd010b6fe0e1e9a5848839dc41a0c78b83003a754912fab5` |
 | config SHA-256 | `baf54c741e9d49012a99a1db60fa9690d7d95fae4633521f0d2e94c2146a06bd` |
 | launcher SHA-256 | `2aedb7b9af728bb277fcc0175d94e68801329fb15b1c5389948de4554a18f80a` |
 | plan SHA-256 | `0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7` |

@@ -13,6 +13,11 @@
   run therefore exercised the named adapter family, but request position 198
   alone cannot prove that the exact `_validate_source_binding` predicate was
   exercised for that request.
+- For this adapter, the retained outcome contains one deferred
+  `stale_snapshot` preparation attempt followed by a completed preparation
+  from the same verified NVMe path/content digest. This shows that normal
+  stale-snapshot revalidation and source publication completed in D269; it is
+  not evidence that D266's rejected live-source predicate was reached.
 
 ## Evidence limits
 
