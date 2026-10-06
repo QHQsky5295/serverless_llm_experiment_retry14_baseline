@@ -1,5 +1,43 @@
 # IEEE TC execution status
 
+## CURRENT — D269 retry2 completes a phase-preserving identity diagnostic; no repair claim
+
+2026-10-06. D269 retry2 replayed a fresh 500-request 7B prefix as **one
+phase**, preserving the phase structure relevant to D266's `req_00198` rather
+than repartitioning the prefix into D268's eight mini-phases. The structured
+source-binding diagnostics were active, with no retry, fallback, validator
+relaxation, or changed routing objective. The raw result and audit are stored
+at `paper_results/ieee_tc/p2_backend_qualification/20261006_d269_identity_diag_phase1_prefix_retry2/`.
+
+All 500/500 requests terminated successfully (500 successes, zero failures),
+including request 198 with the same source-request SHA as the D266 failure
+position. The run observed three natural scale-ups and no scale-downs. No
+terminal source-binding exception appears in the service or retained worker
+logs. The launch receipt reports zero service/replay/watchdog return codes,
+native context release and service-path removal; cgroup `high`, `max`, `oom`,
+and `oom_kill` counts stayed zero. The physical-release proof field remains
+`proves_physical_lease_release=false`, so the allocator-level release claim is
+not promoted.
+
+This is stronger than D268 for replay-state control, but it still does **not**
+prove that the D266 identity transition was reproduced or repaired. The
+terminal schema has no adapter ID/source path, retry, or transient-conflict
+counter; the analyzer also reports `vllm_available=false` although worker logs
+show real vLLM 0.30.0/LoRA execution. Consequently the result is exploratory,
+not a readiness, performance, G1/G2, or ranking point. Descriptive mean/P95
+TTFT is 1205.5/2802.7 ms and mean/P95 E2E is 6302.1/12317.7 ms for the 500
+request prefix; these numbers are not compared with formal runs.
+
+The initial D269 attempt remains separately classified as a
+`protocol_or_launcher_error` caused by a copied `source_audit_sha256` typo;
+its GPU request count was zero and its receipt is retained in
+`paper_results/ieee_tc/p2_backend_qualification/20261006_d269_identity_diag_phase1_prefix/`.
+
+The validator remains fail-closed and unchanged. The next gate is a
+read-only comparison of D266 and D269 source-selection, content-digest,
+live-copy, and preparation-plan state. D269 does not authorize a new full
+readiness replay or any formal Prime optimization claim.
+
 ## CURRENT — D266 identity conflict unresolved; D267 configuration failure; D268 prefix diagnostic is non-causal
 
 2026-10-06. The authorized D266 fresh cold rerun did not produce a formal
