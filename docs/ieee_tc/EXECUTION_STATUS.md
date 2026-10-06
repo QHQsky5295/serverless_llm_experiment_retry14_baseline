@@ -11,7 +11,32 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D298 capacity candidate preparation; D297 remains completed Full
+## CURRENT — D298 source measurement RUNNING; D297 remains completed Full
+
+2026-10-07 03:05+08. Checkpoint783fa42e6b3ba1cd0e034d8e0cddcd3d72c9b42e
+pushed and remote SHA verified BEFORE launch. The one source-calibration job
+started03:03:59 in tmux primelora-d298-source. Raw/source1_launch.launch contains
+guarded execution and resource evidence. Actual service unit
+primelora-tc-svc-30e40ed8dc7e43cfaa7c593a0c94ad41.scope,
+invocationb34a7b85dc6549fb96b21d68ec9f461c; watchdog2330044 in auxiliary
+primelora-tc-aux-6f07b2a115444c259f1ad833c3e94380.scope. Sample73:
+servicepeak5456633856B,hostavailable109734871040B,high/max/OOM0,no warning.
+Still initializing the native runtime; no completed source measurement yet.
+No concurrent new GPU run, compilation/install campaign, cleanup or figures.
+
+Remote units use the unchanged D80 files/cache/monitor; actual NIC1000/full.
+Monitor primelora-artifact-monitor-d298.service invocation
+7f8ab050a35c464d87a489395aa2ceaf;7B8decefe0633e40fbb4054a11433e839a;
+3B58857eeff82f447f822b839507f9b656 (artifact service only, no3B inference).
+Authenticated direct health at820672.26981241 preceded local launch.
+Remote7B clockremote-process-monotonic:0c7bd6b595fb40a98648d03e568050b5.
+Start/health receipts retained under d298_20261007; immutable cache reused.
+NEXT monitor SAME job, release actual owned GPU, stop ONLY captured remote
+monitor/invocations, reconcile transfers and audit/export source profiles via
+existing helpers. Then100-request Full smoke and4000W0, not warm-repeat/3B/
+baselines. No fresh candidate while this run is live. G1/G2 remainOPEN.
+
+## D298 preparation history
 
 2026-10-07 02:56+08. D170 raw JSON losslessly archived; two roundtrip SHA checks
 preceded removal of the uncompressed duplicate. Curated/projection unchanged;
