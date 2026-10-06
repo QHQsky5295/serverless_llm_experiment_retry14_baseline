@@ -1128,13 +1128,17 @@ echo "[3/5] Starting isolated vLLM OpenAI server(s)"
 rm -f "${SERVER_LOG_PREFIX}"_r*.log
 VLLM_SERVER_PIDS=""
 VLLM_STARTUP_SECS=()
+VLLM_LAUNCH_EPOCHS=()
+VLLM_READY_EPOCHS=()
+VLLM_REPLICA_LOGS=()
+VLLM_REPLICA_PORT_ARRAY=()
 
 for replica_idx in $(seq 0 $((DP_REPLICAS - 1))); do
   replica_port="${VLLM_REPLICA_PORTS[${replica_idx}]}"
   replica_gpu_mask="${VLLM_REPLICA_GPU_MASKS[${replica_idx}]}"
   ensure_port_is_free "${replica_port}" "vLLM API"
   replica_log="${SERVER_LOG_PREFIX}_r${replica_idx}.log"
-  launch_epoch="$(PYTHONNOUSERSITE=1 "${VLLM_PYTHON}" -c 'import time; print(f"{time.time():.6f}")')"
+  launch_epoch="$(PYTHONNOUSERSITE=1 "${VLLM_PYTHON}" -c 'import time; print(f"{time.monotonic():.6f}")')"
   env_args=(
     PYTHONNOUSERSITE=1
     PYTHONUNBUFFERED=1
@@ -1204,28 +1208,57 @@ for replica_idx in $(seq 0 $((DP_REPLICAS - 1))); do
   fi
   VLLM_SERVER_PIDS="${VLLM_SERVER_PIDS} ${replica_pid}"
 
-  ready=0
-  for _ in $(seq 1 360); do
-    if curl -s "http://${VLLM_HOST}:${replica_port}/v1/models" >/tmp/vllm_models_${RESULT_TAG}_${replica_idx}.json 2>/dev/null; then
-      ready=1
-      break
+  VLLM_LAUNCH_EPOCHS+=("${launch_epoch}")
+  VLLM_READY_EPOCHS+=("0")
+  VLLM_REPLICA_LOGS+=("${replica_log}")
+  VLLM_REPLICA_PORT_ARRAY+=("${replica_port}")
+done
+
+# All replicas are launched before this bounded readiness loop so independent
+# model initialization is not serialized by one-at-a-time health polling.
+ready_flags=()
+for replica_idx in $(seq 0 $((DP_REPLICAS - 1))); do
+  ready_flags+=("0")
+done
+remaining_replicas="${DP_REPLICAS}"
+for _ in $(seq 1 360); do
+  for replica_idx in $(seq 0 $((DP_REPLICAS - 1))); do
+    [[ "${ready_flags[${replica_idx}]}" == "1" ]] && continue
+    replica_port="${VLLM_REPLICA_PORT_ARRAY[${replica_idx}]}"
+    replica_pid="$(echo "${VLLM_SERVER_PIDS}" | awk -v idx="${replica_idx}" '{print $(idx+1)}')"
+    if curl -s "http://${VLLM_HOST}:${replica_port}/v1/models" \
+      >"/tmp/vllm_models_${RESULT_TAG}_${replica_idx}.json" 2>/dev/null; then
+      ready_flags[${replica_idx}]=1
+      VLLM_READY_EPOCHS[${replica_idx}]="$(PYTHONNOUSERSITE=1 "${VLLM_PYTHON}" -c 'import time; print(f"{time.monotonic():.6f}")')"
+      remaining_replicas=$((remaining_replicas - 1))
+      continue
     fi
     if ! kill -0 "${replica_pid}" 2>/dev/null; then
       echo "[ERROR] vLLM replica ${replica_idx} exited before becoming ready. Tail log:" >&2
-      tail -n 100 "${replica_log}" >&2 || true
+      tail -n 100 "${VLLM_REPLICA_LOGS[${replica_idx}]}" >&2 || true
       exit 1
     fi
-    sleep 2
   done
-  if [[ "${ready}" != "1" ]]; then
-    echo "[ERROR] timed out waiting for vLLM replica ${replica_idx} /v1/models readiness. Tail log:" >&2
-    tail -n 100 "${replica_log}" >&2 || true
-    exit 1
+  if (( remaining_replicas == 0 )); then
+    break
   fi
-  ready_epoch="$(PYTHONNOUSERSITE=1 "${VLLM_PYTHON}" -c 'import time; print(f"{time.time():.6f}")')"
+  sleep 2
+done
+
+if (( remaining_replicas != 0 )); then
+  for replica_idx in $(seq 0 $((DP_REPLICAS - 1))); do
+    if [[ "${ready_flags[${replica_idx}]}" != "1" ]]; then
+      echo "[ERROR] timed out waiting for vLLM replica ${replica_idx} /v1/models readiness. Tail log:" >&2
+      tail -n 100 "${VLLM_REPLICA_LOGS[${replica_idx}]}" >&2 || true
+    fi
+  done
+  exit 1
+fi
+
+for replica_idx in $(seq 0 $((DP_REPLICAS - 1))); do
   startup_sec="$(
     PYTHONNOUSERSITE=1 "${VLLM_PYTHON}" -c 'import sys; print(f"{max(0.0, float(sys.argv[2]) - float(sys.argv[1])):.6f}")' \
-      "${launch_epoch}" "${ready_epoch}"
+      "${VLLM_LAUNCH_EPOCHS[${replica_idx}]}" "${VLLM_READY_EPOCHS[${replica_idx}]}"
   )"
   VLLM_STARTUP_SECS+=("${startup_sec}")
   echo "      replica=${replica_idx} startup_sec=${startup_sec}"
