@@ -17,6 +17,10 @@ request-triggered remote read/send/receive/materialization remains in user E2E.
 D77's 100-Mbps negotiation and D78/current 1-Gbps/full negotiation remain separate
 execution states; no historical 100-Mbps coverage run is promoted to a performance
 or G1/G2 point. This documentation step authorizes no new GPU replay.
+The read-only 2026-10-06 state (both endpoints 1000/full, remote boot ID retained,
+no service or link mutation) is recorded at
+[`20261006_d270_link_readonly.json`](../../paper_results/ieee_tc/remote_qualification/20261006_d270_link_readonly.json)
+(SHA-256 `c03f299d2a3c58c44cf4e9384058d3c3731dd2eb0850f2211c0ef4523aca8240`).
 
 ## CURRENT — request-level source-binding witness is instrumented and unit-tested
 

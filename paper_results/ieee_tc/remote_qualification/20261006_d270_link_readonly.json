@@ -1,0 +1,31 @@
+{
+  "kind": "remote_link_readonly_state_v1",
+  "purpose": "record_current_link_state_without_starting_or_reconfiguring_service",
+  "observed_at_utc": "2026-10-06T04:23:23Z",
+  "local": {
+    "interface": "eno1np0",
+    "speed_mbit_s": 1000,
+    "duplex": "full",
+    "carrier": 1
+  },
+  "remote": {
+    "host_alias": "primelora-artifact-174",
+    "interface": "eno1",
+    "boot_id": "b53c1f16-1dd2-4741-9271-6b75e86582ec",
+    "speed_mbit_s": 1000,
+    "duplex": "full",
+    "carrier": 1,
+    "ethtool_speed": "1000Mb/s",
+    "ethtool_duplex": "Full",
+    "autonegotiation": "on",
+    "link_detected": "yes"
+  },
+  "mutation": {
+    "service_started": false,
+    "service_restarted": false,
+    "interface_changed": false,
+    "qdisc_changed": false,
+    "speed_forced": false
+  },
+  "interpretation": "Current readback is 1-Gbps/full evidence only; it is not achieved application throughput and does not overwrite the historical D77 100-Mbps state."
+}
