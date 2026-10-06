@@ -19,8 +19,11 @@ The parent documents are:
 | `METRIC_PROTOCOL_HYDRASERVE_REMOTE_AUDIT_20261006.md` | `ea5b82c0ddfdfcb4ac736f8fe76862a976cccb9ad081a4ec26eae4efe7d022ac` |
 | `PrimeLoRA-PLAN.md` | `0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7` |
 
-The parent protocol remains authoritative when this file is silent.  A future
-run must record this addendum's SHA alongside the parent SHAs.
+The parent protocol remains authoritative when this file is silent.  The
+operational rationale and consolidated calculation checklist are in
+`METRIC_DECISION_FREEZE_20261006.md`; that note resolves boundary wording but
+does not supersede the parent formulas.  A future run must record both this
+addendum's SHA and the decision-note SHA alongside the parent SHAs.
 
 ## 2. What is primary, and what is secondary
 

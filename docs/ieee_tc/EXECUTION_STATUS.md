@@ -1,5 +1,38 @@
 # IEEE TC execution status
 
+## CURRENT — metric boundary frozen; D278 startup latency classified as environment-stratum diagnostic
+
+2026-10-06. The operational metric and remote-boundary checklist is archived in
+`docs/ieee_tc/METRIC_DECISION_FREEZE_20261006.md`; the parent V1/Remote Scope
+V2/Final V2 protocol hashes remain unchanged.  The note freezes G1 as
+physical-card GPU-s per correct request after `N_correct=N_plan` and joint SLO,
+G2 as P95 user TTFT under the common 0.75 reference GPU-time budget, and CE as
+supplementary.  It also records that the approved prepublished gzip creation is
+deployment-time work, while request-triggered remote read/transfer/receive/
+materialization remains in user E2E.
+
+A read-only comparison of D219 and D278 is archived in
+`docs/ieee_tc/D278_STARTUP_ENVIRONMENT_AUDIT.md` and its curated CSV.  Both
+runs completed 4,000 requests with the same 7B trace, subset, generation
+contract and prepublished delivery, but D278 began under approximately 12 GiB
+parent swap and non-zero memory PSI, versus approximately 0.22 GiB and zero
+short-window PSI for D219.  D278's engine/preload interval was 204.5 s versus
+53.6 s; mean service TTFT stayed 681.7 ms versus 694.3 ms, while the first 100
+user TTFTs averaged 142.6 s.  This is not evidence of a 4--5x native inference
+regression, and D278's mean/P95 user latency is not promoted to a Prime
+optimization target or a G1/G2 comparison point.
+
+The current host preflight passes the Plan's 102 GiB memory headroom and
+150 GiB new-task disk floor with no active experiment GPU processes; the
+available disk is only slightly above that immutable floor, so no heavy replay
+is authorized until its predicted growth and cleanup receipt are audited.  The
+artifact-node independent capacity implementation is covered by five focused
+preflight tests (5 passed); inference-host memory/disk/OOM rules are unchanged.
+No Prime code change or GPU replay was made in this checkpoint.  The next
+paper-level action is a clean 7B startup/resource-stratum validation under the
+frozen contract; only after that can a causal readiness optimization or the
+formal first-service blocks be considered.  3B and all baselines remain paused.
+
 ## CURRENT — D278 first-service audit bounds the planned-match question; readiness gate remains open
 
 2026-10-06. A CPU/offline join of the ten D278 natural scale-up epochs to
