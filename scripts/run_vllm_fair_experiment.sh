@@ -9,15 +9,6 @@ SHARED_INPUT_DIR="${SLLM_SHARED_INPUT_DIR:-${ROOT_DIR}/results/shared_inputs}"
 CONFIG_PATH="${SLLM_CONFIG_PATH:-${MAIN_REPO}/configs/experiments.yaml}"
 VLLM_PYTHON="${VLLM_PYTHON:-/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python}"
 
-# Fail before resolving any campaign inputs when the retired Resident
-# prototype is requested.  This also protects dry-runs from being mistaken
-# for a qualified protocol check.
-if [[ "${VLLM_RESIDENT_PROTOCOL_V1:-0}" == "1" ]]; then
-  echo "[ERROR] Resident-v1 prototype is quarantined: no qualified common lease/resource protocol is installed; refusing to launch or dry-run." >&2
-  echo "        Retained D222-D224 artifacts are diagnostic only." >&2
-  exit 78
-fi
-
 MODEL_PROFILE="${SLLM_MODEL_PROFILE:?SLLM_MODEL_PROFILE is required}"
 DATASET_PROFILE="${SLLM_DATASET_PROFILE:?SLLM_DATASET_PROFILE is required}"
 WORKLOAD_PROFILE="${SLLM_WORKLOAD_PROFILE:?SLLM_WORKLOAD_PROFILE is required}"
@@ -96,16 +87,6 @@ VLLM_PROTOCOL_FINALIZED=0
 VLLM_ABORT_FAILURES_MIN_DONE="${VLLM_ABORT_FAILURES_MIN_DONE:-32}"
 VLLM_EXPECTED_REPLAY_TOTAL="${TOTAL_REQUESTS}"
 
-# The first Resident-v1 wrapper was an exploratory prototype, not a qualified
-# reference implementation.  It used a separate launcher/resource contract
-# and must never be allowed to silently enter a dry-run or a performance
-# campaign.  Keep the historical files intact, but fail closed until the
-# qualified common preflight/lease path is integrated.
-if [[ "${VLLM_RESIDENT_PROTOCOL_V1}" == "1" ]]; then
-  echo "[ERROR] Resident-v1 prototype is quarantined: no qualified common lease/resource protocol is installed; refusing to launch or dry-run." >&2
-  echo "        Retained D222-D224 artifacts are diagnostic only." >&2
-  exit 78
-fi
 if [[ "${VLLM_MAX_REPLAY_REQUESTS}" =~ ^[0-9]+$ ]] && (( VLLM_MAX_REPLAY_REQUESTS > 0 && VLLM_MAX_REPLAY_REQUESTS < TOTAL_REQUESTS )); then
   VLLM_EXPECTED_REPLAY_TOTAL="${VLLM_MAX_REPLAY_REQUESTS}"
 fi
