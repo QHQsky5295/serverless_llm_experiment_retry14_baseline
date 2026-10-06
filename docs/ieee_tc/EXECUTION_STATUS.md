@@ -1,5 +1,24 @@
 # IEEE TC execution status
 
+## CURRENT — D288 Resident reference paused by the revised Prime-first order
+
+2026-10-06. D288 launched the first full 7B Resident reference attempt under
+the repaired CPU-affinity and resource contract, but it was deliberately
+stopped before replay completion after the execution order was revised to
+finish/analyze the existing ServerlessLLM run and then complete PrimeLoRA
+first.  The attempt has no replay JSON and no valid request denominator; it is
+classified as `user_priority_stop` and excluded from every Resident reference,
+budget, SLO, G1/G2, and baseline-ranking calculation.  Its raw directory and
+receipt are preserved, and the lifecycle closed only after owned workers and
+the final NVML census were clear.  The baseline-side audit is
+`docs/ieee_tc/D288_RESIDENT_REFERENCE_PRIORITY_STOP.md`.
+
+The D287 100-request CPU-affinity pilot remains a valid protocol qualification
+only.  The Resident three-repeat series is registered but paused.  The next
+main-line work is the frozen metric/remote-boundary decision note, followed by
+PrimeLoRA 7B correctness and performance optimization; 3B and all external
+baseline comparisons remain paused until the per-model Prime gate is met.
+
 ## CURRENT — D287 7B Resident CPU-affinity pilot passes; formal reference series authorized
 
 2026-10-06. After D285 exposed that a user-level slice's `AllowedCPUs` field
