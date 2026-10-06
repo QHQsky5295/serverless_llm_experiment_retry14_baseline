@@ -26,8 +26,11 @@ time, not the user's subsequent explicit execution authorization.
 - Serverless audit comes first among baseline tasks. Display name is Serverless.
   Authorized polling repair must preserve RR/scaling/loading semantics.
 - One heavy run at a time. No blind OOM retries. Do not stop unrelated processes.
-- Each run: cleanup -> validation -> figure/table -> interpretation -> next task.
-  Follow plan section 11, Times New Roman, IEEE single column, no overlap.
+- Latest user direction (2026-10-06) supersedes plan section 11's immediate
+  plotting cadence: before Prime meets the performance targets, do not generate
+  figures. Each run: cleanup -> validate/save data -> concise interpretation ->
+  next main-line task. Do not spend optimization time on presentation work.
+  Later publication figures still follow section 11's typography/layout rules.
 - Report periodically in Chinese as paper evidence: completed experiments,
   current question and reason for remaining here, outstanding experiments.
   Do not disguise engineering checks as completed performance experiments.

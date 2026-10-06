@@ -4,7 +4,8 @@ import json
 
 import pytest
 
-from scripts.ieee_tc.plot_d290_diagnostic import binding_checks, load, percentile, request_vectors
+from scripts.ieee_tc.plot_d290_diagnostic import (binding_checks, load, percentile,
+    request_vectors, write_numerical_repeat_audit)
 
 
 def request():
@@ -119,3 +120,21 @@ def test_expected_content_is_independent_and_slot_is_checked():
     assert not binding_checks(row, "independent_wrong")["frozen_content_binding"]
     row["gpu_reference_evidence"]["receipt"]["post_load_source_snapshot"]["slot_adapter_ids"] = [7]
     assert not binding_checks(row, "content")["slot_binding"]
+
+
+def test_numerical_audit_rejects_duplicate_or_empty_blocks(tmp_path):
+    path = tmp_path / 'not_read.json'
+    for paths in ([], [path, path], [path] * 4):
+        with pytest.raises(ValueError, match='distinct'):
+            write_numerical_repeat_audit(paths, tmp_path / 'out')
+    assert not (tmp_path / 'out').exists()
+
+
+def test_numerical_audit_rejects_incomplete_before_publishing(tmp_path):
+    path = tmp_path / 'partial.json'
+    path.write_text(json.dumps({'kind': 'backend_native_native_numerical_repeat_qualification_v1',
+                                'pass': False, 'stage': 'failed'}))
+    (tmp_path / 'launch.json').write_text(json.dumps({'pass': False}))
+    with pytest.raises(ValueError, match='incomplete'):
+        write_numerical_repeat_audit([path], tmp_path / 'out')
+    assert not (tmp_path / 'out').exists()

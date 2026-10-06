@@ -11,10 +11,12 @@ from __future__ import annotations
 
 import argparse
 import csv
+import gzip
 import hashlib
 import json
 import math
 import subprocess
+import sys
 from pathlib import Path
 from statistics import mean
 
@@ -232,6 +234,116 @@ def write_binding_audit(reference: Path, candidate: Path, index_path: Path, out_
     print(json.dumps({k: v["control_binding_pass_count"] for k, v in audits.items()}))
 
 
+def write_numerical_repeat_audit(paths: list[Path], out_dir: Path) -> dict:
+    """Bounded same-backend correctness table, never a performance figure."""
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+    from scripts.ieee_tc_preflight import (compare_native_sequences,
+        numerical_repeat_indices, validate_native_execution_journal)
+    if not 1 <= len(paths) <= 3 or len({p.resolve() for p in paths}) != len(paths):
+        raise ValueError("one to three distinct preregistered numerical blocks required")
+    sources, rows, retained, comparisons = [], [], [], []
+    config_sha = None
+    selected = numerical_repeat_indices(100)
+    for path in paths:
+        opener = gzip.open if path.suffix == '.gz' else open
+        with opener(path, 'rt', encoding='utf-8') as stream:
+            result = json.load(stream)
+        uncompressed_hash = hashlib.sha256()
+        with opener(path, 'rb') as stream:
+            for chunk in iter(lambda: stream.read(1024 * 1024), b''):
+                uncompressed_hash.update(chunk)
+        launch_path = path.parent / "launch.json"
+        launch = json.loads(launch_path.read_text())
+        if (result.get("kind") != "backend_native_native_numerical_repeat_qualification_v1"
+                or result.get("pass") is not True or result.get("stage") != "complete"
+                or result.get("performance_sample") is not False
+                or result.get("n_correct") is not None
+                or result.get("selected_source_indices") != selected
+                or result.get("shutdown_called") is not True
+                or launch.get("pass") is not True or launch.get("service_returncode") != 0
+                or launch.get("watchdog_returncode") != 0
+                or launch.get("native_gpu_context_release_confirmed") is not True
+                or launch.get("service_path_removed") is not True):
+            raise ValueError("incomplete numerical measurement/cleanup; publish failure status separately")
+        if config_sha is None:
+            config_sha = result["config_sha256"]
+        elif config_sha != result["config_sha256"]:
+            raise ValueError("numerical blocks use different configurations")
+        label = path.parent.name
+        cases = {}
+        for case in result["requests"]:
+            key = case["arm"], case["source_index"]
+            if (key in cases or case.get("pass") is not True
+                    or case["actual_tokens"] != case["target_tokens"]
+                    or case["release"].get("released") is not True
+                    or case["timing"].get("native_terminal_observed") is not True):
+                raise ValueError("incomplete or duplicate numerical case")
+            compare_native_sequences(case, case)
+            cases[key] = case
+        if set(cases) != {(arm, i) for arm in ("single", "concurrent4") for i in selected}:
+            raise ValueError("missing numerical cases")
+        validations = []
+        if [a["name"] for a in result["numerical_arms"]] != ["single", "concurrent4"]:
+            raise ValueError("numerical arms differ from registration")
+        for arm in result["numerical_arms"]:
+            checked = validate_native_execution_journal(arm["journal"], arm["expected_leases"],
+                result["workers_before"]["workers"][0], arm["scheduler_before"], arm["scheduler_after"])
+            if checked != arm["validation"]:
+                raise ValueError("retained execution validation differs from recomputation")
+            sizes = sorted({len(e["observation"]["requests"]) for s in arm["journal"]
+                            for e in s["events"] if e["kind"] == "forward_before"})
+            if (sizes != arm["observed_batch_sizes"] or not sizes
+                    or (arm["name"] == "single" and sizes != [1])
+                    or (arm["name"] == "concurrent4" and max(sizes) <= 1)):
+                raise ValueError("real batch coverage does not match diagnostic arm")
+            slot_count = 0
+            for wave in arm["waves"]:
+                for boundary in ("slot_before", "slot_after"):
+                    if not wave[boundary] or any(x.get("pass") is not True for x in wave[boundary]):
+                        raise ValueError("slot-content observation is incomplete")
+                    slot_count += len(wave[boundary])
+            validations.append(dict(arm=arm["name"], observed_batch_sizes=sizes,
+                execution=checked, slot_content_observations=slot_count))
+        within = [dict(source_index=i, **compare_native_sequences(cases['single', i],
+                    cases['concurrent4', i])) for i in selected]
+        if within != result["single_vs_concurrent"]:
+            raise ValueError("stored numerical comparison differs from recomputation")
+        comparisons.append(dict(left=label + '/single', right=label + '/concurrent4', rows=within))
+        rows.append(dict(block=label, completed=54, selected_requests=27,
+            single_concurrent_exact=sum(x['exact_match'] for x in within),
+            different=sum(not x['exact_match'] for x in within), performance_sample=False,
+            formal_qualification=False))
+        sources.append(dict(path=str(path.resolve()), sha256=sha256(path),
+            uncompressed_sha256=uncompressed_hash.hexdigest(),
+            launch_sha256=sha256(launch_path), config_sha256=config_sha,
+            trace=result['trace'], execution_validations=validations))
+        retained.append((label, cases))
+        # Keep only the small sequences across blocks, not hundreds of MiB of
+        # already-validated per-iteration journals while decoding the next run.
+        del result, arm, wave
+    for left_idx in range(len(retained)):
+        for right_idx in range(left_idx + 1, len(retained)):
+            left_label, left = retained[left_idx]
+            right_label, right = retained[right_idx]
+            for arm in ('single', 'concurrent4'):
+                comparisons.append(dict(left=left_label + '/' + arm, right=right_label + '/' + arm,
+                    rows=[dict(source_index=i, **compare_native_sequences(left[arm, i], right[arm, i]))
+                          for i in selected]))
+    artifact = dict(kind='controlled_native_numerical_audit_v1', blocks=len(paths),
+        planned_blocks=3, provisional=len(paths) < 3, sources=sources, status=rows,
+        comparisons=comparisons, n_correct=None, performance_sample=False,
+        formal_qualification=False, script_sha256=sha256(Path(__file__)),
+        metric_protocol_sha256=sha256(Path(__file__).resolve().parents[2] /
+                                     'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'))
+    out_dir.mkdir(parents=True, exist_ok=False)
+    (out_dir / 'numerical_audit.json').write_text(json.dumps(artifact, indent=2) + '\n')
+    with (out_dir / 'status.csv').open('w', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=list(rows[0]), lineterminator='\n')
+        writer.writeheader()
+        writer.writerows(rows)
+    return artifact
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("result_json", type=Path)
@@ -241,7 +353,18 @@ def main() -> None:
     parser.add_argument("--data-dir", type=Path)
     parser.add_argument("--binding-audit-only", action="store_true")
     parser.add_argument("--content-index", type=Path)
+    parser.add_argument("--numerical-repeat-only", action="store_true")
+    parser.add_argument("--additional-numerical-result", type=Path, action="append", default=[])
     args = parser.parse_args()
+    if args.numerical_repeat_only:
+        if args.binding_audit_only or args.reference_json or args.content_index or args.data_dir:
+            parser.error("numerical audit must be a separate explicit analysis")
+        artifact = write_numerical_repeat_audit([args.result_json] + args.additional_numerical_result,
+                                               args.out_dir)
+        print(json.dumps(artifact['status'], indent=2))
+        return
+    if args.additional_numerical_result:
+        parser.error("additional numerical results require --numerical-repeat-only")
     if args.binding_audit_only:
         if not args.reference_json or not args.content_index:
             parser.error("binding audit requires --reference-json and --content-index")

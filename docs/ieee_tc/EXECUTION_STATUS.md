@@ -1,6 +1,45 @@
 # IEEE TC execution status
 
-## CURRENT — D295 block1 launch refused before GPU; unique retry next
+## USER PRIORITY UPDATE — 2026-10-06, no figures before optimization targets
+
+The latest explicit user goal supersedes the old per-run plotting requirement.
+Until Prime is close to its agreed correctness/SLO/GPU-s goals, retain raw data,
+minimal comparison records and interpretations only; no new performance figures
+or figure styling/QA work. Finish the current missing numerical measurement, then
+return to7B optimization, then3B, then baselines and goal-driven fair comparisons.
+Preserve paper equations/core semantics and the frozen evaluation ruler. Existing
+figures/history remain untouched. Source plan SHA remains0c808509...; this is a
+user execution-priority override, not a silent rewrite of the approved source plan.
+
+## CURRENT — D295 block1/attempt2 complete;25/27 single/concurrent exact,2 near-tie divergences
+
+2026-10-06. Completed54 native fixed-length generations (27 per arm), with actual
+single batches1 and concurrent batches1/2/3/4; slot readback and independent
+forward-journal revalidation pass.25 paired sequences exact;req7 first differs
+at token80 (logprob margins0/.03125),req84 at token38 (.015625/0). This supports
+batch/execution-condition numerical sensitivity but does NOT explain all historical
+six differences, prove kernel arithmetic, or qualify N_correct/G1G2. One of three
+independent native starts done; no extra seeds or tolerance relaxation.
+
+GPU released/service domain removed;840 watchdog samples, service peak5.286GiB,
+min available100.415GiB, high/max/OOM/swap0. New346-MiB detailed JSON compressed
+losslessly to10.67MiB; raw SHA60949fa4... matches decompression, gzip83dcac90... .
+Only the verified uncompressed duplicate was removed, receipt retained. Read
+`results/ieee_tc/p2_backend_qualification/d295_20261006/block_1_attempt_2/numerical_repeat.json.gz`
+directly; original raw name no longer exists. Do not rerun block1 as missing data.
+Curated data/status and source hashes in
+`paper_results/ieee_tc/p2_backend/d295_numerical_repeat/block_1/`; no figure per
+latest user instruction.31 analyzer/capture CPU tests pass; actual audit16.97s,
+maxRSS1.306GiB, high/max/OOM0. Full explanation in D295 doc.
+
+NEXT: fresh resource gate, then existing launcher `...run_d295_7b_numerical_repeat.sh 2 1`;
+inspect/record/cleanup/compress before block3. Reuse same27 inputs/config/code;
+do not expand numerical diagnostics or repeat HF/PEFT. Then return to7B performance
+optimization. D293 cleanup85.546GPU-s and serial independent-runtime release are
+one untested resource hypothesis, not a subtraction from resource measurement.
+Commonwarm/Resident, oldPrime-newmetrics, per-model G1/G2 still OPEN. No3B/baselines.
+
+## HISTORY — D295 block1 launch refused before GPU; unique retry next
 
 2026-10-06. D294's missing measurement now has an opt-in extension to the existing
 backend-model-check: same 27 original request indexes (0–21 plus59/74/77/84/91),
