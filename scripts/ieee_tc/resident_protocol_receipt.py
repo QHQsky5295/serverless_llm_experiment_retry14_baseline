@@ -86,6 +86,10 @@ def _unit_snapshot(unit: str) -> dict[str, Any]:
             "-p",
             "MemoryMax",
             "-p",
+            "MemoryHigh",
+            "-p",
+            "MemorySwapMax",
+            "-p",
             "TasksMax",
             "-p",
             "AllowedCPUs",
@@ -153,8 +157,12 @@ def init(args: argparse.Namespace) -> None:
         "resource_domains": {
             "service_slice": args.service_slice,
             "auxiliary_slice": args.aux_slice,
+            "service_memory_high": args.service_memory_high,
             "service_memory_max": args.service_memory_max,
+            "service_swap_max": args.service_swap_max,
+            "auxiliary_memory_high": args.aux_memory_high,
             "auxiliary_memory_max": args.aux_memory_max,
+            "auxiliary_swap_max": args.aux_swap_max,
             "service_tasks_max": int(args.service_tasks_max),
             "auxiliary_tasks_max": int(args.aux_tasks_max),
             "service_cpu_affinity": args.service_cpu_affinity,
@@ -258,8 +266,12 @@ def parser() -> argparse.ArgumentParser:
     init_ap.add_argument("--remote-cache-dir", default="")
     init_ap.add_argument("--service-slice", required=True)
     init_ap.add_argument("--aux-slice", required=True)
+    init_ap.add_argument("--service-memory-high", required=True)
     init_ap.add_argument("--service-memory-max", required=True)
+    init_ap.add_argument("--service-swap-max", required=True)
+    init_ap.add_argument("--aux-memory-high", required=True)
     init_ap.add_argument("--aux-memory-max", required=True)
+    init_ap.add_argument("--aux-swap-max", required=True)
     init_ap.add_argument("--service-tasks-max", type=int, required=True)
     init_ap.add_argument("--aux-tasks-max", type=int, required=True)
     init_ap.add_argument("--service-cpu-affinity", default="")

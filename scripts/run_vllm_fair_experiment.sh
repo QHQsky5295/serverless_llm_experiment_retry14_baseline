@@ -74,8 +74,12 @@ VLLM_REMOTE_ARTIFACT_STAGE_WORKERS="${VLLM_REMOTE_ARTIFACT_STAGE_WORKERS:-${BASE
 VLLM_DISABLE_FRONTEND_MULTIPROCESSING="${VLLM_DISABLE_FRONTEND_MULTIPROCESSING:-0}"
 VLLM_RESIDENT_PROTOCOL_V1="${VLLM_RESIDENT_PROTOCOL_V1:-0}"
 VLLM_RESIDENT_LEAD_S="${VLLM_RESIDENT_LEAD_S:-60}"
-VLLM_RESIDENT_SERVICE_MEMORY_MAX="${VLLM_RESIDENT_SERVICE_MEMORY_MAX:-96G}"
+VLLM_RESIDENT_SERVICE_MEMORY_HIGH="${VLLM_RESIDENT_SERVICE_MEMORY_HIGH:-72G}"
+VLLM_RESIDENT_SERVICE_MEMORY_MAX="${VLLM_RESIDENT_SERVICE_MEMORY_MAX:-80G}"
+VLLM_RESIDENT_SERVICE_SWAP_MAX="${VLLM_RESIDENT_SERVICE_SWAP_MAX:-2G}"
+VLLM_RESIDENT_AUX_MEMORY_HIGH="${VLLM_RESIDENT_AUX_MEMORY_HIGH:-4G}"
 VLLM_RESIDENT_AUX_MEMORY_MAX="${VLLM_RESIDENT_AUX_MEMORY_MAX:-4G}"
+VLLM_RESIDENT_AUX_SWAP_MAX="${VLLM_RESIDENT_AUX_SWAP_MAX:-0B}"
 VLLM_RESIDENT_SERVICE_TASKS_MAX="${VLLM_RESIDENT_SERVICE_TASKS_MAX:-4096}"
 VLLM_RESIDENT_AUX_TASKS_MAX="${VLLM_RESIDENT_AUX_TASKS_MAX:-128}"
 VLLM_RESIDENT_SERVICE_CPU_AFFINITY="${VLLM_RESIDENT_SERVICE_CPU_AFFINITY:-}"
@@ -254,10 +258,14 @@ resident_start_domains() {
     return 1
   fi
   systemctl --user set-property --runtime "${RESIDENT_SERVICE_SLICE}" \
+    MemoryHigh="${VLLM_RESIDENT_SERVICE_MEMORY_HIGH}" \
     MemoryMax="${VLLM_RESIDENT_SERVICE_MEMORY_MAX}" \
+    MemorySwapMax="${VLLM_RESIDENT_SERVICE_SWAP_MAX}" \
     TasksMax="${VLLM_RESIDENT_SERVICE_TASKS_MAX}" >/dev/null
   systemctl --user set-property --runtime "${RESIDENT_AUX_SLICE}" \
+    MemoryHigh="${VLLM_RESIDENT_AUX_MEMORY_HIGH}" \
     MemoryMax="${VLLM_RESIDENT_AUX_MEMORY_MAX}" \
+    MemorySwapMax="${VLLM_RESIDENT_AUX_SWAP_MAX}" \
     TasksMax="${VLLM_RESIDENT_AUX_TASKS_MAX}" >/dev/null
   if [[ -n "${VLLM_RESIDENT_SERVICE_CPU_AFFINITY}" ]]; then
     systemctl --user set-property --runtime "${RESIDENT_SERVICE_SLICE}" \
@@ -287,8 +295,12 @@ resident_init_receipt() {
     --remote-cache-dir "${VLLM_REMOTE_ARTIFACT_CACHE_DIR}" \
     --service-slice "${RESIDENT_SERVICE_SLICE}" \
     --aux-slice "${RESIDENT_AUX_SLICE}" \
+    --service-memory-high "${VLLM_RESIDENT_SERVICE_MEMORY_HIGH}" \
     --service-memory-max "${VLLM_RESIDENT_SERVICE_MEMORY_MAX}" \
+    --service-swap-max "${VLLM_RESIDENT_SERVICE_SWAP_MAX}" \
+    --aux-memory-high "${VLLM_RESIDENT_AUX_MEMORY_HIGH}" \
     --aux-memory-max "${VLLM_RESIDENT_AUX_MEMORY_MAX}" \
+    --aux-swap-max "${VLLM_RESIDENT_AUX_SWAP_MAX}" \
     --service-tasks-max "${VLLM_RESIDENT_SERVICE_TASKS_MAX}" \
     --aux-tasks-max "${VLLM_RESIDENT_AUX_TASKS_MAX}" \
     --service-cpu-affinity "${VLLM_RESIDENT_SERVICE_CPU_AFFINITY}" \
@@ -1048,6 +1060,9 @@ echo "      host_memory_guard_hard=${VLLM_HOST_MIN_MEM_GB}GiB warn=${VLLM_HOST_W
 echo "      smoke_only=${VLLM_SMOKE_ONLY} smoke_max_tokens=${VLLM_SMOKE_MAX_TOKENS}"
 echo "      max_replay_requests=${VLLM_MAX_REPLAY_REQUESTS} expected_replay_total=${VLLM_EXPECTED_REPLAY_TOTAL} abort_after_failures=${VLLM_ABORT_AFTER_FAILURES} abort_failures_min_done=${VLLM_ABORT_FAILURES_MIN_DONE}"
 echo "      generation_contract=${VLLM_GENERATION_CONTRACT} fixed_output_max_tokens=${VLLM_FIXED_OUTPUT_MAX_TOKENS} fixed_prompt_max_tokens=${VLLM_FIXED_PROMPT_MAX_TOKENS}"
+if [[ "${VLLM_RESIDENT_PROTOCOL_V1}" == "1" ]]; then
+  echo "      resident_service_memory=${VLLM_RESIDENT_SERVICE_MEMORY_HIGH}/${VLLM_RESIDENT_SERVICE_MEMORY_MAX} swap_max=${VLLM_RESIDENT_SERVICE_SWAP_MAX} aux_memory=${VLLM_RESIDENT_AUX_MEMORY_HIGH}/${VLLM_RESIDENT_AUX_MEMORY_MAX} aux_swap_max=${VLLM_RESIDENT_AUX_SWAP_MAX}"
+fi
 echo "      min_output_tokens=${VLLM_MIN_OUTPUT_TOKENS} include_stream_usage=${VLLM_INCLUDE_STREAM_USAGE} empty_success_retries=${VLLM_EMPTY_SUCCESS_RETRIES}"
 echo "      launch_spec=${LAUNCH_SPEC_PATH}"
 echo "      lora_modules=${LORA_MODULES_TXT}"
@@ -1185,6 +1200,8 @@ for replica_idx in $(seq 0 $((DP_REPLICAS - 1))); do
     replica_unit="${RESULT_TAG}_resident_vllm_r${replica_idx}.service"
     systemd-run --user --no-block --unit="${replica_unit}" --slice="${RESIDENT_SERVICE_SLICE}" \
       --collect --property=MemoryMax="${VLLM_RESIDENT_SERVICE_MEMORY_MAX}" \
+      --property=MemoryHigh="${VLLM_RESIDENT_SERVICE_MEMORY_HIGH}" \
+      --property=MemorySwapMax="${VLLM_RESIDENT_SERVICE_SWAP_MAX}" \
       --property=TasksMax="${VLLM_RESIDENT_SERVICE_TASKS_MAX}" \
       env "${env_args[@]}" "${server_cmd[@]}" > "${replica_log}" 2>&1
     VLLM_SERVER_UNITS+=("${replica_unit}")
@@ -1404,6 +1421,8 @@ if [[ "${VLLM_RESIDENT_PROTOCOL_V1}" == "1" ]]; then
   fi
   systemd-run --user --no-block --unit="${VLLM_AUX_UNIT}" --slice="${RESIDENT_AUX_SLICE}" \
     --collect --property=MemoryMax="${VLLM_RESIDENT_AUX_MEMORY_MAX}" \
+    --property=MemoryHigh="${VLLM_RESIDENT_AUX_MEMORY_HIGH}" \
+    --property=MemorySwapMax="${VLLM_RESIDENT_AUX_SWAP_MAX}" \
     --property=TasksMax="${VLLM_RESIDENT_AUX_TASKS_MAX}" \
     "${REPLAY_SYSTEMD_ENV[@]}" \
     "${REPLAY_CMD[@]}" > "${AUX_REPLAY_LOG}" 2>&1
