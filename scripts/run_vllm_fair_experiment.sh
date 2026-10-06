@@ -330,6 +330,22 @@ print(payload["clock_id"])
 PY
 }
 
+resident_snapshot_units() {
+  [[ "${VLLM_RESIDENT_PROTOCOL_V1}" == "1" ]] || return 0
+  [[ -n "${RESIDENT_LEDGER_PATH:-}" && -f "${RESIDENT_LEDGER_PATH}" ]] || return 0
+  local label="$1"
+  local units=""
+  if (( ${#VLLM_SERVER_UNITS[@]} > 0 )); then
+    units="$(IFS=,; echo "${VLLM_SERVER_UNITS[*]}")"
+  fi
+  PYTHONNOUSERSITE=1 PYTHONUNBUFFERED=1 "${VLLM_PYTHON}" \
+    "${ROOT_DIR}/scripts/ieee_tc/resident_protocol_receipt.py" snapshot \
+    --ledger "${RESIDENT_LEDGER_PATH}" \
+    --label "${label}" \
+    --service-units "${units}" \
+    --aux-unit "${VLLM_AUX_UNIT:-}"
+}
+
 resident_finalize_receipt() {
   [[ "${VLLM_RESIDENT_PROTOCOL_V1}" == "1" ]] || return 0
   [[ "${VLLM_PROTOCOL_FINALIZED:-0}" == "1" ]] && return 0
@@ -1214,6 +1230,11 @@ for replica_idx in $(seq 0 $((DP_REPLICAS - 1))); do
   VLLM_REPLICA_PORT_ARRAY+=("${replica_port}")
 done
 
+# Read back the transient unit properties while they are still active.  A
+# post-stop systemd query necessarily reports the collected unit defaults and
+# cannot prove the limits that governed the replay.
+resident_snapshot_units "replicas_launched" || exit 1
+
 # All replicas are launched before this bounded readiness loop so independent
 # model initialization is not serialized by one-at-a-time health polling.
 ready_flags=()
@@ -1452,6 +1473,7 @@ if [[ "${VLLM_RESIDENT_PROTOCOL_V1}" == "1" ]]; then
     "${REPLAY_CMD[@]}" > "${AUX_REPLAY_LOG}" 2>&1
   REPLAY_PID="$(resident_unit_pid "${VLLM_AUX_UNIT}")"
   echo "      resident_aux_unit=${VLLM_AUX_UNIT} pid=${REPLAY_PID} log=${AUX_REPLAY_LOG}"
+  resident_snapshot_units "replay_started" || exit 1
 else
   "${REPLAY_CMD[@]}" &
   REPLAY_PID=$!

@@ -213,6 +213,28 @@ def notice(args: argparse.Namespace) -> None:
     _write(path, payload)
 
 
+def snapshot(args: argparse.Namespace) -> None:
+    path = args.ledger.resolve()
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if payload.get("schema") != SCHEMA:
+        raise RuntimeError("unexpected receipt schema")
+    units = [item for item in args.service_units.split(",") if item]
+    if args.aux_unit:
+        units.append(args.aux_unit)
+    if not units:
+        raise RuntimeError("snapshot requires at least one unit")
+    label = str(args.label).strip()
+    if not label or not label.replace("_", "").isalnum():
+        raise RuntimeError("snapshot label must be alphanumeric/underscore")
+    snapshots = [_unit_snapshot(unit) for unit in units]
+    payload.setdefault("unit_snapshots", {})[label] = {
+        "monotonic_s": time.monotonic(),
+        "clock_id": payload.get("clock_id"),
+        "units": snapshots,
+    }
+    _write(path, payload)
+
+
 def finalize(args: argparse.Namespace) -> None:
     path = args.ledger.resolve()
     payload = json.loads(path.read_text(encoding="utf-8"))
@@ -278,6 +300,11 @@ def parser() -> argparse.ArgumentParser:
     init_ap.add_argument("--aux-cpu-affinity", default="")
     notice_ap = sub.add_parser("notice")
     notice_ap.add_argument("--ledger", type=Path, required=True)
+    snapshot_ap = sub.add_parser("snapshot")
+    snapshot_ap.add_argument("--ledger", type=Path, required=True)
+    snapshot_ap.add_argument("--label", required=True)
+    snapshot_ap.add_argument("--service-units", default="")
+    snapshot_ap.add_argument("--aux-unit", default="")
     final_ap = sub.add_parser("finalize")
     final_ap.add_argument("--ledger", type=Path, required=True)
     final_ap.add_argument("--service-units", default="")
@@ -288,7 +315,7 @@ def parser() -> argparse.ArgumentParser:
 
 def main() -> None:
     args = parser().parse_args()
-    {"init": init, "notice": notice, "finalize": finalize}[args.command](args)
+    {"init": init, "notice": notice, "snapshot": snapshot, "finalize": finalize}[args.command](args)
 
 
 if __name__ == "__main__":
