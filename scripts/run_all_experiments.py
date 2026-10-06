@@ -13394,6 +13394,7 @@ class ScenarioRunner:
             item = task.result()
         except (Exception, asyncio.CancelledError) as exc:
             from faaslora.metrics.metrics_collector import local_monotonic_clock_id
+            import traceback as _traceback
             observed_at = time.perf_counter()
             scheduled_offset = self._scheduled_offset(trace)
             if observed_at < replay_t0 + scheduled_offset:
@@ -13403,6 +13404,19 @@ class ScenarioRunner:
                 raise RuntimeError('failed fixed-work request lost its prepared input identity') from exc
             external = self._external_replay
             arrival = dict(external.records[trace.request_id]) if external is not None else {}
+            # Preserve enough controller-side evidence to localize a future
+            # request-task failure.  The previous collector retained only the
+            # exception type/message, which made D258's AttributeError
+            # impossible to attribute to a source line.  This is diagnostic
+            # evidence only: it does not retry, alter admission, or change the
+            # request result.  Keep the bound small so a malformed exception
+            # cannot inflate every terminal record indefinitely.
+            exception_traceback = ''.join(
+                _traceback.format_exception(type(exc), exc, exc.__traceback__)
+            )
+            exception_traceback_truncated = len(exception_traceback) > 8192
+            if exception_traceback_truncated:
+                exception_traceback = exception_traceback[:8192]
             item = RequestResult(
                 request_id=trace.request_id, adapter_id=trace.adapter_id,
                 is_burst=trace.is_burst,
@@ -13435,6 +13449,9 @@ class ScenarioRunner:
                     'observed_offset_s': observed_at - replay_t0,
                     'elapsed_since_offered_ms': (observed_at - replay_t0 - scheduled_offset) * 1000.,
                     'clock_id': local_monotonic_clock_id(),
+                    'exception_traceback': exception_traceback,
+                    'exception_traceback_truncated': exception_traceback_truncated,
+                    'exception_traceback_format': 'python_traceback_v1',
                     'native_completion_inferred': False,
                     'gpu_release_inferred': False,
                     **_native_rpc_failure_fields(exc),

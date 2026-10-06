@@ -4119,6 +4119,27 @@ class ReplayFailureIdentity(unittest.TestCase):
             self.assertEqual(row.arrival_contract, 'external_frozen_trace_v1')
         asyncio.run(check())
 
+    def test_controller_failure_keeps_bounded_traceback_evidence(self):
+        runner = replay_fixture()
+        async def check():
+            trace = runner.traces[0]
+            future = asyncio.Future()
+            try:
+                raise RuntimeError('traceback probe')
+            except RuntimeError as exc:
+                future.set_exception(exc)
+            row = runner._collect_request_task_result(
+                future, trace, time.perf_counter() - .1,
+                RequestExecutionPlan(trace.prompt, 2, 4))
+            observation = row.failure_observation
+            self.assertEqual(observation['exception_traceback_format'],
+                             'python_traceback_v1')
+            self.assertIn('RuntimeError: traceback probe',
+                          observation['exception_traceback'])
+            self.assertLessEqual(len(observation['exception_traceback']), 8192)
+            self.assertFalse(observation['exception_traceback_truncated'])
+        asyncio.run(check())
+
     def test_incomplete_publisher_does_not_manufacture_future_failure_rows(self):
         runner = replay_fixture()
         async def receive():

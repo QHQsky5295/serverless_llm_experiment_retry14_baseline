@@ -1,6 +1,6 @@
 # IEEE TC execution status
 
-## CURRENT — D258 retry6 stopped after a concurrent router-state defect was isolated
+## CURRENT — D258 retry6 stopped after an unlocalized controller exception; routing hardening is diagnostic
 
 2026-10-06. The fresh 7B eight-phase Full diagnostic
 `d258_7b_readiness_8phase_full_retry6` was intentionally interrupted after
@@ -16,16 +16,24 @@ its final release proof is incomplete; the raw terminal journal, service log,
 watchdog trace, and launch receipt remain at the unique retry6 result root.
 Post-cleanup GPU/process checks are clear.
 
-Source inspection showed that IEEE routing selected an immutable decision but
-then recovered it from the router's shared diagnostic field
-`last_ieee_decision`. Concurrent requests can overwrite that field (or leave it
-empty) while the current request is between selection and admission. The
-repair keeps the decision returned by the selection call in the request-local
-execution context and retains `last_ieee_decision` only for diagnostics and
-legacy tests. It adds no retry, fallback, altered SLO, or changed routing
-objective. Focused routing, pending-GPU, and request-lifecycle tests pass after
-the repair; a fresh bounded GPU smoke is required before another 4,000-request
-readiness run.
+The exact controller source line is not established by this artifact. The
+request was observed before reservation binding, but the collector retained
+only the exception type/message and the enclosing run was manually
+interrupted. In particular, the old selection call and the subsequent read of
+`last_ieee_decision` had no intervening `await`; the shared diagnostic field is
+therefore a plausible robustness hazard, not a demonstrated cause of this
+failure. It must not be reported as the root cause.
+
+The repair keeps the immutable decision returned by the selection call in the
+request-local execution context and retains `last_ieee_decision` only for
+diagnostics and legacy tests. This is defensible request-local semantic
+hardening, not a causal explanation, and it adds no retry, fallback, altered
+SLO, or changed routing objective. Focused routing, pending-GPU, and
+request-lifecycle tests pass; a fresh 100-request bounded smoke also completed
+with 100/100 terminal successes and complete dispatch-tier observations. That
+smoke is still diagnostic only. Before another 4,000-request readiness run,
+the collector now preserves a bounded Python traceback for controller task
+exceptions so any recurrence can be localized from the immutable raw result.
 
 ## CURRENT — D260 bounded RPC reproducer confirms a repairable combined-reference schema defect
 
