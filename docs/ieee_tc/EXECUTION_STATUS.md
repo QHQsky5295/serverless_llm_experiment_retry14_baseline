@@ -41,6 +41,17 @@ read-only comparison of D266 and D269 source-selection, content-digest,
 live-copy, and preparation-plan state. D269 does not authorize a new full
 readiness replay or any formal Prime optimization claim.
 
+The read-only comparison is now complete. D269's native outcome contains a
+verified `education_lora_0007` NVMe source and content digest, one deferred
+`stale_snapshot` preparation, and a later completed preparation from the same
+source. D266 has no structured source witness at its rejection, and neither
+run maps the native preparation record to request 198. Thus the comparison
+confirms that D269 exercised the adapter path and that ordinary stale-snapshot
+revalidation can complete, but it cannot identify D266's rejection predicate
+or establish a repair. The validator remains unchanged; no new heavy replay
+is authorized until a future witness can capture old/requested source,
+content, live-copy, and preparation-plan state at the exact rejection.
+
 ## CURRENT — D266 identity conflict unresolved; D267 configuration failure; D268 prefix diagnostic is non-causal
 
 2026-10-06. The authorized D266 fresh cold rerun did not produce a formal
