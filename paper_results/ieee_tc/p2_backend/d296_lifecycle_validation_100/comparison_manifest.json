@@ -1,0 +1,81 @@
+{
+  "reference": {
+    "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d293_20261006/7b_prefetch_validation_100/experiment_results_full_vllm_dedicated_a500_r100_c2_tc_ieee_prefetch_validation_100_d293_7b_prefetch_validation_100.json",
+    "source_sha256": "e20499a369f3bc5c0bb7e2bac804ead9644fb70ed48abf71c815d11cb6fbba40",
+    "physical_source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d293_20261006/7b_prefetch_validation_100/launch.launch/physical_deployment/physical_resource_summary.json",
+    "physical_sha256": "5d71f05798f2393f85ce4a2d98fcabb85bc1be0c2b52b7053f53b4d73cf14a0b",
+    "max_native_ttft_error_ms": 0.0,
+    "max_native_tpot_error_ms": 0.0,
+    "shared_trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "shared_adapter_subset_sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016"
+  },
+  "candidate": {
+    "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d296_20261007/7b_lifecycle_validation_100/experiment_results_full_vllm_dedicated_a500_r100_c2_tc_ieee_prefetch_validation_100_d296_7b_lifecycle_validation_100.json",
+    "source_sha256": "2f9d92b2427f60f942d10091a6be71280199ebf502b8947b9d7831a46cadff25",
+    "physical_source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d296_20261007/7b_lifecycle_validation_100/launch.launch/physical_deployment/physical_resource_summary.json",
+    "physical_sha256": "05d84ad8bbc968c58cc0db0a1258be71d776b3f6d682d12a0e711f345cf48a11",
+    "max_native_ttft_error_ms": 0.0,
+    "max_native_tpot_error_ms": 0.0,
+    "shared_trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "shared_adapter_subset_sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016"
+  },
+  "input_identity_equal": true,
+  "input_fields_checked": [
+    "request_id",
+    "adapter_id",
+    "scheduled_arrival_offset_s",
+    "source_expected_output_tokens",
+    "requested_completion_tokens",
+    "canonical_prompt_sha256",
+    "generation_contract",
+    "completion_token_source"
+  ],
+  "output_hash_changes": [
+    {
+      "request_id": "req_00059",
+      "adapter_id": "finance_lora",
+      "target_tokens": 45,
+      "reference_sha256": "a985dff39fdff6fa979ebbd76115a6f24cc0cfe9d1d49ea88691ad9ebb8e3f80",
+      "candidate_sha256": "94a0ef97cfdd86f6c666b2f0ccd5657975017656ecf2ffa815d11a1161fb8986"
+    },
+    {
+      "request_id": "req_00074",
+      "adapter_id": "medical_lora",
+      "target_tokens": 256,
+      "reference_sha256": "4221eee50d9e6753af72843b415b50ec6a60a0822dbf230aafe3e5e3087fff73",
+      "candidate_sha256": "191f72092b57948d0e5c9de1cfe48eb891b062394e9a6228a3650ca98b5ee796"
+    },
+    {
+      "request_id": "req_00077",
+      "adapter_id": "medical_lora",
+      "target_tokens": 256,
+      "reference_sha256": "191f72092b57948d0e5c9de1cfe48eb891b062394e9a6228a3650ca98b5ee796",
+      "candidate_sha256": "4221eee50d9e6753af72843b415b50ec6a60a0822dbf230aafe3e5e3087fff73"
+    },
+    {
+      "request_id": "req_00084",
+      "adapter_id": "finance_lora",
+      "target_tokens": 46,
+      "reference_sha256": "e02e5001da648f17b84512612f0455881319357fbc5b2bbced96c5626613b70c",
+      "candidate_sha256": "3e9cde124fc268fbd2f68b72f0683c93be744cd2b0ecfa7dd12db96f0209a408"
+    },
+    {
+      "request_id": "req_00091",
+      "adapter_id": "finance_lora",
+      "target_tokens": 256,
+      "reference_sha256": "d837ad3ecff9c74a476ec653e8316f7741f2ffb87ed2ea91a0a65641b8b2f8c6",
+      "candidate_sha256": "49f63f849f9574140d818b861aaea0c7963cefb34b0ad3338b19d34c4b4a5ec4"
+    }
+  ],
+  "formal_qualification": false,
+  "causal_speedup_claim": false,
+  "replicates_per_configuration": 1,
+  "confidence_interval": null,
+  "limitations": [
+    "100-request prefix only",
+    "file cache not randomized",
+    "output hash differences remain unaudited",
+    "joint SLO/reference budget not frozen"
+  ],
+  "script_sha256": "fdb7898478701b4142bfc15feb231f9c94da566215ec1247ad1ddf6e58d98f9d"
+}

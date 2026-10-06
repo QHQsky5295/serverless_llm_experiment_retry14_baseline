@@ -11,7 +11,34 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D295 all three starts complete; return to7B lifecycle/SLO optimization
+## CURRENT — D296 short replay complete; cleanup dependency reduced, G1/G2 still open
+
+2026-10-07. D296 actual remote100/100 completes with native fixed counts and
+all saved dispatch/adapter/slot bindings verified. Physical measurement is complete;
+service/watchdog/replay exit0, GPU contexts clear and service domain removed.
+Terminal cleanup85.545934→36.264719GPU-s; four independent cards return within
+8.479–9.568s after terminal instead of9.586–33.336s. Total769.307664→727.912111
+GPU-s (-5.38% single-run observation). Mean TTFT2.170015→2.129072s, but P95
+10.538035→10.771356s and mean/P95TPOT worsen slightly. No latency win/causal
+overall speedup/qualification claim. Earlier D290 total714.256679 is still lower.
+100-prefix is not4000 qualification. Five output hashes differ (59/74/77/84/91),
+saved bindings all pass; N_correct remainsnull and no extra numerical repeats.
+
+267 resource samples; servicepeak17.710510GiB, hostmin87.808937GiB; all high/max/
+OOM/swap0. Remote29transfers/50,650,865wirebytes, prepublished only/no packing;
+actual1000Mbps/full. Paired monitor and both artifact units stopped by invocation,
+inactive/PID0/success. No3B inference. Initial health used ambient proxy/502;
+direct health succeeded during local startup, deviation retained. No service
+reconfiguration. Old protected results146/147 before/after; same baseline script.
+
+Candidate implementationccc0fd8 pushed before replay. Data/interpretation:
+`paper_results/ieee_tc/p2_backend/d296_lifecycle_validation_100/` and D296 doc.
+No figures. NEXT retain this candidate for complete7B development replay and
+commonwarm/Resident/oldPrime new-metric evidence; do not repeat100 solely to win,
+reopen bounded D295, or move to3B/baselines. Full numerical qualification, shared
+SLO/budget and G1/G2 all remainOPEN. All inference/remote services currently stopped.
+
+## HISTORY — D295 all three starts complete; return to7B lifecycle/SLO optimization
 
 2026-10-07. Three registered blocks complete162 native generations, each54/54,
 with slot content and independent execution-journal validation and actual cleanup.
@@ -32,11 +59,19 @@ Four CPU counterexamples reproduce serial dependence; candidate now groups
 shared-engine aliases and joins independent runtime returns concurrently while
 retaining physical-release checks. Focused34tests pass. Broader model-Python test
 was stopped on persistent auxiliary high reclaim (no max/OOM); old CPU environment
-passes634 assertions, with one unrelated pytest import error. The analyzer's correct
+passes634 tests, with one unrelated pytest import error. The analyzer's correct
 pytest entry separately passes22; system-Python guards75pass. Failed/incomplete
 logs remain. Candidate/config are ready for backup and fresh resource gate.
-NO new GPU performance result yet. After validated backup, bounded
-7B replay must measure the candidate before acceptance/full qualification.
+Checkpointccc0fd8 pushed and remote head verified. D296 bounded100-request replay
+started in tmux `primelora-d296-7b` with unchanged D293 settings and fresh output/
+cache paths. No result yet. Source protection146/147, same known baseline file only.
+Remote units/monitor started; actual link1000/full; idle3B artifact unit exists only
+to reuse the paired monitor, no3B inference. First standalone health probe used
+ambient proxy and returned502; direct health then passed during local startup.
+This ordering deviation is saved, not represented as prior-to-launch qualification.
+The existing real fetcher already disables ambient proxies. No remote configuration
+changed during the run. Next: complete/release, no-figure audit and compare measured
+terminal GPU-s before acceptance/full qualification.
 Numerical/Full N_correct, commonwarm/Resident, oldPrime-newmetrics and G1/G2
 remain open. Do not revisit D295 or move to3B/baselines/figures now.
 

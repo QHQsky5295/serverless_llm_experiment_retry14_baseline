@@ -1,0 +1,70 @@
+{
+  "kind": "d296_lifecycle_diagnostic_v1",
+  "implementation_commit": "ccc0fd8faa2d6416e4a0dd0592d5430b067eb5f5",
+  "formal_qualification": false,
+  "replicates_per_configuration": 1,
+  "confidence_interval": null,
+  "runs": {
+    "D293": {
+      "physical_summary_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d293_20261006/7b_prefetch_validation_100/launch.launch/physical_deployment/summary.json",
+      "physical_summary_sha256": "30f55c0b237991339e652c7b1d7667f8458740da820547eb073e2aaaee77979e",
+      "n_plan": 100,
+      "n_terminal": 100,
+      "n_native_contract_complete": 100,
+      "n_correct": null,
+      "physical_gpu_seconds": 769.307663843967,
+      "window_gpu_seconds": {
+        "arrival": 611.2386930258945,
+        "cleanup": 85.54593384813052,
+        "drain": 34.25112392893061,
+        "pre_arrival": 38.27191304101143
+      },
+      "last_request_terminal_s": 805821.437170008,
+      "gpu_release_after_terminal_s": {
+        "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036": 25.220888557028957,
+        "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946": 9.586120189982466,
+        "GPU-c4663821-4888-e199-7151-d6298f8d45a5": 33.336168247042224,
+        "GPU-dadf0267-9617-8824-cddb-82fba48a7b97": 17.40275685407687
+      }
+    },
+    "D296": {
+      "physical_summary_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d296_20261007/7b_lifecycle_validation_100/launch.launch/physical_deployment/summary.json",
+      "physical_summary_sha256": "501ff8083507ad5409d73210f0a07bf13fde4eb421d936a6c009f545347cf616",
+      "n_plan": 100,
+      "n_terminal": 100,
+      "n_native_contract_complete": 100,
+      "n_correct": null,
+      "physical_gpu_seconds": 727.9121109342668,
+      "window_gpu_seconds": {
+        "arrival": 615.7228729969356,
+        "cleanup": 36.264719147002324,
+        "drain": 37.74097287328914,
+        "pre_arrival": 38.18354591703974
+      },
+      "last_request_terminal_s": 813459.192212822,
+      "gpu_release_after_terminal_s": {
+        "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036": 9.392863999935798,
+        "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946": 9.56824079202488,
+        "GPU-c4663821-4888-e199-7151-d6298f8d45a5": 8.478670764015988,
+        "GPU-dadf0267-9617-8824-cddb-82fba48a7b97": 8.824943591025658
+      }
+    }
+  },
+  "remote": {
+    "transfers": 29,
+    "online_bytes_written": 50650865,
+    "pack_performed": false,
+    "source_sha256": "efb7cb216ecf5b5a946722b39ddff01bf2d8ae149436e71bc3ad876168e16125",
+    "monitor_sha256": "871cd68f611980578b1012e4d8beeaf0b280658058a7b6f6905f97907f4a998a",
+    "link": "1000 Mbps/full",
+    "initial_health_probe_proxy_error_retained": true,
+    "direct_health_order": "after guarded-launch invocation during initialization; no service reconfiguration"
+  },
+  "interpretation": {
+    "cleanup_dependency_reduction_observed": true,
+    "latency_improvement_claim": false,
+    "overall_goal_pass": false,
+    "no_more_numerical_repeats": true,
+    "next": "Complete development 7B replay and common warm/Resident evidence; no 3B/baselines/figures yet"
+  }
+}
