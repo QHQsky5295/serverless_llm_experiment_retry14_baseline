@@ -1,5 +1,28 @@
 # IEEE TC execution status
 
+## CURRENT — D274 3B historical bottleneck is profile-bound; no replay authorized
+
+2026-10-06. A CPU-only audit compared the retained exploratory D138
+Llama-3.2-3B projection with the fully resolved current 3B profile. D138's
+12,588.6-ms mean TTFT is not a model-compute measurement: mean native vLLM
+TTFT is 581.1 ms, while dispatch/admission, ingress queue, slot and
+pre-runtime spans account for most of the user-visible delay. However, D138
+used concurrency 8, dedicated `ieee_confirmed` coordination, explicit measured
+service/preparation profiles and no-delay storage; the current profile resolves
+to concurrency 4, automatic `adapter_affinity` coordination, predictive
+scale-up and an effective-capacity gate. The historical value therefore
+cannot be used to justify a current control-path rewrite or a formal 3B claim.
+
+The audit and resolved-profile digest are sealed in
+`docs/ieee_tc/D274_3B_HISTORICAL_BOTTLENECK_AUDIT.md` and
+`paper_results/ieee_tc/p2_backend/20261006_d274_3b_profile_audit.json`.
+They register falsifiable hypothesis H3B-1: a fresh current-profile prefix,
+when authorized, must distinguish residual dispatch/readiness/slot delay from
+native inference before any 3B full replay. This CPU-only step does not
+authorize a GPU replay, 3B run, baseline, SLO, G1/G2 point or ranking. The
+active gate remains the 7B numerical/common-warm/physical-release evidence;
+the user-visible 3B 12.6-s figure remains historical and unqualified.
+
 ## CURRENT — D273 source-plan boundary audited; no validator change retained
 
 2026-10-06. A CPU-only falsification check examined whether the verified

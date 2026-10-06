@@ -1,0 +1,43 @@
+{
+  "campaign": "d274_3b_profile_audit",
+  "status": "cpu_only_exploratory",
+  "formal_performance_result": false,
+  "authorizes_gpu_replay": false,
+  "historical_source": {
+    "run": "d138_20261001",
+    "projection": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d138_20261001/full_full1_request_projection.json",
+    "request_count": 4000,
+    "seed": 42,
+    "mean_overall_ttft_ms": 12588.626567256419,
+    "p95_overall_ttft_ms": 45713.688,
+    "mean_service_ttft_ms": 4047.828334844293,
+    "mean_vllm_ttft_ms": 581.056898542025,
+    "mean_dispatch_admission_wait_ms": 8540.798232412126,
+    "mean_ingress_queue_wait_ms": 7032.244129906554,
+    "mean_runtime_slot_wait_ms": 4082.005142683425,
+    "mean_pre_runtime_service_shell_ms": 3466.771436302268,
+    "mean_dispatch_window_wait_ms": 2950.238987223129,
+    "mean_lora_io_ms": 2762.80111480465,
+    "mean_parent_rpc_overhead_ms": 1269.129184422418,
+    "mean_tpot_ms": 38.58297867963519,
+    "physical_gpu_seconds_per_request_descriptive": 3.9653326268375
+  },
+  "current_profile": {
+    "model_profile": "llama32_3b_main_modelscope",
+    "dataset_profile": "azure_sharegpt_rep4000",
+    "workload_profile": "llama32_3b_auto500_formal4000_s8",
+    "resolved_profile_sha256": "61e4931aacc42068a21e256fde1b0e81c547cfe94b656bf86081fbdc6b55227c",
+    "source_yaml_sha256": "f923c36d541046639ba70691106cf7841b322f850377bd8d719004adc959e45d",
+    "concurrency": 4,
+    "runtime_concurrency_cap": 8,
+    "max_instances": 4,
+    "effective_capacity_admission_enabled": true,
+    "scale_up_predictive_target_enabled": true,
+    "max_concurrent_loads": 3,
+    "coordination_mode": "auto",
+    "routing_policy": "adapter_affinity"
+  },
+  "hypothesis": "H3B-1: current-profile excess TTFT, if present, will remain concentrated in dispatch/readiness/slot spans rather than native vLLM compute",
+  "next_minimal_validation": "fresh witnessed 3B prefix after 7B correctness/common-warm/physical-release gate",
+  "g1_g2_eligible": false
+}
