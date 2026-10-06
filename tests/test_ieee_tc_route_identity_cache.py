@@ -250,6 +250,24 @@ class RouteIdentityCacheQualification(unittest.TestCase):
             asyncio.run(runner._ieee_collect_confirmed_snapshot_cache(
                 (slot,), requested_adapter_ids=[4]))
 
+    def test_event_frontier_reuses_confirmed_absence_without_rpc(self):
+        runner, slot, identity_wire, _ = self._runner()
+        runner._ieee_route_confirmed_snapshot_cache = True
+        identity = NativeSourceSnapshot.from_routing_wire(
+            identity_wire,
+            expected_clock_id=identity_wire['clock_id'],
+            received_monotonic_s=time.monotonic(),
+        )
+        runner._ieee_route_identity_frontier = {slot.instance_id: identity}
+        slot.native_device_uuid = identity_wire['device_uuid']
+        values, metadata = asyncio.run(
+            runner._ieee_collect_confirmed_snapshot_cache(
+                (slot,), requested_adapter_ids=[99]))
+        self.assertEqual(slot.engine.ieee_request_sources.await_count, 0)
+        self.assertEqual(metadata['frontier_absence_replica_indexes'], [0])
+        self.assertEqual(values[0][0].footprint_adapter_ids, (99,))
+        self.assertEqual(values[0][1], identity_wire['device_uuid'])
+
 
 class RouteEvidenceAudit(unittest.TestCase):
     def _requests(self):

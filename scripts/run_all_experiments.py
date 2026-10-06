@@ -7325,6 +7325,12 @@ class ScenarioRunner:
             self.coord_cfg.get('ieee_route_confirmed_snapshot_cache', False)
         )
         self._ieee_route_full_cache: Dict[Tuple[str, tuple], Dict[str, Any]] = {}
+        # Event-driven native identity frontier.  This is populated only by a
+        # fresh owner observation or by the post-load owner receipt above.  It
+        # can prove that a requested adapter is absent from a replica at the
+        # emitted owner epoch, but it never supplies measured footprints for a
+        # present adapter and therefore cannot manufacture a tier decision.
+        self._ieee_route_identity_frontier: Dict[str, Any] = {}
         self._ieee_route_cache_stats: Dict[str, int] = {}
         self._ieee_scale_controller = None
         self._ieee_control_events = []
@@ -8533,6 +8539,95 @@ class ScenarioRunner:
             stats['selected_conflict_invalidations'] = (
                 stats.get('selected_conflict_invalidations', 0) + 1)
 
+    def _ieee_publish_identity_frontier(self, slot, snapshot) -> bool:
+        """Publish one owner-confirmed identity event for future absence checks.
+
+        The frontier is deliberately weaker than a routing snapshot: it has no
+        measured footprints and therefore cannot classify a present adapter.
+        It is useful only for the negative fact ``adapter is not registered and
+        not occupying a GPU slot`` at the exact owner epoch emitted by the
+        native transaction.  A later native load publishes a new frontier in
+        the same acknowledgement, so this is event-driven state propagation,
+        not a TTL or last-known readiness shortcut.
+        """
+        from dataclasses import replace
+        from faaslora.experiment.instance_pool import NativeSourceSnapshot
+        if not isinstance(snapshot, NativeSourceSnapshot):
+            return False
+        identity = snapshot.identity_view()
+        instance_id = getattr(slot, 'instance_id', None)
+        if not isinstance(instance_id, str) or not instance_id:
+            return False
+        frontier_map = getattr(self, '_ieee_route_identity_frontier', None)
+        if frontier_map is None:
+            frontier_map = self._ieee_route_identity_frontier = {}
+        previous = frontier_map.get(instance_id)
+        if previous is not None:
+            if (previous.owner_id != identity.owner_id
+                    or previous.clock_id != identity.clock_id
+                    or identity.epoch < previous.epoch):
+                return False
+            left = replace(identity, captured_monotonic_s=0.0)
+            right = replace(previous, captured_monotonic_s=0.0)
+            if identity.epoch == previous.epoch and left != right:
+                raise ValueError('same native epoch changed its identity frontier')
+        frontier_map[instance_id] = identity
+        # A post-load event may evict an unrelated copy.  Do not retain scoped
+        # footprint entries across that owner transition; the negative frontier
+        # remains valid for adapters it explicitly proves absent.
+        route_cache = getattr(self, '_ieee_route_full_cache', None)
+        if route_cache is None:
+            route_cache = self._ieee_route_full_cache = {}
+        for key in tuple(route_cache):
+            if key[0] == instance_id:
+                del route_cache[key]
+        cache_stats = getattr(self, '_ieee_route_cache_stats', None)
+        if cache_stats is None:
+            cache_stats = self._ieee_route_cache_stats = {}
+        cache_stats['identity_frontier_updates'] = (
+            cache_stats.get('identity_frontier_updates', 0) + 1)
+        return True
+
+    def _ieee_publish_post_load_identity(self, slot, receipt) -> bool:
+        """Decode the native post-load identity emitted in one owner receipt."""
+        from faaslora.clock import local_monotonic_clock_id
+        from faaslora.experiment.instance_pool import NativeSourceSnapshot
+        payload = (receipt or {}).get('post_load_source_snapshot')
+        if not isinstance(payload, dict):
+            return False
+        try:
+            state = NativeSourceSnapshot.from_native(
+                payload,
+                expected_clock_id=local_monotonic_clock_id(),
+                received_monotonic_s=time.monotonic(),
+            )
+            return self._ieee_publish_identity_frontier(slot, state)
+        except Exception:
+            self._ieee_route_cache_stats['identity_frontier_rejections'] = (
+                self._ieee_route_cache_stats.get('identity_frontier_rejections', 0) + 1)
+            raise
+
+    @staticmethod
+    def _ieee_frontier_proves_absent(frontier, adapter_int_id) -> bool:
+        """Return only a confirmed negative identity fact for one adapter."""
+        if frontier is None:
+            return False
+        if frontier.unknown_native_adapter_ids or frontier.unconfirmed_gpu_adapter_ids:
+            return False
+        registered = set(frontier.registered_cpu_adapter_ids)
+        slots = {aid for aid in frontier.slot_adapter_ids if aid is not None}
+        return adapter_int_id not in registered and adapter_int_id not in slots
+
+    def _ieee_frontier_state_for_scope(self, frontier, scope):
+        """Attach a request scope to an identity-only negative observation."""
+        from dataclasses import replace
+        if not self._ieee_frontier_proves_absent(frontier, scope[0]):
+            return None
+        # The requested adapter is absent, so no scoped footprint row is
+        # required.  Keep the immutable identity lists and let
+        # confirmed_source_class fall through to the managed file owner.
+        return replace(frontier, footprint_adapter_ids=tuple(scope))
+
     async def _ieee_collect_confirmed_snapshot_cache(self, slots, *, requested_adapter_ids):
         """Collect a confirmed route view with selected-copy validation.
 
@@ -8566,13 +8661,27 @@ class ScenarioRunner:
                 cached_entries = {}
                 cold_indexes = set()
                 reused_indexes = set()
+                frontier_indexes = set()
                 for index, slot in enumerate(slots):
                     cache_key = (slot.instance_id, scope)
                     entry = self._ieee_route_full_cache.get(cache_key)
                     cached = entry.get('snapshot') if isinstance(entry, dict) else None
                     if cached is None:
-                        cold_indexes.add(index)
-                        cache_stats['misses'] = cache_stats.get('misses', 0) + 1
+                        frontier = getattr(self, '_ieee_route_identity_frontier', {}).get(
+                            slot.instance_id)
+                        frontier_state = self._ieee_frontier_state_for_scope(frontier, scope)
+                        if frontier_state is not None:
+                            cached_entries[index] = (frontier_state, {
+                                'device_uuid': None,
+                                'frontier_absence': True,
+                            })
+                            reused_indexes.add(index)
+                            frontier_indexes.add(index)
+                            cache_stats['frontier_absence_hits'] = (
+                                cache_stats.get('frontier_absence_hits', 0) + 1)
+                        else:
+                            cold_indexes.add(index)
+                            cache_stats['misses'] = cache_stats.get('misses', 0) + 1
                     else:
                         cached_entries[index] = (cached, entry)
                         reused_indexes.add(index)
@@ -8601,8 +8710,30 @@ class ScenarioRunner:
                     cached, entry = cached_entries[index]
                     if not isinstance(cached, NativeSourceSnapshot):
                         raise ValueError('confirmed route cache contains a malformed snapshot')
-                    values[index] = (cached, entry.get('device_uuid')
-                                     if isinstance(entry, dict) else None)
+                    device_uuid = entry.get('device_uuid') if isinstance(entry, dict) else None
+                    if index in frontier_indexes:
+                        # The identity frontier is emitted by the same native
+                        # owner, but it intentionally carries no device UUID;
+                        # use the slot's already verified physical identity.
+                        device_uuid = getattr(slots[index], 'native_device_uuid', None)
+                        if not isinstance(device_uuid, str) or not device_uuid:
+                            # The controller may not retain the UUID as a slot
+                            # field.  A frontier is therefore usable only when
+                            # a prior authoritative cache entry supplied the
+                            # UUID for this replica.
+                            prior = next((v for (k, _), v in self._ieee_route_full_cache.items()
+                                          if k == slots[index].instance_id), None)
+                            device_uuid = (prior or {}).get('device_uuid') if isinstance(prior, dict) else None
+                        if not isinstance(device_uuid, str) or not device_uuid:
+                            # Fail closed: absence evidence without physical
+                            # owner identity cannot enter IEEE routing.
+                            cold_indexes.add(index)
+                            reused_indexes.discard(index)
+                            frontier_indexes.discard(index)
+                            cache_stats['frontier_identity_uuid_misses'] = (
+                                cache_stats.get('frontier_identity_uuid_misses', 0) + 1)
+                            continue
+                    values[index] = (cached, device_uuid)
                 for index in sorted(cold_indexes):
                     value = cold_results[index]
                     state = NativeSourceSnapshot.from_request_wire(
@@ -8638,6 +8769,7 @@ class ScenarioRunner:
                     full_fallback_replica_count=0,
                     cold_full_read_replica_count=len(cold_indexes),
                     reused_replica_indexes=sorted(reused_indexes),
+                    frontier_absence_replica_indexes=sorted(frontier_indexes),
                     selected_revalidation='owner_epoch_or_selected_identity_v1')
 
             wave = dict(membership=membership, task=asyncio.create_task(collect()),
@@ -8960,6 +9092,13 @@ class ScenarioRunner:
         for index, (slot, state) in enumerate(zip(slots, native)):
             if index not in reused_indexes:
                 slot.commit_native_sources(state)
+            # Retain only the verified physical identity needed to attach
+            # later event-frontier observations.  It is not a routing hint.
+            device_uuid = observations[index][1]
+            if isinstance(device_uuid, str) and device_uuid:
+                slot.native_device_uuid = device_uuid
+            if index not in reused_indexes:
+                self._ieee_publish_identity_frontier(slot, state)
         adapter_id = trace.adapter_id
         files = owner.source_snapshot(adapter_id) if adapter_id else None
         if files is not None:
@@ -16624,6 +16763,10 @@ class ScenarioRunner:
             if reservation.slot is None or reservation.slot.engine is not engine:
                 raise ValueError('native source snapshot is not bound to the selected runtime')
             reservation.slot.commit_native_source_identity(state)
+            # This is a fresh native owner event on the selected replica.  It
+            # advances the identity frontier used by confirmed absence reuse;
+            # it does not publish a tier or footprint decision.
+            self._ieee_publish_identity_frontier(reservation.slot, state)
             selected = next((source for source in state.sources
                              if source.adapter_int_id == native_id), None)
             if selected is not None and selected.adapter_id != adapter_id:
@@ -17109,6 +17252,11 @@ class ScenarioRunner:
                 path, _ = await self._ensure_local_async(reservation.adapter_id, reservation=reservation)
             receipt = await self._acquire_runtime_gpu_reference(reservation, reservation.slot.engine,
                 reservation.adapter_id, path, admission_request_plan=request_plan)
+        # A cold/native load may change the owner epoch and evict another
+        # unpinned adapter.  Consume the same-owner post-load identity receipt
+        # before publishing the request as executable; this keeps subsequent
+        # absence reuse causal and fail-closed.
+        self._ieee_publish_post_load_identity(reservation.slot, receipt)
         observation.acquire(receipt['acquired_monotonic_s'])
         from faaslora.preloading.preloading_planner import observed_preparation_interval
         evidence['preparation_interval'] = observed_preparation_interval(

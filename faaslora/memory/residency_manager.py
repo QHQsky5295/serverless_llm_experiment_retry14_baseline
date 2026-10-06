@@ -2646,6 +2646,18 @@ class IEEEBackendGPUReferences:
                            if not gpu_hit else None),
                        load_and_acquire_ms=(time.monotonic()-start)*1000.,
                        proactive_admission_evaluated=False)
+        # Publish the post-transaction native identity as part of the same
+        # serialized owner acknowledgement.  The controller may use this
+        # immutable event frontier to answer *absence* queries for other
+        # adapters without issuing another per-adapter RPC.  It is identity
+        # evidence only: no footprint, tier verdict, lease, or capacity
+        # reservation is inferred from it.  Keeping the snapshot in the
+        # receipt makes the update causal with the load that changed the
+        # owner epoch rather than a controller-side last-known hint.
+        from ..clock import local_monotonic_clock_id
+        post_load_identity = self.source_snapshot()
+        post_load_identity['clock_id'] = local_monotonic_clock_id()
+        receipt['post_load_source_snapshot'] = post_load_identity
         self._leases[lease_id].update(receipt)
         return dict(receipt)
 
