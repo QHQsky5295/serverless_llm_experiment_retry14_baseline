@@ -11,7 +11,35 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D297 complete 7B W0 prepared; candidate unchanged, not yet launched
+## CURRENT — D297 complete 7B W0 RUNNING; do not duplicate/restart
+
+2026-10-07 01:20+08 live verification. The pre-registered replay was launched
+at01:16 in tmux `primelora-d297-7b`, after checkpointa40df0d was pushed and remote
+head verified. Existing immutable delivery cache is reused (latest user approval
+reconfirmed); no new packaging, weights, trace or expanded artifact pool.
+Direct authenticated remote health completed atmonotonic814229.57178896,
+BEFORE deployment notice814247.332460961; first arrival origin814307.332460961.
+Execution receipt confirms W0,4000/4000 source requests,rate_scale1.0,no prefix.
+At the01:20 snapshot79arrived/74normal completions/0reported failures; this is
+partial operational progress, NOT numerical correctness or final performance.
+Watchdog sample220: servicepeak18.240692GiB, hostavailable90.266891GiB,
+high/max/OOM/swap0, no safety warning; free disk149.509441GiB. Launch passed
+150GiB start gate; now below it prohibits another heavy launch, not this valid
+run (100GiB stop gate unchanged). Do not compress/clean/hash-scan during replay.
+
+Service `primelora-tc-svc-72524b343c5c45a699736635a24184bd.scope`,
+invocation `3d9973309a41446baa8df1e8ac763a91`; watchdog PID1851665 in independent
+aux scope `primelora-tc-aux-7f9be371ba2644b5a885484a29b73f98.scope`.
+Remote monitor `primelora-artifact-monitor-d297.service`, invocation
+`bec592d608814aa7a9a4512c7d364bff`;7B/3B units have matching captured identities
+in remote_start.log (3B artifact unit idle; no3B inference). Actual NIC1000/full.
+Full launch/health/provenance details in D297 document and unique raw directory.
+NEXT monitor this run to terminal and actual GPU release, then stop ONLY its
+remote monitor/invocations, collect immutable transfer/monitor evidence, audit
+and save data without figures. Do not start warm/Resident/3B/baselines alongside.
+N_correct, commonwarm/Resident and G1/G2 remainOPEN. No completed4k result yet.
+
+## HISTORY — D297 complete 7B W0 prepared; candidate unchanged
 
 2026-10-07. Previous goal turn was PROGRESS: completed D296, saved its resource/
 latency trade-off and pushed300c789. Current checks reconfirm stopped GPU/remote

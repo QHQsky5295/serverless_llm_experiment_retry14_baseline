@@ -62,3 +62,37 @@ SHA仍为`cc821e089b952b66bc10be13e3b8ab11700c9d77dc542c20ca7edb582b1113f8`。
 
 下一步依据本轮完整证据继续7B并完成共同warm/Resident及旧Prime新口径对照；
 数值资格与G1/G2未成立前不进入3B、外部基线、消融或正式绘图。
+
+## 实际启动与运行中状态（2026-10-07 01:20+08）
+
+已在提交`a40df0d307c31fa38f11f0b77b72dd16bba10907`推送并核对远端后，
+于01:16启动唯一tmux任务`primelora-d297-7b`。上述“尚未开始”描述只对应
+预登记检查时刻，不是当前状态。不得因尚无最终结果文件而重复启动。
+
+- 直连认证health结束`814229.57178896`，部署通知`814247.332460961`，
+  回放原点`814307.332460961`（均本机monotonic）。此次health先于本机启动。
+- 回执确认W0/count4000/source_count4000/rate_scale1，无prefix；trace SHA
+  `efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c`，
+  view SHA`a5331be2e2204483f18206825d9aaa18cbaa259fe0babfc303f989055819430d`。
+- 服务scope`primelora-tc-svc-72524b343c5c45a699736635a24184bd.scope`，
+  invocation`3d9973309a41446baa8df1e8ac763a91`；外置watchdog PID1851665，
+  独立aux scope`primelora-tc-aux-7f9be371ba2644b5a885484a29b73f98.scope`。
+- 远端7B PID727107/invocation`2ceae044ea1b4290b738ef29f16f179d`；
+  3B PID727105/invocation`cee328bfa4654233813c435c85789b96`（无3B推理）；
+  `primelora-artifact-monitor-d297.service` PID727110/invocation
+  `bec592d608814aa7a9a4512c7d364bff`。按身份停止monitor后，由原有退出逻辑
+  停止本次配对服务；不能停止后来另一个invocation。
+- 远端监控位置`/home/lab14/primelora_remote/tc/d297_20261007/remote_monitor.log`；
+  7B clock`remote-process-monotonic:b7998243a505498db48f39cde67db697`，
+  后续仅收取与该clock及本次transfer ID匹配的交付证据。
+- 预发布交付方式`prepublished_gzip_v1`和`artifact_timing_v2`不变；NIC1000Mbps/full。
+  既有D78/D80一次性交付缓存直接复用，用户本轮再次批准不意味着重新生成。
+- 启动前空闲磁盘161,199,501,312bytes（约150.129GiB）、MemAvailable
+  110,615,760KiB（约105.49GiB），满足原门槛。01:20监控sample220：
+  服务peak18.240692GiB、主机available90.266891GiB、high/max/OOM/swap均0，
+  无安全告警；磁盘149.509441GiB，只禁止下一重任务启动，不触发100GiB停止门槛。
+- 此刻79请求到达、74正常完成、0报告失败；仍是部分运行，不能称4000完成、
+  数值正确、联合SLO达标或优于历史。最终审计和真实释放后另补完整结果。
+
+本轮只作轻量监控和持久记录，不并发运行分析、哈希扫描、压缩、清理或另一个
+GPU任务。真实读取/传输/竞争/本地准备继续计入服务时间，不减去实际获取时延。
