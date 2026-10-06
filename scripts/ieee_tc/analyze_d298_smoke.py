@@ -1,4 +1,5 @@
 """D298 data-only Full100 audit; reuse D290 comparison/binding and D171 SLO code."""
+import csv
 import json
 import math
 from collections import Counter
