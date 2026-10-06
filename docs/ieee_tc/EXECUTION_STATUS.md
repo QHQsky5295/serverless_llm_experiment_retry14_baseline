@@ -35,6 +35,26 @@ Checkpoint `8cff52a` contains the implementation, test, and compact table; it
 was pushed to `faaslora_origin/retry14_continuous_queue_v2`.  The pre-existing
 dirty manifest and unrelated untracked review/figure artifacts were not staged.
 
+## NEXT GATE — D276 7B readiness replicate registered; not launched
+
+2026-10-06. The one permitted same-configuration cold replicate of D265 is
+registered after D275.  Its config is semantically equal to D265 after only
+normalizing the run/result/cache identity, and it reuses the seed-42 trace,
+500-adapter subset, prepublished remote gzip delivery, fixed-output contract,
+profiles, and resource envelope.  It is diagnostic (`formal_run=0`), not a
+new performance point.  The purpose is solely to test whether the previously
+missing natural first-service sample count can be obtained without the stale
+selected-copy conflict.
+
+The registration, entry-gate evidence and hashes are in
+`docs/ieee_tc/D276_7B_READINESS_RECHECK.md`; config and launcher are
+`configs/ieee_tc/20261006_d276_7b_readiness_8phase_full_retry8.yaml` and
+`scripts/ieee_tc/run_d276_7b_readiness_8phase_full_retry8.sh`.  At registration,
+the host showed approximately 112 GiB available memory, 155 GiB free disk,
+four idle GPUs, and no owned active scope.  These values must be rechecked at
+launch.  D276 remains held until the remote health/cleanup gate is repeated;
+no remote service or GPU replay has started in this registration step.
+
 ## CURRENT — D274 3B historical bottleneck is profile-bound; no replay authorized
 
 2026-10-06. A CPU-only audit compared the retained exploratory D138
