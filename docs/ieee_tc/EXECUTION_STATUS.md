@@ -34,6 +34,31 @@ No new 4,000-request GPU replay is authorized until this repair is committed
 and a fresh bounded smoke confirms that the digest-bearing combined path reaches
 the native owner and returns an acknowledged receipt without uncertainty.
 
+## CURRENT — D261 post-repair bounded smoke passes the native combined path
+
+2026-10-06. The first D261 launch was a gate-only rejection because its fresh
+configuration omitted the required preparation-profile `ewma_beta`; it created
+no request result and passed GPU-context and scope cleanup. That evidence is
+retained at `d261_20261006/7b_rpc_prefix8` and is excluded from all denominators.
+
+The corrected retry used a new result/cache identity
+`d261_20261006/7b_rpc_prefix8_retry2` with the same frozen trace, adapter
+subset, model, vLLM environment, and remote delivery contract. All 8/8
+requests completed successfully, including four requests routed with a
+confirmed GPU source and the digest-bearing combined pending/admission path;
+all eight native intents carried `expected_content_sha256`. The result contains
+zero `subprocess_native_rpc_failed_no_retry` records and zero ownership-uncertain
+guards. Every request's native acquisition receipt echoed the expected content
+identity, and the launch receipt confirms service, watchdog, replay, cleanup,
+GPU-context release, and service-path removal.
+
+This bounded smoke is diagnostic rather than a performance result. It clears
+the schema-repair gate for a fresh D258 4,000-request readiness diagnostic, but
+it does not by itself establish readiness, SLO, or G1/G2 performance. The
+corrected config and launcher hashes are
+`85e94ff08cce8cfa2aaebf999ed122b2464047802d5631caeeb8917063342663` and
+`0a5cafe0121a7fa3bf3cf28e1d00701041d6340a68e59e405978d289795e7af8`.
+
 ## CURRENT — D258 retry5 is an interrupted diagnostic; native RPC ownership failures remain unresolved
 
 2026-10-06. The fresh 7B 8-phase Full diagnostic
