@@ -42,3 +42,13 @@ join transfer journals and preserve resource/timing evidence. Data-only analysis
 G1/G2, numericalcorrectness and commonwarm/Residentreference remainOPEN.
 No final performance assertion until the full replay is complete and validated;
 no promotion to3B or baselines merely for exceeding the previous candidate.
+
+## Live receipt
+
+Checkpoint1fa3f708ee434dccd58509bea56ba097f2a669bd pushed before03:27:50launch.
+ConfigSHA803693f4cccbdf4a5d4719b6d77f3b611cb380fe5e4342583f7d19e7be2ff10d.
+Actualreplay4000W0/rate1/source4000/no prefix; one guarded tmuxprimelora-d299-7b.
+Service a9a8e9715d484ac5939ffd02427acf48, invocation323ed5b94d1644dcbcc5a9d63f4e46f8.
+Remote health2 succeeded beforedeployment on sameapprovedinvocations afterfirst
+pre-listen refusal; no restart or performance rerun. Remoteclock5998fee5b2904ea78256f4aaaff2d3a2.
+Owner identities and current evidence are inEXECUTION_STATUS; do not launchagain.

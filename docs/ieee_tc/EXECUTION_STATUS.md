@@ -11,7 +11,38 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D298 Full100 complete; D299 original4000W0 prepared
+## CURRENT — D299 original4000W0 RUNNING; D298 calibration/smoke complete
+
+2026-10-07 03:28+08. Checkpoint1fa3f708ee434dccd58509bea56ba097f2a669bd
+pushed/remotelyverified BEFORElaunch. Config803693f4cccbdf4a5d4719b6d77f3b611cb380fe5e4342583f7d19e7be2ff10d
+diffchecked: same D298model/control/profiles; only100→4000/scenario/output/cache.
+Started03:27:50 in tmux primelora-d299-7b. Raw d299_20261007/7b_full_w0.
+Replayreceipt4000/4000source/W0/rate1/no prefix, viewSHA
+a5331be2e2204483f18206825d9aaa18cbaa259fe0babfc303f989055819430d.
+Service primelora-tc-svc-a9a8e9715d484ac5939ffd02427acf48.scope invocation
+323ed5b94d1644dcbcc5a9d63f4e46f8;watchdog2438146 in aux
+primelora-tc-aux-d98edc92a9544a3abf13ef64ba32d1ce.scope. Sample29:
+hostavailable108712308736B,peak4366774272B,high/max/OOM0/no warning.
+Startdisk161679175680B exceeds unchanged150GiB gate;100GiB stopunchanged.
+
+Remote monitor primelora-artifact-monitor-d299.service invocation
+c9540d87c0494ee480efa4c92eb36598;7B13c92b11397a4906a9a5b216b1f3b867;
+3B1a41e205be4641bbba2f950314d944da (artifactonly). NIC1000/full,D80units/cache
+unchanged. Firstdirecthealth queried before listen and refused; noGPUlaunch
+occurred. Sameinvocations thenlistening; authenticated health2 succeededat
+822117.95993913 BEFOREdeployment, remoteclock5998fee5b2904ea78256f4aaaff2d3a2.
+No restart, serving fallback or altered measured delay. Failed emptyhealthfile
+retained; successful receipt raw/remote_health2.json. Remote monitor log
+/home/lab14/primelora_remote/tc/d299_20261007/remote_monitor.log.
+
+NEXT monitor SAME4000W0job throughterminal/actualrelease, stop only captured
+remote invocations, locate actualjournal byclock/transferIDs (filenameUUIDdiffers),
+collect/AUDITviaexistingD297Full+native/provisionalhelpers WITHOUTfigures. Keep
+D298prefixresource regression visible; comparecompleteD299toD297/D219onlyafter
+all4000. No newoptimizer/profiling/hashscan/compression/cleanupwhilelive. No3B,
+baseline or warm-repeat. N_correct/commonwarm/Resident/G1G2 remainOPEN.
+
+## HISTORY — D298 Full100 complete; D299 original4000W0 prepared
 
 2026-10-07 03:26+08. D298smoke100/100native-contract completed,0reportedfail,
 fourGPUcontextsreleased,launch/watchdog0/0,ownedremoteunitsinactive/PID0/success.
