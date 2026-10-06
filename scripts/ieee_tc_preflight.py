@@ -3543,8 +3543,15 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
         # the performance-profile loaders retain their exact recorded identity.
         # Keep this pre-start evidence check usable by the stdlib-only OS gate;
         # importing the experiment package would import optional serving stacks.
+        startup_loader_fields = {
+            'safetensors_load_strategy', 'resolved_safetensors_load_strategy',
+            'safetensors_load_decision', 'safetensors_model_bytes',
+            'safetensors_mem_available_bytes', 'safetensors_prefetch_num_threads',
+            'safetensors_prefetch_block_size',
+        }
         return {key: value for key, value in resolve_facade_lora_capacity(config).items()
-                if key not in ('visible_device_ids', 'device_id', 'ieee_token_id_capture')}
+                if key not in ({'visible_device_ids', 'device_id', 'ieee_token_id_capture'}
+                               | startup_loader_fields)}
 
     if (set(binding) != {'kind', 'audit', 'model', 'window_s'}
             or binding['kind'] != 'native_completed_length_binding_v1'):

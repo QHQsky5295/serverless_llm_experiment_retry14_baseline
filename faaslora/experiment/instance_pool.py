@@ -628,8 +628,20 @@ class FrozenServiceProfiles:
     def model_identity(model_config: Mapping) -> dict:
         if not isinstance(model_config, Mapping):
             raise ValueError('service profile requires the actual runtime configuration')
+        # Weight-file loading is a deployment/startup concern.  It is not part
+        # of the post-ready service/admission measurements in this profile.
+        # Keep the identity strict for inference, LoRA, scheduler, and native
+        # ownership fields while allowing an explicitly recorded vLLM loader
+        # policy to be evaluated against the same measured service profile.
+        startup_loader_fields = {
+            'safetensors_load_strategy', 'resolved_safetensors_load_strategy',
+            'safetensors_load_decision', 'safetensors_model_bytes',
+            'safetensors_mem_available_bytes', 'safetensors_prefetch_num_threads',
+            'safetensors_prefetch_block_size',
+        }
         return {key: value for key, value in model_config.items()
-                if key not in ('visible_device_ids', 'device_id', 'ieee_token_id_capture')}
+                if key not in ({'visible_device_ids', 'device_id', 'ieee_token_id_capture'}
+                               | startup_loader_fields)}
 
     def validate_runtime(self, model_config: Mapping) -> None:
         identity = json.dumps(self.model_identity(model_config), sort_keys=True, allow_nan=False)
