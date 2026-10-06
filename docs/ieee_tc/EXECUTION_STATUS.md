@@ -11,7 +11,31 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D298 Full100 smoke RUNNING; source calibration complete
+## CURRENT — D298 Full100 complete; D299 original4000W0 prepared
+
+2026-10-07 03:26+08. D298smoke100/100native-contract completed,0reportedfail,
+fourGPUcontextsreleased,launch/watchdog0/0,ownedremoteunitsinactive/PID0/success.
+Data-only audit reuses D290 comparison/binding and D171 timing helper, saved
+paper_results/ieee_tc/p2_backend/d298_capacity/smoke1/. Inputmatch/controlbinding
+100/100forD296/D298;9outputhashdifferencesretained,NOTnumericalqualification.
+D298vsD296 meanTTFT1.140273vs2.129072s,P95TTFT2.339925vs10.771356s;
+meanTPOT29.797313vs34.997670ms,P95TPOT39.253765vs44.405718ms.
+PhysicalGPU-s780.572493vs727.912111(+7.23%): NOTresourceimprovement.
+ProvisionalD170timingupper97/100, noformalSLO/N_correct/G1G2acceptance.
+29remoteUUIDjoins50650865wirebytes/packing0;266watchdogsamples,
+peak19154620416B,hostminimum93601243136B,high/max/OOM/swap0.
+Remotejournal774ad88...SHA7102ce906f913e8fbeeb869267ea2ed2f13ba312683027f4ad389218cecbed82;
+monitorSHA5278820e3fe83e453446945d19dd3f23cdefc1d7ce9a5276d2f4c94cb2fde8a7,
+bothcopiedandremote/localSHAequal. Protection146/147sameknownbaselineedit.
+
+D299 is the predeclared full4000W0 of SAME D298 configuration, not another
+optimizer. Config/launcher branch prepared, fulltracecountrestored/no prefix;
+allmodel/control/profile/publicenvelopeunchanged. See D299_CAPACITY_FULL_W0.md.
+NEXT verifyconfigdiff/checkpoint/push, then one guarded4000W0. ComparetoD297Full,
+notD296prefix; no figures/warm-repeat/3B/baselines. Finalsharedreferences,
+numericalcorrectness/resourcegoalsremainOPEN. Noexperimentcurrentlylive.
+
+## HISTORY — D298 Full100 smoke RUNNING; source calibration complete
 
 2026-10-07 03:19+08. Checkpoint9cd6a4aa323d7484b5b08f29e97018f74f3de0aa
 pushed/remotely verified, then SAME prepared candidate launched once in tmux
