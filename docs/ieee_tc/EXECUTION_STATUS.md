@@ -37,7 +37,10 @@ downs,all6leasesclosed. Meanarrival-to-admission0.756334sremainslargeststage.
 Native/contextanalysisscopesempty/stopped;peaks734461952/1062809600B,noevents.
 Nofigures,newGPUrun,warmsource/numericalrepeat,3Borexternalbaseline.
 
-NEXT checksum/secrets/exact-stage backup, thenoneevidence-led7Bquestionabout
+Data checkpoint e27b7d0b7ee3af485f281133b955636a3f0906d6 pushed toV2; allcurated
+and source-reference checksums match, exact13-file stage/secrets checks passed.
+Userdirtygeneratedmanifest wasnotstaged.35tests pass; owned testscope empty/stopped.
+NEXT oneevidence-led7Bquestionabout
 avoidablearrival-to-admissiondelayversusnecessaryreadiness/capacityconstraints.
 ReviewC2softtargets/cap8historyandprimarysourcesbeforeanynewcandidate;notanother
 lowerthresholdsweeporautomaticsoft=hardtarget. D300fullreportincludesalltradeoffs.
