@@ -16,7 +16,8 @@ from unittest.mock import AsyncMock, Mock, patch
 from faaslora.experiment.instance_pool import InstanceSlot, NativeSourceSnapshot
 from scripts.run_all_experiments import (
     ScenarioRunner, RequestExecutionPlan, RuntimeRequestReservation, ScenarioResult, aggregate_runs,
-    InferenceEngine, SubprocessInferenceEngineProxy, _native_identity_conflict_diagnostic)
+    InferenceEngine, SubprocessInferenceEngineProxy, _native_identity_conflict_diagnostic,
+    _native_capacity_conflict_diagnostic)
 
 
 def fixture():
@@ -3565,6 +3566,53 @@ class ControllerNativeReferenceLifecycle(unittest.TestCase):
             self.assertFalse(owner.snapshot()['reference_counts'])
             self.assertEqual(slot.active_requests, 0)
         asyncio.run(check())
+
+
+class NativeCapacityDiagnostic(unittest.TestCase):
+    """Capacity failures retain bounded blocker identity without changing policy."""
+
+    def test_capacity_conflict_compacts_last_wait_and_plan_identity(self):
+        runner, slot, _, _, _, _ = native_reference_fixture()
+        reservation = RuntimeRequestReservation('request-capacity')
+        reservation.slot = slot
+        reservation.adapter_id = 'adapter-c'
+        reservation.gpu_reference_evidence = {
+            'state': 'capacity_wait',
+            'intent': {
+                'lease_id': 'lease-c', 'adapter_int_id': 3,
+                'expected_owner_id': 'owner-a', 'expected_epoch': 9,
+                'lora_name': 'adapter-c', 'lora_path': '/existing/adapter-c',
+            },
+            'snapshot_before_acquisition': {
+                'owner_id': 'owner-a', 'epoch': 9, 'clock_id': 'clock-a',
+                'sources': ['must-not-be-copied'],
+            },
+            'capacity_waits': [{
+                'reason': 'all_gpu_slots_pinned', 'owner_id': 'owner-a', 'epoch': 9,
+                'outcome': 'unresolved', 'start_monotonic_s': 1.0,
+                'end_monotonic_s': 2.0,
+                'blockers': {
+                    'kind': 'native_pinned_capacity_v1', 'tier': 'gpu',
+                    'candidates': [{
+                        'adapter_int_id': 1, 'gpu_lease_ids': ['lease-a'],
+                        'host_lease_ids': [], 'external_pin': False,
+                        'preparation_plan_ids': ['plan-a'],
+                        'full_native_snapshot': 'must-not-be-copied',
+                    }],
+                },
+            }],
+        }
+        diagnostic = _native_capacity_conflict_diagnostic(
+            RuntimeError('native capacity conflict has no acknowledged release path'),
+            reservation,
+        )
+        self.assertEqual(diagnostic['contract'], 'native_capacity_conflict_v1')
+        self.assertEqual(diagnostic['capacity_wait']['blockers']['candidates'][0]
+                         ['preparation_plan_ids'], ['plan-a'])
+        self.assertNotIn('sources', diagnostic['snapshot_before_acquisition'])
+        self.assertNotIn('full_native_snapshot', str(diagnostic))
+        self.assertIsNone(_native_capacity_conflict_diagnostic(
+            RuntimeError('different native failure'), reservation))
 
 
 class NativeCapacityWait(unittest.TestCase):

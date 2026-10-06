@@ -5168,6 +5168,82 @@ def _native_identity_conflict_diagnostic(exc: BaseException,
     }
 
 
+_NATIVE_CAPACITY_CONFLICT_MARKER = (
+    'native capacity conflict has no acknowledged release path'
+)
+
+
+def _native_capacity_conflict_diagnostic(
+        exc: BaseException, reservation: Any) -> Optional[Dict[str, Any]]:
+    """Retain a bounded blocker/release witness for an outer native failure.
+
+    Selected-adapter preparation runs before the request-generation ``try``
+    block.  When its fail-closed capacity wait rejects a request, the outer
+    request collector otherwise receives only the exception string and the
+    reservation cleanup erases the useful blocker receipt.  This helper is
+    observational only: it copies scalar identity and the last capacity-wait
+    receipt, never invents a release, retries the request, or changes the
+    admission decision.
+    """
+    if _NATIVE_CAPACITY_CONFLICT_MARKER not in str(exc):
+        return None
+    evidence = getattr(reservation, 'gpu_reference_evidence', {})
+    if not isinstance(evidence, dict):
+        evidence = {}
+    waits = evidence.get('capacity_waits')
+    compact_wait = None
+    if isinstance(waits, list) and waits:
+        row = waits[-1]
+        if isinstance(row, dict):
+            compact_wait = {
+                key: row.get(key)
+                for key in ('reason', 'owner_id', 'epoch', 'outcome',
+                            'start_monotonic_s', 'end_monotonic_s')
+                if row.get(key) is not None
+            }
+            blockers = row.get('blockers')
+            if isinstance(blockers, dict):
+                candidates = blockers.get('candidates')
+                compact_candidates = []
+                if isinstance(candidates, list):
+                    for candidate in candidates[:32]:
+                        if not isinstance(candidate, dict):
+                            continue
+                        compact_candidates.append({
+                            key: candidate.get(key)
+                            for key in ('adapter_int_id', 'gpu_lease_ids',
+                                        'host_lease_ids', 'external_pin',
+                                        'preparation_plan_ids')
+                            if candidate.get(key) is not None
+                        })
+                compact_wait['blockers'] = {
+                    key: blockers.get(key)
+                    for key in ('kind', 'tier')
+                    if blockers.get(key) is not None
+                }
+                compact_wait['blockers']['candidates'] = compact_candidates
+    intent = _compact_native_source_identity(evidence.get('intent'))
+    snapshot = evidence.get('snapshot_before_acquisition')
+    compact_snapshot = None
+    if isinstance(snapshot, dict):
+        compact_snapshot = {
+            key: snapshot.get(key)
+            for key in ('owner_id', 'epoch', 'clock_id',
+                        'acquisition_observation_scope')
+            if snapshot.get(key) is not None
+        }
+    return {
+        'contract': 'native_capacity_conflict_v1',
+        'request_id': str(getattr(reservation, 'request_id', '')),
+        'adapter_id': getattr(reservation, 'adapter_id', None),
+        'instance_id': getattr(getattr(reservation, 'slot', None), 'instance_id', None),
+        'state': evidence.get('state'),
+        'intent': intent,
+        'snapshot_before_acquisition': compact_snapshot,
+        'capacity_wait': compact_wait,
+    }
+
+
 @dataclass
 class _BlockingRPCChannel:
     sock: socket.socket
@@ -13518,6 +13594,10 @@ class ScenarioRunner:
                 exc, '_faaslora_native_identity_conflict', None)
             if not isinstance(native_identity_diagnostic, dict):
                 native_identity_diagnostic = None
+            native_capacity_diagnostic = getattr(
+                exc, '_faaslora_native_capacity_conflict', None)
+            if not isinstance(native_capacity_diagnostic, dict):
+                native_capacity_diagnostic = None
             failure_observation = {
                 'kind': 'controller_task_exception_v1',
                 'exception_type': type(exc).__name__,
@@ -13532,6 +13612,8 @@ class ScenarioRunner:
                 'gpu_release_inferred': False,
                 **({'native_identity_conflict': native_identity_diagnostic}
                    if native_identity_diagnostic is not None else {}),
+                **({'native_capacity_conflict': native_capacity_diagnostic}
+                   if native_capacity_diagnostic is not None else {}),
                 **_native_rpc_failure_fields(exc),
             }
             item = RequestResult(
@@ -16272,6 +16354,12 @@ class ScenarioRunner:
             if diagnostic is not None:
                 try:
                     exc._faaslora_native_identity_conflict = diagnostic
+                except Exception:
+                    pass
+            capacity_diagnostic = _native_capacity_conflict_diagnostic(exc, reservation)
+            if capacity_diagnostic is not None:
+                try:
+                    exc._faaslora_native_capacity_conflict = capacity_diagnostic
                 except Exception:
                     pass
             raise

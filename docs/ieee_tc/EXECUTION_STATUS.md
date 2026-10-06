@@ -1,5 +1,61 @@
 # IEEE TC execution status
 
+## CURRENT — D277 preserves the missing capacity-wait witness without changing admission
+
+2026-10-06. D276 showed that a selected-adapter capacity failure could leave an
+empty `gpu_reference_evidence` object because the exception escaped before the
+inner RequestResult envelope.  The new bounded
+`native_capacity_conflict_v1` diagnostic copies only the final blocker rows,
+lease IDs, external-pin state, preparation-plan IDs, owner/epoch and request
+identity onto the exception.  It does not retry, evict, relax fail-closed
+checks, or infer a release.  Full native snapshots and cache contents remain
+excluded.
+
+The CPU falsification test passes, the complete request-lifecycle suite passes
+184/184, and the GPU-reference plus transfer-pressure suites pass 304/304;
+Python compilation and diff checks also pass.  This is an evidence-quality
+repair, not a causal explanation of D276 and not a readiness/performance
+result.  The next action remains a bounded CPU native-capacity reproducer with
+an actual proactive preparation lease and an acknowledged release.  No new
+full replay is authorized until that witness contract is observed and reviewed.
+The protected-artifact seal check remains false only for the pre-existing
+change to the sealed baseline file
+`serverless_llm_baselines/scripts/replay_openai_trace.py`; the file was not
+edited or staged here.
+
+## CURRENT — D276 7B readiness replicate closes with one localized-but-unproven capacity-wait failure
+
+2026-10-06. The registered same-configuration cold replicate completed its
+4,000-request replay envelope after D275, with 4,000 terminal records. 3,999
+requests succeeded and one (`req_00862`, `translate_lora_0030`) failed before
+dispatch with `RuntimeError: native capacity conflict has no acknowledged
+release path`. The retained traceback reaches `_wait_native_reference_capacity`,
+but the failed terminal has an empty `gpu_reference_evidence` object. Thus the
+artifact identifies where the controller rejected the wait, not which
+candidate lease blocked it; it does not prove that D275 caused or fixed the
+failure and does not authorize a blind replay.
+
+Among dispatched records, pre-dispatch tier coverage is 3,999/3,999 and tier
+invariant conflicts are zero. The run exercised ten natural scale-ups, seven
+scale-downs, and ten first-service observations, so it misses the
+pre-registered first-service minimum of twenty. The physical sidecar is
+complete (15,878.133222 GPU-s, no open leases, `n_correct=null`) and cleanup
+is complete; service/replay/watchdog return code is zero, native GPU-context
+release is confirmed, and the owned service path was removed. No service or
+auxiliary OOM/oom-kill occurred; service memory peaked at 21,792,223,232 bytes
+and host `MemAvailable` remained 102.91--122.41 GiB.
+
+D276 is consequently diagnostic-only and is excluded from readiness, SLO,
+lifecycle, G1/G2 and baseline denominators. Its compact status table is
+`paper_results/ieee_tc/p2_backend_qualification/20261006_d276_readiness_retry8/d276_status.csv`;
+the full claim boundary and artifact hashes are in
+`docs/ieee_tc/D276_7B_READINESS_RECHECK.md`. The next falsifiable action is
+CPU-only: exercise a proactive GPU-preparation lease and a request-driven GPU
+acquisition against the same native capacity, retain the exact candidate and
+release receipts, and test whether preparation leases are represented in the
+acknowledged-release witness set. No new full replay is authorized until that
+contract is either rejected or repaired with focused tests.
+
 ## CURRENT — D275 stale selected GPU copy now re-routes without relaxing identity checks
 
 2026-10-06. A new CPU-only, falsifiable contract test isolated a race class
@@ -34,26 +90,6 @@ solely by D275.
 Checkpoint `8cff52a` contains the implementation, test, and compact table; it
 was pushed to `faaslora_origin/retry14_continuous_queue_v2`.  The pre-existing
 dirty manifest and unrelated untracked review/figure artifacts were not staged.
-
-## NEXT GATE — D276 7B readiness replicate registered; not launched
-
-2026-10-06. The one permitted same-configuration cold replicate of D265 is
-registered after D275.  Its config is semantically equal to D265 after only
-normalizing the run/result/cache identity, and it reuses the seed-42 trace,
-500-adapter subset, prepublished remote gzip delivery, fixed-output contract,
-profiles, and resource envelope.  It is diagnostic (`formal_run=0`), not a
-new performance point.  The purpose is solely to test whether the previously
-missing natural first-service sample count can be obtained without the stale
-selected-copy conflict.
-
-The registration, entry-gate evidence and hashes are in
-`docs/ieee_tc/D276_7B_READINESS_RECHECK.md`; config and launcher are
-`configs/ieee_tc/20261006_d276_7b_readiness_8phase_full_retry8.yaml` and
-`scripts/ieee_tc/run_d276_7b_readiness_8phase_full_retry8.sh`.  At registration,
-the host showed approximately 112 GiB available memory, 155 GiB free disk,
-four idle GPUs, and no owned active scope.  These values must be rechecked at
-launch.  D276 remains held until the remote health/cleanup gate is repeated;
-no remote service or GPU replay has started in this registration step.
 
 ## CURRENT — D274 3B historical bottleneck is profile-bound; no replay authorized
 

@@ -1,7 +1,7 @@
 # D276: post-D275 7B readiness recheck
 
 Date: 2026-10-06
-Status: registered; not yet launched
+Status: completed diagnostic; readiness gate not passed
 
 ## Purpose
 
@@ -63,6 +63,52 @@ failure does not authorize an OOM retry or a different configuration.
 - Config: `configs/ieee_tc/20261006_d276_7b_readiness_8phase_full_retry8.yaml`
 - Launcher: `scripts/ieee_tc/run_d276_7b_readiness_8phase_full_retry8.sh`
 - Config SHA-256: `36880b280f881947ca2a3f68ba5ecb3808945116a9d42e9c4f61e0a6313b102a`
-- Launcher SHA-256: `59178f2ca493e8d1a800e43115e3acadc64750074e33d83e4a27d365a57aa10f`
+- Launcher SHA-256: `281d7a6e3e9053537d819c882f429db3e7a1d7be4ec981e2fa949cbd855387f1`
 - Plan SHA-256: `0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7`
 - Frozen V1 SHA-256: `5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22`
+
+## Observed result and boundary
+
+The fresh run completed its full replay envelope and produced 4,000 terminal
+records, but one request failed before dispatch.  The raw result is retained
+at
+`/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d276_20261006/7b_readiness_8phase_full_retry8/`.
+The result, launch receipt, main-outcome journal, physical summary and terminal
+journal have respectively these SHA-256 identities:
+
+| artifact | SHA-256 |
+|---|---|
+| result JSON | `adbd6118b7f430c174b88e52b87c0f32651ab46674f5c75d07bf3fc16c897b42` |
+| `launch.json` | `29d7ad1369fc177edc8953a836147c29be6f029039361422608f6686e9fefe08` |
+| `main_outcome.json` | `16fc29e8c0c6143776c5166a89e7ca0cc0178dc796835030f4553224e1f81de3` |
+| physical summary | `1677803c0c39bf576acb02f5e6bac34f8be41617059206223257a2bcd4e284cf` |
+| request terminals | `78a7bae9d23e383bdba819be171d3fbf9d27534604f2ff399bc29ddc150125f1` |
+
+The categorical outcome is 3,999/4,000 successful native fixed-output
+requests, 3,999/4,000 complete pre-dispatch tier observations, ten natural
+scale-up events, seven scale-down events, and ten first-service observations.
+The tier invariant has zero conflicts among the dispatched records.  The
+single failed request is `req_00862` (`translate_lora_0030`); it terminated
+before dispatch (after controller reservation) with
+`RuntimeError: native capacity conflict has no acknowledged release path`.
+Its retained traceback reaches `_wait_native_reference_capacity`, but its
+`gpu_reference_evidence` is empty.  Consequently this run does not identify
+the blocking lease, does not prove that D275 caused or fixed the failure, and
+does not justify a GPU rerun by itself.
+
+The physical sidecar is complete and reports 15,878.133222 GPU-s, no open
+leases, and `n_correct=null`; it is descriptive diagnostic evidence only.
+The cleanup journal reports zero remaining allocated bytes (4,096 bytes of
+directory metadata), service/replay/watchdog return code 0, confirmed native
+GPU-context release, and owned service-path removal.  The watchdog recorded
+no service/auxiliary OOM or OOM-kill event; service memory peaked at
+21,792,223,232 bytes and host `MemAvailable` stayed between 102.91 and
+122.41 GiB.  These resource observations do not convert the failed replay
+into a qualification point.
+
+The run is therefore excluded from readiness, SLO, lifecycle, G1/G2 and
+baseline denominators.  The next action is a CPU-only reproducer that retains
+the exact capacity-wait receipt and tests whether proactive preparation leases
+are represented in the acknowledged-release witness set.  No further
+full-length readiness replay is authorized until that hypothesis is either
+rejected or repaired and covered by focused tests.
