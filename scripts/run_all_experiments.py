@@ -5089,7 +5089,9 @@ def _compact_native_source_identity(value: Any) -> Optional[Dict[str, Any]]:
         'adapter_id', 'adapter_int_id', 'lora_name', 'lora_path', 'path',
         'source_id', 'content_sha256', 'old_content_sha256',
         'expected_content_sha256', 'tier', 'native', 'gpu_slot',
-        'owner_id', 'epoch', 'clock_id', 'held', 'gpu_acquired',
+        'owner_id', 'expected_owner_id', 'epoch', 'expected_epoch', 'clock_id',
+        'lease_id', 'expected_source_id', 'required_source_tier',
+        'held', 'gpu_acquired',
     )
     result = {}
     for key in fields:

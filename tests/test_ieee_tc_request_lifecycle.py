@@ -4068,6 +4068,9 @@ class ReplayFailureIdentity(unittest.TestCase):
         self.assertEqual(diagnostic['instance_id'], 'inst-1')
         self.assertEqual(diagnostic['request_evidence']['intent']['lora_path'],
                          '/nvme/education_lora_0007')
+        self.assertEqual(diagnostic['request_evidence']['intent']['expected_owner_id'],
+                         'owner-1')
+        self.assertEqual(diagnostic['request_evidence']['intent']['expected_epoch'], 19)
         self.assertEqual(
             diagnostic['request_evidence']['snapshot_before_acquisition']
             ['selected_source_identity']['content_sha256'], 'a' * 64)
