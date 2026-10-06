@@ -1,5 +1,22 @@
 # IEEE TC execution status
 
+## NEXT GATE — D278 post-repair 7B readiness diagnostic registered; launch held
+
+2026-10-06. After the CPU red/green reproducer and the 489 focused tests
+passed, D278 is registered as one fresh, same-configuration cold diagnostic.
+It changes only the D276 run/result/cache identity and tests whether the
+lease-to-plan receipt repair prevents the observed capacity-wait failure.  The
+existing seed-42 W0 trace, 500-adapter subset, fixed-output contract, vLLM
+environment, remote prepublished delivery and all resource/control profiles
+are frozen.  The config and launcher are
+`configs/ieee_tc/20261006_d278_7b_readiness_8phase_full_retry9.yaml` and
+`scripts/ieee_tc/run_d278_7b_readiness_8phase_full_retry9.sh`; their hashes and
+acceptance boundary are sealed in `docs/ieee_tc/D278_7B_READINESS_POST_D277.md`.
+
+No GPU replay has started in this registration step.  The final preflight must
+repeat memory/disk/process/GPU cleanup, verify the existing remote service
+without repacking, and preserve the exploratory/non-ranking identity.
+
 ## CURRENT — D277 identifies and repairs the proactive-lease witness schema defect
 
 2026-10-06. D276 showed that a selected-adapter capacity failure could leave an
