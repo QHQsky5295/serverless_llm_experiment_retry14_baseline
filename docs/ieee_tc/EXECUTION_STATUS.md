@@ -11,7 +11,42 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D299 original4000W0 RUNNING; D298 calibration/smoke complete
+## CURRENT — D299 full4000 W0 completed and audited; 7B resource goal still open
+
+2026-10-07 04:46+08. Same D299 finished4000/4000native-contract requests;
+zero reported failures,4physical leases closed, service/replay/watchdog0,
+native GPU census clear, service scope removed. Exact-owned remote monitor and
+both artifact services stopped/inactive/PID0/success. No run was restarted.
+Source SHA df066b365fa13ecc25b225a793c362706157224965b8a7b360981d8cf45887ab.
+Curated native/stage/control audit in p2_backend/d299_full_w0/validated1;
+input/remote/resource/protection comparison in context1. All4000 inputs match
+D297 and control bindings pass;213output hashes differ, N_correct remainsnull.
+132remote UUID joins,131480060wire bytes,no request-time packing.4046watchdog
+samples,peak20523708416B,minhost94323630080B,high/max/OOM/swap0. Protectedseal
+146/147unchanged, sole known baseline script edit preserved.35timing tests pass.
+
+Mean/P95TTFT1.306468/2.884702s, mean/P95TPOT32.918675/62.482613ms;
+physical15845.533076GPU-s. VersusD297:P95TTFT14.14%lower, physicalonly0.09554%
+lower, P95TPOT0.67137%worse. ProvisionalD170timing upper3828/4000=95.70%,
+notformaljointSLOorG1/G2. Sharedfinalwarm/Resident/numericalqualificationopen.
+No figures or3B/baseline/warm-repeat. D295bounded numerical diagnostic remains
+closed; do not recreate it merely because formalcorrectness is not yetclosed.
+
+Resource observation:3scale-ups/0downs;1335lowqueue+lowactive samples blocked
+byTTFTlower. The observed lowqueue/lowactive/no-pending maximum now61.728443s,
+six spans>=38scooldown, versusD29716.882191s. This supports re-examining
+paper-consistent scale-in eligibility; it doesNOTpredict counterfactualGPU-s.
+SeeD299_CAPACITY_FULL_W0.md for complete tradeoffs, provenance and small
+post-run inspection errors (no performance changes/retries). Both bounded
+analysis jobs completed; their empty owned scopes were stopped.
+
+NEXT verify saved checkpoint/upstream for checked data/scripts/docs; safely recover disk to unchanged
+150GiBstartmargin (04:46free160457490432B, below150GiB); then inspect IEEE/control
+history plus primary sources for ONE observable resource-control hypothesis.
+Retain D299 as latency-improved development evidence, not finalacceptedconfig.
+No freshGPUlaunch,3B/baselines,thresholdrelaxation,warm-repeat or figures yet.
+
+## HISTORY — D299 original4000W0 RUNNING; D298 calibration/smoke complete
 
 2026-10-07 03:28+08. Checkpoint1fa3f708ee434dccd58509bea56ba097f2a669bd
 pushed/remotelyverified BEFORElaunch. Config803693f4cccbdf4a5d4719b6d77f3b611cb380fe5e4342583f7d19e7be2ff10d
@@ -41,6 +76,52 @@ collect/AUDITviaexistingD297Full+native/provisionalhelpers WITHOUTfigures. Keep
 D298prefixresource regression visible; comparecompleteD299toD297/D219onlyafter
 all4000. No newoptimizer/profiling/hashscan/compression/cleanupwhilelive. No3B,
 baseline or warm-repeat. N_correct/commonwarm/Resident/G1G2 remainOPEN.
+
+03:34+08 verified wait on SAME D299: service active/invocation unchanged,
+tmuxconfirmedlive;196arrived/189normalcompleted/0reportedfail. Watchdog377:
+hostavailable89.938GiB,peak17.365GiB,no safety warning, disk149.644GiB.
+Run passed150GiB startgate; below150now prohibits nextheavylaunch, not current
+validmeasurement (100GiB stopgate unchanged). Remote monitor exactinvocation
+confirmedactive03:31, no service/config/cache operations. Full source plan reread;
+no new candidate, code/tests/analysis/figures/GPU launch during this wait.
+Keep monitoring same job through all4000 and actual release; do not restart
+on an observation timeout. D298 data and launchcheckpoint remainbacked a77ffcb.
+
+03:40+08 verified wait on SAME D299 (no new launch): 535 arrived,
+534 normally completed, 0 reported failures; service invocation remains
+323ed5b94d1644dcbcc5a9d63f4e46f8 and active. Watchdog sample729:
+host available89.946GiB, service peak17.365GiB, high/max/OOM0, no warning;
+disk149.485GiB, above100GiB running stop threshold. Remote monitor invocation
+c9540d87c0494ee480efa4c92eb36598 confirmed active03:39 by read-only SSH.
+Latest user reply explicitly permits the one-time read-only delivery cache;
+this reconfirms the already implemented D78/D80 published-cache boundary.
+Reuse it unchanged; do not regenerate archives or duplicate weights/pools.
+Source plan fully reread and SHA0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7
+unchanged. No code/config changes, extra performance job, figures, analysis,
+compression, cleanup or remote service changes during this observation.
+Continue through actual completion/release, then data-only full-run audit;
+7B goals still open, followed by3B, baselines and the retained full matrix.
+
+03:44+08 continuation classified as verified wait: SAME service invocation
+confirmed active/running; tmux pane also live03:43. Latest856arrived/850normal
+completed/0reportedfail. Watchdog1003: available89.546GiB, peak17.365GiB,
+high/max/OOM/swap0, no warning; disk149.198GiB. No new job or intervention.
+Frozen V1 reread in full and existing D297 data-only audit inspected (read-only)
+for the eventual post-release D299 audit. No result analysis or performance
+comparison executed on incomplete data. Continue same4000W0; do not restart.
+
+03:50+08 verified wait, SAME active/running local invocation;1176arrived/
+1174normalcompleted/0reportedfail. Sample1311: hostavailable89.649GiB,
+peak17.365GiB, high/max/OOM0/no warning, disk148.901GiB. Exact remote monitor
+invocation confirmedactive03:49. No run/config/cache changes or extra work;
+original trace continues, and all4000 plus physical release remain required.
+
+04:05+08 SAME D299 still running after continuous low-overhead observation:
+2426arrived/2420normalcompleted/0reportedfail. Local service and remote monitor
+invocations revalidated unchanged/active. Sample2241: hostavailable89.177GiB,
+servicepeak17.982GiB, high/max/OOM0/no warning, disk148.315GiB. No intervention,
+configuration changes, additional GPU/CPU analysis, packing or cleanup.
+This remains a verified wait; continue original4000W0 through physical release.
 
 ## HISTORY — D298 Full100 complete; D299 original4000W0 prepared
 

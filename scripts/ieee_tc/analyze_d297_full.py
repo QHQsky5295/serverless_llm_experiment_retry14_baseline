@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""D297 data-only audit using the existing native and provisional timing checks.
+"""D297/D299 data-only audit using existing native and provisional timing checks.
 
 This is an offline driver, not a serving change, new benchmark, or qualification.
 Use a bounded auxiliary scope after all inference processes have exited.
 """
+import argparse
 import csv
 import gc
 import hashlib
@@ -48,11 +49,25 @@ def table(name, rows):
         writer.writerows(rows)
 
 
-def main():
+def main(campaign='d297'):
+    global RAW, RUN, OUT, SOURCE
+    source_sha = '7f171e1d58b061e7dd7392e1651d087c300ce1d6c2223c3ed16ef2fdce3aa07b'
+    if campaign == 'd299':
+        RAW = ROOT / 'results/ieee_tc/p2_backend_qualification/d299_20261007'
+        RUN = RAW / '7b_full_w0'
+        OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d299_full_w0/validated1'
+        SOURCE = RUN / 'experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d299_7b_full_w0.json'
+        source_sha = 'df066b365fa13ecc25b225a793c362706157224965b8a7b360981d8cf45887ab'
+    elif campaign != 'd297':
+        raise ValueError('unknown frozen full-run identity')
     assert sha256(PLAN) == '0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7'
     assert sha256(PROTOCOL) == '5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22'
     assert sha256(WARM) == '0ebc7587effe293dcb986d33fb932c100cbcb3384c56ab2c0b0bec73b2bdd88c'
-    assert sha256(SOURCE) == '7f171e1d58b061e7dd7392e1651d087c300ce1d6c2223c3ed16ef2fdce3aa07b'
+    assert sha256(SOURCE) == source_sha
+    launch = read(RUN / 'launch.json')
+    assert launch['pass'] and launch['native_gpu_context_release_confirmed']
+    assert launch['service_path_removed']
+    assert launch['service_returncode'] == launch['watchdog_returncode'] == launch['replay_returncode'] == 0
     OUT.mkdir(parents=True, exist_ok=False)
     stats, evidence, requests = audit_run(SOURCE)
     assert len(requests) == 4000
@@ -119,7 +134,7 @@ def main():
                 **{'mean_'+k:mean(r[k] for r in rs) for k in stages}))
     table('requests.csv', normalized)
     table('timing_groups.csv', groups)
-    write('audit.json', dict(kind='d297_full_development_audit_v1', stats=stats, evidence=evidence,
+    write('audit.json', dict(kind=f'{campaign}_full_development_audit_v1', stats=stats, evidence=evidence,
         timing=timing, thresholds=thresholds, window_gpu_seconds=physical['window_gpu_seconds'],
         control_binding_pass_counts=dict(binding_counts), max_stage_error_s=max(errors),
         integral_float_prompt_counts=integral_float_prompt_counts,
@@ -137,7 +152,7 @@ def main():
     query = 'fromstream(2|truncate_stream(inputs | select(.[0][:2] == ["mechanism_events","_ieee_control_events"])))'
     controls = json.loads(subprocess.check_output(['jq','-cn','--stream',query,str(outcome_path)]))
     import yaml
-    config_path = ROOT / 'configs/ieee_tc/20261007_d297_7b_full_w0.yaml'
+    config_path = ROOT / f'configs/ieee_tc/20261007_{campaign}_7b_full_w0.yaml'
     cfg = yaml.safe_load(config_path.read_text())['resource_coordination']['ieee_scaling']
     counters = Counter()
     longest = current_start = 0.0
@@ -182,4 +197,6 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--campaign', choices=('d297', 'd299'), default='d297')
+    main(parser.parse_args().campaign)
