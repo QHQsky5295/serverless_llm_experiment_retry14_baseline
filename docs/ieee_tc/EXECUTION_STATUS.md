@@ -1,5 +1,24 @@
 # IEEE TC execution status
 
+## CURRENT — D272 separates source-path migration from content identity
+
+2026-10-06. A CPU-only contract qualification inspected the unchanged native
+source validator after the D271 partial diagnostic. Six focused source/identity
+tests passed, covering live-copy relabelling, verified same-content migration
+after complete retirement, preparation-plan ownership, host guards, and the
+distinct CPU/GPU source views. The retained evidence is
+`paper_results/ieee_tc/p2_backend_qualification/20261006_d272_source_identity_contract/d272_status.md`.
+
+This establishes the implementation's intended boundary: a new path is legal
+only for the same logical adapter after all old native copies and preparation
+plans retire and the immutable content SHA agrees; a live copy, active plan,
+different logical name, or different content remains fail-closed. It does not
+identify which predicate fired in D266, whose pre-instrumentation record lacks
+the old/requested source, content, live-state, and preparation-plan fields.
+Therefore D266 remains unresolved, no validator relaxation or retry is
+justified, and D272 authorizes no GPU replay, readiness point, G1/G2 point, or
+baseline comparison.
+
 ## CURRENT — D271 does not reproduce D266 and remains a partial diagnostic
 
 2026-10-06. D271 replayed the registered 7B eight-phase diagnostic with the
