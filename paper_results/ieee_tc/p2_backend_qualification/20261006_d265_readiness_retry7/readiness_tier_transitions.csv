@@ -1,0 +1,5 @@
+model,scenario,run_tag,dispatch_tier,service_tier,transition,n,share_of_successful_lora_pct
+meta-llama--Llama-2-7b-hf,tc_ieee_readiness_8phase_full_retry7,d265_7b_readiness_8phase_full_retry7,gpu,gpu,stable,1190,29.75
+meta-llama--Llama-2-7b-hf,tc_ieee_readiness_8phase_full_retry7,d265_7b_readiness_8phase_full_retry7,host,host,stable,1684,42.1
+meta-llama--Llama-2-7b-hf,tc_ieee_readiness_8phase_full_retry7,d265_7b_readiness_8phase_full_retry7,nvme,nvme,stable,994,24.85
+meta-llama--Llama-2-7b-hf,tc_ieee_readiness_8phase_full_retry7,d265_7b_readiness_8phase_full_retry7,remote,remote,stable,132,3.3

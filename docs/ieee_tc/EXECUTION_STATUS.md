@@ -1,5 +1,70 @@
 # IEEE TC execution status
 
+## CURRENT — D265 7B eight-cycle Full readiness diagnostic completes; one gate remains open
+
+2026-10-06. The fresh 7B `d265_7b_readiness_8phase_full_retry7` diagnostic
+completed its pre-registered 8-cycle workload without changing the frozen
+trace, 500-adapter subset, model, fixed-output contract, vLLM environment,
+profiles, resource envelope, or read-only prepublished remote delivery. The
+raw result is retained at
+`results/ieee_tc/p2_backend_qualification/d265_20261006/7b_readiness_8phase_full_retry7/`.
+Its result SHA256 is
+`545da871f734a0a7b6dbf25fa97af66465a6cdc9db33ca67182d535c0ca1256a`, launch
+receipt SHA256 is
+`faf08552233d7869926e562e32f3ba2dc5b44860cbb7b73d9f56453100e8c834`, config
+SHA256 is
+`95717b4b1a6a53c0f0f1184f552672c909bcc91f6bbc5db40a8eec3dd84c754a`, and
+launcher SHA256 is
+`d24565ae4e02d56fb56c0c6a0a18c040c729d5f9bb54aac5b4a73dcfd77d6027`.
+
+The categorical execution contract is complete: 4,000/4,000 requests
+arrived and terminated successfully, with zero failures, 4,000/4,000 native
+fixed-length/token-ID contracts, 4,000/4,000 canonical prompt hashes and
+native timing observations, 100% pre-dispatch tier coverage, and zero tier
+invariant conflicts. The tier partition is GPU 1,190, HOST 1,684, NVMe 994,
+and Remote 132; each tier's readiness booleans are internally consistent.
+The run exercised eight 500-request phases, ten natural scale-up events and
+seven natural scale-down events. The terminal journal contains no nonempty
+`failure_observation`, and the service, replay, watchdog, physical allocation
+journals, GPU-context release and owned service-path removal all closed
+successfully. Physical owner-union accounting reports 15,883.368 GPU-s
+(3.970842 GPU-s per offered request), with no open lease; this is the canonical
+physical field and must not be replaced by the legacy lifecycle estimate.
+
+The readiness diagnostic gate is **not yet passed** solely because the
+pre-registered first-service sample minimum is 20 per model/variant. D265 has
+10 natural scale-out first-service observations (all ten are dispatch-time
+Remote/cold and none has a planned-adapter match). The existing analyzer
+therefore reports `passed=false`, `rerun_required=true`, while all other gate
+components pass. The protocol explicitly allows one additional identically
+configured cold run; D266 is authorized only to supply the missing independent
+first-service observations, then the two runs will be aggregated without
+pooling requests as independent repetitions.
+
+The result remains a **diagnostic**, not a formal PrimeLoRA comparison or
+G1/G2 point: metadata intentionally marks `trace_role=exploratory` and
+`formal_run=false`, `n_correct=null`, and the frozen-settings/source commit
+fields are empty. The metadata also reports `vllm_available=false` despite
+the native vLLM token-timing path; this provenance inconsistency is retained
+as an audit caveat rather than silently repaired. The descriptive overall
+TTFT/E2E values (2,159.8/6,510.8 ms mean; 7,581.6/14,457.7 ms P95) are not
+used as ranking evidence. A readiness summary table and diagnostic figures
+are stored in
+`paper_results/ieee_tc/p2_backend_qualification/20261006_d265_readiness_retry7/`
+and `figs/ieee_tc/p2_backend_qualification/20261006_d265_readiness_retry7/`;
+the first-service figure is correctly omitted because n=10 is below the
+published minimum. The request-local routing hardening has no recurrence in
+this run, but D265 does not prove that it caused the earlier D258 exception.
+
+No remote configuration, packing, cache regeneration, or unrelated workload
+was performed during measurement. The remote records report the approved
+`prepublished_gzip_v1` delivery with `remote_pack_performed=false`; request-
+triggered transfer remains part of the application timeline, while one-time
+publication and unrelated remote work remain outside it under the metric
+protocol. D265 is therefore closed as a successful execution diagnostic with
+one sample-count gate outstanding, not as evidence that PrimeLoRA has already
+met its final optimization target.
+
 ## CURRENT — D258 retry6 stopped after an unlocalized controller exception; routing hardening is diagnostic
 
 2026-10-06. The fresh 7B eight-phase Full diagnostic
