@@ -1,5 +1,28 @@
 # IEEE TC execution status
 
+## CURRENT — request-level source-binding witness is instrumented and unit-tested
+
+2026-10-06. The controller now retains a bounded, request-local diagnostic when
+the unchanged native rejection marker `native integer ID reused for a different
+adapter source` escapes selected-source preparation. The evidence binds the
+offered request ID and adapter to the selected instance, submitted native
+intent, selected source identity, owner/epoch and the original bounded worker
+error text. Full routing snapshots are deliberately excluded to avoid
+duplicating the adapter pool in every failure record. The exception is still
+re-raised unchanged; there is no retry, fallback, validator relaxation, route
+change, or ownership decision based on this field. The normal reservation
+cleanup and unresolved-native-work handling therefore remain authoritative.
+
+The same evidence is emitted in the request failure observation when the
+exception is collected outside the inner execution path, closing the evidence
+gap seen in D266 without retrospectively altering D266. A focused regression
+test verifies that a synthetic D266-shaped error keeps request/source identity
+and drops unrelated full-pool metadata; the complete request-lifecycle and
+native-reference suites pass: **317 passed, 19 warnings**. This is an
+instrumentation qualification, not a readiness, performance, G1/G2, or repair
+result. A future bounded replay may use it only to capture the exact rejection
+predicate; no replay is authorized solely because this instrumentation exists.
+
 ## CURRENT — D269 retry2 completes a phase-preserving identity diagnostic; no repair claim
 
 2026-10-06. D269 retry2 replayed a fresh 500-request 7B prefix as **one

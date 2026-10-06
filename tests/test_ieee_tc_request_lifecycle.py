@@ -16,7 +16,7 @@ from unittest.mock import AsyncMock, Mock, patch
 from faaslora.experiment.instance_pool import InstanceSlot, NativeSourceSnapshot
 from scripts.run_all_experiments import (
     ScenarioRunner, RequestExecutionPlan, RuntimeRequestReservation, ScenarioResult, aggregate_runs,
-    InferenceEngine, SubprocessInferenceEngineProxy)
+    InferenceEngine, SubprocessInferenceEngineProxy, _native_identity_conflict_diagnostic)
 
 
 def fixture():
@@ -4023,6 +4023,72 @@ def replay_fixture():
 
 
 class ReplayFailureIdentity(unittest.TestCase):
+    def test_native_identity_conflict_keeps_request_and_selected_source_witness(self):
+        reservation = RuntimeRequestReservation('req-198')
+        reservation.bind(SimpleNamespace(instance_id='inst-1'), 'education_lora_0007', True)
+        reservation.gpu_reference_evidence = {
+            'state': 'acquiring',
+            'intent': {
+                'adapter_int_id': 7,
+                'lora_name': 'education_lora_0007',
+                'lora_path': '/nvme/education_lora_0007',
+                'expected_owner_id': 'owner-1',
+                'expected_epoch': 19,
+                'expected_content_sha256': 'a' * 64,
+            },
+            'snapshot_before_acquisition': {
+                'owner_id': 'owner-1', 'epoch': 19, 'clock_id': 'clock-1',
+                'selected_source_identity': {
+                    'adapter_id': 'education_lora_0007', 'adapter_int_id': 7,
+                    'path': '/nvme/education_lora_0007', 'tier': 'nvme',
+                    'native': False, 'content_sha256': 'a' * 64,
+                },
+                'sources': [{'adapter_id': 'unrelated'}] * 1000,
+            },
+            'source_admission': {
+                'kind': 'selected_source_admission_v1',
+                'source': {
+                    'adapter_id': 'education_lora_0007', 'adapter_int_id': 7,
+                    'path': '/nvme/education_lora_0007', 'tier': 'nvme',
+                    'content_sha256': 'a' * 64,
+                },
+            },
+        }
+        exc = RuntimeError(
+            "subprocess_native_rpc_failed_no_retry: ValueError: "
+            "native integer ID reused for a different adapter source; "
+            "{'reason': 'live_source_mismatch', 'adapter_int_id': 7, "
+            "'old_source': ['old', '/gpu/old'], "
+            "'requested_source': ['education_lora_0007', '/nvme/education_lora_0007'], "
+            "'live': True, 'preparation_plan_ids': ['plan-1']}"
+        )
+        diagnostic = _native_identity_conflict_diagnostic(exc, reservation)
+        self.assertEqual(diagnostic['contract'], 'native_source_binding_conflict_v1')
+        self.assertEqual(diagnostic['request_id'], 'req-198')
+        self.assertEqual(diagnostic['instance_id'], 'inst-1')
+        self.assertEqual(diagnostic['request_evidence']['intent']['lora_path'],
+                         '/nvme/education_lora_0007')
+        self.assertEqual(
+            diagnostic['request_evidence']['snapshot_before_acquisition']
+            ['selected_source_identity']['content_sha256'], 'a' * 64)
+        encoded = json.dumps(diagnostic, sort_keys=True)
+        self.assertNotIn('unrelated', encoded)
+        self.assertLess(len(encoded), 8192)
+        setattr(exc, '_faaslora_native_identity_conflict', diagnostic)
+        runner = replay_fixture()
+        async def collect():
+            future = asyncio.Future()
+            future.set_exception(exc)
+            return runner._collect_request_task_result(
+                future, runner.traces[0], time.perf_counter() - .1,
+                RequestExecutionPlan(runner.traces[0].prompt, 2, 4))
+        row = asyncio.run(collect())
+        self.assertEqual(
+            row.failure_observation['native_identity_conflict']['request_id'], 'req-198')
+        self.assertEqual(
+            row.gpu_reference_evidence['intent']['lora_path'],
+            '/nvme/education_lora_0007')
+
     def test_outer_exceptions_keep_offered_identity_and_missing_measurements(self):
         runner = replay_fixture()
         result, _ = asyncio.run(runner.run())

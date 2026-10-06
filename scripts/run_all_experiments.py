@@ -5071,6 +5071,101 @@ def _native_rpc_failure_fields(exc) -> dict:
                           if value is None or type(value) in (str, bool, int, float)}}
 
 
+_NATIVE_SOURCE_BINDING_CONFLICT_MARKER = (
+    'native integer ID reused for a different adapter source'
+)
+
+
+def _compact_native_source_identity(value: Any) -> Optional[Dict[str, Any]]:
+    """Keep only scalar source identity fields for a request-local witness.
+
+    This is diagnostic metadata, not an authorization input.  In particular,
+    never copy a full routing snapshot (which may contain the whole adapter
+    pool) into every failed request record.
+    """
+    if not isinstance(value, dict):
+        return None
+    fields = (
+        'adapter_id', 'adapter_int_id', 'lora_name', 'lora_path', 'path',
+        'source_id', 'content_sha256', 'old_content_sha256',
+        'expected_content_sha256', 'tier', 'native', 'gpu_slot',
+        'owner_id', 'epoch', 'clock_id', 'held', 'gpu_acquired',
+    )
+    result = {}
+    for key in fields:
+        if key not in value:
+            continue
+        item = value.get(key)
+        if item is None or type(item) in (str, bool, int, float):
+            result[key] = item
+    return result or None
+
+
+def _native_identity_conflict_diagnostic(exc: BaseException,
+                                        reservation: Any) -> Optional[Dict[str, Any]]:
+    """Bind a native source-binding rejection to its offered request.
+
+    The worker already reports the exact old/requested/live identity predicate
+    in the exception text.  The missing evidence in the historical D266 path
+    was the controller-side request and selected-source context.  This helper
+    records that context only when the unchanged rejection marker is present;
+    it never changes the exception or the ownership/cleanup decision.
+    """
+    message = str(exc)
+    if _NATIVE_SOURCE_BINDING_CONFLICT_MARKER not in message:
+        return None
+    evidence = getattr(reservation, 'gpu_reference_evidence', {})
+    if not isinstance(evidence, dict):
+        evidence = {}
+    snapshot = evidence.get('snapshot_before_acquisition')
+    compact_snapshot = None
+    if isinstance(snapshot, dict):
+        compact_snapshot = {
+            key: snapshot.get(key)
+            for key in ('owner_id', 'epoch', 'clock_id', 'acquisition_observation_scope')
+            if snapshot.get(key) is not None
+        }
+        selected = _compact_native_source_identity(
+            snapshot.get('selected_source_identity'))
+        if selected is not None:
+            compact_snapshot['selected_source_identity'] = selected
+    admission = evidence.get('source_admission')
+    compact_admission = None
+    if isinstance(admission, dict):
+        compact_admission = {
+            key: admission.get(key)
+            for key in ('kind', 'admitted_monotonic_s', 'admitted_after_accept',
+                        'physical_capacity_qualified', 'profile_collection_only',
+                        'clock_id')
+            if admission.get(key) is not None
+        }
+        source = _compact_native_source_identity(admission.get('source'))
+        if source is not None:
+            compact_admission['source'] = source
+    slot = getattr(reservation, 'slot', None)
+    request_evidence = {
+        'state': evidence.get('state'),
+        'intent': _compact_native_source_identity(evidence.get('intent')),
+        'snapshot_before_acquisition': compact_snapshot,
+        'source_admission': compact_admission,
+        'last_conflict': _compact_native_source_identity(evidence.get('last_conflict')),
+    }
+    request_evidence = {
+        key: value for key, value in request_evidence.items()
+        if value is not None
+    }
+    return {
+        'contract': 'native_source_binding_conflict_v1',
+        'request_id': str(getattr(reservation, 'request_id', '')),
+        'adapter_id': getattr(reservation, 'adapter_id', None),
+        'instance_id': getattr(slot, 'instance_id', None),
+        'bound': getattr(reservation, 'bound', None) is True,
+        'exception_type': type(exc).__name__,
+        'error_message': message[:4096],
+        'request_evidence': request_evidence,
+    }
+
+
 @dataclass
 class _BlockingRPCChannel:
     sock: socket.socket
@@ -13417,6 +13512,26 @@ class ScenarioRunner:
             exception_traceback_truncated = len(exception_traceback) > 8192
             if exception_traceback_truncated:
                 exception_traceback = exception_traceback[:8192]
+            native_identity_diagnostic = getattr(
+                exc, '_faaslora_native_identity_conflict', None)
+            if not isinstance(native_identity_diagnostic, dict):
+                native_identity_diagnostic = None
+            failure_observation = {
+                'kind': 'controller_task_exception_v1',
+                'exception_type': type(exc).__name__,
+                'observed_monotonic_s': observed_at,
+                'observed_offset_s': observed_at - replay_t0,
+                'elapsed_since_offered_ms': (observed_at - replay_t0 - scheduled_offset) * 1000.,
+                'clock_id': local_monotonic_clock_id(),
+                'exception_traceback': exception_traceback,
+                'exception_traceback_truncated': exception_traceback_truncated,
+                'exception_traceback_format': 'python_traceback_v1',
+                'native_completion_inferred': False,
+                'gpu_release_inferred': False,
+                **({'native_identity_conflict': native_identity_diagnostic}
+                   if native_identity_diagnostic is not None else {}),
+                **_native_rpc_failure_fields(exc),
+            }
             item = RequestResult(
                 request_id=trace.request_id, adapter_id=trace.adapter_id,
                 is_burst=trace.is_burst,
@@ -13442,20 +13557,11 @@ class ScenarioRunner:
                 timing_contract=self.model_cfg.get('timing_contract', 'legacy'),
                 arrival_contract='external_frozen_trace_v1' if external is not None else 'legacy_internal_timer',
                 external_arrival_timing=arrival,
-                failure_observation={
-                    'kind': 'controller_task_exception_v1',
-                    'exception_type': type(exc).__name__,
-                    'observed_monotonic_s': observed_at,
-                    'observed_offset_s': observed_at - replay_t0,
-                    'elapsed_since_offered_ms': (observed_at - replay_t0 - scheduled_offset) * 1000.,
-                    'clock_id': local_monotonic_clock_id(),
-                    'exception_traceback': exception_traceback,
-                    'exception_traceback_truncated': exception_traceback_truncated,
-                    'exception_traceback_format': 'python_traceback_v1',
-                    'native_completion_inferred': False,
-                    'gpu_release_inferred': False,
-                    **_native_rpc_failure_fields(exc),
-                },
+                failure_observation=failure_observation,
+                gpu_reference_evidence=(
+                    dict(native_identity_diagnostic.get('request_evidence', {}))
+                    if native_identity_diagnostic is not None else {}
+                ),
             )
         if not isinstance(item, RequestResult) or item.request_id != trace.request_id:
             raise RuntimeError('request task result does not match its offered identity')
@@ -16153,6 +16259,20 @@ class ScenarioRunner:
                 arrival_released_offset_s=arrival_released_offset_s,
                 admission_start_offset_s=admission_start_offset_s, admitted_offset_s=admitted_offset_s,
                 dispatch_admitted_at=dispatch_admitted_at)
+        except Exception as exc:
+            # A native source-binding rejection can occur before the inner
+            # execution try/except (during selected-source preparation).  Bind
+            # the unchanged exception to this request before the reservation's
+            # normal cleanup erases its controller-local evidence.  This is
+            # diagnostic only: the exception is re-raised and cleanup remains
+            # exactly the same.
+            diagnostic = _native_identity_conflict_diagnostic(exc, reservation)
+            if diagnostic is not None:
+                try:
+                    exc._faaslora_native_identity_conflict = diagnostic
+                except Exception:
+                    pass
+            raise
         finally:
             try:
                 await self._finish_runtime_request_reservation(reservation)
@@ -17788,6 +17908,11 @@ class ScenarioRunner:
             )
 
         except Exception as exc:
+            native_identity_diagnostic = _native_identity_conflict_diagnostic(
+                exc, _reservation)
+            if native_identity_diagnostic is not None:
+                _reservation.gpu_reference_evidence[
+                    'native_identity_conflict'] = native_identity_diagnostic
             exc_text = str(exc)
             if _is_fatal_engine_error_message(exc_text):
                 try:
@@ -17871,6 +17996,8 @@ class ScenarioRunner:
                     'elapsed_since_offered_ms': overall_error_ms,
                     'native_terminal_observed': _reservation.native_terminal_observed,
                     'gpu_release_inferred': False,
+                    **({'native_identity_conflict': native_identity_diagnostic}
+                       if native_identity_diagnostic is not None else {}),
                     **_native_rpc_failure_fields(exc),
                 } if native_failure else {}),
                 readiness_tier_before_dispatch=readiness_tier_before_dispatch,
