@@ -11,7 +11,46 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D297 complete 7B W0 RUNNING; do not duplicate/restart
+## CURRENT — D297 complete 7B W0 audited; targets still OPEN
+
+2026-10-07 02:36+08. Previous turns were verified waits on one job, not failed
+launches. D297 finished4000/4000 native-contract requests, no reported failures;
+all4physical leases closed and GPU compute processes cleared. Matched remote
+monitor stopped only its captured invocations; both artifact units inactive/PID0.
+132/132remote transfers join by UUID/content/archive/byte contract,131480060wire
+bytes,0request-time packing. Immutable delivery cache was reused, not regenerated.
+
+Data-only audit reuses existing native timing/binding/provisional-SLO helpers;
+new narrow driver `scripts/ieee_tc/analyze_d297_full.py` does not change serving.
+Curated `paper_results/ieee_tc/p2_backend/d297_full_w0/validated1/`.
+Mean/P95TTFT1.527145/3.359722s; mean/P95TPOT37.883698/62.065918ms;
+physical15860.686503GPU-s,3.965172GPU-s/offered (NOT per-correct).
+Provisional D170 timing upper bound3786/4000=94.65%, below95%; N_correct=null,
+formalSLO/budget/G1G2 remainunqualified. D219 same input/plan diagnostic gives
+3759/4000=93.975%,P95TTFT3.619799s,15911.712503GPU-s. AverageTTFT/TPOT regress;
+126output hashes differ. Single observations/different serving versions: noCI,
+single-change attribution, numerical pass or overall victory. D295 remainsclosed.
+
+Resource hypothesis REFINED: all1861control samples lack all-low; all1859known
+P95values exceed281.278ms(min1525.370ms).308lowqueue/lowactive samples are gated
+by TTFT. BUT removing that predicate in the unchanged observed path still yields
+at most16.882s consecutive lowqueue/lowactive/no-pending, below38s cooldown.
+Thus changing TTFTlower alone is NOT supported as a solution; do not retune it
+in isolation or claim counterfactual savings. Further7B optimization must use
+both latency and lifecycle evidence and new falsifiable, paper-consistent logic.
+
+4037watchdog samples: servicepeak19.031GiB,hostmin87.140GiB,high/max/OOM/swap0.
+Analysis used3/4GiB scope,peak750845952bytes,no high/OOM. First analysis rejected
+integral-float prompt-count serialization; explicit finite/integral conversion
+then passed, original rejection retained.8timing-helper tests pass. Protection
+146/147unchanged; only preexisting baseline replay script mismatch, untouched.
+No figures, new GPUrun,3B/baseline run, new configuration or cache generation.
+Free disk160137027584bytes(~149.14GiB): before another heavy launch recover space
+using audited ended-work caches/lossless compression; preserve unique evidence.
+NEXT finish checkpoint/provenance, safe disk recovery, then evidence-led7B
+candidate selection. Do not reopen completed D170 measurement or boundedD295.
+
+## HISTORY — D297 complete 7B W0 RUNNING; historical snapshots below
 
 2026-10-07 01:20+08 live verification. The pre-registered replay was launched
 at01:16 in tmux `primelora-d297-7b`, after checkpointa40df0d was pushed and remote
@@ -71,6 +110,30 @@ disk148.657516GiB. Keep this run live; no second launch/cleanup/analysis now.
 Two documentation-only changes preserve the above reference reuse and hypothesis;
 serving code/config untouched. Final analysis and resource recovery remain after
 terminal/actual release, not after a quarter of the requests.
+
+01:50+08 half-run verified wait (no implementation work this turn): SAME tmux
+and active service invocation;2019arrived/2010normal completions/0fail. Live
+counts still3scale-ups/0scale-downs/4runtimes. Sample1957: available89.630GiB,
+peak18.240692GiB, high/max/OOM0/no safety warning; disk148.149006GiB. Full
+result/release not yet available. Plan SHA reconfirmed unchanged at turn start.
+No new tests/analysis/remote changes/figures/GPU launch; continue this exact job.
+The next run remains prohibited until the existing150GiB start gate is met.
+
+02:04+08 verified wait continues on SAME D297 (not a new experiment):3059arrived,
+3056normal completions/0fail at02:03:33. Sample2776: available88.982GiB,
+high/max/OOM0/no safety warning. Exact remote monitor invocation reconfirmed
+active at02:01; no remote configuration/service/cache operations. Source plan
+SHA unchanged. Continue through remaining requests and actual physical release;
+no final result, correctness/SLO/G1G2 qualification or new candidate yet.
+
+02:13+08 verified wait on SAME run:3553arrived/3550normal completions/0fail,
+4runtimes, no duplicate launch. Watchdog sample3342: hostavailable88.988GiB,
+high/max/OOM0 and no warning. Remote paired services/monitor retain the exact
+registered invocations (rechecked02:10); no packaging/configuration/restarts.
+Full source plan and V1 reread after compaction; native audit and provisional
+timing helpers inspected read-only for post-release reuse. No serving edits,
+heavy analysis, cleanup or figures. Final result and physical release pending;
+continue monitoring this job, then collect/audit before selecting another task.
 
 ## HISTORY — D297 complete 7B W0 prepared; candidate unchanged
 

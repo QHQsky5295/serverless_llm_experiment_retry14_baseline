@@ -1,0 +1,23 @@
+{
+  "kind": "d297_remote_transfer_join",
+  "local_transfers": 132,
+  "remote_transfers": 132,
+  "unmatched": 0,
+  "checks_pass_count": {
+    "artifact": 132,
+    "archive_sha": 132,
+    "bytes": 132,
+    "delivery": 132,
+    "no_pack": 132,
+    "timing": 132,
+    "span_order": 132
+  },
+  "wire_bytes": 131480060,
+  "source_refs": {
+    "results/ieee_tc/p2_backend_qualification/d297_20261007/7b_full_w0/launch.launch/physical_deployment/main_outcome.json": "2400acb8ea89f2b1749ccdd87fdbbba3f743b067e4c49310aae7c0fbc7a31205",
+    "results/ieee_tc/p2_backend_qualification/d297_20261007/remote_transfers.jsonl": "8120625ff35ff20f8396594644bb4a1d6b785f51d59a34fe4e318d2caaad1997",
+    "results/ieee_tc/p2_backend_qualification/d297_20261007/remote_monitor.log": "fc2a4ae8480331a061aaf968daa0016989b9710248738daf952f67483282f188",
+    "results/ieee_tc/p2_backend_qualification/d297_20261007/remote_stop.json": "fe07f2bfd8f866837225769382412dc376cffbee69036c6db2bba67f4974e454"
+  },
+  "cross_host_timestamps_subtracted": false
+}

@@ -1,0 +1,13 @@
+{
+  "kind": "d297_supplementary_timeline_and_snapshot_checks",
+  "requests": 4000,
+  "pass_counts": {
+    "e2e_native_identity": 4000,
+    "confirmed_dispatch_snapshot": 4000,
+    "source_tier_matches_dispatch": 4000,
+    "epoch_not_older": 4000
+  },
+  "max_e2e_error_ms": 0.0,
+  "n_correct": null,
+  "source_result_sha256": "7f171e1d58b061e7dd7392e1651d087c300ce1d6c2223c3ed16ef2fdce3aa07b"
+}

@@ -1,0 +1,33 @@
+{
+  "kind": "d297_postrun_safety_and_observed_opportunity_v1",
+  "control": {
+    "queue_active_low_without_pending_blocks": 143,
+    "longest_sampled_span_s": 16.88219090201892,
+    "spans_at_least_38s": [],
+    "not_counterfactual_scalein_or_gpu_s": true
+  },
+  "resource": {
+    "samples": 4037,
+    "host_min_available_GiB": 87.14014434814453,
+    "service_peak_GiB": 19.03103256225586,
+    "service_max_swap_bytes": 0,
+    "events_max": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    },
+    "warning_samples": 0,
+    "abort_samples": 0
+  },
+  "remote": {
+    "transfers": 132,
+    "unique_artifacts": 132,
+    "wire_bytes": 131480060,
+    "request_path_pack_count": 0,
+    "clock_id": "remote-process-monotonic:b7998243a505498db48f39cde67db697",
+    "all_transfer_ids_unique": true
+  }
+}

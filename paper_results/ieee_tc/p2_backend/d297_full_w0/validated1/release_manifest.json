@@ -1,0 +1,34 @@
+{
+  "kind": "d297_data_only_checkpoint",
+  "files": {
+    "paper_results/ieee_tc/p2_backend/d297_full_w0/validated1/audit.json": "a3f7255b61419569db6f54dd1230a35a956135a2b67f1a0ac0541f7e01b498e1",
+    "paper_results/ieee_tc/p2_backend/d297_full_w0/validated1/control_audit.json": "c94971d541a7dd41185249131329479bf758b39875ae200d9331c24bdadd7973",
+    "paper_results/ieee_tc/p2_backend/d297_full_w0/validated1/control_samples.csv": "afa5245b65c9b29d6a27fbe004d4478c30217efd10974773795ebe87b4f1bc7b",
+    "paper_results/ieee_tc/p2_backend/d297_full_w0/validated1/historical_comparison.json": "7495e9269bf961330120e06bf96d2b7fe9d7ace704f445fe98c0372d49aedb36",
+    "paper_results/ieee_tc/p2_backend/d297_full_w0/validated1/manifest.json": "df251d072ec8eb3eeb7aacff45b55cb1fd838136e5aedbff8b01ae0f81c0dcbf",
+    "paper_results/ieee_tc/p2_backend/d297_full_w0/validated1/remote_join.json": "d75730116484f4ce04743a1cdf1ea43eff112af32e480bcbde81b056de1ada72",
+    "paper_results/ieee_tc/p2_backend/d297_full_w0/validated1/requests.csv": "5dd465f2d8c724590a1997bb24875634711311dcee6b623713ba02ce8439bd4a",
+    "paper_results/ieee_tc/p2_backend/d297_full_w0/validated1/safety_and_opportunity.json": "82be1f30a23c6314bfeb1bc2b0ce3ff0a2040e1d166b8f40a38247533af1d99c",
+    "paper_results/ieee_tc/p2_backend/d297_full_w0/validated1/timeline_and_snapshot.json": "4b5eccead78805347c055f7ba8f27ce1bcd64335dcbb97e0a4b418912c2a021e",
+    "paper_results/ieee_tc/p2_backend/d297_full_w0/validated1/timing_groups.csv": "abaca8d23983c4f248109e44d5341ead7b2e8746ac83ff362c6782a66f0ad704"
+  },
+  "additional_sources": {
+    "docs/ieee_tc/D297_COMPLETE_7B_DEVELOPMENT_REPLAY.md": "241d94704e98243c763a24180ff59ad428f3043bfbca8983e8b68dba2a716ccf",
+    "scripts/ieee_tc/analyze_d297_full.py": "ccd6f8f3cf2ee0c4ec41c0fe88d24569da65fa205ba1598154e5a5e19f875924",
+    "results/ieee_tc/p2_backend_qualification/d297_20261007/protected_after.json": "69a4488a085b2ec44d484c610d6935f8a2a880af477e48a42dc356374eaecb11",
+    "results/ieee_tc/p2_backend_qualification/d297_20261007/analysis_attempt1.json": "d876d5645fada5b60fc67242cf07a4a3362f10848ca8a3e89e78a6a17eef295e"
+  },
+  "tests": {
+    "timing_bound_unittest": {
+      "passed": 8,
+      "failed": 0
+    }
+  },
+  "protected_entries": 147,
+  "unchanged_protected_entries": 146,
+  "known_preexisting_mismatch": "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py",
+  "no_figures": true,
+  "serving_code_changed_this_audit": false,
+  "n_correct": null,
+  "formal_qualification": false
+}
