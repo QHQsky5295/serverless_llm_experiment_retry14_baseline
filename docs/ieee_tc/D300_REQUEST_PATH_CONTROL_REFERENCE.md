@@ -119,3 +119,14 @@ Available162918813696bytes afterwards, above the unchanged150GiB start floor.
 Protected seal remains146/147 unchanged, the sole known baseline script edit
 unchanged; no blanket protected-pass claim. Test failure-path log warnings
 are expected unit fixtures, not an inference failure or GPU attempt.
+
+## Launch receipt
+
+Checkpoint `26ec812ba5b15e8c4f5b18d1e99a58445b7c39b2` was pushed and verified
+before launch at05:05:32+08. Existing protected runner in tmux
+`primelora-d300-7b` has original4000W0, no diagnostic truncation. Authenticated
+direct remote health passed before deployment; same1GbE/published-cache protocol.
+Actual owner identities and current status are in EXECUTION_STATUS. At sample33,
+service peak5,046,140,928bytes, hostavailable107,976,048,640bytes and no memory
+events/warnings. This is a launch observation, not completion or an outcome.
+Do not launch another D300 or modify this candidate while it runs.

@@ -11,7 +11,40 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D300 single scale-in reference candidate validated; backup before full W0
+## CURRENT — D300 original4000 W0 running; one request-path scale-in reference change
+
+2026-10-07 05:06+08. Checkpoint26ec812ba5b15e8c4f5b18d1e99a58445b7c39b2
+pushed and remoteverified BEFORElaunch. Config25debb773cc004a134e026b148c23d9af2565a8a7041db98e74f438efa65a378.
+Started05:05:32 in tmuxprimelora-d300-7b, existinglauncher argd300. No source,
+warm, numerical,3B/baseline or figure work. Original4000/4000source/W0/rate1,
+traceefb903... viewa5331be2e2204483f18206825d9aaa18cbaa259fe0babfc303f989055819430d.
+Raw results/ieee_tc/p2_backend_qualification/d300_20261007/7b_full_w0.
+
+Service primelora-tc-svc-fd56e3b4c5a94d35bc741edc052037cd.scope invocation
+6108fa3d32a84f9fb423d6c3a1587a35; watchdog2875311, aux
+primelora-tc-aux-211d58503eb34befa558e228c1136e91.scope. Sample33: service
+peak5046140928B, hostavailable107976048640B, high/max/OOM0, no warning/abort.
+Same72/80GiBservice,3/4GiBaux,150/100GiBdisk. Startfree162910732288B.
+Deploymentnotice827980.548269617, arrivalstart828040.548269617, sameclock.
+
+Remote monitorprimelora-artifact-monitor-d300.service invocation
+b035a165def248f898dc28cd38992426;7B31b65455bc1c48e5a84329f3575636f8;
+3B67e4789b281046f5b2360a9776732232 (artifactonly). ExistingD80unitfiles match;
+NIC1000/full; no cache rebuild. Authenticateddirecthealth succeeded before
+deployment at827978.965600904, clockremote-process-monotonic:5d1c9a55e63b45f4ae1c112785523137.
+Remote monitorlog /home/lab14/primelora_remote/tc/d300_20261007/remote_monitor.log.
+Only stop these captured invocations after actual local release; capture current
+transferjournal using the processclock, not a guessed journalfilenameUUID.
+
+NEXT monitor THISrun, do not relaunch. Finish->physicalrelease->ownedremote stop
+->native/input/remote/control/resource audit->compareD299/D300 under unchangedV1.
+One observed development result cannot establish CI or finalG1/G2. Both may
+regress; preserve all outcomes. D299requestsource remainsraw; selected historical
+main_outcome files nowgzip with double-SHA receipt, not deleted evidence.
+Allfour newlyowned empty compression/check scopes stopped beforelaunch.
+Goal active, 7B optimization unresolved;3B and allbaselines staypaused.
+
+## HISTORY — D300 single scale-in reference candidate validated; backup before full W0
 
 2026-10-07 05:05+08. D299 remains complete; no inference currently running.
 Full plan and frozenV1 reread, prior checkpoint197a64e matches remote. Reviewed
