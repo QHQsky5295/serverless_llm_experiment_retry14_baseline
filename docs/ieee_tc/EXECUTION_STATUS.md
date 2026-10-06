@@ -1,5 +1,23 @@
 # IEEE TC execution status
 
+## CURRENT — HydraServe/remote metric boundary audit frozen as a non-mutating addendum
+
+2026-10-06. The authoritative metric calculation remains
+[`METRIC_PROTOCOL_FINAL_V2.md`](METRIC_PROTOCOL_FINAL_V2.md), with the frozen V1 and
+remote-scope V2 parents unchanged. A read-only audit of the HydraServe NSDI'26 paper,
+the official repository, and the D77/D78 link records is retained in
+[`METRIC_PROTOCOL_HYDRASERVE_REMOTE_AUDIT_20261006.md`](METRIC_PROTOCOL_HYDRASERVE_REMOTE_AUDIT_20261006.md)
+(SHA-256 `ea5b82c0ddfdfcb4ac736f8fe76862a976cccb9ad081a4ec26eae4efe7d022ac`). It
+confirms that HydraServe's published primary evidence is cold-start TTFT,
+TTFT/TPOT SLO attainment, and a resource/cost trade-off—not CE—and that its
+memory-time cost model is not a substitute for this project's physical GPU-s
+lifecycle metric. The addendum also freezes the classification of the approved
+one-time read-only gzip delivery cache as deployment-time work, while all
+request-triggered remote read/send/receive/materialization remains in user E2E.
+D77's 100-Mbps negotiation and D78/current 1-Gbps/full negotiation remain separate
+execution states; no historical 100-Mbps coverage run is promoted to a performance
+or G1/G2 point. This documentation step authorizes no new GPU replay.
+
 ## CURRENT — request-level source-binding witness is instrumented and unit-tested
 
 2026-10-06. The controller now retains a bounded, request-local diagnostic when
