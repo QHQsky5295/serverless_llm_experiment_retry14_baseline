@@ -1,0 +1,45 @@
+{
+  "source_refs": [
+    {
+      "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/analyze_d297_full.py",
+      "sha256": "92117cbfc057c9e0e900dd736c7b5b42141a6c05b2fd7af5ea076484aeb72c9b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/analyze_control_path_overhead.py",
+      "sha256": "8182cb6c33b5a9d91d779122bea265d7af785aab45f89b92bb3b996ed17959db"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/plot_d290_diagnostic.py",
+      "sha256": "fdb7898478701b4142bfc15feb231f9c94da566215ec1247ad1ddf6e58d98f9d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d299_20261007/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d299_7b_full_w0.json",
+      "sha256": "df066b365fa13ecc25b225a793c362706157224965b8a7b360981d8cf45887ab"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d299_20261007/7b_full_w0/launch.json",
+      "sha256": "99772e4ceae673554a38c78ca7580ba042d9cef0ee07a81a4cfafa74a5e316df"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d300_20261007/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d300_7b_full_w0.json",
+      "sha256": "0964d7a58feeebadf607e72f6f6ea7a09b949d6df44da684bb86d0c27e8be974"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d300_20261007/7b_full_w0/launch.json",
+      "sha256": "4beeac03b31262c578d15e8ed50ece920b5b77574de7d121cab10ffd5ee3e97b"
+    }
+  ],
+  "outputs": {
+    "summary.json": "c007517630c407fa5b9ca1833b1ccfe360ae921cc651f36eb098cf38f10f91f8",
+    "wait_intervals.csv": "b081a651d82683da2fe667f0681cad061ff77c9030aecd76f45769e54a19615a"
+  },
+  "no_figures": true
+}

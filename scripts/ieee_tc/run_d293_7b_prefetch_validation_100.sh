@@ -39,7 +39,13 @@ case "${1:-d293}" in
     SCENARIO=tc_ieee_full
     PREFIX_COUNT=
     ;;
-  *) echo 'Expected d293, d296, d297, d298, d299 or d300; no arbitrary output override' >&2; exit 2 ;;
+  d302)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d302_20261007/7b_frontier_validation_100
+    CONFIG=configs/ieee_tc/20261007_d302_7b_frontier_validation_100.yaml
+    TAG=d302_7b_frontier_validation_100
+    SCENARIO=tc_ieee_frontier_validation_100
+    ;;
+  *) echo 'Expected d293, d296, d297, d298, d299, d300 or d302; no arbitrary output override' >&2; exit 2 ;;
 esac
 [[ $# -le 1 ]] || exit 2
 cd "$ROOT"

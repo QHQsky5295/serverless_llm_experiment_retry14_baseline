@@ -1,0 +1,33 @@
+{
+  "protection_raw": {
+    "kind": "protected_artifact_verification",
+    "pass": false,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [
+      "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"
+    ],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "configuration_only_prefix_and_identity_differences": true,
+  "analysis_checksums_match": true,
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "config_sha256": "84c48c9e780cf2e31b01f3aa931f78354d1d9a4d4133eb07fe0357dfd9cf91bc",
+  "kind": "d301_prelaunch_verification_v1",
+  "raw_log_sha256": "c40a4e554f81baea844ad10515cbacc514bbddc62d5529e8f62ceb03acdde85e",
+  "tests": {
+    "pre_fix_regression_failures": 2,
+    "final_passed": 371,
+    "final_log_sha256": "74e729e6b3c959d2e11c10a8c1c73b03531d14bda2c7688e2768cb1d53b17c94"
+  },
+  "scope_peak_bytes": {
+    "wait_inspection": 999145472,
+    "reproduce": 615145472,
+    "tests": 680083456,
+    "analysis": 750960640,
+    "final_tests": 680128512,
+    "prelaunch_check": 14913536
+  },
+  "memory_high_max_oom_events": 0,
+  "new_performance_runs": 0
+}

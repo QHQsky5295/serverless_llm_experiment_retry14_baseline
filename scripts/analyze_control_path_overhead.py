@@ -1127,6 +1127,55 @@ def summarize_route_evidence(requests: Sequence[Dict[str, Any]]) -> Dict[str, An
     }
 
 
+def summarize_admission_waits(requests: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
+    """Partition retained arrival/admission clocks; do not label all wait queueing.
+
+    Runtime-slot wait includes confirmed routing, reservations and protection.
+    Routing is nested in that interval, not an additional additive TTFT phase.
+    This function does not impute missing fields or numerical correctness.
+    """
+    route = summarize_route_evidence(requests)
+    fields = ('arrival_release_lateness_ms', 'dispatch_window_wait_ms',
+              'runtime_slot_wait_ms', 'dispatch_admission_wait_ms')
+    observations, errors = [], []
+    for request in requests:
+        values = {field: request[field] for field in fields}
+        values['routing_ms'] = request['control_path_total_us'] / 1000
+        for value in values.values():
+            if type(value) not in (int, float) or not math.isfinite(value) or value < 0:
+                raise ValueError('complete nonnegative admission intervals required')
+        error = abs(sum(values[k] for k in fields[:3]) - values[fields[3]])
+        if error > 1:  # Existing native timeline tolerance, in milliseconds.
+            raise ValueError('arrival/admission intervals do not partition the same request')
+        errors.append(error)
+        sources = request['gpu_reference_evidence']['routing_snapshot']['sources']
+        authoritative = any(s['source_collection']['full_authoritative_read_replica_count'] > 0
+                            for s in sources.values())
+        observations.append(dict(values, authoritative=authoritative))
+
+    metrics = []
+    for group, rows in (
+            ('all', observations),
+            ('with_authoritative_read', [r for r in observations if r['authoritative']]),
+            ('without_authoritative_read', [r for r in observations if not r['authoritative']])):
+        for field in fields + ('routing_ms',):
+            ordered = sorted(r[field] for r in rows)
+            metrics.append(dict(group=group, field=field, unit='ms', count=len(ordered),
+                mean=math.fsum(ordered)/len(ordered) if ordered else None,
+                p95_type1=ordered[math.ceil(.95*len(ordered))-1] if ordered else None,
+                maximum=ordered[-1] if ordered else None))
+    return dict(kind='retained_admission_wait_partition_v1', request_count=len(requests),
+        metrics=metrics, max_partition_error_ms=max(errors), route=route,
+        formal_comparison_qualified=False, n_correct=None, confidence_interval=None,
+        caveats=[
+            'First three intervals partition arrival-to-admission; quantiles are not additive.',
+            'Runtime slot wait includes source selection and protection, not only capacity queueing.',
+            'Routing is nested in runtime wait; never add it again to the partition.',
+            'Authoritative-read groups use each final received view; prior retry attempts may differ.',
+            'Conditional groups are not a controlled effect estimate or RPC count.',
+            'Native completion/binding checks do not establish numerical adapter qualification.'])
+
+
 def analyze_route_evidence(source: Path, output: Path, scenario_name: str) -> Dict[str, Any]:
     """Bounded offline audit; explicit fresh output, never legacy paper copies."""
     import hashlib

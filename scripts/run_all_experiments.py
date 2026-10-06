@@ -8719,15 +8719,23 @@ class ScenarioRunner:
             if identity.epoch == previous.epoch and left != right:
                 raise ValueError('same native epoch changed its identity frontier')
         frontier_map[instance_id] = identity
-        # A post-load event may evict an unrelated copy.  Do not retain scoped
-        # footprint entries across that owner transition; the negative frontier
-        # remains valid for adapters it explicitly proves absent.
+        # A post-load event may evict an unrelated copy. Drop entries from a
+        # different identity, but keep authoritative scoped observations of
+        # THIS exact owner/clock/epoch/source state. The route collector installs
+        # its freshly read scope before calling this publication method; an
+        # unconditional clear would immediately discard that confirmed read and
+        # force another RPC even when nothing changed. This does not extend a
+        # footprint across epochs or bypass selected-source revalidation.
         route_cache = getattr(self, '_ieee_route_full_cache', None)
         if route_cache is None:
             route_cache = self._ieee_route_full_cache = {}
         for key in tuple(route_cache):
             if key[0] == instance_id:
-                del route_cache[key]
+                entry = route_cache[key]
+                cached = entry.get('snapshot') if isinstance(entry, dict) else None
+                if (not isinstance(cached, NativeSourceSnapshot)
+                        or not self._ieee_identity_equal(identity, cached)):
+                    del route_cache[key]
         cache_stats = getattr(self, '_ieee_route_cache_stats', None)
         if cache_stats is None:
             cache_stats = self._ieee_route_cache_stats = {}

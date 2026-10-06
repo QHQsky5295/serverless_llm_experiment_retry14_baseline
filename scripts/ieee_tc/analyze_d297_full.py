@@ -19,7 +19,7 @@ from statistics import mean
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from scripts.ieee_tc.plot_d290_diagnostic import audit_run, binding_checks, percentile, sha256
-from scripts.analyze_control_path_overhead import provisional_timing_bound
+from scripts.analyze_control_path_overhead import provisional_timing_bound, summarize_admission_waits
 from faaslora.metrics.metrics_collector import NativeV1TokenTimeline
 
 RAW = ROOT / 'results/ieee_tc/p2_backend_qualification/d297_20261007'
@@ -47,6 +47,49 @@ def table(name, rows):
         writer = csv.DictWriter(handle, fieldnames=list(rows[0]), lineterminator='\n')
         writer.writeheader()
         writer.writerows(rows)
+
+
+def inspect_retained_waits(output):
+    """D301: reuse complete D299/D300; fresh explicit output, no GPU or plot."""
+    global OUT
+    OUT = Path(output).resolve()
+    if OUT.exists():
+        raise FileExistsError(OUT)
+    assert sha256(PLAN) == '0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7'
+    assert sha256(PROTOCOL) == '5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22'
+    identities = {
+        'd299': 'df066b365fa13ecc25b225a793c362706157224965b8a7b360981d8cf45887ab',
+        'd300': '0964d7a58feeebadf607e72f6f6ea7a09b949d6df44da684bb86d0c27e8be974',
+    }
+    OUT.mkdir(parents=True, exist_ok=False)
+    summaries, metrics, paths = {}, [], [PLAN, PROTOCOL, Path(__file__),
+        ROOT/'scripts/analyze_control_path_overhead.py',
+        ROOT/'scripts/ieee_tc/plot_d290_diagnostic.py']
+    for campaign, expected_sha in identities.items():
+        run = ROOT / f'results/ieee_tc/p2_backend_qualification/{campaign}_20261007/7b_full_w0'
+        source = run / f'experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_{campaign}_7b_full_w0.json'
+        assert sha256(source) == expected_sha
+        launch_path = run/'launch.json'
+        launch = read(launch_path)
+        assert launch['pass'] and launch['native_gpu_context_release_confirmed']
+        assert launch['service_path_removed']
+        assert launch['service_returncode'] == launch['replay_returncode'] == launch['watchdog_returncode'] == 0
+        stats, evidence, requests = audit_run(source)
+        assert len(requests) == 4000
+        summary = summarize_admission_waits(requests)
+        summary.update(source=evidence, stats=stats)
+        summaries[campaign] = summary
+        metrics.extend(dict(run=campaign, **row) for row in summary['metrics'])
+        paths.extend([source, launch_path])
+        del requests
+        gc.collect()
+    write('summary.json', dict(kind='d301_offline_wait_diagnosis_v1', runs=summaries,
+        new_performance_runs=0, numerical_qualification=False, no_figures=True))
+    table('wait_intervals.csv', metrics)
+    write('manifest.json', dict(source_refs=[dict(path=str(p), sha256=sha256(p)) for p in paths],
+        outputs={p.name:sha256(p) for p in sorted(OUT.iterdir())}, no_figures=True))
+    print(json.dumps(dict(output=str(OUT), complete_sources=list(summaries),
+        new_performance_runs=0), indent=2), flush=True)
 
 
 def main(campaign='d297'):
@@ -205,4 +248,10 @@ def main(campaign='d297'):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--campaign', choices=('d297', 'd299', 'd300'), default='d297')
-    main(parser.parse_args().campaign)
+    parser.add_argument('--admission-wait-output', type=Path,
+        help='Data-only D299/D300 retained wait partition; explicit new output directory')
+    args = parser.parse_args()
+    if args.admission_wait_output is not None:
+        inspect_retained_waits(args.admission_wait_output)
+    else:
+        main(args.campaign)

@@ -2,6 +2,7 @@
 
 import asyncio
 import copy
+from dataclasses import replace
 import json
 from pathlib import Path
 import tempfile
@@ -13,7 +14,8 @@ from unittest.mock import AsyncMock
 from faaslora.clock import local_monotonic_clock_id
 from faaslora.experiment.instance_pool import InstanceSlot, NativeSourceSnapshot
 from scripts.run_all_experiments import ScenarioRunner
-from scripts.analyze_control_path_overhead import summarize_route_evidence, analyze_route_evidence
+from scripts.analyze_control_path_overhead import (
+    summarize_route_evidence, analyze_route_evidence, summarize_admission_waits)
 from tests.test_ieee_tc_request_footprints import full_payload, scoped_payload
 
 
@@ -250,6 +252,84 @@ class RouteIdentityCacheQualification(unittest.TestCase):
             asyncio.run(runner._ieee_collect_confirmed_snapshot_cache(
                 (slot,), requested_adapter_ids=[4]))
 
+    def test_frontier_publication_preserves_just_received_scoped_read(self):
+        runner, slot, _, _ = self._runner()
+
+        async def check():
+            values, _ = await runner._ieee_collect_confirmed_snapshot_cache(
+                (slot,), requested_adapter_ids=[4])
+            snapshot, device_uuid = values[0]
+            # Production publishes the identity AFTER the collector installs
+            # its authoritative scoped entry. This ordering was not covered
+            # by the former collector-only repeated-read test.
+            slot.commit_native_sources(snapshot)
+            slot.native_device_uuid = device_uuid
+            self.assertTrue(runner._ieee_publish_identity_frontier(slot, snapshot))
+            self.assertIn(('inst-a', (4,)), runner._ieee_route_full_cache)
+            second, meta = await runner._ieee_collect_confirmed_snapshot_cache(
+                (slot,), requested_adapter_ids=[4])
+            self.assertEqual(slot.engine.ieee_request_sources.await_count, 1)
+            self.assertEqual(meta['full_authoritative_read_replica_count'], 0)
+            self.assertEqual(meta['confirmed_snapshot_cache_hit_replica_count'], 1)
+            self.assertEqual(second[0][0], snapshot)
+            self.assertEqual(meta['selected_revalidation'],
+                             'owner_epoch_or_selected_identity_v1')
+
+        asyncio.run(check())
+
+    def test_frontier_invalidates_old_identity_but_keeps_matching_new_scope(self):
+        runner, slot, _, _ = self._runner()
+        values, _ = asyncio.run(runner._ieee_collect_confirmed_snapshot_cache(
+            (slot,), requested_adapter_ids=[4]))
+        old = values[0][0]
+        fresh = replace(old, epoch=old.epoch + 1,
+                        captured_monotonic_s=time.monotonic())
+        old_entry = runner._ieee_route_full_cache[('inst-a', (4,))]
+        fresh_entry = dict(old_entry, snapshot=fresh)
+        runner._ieee_route_full_cache.update({
+            ('inst-a', (5,)): old_entry,
+            ('inst-a', (4,)): fresh_entry,
+            ('inst-b', (4,)): old_entry,
+            ('inst-a', (99,)): {'snapshot': None},
+        })
+        self.assertTrue(runner._ieee_publish_identity_frontier(slot, fresh))
+        self.assertEqual(set(runner._ieee_route_full_cache),
+                         {('inst-a', (4,)), ('inst-b', (4,))})
+        self.assertIs(runner._ieee_route_full_cache[('inst-a', (4,))], fresh_entry)
+        self.assertFalse(runner._ieee_publish_identity_frontier(slot, old))
+        self.assertIs(runner._ieee_route_full_cache[('inst-a', (4,))], fresh_entry)
+
+    def test_frontier_never_retains_same_epoch_different_owner_or_source(self):
+        runner, slot, _, _ = self._runner()
+        values, _ = asyncio.run(runner._ieee_collect_confirmed_snapshot_cache(
+            (slot,), requested_adapter_ids=[4]))
+        state = values[0][0]
+        entry = runner._ieee_route_full_cache[('inst-a', (4,))]
+        for changed in (
+                replace(state, owner_id='different-owner'),
+                replace(state, clock_id='different-clock'),
+                replace(state, sources=(replace(state.sources[0],
+                    source_id='different-copy'),) + state.sources[1:])):
+            with self.subTest(changed=changed):
+                runner._ieee_route_identity_frontier = {}
+                runner._ieee_route_full_cache = {
+                    ('inst-a', (4,)): dict(entry, snapshot=changed)}
+                self.assertTrue(runner._ieee_publish_identity_frontier(slot, state))
+                self.assertNotIn(('inst-a', (4,)), runner._ieee_route_full_cache)
+
+    def test_same_epoch_conflicting_frontier_fails_without_mutating_cache(self):
+        runner, slot, _, _ = self._runner()
+        values, _ = asyncio.run(runner._ieee_collect_confirmed_snapshot_cache(
+            (slot,), requested_adapter_ids=[4]))
+        state = values[0][0]
+        runner._ieee_route_identity_frontier = {slot.instance_id: state.identity_view()}
+        saved = dict(runner._ieee_route_full_cache)
+        changed = replace(state, sources=(replace(state.sources[0],
+            source_id='different-copy'),) + state.sources[1:])
+        with self.assertRaisesRegex(ValueError, 'same native epoch'):
+            runner._ieee_publish_identity_frontier(slot, changed)
+        self.assertEqual(runner._ieee_route_full_cache, saved)
+
     def test_event_frontier_reuses_confirmed_absence_without_rpc(self):
         runner, slot, identity_wire, _ = self._runner()
         runner._ieee_route_confirmed_snapshot_cache = True
@@ -282,6 +362,34 @@ class RouteEvidenceAudit(unittest.TestCase):
                 gpu_reference_evidence={'routing_snapshot': {'sources': {
                     'a': {'source_collection': row}, 'b': {'source_collection': dict(row)}}}}))
         return result
+
+    def test_admission_partition_keeps_nested_routing_separate(self):
+        rows = self._requests()
+        for row in rows:
+            row.update(arrival_release_lateness_ms=2., dispatch_window_wait_ms=3.,
+                runtime_slot_wait_ms=25., dispatch_admission_wait_ms=30.)
+        result = summarize_admission_waits(rows)
+        all_metrics = {m['field']:m for m in result['metrics'] if m['group'] == 'all'}
+        self.assertEqual(all_metrics['dispatch_admission_wait_ms']['mean'], 30.)
+        self.assertEqual(all_metrics['routing_ms']['p95_type1'], 19.)
+        self.assertEqual(result['max_partition_error_ms'], 0.)
+        self.assertIsNone(result['n_correct'])
+        self.assertFalse(result['formal_comparison_qualified'])
+
+    def test_admission_partition_rejects_missing_invalid_and_inconsistent_fields(self):
+        for mutation in (
+                lambda r: r.pop('runtime_slot_wait_ms'),
+                lambda r: r.update(runtime_slot_wait_ms=float('nan')),
+                lambda r: r.update(dispatch_admission_wait_ms=32.),
+                lambda r: r.update(dispatch_window_wait_ms=-1.),
+                lambda r: r.update(arrival_release_lateness_ms=True)):
+            rows = self._requests()
+            for row in rows:
+                row.update(arrival_release_lateness_ms=2., dispatch_window_wait_ms=3.,
+                    runtime_slot_wait_ms=25., dispatch_admission_wait_ms=30.)
+            mutation(rows[0])
+            with self.subTest(mutation=mutation), self.assertRaises((KeyError, ValueError)):
+                summarize_admission_waits(rows)
 
     def test_replicated_counters_and_colliding_labels_are_not_event_totals(self):
         result = summarize_route_evidence(self._requests())

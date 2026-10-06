@@ -11,7 +11,34 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D300 full4000 audited; resource/latency tradeoff, 7B target still open
+## CURRENT — D301 repeated-read cause reproduced/fixed; D302 validation pending
+
+2026-10-07. Still 7B optimization, no new performance run this turn yet.
+Full source plan and frozenV1 reread after compaction. D301 reuses complete
+D299/D300, new data-only output p2_backend/d301_wait/validated1; input/output
+hashes retained. Mean D300 arrival/admission partition196.073016 +33.577356
++526.683647=756.334019ms; nested routing214.665988ms is not added again.
+Actual external admission uses runtime capacity, not workload concurrency2.
+3,178 final-view requests with authoritative read have mean routing267.622156ms;
+822 without have9.927908ms. Conditional groups, not causal gains or RPC totals.
+
+Found D289 publication bug: collector writes a fresh authoritative scope, then
+identity publication unconditionally deletes it. Two production-order regression
+tests FAIL on oldcode. Narrow fix retains only SAME owner/clock/epoch/source
+identity entries, invalidates changed/malformed entries, leaves selected-copy
+revalidation and IEEE equations untouched. Reviewed D200/D214/D215/D289 history,
+IEEE received-state/recheck semantics, official vLLM0.30 LRU and Ray queue docs.
+371 final CPU tests pass; no new parameters or generation/reference changes.
+See D301_CONFIRMED_SCOPE_PUBLICATION.md. All five owned offline/test scopes
+empty/stopped after identity checks; peaks<1GiB, nohigh/max/OOM.
+
+NEXT backup this tested checkpoint, then existing launcher argd302 for100-request
+7B diagnostic using D300 model/profiles/controls and new output/cache paths.
+No warm/source/numerical repeat,3B/external baseline or figures. If qualified,
+advance same single candidate to full4000 W0; do not call100 a G1/G2 outcome.
+Formal numerical correctness/shared references and optimization remainopen.
+
+## HISTORY — D300 full4000 audited; resource/latency tradeoff, 7B target still open
 
 2026-10-07 06:14+08. SAME D300 completed4000/4000native-contract requests,
 zero reported failures. Six physical leases allclosed, launch/replay/watchdog0,
