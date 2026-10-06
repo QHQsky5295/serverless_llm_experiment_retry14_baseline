@@ -1,6 +1,6 @@
 # D285 — Resident-vLLM 7B resource-snapshot pilot
 
-**Date:** 2026-10-06  
+**Date:** 2026-10-06
 **Identity:** seed 42, the existing W0 trace and 500-adapter subset, 100
 requests from the frozen 4,000-request trace. This is a protocol pilot, not a
 formal Resident reference repeat.
