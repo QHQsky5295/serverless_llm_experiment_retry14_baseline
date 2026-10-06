@@ -47,4 +47,6 @@ baseline 脚本差异及 SHA 未变；原始 pass=false 保留，不称全部一
 传输与监控日志并核对 SHA。复用现有完整回放 analyzer，另建 curated 输出。
 本轮不画图；7B 未验收前不进入 3B、外部 baseline 或后续消融敏感性。
 
-当前状态：已登记，尚未启动；实际句柄及后续进度写入 EXECUTION_STATUS.md。
+当前状态：启动前检查点 `26f0b3fa133c53e9ad2bedb9857d6844e71f2a39` 已推送
+并核对远端；06:53:45+08 启动完整回放。实际句柄及进度在 EXECUTION_STATUS.md。
+运行未结束，尚无完整性能结论；不得重复启动同一执行键。

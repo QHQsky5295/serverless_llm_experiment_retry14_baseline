@@ -11,9 +11,35 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D303 full W0 registered, launch next (do not repeat D302)
+## CURRENT — D303 full W0 running, continue SAME run
 
-2026-10-07 06:55+08. Full source plan and frozenV1 reread. D303 keeps all D300
+2026-10-07 06:53:45+08 launched via existing runner argd303. Preregistered
+checkpoint26f0b3fa133c53e9ad2bedb9857d6844e71f2a39 pushed/remoteverified first.
+tmuxprimelora-d303-7b, panePID3358498; watchdog3358585.
+Serviceprimelora-tc-svc-03b6fd78b5b14ff784b2ab064f16bb1f.scope invocation
+4bcae8e9570a40ad835a653fdce32e13;
+auxprimelora-tc-aux-431b908ca24247869ebb9d2f733e00cd.scope.
+Rawd303_20261007/7b_full_w0, no prefix limit; new local cold caches, same D300
+controls and D301 single fix. Initial native GPU census clean; watchdog ready.
+No final outcome yet. Do not launch another performance run or repeat D302.
+
+RemoteunchangedD80 units and existing published cache, NIC1000/full.
+3Bartifact invocation1dbe1c0f69a64958922fa3454d2403a2/PID1208555;
+7B3840148199eb49e38f5cf952d4b59563/PID1208557;
+monitor-d303bc2c06b4bab8433dbaf60b045b60cf53/PID1208560.
+Healthclockremote-process-monotonic:327b103d3c164082a92a8e9e56f34855;
+remote monitor/home/lab14/primelora_remote/tc/d303_20261007/remote_monitor.log.
+No cache regeneration/packing or additional downloads. Prelaunch aux scope
+f2053170009047aea03774b7aaad3799 peak13701120B/noevents, empty and stopped.
+
+NEXT monitor this full4000; after verified physical release stop ONLY these
+captured remote invocations, collect journal by healthclock and monitor with SHA
+agreement, extend existing full analyzer to new output and compare D300/D303.
+No figures, reference repeats, 3B or externalbaseline. Goal active and G1/G2 open.
+
+## HISTORY — D303 full W0 registered, launch next (do not repeat D302)
+
+2026-10-07 06:53+08. Full source plan and frozenV1 reread. D303 keeps all D300
 configuration fields except new output/NVMe/HOST paths; structural comparison
 passes. Single implementation change remains D301 confirmed-scope publication,
 already371tests and D302100 validated. No additional tuning, reference or source
