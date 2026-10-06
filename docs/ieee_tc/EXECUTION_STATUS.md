@@ -1,5 +1,32 @@
 # IEEE TC execution status
 
+## CURRENT — D287 7B Resident CPU-affinity pilot passes; formal reference series authorized
+
+2026-10-06. After D285 exposed that a user-level slice's `AllowedCPUs` field
+was not sufficient evidence without delegated cpuset, the baseline runner was
+repaired at commit `1115b16`: each Resident vLLM and replay transient unit
+now receives systemd `CPUAffinity`, and active receipts record the kernel
+`Cpus_allowed_list` for each main PID.  The focused contract audit is in the
+baseline repository at `docs/ieee_tc/D286_CPU_AFFINITY_CONTRACT_AUDIT.md`.
+
+D287 is a fresh 100-request 7B seed-42 pilot using the unchanged W0 trace,
+500-adapter subset, fixed-length native-token contract, and prepublished
+remote delivery.  It completed 100/100 requests, matched all 100 target
+native token counts, and used `vllm_token_ids` for every completion.  At both
+active snapshots, all four vLLM PIDs reported configured `CPUAffinity=4-23
+28-47` and kernel `Cpus_allowed_list=4-23,28-47`; the replay PID reported
+`2-3,26-27`.  The 72/80-GiB service, 4-GiB auxiliary, swap, task, common
+clock, final-NVML-empty, and remote-delivery checks also passed.  Its
+760.11-ms mean TTFT, 875.83-ms P95 TTFT, and 2,254.12 GPU-s are descriptive
+pilot values only.  The pilot table and provenance are in
+`baseline/docs/ieee_tc/D287_RESIDENT_CPU_AFFINITY_PILOT.md`.
+
+This closes the CPU-affinity qualification blocker but does not freeze a
+budget.  The next admissible action is the pre-registered three-repeat,
+4,000-request 7B Resident reference series for `U_ref`; 3B and all external
+baselines remain paused until the 7B Prime numerical/common-warm/Resident
+qualification gate is complete.
+
 ## CURRENT — D285 Resident 7B pilot passes the protocol gate; reference series still open
 
 2026-10-06. A fresh 7B seed-42 pilot completed 100/100 requests with the
