@@ -1,7 +1,7 @@
 # D277: capacity-conflict evidence preservation
 
 Date: 2026-10-06
-Status: CPU contract instrumentation complete; GPU replay not authorized
+Status: CPU reproducer confirms schema defect; minimal repair validated; GPU replay held
 
 ## Motivation
 
@@ -23,12 +23,25 @@ and cache contents are not copied.  The field is emitted only in
 `failure_observation.native_capacity_conflict`; no retry, fallback, eviction,
 admission change, or release is introduced.
 
+The CPU reproducer then exposed a second, causal schema defect: the controller
+validated every `gpu_lease_id` against the per-request witness map before it
+considered `preparation_plan_ids`.  Proactive leases are intentionally absent
+from that map, so a valid plan could never wake a request.  The worker receipt
+now carries an exact `preparation_leases=[{lease_id, plan_id}]` binding.  The
+controller accepts that lease only when the binding is present, its plan is
+listed in the same blocker row, and exactly one live engine-scoped preparation
+task owns that plan.  Unknown, duplicate, mismatched, or plan-only identities
+remain fail-closed.
+
 ## Falsification and validation
 
-The new CPU test verifies that a capacity failure preserves a plan ID while
-excluding an unbounded native snapshot.  The complete request-lifecycle suite
-passes 184/184, including the ten native-capacity-wait tests.  The GPU-reference
-and transfer-pressure suites pass 304/304.  Python compilation and
+The CPU test has a red/green pair: without the task binding, a real proactive
+preparation lease correctly fails with `no acknowledged release path`; with
+the exact binding, the request waits for the acknowledged preparation release
+and then succeeds.  The request-lifecycle suite now passes 185/185, including
+the proactive-lease test.  The GPU-reference and transfer-pressure suites
+pass 304/304 after the schema change (489 tests across the three suites).
+Python compilation and
 `git diff --check` pass.  A direct CPU interleaving test also confirms that an
 active preparation task with a matching plan ID wakes a waiting request only
 after an acknowledged owner release; this is an existing behavior check, not
@@ -42,11 +55,10 @@ does not reinterpret the pre-existing delta as a D277 change.
 
 ## Claim boundary and next test
 
-This instrumentation does not show that D276 was caused by missing proactive
-witnesses.  Before any new full replay, use the new field in a bounded native
-capacity reproducer with (i) an active proactive preparation lease, (ii) a
-request-driven acquisition against the same GPU capacity, and (iii) an
-acknowledged preparation release.  The required observation is an exact
-engine/request/adapter/kind-bound witness and a subsequent recheck; unknown or
-mismatched witnesses must still fail closed.  Only a passing reproducer and a
-freshly reviewed source-level fix can reopen the 4,000-request readiness gate.
+The CPU evidence now supports the narrower causal statement that the old
+controller/worker receipt schema could reject a valid proactive release path;
+it does not prove that this was the D276 runtime blocker until a fresh run
+emits the preserved blocker receipt.  After the post-fix suites pass, one new
+same-configuration cold readiness replay may test that falsifiable prediction.
+It remains diagnostic until it satisfies all 4,000-request, correctness and
+first-service gates; no result is promoted by success alone.

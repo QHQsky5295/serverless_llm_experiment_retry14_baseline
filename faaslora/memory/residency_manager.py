@@ -2085,6 +2085,12 @@ class IEEEBackendGPUReferences:
                 if lease in self._preparations
                 and self._preparations[lease].get('plan_id')
             })
+            preparation_leases = sorted(
+                (dict(lease_id=lease, plan_id=self._preparations[lease]['plan_id'])
+                 for lease in gpu_refs
+                 if lease in self._preparations
+                 and self._preparations[lease].get('plan_id')),
+                key=lambda item: (item['plan_id'], item['lease_id']))
             borrowed = self._borrowed_pins.get(aid)
             external = (borrowed[1 if tier == 'gpu' else 0] if borrowed is not None
                         else self._host_borrowed_pins.get(aid, True))
@@ -2096,6 +2102,11 @@ class IEEEBackendGPUReferences:
             # carries a real release owner.
             if preparation_plan_ids:
                 row['preparation_plan_ids'] = preparation_plan_ids
+                # A plan ID alone is insufficient for a controller to decide
+                # which native lease may be awaited.  Keep the exact
+                # lease-to-plan binding so an unknown lease can never be
+                # mistaken for a controller-owned release path.
+                row['preparation_leases'] = preparation_leases
             rows.append(row)
         return dict(kind='native_pinned_capacity_v1', tier=tier, candidates=rows)
 

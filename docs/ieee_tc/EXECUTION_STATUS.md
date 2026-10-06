@@ -1,6 +1,6 @@
 # IEEE TC execution status
 
-## CURRENT — D277 preserves the missing capacity-wait witness without changing admission
+## CURRENT — D277 identifies and repairs the proactive-lease witness schema defect
 
 2026-10-06. D276 showed that a selected-adapter capacity failure could leave an
 empty `gpu_reference_evidence` object because the exception escaped before the
@@ -11,13 +11,22 @@ identity onto the exception.  It does not retry, evict, relax fail-closed
 checks, or infer a release.  Full native snapshots and cache contents remain
 excluded.
 
-The CPU falsification test passes, the complete request-lifecycle suite passes
-184/184, and the GPU-reference plus transfer-pressure suites pass 304/304;
-Python compilation and diff checks also pass.  This is an evidence-quality
-repair, not a causal explanation of D276 and not a readiness/performance
-result.  The next action remains a bounded CPU native-capacity reproducer with
-an actual proactive preparation lease and an acknowledged release.  No new
-full replay is authorized until that witness contract is observed and reviewed.
+The red/green CPU reproducer used a real proactive preparation lease and a
+request-driven acquisition against the same native capacity.  Without the
+plan-task binding it fails closed as before; with the exact lease-to-plan
+binding it waits for the acknowledged preparation release and then succeeds.
+The worker now emits `preparation_leases=[{lease_id,plan_id}]`, and the
+controller accepts it only with one live engine-scoped plan task.  Unknown,
+duplicate or mismatched identities remain rejected.  This is the minimal
+source-level repair suggested by D276's observed failure path; it does not
+change routing, eviction, admission thresholds or retry policy.
+
+The request-lifecycle suite passes 185/185, and the GPU-reference plus
+transfer-pressure suites pass 304/304 after the schema change (489 tests
+across the three suites).  This is not yet a
+readiness or performance result.  After the post-fix suites pass, one new
+same-configuration cold readiness replay may test whether the D276 failure
+reappears and whether the first-service sample gate can be met.
 The protected-artifact seal check remains false only for the pre-existing
 change to the sealed baseline file
 `serverless_llm_baselines/scripts/replay_openai_trace.py`; the file was not

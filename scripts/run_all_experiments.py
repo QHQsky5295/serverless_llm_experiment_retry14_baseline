@@ -16450,13 +16450,42 @@ class ScenarioRunner:
                            for plan_id in preparation_plan_ids)
                     or len(set(preparation_plan_ids)) != len(preparation_plan_ids)):
                 raise ValueError('invalid native preparation blocker identity')
+            preparation_leases = row.get('preparation_leases', [])
+            if (not isinstance(preparation_leases, list)
+                    or any(not isinstance(item, dict)
+                           or set(item) != {'lease_id', 'plan_id'}
+                           or not isinstance(item.get('lease_id'), str)
+                           or not item.get('lease_id')
+                           or not isinstance(item.get('plan_id'), str)
+                           or not item.get('plan_id')
+                           for item in preparation_leases)):
+                raise ValueError('invalid native preparation lease identity')
+            preparation_by_lease = {
+                item['lease_id']: item['plan_id'] for item in preparation_leases
+            }
+            if (len(preparation_by_lease) != len(preparation_leases)
+                    or (preparation_plan_ids and not preparation_leases)
+                    or any(lease not in row.get('gpu_lease_ids', [])
+                           or plan_id not in preparation_plan_ids
+                           for lease, plan_id in preparation_by_lease.items())):
+                raise ValueError('native preparation lease is not bound to its blocker')
             refs, valid = [], not row['external_pin']
+            preparation_tasks = {}
             for kind in ('gpu', 'host'):
                 ids = row.get(kind + '_lease_ids')
                 if (not isinstance(ids, list) or any(not isinstance(x, str) or not x for x in ids)
                         or len(set(ids)) != len(ids) or (expected_tier == 'gpu' and kind == 'host' and ids)):
                     raise ValueError('invalid native capacity blocker lease set')
                 for lease in ids:
+                    preparation_plan_id = preparation_by_lease.get(lease)
+                    if preparation_plan_id is not None:
+                        matches = [task for task, plan_id in active_preparation_tasks
+                                   if plan_id == preparation_plan_id]
+                        if len(matches) != 1:
+                            valid = False
+                        else:
+                            preparation_tasks[preparation_plan_id] = matches[0]
+                        continue
                     witness = witnesses.get((receipt['owner_id'], lease))
                     if (witness is None or witness['engine'] is not reservation.gpu_reference_engine
                             or witness['request_id'] == reservation.request_id
@@ -16464,13 +16493,11 @@ class ScenarioRunner:
                         valid = False
                     else:
                         refs.append(witness['completion'])
-            if valid and preparation_plan_ids:
-                # One active native GPU preparation task owns the plan's
-                # release acknowledgement.  The exact plan IDs remain in the
-                # receipt for audit; the task mapping is engine-scoped because
-                # each engine serializes its own native preparation queue.
-                refs.extend(task for task, plan_id in active_preparation_tasks
-                            if plan_id in preparation_plan_ids)
+            if valid:
+                # One active native GPU preparation task owns each exact plan
+                # release acknowledgement.  A plan ID without a lease binding
+                # or without one live task is never treated as capacity.
+                refs.extend(preparation_tasks.values())
             if valid and refs:
                 candidates.append(refs)
         record = dict(reason=receipt['reason'], owner_id=receipt['owner_id'], epoch=receipt['epoch'],

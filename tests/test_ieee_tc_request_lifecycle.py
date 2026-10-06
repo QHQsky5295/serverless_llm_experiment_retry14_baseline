@@ -3737,6 +3737,96 @@ class NativeCapacityWait(unittest.TestCase):
                 await runner._finish_runtime_request_reservation(request)
         asyncio.run(check())
 
+    def test_proactive_preparation_lease_uses_exact_plan_witness(self):
+        """Plan-bound native leases wake requests; unbound leases remain fail-closed."""
+        from faaslora.clock import local_monotonic_clock_id
+        from tests.test_ieee_tc_gpu_references import NativeObjectiveReplacement
+
+        async def check(mapped):
+            preparation = NativeObjectiveReplacement()
+            preparation.setUp()
+            owner = preparation.owner
+            objective = preparation.epoch()
+            owner.register_preparation_plan(
+                plan_id='plan-x', objective=objective, target_adapter_ids=[4],
+                expected_owner_id=owner.owner_id)
+            snapshot = owner.snapshot()
+            owner.proactive_host_prepare_and_acquire(
+                lease_id='prep-x', adapter_int_id=4, lora_name='adapter-4',
+                lora_path='/existing/adapter-4', expected_owner_id=snapshot['owner_id'],
+                expected_epoch=snapshot['epoch'], capacity_only=False,
+                replacement_epoch=objective, preparation_plan_id='plan-x',
+                decide=lambda *_: {'admit': True, 'reason': 'admit'})
+            owner.acquire(lease_id='external-2', adapter_int_id=2,
+                          expected_owner_id=owner.owner_id,
+                          expected_epoch=owner.snapshot()['epoch'])
+
+            runner, slot, _, _, _, _ = native_reference_fixture()
+            engine = slot.engine
+            aliases = {
+                'source_identity_snapshot': 'source_snapshot',
+                'routing_source_snapshot': 'source_snapshot',
+                'request_source_snapshot': 'source_snapshot',
+            }
+
+            # The request-source alias is handled explicitly because the
+            # proxy removes request_source_snapshot arguments in production.
+            async def rpc(*, operation, **kwargs):
+                original = operation
+                operation = aliases.get(operation, operation)
+                call_kwargs = {} if original == 'request_source_snapshot' else kwargs
+                return {**getattr(owner, operation)(**call_kwargs),
+                        'clock_id': local_monotonic_clock_id(),
+                        'device_uuid': 'GPU-fixture'}
+            engine.ieee_gpu_reference.side_effect = rpc
+
+            preparation_task = None
+            gate = asyncio.Event()
+            if mapped:
+                async def release_preparation():
+                    await gate.wait()
+                    owner.release(lease_id='prep-x', expected_owner_id=owner.owner_id)
+                preparation_task = asyncio.create_task(release_preparation())
+                runner._ieee_gpu_plan_engines = {preparation_task: engine}
+                runner._ieee_gpu_plan_ids = {preparation_task: 'plan-x'}
+
+            blocked = self.bind(runner, engine, 'c', 'adapter-c')
+            try:
+                if mapped:
+                    async def trigger_release():
+                        await asyncio.sleep(.01)
+                        gate.set()
+                    asyncio.create_task(trigger_release())
+                    result = await asyncio.wait_for(
+                        runner._acquire_runtime_gpu_reference(
+                            blocked, engine, 'adapter-c', '/existing/adapter-c'), 1)
+                    self.assertTrue(result['acquired'])
+                    self.assertEqual(
+                        blocked.gpu_reference_evidence['capacity_waits'][0]['outcome'],
+                        'release_observed')
+                    await runner._finish_runtime_request_reservation(blocked)
+                else:
+                    with self.assertRaisesRegex(RuntimeError, 'no acknowledged release path'):
+                        await asyncio.wait_for(
+                            runner._acquire_runtime_gpu_reference(
+                                blocked, engine, 'adapter-c', '/existing/adapter-c'), 1)
+                    self.assertEqual(
+                        blocked.gpu_reference_evidence['capacity_waits'][0]['outcome'],
+                        'unresolved')
+            finally:
+                if not blocked.released:
+                    blocked.released = True
+                if preparation_task is not None:
+                    gate.set()
+                    await preparation_task
+                if 'prep-x' in owner._leases:
+                    owner.release(lease_id='prep-x', expected_owner_id=owner.owner_id)
+                if 'external-2' in owner._leases:
+                    owner.release(lease_id='external-2', expected_owner_id=owner.owner_id)
+
+        asyncio.run(check(False))
+        asyncio.run(check(True))
+
     def test_full_host_request_includes_capacity_wait_in_its_fixed_source_interval(self):
         async def check():
             setup = SelectedSourceAdmissionIntegration()
