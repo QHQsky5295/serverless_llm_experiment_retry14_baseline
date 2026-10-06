@@ -165,7 +165,93 @@ def compare_diagnostics(reference: Path, candidate: Path, out_dir: Path) -> None
     }, indent=2) + "\n")
 
 
+def binding_checks(row: dict, expected_content: str) -> dict[str, bool]:
+    """Audit saved control-plane witnesses, never claim kernel arithmetic proof."""
+    e, n = row["gpu_reference_evidence"], row["native_token_timing"]
+    intent, receipt, release = e["intent"], e["receipt"], e["release_receipt"]
+    post = receipt["post_load_source_snapshot"]
+    aid, slot = receipt["adapter_int_id"], receipt["slot"]
+    sources = [s for s in post["sources"] if s["adapter_int_id"] == aid]
+    selected = sources[0] if len(sources) == 1 else {}
+    return {
+        "request_adapter_binding": row["adapter_id"] == intent["lora_name"] == receipt["lora_name"] == selected.get("adapter_id"),
+        "owner_binding": intent["expected_owner_id"] == receipt["owner_id"] == post["owner_id"] == n["gpu_reference_owner_id"] == release["owner_id"],
+        "lease_binding": intent["lease_id"] == receipt["lease_id"] == n["gpu_reference_lease_id"],
+        "native_adapter_binding": intent["adapter_int_id"] == aid == n["gpu_reference_adapter_int_id"],
+        "slot_binding": (type(slot) is int and 0 <= slot < len(post["slot_adapter_ids"])
+                         and post["slot_adapter_ids"][slot] == aid and selected.get("gpu_slot") == slot),
+        "frozen_content_binding": (expected_content == intent["expected_content_sha256"]
+                                   == receipt["expected_content_sha256"] == selected.get("content_sha256")),
+        "acquired_and_released": receipt["acquired"] is True and release["released"] is True and e["state"] == "released",
+        "common_native_clock": receipt["clock_id"] == post["clock_id"] == n["native_clock_id"],
+        "acquired_before_dispatch": receipt["acquired_monotonic_s"] <= n["native_dispatch_monotonic_s"],
+        "token_digest_transport": row["completion_token_ids_sha256"] == n["completion_token_ids_sha256"],
+    }
+
+
+def write_binding_audit(reference: Path, candidate: Path, index_path: Path, out_dir: Path) -> None:
+    # Independent canonicalization of the frozen file-list format; no live
+    # filesystem/remote read, and no reliance on the receipt's expected hash.
+    index = json.loads(index_path.read_text())
+    expected = {a["id"]: hashlib.sha256(json.dumps(
+        sorted(a["files"], key=lambda f: f["path"]), sort_keys=True,
+        separators=(",", ":")).encode()).hexdigest() for a in index["artifacts"]}
+    if len(expected) != len(index["artifacts"]):
+        raise ValueError("duplicate frozen adapter ID")
+    audits, by_run = {}, {}
+    for label, path in (("reference", reference), ("candidate", candidate)):
+        _, scenario = load(path)
+        rows = scenario["requests"]
+        by_run[label] = {r["request_id"]: r for r in rows}
+        checks = [dict(request_id=r["request_id"], adapter_id=r["adapter_id"],
+                       checks=binding_checks(r, expected[r["adapter_id"]])) for r in rows]
+        audits[label] = dict(source=str(path), sha256=sha256(path), rows=checks,
+                             control_binding_pass_count=sum(all(r["checks"].values()) for r in checks))
+    if by_run["reference"].keys() != by_run["candidate"].keys():
+        raise ValueError("unmatched request populations")
+    changes = []
+    for rid, left in by_run["reference"].items():
+        right = by_run["candidate"][rid]
+        if left["completion_token_ids_sha256"] != right["completion_token_ids_sha256"]:
+            changes.append(dict(request_id=rid, adapter_id=left["adapter_id"],
+                native_prompt_hash_equal=left["native_token_timing"]["native_prompt_token_ids_sha256"]
+                == right["native_token_timing"]["native_prompt_token_ids_sha256"],
+                reference_tier=left["readiness_tier_before_dispatch"], candidate_tier=right["readiness_tier_before_dispatch"],
+                first_token_divergence_position=None, native_logits_available=False,
+                batch_membership_available=False, numerical_cause_proven=False))
+    artifact = dict(kind="saved_native_binding_audit_v1", runs=audits, changed_requests=changes,
+        content_index=str(index_path), content_index_sha256=sha256(index_path),
+        script_sha256=sha256(Path(__file__)), numerical_qualification=False,
+        formal_qualification=False, interpretation="control_witness_consistency_only_not_actual_kernel_arithmetic")
+    (out_dir / "binding_audit.json").write_text(json.dumps(artifact, indent=2) + "\n")
+    with (out_dir / "binding_status.csv").open("w", newline="") as f:
+        writer = csv.writer(f, lineterminator="\n")
+        writer.writerow(["run", "requests", "control_binding_pass", "numerical_qualified"])
+        for label, audit in audits.items():
+            writer.writerow([label, len(audit["rows"]), audit["control_binding_pass_count"], False])
+    print(json.dumps({k: v["control_binding_pass_count"] for k, v in audits.items()}))
+
+
 def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("result_json", type=Path)
+    parser.add_argument("--out-dir", type=Path, required=True)
+    parser.add_argument("--label", default="d290")
+    parser.add_argument("--reference-json", type=Path)
+    parser.add_argument("--data-dir", type=Path)
+    parser.add_argument("--binding-audit-only", action="store_true")
+    parser.add_argument("--content-index", type=Path)
+    args = parser.parse_args()
+    if args.binding_audit_only:
+        if not args.reference_json or not args.content_index:
+            parser.error("binding audit requires --reference-json and --content-index")
+        if args.out_dir.exists() and any(args.out_dir.iterdir()):
+            raise ValueError("refusing to overwrite an existing audit directory")
+        args.out_dir.mkdir(parents=True, exist_ok=True)
+        write_binding_audit(args.reference_json.resolve(), args.result_json.resolve(),
+                            args.content_index.resolve(), args.out_dir.resolve())
+        return
+
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -182,13 +268,6 @@ def main() -> None:
         font_manager.fontManager.addfont(installed)
     font_path = font_manager.findfont("Times New Roman", fallback_to_default=False)
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("result_json", type=Path)
-    parser.add_argument("--out-dir", type=Path, required=True)
-    parser.add_argument("--label", default="d290")
-    parser.add_argument("--reference-json", type=Path)
-    parser.add_argument("--data-dir", type=Path)
-    args = parser.parse_args()
     result_path = args.result_json.resolve()
     out_dir = args.out_dir.resolve()
     if not args.label.replace("_", "").isalnum():

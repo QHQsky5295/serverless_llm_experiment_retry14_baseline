@@ -1,5 +1,30 @@
 # IEEE TC execution status
 
+## CURRENT — D294 saved binding audit passes; numerical cause remains unresolved
+
+2026-10-06. Reused D290/D293 immutable logs and frozen content index only;
+no GPU, remote service, model, trace, or serving change. All100 rows per run
+have consistent adapter/owner/lease/native integer ID/slot/content/clock/
+release/token-digest witnesses. All six output-difference rows have identical
+native prompt token-ID hashes. This is control-witness consistency, NOT
+actual kernel arithmetic proof or `n_correct=100`. Actual batch membership,
+full sequences and native logits are missing in these runs; do not infer the
+first differing token from hashes or declare batching causality established.
+
+Audit/doc: `docs/ieee_tc/D294_SAME_BACKEND_BINDING_AUDIT.md` and
+`paper_results/ieee_tc/p2_backend/d294_output_binding_audit/`. Existing
+diagnostic analyzer extended;20 CPU tests pass. D293 backed at24519cf and
+CSV-format-only correction3af37b4; old source hashes/plots remain unchanged.
+
+NEXT: exact pre-registration/CPU qualification of the missing controlled
+same-backend repeat using existing native token-capture path and existing
+request indexes. D246 single native run and D247 cross-backend19/22 are NOT
+three same-backend controlled repeats; do not redo the cross-backend study.
+Then fresh safety gate and only the minimal missing measurement. No blind
+Full replay, batch-invariance/precision changes, relaxed correctness, new
+weights/traces, or progression to3B/baselines. Numerical/commonwarm/Resident/
+oldPrime-newmetrics/G1G2 remain OPEN. Last GPU state idle, remote7B stopped.
+
 ## CURRENT — D293 bounded prefetch run complete; latency/resource trade-off, not acceptance
 
 2026-10-06. D293 completed 100/100 native fixed-output requests with full

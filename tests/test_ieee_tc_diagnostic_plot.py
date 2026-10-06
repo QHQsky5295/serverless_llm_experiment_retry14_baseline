@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from scripts.ieee_tc.plot_d290_diagnostic import load, percentile, request_vectors
+from scripts.ieee_tc.plot_d290_diagnostic import binding_checks, load, percentile, request_vectors
 
 
 def request():
@@ -73,3 +73,49 @@ def test_incomplete_replay_rejected(tmp_path):
     path.write_text(json.dumps(result))
     with pytest.raises(ValueError):
         load(path)
+
+
+def binding_row():
+    return {
+        "adapter_id": "a", "completion_token_ids_sha256": "tokens",
+        "native_token_timing": {
+            "gpu_reference_owner_id": "o", "gpu_reference_lease_id": "l",
+            "gpu_reference_adapter_int_id": 1, "native_clock_id": "clock",
+            "native_dispatch_monotonic_s": 3, "completion_token_ids_sha256": "tokens"},
+        "gpu_reference_evidence": {
+            "state": "released",
+            "intent": {"lora_name": "a", "expected_owner_id": "o", "lease_id": "l",
+                       "adapter_int_id": 1, "expected_content_sha256": "content"},
+            "receipt": {"lora_name": "a", "owner_id": "o", "lease_id": "l",
+                        "adapter_int_id": 1, "slot": 0, "expected_content_sha256": "content",
+                        "acquired": True, "clock_id": "clock", "acquired_monotonic_s": 2,
+                        "post_load_source_snapshot": {"owner_id": "o", "clock_id": "clock",
+                            "slot_adapter_ids": [1], "sources": [{"adapter_id": "a",
+                            "adapter_int_id": 1, "gpu_slot": 0, "content_sha256": "content"}]}},
+            "release_receipt": {"released": True, "owner_id": "o"}},
+    }
+
+
+def test_binding_matches_but_is_not_arithmetic_qualification():
+    assert all(binding_checks(binding_row(), "content").values())
+
+
+@pytest.mark.parametrize("field,bad_value,failed_check", [
+    ("gpu_reference_owner_id", "wrong", "owner_binding"),
+    ("gpu_reference_lease_id", "wrong", "lease_binding"),
+    ("gpu_reference_adapter_int_id", 0, "native_adapter_binding"),
+    ("native_clock_id", "other", "common_native_clock"),
+    ("native_dispatch_monotonic_s", 1, "acquired_before_dispatch"),
+    ("completion_token_ids_sha256", "wrong", "token_digest_transport"),
+])
+def test_binding_negatives(field, bad_value, failed_check):
+    row = binding_row()
+    row["native_token_timing"][field] = bad_value
+    assert not binding_checks(row, "content")[failed_check]
+
+
+def test_expected_content_is_independent_and_slot_is_checked():
+    row = binding_row()
+    assert not binding_checks(row, "independent_wrong")["frozen_content_binding"]
+    row["gpu_reference_evidence"]["receipt"]["post_load_source_snapshot"]["slot_adapter_ids"] = [7]
+    assert not binding_checks(row, "content")["slot_binding"]
