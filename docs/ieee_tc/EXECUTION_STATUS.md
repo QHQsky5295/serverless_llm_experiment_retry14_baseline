@@ -1,5 +1,20 @@
 # IEEE TC execution status
 
+## CURRENT — D281 remote 7B delivery health gate passes; Resident pilot still held
+
+2026-10-06. The existing owned 7B artifact unit was started through the
+verified SSH alias and checked over the direct experiment NIC.  Authenticated
+health returned `prepublished_gzip_v1` with `artifact_timing_v2`; the immutable
+manifest contains 500 objects and its response hash is recorded in
+`docs/ieee_tc/D281_REMOTE_7B_HEALTH_GATE.md`.  The unit readback shows the
+expected 2-GiB high / 4-GiB max / 128-task auxiliary envelope.  No archive was
+regenerated, no inference process was started, and no GPU result was produced.
+
+This closes only the remote delivery prerequisite.  The next Resident action
+is still gated by the local 150-GiB disk floor, memory headroom, GPU-idle and
+cleanup checks; after a pilot the remote unit must be stopped by identity.  No
+Resident budget, warm SLO, G1/G2 or baseline ranking is frozen.
+
 ## CURRENT — D280 re-enables the audited Resident-vLLM protocol; no GPU run yet
 
 2026-10-06. The baseline harness commit `d9db181` removes only the historical
