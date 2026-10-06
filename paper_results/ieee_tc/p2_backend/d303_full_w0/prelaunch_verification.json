@@ -1,0 +1,28 @@
+{
+  "kind": "d303_prelaunch_verification_v1",
+  "same_d300_configuration_except_paths": true,
+  "config_sha256": "18a5d633fac9a5cf13d4be260d323bb7796ad8698c4d7fd2e0493de141fcb3e5",
+  "serving_source_sha256": "d6ec59a9877023eafc9686251bdebce48a470e3af6c55efcc76fe2df8e3d2078",
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "service_profile_sha256": "449143d5ae7f9382d99e4667e20f9c0c08aac591382424b1a0ab3dd1eee3fce8",
+  "preparation_profile_sha256": "2a32c296d0d9ede51378edee5dfd4c6f22c800c7eb9d3e27ba13919c225deccd",
+  "source_checksums_match": true,
+  "protected_raw": {
+    "pass": false,
+    "entry_count": 147,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": ["/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"],
+    "known_baseline_sha256": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22"
+  },
+  "user_generated_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+  "prelaunch_scope_invocation_id": "f2053170009047aea03774b7aaad3799",
+  "prelaunch_scope_peak_bytes": 13701120,
+  "memory_high_max_oom_events": 0,
+  "prelaunch_scope_process_count_after": 0,
+  "reused_d301_tests_passed": 371,
+  "reused_d302_native_contract_requests": 100,
+  "new_performance_run_started_at_record_time": false,
+  "N_correct": null,
+  "formal_qualification": false
+}

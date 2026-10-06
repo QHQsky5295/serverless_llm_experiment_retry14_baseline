@@ -11,7 +11,22 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D302100 completed/audited; next full W0 for the same D301 fix
+## CURRENT — D303 full W0 registered, launch next (do not repeat D302)
+
+2026-10-07 06:55+08. Full source plan and frozenV1 reread. D303 keeps all D300
+configuration fields except new output/NVMe/HOST paths; structural comparison
+passes. Single implementation change remains D301 confirmed-scope publication,
+already371tests and D302100 validated. No additional tuning, reference or source
+measurement. Config SHA18a5d633fac9a5cf13d4be260d323bb7796ad8698c4d7fd2e0493de141fcb3e5.
+Serving source SHA d6ec59a9877023eafc9686251bdebce48a470e3af6c55efcc76fe2df8e3d2078.
+Protected146/147 unchanged, sole known baseline-script difference SHA unchanged.
+Fresh check four GPUs idle, host113370583040B available, disk161766203392B;
+runner will recheck all safety gates at actual launch. No figures or baseline work.
+NEXT backup preregistration, reuse D80 remote units/cache and launch existing
+runner argd303 in tmuxprimelora-d303-7b. Capture live handles here immediately.
+Full run remains exploratory; N_correct/shared final warm/Resident and G1/G2 open.
+
+## HISTORY — D302100 completed/audited; next full W0 for the same D301 fix
 
 2026-10-07 06:43+08. SAME D302 finished100/100native-token-contract requests,
 0failure. launcher/replay/watchdog0, physicalGPUreleaseconfirmed, servicepath
