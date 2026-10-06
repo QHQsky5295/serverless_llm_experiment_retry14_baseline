@@ -11,7 +11,29 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D296 short replay complete; cleanup dependency reduced, G1/G2 still open
+## CURRENT — D297 complete 7B W0 prepared; candidate unchanged, not yet launched
+
+2026-10-07. Previous goal turn was PROGRESS: completed D296, saved its resource/
+latency trade-off and pushed300c789. Current checks reconfirm stopped GPU/remote
+state and preserve all history. D297 restores all4000 original W0 requests using
+the D296 model/control candidate; only count/scenario label/output/cache paths
+differ. Existing launcher extended with explicitd297 branch and no prefix.
+No new serving optimization, numerical repeat,3B/baseline or figures.
+
+Important mechanism check: legacy effective_capacity_admission metadata=false
+is not the current native proactive E(t) gate. D296 has101GPU plans with
+capacity_only=false,144attempts (115completed/29deferred),109explicit proactive
+receipts. Current native policy derives capacity_only from coordination_enabled.
+Do not reapply D226's historical legacy-path inference or activate the optional
+demand capacity witness just to alter metadata. See D297 doc/source evidence.
+
+Configecf75d4d... structurally checked; launcher syntax and94system-Python
+open-loop/guard tests pass. Same servingSHA cc821e08..., prior tests reusable.
+NEXT backup/check protection, start unchanged remote+monitor, direct authenticated
+health BEFORE local launch, fresh disk/memory gate, then one fullW0 development
+replay. Formal numerical/SLO/Resident/G1G2 remainopen. No new GPU result yet.
+
+## HISTORY — D296 short replay complete; cleanup dependency reduced, G1/G2 still open
 
 2026-10-07. D296 actual remote100/100 completes with native fixed counts and
 all saved dispatch/adapter/slot bindings verified. Physical measurement is complete;

@@ -4,6 +4,8 @@ ROOT=/home/qhq/serverless_llm_experiment_retry14_baseline
 RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d293_20261006/7b_prefetch_validation_100
 CONFIG=configs/ieee_tc/20261006_d293_7b_prefetch_validation_100.yaml
 TAG=d293_7b_prefetch_validation_100
+SCENARIO=tc_ieee_prefetch_validation_100
+PREFIX_COUNT=100
 case "${1:-d293}" in
   d293) ;;
   d296)
@@ -11,7 +13,14 @@ case "${1:-d293}" in
     CONFIG=configs/ieee_tc/20261007_d296_7b_lifecycle_validation_100.yaml
     TAG=d296_7b_lifecycle_validation_100
     ;;
-  *) echo 'Expected d293 or d296; no arbitrary output override' >&2; exit 2 ;;
+  d297)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d297_20261007/7b_full_w0
+    CONFIG=configs/ieee_tc/20261007_d297_7b_full_w0.yaml
+    TAG=d297_7b_full_w0
+    SCENARIO=tc_ieee_full
+    PREFIX_COUNT=
+    ;;
+  *) echo 'Expected d293, d296 or d297; no arbitrary output override' >&2; exit 2 ;;
 esac
 [[ $# -le 1 ]] || exit 2
 cd "$ROOT"
@@ -36,7 +45,11 @@ export FAASLORA_PYTHON=/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/pytho
 export FAASLORA_TC_QUALIFICATION=1
 export FAASLORA_TC_EXTERNAL_REPLAY=1
 export FAASLORA_TC_REPLAY_PROFILE=W0
-export FAASLORA_TC_DIAGNOSTIC_PREFIX_COUNT=100
+if [[ -n "$PREFIX_COUNT" ]]; then
+  export FAASLORA_TC_DIAGNOSTIC_PREFIX_COUNT="$PREFIX_COUNT"
+else
+  unset FAASLORA_TC_DIAGNOSTIC_PREFIX_COUNT
+fi
 export FAASLORA_TC_LAUNCH_OUTPUT="$RAW/launch.json"
 export FAASLORA_TC_PREDICTED_GROWTH_GIB=32
 export FAASLORA_TC_NVML_BINDING=/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/site-packages/pynvml.py
@@ -56,4 +69,4 @@ export TRANSFORMERS_OFFLINE=1
 export VLLM_NO_USAGE_STATS=1
 exec bash scripts/run_all_experiments_user_scope.sh \
   --config "$CONFIG" \
-  --scenario tc_ieee_prefetch_validation_100 --full-stack
+  --scenario "$SCENARIO" --full-stack
