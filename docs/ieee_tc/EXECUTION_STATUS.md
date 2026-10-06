@@ -1,5 +1,29 @@
 # IEEE TC execution status
 
+## CURRENT — D282/D283 Resident pilots diagnose shared-clock and startup barriers; no reference budget frozen
+
+2026-10-06. D282 completed 100/100 fixed-output 7B requests and passed the
+request-level generation/cleanup checks, but its deployment notice was emitted
+only after all replicas were ready and the replay used a process-start clock.
+It is therefore a generation/cleanup diagnostic, not a Resident performance
+point.  D283 moved the notice before startup and passed the absolute business
+clock to replay; it then exposed serial replica initialization (approximately
+66.53, 68.56, 66.77 and 68.58 seconds) because the launcher waited for each
+replica before starting the next.  The pilot reached 20 successful requests
+before being deliberately stopped after the startup-path diagnosis, so it has
+no complete replay output and is also excluded from all performance
+denominators.  Both pilots were cleaned up, the managed remote service was
+stopped, and NVML was empty.
+
+The audit and compact status table are in
+`docs/ieee_tc/D282_D283_RESIDENT_CLOCK_STARTUP_AUDIT.md` and
+`paper_results/ieee_tc/p2_backend_qualification/20261006_d282_d283_resident_pilot_audit/`.
+The shared-clock repair is baseline commit `dd1ca72`; the parallel-launch and
+72/80-GiB Resident default repair is `effb149`, both pushed to the baseline
+repository.  The next admissible action is a new unique 7B pilot after the
+parallel-start path passes CPU/dry-run checks.  No warm threshold, Resident
+budget, G1/G2 point, 3B run, or external baseline comparison is frozen.
+
 ## CURRENT — D281 remote 7B delivery health gate passes; Resident pilot still held
 
 2026-10-06. The existing owned 7B artifact unit was started through the
