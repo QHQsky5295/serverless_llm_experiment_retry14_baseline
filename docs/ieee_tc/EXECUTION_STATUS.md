@@ -1,5 +1,36 @@
 # IEEE TC execution status
 
+## CURRENT — D271 does not reproduce D266 and remains a partial diagnostic
+
+2026-10-06. D271 replayed the registered 7B eight-phase diagnostic with the
+bounded source-binding witness enabled. It observed 231 arrivals and 224
+successful terminations before a deliberate SIGINT after the historical D266
+position `req_00198` had completed. The native integer-ID reuse marker,
+structured source-binding conflict, and retained failure observation were all
+absent in the observed prefix. This rules out a claim of an immediate
+deterministic failure at that position under this replay state, but it does not
+reproduce D266, identify its old/requested/live source transition, or prove a
+repair.
+
+The run is recorded in
+`paper_results/ieee_tc/p2_backend_qualification/20261007_d271_identity_diag_8phase/d271_status.md`.
+It is classified as a manual-stop partial diagnostic with
+`pass=false` and `production_launch_authorized=false`; the raw evidence is
+retained and excluded from readiness, performance, SLO, G1/G2, and all ranking
+denominators. The owned service path was removed and cleanup reported
+`released=true`, but the terminal census did not prove allocator-level/native
+context release. No OOM, cgroup high/max/oom/oom_kill event, remote mutation, or
+historical-result overwrite occurred. The intermediate latency values are not
+formal measurements.
+
+D266 therefore remains unresolved. The fail-closed validator is unchanged, and
+no further heavy identity replay is authorized without a new falsifiable
+hypothesis and a witness that links old/requested/live source, content identity,
+and preparation-plan state at the native rejection. The active execution gate
+is the complete common warm reference plus physical whole-GPU allocation and
+release evidence for Prime; baseline comparison and G1/G2 ranking remain
+blocked until that gate is met.
+
 ## CURRENT — HydraServe/remote metric boundary audit frozen as a non-mutating addendum
 
 2026-10-06. The authoritative metric calculation remains
