@@ -730,6 +730,22 @@ class CommittedRoutingContract(unittest.TestCase):
         with self.assertRaises(ValueError):
             router.select_instance('lora-a', ieee_snapshot=rows)
 
+    def test_ieee_decision_is_request_local_not_diagnostic_shared_state(self):
+        pool = InstancePool(max_instances=2)
+        a = pool.add_instance(None, None)
+        b = pool.add_instance(None, None)
+        router = Router(pool, 'ieee_confirmed', service_bin_ms=10)
+        first_slot, first_decision = router.select_instance_with_decision(
+            'lora-a', ieee_snapshot=(candidate(a), candidate(b))
+        )
+        second_slot, second_decision = router.select_instance_with_decision(
+            'lora-a', ieee_snapshot=(candidate(a), candidate(b, service=ServiceComponents(1., 2., 3.)))
+        )
+        self.assertEqual(first_slot.instance_id, first_decision.replica_id)
+        self.assertEqual(second_slot.instance_id, second_decision.replica_id)
+        self.assertNotEqual(first_decision, second_decision)
+        self.assertEqual(router.last_ieee_decision, second_decision)
+
     def test_missing_profile_does_not_make_feasible_replica_artificially_fast(self):
         with self.assertRaises(ValueError):
             candidate(service=None)

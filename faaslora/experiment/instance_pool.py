@@ -14,7 +14,7 @@ from dataclasses import dataclass, field, replace
 from threading import RLock
 from types import MappingProxyType
 from pathlib import Path
-from typing import Any, Dict, List, Mapping, Optional, Set
+from typing import Any, Dict, List, Mapping, Optional, Set, Tuple
 
 from ..utils.logger import get_logger
 
@@ -1779,6 +1779,27 @@ class Router:
         ieee_snapshot: Optional[tuple[ReplicaRoutingSnapshot, ...]] = None,
     ) -> Optional[InstanceSlot]:
         """Select one instance for the request. adapter_id can be used for affinity."""
+        slot, _ = self.select_instance_with_decision(
+            adapter_id,
+            adapter_size_mb,
+            ieee_snapshot=ieee_snapshot,
+        )
+        return slot
+
+    def select_instance_with_decision(
+        self,
+        adapter_id: Optional[str] = None,
+        adapter_size_mb: Optional[float] = None,
+        *,
+        ieee_snapshot: Optional[tuple[ReplicaRoutingSnapshot, ...]] = None,
+    ) -> Tuple[Optional[InstanceSlot], Optional[ReplicaRoutingSnapshot]]:
+        """Select a slot and return the request-local IEEE decision, if any.
+
+        ``last_ieee_decision`` is retained as a diagnostic compatibility field,
+        but it is shared router state and therefore cannot be used to recover a
+        request's decision after an await.  Production IEEE callers must keep
+        the returned immutable decision in their own request context.
+        """
         slots = self.pool.get_slots()
         if self.policy == 'ieee_confirmed':
             if ieee_snapshot is None:
@@ -1789,30 +1810,31 @@ class Router:
                 raise ValueError('replica membership changed; retry from updated owner snapshot')
             self.selection_count += 1
             self.readiness_aware_selection_count += 1
-            self.last_ieee_decision = self.select_ieee_snapshot(ieee_snapshot, self.service_bin_ms)
-            if self.last_ieee_decision is None:
-                return None
+            decision = self.select_ieee_snapshot(ieee_snapshot, self.service_bin_ms)
+            self.last_ieee_decision = decision
+            if decision is None:
+                return None, None
             # No handoff priority/budget consumption and no extra occupancy term.
-            return next(s for s in slots if s.instance_id == self.last_ieee_decision.replica_id)
+            return next(s for s in slots if s.instance_id == decision.replica_id), decision
         if ieee_snapshot is not None:
             raise ValueError('committed IEEE snapshot supplied to a legacy routing policy')
         if not slots:
-            return None
+            return None, None
         self.selection_count += 1
         if self.policy == "round_robin":
             self._rr_index = (self._rr_index + 1) % len(slots)
-            return slots[self._rr_index]
+            return slots[self._rr_index], None
         if self.policy == "least_connections":
             self.load_only_selection_count += 1
-            return min(slots, key=self._least_connections_key)
+            return min(slots, key=self._least_connections_key), None
         if self.policy == "adapter_affinity":
             self.readiness_aware_selection_count += 1
             selected = min(
                 slots, key=lambda s: self._routing_key(s, adapter_id, adapter_size_mb)
             )
             self._consume_scaleup_handoff_budget_if_needed(selected, adapter_id)
-            return selected
-        return slots[0]
+            return selected, None
+        return slots[0], None
 
     @staticmethod
     def select_ieee_snapshot(snapshot: tuple[ReplicaRoutingSnapshot, ...],

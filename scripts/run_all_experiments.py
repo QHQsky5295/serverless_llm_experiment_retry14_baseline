@@ -17159,18 +17159,20 @@ class ScenarioRunner:
                 if committed is None:
                     continue
                 snapshot, source_evidence = committed
-                slot = self.router.select_instance(adapter_id, ieee_snapshot=snapshot)
+                slot, selected_ieee_decision = self.router.select_instance_with_decision(
+                    adapter_id, ieee_snapshot=snapshot
+                )
             else:
                 self._refresh_all_slot_runtime_hints()
                 slot = (self.router.select_instance(adapter_id, adapter_size_mb=size_mb)
                         if self.router else None)
             selected_readiness_tier = _BACKBONE_CACHE_TIER if not adapter_id else "remote"
-            selected_ieee_decision = None
             if ieee_routing and slot is not None:
-                # Router.last_ieee_decision is diagnostic shared state. Freeze
-                # this request's immutable decision before pending-admission
-                # RPCs yield to other requests selecting on the same router.
-                selected_ieee_decision = self.router.last_ieee_decision
+                # The decision is returned in this request's local context.
+                # Router.last_ieee_decision is diagnostic shared state and may
+                # be overwritten by another concurrent request before an await.
+                if selected_ieee_decision is None:
+                    raise RuntimeError('IEEE router returned a slot without a decision')
                 if selected_ieee_decision.replica_id != slot.instance_id:
                     raise RuntimeError('IEEE decision differs from selected replica')
                 selected_readiness_tier = selected_ieee_decision.service_class.tier

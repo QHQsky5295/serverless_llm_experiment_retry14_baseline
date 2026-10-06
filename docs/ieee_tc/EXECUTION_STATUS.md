@@ -1,5 +1,32 @@
 # IEEE TC execution status
 
+## CURRENT — D258 retry6 stopped after a concurrent router-state defect was isolated
+
+2026-10-06. The fresh 7B eight-phase Full diagnostic
+`d258_7b_readiness_8phase_full_retry6` was intentionally interrupted after
+approximately 74 arrivals. Scale-out reached four instances and host/GPU
+memory remained healthy, but one request terminated before reservation binding
+with `AttributeError: 'NoneType' object has no attribute 'replica_id'`. The
+terminal record has no instance, dispatch snapshot, prompt hash, or completion
+tokens. No native-RPC failure, worker transport error, or OOM was observed.
+
+This run is an incomplete diagnostic and is excluded from every readiness,
+performance, SLO, G1/G2, and ranking denominator. The manual interruption means
+its final release proof is incomplete; the raw terminal journal, service log,
+watchdog trace, and launch receipt remain at the unique retry6 result root.
+Post-cleanup GPU/process checks are clear.
+
+Source inspection showed that IEEE routing selected an immutable decision but
+then recovered it from the router's shared diagnostic field
+`last_ieee_decision`. Concurrent requests can overwrite that field (or leave it
+empty) while the current request is between selection and admission. The
+repair keeps the decision returned by the selection call in the request-local
+execution context and retains `last_ieee_decision` only for diagnostics and
+legacy tests. It adds no retry, fallback, altered SLO, or changed routing
+objective. Focused routing, pending-GPU, and request-lifecycle tests pass after
+the repair; a fresh bounded GPU smoke is required before another 4,000-request
+readiness run.
+
 ## CURRENT — D260 bounded RPC reproducer confirms a repairable combined-reference schema defect
 
 2026-10-06. The fresh 7B eight-request bounded reproducer
