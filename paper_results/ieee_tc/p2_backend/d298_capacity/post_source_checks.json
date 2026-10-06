@@ -1,0 +1,17 @@
+{
+  "kind": "d298_post_source_checkpoint_v1",
+  "profile_tests": {"passed": 11, "failed": 0, "suite": ["tests.test_ieee_tc_launch.SourceProfileDomainCoverage", "tests.test_ieee_tc_launch.MeasuredSourceProfileExport"]},
+  "config_check_log": "results/ieee_tc/p2_backend_qualification/d298_20261007/configcheck1.log",
+  "smoke_config_sha256": "6dc8bf632d07a0b87191a659f024b639a39a59648380ff55613b3a8ca5da4ebd",
+  "exact_child_model_matches_measured": true,
+  "old_workload_and_control_rules_unchanged": true,
+  "remote_copy_roundtrip": {
+    "transfer_journal": "/home/lab14/primelora_remote/tc/d80_20260927/7b/transfers-de40930482a1414ba2cd42e61410646f.jsonl",
+    "remote_and_local_transfer_sha256": "d10a41d8f7918e734cd9f7e43d33128493285bcd9f496904cb446ba1147dd4a4",
+    "monitor": "/home/lab14/primelora_remote/tc/d298_20261007/remote_monitor.log",
+    "remote_and_local_monitor_sha256": "2324ebaa090ee9b37e621a9da1833479382f91bb37f83ba6e61385f2863b251c"
+  },
+  "full_qualified": false,
+  "numerical_adapter_correctness_qualified": false,
+  "no_figures": true
+}

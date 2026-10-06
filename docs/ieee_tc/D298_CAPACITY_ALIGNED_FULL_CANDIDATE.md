@@ -100,3 +100,30 @@ Combined CPU suite:209/213 passed in the model-test Python; four OS-gate cases
 failed because that interpreter lacks pidfd_send_signal. All50OS-gate tests
 then passed in the actually used /usr/bin/python3. No safety fallback or change
 to guard semantics. This test-environment mistake remains in cpu_tests.json.
+
+## Source calibration outcome and next gate
+
+The single source run finished248native-contract calls (240measured,8warmup),
+48measurements per source;40service and24preparation classes are fully covered.
+The data-only D157/D89 export reuses the unchanged authoritative validators and
+runtime loaders. New profile SHAs are449143d5... (service) and2a32c296...
+(preparation), bound by `d298_capacity/initialization/manifest.json`.
+One physical lease released after476.461610GPU-s. Service peak5.08GiB,
+hostminimum100.285GiB, no high/OOM/swap. All248remote transfer IDs and bytes
+match the stopped server journal; no request-time packing. Source-state resets
+include additional fetches, so1059355374wire bytes are NOT a Full miss result.
+Two of8same-request output groups differ across profiling conditions; retained,
+not silently promoted to numerical-correctness evidence.
+
+Source journal filenames and process clocks use independent UUIDs. The first
+lookup assumed equality and failed after services had stopped; collection then
+verified the real journal by its clock, every transfer and source/destination
+SHA. Measurement was not rerun or modified. Old146/147protected entries remain
+identical; the sole known unrelated baseline script edit retains its prior SHA.
+
+Prepared100-request Full config uses the measured capacity package/profile and
+the same D296/D297 control rules, inputs and public envelope. Actual child model
+assembly equals the source contract, both loaders accept the bound profiles,
+and11coverage/export tests pass. This authorizes the bounded smoke, not acceptance
+of7B performance. Successful smoke must be followed by original4000W0;
+no additional warm/capacity repetition, figure work,3B or external baseline.

@@ -11,7 +11,35 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D298 source measurement RUNNING; D297 remains completed Full
+## CURRENT — D298 source calibration complete; Full smoke prepared
+
+2026-10-07 03:17+08. SAME source job completed248/248 native-contract calls,
+240representative+8warmup, with48measured calls per source. Existing validators
+and profile loaders cover40service/24preparation classes, no extrapolated fills.
+Curated d298_capacity/initialization/manifest.json binds new timings to exact
+capacity8/slots8/rank16/.92 model; D170 completed-length evidence reused.
+Source SHA f1d9bd576fef9da92ae4e566b75df1292c7ab51f320eb53f7fa4483f4e25d474.
+All248remote transfers match UUID/content/archive/bytes,1059355374wire bytes,
+no request-time packing. Controlled source reset downloads are NOT Full misses.
+One physical GPU held476.461610s, actual context released, scope removed;
+484resource samples,peak5456633856B,hostminimum107680460800B,high/max/OOM/swap0.
+Two of8repeated output groups vary; retained, not numerical correctness proof.
+
+Exact-owned remote monitor/7B/3B invocations stopped, allinactive/PID0/success.
+Journal filename has its own UUID (de4093...), not the health clock UUID;
+initial mistaken filename lookup failed after successful service stop. Actual
+file verified by clock/transfer joins and remote/local identical SHA. No rerun.
+Data-only export reused existing D157/D89 validators; no serving code changes.
+Protection146/147unchanged, sole previously known baseline script SHA preserved.
+No figures or warm-repeat.11profile-domain/export tests pass; actual Full child
+assembly exactly matches the measured contract, old workload/controller equal.
+Smoke config SHA6dc8bf632d07a0b87191a659f024b639a39a59648380ff55613b3a8ca5da4ebd.
+NEXT checkpoint/push, then one guarded100-request Full smoke with fresh owned
+caches and the same published artifacts. Only after complete validation run
+4000W0. G1/G2, numerical correctness and shared final references remainOPEN;
+D297 is still latest completed Full. No3B/baselines until7B target work closes.
+
+## HISTORY — D298 source measurement RUNNING; D297 remains completed Full
 
 2026-10-07 03:05+08. Checkpoint783fa42e6b3ba1cd0e034d8e0cddcd3d72c9b42e
 pushed and remote SHA verified BEFORE launch. The one source-calibration job
@@ -35,6 +63,11 @@ NEXT monitor SAME job, release actual owned GPU, stop ONLY captured remote
 monitor/invocations, reconcile transfers and audit/export source profiles via
 existing helpers. Then100-request Full smoke and4000W0, not warm-repeat/3B/
 baselines. No fresh candidate while this run is live. G1/G2 remainOPEN.
+
+03:06+08 SAME job now measuring:24/248native source samples logged, including
+the8warmup calls; no final source-profile acceptance. Watchdog131, peak still
+5456633856B, available109195345920B, high/max/OOM0/no warning. GPU0owned only;
+other3cards idle. Live-status checkpoint9b5b7a2 pushed. Continue this run.
 
 ## D298 preparation history
 
