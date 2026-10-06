@@ -33,7 +33,10 @@ effectofpublicationfix.3outputhashchangesretained,binding100/100bothruns.
 SeeD302_FRONTIER_VALIDATION.md. Nofigures,warm/profile/numericalrepeat,3B
 orbaselinework. D301testedcodecheckpoint1b336d4alreadypushedbeforelaunch.
 
-NEXT backupD302data/analysischeckpoint, thenonecomplete4000W0withD300config
+Data/analysischeckpoint61a0f6fd1ed6b0d02a0c1c2354aff23044fbc406pushed and
+remoteverified;exact10filestage/checksum/secretschecks pass. Onlytrackeddirty
+fileisusergeneratedmanifest,notstaged. Bothownedanalysis scopesempty/stopped.
+NEXT onecomplete4000W0withD300config
 andtheD301identity-publicationfixonly. Do notrepeat100orchangecontrolthresholds.
 Recheckfullplan/V1 andnewoutput/resourcegates beforelaunch. NoGPU/remote
 inferencecurrentlyrunning;goalactive,7Btargetandfullcampaignremainopen.
