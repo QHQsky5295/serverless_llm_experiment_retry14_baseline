@@ -11,7 +11,25 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D310 native100 completed/audited; next SAME settings full4000, not a retune
+## CURRENT — D311 full4000 prepared; same candidate, no serving change
+
+2026-10-07 11:32+08. Previousgoalturn=progress: D310complete/audit/backupdone,
+83989b5eaff007d66a18c7cbf28790ae50cdbdcb remoteHEADverified. FullplanandV1
+reread (truncatedplanopeningrereadseparately). D311followsregisterednextstep.
+Freshconfig copiesD309except uniqueoutput/coldcachepaths; actualchildmatches
+D307measuredconfig,40service/24preparationclasses bind; D310model/controlsame.
+Prelaunchpassed configSHAe865efc2f3d964f40f1335d54a91ebdfd2bd2406cbc52e56666ecf3e254e434e.
+CPUprelaunchscope73d766c86bb0457ab3932d55ab6e482b emptystopped,
+peak496689152B/events0/swap0. NoGPU/remote service startedyet.
+289basic smoketests passed24.013s; scope13178c17efb843bd9c35343872618c49
+peak1170231296B,events0/swap0,emptystopped. Protectedseal147entrieschecked:
+onlyknownauthorizedbaselinereplay change, rawpassfalse retained. Sealscope
+3b73840e0fc0414180efbcec055cd661 emptystopped. Backup/launchnext.
+RemoteD80server/monitorSHA unchanged,
+priorD310servicesinactive. FullpreparationnotesD311_FULL_READ_PIN.md.
+Do not repeatD310, recalibrateprofiles orchangebudget; nofigures/3B/baselines.
+
+## HISTORY — D310 native100 completed/audited; same settings full4000 next
 
 2026-10-07 11:28+08. D310100/100successful,no failures. ExactsourceSHA
 5410400edf56e5fd1c814f4e8cb58b9fcac81f5f71dbbce9d282086061af44ea.
