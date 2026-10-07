@@ -21,6 +21,139 @@ from tests.test_ieee_tc_request_footprints import full_payload, scoped_payload
 
 
 class RouteIdentityCacheQualification(unittest.TestCase):
+    def _planning_payload(self):
+        value = full_payload()
+        value['clock_id'] = local_monotonic_clock_id()
+        value['device_uuid'] = 'GPU-00000000-0000-0000-0000-000000000001'
+        return value
+
+    def test_planning_measurement_seeds_gpu_and_host_without_second_rpc(self):
+        runner, slot, _, _ = self._runner()
+        runner._ieee_route_confirmed_snapshot_cache = True
+        payload = self._planning_payload()
+        original = copy.deepcopy(payload)
+        self.assertTrue(runner._ieee_publish_planning_sources(
+            slot, payload, expected_engine=slot.engine))
+        full = slot.native_source_state
+        self.assertEqual(payload, original)
+        async def check():
+            for aid in (4, 5):
+                values, meta = await runner._ieee_collect_confirmed_snapshot_cache(
+                    (slot,), requested_adapter_ids=[aid])
+                self.assertEqual(values[0][0], full.request_view([aid]))
+                self.assertEqual(meta['full_authoritative_read_replica_count'], 0)
+                self.assertEqual(meta['selected_revalidation'], 'owner_epoch_or_selected_identity_v1')
+                self.assertIsNone(values[0][0].host_tensor_storage_bytes)
+            slot.engine.ieee_request_sources.assert_not_awaited()
+            slot.engine.ieee_source_identities.assert_not_awaited()
+        asyncio.run(check())
+        self.assertEqual(runner._ieee_route_cache_stats['planning_snapshot_hits'], 2)
+        self.assertEqual(runner._ieee_route_cache_stats['planning_snapshot_seeded_scopes'], 2)
+        self.assertEqual(full.host_tensor_storage_bytes, 1536)
+        self.assertEqual(full.captured_monotonic_s, payload['captured_monotonic_s'])
+
+    def test_planning_scopes_preserve_existing_gpu_copy_and_host_invalidation_rules(self):
+        runner, slot, _, _ = self._runner()
+        runner._ieee_route_confirmed_snapshot_cache = True
+        runner._ieee_publish_planning_sources(slot, self._planning_payload(), expected_engine=slot.engine)
+        gpu = runner._ieee_route_full_cache[('inst-a', (4,))]
+        fresh = replace(slot.native_source_state.identity_view(), epoch=2,
+            captured_monotonic_s=time.monotonic())
+        runner._ieee_publish_identity_frontier(slot, fresh)
+        self.assertIs(runner._ieee_route_full_cache[('inst-a', (4,))], gpu)
+        self.assertNotIn(('inst-a', (5,)), runner._ieee_route_full_cache)
+        # Use the actual fixture's integer scope for direct invalidation:
+        with unittest.mock.patch('scripts.run_all_experiments.InferenceEngine._lora_int_id', return_value=4):
+            runner._ieee_invalidate_route_scope(slot, 'fixture-adapter')
+        self.assertNotIn(('inst-a', (4,)), runner._ieee_route_full_cache)
+
+    def test_late_planning_result_cannot_overwrite_newer_identity(self):
+        runner, slot, _, _ = self._runner()
+        runner._ieee_route_confirmed_snapshot_cache = True
+        old = self._planning_payload()
+        runner._ieee_publish_planning_sources(slot, old, expected_engine=slot.engine)
+        fresh = replace(slot.native_source_state.identity_view(), epoch=2,
+            captured_monotonic_s=time.monotonic())
+        runner._ieee_publish_identity_frontier(slot, fresh)
+        published = runner._ieee_route_identity_frontier['inst-a']
+        before = dict(runner._ieee_route_full_cache)
+        self.assertFalse(runner._ieee_publish_planning_sources(slot, old, expected_engine=slot.engine))
+        self.assertEqual(runner._ieee_route_full_cache, before)
+        self.assertIs(runner._ieee_route_identity_frontier['inst-a'], published)
+        self.assertEqual(published, fresh)
+
+    def test_same_epoch_late_planning_result_keeps_newer_frontier(self):
+        runner, slot, _, _ = self._runner()
+        runner._ieee_route_confirmed_snapshot_cache = True
+        old = self._planning_payload()
+        runner._ieee_publish_planning_sources(slot, old, expected_engine=slot.engine)
+        fresh = replace(slot.native_source_state.identity_view(), captured_monotonic_s=time.monotonic())
+        runner._ieee_publish_identity_frontier(slot, fresh)
+        published = runner._ieee_route_identity_frontier['inst-a']
+        self.assertFalse(runner._ieee_publish_planning_sources(slot, old, expected_engine=slot.engine))
+        self.assertIs(runner._ieee_route_identity_frontier['inst-a'], published)
+        self.assertEqual(published, fresh)
+
+    def test_planning_publication_requires_enabled_current_owner(self):
+        for case in ('disabled', 'removed', 'engine_replaced'):
+            with self.subTest(case=case):
+                runner, slot, _, _ = self._runner()
+                runner._ieee_route_confirmed_snapshot_cache = case != 'disabled'
+                expected = slot.engine
+                if case == 'removed':
+                    runner.instance_pool.get_slots = lambda: []
+                if case == 'engine_replaced':
+                    slot.engine = SimpleNamespace()
+                self.assertFalse(runner._ieee_publish_planning_sources(
+                    slot, self._planning_payload(), expected_engine=expected))
+                self.assertFalse(runner._ieee_route_full_cache)
+                self.assertIsNone(slot.native_source_state)
+
+    def test_planning_invalid_measurement_cannot_partially_publish(self):
+        mutations = (
+            lambda p: p.pop('device_uuid'),
+            lambda p: p['native_footprints'].__setitem__('host_tensor_storage_bytes', 0),
+            lambda p: p['native_footprints']['host_allocations'][0].__setitem__('adapter_ids', []),
+        )
+        for mutate in mutations:
+            runner, slot, _, _ = self._runner()
+            runner._ieee_route_confirmed_snapshot_cache = True
+            p = self._planning_payload()
+            mutate(p)
+            with self.assertRaises(ValueError):
+                runner._ieee_publish_planning_sources(slot, p, expected_engine=slot.engine)
+            self.assertFalse(runner._ieee_route_full_cache)
+            self.assertIsNone(slot.native_source_state)
+
+    def test_planning_physical_owner_change_is_not_silently_accepted(self):
+        runner, slot, _, _ = self._runner()
+        runner._ieee_route_confirmed_snapshot_cache = True
+        slot.native_device_uuid = 'GPU-other'
+        with self.assertRaisesRegex(ValueError, 'physical GPU changed'):
+            runner._ieee_publish_planning_sources(
+                slot, self._planning_payload(), expected_engine=slot.engine)
+        self.assertFalse(runner._ieee_route_full_cache)
+
+    def test_planning_without_measurement_does_not_enter_service_cache(self):
+        runner, slot, _, _ = self._runner()
+        runner._ieee_route_confirmed_snapshot_cache = True
+        payload = self._planning_payload()
+        payload.pop('native_footprints')
+        with self.assertRaisesRegex(ValueError, 'full measured'):
+            runner._ieee_publish_planning_sources(slot, payload, expected_engine=slot.engine)
+        self.assertFalse(runner._ieee_route_full_cache)
+
+    def test_planning_same_epoch_footprint_conflict_is_not_hidden(self):
+        runner, slot, _, _ = self._runner()
+        runner._ieee_route_confirmed_snapshot_cache = True
+        p = self._planning_payload()
+        runner._ieee_publish_planning_sources(slot, p, expected_engine=slot.engine)
+        before = dict(runner._ieee_route_full_cache)
+        p['native_footprints']['host_allocations'][0]['pinned'] = True
+        with self.assertRaisesRegex(ValueError, 'source (state|footprint)'):
+            runner._ieee_publish_planning_sources(slot, p, expected_engine=slot.engine)
+        self.assertEqual(before, runner._ieee_route_full_cache)
+
     def _runner(self):
         runner = ScenarioRunner.__new__(ScenarioRunner)
         runner._ieee_source_observation_waves = {}

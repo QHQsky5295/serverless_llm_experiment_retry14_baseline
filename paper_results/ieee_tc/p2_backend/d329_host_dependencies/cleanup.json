@@ -1,0 +1,13 @@
+{
+  "kind": "d329_owned_cpu_scope_cleanup_v1",
+  "unit": "primelora-tc-aux-c912c63246284a72ac2101d0de587caa.scope",
+  "invocation_id": "69f01c77bdbe43e78d6fc92497c01385",
+  "cgroup_inode": 20218224,
+  "owned_pids_before_stop": [],
+  "populated_before_stop": 0,
+  "memory_peak_bytes": 496173056,
+  "memory_events": {"low": 0, "high": 0, "max": 0, "oom": 0, "oom_kill": 0, "oom_group_kill": 0},
+  "memory_swap_current_bytes": 0,
+  "active_state_after_stop": "inactive",
+  "source": "exact identity and empty scope readback captured after the D329 CPU test process exited; no GPU or remote task"
+}

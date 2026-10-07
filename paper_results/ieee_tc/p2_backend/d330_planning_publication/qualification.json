@@ -1,0 +1,499 @@
+{
+  "kind": "d330_planning_source_publication_qualification_v1",
+  "production_candidate": "measured_planning_source_publication",
+  "gpu_performance_qualified": false,
+  "formal_qualification": false,
+  "figures_generated": false,
+  "base_commit": "bbbcf429107a4d8743305326824b93521d62a8c0",
+  "initial_test": {
+    "tests": 81,
+    "passed": false,
+    "identity": {
+      "unit": "primelora-tc-aux-c56f4057c7d749a3b5d50e55a38da4b6.scope",
+      "invocation_id": "d39fa2fc89994a09a583e404c50badee",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-c56f4057c7d749a3b5d50e55a38da4b6.scope",
+      "inode": 20226167
+    },
+    "resources": {
+      "memory.peak": "1887268864",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0"
+    }
+  },
+  "final_test": {
+    "tests": 485,
+    "passed": true,
+    "identity": {
+      "unit": "primelora-tc-aux-f6119e46b2b14c1a8ea928dd80fc0938.scope",
+      "invocation_id": "1b3f65fd5cea418ab447aee24bd24ac3",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-f6119e46b2b14c1a8ea928dd80fc0938.scope",
+      "inode": 20227307
+    },
+    "resources": {
+      "memory.peak": "1919430656",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0"
+    }
+  },
+  "cleanup1": {
+    "identity": {
+      "unit": "primelora-tc-aux-c56f4057c7d749a3b5d50e55a38da4b6.scope",
+      "invocation_id": "d39fa2fc89994a09a583e404c50badee",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-c56f4057c7d749a3b5d50e55a38da4b6.scope",
+      "inode": 20226167
+    },
+    "final_resources": {
+      "memory.peak": "1887268864",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0",
+      "cgroup.events": "populated 0\nfrozen 0"
+    },
+    "cleanup": {
+      "targets": [],
+      "hard_kill": false,
+      "released": true
+    }
+  },
+  "cleanup2": {
+    "identity": {
+      "unit": "primelora-tc-aux-f6119e46b2b14c1a8ea928dd80fc0938.scope",
+      "invocation_id": "1b3f65fd5cea418ab447aee24bd24ac3",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-f6119e46b2b14c1a8ea928dd80fc0938.scope",
+      "inode": 20227307
+    },
+    "final_resources": {
+      "memory.peak": "1919430656",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0",
+      "cgroup.events": "populated 0\nfrozen 0"
+    },
+    "cleanup": {
+      "targets": [],
+      "hard_kill": false,
+      "released": true
+    }
+  },
+  "prelaunch": {
+    "kind": "d328_prelaunch_binding_v1",
+    "passed": true,
+    "source_head_before_checkpoint": "bbbcf429107a4d8743305326824b93521d62a8c0",
+    "configuration_only_exclusive_paths": true,
+    "service_classes": 160,
+    "preparation_classes": 24,
+    "model_config": {
+      "name": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+      "backend": "vllm",
+      "device_id": 0,
+      "visible_device_ids": [
+        0
+      ],
+      "tensor_parallel_size": 1,
+      "gpu_memory_utilization": 0.92,
+      "max_model_len": 1024,
+      "max_loras": 8,
+      "max_lora_rank": 16,
+      "enable_lora": true,
+      "enforce_eager": false,
+      "dtype": "float16",
+      "max_num_seqs": 8,
+      "max_num_batched_tokens": 1024,
+      "max_output_tokens_cap": 256,
+      "max_input_len": 759,
+      "runtime_concurrency_cap": 8,
+      "enable_chunked_prefill": true,
+      "enable_prefix_caching": false,
+      "vllm_use_v1": true,
+      "vllm_attention_backend": "FLASH_ATTN",
+      "vllm_use_flashinfer_sampler": true,
+      "safetensors_load_strategy": "auto",
+      "timing_contract": "ieee_tc_native_v1",
+      "ieee_worker_observation": true,
+      "ieee_gpu_references": true,
+      "ieee_scheduler_observation": true,
+      "ieee_input_upper_bounds": [
+        759
+      ],
+      "generation_contract": "fixed_length_greedy_v1",
+      "canonical_prompt_renderer": "role_lines_v1",
+      "ieee_physical_allocation": true,
+      "ieee_host_budget_bytes": 17179869184,
+      "ieee_native_host_tensor_budget_bytes": 2147483648,
+      "ieee_native_host_workspace": {
+        "kind": "native_host_workspace_contract_v1",
+        "dtype": "torch.float16",
+        "source_audit_sha256": "224b9337ecaba2590ac888e9d0e3b9eb41a17074ce77b952e98e935259adf60f",
+        "max_resident_pinned_bytes": 33554432,
+        "max_transient_tensor_bytes": 67143184
+      },
+      "ieee_native_host_allocator_policy": "uncached_background_v1",
+      "ieee_admission_profile": {
+        "window_s": 5,
+        "model_backend_id": "native-model/38a4e646e9bf1cb195d7f0f0d22140b71255e6f2696ea4d73e4b27437a279f36",
+        "profile_id": "native-completed/af483454cadf3d31876e472443f32181d7676917fe3fc61354dd865db6f55427",
+        "profile_means": [
+          100.86411149825784,
+          125.56888888888889
+        ],
+        "transfer_limit": 3
+      },
+      "artifact_content_manifest_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json",
+      "requested_runtime_concurrency_cap": 8,
+      "max_cpu_loras": 24,
+      "requested_enforce_eager": "auto",
+      "resolved_enforce_eager": false,
+      "skip_stale_gpu_cleanup": true
+    },
+    "assembly": {
+      "CUDA_VISIBLE_DEVICES": "0",
+      "FAASLORA_VISIBLE_DEVICES": "0"
+    },
+    "protection": {
+      "kind": "protected_artifact_verification",
+      "pass": false,
+      "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+      "changed": [
+        "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"
+      ],
+      "entry_count": 147,
+      "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+    },
+    "preflight": {
+      "kind": "ieee_tc_preflight",
+      "time_unix": 1791401370.428454,
+      "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+      "policy": {
+        "service_high_bytes": 77309411328,
+        "service_max_bytes": 85899345920,
+        "service_swap_max_bytes": 2147483648,
+        "aux_max_bytes": 4294967296,
+        "stop_available_bytes": 17179869184,
+        "margin_bytes": 2147483648,
+        "warning_available_bytes": 25769803776,
+        "service_cpus": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ],
+        "aux_cpus": [
+          2,
+          3,
+          26,
+          27
+        ],
+        "reserved_cpus": [
+          0,
+          1,
+          24,
+          25
+        ],
+        "memory_full_avg10_percent": 10,
+        "pressure_samples": 10,
+        "sample_seconds": 1,
+        "disk_stop_bytes": 107374182400,
+        "disk_start_floor_bytes": 161061273600
+      },
+      "memory": {
+        "MemTotal": 134626844672,
+        "MemFree": 46786674688,
+        "MemAvailable": 112507600896,
+        "Buffers": 12693467136,
+        "Cached": 44494962688,
+        "SwapCached": 243589120,
+        "Active": 34347851776,
+        "Inactive": 39386714112,
+        "Active(anon)": 16216494080,
+        "Inactive(anon)": 335060992,
+        "Active(file)": 18131357696,
+        "Inactive(file)": 39051653120,
+        "Unevictable": 3211264,
+        "Mlocked": 0,
+        "SwapTotal": 36507213824,
+        "SwapFree": 34816729088,
+        "Zswap": 0,
+        "Zswapped": 0,
+        "Dirty": 458752,
+        "Writeback": 69632,
+        "AnonPages": 16467578880,
+        "Mapped": 1120772096,
+        "Shmem": 5537792,
+        "KReclaimable": 10604621824,
+        "Slab": 11952742400,
+        "SReclaimable": 10604621824,
+        "SUnreclaim": 1348120576,
+        "KernelStack": 38584320,
+        "PageTables": 159539200,
+        "SecPageTables": 0,
+        "NFS_Unstable": 0,
+        "Bounce": 0,
+        "WritebackTmp": 0,
+        "CommitLimit": 103820636160,
+        "Committed_AS": 20665806848,
+        "VmallocTotal": 35184372087808,
+        "VmallocUsed": 619196416,
+        "VmallocChunk": 0,
+        "Percpu": 167510016,
+        "HardwareCorrupted": 0,
+        "AnonHugePages": 69206016,
+        "ShmemHugePages": 0,
+        "ShmemPmdMapped": 0,
+        "FileHugePages": 0,
+        "FilePmdMapped": 0,
+        "Unaccepted": 0,
+        "HugePages_Total": 0,
+        "HugePages_Free": 0,
+        "HugePages_Rsvd": 0,
+        "HugePages_Surp": 0,
+        "Hugepagesize": 2097152,
+        "Hugetlb": 0,
+        "DirectMap4k": 35868606464,
+        "DirectMap2M": 98889105408,
+        "DirectMap1G": 4294967296
+      },
+      "required_available_bytes": 109521666048,
+      "filesystems": [
+        {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+          "device": 2050,
+          "free_bytes": 161765138432,
+          "required_bytes": 161061273600,
+          "free_inodes": 210121183
+        }
+      ],
+      "service_parent_chain": [
+        {
+          "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service",
+          "memory.current": 27934052352,
+          "memory.peak": 93511049216,
+          "memory.high": "max",
+          "memory.max": "max",
+          "memory.swap.current": 217980928,
+          "memory.swap.max": "max",
+          "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=163274162\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=161202753",
+          "cpu.max": null,
+          "cpu.stat": "usage_usec 1198308892346\nuser_usec 1104038222402\nsystem_usec 94270669943\ncore_sched.force_idle_usec 0",
+          "cpuset.cpus.effective": null,
+          "cgroup.controllers": "memory pids",
+          "memory.events": {
+            "low": 0,
+            "high": 104569,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 0,
+            "oom_group_kill": 0
+          }
+        },
+        {
+          "path": "/sys/fs/cgroup/user.slice/user-1001.slice",
+          "memory.current": 76269338624,
+          "memory.peak": 125386870784,
+          "memory.high": "max",
+          "memory.max": "max",
+          "memory.swap.current": 413609984,
+          "memory.swap.max": "max",
+          "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=890042523\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=885490359",
+          "cpu.max": null,
+          "cpu.stat": "usage_usec 1266591517627\nuser_usec 1154464623891\nsystem_usec 112126893735\ncore_sched.force_idle_usec 0",
+          "cpuset.cpus.effective": null,
+          "cgroup.controllers": "memory pids",
+          "memory.events": {
+            "low": 0,
+            "high": 104569,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 1,
+            "oom_group_kill": 0
+          }
+        },
+        {
+          "path": "/sys/fs/cgroup/user.slice",
+          "memory.current": 76394921984,
+          "memory.peak": 125467160576,
+          "memory.high": "max",
+          "memory.max": "max",
+          "memory.swap.current": 594231296,
+          "memory.swap.max": "max",
+          "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=883415641\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=878561681",
+          "cpu.max": "max 100000",
+          "cpu.stat": "usage_usec 1321074705572\nuser_usec 1192424089530\nsystem_usec 128650616042\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0",
+          "cpuset.cpus.effective": "0-47",
+          "cgroup.controllers": "cpuset cpu io memory hugetlb pids rdma misc",
+          "memory.events": {
+            "low": 0,
+            "high": 104569,
+            "max": 0,
+            "oom": 0,
+            "oom_kill": 1,
+            "oom_group_kill": 0
+          }
+        },
+        {
+          "path": "/sys/fs/cgroup",
+          "memory.current": null,
+          "memory.peak": null,
+          "memory.high": null,
+          "memory.max": null,
+          "memory.swap.current": null,
+          "memory.swap.max": null,
+          "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=987134430\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=969456478",
+          "cpu.max": null,
+          "cpu.stat": "usage_usec 2514413855000\nuser_usec 1833046238000\nsystem_usec 681367617000\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0",
+          "cpuset.cpus.effective": "0-47",
+          "cgroup.controllers": "cpuset cpu io memory hugetlb pids rdma misc",
+          "memory.events": null
+        }
+      ],
+      "issues": [],
+      "preflight_pass": true,
+      "production_launch_authorized": false,
+      "remaining_gates": [
+        "actual_service_workers",
+        "separate_replay_and_watchdog",
+        "gpu_cleanup",
+        "per_filesystem_quota_audit"
+      ]
+    },
+    "source_references": [
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261008_d331_7b_planning_validation_100.yaml",
+        "sha256": "bce01d9365aa8ce01d6cc729328c79c6ca419471ccf42fdfaaacbeb63acac048"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261008_d326_7b_full_w0.yaml",
+        "sha256": "3c5ad20bf1d4ef38c74125dcdc9646436d5b18dc5afd1a3b32eb2c05d882f4f2"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d298_capacity/development_contract.json",
+        "sha256": "98bc4292efcb2f9c5c9a1068fccfaeacc460bb35f4b1fbc579b8ef34f32a8afb"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d331_20261008/verify_prelaunch.py",
+        "sha256": "e75c8a17a54ef775ddd1ba0c0e8aa749012ca979101497b6a8e3f644fbd3f886"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh",
+        "sha256": "a517b388f01b1de73a0844d4142b0852a7612da7df73839ec8e42df192effbeb"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "sha256": "7812f760dbdcc9689d6d2828036e289c0f4d5254797d9fa2243798476aa6dea1"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/instance_pool.py",
+        "sha256": "0a29415bf00e77de7f529260301b7c7d1f187de2c761dc75b24db7b30b27c38a"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d330_20261008/tests2.log",
+        "sha256": "7ce4ec11d7166a8234453f672e38e31354eedb735154f105dca909c0449fef8a"
+      }
+    ],
+    "base_requests": 4000,
+    "diagnostic_prefix_count": 100,
+    "numerical_n_correct": null,
+    "formal_qualification": false,
+    "observer": "none",
+    "no_figures": true
+  },
+  "prelaunch_cleanup": {
+    "identity": {
+      "unit": "primelora-tc-aux-b5b65d76fbc84634a4a3fa25e5c91a29.scope",
+      "invocation_id": "b6cfecbab8d64157ab014146ac10f1be",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-b5b65d76fbc84634a4a3fa25e5c91a29.scope",
+      "inode": 20229177
+    },
+    "final_resources": {
+      "memory.peak": "514015232",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0",
+      "cgroup.events": "populated 0\nfrozen 0"
+    },
+    "cleanup": {
+      "targets": [],
+      "hard_kill": false,
+      "released": true
+    }
+  },
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/instance_pool.py",
+      "sha256": "0a29415bf00e77de7f529260301b7c7d1f187de2c761dc75b24db7b30b27c38a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "7812f760dbdcc9689d6d2828036e289c0f4d5254797d9fa2243798476aa6dea1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_host_observation_freshness.py",
+      "sha256": "d99c03e1e75fed97bc950c408ec8365afa7eb4728471898ec3cd120b49490290"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_request_footprints.py",
+      "sha256": "572377984455893b26f8c18224bfa3972a7e685c0b71757ad823a2f97105d9e0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_route_identity_cache.py",
+      "sha256": "b041f13b40ed39b8c8d97aab77a8be89862678aa36396e07396ed877d02f6fb5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_planning_snapshot.py",
+      "sha256": "b69bb0586ba2b868345891166cff43fbcf6c04bebab7764898996cb8cf0a4a4f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261008_d331_7b_planning_validation_100.yaml",
+      "sha256": "bce01d9365aa8ce01d6cc729328c79c6ca419471ccf42fdfaaacbeb63acac048"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh",
+      "sha256": "a517b388f01b1de73a0844d4142b0852a7612da7df73839ec8e42df192effbeb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d330_20261008/tests1.log",
+      "sha256": "845b5b343c07508c68f91e424a449c2fd946d68341e720d0e02ea6f17218f3dc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d330_20261008/tests2.log",
+      "sha256": "7ce4ec11d7166a8234453f672e38e31354eedb735154f105dca909c0449fef8a"
+    }
+  ],
+  "notes": [
+    "First attempt has three newly written fixture/assertion errors, not performance failures; preserved.",
+    "D329 source refs precede D330 edits: unchanged paths checked live; changed tracked sources verified at base_commit.",
+    "No GPU or remote run was launched; D331 prelaunch checks do not replace launch-time gates."
+  ]
+}

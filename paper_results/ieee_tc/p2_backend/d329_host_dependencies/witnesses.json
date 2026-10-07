@@ -1,0 +1,90 @@
+{
+  "kind": "d329_host_observation_dependency_witnesses_v1",
+  "scope": {
+    "unit": "primelora-tc-aux-c912c63246284a72ac2101d0de587caa.scope",
+    "invocation_id": "69f01c77bdbe43e78d6fc92497c01385",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-c912c63246284a72ac2101d0de587caa.scope",
+    "inode": 20218224
+  },
+  "tests": 32,
+  "passed": true,
+  "elapsed_including_import_s": 6.326935518998653,
+  "torch_version": "2.8.0+cu128",
+  "cuda_initialized": false,
+  "gpu_performance_result": false,
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d329_20261008/check_dependencies.py",
+      "sha256": "52005f0bf4d6617a580b5d81d0e2249f7768cd74c306a3cf0e797adb78e4b7e1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_host_observation_freshness.py",
+      "sha256": "d99c03e1e75fed97bc950c408ec8365afa7eb4728471898ec3cd120b49490290"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_worker_observation.py",
+      "sha256": "f4d8bcf0d5da67e36445b2cf32e893af1b7f9b6c245289f4c1a8a591c03b4489"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_gpu_references.py",
+      "sha256": "70f11c607a3d588eac0c0b1187f00c8cbf561cb7442a8265310c3d08d0bb38c9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+      "sha256": "affd242b2a475dadd0cbde7a0d199bd34b3eb9215aa637533cf109df07f35b97"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "sha256": "71866ebab1ec7f00ff78e327288c043ff0d5391ac632e70829bff0b102bd9f37"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/instance_pool.py",
+      "sha256": "33f7cffc0ad8fca978441e091bd39dc76bad71235670188b85f3cf73e0d838df"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_planner.py",
+      "sha256": "1e0c900b5cfa4fa1ea1a1d227107a0e36e2bfa5be0c76e8958e54f15e7595385"
+    }
+  ],
+  "test_log": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d329_20261008/tests.log",
+    "sha256": "f830fad0e6ec1ba5eae427d668888526df71ac4e01f722415955c76628d1e002"
+  },
+  "protected_before": {
+    "kind": "protected_artifact_verification",
+    "pass": false,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [
+      "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"
+    ],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "protected_after": {
+    "kind": "protected_artifact_verification",
+    "pass": false,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [
+      "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"
+    ],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "resources_before_process_exit": {
+    "memory.peak": "496173056",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0",
+    "memory.high": "3221225472",
+    "memory.max": "4294967296",
+    "memory.swap.max": "0"
+  },
+  "production_changes": false,
+  "formal_qualification": false,
+  "figures_generated": false,
+  "decision": "reject_owner_epoch_or_model_identity_as_a_storage_immutability_witness",
+  "caveats": [
+    "CPU real-tensor fixture, not workload frequency or GPU performance",
+    "pinning flip is a mocked backend observation, not real cudaHostRegister",
+    "does not prove that a separately enforced storage-lifetime design is impossible"
+  ]
+}

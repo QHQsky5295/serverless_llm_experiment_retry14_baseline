@@ -11,7 +11,73 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D328 complete; current native HOST observation is the next study
+## CURRENT — D330 tested candidate; D331 real 7B qualification is next
+
+2026-10-08 ~03:30+08 PROGRESS. Implemented ONE candidate: initialized planner's
+already measured native graph also seeds the existing confirmed-route scopes.
+Original identity/time retained, no extra RPC, no TTL/physical-inventory cache,
+same live planner/budget and selected-copy atomic checks. HOST invalidation and
+D316 GPU-copy rule unchanged. New projection removes global HOST union from
+request scopes. Publication/hit counters added, not latency-savings estimates.
+See D330_PLANNING_SOURCE_PUBLICATION.md. No new GPU run/performance claim/figure.
+
+485 related tests pass60.858s incl actual planner/collector composition. Initial
+81-test attempt has3 fixture/assertion failures retained (two object identity
+assertions, one pinning mutation was no-op); only tests corrected. Actual scopes
+c56f4057.../f6119e46... peak1887268864/1919430656B,events0/swap0,empty/stopped/inactive.
+D331 config plus existing guarded runner `d331` prepared: originalW0 first100
+indices, D326 controls/model unchanged, new exclusive paths, no detailed observer.
+Prelaunch production loader160/24profiles + exact D298 child-model match pass;
+disk161765138432B,MemAvailable112507600896B, protectedseal onlyknownbaseline
+replaydifference. Preflight scopeb5b65d76...peak514015232B/events0/swap0,empty/stopped.
+
+NEXT: backup tested candidate, then actual D331 via existing runner after fresh
+plan/status/resource/remote checks; not another analysis-only/backup-only turn.
+Need100/100 native contracts/bindings/timing, real GPU release, actual planning
+publication/hits, remote packing0. Then SAME candidate ordinary4000 W0 vsD326,
+all failures/retirements/output changes retained. Short run cannot prove G1/G2.
+No remote service started/changed this turn. D78/D80 once-onlycache already done.
+7B->3B->baselines->comparison->ablations/sensitivities remains; numerical/common
+warm/Resident/old-new new-metric acceptance OPEN. Goal active; no figures.
+
+## HISTORY — D329 dependency tests complete; measured planning publication candidate
+
+2026-10-08. 32 CPU tests pass (6 new tiny real-tensor witnesses plus existing
+HOST footprint/projection checks). Owner epoch/model ID alone fails to detect
+inner tensor/storage/alias/representation changes. Pinning flip is MOCKED, not
+real cudaHostRegister; no claim these changes occur in ordinary workload.
+Reject epoch-only physical inventory cache, not all controlled-lifetime designs.
+No production change/GPU run/remote operation/performance gain in D329.
+CPU scope c912c63246284a72ac2101d0de587caa, invocation69f01c77bdbe43e78d6fc92497c01385,
+inode20218224, peak496173056B/events0/swap0, exact-owned-empty/stopped/inactive.
+Data in d329_host_dependencies; plan/V1/user manifest unchanged, protected seal
+only known baseline replay SHA04f3eb52... difference. No figures; goal active.
+
+NEXT D330: investigate reusing initialized planner's already freshly measured
+native source graph for existing confirmed route scopes. D289/D301/D316 are
+already implemented, not new candidates. Preserve actual capture identity/time,
+selected-source atomic validation, full fresh planning/budget checks; no extra
+RPC, TTL or forged footprint. First bounded tests, then actual replay only if
+causal publication and resource gates pass. Do not repeat D328/D329 audit.
+7B remains unqualified; then 3B, baselines, comparisons, ablations/sensitivities.
+Common warm/Resident/numerical/old-new new-metric qualification remains OPEN.
+User's once-only delivery-cache approval already fulfilled D78/D80; no rebuild.
+
+## HISTORY — D328 complete; current native HOST observation is the next study
+
+Checkpoint backed up 2026-10-08T03:02+08: local HEAD and independently read
+remote V2 branch both bbbcf429107a4d8743305326824b93521d62a8c0. 14 explicit
+paths, 25 related tests pass; 71 source and 7 analysis references verified,
+12 bundle hashes checked. CSV uses the analyzer's standard CRLF; whitespace
+check passed with cr-at-eol recognition, without rewriting measurements.
+Credential-pattern checks include the 9,252-byte analysis-source archive.
+Final verification scope inactive, peak496934912B/events0/swap0. GPU census empty.
+52 historical active scope records inspected read-only: all empty, none populated;
+not stopped or misreported as running experiments. User manifest unchanged/unstaged.
+No active experiment or tool job. D329_HOST_STORAGE_DEPENDENCY_AUDIT.md records
+why pinning cannot simply be omitted: it feeds the HOST service/preparation class.
+NEXT continue that one dependency/candidate task, not another D328 audit or
+backup-only turn. This post-push tracker note is later than the sealed checkpoint.
 
 2026-10-08: the one 1,000-request diagnostic and offline audits completed.
 Native quantity/ten binding contracts 1000/1000, failures0; numerical N_correct

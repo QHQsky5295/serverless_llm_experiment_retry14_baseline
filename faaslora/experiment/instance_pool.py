@@ -81,6 +81,24 @@ class NativeSourceSnapshot:
             for source in self.sources), host_tensor_storage_bytes=None, gpu_pool_storage_bytes=None,
             footprint_adapter_ids=None)
 
+    def request_view(self, requested_adapter_ids):
+        """Project one validated full measurement without re-observing it.
+
+        Keep the original identity/time; this is not a new observation or a
+        capacity lease. Global HOST union is intentionally removed, since the
+        consumer only receives measured footprints for the requested targets.
+        """
+        scope = self._request_scope(requested_adapter_ids)
+        if (self.footprint_adapter_ids is not None
+                or self.host_tensor_storage_bytes is None
+                or self.gpu_pool_storage_bytes is None):
+            raise ValueError('request projection requires a full measured native snapshot')
+        return replace(self, footprint_adapter_ids=scope, host_tensor_storage_bytes=None,
+            sources=tuple(source if source.adapter_int_id in scope else replace(source,
+                host_storage_bytes=None, host_representation=None,
+                gpu_slot_capacity_bytes=None, gpu_representation=None)
+                for source in self.sources))
+
     @staticmethod
     def _footprints(payload, slots, registered, *, requested_adapter_ids=None):
         """Validate storage unions separately from per-adapter footprint sums."""

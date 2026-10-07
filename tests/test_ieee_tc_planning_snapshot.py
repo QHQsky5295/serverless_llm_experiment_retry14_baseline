@@ -37,6 +37,39 @@ def without_provenance(value):
 
 
 class PlanningSnapshot(unittest.TestCase):
+    def test_real_planner_and_route_collector_share_one_measurement(self):
+        from faaslora.experiment.instance_pool import InstanceSlot
+        factory, (fixture, runner, queue, template, native) = self.make()
+        slot = InstanceSlot(template.instance_id, engine=template.engine, coordinator=None,
+            preparation_cost_model=template.preparation_cost_model)
+        native['device_uuid'] = 'GPU-planning-fixture'
+        runner.instance_pool = NS(get_slots=lambda: [slot])
+        runner._ieee_route_confirmed_snapshot_cache = True
+        runner._ieee_source_observation_stats = {}
+        runner._ieee_source_observation_waves = {}
+        slot.engine.ieee_request_sources = AsyncMock(side_effect=AssertionError('duplicate native read'))
+        plan = factory.plan(runner, slot)
+        async def route():
+            for aid in native['registered_cpu_adapter_ids']:
+                values, meta = await runner._ieee_collect_confirmed_snapshot_cache(
+                    (slot,), requested_adapter_ids=[aid])
+                self.assertEqual(values[0][0].captured_monotonic_s, native['captured_monotonic_s'])
+                self.assertEqual(meta['full_authoritative_read_replica_count'], 0)
+        asyncio.run(route())
+        slot.engine.ieee_request_sources.assert_not_awaited()
+        slot.engine.ieee_gpu_reference.assert_awaited_once_with(operation='routing_source_snapshot')
+        self.assertEqual(plan['source_view']['native'], projection(native))
+        self.assertEqual([c.artifact_id for c in plan['selected']['gpu']], ['a', 'd'])
+        self.assertFalse(plan['physical_resources_reserved'])
+
+    def test_initialized_planner_publishes_the_same_received_measurement(self):
+        factory, (fixture, runner, queue, slot, native) = self.make()
+        with patch.object(runner, '_ieee_publish_planning_sources', return_value=True) as publish:
+            plan = factory.plan(runner, slot)
+        publish.assert_called_once_with(slot, projection(native), expected_engine=slot.engine)
+        slot.engine.ieee_gpu_reference.assert_awaited_once_with(operation='routing_source_snapshot')
+        self.assertEqual(plan['source_view']['native'], projection(native))
+
     def make(self):
         factory = fixtures.OwnedPreparationPlanning()
         self.addCleanup(factory.doCleanups)

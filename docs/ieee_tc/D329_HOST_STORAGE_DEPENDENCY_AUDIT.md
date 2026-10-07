@@ -1,6 +1,6 @@
-# D329：HOST 物理表示的依赖核查（尚未选择实现）
+# D329：HOST 物理表示的依赖核查（CPU 反例验证完成）
 
-2026-10-08。主线仍是 7B。D328 诊断完成，当前仅进行了代码与历史核查；
+2026-10-08。主线仍是 7B。D328 诊断完成，本轮进行了代码核查和 tiny CPU 验证；
 没有新 GPU 回放、生产修改或性能收益结论。不得重复 D328 来等待更好结果。
 
 ## 已排除的捷径
@@ -32,13 +32,40 @@
 
 这些依据只支持研究依赖，不支持从文献借用加速百分比。
 
-## 下一项唯一研究及否定条件
+## 反例验证与裁决
+
+复用现有 NativeManager/NativeHostFootprint 微型 fixture 和真实 CPU tensor，
+6 项新增测试加已有 HOST footprint/projection 回归共 32 项通过。
+环境为既有 Torch 2.8.0+cu128，CUDA 未初始化；不是 vLLM 0.30/Torch 2.13
+的真实 GPU 性能或工作负载发生频率证据。
+
+| 受控改变 | owner 身份不变时，实时 inventory 的结果 |
+|---|---|
+| 替换内部 tensor | 总字节 768→1152，dtype 变为混合 |
+| 同一 tensor 的 storage resize | 总字节 768→1280 |
+| 两个私有 tensor 改为已有共享 view | 总字节 768→512，独占回收量也改变 |
+| mock pinning 查询 false→true | allocation 的 pinning 标志改变 |
+| 增加嵌套 tensor 字段 | 原有非法表示检查拒绝 |
+| 移除注册对象 | epoch 推进，联合/独占字节重新计算；空集为零 |
+
+pinning 用的是受控返回值，不是真实 cudaHostRegister；前五项不证明普通
+运行确实发生这种修改，只证明现有 epoch/model-ID 合同本身不足以排除它。
+因此拒绝**仅依赖这两个字段**的跨调用物理表示缓存，不将它加入生产代码。
+这不等于否定将来具备完整受控 storage 生命周期的设计。
+
+原始日志在 `results/ieee_tc/p2_backend_qualification/d329_20261008/`；
+curated witnesses/cleanup 在 `paper_results/ieee_tc/p2_backend/d329_host_dependencies/`。
+32 项连同导入耗时 6.326936 s；实际 3/4 GiB、swap0、CPU2,3,26,27，
+峰值 496173056 B，high/max/OOM/swap 全零，精确身份核对后空域已关闭。
+保护清单的唯一差异仍是既有 baseline replay 脚本，不称 147 项全部未变。
+
+## 下一项边界
 
 考察：能否把不变的物理表示事实绑定到**实际受控的 storage 生命周期**，
 保留每次 live membership、source incarnation、GPU confirmation、引用和
 容量重检查，仅免去能够证明冗余的 native 属性查询。
 
-首先沿现有 owner、native manager 及已装后端检查全部对象/存储变更入口，
+若以后恢复该方向，须沿 owner、native manager 及已装后端检查全部变更入口，
 包括原生按需加载、load-inplace、LRU、staging、取消、replacement、共享
 storage 和失效。复用现有 tiny tensor fixture，不创建 adapter/trace 池。
 若无法证明失效覆盖，或必须跳过现有错误检测才能获益，就拒绝该候选，
@@ -49,6 +76,12 @@ storage 和失效。复用现有 tiny tensor fixture，不创建 adapter/trace �
 必须由实际服务承担，不移入免费外置工作。若候选成立，先正确性测试，
 然后普通完整 4,000 请求回放，不能由局部微测关闭 G1/G2。
 
-此文是承接 D328 的只读审计记录，不是又一套实验计划或已合格实现。
+当前转向复用已经取得的真实测量，而非推定旧物理事实永远有效：
+D289 的加载身份事件、D301 的同 epoch scope 保留、D316 的 GPU-copy 保留
+已存在，不能重复实现。下一候选核查 initialized planner 取得的完整新测量
+能否同时供现有 router 使用，保持原始 epoch/时间戳和选中来源原子复核；
+不能增加新 RPC、重用旧预算决定或把历史测量重标为新测量。
+
+此文是承接 D328 的依赖验证记录，不是性能资格或新一套实验计划。
 共同 warm、Resident、数值正确性及新旧 Prime 新指标验收仍开放。
 7B 后再推进 3B、基线、主比较、消融与敏感性。目标前不绘图。

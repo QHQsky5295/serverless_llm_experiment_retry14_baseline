@@ -57,6 +57,25 @@ def parse(ids=(4,), payload=None):
 
 
 class RequestFootprintSchema(unittest.TestCase):
+    def test_full_measurement_projection_matches_fresh_scoped_schema(self):
+        full = NativeSourceSnapshot.from_native(full_payload(),
+            expected_clock_id='clock', received_monotonic_s=20.)
+        for ids in ((4,), (5,), (4, 5), (), (99,)):
+            with self.subTest(ids=ids):
+                self.assertEqual(full.request_view(ids), parse(ids))
+        self.assertEqual(full.host_tensor_storage_bytes, 1536)
+
+    def test_projection_cannot_invent_footprints_from_identity_or_scope(self):
+        state = parse()
+        for incomplete in (state, state.identity_view()):
+            with self.assertRaisesRegex(ValueError, 'full measured'):
+                incomplete.request_view([4])
+        full = NativeSourceSnapshot.from_native(full_payload(),
+            expected_clock_id='clock', received_monotonic_s=20.)
+        for ids in ([True], [0], [4, 4], [5, 4], None):
+            with self.subTest(ids=ids), self.assertRaises(ValueError):
+                full.request_view(ids)
+
     def test_target_class_and_all_identities_match_full_observation(self):
         full = NativeSourceSnapshot.from_native(full_payload(), expected_clock_id='clock', received_monotonic_s=20.)
         for ids in ((4,), (5,), (4, 5), (), (99,)):

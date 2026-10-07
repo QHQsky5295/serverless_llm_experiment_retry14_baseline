@@ -8767,6 +8767,56 @@ class ScenarioRunner:
             cache_stats.get('identity_frontier_retained_gpu_scopes', 0) + retained_gpu_scopes)
         return True
 
+    def _ieee_publish_planning_sources(self, slot, native, *, expected_engine) -> bool:
+        """Share an already measured planning observation with route consumers.
+
+        This creates neither an RPC nor a new measurement timestamp. Planning
+        still reads its complete fresh storage graph on every epoch. Only the
+        existing candidate-view cache is seeded; selection revalidates and pins
+        its actual source exactly as for an authoritative request-source read.
+        """
+        if not getattr(self, '_ieee_route_confirmed_snapshot_cache', False):
+            return False
+        if (slot.engine is not expected_engine
+                or not any(current is slot for current in self.instance_pool.get_slots())):
+            return False
+        from faaslora.clock import local_monotonic_clock_id
+        from faaslora.experiment.instance_pool import NativeSourceSnapshot
+        state = NativeSourceSnapshot.from_native(native,
+            expected_clock_id=local_monotonic_clock_id(), received_monotonic_s=time.monotonic())
+        device_uuid = native.get('device_uuid')
+        if not isinstance(device_uuid, str) or not device_uuid:
+            raise ValueError('planning source publication lacks native physical GPU identity')
+        previous_uuid = getattr(slot, 'native_device_uuid', None)
+        if previous_uuid is not None and previous_uuid != device_uuid:
+            raise ValueError('planning source physical GPU changed within a replica')
+        if not slot.accepts_native_sources(state):
+            return False
+        frontier = getattr(self, '_ieee_route_identity_frontier', {}).get(slot.instance_id)
+        if frontier is not None and state.epoch == frontier.epoch \
+                and state.captured_monotonic_s < frontier.captured_monotonic_s:
+            return False
+        # Prepare all projections before publication. Unknown/unconfirmed
+        # native entries cannot seed a footprint-dependent route service class.
+        entries = []
+        for source in state.sources:
+            scope = (source.adapter_int_id,)
+            projected = state.request_view(scope)
+            if self._ieee_route_cache_covers_scope(state, projected, scope):
+                entries.append((scope, dict(snapshot=projected, device_uuid=device_uuid,
+                    confirmed_at_monotonic_s=state.captured_monotonic_s,
+                    confirmation='authoritative_planning_source_v1')))
+        if not self._ieee_publish_identity_frontier(slot, state):
+            return False
+        slot.commit_native_sources(state)
+        slot.native_device_uuid = device_uuid
+        for scope, entry in entries:
+            self._ieee_route_full_cache[(slot.instance_id, scope)] = entry
+        stats = self._ieee_route_cache_stats
+        stats['planning_snapshot_publications'] = stats.get('planning_snapshot_publications', 0) + 1
+        stats['planning_snapshot_seeded_scopes'] = stats.get('planning_snapshot_seeded_scopes', 0) + len(entries)
+        return True
+
     def _ieee_publish_post_load_identity(self, slot, receipt) -> bool:
         """Decode the native post-load identity emitted in one owner receipt."""
         from faaslora.clock import local_monotonic_clock_id
@@ -8811,8 +8861,9 @@ class ScenarioRunner:
         """Collect a confirmed route view with selected-copy validation.
 
         A cache entry is never created from a prediction: it is populated only
-        by ``ieee_request_sources`` and contains the complete native identity
-        plus the requested measured footprint.  Reuse is intentionally
+        by a validated request-source or full planning-source observation and
+        contains the complete native identity plus the requested measured
+        footprint. Reuse is intentionally
         limited to building the candidate view.  The selected source is
         subsequently checked by ``_ieee_protect_selected_source`` and the
         native acquisition transaction, which compare the owner/epoch/source
@@ -8866,6 +8917,9 @@ class ScenarioRunner:
                         reused_indexes.add(index)
                         cache_stats['confirmed_snapshot_hits'] = (
                             cache_stats.get('confirmed_snapshot_hits', 0) + 1)
+                        if entry.get('confirmation') == 'authoritative_planning_source_v1':
+                            cache_stats['planning_snapshot_hits'] = (
+                                cache_stats.get('planning_snapshot_hits', 0) + 1)
                 reads = {
                     index: asyncio.create_task(
                         slots[index].engine.ieee_request_sources(
@@ -19339,7 +19393,9 @@ class ScenarioRunner:
         # omitted. Do not substitute ieee_routing_sources' compact wire or a
         # request-scoped footprint: planning needs global capacity and victims.
         # Physical execution/deferred-capacity checks keep their full reports.
-        native = await slot.engine.ieee_gpu_reference(operation='routing_source_snapshot')
+        observed_engine = slot.engine
+        native = await observed_engine.ieee_gpu_reference(operation='routing_source_snapshot')
+        self._ieee_publish_planning_sources(slot, native, expected_engine=observed_engine)
         manager = self._stack.residency_manager
         manifests = self._remote_artifact_client.preparation_descriptions(self._ieee_artifact_identities)
         files = manager.local_source_references.preparation_snapshot(manifests=manifests,
