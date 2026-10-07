@@ -154,16 +154,110 @@ def main():
         cases=248, protection_raw=seal)),flush=True)
 
 
-def verify_existing_launch():
+def prepare_prefill_candidate():
+    """D307: reuse D298's exact source cases, changing only iteration granularity."""
     root = p.ROOT
-    out = root/'paper_results/ieee_tc/p2_backend/d298_capacity'
-    source_path = root/'configs/ieee_tc/20261007_d298_7b_capacity_source.yaml'
-    base_path = root/'configs/ieee_tc/20261002_d169_7b_warm_reference.yaml'
+    out = root/'paper_results/ieee_tc/p2_backend/d307_prefill'
+    rawdir = root/'results/ieee_tc/p2_backend_qualification/d307_20261007'
+    if out.exists():
+        raise FileExistsError(out)
+    refs = {
+        'configs/ieee_tc/20261007_d298_7b_capacity_source.yaml': '6b96df57e5f05a9b4a0b597ef988b464d37af6b61e4dac33b3e4444778d1487f',
+        'configs/ieee_tc/20261007_d303_7b_full_w0.yaml': '18a5d633fac9a5cf13d4be260d323bb7796ad8698c4d7fd2e0493de141fcb3e5',
+        'paper_results/ieee_tc/p2_backend/d298_capacity/source_spec.json': '0f9d8ccb886a81315634ba925e2cbc25153ce7b2d2d6d306008088125eb03649',
+        'paper_results/ieee_tc/p2_backend/d298_capacity/development_contract.json': '98bc4292efcb2f9c5c9a1068fccfaeacc460bb35f4b1fbc579b8ef34f32a8afb',
+    }
+    for path, expected in refs.items():
+        assert p.digest(root/path) == expected
+    source_path = root/'configs/ieee_tc/20261007_d307_7b_prefill_source.yaml'
+    source = yaml.safe_load(source_path.read_text())
+    original = yaml.safe_load((root/'configs/ieee_tc/20261007_d298_7b_capacity_source.yaml').read_text())
+    key = 'llama2_7b_main_v2_publicmix'
+    assert original['model_profiles'][key]['model']['max_num_batched_tokens'] == 1024
+    original['model_profiles'][key]['model']['max_num_batched_tokens'] = 512
+    assert source == original
+    spec = json.loads((root/'paper_results/ieee_tc/p2_backend/d298_capacity/source_spec.json').read_text())
+    old = json.loads((root/'paper_results/ieee_tc/p2_backend/d298_capacity/development_contract.json').read_text())
+    full = yaml.safe_load((root/'configs/ieee_tc/20261007_d303_7b_full_w0.yaml').read_text())
+    spec.pop('full_development_contract')
+    spec.update(purpose='D307_7b_iteration_budget512_source_calibration_development_only',
+        nvme_parent=str(rawdir.resolve()),
+        derivation='D298 identical representative requests/waves; fixed-output completed lengths explicitly transferred; all timings newly measured for budget512.')
+    spec['admission_initialization'].update(kind='native_fixed_output_length_transfer_v1',
+        model_config_changes={'max_num_batched_tokens': dict(source=1024, target=512)})
+    cfg = dict(source['model_profiles'][key]['model'])
+    cfg.update(visible_device_ids=[0], device_id=0, timing_contract='ieee_tc_native_v1',
+        ieee_worker_observation=True, ieee_gpu_references=True, ieee_scheduler_observation=True,
+        ieee_input_upper_bounds=[759], generation_contract='fixed_length_greedy_v1',
+        canonical_prompt_renderer='role_lines_v1', max_input_len=759, max_output_tokens_cap=256,
+        ieee_physical_allocation=True)
+    cfg.update(spec['model_overrides'])
+    runtime = root/'results/ieee_tc/p2_backend_qualification/runtime_20260926/cuda_import_attempt3.json'
+    prior = json.loads(runtime.read_text())
+    args = dict(backend_version=prior['modules']['vllm']['version'],
+        runtime_receipt_sha256=p.digest(runtime), source_trace_sha256=spec['trace_sha256'])
+    _, evidence, assembly = p.prepare_admission_source_runtime(cfg, spec, **args)
+    contract = copy.deepcopy(old)
+    coord = copy.deepcopy(full['resource_coordination'])
+    for name in ('ieee_service_profile', 'ieee_preparation_profile'):
+        coord.pop(name)
+    contract.update(model_config=assembly['planned_child_model_config'], coordination=coord,
+        completed_length_binding=spec['admission_initialization'], source_raw=evidence['source_run'],
+        base_config_sha256=p.digest(source_path), plan_sha256=p.check_plan(),
+        derivation=dict(kind='single_native_iteration_budget_candidate_v1',
+            source_references=refs, source_configuration=dict(path=str(source_path.relative_to(root)),
+                sha256=p.digest(source_path)), old_timings_relabelled=False,
+            only_native_change={'max_num_batched_tokens':dict(source=1024, target=512)},
+            full_control_source='D303 unchanged', length_transfer=evidence['length_transfer']))
+    seal = p.verify_seal(root/'paper_results/ieee_tc/safety/20260925_execution_start_protected.json')
+    known = '/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py'
+    assert seal['changed'] == [known] and seal['entry_count'] == 147
+    assert p.digest(Path(known)) == '04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22'
+    out.mkdir(parents=True, exist_ok=False)
+    rawdir.mkdir(parents=True, exist_ok=False)
+    def save(name, value):
+        path = out/name
+        with path.open('x') as stream:
+            json.dump(value, stream, indent=2, allow_nan=False)
+        return dict(path=str(path.relative_to(root)), sha256=p.digest(path))
+    spec['full_development_contract'] = save('development_contract.json', contract)
+    spec_ref = save('source_spec.json', spec)
+    _, _, again = p.prepare_admission_source_runtime(cfg, spec, **args)
+    trace = root/old['source_raw']['path']
+    trace = Path(json.loads(trace.read_text())['trace']['source_path'])
+    plan = FrozenReplayPlan.load(trace, count=1000)
+    pool = (root/source['model_profiles'][key]['storage']['remote_dir']).resolve(strict=True)
+    _, _, identities, waves, static = p.source_profile_inputs(root/spec_ref['path'], plan, cfg, pool)
+    assert len(waves) == 31 and sum(map(len,waves)) == 248 and len(identities) == 8
+    save('prepare.json', dict(kind='d307_prefill_candidate_preparation_v1', passed=True,
+        assembly=again, length_initialization=evidence, source_references=refs,
+        spec=spec_ref, cases=248, representative_cases=240, waves=31,
+        static_adapters=len(static['artifacts']), protection_raw=seal,
+        metric_protocol_sha256=p.digest(root/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'),
+        plan_sha256=p.check_plan(), gpu_runs=0, full_qualified=False))
+    print(json.dumps(dict(passed=True, spec=spec_ref, cases=248,
+        profile_means=contract['model_config']['ieee_admission_profile']['profile_means'])), flush=True)
+
+
+def verify_existing_launch(campaign='d298'):
+    root = p.ROOT
+    if campaign == 'd298':
+        out = root/'paper_results/ieee_tc/p2_backend/d298_capacity'
+        source_path = root/'configs/ieee_tc/20261007_d298_7b_capacity_source.yaml'
+        base_path = root/'configs/ieee_tc/20261002_d169_7b_warm_reference.yaml'
+        differences = {'safetensors_load_strategy':'auto'}
+    elif campaign == 'd307':
+        out = root/'paper_results/ieee_tc/p2_backend/d307_prefill'
+        source_path = root/'configs/ieee_tc/20261007_d307_7b_prefill_source.yaml'
+        base_path = root/'configs/ieee_tc/20261007_d298_7b_capacity_source.yaml'
+        differences = {'max_num_batched_tokens':512}
+    else:
+        raise ValueError(campaign)
     original = yaml.safe_load(base_path.read_text())
     source = yaml.safe_load(source_path.read_text())
     key = 'llama2_7b_main_v2_publicmix'
     expected = copy.deepcopy(original)
-    expected['model_profiles'][key]['model']['safetensors_load_strategy'] = 'auto'
+    expected['model_profiles'][key]['model'].update(differences)
     assert source == expected
     cfg = dict(source['model_profiles'][key]['model'])
     cfg.update(visible_device_ids=[0],device_id=0,timing_contract='ieee_tc_native_v1',
@@ -185,10 +279,10 @@ def verify_existing_launch():
     ranks = [client.routing_identity(a['id'],(pool/a['id']/'adapter_config.json').read_bytes())['rank']
              for a in content['artifacts']]
     assert len(ranks)==500 and max(ranks)==16
-    receipt = dict(kind='d298_actual_source_launch_config_binding_v1',passed=True,
+    receipt = dict(kind=campaign+'_actual_source_launch_config_binding_v1',passed=True,
         source_config=dict(path=str(source_path.relative_to(root)),sha256=p.digest(source_path)),
         original_capacity_config=dict(path=str(base_path.relative_to(root)),sha256=p.digest(base_path)),
-        sole_yaml_difference={'safetensors_load_strategy':'auto'},assembly=assembly,
+        sole_yaml_difference=differences,assembly=assembly,
         pool_count=len(ranks),pool_max_rank=max(ranks),gpu_runs=0)
     with (out/'launch_config_binding.json').open('x') as stream:
         json.dump(receipt,stream,indent=2,allow_nan=False)
@@ -196,9 +290,13 @@ def verify_existing_launch():
 
 
 if __name__ == '__main__':
-    if sys.argv[1:] == ['--verify-launch']:
+    if sys.argv[1:] == ['--prefill-candidate']:
+        prepare_prefill_candidate()
+    elif sys.argv[1:] == ['--verify-prefill-launch']:
+        verify_existing_launch('d307')
+    elif sys.argv[1:] == ['--verify-launch']:
         verify_existing_launch()
     elif not sys.argv[1:]:
         main()
     else:
-        raise SystemExit('Expected no argument or --verify-launch')
+        raise SystemExit('Expected no argument, --verify-launch, --prefill-candidate or --verify-prefill-launch')

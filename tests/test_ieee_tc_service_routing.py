@@ -431,6 +431,7 @@ class FrozenMeasuredInitialization(unittest.TestCase):
             self.load(expected_sha256='0'*64)
         for field, value in [('model_path', '/other'), ('dtype', 'bfloat16'),
                              ('tensor_parallel_size', 2),
+                             ('max_num_batched_tokens', 512),
                              ('ieee_native_host_allocator_policy', 'uncached_v1'),
                              ('ieee_native_host_allocator_policy', 'uncached_background_v1')]:
             with self.subTest(field=field), self.assertRaisesRegex(ValueError, 'context mismatch'):

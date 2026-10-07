@@ -283,6 +283,7 @@ class FrozenPreparationInitialization(unittest.TestCase):
 
     def test_profile_hash_context_backend_contract_and_size_edges_reject(self):
         for changes in ({'expected_sha256': 'f'*64}, {'model_config': self.model | {'dtype': 'bfloat16'}},
+                {'model_config': self.model | {'max_num_batched_tokens': 512}},
                 {'expected_context': self.context | {'resource_envelope_sha256': 'f'*64}}, {'beta': 0}):
             with self.subTest(changes=changes), self.assertRaises(ValueError):
                 self.load(**changes)

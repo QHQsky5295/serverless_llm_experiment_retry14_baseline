@@ -11,7 +11,52 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D306 prefill overlap complete; one smaller native token-budget candidate next
+## CURRENT — D307 single token-budget candidate prepared; source measurement is next
+
+2026-10-07 09:06+08. Fullplan/V1 reread, once-only remote cache authorization
+alreadyimplementedD78/D80, no rebuild. D306checkpoint63fd6a56d9d4d8c2aebd7753818df1c530484002
+pushed andremoteHEADverified. D307 keepsD303 controls/cap8/slots8/rank16/context1024,
+changes onlynativeiterationbudget1024→512, with newly measured initialization
+timings REQUIRED. Hypothesis/primarysources/history in D307_NATIVE_PREFILL_BUDGET.md.
+No GPU/remote/service behavior change executed, no figure. Goal remainsactive.
+
+Existing initializer had exact performance config binding even for completed
+lengths. Explicitnative_fixed_output_length_transfer_v1 now accepts ONLYdeclared
+iterationbudgetchange under identical fixed-output contract; verifies oldnative
+completion/input/sourceSHA, records source/targetidentity, changesprofileIDs.
+Naturalstop/extrachange/implicitreuse reject; exact service/preparation timing
+loaders unchanged and still reject oldbudget. No futuretargetprior, no latency
+relabel. D170512uniquecompletedlengths reused, NOT remeasured.58CPUtests pass.
+
+ReusedD298 prep/collector/export scripts; addedexplicitd307 path, same248cases
+(8warmup+240measurement),31waves/eightreps,500staticpool/rank≤16. Actual child
+bindingpass,9nestedreferenceSHAsverified. Source configSHA
+56704b6189eef8c878f66125d3867adafc680cc2386b3e1c616fce139c0436ec;
+specSHA0a1044fb7233a8784fd0a336e2ee7de01c55d7801043990c1708fc75242df258.
+Preparedcurated p2_backend/d307_prefill/{prepare,development_contract,source_spec,
+launch_config_binding,prelaunch_verification}.json. Rawd307_20261007 existsEMPTY.
+DoNOTrepeatprepare oroverwrite, doNOTpromote preparationtoGPUmeasurement.
+
+D115historical9.19GBmain_outcome losslesslycompressed to260.19MB; twiceverified
+SHA66f2019b... thenonlyuncompressedduplicate removed. Failure retained, request/
+curated/publicationunchanged. storage/20261007_d307_d115_lossless_compression.json.
+Free169499455488B>150GiB. Compressionhigh19656/3833events(noOOM/swap), separate
+fromperformance. systemdmemoryinotifywarn retained; directlimitsreadable. Existing
+watchdogattachment/livememory/diskgate mustpassagainbeforeGPU, no protocolchange.
+FiveCPUscopesempty/exit0,peak<0.60GB,noevents/swap; nativeGPUcensusclear.
+Protected147soleknownbaselineSHAunchanged, usermanifest/servingrunnerunchanged.
+
+NEXT readfullplan/status/V1 andrun-experimentskill, checkpoint/push preparedcode,
+reuseD298 start_remote.sh withONLY freshD307remote/run/monitoridentities andsame
+D80files/cache. Confirm actualNIC/health, captureInvocationIDs andjournal identity.
+Launch existing run_d298_capacity_source.sh d307 ONCE aftergates inownedtmux.
+Then monitorSAME248job, localrelease, stopcapturedremoteMONITOR FIRST (ownedtrap
+stopsartifactunits), joinjournalUUID/clock andcopylogs, export_d298_profiles.py d307.
+JournalfilenameUUID != healthclockUUID. DoNOT repeat500HTTPcoverage/poolpublication.
+Thenprepareexisting100Fullsmoke withD303controls/newboundprofiles andsamecandidate,
+then4000W0. Finalsharedwarm/Resident/numerical/G1G2stillopen; no3B/baselinesuntil7B.
+
+## HISTORY — D306 prefill overlap complete; one smaller native token-budget candidate next
 
 2026-10-07. Full plan/V1 reread. User once-only remote cache authorization already
 implemented D78/D80; reuse without rebuilding. D306 reuses D300/D303 all4000 and

@@ -1,0 +1,53 @@
+{
+  "kind": "lossless_existing_result_compression_v1",
+  "authorization": "Approved plan section 2.8; between performance runs, retain unique evidence losslessly.",
+  "source_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d115_20260929/3b_full_w0_full10/launch.launch/physical_deployment/main_outcome.json",
+  "source_bytes": 9187872294,
+  "source_sha256": "66f2019b6faac49ab3dfc2799fdc25eda9e98fd158efee3d4c68f2349032f859",
+  "archive_suffix": ".gz",
+  "archive_bytes": 260191346,
+  "archive_sha256": "5ccb843cdd5f5f2b2ebafc6ec44b83555936f26e582d68510a62731a10387184",
+  "method": "Existing gzip -1 -k; gzip -t; first decompressed SHA equals source; rehash source and archive/decompressed bytes a second time before removing only the uncompressed duplicate.",
+  "first_roundtrip_verified": true,
+  "second_roundtrip_verified": true,
+  "uncompressed_duplicate_removed": true,
+  "logical_bytes_reclaimed": 8927680948,
+  "source_regular_file_single_hardlink_not_symlink": true,
+  "source_protected_submission_seal_member": false,
+  "historical_run": {
+    "pass": false,
+    "service_returncode": 1,
+    "watchdog_returncode": 0,
+    "service_path_removed": true,
+    "native_gpu_context_release_confirmed": true,
+    "failure_evidence_retained_not_promoted_to_success": true
+  },
+  "open_file_check": "No opener reported by lsof. Inaccessible tracefs/fuse/overlay/nsfs/kubelet mounts limit census visibility; original owned launch is terminal and native GPU census is empty.",
+  "historical_references": "D115_FULL_W0_FULL10.md and all retained curated projections retain original decompressed-byte SHA. Stream gzip or restore with gzip -dk after disk gate when a legacy reader needs the raw filename; do not rerun inference.",
+  "performance_run_concurrent": false,
+  "auxiliary_limits": {"memory_high_gib": 3, "memory_max_gib": 4, "swap_max": 0, "cpus": "2,3,26,27"},
+  "compression_scope": {
+    "unit": "primelora-tc-storage-d307-compress.scope",
+    "invocation_id": "d7e093b1a6e44bc092ffb768446ca9a2",
+    "peak_bytes": 3221716992,
+    "memory_high_events": 19656,
+    "memory_max_oom_oomkill_events": [0, 0, 0],
+    "swap_bytes": 0,
+    "command_exit": 0,
+    "remaining_tasks": 0
+  },
+  "second_verification_scope": {
+    "unit": "primelora-tc-storage-d307-roundtrip.scope",
+    "invocation_id": "2d28b3e2c0c942959b579edee1593d1d",
+    "peak_bytes": 3221749760,
+    "memory_high_events": 3833,
+    "memory_max_oom_oomkill_events": [0, 0, 0],
+    "swap_bytes": 0,
+    "command_exit": 0,
+    "remaining_tasks": 0
+  },
+  "management_warning": "systemd could not add a memory inotify watch (No space left on device); scope creation and direct cgroup limits/events remained readable. Not a performance run, no limit lowered. Verify native watcher attachment through the existing gate before any GPU run.",
+  "post_cleanup_free_bytes": 169501159424,
+  "new_heavy_start_floor_bytes_unchanged": 161061273600,
+  "weights_trace_request_results_and_publication_files_changed": false
+}

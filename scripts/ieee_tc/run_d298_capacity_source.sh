@@ -2,11 +2,25 @@
 # Same D157 native_source_matrix and gated-launch; no replacement runner.
 set -euo pipefail
 ROOT=/home/qhq/serverless_llm_experiment_retry14_baseline
-RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d298_20261007
+case "${1:-d298}" in
+  d298)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d298_20261007
+    CONFIG=configs/ieee_tc/20261007_d298_7b_capacity_source.yaml
+    SPEC=paper_results/ieee_tc/p2_backend/d298_capacity/source_spec.json
+    ;;
+  d307)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d307_20261007
+    CONFIG=configs/ieee_tc/20261007_d307_7b_prefill_source.yaml
+    SPEC=paper_results/ieee_tc/p2_backend/d307_prefill/source_spec.json
+    ;;
+  *) exit 2 ;;
+esac
+[[ $# -le 1 ]] || exit 2
 cd "$ROOT"
 [[ ! -e "$RAW/source1_launch.json" && ! -e "$RAW/source1.json" ]] || exit 2
 set -o noclobber
 exec >"$RAW/source1_launcher.log" 2>&1
+git rev-parse HEAD > "$RAW/source_commit.txt"
 export PATH="/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin:$PATH"
 export CUDA_HOME=/usr/local/cuda-13.0 FLASHINFER_NVCC=/usr/local/cuda-13.0/bin/nvcc MAX_JOBS=2
 IFS= read -r PRIME_REMOTE_TOKEN < /home/qhq/.config/primelora-tc-d75/artifact.token
@@ -28,8 +42,8 @@ exec systemd-run --user --scope --collect --unit="$unit" \
   --exec /home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python \
   scripts/ieee_tc_preflight.py backend-model-check \
   --runtime-receipt results/ieee_tc/p2_backend_qualification/runtime_20260926/cuda_import_attempt3.json \
-  --config configs/ieee_tc/20261007_d298_7b_capacity_source.yaml --model-profile llama2_7b_main_v2_publicmix \
+  --config "$CONFIG" --model-profile llama2_7b_main_v2_publicmix \
   --replay-trace /home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_131528_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json \
   --request-count 1000 --qualification-mode native_source_matrix \
-  --source-profile-spec paper_results/ieee_tc/p2_backend/d298_capacity/source_spec.json \
+  --source-profile-spec "$SPEC" \
   --output "$RAW/source1.json"

@@ -7,6 +7,8 @@ from collections import Counter, defaultdict
 from dataclasses import asdict
 import hashlib
 import json
+import re
+import sys
 from pathlib import Path
 
 import yaml
@@ -33,7 +35,19 @@ def object_hash(value):
         separators=(',', ':')).encode()).hexdigest()
 
 
-def main():
+def main(campaign='d298'):
+    global RAW, CURATED
+    if campaign == 'd298':
+        config_path = ROOT/'configs/ieee_tc/20261007_d298_7b_capacity_source.yaml'
+        source_commit = '783fa42e6b3ba1cd0e034d8e0cddcd3d72c9b42e'
+    elif campaign == 'd307':
+        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d307_20261007'
+        CURATED = ROOT/'paper_results/ieee_tc/p2_backend/d307_prefill'
+        config_path = ROOT/'configs/ieee_tc/20261007_d307_7b_prefill_source.yaml'
+        source_commit = (RAW/'source_commit.txt').read_text().strip()
+        assert re.fullmatch('[0-9a-f]{40}', source_commit), 'missing exact launch commit'
+    else:
+        raise ValueError(campaign)
     out = CURATED / 'initialization'
     assert not out.exists(), 'never overwrite a prior export'
     source, launch_path = RAW/'source1.json', RAW/'source1_launch.json'
@@ -53,7 +67,6 @@ def main():
     contract = read(contract_path)
     runtime = ROOT/'results/ieee_tc/p2_backend_qualification/runtime_20260926/cuda_import_attempt3.json'
     assert p.digest(runtime) == raw['runtime_receipt_sha256'] == contract['runtime_receipt_sha256']
-    config_path = ROOT/'configs/ieee_tc/20261007_d298_7b_capacity_source.yaml'
     assert p.digest(config_path) == raw['config_sha256'] == read(CURATED/'launch_config_binding.json')['source_config']['sha256']
     profile = yaml.safe_load(config_path.read_text())['model_profiles']['llama2_7b_main_v2_publicmix']
     pool = (ROOT/profile['storage']['remote_dir']).resolve(strict=True)
@@ -152,7 +165,7 @@ def main():
             memory_events={k:max(r['service']['memory.events'][k] for r in samples)
                 for k in ('high','max','oom','oom_kill')}))
     result = dict(kind='measured_development_profile_export_v1',model='7b',passed=True,
-        source_execution_commit='783fa42e6b3ba1cd0e034d8e0cddcd3d72c9b42e',source_run=ref(source),
+        source_execution_commit=source_commit,source_run=ref(source),
         contract=spec['full_development_contract'],context=context,
         context_definition=dict(backend_environment='SHA256 of qualified native runtime receipt',
             resource_envelope=envelope,input_contract=input_contract,
@@ -164,9 +177,16 @@ def main():
         protection_raw=seal,offline_only=True,new_gpu_runs=0,no_figures=True,
         raw_evidence=[ref(path) for path in (source,launch_path,journal,watchdog,RAW/'remote_monitor.log',
             RAW/'remote_stop.log',config_path,runtime,Path(__file__),ROOT/'scripts/ieee_tc_preflight.py')])
+    if campaign == 'd307':
+        result['raw_evidence'].append(ref(RAW/'source_commit.txt'))
     save('manifest.json',result)
     print(json.dumps(dict(passed=True,summary=summary,profiles=result['profiles'],coverage=coverage),indent=2),flush=True)
 
 
 if __name__ == '__main__':
-    main()
+    if not sys.argv[1:]:
+        main()
+    elif sys.argv[1:] == ['d307']:
+        main('d307')
+    else:
+        raise SystemExit('Expected no argument or d307')

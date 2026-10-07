@@ -1045,6 +1045,63 @@ class MeasuredAdmissionInitializer(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'development'):
             self.derive()
 
+    def fixed_output_transfer_fixture(self):
+        self.cfg.update(max_num_batched_tokens=1024, canonical_prompt_renderer='role_lines_v1',
+                        max_input_len=759, max_output_tokens_cap=256, enable_chunked_prefill=True)
+        self.run['model_config'] = copy.deepcopy(self.cfg)
+        self.entry['model_config'] = copy.deepcopy(self.cfg)
+        self.bind()
+        self.binding.update(kind='native_fixed_output_length_transfer_v1',
+            model_config_changes={'max_num_batched_tokens': dict(source=1024, target=512)})
+        return dict(self.cfg, max_num_batched_tokens=512)
+
+    def test_explicit_fixed_output_length_transfer_changes_identity_not_samples(self):
+        candidate = self.fixed_output_transfer_fixture()
+        profile, evidence = self.derive(model_config=candidate)
+        self.assertEqual(profile['profile_means'], [20., 40.])
+        self.assertFalse(evidence['performance_samples_relabelled'])
+        self.assertFalse(evidence['length_transfer']['timing_samples_transferred'])
+        self.assertEqual(evidence['length_transfer']['model_config_changes'],
+                         self.binding['model_config_changes'])
+        self.assertEqual(self.run['model_config']['max_num_batched_tokens'], 1024)
+        self.binding = {k:v for k,v in self.binding.items() if k != 'model_config_changes'}
+        self.binding['kind'] = 'native_completed_length_binding_v1'
+        old, _ = self.derive()
+        self.assertNotEqual(profile['model_backend_id'], old['model_backend_id'])
+        self.assertNotEqual(profile['profile_id'], old['profile_id'])
+        with self.assertRaisesRegex(ValueError, 'identity differs'):
+            self.derive(model_config=candidate)
+
+    def test_transfer_rejects_natural_stop_extra_changes_or_undeclared_budget(self):
+        candidate = self.fixed_output_transfer_fixture()
+        for changes in (dict(max_num_batched_tokens=256), dict(max_num_batched_tokens=True),
+                        dict(max_num_batched_tokens=0), dict(name='other-model'),
+                        dict(generation_contract='natural_stop'), dict(max_input_len=758),
+                        dict(max_loras=99), dict(enable_chunked_prefill=False),
+                        dict(unknown_option=None)):
+            with self.subTest(changes=changes), self.assertRaises(ValueError):
+                self.derive(model_config=dict(candidate, **changes))
+        self.binding['model_config_changes']['max_num_batched_tokens']['source'] = 2048
+        with self.assertRaises(ValueError):
+            self.derive(model_config=candidate)
+
+    def test_transfer_rejects_natural_stop_even_when_both_models_match(self):
+        candidate = self.fixed_output_transfer_fixture()
+        self.cfg['generation_contract'] = 'natural_stop'
+        self.run['model_config']['generation_contract'] = 'natural_stop'
+        self.entry['model_config']['generation_contract'] = 'natural_stop'
+        candidate['generation_contract'] = 'natural_stop'
+        self.bind()
+        with self.assertRaisesRegex(ValueError, 'transfer contract'):
+            self.derive(model_config=candidate)
+
+    def test_transfer_still_rejects_incomplete_native_counts(self):
+        candidate = self.fixed_output_transfer_fixture()
+        self.run['requests'][1]['actual_tokens'] = 9
+        self.bind()
+        with self.assertRaisesRegex(ValueError, 'correct native completion'):
+            self.derive(model_config=candidate)
+
 
 class SlotContentQualification(unittest.TestCase):
     def engine(self):

@@ -3619,8 +3619,12 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
                 if key not in ({'visible_device_ids', 'device_id', 'ieee_token_id_capture'}
                                | startup_loader_fields)}
 
-    if (set(binding) != {'kind', 'audit', 'model', 'window_s'}
-            or binding['kind'] != 'native_completed_length_binding_v1'):
+    transfer = binding.get('kind') == 'native_fixed_output_length_transfer_v1'
+    fields = {'kind', 'audit', 'model', 'window_s'}
+    if transfer:
+        fields.add('model_config_changes')
+    if (set(binding) != fields or binding['kind'] not in (
+            'native_completed_length_binding_v1', 'native_fixed_output_length_transfer_v1')):
         raise ValueError('unknown completed-length initialization binding')
     window = binding['window_s']
     if (type(window) not in (int, float) or not math.isfinite(window) or window <= 0
@@ -3644,9 +3648,31 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
     entry = audit['models'][binding['model']]
     run = verified(entry['source_run'])
     identity = model_identity(model_config)
+    source_identity = model_identity(run['model_config'])
+    changes = {key: dict(source=source_identity.get(key), target=identity.get(key))
+               for key in source_identity.keys() | identity.keys()
+               if key not in source_identity or key not in identity
+               or source_identity[key] != identity[key]}
+    # Fixed-output *completed lengths* depend on the input/generation contract,
+    # not the iteration token budget. Allow only an explicitly declared transfer
+    # of this statistic; old timing profiles retain exact runtime identity.
+    # Natural-stop output lengths cannot use this rule. All observed native
+    # completions/targets and input identity are still verified below.
+    if transfer:
+        if (set(changes) != {'max_num_batched_tokens'}
+                or changes != binding['model_config_changes']
+                or identity.get('generation_contract') != 'fixed_length_greedy_v1'
+                or source_identity.get('generation_contract') != 'fixed_length_greedy_v1'
+                or identity.get('canonical_prompt_renderer') != 'role_lines_v1'
+                or identity.get('max_input_len') != 759
+                or identity.get('max_output_tokens_cap') != 256
+                or identity.get('enable_chunked_prefill') is not True
+                or any(type(value) is not int or value <= 0
+                       for value in changes['max_num_batched_tokens'].values())):
+            raise ValueError('fixed-output completed-length transfer contract differs')
     if (entry['same_backend'] != backend_version
             or entry['model_config'] != run['model_config']
-            or model_identity(run['model_config']) != identity
+            or (not transfer and source_identity != identity)
             or run['runtime_receipt_sha256'] != runtime_receipt_sha256
             or run['trace']['source_sha256'] != source_trace_sha256):
         raise ValueError('completed-length model/backend/trace identity differs')
@@ -3741,6 +3767,11 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
         evidence.update(source_evidence_kind=run['kind'],
                         source_warm_index=entry['source_warm_index'],
                         source_warm_phase=run['warm_phase'])
+    if transfer:
+        evidence['length_transfer'] = dict(kind=binding['kind'], model_config_changes=changes,
+            invariant='observed_native_completed_lengths_under_identical_fixed_output_contract',
+            source_model_identity=source_identity, target_model_identity=identity,
+            timing_samples_transferred=False, numerical_correctness_qualified=False)
     profile = dict(window_s=float(window),
         model_backend_id='native-model/'+object_sha(dict(model_config=identity, backend=backend_version)),
         profile_id='native-completed/'+object_sha(evidence),

@@ -1,0 +1,102 @@
+{
+  "kind": "d307_actual_source_launch_config_binding_v1",
+  "passed": true,
+  "source_config": {
+    "path": "configs/ieee_tc/20261007_d307_7b_prefill_source.yaml",
+    "sha256": "56704b6189eef8c878f66125d3867adafc680cc2386b3e1c616fce139c0436ec"
+  },
+  "original_capacity_config": {
+    "path": "configs/ieee_tc/20261007_d298_7b_capacity_source.yaml",
+    "sha256": "6b96df57e5f05a9b4a0b597ef988b464d37af6b61e4dac33b3e4444778d1487f"
+  },
+  "sole_yaml_difference": {
+    "max_num_batched_tokens": 512
+  },
+  "assembly": {
+    "kind": "main_source_runtime_assembly_v1",
+    "helper": "scripts.run_all_experiments._prepare_scenario_runtime_model_config",
+    "workload": {
+      "generation_contract": "fixed_length_greedy_v1",
+      "fixed_prompt_max_tokens": 759,
+      "fixed_output_max_tokens": 256
+    },
+    "instance_model_overrides": {},
+    "content_index": {
+      "path": "paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json",
+      "sha256": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c"
+    },
+    "planned_child_model_config": {
+      "name": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+      "backend": "vllm",
+      "device_id": 0,
+      "visible_device_ids": [
+        0
+      ],
+      "tensor_parallel_size": 1,
+      "gpu_memory_utilization": 0.92,
+      "max_model_len": 1024,
+      "max_loras": 8,
+      "max_lora_rank": 16,
+      "enable_lora": true,
+      "enforce_eager": false,
+      "dtype": "float16",
+      "max_num_seqs": 8,
+      "max_num_batched_tokens": 512,
+      "max_output_tokens_cap": 256,
+      "max_input_len": 759,
+      "runtime_concurrency_cap": 8,
+      "enable_chunked_prefill": true,
+      "enable_prefix_caching": false,
+      "vllm_use_v1": true,
+      "vllm_attention_backend": "FLASH_ATTN",
+      "vllm_use_flashinfer_sampler": true,
+      "safetensors_load_strategy": "auto",
+      "ieee_host_budget_bytes": 17179869184,
+      "ieee_native_host_tensor_budget_bytes": 2147483648,
+      "ieee_native_host_workspace": {
+        "kind": "native_host_workspace_contract_v1",
+        "dtype": "torch.float16",
+        "source_audit_sha256": "224b9337ecaba2590ac888e9d0e3b9eb41a17074ce77b952e98e935259adf60f",
+        "max_resident_pinned_bytes": 33554432,
+        "max_transient_tensor_bytes": 67143184
+      },
+      "ieee_native_host_allocator_policy": "uncached_background_v1",
+      "timing_contract": "ieee_tc_native_v1",
+      "ieee_worker_observation": true,
+      "ieee_gpu_references": true,
+      "ieee_scheduler_observation": true,
+      "ieee_input_upper_bounds": [
+        759
+      ],
+      "generation_contract": "fixed_length_greedy_v1",
+      "canonical_prompt_renderer": "role_lines_v1",
+      "ieee_physical_allocation": true,
+      "ieee_admission_profile": {
+        "window_s": 5.0,
+        "model_backend_id": "native-model/9993c3b4aa1f5fd0a2ef495f48a40d4d00e2d2e161c2a368ceb9648c59773d12",
+        "profile_id": "native-completed/e8eb0df95d2bf6106cacc78d07b7318b53a2f815044d893ff54e08f88312f7c6",
+        "profile_means": [
+          100.86411149825784,
+          125.56888888888889
+        ],
+        "transfer_limit": 3
+      },
+      "artifact_content_manifest_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json",
+      "requested_runtime_concurrency_cap": 8,
+      "max_cpu_loras": 24,
+      "requested_enforce_eager": "auto",
+      "resolved_enforce_eager": false,
+      "skip_stale_gpu_cleanup": true
+    },
+    "production_profile_frozen": false,
+    "performance_samples_relabelled": false,
+    "full_development_contract": {
+      "path": "paper_results/ieee_tc/p2_backend/d307_prefill/development_contract.json",
+      "sha256": "bf38f74b0571852a79a8b0c13761a0c5d53636cd3531098421d44c4196b53033"
+    },
+    "control_settings_applied_to_source_collector": false
+  },
+  "pool_count": 500,
+  "pool_max_rank": 16,
+  "gpu_runs": 0
+}

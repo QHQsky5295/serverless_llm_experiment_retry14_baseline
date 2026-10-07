@@ -1,0 +1,53 @@
+{
+  "kind": "d307_source_candidate_prelaunch_verification_v1",
+  "stage": "prepared_not_launched",
+  "source_plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "source_config_sha256": "56704b6189eef8c878f66125d3867adafc680cc2386b3e1c616fce139c0436ec",
+  "artifacts": {
+    "development_contract.json": "bf38f74b0571852a79a8b0c13761a0c5d53636cd3531098421d44c4196b53033",
+    "launch_config_binding.json": "b78e26afc38cd65b4afdf64bca50383bf50e7fc921b106db58a00425a8480c15",
+    "prepare.json": "c8c76834682f67dd825db45ad62cc3f4ce8e033316e7e31e659d6f3b708694bb",
+    "source_spec.json": "0a1044fb7233a8784fd0a336e2ee7de01c55d7801043990c1708fc75242df258"
+  },
+  "unique_nested_reference_checks": 9,
+  "reference_checks_pass": true,
+  "cpu_test_groups": [
+    {"suite": "completed length, warm reference, runtime assembly, source coverage/export", "count": 39, "passed": true},
+    {"suite": "exact service/preparation profile identity", "count": 19, "passed": true}
+  ],
+  "shell_syntax_and_diff_checks_pass": true,
+  "source_config_difference": {"max_num_batched_tokens": {"source": 1024, "candidate": 512}},
+  "full_control_config_source": "D303 unchanged; timing profile initialization will be newly measured",
+  "reused_unique_completed_lengths": 512,
+  "new_gpu_measurements": 0,
+  "new_remote_operations": 0,
+  "new_adapter_or_trace_data": false,
+  "planned_source_measurements": 240,
+  "planned_retained_warmup_calls": 8,
+  "candidate_actual_child_binding_pass": true,
+  "static_pool_count": 500,
+  "static_pool_max_rank": 16,
+  "protected_seal": {"raw_pass": false, "entries": 147, "new_differences": 0, "sole_known_difference": "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"},
+  "serving_runner_unchanged_sha256": "d6ec59a9877023eafc9686251bdebce48a470e3af6c55efcc76fe2df8e3d2078",
+  "user_dirty_manifest_unchanged_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+  "auxiliary_policy": {"memory_high_gib": 3, "memory_max_gib": 4, "swap_max": 0, "cpus": "2,3,26,27"},
+  "scopes": [
+    {"suffix": "tests", "invocation_id": "c7ab1b29814242569943f476f57335ee", "peak_bytes": 504926208},
+    {"suffix": "prepare", "invocation_id": "33b4b136a0144fde849ca733b944871f", "peak_bytes": 593854464},
+    {"suffix": "binding", "invocation_id": "d63c723b8cd04e6298461d376887d1ea", "peak_bytes": 555941888},
+    {"suffix": "profiles", "invocation_id": "662b6a41a6a84e30af81e305df2972dd", "peak_bytes": 554033152},
+    {"suffix": "verify", "invocation_id": "db8b50a4e0dc42838b3d017e27788fee", "peak_bytes": 46010368}
+  ],
+  "all_cpu_scope_commands_exit_zero": true,
+  "all_cpu_scope_memory_events_and_swap_zero": true,
+  "all_cpu_scopes_empty": true,
+  "storage_scope_high_events_are_separately_recorded": true,
+  "native_gpu_census_empty": true,
+  "disk_free_bytes": 169499455488,
+  "disk_start_floor_bytes": 161061273600,
+  "live_gates_required_again_before_gpu": true,
+  "full_qualified": false,
+  "n_correct": null,
+  "no_figures": true
+}
