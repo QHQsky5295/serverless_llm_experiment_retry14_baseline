@@ -49,6 +49,147 @@ def table(name, rows):
         writer.writerows(rows)
 
 
+def decode_overlap_summary(requests, activations, *, clock_id, arrival_start, thresholds):
+    """D304 descriptive intervals, NOT kernel stalls or a causal contrast."""
+    def finite(v):
+        return type(v) in (int, float) and math.isfinite(v)
+
+    def union_seconds(spans):
+        total, end = 0.0, -math.inf
+        for a, b in sorted(spans):
+            total += max(0.0, b-max(a, end))
+            end = max(end, b)
+        return total
+
+    if not finite(arrival_start) or not requests or not activations:
+        raise ValueError('complete request and activation observations required')
+    starts, ids, records = [], set(), []
+    for a in activations:
+        identity = a['activation_id']
+        begin, end = a['trigger_at'], a['engine_ready_at']
+        if (identity in ids or a['target_replica'] != identity or a['clock_id'] != clock_id
+                or a['category'] not in ('initial', 'natural_scaleout', 'controlled')
+                or not finite(begin) or not finite(end) or end < begin):
+            raise ValueError('invalid or mixed-clock activation interval')
+        ids.add(identity)
+        starts.append(dict(replica=identity, start=begin, end=end, category=a['category']))
+    for r in requests:
+        t = r['native_token_timing']
+        admitted, dispatched, first, last = [t[k] for k in (
+            'controller_admitted_monotonic_s', 'native_dispatch_monotonic_s',
+            'native_first_token_monotonic_s', 'native_last_token_monotonic_s')]
+        n, prompt = r['completion_tokens'], t['actual_prompt_tokens']
+        if (r['success'] is not True or r['instance_id'] not in ids
+                or t['native_clock_id'] != clock_id or type(n) is not int or not 2 <= n <= 256
+                or not all(finite(x) for x in (admitted, dispatched, first, last, prompt, r['tpot_ms']))
+                or not admitted <= dispatched <= first < last or int(prompt) != prompt):
+            raise ValueError('complete ordered native decode intervals required')
+        if dispatched < next(s['end'] for s in starts if s['replica']==r['instance_id']):
+            raise ValueError('native dispatch precedes replica readiness')
+        tpot = (last-first)*1000/(n-1)
+        if abs(tpot-r['tpot_ms']) > 1:
+            raise ValueError('native TPOT identity mismatch')
+        group = [g for g in thresholds if (g['lower_exclusive'] is None or prompt > g['lower_exclusive'])
+                 and (g['upper_inclusive'] is None or prompt <= g['upper_inclusive'])]
+        if len(group) != 1:
+            raise ValueError('prompt does not map to one frozen group')
+        tier = r['readiness_tier_before_dispatch']
+        if tier not in ('gpu', 'host', 'nvme', 'remote'):
+            raise ValueError('missing selected tier')
+        records.append(dict(request_id=r['request_id'], replica=r['instance_id'],
+            prompt_tokens=int(prompt), tokens=n, output_group='2-32' if n<=32 else '33-128' if n<=128 else '129-256',
+            tier=tier, admitted=admitted, dispatched=dispatched, first=first, last=last,
+            first_offset_s=first-arrival_start, decode_s=last-first, tpot_ms=tpot,
+            timing_tpot_miss=tpot>group[0]['tpot_s']*1000))
+    if len({r['request_id'] for r in records}) != len(records):
+        raise ValueError('duplicate request identity')
+    for r in records:
+        a, b = r['first'], r['last']
+        startup = [(max(a, s['start']), min(b, s['end'])) for s in starts
+                   if s['replica'] != r['replica'] and max(a,s['start']) < min(b,s['end'])]
+        peers = [q for q in records if q['replica']==r['replica'] and q['request_id']!=r['request_id']]
+        preparation = [(max(a,q['admitted']),min(b,q['dispatched'])) for q in peers
+                       if q['tier']!='gpu' and max(a,q['admitted']) < min(b,q['dispatched'])]
+        occupancy = [(max(a,q['dispatched']),min(b,q['last'])) for q in peers
+                     if max(a,q['dispatched']) < min(b,q['last'])]
+        r.update(other_startup_overlap_s=union_seconds(startup),
+            same_replica_preparation_envelope_s=union_seconds(preparation),
+            other_native_request_seconds=sum(y-x for x,y in occupancy))
+        r['mean_other_native_requests']=r['other_native_request_seconds']/r['decode_s']
+        r['startup_overlap']=bool(startup)
+        r['preparation_overlap']=bool(preparation)
+    groups=[]
+    for name, labels in [('all',['all']), ('startup_overlap',[False,True]),
+                         ('preparation_overlap',[False,True]),
+                         ('output_group',['2-32','33-128','129-256'])]:
+        for label in labels:
+            rs=[r for r in records if name=='all' or r[name]==label]
+            groups.append(dict(group=name,label=label,count=len(rs),
+                timing_tpot_misses=sum(r['timing_tpot_miss'] for r in rs),
+                mean_tpot_ms=mean(r['tpot_ms'] for r in rs) if rs else None,
+                p95_tpot_ms=percentile([r['tpot_ms'] for r in rs],.95) if rs else None,
+                mean_other_native_requests=mean(r['mean_other_native_requests'] for r in rs) if rs else None))
+    # Cross-tab retains length strata; no claim that conditioning removes confounding.
+    for length in ('2-32','33-128','129-256'):
+        for overlap in (False,True):
+            rs=[r for r in records if r['output_group']==length and r['startup_overlap']==overlap]
+            groups.append(dict(group='output_x_startup',label=f'{length}/{overlap}',count=len(rs),
+                timing_tpot_misses=sum(r['timing_tpot_miss'] for r in rs),
+                mean_tpot_ms=mean(r['tpot_ms'] for r in rs) if rs else None,
+                p95_tpot_ms=percentile([r['tpot_ms'] for r in rs],.95) if rs else None,
+                mean_other_native_requests=mean(r['mean_other_native_requests'] for r in rs) if rs else None))
+    return dict(requests=records,groups=groups,activations=starts,
+        startup_union_s=union_seconds([(max(arrival_start,s['start']),s['end']) for s in starts if s['end']>arrival_start]),
+        n_correct=None,formal_qualification=False,confidence_interval=None,
+        caveats=['Same-host native monotonic intervals only.',
+                 'Startup overlap is an exposure, not the duration or cause of a decode stall.',
+                 'Preparation envelope includes waiting/materialization; not isolated device-copy time.',
+                 'Overlap depends on observed decode duration; long requests have more opportunity for exposure.',
+                 'Conditional groups differ; no causal effect, independent samples, or counterfactual subtraction.',
+                 'Provisional TPOT thresholds unchanged; no formal SLO qualification.'])
+
+
+def inspect_retained_decode(output):
+    """Reuse D300/D303 complete runs; no serving, workload or figure changes."""
+    global OUT
+    OUT=Path(output).resolve()
+    if OUT.exists():
+        raise FileExistsError(OUT)
+    assert sha256(PLAN)=='0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7'
+    assert sha256(PROTOCOL)=='5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22'
+    summaries, allgroups, paths={}, [], [PLAN, PROTOCOL, Path(__file__)]
+    OUT.mkdir(parents=True,exist_ok=False)
+    for name in ('d300','d303'):
+        curated=ROOT/f'paper_results/ieee_tc/p2_backend/{name}_full_w0/validated1'
+        manifest=read(curated/'manifest.json')
+        for filename,digest in manifest['outputs'].items():
+            assert sha256(curated/filename)==digest
+        audit=read(curated/'audit.json')
+        source=Path(audit['evidence']['source'])
+        assert sha256(source)==audit['evidence']['source_sha256']
+        _,evidence,requests=audit_run(source)
+        assert len(requests)==4000
+        deployment_path=source.parent/'launch.launch/physical_deployment/deployment.json'
+        deployment=read(deployment_path)
+        outcome=source.parent/'launch.launch/physical_deployment/main_outcome.json'
+        query='fromstream(2|truncate_stream(inputs | select(.[0][:2] == ["mechanism_events","_ieee_activations"])))'
+        activations=json.loads(subprocess.check_output(['jq','-cn','--stream',query,str(outcome)]))
+        result=decode_overlap_summary(requests,activations,clock_id=deployment['clock_id'],
+            arrival_start=deployment['arrival_start_s'],thresholds=audit['thresholds'])
+        table(f'{name}_request_intervals.csv',result.pop('requests'))
+        allgroups.extend(dict(run=name,**r) for r in result['groups'])
+        result['source']=evidence
+        summaries[name]=result
+        paths.extend([curated/'audit.json',curated/'manifest.json',source,deployment_path,outcome])
+        del requests
+        gc.collect()
+        print(json.dumps(dict(run=name,groups=result['groups']),indent=2),flush=True)
+    write('summary.json',dict(kind='d304_retained_decode_overlap_v1',runs=summaries,new_performance_runs=0,no_figures=True))
+    table('groups.csv',allgroups)
+    write('manifest.json',dict(source_refs=[dict(path=str(p),sha256=sha256(p)) for p in paths],
+        outputs={p.name:sha256(p) for p in sorted(OUT.iterdir())},no_figures=True))
+
+
 def inspect_retained_waits(output):
     """D301: reuse complete D299/D300; fresh explicit output, no GPU or plot."""
     global OUT
@@ -258,8 +399,14 @@ if __name__ == '__main__':
     parser.add_argument('--campaign', choices=('d297', 'd299', 'd300', 'd303'), default='d297')
     parser.add_argument('--admission-wait-output', type=Path,
         help='Data-only D299/D300 retained wait partition; explicit new output directory')
+    parser.add_argument('--decode-tail-output', type=Path,
+        help='D304 data-only D300/D303 decode interval overlap; explicit new output')
     args = parser.parse_args()
-    if args.admission_wait_output is not None:
+    if args.admission_wait_output is not None and args.decode_tail_output is not None:
+        parser.error('choose one retained diagnostic')
+    if args.decode_tail_output is not None:
+        inspect_retained_decode(args.decode_tail_output)
+    elif args.admission_wait_output is not None:
         inspect_retained_waits(args.admission_wait_output)
     else:
         main(args.campaign)

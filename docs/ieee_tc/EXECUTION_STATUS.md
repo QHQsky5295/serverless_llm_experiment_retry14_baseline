@@ -11,7 +11,40 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D303 fully audited; confirmed-state fix retained, 7B goal still open
+## CURRENT — D304 decode-tail localization complete; narrow native-load overlap next
+
+2026-10-07. Fullplan/V1 reread. Previous D303 audit was progress; this turn reuses
+D300/D303 source4000 and activation clocks, no GPU run/config/warm/figure work.
+Existing analyze_d297_full.py gains --decode-tail-output; new strict interval
+helper/tests, no serving change. Output p2_backend/d304_decode/analysis1.
+Summary SHA4f7338731ae2eee6f88888a1e1c4d2c28cf90bef45c9badfb11a03c49b148e3f.
+13CPUtests pass. D300/D303 TPOT misses118/139 match sealed audit.
+
+D303:36/139misses overlap other-replica startup,103doNOT; rejectstartup-only
+explanation.131/139are2-32outputtokens.112/139overlap same-replica broad preparation
+envelope; peer-nativeoccupancy mean1.636→1.801. All conditional, duration-dependent
+exposure, NOTcausal stalls or independent replicates. Entire4000rows retained.
+Acquirecompletionfence4000fields:mean1.266588ms/P950.164327/max121.364890.
+DoesNOTcoverreleasebarriersorallutilityCPU; donotremove safetyfencesfromthis.
+ReadD176/D184/D202/historycd5b68d andofficialvLLM0.30UniProc/worker/optimization.
+UniProc worker method synchronously executes before Future, plausible locus,
+notproof. FullrecordD304_DECODE_TAIL_DIAGNOSIS.md containsallcounts/limits.
+
+NEXT use EXISTING receipt native_load_invoked/start/end/acquired/fence fields to
+intersect NARROW same-owner load+acquire windows with peer decode, contrast broad
+envelope/concurrency. All4000havefields, GPUhitloadtimestampsnullbycontract,
+notzero. No newGPUdiagnostic needed yet; keepanalysis1immutable. Do NOTblindly
+changeNUMA,concurrency,tokenbudget,scalingthresholds,or repeatwarm/numerical/full.
+One evidence-led candidate only after this distinguishes actualnativework.
+N_correct/finalsharedwarm/Resident/G1/G2 remainopen;7B→3B→baselineunchanged.
+Disk160617480192B<150GiBnew-heavy gate, no lowering; auditrebuildablecachebefore
+nextGPU. AllsixownedCPUscopes bounded3/4GiBswap0, noevents, empty/stoppedbyID;
+inspect/lifecycle/tests/analysis/receipt/verify peaks719650816/719773696/26763264/
+742457344/719581184/12849152B.17manifestinput/outputSHAchecks pass; protected
+147seal retainssoleknownbaselinescriptdifference, usermanifest/servingsourceSHA
+unchanged. Ordinary diffcheck passes; exactstage/secretscheck/backup next.
+
+## HISTORY — D303 fully audited; confirmed-state fix retained, 7B goal still open
 
 2026-10-07 08:15+08. Full plan/V1 reread; existing analyzers extended only for
 D303 frozen identity/new outputs. SAME completed4000 reused, no GPU rerun,

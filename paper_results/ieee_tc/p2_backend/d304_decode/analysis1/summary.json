@@ -1,0 +1,399 @@
+{
+  "kind": "d304_retained_decode_overlap_v1",
+  "runs": {
+    "d300": {
+      "groups": [
+        {
+          "group": "all",
+          "label": "all",
+          "count": 4000,
+          "timing_tpot_misses": 118,
+          "mean_tpot_ms": 33.28482117356345,
+          "p95_tpot_ms": 61.79897985024814,
+          "mean_other_native_requests": 1.6360886183094387
+        },
+        {
+          "group": "startup_overlap",
+          "label": false,
+          "count": 3803,
+          "timing_tpot_misses": 94,
+          "mean_tpot_ms": 32.595253003200426,
+          "p95_tpot_ms": 58.138649437751155,
+          "mean_other_native_requests": 1.5549448834768549
+        },
+        {
+          "group": "startup_overlap",
+          "label": true,
+          "count": 197,
+          "timing_tpot_misses": 24,
+          "mean_tpot_ms": 46.596637173008034,
+          "p95_tpot_ms": 107.82780619338155,
+          "mean_other_native_requests": 3.202533407996326
+        },
+        {
+          "group": "preparation_overlap",
+          "label": false,
+          "count": 2325,
+          "timing_tpot_misses": 33,
+          "mean_tpot_ms": 29.731231769360225,
+          "p95_tpot_ms": 50.996784060826585,
+          "mean_other_native_requests": 1.3967840107855596
+        },
+        {
+          "group": "preparation_overlap",
+          "label": true,
+          "count": 1675,
+          "timing_tpot_misses": 85,
+          "mean_tpot_ms": 38.217415421188825,
+          "p95_tpot_ms": 80.48431200440973,
+          "mean_other_native_requests": 1.9682577003948236
+        },
+        {
+          "group": "output_group",
+          "label": "2-32",
+          "count": 1114,
+          "timing_tpot_misses": 115,
+          "mean_tpot_ms": 43.326984306288075,
+          "p95_tpot_ms": 105.95067769754678,
+          "mean_other_native_requests": 2.316383595918521
+        },
+        {
+          "group": "output_group",
+          "label": "33-128",
+          "count": 1442,
+          "timing_tpot_misses": 3,
+          "mean_tpot_ms": 29.603431497049947,
+          "p95_tpot_ms": 44.97464966167369,
+          "mean_other_native_requests": 1.4266057210831697
+        },
+        {
+          "group": "output_group",
+          "label": "129-256",
+          "count": 1444,
+          "timing_tpot_misses": 0,
+          "mean_tpot_ms": 29.21390301821528,
+          "p95_tpot_ms": 39.495366274415716,
+          "mean_other_native_requests": 1.3204554692400223
+        },
+        {
+          "group": "output_x_startup",
+          "label": "2-32/False",
+          "count": 1018,
+          "timing_tpot_misses": 91,
+          "mean_tpot_ms": 41.85866099595048,
+          "p95_tpot_ms": 101.42912348965183,
+          "mean_other_native_requests": 2.156462300447159
+        },
+        {
+          "group": "output_x_startup",
+          "label": "2-32/True",
+          "count": 96,
+          "timing_tpot_misses": 24,
+          "mean_tpot_ms": 58.89732940965968,
+          "p95_tpot_ms": 117.9477864158495,
+          "mean_other_native_requests": 4.012215666646089
+        },
+        {
+          "group": "output_x_startup",
+          "label": "33-128/False",
+          "count": 1409,
+          "timing_tpot_misses": 3,
+          "mean_tpot_ms": 29.43950425331131,
+          "p95_tpot_ms": 44.10976911118875,
+          "mean_other_native_requests": 1.3984865186574424
+        },
+        {
+          "group": "output_x_startup",
+          "label": "33-128/True",
+          "count": 33,
+          "timing_tpot_misses": 0,
+          "mean_tpot_ms": 36.60262805546644,
+          "p95_tpot_ms": 68.39392281620314,
+          "mean_other_native_requests": 2.627210454957413
+        },
+        {
+          "group": "output_x_startup",
+          "label": "129-256/False",
+          "count": 1376,
+          "timing_tpot_misses": 0,
+          "mean_tpot_ms": 28.973378477018898,
+          "p95_tpot_ms": 38.73684154503851,
+          "mean_other_native_requests": 1.2701375473974819
+        },
+        {
+          "group": "output_x_startup",
+          "label": "129-256/True",
+          "count": 68,
+          "timing_tpot_misses": 0,
+          "mean_tpot_ms": 34.08098785183619,
+          "p95_tpot_ms": 52.52798281190004,
+          "mean_other_native_requests": 2.338653417112603
+        }
+      ],
+      "activations": [
+        {
+          "replica": "ieee-activation-24df9402df4c4924a6ee966482f303c7",
+          "start": 827992.241598947,
+          "end": 828043.106338193,
+          "category": "initial"
+        },
+        {
+          "replica": "ieee-activation-3ff679401a314626919791b6d80edd4a",
+          "start": 828068.765466702,
+          "end": 828115.81754537,
+          "category": "natural_scaleout"
+        },
+        {
+          "replica": "ieee-activation-845b0e8e548e47ba8560a8cdab6593b8",
+          "start": 828070.824061519,
+          "end": 828115.604091301,
+          "category": "natural_scaleout"
+        },
+        {
+          "replica": "ieee-activation-85f8f0facd9e423597686dadea6a476e",
+          "start": 828072.882609543,
+          "end": 828118.650577977,
+          "category": "natural_scaleout"
+        },
+        {
+          "replica": "ieee-activation-8c0f96f0e28742bba8eb562972d6f693",
+          "start": 828388.912330609,
+          "end": 828432.382813902,
+          "category": "natural_scaleout"
+        },
+        {
+          "replica": "ieee-activation-a1412108c5a24c93ac930278c655d3ef",
+          "start": 828784.847286425,
+          "end": 828828.709060965,
+          "category": "natural_scaleout"
+        }
+      ],
+      "startup_union_s": 139.7754376839148,
+      "n_correct": null,
+      "formal_qualification": false,
+      "confidence_interval": null,
+      "caveats": [
+        "Same-host native monotonic intervals only.",
+        "Startup overlap is an exposure, not the duration or cause of a decode stall.",
+        "Preparation envelope includes waiting/materialization; not isolated device-copy time.",
+        "Overlap depends on observed decode duration; long requests have more opportunity for exposure.",
+        "Conditional groups differ; no causal effect, independent samples, or counterfactual subtraction.",
+        "Provisional TPOT thresholds unchanged; no formal SLO qualification."
+      ],
+      "source": {
+        "source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d300_20261007/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d300_7b_full_w0.json",
+        "source_sha256": "0964d7a58feeebadf607e72f6f6ea7a09b949d6df44da684bb86d0c27e8be974",
+        "physical_source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d300_20261007/7b_full_w0/launch.launch/physical_deployment/physical_resource_summary.json",
+        "physical_sha256": "56fd3dec091b1dfcb1ee16aba8aeb6383775c16388de95cf0823bf63f6d00bb1",
+        "max_native_ttft_error_ms": 0.0,
+        "max_native_tpot_error_ms": 0.0,
+        "shared_trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+        "shared_adapter_subset_sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016"
+      }
+    },
+    "d303": {
+      "groups": [
+        {
+          "group": "all",
+          "label": "all",
+          "count": 4000,
+          "timing_tpot_misses": 139,
+          "mean_tpot_ms": 34.46361597040807,
+          "p95_tpot_ms": 68.1045613474334,
+          "mean_other_native_requests": 1.8012623498589677
+        },
+        {
+          "group": "startup_overlap",
+          "label": false,
+          "count": 3654,
+          "timing_tpot_misses": 103,
+          "mean_tpot_ms": 33.10460539945744,
+          "p95_tpot_ms": 62.6805809178305,
+          "mean_other_native_requests": 1.662731867068678
+        },
+        {
+          "group": "startup_overlap",
+          "label": true,
+          "count": 346,
+          "timing_tpot_misses": 36,
+          "mean_tpot_ms": 48.815710265938755,
+          "p95_tpot_ms": 109.49936941809331,
+          "mean_other_native_requests": 3.264240338632722
+        },
+        {
+          "group": "preparation_overlap",
+          "label": false,
+          "count": 2151,
+          "timing_tpot_misses": 27,
+          "mean_tpot_ms": 29.90282359594602,
+          "p95_tpot_ms": 53.26283641625196,
+          "mean_other_native_requests": 1.5067332683839139
+        },
+        {
+          "group": "preparation_overlap",
+          "label": true,
+          "count": 1849,
+          "timing_tpot_misses": 112,
+          "mean_tpot_ms": 39.76932954394397,
+          "p95_tpot_ms": 83.57663871166075,
+          "mean_other_native_requests": 2.1438973170049063
+        },
+        {
+          "group": "output_group",
+          "label": "2-32",
+          "count": 1114,
+          "timing_tpot_misses": 131,
+          "mean_tpot_ms": 46.05714189235021,
+          "p95_tpot_ms": 107.10268311150786,
+          "mean_other_native_requests": 2.5228583474746458
+        },
+        {
+          "group": "output_group",
+          "label": "33-128",
+          "count": 1442,
+          "timing_tpot_misses": 8,
+          "mean_tpot_ms": 30.274564268954567,
+          "p95_tpot_ms": 46.4493751162937,
+          "mean_other_native_requests": 1.5798421104538598
+        },
+        {
+          "group": "output_group",
+          "label": "129-256",
+          "count": 1444,
+          "timing_tpot_misses": 0,
+          "mean_tpot_ms": 29.702829735264316,
+          "p95_tpot_ms": 40.41757231533408,
+          "mean_other_native_requests": 1.4656875880018347
+        },
+        {
+          "group": "output_x_startup",
+          "label": "2-32/False",
+          "count": 947,
+          "timing_tpot_misses": 97,
+          "mean_tpot_ms": 43.37721140976917,
+          "p95_tpot_ms": 100.6046897964552,
+          "mean_other_native_requests": 2.3012570517371516
+        },
+        {
+          "group": "output_x_startup",
+          "label": "2-32/True",
+          "count": 167,
+          "timing_tpot_misses": 34,
+          "mean_tpot_ms": 61.25411295225588,
+          "p95_tpot_ms": 133.94926467056698,
+          "mean_other_native_requests": 3.779483659231574
+        },
+        {
+          "group": "output_x_startup",
+          "label": "33-128/False",
+          "count": 1380,
+          "timing_tpot_misses": 6,
+          "mean_tpot_ms": 29.849539918145894,
+          "p95_tpot_ms": 44.861443788058274,
+          "mean_other_native_requests": 1.5057732301719453
+        },
+        {
+          "group": "output_x_startup",
+          "label": "33-128/True",
+          "count": 62,
+          "timing_tpot_misses": 2,
+          "mean_tpot_ms": 39.734783690179874,
+          "p95_tpot_ms": 58.146789039503595,
+          "mean_other_native_requests": 3.228472026406149
+        },
+        {
+          "group": "output_x_startup",
+          "label": "129-256/False",
+          "count": 1327,
+          "timing_tpot_misses": 0,
+          "mean_tpot_ms": 29.15873687831556,
+          "p95_tpot_ms": 38.484072555295384,
+          "mean_other_native_requests": 1.3702824089198054
+        },
+        {
+          "group": "output_x_startup",
+          "label": "129-256/True",
+          "count": 117,
+          "timing_tpot_misses": 0,
+          "mean_tpot_ms": 35.87386581364893,
+          "p95_tpot_ms": 54.64478742880082,
+          "mean_other_native_requests": 2.5477617131458765
+        }
+      ],
+      "activations": [
+        {
+          "replica": "ieee-activation-9f27820411594fb38e14a0ddbe655044",
+          "start": 834485.909976929,
+          "end": 834537.023780866,
+          "category": "initial"
+        },
+        {
+          "replica": "ieee-activation-9e321194a9204917b48b0bc8498299a8",
+          "start": 834561.157185575,
+          "end": 834607.857508325,
+          "category": "natural_scaleout"
+        },
+        {
+          "replica": "ieee-activation-189927a4fc1a4d8692e1e7f9286a003e",
+          "start": 834563.231881243,
+          "end": 834610.78893307,
+          "category": "natural_scaleout"
+        },
+        {
+          "replica": "ieee-activation-e68b500294c44392b1989703e9be46a5",
+          "start": 834565.277375648,
+          "end": 834610.777877056,
+          "category": "natural_scaleout"
+        },
+        {
+          "replica": "ieee-activation-51c4fe11f1024c259900cb26f1a0e627",
+          "start": 834860.078012846,
+          "end": 834903.357407015,
+          "category": "natural_scaleout"
+        },
+        {
+          "replica": "ieee-activation-1eb540a3ccde42afae73f077f89af79e",
+          "start": 835276.940291007,
+          "end": 835320.023647713,
+          "category": "natural_scaleout"
+        },
+        {
+          "replica": "ieee-activation-68c96699359a40efb1ba852e95331a64",
+          "start": 835605.734512501,
+          "end": 835649.28408589,
+          "category": "natural_scaleout"
+        },
+        {
+          "replica": "ieee-activation-274cecc101a442ae8fc23c1bb8b4e22d",
+          "start": 838346.909356128,
+          "end": 838390.338820802,
+          "category": "natural_scaleout"
+        }
+      ],
+      "startup_union_s": 225.8244626581436,
+      "n_correct": null,
+      "formal_qualification": false,
+      "confidence_interval": null,
+      "caveats": [
+        "Same-host native monotonic intervals only.",
+        "Startup overlap is an exposure, not the duration or cause of a decode stall.",
+        "Preparation envelope includes waiting/materialization; not isolated device-copy time.",
+        "Overlap depends on observed decode duration; long requests have more opportunity for exposure.",
+        "Conditional groups differ; no causal effect, independent samples, or counterfactual subtraction.",
+        "Provisional TPOT thresholds unchanged; no formal SLO qualification."
+      ],
+      "source": {
+        "source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d303_20261007/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d303_7b_full_w0.json",
+        "source_sha256": "9bd86f5647a2723fa0aed67a98b92a72b477f725ef91b98a0182f348eaa7598e",
+        "physical_source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d303_20261007/7b_full_w0/launch.launch/physical_deployment/physical_resource_summary.json",
+        "physical_sha256": "bf576a96ff6d8322dc276abc26e79a26bdf82d3563ce081bb3120e031b1a5d87",
+        "max_native_ttft_error_ms": 0.0,
+        "max_native_tpot_error_ms": 0.0,
+        "shared_trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+        "shared_adapter_subset_sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016"
+      }
+    }
+  },
+  "new_performance_runs": 0,
+  "no_figures": true
+}

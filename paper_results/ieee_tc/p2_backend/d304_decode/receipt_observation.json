@@ -1,0 +1,21 @@
+{
+  "kind": "d304_retained_acquisition_receipt_observation_v1",
+  "source": "results/ieee_tc/p2_backend_qualification/d303_20261007/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d303_7b_full_w0.json",
+  "source_sha256": "9bd86f5647a2723fa0aed67a98b92a72b477f725ef91b98a0182f348eaa7598e",
+  "request_count": 4000,
+  "completion_fence_field_count": 4000,
+  "completion_fence_ms_mean": 1.2665882242727093,
+  "completion_fence_ms_p95_type1": 0.16432697884738445,
+  "completion_fence_ms_maximum": 121.36489001568407,
+  "receipt_fields_present_in_all_requests": [
+    "native_load_invoked", "native_load_started_monotonic_s",
+    "native_load_completed_monotonic_s", "acquired_monotonic_s",
+    "completion_fence_ms", "load_and_acquire_ms", "clock_id"
+  ],
+  "nullable_load_fields_are_not_zero_measurements": true,
+  "new_performance_runs": 0,
+  "n_correct": null,
+  "formal_qualification": false,
+  "scope": "acquire_completion_fence_only_not_release_or_all_control_work",
+  "next_question": "Intersect retained narrow native load-and-acquire intervals with peer decode before proposing a serving change."
+}
