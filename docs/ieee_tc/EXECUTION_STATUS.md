@@ -11,7 +11,101 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D334100 COMPLETE/audited; next D335 full4000, no more short tests
+## CURRENT — D335 full4000 W0 COMPLETE/audited; full-run gain NOT established
+
+2026-10-08 07:16+08:79 tests and full/context analyzers pass, offline exact-owned
+scope empty/stopped; peak1094164480B/events0/swap0.24-member50508B closure archive
+and curated hashes sealed. No performance/GPU/remote service is active. D335
+analysis is DONE, not a task to repeat. See D335_COMPLETE_W0_DECISION.md.
+
+All4000native counts/10binding checks/time identities pass,199outputSHA changes
+vsD332 retained,N_correct unknown. Mean/P95TTFT1202.490/2857.905ms,U15748.053154
+GPU-s:2.29%/5.25%/2.38%worse thanD332. MeanE2E4.667260s slightlybetter; P95TPOT
+52.747ms worse. Timing-only3867/4000 versus3901,NOTformalSLO.2009GPU requests
+prove newcoreturntrigger,notcausal saving. Remote132/131480060B/packing0;
+4037samples/peak20462186496B/minhost92627652608B/high,max,OOM,swap0.
+
+Observed U delta365.564940GPU-s equals5.105955envelope increase plus360.458985
+less released-gap time. Scale-up/down9/6->4/1, runtimewait344.607->347.121ms.
+Do not accept D333 as a verified performance gain, rerun unchanged for a winner,
+or infer that deleting TTFTguard/reducing replicas automatically meetsSLO.
+NEXT checkpoint then return to resource operating-point/queue-pressure evidence
+and history; choose ONE falsifiable7B step before changing configuration. No
+newcandidate selected in this audit. Final qualification andlaterstages remainopen.
+
+## HISTORY — D335 offline comparison launched
+
+2026-10-08 07:11+08: D335 finished4000 successful native-contract terminals,
+no interrupted requests, launch pass and physical GPU release confirmed. Service
+scope removed; exact-owned replay scope empty/stopped. Both remote services and
+monitor stopped after measurement, PID0/portsabsent; downloaded transfer/monitor
+logs match remote SHA. No GPU/performance run remains. Do not relaunch D335.
+
+Raw result SHA a3b6ee044db0ba46915e94ad1de8e67f638b3b0f188fed7eaac1e69078ffaa97.
+Physical summary U15748.053153870977GPU-s, N_correct unknown. Preliminary resource
+regression versus D332 U15382.488214008044 is retained; no success claim from the
+short D334 prefix. Reusing existing full/context analyzers in a3/4GiB,swap0 offline
+scope; no code/config/profile/remote changes to serving, no figures or new inference.
+User's once-published delivery-cache approval reconfirmed: D78/D80 cache already
+exists and was reused, not regenerated. Request-path packing remains forbidden.
+Free disk159992184832B is below150GiB: no new heavy/GPU run until fresh gate and
+authorized evidenced storage recovery; thresholds remain unchanged.
+NEXT: complete audit, interpret full wait/control/lifecycle and trigger evidence,
+save negative result and checkpoint, then choose the next single7B research step.
+Numerical/commonwarm/Resident/old-new G1/G2 and3B/baselines remain OPEN.
+
+## HISTORY — D335 full4000 W0 launched; D334 is complete, no repeated smoke
+
+2026-10-08 05:58+08: continuing the unchanged D333 serving candidate, ordinary
+4000-request W0 launched with registered runner case d335 in tmux tc-d335-full1.
+Raw: results/ieee_tc/p2_backend_qualification/d335_20261008/7b_full_w0.
+Actual HEAD e0b1060d906ee401bba5468c4330d6cb0b114c43 independently matches V2.
+Source SHA/profile/model checks passed, only3 exclusive result/cold-cache paths
+differ from D332. No prefix limit or profiler; existing trace/artifacts reused.
+Prelaunch scope peak514818048B/events0/swap0, exactly owned-empty and stopped.
+Fresh gate disk161100333056B/memory112859860992B, no threshold relaxed.
+Remote frozen published services started; link1000/full, both authenticated
+health prepublished_gzip_v1/artifact_timing_v2.7B clock45a7f67912d04ded9c47c7c3863abb1c.
+No packaging/cache regeneration or baseline/3B work. No figures. Do not edit
+serving/configuration or run heavy analysis during this performance run.
+NEXT: monitor actual launch/watchdog, complete replay, release exact owned local
+and remote resources, validate native counts/timelines/U/remote/trigger against
+D332, save all regressions/unknown correctness, then decide next7B mainline step.
+Full/numerical/commonwarm/Resident/old-new G1/G2 are not yet qualified.
+
+06:00:42+08 monitor: replay/service are actually running, not merely a submitted
+launch. Latest service report35arrived/33success/0failure,3natural scale-ups,
+4live runtimes.148 watchdog samples; current service13.764GiB/host available
+91.279GiB,high/max/OOM/swap0,foreign compute0,abort/warningnone. Partial warmup
+latencies (mean2455/P9512709ms at33 requests) are NOT complete-run estimates;
+retain startup regressions and wait for the full4000 before judging D333.
+tmux tc-d335-full1 remains active; no tool session pending. No new code changes
+or push during performance measurement. Existing e0b1060 backup contains the
+exact serving candidate/config/runner. Finish this run; do not relaunch it.
+
+06:44:26+08 verified-wait continuation: SAME tmux session/pane PID1086842 live,
+watchdog2737 samples,3030/4000successful terminals/0failure (3031arrived). The
+run has crossed the first six500-request rotation boundaries and recorded a
+natural4->3->4 replica sequence. These are partial observations, not G1/G2.
+Peak service18.709GiB/latest host88.684GiB,high/max/OOM/swap0,no warning/abort.
+Read existing D324/D327 lifecycle evidence and queue-display/control code only;
+queue_visible is cumulative display, not itself IEEE control queue_depth. Do not
+infer a queue bug from that label. No edits, new analysis, policy/configuration
+changes, numerical repeats, baseline or figures. Plan/V1 SHA unchanged.
+The temporary foreground polling cell was stopped after the observation window;
+the experiment, independent watchdog, replay and frozen remote services continue.
+NEXT still finish D335, then exact resource closure and offline comparison. Do
+not confuse ending an observation window with experiment termination or restart.
+
+## HISTORY — D334100 COMPLETE/audited; next D335 full4000, no more short tests
+
+2026-10-08 05:53:23+08 BACKUP VERIFIED: local HEAD and independent remote V2 both
+e0b1060d906ee401bba5468c4330d6cb0b114c43.12 exact staged paths,7 curated hashes,
+17 archive members,syntax/diff/secrets pass;user manifest unstaged and unchanged.
+No active experiment/GPU/remote service or pending tool process. Cleanup and
+D334 analysis are DONE. Next D335 full4000; do not turn next cycle into another
+closure/backup audit. Source-serving candidate7458783 remains unchanged by the
+analysis-only e0b1060 commit. Full goal remains active; no result claim closed.
 
 2026-10-08 ~05:52+08: D333/D334 is real mainline progress, not another backup-only
 cycle.74587830983bd28fd4791ed8ffeec9192262c56d was pushed/independently verified

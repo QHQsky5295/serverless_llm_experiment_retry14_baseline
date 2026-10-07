@@ -427,6 +427,17 @@ def main(campaign='d299', reference_override=None):
             'D330 publishes already measured planner snapshots into confirmed route scopes. '
             'Counters prove trigger, not avoided RPC count or causal latency savings. '
             'Single development run per configuration; closed-loop variation remains.')
+    elif campaign == 'd335':
+        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d335_20261008'
+        RUN = RAW/'7b_full_w0'
+        OUT = ROOT/'paper_results/ieee_tc/p2_backend/d335_full_w0/context1'
+        reference = 'd332'
+        health_name = 'remote_health.json'
+        change_caveat = (
+            'D332 model, controls, measured profiles and ownership lifecycle retained; '
+            'D333 combines selected-GPU pending registration and protection in one native '
+            'core turn. HOST ordering is unchanged. Trigger is not causal latency saving. '
+            'Single development run per configuration; closed-loop variation remains.')
     elif campaign != 'd299':
         raise ValueError('unknown frozen full-run identity')
     assert not OUT.exists()
@@ -462,7 +473,7 @@ def main(campaign='d299', reference_override=None):
     assert len(remote)==len(remote_rows)==len(transfers)
     assert set(remote)=={r['http_transfer_id'] for r in transfers}
     health=read(RAW/health_name)
-    clock=(health['7b']['clock_id'] if campaign == 'd332' else
+    clock=(health['7b']['clock_id'] if campaign in ('d332', 'd335') else
            health['clock_id'] if campaign in ('d323', 'd326') else health['health']['clock_id'])
     for r in transfers:
         s=remote[r['http_transfer_id']]
@@ -513,7 +524,7 @@ def main(campaign='d299', reference_override=None):
         assert receipt['remote_transfers_sha256'] == sha256(journal)
         assert receipt['remote_monitor_sha256'] == sha256(RAW/'remote_monitor.log')
         result['remote_shutdown'] = receipt['remote_stop']
-    if campaign in ('d315', 'd318', 'd323', 'd326', 'd332'):
+    if campaign in ('d315', 'd318', 'd323', 'd326', 'd332', 'd335'):
         receipt = read(RAW/'completion_receipt.json')
         entries = receipt['evidence']
         assert entries[sources[campaign].name]['sha256'] == re['source_sha256']
@@ -541,7 +552,7 @@ def main(campaign='d299', reference_override=None):
            ROOT/'scripts/ieee_tc/plot_d290_diagnostic.py',ROOT/'scripts/ieee_tc_preflight.py']
     if campaign == 'd303':
         paths.append(CURATED/'d303_full_w0/completion_receipt.json')
-    if campaign in ('d314', 'd315', 'd318', 'd323', 'd326', 'd332'):
+    if campaign in ('d314', 'd315', 'd318', 'd323', 'd326', 'd332', 'd335'):
         paths.append(RAW/'completion_receipt.json')
     with (OUT/'manifest.json').open('x') as handle:
         json.dump(dict(source_refs=[dict(path=str(p),sha256=sha256(p)) for p in paths],
@@ -552,7 +563,7 @@ def main(campaign='d299', reference_override=None):
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--campaign', choices=('d299', 'd300', 'd303', 'd314', 'd315', 'd318', 'd323', 'd326', 'd332', 'd309-failure', 'd311-incomplete', 'd313-failure'), default='d299')
+    parser.add_argument('--campaign', choices=('d299', 'd300', 'd303', 'd314', 'd315', 'd318', 'd323', 'd326', 'd332', 'd335', 'd309-failure', 'd311-incomplete', 'd313-failure'), default='d299')
     parser.add_argument('--reference', choices=('d303', 'd314'),
         help='D315 only: registered complete-run reference, with separate non-overwriting output')
     args = parser.parse_args()

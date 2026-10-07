@@ -1,0 +1,61 @@
+{
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d335_20261008/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d335_7b_full_w0.json",
+      "sha256": "a3b6ee044db0ba46915e94ad1de8e67f638b3b0f188fed7eaac1e69078ffaa97"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261002_d170_warm_measurement.json",
+      "sha256": "0ebc7587effe293dcb986d33fb932c100cbcb3384c56ab2c0b0bec73b2bdd88c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json",
+      "sha256": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c"
+    },
+    {
+      "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261008_d335_7b_full_w0.yaml",
+      "sha256": "48fdc8178dd26db2793c87796a816f821fb00d30d4ddb2978feebd4baf3a2efd"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d335_20261008/7b_full_w0/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "3191ae61fb91144c7c5eefb0a297d9dabdc9fbd3540fde97c967baa393476797"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/analyze_d297_full.py",
+      "sha256": "e21ded735bfab8502e651d83e27ed151ce5894ed4fc97f533f9c2c71b4d74127"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/plot_d290_diagnostic.py",
+      "sha256": "fdb7898478701b4142bfc15feb231f9c94da566215ec1247ad1ddf6e58d98f9d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/analyze_control_path_overhead.py",
+      "sha256": "77a39de98a9932f96a2e59cc04f760730c01defbf8a89e19eb881281350b0d6f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/analyze_d298_smoke.py",
+      "sha256": "d0605983ec9afd933f11e279cceef3924128d5188220260ccc1c51cca632ee85"
+    }
+  ],
+  "outputs": {
+    "admission_waits.json": "8a284c57539d656a987143fa0cf55f8a7dd415f3242421975852f25110b6fe44",
+    "audit.json": "ddd12705674d7d5d1dad318fbed0811e5617b1f6be946be741994bd5301e9b73",
+    "control_audit.json": "6455cce1352e6925939cbc44ff29c8cd175422af862f90a97c6014029f62ea94",
+    "control_samples.csv": "5a8658ed1890ea138107183d973cbf566179dd0acee414c793fe88526f7ad599",
+    "copy_retention_trigger.json": "03082275baf6b4c5a32af408669aedc8232efb361a7d5dd844f83fd74e8a02a8",
+    "native_pending_turn_trigger.json": "3e32abd7e7087d6b2ae84d4f070bc32e31758173527fd4d93cecdc20a7b5c290",
+    "planning_publication_trigger.json": "75af1836ccf640b2c409f66f81d06d19f3e50157efdddf2754c6691b97aafbc6",
+    "preparation_attribution.json": "3bb1b7426739a3ba2f25c4fa7858fbc0c38cf0089067b5f62220991fb41e0ad0",
+    "requests.csv": "dd6736ec3f6dd21a72c1c49462f6bb552ebf018843f81398851d52693a7afe4e",
+    "timing_groups.csv": "f52f353cb2304ff010b21a65d91249aa9a878e9f3abb2696460105c5203b1cf9"
+  },
+  "no_figures": true
+}
