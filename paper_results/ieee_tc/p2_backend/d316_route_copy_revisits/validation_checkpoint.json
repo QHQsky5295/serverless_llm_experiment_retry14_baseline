@@ -1,0 +1,89 @@
+{
+  "kind": "d316_event_confirmed_gpu_copy_cpu_checkpoint_v1",
+  "source_commit": "e6cb59e099021fa528be2865718c259bab3e8b4e",
+  "source_plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "source_sha256": {
+    "scripts/run_all_experiments.py": "262b8f58ca12b129d0292f3e6da94ed3f5732171f959a2d0280c89e8cda46ef6",
+    "scripts/analyze_control_path_overhead.py": "77a39de98a9932f96a2e59cc04f760730c01defbf8a89e19eb881281350b0d6f",
+    "scripts/ieee_tc/analyze_d297_full.py": "ba2fb167c035004219ed0c861e042a6e12f8f24cec03b5a507750fef1d82550e",
+    "tests/test_ieee_tc_route_identity_cache.py": "4e37958d01765d8f8b59c54f44e5a64eee0bc075a5a2f03fb771b3c93903efea"
+  },
+  "log_root": "results/ieee_tc/p2_backend_qualification/d316_20261007",
+  "before_fix_reproduction": {
+    "invocation": "6ac58a66ac6e4641a5c326e66f0ffe36",
+    "tests": 1,
+    "exit_code": 1,
+    "observation": "Unchanged target scope deleted after a newer native owner event; expected cache key missing",
+    "log": "before_fix.log",
+    "log_sha256": "1229feff21d10f68a9133be217212b1adb2453686f97ad92c0a53aff4309c2a7",
+    "memory_peak_bytes": 493666304
+  },
+  "cpu_validation": [
+    {
+      "invocation": "db27c310285749238ca9dd9b70a0322e",
+      "passed": 27,
+      "duration_s": 0.025,
+      "log": "revisit_tests.log",
+      "log_sha256": "de4537b854ca9eae3a45488b5981b6db73459c5b7776e30d5afef1ed4f20510a",
+      "memory_peak_bytes": 493539328
+    },
+    {
+      "invocation": "92fed7732cbe4837a9292715cdabbb7d",
+      "modules": ["tests.test_ieee_tc_route_identity_cache", "tests.test_ieee_tc_gpu_references", "tests.test_ieee_tc_request_lifecycle", "tests.test_ieee_tc_request_footprints", "tests.test_ieee_tc_identity_recheck", "tests.test_ieee_tc_decode_overlap"],
+      "passed": 419,
+      "duration_s": 3.567,
+      "log": "regression.log",
+      "log_sha256": "1fe38feef3c3d3baee6b75871646fe14a4c97da0b67bc49eb302f1a7ce74c174",
+      "memory_peak_bytes": 553676800,
+      "subsequent_serving_edits": "Two docstrings only; no logic change"
+    },
+    {
+      "invocation": "cf9f424f57704aeeaad667ee31e895c8",
+      "modules": ["tests.test_basic_smoke"],
+      "passed": 289,
+      "duration_s": 19.234,
+      "log": "smoke.log",
+      "log_sha256": "2a25215f3aa24212b72328aaaa2831d75cd1a97d737417ee5d0ffd32c5e76bbb",
+      "memory_peak_bytes": 1112236032
+    }
+  ],
+  "offline_analysis": {
+    "invocation": "0b334b095fe048a68a9dad9daf724595",
+    "log": "copy_audit.log",
+    "log_sha256": "d19ffa09905692b817f6771b78e8c5fbd26a2fedcd097d5efeee450bec8b042d",
+    "memory_peak_bytes": 754491392,
+    "retained_view_opportunities": 2357,
+    "affected_requests": 1261,
+    "exact_rpc_count": null,
+    "avoided_latency_ms": null
+  },
+  "identity_protection_verifier": {
+    "invocation": "5e4f37d32a7d454ca647cd963b8f2aaa",
+    "log": "identity_protection.log",
+    "log_sha256": "a70bb5d9a8851a80763f737e2e3f97ab6432f4cd3432a878995057f111b30d6d",
+    "memory_peak_bytes": 27131904,
+    "analysis_input_hashes_pass": 6,
+    "analysis_output_hashes_pass": 2,
+    "protected_seal_entries": 147,
+    "protected_seal_raw_pass": false,
+    "only_known_baseline_replay_difference": true,
+    "user_manifest_unchanged": true,
+    "serving_source_matches": true
+  },
+  "all_cpu_scopes": {
+    "memory_high_bytes": 3221225472,
+    "memory_max_bytes": 4294967296,
+    "swap_max_bytes": 0,
+    "cpus": "2,3,26,27",
+    "events_high_max_oom_oom_kill": 0,
+    "swap_bytes": 0,
+    "actual_procs_empty_and_populated_zero_verified": true,
+    "stopped": true
+  },
+  "decision": "One D317 native 7B 100-request safety/trigger validation next, then unchanged full4000 if valid; no performance claim yet",
+  "gpu_performance_runs": 0,
+  "formal_qualification": false,
+  "ranking_eligible": false,
+  "new_figures": 0
+}

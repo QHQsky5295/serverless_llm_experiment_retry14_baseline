@@ -8552,9 +8552,11 @@ class ScenarioRunner:
         path because their measured CPU footprint can depend on allocator
         aliasing that the compact identity endpoint does not expose.
 
-        This is not a last-known tier decision: the current identity RPC is
-        still required, and the returned identity is merged into the new
-        observation before routing/admission.
+        The identity must come from a native read or a serialized owner event,
+        not a prediction. The identity-recheck collector merges this view into
+        its observation. Event publication instead retains the original scoped
+        measurement token without changing its timestamp or epoch; subsequent
+        selected-copy admission is mandatory in both paths.
         """
         if current is None or cached is None or not isinstance(scope, tuple) or not scope:
             return False
@@ -8691,11 +8693,11 @@ class ScenarioRunner:
 
         The frontier is deliberately weaker than a routing snapshot: it has no
         measured footprints and therefore cannot classify a present adapter.
-        It is useful only for the negative fact ``adapter is not registered and
-        not occupying a GPU slot`` at the exact owner epoch emitted by the
-        native transaction.  A later native load publishes a new frontier in
-        the same acknowledgement, so this is event-driven state propagation,
-        not a TTL or last-known readiness shortcut.
+        It can prove absence, or prove that a previously measured GPU copy is
+        unchanged. It cannot create a footprint or promote an unmeasured copy
+        into a service class. A later native load publishes a new frontier in
+        the same acknowledgement. No TTL or prediction creates this evidence;
+        selected-source acquisition still revalidates the actual native copy.
         """
         from dataclasses import replace
         from faaslora.experiment.instance_pool import NativeSourceSnapshot
@@ -8719,28 +8721,38 @@ class ScenarioRunner:
             if identity.epoch == previous.epoch and left != right:
                 raise ValueError('same native epoch changed its identity frontier')
         frontier_map[instance_id] = identity
-        # A post-load event may evict an unrelated copy. Drop entries from a
-        # different identity, but keep authoritative scoped observations of
-        # THIS exact owner/clock/epoch/source state. The route collector installs
-        # its freshly read scope before calling this publication method; an
-        # unconditional clear would immediately discard that confirmed read and
-        # force another RPC even when nothing changed. This does not extend a
-        # footprint across epochs or bypass selected-source revalidation.
+        # Invalidate by the object the routing measurement describes. A native
+        # epoch also changes on unrelated loads and reference-count changes;
+        # it is not the lifetime of one immutable GPU copy. Preserve the exact
+        # old measurement token only when this newer owner event confirms its
+        # target GPU copy, slot, rank and path are unchanged. Do NOT relabel its
+        # epoch/time/footprint as a fresh measurement or publish it to the slot.
+        # The selected native transaction still checks the exact copy and pins
+        # it atomically. HOST-only footprints remain full-epoch-bound because
+        # allocation aliasing can change without a target identity change.
         route_cache = getattr(self, '_ieee_route_full_cache', None)
         if route_cache is None:
             route_cache = self._ieee_route_full_cache = {}
+        retained_gpu_scopes = 0
         for key in tuple(route_cache):
             if key[0] == instance_id:
                 entry = route_cache[key]
                 cached = entry.get('snapshot') if isinstance(entry, dict) else None
-                if (not isinstance(cached, NativeSourceSnapshot)
-                        or not self._ieee_identity_equal(identity, cached)):
+                valid = isinstance(cached, NativeSourceSnapshot)
+                same_identity = valid and self._ieee_identity_equal(identity, cached)
+                same_gpu_copy = (valid and identity.epoch > cached.epoch
+                    and self._ieee_scope_identity_equal(identity, cached, key[1]))
+                if not same_identity and not same_gpu_copy:
                     del route_cache[key]
+                elif same_gpu_copy:
+                    retained_gpu_scopes += 1
         cache_stats = getattr(self, '_ieee_route_cache_stats', None)
         if cache_stats is None:
             cache_stats = self._ieee_route_cache_stats = {}
         cache_stats['identity_frontier_updates'] = (
             cache_stats.get('identity_frontier_updates', 0) + 1)
+        cache_stats['identity_frontier_retained_gpu_scopes'] = (
+            cache_stats.get('identity_frontier_retained_gpu_scopes', 0) + retained_gpu_scopes)
         return True
 
     def _ieee_publish_post_load_identity(self, slot, receipt) -> bool:
@@ -8918,6 +8930,8 @@ class ScenarioRunner:
                     mode='confirmed_snapshot_cache_v1',
                     identity_replica_count=0,
                     confirmed_snapshot_cache_hit_replica_count=len(reused_indexes),
+                    identity_frontier_retained_gpu_scopes=cache_stats.get(
+                        'identity_frontier_retained_gpu_scopes', 0),
                     cache_hits=cache_stats.get('confirmed_snapshot_hits', 0),
                     identity_only=0,
                     full_authoritative_read_replica_count=len(cold_indexes),

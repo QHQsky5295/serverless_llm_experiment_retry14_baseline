@@ -19,7 +19,8 @@ from statistics import mean
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from scripts.ieee_tc.plot_d290_diagnostic import audit_run, binding_checks, percentile, sha256
-from scripts.analyze_control_path_overhead import provisional_timing_bound, summarize_admission_waits
+from scripts.analyze_control_path_overhead import (provisional_timing_bound,
+    summarize_admission_waits, summarize_route_copy_revisits)
 from faaslora.metrics.metrics_collector import NativeV1TokenTimeline
 
 RAW = ROOT / 'results/ieee_tc/p2_backend_qualification/d297_20261007'
@@ -769,6 +770,33 @@ def main(campaign='d297'):
         outputs={p.name:sha256(p) for p in sorted(OUT.iterdir())}, no_figures=True))
 
 
+def inspect_retained_route_copies(output):
+    """D316: inspect the sealed complete D315 target views, without inference."""
+    global OUT
+    OUT = Path(output).resolve()
+    if OUT.exists():
+        raise FileExistsError(OUT)
+    assert sha256(PLAN) == '0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7'
+    assert sha256(PROTOCOL) == '5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22'
+    source = ROOT / ('results/ieee_tc/p2_backend_qualification/d315_20261007/7b_full_w0/'
+        'experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d315_7b_full_w0.json')
+    assert sha256(source) == '6e5007630c9780c417e65109ef3005daedba3dafa87a843ff75c4885f91c362f'
+    _, evidence, requests = audit_run(source)
+    assert len(requests) == 4000
+    result = summarize_route_copy_revisits(requests)
+    opportunities = result.pop('opportunities')
+    result.update(source=evidence, new_performance_runs=0, no_figures=True)
+    OUT.mkdir(parents=True, exist_ok=False)
+    write('summary.json', result)
+    write('opportunities.json', opportunities)
+    paths = [PLAN, PROTOCOL, source, Path(__file__),
+        ROOT/'scripts/analyze_control_path_overhead.py',
+        ROOT/'scripts/ieee_tc/plot_d290_diagnostic.py']
+    write('manifest.json', dict(source_refs=[dict(path=str(p), sha256=sha256(p)) for p in paths],
+        outputs={p.name:sha256(p) for p in sorted(OUT.iterdir())}, no_figures=True))
+    print(json.dumps(result, indent=2, allow_nan=False), flush=True)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--campaign', choices=('d297', 'd299', 'd300', 'd303', 'd314', 'd315'), default='d297')
@@ -780,11 +808,15 @@ if __name__ == '__main__':
         help='D305 narrow native load/acquire overlap using D304 and retained receipts')
     parser.add_argument('--prefill-output', type=Path,
         help='D306 retained same-owner prefill envelope using D305 and native timing')
+    parser.add_argument('--route-copy-output', type=Path,
+        help='D316 retained D315 target-copy revisits; explicit fresh output, no inference')
     args = parser.parse_args()
     if sum(x is not None for x in (args.admission_wait_output, args.decode_tail_output,
-                                  args.native_load_output, args.prefill_output)) > 1:
+                                  args.native_load_output, args.prefill_output, args.route_copy_output)) > 1:
         parser.error('choose one retained diagnostic')
-    if args.prefill_output is not None:
+    if args.route_copy_output is not None:
+        inspect_retained_route_copies(args.route_copy_output)
+    elif args.prefill_output is not None:
         inspect_retained_prefill(args.prefill_output)
     elif args.native_load_output is not None:
         inspect_retained_native_load(args.native_load_output)

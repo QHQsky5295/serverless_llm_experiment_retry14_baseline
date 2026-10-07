@@ -1176,6 +1176,73 @@ def summarize_admission_waits(requests: Sequence[Dict[str, Any]]) -> Dict[str, A
             'Native completion/binding checks do not establish numerical adapter qualification.'])
 
 
+def summarize_route_copy_revisits(requests: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
+    """Consecutive retained target views, not RPC totals or avoided latency.
+
+    Only the confirmed-snapshot mode exports per-replica reused indexes. A
+    new full observation of an unchanged GPU copy after an owner-epoch change
+    is an opportunity signal; it does not reconstruct the live cache or prove
+    that every intervening identity/footprint check would permit reuse.
+    """
+    summarize_route_evidence(requests)  # Complete request IDs and timing contract.
+    observations = []
+    for request in requests:
+        sources = request['gpu_reference_evidence']['routing_snapshot']['sources']
+        replicas = list(sources)
+        for index, (replica, evidence) in enumerate(sources.items()):
+            collection = evidence['source_collection']
+            reused = collection.get('reused_replica_indexes')
+            if (collection.get('mode') != 'confirmed_snapshot_cache_v1'
+                    or not isinstance(reused, list)
+                    or any(type(i) is not int or not 0 <= i < len(replicas) for i in reused)
+                    or len(set(reused)) != len(reused)
+                    or collection['full_authoritative_read_replica_count'] != len(replicas)-len(reused)):
+                raise ValueError('copy revisits require exact confirmed-mode per-replica read membership')
+            captured, epoch = evidence['native_captured_monotonic_s'], evidence['native_epoch']
+            if (type(captured) not in (int, float) or not math.isfinite(captured) or captured <= 0
+                    or type(epoch) is not int or epoch < 1):
+                raise ValueError('copy revisits require a positive native epoch and capture time')
+            source = evidence['source']
+            identity = None
+            if source is not None and source['native'] and source['tier'] == 'gpu':
+                if source['owner_id'] != evidence['native_owner_id'] or source['epoch'] != epoch:
+                    raise ValueError('target source differs from its native observation')
+                fields = ('owner_id', 'source_id', 'path', 'expected_content_sha256',
+                          'footprint_bytes', 'representation')
+                identity = tuple(source[k] for k in fields)
+                if (any(not isinstance(source[k], str) or not source[k] for k in fields if k != 'footprint_bytes')
+                        or type(source['footprint_bytes']) is not int or source['footprint_bytes'] <= 0):
+                    raise ValueError('GPU target lacks its measured copy identity')
+            observations.append(dict(request_id=request['request_id'], replica=replica,
+                adapter_id=request['adapter_id'], owner=evidence['native_owner_id'],
+                epoch=epoch, captured=captured, fresh=index not in reused, identity=identity))
+    previous, counts, opportunities = {}, Counter(), []
+    for row in sorted(observations, key=lambda r: (r['captured'], r['request_id'], r['replica'])):
+        key = (row['replica'], row['adapter_id'])
+        old = previous.get(key)
+        counts['retained_target_views'] += 1
+        counts['fresh_target_views' if row['fresh'] else 'reused_target_views'] += 1
+        if row['fresh'] and row['identity'] is not None:
+            counts['fresh_gpu_target_views'] += 1
+            if (old is not None and old['identity'] == row['identity']
+                    and row['epoch'] > old['epoch']):
+                counts['fresh_gpu_views_same_copy_after_epoch_advance'] += 1
+                opportunities.append(dict(request_id=row['request_id'], replica=row['replica'],
+                    adapter_id=row['adapter_id'], previous_request_id=old['request_id'],
+                    previous_epoch=old['epoch'], epoch=row['epoch'],
+                    previous_captured=old['captured'], captured=row['captured']))
+        previous[key] = row
+    return dict(kind='retained_route_copy_revisits_v1', request_count=len(requests),
+        counts=dict(counts), affected_request_count=len({r['request_id'] for r in opportunities}),
+        opportunities=opportunities, exact_rpc_count=None, avoided_latency_ms=None,
+        formal_comparison_qualified=False,
+        caveats=['Final per-request views only; repeated wave observations are not RPC totals.',
+                 'Capture-time order is not publication or completion order.',
+                 'Matching endpoints do not prove all intervening states or live cache availability.',
+                 'HOST-only and absent targets are not reuse candidates.',
+                 'No counterfactual latency, performance improvement, or numerical qualification.'])
+
+
 def analyze_route_evidence(source: Path, output: Path, scenario_name: str) -> Dict[str, Any]:
     """Bounded offline audit; explicit fresh output, never legacy paper copies."""
     import hashlib

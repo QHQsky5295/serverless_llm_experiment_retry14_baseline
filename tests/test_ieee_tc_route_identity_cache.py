@@ -15,7 +15,8 @@ from faaslora.clock import local_monotonic_clock_id
 from faaslora.experiment.instance_pool import InstanceSlot, NativeSourceSnapshot
 from scripts.run_all_experiments import ScenarioRunner
 from scripts.analyze_control_path_overhead import (
-    summarize_route_evidence, analyze_route_evidence, summarize_admission_waits)
+    summarize_route_evidence, analyze_route_evidence, summarize_admission_waits,
+    summarize_route_copy_revisits)
 from tests.test_ieee_tc_request_footprints import full_payload, scoped_payload
 
 
@@ -299,6 +300,78 @@ class RouteIdentityCacheQualification(unittest.TestCase):
         self.assertFalse(runner._ieee_publish_identity_frontier(slot, old))
         self.assertIs(runner._ieee_route_full_cache[('inst-a', (4,))], fresh_entry)
 
+    def test_frontier_retains_original_gpu_scope_across_unrelated_epoch(self):
+        runner, slot, _, _ = self._runner()
+        async def check():
+            values, _ = await runner._ieee_collect_confirmed_snapshot_cache(
+                (slot,), requested_adapter_ids=[4])
+            old = values[0][0]
+            entry = runner._ieee_route_full_cache[('inst-a', (4,))]
+            fresh = replace(old.identity_view(), epoch=old.epoch+1,
+                captured_monotonic_s=time.monotonic(), sources=tuple(
+                    (replace(s, source_id='unrelated-new-copy') if s.adapter_int_id == 5
+                     else replace(s, gpu_confirmed_monotonic_s=time.monotonic()))
+                    for s in old.identity_view().sources))
+            self.assertTrue(runner._ieee_publish_identity_frontier(slot, fresh))
+            self.assertIs(runner._ieee_route_full_cache[('inst-a', (4,))], entry)
+            again, metadata = await runner._ieee_collect_confirmed_snapshot_cache(
+                (slot,), requested_adapter_ids=[4])
+            # Keep the actual measured token; never claim the old measurement
+            # happened at the new epoch/time or grants physical capacity.
+            self.assertIs(again[0][0], old)
+            self.assertEqual(again[0][0].epoch, old.epoch)
+            self.assertEqual(runner._ieee_route_identity_frontier['inst-a'], fresh)
+            self.assertEqual(slot.engine.ieee_request_sources.await_count, 1)
+            self.assertEqual(metadata['full_authoritative_read_replica_count'], 0)
+            self.assertEqual(metadata['identity_frontier_retained_gpu_scopes'], 1)
+        asyncio.run(check())
+
+    def test_frontier_rejects_changed_target_slot_rank_or_path(self):
+        for mutation in ({'source_id':'new-target'}, {'gpu_slot':None},
+                         {'gpu_slot':1}, {'rank':32}, {'lora_path':'/other'}):
+            runner, slot, _, _ = self._runner()
+            values, _ = asyncio.run(runner._ieee_collect_confirmed_snapshot_cache(
+                (slot,), requested_adapter_ids=[4]))
+            old = values[0][0]
+            fresh = replace(old.identity_view(), epoch=old.epoch+1, sources=tuple(
+                replace(s, **mutation) if s.adapter_int_id == 4 else s
+                for s in old.identity_view().sources))
+            with self.subTest(mutation=mutation):
+                self.assertTrue(runner._ieee_publish_identity_frontier(slot, fresh))
+                self.assertNotIn(('inst-a', (4,)), runner._ieee_route_full_cache)
+
+    def test_frontier_rejects_target_unknown_unconfirmed_or_missing_registration(self):
+        for update in ({'unknown_native_adapter_ids':(4,)},
+                       {'unconfirmed_gpu_adapter_ids':(4,)}, {'registered_cpu_adapter_ids':(5,)}):
+            runner, slot, _, _ = self._runner()
+            values, _ = asyncio.run(runner._ieee_collect_confirmed_snapshot_cache(
+                (slot,), requested_adapter_ids=[4]))
+            old = values[0][0]
+            fresh = replace(old.identity_view(), epoch=old.epoch+1, **update)
+            with self.subTest(update=update):
+                self.assertTrue(runner._ieee_publish_identity_frontier(slot, fresh))
+                self.assertNotIn(('inst-a', (4,)), runner._ieee_route_full_cache)
+
+    def test_frontier_cannot_confirm_a_measurement_from_a_future_epoch(self):
+        runner, slot, _, _ = self._runner()
+        values, _ = asyncio.run(runner._ieee_collect_confirmed_snapshot_cache(
+            (slot,), requested_adapter_ids=[4]))
+        old = values[0][0]
+        runner._ieee_route_full_cache[('inst-a', (4,))]['snapshot'] = replace(old, epoch=old.epoch+1)
+        self.assertTrue(runner._ieee_publish_identity_frontier(slot, old.identity_view()))
+        self.assertNotIn(('inst-a', (4,)), runner._ieee_route_full_cache)
+
+    def test_frontier_does_not_retain_host_footprints_across_epochs(self):
+        runner, slot, _, _ = self._runner()
+        payload = scoped_payload((5,))
+        payload['clock_id'] = local_monotonic_clock_id()
+        old = NativeSourceSnapshot.from_request_native(payload, requested_adapter_ids=(5,),
+            expected_clock_id=local_monotonic_clock_id(), received_monotonic_s=time.monotonic())
+        runner._ieee_route_full_cache[('inst-a', (5,))] = {'snapshot':old, 'device_uuid':'GPU-same'}
+        fresh = replace(old.identity_view(), epoch=old.epoch+1)
+        self.assertTrue(runner._ieee_publish_identity_frontier(slot, fresh))
+        self.assertNotIn(('inst-a', (5,)), runner._ieee_route_full_cache)
+
     def test_frontier_never_retains_same_epoch_different_owner_or_source(self):
         runner, slot, _, _ = self._runner()
         values, _ = asyncio.run(runner._ieee_collect_confirmed_snapshot_cache(
@@ -441,6 +514,73 @@ class RouteEvidenceAudit(unittest.TestCase):
             self.assertEqual(result['legacy_interpolated_p95_control_ms'], 19.05)
             with self.assertRaises(FileExistsError):
                 analyze_route_evidence(source, output, 'example')
+
+
+class RetainedCopyRevisits(unittest.TestCase):
+    def rows(self):
+        rows = []
+        for i in range(3):
+            collection = dict(mode='confirmed_snapshot_cache_v1', collection_id=i+1,
+                identity_replica_count=0, full_authoritative_read_replica_count=1,
+                cold_full_read_replica_count=1, full_fallback_replica_count=0,
+                cache_hits=0, identity_only=0, reused_replica_indexes=[])
+            source = dict(native=True, tier='gpu', owner_id='owner', epoch=i+1,
+                source_id='gpu-copy', path='/same', expected_content_sha256='a'*64,
+                footprint_bytes=1024, representation='gpu-slot')
+            view = dict(source=source, source_collection=collection,
+                native_owner_id='owner', native_epoch=i+1, native_captured_monotonic_s=10.+i)
+            rows.append(dict(request_id=f'r{i}', adapter_id='adapter', control_path_total_us=100.,
+                gpu_reference_evidence=dict(routing_snapshot=dict(sources={'replica':view}))))
+        return rows
+
+    def test_same_copy_epoch_revisit_is_only_an_opportunity(self):
+        result = summarize_route_copy_revisits(self.rows())
+        self.assertEqual(result['counts']['fresh_gpu_views_same_copy_after_epoch_advance'], 2)
+        self.assertEqual(result['affected_request_count'], 2)
+        self.assertIsNone(result['exact_rpc_count'])
+        self.assertIsNone(result['avoided_latency_ms'])
+        self.assertFalse(result['formal_comparison_qualified'])
+
+    def test_changed_target_host_absence_and_capacity_are_not_matches(self):
+        for update in ({'source_id':'changed'}, {'tier':'host'}, {'native':False},
+                       {'footprint_bytes':2048}, {'path':'/changed'},
+                       {'expected_content_sha256':'b'*64}, {'representation':'different'}):
+            rows = self.rows()
+            rows[1]['gpu_reference_evidence']['routing_snapshot']['sources']['replica']['source'].update(update)
+            with self.subTest(update=update):
+                result = summarize_route_copy_revisits(rows)
+                self.assertEqual(result['affected_request_count'], 0)
+
+    def test_reused_views_are_not_reported_as_fresh_reads(self):
+        rows = self.rows()
+        for row in rows:
+            row['gpu_reference_evidence']['routing_snapshot']['sources']['replica']['source_collection'].update(
+                reused_replica_indexes=[0], full_authoritative_read_replica_count=0,
+                cold_full_read_replica_count=0)
+        result = summarize_route_copy_revisits(rows)
+        self.assertEqual(result['affected_request_count'], 0)
+        self.assertEqual(result['counts']['reused_target_views'], 3)
+
+    def test_capture_order_not_input_order(self):
+        self.assertEqual(summarize_route_copy_revisits(self.rows()),
+                         summarize_route_copy_revisits(list(reversed(self.rows()))))
+
+    def test_owner_or_adapter_change_does_not_cross_bind(self):
+        rows = self.rows()
+        rows[1]['adapter_id'] = 'another'
+        self.assertEqual(summarize_route_copy_revisits(rows)['affected_request_count'], 1)
+        rows = self.rows()
+        view = rows[1]['gpu_reference_evidence']['routing_snapshot']['sources']['replica']
+        view['native_owner_id'] = view['source']['owner_id'] = 'another-owner'
+        self.assertEqual(summarize_route_copy_revisits(rows)['affected_request_count'], 0)
+
+    def test_missing_and_malformed_membership_fail_closed(self):
+        for update in ({'mode':'identity_recheck_cache_v1'}, {'reused_replica_indexes':[2]},
+                       {'reused_replica_indexes':[0,0]}, {'full_authoritative_read_replica_count':0}):
+            rows = self.rows()
+            rows[0]['gpu_reference_evidence']['routing_snapshot']['sources']['replica']['source_collection'].update(update)
+            with self.subTest(update=update), self.assertRaises(ValueError):
+                summarize_route_copy_revisits(rows)
 
 
 if __name__ == '__main__':

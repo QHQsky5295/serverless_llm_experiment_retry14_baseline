@@ -11,7 +11,43 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D315 full4000 audited; request-path waiting is next, not another budget scan
+## CURRENT — D316 single event-confirmed GPU-copy candidate CPU-validated; D317 next
+
+2026-10-07. PROGRESS: D315 full-log reuse analysis found2357 retained fresh-GPU
+views with unchanged target-copy identity after global epoch advancement,
+affecting1261of4000requests. These are observed opportunities, NOT exact RPC
+counts or predicted latency savings. Native owner epoch also changes on pins
+and unrelated copies. Historical D200/D201/D216/D289/D301 and official vLLM0.30
+worker/core were checked; D216's extra identity RPC is NOT revived.
+
+One serving change retains an ORIGINAL measured GPU-copy record when an
+already-received newer native event confirms unchanged owner/clock/target
+sourceID/slot/path/rank. No new TTL, RPC, profile or coefficient. HOST-only
+records still invalidate; selected-source atomic recheck/pin remains mandatory.
+IEEE equations,1024backend configuration, D298profiles, generation and frozen
+metrics unchanged. Cumulative retained_gpu_scopes only proves branch activity.
+Old-code targeted test reproduced deletion;419 regressions and289 smoke tests
+pass. Prior27 analysis/route tests also pass. No GPU performance run this turn.
+
+CPU scopes3/4GiB/0swap,CPUs2,3,26,27: every actual cgroup.procs empty and
+populated0 verified before stop; events/swap all0. Verifier5e4f37d32a7d454ca647
+cd963b8f2aaa peak27131904B stopped afteridentity check. Analysis6input/2output
+hashes pass. Protected147seal retains ONLY known baseline replay difference,
+rawpassfalse preserved; dirty usermanifest3b69bd0a... unchanged/notstaged.
+ServingSHA262b8f58ca12b129d0292f3e6da94ed3f5732171f959a2d0280c89e8cda46ef6.
+Evidence and validation_checkpoint in d316_route_copy_revisits; interpretation
+in D316_EVENT_CONFIRMED_GPU_COPY_REUSE.md. No new figures/assets or remote work.
+Approved one-time delivery cache already exists D78/D80; do not rebuild it.
+
+NEXT: explicit-path Git checkpoint and verified push, then register D317 once
+using existing100-request runner and D315 unchanged1024 configuration. Safety,
+native binding/count/tier and retained-copy trigger must pass before unchanged
+candidate full4000. Do not infer full performance from100prefix. No repeatD315
+audit/D295/PEFT/profile/budgetscan or jump to3B/baselines. Numerical/warm/Resident
+and oldPrime newmetrics remain open; neither model nor G1/G2 qualified.
+Fullgoal remainsactive. This entry supersedes D315's next-investigation task.
+
+## HISTORY — D315 full4000 audited; request-path waiting is next, not another budget scan
 
 2026-10-07 17:40+08. PROGRESS: complete D315 analysis and both registered
 comparisons (D303 and D314) finished; 341 CPU tests passed19.032s. Full source
@@ -58,6 +94,16 @@ choosing one falsifiable change. Do not scan budgets, repeatD295/PEFT, jump to
 3B/baselines or generatefigures. OldPrime newmetrics and numerical/warm/Resident
 qualification remainopen. Keepfullgoalactive. Thisnote supersedes the raw
 completion receipt's historical audit-pending flag without rewriting it.
+
+Backup closure 2026-10-07 17:41:22+08: normal push completed. Local HEAD and
+exact faaslora_origin/retry14_continuous_queue_v2 remote HEAD both verified as
+e6cb59e099021fa528be2865718c259bab3e8b4e. Explicit20-file staging passed the
+CR-at-EOL-aware whitespace check and credential-pattern scan;341 tests and
+manifest identity checks were completed before commit. Usermanifest unchanged
+3b69bd0a...andneverstaged; unrelated untracked/dirty assets preserved. No raw
+large logs, credentials or figures committed. This post-push note is the only
+new own modification. No experiment remainslive. The next continuation must
+investigate7Brequest-path waiting, not repeat completedD315/audit/backup tests.
 
 ## HISTORY — D315 full4000 finished and released; complete audit next
 

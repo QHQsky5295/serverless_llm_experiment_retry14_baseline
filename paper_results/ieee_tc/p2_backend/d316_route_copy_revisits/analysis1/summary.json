@@ -1,0 +1,34 @@
+{
+  "kind": "retained_route_copy_revisits_v1",
+  "request_count": 4000,
+  "counts": {
+    "retained_target_views": 15919,
+    "fresh_target_views": 7946,
+    "fresh_gpu_target_views": 4069,
+    "reused_target_views": 7973,
+    "fresh_gpu_views_same_copy_after_epoch_advance": 2357
+  },
+  "affected_request_count": 1261,
+  "exact_rpc_count": null,
+  "avoided_latency_ms": null,
+  "formal_comparison_qualified": false,
+  "caveats": [
+    "Final per-request views only; repeated wave observations are not RPC totals.",
+    "Capture-time order is not publication or completion order.",
+    "Matching endpoints do not prove all intervening states or live cache availability.",
+    "HOST-only and absent targets are not reuse candidates.",
+    "No counterfactual latency, performance improvement, or numerical qualification."
+  ],
+  "source": {
+    "source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d315_20261007/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d315_7b_full_w0.json",
+    "source_sha256": "6e5007630c9780c417e65109ef3005daedba3dafa87a843ff75c4885f91c362f",
+    "physical_source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d315_20261007/7b_full_w0/launch.launch/physical_deployment/physical_resource_summary.json",
+    "physical_sha256": "fc7a1529c8aff64a07e7d76a745c63b370e7979b875510a5f928263ee7bef407",
+    "max_native_ttft_error_ms": 0.0,
+    "max_native_tpot_error_ms": 0.0,
+    "shared_trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "shared_adapter_subset_sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016"
+  },
+  "new_performance_runs": 0,
+  "no_figures": true
+}
