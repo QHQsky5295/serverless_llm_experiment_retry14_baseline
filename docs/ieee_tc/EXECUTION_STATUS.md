@@ -46,7 +46,11 @@ watchdogattachment/livememory/diskgate mustpassagainbeforeGPU, no protocolchange
 FiveCPUscopesempty/exit0,peak<0.60GB,noevents/swap; nativeGPUcensusclear.
 Protected147soleknownbaselineSHAunchanged, usermanifest/servingrunnerunchanged.
 
-NEXT readfullplan/status/V1 andrun-experimentskill, checkpoint/push preparedcode,
+Tested preparationcheckpoint95e6d35134aa264619213a96f77bf0debe2e8ea6 pushed and
+remoteHEADverified at09:07+08; exact16files staged, diff/syntax/reference/credential
+checks passed. Only preexisting usermanifest remains tracked-dirty. All fiveCPU
+andtwo storage scopes empty/stopped byInvocationID; no inference live.
+NEXT readfullplan/status/V1 andrun-experimentskill,
 reuseD298 start_remote.sh withONLY freshD307remote/run/monitoridentities andsame
 D80files/cache. Confirm actualNIC/health, captureInvocationIDs andjournal identity.
 Launch existing run_d298_capacity_source.sh d307 ONCE aftergates inownedtmux.
