@@ -11,7 +11,33 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D314 full4000 audited; 512 candidate is not an overall improvement
+## CURRENT — D315 restored 1024 configuration verified; backup then full W0
+
+2026-10-07 16:05+08. Previous continuation was PROGRESS: completed D314
+evidence was pushed and exact remote HEAD verified, not a new experiment.
+This continuation prepares the already registered return to measured D303
+settings while keeping all current ownership/preparation correctness fixes.
+No serving code or IEEE equation changed; D314's 512 candidate remains rejected
+as an overall gain. Full source plan and frozen V1 reread, SHA unchanged.
+
+New D315 config differs from D303 only in output/NVMe/HOST paths. Actual child
+exactly equals D298 measured model contract; existing40service/24preparation
+classes load with exact SHA/context. Both source and profile data are reused,
+not recollected. ConfigSHA3a87e96b9ed1ae525320aec69a743c02714738fef3368af074c0dd980be24e31.
+431CPU tests passed72.830s; actual configuration binding passed. Test/prelaunch
+scopeInvocation80ec7e70dc8f429294daf04c107cec0f, peak2602958848B, memoryevents/swap0.
+Existing147protection seal retains only known baseline replay change/passfalse;
+userdirtymanifest unchanged3b69bd0a... andneverstaged. No figures or new assets.
+
+NEXT: tested backup, then existingrunner explicitd315 in tmux fororiginal4000W0
+ONCE. Independent localcold paths, same60snotice/control/1800squalification,
+existingpublished remotegzipcache. Capture newlocal/remoteInvocationIDs; at
+terminal verifyGPUrelease thenstop remoteMONITOR FIRST andretain exactjournal.
+No100prefix/profile/budgetscan. Formalnumerical/warm/Resident andoldPrime
+newmetrics comparison remainopen. Keep7B->3B->baselines; no prematureclosure.
+SeeD315_RESTORE_MEASURED_WORKING_POINT.md andd315_restored_full/prelaunch_binding.json.
+
+## HISTORY — D314 full4000 audited; 512 candidate is not an overall improvement
 
 2026-10-07 15:49+08. This continuation made PROGRESS after verifiedwaiting:
 D314 finished4000/4000successful native-contract requests,0failed,normalrelease.
@@ -55,6 +81,26 @@ analysissource/tests/logs andallthreeCPUscopes. Nofulltestlogfilewascaptured;
 Defaultgit whitespacecheck flagged onlyexistingcsv.DictWriter CRLF innew
 comparison.csv. Preserve itsverifiedbytes/SHA; useCR-at-EOL-aware diffcheck
 while retainingblank-at-eol/blank-at-eof/space-before-tabchecks. Nooutputrewrite.
+
+2026-10-07 15:58+08 backup closure: push session25411 completed successfully.
+Local HEAD and faaslora_origin/retry14_continuous_queue_v2 both resolve to
+e35ef9f749724eef7155a3781378681aac44b4b9. This checkpoint contains D314's
+complete audited evidence, analysis tests and explicit rejection of the 512
+candidate; it does not change serving code. Full source plan and frozen V1
+reread; both SHA values unchanged. User manifest SHA remains3b69bd0a...,
+unstaged; existing unrelated dirty/untracked files are preserved. Only this
+post-push status note is new own work after that checkpoint.
+
+The asynchronous approval for one-time read-only compressed delivery is already
+implemented by D78/D80: two 500-adapter manifests,1581215261 archive bytes in
+total, no second extracted pool. Continue reusing it; this confirmation does
+not require a duplicate build. No remote operation or new GPU run
+was performed during backup closure. Fresh read-only local check found no GPU
+compute processes,165582110720 free disk bytes and110446036kB MemAvailable;
+these readings are not a substitute for the next run's full admission gate.
+Next remains the 7B 1024 working-point revalidation described above, with
+correctness fixes retained. Formal numerical/warm/Resident qualification,
+3B closure, baseline comparisons, ablations and sensitivities remain open.
 
 ## HISTORY — D314 full4000 W0 running and verified waits
 

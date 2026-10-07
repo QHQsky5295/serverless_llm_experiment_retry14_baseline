@@ -1,0 +1,28 @@
+{
+  "kind": "d315_cpu_prelaunch_checkpoint_v1",
+  "passed": true,
+  "tests": {"count": 431, "seconds": 72.830, "passed": true},
+  "log": {
+    "path": "results/ieee_tc/p2_backend_qualification/d315_20261007/cpu_prelaunch.log",
+    "sha256": "d771d6468b2797053b518b2c785637636b0ba7b4749fb02c91a59fe320ad3f3a"
+  },
+  "binding": {
+    "path": "paper_results/ieee_tc/p2_backend/d315_restored_full/prelaunch_binding.json",
+    "sha256": "11411f29f58f0b4b9157d663581da3a48865f69676d2f26763b208c88ee14a08"
+  },
+  "scope": {
+    "unit": "primelora-tc-cpu-d315-prelaunch-202610071610.scope",
+    "invocation_id": "80ec7e70dc8f429294daf04c107cec0f",
+    "peak_bytes": 2602958848,
+    "memory_events": {"low": 0, "high": 0, "max": 0, "oom": 0, "oom_kill": 0, "oom_group_kill": 0},
+    "swap_bytes": 0,
+    "actual_cgroup_procs_empty": true,
+    "populated": 0,
+    "stopped_after_empty_check": true
+  },
+  "serving_code_changed": false,
+  "gpu_runs_at_checkpoint": 0,
+  "formal_qualification": false,
+  "N_correct": null,
+  "no_figures": true
+}

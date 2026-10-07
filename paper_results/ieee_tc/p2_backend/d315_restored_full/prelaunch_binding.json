@@ -1,0 +1,160 @@
+{
+  "kind": "d315_restored_full_binding_v1",
+  "passed": true,
+  "source_references": [
+    {
+      "path": "configs/ieee_tc/20261007_d315_7b_full_w0.yaml",
+      "sha256": "3a87e96b9ed1ae525320aec69a743c02714738fef3368af074c0dd980be24e31"
+    },
+    {
+      "path": "configs/ieee_tc/20261007_d303_7b_full_w0.yaml",
+      "sha256": "18a5d633fac9a5cf13d4be260d323bb7796ad8698c4d7fd2e0493de141fcb3e5"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d298_capacity/development_contract.json",
+      "sha256": "98bc4292efcb2f9c5c9a1068fccfaeacc460bb35f4b1fbc579b8ef34f32a8afb"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d298_capacity/initialization/manifest.json",
+      "sha256": "8fb63de1d419e5832390b253c44dabd66a7a1b901de6ab25ec5c895948fea70e"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "sha256": "f78615de77253215942a9bee553ae3d4bec9fc1164d08ecf187cd46a56c8206e"
+    },
+    {
+      "path": "faaslora/preloading/preloading_planner.py",
+      "sha256": "1e0c900b5cfa4fa1ea1a1d227107a0e36e2bfa5be0c76e8958e54f15e7595385"
+    },
+    {
+      "path": "scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh",
+      "sha256": "282d6b601c1430e142ed72536c127c586459bc58423db58897eee744b6071534"
+    },
+    {
+      "path": "scripts/ieee_tc/prepare_d298_capacity.py",
+      "sha256": "b03543b8f0c79f8fa4d7fb6560cd232195d0fce46de46a847fde008fde3f5d88"
+    }
+  ],
+  "model_config": {
+    "name": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+    "backend": "vllm",
+    "device_id": 0,
+    "visible_device_ids": [
+      0
+    ],
+    "tensor_parallel_size": 1,
+    "gpu_memory_utilization": 0.92,
+    "max_model_len": 1024,
+    "max_loras": 8,
+    "max_lora_rank": 16,
+    "enable_lora": true,
+    "enforce_eager": false,
+    "dtype": "float16",
+    "max_num_seqs": 8,
+    "max_num_batched_tokens": 1024,
+    "max_output_tokens_cap": 256,
+    "max_input_len": 759,
+    "runtime_concurrency_cap": 8,
+    "enable_chunked_prefill": true,
+    "enable_prefix_caching": false,
+    "vllm_use_v1": true,
+    "vllm_attention_backend": "FLASH_ATTN",
+    "vllm_use_flashinfer_sampler": true,
+    "safetensors_load_strategy": "auto",
+    "timing_contract": "ieee_tc_native_v1",
+    "ieee_worker_observation": true,
+    "ieee_gpu_references": true,
+    "ieee_scheduler_observation": true,
+    "ieee_input_upper_bounds": [
+      759
+    ],
+    "generation_contract": "fixed_length_greedy_v1",
+    "canonical_prompt_renderer": "role_lines_v1",
+    "ieee_physical_allocation": true,
+    "ieee_host_budget_bytes": 17179869184,
+    "ieee_native_host_tensor_budget_bytes": 2147483648,
+    "ieee_native_host_workspace": {
+      "kind": "native_host_workspace_contract_v1",
+      "dtype": "torch.float16",
+      "source_audit_sha256": "224b9337ecaba2590ac888e9d0e3b9eb41a17074ce77b952e98e935259adf60f",
+      "max_resident_pinned_bytes": 33554432,
+      "max_transient_tensor_bytes": 67143184
+    },
+    "ieee_native_host_allocator_policy": "uncached_background_v1",
+    "ieee_admission_profile": {
+      "window_s": 5.0,
+      "model_backend_id": "native-model/38a4e646e9bf1cb195d7f0f0d22140b71255e6f2696ea4d73e4b27437a279f36",
+      "profile_id": "native-completed/af483454cadf3d31876e472443f32181d7676917fe3fc61354dd865db6f55427",
+      "profile_means": [
+        100.86411149825784,
+        125.56888888888889
+      ],
+      "transfer_limit": 3
+    },
+    "artifact_content_manifest_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json",
+    "requested_runtime_concurrency_cap": 8,
+    "max_cpu_loras": 24,
+    "requested_enforce_eager": "auto",
+    "resolved_enforce_eager": false,
+    "skip_stale_gpu_cleanup": true
+  },
+  "assembly": {
+    "CUDA_VISIBLE_DEVICES": "0",
+    "FAASLORA_VISIBLE_DEVICES": "0"
+  },
+  "profiles": {
+    "ieee_service_profile": {
+      "profile_id": "449143d5ae7f9382d99e4667e20f9c0c08aac591382424b1a0ab3dd1eee3fce8",
+      "classes": 40,
+      "binding": {
+        "path": "paper_results/ieee_tc/p2_backend/d298_capacity/initialization/service.json",
+        "sha256": "449143d5ae7f9382d99e4667e20f9c0c08aac591382424b1a0ab3dd1eee3fce8",
+        "context": {
+          "backend_environment_sha256": "cf38bbf8d3b80b30d88ac38e27722d389a24ae516565708cfc924937589079cf",
+          "resource_envelope_sha256": "6be2cfc81b73813f311f793a7b53c76e943fb8e35a64d43377cda52c8178b0c5",
+          "input_contract_sha256": "e844f211b6387a2858d872bafeb524f35c0dce3beb39ab43ba56acb6a68f51e6"
+        },
+        "ewma_beta": 0.5
+      }
+    },
+    "ieee_preparation_profile": {
+      "profile_id": "2a32c296d0d9ede51378edee5dfd4c6f22c800c7eb9d3e27ba13919c225deccd",
+      "classes": 24,
+      "binding": {
+        "path": "paper_results/ieee_tc/p2_backend/d298_capacity/initialization/preparation.json",
+        "sha256": "2a32c296d0d9ede51378edee5dfd4c6f22c800c7eb9d3e27ba13919c225deccd",
+        "context": {
+          "backend_environment_sha256": "cf38bbf8d3b80b30d88ac38e27722d389a24ae516565708cfc924937589079cf",
+          "resource_envelope_sha256": "6be2cfc81b73813f311f793a7b53c76e943fb8e35a64d43377cda52c8178b0c5",
+          "input_contract_sha256": "e844f211b6387a2858d872bafeb524f35c0dce3beb39ab43ba56acb6a68f51e6"
+        },
+        "ewma_beta": 0.5
+      }
+    }
+  },
+  "protection_raw": {
+    "kind": "protected_artifact_verification",
+    "pass": false,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [
+      "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"
+    ],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "same_d303_settings_except_paths": true,
+  "restored_measured_budget": 1024,
+  "reused_source": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d298_20261007/source1.json",
+    "sha256": "f1d9bd576fef9da92ae4e566b75df1292c7ab51f320eb53f7fa4483f4e25d474"
+  },
+  "current_correctness_fixes_retained": true,
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+  "gpu_runs": 0,
+  "common_slo_qualified": false,
+  "full_qualified": false,
+  "n_correct": null,
+  "no_figures": true
+}

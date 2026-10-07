@@ -408,6 +408,70 @@ def verify_prefill_smoke(campaign='d308'):
     print(json.dumps(dict(passed=True,config_sha256=p.digest(config),classes={k:v['classes'] for k,v in profile_receipts.items()})),flush=True)
 
 
+def verify_restored_full():
+    """D315: reuse measured 1024 configuration, retaining current correctness fixes."""
+    from scripts.run_all_experiments import (
+        _prepare_scenario_runtime_model_config, _prepare_dedicated_subprocess_model_cfg)
+    from faaslora.experiment.instance_pool import FrozenServiceProfiles
+    from faaslora.preloading.preloading_planner import FrozenPreparationProfiles
+    root = p.ROOT
+    out = root/'paper_results/ieee_tc/p2_backend/d315_restored_full'
+    assert not out.exists(), 'never overwrite preparation'
+    config = root/'configs/ieee_tc/20261007_d315_7b_full_w0.yaml'
+    previous = root/'configs/ieee_tc/20261007_d303_7b_full_w0.yaml'
+    contract_path = root/'paper_results/ieee_tc/p2_backend/d298_capacity/development_contract.json'
+    measured_path = root/'paper_results/ieee_tc/p2_backend/d298_capacity/initialization/manifest.json'
+    c, old = (yaml.safe_load(x.read_text()) for x in (config, previous))
+    expected = copy.deepcopy(old)
+    expected['experiment']['output_dir'] = old['experiment']['output_dir'].replace('d303_', 'd315_')
+    expected['storage']['nvme_cache_dir'] = old['storage']['nvme_cache_dir'].replace('d303_', 'd315_')
+    expected['storage']['host_cache_dir'] = old['storage']['host_cache_dir'].replace('tc-d303-', 'tc-d315-')
+    assert c == expected, 'undeclared difference from measured D303 settings'
+    for path in (c['experiment']['output_dir'], c['storage']['nvme_cache_dir'], c['storage']['host_cache_dir']):
+        assert not Path(path).exists(), 'run/cache identity already exists'
+    assert c['model']['max_num_batched_tokens'] == 1024
+    assert c['workload']['total_requests'] == 4000
+    contract, measured = (json.loads(x.read_text()) for x in (contract_path, measured_path))
+    assert measured['passed'] and measured['contract']['sha256'] == p.digest(contract_path)
+    assert measured['source_run']['sha256'] == p.digest(Path(measured['source_run']['path']))
+    assert measured['source_execution_commit'] == '783fa42e6b3ba1cd0e034d8e0cddcd3d72c9b42e'
+    configured = _prepare_scenario_runtime_model_config(c['model'], c['workload'], c['resource_coordination'])
+    child, assembly = _prepare_dedicated_subprocess_model_cfg(configured, device_id=0, runtime_gpu_ids=[0])
+    assert child == contract['model_config'], 'restored Full child differs from measured D298 child'
+    profiles = {}
+    for key, cls in (('ieee_service_profile', FrozenServiceProfiles), ('ieee_preparation_profile', FrozenPreparationProfiles)):
+        binding = c['resource_coordination'][key]
+        recorded = copy.deepcopy(measured['bindings'][key])
+        recorded['path'] = str(Path(recorded['path']).relative_to(root))
+        assert binding == recorded, 'profile binding changed'
+        profile = cls.load(root/binding['path'], expected_sha256=binding['sha256'],
+            model_config=child, expected_context=binding['context'], beta=binding['ewma_beta'])
+        profiles[key] = dict(profile_id=profile.profile_id, classes=len(profile.profiles), binding=binding)
+    seal = p.verify_seal(root/'paper_results/ieee_tc/safety/20260925_execution_start_protected.json')
+    known = '/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py'
+    assert seal['changed'] == [known] and seal['entry_count'] == 147
+    assert p.digest(Path(known)) == '04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22'
+    files = (config, previous, contract_path, measured_path,
+        root/'scripts/run_all_experiments.py', root/'faaslora/preloading/preloading_planner.py',
+        root/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh', Path(__file__))
+    receipt = dict(kind='d315_restored_full_binding_v1', passed=True,
+        source_references=[dict(path=str(x.relative_to(root)),sha256=p.digest(x)) for x in files],
+        model_config=child, assembly=assembly, profiles=profiles, protection_raw=seal,
+        same_d303_settings_except_paths=True, restored_measured_budget=1024,
+        reused_source=measured['source_run'], current_correctness_fixes_retained=True,
+        plan_sha256=p.check_plan(), metric_protocol_sha256=p.digest(root/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'),
+        user_manifest_sha256=p.digest(root/'configs/generated/lora_manifest_1000.json'),
+        gpu_runs=0, common_slo_qualified=False, full_qualified=False, n_correct=None, no_figures=True)
+    assert receipt['plan_sha256'] == '0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7'
+    assert receipt['metric_protocol_sha256'] == '5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22'
+    assert receipt['user_manifest_sha256'] == '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'
+    out.mkdir(parents=True, exist_ok=False)
+    with (out/'prelaunch_binding.json').open('x') as stream:
+        json.dump(receipt, stream, indent=2, allow_nan=False)
+    print(json.dumps(dict(passed=True, config_sha256=p.digest(config),
+        classes={k:v['classes'] for k,v in profiles.items()})), flush=True)
+
+
 if __name__ == '__main__':
     if sys.argv[1:] == ['--prefill-candidate']:
         prepare_prefill_candidate()
@@ -427,7 +491,9 @@ if __name__ == '__main__':
         verify_prefill_smoke('d312')
     elif sys.argv[1:] == ['--verify-host-transaction-full']:
         verify_prefill_smoke('d313')
+    elif sys.argv[1:] == ['--verify-restored-full']:
+        verify_restored_full()
     elif not sys.argv[1:]:
         main()
     else:
-        raise SystemExit('Expected no argument, --verify-launch, --prefill-candidate, --verify-prefill-launch, --verify-prefill-smoke, --verify-prefill-full, --verify-read-pin-smoke, --verify-read-pin-full, --verify-host-transaction-smoke or --verify-host-transaction-full')
+        raise SystemExit('Expected no argument, --verify-launch, --prefill-candidate, --verify-prefill-launch, --verify-prefill-smoke, --verify-prefill-full, --verify-read-pin-smoke, --verify-read-pin-full, --verify-host-transaction-smoke, --verify-host-transaction-full or --verify-restored-full')
