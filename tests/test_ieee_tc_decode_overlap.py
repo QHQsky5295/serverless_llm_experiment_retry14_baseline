@@ -15,6 +15,28 @@ from scripts.ieee_tc.analyze_d297_full import (
 
 
 class RegisteredD317Smoke(unittest.TestCase):
+    def test_d318_full_configuration_changes_only_cold_paths(self):
+        import yaml
+        root = Path(__file__).resolve().parents[1]
+        source = (root/'configs/ieee_tc/20261007_d315_7b_full_w0.yaml').read_text()
+        expected = yaml.safe_load(source.replace('d315_', 'd318_').replace('tc-d315-', 'tc-d318-'))
+        full = yaml.safe_load((root/'configs/ieee_tc/20261007_d318_7b_full_w0.yaml').read_text())
+        self.assertEqual(full, expected)
+        self.assertEqual(full['workload']['total_requests'], 4000)
+        self.assertEqual(full['scenarios'][0]['name'], 'tc_ieee_full')
+
+    def test_d318_explicit_identity_has_independent_no_overwrite_gate(self):
+        from scripts.ieee_tc import prepare_d298_capacity as module
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root/'paper_results/ieee_tc/p2_backend/d315_restored_full').mkdir(parents=True)
+            with mock.patch.object(module.p, 'ROOT', root), self.assertRaises(FileNotFoundError) as error:
+                module.verify_restored_full('d318')
+            self.assertIn('20261007_d318_7b_full_w0.yaml', str(error.exception))
+            (root/'paper_results/ieee_tc/p2_backend/d318_copy_full').mkdir(parents=True)
+            with mock.patch.object(module.p, 'ROOT', root), self.assertRaisesRegex(AssertionError, 'never overwrite'):
+                module.verify_restored_full('d318')
+
     def test_smoke_audit_uses_new_output_and_existing_prefix_reference(self):
         from scripts.ieee_tc import analyze_d298_smoke as module
         with tempfile.TemporaryDirectory() as tmp:

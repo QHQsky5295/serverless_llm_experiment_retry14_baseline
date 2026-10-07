@@ -11,7 +11,34 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D317 native100 complete/audited; unchanged full4000 next
+## CURRENT — D318 unchanged full4000 registered and tested; fresh launch next
+
+2026-10-07 18:28+08. Previousgoalturn PROGRESS: D317 complete100andbacked.
+Thisturn PROGRESS: fullplan andfrozenV1 reread, unchangedSHAs; explicitD318
+existingrunner/config registered. ExactlyD315config exceptfreshoutput/cache
+paths, servingSHA262b8f58... unchangedafterD317. No new performance mechanism,
+profile, assets, coefficients orprotocol. D318clears diagnosticprefix,4000W0.
+Configuration2b2a2d408d399c8cb3798ea8628e1c816f230a9b6145c4d430e5c3182d8c1959.
+Actualchild/40service/24preparationprofilebinding matches; D317raw8/final5hashes
+verifiedbeforefull. Protected147sealonlyknownbaselinereplaydifference/passfalse;
+userdirtymanifestunchanged/notstaged. No currentlocalGPU/remoteexperiment.
+
+357CPUtests pass23.280s. Prelaunchscoped78f6a6bcfc8439a873888b9c8bc9605,
+3/4GiB/0swap,CPUs2,3,26,27,peak1158090752B; events/swap0. ActualprocsEMPTY
+andpopulated0 verified beforestop. Bindings/checkpoint saved d318_copy_full;
+prelaunchlogSHA969f73670cb61eb66cfe768eeb9a11dda42df0d14a01cf782039fadd6234528d.
+Registration D318_COPY_REUSE_FULL_W0.md fixes D315asfullreference; failures,
+TPOTregression,outputdifferences andunknownN_correct/formalSLO remainexplicit.
+
+NEXT explicit-pathcommit/push+verifyremoteHEAD;freshresourcechecks;startsame
+D80artifactservices/newD318monitor;directauthhealth;tmux fullrun d318ONCE.
+No profile/shorttestrepeat,3B/baselineorfigures. Duringmeasurementdo notchange
+serving/config orrunheavyanalysis/tests. AfterlocalreleaseverifyremoteIDsand
+stopmonitorFIRST; itsknownEXITtrapstopsartifactunits,thencheckinactive/PID0.
+Only thenreuseexistingfullanalyzers tonewD318outputs versusD315. Goalactive;
+neithermodelachieved,newmetricsoldPrime/numerical/warm/Residentremainopen.
+
+## HISTORY — D317 native100 complete/audited; unchanged full4000 next
 
 2026-10-07 18:22+08. PROGRESS: single D317 run complete100/100 successful native
 contract requests,0failed; ten bindingchecks each100; dispatch tiers100/100;
@@ -50,6 +77,14 @@ IDs, full4000W0. No more100repeat,profiles,budgetscan,D295/PEFT or localcosmetic
 Audit fullwaiting/TTFT/TPOT/U/failures/outputdifferences versusD315, thenaccept
 orrevokecandidate. Do notstart3B/baselines/figures ordeclareG1/G2done. Numerical,
 warm/ResidentandoldPrime newmetrics remainopen. Supersedesalllivehandlesbelow.
+
+Backup closure2026-10-07 18:23:44+08: normalpush complete; localHEAD and exact
+faaslora_origin/retry14_continuous_queue_v2 verifiedef7b6488e5e40510692dd41f97e
+97378ede7765b. Explicit14-file commit passed hashes/whitespace/secrets checks;
+usergeneratedmanifestneverstaged,otherassetsunchanged. NoGPUcomputePIDs or
+populatedexperiment scopes. Only this post-push statusnote isnew ownmodification.
+Next continuation must register unchanged fullD318, not redoD317analysis/tests
+or assumeD317isstillrunning. Goalactive; remainingfullcampaignnotcomplete.
 
 ## HISTORY — D317 native100 live; continue same run, never relaunch on wait timeout
 

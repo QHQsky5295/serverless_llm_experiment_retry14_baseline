@@ -422,6 +422,10 @@ def verify_restored_full(campaign='d315'):
         out = root/'paper_results/ieee_tc/p2_backend/d317_copy_validation'
         config = root/'configs/ieee_tc/20261007_d317_7b_copy_validation_100.yaml'
         previous = root/'configs/ieee_tc/20261007_d315_7b_full_w0.yaml'
+    elif campaign == 'd318':
+        out = root/'paper_results/ieee_tc/p2_backend/d318_copy_full'
+        config = root/'configs/ieee_tc/20261007_d318_7b_full_w0.yaml'
+        previous = root/'configs/ieee_tc/20261007_d315_7b_full_w0.yaml'
     elif campaign != 'd315':
         raise ValueError('unknown restored-1024 validation identity')
     assert not out.exists(), 'never overwrite preparation'
@@ -437,6 +441,10 @@ def verify_restored_full(campaign='d315'):
         expected['storage']['nvme_cache_dir'] = old['storage']['nvme_cache_dir'].replace('d315_', 'd317_').replace('7b_nvme_full_w0', '7b_nvme_copy_validation_100')
         expected['storage']['host_cache_dir'] = old['storage']['host_cache_dir'].replace('tc-d315-7b-full-w0', 'tc-d317-7b-copy-validation-100')
         expected['scenarios'][0]['name'] = 'tc_ieee_copy_validation_100'
+    elif campaign == 'd318':
+        expected['experiment']['output_dir'] = old['experiment']['output_dir'].replace('d315_', 'd318_')
+        expected['storage']['nvme_cache_dir'] = old['storage']['nvme_cache_dir'].replace('d315_', 'd318_')
+        expected['storage']['host_cache_dir'] = old['storage']['host_cache_dir'].replace('tc-d315-', 'tc-d318-')
     assert c == expected, 'undeclared difference from measured D303 settings'
     for path in (c['experiment']['output_dir'], c['storage']['nvme_cache_dir'], c['storage']['host_cache_dir']):
         assert not Path(path).exists(), 'run/cache identity already exists'
@@ -465,6 +473,22 @@ def verify_restored_full(campaign='d315'):
     files = (config, previous, contract_path, measured_path,
         root/'scripts/run_all_experiments.py', root/'faaslora/preloading/preloading_planner.py',
         root/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh', Path(__file__))
+    if campaign == 'd318':
+        smoke_dir = root/'paper_results/ieee_tc/p2_backend/d317_copy_validation'
+        checkpoint_path = smoke_dir/'validation_checkpoint.json'
+        checkpoint = json.loads(checkpoint_path.read_text())
+        for name, sha in checkpoint['curated_output_sha256'].items():
+            assert p.digest(smoke_dir/name) == sha, 'D317 evidence changed'
+        smoke_path = smoke_dir/'smoke2/audit.json'
+        smoke = json.loads(smoke_path.read_text())
+        assert smoke['stats']['completed'] == 100
+        assert smoke['copy_retention_trigger']['observed_cumulative_retained_scopes_max'] > 0
+        for row in smoke['raw_evidence']:
+            assert p.digest(Path(row['path'])) == row['sha256'], 'D317 raw source changed'
+        assert p.digest(root/'scripts/run_all_experiments.py') == checkpoint['source_sha256']['scripts/run_all_experiments.py'], 'candidate changed after smoke'
+        smoke_config = yaml.safe_load((root/'configs/ieee_tc/20261007_d317_7b_copy_validation_100.yaml').read_text())
+        assert c['model'] == smoke_config['model'] and c['resource_coordination'] == smoke_config['resource_coordination']
+        files += (checkpoint_path, smoke_path)
     receipt = dict(kind=campaign+'_restored_full_binding_v1', passed=True,
         source_references=[dict(path=str(x.relative_to(root)),sha256=p.digest(x)) for x in files],
         model_config=child, assembly=assembly, profiles=profiles, protection_raw=seal,
@@ -507,7 +531,9 @@ if __name__ == '__main__':
         verify_restored_full()
     elif sys.argv[1:] == ['--verify-copy-smoke']:
         verify_restored_full('d317')
+    elif sys.argv[1:] == ['--verify-copy-full']:
+        verify_restored_full('d318')
     elif not sys.argv[1:]:
         main()
     else:
-        raise SystemExit('Expected no argument, --verify-launch, --prefill-candidate, --verify-prefill-launch, --verify-prefill-smoke, --verify-prefill-full, --verify-read-pin-smoke, --verify-read-pin-full, --verify-host-transaction-smoke, --verify-host-transaction-full, --verify-restored-full or --verify-copy-smoke')
+        raise SystemExit('Expected no argument, --verify-launch, --prefill-candidate, --verify-prefill-launch, --verify-prefill-smoke, --verify-prefill-full, --verify-read-pin-smoke, --verify-read-pin-full, --verify-host-transaction-smoke, --verify-host-transaction-full, --verify-restored-full, --verify-copy-smoke or --verify-copy-full')

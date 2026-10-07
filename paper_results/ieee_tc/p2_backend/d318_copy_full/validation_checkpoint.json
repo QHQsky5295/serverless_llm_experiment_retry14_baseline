@@ -1,0 +1,23 @@
+{
+  "kind": "d318_prelaunch_checkpoint_v1",
+  "parent_commit": "ef7b6488e5e40510692dd41f97e97378ede7765b",
+  "prelaunch_binding_sha256": "ad4ed5472bf91b9614482bce0719f5bee2e5c66dcc806fec46bdeffd6e3e132a",
+  "test_log": "results/ieee_tc/p2_backend_qualification/d318_20261007/prelaunch.log",
+  "test_log_sha256": "969f73670cb61eb66cfe768eeb9a11dda42df0d14a01cf782039fadd6234528d",
+  "tests_passed": 357,
+  "test_duration_s": 23.280,
+  "cpu_scope_invocation": "d78f6a6bcfc8439a873888b9c8bc9605",
+  "cpu_memory_peak_bytes": 1158090752,
+  "memory_high_bytes": 3221225472,
+  "memory_max_bytes": 4294967296,
+  "swap_max_bytes": 0,
+  "cpu_set": "2,3,26,27",
+  "memory_events_high_max_oom_oom_kill": 0,
+  "actual_processes_empty_and_populated_zero_verified": true,
+  "scope_stopped": true,
+  "serving_source_sha256": "262b8f58ca12b129d0292f3e6da94ed3f5732171f959a2d0280c89e8cda46ef6",
+  "test_source_sha256": "8afb985d9df59ba2ab0458a7f687e690390637f22d7297c31a67ae7a6f14a9b1",
+  "formal_qualification": false,
+  "performance_run_started": false,
+  "decision": "Start explicit D318 full4000 once after fresh resource and remote checks; no serving or parameter change"
+}
