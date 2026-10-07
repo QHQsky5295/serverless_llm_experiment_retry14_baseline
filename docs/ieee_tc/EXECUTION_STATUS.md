@@ -11,7 +11,60 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D307 attempt1 failed; atomic source pin fixed and CPU-tested, retry next
+## CURRENT — D307 source complete; D308 bound Full100 prepared, next actual replay
+
+2026-10-07 09:39+08. Fullplan/status/V1/run/monitor/githubskills reread.
+D307 attempt2 completed248/248 (8warmup+240measurement;48per source), launchpass,
+nativeGPUreleased, sourceworkspacesremoved. SourceSHA
+2d1611f5c0b11a7c77d31b26e68adb9bdb4c1d323576679a6451919b0c543750;
+actualsourcecommitf0813771f35ffe30463ae19d1abec38f89658f14. No repeatedsourceconflict.
+248UUIDpairs/1059355374wirebytes allmatched/no requestpacking, NIC1000/full.
+429.007688GPU-s,437samples,peak5700685824B,minhost107253698560B,events/swap0.
+3/8 outputgroupsvary acrossprocessingconditions; numericalqualificationNOTproved.
+StoppedcapturedremoteMONITOR FIRST, bothartifactservicesinactive/PID0/exit0;
+exactjournal/monitor/stoplogs retained. No GPU/service live now.
+
+Existing exporter d307-attempt2 succeeded; new initialization/service.json SHA
+f9e6efb10e69d5d1e321a7a500e9502c2240ab108c56395fe54fe7b2b82bd73a,
+preparation.json e0706f8aaced852c0308de6a81e70d3b6d169b9ae95ecac4e8ae38b23ae9f951.
+40service/24preparationclasses,500staticdomain covered,not500numericalproof.
+D308100 config prepared fromD302; only512budget,profileidentity/newtimings,
+freshoutput/cache/scenarionames. D303controls unchanged. ActualFullchild equals
+D307measuredchild; exactSHA/model/contextloaders pass.19profiletests pass.
+CPUscopesempty/stopped; readbacks retainedd308_prefill/cpu_checks.json.
+No newservingcode, formulas, control changes or figures. Usermanifest untouched.
+
+NEXT backup exactD307profiles/D308preparedfiles, originalgates, startnewowned
+remote d308 service monitor, authenticatedhealth BEFORElaunch. Use existing
+run_d293_7b_prefetch_validation_100.sh d308 ONCE inownedtmux. Analyzer extended
+with explicitd308 only; samechecks and D302descriptivecontext. Aftercomplete,
+localrelease thenremoteMONITOR FIRST, joinjournal, audit; ifvalid prepare4000W0.
+No repeatedwarm/source/500coverage,3B orbaseline work. Finalwarm/Resident/
+numerical/G1G2 stillopen.7B optimization mainline and goalactive.
+
+## HISTORY — D307 attempt2 source measurement RUNNING, same config/cases
+
+2026-10-07 09:25+08. Fullplan/status/V1/run/monitor/githubskills reread; previous
+turn progress was verified failure plus atomic-source repair, not a wait/replan.
+SAME248cases/config/spec startedONCE in tmuxprimelora_d307_attempt2 at09:24:43.
+Actualsourcecommitf0813771f35ffe30463ae19d1abec38f89658f14; source1 under
+d307_20261007/attempt2 (not parent failedsource1). Health capturedBEFORElaunch,
+clockremote-process-monotonic:75c3ae1040484b56b1ba2ff8ec46a554, NIC1000/full.
+Journaltransfers-fd35a777142b42649c6f234002efd9fe.jsonl, not clockUUID.
+Remote3B b6d43ee1e0944ef88c264b218a209d44/PID1390776;
+7B82719170624f4fa1aa7e886edf0eadf4/PID1390778;
+monitorprimelora-artifact-monitor-d307-attempt2.service
+b170316587144a3a83fc70c54cc31f3c/PID1390781.
+Localservice1c5dc94a679446ffbe6eab698d3dc111.scope
+invocationd5b3d64c28374675bf5e8d199fb5ae94;
+auxc053020e16834680b6bdd378df02939b.scope;
+watchdog4020338/start84353156. Originalgatepassed; no relaxedresource limits.
+No concurrentheavy task/codechange. Monitor SAMEjob; afternativeGPUrelease stop
+capturedremoteMONITOR FIRST, verifyartifactunitsinactive/PID0, copyexactjournal/
+monitor/stop logs. Export_d298_profiles.py d307-attempt2 onlyif complete/pass.
+Then newbound100Fullsmoke and4000W0; nofigures,3B orbaselines. Goalactive.
+
+## HISTORY — D307 attempt1 failed; atomic source pin fixed and CPU-tested, retry next
 
 2026-10-07 09:21+08. Source run actually executed and stopped on correctness
 conflict, NOT OOM/network/budget evidence. Planned248,started16,completed15,

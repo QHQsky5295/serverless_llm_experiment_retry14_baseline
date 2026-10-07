@@ -1,0 +1,36 @@
+{
+  "kind": "d308_prelaunch_cpu_checks_v1",
+  "tests_passed": 19,
+  "scopes": [
+    {
+      "unit": "primelora-d308-prelaunch.scope",
+      "invocation_id": "7c92fbc8dd5b48ebb7e084c69d441269",
+      "empty": true,
+      "readback": {
+        "cgroup.events": "populated 0\nfrozen 0\n",
+        "memory.peak": "496193536\n",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+        "memory.swap.current": "0\n"
+      }
+    },
+    {
+      "unit": "primelora-d308-profile-tests.scope",
+      "invocation_id": "9e8522d726d5487d8bd1df75aaaf8bb9",
+      "empty": true,
+      "readback": {
+        "cgroup.events": "populated 0\nfrozen 0\n",
+        "memory.peak": "553902080\n",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+        "memory.swap.current": "0\n"
+      }
+    }
+  ],
+  "previous_export_scope": {
+    "unit": "primelora-d307-source-export.scope",
+    "invocation_id": "623fb9b02cbb4bb7b3f79371538a4bb9",
+    "peak_bytes": 539283456,
+    "events_zero": true,
+    "swap_bytes": 0,
+    "empty_before_stop": true
+  }
+}

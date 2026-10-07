@@ -289,6 +289,65 @@ def verify_existing_launch(campaign='d298'):
     print(json.dumps(dict(passed=True,pool_max_rank=16,source_config=receipt['source_config'])),flush=True)
 
 
+def verify_prefill_smoke():
+    """Bind the existing Full runner to the actually measured D307 child."""
+    from scripts.run_all_experiments import (
+        _prepare_scenario_runtime_model_config, _prepare_dedicated_subprocess_model_cfg)
+    from faaslora.experiment.instance_pool import FrozenServiceProfiles
+    from faaslora.preloading.preloading_planner import FrozenPreparationProfiles
+    root = p.ROOT
+    out = root/'paper_results/ieee_tc/p2_backend/d308_prefill'
+    assert not out.exists(), 'never overwrite preparation'
+    config = root/'configs/ieee_tc/20261007_d308_7b_prefill_validation_100.yaml'
+    previous = root/'configs/ieee_tc/20261007_d302_7b_frontier_validation_100.yaml'
+    contract_path = root/'paper_results/ieee_tc/p2_backend/d307_prefill/development_contract.json'
+    measured_path = root/'paper_results/ieee_tc/p2_backend/d307_prefill/initialization/manifest.json'
+    c = yaml.safe_load(config.read_text())
+    old = yaml.safe_load(previous.read_text())
+    contract = json.loads(contract_path.read_text())
+    measured = json.loads(measured_path.read_text())
+    assert p.check_plan() == '0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7'
+    assert measured['passed'] and measured['contract']['sha256'] == p.digest(contract_path)
+    assert measured['source_run']['sha256'] == p.digest(Path(measured['source_run']['path']))
+    assert measured['source_execution_commit'] == 'f0813771f35ffe30463ae19d1abec38f89658f14'
+    expected = copy.deepcopy(old)
+    expected['model']['max_num_batched_tokens'] = 512
+    expected['model']['ieee_admission_profile'] = contract['model_config']['ieee_admission_profile']
+    expected['experiment']['output_dir'] = old['experiment']['output_dir'].replace('d302_', 'd308_').replace('frontier', 'prefill')
+    expected['storage']['nvme_cache_dir'] = old['storage']['nvme_cache_dir'].replace('d302_', 'd308_').replace('frontier', 'prefill')
+    expected['storage']['host_cache_dir'] = old['storage']['host_cache_dir'].replace('tc-d302', 'tc-d308').replace('frontier', 'prefill')
+    expected['scenarios'][0]['name'] = 'tc_ieee_prefill_validation_100'
+    profile_receipts = {}
+    for key, cls in (('ieee_service_profile', FrozenServiceProfiles), ('ieee_preparation_profile', FrozenPreparationProfiles)):
+        binding = copy.deepcopy(measured['bindings'][key])
+        binding['path'] = str(Path(binding['path']).relative_to(root))
+        expected['resource_coordination'][key] = binding
+    assert c == expected, 'undeclared Full configuration difference'
+    configured = _prepare_scenario_runtime_model_config(c['model'], c['workload'], c['resource_coordination'])
+    child, assembly = _prepare_dedicated_subprocess_model_cfg(configured, device_id=0, runtime_gpu_ids=[0])
+    assert child == contract['model_config'], 'Full child differs from measured child'
+    coordination = {k:v for k,v in c['resource_coordination'].items()
+                    if k not in ('ieee_service_profile','ieee_preparation_profile')}
+    assert coordination == contract['coordination'], 'D303 controls changed'
+    for key, cls in (('ieee_service_profile', FrozenServiceProfiles), ('ieee_preparation_profile', FrozenPreparationProfiles)):
+        binding = c['resource_coordination'][key]
+        profile = cls.load(root/binding['path'], expected_sha256=binding['sha256'],
+            model_config=child, expected_context=binding['context'], beta=binding['ewma_beta'])
+        profile_receipts[key] = dict(profile_id=profile.profile_id, classes=len(profile.profiles), binding=binding)
+    receipt = dict(kind='d308_full_smoke_binding_v1', passed=True, gpu_runs=0,
+        source_references=[dict(path=str(x.relative_to(root)),sha256=p.digest(x))
+            for x in (config, previous, contract_path, measured_path)],
+        model_config=child, assembly=assembly, profiles=profile_receipts,
+        controls_unchanged=True, workload_unchanged=c['workload']==old['workload'],
+        plan_sha256=p.check_plan(), metric_protocol_sha256=p.digest(root/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'),
+        serving_runner_sha256=p.digest(root/'scripts/run_all_experiments.py'),
+        common_slo_qualified=False, full_qualified=False, no_figures=True)
+    out.mkdir(parents=True, exist_ok=False)
+    with (out/'prelaunch_binding.json').open('x') as stream:
+        json.dump(receipt,stream,indent=2,allow_nan=False)
+    print(json.dumps(dict(passed=True,config_sha256=p.digest(config),classes={k:v['classes'] for k,v in profile_receipts.items()})),flush=True)
+
+
 if __name__ == '__main__':
     if sys.argv[1:] == ['--prefill-candidate']:
         prepare_prefill_candidate()
@@ -296,7 +355,9 @@ if __name__ == '__main__':
         verify_existing_launch('d307')
     elif sys.argv[1:] == ['--verify-launch']:
         verify_existing_launch()
+    elif sys.argv[1:] == ['--verify-prefill-smoke']:
+        verify_prefill_smoke()
     elif not sys.argv[1:]:
         main()
     else:
-        raise SystemExit('Expected no argument, --verify-launch, --prefill-candidate or --verify-prefill-launch')
+        raise SystemExit('Expected no argument, --verify-launch, --prefill-candidate, --verify-prefill-launch or --verify-prefill-smoke')

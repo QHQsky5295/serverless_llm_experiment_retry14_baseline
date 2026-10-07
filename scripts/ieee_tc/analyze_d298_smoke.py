@@ -1,4 +1,4 @@
-"""D298/D302 data-only Full100 audit; reuse existing native/binding/SLO checks."""
+"""D298/D302/D308 data-only Full100 audit; existing native/binding/SLO checks."""
 import argparse
 import csv
 import json
@@ -38,6 +38,16 @@ def main(campaign='d298'):
         health_name = 'remote_health.json'
         comparison_caveat = ('D298 prefix is reused for descriptive context only: D302 also inherits D300 scale-in lower reference. '
             'Full W0 versus D300 is still required to isolate the publication fix; prefix GPU-s is not extrapolated.')
+    elif campaign == 'd308':
+        REFERENCE = ROOT/'results/ieee_tc/p2_backend_qualification/d302_20261007/7b_frontier_validation_100/experiment_results_full_vllm_dedicated_a500_r100_c2_tc_ieee_frontier_validation_100_d302_7b_frontier_validation_100.json'
+        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d308_20261007'
+        RUN = RAW/'7b_prefill_validation_100'
+        SOURCE = RUN/'experiment_results_full_vllm_dedicated_a500_r100_c2_tc_ieee_prefill_validation_100_d308_7b_prefill_validation_100.json'
+        OUT = ROOT/'paper_results/ieee_tc/p2_backend/d308_prefill/smoke1'
+        health_name = 'remote_health.json'
+        comparison_caveat = ('D308 uses D303 controls with a 512-token iteration budget, newly measured D307 initialization timings '
+            'and the necessary atomic source-pin correctness repair. Not a pure token-budget causal ablation; '
+            'Full W0 is required; prefix GPU-s is not extrapolated.')
     elif campaign != 'd298':
         raise ValueError('unknown frozen smoke identity')
     assert not OUT.exists(), 'never overwrite a prior audit'
@@ -107,7 +117,7 @@ def main(campaign='d298'):
         comparison_caveat=comparison_caveat,
         raw_evidence=[dict(path=str(path),sha256=sha256(path)) for path in
             (SOURCE,REFERENCE,outcome_path,journal,WARM,INDEX,RAW/'smoke_remote_monitor.log',Path(__file__))])
-    if campaign == 'd302':
+    if campaign in ('d302', 'd308'):
         result['admission_waits'] = summarize_admission_waits(requests)
         result['mechanism_events'] = {k:v for k,v in outcome['mechanism_events'].items()
             if k in ('_ieee_source_observation_stats', '_ieee_route_cache_stats')}
@@ -119,5 +129,5 @@ def main(campaign='d298'):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--campaign', choices=('d298','d302'), default='d298')
+    parser.add_argument('--campaign', choices=('d298','d302','d308'), default='d298')
     main(parser.parse_args().campaign)
