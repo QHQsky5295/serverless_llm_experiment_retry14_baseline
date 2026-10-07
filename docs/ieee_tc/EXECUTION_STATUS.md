@@ -11,7 +11,32 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D333 native pending/GPU core turn CPU-verified; D334 short run next
+## CURRENT — D334100 COMPLETE/audited; next D335 full4000, no more short tests
+
+2026-10-08 ~05:52+08: D333/D334 is real mainline progress, not another backup-only
+cycle.74587830983bd28fd4791ed8ffeec9192262c56d was pushed/independently verified
+before the actual D334 run (05:44:46 start).100/100 success/native token counts,
+all10 binding checks100,TTFT/TPOT recomputation error0;45GPU requests carry exact
+single_native_core_turn_v1,18HOST/8NVMe/29Remote keep separate paths.4 outputSHA
+changes vsD331 attempt2 retained,N_correct unknown; not numerical/G1/G2 qualified.
+Mean/P95TTFT804.848/2012.726ms,U618.357456GPU-s,meanTPOT28.152ms (worse than
+prior prefix27.775). Prefix means/quantiles are not Full4000 claims;noCI/figures.
+
+29fetch/50650865B,matched remote IDs/bytes/SHA,packing0;network1000/full before
+start.263resource samples,servicepeak19400253440B/minhost93944946688B,events/swap0.
+Physical release confirmed;exact current remote services/monitor inactive/PID0/
+portsabsent. Local aux and offline scopes empty/stopped,offlinepeak91394048B.
+Existing smoke analyzer extended for d334 and strict trigger;15tests pass.
+17-member13910B closure archive and curated hashes sealed. No activeGPU/remote
+experiment remains. Last disk161112862720B barely above150GiB;fresh gate required.
+
+NEXT: checkpoint this closure, then D335 unchanged candidate ordinary4000W0
+against D332. Use registered runner case d335/config20261008_d335_7b_full_w0.yaml.
+Do NOT repeat D334, D328 profiles, D295 numerical blocks or D332 analysis. Do NOT
+start3B/baselines. Whole goal remains active;old-new/commonwarm/Resident/numerical
+and actual7B/3B targets remain open. See D333_NATIVE_PENDING_GPU_TURN.md.
+
+## HISTORY — D333 native pending/GPU core turn CPU-verified
 
 2026-10-08 05:44+08: one new7B candidate implemented. D184 had fused only the
 outer controller/frontend exchange; D333 fuses the remaining two native utility

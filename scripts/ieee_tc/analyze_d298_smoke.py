@@ -55,6 +55,27 @@ def planning_publication_trigger(events):
     return dict(counters=values, exact_rpc_savings=None, causal_latency_savings=None)
 
 
+def native_pending_turn_trigger(requests):
+    if not requests:
+        raise ValueError('complete request population required')
+    counts = Counter()
+    for request in requests:
+        tier = request['readiness_tier_before_dispatch']
+        pending = request['gpu_reference_evidence']['pending_kv_admission']
+        if pending['state'] != 'closed':
+            raise ValueError('pending demand did not retire')
+        scope = pending.get('execution_scope')
+        if (tier == 'gpu') != (scope == 'single_native_core_turn_v1'):
+            raise ValueError('native combined scope must match the selected GPU path')
+        if tier != 'gpu' and scope is not None:
+            raise ValueError('lower-tier path has an unexpected combined scope')
+        counts[tier] += 1
+    if counts['gpu'] <= 0:
+        raise ValueError('native pending/GPU core-turn candidate did not trigger')
+    return dict(final_selected_tier_counts=dict(counts),
+        combined_successful_requests=counts['gpu'],causal_latency_savings=None)
+
+
 def main(campaign='d298'):
     global RAW, RUN, SOURCE, REFERENCE, OUT
     health_name = 'smoke_remote_health2.json'
@@ -139,6 +160,16 @@ def main(campaign='d298'):
             OUT = ROOT/'paper_results/ieee_tc/p2_backend/d331_planning_validation/attempt2'
             health_name = 'attempt2/remote_health.json'
             comparison_caveat += ' Only final post-shutdown route-counter export repaired; serving policy unchanged.'
+    elif campaign == 'd334':
+        REFERENCE = ROOT/'results/ieee_tc/p2_backend_qualification/d331_20261008/7b_planning_validation_100_attempt2/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d331_7b_planning_validation_100_attempt2.json'
+        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d334_20261008'
+        RUN = RAW/'7b_native_pending_validation_100'
+        SOURCE = RUN/'experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d334_7b_native_pending_validation_100.json'
+        OUT = ROOT/'paper_results/ieee_tc/p2_backend/d334_native_pending_validation/smoke1'
+        health_name = 'remote_health.json'
+        comparison_caveat = ('D331 attempt2 reused as the same-input/policy prefix context. D334 changes only '
+            'selected GPU native registration/protection sequencing. One prefix is not a performance selection '
+            'or formal qualification; complete4000 versus D332 is required, without extrapolating prefix GPU-s.')
     elif campaign != 'd298':
         raise ValueError('unknown frozen smoke identity')
     assert not OUT.exists(), 'never overwrite a prior audit'
@@ -160,7 +191,7 @@ def main(campaign='d298'):
     assert len(remote) == len(rows) == len(transfers)
     assert set(remote) == {r['http_transfer_id'] for r in transfers}
     health = read(RAW/health_name)
-    if campaign in ('d331', 'd331-attempt2'):
+    if campaign in ('d331', 'd331-attempt2', 'd334'):
         clock = health['7b']['clock_id']
     else:
         clock = health['clock_id'] if campaign in ('d322', 'd322-attempt2') else health['health']['clock_id']
@@ -214,7 +245,7 @@ def main(campaign='d298'):
             (SOURCE,REFERENCE,outcome_path,journal,WARM,INDEX,
              RAW/('attempt2/smoke_remote_monitor.log' if campaign in ('d322-attempt2', 'd331-attempt2') else 'smoke_remote_monitor.log'),
              ROOT/'scripts/run_all_experiments.py', Path(__file__))])
-    if campaign in ('d302', 'd308', 'd310', 'd312', 'd317', 'd322', 'd322-attempt2', 'd331', 'd331-attempt2'):
+    if campaign in ('d302', 'd308', 'd310', 'd312', 'd317', 'd322', 'd322-attempt2', 'd331', 'd331-attempt2', 'd334'):
         result['admission_waits'] = summarize_admission_waits(requests)
         result['mechanism_events'] = {k:v for k,v in outcome['mechanism_events'].items()
             if k in ('_ieee_source_observation_stats', '_ieee_route_cache_stats')}
@@ -230,6 +261,8 @@ def main(campaign='d298'):
             causal_latency_savings=None, requires_new_observation=True)
     if campaign == 'd331-attempt2':
         result['planning_publication_trigger'] = planning_publication_trigger(outcome['mechanism_events'])
+    if campaign == 'd334':
+        result['native_pending_turn_trigger'] = native_pending_turn_trigger(requests)
     with (OUT/'audit.json').open('x') as stream:
         json.dump(result,stream,indent=2,allow_nan=False)
     print(json.dumps(dict(stats=stats,timing={k:v for k,v in timing.items() if k!='decisions'},
@@ -238,5 +271,5 @@ def main(campaign='d298'):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--campaign', choices=('d298','d302','d308','d310','d312','d317','d322','d322-attempt2','d331','d331-attempt2'), default='d298')
+    parser.add_argument('--campaign', choices=('d298','d302','d308','d310','d312','d317','d322','d322-attempt2','d331','d331-attempt2','d334'), default='d298')
     main(parser.parse_args().campaign)

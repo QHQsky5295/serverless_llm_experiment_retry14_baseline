@@ -2,7 +2,40 @@
 import copy
 import unittest
 from scripts.analyze_control_path_overhead import provisional_timing_bound
-from scripts.ieee_tc.analyze_d298_smoke import planning_publication_trigger
+from scripts.ieee_tc.analyze_d298_smoke import planning_publication_trigger, native_pending_turn_trigger
+
+
+class NativePendingTurnTriggerTest(unittest.TestCase):
+    def rows(self):
+        return [dict(readiness_tier_before_dispatch=tier, gpu_reference_evidence={
+            'pending_kv_admission': dict(state='closed', **(
+                {'execution_scope': 'single_native_core_turn_v1'} if tier == 'gpu' else {}))})
+            for tier in ['gpu','host','remote']]
+
+    def test_counts_actual_gpu_path_not_latency_savings(self):
+        result = native_pending_turn_trigger(self.rows())
+        self.assertEqual(result['combined_successful_requests'], 1)
+        self.assertEqual(result['final_selected_tier_counts'], {'gpu':1,'host':1,'remote':1})
+        self.assertIsNone(result['causal_latency_savings'])
+
+    def test_missing_scope_or_unretired_demand_fails(self):
+        for field,value in [('execution_scope',None),('execution_scope','wrong'),('state','pending')]:
+            rows = self.rows()
+            rows[0]['gpu_reference_evidence']['pending_kv_admission'][field] = value
+            with self.assertRaises(ValueError):
+                native_pending_turn_trigger(rows)
+
+    def test_lower_tier_must_not_use_combined_operation(self):
+        for scope in ['single_native_core_turn_v1','wrong']:
+            rows = self.rows()
+            rows[1]['gpu_reference_evidence']['pending_kv_admission']['execution_scope'] = scope
+            with self.assertRaises(ValueError):
+                native_pending_turn_trigger(rows)
+
+    def test_absence_is_not_trigger(self):
+        for rows in [[],self.rows()[1:]]:
+            with self.assertRaises(ValueError):
+                native_pending_turn_trigger(rows)
 
 
 class PlanningPublicationTriggerTest(unittest.TestCase):

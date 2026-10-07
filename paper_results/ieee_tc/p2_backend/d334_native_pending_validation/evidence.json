@@ -1,0 +1,81 @@
+{
+  "kind": "d334_complete_prefix_candidate_checkpoint_v1",
+  "executed_source_commit": "74587830983bd28fd4791ed8ffeec9192262c56d",
+  "native_complete": 100,
+  "numerical_n_correct": null,
+  "formal_qualification": false,
+  "changed_output_token_sha_requests": 4,
+  "combined_gpu_requests": 45,
+  "archive_sha256": "efd32743ac1e294215dfe4fa1ef01881c0822dadabf3b7a481e4f3a2f3446835",
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d334_20261008/launch_gate1.json",
+      "sha256": "64fbfeea74398eaf4bd1a790c2b2d381861228e28565967dd140ab01ba5c74d0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d334_20261008/remote_start.log",
+      "sha256": "db0bcb13e3beed6c5ca57846706da36770a37612f9f9bdf09ccc2218e1efb2b2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d334_20261008/remote_health.json",
+      "sha256": "1640aebfdae03bf3ad9f822980b08d9e0f3c88ab3ec115e0a79d91fc711b7749"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d334_20261008/remote_stop.log",
+      "sha256": "d9d7f21b8e81568e1635f84ec07ce186ef0f389f9dc4af7ce5ef80217263a9aa"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d334_20261008/remote_stop.json",
+      "sha256": "6dce99d2daf179169cf8782da900e3a9f3951560ffd0d29f44fbe28b4b83882f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d334_20261008/local_cleanup.json",
+      "sha256": "df52dded92825677f82edd47031decf766beca283a422e6d567a6359a4d90d9e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d334_20261008/audit_cleanup.json",
+      "sha256": "6be0f7438ceb82c89b335194135aafe7bf36a2e5e2939700a2b5ed7d6ce0430d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d334_20261008/audit1.log",
+      "sha256": "8619e4fd9ad3a4d1e02d1a9c60a960801ba67239d1e9a87ce8f9f43b7d3eb60c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d334_20261008/offline_execution_receipt.json",
+      "sha256": "9842b2b273b64da61d24d324f202d4da08dce6ac4d07f282fa41d6c7944bccd9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d334_20261008/collect_closure.py",
+      "sha256": "83a9b0ff1acad91cf2374acc9e455c1af5a749dc6f7d731812c7d350f96c5c7d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d334_20261008/run_audit.py",
+      "sha256": "5c5ad179d3659d8978539aea6b41845e83869e3bcaca24dd935552f01923e443"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d334_20261008/start_remote.sh",
+      "sha256": "782ac7aeadef62f8b5e26d1f995d11f2492d61833568ac48263c284611fca4c7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d334_20261008/stop_remote.sh",
+      "sha256": "ae0d40b2b33f20ddedc0c9ced6b7ae6995d1db465cba24b2f88834e322c87fe6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d334_20261008/check_remote_health.py",
+      "sha256": "176d803fb722f46a895fb15a006f4f3b31469fc5073121c40ebaf524446e95b5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d334_20261008/checkpoint.py",
+      "sha256": "ee101de347aee871cfc2fc30161414286346e26e8ec0784df74010ea6df6f0eb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d334_20261008/7b_native_pending_validation_100/launch.json",
+      "sha256": "bf21b15767a909e7c22cb2e01fe44088773578fbcee0a72c56e8bae2bf8353f4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d334_20261008/7b_native_pending_validation_100/launch.launch/physical_deployment/summary.json",
+      "sha256": "6c1d2152db570ad40f37c324e334bddf332beb2ba765f935ca9141f459b2eaff"
+    }
+  ],
+  "next": "D335 unchanged-candidate full4000 W0 versus D332; fresh resource gate mandatory; no new short/profile/numerical repeats."
+}
