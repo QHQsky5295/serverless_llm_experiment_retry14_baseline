@@ -634,6 +634,21 @@ class HistoricalServiceRebin(unittest.TestCase):
 
 
 class LengthCandidateConfiguration(unittest.TestCase):
+    def test_d326_drain_candidate_changes_only_exclusive_paths(self):
+        import copy
+        import yaml
+        root = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+        previous = yaml.safe_load((root/'configs/ieee_tc/20261007_d323_7b_full_w0.yaml').read_text())
+        actual = yaml.safe_load((root/'configs/ieee_tc/20261008_d326_7b_full_w0.yaml').read_text())
+        expected = copy.deepcopy(previous)
+        for section, field in [('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                               ('storage', 'host_cache_dir')]:
+            expected[section][field] = previous[section][field].replace(
+                'd323_20261007', 'd326_20261008').replace('tc-d323-', 'tc-d326-')
+            self.assertNotEqual(actual[section][field], previous[section][field])
+        self.assertEqual(actual, expected)
+        self.assertEqual(actual['workload']['total_requests'], 4000)
+
     def bound_runner(self):
         import copy
         import yaml
@@ -1264,6 +1279,9 @@ class IEEEActualControl(unittest.TestCase):
         service._stack.trigger_scaling_preload = AsyncMock(side_effect=AssertionError('legacy preload'))
         service._last_scale_up_handoff_plan = dict(planned_adapters=['stale-legacy'])
         service._last_scale_up_preload_budget = dict(mode='stale-legacy')
+        service._unsettled_runtime_reservations = {}
+        service._live_runtime_reservations = {}
+        service._slot_retire_lock = asyncio.Lock()
         return fixture, files, service, queue, engine
 
     async def evaluate(self, service, result, **overrides):
@@ -1358,6 +1376,13 @@ class IEEEActualControl(unittest.TestCase):
             second=SimpleNamespace(model_cfg=engine.model_cfg)
             victim=service.instance_pool.add_instance(second,None,owns_engine=True,device_id=1)
             service._primary_instance_id=primary
+            async def refresh_host():
+                if service._ieee_control_events[-1]['action'] == 'scale_down':
+                    # No native-capacity await is allowed between the snapshot
+                    # decision and withdrawal of the selected routing member.
+                    self.assertEqual(service.instance_pool.get_slot(victim).status, 'draining')
+                await asyncio.sleep(0)
+            service._refresh_ieee_deferred_host_capacity=refresh_host
             async def cleanup(slot, **kw):
                 self.assertEqual(slot.instance_id,victim)
                 self.assertIs(service.instance_pool.get_slot(victim), slot)
@@ -1370,11 +1395,69 @@ class IEEEActualControl(unittest.TestCase):
                 with patch('scripts.run_all_experiments.time.monotonic',return_value=when):
                     await self.evaluate(service,result,backlog=0,active_requests=0,
                                         completed_count=1,results_view=completed)
+            await asyncio.gather(*(entry['task'] for entry in service._runtime_retirements.values()))
             service._cleanup_removed_slot.assert_awaited_once()
             self.assertEqual(result.scale_down_events,1)
             self.assertEqual(service._ieee_control_events[3]['outcome'],'drained_replica_retired')
             self.assertEqual(service._ieee_control_events[-1]['ttft_sample_count'],1)
             await queue.close()
+        asyncio.run(run())
+
+    def test_scalein_withdraws_busy_replica_then_waits_for_owned_requests(self):
+        """D325 regression: SCALE_DOWN must not require a coincidentally idle owner."""
+        _,_,service,queue,engine=self.make()
+        async def run():
+            service.engine_factory=AsyncMock()
+            service._runtime_forward_capacity_limit=Mock(return_value=8)
+            service._slot_retire_lock=asyncio.Lock()
+            service._unsettled_runtime_reservations={}
+            primary=service.instance_pool.add_instance(engine,None,owns_engine=True,device_id=0)
+            victim=service.instance_pool.add_instance(SimpleNamespace(model_cfg=engine.model_cfg),
+                None,owns_engine=True,device_id=1)
+            service._primary_instance_id=primary
+            slot=service.instance_pool.get_slot(victim)
+            service.instance_pool.get_slot(primary).active_requests=1
+            slot.active_requests=1
+            reservation=runner.RuntimeRequestReservation('owned-active')
+            reservation.bind(slot, None, False)
+            service._live_runtime_reservations={reservation.request_id:reservation}
+            service._cleanup_removed_slot=AsyncMock()
+            service._notify_dispatch_capacity_changed=AsyncMock()
+            result=SimpleNamespace(scale_up_events=[],scale_down_events=0,scale_down_event_log=[])
+            completed=[SimpleNamespace(success=True,request_id='fast',overall_ttft_ms=100.)]
+            try:
+                for when in (10.,13.):
+                    with patch('scripts.run_all_experiments.time.monotonic',return_value=when):
+                        await self.evaluate(service,result,backlog=2,active_requests=2,
+                            completed_count=1,results_view=completed)
+                self.assertEqual(slot.status,'draining')
+                self.assertEqual(service._try_reserve_runtime_request_slot(slot,None),(False,False))
+                self.assertEqual(service.instance_pool.count(),1)
+                self.assertIs(service.instance_pool.get_slot(victim),slot)
+                await asyncio.sleep(0)
+                service._cleanup_removed_slot.assert_not_awaited()
+                self.assertEqual(result.scale_down_events,0)
+                # Existing work belongs to the draining owner, not the waiting
+                # queue or the running owner's active/capacity ratio.
+                with patch('scripts.run_all_experiments.time.monotonic',return_value=14.):
+                    await self.evaluate(service,result,backlog=2,active_requests=1,
+                        completed_count=1,results_view=completed)
+                latest=service._ieee_control_events[-1]
+                self.assertEqual(latest['queue_depth'],0)
+                self.assertEqual(latest['draining_active_requests'],1)
+                self.assertEqual(latest['active_requests'],1)
+                self.assertEqual(latest['ready_capacity'],8)
+            finally:
+                slot.active_requests=0
+                reservation.released=True
+                service._live_runtime_reservations.clear()
+                for entry in getattr(service,'_runtime_retirements',{}).values():
+                    entry['changed'].set()
+                    await entry['task']
+                await queue.close()
+            service._cleanup_removed_slot.assert_awaited_once()
+            self.assertEqual(result.scale_down_events,1)
+            self.assertIsNone(service.instance_pool.get_slot(victim))
         asyncio.run(run())
 
     def test_failed_activation_is_not_retried_on_next_control_interval(self):
@@ -2273,7 +2356,7 @@ class DeploymentTerminalIntegration(unittest.IsolatedAsyncioTestCase):
 
     async def test_failed_return_does_not_skip_other_runtime_cleanup(self):
         r = runner.ScenarioRunner.__new__(runner.ScenarioRunner)
-        slots = {str(i):SimpleNamespace(instance_id=str(i)) for i in range(2)}
+        slots = {str(i):SimpleNamespace(instance_id=str(i), engine=object()) for i in range(2)}
         r.instance_pool = SimpleNamespace(get_all_slots=lambda:list(slots.values()), remove_instance=slots.pop)
         r._cleanup_removed_slot = AsyncMock(side_effect=[RuntimeError('return unconfirmed'), None])
         with self.assertRaisesRegex(RuntimeError, 'unresolved runtime ownership'):

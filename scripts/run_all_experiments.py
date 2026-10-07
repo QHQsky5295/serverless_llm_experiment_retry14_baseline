@@ -7583,8 +7583,9 @@ class ScenarioRunner:
         self._runtime_slot_capacity_condition: Optional[asyncio.Condition] = None
         self._unsettled_runtime_reservations: Dict[str, RuntimeRequestReservation] = {}
         self._live_runtime_reservations: Dict[str, RuntimeRequestReservation] = {}
-        self._runtime_quarantines = {}
+        self._runtime_retirements = {}
         self._ieee_runtime_quarantine_events = []
+        self._ieee_scalein_events = []
         self._active_replay_t0: Optional[float] = None
         self._slot_retire_lock = asyncio.Lock()
         # The replay dispatcher, autoscaler, and subprocess RPC completion all
@@ -9789,6 +9790,8 @@ class ScenarioRunner:
             result['ieee_source_observation_stats'] = dict(self._ieee_source_observation_stats)
         if hasattr(self, '_ieee_runtime_quarantine_events'):
             result['ieee_runtime_quarantine_events'] = copy.deepcopy(self._ieee_runtime_quarantine_events)
+        if hasattr(self, '_ieee_scalein_events'):
+            result['ieee_scalein_events'] = copy.deepcopy(self._ieee_scalein_events)
         if hasattr(self, '_ieee_host_capacity_events'):
             result['ieee_host_capacity_events'] = copy.deepcopy(self._ieee_host_capacity_events)
         if hasattr(self, '_ieee_residency_epochs'):
@@ -13274,7 +13277,7 @@ class ScenarioRunner:
         submitted_count: Optional[int] = None,
         submitted_traces: Optional[List[Any]] = None,
     ) -> bool:
-        self._check_runtime_quarantines()
+        self._check_runtime_retirements()
         if getattr(self, '_routing_policy', None) == 'ieee_confirmed':
             return await self._evaluate_ieee_live_control(result=result, coord_enabled=coord_enabled,
                 replay_t0=replay_t0, results_view=results_view, backlog=backlog,
@@ -13606,16 +13609,20 @@ class ScenarioRunner:
         failure = getattr(self, '_ieee_scale_failure', None)
         if failure is not None:
             raise RuntimeError('IEEE activation failed; no blind control-loop retry') from failure
-        if type(backlog) is not int or backlog < active_requests:
+        # Draining requests are already admitted, not queued for a running
+        # replica. Failed terminal requests retained for physical retirement
+        # are not in the live map and must not be subtracted from backlog.
+        draining_active = sum(1 for r in getattr(self, '_live_runtime_reservations', {}).values()
+            if r.slot is not None and r.slot.status == 'draining' and not r.released)
+        if type(backlog) is not int or backlog < active_requests + draining_active:
             raise ValueError('unfinished arrivals do not cover the admitted set')
-        snapshot = controller.evaluate(now=now, queue_depth=backlog-active_requests,
+        snapshot = controller.evaluate(now=now, queue_depth=backlog-active_requests-draining_active,
             active_requests=active_requests, ready_capacity=ready*self._runtime_forward_capacity_limit(),
             ready_instances=ready, pending_instances=pending)
         if snapshot is None:
             return False
-        # Sample only actual HOST-capacity waiters on the already-frozen control
-        # cadence. Reading allocator counters is not a new loading attempt.
-        await self._refresh_ieee_deferred_host_capacity()
+        snapshot.update(draining_active_requests=draining_active,
+            draining_instances=sum(s.status == 'draining' for s in self.instance_pool.get_all_slots()))
         self._live_scale_eval_last_at = now
         record = dict(snapshot, action=snapshot['action'].value, outcome='no_action')
         if not hasattr(self, '_ieee_control_events'):
@@ -13636,27 +13643,24 @@ class ScenarioRunner:
             changed = count > 0
             record.update(outcome='activation_scheduled' if changed else 'no_free_device', scheduled=count)
         elif snapshot['action'] == ScalingAction.SCALE_DOWN:
-            # The sampled all-low/cooldown condition is already established.
-            # Pick an already-drained replica; withdrawal is synchronous before
-            # cleanup awaits, so a new router reservation cannot revive it.
-            idle = [s for s in self.instance_pool.get_slots()
-                    if s.instance_id != self._primary_instance_id
-                    and s.active_requests == 0 and s.load_queue_depth == 0
-                    and getattr(s, 'runtime_forwarding_active', 0) == 0]
-            if idle:
-                selected = min(idle, key=lambda s: (s.last_selected_at, s.instance_id))
-                selected.status = 'draining'
-                await self._cleanup_removed_slot(selected, removal_reason='ieee_all_low_cooldown')
-                self.instance_pool.remove_instance(selected.instance_id)
-                result.scale_down_events += 1
-                result.scale_down_event_log.append(dict(event_type='physical_scale_down',
-                    instance_id=selected.instance_id, device_id=selected.device_id,
-                    reason=snapshot['reason'], observed_monotonic_s=now,
-                    control_event_index=len(self._ieee_control_events)-1))
-                changed = True
-                record['outcome'] = 'drained_replica_retired'
-            else:
-                record['outcome'] = 'awaiting_drained_replica'
+            # IEEE: withdraw -> drain admitted work -> release. The decision
+            # already established all-low/cooldown; chance idleness is not an
+            # additional admission criterion. Prefer the smallest owned work
+            # set, then the same stable last-selection/ID tie-break as before.
+            candidates = [s for s in self.instance_pool.get_slots()
+                          if s.instance_id != self._primary_instance_id]
+            if not candidates:
+                raise RuntimeError('scale-in decision has no non-primary running owner')
+            selected = min(candidates, key=lambda s: (s.active_requests, s.last_selected_at, s.instance_id))
+            record.update(outcome='draining_admitted_requests', target_replica=selected.instance_id)
+            self._schedule_runtime_retirement(selected, reason='ieee_all_low_cooldown',
+                result=result, control_event=record, control_event_index=len(self._ieee_control_events)-1)
+            changed = True
+            await self._notify_dispatch_capacity_changed(wake_all=True)
+        # Keep observation -> decision -> withdrawal synchronous with admission;
+        # a native HOST query may yield and must not invalidate the chosen set.
+        # Sample only actual waiters on this same frozen control cadence.
+        await self._refresh_ieee_deferred_host_capacity()
         # NoHandoff disables only the activating-replica path, not this ready
         # steady-state path. Existing in-flight plans keep their immutable epoch.
         self._schedule_ieee_residency_epochs()
@@ -14308,6 +14312,10 @@ class ScenarioRunner:
                 if (self.model_cfg.get('ieee_host_budget_bytes') is not None
                         or self.model_cfg.get('ieee_physical_allocation')):
                     raise  # Retain HOST/GPU ownership on unresolved teardown.
+            if self.model_cfg.get('ieee_physical_allocation'):
+                allocation = getattr(slot.engine, '_physical_allocation', None)
+                if allocation is None or allocation.released is not True:
+                    raise RuntimeError('runtime cleanup requires confirmed physical release')
             self._retire_ieee_host_budget(slot.engine)
             self._settle_exited_runtime_reservations(slot)
         self._sync_stack_gpu_accounting()
@@ -14320,6 +14328,17 @@ class ScenarioRunner:
             return False
         instance_id = getattr(slot, "instance_id", None)
         if not instance_id:
+            return False
+        retirement = getattr(self, '_runtime_retirements', {}).get(id(slot.engine))
+        if retirement is not None:
+            # This may be called by a request that the existing retirement is
+            # waiting for. Never join it here (self-dependency), race cleanup,
+            # or retry its failed physical return. The request still records
+            # its failure and reaches the ordinary reservation-finally path.
+            retirement['record']['runtime_failure'] = str(reason)
+            if slot.device_id is not None and slot.owns_engine:
+                self._failed_runtime_device_ids.add(int(slot.device_id))
+            retirement['changed'].set()
             return False
         async with self._slot_retire_lock:
             current = self.instance_pool.get_slot(instance_id)
@@ -14347,12 +14366,18 @@ class ScenarioRunner:
 
     async def _shutdown_instance_pool(self) -> None:
         self._instance_pool_closing = True
-        # Quarantine owns online shutdown independently of cancelled requests.
+        # Scale-in/quarantine own online shutdown independently of requests.
         # Join it before the common shutdown census; never close one engine twice
         # concurrently or remove its shared IO owner underneath that shutdown.
-        quarantine_tasks = [entry['task'] for entry in
-            getattr(self, '_runtime_quarantines', {}).values()]
-        quarantine_outcomes = await asyncio.gather(*quarantine_tasks, return_exceptions=True)
+        retirements = getattr(self, '_runtime_retirements', {})
+        retirement_join = asyncio.gather(*(entry['task'] for entry in retirements.values()), return_exceptions=True)
+        cancelled = False
+        while not retirement_join.done():
+            try:
+                await asyncio.shield(retirement_join)
+            except asyncio.CancelledError:
+                cancelled = True
+        retirement_outcomes = retirement_join.result()
         # Initial activation owns startup AND preparation. Join it while the
         # common movement owner is still open; otherwise a late factory result
         # could publish a new slot after shutdown's plan/engine census.
@@ -14407,10 +14432,14 @@ class ScenarioRunner:
             pending_sequences.clear()
         if self.instance_pool is None:
             return
-        cleanup_failures = [outcome for outcome in quarantine_outcomes
+        cleanup_failures = [outcome for outcome in retirement_outcomes
                             if isinstance(outcome, BaseException)]
         runtime_groups = {}
         for slot in self.instance_pool.get_all_slots():
+            if id(slot.engine) in retirements:
+                # A failed/cancelled owner stays retained. Do not silently retry
+                # the same shutdown from the whole-pool cleanup census.
+                continue
             instance_id = getattr(slot, "instance_id", None)
             if not instance_id:
                 continue
@@ -14432,7 +14461,6 @@ class ScenarioRunner:
 
         joined = asyncio.gather(*(retire_runtime(slots) for slots in runtime_groups.values()),
                                 return_exceptions=True)
-        cancelled = False
         while not joined.done():
             try:
                 await asyncio.shield(joined)
@@ -14455,7 +14483,7 @@ class ScenarioRunner:
             raise asyncio.CancelledError()
 
     async def _prune_dead_instance_slots(self) -> int:
-        self._check_runtime_quarantines()
+        self._check_runtime_retirements()
         instance_pool = getattr(self, "instance_pool", None)
         if instance_pool is None:
             return 0
@@ -16711,7 +16739,7 @@ class ScenarioRunner:
             finally:
                 del live[reservation.request_id]
                 if reservation.slot is not None:
-                    entry = getattr(self, '_runtime_quarantines', {}).get(id(reservation.slot.engine))
+                    entry = getattr(self, '_runtime_retirements', {}).get(id(reservation.slot.engine))
                     if entry is not None:
                         entry['changed'].set()
 
@@ -17524,33 +17552,57 @@ class ScenarioRunner:
                 or self.model_cfg.get('timing_contract') != 'ieee_tc_native_v1'
                 or getattr(self, '_instance_pool_closing', False)):
             return
-        entries = getattr(self, '_runtime_quarantines', None)
+        self._schedule_runtime_retirement(slot, reason='unresolved_native_request_ownership')
+
+    def _schedule_runtime_retirement(self, slot, *, reason, result=None, control_event=None,
+                                     control_event_index=None):
+        """One owner for graceful scale-in and exceptional native quarantine.
+
+        Withdrawal and owner registration are synchronous with admission. The
+        task waits on actual reservation events; physical allocation remains
+        held through planner/native cleanup and confirmed process exit.
+        """
+        if (slot is None or not slot.owns_engine or self.instance_pool.get_slot(slot.instance_id) is not slot
+                or reason not in ('ieee_all_low_cooldown', 'unresolved_native_request_ownership')):
+            raise ValueError('retirement requires a retained physical runtime and explicit reason')
+        entries = getattr(self, '_runtime_retirements', None)
         if entries is None:
-            entries = self._runtime_quarantines = {}
+            entries = self._runtime_retirements = {}
         key = id(slot.engine)
         if key in entries:
-            entries[key]['changed'].set()
-            return
+            entry = entries[key]
+            if reason == 'unresolved_native_request_ownership' and not entry['record']['quarantine_requested']:
+                entry['record']['quarantine_requested'] = True
+                if not hasattr(self, '_ieee_runtime_quarantine_events'):
+                    self._ieee_runtime_quarantine_events = []
+                self._ieee_runtime_quarantine_events.append(entry['record'])
+            entry['changed'].set()
+            return entry
         from faaslora.clock import local_monotonic_clock_id
+        slot.status = 'draining'
         record = dict(instance_id=slot.instance_id, device_id=slot.device_id,
-            reason='unresolved_native_request_ownership', state='draining_controllers',
+            reason=reason, state='draining_controllers', admitted_at_withdrawal=slot.active_requests,
+            quarantine_requested=reason == 'unresolved_native_request_ownership',
             started_monotonic_s=time.monotonic(), clock_id=local_monotonic_clock_id())
-        if not hasattr(self, '_ieee_runtime_quarantine_events'):
-            self._ieee_runtime_quarantine_events = []
-        self._ieee_runtime_quarantine_events.append(record)
-        entry = dict(slot=slot, changed=asyncio.Event(), record=record)
+        field = '_ieee_scalein_events' if reason == 'ieee_all_low_cooldown' else '_ieee_runtime_quarantine_events'
+        if not hasattr(self, field):
+            setattr(self, field, [])
+        getattr(self, field).append(record)
+        entry = dict(slot=slot, changed=asyncio.Event(), record=record, result=result,
+            control_event=control_event, control_event_index=control_event_index)
         entries[key] = entry
-        entry['task'] = asyncio.create_task(self._retire_quarantined_runtime(entry))
+        entry['task'] = asyncio.create_task(self._retire_owned_runtime(entry))
         # Retrieve background exceptions promptly; control/shutdown still raises
         # the same retained task error. This is not a retry or swallowed failure.
         entry['task'].add_done_callback(lambda task: task.exception() if not task.cancelled() else None)
+        return entry
 
-    def _check_runtime_quarantines(self) -> None:
-        for entry in getattr(self, '_runtime_quarantines', {}).values():
+    def _check_runtime_retirements(self) -> None:
+        for entry in getattr(self, '_runtime_retirements', {}).values():
             if entry['task'].done():
                 entry['task'].result()
 
-    async def _retire_quarantined_runtime(self, entry):
+    async def _retire_owned_runtime(self, entry):
         slot, record, changed = entry['slot'], entry['record'], entry['changed']
         try:
             # New admission already rejects draining slots. Existing requests
@@ -17566,13 +17618,32 @@ class ScenarioRunner:
             unresolved = [r for r in self._unsettled_runtime_reservations.values()
                           if r.slot is slot and not r.released]
             if slot.active_requests != len(unresolved):
-                raise RuntimeError('quarantined runtime has untracked controller ownership')
+                raise RuntimeError('retiring runtime has untracked controller ownership')
+            # Candidate-source reads are unadmitted but still use this native
+            # owner. Withdrawal prevents new waves from including it. Join the
+            # already-published reads before closing the RPC/worker lifetime;
+            # their waiters then reject the changed membership normally. Do not
+            # turn a shutdown-induced RPC error into a request failure/retry.
+            membership = (id(slot), id(slot.engine))
+            reads = [wave['task'] for wave in
+                getattr(self, '_ieee_source_observation_waves', {}).values()
+                if membership in wave['membership'] and not wave['task'].done()]
+            record.update(state='draining_source_observations', source_collection_count=len(reads))
+            if reads:
+                outcomes = await asyncio.gather(*(asyncio.shield(task) for task in reads),
+                                                return_exceptions=True)
+                # Read errors remain owned by their original request waiters;
+                # record them without skipping physical cleanup or retrying RPC.
+                record['source_collection_errors'] = [type(item).__name__ for item in outcomes
+                                                     if isinstance(item, BaseException)]
             async with self._slot_retire_lock:
                 if self.instance_pool.get_slot(slot.instance_id) is not slot:
-                    raise RuntimeError('quarantined runtime lost retained membership')
+                    raise RuntimeError('retiring runtime lost retained membership')
                 record.update(state='stopping_runtime', drained_monotonic_s=time.monotonic(),
                               unresolved_request_ids=[r.request_id for r in unresolved])
-                await self._cleanup_removed_slot(slot, removal_reason='native_ownership_quarantine')
+                cleanup_reason = ('native_ownership_quarantine' if record['quarantine_requested']
+                                  else record['reason'])
+                await self._cleanup_removed_slot(slot, removal_reason=cleanup_reason)
                 # Unlike a device failure, a software quarantine does not
                 # blacklist hardware after its actual owned release succeeds.
                 self.instance_pool.remove_instance(slot.instance_id)
@@ -17580,10 +17651,27 @@ class ScenarioRunner:
                     remaining = self.instance_pool.get_slots()
                     self._primary_instance_id = remaining[0].instance_id if remaining else None
                 record.update(state='released', released_monotonic_s=time.monotonic())
+                control = entry['control_event']
+                if control is not None:
+                    outcome = ('retired_after_native_quarantine' if record['quarantine_requested']
+                               else 'drained_replica_retired')
+                    control.update(outcome=outcome, released_monotonic_s=record['released_monotonic_s'])
+                    result = entry['result']
+                    result.scale_down_events += 1
+                    result.scale_down_event_log.append(dict(event_type='physical_scale_down',
+                        instance_id=slot.instance_id, device_id=slot.device_id, reason=control['reason'],
+                        observed_monotonic_s=control['observed_at'],
+                        withdrawn_monotonic_s=record['started_monotonic_s'],
+                        drained_monotonic_s=record['drained_monotonic_s'],
+                        released_monotonic_s=record['released_monotonic_s'],
+                        quarantine_requested=record['quarantine_requested'],
+                        control_event_index=entry['control_event_index']))
             await self._notify_dispatch_capacity_changed(wake_all=True)
         except BaseException as exc:
             record.update(state='cancelled' if isinstance(exc, asyncio.CancelledError) else 'failed',
                           error_type=type(exc).__name__, error=str(exc))
+            if entry['control_event'] is not None:
+                entry['control_event']['outcome'] = 'retirement_'+record['state']
             raise
 
     def _settle_exited_runtime_reservations(self, slot) -> None:
@@ -17722,7 +17810,7 @@ class ScenarioRunner:
         if unsettled.get(reservation.request_id) is reservation:
             del unsettled[reservation.request_id]
         if slot is not None:
-            entry = getattr(self, '_runtime_quarantines', {}).get(id(slot.engine))
+            entry = getattr(self, '_runtime_retirements', {}).get(id(slot.engine))
             if entry is not None:
                 # A pre-admission conflict can release this runtime and reset
                 # the reservation before the whole request finishes elsewhere.
@@ -23842,7 +23930,7 @@ async def _finish_ieee_main_scenario(service, stack, claims, primary_error):
             '_ieee_file_preparation_plans','_ieee_gpu_preparation_plans',
             '_ieee_native_host_preparations','_ieee_control_events',
             '_ieee_proactive_diagnostic',
-            '_ieee_source_observation_stats','_ieee_runtime_quarantine_events')})
+            '_ieee_source_observation_stats','_ieee_runtime_quarantine_events','_ieee_scalein_events')})
     try:
         data['coordination_after_shutdown'] = service._current_coord_metrics()
     except BaseException as exc:

@@ -333,6 +333,187 @@ class RuntimeQuarantine(unittest.IsolatedAsyncioTestCase):
         r._retain_runtime_request_reservation(reservation)
         return reservation
 
+    def scale_in(self, r, slot):
+        result = NS(scale_down_events=0, scale_down_event_log=[])
+        control = dict(reason='all_low', observed_at=0., outcome='draining_admitted_requests')
+        entry = r._schedule_runtime_retirement(slot, reason='ieee_all_low_cooldown',
+            result=result, control_event=control, control_event_index=0)
+        return entry, result, control
+
+    async def test_scalein_drains_live_request_then_waits_for_physical_return(self):
+        r, slot, allocation = self.build()
+        entered, complete, stopping, exited = (asyncio.Event() for _ in range(4))
+        async def serve(trace, *args, _reservation, **kwargs):
+            _reservation.bind(slot, 'adapter-a', False)
+            slot.active_requests += 1
+            entered.set()
+            await complete.wait()
+            return 'completed-existing-request'
+        async def shutdown():
+            stopping.set()
+            await exited.wait()
+            allocation.released = True
+        r._exec_request_in_reservation = serve
+        slot.engine.shutdown.side_effect = shutdown
+        request = asyncio.create_task(r._exec_request(NS(request_id='healthy'), 4, 0.))
+        await asyncio.wait_for(entered.wait(), 1.)
+        entry, result, control = self.scale_in(r, slot)
+        await asyncio.sleep(0)
+        self.assertEqual(slot.status, 'draining')
+        self.assertEqual(r._try_reserve_runtime_request_slot(slot, None), (False, False))
+        slot.engine.shutdown.assert_not_awaited()
+        self.assertFalse(request.done())
+        complete.set()
+        self.assertEqual(await request, 'completed-existing-request')
+        await asyncio.wait_for(stopping.wait(), 1.)
+        self.assertEqual(result.scale_down_events, 0)
+        self.assertIsNone(r._select_dedicated_device_id())
+        self.assertFalse(allocation.released)
+        exited.set()
+        await entry['task']
+        self.assertEqual(result.scale_down_events, 1)
+        self.assertEqual(control['outcome'], 'drained_replica_retired')
+        self.assertEqual(r._select_dedicated_device_id(), 0)
+        event = result.scale_down_event_log[0]
+        self.assertLessEqual(event['withdrawn_monotonic_s'], event['drained_monotonic_s'])
+        self.assertLessEqual(event['drained_monotonic_s'], event['released_monotonic_s'])
+        self.assertFalse(event['quarantine_requested'])
+
+    async def test_scalein_native_uncertainty_escalates_same_owner(self):
+        r, slot, allocation = self.build()
+        entered, complete = asyncio.Event(), asyncio.Event()
+        async def serve(trace, *args, _reservation, **kwargs):
+            _reservation.bind(slot, 'adapter-a', False)
+            slot.active_requests += 1
+            entered.set()
+            await complete.wait()
+            return 'healthy'
+        r._exec_request_in_reservation = serve
+        healthy = asyncio.create_task(r._exec_request(NS(request_id='healthy'), 4, 0.))
+        await asyncio.wait_for(entered.wait(), 1.)
+        entry, result, control = self.scale_in(r, slot)
+        # Another already-admitted native operation becomes uncertain while
+        # this same runtime is draining. It must not create a second closer.
+        unsettled = self.pending(r, slot)
+        self.assertIs(r._runtime_retirements[id(slot.engine)], entry)
+        self.assertIs(r._ieee_runtime_quarantine_events[0], r._ieee_scalein_events[0])
+        await asyncio.sleep(0)
+        slot.engine.shutdown.assert_not_awaited()
+        complete.set()
+        self.assertEqual(await healthy, 'healthy')
+        await entry['task']
+        self.assertTrue(unsettled.released and allocation.released)
+        slot.engine.shutdown.assert_awaited_once()
+        self.assertEqual(result.scale_down_events, 1)
+        self.assertEqual(control['outcome'], 'retired_after_native_quarantine')
+
+    async def test_scalein_joins_existing_source_read_before_closing_rpc_owner(self):
+        r, slot, allocation = self.build()
+        entered, release = asyncio.Event(), asyncio.Event()
+        async def read():
+            entered.set()
+            await release.wait()
+            self.assertFalse(allocation.released)
+            return 'original-read-result'
+        task = asyncio.create_task(read())
+        r._ieee_source_observation_waves = {
+            'existing-wave': dict(task=task, membership=((id(slot), id(slot.engine)),))}
+        await asyncio.wait_for(entered.wait(), 1.)
+        entry, _, _ = self.scale_in(r, slot)
+        await asyncio.sleep(0)
+        slot.engine.shutdown.assert_not_awaited()
+        self.assertFalse(entry['task'].done())
+        release.set()
+        self.assertEqual(await task, 'original-read-result')
+        await entry['task']
+        slot.engine.shutdown.assert_awaited_once()
+        self.assertEqual(entry['record']['source_collection_count'], 1)
+        self.assertEqual(entry['record']['source_collection_errors'], [])
+
+    async def test_source_read_failure_is_preserved_without_abandoning_return(self):
+        r, slot, allocation = self.build()
+        entered, release = asyncio.Event(), asyncio.Event()
+        async def read():
+            entered.set()
+            await release.wait()
+            raise ValueError('original observation failure')
+        task = asyncio.create_task(read())
+        r._ieee_source_observation_waves = {
+            'existing-wave': dict(task=task, membership=((id(slot), id(slot.engine)),))}
+        await asyncio.wait_for(entered.wait(), 1.)
+        entry, _, _ = self.scale_in(r, slot)
+        await asyncio.sleep(0)
+        release.set()
+        with self.assertRaisesRegex(ValueError, 'original observation failure'):
+            await task
+        await entry['task']
+        self.assertTrue(allocation.released)
+        self.assertEqual(entry['record']['source_collection_errors'], ['ValueError'])
+
+    async def test_pool_cancel_joins_scalein_without_cancelling_owner(self):
+        r, slot, allocation = self.build()
+        stopping, exited = asyncio.Event(), asyncio.Event()
+        async def shutdown():
+            stopping.set()
+            await exited.wait()
+            allocation.released = True
+        slot.engine.shutdown.side_effect = shutdown
+        entry, result, _ = self.scale_in(r, slot)
+        await asyncio.wait_for(stopping.wait(), 1.)
+        closing = asyncio.create_task(r._shutdown_instance_pool())
+        await asyncio.sleep(0)
+        closing.cancel()
+        await asyncio.sleep(0)
+        self.assertFalse(closing.done() or entry['task'].done())
+        self.assertFalse(allocation.released)
+        exited.set()
+        with self.assertRaises(asyncio.CancelledError):
+            await closing
+        self.assertTrue(allocation.released)
+        self.assertEqual(result.scale_down_events, 1)
+        slot.engine.shutdown.assert_awaited_once()
+        self.assertFalse(r.instance_pool.get_all_slots())
+
+    async def test_idle_scalein_cannot_publish_return_without_physical_ack(self):
+        r, slot, allocation = self.build()
+        slot.engine.shutdown.side_effect = None
+        entry, result, control = self.scale_in(r, slot)
+        with self.assertRaisesRegex(RuntimeError, 'confirmed physical release'):
+            await entry['task']
+        r._retire_ieee_host_budget.assert_not_called()
+        self.assertIs(r.instance_pool.get_slot(slot.instance_id), slot)
+        self.assertFalse(allocation.released)
+        self.assertEqual(result.scale_down_events, 0)
+        self.assertEqual(control['outcome'], 'retirement_failed')
+        # Common shutdown reports unresolved ownership, not an implicit retry.
+        with self.assertRaisesRegex(RuntimeError, 'unresolved runtime ownership'):
+            await r._shutdown_instance_pool()
+        slot.engine.shutdown.assert_awaited_once()
+
+    async def test_runtime_failure_during_drain_does_not_self_join(self):
+        r, slot, allocation = self.build()
+        entered, fail = asyncio.Event(), asyncio.Event()
+        async def serve(trace, *args, _reservation, **kwargs):
+            _reservation.bind(slot, 'adapter-a', False)
+            slot.active_requests += 1
+            entered.set()
+            await fail.wait()
+            self.assertFalse(await r._retire_failed_slot(slot, 'native failure'))
+            raise RuntimeError('original request failure')
+        r._exec_request_in_reservation = serve
+        request = asyncio.create_task(r._exec_request(NS(request_id='failed'), 4, 0.))
+        await asyncio.wait_for(entered.wait(), 1.)
+        entry, _, _ = self.scale_in(r, slot)
+        fail.set()
+        with self.assertRaisesRegex(RuntimeError, 'original request failure'):
+            await asyncio.wait_for(request, 1.)
+        await asyncio.wait_for(entry['task'], 1.)
+        self.assertTrue(allocation.released)
+        self.assertEqual(entry['record']['runtime_failure'], 'native failure')
+        self.assertEqual(r._failed_runtime_device_ids, {0})
+        self.assertIsNone(r._select_dedicated_device_id())
+        slot.engine.shutdown.assert_awaited_once()
+
     async def test_quarantine_returns_device_only_after_physical_exit(self):
         r, slot, allocation = self.build()
         entered, finish = asyncio.Event(), asyncio.Event()
@@ -347,7 +528,7 @@ class RuntimeQuarantine(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(reservation.released)
         self.assertIs(r.instance_pool.get_slot(slot.instance_id), slot)
         finish.set()
-        await r._runtime_quarantines[id(slot.engine)]['task']
+        await r._runtime_retirements[id(slot.engine)]['task']
         self.assertEqual(r._select_dedicated_device_id(), 0)
         self.assertFalse(r._failed_runtime_device_ids)
         self.assertTrue(reservation.released)
@@ -384,7 +565,7 @@ class RuntimeQuarantine(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(r._try_reserve_runtime_request_slot(slot, None), (False, False))
         healthy_done.set()
         self.assertEqual(await healthy, 'healthy-result')
-        await r._runtime_quarantines[id(slot.engine)]['task']
+        await r._runtime_retirements[id(slot.engine)]['task']
         self.assertEqual(slot.engine.shutdown.await_count, 1)
         self.assertFalse(r._live_runtime_reservations)
 
@@ -393,7 +574,7 @@ class RuntimeQuarantine(unittest.IsolatedAsyncioTestCase):
         first = self.pending(r, slot, 'first')
         r._retain_runtime_request_reservation(first)
         second = self.pending(r, slot, 'second')
-        await r._runtime_quarantines[id(slot.engine)]['task']
+        await r._runtime_retirements[id(slot.engine)]['task']
         self.assertEqual(slot.engine.shutdown.await_count, 1)
         self.assertTrue(first.released and second.released)
         self.assertEqual(slot.active_requests, 0)
@@ -422,7 +603,7 @@ class RuntimeQuarantine(unittest.IsolatedAsyncioTestCase):
         release.set()
         await asyncio.wait_for(selecting_elsewhere.wait(), 1.)
         try:
-            await asyncio.wait_for(asyncio.shield(r._runtime_quarantines[id(slot.engine)]['task']), 1.)
+            await asyncio.wait_for(asyncio.shield(r._runtime_retirements[id(slot.engine)]['task']), 1.)
             self.assertTrue(allocation.released)
             self.assertFalse(request.done())
         finally:
@@ -438,7 +619,7 @@ class RuntimeQuarantine(unittest.IsolatedAsyncioTestCase):
         slot.engine.shutdown.side_effect = shutdown
         reservation = self.pending(r, slot)
         await asyncio.wait_for(entered.wait(), 1.)
-        task = r._runtime_quarantines[id(slot.engine)]['task']
+        task = r._runtime_retirements[id(slot.engine)]['task']
         task.cancel()
         with self.assertRaises(asyncio.CancelledError):
             await task
@@ -452,12 +633,12 @@ class RuntimeQuarantine(unittest.IsolatedAsyncioTestCase):
         slot.engine.shutdown.side_effect = RuntimeError('physical return unconfirmed')
         reservation = self.pending(r, slot)
         with self.assertRaisesRegex(RuntimeError, 'physical return unconfirmed'):
-            await r._runtime_quarantines[id(slot.engine)]['task']
+            await r._runtime_retirements[id(slot.engine)]['task']
         self.assertIs(r.instance_pool.get_slot(slot.instance_id), slot)
         self.assertFalse(reservation.released or allocation.released)
         self.assertIsNone(r._select_dedicated_device_id())
         with self.assertRaisesRegex(RuntimeError, 'physical return unconfirmed'):
-            r._check_runtime_quarantines()
+            r._check_runtime_retirements()
 
     async def test_shutdown_reply_without_physical_ack_cannot_release_local_source(self):
         r, slot, allocation = self.build()
@@ -467,7 +648,7 @@ class RuntimeQuarantine(unittest.IsolatedAsyncioTestCase):
         reservation.gpu_reference_evidence['local_source_reference'] = local
         reservation.local_source_owner = NS(release_local_source=Mock())
         with self.assertRaisesRegex(RuntimeError, 'physical.*release'):
-            await r._runtime_quarantines[id(slot.engine)]['task']
+            await r._runtime_retirements[id(slot.engine)]['task']
         reservation.local_source_owner.release_local_source.assert_not_called()
         self.assertEqual(local['state'], 'held')
         self.assertFalse(reservation.released or allocation.released)
@@ -479,7 +660,7 @@ class RuntimeQuarantine(unittest.IsolatedAsyncioTestCase):
         reservation.gpu_reference_evidence['local_source_reference'] = local
         reservation.local_source_owner = NS(release_local_source=Mock())
         reservation.ieee_pending_admission = dict(state='registering', intent_id='pending')
-        await r._runtime_quarantines[id(slot.engine)]['task']
+        await r._runtime_retirements[id(slot.engine)]['task']
         reservation.local_source_owner.release_local_source.assert_called_once_with(
             lease_id='local', expected_owner_id='file-owner')
         self.assertEqual(local['state'], 'released')

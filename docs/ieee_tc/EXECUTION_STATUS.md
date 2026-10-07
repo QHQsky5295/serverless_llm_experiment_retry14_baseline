@@ -11,7 +11,50 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D324 retained-data diagnosis complete; next is owned scale-in drain
+## CURRENT — D325 owned scale-in CPU-qualified; next D326 complete W0
+
+FINAL CPU CHECK2026-10-08 ~00:11+08:426tests pass55.804s; then6configuration
+tests pass1.293s. Final runnerSHA734a51f1789861e1f2e023890057b911ae5b341da0d07bd92ceb73c4b1abc627.
+D326config3c5ad20b... only3exclusivepaths differ fromD323; original4000 preserved,
+existinglauncher explicitd326 clears diagnosticprefix. NO GPU/remote run yet.
+Six exactInvocationID testscopes verifiedempty andstopped; events/swap0; final
+testpeak1967718400B. Protected147 rawfalse onlyknownbaselineSHA04f3eb52...,
+user manifest/plan/V1 unchanged. Receipt d325_owned_drain/validation_checkpoint.json.
+Verification scope79eda4861b5d45bc92e53e3191b9a9d1 alsoempty/stopped,
+peak44032000B/events0;11source/logreferences rehashed andsyntax/diffpass.
+Tested explicit-path backup pending. NEXT freshsafety/profile/remote checks and
+ONE D326 fullW0; do not redo100prefix/calibration/D324analysis or figures.
+
+Earlier checkpoint2026-10-08 ~00:08+08 PROGRESS, no GPU/remote launch or figures. Source plan fully
+read and frozen V1 read, hashes unchanged. D325 implements D324's ONE candidate:
+withdraw -> drain actual admitted users and published source reads -> owned
+cleanup -> confirmed physical return. No control/profile/threshold/formula change.
+Normal scale-in and exceptional quarantine share one retirement owner. Draining
+live work is not queued work; physical membership remains held until actual ack.
+Min/routing withdrawal is synchronous before HOST-query await. Fatal requests
+retain failure/device exclusion, cannot self-join retirement. Failed returns are
+not silently retried at common shutdown; cancellation joins already owned work.
+
+Reproduction failed old implementation (busy nonprimary stayed running). First
+34tests had two old fixture-structure errors, fixed in tests rather than runtime
+defaults.39tests pass31.044s;365expanded pass55.766s. Final expanded suite now
+was running with added source-query ownership checks in bounded3/4GiB/swap0 scope
+primelora-tc-d325-finaltests.scope. Logs d325_20261008/{tests2,regression,finaltests}.log.
+At that checkpoint final pass was not yet known; see final check above. No active
+GPU context. Earlier scope/resource receipt and cleanup are now verified above.
+
+NEXT: final regression -> preservation/resources -> explicit tested backup ->
+ONE D326 original4000W0 with D323-identical policy/model/profiles, new exclusive
+paths. No repeated100-prefix/calibration; old100prefix does not cover311s event.
+See D325_OWNED_SCALEIN_DRAIN.md. No performance gain/new SLO qualification yet;
+7B->3B->baselines->comparisons->ablations remains. Goal active.
+
+## HISTORY — D324 retained-data diagnosis complete; next is owned scale-in drain
+
+Backup verified2026-10-07T23:47:07+08:00: localHEAD andremote branch both
+8cd699a2bd4ead7bf26c83f83325f67fc5bcd5e6.12explicitfiles backedup; staged diff/
+credential-pattern checks pass; usermanifest neverstaged. Beforethispostpushnote
+itwas theonly tracked dirtyfile. All3D324scopes inactive; noGPU/remote taskstarted.
 
 2026-10-07 ~23:45+08 PROGRESS, not a new performance run. Completed the ONE
 bounded D318/D323 service/lifecycle check using original4000 each. No inference,
