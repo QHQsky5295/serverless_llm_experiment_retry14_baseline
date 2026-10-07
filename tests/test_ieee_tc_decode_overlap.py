@@ -9,8 +9,64 @@ from scripts.ieee_tc.check_d299_full_context import (
     complete_failure_output_hashes, failed_run_partition, project_incomplete)
 
 from scripts.ieee_tc.analyze_d297_full import (
-    decode_overlap_summary, native_load_overlap_summary, prefill_overlap_summary,
+    audit_preparation_attribution, decode_overlap_summary, native_load_overlap_summary, prefill_overlap_summary,
 )
+
+
+class PreparationAttributionAudit(unittest.TestCase):
+    def fixture(self, changed=False):
+        from tests.test_ieee_tc_preparation_cost import PreparationIntervals
+        from faaslora.preloading.preloading_planner import observed_preparation_interval
+        fixture = PreparationIntervals()
+        args = fixture.changed_copy_inputs() if changed else fixture.inputs('remote')
+        args['admission'].update(preparation_class={'tier': 'remote'}, preparation_profile_id='fixture')
+        interval = observed_preparation_interval(**args)
+        interval.update(preparation_class={'tier': 'remote'}, preparation_profile_id='fixture',
+                        cost_model_updated=interval['profile_eligible'])
+        row = dict(request_id='r', adapter_id='a', success=True, gpu_reference_evidence=dict(
+            source_admission=args['admission'], receipt=args['native'], remote_preparation=args['remote'],
+            local_source_reference=args.get('file_reference'), preparation_interval=interval))
+        return row, args['native']['clock_id']
+
+    def test_complete_and_changed_copy_are_recomputed_without_mutation(self):
+        for changed in (False, True):
+            row, clock = self.fixture(changed)
+            before = copy.deepcopy(row)
+            result = audit_preparation_attribution([row], clock_id=clock)
+            self.assertEqual(row, before)
+            self.assertEqual(result['eligible_samples'], int(not changed))
+            self.assertEqual(result['ineligible_samples'], int(changed))
+            self.assertEqual(len(result['changed_copy_cases']), int(changed))
+
+    def test_fabricated_sample_or_update_is_rejected(self):
+        for changed in (False, True):
+            for key, value in (('d_ms', 0.), ('reason', 'invented'), ('profile_eligible', None),
+                               ('cost_model_updated', None), ('preparation_class', {})):
+                row, clock = self.fixture(changed)
+                row['gpu_reference_evidence']['preparation_interval'][key] = value
+                with self.subTest(changed=changed, key=key), self.assertRaises(ValueError):
+                    audit_preparation_attribution([row], clock_id=clock)
+
+    def test_corrupt_copy_and_clock_or_missing_evidence_fail(self):
+        for case in ('content', 'clock', 'missing', 'duplicate'):
+            row, clock = self.fixture(True)
+            if case == 'content':
+                row['gpu_reference_evidence']['local_source_reference']['content_verified'] = False
+            elif case == 'clock': clock = 'wrong'
+            elif case == 'missing': del row['gpu_reference_evidence']['preparation_interval']
+            rows = [row, row] if case == 'duplicate' else [row]
+            with self.subTest(case=case), self.assertRaises((ValueError, KeyError)):
+                audit_preparation_attribution(rows, clock_id=clock)
+
+    def test_gpu_ready_has_no_load_sample_and_empty_is_rejected(self):
+        row, clock = self.fixture()
+        row['gpu_reference_evidence']['source_admission']['source']['tier'] = 'gpu'
+        with self.assertRaises(ValueError): audit_preparation_attribution([row], clock_id=clock)
+        del row['gpu_reference_evidence']['preparation_interval']
+        result = audit_preparation_attribution([row], clock_id=clock)
+        self.assertEqual(result['source_tiers'], {'gpu': 1})
+        self.assertEqual(result['eligible_samples'], 0)
+        with self.assertRaises(ValueError): audit_preparation_attribution([], clock_id=clock)
 
 
 class FailureAwarePopulation(unittest.TestCase):

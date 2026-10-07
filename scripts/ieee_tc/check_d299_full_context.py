@@ -364,6 +364,14 @@ def main(campaign='d299'):
         reference = 'd300'
         health_name = 'remote_health.json'
         change_caveat = 'Same controls; only D301 confirmed-scope publication fix changes. Closed-loop trajectories may all change.'
+    elif campaign == 'd314':
+        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d314_20261007'
+        RUN = RAW/'7b_full_w0'
+        OUT = ROOT/'paper_results/ieee_tc/p2_backend/d314_full_w0/context1'
+        reference = 'd303'
+        health_name = 'remote_health.json'
+        change_caveat = ('D307 token budget/profile plus subsequent ownership/copy-attribution fixes; '
+                         'not a pure token-budget ablation or an independent held-out comparison.')
     elif campaign != 'd299':
         raise ValueError('unknown frozen full-run identity')
     assert not OUT.exists()
@@ -441,6 +449,13 @@ def main(campaign='d299'):
         assert receipt['remote_monitor_sha256'] == sha256(RAW/'remote_monitor.log')
         result['remote_shutdown'] = receipt['remote_shutdown']
         result['caveats'].append('Remote monitor exit73 is retained as a post-measurement shutdown-order guard; not all remote return codes are zero.')
+    if campaign == 'd314':
+        receipt = read(RAW/'completion_receipt.json')
+        assert receipt['source_sha256'] == re['source_sha256']
+        assert receipt['launch_sha256'] == sha256(RUN/'launch.json')
+        assert receipt['remote_transfers_sha256'] == sha256(journal)
+        assert receipt['remote_monitor_sha256'] == sha256(RAW/'remote_monitor.log')
+        result['remote_shutdown'] = receipt['remote_stop']
     OUT.mkdir(parents=True,exist_ok=False)
     with (OUT/'context.json').open('x') as handle:
         json.dump(result,handle,indent=2,allow_nan=False)
@@ -456,6 +471,8 @@ def main(campaign='d299'):
            ROOT/'scripts/ieee_tc/plot_d290_diagnostic.py',ROOT/'scripts/ieee_tc_preflight.py']
     if campaign == 'd303':
         paths.append(CURATED/'d303_full_w0/completion_receipt.json')
+    if campaign == 'd314':
+        paths.append(RAW/'completion_receipt.json')
     with (OUT/'manifest.json').open('x') as handle:
         json.dump(dict(source_refs=[dict(path=str(p),sha256=sha256(p)) for p in paths],
             outputs={p.name:sha256(p) for p in sorted(OUT.iterdir()) if p.name!='manifest.json'}),handle,indent=2)
@@ -465,7 +482,7 @@ def main(campaign='d299'):
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--campaign', choices=('d299', 'd300', 'd303', 'd309-failure', 'd311-incomplete', 'd313-failure'), default='d299')
+    parser.add_argument('--campaign', choices=('d299', 'd300', 'd303', 'd314', 'd309-failure', 'd311-incomplete', 'd313-failure'), default='d299')
     campaign = parser.parse_args().campaign
     if campaign == 'd311-incomplete':
         audit_d311_incomplete()

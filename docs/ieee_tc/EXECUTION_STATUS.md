@@ -11,7 +11,138 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D314 copy-identity repair tested; backup then full4000
+## CURRENT — D314 full4000 audited; 512 candidate is not an overall improvement
+
+2026-10-07 15:49+08. This continuation made PROGRESS after verifiedwaiting:
+D314 finished4000/4000successful native-contract requests,0failed,normalrelease.
+No liveGPU/remote/CPUjobs remain. Monitorcells1969/1976 completed; doNOTresume
+them orrestartD314. Allthree launchreturncodes0,physicalmeasurementcomplete,
+openleasesempty,U15846.161075063865GPU-s. FullplanandfrozenV1 reread/SHAunchanged.
+
+FullsourceSHA5cbc1b213ab54d282ee2b41a3ff22c0fde09d8615d900005c2676e2bd9ff4c9e;
+launch890095eed63884d27c948ae241d716445467da21814d01e0771d24e789e83b61.
+RemoteallcapturedInvocationIDs verified,MONITORFIRST stopped15:40:42; allinactive/
+PID0/success. Exactjournalandmonitor copied; rawcompletion_receipt.json retained.
+Localaux9d487d05...empty/populated0verified,peak333615104B,events/swap0,stopped.
+
+Existinganalyzers extended explicitD314identity andtested preparationattribution
+recomputation;338tests passed31.714s. CPUtestInvocation3eb33f53...peak1175941120B,
+actualauditInvocation8c851ab3...peak1083670528B,bothhigh/max/OOM/swap0,empty/stopped.
+Canonicaloutputs d314_full_w0/validated1 andcontext1. All4000input/binding/time
+checks pass;251outputhashdifferences vsD303 retained,notnumericalqualification.
+132HTTPtransfers/131480060bytesmatched,nostreamedpacking;4042safetysamples,
+peak20745805824B,minhost93557907456B,events/swap0. Protectedsealrawpassfalse keeps
+onlyknownbaseline replaychange. Usermanifest3b69bd0a...unchanged/notstaged.
+
+Mean/P95TTFT1466.345/3369.848ms,mean/P95TPOT32.635/62.166ms. ComparedwithD303:
+P95TPOT-8.72%,butP95TTFT+16.21%,GPU-s+2.39%; provisionaltiming3787/4000vs3810.
+NoformalSLO/G1/G2claim,CIorfigures. Preparation2059eligible/45ineligible;
+newchanged-file-copybranchtrigger0,sozerofailures donotproveD313historicalcause.
+SeeD314_COMPLETE_W0_DECISION.md. Servingcodeunchangedc4631e81; newaudit/scripts/
+tests/doc/curated changesawaittestedbackup. No newcandidate launched.
+
+NEXT: back up this completed evidence, then return toalreadymeasured1024working
+point withcorrectnessfixes andexactmatchingexistingprofiles. No morebudgetscan,
+D307reprofile,100prefixforwinning,PEFT/D295repeat,3B/baselinesorfigures. Required
+7Bperformance/commonreference/oldPrime comparison remainsopen. Do not shorten
+38scooldown fromobserved37.366sall-lowspan; that isnotcausal tuning justification.
+
+Prebackup identity verification15:51+08 passedall10inputs/7outputs ofvalidated1
+and12inputs/2outputs ofcontext1. VerifierInvocation66377e72...peak10514432B,
+events/swap0,empty/populated0verified/stopped. validation_checkpoint.json binds
+analysissource/tests/logs andallthreeCPUscopes. Nofulltestlogfilewascaptured;
+338pass/31.714s isfromrecordedcommandoutput,notinventedlog. Explicitstagingonly.
+Defaultgit whitespacecheck flagged onlyexistingcsv.DictWriter CRLF innew
+comparison.csv. Preserve itsverifiedbytes/SHA; useCR-at-EOL-aware diffcheck
+while retainingblank-at-eol/blank-at-eof/space-before-tabchecks. Nooutputrewrite.
+
+## HISTORY — D314 full4000 W0 running and verified waits
+
+2026-10-07 14:32+08. This continuation made progress: deterministic defect
+reproduction, principled identity/attribution fix,873passingtests,protected/
+profile checks, commit/push and new original4000replay. Tested checkpoint
+c4631e81b1ca4510fdb0fe59391dc6e6c3a07c2d pushed andremoteHEADverified14:29:44.
+Started ONCE14:30:58 in tmuxprimelora_d314_full viaexistingrunner explicitd314.
+Rawresults/ieee_tc/p2_backend_qualification/d314_20261007/7b_full_w0.
+No serving/configuration changes during measurement; no figures or tests.
+
+Localserviceprimelora-tc-svc-5e8f3b6c7a0448dda9a0edb48f87603d.scope,
+Invocationcc4bbfa3de4048d9a1e4ef2738593ea0,inode19741350;
+auxprimelora-tc-aux-956df753ceb943acb4fa802ab204c595.scope,
+Invocation9d487d05aa784fc2bb2bd82c3f6f583f. WatchdogPID1194219/start86190714.
+At14:31:52sample53fresh,host106681475072B/service6090342400B,
+high/max/OOM/swap0,noabort; initialpreparation, notcomplete. Observationtimeout
+isNOTterminal. Continue samejob; do not restart. Latestlaunchmetadata is
+exec_receipt.json (top-level service_identity; watchdog_ready.watchdog_process).
+
+Remote3BInvocation055ca0dfb4ee428fb427cf9ab0a4caf2/PID1814168;
+7B2f2f0090d7a14ba4961044bd250146cb/PID1814170;
+monitorf9fb4b9ccacd41519c5e7bcefae71409/PID1814173,
+unitprimelora-artifact-monitor-d314.service. Authenticated healthpassed,
+clockremote-process-monotonic:32617c08aa344ba2b81d0c97da118668.
+ActualNIC1000/full; existingpublishedcache reused, notrebuilt. Exactjournal
+verifiedvia/proc/1814170/fd/3:
+/home/lab14/primelora_remote/tc/d80_20260927/7b/transfers-1e437b0cb6ce4d6cba98d9ff8399f33e.jsonl.
+All captured identities in rawlaunch_identity.json. After localterminal/cleanup,
+verifyallthree remoteIDs, stopMONITOR FIRST, thenbothartifactservices; copy exact
+journal asremote_transfers.jsonl andD314remote_monitor.log. Do NOTcopywholepools.
+
+Fullplan/V1alreadyread; hashesunchanged. Userdirtymanifestnotstaged. Noother
+newheavyjob; no Feishuconfiguration. Keep7B->3B->baselines; numerical/warm/
+Residentqualificationstillopen. D313remains3999success/1failed andcannotrank.
+Thisrunmayalsofail; preservealloutcomes and exactnewpredicates, notassumevictory.
+Fresh14:32:59: sample118,16requestterminals;host97227976704B,
+service15571558400B,high/max/OOM/swap0,noabort. Businessreplaystarted;
+sameInvocationstillactive,launch.jsonabsent. live_handle_receipt.json saved.
+No terminal interpretation/retuning based on this early partial prefix.
+
+2026-10-07 14:49:35+08 verified-wait continuation: resumed monitoring cell1950
+and completed its16lightweight polls, not a second experiment. Same service
+Invocationcc4bbfa3... remainsactive; watchdogPID1194219/start86190714 andexact
+auxcgroup reverified14:46:51. Latest sample1101fresh,914terminal/914success/
+914native-contract-matched/0failed. Hostavailable95802503168B,
+service18113466368B,diskfree165259665408B; high/max/OOM/swap0,noabort.
+No terminal launch.json. Monitoring cell isclosed; actualrun isNOTcomplete.
+Continue same D314 handles. Partial observations do not establish numerical
+correctness, SLO qualification or performance superiority. No source/config/
+remote changes, tests, full-data analysis, cleanup, figures or newGPUjobs.
+Fullsourceplan reread, SHA0c808509... unchanged; currentcode stillc4631e81.
+Read-only existing analyzer inspection confirms post-release D314 needs explicit
+new output identity; keep all-success and failure paths separate, streamlarge
+outcomes, never weaken gates or reuse D313 failed run asall-success reference.
+Rawcheckpoint: d314_20261007/monitor_144935.json. Userapproved publishedcache
+alreadyexists andisreused; do not rebuild or duplicate theartifactpool.
+Keep7B->3B->baselines, numerical/warm/Residentqualification remainsopen.
+
+2026-10-07 15:04:14+08 continuing VERIFIED WAIT: same serviceInvocation and
+watchdogPID/startticks reverified each poll. Newmonitorcell1969 isactive (40polls,
+45s spacing; latestpoll16); actualexperiment neverrestarted. Latest sample1968,
+2029terminal/2029success/2029native-contract-matched/0failed; host95560052736B,
+service18971758592B,disk164604743680B; high/max/OOM/swap0,noabort,launch.jsonabsent.
+Remote lightweightreadonlycheck ~14:57 confirmed allthree originalInvocationIDs
+unchanged andeno1 still1000/full; no management/config/download actions.
+Fullplan reread SHAunchanged; initialtooloutputtruncation wascovered bysmaller
+rereads. Feishuabsent. D295history reviewed: allthree registered numerical
+repeatblocks COMPLETE (162generations); do NOT reopen thisboundeddiagnostic.
+FormalFullcorrectness isstillunproved, but that isnot authorization forindefinite
+repeatedPEFT/numerical tests. Return afterD314audit to7B SLO/GPU-s mainline.
+Readonly serving-code review identified retained evidence.preparation_interval
+reason/profile_eligible/cost_model_updated; post-release audit should count
+changed-copy cases andverify attribution, not infer repairtrigger fromzero failures.
+No fullanalysis/tests/figures/newheavyjobs; code remainsc4631e81. Continue same
+monitorcell1969 untilit ends, thenrevalidate exactlivehandle, neverrestart ontimeout.
+
+15:22:18+08: cell1969 completed all40polls normally; experiment isSTILLlive.
+SameInvocationcc4bbfa3... andwatchdog1194219/start86190714; sample3037,
+3299terminal/3299success/3299native-contract-matched/0failed. Host95310749696B,
+service20261634048B,disk163726778368B; high/max/OOM/swap0,noabort;
+terminal launch.jsonabsent. Newlightweightmonitorcell1976 follows SAMEjob forup
+to24more45s observations; resume thatcell, notlaunch asecondexperiment.
+ReadonlyD307registration confirms fullcomparison should use retainedD303 and
+reportallTTFT/TPOT/GPU-s effects with combinedbudget/profile/correctness-fix
+caveats; nofurtherbudgetscan orwarm/PEFTrepeat withoutnewcausal evidence.
+
+## HISTORY — D314 copy-identity repair tested; backup then full4000
 
 2026-10-07 14:29+08. Progress: deterministic existing request-lifecycle fixture
 proved that legal Remote->NVMe publication followed by confirmed same-content

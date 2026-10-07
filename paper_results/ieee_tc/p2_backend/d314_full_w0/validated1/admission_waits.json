@@ -1,0 +1,189 @@
+{
+  "kind": "retained_admission_wait_partition_v1",
+  "request_count": 4000,
+  "metrics": [
+    {
+      "group": "all",
+      "field": "arrival_release_lateness_ms",
+      "unit": "ms",
+      "count": 4000,
+      "mean": 234.26192007077043,
+      "p95_type1": 1236.1707346281037,
+      "maximum": 15608.470440958627
+    },
+    {
+      "group": "all",
+      "field": "dispatch_window_wait_ms",
+      "unit": "ms",
+      "count": 4000,
+      "mean": 28.018237321201013,
+      "p95_type1": 83.15553795546293,
+      "maximum": 27029.96377402451
+    },
+    {
+      "group": "all",
+      "field": "runtime_slot_wait_ms",
+      "unit": "ms",
+      "count": 4000,
+      "mean": 509.66559197596507,
+      "p95_type1": 1486.6365590132773,
+      "maximum": 4456.643664045259
+    },
+    {
+      "group": "all",
+      "field": "dispatch_admission_wait_ms",
+      "unit": "ms",
+      "count": 4000,
+      "mean": 771.9457493679365,
+      "p95_type1": 2187.472309800796,
+      "maximum": 27156.53622604441
+    },
+    {
+      "group": "all",
+      "field": "routing_ms",
+      "unit": "ms",
+      "count": 4000,
+      "mean": 198.75984241075,
+      "p95_type1": 758.274848,
+      "maximum": 3433.866563
+    },
+    {
+      "group": "with_authoritative_read",
+      "field": "arrival_release_lateness_ms",
+      "unit": "ms",
+      "count": 2981,
+      "mean": 226.58848023932947,
+      "p95_type1": 1181.0778381768614,
+      "maximum": 15608.470440958627
+    },
+    {
+      "group": "with_authoritative_read",
+      "field": "dispatch_window_wait_ms",
+      "unit": "ms",
+      "count": 2981,
+      "mean": 28.21848608156793,
+      "p95_type1": 83.15553795546293,
+      "maximum": 27029.96377402451
+    },
+    {
+      "group": "with_authoritative_read",
+      "field": "runtime_slot_wait_ms",
+      "unit": "ms",
+      "count": 2981,
+      "mean": 544.7440325025627,
+      "p95_type1": 1561.704018036835,
+      "maximum": 4456.643664045259
+    },
+    {
+      "group": "with_authoritative_read",
+      "field": "dispatch_admission_wait_ms",
+      "unit": "ms",
+      "count": 2981,
+      "mean": 799.5509988234601,
+      "p95_type1": 2187.472309800796,
+      "maximum": 27156.53622604441
+    },
+    {
+      "group": "with_authoritative_read",
+      "field": "routing_ms",
+      "unit": "ms",
+      "count": 2981,
+      "mean": 263.4047790731298,
+      "p95_type1": 920.268193,
+      "maximum": 3433.866563
+    },
+    {
+      "group": "without_authoritative_read",
+      "field": "arrival_release_lateness_ms",
+      "unit": "ms",
+      "count": 1019,
+      "mean": 256.7099319819829,
+      "p95_type1": 1336.450744769536,
+      "maximum": 2679.547398467548
+    },
+    {
+      "group": "without_authoritative_read",
+      "field": "dispatch_window_wait_ms",
+      "unit": "ms",
+      "count": 1019,
+      "mean": 27.432426178263057,
+      "p95_type1": 85.92631504870951,
+      "maximum": 2178.5993080120534
+    },
+    {
+      "group": "without_authoritative_read",
+      "field": "runtime_slot_wait_ms",
+      "unit": "ms",
+      "count": 1019,
+      "mean": 407.04652307529034,
+      "p95_type1": 1181.7166969412938,
+      "maximum": 3492.647573002614
+    },
+    {
+      "group": "without_authoritative_read",
+      "field": "dispatch_admission_wait_ms",
+      "unit": "ms",
+      "count": 1019,
+      "mean": 691.1888812355363,
+      "p95_type1": 2191.2225239211693,
+      "maximum": 3996.461062110029
+    },
+    {
+      "group": "without_authoritative_read",
+      "field": "routing_ms",
+      "unit": "ms",
+      "count": 1019,
+      "mean": 9.646440849852796,
+      "p95_type1": 23.685475999999998,
+      "maximum": 1359.8474110000002
+    }
+  ],
+  "max_partition_error_ms": 0.0,
+  "route": {
+    "formal_comparison_qualified": false,
+    "request_count": 4000,
+    "source_snapshot_count": 15915,
+    "observed_collection_labels": 3840,
+    "labels_with_conflicting_wave_counts": [],
+    "observed_cumulative_counter_maxima": {
+      "cache_hits": 3595,
+      "identity_only": 0
+    },
+    "exact_rpc_count": null,
+    "control_path": {
+      "n_requests": 4000,
+      "mean_ms": 198.75984241075,
+      "p95_type1_ms": 758.274848
+    },
+    "conditional_request_groups": {
+      "with_reported_fallback": {
+        "n_requests": 0,
+        "mean_ms": null,
+        "p95_type1_ms": null
+      },
+      "without_reported_fallback": {
+        "n_requests": 4000,
+        "mean_ms": 198.75984241075,
+        "p95_type1_ms": 758.274848
+      }
+    },
+    "caveats": [
+      "Observed labels are not unique wave identities in historical identity-cache runs.",
+      "Neither snapshot sums nor first-row-per-label sums are RPC/event totals.",
+      "Cumulative maxima are observed lower bounds, not a guaranteed end-of-run total.",
+      "Conditional groups are system-dependent populations, not causal or paired contrasts.",
+      "One run supplies no run-level confidence interval or formal G1/G2 qualification."
+    ]
+  },
+  "formal_comparison_qualified": false,
+  "n_correct": null,
+  "confidence_interval": null,
+  "caveats": [
+    "First three intervals partition arrival-to-admission; quantiles are not additive.",
+    "Runtime slot wait includes source selection and protection, not only capacity queueing.",
+    "Routing is nested in runtime wait; never add it again to the partition.",
+    "Authoritative-read groups use each final received view; prior retry attempts may differ.",
+    "Conditional groups are not a controlled effect estimate or RPC count.",
+    "Native completion/binding checks do not establish numerical adapter qualification."
+  ]
+}

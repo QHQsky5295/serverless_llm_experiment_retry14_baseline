@@ -1,0 +1,51 @@
+{
+  "kind": "d314_completed_analysis_checkpoint_v1",
+  "source_commit": "c4631e81b1ca4510fdb0fe59391dc6e6c3a07c2d",
+  "source_result_sha256": "5cbc1b213ab54d282ee2b41a3ff22c0fde09d8615d900005c2676e2bd9ff4c9e",
+  "completion_receipt_sha256": "fbbbf410657d187b7a7c5c5068fd1dfc8a1232ca183cd10955ea58a6240edc43",
+  "analysis_source_sha256": {
+    "scripts/ieee_tc/analyze_d297_full.py": "4028fe242abadcd24de3274797b587b91d59e5d94b04e58f07b9478d742128ef",
+    "scripts/ieee_tc/check_d299_full_context.py": "a1f771bbd37197dae9d665fa763761d0e49c1c35ee1401a526eb2f39ca4121bc",
+    "tests/test_ieee_tc_decode_overlap.py": "6a0c859d109fa3290496ed19c8e051fb91f516c1f8c7dae4f20eff8c4eabbed6"
+  },
+  "cpu_tests": {
+    "modules": [
+      "tests.test_ieee_tc_decode_overlap",
+      "tests.test_ieee_tc_preparation_cost",
+      "tests.test_basic_smoke"
+    ],
+    "passed": 338,
+    "duration_s": 31.714,
+    "source": "recorded command output, session 56035; no claim of a separately saved full test log",
+    "invocation": "3eb33f53b6c14333aa7dc556a7b2076b",
+    "memory_peak_bytes": 1175941120
+  },
+  "analysis": {
+    "invocation": "8c851ab3bf4a46f3ba515d7d0cd2676b",
+    "memory_peak_bytes": 1083670528,
+    "full_log_sha256": "e8d8ab38605f4df25d508d0c8f1d836cf92773e324b6927a0a00181e95189840",
+    "context_log_sha256": "3e45eb070c3905552c8bdaa04159c9c677172a22b6ee7892ed3f9b8cb4cd87fe"
+  },
+  "identity_verification": {
+    "invocation": "66377e72361946369c4a3f01d01826e4",
+    "memory_peak_bytes": 10514432,
+    "validated1": {
+      "input_hashes_pass": 10,
+      "output_hashes_pass": 7
+    },
+    "context1": {
+      "input_hashes_pass": 12,
+      "output_hashes_pass": 2
+    }
+  },
+  "all_cpu_scopes": {
+    "events_high_max_oom_oom_kill": 0,
+    "swap_bytes": 0,
+    "empty_procs_and_unpopulated_verified": true,
+    "stopped": true
+  },
+  "decision": "512-token candidate not accepted as an overall improvement; preserve correctness fixes and all outcomes",
+  "formal_qualification": false,
+  "ranking_eligible": false,
+  "new_figures": 0
+}
