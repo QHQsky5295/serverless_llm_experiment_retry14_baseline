@@ -96,3 +96,32 @@ Prelaunch:134CPU tests passed50.029s after correction. Test memory peak
 Production profile loading confirms160service/24preparation classes. D321 source
 and output references verified. Protected147 raw pass remains false only for the
 previously documented baseline replay SHA04f3eb52...; no new protected change.
+
+## Attempt2 completed: proceed unchanged to full W0
+
+Launch source05f4071e611ae5aa76803d9d983512778dd1d42e.100/100 completed native
+contracts, all recorded binding checks pass; numerical N_correct remains unknown.
+Both service and replay return0, watcher0, actual native contexts released and
+servicegroup removed. Own remote InvocationIDs checked/stopped before analysis.
+
+| Prefix observation (one run each) | D317 reference | D322 attempt2 | Lower-better change |
+|---|---:|---:|---:|
+| Mean TTFT(ms) |955.134897|848.835715|+11.13%|
+| P95 TTFT(ms) |2118.484378|1933.006415|+8.76%|
+| P95 TPOT(ms) |37.948561|32.477181|+14.42%|
+| Physical GPU-s |710.223238|717.875820|-1.08%|
+
+Unchanged D170 provisional timing count99/100; not formal SLO qualification.
+Tier counts remote29/GPU51/NVMe8/HOST12.29matched remote transfers,50650865wire
+bytes,pack0.266watchdog samples; peak19324653568B,hostminimum93391679488B,
+high/max/OOM/swap/abort0. Offline analysis peak88944640B, actualempty verified.
+Event-confirmed copy retention observed maximum390 (not exact avoided RPC count).
+Protected147 unchanged except the already documented baseline source difference.
+
+Observation: lower prefix TTFT/TPOT, slightly higher physical GPU occupancy.
+Interpretation: promising latency direction, not proof of G1/G2 or a causal/full
+workload benefit; no CI from one run and no extrapolation from100 to4000.
+Decision: proceed to D323 original4000W0 with identical candidate policy/model/
+profile. No additional prefix tuning, calibration, figures or baseline work.
+Full native/numerical/common-SLO qualification and comparison to oldPrime remain
+distinct open requirements. Data-only artifacts are in d322_length_candidate/smoke2.

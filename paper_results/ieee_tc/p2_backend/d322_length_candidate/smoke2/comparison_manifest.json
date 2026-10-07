@@ -1,0 +1,95 @@
+{
+  "reference": {
+    "source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d317_20261007/7b_copy_validation_100/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_copy_validation_100_d317_7b_copy_validation_100.json",
+    "source_sha256": "1db395f24f99e7f0dd65fca5aaf964380af3d49ff7ad46ebcbf306162821c392",
+    "physical_source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d317_20261007/7b_copy_validation_100/launch.launch/physical_deployment/physical_resource_summary.json",
+    "physical_sha256": "093f626548a2eb58fa80d7d6d618b6254d62a7b724ca9e0f9ef83ffa35b67ac5",
+    "max_native_ttft_error_ms": 0.0,
+    "max_native_tpot_error_ms": 0.0,
+    "shared_trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "shared_adapter_subset_sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016"
+  },
+  "candidate": {
+    "source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d322_20261007/7b_length_validation_100_attempt2/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_length_validation_100_d322_7b_length_validation_100_attempt2.json",
+    "source_sha256": "2b25d6a420eac7c0e01f7feb34e87efcfd888489fccdd0b72dc65f1ed35c93fe",
+    "physical_source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d322_20261007/7b_length_validation_100_attempt2/launch.launch/physical_deployment/physical_resource_summary.json",
+    "physical_sha256": "a7b6e593e9680648fc7325cb38cf0be89e6c3205e6c6b9e0dd0b20974c828b70",
+    "max_native_ttft_error_ms": 0.0,
+    "max_native_tpot_error_ms": 0.0,
+    "shared_trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "shared_adapter_subset_sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016"
+  },
+  "input_identity_equal": true,
+  "input_fields_checked": [
+    "request_id",
+    "adapter_id",
+    "scheduled_arrival_offset_s",
+    "source_expected_output_tokens",
+    "requested_completion_tokens",
+    "canonical_prompt_sha256",
+    "generation_contract",
+    "completion_token_source"
+  ],
+  "output_hash_changes": [
+    {
+      "request_id": "req_00008",
+      "adapter_id": "research_lora_0008",
+      "target_tokens": 50,
+      "reference_sha256": "836fc8b71e827d1ac9a6f26e2f5382239fcb10844d6eceadaba3187756430673",
+      "candidate_sha256": "4bad213b1e7eaab7ce1af818593502cb9795ea68ffb600857e4d540505274111"
+    },
+    {
+      "request_id": "req_00013",
+      "adapter_id": "finance_lora",
+      "target_tokens": 50,
+      "reference_sha256": "836fc8b71e827d1ac9a6f26e2f5382239fcb10844d6eceadaba3187756430673",
+      "candidate_sha256": "4bad213b1e7eaab7ce1af818593502cb9795ea68ffb600857e4d540505274111"
+    },
+    {
+      "request_id": "req_00037",
+      "adapter_id": "code_lora",
+      "target_tokens": 256,
+      "reference_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "candidate_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_00059",
+      "adapter_id": "finance_lora",
+      "target_tokens": 45,
+      "reference_sha256": "a985dff39fdff6fa979ebbd76115a6f24cc0cfe9d1d49ea88691ad9ebb8e3f80",
+      "candidate_sha256": "94a0ef97cfdd86f6c666b2f0ccd5657975017656ecf2ffa815d11a1161fb8986"
+    },
+    {
+      "request_id": "req_00067",
+      "adapter_id": "legal_lora",
+      "target_tokens": 256,
+      "reference_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "candidate_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_00073",
+      "adapter_id": "code_lora_0015",
+      "target_tokens": 81,
+      "reference_sha256": "17359b3b224a2e6a3f24bcf05be9db3e89a64c4e1ab259779e307b619092a0b6",
+      "candidate_sha256": "617d65daa8ea70a91f99006425e2c8636663888a4c4b5a1614167a22e07bc292"
+    },
+    {
+      "request_id": "req_00074",
+      "adapter_id": "medical_lora",
+      "target_tokens": 256,
+      "reference_sha256": "191f72092b57948d0e5c9de1cfe48eb891b062394e9a6228a3650ca98b5ee796",
+      "candidate_sha256": "4221eee50d9e6753af72843b415b50ec6a60a0822dbf230aafe3e5e3087fff73"
+    }
+  ],
+  "formal_qualification": false,
+  "causal_speedup_claim": false,
+  "replicates_per_configuration": 1,
+  "confidence_interval": null,
+  "limitations": [
+    "100-request prefix only",
+    "file cache not randomized",
+    "output hash differences remain unaudited",
+    "joint SLO/reference budget not frozen"
+  ],
+  "script_sha256": "fdb7898478701b4142bfc15feb231f9c94da566215ec1247ad1ddf6e58d98f9d"
+}

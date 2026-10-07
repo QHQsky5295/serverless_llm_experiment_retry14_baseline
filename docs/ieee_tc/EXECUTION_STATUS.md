@@ -11,7 +11,33 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D322 attempt1 rejected before arrival; validate joint profile binding
+## CURRENT — D322 attempt2 complete; prepare D323 unchanged full4000 W0
+
+100/100 native complete; all binding checks pass. MeanTTFT848.836ms vs955.135,
+P95TTFT1933.006vs2118.484ms;P95TPOT32.477vs37.949ms. GPU-s717.875820vs710.223238
+(+1.08%,worse). One prefix each, noCI/full/numerical/formalSLO claims. D170 timing
+99/100 provisional.29remote transfers/50650865bytes/pack0;266watchdog samples,
+peak19324653568B,minhost93391679488B;events/swap/abort0. ActualGPUreleased and
+servicegroupremoved, remote identities checked/stopped. Source05f4071 backedup.
+Offlineanalysis passed,peak88944640B/actualempty. Data d322_length_candidate/smoke2.
+NEXT tested result backup and D323 original4000W0, no more short runs/config
+changes. Preparation gate running; do not claim full launch until actual tmux/
+service handles recorded. Usermanifest/oldresults intact. Nofigures/3B/baselines.
+
+### D322 attempt2 launch record (finished)
+
+Tested backup normalpush local/remote05f4071e611ae5aa76803d9d983512778dd1d42e.
+Started tmux tc-d322-smoke2 PID3119060; existing gated-launch/watchdog active,
+actual joint entry passed and Phase1 preparation reached. Raw run is
+results/ieee_tc/p2_backend_qualification/d322_20261007/7b_length_validation_100_attempt2.
+Remote start/health/sourcecommit in sibling attempt2; clockfcffcd8d65fa4e93b15fb9468191b23b.
+Remote units3b/7b InvocationIDs0fcb5c1ce8744311b08c9ea49d481acc/ddac16ddba0f4926a7febe3f1a45b7a0;
+monitor primelora-artifact-monitor-d322-smoke2.service/8baa051bd9864e77b321d4b19c387117.
+Link1000/full again. No concurrent heavy work or figures. Observe actual finish,
+release, stop only owned remote identities and copy matching journal/monitor,
+then analyze_d298_smoke --campaign d322-attempt2. Do not relaunch blindly.
+
+### First attempt and correction
 
 Firstlaunch48b6ea9:0/100arrived, no GPU lease; contexts released/servicegroup
 removed, remote InvocationIDs checked/stopped. Not a performance measurement.

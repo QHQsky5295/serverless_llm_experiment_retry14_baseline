@@ -1,0 +1,1140 @@
+{
+  "kind": "d322-attempt2_smoke_audit_v1",
+  "stats": {
+    "completed": 100,
+    "mean_ttft_ms": 848.8357153814286,
+    "p95_ttft_ms": 1933.006414794363,
+    "mean_queue_ms": 273.2705203362275,
+    "p95_queue_ms": 610.8747499529272,
+    "mean_service_ms": 575.5651950452011,
+    "p95_service_ms": 1766.4143070578575,
+    "mean_tpot_ms": 26.624178581799967,
+    "p95_tpot_ms": 32.477180556290676,
+    "initial_preload_wall_s": 52.6923617440043,
+    "physical_gpu_seconds": 717.8758200298762,
+    "n_correct": null
+  },
+  "evidence": {
+    "source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d322_20261007/7b_length_validation_100_attempt2/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_length_validation_100_d322_7b_length_validation_100_attempt2.json",
+    "source_sha256": "2b25d6a420eac7c0e01f7feb34e87efcfd888489fccdd0b72dc65f1ed35c93fe",
+    "physical_source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d322_20261007/7b_length_validation_100_attempt2/launch.launch/physical_deployment/physical_resource_summary.json",
+    "physical_sha256": "a7b6e593e9680648fc7325cb38cf0be89e6c3205e6c6b9e0dd0b20974c828b70",
+    "max_native_ttft_error_ms": 0.0,
+    "max_native_tpot_error_ms": 0.0,
+    "shared_trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "shared_adapter_subset_sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016"
+  },
+  "timing": {
+    "kind": "provisional_timing_only_upper_bound_v1",
+    "offered_count": 100,
+    "correctness_qualified": false,
+    "n_correct": null,
+    "formal_joint_slo": null,
+    "formal_g1_g2_qualified": false,
+    "timing_joint_pass_count": 99,
+    "joint_upper_bound": 0.99,
+    "ttft_upper_bound": 0.99,
+    "timing_tpot_eligible_count": 100,
+    "timing_tpot_conditional_rate": 1.0,
+    "required_joint_count": 95,
+    "minimum_additional_timing_passes": 0,
+    "outcome_counts": {
+      "timing_pass": 99,
+      "ttft_only_miss": 1,
+      "tpot_only_miss": 0,
+      "both_miss": 0,
+      "failure": 0
+    },
+    "decisions": [
+      {
+        "request_id": "req_00000",
+        "outcome": "ttft_only_miss",
+        "group_id": 1,
+        "ttft_pass": false,
+        "tpot_pass": true,
+        "timing_joint_pass": false
+      },
+      {
+        "request_id": "req_00001",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00002",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00003",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00004",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00005",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00006",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00007",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00008",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00009",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00010",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00011",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00012",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00013",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00014",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00015",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00016",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00017",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00018",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00019",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00020",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00021",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00022",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00023",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00024",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00025",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00026",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00027",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00028",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00029",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00030",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00031",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00032",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00033",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00034",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00035",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00036",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00037",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00038",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00039",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00040",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00041",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00042",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00043",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00044",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00045",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00046",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00047",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00048",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00049",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00050",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00051",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00052",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00053",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00054",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00055",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00056",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00057",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00058",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00059",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00060",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00061",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00062",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00063",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00064",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00065",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00066",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00067",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00068",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00069",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00070",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00071",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00072",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00073",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00074",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00075",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00076",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00077",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00078",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00079",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00080",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00081",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00082",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00083",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00084",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00085",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00086",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00087",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00088",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00089",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00090",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00091",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00092",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00093",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00094",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00095",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00096",
+        "outcome": "timing_pass",
+        "group_id": 0,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00097",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00098",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      },
+      {
+        "request_id": "req_00099",
+        "outcome": "timing_pass",
+        "group_id": 1,
+        "ttft_pass": true,
+        "tpot_pass": true,
+        "timing_joint_pass": true
+      }
+    ]
+  },
+  "window_gpu_seconds": {
+    "arrival": 625.545238193241,
+    "cleanup": 31.66314976674039,
+    "drain": 23.845315932878293,
+    "pre_arrival": 36.822116137016565
+  },
+  "tier_counts": {
+    "remote": 29,
+    "gpu": 51,
+    "nvme": 8,
+    "host": 12
+  },
+  "remote": {
+    "transfers": 29,
+    "wire_bytes": 50650865,
+    "pack_performed": false,
+    "clock": "remote-process-monotonic:fcffcd8d65fa4e93b15fb9468191b23b"
+  },
+  "resources": {
+    "samples": 266,
+    "peak_bytes": 19324653568,
+    "min_host_available_bytes": 93391679488,
+    "max_swap_bytes": 0,
+    "memory_events": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    }
+  },
+  "protection_raw": {
+    "kind": "protected_artifact_verification",
+    "pass": false,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [
+      "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"
+    ],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "full_qualified": false,
+  "n_correct": null,
+  "common_slo_qualified": false,
+  "no_figures": true,
+  "replicates_per_configuration": 1,
+  "confidence_interval": null,
+  "caveat": "Complete100-request diagnostic only; not complete4000W0, numerical correctness or formal G1/G2.",
+  "comparison_caveat": "D317 settings and serving code retained; only D321 measured declared-output classes/initialization changed. One prefix diagnostic; unchanged candidate requires complete W0. Not a formal SLO or numerical qualification. Joint profile binding permits independently verified input provenance; common runtime/environment/resource validation remains strict.",
+  "raw_evidence": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d322_20261007/7b_length_validation_100_attempt2/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_length_validation_100_d322_7b_length_validation_100_attempt2.json",
+      "sha256": "2b25d6a420eac7c0e01f7feb34e87efcfd888489fccdd0b72dc65f1ed35c93fe"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d317_20261007/7b_copy_validation_100/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_copy_validation_100_d317_7b_copy_validation_100.json",
+      "sha256": "1db395f24f99e7f0dd65fca5aaf964380af3d49ff7ad46ebcbf306162821c392"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d322_20261007/7b_length_validation_100_attempt2/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "5abfa64a3684fb93faea92d4a9c1c85954183df8f643872894a783c55b7733e6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d322_20261007/attempt2/smoke_remote_transfers.jsonl",
+      "sha256": "801cb1ed6cdc9bbdc5caef79d4b209b131d97c0f52868d453d5f995921977754"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261002_d170_warm_measurement.json",
+      "sha256": "0ebc7587effe293dcb986d33fb932c100cbcb3384c56ab2c0b0bec73b2bdd88c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json",
+      "sha256": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d322_20261007/attempt2/smoke_remote_monitor.log",
+      "sha256": "12bca143f6528bb2ef68561a0ad12eca1d81cc28835ba7804477745497b9f666"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "571c08a2090f69671663f4687d80094dfcdc5e9ffae042a0e0f43b3b14beaf88"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/analyze_d298_smoke.py",
+      "sha256": "1689ef672941f581d72d0572bc7c3496ec17a6b842e3cd3dcb0d2b17790f1084"
+    }
+  ],
+  "admission_waits": {
+    "kind": "retained_admission_wait_partition_v1",
+    "request_count": 100,
+    "metrics": [
+      {
+        "group": "all",
+        "field": "arrival_release_lateness_ms",
+        "unit": "ms",
+        "count": 100,
+        "mean": 35.21728027262725,
+        "p95_type1": 193.72581399511546,
+        "maximum": 481.8539246916771
+      },
+      {
+        "group": "all",
+        "field": "dispatch_window_wait_ms",
+        "unit": "ms",
+        "count": 100,
+        "mean": 48.327373411739245,
+        "p95_type1": 8.543828036636114,
+        "maximum": 4366.275789914653
+      },
+      {
+        "group": "all",
+        "field": "runtime_slot_wait_ms",
+        "unit": "ms",
+        "count": 100,
+        "mean": 189.725866651861,
+        "p95_type1": 507.67079705838114,
+        "maximum": 1174.62909698952
+      },
+      {
+        "group": "all",
+        "field": "dispatch_admission_wait_ms",
+        "unit": "ms",
+        "count": 100,
+        "mean": 273.2705203362275,
+        "p95_type1": 610.8747499529272,
+        "maximum": 4468.967693974264
+      },
+      {
+        "group": "all",
+        "field": "routing_ms",
+        "unit": "ms",
+        "count": 100,
+        "mean": 43.8673582,
+        "p95_type1": 188.68669200000002,
+        "maximum": 509.750844
+      },
+      {
+        "group": "with_authoritative_read",
+        "field": "arrival_release_lateness_ms",
+        "unit": "ms",
+        "count": 46,
+        "mean": 32.47024044242647,
+        "p95_type1": 188.99824260734022,
+        "maximum": 481.8539246916771
+      },
+      {
+        "group": "with_authoritative_read",
+        "field": "dispatch_window_wait_ms",
+        "unit": "ms",
+        "count": 46,
+        "mean": 100.61814369249117,
+        "p95_type1": 105.05386802833527,
+        "maximum": 4366.275789914653
+      },
+      {
+        "group": "with_authoritative_read",
+        "field": "runtime_slot_wait_ms",
+        "unit": "ms",
+        "count": 46,
+        "mean": 252.89424428078547,
+        "p95_type1": 608.7373569607735,
+        "maximum": 1174.62909698952
+      },
+      {
+        "group": "with_authoritative_read",
+        "field": "dispatch_admission_wait_ms",
+        "unit": "ms",
+        "count": 46,
+        "mean": 385.9826284157031,
+        "p95_type1": 709.4685166375712,
+        "maximum": 4468.967693974264
+      },
+      {
+        "group": "with_authoritative_read",
+        "field": "routing_ms",
+        "unit": "ms",
+        "count": 46,
+        "mean": 92.42045645652175,
+        "p95_type1": 337.333573,
+        "maximum": 509.750844
+      },
+      {
+        "group": "without_authoritative_read",
+        "field": "arrival_release_lateness_ms",
+        "unit": "ms",
+        "count": 54,
+        "mean": 37.55735123909458,
+        "p95_type1": 277.25071948952973,
+        "maximum": 374.9290386913344
+      },
+      {
+        "group": "without_authoritative_read",
+        "field": "dispatch_window_wait_ms",
+        "unit": "ms",
+        "count": 54,
+        "mean": 3.7833839133209377,
+        "p95_type1": 8.543828036636114,
+        "maximum": 125.18973497208208
+      },
+      {
+        "group": "without_authoritative_read",
+        "field": "runtime_slot_wait_ms",
+        "unit": "ms",
+        "count": 54,
+        "mean": 135.9157671901846,
+        "p95_type1": 459.1416269540787,
+        "maximum": 587.5152499647811
+      },
+      {
+        "group": "without_authoritative_read",
+        "field": "dispatch_admission_wait_ms",
+        "unit": "ms",
+        "count": 54,
+        "mean": 177.2565023426001,
+        "p95_type1": 556.7282367264852,
+        "maximum": 591.7942232917994
+      },
+      {
+        "group": "without_authoritative_read",
+        "field": "routing_ms",
+        "unit": "ms",
+        "count": 54,
+        "mean": 2.507311537037037,
+        "p95_type1": 4.753673,
+        "maximum": 16.59293
+      }
+    ],
+    "max_partition_error_ms": 0.0,
+    "route": {
+      "formal_comparison_qualified": false,
+      "request_count": 100,
+      "source_snapshot_count": 283,
+      "observed_collection_labels": 100,
+      "labels_with_conflicting_wave_counts": [],
+      "observed_cumulative_counter_maxima": {
+        "cache_hits": 93,
+        "identity_only": 0
+      },
+      "exact_rpc_count": null,
+      "control_path": {
+        "n_requests": 100,
+        "mean_ms": 43.867358200000005,
+        "p95_type1_ms": 188.68669200000002
+      },
+      "conditional_request_groups": {
+        "with_reported_fallback": {
+          "n_requests": 0,
+          "mean_ms": null,
+          "p95_type1_ms": null
+        },
+        "without_reported_fallback": {
+          "n_requests": 100,
+          "mean_ms": 43.867358200000005,
+          "p95_type1_ms": 188.68669200000002
+        }
+      },
+      "caveats": [
+        "Observed labels are not unique wave identities in historical identity-cache runs.",
+        "Neither snapshot sums nor first-row-per-label sums are RPC/event totals.",
+        "Cumulative maxima are observed lower bounds, not a guaranteed end-of-run total.",
+        "Conditional groups are system-dependent populations, not causal or paired contrasts.",
+        "One run supplies no run-level confidence interval or formal G1/G2 qualification."
+      ]
+    },
+    "formal_comparison_qualified": false,
+    "n_correct": null,
+    "confidence_interval": null,
+    "caveats": [
+      "First three intervals partition arrival-to-admission; quantiles are not additive.",
+      "Runtime slot wait includes source selection and protection, not only capacity queueing.",
+      "Routing is nested in runtime wait; never add it again to the partition.",
+      "Authoritative-read groups use each final received view; prior retry attempts may differ.",
+      "Conditional groups are not a controlled effect estimate or RPC count.",
+      "Native completion/binding checks do not establish numerical adapter qualification."
+    ]
+  },
+  "mechanism_events": {
+    "_ieee_source_observation_stats": {
+      "collections": 104,
+      "membership_rejections": 1,
+      "stale_rejections": 2
+    }
+  },
+  "copy_retention_trigger": {
+    "observed_cumulative_retained_scopes_max": 390,
+    "source_snapshot_count": 283,
+    "exact_rpc_savings": null,
+    "causal_latency_savings": null,
+    "caveat": "Retained per-request observations only; repeated publication may count a scope again. Not a final event total or avoided RPC count."
+  }
+}

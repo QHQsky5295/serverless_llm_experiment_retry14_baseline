@@ -1,0 +1,151 @@
+{
+  "kind": "d323_length_candidate_binding_v1",
+  "passed": true,
+  "profiles": {
+    "ieee_service_profile": {
+      "profile_id": "21f02c42ad6f39a5ea3a4245b09caa81a4e505502667dcc8b93667926e9d23db",
+      "classes": 160,
+      "binding": {
+        "path": "paper_results/ieee_tc/p2_backend/d321_output_classes/initialization1/service.json",
+        "sha256": "21f02c42ad6f39a5ea3a4245b09caa81a4e505502667dcc8b93667926e9d23db",
+        "context": {
+          "backend_environment_sha256": "cf38bbf8d3b80b30d88ac38e27722d389a24ae516565708cfc924937589079cf",
+          "resource_envelope_sha256": "6be2cfc81b73813f311f793a7b53c76e943fb8e35a64d43377cda52c8178b0c5",
+          "input_contract_sha256": "ccfb02a78dc6a5fa7bf1f5172c6d377d20d9dddaefb868e4cb648b385d169d5f"
+        },
+        "ewma_beta": 0.5
+      }
+    },
+    "ieee_preparation_profile": {
+      "profile_id": "2a32c296d0d9ede51378edee5dfd4c6f22c800c7eb9d3e27ba13919c225deccd",
+      "classes": 24,
+      "binding": {
+        "path": "paper_results/ieee_tc/p2_backend/d298_capacity/initialization/preparation.json",
+        "sha256": "2a32c296d0d9ede51378edee5dfd4c6f22c800c7eb9d3e27ba13919c225deccd",
+        "context": {
+          "backend_environment_sha256": "cf38bbf8d3b80b30d88ac38e27722d389a24ae516565708cfc924937589079cf",
+          "resource_envelope_sha256": "6be2cfc81b73813f311f793a7b53c76e943fb8e35a64d43377cda52c8178b0c5",
+          "input_contract_sha256": "e844f211b6387a2858d872bafeb524f35c0dce3beb39ab43ba56acb6a68f51e6"
+        },
+        "ewma_beta": 0.5
+      }
+    }
+  },
+  "model_config": {
+    "name": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+    "backend": "vllm",
+    "device_id": 0,
+    "visible_device_ids": [
+      0
+    ],
+    "tensor_parallel_size": 1,
+    "gpu_memory_utilization": 0.92,
+    "max_model_len": 1024,
+    "max_loras": 8,
+    "max_lora_rank": 16,
+    "enable_lora": true,
+    "enforce_eager": false,
+    "dtype": "float16",
+    "max_num_seqs": 8,
+    "max_num_batched_tokens": 1024,
+    "max_output_tokens_cap": 256,
+    "max_input_len": 759,
+    "runtime_concurrency_cap": 8,
+    "enable_chunked_prefill": true,
+    "enable_prefix_caching": false,
+    "vllm_use_v1": true,
+    "vllm_attention_backend": "FLASH_ATTN",
+    "vllm_use_flashinfer_sampler": true,
+    "safetensors_load_strategy": "auto",
+    "timing_contract": "ieee_tc_native_v1",
+    "ieee_worker_observation": true,
+    "ieee_gpu_references": true,
+    "ieee_scheduler_observation": true,
+    "ieee_input_upper_bounds": [
+      759
+    ],
+    "generation_contract": "fixed_length_greedy_v1",
+    "canonical_prompt_renderer": "role_lines_v1",
+    "ieee_physical_allocation": true,
+    "ieee_host_budget_bytes": 17179869184,
+    "ieee_native_host_tensor_budget_bytes": 2147483648,
+    "ieee_native_host_workspace": {
+      "kind": "native_host_workspace_contract_v1",
+      "dtype": "torch.float16",
+      "source_audit_sha256": "224b9337ecaba2590ac888e9d0e3b9eb41a17074ce77b952e98e935259adf60f",
+      "max_resident_pinned_bytes": 33554432,
+      "max_transient_tensor_bytes": 67143184
+    },
+    "ieee_native_host_allocator_policy": "uncached_background_v1",
+    "ieee_admission_profile": {
+      "window_s": 5.0,
+      "model_backend_id": "native-model/38a4e646e9bf1cb195d7f0f0d22140b71255e6f2696ea4d73e4b27437a279f36",
+      "profile_id": "native-completed/af483454cadf3d31876e472443f32181d7676917fe3fc61354dd865db6f55427",
+      "profile_means": [
+        100.86411149825784,
+        125.56888888888889
+      ],
+      "transfer_limit": 3
+    },
+    "artifact_content_manifest_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json",
+    "requested_runtime_concurrency_cap": 8,
+    "max_cpu_loras": 24,
+    "requested_enforce_eager": "auto",
+    "resolved_enforce_eager": false,
+    "skip_stale_gpu_cleanup": true
+  },
+  "assembly": {
+    "CUDA_VISIBLE_DEVICES": "0",
+    "FAASLORA_VISIBLE_DEVICES": "0"
+  },
+  "protection_raw": {
+    "kind": "protected_artifact_verification",
+    "pass": false,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [
+      "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"
+    ],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "source_references": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261007_d323_7b_full_w0.yaml",
+      "sha256": "46c56ae0b1293095daffc40c7b636ab1f4547d325f0b8d5e6450192118620ce1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261007_d318_7b_full_w0.yaml",
+      "sha256": "2b2a2d408d399c8cb3798ea8628e1c816f230a9b6145c4d430e5c3182d8c1959"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d321_output_classes/initialization1/manifest.json",
+      "sha256": "895bf0da6f9698333555149b344165cec4e9a309b179edc87ad468a9cfaf492d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d298_capacity/development_contract.json",
+      "sha256": "98bc4292efcb2f9c5c9a1068fccfaeacc460bb35f4b1fbc579b8ef34f32a8afb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/prepare_d298_capacity.py",
+      "sha256": "57596c43602ca46e0f5ea259377886dee320430d8e2195eaf82bff9131a137b9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh",
+      "sha256": "bb7c6609213ec7801da7c122faa7c77ae0ec705f949740b8ea5b6e26c82070df"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "571c08a2090f69671663f4687d80094dfcdc5e9ffae042a0e0f43b3b14beaf88"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d322_length_candidate/smoke2/audit.json",
+      "sha256": "d1409a1a47b0621c6644842b0c4a245818b0b905420453dcbe6d650e9d3c5d71"
+    }
+  ],
+  "diagnostic_prefix_count": null,
+  "attempt": 1,
+  "formal_qualification": false,
+  "n_correct": null,
+  "no_figures": true,
+  "only_service_initialization_changed": true
+}
