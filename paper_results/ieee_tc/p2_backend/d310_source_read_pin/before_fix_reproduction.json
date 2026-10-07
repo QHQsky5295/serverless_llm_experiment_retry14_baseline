@@ -1,0 +1,11 @@
+{
+  "kind": "d310_cpu_test_tool_receipt_v1",
+  "source_store": "d310Before2Test",
+  "retained_output_only": true,
+  "complete_log_claim": false,
+  "chunk_id": "5d914d",
+  "wall_time_seconds": 0.000031092,
+  "exit_code": 1,
+  "original_token_count": 515,
+  "output": "INFO 10-07 11:06:57 [__init__.py:216] Automatically detected platform cuda.\ntest_confirmed_read_pin_refreshes_bounded_allocation_without_losing_identity (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_confirmed_read_pin_refreshes_bounded_allocation_without_losing_identity)\nDeterministic stat transition, not a replay of D309's kernel event. ... 2026-10-07 11:06:59 - faaslora.memory.residency_manager - INFO - Residency manager initialized\nERROR\ntest_confirmed_read_pin_rejects_allocation_beyond_its_existing_envelope (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_confirmed_read_pin_rejects_allocation_beyond_its_existing_envelope) ...     remote artifact fetch a: 0.0 MB, 5.3 ms\n2026-10-07 11:06:59 - faaslora.memory.residency_manager - INFO - Residency manager initialized\nok\n\n======================================================================\nERROR: test_confirmed_read_pin_refreshes_bounded_allocation_without_losing_identity (tests.test_ieee_tc_request_lifecycle.ConfirmedFilePublication.test_confirmed_read_pin_refreshes_bounded_allocation_without_losing_identity)\nDeterministic stat transition, not a replay of D309's kernel event.\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_request_lifecycle.py\", line 2639, in test_confirmed_read_pin_refreshes_bounded_allocation_without_losing_identity\n    held = self.owner.acquire_confirmed(**args)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py\", line 801, in acquire_confirmed\n    raise ConfirmedSourceConflict('confirmed file source footprint epoch changed')\nfaaslora.memory.residency_manager.ConfirmedSourceConflict: confirmed file source footprint epoch changed\n\n----------------------------------------------------------------------\nRan 2 tests in 0.060s\n\nFAILED (errors=1)\n    remote artifact fetch a: 0.0 MB, 6.8 ms\n"
+}

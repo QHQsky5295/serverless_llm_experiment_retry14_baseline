@@ -790,15 +790,24 @@ class LocalSourceReferences:
 
     def acquire_confirmed(self, *, path, adapter_id, lease_id, expected_owner_id,
                           expected_epoch, expected_content_sha256):
-        """Revalidate and protect the exact published source under reclamation lock."""
+        """Protect the exact published copy, not a frozen allocation observation.
+
+        The caller's owner/epoch must be current on entry. Inside this locked
+        transaction, validation may refresh physical blocks within the inode's
+        already charged envelope without changing its verified content identity.
+        Such a refresh still advances the planning epoch; it does not invalidate
+        a read lease or grant any additional capacity.
+        """
         with self.lock:
             if (expected_owner_id != self.owner_id or type(expected_epoch) is not int
                     or expected_epoch != self.source_epoch):
                 raise ConfirmedSourceConflict('confirmed file source owner/epoch changed')
             source = Path(path).resolve(strict=True)
             record = self._validated_source(source)
-            if expected_epoch != self.source_epoch:
-                raise ConfirmedSourceConflict('confirmed file source footprint epoch changed')
+            # A successful validation has checked signatures and allocation
+            # bounds. No competing owner mutation can enter this lock; an epoch
+            # advance here is this transaction's footprint observation, not a
+            # changed/evicted source. Identity or envelope failures still raise.
             if (record is None or record['public']['adapter_id'] != adapter_id
                     or record['public']['content_sha256'] != expected_content_sha256):
                 raise RuntimeError('confirmed file source identity changed')

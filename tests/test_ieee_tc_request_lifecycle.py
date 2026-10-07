@@ -2589,6 +2589,103 @@ class ConfirmedFilePublication(unittest.TestCase):
     def test_coalesced_local_snapshot_and_pin_are_one_owner_transaction(self):
         self._check_materialized_source_transaction(True)
 
+    def _published_source_with_unsettled_allocation(self):
+        """Tiny real publication; model an allocation not yet settled by FIEMAP."""
+        from tests.test_http_artifact_store import content_manifest
+        self.payload['nested/weights'] = b'tiny-fixture' * 4096
+        # A distinct fixture gets a new immutable manifest, never a mutation
+        # of the client already frozen by setUp.
+        self.client = type(self.client)(endpoint='http://127.0.0.1:1')
+        self.client.configure_content_manifest(content_manifest(files=self.payload))
+        self.client._opener = Mock()
+        self.runner._remote_artifact_client = self.client
+        with patch('faaslora.memory.residency_manager._file_extents_initialized', return_value=False):
+            self.assertTrue(self.fetch()[0])
+        state = self.owner.source_snapshot('a')
+        file = self.nvme / 'a' / 'nested' / 'weights'
+        info = file.lstat()
+        bound = self.owner._file_allocations[info.st_dev, info.st_ino]
+        self.assertGreaterEqual(bound['ceiling_bytes'], info.st_blocks * 512 + 4096)
+        return state, file, info, bound
+
+    def test_confirmed_read_pin_refreshes_bounded_allocation_without_losing_identity(self):
+        """Deterministic stat transition, not a replay of D309's kernel event.
+
+        Only allocated blocks vary inside the real precharged inode envelope.
+        Content, inode, path, timestamps and generation stay unchanged.
+        Both increasing and decreasing observations must remain readable;
+        stale planning epochs must still be rejected after each refresh.
+        """
+        state, file, info, bound = self._published_source_with_unsettled_allocation()
+        original = Path.lstat
+        reported_blocks = [info.st_blocks + 8]
+        def allocation_observation(path, *args, **kwargs):
+            actual = original(path, *args, **kwargs)
+            if path != file:
+                return actual
+            fields = {name: getattr(actual, name) for name in dir(actual) if name.startswith('st_')}
+            fields['st_blocks'] = reported_blocks[0]
+            return SimpleNamespace(**fields)
+        before = self.owner._file_inventory()
+        charged = self.owner._charged_file_bytes(before, 'nvme')
+        original_bound = dict(bound)
+        with patch.object(Path, 'lstat', allocation_observation):
+            for index, blocks in enumerate((info.st_blocks + 8, info.st_blocks)):
+                reported_blocks[0] = blocks
+                source = state['sources'][0]
+                args = dict(path=source['path'], adapter_id='a', lease_id=f'pin-{index}',
+                    expected_owner_id=state['owner_id'], expected_epoch=state['epoch'],
+                    expected_content_sha256=source['content_sha256'])
+                held = self.owner.acquire_confirmed(**args)
+                self.assertTrue(held['content_verified'])
+                self.assertEqual(held['confirmed_source']['content_sha256'], source['content_sha256'])
+                self.assertGreater(self.owner.source_epoch, state['epoch'])
+                current = self.owner._file_inventory()
+                expected = before['allocated_file_bytes'] + 512 * (blocks - info.st_blocks)
+                self.assertEqual(held['confirmed_source']['allocated_file_bytes'], expected)
+                self.assertEqual(current['allocated_file_bytes'], expected)
+                self.assertEqual(self.owner._charged_file_bytes(current, 'nvme'), charged)
+                self.assertEqual(bound, original_bound, 'pinning must not relax or consume the reservation')
+                with self.owner.mutation(self.nvme / 'a') as allowed:
+                    self.assertFalse(allowed)
+                with self.assertRaisesRegex(RuntimeError, 'owner/epoch changed'):
+                    self.owner.acquire_confirmed(**(args | {'lease_id': f'stale-{index}'}))
+                self.owner.release(lease_id=held['lease_id'], expected_owner_id=state['owner_id'])
+                state = self.owner.source_snapshot('a')
+        self.assertFalse(self.owner.leases)
+
+    def test_confirmed_read_pin_rejects_allocation_beyond_its_existing_envelope(self):
+        state, file, info, bound = self._published_source_with_unsettled_allocation()
+        original = Path.lstat
+        def excessive_allocation(path, *args, **kwargs):
+            actual = original(path, *args, **kwargs)
+            if path != file:
+                return actual
+            fields = {name: getattr(actual, name) for name in dir(actual) if name.startswith('st_')}
+            fields['st_blocks'] = bound['ceiling_bytes'] // 512 + 8
+            return SimpleNamespace(**fields)
+        source = state['sources'][0]
+        with patch.object(Path, 'lstat', excessive_allocation):
+            with self.assertRaisesRegex(RuntimeError, 'exceeds its reserved envelope'):
+                self.owner.acquire_confirmed(path=source['path'], adapter_id='a', lease_id='overflow',
+                    expected_owner_id=state['owner_id'], expected_epoch=state['epoch'],
+                    expected_content_sha256=source['content_sha256'])
+        self.assertFalse(self.owner.leases)
+        self.assertNotIn(self.nvme / 'a', self.owner._confirmed_sources)
+
+    def test_confirmed_read_pin_still_rejects_content_changed_after_snapshot(self):
+        self.assertTrue(self.fetch()[0])
+        state = self.owner.source_snapshot('a')
+        source = state['sources'][0]
+        file = self.nvme / 'a' / 'nested' / 'weights'
+        file.write_bytes(b'X' * len(self.payload['nested/weights']))
+        with self.assertRaisesRegex(RuntimeError, 'changed outside its managed publication'):
+            self.owner.acquire_confirmed(path=source['path'], adapter_id='a', lease_id='modified',
+                expected_owner_id=state['owner_id'], expected_epoch=state['epoch'],
+                expected_content_sha256=source['content_sha256'])
+        self.assertFalse(self.owner.leases)
+        self.assertNotIn(self.nvme / 'a', self.owner._confirmed_sources)
+
     def test_actual_runner_publishes_verified_snapshot_and_protects_exact_copy(self):
         from faaslora.clock import local_monotonic_clock_id
         self.assertEqual(self.owner.source_snapshot('a')['sources'], [])

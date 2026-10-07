@@ -1,0 +1,132 @@
+{
+  "kind": "d310_cpu_correctness_checkpoint_v1",
+  "performance_qualification": false,
+  "reference_commit": "1b6aab450094a5dc63c9104e32aa5b713f10eb13",
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "tests": {
+    "fixture_setup": {
+      "tests": 2,
+      "errors": 2,
+      "expected_reproduction": false
+    },
+    "before": {
+      "tests": 2,
+      "errors": 1,
+      "seconds": 0.06,
+      "reproduced_exact_exception": true
+    },
+    "targeted_after": {
+      "tests": 32,
+      "errors": 0,
+      "seconds": 2.143
+    },
+    "regression": {
+      "tests": 950,
+      "errors": 0,
+      "seconds": 98.677,
+      "output_is_retained_extract": true
+    },
+    "audit_population": {
+      "tests": 19,
+      "errors": 0,
+      "seconds": 0.014
+    }
+  },
+  "scopes": [
+    {
+      "invocation": "38e8c359604d402391c8d7d4d078ccbc",
+      "purpose": "regression",
+      "peak": 2647199744,
+      "memory_high": 3221225472,
+      "memory_max": 4294967296,
+      "swap_max": 0,
+      "all_memory_events_zero": true,
+      "swap_current": 0,
+      "empty_verified_then_stopped": true
+    },
+    {
+      "invocation": "b42510d108f0463ea26a7601672e2504",
+      "purpose": "audit_tests",
+      "peak": 39448576,
+      "memory_high": 3221225472,
+      "memory_max": 4294967296,
+      "swap_max": 0,
+      "all_memory_events_zero": true,
+      "swap_current": 0,
+      "empty_verified_then_stopped": true
+    },
+    {
+      "invocation": "e41d3ba855584637acd0fd37f15a6113",
+      "purpose": "failure_audit",
+      "peak": 1017995264,
+      "memory_high": 3221225472,
+      "memory_max": 4294967296,
+      "swap_max": 0,
+      "all_memory_events_zero": true,
+      "swap_current": 0,
+      "empty_verified_then_stopped": true
+    },
+    {
+      "invocation": "a79e5711ef2c4505b529a7846637186e",
+      "purpose": "prelaunch",
+      "peak": 496398336,
+      "memory_high": 3221225472,
+      "memory_max": 4294967296,
+      "swap_max": 0,
+      "all_memory_events_zero": true,
+      "swap_current": 0,
+      "empty_verified_then_stopped": true
+    }
+  ],
+  "files": [
+    {
+      "sha256": "71866ebab1ec7f00ff78e327288c043ff0d5391ac632e70829bff0b102bd9f37",
+      "path": "faaslora/memory/residency_manager.py"
+    },
+    {
+      "sha256": "49e3f8616f2d7935c4c881d76c1228c709bae34ea740654b2393d2ae970b9d55",
+      "path": "tests/test_ieee_tc_request_lifecycle.py"
+    },
+    {
+      "sha256": "61677fbf6f6aea8cb7ff1103a610767f03588d9fe57eb266a43d0b98b4604707",
+      "path": "tests/test_ieee_tc_decode_overlap.py"
+    },
+    {
+      "sha256": "6f986f15a887421324150facc72ae6ac001e8d94d8c06f4d953d7d5a99a09b02",
+      "path": "scripts/ieee_tc/check_d299_full_context.py"
+    },
+    {
+      "sha256": "e5d23ab0b515e2d3aa767df4c09ba689d778f47e64c751a3dacf092abf99f638",
+      "path": "scripts/ieee_tc/prepare_d298_capacity.py"
+    },
+    {
+      "sha256": "cfb11f4490935e8827a77b35b05a014fb4a7c57fd622b706e06ff88d71a8c4f5",
+      "path": "scripts/ieee_tc/analyze_d298_smoke.py"
+    },
+    {
+      "sha256": "d0398c62183530344d20894ab7d4a9714dee373d310d9e2e272f55b70324b886",
+      "path": "scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh"
+    },
+    {
+      "sha256": "49b6b74b2fb3c6bfa2a37d79b1bab0adaa80c29e43a9c0ffa52a5bec27c5accd",
+      "path": "paper_results/ieee_tc/p2_backend/d310_source_read_pin/before_fix_reproduction.json"
+    },
+    {
+      "sha256": "1f2edccf79d788e6b032f4c7e6098be3fbc4ecc3aa3ec0734fba41acc0945e32",
+      "path": "paper_results/ieee_tc/p2_backend/d310_source_read_pin/fixture_setup_failure.json"
+    },
+    {
+      "sha256": "eb552deb5033911f8da88dcbd250d6d9907c8d52d3b4b8f7882a8dcc571dbe89",
+      "path": "paper_results/ieee_tc/p2_backend/d310_source_read_pin/regression_final_extract.json"
+    },
+    {
+      "sha256": "e5ef1fb733cea8b280487d1bb399758c778cd4c7a1a18d1461f9cfe5753d893e",
+      "path": "paper_results/ieee_tc/p2_backend/d310_source_read_pin/targeted_after_fix.json"
+    },
+    {
+      "sha256": "35a9894aebf7287317289dfcc3a508819fcbeb860ccf3391731ea5d6e917a605",
+      "path": "paper_results/ieee_tc/p2_backend/d310_read_pin_validation/prelaunch_binding.json"
+    }
+  ]
+}

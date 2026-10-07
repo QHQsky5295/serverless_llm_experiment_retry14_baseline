@@ -1,10 +1,41 @@
 """CPU interval tests: descriptive overlap must not invent causal stall time."""
 import copy
 import unittest
+from scripts.ieee_tc.check_d299_full_context import failed_run_partition
 
 from scripts.ieee_tc.analyze_d297_full import (
     decode_overlap_summary, native_load_overlap_summary, prefill_overlap_summary,
 )
+
+
+class FailureAwarePopulation(unittest.TestCase):
+    def fixture(self):
+        return dict(metadata=dict(total_requests=2),detailed_results=dict(full=dict(
+            completed=1,failed=1,requests=[dict(request_id='a',success=True),
+                                        dict(request_id='b',success=False,error='retained')])) )
+
+    def test_partition_does_not_drop_or_impute_failure(self):
+        source = self.fixture()
+        original = copy.deepcopy(source)
+        rows, good, failed = failed_run_partition(source)
+        self.assertEqual(source,original)
+        self.assertEqual((len(rows),len(good),len(failed)),(2,1,1))
+        self.assertIs(failed[0],rows[1])
+        self.assertNotIn('readiness_tier_before_dispatch',failed[0])
+
+    def test_invalid_population_is_not_repaired(self):
+        for mutation in ('missing','duplicate','unknown','count','no_failure'):
+            data = self.fixture()
+            s = data['detailed_results']['full']
+            if mutation == 'missing': s['requests'].pop()
+            elif mutation == 'duplicate': s['requests'][1]['request_id']='a'
+            elif mutation == 'unknown': s['requests'][1]['success']=None
+            elif mutation == 'count': s['completed']=2
+            else:
+                s['requests'][1]['success']=True
+                s.update(completed=2,failed=0)
+            with self.subTest(mutation=mutation),self.assertRaises(ValueError):
+                failed_run_partition(data)
 
 
 class DecodeOverlap(unittest.TestCase):

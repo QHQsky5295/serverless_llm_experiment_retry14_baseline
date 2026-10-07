@@ -311,6 +311,10 @@ def verify_prefill_smoke(campaign='d308'):
         for reference in smoke['raw_evidence']:
             assert p.digest(Path(reference['path'])) == reference['sha256']
         smoke_ref = dict(path=str(smoke_path.relative_to(root)),sha256=p.digest(smoke_path))
+    elif campaign == 'd310':
+        out = root/'paper_results/ieee_tc/p2_backend/d310_read_pin_validation'
+        config = root/'configs/ieee_tc/20261007_d310_7b_prefill_validation_100.yaml'
+        previous = root/'configs/ieee_tc/20261007_d308_7b_prefill_validation_100.yaml'
     elif campaign != 'd308':
         raise ValueError('unknown frozen prefill validation identity')
     assert not out.exists(), 'never overwrite preparation'
@@ -339,6 +343,13 @@ def verify_prefill_smoke(campaign='d308'):
         smoke_config = yaml.safe_load((root/'configs/ieee_tc/20261007_d308_7b_prefill_validation_100.yaml').read_text())
         assert c['model'] == smoke_config['model'] and c['resource_coordination'] == smoke_config['resource_coordination']
         assert c['workload']['total_requests'] == 4000
+    elif campaign == 'd310':
+        # The read-pin repair changes no control/profile/model setting. Only
+        # output and cold-cache identities differ from the existing D308 smoke.
+        expected = copy.deepcopy(old)
+        expected['experiment']['output_dir'] = old['experiment']['output_dir'].replace('d308_', 'd310_')
+        expected['storage']['nvme_cache_dir'] = old['storage']['nvme_cache_dir'].replace('d308_', 'd310_')
+        expected['storage']['host_cache_dir'] = old['storage']['host_cache_dir'].replace('tc-d308', 'tc-d310')
     profile_receipts = {}
     for key, cls in (('ieee_service_profile', FrozenServiceProfiles), ('ieee_preparation_profile', FrozenPreparationProfiles)):
         binding = copy.deepcopy(measured['bindings'][key])
@@ -381,7 +392,9 @@ if __name__ == '__main__':
         verify_prefill_smoke()
     elif sys.argv[1:] == ['--verify-prefill-full']:
         verify_prefill_smoke('d309')
+    elif sys.argv[1:] == ['--verify-read-pin-smoke']:
+        verify_prefill_smoke('d310')
     elif not sys.argv[1:]:
         main()
     else:
-        raise SystemExit('Expected no argument, --verify-launch, --prefill-candidate, --verify-prefill-launch, --verify-prefill-smoke or --verify-prefill-full')
+        raise SystemExit('Expected no argument, --verify-launch, --prefill-candidate, --verify-prefill-launch, --verify-prefill-smoke, --verify-prefill-full or --verify-read-pin-smoke')

@@ -11,7 +11,146 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D308100 complete/audited; D3094000 prepared, next actual full replay
+## CURRENT — D310 source read-pin repair tested; D309 failure preserved; next native smoke
+
+2026-10-07 11:19+08. Fullplan/V1 reread. User's once-only delivery-cache
+approval is already implemented by D78:1,581,215,261 archive bytes across two
+500-adapter pools. Reuse, no new pool or republishing. Goal stays7B→3B→baselines.
+
+D309 failure-only audit completed using existing validators, not a relaxation
+of the all-success gate. All4000 offered input identities match retainedD303;
+3999 successful returns pass10binding checks, native fixed-length count and
+TTFT/TPOT/stage identities (maxerror0ms). The one failed request is preserved
+verbatim.132remote transfers/131480060wirebytes pair exactly, no request packing.
+4040resource samples: peak20676182016B,minhostavailable93657604096B,swap0,
+high/max/OOM/OOM-kill0. Complete physical lifecycle15744.284432824003GPU-s;
+N_correct/N_good remainunknown, no feasible ranking or performance acceptance.
+Seal147entries has only previously authorizedbaseline replay script change;
+old results unchanged, do NOT claim rawseal147/147pass.
+Curated: paper_results/ieee_tc/p2_backend/d309_full_w0/failure_audit1/.
+
+D310 deterministically reproduced exactfootprint-epoch exception with unchanged
+content under a legal allocation observation inside already charged envelope.
+Actual D309kernel event remainsunobserved. Removed only post-validation self-epoch
+rejection; entryowner/epoch,content,inode,allocation andlease protection retained.
+No retry/catch/fallback/budget increase or formula change. HistoricalD90/D93/D307
+and officialLinuxstat/ext4/FIEMAP/vLLM0.30code reviewed. DetailsD310_CONFIRMED_READ_PIN.md.
+Initial fixture's immutablemanifest setup failure preserved separately.
+Targeted32tests passed; broader950tests passed98.677s; added failure-accounting
+path plus existingoverlap19tests passed. CPU regressionpeak2647199744B,
+auditpeak1017995264B; allmemoryevents/swap0. Exactempty scopesstopped.
+
+NextD310100prefix config freshlyprepared; child config equals measuredD307,
+40service/24preparationclasses stillbind; everyD308model/control/workload setting
+unchanged except unique output/cache paths. ConfigSHAe9a453df6327d46f10777d2d3d3251ff5386dde01c76b32285193ea2a7099c7a.
+Existingrunner explicitd310case. Prelaunchbindingpassed; no model/remote service
+launched yet. Save testedcheckpoint first, then native100smoke and, only after
+cleanup/audit, original4000freshreplay. No extra calibration/budgetscan,figures,
+3B or baseline work. No7Bqualification claim.
+
+## HISTORY — D309 full4000 finished with ONE source-footprint conflict; correctness first
+
+2026-10-07 11:00+08. D309 replay finished naturally:4000 terminal records,
+3999 successful returns,1 failure; no restart or configuration change during
+measurement. Exact failed request req_03242/medical_lora_0110, requested186,
+actual0, error `ConfirmedSourceConflict: confirmed file source footprint epoch changed`.
+This is NOT an all-correct run and cannot enter G1/G2 feasible ranking. Do not
+drop that request, fabricate its timing/tier, or relax the successful4000 validator.
+Numerical qualification remains unknown independently of this visible failure.
+
+Final launch.json exists/pass=true, service/watchdog/replay returncodes0;
+native_gpu_context_release_confirmed=true, service_path_removed=true. Native
+GPU census empty, local service inactive, tmux absent after actual completion.
+4040 resource samples, terminal census and service-domain-gone events recorded.
+All live checks showed no memory protection or foreignGPU event; full archived
+resource/remote/input/token/binding/timing/protected-seal audit still pending.
+
+Remote identities all checked BEFORE stopping captured MONITOR FIRST at10:56:43.
+Its trap released both ownedartifactservices. All3units inactive/MainPID0/
+Resultsuccess/ExecMainStatus0. Exact journal copied to
+results/ieee_tc/p2_backend_qualification/d309_20261007/remote_transfers.jsonl,
+monitor to remote_monitor.log. Immutable completion_receipt.json now records
+these observations and the one failure. No service remains active.
+
+SourceSHA811aadf1cc61d14f58b7ebf59a54f1406d05c8e161003f8fd6da947da662257b;
+launchSHA9dce5dd3b42759a8990759ee29e6b23857706d7289dfa6e023153d4cab5e5716;
+remotejournalSHA646cac692b6ba1a32377575036bece9f0e789ad22e301c042cb4cfc0e70cbf0a;
+remotemonitorSHA953b02441c558f94080b03b8211b9eaba1d359a7f625df1539822709e1b92ad2.
+Final source310MiB, main_outcome669MiB: use bounded CPU scope/streaming for
+further inspection, not repeated unbounded whole-file loading.
+Read-only failure inspection scope15dbf434ff8548dc978dba3345464d01 stopped empty;
+3/4GiB/swap0,allowedCPUs2-3/26-27,peak810909696B,allmemoryevents/swap0.
+Replay auxiliary scope48c579b34c2b4393b08967d9e1c7373e also observed empty
+and stopped; peak333053952B,allmemoryevents0. Both local domains nowinactive.
+
+Next: preserve a failure-aware audit, inspect req_03242 and related source
+history, and reproduce exact footprint-epoch conflict deterministically before
+changing serving code. _validated_source publishes physical-footprint updates
+by incrementing source_epoch; acquire_confirmed checks that epoch again after
+validation (residency_manager.py:801). This is a code-path lead, not yet proof
+of the filesystem/contending-event cause. Review official mechanisms before
+repair; preserve content/owner/inode checks and physical budget constraints,
+not a catch/retry/fallback workaround. No new token-budget scan or immediate
+GPU rerun. Existing analyze_d297_full/check_d299_full_context have NOT been
+extended to d309; audit_run correctly requires all requests successful, so
+do NOT bypass it for this failure. No figures,3B or externalbaseline work.
+Serving code/config remains checkpoint1b6aab450094a5dc63c9104e32aa5b713f10eb13
+(already backed up). Goal remains7B→3B→baselines, no7Bqualification claim.
+
+## HISTORY — D309 full4000 W0 running; same owned job monitored to completion
+
+Verified wait 2026-10-07 10:40+08: same tmux and service InvocationID live;
+watchdog4122999/start84491727 verified against/proc, sample3115 age<1s.
+Progress3056→3210→3276→3388 terminal; arrived3397/4000,success3387,failed1.
+Natural scale-in then scale-out observed after first500 boundary; no intervention.
+Latest fullresource checkservice18.78GiB,hostavailable88.81GiB,disk155.12GiB;
+allmemoryevents0,noabort/warning. Remote3B/7B/monitor same capturedInvocationIDs live;
+no foreignGPUcompute, final launch.json absent. This is an actively progressing
+full replay, NOT a blocked/no-progress/restart condition. No concurrentheavywork,
+code/configchange,backupcompression or figures. Monitor SAME handles next.
+
+At business49:30 first failure became visible in service.log:
+`ConfirmedSourceConflict: confirmed file source f` (truncated summary).
+Read-only source inspection locates footprint-epoch check in
+faaslora/memory/residency_manager.py:801; full failure record is still pending.
+Do not infer the precise race/OS cause from this prefix. No safety event or
+foreign GPU compute observed. Continue original replay; no restart/replacement,
+retry patch or tolerance relaxation. This run cannot qualify as all-correct.
+After actual completion/release/remote cleanup, inspect full failed request and
+preserve a failure-aware audit before any performance comparison. Do not weaken
+the all4000 validators to make it pass or drop the failed offered request.
+
+2026-10-07 09:48+08. Fullplan/status/V1 reread beforelaunch (large output was
+truncated; missingmiddle rereadseparately). Testedcheckpoint
+1b6aab450094a5dc63c9104e32aa5b713f10eb13 pushedandremoteHEADverified.
+LaunchedONCE09:47:48 in tmuxprimelora_d309_full, explicitd309case. Raw
+results/ieee_tc/p2_backend_qualification/d309_20261007/7b_full_w0.
+SameD308candidate/profile/control,4000originalW0, no additionaltuning.
+Localserviceprimelora-tc-svc-b60d677d0e3d49bc9134ec14cde1dcf2.scope
+invocation95140ab7bf8e45188e6304f6f89a6945;
+auxprimelora-tc-aux-dc5c7e5471cb4d03a6ee9139216b8a2c.scope;
+watchdog4122999/start84491727. Original72/80GiB/swap2 andaux3/4GiB/swap0
+attachedbeforemodelinit; allow_exec=true, no foreigncompute. Sample29,
+hostavailable101.18GiB/service4.06GiB, no warning/abort. Disk169618407424B atlaunch.
+
+Remote3Bd40b78efa7fe45799ab2cb6100a157cf/PID1422317;
+7Bfc7d0cbb731a4069aef2117e84f6f50a/PID1422319;
+monitorprimelora-artifact-monitor-d309.service
+4fbee00a03ea414cb52f5a4a0e2426cb/PID1422322.
+AuthenticatedhealthBEFORElaunch: remote-process-monotonic:01a8b562d7724c7db091fccdea8f5ddb.
+Exactjournaltransfers-18e0ba2321024fce97f97790b53a62c0.jsonl inD80/7b;
+monitorlogremote/tc/d309_20261007/remote_monitor.log. NIC1000/full again.
+DoNOTstop/restartremote,alterconfig,hash/compress/install,orparallelheavywork
+duringrun. MonitorSAMEjob. AftercompleteandactualGPUrelease, stopcaptured
+remoteMONITOR FIRST (trap releasesownedartifactunits), verify3unitsinactive/PID0,
+copyexactjournalto d309_20261007/remote_transfers.jsonl andmonitorlog, savecleanup.
+SealactualsourceSHA/completionreceipt beforeexistinganalyzerextension(d309 notyet
+addedtoanalyze_d297_full/check_d299_full_context; extendexplicitidentityafterresult,
+no arbitraryhashbypass). CompareD303 all4000 withsameD170temporaryruler, retain
+tradeoffs, noCI atn1/noformalqualification. D308shortresultNOTcandidateacceptance.
+No figures, no3B/baselines/numericaldetour. Fullgoalactive; nofinal7Bclaim.
+
+## HISTORY — D308100 complete/audited; D3094000 prepared, next actual full replay
 
 2026-10-07 09:47+08. D308 completed100/100, native token/source/time/binding
 checks pass; sourceSHA d3a660845b47b5d32db6664dccad6a2fc48818f61ea7abbfab095ec7867c04b7.
