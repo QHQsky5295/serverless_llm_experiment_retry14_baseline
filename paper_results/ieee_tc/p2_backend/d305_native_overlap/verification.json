@@ -1,0 +1,41 @@
+{
+  "kind": "d305_offline_verification",
+  "source_plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "summary_sha256": "e29817f0a5f449a4ab4f6a5e2114d030e2840994c651b11a4307027aa7ca0bbb",
+  "manifest_checks": 19,
+  "all_manifest_checks_pass": true,
+  "d304_outputs_unchanged": true,
+  "cpu_tests_final": 20,
+  "cpu_tests_final_pass": true,
+  "serving_runner_unchanged_sha256": "d6ec59a9877023eafc9686251bdebce48a470e3af6c55efcc76fe2df8e3d2078",
+  "user_dirty_manifest_unchanged_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+  "protected_seal": {
+    "raw_pass": false,
+    "entries": 147,
+    "changed": ["/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"],
+    "sole_known_difference_sha256": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "new_differences": 0
+  },
+  "auxiliary_policy": {"memory_high_gib": 3, "memory_max_gib": 4, "memory_swap_max": 0, "cpus": "2,3,26,27"},
+  "owned_scopes": [
+    {"suffix": "receipt-inspect", "invocation_id": "7ffe310ab2ba45a3b2d97c36bb9c6099", "peak_bytes": 719872000, "command_exit": 1},
+    {"suffix": "fields", "invocation_id": "70e8d56ffb3b444b9a33017869d50dde", "peak_bytes": 719605760, "command_exit": 0},
+    {"suffix": "tests", "invocation_id": "222b72f0e8014baf91d9ca1697a8076c", "peak_bytes": 26251264, "command_exit": 0},
+    {"suffix": "native-overlap", "invocation_id": "ba3af69e90ee44a6a765d0f4bb577097", "peak_bytes": 736862208, "command_exit": 1},
+    {"suffix": "interval-check", "invocation_id": "0286d829f2d04cb3abfb8224e4c22005", "peak_bytes": 736665600, "command_exit": 1},
+    {"suffix": "tests2", "invocation_id": "31c0dc1c1f4c40a795e5aa001a5d0a43", "peak_bytes": 26492928, "command_exit": 0},
+    {"suffix": "native-overlap3", "invocation_id": "166a493729a84462a399076283e5b7f5", "peak_bytes": 751775744, "command_exit": 0},
+    {"suffix": "verify", "invocation_id": "5c2d2cbe23bf412ebe38b94738c76422", "peak_bytes": 13611008, "command_exit": 0}
+  ],
+  "all_scope_memory_events_and_swap_zero": true,
+  "all_scopes_empty_and_stopped_by_invocation_identity": true,
+  "native_gpu_process_census_empty": true,
+  "disk_free_bytes_last_check": 160605229056,
+  "new_heavy_disk_gate_pass": false,
+  "new_performance_runs": 0,
+  "remote_mutations": 0,
+  "no_figures": true,
+  "n_correct": null,
+  "formal_qualification": false
+}

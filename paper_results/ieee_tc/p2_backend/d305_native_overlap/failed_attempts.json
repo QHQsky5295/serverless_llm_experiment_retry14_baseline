@@ -1,0 +1,11 @@
+{
+  "kind": "d305_offline_analysis_failures",
+  "new_performance_runs": 0,
+  "attempts": [
+    {"identity": "receipt-inspect", "status": "failed", "exception": "KeyError: request_metrics", "cause": "Read-only query assumed the wrong top-level JSON shape; detailed_results contains requests."},
+    {"identity": "analysis1", "status": "failed", "exception": "ValueError: invalid native owner/load/acquire witness", "cause": "Offline helper incorrectly imposed controller admission as the lower bound on selected-GPU acquire."},
+    {"identity": "analysis2", "status": "failed", "request_id": "req_00004", "run": "d300", "admitted_s": 828070.209222757, "acquired_s": 828070.20196869, "dispatch_s": 828070.249972523, "cause": "Same failed constraint with added diagnostic output. D184 and actual source confirm acquire-before-admission is legal."}
+  ],
+  "resolution": "Corrected analysis semantics, added before-admission regression test, retained all original data and ran analysis3. No service or threshold change.",
+  "valid_analysis": "analysis3"
+}

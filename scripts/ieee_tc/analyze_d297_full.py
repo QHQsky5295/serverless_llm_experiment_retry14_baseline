@@ -190,6 +190,195 @@ def inspect_retained_decode(output):
         outputs={p.name:sha256(p) for p in sorted(OUT.iterdir())},no_figures=True))
 
 
+def native_load_overlap_summary(requests, decode_records, *, clock_id):
+    """D305: intersect witnessed owner transactions, not the broad preparation span.
+
+    The load interval includes acquire's completion fence; its components must
+    not be added again. A decode-window overlap is NOT a measured token stall.
+    """
+    def finite(v):
+        return type(v) in (int, float) and math.isfinite(v)
+
+    def union_overlap(a, b, peers, start_key, end_key):
+        spans = sorted((max(a, q[start_key]), min(b, q[end_key])) for q in peers
+            if q[start_key] is not None and max(a, q[start_key]) < min(b, q[end_key]))
+        total, end = 0.0, -math.inf
+        for x, y in spans:
+            total += max(0., y-max(x, end))
+            end = max(end, y)
+        return total
+
+    records = [dict(r) for r in decode_records]
+    by_id = {r['request_id']: r for r in records}
+    if (not requests or len(by_id) != len(records) or len(requests) != len(records)
+            or {r['request_id'] for r in requests} != set(by_id)):
+        raise ValueError('complete unique request and retained decode identities required')
+    owners, replicas, leases, owner_rows = {}, {}, set(), {}
+    for q in requests:
+        r = by_id[q['request_id']]
+        n, e = q['native_token_timing'], q['gpu_reference_evidence']['receipt']
+        owner, replica = e['owner_id'], q['instance_id']
+        lease, pid = e['lease_id'], e['worker_pid']
+        for key, native_key in (
+            ('admitted', 'controller_admitted_monotonic_s'), ('dispatched', 'native_dispatch_monotonic_s'),
+            ('first', 'native_first_token_monotonic_s'), ('last', 'native_last_token_monotonic_s')):
+            if not finite(n[native_key]) or n[native_key] != r[key]:
+                raise ValueError('retained decode and native interval mismatch')
+        acquired, fence = e['acquired_monotonic_s'], e['completion_fence_ms']
+        start, end = e['native_load_started_monotonic_s'], e['native_load_completed_monotonic_s']
+        invoked, gpu_hit = e['native_load_invoked'], e['gpu_resident_before_load']
+        if (q['success'] is not True or e['acquired'] is not True
+                or not owner or not lease or lease in leases or type(pid) is not int or pid <= 0
+                or e['worker_rank'] != 0 or e['acquisition_operation'] != 'demand_load_and_acquire'
+                or e['completion_fence_scope'] != 'current_worker_cuda_stream'
+                or not (e['clock_id'] == n['native_clock_id'] == clock_id)
+                or n['gpu_reference_owner_id'] != owner or n['gpu_reference_lease_id'] != lease
+                or r['replica'] != replica or q['completion_tokens'] != r['tokens']
+                or not finite(acquired) or not finite(fence) or fence < 0
+                # D184's selected-GPU protection precedes controller admission.
+                # Admission is not a lower bound on the witnessed transaction.
+                or not 0 <= acquired-fence/1000 <= acquired <= r['dispatched'] <= r['first'] < r['last']
+                or type(invoked) is not bool or type(gpu_hit) is not bool or invoked == gpu_hit
+                or e['source_tier_before_acquisition'] not in ('gpu', 'host', 'staging', 'file')
+                or not finite(e['load_and_acquire_ms']) or e['load_and_acquire_ms'] < fence):
+            raise ValueError(f"invalid native owner/load/acquire witness {q['request_id']}: "
+                f"owner={owner}, pid={pid}, rank={e['worker_rank']}, "
+                f"operation={e['acquisition_operation']}, scope={e['completion_fence_scope']}, "
+                f"admitted={r['admitted']}, acquired={acquired}, dispatch={r['dispatched']}, "
+                f"fence_ms={fence}, load_and_acquire_ms={e['load_and_acquire_ms']}, "
+                f"invoked={invoked}, gpu_hit={gpu_hit}, source={e['source_tier_before_acquisition']}")
+        if invoked:
+            if (not finite(start) or not finite(end) or end != acquired
+                    or not 0 <= start <= acquired-fence/1000
+                    or (end-start)*1000 > e['load_and_acquire_ms'] + 1e-6):
+                raise ValueError('invalid witnessed load interval')
+        elif start is not None or end is not None:
+            raise ValueError('GPU-hit load timestamps must remain null')
+        if owner in owners and owners[owner] != (replica, pid):
+            raise ValueError('one owner maps to multiple worker incarnations')
+        if replica in replicas and replicas[replica] != owner:
+            raise ValueError('one activation maps to multiple owners')
+        owners[owner], replicas[replica] = (replica, pid), owner
+        leases.add(lease)
+        r.update(owner=owner, worker_pid=pid, native_load_invoked=invoked,
+            native_source=e['source_tier_before_acquisition'], load_start=start, load_end=end,
+            load_body_end=acquired-fence/1000 if invoked else None,
+            fence_start=acquired-fence/1000, acquired=acquired, fence_ms=fence,
+            native_load_ms=(end-start)*1000 if invoked else None,
+            load_and_acquire_ms=e['load_and_acquire_ms'])
+        owner_rows.setdefault(owner, []).append(r)
+    for r in records:
+        peers = [q for q in owner_rows[r['owner']] if q['request_id'] != r['request_id']]
+        for name, start, end in (
+            ('load', 'load_start', 'load_end'), ('load_body', 'load_start', 'load_body_end'),
+            ('fence', 'fence_start', 'acquired')):
+            overlap = union_overlap(r['first'], r['last'], peers, start, end)
+            r[f'{name}_overlap_s'] = overlap
+            r[f'{name}_overlap'] = overlap > 0
+            r[f'{name}_decode_fraction'] = overlap/r['decode_s']
+    groups = []
+
+    def add_group(name, label, rs):
+        groups.append(dict(group=name, label=label, count=len(rs),
+            timing_tpot_misses=sum(r['timing_tpot_miss'] for r in rs),
+            mean_tpot_ms=mean(r['tpot_ms'] for r in rs) if rs else None,
+            p95_tpot_ms=percentile([r['tpot_ms'] for r in rs], .95) if rs else None,
+            mean_other_native_requests=mean(r['mean_other_native_requests'] for r in rs) if rs else None,
+            mean_load_decode_fraction=mean(r['load_decode_fraction'] for r in rs) if rs else None,
+            mean_fence_decode_fraction=mean(r['fence_decode_fraction'] for r in rs) if rs else None))
+
+    add_group('all', 'all', records)
+    for name in ('load_overlap', 'load_body_overlap', 'fence_overlap'):
+        for flag in (False, True):
+            add_group(name, flag, [r for r in records if r[name] == flag])
+    for length in ('2-32', '33-128', '129-256'):
+        for flag in (False, True):
+            add_group('output_x_load', f'{length}/{flag}',
+                [r for r in records if r['output_group'] == length and r['load_overlap'] == flag])
+    for startup in (False, True):
+        for loading in (False, True):
+            add_group('startup_x_load', f'{startup}/{loading}',
+                [r for r in records if r['startup_overlap'] == startup and r['load_overlap'] == loading])
+    loads = [r for r in records if r['native_load_invoked']]
+    transactions = []
+    for source in ('all', 'gpu', 'host', 'staging', 'file'):
+        rs = records if source == 'all' else [r for r in records if r['native_source'] == source]
+        ls = [r['native_load_ms'] for r in rs if r['native_load_invoked']]
+        fs = [r['fence_ms'] for r in rs]
+        transactions.append(dict(source=source, count=len(rs), native_loads=len(ls),
+            total_load_ms=sum(ls), mean_load_ms=mean(ls) if ls else None,
+            p95_load_ms=percentile(ls, .95) if ls else None, max_load_ms=max(ls) if ls else None,
+            total_acquire_fence_ms=sum(fs), mean_acquire_fence_ms=mean(fs) if fs else None,
+            p95_acquire_fence_ms=percentile(fs, .95) if fs else None))
+    return dict(requests=records, groups=groups, transactions=transactions,
+        request_count=len(records), native_load_count=len(loads), native_owner_count=len(owners),
+        native_load_fields_complete=True, n_correct=None, confidence_interval=None,
+        formal_qualification=False, caveats=[
+            'Same-clock/same-owner request-associated load+acquire receipts; not every proactive operation.',
+            'Load includes acquire fence; body excludes only that fence, not every possible synchronization.',
+            'Fence covers acquire only, not release, inventory checks or all utility methods.',
+            'Overlap is a duration-dependent exposure, not causal token stall time or removable latency.',
+            'Conditional workloads/concurrency differ; single retained development run per version, no CI.',
+            'GPU-hit load timestamps are null, not zero-duration measured loads.',
+            'Selected-GPU acquire may precede controller admission (D184); no artificial lower bound.',
+            'D170 TPOT timing threshold remains provisional; no formal SLO or numerical qualification.'])
+
+
+def inspect_retained_native_load(output):
+    """D305 narrows D304 with existing receipts; no new GPU or broad startup scan."""
+    global OUT
+    OUT = Path(output).resolve()
+    if OUT.exists():
+        raise FileExistsError(OUT)
+    assert sha256(PLAN) == '0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7'
+    assert sha256(PROTOCOL) == '5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22'
+    prior = ROOT/'paper_results/ieee_tc/p2_backend/d304_decode/analysis1'
+    seal = read(prior/'manifest.json')
+    for name, digest in seal['outputs'].items():
+        assert sha256(prior/name) == digest
+    summaries, groups, transactions = {}, [], []
+    paths = [PLAN, PROTOCOL, Path(__file__), ROOT/'scripts/ieee_tc/plot_d290_diagnostic.py',
+        prior/'manifest.json', prior/'summary.json']
+    OUT.mkdir(parents=True, exist_ok=False)
+    for name in ('d300', 'd303'):
+        previous = read(prior/'summary.json')['runs'][name]
+        source = Path(previous['source']['source'])
+        assert sha256(source) == previous['source']['source_sha256']
+        _, evidence, requests = audit_run(source)
+        projection = prior/f'{name}_request_intervals.csv'
+        with projection.open(newline='') as handle:
+            records = list(csv.DictReader(handle))
+        for r in records:
+            for k in ('prompt_tokens', 'tokens'):
+                r[k] = int(r[k])
+            for k in ('timing_tpot_miss', 'startup_overlap', 'preparation_overlap'):
+                if r[k] not in ('True', 'False'):
+                    raise ValueError('invalid retained boolean')
+                r[k] = r[k] == 'True'
+            for k in ('admitted', 'dispatched', 'first', 'last', 'first_offset_s', 'decode_s',
+                      'tpot_ms', 'other_startup_overlap_s', 'same_replica_preparation_envelope_s',
+                      'other_native_request_seconds', 'mean_other_native_requests'):
+                r[k] = float(r[k])
+        deployment_path = source.parent/'launch.launch/physical_deployment/deployment.json'
+        result = native_load_overlap_summary(requests, records, clock_id=read(deployment_path)['clock_id'])
+        assert result['request_count'] == 4000
+        table(f'{name}_native_intervals.csv', result.pop('requests'))
+        groups.extend(dict(run=name, **r) for r in result['groups'])
+        transactions.extend(dict(run=name, **r) for r in result['transactions'])
+        result['source'] = evidence
+        summaries[name] = result
+        paths.extend([source, projection, deployment_path, Path(evidence['physical_source'])])
+        del requests
+        gc.collect()
+        print(json.dumps(dict(run=name, **result), indent=2), flush=True)
+    write('summary.json', dict(kind='d305_retained_native_load_overlap_v1', runs=summaries,
+        new_performance_runs=0, no_figures=True))
+    table('groups.csv', groups)
+    table('transactions.csv', transactions)
+    write('manifest.json', dict(source_refs=[dict(path=str(p), sha256=sha256(p)) for p in paths],
+        outputs={p.name:sha256(p) for p in sorted(OUT.iterdir())}, no_figures=True))
+
+
 def inspect_retained_waits(output):
     """D301: reuse complete D299/D300; fresh explicit output, no GPU or plot."""
     global OUT
@@ -401,10 +590,14 @@ if __name__ == '__main__':
         help='Data-only D299/D300 retained wait partition; explicit new output directory')
     parser.add_argument('--decode-tail-output', type=Path,
         help='D304 data-only D300/D303 decode interval overlap; explicit new output')
+    parser.add_argument('--native-load-output', type=Path,
+        help='D305 narrow native load/acquire overlap using D304 and retained receipts')
     args = parser.parse_args()
-    if args.admission_wait_output is not None and args.decode_tail_output is not None:
+    if sum(x is not None for x in (args.admission_wait_output, args.decode_tail_output, args.native_load_output)) > 1:
         parser.error('choose one retained diagnostic')
-    if args.decode_tail_output is not None:
+    if args.native_load_output is not None:
+        inspect_retained_native_load(args.native_load_output)
+    elif args.decode_tail_output is not None:
         inspect_retained_decode(args.decode_tail_output)
     elif args.admission_wait_output is not None:
         inspect_retained_waits(args.admission_wait_output)

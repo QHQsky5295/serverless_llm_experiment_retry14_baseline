@@ -1,0 +1,68 @@
+{
+  "source_refs": [
+    {
+      "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/analyze_d297_full.py",
+      "sha256": "5b38d8937d5c87e4ecd74727bbbeb90de0d75444fc9fffb3edceb27b029fdae7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/plot_d290_diagnostic.py",
+      "sha256": "fdb7898478701b4142bfc15feb231f9c94da566215ec1247ad1ddf6e58d98f9d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d304_decode/analysis1/manifest.json",
+      "sha256": "aa0e0f5be0965ba4fc8a291dafe2a9245a0179a9f945a95373d424be23a7b392"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d304_decode/analysis1/summary.json",
+      "sha256": "4f7338731ae2eee6f88888a1e1c4d2c28cf90bef45c9badfb11a03c49b148e3f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d300_20261007/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d300_7b_full_w0.json",
+      "sha256": "0964d7a58feeebadf607e72f6f6ea7a09b949d6df44da684bb86d0c27e8be974"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d304_decode/analysis1/d300_request_intervals.csv",
+      "sha256": "78d5843c7c9964a1331b0ead2cf76ad51d55ac6fcd0d054e9d66995fc198c22e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d300_20261007/7b_full_w0/launch.launch/physical_deployment/deployment.json",
+      "sha256": "9964ffebb01149b4bdb732427b3ffbb7e33252595c1314da8fd7ed29167cf39a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d300_20261007/7b_full_w0/launch.launch/physical_deployment/physical_resource_summary.json",
+      "sha256": "56fd3dec091b1dfcb1ee16aba8aeb6383775c16388de95cf0823bf63f6d00bb1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d303_20261007/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d303_7b_full_w0.json",
+      "sha256": "9bd86f5647a2723fa0aed67a98b92a72b477f725ef91b98a0182f348eaa7598e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d304_decode/analysis1/d303_request_intervals.csv",
+      "sha256": "d4bf7465d4976abc03960d9199fc2dcf0e074bc6619d91987cc189ea316188aa"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d303_20261007/7b_full_w0/launch.launch/physical_deployment/deployment.json",
+      "sha256": "2c996bca6859ddb8cff25064ed24baa917e318e4ddb0315782fcb3c14a7ab911"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d303_20261007/7b_full_w0/launch.launch/physical_deployment/physical_resource_summary.json",
+      "sha256": "bf576a96ff6d8322dc276abc26e79a26bdf82d3563ce081bb3120e031b1a5d87"
+    }
+  ],
+  "outputs": {
+    "d300_native_intervals.csv": "a1854738d7c12f3327b85d293ad25481272a668416c9d2c2b4367d36af30fa88",
+    "d303_native_intervals.csv": "ecc0e8c92de754bf7ab54ecc484e71ada13f5b003f9aa92b3ed5ba986e2cbc29",
+    "groups.csv": "b02bd420cf294c7a9a544fbf196250794f164ad934d12a5a1df27ec91a2bdfbe",
+    "summary.json": "e29817f0a5f449a4ab4f6a5e2114d030e2840994c651b11a4307027aa7ca0bbb",
+    "transactions.csv": "3b44d67df958b93751af89cfc7a84516af57403e5d9b736411adee4b8fd33579"
+  },
+  "no_figures": true
+}

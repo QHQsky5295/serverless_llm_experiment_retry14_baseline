@@ -11,7 +11,42 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D304 decode-tail localization complete; narrow native-load overlap next
+## CURRENT — D305 narrow load overlap complete; distinguish prefill/concurrency next
+
+2026-10-07. Fullplan/V1 reread, user's once-only remote cache authorization
+confirmed already implemented D78/D80; do NOT regenerate cache/pool or repeat
+remote qualification. No GPU/remote/serving/config/figures in this turn.
+D300/D303 source4000 + sealedD304 reused with strict owner/native receipt joins.
+Output p2_backend/d305_native_overlap/analysis3; summarySHA
+e29817f0a5f449a4ab4f6a5e2114d030e2840994c651b11a4307027aa7ca0bbb.
+
+D303 97/139TPOTtimingmisses overlap same-owner request-native-load,42doNOT;
+36have neither load nor otherstartup overlap. Loadcount2097→2121, mean34.232→
+36.138ms. Mean per-request load-overlap/decode ratio0.671→0.798%, notcausal
+latencyorGPUutilization.129/139overlapacquirefence butfenceduration short;
+doNOTremovefencesfromcorrelation. Conditionalconcurrencydiffers,all4000retained,
+N_correctnull/D170onlyprovisional/noCI. No evidence yet to chooseasync-loadas
+primaryfix. ReadD184/D202/D209, officialvLLM0.30UniProc/worker/optimization.
+
+Initialread-onlyquery usedwrongJSONkey; analysis1/2 wrongly boundedacquirebelow
+bycontrolleradmission. D184 GPUprotectionprecedesadmission; correctedanalyzer,
+notservingcontract. Regressiontestadded,20CPUtests pass. Failedattempts retained.
+Seven3/4GiBswap0CPUscopes nohigh/max/OOM/swap; successfulanalysispeak751775744B.
+SeeD305_NATIVE_LOAD_OVERLAP.md for fulltable/interpretation/limits.
+
+NEXT one retained native_scheduled→first-token peer-prefill envelope check,
+especially36no-startup/no-loadtailrequests, preserving owner/clock/concurrency.
+Envelope is NOTkernelprefilltime. No GPUdiagnostic or D304/D305 rescan needed.
+Use this to select one falsifiable candidate, not endlessconditionalgroups or
+blind tokenbudget/NUMA/concurrency tuning. History/officialsources beforechange.
+Finalsharedwarm/Resident/G1/G2 remainopen;7B→3B→baselinesunchanged. Diskstill
+below150GiBnew-heavy gate; auditedrebuildablecachecleanupbeforeanynextGPU.
+19manifestchecks pass,D304outputs unchanged.147sealretainssoleknownbaseline
+scriptdifferenceSHAunchanged,userdirtymanifest/servingrunnerunchanged. All8CPU
+scopesempty/stoppedbyInvocationID,noevents/swap; verificationpeak13611008B.
+GPUcensusclear,disk160605229056B. Testedbackupnext; goalactive.
+
+## HISTORY — D304 decode-tail localization complete; narrow native-load overlap next
 
 2026-10-07. Fullplan/V1 reread. Previous D303 audit was progress; this turn reuses
 D300/D303 source4000 and activation clocks, no GPU run/config/warm/figure work.

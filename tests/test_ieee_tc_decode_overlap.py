@@ -2,7 +2,7 @@
 import copy
 import unittest
 
-from scripts.ieee_tc.analyze_d297_full import decode_overlap_summary
+from scripts.ieee_tc.analyze_d297_full import decode_overlap_summary, native_load_overlap_summary
 
 
 class DecodeOverlap(unittest.TestCase):
@@ -65,6 +65,107 @@ class DecodeOverlap(unittest.TestCase):
         empty=[g for g in result['groups'] if g['group']=='output_group' and g['label']=='129-256'][0]
         self.assertEqual(empty['count'],0)
         self.assertIsNone(empty['mean_tpot_ms'])
+
+
+class NativeLoadOverlap(unittest.TestCase):
+    def setUp(self):
+        fixture = DecodeOverlap()
+        fixture.setUp()
+        self.rows = fixture.rows
+        self.records = fixture.run_summary()['requests']
+        for i, r in enumerate(self.rows):
+            n = r['native_token_timing']
+            loaded = r['readiness_tier_before_dispatch'] != 'gpu'
+            acquired = n['native_dispatch_monotonic_s'] - .1
+            owner, lease = f"owner-{r['instance_id']}", f'lease-{i}'
+            n.update(gpu_reference_owner_id=owner, gpu_reference_lease_id=lease)
+            r['gpu_reference_evidence'] = dict(receipt=dict(
+                acquired=True, owner_id=owner, lease_id=lease, worker_pid=123 if i<2 else 124,
+                worker_rank=0, clock_id='clock', acquisition_operation='demand_load_and_acquire',
+                completion_fence_scope='current_worker_cuda_stream',
+                acquired_monotonic_s=acquired, completion_fence_ms=100.,
+                native_load_invoked=loaded, gpu_resident_before_load=not loaded,
+                source_tier_before_acquisition='host' if loaded else 'gpu',
+                native_load_started_monotonic_s=1.1 if loaded else None,
+                native_load_completed_monotonic_s=acquired if loaded else None,
+                load_and_acquire_ms=900. if loaded else 100.))
+
+    def analyze(self):
+        return native_load_overlap_summary(self.rows, self.records, clock_id='clock')
+
+    def test_narrow_load_excludes_wait_self_and_other_owner(self):
+        result = self.analyze()
+        a, b, c = result['requests']
+        self.assertAlmostEqual(a['load_overlap_s'], .8)
+        self.assertAlmostEqual(a['load_body_overlap_s'], .7)
+        self.assertAlmostEqual(a['fence_overlap_s'], .1)
+        self.assertAlmostEqual(a['load_decode_fraction'], .2)
+        self.assertFalse(b['load_overlap'])
+        self.assertFalse(c['load_overlap'])
+        self.assertEqual(result['native_load_count'], 1)
+        self.assertEqual(result['native_owner_count'], 2)
+        self.assertIsNone(a['load_start'])
+        self.assertIsNone(a['native_load_ms'])
+        self.assertIsNone(result['n_correct'])
+        self.assertFalse(result['formal_qualification'])
+
+    def test_endpoint_touch_excluded(self):
+        e = self.rows[1]['gpu_reference_evidence']['receipt']
+        e.update(acquired_monotonic_s=1., native_load_started_monotonic_s=.5,
+                 native_load_completed_monotonic_s=1.)
+        self.assertFalse(self.analyze()['requests'][0]['load_overlap'])
+
+    def test_gpu_protection_before_controller_admission_is_legal(self):
+        self.rows[0]['native_token_timing']['controller_admitted_monotonic_s'] = .95
+        self.records[0]['admitted'] = .95
+        result = self.analyze()
+        self.assertEqual(result['requests'][0]['acquired'], .9)
+        self.assertFalse(result['requests'][0]['native_load_invoked'])
+
+    def test_no_load_or_no_group_latency_is_not_zero_measurement(self):
+        e = self.rows[1]['gpu_reference_evidence']['receipt']
+        e.update(native_load_invoked=False, gpu_resident_before_load=True,
+            source_tier_before_acquisition='gpu', native_load_started_monotonic_s=None,
+            native_load_completed_monotonic_s=None)
+        result = self.analyze()
+        empty = next(g for g in result['groups'] if g['group']=='load_overlap' and g['label'] is True)
+        self.assertEqual(empty['count'], 0)
+        self.assertIsNone(empty['mean_tpot_ms'])
+        self.assertTrue(result['requests'][0]['fence_overlap'])
+
+    def test_malformed_receipts_rejected(self):
+        original = copy.deepcopy(self.rows)
+        for key, value in [('clock_id','other'), ('owner_id','unbound'), ('worker_pid',0),
+                           ('native_load_completed_monotonic_s',1.8),
+                           ('native_load_started_monotonic_s',1.85),
+                           ('completion_fence_ms',float('nan')), ('completion_fence_ms',-1),
+                           ('native_load_invoked',1), ('gpu_resident_before_load',True),
+                           ('acquired_monotonic_s',3), ('load_and_acquire_ms',500.)]:
+            self.rows = copy.deepcopy(original)
+            self.rows[1]['gpu_reference_evidence']['receipt'][key] = value
+            with self.subTest(key=key,value=value), self.assertRaises(ValueError):
+                self.analyze()
+        self.rows = copy.deepcopy(original)
+        self.rows[0]['gpu_reference_evidence']['receipt']['native_load_started_monotonic_s'] = 0.
+        with self.assertRaises(ValueError):
+            self.analyze()
+
+    def test_retained_mapping_and_worker_incarnation_strict(self):
+        self.rows[1]['gpu_reference_evidence']['receipt']['worker_pid'] = 999
+        with self.assertRaises(ValueError):
+            self.analyze()
+        self.rows[1]['gpu_reference_evidence']['receipt']['worker_pid'] = 123
+        self.records[0]['first'] += .1
+        with self.assertRaises(ValueError):
+            self.analyze()
+
+    def test_duplicate_rows_or_leases_rejected(self):
+        with self.assertRaises(ValueError):
+            native_load_overlap_summary(self.rows+[self.rows[0]], self.records, clock_id='clock')
+        self.rows[1]['gpu_reference_evidence']['receipt']['lease_id'] = 'lease-0'
+        self.rows[1]['native_token_timing']['gpu_reference_lease_id'] = 'lease-0'
+        with self.assertRaises(ValueError):
+            self.analyze()
 
 
 if __name__=='__main__':
