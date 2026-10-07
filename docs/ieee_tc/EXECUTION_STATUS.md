@@ -11,7 +11,45 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D303 full4000 completed/released; full audit next, do not rerun
+## CURRENT — D303 fully audited; confirmed-state fix retained, 7B goal still open
+
+2026-10-07 08:15+08. Full plan/V1 reread; existing analyzers extended only for
+D303 frozen identity/new outputs. SAME completed4000 reused, no GPU rerun,
+warm/profile/numerical repeat, figures,3B or externalbaseline work.
+validated1/audit.json SHA29508b8165e940eb98f55f848442c77f277c2ea413d535229a1f0be8df710ca2;
+context1/context.json SHA01004237b17c14e3566d75abf7ba78f2706cf771fe23ef86e7ad040731226ff8.
+4000native-contract complete, zero failure; all inputfields equalD300 and10binding
+checks4000/4000.191outputhashchanges retained, NOTnumerical qualification.
+132remoteUUIDjoins/131480060wirebytes/no requestpacking; same remote work asD300.
+4039resourcesamples; peak22123409408B/minhost93849612288B,swap/high/max/OOM0.
+Eightphysicalleasesclosed; remoteexit73postmeasurementguardexplicitlyretained.
+Protected146/147 andsoleknownbaselineSHA unchanged; usermanifest/source unchanged.
+
+Mean/P95TTFT1288.659541/2899.768391ms,mean/P95TPOT34.463616/68.104561ms,
+E2E4.964285s,physical15476.010963GPU-s. VersusD300:meanTTFT7.3434%lower,
+P95TTFT5.3744%lower,U0.5985%lower BUTP95TPOT10.2034%higher. D170timing-only
+3810/4000=95.25%,+0.10pp,notformalSLO. N_correctnull/sharedfinalreferencesopen.
+Strictwaitpartition162.868184+37.218513+460.790672=660.877369ms;
+meanrouting214.665988→174.322781ms(-18.7935%),notadditiveagain.
+Observedcachehitmax1537→3118; finalviewauthoritativeread3178→3040,
+notexactRPCtotals/causalconditionalgroups.7scaleups/4downs vs5/2closed-loop.
+TTFTtimingmiss81→55 butTPOT118→139; keepallregressions. Onefullrunperconfig,noCI.
+
+56timing/route/waittests pass. ThreeboundedCPUscopes3/4GiB,swap0,CPU2,3,26,27
+peaks740319232/1063010304/501297152B,noevents,empty/stoppedbyInvocationID.
+NativecgroupreadinitiallyusedwrongUIDpath; correctedfromsystemdControlGroup,
+nochangeinlimitsoranalysis. Source/config/oldresultsnotmutated.
+
+All30manifestinput/outputSHAchecks pass; bounded checksum scopepeak2379776B,
+noevents/empty/stopped. NEXT exactstage/secretscheck andpushanalysischeckpoint;
+then singleevidence-led7Bdiagnosisofdecode-tail/regressionandremainingadmissionwait.
+Reviewhistory/officialsourcesbeforeanyservingchange; noautomaticthresholdsweep,
+soft=hardtarget,orwarm/source/numericalrepeat. RetainD301correctnessfixbutdoNOT
+declare7Bclosed. Beforeanynextheavy, disk160551415808B is below150GiBgate;
+auditendedrebuildablecaches/referencesandsafecleanup,neveruniqueevidence.
+NoGPUorremoteservicerunning;goalactive. FullreportD303_FULL_CONFIRMED_SCOPE.md.
+
+## HISTORY — D303 full4000 completed/released; full audit next, do not rerun
 
 2026-10-07 08:02+08. Same D303 completed4000/4000native-contract requests,
 zero reported failures. launcher/replay/watchdog0, native GPU census clear,

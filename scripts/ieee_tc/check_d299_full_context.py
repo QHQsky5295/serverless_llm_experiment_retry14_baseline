@@ -1,4 +1,4 @@
-"""Thin post-release D299/D300 check reusing native audits and frozen seal helpers.
+"""Thin post-release D299/D300/D303 check reusing native audits and seal helpers.
 
 No inference, figures, new metric definitions, or overwriting existing results.
 The large outcome is projected through jq streaming, never loaded as a tree.
@@ -65,6 +65,13 @@ def main(campaign='d299'):
         reference = 'd299'
         health_name = 'remote_health.json'
         change_caveat = 'Only the request-path scale-in latency reference changes; closed-loop trajectories may all change.'
+    elif campaign == 'd303':
+        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d303_20261007'
+        RUN = RAW/'7b_full_w0'
+        OUT = ROOT/'paper_results/ieee_tc/p2_backend/d303_full_w0/context1'
+        reference = 'd300'
+        health_name = 'remote_health.json'
+        change_caveat = 'Same controls; only D301 confirmed-scope publication fix changes. Closed-loop trajectories may all change.'
     elif campaign != 'd299':
         raise ValueError('unknown frozen full-run identity')
     assert not OUT.exists()
@@ -135,6 +142,13 @@ def main(campaign='d299'):
                  change_caveat,
                  'Binding and native counts do not by themselves qualify kernel arithmetic.',
                  'Warm reference remains provisional; shared final references remain open.'])
+    if campaign == 'd303':
+        receipt = read(CURATED/'d303_full_w0/completion_receipt.json')
+        assert receipt['source_result_sha256'] == re['source_sha256']
+        assert receipt['remote_transfers_sha256'] == sha256(journal)
+        assert receipt['remote_monitor_sha256'] == sha256(RAW/'remote_monitor.log')
+        result['remote_shutdown'] = receipt['remote_shutdown']
+        result['caveats'].append('Remote monitor exit73 is retained as a post-measurement shutdown-order guard; not all remote return codes are zero.')
     OUT.mkdir(parents=True,exist_ok=False)
     with (OUT/'context.json').open('x') as handle:
         json.dump(result,handle,indent=2,allow_nan=False)
@@ -148,6 +162,8 @@ def main(campaign='d299'):
     paths=[*sources.values(),outcome,journal,RAW/'remote_monitor.log',RAW/health_name,
            RUN/'launch.json',RUN/'launch.launch/watchdog.jsonl',Path(__file__),
            ROOT/'scripts/ieee_tc/plot_d290_diagnostic.py',ROOT/'scripts/ieee_tc_preflight.py']
+    if campaign == 'd303':
+        paths.append(CURATED/'d303_full_w0/completion_receipt.json')
     with (OUT/'manifest.json').open('x') as handle:
         json.dump(dict(source_refs=[dict(path=str(p),sha256=sha256(p)) for p in paths],
             outputs={p.name:sha256(p) for p in sorted(OUT.iterdir()) if p.name!='manifest.json'}),handle,indent=2)
@@ -157,5 +173,5 @@ def main(campaign='d299'):
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--campaign', choices=('d299', 'd300'), default='d299')
+    parser.add_argument('--campaign', choices=('d299', 'd300', 'd303'), default='d299')
     main(parser.parse_args().campaign)

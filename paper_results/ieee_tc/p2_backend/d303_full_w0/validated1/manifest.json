@@ -1,0 +1,53 @@
+{
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d303_20261007/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d303_7b_full_w0.json",
+      "sha256": "9bd86f5647a2723fa0aed67a98b92a72b477f725ef91b98a0182f348eaa7598e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261002_d170_warm_measurement.json",
+      "sha256": "0ebc7587effe293dcb986d33fb932c100cbcb3384c56ab2c0b0bec73b2bdd88c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json",
+      "sha256": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c"
+    },
+    {
+      "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261007_d303_7b_full_w0.yaml",
+      "sha256": "18a5d633fac9a5cf13d4be260d323bb7796ad8698c4d7fd2e0493de141fcb3e5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d303_20261007/7b_full_w0/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "e0ef7e17e9ed8b6e953f11e7d6621caefa41781192da1396876b3f66fa329540"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/analyze_d297_full.py",
+      "sha256": "26d475af9ce80c269ca5b1fddfc538b0496ed37da5dc3d96d8debe74c2230ebd"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/plot_d290_diagnostic.py",
+      "sha256": "fdb7898478701b4142bfc15feb231f9c94da566215ec1247ad1ddf6e58d98f9d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/analyze_control_path_overhead.py",
+      "sha256": "8182cb6c33b5a9d91d779122bea265d7af785aab45f89b92bb3b996ed17959db"
+    }
+  ],
+  "outputs": {
+    "admission_waits.json": "faf2e3cd15802745656568dad43aea5737a2dbef5cda1a63fb9518fdab64be82",
+    "audit.json": "29508b8165e940eb98f55f848442c77f277c2ea413d535229a1f0be8df710ca2",
+    "control_audit.json": "9bbd000278f4cf2dbcba9c2a5bef35872e7fec1e0757e3035d209f00e7acb47f",
+    "control_samples.csv": "6c71c0efd3530af304b0deb984151a9054e8bf9f765be136bd25c3208c3b41d5",
+    "requests.csv": "65dc39da5b2b424fb97240ff36925aedc57e111ce40ad91932142daede290145",
+    "timing_groups.csv": "48217df6339b55caa46fa3147c69f910dcd2218574431c9b5203157dddfeca1e"
+  },
+  "no_figures": true
+}

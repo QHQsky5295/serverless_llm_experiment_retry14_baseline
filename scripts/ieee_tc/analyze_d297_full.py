@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""D297/D299/D300 data-only audit using existing native and provisional timing checks.
+"""D297/D299/D300/D303 data-only audit using existing native and timing checks.
 
 This is an offline driver, not a serving change, new benchmark, or qualification.
 Use a bounded auxiliary scope after all inference processes have exited.
@@ -107,6 +107,12 @@ def main(campaign='d297'):
         OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d300_full_w0/validated1'
         SOURCE = RUN / 'experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d300_7b_full_w0.json'
         source_sha = '0964d7a58feeebadf607e72f6f6ea7a09b949d6df44da684bb86d0c27e8be974'
+    elif campaign == 'd303':
+        RAW = ROOT / 'results/ieee_tc/p2_backend_qualification/d303_20261007'
+        RUN = RAW / '7b_full_w0'
+        OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d303_full_w0/validated1'
+        SOURCE = RUN / 'experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d303_7b_full_w0.json'
+        source_sha = '9bd86f5647a2723fa0aed67a98b92a72b477f725ef91b98a0182f348eaa7598e'
     elif campaign != 'd297':
         raise ValueError('unknown frozen full-run identity')
     assert sha256(PLAN) == '0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7'
@@ -193,6 +199,8 @@ def main(campaign='d297'):
                  'Provisional warm thresholds are not globally frozen common SLO.',
                  'Conditional tier groups are not causal comparisons.']))
     print(json.dumps(dict(stats=stats, timing=timing), indent=2), flush=True)
+    if campaign == 'd303':
+        write('admission_waits.json', summarize_admission_waits(requests))
     del requests, normalized
     gc.collect()
 
@@ -247,7 +255,7 @@ def main(campaign='d297'):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--campaign', choices=('d297', 'd299', 'd300'), default='d297')
+    parser.add_argument('--campaign', choices=('d297', 'd299', 'd300', 'd303'), default='d297')
     parser.add_argument('--admission-wait-output', type=Path,
         help='Data-only D299/D300 retained wait partition; explicit new output directory')
     args = parser.parse_args()
