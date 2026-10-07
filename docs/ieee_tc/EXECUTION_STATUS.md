@@ -11,7 +11,69 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D307 single token-budget candidate prepared; source measurement is next
+## CURRENT — D307 attempt1 failed; atomic source pin fixed and CPU-tested, retry next
+
+2026-10-07 09:21+08. Source run actually executed and stopped on correctness
+conflict, NOT OOM/network/budget evidence. Planned248,started16,completed15,
+232notstarted. source-profile/w1/l6 translate_lora remote verified publication
+then ConfirmedSourceConflict at _ensure_local_async snapshot→acquire gap.
+SourceSHA44cfe310a60e48fde07ef2c7b26cec56077bc4a68f09d874fdb3a069b81aeead;
+raw retainedd307_20261007/source1*.json. No initialization profiles exported.
+Observed118.506740GPU-s;16remoteUUIDs/68345508B alljoined/no packing. NIC1000/full.
+130resourcesamples,peak5451767808B,minhost107744985088B,allmemoryevents/swap0.
+Actual GPU context release confirmed and source workspaces removed. Owned
+remote MONITOR stopped FIRST; existingtrap released3B/7B artifactservices,
+allinactive/PID0/exit0. Journals/logs copied. failureaudit.json is named
+paper_results/ieee_tc/p2_backend/d307_prefill/attempt1_failure.json.
+
+Read history3c86c85/8cff52a/2b54c69 and officialPythonRLock/vLLMworker manager.
+Two deterministic CPU interleavings reproduced SAMEerror beforefix (2errors).
+Fix: one existing owner RLock transaction for re-observe/select/pin after
+materialization. Network/nativeRPC/await remainOUTSIDE; no retry/fallback,
+no relaxed epoch/content checks, no formula/source-class change.57related
+CPUtests pass. New serving source must be committed/backedup before nextGPU.
+Comparison withD303 includesnecessaryatomicityrepair plusbudget/profile;
+doNOT claimpurebudgetcausality. Exact competing thread in rawfailure unknown.
+
+NEXT verify/stageexactfiles/push; explicit run_d298_capacity_source.sh
+d307-attempt2 uses SAMEconfig/spec with newraw d307_20261007/attempt2, never
+overwriteattempt1. Preparefreshremote wrapper/monitor identity/health; reread
+fullplan/status/V1 before launch and pass original safety gates. Export arg
+d307-attempt2 aftersuccess+release only. Then100Fullsmoke/newprofiles,4000W0.
+No extra tokenbudget sweep/warm/coverage/cache rebuild/numeric qualification/
+figures. No new GPUrun currently;7B→3B→baselines mainline and activegoal retained.
+
+## HISTORY — D307 source measurement RUNNING; monitor same owned job
+
+2026-10-07 09:13+08. Fullplan/status/V1 and run/monitor/github skills reread.
+Reused D298 remote wrapper with only fresh D307 identities; unchanged D80 cache,
+service and monitor. Remote NIC1000/full observed. Source launched ONCE in tmux
+primelora_d307_source at09:12:59, source commit5b6280a37b39cd606f0ef9a57a6977062cb21e99.
+Local svc62d579c7735e443bb897fb1779476c22.scope invocation0165438c1bc141638fad2d2bd2f8679f;
+aux9970f8aa443d4ae3b90905036a4ea3c9.scope, watchdog3969818/start84282767.
+Existing gated-launch attached watchdog before model init;72/80GiB,swap2GiB,
+separate3/4GiBaux/swap0 readback passed. Initial foreign compute empty.
+No new serving code/config changes or parallel heavy work while measuring.
+
+Remote3B invocation5a0a3fd2eb794d198f3c995437dee4ae/PID1378250,
+7B17c1d050da0b4c05814e1c67c6426ecf/PID1378252,
+monitor b2488db854e74ed1a1068e756e4eda27/PID1378255.
+Authenticated direct health clockremote-process-monotonic:18dfc3312d2f453190f544a0f3ebc009;
+journalfilename transfers-81e442f033a64c6dbd7b1bb1342e95b1.jsonl (not clockUUID).
+Initial OS-Python health helper lacked numpy; no HTTP request was issued. Correct
+existing conda helper succeeded at09:13:10 during engine initialization after
+gated launch. This timing is recorded, not claimed as a prelaunch health receipt.
+Raw d307_20261007/{start_remote.sh,remote_start.log,remote_health.json,source_commit.txt,
+source1_launcher.log,source1_launch.launch/} retain actual identities.
+
+NEXT monitor SAME248-call source run, no duplicate launch. After local release,
+stop captured remote MONITOR FIRST, verify its trap releases both owned artifact
+services; copy exact journal/monitor/stop logs and export_d298_profiles.py d307
+in bounded CPU scope. Then100Fullsmoke/new measured profiles, then4000W0. No
+repeat warm,500HTTPcoverage,numerical qualification,cache publication or figures.
+7B goal not yet achieved;3B/baselines/formal comparisons still pending.
+
+## HISTORY — D307 single token-budget candidate prepared; source measurement is next
 
 2026-10-07 09:06+08. Fullplan/V1 reread, once-only remote cache authorization
 alreadyimplementedD78/D80, no rebuild. D306checkpoint63fd6a56d9d4d8c2aebd7753818df1c530484002

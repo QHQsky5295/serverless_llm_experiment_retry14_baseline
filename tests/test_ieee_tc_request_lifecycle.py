@@ -2531,6 +2531,64 @@ class ConfirmedFilePublication(unittest.TestCase):
             (self.payload if payload is None else payload).items())))
         return self.runner._materialize_remote_adapter('a', self.nvme / 'a')
 
+    def _check_materialized_source_transaction(self, already_published):
+        """Force another publisher between the reader's snapshot and pin.
+
+        The competing thread advances the owner epoch only if it can enter
+        the real mutation lock. This is a deterministic CPU interleaving,
+        not a performance measurement or a mock that suppresses conflicts.
+        """
+        self.runner._routing_policy = 'ieee_confirmed'
+        self.runner._remote_materialize_locks = {'a': asyncio.Lock()}
+        self.runner.nvme_dir = self.nvme
+        self.runner._nvme_cache = {}
+        self.runner._ieee_artifact_identities = {'a': self.client.routing_identity(
+            'a', self.payload['adapter_config.json'])}
+        if already_published:
+            self.assertTrue(self.fetch()[0])
+        async def materialize(*args, **kwargs):
+            # Network/materialization must never execute under the pin lock.
+            self.assertFalse(self.owner.lock._is_owned())
+            return self.fetch()
+        self.runner._materialize_remote_adapter_async = AsyncMock(side_effect=materialize)
+        reservation = SimpleNamespace(adapter_id='a', request_id='r',
+            slot=SimpleNamespace(engine=Mock(), instance_id='replica'),
+            gpu_reference_evidence={}, local_source_owner=None)
+        attempts = []
+        original_acquire = self.owner.acquire_confirmed
+        def compete_then_acquire(**kwargs):
+            def publisher():
+                entered = self.owner.lock.acquire(blocking=False)
+                attempts.append(entered)
+                if entered:
+                    try:
+                        self.owner.source_epoch += 1
+                    finally:
+                        self.owner.lock.release()
+            thread = threading.Thread(target=publisher)
+            thread.start()
+            thread.join(3)
+            self.assertFalse(thread.is_alive())
+            return original_acquire(**kwargs)
+        with patch.object(self.owner, 'acquire_confirmed', side_effect=compete_then_acquire):
+            path, _ = asyncio.run(self.runner._ensure_local_async('a', reservation=reservation))
+        self.assertEqual(path, str(self.nvme / 'a'))
+        self.assertEqual(attempts, [False], 'snapshot and pin must share the owner lock')
+        self.assertEqual(self.runner._materialize_remote_adapter_async.await_count,
+                         0 if already_published else 1)
+        reference = reservation.gpu_reference_evidence['local_source_reference']
+        self.assertTrue(reference['content_verified'])
+        with self.owner.mutation(self.nvme / 'a') as allowed:
+            self.assertFalse(allowed)
+        self.owner.release(lease_id=reference['lease_id'], expected_owner_id=self.owner.owner_id)
+        self.assertFalse(self.owner.leases)
+
+    def test_remote_completion_snapshot_and_pin_are_one_owner_transaction(self):
+        self._check_materialized_source_transaction(False)
+
+    def test_coalesced_local_snapshot_and_pin_are_one_owner_transaction(self):
+        self._check_materialized_source_transaction(True)
+
     def test_actual_runner_publishes_verified_snapshot_and_protects_exact_copy(self):
         from faaslora.clock import local_monotonic_clock_id
         self.assertEqual(self.owner.source_snapshot('a')['sources'], [])

@@ -97,3 +97,44 @@ watchdog附着/资源检查，不将准备记录当作永久准入许可。
 五个CPU验证资源域峰值均低于0.60GB，无内存事件；GPU进程为空。
 147项历史保护仍只有同一已知baseline脚本差异，服务runner和用户dirty
 manifest均未变。当前没有新的GPU测量或remote操作，不宣称7B性能达标。
+
+## Attempt1 实测失败与原子性修正（09:20+08）
+
+第一次源运行已实际执行，不覆盖原记录。source1 SHA
+44cfe310a60e48fde07ef2c7b26cec56077bc4a68f09d874fdb3a069b81aeead，
+启动commit5b6280a37b39cd606f0ef9a57a6977062cb21e99。计划248，启动16，
+完成15（8warmup+7measurement），translate_lora 的remote样本在准备路径
+报 ConfirmedSourceConflict；232未启动，不伪作超时。未导出任何性能profile。
+实测占用118.50674037192948 GPU-s；16次远端传输共68345508线上字节全部
+UUID/内容/字节一致，无请求打包。NIC实测1000/full。资源峰值5451767808B，
+host最低107744985088B，high/max/OOM/swap均0。GPU释放已确认，先停止远端
+monitor，其既有trap正常关闭两个制品服务，全部inactive/PID0/exit0。
+详见 `paper_results/ieee_tc/p2_backend/d307_prefill/attempt1_failure.json`。
+
+原因位于Full与source collector共用的 `_ensure_local_async`：下载完成后
+`source_snapshot` 和 `acquire_confirmed` 分别持锁，中间未保持同一owner锁。
+其他后台下载线程可在两者之间发布并推进owner-wide epoch；没有await并不
+代表线程互斥。失败工件已验证并发布，错误不来自GPU推理、网络限速或OOM。
+原始运行没有记录失败瞬间的竞争线程，不能断言具体哪一个其他工件是触发者；
+但相同源代码的两个确定性并发测试均复现相同异常。
+
+修正只把重新观察本地来源、按HOST/NVMe顺序选取、原身份校验和获取读取
+保护放入同一短owner事务。不在锁内下载/等待/原生RPC，不吞掉冲突、不循环
+兜底、不放宽epoch/内容/footprint检验，不修改dispatch-time远端快照。
+原始读取引用继续阻止后续驱逐。九个公式、源分类、预算和512候选不变。
+
+依据：历史3c86c85引入分开观察与获取，8cff52a处理选择阶段已知冲突，但
+这里是remote已完成后的本地pin事务；2b54c69的identity发布并未消除此间隙。
+再次核查[Python3.12 RLock](https://docs.python.org/3.12/library/threading.html#rlock-objects)
+的跨线程互斥与重入语义，以及[vLLM0.30 LoRA worker管理](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/worker_manager.py)
+的加载/缓存状态序列。后者不是本项目文件层并发正确性的证明；修正依据是
+本项目共享owner的不变量和可重复的竞争测试，而非照搬后端类名。
+
+两项新测试先在旧代码得到2/2同类错误，修正后与既有publication/selected
+source/cancel/conflict/release测试共57项通过。网络调用在锁外也有断言。
+此次属于真实执行正确性修复，不宣称512降低TPOT。后续相较D303同时包含
+必要原子性修复及budget/profile变化，不能称严格纯budget因果消融。
+
+下一步使用同一config/spec的显式d307-attempt2，独立raw/attempt2，原运行
+完整保留。先备份再执行，不额外调token预算；新实测通过才允许导出profile、
+100smoke和4000W0。原先预备的d307默认仍指失败attempt1，不静默换标签。

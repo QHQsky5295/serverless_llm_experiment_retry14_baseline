@@ -1,0 +1,50 @@
+{
+  "kind": "d307_completed_cpu_scopes_v1",
+  "scopes": [
+    {
+      "unit": "primelora-d307-regression-before.scope",
+      "invocation_id": "698856d1bd1949be957ed58fc760a3fe",
+      "empty": true,
+      "peak_bytes": 554156032,
+      "events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0"
+      },
+      "swap_bytes": 0
+    },
+    {
+      "unit": "primelora-d307-regression-after.scope",
+      "invocation_id": "084868914c8a4d21bc429cc7162eba4b",
+      "empty": true,
+      "peak_bytes": 555352064,
+      "events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0"
+      },
+      "swap_bytes": 0
+    },
+    {
+      "unit": "primelora-d307-failure-audit.scope",
+      "invocation_id": "ad0ae1616a7440108c65d7b1152cd93c",
+      "empty": true,
+      "peak_bytes": 31625216,
+      "events": {
+        "low": "0",
+        "high": "0",
+        "max": "0",
+        "oom": "0",
+        "oom_kill": "0",
+        "oom_group_kill": "0"
+      },
+      "swap_bytes": 0
+    }
+  ]
+}

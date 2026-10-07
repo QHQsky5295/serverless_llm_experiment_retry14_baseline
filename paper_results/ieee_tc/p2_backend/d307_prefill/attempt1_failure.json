@@ -1,0 +1,71 @@
+{
+  "kind": "d307_source_attempt1_failure_audit_v1",
+  "audit_passed": true,
+  "experiment_passed": false,
+  "classification": "system_correctness_failure",
+  "stage": "source_profile_wave:1",
+  "error_type": "ConfirmedSourceConflict",
+  "error": "confirmed file source owner/epoch changed",
+  "failed_request": "source-profile/w1/l6",
+  "planned_cases": 248,
+  "started_cases": 16,
+  "native_contract_completed": 15,
+  "not_started_cases": 232,
+  "partial_measurements_not_exported": true,
+  "profile_qualified": false,
+  "n_correct": null,
+  "physical_gpu_seconds_observed": 118.50674037192948,
+  "remote": {
+    "transfers": 16,
+    "wire_bytes": 68345508,
+    "clock": "remote-process-monotonic:18dfc3312d2f453190f544a0f3ebc009",
+    "uuid_content_and_byte_join_passed": true,
+    "pack_performed": false,
+    "link_mbps_observed": 1000
+  },
+  "resources": {
+    "samples": 130,
+    "peak_bytes": 5451767808,
+    "min_host_available_bytes": 107744985088,
+    "max_swap_bytes": 0,
+    "events": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    }
+  },
+  "local_release_verified": true,
+  "remote_monitor_first_stop_verified": true,
+  "source_execution_commit": "5b6280a37b39cd606f0ef9a57a6977062cb21e99",
+  "raw_directory": "results/ieee_tc/p2_backend_qualification/d307_20261007",
+  "raw_sha256": {
+    "source1.json": "44cfe310a60e48fde07ef2c7b26cec56077bc4a68f09d874fdb3a069b81aeead",
+    "source1_launch.json": "88c1c7640ef77079f535f0f03c13fc418abd51b74f9e1b46a1b2eb7f1530ab14",
+    "remote_transfers.jsonl": "315ebb39b9542ebd467da3459a7fb6f5b6cac452d9fe2ab34b5758f867c1abdb",
+    "remote_health.json": "3f9ff30b30baa33f82bbcef747c322f9eb36f21ea8f91b272917d99d5f6c17b8",
+    "remote_monitor.log": "5a9f68220256b40723cee7b07bd4ca86ac15298d378ccfc9399785f06c7e657e",
+    "remote_stop.log": "953ad350648094afaa37e5cb849498f81fa89c3937773153c66f1dca85b3afec",
+    "source1_launch.launch/watchdog.jsonl": "6406b9a9166dd9de73da81018cf5c4067d753db84829fe4cdc7d0deb470ce63c"
+  },
+  "protection": {
+    "entry_count": 147,
+    "raw_pass": false,
+    "changed": [
+      "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"
+    ],
+    "known_changed_sha256": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "new_change": false
+  },
+  "regression": {
+    "before_fix_tests": 2,
+    "before_fix_errors": 2,
+    "same_error": true,
+    "after_fix_tests": 57,
+    "after_fix_passed": 57,
+    "scope": "CPU deterministic epoch interleaving and existing publication/selected-source request lifecycle, no GPU performance inference"
+  },
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "new_figures": 0
+}

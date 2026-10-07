@@ -40,8 +40,10 @@ def main(campaign='d298'):
     if campaign == 'd298':
         config_path = ROOT/'configs/ieee_tc/20261007_d298_7b_capacity_source.yaml'
         source_commit = '783fa42e6b3ba1cd0e034d8e0cddcd3d72c9b42e'
-    elif campaign == 'd307':
+    elif campaign in ('d307', 'd307-attempt2'):
         RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d307_20261007'
+        if campaign == 'd307-attempt2':
+            RAW = RAW/'attempt2'
         CURATED = ROOT/'paper_results/ieee_tc/p2_backend/d307_prefill'
         config_path = ROOT/'configs/ieee_tc/20261007_d307_7b_prefill_source.yaml'
         source_commit = (RAW/'source_commit.txt').read_text().strip()
@@ -177,7 +179,7 @@ def main(campaign='d298'):
         protection_raw=seal,offline_only=True,new_gpu_runs=0,no_figures=True,
         raw_evidence=[ref(path) for path in (source,launch_path,journal,watchdog,RAW/'remote_monitor.log',
             RAW/'remote_stop.log',config_path,runtime,Path(__file__),ROOT/'scripts/ieee_tc_preflight.py')])
-    if campaign == 'd307':
+    if campaign in ('d307', 'd307-attempt2'):
         result['raw_evidence'].append(ref(RAW/'source_commit.txt'))
     save('manifest.json',result)
     print(json.dumps(dict(passed=True,summary=summary,profiles=result['profiles'],coverage=coverage),indent=2),flush=True)
@@ -186,7 +188,7 @@ def main(campaign='d298'):
 if __name__ == '__main__':
     if not sys.argv[1:]:
         main()
-    elif sys.argv[1:] == ['d307']:
-        main('d307')
+    elif sys.argv[1:] in (['d307'], ['d307-attempt2']):
+        main(sys.argv[1])
     else:
-        raise SystemExit('Expected no argument or d307')
+        raise SystemExit('Expected no argument, d307 or d307-attempt2')

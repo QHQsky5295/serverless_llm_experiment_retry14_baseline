@@ -13,6 +13,12 @@ case "${1:-d298}" in
     CONFIG=configs/ieee_tc/20261007_d307_7b_prefill_source.yaml
     SPEC=paper_results/ieee_tc/p2_backend/d307_prefill/source_spec.json
     ;;
+  d307-attempt2)
+    # Same candidate/cases; explicit new execution after the atomic file-pin fix.
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d307_20261007/attempt2
+    CONFIG=configs/ieee_tc/20261007_d307_7b_prefill_source.yaml
+    SPEC=paper_results/ieee_tc/p2_backend/d307_prefill/source_spec.json
+    ;;
   *) exit 2 ;;
 esac
 [[ $# -le 1 ]] || exit 2

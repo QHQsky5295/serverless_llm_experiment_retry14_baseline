@@ -20280,14 +20280,19 @@ class ScenarioRunner:
                         # Keep its actual wait in service D, but do not publish
                         # an empty dict as its own complete-load observation.
                         reservation.gpu_reference_evidence['remote_preparation'] = transfer_evidence
+                # Download workers publish other adapters on background threads.
+                # Their owner-wide epoch may change even without an asyncio yield.
+                # Re-observe and pin the completed copy in one owner transaction;
+                # no network, native RPC or await is allowed inside this lock.
+                with owner.lock:
                     view = owner.source_snapshot(adapter_id)
-                candidates = sorted(view['sources'], key=lambda row: ('host', 'nvme').index(row['tier']))
-                if not candidates:
-                    raise RuntimeError('completed remote materialization has no verified source')
-                source = candidates[0]
-                reference = owner.acquire_confirmed(path=source['path'], adapter_id=adapter_id,
-                    lease_id=uuid.uuid4().hex, expected_owner_id=view['owner_id'], expected_epoch=view['epoch'],
-                    expected_content_sha256=self._ieee_artifact_identities[adapter_id]['content_sha256'])
+                    candidates = sorted(view['sources'], key=lambda row: ('host', 'nvme').index(row['tier']))
+                    if not candidates:
+                        raise RuntimeError('completed remote materialization has no verified source')
+                    source = candidates[0]
+                    reference = owner.acquire_confirmed(path=source['path'], adapter_id=adapter_id,
+                        lease_id=uuid.uuid4().hex, expected_owner_id=view['owner_id'], expected_epoch=view['epoch'],
+                        expected_content_sha256=self._ieee_artifact_identities[adapter_id]['content_sha256'])
                 reservation.local_source_owner = manager
                 reservation.gpu_reference_evidence['local_source_reference'] = reference
                 self._nvme_cache[adapter_id] = source['path']
