@@ -11,7 +11,7 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D312 transaction repair validated; D311 failure audited, backup next
+## CURRENT — D312 transaction repair validated/backed up; fresh native100 next
 
 2026-10-07 12:20+08. No GPU/remote experiment or CPU job is running. Source plan
 reread in full after compaction; SHA unchanged0c808509... . This turn made new
@@ -44,7 +44,12 @@ scope5e276f5c...peak2,627,743,744B/events0/swap0,emptychecked/stopped.
 CPUreceipt paper_results/ieee_tc/p2_backend/d312_host_transaction/cpu_checkpoint.json.
 Design/history/source comparison: D312_NATIVE_HOST_SOURCE_TRANSACTION.md.
 
-Next: tested backup, then fresh D312 native100 identity using same D310 settings
+Tested checkpoint1d92ec4e78fd5aa33355f06a028e3f0efe7f35a8 pushed to
+faaslora_origin/retry14_continuous_queue_v2; remote branch HEAD matched exactly.
+Diff/staged-path/credential-pattern checks and all19source SHA checks passed;
+the user's generated manifest was not staged and its SHA remained unchanged.
+
+Next: fresh D312 native100 identity using same D310 settings
 and D307 profiles, followed only after cleanup/audit by fresh full4000 W0. No
 new configuration/remote service has been prepared or launched yet. Reuse existing
 runner/prelaunch/smoke analyzer; only add explicit new identities and coldpaths.
