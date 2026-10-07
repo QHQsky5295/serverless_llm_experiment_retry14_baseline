@@ -1,0 +1,14 @@
+{
+  "removed_files": 1,
+  "removed_allocated_bytes": 1444200448,
+  "archive_sha256": "3051ec3dec5c452314f076d52fff2f79598110558e3a625fc1e4424ff79ac424",
+  "tracked_projects_unchanged": true,
+  "installed_environments_untouched": true,
+  "extracted_package_retained": true,
+  "after": {
+    "total": 3540727054336,
+    "used": 3198684282880,
+    "available": 162107236352
+  },
+  "audit_sha256": "b86800f5cbd8fe35b140912067a42d5de561a3d4c4d3cc5a7380e1a38ff54d80"
+}

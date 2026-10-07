@@ -634,6 +634,22 @@ class HistoricalServiceRebin(unittest.TestCase):
 
 
 class LengthCandidateConfiguration(unittest.TestCase):
+    def test_d328_observation_changes_only_exclusive_paths(self):
+        import copy
+        import yaml
+        root = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+        previous = yaml.safe_load((root/'configs/ieee_tc/20261008_d326_7b_full_w0.yaml').read_text())
+        actual = yaml.safe_load((root/'configs/ieee_tc/20261008_d328_7b_full_w0_prefix1.yaml').read_text())
+        expected = copy.deepcopy(previous)
+        for section, field in [('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                               ('storage', 'host_cache_dir')]:
+            expected[section][field] = previous[section][field].replace(
+                'd326_20261008', 'd328_20261008').replace('tc-d326-', 'tc-d328-')
+            expected[section][field] += '-prefix1' if field == 'host_cache_dir' else '_prefix1'
+            self.assertNotEqual(actual[section][field], previous[section][field])
+        self.assertEqual(actual, expected)
+        self.assertEqual(actual['workload']['total_requests'], 4000)
+
     def test_d326_drain_candidate_changes_only_exclusive_paths(self):
         import copy
         import yaml

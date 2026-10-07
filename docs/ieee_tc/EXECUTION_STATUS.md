@@ -11,7 +11,27 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D327 closes lifecycle-only explanation; 7B steady-path measurement next
+## CURRENT — D328 prepared; launch ONE current 7B path diagnostic next
+
+2026-10-08 ~02:12+08 PROGRESS. Recovered1,444,200,448B byremovingONE
+publicPyTorchdownloadarchiveafterofficialSHA/size/HEAD/reference/open/linkchecks;
+installedandextractedpackages/resultsuntouched. Diskbackabove150GiB; no gatechange.
+Twoauditedcleanupscopesinactive,events/swap0. D328reuseofD326configandD200observer
+isready: only3exclusivepaths,originalW0first1000indices,160/24profilesunchanged.
+13tests10.570spass,CPUpeak515080192B/events0/swap0,scopeinactive.
+Prelaunchactualjointloader/model/protected/preflightpass; usermanifestunchanged;
+147sealonlyknownbaselineSHA04f3eb52...difference. Config/runtime/metric unchanged.
+Next: backuptestedcheckpoint, thenstartfrozenremotesandtmuxD328; do notstopat
+anotherpreparation-onlyturn. NoGPUrunyet, nofigures. FollowD328docforclosure.
+Numerical/commonwarm/Resident/old-new/G1G2remainOPEN;7B->3B->baselineorderunchanged.
+
+## HISTORY — D327 closes lifecycle-only explanation; 7B steady-path measurement next
+
+Backupverified2026-10-08T02:01+08: HEAD and independentremote both
+e424881aeb9770f44b9c37a8cbf19fdc65ad78a5;17explicitpaths, credentialchecks clean.
+Beforethispostpushnote onlyuser manifesttrackeddirty. No activejob/GPUservice;
+bothCPUscopesinactive. NEXT is diskrecovery/currentboundeddiagnostic below,
+not another D327 analysis/test/backup-only turn. Goal remains active.
 
 2026-10-08 ~02:00+08 PROGRESS. Reused sealed D323/D326 full4000 results with
 the existing D319 event-defined common-cohort method; no inference, remote,
