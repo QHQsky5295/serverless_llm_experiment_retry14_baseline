@@ -47,6 +47,31 @@ baseline 脚本差异及 SHA 未变；原始 pass=false 保留，不称全部一
 传输与监控日志并核对 SHA。复用现有完整回放 analyzer，另建 curated 输出。
 本轮不画图；7B 未验收前不进入 3B、外部 baseline 或后续消融敏感性。
 
-当前状态：启动前检查点 `26f0b3fa133c53e9ad2bedb9857d6844e71f2a39` 已推送
-并核对远端；06:53:45+08 启动完整回放。实际句柄及进度在 EXECUTION_STATUS.md。
-运行未结束，尚无完整性能结论；不得重复启动同一执行键。
+## 已完成运行，完整分析待做
+
+启动前检查点 `26f0b3fa133c53e9ad2bedb9857d6844e71f2a39` 已推送并核对远端。
+06:53:45+08 启动；08:01 请求记录达到 4,000/4,000，零失败。
+08:02 核验 launcher/replay/watchdog 返回0、原生 GPU census 清空、服务域
+移除。8 个物理 allocation journal 全部 released，无开放 lease。
+物理总量 15,476.010963 GPU-s，四个互斥窗口求和检查通过。这不是正式
+per-correct 指标：N_correct 仍未知，完整绑定、远端关联和性能审计待做。
+
+源结果 SHA `9bd86f5647a2723fa0aed67a98b92a72b477f725ef91b98a0182f348eaa7598e`。
+完成与释放回执在 `paper_results/ieee_tc/p2_backend/d303_full_w0/completion_receipt.json`。
+不重跑本轮，不重复100/warm/profile/数值诊断；下一项复用既有 analyzer
+比较 D300，保留全部差异，不能从完整运行成功直接宣布 G1/G2 达标。
+
+### 远端收尾记录
+
+本机释放确认之后，按已捕获身份依次停止 3B/7B 工件服务，两者均
+inactive/PID0/success。监测服务在同主机日志的 08:02:58 以73退出，状态
+failed/PID0，未清除该状态。冻结脚本明确用73表示所属服务 InvocationID
+不再匹配；日志顺序为工件服务停止之后，监测检查才退出。它不是系统标签
+CANTCREAT 所暗示的写入失败，也不是推理期间的中断。
+3798 个监测样本保留，无 safety_abort 标记；传输/监测及脚本已保存，
+本地与远端 SHA 一致。这里依据操作顺序和同机 journal，不直接相减跨机时间。
+
+后续正常收尾应在本机释放确认后，先停止已捕获的 monitor invocation；
+其原有 EXIT trap 会按身份停止所属工件服务，然后逐项核验全部 PID0。
+不改正式测量路径，不重启本轮服务，不因这一收尾状态覆盖或重跑数据。
+完整远端 UUID/字节关联仍由既有结果审计完成。

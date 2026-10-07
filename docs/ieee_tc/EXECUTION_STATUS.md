@@ -11,7 +11,48 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D303 full W0 running, continue SAME run
+## CURRENT — D303 full4000 completed/released; full audit next, do not rerun
+
+2026-10-07 08:02+08. Same D303 completed4000/4000native-contract requests,
+zero reported failures. launcher/replay/watchdog0, native GPU census clear,
+servicepath removed, eight allocation journals released and no open leases.
+PhysicalU15476.010963284993GPU-s; mutually exclusive windows sum verified.
+N_correct remainsnull; no formal G1/G2/SLO or CI claim. Serving/config unchanged.
+SourceSHA9bd86f5647a2723fa0aed67a98b92a72b477f725ef91b98a0182f348eaa7598e;
+launchd2005aee486b8d0d8ac3fb8f0af9db3ba3a58a8940cd713fea01c58000d5ba9f;
+physicalsummary594b964caf8dfabe6ba1c32fbb81c8c4ae6fd5c35577002a5044c01e0625a35c.
+Read-only monitor session10742 exited after terminal receipt; no inference live.
+
+After confirmed localrelease, both remote artifact units stopped by captured
+InvocationID;inactive/PID0/success. Remote monitor exited73 at08:02:58 after
+artifact stop (failed/PID0 retained), NOT allremote returncodes0. Its frozen
+script uses73 for InvocationID mismatch, same-host journal confirms shutdown
+order.3798samples/no safety_abort. SeeD303_FULL_CONFIRMED_SCOPE.md and
+completion_receipt.json. Future teardown: stop captured monitor FIRST after
+localrelease; its existing owned_stop trap stops matching artifacts; then verify.
+No source/remote config change or rerun warranted by this post-measurement guard.
+
+Remote transfers-a9a0e0da1b75417caa0d37ced0cb7d4f copied asremote_transfers.jsonl
+SHAeed52207fbe0e3e711b8189c82043ea361c029a2e7191cd2dbfb5c2d031f925e;
+remote_monitor.log SHA22c3d05984ba926ec3f1d25d36abf59eea4678de634db737a8f150b68e364664;
+monitor script SHAda2c7d041e7fae858a404a7b104eade5162741faeaf9788d3a484080cf599b28.
+Allthree local/remoteSHAs agree. Eight source/receipt hashes rechecked; protected
+seal remains146/147, same soleknownbaseline-script difference; usermanifest and
+servingsource hashes unchanged. One CPU metadata check used unsupported system
+Python hashlib.file_digest; reused existing p.digest and verification passed,
+no data mutation/performance rerun. Bounded scopes peaks14766080/11505664B,
+nohigh/max/OOM, both empty. Last local disk160627437568B is below150GiB
+new-heavy-run gate but above100GiB stop; do not launch nextheavy until safe
+rebuildable-cache cleanup/reference audit, never delete unique evidence.
+
+NEXT fullplan/V1 reread and existing analyze_d297_full.py/check_d299_full_context.py
+extend onlyD303 identity, fresh curatedvalidated1/context1, same D300 reference.
+Need native/binding/remote UUID/resource/seal checks and strict wait partition;
+all full analysis is pending. No figures, warm/numerical repeat,3B/baseline work.
+Goalactive; first complete audit and retain both gains/regressions before next
+first-principles optimization. Do not rerun4000or100 merely because audit pending.
+
+## HISTORY — D303 full W0 running, continue SAME run
 
 2026-10-07 06:53:45+08 launched via existing runner argd303. Preregistered
 checkpoint26f0b3fa133c53e9ad2bedb9857d6844e71f2a39 pushed/remoteverified first.
@@ -21,8 +62,14 @@ Serviceprimelora-tc-svc-03b6fd78b5b14ff784b2ab064f16bb1f.scope invocation
 auxprimelora-tc-aux-431b908ca24247869ebb9d2f733e00cd.scope.
 Rawd303_20261007/7b_full_w0, no prefix limit; new local cold caches, same D300
 controls and D301 single fix. Initial native GPU census clean; watchdog ready.
-06:55:36+08: first12terminal records; same replay advancing, no resource abort.
-Observed servicepeak13764292608B, hostavailable99250900992B, high/max/OOM0.
+07:26:41+08: 2016/4000terminal, all success=true, no resource abort. Same live
+service invocation, launcher3358498 and watchdog3358585 verified throughout.
+Observed servicepeak19671531520B, hostavailable95787307008B, high/max/OOM0.
+Read-only poll session10742 checks those handles every45s and exits on launch.json;
+resume that monitor (or verify same service directly), do not relaunch inference.
+Full arrival window is3963.908903s; this is expected trace wait, not a blocker.
+This continuation reread the full plan and inspected existing offline analyzers;
+no serving/config changes, reference repeat, data processing or new experiments.
 Live-handle checkpointb15372dc6ea9c38925f43a537a97bfcc34ddd4cd pushed and
 remoteverified. No final outcome yet; do not launch another run or repeat D302.
 
