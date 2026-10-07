@@ -188,18 +188,23 @@ def audit_d311_incomplete():
                           terminal_meta=projected),indent=2),flush=True)
 
 
-def audit_d309_failure():
+def audit_d309_failure(campaign='d309'):
     """Preserve failed offered requests; no ranking, SLO qualification or figures."""
-    raw = ROOT/'results/ieee_tc/p2_backend_qualification/d309_20261007'
+    cases = {
+        'd309': ('811aadf1cc61d14f58b7ebf59a54f1406d05c8e161003f8fd6da947da662257b', 4040),
+        'd313': ('091c7ffe720b413610a2a366ed4e18315ec9896c68f6f1080d279e913d229f7c', 4036),
+    }
+    expected_source_sha, expected_samples = cases[campaign]
+    raw = ROOT/f'results/ieee_tc/p2_backend_qualification/{campaign}_20261007'
     run = raw/'7b_full_w0'
-    out = CURATED/'d309_full_w0/failure_audit1'
-    source = run/'experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d309_7b_full_w0.json'
+    out = CURATED/f'{campaign}_full_w0/failure_audit1'
+    source = run/f'experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_{campaign}_7b_full_w0.json'
     assert not out.exists()
     assert p.check_plan() == '0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7'
     protocol = ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'
     assert sha256(protocol) == '5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22'
     receipt = read(raw/'completion_receipt.json')
-    assert sha256(source) == receipt['source_sha256'] == '811aadf1cc61d14f58b7ebf59a54f1406d05c8e161003f8fd6da947da662257b'
+    assert sha256(source) == receipt['source_sha256'] == expected_source_sha
     assert sha256(run/'launch.json') == receipt['launch_sha256']
     launch = read(run/'launch.json')
     assert launch['pass'] and launch['native_gpu_context_release_confirmed'] and launch['service_path_removed']
@@ -295,13 +300,13 @@ def audit_d309_failure():
             if r['event'] == 'resource_sample':
                 assert not r['decision']['abort_reasons']
                 samples.append(r)
-    assert len(samples) == 4040 and events['gpu_terminal_census'] == events['service_domain_gone'] == 1
+    assert len(samples) == expected_samples and events['gpu_terminal_census'] == events['service_domain_gone'] == 1
     seal_path = ROOT/'paper_results/ieee_tc/safety/20260925_execution_start_protected.json'
     seal = p.verify_seal(seal_path)
     known = '/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py'
     assert seal['changed'] == [known] and seal['entry_count'] == 147
     assert sha256(Path(known)) == '04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22'
-    result = dict(kind='d309_failure_aware_context_v1',planned=4000,terminal=4000,
+    result = dict(kind=f'{campaign}_failure_aware_context_v1',planned=4000,terminal=4000,
         successful_returns=3999,failed=1,n_correct=None,n_good=None,
         all_correct_gate_pass=False,formal_qualification=False,ranking_eligible=False,
         input_identity_equal=True,input_fields_checked=FIELDS[:-1],control_binding_pass_counts=dict(counts),
@@ -453,11 +458,13 @@ def main(campaign='d299'):
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--campaign', choices=('d299', 'd300', 'd303', 'd309-failure', 'd311-incomplete'), default='d299')
+    parser.add_argument('--campaign', choices=('d299', 'd300', 'd303', 'd309-failure', 'd311-incomplete', 'd313-failure'), default='d299')
     campaign = parser.parse_args().campaign
     if campaign == 'd311-incomplete':
         audit_d311_incomplete()
     elif campaign == 'd309-failure':
         audit_d309_failure()
+    elif campaign == 'd313-failure':
+        audit_d309_failure('d313')
     else:
         main(campaign)
