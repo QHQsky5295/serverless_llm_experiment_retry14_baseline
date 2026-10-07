@@ -41,8 +41,10 @@ NativecgroupreadinitiallyusedwrongUIDpath; correctedfromsystemdControlGroup,
 nochangeinlimitsoranalysis. Source/config/oldresultsnotmutated.
 
 All30manifestinput/outputSHAchecks pass; bounded checksum scopepeak2379776B,
-noevents/empty/stopped. NEXT exactstage/secretscheck andpushanalysischeckpoint;
-then singleevidence-led7Bdiagnosisofdecode-tail/regressionandremainingadmissionwait.
+noevents/empty/stopped. Exact14-file stage andcredential-marker checks passed;
+CRLF-aware whitespace check preserves validatedCSVbytes. Analysis checkpoint
+c59b38e5606673ee40055960b9fc57bfd0946238 pushed andremoteHEADverified.
+NEXT singleevidence-led7Bdiagnosisofdecode-tail/regressionandremainingadmissionwait.
 Reviewhistory/officialsourcesbeforeanyservingchange; noautomaticthresholdsweep,
 soft=hardtarget,orwarm/source/numericalrepeat. RetainD301correctnessfixbutdoNOT
 declare7Bclosed. Beforeanynextheavy, disk160551415808B is below150GiBgate;
