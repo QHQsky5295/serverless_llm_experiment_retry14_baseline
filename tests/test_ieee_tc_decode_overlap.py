@@ -14,6 +14,39 @@ from scripts.ieee_tc.analyze_d297_full import (
 )
 
 
+class RegisteredD317Smoke(unittest.TestCase):
+    def test_config_changes_only_names_and_cold_paths(self):
+        import yaml
+        root = Path(__file__).resolve().parents[1]
+        old = yaml.safe_load((root/'configs/ieee_tc/20261007_d315_7b_full_w0.yaml').read_text())
+        candidate = yaml.safe_load((root/'configs/ieee_tc/20261007_d317_7b_copy_validation_100.yaml').read_text())
+        old['experiment']['output_dir'] = old['experiment']['output_dir'].replace('d315_', 'd317_').replace('7b_full_w0', '7b_copy_validation_100')
+        old['storage']['nvme_cache_dir'] = old['storage']['nvme_cache_dir'].replace('d315_', 'd317_').replace('7b_nvme_full_w0', '7b_nvme_copy_validation_100')
+        old['storage']['host_cache_dir'] = '/dev/shm/tc-d317-7b-copy-validation-100'
+        old['scenarios'][0]['name'] = 'tc_ieee_copy_validation_100'
+        self.assertEqual(candidate, old)
+
+    def test_new_identity_does_not_require_old_preparation_absent(self):
+        from scripts.ieee_tc import prepare_d298_capacity as module
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root/'paper_results/ieee_tc/p2_backend/d315_restored_full').mkdir(parents=True)
+            with mock.patch.object(module.p, 'ROOT', root), self.assertRaises(FileNotFoundError) as error:
+                module.verify_restored_full('d317')
+            self.assertIn('20261007_d317_7b_copy_validation_100.yaml', str(error.exception))
+
+    def test_existing_new_output_and_unknown_identity_rejected(self):
+        from scripts.ieee_tc import prepare_d298_capacity as module
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root/'paper_results/ieee_tc/p2_backend/d317_copy_validation').mkdir(parents=True)
+            with mock.patch.object(module.p, 'ROOT', root):
+                with self.assertRaisesRegex(AssertionError, 'never overwrite'):
+                    module.verify_restored_full('d317')
+                with self.assertRaises(ValueError):
+                    module.verify_restored_full('unregistered')
+
+
 class RegisteredD315Contrasts(unittest.TestCase):
     def test_context_references_have_separate_new_outputs(self):
         from scripts.ieee_tc import check_d299_full_context as module

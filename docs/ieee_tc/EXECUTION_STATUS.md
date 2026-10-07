@@ -11,7 +11,33 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D316 single event-confirmed GPU-copy candidate CPU-validated; D317 next
+## CURRENT — D317 registered 100-request native validation, launch pending
+
+2026-10-07 18:08+08. D316 tested change backed up to b9975ef28c37195ec4d0c806
+bfabce36f7265f40; exact remote branch HEAD verified. No performance win claimed.
+D317 adds ONLY an explicit existing-runner identity, cold output/cache paths
+and scenario name. Configuration8eccbe6648036c947ed4a8d67b2837a19169aa74b796
+07d486734110a8761350 equals D315 otherwise. It uses the existing100-prefix,
+not a regenerated trace. D29840service/24preparation class bindings and actual
+native child match; protected147/user manifest checks pass with known rawseal
+exception unchanged. No new model profiles, safety thresholds or evaluation.
+
+64 registration/route/analysis tests pass0.138s; prelaunch binding passes.
+BoundedCPU Invocationefdda784094b45a19ba10b0d1d246d8f peak558866432B,
+3/4GiB/0swap,CPUs2,3,26,27,events0. ActualprocsEMPTY/populated0 checked then
+stopped. Prelaunchlog SHA c0e84ffdbfc1011d81b043b6535317574706af5c5d1b086
+c6e2c11080439f56a. See d317_copy_validation/prelaunch_binding.json for8sources.
+ServingSHA remains262b8f58... already validated by419regressions/289smoke tests.
+
+NEXT back up registered entry, verifyremoteHEAD, then fresh host/disk/GPUgate;
+start unchanged owned artifact services+new monitor (no publication rebuild),
+authenticated direct health, launch d317 ONCE in tmux. Register100success,
+nativecount/binding/tier/physicalrelease and nonzero retained-GPU-scope branch;
+short performance cannot qualify G1/G2. Then one unchanged full4000 versusD315
+if safety/trigger pass. Preserve any failures and stop local optimization after
+this candidate's full interpretation. No figures,3B,baselines or protocol edits.
+
+## HISTORY — D316 single event-confirmed GPU-copy candidate CPU-validated; D317 next
 
 2026-10-07. PROGRESS: D315 full-log reuse analysis found2357 retained fresh-GPU
 views with unchanged target-copy identity after global epoch advancement,

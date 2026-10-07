@@ -408,17 +408,23 @@ def verify_prefill_smoke(campaign='d308'):
     print(json.dumps(dict(passed=True,config_sha256=p.digest(config),classes={k:v['classes'] for k,v in profile_receipts.items()})),flush=True)
 
 
-def verify_restored_full():
-    """D315: reuse measured 1024 configuration, retaining current correctness fixes."""
+def verify_restored_full(campaign='d315'):
+    """Bind restored 1024 Full or its D317 smoke to the measured child."""
     from scripts.run_all_experiments import (
         _prepare_scenario_runtime_model_config, _prepare_dedicated_subprocess_model_cfg)
     from faaslora.experiment.instance_pool import FrozenServiceProfiles
     from faaslora.preloading.preloading_planner import FrozenPreparationProfiles
     root = p.ROOT
     out = root/'paper_results/ieee_tc/p2_backend/d315_restored_full'
-    assert not out.exists(), 'never overwrite preparation'
     config = root/'configs/ieee_tc/20261007_d315_7b_full_w0.yaml'
     previous = root/'configs/ieee_tc/20261007_d303_7b_full_w0.yaml'
+    if campaign == 'd317':
+        out = root/'paper_results/ieee_tc/p2_backend/d317_copy_validation'
+        config = root/'configs/ieee_tc/20261007_d317_7b_copy_validation_100.yaml'
+        previous = root/'configs/ieee_tc/20261007_d315_7b_full_w0.yaml'
+    elif campaign != 'd315':
+        raise ValueError('unknown restored-1024 validation identity')
+    assert not out.exists(), 'never overwrite preparation'
     contract_path = root/'paper_results/ieee_tc/p2_backend/d298_capacity/development_contract.json'
     measured_path = root/'paper_results/ieee_tc/p2_backend/d298_capacity/initialization/manifest.json'
     c, old = (yaml.safe_load(x.read_text()) for x in (config, previous))
@@ -426,6 +432,11 @@ def verify_restored_full():
     expected['experiment']['output_dir'] = old['experiment']['output_dir'].replace('d303_', 'd315_')
     expected['storage']['nvme_cache_dir'] = old['storage']['nvme_cache_dir'].replace('d303_', 'd315_')
     expected['storage']['host_cache_dir'] = old['storage']['host_cache_dir'].replace('tc-d303-', 'tc-d315-')
+    if campaign == 'd317':
+        expected['experiment']['output_dir'] = old['experiment']['output_dir'].replace('d315_', 'd317_').replace('7b_full_w0', '7b_copy_validation_100')
+        expected['storage']['nvme_cache_dir'] = old['storage']['nvme_cache_dir'].replace('d315_', 'd317_').replace('7b_nvme_full_w0', '7b_nvme_copy_validation_100')
+        expected['storage']['host_cache_dir'] = old['storage']['host_cache_dir'].replace('tc-d315-7b-full-w0', 'tc-d317-7b-copy-validation-100')
+        expected['scenarios'][0]['name'] = 'tc_ieee_copy_validation_100'
     assert c == expected, 'undeclared difference from measured D303 settings'
     for path in (c['experiment']['output_dir'], c['storage']['nvme_cache_dir'], c['storage']['host_cache_dir']):
         assert not Path(path).exists(), 'run/cache identity already exists'
@@ -454,10 +465,11 @@ def verify_restored_full():
     files = (config, previous, contract_path, measured_path,
         root/'scripts/run_all_experiments.py', root/'faaslora/preloading/preloading_planner.py',
         root/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh', Path(__file__))
-    receipt = dict(kind='d315_restored_full_binding_v1', passed=True,
+    receipt = dict(kind=campaign+'_restored_full_binding_v1', passed=True,
         source_references=[dict(path=str(x.relative_to(root)),sha256=p.digest(x)) for x in files],
         model_config=child, assembly=assembly, profiles=profiles, protection_raw=seal,
-        same_d303_settings_except_paths=True, restored_measured_budget=1024,
+        same_measured_settings_except_paths_and_scenario=True, restored_measured_budget=1024,
+        diagnostic_prefix_count=100 if campaign == 'd317' else None,
         reused_source=measured['source_run'], current_correctness_fixes_retained=True,
         plan_sha256=p.check_plan(), metric_protocol_sha256=p.digest(root/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'),
         user_manifest_sha256=p.digest(root/'configs/generated/lora_manifest_1000.json'),
@@ -493,7 +505,9 @@ if __name__ == '__main__':
         verify_prefill_smoke('d313')
     elif sys.argv[1:] == ['--verify-restored-full']:
         verify_restored_full()
+    elif sys.argv[1:] == ['--verify-copy-smoke']:
+        verify_restored_full('d317')
     elif not sys.argv[1:]:
         main()
     else:
-        raise SystemExit('Expected no argument, --verify-launch, --prefill-candidate, --verify-prefill-launch, --verify-prefill-smoke, --verify-prefill-full, --verify-read-pin-smoke, --verify-read-pin-full, --verify-host-transaction-smoke, --verify-host-transaction-full or --verify-restored-full')
+        raise SystemExit('Expected no argument, --verify-launch, --prefill-candidate, --verify-prefill-launch, --verify-prefill-smoke, --verify-prefill-full, --verify-read-pin-smoke, --verify-read-pin-full, --verify-host-transaction-smoke, --verify-host-transaction-full, --verify-restored-full or --verify-copy-smoke')
