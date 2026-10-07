@@ -181,6 +181,31 @@ class RetainedLifecycle(unittest.TestCase):
         with tempfile.TemporaryDirectory() as root, self.assertRaises(FileExistsError):
             inspect_retained_lifecycle(root)
 
+    def test_registered_drain_pair_reuses_the_same_cohorts_without_mutation(self):
+        old_pair = self.pair()
+        pair = dict(d323=old_pair['d315'], d326=old_pair['d318'])
+        before = copy.deepcopy(pair)
+        result = paired_timeline_groups(pair, contrast=('d323', 'd326'))
+        old = paired_timeline_groups(old_pair)
+        self.assertEqual(result['pairs'], old['pairs'])
+        self.assertEqual(result['common_last_ready_offset_s'], old['common_last_ready_offset_s'])
+        self.assertEqual({g['run'] for g in result['groups']}, {'d323', 'd326'})
+        self.assertEqual(pair, before)
+        with tempfile.TemporaryDirectory() as root, self.assertRaises(FileExistsError):
+            inspect_retained_lifecycle(root, contrast=('d323', 'd326'))
+
+    def test_unregistered_reversed_or_implicitly_chosen_pair_rejected(self):
+        old_pair = self.pair()
+        pair = dict(d323=old_pair['d315'], d326=old_pair['d318'])
+        for contrast in (('d326', 'd323'), ('d315', 'd318'), ('d323', 'unknown')):
+            with self.subTest(contrast=contrast), self.assertRaises(ValueError):
+                paired_timeline_groups(pair, contrast=contrast)
+        with tempfile.TemporaryDirectory() as root, self.assertRaises(ValueError):
+            inspect_retained_lifecycle(Path(root)/'new', contrast=('d326', 'd323'))
+        pair['d326']['requests'][0]['adapter_id'] = 'other'
+        with self.assertRaises(ValueError):
+            paired_timeline_groups(pair, contrast=('d323', 'd326'))
+
     def resource_pair(self):
         old = dict(physical=self.physical(), deployment=dict(clock_id='clock', arrival_start_s=10.))
         new = dict(physical=dict(clock_id='new-clock', measurement_complete=True, open_lease_ids=[],

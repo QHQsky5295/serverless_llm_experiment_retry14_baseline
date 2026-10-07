@@ -11,7 +11,57 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D326 complete and audited; resource/latency trade-off, 7B still open
+## CURRENT — D327 closes lifecycle-only explanation; 7B steady-path measurement next
+
+2026-10-08 ~02:00+08 PROGRESS. Reused sealed D323/D326 full4000 results with
+the existing D319 event-defined common-cohort method; no inference, remote,
+serving/config/profile/threshold changes or figures. Explicit registered pair,
+source SHA gates and fresh output only.63CPU tests pass1.507s; fullanalysisexit0,
+scope d3cf52ba149b4331a3c30121af82042b peak1150197760B/events0/swap0,
+3/4GiB CPU2,3,26,27; exactownedempty scope stopped/readbackinactive.
+Finalcheckpoint22source/9analysisoutput/14bundleSHAchecks pass,syntax/diffpass;
+verificationscope124a60e149604aad8a3d7464dcc85ccf peak30908416B/events0/swap0,
+empty/stopped. GPUcomputeempty; disk160669499392B (<newheavy150GiB).
+
+After BOTH last engine-ready (common1366.513851s), same2703requests:
+P95TTFT2951.051->3350.996ms(+13.55%), mean1230.998->1334.201ms;
+meanadmission+62.783ms/service+40.420ms. Provisionaljointmiss80->104;
+P95TPOT50.603->48.502ms. Startup-union333requests P95TTFT3308.344->2430.856;
+outside3667requests2773.251->3176.239. All172outputSHAchangesretained.
+NotnumericalN_correct/formalSLO/CI orcausalretirementestimate. Earliercache/
+routinghistory canpersist; no claimthatretirementhasnoeffect. Thisrejects
+theoverstrongexplanationthattheentireregressionisonlycurrentstartupscarcity.
+
+No lost-release-wake demonstrated: after539.732 no_free_device, latercontrol
+samples haveactive<=8/cap16,queue<=2,TTFTbelowupper until570.433active9;
+no_action follows IEEEscore. No retry/timerpatch. D325 lifecycle remains.
+Read D319/D324/D326, D139/D140/D143/D187 history andcurrentcode; pureplanner
+alreadyoffloaded/staticdescriptionsalreadyreused. Ray2.59,HPA,Pythonasyncio,
+vLLMofficialCPUanalysischecked; do notimporttheirrulesorgainpercentages.
+
+Data: d327_drain_lifecycle/analysis1 (completegroups,8000intervalrows,provenance),
+execution_receipt.json; doc D327_DRAIN_LIFECYCLE_COHORTS.md. Once-onlycache
+approval already fulfilled byD78/D80: no rebuild/newunpackedpool. Original
+147sealrawfalse onlyknownbaselineSHA04f3eb52..., usermanifestunchanged.
+
+NEXT testedcheckpointbackup, thenONEcurrentD326-configuration bounded
+python_frames_v1 diagnostic usingexisting1000index/observers tolocatepresent
+controller/frontend/core waiting; no repeatD140100Hz/Cwatchdog/oldcomponent
+optimizations. Firstrecoverdisk>=150GiB usingauditedrebuildablecache/lossless
+archive, neverlowergates/deleteuniqueevidence. NoGPUdiagnosticprepared/launched
+yet. Endthislifecyclelogpartitiontask; don'tspendanotherturn repeatingit.
+7B->3B->baselines->comparisons->ablations/sensitivities; numerical/commonwarm/
+Resident/old-new/newmetricgoalsOPEN. No figures. Goalactive.
+
+## HISTORY — D326 complete and audited; resource/latency trade-off, 7B still open
+
+Backup verified2026-10-08T01:47+08: localHEAD andindependentremote branch both
+42e746249ca50c2c0dcb5696f81c501b41c48be7.21explicitpaths backedup; diff,14output
+checksums,32sourceidentities andcredentialchecks pass; usermanifestneverstaged.
+Beforethispostpushnote onlyuser manifestwastrackeddirty. FourCPUscopesinactive;
+verificationpeak32788480B/events0/swap0. GPUcomputeempty. No activeexperiment
+or tooljob; no serving/config changes inthisauditturn. NEXT below nowmeans
+the7Bcapacity/activation bottleneck task, NOT anotherbackup-only/audit turn.
 
 2026-10-08 ~01:46+08 PROGRESS. D326 original4000 complete/native contracts4000,
 failure0, tenbindingchecks4000 each, stageerror0. Allinputs/trace/subset matchD323;

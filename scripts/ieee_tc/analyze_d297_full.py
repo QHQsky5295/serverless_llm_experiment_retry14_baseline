@@ -618,12 +618,25 @@ def lifecycle_gaps(physical, deployment):
         observed_gpu_s=total, causal_savings=None)
 
 
-def paired_timeline_groups(runs):
-    """Common arrival-time cohorts for D319, descriptive and post hoc, no CI."""
-    if set(runs) != {'d315', 'd318'}:
+LIFECYCLE_CONTRASTS = {
+    ('d315', 'd318'): (
+        'd319_retained_lifecycle_decode_v1',
+        ('6e5007630c9780c417e65109ef3005daedba3dafa87a843ff75c4885f91c362f',
+         '4c781c7b10890293130b425e7cc94dc80c96f3b3dd8037f89db53e1fb08ffb1b')),
+    ('d323', 'd326'): (
+        'd327_retained_drain_lifecycle_v1',
+        ('a790cd59968a0d8d33bc017938467c1f818c5e5c617fb9628ab25a4843b5e991',
+         '9e1057f50d1cc8dafacfd4f232216cd5979ac6c7e9f2a479dcd26f654295150a')),
+}
+
+
+def paired_timeline_groups(runs, *, contrast=('d315', 'd318')):
+    """Registered common arrival-time cohorts, descriptive and post hoc, no CI."""
+    if contrast not in LIFECYCLE_CONTRASTS or set(runs) != set(contrast):
         raise ValueError('registered complete pair required')
+    reference, candidate = contrast
     maps = {name: {r['request_id']: r for r in run['requests']} for name, run in runs.items()}
-    if (not maps['d315'] or set(maps['d315']) != set(maps['d318'])
+    if (not maps[reference] or set(maps[reference]) != set(maps[candidate])
             or any(len(maps[k]) != len(runs[k]['requests']) for k in runs)):
         raise ValueError('complete unique paired request population required')
     gap_spans = [(g['released_offset_s'], g['reallocated_offset_s'])
@@ -634,8 +647,8 @@ def paired_timeline_groups(runs):
         raise ValueError('finite observed event spans required')
     last_ready = max(b for a, b in startup_spans)
     pairs, grouped = [], []
-    for rid, old in maps['d315'].items():
-        new = maps['d318'][rid]
+    for rid, old in maps[reference].items():
+        new = maps[candidate][rid]
         for key in ('adapter_id', 'prompt_tokens', 'tokens', 'canonical_prompt_sha256', 'output_group'):
             if old[key] != new[key]:
                 raise ValueError('paired input mismatch')
@@ -669,9 +682,12 @@ def paired_timeline_groups(runs):
         caveat='Same request cohorts from union of observed relative event times; post hoc, not causal or independent repeats.')
 
 
-def inspect_retained_lifecycle(output):
-    """D319 reuses D304-D306 interval methods on the sealed D315/D318 pair."""
+def inspect_retained_lifecycle(output, *, contrast=('d315', 'd318')):
+    """Reuse D304-D306 interval methods on an explicitly registered sealed pair."""
     global OUT
+    if contrast not in LIFECYCLE_CONTRASTS:
+        raise ValueError('registered complete pair required')
+    kind, digests = LIFECYCLE_CONTRASTS[contrast]
     OUT = Path(output).resolve()
     if OUT.exists():
         raise FileExistsError(OUT)
@@ -680,8 +696,7 @@ def inspect_retained_lifecycle(output):
     paths = [PLAN, PROTOCOL, Path(__file__), ROOT/'scripts/ieee_tc/plot_d290_diagnostic.py']
     summaries, retained, groups, transactions = {}, {}, [], []
     OUT.mkdir(parents=True, exist_ok=False)
-    identities = {'d315': '6e5007630c9780c417e65109ef3005daedba3dafa87a843ff75c4885f91c362f',
-                  'd318': '4c781c7b10890293130b425e7cc94dc80c96f3b3dd8037f89db53e1fb08ffb1b'}
+    identities = dict(zip(contrast, digests))
     for name, digest in identities.items():
         prior = ROOT/f'paper_results/ieee_tc/p2_backend/{name}_full_w0/validated1'
         seal = read(prior/'manifest.json')
@@ -745,13 +760,13 @@ def inspect_retained_lifecycle(output):
         del raw, normalized, requests
         gc.collect()
         print(json.dumps(dict(run=name, complete_requests=len(records), lifecycle=life)), flush=True)
-    paired = paired_timeline_groups(retained)
+    paired = paired_timeline_groups(retained, contrast=contrast)
     table('paired_arrival_cohorts.csv', paired.pop('pairs'))
     table('paired_groups.csv', paired.pop('groups'))
     # Family summaries have differing columns; retain their complete fields in JSON.
     write('overlap_groups.json', groups)
     table('transactions.csv', transactions)
-    write('summary.json', dict(kind='d319_retained_lifecycle_decode_v1', runs=summaries, paired=paired,
+    write('summary.json', dict(kind=kind, runs=summaries, paired=paired,
         new_performance_runs=0, no_figures=True, n_correct=None, formal_qualification=False,
         confidence_interval=None, causal_savings=None))
     write('manifest.json', dict(source_refs=[dict(path=str(p), sha256=sha256(p)) for p in dict.fromkeys(paths)],
@@ -1348,6 +1363,8 @@ if __name__ == '__main__':
         help='D316 retained D315 target-copy revisits; explicit fresh output, no inference')
     parser.add_argument('--lifecycle-output', type=Path,
         help='D319 retained D315/D318 lifecycle and decode analysis, no inference')
+    parser.add_argument('--drain-lifecycle-output', type=Path,
+        help='D327 retained D323/D326 lifecycle cohorts; same D319 method, no inference')
     parser.add_argument('--routing-load-output', type=Path,
         help='D320 retained D315/D318 routing load consistency, no inference')
     parser.add_argument('--routing-length-output', type=Path,
@@ -1358,9 +1375,11 @@ if __name__ == '__main__':
     if sum(x is not None for x in (args.admission_wait_output, args.decode_tail_output,
                                   args.native_load_output, args.prefill_output, args.route_copy_output,
                                   args.lifecycle_output, args.routing_load_output, args.routing_length_output,
-                                  args.service_lifecycle_output)) > 1:
+                                  args.service_lifecycle_output, args.drain_lifecycle_output)) > 1:
         parser.error('choose one retained diagnostic')
-    if args.service_lifecycle_output is not None:
+    if args.drain_lifecycle_output is not None:
+        inspect_retained_lifecycle(args.drain_lifecycle_output, contrast=('d323', 'd326'))
+    elif args.service_lifecycle_output is not None:
         inspect_retained_service_lifecycle(args.service_lifecycle_output)
     elif args.routing_length_output is not None:
         inspect_retained_routing_lengths(args.routing_length_output)

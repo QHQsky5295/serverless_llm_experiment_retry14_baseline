@@ -1,0 +1,83 @@
+{
+  "kind": "d327_retained_analysis_execution_v1",
+  "command": "systemd-run --user --scope --unit=primelora-tc-aux-f1577ce790124f278a5832fce9d07c37.scope -p MemoryHigh=3G -p MemoryMax=4G -p MemorySwapMax=0 taskset -c 2,3,26,27 /usr/bin/python3 -c 'import json, pathlib, subprocess, os\nfrom scripts import ieee_tc_preflight as p\nident=p.scope_identity(\"primelora-tc-aux-f1577ce790124f278a5832fce9d07c37.scope\")\ncg=pathlib.Path(ident[\"path\"])\ndef sample():\n    return {k:(cg/k).read_text().strip() for k in (\"memory.high\",\"memory.max\",\"memory.swap.max\",\"memory.peak\",\"memory.events\",\"memory.swap.current\")}\nbefore=sample()\nassert before[\"memory.high\"]==str(3*1024**3) and before[\"memory.max\"]==str(4*1024**3) and before[\"memory.swap.max\"]==\"0\"\nassert os.sched_getaffinity(0)=={2,3,26,27}\nprint(json.dumps({\"identity\":ident,\"before\":before}),flush=True)\ntry:\n    protected=p.verify_seal(pathlib.Path(\"paper_results/ieee_tc/safety/20260925_execution_start_protected.json\"))\n    assert protected[\"changed\"]==[\"/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py\"]\n    assert p.digest(pathlib.Path(protected[\"changed\"][0]))==\"04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22\"\n    print(json.dumps({\"protected\":protected}),flush=True)\n    for cmd in [\n        [\"/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python\",\"-m\",\"unittest\",\"tests.test_ieee_tc_decode_overlap\",\"tests.test_ieee_tc_launch.LengthCandidateConfiguration\",\"-q\"],\n        [\"/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python\",\"-m\",\"scripts.ieee_tc.analyze_d297_full\",\"--drain-lifecycle-output\",\"paper_results/ieee_tc/p2_backend/d327_drain_lifecycle/analysis1\"]]:\n        print(json.dumps({\"command\":cmd}),flush=True)\n        subprocess.run(cmd,check=True)\nfinally:\n    print(json.dumps({\"identity\":ident,\"after\":sample()}),flush=True)\n'",
+  "chunks": [
+    {
+      "chunk_id": "0f73b8",
+      "wall_time_seconds": 1.001277707,
+      "session_id": 31337,
+      "original_token_count": 281,
+      "output": "Running scope as unit: primelora-tc-aux-f1577ce790124f278a5832fce9d07c37.scope\n{\"identity\": {\"unit\": \"primelora-tc-aux-f1577ce790124f278a5832fce9d07c37.scope\", \"invocation_id\": \"d3cf52ba149b4331a3c30121af82042b\", \"path\": \"/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-f1577ce790124f278a5832fce9d07c37.scope\", \"inode\": 20170455}, \"before\": {\"memory.high\": \"3221225472\", \"memory.max\": \"4294967296\", \"memory.swap.max\": \"0\", \"memory.peak\": \"9801728\", \"memory.events\": \"low 0\\nhigh 0\\nmax 0\\noom 0\\noom_kill 0\\noom_group_kill 0\", \"memory.swap.current\": \"0\"}}\n{\"protected\": {\"kind\": \"protected_artifact_verification\", \"pass\": false, \"seal_sha256\": \"fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6\", \"changed\": [\"/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py\"], \"entry_count\": 147, \"plan_sha256\": \"0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7\"}}\n{\"command\": [\"/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python\", \"-m\", \"unittest\", \"tests.test_ieee_tc_decode_overlap\", \"tests.test_ieee_tc_launch.LengthCandidateConfiguration\", \"-q\"]}\n"
+    },
+    {
+      "chunk_id": "ce3be6",
+      "wall_time_seconds": 5.001571636,
+      "session_id": 31337,
+      "original_token_count": 95,
+      "output": "INFO 10-08 01:54:47 [__init__.py:216] Automatically detected platform cuda.\n----------------------------------------------------------------------\nRan 63 tests in 1.507s\n\nOK\n{\"command\": [\"/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python\", \"-m\", \"scripts.ieee_tc.analyze_d297_full\", \"--drain-lifecycle-output\", \"paper_results/ieee_tc/p2_backend/d327_drain_lifecycle/analysis1\"]}\n"
+    },
+    {
+      "chunk_id": "23216d",
+      "wall_time_seconds": 5.000879664,
+      "session_id": 31337,
+      "original_token_count": 0,
+      "output": ""
+    },
+    {
+      "chunk_id": "35baf6",
+      "wall_time_seconds": 5.000831444,
+      "session_id": 31337,
+      "original_token_count": 0,
+      "output": ""
+    },
+    {
+      "chunk_id": "67d793",
+      "wall_time_seconds": 5.001294771,
+      "session_id": 31337,
+      "original_token_count": 0,
+      "output": ""
+    },
+    {
+      "chunk_id": "336e7f",
+      "wall_time_seconds": 5.001423236,
+      "session_id": 31337,
+      "original_token_count": 128,
+      "output": "{\"run\": \"d323\", \"complete_requests\": 4000, \"lifecycle\": {\"gaps\": [{\"gpu\": \"GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036\", \"released_offset_s\": 683.1080373160075, \"reallocated_offset_s\": 741.3210494569503, \"duration_s\": 58.21301214094274}, {\"gpu\": \"GPU-c4663821-4888-e199-7151-d6298f8d45a5\", \"released_offset_s\": 1265.9455243139528, \"reallocated_offset_s\": 1323.379738701973, \"duration_s\": 57.43421438802034}], \"released_gap_gpu_s\": 115.64722652896307, \"observed_gpu_s\": 15727.543212047196, \"causal_savings\": null}}\n"
+    },
+    {
+      "chunk_id": "f0f009",
+      "wall_time_seconds": 5.001294053,
+      "session_id": 31337,
+      "original_token_count": 0,
+      "output": ""
+    },
+    {
+      "chunk_id": "a95c5f",
+      "wall_time_seconds": 5.000873247,
+      "session_id": 31337,
+      "original_token_count": 0,
+      "output": ""
+    },
+    {
+      "chunk_id": "bd5f0c",
+      "wall_time_seconds": 5.001605456,
+      "session_id": 31337,
+      "original_token_count": 170,
+      "output": "{\"run\": \"d326\", \"complete_requests\": 4000, \"lifecycle\": {\"gaps\": [{\"gpu\": \"GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036\", \"released_offset_s\": 544.2453470550245, \"reallocated_offset_s\": 570.7617005089996, \"duration_s\": 26.51635345397517}, {\"gpu\": \"GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036\", \"released_offset_s\": 978.8339036700781, \"reallocated_offset_s\": 1068.6696798690828, \"duration_s\": 89.83577619900461}, {\"gpu\": \"GPU-c4663821-4888-e199-7151-d6298f8d45a5\", \"released_offset_s\": 485.0565336419968, \"reallocated_offset_s\": 537.982930838014, \"duration_s\": 52.926397196017206}], \"released_gap_gpu_s\": 169.278526848997, \"observed_gpu_s\": 15690.824152139015, \"causal_savings\": null}}\n"
+    },
+    {
+      "chunk_id": "d5d26d",
+      "wall_time_seconds": 0.000030188,
+      "exit_code": 0,
+      "original_token_count": 130,
+      "output": "{\"identity\": {\"unit\": \"primelora-tc-aux-f1577ce790124f278a5832fce9d07c37.scope\", \"invocation_id\": \"d3cf52ba149b4331a3c30121af82042b\", \"path\": \"/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-f1577ce790124f278a5832fce9d07c37.scope\", \"inode\": 20170455}, \"after\": {\"memory.high\": \"3221225472\", \"memory.max\": \"4294967296\", \"memory.swap.max\": \"0\", \"memory.peak\": \"1150197760\", \"memory.events\": \"low 0\\nhigh 0\\nmax 0\\noom 0\\noom_kill 0\\noom_group_kill 0\", \"memory.swap.current\": \"0\"}}\n"
+    }
+  ],
+  "cleanup": {
+    "chunk_id": "cbb302",
+    "wall_time_seconds": 0.000034227,
+    "exit_code": 0,
+    "original_token_count": 13,
+    "output": "ControlGroup=\nActiveState=inactive\nInvocationID=\n\n"
+  }
+}
