@@ -11,7 +11,140 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D318 unchanged full4000 registered and tested; fresh launch next
+## CURRENT — D318 full4000 audited: resource-tail tradeoff, not overall superiority
+
+2026-10-07. This turn PROGRESS: same registered full run completed once;
+cleanup and complete native/binding/remote/context audits passed.359CPUtests
+passed23.322s. No live inference, remote or audit task. Full result decision:
+D318_COMPLETE_W0_DECISION.md; curated d318_full_w0/validated1,context1 and
+validation_checkpoint.json. All9raw evidence,10prelaunch sources and both
+analysis manifests/outputs rehashed. Serving/config/profile unchanged since
+D317. Existing analyzers alone extended with explicit D318 paths and no-overwrite
+tests; no figures, assets or GPU repeats. Source plan/V1 unchanged.
+
+Versus registered D315: meanTTFT1304.383->1292.091ms(-0.942%), P95TTFT
+2934.366->3031.176ms(+3.299%), P99TTFT4610.766->4459.486ms(-3.281%).
+MeanTPOT32.558->33.461ms(+2.771%), P95TPOT62.152->64.226ms(+3.337%);
+meanE2E4.896654->4.955792s(+1.208%). PhysicalU15865.617487->15526.999223
+GPU-s(-2.134%).4000native completions;10bindings each4000; TTFT/TPOT/stage
+errors0. All240outputhashdifferences retained. D170timing3818vs3820 of4000
+is provisional only, N_correct/formalSLO unknown, noCI/G1G2qualification.
+
+Mean routing177.688->141.098ms nested in admission681.229->652.184ms;
+retained-scope observedmax24216 over15473views, not exactRPC savings.
+D3185scale-ups/2retirements versusD3153/0; unchanged control law, different
+closed-loop trajectory. Both132HTTPfetches/131480060wirebytes, no packing.
+4039resourcesamples,peak20559921152B,minhost93445820416B,events/swap0.
+Remote all3ID-verified then monitor-first stop,inactive/PID0/success. Local
+aux empty verified then stopped. CPUaudit90118a61...peak1154301952B,events0,
+actualempty/populated0 then stopped. Protection147rawpassfalse retains only
+known baseline replay difference; usermanifest3b69bd0a...unchanged/notstaged.
+
+Decision: retain tested D316 implementation and measured tradeoff point; reject
+the claim of overall superiority and do NOT freeze an optimal Full. This local
+candidate's short/full evidence chain is closed; no repeated prefix/profile or
+threshold scan. NEXT tested explicit-path backup + remoteHEADverification,
+then return7B goal-level analysis: reuse D315/D318 full control/native intervals
+to inspect retirement/activation and preparation/decode overlap underlying the
+tail tradeoff, against D304-D315 history. Read primary papers/code before any
+next serving edit; no hardcoded control/SLO changes from mere correlation.
+D294/D295's3registered numerical repeats are already complete, do not reopen
+that diagnostic indefinitely. Formalnumerical/warm/Resident/oldPrime newmetric
+evidence and both model goals remainopen; no3B/baselines/figures yet. Goalactive.
+
+Publication check:18explicit paths only, no usermanifest/rawlogs/figures staged.
+Default whitespace checker flagged standard CSV CRLF; kept exact audited bytes
+and used command-local cr-at-eol plus all usual whitespace checks (passed), no
+global Git setting or source-data rewrite. Secrets-pattern scan passed. Final
+hash verifier5010ffc9...peak7913472B,events/swap0, actualempty/populated0 then
+stopped. All source/output hashes valid; backup pending normalpush.
+
+## HISTORY — D318 full4000 finished and resources released; offline full audit next
+
+2026-10-07 19:45+08. Previous turn VERIFIED WAIT; this turn PROGRESS: watched
+SAME native run through4000/4000terminal,4000success/native-contract-matched,
+zero errors. launch.json pass, service/watchdog/replay returncodes0, actual
+native GPU contexts clear and service path removed. No inference remains live.
+No source/config edits or heavy work were performed during measurement.
+
+19:43:05+08 verified all three captured remote InvocationIDs; stopped monitor
+FIRST. Its existing EXIT trap stopped both owned artifact units. All3inactive,
+PID0,Resultsuccess. Exact remote transfer and monitor files copied, remote/local
+SHA agree:6f531f875b5dbf9919e99ed2292969c3a4a159dfa0632b4784083d5fe21c5fb8
+and46381817a4f61e1927063d09f0ec685bfee5362e0080885375180b9566821d10.
+Aux220968afb6cd41638ce89b292725c2ff verified actual cgroup.procs EMPTY and
+populated0 before stop; peak332750848B, memoryevents/swap0, finalinactive.
+One-time delivery cache unchanged; no request-path packing or new asset pool.
+
+Raw result SHA4c781c7b10890293130b425e7cc94dc80c96f3b3dd8037f89db53e1fb08ffb1b;
+launch SHAaf05d97d8ce53c4181c8dea5a36a0b019d5c3408d9333aa6c240254e7be6fcbf.
+Raw root d318_20261007/7b_full_w0. Complete physical summary measurement=true,
+open leases empty; use actual schema gpu_seconds (not a missing prefixed
+field). Full audit and comparison NOT yet performed; N_correct/formalSLO unknown.
+
+NEXT save completion receipt; minimally register D318 in existing full/context
+analyzers, D315 reference, NEW d318_full_w0/validated1 and context1 only. Reuse
+existing copy_retention_trigger for branch evidence, not exact RPC savings.
+Bounded CPU tests/audit, then full outcome interpretation and tested backup.
+Do not relaunch D318, repeat prefixes/profiles, start3B/baselines or drawfigures.
+Goal active; numerical/warm/Resident/oldPrime newmetrics remain open.
+
+## HISTORY — D318 full4000 W0 LIVE; continue SAME run, never relaunch on wait timeout
+
+2026-10-07 18:33:36+08 launched ONCE in tmux `primelora_d318_full`, existing
+runner argument `d318`. Tested registration/configuration checkpoint
+`efa58b19dfc70df8daa8f9b94b4d78cd9ae531a2` backed up; exact remote HEAD verified
+before measurement. Complete source plan and V1 reread, no changes. No figure.
+
+Local service `primelora-tc-svc-1fe0f468e8444f5fbd0fe77e3331dfd8.scope`,
+Invocation `9897e0d9862f4357a1b778c6fc14d929`, cgroup inode19893095;
+aux `primelora-tc-aux-67d604d46048488d8c0dfbaa5abb71cf.scope`,
+Invocation `220968afb6cd41638ce89b292725c2ff`; watchdog2267776/start87646566,
+actual identities and affinity verified. Existing gate allow_exec=true,
+production_launch_authorized=false correctly denotes development qualification,
+not formal M1/M2. Initial read-only probe incorrectly asserted production=true;
+subsequent probe corrected this interpretation, no source change/run restart.
+External replay plan4000, W0, original trace SHAefb903254f..., 60s notice.
+
+Remote identities captured in d318_20261007/launch_identity.json:
+3B ba65a25947b4492ab450026ba7f3a068/PID2138151;
+7B 4552e568ad5c40339f980136ef818f60/PID2138153;
+monitor556d5d9bfab342aaae248894555dfff4/PID2138156.
+Direct authenticated health prepublished_gzip_v1, link1000/full. Actual 7B
+journal transfers-399d729f6ba54e6ba16af813a13c6f1f.jsonl under D80/7b;
+remote monitor d318_20261007/remote_monitor.log. No repacking or cache rebuild.
+Initial watchdog sample50 fresh, events/swap0/no abort. This is not performance
+evidence. No serving/config/test/heavy analysis/compression/Gitpush during run.
+
+NEXT monitor SAME full run. After launch.json confirms terminal/local physical
+GPU release, verify captured remote IDs, stop monitor FIRST (existing EXIT trap
+stops both captured artifact services), then verify inactive/PID0/success and
+collect exact journal/monitor. Stop local aux only when same identity and actual
+empty/populated0. Reuse existing full analyzers to NEW D318 output versus D315,
+preserving all failures, TPOT/output differences and missing formal metrics.
+No new prefix/profile/budget scan, 3B, baseline or figures. Goal active; neither
+model qualified; numerical/warm/Resident/oldPrime newmetrics remain open.
+
+Live verification2026-10-07 18:37:07+08: SAME service Invocation/inode and
+watchdog PID/start confirmed; sample206 fresh0.868s.72terminal/72success/
+72native-contract-matched, no error type. Hostavailable100405628928B,
+servicepeak19260325888B, all memoryevents/swap0, no warning/abort. No launch.json
+yet: measurement still running, not missing-final-result failure. This turn is
+PROGRESS (registered/backed/launched/verified actual full run); continue waiting
+on the recorded handle, do not relaunch or mark the objective complete/blocked.
+
+Continuation2026-10-07 18:45:19+08 is a VERIFIED WAIT, not a blocker: actual
+service Invocation/inode and watchdog PID/start rechecked throughout, latest
+sample692 fresh0.536s;516terminal/516success/516native-contract-matched.
+No errors, memoryevents/swap0, no warning/abort; hostavailable96244633600B,
+servicepeak19260325888B. All three actual remote InvocationIDs/PIDs remained
+unchanged and active at18:43. Source plan/V1 SHA unchanged. No source/config
+changes, new experiments, heavy analysis or figures during measurement.
+launch.json still absent because same full run is LIVE. Resume SAME D318;
+terminal/local physical release -> identity-owned remote cleanup -> existing
+full analysis versus D315, not another launch or short-prefix interpretation.
+
+## HISTORY — D318 unchanged full4000 registered and tested; fresh launch next
 
 2026-10-07 18:28+08. Previousgoalturn PROGRESS: D317 complete100andbacked.
 Thisturn PROGRESS: fullplan andfrozenV1 reread, unchangedSHAs; explicitD318

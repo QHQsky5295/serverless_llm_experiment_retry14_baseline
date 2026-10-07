@@ -15,6 +15,35 @@ from scripts.ieee_tc.analyze_d297_full import (
 
 
 class RegisteredD317Smoke(unittest.TestCase):
+    def test_d318_full_audit_has_new_source_and_refuses_existing_output(self):
+        from scripts.ieee_tc import analyze_d297_full as module
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with mock.patch.multiple(module, ROOT=root, RAW=None, RUN=None, OUT=None, SOURCE=None), mock.patch.object(
+                    module, 'sha256', side_effect=RuntimeError('hash gate reached')):
+                with self.assertRaisesRegex(RuntimeError, 'hash gate reached'):
+                    module.main('d318')
+                self.assertEqual(module.OUT, root/'paper_results/ieee_tc/p2_backend/d318_full_w0/validated1')
+                self.assertIn('_r4000_c2_tc_ieee_full_d318_', module.SOURCE.name)
+                module.OUT.mkdir(parents=True)
+                with self.assertRaises(FileExistsError):
+                    module.main('d318')
+
+    def test_d318_context_is_new_and_reference_cannot_be_changed(self):
+        from scripts.ieee_tc import check_d299_full_context as module
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with mock.patch.multiple(module, ROOT=root, RAW=None, RUN=None, OUT=None), mock.patch.object(
+                    module.p, 'check_plan', side_effect=RuntimeError('plan gate reached')):
+                with self.assertRaisesRegex(RuntimeError, 'plan gate reached'):
+                    module.main('d318')
+                self.assertEqual(module.OUT, root/'paper_results/ieee_tc/p2_backend/d318_full_w0/context1')
+                module.OUT.mkdir(parents=True)
+                with self.assertRaises(AssertionError):
+                    module.main('d318')
+                with self.assertRaises(ValueError):
+                    module.main('d318', 'd303')
+
     def test_d318_full_configuration_changes_only_cold_paths(self):
         import yaml
         root = Path(__file__).resolve().parents[1]

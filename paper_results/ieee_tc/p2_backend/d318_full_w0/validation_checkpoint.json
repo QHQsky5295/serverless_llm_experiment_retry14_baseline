@@ -1,0 +1,160 @@
+{
+  "kind": "d318_full_validation_checkpoint_v1",
+  "recorded_at": "2026-10-07T19:54:39.263281+08:00",
+  "execution_commit": "efa58b19dfc70df8daa8f9b94b4d78cd9ae531a2",
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "raw_evidence_verified": {
+    "launch.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d318_20261007/7b_full_w0/launch.json",
+      "bytes": 12245,
+      "sha256": "af05d97d8ce53c4181c8dea5a36a0b019d5c3408d9333aa6c240254e7be6fcbf"
+    },
+    "experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d318_7b_full_w0.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d318_20261007/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d318_7b_full_w0.json",
+      "bytes": 326015136,
+      "sha256": "4c781c7b10890293130b425e7cc94dc80c96f3b3dd8037f89db53e1fb08ffb1b"
+    },
+    "summary.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d318_20261007/7b_full_w0/launch.launch/physical_deployment/summary.json",
+      "bytes": 3918,
+      "sha256": "901cb0eb65b60fc6bd1fd1292d985abfeb8abd6abd02b4d14dd0c2b8b9224c77"
+    },
+    "request_terminals.jsonl": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d318_20261007/7b_full_w0/launch.launch/physical_deployment/request_terminals.jsonl",
+      "bytes": 2448935,
+      "sha256": "3bf7b27ed1b22ef013954a21391f86694c796b2aaa8005c50dc80f658ff45b54"
+    },
+    "remote_transfers.jsonl": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d318_20261007/remote_transfers.jsonl",
+      "bytes": 109224,
+      "sha256": "6f531f875b5dbf9919e99ed2292969c3a4a159dfa0632b4784083d5fe21c5fb8"
+    },
+    "remote_monitor.log": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d318_20261007/remote_monitor.log",
+      "bytes": 71885083,
+      "sha256": "46381817a4f61e1927063d09f0ec685bfee5362e0080885375180b9566821d10"
+    },
+    "remote_stop.log": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d318_20261007/remote_stop.log",
+      "bytes": 575,
+      "sha256": "1e16c9ec4b9acff1c4e514060315ac7f5911b2a3426f0f155996a3f8f95b7b9c"
+    },
+    "launch_identity.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d318_20261007/launch_identity.json",
+      "bytes": 2013,
+      "sha256": "054a10020acec35d330cbf111e658f8e6b26fc32728174e1a7607e985f8894a4"
+    },
+    "remote_health.json": {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d318_20261007/remote_health.json",
+      "bytes": 410,
+      "sha256": "edc9d6de63521ce7c44d2fd39efb585decb5baf35b68bb49d6b3379c2164c9ac"
+    }
+  },
+  "completion_receipt_sha256": "b7cfec67066249416c4000349c835652d71b36316aded9d25aaf8248ec4e1bbf",
+  "prelaunch_source_references_verified": [
+    {
+      "path": "configs/ieee_tc/20261007_d318_7b_full_w0.yaml",
+      "sha256": "2b2a2d408d399c8cb3798ea8628e1c816f230a9b6145c4d430e5c3182d8c1959"
+    },
+    {
+      "path": "configs/ieee_tc/20261007_d315_7b_full_w0.yaml",
+      "sha256": "3a87e96b9ed1ae525320aec69a743c02714738fef3368af074c0dd980be24e31"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d298_capacity/development_contract.json",
+      "sha256": "98bc4292efcb2f9c5c9a1068fccfaeacc460bb35f4b1fbc579b8ef34f32a8afb"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d298_capacity/initialization/manifest.json",
+      "sha256": "8fb63de1d419e5832390b253c44dabd66a7a1b901de6ab25ec5c895948fea70e"
+    },
+    {
+      "path": "scripts/run_all_experiments.py",
+      "sha256": "262b8f58ca12b129d0292f3e6da94ed3f5732171f959a2d0280c89e8cda46ef6"
+    },
+    {
+      "path": "faaslora/preloading/preloading_planner.py",
+      "sha256": "1e0c900b5cfa4fa1ea1a1d227107a0e36e2bfa5be0c76e8958e54f15e7595385"
+    },
+    {
+      "path": "scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh",
+      "sha256": "84a4d63389aa604cc2fc7c788b6117f08358f216c3862dd9fe6336fdcbe97df0"
+    },
+    {
+      "path": "scripts/ieee_tc/prepare_d298_capacity.py",
+      "sha256": "a62f2b06553469767df11d10e94670c82cf1e32ec62ddd3ae34ae651635c805f"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d317_copy_validation/validation_checkpoint.json",
+      "sha256": "9c521b5e70b304af018170a46eb7ef3f2393fa1317e5c0d1787a743129d03145"
+    },
+    {
+      "path": "paper_results/ieee_tc/p2_backend/d317_copy_validation/smoke2/audit.json",
+      "sha256": "90bf4c0403878ba5d67206d341c6338948bb70b9533b92609485c0f01a61faa5"
+    }
+  ],
+  "curated": {
+    "validated1": {
+      "manifest_sha256": "89ef75cd481acdbdbf908fc595b831eba68bb853c8b0eedb63fd947d9db3949e",
+      "outputs": {
+        "admission_waits.json": "c6b31b3bac820759495308668357c471c2000dea6b858cd655f7472dbfccf3d2",
+        "audit.json": "80012bdb13a0e3b55c3f874307e7243bd0c1416a9d70291bd4ef994fc21a6472",
+        "control_audit.json": "58e54ccd667df7b139fdc5b78861befe1e9dcd056b23bab54ff64458b5637bba",
+        "control_samples.csv": "f542d466a3a945d3d44fc704622ca9470d9efb317e197bd0d7c22cacd0809a73",
+        "copy_retention_trigger.json": "e7b2c0e8e905ea6eb57af18763273d26e179b61ddd9e67dda67ce087115f00b1",
+        "preparation_attribution.json": "1c08ae496f21e6b571fe81c3db166fd0cf5f16fee4366ac76c2466d0f63a58e2",
+        "requests.csv": "7eaca1dca511a75ebf9c4c8e4d660804cc675228c832d0df4f6c9ca3a7b3587b",
+        "timing_groups.csv": "f66fb1e1941813bc1e668bd68f81b7e23ea2c96bb2ffaf750869206f17762267"
+      }
+    },
+    "context1": {
+      "manifest_sha256": "89cfa5c35a890554b66d7162466ffffd96a3fd39a43b8e9a452fe3dac3423ae9",
+      "outputs": {
+        "comparison.csv": "946ba437a6e7ca7fcdccc80632a9c521ae4562de54f531ac52bafc4e6d4f8db0",
+        "context.json": "f7966a532fbb09ab0eb4f79461e1da40d05233498aa23ed71b1e92ed74226747"
+      }
+    }
+  },
+  "analysis_source_reference_counts": {
+    "validated1": 11,
+    "context1": 12
+  },
+  "cpu_tests": {
+    "passed": 359,
+    "duration_s": 23.322,
+    "log_sha256": "a53ff43bd204fa7eeb8866db7c4bcd72f881a797df2766d78ae2a86617c753bd",
+    "scope_invocation": "90118a61b0e6459b94e3e90f51055be6",
+    "peak_bytes": 1154301952,
+    "memory_events_zero": true,
+    "swap_bytes": 0,
+    "actual_empty_verified_and_stopped": true
+  },
+  "publication_checks": {
+    "staged_paths_count": 18,
+    "user_generated_manifest_excluded": true,
+    "secrets_pattern_scan_passed": true,
+    "csv_crlf_preserved": true,
+    "whitespace_check": "git -c core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol diff --cached --check",
+    "note": "Default whitespace check flagged only the existing CSV writer's CRLF. Explicit CR-at-EOL interpretation preserves source checksums; no data rewrite or global Git configuration change.",
+    "seal_scope_invocation": "5010ffc97fd348a6a1a962d03d276ab8",
+    "seal_scope_peak_bytes": 7913472,
+    "seal_scope_events_and_swap_zero": true,
+    "seal_scope_actual_empty_and_stopped": true
+  },
+  "protection_raw": {
+    "kind": "protected_artifact_verification",
+    "pass": false,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [
+      "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"
+    ],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+  "n_correct": null,
+  "formal_qualification": false,
+  "no_figures": true,
+  "decision": "Keep tested event-confirmed reuse as an observed resource-tail tradeoff, not a globally better Full or frozen optimum; preserve all regressions. Return to 7B goal-level evidence, no repeat prefixes/profile/budget/numerical detour."
+}

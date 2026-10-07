@@ -1,0 +1,97 @@
+{
+  "kind": "d318_full_development_audit_v1",
+  "stats": {
+    "completed": 4000,
+    "mean_ttft_ms": 1292.0911962618702,
+    "p95_ttft_ms": 3031.1762627679855,
+    "mean_queue_ms": 652.1836868638056,
+    "p95_queue_ms": 1896.5778617421165,
+    "mean_service_ms": 639.9075093980646,
+    "p95_service_ms": 1729.4711079448462,
+    "mean_tpot_ms": 33.46065769510182,
+    "p95_tpot_ms": 64.22573486010411,
+    "initial_preload_wall_s": 51.918529408052564,
+    "physical_gpu_seconds": 15526.999222801998,
+    "n_correct": null,
+    "p99_ttft_ms": 4459.48571676854,
+    "mean_e2e_s": 4.955792049630807,
+    "gpu_s_per_offered": 3.8817498057004998
+  },
+  "evidence": {
+    "source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d318_20261007/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d318_7b_full_w0.json",
+    "source_sha256": "4c781c7b10890293130b425e7cc94dc80c96f3b3dd8037f89db53e1fb08ffb1b",
+    "physical_source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d318_20261007/7b_full_w0/launch.launch/physical_deployment/physical_resource_summary.json",
+    "physical_sha256": "3785bb0abae31ef1b9b5347f41f37d7a0116ebc6693cfa991ee93384fd8e9482",
+    "max_native_ttft_error_ms": 0.0,
+    "max_native_tpot_error_ms": 0.0,
+    "shared_trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "shared_adapter_subset_sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016"
+  },
+  "timing": {
+    "kind": "provisional_timing_only_upper_bound_v1",
+    "offered_count": 4000,
+    "correctness_qualified": false,
+    "n_correct": null,
+    "formal_joint_slo": null,
+    "formal_g1_g2_qualified": false,
+    "timing_joint_pass_count": 3818,
+    "joint_upper_bound": 0.9545,
+    "ttft_upper_bound": 0.981,
+    "timing_tpot_eligible_count": 4000,
+    "timing_tpot_conditional_rate": 0.97325,
+    "required_joint_count": 3800,
+    "minimum_additional_timing_passes": 0,
+    "outcome_counts": {
+      "timing_pass": 3818,
+      "ttft_only_miss": 75,
+      "tpot_only_miss": 106,
+      "both_miss": 1,
+      "failure": 0
+    }
+  },
+  "thresholds": [
+    {
+      "group_id": 0,
+      "lower_exclusive": null,
+      "upper_inclusive": 616,
+      "ttft_s": 2.990091890494189,
+      "tpot_s": 0.059646198413730186
+    },
+    {
+      "group_id": 1,
+      "lower_exclusive": 616,
+      "upper_inclusive": null,
+      "ttft_s": 4.635325165806989,
+      "tpot_s": 0.08534527439645358
+    }
+  ],
+  "window_gpu_seconds": {
+    "arrival": 15439.462637308636,
+    "cleanup": 43.192617506021634,
+    "drain": 7.547231264412403,
+    "pre_arrival": 36.79673672292847
+  },
+  "control_binding_pass_counts": {
+    "request_adapter_binding": 4000,
+    "owner_binding": 4000,
+    "lease_binding": 4000,
+    "native_adapter_binding": 4000,
+    "slot_binding": 4000,
+    "frozen_content_binding": 4000,
+    "acquired_and_released": 4000,
+    "common_native_clock": 4000,
+    "acquired_before_dispatch": 4000,
+    "token_digest_transport": 4000
+  },
+  "max_stage_error_s": 0.0,
+  "integral_float_prompt_counts": 4000,
+  "n_correct": null,
+  "formal_qualification": false,
+  "confidence_interval": null,
+  "caveats": [
+    "One complete W0 development replay, not a held-out block.",
+    "Control binding consistency is not kernel arithmetic qualification.",
+    "Provisional warm thresholds are not globally frozen common SLO.",
+    "Conditional tier groups are not causal comparisons."
+  ]
+}

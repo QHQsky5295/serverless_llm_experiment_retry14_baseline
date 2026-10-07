@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""D297/D299/D300/D303/D314/D315 data-only audit using native and timing checks.
+"""D297/D299/D300/D303/D314/D315/D318 data-only native and timing audit.
 
 This is an offline driver, not a serving change, new benchmark, or qualification.
 Use a bounded auxiliary scope after all inference processes have exited.
@@ -627,8 +627,16 @@ def main(campaign='d297'):
         OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d315_full_w0/validated1'
         SOURCE = RUN / 'experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d315_7b_full_w0.json'
         source_sha = '6e5007630c9780c417e65109ef3005daedba3dafa87a843ff75c4885f91c362f'
+    elif campaign == 'd318':
+        RAW = ROOT / 'results/ieee_tc/p2_backend_qualification/d318_20261007'
+        RUN = RAW / '7b_full_w0'
+        OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d318_full_w0/validated1'
+        SOURCE = RUN / 'experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d318_7b_full_w0.json'
+        source_sha = '4c781c7b10890293130b425e7cc94dc80c96f3b3dd8037f89db53e1fb08ffb1b'
     elif campaign != 'd297':
         raise ValueError('unknown frozen full-run identity')
+    if OUT.exists():
+        raise FileExistsError(OUT)
     assert sha256(PLAN) == '0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7'
     assert sha256(PROTOCOL) == '5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22'
     assert sha256(WARM) == '0ebc7587effe293dcb986d33fb932c100cbcb3384c56ab2c0b0bec73b2bdd88c'
@@ -713,11 +721,16 @@ def main(campaign='d297'):
                  'Provisional warm thresholds are not globally frozen common SLO.',
                  'Conditional tier groups are not causal comparisons.']))
     print(json.dumps(dict(stats=stats, timing=timing), indent=2), flush=True)
-    if campaign in ('d303', 'd314', 'd315'):
+    if campaign in ('d303', 'd314', 'd315', 'd318'):
         write('admission_waits.json', summarize_admission_waits(requests))
-    if campaign in ('d314', 'd315'):
+    if campaign in ('d314', 'd315', 'd318'):
         write('preparation_attribution.json', audit_preparation_attribution(
             requests, clock_id=deployment['clock_id']))
+    if campaign == 'd318':
+        from scripts.ieee_tc.analyze_d298_smoke import copy_retention_trigger
+        trigger = copy_retention_trigger(requests)
+        assert trigger['observed_cumulative_retained_scopes_max'] > 0
+        write('copy_retention_trigger.json', trigger)
     del requests, normalized
     gc.collect()
 
@@ -766,6 +779,8 @@ def main(campaign='d297'):
     print(json.dumps(control_audit, indent=2), flush=True)
     paths = [SOURCE, WARM, INDEX, PLAN, PROTOCOL, config_path, outcome_path, Path(__file__),
         ROOT/'scripts/ieee_tc/plot_d290_diagnostic.py', ROOT/'scripts/analyze_control_path_overhead.py']
+    if campaign == 'd318':
+        paths.append(ROOT/'scripts/ieee_tc/analyze_d298_smoke.py')
     write('manifest.json', dict(source_refs=[dict(path=str(p),sha256=sha256(p)) for p in paths],
         outputs={p.name:sha256(p) for p in sorted(OUT.iterdir())}, no_figures=True))
 
@@ -799,7 +814,7 @@ def inspect_retained_route_copies(output):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--campaign', choices=('d297', 'd299', 'd300', 'd303', 'd314', 'd315'), default='d297')
+    parser.add_argument('--campaign', choices=('d297', 'd299', 'd300', 'd303', 'd314', 'd315', 'd318'), default='d297')
     parser.add_argument('--admission-wait-output', type=Path,
         help='Data-only D299/D300 retained wait partition; explicit new output directory')
     parser.add_argument('--decode-tail-output', type=Path,

@@ -386,6 +386,15 @@ def main(campaign='d299', reference_override=None):
             'closed-loop trajectories and run variation remain.' if reference == 'd303' else
             'Same serving implementation; token budget and its matching measured initialization both change; '
             'not a pure budget-only ablation or an independent held-out comparison.')
+    elif campaign == 'd318':
+        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d318_20261007'
+        RUN = RAW/'7b_full_w0'
+        OUT = ROOT/'paper_results/ieee_tc/p2_backend/d318_full_w0/context1'
+        reference = 'd315'
+        health_name = 'remote_health.json'
+        change_caveat = (
+            'Same configuration and measured initialization; D316 event-confirmed GPU-copy reuse changes. '
+            'Closed-loop trajectories and single-run variation remain; no statistical superiority claim.')
     elif campaign != 'd299':
         raise ValueError('unknown frozen full-run identity')
     assert not OUT.exists()
@@ -470,7 +479,7 @@ def main(campaign='d299', reference_override=None):
         assert receipt['remote_transfers_sha256'] == sha256(journal)
         assert receipt['remote_monitor_sha256'] == sha256(RAW/'remote_monitor.log')
         result['remote_shutdown'] = receipt['remote_stop']
-    if campaign == 'd315':
+    if campaign in ('d315', 'd318'):
         receipt = read(RAW/'completion_receipt.json')
         entries = receipt['evidence']
         assert entries[sources[campaign].name]['sha256'] == re['source_sha256']
@@ -497,7 +506,7 @@ def main(campaign='d299', reference_override=None):
            ROOT/'scripts/ieee_tc/plot_d290_diagnostic.py',ROOT/'scripts/ieee_tc_preflight.py']
     if campaign == 'd303':
         paths.append(CURATED/'d303_full_w0/completion_receipt.json')
-    if campaign in ('d314', 'd315'):
+    if campaign in ('d314', 'd315', 'd318'):
         paths.append(RAW/'completion_receipt.json')
     with (OUT/'manifest.json').open('x') as handle:
         json.dump(dict(source_refs=[dict(path=str(p),sha256=sha256(p)) for p in paths],
@@ -508,7 +517,7 @@ def main(campaign='d299', reference_override=None):
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--campaign', choices=('d299', 'd300', 'd303', 'd314', 'd315', 'd309-failure', 'd311-incomplete', 'd313-failure'), default='d299')
+    parser.add_argument('--campaign', choices=('d299', 'd300', 'd303', 'd314', 'd315', 'd318', 'd309-failure', 'd311-incomplete', 'd313-failure'), default='d299')
     parser.add_argument('--reference', choices=('d303', 'd314'),
         help='D315 only: registered complete-run reference, with separate non-overwriting output')
     args = parser.parse_args()
