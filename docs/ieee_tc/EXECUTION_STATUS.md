@@ -31,13 +31,22 @@ Two deterministic CPU interleavings reproduced SAMEerror beforefix (2errors).
 Fix: one existing owner RLock transaction for re-observe/select/pin after
 materialization. Network/nativeRPC/await remainOUTSIDE; no retry/fallback,
 no relaxed epoch/content checks, no formula/source-class change.57related
-CPUtests pass. New serving source must be committed/backedup before nextGPU.
+CPUtests pass. Tested checkpointa578fab9f92d8577a4ce9658b0e87e62a8f79470
+pushed andremoteHEADverified. Exact8files staged, SHA/diff/syntax/credential
+checks passed; usermanifest untouched. Serving source now
+6dcbabbfc0ce580f7982d6927fa4da51910a781974388fdd37abccdef14d12bc.
+ThreeCPUscopesempty/stoppedbyInvocationID;peak<556MB,allmemoryevents/swap0.
+Feishu configabsent, no notification. Disk169436831744B>150GiB, GPUcensusclear.
 Comparison withD303 includesnecessaryatomicityrepair plusbudget/profile;
 doNOT claimpurebudgetcausality. Exact competing thread in rawfailure unknown.
 
-NEXT verify/stageexactfiles/push; explicit run_d298_capacity_source.sh
+NEXT explicit run_d298_capacity_source.sh
 d307-attempt2 uses SAMEconfig/spec with newraw d307_20261007/attempt2, never
-overwriteattempt1. Preparefreshremote wrapper/monitor identity/health; reread
+overwriteattempt1. Rawattempt2 already containsONLY start_remote.sh (syntaxpass),
+derived fromD298 withONLYnewrun/monitoridentities. Remote outputplanned
+d307_attempt2_20261007, monitorprimelora-artifact-monitor-d307-attempt2.service.
+No remote or local attempt2 started yet. Use preparedwrapper,authenticated
+health BEFORElaunch (existingcondaPython, OS-Python lacksnumpy); reread
 fullplan/status/V1 before launch and pass original safety gates. Export arg
 d307-attempt2 aftersuccess+release only. Then100Fullsmoke/newprofiles,4000W0.
 No extra tokenbudget sweep/warm/coverage/cache rebuild/numeric qualification/
