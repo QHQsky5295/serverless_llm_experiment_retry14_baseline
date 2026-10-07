@@ -11,7 +11,46 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D313 full4000 audited; deterministic preparation-path test next
+## CURRENT — D314 copy-identity repair tested; backup then full4000
+
+2026-10-07 14:29+08. Progress: deterministic existing request-lifecycle fixture
+proved that legal Remote->NVMe publication followed by confirmed same-content
+HOST loading raises D313's original path-equality error. Historical req_00216
+root cause remains unproved (missing fields); do not relabel that history.
+Fix separates safe immutable-copy identity from complete-path d attribution.
+Both confirmed file publications, frozen content, same file owner and exact
+native consumption must match. File release still occurs immediately after
+native acquisition; new bounded receipt records that protection boundary.
+Changed-copy sample is ineligible/None, not zero; service D and user timing
+remain complete. No retry, forced NVMe, disabled HOST, or formula/config change.
+Remote validation exceptions now preserve failed predicate booleans in the
+existing bounded error/traceback collector. D312 owner transaction remains.
+
+873 CPU tests passed40.538s; logSHAf3751bb45d65fc30ed2c0a19780102c85c064b85008f1280b62f6808a76cd9d7.
+Negative owner/content/path/clock/stage/consumption cases, wrong evidence cleanup
+and cancellation pass. Initial867passed+one nonexistent test module invocation
+is retained as failed cpu_tests.log, not hidden. Allfive CPUtest scopes had
+zero high/max/OOM/swap, empty procs/populated0 verified and stopped; finalscope
+099ad1caa3184223b3e7c9eea567621a peak1170784256B. Prelaunchscope
+3cc0a4a96851490c9ccb4cbde8a028c2 peak496173056B/events/swap0, empty/stopped.
+
+Fresh D314 full config SHA bd772f035b9c8c1e026dc5ec1880fd1d79d3730f1fdab383d37405bfd66d0fa3;
+only result/coldpath identities differ from D313. Same assembled child and all
+40service/24preparation classes validated against D307. Existing runner adds
+explicit d314 key. Raw/cpu logs under results/ieee_tc/p2_backend_qualification/
+d314_20261007; curated CPU/prelaunch checkpoint under d314_copy_identity.
+Protected147seal retains only known authorizedbaseline replaychange/rawpassfalse.
+UsermanifestSHA unchanged3b69bd0a..., neverstaged. Sourceplan0c808509... andV1
+5f0732ef... fullyread. Source runnerSHAf78615de77253215942a9bee553ae3d4bec9fc1164d08ecf187cd46a56c8206e.
+
+NoGPU/remote/CPUjobrunning at this checkpoint. Next: tested commit/push, verify
+remoteHEAD, start existing published-cache remote services with new captured
+identities, then D314 original4000 W0 ONCE. No repeat100prefix, profiles or tuning.
+Keep7B->3B->baselines. Nofigures; numerical/warm/Resident andG1/G2 remainopen.
+Design/evidence: D314_PREPARATION_COPY_IDENTITY.md. After measurement stop captured
+MONITOR FIRST, retain journal, stream audit; all failures retained.
+
+## HISTORY — D313 full4000 audited; deterministic preparation-path test next
 
 2026-10-07 14:07+08. This continuation is progress after verified waiting:
 all4000requests reached terminal states,3999native-contract-complete/1failure.
@@ -55,7 +94,10 @@ manifestSHA8439a6259bc510ce68055fa271a5b41aff36bf26d7c98f888caad7415b01711f.
 AllCPUaudit/testscopesemptychecked/stopped,latestInvocation561dc5f...peak1169936384B,
 events/swap0. NoGPU/remote/CPUjobrunning. completion_checkpoint.json savesproofs.
 
-Next: backup this audited checkpoint, then deterministic existing-fixture test
+Backup5851098a54c1625e2459247578dc8bd4f5031df1 pushed tofaaslora_origin/
+retry14_continuous_queue_v2; remoteHEADmatchedexactly14:08:16. Usermanifest
+unchanged/notstaged; onlythispost-pushstatusnoteisnewuncommittedownwork.
+Next: deterministic existing-fixture test
 of legal Remote->NVMe followed by selected HOST file loading. This isnot yet a
 provenhistoricalrootcause; preserve strictcontent/owner/clock/pathnegatives and
 normalleasecleanup. No newGPUreplay until tested/backed-up correction. Serving

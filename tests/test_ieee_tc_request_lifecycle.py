@@ -1853,6 +1853,108 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
             await queue.close()
         asyncio.run(run())
 
+    def remote_host_copy_fixture(self):
+        """Deterministic legal interleaving; synthetic inference, not performance."""
+        from faaslora.registry.schema import StorageTier
+        runner, slot, trace, plan, owner, _ = self.build('remote')
+        client = self.file_source(runner, trace)
+        self.bind_preparation_fixture(runner, slot)
+        manager = runner._stack.residency_manager
+        materialize = runner._materialize_remote_adapter_async
+        selected_paths = []
+
+        async def publish_host_after_remote(*args, **kwargs):
+            outcome = await materialize(*args, **kwargs)
+            if not kwargs.get('_movement_owned'):
+                self.assertTrue(outcome[0])
+                # A legal completed promotion before the request reselects its
+                # physical source. Use the real content-verifying file owner.
+                manager._materialize_into_tier_dir(trace.adapter_id,
+                    str(runner.nvme_dir / trace.adapter_id), StorageTier.HOST)
+            return outcome
+
+        load = owner.demand_loader
+        def guarded_load(**kwargs):
+            selected_paths.append(kwargs['lora_path'])
+            self.assertEqual(len(manager.local_source_references.leases), 1)
+            self.assertFalse(manager._delete_path(kwargs['lora_path']))
+            load(**kwargs)
+        owner.demand_loader = guarded_load
+        runner._materialize_remote_adapter_async = publish_host_after_remote
+        return runner, slot, trace, plan, owner, client, manager, selected_paths
+
+    def test_remote_publication_then_host_copy_keeps_request_but_not_remote_cost_sample(self):
+        runner, slot, trace, plan, owner, client, manager, selected_paths = self.remote_host_copy_fixture()
+        result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+        self.assertTrue(result.success, result.error)
+        evidence = result.gpu_reference_evidence
+        expected_host = str(manager.local_source_references.roots['host'] / trace.adapter_id)
+        self.assertEqual(selected_paths, [expected_host])
+        self.assertEqual(result.readiness_tier_before_dispatch, 'remote')
+        self.assertEqual(evidence['receipt']['lora_path'], expected_host)
+        self.assertNotEqual(evidence['remote_preparation']['target_path'], expected_host)
+        interval = evidence['preparation_interval']
+        self.assertEqual(interval['reason'], 'confirmed_file_source_changed_before_loading')
+        self.assertFalse(interval['profile_eligible'])
+        self.assertFalse(interval['cost_model_updated'])
+        self.assertIsNone(interval['d_ms'])
+        spans = evidence['service_intervals']
+        self.assertGreater(spans['acquired_monotonic_s'], spans['admitted_monotonic_s'])
+        self.assertEqual(sum(slot.service_cost_model.sample_counts(key)['d_ms']
+            for key in slot.service_cost_model._profiles if key.tier == 'remote'), 1)
+        self.assertEqual(evidence['local_source_reference']['state'], 'released')
+        self.assertEqual(client._opener.open.call_count, 1)
+        self.assertEqual(len(runner._remote_transfer_evidence), 1)
+        self.assertEqual(runner.router.selection_count, 1)
+        self.assertFalse(manager.local_source_references.leases)
+        self.assertEqual(owner.snapshot()['live_leases'], 0)
+        self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
+        self.assertEqual(slot.active_requests, 0)
+
+    def test_changed_file_copy_invalid_evidence_still_fails_and_releases(self):
+        runner, slot, trace, plan, owner, client, manager, _ = self.remote_host_copy_fixture()
+        materialize = runner._materialize_remote_adapter_async
+        async def corrupt_publication_receipt(*args, **kwargs):
+            outcome = await materialize(*args, **kwargs)
+            if not kwargs.get('_movement_owned'):
+                kwargs['transfer_evidence']['confirmed_file_publication']['content_sha256'] = 'b'*64
+            return outcome
+        runner._materialize_remote_adapter_async = corrupt_publication_receipt
+        with self.assertRaisesRegex(ValueError, 'remote_copy.*false'):
+            asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+        slot.engine.generate_prepared.assert_not_awaited()
+        self.assertEqual(client._opener.open.call_count, 1)
+        self.assertFalse(manager.local_source_references.leases)
+        self.assertEqual(owner.snapshot()['live_leases'], 0)
+        self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
+        self.assertEqual(slot.active_requests, 0)
+
+    def test_changed_file_copy_cancel_before_native_acquisition_releases_held_input(self):
+        runner, slot, trace, plan, owner, client, manager, _ = self.remote_host_copy_fixture()
+        entered = asyncio.Event()
+        acquire = runner._acquire_runtime_gpu_reference
+        async def cancel_at_file_boundary(reservation, engine, adapter_id, *args, **kwargs):
+            self.assertEqual(reservation.gpu_reference_evidence['local_source_reference']['tier'], 'host')
+            self.assertEqual(len(manager.local_source_references.leases), 1)
+            entered.set()
+            await asyncio.Future()
+            return await acquire(reservation, engine, adapter_id, *args, **kwargs)
+        runner._acquire_runtime_gpu_reference = cancel_at_file_boundary
+        async def run():
+            task = asyncio.create_task(runner._exec_request(trace, 4, 0., request_plan=plan))
+            try:
+                await asyncio.wait_for(entered.wait(), 2)
+            finally:
+                task.cancel()
+                with self.assertRaises(asyncio.CancelledError):
+                    await task
+        asyncio.run(run())
+        slot.engine.generate_prepared.assert_not_awaited()
+        self.assertEqual(client._opener.open.call_count, 1)
+        self.assertFalse(manager.local_source_references.leases)
+        self.assertEqual(owner.snapshot()['live_leases'], 0)
+        self.assertEqual(slot.active_requests, 0)
+
     def test_published_http_delivery_keeps_measured_remote_path_and_subsequent_gpu_reuse(self):
         """Actual HTTP/file owner/router path; inference remains a CPU fixture."""
         from remote_artifact_node.server import ArtifactServer, ArtifactHandler, prepare_delivery_cache

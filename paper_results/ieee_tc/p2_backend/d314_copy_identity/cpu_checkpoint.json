@@ -1,0 +1,168 @@
+{
+  "assembly": {
+    "CUDA_VISIBLE_DEVICES": "0",
+    "FAASLORA_VISIBLE_DEVICES": "0"
+  },
+  "child": {
+    "artifact_content_manifest_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json",
+    "backend": "vllm",
+    "canonical_prompt_renderer": "role_lines_v1",
+    "device_id": 0,
+    "dtype": "float16",
+    "enable_chunked_prefill": true,
+    "enable_lora": true,
+    "enable_prefix_caching": false,
+    "enforce_eager": false,
+    "generation_contract": "fixed_length_greedy_v1",
+    "gpu_memory_utilization": 0.92,
+    "ieee_admission_profile": {
+      "model_backend_id": "native-model/9993c3b4aa1f5fd0a2ef495f48a40d4d00e2d2e161c2a368ceb9648c59773d12",
+      "profile_id": "native-completed/e8eb0df95d2bf6106cacc78d07b7318b53a2f815044d893ff54e08f88312f7c6",
+      "profile_means": [
+        100.86411149825784,
+        125.56888888888889
+      ],
+      "transfer_limit": 3,
+      "window_s": 5
+    },
+    "ieee_gpu_references": true,
+    "ieee_host_budget_bytes": 17179869184,
+    "ieee_input_upper_bounds": [
+      759
+    ],
+    "ieee_native_host_allocator_policy": "uncached_background_v1",
+    "ieee_native_host_tensor_budget_bytes": 2147483648,
+    "ieee_native_host_workspace": {
+      "dtype": "torch.float16",
+      "kind": "native_host_workspace_contract_v1",
+      "max_resident_pinned_bytes": 33554432,
+      "max_transient_tensor_bytes": 67143184,
+      "source_audit_sha256": "224b9337ecaba2590ac888e9d0e3b9eb41a17074ce77b952e98e935259adf60f"
+    },
+    "ieee_physical_allocation": true,
+    "ieee_scheduler_observation": true,
+    "ieee_worker_observation": true,
+    "max_cpu_loras": 24,
+    "max_input_len": 759,
+    "max_lora_rank": 16,
+    "max_loras": 8,
+    "max_model_len": 1024,
+    "max_num_batched_tokens": 512,
+    "max_num_seqs": 8,
+    "max_output_tokens_cap": 256,
+    "name": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+    "requested_enforce_eager": "auto",
+    "requested_runtime_concurrency_cap": 8,
+    "resolved_enforce_eager": false,
+    "runtime_concurrency_cap": 8,
+    "safetensors_load_strategy": "auto",
+    "skip_stale_gpu_cleanup": true,
+    "tensor_parallel_size": 1,
+    "timing_contract": "ieee_tc_native_v1",
+    "visible_device_ids": [
+      0
+    ],
+    "vllm_attention_backend": "FLASH_ATTN",
+    "vllm_use_flashinfer_sampler": true,
+    "vllm_use_v1": true
+  },
+  "files": {
+    "configs/ieee_tc/20261007_d314_7b_full_w0.yaml": "bd772f035b9c8c1e026dc5ec1880fd1d79d3730f1fdab383d37405bfd66d0fa3",
+    "faaslora/preloading/preloading_planner.py": "1e0c900b5cfa4fa1ea1a1d227107a0e36e2bfa5be0c76e8958e54f15e7595385",
+    "results/ieee_tc/p2_backend_qualification/d314_20261007/cpu_tests.log": "923f60ea6052ce3a6e6c1dbb80503d0ca4db7b11374db4f804b4201bc80e1cf0",
+    "results/ieee_tc/p2_backend_qualification/d314_20261007/cpu_tests2.log": "f3751bb45d65fc30ed2c0a19780102c85c064b85008f1280b62f6808a76cd9d7",
+    "scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh": "2dd623459d287909548f3f90cdc28ee659ba5a9b34bc57af189802ced87eda7b",
+    "scripts/run_all_experiments.py": "f78615de77253215942a9bee553ae3d4bec9fc1164d08ecf187cd46a56c8206e",
+    "tests/test_ieee_tc_preparation_cost.py": "ad720ce4db87f9c9c32d540facd31f4d64c896a2c7a242ddc3afef55bc9643d2",
+    "tests/test_ieee_tc_request_lifecycle.py": "4dec053c5bbb36daa8f34ba32098bdf08f218fecff516ba06f26a93441e3b688"
+  },
+  "full_qualified": false,
+  "gpu_runs": 0,
+  "kind": "d314_prelaunch_binding_v1",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "n_correct": null,
+  "no_figures": true,
+  "passed": true,
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "profiles": {
+    "ieee_preparation_profile": {
+      "classes": 24,
+      "profile_id": "e0706f8aaced852c0308de6a81e70d3b6d169b9ae95ecac4e8ae38b23ae9f951"
+    },
+    "ieee_service_profile": {
+      "classes": 40,
+      "profile_id": "f9e6efb10e69d5d1e321a7a500e9502c2240ab108c56395fe54fe7b2b82bd73a"
+    }
+  },
+  "protection_raw": {
+    "changed": [
+      "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"
+    ],
+    "entry_count": 147,
+    "kind": "protected_artifact_verification",
+    "pass": false,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6"
+  },
+  "settings_unchanged": true,
+  "prelaunch_scope": {
+    "invocation": "3cc0a4a96851490c9ccb4cbde8a028c2",
+    "peak_bytes": 496173056,
+    "memory_events_zero": true,
+    "swap_bytes": 0,
+    "empty_checked_stopped": true
+  },
+  "tests": {
+    "count": 873,
+    "seconds": 40.538,
+    "passed": true,
+    "log": "results/ieee_tc/p2_backend_qualification/d314_20261007/cpu_tests2.log",
+    "initial_suite": {
+      "count": 868,
+      "passed": false,
+      "reason": "867 actual tests passed; one nonexistent module named in command; original log retained"
+    }
+  },
+  "cpu_scopes": [
+    {
+      "role": "deterministic_red",
+      "invocation": "8d0fd1dfdd2c46829af87106f33ebc70",
+      "peak_bytes": 554397696,
+      "memory_events_zero": true,
+      "swap_bytes": 0,
+      "empty_checked_stopped": true
+    },
+    {
+      "role": "initial_held_reference_candidate_rejected",
+      "invocation": "e66199a722bd4fbba5f6146ba1640208",
+      "peak_bytes": 555638784,
+      "memory_events_zero": true,
+      "swap_bytes": 0,
+      "empty_checked_stopped": true
+    },
+    {
+      "role": "test_field_assertion_correction",
+      "invocation": "37d4d239124b417fbfa0911090b7172c",
+      "peak_bytes": 554385408,
+      "memory_events_zero": true,
+      "swap_bytes": 0,
+      "empty_checked_stopped": true
+    },
+    {
+      "role": "initial_suite_with_module_typo",
+      "invocation": "83dc06d2ae9e4026a92b16dcfa22c9a0",
+      "peak_bytes": 1171038208,
+      "memory_events_zero": true,
+      "swap_bytes": 0,
+      "empty_checked_stopped": true
+    },
+    {
+      "role": "final_suite",
+      "invocation": "099ad1caa3184223b3e7c9eea567621a",
+      "peak_bytes": 1170784256,
+      "memory_events_zero": true,
+      "swap_bytes": 0,
+      "empty_checked_stopped": true
+    }
+  ]
+}

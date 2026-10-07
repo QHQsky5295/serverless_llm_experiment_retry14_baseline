@@ -82,6 +82,66 @@ class PreparationIntervals(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'non-executable'):
             observed_preparation_interval(**self.inputs('gpu', True))
 
+    def changed_copy_inputs(self):
+        args = self.inputs('remote')
+        args['admission']['source']['content_sha256'] = 'a'*64
+        args['native'].update(lora_path='/host/a', expected_content_sha256='a'*64)
+        publication = dict(owner_id='files', epoch=2, adapter_id='a', path='/existing/a',
+            tier='nvme', content_sha256='a'*64, content_verified=True,
+            representation='verified_regular_file_tree_v1')
+        args['remote'].update(local_source_owner_id='files', confirmed_file_publication=publication)
+        args['file_reference'] = dict(owner_id='files', lease_id='file-lease', adapter_id='a',
+            path='/host/a', tier='host', state='released', content_verified=True,
+            confirmed_source=publication | dict(path='/host/a', tier='host'),
+            protected_until_native_acquisition={k: args['native'][k] for k in
+                ('owner_id', 'lease_id', 'lora_path', 'clock_id', 'acquired_monotonic_s')})
+        return args
+
+    def test_confirmed_changed_copy_is_ineligible_not_zero_or_relabelled(self):
+        args = self.changed_copy_inputs()
+        before = copy.deepcopy(args)
+        result = observed_preparation_interval(**args)
+        self.assertEqual(args, before)
+        self.assertEqual(result['reason'], 'confirmed_file_source_changed_before_loading')
+        self.assertFalse(result['profile_eligible'])
+        self.assertIsNone(result['d_ms'])
+        self.assertEqual(result['remote_transfer_id'], 'transfer')
+        self.assertEqual(result['file_lease_id'], 'file-lease')
+        self.assertEqual(result['source']['tier'], 'remote')
+
+    def test_changed_copy_requires_both_content_receipts_and_exact_consumption(self):
+        mutations = [('source', 'content_sha256', 'b'*64), ('source', 'owner_id', 'other'),
+            ('remote', 'local_source_owner_id', 'other'), ('remote', 'target_path', '/unverified/a'),
+            ('remote', 'loading_clock_id', 'other'), ('remote', 'transfer_id', ''),
+            ('remote', 'loading_started_monotonic_s', 99.),
+            ('remote', 'published_monotonic_s', 151.),
+            ('native', 'clock_id', 'other'), ('native', 'expected_content_sha256', 'b'*64),
+            ('file', 'owner_id', 'other'), ('file', 'lease_id', ''),
+            ('file', 'state', 'held'), ('file', 'content_verified', False),
+            ('file', 'adapter_id', 'other'), ('file', 'path', '/other'),
+            ('file', 'tier', 'nvme'), ('file', 'confirmed_source', None),
+            ('file', 'protected_until_native_acquisition', None)]
+        mutations += [(stage, field, value) for stage in ('publication', 'selected')
+            for field, value in (('adapter_id', 'other'), ('path', '/other'), ('tier', 'gpu'),
+                ('content_sha256', 'b'*64), ('content_verified', False), ('representation', 'unknown'))]
+        mutations += [('publication', 'owner_id', 'other'), ('publication', 'epoch', 0)]
+        mutations += [('consumed', field, value) for field, value in (
+            ('owner_id', 'other'), ('lease_id', 'other'), ('lora_path', '/other'),
+            ('clock_id', 'other'), ('acquired_monotonic_s', 152.))]
+        for stage, field, value in mutations:
+            args = self.changed_copy_inputs()
+            target = dict(source=args['admission']['source'], remote=args['remote'], native=args['native'],
+                file=args['file_reference'], publication=args['remote']['confirmed_file_publication'],
+                selected=args['file_reference']['confirmed_source'],
+                consumed=args['file_reference']['protected_until_native_acquisition'])[stage]
+            target[field] = value
+            with self.subTest(stage=stage, field=field), self.assertRaises(ValueError):
+                observed_preparation_interval(**args)
+        args = self.changed_copy_inputs()
+        del args['file_reference']
+        with self.assertRaisesRegex(ValueError, 'file_reference.*false'):
+            observed_preparation_interval(**args)
+
 
 class ProactivePreparationIntervals(unittest.TestCase):
     def inputs(self, tier='remote', native_source=False):

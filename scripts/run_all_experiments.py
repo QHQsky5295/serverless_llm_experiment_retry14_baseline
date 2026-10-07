@@ -17132,6 +17132,11 @@ class ScenarioRunner:
                 self._complete_ieee_pending_load(reservation)
                 # The backend acknowledged completed loading/copying. File input
                 # is no longer read; native tensor leases own subsequent work.
+                reference = evidence.get('local_source_reference')
+                if reference is not None and reference['state'] == 'held':
+                    reference['protected_until_native_acquisition'] = {
+                        key: receipt[key] for key in ('owner_id', 'lease_id', 'lora_path',
+                            'clock_id', 'acquired_monotonic_s')}
                 self._release_runtime_local_source(reservation)
                 return receipt
             evidence['last_conflict'] = dict(receipt)
@@ -17440,7 +17445,8 @@ class ScenarioRunner:
         evidence['preparation_interval'] = observed_preparation_interval(
             adapter_id=reservation.adapter_id, request_id=reservation.request_id,
             admission=evidence['source_admission'], native=receipt,
-            remote=evidence.get('remote_preparation'))
+            remote=evidence.get('remote_preparation'),
+            file_reference=evidence.get('local_source_reference'))
         admission = evidence['source_admission']
         if 'preparation_class' in admission:
             from faaslora.preloading.preloading_planner import PreparationClass

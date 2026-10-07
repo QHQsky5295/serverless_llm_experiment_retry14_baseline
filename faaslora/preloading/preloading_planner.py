@@ -261,7 +261,7 @@ class PreloadingStrategy(Enum):
 
 
 def observed_preparation_interval(*, adapter_id, request_id, admission, native, remote=None,
-                                  expected_clock_id=None):
+                                  expected_clock_id=None, file_reference=None):
     """Observed source loading -> executable GPU, distinct from service D.
 
     This evidence is NOT a frozen class profile or a physical admission proof.
@@ -310,16 +310,66 @@ def observed_preparation_interval(*, adapter_id, request_id, admission, native, 
     if tier == 'remote':
         if remote is None:
             return record | dict(reason='shared_file_preparation_reused')
-        if (remote.get('artifact_id') != adapter_id or remote.get('state') != 'published'
-                or remote.get('loading_clock_id') != clock or remote.get('content_verified') is not True
-                or not isinstance(remote.get('transfer_id'), str) or not remote['transfer_id']
-                or remote.get('target_path') != native.get('lora_path')):
-            raise ValueError('remote preparation interval lacks its verified transfer identity')
+        checks = dict(adapter=remote.get('artifact_id') == adapter_id,
+            published=remote.get('state') == 'published', clock=remote.get('loading_clock_id') == clock,
+            content=remote.get('content_verified') is True,
+            transfer_id=isinstance(remote.get('transfer_id'), str) and bool(remote['transfer_id']))
+        if not all(checks.values()):
+            # The existing bounded exception/traceback collector retains the
+            # exact failed predicate, even before request generation starts.
+            raise ValueError('remote preparation interval lacks its verified transfer identity: '
+                             + json.dumps(checks, sort_keys=True))
         start, published = remote.get('loading_started_monotonic_s'), remote.get('published_monotonic_s')
         if (not all(instant(t) for t in (start, published))
                 or not admitted <= start <= published <= native_start):
             raise ValueError('remote preparation interval crosses clock or stage order')
         record['remote_transfer_id'] = remote['transfer_id']
+        if remote.get('target_path') != native.get('lora_path'):
+            # A concurrent promotion may make another immutable file copy the
+            # fastest source after our own remote publication. Bind the remote
+            # publication AND the file input protected through native load to the frozen
+            # content. A path mismatch alone is never a reuse witness. These
+            # are existing owner receipts, not a new snapshot/read or a lease
+            # for the old NVMe copy (which is no longer needed by this request).
+            held = file_reference if isinstance(file_reference, dict) else {}
+            selected = held.get('confirmed_source')
+            selected = selected if isinstance(selected, dict) else {}
+            published_copy = remote.get('confirmed_file_publication')
+            published_copy = published_copy if isinstance(published_copy, dict) else {}
+            consumed = held.get('protected_until_native_acquisition')
+            consumed = consumed if isinstance(consumed, dict) else {}
+            content = source.get('content_sha256')
+            owner = source.get('owner_id')
+            checks = dict(
+                content_identity=isinstance(content, str) and len(content) == 64
+                    and all(c in '0123456789abcdef' for c in content),
+                owner=isinstance(owner, str) and bool(owner)
+                    and held.get('owner_id') == owner
+                    and remote.get('local_source_owner_id') == owner
+                    and published_copy.get('owner_id') == owner,
+                file_reference=held.get('state') == 'released' and held.get('content_verified') is True
+                    and isinstance(held.get('lease_id'), str) and bool(held['lease_id']),
+                protected_load=all(consumed.get(k) == native[k] for k in
+                    ('owner_id', 'lease_id', 'lora_path', 'clock_id', 'acquired_monotonic_s')),
+                selected_binding=held.get('adapter_id') == adapter_id
+                    and held.get('path') == native.get('lora_path')
+                    and held.get('tier') == selected.get('tier'),
+                native_content=native.get('expected_content_sha256') == content,
+                publication_epoch=type(published_copy.get('epoch')) is int
+                    and published_copy['epoch'] > 0)
+            for name, row, path in (('remote_copy', published_copy, remote.get('target_path')),
+                                    ('selected_copy', selected, native.get('lora_path'))):
+                checks[name] = (isinstance(path, str) and Path(path).is_absolute()
+                    and row.get('adapter_id') == adapter_id and row.get('path') == path
+                    and row.get('tier') in ('host', 'nvme')
+                    and row.get('representation') == 'verified_regular_file_tree_v1'
+                    and row.get('content_verified') is True and row.get('content_sha256') == content)
+            if not all(checks.values()):
+                raise ValueError('remote preparation interval lacks its verified transfer identity: '
+                                 + json.dumps(checks, sort_keys=True))
+            return record | dict(reason='confirmed_file_source_changed_before_loading',
+                remote_target_path=remote['target_path'], native_lora_path=native['lora_path'],
+                file_owner_id=owner, file_lease_id=held['lease_id'], content_sha256=content)
     return record | dict(profile_eligible=True, reason='observed_complete_load',
         loading_started_monotonic_s=start, executable_monotonic_s=end,
         remote_published_monotonic_s=published, native_started_monotonic_s=native_start,
