@@ -1,0 +1,63 @@
+{
+  "kind": "d326_complete_native_w0_closure_v1",
+  "source_commit": "808b36f49c8d2a1362fd3ce80017bde5e264e80f",
+  "n_plan": 4000,
+  "n_terminal": 4000,
+  "n_native_contract_complete": 4000,
+  "n_failed_from_terminal_journal": 0,
+  "n_correct": null,
+  "formal_qualification": false,
+  "physical_gpu_seconds_total": 15690.824152139015,
+  "launch_pass": true,
+  "native_gpu_context_release_confirmed": true,
+  "service_path_removed": true,
+  "remote_cleanup": {
+    "before": {
+      "chunk_id": "f66938",
+      "wall_time_seconds": 0.638029294,
+      "exit_code": 0,
+      "original_token_count": 845,
+      "output": "MainPID=2547009\nResult=success\nId=primelora-artifact-tc-3b.service\nActiveState=active\nSubState=running\nInvocationID=d887fcd717384a4bbbb54873a8787ec2\n\nMainPID=2547011\nResult=success\nId=primelora-artifact-tc-7b.service\nActiveState=active\nSubState=running\nInvocationID=6c55fbed79e8418ebf51535c269a6980\n\nMainPID=2547014\nResult=success\nId=primelora-artifact-monitor-d326-full.service\nActiveState=active\nSubState=running\nInvocationID=87dc34f553794a9c86d6e2a2e35ab9dc\n#!/usr/bin/env bash\n# Reuse D78 ownership/host guards for two already-started artifact-only units.\nset -euo pipefail\nbase=/home/lab14/primelora_remote/tc/d80_20260927\nunits=(primelora-artifact-tc-3b.service primelora-artifact-tc-7b.service)\ninvocations=()\ncgroups=()\nfor unit in \"${units[@]}\"; do\n  test \"$(systemctl --user show \"$unit\" -p ActiveState --value)\" = active\n  id=$(systemctl --user show \"$unit\" -p InvocationID --value)\n  test -n \"$id\"\n  invocations+=(\"$id\")\n  cg=/sys/fs/cgroup$(systemctl --user show \"$unit\" -p ControlGroup --value)\n  cgroups+=(\"$cg\")\n  test \"$(cat \"$cg/memory.high\")\" = 2147483648\n  test \"$(cat \"$cg/memory.max\")\" = 4294967296\n  test \"$(cat \"$cg/memory.swap.max\")\" = 0\n  systemctl --user show \"$unit\" -p Id -p InvocationID -p MainPID -p ControlGroup -p MemoryHigh -p MemoryMax -p MemorySwapMax -p TasksMax\ndone\nowned_stop() {\n  for i in 0 1; do\n    if test \"$(systemctl --user show \"${units[$i]}\" -p InvocationID --value)\" = \"${invocations[$i]}\"; then\n      systemctl --user stop \"${units[$i]}\"\n    fi\n  done\n}\ntrap owned_stop EXIT\ntrap 'exit 0' TERM INT\nhigh_pressure=0\nsample=0\nwhile true; do\n  sample=$((sample+1))\n  available_kib=$(awk '/^MemAvailable:/{print $2}' /proc/meminfo)\n  pressure=$(awk '/^full /{split($2,a,\"=\");print a[2]}' /proc/pressure/memory)\n  if test \"$available_kib\" -lt 25165824 && awk \"BEGIN{exit !($pressure>=10)}\"; then\n    high_pressure=$((high_pressure+1))\n  else high_pressure=0; fi\n  if test \"$available_kib\" -lt 16777216 || test \"$high_pressure\" -ge 10; then\n    printf 'safety_abort sample=%s mem_available_kib=%s full_avg10=%s\\n' \"$sample\" \"$available_kib\" \"$pressure\"\n    exit 70\n  fi\n  if test $((sample%30)) -eq 1; then\n    free=$(df -B1 --output=avail \"$base\" | tail -1 | tr -d ' ')\n    test \"$free\" -ge 17179869184 || exit 71\n    test \"$(df --output=iavail \"$base\" | tail -1 | tr -d ' ')\" -ge 1000 || exit 72\n  fi\n  printf 'sample=%s mem_available_kib=%s full_avg10=%s disk_free_bytes=%s\\n' \"$sample\" \"$available_kib\" \"$pressure\" \"$free\"\n  sed 's/^/host_net /' /proc/net/dev\n  sed 's/^/host_disk /' /proc/diskstats\n  sed -n '1s/^/host_cpu /p' /proc/stat\n  for i in 0 1; do\n    unit=${units[$i]};cg=${cgroups[$i]}\n    test \"$(systemctl --user show \"$unit\" -p InvocationID --value)\" = \"${invocations[$i]}\" || exit 73\n    test \"$(systemctl --user show \"$unit\" -p MainPID --value)\" != 0 || exit 74\n    printf 'unit=%s ' \"$unit\"\n    awk '{printf \"%s=%s \",FILENAME,$0}' \"$cg/memory.current\" \"$cg/memory.peak\" \"$cg/memory.swap.current\" \"$cg/pids.current\"\n    printf '\\n'\n    sed \"s/^/$unit memory_event /\" \"$cg/memory.events\"\n    sed \"s/^/$unit cpu /\" \"$cg/cpu.stat\"\n    sed \"s/^/$unit memory_stat /\" \"$cg/memory.stat\"\n    sed \"s/^/$unit memory_pressure /\" \"$cg/memory.pressure\"\n    if test -r \"$cg/io.stat\"; then\n      sed \"s/^/$unit io /\" \"$cg/io.stat\"\n    else\n      printf 'unit=%s io_accounting=not_delegated\\n' \"$unit\"\n    fi\n  done\n  sleep 1\ndone\n"
+    },
+    "stop": {
+      "chunk_id": "67b29b",
+      "wall_time_seconds": 0.406732733,
+      "exit_code": 141,
+      "original_token_count": 159,
+      "output": "MainPID=0\nResult=success\nId=primelora-artifact-tc-3b.service\nActiveState=inactive\nSubState=dead\nInvocationID=\n\nMainPID=0\nResult=success\nId=primelora-artifact-tc-7b.service\nActiveState=inactive\nSubState=dead\nInvocationID=\n\nMainPID=0\nResult=success\nId=primelora-artifact-monitor-d326-full.service\nActiveState=inactive\nSubState=dead\nInvocationID=\n/home/lab14/primelora_remote/tc/d80_20260927/7b/transfers-c3ead83339b54795bd7ae5a6b42fb92e.jsonl\n/home/lab14/primelora_remote/tc/d80_20260927/7b/transfers-fa8bc7be2c3f4547b9f29bb4e8f353b7.jsonl\n/home/lab14/primelora_remote/tc/d80_20260927/7b/transfers-dadc87e38afd4dbfa8f2f93a702f0858.jsonl\n"
+    },
+    "recheck": {
+      "chunk_id": "20813a",
+      "wall_time_seconds": 0.965238488,
+      "exit_code": 0,
+      "original_token_count": 392,
+      "output": "MainPID=0\nResult=success\nId=primelora-artifact-tc-3b.service\nActiveState=inactive\nMainPID=0\nResult=success\nId=primelora-artifact-tc-7b.service\nActiveState=inactive\nMainPID=0\nResult=success\nId=primelora-artifact-monitor-d326-full.service\nActiveState=inactive\n{\"archive_bytes\": 780752, \"archive_sha256\": \"5e02bc66d2bd999ea7edf2e26dcd5a8ef195f97834477b55acd1a11d58e88ecd\", \"artifact_id\": \"writing_lora_0011\", \"bytes_read\": 780752, \"bytes_written\": 780752, \"clock_id\": \"remote-process-monotonic:c289f13e41fd4cb38cebfaab50a47319\", \"delivery_mode\": \"prepublished_gzip_v1\", \"event\": \"artifact_transfer\", \"handler_completed_ns\": 897204711529365, \"handler_started_ns\": 897204693902459, \"object_open_completed_ns\": 897204694134428, \"object_open_started_ns\": 897204694036060, \"object_read_wall_ns\": 1342349, \"outcome\": \"sent\", \"pack_performed\": false, \"read_calls\": 2, \"send_completed_ns\": 897204711508907, \"send_started_ns\": 897204694436842, \"socket_write_wall_ns\": 15711272, \"temporary_created\": false, \"timing_contract\": \"artifact_timing_v2\", \"transfer_id\": \"008f97e8087d499e837f605e8e434450\"}\n109210 /home/lab14/primelora_remote/tc/d80_20260927/7b/transfers-c3ead83339b54795bd7ae5a6b42fb92e.jsonl\n69113661 /home/lab14/primelora_remote/tc/d326_20261008_full/remote_monitor.log\n8c18ae2ffc7b4d64923dd01b2bebd3a2f65d8073691e435f9f81eddf3d0cda34  /home/lab14/primelora_remote/tc/d80_20260927/7b/transfers-c3ead83339b54795bd7ae5a6b42fb92e.jsonl\n0a593a8786191150991cddcd91a60ba89c3cefba96606b2c99beb193c559d1c0  /home/lab14/primelora_remote/tc/d326_20261008_full/remote_monitor.log\n"
+    },
+    "all_owned_units_inactive": true,
+    "artifact_pools_and_published_cache_unchanged": true,
+    "caveat": "No artifact or published-cache mutation in this run; not a new whole-pool rehash. Stop shell exit141 came from trailing ls/head under pipefail after unit stops; separate exit0 readback confirms units inactive, PID0, and ports absent."
+  },
+  "evidence": {
+    "experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d326_7b_full_w0.json": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d326_20261008/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d326_7b_full_w0.json",
+      "sha256": "9e1057f50d1cc8dafacfd4f232216cd5979ac6c7e9f2a479dcd26f654295150a"
+    },
+    "launch.json": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d326_20261008/7b_full_w0/launch.json",
+      "sha256": "da51fa1d0b344d52ae4d48e6b3f3d1cd6d4bcd1eca5b02a05380b3090f3ce67d"
+    },
+    "remote_transfers.jsonl": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d326_20261008/remote_transfers.jsonl",
+      "sha256": "8c18ae2ffc7b4d64923dd01b2bebd3a2f65d8073691e435f9f81eddf3d0cda34"
+    },
+    "remote_monitor.log": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d326_20261008/remote_monitor.log",
+      "sha256": "0a593a8786191150991cddcd91a60ba89c3cefba96606b2c99beb193c559d1c0"
+    },
+    "remote_stop.json": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d326_20261008/remote_stop.json",
+      "sha256": "b524c2cad51af2a740e4c539a7e0d6e62e283bedda75965158fc5e52690b5798"
+    }
+  },
+  "caveat": "Complete native-contract development replay and physical release; not arithmetic qualification, final common SLO, or G1/G2 superiority."
+}

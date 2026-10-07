@@ -214,6 +214,38 @@ class RetainedLifecycle(unittest.TestCase):
             inspect_retained_service_lifecycle(root)
 
 
+class RegisteredD326Full(unittest.TestCase):
+    def test_frozen_source_and_new_output_are_not_overwritten(self):
+        from scripts.ieee_tc import analyze_d297_full as module
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with mock.patch.multiple(module, ROOT=root, RAW=None, RUN=None, OUT=None, SOURCE=None), mock.patch.object(
+                    module, 'sha256', side_effect=RuntimeError('hash gate reached')):
+                with self.assertRaisesRegex(RuntimeError, 'hash gate reached'):
+                    module.main('d326')
+                self.assertEqual(module.OUT, root/'paper_results/ieee_tc/p2_backend/d326_full_w0/validated1')
+                self.assertEqual(module.RUN, root/'results/ieee_tc/p2_backend_qualification/d326_20261008/7b_full_w0')
+                self.assertIn('_r4000_c2_tc_ieee_full_d326_', module.SOURCE.name)
+                module.OUT.mkdir(parents=True)
+                with self.assertRaises(FileExistsError):
+                    module.main('d326')
+
+    def test_context_is_new_and_reference_is_not_selectable(self):
+        from scripts.ieee_tc import check_d299_full_context as module
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with mock.patch.multiple(module, ROOT=root, RAW=None, RUN=None, OUT=None), mock.patch.object(
+                    module.p, 'check_plan', side_effect=RuntimeError('plan gate reached')):
+                with self.assertRaisesRegex(RuntimeError, 'plan gate reached'):
+                    module.main('d326')
+                self.assertEqual(module.OUT, root/'paper_results/ieee_tc/p2_backend/d326_full_w0/context1')
+                module.OUT.mkdir(parents=True)
+                with self.assertRaises(AssertionError):
+                    module.main('d326')
+                with self.assertRaises(ValueError):
+                    module.main('d326', 'd318')
+
+
 class RegisteredD317Smoke(unittest.TestCase):
     def test_d318_full_audit_has_new_source_and_refuses_existing_output(self):
         from scripts.ieee_tc import analyze_d297_full as module

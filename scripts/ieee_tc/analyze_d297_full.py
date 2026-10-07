@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""D297/D299/D300/D303/D314/D315/D318/D323 native and timing audit.
+"""D297/D299/D300/D303/D314/D315/D318/D323/D326 native and timing audit.
 
 This is an offline driver, not a serving change, new benchmark, or qualification.
 Use a bounded auxiliary scope after all inference processes have exited.
@@ -1147,6 +1147,12 @@ def main(campaign='d297'):
         OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d323_full_w0/validated1'
         SOURCE = RUN / 'experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d323_7b_full_w0.json'
         source_sha = 'a790cd59968a0d8d33bc017938467c1f818c5e5c617fb9628ab25a4843b5e991'
+    elif campaign == 'd326':
+        RAW = ROOT / 'results/ieee_tc/p2_backend_qualification/d326_20261008'
+        RUN = RAW / '7b_full_w0'
+        OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d326_full_w0/validated1'
+        SOURCE = RUN / 'experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d326_7b_full_w0.json'
+        source_sha = '9e1057f50d1cc8dafacfd4f232216cd5979ac6c7e9f2a479dcd26f654295150a'
     elif campaign != 'd297':
         raise ValueError('unknown frozen full-run identity')
     if OUT.exists():
@@ -1235,12 +1241,12 @@ def main(campaign='d297'):
                  'Provisional warm thresholds are not globally frozen common SLO.',
                  'Conditional tier groups are not causal comparisons.']))
     print(json.dumps(dict(stats=stats, timing=timing), indent=2), flush=True)
-    if campaign in ('d303', 'd314', 'd315', 'd318', 'd323'):
+    if campaign in ('d303', 'd314', 'd315', 'd318', 'd323', 'd326'):
         write('admission_waits.json', summarize_admission_waits(requests))
-    if campaign in ('d314', 'd315', 'd318', 'd323'):
+    if campaign in ('d314', 'd315', 'd318', 'd323', 'd326'):
         write('preparation_attribution.json', audit_preparation_attribution(
             requests, clock_id=deployment['clock_id']))
-    if campaign in ('d318', 'd323'):
+    if campaign in ('d318', 'd323', 'd326'):
         from scripts.ieee_tc.analyze_d298_smoke import copy_retention_trigger
         trigger = copy_retention_trigger(requests)
         assert trigger['observed_cumulative_retained_scopes_max'] > 0
@@ -1253,7 +1259,8 @@ def main(campaign='d297'):
     query = 'fromstream(2|truncate_stream(inputs | select(.[0][:2] == ["mechanism_events","_ieee_control_events"])))'
     controls = json.loads(subprocess.check_output(['jq','-cn','--stream',query,str(outcome_path)]))
     import yaml
-    config_path = ROOT / f'configs/ieee_tc/20261007_{campaign}_7b_full_w0.yaml'
+    config_date = '20261008' if campaign == 'd326' else '20261007'
+    config_path = ROOT / f'configs/ieee_tc/{config_date}_{campaign}_7b_full_w0.yaml'
     cfg = yaml.safe_load(config_path.read_text())['resource_coordination']['ieee_scaling']
     counters = Counter()
     longest = current_start = 0.0
@@ -1293,7 +1300,7 @@ def main(campaign='d297'):
     print(json.dumps(control_audit, indent=2), flush=True)
     paths = [SOURCE, WARM, INDEX, PLAN, PROTOCOL, config_path, outcome_path, Path(__file__),
         ROOT/'scripts/ieee_tc/plot_d290_diagnostic.py', ROOT/'scripts/analyze_control_path_overhead.py']
-    if campaign in ('d318', 'd323'):
+    if campaign in ('d318', 'd323', 'd326'):
         paths.append(ROOT/'scripts/ieee_tc/analyze_d298_smoke.py')
     write('manifest.json', dict(source_refs=[dict(path=str(p),sha256=sha256(p)) for p in paths],
         outputs={p.name:sha256(p) for p in sorted(OUT.iterdir())}, no_figures=True))
@@ -1328,7 +1335,7 @@ def inspect_retained_route_copies(output):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--campaign', choices=('d297', 'd299', 'd300', 'd303', 'd314', 'd315', 'd318', 'd323'), default='d297')
+    parser.add_argument('--campaign', choices=('d297', 'd299', 'd300', 'd303', 'd314', 'd315', 'd318', 'd323', 'd326'), default='d297')
     parser.add_argument('--admission-wait-output', type=Path,
         help='Data-only D299/D300 retained wait partition; explicit new output directory')
     parser.add_argument('--decode-tail-output', type=Path,

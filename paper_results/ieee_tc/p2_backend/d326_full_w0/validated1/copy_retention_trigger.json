@@ -1,0 +1,7 @@
+{
+  "observed_cumulative_retained_scopes_max": 25483,
+  "source_snapshot_count": 15610,
+  "exact_rpc_savings": null,
+  "causal_latency_savings": null,
+  "caveat": "Retained per-request observations only; repeated publication may count a scope again. Not a final event total or avoided RPC count."
+}

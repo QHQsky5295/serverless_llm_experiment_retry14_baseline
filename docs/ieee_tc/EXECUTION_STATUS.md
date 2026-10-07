@@ -11,7 +11,125 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D325 owned scale-in CPU-qualified; next D326 complete W0
+## CURRENT — D326 complete and audited; resource/latency trade-off, 7B still open
+
+2026-10-08 ~01:46+08 PROGRESS. D326 original4000 complete/native contracts4000,
+failure0, tenbindingchecks4000 each, stageerror0. Allinputs/trace/subset matchD323;
+172outputSHA changes retained, numericalN_correct unknown. Full data audits exit0.
+MeanTTFT1190.032->1263.168ms(+6.15%), P952836.346->3142.674(+10.80%),
+P99+14.47%; P95TPOT53.987->53.023ms(-1.79%); U15727.543212->15690.824152
+GPU-s(-0.23%). ProvisionalD170 timing3874->3842/4000(-0.80pp), NOTformaljointSLO.
+ComparedtoD318U stillhigher. No winner/CI/G1/G2qualification or figures.
+
+Threeactualownedscale-ins, firsttwo withdrawwith1admittedrequest, allreleased,
+noquarantine/unresolved/sourceerrors. Gaps115.647->169.279GPU-s; envelope+16.912,
+netU-36.719; accountingidentity notcounterfactualsavings. Aftersecondwithdrawal
+newactivationrequested~4.187slater; one no_free_device thenlateractivation.
+Do notcallthisprovenTTFTcause oraddtimers. Existingrecords nowcaptured in
+d326_full_w0/lifecycle_trigger.json. Remote132/131480060wirebytes/packing0,
+sameasD323.4045resourcesamples,peak20616302592B,minhost93612437504B,events/swap0.
+LocalGPUreleased andownedremoteunitsstopped, exactreceiptscopied/hashesmatched.
+
+61CPUtests1.428spass; fullauditsactualscope9b0403532db3465c94dfb33cdb057f90,
+peak1204662272B/events0. NarrowprojectionfirstwrongOSPython lackednumpy before
+dataread; failurepreserved, existingCPUenvcorrected(noinstall), actualscope
+e54e1a0693364718aea0bc32b73eb967 peak28590080B/events0. All3scopes checkedempty
+andstopped. No inference rerun, serving/config/profile/threshold changes orfigures.
+See D326_COMPLETE_W0_DECISION.md; rawoffline_execution_receipt.json recordsall.
+
+NEXT backupthisauditedcheckpoint, thenONE7Bbottleneckcheck/candidate around
+service-capacity/activation waiting afteractualwithdrawal, usingexistingrecords,
+history andofficialsources. Do NOTredoD326audits/full/prefix/profilecalibration.
+D325correctlifecycle retained; itsperformancehypothesisonlymixedsupport. Disk
+belownewheavy150GiB: auditedrebuildablecache/losslessarchive beforeanynextGPUrun,
+neverlowergates/deleteuniqueevidence. Numerical/commonwarm/Resident/old-new/G1G2
+remainopen. Mainline7B->3B->baselines->comparison->ablations/sensitivities retained.
+Goalactive; thisiscompletedrun/auditprogress, notblocked oroverallcomplete.
+
+## HISTORY — D326 complete, offline audit started (now finished)
+
+2026-10-08 ~01:37+08 PROGRESS. Original D326 completed without restart:4000
+successful terminals/native-count contracts,0failures; numericalN_correct remains
+unknown. Service/replay/watchdog exits0/0/0; launchpass, physicalreleaseconfirmed,
+servicepathremoved. ActualU15690.824152139015GPU-s, no open leases. No latency/SLO
+or superiority conclusion until existing audits complete. GPU compute census empty.
+Source result9e1057f50d1cc8dafacfd4f232216cd5979ac6c7e9f2a479dcd26f654295150a.
+Remote monitor and both owned artifact units identitychecked/stopped/PID0/success;
+portsabsent. Stop shell141 is from trailingls/head underpipefail after stops;
+separate readback0 proves inactive state. Rawremote_stop.json preserves both.
+Remote journal andmonitor copied andSHA matched; once-onlyD78/D80cache unchanged.
+Raw/curated completion_receipt.json created; existing two analyzers extended only
+with D326identity/date/healthschema. Tests/fullofflineaudit next in3/4GiBswap0scope.
+No serving/configuration/threshold changes, inference rerun, figures orbaselines.
+Diskfree160713785344B below NEWheavy150GiB; boundedCPUaudit allowed. Do notlaunch
+anotherheavyjob or relax gates. Mainline7B->3B->baselines remains; goalactive.
+
+## HISTORY — D326 original4000 W0 observed live (now complete)
+
+VERIFIED WAIT 2026-10-08T01:12:06+08:00: same tmux tc-d326-full and supervisor
+PID3776599 remain live. Incremental terminal journal has3450 successful terminals,
+3450 native-contract matches and0 failures out of4000 planned; this is not audited
+N_correct or a final performance/SLO result. Watchdog sample3165 has warning=false,
+abort_reasons=[], all memory high/max/OOM events0 and service swap0. Host available
+95318446080B, service current20169625600B, disk free158878326784B. Disk is below
+the new-heavy150GiB floor but above the current-run100GiB stop floor; do not launch
+another heavy task. Latest GPU census has no foreign compute or escaped worker.
+Two physical release events observed: lease ce3b4107e821445cad49770cfda717f4 at
+897710.524354009 and a5959023cf1b439db1b45db2402f57f0 at897769.713167422;
+both worker_returncode0, released GPU absent from that event's service-held list,
+unresolved census empty. Later new acquire events are retained: this is evidence
+of actual retirement and reactivation, NOT net GPU-s savings or SLO qualification.
+Do not change policy on partial-run observations. This turn is verified waiting,
+not another performance experiment or a new optimization.
+User reconfirmed one-time read-only compressed delivery-cache permission; D78/D80
+already implemented it. No cache rebuild, remote modification, code/config change,
+cleanup, compression, figures or new experiment in this monitoring turn. The
+4000-request run must finish and physically release before its offline comparison.
+Continue observing the same process; no restart on a poll timeout. Goal active.
+
+2026-10-08T00:19:08+08:00 PROGRESS. Actual tmux tc-d326-full/panePID3776599
+python3 supervisor live; runner reached Phase1 preparation. Source808b36f49c8d2a1362fd3ce80017bde5e264e80f,
+runner734a51f... andconfig3c5ad20b... rechecked immediately beforestart. Original
+4000requests/500adapters/W0 (3963.9sarrivalspan), no diagnosticprefix or newdata.
+Productionjoint profile entry160service/24preparation passed; wholeconfig differs
+fromD323 only3exclusiveoutput/cachepaths, realchildmodel exactlyD298contract.
+Preflight passed:free161932050432B,MemAvailable112429875200B; protected147
+rawfalseonlyknownbaselineSHA,user/plan/V1 unchanged. CPUprelaunchscope
+0e0a4e6e7790478581f7a9a5e0875dd6 peak499892224B/events0,empty/stopped.
+
+Actualservice primelora-tc-svc-5301b69d226d421788cd039b19c6b961.scope,
+InvocationID6c7c1d46975d4436b046f57166a9cd64,high/max72/80GiB,swap2GiB.
+Aux primelora-tc-aux-480967520f8b4cbab4eee9b16c8e548a.scope,
+InvocationID3ff5f9e68bb64696965ceedd62acf537,high/max3/4GiB,swap0.
+Raw results/ieee_tc/p2_backend_qualification/d326_20261008/7b_full_w0.
+Sibling start_remote.sh/prelaunch_binding.json/remote_health.json/source_commit.txt
+preserve preparation andidentity;existinglauncher d326branch used,not rebuilt.
+
+Remote actual1000/full,unchangedpublishedcache;3b/7b services wereinactive before
+start,now ownInvocationIDs d887fcd717384a4bbbb54873a8787ec2 /
+6c55fbed79e8418ebf51535c269a6980. Monitor primelora-artifact-monitor-d326-full.service
+87dc34f553794a9c86d6e2a2e35ab9dc. Healthclock
+remote-process-monotonic:c289f13e41fd4cb38cebfaab50a47319;monitorpath
+/home/lab14/primelora_remote/tc/d326_20261008_full/remote_monitor.log.
+3Bartifactservice idle only; no3Binference. Do notalterremote duringmeasurement.
+
+NEXT observe sameprocess throughcomplete/release; preserve anyfailure, no restart
+onpolltimeout. Then identitycheckedremote stop/copymatchingtransferjournal,
+data-only analyze D326 againstD323/D318 with frozenV1 andactualphysicaldrain.
+No serving/config/code changes, heavyanalysis, cleanup/compression, nextGPUrun,
+calibration,figures orbaselines duringmeasurement. Numerical/formalSLO/G1/G2
+remainopen; launch is not a performance result. Goalactive.
+
+## HISTORY — D325 owned scale-in CPU-qualified; next D326 complete W0
+
+Backup verified2026-10-08T00:14:13+08:00: localHEAD andremote branch both
+808b36f49c8d2a1362fd3ce80017bde5e264e80f. Eight explicitpaths backedup; staged
+diff/credential-pattern checks pass. Before thispostpushnote usermanifest was
+theonly trackeddirtyfile. All7D325scopes inactive; noGPUcomputeprocess. Diskfree
+161935097856B (~150.81GiB), rechecknew-heavyfloor before D326. Noremote change.
+This turn made tested implementation progress; not a wait/blocker and not a
+performance conclusion. Nextturn must proceed to D326 actual prelaunch/full,
+not another checkpoint-only/log-slicing/smoke turn. Goal remains active.
 
 FINAL CPU CHECK2026-10-08 ~00:11+08:426tests pass55.804s; then6configuration
 tests pass1.293s. Final runnerSHA734a51f1789861e1f2e023890057b911ae5b341da0d07bd92ceb73c4b1abc627.
