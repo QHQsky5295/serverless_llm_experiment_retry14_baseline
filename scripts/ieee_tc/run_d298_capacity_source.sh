@@ -19,6 +19,12 @@ case "${1:-d298}" in
     CONFIG=configs/ieee_tc/20261007_d307_7b_prefill_source.yaml
     SPEC=paper_results/ieee_tc/p2_backend/d307_prefill/source_spec.json
     ;;
+  d321-gaps)
+    # Same qualified backend/collector; only19 missing output classes.
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d321_20261007/gaps1
+    CONFIG=configs/ieee_tc/20261007_d298_7b_capacity_source.yaml
+    SPEC=paper_results/ieee_tc/p2_backend/d321_output_classes/gaps1/source_spec.json
+    ;;
   *) exit 2 ;;
 esac
 [[ $# -le 1 ]] || exit 2

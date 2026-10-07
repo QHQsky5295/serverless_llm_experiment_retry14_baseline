@@ -497,6 +497,139 @@ class SourceProfileDomainCoverage(unittest.TestCase):
             source_profile_class_coverage(payload,identities)
 
 
+class HistoricalServiceRebin(unittest.TestCase):
+    def fixture(self):
+        import copy
+        from faaslora.experiment.instance_pool import ServiceClassBins
+        source = MeasuredSourceProfileExport()
+        source.setUp()
+        self.addCleanup(source.doCleanups)
+        base, _, _ = source.export()
+        rows = []
+        for q in source.payload['requests']:
+            e = copy.deepcopy(q['source_evidence'])
+            n = e['receipt']
+            n['adapter_int_id'] = len(rows) + 1
+            t = copy.deepcopy(q['timing']) | dict(
+                actual_prompt_tokens=q['class_features']['prompt_tokens'],
+                controller_admitted_monotonic_s=q['admitted_monotonic_s'],
+                gpu_reference_acquired_monotonic_s=q['acquired_monotonic_s'],
+                gpu_reference_owner_id=n['owner_id'], gpu_reference_lease_id=n['lease_id'])
+            e['release_receipt'] = dict(released=True)
+            e['service_intervals'] = dict(service_class=e['source_admission']['service_class'],
+                admitted_monotonic_s=q['admitted_monotonic_s'], acquired_monotonic_s=q['acquired_monotonic_s'],
+                first_monotonic_s=q['first_token_monotonic_s'], last_monotonic_s=q['last_token_monotonic_s'])
+            e['service_events'] = [dict(kind=kind, timestamp_monotonic_s=at, token_count=count,
+                contract='native_service_events_v1', sequence=i+1, backend_request_id=q['request_id'],
+                native_clock_id=t['native_clock_id'], adapter_id=q['adapter_id'],
+                gpu_reference_owner_id=n['owner_id'], gpu_reference_lease_id=n['lease_id'],
+                gpu_reference_adapter_int_id=n['adapter_int_id'])
+                for i, (kind, at, count) in enumerate([('first_token', q['first_token_monotonic_s'], 1),
+                                       ('last_token', q['last_token_monotonic_s'], 2)])]
+            rows.append(dict(request_id=q['request_id'], adapter_id=q['adapter_id'], success=True,
+                generation_contract='fixed_length_greedy_v1', completion_token_source='vllm_token_ids',
+                output_contract_match=True, completion_tokens=2, requested_completion_tokens=2,
+                canonical_prompt_tokens=q['class_features']['prompt_tokens'],
+                gpu_reference_evidence=e, native_token_timing=t))
+        bins = ServiceClassBins(**{k:tuple(v) for k,v in base['bins'].items()})
+        return rows, source.identities, bins, base
+
+    def test_full_intervals_reused_without_relabelling_arithmetic_qualification(self):
+        from scripts.ieee_tc.export_d298_profiles import historical_service_samples, service_rebin_coverage
+        rows, identities, bins, base = self.fixture()
+        samples = historical_service_samples(rows, source_sha='f'*64, identities=identities, previous_bins=bins)
+        draft, coverage = service_rebin_coverage(base, samples, output_cap=2)
+        self.assertEqual(len(samples), len(rows))
+        self.assertTrue(coverage['class_domain_covered'])
+        self.assertFalse(coverage['numerical_qualification'])
+        self.assertEqual(len(draft['samples']), len(samples)+len(base['samples']))
+        self.assertEqual(coverage['output_edges'], [2])
+
+    def test_invalid_history_is_rejected_not_silently_excluded(self):
+        import copy
+        from scripts.ieee_tc.export_d298_profiles import historical_service_samples
+        original, identities, bins, _ = self.fixture()
+        for mutate in (
+            lambda r:r.update(requested_completion_tokens=3),
+            lambda r:r['native_token_timing'].update(native_clock_id='other'),
+            lambda r:r['gpu_reference_evidence']['service_intervals'].update(last_monotonic_s=156.),
+            lambda r:r['gpu_reference_evidence']['pending_kv_admission'].update(state='open'),
+            lambda r:r['gpu_reference_evidence']['source_admission']['service_class'].update(output_limit_bin=7)):
+            rows = copy.deepcopy(original)
+            mutate(rows[0])
+            with self.assertRaises(ValueError):
+                historical_service_samples(rows, source_sha='f'*64, identities=identities, previous_bins=bins)
+
+    def test_prompt_class_uses_observed_admission_length_not_native_special_tokens(self):
+        from scripts.ieee_tc.export_d298_profiles import historical_service_samples
+        rows, identities, bins, _ = self.fixture()
+        for r in rows:
+            r['native_token_timing']['actual_prompt_tokens'] = r['canonical_prompt_tokens'] + 1
+        samples = historical_service_samples(rows, source_sha='f'*64, identities=identities, previous_bins=bins)
+        for r, s in zip(rows, samples):
+            self.assertEqual(s['class_features']['prompt_tokens'], r['canonical_prompt_tokens'])
+            self.assertEqual(s['native_prompt_tokens'], r['canonical_prompt_tokens'] + 1)
+
+    def test_buffered_native_first_event_retains_native_first_time(self):
+        from scripts.ieee_tc.export_d298_profiles import historical_service_samples
+        rows, identities, bins, _ = self.fixture()
+        rows[0]['gpu_reference_evidence']['service_events'][0]['token_count'] = 2
+        samples = historical_service_samples(rows, source_sha='f'*64, identities=identities, previous_bins=bins)
+        self.assertEqual(samples[0]['first_token_monotonic_s'],
+            rows[0]['native_token_timing']['native_first_token_monotonic_s'])
+
+    def test_quartile_rule_uses_lengths_only_merges_ties_and_retains_cap(self):
+        from scripts.ieee_tc.export_d298_profiles import historical_output_bins
+        samples = [dict(class_features=dict(declared_output_tokens=n)) for n in (1, 2, 2, 3, 5, 8, 8, 9)]
+        self.assertEqual(historical_output_bins(samples, output_cap=10), [2, 3, 8, 10])
+        with self.assertRaises(ValueError): historical_output_bins(samples, output_cap=8)
+
+    def test_missing_classes_are_listed_without_default_fill(self):
+        import copy
+        from scripts.ieee_tc.export_d298_profiles import service_rebin_coverage
+        _, _, _, base = self.fixture()
+        sample = copy.deepcopy(base['samples'][0])
+        sample['source_run_sha256'] = 'f'*64
+        sample['class_features']['declared_output_tokens'] = 1
+        draft, coverage = service_rebin_coverage(base, [sample], output_cap=2)
+        self.assertFalse(coverage['class_domain_covered'])
+        self.assertTrue(coverage['missing_classes'])
+        self.assertEqual(len(draft['samples']), len(base['samples'])+1)
+        with self.assertRaises(ValueError): service_rebin_coverage(base, [base['samples'][0]], output_cap=2)
+
+
+class MissingLengthGapSelection(unittest.TestCase):
+    def fixture(self):
+        bins = dict(prompt_tokens=[759],declared_output_tokens=[24,91,217,256],
+                    adapter_rank=[8,16,64],footprint_bytes=[],admitted_requests=[1,2,4,8])
+        population = [dict(source_request_id=f'r{i}',adapter_id=f'a{i}',class_features=dict(
+            tier='gpu',representation='native_gpu_dense_slot_v1:torch.float16',footprint_bytes=10,
+            adapter_rank=16,prompt_tokens=759,declared_output_tokens=20,admitted_after_accept=1)) for i in range(7)]
+        missing = [dict(tier='host',representation='verified_regular_file_tree_v1',
+            footprint_bin=0,prompt_bin=0,output_limit_bin=0,rank_bin=1,admitted_bin=a) for a in (0,3)]
+        return bins,population,missing
+
+    def test_existing_distinct_inputs_minimal_wave_and_three_rounds(self):
+        from scripts.ieee_tc.prepare_d298_capacity import missing_length_waves
+        bins,population,missing = self.fixture()
+        waves = missing_length_waves(population,bins,missing)
+        self.assertEqual(len(waves),4)
+        self.assertEqual(waves[0]['role'],'kernel_warmup_retained')
+        self.assertTrue(all(len(w['requests'])==5 for w in waves))
+        for i,w in enumerate(waves[1:]):
+            self.assertEqual(w['round'],i)
+            self.assertEqual(w['source'],'file_host')
+            self.assertEqual({r['source_request_id'] for r in w['requests']},{f'r{i}' for i in range(5)})
+        self.assertNotEqual(waves[1]['requests'][0],waves[2]['requests'][0])
+
+    def test_missing_inputs_cannot_be_filled_or_target_rewritten(self):
+        from scripts.ieee_tc.prepare_d298_capacity import missing_length_waves
+        bins,population,missing = self.fixture()
+        with self.assertRaises(ValueError): missing_length_waves(population[:4],bins,missing)
+        population[4]['class_features']['declared_output_tokens']=256
+        with self.assertRaises(ValueError): missing_length_waves(population[:5],bins,missing)
+
+
 class MeasuredSourceProfileExport(unittest.TestCase):
     """Synthetic timestamp fixtures only; never model profiling measurements."""
     def setUp(self):

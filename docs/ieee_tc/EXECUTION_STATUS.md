@@ -11,7 +11,22 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D320 complete: Q omission rejected; output-length calibration is next
+## CURRENT — D321 declared-output calibration: export exact historical coverage
+
+One candidate rule fixed before performance evaluation: Type-1 quartiles of
+D315 historical declared limits, merge ties, append cap256. Keep nine equations,
+EWMA/routing/control/V1 unchanged. Extend existing D298 exporter, retain actual
+D298 measurements and complete D315 native intervals; no pooled/default fills.
+213CPUtests passed50.423s;8new. History export complete4000+240samples,
+141/160classes,edges[24,91,217,256].19missing:17fileHOST,2remote.
+gaps1 spec prepared22waves/86calls (81measured+5warmup),13existing adapters,
+first1000original requests. Actual gaps must be verified, no assumed filling.
+See D321_DECLARED_OUTPUT_CALIBRATION.md. No freshGPU/remote run or figure yet.
+NEXT tested backup then only86gapcalibration calls; then one minimal validation
+and full4000W0. No repeated D320 grouping or old source matrix.7B first,3B and
+baselines remain pending. Cache authorization already fulfilledD78/D80.
+
+## HISTORY — D320 complete: Q omission rejected; output-length calibration is next
 
 2026-10-07. This turn PROGRESS, data-only: both retained4000-request W0 logs,
 31392candidate views. Q/pending/active-adapter lower-bound contradictions0;
@@ -51,6 +66,14 @@ false retains only known baseline replay difference SHA04f3eb52...; usermanifest
 3b69bd0a...unchanged. Plan/V1/serving unchanged. Free163197087744B; no deletion.
 Hashverify scope3b1053ff...peak27148288B, events/swap0, actualempty/populated0.
 validation_checkpoint.json records identities; backup pending normalpush.
+
+Backup closure2026-10-07 20:41:50+08: normalpush succeeded; exact local and
+faaslora_origin/retry14_continuous_queue_v2 HEAD both
+b67139bb8067daf7cfebf418dd13bdade35a4c43.14explicit paths; whitespace and
+credential-pattern checks passed, usermanifest/rawlogs/figures notstaged.
+No GPU PID or live D320 job; all owned CPU scopes stopped afteractualempty.
+Onlythis postpush note is a new ownedit. NEXT declared-output calibration
+candidate above; no repeatedbackup/audit/grouping. Full objective staysactive.
 
 ## HISTORY — D319 complete: reactivation alone does not explain tail tradeoff
 

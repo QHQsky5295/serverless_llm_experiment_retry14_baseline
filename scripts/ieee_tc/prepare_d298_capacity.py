@@ -16,6 +16,145 @@ from faaslora.datasets.workload_generator import FrozenReplayPlan
 from faaslora.storage.http_artifact_store import HttpArtifactStoreClient
 
 
+def missing_length_waves(population, bins, missing, *, rounds=3):
+    """Index existing requests only; collect genuine gaps without a new matrix.
+
+    Lowest count in each missing admitted bin is sufficient to attempt coverage.
+    Actual admission classes, not this intended order, decide final coverage.
+    """
+    from collections import defaultdict
+    from faaslora.experiment.instance_pool import ServiceClassBins
+    if type(rounds) is not int or rounds < 1 or not population or not missing:
+        raise ValueError('positive rounds and nonempty existing population/gaps required')
+    classes = ServiceClassBins(**{k:tuple(v) for k,v in bins.items()})
+    groups = defaultdict(list)
+    fields = ('prompt_bin', 'output_limit_bin', 'rank_bin', 'footprint_bin')
+    for key in missing:
+        source = {('host','verified_regular_file_tree_v1'):'file_host',
+                  ('remote','tar_gzip_verified_file_tree_v1'):'remote'}.get(
+                      (key['tier'],key['representation']))
+        if source is None:
+            raise ValueError('this measured gap set needs an explicitly supported source')
+        groups[(source,)+tuple(key[f] for f in fields)].append(key)
+    templates = []
+    for group, keys in sorted(groups.items()):
+        admitted = max(k['admitted_bin'] for k in keys)
+        size = 1 if admitted == 0 else classes.admitted_requests[admitted-1]+1
+        candidates, seen = [], set()
+        for row in population:
+            observed = classes.classify(**row['class_features'])
+            if tuple(getattr(observed,f) for f in fields) != group[1:]:
+                continue
+            if row['adapter_id'] in seen:
+                continue
+            candidates.append(dict(source_request_id=row['source_request_id'], adapter_id=row['adapter_id']))
+            seen.add(row['adapter_id'])
+            if len(candidates) == size:
+                break
+        if len(candidates) != size:
+            raise ValueError(f'insufficient existing distinct adapters for gap {group}: {len(candidates)}/{size}')
+        templates.append(dict(source=group[0], requests=candidates, intended_missing_classes=keys))
+    # Retain one native warmup using existing selected inputs, not measured fill.
+    warm, seen = [], set()
+    for wave in templates:
+        for selected in wave['requests']:
+            if selected['adapter_id'] not in seen:
+                warm.append(selected)
+                seen.add(selected['adapter_id'])
+    warm = warm[:max(len(w['requests']) for w in templates)]
+    waves = [dict(role='kernel_warmup_retained', round=-1, source='gpu', requests=warm)]
+    for r in range(rounds):
+        for wave in templates[r % len(templates):]+templates[:r % len(templates)]:
+            shift = r % len(wave['requests'])
+            selected = wave['requests'][shift:]+wave['requests'][:shift]
+            waves.append(dict(wave, role='representative_measurement', round=r, requests=selected))
+    return waves
+
+
+def prepare_output_class_gaps():
+    """D321: reuse D298 collector/model and only fill audited output-class gaps."""
+    root = p.ROOT
+    history = root/'paper_results/ieee_tc/p2_backend/d321_output_classes/history1'
+    out = history.parent/'gaps1'
+    raw = root/'results/ieee_tc/p2_backend_qualification/d321_20261007/gaps1'
+    if out.exists() or raw.exists():
+        raise FileExistsError('gap preparation is append-only')
+    read = lambda path:json.loads(Path(path).read_text())
+    manifest = read(history/'manifest.json')
+    for name, sha in manifest['outputs'].items():
+        assert p.digest(history/name) == sha
+    definition, coverage = read(history/'candidate_definition.json'), read(history/'coverage.json')
+    assert definition['launchable'] is False and coverage['no_default_fills']
+    assert coverage['required_classes'] == 160 and coverage['observed_classes'] == 141
+    records = read(history/'historical_samples.json')['samples']
+    known = {r['request_id']:r for r in records}
+    assert len(known) == len(records) == 4000
+    source_path = root/'configs/ieee_tc/20261007_d298_7b_capacity_source.yaml'
+    spec_path = root/'paper_results/ieee_tc/p2_backend/d298_capacity/source_spec.json'
+    source = yaml.safe_load(source_path.read_text())['model_profiles']['llama2_7b_main_v2_publicmix']
+    old_spec = read(spec_path)
+    old_run = read(root/'paper_results/ieee_tc/p2_backend/d298_capacity/initialization/manifest.json')
+    # Bind the existing D298 spec/config through its already published evidence.
+    assert p.digest(spec_path) == '0f9d8ccb886a81315634ba925e2cbc25153ce7b2d2d6d306008088125eb03649'
+    assert p.digest(source_path) == '6b96df57e5f05a9b4a0b597ef988b464d37af6b61e4dac33b3e4444778d1487f'
+    old_source = Path(old_run['source_run']['path'])
+    assert p.digest(old_source) == old_run['source_run']['sha256']
+    trace = Path(read(old_source)['trace']['source_path'])
+    plan = FrozenReplayPlan.load(trace, count=1000)
+    assert plan.source_sha256 == old_spec['trace_sha256']
+    population = []
+    for entry in plan.entries:
+        row = json.loads(entry.source_json)
+        prior = known[entry.request_id]
+        assert prior['class_features']['declared_output_tokens'] == min(row['expected_output_tokens'],256)
+        population.append(dict(source_request_id=entry.request_id, adapter_id=row['adapter_id'],
+            class_features=prior['class_features']))
+    waves = missing_length_waves(population, definition['bins'], coverage['missing_classes'])
+    spec = copy.deepcopy(old_spec)
+    spec.update(purpose='D321_declared_output_missing_class_measurements_only',
+        bins=definition['bins'], waves=waves, nvme_parent=str(raw.resolve()),
+        derivation='Retain D298+all4000 D315 completed development samples. Measure19missing classes only; no default fill.',
+        order_rule='First distinct existing request/adapter per same length/rank class in original first1000; minimum wave size for largest missing admitted bin;3rounds with deterministic rotation.')
+    cfg = dict(source['model'])
+    cfg.update(visible_device_ids=[0],device_id=0,timing_contract='ieee_tc_native_v1',
+        ieee_worker_observation=True,ieee_gpu_references=True,ieee_scheduler_observation=True,
+        ieee_input_upper_bounds=[759],generation_contract='fixed_length_greedy_v1',
+        canonical_prompt_renderer='role_lines_v1',max_input_len=759,max_output_tokens_cap=256,
+        ieee_physical_allocation=True)
+    cfg.update(spec['model_overrides'])
+    runtime = root/'results/ieee_tc/p2_backend_qualification/runtime_20260926/cuda_import_attempt3.json'
+    _, evidence, assembly = p.prepare_admission_source_runtime(cfg,spec,
+        backend_version=read(runtime)['modules']['vllm']['version'],runtime_receipt_sha256=p.digest(runtime),
+        source_trace_sha256=plan.source_sha256)
+    from faaslora.experiment.instance_pool import FrozenServiceProfiles
+    assert FrozenServiceProfiles.model_identity(assembly['planned_child_model_config']) == \
+        FrozenServiceProfiles.model_identity(definition['model_config'])
+    seal = p.verify_seal(root/'paper_results/ieee_tc/safety/20260925_execution_start_protected.json')
+    changed = '/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py'
+    assert seal['changed'] == [changed] and seal['entry_count'] == 147
+    assert p.digest(Path(changed)) == '04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22'
+    out.mkdir(parents=True,exist_ok=False)
+    raw.mkdir(parents=True,exist_ok=False)
+    def save(name,value):
+        with (out/name).open('x') as stream: json.dump(value,stream,indent=2,allow_nan=False)
+    save('source_spec.json',spec)
+    pool = (root/source['storage']['remote_dir']).resolve(strict=True)
+    _, _, identities, actual, static = p.source_profile_inputs(out/'source_spec.json',plan,cfg,pool)
+    sources = [history/name for name in manifest['outputs']] + [history/'manifest.json', spec_path,
+        source_path, old_source, trace, runtime, Path(__file__), root/'scripts/ieee_tc_preflight.py']
+    save('prepare.json',dict(kind='d321_missing_class_preparation_v1',pass_inputs=True,
+        source_refs=[dict(path=str(path),sha256=p.digest(path)) for path in sources],
+        spec_sha256=p.digest(out/'source_spec.json'),waves=len(actual),
+        requests=sum(map(len,actual)),measurement_requests=sum(len(w['requests']) for w in waves if w['role']=='representative_measurement'),
+        selected_adapters=len(identities),static_adapters=len(static['artifacts']),
+        missing_classes=coverage['missing_classes'],assembly=assembly,length_initialization=evidence,
+        protection_raw=seal,plan_sha256=p.check_plan(),
+        metric_protocol_sha256=p.digest(root/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'),
+        new_trace=False,new_weights=False,new_gpu_runs=0,actual_class_coverage_pending=True))
+    print(json.dumps(dict(pass_inputs=True,waves=len(actual),requests=sum(map(len,actual)),
+        missing_classes=len(coverage['missing_classes']),selected_adapters=len(identities))),flush=True)
+
+
 def main():
     root = p.ROOT
     rawdir = root / 'results/ieee_tc/p2_backend_qualification/d298_20261007'
@@ -509,7 +648,9 @@ def verify_restored_full(campaign='d315'):
 
 
 if __name__ == '__main__':
-    if sys.argv[1:] == ['--prefill-candidate']:
+    if sys.argv[1:] == ['--output-class-gaps']:
+        prepare_output_class_gaps()
+    elif sys.argv[1:] == ['--prefill-candidate']:
         prepare_prefill_candidate()
     elif sys.argv[1:] == ['--verify-prefill-launch']:
         verify_existing_launch('d307')
