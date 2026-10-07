@@ -44,6 +44,17 @@ def copy_retention_trigger(requests):
         caveat='Retained per-request observations only; repeated publication may count a scope again. Not a final event total or avoided RPC count.')
 
 
+def planning_publication_trigger(events):
+    """Positive measured publication/reuse, not a counterfactual RPC saving."""
+    stats = events['_ieee_route_cache_stats']
+    fields = ('planning_snapshot_publications', 'planning_snapshot_seeded_scopes',
+              'planning_snapshot_hits')
+    values = {key: stats[key] for key in fields}
+    if any(type(value) is not int or value <= 0 for value in values.values()):
+        raise ValueError('planning publication and request reuse must actually trigger')
+    return dict(counters=values, exact_rpc_savings=None, causal_latency_savings=None)
+
+
 def main(campaign='d298'):
     global RAW, RUN, SOURCE, REFERENCE, OUT
     health_name = 'smoke_remote_health2.json'
@@ -112,6 +123,22 @@ def main(campaign='d298'):
             OUT = ROOT/'paper_results/ieee_tc/p2_backend/d322_length_candidate/smoke2'
             health_name = 'attempt2/remote_health.json'
             comparison_caveat += ' Joint profile binding permits independently verified input provenance; common runtime/environment/resource validation remains strict.'
+    elif campaign in ('d331', 'd331-attempt2'):
+        REFERENCE = ROOT/'results/ieee_tc/p2_backend_qualification/d322_20261007/7b_length_validation_100_attempt2/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_length_validation_100_d322_7b_length_validation_100_attempt2.json'
+        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d331_20261008'
+        RUN = RAW/'7b_planning_validation_100'
+        SOURCE = RUN/'experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d331_7b_planning_validation_100.json'
+        OUT = ROOT/'paper_results/ieee_tc/p2_backend/d331_planning_validation/smoke2'
+        health_name = 'remote_health.json'
+        comparison_caveat = ('D322 attempt2 is descriptive same-input prefix context, not a single-change contrast: '
+            'D325 physical retirement correction is also retained. D331 changes only D330 planning-source publication '
+            'from D326 settings/code. Same-candidate complete4000 versus D326 is required; do not extrapolate prefix GPU-s.')
+        if campaign == 'd331-attempt2':
+            RUN = RAW/'7b_planning_validation_100_attempt2'
+            SOURCE = RUN/'experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d331_7b_planning_validation_100_attempt2.json'
+            OUT = ROOT/'paper_results/ieee_tc/p2_backend/d331_planning_validation/attempt2'
+            health_name = 'attempt2/remote_health.json'
+            comparison_caveat += ' Only final post-shutdown route-counter export repaired; serving policy unchanged.'
     elif campaign != 'd298':
         raise ValueError('unknown frozen smoke identity')
     assert not OUT.exists(), 'never overwrite a prior audit'
@@ -126,14 +153,17 @@ def main(campaign='d298'):
     outcome = read(outcome_path)
     assert outcome['run_completed'] and not outcome['error']
     assert not outcome['cleanup_errors'] and not outcome['measurement_errors']
-    journal = RAW/('attempt2/smoke_remote_transfers.jsonl' if campaign == 'd322-attempt2' else 'smoke_remote_transfers.jsonl')
+    journal = RAW/('attempt2/smoke_remote_transfers.jsonl' if campaign in ('d322-attempt2', 'd331-attempt2') else 'smoke_remote_transfers.jsonl')
     rows = [json.loads(line) for line in journal.read_text().splitlines()]
     remote = {r['transfer_id']:r for r in rows}
     transfers = outcome['remote_transfers']
     assert len(remote) == len(rows) == len(transfers)
     assert set(remote) == {r['http_transfer_id'] for r in transfers}
     health = read(RAW/health_name)
-    clock = health['clock_id'] if campaign in ('d322', 'd322-attempt2') else health['health']['clock_id']
+    if campaign in ('d331', 'd331-attempt2'):
+        clock = health['7b']['clock_id']
+    else:
+        clock = health['clock_id'] if campaign in ('d322', 'd322-attempt2') else health['health']['clock_id']
     for r in transfers:
         s = remote[r['http_transfer_id']]
         assert r['state'] == 'published' and r['content_verified'] and r['published_archive_verified']
@@ -182,15 +212,24 @@ def main(campaign='d298'):
         comparison_caveat=comparison_caveat,
         raw_evidence=[dict(path=str(path),sha256=sha256(path)) for path in
             (SOURCE,REFERENCE,outcome_path,journal,WARM,INDEX,
-             RAW/('attempt2/smoke_remote_monitor.log' if campaign == 'd322-attempt2' else 'smoke_remote_monitor.log'),
+             RAW/('attempt2/smoke_remote_monitor.log' if campaign in ('d322-attempt2', 'd331-attempt2') else 'smoke_remote_monitor.log'),
              ROOT/'scripts/run_all_experiments.py', Path(__file__))])
-    if campaign in ('d302', 'd308', 'd310', 'd312', 'd317', 'd322', 'd322-attempt2'):
+    if campaign in ('d302', 'd308', 'd310', 'd312', 'd317', 'd322', 'd322-attempt2', 'd331', 'd331-attempt2'):
         result['admission_waits'] = summarize_admission_waits(requests)
         result['mechanism_events'] = {k:v for k,v in outcome['mechanism_events'].items()
             if k in ('_ieee_source_observation_stats', '_ieee_route_cache_stats')}
     if campaign in ('d317', 'd322', 'd322-attempt2'):
         result['copy_retention_trigger'] = copy_retention_trigger(requests)
         assert result['copy_retention_trigger']['observed_cumulative_retained_scopes_max'] > 0, 'new event-confirmed branch did not trigger'
+    if campaign == 'd331':
+        # Exact known original run: counters were computed but never serialized.
+        # Preserve other valid measurements, but do NOT pass the mechanism gate.
+        assert '_ieee_route_cache_stats' not in outcome['mechanism_events']
+        result['planning_publication_trigger'] = dict(qualification_pass=False,
+            status='unobserved_export_missing', counters=None, exact_rpc_savings=None,
+            causal_latency_savings=None, requires_new_observation=True)
+    if campaign == 'd331-attempt2':
+        result['planning_publication_trigger'] = planning_publication_trigger(outcome['mechanism_events'])
     with (OUT/'audit.json').open('x') as stream:
         json.dump(result,stream,indent=2,allow_nan=False)
     print(json.dumps(dict(stats=stats,timing={k:v for k,v in timing.items() if k!='decisions'},
@@ -199,5 +238,5 @@ def main(campaign='d298'):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--campaign', choices=('d298','d302','d308','d310','d312','d317','d322','d322-attempt2'), default='d298')
+    parser.add_argument('--campaign', choices=('d298','d302','d308','d310','d312','d317','d322','d322-attempt2','d331','d331-attempt2'), default='d298')
     main(parser.parse_args().campaign)

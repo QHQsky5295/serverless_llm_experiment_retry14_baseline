@@ -2498,6 +2498,32 @@ class MainOutcomeRetention(unittest.IsolatedAsyncioTestCase):
             with self.assertRaises(FileExistsError):
                 await runner._finish_ieee_main_scenario(service,stack,claims,None)
 
+    async def test_route_counters_export_after_drain_on_success_and_primary_failure(self):
+        for failed in (False, True):
+            with self.subTest(failed=failed), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                claims, stack, service = self.make_fixture(root)
+                stats = dict(planning_snapshot_publications=2,
+                             planning_snapshot_seeded_scopes=3, planning_snapshot_hits=4)
+                service._ieee_route_cache_stats = stats
+                async def drain():
+                    stats['planning_snapshot_hits'] += 1
+                service._shutdown_instance_pool = AsyncMock(side_effect=drain)
+                error = ValueError('retained failure') if failed else None
+                await runner._finish_ieee_main_scenario(service, stack, claims, error)
+                row = json.loads((root/'main_outcome.json').read_text())
+                self.assertEqual(row['mechanism_events']['_ieee_route_cache_stats'], stats)
+                self.assertEqual(row['mechanism_events']['_ieee_route_cache_stats']['planning_snapshot_hits'], 5)
+                self.assertEqual(row['run_completed'], not failed)
+
+    async def test_uninstrumented_route_counter_is_unknown_not_zero(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            claims, stack, service = self.make_fixture(root)
+            await runner._finish_ieee_main_scenario(service, stack, claims, None)
+            row = json.loads((root/'main_outcome.json').read_text())
+            self.assertIsNone(row['mechanism_events']['_ieee_route_cache_stats'])
+
     async def test_primary_error_survives_secondary_shutdown_and_snapshot_failure(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp)

@@ -11,7 +11,62 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D330 tested candidate; D331 real 7B qualification is next
+## CURRENT — D331 real run complete; counter export repaired, attempt2 next
+
+2026-10-08 ~03:47+08 PROGRESS: actual D331 completed and released GPU.
+100/100 native contracts and ten control bindings pass; mean/P95 TTFT
+967.853/2726.455ms, P95 TPOT31.667ms, prefix U797.567960 GPU-s. Numerical
+N_correct unknown. Remote29 transfers/50650865B, packing0; startup1000/full.
+Servicepeak19428937728B, min host93287440384B, high/max/OOM/swap0.
+Exact owned remote services inactive/PID0/portsabsent; downloaded logs SHA match.
+No live tmux/GPU; auxe2274f94... empty/stopped, cleanup receipts retained.
+
+Mechanism gate NOT passed: final outcome omitted existing _ieee_route_cache_stats.
+First audit failed KeyError after valid native/binding checks; raw audit1.log and
+partial smoke1 retained. Same-run smoke2 explicitly says unobserved_export_missing,
+qualification_pass=false. Ordinary cache hits are NOT substituted for planning hits.
+Only repair: export existing counters in final post-shutdown outcome field list.
+No online policy/parameter/snapshot/RPC change. 18 tests pass incl real finalizer
+success/error/drain export; missing counters remain unknown. Offline scopes
+51c6b8f2.../b31c7d2f... peaks94003200/497688576B, events/swap0, empty/stopped.
+See D331_PLANNING_PUBLICATION_SMOKE.md. D322 same-input context has worse current
+TTFT/U, but intervening lifecycle repair means it is not a causal D330 contrast.
+Seven output SHA differences retained; no improvement/formal G1/G2/figure claim.
+
+NEXT backup tested export repair, then ACTUAL existing runner d331-attempt2 with
+fresh plan/resource/remote gates (exclusive config prepared). One necessary100
+rerun for lost observation, same serving candidate; not another audit-only turn.
+Actual positive planning publication/seeded/hit required. If qualified, ordinary
+full4000 unchanged D330 candidate vsD326 next. 7B->3B->baselines mainline intact;
+numerical/common warm/Resident/new-metric acceptance OPEN; goal active.
+
+## HISTORY — D331 launched (now complete)
+
+2026-10-08 03:37:58+08: launched existing guarded runner d331 in tmux
+tc-d331-smoke, backed serving commit af0b7717c8c79db5fbd8b0e61532ea0a1976e5d0.
+Fresh source/hash/remote-branch/resource gate passed: disk161763442688B,
+MemAvailable113043435520B; protected seal only known baseline replay difference.
+Service scope2fe841a7c5b24c13b7e383085c01da01, invocationbdce9aee9c9f4c0fa350c2d9ffed9d85;
+auxe2274f94accd40089b45fbda626f4eba; actual launcher allow_exec=true.
+Remote unchanged published delivery, startup1000/full; 7B service invocation
+32e963a31ece4f309ea11e1299bdfc52, monitor762b324c234f40dc9e5401b5eed12706.
+At sample22 servicepeak1955422208B, events/swap0, no safety warning.
+No performance/qualification claim yet. Do not relaunch on a poll timeout.
+NEXT finish this run -> actual GPU release -> exact-owned remote stop/logs ->
+native/binding/timing/source-publication audit -> same candidate ordinary4000
+only if qualified. No figures, 3B or external baseline; goal remains active.
+
+## HISTORY — D330 tested candidate; D331 prepared
+
+Backup verified2026-10-08T03:33+08: local HEAD and independently read remote
+V2 branch both af0b7717c8c79db5fbd8b0e61532ea0a1976e5d0. 16 explicit paths,
+485 tests,6 bundle hashes,26 source references,syntax/diff/credential checks
+pass. D329's earlier instance_pool source verified at bbbcf429, not falsely
+claimed unchanged after D330. Archive members verified against raw sources.
+Final verifier peak106463232B/events0/swap0, exact-owned-empty/inactive.
+Before this post-push note only user manifest remained tracked-dirty; never
+staged. GPU census empty; no active experiment/tool job. NEXT actual D331
+qualification after fresh gates, NOT another backup-only or dependency audit.
 
 2026-10-08 ~03:30+08 PROGRESS. Implemented ONE candidate: initialized planner's
 already measured native graph also seeds the existing confirmed-route scopes.

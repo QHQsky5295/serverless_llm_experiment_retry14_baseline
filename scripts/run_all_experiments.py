@@ -23986,7 +23986,8 @@ async def _finish_ieee_main_scenario(service, stack, claims, primary_error):
             '_ieee_file_preparation_plans','_ieee_gpu_preparation_plans',
             '_ieee_native_host_preparations','_ieee_control_events',
             '_ieee_proactive_diagnostic',
-            '_ieee_source_observation_stats','_ieee_runtime_quarantine_events','_ieee_scalein_events')})
+            '_ieee_source_observation_stats','_ieee_route_cache_stats',
+            '_ieee_runtime_quarantine_events','_ieee_scalein_events')})
     try:
         data['coordination_after_shutdown'] = service._current_coord_metrics()
     except BaseException as exc:

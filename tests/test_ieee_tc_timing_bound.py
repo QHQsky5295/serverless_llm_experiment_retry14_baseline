@@ -2,6 +2,31 @@
 import copy
 import unittest
 from scripts.analyze_control_path_overhead import provisional_timing_bound
+from scripts.ieee_tc.analyze_d298_smoke import planning_publication_trigger
+
+
+class PlanningPublicationTriggerTest(unittest.TestCase):
+    def test_measured_trigger_is_not_savings(self):
+        stats = dict(planning_snapshot_publications=2,
+                     planning_snapshot_seeded_scopes=3, planning_snapshot_hits=7)
+        result = planning_publication_trigger({'_ieee_route_cache_stats': stats})
+        self.assertEqual(result['counters'], stats)
+        self.assertIsNone(result['exact_rpc_savings'])
+        self.assertIsNone(result['causal_latency_savings'])
+
+    def test_absent_event_counter_is_not_zero(self):
+        with self.assertRaises(KeyError):
+            planning_publication_trigger({'_ieee_route_cache_stats': {}})
+
+    def test_missing_trigger_and_invalid_counts_fail(self):
+        for field in ('planning_snapshot_publications', 'planning_snapshot_seeded_scopes',
+                      'planning_snapshot_hits'):
+            for invalid in (0, -1, True, 1.5):
+                stats = dict(planning_snapshot_publications=2,
+                             planning_snapshot_seeded_scopes=3, planning_snapshot_hits=7)
+                stats[field] = invalid
+                with self.subTest(field=field, invalid=invalid), self.assertRaises(ValueError):
+                    planning_publication_trigger({'_ieee_route_cache_stats': stats})
 
 
 class TimingBoundTest(unittest.TestCase):
