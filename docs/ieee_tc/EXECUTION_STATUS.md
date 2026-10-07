@@ -11,7 +11,63 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D310 source read-pin repair tested; D309 failure preserved; next native smoke
+## CURRENT — D310 native100 completed/audited; next SAME settings full4000, not a retune
+
+2026-10-07 11:28+08. D310100/100successful,no failures. ExactsourceSHA
+5410400edf56e5fd1c814f4e8cb58b9fcac81f5f71dbbce9d282086061af44ea.
+Nativefixedlength,timing,10bindingchecks pass;29transfers/50650865wirebytes
+matchremote,no packing.266resourcesamples,peak18923728896B,minhost93902819328B,
+high/max/OOM/OOM-kill/swap0. Launch/service/watchdog/replayallpass0;
+nativeGPUreleaseconfirmed,servicepathremoved,tmuxabsent,computeGPUcensusempty.
+Allremoteidentitieschecked thenMONITOR FIRST stopped11:26:33; all3inactive,
+MainPID0,Resultsuccess,status0. Auxiliaryemptychecked/stopped,peak160755712B.
+Analysisca29fb5a5a964c9ebadc7a2d27e8c85f empty/stopped,peak122183680B,events0.
+Rawandcuratedcompletion_receipt.json retainidentitiesandSHA. No jobs running.
+
+FrozenV1data-onlysummary: meanTTFT1175.321556ms,P95TTFT2994.614306ms,
+meanTPOT27.899638ms,P95TPOT34.857805ms,physicalU805.409961GPU-s.
+VersusD308 same100inputs: meanTTFT+15.04%,U+17.61%;P95TTFT-2.19%,P95TPOT-13.30%.
+This is a mixedsingle-prefix observation, NOToverallimprovement, acceptance or
+causal speedup. D170provisionaltiming96/100only; N_correct/formalSLOstillunknown.
+Nofigures. FailedD309notdiscarded; newsourcefixnotclaimedas performancegain.
+Curatedpaper_results/ieee_tc/p2_backend/d310_read_pin_validation/smoke1/.
+
+Next: backuptheseauditedresults, then freshD311original4000W0 with ALLD309/D310
+model,profile,controls,generation andarrivalsettings unchanged exceptnewcoldcache/
+outputpaths. ReuseD307profiles andexistingrunner, verifychildcontextasbefore.
+Do not repeatcalibration, scanbudgets, rerunD310or switchto3B/baselines.
+Formalwarm/Resident/numericalqualification remainsopen; noG1/G2claim.
+Sourcecheckpoint4ea7daacab6014d5aa3a1d874f74da6c3c9ea34f is alreadypushed.
+
+## HISTORY — D310 native100 smoke running after tested backup
+
+Latestlivecheck11:24:12+08: sameownedserviceInvocationcbf01e8e466544cb9d1a1463691e958a,
+watchdog352543/start85054807. Sample150fresh,33arrived/27successful/0failed,
+4naturalruntimes, noabort/foreigncompute/memoryevents/swap. Hostavailable91.25GiB,
+service14.12GiB. This is live100prefix, not finalperformanceor a completedrun.
+
+2026-10-07 11:22+08. Checkpoint4ea7daacab6014d5aa3a1d874f74da6c3c9ea34f
+pushed tofaaslora_origin/retry14_continuous_queue_v2; remoteHEADverified.
+StartedONCEtmuxprimelora_d310_smoke, existingrunner explicitd310. No newsettings.
+Rawresults/ieee_tc/p2_backend_qualification/d310_20261007/7b_prefill_validation_100.
+Localserviceprimelora-tc-svc-3e3bf2defcf9472a9f4cbe05ca589ed4.scope;
+auxprimelora-tc-aux-4b3595c0098d4dacad2edb2d992143b2.scope,
+auxInvocation6a65cc88866347f3924fa8a0a2066734. Livewatchdogsample10, noabort,
+foreigncompute ormemoryevents; initializationinprogress, finalresultnotyetpresent.
+Do not relaunch or change serving code/config during measurement.
+
+Remoteexactidentities:3Bd82da67794e24457aae316d7f6e19a3d/PID1561841;
+7Bf8d8da3ae3614737a8a0a0449ad32fbc/PID1561843;
+monitore75fe1878ab448c0b4cebf2f0afaa6da/PID1561846,
+unitprimelora-artifact-monitor-d310.service. ActualNIC1000/full. Authenticated
+7Bclockremote-process-monotonic:1cea38e08e8641f6b971a59703448e45.
+ExactremotejournalD80/7b/transfers-4b63e08b20494a8e84835f9c18be73c6.jsonl.
+Afterlocalcompletion verifyidentities andstopMONITOR FIRST, then capturejournal
+as smoke_remote_transfers.jsonl andmonitor as smoke_remote_monitor.log.
+PrelaunchOSpythonhealth importfailed(numpyabsent),noHTTPrequestmade; existing
+CPUenvironmenthealthpassed. Noenvironmentinstall/service/configchange made.
+
+## HISTORY — D310 repair/prelaunch preparation complete, before native smoke
 
 2026-10-07 11:19+08. Fullplan/V1 reread. User's once-only delivery-cache
 approval is already implemented by D78:1,581,215,261 archive bytes across two

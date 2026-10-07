@@ -107,3 +107,28 @@ D310's next100-request native check reuses allD308settings and D307profiles.
 The actual child config matches the measured profile config;40service and
 24preparation classes bind. Only new output/cache paths differ. This prelaunch
 check does not execute GPU inference or qualify performance.
+
+## Native100 check completed (not full-workload acceptance)
+
+Source execution commit4ea7daacab6014d5aa3a1d874f74da6c3c9ea34f.
+Source result SHA5410400edf56e5fd1c814f4e8cb58b9fcac81f5f71dbbce9d282086061af44ea.
+100/100successful, native generation/timing/binding pass;29matched transfers,
+50,650,865wirebytes and no request-time packaging. No memory protection/swap
+events. GPU contexts and service domain released; remote monitor stopped first
+at11:26:33+08 and allthree ownedremoteunits were inactive/successful afterward.
+
+| Single100-request prefix | D308 | D310 |
+|---|---:|---:|
+| Mean TTFT / ms | 1021.630202 | 1175.321556 |
+| P95 TTFT / ms | 3061.757701 | 2994.614306 |
+| Mean TPOT / ms | 28.791707 | 27.899638 |
+| P95 TPOT / ms | 40.205643 | 34.857805 |
+| Physical GPU-s | 684.796752 | 805.409961 |
+
+Tail metrics improved while mean TTFT and physical resource use worsened.
+This mixedsingle-run observation does not support overall superiority or a
+causal performance benefit from the correctness repair. ProvisionalD170timing
+passes96/100; numerical correctness and commonfinalSLO qualification remainopen.
+Do not extrapolate this prefix's GPU-s to4000requests or replace the failedD309.
+Next is the preregistered complete4000same-candidate replay in freshD311paths,
+without retuning, extra source calibration, figures or externalbaseline work.
