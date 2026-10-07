@@ -4063,6 +4063,22 @@ def measured_source_profile_payloads(payload, *, source_run_sha256, identities,
     return service, preparation, coverage
 
 
+def derive_ieee_capacity_targets(cap, *, min_instances, max_instances):
+    """D88's capacity-unit soft targets, not a throughput/SLO guarantee.
+
+    Keep one admission slot per replica as upper-target headroom. At a drain
+    boundary, the lower target ensures one retirement cannot immediately exceed
+    that upper target when admitted work and per-replica capacity stay fixed.
+    Hardware admission limits and observed latency remain separate constraints.
+    """
+    if (type(cap) is not int or cap < 2 or type(min_instances) is not int
+            or type(max_instances) is not int or not 1 <= min_instances < max_instances):
+        raise ValueError('development rule requires cap>=2 and a nonempty scale-out range')
+    high_active = (cap - 1) / cap
+    return dict(queue_upper=cap, queue_lower=1, active_upper=high_active,
+                active_lower=high_active * min_instances / (min_instances + 1))
+
+
 def derive_ieee_development_controls(payload, *, window_s, interval_s,
                                      historical_ttft_ms, min_instances, max_instances):
     """Explicit development starting point, not a formal SLO or optimum.
@@ -4082,9 +4098,8 @@ def derive_ieee_development_controls(payload, *, window_s, interval_s,
            for x in (window_s, interval_s, historical_ttft_ms, startup_ms)):
         raise ValueError('control observations and historical limits must be positive finite values')
     cap = payload['model_config']['runtime_concurrency_cap']
-    if (type(cap) is not int or cap < 2 or type(min_instances) is not int
-            or type(max_instances) is not int or not 1 <= min_instances < max_instances):
-        raise ValueError('development rule requires cap>=2 and a nonempty scale-out range')
+    capacity_targets = derive_ieee_capacity_targets(
+        cap, min_instances=min_instances, max_instances=max_instances)
     expected = {}
     for i, wave in enumerate(payload['source_profile_spec']['waves']):
         if wave['role'] not in ('representative_measurement', 'kernel_warmup_retained'):
@@ -4140,9 +4155,7 @@ def derive_ieee_development_controls(payload, *, window_s, interval_s,
     if low_ttft >= historical_ttft_ms:
         raise ValueError('measured GPU-ready reference does not fit the historical development target')
     cooldown = math.ceil(max(window_s,startup_ms/1000)/interval_s)*interval_s
-    high_active = (cap-1)/cap
-    scaling = dict(queue_upper=cap, queue_lower=1,
-        active_upper=high_active, active_lower=high_active*min_instances/(min_instances+1),
+    scaling = dict(capacity_targets,
         ttft_upper_ms=historical_ttft_ms, ttft_lower_ms=low_ttft,
         ttft_window_s=cooldown+window_s+interval_s, scale_down_cooldown_s=cooldown)
     return dict(kind='ieee_development_control_derivation_v1',

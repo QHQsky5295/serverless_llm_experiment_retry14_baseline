@@ -1,0 +1,247 @@
+{
+  "kind": "d336_capacity_control_setup_v1",
+  "tests": 187,
+  "source_plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "capacity_targets": {
+    "queue_upper": 8,
+    "queue_lower": 1,
+    "active_upper": 0.875,
+    "active_lower": 0.4375
+  },
+  "native_gpu_validation": false,
+  "numerical_n_correct": null,
+  "formal_qualification": false,
+  "no_figures": true,
+  "cache_cleanup": {
+    "removed_files": 9,
+    "removed_allocated_bytes": 1590808576,
+    "after": {
+      "total": 3540727054336,
+      "used": 3199234928640,
+      "available": 161556590592
+    },
+    "reviewed_manifest_sha256": "d7fe382289934bc40e2746ccbf7c91eac06b6fc488158ca51e2096241db1cf90"
+  },
+  "artifact_delivery_cache": "Reuse existing D78/D80 approved published cache; not regenerated.",
+  "raw_references": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/regression1.log",
+      "sha256": "65aa9469de98fbc876a9a54cce32904407b5c2871701b692f78ff8031328dcd3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/regression1.json",
+      "sha256": "d182825b7bb01492a4b2c524787f44a76950921099b8433c6d2425766145b471"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/test_candidate.py",
+      "sha256": "5b6b672b63918b34bd8dcfe696ef899dd6f03425e734d0fdbdbb4b486f90c587"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/prelaunch_binding.json",
+      "sha256": "720f64f409e4a9922ba1db5a842e9a51d36fd505c5038d2603a83854066ba5da"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/prelaunch1.log",
+      "sha256": "2ff0dc07ded9c226d83dd27b3c972f72801871ec0bc5c00d90e6248ed691ce1b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/verify_prelaunch.py",
+      "sha256": "b560ad761289ca365627b018212eb3c255625cf1ec00c34c3ee7e5d28dde8346"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/launch_gate.py",
+      "sha256": "95f89529de6f93984ca7ffa56d1fd3558b23166ac06f8874f4bb47586b402b74"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/start_remote.sh",
+      "sha256": "2938ad1ce74de5fddb914b22e8522ec74d4ab6c7cdb209f48ec5f29e65a78dfa"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/stop_remote.sh",
+      "sha256": "9352e33cfdd5c863528022b2683f555c40858d0a220edfc72a3c30ce6f56089c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/check_remote_health.py",
+      "sha256": "176d803fb722f46a895fb15a006f4f3b31469fc5073121c40ebaf524446e95b5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/checkpoint.py",
+      "sha256": "2844be1fb5fdc5ca76bdb843751b910097d898dbeff444a18539484d4e2fce68"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache1/audit_resources.json",
+      "sha256": "d0cd1822789c901ac23440a5cf81c8101d771b5a754a07dcab3dfe76da102716"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache1/download_archives.py",
+      "sha256": "73bb82664acaf633af0927387bc6b3ccb013d0a7a9cb8f8e353fb7cdd7dffc0c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/apply_resources.json",
+      "sha256": "262921e5a7fa50db686081652cc7bdf69200dc358521c60dae63b59c98f26033"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/audit_resources.json",
+      "sha256": "83babe310303ff13c5303f070110e96f80327ffd794d022a14d9f648903b276e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/complete.json",
+      "sha256": "ef5d2b6c1ae5c181b505187d3beb7d4112a4de8134df00ac68aa7f6e4cb7c7be"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/download_archives.py",
+      "sha256": "dc10e413b2110ee4a3aad5a81e489a60db150155fe35c9e3da0167944464fcbd"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libcublas-static/apply_before.json",
+      "sha256": "52fc0617dd904e2e547cb3643976bc1f236135857022d4402357df28b9ff62ff"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libcublas-static/audit.json",
+      "sha256": "1bb7d14107454938743d6fb99f5962f3578cf4626987a57f4e55ee9f9f58de4c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libcublas-static/complete.json",
+      "sha256": "66b5183bc7be348a1f8e7ce70c143f0213696ff88368e501bee0aaf124ae525b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libcublas-static/unlink_intent.json",
+      "sha256": "9e81557ea4d9ecabea094b6a5f18713cf7e762f7ae0f5a2c8cb282462f410254"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libcufft/apply_before.json",
+      "sha256": "f523609275f437c3394599c8a9033ee8e9a024256e24cc29f94b26110f2274a0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libcufft/audit.json",
+      "sha256": "6c7f606220def627ac35a673b6f1afcd9470b0fa468f7c7d1789e72155cfc755"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libcufft/complete.json",
+      "sha256": "7d040fa11f313bc04610560ede6ebded30203b59fca7ac39c86ab09151c86257"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libcufft/unlink_intent.json",
+      "sha256": "e3734e70af23e37af3962bf0d22315374fb2a2fabace3131cf02d9dc1beca3e2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libcufft-static/apply_before.json",
+      "sha256": "2eebf86fb285d91715ec68b6987bf1cf04a043048617409e52229c11a83bce5d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libcufft-static/audit.json",
+      "sha256": "403f504f55bddfc33ab7adb37048d5a39737a06b222b8b9898e2d2962b13955a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libcufft-static/complete.json",
+      "sha256": "94f138306f619445e627945965cc7d7b69f918b48e8ad8f31c5aa27c001c5a3b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libcufft-static/unlink_intent.json",
+      "sha256": "2ef811fcfe35123a1101f67e74b29907038c71f5ca93d89dcd6dc11b1e5cc59a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libcusolver/apply_before.json",
+      "sha256": "660b024309b8a6ac114ee28800a4fb0a94be1630876b7ba645387cabd37f2e47"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libcusolver/audit.json",
+      "sha256": "b8521597b049944945758c6bbac5054505756a2caf96d444786c9d3ee70afe53"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libcusolver/complete.json",
+      "sha256": "b32036858d9b071b1fc4d4a06e4aa663e5da21e721214fbffb4806ce0a55d589"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libcusolver/unlink_intent.json",
+      "sha256": "e64dc6629932406d4e02003fd0b3a653c8bf958206efb3a2070b5c5e974a2a99"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libcusparse/apply_before.json",
+      "sha256": "8afd8e910ada76b6263cbb0b050077e72a41e6fb5e0631beb48ed21ae2cea654"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libcusparse/audit.json",
+      "sha256": "660b26402153c6b2ca8edef0e8daf32797ebba1a908859090a16d0458c0ae7de"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libcusparse/complete.json",
+      "sha256": "b8cf30d9de925caafac0e1f4e8d9b0da7e271d7334586e18503922a9f4802ca4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libcusparse/unlink_intent.json",
+      "sha256": "f8de659d30b87778479512cbdd003bc600d77eb20b8d02242c4ac950a3222637"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libcusparse-dev/apply_before.json",
+      "sha256": "acec3e3ce5ed8f81becc5456c3294ed2bd77c88cdc47df81e90984321bd7ee03"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libcusparse-dev/audit.json",
+      "sha256": "f4cb4f60c51448bf71baab27023bfe6eed5d26e1c816fa1a6daeb9b31d001214"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libcusparse-dev/complete.json",
+      "sha256": "09e8b602ff296306d06d02dc3ee7b2d6ce8c7ca93967a8ca2d36969704c0f26d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libcusparse-dev/unlink_intent.json",
+      "sha256": "b7f8740a3d8ba0efcede61ee984e79769c6d0a686da323469c0c69e7cb629f8b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libcusparse-static/apply_before.json",
+      "sha256": "f31b4b8f70390f9e7f6b9af37cd7127bb1f177b846da99f6fdc17e729ad45409"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libcusparse-static/audit.json",
+      "sha256": "3333e73d886c86c828a3691d3dea58972b19310e8b8e792dc3a4fb41ee297529"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libcusparse-static/complete.json",
+      "sha256": "5803e3352d60bc9b2d1891f07ffbc72e41fa3c1164931587b6e87b28502c3092"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libcusparse-static/unlink_intent.json",
+      "sha256": "5e511c69d06c32a41b842f28ceb2f21c362d2f2b8ff366ad476858964ba80006"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libnpp/apply_before.json",
+      "sha256": "7e11a073cdd1ab5af1b1691b17fd75280607f8d6607494f2e272c655dad328b9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libnpp/audit.json",
+      "sha256": "9f9720f7c4e840cb8d5a0f1a19cab1a9e132dc020cd7bf14c58f6bf231d28db4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libnpp/complete.json",
+      "sha256": "4b370c5b814fff689a5e65e324340091a6de9fc7a3bbb44f4a034ec58627346b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libnpp/unlink_intent.json",
+      "sha256": "0087145f0a2ebe774f0ddd80a4901e5dc57f858de48da79a595412833f9248a1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libnpp-static/apply_before.json",
+      "sha256": "4a71c5db61e622c70997051dc9a768459fb72e730ff6b2fc3253292a2db39e9f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libnpp-static/audit.json",
+      "sha256": "b7d5644a07e6f81c5c74ff7569a89b6102a0fd2b7ea083705a0e404bdf99819f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libnpp-static/complete.json",
+      "sha256": "7b93fdfd6f9f4680a9e7dd15c2cea28fd4ab79a27265d1e79d58de03b868d7ea"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/libnpp-static/unlink_intent.json",
+      "sha256": "11ce682815d238b3038220d7856b00363a359bebe7aa2031f9dfb8892f7d024e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/cache2/review_manifest.json",
+      "sha256": "d7fe382289934bc40e2746ccbf7c91eac06b6fc488158ca51e2096241db1cf90"
+    }
+  ],
+  "archive_sha256": "0382910ccd32f2fdafc61acba913903727501013c37f67b1db636884dd85ad86",
+  "next": "Checkpoint and fresh gates, then one full4000 W0; no more short tests."
+}

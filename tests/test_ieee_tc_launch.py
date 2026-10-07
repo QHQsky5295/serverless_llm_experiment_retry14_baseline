@@ -886,6 +886,33 @@ class MeasuredSourceProfileExport(unittest.TestCase):
 
 
 class DevelopmentControlDerivation(unittest.TestCase):
+    def test_capacity_targets_reuse_original_rule_without_reprofiling_timing(self):
+        from scripts.ieee_tc_preflight import derive_ieee_capacity_targets
+        self.assertEqual(derive_ieee_capacity_targets(2, min_instances=1, max_instances=4),
+            dict(queue_upper=2, queue_lower=1, active_upper=.5, active_lower=.25))
+        self.assertEqual(derive_ieee_capacity_targets(8, min_instances=1, max_instances=4),
+            dict(queue_upper=8, queue_lower=1, active_upper=.875, active_lower=.4375))
+        for cap, minimum, maximum in ((True,1,4),(1,1,4),(8,True,4),(8,1,1),(8,1,4.0)):
+            with self.subTest(values=(cap,minimum,maximum)), self.assertRaises(ValueError):
+                derive_ieee_capacity_targets(cap, min_instances=minimum, max_instances=maximum)
+
+    def test_capacity_eight_soft_target_respects_strict_upper_and_full_low_window(self):
+        from faaslora.coordination.autoscaler import IEEEReplicaControl, ScalingAction
+        from scripts.ieee_tc_preflight import derive_ieee_capacity_targets
+        limits = dict(derive_ieee_capacity_targets(8, min_instances=1, max_instances=4),
+            ttft_upper_ms=5000., ttft_lower_ms=2339.924886357039,
+            ttft_window_s=45., scale_down_cooldown_s=38.)
+        control = IEEEReplicaControl(limits, interval_s=2., min_instances=1, max_instances=4)
+        control.observe_ttft('done',1000.,observed_at=10.)
+        def evaluate(now, active, ready, queue=0):
+            return control.evaluate(now=now, queue_depth=queue, active_requests=active,
+                ready_capacity=ready*8, ready_instances=ready, pending_instances=0)
+        self.assertNotEqual(evaluate(10.,7,1)['action'], ScalingAction.SCALE_UP)
+        self.assertEqual(evaluate(12.,8,1)['action'], ScalingAction.SCALE_UP)
+        for now in range(14,52,2):
+            self.assertNotEqual(evaluate(float(now),8,4)['action'], ScalingAction.SCALE_DOWN)
+        self.assertEqual(evaluate(52.,8,4)['action'], ScalingAction.SCALE_DOWN)
+
     def fixture(self):
         waves,requests=[],[]
         for i in range(3):

@@ -11,7 +11,46 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D335 full4000 W0 COMPLETE/audited; full-run gain NOT established
+## CURRENT — D336 capacity-derived soft-target candidate prepared, not launched
+
+2026-10-08: full source plan/V1 and D88/D298/D300/D335 history rechecked. Latest
+user approval of once-published delivery cache reconfirmed; D78/D80 already
+provides this cache, so no regeneration or second extracted artifact pool.
+No new GPU/remote run yet. D335 closure/backup remain DONE, not rerun.
+
+ONE new configuration factor: apply original D88 capacity rule to actual C8:
+queue_upper8, active_upper.875, active_lower.4375. Min1/max4, actual cap8,
+backend, profile160/24, delay guard5000/2339.924886ms,45s window/38s cooldown,
+2s evaluation, D333 serving code, generation and V1 ruler unchanged. Soft target
+need not equal hard capacity; candidate is a test, not a proven correction or
+optimum. No artificial max2 cap. See D336_CAPACITY_CONTROL_WORKING_POINT.md.
+
+Factored original capacity derivation into a reusable helper with deterministic
+tests; new config/runner identity D336. CPU validation and backup precede full
+4000 W0. No repeated short smoke/profiling/numerical blocks. Disk below150GiB
+requires evidenced recovery first; only nine public download archives proposed,
+installed/extracted packages/environments/models/results untouched. First audit
+found absent local SHA metadata and removed NOTHING; second audit verifies
+official object bytes by SHA rather than relying on MD5. Failure evidence kept.
+187 CPU tests PASS54.171s, peak2504757248B/events0/swap0; prelaunch exact config
+and child/profile checks PASS, peak515174400B/events0/swap0. Nine reviewed public
+archives removed1590808576B; installed packages and all evidence untouched.
+Preflight disk161556115456B/memory112497967104B, no threshold relaxed.
+Next: seal/close bounded CPU work, checkpoint, fresh gates, then
+one ordinary full4000 W0. Numerical/commonwarm/Resident/old-new G1/G2 and all
+3B/baseline/later matrix remain OPEN. No figures before target qualification.
+
+## HISTORY — D335 full4000 W0 COMPLETE/audited; full-run gain NOT established
+
+BACKUP VERIFIED: local HEAD and independent remote V2 both
+cc6046607cee16d7409e2a542ca8468dfd93cffe.22 exact staged paths,17 curated hashes,
+24 archive members,secrets/syntax/diff checks pass;user manifest unchanged and
+unstaged. Final verifier peak36073472B/events0/swap0, exact-owned-empty/stopped.
+All local/remote experiment and analysis scopes closed; GPU census empty. D335
+closure, analysis and backup are DONE: do not repeat this as another audit-only
+turn. Available disk159981162496B is below150GiB; no new heavy launch yet.
+Next task is resource operating-point/queue-pressure evidence, not D335 rerun,
+D334 smoke, D328 sampling, D295 numerical blocks or another backup-only cycle.
 
 2026-10-08 07:16+08:79 tests and full/context analyzers pass, offline exact-owned
 scope empty/stopped; peak1094164480B/events0/swap0.24-member50508B closure archive
