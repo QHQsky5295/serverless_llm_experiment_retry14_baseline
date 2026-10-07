@@ -11,7 +11,116 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D322 attempt2 complete; prepare D323 unchanged full4000 W0
+## CURRENT — D323 complete and audited; 7B resource goal remains open
+
+PROGRESS 2026-10-07 ~23:20+08: D323 original4000 W0 finished, no restart.
+All4000 arrived/submitted/unique successful terminals/native-contract matched;
+ten binding checks4000 each, stage identity error0. Service/replay/watchdog0,
+native GPU release confirmed, servicegroupremoved, GPU compute census empty.
+N_correct remains unknown; no numerical/formal SLO/G1/G2 qualification claim.
+Source a790cd59968a0d8d33bc017938467c1f818c5e5c617fb9628ab25a4843b5e991.
+Full audits in p2_backend/d323_full_w0/{validated1,context1}; completion receipt
+also retained there and in raw d323_20261007. See D323_COMPLETE_W0_DECISION.md.
+
+Versus D318: meanTTFT1292.091->1190.032ms(-7.90%), P953031.176->2836.346ms
+(-6.43%), P95TPOT64.226->53.987ms(-15.94%); physicalU15526.999223->15727.543212
+GPU-s(+1.29%, worse). D170 timing-only3818->3874/4000, NOT formaljointSLO.
+All input identities match;209 output tokenSHA changes retained, arithmeticopen.
+TotalU delta+200.543989 comes mainly from arrival-window+202.026954, notcleanup.
+132HTTP transfers/131480060bytes matched,pack0.4039resourcesamples,
+peak20414410752B,minhost93245304832B,high/max/OOM/swap0.
+
+Remote units identitychecked and stopped AFTER local release; monitor and3b/7b
+inactive/PID0/success. Journal clock6fd32ba11d7f42cb9ddef89eea7d01c8, raw copied
+to remote_transfers.jsonl and remote_monitor.log; remote_stop.json preserveschecks.
+No serving/config changes this turn. Existing offline analyzers extended with
+the frozen D323 result identity and flat health schema;5configurationtests pass,
+both full audits exit0. CPUanalysis scope d80c17278daa4bb081951acd8a20078d had
+peak1087778816B/events0/swap0, empty beforestop. Old full auxiliary also empty/stopped.
+
+Storage: D299/D300/D303 historical main_outcome logs losslesslygzip archived;
+source and two decompressedSHA checks match prior audits before uncompressed
+duplicate removal. Source/candidate requestresults and oldsubmission unchanged.
+Freed1885448860B; free161993199616B atcheck. Compression scope650453d936dc47c49fed60d7564a4b73
+peak260530176B/events0/swap0, empty/stopped. Receipt storage/20261007_d323_lossless_compression.json.
+Protected147 rawfalse ONLYknownbaseline replaySHA; usermanifest untouched.
+
+NEXT back up tested audit/scripts/curated data, then ONE bounded data-only
+D318/D323 physical-lifecycle and service-estimate check using existing records.
+Do not rerunD323/smokes/profile calibration or tune another policy before that
+evidence. Still7B first, then3B, thenbaselines; nofigures. Goal active.
+
+## HISTORY — D323 complete4000 W0 running observation (now finished)
+
+Latest VERIFIED WAIT 2026-10-07T22:37:55+08:00: same tmux/PID 3163492 live;
+2407 request-terminal records, not audited N_correct. Watchdog sample 2228 has
+warning false / abort []; high/max/OOM 0. Service current 19297914880 B,
+host available 95549202432 B, disk free 158779609088 B (~147.87 GiB).
+The current run remains above the 100 GiB stop floor; no next heavy task until
+the 150 GiB start gate is satisfied. Source plan read completely this turn,
+including the middle section initially truncated by tool output. Same process
+was repeatedly checked live, advancing 1938 -> 2055 -> 2168 -> 2315 -> 2407;
+previous turn and this turn are VERIFIED WAIT, not blockers or full-run results.
+No serving code/config/remote changes, heavy analysis, cleanup, compression,
+new run or figures. NEXT remains the same run through actual release, then
+data-only validation and comparison under frozen V1.
+
+2026-10-07T22:30:21+08:00 checkpoint: 1814 terminals, sample 1781 clear;
+disk free 159153844224 B. User cache approval rechecked: D78/D80 already published
+1581215261 B (~1.47 GiB), both 500-adapter HTTP/content coverages complete;
+D323 saved health is prepublished_gzip_v1. Do not recreate the cache, unpack
+another pool, or alter the remote service during measurement.
+
+Latest VERIFIED WAIT2026-10-07T22:20:50+08:00: same tmux/PID3163492 live,
+1119request terminals; watchdog current resource sample clear,high/max/OOM0.
+Servicecurrent18218110976B,hostavailable95930593280B,diskfree161270140928B
+(~150.19GiB; near new-heavy-task start floor, not current-run100GiB stop floor).
+No heavy analysis, code/config/remote changes, cleanup, compression or newrun.
+Latest100service-loglines have noERROR/Traceback/failed; not a full result audit.
+This continuation and previous are verified waits on the actual running job,
+not blockers. Source plan fully reread (filled output truncation); no scopechange.
+Next remains the SAME run through terminal/release, then data-only validation.
+
+Verified-wait checkpoint2026-10-07T22:12:03+08:00: exact tmux panePID3163492
+still live(python3),518request terminals, latest independent watchdog resource
+sample clear. Servicecurrent17274376192B,hostavailable96297955328B,high/max/OOM0;
+diskfree161900462080B. No code/config/remote service change, heavyanalysis, new
+run or figure this continuation. Complete source plan reread. Previous turn was
+PROGRESS(smoke complete/full launch); this turn VERIFIED WAIT on actual live
+run, not a blocker. Do not treat the518terminals as audited N_correct or a full
+result. Continue same process; full analysis only after terminal/release evidence.
+
+2026-10-07~22:00, mainline PROGRESS. Result/prelaunch backup local/remote exact
+f13002351fb160e4aa6e703e821f4e2e8c3edfeb. D323 actual gate andjoint profile entry
+passed; original4000/source4000/W0, no diagnosticprefix. tmux tc-d323-full,
+panePID3163492 (python3 supervisor), actual service scope
+primelora-tc-svc-c066567257c74357a7b600f992cab6b4.scope,
+InvocationID2c5fd59029894f9cabf43f7f111d5231. Auxiliary scope
+primelora-tc-aux-65b20ed83355492285e9176a4768622a.scope. Watchdog live/clear,
+service reached Phase1 preparation. Raw base:
+results/ieee_tc/p2_backend_qualification/d323_20261007; run7b_full_w0.
+Beforestart free163067568128B,MemAvailable110324568kB; no GPU compute process.
+Full-prelaunch verifier pass,peak501596160B,events/swap0,actualempty beforestop.
+
+Remote 1000/full, unchanged frozen published cache. Own remote unit identities:
+3b4e834daaf0cd4d169bf353a83a21929e;7be1424c403a3443e3be6f28cddbc82606;
+monitor primelora-artifact-monitor-d323-full.service/42ee2675070a40e8a55ce0bbfa3f1fb3.
+Health clock remote-process-monotonic:6fd32ba11d7f42cb9ddef89eea7d01c8; direct
+client health JSON has flat fields (not old wrapped health schema). Remote monitor
+path /home/lab14/primelora_remote/tc/d323_20261007_full/remote_monitor.log.
+Start/health/sourcecommit saved in rawbase. No serving/code/remote changes or
+other heavy work during measurement. Goal active; no figures/3B/baselines.
+
+NEXT observe existing run to completion, actual native GPU release and cleanup.
+Then stop only these remote InvocationIDs, copy monitor and unique transfer
+journal matching health clock. Extend existing analyze_d297_full for D323 actual
+source SHA, reuse data-only binding/timing/physical/preparation checks; compare
+to retained D318 (and D315 context). Do not extrapolate prefix or claim formal
+N_correct/commonSLO/Resident qualification. No new smoke/calibration/code tuning
+before complete-run evidence. Usermanifest/plan/V1 unchanged. Only this postlaunch
+status note is an own uncommitted edit after testedbackup; do not stage userdirty.
+
+### D322 attempt2 complete and D323 preparation
 
 100/100 native complete; all binding checks pass. MeanTTFT848.836ms vs955.135,
 P95TTFT1933.006vs2118.484ms;P95TPOT32.477vs37.949ms. GPU-s717.875820vs710.223238

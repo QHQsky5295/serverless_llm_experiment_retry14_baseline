@@ -1,0 +1,55 @@
+{
+  "kind": "d323_complete_native_w0_closure_v1",
+  "source_commit": "f13002351fb160e4aa6e703e821f4e2e8c3edfeb",
+  "n_plan": 4000,
+  "n_terminal": 4000,
+  "n_native_contract_complete": 4000,
+  "n_failed_from_terminal_journal": 0,
+  "n_correct": null,
+  "formal_qualification": false,
+  "physical_gpu_seconds_total": 15727.543212047196,
+  "launch_pass": true,
+  "native_gpu_context_release_confirmed": true,
+  "service_path_removed": true,
+  "remote_cleanup": {
+    "before": {
+      "chunk_id": "45b52c",
+      "wall_time_seconds": 0.591336443,
+      "exit_code": 0,
+      "original_token_count": 116,
+      "output": "MainPID=2376993\nResult=success\nId=primelora-artifact-tc-3b.service\nActiveState=active\nSubState=running\nInvocationID=4e834daaf0cd4d169bf353a83a21929e\n\nMainPID=2376995\nResult=success\nId=primelora-artifact-tc-7b.service\nActiveState=active\nSubState=running\nInvocationID=e1424c403a3443e3be6f28cddbc82606\n\nMainPID=2376998\nResult=success\nId=primelora-artifact-monitor-d323-full.service\nActiveState=active\nSubState=running\nInvocationID=42ee2675070a40e8a55ce0bbfa3f1fb3\n"
+    },
+    "stop": {
+      "chunk_id": "cc7501",
+      "wall_time_seconds": 0.450987494,
+      "exit_code": 0,
+      "original_token_count": 111,
+      "output": "MainPID=0\nResult=success\nId=primelora-artifact-tc-3b.service\nActiveState=inactive\nSubState=dead\nInvocationID=\n\nMainPID=0\nResult=success\nId=primelora-artifact-tc-7b.service\nActiveState=inactive\nSubState=dead\nInvocationID=\n\nMainPID=0\nResult=success\nId=primelora-artifact-monitor-d323-full.service\nActiveState=inactive\nSubState=dead\nInvocationID=\n/home/lab14/primelora_remote/tc/d80_20260927/7b/transfers-fa8bc7be2c3f4547b9f29bb4e8f353b7.jsonl\n"
+    },
+    "all_owned_units_inactive": true,
+    "artifact_pools_and_published_cache_unchanged": true
+  },
+  "evidence": {
+    "experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d323_7b_full_w0.json": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d323_20261007/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d323_7b_full_w0.json",
+      "sha256": "a790cd59968a0d8d33bc017938467c1f818c5e5c617fb9628ab25a4843b5e991"
+    },
+    "launch.json": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d323_20261007/7b_full_w0/launch.json",
+      "sha256": "a08cd657352afc8ae4a3b0f767e784adb5def3cff3ad0c55ef1932003ccfa9df"
+    },
+    "remote_transfers.jsonl": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d323_20261007/remote_transfers.jsonl",
+      "sha256": "ad80494e47a3bc7f7246f9b9e9e6c9b4103bf79cbd2ca728d80dc6da27d83ef0"
+    },
+    "remote_monitor.log": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d323_20261007/remote_monitor.log",
+      "sha256": "c31fbe6b377bbbbd4bb5d6697ae0f4612b135c901eea7c5816e5387c043d5b30"
+    },
+    "remote_stop.json": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d323_20261007/remote_stop.json",
+      "sha256": "f24ee989cfc8cfcf6b53b63cb843bf51621d8b0d30a7730ef4130946e68ec82b"
+    }
+  },
+  "caveat": "Complete native-contract development replay and physical release; not arithmetic qualification, final common SLO, or G1/G2 superiority."
+}

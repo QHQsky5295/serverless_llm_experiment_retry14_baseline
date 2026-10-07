@@ -1,0 +1,58 @@
+{
+  "kind": "lossless_existing_result_compression_v1",
+  "authorization": "Approved plan section 2.8; after D323 performance run and physical release.",
+  "method": "Existing gzip -1 -k; gzip -t; original SHA matched prior audited manifest; two decompressed SHA checks and second original SHA check before deleting only uncompressed duplicate.",
+  "entries": [
+    {
+      "run": "d299_20261007/7b_full_w0",
+      "source_bytes": 733564238,
+      "source_sha256": "7ff941786d93463878951bc3a8ab26f6dcf4471b4cde6fa8be7640bc29fffa7e",
+      "archive_bytes": 86087819,
+      "archive_sha256": "4670bca7323fc344b242f51b749509e2490cbb5c60f4898b16e30ea8fdbc8fce"
+    },
+    {
+      "run": "d300_20261007/7b_full_w0",
+      "source_bytes": 681472380,
+      "source_sha256": "618e30620f03ee9d2b359af6f17210a9e5a94d17579233cac3d406e69eed415a",
+      "archive_bytes": 80029436,
+      "archive_sha256": "e0d6423c8d37c92c1d9e41be0c3c87f952b47b2b9cda7e8f74ad20c208d9c2eb"
+    },
+    {
+      "run": "d303_20261007/7b_full_w0",
+      "source_bytes": 721231432,
+      "source_sha256": "e0ef7e17e9ed8b6e953f11e7d6621caefa41781192da1396876b3f66fa329540",
+      "archive_bytes": 84701935,
+      "archive_sha256": "c6615955be881213bc9aad1d511ae42a639af7c79f9612a6bd27d002bebfafb6"
+    }
+  ],
+  "source_name": "launch.launch/physical_deployment/main_outcome.json",
+  "archive_suffix": ".gz",
+  "first_roundtrip_verified": true,
+  "second_roundtrip_verified": true,
+  "uncompressed_duplicate_removed": true,
+  "logical_bytes_reclaimed": 1885448860,
+  "protected_seal_members": false,
+  "source_single_hardlink_regular_files": true,
+  "open_file_check": "No opener reported by lsof; inaccessible tracefs/fuse/overlay/nsfs/kubelet mounts limit census. All three owned launches terminal and GPU released.",
+  "historical_references": "Original SHA preserved; stream gzip or restore with gzip -dk under disk gate for legacy readers. No inference repetition needed.",
+  "scope": {
+    "unit": "primelora-tc-storage-d323-compress.scope",
+    "invocation_id": "650453d936dc47c49fed60d7564a4b73",
+    "memory_high": 3221225472,
+    "memory_max": 4294967296,
+    "swap_max": 0,
+    "peak_bytes": 260530176,
+    "events": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    },
+    "swap_bytes": 0,
+    "exit_code": 0,
+    "empty_before_stop": true
+  },
+  "post_cleanup_free_bytes": 161993199616,
+  "new_heavy_start_floor_bytes_unchanged": 161061273600,
+  "request_results_curated_and_submission_files_changed": false
+}

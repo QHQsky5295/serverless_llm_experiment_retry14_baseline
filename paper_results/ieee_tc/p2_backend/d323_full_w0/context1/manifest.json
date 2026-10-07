@@ -1,0 +1,66 @@
+{
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d318_20261007/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d318_7b_full_w0.json",
+      "sha256": "4c781c7b10890293130b425e7cc94dc80c96f3b3dd8037f89db53e1fb08ffb1b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d323_20261007/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d323_7b_full_w0.json",
+      "sha256": "a790cd59968a0d8d33bc017938467c1f818c5e5c617fb9628ab25a4843b5e991"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d323_20261007/7b_full_w0/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "1cb8f2f04619935667774825795d696bf580687f86deae12ba8ccd23fb27cda0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d323_20261007/remote_transfers.jsonl",
+      "sha256": "ad80494e47a3bc7f7246f9b9e9e6c9b4103bf79cbd2ca728d80dc6da27d83ef0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d323_20261007/remote_monitor.log",
+      "sha256": "c31fbe6b377bbbbd4bb5d6697ae0f4612b135c901eea7c5816e5387c043d5b30"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d323_20261007/remote_health.json",
+      "sha256": "1406084ca4ab47b704d258c11ffb2ba31da55aa2a8195e8178d63dd97a53ea87"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d323_20261007/7b_full_w0/launch.json",
+      "sha256": "a08cd657352afc8ae4a3b0f767e784adb5def3cff3ad0c55ef1932003ccfa9df"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d323_20261007/7b_full_w0/launch.launch/watchdog.jsonl",
+      "sha256": "d9757fedf0408312194f5a9e179653dde75b450360b5c6156437ab002b2fc1a5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/check_d299_full_context.py",
+      "sha256": "23350d34e262ea7ab1f39131890a4cbe76ffe3adb482bc65ae44c5bd62737a20"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/plot_d290_diagnostic.py",
+      "sha256": "fdb7898478701b4142bfc15feb231f9c94da566215ec1247ad1ddf6e58d98f9d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py",
+      "sha256": "b917c2856d7ec4ddec50f1a5929604e1c336cd964647780b4550cf48753729e8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d323_20261007/completion_receipt.json",
+      "sha256": "e19f5ba84800a1fe25eb31821770cb7e2a029d4aa53a851f9af7ea4a4b5eba6e"
+    }
+  ],
+  "outputs": {
+    "comparison.csv": "81ae2a45c8c4b86285698db1a07f044349e4bb0ea03831744a5709ceb6160a02",
+    "context.json": "7958ccd641ad6d928d95668ab6df89a944ca68ebb4ffb763c1cd2f3fc0c144cd"
+  },
+  "formatting_only_postprocessing": {
+    "operation": "CRLF to LF for this new unpublished CSV; generator now specifies LF",
+    "numeric_and_non_newline_bytes_unchanged": true,
+    "verification": "diff --strip-trailing-cr returned 0",
+    "executed_analysis_script_sha256": "6970667bc942de1d8bbfb2da3e232494ca5fb0932ec8d57fa584d5a81e9e9aaf",
+    "original_csv": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d323_20261007/comparison_original_crlf.csv",
+    "original_csv_sha256": "7c88992222c268688af95cc41ffdbd65ee579a4313fa3c7dde4e22b235b194fe",
+    "original_manifest": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d323_20261007/context_manifest_before_lf.json",
+    "original_manifest_sha256": "8baf6807baf837bdc8b820287df46820a8090fa3acd96775858c8d3f1fc16df5"
+  }
+}
