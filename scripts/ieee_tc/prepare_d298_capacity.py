@@ -289,7 +289,7 @@ def verify_existing_launch(campaign='d298'):
     print(json.dumps(dict(passed=True,pool_max_rank=16,source_config=receipt['source_config'])),flush=True)
 
 
-def verify_prefill_smoke():
+def verify_prefill_smoke(campaign='d308'):
     """Bind the existing Full runner to the actually measured D307 child."""
     from scripts.run_all_experiments import (
         _prepare_scenario_runtime_model_config, _prepare_dedicated_subprocess_model_cfg)
@@ -297,9 +297,23 @@ def verify_prefill_smoke():
     from faaslora.preloading.preloading_planner import FrozenPreparationProfiles
     root = p.ROOT
     out = root/'paper_results/ieee_tc/p2_backend/d308_prefill'
-    assert not out.exists(), 'never overwrite preparation'
     config = root/'configs/ieee_tc/20261007_d308_7b_prefill_validation_100.yaml'
     previous = root/'configs/ieee_tc/20261007_d302_7b_frontier_validation_100.yaml'
+    smoke_ref = None
+    if campaign == 'd309':
+        out = root/'paper_results/ieee_tc/p2_backend/d309_full_w0'
+        assert not out.exists(), 'never overwrite preparation'
+        config = root/'configs/ieee_tc/20261007_d309_7b_full_w0.yaml'
+        previous = root/'configs/ieee_tc/20261007_d303_7b_full_w0.yaml'
+        smoke_path = root/'paper_results/ieee_tc/p2_backend/d308_prefill/smoke1/audit.json'
+        smoke = json.loads(smoke_path.read_text())
+        assert smoke['stats']['completed'] == 100
+        for reference in smoke['raw_evidence']:
+            assert p.digest(Path(reference['path'])) == reference['sha256']
+        smoke_ref = dict(path=str(smoke_path.relative_to(root)),sha256=p.digest(smoke_path))
+    elif campaign != 'd308':
+        raise ValueError('unknown frozen prefill validation identity')
+    assert not out.exists(), 'never overwrite preparation'
     contract_path = root/'paper_results/ieee_tc/p2_backend/d307_prefill/development_contract.json'
     measured_path = root/'paper_results/ieee_tc/p2_backend/d307_prefill/initialization/manifest.json'
     c = yaml.safe_load(config.read_text())
@@ -317,6 +331,14 @@ def verify_prefill_smoke():
     expected['storage']['nvme_cache_dir'] = old['storage']['nvme_cache_dir'].replace('d302_', 'd308_').replace('frontier', 'prefill')
     expected['storage']['host_cache_dir'] = old['storage']['host_cache_dir'].replace('tc-d302', 'tc-d308').replace('frontier', 'prefill')
     expected['scenarios'][0]['name'] = 'tc_ieee_prefill_validation_100'
+    if campaign == 'd309':
+        expected['experiment']['output_dir'] = old['experiment']['output_dir'].replace('d303_', 'd309_')
+        expected['storage']['nvme_cache_dir'] = old['storage']['nvme_cache_dir'].replace('d303_', 'd309_')
+        expected['storage']['host_cache_dir'] = old['storage']['host_cache_dir'].replace('tc-d303', 'tc-d309')
+        expected['scenarios'][0]['name'] = 'tc_ieee_full'
+        smoke_config = yaml.safe_load((root/'configs/ieee_tc/20261007_d308_7b_prefill_validation_100.yaml').read_text())
+        assert c['model'] == smoke_config['model'] and c['resource_coordination'] == smoke_config['resource_coordination']
+        assert c['workload']['total_requests'] == 4000
     profile_receipts = {}
     for key, cls in (('ieee_service_profile', FrozenServiceProfiles), ('ieee_preparation_profile', FrozenPreparationProfiles)):
         binding = copy.deepcopy(measured['bindings'][key])
@@ -334,7 +356,7 @@ def verify_prefill_smoke():
         profile = cls.load(root/binding['path'], expected_sha256=binding['sha256'],
             model_config=child, expected_context=binding['context'], beta=binding['ewma_beta'])
         profile_receipts[key] = dict(profile_id=profile.profile_id, classes=len(profile.profiles), binding=binding)
-    receipt = dict(kind='d308_full_smoke_binding_v1', passed=True, gpu_runs=0,
+    receipt = dict(kind=campaign+'_full_validation_binding_v1', passed=True, gpu_runs=0, smoke_reference=smoke_ref,
         source_references=[dict(path=str(x.relative_to(root)),sha256=p.digest(x))
             for x in (config, previous, contract_path, measured_path)],
         model_config=child, assembly=assembly, profiles=profile_receipts,
@@ -357,7 +379,9 @@ if __name__ == '__main__':
         verify_existing_launch()
     elif sys.argv[1:] == ['--verify-prefill-smoke']:
         verify_prefill_smoke()
+    elif sys.argv[1:] == ['--verify-prefill-full']:
+        verify_prefill_smoke('d309')
     elif not sys.argv[1:]:
         main()
     else:
-        raise SystemExit('Expected no argument, --verify-launch, --prefill-candidate, --verify-prefill-launch or --verify-prefill-smoke')
+        raise SystemExit('Expected no argument, --verify-launch, --prefill-candidate, --verify-prefill-launch, --verify-prefill-smoke or --verify-prefill-full')

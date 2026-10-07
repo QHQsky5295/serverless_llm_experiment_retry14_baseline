@@ -1,0 +1,27 @@
+{
+  "kind": "d308_audit_d309_prelaunch_cpu_checks_v1",
+  "scopes": [
+    {
+      "unit": "primelora-d308-audit.scope",
+      "invocation_id": "44642f3301ac49e381c4234783ef6263",
+      "empty": true,
+      "readback": {
+        "cgroup.events": "populated 0\nfrozen 0\n",
+        "memory.peak": "101109760\n",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+        "memory.swap.current": "0\n"
+      }
+    },
+    {
+      "unit": "primelora-d309-prelaunch.scope",
+      "invocation_id": "36827e9895524ef6a661a7e4c75ec515",
+      "empty": true,
+      "readback": {
+        "cgroup.events": "populated 0\nfrozen 0\n",
+        "memory.peak": "496267264\n",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+        "memory.swap.current": "0\n"
+      }
+    }
+  ]
+}

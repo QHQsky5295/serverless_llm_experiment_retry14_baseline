@@ -11,7 +11,60 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D307 source complete; D308 bound Full100 prepared, next actual replay
+## CURRENT — D308100 complete/audited; D3094000 prepared, next actual full replay
+
+2026-10-07 09:47+08. D308 completed100/100, native token/source/time/binding
+checks pass; sourceSHA d3a660845b47b5d32db6664dccad6a2fc48818f61ea7abbfab095ec7867c04b7.
+Launchpass/returncodes0, nativeGPUrelease andservicepathremoved confirmed.
+StoppedremoteMONITOR FIRST withrecordedInvocationID;3unitsinactive/PID0/exit0.
+29UUIDpairs/50650865wirebytes allmatched; no requestpacking.264samples,
+peak18296344576B,minhost94835871744B,high/max/OOM/swap0. Historicalseal147
+unchangedexceptsameknownbaselinescript. Nofiguresornewpool/trace.
+
+D308TTFTmean1021.630202/P953061.757701ms,TPOTmean28.791707/P9540.205643ms,
+physical684.796752GPU-s. VersusD302100:U-14.34%,TTFTP95+34.35%,TPOTP95+17.02%.
+Retainregression; cannotchoosecandidate from100prefix. D170timing-only97/100,
+formalSLO/Ncorrectunknown; neither7Bqualificationnorstatisticalsuperiority.
+Curatedd308_prefill/smoke1 containsaudit,binding,comparison andsourceidentities.
+
+D309configpreparedfromD308, only4000extent/scenario/freshpaths; actualchild and
+allprofiles/controls equal. Newbindingreceipt verifiesD303onlydeclaredcandidate
+differences, D308nativeauditrawSHA,and exactD307measuredchild. ConfigSHA
+e193de4e4f1bfc2793f22f60c2eb6702ac7c9643ac949d7f53bb10facbafa8a5.
+Existingrunnerexplicitd309case added; prephelper --verify-prefill-fullpassed.
+No servingcodechange. CPUauditandprelaunchscopesempty/stopped;readbacksretained.
+NEXT backup exactfiles, rereadfullplan/status/V1 beforelaunch, D309remote wrapper
+withfreshmonitoridentity/sameD80services/D78cache;healthBEFORElaunch. Runexisting
+run_d293_7b_prefetch_validation_100.sh d309 onceinownedtmux.4000W0 mustcomplete
+beforeaccept/reject. No additionalcandidate,warm,source,numeric orbaseline detour.
+Afterlocalrelease: stopcapturedremoteMONITOR FIRST,copysourcejournalandmonitor,
+sealcompletionSHA, extendexistinganalyze_d297_full/check_d299_full_context explicit
+d309identity andcompareD303. No benchmarkthresholdchange. Goalactive7B→3B→baselines.
+
+## HISTORY — D308 Full100 RUNNING; monitor same owned experiment
+
+2026-10-07 09:40+08. Fullplan/status/V1 read before launch; tested checkpoint
+6a29eb0277c92ed84a8e53107315414d97dcf0b6 pushed/remoteHEADverified.
+D308 launchedONCE at09:39:34 in tmuxprimelora_d308_smoke using explicitd308
+existingrunner. Originalmemory/disk/gpu gates passed; no foreigncompute.
+Localserviceprimelora-tc-svc-ed858a4613544374a64b3a299dd5af5e.scope,
+invocation4d69d69534ed4a4dbffe0682100ba8c2;
+auxprimelora-tc-aux-e332c63284be4b84b15797236655f701.scope,
+watchdog4086031/start84442331.72/80GiB/swap2GiB limitsandseparateauxverified.
+Remote3Bc463d999180b4dc1b241b5737e3621cf/PID1410843;
+7Ba726ed1ebf7148bb8e9407ecfd9bbc3f/PID1410844;
+monitorprimelora-artifact-monitor-d308.service
+0cefa1cc28164f3590b259aa8ea91a4a/PID1410848.
+Authenticatedhealth capturedBEFORElaunch, clock
+remote-process-monotonic:f0fa3a3c358641fb91d133304b8b95b3;
+journaltransfers-d7142310de8e4b848c5b2825a20e833e.jsonl. NIC1000/full.
+ReuseD80service/D78publishedcache; no rebuild,hashscan,compression or concurrent
+heavywork duringmeasurement. Monitorcurrentjob; localrelease then stopowned
+remoteMONITOR FIRST, verifybothartifactservicesinactive, copysmoke_remote_*
+logs/journal. Run existinganalyzer --campaign d308 onlyaftercomplete/pass.
+Ifvalid proceed4000W0. Nofigures,3B/baselines; goalactive.
+
+## HISTORY — D307 source complete; D308 bound Full100 prepared, next actual replay
 
 2026-10-07 09:39+08. Fullplan/status/V1/run/monitor/githubskills reread.
 D307 attempt2 completed248/248 (8warmup+240measurement;48per source), launchpass,
