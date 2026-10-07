@@ -11,7 +11,32 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D321 declared-output calibration: export exact historical coverage
+## CURRENT — D321 complete:160classes measured; NEXT one7B candidate smoke/full
+
+PROGRESS2026-10-07.86native calls completed (81measured+5warmup),164.025575605
+GPU-s, servicepeak5705359360B,hostmin107083677696B,175watchdogsamples,events/
+swap/abort0. Backendreleased/servicegroupremoved; remote services identity-
+checked and stopped.86server/clienttransferIDs match179757983wirebytes,pack0.
+Initialization1 combines4000D315+240D298+81gap=4321samples,160/160classes;
+19gaps actuallyfilled,edgesunchanged[24,91,217,256],minclassn1(disclosed).
+serviceSHA21f02c42ad6f39a5ea3a4245b09caa81a4e505502667dcc8b93667926e9d23db;
+bindingJSONfa27b09796bad42b9a34e0b7ceaf872ad33e26cd44e7b7be106aa8567f47806f.
+This is measured initialization, NOT performancegain/numerical/formalSLO pass.
+Sourcecommit4728b16 backedupbeforeGPU. Finaltargeted75tests pass0.590s;
+earlierfull213pass50.423s.10newtests. Plan/V1/serving/usermanifestunchanged.
+
+NEXT after tested result backup: prepare D318-equivalent100-request7B Full
+with onlynewservicebinding, one smoke then original4000W0; assess data before
+accepting. No more lengthcohort/profilematrix,512budget,numericalsmallrepeats,
+3B/baselines orfigures. Preparationprofile/control/backend unchanged. Formal
+warm/Resident,N_correct,oldPrime newmetrics stillunknown; objective staysactive.
+Allownedjobs stopped, no liveGPU/remote/toolsession. No unique data deleted;
+free163138781184B (~151.94GiB), recheck floor before next heavy run.
+See D321_DECLARED_OUTPUT_CALIBRATION.md. History exporter exactfb9a9f33...
+archived beforemergeextension;22merge sources/3outputs verified. Protected147
+rawpassfalseonlyknownbaseline04f3eb52...; before/afterreceipts identical.
+
+### D321 preparation and prelaunch record
 
 One candidate rule fixed before performance evaluation: Type-1 quartiles of
 D315 historical declared limits, merge ties, append cap256. Keep nine equations,
@@ -25,6 +50,16 @@ See D321_DECLARED_OUTPUT_CALIBRATION.md. No freshGPU/remote run or figure yet.
 NEXT tested backup then only86gapcalibration calls; then one minimal validation
 and full4000W0. No repeated D320 grouping or old source matrix.7B first,3B and
 baselines remain pending. Cache authorization already fulfilledD78/D80.
+
+D321 prelaunch backup: normalpush verified local/remote exact
+4728b16024de548c3630262eae0372f978f16509.13explicitpaths, no usermanifest,
+rawlogs orfigures;213tests pass. All history/gap source/outputSHAs checked;
+protected147rawpassfalse onlyknown baseline replay04f3eb52..., no newchange.
+No GPU PID, all4cards15MiB/0%, MemAvailable110384196kB,free163170385920B.
+Only ownedD321CPUscopes were stopped afteractualempty; no populated oldTCscope.
+Remote published-service start uses unchangedD318procedure/campaignpaths only.
+NEXT86-call source calibration via existingrun_d298_capacity_source.sh d321-gaps
+in tmux; no new cache, trace,weights,preparationprofile orFullpolicy change.
 
 ## HISTORY — D320 complete: Q omission rejected; output-length calibration is next
 

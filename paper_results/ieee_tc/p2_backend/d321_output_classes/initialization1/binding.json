@@ -1,0 +1,12 @@
+{
+  "ieee_service_profile": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d321_output_classes/initialization1/service.json",
+    "sha256": "21f02c42ad6f39a5ea3a4245b09caa81a4e505502667dcc8b93667926e9d23db",
+    "context": {
+      "backend_environment_sha256": "cf38bbf8d3b80b30d88ac38e27722d389a24ae516565708cfc924937589079cf",
+      "resource_envelope_sha256": "6be2cfc81b73813f311f793a7b53c76e943fb8e35a64d43377cda52c8178b0c5",
+      "input_contract_sha256": "ccfb02a78dc6a5fa7bf1f5172c6d377d20d9dddaefb868e4cb648b385d169d5f"
+    },
+    "ewma_beta": 0.5
+  }
+}

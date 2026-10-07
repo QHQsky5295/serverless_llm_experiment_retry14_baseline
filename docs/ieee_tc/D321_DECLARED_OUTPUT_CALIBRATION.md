@@ -82,3 +82,56 @@ History4peak1245851648B; preparation625909760B; actualempty/populated0 checked
 before stopping each owned scope. Usermanifest,sourceplan,V1,serving unchanged.
 Before GPU work: verify all SHA chains/protected data, normal tested checkpoint,
 fresh resource gate and frozen published remote service. Collection pending.
+
+## Completed calibration and initializer (not a performance result)
+
+| Quantity | Observed value |
+|---|---:|
+| Native calls / successful complete calls | 86 /86 |
+| Measured / separately retained warmup | 81 /5 |
+| Historical + original source + new samples | 4000+240+81=4321 |
+| Combined covered / required classes | 160 /160 |
+| Missing classes after actual measurement | 0 |
+| Minimum observations in an individual combined class | 1 |
+| Remote transfers / matched server records | 86 /86 |
+| Wire bytes | 179757983 |
+| Request-time packing | 0 |
+| Physical GPU lease | 164.025575605GPU-s |
+| Service memory peak | 5705359360B |
+| Minimum host available memory | 107083677696B |
+| Memory high/max/OOM/swap; safety aborts | all0 |
+
+Source run SHA468344188a116ae1f29414abf4ad70130e70ae889e10fb70d1215739aba2e621;
+launch commit4728b16024de548c3630262eae0372f978f16509. All175watchdog samples
+are clear. The real backend/context released, service group removed; dedicated
+remote service InvocationIDs checked before stop. Native adapter numerical
+discrimination remains unknown; completed token/identity/timing is not N_correct.
+Calibration source resets/fetch counts are NOT a workload cache-miss result.
+
+First remote health command used systemPython lacking numpy and failed before
+HTTP; empty receipt retained. Existing projectPython succeeded as health2;
+no service configuration changed. Remote link again1000/full. No new cache.
+
+`initialization1/service.json` SHA21f02c42ad6f39a5ea3a4245b09caa81a4e505502667dcc8b93667926e9d23db
+loads under the authoritative FrozenServiceProfiles with160classes. Gap samples
+do not change historical edges[24,91,217,256]. Existing preparation profile,
+model/backend, EWMA and Full policy stay unchanged. Per-class minimum1 is a
+sampling limitation: completeness is not a guarantee of estimate accuracy.
+
+Final targeted75tests pass0.590s, including2additional normalization/frozen-edge
+tests (10newD321tests in total). Earlier full213tests pass50.423s. Merge scope
+6e6e9cc2...peak527990784B, events/swap0, actualempty beforestop. Protected147
+before/after identical receipts: rawpassfalse onlypreviously known baseline
+replay04f3eb52..., not a new old-result change. No unique input/result deletion.
+
+History export's exact source fb9a9f33... is archived in provenance after adding
+the independent merge entry to that existing exporter; not a new entrypoint.
+All22merge source references and3outputs checked. The initializer's provenance
+is not rewritten to pretend the two exporter revisions were identical.
+
+Decision: **PROGRESS**, initialization candidate complete; performance acceptance
+still pending. NEXT exactly one100-request7B Full smoke using D318 configuration
+with only the new service profile/binding, then original4000W0. Keep all old data,
+no output-bin sweep, repeated source calibration,3B,baselines orfigures. Compare
+observed TTFT/TPOT/GPU-s and timingSLO honestly; formalwarm/Resident/N_correct and
+oldPrime newmetrics remain separate open requirements. Goal stays active.

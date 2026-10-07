@@ -1,0 +1,2578 @@
+{
+  "combined": {
+    "required_classes": 160,
+    "observed_classes": 160,
+    "missing_classes": [],
+    "counts": [
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 0
+        },
+        "n": 75
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 0
+        },
+        "n": 72
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "n": 2
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "n": 3
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "n": 30
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 0
+        },
+        "n": 9
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 0
+        },
+        "n": 5
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "n": 3
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "n": 3
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "n": 9
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 0
+        },
+        "n": 100
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 0
+        },
+        "n": 106
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "n": 5
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "n": 1
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "n": 50
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 0
+        },
+        "n": 8
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 0
+        },
+        "n": 16
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "n": 4
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "n": 3
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "n": 7
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 0
+        },
+        "n": 86
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 0
+        },
+        "n": 115
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "n": 13
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "n": 3
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "n": 67
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 0
+        },
+        "n": 19
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 0
+        },
+        "n": 18
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "n": 3
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "n": 3
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "n": 14
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 0
+        },
+        "n": 75
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 0
+        },
+        "n": 105
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "n": 9
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "n": 3
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "n": 55
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 0
+        },
+        "n": 7
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 0
+        },
+        "n": 18
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "n": 5
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "n": 2
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "n": 17
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 1
+        },
+        "n": 60
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 1
+        },
+        "n": 63
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 1
+        },
+        "n": 3
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 1
+        },
+        "n": 3
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 1
+        },
+        "n": 23
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 1
+        },
+        "n": 15
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 1
+        },
+        "n": 21
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 1
+        },
+        "n": 1
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 1
+        },
+        "n": 3
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 1
+        },
+        "n": 15
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 1
+        },
+        "n": 81
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 1
+        },
+        "n": 82
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 1
+        },
+        "n": 13
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 1
+        },
+        "n": 1
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 1
+        },
+        "n": 42
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 1
+        },
+        "n": 13
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 1
+        },
+        "n": 36
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 1
+        },
+        "n": 4
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 1
+        },
+        "n": 3
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 1
+        },
+        "n": 15
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 1
+        },
+        "n": 62
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 1
+        },
+        "n": 91
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 1
+        },
+        "n": 9
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 1
+        },
+        "n": 3
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 1
+        },
+        "n": 55
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 1
+        },
+        "n": 16
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 1
+        },
+        "n": 43
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 1
+        },
+        "n": 2
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 1
+        },
+        "n": 3
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 1
+        },
+        "n": 16
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 1
+        },
+        "n": 73
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 1
+        },
+        "n": 94
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 1
+        },
+        "n": 9
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 1
+        },
+        "n": 1
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 1
+        },
+        "n": 51
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 1
+        },
+        "n": 17
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 1
+        },
+        "n": 30
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 1
+        },
+        "n": 5
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 1
+        },
+        "n": 1
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 1
+        },
+        "n": 22
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 2
+        },
+        "n": 68
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 2
+        },
+        "n": 125
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 2
+        },
+        "n": 11
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 2
+        },
+        "n": 6
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 2
+        },
+        "n": 58
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 2
+        },
+        "n": 23
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 2
+        },
+        "n": 41
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 2
+        },
+        "n": 3
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 2
+        },
+        "n": 6
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 2
+        },
+        "n": 13
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 2
+        },
+        "n": 65
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 2
+        },
+        "n": 119
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 2
+        },
+        "n": 10
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 2
+        },
+        "n": 4
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 2
+        },
+        "n": 56
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 2
+        },
+        "n": 28
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 2
+        },
+        "n": 29
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 2
+        },
+        "n": 7
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 2
+        },
+        "n": 6
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 2
+        },
+        "n": 17
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 2
+        },
+        "n": 64
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 2
+        },
+        "n": 105
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 2
+        },
+        "n": 15
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 2
+        },
+        "n": 3
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 2
+        },
+        "n": 51
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 2
+        },
+        "n": 27
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 2
+        },
+        "n": 37
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 2
+        },
+        "n": 3
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 2
+        },
+        "n": 6
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 2
+        },
+        "n": 20
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 2
+        },
+        "n": 55
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 2
+        },
+        "n": 110
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 2
+        },
+        "n": 9
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 2
+        },
+        "n": 2
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 2
+        },
+        "n": 53
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 2
+        },
+        "n": 25
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 2
+        },
+        "n": 30
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 2
+        },
+        "n": 8
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 2
+        },
+        "n": 3
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 2
+        },
+        "n": 23
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 3
+        },
+        "n": 43
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 3
+        },
+        "n": 117
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 3
+        },
+        "n": 3
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 3
+        },
+        "n": 3
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 3
+        },
+        "n": 53
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 3
+        },
+        "n": 10
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 3
+        },
+        "n": 22
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 3
+        },
+        "n": 2
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 3
+        },
+        "n": 3
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 3
+        },
+        "n": 12
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 3
+        },
+        "n": 19
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 3
+        },
+        "n": 66
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 3
+        },
+        "n": 8
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 3
+        },
+        "n": 6
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 3
+        },
+        "n": 29
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 3
+        },
+        "n": 7
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 3
+        },
+        "n": 17
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 3
+        },
+        "n": 3
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 3
+        },
+        "n": 3
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 3
+        },
+        "n": 12
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 3
+        },
+        "n": 19
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 3
+        },
+        "n": 34
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 3
+        },
+        "n": 17
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 3
+        },
+        "n": 9
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 3
+        },
+        "n": 28
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 3
+        },
+        "n": 8
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 3
+        },
+        "n": 18
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 3
+        },
+        "n": 1
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 3
+        },
+        "n": 3
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 3
+        },
+        "n": 1
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 3
+        },
+        "n": 24
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 3
+        },
+        "n": 46
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 3
+        },
+        "n": 5
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 3
+        },
+        "n": 3
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 3
+        },
+        "n": 18
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+          "admitted_bin": 3
+        },
+        "n": 17
+      },
+      {
+        "service_class": {
+          "tier": "gpu",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "native_gpu_dense_slot_v1:torch.float16",
+          "admitted_bin": 3
+        },
+        "n": 15
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 3
+        },
+        "n": 8
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 3
+        },
+        "n": 6
+      },
+      {
+        "service_class": {
+          "tier": "nvme",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 3
+        },
+        "n": 11
+      }
+    ],
+    "class_domain_covered": true,
+    "output_edges": [
+      24,
+      91,
+      217,
+      256
+    ],
+    "historical_samples": 4000,
+    "retained_source_samples": 240,
+    "additional_measured_samples": 81,
+    "no_default_fills": true,
+    "production_profile_frozen": false,
+    "numerical_qualification": false
+  },
+  "standalone_gap_measurement": {
+    "kind": "native_source_class_domain_audit_v1",
+    "static_adapter_count": 500,
+    "exact_file_content_classes": 6,
+    "rank_counts": {
+      "8": 350,
+      "16": 150
+    },
+    "measured_service_classes": 22,
+    "required_service_classes": 48,
+    "measured_preparation_classes": 7,
+    "minimum_preparation_source_observations": 3,
+    "missing_content_sources": [
+      {
+        "content_sha256": "02a026545e1fc59621e4273b3f5df82c0a779f27f964c708207bf74bb8eeb5dd",
+        "source": "remote"
+      },
+      {
+        "content_sha256": "02a026545e1fc59621e4273b3f5df82c0a779f27f964c708207bf74bb8eeb5dd",
+        "source": "nvme"
+      },
+      {
+        "content_sha256": "02a026545e1fc59621e4273b3f5df82c0a779f27f964c708207bf74bb8eeb5dd",
+        "source": "file_host"
+      },
+      {
+        "content_sha256": "02a026545e1fc59621e4273b3f5df82c0a779f27f964c708207bf74bb8eeb5dd",
+        "source": "native_host"
+      },
+      {
+        "content_sha256": "02a026545e1fc59621e4273b3f5df82c0a779f27f964c708207bf74bb8eeb5dd",
+        "source": "gpu"
+      },
+      {
+        "content_sha256": "500acd334c833313111417d04a01ed952b7353b13761cd648cae1da019531b15",
+        "source": "nvme"
+      },
+      {
+        "content_sha256": "500acd334c833313111417d04a01ed952b7353b13761cd648cae1da019531b15",
+        "source": "native_host"
+      },
+      {
+        "content_sha256": "500acd334c833313111417d04a01ed952b7353b13761cd648cae1da019531b15",
+        "source": "gpu"
+      },
+      {
+        "content_sha256": "501dea37564a75da1a183b38ac4af39793ed9d68b6fc6155a4a8a11ece5b8e03",
+        "source": "remote"
+      },
+      {
+        "content_sha256": "501dea37564a75da1a183b38ac4af39793ed9d68b6fc6155a4a8a11ece5b8e03",
+        "source": "nvme"
+      },
+      {
+        "content_sha256": "501dea37564a75da1a183b38ac4af39793ed9d68b6fc6155a4a8a11ece5b8e03",
+        "source": "native_host"
+      },
+      {
+        "content_sha256": "501dea37564a75da1a183b38ac4af39793ed9d68b6fc6155a4a8a11ece5b8e03",
+        "source": "gpu"
+      },
+      {
+        "content_sha256": "7bf0ef42d0aa95cb86a84771ca45deaaba3ce2a7afc99cb95b44eae6693c8dc1",
+        "source": "nvme"
+      },
+      {
+        "content_sha256": "7bf0ef42d0aa95cb86a84771ca45deaaba3ce2a7afc99cb95b44eae6693c8dc1",
+        "source": "native_host"
+      },
+      {
+        "content_sha256": "7bf0ef42d0aa95cb86a84771ca45deaaba3ce2a7afc99cb95b44eae6693c8dc1",
+        "source": "gpu"
+      },
+      {
+        "content_sha256": "8e55e0c8fa3c7364767884cc0626af153e64de0a162bc675c9326ed70cba50c9",
+        "source": "remote"
+      },
+      {
+        "content_sha256": "8e55e0c8fa3c7364767884cc0626af153e64de0a162bc675c9326ed70cba50c9",
+        "source": "nvme"
+      },
+      {
+        "content_sha256": "8e55e0c8fa3c7364767884cc0626af153e64de0a162bc675c9326ed70cba50c9",
+        "source": "native_host"
+      },
+      {
+        "content_sha256": "8e55e0c8fa3c7364767884cc0626af153e64de0a162bc675c9326ed70cba50c9",
+        "source": "gpu"
+      },
+      {
+        "content_sha256": "dd84400586ce8692784d41c33054c992af1a88c5d0d4c578cc862c960b75461b",
+        "source": "remote"
+      },
+      {
+        "content_sha256": "dd84400586ce8692784d41c33054c992af1a88c5d0d4c578cc862c960b75461b",
+        "source": "nvme"
+      },
+      {
+        "content_sha256": "dd84400586ce8692784d41c33054c992af1a88c5d0d4c578cc862c960b75461b",
+        "source": "native_host"
+      },
+      {
+        "content_sha256": "dd84400586ce8692784d41c33054c992af1a88c5d0d4c578cc862c960b75461b",
+        "source": "gpu"
+      }
+    ],
+    "missing_service_classes": [
+      {
+        "tier": "host",
+        "prompt_bin": 0,
+        "output_limit_bin": 1,
+        "rank_bin": 0,
+        "footprint_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "admitted_bin": 0
+      },
+      {
+        "tier": "host",
+        "prompt_bin": 0,
+        "output_limit_bin": 2,
+        "rank_bin": 0,
+        "footprint_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "admitted_bin": 0
+      },
+      {
+        "tier": "remote",
+        "prompt_bin": 0,
+        "output_limit_bin": 2,
+        "rank_bin": 1,
+        "footprint_bin": 0,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "admitted_bin": 0
+      },
+      {
+        "tier": "remote",
+        "prompt_bin": 0,
+        "output_limit_bin": 3,
+        "rank_bin": 1,
+        "footprint_bin": 0,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "admitted_bin": 0
+      },
+      {
+        "tier": "host",
+        "prompt_bin": 0,
+        "output_limit_bin": 3,
+        "rank_bin": 1,
+        "footprint_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "admitted_bin": 0
+      },
+      {
+        "tier": "remote",
+        "prompt_bin": 0,
+        "output_limit_bin": 0,
+        "rank_bin": 1,
+        "footprint_bin": 0,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "admitted_bin": 1
+      },
+      {
+        "tier": "host",
+        "prompt_bin": 0,
+        "output_limit_bin": 1,
+        "rank_bin": 0,
+        "footprint_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "admitted_bin": 1
+      },
+      {
+        "tier": "host",
+        "prompt_bin": 0,
+        "output_limit_bin": 2,
+        "rank_bin": 0,
+        "footprint_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "admitted_bin": 1
+      },
+      {
+        "tier": "remote",
+        "prompt_bin": 0,
+        "output_limit_bin": 2,
+        "rank_bin": 1,
+        "footprint_bin": 0,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "admitted_bin": 1
+      },
+      {
+        "tier": "host",
+        "prompt_bin": 0,
+        "output_limit_bin": 3,
+        "rank_bin": 0,
+        "footprint_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "admitted_bin": 1
+      },
+      {
+        "tier": "remote",
+        "prompt_bin": 0,
+        "output_limit_bin": 3,
+        "rank_bin": 1,
+        "footprint_bin": 0,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "admitted_bin": 1
+      },
+      {
+        "tier": "host",
+        "prompt_bin": 0,
+        "output_limit_bin": 3,
+        "rank_bin": 1,
+        "footprint_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "admitted_bin": 1
+      },
+      {
+        "tier": "remote",
+        "prompt_bin": 0,
+        "output_limit_bin": 0,
+        "rank_bin": 1,
+        "footprint_bin": 0,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "admitted_bin": 2
+      },
+      {
+        "tier": "host",
+        "prompt_bin": 0,
+        "output_limit_bin": 1,
+        "rank_bin": 0,
+        "footprint_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "admitted_bin": 2
+      },
+      {
+        "tier": "host",
+        "prompt_bin": 0,
+        "output_limit_bin": 2,
+        "rank_bin": 0,
+        "footprint_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "admitted_bin": 2
+      },
+      {
+        "tier": "remote",
+        "prompt_bin": 0,
+        "output_limit_bin": 2,
+        "rank_bin": 1,
+        "footprint_bin": 0,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "admitted_bin": 2
+      },
+      {
+        "tier": "host",
+        "prompt_bin": 0,
+        "output_limit_bin": 3,
+        "rank_bin": 0,
+        "footprint_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "admitted_bin": 2
+      },
+      {
+        "tier": "remote",
+        "prompt_bin": 0,
+        "output_limit_bin": 3,
+        "rank_bin": 1,
+        "footprint_bin": 0,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "admitted_bin": 2
+      },
+      {
+        "tier": "host",
+        "prompt_bin": 0,
+        "output_limit_bin": 3,
+        "rank_bin": 1,
+        "footprint_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "admitted_bin": 2
+      },
+      {
+        "tier": "remote",
+        "prompt_bin": 0,
+        "output_limit_bin": 0,
+        "rank_bin": 1,
+        "footprint_bin": 0,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "admitted_bin": 3
+      },
+      {
+        "tier": "host",
+        "prompt_bin": 0,
+        "output_limit_bin": 1,
+        "rank_bin": 0,
+        "footprint_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "admitted_bin": 3
+      },
+      {
+        "tier": "host",
+        "prompt_bin": 0,
+        "output_limit_bin": 2,
+        "rank_bin": 0,
+        "footprint_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "admitted_bin": 3
+      },
+      {
+        "tier": "remote",
+        "prompt_bin": 0,
+        "output_limit_bin": 2,
+        "rank_bin": 1,
+        "footprint_bin": 0,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "admitted_bin": 3
+      },
+      {
+        "tier": "host",
+        "prompt_bin": 0,
+        "output_limit_bin": 3,
+        "rank_bin": 0,
+        "footprint_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "admitted_bin": 3
+      },
+      {
+        "tier": "remote",
+        "prompt_bin": 0,
+        "output_limit_bin": 3,
+        "rank_bin": 1,
+        "footprint_bin": 0,
+        "representation": "tar_gzip_verified_file_tree_v1",
+        "admitted_bin": 3
+      },
+      {
+        "tier": "host",
+        "prompt_bin": 0,
+        "output_limit_bin": 3,
+        "rank_bin": 1,
+        "footprint_bin": 0,
+        "representation": "verified_regular_file_tree_v1",
+        "admitted_bin": 3
+      }
+    ],
+    "observed_service_counts": [
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "count": 3
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "count": 3
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "count": 3
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "count": 3
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "count": 3
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "count": 3
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 3,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 0
+        },
+        "count": 3
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 1
+        },
+        "count": 3
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 1
+        },
+        "count": 3
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 1
+        },
+        "count": 3
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 1
+        },
+        "count": 3
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 1
+        },
+        "count": 3
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 2
+        },
+        "count": 6
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 2
+        },
+        "count": 6
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 2
+        },
+        "count": 6
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 2
+        },
+        "count": 6
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 2
+        },
+        "count": 6
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 0,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 3
+        },
+        "count": 3
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 0,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 3
+        },
+        "count": 3
+      },
+      {
+        "service_class": {
+          "tier": "remote",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "tar_gzip_verified_file_tree_v1",
+          "admitted_bin": 3
+        },
+        "count": 3
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 1,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 3
+        },
+        "count": 3
+      },
+      {
+        "service_class": {
+          "tier": "host",
+          "prompt_bin": 0,
+          "output_limit_bin": 2,
+          "rank_bin": 1,
+          "footprint_bin": 0,
+          "representation": "verified_regular_file_tree_v1",
+          "admitted_bin": 3
+        },
+        "count": 3
+      }
+    ],
+    "reachable_bins": {
+      "prompt": [
+        0
+      ],
+      "output": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "admitted": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    "runtime_cap": 8,
+    "prompt_content_cap": 759,
+    "declared_output_cap": 256,
+    "class_domain_covered": false,
+    "production_profile_frozen": false,
+    "full_qualified": false,
+    "timing_samples_exported": false,
+    "numerical_adapter_correctness_qualified": false
+  },
+  "historical_definition_unchanged": true,
+  "new_preparation_profile": false
+}

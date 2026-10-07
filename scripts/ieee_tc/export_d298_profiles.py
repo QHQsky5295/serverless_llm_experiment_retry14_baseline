@@ -133,7 +133,7 @@ def historical_output_bins(samples, *, output_cap):
     return sorted({values[math.ceil(len(values)*q)-1] for q in (.25, .5, .75)} | {output_cap})
 
 
-def service_rebin_coverage(base, historical, *, output_cap):
+def service_rebin_coverage(base, historical, *, output_cap, additional=()):
     """Report the full reachable domain; missing classes remain missing."""
     bins = copy.deepcopy(base['bins'])
     bins['declared_output_tokens'] = historical_output_bins(historical, output_cap=output_cap)
@@ -142,7 +142,7 @@ def service_rebin_coverage(base, historical, *, output_cap):
     old_keys = {old.classify(**s['class_features']) for s in base['samples']}
     output_bins = {bisect_left(new.declared_output_tokens, x) for x in range(1, output_cap+1)}
     required = {replace(key, output_limit_bin=o) for key in old_keys for o in output_bins}
-    samples = copy.deepcopy(base['samples']) + copy.deepcopy(historical)
+    samples = copy.deepcopy(base['samples']) + copy.deepcopy(historical) + copy.deepcopy(list(additional))
     if len({(s['source_run_sha256'], s['request_id'], s['attempt_id']) for s in samples}) != len(samples):
         raise ValueError('duplicate profile observations')
     counts = Counter(new.classify(**s['class_features']) for s in samples)
@@ -155,7 +155,137 @@ def service_rebin_coverage(base, historical, *, output_cap):
         counts=[dict(service_class=asdict(k), n=counts[k]) for k in sorted(counts, key=encode)],
         class_domain_covered=required <= set(counts), output_edges=bins['declared_output_tokens'],
         historical_samples=len(historical), retained_source_samples=len(base['samples']),
+        additional_measured_samples=len(additional),
         no_default_fills=True, production_profile_frozen=False, numerical_qualification=False)
+
+
+def completed_gap_samples(raw, *, source_sha, identities):
+    """Normalize source-collector observations; never call a partial profile full.
+
+    The existing domain validator checks every planned row. Final completeness
+    is checked after combining with retained, SHA-bound history/source samples.
+    """
+    coverage = p.source_profile_class_coverage(raw, identities)
+    if (raw['runtime_boundary'] != 'dedicated_subprocess'
+            or raw['physical_allocation']['released'] is not True):
+        raise ValueError('gap collector runtime/release evidence required')
+    bins = ServiceClassBins(**{k:tuple(v) for k,v in raw['source_profile_spec']['bins'].items()})
+    roles = {f'source-profile/w{i}/l{lane}':w['role'] for i,w in enumerate(raw['source_profile_spec']['waves'])
+             for lane in range(len(w['requests']))}
+    normalized = []
+    for q in raw['requests']:
+        e,t = copy.deepcopy(q['source_evidence']),copy.deepcopy(q['timing'])
+        a,b,f,z = [q[k] for k in ('admitted_monotonic_s','acquired_monotonic_s',
+                                'first_token_monotonic_s','last_token_monotonic_s')]
+        e['service_intervals'] = dict(service_class=q['service_class'],
+            admitted_monotonic_s=a,acquired_monotonic_s=b,first_monotonic_s=f,last_monotonic_s=z)
+        e['service_events'] = q['native_events']
+        # These are the collector's actually measured admission/acquisition
+        # boundaries, not generated or estimated missing timestamps.
+        t.update(controller_admitted_monotonic_s=a,gpu_reference_acquired_monotonic_s=b,
+            gpu_reference_owner_id=e['receipt']['owner_id'],gpu_reference_lease_id=e['receipt']['lease_id'])
+        normalized.append(dict(request_id=q['request_id'],adapter_id=q['adapter_id'],success=q['pass'],
+            generation_contract=raw['model_config']['generation_contract'],
+            completion_token_source='vllm_token_ids',output_contract_match=q['actual_tokens']==q['target_tokens'],
+            completion_tokens=q['actual_tokens'],requested_completion_tokens=q['target_tokens'],
+            canonical_prompt_tokens=q['class_features']['prompt_tokens'],gpu_reference_evidence=e,
+            native_token_timing=t))
+    checked = historical_service_samples(normalized,source_sha=source_sha,identities=identities,previous_bins=bins)
+    return [s for s in checked if roles[s['request_id']]=='representative_measurement'],coverage
+
+
+def export_completed_length_candidate():
+    """D321 complete initialization; no Full performance/qualification claim."""
+    folder = ROOT/'paper_results/ieee_tc/p2_backend/d321_output_classes'
+    out,history,gap = folder/'initialization1',folder/'history1',folder/'gaps1'
+    if out.exists(): raise FileExistsError(out)
+    for name,sha in read(history/'manifest.json')['outputs'].items():
+        assert p.digest(history/name)==sha
+    prepared = read(gap/'prepare.json')
+    spec_path = gap/'source_spec.json'
+    assert p.digest(spec_path)==prepared['spec_sha256']
+    spec = read(spec_path)
+    rawdir = ROOT/'results/ieee_tc/p2_backend_qualification/d321_20261007/gaps1'
+    source,launch_path = rawdir/'source1.json',rawdir/'source1_launch.json'
+    raw,launch = read(source),read(launch_path)
+    assert raw['pass'] and raw['stage']=='complete' and raw['shutdown_called'] and raw['profile_workspaces_removed']
+    assert raw['source_profile_spec_sha256']==p.digest(spec_path) and raw['source_profile_spec']==spec
+    assert launch['pass'] and launch['service_returncode']==launch['watchdog_returncode']==0
+    assert launch['service_path_removed'] and launch['native_gpu_context_release_confirmed']
+    assert launch['preflight']['policy']==p.POLICY
+    definition = read(history/'candidate_definition.json')
+    cfg = definition['model_config']
+    assert FrozenServiceProfiles.model_identity(raw['model_config'])==FrozenServiceProfiles.model_identity(cfg)
+    source_cfg=ROOT/'configs/ieee_tc/20261007_d298_7b_capacity_source.yaml'
+    assert p.digest(source_cfg)==raw['config_sha256']=='6b96df57e5f05a9b4a0b597ef988b464d37af6b61e4dac33b3e4444778d1487f'
+    index_path=ROOT/spec['content_index']['path']
+    assert p.digest(index_path)==spec['content_index']['sha256']
+    index=read(index_path)
+    client=HttpArtifactStoreClient(endpoint='http://127.0.0.1:1')
+    client.configure_content_manifest(index)
+    pool=(ROOT/yaml.safe_load(source_cfg.read_text())['model_profiles']['llama2_7b_main_v2_publicmix']['storage']['remote_dir']).resolve(strict=True)
+    identities={}
+    for row in index['artifacts']:
+        path=(pool/row['id']/'adapter_config.json').resolve(strict=True)
+        assert path.parent.parent==pool
+        assert p.digest(path)==next(f['sha256'] for f in row['files'] if f['path']=='adapter_config.json')
+        identities[row['id']]=client.routing_identity(row['id'],path.read_bytes())
+    journal=rawdir/'remote_transfers.jsonl'
+    remote_rows=[json.loads(line) for line in journal.read_text().splitlines()]
+    remote={r['transfer_id']:r for r in remote_rows}
+    transfers=raw['remote_transfers']
+    assert len(remote)==len(remote_rows)==len(transfers)
+    assert {r['http_transfer_id'] for r in transfers}==set(remote)
+    clock=read(rawdir/'remote_health2.json')['clock_id']
+    for r in transfers:
+        s=remote[r['http_transfer_id']]
+        assert s['clock_id']==clock and r['state']=='published' and r['content_verified'] and r['published_archive_verified']
+        assert r['artifact_id']==s['artifact_id'] and r['remote_archive_sha256']==s['archive_sha256']
+        assert r['transferred_bytes']==s['archive_bytes']==s['bytes_read']==s['bytes_written']
+        assert not r['remote_pack_performed'] and not s['pack_performed'] and not s['temporary_created'] and s['outcome']=='sent'
+    assert all(not Path(path).exists() for path in raw['owned_profile_workspaces'].values())
+    samples,standalone=completed_gap_samples(raw,source_sha=p.digest(source),identities=identities)
+    assert len(samples)==81 and len(raw['requests'])==86
+    base_path=Path(definition['base_profile']['path'])
+    assert p.digest(base_path)==definition['base_profile']['sha256']
+    base=read(base_path)
+    retained=read(history/'historical_samples.json')['samples']
+    draft,coverage=service_rebin_coverage(base,retained,output_cap=256,additional=samples)
+    assert draft['bins']==definition['bins'] and coverage['required_classes']==160
+    assert coverage['class_domain_covered'],coverage['missing_classes']
+    context=copy.deepcopy(definition['context'])
+    context['input_contract_sha256']=object_hash(dict(previous_context=definition['context'],
+        history=p.digest(history/'manifest.json'),gap_spec=p.digest(spec_path),gap_measurement=p.digest(source),
+        bins=draft['bins'],rule=draft['rule']))
+    service=copy.deepcopy(base)
+    service.update(context=context,bins=draft['bins'],samples=draft['samples'],
+        development_only=True,full_qualified=False,numerical_adapter_correctness_qualified=False,
+        calibration_rule=draft['rule'],history_initialization=True)
+    out.mkdir(parents=True,exist_ok=False)
+    def save(name,value):
+        with (out/name).open('x') as stream: json.dump(value,stream,indent=2,allow_nan=False)
+    save('service.json',service)
+    profile=FrozenServiceProfiles.load(out/'service.json',expected_sha256=p.digest(out/'service.json'),
+        model_config=cfg,expected_context=context,beta=definition['ewma_beta'])
+    assert len(profile.profiles)==160
+    save('coverage.json',dict(combined=coverage,standalone_gap_measurement=standalone,
+        historical_definition_unchanged=True,new_preparation_profile=False))
+    save('binding.json',dict(ieee_service_profile=dict(path=str(out/'service.json'),
+        sha256=p.digest(out/'service.json'),context=context,ewma_beta=definition['ewma_beta'])))
+    paths=[source,launch_path,spec_path,gap/'prepare.json',history/'manifest.json',
+        history/'historical_samples.json',history/'candidate_definition.json',base_path,index_path,source_cfg,
+        journal,rawdir/'remote_health2.json',rawdir/'remote_start.log',rawdir/'remote_stop.log',
+        Path(__file__),folder/'provenance/export_at_history1.py',ROOT/'scripts/ieee_tc_preflight.py',
+        ROOT/'faaslora/experiment/instance_pool.py',Path('/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md'),
+        ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md']
+    save('manifest.json',dict(kind='d321_complete_development_initialization_v1',
+        source_refs=[ref(path) for path in paths],outputs={path.name:p.digest(path) for path in sorted(out.iterdir())},
+        profile_samples=len(service['samples']),observed_classes=len(profile.profiles),
+        source_execution_commit=(rawdir/'source_commit.txt').read_text().strip(),
+        native_calls=86,measurements=81,transfers=len(transfers),wire_bytes=sum(r['transferred_bytes'] for r in transfers),
+        no_remote_pack=True,new_gpu_runs=1,full_candidate_launched=False,n_correct=None,no_figures=True))
+    print(json.dumps(dict(profile_classes=len(profile.profiles),profile_samples=len(service['samples']),
+        output_edges=draft['bins']['declared_output_tokens'],binding=ref(out/'binding.json'))),flush=True)
 
 
 def export_history_length_coverage():
@@ -383,5 +513,7 @@ if __name__ == '__main__':
         main(sys.argv[1])
     elif sys.argv[1:] == ['--history-length-coverage']:
         export_history_length_coverage()
+    elif sys.argv[1:] == ['--completed-length-candidate']:
+        export_completed_length_candidate()
     else:
         raise SystemExit('Expected no argument, d307, d307-attempt2 or --history-length-coverage')

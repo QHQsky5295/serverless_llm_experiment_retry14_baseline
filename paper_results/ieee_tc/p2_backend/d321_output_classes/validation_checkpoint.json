@@ -1,0 +1,114 @@
+{
+  "kind": "d321_validation_checkpoint_v1",
+  "stage": "calibration_complete_performance_pending",
+  "source_refs": [
+    {
+      "sha256": "468344188a116ae1f29414abf4ad70130e70ae889e10fb70d1215739aba2e621",
+      "path": "results/ieee_tc/p2_backend_qualification/d321_20261007/gaps1/source1.json"
+    },
+    {
+      "sha256": "1f4de037ff452d235266dcac1d49a4a42dc3b6cdbca9ec24fceda9c75086c17f",
+      "path": "results/ieee_tc/p2_backend_qualification/d321_20261007/gaps1/source1_launch.json"
+    },
+    {
+      "sha256": "0915ab6db17188010ac9d9488abdbf6863bb179f00ac1d5ac348626962b79126",
+      "path": "results/ieee_tc/p2_backend_qualification/d321_20261007/gaps1/source1_launch.launch/watchdog.jsonl"
+    },
+    {
+      "sha256": "e4eaa42476dd696b34ba2ae19bf2cfb0ae88398bc7b62d2474be4ed45cec68ba",
+      "path": "results/ieee_tc/p2_backend_qualification/d321_20261007/gaps1/remote_monitor.log"
+    },
+    {
+      "sha256": "1aeaa55c6a5fbcb1fbdefa29afd6ce5db3d9f20ac838fa6fd1a5d24def36edc6",
+      "path": "results/ieee_tc/p2_backend_qualification/d321_20261007/gaps1/start_remote.sh"
+    },
+    {
+      "sha256": "a1cf01361810ded0f8dd7c8eac4a39fded04f32152d3a7af7fb319ba259ba059",
+      "path": "results/ieee_tc/p2_backend_qualification/d321_20261007/tests4.log"
+    },
+    {
+      "sha256": "19a6e6abeaa7a8e28dac37dc5bc4db6606f82ba7b5e01799067fb7f9be079a5f",
+      "path": "results/ieee_tc/p2_backend_qualification/d321_20261007/tests5.log"
+    },
+    {
+      "sha256": "895bf0da6f9698333555149b344165cec4e9a309b179edc87ad468a9cfaf492d",
+      "path": "paper_results/ieee_tc/p2_backend/d321_output_classes/initialization1/manifest.json"
+    },
+    {
+      "sha256": "69a4488a085b2ec44d484c610d6935f8a2a880af477e48a42dc356374eaecb11",
+      "path": "paper_results/ieee_tc/p2_backend/d321_output_classes/protection_before.json"
+    },
+    {
+      "sha256": "69a4488a085b2ec44d484c610d6935f8a2a880af477e48a42dc356374eaecb11",
+      "path": "paper_results/ieee_tc/p2_backend/d321_output_classes/protection_after.json"
+    },
+    {
+      "sha256": "bbf9fdba8e9d7ee07a73693af67c7d2059e36ac34cba09f7fe0888a0f948e6c7",
+      "path": "scripts/ieee_tc/export_d298_profiles.py"
+    },
+    {
+      "sha256": "368f3443bb4bb768e176a5337a5e45ff382b395d91224abb746354c09af85774",
+      "path": "tests/test_ieee_tc_launch.py"
+    }
+  ],
+  "observations": {
+    "completed_native_calls": 86,
+    "measured": 81,
+    "warmup": 5,
+    "retained_history": 4000,
+    "retained_original_source": 240,
+    "profile_samples": 4321,
+    "covered_classes": 160,
+    "required_classes": 160,
+    "minimum_class_samples": 1,
+    "output_edges": [
+      24,
+      91,
+      217,
+      256
+    ],
+    "normalization_existing_field_conflicts": 0,
+    "transfer_count": 86,
+    "wire_bytes": 179757983,
+    "request_time_pack": false,
+    "physical_gpu_seconds": 164.02557560498826,
+    "watchdog_samples": 175,
+    "peak_memory_bytes": 5705359360,
+    "min_host_available_bytes": 107083677696,
+    "memory_events_all_zero": true,
+    "swap_zero": true,
+    "service_path_removed": true,
+    "native_context_release_confirmed": true,
+    "remote_services_stopped": true
+  },
+  "tests": [
+    {
+      "cases": 213,
+      "seconds": 50.423,
+      "passed": true,
+      "phase": "pre_collection"
+    },
+    {
+      "cases": 75,
+      "seconds": 0.59,
+      "passed": true,
+      "phase": "final_normalization_and_merge"
+    }
+  ],
+  "new_test_cases": 10,
+  "protection": {
+    "entries": 147,
+    "raw_pass": false,
+    "known_change_only": "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py",
+    "known_change_sha256": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "before_after_identical": true
+  },
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "n_correct": null,
+  "formal_slo_qualified": false,
+  "performance_improvement_established": false,
+  "no_figures": true,
+  "goal_active": true,
+  "next": "D318-equivalent one100-request7BFull smoke with only new service binding, then original4000W0."
+}

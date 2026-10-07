@@ -597,6 +597,41 @@ class HistoricalServiceRebin(unittest.TestCase):
         self.assertEqual(len(draft['samples']), len(base['samples'])+1)
         with self.assertRaises(ValueError): service_rebin_coverage(base, [base['samples'][0]], output_cap=2)
 
+    def test_additional_calibration_cannot_change_frozen_history_edges(self):
+        import copy
+        from scripts.ieee_tc.export_d298_profiles import service_rebin_coverage
+        _,_,_,base=self.fixture()
+        historical=copy.deepcopy(base['samples'][:1])
+        historical[0]['source_run_sha256']='f'*64
+        historical[0]['class_features']['declared_output_tokens']=1
+        more=[]
+        for i in range(12):
+            sample=copy.deepcopy(base['samples'][0])
+            sample.update(source_run_sha256='e'*64,request_id=f'gap{i}')
+            more.append(sample)
+        before,_=service_rebin_coverage(base,historical,output_cap=2)
+        after,coverage=service_rebin_coverage(base,historical,output_cap=2,additional=more)
+        self.assertEqual(before['bins'],after['bins'])
+        self.assertEqual(coverage['additional_measured_samples'],12)
+
+    def test_completed_gap_normalization_validates_all_rows_and_excludes_warmup(self):
+        import copy
+        from scripts.ieee_tc.export_d298_profiles import completed_gap_samples
+        full,_,_,_=self.fixture()
+        source=MeasuredSourceProfileExport()
+        source.setUp()
+        self.addCleanup(source.doCleanups)
+        for q,r in zip(source.payload['requests'],full):
+            q['source_evidence']=copy.deepcopy(r['gpu_reference_evidence'])
+            q['native_events']=copy.deepcopy(r['gpu_reference_evidence']['service_events'])
+            q['timing']=copy.deepcopy(r['native_token_timing'])
+        samples,coverage=completed_gap_samples(source.payload,source_sha='e'*64,identities=source.identities)
+        self.assertTrue(samples)
+        self.assertTrue(coverage['class_domain_covered'])
+        source.payload['requests'][0]['actual_tokens']=3
+        with self.assertRaises(ValueError):
+            completed_gap_samples(source.payload,source_sha='e'*64,identities=source.identities)
+
 
 class MissingLengthGapSelection(unittest.TestCase):
     def fixture(self):
