@@ -11,7 +11,177 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D315 restored 1024 configuration verified; backup then full W0
+## CURRENT — D315 full4000 audited; request-path waiting is next, not another budget scan
+
+2026-10-07 17:40+08. PROGRESS: complete D315 analysis and both registered
+comparisons (D303 and D314) finished; 341 CPU tests passed19.032s. Full source
+plan and frozen V1 reread; both SHAs unchanged. No serving/configuration edits,
+new GPU runs, figures or new assets. No local/remote/CPU experiment remainslive.
+The user-approved one-time compressed delivery cache was already published in
+D78/D80 and reused; do not rebuild it in response to the repeated approval.
+
+All4000 native count/request/adapter/owner/lease/slot/clock checks pass, stage
+sum maximum error0; actual leases closed. N_correct remainsnull. Output hashes
+differ216 vsD303 and244 vsD314, retained for audit, not numerical qualification.
+Mean/P95TTFT1304.383/2934.366ms, mean/P95TPOT32.558/62.152ms,
+meanE2E4.896654s, physicalU15865.617487GPU-s. D170 provisional timing3820/4000
+is NOT formal SLO. ComparedwithD314: P95TTFT-12.923%,U+0.123%; comparedwithD303:
+P95TTFT+1.193%,P99TTFT+7.817%,P95TPOT-8.741%,U+2.517%. Singledevelopment
+runs, noCI or superiority claim. Preserve all regressions; keep1024 only as
+the current development startingpoint, not as achievement of G1/G2.
+
+Mean arrival-to-admission681.229ms is52.226%ofTTFT. Its partition is187.154ms
+arrival-to-serverrelease,28.901msrelease-to-globalentry,465.175msentry-to-slot.
+Routing177.688ms is nested, not additive. Conditional authoritative-read
+groups are not causal evidence for removing checks. 99.362%ofU occursin the
+arrivalwindow;3scaleups/0scaledowns.917controlsamples havequeue/active lowbut
+TTFT blocking; longestall-low35.197s does NOTjustify fitting38scooldown to35.
+Next question is actual request-path dependency/serialization and its resource
+consequences, preserving confirmedstate/atomicpin/nineformulas and frozenSLO.
+
+Remote132transfers/131480060bytes matched; no on-request packing.4042resource
+samples: servicepeak20568260608B,minhost93507256320B,high/max/OOM/swap0.
+Preparations2163eligible/39ineligible; changed-copybranchtrigger0, so noclaim
+that zerofailures provedD313cause. Protected147seal retainsonlyknownbaseline
+replaydifference/passfalse. Userdirtymanifest3b69bd0a...unchanged/notstaged.
+Servingrunner/planner source SHAs unchanged fromD314correctnessfixes.
+
+Curated d315_full_w0/validated1,context1,context_d314 manifests verifiedall
+10/7,12/2,12/2input/outputhashes. TestInvocation702cb38f..., analysis39b30b04...,
+verifier48916a67...all3/4GiB/0swapandCPUs2,3,26,27; actualprocsEMPTY/populated0
+checked before stopping. All events/swap0. Validationcheckpoint binds scripts,
+tests/logs/resources. Full interpretation: D315_COMPLETE_W0_DECISION.md.
+
+NEXT: explicit-path tested Gitbackup, verifyremoteHEAD; then returnto7Bwaiting
+bottleneck investigation with historical evidence and official source before
+choosing one falsifiable change. Do not scan budgets, repeatD295/PEFT, jump to
+3B/baselines or generatefigures. OldPrime newmetrics and numerical/warm/Resident
+qualification remainopen. Keepfullgoalactive. Thisnote supersedes the raw
+completion receipt's historical audit-pending flag without rewriting it.
+
+## HISTORY — D315 full4000 finished and released; complete audit next
+
+2026-10-07 17:19:45+08. This continuation moved from VERIFIED WAIT to PROGRESS:
+the existing D315 run completed4000/4000 successful native-contract requests,
+0failed, then released allGPUcontexts. No new run was started. Observer2052
+completed; observer2064 completed45polls and observed launch.pass=true. Both
+observers are closed; do NOT resume or restart them. No localGPU/remote/CPU job
+is live. Sourceplan fully reread thisturn, SHA0c808509... unchanged.
+
+service/watchdog/replay returncodes all0; service cgroup path absent and native
+GPUrelease confirmed. Physicalmeasurementcomplete=true, openleasesempty,
+U15865.617487298907 GPU-s. N_correct remainsnull; this is not numerical/SLO/
+G1/G2 qualification or a comparison decision. Main result330113142B,
+SHA6e5007630c9780c417e65109ef3005daedba3dafa87a843ff75c4885f91c362f;
+launchSHAd0ed2535e2a8ee8ac268eaefae586934b336e96cbc0285573927a3f96ea5bc55.
+main_outcome706070523B: use existing streaming projection, not fulltree loading.
+
+Allthree capturedremoteInvocationIDs matched immediately before stopping
+MONITORFIRST at17:18:18; allthree theninactive/MainPID0/Resultsuccess/exit0.
+Exact7Bjournal andmonitor copied into D315rawroot without overwriting files.
+LocalauxInvocationf744b608... actualprocsEMPTY/populated0verified beforestop,
+peak333459456B, allmemoryevents/swap0; nowinactive. NoGPU computeprocesses remain.
+Postcleanupdisk164462583808B/hostMemAvailable110393476KiB are readings, not a
+futuregate. Rawcompletion_receipt.json records identities, source hashes and
+the still-pending audit boundary. No figures, new assets or measured-code edits.
+
+NEXT: reread frozenV1, extend the EXISTING analyze_d297_full.py and
+check_d299_full_context.py with explicit D315 source/new output identities,
+test and run under the existing bounded CPU protocol AFTER a fresh resource
+check. Retain all-success/failure separation and preparation-attribution checks;
+do not weaken gates. Compare the complete run with D303 and D314, retaining
+all output differences and provisional-ruler caveats. Save interpretation,
+protected/user-file checks, then tested Gitbackup. No more token-budget scan,
+D295/PEFT repeat, 3B, baselines or figures before the required 7B work.
+Codecheckpoint remainsbbd6bf39...; only own EXECUTION_STATUS ismodified beyond
+it, plus the pre-existing usermanifest (neverstaged). No Gitpush duringmeasurement.
+The oldPrime new-metric comparison and numerical/warm/Resident qualifications
+remain open; neither7B nor3B is declared optimized. Keep the fullgoal active.
+
+## HISTORY — D315 restored 1024 full W0 running and verified waits
+
+Started ONCE2026-10-07 16:08:46+08 in tmuxprimelora_d315_full, existingrunner
+explicitd315. Tested checkpointbbd6bf39f65d753c344b9af07ee4224d19022556 pushed;
+remoteHEADmatched16:06:39. All10prelaunch input/outputSHA checks passed.
+Service serving source remainsD314'sc4631e81 content. No configuration, service,
+tests, fullanalysis, compression or remote management changes during measurement.
+
+Localserviceprimelora-tc-svc-598ea76bc9b64f3db0bdc475c4363e1c.scope,
+Invocationdada997e891c41d28bea0c7df75fd3fc,inode19802320;
+auxprimelora-tc-aux-252682b3914047f4b693bade5bb2df80.scope,
+Invocationf744b6082cbd411e9bba77d40e616a82. WatchdogPID1631479/start86777493,
+actualcgroup verified; sample36fresh,host108465807360B/service4069486592B,
+memoryevents/swap0,noabort. Thisis startup evidence,notcompleteperformance.
+Rawresults/ieee_tc/p2_backend_qualification/d315_20261007/7b_full_w0.
+Do NOTrestart on observation timeout. Continue SAMElivehandles.
+
+Remote3BInvocationac49bbe70e45453ebf5cf44422897237/PID1957266;
+7B56daa9f145774211832ad5126a869d16/PID1957273;
+monitorfd4701f5153643498eb4f31914e05063/PID1957283,
+unitprimelora-artifact-monitor-d315.service. Exact7Bjournal verifiedvia/proc/fd:
+/home/lab14/primelora_remote/tc/d80_20260927/7b/transfers-5ad4f4b9abc74fd89a0c0750a4ac9ff9.jsonl.
+Monitorlog /home/lab14/primelora_remote/tc/d315_20261007/remote_monitor.log.
+Authenticated DIRECT healthpass,clockremote-process-monotonic:ff1156ae3f864d9194396dd5707cac92;
+bothNICs1000/full. Initialmanualurllib default-proxyhealthprobe returned502;
+retainedasprelaunch probeerror, noGPUrunthen. Correctdirectprobe uses same
+ProxyHandler({}) asunchangedrealartifactclient; noendpoint/server/networkchange.
+Similarlyinitial manualchecksumcommandusedPython3.11-onlyfile_digest onOS3.10;
+correctstandardSHA256verifiedall10files, nopayloadrewrites. Thesearechecks,
+notperformancefailures. Feishuconfigurationabsent; noW&Bconfigured.
+
+NEXT: monitor this4000replay; afterterminal/localrelease verifycapturedremoteIDs,
+stopMONITORFIRST thenartifactservices,collectexactjournal/monitor,streamlarge
+outcomes andrunexistinganalyzers tonewoutputs. Do notpublishpartialprefixaswin.
+Nofigures or3B/baselines. Numerical/warm/Resident/oldPrime newmetrics remainopen.
+
+16:12:20+08 verified live wait: same localserviceInvocationdada997e...and
+watchdogPID1631479/start86777493 checked directly. Sample210fresh,
+74terminal/74success/74native-contract-matched/0failed; host96610721792B,
+service16481558528B,disk165034491904B,events/swap0,noabort; no launch.json.
+Monitoring cell2039 isLIVE (20polls at45s; lastreturnedpoll2). Resume thatcell
+with wait, not anotherlaunch; if it expires inspect sameactualrun handles.
+Capturedlocal/remoteidentities areinrawlaunch_identity.json. No serving/config
+changes afterlaunch. Thisis partialrunstatus,notG1/G2/numericalqualification.
+
+2026-10-07 16:34:21+08 VERIFIED WAIT continuation: previous monitorcell2039
+completed its20polls; that did not terminate or restart the experiment. New
+monitorcell2052 is LIVE (20polls at45s, latestreturnedpoll7). Resume it withwait;
+on observer completion continue checking the SAME actual experiment handles.
+Local serviceInvocationdada997e.../inode19802320, auxInvocationf744b608...,
+watchdogPID1631479/start86777493 and actualauxcgroup were reverified. Remote
+three originalInvocationIDs/PIDs remainactive; eno1 still1000/full. No remote
+restart, configuration change or cache reconstruction was performed.
+
+Latest sample1514/monotonic869309.00416726:1439terminal/1439success/
+1439native-contract-matched/0failed; hostavailable96122785792B,
+service18316713984B,diskfree163726761984B,allmemoryevents/swap0,noabort.
+No terminal launch.json yet. This is partial run evidence, not numerical,
+joint-SLO, G1/G2 or superiority qualification. Sourceplan fully reread after
+compaction, SHA0c808509... unchanged; frozenV1 fully reread, SHA5f0732ef...
+unchanged. D315 registration reread; no new comparison or selection made.
+monitor-experiment skill used; Feishuconfig absent, noW&Bconfigured. No new
+serving/config edits, tests, full-data analysis, figures, compression, heavy
+jobs or Git push during measurement. Tested checkpoint remainsbbd6bf39...
+User-approved read-only delivery cache already exists fromD78/D80 and is reused.
+After terminal/localrelease follow the captured-ID/MONITOR-FIRST cleanup and
+existing analyzer path above. Keep7B->3B->baselines; unresolved qualification
+and oldPrime new-metric comparison remain open. Goal remains active.
+
+2026-10-07 16:44:24+08 continued VERIFIED WAIT: cell2052 completed20polls;
+actual D315 remainslive, neverrestarted. Newmonitorcell2064 is LIVE
+(45polls at45s, latestpoll1); resume thatobserver. Same localserviceInvocation
+dada997e... and watchdogPID/start identity verified on everypoll. At16:42:54
+allthree originalremoteInvocationIDs/PIDs were directlyreverified active;
+NIC1000/full unchanged. Latest sample2108/monotonic869911.127163333,
+2243terminal/2243success/2243native-contract-matched/0failed,
+host95524122624B/service19196420096B/disk163265880064B,events/swap0,noabort.
+Sourceplan fullyreread thiscontinuation/SHAunchanged. Only read existing
+D296/D303/D314 conclusions and existing analysis interfaces while waiting;
+no new performance analysis, changes to measured code/config, newhypothesis
+experiment, heavy task or remote operation. Full replay and post-release
+audit remain pending; no claim of G1/G2 or numerical qualification.
+
+## HISTORY — D315 restored configuration prelaunch preparation
 
 2026-10-07 16:05+08. Previous continuation was PROGRESS: completed D314
 evidence was pushed and exact remote HEAD verified, not a new experiment.

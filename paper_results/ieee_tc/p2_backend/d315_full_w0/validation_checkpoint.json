@@ -1,0 +1,55 @@
+{
+  "kind": "d315_completed_analysis_checkpoint_v1",
+  "source_commit": "bbd6bf39f65d753c344b9af07ee4224d19022556",
+  "source_result_sha256": "6e5007630c9780c417e65109ef3005daedba3dafa87a843ff75c4885f91c362f",
+  "completion_receipt_sha256": "8a30b31b88b92d58306bddcac984695f6833e60cb2f3e522c686ed554e9ae657",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "source_plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "analysis_source_sha256": {
+    "scripts/ieee_tc/analyze_d297_full.py": "2d0d9f36058bc1d29b0587bd532366ee465f4a7dcbb443011351b5a226cd13d6",
+    "scripts/ieee_tc/check_d299_full_context.py": "958d83c45ddc30a7ec173091dacedeee4f0b9033e578aff508ffa64838505056",
+    "tests/test_ieee_tc_decode_overlap.py": "6261350e88eae22ac23564304d97555409cb9ded3452678ce6bdeec9123cbbcf"
+  },
+  "cpu_tests": {
+    "modules": [
+      "tests.test_ieee_tc_decode_overlap",
+      "tests.test_ieee_tc_preparation_cost",
+      "tests.test_basic_smoke"
+    ],
+    "passed": 341,
+    "duration_s": 19.032,
+    "log_sha256": "c51b4a60ba15c055067794a37ae00edadfdbb4d20719efacb9e7d7dc21c624dd",
+    "invocation": "702cb38f48e743e4bd7e4a969f976fc6",
+    "memory_peak_bytes": 1172238336
+  },
+  "analysis": {
+    "invocation": "39b30b047c49464fb2ddd165aae3c94a",
+    "memory_peak_bytes": 1624469504,
+    "log_sha256": "18804428d130e7d459276e1587ae9afe8119012f48b9bf6fcec988b951959fbc",
+    "references": ["d303", "d314"]
+  },
+  "identity_verification": {
+    "invocation": "48916a6749c0445aa124373d53f86bd6",
+    "memory_peak_bytes": 15081472,
+    "log_sha256": "ea8981ca010e81f2a8951f3524a03a5652f36088973def0a12b05a0b1003f534",
+    "validated1": {"input_hashes_pass": 10, "output_hashes_pass": 7},
+    "context1": {"input_hashes_pass": 12, "output_hashes_pass": 2},
+    "context_d314": {"input_hashes_pass": 12, "output_hashes_pass": 2},
+    "protected_user_and_serving_hashes_pass": 3
+  },
+  "all_cpu_scopes": {
+    "memory_high_bytes": 3221225472,
+    "memory_max_bytes": 4294967296,
+    "swap_max_bytes": 0,
+    "cpus": "2,3,26,27",
+    "events_high_max_oom_oom_kill": 0,
+    "swap_bytes": 0,
+    "empty_procs_and_unpopulated_verified": true,
+    "stopped": true
+  },
+  "decision": "Keep restored 1024 development configuration and correctness fixes; not an overall improvement over D303; investigate request-path waiting before any new candidate",
+  "n_correct": null,
+  "formal_qualification": false,
+  "ranking_eligible": false,
+  "new_figures": 0
+}

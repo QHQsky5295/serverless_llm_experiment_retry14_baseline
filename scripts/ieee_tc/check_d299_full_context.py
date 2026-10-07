@@ -1,4 +1,4 @@
-"""Thin post-release D299/D300/D303 check reusing native audits and seal helpers.
+"""Thin post-release full-run check reusing native audits and seal helpers.
 
 No inference, figures, new metric definitions, or overwriting existing results.
 The large outcome is projected through jq streaming, never loaded as a tree.
@@ -345,8 +345,10 @@ def audit_d309_failure(campaign='d309'):
     print(json.dumps(result,indent=2),flush=True)
 
 
-def main(campaign='d299'):
+def main(campaign='d299', reference_override=None):
     global RAW, RUN, OUT
+    if reference_override is not None and (campaign != 'd315' or reference_override not in ('d303', 'd314')):
+        raise ValueError('explicit reference is restricted to the registered D315 contrasts')
     reference = 'd297'
     health_name = 'remote_health2.json'
     change_caveat = 'Capacity, slot, rank and memory package changed together; not single-factor ablation.'
@@ -372,6 +374,18 @@ def main(campaign='d299'):
         health_name = 'remote_health.json'
         change_caveat = ('D307 token budget/profile plus subsequent ownership/copy-attribution fixes; '
                          'not a pure token-budget ablation or an independent held-out comparison.')
+    elif campaign == 'd315':
+        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d315_20261007'
+        RUN = RAW/'7b_full_w0'
+        reference = reference_override or 'd303'
+        suffix = 'context1' if reference == 'd303' else 'context_d314'
+        OUT = ROOT/f'paper_results/ieee_tc/p2_backend/d315_full_w0/{suffix}'
+        health_name = 'remote_health.json'
+        change_caveat = (
+            'D303 measured 1024-token settings restored with later ownership/copy-attribution fixes; '
+            'closed-loop trajectories and run variation remain.' if reference == 'd303' else
+            'Same serving implementation; token budget and its matching measured initialization both change; '
+            'not a pure budget-only ablation or an independent held-out comparison.')
     elif campaign != 'd299':
         raise ValueError('unknown frozen full-run identity')
     assert not OUT.exists()
@@ -456,6 +470,18 @@ def main(campaign='d299'):
         assert receipt['remote_transfers_sha256'] == sha256(journal)
         assert receipt['remote_monitor_sha256'] == sha256(RAW/'remote_monitor.log')
         result['remote_shutdown'] = receipt['remote_stop']
+    if campaign == 'd315':
+        receipt = read(RAW/'completion_receipt.json')
+        entries = receipt['evidence']
+        assert entries[sources[campaign].name]['sha256'] == re['source_sha256']
+        assert entries['launch.json']['sha256'] == sha256(RUN/'launch.json')
+        assert entries['remote_transfers.jsonl']['sha256'] == sha256(journal)
+        assert entries['remote_monitor.log']['sha256'] == sha256(RAW/'remote_monitor.log')
+        assert receipt['physical_gpu_seconds_total'] == right['physical_gpu_seconds']
+        assert receipt['n_plan'] == receipt['n_terminal'] == receipt['n_native_contract_complete'] == 4000
+        assert receipt['n_failed_from_terminal_journal'] == 0 and receipt['n_correct'] is None
+        assert receipt['formal_qualification'] is False
+        result['remote_shutdown'] = receipt['remote_cleanup']
     OUT.mkdir(parents=True,exist_ok=False)
     with (OUT/'context.json').open('x') as handle:
         json.dump(result,handle,indent=2,allow_nan=False)
@@ -471,7 +497,7 @@ def main(campaign='d299'):
            ROOT/'scripts/ieee_tc/plot_d290_diagnostic.py',ROOT/'scripts/ieee_tc_preflight.py']
     if campaign == 'd303':
         paths.append(CURATED/'d303_full_w0/completion_receipt.json')
-    if campaign == 'd314':
+    if campaign in ('d314', 'd315'):
         paths.append(RAW/'completion_receipt.json')
     with (OUT/'manifest.json').open('x') as handle:
         json.dump(dict(source_refs=[dict(path=str(p),sha256=sha256(p)) for p in paths],
@@ -482,8 +508,13 @@ def main(campaign='d299'):
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--campaign', choices=('d299', 'd300', 'd303', 'd314', 'd309-failure', 'd311-incomplete', 'd313-failure'), default='d299')
-    campaign = parser.parse_args().campaign
+    parser.add_argument('--campaign', choices=('d299', 'd300', 'd303', 'd314', 'd315', 'd309-failure', 'd311-incomplete', 'd313-failure'), default='d299')
+    parser.add_argument('--reference', choices=('d303', 'd314'),
+        help='D315 only: registered complete-run reference, with separate non-overwriting output')
+    args = parser.parse_args()
+    campaign = args.campaign
+    if args.reference is not None and campaign != 'd315':
+        parser.error('--reference is only valid for D315')
     if campaign == 'd311-incomplete':
         audit_d311_incomplete()
     elif campaign == 'd309-failure':
@@ -491,4 +522,4 @@ if __name__=='__main__':
     elif campaign == 'd313-failure':
         audit_d309_failure('d313')
     else:
-        main(campaign)
+        main(campaign, args.reference)

@@ -4,6 +4,7 @@ import hashlib
 import json
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 from scripts.ieee_tc.check_d299_full_context import (
     complete_failure_output_hashes, failed_run_partition, project_incomplete)
@@ -11,6 +12,38 @@ from scripts.ieee_tc.check_d299_full_context import (
 from scripts.ieee_tc.analyze_d297_full import (
     audit_preparation_attribution, decode_overlap_summary, native_load_overlap_summary, prefill_overlap_summary,
 )
+
+
+class RegisteredD315Contrasts(unittest.TestCase):
+    def test_context_references_have_separate_new_outputs(self):
+        from scripts.ieee_tc import check_d299_full_context as module
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for reference, suffix in ((None, 'context1'), ('d303', 'context1'), ('d314', 'context_d314')):
+                with self.subTest(reference=reference), mock.patch.multiple(
+                        module, ROOT=root, RAW=None, RUN=None, OUT=None), mock.patch.object(
+                        module.p, 'check_plan', side_effect=RuntimeError('plan gate reached')):
+                    with self.assertRaisesRegex(RuntimeError, 'plan gate reached'):
+                        module.main('d315', reference)
+                    self.assertEqual(module.OUT, root/f'paper_results/ieee_tc/p2_backend/d315_full_w0/{suffix}')
+                    self.assertEqual(module.RUN, root/'results/ieee_tc/p2_backend_qualification/d315_20261007/7b_full_w0')
+                    self.assertFalse(module.OUT.exists())
+
+    def test_reference_override_rejects_unregistered_contrasts(self):
+        from scripts.ieee_tc import check_d299_full_context as module
+        for campaign, reference in (('d303', 'd314'), ('d314', 'd303'), ('d315', 'd300')):
+            with self.subTest(campaign=campaign, reference=reference), self.assertRaises(ValueError):
+                module.main(campaign, reference)
+
+    def test_existing_d315_output_is_never_overwritten(self):
+        from scripts.ieee_tc import check_d299_full_context as module
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for reference, suffix in (('d303', 'context1'), ('d314', 'context_d314')):
+                output = root/f'paper_results/ieee_tc/p2_backend/d315_full_w0/{suffix}'
+                output.mkdir(parents=True)
+                with mock.patch.multiple(module, ROOT=root, RAW=None, RUN=None, OUT=None), self.assertRaises(AssertionError):
+                    module.main('d315', reference)
 
 
 class PreparationAttributionAudit(unittest.TestCase):
