@@ -12,7 +12,106 @@ from scripts.ieee_tc.check_d299_full_context import (
 from scripts.ieee_tc.analyze_d297_full import (
     audit_preparation_attribution, decode_overlap_summary, native_load_overlap_summary, prefill_overlap_summary,
     lifecycle_gaps, paired_timeline_groups, inspect_retained_lifecycle,
+    routing_load_consistency, inspect_retained_routing_load,
+    routing_length_diagnosis, inspect_retained_routing_lengths,
 )
+
+
+class RetainedRoutingLoad(unittest.TestCase):
+    def requests(self):
+        rows = []
+        for i, (at, admitted, dispatched, last, acquired, q, pending) in enumerate(
+                [(9., 10., 14., 20., 13., 0, 0),
+                 (11., 12., 15., 21., 14., 1, 1),
+                 (15.5, 16., 17., 22., 16.5, 2, 0)]):
+            rid = f'r{i}'
+            candidate = dict(epoch=i+1, request_id=rid, replica_id='a', adapter_id='x',
+                runtime_ready=True, available_slots=8-q, admitted_requests=q,
+                active_adapters=['x'] if q else [], max_active_loras=8, pending_loads=pending,
+                gpu_utilization_pct=0., last_dispatch_at=0.,
+                service_class=dict(tier='remote', prompt_bin=0, output_limit_bin=0,
+                    rank_bin=0, footprint_bin=0, representation='remote', admitted_bin=int(q>0)),
+                service=dict(d_ms=1., t_ms=2., o_ms=3.))
+            rows.append(dict(request_id=rid, adapter_id='x', instance_id='a', success=True,
+                native_token_timing=dict(native_clock_id='clock', native_terminal_observed=True,
+                    controller_admitted_monotonic_s=admitted, native_dispatch_monotonic_s=dispatched,
+                    native_last_token_monotonic_s=last, gpu_reference_acquired_monotonic_s=acquired),
+                gpu_reference_evidence=dict(routing_snapshot=dict(kind='ieee_predecision_received_view_v1',
+                    selected_replica_id='a', candidates=[candidate],
+                    sources={'a': dict(file_captured_monotonic_s=at)}))))
+        return rows
+
+    def check(self, rows):
+        return routing_load_consistency(rows, clock_id='clock', admitted_edges=[1, 8], delta_ms=1.)
+
+    def test_preparing_and_native_work_are_both_witnessed(self):
+        result = self.check(self.requests())
+        self.assertEqual(result['requests'], 3)
+        self.assertTrue(all(v == 0 for v in result['violations'].values()))
+        self.assertEqual([r['witnessed_q_lower_bound'] for r in result['candidates']], [0, 1, 2])
+        self.assertEqual(result['candidates'][1]['witnessed_pending_lower_bound'], 1)
+        self.assertEqual(result['candidates'][1]['witnessed_predispatch_lower_bound'], 1)
+        self.assertEqual(result['candidates'][2]['witnessed_native_lower_bound'], 2)
+        self.assertFalse(result['exact_controller_ownership_reconstruction'])
+
+    def test_undercount_pending_and_missing_adapter_are_not_hidden(self):
+        rows = self.requests()
+        row = rows[1]['gpu_reference_evidence']['routing_snapshot']['candidates'][0]
+        row.update(admitted_requests=0, active_adapters=[], pending_loads=0)
+        v = self.check(rows)['violations']
+        for key in ('q_below_witnessed_lower_bound', 'pending_below_witnessed_lower_bound',
+                    'missing_witnessed_active_adapters', 'admitted_bin_mismatch'):
+            self.assertEqual(v[key], 1)
+
+    def test_post_token_ownership_is_unknown_not_an_overcount_error(self):
+        rows = self.requests()
+        rows[2]['gpu_reference_evidence']['routing_snapshot']['sources']['a']['file_captured_monotonic_s'] = 21.
+        rows[2]['native_token_timing'].update(controller_admitted_monotonic_s=22.,
+            gpu_reference_acquired_monotonic_s=23., native_dispatch_monotonic_s=24.,
+            native_last_token_monotonic_s=25.)
+        result = self.check(rows)
+        self.assertEqual(result['candidates'][2]['witnessed_q_lower_bound'], 0)
+        self.assertEqual(result['candidates'][2]['reported_q'], 2)
+        self.assertTrue(all(v == 0 for v in result['violations'].values()))
+
+    def test_formula_disagreement_is_detected_independently_of_occupancy(self):
+        rows = self.requests()
+        snap = rows[2]['gpu_reference_evidence']['routing_snapshot']
+        other = copy.deepcopy(snap['candidates'][0])
+        other.update(replica_id='b', admitted_requests=0, active_adapters=[], available_slots=8)
+        other['service_class']['admitted_bin'] = 0
+        snap['candidates'].append(other)
+        snap['sources']['b'] = dict(file_captured_monotonic_s=15.5)
+        result = self.check(rows)
+        self.assertEqual(result['violations']['selection_key_mismatch'], 1)
+        self.assertEqual(result['selected_above_min_feasible_q'], 1)
+
+    def test_missing_identity_mixed_clock_and_invalid_observation_rejected(self):
+        for case in ('duplicate', 'clock', 'observation', 'source'):
+            rows = self.requests()
+            if case == 'duplicate': rows.append(rows[0])
+            elif case == 'clock': rows[0]['native_token_timing']['native_clock_id'] = 'other'
+            elif case == 'observation':
+                rows[0]['gpu_reference_evidence']['routing_snapshot']['sources']['a']['file_captured_monotonic_s'] = 11.
+            else: rows[0]['gpu_reference_evidence']['routing_snapshot']['sources'] = {}
+            with self.subTest(case=case), self.assertRaises(ValueError):
+                self.check(rows)
+
+    def test_existing_output_rejected_before_loading_sources(self):
+        with tempfile.TemporaryDirectory() as root, self.assertRaises(FileExistsError):
+            inspect_retained_routing_load(root)
+
+    def test_cost_diagnosis_retains_prediction_error_and_no_counterfactual(self):
+        candidates = self.check(self.requests())['candidates']
+        requests = [dict(request_id=f'r{i}', output_group='2-32', tokens=4, first=10., last=11.) for i in range(3)]
+        result = routing_length_diagnosis(candidates, requests)
+        self.assertEqual(result['groups'][0]['mean_decode_prediction_error_ms'], -997.)
+        self.assertIsNone(result['causal_performance_gain'])
+        self.assertTrue(all(r['alternative_performance_known'] is False for r in result['requests']))
+        with self.assertRaises(ValueError):
+            routing_length_diagnosis(candidates, requests[:2])
+        with tempfile.TemporaryDirectory() as root, self.assertRaises(FileExistsError):
+            inspect_retained_routing_lengths(root)
 
 
 class RetainedLifecycle(unittest.TestCase):

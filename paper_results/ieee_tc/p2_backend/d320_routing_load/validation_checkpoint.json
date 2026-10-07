@@ -1,0 +1,57 @@
+{
+  "kind": "d320_retained_analysis_validation_v1",
+  "recorded_at": "2026-10-07T20:40:26+08:00",
+  "verified": {
+    "analysis1": {
+      "source_refs": 17,
+      "outputs": 3,
+      "manifest_sha256": "c414d05057369d612a9a63b23bf297006b34ef5edb754b720a66215f22976eec",
+      "summary_sha256": "0120908104832cf391a28a417cab8060125e7d2f53aca89e22bfd1c55607dfbd"
+    },
+    "length1": {
+      "source_refs": 9,
+      "outputs": 3,
+      "manifest_sha256": "05094428917978121ce08f1d1d2fcb9c2f3dfd157ef14a5f381ef6f29d1a34fb",
+      "summary_sha256": "41b8b628802a11ed239d425f59601488f91a8aeca4d84cdf1941ea09fb3675dc"
+    }
+  },
+  "analysis1_source_resolution": {
+    "original_path": "scripts/ieee_tc/analyze_d297_full.py",
+    "archived_path": "paper_results/ieee_tc/p2_backend/d320_routing_load/provenance/analyze_d297_full_at_analysis1.py",
+    "sha256": "275ce44dcc270b72ce2f53489e13e0e1e4bbfac33db2a88f7fb805142f67bd53",
+    "reason": "Independent length mode added after analysis1; exact executed source preserved without rerunning or altering analysis1. Archive is not an experiment entry point."
+  },
+  "cpu_tests": {
+    "count": 334,
+    "new_tests": 7,
+    "elapsed_s": 3.776,
+    "modules": ["tests.test_ieee_tc_decode_overlap", "tests.test_ieee_tc_request_lifecycle", "tests.test_ieee_tc_route_identity_cache", "tests.test_ieee_tc_service_routing"],
+    "log_sha256": "d7210c461819143786c46dc145a95e4ac433cea3e43cdb7439882478978c8003"
+  },
+  "scopes": {
+    "analysis1": {"invocation": "3657f2a1f0cf4574a4a662c94ec0ebb3", "peak_bytes": 1212862464},
+    "length1": {"invocation": "98d74d0bb8bc4feaa1e0b64b38d40fae", "peak_bytes": 82448384},
+    "tests": {"invocation": "bef0b9cc223b4bde83100a082aa74818", "peak_bytes": 556945408},
+    "verify": {"invocation": "3b1053ff40aa489a8e4a5b3c754024c6", "peak_bytes": 27148288}
+  },
+  "all_scope_events_and_swap_zero": true,
+  "actual_empty_and_populated_zero_before_stop": true,
+  "protection": {
+    "count": 147,
+    "raw_pass": false,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "known_changed_path": "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py",
+    "known_current_sha256": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "unexpected_changes": []
+  },
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "serving_runner_sha256": "262b8f58ca12b129d0292f3e6da94ed3f5732171f959a2d0280c89e8cda46ef6",
+  "user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+  "free_disk_bytes": 163197087744,
+  "new_performance_runs": 0,
+  "no_figures": true,
+  "n_correct": null,
+  "formal_qualification": false,
+  "causal_performance_gain": null
+}

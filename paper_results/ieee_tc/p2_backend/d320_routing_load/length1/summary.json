@@ -1,0 +1,96 @@
+{
+  "groups": [
+    {
+      "run": "d315",
+      "group": "all",
+      "requests": 4000,
+      "mean_predicted_o_ms": 3258.2512398788194,
+      "mean_observed_o_ms": 3327.8379220175266,
+      "mean_decode_prediction_error_ms": -69.5866821387073,
+      "mean_absolute_decode_prediction_error_ms": 2458.8814681278354,
+      "selected_above_min_q": 2536,
+      "above_min_q_without_predicted_d_advantage": 1833
+    },
+    {
+      "run": "d315",
+      "group": "129-256",
+      "requests": 1444,
+      "mean_predicted_o_ms": 3496.8383381291,
+      "mean_observed_o_ms": 6529.910048971841,
+      "mean_decode_prediction_error_ms": -3033.071710842741,
+      "mean_absolute_decode_prediction_error_ms": 3231.3445078071395,
+      "selected_above_min_q": 889,
+      "above_min_q_without_predicted_d_advantage": 662
+    },
+    {
+      "run": "d315",
+      "group": "2-32",
+      "requests": 1114,
+      "mean_predicted_o_ms": 3093.119034402156,
+      "mean_observed_o_ms": 493.2439361018199,
+      "mean_decode_prediction_error_ms": 2599.875098300336,
+      "mean_absolute_decode_prediction_error_ms": 2617.5133084912627,
+      "selected_above_min_q": 752,
+      "above_min_q_without_predicted_d_advantage": 516
+    },
+    {
+      "run": "d315",
+      "group": "33-128",
+      "requests": 1442,
+      "mean_predicted_o_ms": 3146.9041573736854,
+      "mean_observed_o_ms": 2311.156610636158,
+      "mean_decode_prediction_error_ms": 835.7475467375275,
+      "mean_absolute_decode_prediction_error_ms": 1562.7979040073271,
+      "selected_above_min_q": 895,
+      "above_min_q_without_predicted_d_advantage": 655
+    },
+    {
+      "run": "d318",
+      "group": "all",
+      "requests": 4000,
+      "mean_predicted_o_ms": 3310.001760023148,
+      "mean_observed_o_ms": 3372.703698778263,
+      "mean_decode_prediction_error_ms": -62.701938755114774,
+      "mean_absolute_decode_prediction_error_ms": 2453.3221281885058,
+      "selected_above_min_q": 2807,
+      "above_min_q_without_predicted_d_advantage": 1907
+    },
+    {
+      "run": "d318",
+      "group": "129-256",
+      "requests": 1444,
+      "mean_predicted_o_ms": 3581.387814362232,
+      "mean_observed_o_ms": 6582.285168824828,
+      "mean_decode_prediction_error_ms": -3000.8973544625965,
+      "mean_absolute_decode_prediction_error_ms": 3249.4476433811237,
+      "selected_above_min_q": 998,
+      "above_min_q_without_predicted_d_advantage": 699
+    },
+    {
+      "run": "d318",
+      "group": "2-32",
+      "requests": 1114,
+      "mean_predicted_o_ms": 3090.021875628433,
+      "mean_observed_o_ms": 520.6290969255805,
+      "mean_decode_prediction_error_ms": 2569.392778702853,
+      "mean_absolute_decode_prediction_error_ms": 2583.4824258621256,
+      "selected_above_min_q": 807,
+      "above_min_q_without_predicted_d_advantage": 538
+    },
+    {
+      "run": "d318",
+      "group": "33-128",
+      "requests": 1442,
+      "mean_predicted_o_ms": 3208.1821544406766,
+      "mean_observed_o_ms": 2362.0070716746905,
+      "mean_decode_prediction_error_ms": 846.1750827659863,
+      "mean_absolute_decode_prediction_error_ms": 1555.5386222616323,
+      "selected_above_min_q": 1002,
+      "above_min_q_without_predicted_d_advantage": 670
+    }
+  ],
+  "new_performance_runs": 0,
+  "no_figures": true,
+  "causal_performance_gain": null,
+  "caveat": "Selected estimates versus their own observed outcome; unselected outcomes unknown. Completed token count equals the previously validated fixed target, not a new online future-length feature."
+}

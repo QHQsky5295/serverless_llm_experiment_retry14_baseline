@@ -1,0 +1,46 @@
+{
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/analyze_d297_full.py",
+      "sha256": "acabe7ffdc66fb70f97e47e65429813195591538ad89d6427138b3357984a2db"
+    },
+    {
+      "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d320_routing_load/analysis1/d315_candidates.csv",
+      "sha256": "710318328d0c30c32213a9b41bb86c801fd5fff61e1d9cce26da258eb423c247"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d320_routing_load/analysis1/manifest.json",
+      "sha256": "c414d05057369d612a9a63b23bf297006b34ef5edb754b720a66215f22976eec"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d319_lifecycle/analysis1/d315_intervals.csv",
+      "sha256": "a48d85b57a32ea20dfaddcb6a626caf0859154b465ce081da716d1e039c55cc1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d319_lifecycle/analysis1/manifest.json",
+      "sha256": "cbe09c7dec0865334ece5096962a29f4ed3af286ee83ce80b69ec9a6a7625254"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d320_routing_load/analysis1/d318_candidates.csv",
+      "sha256": "eae9092b8bb100656b412ad36533cfb32df444a37fad4462302d43a1e7156825"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d319_lifecycle/analysis1/d318_intervals.csv",
+      "sha256": "954ee4a15fddbf090fb0a4abd9a7b30e427f5659b99cfe9b6727001ccfcafa50"
+    }
+  ],
+  "outputs": {
+    "d315_requests.csv": "0df15f53385bfc6b6076d2120ae35f85fdbc7cc29d59b834f27840fcc8223c54",
+    "d318_requests.csv": "9fdb91998b9af0bace376f759ef9e9a86ed25703503907068f3d9d31d833d388",
+    "summary.json": "41b8b628802a11ed239d425f59601488f91a8aeca4d84cdf1941ea09fb3675dc"
+  },
+  "no_figures": true
+}

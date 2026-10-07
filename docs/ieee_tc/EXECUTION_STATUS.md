@@ -11,7 +11,48 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D319 complete: reactivation alone does not explain tail tradeoff
+## CURRENT — D320 complete: Q omission rejected; output-length calibration is next
+
+2026-10-07. This turn PROGRESS, data-only: both retained4000-request W0 logs,
+31392candidate views. Q/pending/active-adapter lower-bound contradictions0;
+admitted-bin and exact routing-key disagreements0. Preparing/native work are
+included; no serving/formula change warranted by the omission hypothesis.
+Exact reserve/release times absent: zero contradiction is not exact equality.
+See D320_ROUTING_LOAD_AND_LENGTH.md, d320_routing_load/analysis1 and length1.
+
+New actionable evidence: all declared outputs2..256 share one output bin.
+D318 short2..32(n1114): predictedO3.090s/observed0.521s; long129..256(n1444):
+3.581/6.582s. Overall signederror-0.063s hides absoluteerror2.453s. D315 same
+direction. Selectedabove-min-Q2536->2807;1833->1907 lack predictedD advantage
+versus the defined lightest candidate. Not proof of wrong placement or causal
+latency gain: unselected outcomes unknown. No performance/numerical qualification.
+
+NEXT single7B candidate direction: declared-output class/initialization quality,
+not new Q bias or controller thresholds. Reuse historical completed native
+samples/admission features and existing exporters; audit class coverage first,
+freeze legitimate static/history-based bins before validation, fill only real
+necessary measurement gaps (no nearest/pooled/zero profiles), then one candidate
+minimal validation and full4000W0. Keep all9formulas/EWMA/routing/input/V1 rules.
+Do not repeat D320 cohort grouping,512budget,D294/D295small numerical repeats,
+old full profile matrix,3B/baselines or figures. Formalwarm/Resident/oldPrime new
+metrics and N_correct remainunknown; objective active. This is not an optimal
+Full freeze. User cache approval already implementedD78/D80; do not rebuild it.
+
+334CPUtests pass3.776s (7new); earlier274pass3.605s. Analysispeak1212862464B,
+lengthjoin82448384B,tests556945408B; events/swap0; actualempty/populated0 verified
+before stopping ownedCPUscopes. No GPU/remote job. Exactanalysis1 analyzer SHA
+275ce44d... retained in provenance because the independent length mode was added
+afterward. No old output overwritten. NEXT verify/protect/push tested checkpoint,
+then the declared-output candidate above; not another open-ended audit cycle.
+
+Verification20:40+08:26source references and6outputs checked, analysis1 source
+resolved to exact275ce44d...archive; no oldmanifest rewrite. Protected147rawpass
+false retains only known baseline replay difference SHA04f3eb52...; usermanifest
+3b69bd0a...unchanged. Plan/V1/serving unchanged. Free163197087744B; no deletion.
+Hashverify scope3b1053ff...peak27148288B, events/swap0, actualempty/populated0.
+validation_checkpoint.json records identities; backup pending normalpush.
+
+## HISTORY — D319 complete: reactivation alone does not explain tail tradeoff
 
 2026-10-07 20:16+08. This turn PROGRESS: reused D315/D318 complete4000each,
 no new inference/remote/figures/serving edits. D319_LIFECYCLE_TAIL_DIAGNOSIS.md;
@@ -45,6 +86,14 @@ Protected147rawpassfalse retains only known baseline replay SHA04f3eb52...;
 userdirtymanifest3b69bd0a...unchanged/notstaged. Free163236904960B at20:16;
 no unique data deleted, newcurated~6.7MiB. NEXT normal tested backup then above
 7B input-consistency question. This is diagnostic progress, not performance gain.
+
+Backup closure2026-10-07 20:18:51+08: normalpush succeeded; exact local and
+faaslora_origin/retry14_continuous_queue_v2 HEAD both
+bfc7dfa774506128764cc8ead093fa3b322f8dea.15explicit paths, no usermanifest,
+rawdata orfigures staged; whitespace/secrets checks passed. All ownedD319CPU
+scopes empty andstopped, no live tool session/inference/remote task. Onlythis
+post-push note is a new own edit. NEXT above targeted7B routing-input consistency
+audit, not another backup cycle, repeatedinterval analysis orGPUreplay. Goalactive.
 
 ## HISTORY — D319 data-only lifecycle/tail diagnosis in progress
 

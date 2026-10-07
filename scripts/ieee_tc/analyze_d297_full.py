@@ -13,6 +13,7 @@ import math
 import subprocess
 import sys
 from collections import Counter
+from bisect import bisect_left
 from pathlib import Path
 from statistics import mean
 
@@ -757,6 +758,240 @@ def inspect_retained_lifecycle(output):
         outputs={p.name:sha256(p) for p in sorted(OUT.iterdir())}, no_figures=True))
 
 
+def routing_load_consistency(requests, *, clock_id, admitted_edges, delta_ms):
+    """D320: conservative witnessed ownership, not exact reserve/release replay.
+
+    Controller admission is after reservation; a request is certainly still
+    owned before its native last token. Gaps before admission/after last token
+    cannot be reconstructed exactly from this historical schema. File capture
+    and Q reads occur in one no-await controller segment, after native awaits.
+    """
+    from faaslora.experiment.instance_pool import (
+        ReplicaRoutingSnapshot, ServiceObservationClass, ServiceComponents)
+    if (not requests or not clock_id or not math.isfinite(delta_ms) or delta_ms <= 0
+            or any(type(x) is not int or x < 0 for x in admitted_edges)
+            or any(a >= b for a, b in zip(admitted_edges, admitted_edges[1:]))):
+        raise ValueError('valid requests, clock and frozen class/routing bins required')
+    records, owners, seen = [], {}, set()
+    for r in requests:
+        rid, timing, evidence = r['request_id'], r['native_token_timing'], r['gpu_reference_evidence']
+        if (not rid or rid in seen or r['success'] is not True
+                or timing['native_clock_id'] != clock_id
+                or timing['native_terminal_observed'] is not True):
+            raise ValueError('unique completed same-clock native observations required')
+        seen.add(rid)
+        a, d, last, acquired = [timing[k] for k in (
+            'controller_admitted_monotonic_s', 'native_dispatch_monotonic_s',
+            'native_last_token_monotonic_s', 'gpu_reference_acquired_monotonic_s')]
+        if (not all(type(x) in (float, int) and math.isfinite(x) for x in (a, d, last, acquired))
+                or not 0 < a <= d <= last or not 0 < acquired <= d):
+            raise ValueError('ordered admission/acquisition/native bounds required')
+        snap = evidence['routing_snapshot']
+        if (snap['kind'] != 'ieee_predecision_received_view_v1'
+                or snap['selected_replica_id'] != r['instance_id']):
+            raise ValueError('final request-local routing snapshot required')
+        selected = [c for c in snap['candidates'] if c['replica_id'] == r['instance_id']]
+        if len(selected) != 1 or selected[0]['service_class'] is None:
+            raise ValueError('one selected feasible candidate required')
+        owners.setdefault(r['instance_id'], []).append(dict(request_id=rid,
+            adapter_id=r['adapter_id'], admitted=a, dispatched=d, last=last,
+            acquired=acquired, pending=selected[0]['service_class']['tier'] != 'gpu'))
+    for r in requests:
+        rid, snap = r['request_id'], r['gpu_reference_evidence']['routing_snapshot']
+        raw_rows, sources = snap['candidates'], snap['sources']
+        rows = []
+        for raw in raw_rows:
+            value = dict(raw, active_adapters=frozenset(raw['active_adapters']))
+            value['service_class'] = ServiceObservationClass(**raw['service_class']) if raw['service_class'] else None
+            value['service'] = ServiceComponents(**raw['service']) if raw['service'] else None
+            rows.append(ReplicaRoutingSnapshot(**value))
+        if (not rows or len({s.replica_id for s in rows}) != len(rows)
+                or len({s.epoch for s in rows}) != 1
+                or set(sources) != {s.replica_id for s in rows}
+                or any(s.request_id != rid or s.adapter_id != r['adapter_id'] for s in rows)):
+            raise ValueError('complete same-request same-epoch candidate population required')
+        feasible = [s for s in rows if s.feasible]
+        if not feasible:
+            raise ValueError('selected request has no feasible row')
+        winner = min(feasible, key=lambda s: s.routing_key(delta_ms))
+        selected = next(s for s in rows if s.replica_id == snap['selected_replica_id'])
+        min_q = min(s.admitted_requests for s in feasible)
+        for s in rows:
+            at = sources[s.replica_id]['file_captured_monotonic_s']
+            if (type(at) not in (float, int) or not math.isfinite(at) or at <= 0
+                    or at > r['native_token_timing']['controller_admitted_monotonic_s']):
+                raise ValueError('pre-admission same-host file observation required')
+            peers = [p for p in owners.get(s.replica_id, []) if p['request_id'] != rid
+                     and p['admitted'] <= at < p['last']]
+            native = sum(p['dispatched'] <= at for p in peers)
+            pending = sum(p['pending'] and at < p['acquired'] for p in peers)
+            active = {p['adapter_id'] for p in peers}
+            is_selected = s.replica_id == selected.replica_id
+            records.append(dict(request_id=rid, replica_id=s.replica_id, selected=is_selected,
+                epoch=s.epoch, observation_monotonic_s=at, feasible=s.feasible,
+                reported_q=s.admitted_requests, witnessed_q_lower_bound=len(peers),
+                witnessed_native_lower_bound=native, witnessed_predispatch_lower_bound=len(peers)-native,
+                q_below_witnessed_lower_bound=s.admitted_requests < len(peers),
+                reported_pending=s.pending_loads, witnessed_pending_lower_bound=pending,
+                pending_below_witnessed_lower_bound=s.pending_loads < pending,
+                missing_witnessed_active_adapters=len(active-set(s.active_adapters)),
+                admitted_bin=s.service_class.admitted_bin if s.feasible else None,
+                admitted_bin_mismatch=(s.service_class.admitted_bin != bisect_left(admitted_edges, s.admitted_requests+1)) if s.feasible else None,
+                selection_key_mismatch=winner.replica_id != selected.replica_id if is_selected else None,
+                min_feasible_q=min_q, selected_above_min_q=is_selected and s.admitted_requests > min_q,
+                tier=s.service_class.tier if s.feasible else None,
+                service_bin=math.floor(s.service.total_ms/delta_ms) if s.feasible else None,
+                predicted_d_ms=s.service.d_ms if s.feasible else None,
+                predicted_t_ms=s.service.t_ms if s.feasible else None,
+                predicted_o_ms=s.service.o_ms if s.feasible else None))
+    selected_rows = [r for r in records if r['selected']]
+    return dict(requests=len(requests), candidate_views=len(records),
+        feasible_views=sum(r['feasible'] for r in records),
+        violations={k:sum(bool(r[k]) for r in records) for k in (
+            'q_below_witnessed_lower_bound', 'pending_below_witnessed_lower_bound',
+            'missing_witnessed_active_adapters', 'admitted_bin_mismatch', 'selection_key_mismatch')},
+        views_with_witnessed_native=sum(r['witnessed_native_lower_bound']>0 for r in records),
+        views_with_witnessed_predispatch=sum(r['witnessed_predispatch_lower_bound']>0 for r in records),
+        views_with_witnessed_pending=sum(r['witnessed_pending_lower_bound']>0 for r in records),
+        selected_above_min_feasible_q=sum(r['selected_above_min_q'] for r in selected_rows),
+        selected_q_histogram=dict(sorted(Counter(r['reported_q'] for r in selected_rows).items())),
+        exact_controller_ownership_reconstruction=False, causal_performance_gain=None,
+        caveat='Lower bounds exclude pre-admission reservations and post-last-token cleanup; zero contradictions is not proof of exact equality. Selection replay is an implementation consistency check, not counterfactual performance.',
+        candidates=records)
+
+
+def inspect_retained_routing_load(output):
+    """Reuse two sealed full runs; never start inference or overwrite outputs."""
+    global OUT
+    OUT = Path(output).resolve()
+    if OUT.exists():
+        raise FileExistsError(OUT)
+    assert sha256(PLAN) == '0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7'
+    assert sha256(PROTOCOL) == '5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22'
+    import yaml
+    paths = [PLAN, PROTOCOL, Path(__file__), ROOT/'scripts/ieee_tc/plot_d290_diagnostic.py',
+        ROOT/'scripts/run_all_experiments.py', ROOT/'faaslora/experiment/instance_pool.py']
+    identities = {'d315': '6e5007630c9780c417e65109ef3005daedba3dafa87a843ff75c4885f91c362f',
+                  'd318': '4c781c7b10890293130b425e7cc94dc80c96f3b3dd8037f89db53e1fb08ffb1b'}
+    OUT.mkdir(parents=True, exist_ok=False)
+    summaries = {}
+    for name, digest in identities.items():
+        prior = ROOT/f'paper_results/ieee_tc/p2_backend/{name}_full_w0/validated1'
+        seal = read(prior/'manifest.json')
+        assert sha256(prior/'audit.json') == seal['outputs']['audit.json']
+        audit = read(prior/'audit.json')
+        source = Path(audit['evidence']['source'])
+        assert sha256(source) == digest == audit['evidence']['source_sha256']
+        cfg_path = ROOT/f'configs/ieee_tc/20261007_{name}_7b_full_w0.yaml'
+        refs = {r['path']: r['sha256'] for r in seal['source_refs']}
+        assert sha256(cfg_path) == refs[str(cfg_path)]
+        config = yaml.safe_load(cfg_path.read_text())['resource_coordination']
+        profile_path = ROOT/config['ieee_service_profile']['path']
+        assert sha256(profile_path) == config['ieee_service_profile']['sha256']
+        stats, evidence, requests = audit_run(source)
+        assert len(requests) == 4000
+        clocks = {r['native_token_timing']['native_clock_id'] for r in requests}
+        assert len(clocks) == 1
+        result = routing_load_consistency(requests, clock_id=clocks.pop(),
+            admitted_edges=read(profile_path)['bins']['admitted_requests'],
+            delta_ms=config['service_bin_ms'])
+        table(f'{name}_candidates.csv', result.pop('candidates'))
+        result.update(source=evidence, stats=stats)
+        summaries[name] = result
+        paths.extend([source, cfg_path, profile_path, prior/'audit.json', prior/'manifest.json',
+            Path(evidence['physical_source'])])
+        del requests
+        gc.collect()
+        print(json.dumps(dict(run=name, **result), allow_nan=False), flush=True)
+    write('summary.json', dict(kind='d320_retained_routing_load_consistency_v1', runs=summaries,
+        new_performance_runs=0, no_figures=True, n_correct=None, formal_qualification=False))
+    write('manifest.json', dict(source_refs=[dict(path=str(p), sha256=sha256(p)) for p in dict.fromkeys(paths)],
+        outputs={p.name:sha256(p) for p in sorted(OUT.iterdir())}, no_figures=True))
+
+
+def routing_length_diagnosis(candidates, requests):
+    """Observed selected-cost calibration only; alternative latency is unknown."""
+    by_request, records = {}, []
+    for row in candidates:
+        by_request.setdefault(row['request_id'], []).append(row)
+    if len({r['request_id'] for r in requests}) != len(requests) or set(by_request) != {r['request_id'] for r in requests}:
+        raise ValueError('matched unique complete request population required')
+    for r in requests:
+        feasible = [s for s in by_request[r['request_id']] if s['feasible']]
+        chosen = [s for s in feasible if s['selected']]
+        if len(chosen) != 1:
+            raise ValueError('one selected feasible candidate required')
+        s = chosen[0]
+        low_q = min(c['reported_q'] for c in feasible)
+        alternative = min((c for c in feasible if c['reported_q'] == low_q),
+            key=lambda c: (c['service_bin'], sum(c[k] for k in ('predicted_d_ms', 'predicted_t_ms', 'predicted_o_ms')), c['replica_id']))
+        observed_o = 1000*(r['last']-r['first'])
+        if not math.isfinite(observed_o) or observed_o < 0 or r['tokens'] < 1:
+            raise ValueError('valid observed native decode interval required')
+        records.append(dict(request_id=r['request_id'], output_group=r['output_group'], tokens=r['tokens'],
+            selected_q=s['reported_q'], minimum_q=low_q, selected_tier=s['tier'],
+            alternative_tier=alternative['tier'], predicted_o_ms=s['predicted_o_ms'],
+            observed_o_ms=observed_o, decode_prediction_error_ms=s['predicted_o_ms']-observed_o,
+            selected_above_min_q=s['reported_q']>low_q,
+            predicted_d_advantage_ms=alternative['predicted_d_ms']-s['predicted_d_ms'],
+            predicted_t_advantage_ms=alternative['predicted_t_ms']-s['predicted_t_ms'],
+            predicted_o_advantage_ms=alternative['predicted_o_ms']-s['predicted_o_ms'],
+            alternative_performance_known=False))
+    groups = []
+    for name in ['all'] + sorted({r['output_group'] for r in records}):
+        rows = [r for r in records if name == 'all' or r['output_group'] == name]
+        groups.append(dict(group=name, requests=len(rows),
+            mean_predicted_o_ms=mean(r['predicted_o_ms'] for r in rows),
+            mean_observed_o_ms=mean(r['observed_o_ms'] for r in rows),
+            mean_decode_prediction_error_ms=mean(r['decode_prediction_error_ms'] for r in rows),
+            mean_absolute_decode_prediction_error_ms=mean(abs(r['decode_prediction_error_ms']) for r in rows),
+            selected_above_min_q=sum(r['selected_above_min_q'] for r in rows),
+            above_min_q_without_predicted_d_advantage=sum(r['selected_above_min_q'] and
+                r['predicted_d_advantage_ms'] <= 0 for r in rows)))
+    return dict(groups=groups, requests=records, causal_performance_gain=None,
+        caveat='Selected estimates versus their own observed outcome; unselected outcomes unknown. Completed token count equals the previously validated fixed target, not a new online future-length feature.')
+
+
+def inspect_retained_routing_lengths(output):
+    global OUT
+    OUT = Path(output).resolve()
+    if OUT.exists():
+        raise FileExistsError(OUT)
+    paths = [Path(__file__), PLAN, PROTOCOL]
+    all_groups = []
+    OUT.mkdir(parents=True, exist_ok=False)
+    for name in ('d315', 'd318'):
+        rows = []
+        for family, filename in [('d320_routing_load', f'{name}_candidates.csv'),
+                                 ('d319_lifecycle', f'{name}_intervals.csv')]:
+            prior = ROOT/f'paper_results/ieee_tc/p2_backend/{family}/analysis1'
+            manifest = read(prior/'manifest.json')
+            path = prior/filename
+            assert sha256(path) == manifest['outputs'][filename]
+            refs = {r['path']:r['sha256'] for r in manifest['source_refs']}
+            assert sha256(PLAN) == refs[str(PLAN)] and sha256(PROTOCOL) == refs[str(PROTOCOL)]
+            with path.open(newline='') as handle:
+                data = list(csv.DictReader(handle))
+            for r in data:
+                for k in ('selected', 'feasible'):
+                    if k in r:
+                        if r[k] not in ('True', 'False'): raise ValueError('invalid boolean')
+                        r[k] = r[k] == 'True'
+                for k in ('reported_q', 'tokens'):
+                    if k in r: r[k] = int(r[k])
+                for k in ('service_bin', 'predicted_d_ms', 'predicted_t_ms', 'predicted_o_ms', 'last', 'first'):
+                    if k in r: r[k] = float(r[k]) if r[k] else None
+            rows.append(data)
+            paths.extend([path, prior/'manifest.json'])
+        result = routing_length_diagnosis(*rows)
+        table(f'{name}_requests.csv', result.pop('requests'))
+        all_groups.extend(dict(run=name, **g) for g in result.pop('groups'))
+    write('summary.json', dict(groups=all_groups, new_performance_runs=0, no_figures=True, **result))
+    write('manifest.json', dict(source_refs=[dict(path=str(p), sha256=sha256(p)) for p in dict.fromkeys(paths)],
+        outputs={p.name:sha256(p) for p in sorted(OUT.iterdir())}, no_figures=True))
+    print(json.dumps(all_groups, indent=2, allow_nan=False), flush=True)
+
+
 def main(campaign='d297'):
     global RAW, RUN, OUT, SOURCE
     source_sha = '7f171e1d58b061e7dd7392e1651d087c300ce1d6c2223c3ed16ef2fdce3aa07b'
@@ -990,12 +1225,20 @@ if __name__ == '__main__':
         help='D316 retained D315 target-copy revisits; explicit fresh output, no inference')
     parser.add_argument('--lifecycle-output', type=Path,
         help='D319 retained D315/D318 lifecycle and decode analysis, no inference')
+    parser.add_argument('--routing-load-output', type=Path,
+        help='D320 retained D315/D318 routing load consistency, no inference')
+    parser.add_argument('--routing-length-output', type=Path,
+        help='D320 selected-cost length diagnosis using the sealed compact projections')
     args = parser.parse_args()
     if sum(x is not None for x in (args.admission_wait_output, args.decode_tail_output,
                                   args.native_load_output, args.prefill_output, args.route_copy_output,
-                                  args.lifecycle_output)) > 1:
+                                  args.lifecycle_output, args.routing_load_output, args.routing_length_output)) > 1:
         parser.error('choose one retained diagnostic')
-    if args.lifecycle_output is not None:
+    if args.routing_length_output is not None:
+        inspect_retained_routing_lengths(args.routing_length_output)
+    elif args.routing_load_output is not None:
+        inspect_retained_routing_load(args.routing_load_output)
+    elif args.lifecycle_output is not None:
         inspect_retained_lifecycle(args.lifecycle_output)
     elif args.route_copy_output is not None:
         inspect_retained_route_copies(args.route_copy_output)
