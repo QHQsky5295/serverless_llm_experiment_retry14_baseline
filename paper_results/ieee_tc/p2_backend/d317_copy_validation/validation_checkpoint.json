@@ -1,0 +1,89 @@
+{
+  "kind": "d317_complete_native_smoke_checkpoint_v1",
+  "execution_commit": "65732328273a9566b81dce8659fbe461990e24a7",
+  "source_plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "raw_input_hashes_verified": 8,
+  "prelaunch_source_hashes_verified": 8,
+  "curated_output_sha256": {
+    "smoke2/audit.json": "90bf4c0403878ba5d67206d341c6338948bb70b9533b92609485c0f01a61faa5",
+    "smoke2/binding_audit.json": "11d0a906463e35ef55818ed496b889a41dbc72bafd9b1fec307306b434c1d2df",
+    "smoke2/binding_status.csv": "4bdf714783a1fd457d1c4f5da8c99c8da6556f8d6a93c7b600ffa67c6cdc1df4",
+    "smoke2/comparison.csv": "95702009986839de28d10b1f9b9d514c484694448eb8d20d203af948ddc53612",
+    "smoke2/comparison_manifest.json": "a177f86f3c2bca5bfc991c9648e77fa0adc1ff8f30ab86a3b6ab50aa0e6be589"
+  },
+  "incomplete_analysis1_retained_sha256": {
+    "smoke1/binding_audit.json": "11d0a906463e35ef55818ed496b889a41dbc72bafd9b1fec307306b434c1d2df",
+    "smoke1/binding_status.csv": "4bdf714783a1fd457d1c4f5da8c99c8da6556f8d6a93c7b600ffa67c6cdc1df4",
+    "smoke1/comparison.csv": "95702009986839de28d10b1f9b9d514c484694448eb8d20d203af948ddc53612",
+    "smoke1/comparison_manifest.json": "a177f86f3c2bca5bfc991c9648e77fa0adc1ff8f30ab86a3b6ab50aa0e6be589"
+  },
+  "raw_log_sha256": {
+    "audit.log": "5743ef2ad010ff93de09bf3d1ab9a50b988bafe568b5464d614ae446386fd953",
+    "audit2.log": "1832a0599f44a44fc2d1d3da4f95481157d54c3d22042ebb366abd34715cf7e1",
+    "audit3.log": "a394ac6a77d36d3497e7b11b0a9cb68cbdbf0fb3115ee1500b4b82d30841f20f",
+    "prelaunch.log": "c0e84ffdbfc1011d81b043b6535317574706af5c5d1b086c6e2c11080439f56a",
+    "remote_start.log": "eef7eb40f7a8a24e767b95280dfe1afd1ba954677495afb505924ed7e2f2cd98",
+    "smoke_remote_monitor.log": "bc2b1921bb8016be836d4b2d958aca9275bb23044e33aed1c71023b9a045fb0c"
+  },
+  "source_sha256": {
+    "scripts/ieee_tc/analyze_d298_smoke.py": "4cfafe47061e1e1489907d3ddbb489c4c2c21295b1754dbe1311e9fd7a2b54ea",
+    "tests/test_ieee_tc_decode_overlap.py": "f91d5e070c89d28dcdc3edd65253789b182e9f3ce3ea033bc5c3f2e61ef50626",
+    "scripts/run_all_experiments.py": "262b8f58ca12b129d0292f3e6da94ed3f5732171f959a2d0280c89e8cda46ef6"
+  },
+  "launch_sha256": "8c8272f31f9a2432d153831b85cc275d2667589122bcf6ec18be72da51ed3f4e",
+  "launch_identity_sha256": "dd391fcdca911440766a66629a197626bd806a1e331e573c89fbfc15beca4d20",
+  "gpu_attempts": 1,
+  "complete_native_contract_requests": 100,
+  "n_correct": null,
+  "formal_qualification": false,
+  "ranking_eligible": false,
+  "copy_retention_trigger": {
+    "observed_cumulative_retained_scopes_max": 402,
+    "source_snapshot_count": 280,
+    "exact_rpc_savings": null,
+    "causal_latency_savings": null,
+    "caveat": "Retained per-request observations only; repeated publication may count a scope again. Not a final event total or avoided RPC count."
+  },
+  "cpu_tests": {
+    "final_passed": 66,
+    "duration_s": 0.132,
+    "invocation": "9276ef3c7ffc42e4a9a6d5106008c651",
+    "memory_peak_bytes": 558993408,
+    "prelaunch_passed": 64,
+    "prior_failed_analysis_tests_passed": 65,
+    "targeted_filename_fix_tests_passed": 4
+  },
+  "cpu_scopes": {
+    "memory_high_bytes": 3221225472,
+    "memory_max_bytes": 4294967296,
+    "swap_max_bytes": 0,
+    "cpus": "2,3,26,27",
+    "events_high_max_oom_oom_kill": 0,
+    "actual_empty_verified_and_stopped": true,
+    "peaks_by_invocation": {
+      "efdda784094b45a19ba10b0d1d246d8f": 558866432,
+      "9ceecd149ee44e7596657633d4368255": 559108096,
+      "9580094948144121a392c43774fb3862": 502046720,
+      "9276ef3c7ffc42e4a9a6d5106008c651": 558993408
+    }
+  },
+  "cleanup": {
+    "local_gpu_released": true,
+    "service_path_removed": true,
+    "aux_invocation": "747cbc14a7604a7880c98c05f50ccf0f",
+    "aux_peak_bytes": 161136640,
+    "aux_actual_empty_verified_and_stopped": true,
+    "remote_stop_at": "2026-10-07T18:14:37+08:00",
+    "remote_stop_mode": "explicit monitor stop then its existing InvocationID-checked EXIT trap stopped artifact services",
+    "remote_services_verified_inactive": true,
+    "remote_copied_hashes_match": true
+  },
+  "analysis_failures_retained": [
+    "audit.log: wrong explicit r100 filename; actual config-named r4000 file metadata declares 100",
+    "audit2.log: final route counter not exported; smoke1 partial retained",
+    "smoke2 uses required actual per-request counter with no default"
+  ],
+  "decision": "Safe to register unchanged candidate full4000 against D315; no additional smoke or parameter scan",
+  "new_figures": 0
+}

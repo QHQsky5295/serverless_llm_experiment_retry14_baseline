@@ -15,6 +15,38 @@ from scripts.ieee_tc.analyze_d297_full import (
 
 
 class RegisteredD317Smoke(unittest.TestCase):
+    def test_smoke_audit_uses_new_output_and_existing_prefix_reference(self):
+        from scripts.ieee_tc import analyze_d298_smoke as module
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with mock.patch.multiple(module, ROOT=root, RAW=None, RUN=None, SOURCE=None, REFERENCE=None, OUT=None), mock.patch.object(
+                    module.p, 'check_plan', side_effect=RuntimeError('plan gate reached')):
+                with self.assertRaisesRegex(RuntimeError, 'plan gate reached'):
+                    module.main('d317')
+                self.assertEqual(module.OUT, root/'paper_results/ieee_tc/p2_backend/d317_copy_validation/smoke2')
+                self.assertIn('d302_20261007', str(module.REFERENCE))
+                self.assertIn('_r4000_c2_', module.SOURCE.name)
+                module.OUT.mkdir(parents=True)
+                with self.assertRaisesRegex(AssertionError, 'never overwrite'):
+                    module.main('d317')
+
+    def test_retention_counter_uses_observed_max_not_sum_or_final_events(self):
+        from scripts.ieee_tc.analyze_d298_smoke import copy_retention_trigger
+        def row(value):
+            return dict(gpu_reference_evidence=dict(routing_snapshot=dict(sources={
+                'replica': dict(source_collection=dict(identity_frontier_retained_gpu_scopes=value))})))
+        result = copy_retention_trigger([row(2), row(7), row(7)])
+        self.assertEqual(result['observed_cumulative_retained_scopes_max'], 7)
+        self.assertEqual(result['source_snapshot_count'], 3)
+        self.assertIsNone(result['exact_rpc_savings'])
+        for value in (-1, True, 0.5, None):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                copy_retention_trigger([row(value)])
+        with self.assertRaises(ValueError): copy_retention_trigger([])
+        missing = row(2)
+        missing['gpu_reference_evidence']['routing_snapshot']['sources']['replica']['source_collection'].clear()
+        with self.assertRaises(KeyError): copy_retention_trigger([missing])
+
     def test_config_changes_only_names_and_cold_paths(self):
         import yaml
         root = Path(__file__).resolve().parents[1]

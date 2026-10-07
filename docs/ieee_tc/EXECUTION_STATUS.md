@@ -11,7 +11,72 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D317 registered 100-request native validation, launch pending
+## CURRENT — D317 native100 complete/audited; unchanged full4000 next
+
+2026-10-07 18:22+08. PROGRESS: single D317 run complete100/100 successful native
+contract requests,0failed; ten bindingchecks each100; dispatch tiers100/100;
+native TTFT/TPOT andpartitionerrors0. NewGPU-copy retention branch observedmax
+402 across280retainedviews (NOT exactRPCsavings/finaleventtotal). Nativeleases
+closed,servicepathremoved,service/watchdog/replay returncodes0. No live GPU,
+CPU or remoteexperiment. Sourceplan/V1 unchanged; goalactive,7Bnotqualified.
+
+Mean/P95TTFT955.134897/2118.484378ms,mean/P95TPOT28.916611/37.948561ms,
+U710.223238332GPU-s,meanarrival-to-admission322.925526ms,nestedrouting78.414707ms.
+100-prefix only; N_correctnull; D170timing98/100 is NOTformalSLO. D302 same
+1024/control/profile prefix is descriptive context only (intervening source
+correctnessrepairs): mean/P95TTFT-4.535%/-7.041%,U-11.159%,butmean/P95TPOT
++5.984%/+10.448%. All4outputhashdifferencesretained; noCI orcausalwin.
+
+29remoteUUIDs/50650865wirebytes matchexactlocal/remotesources; no packing or
+republication.263resourcesamples,peak18820423680B,minhost93895622656B,
+events/swap0. Localrelease18:14:00;18:14:37ourID-verifiedmonitorstop triggered
+the EXISTING remote EXIT trap tostopbothownedartifactservices. Subsequent
+redundant IDcheckfailed becausealreadyinactive; notin-run outage. Journals and
+monitorSHA agree locally/remotely. Allremoteunitsinactive/MainPID0/success.
+Aux747cbc14...actualempty/populated0verified thenstopped,peak161136640B.
+
+Final66CPUtests pass0.132s; analysis4boundedscopes allactualempty/populated0
+thenstopped,events/swap0. Two offlineanalyzer errors retained: explicitfilename
+wasr100butfrozenconfig-namedfileisr4000(metadata/offeredstill100); then attempted
+anunexportedfinalcounter. Corrected to exactsource andrequiredperrequestfield;
+no fallbackdefault/noGPUrerun. smoke1partial4files retained; finalsmoke2/audit
+and5curatedfiles validated.8rawinputs/8prelaunchsourcehashesverified; protected
+147sealonlyknownbaselinereplaydifference/passfalse;userdirtymanifestunchanged.
+Validationcheckpoint and D317_NATIVE_COPY_REUSE_VALIDATION.md documentall.
+
+NEXT tested explicit-path backup,remoteHEADverification; thenregisterD318 using
+existingfullrunner, sameD315config/currentD316servingcode exceptfreshoutput/cache
+IDs, full4000W0. No more100repeat,profiles,budgetscan,D295/PEFT or localcosmetics.
+Audit fullwaiting/TTFT/TPOT/U/failures/outputdifferences versusD315, thenaccept
+orrevokecandidate. Do notstart3B/baselines/figures ordeclareG1/G2done. Numerical,
+warm/ResidentandoldPrime newmetrics remainopen. Supersedesalllivehandlesbelow.
+
+## HISTORY — D317 native100 live; continue same run, never relaunch on wait timeout
+
+2026-10-07 18:09:32+08 launched ONCE in tmuxprimelora_d317_7b, existing
+run_d293_7b_prefetch_validation_100.sh d317. Tested configuration/entry checkpoint
+65732328273a9566b81dce8659fbe461990e24a7 pushed and exactremoteHEAD verified.
+8source hashes unchanged. Prelaunch113061494784Bavailable/disk164417269760B,
+no computePIDs/populatedexperiment scopes. Manualpreflight probe initially
+looked for wrong `pass` instead of `preflight_pass`; stopped before remote/GPU
+startup, then checked correct existing field. No protection/configuration edit.
+
+Localserviceprimelora-tc-svc-d1daf6aca4a340709b5b44fdc29abad5.scope,
+Invocation56e512df33954c76b4e0ac319e565093,inode19877820; auxc29b0545...;
+watchdog2163279/start87502082 actualidentity verified. Fullcapturedlocal/remote
+identities in d317_20261007/launch_identity.json. Resource sample20fresh,
+events/swap0/noabort; startup only, not full performance evidence.
+Remote3Ba78ef87f...,7B054008b9...,monitor8107408f...;1000/full; authenticated
+directhealth prepublished_gzip_v1. Exact7Bjournal from actual/proc/fd captured;
+no cache rebuild, token exposure, packing, networkchange or extra load.
+
+NEXT monitor SAME100run; afterlaunch.json confirmsrelease, stopcapturedremote
+monitorFIRST thenartifactservices; collectexactjournal/monitor; audit100native
+bindings/tier/releases and retainedscope trigger. Then unchangedfull4000 if
+safe. No serving/config/test/fullanalysis/Gitpush during measurement. Nofigures
+or3B/baselines. Numerical/warm/Resident/oldPrime metrics remainopen,goalactive.
+
+## HISTORY — D317 registered 100-request native validation, launch pending
 
 2026-10-07 18:08+08. D316 tested change backed up to b9975ef28c37195ec4d0c806
 bfabce36f7265f40; exact remote branch HEAD verified. No performance win claimed.
