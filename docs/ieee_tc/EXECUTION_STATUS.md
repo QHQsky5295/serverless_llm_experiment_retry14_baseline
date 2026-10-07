@@ -11,7 +11,56 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D328 prepared; launch ONE current 7B path diagnostic next
+## CURRENT — D328 complete; current native HOST observation is the next study
+
+2026-10-08: the one 1,000-request diagnostic and offline audits completed.
+Native quantity/ten binding contracts 1000/1000, failures0; numerical N_correct
+unknown, formal G1/G2 still OPEN. Mean/P95 TTFT1039.602/2344.315ms,
+mean queue/service463.476/576.126ms, P95 TPOT65.589ms; observed U4176.348493
+GPU-s, six allocations released. Detailed observer included; not an ordinary
+Full performance comparison. Keep late unused activation and all observations.
+Remote60 matched transfers/74953014bytes, packing0; 1000/full negotiation at start.
+
+1403 complete control attempts: mean total119.264ms; pre-native62.946ms,
+native body11.905ms, frontend-ready to parent21.526ms. These are RPC spans,
+not request TTFT or disjoint aggregate CPU time. Business core stacks repeatedly
+show host inventory tensor.is_pinned(), not token-event add. Sampling is GIL-biased,
+not CPU-time percentages. Current evidence locates work; it does not establish
+the entire cause or a performance gain. See D328_CURRENT_PATH_DIAGNOSTIC.md.
+
+Service peak19472388096B, min host93709967360B, high/max/OOM/swap/warnings0.
+GPU released, tmux ended, exact owned remote units stopped and journals SHA matched.
+Remote stop's trailing rg check failed127 (rg absent); separate readback succeeded.
+Both offline scopes and run aux verified empty and stopped; final caller scope
+92741856d81c4abc907cc3f5b239aefd peak15417344B/events0/swap0. No serving changes.
+Curated analysis1 under d328_current_path; raw closure receipts retain all failures.
+
+History D180/D189/D193/D194/D202 reviewed: scoped footprints, static descriptions,
+planning projection and view-table removal already exist. Do not redo them or
+remove an already-removed duplicate pinning query. NEXT one owner-lifecycle
+HOST-observation dependency study using current code/official source, then one
+qualified candidate and ordinary full replay. No TTL confirmed-state cache,
+budget weakening, repeated D328/D327 diagnostic, figures or external baselines.
+Backup this audited milestone with explicit paths; user manifest never stage.
+7B ->3B ->baselines ->comparison ->ablations/sensitivities. Numerical/common warm/
+Resident/old-new new-metric acceptance remains OPEN; goal active.
+
+## HISTORY — D328 launched, now complete
+
+2026-10-08 02:12:40+08 launchedtmux `tc-d328-prefix1`, backedsourcecommit
+24bf5c9976cc7cbaf9d056ccebeac99d39f26edf, independentlyverifiedonremoteV2branch.
+Guardedexecallowtrue; original4000source42/W0first1000indexview,traceSHAefb90325...
+isfixed. Actualservice35d0769692944320938140937dfe517b invocation786febd56336408d81d0ccfc0d234f44;
+aux459360e636af4f7285d72f200b5d58d4. Observerfileswritten; firstrequestscompleted.
+AtresourceSample79:hostavailable106961186816B,servicepeak7123456000B,
+high/max/OOM/swap0. ThisisinitialhealthNOTfullresult,performanceorformalSLO.
+Remotehealthpublished/clock8bc15e2cece54d578ae59e7c4d2cd8b0, startup1000/full;
+3b/7b/monitoractualIDsandpaths inrawrunning_checkpoint1.json andremote_start.log.
+NOremotechanges/cleanup/hashscanorotherheavyjobduringmeasurement. NEXT waitfor
+thisrun,localGPUreleasefirst,thenexactownedremotestop/receipts,existingstackand
+control-boundaryanalysis. DoNOTrelaunch/repeatD327 orbackup-only. Goalactive.
+
+## HISTORY — D328 prepared and safety checked
 
 2026-10-08 ~02:12+08 PROGRESS. Recovered1,444,200,448B byremovingONE
 publicPyTorchdownloadarchiveafterofficialSHA/size/HEAD/reference/open/linkchecks;
