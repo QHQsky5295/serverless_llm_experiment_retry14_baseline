@@ -11,7 +11,75 @@ from scripts.ieee_tc.check_d299_full_context import (
 
 from scripts.ieee_tc.analyze_d297_full import (
     audit_preparation_attribution, decode_overlap_summary, native_load_overlap_summary, prefill_overlap_summary,
+    lifecycle_gaps, paired_timeline_groups, inspect_retained_lifecycle,
 )
+
+
+class RetainedLifecycle(unittest.TestCase):
+    def physical(self):
+        return dict(clock_id='clock', measurement_complete=True, open_lease_ids=[],
+            device_intervals={'gpu1': [[10., 20.], [25., 35.]], 'gpu2': [[10., 35.]]}, gpu_seconds=45.)
+
+    def test_physical_gaps_are_measured_not_counterfactual(self):
+        result = lifecycle_gaps(self.physical(), dict(clock_id='clock', arrival_start_s=10.))
+        self.assertEqual(result['observed_gpu_s'], 45.)
+        self.assertEqual(result['released_gap_gpu_s'], 5.)
+        self.assertEqual(result['gaps'][0]['released_offset_s'], 10.)
+        self.assertEqual(result['gaps'][0]['reallocated_offset_s'], 15.)
+        self.assertIsNone(result['causal_savings'])
+
+    def test_incomplete_mixed_clock_overlapping_and_bad_integral_rejected(self):
+        for key, value in (('measurement_complete', False), ('clock_id', 'other'),
+                ('open_lease_ids', ['open']), ('gpu_seconds', 46.),
+                ('device_intervals', {'gpu': [[10., 20.], [19., 25.]]}),
+                ('device_intervals', {'gpu': [[10., float('nan')]]})):
+            p = self.physical()
+            p[key] = value
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                lifecycle_gaps(p, dict(clock_id='clock', arrival_start_s=10.))
+
+    def pair(self):
+        row = dict(request_id='a', adapter_id='adapter', prompt_tokens=10, tokens=4,
+            canonical_prompt_sha256='prompt', output_group='2-32', arrival_offset_s=10.,
+            completion_token_ids_sha256='output', ttft_pass=True, timing_tpot_miss=False,
+            timing_joint_pass=True, ttft_ms=2., admission_ms=1., service_ms=1., tpot_ms=1., e2e_s=1.)
+        old = dict(requests=[row, dict(row, request_id='b', arrival_offset_s=15.)],
+            lifecycle=dict(gaps=[]), activation_offsets=[dict(start_offset_s=-10., end_offset_s=2.)])
+        new = copy.deepcopy(old)
+        new['lifecycle']['gaps'] = [dict(released_offset_s=10., reallocated_offset_s=15.)]
+        new['activation_offsets'].append(dict(start_offset_s=15., end_offset_s=20.))
+        new['requests'][0]['completion_token_ids_sha256'] = 'different'
+        return dict(d315=old, d318=new)
+
+    def test_common_cohorts_half_open_output_differences_and_empty_na(self):
+        result = paired_timeline_groups(self.pair())
+        a, b = result['pairs']
+        self.assertTrue(a['in_either_release_gap'])
+        self.assertFalse(b['in_either_release_gap'])
+        self.assertFalse(a['in_either_startup'])
+        self.assertTrue(b['in_either_startup'])
+        self.assertEqual(result['output_hash_differences'], 1)
+        self.assertEqual(result['common_last_ready_offset_s'], 20.)
+        empty = [g for g in result['groups'] if g['group']=='after_both_last_ready' and g['label']]
+        self.assertTrue(all(g['count']==0 and g['p95_ttft_ms'] is None for g in empty))
+        for label in (True, False):
+            both = [g for g in result['groups'] if g['group']=='in_either_release_gap' and g['label']==label]
+            self.assertEqual([g['count'] for g in both], [1, 1])
+
+    def test_mismatched_population_input_and_arrivals_rejected(self):
+        for case in ('duplicate', 'missing', 'adapter', 'arrival'):
+            pair = self.pair()
+            rows = pair['d318']['requests']
+            if case == 'duplicate': rows.append(rows[0])
+            elif case == 'missing': rows.pop()
+            elif case == 'adapter': rows[0]['adapter_id'] = 'other'
+            else: rows[0]['arrival_offset_s'] += .001
+            with self.subTest(case=case), self.assertRaises(ValueError):
+                paired_timeline_groups(pair)
+
+    def test_existing_output_rejected_before_any_hash_or_analysis(self):
+        with tempfile.TemporaryDirectory() as root, self.assertRaises(FileExistsError):
+            inspect_retained_lifecycle(root)
 
 
 class RegisteredD317Smoke(unittest.TestCase):

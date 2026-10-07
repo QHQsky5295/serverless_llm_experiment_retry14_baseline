@@ -594,6 +594,169 @@ def inspect_retained_prefill(output):
         outputs={p.name:sha256(p) for p in sorted(OUT.iterdir())},no_figures=True))
 
 
+def lifecycle_gaps(physical, deployment):
+    """Observed between-lease gaps, not hypothetical savings from no retirement."""
+    if (physical['clock_id'] != deployment['clock_id']
+            or physical['measurement_complete'] is not True or physical['open_lease_ids']):
+        raise ValueError('complete same-clock physical measurement required')
+    origin, total, gaps = deployment['arrival_start_s'], 0., []
+    for gpu, spans in physical['device_intervals'].items():
+        previous = None
+        for start, end in spans:
+            if (not all(type(x) in (int, float) and math.isfinite(x) for x in (start, end))
+                    or end <= start or (previous is not None and start < previous)):
+                raise ValueError('ordered disjoint physical intervals required')
+            total += end-start
+            if previous is not None and start > previous:
+                gaps.append(dict(gpu=gpu, released_offset_s=previous-origin,
+                    reallocated_offset_s=start-origin, duration_s=start-previous))
+            previous = end
+    if not physical['device_intervals'] or abs(total-physical['gpu_seconds']) > 1e-6:
+        raise ValueError('physical interval integral mismatch')
+    return dict(gaps=gaps, released_gap_gpu_s=sum(g['duration_s'] for g in gaps),
+        observed_gpu_s=total, causal_savings=None)
+
+
+def paired_timeline_groups(runs):
+    """Common arrival-time cohorts for D319, descriptive and post hoc, no CI."""
+    if set(runs) != {'d315', 'd318'}:
+        raise ValueError('registered complete pair required')
+    maps = {name: {r['request_id']: r for r in run['requests']} for name, run in runs.items()}
+    if (not maps['d315'] or set(maps['d315']) != set(maps['d318'])
+            or any(len(maps[k]) != len(runs[k]['requests']) for k in runs)):
+        raise ValueError('complete unique paired request population required')
+    gap_spans = [(g['released_offset_s'], g['reallocated_offset_s'])
+        for run in runs.values() for g in run['lifecycle']['gaps']]
+    startup_spans = [(s['start_offset_s'], s['end_offset_s'])
+        for run in runs.values() for s in run['activation_offsets']]
+    if not startup_spans or any(not math.isfinite(x) for s in startup_spans+gap_spans for x in s):
+        raise ValueError('finite observed event spans required')
+    last_ready = max(b for a, b in startup_spans)
+    pairs, grouped = [], []
+    for rid, old in maps['d315'].items():
+        new = maps['d318'][rid]
+        for key in ('adapter_id', 'prompt_tokens', 'tokens', 'canonical_prompt_sha256', 'output_group'):
+            if old[key] != new[key]:
+                raise ValueError('paired input mismatch')
+        if (not math.isfinite(old['arrival_offset_s']) or not math.isfinite(new['arrival_offset_s'])
+                or abs(old['arrival_offset_s']-new['arrival_offset_s']) > 1e-6):
+            raise ValueError('paired planned arrival mismatch')
+        offset = old['arrival_offset_s']
+        pairs.append(dict(request_id=rid, arrival_offset_s=offset, output_group=old['output_group'],
+            in_either_release_gap=any(a <= offset < b for a,b in gap_spans),
+            in_either_startup=any(a <= offset < b for a,b in startup_spans),
+            after_both_last_ready=offset >= last_ready,
+            output_hash_changed=old['completion_token_ids_sha256'] != new['completion_token_ids_sha256']))
+    for dimension, labels in (('all', ['all']), ('in_either_release_gap', [False, True]),
+            ('in_either_startup', [False, True]), ('after_both_last_ready', [False, True]),
+            ('output_group', ['2-32', '33-128', '129-256'])):
+        for label in labels:
+            cohort = [r['request_id'] for r in pairs if dimension == 'all' or r[dimension] == label]
+            for name in runs:
+                rows = [maps[name][rid] for rid in cohort]
+                group = dict(run=name, group=dimension, label=label, count=len(rows),
+                    timing_ttft_misses=sum(not r['ttft_pass'] for r in rows),
+                    timing_tpot_misses=sum(r['timing_tpot_miss'] for r in rows),
+                    timing_joint_misses=sum(not r['timing_joint_pass'] for r in rows))
+                for field in ('ttft_ms', 'admission_ms', 'service_ms', 'tpot_ms', 'e2e_s'):
+                    values = [r[field] for r in rows]
+                    group['mean_'+field] = mean(values) if values else None
+                    group['p95_'+field] = percentile(values, .95) if values else None
+                grouped.append(group)
+    return dict(pairs=pairs, groups=grouped, common_last_ready_offset_s=last_ready,
+        output_hash_differences=sum(r['output_hash_changed'] for r in pairs),
+        caveat='Same request cohorts from union of observed relative event times; post hoc, not causal or independent repeats.')
+
+
+def inspect_retained_lifecycle(output):
+    """D319 reuses D304-D306 interval methods on the sealed D315/D318 pair."""
+    global OUT
+    OUT = Path(output).resolve()
+    if OUT.exists():
+        raise FileExistsError(OUT)
+    assert sha256(PLAN) == '0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7'
+    assert sha256(PROTOCOL) == '5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22'
+    paths = [PLAN, PROTOCOL, Path(__file__), ROOT/'scripts/ieee_tc/plot_d290_diagnostic.py']
+    summaries, retained, groups, transactions = {}, {}, [], []
+    OUT.mkdir(parents=True, exist_ok=False)
+    identities = {'d315': '6e5007630c9780c417e65109ef3005daedba3dafa87a843ff75c4885f91c362f',
+                  'd318': '4c781c7b10890293130b425e7cc94dc80c96f3b3dd8037f89db53e1fb08ffb1b'}
+    for name, digest in identities.items():
+        prior = ROOT/f'paper_results/ieee_tc/p2_backend/{name}_full_w0/validated1'
+        seal = read(prior/'manifest.json')
+        for filename, expected in seal['outputs'].items():
+            assert sha256(prior/filename) == expected
+        audit = read(prior/'audit.json')
+        source = Path(audit['evidence']['source'])
+        assert sha256(source) == digest == audit['evidence']['source_sha256']
+        outcome = source.parent/'launch.launch/physical_deployment/main_outcome.json'
+        refs = {r['path']: r['sha256'] for r in seal['source_refs']}
+        assert sha256(outcome) == refs[str(outcome)]
+        stats, evidence, requests = audit_run(source)
+        assert len(requests) == 4000
+        deployment_path = source.parent/'launch.launch/physical_deployment/deployment.json'
+        physical_path = source.parent/'launch.launch/physical_deployment/summary.json'
+        deployment, physical = read(deployment_path), read(physical_path)
+        query = 'fromstream(2|truncate_stream(inputs | select(.[0][:2] == ["mechanism_events","_ieee_activations"])))'
+        activations = json.loads(subprocess.check_output(['jq','-cn','--stream',query,str(outcome)]))
+        decode = decode_overlap_summary(requests, activations, clock_id=deployment['clock_id'],
+            arrival_start=deployment['arrival_start_s'], thresholds=audit['thresholds'])
+        native = native_load_overlap_summary(requests, decode.pop('requests'), clock_id=deployment['clock_id'])
+        records = native.pop('requests')
+        prefill = prefill_overlap_summary(requests, records, clock_id=deployment['clock_id'])
+        pf = {r['request_id']: r for r in prefill.pop('requests')}
+        with (prior/'requests.csv').open(newline='') as handle:
+            normalized = {r['request_id']:r for r in csv.DictReader(handle)}
+        raw = {r['request_id']:r for r in requests}
+        assert len(normalized) == len(raw) == 4000 and set(normalized) == set(raw)
+        for r in records:
+            rid = r['request_id']
+            q, n = raw[rid], normalized[rid]
+            for key, value in pf[rid].items():
+                if key in r and r[key] != value:
+                    raise ValueError('interval projections disagree')
+                r[key] = value
+            for key in ('ttft_pass', 'timing_joint_pass', 'tpot_pass'):
+                if n[key] not in ('True', 'False'):
+                    raise ValueError('invalid retained timing decision')
+            assert r['timing_tpot_miss'] == (n['tpot_pass'] == 'False')
+            r.update(adapter_id=q['adapter_id'], arrival_offset_s=q['scheduled_arrival_offset_s'],
+                canonical_prompt_sha256=q['canonical_prompt_sha256'],
+                completion_token_ids_sha256=q['completion_token_ids_sha256'],
+                ttft_ms=float(n['ttft_s'])*1000, admission_ms=float(n['arrival_to_admission_s'])*1000,
+                service_ms=(float(n['ttft_s'])-float(n['arrival_to_admission_s']))*1000,
+                e2e_s=float(n['e2e_s']), ttft_pass=n['ttft_pass']=='True',
+                timing_joint_pass=n['timing_joint_pass']=='True')
+        life = lifecycle_gaps(physical, deployment)
+        offsets = [dict(replica=s['replica'], category=s['category'],
+            start_offset_s=s['start']-deployment['arrival_start_s'],
+            end_offset_s=s['end']-deployment['arrival_start_s']) for s in decode['activations']]
+        table(f'{name}_intervals.csv', records)
+        table(f'{name}_activations.csv', offsets)
+        for family, result in (('decode', decode), ('load', native), ('prefill', prefill)):
+            groups.extend(dict(run=name, family=family, **g) for g in result['groups'])
+        transactions.extend(dict(run=name, **g) for g in native['transactions'])
+        summaries[name] = dict(source=evidence, stats=stats, lifecycle=life, activation_offsets=offsets,
+            decode=decode, native=native, prefill=prefill)
+        retained[name] = dict(requests=records, lifecycle=life, activation_offsets=offsets)
+        paths.extend([source, outcome, deployment_path, physical_path, Path(evidence['physical_source']),
+            prior/'manifest.json', prior/'audit.json', prior/'requests.csv', prior/'control_samples.csv'])
+        del raw, normalized, requests
+        gc.collect()
+        print(json.dumps(dict(run=name, complete_requests=len(records), lifecycle=life)), flush=True)
+    paired = paired_timeline_groups(retained)
+    table('paired_arrival_cohorts.csv', paired.pop('pairs'))
+    table('paired_groups.csv', paired.pop('groups'))
+    # Family summaries have differing columns; retain their complete fields in JSON.
+    write('overlap_groups.json', groups)
+    table('transactions.csv', transactions)
+    write('summary.json', dict(kind='d319_retained_lifecycle_decode_v1', runs=summaries, paired=paired,
+        new_performance_runs=0, no_figures=True, n_correct=None, formal_qualification=False,
+        confidence_interval=None, causal_savings=None))
+    write('manifest.json', dict(source_refs=[dict(path=str(p), sha256=sha256(p)) for p in dict.fromkeys(paths)],
+        outputs={p.name:sha256(p) for p in sorted(OUT.iterdir())}, no_figures=True))
+
+
 def main(campaign='d297'):
     global RAW, RUN, OUT, SOURCE
     source_sha = '7f171e1d58b061e7dd7392e1651d087c300ce1d6c2223c3ed16ef2fdce3aa07b'
@@ -825,11 +988,16 @@ if __name__ == '__main__':
         help='D306 retained same-owner prefill envelope using D305 and native timing')
     parser.add_argument('--route-copy-output', type=Path,
         help='D316 retained D315 target-copy revisits; explicit fresh output, no inference')
+    parser.add_argument('--lifecycle-output', type=Path,
+        help='D319 retained D315/D318 lifecycle and decode analysis, no inference')
     args = parser.parse_args()
     if sum(x is not None for x in (args.admission_wait_output, args.decode_tail_output,
-                                  args.native_load_output, args.prefill_output, args.route_copy_output)) > 1:
+                                  args.native_load_output, args.prefill_output, args.route_copy_output,
+                                  args.lifecycle_output)) > 1:
         parser.error('choose one retained diagnostic')
-    if args.route_copy_output is not None:
+    if args.lifecycle_output is not None:
+        inspect_retained_lifecycle(args.lifecycle_output)
+    elif args.route_copy_output is not None:
         inspect_retained_route_copies(args.route_copy_output)
     elif args.prefill_output is not None:
         inspect_retained_prefill(args.prefill_output)

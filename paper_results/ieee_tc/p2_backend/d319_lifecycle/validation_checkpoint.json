@@ -1,0 +1,58 @@
+{
+  "kind": "d319_retained_analysis_validation_v1",
+  "recorded_at": "2026-10-07T20:16:31.536966+08:00",
+  "source_references_verified": 22,
+  "outputs_verified": 9,
+  "manifest_sha256": "cbe09c7dec0865334ece5096962a29f4ed3af286ee83ce80b69ec9a6a7625254",
+  "summary_sha256": "b8ac1aa5c55f1eb4dd85a9a87ae5fbcfa0686601837ae0dc8e183777a28d3683",
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "analysis_log_sha256": "4a61d58963ae981267e1be1898fad3615fda3116d346b22e59f01401bb603103",
+  "cpu_tests": {
+    "count": 364,
+    "elapsed_s": 18.47,
+    "log_sha256": "7c97989ea1f7b3553062a6ab05682f6e9a967cab71bbc522248f6c54d4c04d66",
+    "peak_bytes": 1095843840,
+    "invocation": "0ed24784a8844acbb8191df3619a305c",
+    "events_zero": true,
+    "actual_empty_before_stop": true
+  },
+  "analysis_scope": {
+    "invocation": "0e71f016d6d1471ea698c8b8c43cd3cc",
+    "peak_bytes": 1041989632,
+    "events_zero": true,
+    "actual_empty_before_stop": true
+  },
+  "protection": {
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "count": 147,
+    "raw_pass": false,
+    "differences": [
+      {
+        "path": "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py",
+        "expected_sha256": "cff050d9a6f67e40300dd5ac314c069963fb3386869b31872eff5cae5939800c",
+        "actual_sha256": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22"
+      }
+    ]
+  },
+  "user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+  "new_performance_runs": 0,
+  "no_figures": true,
+  "n_correct": null,
+  "formal_qualification": false,
+  "confidence_interval": null,
+  "publication_checks": {
+    "explicit_staged_paths": 15,
+    "diff_whitespace_check": true,
+    "secrets_pattern_scan": true,
+    "user_manifest_not_staged": true,
+    "raw_results_and_old_figures_not_staged": true,
+    "no_force_push": true
+  },
+  "hash_verification_scope": {
+    "invocation": "94ce59bb2dd64d279e3b2d2aefe6f18d",
+    "peak_bytes": 8028160,
+    "events_zero": true,
+    "actual_empty_before_stop": true
+  }
+}

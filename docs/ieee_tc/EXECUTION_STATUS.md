@@ -11,7 +11,55 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D318 full4000 audited: resource-tail tradeoff, not overall superiority
+## CURRENT — D319 complete: reactivation alone does not explain tail tradeoff
+
+2026-10-07 20:16+08. This turn PROGRESS: reused D315/D318 complete4000each,
+no new inference/remote/figures/serving edits. D319_LIFECYCLE_TAIL_DIAGNOSIS.md;
+new d319_lifecycle/analysis1 (9outputs,22source references rehashed) and
+validation_checkpoint.json.364CPUtests pass18.470s. Analysis1exit0 and actual
+scopeempty/populated0 before identity-checked stop; peak1041989632B,events/swap0.
+Testspeak1095843840B,events/swap0; all owned CPU jobs stopped. No GPU PID.
+Plan0c808509.../V1 5f0732ef... and serving262b8f58.../planner1e0c900b... unchanged.
+
+Actual release gaps324.251432GPU-s versus observedU difference338.618264GPU-s
+(95.757% descriptive ratio, NOT causal savings). Both-run final-ready boundary
+1113.182358s: same2963arrivals P95TTFT3050.342->3149.713ms, P95TPOT56.803->
+62.352ms; provisionaljointmiss124->135. Therefore no support for attributing
+all regression to two reactivations. Native load2168->2135,total74.269->74.021s;
+load-overlap1400->1614requests,prefill-overlap2217->2436,meanothernative1.466->
+1.695. Ownprefillmean198.472->198.720ms. Association only, not kernel time or
+latency to subtract. All240outputSHAchanges retained; N_correct/formalSLO and
+warm/Resident/oldPrime newmetrics unknown; noCI oroptimalFull freeze.
+
+Decision: close this data-only investigation; no repeated startup/load grouping,
+no 512budget/profile/numerical repeats, cooldown sweep,3B/baselines or figures.
+NEXT targeted7B evidence/code check: does the router's measured Q_i/service view
+cover all assigned/preparing/native-not-completed work across lifecycle changes?
+Compare existing routing_snapshot/native evidence and historical/official code;
+one falsifiable input-consistency hypothesis, not a replacement routing formula.
+If no omission, reject that proposed defect; no speculative load-bias coefficient.
+Control retirement await is NOT proof that independent dispatcher/request tasks
+stop; do not patch lifecycle from that observation alone. Full objective active.
+
+Protected147rawpassfalse retains only known baseline replay SHA04f3eb52...;
+userdirtymanifest3b69bd0a...unchanged/notstaged. Free163236904960B at20:16;
+no unique data deleted, newcurated~6.7MiB. NEXT normal tested backup then above
+7B input-consistency question. This is diagnostic progress, not performance gain.
+
+## HISTORY — D319 data-only lifecycle/tail diagnosis in progress
+
+2026-10-07. Full source plan and frozen V1 reread; same hashes. Retained
+D315/D318 complete4000 each; no inference/remote/figures or serving edits.
+Existing analyzer extended to reuse D304-D306 validated interval functions,
+with actual physical release gaps and same-request arrival cohorts from the
+union of observed event windows.43CPUtests passed6.549s including5new tests.
+New output d319_lifecycle/analysis1 only; preserve output hash changes,
+unknown numerical/formal qualification and noCI. See D319_LIFECYCLE_TAIL_DIAGNOSIS.
+NEXT bounded offline analysis -> interpret -> save/test/backup -> next single
+7B falsifiable bottleneck. Do not rerun D318, numerical/profile diagnostics,
+start3B/baselines or drawfigures. Goal active.
+
+## HISTORY — D318 full4000 audited: resource-tail tradeoff, not overall superiority
 
 2026-10-07. This turn PROGRESS: same registered full run completed once;
 cleanup and complete native/binding/remote/context audits passed.359CPUtests
@@ -58,6 +106,15 @@ and used command-local cr-at-eol plus all usual whitespace checks (passed), no
 global Git setting or source-data rewrite. Secrets-pattern scan passed. Final
 hash verifier5010ffc9...peak7913472B,events/swap0, actualempty/populated0 then
 stopped. All source/output hashes valid; backup pending normalpush.
+
+Backup closure2026-10-07 19:57:50+08: normalpush succeeded; exact local and
+faaslora_origin/retry14_continuous_queue_v2 HEAD verified
+8c001480e091daaa6633eb65c700d7bab8f5e575.18explicit files, usermanifest never
+staged, unrelated dirty/untracked files preserved. No compute GPU PID remains.
+Only this post-push status note is new own modification. NEXT is the data-only
+7B goal-level investigation described above, NOT backup repetition, replay,
+D295/PEFT repeats,3B/baselines or figures. No task/session/remote unit remains
+live from D318. Full objective stays active and unqualified.
 
 ## HISTORY — D318 full4000 finished and resources released; offline full audit next
 
