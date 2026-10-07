@@ -12,7 +12,8 @@ if vllm.__version__ != '0.30.0':
 
 from vllm.v1.engine.async_llm import AsyncLLM
 from faaslora.clock import local_monotonic_clock_id
-from faaslora.scheduling.resource_coordinator import native_prompt_identity
+from faaslora.scheduling.resource_coordinator import (
+    native_prompt_identity, validate_pending_gpu_reference)
 
 
 class IEEENativeAsyncLLM(AsyncLLM):
@@ -37,7 +38,11 @@ class IEEENativeAsyncLLM(AsyncLLM):
             raise RuntimeError('pending admission reply identity/clock mismatch')
         return result
 
-    async def ieee_register_pending(self, intent_id, prompt, params, adapter_int_id):
+    async def ieee_register_pending(self, intent_id, prompt, params, adapter_int_id,
+                                    *, gpu_reference_intent=None):
+        if gpu_reference_intent is not None:
+            validate_pending_gpu_reference(gpu_reference_intent, adapter_int_id)
+            gpu_reference_intent = dict(gpu_reference_intent)
         if intent_id in self.ieee_pending or intent_id in self.ieee_submissions:
             raise ValueError('pending frontend identity already used or closed')
         row = dict(state='registering', prompt=prompt, adapter_int_id=adapter_int_id)
@@ -51,11 +56,26 @@ class IEEENativeAsyncLLM(AsyncLLM):
             if row['state'] == 'closed':
                 raise ValueError('pending registration was withdrawn during preprocessing')
             row['descriptor'] = descriptor
-            reply = await self._pending_rpc('register', intent_id, descriptor)
+            if gpu_reference_intent is None:
+                result = reply = await self._pending_rpc('register', intent_id, descriptor)
+            else:
+                result = await self.engine_core.call_utility_async(
+                    'ieee_pending_gpu_reference', intent_id, descriptor, gpu_reference_intent)
+                if (not isinstance(result, dict)
+                        or result.get('kind') != 'ieee_pending_gpu_reference_v1'
+                        or result.get('execution_scope') != 'single_native_core_turn_v1'
+                        or not isinstance(result.get('reference'), dict)):
+                    raise ValueError('combined pending/source admission lacks native receipts')
+                reply = result.get('pending')
+                if (not isinstance(reply, dict) or reply.get('kind') != 'ieee_pending_admission_v1'
+                        or reply.get('intent_id') != intent_id
+                        or reply.get('clock_id') != local_monotonic_clock_id()
+                        or reply.get('physical_kv_reservation') is not False):
+                    raise ValueError('GPU protection lacks matching native pending acknowledgement')
             if reply.get('state') != 'pending':
                 raise ValueError('native owner did not register pending demand')
             row['state'] = 'pending'
-            return reply
+            return result
         row['registration'] = asyncio.create_task(register())
         return await asyncio.shield(row['registration'])
 

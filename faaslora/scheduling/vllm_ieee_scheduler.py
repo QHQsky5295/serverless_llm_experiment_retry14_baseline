@@ -35,6 +35,36 @@ def _core_pending_admission(core, operation, arguments):
     return getattr(core.scheduler._ieee_pending_admissions, operation)(*arguments)
 
 
+def _core_pending_gpu_reference(core, intent_id, descriptor, reference):
+    """Register then protect an exact GPU copy in one serialized core turn.
+
+    No scheduling step interleaves the two operations on the qualified UniProc
+    executor. This is NOT rollback-atomic: any error/lost reply may leave pending
+    demand and/or a GPU reference owned. Existing retirement is still required.
+    HOST has an intervening controller update and must not use this operation.
+    """
+    from vllm.v1.executor.uniproc_executor import UniProcExecutor
+    from faaslora.clock import local_monotonic_clock_id
+    from .resource_coordinator import validate_pending_gpu_reference
+    if (not isinstance(core.scheduler, IEEENativeAsyncScheduler)
+            or type(core.model_executor) is not UniProcExecutor):
+        raise RuntimeError('combined pending/GPU protection requires the native UniProc owner')
+    validate_pending_gpu_reference(reference,
+        descriptor.get('adapter_int_id') if isinstance(descriptor, dict) else None)
+    pending = _core_pending_admission(core, 'register', [intent_id, descriptor])
+    if (not isinstance(pending, dict) or pending.get('kind') != 'ieee_pending_admission_v1'
+            or pending.get('intent_id') != intent_id or pending.get('state') != 'pending'
+            or pending.get('clock_id') != local_monotonic_clock_id()
+            or pending.get('physical_kv_reservation') is not False):
+        raise ValueError('GPU protection requires native pending acknowledgement')
+    result = core.collective_rpc('ieee_gpu_reference', kwargs={
+        'operation': 'demand_load_and_acquire', **reference})
+    if not isinstance(result, list) or len(result) != 1 or not isinstance(result[0], dict):
+        raise RuntimeError('combined protection lacks single-worker acknowledgement')
+    return dict(kind='ieee_pending_gpu_reference_v1', pending=pending, reference=result[0],
+                execution_scope='single_native_core_turn_v1')
+
+
 def _core_observation(core):
     if not isinstance(core.scheduler, IEEENativeAsyncScheduler):
         raise RuntimeError('IEEE observation is not enabled for this native scheduler')
@@ -183,6 +213,10 @@ class IEEENativeAsyncScheduler(AsyncScheduler):
         if existing is not None and existing is not _core_pending_admission:
             raise RuntimeError('native EngineCore pending admission bridge name collision')
         EngineCore.ieee_pending_admission = _core_pending_admission
+        existing = getattr(EngineCore, 'ieee_pending_gpu_reference', None)
+        if existing is not None and existing is not _core_pending_gpu_reference:
+            raise RuntimeError('native EngineCore pending GPU bridge name collision')
+        EngineCore.ieee_pending_gpu_reference = _core_pending_gpu_reference
         existing = getattr(EngineCore, 'ieee_transfer_event', None)
         if existing is not None and existing is not _core_transfer_event:
             raise RuntimeError('native EngineCore transfer bridge name collision')

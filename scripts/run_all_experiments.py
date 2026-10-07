@@ -4891,15 +4891,18 @@ class InferenceEngine:
             raise ValueError('file transfer event lacks matching scheduler acknowledgement')
         return result
 
-    async def ieee_register_pending(self, *, intent_id, prompt, max_tokens, adapter_id):
+    async def ieee_register_pending(self, *, intent_id, prompt, max_tokens, adapter_id,
+                                    gpu_reference_intent=None):
         if (self.model_cfg.get('ieee_admission_profile') is None
                 or self.model_cfg.get('generation_contract') != 'fixed_length_greedy_v1'
                 or self.backend != 'vllm' or self.engine is None or self._engine_dead):
             raise ValueError('pending admission requires the configured native fixed-output owner')
         params = SamplingParams(temperature=0., top_p=1., max_tokens=max_tokens,
             ignore_eos=True, stop=[], stop_token_ids=[])
+        options = ({'gpu_reference_intent': gpu_reference_intent}
+                   if gpu_reference_intent is not None else {})
         return await self.engine.ieee_register_pending(intent_id, prompt, params,
-            self._lora_int_id(adapter_id) if adapter_id is not None else None)
+            self._lora_int_id(adapter_id) if adapter_id is not None else None, **options)
 
     async def ieee_close_pending(self, *, intent_id):
         if self.backend != 'vllm' or self.engine is None or self._engine_dead:
@@ -4921,43 +4924,34 @@ class InferenceEngine:
                                                    gpu_reference_intent):
         """Ordered native registration and selected-GPU protection in one RPC.
 
-        This is not atomic across the scheduler and GPU owners. Both native
-        acknowledgements are required; source conflicts still return to the
-        whole router, and a lost reply leaves both possible mutations owned.
+        Native registration and protection share one core turn, without an
+        intervening frontend round trip. Both acknowledgements are required;
+        this is not rollback-atomic, and lost replies retain both possible owners.
         HOST/file paths have intervening controller updates and do not use it.
         """
         from faaslora.clock import local_monotonic_clock_id
+        if (not self.model_cfg.get('ieee_gpu_references', False)
+                or int(self.model_cfg.get('tensor_parallel_size', 1)) != 1
+                or int(self.model_cfg.get('pipeline_parallel_size', 1)) != 1):
+            raise ValueError('combined pending protection requires configured TP=PP=1 native references')
         ref = gpu_reference_intent
-        expected_fields = {'lease_id', 'adapter_int_id', 'lora_name', 'lora_path',
-                           'expected_owner_id', 'expected_epoch',
-                           'required_source_tier', 'expected_source_id'}
-        content_fields = expected_fields | {'expected_content_sha256'}
-        if (not isinstance(ref, dict) or set(ref) not in (expected_fields, content_fields)
-                or not isinstance(adapter_id, str) or not adapter_id
-                or ref['lora_name'] != adapter_id
-                or type(ref['adapter_int_id']) is not int
-                or ref['adapter_int_id'] != self._lora_int_id(adapter_id)
-                or ref['required_source_tier'] != 'gpu'
-                or type(ref['expected_epoch']) is not int or ref['expected_epoch'] < 1
-                or any(not isinstance(ref[k], str) or not ref[k] for k in
-                       ('lease_id', 'lora_path', 'expected_owner_id', 'expected_source_id'))
-                or not Path(ref['lora_path']).is_absolute()):
+        from faaslora.scheduling.resource_coordinator import validate_pending_gpu_reference
+        if not isinstance(adapter_id, str) or not adapter_id:
             raise ValueError('combined registration requires an exact selected GPU reference')
-        if ('expected_content_sha256' in ref and
-                (not isinstance(ref['expected_content_sha256'], str)
-                 or len(ref['expected_content_sha256']) != 64
-                 or any(c not in '0123456789abcdef'
-                        for c in ref['expected_content_sha256']))):
-            raise ValueError('combined registration requires a valid content identity')
-        pending = await self.ieee_register_pending(intent_id=intent_id, prompt=prompt,
-            max_tokens=max_tokens, adapter_id=adapter_id)
+        validate_pending_gpu_reference(ref, self._lora_int_id(adapter_id), lora_name=adapter_id)
+        result = await self.ieee_register_pending(intent_id=intent_id, prompt=prompt,
+            max_tokens=max_tokens, adapter_id=adapter_id, gpu_reference_intent=ref)
+        if (not isinstance(result, dict) or result.get('kind') != 'ieee_pending_gpu_reference_v1'
+                or result.get('execution_scope') != 'single_native_core_turn_v1'
+                or not isinstance(result.get('reference'), dict)):
+            raise ValueError('combined pending/source admission lacks native receipts')
+        pending = result.get('pending')
         if (not isinstance(pending, dict) or pending.get('kind') != 'ieee_pending_admission_v1'
                 or pending.get('intent_id') != intent_id or pending.get('state') != 'pending'
                 or pending.get('clock_id') != local_monotonic_clock_id()
                 or pending.get('physical_kv_reservation') is not False):
             raise ValueError('GPU protection requires native pending acknowledgement')
-        reference = await self.ieee_gpu_reference(operation='demand_load_and_acquire', **ref)
-        return dict(kind='ieee_pending_gpu_reference_v1', pending=pending, reference=reference)
+        return result
 
     async def ieee_gpu_reference(self, *, operation: str, **kwargs) -> Dict[str, Any]:
         """Forward an explicit native owner operation; no inferred success."""
@@ -17353,6 +17347,7 @@ class ScenarioRunner:
                     or not isinstance(result.get('reference'), dict)):
                 raise ValueError('combined pending/source admission lacks native receipts')
             reply, reference = result.get('pending'), result['reference']
+            pending['execution_scope'] = result.get('execution_scope')
         if (not isinstance(reply, dict) or reply.get('kind') != 'ieee_pending_admission_v1'
                 or reply.get('intent_id') != pending['intent_id']
                 or reply.get('state') != 'pending'

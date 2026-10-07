@@ -376,6 +376,34 @@ def native_prompt_identity(token_ids):
     return hashlib.sha256(json.dumps(list(token_ids), separators=(',', ':')).encode()).hexdigest()
 
 
+def validate_pending_gpu_reference(reference, adapter_int_id, *, lora_name=None):
+    """Validate the exact cached-GPU command before registering native demand.
+
+    This validates a command, not current residency. The native GPU owner still
+    compares the selected incarnation and acquires its reference synchronously.
+    """
+    fields = {'lease_id', 'adapter_int_id', 'lora_name', 'lora_path',
+              'expected_owner_id', 'expected_epoch', 'required_source_tier',
+              'expected_source_id'}
+    if (not isinstance(reference, dict)
+            or set(reference) not in (fields, fields | {'expected_content_sha256'})
+            or type(adapter_int_id) is not int or adapter_int_id <= 0
+            or type(reference['adapter_int_id']) is not int
+            or reference['adapter_int_id'] != adapter_int_id
+            or reference['required_source_tier'] != 'gpu'
+            or type(reference['expected_epoch']) is not int or reference['expected_epoch'] < 1
+            or any(not isinstance(reference[key], str) or not reference[key] for key in
+                   ('lease_id', 'lora_name', 'lora_path', 'expected_owner_id', 'expected_source_id'))
+            or not os.path.isabs(reference['lora_path'])
+            or (lora_name is not None and reference['lora_name'] != lora_name)):
+        raise ValueError('combined registration requires an exact selected GPU reference')
+    if 'expected_content_sha256' in reference:
+        digest = reference['expected_content_sha256']
+        if (not isinstance(digest, str) or len(digest) != 64
+                or any(c not in '0123456789abcdef' for c in digest)):
+            raise ValueError('combined registration requires a valid content identity')
+
+
 class NativePendingAdmissions:
     """Engine-core-owned handoff, not a second KV allocator.
 

@@ -11,7 +11,38 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D332 full4000 COMPLETE and audited; no rerun/figures
+## CURRENT — D333 native pending/GPU core turn CPU-verified; D334 short run next
+
+2026-10-08 05:44+08: one new7B candidate implemented. D184 had fused only the
+outer controller/frontend exchange; D333 fuses the remaining two native utility
+calls for selected GPU sources. Original tokenizer/descriptor, register-before-
+protection, exact-source checks, unknown ownership and cancellation remain.
+HOST pending-load update participates in the routing key and is NOT reordered.
+No nine-equation/profile/config/SLO/remote change. See D333_NATIVE_PENDING_GPU_TURN.md.
+
+113 focused and476 expanded CPU tests PASS (overlap, not589); normal error/unknown
+receipt/source conflict and cancellation are covered.3/4GiB,swap0,events0; exact
+test/prelaunch scopes stopped. Initial non-UUID launcher name refused before tests;
+record retained, no guard relaxed. D334 config/profile check passes: only3 output/
+cold-cache paths vsD332, actual model and160/24 classes unchanged. Candidate is
+NOT GPU/numerical/performance-qualified. Curated evidence sealed. Backup then
+D334100 original W0 prefix using real prepublished remote, then D335 ordinary4000
+if valid. No D328/D295/D332 repeats, no figures, no3B/baselines yet. Fresh launch
+resource gate mandatory; old-new/commonwarm/Resident/numerical/G1/G2 remain OPEN.
+
+## HISTORY — D332 full4000 COMPLETE and audited; no rerun/figures
+
+2026-10-08 05:28+08 BACKUP VERIFIED: local HEAD and independent remote V2 read
+both7b30792518a6cf9707fc5ae22e8db5585114f7d4.23 explicit staged paths,17 curated
+hashes,38 archive members,syntax/diff/secrets checks pass;user manifest unstaged
+and unchanged. Final verifier peak35004416B/events0/swap0, exact-owned-empty and
+stopped. No active GPU/performance/remote experiment or tool process. Before this
+status note only the user manifest was tracked-dirty. Raw backup receipt retained.
+NEXT IS THE NEXT7B RESEARCH QUESTION, NOT another D332 audit/backup-only turn.
+Use existing entrance/runtime wait evidence, historical changes and current primary
+sources; avoid repeating finished profiles or numerical blocks. Storage only barely
+cleared150GiB: fresh launch gate remains mandatory. Goal active; all later stages
+and formal qualification still open.
 
 2026-10-08 ~05:20+08: actual run ended4000/4000 successful native terminals,
 0failed, all ten binding checks4000, stage error0. GPU physically released and
@@ -38,7 +69,7 @@ bytes and confirmed SHA before removal. Initial archive-summary path typo preser
 validated2 receipt complete, all four storage scopes empty/stopped. Observed free
 161164591104B is only just above150GiB, not a future launch gate guarantee.
 
-NEXT: checkpoint backup -> next single7B question
+NEXT: next single7B question
 from retained entrance/runtime wait boundaries and current official sources.
 Do not repeat this audit, D331 short runs, D328 profiling or D295 numerical blocks.
 Keep D330 candidate; performance improvement observed, formal G1/G2/old-new/common

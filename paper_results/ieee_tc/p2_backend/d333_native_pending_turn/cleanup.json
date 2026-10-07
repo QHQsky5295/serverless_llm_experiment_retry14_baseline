@@ -1,0 +1,55 @@
+[
+  {
+    "label": "cpu1",
+    "identity": {
+      "unit": "primelora-tc-test-b5b4a632a45344c7afbb933e19fb72ee.scope",
+      "invocation_id": "bb875808f46c42c8881a311ec399c6e3",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-b5b4a632a45344c7afbb933e19fb72ee.scope",
+      "inode": 20309039
+    },
+    "resources": {
+      "memory.peak": "509870080",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0"
+    },
+    "empty": true,
+    "after": "inactive"
+  },
+  {
+    "label": "regression1",
+    "identity": {
+      "unit": "primelora-tc-test-0fc3d265a2b04aeb9b508d1f450cd2eb.scope",
+      "invocation_id": "c44a42e458aa41328a67616a0a14bf78",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-0fc3d265a2b04aeb9b508d1f450cd2eb.scope",
+      "inode": 20309495
+    },
+    "resources": {
+      "memory.peak": "514150400",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0"
+    },
+    "empty": true,
+    "after": "inactive"
+  },
+  {
+    "label": "prelaunch",
+    "identity": {
+      "unit": "primelora-tc-test-6f7a8fecc4ab4a759b1ee6e0b3774abe.scope",
+      "invocation_id": "b287c4c287bd4eeca94ffdc79a0cec98",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-test-6f7a8fecc4ab4a759b1ee6e0b3774abe.scope",
+      "inode": 20310274
+    },
+    "empty": true,
+    "after": "inactive"
+  },
+  {
+    "label": "initial_launcher_rejected",
+    "unit": "primelora-tc-d333-cpu1.scope",
+    "identity": {
+      "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-d333-cpu1.scope",
+      "InvocationID": "346250f58ce243e59dc3e7d0df0e91af"
+    },
+    "empty": true,
+    "reason": "scope_identity rejects non-UUID name; tests did not start; no guard changed"
+  }
+]
