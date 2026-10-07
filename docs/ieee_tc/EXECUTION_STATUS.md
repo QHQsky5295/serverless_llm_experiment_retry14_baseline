@@ -44,7 +44,10 @@ below150GiBnew-heavy gate; auditedrebuildablecachecleanupbeforeanynextGPU.
 19manifestchecks pass,D304outputs unchanged.147sealretainssoleknownbaseline
 scriptdifferenceSHAunchanged,userdirtymanifest/servingrunnerunchanged. All8CPU
 scopesempty/stoppedbyInvocationID,noevents/swap; verificationpeak13611008B.
-GPUcensusclear,disk160605229056B. Testedbackupnext; goalactive.
+GPUcensusclear,disk160605229056B. Exact12-filestage/diff/credentialchecks passed.
+Tested checkpoint e3344141699c6bc242db72feb91647514ae98f38 pushed andremoteHEAD
+verified. No inference running; next narrowprefill/concurrencycheck, not a
+repeatloadanalysis or fullreplay. Goalactive.
 
 ## HISTORY — D304 decode-tail localization complete; narrow native-load overlap next
 
