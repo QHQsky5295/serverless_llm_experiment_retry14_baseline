@@ -19105,13 +19105,19 @@ class ScenarioRunner:
                     stage='native_target_copy', record=record)
             if native is not None and native['gpu_slot'] is not None:
                 return MovementOutcome('completed', dict(state='already_gpu', native_source=native))
-            state = references.source_snapshot(adapter_id)
-            source = next((s for s in state['sources'] if s['path'] == str(source_path)), None)
-            if source is None or source['content_sha256'] != content:
-                raise ValueError('native HOST preparation has no matching confirmed file source')
-            file_ref = references.acquire_confirmed(path=str(source_path), adapter_id=adapter_id,
-                lease_id=uuid.uuid4().hex, expected_owner_id=state['owner_id'],
-                expected_epoch=state['epoch'], expected_content_sha256=content)
+            # File publishers run on background threads: no asyncio yield is
+            # not a transaction. Observe and pin this exact published copy under
+            # the same owner lock, then release the lock before any native RPC.
+            # Routing's independently selected stale-snapshot rejection remains
+            # strict; this is the preparation path's current-source acquisition.
+            with references.lock:
+                state = references.source_snapshot(adapter_id)
+                source = next((s for s in state['sources'] if s['path'] == str(source_path)), None)
+                if source is None or source['content_sha256'] != content:
+                    raise ValueError('native HOST preparation has no matching confirmed file source')
+                file_ref = references.acquire_confirmed(path=str(source_path), adapter_id=adapter_id,
+                    lease_id=uuid.uuid4().hex, expected_owner_id=state['owner_id'],
+                    expected_epoch=state['epoch'], expected_content_sha256=content)
             evidence = dict(attempt_id=attempt_id, file_reference=file_ref, state='file_held')
             record['attempts'].append(evidence)
             known = True

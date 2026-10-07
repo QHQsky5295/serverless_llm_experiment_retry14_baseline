@@ -1,0 +1,65 @@
+{
+  "kind": "d312_cpu_correctness_checkpoint_v1",
+  "source_parent_commit": "d04aa2290ca99e28be0878a4a2f872afa44643db",
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "production_change": "Native HOST current-file observation and lease acquisition share the existing owner RLock; no await or native RPC inside it.",
+  "equations_or_candidate_settings_changed": false,
+  "performance_qualification": false,
+  "tests": {
+    "before": {
+      "tests": 2,
+      "errors": 2,
+      "seconds": 0.054,
+      "reproduced_exception": "ConfirmedSourceConflict: confirmed file source owner/epoch changed",
+      "precise_original_competing_thread_observed": false,
+      "retained_evidence": "tool output; no complete file log claimed"
+    },
+    "targeted_after": {
+      "tests": 199,
+      "errors": 0,
+      "seconds": 3.677,
+      "retained_evidence": "tool output extract"
+    },
+    "regression": {
+      "tests": 972,
+      "errors": 0,
+      "seconds": 91.805,
+      "exit_code": 0,
+      "path": "results/ieee_tc/p2_backend_qualification/d312_20261007/cpu_regression.log",
+      "sha256": "41963d36a395a765602eab187d910ca6df3572cfc87b1c08060181b2f03d4c83",
+      "modules": ["tests.test_ieee_tc_request_lifecycle", "tests.test_ieee_tc_transfer_pressure", "tests.test_ieee_tc_file_observation", "tests.test_http_artifact_store", "tests.test_ieee_tc_gpu_references", "tests.test_basic_smoke", "tests.test_ieee_tc_launch", "tests.test_ieee_tc_decode_overlap"]
+    }
+  },
+  "resource_limits": {
+    "cpus": "2,3,26,27",
+    "memory_high": 3221225472,
+    "memory_max": 4294967296,
+    "swap_max": 0,
+    "environment": "/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python"
+  },
+  "scopes": [
+    {"purpose": "before", "unit": "primelora-tc-test-d312-before-f780fe7c8a0b4d00b3e6126b85796132.scope", "invocation": "40ef00b2dd744d1eac0d35fd501295da", "peak_bytes": 502837248, "all_memory_events_zero": true, "swap_current": 0, "empty_verified_then_stopped": true},
+    {"purpose": "targeted_after", "unit": "primelora-tc-test-d312-after-25900422a67e4ace82559994a57a89ba.scope", "invocation": "764c07a3c7954e8d99a46300ed5394c4", "peak_bytes": 510472192, "all_memory_events_zero": true, "swap_current": 0, "empty_verified_then_stopped": true},
+    {"purpose": "regression", "unit": "primelora-tc-test-d312-regression-9c948cffd7434cbeaddfa8c926f66c76.scope", "invocation": "5e276f5cf84d42c99df084fddd44c4ba", "peak_bytes": 2627743744, "all_memory_events_zero": true, "swap_current": 0, "empty_verified_then_stopped": true}
+  ],
+  "files": [
+    {"path": "scripts/run_all_experiments.py", "sha256": "d09764883859cdf914b4c86c9c3787b7dcd449dbf376f072af9ce37cc25bc2e8"},
+    {"path": "tests/test_ieee_tc_transfer_pressure.py", "sha256": "5f2521451520b6a16db53e69ca7256d26504650df151c907a06aedd11e72da68"},
+    {"path": "tests/test_ieee_tc_decode_overlap.py", "sha256": "223a3af75f036b8b2c82fb344fe982c4b980cbc1b244ceb3a956e89c27505c63"},
+    {"path": "scripts/ieee_tc/check_d299_full_context.py", "sha256": "e98238c8dcbcfbee11bdfaab59aaa601c60c06a166f8b55ab4128f362499be2f"}
+  ],
+  "incomplete_run_audit": {
+    "path": "paper_results/ieee_tc/p2_backend/d311_full_w0/failure_audit1/context.json",
+    "sha256": "6258bd0366dd9e0383b8ab381f46654cb0bcf82cffb0defea4a6c00c8324cd85",
+    "unit": "primelora-tc-audit-d311-76b04f172c104d4d93f8b52e43d6db18.scope",
+    "invocation": "8b0011291f9d4ea2b6f49ad11c3ce201",
+    "peak_bytes": 74440704,
+    "all_memory_events_zero": true,
+    "swap_current": 0,
+    "empty_verified_then_stopped": true,
+    "stream_projection_diagnostic": "An initial filtered fromstream query returned no reconstructed object; it was not used as evidence. Leaf reduction then passed its nested-error test and completed the audit."
+  },
+  "no_gpu_replay_yet": true,
+  "next": "Preserve D311 incomplete-run evidence; tested backup; fresh same-settings native smoke then full W0. Do not repeat source profiling or tune around the failure."
+}

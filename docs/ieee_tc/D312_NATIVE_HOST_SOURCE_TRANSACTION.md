@@ -1,0 +1,90 @@
+# D312: atomic file observation and pin for native HOST preparation
+
+## Main-line question
+
+D311 terminated before its original 4,000-request W0 replay completed. It has
+1,738 arrived, 1,732 submitted and 1,640 terminal/native-contract-complete requests;
+16 interrupted requests are separately recorded. N_correct remains unknown.
+Observed GPU time is 6,656.206557878992 GPU-s, not a complete workload cost.
+No performance ranking, SLO acceptance, confidence interval or figure follows.
+
+The first serving traceback is an entry owner/epoch conflict in
+`_queue_ieee_native_host_preparation.execute` while acquiring its file source.
+The launcher's generic protocol/launcher classification is retained, but its
+connection loss is not evidence that the underlying failure was merely external.
+All raw failure data remain in `d311_20261007`. Local GPU contexts were released;
+the three captured remote services were stopped monitor-first and subsequently
+rechecked inactive with MainPID 0. No new remote cache or artifact pool is needed.
+
+## History and falsifiable hypothesis
+
+- D307 (`a578fab`) fixed the same observation-to-pin transaction in request-driven
+  `_ensure_local_async`; it did not modify native HOST preparation's caller.
+- D310 (`4ea7daa`) removed a redundant post-validation self-epoch rejection inside
+  an already locked acquisition. Strict owner/epoch checks on entry remain.
+- D311 executed `d04aa2290ca99e28be0878a4a2f872afa44643db`. Its native HOST caller
+  still observed the file owner and acquired the lease as separate transactions.
+- All four production `acquire_confirmed` sites were inspected. Request-driven
+  acquisition and staged victim-file holds already use the owner transaction.
+  Route admission deliberately validates its earlier selected snapshot; refreshing
+  that snapshot silently would change routing semantics and is not this repair.
+
+Hypothesis: a background file publisher can advance the shared owner epoch
+between native HOST preparation's current observation and lease acquisition.
+The absence of an asyncio yield does not exclude an actual OS thread.
+The precise competing thread in D311 was not recorded. The deterministic CPU
+interleaving below demonstrates the code defect, not a replay of that missing event.
+
+## First-principles correction and primary sources
+
+Hold the existing file-owner RLock across current snapshot, exact path/content
+selection and `acquire_confirmed`. Release it before native RPC, I/O movement or
+any await. The read lease then protects the file for the existing asynchronous
+materialization and cancellation protocol. No catch/retry, fallback, relaxed
+identity/epoch validation, added capacity, parameter change or new control law.
+All nine IEEE equations and the candidate's measured profiles remain unchanged.
+
+The frozen [vLLM v0.30.0 worker manager](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/worker_manager.py)
+explicitly relies on its single-threaded core loop for the relevant manager
+operation. Prime's file publications also run on background threads, so that
+assumption does not transfer. This is a concurrency-model comparison, not a
+claim that vLLM implements Prime's confirmed file protocol or caused the bug.
+[Python's RLock contract](https://docs.python.org/3.12/library/threading.html#rlock-objects)
+supports nested owner methods while excluding other threads until the outer
+transaction exits. Both sources were checked on 2026-10-07.
+
+## Validation and limits
+
+Two tests use the real owner lock and a competing thread at the acquisition
+boundary: first native HOST load, and reuse of an already materialized HOST
+tensor. Without the production change both reproduce the exact entry-epoch
+exception (2 errors, 0.054 s). With the change, the publisher cannot enter the
+transaction. Each operation still makes one acquisition attempt, releases file
+and HOST leases, leaves GPU slots unchanged and releases transfer accounting.
+Every native RPC additionally asserts that the file lock is not held.
+
+The targeted native HOST/request lifecycle suite passed 199 tests in 3.677 s.
+Before/after CPU peaks were 502,837,248 / 510,472,192 bytes, with zero high/max/OOM/
+OOM-kill/swap events. Exact owned empty scopes were checked then stopped.
+The broader suite passed 972 tests in 91.805 s, including basic smoke, GPU
+references, transfer pressure, file observations, launch and failure accounting.
+Its complete log is retained under `d312_20261007/cpu_regression.log`, SHA
+41963d36a395a765602eab187d910ca6df3572cfc87b1c08060181b2f03d4c83.
+Peak memory was 2,627,743,744 bytes, with zero memory events/swap; the exact empty
+scope was stopped. These are correctness checks, not GPU performance experiments
+or numerical inference qualification. CPU receipts are in
+`paper_results/ieee_tc/p2_backend/d312_host_transaction/cpu_checkpoint.json`.
+
+## Next action and execution boundary
+
+Retain the D311 failure-only audit, run the broader CPU suite, and push the tested
+checkpoint. Then use a fresh identity for minimal native validation followed by
+the original full W0, with D309/D310/D311 settings and D307 profiles unchanged.
+No repeated calibration, budget sweep, 3B/baseline work or figures during this
+repair. Keep the sequence 7B -> 3B -> external systems -> comparisons -> ablations.
+Warm/Resident/numerical qualification remains open; do not claim G1/G2 completion.
+
+The one-time read-only delivery-cache permission was already implemented by D78:
+1,581,215,261 archive bytes across the existing two 500-adapter pools. Reuse these
+published objects, not a second extracted pool; no per-request packing and no
+post-hoc subtraction from actual transfer latency.

@@ -1270,6 +1270,61 @@ class OwnedNativeHostMovement(unittest.TestCase):
         return runner._queue_ieee_native_host_preparation(slot=slot, adapter_id='a',
             source_path=str(fixture.nvme/'a'), trigger_reason='residency', plan_id=plan)
 
+    def _check_native_host_snapshot_pin_transaction(self, already_native):
+        """An owner publisher must not enter between file observation and pin.
+
+        This forces a CPU interleaving with the real owner lock, not a replay
+        of the unrecorded competing thread in the failed full workload.
+        """
+        async def run():
+            fixture, runner, queue, engine, ledger, native, slot = await self.make()
+            attempts = []
+            acquire = fixture.owner.acquire_confirmed
+            rpc = engine.ieee_gpu_reference
+            async def unlocked_rpc(operation, **kwargs):
+                self.assertFalse(fixture.owner.lock._is_owned(),
+                                 'file owner lock must not cross native RPC/await')
+                return await rpc(operation, **kwargs)
+            engine.ieee_gpu_reference = unlocked_rpc
+            def compete_then_acquire(**kwargs):
+                def publisher():
+                    entered = fixture.owner.lock.acquire(blocking=False)
+                    attempts.append(entered)
+                    if entered:
+                        try:
+                            fixture.owner.source_epoch += 1
+                        finally:
+                            fixture.owner.lock.release()
+                thread = threading.Thread(target=publisher)
+                thread.start()
+                thread.join(3)
+                self.assertFalse(thread.is_alive())
+                return acquire(**kwargs)
+            try:
+                if already_native:
+                    await self.call(fixture, runner, slot, plan='initial-host')
+                with patch.object(fixture.owner, 'acquire_confirmed',
+                                  side_effect=compete_then_acquire):
+                    result = await self.call(fixture, runner, slot, plan='observed-host')
+                self.assertEqual(result['state'], 'native_host_prepared')
+                self.assertEqual(attempts, [False])
+                self.assertFalse(fixture.owner.leases)
+                self.assertFalse(native.owner._host_leases)
+                self.assertEqual(ledger.snapshot()['active_transfers'], 0)
+                self.assertEqual(native.manager.lora_index_to_id, [1, 2])
+                record = runner._ieee_native_host_preparations[-1]
+                self.assertEqual(len(record['attempts']), 1, 'no retry is permitted')
+                self.assertTrue(record['attempts'][0]['file_reference_released'])
+            finally:
+                await queue.close()
+        asyncio.run(run())
+
+    def test_native_host_first_load_observes_and_pins_file_atomically(self):
+        self._check_native_host_snapshot_pin_transaction(False)
+
+    def test_native_host_reuse_observes_and_pins_file_atomically(self):
+        self._check_native_host_snapshot_pin_transaction(True)
+
     def test_actual_file_to_native_host_preserves_file_and_never_activates_gpu(self):
         async def run():
             fixture, runner, queue, engine, ledger, native, slot = await self.make()

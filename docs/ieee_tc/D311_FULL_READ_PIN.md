@@ -46,3 +46,24 @@ the current candidate's complete replay. Existing compile-cache policy remains.
 Raw output: results/ieee_tc/p2_backend_qualification/d311_20261007/7b_full_w0/.
 Curated evidence: paper_results/ieee_tc/p2_backend/d311_full_w0/.
 All prior data/unique artifacts and the user's dirty manifest remain untouched.
+
+## Terminal disposition: incomplete, not a feasible performance point
+
+D311 aborted during native HOST preparation with ConfirmedSourceConflict at the
+file-owner entry epoch check. 1,738 arrived / 1,732 submitted / 1,640 terminal
+requests do not constitute the planned 4,000. Observed6,656.206557878992 GPU-s is
+not a complete-run cost. The original launch classification and full exception
+remain preserved; replay connection loss follows the serving exception.
+
+The streaming failure-only audit retains nested error/cleanup information and
+physical accounting without loading the452MBrequest tree.77remote transfers and
+88,341,140wirebytes pair exactly, with no request packing.1,746resource samples
+show zero high/max/OOM/swap/abort. All4GPUallocations released; local service
+path removed. Capturedremoteunits stopped monitor-first and rechecked inactive.
+No failures are dropped or unarrived requests imputed; N_correct/N_good remain
+unknown and no formal performance claim is made.
+
+Evidence: `paper_results/ieee_tc/p2_backend/d311_full_w0/failure_audit1/`.
+Repair rationale and reproducible test: `D312_NATIVE_HOST_SOURCE_TRANSACTION.md`.
+The protected seal has146unchanged entries and one known authorizedbaseline
+script change; rawpassfalse is retained. All historical figures/results remain.

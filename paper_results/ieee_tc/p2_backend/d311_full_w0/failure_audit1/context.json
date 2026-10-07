@@ -1,0 +1,131 @@
+{
+  "kind": "d311_incomplete_evidence_v1",
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "replay_terminal": {
+    "event": "replay_incomplete",
+    "N_plan": 4000,
+    "N_arrived": 1738,
+    "N_submitted": 1732,
+    "error": "ConnectionResetError: Connection lost"
+  },
+  "physical": {
+    "allocation_journals": [
+      {
+        "events": 5,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d311_20261007/7b_full_w0/launch.launch/physical_allocations/5fe8ead878254bab943c1318fd5a5afb.jsonl",
+        "released": true,
+        "sha256": "5246bd083f17b326c88b64d35cf3e9bf1272c117fece7c9a05f898bb55ea0ff1"
+      },
+      {
+        "events": 5,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d311_20261007/7b_full_w0/launch.launch/physical_allocations/cc837d3aebca4f1ea2f85149ffc972bf.jsonl",
+        "released": true,
+        "sha256": "d6143f1b12770cf9b2121c47350c90f74d436a3c959cf36cb75e903754d8ce03"
+      },
+      {
+        "events": 5,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d311_20261007/7b_full_w0/launch.launch/physical_allocations/f8ab4128bbd441259bdb1839dbb8cf13.jsonl",
+        "released": true,
+        "sha256": "6fdf86daacc45641d1671a4f0c43cbf15f5f62b6e7e2fa5d5727cd9585391901"
+      },
+      {
+        "events": 5,
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d311_20261007/7b_full_w0/launch.launch/physical_allocations/f8e0883dba0348fdba4238dff6f162e1.jsonl",
+        "released": true,
+        "sha256": "d2f3a3a588cfc5e75d0da93c826f66992197c87091c67a310551d2ca05c42d59"
+      }
+    ],
+    "contract": "physical_gpu_resource_summary_v1",
+    "deployment_contract": "physical_gpu_deployment_v1",
+    "eligible_physical_measurement": false,
+    "legacy_fields_not_accepted": [
+      "infra_gpu_seconds_total",
+      "instance_lifecycle_log"
+    ],
+    "measurement_complete": false,
+    "n_correct": null,
+    "n_interrupted": 16,
+    "n_native_contract_complete": 1640,
+    "n_plan": 4000,
+    "n_terminal": 1640,
+    "open_lease_ids": [],
+    "physical_gpu_seconds_observed": 6656.206557878992,
+    "physical_gpu_seconds_per_correct_request": null,
+    "physical_gpu_seconds_total": null,
+    "request_terminals_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d311_20261007/7b_full_w0/launch.launch/physical_deployment/request_terminals.jsonl",
+    "request_terminals_sha256": "77baf1b46eaf8535586b1ea69fb47bc4b1f03335026880c43c8a2414e776d178",
+    "result_file": {
+      "exists": false,
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d311_20261007/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d311_7b_full_w0.json",
+      "sha256": null
+    },
+    "summary_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d311_20261007/7b_full_w0/launch.launch/physical_deployment/summary.json",
+    "summary_sha256": "de7e529d3c1741683e7393f0859d2b6c36b55c76f5cad0837667af793cd7bd53"
+  },
+  "terminal_meta": {
+    "planned_request_count": 4000,
+    "run_completed": false,
+    "error": {
+      "stage": "main_execution",
+      "type": "ConfirmedSourceConflict",
+      "message": "confirmed file source owner/epoch changed",
+      "traceback": "Traceback (most recent call last):\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 24933, in _main_async_impl\n    result, coord_m = await runner.run()\n                      ^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 16045, in run\n    all_raw, _tb1 = await self._run_continuous_observed(\n                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 14058, in _run_continuous_observed\n    await self._maybe_run_live_scale_control_evaluation(\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 13254, in _maybe_run_live_scale_control_evaluation\n    return await self._evaluate_ieee_live_control(result=result, coord_enabled=coord_enabled,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 13566, in _evaluate_ieee_live_control\n    self._reap_ieee_residency_tasks()  # Surface failure; do not silently restart the same plan.\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 13703, in _reap_ieee_residency_tasks\n    task.result()  # A failed epoch is evidence, not a swallowed warning/retry.\n    ^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 13727, in _execute_ieee_residency_epoch\n    result = await self._run_ieee_owned_preparation_plan(slot=slot, mode='residency',\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 19239, in _run_ieee_owned_preparation_plan\n    result = await self._run_ieee_file_preparation_plan(plan=plan, target_engine=slot.engine,\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 19499, in _run_ieee_file_preparation_plan\n    return await self._execute_ieee_file_preparation_plan(plan=plan,\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 19846, in _execute_ieee_file_preparation_plan\n    results = await asyncio.gather(*waiters)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 19787, in execute_gpu\n    result = await self._run_ieee_gpu_preparation_plan(slot=gpu_slot,\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 18963, in _run_ieee_gpu_preparation_plan\n    result = await asyncio.gather(*waiters)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 18917, in stage_and_submit\n    context = await prepare_source(aid, plan_id)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 19764, in prepare_gpu_source\n    feedback['native_host'] = await self._queue_ieee_native_host_preparation(slot=gpu_slot, adapter_id=aid,\n                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 19189, in _queue_ieee_native_host_preparation\n    _, interrupted = await settle(queue.join_operation(intent))\n                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 19087, in settle\n    return await asyncio.shield(task), cancelled\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_manager.py\", line 264, in join_operation\n    return await asyncio.shield(self._intents[intent_id]['future'])\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_manager.py\", line 135, in _execute\n    result = await job['action'](attempt['attempt_id'])\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py\", line 19112, in execute\n    file_ref = references.acquire_confirmed(path=str(source_path), adapter_id=adapter_id,\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py\", line 804, in acquire_confirmed\n    raise ConfirmedSourceConflict('confirmed file source owner/epoch changed')\nfaaslora.memory.residency_manager.ConfirmedSourceConflict: confirmed file source owner/epoch changed\n"
+    },
+    "cleanup_errors": [],
+    "measurement_errors": []
+  },
+  "launch_classification": "protocol_or_launcher_error",
+  "underlying_failure": "native HOST file source acquisition: confirmed owner/epoch conflict",
+  "resources": {
+    "samples": 1746,
+    "event_counts": {
+      "watchdog_ready": 1,
+      "resource_sample": 1746,
+      "gpu_terminal_census": 1,
+      "service_domain_gone": 1
+    },
+    "peak_bytes": 19653382144,
+    "min_host_available_bytes": 93354754048,
+    "max_swap_bytes": 0,
+    "abort_reasons": [],
+    "memory_events": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    }
+  },
+  "remote": {
+    "client_records": 77,
+    "server_records": 77,
+    "matched_records": 77,
+    "client_states": {
+      "published": 77
+    },
+    "unmatched_server_ids": [],
+    "published_wire_bytes": 88341140,
+    "pack_performed": false
+  },
+  "protection_raw": {
+    "kind": "protected_artifact_verification",
+    "pass": false,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [
+      "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"
+    ],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "n_correct": null,
+  "n_good": null,
+  "formal_qualification": false,
+  "ranking_eligible": false,
+  "no_figures": true,
+  "caveats": [
+    "Truncated observation: unarrived requests are not imputed as timeouts.",
+    "Native contract count is from the physical journal, not numerical qualification.",
+    "No whole-workload latency or per-correct GPU cost is computed.",
+    "The precise competing thread was not recorded; CPU reproduction is separate."
+  ]
+}

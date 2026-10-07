@@ -1,7 +1,10 @@
 """CPU interval tests: descriptive overlap must not invent causal stall time."""
 import copy
+import json
+import tempfile
 import unittest
-from scripts.ieee_tc.check_d299_full_context import failed_run_partition
+from pathlib import Path
+from scripts.ieee_tc.check_d299_full_context import failed_run_partition, project_incomplete
 
 from scripts.ieee_tc.analyze_d297_full import (
     decode_overlap_summary, native_load_overlap_summary, prefill_overlap_summary,
@@ -9,6 +12,22 @@ from scripts.ieee_tc.analyze_d297_full import (
 
 
 class FailureAwarePopulation(unittest.TestCase):
+    def test_incomplete_projection_retains_nested_failure_and_excludes_request_tree(self):
+        data = dict(run_completed=False,planned_request_count=4000,
+            error=dict(type='ConfirmedSourceConflict',message='retained',traceback=['a','b']),
+            cleanup_errors=[],measurement_errors=[dict(stage='retained')],
+            remote_transfers=[dict(state='published',nested=dict(value=1))],
+            completed_scenario_windows=dict(full=dict(requests=[dict(success=True)])))
+        with tempfile.TemporaryDirectory() as root:
+            path = Path(root)/'outcome.json'
+            path.write_text(json.dumps(data))
+            self.assertEqual(project_incomplete(path),
+                {k:v for k,v in data.items() if k != 'completed_scenario_windows'})
+            data['run_completed'] = True
+            path.write_text(json.dumps(data))
+            with self.assertRaises(ValueError):
+                project_incomplete(path)
+
     def fixture(self):
         return dict(metadata=dict(total_requests=2),detailed_results=dict(full=dict(
             completed=1,failed=1,requests=[dict(request_id='a',success=True),

@@ -11,7 +11,137 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D311 full4000 prepared; same candidate, no serving change
+## CURRENT — D312 transaction repair validated; D311 failure audited, backup next
+
+2026-10-07 12:20+08. No GPU/remote experiment or CPU job is running. Source plan
+reread in full after compaction; SHA unchanged0c808509... . This turn made new
+correctness/evidence progress, not a blocked or completed-goal condition.
+
+D311 incomplete audit is saved at
+paper_results/ieee_tc/p2_backend/d311_full_w0/failure_audit1/.
+Context SHA6258bd0366dd9e0383b8ab381f46654cb0bcf82cffb0defea4a6c00c8324cd85;
+manifest SHAb591e669348c90af2be09daa2c55fa31c6d7eda5f94a291f6830bc82eea3dceb.
+452,534,210-byte main_outcome streamed, SHA62c764d3ae13600e42a572f3f8671d3a8110a1ded2970530f493346cc6cefd92.
+N_plan4000/arrived1738/submitted1732/terminal1640/interrupted16 retained;
+N_correct/N_good unknown, no ranking, latency comparison or figures.77/77remote
+transfers matched,88,341,140wire bytes,no request packing.1746resource samples:
+peak19,653,382,144B,minhost93,354,754,048B,zero high/max/OOM/swap/abort.
+Protected147-entry seal retains only known authorizedbaseline replay change;
+rawpassfalse is preserved, not claimed147/147pass. Allremoteunits rechecked
+inactive/MainPID0/success this turn. Audit scope8b001129... empty/stopped,
+peak74,440,704B,events0/swap0.
+
+All four production acquire_confirmed callers inspected. Native HOST preparation
+alone missed the current-observation+pin owner transaction. Before repair two
+CPU interleavings reproduced exact entry owner/epoch exception; after holding
+the existing RLock only across snapshot/select/acquire,199targeted and972broader
+tests passed (3.677s/91.805s). Native RPC is explicitly tested outside the lock;
+single attempt, source/lease preservation and GPUslot invariants verified.
+Route admission's stale selected-snapshot rejection remains strict. No retry,
+fallback, relaxedcheck, formula/config/profile/budgetchange. D310 remains intact.
+Regression full logSHA41963d36a395a765602eab187d910ca6df3572cfc87b1c08060181b2f03d4c83;
+scope5e276f5c...peak2,627,743,744B/events0/swap0,emptychecked/stopped.
+CPUreceipt paper_results/ieee_tc/p2_backend/d312_host_transaction/cpu_checkpoint.json.
+Design/history/source comparison: D312_NATIVE_HOST_SOURCE_TRANSACTION.md.
+
+Next: tested backup, then fresh D312 native100 identity using same D310 settings
+and D307 profiles, followed only after cleanup/audit by fresh full4000 W0. No
+new configuration/remote service has been prepared or launched yet. Reuse existing
+runner/prelaunch/smoke analyzer; only add explicit new identities and coldpaths.
+Do not repeat calibration or tune around failure; no3B/baseline work or figures.
+Numerical/warm/Resident qualification remains open. Keep7B->3B->baselines.
+One-time delivery cache already exists fromD78; reuse it, do not rebuild.
+
+## HISTORY — D311 full W0 aborted; native HOST file snapshot/pin race, no rerun yet
+
+2026-10-07 12:05+08. The original job is TERMINAL, not a polling timeout.
+launch.json SHA0573b52eb763b157f0742cbdf5d1fccbd1541e88d77f0f8ee58fb268087e66af:
+pass=false, service=-15/replay=1/watchdog=0. Service traceback originates in
+_queue_ieee_native_host_preparation.execute, run_all_experiments.py:19112,
+acquire_confirmed entry check: ConfirmedSourceConflict, owner/epoch changed.
+The generic launch classification protocol_or_launcher_error is retained, but
+its replay connection loss follows the serving exception; do not blame remote
+bandwidth, OOM or claim a launcher-only failure from that generic field.
+
+Replay reports N_plan=4000, arrived=1738, submitted=1732. Physical summary
+reports 1640 terminal/native-contract-complete, 16 interrupted, N_correct=null,
+measurement_complete=false and observed U=6656.206557878992 GPU-s. This is
+truncated observation, not full performance or a feasible ranking point.
+Main outcome is 452,534,210 bytes: use streaming projection, NOT json.load.
+No ordinary final result JSON was produced. Preserve all failure evidence.
+
+Local GPU context release and service-path removal confirmed; live GPU compute
+census empty. Exact auxiliary InvocationID checked, cgroup.procs read empty;
+scope stopped, peak260755456B, high/max/OOM/swap0. Remote three identities
+checked, monitor stopped FIRST at12:04:54; all three units inactive/MainPID0/
+Resultsuccess/ExecMainStatus0. Exact remote journal and monitor log copied once
+to raw root; SHA3d1fe5be... andf642f83f... respectively. No experiment running.
+
+Next: finish bounded failure/cleanup audit and preserve tested backup; inspect
+all production acquire_confirmed call sites. D307 already locks snapshot+pin
+in _ensure_local_async, and staged victim-file holds also lock. The native HOST
+preparation path reads snapshot then pins without the shared owner transaction.
+Reproduce competing publication with existing CPU fixtures before repairing;
+retain strict admission's intentional stale-snapshot rejection. No catch/retry,
+relaxed epoch/content check, formula change, retune or repeated source profile.
+Short/full replay only after tested correction and fresh execution identity.
+Keep 7B->3B->baselines, no figures. This turn has new failure evidence/progress,
+not a blocked condition; do not restart D311 or overwrite its raw directory.
+
+## HISTORY — D311 full4000 W0 monitored until native preparation exception
+
+Verified wait 2026-10-07 11:54:25+08: same tmux remains live; service and
+auxiliary InvocationIDs rechecked unchanged at 11:49:45. Sample 1181 is
+fresh: 1,061 arrived / 1,054 successful / 0 failed, four natural runtimes.
+Host available 89.386 GiB, service 16.955 GiB, disk 155.300 GiB; memory
+events 0, swap 0, no abort/warning or foreign GPU compute. Final launch.json
+absent. Progress from 779 successful at 11:49 to 1,054 is observed, not inferred
+from process liveness. This is the original active 4,000-request run, not
+stalled/restartable. Continue the SAME job next turn; no code/config changes,
+new experiments or performance conclusions during measurement. Full plan
+reread this turn; frozen V1 was read in the preceding monitoring turn, and no
+new system comparison/configuration selection was performed. Turn classification
+is verified wait, not blocked. Remote 3B/7B/monitor identities last rechecked
+unchanged at 11:46; monitor log fresh. No remote management actions performed.
+Read-only D294/D295 review confirms the bounded numerical-repeat diagnostic is
+complete; do not reopen it during this full run or infer Full qualification.
+AuxInvocationbf066f492f8748ac99c7dcafba87b927 captured andverified.
+
+2026-10-07 11:35+08. LaunchONCE11:34:27 in tmuxprimelora_d311_full,
+explicitd311 existingrunner. Sourcecheckpointd04aa2290ca99e28be0878a4a2f872afa44643db
+pushedandremoteHEADverified. Rawresults/ieee_tc/p2_backend_qualification/d311_20261007/7b_full_w0.
+Original4000arrivalmap,sourceSHAefb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c,
+viewSHAa5331be2e2204483f18206825d9aaa18cbaa259fe0babfc303f989055819430d,
+notice851316.427208622,business851376.427208622(sameclock,60sgap).
+No config/control/generation/servingchange beyond priorD310sourcefix.
+
+Localserviceprimelora-tc-svc-b0462f9fa6c24b62bc057e0aa62f5905.scope,
+Invocationdeaba153790e4cab90d7140255cd97a6. Auxiliary
+primelora-tc-aux-1318ecc33e0c408bbe077b8e4c6a9912.scope.
+WatchdogPID410730,startticks85131615 verified against/proc;sample12fresh,
+hostavailable104.40GiB,noabort/foreignGPU/memoryevents/swap.
+Initializationinprogress; final launch.json/result notpresentyet.
+
+Remoteidentitiescapturedinrawlaunch_identity.json:
+3Bf2fdfa0ff2644680b2ab03062988c9af/PID1576638;
+7Bbc3a2940e95d4177a96a91e7c7572ca0/PID1576640;
+monitor8bbd44ed2ed14ae6b30d453288bec9aa/PID1576648,
+unitprimelora-artifact-monitor-d311.service. NIC1000/full.
+7Bclockremote-process-monotonic:d909ae3a97bb45d997db20d5bb145317;
+exactjournalD80/7b/transfers-02418f60c5b944dcb0c1696978d947a2.jsonl.
+Immediateprelaunchhealthwasconnectionrefused; SAMEcapturedprocessbecamelistening
+and authenticatedhealthpassed BEFOREinference. Norestart/configchange; preserve
+theprelaunchattempt. No requestpacking; D78cacheunchanged.
+
+Next: monitor SAMEhandles. Do not runheavyanalysis/tests/compression,change
+servingcode/config,orremoteservicesduringmeasurement. Afterterminal/localrelease,
+verifyallremoteidentitiesthenstopMONITOR FIRST,copyexactjournal/monitorlog,
+auditallrequests/resources/input/token/binding/timing/protectedseal. Existing
+completeanalyzersdoNOTyetacceptd311; addexactterminalsourceSHAaftercompletion,
+preservingallsuccessgate. Ifanyfailure,usefailure-awarepath,notfakepass.
+Nofigures/3B/baselines, no7Bqualificationorcomparativewinclaim.
+
+## HISTORY — D311 full4000 prepared; same candidate, no serving change
 
 2026-10-07 11:32+08. Previousgoalturn=progress: D310complete/audit/backupdone,
 83989b5eaff007d66a18c7cbf28790ae50cdbdcb remoteHEADverified. FullplanandV1

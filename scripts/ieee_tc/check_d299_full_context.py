@@ -74,6 +74,120 @@ def failed_run_partition(result):
     return rows, good, failed
 
 
+def project_incomplete(outcome):
+    """Bounded leaf projection; retain nested errors, never load request trees."""
+    query = ('reduce (inputs | select(length==2 and (.[0][0] | '
+             'IN("run_completed","error","cleanup_errors","measurement_errors",'
+             '"planned_request_count","remote_transfers")))) as [$p,$v] '
+             '({}; setpath($p;$v))')
+    value = json.loads(subprocess.check_output(
+        ['jq','-n','-c','--stream',query,str(outcome)],text=True))
+    if value.get('run_completed') is not False or not isinstance(value.get('error'),dict):
+        raise ValueError('explicit incomplete outcome with retained error required')
+    return value
+
+
+def audit_d311_incomplete():
+    """Failure receipt only. No full-success, per-correct or latency ranking."""
+    raw = ROOT/'results/ieee_tc/p2_backend_qualification/d311_20261007'
+    run = raw/'7b_full_w0'
+    physical_dir = run/'launch.launch/physical_deployment'
+    out = CURATED/'d311_full_w0/failure_audit1'
+    assert not out.exists()
+    plan_sha = p.check_plan()
+    assert plan_sha == '0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7'
+    protocol = ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'
+    assert sha256(protocol) == '5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22'
+    launch = read(run/'launch.json')
+    assert sha256(run/'launch.json') == '0573b52eb763b157f0742cbdf5d1fccbd1541e88d77f0f8ee58fb268087e66af'
+    assert launch['pass'] is False and launch['native_gpu_context_release_confirmed']
+    assert launch['service_path_removed'] and launch['watchdog_returncode'] == 0
+    physical = read(physical_dir/'physical_resource_summary.json')
+    summary = read(physical_dir/'summary.json')
+    assert physical['measurement_complete'] is False and not physical['open_lease_ids']
+    assert physical['n_plan'] == 4000 and physical['n_terminal'] == 1640
+    assert physical['n_native_contract_complete'] == 1640 and physical['n_correct'] is None
+    assert physical['physical_gpu_seconds_total'] is None
+    assert physical['summary_sha256'] == sha256(physical_dir/'summary.json')
+    for entry in summary['allocation_journals']:
+        assert entry['released'] and sha256(Path(entry['path'])) == entry['sha256']
+    assert sha256(Path(summary['request_terminals_path'])) == summary['request_terminals_sha256']
+    with (run/'launch.launch/replay.jsonl').open() as handle:
+        replay = json.loads(next(reversed(handle.readlines())))
+    assert replay['event'] == 'replay_incomplete' and replay['N_plan'] == 4000
+    assert replay['N_arrived'] == 1738 and replay['N_submitted'] == 1732
+    outcome = physical_dir/'main_outcome.json'
+    projected = project_incomplete(outcome)
+    assert projected['planned_request_count'] == 4000
+    transfers = projected.pop('remote_transfers')
+    journal = raw/'remote_transfers.jsonl'
+    with journal.open() as handle:
+        remote_rows = [json.loads(line) for line in handle]
+    remote = {r['transfer_id']:r for r in remote_rows}
+    assert len(remote) == len(remote_rows)
+    matched = []
+    for r in transfers:
+        s = remote.get(r.get('http_transfer_id'))
+        if s is not None:
+            assert r['artifact_id'] == s['artifact_id']
+            matched.append(s['transfer_id'])
+        if r.get('state') == 'published':
+            assert s and r['content_verified'] and r['published_archive_verified']
+            assert r['remote_archive_sha256'] == s['archive_sha256']
+            assert r['transferred_bytes'] == s['archive_bytes'] == s['bytes_read'] == s['bytes_written']
+            assert s['outcome'] == 'sent'
+        assert r.get('remote_pack_performed') is False
+    assert all(not s['pack_performed'] and not s['temporary_created'] for s in remote_rows)
+    samples, events = [], Counter()
+    watchdog = run/'launch.launch/watchdog.jsonl'
+    with watchdog.open() as handle:
+        for line in handle:
+            row = json.loads(line)
+            events[row['event']] += 1
+            if row['event'] == 'resource_sample':
+                samples.append(row)
+    assert samples and events['gpu_terminal_census'] == events['service_domain_gone'] == 1
+    seal_path = ROOT/'paper_results/ieee_tc/safety/20260925_execution_start_protected.json'
+    seal = p.verify_seal(seal_path)
+    known = '/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py'
+    assert seal['changed'] == [known] and seal['entry_count'] == 147
+    assert sha256(Path(known)) == '04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22'
+    result = dict(kind='d311_incomplete_evidence_v1',plan_sha256=plan_sha,
+        metric_protocol_sha256=sha256(protocol),replay_terminal=replay,
+        physical=physical,terminal_meta=projected,launch_classification=launch['classification'],
+        underlying_failure='native HOST file source acquisition: confirmed owner/epoch conflict',
+        resources=dict(samples=len(samples),event_counts=dict(events),
+            peak_bytes=max(r['service']['memory.peak'] for r in samples),
+            min_host_available_bytes=min(r['host']['available_bytes'] for r in samples),
+            max_swap_bytes=max(r['service']['memory.swap.current'] for r in samples),
+            abort_reasons=[r['decision']['abort_reasons'] for r in samples if r['decision']['abort_reasons']],
+            memory_events={k:max(r['service']['memory.events'][k] for r in samples)
+                           for k in ('high','max','oom','oom_kill')}),
+        remote=dict(client_records=len(transfers),server_records=len(remote_rows),
+            matched_records=len(matched),client_states=dict(Counter(r['state'] for r in transfers)),
+            unmatched_server_ids=sorted(set(remote)-set(matched)),
+            published_wire_bytes=sum(r['transferred_bytes'] for r in transfers if r['state']=='published'),
+            pack_performed=False),protection_raw=seal,n_correct=None,n_good=None,
+        formal_qualification=False,ranking_eligible=False,no_figures=True,
+        caveats=['Truncated observation: unarrived requests are not imputed as timeouts.',
+                 'Native contract count is from the physical journal, not numerical qualification.',
+                 'No whole-workload latency or per-correct GPU cost is computed.',
+                 'The precise competing thread was not recorded; CPU reproduction is separate.'])
+    paths = [outcome,run/'launch.json',watchdog,run/'launch.launch/replay.jsonl',
+        run/'launch.launch/service.log',physical_dir/'physical_resource_summary.json',
+        physical_dir/'summary.json',Path(summary['request_terminals_path']),journal,
+        raw/'remote_monitor.log',raw/'remote_health.json',raw/'launch_identity.json',
+        protocol,seal_path,Path(__file__)]
+    out.mkdir(parents=True,exist_ok=False)
+    with (out/'context.json').open('x') as handle:
+        json.dump(result,handle,indent=2,allow_nan=False)
+    with (out/'manifest.json').open('x') as handle:
+        json.dump(dict(source_refs=[dict(path=str(f),sha256=sha256(f)) for f in paths],
+            outputs={'context.json':sha256(out/'context.json')}),handle,indent=2)
+    print(json.dumps(dict(output=str(out),resources=result['resources'],remote=result['remote'],
+                          terminal_meta=projected),indent=2),flush=True)
+
+
 def audit_d309_failure():
     """Preserve failed offered requests; no ranking, SLO qualification or figures."""
     raw = ROOT/'results/ieee_tc/p2_backend_qualification/d309_20261007'
@@ -339,6 +453,11 @@ def main(campaign='d299'):
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--campaign', choices=('d299', 'd300', 'd303', 'd309-failure'), default='d299')
+    parser.add_argument('--campaign', choices=('d299', 'd300', 'd303', 'd309-failure', 'd311-incomplete'), default='d299')
     campaign = parser.parse_args().campaign
-    audit_d309_failure() if campaign == 'd309-failure' else main(campaign)
+    if campaign == 'd311-incomplete':
+        audit_d311_incomplete()
+    elif campaign == 'd309-failure':
+        audit_d309_failure()
+    else:
+        main(campaign)
