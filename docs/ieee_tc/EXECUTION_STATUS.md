@@ -11,7 +11,103 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D331 attempt2 qualified; D332 full4000 next
+## CURRENT — D332 full4000 COMPLETE and audited; no rerun/figures
+
+2026-10-08 ~05:20+08: actual run ended4000/4000 successful native terminals,
+0failed, all ten binding checks4000, stage error0. GPU physically released and
+service scope removed; exact remote units inactive/PID0/portsabsent after release,
+downloaded logs match remote hashes. Local replay auxiliary scope empty/stopped.
+Full/context analyzers both exit0;75 existing tests pass in bounded offline scope
+55b68817... invocation04794b97b33b478391cda418a1c592e4; peak1153286144B/events0.
+Offline scope independently verified empty/owned and stopped;21-member49102B
+closure archive round-trip SHA verified. Curated hashes sealed; checkpoint push next.
+
+Same complete inputs as D326;186 output token SHA changes retained, N_correct
+unknown. Mean/P95 TTFT1263.168/3142.674 ->1175.624/2715.336ms; physicalU
+15690.824152->15382.488214GPU-s;P95TPOT53.023->50.413ms. Timing-only provisional
+3842->3901/4000, NOT formal SLO. Startup53.177s is worse; older D323 E2E/P99
+still better. Planning publication2931/seeded68507/hits8408 actual triggers,
+not avoided RPC or causal latency counts. Remote132/131480060B/packing0.
+Servicepeak21662269440B/minhost93462282240B/high,max,OOM,swap0. No figures/CI.
+See D332_COMPLETE_W0_DECISION.md. Source/plan/V1/old data and user manifest protected.
+
+Storage closure: removed only two verified public download archives,530714624B;
+environments/extracted packages/compiler caches/models/results untouched. Official
+libcublas API SHA was absent; first audit refused, second streamed actual official
+bytes and confirmed SHA before removal. Initial archive-summary path typo preserved;
+validated2 receipt complete, all four storage scopes empty/stopped. Observed free
+161164591104B is only just above150GiB, not a future launch gate guarantee.
+
+NEXT: checkpoint backup -> next single7B question
+from retained entrance/runtime wait boundaries and current official sources.
+Do not repeat this audit, D331 short runs, D328 profiling or D295 numerical blocks.
+Keep D330 candidate; performance improvement observed, formal G1/G2/old-new/common
+warm/Resident/numerical qualification OPEN. No3B or baselines yet; goal active.
+
+## HISTORY — D332 ordinary full4000 monitoring (now complete)
+
+2026-10-08 04:37:55+08 VERIFIED WAIT: same live tmux and service invocation,
+terminal2109/4000 successes,0failures. Sample2033 peak19945795584B, high/max/OOM0,
+no abort. Disk159448276992B: still above current-run stop floor, below next-launch
+floor; no cleanup during measurement. Read-only observer3166 ended, actual run
+independently confirmed active afterward. No new experiment, code, config, remote
+operation or figure. This is the continuation of the same verified monitoring task;
+full plan already read in this active context and unchanged SHA rechecked.
+Next remains complete4000 -> physical release -> owned remote stop/log closure ->
+full/context analysis vsD326 -> evidence-backed next7B action. Do not claim G1/G2
+qualification from these partial success counts. Goal active, not blocked.
+
+2026-10-08 04:23:39+08 VERIFIED WAIT: independently rechecked same active
+tmux/service invocation after ending read-only observer cell3162 (not the run).
+Terminal journal1081/4000 successes,0failures. Sample1188: hostavailable95915139072B,
+servicepeak19300335616B,swap0,high/max/OOM0,no abort. Disk159956058112B is below
+150GiB NEW-heavy-launch floor but above100GiB current-run stop floor. Do not lower
+either threshold or clean during measurement; after release/audit, inspect only
+owned reconstructible caches and record any safe reclamation before another run.
+No new performance experiment completed, no code/configuration/remote changes.
+Full run still has planned arrivals through about05:10:40+08 plus drain/release.
+Next remains monitor this exact run -> closure -> existing D326 comparison path.
+
+2026-10-08 04:15:43+08 VERIFIED WAIT: same live tmux/service invocation checked
+repeatedly, terminal journal528/4000 successes,0failures. At sample719 service
+peak18870632448B/hostavailable96286015488B, high/max/OOM0, no safety abort.
+Read-only observer cell3156 was ended after polling; experiment tmux and owned
+service remain ACTIVE (independently rechecked), not stopped or restarted.
+No new serving changes, figures, profiling, remote operations or heavy work during
+measurement. Remaining planned arrivals extend to about05:10:40+08, followed by
+drain/release; this is not a completion deadline. Next step is the same live run,
+not a replacement run. The preceding turn made progress (D331 sealed, D332 launched);
+this turn is a verified wait for actual4000 evidence, not a new completed experiment.
+
+2026-10-08 04:03:33+08 ACTUAL launch in tmux `tc-d332-full` through the existing
+runner `d332`. Backed source1134455c146b7cda8a0787b35744e07d6452b49f independently
+verified on faaslora_origin/V2. Twelve explicit paths;24 tests;seven curated hashes;
+credential/diff/config checks pass. User manifest untouched/unstaged. Test scope
+9a3a2d22... empty/stopped, peak496025600B, events/swap0.
+Fresh gate disk161652736000B/MemAvailable112965509120B. Protected147-entry seal
+has only previously documented baseline replay difference, not an all-unchanged claim.
+Replay receipt confirms4000/4000 source42/W0, no prefix or detailed observer;
+same D326 policy/profile/60s notice, D330 candidate plus final counter export.
+Service cb8e3f9908ea46bc82fc0faf35839da0 invocation2f5f5f2592ef40559b2138d929b344c8;
+aux01ecb60b13994a49954b6c4c0934e927 invocation13b503a1e64842cab0fa4bad3e729368.
+Guard allow_exec=true; production_launch_authorized=false is expected development
+identity, NOT formal qualification. Real allocation/ingress observed; no result yet.
+Remote published delivery unchanged; startup1000/full. Services3b/7b invocations
+c0482664740240c3a541b56fd221e5f6 / 9c737a91fec44fa7bbf7390772b6cdad;
+monitor d332-full1 invocation37266b0a3731471fbab348cd78b02f9b.
+7B clock remote-process-monotonic:1106bcf2cf934df29e987e73654810fa.
+Remote log directory d332_20261008_full1. Raw D332 start/health/gates and exact
+owned stop script saved (stop script PREPARED, not executed during measurement).
+At sample83 host available107706286080B/servicepeak7120441344B/events0, no abort.
+Early service log subsequently confirms12/4000 completed,12ok/0fail (partial only).
+Initial startup waiting is retained, not subtracted or treated as a complete result.
+NEXT monitor full completion -> actual GPU release -> owned remote stop/download SHA
+-> existing full/context analyzers extend only D332 identity/hash -> compare D326.
+Do not treat startup/partial completion as an outcome, rerun, tune, or draw figures.
+No more short tests; no external baselines. G1/G2/numerical/common warm/Resident
+remain open;7B then3B then baselines. Goal stays active.
+
+## HISTORY — D331 attempt2 qualified; D332 full4000 prepared
 
 2026-10-08 ~03:58+08 PROGRESS: actual attempt2 complete/released and audited.
 100/100 native quantity/ten binding checks; planning publication163/seeded2287/
