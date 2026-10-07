@@ -11,7 +11,57 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D331 real run complete; counter export repaired, attempt2 next
+## CURRENT — D331 attempt2 qualified; D332 full4000 next
+
+2026-10-08 ~03:58+08 PROGRESS: actual attempt2 complete/released and audited.
+100/100 native quantity/ten binding checks; planning publication163/seeded2287/
+hits162 observed. Selected-conflict invalidations3 retained, no failed requests.
+These counts are NOT RPC or latency savings. Mean/P95 TTFT900.317/2290.801ms,
+P95 TPOT39.398ms, prefix U711.198790GPU-s; numerical N_correct remains unknown.
+Remote29/50650865B/packing0, startup1000/full; exact units stopped, portsabsent,
+downloadSHA matched. Servicepeak18945822720B/minhost93540143104B, events/swap0.
+No figure, CI or G1/G2 claim. First run and all output changes retained.
+D332 full config + runner case prepared: same D326 settings, only3exclusive
+paths; same D330 serving candidate + post-shutdown counter export. NEXT actual
+ordinary4000 after safety gates/checkpoint, not more short-run optimization.
+Audit scope4da2a1a8... empty-owned/stopped; closure and seven curated hashes sealed.
+24 existing launch/export/timing tests passed before D332 checkpoint; no serving
+code or parameter changes in this checkpoint (runner identity + exclusive paths).
+7B->3B->baselines mainline intact; full comparison target D326, not D322 prefix.
+
+## HISTORY — D331 attempt2 launched (now complete)
+
+2026-10-08 03:52:43+08 actual launch in tmux tc-d331-smoke2, existing runner
+d331-attempt2, source01d390de3cf06d12cca41619c44d234200f7775d independently backed.
+Fresh gate disk161703772160B/MemAvailable112892461056B, protected seal only known
+baseline replay difference, config only three exclusive paths. Source42/W0 first100,
+same D326 policies/profiles/60s notice; no detailed observer or new input.
+Service d9ac19117bd84beab443c5b291144900 invocationc5a81fad75214327bc6d28b92c089032;
+aux14565b2901bf4bbbaa91f66c9a9e7028. Guarded launch allow_exec=true.
+Remote unchanged published delivery, startup1000/full; 7B invocation
+6a85d4bbc0be407aa3d41f19486f7a79, monitor ebaee053d7e74b69ae940aec2f4abc0a,
+remote output d331_20261008_smoke2. New receipts under raw d331/attempt2/.
+Do not relaunch on observation timeout. NEXT complete -> GPU release -> owned
+remote stop/log SHA -> existing analyzer --campaign d331-attempt2 -> if native
+and positive planning counters pass, prepare/launch ordinary4000 D332 vsD326.
+No more short repeats without new error/evidence. No figures or external baselines.
+
+## HISTORY — D331 first run complete; counter export repaired
+
+Backup verified2026-10-08T03:50+08: local HEAD and independently read remote
+V2 branch both01d390de3cf06d12cca41619c44d234200f7775d. 16 explicit paths,
+18 tests,7 bundle hashes,30 archive member checks,8 executed-source bindings,
+29 evidence references,syntax/diff/credential checks pass. Actual D331 serving
+source remains af0b771; analysis-time source and post-shutdown export repair
+are separately identified, not retroactively claimed as executed.
+Final verifier first rejected its own literal private-key scan marker (no secret
+exposure/output); marker construction corrected, pre-publication rerun passed.
+Both final scopes3774c231.../81d4c9b5... peak127021056/127029248B,
+events/swap0, empty/stopped/inactive. User manifest unchanged/unstaged; no live
+GPU/tmux/remote experiment. Disk161704726528B at last read, not a future gate.
+NEXT ACTUAL d331-attempt2 after fresh gates; do not repeat audit/backup-only work.
+Attempt2 has NOT launched. Raw remote scripts must use NEW attempt2 paths/units,
+not overwrite original D331 receipts. Main source plan and frozen V1 unchanged.
 
 2026-10-08 ~03:47+08 PROGRESS: actual D331 completed and released GPU.
 100/100 native contracts and ten control bindings pass; mean/P95 TTFT
