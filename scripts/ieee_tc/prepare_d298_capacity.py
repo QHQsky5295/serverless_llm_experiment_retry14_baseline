@@ -319,11 +319,13 @@ def verify_prefill_smoke(campaign='d308'):
         out = root/'paper_results/ieee_tc/p2_backend/d312_host_validation'
         config = root/'configs/ieee_tc/20261007_d312_7b_prefill_validation_100.yaml'
         previous = root/'configs/ieee_tc/20261007_d310_7b_prefill_validation_100.yaml'
-    elif campaign == 'd311':
-        out = root/'paper_results/ieee_tc/p2_backend/d311_full_w0'
-        config = root/'configs/ieee_tc/20261007_d311_7b_full_w0.yaml'
-        previous = root/'configs/ieee_tc/20261007_d309_7b_full_w0.yaml'
-        smoke_path = root/'paper_results/ieee_tc/p2_backend/d310_read_pin_validation/smoke1/audit.json'
+    elif campaign in ('d311', 'd313'):
+        out = root/f'paper_results/ieee_tc/p2_backend/{campaign}_full_w0'
+        config = root/f'configs/ieee_tc/20261007_{campaign}_7b_full_w0.yaml'
+        source_campaign = 'd309' if campaign == 'd311' else 'd311'
+        smoke_directory = 'd310_read_pin_validation' if campaign == 'd311' else 'd312_host_validation'
+        previous = root/f'configs/ieee_tc/20261007_{source_campaign}_7b_full_w0.yaml'
+        smoke_path = root/f'paper_results/ieee_tc/p2_backend/{smoke_directory}/smoke1/audit.json'
         smoke = json.loads(smoke_path.read_text())
         assert smoke['stats']['completed'] == 100
         for reference in smoke['raw_evidence']:
@@ -365,12 +367,14 @@ def verify_prefill_smoke(campaign='d308'):
         expected['experiment']['output_dir'] = old['experiment']['output_dir'].replace(source_campaign+'_', campaign+'_')
         expected['storage']['nvme_cache_dir'] = old['storage']['nvme_cache_dir'].replace(source_campaign+'_', campaign+'_')
         expected['storage']['host_cache_dir'] = old['storage']['host_cache_dir'].replace('tc-'+source_campaign, 'tc-'+campaign)
-    elif campaign == 'd311':
+    elif campaign in ('d311', 'd313'):
         expected = copy.deepcopy(old)
-        expected['experiment']['output_dir'] = old['experiment']['output_dir'].replace('d309_', 'd311_')
-        expected['storage']['nvme_cache_dir'] = old['storage']['nvme_cache_dir'].replace('d309_', 'd311_')
-        expected['storage']['host_cache_dir'] = old['storage']['host_cache_dir'].replace('tc-d309', 'tc-d311')
-        smoke_config = yaml.safe_load((root/'configs/ieee_tc/20261007_d310_7b_prefill_validation_100.yaml').read_text())
+        source_campaign = 'd309' if campaign == 'd311' else 'd311'
+        smoke_campaign = 'd310' if campaign == 'd311' else 'd312'
+        expected['experiment']['output_dir'] = old['experiment']['output_dir'].replace(source_campaign+'_', campaign+'_')
+        expected['storage']['nvme_cache_dir'] = old['storage']['nvme_cache_dir'].replace(source_campaign+'_', campaign+'_')
+        expected['storage']['host_cache_dir'] = old['storage']['host_cache_dir'].replace('tc-'+source_campaign, 'tc-'+campaign)
+        smoke_config = yaml.safe_load((root/f'configs/ieee_tc/20261007_{smoke_campaign}_7b_prefill_validation_100.yaml').read_text())
         assert c['model'] == smoke_config['model'] and c['resource_coordination'] == smoke_config['resource_coordination']
         assert c['workload']['total_requests'] == 4000
     profile_receipts = {}
@@ -421,7 +425,9 @@ if __name__ == '__main__':
         verify_prefill_smoke('d311')
     elif sys.argv[1:] == ['--verify-host-transaction-smoke']:
         verify_prefill_smoke('d312')
+    elif sys.argv[1:] == ['--verify-host-transaction-full']:
+        verify_prefill_smoke('d313')
     elif not sys.argv[1:]:
         main()
     else:
-        raise SystemExit('Expected no argument, --verify-launch, --prefill-candidate, --verify-prefill-launch, --verify-prefill-smoke, --verify-prefill-full, --verify-read-pin-smoke, --verify-read-pin-full or --verify-host-transaction-smoke')
+        raise SystemExit('Expected no argument, --verify-launch, --prefill-candidate, --verify-prefill-launch, --verify-prefill-smoke, --verify-prefill-full, --verify-read-pin-smoke, --verify-read-pin-full, --verify-host-transaction-smoke or --verify-host-transaction-full')

@@ -11,7 +11,32 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D312 native100 completed/audited; backup then unchanged full4000 next
+## CURRENT — D313 original full4000 prepared; tested backup then launch once
+
+2026-10-07 12:45+08. Plan and frozen V1 fully reread; D312 audited checkpoint
+f9a8ef7245428ac1442ac496a0dd943557854e58 is already pushed/remote-verified.
+Fresh D313 config differs from D311 only in output/cold cache identities;
+model/control/generation/arrival/D307 profiles unchanged, same D312 repair.
+Config SHA44e9506d196140f063582fa42fefb7aefbe6c57560a5477edcb0af04f365065a.
+Existing prelaunch verifier passed40service/24preparationclasses, exact D307
+child binding and D312 raw evidence hashes; receiptSHAfe0d372577941dfbff25d17fee8731754e270aa3b4fac572fd9d5d4b3871a323.
+332 basic/capacity/artifact tests passed22.756s. Prelaunch/test scopes checked
+empty/stopped, peaks496627712/1169313792B, memory events/swap0. First prelaunch
+management command rejected unsupported scope CPUAffinity before any process
+was started; log retained, then existing taskset form used. Not a GPU attempt.
+Protected147seal retains only known authorized baseline replay change; raw
+pass=false preserved. No serving/parameter change or new profiles/figures.
+
+No GPU/remote experiment running yet. Existing remote wrapper copied with new
+D313 identity only; one-time read-only gzip cache reused, never rebuilt. Next:
+commit/push this tested checkpoint, start remote with captured identities/health,
+then existing runner d313 ONCE in tmuxprimelora_d313_full. Capture service,
+auxiliary and watchdog handles and monitor the same run, no restart on timeout.
+After terminal cleanup stop captured remote MONITOR FIRST, save exact journal,
+audit full outcome (stream large JSON). No more100smoke/calibration/retune.
+Numerical/warm/Resident qualification remains open;7B->3B->baselines, no figures.
+
+## HISTORY — D312 native100 completed/audited; backup then unchanged full4000 next
 
 2026-10-07 12:35+08. This turn=progress: native100samecandidatecompleted/audited.
 100/100successful; resultSHA15fd5e6cb3147da440b0254244ca62ae882e8db475c13151e47ef7f6cc3ba7c2.

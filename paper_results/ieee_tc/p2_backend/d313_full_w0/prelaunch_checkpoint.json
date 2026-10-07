@@ -1,0 +1,61 @@
+{
+  "kind": "d313_full_w0_prelaunch_checkpoint_v1",
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "previous_checkpoint": "f9a8ef7245428ac1442ac496a0dd943557854e58",
+  "serving_repair_checkpoint": "1d92ec4e78fd5aa33355f06a028e3f0efe7f35a8",
+  "config_sha256": "44e9506d196140f063582fa42fefb7aefbe6c57560a5477edcb0af04f365065a",
+  "binding_sha256": "fe0d372577941dfbff25d17fee8731754e270aa3b4fac572fd9d5d4b3871a323",
+  "serving_source_sha256": "d09764883859cdf914b4c86c9c3787b7dcd449dbf376f072af9ce37cc25bc2e8",
+  "tests": {
+    "modules": [
+      "tests.test_basic_smoke",
+      "tests.test_ieee_tc_capacity_audit",
+      "tests.test_ieee_tc_artifact_audit"
+    ],
+    "count": 332,
+    "seconds": 22.756,
+    "pass": true,
+    "log_sha256": "1e87ba8be2ea8f42915872ec4332640515b69a53f899ecf89cbc10dc1da3c627"
+  },
+  "resource_scopes": [
+    {
+      "role": "prelaunch",
+      "invocation": "97f05b674bca467dba1972fd2a7da440",
+      "peak": 496627712,
+      "events_zero": true,
+      "swap": 0,
+      "empty_checked_stopped": true
+    },
+    {
+      "role": "tests",
+      "invocation": "028ea17262794a3f821325cc6b3ba750",
+      "peak": 1169313792,
+      "events_zero": true,
+      "swap": 0,
+      "empty_checked_stopped": true
+    }
+  ],
+  "prelaunch_management_error": {
+    "gpu_attempt": false,
+    "reason": "Unsupported CPUAffinity property rejected before scope/process creation; then existing taskset form used.",
+    "log_sha256": "c9459e864dc3c8fa63a2d66edb5e52deeb31cccbf46689b78cf5d255f926cb07"
+  },
+  "protected": {
+    "entry_count": 147,
+    "raw_pass": false,
+    "known_authorized_changes": [
+      "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"
+    ],
+    "known_change_sha256": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "verification_sha256": "69a4488a085b2ec44d484c610d6935f8a2a880af477e48a42dc356374eaecb11"
+  },
+  "workload": "original4000_W0",
+  "settings_unchanged": true,
+  "cache": "existing_prepublished_gzip_v1_reused",
+  "new_profiles": false,
+  "figures": false,
+  "full_qualified": false,
+  "n_correct": null,
+  "next": "One fresh complete D313 W0, no further smoke, profiling, or retuning."
+}
