@@ -315,6 +315,10 @@ def verify_prefill_smoke(campaign='d308'):
         out = root/'paper_results/ieee_tc/p2_backend/d310_read_pin_validation'
         config = root/'configs/ieee_tc/20261007_d310_7b_prefill_validation_100.yaml'
         previous = root/'configs/ieee_tc/20261007_d308_7b_prefill_validation_100.yaml'
+    elif campaign == 'd312':
+        out = root/'paper_results/ieee_tc/p2_backend/d312_host_validation'
+        config = root/'configs/ieee_tc/20261007_d312_7b_prefill_validation_100.yaml'
+        previous = root/'configs/ieee_tc/20261007_d310_7b_prefill_validation_100.yaml'
     elif campaign == 'd311':
         out = root/'paper_results/ieee_tc/p2_backend/d311_full_w0'
         config = root/'configs/ieee_tc/20261007_d311_7b_full_w0.yaml'
@@ -353,13 +357,14 @@ def verify_prefill_smoke(campaign='d308'):
         smoke_config = yaml.safe_load((root/'configs/ieee_tc/20261007_d308_7b_prefill_validation_100.yaml').read_text())
         assert c['model'] == smoke_config['model'] and c['resource_coordination'] == smoke_config['resource_coordination']
         assert c['workload']['total_requests'] == 4000
-    elif campaign == 'd310':
+    elif campaign in ('d310', 'd312'):
         # The read-pin repair changes no control/profile/model setting. Only
-        # output and cold-cache identities differ from the existing D308 smoke.
+        # output and cold-cache identities differ from its existing source smoke.
         expected = copy.deepcopy(old)
-        expected['experiment']['output_dir'] = old['experiment']['output_dir'].replace('d308_', 'd310_')
-        expected['storage']['nvme_cache_dir'] = old['storage']['nvme_cache_dir'].replace('d308_', 'd310_')
-        expected['storage']['host_cache_dir'] = old['storage']['host_cache_dir'].replace('tc-d308', 'tc-d310')
+        source_campaign = 'd308' if campaign == 'd310' else 'd310'
+        expected['experiment']['output_dir'] = old['experiment']['output_dir'].replace(source_campaign+'_', campaign+'_')
+        expected['storage']['nvme_cache_dir'] = old['storage']['nvme_cache_dir'].replace(source_campaign+'_', campaign+'_')
+        expected['storage']['host_cache_dir'] = old['storage']['host_cache_dir'].replace('tc-'+source_campaign, 'tc-'+campaign)
     elif campaign == 'd311':
         expected = copy.deepcopy(old)
         expected['experiment']['output_dir'] = old['experiment']['output_dir'].replace('d309_', 'd311_')
@@ -414,7 +419,9 @@ if __name__ == '__main__':
         verify_prefill_smoke('d310')
     elif sys.argv[1:] == ['--verify-read-pin-full']:
         verify_prefill_smoke('d311')
+    elif sys.argv[1:] == ['--verify-host-transaction-smoke']:
+        verify_prefill_smoke('d312')
     elif not sys.argv[1:]:
         main()
     else:
-        raise SystemExit('Expected no argument, --verify-launch, --prefill-candidate, --verify-prefill-launch, --verify-prefill-smoke, --verify-prefill-full, --verify-read-pin-smoke or --verify-read-pin-full')
+        raise SystemExit('Expected no argument, --verify-launch, --prefill-candidate, --verify-prefill-launch, --verify-prefill-smoke, --verify-prefill-full, --verify-read-pin-smoke, --verify-read-pin-full or --verify-host-transaction-smoke')

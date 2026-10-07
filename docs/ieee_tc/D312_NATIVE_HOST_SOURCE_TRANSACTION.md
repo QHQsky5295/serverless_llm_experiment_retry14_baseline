@@ -88,3 +88,29 @@ The one-time read-only delivery-cache permission was already implemented by D78:
 1,581,215,261 archive bytes across the existing two 500-adapter pools. Reuse these
 published objects, not a second extracted pool; no per-request packing and no
 post-hoc subtraction from actual transfer latency.
+
+## Native100 replay preparation (2026-10-07)
+
+Continue the already registered repair validation, not a new tuning point.
+`20261007_d312_7b_prefill_validation_100.yaml` is identical to D310 except
+exclusive result/NVMe/HOST paths. Config SHA
+e40990b308ae9912b09db55d3ad26c4d71be1a037033966e25b9437e8399f86f.
+The existing prelaunch verifier compares the complete configuration and native
+child with the measured D307 context:40service/24preparation classes bind.
+Prelaunch receipt SHA366a5996b1c466b9db51582c745e62103f97e2f471ebacb023a2d4017a177658.
+No profiles, weights or input traces were regenerated. The prelaunch CPU scope
+was checked empty and stopped, peak496,459,776B, memory events/swap0.
+
+Use existing runner `run_d293_7b_prefetch_validation_100.sh d312` and data-only
+`analyze_d298_smoke --campaign d312`; no new experimental framework. Compare
+descriptively to D310, preserve improvements and regressions, and do not infer
+whole-W0 cost or formal SLO from the100-request prefix. No serving change since
+the tested repair checkpoint1d92ec4. Native full4000 follows only after cleanup
+and audit. The complete source plan and frozenV1 were reread for this step.
+
+Before launch, read-only remote checks found eno1 negotiated1000Mbit/s/full,
+not100Mbit/s. Artifact server SHAa31fa921... and monitor SHAda2c7d04... are
+unchanged. Two initial read-only lookup attempts used nonexistent interface/
+script paths; neither changed services or data. Actual route/unit definitions
+supplied the paths used for the successful checks. No hardware extrapolation
+or remote service adjustment is inferred from link speed.

@@ -11,7 +11,28 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D312 transaction repair validated/backed up; fresh native100 next
+## CURRENT — D312 native100 prepared, same settings; backup then launch once
+
+2026-10-07 12:27+08. Previous goal turn=progress:972testrepair/failureaudit/push
+completed, remoteHEAD3118892b67392b53ccb77b8659af5f8efeaed386 verified. This turn
+full plan and frozenV1 reread. Existingrunner/prelaunch/analyzer only extended
+with explicitd312identity. Config equalsD310exceptresult/NVMe/HOSTpaths;
+SHAe40990b308ae9912b09db55d3ad26c4d71be1a037033966e25b9437e8399f86f.
+Prelaunch binding passes40service/24preparationclasses usingD307measurements,
+receiptSHA366a5996b1c466b9db51582c745e62103f97e2f471ebacb023a2d4017a177658.
+Prelaunchscope820be435...empty/stopped,peak496459776B/events0/swap0.
+309basic/audit smoketests passed21.987s;scopeb413af3e...empty/stopped,
+peak1169199104B/events0/swap0. No serving/config/profile/formula change.
+
+Remoteinactive, actualeno1NIC1000/full; server/monitor SHAunchanged. No cache
+rebuilt. Newremote-start wrapper copied existingD311commandwithnewuniqueID,
+but not executed yet. NoGPU/remote experiment running. Nexttestedbackupthen
+remote start/health/capturedidentities, launch once in tmuxprimelora_d312_smoke.
+After measurement stop capturedMONITORFIRST, copy exactjournal, release all
+resources and runexistingdata-onlyd312audit. Full4000samecandidatefollows; no
+recalibration, parametersearch, 3B, baselinesorfigures. Finalqualificationopen.
+
+## HISTORY — D312 transaction repair validated/backed up; fresh native100 next
 
 2026-10-07 12:20+08. No GPU/remote experiment or CPU job is running. Source plan
 reread in full after compaction; SHA unchanged0c808509... . This turn made new

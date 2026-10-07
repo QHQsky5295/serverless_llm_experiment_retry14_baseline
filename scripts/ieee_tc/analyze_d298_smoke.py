@@ -57,6 +57,15 @@ def main(campaign='d298'):
         health_name = 'remote_health.json'
         comparison_caveat = ('D308 settings and measured profiles unchanged; source read-pin repair only. '
             'One prefix run, not complete W0, numerical or formal SLO qualification.')
+    elif campaign == 'd312':
+        REFERENCE = ROOT/'results/ieee_tc/p2_backend_qualification/d310_20261007/7b_prefill_validation_100/experiment_results_full_vllm_dedicated_a500_r100_c2_tc_ieee_prefill_validation_100_d310_7b_prefill_validation_100.json'
+        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d312_20261007'
+        RUN = RAW/'7b_prefill_validation_100'
+        SOURCE = RUN/'experiment_results_full_vllm_dedicated_a500_r100_c2_tc_ieee_prefill_validation_100_d312_7b_prefill_validation_100.json'
+        OUT = ROOT/'paper_results/ieee_tc/p2_backend/d312_host_validation/smoke1'
+        health_name = 'remote_health.json'
+        comparison_caveat = ('D310 settings and measured profiles unchanged; native HOST file observation/pin transaction repair only. '
+            'One prefix run, not complete W0, numerical or formal SLO qualification.')
     elif campaign != 'd298':
         raise ValueError('unknown frozen smoke identity')
     assert not OUT.exists(), 'never overwrite a prior audit'
@@ -126,7 +135,7 @@ def main(campaign='d298'):
         comparison_caveat=comparison_caveat,
         raw_evidence=[dict(path=str(path),sha256=sha256(path)) for path in
             (SOURCE,REFERENCE,outcome_path,journal,WARM,INDEX,RAW/'smoke_remote_monitor.log',Path(__file__))])
-    if campaign in ('d302', 'd308', 'd310'):
+    if campaign in ('d302', 'd308', 'd310', 'd312'):
         result['admission_waits'] = summarize_admission_waits(requests)
         result['mechanism_events'] = {k:v for k,v in outcome['mechanism_events'].items()
             if k in ('_ieee_source_observation_stats', '_ieee_route_cache_stats')}
@@ -138,5 +147,5 @@ def main(campaign='d298'):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--campaign', choices=('d298','d302','d308','d310'), default='d298')
+    parser.add_argument('--campaign', choices=('d298','d302','d308','d310','d312'), default='d298')
     main(parser.parse_args().campaign)
