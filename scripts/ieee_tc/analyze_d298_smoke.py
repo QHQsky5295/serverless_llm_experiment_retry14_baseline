@@ -97,6 +97,15 @@ def main(campaign='d298'):
         comparison_caveat = ('D302 is descriptive same-1024/control/profile prefix context, not a causal single-change contrast: '
             'intervening native-source correctness repairs remain. D317 tests D316 scope retention with D315 settings. '
             'Unchanged-candidate full4000 versus D315 is required; prefix GPU-s is not extrapolated.')
+    elif campaign == 'd322':
+        REFERENCE = ROOT/'results/ieee_tc/p2_backend_qualification/d317_20261007/7b_copy_validation_100/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_copy_validation_100_d317_7b_copy_validation_100.json'
+        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d322_20261007'
+        RUN = RAW/'7b_length_validation_100'
+        SOURCE = RUN/'experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_length_validation_100_d322_7b_length_validation_100.json'
+        OUT = ROOT/'paper_results/ieee_tc/p2_backend/d322_length_candidate/smoke1'
+        health_name = 'remote_health.json'
+        comparison_caveat = ('D317 settings and serving code retained; only D321 measured declared-output classes/initialization changed. '
+            'One prefix diagnostic; unchanged candidate requires complete W0. Not a formal SLO or numerical qualification.')
     elif campaign != 'd298':
         raise ValueError('unknown frozen smoke identity')
     assert not OUT.exists(), 'never overwrite a prior audit'
@@ -166,11 +175,11 @@ def main(campaign='d298'):
         comparison_caveat=comparison_caveat,
         raw_evidence=[dict(path=str(path),sha256=sha256(path)) for path in
             (SOURCE,REFERENCE,outcome_path,journal,WARM,INDEX,RAW/'smoke_remote_monitor.log',Path(__file__))])
-    if campaign in ('d302', 'd308', 'd310', 'd312', 'd317'):
+    if campaign in ('d302', 'd308', 'd310', 'd312', 'd317', 'd322'):
         result['admission_waits'] = summarize_admission_waits(requests)
         result['mechanism_events'] = {k:v for k,v in outcome['mechanism_events'].items()
             if k in ('_ieee_source_observation_stats', '_ieee_route_cache_stats')}
-    if campaign == 'd317':
+    if campaign in ('d317', 'd322'):
         result['copy_retention_trigger'] = copy_retention_trigger(requests)
         assert result['copy_retention_trigger']['observed_cumulative_retained_scopes_max'] > 0, 'new event-confirmed branch did not trigger'
     with (OUT/'audit.json').open('x') as stream:
@@ -181,5 +190,5 @@ def main(campaign='d298'):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--campaign', choices=('d298','d302','d308','d310','d312','d317'), default='d298')
+    parser.add_argument('--campaign', choices=('d298','d302','d308','d310','d312','d317','d322'), default='d298')
     main(parser.parse_args().campaign)

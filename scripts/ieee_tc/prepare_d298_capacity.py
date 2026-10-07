@@ -647,8 +647,98 @@ def verify_restored_full(campaign='d315'):
         classes={k:v['classes'] for k,v in profiles.items()})), flush=True)
 
 
+def length_candidate_config(previous, service_binding, *, smoke):
+    """Only the measured service classes and exclusive storage identities differ."""
+    candidate = copy.deepcopy(previous)
+    campaign = 'd322' if smoke else 'd323'
+    raw = '/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/' + campaign + '_20261007'
+    stem = 'length_validation_100' if smoke else 'full_w0'
+    candidate['experiment']['output_dir'] = raw + '/7b_' + stem
+    candidate['storage']['nvme_cache_dir'] = raw + '/7b_nvme_' + stem
+    candidate['storage']['host_cache_dir'] = '/dev/shm/tc-' + campaign + '-7b-' + stem.replace('_', '-')
+    candidate['scenarios'][0]['name'] = 'tc_ieee_length_validation_100' if smoke else 'tc_ieee_full'
+    candidate['resource_coordination']['ieee_service_profile'] = copy.deepcopy(service_binding)
+    return candidate
+
+
+def verify_length_candidate(*, smoke=True):
+    from scripts.run_all_experiments import (_prepare_scenario_runtime_model_config,
+        _prepare_dedicated_subprocess_model_cfg)
+    from faaslora.experiment.instance_pool import FrozenServiceProfiles
+    from faaslora.preloading.preloading_planner import FrozenPreparationProfiles
+    root = p.ROOT
+    campaign = 'd322' if smoke else 'd323'
+    stem = 'length_validation_100' if smoke else 'full_w0'
+    out = root / ('paper_results/ieee_tc/p2_backend/' + campaign + '_length_candidate')
+    assert not out.exists(), 'append-only preparation'
+    config = root / ('configs/ieee_tc/20261007_' + campaign + '_7b_' + stem + '.yaml')
+    previous = root / 'configs/ieee_tc/20261007_d318_7b_full_w0.yaml'
+    initialization = root / 'paper_results/ieee_tc/p2_backend/d321_output_classes/initialization1'
+    manifest_path = initialization / 'manifest.json'
+    assert p.digest(manifest_path) == '895bf0da6f9698333555149b344165cec4e9a309b179edc87ad468a9cfaf492d'
+    read = lambda path: json.loads(path.read_text())
+    manifest = read(manifest_path)
+    for name, sha in manifest['outputs'].items():
+        assert p.digest(initialization/name) == sha, 'D321 output changed'
+    for row in manifest['source_refs']:
+        assert p.digest(Path(row['path'])) == row['sha256'], 'D321 evidence changed'
+    coverage = read(initialization/'coverage.json')['combined']
+    assert coverage['required_classes'] == coverage['observed_classes'] == 160
+    binding = read(initialization/'binding.json')['ieee_service_profile']
+    binding['path'] = str(Path(binding['path']).relative_to(root))
+    c, old = (yaml.safe_load(x.read_text()) for x in (config, previous))
+    assert c == length_candidate_config(old, binding, smoke=smoke), 'undeclared candidate difference'
+    for path in (c['experiment']['output_dir'], c['storage']['nvme_cache_dir'], c['storage']['host_cache_dir']):
+        assert not Path(path).exists(), 'run/cache identity already exists'
+    contract_path = root/'paper_results/ieee_tc/p2_backend/d298_capacity/development_contract.json'
+    configured = _prepare_scenario_runtime_model_config(c['model'], c['workload'], c['resource_coordination'])
+    child, assembly = _prepare_dedicated_subprocess_model_cfg(configured, device_id=0, runtime_gpu_ids=[0])
+    assert child == read(contract_path)['model_config']
+    assert c['workload']['total_requests'] == 4000 and c['model']['max_num_batched_tokens'] == 1024
+    profiles = {}
+    for key, cls, count in [('ieee_service_profile', FrozenServiceProfiles, 160),
+                          ('ieee_preparation_profile', FrozenPreparationProfiles, 24)]:
+        b = c['resource_coordination'][key]
+        profile = cls.load(root/b['path'], expected_sha256=b['sha256'], model_config=child,
+            expected_context=b['context'], beta=b['ewma_beta'])
+        assert len(profile.profiles) == count
+        profiles[key] = dict(profile_id=profile.profile_id, classes=count, binding=b)
+    refs = [config, previous, manifest_path, contract_path, Path(__file__),
+        root/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh', root/'scripts/run_all_experiments.py']
+    if not smoke:
+        smoke_path = root/'paper_results/ieee_tc/p2_backend/d322_length_candidate/smoke1/audit.json'
+        checked = read(smoke_path)
+        assert checked['stats']['completed'] == 100
+        assert checked['copy_retention_trigger']['observed_cumulative_retained_scopes_max'] > 0
+        for row in checked['raw_evidence']:
+            assert p.digest(Path(row['path'])) == row['sha256'], 'smoke evidence changed'
+        smoke_config = yaml.safe_load((root/'configs/ieee_tc/20261007_d322_7b_length_validation_100.yaml').read_text())
+        assert c['model'] == smoke_config['model'] and c['resource_coordination'] == smoke_config['resource_coordination']
+        refs.append(smoke_path)
+    seal = p.verify_seal(root/'paper_results/ieee_tc/safety/20260925_execution_start_protected.json')
+    known = Path('/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py')
+    assert seal['changed'] == [str(known)] and seal['entry_count'] == 147
+    assert p.digest(known) == '04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22'
+    assert p.check_plan() == '0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7'
+    assert p.digest(root/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md') == '5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22'
+    assert p.digest(root/'configs/generated/lora_manifest_1000.json') == '3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df'
+    receipt = dict(kind=campaign+'_length_candidate_binding_v1', passed=True,
+        profiles=profiles, model_config=child, assembly=assembly, protection_raw=seal,
+        source_references=[dict(path=str(x), sha256=p.digest(x)) for x in refs],
+        diagnostic_prefix_count=100 if smoke else None, formal_qualification=False,
+        n_correct=None, no_figures=True, only_service_initialization_changed=True)
+    out.mkdir(parents=True, exist_ok=False)
+    with (out/'prelaunch_binding.json').open('x') as stream:
+        json.dump(receipt, stream, indent=2, allow_nan=False)
+    print(json.dumps(dict(passed=True, campaign=campaign, classes={k:v['classes'] for k,v in profiles.items()})))
+
+
 if __name__ == '__main__':
-    if sys.argv[1:] == ['--output-class-gaps']:
+    if sys.argv[1:] == ['--verify-length-smoke']:
+        verify_length_candidate()
+    elif sys.argv[1:] == ['--verify-length-full']:
+        verify_length_candidate(smoke=False)
+    elif sys.argv[1:] == ['--output-class-gaps']:
         prepare_output_class_gaps()
     elif sys.argv[1:] == ['--prefill-candidate']:
         prepare_prefill_candidate()

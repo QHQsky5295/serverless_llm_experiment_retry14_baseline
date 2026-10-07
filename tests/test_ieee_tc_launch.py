@@ -633,6 +633,28 @@ class HistoricalServiceRebin(unittest.TestCase):
             completed_gap_samples(source.payload,source_sha='e'*64,identities=source.identities)
 
 
+class LengthCandidateConfiguration(unittest.TestCase):
+    def test_measured_binding_is_the_only_policy_difference(self):
+        import copy
+        import yaml
+        from scripts.ieee_tc.prepare_d298_capacity import length_candidate_config
+        root = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+        old = yaml.safe_load((root/'configs/ieee_tc/20261007_d318_7b_full_w0.yaml').read_text())
+        binding = json.loads((root/'paper_results/ieee_tc/p2_backend/d321_output_classes/initialization1/binding.json').read_text())['ieee_service_profile']
+        binding['path'] = str(Path(binding['path']).relative_to(root))
+        original = copy.deepcopy(old)
+        for smoke, campaign, stem in [(True, 'd322', 'length_validation_100'), (False, 'd323', 'full_w0')]:
+            actual = yaml.safe_load((root/f'configs/ieee_tc/20261007_{campaign}_7b_{stem}.yaml').read_text())
+            self.assertEqual(actual, length_candidate_config(old, binding, smoke=smoke))
+            self.assertEqual(actual['workload']['total_requests'], 4000)
+            self.assertEqual(actual['model'], old['model'])
+            self.assertEqual(actual['resource_coordination']['ieee_preparation_profile'], old['resource_coordination']['ieee_preparation_profile'])
+            changed = copy.deepcopy(actual)
+            changed['resource_coordination']['ieee_scaling']['queue_upper'] += 1
+            self.assertNotEqual(changed, length_candidate_config(old, binding, smoke=smoke))
+        self.assertEqual(old, original)
+
+
 class MissingLengthGapSelection(unittest.TestCase):
     def fixture(self):
         bins = dict(prompt_tokens=[759],declared_output_tokens=[24,91,217,256],

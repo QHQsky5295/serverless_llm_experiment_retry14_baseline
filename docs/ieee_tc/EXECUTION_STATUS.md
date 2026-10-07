@@ -11,7 +11,20 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D321 complete:160classes measured; NEXT one7B candidate smoke/full
+## CURRENT — D322 preparation: one length-class smoke, then D323 complete W0
+
+Only D321 service initialization is changed from D318; model/control/preparation/
+generation/inputs/serving formulas unchanged. New exclusive configs and existing
+launcher/analyzer extensions prepared. Full-config test caught an accidental
+admission-profile-ID text substitution in the new full YAML before GPU execution;
+corrected, failed CPU log retained. Revalidation and backup precede smoke.
+Revalidation:134tests passed50.029s; production loaders verified160service/24prep
+classes, exact D318 configuration comparison and protected147 (rawfalseonlyknown
+baseline change). CPUtestpeak2400415744B,verification501542912B;events/swap0.
+No GPU/remote launch yet. Do not restart calibration, tune another policy, draw
+figures or advance to3B/baselines. See D322_LENGTH_CANDIDATE.md. Goal remains active.
+
+## HISTORY — D321 complete:160classes measured; NEXT one7B candidate smoke/full
 
 PROGRESS2026-10-07.86native calls completed (81measured+5warmup),164.025575605
 GPU-s, servicepeak5705359360B,hostmin107083677696B,175watchdogsamples,events/
@@ -35,6 +48,13 @@ free163138781184B (~151.94GiB), recheck floor before next heavy run.
 See D321_DECLARED_OUTPUT_CALIBRATION.md. History exporter exactfb9a9f33...
 archived beforemergeextension;22merge sources/3outputs verified. Protected147
 rawpassfalseonlyknownbaseline04f3eb52...; before/afterreceipts identical.
+
+Backup closure2026-10-07: normalpush verified local/remote HEAD both
+f799172660ca54314561deae6b6b95b0349862f3.11explicit result/code/docpaths;
+no usermanifest/rawlogs/figures/credentials staged.12checkpointreferences
+rehashed successfully. No GPU PID,MemAvailable110277796kB,free163136770048B.
+Onlythis postpush note is a new ownedit. NEXT one7B100-requestcandidate smoke
+then4000W0 above; do not restart calibration or another backup-only turn.
 
 ### D321 preparation and prelaunch record
 
