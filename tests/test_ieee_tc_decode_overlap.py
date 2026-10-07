@@ -1,10 +1,12 @@
 """CPU interval tests: descriptive overlap must not invent causal stall time."""
 import copy
+import hashlib
 import json
 import tempfile
 import unittest
 from pathlib import Path
-from scripts.ieee_tc.check_d299_full_context import failed_run_partition, project_incomplete
+from scripts.ieee_tc.check_d299_full_context import (
+    complete_failure_output_hashes, failed_run_partition, project_incomplete)
 
 from scripts.ieee_tc.analyze_d297_full import (
     decode_overlap_summary, native_load_overlap_summary, prefill_overlap_summary,
@@ -12,6 +14,24 @@ from scripts.ieee_tc.analyze_d297_full import (
 
 
 class FailureAwarePopulation(unittest.TestCase):
+    def test_manifest_does_not_include_its_own_partial_bytes(self):
+        with tempfile.TemporaryDirectory() as root:
+            out = Path(root)
+            for name in ('context.json', 'failed_requests.json'):
+                (out/name).write_text('{}')
+            expected = {name: hashlib.sha256(b'{}').hexdigest()
+                        for name in ('context.json', 'failed_requests.json')}
+            for state in ('', '{"partially_written":', '{"complete":true}'):
+                (out/'manifest.json').write_text(state)
+                self.assertEqual(complete_failure_output_hashes(out), expected)
+
+    def test_manifest_requires_both_failure_evidence_payloads(self):
+        with tempfile.TemporaryDirectory() as root:
+            out = Path(root)
+            (out/'context.json').write_text('{}')
+            with self.assertRaises(FileNotFoundError):
+                complete_failure_output_hashes(out)
+
     def test_incomplete_projection_retains_nested_failure_and_excludes_request_tree(self):
         data = dict(run_completed=False,planned_request_count=4000,
             error=dict(type='ConfirmedSourceConflict',message='retained',traceback=['a','b']),

@@ -74,6 +74,11 @@ def failed_run_partition(result):
     return rows, good, failed
 
 
+def complete_failure_output_hashes(directory):
+    """Hash the two evidence payloads, never the manifest under construction."""
+    return {name: sha256(directory/name) for name in ('context.json', 'failed_requests.json')}
+
+
 def project_incomplete(outcome):
     """Bounded leaf projection; retain nested errors, never load request trees."""
     query = ('reduce (inputs | select(length==2 and (.[0][0] | '
@@ -197,7 +202,8 @@ def audit_d309_failure(campaign='d309'):
     expected_source_sha, expected_samples = cases[campaign]
     raw = ROOT/f'results/ieee_tc/p2_backend_qualification/{campaign}_20261007'
     run = raw/'7b_full_w0'
-    out = CURATED/f'{campaign}_full_w0/failure_audit1'
+    revision = 'failure_audit2' if campaign == 'd313' else 'failure_audit1'
+    out = CURATED/f'{campaign}_full_w0'/revision
     source = run/f'experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_{campaign}_7b_full_w0.json'
     assert not out.exists()
     assert p.check_plan() == '0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7'
@@ -332,9 +338,10 @@ def audit_d309_failure(campaign='d309'):
     paths = [source,reference,outcome,journal,raw/'remote_monitor.log',raw/'remote_health.json',
         raw/'completion_receipt.json',run/'launch.json',watchdog,physical_path,summary_path,
         index_path,protocol,seal_path,Path(__file__),ROOT/'scripts/ieee_tc/plot_d290_diagnostic.py']
+    manifest = dict(source_refs=[dict(path=str(p),sha256=sha256(p)) for p in paths],
+                    outputs=complete_failure_output_hashes(out))
     with (out/'manifest.json').open('x') as handle:
-        json.dump(dict(source_refs=[dict(path=str(p),sha256=sha256(p)) for p in paths],
-            outputs={p.name:sha256(p) for p in sorted(out.iterdir())}),handle,indent=2)
+        json.dump(manifest,handle,indent=2)
     print(json.dumps(result,indent=2),flush=True)
 
 

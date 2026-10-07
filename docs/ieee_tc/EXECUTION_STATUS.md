@@ -11,7 +11,129 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D313 original full4000 prepared; tested backup then launch once
+## CURRENT — D313 full4000 audited; deterministic preparation-path test next
+
+2026-10-07 14:07+08. This continuation is progress after verified waiting:
+all4000requests reached terminal states,3999native-contract-complete/1failure.
+launch.json pass=true means normal launch/cleanup, NOT all-correct qualification.
+Allthree returncodes0, nativeGPUcontextrelease andservicepathremoved confirmed;
+physicalmeasurementcomplete=true,openleasesempty,U_observed15647.60522277304GPU-s.
+N_correct/N_good remainunknown andranking/formalqualificationfalse. Source result
+SHA091c7ffe720b413610a2a366ed4e18315ec9896c68f6f1080d279e913d229f7c;
+launchSHA83dd8df0237bb8f5caa082fd62bb44da9f7cc3bd495994cdd7afb2418a2b5607.
+
+LocalauxInvocationd533b4cb... verifiedemptyprocs/populated0,peak335048704B,
+events/swap0,stopped13:55:33. NoGPUcomputeprocesses remained. Allthree remote
+InvocationIDs matched capturedidentities, MONITOR FIRST stopped13:55:34;
+allthreeinactive/MainPID0/Resultsuccess. Exactjournal andmonitor copiedonce:
+remoteSHA50618d61f529eaf8d5fe193f88448b84020fcede19402c46c8961f2a6395ad8d;
+monitorSHA8b6528a93b4e1db409d02447778738a9a5a634dad356f6465b5c40281bd3fd6a.
+Rawcompletion_receipt.json containscleanup/failurefacts. Do NOT restart D313.
+
+Streamed304MiBrequestresult underboundedCPU scope: exactfailure req_00216,
+support_lora_0040,target7; nontruncatedtraceback confirmspreloading_planner.py:317.
+Failed gpu_reference_evidence isEMPTY, so six-way failingpredicate isnotretained.
+Nativepath/remote_preparation/selectedsourcecannotberecoveredfromthisrow; the
+HOST/NVMehypothesis remainsunconfirmed. Inspection scope138c461d... stopped after
+emptycheck,peak1527808B,events/swap0. Smallreadonlysourceanalysis confirms why
+pre-generationexceptionlosescontext; thislimitationisrecordedinD313triagedoc.
+
+Existing failure-aware analyzer extended with explicitD313sourceSHA/samplecount;
+no all-success gate weakened. Auditpassed inputidentity/nativebinding/timing/
+resource/remotechecks while correctlyretaining thefailedall-correctgate.132/132
+HTTPtransfersmatched,131480060wirebytes,nopacking.4036samples,peak20682014720B,
+minhost93777801216B,high/max/OOM/swap0. Protected147seal retains onlytheknown
+authorizedbaseline replaychange, rawpass=false retained. Nofigures/ranking.
+
+Initialoffline manifestincorrectlyincludeditsownempty-filehash. Preserve
+failure_audit1 anditsproducersource incommitb74cc96eb015fa70b92c0c993e3b63791c930221;
+correctedfailure_audit2 excludesmanifestself-hashing andall16input/2outputSHA
+checks pass. Context/failurepayloadsbyte-identical, noGPUrerun ordatareplacement.
+ContextSHAd04e93b1c86c67e776ad1b9251e380cca03fb0f4c621ea1368f2a82e49b018d8;
+manifestSHA8439a6259bc510ce68055fa271a5b41aff36bf26d7c98f888caad7415b01711f.
+332tests passed23.564s, logSHA8091bbc6c10c5e83b414541cb65ca34c9852fe75a0ef5f21945b94a333b20344.
+AllCPUaudit/testscopesemptychecked/stopped,latestInvocation561dc5f...peak1169936384B,
+events/swap0. NoGPU/remote/CPUjobrunning. completion_checkpoint.json savesproofs.
+
+Next: backup this audited checkpoint, then deterministic existing-fixture test
+of legal Remote->NVMe followed by selected HOST file loading. This isnot yet a
+provenhistoricalrootcause; preserve strictcontent/owner/clock/pathnegatives and
+normalleasecleanup. No newGPUreplay until tested/backed-up correction. Serving
+source/config/profiles unchanged, no retuning,3B/baselinesorfigures. PlanandV1
+fullyread; sourceplanSHAunchanged0c808509... . Numerical/warm/Resident qualification
+stillopen; keep7B->3B->baselines anddo notdeclareG1/G2achieved.
+
+## HISTORY — D313 full4000 W0 RUNNING with request failure; retain full evidence
+
+2026-10-07 12:54+08 update: this turn found NEW correctness evidence, not a
+blocker or terminal job. Same service Invocation80a935ab... and watchdogPID727967/
+start85562420 live. At12:53:49 sample447fresh, hostavailable96813424640B,
+service16905019392B, high/max/OOM/swap0, noabort. Live counters308terminal,
+307success/1failure. Exact failed requestreq_00216, target7, at856011.559573558,
+ValueError, native_contract_matched=false, no instance/prompt/token hash.
+Source requestSHA7ff6c2640bc25b95b5777e5123aa3bf30b735985bbdb1528e0d0f804ac726c15.
+Service failure reason prefix maps topreloading_planner.py:317:
+`remote preparation interval lacks its verified transfer identity`.
+This is not yet a proven root cause, remote bandwidth failure or recurrence of
+D311 HOST source pin failure. Exact source/path/span needs terminal audit.
+Do NOT suppress the check, invent transfer IDs, erase failed request or tune
+while live. Continue same complete replay (no safety reason to interrupt);
+retain all4000offered and failed outcomes. This run cannot pass all-success
+qualification. After normal completion/release, stream full outcome and correlate
+failed preparation with actual request/background fetch and remote journal.
+No source changes/tests/figures/3B/baselines while measuring. Previous turn was
+progress (prepared/tested/backed-up/launched), current run is verified live.
+Latest13:26:40: sameInvocation live, sample2391, live2603terminal2602success/
+1failure;host95657398272B/service19522818048B,disk165352411136B. Memory events/
+swap0,noabort. Current continuation=verified wait: resumed the existing monitoring
+cell through its last four observations, then ten more40s-spaced actual polls;
+also checked the live service/log at13:20:20. The monitoring cells ended, but the
+experiment did NOT end. No terminal launch.json, restart, additional failure,
+serving/configuration change, test or figure. Earlier read-only causal-path/
+negative-test/official-source triage remains a hypothesis; failed field unknown.
+Five500rotation boundaries passed. Plan still0c808509..., fully reread this turn.
+No comparison/new experiment; continue same run and audit after resource release.
+Fresh monitoring receipt: rawroot/monitor_132640.json. Source code remains the
+tested/pushed0cf3c1d checkpoint; documentation/status changes are uncommitted.
+
+2026-10-07 12:46+08. Launched ONCE12:46:15 in tmuxprimelora_d313_full via
+existing runner explicit d313. Source0cf3c1dd10a4894516feff203f38d346ee5389aa
+was tested/pushed and remote HEAD verified before launch. Full plan/V1 read.
+Rawresults/ieee_tc/p2_backend_qualification/d313_20261007/7b_full_w0.
+Same D311 controls/model/generation/D307 profiles and D312 serving repair;
+original4000 W0, fresh coldpaths, no repeated100smoke/calibration/retune.
+
+Localserviceprimelora-tc-svc-5f22e0fd9d164d4da6e436853ec74651.scope,
+Invocation80a935ab83d448ea855fe407fd7b8cf7,inode19676953;auxiliary
+primelora-tc-aux-51f52d57d77045ad8e9c3dbb174cd6c6.scope,
+Invocationd533b4cbfccc48509c1045ea0cd15ad8. At12:47:48 sample90fresh,
+hostavailable107632066560B/servicecurrent5390348288B, all memory events/swap0;
+business arrivals started, original4000not yet complete. No safety abort.
+WatchdogPID727967/start85562420. Actual exec receipt is service_identity at
+top level. Observation timeout is NOT experiment terminal. Monitor same handles.
+
+Remoteidentity captured in rawlaunch_identity.json:
+3B66c5f09539d14991b3034c41e2f7e12c/PID1667350;
+7Bff8c400381a848879e77a7ad8abc32ae/PID1667352;
+monitorda6d8927efd3426fb98d7043f9ad5fb4/PID1667355,
+unitprimelora-artifact-monitor-d313.service. Authenticated health passed;
+clockremote-process-monotonic:1429d5adb4824bfc8531934865660c99.
+Actualeno1NIC1000/full. ExactjournalD80/7b/transfers-e2f7e6a634244c26b8cb241bbb075335.jsonl.
+Reuse existing published gzip cache, no rebuild. During measurement no service
+change, full-result analysis, tests, bulk hashing or remote reconfiguration. Small
+read-only failure-source/history inspection does not alter the measured service.
+Read-only triage is saved inD313_REMOTE_PREPARATION_READ_ONLY_TRIAGE.md: possible
+Remote->NVMe followed by fastest HOST file choice creates differing valid paths,
+but actual failed-field/root cause remains UNKNOWN until terminal evidence.
+No repair implemented, no validation weakened. OfficialvLLM/Python source
+checked; plan fully reread before this triage. At13:06:50 sample1218fresh,
+1119terminal1118success1failure, same live job,noresourceevents. After localterminal/
+cleanup, verify all3remoteinvocations, stopMONITORFIRST then copy exactjournal
+asremote_transfers.jsonl andD313remote_monitor.log to rawroot. Stream full audit
+after release; keep all failures/unknown numerical/warm/Resident qualification.
+Keep7B->3B->baselines; no figures or target qualification claimed yet.
+
+## HISTORY — D313 original full4000 prepared; tested backup then launch once
 
 2026-10-07 12:45+08. Plan and frozen V1 fully reread; D312 audited checkpoint
 f9a8ef7245428ac1442ac496a0dd943557854e58 is already pushed/remote-verified.
