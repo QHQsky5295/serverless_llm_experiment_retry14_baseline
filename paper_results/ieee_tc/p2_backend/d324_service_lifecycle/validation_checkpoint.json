@@ -1,0 +1,36 @@
+{
+  "kind": "d324_retained_analysis_checkpoint_v1",
+  "source_commit_before_analysis": "535949ff5a80a50301d7c266206e8ab51e711c04",
+  "source_checks": 23,
+  "output_checks": 6,
+  "checks_pass": true,
+  "tests": {
+    "module": "tests.test_ieee_tc_decode_overlap",
+    "count": 53,
+    "seconds": 6.689,
+    "exit_code": 0
+  },
+  "resource_scopes": [
+    {"name": "primelora-tc-analysis-d324.scope", "invocation_id": "e8a66b39d72e442289fd8cef2061c533", "peak_bytes": 500260864, "memory_high_events": 0, "memory_max_events": 0, "oom_events": 0, "oom_kill_events": 0, "swap_bytes": 0, "populated_after": 0},
+    {"name": "primelora-tc-data-d324.scope", "invocation_id": "b2c8e0ceca8140a885efff59e6e95531", "peak_bytes": 1489567744, "memory_high_events": 0, "memory_max_events": 0, "oom_events": 0, "oom_kill_events": 0, "swap_bytes": 0, "populated_after": 0},
+    {"name": "primelora-tc-verify-d324.scope", "invocation_id": "6d83d2e67d0b4d73b14190c3b17faed7", "peak_bytes": 13500416, "memory_high_events": 0, "memory_max_events": 0, "oom_events": 0, "oom_kill_events": 0, "swap_bytes": 0, "populated_after": 0}
+  ],
+  "protected_raw": {
+    "pass": false,
+    "entry_count": 147,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": ["/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"],
+    "known_changed_sha256": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22"
+  },
+  "user_manifest_unchanged": true,
+  "user_manifest_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "disk_free_bytes_at_final_check": 161963716608,
+  "gpu_compute_processes_at_final_check": [],
+  "serving_changed": false,
+  "remote_changed": false,
+  "new_performance_runs": 0,
+  "no_figures": true,
+  "formal_qualification": false
+}

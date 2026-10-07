@@ -1,0 +1,232 @@
+{
+  "kind": "d324_retained_service_lifecycle_v1",
+  "runs": {
+    "d318": {
+      "stats": {
+        "completed": 4000,
+        "mean_ttft_ms": 1292.0911962618702,
+        "p95_ttft_ms": 3031.1762627679855,
+        "mean_queue_ms": 652.1836868638056,
+        "p95_queue_ms": 1896.5778617421165,
+        "mean_service_ms": 639.9075093980646,
+        "p95_service_ms": 1729.4711079448462,
+        "mean_tpot_ms": 33.46065769510182,
+        "p95_tpot_ms": 64.22573486010411,
+        "initial_preload_wall_s": 51.918529408052564,
+        "physical_gpu_seconds": 15526.999222801998,
+        "n_correct": null
+      },
+      "evidence": {
+        "source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d318_20261007/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d318_7b_full_w0.json",
+        "source_sha256": "4c781c7b10890293130b425e7cc94dc80c96f3b3dd8037f89db53e1fb08ffb1b",
+        "physical_source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d318_20261007/7b_full_w0/launch.launch/physical_deployment/physical_resource_summary.json",
+        "physical_sha256": "3785bb0abae31ef1b9b5347f41f37d7a0116ebc6693cfa991ee93384fd8e9482",
+        "max_native_ttft_error_ms": 0.0,
+        "max_native_tpot_error_ms": 0.0,
+        "shared_trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+        "shared_adapter_subset_sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016"
+      },
+      "routing": {
+        "requests": 4000,
+        "candidate_views": 15473,
+        "feasible_views": 15281,
+        "violations": {
+          "q_below_witnessed_lower_bound": 0,
+          "pending_below_witnessed_lower_bound": 0,
+          "missing_witnessed_active_adapters": 0,
+          "admitted_bin_mismatch": 0,
+          "selection_key_mismatch": 0
+        },
+        "views_with_witnessed_native": 8099,
+        "views_with_witnessed_predispatch": 1601,
+        "views_with_witnessed_pending": 1059,
+        "selected_above_min_feasible_q": 2807,
+        "selected_q_histogram": {
+          "0": 896,
+          "1": 1118,
+          "2": 725,
+          "3": 501,
+          "4": 314,
+          "5": 203,
+          "6": 142,
+          "7": 101
+        },
+        "exact_controller_ownership_reconstruction": false,
+        "causal_performance_gain": null,
+        "caveat": "Lower bounds exclude pre-admission reservations and post-last-token cleanup; zero contradictions is not proof of exact equality. Selection replay is an implementation consistency check, not counterfactual performance."
+      },
+      "length_caveat": {
+        "causal_performance_gain": null,
+        "caveat": "Selected estimates versus their own observed outcome; unselected outcomes unknown. Completed token count equals the previously validated fixed target, not a new online future-length feature."
+      },
+      "declared_output_edges": [
+        256
+      ]
+    },
+    "d323": {
+      "stats": {
+        "completed": 4000,
+        "mean_ttft_ms": 1190.0323707520438,
+        "p95_ttft_ms": 2836.3462578272447,
+        "mean_queue_ms": 636.0025975548197,
+        "p95_queue_ms": 1860.2323338855058,
+        "mean_service_ms": 554.0297731972241,
+        "p95_service_ms": 1450.0878060935065,
+        "mean_tpot_ms": 30.700114995320956,
+        "p95_tpot_ms": 53.98719632648863,
+        "initial_preload_wall_s": 54.38844665698707,
+        "physical_gpu_seconds": 15727.543212047196,
+        "n_correct": null
+      },
+      "evidence": {
+        "source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d323_20261007/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d323_7b_full_w0.json",
+        "source_sha256": "a790cd59968a0d8d33bc017938467c1f818c5e5c617fb9628ab25a4843b5e991",
+        "physical_source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d323_20261007/7b_full_w0/launch.launch/physical_deployment/physical_resource_summary.json",
+        "physical_sha256": "252eea13bfaa07aea5d2dc34adb6fbda2990fc38c72f896dbae28e7f0a44401c",
+        "max_native_ttft_error_ms": 0.0,
+        "max_native_tpot_error_ms": 0.0,
+        "shared_trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+        "shared_adapter_subset_sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016"
+      },
+      "routing": {
+        "requests": 4000,
+        "candidate_views": 15638,
+        "feasible_views": 15593,
+        "violations": {
+          "q_below_witnessed_lower_bound": 0,
+          "pending_below_witnessed_lower_bound": 0,
+          "missing_witnessed_active_adapters": 0,
+          "admitted_bin_mismatch": 0,
+          "selection_key_mismatch": 0
+        },
+        "views_with_witnessed_native": 9236,
+        "views_with_witnessed_predispatch": 1395,
+        "views_with_witnessed_pending": 910,
+        "selected_above_min_feasible_q": 1855,
+        "selected_q_histogram": {
+          "0": 1360,
+          "1": 1386,
+          "2": 725,
+          "3": 346,
+          "4": 113,
+          "5": 42,
+          "6": 16,
+          "7": 12
+        },
+        "exact_controller_ownership_reconstruction": false,
+        "causal_performance_gain": null,
+        "caveat": "Lower bounds exclude pre-admission reservations and post-last-token cleanup; zero contradictions is not proof of exact equality. Selection replay is an implementation consistency check, not counterfactual performance."
+      },
+      "length_caveat": {
+        "causal_performance_gain": null,
+        "caveat": "Selected estimates versus their own observed outcome; unselected outcomes unknown. Completed token count equals the previously validated fixed target, not a new online future-length feature."
+      },
+      "declared_output_edges": [
+        24,
+        91,
+        217,
+        256
+      ]
+    }
+  },
+  "lifecycle": {
+    "runs": {
+      "d318": {
+        "gaps": [
+          {
+            "gpu": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+            "released_offset_s": 965.165552110062,
+            "reallocated_offset_s": 1069.2250348490197,
+            "duration_s": 104.05948273895774
+          },
+          {
+            "gpu": "GPU-dadf0267-9617-8824-cddb-82fba48a7b97",
+            "released_offset_s": 143.14849407901056,
+            "reallocated_offset_s": 363.3404431421077,
+            "duration_s": 220.19194906309713
+          }
+        ],
+        "released_gap_gpu_s": 324.25143180205487,
+        "observed_gpu_s": 15526.999222801998,
+        "causal_savings": null,
+        "envelope_gpu_s": 15851.250654604053,
+        "devices": {
+          "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036": {
+            "first_offset_s": 30.63525012601167,
+            "final_offset_s": 3977.1367002390325,
+            "envelope_gpu_s": 3946.501450113021
+          },
+          "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946": {
+            "first_offset_s": -36.79673672292847,
+            "final_offset_s": 3976.937457733089,
+            "envelope_gpu_s": 4013.7341944560176
+          },
+          "GPU-c4663821-4888-e199-7151-d6298f8d45a5": {
+            "first_offset_s": 32.709956248058006,
+            "final_offset_s": 3975.269766399055,
+            "envelope_gpu_s": 3942.559810150997
+          },
+          "GPU-dadf0267-9617-8824-cddb-82fba48a7b97": {
+            "first_offset_s": 28.576337003032677,
+            "final_offset_s": 3977.0315368870506,
+            "envelope_gpu_s": 3948.455199884018
+          }
+        }
+      },
+      "d323": {
+        "gaps": [
+          {
+            "gpu": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+            "released_offset_s": 683.1080373160075,
+            "reallocated_offset_s": 741.3210494569503,
+            "duration_s": 58.21301214094274
+          },
+          {
+            "gpu": "GPU-c4663821-4888-e199-7151-d6298f8d45a5",
+            "released_offset_s": 1265.9455243139528,
+            "reallocated_offset_s": 1323.379738701973,
+            "duration_s": 57.43421438802034
+          }
+        ],
+        "released_gap_gpu_s": 115.64722652896307,
+        "observed_gpu_s": 15727.543212047196,
+        "causal_savings": null,
+        "envelope_gpu_s": 15843.190438576159,
+        "devices": {
+          "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036": {
+            "first_offset_s": 32.840782482991926,
+            "final_offset_s": 3975.6921919189626,
+            "envelope_gpu_s": 3942.8514094359707
+          },
+          "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946": {
+            "first_offset_s": -37.584234169102274,
+            "final_offset_s": 3976.219569653971,
+            "envelope_gpu_s": 4013.8038038230734
+          },
+          "GPU-c4663821-4888-e199-7151-d6298f8d45a5": {
+            "first_offset_s": 34.90163328091148,
+            "final_offset_s": 3975.7906904319534,
+            "envelope_gpu_s": 3940.889057151042
+          },
+          "GPU-dadf0267-9617-8824-cddb-82fba48a7b97": {
+            "first_offset_s": 30.756378755904734,
+            "final_offset_s": 3976.402546921978,
+            "envelope_gpu_s": 3945.646168166073
+          }
+        }
+      }
+    },
+    "candidate_minus_reference_gpu_s": 200.54398924519774,
+    "envelope_boundary_delta_gpu_s": -8.060216027894057,
+    "reduced_release_gaps_gpu_s": 208.6042052730918,
+    "causal_savings": null,
+    "confidence_interval": null
+  },
+  "output_hash_differences": 209,
+  "same_input_vectors": true,
+  "new_performance_runs": 0,
+  "no_figures": true,
+  "n_correct": null,
+  "formal_qualification": false,
+  "confidence_interval": null
+}

@@ -11,7 +11,55 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D323 complete and audited; 7B resource goal remains open
+## CURRENT — D324 retained-data diagnosis complete; next is owned scale-in drain
+
+2026-10-07 ~23:45+08 PROGRESS, not a new performance run. Completed the ONE
+bounded D318/D323 service/lifecycle check using original4000 each. No inference,
+remote change, figures, serving/config change or threshold tuning. User cache
+approval already implemented D78/D80:1581215261B/500permodel, do not recreate.
+
+Selected O MAE2453.322128->671.100584ms(-72.65%); signed mean-62.701939->
+-110.232014ms retained. Short/long bias reduced, selected-above-minQ2807->1855;
+all five load/class/routing contradiction checks0. Sameinputvectors4000 and
+all209outputSHA differences retained. No numerical/formalSLO/G1/G2/CI claim.
+
+Physical decomposition is exact, not causal: envelope delta-8.060216GPU-s;
+observed release gaps324.251432->115.647227GPU-s, reduction208.604205;
+net U+200.543989GPU-s. Both runs2actualretirements, not fewerretirements.
+See D324_SERVICE_LIFECYCLE_DIAGNOSIS.md and d324_service_lifecycle/analysis1.
+
+NEXT SINGLE candidate: deterministic reproduction then owned withdraw->drain->
+physicalrelease, matching IEEE source line215 (SHA35da2d89...). D48faf5c85
+implemented idle-only retirement; current nonidle SCALE_DOWN returns
+awaiting_drained_replica but has already resetlow_since. D323observedthis at
+311.818820s(queue0/active6/cap32/pending0), nextactualdecision674.883314s.
+This is NOT363seconds of proven savings. Do not alter 3-signal law, thresholds,
+38s cooldown, profiles, routing formula or SLO; no kill-active/timer-reset-only
+patch. Must reconcile new-admission withdrawal, owned active completions,
+ready/admitted counts, physicaldevice reservations, planners and shutdown.
+Ray2.59.0official graceful-shutdown code/K8sHPA checked for mechanism boundary.
+No serving fix yet. Do not re-runD323/calibration or keep slicing these logs.
+
+53CPUtests6.689spass. Testscope e8a66b39d72e442289fd8cef2061c533 peak500260864B;
+datascope b2c8e0ceca8140a885efff59e6e95531 peak1489567744B; high/max/OOM/swap0,
+actualempty/populated0 beforestop. No activeGPUrun. Final23source/6outputSHAchecks
+pass; protected147 rawfalse onlyknownbaseline replaySHA; usermanifest unchanged.
+Verification scope6d83d2e67d0b4d73b14190c3b17faed7 peak13500416B/events0/swap0,
+empty. Diskfree161963716608B. Receipt d324_service_lifecycle/validation_checkpoint.json.
+Explicit-path Git backup follows; no serving/config/profile change to stage.
+Mainline remains7B->3B->baselines->comparisons->ablations/sensitivity; goalactive.
+
+## HISTORY — D323 complete and audited; 7B resource goal remains open
+
+Backup verified 2026-10-07T23:29:03+08:00: local HEAD and remote branch both
+535949ff5a80a50301d7c266206e8ab51e711c04.18 explicitly selected files committed;
+user manifest was not staged. Before this post-push note it was the only tracked
+dirty file. CSV CRLF was normalized to LF only; stripped-CR byte comparison
+passed and original CSV/manifest were retained in raw with hashes. Numeric
+values unchanged; formatter provenance is explicit in context1/manifest.json.
+All output SHA checks, syntax, diff and credential-pattern checks passed.
+No GPU compute process remains. This goal turn is PROGRESS: complete replay,
+actual release, data audits, safe archival and verified remote backup.
 
 PROGRESS 2026-10-07 ~23:20+08: D323 original4000 W0 finished, no restart.
 All4000 arrived/submitted/unique successful terminals/native-contract matched;
@@ -45,8 +93,8 @@ Freed1885448860B; free161993199616B atcheck. Compression scope650453d936dc47c49f
 peak260530176B/events0/swap0, empty/stopped. Receipt storage/20261007_d323_lossless_compression.json.
 Protected147 rawfalse ONLYknownbaseline replaySHA; usermanifest untouched.
 
-NEXT back up tested audit/scripts/curated data, then ONE bounded data-only
-D318/D323 physical-lifecycle and service-estimate check using existing records.
+NEXT ONE bounded data-only D318/D323 physical-lifecycle and service-estimate
+check using existing records; tested audit/scripts/curated backup is complete.
 Do not rerunD323/smokes/profile calibration or tune another policy before that
 evidence. Still7B first, then3B, thenbaselines; nofigures. Goal active.
 

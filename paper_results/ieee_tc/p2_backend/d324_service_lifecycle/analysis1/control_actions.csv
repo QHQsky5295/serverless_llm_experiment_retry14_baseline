@@ -1,0 +1,16 @@
+run,offset_s,queue,active,capacity,pending,p95_ttft_ms,action,outcome,queue_low,active_low,ttft_known,ttft_low,queue_active_low,ttft_only_blocks,all_low
+d318,28.403509419062175,0,3,8,0,14012.323506991379,scale_up,activation_scheduled,True,False,True,False,False,False,False
+d318,30.488410260062665,0,2,8,1,25300.9369490901,scale_up,activation_scheduled,True,False,True,False,False,False,False
+d318,32.54229703301098,0,0,8,2,25300.9369490901,scale_up,activation_scheduled,True,True,True,False,True,True,False
+d318,135.26275796210393,0,2,32,0,2251.2573123676702,scale_down,drained_replica_retired,True,True,True,True,True,False,True
+d318,362.30520396505017,3,12,24,0,2191.0403855144978,scale_up,activation_scheduled,False,False,True,True,False,False,False
+d318,956.1129462760873,0,5,32,0,1757.5106867589056,scale_down,drained_replica_retired,True,True,True,True,True,False,True
+d318,1068.8593272590078,0,15,24,0,2059.079129714519,scale_up,activation_scheduled,True,False,True,True,False,False,False
+d323,30.583287045010366,0,4,8,0,16167.486343998462,scale_up,activation_scheduled,True,False,True,False,False,False,False
+d323,32.68155969690997,0,1,8,1,27455.10395790916,scale_up,activation_scheduled,True,True,True,False,True,True,False
+d323,34.74355144100264,0,0,8,2,27455.10395790916,scale_up,activation_scheduled,True,True,True,False,True,True,False
+d323,311.8188203709433,0,6,32,0,1848.0765915010124,scale_down,awaiting_drained_replica,True,True,True,True,True,False,True
+d323,674.8833139709895,0,2,32,0,1434.5875640865415,scale_down,drained_replica_retired,True,True,True,True,True,False,True
+d323,741.0194973238977,0,13,24,0,1876.0890705743805,scale_up,activation_scheduled,True,False,True,True,False,False,False
+d323,1257.1195460599847,0,3,32,0,2012.9231245955452,scale_down,drained_replica_retired,True,True,True,True,True,False,True
+d323,1322.9668971860083,3,6,24,0,2192.3752382863313,scale_up,activation_scheduled,False,False,True,True,False,False,False

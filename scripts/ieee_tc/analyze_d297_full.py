@@ -952,6 +952,116 @@ def routing_length_diagnosis(candidates, requests):
         caveat='Selected estimates versus their own observed outcome; unselected outcomes unknown. Completed token count equals the previously validated fixed target, not a new online future-length feature.')
 
 
+def lifecycle_pair_decomposition(runs):
+    """Exact observed envelope-minus-gaps identity, not a policy counterfactual."""
+    if set(runs) != {'d318', 'd323'}:
+        raise ValueError('registered complete D318/D323 pair required')
+    summaries, devices = {}, {}
+    for name, run in runs.items():
+        p, d = run['physical'], run['deployment']
+        life = lifecycle_gaps(p, d)
+        origin = d['arrival_start_s']
+        if type(origin) not in (int, float) or not math.isfinite(origin):
+            raise ValueError('finite arrival origin required')
+        devices[name] = {}
+        for gpu, spans in p['device_intervals'].items():
+            if not spans:
+                raise ValueError('empty physical device history')
+            devices[name][gpu] = dict(first_offset_s=spans[0][0]-origin,
+                final_offset_s=spans[-1][1]-origin,
+                envelope_gpu_s=spans[-1][1]-spans[0][0])
+        envelope = sum(v['envelope_gpu_s'] for v in devices[name].values())
+        if abs(envelope-life['released_gap_gpu_s']-life['observed_gpu_s']) > 1e-6:
+            raise ValueError('envelope-minus-gap identity failed')
+        summaries[name] = dict(**life, envelope_gpu_s=envelope, devices=devices[name])
+    if set(devices['d318']) != set(devices['d323']):
+        raise ValueError('same physical device population required')
+    old, new = summaries['d318'], summaries['d323']
+    boundary = new['envelope_gpu_s']-old['envelope_gpu_s']
+    gaps = old['released_gap_gpu_s']-new['released_gap_gpu_s']
+    delta = new['observed_gpu_s']-old['observed_gpu_s']
+    if abs(boundary+gaps-delta) > 1e-6:
+        raise ValueError('paired resource decomposition failed')
+    return dict(runs=summaries, candidate_minus_reference_gpu_s=delta,
+        envelope_boundary_delta_gpu_s=boundary, reduced_release_gaps_gpu_s=gaps,
+        causal_savings=None, confidence_interval=None)
+
+
+def inspect_retained_service_lifecycle(output):
+    """D324: one bounded retained-data check after the complete D323 replay."""
+    global OUT
+    OUT = Path(output).resolve()
+    if OUT.exists():
+        raise FileExistsError(OUT)
+    assert sha256(PLAN) == '0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7'
+    assert sha256(PROTOCOL) == '5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22'
+    import yaml
+    identities = {'d318': '4c781c7b10890293130b425e7cc94dc80c96f3b3dd8037f89db53e1fb08ffb1b',
+                  'd323': 'a790cd59968a0d8d33bc017938467c1f818c5e5c617fb9628ab25a4843b5e991'}
+    paths = [PLAN, PROTOCOL, Path(__file__), ROOT/'scripts/ieee_tc/plot_d290_diagnostic.py',
+        ROOT/'faaslora/experiment/instance_pool.py']
+    runs, lifecycle, inputs, outputs, groups, actions = {}, {}, {}, {}, [], []
+    OUT.mkdir(parents=True, exist_ok=False)
+    for name, digest in identities.items():
+        prior = ROOT/f'paper_results/ieee_tc/p2_backend/{name}_full_w0/validated1'
+        seal = read(prior/'manifest.json')
+        for filename in ('audit.json', 'control_samples.csv'):
+            assert sha256(prior/filename) == seal['outputs'][filename]
+        audit = read(prior/'audit.json')
+        source = Path(audit['evidence']['source'])
+        assert sha256(source) == digest == audit['evidence']['source_sha256']
+        cfg_path = ROOT/f'configs/ieee_tc/20261007_{name}_7b_full_w0.yaml'
+        refs = {r['path']:r['sha256'] for r in seal['source_refs']}
+        assert sha256(cfg_path) == refs[str(cfg_path)]
+        config = yaml.safe_load(cfg_path.read_text())['resource_coordination']
+        profile = ROOT/config['ieee_service_profile']['path']
+        assert sha256(profile) == config['ieee_service_profile']['sha256']
+        stats, evidence, requests = audit_run(source)
+        assert len(requests) == 4000
+        assert evidence == audit['evidence']
+        physical_path = source.parent/'launch.launch/physical_deployment/summary.json'
+        deployment_path = source.parent/'launch.launch/physical_deployment/deployment.json'
+        physical, deployment = read(physical_path), read(deployment_path)
+        assert abs(physical['gpu_seconds']-stats['physical_gpu_seconds']) < 1e-6
+        lifecycle[name] = dict(physical=physical, deployment=deployment)
+        result = routing_load_consistency(requests, clock_id=deployment['clock_id'],
+            admitted_edges=read(profile)['bins']['admitted_requests'], delta_ms=config['service_bin_ms'])
+        candidates = result.pop('candidates')
+        projection = [dict(request_id=r['request_id'], tokens=r['completion_tokens'],
+            output_group='2-32' if r['completion_tokens']<=32 else '33-128' if r['completion_tokens']<=128 else '129-256',
+            first=r['native_token_timing']['native_first_token_monotonic_s'],
+            last=r['native_token_timing']['native_last_token_monotonic_s']) for r in requests]
+        lengths = routing_length_diagnosis(candidates, projection)
+        table(f'{name}_requests.csv', lengths.pop('requests'))
+        groups.extend(dict(run=name, **g) for g in lengths.pop('groups'))
+        runs[name] = dict(stats=stats, evidence=evidence, routing=result, length_caveat=lengths,
+            declared_output_edges=read(profile)['bins']['declared_output_tokens'])
+        inputs[name] = {r['request_id']:tuple(r[k] for k in ('adapter_id', 'scheduled_arrival_offset_s',
+            'canonical_prompt_sha256', 'requested_completion_tokens', 'generation_contract')) for r in requests}
+        outputs[name] = {r['request_id']:r['completion_token_ids_sha256'] for r in requests}
+        with (prior/'control_samples.csv').open(newline='') as handle:
+            actions.extend(dict(run=name, **r) for r in csv.DictReader(handle) if r['action'] != 'no_action')
+        paths.extend([source, cfg_path, profile, physical_path, deployment_path,
+            Path(evidence['physical_source']), prior/'manifest.json', prior/'audit.json', prior/'control_samples.csv'])
+        print(json.dumps(dict(run=name, requests=len(requests), violations=result['violations'],
+            length_groups=[g for g in groups if g['run']==name]), allow_nan=False), flush=True)
+        del requests, candidates, projection
+        gc.collect()
+    assert inputs['d318'] == inputs['d323']
+    differences = [dict(request_id=rid, reference_sha=outputs['d318'][rid], candidate_sha=outputs['d323'][rid])
+        for rid in sorted(inputs['d318']) if outputs['d318'][rid] != outputs['d323'][rid]]
+    life = lifecycle_pair_decomposition(lifecycle)
+    table('length_groups.csv', groups)
+    table('control_actions.csv', actions)
+    write('output_hash_differences.json', differences)
+    write('summary.json', dict(kind='d324_retained_service_lifecycle_v1', runs=runs, lifecycle=life,
+        output_hash_differences=len(differences), same_input_vectors=True, new_performance_runs=0,
+        no_figures=True, n_correct=None, formal_qualification=False, confidence_interval=None))
+    write('manifest.json', dict(source_refs=[dict(path=str(p), sha256=sha256(p)) for p in dict.fromkeys(paths)],
+        outputs={p.name:sha256(p) for p in sorted(OUT.iterdir())}, no_figures=True))
+    print(json.dumps(life, indent=2, allow_nan=False), flush=True)
+
+
 def inspect_retained_routing_lengths(output):
     global OUT
     OUT = Path(output).resolve()
@@ -1235,12 +1345,17 @@ if __name__ == '__main__':
         help='D320 retained D315/D318 routing load consistency, no inference')
     parser.add_argument('--routing-length-output', type=Path,
         help='D320 selected-cost length diagnosis using the sealed compact projections')
+    parser.add_argument('--service-lifecycle-output', type=Path,
+        help='D324 retained D318/D323 lifecycle and selected-service estimation check')
     args = parser.parse_args()
     if sum(x is not None for x in (args.admission_wait_output, args.decode_tail_output,
                                   args.native_load_output, args.prefill_output, args.route_copy_output,
-                                  args.lifecycle_output, args.routing_load_output, args.routing_length_output)) > 1:
+                                  args.lifecycle_output, args.routing_load_output, args.routing_length_output,
+                                  args.service_lifecycle_output)) > 1:
         parser.error('choose one retained diagnostic')
-    if args.routing_length_output is not None:
+    if args.service_lifecycle_output is not None:
+        inspect_retained_service_lifecycle(args.service_lifecycle_output)
+    elif args.routing_length_output is not None:
         inspect_retained_routing_lengths(args.routing_length_output)
     elif args.routing_load_output is not None:
         inspect_retained_routing_load(args.routing_load_output)

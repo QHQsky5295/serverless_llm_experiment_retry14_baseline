@@ -14,6 +14,7 @@ from scripts.ieee_tc.analyze_d297_full import (
     lifecycle_gaps, paired_timeline_groups, inspect_retained_lifecycle,
     routing_load_consistency, inspect_retained_routing_load,
     routing_length_diagnosis, inspect_retained_routing_lengths,
+    lifecycle_pair_decomposition, inspect_retained_service_lifecycle,
 )
 
 
@@ -179,6 +180,38 @@ class RetainedLifecycle(unittest.TestCase):
     def test_existing_output_rejected_before_any_hash_or_analysis(self):
         with tempfile.TemporaryDirectory() as root, self.assertRaises(FileExistsError):
             inspect_retained_lifecycle(root)
+
+    def resource_pair(self):
+        old = dict(physical=self.physical(), deployment=dict(clock_id='clock', arrival_start_s=10.))
+        new = dict(physical=dict(clock_id='new-clock', measurement_complete=True, open_lease_ids=[],
+            device_intervals={'gpu1': [[110., 120.], [122., 137.]], 'gpu2': [[110., 137.]]}, gpu_seconds=52.),
+            deployment=dict(clock_id='new-clock', arrival_start_s=110.))
+        return dict(d318=old, d323=new)
+
+    def test_pair_decomposes_boundaries_and_gaps_without_cross_run_clock_subtraction(self):
+        result = lifecycle_pair_decomposition(self.resource_pair())
+        self.assertEqual(result['candidate_minus_reference_gpu_s'], 7.)
+        self.assertEqual(result['envelope_boundary_delta_gpu_s'], 4.)
+        self.assertEqual(result['reduced_release_gaps_gpu_s'], 3.)
+        self.assertEqual(result['runs']['d323']['devices']['gpu1']['first_offset_s'], 0.)
+        self.assertIsNone(result['causal_savings'])
+        self.assertIsNone(result['confidence_interval'])
+
+    def test_pair_rejects_incomplete_or_different_device_population(self):
+        for case in ('missing', 'device', 'empty', 'origin'):
+            pair = self.resource_pair()
+            if case == 'missing': pair.pop('d318')
+            elif case == 'device':
+                spans = pair['d323']['physical']['device_intervals']
+                spans['other'] = spans.pop('gpu2')
+            elif case == 'empty': pair['d323']['physical']['device_intervals']['unused'] = []
+            else: pair['d323']['deployment']['arrival_start_s'] = float('nan')
+            with self.subTest(case=case), self.assertRaises(ValueError):
+                lifecycle_pair_decomposition(pair)
+
+    def test_combined_diagnostic_never_overwrites_existing_output(self):
+        with tempfile.TemporaryDirectory() as root, self.assertRaises(FileExistsError):
+            inspect_retained_service_lifecycle(root)
 
 
 class RegisteredD317Smoke(unittest.TestCase):
