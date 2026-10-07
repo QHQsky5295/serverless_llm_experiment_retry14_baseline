@@ -11,7 +11,22 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D322 preparation: one length-class smoke, then D323 complete W0
+## CURRENT — D322 attempt1 rejected before arrival; validate joint profile binding
+
+Firstlaunch48b6ea9:0/100arrived, no GPU lease; contexts released/servicegroup
+removed, remote InvocationIDs checked/stopped. Not a performance measurement.
+Actual runner required whole preparation/service contexts equal. D321 legitimately
+has separate historical/gap input provenance; no hash rewriting is allowed.
+Correction retains independent full payload/context/model validation and shared
+backend/resource/model equality, permits distinct calibration input provenance.
+No formula/EWMA/control/preparation data change.5targeted tests pass1.874s;
+full138tests pass53.897s; peak2242187264B/events/swap0. Actual joint-entry
+prelaunch pass160service/24prep; source references/protected147 checked. New
+attempt2 paths prepared, original evidence kept. RunnerSHA571c08a2090f6967...
+NEXT joint-entry preflight, testedbackup, one attempt2 smoke, then D323 complete
+4000W0 if valid. No newcalibration,3B/baselines orfigures. See D322 document.
+
+### D322 preparation history
 
 Only D321 service initialization is changed from D318; model/control/preparation/
 generation/inputs/serving formulas unchanged. New exclusive configs and existing

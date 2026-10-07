@@ -647,12 +647,16 @@ def verify_restored_full(campaign='d315'):
         classes={k:v['classes'] for k,v in profiles.items()})), flush=True)
 
 
-def length_candidate_config(previous, service_binding, *, smoke):
+def length_candidate_config(previous, service_binding, *, smoke, attempt=1):
     """Only the measured service classes and exclusive storage identities differ."""
+    if attempt not in (1, 2) or (attempt == 2 and not smoke):
+        raise ValueError('unknown length candidate attempt')
     candidate = copy.deepcopy(previous)
     campaign = 'd322' if smoke else 'd323'
     raw = '/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/' + campaign + '_20261007'
     stem = 'length_validation_100' if smoke else 'full_w0'
+    if attempt == 2:
+        stem += '_attempt2'
     candidate['experiment']['output_dir'] = raw + '/7b_' + stem
     candidate['storage']['nvme_cache_dir'] = raw + '/7b_nvme_' + stem
     candidate['storage']['host_cache_dir'] = '/dev/shm/tc-' + campaign + '-7b-' + stem.replace('_', '-')
@@ -661,7 +665,7 @@ def length_candidate_config(previous, service_binding, *, smoke):
     return candidate
 
 
-def verify_length_candidate(*, smoke=True):
+def verify_length_candidate(*, smoke=True, attempt=1):
     from scripts.run_all_experiments import (_prepare_scenario_runtime_model_config,
         _prepare_dedicated_subprocess_model_cfg)
     from faaslora.experiment.instance_pool import FrozenServiceProfiles
@@ -670,6 +674,9 @@ def verify_length_candidate(*, smoke=True):
     campaign = 'd322' if smoke else 'd323'
     stem = 'length_validation_100' if smoke else 'full_w0'
     out = root / ('paper_results/ieee_tc/p2_backend/' + campaign + '_length_candidate')
+    if attempt == 2:
+        stem += '_attempt2'
+        out = out/'attempt2'
     assert not out.exists(), 'append-only preparation'
     config = root / ('configs/ieee_tc/20261007_' + campaign + '_7b_' + stem + '.yaml')
     previous = root / 'configs/ieee_tc/20261007_d318_7b_full_w0.yaml'
@@ -687,7 +694,7 @@ def verify_length_candidate(*, smoke=True):
     binding = read(initialization/'binding.json')['ieee_service_profile']
     binding['path'] = str(Path(binding['path']).relative_to(root))
     c, old = (yaml.safe_load(x.read_text()) for x in (config, previous))
-    assert c == length_candidate_config(old, binding, smoke=smoke), 'undeclared candidate difference'
+    assert c == length_candidate_config(old, binding, smoke=smoke, attempt=attempt), 'undeclared candidate difference'
     for path in (c['experiment']['output_dir'], c['storage']['nvme_cache_dir'], c['storage']['host_cache_dir']):
         assert not Path(path).exists(), 'run/cache identity already exists'
     contract_path = root/'paper_results/ieee_tc/p2_backend/d298_capacity/development_contract.json'
@@ -703,16 +710,24 @@ def verify_length_candidate(*, smoke=True):
             expected_context=b['context'], beta=b['ewma_beta'])
         assert len(profile.profiles) == count
         profiles[key] = dict(profile_id=profile.profile_id, classes=count, binding=b)
+    # Exercise the actual joint runtime entry, not only the two standalone loaders.
+    from types import SimpleNamespace
+    from scripts.run_all_experiments import ScenarioRunner
+    bound = ScenarioRunner.__new__(ScenarioRunner)
+    bound.model_cfg, bound.engine = child, SimpleNamespace(model_cfg=child)
+    bound.coord_cfg = c['resource_coordination']
+    bound._service_profiles = bound._load_ieee_service_profiles()
+    assert len(bound._load_ieee_preparation_profiles().profiles) == 24
     refs = [config, previous, manifest_path, contract_path, Path(__file__),
         root/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh', root/'scripts/run_all_experiments.py']
     if not smoke:
-        smoke_path = root/'paper_results/ieee_tc/p2_backend/d322_length_candidate/smoke1/audit.json'
+        smoke_path = root/'paper_results/ieee_tc/p2_backend/d322_length_candidate/smoke2/audit.json'
         checked = read(smoke_path)
         assert checked['stats']['completed'] == 100
         assert checked['copy_retention_trigger']['observed_cumulative_retained_scopes_max'] > 0
         for row in checked['raw_evidence']:
             assert p.digest(Path(row['path'])) == row['sha256'], 'smoke evidence changed'
-        smoke_config = yaml.safe_load((root/'configs/ieee_tc/20261007_d322_7b_length_validation_100.yaml').read_text())
+        smoke_config = yaml.safe_load((root/'configs/ieee_tc/20261007_d322_7b_length_validation_100_attempt2.yaml').read_text())
         assert c['model'] == smoke_config['model'] and c['resource_coordination'] == smoke_config['resource_coordination']
         refs.append(smoke_path)
     seal = p.verify_seal(root/'paper_results/ieee_tc/safety/20260925_execution_start_protected.json')
@@ -725,7 +740,7 @@ def verify_length_candidate(*, smoke=True):
     receipt = dict(kind=campaign+'_length_candidate_binding_v1', passed=True,
         profiles=profiles, model_config=child, assembly=assembly, protection_raw=seal,
         source_references=[dict(path=str(x), sha256=p.digest(x)) for x in refs],
-        diagnostic_prefix_count=100 if smoke else None, formal_qualification=False,
+        diagnostic_prefix_count=100 if smoke else None, attempt=attempt, formal_qualification=False,
         n_correct=None, no_figures=True, only_service_initialization_changed=True)
     out.mkdir(parents=True, exist_ok=False)
     with (out/'prelaunch_binding.json').open('x') as stream:
@@ -736,6 +751,8 @@ def verify_length_candidate(*, smoke=True):
 if __name__ == '__main__':
     if sys.argv[1:] == ['--verify-length-smoke']:
         verify_length_candidate()
+    elif sys.argv[1:] == ['--verify-length-smoke-attempt2']:
+        verify_length_candidate(attempt=2)
     elif sys.argv[1:] == ['--verify-length-full']:
         verify_length_candidate(smoke=False)
     elif sys.argv[1:] == ['--output-class-gaps']:

@@ -55,6 +55,39 @@ full YAML before any GPU launch. The whole-config test detected it; corrected
 to the unchanged D318 admission profile. Failed CPU-test log is retained. No
 serving fix or relaxed assertion was used. Revalidation is required before launch.
 
+## First launch: rejected before arrival; independent-input binding correction
+
+Launch commit48b6ea9, diagnostic N_plan100,N_arrived0,N_submitted0. No GPU lease;
+observed GPU-s0 is an incomplete measurement, not a performance point. Launcher
+classified qualification_command_failure; actual service/context release passed,
+13watchdog samples, no OOM. Remote InvocationIDs checked before stop. Health was
+first queried before listen; its empty failed receipt is preserved under
+remote_health_startup_not_ready.json; the subsequent successful direct client
+receipt preserves its original flat schema. No request-time remote adjustment.
+
+The actual runner rejected unequal whole profile contexts. This guard originates
+in f3039c3, when service and preparation were jointly exported from one source.
+D321's service input hash correctly includes the different historical/gap samples
+and class definition; preparation's original input hash remains unchanged. A
+standalone-loader check missed the runner's extra equality assumption.
+
+The correction is dependency-specific, not a guessed hash or runtime fallback:
+both payloads independently require their exact SHA, own three context hashes,
+actual model configuration, real native samples and their own measured domains.
+Their shared backend and resource/delivery hashes and model identities must
+match. Input-provenance hashes may differ because preparation classes depend on
+exact content/representation/size, not request prompt/output class boundaries.
+Missing preparation or service classes still raise; no default samples or new
+preparation measurements. D+T+O, d, EWMA, routing and other policies unchanged.
+
+Tests exercise the actual two runner loaders, reject changed individual input
+bindings, common backend/resources, runtime and payload SHA; initial5tests pass
+1.874s. Verifier now uses that actual joint entry. Attempt2 uses fresh paths and
+retains the first attempt. Full configuration unchanged, but only the accepted
+attempt2 smoke can authorize it. Full138tests pass53.897s, peak2242187264B,
+events/swap0. Actual joint-entry prelaunch passes160service/24prep, peak501473280B.
+RunnerSHA571c08a2090f69671663f4687d80094dfcdc5e9ffae042a0e0f43b3b14beaf88.
+
 Next: tested backup, one D322 smoke, release/validate, then D323 full W0 if safe
 and structurally valid. Do not repeat calibration or move to3B/baselines yet.
 

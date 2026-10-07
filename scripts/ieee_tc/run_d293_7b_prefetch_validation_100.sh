@@ -124,6 +124,12 @@ case "${1:-d293}" in
     TAG=d322_7b_length_validation_100
     SCENARIO=tc_ieee_length_validation_100
     ;;
+  d322-attempt2)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d322_20261007/7b_length_validation_100_attempt2
+    CONFIG=configs/ieee_tc/20261007_d322_7b_length_validation_100_attempt2.yaml
+    TAG=d322_7b_length_validation_100_attempt2
+    SCENARIO=tc_ieee_length_validation_100
+    ;;
   d323)
     RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d323_20261007/7b_full_w0
     CONFIG=configs/ieee_tc/20261007_d323_7b_full_w0.yaml

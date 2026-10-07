@@ -634,6 +634,55 @@ class HistoricalServiceRebin(unittest.TestCase):
 
 
 class LengthCandidateConfiguration(unittest.TestCase):
+    def bound_runner(self):
+        import copy
+        import yaml
+        root = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+        cfg = yaml.safe_load((root/'configs/ieee_tc/20261007_d322_7b_length_validation_100.yaml').read_text())
+        contract = json.loads((root/'paper_results/ieee_tc/p2_backend/d298_capacity/development_contract.json').read_text())
+        service = runner.ScenarioRunner.__new__(runner.ScenarioRunner)
+        service.model_cfg = copy.deepcopy(contract['model_config'])
+        service.engine = SimpleNamespace(model_cfg=service.model_cfg)
+        service.coord_cfg = cfg['resource_coordination']
+        for key in ('ieee_service_profile', 'ieee_preparation_profile'):
+            service.coord_cfg[key]['path'] = str(root/service.coord_cfg[key]['path'])
+        service._service_profiles = service._load_ieee_service_profiles()
+        return service
+
+    def test_distinct_measured_inputs_bind_through_actual_runner(self):
+        service = self.bound_runner()
+        prep = service._load_ieee_preparation_profiles()
+        self.assertEqual(len(service._service_profiles.profiles), 160)
+        self.assertEqual(len(prep.profiles), 24)
+        self.assertEqual(service._service_profiles.model_config_json, prep.model_config_json)
+        self.assertNotEqual(service.coord_cfg['ieee_service_profile']['context']['input_contract_sha256'],
+                            service.coord_cfg['ieee_preparation_profile']['context']['input_contract_sha256'])
+
+    def test_each_input_binding_still_requires_its_exact_measured_payload(self):
+        for key in ('ieee_service_profile', 'ieee_preparation_profile'):
+            service = self.bound_runner()
+            service.coord_cfg[key]['context']['input_contract_sha256'] = 'f'*64
+            loader = service._load_ieee_service_profiles if key == 'ieee_service_profile' else service._load_ieee_preparation_profiles
+            with self.subTest(profile=key), self.assertRaisesRegex(ValueError, 'context mismatch'):
+                loader()
+
+    def test_shared_environment_and_resources_cannot_diverge(self):
+        for key in ('backend_environment_sha256', 'resource_envelope_sha256'):
+            service = self.bound_runner()
+            service.coord_cfg['ieee_service_profile']['context'][key] = 'f'*64
+            with self.subTest(key=key), self.assertRaisesRegex(ValueError, 'measurement contexts differ'):
+                service._load_ieee_preparation_profiles()
+
+    def test_runtime_and_payload_changes_remain_rejected(self):
+        service = self.bound_runner()
+        service.model_cfg['max_num_batched_tokens'] = 512
+        with self.assertRaisesRegex(ValueError, 'context mismatch'):
+            service._load_ieee_preparation_profiles()
+        service = self.bound_runner()
+        service.coord_cfg['ieee_preparation_profile']['sha256'] = 'f'*64
+        with self.assertRaisesRegex(ValueError, 'SHA256 mismatch'):
+            service._load_ieee_preparation_profiles()
+
     def test_measured_binding_is_the_only_policy_difference(self):
         import copy
         import yaml
@@ -643,15 +692,16 @@ class LengthCandidateConfiguration(unittest.TestCase):
         binding = json.loads((root/'paper_results/ieee_tc/p2_backend/d321_output_classes/initialization1/binding.json').read_text())['ieee_service_profile']
         binding['path'] = str(Path(binding['path']).relative_to(root))
         original = copy.deepcopy(old)
-        for smoke, campaign, stem in [(True, 'd322', 'length_validation_100'), (False, 'd323', 'full_w0')]:
+        for smoke, campaign, stem, attempt in [(True, 'd322', 'length_validation_100', 1),
+                (True, 'd322', 'length_validation_100_attempt2', 2), (False, 'd323', 'full_w0', 1)]:
             actual = yaml.safe_load((root/f'configs/ieee_tc/20261007_{campaign}_7b_{stem}.yaml').read_text())
-            self.assertEqual(actual, length_candidate_config(old, binding, smoke=smoke))
+            self.assertEqual(actual, length_candidate_config(old, binding, smoke=smoke, attempt=attempt))
             self.assertEqual(actual['workload']['total_requests'], 4000)
             self.assertEqual(actual['model'], old['model'])
             self.assertEqual(actual['resource_coordination']['ieee_preparation_profile'], old['resource_coordination']['ieee_preparation_profile'])
             changed = copy.deepcopy(actual)
             changed['resource_coordination']['ieee_scaling']['queue_upper'] += 1
-            self.assertNotEqual(changed, length_candidate_config(old, binding, smoke=smoke))
+            self.assertNotEqual(changed, length_candidate_config(old, binding, smoke=smoke, attempt=attempt))
         self.assertEqual(old, original)
 
 

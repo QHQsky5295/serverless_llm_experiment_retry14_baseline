@@ -7700,12 +7700,23 @@ class ScenarioRunner:
                 or not self.model_cfg.get('ieee_gpu_references', False)):
             raise ValueError('invalid IEEE measured preparation profile configuration')
         service_spec = self.coord_cfg.get('ieee_service_profile')
-        if service_spec is not None and spec['context'] != service_spec['context']:
-            raise ValueError('preparation/service measurement contexts differ')
         from faaslora.preloading.preloading_planner import FrozenPreparationProfiles
-        return FrozenPreparationProfiles.load(Path(spec['path']), expected_sha256=spec['sha256'],
+        profile = FrozenPreparationProfiles.load(Path(spec['path']), expected_sha256=spec['sha256'],
             model_config=self._ieee_profile_binding_model_config(),
             expected_context=spec['context'], beta=spec['ewma_beta'])
+        if service_spec is not None:
+            # Each loader binds its own input/measurement provenance and actual
+            # runtime configuration. Service classes include declared output;
+            # preparation classes use exact artifact content/representation/size.
+            # Their calibration inputs need not be identical. The shared backend
+            # and resource/delivery envelope must still be identical; neither
+            # profile's input hash is discarded, replaced or treated as a wildcard.
+            for key in ('backend_environment_sha256', 'resource_envelope_sha256'):
+                if spec['context'][key] != service_spec['context'][key]:
+                    raise ValueError('preparation/service measurement contexts differ: ' + key)
+            if profile.model_config_json != self._service_profiles.model_config_json:
+                raise ValueError('preparation/service actual runtime configurations differ')
+        return profile
 
     def _runtime_gpu_count_for_cfg(self, cfg: Optional[Dict[str, Any]] = None) -> int:
         effective_cfg = cfg if isinstance(cfg, dict) else getattr(self, "model_cfg", {})
