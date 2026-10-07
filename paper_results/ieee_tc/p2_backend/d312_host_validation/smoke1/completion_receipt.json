@@ -1,0 +1,63 @@
+{
+  "kind": "d312_native_smoke_completion_v1",
+  "source_execution_commit": "9b1c1171d559a0c4b65b421215def4f4025b60ea",
+  "source_result_sha256": "15fd5e6cb3147da440b0254244ca62ae882e8db475c13151e47ef7f6cc3ba7c2",
+  "launch_sha256": "33a5106dfe77c7eac271ea7303af7cc63e5c2c7e0cf53acf3372cd24b5984b89",
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "successful_returns": 100,
+  "failed": 0,
+  "planned": 100,
+  "n_correct": null,
+  "formal_qualification": false,
+  "full_w0_qualified": false,
+  "native_host_source_epoch_defect_seen": false,
+  "no_figures": true,
+  "cleanup": {
+    "launch_pass": true,
+    "service_returncode": 0,
+    "watchdog_returncode": 0,
+    "replay_returncode": 0,
+    "native_gpu_context_release_confirmed": true,
+    "service_path_removed": true,
+    "empty_terminal_gpu_census": true,
+    "remote_stopped_at": "2026-10-07T12:33:49+08:00",
+    "remote_monitor_first": true,
+    "remote_identity_verified": true,
+    "all_three_remote_units_inactive_and_success": true,
+    "aux_invocation": "7c38192a2f21450182a9cbebdd1c9be0",
+    "aux_peak": 161038336,
+    "aux_memory_events_zero": true,
+    "aux_swap_current": 0,
+    "aux_empty_verified_before_stop": true,
+    "analysis_invocation": "662d695916b049cfa3d2479a5dfc354f",
+    "analysis_peak": 121987072,
+    "analysis_memory_events_zero": true,
+    "analysis_swap_current": 0,
+    "analysis_empty_verified_before_stop": true
+  },
+  "remote_transfers_sha256": "36eb05e9c87496e19c6b07caa1307172c0c7108003b02081d37dfaf3cc470c10",
+  "remote_monitor_sha256": "cedc9023eba98b08a50e790e4a7b443a390fae83748acc5c2c9c13fe51771e3b",
+  "audit_sha256": "098c400b984db85e246df112c61139faae2122a97673a85c628f5cf86f58c3f6",
+  "interpretation": "100 native contracts pass. Single-prefix descriptive improvements versus D310 do not establish causal speedup, numerical correctness, full W0 or formal SLO/G1/G2 qualification. Next: unchanged candidate in fresh full4000 W0; no retuning or repeated source profiling.",
+  "prelaunch_tests": {
+    "tests": 309,
+    "seconds": 21.987,
+    "errors": 0,
+    "log_sha256": "d0ce29da0b6d4a056e2fb8d44210cec7dc34ca66bf9cc068af7a5a67a6ca93b2"
+  },
+  "prelaunch_scope": {
+    "invocation": "820be435ca4a424c994ac1bfc7666022",
+    "peak_bytes": 496459776,
+    "all_memory_events_zero": true,
+    "swap_current": 0,
+    "empty_verified_then_stopped": true
+  },
+  "smoke_test_scope": {
+    "invocation": "b413af3e5a9d41d7b75479626cac4add",
+    "peak_bytes": 1169199104,
+    "all_memory_events_zero": true,
+    "swap_current": 0,
+    "empty_verified_then_stopped": true
+  }
+}

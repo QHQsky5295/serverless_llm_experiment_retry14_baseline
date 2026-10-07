@@ -114,3 +114,35 @@ unchanged. Two initial read-only lookup attempts used nonexistent interface/
 script paths; neither changed services or data. Actual route/unit definitions
 supplied the paths used for the successful checks. No hardware extrapolation
 or remote service adjustment is inferred from link speed.
+
+## Native100 completed and audited (2026-10-07 12:34+08)
+
+Execution9b1c1171d559a0c4b65b421215def4f4025b60ea;
+resultSHA15fd5e6cb3147da440b0254244ca62ae882e8db475c13151e47ef7f6cc3ba7c2.
+100/100successful returns, fixed-length native timing and ten saved binding
+checks pass.29transfers/50,650,865wirebytes pair with remote, no request packing.
+265resource samples: peak19,406,376,960B, minimum host available93,270,421,504B,
+zero high/max/OOM/OOM-kill/swap. Native GPUcontexts released and service path
+removed. Exactremoteidentities checked thenmonitor-first stopped12:33:49;
+allthreeunitsinactive/success. Auxiliary and audit scopes empty-checked/stopped.
+Physical measurement is complete with no open leases; N_correct stays unknown.
+
+| Same100-request prefix | D310 | D312 | Descriptive reduction |
+|---|---:|---:|---:|
+| Mean TTFT / ms | 1175.321556 | 1018.513423 | 13.34% |
+| P95 TTFT / ms | 2994.614306 | 2401.525333 | 19.81% |
+| Mean TPOT / ms | 27.899638 | 27.591759 | 1.10% |
+| P95 TPOT / ms | 34.857805 | 33.803534 | 3.02% |
+| Physical GPU-s | 805.409961 | 799.027391 | 0.79% |
+
+All shown candidate observations improved, but this is one run of an identical
+prefix, not a causal speedup or statistical superiority result. D170 provisional
+timing passes98/100, versus96/100previously; it is not the final common SLO or
+numerical correctness qualification. Do not extrapolate GPU-s or replace the
+retained failedD309/D311 evidence. Reuse D307 profiles; next is original full4000
+W0 with unchanged settings, in freshD313paths after tested backup.
+
+Curated data: `paper_results/ieee_tc/p2_backend/d312_host_validation/smoke1/`;
+auditSHA098c400b984db85e246df112c61139faae2122a97673a85c628f5cf86f58c3f6.
+Raw and curated completion receipts retain exact source and remote checksums.
+No figure, source recalibration, new workload or baseline run was performed.

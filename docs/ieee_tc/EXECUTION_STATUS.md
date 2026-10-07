@@ -11,7 +11,62 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D312 native100 prepared, same settings; backup then launch once
+## CURRENT — D312 native100 completed/audited; backup then unchanged full4000 next
+
+2026-10-07 12:35+08. This turn=progress: native100samecandidatecompleted/audited.
+100/100successful; resultSHA15fd5e6cb3147da440b0254244ca62ae882e8db475c13151e47ef7f6cc3ba7c2.
+Launchpass/all3returncodes0,nativeGPUcontextrelease/servicepathremovedconfirmed.
+Remoteidentitieschecked thenMONITOR FIRST stopped12:33:49;all3inactive/MainPID0/
+success. Exactjournal/monitorcopiedonce,SHA36eb05e9.../cedc9023....
+AuxInvocation7c38192a2f21450182a9cbebdd1c9be0 emptychecked/stopped,
+peak161038336B/events0/swap0. AnalysisInvocation662d695916b049cfa3d2479a5dfc354f
+emptychecked/stopped,peak121987072B/events0/swap0. NoGPU/remote/CPUjobrunning.
+
+Existing data-only audit passes fixed-output native timing/10binding checks;
+29transfers/50650865wirebytesmatchremote,nopacking.265resourcesamples,
+peak19406376960B,minhost93270421504B,zero high/max/OOM/swap. Protected147seal:
+only known authorizedbaseline replaychange, rawpassfalse preserved.
+MeanTTFT1018.513423ms,P952401.525333ms,meanTPOT27.591759ms,P9533.803534ms,
+physicalU799.027391GPU-s. VersusD310: meanTTFT-13.34%,P95TTFT-19.81%,
+meanTPOT-1.10%,P95TPOT-3.02%,U-0.79%. Oneprefix observation, no causal/statistical
+win orwhole-W0claim. D170provisionaltiming98/100only;N_correct/formalSLOunknown.
+Curatedpaper_results/ieee_tc/p2_backend/d312_host_validation/smoke1/;
+auditSHA098c400b984db85e246df112c61139faae2122a97673a85c628f5cf86f58c3f6.
+Raw/curatedcompletion_receipt.jsonsaveallidentities/cleanup/sourcehashes.
+
+Next: backup audited results, prepare freshD313original4000W0 with ALLD311model,
+control,generation,arrivalandD307profilesunchanged; onlynewoutput/coldpaths.
+Use existingrunner/prelaunch, noextra100repeat, profiling, budgetscan orretune.
+NoD313config/service/launchexistsyet. Fullplan/V1readthisturn; rereadnextturn.
+Keep7B->3B->baselines;nofigures. Numerical/warm/Residentqualificationremainsopen.
+
+## HISTORY — D312 native100 RUNNING; monitor the same handles, no retune
+
+2026-10-07 12:29+08. LaunchedONCE12:28:23 in tmuxprimelora_d312_smoke,
+existingrunner explicitd312, backed-upsource9b1c1171d559a0c4b65b421215def4f4025b60ea
+(remoteHEADverified). Rawresults/ieee_tc/p2_backend_qualification/d312_20261007/7b_prefill_validation_100.
+SameD310settings/D307profiles; no additional servingchange. Plan/V1readfully.
+
+Localserviceprimelora-tc-svc-8ec460d17f094114b2654dcdb5733822.scope,
+Invocatione75f86030ea4499d8fb53a7da928f367,inode19665756;auxiliary
+primelora-tc-aux-6ad537d54fce4e2eab844ac6cb053516.scope.
+WatchdogPID650198/start85455208,service sample21fresh,noabort/events/swap.
+Hostavailable111091310592B,service1903022080B;initializing,notcomplete.
+Do not relaunch when observation waits expire. No serving/config change whilelive.
+
+Remoteidentitiescapturedinrawlaunch_identity.json:
+3B263cad0014bd4467a225cf536c16e7f4/PID1647451;
+7B21063adba0ac4c1688ee3fa150cc9f8b/PID1647453;
+monitor3dc7f42e524b45038711e6562c67068b/PID1647456,
+unitprimelora-artifact-monitor-d312.service. Actualeno1NIC1000/full.
+Authenticatedhealthpassedprelaunch;7Bclockremote-process-monotonic:db3ca84d79724e23b25386eb272ce8a1.
+ExactremotejournalD80/7b/transfers-3edd13a5dee847a39564f5e2d5272cc2.jsonl.
+Afterlocalterminal/cleanup,verifyallremoteidentities thenstopMONITOR FIRST,
+copyexactjournalassmoke_remote_transfers.jsonlandmonitorassmoke_remote_monitor.log.
+Runexistinganalyze_d298_smoke --campaign d312 inboundedCPUdomainafterrelease.
+Nofigures,recalibration,3B/baselines;formalnumerical/warm/Residentqualificationopen.
+
+## HISTORY — D312 native100 prepared, same settings; backup then launch once
 
 2026-10-07 12:27+08. Previous goal turn=progress:972testrepair/failureaudit/push
 completed, remoteHEAD3118892b67392b53ccb77b8659af5f8efeaed386 verified. This turn

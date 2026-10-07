@@ -1,0 +1,3293 @@
+{
+  "kind": "saved_native_binding_audit_v1",
+  "runs": {
+    "reference": {
+      "source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d310_20261007/7b_prefill_validation_100/experiment_results_full_vllm_dedicated_a500_r100_c2_tc_ieee_prefill_validation_100_d310_7b_prefill_validation_100.json",
+      "sha256": "5410400edf56e5fd1c814f4e8cb58b9fcac81f5f71dbbce9d282086061af44ea",
+      "rows": [
+        {
+          "request_id": "req_00000",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00001",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00002",
+          "adapter_id": "writing_lora_0011",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00003",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00004",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00005",
+          "adapter_id": "legal_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00006",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00007",
+          "adapter_id": "translate_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00008",
+          "adapter_id": "research_lora_0008",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00009",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00010",
+          "adapter_id": "finance_lora_0013",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00011",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00012",
+          "adapter_id": "code_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00013",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00014",
+          "adapter_id": "research_lora_0008",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00015",
+          "adapter_id": "code_lora_0015",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00016",
+          "adapter_id": "education_lora_0043",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00017",
+          "adapter_id": "education_lora_0007",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00018",
+          "adapter_id": "ecommerce_lora_0009",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00019",
+          "adapter_id": "education_lora_0007",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00020",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00021",
+          "adapter_id": "medical_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00022",
+          "adapter_id": "medical_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00023",
+          "adapter_id": "medical_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00024",
+          "adapter_id": "code_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00025",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00026",
+          "adapter_id": "finance_lora_0037",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00027",
+          "adapter_id": "research_lora_0008",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00028",
+          "adapter_id": "medical_lora_0014",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00029",
+          "adapter_id": "code_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00030",
+          "adapter_id": "gaming_lora_0010",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00031",
+          "adapter_id": "security_lora_0012",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00032",
+          "adapter_id": "translate_lora_0018",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00033",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00034",
+          "adapter_id": "medical_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00035",
+          "adapter_id": "medical_lora_0038",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00036",
+          "adapter_id": "medical_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00037",
+          "adapter_id": "code_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00038",
+          "adapter_id": "support_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00039",
+          "adapter_id": "medical_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00040",
+          "adapter_id": "medical_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00041",
+          "adapter_id": "education_lora_0031",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00042",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00043",
+          "adapter_id": "legal_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00044",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00045",
+          "adapter_id": "ecommerce_lora_0009",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00046",
+          "adapter_id": "support_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00047",
+          "adapter_id": "code_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00048",
+          "adapter_id": "translate_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00049",
+          "adapter_id": "medical_lora_0026",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00050",
+          "adapter_id": "medical_lora_0014",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00051",
+          "adapter_id": "translate_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00052",
+          "adapter_id": "gaming_lora_0010",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00053",
+          "adapter_id": "support_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00054",
+          "adapter_id": "code_lora_0039",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00055",
+          "adapter_id": "medical_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00056",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00057",
+          "adapter_id": "code_lora_0027",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00058",
+          "adapter_id": "gaming_lora_0010",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00059",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00060",
+          "adapter_id": "translate_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00061",
+          "adapter_id": "translate_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00062",
+          "adapter_id": "medical_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00063",
+          "adapter_id": "writing_lora_0035",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00064",
+          "adapter_id": "writing_lora_0023",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00065",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00066",
+          "adapter_id": "medical_lora_0038",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00067",
+          "adapter_id": "legal_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00068",
+          "adapter_id": "legal_lora_0017",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00069",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00070",
+          "adapter_id": "education_lora_0007",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00071",
+          "adapter_id": "code_lora_0027",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00072",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00073",
+          "adapter_id": "code_lora_0015",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00074",
+          "adapter_id": "medical_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00075",
+          "adapter_id": "gaming_lora_0010",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00076",
+          "adapter_id": "translate_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00077",
+          "adapter_id": "medical_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00078",
+          "adapter_id": "research_lora_0008",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00079",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00080",
+          "adapter_id": "ecommerce_lora_0009",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00081",
+          "adapter_id": "research_lora_0032",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00082",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00083",
+          "adapter_id": "writing_lora_0011",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00084",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00085",
+          "adapter_id": "education_lora_0007",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00086",
+          "adapter_id": "education_lora_0019",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00087",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00088",
+          "adapter_id": "support_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00089",
+          "adapter_id": "support_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00090",
+          "adapter_id": "writing_lora_0011",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00091",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00092",
+          "adapter_id": "code_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00093",
+          "adapter_id": "medical_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00094",
+          "adapter_id": "support_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00095",
+          "adapter_id": "medical_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00096",
+          "adapter_id": "gaming_lora_0034",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00097",
+          "adapter_id": "medical_lora_0026",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00098",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00099",
+          "adapter_id": "writing_lora_0023",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        }
+      ],
+      "control_binding_pass_count": 100
+    },
+    "candidate": {
+      "source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d312_20261007/7b_prefill_validation_100/experiment_results_full_vllm_dedicated_a500_r100_c2_tc_ieee_prefill_validation_100_d312_7b_prefill_validation_100.json",
+      "sha256": "15fd5e6cb3147da440b0254244ca62ae882e8db475c13151e47ef7f6cc3ba7c2",
+      "rows": [
+        {
+          "request_id": "req_00000",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00001",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00002",
+          "adapter_id": "writing_lora_0011",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00003",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00004",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00005",
+          "adapter_id": "legal_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00006",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00007",
+          "adapter_id": "translate_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00008",
+          "adapter_id": "research_lora_0008",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00009",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00010",
+          "adapter_id": "finance_lora_0013",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00011",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00012",
+          "adapter_id": "code_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00013",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00014",
+          "adapter_id": "research_lora_0008",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00015",
+          "adapter_id": "code_lora_0015",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00016",
+          "adapter_id": "education_lora_0043",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00017",
+          "adapter_id": "education_lora_0007",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00018",
+          "adapter_id": "ecommerce_lora_0009",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00019",
+          "adapter_id": "education_lora_0007",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00020",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00021",
+          "adapter_id": "medical_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00022",
+          "adapter_id": "medical_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00023",
+          "adapter_id": "medical_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00024",
+          "adapter_id": "code_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00025",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00026",
+          "adapter_id": "finance_lora_0037",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00027",
+          "adapter_id": "research_lora_0008",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00028",
+          "adapter_id": "medical_lora_0014",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00029",
+          "adapter_id": "code_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00030",
+          "adapter_id": "gaming_lora_0010",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00031",
+          "adapter_id": "security_lora_0012",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00032",
+          "adapter_id": "translate_lora_0018",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00033",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00034",
+          "adapter_id": "medical_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00035",
+          "adapter_id": "medical_lora_0038",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00036",
+          "adapter_id": "medical_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00037",
+          "adapter_id": "code_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00038",
+          "adapter_id": "support_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00039",
+          "adapter_id": "medical_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00040",
+          "adapter_id": "medical_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00041",
+          "adapter_id": "education_lora_0031",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00042",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00043",
+          "adapter_id": "legal_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00044",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00045",
+          "adapter_id": "ecommerce_lora_0009",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00046",
+          "adapter_id": "support_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00047",
+          "adapter_id": "code_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00048",
+          "adapter_id": "translate_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00049",
+          "adapter_id": "medical_lora_0026",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00050",
+          "adapter_id": "medical_lora_0014",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00051",
+          "adapter_id": "translate_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00052",
+          "adapter_id": "gaming_lora_0010",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00053",
+          "adapter_id": "support_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00054",
+          "adapter_id": "code_lora_0039",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00055",
+          "adapter_id": "medical_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00056",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00057",
+          "adapter_id": "code_lora_0027",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00058",
+          "adapter_id": "gaming_lora_0010",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00059",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00060",
+          "adapter_id": "translate_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00061",
+          "adapter_id": "translate_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00062",
+          "adapter_id": "medical_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00063",
+          "adapter_id": "writing_lora_0035",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00064",
+          "adapter_id": "writing_lora_0023",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00065",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00066",
+          "adapter_id": "medical_lora_0038",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00067",
+          "adapter_id": "legal_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00068",
+          "adapter_id": "legal_lora_0017",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00069",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00070",
+          "adapter_id": "education_lora_0007",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00071",
+          "adapter_id": "code_lora_0027",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00072",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00073",
+          "adapter_id": "code_lora_0015",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00074",
+          "adapter_id": "medical_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00075",
+          "adapter_id": "gaming_lora_0010",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00076",
+          "adapter_id": "translate_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00077",
+          "adapter_id": "medical_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00078",
+          "adapter_id": "research_lora_0008",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00079",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00080",
+          "adapter_id": "ecommerce_lora_0009",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00081",
+          "adapter_id": "research_lora_0032",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00082",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00083",
+          "adapter_id": "writing_lora_0011",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00084",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00085",
+          "adapter_id": "education_lora_0007",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00086",
+          "adapter_id": "education_lora_0019",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00087",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00088",
+          "adapter_id": "support_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00089",
+          "adapter_id": "support_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00090",
+          "adapter_id": "writing_lora_0011",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00091",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00092",
+          "adapter_id": "code_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00093",
+          "adapter_id": "medical_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00094",
+          "adapter_id": "support_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00095",
+          "adapter_id": "medical_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00096",
+          "adapter_id": "gaming_lora_0034",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00097",
+          "adapter_id": "medical_lora_0026",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00098",
+          "adapter_id": "finance_lora",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        },
+        {
+          "request_id": "req_00099",
+          "adapter_id": "writing_lora_0023",
+          "checks": {
+            "request_adapter_binding": true,
+            "owner_binding": true,
+            "lease_binding": true,
+            "native_adapter_binding": true,
+            "slot_binding": true,
+            "frozen_content_binding": true,
+            "acquired_and_released": true,
+            "common_native_clock": true,
+            "acquired_before_dispatch": true,
+            "token_digest_transport": true
+          }
+        }
+      ],
+      "control_binding_pass_count": 100
+    }
+  },
+  "changed_requests": [
+    {
+      "request_id": "req_00005",
+      "adapter_id": "legal_lora",
+      "native_prompt_hash_equal": true,
+      "reference_tier": "remote",
+      "candidate_tier": "remote",
+      "first_token_divergence_position": null,
+      "native_logits_available": false,
+      "batch_membership_available": false,
+      "numerical_cause_proven": false
+    },
+    {
+      "request_id": "req_00043",
+      "adapter_id": "legal_lora",
+      "native_prompt_hash_equal": true,
+      "reference_tier": "host",
+      "candidate_tier": "host",
+      "first_token_divergence_position": null,
+      "native_logits_available": false,
+      "batch_membership_available": false,
+      "numerical_cause_proven": false
+    },
+    {
+      "request_id": "req_00046",
+      "adapter_id": "support_lora",
+      "native_prompt_hash_equal": true,
+      "reference_tier": "gpu",
+      "candidate_tier": "nvme",
+      "first_token_divergence_position": null,
+      "native_logits_available": false,
+      "batch_membership_available": false,
+      "numerical_cause_proven": false
+    },
+    {
+      "request_id": "req_00059",
+      "adapter_id": "finance_lora",
+      "native_prompt_hash_equal": true,
+      "reference_tier": "gpu",
+      "candidate_tier": "gpu",
+      "first_token_divergence_position": null,
+      "native_logits_available": false,
+      "batch_membership_available": false,
+      "numerical_cause_proven": false
+    },
+    {
+      "request_id": "req_00074",
+      "adapter_id": "medical_lora",
+      "native_prompt_hash_equal": true,
+      "reference_tier": "host",
+      "candidate_tier": "gpu",
+      "first_token_divergence_position": null,
+      "native_logits_available": false,
+      "batch_membership_available": false,
+      "numerical_cause_proven": false
+    },
+    {
+      "request_id": "req_00091",
+      "adapter_id": "finance_lora",
+      "native_prompt_hash_equal": true,
+      "reference_tier": "gpu",
+      "candidate_tier": "gpu",
+      "first_token_divergence_position": null,
+      "native_logits_available": false,
+      "batch_membership_available": false,
+      "numerical_cause_proven": false
+    }
+  ],
+  "content_index": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json",
+  "content_index_sha256": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c",
+  "script_sha256": "fdb7898478701b4142bfc15feb231f9c94da566215ec1247ad1ddf6e58d98f9d",
+  "numerical_qualification": false,
+  "formal_qualification": false,
+  "interpretation": "control_witness_consistency_only_not_actual_kernel_arithmetic"
+}
