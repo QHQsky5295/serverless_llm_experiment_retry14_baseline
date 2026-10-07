@@ -422,6 +422,133 @@ def inspect_retained_waits(output):
         new_performance_runs=0), indent=2), flush=True)
 
 
+def prefill_overlap_summary(requests, retained, *, clock_id):
+    """First-schedule to first-token envelope; never call this kernel time."""
+    prior = {r['request_id']: r for r in retained}
+    if (not requests or len(prior) != len(retained) or len(requests) != len(retained)
+            or len({r['request_id'] for r in requests}) != len(requests)
+            or {r['request_id'] for r in requests} != set(prior)):
+        raise ValueError('complete unique retained and native request identities required')
+    records, owners = [], {}
+    for q in requests:
+        r, n = prior[q['request_id']], q['native_token_timing']
+        e = q['gpu_reference_evidence']['receipt']
+        dispatch, queued, scheduled, first, last = [n[k] for k in (
+            'native_dispatch_monotonic_s', 'native_queued_monotonic_s',
+            'native_scheduled_monotonic_s', 'native_first_token_monotonic_s',
+            'native_last_token_monotonic_s')]
+        if (not all(type(x) in (int, float) and math.isfinite(x)
+                    for x in (dispatch, queued, scheduled, first, last))
+                or not dispatch <= queued <= scheduled <= first < last
+                or q['success'] is not True or type(q['completion_tokens']) is not int
+                or not 2 <= q['completion_tokens'] <= 256
+                or e['clock_id'] != clock_id or n['native_clock_id'] != clock_id
+                or e['owner_id'] != r['owner'] or n['gpu_reference_owner_id'] != r['owner']
+                or e['worker_pid'] != r['worker_pid'] or q['instance_id'] != r['replica']
+                or first != r['first'] or last != r['last'] or dispatch != r['dispatched']
+                or q['completion_tokens'] != r['tokens']
+                or abs((last-first)*1000/(q['completion_tokens']-1)-r['tpot_ms']) > 1e-6
+                or any(type(r[k]) is not bool for k in ('load_overlap', 'startup_overlap', 'timing_tpot_miss'))):
+            raise ValueError('native prefill interval/owner differs from sealed projection')
+        row = {k:r[k] for k in ('request_id', 'owner', 'replica', 'worker_pid', 'tokens', 'output_group',
+            'prompt_tokens', 'first', 'last', 'tpot_ms', 'timing_tpot_miss', 'load_overlap',
+            'startup_overlap', 'mean_other_native_requests')}
+        row.update(scheduled=scheduled, prefill_envelope_ms=(first-scheduled)*1000,
+            decode_s=last-first)
+        records.append(row)
+        owners.setdefault(row['owner'], []).append(row)
+    for r in records:
+        peers = [q for q in owners[r['owner']] if q['request_id'] != r['request_id']
+            and max(r['first'],q['scheduled']) < min(r['last'],q['first'])]
+        end, total = -math.inf, 0.
+        for a, b in sorted((max(r['first'],q['scheduled']),min(r['last'],q['first'])) for q in peers):
+            total += max(0., b-max(a,end))
+            end = max(end,b)
+        r.update(peer_prefill_count=len(peers), prefill_overlap=bool(peers),
+            prefill_overlap_s=total, prefill_decode_fraction=total/r['decode_s'])
+    groups=[]
+
+    def add(name, label, rs):
+        groups.append(dict(group=name,label=label,count=len(rs),
+            timing_tpot_misses=sum(r['timing_tpot_miss'] for r in rs),
+            mean_tpot_ms=mean(r['tpot_ms'] for r in rs) if rs else None,
+            p95_tpot_ms=percentile([r['tpot_ms'] for r in rs],.95) if rs else None,
+            mean_prefill_decode_fraction=mean(r['prefill_decode_fraction'] for r in rs) if rs else None,
+            mean_other_native_requests=mean(r['mean_other_native_requests'] for r in rs) if rs else None))
+
+    add('all','all',records)
+    for flag in (False,True):
+        add('prefill_overlap',flag,[r for r in records if r['prefill_overlap']==flag])
+        add('no_startup_no_load_x_prefill',flag,[r for r in records
+            if not r['startup_overlap'] and not r['load_overlap'] and r['prefill_overlap']==flag])
+        for length in ('2-32','33-128','129-256'):
+            add('output_x_prefill',f'{length}/{flag}',[r for r in records
+                if r['output_group']==length and r['prefill_overlap']==flag])
+    for load in (False,True):
+        for prefill in (False,True):
+            add('load_x_prefill',f'{load}/{prefill}',[r for r in records
+                if r['load_overlap']==load and r['prefill_overlap']==prefill])
+    return dict(requests=records,groups=groups,n_correct=None,formal_qualification=False,
+        confidence_interval=None, request_count=len(records),
+        mean_prefill_envelope_ms=mean(r['prefill_envelope_ms'] for r in records),
+        p95_prefill_envelope_ms=percentile([r['prefill_envelope_ms'] for r in records],.95),
+        caveats=['First-schedule to first-token is a service envelope, not kernel prefill time.',
+            'This is not a joint-batch or token-iteration witness; utility work can coexist in the envelope.',
+            'Same-clock same-owner exposure only; slower requests have more opportunity to overlap.',
+            'Concurrency and conditional populations differ; no causal subtraction or independent replicates.',
+            'D170 timing threshold remains provisional; no formal SLO or numerical qualification.'])
+
+
+def inspect_retained_prefill(output):
+    global OUT
+    OUT=Path(output).resolve()
+    if OUT.exists():
+        raise FileExistsError(OUT)
+    assert sha256(PLAN)=='0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7'
+    assert sha256(PROTOCOL)=='5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22'
+    prior=ROOT/'paper_results/ieee_tc/p2_backend/d305_native_overlap/analysis3'
+    seal=read(prior/'manifest.json')
+    for name,digest in seal['outputs'].items():
+        assert sha256(prior/name)==digest
+    summaries,groups={},[]
+    paths=[PLAN,PROTOCOL,Path(__file__),ROOT/'scripts/ieee_tc/plot_d290_diagnostic.py',
+        prior/'manifest.json',prior/'summary.json']
+    OUT.mkdir(parents=True,exist_ok=False)
+    for name in ('d300','d303'):
+        source_ref=read(prior/'summary.json')['runs'][name]['source']
+        source=Path(source_ref['source'])
+        assert sha256(source)==source_ref['source_sha256']
+        _,evidence,requests=audit_run(source)
+        projection=prior/f'{name}_native_intervals.csv'
+        with projection.open(newline='') as handle:
+            records=list(csv.DictReader(handle))
+        for r in records:
+            for k in ('prompt_tokens','tokens','worker_pid'):
+                r[k]=int(r[k])
+            for k in ('load_overlap','startup_overlap','timing_tpot_miss'):
+                if r[k] not in ('True','False'):
+                    raise ValueError('invalid retained boolean')
+                r[k]=r[k]=='True'
+            for k in ('dispatched','first','last','tpot_ms','mean_other_native_requests'):
+                r[k]=float(r[k])
+        deployment=source.parent/'launch.launch/physical_deployment/deployment.json'
+        result=prefill_overlap_summary(requests,records,clock_id=read(deployment)['clock_id'])
+        assert result['request_count']==4000
+        table(f'{name}_prefill_intervals.csv',result.pop('requests'))
+        groups.extend(dict(run=name,**g) for g in result['groups'])
+        result['source']=evidence
+        summaries[name]=result
+        paths.extend([source,projection,deployment,Path(evidence['physical_source'])])
+        del requests
+        gc.collect()
+        print(json.dumps(dict(run=name,**result),indent=2),flush=True)
+    write('summary.json',dict(kind='d306_retained_prefill_overlap_v1',runs=summaries,
+        new_performance_runs=0,no_figures=True))
+    table('groups.csv',groups)
+    write('manifest.json',dict(source_refs=[dict(path=str(p),sha256=sha256(p)) for p in paths],
+        outputs={p.name:sha256(p) for p in sorted(OUT.iterdir())},no_figures=True))
+
+
 def main(campaign='d297'):
     global RAW, RUN, OUT, SOURCE
     source_sha = '7f171e1d58b061e7dd7392e1651d087c300ce1d6c2223c3ed16ef2fdce3aa07b'
@@ -592,10 +719,15 @@ if __name__ == '__main__':
         help='D304 data-only D300/D303 decode interval overlap; explicit new output')
     parser.add_argument('--native-load-output', type=Path,
         help='D305 narrow native load/acquire overlap using D304 and retained receipts')
+    parser.add_argument('--prefill-output', type=Path,
+        help='D306 retained same-owner prefill envelope using D305 and native timing')
     args = parser.parse_args()
-    if sum(x is not None for x in (args.admission_wait_output, args.decode_tail_output, args.native_load_output)) > 1:
+    if sum(x is not None for x in (args.admission_wait_output, args.decode_tail_output,
+                                  args.native_load_output, args.prefill_output)) > 1:
         parser.error('choose one retained diagnostic')
-    if args.native_load_output is not None:
+    if args.prefill_output is not None:
+        inspect_retained_prefill(args.prefill_output)
+    elif args.native_load_output is not None:
         inspect_retained_native_load(args.native_load_output)
     elif args.decode_tail_output is not None:
         inspect_retained_decode(args.decode_tail_output)

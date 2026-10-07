@@ -11,7 +11,36 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D305 narrow load overlap complete; distinguish prefill/concurrency next
+## CURRENT — D306 prefill overlap complete; one smaller native token-budget candidate next
+
+2026-10-07. Full plan/V1 reread. User once-only remote cache authorization already
+implemented D78/D80; reuse without rebuilding. D306 reuses D300/D303 all4000 and
+D305 sealed intervals, no GPU/remote/service/config/figure work. 25 CPU tests pass.
+Output p2_backend/d306_prefill/analysis1, summarySHA
+636e9fa6863a1d84a6da3324614a3b8226e05a9fd9e445799b0ee57088492964.
+18 manifest checks pass, D305 outputs unchanged; protected147 retain only known
+baseline script difference, userdirtymanifest/servingrunner unchanged.
+
+D303 129/139 TPOT timing misses overlap same-owner other-request prefill envelope;
+27/36 no-startup/no-load misses do so. Own-prefill mean202.050→200.492ms did NOT
+slow, other native occupancy1.636→1.801. Envelope NOT kernel/co-batch witness;
+duration-dependent exposure/concurrency confounding, no causal subtraction/CI.
+All requests retained, D170 only provisional, N_correct null/G1/G2 still open.
+See D306_PREFILL_OVERLAP.md; do not extend endless conditional offline analyses.
+
+NEXT D307 single preregistered model-specific native tokenbudget1024→512 candidate,
+everything else D303 including soft controls/cap8/slots8/rank16/context1024 fixed.
+512 is a controlled halving, NOT a fitted automatic optimum. Reuse D298 source
+collector/representatives/waves/completed lengths; newly measure affected timing
+profiles with exact config binding, then100smoke and4000full. Do not relabel old
+latency or repeat unrelated warm/numerical qualification. Review historical
+D298/D300 and officialvLLM0.30/Sarathi before code; references in D306 doc.
+No D307 config or GPU run yet. Disk160586784768B<150GiB gate, audit reusable
+caches/lossless log compression first; no threshold reduction/unique evidence loss.
+CPU three scopes empty, peaks26.1/754.7/12.9MB, no memory events/swap.
+Mainline7B→3B→baselines→comparisons→ablations/sensitivities remains; goalactive.
+
+## HISTORY — D305 narrow load overlap complete; distinguish prefill/concurrency next
 
 2026-10-07. Fullplan/V1 reread, user's once-only remote cache authorization
 confirmed already implemented D78/D80; do NOT regenerate cache/pool or repeat

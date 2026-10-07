@@ -1,0 +1,361 @@
+{
+  "kind": "d306_retained_prefill_overlap_v1",
+  "runs": {
+    "d300": {
+      "groups": [
+        {
+          "group": "all",
+          "label": "all",
+          "count": 4000,
+          "timing_tpot_misses": 118,
+          "mean_tpot_ms": 33.28482117356345,
+          "p95_tpot_ms": 61.79897985024814,
+          "mean_prefill_decode_fraction": 0.09753997897875163,
+          "mean_other_native_requests": 1.6360886183094387
+        },
+        {
+          "group": "prefill_overlap",
+          "label": false,
+          "count": 1657,
+          "timing_tpot_misses": 11,
+          "mean_tpot_ms": 26.752907370744175,
+          "p95_tpot_ms": 41.25995511033883,
+          "mean_prefill_decode_fraction": 0.0,
+          "mean_other_native_requests": 1.027463035865781
+        },
+        {
+          "group": "no_startup_no_load_x_prefill",
+          "label": false,
+          "count": 1546,
+          "timing_tpot_misses": 7,
+          "mean_tpot_ms": 26.19886342172962,
+          "p95_tpot_ms": 38.39422919554636,
+          "mean_prefill_decode_fraction": 0.0,
+          "mean_other_native_requests": 0.9802468122445094
+        },
+        {
+          "group": "output_x_prefill",
+          "label": "2-32/False",
+          "count": 624,
+          "timing_tpot_misses": 11,
+          "mean_tpot_ms": 28.610429716507902,
+          "p95_tpot_ms": 55.854349998602025,
+          "mean_prefill_decode_fraction": 0.0,
+          "mean_other_native_requests": 1.5842914115305309
+        },
+        {
+          "group": "output_x_prefill",
+          "label": "33-128/False",
+          "count": 685,
+          "timing_tpot_misses": 0,
+          "mean_tpot_ms": 25.583220089845017,
+          "p95_tpot_ms": 35.75694901868701,
+          "mean_prefill_decode_fraction": 0.0,
+          "mean_other_native_requests": 0.8228096763132677
+        },
+        {
+          "group": "output_x_prefill",
+          "label": "129-256/False",
+          "count": 348,
+          "timing_tpot_misses": 0,
+          "mean_tpot_ms": 25.72457933528256,
+          "p95_tpot_ms": 33.06436862024975,
+          "mean_prefill_decode_fraction": 0.0,
+          "mean_other_native_requests": 0.4318499464366649
+        },
+        {
+          "group": "prefill_overlap",
+          "label": true,
+          "count": 2343,
+          "timing_tpot_misses": 107,
+          "mean_tpot_ms": 37.90427536531401,
+          "p95_tpot_ms": 77.69381525577046,
+          "mean_prefill_decode_fraction": 0.16652151767605913,
+          "mean_other_native_requests": 2.0665165270201267
+        },
+        {
+          "group": "no_startup_no_load_x_prefill",
+          "label": true,
+          "count": 944,
+          "timing_tpot_misses": 33,
+          "mean_tpot_ms": 36.08914511205247,
+          "p95_tpot_ms": 67.7778597921133,
+          "mean_prefill_decode_fraction": 0.18524517898298348,
+          "mean_other_native_requests": 2.115035915668002
+        },
+        {
+          "group": "output_x_prefill",
+          "label": "2-32/True",
+          "count": 490,
+          "timing_tpot_misses": 104,
+          "mean_tpot_ms": 62.06806606959998,
+          "p95_tpot_ms": 127.98050350587194,
+          "mean_prefill_decode_fraction": 0.41480408820388304,
+          "mean_other_native_requests": 3.24868058175139
+        },
+        {
+          "group": "output_x_prefill",
+          "label": "33-128/True",
+          "count": 757,
+          "timing_tpot_misses": 3,
+          "mean_tpot_ms": 33.24127140977832,
+          "p95_tpot_ms": 50.36812767749495,
+          "mean_prefill_decode_fraction": 0.13328661384989582,
+          "mean_other_native_requests": 1.972973344157652
+        },
+        {
+          "group": "output_x_prefill",
+          "label": "129-256/True",
+          "count": 1096,
+          "timing_tpot_misses": 0,
+          "mean_tpot_ms": 30.321826961336257,
+          "p95_tpot_ms": 41.52624704072188,
+          "mean_prefill_decode_fraction": 0.07847440329446416,
+          "mean_other_native_requests": 1.6026039381593364
+        },
+        {
+          "group": "load_x_prefill",
+          "label": "False/False",
+          "count": 1593,
+          "timing_tpot_misses": 9,
+          "mean_tpot_ms": 26.298176703872237,
+          "p95_tpot_ms": 38.57193500152789,
+          "mean_prefill_decode_fraction": 0.0,
+          "mean_other_native_requests": 1.0160599109710056
+        },
+        {
+          "group": "load_x_prefill",
+          "label": "False/True",
+          "count": 1001,
+          "timing_tpot_misses": 39,
+          "mean_tpot_ms": 36.90624284524622,
+          "p95_tpot_ms": 70.5646980010594,
+          "mean_prefill_decode_fraction": 0.19490604365586398,
+          "mean_other_native_requests": 2.2146357626680677
+        },
+        {
+          "group": "load_x_prefill",
+          "label": "True/False",
+          "count": 64,
+          "timing_tpot_misses": 2,
+          "mean_tpot_ms": 38.071437875853505,
+          "p95_tpot_ms": 63.56949215898147,
+          "mean_prefill_decode_fraction": 0.0,
+          "mean_other_native_requests": 1.311293941449801
+        },
+        {
+          "group": "load_x_prefill",
+          "label": "True/True",
+          "count": 1342,
+          "timing_tpot_misses": 68,
+          "mean_tpot_ms": 38.64870945815145,
+          "p95_tpot_ms": 80.94377459069206,
+          "mean_prefill_decode_fraction": 0.14534945321571288,
+          "mean_other_native_requests": 1.956034146331908
+        }
+      ],
+      "n_correct": null,
+      "formal_qualification": false,
+      "confidence_interval": null,
+      "request_count": 4000,
+      "mean_prefill_envelope_ms": 202.0500717975665,
+      "p95_prefill_envelope_ms": 371.3427589973435,
+      "caveats": [
+        "First-schedule to first-token is a service envelope, not kernel prefill time.",
+        "This is not a joint-batch or token-iteration witness; utility work can coexist in the envelope.",
+        "Same-clock same-owner exposure only; slower requests have more opportunity to overlap.",
+        "Concurrency and conditional populations differ; no causal subtraction or independent replicates.",
+        "D170 timing threshold remains provisional; no formal SLO or numerical qualification."
+      ],
+      "source": {
+        "source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d300_20261007/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d300_7b_full_w0.json",
+        "source_sha256": "0964d7a58feeebadf607e72f6f6ea7a09b949d6df44da684bb86d0c27e8be974",
+        "physical_source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d300_20261007/7b_full_w0/launch.launch/physical_deployment/physical_resource_summary.json",
+        "physical_sha256": "56fd3dec091b1dfcb1ee16aba8aeb6383775c16388de95cf0823bf63f6d00bb1",
+        "max_native_ttft_error_ms": 0.0,
+        "max_native_tpot_error_ms": 0.0,
+        "shared_trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+        "shared_adapter_subset_sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016"
+      }
+    },
+    "d303": {
+      "groups": [
+        {
+          "group": "all",
+          "label": "all",
+          "count": 4000,
+          "timing_tpot_misses": 139,
+          "mean_tpot_ms": 34.46361597040807,
+          "p95_tpot_ms": 68.1045613474334,
+          "mean_prefill_decode_fraction": 0.10502703181429658,
+          "mean_other_native_requests": 1.8012623498589677
+        },
+        {
+          "group": "prefill_overlap",
+          "label": false,
+          "count": 1518,
+          "timing_tpot_misses": 10,
+          "mean_tpot_ms": 27.022475201479377,
+          "p95_tpot_ms": 42.28214162867516,
+          "mean_prefill_decode_fraction": 0.0,
+          "mean_other_native_requests": 1.1663299571386319
+        },
+        {
+          "group": "no_startup_no_load_x_prefill",
+          "label": false,
+          "count": 1376,
+          "timing_tpot_misses": 9,
+          "mean_tpot_ms": 26.297482713580777,
+          "p95_tpot_ms": 37.621037248754874,
+          "mean_prefill_decode_fraction": 0.0,
+          "mean_other_native_requests": 1.0897939674339154
+        },
+        {
+          "group": "output_x_prefill",
+          "label": "2-32/False",
+          "count": 605,
+          "timing_tpot_misses": 10,
+          "mean_tpot_ms": 29.26266738621581,
+          "p95_tpot_ms": 56.891376385465264,
+          "mean_prefill_decode_fraction": 0.0,
+          "mean_other_native_requests": 1.7346007009657196
+        },
+        {
+          "group": "output_x_prefill",
+          "label": "33-128/False",
+          "count": 641,
+          "timing_tpot_misses": 0,
+          "mean_tpot_ms": 25.472517459284898,
+          "p95_tpot_ms": 34.84286194165739,
+          "mean_prefill_decode_fraction": 0.0,
+          "mean_other_native_requests": 0.8911109944072944
+        },
+        {
+          "group": "output_x_prefill",
+          "label": "129-256/False",
+          "count": 272,
+          "timing_tpot_misses": 0,
+          "mean_tpot_ms": 25.692352558027604,
+          "p95_tpot_ms": 32.147410337119275,
+          "mean_prefill_decode_fraction": 0.0,
+          "mean_other_native_requests": 0.5509312626364226
+        },
+        {
+          "group": "prefill_overlap",
+          "label": true,
+          "count": 2482,
+          "timing_tpot_misses": 129,
+          "mean_tpot_ms": 39.01464404745632,
+          "p95_tpot_ms": 80.40890443320994,
+          "mean_prefill_decode_fraction": 0.16926193684818144,
+          "mean_other_native_requests": 2.1895892524171745
+        },
+        {
+          "group": "no_startup_no_load_x_prefill",
+          "label": true,
+          "count": 859,
+          "timing_tpot_misses": 27,
+          "mean_tpot_ms": 36.33238481192966,
+          "p95_tpot_ms": 71.19720661117194,
+          "mean_prefill_decode_fraction": 0.18794390708580805,
+          "mean_other_native_requests": 2.167250199385667
+        },
+        {
+          "group": "output_x_prefill",
+          "label": "2-32/True",
+          "count": 509,
+          "timing_tpot_misses": 121,
+          "mean_tpot_ms": 66.0191400774412,
+          "p95_tpot_ms": 132.05225363543087,
+          "mean_prefill_decode_fraction": 0.4285937275955527,
+          "mean_other_native_requests": 3.4597854125785754
+        },
+        {
+          "group": "output_x_prefill",
+          "label": "33-128/True",
+          "count": 801,
+          "timing_tpot_misses": 8,
+          "mean_tpot_ms": 34.117400729626546,
+          "p95_tpot_ms": 52.74434156500612,
+          "mean_prefill_decode_fraction": 0.1344457477152225,
+          "mean_other_native_requests": 2.13099897111035
+        },
+        {
+          "group": "output_x_prefill",
+          "label": "129-256/True",
+          "count": 1172,
+          "timing_tpot_misses": 0,
+          "mean_tpot_ms": 30.633588943633246,
+          "p95_tpot_ms": 41.58409382826427,
+          "mean_prefill_decode_fraction": 0.08042907507777883,
+          "mean_other_native_requests": 1.6779859843323741
+        },
+        {
+          "group": "load_x_prefill",
+          "label": "False/False",
+          "count": 1464,
+          "timing_tpot_misses": 9,
+          "mean_tpot_ms": 26.445576333859137,
+          "p95_tpot_ms": 38.82657204553861,
+          "mean_prefill_decode_fraction": 0.0,
+          "mean_other_native_requests": 1.1627613437347009
+        },
+        {
+          "group": "load_x_prefill",
+          "label": "False/True",
+          "count": 935,
+          "timing_tpot_misses": 33,
+          "mean_tpot_ms": 37.23515148056225,
+          "p95_tpot_ms": 75.30021254735237,
+          "mean_prefill_decode_fraction": 0.19645140090997318,
+          "mean_other_native_requests": 2.3002750267952625
+        },
+        {
+          "group": "load_x_prefill",
+          "label": "True/False",
+          "count": 54,
+          "timing_tpot_misses": 1,
+          "mean_tpot_ms": 42.66284450140586,
+          "p95_tpot_ms": 80.69740112114232,
+          "mean_prefill_decode_fraction": 0.0,
+          "mean_other_native_requests": 1.2630790316452007
+        },
+        {
+          "group": "load_x_prefill",
+          "label": "True/True",
+          "count": 1547,
+          "timing_tpot_misses": 96,
+          "mean_tpot_ms": 40.09016153294175,
+          "p95_tpot_ms": 88.06592694276736,
+          "mean_prefill_decode_fraction": 0.15282874428336224,
+          "mean_other_native_requests": 2.1226912569139347
+        }
+      ],
+      "n_correct": null,
+      "formal_qualification": false,
+      "confidence_interval": null,
+      "request_count": 4000,
+      "mean_prefill_envelope_ms": 200.49206939715077,
+      "p95_prefill_envelope_ms": 344.85188499093056,
+      "caveats": [
+        "First-schedule to first-token is a service envelope, not kernel prefill time.",
+        "This is not a joint-batch or token-iteration witness; utility work can coexist in the envelope.",
+        "Same-clock same-owner exposure only; slower requests have more opportunity to overlap.",
+        "Concurrency and conditional populations differ; no causal subtraction or independent replicates.",
+        "D170 timing threshold remains provisional; no formal SLO or numerical qualification."
+      ],
+      "source": {
+        "source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d303_20261007/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d303_7b_full_w0.json",
+        "source_sha256": "9bd86f5647a2723fa0aed67a98b92a72b477f725ef91b98a0182f348eaa7598e",
+        "physical_source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d303_20261007/7b_full_w0/launch.launch/physical_deployment/physical_resource_summary.json",
+        "physical_sha256": "bf576a96ff6d8322dc276abc26e79a26bdf82d3563ce081bb3120e031b1a5d87",
+        "max_native_ttft_error_ms": 0.0,
+        "max_native_tpot_error_ms": 0.0,
+        "shared_trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+        "shared_adapter_subset_sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016"
+      }
+    }
+  },
+  "new_performance_runs": 0,
+  "no_figures": true
+}

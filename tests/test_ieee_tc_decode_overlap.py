@@ -2,7 +2,9 @@
 import copy
 import unittest
 
-from scripts.ieee_tc.analyze_d297_full import decode_overlap_summary, native_load_overlap_summary
+from scripts.ieee_tc.analyze_d297_full import (
+    decode_overlap_summary, native_load_overlap_summary, prefill_overlap_summary,
+)
 
 
 class DecodeOverlap(unittest.TestCase):
@@ -166,6 +168,77 @@ class NativeLoadOverlap(unittest.TestCase):
         self.rows[1]['native_token_timing']['gpu_reference_lease_id'] = 'lease-0'
         with self.assertRaises(ValueError):
             self.analyze()
+
+
+class PrefillOverlap(unittest.TestCase):
+    def setUp(self):
+        fixture=NativeLoadOverlap()
+        fixture.setUp()
+        self.rows=fixture.rows
+        self.records=fixture.analyze()['requests']
+        for i,(q,r) in enumerate(zip(self.rows,self.records)):
+            n=q['native_token_timing']
+            n['native_queued_monotonic_s']=n['native_dispatch_monotonic_s']
+            n['native_scheduled_monotonic_s']=n['native_dispatch_monotonic_s']
+            if i>0:
+                n['native_first_token_monotonic_s']+=.5
+                r['first']+=.5
+                r['tpot_ms']=(r['last']-r['first'])*1000/(r['tokens']-1)
+
+    def analyze(self):
+        return prefill_overlap_summary(self.rows,self.records,clock_id='clock')
+
+    def test_prefill_not_load_and_not_other_owner(self):
+        result=self.analyze()
+        a,b,c=result['requests']
+        self.assertEqual(a['prefill_overlap_s'],.5)
+        self.assertEqual(a['prefill_decode_fraction'],.125)
+        self.assertEqual(a['peer_prefill_count'],1)
+        self.assertFalse(b['prefill_overlap'])
+        self.assertFalse(c['prefill_overlap'])
+        self.assertEqual(b['prefill_envelope_ms'],500.)
+        self.assertIsNone(result['n_correct'])
+        self.assertFalse(result['formal_qualification'])
+
+    def test_union_not_sum(self):
+        q,r=copy.deepcopy(self.rows[1]),copy.deepcopy(self.records[1])
+        q['request_id']=r['request_id']='4'
+        q['native_token_timing'].update(native_dispatch_monotonic_s=2.2,
+            native_queued_monotonic_s=2.2,native_scheduled_monotonic_s=2.2,
+            native_first_token_monotonic_s=2.7,native_last_token_monotonic_s=3.2)
+        r.update(dispatched=2.2,first=2.7,last=3.2)
+        self.rows.append(q)
+        self.records.append(r)
+        result=self.analyze()['requests'][0]
+        self.assertAlmostEqual(result['prefill_overlap_s'],.7)
+        self.assertEqual(result['peer_prefill_count'],2)
+
+    def test_touching_endpoint_has_no_overlap(self):
+        self.rows[0]['native_token_timing']['native_last_token_monotonic_s']=2.
+        self.records[0].update(last=2.,tpot_ms=250.)
+        self.assertFalse(self.analyze()['requests'][0]['prefill_overlap'])
+
+    def test_wrong_clock_order_and_identity_rejected(self):
+        original=copy.deepcopy(self.rows)
+        for key,value in [('native_scheduled_monotonic_s',3.),
+                          ('native_queued_monotonic_s',float('nan')),
+                          ('native_clock_id','other'),('gpu_reference_owner_id','other')]:
+            self.rows=copy.deepcopy(original)
+            self.rows[1]['native_token_timing'][key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):
+                self.analyze()
+        self.rows=copy.deepcopy(original)
+        self.records[0]['timing_tpot_miss']='False'
+        with self.assertRaises(ValueError):
+            self.analyze()
+
+    def test_empty_group_latency_unknown(self):
+        self.rows=self.rows[:1]
+        self.records=self.records[:1]
+        result=self.analyze()
+        empty=next(g for g in result['groups'] if g['group']=='prefill_overlap' and g['label'] is True)
+        self.assertEqual(empty['count'],0)
+        self.assertIsNone(empty['mean_tpot_ms'])
 
 
 if __name__=='__main__':

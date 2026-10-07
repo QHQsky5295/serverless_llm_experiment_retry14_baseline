@@ -1,0 +1,35 @@
+{
+  "kind": "d306_offline_verification",
+  "source_plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "summary_sha256": "636e9fa6863a1d84a6da3324614a3b8226e05a9fd9e445799b0ee57088492964",
+  "manifest_checks": 18,
+  "all_manifest_checks_pass": true,
+  "d305_outputs_unchanged": true,
+  "cpu_tests_final": 25,
+  "cpu_tests_final_pass": true,
+  "serving_runner_unchanged_sha256": "d6ec59a9877023eafc9686251bdebce48a470e3af6c55efcc76fe2df8e3d2078",
+  "user_dirty_manifest_unchanged_sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+  "protected_seal": {
+    "raw_pass": false,
+    "entries": 147,
+    "changed": ["/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"],
+    "new_differences": 0
+  },
+  "auxiliary_policy": {"memory_high_gib": 3, "memory_max_gib": 4, "memory_swap_max": 0, "cpus": "2,3,26,27"},
+  "owned_scopes": [
+    {"suffix": "tests", "invocation_id": "45083a86041d43dc82dac1c75c76ac8d", "peak_bytes": 26103808, "command_exit": 0},
+    {"suffix": "prefill", "invocation_id": "c74e6b3ba13745f7bc1bea7b79776ec2", "peak_bytes": 754696192, "command_exit": 0},
+    {"suffix": "verify", "invocation_id": "1d663ce2c31c4afa91045b372c0f5d79", "peak_bytes": 12865536, "command_exit": 0}
+  ],
+  "all_scope_memory_events_and_swap_zero": true,
+  "all_scopes_empty": true,
+  "native_gpu_process_census_empty": true,
+  "disk_free_bytes_last_check": 160586784768,
+  "new_heavy_disk_gate_pass": false,
+  "new_performance_runs": 0,
+  "remote_mutations": 0,
+  "no_figures": true,
+  "n_correct": null,
+  "formal_qualification": false
+}

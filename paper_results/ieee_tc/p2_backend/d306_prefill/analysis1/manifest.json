@@ -1,0 +1,67 @@
+{
+  "source_refs": [
+    {
+      "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/analyze_d297_full.py",
+      "sha256": "e10fb370f649abc2df9a3a59e2323895aedb2133fa5d18a7359c0ec5e5002a07"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/plot_d290_diagnostic.py",
+      "sha256": "fdb7898478701b4142bfc15feb231f9c94da566215ec1247ad1ddf6e58d98f9d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d305_native_overlap/analysis3/manifest.json",
+      "sha256": "c999f0859af8bffe84b3dd008d682b2831a57b3f07482d4be53696e521e71b9c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d305_native_overlap/analysis3/summary.json",
+      "sha256": "e29817f0a5f449a4ab4f6a5e2114d030e2840994c651b11a4307027aa7ca0bbb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d300_20261007/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d300_7b_full_w0.json",
+      "sha256": "0964d7a58feeebadf607e72f6f6ea7a09b949d6df44da684bb86d0c27e8be974"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d305_native_overlap/analysis3/d300_native_intervals.csv",
+      "sha256": "a1854738d7c12f3327b85d293ad25481272a668416c9d2c2b4367d36af30fa88"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d300_20261007/7b_full_w0/launch.launch/physical_deployment/deployment.json",
+      "sha256": "9964ffebb01149b4bdb732427b3ffbb7e33252595c1314da8fd7ed29167cf39a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d300_20261007/7b_full_w0/launch.launch/physical_deployment/physical_resource_summary.json",
+      "sha256": "56fd3dec091b1dfcb1ee16aba8aeb6383775c16388de95cf0823bf63f6d00bb1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d303_20261007/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d303_7b_full_w0.json",
+      "sha256": "9bd86f5647a2723fa0aed67a98b92a72b477f725ef91b98a0182f348eaa7598e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d305_native_overlap/analysis3/d303_native_intervals.csv",
+      "sha256": "ecc0e8c92de754bf7ab54ecc484e71ada13f5b003f9aa92b3ed5ba986e2cbc29"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d303_20261007/7b_full_w0/launch.launch/physical_deployment/deployment.json",
+      "sha256": "2c996bca6859ddb8cff25064ed24baa917e318e4ddb0315782fcb3c14a7ab911"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d303_20261007/7b_full_w0/launch.launch/physical_deployment/physical_resource_summary.json",
+      "sha256": "bf576a96ff6d8322dc276abc26e79a26bdf82d3563ce081bb3120e031b1a5d87"
+    }
+  ],
+  "outputs": {
+    "d300_prefill_intervals.csv": "8bcb48faf80823c5a78bc0846d6a767df145f579ace8457b6e8627d5c4f660b2",
+    "d303_prefill_intervals.csv": "1fdbb7c76bf44574ecad04bac780b78b90d0259fb16de4f3b3de2d366a1153b3",
+    "groups.csv": "4b59b12918ccc6f69059c006f85e67f7ba380627294aef39ab81612d1db687a6",
+    "summary.json": "636e9fa6863a1d84a6da3324614a3b8226e05a9fd9e445799b0ee57088492964"
+  },
+  "no_figures": true
+}
