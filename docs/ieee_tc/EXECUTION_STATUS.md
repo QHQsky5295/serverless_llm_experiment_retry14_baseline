@@ -11,7 +11,78 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D348 evidence complete; D349 control contrast prepared/tested, not launched
+## CURRENT — D349 complete4000 W0 AUDITED/SEALED; backup pending
+
+All4000 requests completed with native contract counts4000 and zero request
+failures. Launch pass=true; actual nativeGPUrelease confirmed; service path
+removed; all17 physical leases closed. U=11314.882957193302GPU-s;
+N_correct remains null, no formal G1/G2 acceptance. Source SHA
+c289b97bd146ae8ec355f59ea5abd373b271e9848814ea3b60ddff58cfdd97e7,
+287707308B. Do NOT repeat inference. All three owned remote services stopped,
+ports absent; remote transfer/monitor downloads SHA-match. Launcher and
+collection05 scopes closed. Runtime serving code was NOT changed.
+
+Existing analyzers extended with strict D349 identity; both analyzers return0,
+90 CPUtests pass. Audit06 scope closed. Seal07 finished successfully (23archive
+members/60161B), remains empty until exact-owned checkpoint cleanup. No live
+exec session or GPU job. All-phase/length and D336/D346 comparisons saved.
+Timing-only3668/4000=91.70%,132short of3800. D3463655, D3363837.
+MeanTTFT1349.357788ms/P953248.721206ms/P9912351.693921ms;
+meanTPOT38.486231ms/P9586.733863ms. U−11.0161% vsD346/−18.0932% vsD336;
+P95TTFT−8.0574% vsD346, butP99+51.1286%. REJECT as qualifiedG1/G2 gain;
+do not hide genuine resource reduction or latency regressions.
+Same1114short requests:TPOTmiss196 vsD346185/D33677. Phase2/3 jointmisses
+147/49 vsD346128/29 andD33647/16. No more manual softtarget/capacity sweeps.
+132realremote transfers/131480060wireB/packing0; outputSHAchanges177 vsD346,
+all retained. Native consistency is not numerical qualification. Servicepeak
+20519321600B,4026samples,high/max/OOM/swap0; auditpeak995151872B/events0.
+Read complete Plan and frozenV1 this turn. Next checkpoint/secrets/hash/push,
+then retained phase2/3 admission/decode/load evidence and one new hypothesis
+after historical and primary-source review. Do not repeat D349, finished
+capacity/profiles/numericalblocks, or start3B/baselines. Nofigures. GoalACTIVE.
+Decision:docs/ieee_tc/D349_COMPLETE_W0_DECISION.md.
+
+### D349 execution history (completed; monitoring snapshots below are historical)
+
+Continuation VERIFIED_WAIT: same D349 execution remains active. Latest check:
+watchdog sample2892 / monotonic956569.717038418; Live arrived3169,
+done3166, ok3166, fail0, elapsed47:43, three runtimes. Hostavailable99167064064B,
+servicepeak20519321600B, high/max/OOM/swap0, disk159360118784B, noabort.
+Service invocation43b39a9b2c8543708ab107deab58c2c7 is active/running;
+tmux panePID2986339 alive. No terminal launch.json yet. Full Plan reread in
+three chunks after context recovery; SHA unchanged. Frozen V1 fully reread.
+Read-only observation cells4285/4293 were stopped after their polling windows;
+this stops only observation, NOT the tmux experiment, service or watchdog.
+There is no outstanding tool cell/session to resume. Resume light monitoring
+of this SAME execution; do not relaunch. No serving-code change, remote
+adjustment, concurrent heavy work, figures or early performance acceptance.
+Do not apply the150GiB start floor as a running abort; the100GiB stop threshold
+is unchanged. Recheck/clear only verified rebuildable caches before any NEXT
+heavy job. Await full completion and actual release, then analyze as below.
+Goal remains ACTIVE; unchanged running state is expected, not a blocker.
+
+D349 launched2026-10-08 15:59Asia/Shanghai in tmux primelora_d349.
+Execution/independentremoteV2 hash54d69e859438b38e8851f9a9cce1f40e9bca3131;
+18exactpaths and15archivemembers verified. AllD348/D349preparation/checkpoint/
+gate/healthauxscopes closed. Current runMUSTNOT be relaunched.
+Localraw results/ieee_tc/p2_backend_qualification/d349_20261008/7b_full_w0;
+launcheraux3de5233572024d0c9b725b65456cd3fa,invocation
+674736526d07472094886a4e9634657c,inode20642991;service
+c7bb35d8edd04c69a8acd9391d91c769. Identity receipt is launcher_identity.json.
+Ownedremote3services active,monitor d349-full1;remoteNIC1000/full,
+publishedgziphealth verified,7bclock remote-process-monotonic:95c20cb25b6e40de81a840478b82dedc.
+Existing start/stop/capture procedures reused; no cache regeneration/packing.
+
+Freshgate disk162235592704B,host112964812800B,GPUempty. FullPlan threechunks
+reread immediately beforelaunch. Atwatchdogsample120,host95320625152B,
+servicepeak17154289664B,high/max/OOM/swap0,noabort;first14completednative
+requests have0failure. This is startup/prefix only, notperformanceacceptance.
+No livetoolterminal handles;tmux/service/watchdogcontinue. Onlyoneheavyjob.
+NEXT monitorcomplete→actualGPUrelease→exactownedremote stop/transfercollection
+→existingfull/context analyzers extendedwithstrictD349identity→compareD346
+andD336 onunchangedtiming/lifecycle ruler→backup/decision. Do notdoCPUheavy
+hash/analysis oranotherexperiment duringthisrun. Do notstopbasedonpartial
+timing,hidefailures,changethresholds,orstart3B/baselines. GoalACTIVE;PROGRESS.
 
 D348 reused333C14 GPU-ready samples plus66long-request8/14stress measurements.
 Actual admission1–14coverage does NOT identify a steady-load latency curve:
@@ -31,8 +102,8 @@ fields plusexclusivepaths differfromD346.252CPUtests pass(54.201s),peak
 2988187648B,high/max/OOM/swap0. Disk162238025728B,host112451342336B atpreflight.
 No new100prefix/nativequalification needed forunchanged paths; nextonecomplete
 original4000W0 aftertestedbackup,freshPlan/status/gateandremotevalidation.
-D349preparationscope01empty,checkpoint/cleanupandbackup notyetcomplete.
-Do notlaunch beforebackup. Noexternalbaseline or3B, nofigures. GoalACTIVE.
+D349preparationscope01 andcheckpoint02/gate03/health04closed;backup/freshgate
+completed andrunstarted asabove. Noexternalbaseline or3B, nofigures.
 
 ## Previous — D346 and D347 COMPLETE/AUDITED/BACKED
 
