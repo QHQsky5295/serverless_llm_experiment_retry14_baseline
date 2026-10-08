@@ -1,0 +1,23 @@
+{
+  "passed": true,
+  "tests": 374,
+  "test_resources": {
+    "memory.peak": "1678475264\n",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+    "memory.swap.current": "0\n",
+    "cgroup.events": "populated 0\nfrozen 0\n"
+  },
+  "protection": {
+    "kind": "protected_artifact_verification",
+    "pass": false,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [
+      "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"
+    ],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "archive_sha256": "1f4f64fc9ac7eed32312838ec6a9eaa7e63f9217c870812ee11887fd1ce29409",
+  "gpu_runs": 0,
+  "parent_commit": "183bd8c56a0075be9f8a6521ba1fcec619474642"
+}

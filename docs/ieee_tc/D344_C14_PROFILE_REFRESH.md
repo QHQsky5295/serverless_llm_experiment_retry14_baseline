@@ -110,3 +110,24 @@ counts and bindings do not establish numerical adapter correctness. These are
 three within-process rounds, not independent Full repeats; no CI or G1/G2
 qualification is claimed. Full100/4000and common reference qualification remain
 pending;3B and baseline tasks remain paused.
+
+## Targeted gap supplement, same C14 configuration
+
+The unchanged original input supplies8distinct long-output requests (256tokens)
+followed by2short targets, one at each missing rank. The8backgrounds follow from
+the missing admission bin's lower boundary, not a new serving knob. Three rounds
+alternate the two target positions without moving them before the backgrounds.
+Ten retained warmups plus30measured calls give40total. The collector still allows
+every request to finish naturally; intended order does not certify actual
+admission9–14. Per-wave fresh drained KV guards and all original native ownership,
+token, transfer and cleanup checks remain active.
+
+This is a controlled measurement for missing initialization classes, not a fourth
+workload, capacity candidate, warm-SLO change or Full performance result. Frozen
+existing prompt/adapter/target identities are rechecked against the source trace;
+no weights, prompts or traces are regenerated. Current official scheduler code
+enforces a maximum running set but does not promise that short requests overlap:
+[vLLM0.30 scheduler](https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/core/sched/scheduler.py).
+Native admission and completion records—not the configured maximum—must close
+these two coverage gaps. Full export remains disabled until measured union
+coverage and runtime/input/resource identities are validated.

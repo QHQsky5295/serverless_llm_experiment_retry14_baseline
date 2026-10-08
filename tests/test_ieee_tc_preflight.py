@@ -1124,6 +1124,41 @@ class MeasuredAdmissionInitializer(unittest.TestCase):
 
 
 class CapacityProbeObservation(unittest.TestCase):
+    def test_gpu_short_gap_uses_original_long_background_and_real_admission(self):
+        from scripts.ieee_tc.prepare_d298_capacity import gpu_short_gap_waves
+        rows=[]
+        for rank in (8,16):
+            for output in (2,5):
+                for i in range(3):
+                    rows.append(dict(source_index=len(rows),source_request_id=f'r{rank}-{output}-{i}',
+                        adapter_id=f'a{rank}-{output}-{i}',class_features=dict(tier='gpu',
+                            representation='native_gpu_executable_v1',footprint_bytes=100,
+                            adapter_rank=rank,prompt_tokens=10,declared_output_tokens=output,
+                            admitted_after_accept=1)))
+        bins=dict(prompt_tokens=[10],declared_output_tokens=[2,5],adapter_rank=[8,16],
+                  footprint_bytes=[],admitted_requests=[1,2,4])
+        missing=[dict(tier='gpu',representation='native_gpu_executable_v1',prompt_bin=0,
+            output_limit_bin=0,rank_bin=i,footprint_bin=0,admitted_bin=2) for i in (0,1)]
+        original=copy.deepcopy(rows)
+        waves=gpu_short_gap_waves(rows,bins,missing)
+        self.assertEqual(rows,original)
+        self.assertEqual(len(waves),4)
+        by_id={r['source_request_id']:r for r in rows}
+        for w in waves:
+            self.assertEqual(len(w['requests']),4)
+            self.assertEqual(len({r['adapter_id'] for r in w['requests']}),4)
+            selected=[by_id[q['source_request_id']] for q in w['requests']]
+            self.assertEqual([r['class_features']['declared_output_tokens'] for r in selected],[5,5,2,2])
+            self.assertEqual({r['class_features']['adapter_rank'] for r in selected[2:]},{8,16})
+        self.assertEqual(waves[1]['requests'][2:],list(reversed(waves[2]['requests'][2:])))
+        self.assertTrue(all(w['actual_admission_coverage_required'] for w in waves[1:]))
+        for changed in ([],missing+missing[:1],[dict(missing[0],tier='remote')],
+                        [dict(missing[0],admitted_bin=0)],[dict(missing[0],admitted_bin=3)]):
+            with self.subTest(missing=changed),self.assertRaises(ValueError):
+                gpu_short_gap_waves(rows,bins,changed)
+        with self.assertRaisesRegex(ValueError,'long background'):
+            gpu_short_gap_waves([r for r in rows if r['class_features']['declared_output_tokens']==2],bins,missing)
+
     def test_capacity_profile_waves_use_real_homogeneous_classes_and_all_sources(self):
         from scripts.ieee_tc.prepare_d298_capacity import capacity_profile_waves
         rows = []

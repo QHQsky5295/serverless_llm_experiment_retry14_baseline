@@ -11,7 +11,22 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D344 measurement COMPLETE; two genuine profile gaps remain
+## CURRENT — D344 gaps1 prepared; same C14 runtime,40native calls pending
+
+Completed D344source1 evidence backed up183bd8c56a0075be9f8a6521ba1fcec619474642,
+independent remoteV2 verified. Seal09exactlyclosed,peak367312896B/events0/swap0.
+Gap selector extends existingprepare_d298_capacity/runner, not serving code:
+8existing256-token background requests precede2existingshort targets (rank8/16).
+8comes from missingadmissionbin lower boundary, not a tuned runtime constant.
+Alternate only target order across3measurement rounds; retained10-call warmup
+plus30measured=40native calls. Same C14config,actual KV guard,Fullcontract and
+V1warm ruler. No wait/barrier/forcedadmission, newtrace/weights or extra capacity.
+16targetedCPUtests/inputassembly and374/374expandedCPUregression pass.
+Next: checkpoint, freshgate and same sourcecollector d344-gaps; retain actual
+coverage,release,remoteaudit. Multi-source profile validation beforeFull required.
+Do not repeat source1. G1/G2,correctness/commonreferences and7Btarget remainOPEN.
+
+### Completed D344 source1, two genuine gaps
 
 Source1 completed1529/1529native calls (14warmup+1515measured); actualGPUrelease,
 service removal and exact-owned remote closure verified. No live tmux/GPU run.
@@ -28,8 +43,7 @@ Profile export intentionally withheld. Commonwarmbatch8/reference/G1/G2 OPEN.
 Measurement rawSHA09d2f2b688c7cbce1591bb8b5ab4af8f28d3df1f26377b109b231ec2440c924e;
 source execution833ddd6dcc84e31700ad8bf13c5b449c56fe0f72. Curated sixoutputs plus
 measurement_outputs.sha256 under d344_capacity_profiles; audit archive1711340B.
-Raw135772770B retained, not duplicated into Git. Auxiliary04–08closed; seal09
-finished with receipt, exact empty closure/checkpoint backup next. Protected147
+Raw135772770B retained, not duplicated into Git. Auxiliary04–09closed. Protected147
 unchanged except recorded historical baseline replay script; usermanifest intact.
 
 NEXT: backup completed evidence, then same C14collector/config with original
