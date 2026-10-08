@@ -100,6 +100,8 @@ Plan SHA `0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7`。
 V1 SHA `5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22`。
 收尾发现原manifest将自己仍为空时的SHA列入outputs，导致校验拒绝；六个
 实际输出和全部来源均匹配。保留原manifest、失败脚本和回执，仅另建
-`analysis1/validated_manifest.json`排除自引用，不重算、不覆盖结果。
+`analysis1/validated_manifest.json`排除自引用，不重算、不覆盖结果。外层
+closure索引有同样问题，最终使用`validated_closure.json`；原closure
+与失败验证脚本同样保留。两项问题只涉及清单自身，所有非自引用SHA通过。
 数据SHA和全部原始引用以该validated manifest为准；原始分析回执保存实际
 资源身份、测试命令和准入检查。收尾/备份状态以closure回执为准。

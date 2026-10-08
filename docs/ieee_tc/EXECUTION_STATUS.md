@@ -39,7 +39,10 @@ raw results/ieee_tc/p2_backend_qualification/d354_20261008.
 Analysis complete. Initialseal rejected original manifest's empty-file selfSHA;
 six data outputs/all sources intact. Preserve original/failure;use separate
 analysis1/validated_manifest.json excluding self, no reanalysis/GPU rerun.
-Closure/backup receipt must be consulted before repeat work.
+Outer closure had the same empty-file selfSHA issue;validated_closure.json
+preserves original closure and checks every non-self entry. No data rewrite.
+Both prior failures retained. All owned scopes closed;backup completion is in
+raw/closure_backup_receipt.json. Use validated indexes, not original self entries.
 Mainline7B→3B→pausedbaselines→M1/M2→ablations/sensitivities,allOPEN.
 D353 provisional3752/4000 stillnotqualified;formal warm/Resident/N_correct OPEN.
 

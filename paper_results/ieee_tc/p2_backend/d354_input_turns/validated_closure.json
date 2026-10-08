@@ -1,0 +1,24 @@
+{
+  "kind": "d354_validated_closure_index_v1",
+  "files": {
+    "paper_results/ieee_tc/p2_backend/d354_input_turns/analysis1/decode_windows.csv": "2e84964b43d9e34f18bca2273b285e096bd746b40b5e92f4534982f307c4bace",
+    "paper_results/ieee_tc/p2_backend/d354_input_turns/analysis1/groups.csv": "86fcfc2081d3a6b116e295f651e160d63f1267b2e1f3fe65bef14fb6a100b84f",
+    "paper_results/ieee_tc/p2_backend/d354_input_turns/analysis1/manifest.json": "28d66a6edeaebc9136c41250891ea2e484597af101b2b0958f2b38ef17355bf9",
+    "paper_results/ieee_tc/p2_backend/d354_input_turns/analysis1/processes.csv": "d6d42750f9d44f735b14383f8136793292c6dcdf31bb7228036aa07a82b7ef75",
+    "paper_results/ieee_tc/p2_backend/d354_input_turns/analysis1/summary.json": "2798bfb420faacd1a2d30854165ec1d5b1a497d5429738539b10b22e1d30728a",
+    "paper_results/ieee_tc/p2_backend/d354_input_turns/analysis1/turn_histogram.csv": "d70463815e2f9a93b940199a7a9911117cf67cfac629f25b27ce2014da258e70",
+    "paper_results/ieee_tc/p2_backend/d354_input_turns/analysis1/turns.csv": "5c6550f1f87b948bb2d5c2efe7a385f7d38c72339e18b0a4feb22b0766dbaa35",
+    "paper_results/ieee_tc/p2_backend/d354_input_turns/analysis1/validated_manifest.json": "c6909bbeafee645ecdbc7ce0856ffd513977eb0af92f665f0ca129aa502cdd95",
+    "paper_results/ieee_tc/p2_backend/d354_input_turns/evidence.tar.gz": "076492ab5ad2b589560bfc469f07b0e0d2d949156b83dacec61d6feeabd1ec87"
+  },
+  "original_closure_sha256": "9b129cb6172fe4e895f1f9270d74a8c5a0fff66c604a9bdc64b659391d760bbd",
+  "original_self_entry_invalid": true,
+  "reason": "Same open-before-glob self-hash issue in closure index; all non-self source/data/archive hashes match. Original retained unchanged.",
+  "no_reanalysis": true,
+  "no_gpu_rerun": true,
+  "all_owned_analysis_scopes_closed": true,
+  "final_verifier_failure_retained": {
+    "script": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d354_20261008/confirm_backup.py",
+    "sha256": "a986c446bab45a964dee91ae7f18a7d9f08e193a40411b0ca1de677284b62110"
+  }
+}
