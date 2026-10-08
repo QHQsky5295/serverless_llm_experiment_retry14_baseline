@@ -11,7 +11,33 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D342 retained dispatch-window diagnosis COMPLETE; backup checkpoint
+## CURRENT — D343 bounded7B capacity probe prepared; NOT yet measured
+
+Full Plan/V1 and completed D342 read. Native current vLLM docs/source checked.
+One candidate: actual sequence/runtime/LoRA capacity8→15, derived from D169's
+1022free blocks and64blocks/max-context request. Fresh larger-runtime guard
+requires960free blocks and drained native state; no shrinking or guessed KV.
+Reuse D298 native_source_matrix, D168 existing long-context distinct-adapter
+indexes from first1000,84calls (15warmup+69measured), alternating8/15 three rounds.
+Base remains D336/D298, not D341's unaccepted prebuild switch. Common warmbatch8
+and SLO stay unchanged. Explicit completed-length-only transfer keeps old timing
+profiles separate.27initial CPU tests pass; no serving algorithm change and no
+GPU run yet. New config/spec are developmental, not a selected Full working point.
+Expanded CPU regression371/371 passes. First driver lacked spawn main guard;
+retained failure and corrected driver, no model run or serving-code workaround.
+Next: regression/checkpoint, fresh resource/remote gate, bounded native probe;
+if safe/useful refresh changed profiles then Full100/4000.7B goals OPEN, then3B,
+paused baselines/M1/M2/ablations/sensitivity. No plots or new input data.
+
+## HISTORY — D342 retained dispatch-window diagnosis COMPLETE and backed up
+
+BACKUP/CLOSURE VERIFIED: localHEAD and independent remoteV2 both
+70a962bb622647c06ccdc02e892e6b3c359f79e8.19exact paths committed/pushed,
+all13curated hashes verified, earlier2source versions preserved. Both analysis
+scopes and checkpoint scope exactly empty/stopped; final scope peak34529280B,
+events0/swap0. GPU compute census empty; all tool handles closed. Usermanifest
+unchanged/unstaged. D342 analysis/context/seal/backup are DONE; do not repeat.
+Current mainline remains7B capacity/TPOT feasibility, then3B and paused baselines.
 
 2026-10-08: full Plan/V1 re-read; approved published remote cache already exists,
 reuse without regeneration. D341 closure/audits/backup remain DONE. Next data-only

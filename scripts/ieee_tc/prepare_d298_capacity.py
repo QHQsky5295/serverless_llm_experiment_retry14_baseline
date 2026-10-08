@@ -16,6 +16,134 @@ from faaslora.datasets.workload_generator import FrozenReplayPlan
 from faaslora.storage.http_artifact_store import HttpArtifactStoreClient
 
 
+def capacity_probe_waves(index, *, source_count, candidate_count, prefix=1000):
+    """Existing longest declared contexts, distinct adapters, stable index ties.
+
+    These are capacity diagnostics, not a representative workload or SLO warm
+    recalibration. Three interleaved8/candidate waves expose the TPOT trade-off.
+    """
+    if not (type(source_count) is int and type(candidate_count) is int
+            and 0 < source_count < candidate_count and type(prefix) is int and prefix > 0):
+        raise ValueError('explicit increasing diagnostic capacities required')
+    population = [r for g in index['groups'] for r in g['selected'] if r['source_index'] < prefix]
+    population.sort(key=lambda r: (-(r['native_prompt_tokens'] + r['target_tokens']), r['source_index']))
+    selected, seen = [], set()
+    for row in population:
+        if row['adapter_id'] in seen:
+            continue
+        selected.append(dict(row))
+        seen.add(row['adapter_id'])
+        if len(selected) == candidate_count:
+            break
+    if len(selected) != candidate_count:
+        raise ValueError('insufficient existing distinct adapter requests')
+    refs = [dict(source_request_id=r['source_request_id'], adapter_id=r['adapter_id']) for r in selected]
+    waves = [dict(role='kernel_warmup_retained', round=-1, source='gpu', requests=refs)]
+    for r in range(3):
+        for n in ((source_count, candidate_count) if r % 2 == 0 else (candidate_count, source_count)):
+            waves.append(dict(role='representative_measurement', round=r, source='gpu',
+                              diagnostic_wave_size=n, requests=refs[:n]))
+    return selected, waves
+
+
+def prepare_capacity_probe():
+    """D343 bounded capacity candidate, same native collector; no GPU here."""
+    root = p.ROOT
+    out = root/'paper_results/ieee_tc/p2_backend/d343_capacity_probe'
+    raw = root/'results/ieee_tc/p2_backend_qualification/d343_20261008'
+    if out.exists() or raw.exists():
+        raise FileExistsError('D343 preparation is append-only')
+    read = lambda path: json.loads((root/path).read_text())
+    probe_path = 'paper_results/ieee_tc/p2_backend/20261002_d169_warm_probe.json'
+    old_probe = read(probe_path)
+    assert old_probe['passed'] and old_probe['native_completed'] == 32
+    index_path = 'paper_results/ieee_tc/p2_backend/20261002_d168_warm_input_index.json'
+    index = read(index_path)
+    assert p.digest(root/index_path) == old_probe['sources'][str(root/index_path)]
+    oldpath = root/'configs/ieee_tc/20261007_d298_7b_capacity_source.yaml'
+    cfgpath = root/'configs/ieee_tc/20261008_d343_7b_capacity_probe.yaml'
+    old = yaml.safe_load(oldpath.read_text())
+    actual = yaml.safe_load(cfgpath.read_text())
+    key = 'llama2_7b_main_v2_publicmix'
+    base = old['model_profiles'][key]['model']
+    blocks = min(b['kv_free_before'] for b in old_probe['batches'])
+    block_sizes = {b['kv_tokens_per_block'] for b in old_probe['batches']}
+    assert len(block_sizes) == 1
+    block = block_sizes.pop()
+    per_request = (base['max_model_len'] + block - 1)//block
+    capacity = blocks//per_request
+    assert capacity == 15 and base['runtime_concurrency_cap'] == 8
+    fields = ('max_num_seqs', 'runtime_concurrency_cap', 'max_loras')
+    changed = {k:dict(source=base[k], target=capacity) for k in fields}
+    expected = copy.deepcopy(old)
+    expected['model_profiles'][key]['model'].update({k:capacity for k in fields})
+    assert expected == actual
+    selected, waves = capacity_probe_waves(index, source_count=8, candidate_count=capacity)
+    spec = read('paper_results/ieee_tc/p2_backend/d298_capacity/source_spec.json')
+    spec.pop('full_development_contract')
+    spec.update(purpose='D343_bounded_native_capacity_probe_not_SLO_reference',
+        nvme_parent=str(raw.resolve()), waves=waves, representatives=selected,
+        capacity_probe_contract=dict(kind='native_capacity_probe_v1', candidate_concurrency=capacity,
+            source_concurrency=8, max_model_len=base['max_model_len']),
+        derivation='floor(min_observed_D169_free_KV_blocks/ceil(max_model_len/block_size)); fresh larger-runtime KV guard required; no full-run acceptance.',
+        order_rule='Existing D168 index within first1000, descending declared full context, unique adapters; alternating8/15 waves three rounds; no new inputs.')
+    spec['bins']['admitted_requests'] = [1,2,4,8,capacity]
+    spec['admission_initialization'].update(kind='native_fixed_output_capacity_length_transfer_v1',
+        model_config_changes=changed)
+    cfg = dict(actual['model_profiles'][key]['model'])
+    cfg.update(visible_device_ids=[0], device_id=0, timing_contract='ieee_tc_native_v1',
+        ieee_worker_observation=True, ieee_gpu_references=True, ieee_scheduler_observation=True,
+        ieee_input_upper_bounds=[759], generation_contract='fixed_length_greedy_v1',
+        canonical_prompt_renderer='role_lines_v1', max_input_len=759, max_output_tokens_cap=256,
+        ieee_physical_allocation=True)
+    cfg.update(spec['model_overrides'])
+    runtime = root/'results/ieee_tc/p2_backend_qualification/runtime_20260926/cuda_import_attempt3.json'
+    prior = json.loads(runtime.read_text())
+    _, evidence, assembly = p.prepare_admission_source_runtime(cfg,spec,
+        backend_version=prior['modules']['vllm']['version'], runtime_receipt_sha256=p.digest(runtime),
+        source_trace_sha256=spec['trace_sha256'])
+    seal = p.verify_seal(root/'paper_results/ieee_tc/safety/20260925_execution_start_protected.json')
+    known = Path('/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py')
+    assert seal['entry_count'] == 147 and seal['changed'] == [str(known)]
+    assert p.digest(known) == '04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22'
+    out.mkdir(parents=True, exist_ok=False)
+    raw.mkdir(parents=True, exist_ok=False)
+    def save(name, data):
+        path = out/name
+        with path.open('x') as f: json.dump(data,f,indent=2,allow_nan=False)
+        return dict(path=str(path.relative_to(root)),sha256=p.digest(path))
+    spec_ref = save('source_spec.json',spec)
+    plan = FrozenReplayPlan.load(Path(index['source']['source_path']), count=1000)
+    pool = (root/actual['model_profiles'][key]['storage']['remote_dir']).resolve(strict=True)
+    _,_,identities,resolved,_ = p.source_profile_inputs(root/spec_ref['path'],plan,cfg,pool)
+    assert len(resolved) == 7 and sum(map(len,resolved)) == 84 and len(identities) == 15
+    # Existing full native startup logs, not a new GPU measurement.
+    startup = read('paper_results/ieee_tc/p2_backend/d341_full_w0/startup_manifest.json')
+    import re
+    log_evidence = []
+    for ref in startup['sources']:
+        path = Path(ref['path'])
+        if path.name != 'worker.log': continue
+        assert p.digest(path) == ref['sha256']
+        values = re.findall(r'GPU KV cache size: ([0-9,]+) tokens',path.read_text())
+        log_evidence.append(dict(source=ref, kv_pool_tokens=[int(v.replace(',','')) for v in values]))
+    receipt = dict(kind='d343_capacity_probe_preparation_v1', passed=True, development_only=True,
+        full_qualified=False, n_correct=None, gpu_runs=0, cases=84, measurement_cases=69,
+        candidate_derivation=dict(free_blocks=blocks, tokens_per_block=block,
+            maximum_context_blocks=per_request,candidate_capacity=capacity,
+            limitation='old capacity is only a candidate bound; fresh native guard required'),
+        changed_model_fields=changed, runtime_configuration_assembly=assembly,
+        completed_length_transfer=evidence, spec=spec_ref, protected=seal,
+        d341_native_startup_capacity=log_evidence,
+        retained_request_limitation='D341 request projection has no raw KV scheduler snapshots; startup log capacity is not a live free-block series',
+        source_references=[dict(path=path,sha256=p.digest(root/path)) for path in (
+            probe_path,index_path,str(oldpath.relative_to(root)),str(cfgpath.relative_to(root)),
+            'docs/ieee_tc/D342_DISPATCH_WAIT_DIAGNOSIS.md')],
+        plan_sha256=p.check_plan(),metric_protocol_sha256=p.digest(root/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'))
+    save('prepare.json',receipt)
+    print(json.dumps(dict(passed=True,candidate_capacity=capacity,cases=84,spec=spec_ref)),flush=True)
+
+
 def missing_length_waves(population, bins, missing, *, rounds=3):
     """Index existing requests only; collect genuine gaps without a new matrix.
 
@@ -749,7 +877,9 @@ def verify_length_candidate(*, smoke=True, attempt=1):
 
 
 if __name__ == '__main__':
-    if sys.argv[1:] == ['--verify-length-smoke']:
+    if sys.argv[1:] == ['--capacity-probe']:
+        prepare_capacity_probe()
+    elif sys.argv[1:] == ['--verify-length-smoke']:
         verify_length_candidate()
     elif sys.argv[1:] == ['--verify-length-smoke-attempt2']:
         verify_length_candidate(attempt=2)

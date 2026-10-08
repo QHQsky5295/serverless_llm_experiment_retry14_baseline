@@ -1,0 +1,91 @@
+{
+  "kind": "d343_preparation_checkpoint_v1",
+  "gpu_runs": 0,
+  "tests": {
+    "tests": 371,
+    "failures": 0,
+    "errors": 0,
+    "successful": true,
+    "gpu_runs": 0,
+    "identity": {
+      "unit": "primelora-tc-aux-34300000000000000000000000000006.scope",
+      "invocation_id": "20b7ce84861943f8a4aec85a62d1da49",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-34300000000000000000000000000006.scope",
+      "inode": 20527565
+    }
+  },
+  "resources": {
+    "memory.peak": "1719050240\n",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+    "memory.swap.current": "0\n",
+    "cgroup.events": "populated 0\nfrozen 0\n"
+  },
+  "protection": {
+    "kind": "protected_artifact_verification",
+    "pass": false,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [
+      "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"
+    ],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "prior_cpu_driver_failure_retained": true,
+  "archive_sha256": "842a9650d597792478a03c5d4a0e430614d94ae7182a03837b7a50595b5b0ebd",
+  "no_figures": true,
+  "formal_qualification": false,
+  "raw_sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/validate.py",
+      "sha256": "01fa8a3257436e18d71a5ae8cdbe152c99ac3bdfca23b2227c31018d85e5a688"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/validate2.py",
+      "sha256": "48e52850872e905d085e69845746ff014bc91ef6adff757fe7b481a0d2626489"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/checkpoint.py",
+      "sha256": "3c5e919efc9fddad1b94da2ff438b05a3961c900119ef43da75dcdc52047b024"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/cpu_tests.log",
+      "sha256": "92465a9df964d864f5eb0062ab552c233a2999d8f452f6731f07cb85fabaa479"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/cpu_tests2.log",
+      "sha256": "9cc9241a99b23e34557c85c2708154e394cc1e225aa9592c9e90c9a752b74249"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/cpu_tests2_stdout.log",
+      "sha256": "acac137b0d6bf56e188b1b800e7874fdd601fd055791a780afac9ebb66ea8d08"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/cpu_tests2.json",
+      "sha256": "76689ffabcd3ca8a08bd6f3dcd12bcbeb5ac278acdff6296cf965ff0e729e6a3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/cpu_tests2_cleanup.json",
+      "sha256": "ac8812a044d6fc6f63c3350b1d55abb18a75db89162e2eba6f01511ad571162a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/cpu_attempt1_failure.json",
+      "sha256": "0a18070b92f62111e22d707fd5f41f3ad7ef4be2ea42d3c378f4e858d5c09591"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/preparation_scopes_cleanup.json",
+      "sha256": "fae2da8ce8ad2f9cf4194b59fc348b6728b0621b564ca85c07f1d06f3d26c18a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/start_remote.sh",
+      "sha256": "6631bad10b06a58bd7f9f5600114081a66e594c307d3090c661901c606a48849"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/stop_remote.sh",
+      "sha256": "97b7a841ad34f406134dff760655cb7eb71973cb708534e75b034dc4035f8cf3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/check_remote_health.py",
+      "sha256": "7bcc75942875f3954a6ebfe83cac01e516175cb973eee0913aae7112da3d1d22"
+    }
+  ]
+}

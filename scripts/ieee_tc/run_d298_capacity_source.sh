@@ -3,6 +3,11 @@
 set -euo pipefail
 ROOT=/home/qhq/serverless_llm_experiment_retry14_baseline
 case "${1:-d298}" in
+  d343-probe)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008
+    CONFIG=configs/ieee_tc/20261008_d343_7b_capacity_probe.yaml
+    SPEC=paper_results/ieee_tc/p2_backend/d343_capacity_probe/source_spec.json
+    ;;
   d298)
     RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d298_20261007
     CONFIG=configs/ieee_tc/20261007_d298_7b_capacity_source.yaml

@@ -3619,12 +3619,15 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
                 if key not in ({'visible_device_ids', 'device_id', 'ieee_token_id_capture'}
                                | startup_loader_fields)}
 
-    transfer = binding.get('kind') == 'native_fixed_output_length_transfer_v1'
+    transfer = binding.get('kind') in (
+        'native_fixed_output_length_transfer_v1',
+        'native_fixed_output_capacity_length_transfer_v1')
     fields = {'kind', 'audit', 'model', 'window_s'}
     if transfer:
         fields.add('model_config_changes')
     if (set(binding) != fields or binding['kind'] not in (
-            'native_completed_length_binding_v1', 'native_fixed_output_length_transfer_v1')):
+            'native_completed_length_binding_v1', 'native_fixed_output_length_transfer_v1',
+            'native_fixed_output_capacity_length_transfer_v1')):
         raise ValueError('unknown completed-length initialization binding')
     window = binding['window_s']
     if (type(window) not in (int, float) or not math.isfinite(window) or window <= 0
@@ -3659,7 +3662,10 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
     # Natural-stop output lengths cannot use this rule. All observed native
     # completions/targets and input identity are still verified below.
     if transfer:
-        if (set(changes) != {'max_num_batched_tokens'}
+        capacity_transfer = binding['kind'] == 'native_fixed_output_capacity_length_transfer_v1'
+        permitted = ({'max_num_seqs', 'runtime_concurrency_cap', 'max_loras'}
+                     if capacity_transfer else {'max_num_batched_tokens'})
+        if (set(changes) != permitted
                 or changes != binding['model_config_changes']
                 or identity.get('generation_contract') != 'fixed_length_greedy_v1'
                 or source_identity.get('generation_contract') != 'fixed_length_greedy_v1'
@@ -3668,7 +3674,10 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
                 or identity.get('max_output_tokens_cap') != 256
                 or identity.get('enable_chunked_prefill') is not True
                 or any(type(value) is not int or value <= 0
-                       for value in changes['max_num_batched_tokens'].values())):
+                       for change in changes.values() for value in change.values())
+                or (capacity_transfer and any(
+                    len({changes[key][side] for key in permitted}) != 1
+                    for side in ('source', 'target')))):
             raise ValueError('fixed-output completed-length transfer contract differs')
     if (entry['same_backend'] != backend_version
             or entry['model_config'] != run['model_config']
@@ -4275,6 +4284,38 @@ def source_profile_boundary(cfg, spec, identities, index):
     return boundary, paths
 
 
+def validate_capacity_probe_observation(observation, model_config, contract):
+    """Fail closed before a bounded larger-batch probe; never shrink its batch.
+
+    This is a diagnostic guard, not a replacement for the paper's live admission.
+    Every configured lane must fit a complete maximum-length context in the
+    newly initialized native pool, after the larger LoRA/graph buffers exist.
+    """
+    keys = {'kind', 'candidate_concurrency', 'max_model_len', 'source_concurrency'}
+    if (set(contract) != keys or contract['kind'] != 'native_capacity_probe_v1'
+            or any(type(contract[k]) is not int or contract[k] <= 0
+                   for k in keys - {'kind'})
+            or contract['source_concurrency'] >= contract['candidate_concurrency']
+            or any(model_config.get(k) != contract['candidate_concurrency']
+                   for k in ('max_num_seqs', 'runtime_concurrency_cap', 'max_loras'))
+            or model_config.get('max_model_len') != contract['max_model_len']):
+        raise ValueError('capacity probe configuration/contract differs')
+    if (observation.get('kind') != 'ieee_native_scheduler_observation_v1'
+            or observation.get('kv_layout') != 'full_attention_single_group'
+            or observation.get('admitted') != []
+            or observation.get('unretired_iterations') != []
+            or observation.get('native_deferred_free_batches') != 0):
+        raise ValueError('capacity probe requires an actually drained native pool')
+    block, free = observation.get('kv_tokens_per_block'), observation.get('kv_unreserved_free_blocks')
+    if any(type(x) is not int or x <= 0 for x in (block, free)):
+        raise ValueError('capacity probe requires measured positive block capacity')
+    needed = contract['candidate_concurrency'] * ((contract['max_model_len'] + block - 1) // block)
+    if free < needed:
+        raise ValueError(f'capacity probe insufficient measured KV: {free} < {needed}')
+    return dict(needed_blocks=needed, measured_free_blocks=free,
+                tokens_per_block=block, all_max_context_lanes_fit=True)
+
+
 async def qualify_native_source_matrix(engine, boundary, bins, waves, result):
     """Controlled source setup + actual loading/generation, on the existing path.
 
@@ -4338,8 +4379,16 @@ async def qualify_native_source_matrix(engine, boundary, bins, waves, result):
                     raise RuntimeError('controlled GPU setup reference was not released')
                 setup.setdefault('gpu_setup', []).append(dict(reference=reference, release=released))
         setup['finished_monotonic_s'] = time.monotonic()
+        probe = result.get('source_profile_spec', {}).get('capacity_probe_contract')
+        if probe is not None:
+            setup['capacity_before'] = await engine.ieee_scheduler_observation()
+            setup['capacity_guard'] = validate_capacity_probe_observation(
+                setup['capacity_before'], boundary.model_cfg, probe)
         result['stage'] = f'source_profile_wave:{number}'
         await collect_native_source_wave(boundary, slot, cases, result)
+        if probe is not None:
+            setup['capacity_after'] = await engine.ieee_scheduler_observation()
+            validate_capacity_probe_observation(setup['capacity_after'], boundary.model_cfg, probe)
         setup['measurement_finished_monotonic_s'] = time.monotonic()
         setup['complete'] = True
 

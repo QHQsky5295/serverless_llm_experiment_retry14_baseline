@@ -1102,6 +1102,69 @@ class MeasuredAdmissionInitializer(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'correct native completion'):
             self.derive(model_config=candidate)
 
+    def test_explicit_capacity_transfer_keeps_lengths_not_latency(self):
+        self.fixed_output_transfer_fixture()
+        fields = ('max_num_seqs', 'runtime_concurrency_cap', 'max_loras')
+        self.cfg.update({key: 8 for key in fields})
+        self.run['model_config'] = copy.deepcopy(self.cfg)
+        self.entry['model_config'] = copy.deepcopy(self.cfg)
+        self.bind()
+        self.binding.update(kind='native_fixed_output_capacity_length_transfer_v1',
+            model_config_changes={key: dict(source=8, target=15) for key in fields})
+        candidate = dict(self.cfg, **{key: 15 for key in fields})
+        profile, evidence = self.derive(model_config=candidate)
+        self.assertEqual(profile['profile_means'], [20., 40.])
+        self.assertFalse(evidence['length_transfer']['timing_samples_transferred'])
+        self.assertFalse(evidence['length_transfer']['numerical_correctness_qualified'])
+        for extra in (dict(max_loras=16), dict(max_num_batched_tokens=512),
+                      dict(generation_contract='natural_stop'), dict(max_cpu_loras=32),
+                      dict(max_model_len=2048), dict(runtime_concurrency_cap=True)):
+            with self.subTest(extra=extra), self.assertRaises(ValueError):
+                self.derive(model_config=dict(candidate, **extra))
+
+
+class CapacityProbeObservation(unittest.TestCase):
+    def test_probe_indexes_existing_distinct_long_contexts_without_new_inputs(self):
+        from scripts.ieee_tc.prepare_d298_capacity import capacity_probe_waves
+        rows = [dict(source_index=i, source_request_id=f'r{i}', adapter_id=f'a{i%5}',
+                     native_prompt_tokens=10+i, target_tokens=20) for i in range(12)]
+        index = dict(groups=[dict(selected=rows)])
+        selected, waves = capacity_probe_waves(index, source_count=2, candidate_count=4, prefix=10)
+        self.assertEqual([r['source_index'] for r in selected], [9,8,7,6])
+        self.assertEqual([len(w['requests']) for w in waves], [4,2,4,4,2,2,4])
+        self.assertEqual(len(rows),12)
+        with self.assertRaises(ValueError):
+            capacity_probe_waves(index,source_count=2,candidate_count=6)
+
+    def fixture(self):
+        config = dict(max_num_seqs=15, runtime_concurrency_cap=15, max_loras=15,
+                      max_model_len=1024)
+        contract = dict(kind='native_capacity_probe_v1', candidate_concurrency=15,
+                        source_concurrency=8, max_model_len=1024)
+        obs = dict(kind='ieee_native_scheduler_observation_v1',
+                   kv_layout='full_attention_single_group', admitted=[], unretired_iterations=[],
+                   native_deferred_free_batches=0, kv_tokens_per_block=16,
+                   kv_unreserved_free_blocks=960)
+        return config, contract, obs
+
+    def test_exact_capacity_and_conservative_rounding(self):
+        config, contract, obs = self.fixture()
+        self.assertEqual(p.validate_capacity_probe_observation(obs, config, contract)['needed_blocks'], 960)
+        config['max_model_len'] = contract['max_model_len'] = 1025
+        with self.assertRaisesRegex(ValueError, 'insufficient'):
+            p.validate_capacity_probe_observation(obs, config, contract)
+
+    def test_no_missing_or_busy_or_insufficient_capacity_fallback(self):
+        config, contract, obs = self.fixture()
+        for extra in (dict(kv_unreserved_free_blocks=959), dict(kv_unreserved_free_blocks=True),
+                      dict(kv_tokens_per_block=0), dict(admitted=[{}]),
+                      dict(unretired_iterations=[1]), dict(native_deferred_free_batches=1),
+                      dict(kind='invented'), dict(kv_layout='unknown')):
+            with self.subTest(extra=extra), self.assertRaises(ValueError):
+                p.validate_capacity_probe_observation(dict(obs, **extra), config, contract)
+        with self.assertRaises(ValueError):
+            p.validate_capacity_probe_observation(obs, dict(config, max_loras=8), contract)
+
 
 class SlotContentQualification(unittest.TestCase):
     def engine(self):
