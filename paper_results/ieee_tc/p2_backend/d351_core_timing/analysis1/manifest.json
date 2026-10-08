@@ -1,0 +1,38 @@
+{
+  "outputs": {
+    "completion.json": "9c83c042c7282a839acfe004c562feceb7da5beb0b291b95ae38568bb8c4984d",
+    "core_timing/boundaries.csv": "e679546d0d02cc5094571bc12ed155d93869775be31b7bc0328a559717a4fadb",
+    "core_timing/decode_windows.csv": "c2be7f7495c3d3ad40e28863f629c5cced14431a5178df10e8f815364c4ab71b",
+    "core_timing/groups.csv": "fbc289dfdc7056b154874f2b2e5fec8a701359537cc2a5ed09feaf81522dc8f3",
+    "core_timing/processes.csv": "6a9e4ac4ba28d725701febcc13a8961cfe34bcc40921f3af2b9c3802628ced9f",
+    "core_timing/summary.json": "6040930709ebf23505fa692d3ec3edb29b492f72bef5211c33c258728586ab39",
+    "native_audit.json": "b425ddb909a5d91670e6dfe4aba2bae5a467a41ca64431b4f78de5e78625f103",
+    "resource_remote.json": "efda40bc52fd8793e45523af3dfc557f050fa717bb1fd8d3f05b2518874c6997"
+  },
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/analyze_prefix.py",
+      "sha256": "dc114b5cc9743e99dfd91fabf5a058e42c06ef633f29edf9b6b5df7444a68a73"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d351_7b_full_w0_prefix1.json",
+      "sha256": "df53608d95fc85ffeca113a4ff2d8ac8ad85bfd1df64e9b9c5d00fe15ef1eb3c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1/launch.json",
+      "sha256": "99f709b63ee9f05c9ac4ecc986b891664e4752d537330f6b6732d6ece0423537"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261002_d170_warm_measurement.json",
+      "sha256": "0ebc7587effe293dcb986d33fb932c100cbcb3384c56ab2c0b0bec73b2bdd88c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/analyze_control_path_overhead.py",
+      "sha256": "cdbda9174ad38612e50393f163c9413cefa23827ce2001c6acdffc55cbf0629b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/plot_d290_diagnostic.py",
+      "sha256": "fdb7898478701b4142bfc15feb231f9c94da566215ec1247ad1ddf6e58d98f9d"
+    }
+  ]
+}

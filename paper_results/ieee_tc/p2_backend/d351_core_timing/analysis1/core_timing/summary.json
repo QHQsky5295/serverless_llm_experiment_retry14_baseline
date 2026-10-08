@@ -1,0 +1,167 @@
+{
+  "kind": "diagnostic_native_core_host_audit_v1",
+  "formal_performance_result": false,
+  "gpu_kernel_timing": false,
+  "quantile": "Type-1",
+  "diagnostic_count": 1000,
+  "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+  "complete_processes": 12,
+  "processes": 12,
+  "complete_request_observations": 1000,
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1/launch.launch/diagnostic_core/3277101-96090533.jsonl",
+      "bytes": 36403722,
+      "sha256": "0f9273c3300815302ad30831420a67fa7cb9f7dfe8869e762ac3f47f659199ce"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1/launch.launch/diagnostic_core/3279685-96095910.jsonl",
+      "bytes": 11236318,
+      "sha256": "eb9f167c2230d72cd489f280f53e24d9d2b9aa56686679a85e1df1f697356cc7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1/launch.launch/diagnostic_core/3279814-96096119.jsonl",
+      "bytes": 520830,
+      "sha256": "b5aaffcad048cbca6bebd8efe6034360f0708eaca48df6b867944e6b486b0375"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1/launch.launch/diagnostic_core/3279876-96096380.jsonl",
+      "bytes": 976053,
+      "sha256": "fa268eb97b84f367be9ef4e44f5f276c36ff584dee98d164512c858d57d2a157"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1/launch.launch/diagnostic_core/3295294-96130754.jsonl",
+      "bytes": 3297339,
+      "sha256": "af370069f0b165f9623d8424234e4747346c797e6a996288b32d9be25b16824a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1/launch.launch/diagnostic_core/3295411-96131003.jsonl",
+      "bytes": 229500,
+      "sha256": "8728e0146e0b45de7266d7b7ad7a24a71f8cf44836043dc7f93e4f95897507ab"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1/launch.launch/diagnostic_core/3310904-96167218.jsonl",
+      "bytes": 2849882,
+      "sha256": "2d522923ab98486027c0a8ac66ee4ed65787ae0a35ee0f6df722b9fe564fc7f2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1/launch.launch/diagnostic_core/3311211-96167904.jsonl",
+      "bytes": 1080226,
+      "sha256": "f8437db07efbbd63183e4463e24a3e94e5935f276a62f942820aebc3d288559c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1/launch.launch/diagnostic_core/3311325-96168109.jsonl",
+      "bytes": 7645455,
+      "sha256": "04392644b4c230fd13c7aa61e3c3ce14064e6df936f90a425363ab3877b0990b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1/launch.launch/diagnostic_core/3325573-96200725.jsonl",
+      "bytes": 2232,
+      "sha256": "81c283f8c6f7c42daa59404b859051f8cf67e1d217d320b419f46c8fe068f8da"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1/launch.launch/diagnostic_core/3325682-96200961.jsonl",
+      "bytes": 2234,
+      "sha256": "c0d3e51534443a6840bf4c9d377791ada6b9a01cacb6300f071bf2df859a8a75"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1/launch.launch/diagnostic_core/3325842-96201200.jsonl",
+      "bytes": 2237,
+      "sha256": "c26fee96b6aff94611b6d8ab9b55c6f6b6a20316dce0c3ef460ec2d7b8802412"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1/launch.launch/exec_receipt.json",
+      "sha256": "edd6a52a1e286824e0de5b8a4d24378e5fcc8e5084f36f2468cb9190b2cd6c85"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1/launch.launch/physical_deployment/deployment.json",
+      "sha256": "ca6855e8b1fffc49e47cd7203956908549303b6a146fa2157cdb5ab8b620ffe2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/analyze_control_path_overhead.py",
+      "sha256": "cdbda9174ad38612e50393f163c9413cefa23827ce2001c6acdffc55cbf0629b"
+    }
+  ],
+  "groups": [
+    {
+      "group": "all",
+      "timing_tpot_miss": false,
+      "count": 861,
+      "complete_observations": 861,
+      "mean_tpot_ms": 35.74668087848626,
+      "mean_decode_ms": 4575.581853073171,
+      "mean_client_ms": 946.8535514692219,
+      "mean_input_nonclient_ms": 32.46254106271777,
+      "mean_step_ms": 3523.345901900116,
+      "mean_other_or_unobserved_ms": 72.91985864111498
+    },
+    {
+      "group": "all",
+      "timing_tpot_miss": true,
+      "count": 139,
+      "complete_observations": 139,
+      "mean_tpot_ms": 114.84979525324306,
+      "mean_decode_ms": 4258.326806985611,
+      "mean_client_ms": 1775.0775802230216,
+      "mean_input_nonclient_ms": 41.51428970503597,
+      "mean_step_ms": 2411.105872892086,
+      "mean_other_or_unobserved_ms": 30.62906416546763
+    },
+    {
+      "group": "short_2_32",
+      "timing_tpot_miss": false,
+      "count": 204,
+      "complete_observations": 204,
+      "mean_tpot_ms": 40.79254615059385,
+      "mean_decode_ms": 515.3747019705883,
+      "mean_client_ms": 119.58423029411766,
+      "mean_input_nonclient_ms": 3.1543433333333333,
+      "mean_step_ms": 386.721297122549,
+      "mean_other_or_unobserved_ms": 5.914831220588235
+    },
+    {
+      "group": "short_2_32",
+      "timing_tpot_miss": true,
+      "count": 108,
+      "complete_observations": 108,
+      "mean_tpot_ms": 118.95006168464832,
+      "mean_decode_ms": 1359.6640195370371,
+      "mean_client_ms": 569.393679212963,
+      "mean_input_nonclient_ms": 17.906623638888888,
+      "mean_step_ms": 760.8674003333333,
+      "mean_other_or_unobserved_ms": 11.496316351851851
+    },
+    {
+      "group": "long_33_256",
+      "timing_tpot_miss": false,
+      "count": 657,
+      "complete_observations": 657,
+      "mean_tpot_ms": 34.17992819125651,
+      "mean_decode_ms": 5836.285443369863,
+      "mean_client_ms": 1203.722564436834,
+      "mean_input_nonclient_ms": 41.56280337138509,
+      "mean_step_ms": 4497.27500292694,
+      "mean_other_or_unobserved_ms": 93.7250726347032
+    },
+    {
+      "group": "long_33_256",
+      "timing_tpot_miss": true,
+      "count": 31,
+      "complete_observations": 31,
+      "mean_tpot_ms": 100.56499607286348,
+      "mean_decode_ms": 14356.893937451612,
+      "mean_client_ms": 5975.524719225806,
+      "mean_input_nonclient_ms": 123.76035212903226,
+      "mean_step_ms": 8160.323777290323,
+      "mean_other_or_unobserved_ms": 97.28508880645161
+    }
+  ],
+  "caveats": [
+    "Detailed observation is intrusive; no speedup versus uninstrumented Full is estimated.",
+    "Client is nested in input; schedule is nested in step. Boundary table totals cannot all be added.",
+    "Host spans include GPU waits and overlap asynchronous GPU execution; they are not kernel durations or GPU idle time.",
+    "Input nonclient includes legitimate queue idle wait. Per-request intersections differ from whole-process idle totals.",
+    "Other/unobserved includes wrapper/loop gaps and missing observation; it is not an inferred kernel category.",
+    "TPOT groups are descriptive, use the same provisional ruler, and do not establish numerical correctness or causality."
+  ]
+}

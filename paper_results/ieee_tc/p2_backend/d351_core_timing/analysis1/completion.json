@@ -1,0 +1,87 @@
+{
+  "native_contract_count": 1000,
+  "n_correct": null,
+  "formal_qualification": false,
+  "no_figures": true,
+  "processes": 12,
+  "complete_processes": 12,
+  "complete_request_observations": 1000,
+  "not_ready_activations": [
+    {
+      "activation_id": "ieee-activation-68649f300a2348cab9e06d6135f722fd",
+      "target_replica": "ieee-activation-68649f300a2348cab9e06d6135f722fd",
+      "category": "natural_scaleout",
+      "policy": "full",
+      "trigger_at": 961995.302726359,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "state": "cancelled",
+      "plan_sha256": "6cdb993868f7327bc9192697534e06274c760661b8ac438c3548d2828386c948",
+      "preparation_state": "cancelled",
+      "preparation_error": "CancelledError",
+      "preparation_terminal_at": 962035.376846563,
+      "error_type": "CancelledError"
+    },
+    {
+      "activation_id": "ieee-activation-0c3d04f759f240ff96d5b5dd03932084",
+      "target_replica": "ieee-activation-0c3d04f759f240ff96d5b5dd03932084",
+      "category": "natural_scaleout",
+      "policy": "full",
+      "trigger_at": 961997.361463382,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "state": "cancelled",
+      "plan_sha256": "6b25d95bbc7e17d0eca3bcc732f68bf8ce578e98b999c040d4f7e2439e7516dd",
+      "preparation_state": "cancelled",
+      "preparation_error": "CancelledError",
+      "preparation_terminal_at": 962035.383187805,
+      "error_type": "CancelledError"
+    },
+    {
+      "activation_id": "ieee-activation-0ba130b00c654c838470218e944ff491",
+      "target_replica": "ieee-activation-0ba130b00c654c838470218e944ff491",
+      "category": "natural_scaleout",
+      "policy": "full",
+      "trigger_at": 961999.460031716,
+      "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+      "state": "cancelled",
+      "plan_sha256": "9a6d04b84b96460b96274c43433f8d9500eacd6f9fb27276d4c8beb435850a65",
+      "preparation_state": "cancelled",
+      "preparation_error": "CancelledError",
+      "preparation_terminal_at": 962035.370081601,
+      "error_type": "CancelledError"
+    }
+  ],
+  "thresholds": [
+    {
+      "group_id": 0,
+      "lower_exclusive": null,
+      "upper_inclusive": 616,
+      "ttft_s": 2.990091890494189,
+      "tpot_s": 0.059646198413730186
+    },
+    {
+      "group_id": 1,
+      "lower_exclusive": 616,
+      "upper_inclusive": null,
+      "ttft_s": 4.635325165806989,
+      "tpot_s": 0.08534527439645358
+    }
+  ],
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/analyze_prefix.py",
+      "sha256": "dc114b5cc9743e99dfd91fabf5a058e42c06ef633f29edf9b6b5df7444a68a73"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d351_7b_full_w0_prefix1.json",
+      "sha256": "df53608d95fc85ffeca113a4ff2d8ac8ad85bfd1df64e9b9c5d00fe15ef1eb3c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1/launch.json",
+      "sha256": "99f709b63ee9f05c9ac4ecc986b891664e4752d537330f6b6732d6ece0423537"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261002_d170_warm_measurement.json",
+      "sha256": "0ebc7587effe293dcb986d33fb932c100cbcb3384c56ab2c0b0bec73b2bdd88c"
+    }
+  ]
+}

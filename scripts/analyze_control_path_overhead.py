@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import argparse
 from bisect import bisect_right
-from collections import Counter
+from collections import Counter, defaultdict
 import csv
 import json
 import math
@@ -1052,6 +1052,250 @@ def analyze_control_boundaries(directory: Path, receipt_path: Path,
     with (output/'summary.json').open('x') as handle:
         json.dump(result, handle, indent=2, allow_nan=False)
     return result
+
+
+def summarize_core_host_spans(events):
+    """Validate one completed diagnostic stream; host spans are not GPU time.
+
+    Missing close/truncated tails remain explicitly incomplete. Disjoint root
+    spans partition time; client is a subset of input, schedule a subset of step.
+    The returned interval index supports clipping to existing decode windows.
+    """
+    rows, close, limit = {}, None, None
+    previous_end = 0
+    fields = {'event','id','parent','boundary','begin_ns','end_ns',
+        'thread_cpu_begin_ns','thread_cpu_end_ns','outcome','details',
+        'preceding_observer_ns','preceding_write_ns'}
+    for row in events:
+        event = row.get('event')
+        if close is not None:
+            raise ValueError('events after diagnostic close')
+        if event == 'observation_close':
+            close = row
+            continue
+        if event == 'observation_limit':
+            if limit is not None: raise ValueError('duplicate observation limit')
+            limit = row
+            continue
+        if event != 'native_core_host_span_v1' or set(row) != fields or limit is not None:
+            raise ValueError('invalid native core span schema/order')
+        identity, parent = row['id'], row['parent']
+        if (type(identity) is not int or identity <= 0 or identity in rows
+                or (parent is not None and (type(parent) is not int or not 0 < parent < identity))
+                or row['boundary'] not in ('input_queue','client','step','schedule')
+                or row['outcome'] not in ('returned','raised') or type(row['details']) is not dict):
+            raise ValueError('invalid native core span identity')
+        for name in ('begin_ns','end_ns','thread_cpu_begin_ns','thread_cpu_end_ns',
+                     'preceding_observer_ns','preceding_write_ns'):
+            if type(row[name]) is not int or row[name] < 0:
+                raise ValueError('invalid native core span time')
+        if (row['end_ns'] < row['begin_ns'] or row['end_ns'] < previous_end
+                or row['thread_cpu_end_ns'] < row['thread_cpu_begin_ns']):
+            raise ValueError('reversed native core span')
+        previous_end = row['end_ns']
+        rows[identity] = row
+    if close and (close['completed_spans'] != len(rows)
+            or type(close['truncated']) is not bool or close['truncated'] != (limit is not None)
+            or close['monotonic_ns'] < previous_end):
+        raise ValueError('native core close count/time mismatch')
+    if limit and limit['completed_spans'] != len(rows):
+        raise ValueError('native core limit count mismatch')
+    complete = close is not None and not close['truncated'] and not close['unfinished_span_ids']
+    orphans = [r['id'] for r in rows.values() if r['parent'] is not None and r['parent'] not in rows]
+    if complete and (orphans or (rows and set(rows) != set(range(1,max(rows)+1)))):
+        raise ValueError('closed untruncated stream has missing spans')
+    children = defaultdict(list)
+    roots = []
+    for row in rows.values():
+        parent = rows.get(row['parent'])
+        if row['parent'] is None:
+            if row['boundary'] not in ('input_queue','step'):
+                raise ValueError('client/schedule missing root parent')
+            roots.append(row)
+        elif parent is not None:
+            expected = {'client':'input_queue','schedule':'step'}.get(row['boundary'])
+            if (expected != parent['boundary'] or parent['parent'] is not None
+                    or not parent['begin_ns'] <= row['begin_ns'] <= row['end_ns'] <= parent['end_ns']
+                    or not parent['thread_cpu_begin_ns'] <= row['thread_cpu_begin_ns']
+                        <= row['thread_cpu_end_ns'] <= parent['thread_cpu_end_ns']):
+                raise ValueError('invalid native core nesting')
+            children[parent['id']].append(row)
+    roots.sort(key=lambda r:r['begin_ns'])
+    if any(a['end_ns'] > b['begin_ns'] for a,b in zip(roots,roots[1:])):
+        raise ValueError('overlapping native core roots')
+    intervals = defaultdict(list)
+    samples = defaultdict(list)
+    for root in roots:
+        nested = sorted(children[root['id']],key=lambda r:r['begin_ns'])
+        if any(a['end_ns'] > b['begin_ns'] for a,b in zip(nested,nested[1:])):
+            raise ValueError('overlapping native core siblings')
+        begin, end = root['begin_ns'], root['end_ns']
+        category = root['boundary']
+        intervals[category].append((begin,end))
+        work = root['details'].get('unfinished_before')
+        if type(work) is not int or work < 0:
+            raise ValueError('root missing native unfinished count')
+        for row in [root]+nested:
+            details = row['details']
+            name = row['boundary']
+            label = '/'.join(str(details.get(k,'')) for k in ('request_type','utility','worker_method','operation')) if name=='client' else ''
+            samples[name,label,'work' if work else 'idle_at_entry'].append((
+                (row['end_ns']-row['begin_ns'])/1e6,
+                (row['thread_cpu_end_ns']-row['thread_cpu_begin_ns'])/1e6))
+            if name=='client': intervals['client'].append((row['begin_ns'],row['end_ns']))
+        if category=='input_queue':
+            cursor = begin
+            for child in nested:
+                intervals['input_nonclient'].append((cursor,child['begin_ns']))
+                cursor = child['end_ns']
+            intervals['input_nonclient'].append((cursor,end))
+    def stats(values):
+        values = sorted(values)
+        return dict(count=len(values),total_ms=math.fsum(values),mean_ms=math.fsum(values)/len(values),
+            p50_ms=values[math.ceil(.5*len(values))-1],p95_ms=values[math.ceil(.95*len(values))-1],max_ms=values[-1])
+    metrics = []
+    for (boundary,label,state), values in sorted(samples.items()):
+        row = dict(boundary=boundary,label=label,state=state,**stats([r[0] for r in values]))
+        row['thread_cpu_ms']=math.fsum(r[1] for r in values)
+        metrics.append(row)
+    index = {}
+    for name, spans in intervals.items():
+        spans.sort()
+        prefix, total = [], 0
+        for a,b in spans:
+            prefix.append(total); total += b-a
+        index[name] = dict(starts=[a for a,b in spans],ends=[b for a,b in spans],prefix=prefix,total_ns=total)
+    return dict(complete=complete,truncated=limit is not None,closed=close is not None,
+        spans=len(rows),orphan_span_ids=orphans,metrics=metrics,index=index,
+        first_ns=min((r['begin_ns'] for r in rows.values()),default=None),last_ns=previous_end if rows else None,
+        observer_ns=close['observer_ns'] if close else max((r['preceding_observer_ns'] for r in rows.values()),default=0),
+        write_ns=close['write_ns'] if close else max((r['preceding_write_ns'] for r in rows.values()),default=0),
+        overhead_is_lower_bound=close is None)
+
+
+def core_interval_overlap(index, begin_ns, end_ns):
+    """Exact integer integral of sorted disjoint intervals; half-open windows."""
+    if type(begin_ns) is not int or type(end_ns) is not int or end_ns < begin_ns:
+        raise ValueError('invalid native core query interval')
+    def area(at):
+        i = bisect_right(index['starts'],at)-1
+        return 0 if i < 0 else index['prefix'][i]+max(0,min(at,index['ends'][i])-index['starts'][i])
+    return area(end_ns)-area(begin_ns)
+
+
+def analyze_core_host_timing(directory, receipt_path, deployment_path, windows, output):
+    """Offline extension of this audit, using existing validated decode windows."""
+    import hashlib
+    import stat
+    if output.exists(): raise FileExistsError(output)
+    if directory.is_symlink() or directory.resolve() != receipt_path.resolve().parent/'diagnostic_core':
+        raise ValueError('native core directory does not belong to launch')
+    receipt, deployment = json.loads(receipt_path.read_text()), json.loads(deployment_path.read_text())
+    replay, owner = receipt['external_replay'], Path(receipt['service_identity']['path'])
+    count, clock = replay['diagnostic_prefix_count'], deployment['clock_id']
+    if (receipt.get('allow_exec') is not True or replay['replay_scope']!='diagnostic_prefix_v1'
+            or type(count) is not int or count<=0 or deployment['plan']['count']!=count
+            or len(windows)!=count or len({w['request_id'] for w in windows})!=count
+            or owner==Path('/sys/fs/cgroup') or not owner.is_relative_to('/sys/fs/cgroup')):
+        raise ValueError('complete diagnostic prefix contract required')
+    paths = sorted(directory.glob('*.jsonl'))
+    if not paths or len(paths)>256: raise ValueError('invalid native core process population')
+    source_refs, processes, metrics, by_pid = [], [], [], {}
+    for path in paths:
+        before=path.stat()
+        if path.is_symlink() or not stat.S_ISREG(before.st_mode) or before.st_size>64*1024**2:
+            raise ValueError('bounded regular native core stream required')
+        digest, events, header, partial = hashlib.sha256(), [], None, False
+        with path.open('rb') as stream:
+            while True:
+                line=stream.readline(8193)
+                if not line: break
+                if len(line)>8192: raise ValueError('native core line exceeds bound')
+                digest.update(line)
+                if not line.endswith(b'\n'):
+                    partial=True
+                    break
+                row=json.loads(line)
+                if header is None:
+                    header=row
+                else:
+                    events.append(row)
+                    if len(events)>200002: raise ValueError('native core event count exceeds bound')
+        after=path.stat()
+        if (before.st_ino,before.st_size,before.st_mtime_ns)!=(after.st_ino,after.st_size,after.st_mtime_ns):
+            raise ValueError('native core source changed during analysis')
+        if (not header or header.get('event')!='native_core_host_timing_v1'
+                or header.get('formal_performance_result') is not False
+                or header.get('gpu_kernel_timing') is not False
+                or header.get('observer_overhead_included') is not True
+                or header['clock_id']!=clock or header['diagnostic_prefix_count']!=count
+                or header['replay_scope']!='diagnostic_prefix_v1'
+                or type(header['pid']) is not int or header['pid']<=0
+                or type(header['start_ticks']) is not int or header['start_ticks']<=0
+                or path.stem!=f"{header['pid']}-{header['start_ticks']}"
+                or not Path(header['cgroup']).is_relative_to(owner)
+                or header['pid'] in by_pid):
+            raise ValueError('native core identity/clock mismatch or ambiguous PID reuse')
+        result=summarize_core_host_spans(events)
+        result['complete']=result['complete'] and not partial
+        by_pid[header['pid']]=result
+        processes.append(dict(process=path.stem,pid=header['pid'],start_ticks=header['start_ticks'],
+            **{k:result[k] for k in ('complete','truncated','closed','spans','first_ns','last_ns',
+                'observer_ns','write_ns','overhead_is_lower_bound')},
+            orphan_spans=len(result['orphan_span_ids']),partial_last_line=partial))
+        for metric in result['metrics']: metrics.append(dict(process=path.stem,**metric))
+        source_refs.append(dict(path=str(path.resolve()),bytes=before.st_size,sha256=digest.hexdigest()))
+    records=[]
+    categories=('client','input_nonclient','step')
+    for w in windows:
+        if (type(w['worker_pid']) is not int or w['worker_pid'] not in by_pid
+                or not math.isfinite(w['first']) or not math.isfinite(w['last'])
+                or w['last']<w['first'] or type(w['tokens']) is not int or w['tokens']<2):
+            raise ValueError('decode window missing native core binding')
+        core=by_pid[w['worker_pid']]
+        a,b=round(w['first']*1e9),round(w['last']*1e9)
+        row={k:w[k] for k in ('request_id','worker_pid','replica','tokens','tpot_ms','timing_tpot_miss')}
+        row.update(first_ns=a,last_ns=b,decode_ms=(b-a)/1e6,
+            observation_complete=(core['complete'] and core['first_ns'] is not None
+                                  and core['first_ns']<=a<=b<=core['last_ns']))
+        covered=0
+        for name in categories:
+            index=core['index'].get(name,dict(starts=[],ends=[],prefix=[]))
+            value=core_interval_overlap(index,a,b)
+            row[name+'_ms']=value/1e6
+            covered+=value
+        if covered>b-a: raise ValueError('native core decode partition double counts time')
+        row['other_or_unobserved_ms']=(b-a-covered)/1e6
+        records.append(row)
+    groups=[]
+    for name, choose in [('all',lambda r:True),('short_2_32',lambda r:r['tokens']<=32),
+                         ('long_33_256',lambda r:r['tokens']>32)]:
+        for miss in (False,True):
+            selected=[r for r in records if choose(r) and r['timing_tpot_miss']==miss]
+            groups.append(dict(group=name,timing_tpot_miss=miss,count=len(selected),
+                complete_observations=sum(r['observation_complete'] for r in selected),
+                **{f'mean_{key}':math.fsum(r[key] for r in selected)/len(selected) if selected else None
+                    for key in ('tpot_ms','decode_ms','client_ms','input_nonclient_ms','step_ms','other_or_unobserved_ms')}))
+    for path in (receipt_path,deployment_path,Path(__file__)):
+        source_refs.append(dict(path=str(path.resolve()),sha256=hashlib.sha256(path.read_bytes()).hexdigest()))
+    summary=dict(kind='diagnostic_native_core_host_audit_v1',formal_performance_result=False,
+        gpu_kernel_timing=False,quantile='Type-1',diagnostic_count=count,clock_id=clock,
+        complete_processes=sum(r['complete'] for r in processes),processes=len(processes),
+        complete_request_observations=sum(r['observation_complete'] for r in records),
+        sources=source_refs,groups=groups,caveats=[
+            'Detailed observation is intrusive; no speedup versus uninstrumented Full is estimated.',
+            'Client is nested in input; schedule is nested in step. Boundary table totals cannot all be added.',
+            'Host spans include GPU waits and overlap asynchronous GPU execution; they are not kernel durations or GPU idle time.',
+            'Input nonclient includes legitimate queue idle wait. Per-request intersections differ from whole-process idle totals.',
+            'Other/unobserved includes wrapper/loop gaps and missing observation; it is not an inferred kernel category.',
+            'TPOT groups are descriptive, use the same provisional ruler, and do not establish numerical correctness or causality.'])
+    output.mkdir(parents=True,exist_ok=False)
+    write_csv(processes,output/'processes.csv')
+    write_csv(metrics,output/'boundaries.csv')
+    write_csv(records,output/'decode_windows.csv')
+    write_csv(groups,output/'groups.csv')
+    with (output/'summary.json').open('x') as handle:json.dump(summary,handle,indent=2,allow_nan=False)
+    return summary
 
 
 def summarize_route_evidence(requests: Sequence[Dict[str, Any]]) -> Dict[str, Any]:

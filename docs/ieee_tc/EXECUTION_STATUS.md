@@ -11,7 +11,88 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D351 native-core host timing PREPARED, not yet launched
+## CURRENT — D351 diagnostic COMPLETE/ANALYZED/SEALED
+
+18exactpaths/25archive members validated; standardCSV CRLF triggered default
+gitwhitespacecheck,then command-local cr-at-eol checkpassed withALLresultbytes
+andSHAunchanged. NoGitglobal/configchange. Failedcheckretainedinraw.
+Backup completion/hash is recorded in d351raw/analysis_backup_receipt.json;
+read that receipt before repeating any checkpoint work. All analysis isDONE.
+
+2026-10-08 18:20CST finished the SAME first1000 run; never relaunch D351.
+All1000 native-contract requests completed, all1000 decode windows bound to
+complete core observations;12closed core processes,171284hostspans,notruncation.
+12physicalleases closed; actualGPUrelease and servicepathremoved proven.
+Source70478940B,SHA df53608d95fc85ffeca113a4ff2d8ac8ad85bfd1df64e9b9c5d00fe15ef1eb3c.
+U3297.097114621196 GPU-s is instrumented prefix,NOTformal/full4000 performance.
+Mean/P95TTFT1922.098/10327.093ms,mean/P95TPOT46.742/116.659ms;
+N_correct remainsnull. Do notcompare this observerrun asunmodifiedFullspeedup.
+All3ownedremote services stopped,portsabsent,60transfers74953014wireB,packing0,
+downloadSHAmatch. Launcher andcollection08/analysis09/storage10 nowclosed;
+operation11 andfirstseal12 areclosed;seal13 finished,identityin
+analysis_checkpoint.json,closedbythebackuphelperafterownershipcheck.
+No liveGPUjob,toolcellor terminalsession.106analysistestspass;peak509108224B,
+servicepeak21160337408B,1191samples,high/max/OOM/swap/warningsall0.
+
+Short2–32 TPOT-miss108requests:mean decode1359.664ms/client569.394ms(41.88%),
+step760.867ms. Nonmiss204:515.375/119.584/386.721ms. Notcausalpairedgroups.
+Work-entrycontrol:source_snapshot767calls/mean119.553ms/91.697host-s;
+pending_gpu_reference558/131.201ms/73.210s;
+demand_load504/106.739ms/53.796s;routing553/70.370ms/38.915s.
+ThreadCPU/host98.29–99.82%fortheseoperations:actualCPUcontrolcost,notsimply
+GPUwait/remote. HostspanNOTGPUkernel;asyncGPUcanoverlap. Observer48.551s
+includeswrite39.647s;nooverheadsubtraction. Dataanalysis1+operation_detail1.
+
+NewhypothesisafterhistoryD329/D330andcurrentofficialcore/worker/PyTorchreview:
+withinONEserializedconfirmedGPU-hittransaction, test whether alreadymeasured
+HOSTphysicalgraphcanbereusedacrossbefore/aftercheckswhilenativeHOSTobjects
+cannotmutateandallocatorcountersremainfresh. NOTepoch/TTL/model-IDcache;
+noequation/budget/safetyrelaxation,noRPCreorder/fenceremoval. Proveallcallback/
+asyncpreparationmutationboundarieswithexistingfixturesbeforeimplementation.
+ThiscandidateisNOTimplemented; donotrepeatD351orcapacity/softtarget512scans.
+Thenboundedminimalvalidation(max2withnewevidence)andordinaryfull4000replay.
+
+Diskfellbelow150GiBaftercollection;reusedD339losslessprocedureonclosedD341
+main_outcomeonly,two roundtripSHAsverified,noactivefile,freed490188800B.
+ExactrestorepathandSHAinrawstorage/summary.json. Noinput/historyloss;fresh
+150GiBstartgate stillmandatory. Analysis/documentation/archivalonlythisturn,
+noservingpolicychange,figures,3B orbaselines. G1/G2/numerical/commonreferences
+remainOPEN;goalACTIVE. Verifybackupreceipt,thenonecandidateabove.
+
+### D351 launch history (completed; below is the original live snapshot)
+
+2026-10-08 18:00CST launched in tmux tc-d351-core-prefix1. Do NOT relaunch.
+Execution HEAD=independently verified remoteV2=
+15e66c9b05b4c5ee8998f219206886c37a00f810.13exactpaths,11archive members
+backed after202CPUtests/secrets/syntax/diff/protection/source-hash checks.
+Raw results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1.
+Service unit primelora-tc-svc-29b7437f29f2433bae86ec9e605aa673.scope,
+invocation85ad122bedd74ae985f50150a68f579c,inode20700585.
+Launcher unit primelora-tc-aux-091aadfbe85645f9a543f3dd328948b5.scope,
+invocation14bab6604c8d495eafbc2f2e8c192f09,inode20700543;
+exact identity in launcher_identity.json. No live tool/exec cell; tmux/watchdog
+own the running job. Setup scopes01–07 closed, service/launcher untouched.
+All4 initial native core processes emit diagnostic_core/*.jsonl. At watchdog
+sample130:host available91.45GiB,servicepeak17.93GiB,high/max/OOM/swap0,
+no warning/abort. First requests complete with native token contract; full
+1000 completion/correctness/timing conclusion NOT yet established.
+systemd inotify-watch warning recurred (known fromD307); actual cgroup limits
+and independent polling watchdog are readable/active, no global changes made.
+Remote three owned services active; NIC1000/full. Existing immutable gzip
+cache reused, no request packing/rebuild. Start/health/stop helpers in d351raw;
+remote output /home/lab14/primelora_remote/tc/d351_20261008_prefix1.
+Health helper initially ran under systemPython missingnumpy; reran unchanged
+health script using existing qualified CPUenv, succeeded without restart.
+Remote invocations and clockID retained in remote_start.log/remote_health.json.
+Do not adjust or inspect remote during measured run. Completion: wait for
+launch.json cleanup proof, stop owned remote with stop_remote.sh, retain logs,
+verify1000/1000 native contract and observer completeness/overhead, analyze
+input/client/step time allocation before choosing one optimization. Do not
+reuse heavy numerical observer or call these host spans GPU kernel time.
+This turn PROGRESS: implemented/tested/backed observer and actually launched
+the bounded experiment. No figures, no3B/baselines; G1/G2 remainOPEN.
+
+### D351 native-core host timing preparation
 
 7B mainline, D350 hypothesis only. New opt-in host spans cover input queue,
 client/allowlisted utility, engine step and schedule token allocations; no CUDA
