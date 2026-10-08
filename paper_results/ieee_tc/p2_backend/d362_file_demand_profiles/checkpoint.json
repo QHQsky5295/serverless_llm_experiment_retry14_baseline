@@ -1,0 +1,35 @@
+{
+  "passed": true,
+  "tests": 536,
+  "resources": {
+    "memory.peak": "806674432\n",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+    "memory.swap.current": "0\n"
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": false,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [
+      "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"
+    ],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "gpu_runs": 0,
+  "archive_sha256": "1af8ad7b3a5ec79c440c623b94be0189a01809063cff3a565c7f9e175616f1e1",
+  "archive_members": {
+    "capture_launcher.py": "3d9ee9c171ef2a600594d1eccf5e9f3aa55e34f3f24509700bdceb07e1e985d9",
+    "check_remote_health.py": "7bcc75942875f3954a6ebfe83cac01e516175cb973eee0913aae7112da3d1d22",
+    "checkpoint.py": "bac37f4903f575104d2e6de0c2a56f13506515dfb0e88d0a54363d7de62d918a",
+    "collect_closure.py": "ea37d3e4e0214a152aaa14946ca10376ed737595616f3e4bf864135b5812b06c",
+    "preparation_scope.json": "99f7a72ee3a05a21ea3f380177692859064997b98066e3f9b44b75755007ec93",
+    "prepare_cleanup.json": "7c76d901eebf7fa8453522408054898e3f2e92aba788009eebb91056df731231",
+    "start.py": "ff8589f26a8a45077ab9b54d7735e4749176b7610bfc7c83dae9bd1d1ddb2fa8",
+    "start_remote.sh": "c75f739bdeb79fe41567abd45911d9508a9d7918c343d9c74c5520d5b1b372be",
+    "stop_remote.sh": "e133a49c8480bb64ff22047a6202ecf8e1dad77932547a76a5ffb8e716a21a59",
+    "d362_prepare.py": "20f9482ed63eca67a43ed3510ef057611a541b189ee933080dbdab9573d88638",
+    "d362_tests1.log": "95762ff255e94e4bb7c3902a69e61725feb262a4c10768c1fe52e7357a9cbd68",
+    "d362_tests1.json": "b4d2c546d615838b16ef22f731f6d90ead7777758734370b8cc28f6740c60419"
+  }
+}

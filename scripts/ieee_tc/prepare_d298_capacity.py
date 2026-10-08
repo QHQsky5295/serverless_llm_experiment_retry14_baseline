@@ -600,34 +600,49 @@ def prepare_capacity_profiles():
         selected_adapters=receipt['selected_adapters'],spec=spec_ref)),flush=True)
 
 
-def prepare_control_profiles():
-    """D356: same existing cases, fresh control-policy timing measurements."""
+def prepare_control_profiles(*, file_demand=False):
+    """D356/D362: existing cases, fresh timings for an explicit owner policy."""
     root = p.ROOT
-    out = root/'paper_results/ieee_tc/p2_backend/d356_control_profiles'
-    raw = root/'results/ieee_tc/p2_backend_qualification/d356_20261008'
+    campaign = 'd362' if file_demand else 'd356'
+    out = root/('paper_results/ieee_tc/p2_backend/d362_file_demand_profiles' if file_demand
+                else 'paper_results/ieee_tc/p2_backend/d356_control_profiles')
+    raw = root/('results/ieee_tc/p2_backend_qualification/d362_20261009' if file_demand
+                else 'results/ieee_tc/p2_backend_qualification/d356_20261008')
     if out.exists() or raw.exists():
-        raise FileExistsError('D356 preparation is append-only')
-    base = root/'paper_results/ieee_tc/p2_backend/d344_capacity_profiles'
-    refs = [(base/'source_spec.json','2e8be28b5031075dec4560a68452b7aaee9887ee56db7f0f689d005f401e28b5'),
-            (base/'gaps1/source_spec.json','a9483c569d52605c10aa6b7bac9cd21949e7758ac87ffafd40b0a7f8ca4088a9')]
+        raise FileExistsError(campaign+' preparation is append-only')
+    base = root/('paper_results/ieee_tc/p2_backend/d356_control_profiles' if file_demand
+                 else 'paper_results/ieee_tc/p2_backend/d344_capacity_profiles')
+    refs = ([(base/'source_spec.json','c4fdbed1ef75f60a424cdd5d74d5f7a140896a23bd523e955f48eb1c66e880e4'),
+             (base/'gaps1/source_spec.json','ae7e630b4e21bfa61b875e90c0ef6252912b04b34bdbca2d67858c10ae0d403e')]
+        if file_demand else [(base/'source_spec.json','2e8be28b5031075dec4560a68452b7aaee9887ee56db7f0f689d005f401e28b5'),
+            (base/'gaps1/source_spec.json','a9483c569d52605c10aa6b7bac9cd21949e7758ac87ffafd40b0a7f8ca4088a9')])
     for path,sha in refs:
         assert p.digest(path) == sha
     spec, supplement = [json.loads(path.read_text()) for path,_ in refs]
     spec.pop('full_development_contract')
     spec['waves'].extend(supplement['waves'])
-    spec.update(purpose='D356_affected_control_interleave_profiles_not_warm_SLO',
+    spec.update(purpose=(campaign.upper()+'_affected_owner_policy_profiles_not_warm_SLO'),
         nvme_parent=str(raw.resolve()),
-        derivation='Unchanged C14 plus atomic_control_yield_v1; fresh latency, old completed fixed-output lengths only.',
-        order_rule='Reuse exact D344 source and known short-GPU coverage waves including retained warmups; no new inputs.')
+        derivation=('Unchanged C14/control plus protected_file_owner_turn_v1; fresh latency, old completed fixed-output lengths only.' if file_demand else
+            'Unchanged C14 plus atomic_control_yield_v1; fresh latency, old completed fixed-output lengths only.'),
+        order_rule=('Reuse exact D356 source and known HOST/NVMe gap waves including retained warmups; no new inputs.' if file_demand else
+            'Reuse exact D344 source and known short-GPU coverage waves including retained warmups; no new inputs.'))
     binding = spec['admission_initialization']
     binding['kind'] = 'native_fixed_output_control_length_transfer_v1'
     binding['model_config_changes']['ieee_control_interleave'] = dict(source=None,target='atomic_control_yield_v1')
-    config_path = root/'configs/ieee_tc/20261008_d356_7b_control_source.yaml'
-    old_path = root/'configs/ieee_tc/20261008_d343_7b_capacity_probe14.yaml'
+    if file_demand:
+        binding['kind'] = 'native_fixed_output_file_demand_length_transfer_v1'
+        binding['model_config_changes']['ieee_file_demand_transaction'] = dict(source=None,target='protected_file_owner_turn_v1')
+    config_path = root/('configs/ieee_tc/20261009_d362_7b_file_demand_source.yaml' if file_demand
+                       else 'configs/ieee_tc/20261008_d356_7b_control_source.yaml')
+    old_path = root/('configs/ieee_tc/20261008_d356_7b_control_source.yaml' if file_demand
+                    else 'configs/ieee_tc/20261008_d343_7b_capacity_probe14.yaml')
     candidate,old = [yaml.safe_load(path.read_text()) for path in (config_path,old_path)]
     key = 'llama2_7b_main_v2_publicmix'
     expected = copy.deepcopy(old)
-    expected['model_profiles'][key]['model']['ieee_control_interleave'] = 'atomic_control_yield_v1'
+    changed_field, changed_policy = (('ieee_file_demand_transaction','protected_file_owner_turn_v1')
+                                    if file_demand else ('ieee_control_interleave','atomic_control_yield_v1'))
+    expected['model_profiles'][key]['model'][changed_field] = changed_policy
     assert candidate == expected
     source = candidate['model_profiles'][key]
     cfg = dict(source['model'])
@@ -643,14 +658,15 @@ def prepare_control_profiles():
     _,evidence,assembly = p.prepare_admission_source_runtime(cfg,spec,**args)
     previous = json.loads((base/'development_contract.json').read_text())
     before,after = copy.deepcopy(previous['model_config']),copy.deepcopy(assembly['planned_child_model_config'])
-    assert after.pop('ieee_control_interleave') == 'atomic_control_yield_v1'
+    assert after.pop(changed_field) == changed_policy
     after_init,before_init = after.pop('ieee_admission_profile'),before.pop('ieee_admission_profile')
     assert after == before
     assert {k:v for k,v in after_init.items() if k not in ('profile_id','model_backend_id')} == \
            {k:v for k,v in before_init.items() if k not in ('profile_id','model_backend_id')}
     assert after_init['profile_id'] != before_init['profile_id']
     assert not evidence['length_transfer']['timing_samples_transferred']
-    full_path = root/'configs/ieee_tc/20261008_d353_7b_full_w0.yaml'
+    full_path = root/('configs/ieee_tc/20261008_d358_7b_full_w0.yaml' if file_demand
+                     else 'configs/ieee_tc/20261008_d353_7b_full_w0.yaml')
     full = yaml.safe_load(full_path.read_text())
     coord = copy.deepcopy(full['resource_coordination'])
     for name in ('ieee_service_profile','ieee_preparation_profile'):
@@ -673,12 +689,15 @@ def prepare_control_profiles():
     spec_ref = save('source_spec.json',spec)
     _,_,identities,waves,static = p.source_profile_inputs(out/'source_spec.json',plan,cfg,pool)
     final_assembly = p.prepare_admission_source_runtime(cfg,spec,**args)[2]
-    assert len(waves) == 125 and sum(map(len,waves)) == 1569
+    assert len(waves) == (135 if file_demand else 125)
+    assert sum(map(len,waves)) == (1669 if file_demand else 1569)
     save('launch_config_binding.json',dict(source_config=contract['source_config']))
-    save('prepare.json',dict(kind='d356_control_profile_preparation_v1',passed=True,
+    save('prepare.json',dict(kind=campaign+'_owner_policy_profile_preparation_v1',passed=True,
         development_only=True,n_correct=None,gpu_runs=0,full_qualified=False,
         spec=spec_ref,assembly=final_assembly,length_initialization=evidence,
-        waves=len(waves),cases=sum(map(len,waves)),representative_cases=1545,warmups=24,
+        waves=len(waves),cases=sum(map(len,waves)),
+        representative_cases=sum(len(w['requests']) for w in spec['waves'] if w['role']=='representative_measurement'),
+        warmups=sum(len(w['requests']) for w in spec['waves'] if w['role']=='kernel_warmup_retained'),
         selected_adapters=len(identities),static_adapters=len(static['artifacts']),
         actual_coverage_pending=True,old_timings_relabelled=False,
         source_refs=[dict(path=str(path),sha256=p.digest(path)) for path in
@@ -1365,7 +1384,9 @@ def verify_length_candidate(*, smoke=True, attempt=1):
 
 
 if __name__ == '__main__':
-    if sys.argv[1:] == ['--control-profiles']:
+    if sys.argv[1:] == ['--file-demand-profiles']:
+        prepare_control_profiles(file_demand=True)
+    elif sys.argv[1:] == ['--control-profiles']:
         prepare_control_profiles()
     elif sys.argv[1:] == ['--capacity-profile-gaps']:
         prepare_capacity_profile_gaps()

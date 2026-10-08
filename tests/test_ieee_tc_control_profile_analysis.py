@@ -3,7 +3,7 @@ import copy
 import unittest
 
 from scripts.ieee_tc.export_d298_profiles import (
-    audit_control_interleave_snapshots, audit_control_source_run)
+    audit_control_interleave_snapshots, audit_control_source_run, audit_file_demand_source_run)
 
 
 def snapshot(stamp, turns, controls, yields, queued):
@@ -112,6 +112,67 @@ class ControlProfileCounterAudit(unittest.TestCase):
             with self.subTest(mutation=mutation):
                 source=self.source();mutation(source)
                 with self.assertRaises(ValueError):audit_control_source_run(source)
+
+
+class FileDemandProfileAudit(unittest.TestCase):
+    def source(self):
+        policy='protected_file_owner_turn_v1'
+        rows=[]
+        sources=('remote','nvme','file_host','native_host','gpu')
+        for i,source in enumerate(sources):
+            aid=f'a{i}'
+            intent=dict(lease_id=f'native-{i}',expected_owner_id='native-owner',
+                expected_epoch=10,lora_path=f'/owned/{aid}',expected_content_sha256='a'*64)
+            native=dict(lease_id=intent['lease_id'],owner_id='native-owner',lora_name=aid,
+                acquired=True,epoch=13,expected_content_sha256='a'*64)
+            evidence=dict(state='released',receipt=native,intent=intent,release_receipt=dict(released=True))
+            if source in ('remote','nvme','file_host'):
+                witness=dict(kind=policy,owner_id='file-owner',lease_id=f'file-{i}',adapter_id=aid,
+                    path=intent['lora_path'],tier='host' if source=='file_host' else 'nvme',
+                    device=1,inode=i+1,content_sha256='a'*64)
+                native['file_source_witness']=copy.deepcopy(witness)
+                intent['file_source_witness']=copy.deepcopy(witness)
+                evidence['local_source_reference']=dict(witness,content_verified=True)
+                native['file_demand_transaction']=dict(kind=policy,observed_epoch=10,
+                    validated_epoch=12,owner_epoch_advance=2,live_native_constraints_checked=True,
+                    controller_capacity_snapshot_reused=False)
+            rows.append(dict(request_id=f'source-profile/w{i}/l0',adapter_id=aid,
+                requested_source=source,source_evidence=evidence,**{'pass':True}))
+        return dict(model_config=dict(ieee_file_demand_transaction=policy),requests=rows,
+            source_profile_spec=dict(waves=[dict(source=x,requests=[{}]) for x in sources]))
+
+    def test_exact_file_and_native_paths_are_separate(self):
+        raw=self.source();before=copy.deepcopy(raw)
+        result=audit_file_demand_source_run(raw)
+        self.assertEqual(raw,before)
+        self.assertEqual(result['request_count'],5)
+        self.assertEqual(result['file_transactions'],3)
+        self.assertEqual(result['advanced_owner_epoch_transactions'],3)
+        self.assertEqual(result['max_owner_epoch_advance'],2)
+        self.assertIsNone(result['n_correct'])
+        self.assertIsNone(result['causal_speedup'])
+
+    def test_missing_invalid_or_foreign_bindings_rejected(self):
+        mutations=[lambda r:r['source_evidence']['receipt'].pop('file_source_witness'),
+            lambda r:r['source_evidence']['receipt']['file_source_witness'].update(lease_id='foreign'),
+            lambda r:r['source_evidence']['local_source_reference'].update(inode=999),
+            lambda r:r['source_evidence']['local_source_reference'].update(content_verified=False),
+            lambda r:r['source_evidence']['receipt']['file_demand_transaction'].update(validated_epoch=9),
+            lambda r:r['source_evidence']['receipt']['file_demand_transaction'].update(validated_epoch=14),
+            lambda r:r['source_evidence']['receipt']['file_demand_transaction'].update(owner_epoch_advance=True),
+            lambda r:r['source_evidence']['receipt']['file_demand_transaction'].update(live_native_constraints_checked=False),
+            lambda r:r['source_evidence']['receipt']['file_demand_transaction'].update(controller_capacity_snapshot_reused=True),
+            lambda r:r['source_evidence']['release_receipt'].update(released=False),
+            lambda r:r.update(requested_source='gpu'),lambda r:r.update(**{'pass':False})]
+        for mutate in mutations:
+            raw=self.source();mutate(raw['requests'][0])
+            with self.subTest(mutate=mutate),self.assertRaises(ValueError):
+                audit_file_demand_source_run(raw)
+        for mutate in (lambda x:x['requests'].pop(),lambda x:x['requests'].append(x['requests'][0]),
+                       lambda x:x['model_config'].clear(),
+                       lambda x:x['requests'][-1]['source_evidence']['intent'].update(file_source_witness={})):
+            raw=self.source();mutate(raw)
+            with self.assertRaises(ValueError):audit_file_demand_source_run(raw)
 
 
 if __name__=='__main__':

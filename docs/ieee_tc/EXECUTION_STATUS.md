@@ -11,7 +11,20 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D361 opt-in protected file-demand candidate CPU-qualified; 7B OPEN
+## CURRENT — D362 affected profile preparation passed; measurement NEXT; 7B OPEN
+
+2026-10-09: D361 candidate remains the only serving change. Extended existing
+D356/D344 preparer/runner/exporter for its exact runtime identity. Only completed
+fixed-output lengths transfer via an explicit contract; old timing never moves.
+Reused exact135waves/1669calls (1635representative/34warmups), existing artifacts,
+trace and published delivery cache.536CPU tests passed in native environment.
+No new GPU measurement yet; no performance/numerical qualification claimed.
+Next checkpoint/push and fresh gates→D362 source calibration→strict file-witness,
+control counter and class coverage audit→first100→Full4000 against D358/D353/D336.
+Do not repeat D361 cleanup (allscopes closed, backup verified5f3053a).
+See D362_FILE_DEMAND_PROFILE_REFRESH.md. Nofigures;mainline unchanged.
+
+## D361 opt-in protected file-demand candidate CPU-qualified; retained reference
 
 2026-10-09: implemented one D360-grounded candidate, defaultoff:
 model.ieee_file_demand_transaction=protected_file_owner_turn_v1. Local file owner

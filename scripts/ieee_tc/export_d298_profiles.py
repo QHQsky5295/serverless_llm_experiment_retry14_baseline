@@ -115,6 +115,77 @@ def audit_control_source_run(raw):
     return result
 
 
+def audit_file_demand_source_run(raw):
+    """Bind every measured file acquisition to its held owner and native ACK.
+
+    This checks the changed path, including warmups, not numerical model output
+    or speedup. Native HOST/GPU acquisitions must retain their original path.
+    """
+    from faaslora.memory.residency_manager import (
+        IEEE_FILE_DEMAND_TRANSACTION, validate_file_demand_witness)
+    if raw['model_config'].get('ieee_file_demand_transaction') != IEEE_FILE_DEMAND_TRANSACTION:
+        raise ValueError('source run lacks its file-demand policy')
+    expected = {f'source-profile/w{i}/l{lane}':wave['source']
+                for i,wave in enumerate(raw['source_profile_spec']['waves'])
+                for lane,_ in enumerate(wave['requests'])}
+    counts, advances, seen = Counter(), [], set()
+    for row in raw['requests']:
+        rid = row['request_id']
+        if rid in seen or rid not in expected or row.get('pass') is not True:
+            raise ValueError('complete unique file-policy measurements required')
+        seen.add(rid)
+        source = expected[rid]
+        if row.get('requested_source') != source:
+            raise ValueError('file-policy case source differs')
+        e = row['source_evidence']
+        native, intent = e['receipt'], e['intent']
+        if (e.get('state') != 'released' or native.get('acquired') is not True
+                or e['release_receipt'].get('released') is not True
+                or native['lease_id'] != intent['lease_id']
+                or native['owner_id'] != intent['expected_owner_id']
+                or native['lora_name'] != row['adapter_id']):
+            raise ValueError('file-policy native ownership incomplete')
+        if source in ('gpu','native_host'):
+            if any(key in obj for obj in (native,intent)
+                   for key in ('file_source_witness','file_demand_transaction')):
+                raise ValueError('file policy leaked onto native cached-source path')
+            counts[source]+=1
+            continue
+        if source not in ('remote','nvme','file_host'):
+            raise ValueError('unknown file-policy source')
+        witness = native.get('file_source_witness')
+        validate_file_demand_witness(witness,lora_name=row['adapter_id'],
+            lora_path=intent['lora_path'],content_sha256=intent.get('expected_content_sha256'))
+        held = e['local_source_reference']
+        if (witness != intent.get('file_source_witness')
+                or any(witness[k] != held.get(k) for k in
+                       ('owner_id','lease_id','adapter_id','path','tier','device','inode'))
+                or held.get('content_verified') is not True
+                or witness['tier'] != ('host' if source=='file_host' else 'nvme')
+                or native.get('expected_content_sha256') != witness['content_sha256']):
+            raise ValueError('file-policy held source/content binding differs')
+        transaction = native.get('file_demand_transaction',{})
+        observed,validated = transaction.get('observed_epoch'),transaction.get('validated_epoch')
+        if (transaction.get('kind') != IEEE_FILE_DEMAND_TRANSACTION
+                or any(type(x) is not int or x<0 for x in (observed,validated,native.get('epoch')))
+                or not observed <= validated <= native['epoch']
+                or observed != intent['expected_epoch']
+                or transaction.get('owner_epoch_advance') != validated-observed
+                or type(transaction.get('owner_epoch_advance')) is not int
+                or transaction.get('live_native_constraints_checked') is not True
+                or transaction.get('controller_capacity_snapshot_reused') is not False):
+            raise ValueError('file-policy live validation receipt differs')
+        counts[source]+=1
+        advances.append(validated-observed)
+    if seen != set(expected) or not seen:
+        raise ValueError('file-policy source coverage incomplete')
+    return dict(kind='protected_file_demand_source_audit_v1',policy=IEEE_FILE_DEMAND_TRANSACTION,
+        request_count=len(seen),source_counts=dict(counts),file_transactions=len(advances),
+        advanced_owner_epoch_transactions=sum(x>0 for x in advances),
+        max_owner_epoch_advance=max(advances,default=0),
+        old_capacity_snapshot_reused=False,n_correct=None,causal_speedup=None)
+
+
 def historical_service_samples(requests, *, source_sha, identities, previous_bins):
     """Reuse completed Full native intervals, not estimates or pooled fallbacks.
 
@@ -541,6 +612,11 @@ def main(campaign='d298'):
         CURATED = ROOT/'paper_results/ieee_tc/p2_backend/d356_control_profiles'
         config_path = ROOT/'configs/ieee_tc/20261008_d356_7b_control_source.yaml'
         source_commit = (RAW/'source_commit.txt').read_text().strip()
+    elif campaign == 'd362':
+        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d362_20261009'
+        CURATED = ROOT/'paper_results/ieee_tc/p2_backend/d362_file_demand_profiles'
+        config_path = ROOT/'configs/ieee_tc/20261009_d362_7b_file_demand_source.yaml'
+        source_commit = (RAW/'source_commit.txt').read_text().strip()
     else:
         raise ValueError(campaign)
     assert re.fullmatch('[0-9a-f]{40}', source_commit), 'missing exact launch commit'
@@ -550,12 +626,12 @@ def main(campaign='d298'):
     if campaign in ('d344-merged', 'd356-merged'):
         directories.append((RAW/'gaps1', CURATED/'gaps1'))
     runs = [audited_source_run(r,c,config_path,
-        health_model='7b' if campaign.startswith(('d344','d356')) else None,
-        require_measurement_seal=campaign.startswith(('d344','d356'))) for r,c in directories]
+        health_model='7b' if campaign.startswith(('d344','d356','d362')) else None,
+        require_measurement_seal=campaign.startswith(('d344','d356','d362'))) for r,c in directories]
     first = runs[0]
     raw, spec, contract, launch = [first[k] for k in ('payload','spec','contract','launch')]
     control_audit = None
-    if campaign.startswith('d356'):
+    if campaign.startswith(('d356','d362')):
         audits = []
         for run,(raw_dir,_) in zip(runs,directories):
             audit = audit_control_source_run(run['payload'])
@@ -668,10 +744,12 @@ def main(campaign='d298'):
             calibration_executions=len(runs),
             repetition_scope='complementary_class_measurements_not_independent_full_workload_repeats',
             clock_domains_joined=False)
-    elif campaign in ('d307', 'd307-attempt2', 'd344', 'd356'):
+    elif campaign in ('d307', 'd307-attempt2', 'd344', 'd356', 'd362'):
         result['raw_evidence'].append(ref(RAW/'source_commit.txt'))
     if control_audit is not None:
         result['control_interleave_audit'] = control_audit
+    if campaign == 'd362':
+        result['file_demand_transaction_audit'] = audit_file_demand_source_run(raw)
     save('manifest.json',result)
     print(json.dumps(dict(passed=True,summary=summary,profiles=result['profiles'],coverage=coverage),indent=2),flush=True)
 
@@ -679,7 +757,7 @@ def main(campaign='d298'):
 if __name__ == '__main__':
     if not sys.argv[1:]:
         main()
-    elif sys.argv[1:] in (['d307'], ['d307-attempt2'], ['d344'], ['d344-merged'], ['d356'], ['d356-merged']):
+    elif sys.argv[1:] in (['d307'], ['d307-attempt2'], ['d344'], ['d344-merged'], ['d356'], ['d356-merged'], ['d362']):
         main(sys.argv[1])
     elif sys.argv[1:] == ['--history-length-coverage']:
         export_history_length_coverage()
