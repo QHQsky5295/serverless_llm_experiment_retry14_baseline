@@ -1,0 +1,113 @@
+{
+  "kind": "d346_complete_development_checkpoint_v1",
+  "executed_source_commit": "f4f6d4784d22b5f1afb1b7c6f7ed26bd24d14851",
+  "analysis_tests": 83,
+  "native_completed": 4000,
+  "numerical_n_correct": null,
+  "formal_qualification": false,
+  "no_figures": true,
+  "archive_sha256": "a516cda87442ac369e9e8cacc47e9d9392d3d3f1a5c2e8567d94160aa04fb130",
+  "raw_references": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d346_20261008/launch_gate1.json",
+      "sha256": "e4ae450a064b3e9d5eba069924fa5f8699379cda23cce5edbeee6b35ad0e9fd0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d346_20261008/remote_start.log",
+      "sha256": "8330679dd6f56efb81b9d03d486932c2eaa8aa601ac1f5bf79d0598465aba42e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d346_20261008/remote_health.json",
+      "sha256": "2632c9e2a2c6088931e5337c44492ade075f8066053c4877cb413332e01a16d1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d346_20261008/remote_stop.log",
+      "sha256": "b79ed9540e8183d31abfad8936b049ea5fa5397033f38c2001777fd08a1473a4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d346_20261008/remote_stop.json",
+      "sha256": "32bc237096a22369b57ef5575aa7fcb3af59cbf37e438a4e4fd83f671d9f87f6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d346_20261008/local_cleanup.json",
+      "sha256": "03573dfe5bdf755436ceb936f49f4c20f095e507ca61a057920beec4f1062231"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d346_20261008/collection_scope_cleanup.json",
+      "sha256": "f0e4c7c797732f2dcf7238890fa05f38f99c4fd566209b04f931e290b0e26ce9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d346_20261008/analysis_cleanup.json",
+      "sha256": "e2ae1da8f9c114a9a2c4bd81d0d89c8a846d56451f1e3e6992402798d7b71e53"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d346_20261008/audit1.log",
+      "sha256": "af6de461095001d2580b7ad8edb62ca3e56d92e9649bcb01b9d978cd96e597bb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d346_20261008/offline_execution_receipt.json",
+      "sha256": "9ee6091b92c095220f28f90121e51c4e1c749522a67a22089af858d65b41ab62"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d346_20261008/completion_receipt.json",
+      "sha256": "e66ba020d3d706cf86fdb20249d885c2c6113d5154d1c5592cceefc88b9dd59c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d346_20261008/collect_closure.py",
+      "sha256": "509eeaa1902f93900b0b25f0b218efdb032cb9dc20ec152745588453fbebf54d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d346_20261008/run_audit.py",
+      "sha256": "60397c4f71c4a75c978dc704f1364c3725941b4502a42b3804fe3d19a03a33ae"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d346_20261008/start_remote.sh",
+      "sha256": "cef804ccd82ebbb1ece9cf7ed64677a2138b02dc41f1b2cebca7c02b1b178830"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d346_20261008/stop_remote.sh",
+      "sha256": "8f00bb1f6e3173a08d4935d81bfad6955b6f0cc97fd584ba8726321e55a27253"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d346_20261008/check_remote_health.py",
+      "sha256": "176d803fb722f46a895fb15a006f4f3b31469fc5073121c40ebaf524446e95b5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d346_20261008/closure_checkpoint.py",
+      "sha256": "0218eeadeb71ff6320fb2ab907f8c733602e4b1edde3a315dbcad03763cefbfa"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d346_20261008/closure_checkpoint2.py",
+      "sha256": "6aab92becc3eaf9b8521c123b5977fcfdc9dd73bb5c432c2e7f1b89ecf5f582f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d346_20261008/seal_attempt1_cleanup.json",
+      "sha256": "81fd346dd51f102f8632bae434bd5dd541186370916bf8971204a257a03ffecf"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d346_20261008/prelaunch_binding.json",
+      "sha256": "c4ba17b2f75cd754addec2cfff2af59b02f76682aa1fd196a9f7840925bf0ab2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d346_20261008/launch_gate.py",
+      "sha256": "c29cc425210bb39b779737163ffc7f86a8c227031d5783ab2251a7eb0c43dd39"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d346_20261008/7b_full_w0/launch.json",
+      "sha256": "da71025eed5f475594ccb9490c0a1c54311d18a7a358bd332b9f220bacddc80a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d346_20261008/7b_full_w0/launch.launch/physical_deployment/summary.json",
+      "sha256": "92cbe0c60078c687c0f0815c85fa8af8febad52a241390efe45bbb4b315347da"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/analyze_d297_full.py",
+      "sha256": "2f5bca00421a6ea26429a543cb444137cd8d369f927cdcbb0e40545aa4deb9e5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/check_d299_full_context.py",
+      "sha256": "0e3b11b46c0296f28867168e9c923419799206b4e6e17f36a5cf8511ff4e5c15"
+    }
+  ],
+  "next": "Reject C14 capacity-derived working point as a G1 improvement: timing-only joint 3655/4000. Preserve native capacity evidence; diagnose retained phase/load/TPOT data before a new hypothesis. No blind capacity sweep or D346 repeat."
+}

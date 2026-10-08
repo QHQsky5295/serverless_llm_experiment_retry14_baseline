@@ -11,7 +11,40 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D345 Full100 COMPLETE; D346 Full4000 prepared, NOT launched
+## CURRENT — D346 Full4000 COMPLETE/AUDITED; C14 working point not accepted
+
+D346 execution f4f6d4784d22b5f1afb1b7c6f7ed26bd24d14851 completed4000/4000
+native-contract requests, no failure. ActualGPUrelease/service-removal and
+ownedremote3unit shutdown/portsabsent/bilateraljournal hashes verified.
+No GPU experiment is running. Do not repeatD346/D345/D344/D343.
+
+FullD346: U12715.646901GPU-s vsD33613814.334497 (−7.95%);
+meanTTFT1307.344449ms/P953533.423788ms/P998172.970001ms;
+meanTPOT38.533414ms/P9585.352486ms. Same provisionalD170timingruler:
+3655/4000(91.375%) vs3837/4000(95.925%), −4.55pp;145shortof3800.
+TPOTmisses241vs80. REJECT this capacity-derived working point as G1
+improvement; retain genuineC14native feasibility but no third capacity sweep.
+One developmentrun each, noCI. Ncorrect/commonfinalreferences/G1G2 OPEN.
+Same4000input identities;244outputSHAchanges retained,not waived as numerical
+correctness. 132realremote fetches/131480060wireB/packing0. TiersGPU2591,
+HOST515,NVMe760,remote134. Servicepeak22479060992B,minhost92149645312B,
+4069samples,high/max/OOM/swap0. 83analysis tests and both analyzers passed.
+
+Existing full/context analyzers extended only with strictD346identity; no
+serving/runtime edit. RawsourceSHA52e7d3fddde1f4bd8ae05831dd4ce0d69e291f9c2b9aba3a7ef5b659a987151e.
+Curated paper_results/ieee_tc/p2_backend/d346_full_w0/{validated1,context1}.
+Decision docs/ieee_tc/D346_COMPLETE_W0_DECISION.md.
+Main audit e18ae... invocation035a7c4012174dafa2157fbcd63f24fd completed/closed.
+Postrun disk~151GiB: recheck exactavailable/growth before nextheavy task.
+
+NEXT: finish result seal/backup, then retained phase/load/TPOT and activation
+diagnosis againstD336 using existing analyzers; verify measured throughput vs
+physical-slot/control-capacity distinction with history and primarysources
+before any new hypothesis. No blind rerun, thresholdrelaxation orfigures.
+7B target remainsOPEN, then3B, thenpausedbaselines/M1M2/ablations/sensitivities.
+D294/D295 registered numericalblocks alreadycomplete; do not rerun them.
+
+### Completed smoke and prelaunch checkpoint
 
 D345100/100native counts/bindings verified. MeanTTFT848.309953ms/P952032.469623ms,
 meanTPOT28.546773ms/P9536.128674ms,physical759.836137GPU-s(prefixonly).
@@ -24,7 +57,7 @@ Existingboundedanalyzer and timing tests return0/0, nofigures.
 
 D346 is SAME model/profiles/controls; onlyexclusivepaths and no100prefix.
 Prelaunch passes200/24classes, disk163080966144B/host112219115520B,GPUempty.
-Next seal/backup D345andD346setup, freshgate,remote start, full4000W0.
+Seal/backup D345andD346setup, freshgate andFull4000launch are nowcomplete.
 No additionalshorttests/capacitypoints. Compare fullD346toD336, retainalltradeoffs.
 Do not reinterpret98/100prefix asfullqualification. No3B/baselines yet.
 
