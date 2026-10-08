@@ -1,0 +1,608 @@
+{
+  "kind": "d338_import_path_diagnostic_v1",
+  "rows": [
+    {
+      "case": "repository_startup_hook",
+      "returncode": 0,
+      "wall_s": 13.004194195964374,
+      "interpreter_to_entry_s": 10.163523886003532,
+      "runner_import_s": 0.6612890750402585,
+      "frontend_import_s": 3.825593739748001e-05,
+      "record": {
+        "stages": [
+          {
+            "phase": "entry",
+            "monotonic_s": 929023.258506855,
+            "loaded": [
+              "sitecustomize",
+              "torch",
+              "vllm.v1.worker.gpu_worker"
+            ]
+          },
+          {
+            "phase": "runner_import",
+            "monotonic_s": 929023.91979593
+          },
+          {
+            "phase": "native_frontend_import",
+            "monotonic_s": 929023.919834186
+          }
+        ],
+        "cuda_initialized": false,
+        "cuda_visible_devices": "",
+        "torch": "2.13.0+cu130",
+        "python": "3.12.12 | packaged by Anaconda, Inc. | (main, Oct 21 2025, 20:16:04) [GCC 11.2.0]",
+        "affinity": [
+          2,
+          3,
+          26,
+          27
+        ],
+        "loaded_count": 6042
+      },
+      "top_self_imports": [
+        {
+          "self_us": 1118344,
+          "cumulative_us": 1118344,
+          "module": "transformers.utils.import_utils"
+        },
+        {
+          "self_us": 524647,
+          "cumulative_us": 1862690,
+          "module": "transformers"
+        },
+        {
+          "self_us": 412984,
+          "cumulative_us": 413202,
+          "module": "vllm.v1.worker.gpu.spec_decode.rejection_sampler_utils"
+        },
+        {
+          "self_us": 332989,
+          "cumulative_us": 332989,
+          "module": "transformers.models"
+        },
+        {
+          "self_us": 278856,
+          "cumulative_us": 329898,
+          "module": "torch._C"
+        },
+        {
+          "self_us": 226687,
+          "cumulative_us": 226687,
+          "module": "openai._module_client"
+        },
+        {
+          "self_us": 201851,
+          "cumulative_us": 234516,
+          "module": "vllm.utils.torch_utils"
+        },
+        {
+          "self_us": 179570,
+          "cumulative_us": 179768,
+          "module": "vllm.entrypoints.openai.responses.protocol"
+        },
+        {
+          "self_us": 170176,
+          "cumulative_us": 171868,
+          "module": "torch._prims"
+        },
+        {
+          "self_us": 167787,
+          "cumulative_us": 174546,
+          "module": "torch._inductor.kernel.flex.aux_vectorization"
+        },
+        {
+          "self_us": 142085,
+          "cumulative_us": 142285,
+          "module": "vllm.entrypoints.pooling.embed.protocol"
+        },
+        {
+          "self_us": 132054,
+          "cumulative_us": 1489484,
+          "module": "torch"
+        },
+        {
+          "self_us": 129412,
+          "cumulative_us": 129412,
+          "module": "torch._inductor.decomposition"
+        },
+        {
+          "self_us": 106229,
+          "cumulative_us": 1105331,
+          "module": "torch._inductor.lowering"
+        },
+        {
+          "self_us": 104777,
+          "cumulative_us": 104777,
+          "module": "torch.onnx._internal.torchscript_exporter.symbolic_opset9"
+        },
+        {
+          "self_us": 97754,
+          "cumulative_us": 660939,
+          "module": "scripts.run_all_experiments"
+        },
+        {
+          "self_us": 95379,
+          "cumulative_us": 95744,
+          "module": "torch._inductor.config"
+        },
+        {
+          "self_us": 90399,
+          "cumulative_us": 119178,
+          "module": "fastapi.openapi.models"
+        },
+        {
+          "self_us": 88775,
+          "cumulative_us": 349036,
+          "module": "torch._meta_registrations"
+        },
+        {
+          "self_us": 88293,
+          "cumulative_us": 88293,
+          "module": "vllm.utils.flashinfer"
+        },
+        {
+          "self_us": 84097,
+          "cumulative_us": 87043,
+          "module": "vllm.entrypoints.openai.chat_completion.protocol"
+        },
+        {
+          "self_us": 67599,
+          "cumulative_us": 69189,
+          "module": "vllm.entrypoints.pooling.scoring.protocol"
+        },
+        {
+          "self_us": 65427,
+          "cumulative_us": 212669,
+          "module": "torch.distributed.tensor._ops"
+        },
+        {
+          "self_us": 61151,
+          "cumulative_us": 61151,
+          "module": "sympy.core.decorators"
+        },
+        {
+          "self_us": 56761,
+          "cumulative_us": 144231,
+          "module": "humming.ops"
+        },
+        {
+          "self_us": 52795,
+          "cumulative_us": 112530,
+          "module": "torch._inductor.ir"
+        },
+        {
+          "self_us": 50220,
+          "cumulative_us": 656113,
+          "module": "torch._inductor.kernel.flex.flex_attention"
+        },
+        {
+          "self_us": 48968,
+          "cumulative_us": 48968,
+          "module": "vllm.model_executor.layers.quantization.utils.w8a8_utils"
+        },
+        {
+          "self_us": 48687,
+          "cumulative_us": 48687,
+          "module": "xgrammar.structural_tag"
+        },
+        {
+          "self_us": 45957,
+          "cumulative_us": 45957,
+          "module": "vllm.kernels.oink_ops"
+        }
+      ],
+      "top_cumulative_imports": [
+        {
+          "self_us": 1401,
+          "cumulative_us": 10154856,
+          "module": "site"
+        },
+        {
+          "self_us": 189,
+          "cumulative_us": 10151065,
+          "module": "sitecustomize"
+        },
+        {
+          "self_us": 1250,
+          "cumulative_us": 8661241,
+          "module": "vllm.v1.worker.gpu_worker"
+        },
+        {
+          "self_us": 614,
+          "cumulative_us": 3655787,
+          "module": "vllm.config"
+        },
+        {
+          "self_us": 12559,
+          "cumulative_us": 2829931,
+          "module": "vllm.config.model"
+        },
+        {
+          "self_us": 136,
+          "cumulative_us": 2595030,
+          "module": "vllm.v1.worker"
+        },
+        {
+          "self_us": 13,
+          "cumulative_us": 2594894,
+          "module": "vllm.v1"
+        },
+        {
+          "self_us": 215,
+          "cumulative_us": 2594882,
+          "module": "vllm"
+        },
+        {
+          "self_us": 1000,
+          "cumulative_us": 2594391,
+          "module": "vllm.env_override"
+        },
+        {
+          "self_us": 3542,
+          "cumulative_us": 1945774,
+          "module": "vllm.config.quantization"
+        },
+        {
+          "self_us": 2125,
+          "cumulative_us": 1942232,
+          "module": "vllm.model_executor.layers.quantization.utils.quant_utils"
+        },
+        {
+          "self_us": 150,
+          "cumulative_us": 1938772,
+          "module": "vllm.model_executor.layers.quantization.utils"
+        },
+        {
+          "self_us": 340,
+          "cumulative_us": 1938460,
+          "module": "vllm.model_executor.layers.quantization"
+        },
+        {
+          "self_us": 2336,
+          "cumulative_us": 1887376,
+          "module": "vllm.model_executor.layers.quantization.base_config"
+        },
+        {
+          "self_us": 524647,
+          "cumulative_us": 1862690,
+          "module": "transformers"
+        },
+        {
+          "self_us": 132054,
+          "cumulative_us": 1489484,
+          "module": "torch"
+        },
+        {
+          "self_us": 572,
+          "cumulative_us": 1487541,
+          "module": "vllm.model_executor.warmup.kernel_warmup"
+        },
+        {
+          "self_us": 10327,
+          "cumulative_us": 1338043,
+          "module": "transformers.dependency_versions_check"
+        },
+        {
+          "self_us": 272,
+          "cumulative_us": 1327552,
+          "module": "transformers.utils.versions"
+        },
+        {
+          "self_us": 511,
+          "cumulative_us": 1327281,
+          "module": "transformers.utils"
+        }
+      ],
+      "stdout_sha256": "0af94f06c19664bb261a9f9bc6ddcfbfe2eb66ee4cffb700c3a6cfc70088c4bf",
+      "importtime_sha256": "ce1af1b4552e17bee99887156d55e6eea529f0a7344a834676fb626af5eefd1b"
+    },
+    {
+      "case": "neutral_startup_then_same_frontend",
+      "returncode": 0,
+      "wall_s": 14.404769198037684,
+      "interpreter_to_entry_s": 0.023166237049736083,
+      "runner_import_s": 12.791289462009445,
+      "frontend_import_s": 2.9279966838657856e-05,
+      "record": {
+        "stages": [
+          {
+            "phase": "entry",
+            "monotonic_s": 929026.21109866,
+            "loaded": []
+          },
+          {
+            "phase": "runner_import",
+            "monotonic_s": 929039.002388122
+          },
+          {
+            "phase": "native_frontend_import",
+            "monotonic_s": 929039.002417402
+          }
+        ],
+        "cuda_initialized": false,
+        "cuda_visible_devices": "",
+        "torch": "2.13.0+cu130",
+        "python": "3.12.12 | packaged by Anaconda, Inc. | (main, Oct 21 2025, 20:16:04) [GCC 11.2.0]",
+        "affinity": [
+          2,
+          3,
+          26,
+          27
+        ],
+        "loaded_count": 5528
+      },
+      "top_self_imports": [
+        {
+          "self_us": 1103150,
+          "cumulative_us": 1103150,
+          "module": "transformers.utils.import_utils"
+        },
+        {
+          "self_us": 643706,
+          "cumulative_us": 2348998,
+          "module": "transformers"
+        },
+        {
+          "self_us": 584483,
+          "cumulative_us": 584483,
+          "module": "transformers.models"
+        },
+        {
+          "self_us": 312670,
+          "cumulative_us": 313171,
+          "module": "openai.types.responses.responses_client_event"
+        },
+        {
+          "self_us": 306728,
+          "cumulative_us": 498694,
+          "module": "transformers.utils.hub"
+        },
+        {
+          "self_us": 298159,
+          "cumulative_us": 346110,
+          "module": "torch._C"
+        },
+        {
+          "self_us": 296857,
+          "cumulative_us": 297134,
+          "module": "vllm.entrypoints.openai.responses.protocol"
+        },
+        {
+          "self_us": 280555,
+          "cumulative_us": 282384,
+          "module": "torch._dynamo.output_graph"
+        },
+        {
+          "self_us": 235746,
+          "cumulative_us": 1635678,
+          "module": "torch._inductor.lowering"
+        },
+        {
+          "self_us": 218691,
+          "cumulative_us": 253553,
+          "module": "vllm.utils.torch_utils"
+        },
+        {
+          "self_us": 217029,
+          "cumulative_us": 217029,
+          "module": "torch._inductor.decomposition"
+        },
+        {
+          "self_us": 213089,
+          "cumulative_us": 635212,
+          "module": "torch._inductor.select_algorithm"
+        },
+        {
+          "self_us": 160090,
+          "cumulative_us": 206088,
+          "module": "fastapi.openapi.models"
+        },
+        {
+          "self_us": 146350,
+          "cumulative_us": 1439934,
+          "module": "torch"
+        },
+        {
+          "self_us": 132735,
+          "cumulative_us": 134675,
+          "module": "torch._prims"
+        },
+        {
+          "self_us": 128223,
+          "cumulative_us": 325155,
+          "module": "torch.distributed.tensor._ops"
+        },
+        {
+          "self_us": 121248,
+          "cumulative_us": 123096,
+          "module": "vllm.ir.ops.activation"
+        },
+        {
+          "self_us": 101780,
+          "cumulative_us": 103180,
+          "module": "triton.testing"
+        },
+        {
+          "self_us": 89009,
+          "cumulative_us": 351585,
+          "module": "torch._meta_registrations"
+        },
+        {
+          "self_us": 88120,
+          "cumulative_us": 88120,
+          "module": "xgrammar.structural_tag"
+        },
+        {
+          "self_us": 85128,
+          "cumulative_us": 85558,
+          "module": "vllm.entrypoints.openai.chat_completion.protocol"
+        },
+        {
+          "self_us": 84596,
+          "cumulative_us": 84596,
+          "module": "torchvision._meta_registrations"
+        },
+        {
+          "self_us": 84416,
+          "cumulative_us": 84583,
+          "module": "vllm.entrypoints.pooling.embed.protocol"
+        },
+        {
+          "self_us": 84204,
+          "cumulative_us": 84966,
+          "module": "torch.distributed._functional_collectives"
+        },
+        {
+          "self_us": 80392,
+          "cumulative_us": 841534,
+          "module": "torch._inductor.kernel.flex.flex_attention"
+        },
+        {
+          "self_us": 77347,
+          "cumulative_us": 12791065,
+          "module": "scripts.run_all_experiments"
+        },
+        {
+          "self_us": 71535,
+          "cumulative_us": 206210,
+          "module": "torch._decomp.decompositions"
+        },
+        {
+          "self_us": 65775,
+          "cumulative_us": 172983,
+          "module": "torch._inductor.ir"
+        },
+        {
+          "self_us": 64660,
+          "cumulative_us": 230519,
+          "module": "transformers.processing_utils"
+        },
+        {
+          "self_us": 58961,
+          "cumulative_us": 58961,
+          "module": "mpmath.calculus.optimization"
+        }
+      ],
+      "top_cumulative_imports": [
+        {
+          "self_us": 77347,
+          "cumulative_us": 12791065,
+          "module": "scripts.run_all_experiments"
+        },
+        {
+          "self_us": 23,
+          "cumulative_us": 11188718,
+          "module": "faaslora.experiment.experiment_stack"
+        },
+        {
+          "self_us": 206,
+          "cumulative_us": 11188695,
+          "module": "faaslora.experiment"
+        },
+        {
+          "self_us": 829,
+          "cumulative_us": 11177903,
+          "module": "faaslora.experiment.experiment_stack"
+        },
+        {
+          "self_us": 26,
+          "cumulative_us": 11143006,
+          "module": "faaslora.coordination.autoscaler"
+        },
+        {
+          "self_us": 142,
+          "cumulative_us": 11142980,
+          "module": "faaslora.coordination"
+        },
+        {
+          "self_us": 1532,
+          "cumulative_us": 11142839,
+          "module": "faaslora.coordination.coordinator"
+        },
+        {
+          "self_us": 24,
+          "cumulative_us": 11121593,
+          "module": "faaslora.serving.inference_engine"
+        },
+        {
+          "self_us": 136,
+          "cumulative_us": 11121570,
+          "module": "faaslora.serving"
+        },
+        {
+          "self_us": 1268,
+          "cumulative_us": 11121434,
+          "module": "faaslora.serving.inference_engine"
+        },
+        {
+          "self_us": 3545,
+          "cumulative_us": 11117050,
+          "module": "faaslora.serving.vllm_wrapper"
+        },
+        {
+          "self_us": 12606,
+          "cumulative_us": 5180880,
+          "module": "vllm.config"
+        },
+        {
+          "self_us": 249,
+          "cumulative_us": 3881076,
+          "module": "vllm"
+        },
+        {
+          "self_us": 884,
+          "cumulative_us": 3880565,
+          "module": "vllm.env_override"
+        },
+        {
+          "self_us": 25805,
+          "cumulative_us": 3862786,
+          "module": "vllm.config.model"
+        },
+        {
+          "self_us": 8570,
+          "cumulative_us": 2481400,
+          "module": "vllm.config.quantization"
+        },
+        {
+          "self_us": 3814,
+          "cumulative_us": 2472831,
+          "module": "vllm.model_executor.layers.quantization.utils.quant_utils"
+        },
+        {
+          "self_us": 254,
+          "cumulative_us": 2466478,
+          "module": "vllm.model_executor.layers.quantization.utils"
+        },
+        {
+          "self_us": 940,
+          "cumulative_us": 2465844,
+          "module": "vllm.model_executor.layers.quantization"
+        },
+        {
+          "self_us": 3650,
+          "cumulative_us": 2387329,
+          "module": "vllm.model_executor.layers.quantization.base_config"
+        }
+      ],
+      "stdout_sha256": "e6d240a9e6023ddd8db19f128370028d79506c40c2b49c07894950041371ee8b",
+      "importtime_sha256": "f73793a8f0060b8b18fabb76b706f3a36a3b666695e30e96418fe864af5aba90"
+    }
+  ],
+  "source_sha256": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/sitecustomize.py": "ce3cd678765eed80c11edffcebd79fe4a73f1f69e14b93ff51d092db7d187056",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py": "736960bb54b9be94f541ee8f43455c86200ed5401aa3c3129f855982f9972e45",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/dedicated_engine_worker.py": "0065bddb6bce85cd0c006a6ebb839607dbcfe8e45158d9a29abab968dfbeb7c8",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+  },
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "caveats": [
+    "CPU-only hidden-CUDA import diagnostic, not an activation or request benchmark.",
+    "Fixed sequential order, one observation each, importtime overhead included.",
+    "Warm filesystem/module-cache state differs from concurrent live activation.",
+    "Nested cumulative import times must not be summed.",
+    "Neutral case omits startup patches for diagnosis only; it is not a qualified serving change."
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "identity": {
+    "unit": "primelora-tc-aux-a0f80b3347e74001b8f7b3d3ee8ab7ec.scope",
+    "invocation_id": "91a871c419cb4db18f449a80804e3f61",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-a0f80b3347e74001b8f7b3d3ee8ab7ec.scope",
+    "inode": 20439880
+  },
+  "before": {
+    "memory.peak": "10272768",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0",
+    "memory.high": "3221225472",
+    "memory.max": "4294967296",
+    "memory.swap.max": "0",
+    "cgroup.events": "populated 1\nfrozen 0"
+  },
+  "after": {
+    "memory.peak": "1686216704",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0",
+    "memory.high": "3221225472",
+    "memory.max": "4294967296",
+    "memory.swap.max": "0",
+    "cgroup.events": "populated 1\nfrozen 0"
+  },
+  "rows_completed": 2,
+  "gpu_census_after": "",
+  "source_sha256": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/sitecustomize.py": "ce3cd678765eed80c11edffcebd79fe4a73f1f69e14b93ff51d092db7d187056",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py": "736960bb54b9be94f541ee8f43455c86200ed5401aa3c3129f855982f9972e45",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/dedicated_engine_worker.py": "0065bddb6bce85cd0c006a6ebb839607dbcfe8e45158d9a29abab968dfbeb7c8",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+  }
+}

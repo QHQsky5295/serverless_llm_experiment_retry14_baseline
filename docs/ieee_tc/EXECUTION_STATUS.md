@@ -11,7 +11,38 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D337 retained full-run trade-off localized; next startup-path hypothesis
+## CURRENT — D338 CPU import diagnostic done; no unsupported startup shortcut
+
+2026-10-08: one bounded CPU-only import diagnostic completed, NO new GPU replay,
+serving/config change, figures, artifact cache or trace regeneration. Two paths:
+repository startup entry10.163524s + runner.661289s, totalwall13.004194s;
+neutral entry.023166s + runner12.791289s, totalwall14.404769s. One observation
+each, fixed order, importtime overhead/CPU affinity2,3,26,27; not live activation.
+Bypassing sitecustomize shifts required imports; it does NOT establish10s savings.
+Do not remove startup hooks or subtract timing on this evidence. Both CUDA
+initialized=false, compute census empty; peak1686216704B,events0/swap0.
+Initial launcher read unavailable cpuset file and stopped before native imports;
+failure retained, actual affinity verified. See D338_STARTUP_IMPORT_DIAGNOSTIC.md.
+No production candidate accepted; do not repeat this microtest or D337 analysis.
+NEXT: restore disk headroom with reference-checked rebuildable cache recovery
+(currently149.6GiB<150GiB, no heavy launch); then actual worker CPU initialization,
+engine/core and ready boundaries for ONE startup candidate/minimal validation.
+Do not treat uv cache size as reclaimable: inspected native wheels hardlinked.
+Known histories D293 prefetch/D307-D315512budget/D329 unsafeHOSTcache remain closed.
+G1/G2/commonwarm/Resident/N_correct/old-new7B qualification remain OPEN;3B then
+baselines/ablation matrix pending. User reapproved published artifact cache;
+existing D80 cache reused, not regenerated. Closure/backup pending below.
+
+## HISTORY — D337 retained full-run trade-off localized; next startup-path hypothesis
+
+BACKUP/CLOSURE VERIFIED: local HEAD and independent remote V2 both
+cfe420d13678c67c4d2f123879634292187a8c32.18 exact paths, source/output SHA,
+syntax/diff/secrets checks passed; user manifest unchanged/unstaged. Analysis,
+startup extraction and backup scopes are all exactly owned-empty and inactive;
+backup peak63369216B/events0/swap0, GPU compute census empty. Disk160641273856B
+still below150GiB. D337 analysis and backup DONE; do not repeat them next turn.
+Latest user goal reconfirmed: use agreed frozen G1/G2, no CE-only or changed
+ruler, remain7B then3B, no figures/baselines before the model targets.
 
 2026-10-08: D337 analysis COMPLETE, no new GPU replay/service/config change or
 figures.73 CPU tests pass; D335/D336 each4000 retained intervals analyzed with

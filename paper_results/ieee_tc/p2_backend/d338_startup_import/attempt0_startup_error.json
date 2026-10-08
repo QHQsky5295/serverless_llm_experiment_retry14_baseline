@@ -1,0 +1,16 @@
+{
+  "identity": {
+    "unit": "primelora-tc-aux-9943e23569764a789b0462d59eef6a27.scope",
+    "invocation_id": "ea7850d7519b4963868e14fb47ca7f1f",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-9943e23569764a789b0462d59eef6a27.scope",
+    "inode": 20439668
+  },
+  "resources": {
+    "memory.peak": "28606464\n",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+    "memory.swap.current": "0\n",
+    "cgroup.events": "populated 0\nfrozen 0\n"
+  },
+  "error": "cpuset.cpus.effective not exposed in this user scope; diagnostic aborted before any native import",
+  "scope_stopped": true
+}

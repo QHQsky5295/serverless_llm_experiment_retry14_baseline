@@ -1,0 +1,40 @@
+{
+  "kind": "d338_startup_import_evidence_v1",
+  "source_head": "cfe420d13678c67c4d2f123879634292187a8c32",
+  "sources": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/sitecustomize.py": "ce3cd678765eed80c11edffcebd79fe4a73f1f69e14b93ff51d092db7d187056",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py": "736960bb54b9be94f541ee8f43455c86200ed5401aa3c3129f855982f9972e45",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/dedicated_engine_worker.py": "0065bddb6bce85cd0c006a6ebb839607dbcfe8e45158d9a29abab968dfbeb7c8",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+  },
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "protected_seal": {
+    "kind": "protected_artifact_verification",
+    "pass": false,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [
+      "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"
+    ],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "archived_sources": {
+    "import_diagnostic.py": "ce78a75474c31f7d8ef04cdd03f56910526da2062847589a2b3e7ac1040f95bb",
+    "seal_and_backup.py": "7e2e69a28bb434eeb307884144d6f6cefbb78b8d3a44a2c8613749446d84c758",
+    "repository_startup_hook.stdout": "0af94f06c19664bb261a9f9bc6ddcfbfe2eb66ee4cffb700c3a6cfc70088c4bf",
+    "repository_startup_hook.importtime": "ce1af1b4552e17bee99887156d55e6eea529f0a7344a834676fb626af5eefd1b",
+    "neutral_startup_then_same_frontend.stdout": "e6d240a9e6023ddd8db19f128370028d79506c40c2b49c07894950041371ee8b",
+    "neutral_startup_then_same_frontend.importtime": "f73793a8f0060b8b18fabb76b706f3a36a3b666695e30e96418fe864af5aba90"
+  },
+  "outputs": {
+    "attempt0_startup_error.json": "2391bc2ac6e7749dce4fdd4ecf13e9175f00153b6894196b7919ce00236092db",
+    "execution_receipt.json": "67d7303de4527332e9830aad8a6fd383e817196e1b12825316981bab1c41b25d",
+    "execution_evidence.tar.gz": "65d8a258443f8c23a88fb27feb4e91447b0709de709765127cd2554a2fd77357",
+    "summary.json": "a83e9d77ac457f64a622183e671e3bdfe6617e46092d6caa1bbea49f2fcf2d5d",
+    "import_cleanup.json": "fbe226193da5c01345ca7268256e19f63a0be5d13e28818f0fde13f405226d43"
+  },
+  "no_serving_change": true,
+  "no_gpu_run": true,
+  "no_figures": true
+}
