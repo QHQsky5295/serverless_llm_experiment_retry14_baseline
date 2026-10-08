@@ -11,7 +11,36 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D359 retained TTFT diagnosis COMPLETE; 7B remains OPEN
+## CURRENT — D360 preparation receipt diagnosis COMPLETE; 7B remains OPEN
+
+2026-10-09: reused all4000 D353/D358 source-admission/native-acquisition receipts;
+no GPU/remote run or figure. One-time delivery cache approval reconfirmed: cache
+already published and D358 reports132transfers/zero request-time packing; do not
+regenerate assets.61CPU tests pass. Stale rechecks593→1609, affectedrequests267→263,
+max12→105; final native load mean41.888→42.492ms(1416→1403loadedrequests).
+All-request admission→acquired154.966→272.560ms; acquired→engine108.973→132.087ms.
+Second500phase rechecks108→1023; admission→acquired157.351→925.850ms while
+final load45.670→44.183ms. All phases/tiers retained; conditional cohorts not
+matched causal effects. req00615 has105rechecks and42.814s admission→acquired,
+but its final transaction reuses GPU with no load: do not invent a file-load span.
+Code/history and officialvLLM0.30 worker support a falsifiable globalepoch-chasing
+hypothesis: nonnative file-demand commands reject unrelated worker epoch changes,
+then repeat controllerRPC; cached-copy acquisitions already use exactcopy identity.
+No claim that every model step advances epoch or all pre-load time is pureRPC.
+NumericalN_correct/formalqualification remainunknown; noCI from one developmentrun.
+Analysis scope00d6dff1b3e242f6a72ba538b197062f closed exact-owned, nohardkill;
+peak962719744B,high/max/OOM/swap0. Data and39520B/9member evidence archive in
+paper_results/ieee_tc/p2_backend/d360_preparation_wait/. Checkpoint verifier closes
+seal7d55fcf071a74afca4b48d7684993b65; consult raw d360_20261009 receipts before
+any cleanup. Detailed decision D360_RETAINED_PREPARATION_RECHECKS.md.
+NEXT one opt-in worker-local atomic file-demand validation/load/acquire candidate,
+with heldcontentverifiedfile witness, live owner/capacity/pin/HOSTbudget checks,
+replay/cancel safety; no stale-capacity reuse or changes to cached/proactive paths.
+CPU contract tests →qualified smoke →fullW0 versus retained D358/D353/D336;
+noautoscaler/concurrency/timeout/threshold retuning. Serving code unchanged in D360.
+Mainline7B→3B→pausedbaselines→M1/M2→ablations/sensitivities; nofigures.
+
+## D359 retained TTFT diagnosis COMPLETE; retained reference
 
 2026-10-09: reused D353/D358 complete4000 request/native clocks, activations and
 control samples; no GPU run or remote operation. User approval of one-time

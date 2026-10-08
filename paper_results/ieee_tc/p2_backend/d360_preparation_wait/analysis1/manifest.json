@@ -1,0 +1,43 @@
+{
+  "source_refs": [
+    {
+      "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/analyze_d297_full.py",
+      "sha256": "d7b3a2cbaa89bb25a5ed31d52f93a471ebe9e23a8c21975cd6adee83b5b2cc54"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d359_ttft_partition/analysis1/manifest.json",
+      "sha256": "e3699e518f4aa7b8c7d27de5a75b1e8d041474d8762266a3012dd7dde384ac36"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d353_20261008/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d353_7b_full_w0.json",
+      "sha256": "0fe856cf44923ec66fb91aed5ed9d088891bedb7c2b603d416e78b04f0751c9d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d353_full_w0/validated1/audit.json",
+      "sha256": "10584b2d49cb9afea2bc6df2cc02d6f21cf7d9e780fb668d20c92c22b94a3bf2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d358_20261008/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d358_7b_full_w0.json",
+      "sha256": "0d6c188c302d83f57d3f581181d639c2dd37ed486b5817ce2027127ba055fe51"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d358_full_w0/validated1/audit.json",
+      "sha256": "4118412bd5422ba476a6cef96a6458188b7ffd6bec10d884354aeaa11e5d47e6"
+    }
+  ],
+  "outputs": {
+    "d358_requests.json": "9bb81679dedfecc3e5d80b06a00cef27d73a48dfe02db3be7860636c67882566",
+    "summary.json": "db3477cc7bdf4227032312346d4c75407e4c8bceb5d16f67490f06fa6fee6b96",
+    "groups.csv": "d2e44730ec25bfaacb7995edbaaf08e0f764930def3f6fa8575f4d400aa0948f",
+    "d353_requests.json": "654291afe6f23b13bef97eb02115bf86167ccf94c7b24b910ac977e831841b73"
+  },
+  "no_figures": true
+}

@@ -6,7 +6,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from scripts.ieee_tc.analyze_d298_smoke import control_interleave_trigger
-from scripts.ieee_tc.analyze_d297_full import retained_ttft_stages, TTFT_STAGE_MS
+from scripts.ieee_tc.analyze_d297_full import retained_ttft_stages, TTFT_STAGE_MS, retained_preparation_row
 from tests import test_ieee_tc_hit_host_analysis as prior
 
 
@@ -51,6 +51,62 @@ class RetainedTTFTStages(unittest.TestCase):
     def test_single_token_not_imputed(self):
         self.timing['token_count'] = '1'
         with self.assertRaisesRegex(ValueError, 'multi-token'): self.result()
+
+
+class RetainedPreparationReceipts(unittest.TestCase):
+    def setUp(self):
+        self.row=dict(request_id='r',adapter_id='a',success=True,readiness_tier_before_dispatch='nvme',
+            native_token_timing=dict(native_clock_id='c',gpu_reference_owner_id='o',
+                gpu_reference_lease_id='l',controller_admitted_monotonic_s=1.,native_dispatch_monotonic_s=5.),
+            gpu_reference_evidence=dict(stale_rechecks=3,
+                source_admission=dict(source=dict(tier='nvme'),clock_id='c',admitted_monotonic_s=1.),
+                receipt=dict(acquired=True,owner_id='o',lease_id='l',clock_id='c',
+                    acquired_monotonic_s=4.,native_load_invoked=True,
+                    native_load_started_monotonic_s=3.,native_load_completed_monotonic_s=4.,
+                    source_tier_before_acquisition='file'),
+                preparation_interval=dict(request_id='r',native_lease_id='l',reason='observed_complete_load')))
+
+    def result(self): return retained_preparation_row(self.row)
+
+    def test_final_load_is_subset(self):
+        r=self.result()
+        self.assertEqual(r['admission_to_acquired_ms'],3000.)
+        self.assertEqual(r['before_final_load_ms'],2000.)
+        self.assertEqual(r['final_native_load_ms'],1000.)
+        self.assertEqual(r['executable_to_engine_ms'],1000.)
+        self.assertEqual(r['stale_rechecks'],3)
+        self.assertIsNone(r['last_conflict_reason'])
+
+    def test_gpu_reference_before_admission_not_negative(self):
+        self.row['readiness_tier_before_dispatch']='gpu'
+        e=self.row['gpu_reference_evidence']
+        e['source_admission']['source']['tier']='gpu'
+        del e['preparation_interval']
+        e['receipt'].update(acquired_monotonic_s=.9,native_load_invoked=False,
+            native_load_started_monotonic_s=None,native_load_completed_monotonic_s=None,
+            source_tier_before_acquisition='gpu')
+        r=self.result()
+        self.assertEqual(r['admission_to_acquired_ms'],0.)
+        self.assertIsNone(r['final_native_load_ms'])
+        self.assertAlmostEqual(r['acquired_before_admission_ms'],100.)
+
+    def test_missing_load_boundaries_fail(self):
+        e=self.row['gpu_reference_evidence']['receipt']
+        e['native_load_started_monotonic_s']=None
+        with self.assertRaisesRegex(ValueError,'native-load'): self.result()
+
+    def test_reused_non_gpu_no_invented_load(self):
+        e=self.row['gpu_reference_evidence']['receipt']
+        e.update(native_load_invoked=False,native_load_started_monotonic_s=None,
+            native_load_completed_monotonic_s=None,source_tier_before_acquisition='gpu')
+        self.assertIsNone(self.result()['final_native_load_ms'])
+
+    def test_clock_owner_and_counter_fail(self):
+        for key,value in (('clock_id','other'),('owner_id','other'),('lease_id','other')):
+            self.setUp(); self.row['gpu_reference_evidence']['receipt'][key]=value
+            with self.assertRaisesRegex(ValueError,'receipts'): self.result()
+        self.setUp(); self.row['gpu_reference_evidence']['stale_rechecks']=True
+        with self.assertRaisesRegex(ValueError,'counter'): self.result()
 
 
 def request(i, owner='owner', pid=123, counts=(5, 4, 2, 1)):

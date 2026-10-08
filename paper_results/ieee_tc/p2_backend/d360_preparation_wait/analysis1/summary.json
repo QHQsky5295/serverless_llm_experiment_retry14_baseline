@@ -1,0 +1,100 @@
+{
+  "runs": {
+    "d353": {
+      "requests": 4000,
+      "last_conflict_counts": {
+        "stale_snapshot": 267,
+        "none": 3733
+      },
+      "preparation_counts": {
+        "observed_complete_load": 1414,
+        "native_source_reused_or_changed_before_loading": 13,
+        "gpu_reference_before_admission": 2572,
+        "shared_file_preparation_reused": 1
+      },
+      "max_recheck_row": {
+        "request_id": "req_00968",
+        "adapter_id": "finance_lora_0013",
+        "tier": "nvme",
+        "native_source": "file",
+        "native_load_invoked": true,
+        "preparation_reason": "observed_complete_load",
+        "owner_id": "39e8656f08234f668246a2fe014f1a95",
+        "stale_rechecks": 12,
+        "last_conflict_reason": "stale_snapshot",
+        "admission_to_acquired_ms": 2402.164405095391,
+        "acquired_before_admission_ms": 0.0,
+        "executable_to_engine_ms": 138.25929490849376,
+        "admission_to_engine_ms": 2540.4237000038847,
+        "before_final_load_ms": 2259.2196681071073,
+        "final_native_load_ms": 142.9447369882837,
+        "final_rpc_timing": {
+          "parent_rpc_channel_acquire_ms": 1.3831090182065964,
+          "parent_rpc_response_pickup_delay_ms": 0.0,
+          "parent_rpc_send_flush_ms": 0.09075202979147434,
+          "parent_rpc_request_bytes": 559,
+          "parent_rpc_response_bytes": 18487,
+          "parent_rpc_wait_response_ms": 512.9425809718668,
+          "parent_rpc_transport": "native_async_socket_v1",
+          "parent_rpc_thread_resume_delay_ms": 0.0
+        },
+        "trace_index": 968,
+        "phase": 2
+      }
+    },
+    "d358": {
+      "requests": 4000,
+      "last_conflict_counts": {
+        "none": 3737,
+        "stale_snapshot": 263
+      },
+      "preparation_counts": {
+        "observed_complete_load": 1400,
+        "native_source_reused_or_changed_before_loading": 24,
+        "gpu_reference_before_admission": 2575,
+        "shared_file_preparation_reused": 1
+      },
+      "max_recheck_row": {
+        "request_id": "req_00615",
+        "adapter_id": "gaming_lora_0022",
+        "tier": "nvme",
+        "native_source": "gpu",
+        "native_load_invoked": false,
+        "preparation_reason": "native_source_reused_or_changed_before_loading",
+        "owner_id": "8eaedd75e3574891b663f1203ea0f360",
+        "stale_rechecks": 105,
+        "last_conflict_reason": "stale_snapshot",
+        "admission_to_acquired_ms": 42814.410430029966,
+        "acquired_before_admission_ms": 0.0,
+        "executable_to_engine_ms": 372.07447504624724,
+        "admission_to_engine_ms": 43186.48490507621,
+        "before_final_load_ms": null,
+        "final_native_load_ms": null,
+        "final_rpc_timing": {
+          "parent_rpc_channel_acquire_ms": 0.46773499343544245,
+          "parent_rpc_response_pickup_delay_ms": 0.0,
+          "parent_rpc_send_flush_ms": 0.08078489918261766,
+          "parent_rpc_request_bytes": 557,
+          "parent_rpc_response_bytes": 18033,
+          "parent_rpc_wait_response_ms": 597.3590929061174,
+          "parent_rpc_transport": "native_async_socket_v1",
+          "parent_rpc_thread_resume_delay_ms": 0.0
+        },
+        "trace_index": 615,
+        "phase": 2
+      }
+    }
+  },
+  "new_gpu_runs": 0,
+  "formal_qualification": false,
+  "n_correct": null,
+  "confidence_interval": null,
+  "no_figures": true,
+  "caveats": [
+    "Final successful native load excludes earlier RPCs and conflicts; it is not total resource use.",
+    "Before-final-load includes all earlier preparation, transfer, contention and control waiting.",
+    "Only stale_rechecks is a cumulative counter; last_conflict is not a full conflict journal.",
+    "GPU acquisition precedes admission; no negative stage or invented load is imputed.",
+    "Conditional groups and one development run each cannot establish counterfactual gains."
+  ]
+}

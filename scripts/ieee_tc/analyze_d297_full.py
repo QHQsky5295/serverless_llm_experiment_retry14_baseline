@@ -1565,6 +1565,130 @@ def retained_ttft_stages(row, request, timing):
     return values
 
 
+def retained_preparation_row(request):
+    """Describe admission/acquisition/load receipts without filling missing spans.
+
+    A GPU reference may be acquired before source admission. A non-GPU selected
+    source may legally become resident while waiting; no load is then invented.
+    The final conflict is not a journal of every intermediate conflict.
+    """
+    e, timing = request['gpu_reference_evidence'], request['native_token_timing']
+    admission, receipt = e['source_admission'], e['receipt']
+    tier = admission['source']['tier']
+    if (request['success'] is not True or tier != request['readiness_tier_before_dispatch']
+            or tier not in ('gpu','host','nvme','remote') or receipt['acquired'] is not True
+            or receipt['clock_id'] != timing['native_clock_id']
+            or admission['clock_id'] != receipt['clock_id']
+            or receipt['owner_id'] != timing['gpu_reference_owner_id']
+            or receipt['lease_id'] != timing['gpu_reference_lease_id']):
+        raise ValueError('matched successful preparation receipts required')
+    admitted = admission['admitted_monotonic_s']
+    acquired, dispatch = receipt['acquired_monotonic_s'], timing['native_dispatch_monotonic_s']
+    if (any(type(x) not in (int,float) or not math.isfinite(x) or x <= 0
+            for x in (admitted,acquired,dispatch))
+            or admitted != timing['controller_admitted_monotonic_s']
+            or max(admitted,acquired)>dispatch or (tier!='gpu' and acquired<admitted)):
+        raise ValueError('ordered same-clock preparation boundaries required')
+    retries = e['stale_rechecks']
+    invoked = receipt['native_load_invoked']
+    if type(retries) is not int or retries < 0 or type(invoked) is not bool:
+        raise ValueError('explicit stale counter and native-load flag required')
+    start, end = receipt['native_load_started_monotonic_s'], receipt['native_load_completed_monotonic_s']
+    before, native = None, None
+    if invoked:
+        if (any(type(x) not in (int,float) or not math.isfinite(x) for x in (start,end))
+                or not admitted <= start <= end == acquired):
+            raise ValueError('ordered final native-load boundaries required')
+        before, native = (start-admitted)*1000, (end-start)*1000
+    elif start is not None or end is not None:
+        raise ValueError('non-loading acquisition must not claim a load span')
+    interval = e.get('preparation_interval')
+    if tier!='gpu' and (not isinstance(interval,dict)
+            or interval['request_id']!=request['request_id']
+            or interval['native_lease_id']!=receipt['lease_id']):
+        raise ValueError('selected non-GPU source requires its retained attribution')
+    conflict = e.get('last_conflict')
+    reason = conflict['reason'] if conflict is not None else None
+    return dict(request_id=request['request_id'],adapter_id=request['adapter_id'],tier=tier,
+        native_source=receipt['source_tier_before_acquisition'],native_load_invoked=invoked,
+        preparation_reason=interval['reason'] if interval else 'gpu_reference_before_admission',
+        owner_id=receipt['owner_id'],stale_rechecks=retries,last_conflict_reason=reason,
+        admission_to_acquired_ms=(max(admitted,acquired)-admitted)*1000,
+        acquired_before_admission_ms=max(0.,admitted-acquired)*1000,
+        executable_to_engine_ms=(dispatch-max(admitted,acquired))*1000,
+        admission_to_engine_ms=(dispatch-admitted)*1000,
+        before_final_load_ms=before,final_native_load_ms=native,
+        final_rpc_timing=receipt.get('timing'))
+
+
+def inspect_retained_preparation(output):
+    """D360: reuse D353/D358 receipts to test cold-path stale-retry amplification."""
+    global OUT
+    OUT = Path(output).resolve()
+    if OUT.exists():
+        raise FileExistsError(OUT)
+    assert sha256(PLAN)=='0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7'
+    assert sha256(PROTOCOL)=='5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22'
+    old = ROOT/'paper_results/ieee_tc/p2_backend/d359_ttft_partition/analysis1'
+    old_seal = read(old/'manifest.json')
+    refs = {x['path']:x['sha256'] for x in old_seal['source_refs']}
+    paths=[PLAN,PROTOCOL,Path(__file__),old/'manifest.json']
+    summaries, groups = {}, []
+    OUT.mkdir(parents=True,exist_ok=False)
+    for name in ('d353','d358'):
+        prior=ROOT/f'paper_results/ieee_tc/p2_backend/{name}_full_w0/validated1'
+        audit=read(prior/'audit.json')
+        assert sha256(prior/'audit.json')==refs[str(prior/'audit.json')]
+        source=Path(audit['evidence']['source'])
+        assert sha256(source)==refs[str(source)]==audit['evidence']['source_sha256']
+        result,scenario=load(source)
+        requests=scenario['requests']
+        assert len(requests)==4000
+        rows=[]
+        for i,r in enumerate(requests):
+            row=retained_preparation_row(r)
+            row.update(trace_index=i,phase=i//500+1)
+            assert abs(row['admission_to_engine_ms']-r['native_token_timing']['admission_to_engine_dispatch_ms'])<.001
+            rows.append(row)
+        cohorts=[('all','all',rows)]
+        cohorts += [('phase',str(i),[r for r in rows if r['phase']==i]) for i in range(1,9)]
+        cohorts += [('tier',t,[r for r in rows if r['tier']==t]) for t in ('gpu','host','nvme','remote')]
+        cohorts += [('second_phase_tier',t,[r for r in rows if r['tier']==t and r['phase']==2])
+                    for t in ('gpu','host','nvme','remote')]
+        cohorts += [('stale_rechecks',label,[r for r in rows if (r['stale_rechecks']>0)==positive])
+                    for label,positive in (('none',False),('positive',True))]
+        for kind,label,rs in cohorts:
+            loaded=[r for r in rs if r['native_load_invoked']]
+            groups.append(dict(run=name,group=kind,label=label,n=len(rs),
+                stale_affected=sum(r['stale_rechecks']>0 for r in rs),
+                stale_rechecks=sum(r['stale_rechecks'] for r in rs),
+                max_stale_rechecks=max((r['stale_rechecks'] for r in rs),default=None),
+                loaded_count=len(loaded),
+                **{k:mean(r[k] for r in rs) if rs else None for k in
+                   ('admission_to_acquired_ms','executable_to_engine_ms','admission_to_engine_ms')},
+                loaded_before_final_load_ms=mean(r['before_final_load_ms'] for r in loaded) if loaded else None,
+                loaded_final_native_load_ms=mean(r['final_native_load_ms'] for r in loaded) if loaded else None))
+        summaries[name]=dict(requests=len(rows),last_conflict_counts=dict(Counter(
+            r['last_conflict_reason'] or 'none' for r in rows)),
+            preparation_counts=dict(Counter(r['preparation_reason'] for r in rows)),
+            max_recheck_row=max(rows,key=lambda r:r['stale_rechecks']))
+        write(name+'_requests.json',rows)
+        paths.extend([source,prior/'audit.json'])
+        del result,scenario,requests,rows
+        gc.collect()
+    table('groups.csv',groups)
+    write('summary.json',dict(runs=summaries,new_gpu_runs=0,formal_qualification=False,
+        n_correct=None,confidence_interval=None,no_figures=True,caveats=[
+            'Final successful native load excludes earlier RPCs and conflicts; it is not total resource use.',
+            'Before-final-load includes all earlier preparation, transfer, contention and control waiting.',
+            'Only stale_rechecks is a cumulative counter; last_conflict is not a full conflict journal.',
+            'GPU acquisition precedes admission; no negative stage or invented load is imputed.',
+            'Conditional groups and one development run each cannot establish counterfactual gains.']))
+    write('manifest.json',dict(source_refs=[dict(path=str(p),sha256=sha256(p)) for p in paths],
+        outputs={p.name:sha256(p) for p in OUT.iterdir()},no_figures=True))
+    print(json.dumps(summaries,indent=2,allow_nan=False),flush=True)
+
+
 def inspect_retained_dispatch_gate(output, contrast=('d336', 'd341')):
     """Reuse registered complete native data, not another performance replay."""
     global OUT
@@ -1926,6 +2050,8 @@ if __name__ == '__main__':
         help='D342 compact split data and conservative sampled permit bounds')
     parser.add_argument('--interleave-wait-output', type=Path,
         help='D359 retained D353/D358 stage and dispatch split; no inference')
+    parser.add_argument('--preparation-wait-output',type=Path,
+        help='D360 retained D353/D358 preparation/acquisition receipts; no inference')
     parser.add_argument('--calibration-target-output', type=Path,
         help='D348 retained C14 profile exposure; no steady-load inference or new GPU run')
     args = parser.parse_args()
@@ -1936,9 +2062,11 @@ if __name__ == '__main__':
                                   args.capacity_lifecycle_output, args.dispatch_gate_output,
                                   args.dispatch_context_output, args.c14_lifecycle_output,
                                   args.calibration_target_output, args.decoupled_lifecycle_output,
-                                  args.interleave_wait_output)) > 1:
+                                  args.interleave_wait_output,args.preparation_wait_output)) > 1:
         parser.error('choose one retained diagnostic')
-    if args.interleave_wait_output is not None:
+    if args.preparation_wait_output is not None:
+        inspect_retained_preparation(args.preparation_wait_output)
+    elif args.interleave_wait_output is not None:
         inspect_retained_dispatch_gate(args.interleave_wait_output, contrast=('d353', 'd358'))
         inspect_retained_dispatch_context(args.interleave_wait_output/'sampled_capacity',
             prior=args.interleave_wait_output.resolve(), contrast=('d353', 'd358'))
