@@ -1,0 +1,303 @@
+{
+  "kind": "d341_retained_startup_witness_v1",
+  "workers": [
+    {
+      "worker_pid": 2129859,
+      "replica": "ieee-activation-13f508db64cd4eae9decd168bfbd48f5",
+      "category": "natural_scaleout",
+      "activation_s": 42.17292142205406,
+      "prebuild_witness": {
+        "policy": "on_demand_v1",
+        "quantization": null,
+        "background_build_threads": 0,
+        "native_core_methods": [
+          "spawn"
+        ]
+      },
+      "weight_load_s": 5.19,
+      "model_load_s": 7.515963,
+      "init_profile_cache_warmup_s": 10.92,
+      "compile_s": 0.28,
+      "graph_capture_passes": 2,
+      "aot_cache_loaded": true,
+      "checkpoint_prefetch": true,
+      "inference_jit_notices": [
+        "_lora_shrink_kernel"
+      ],
+      "source_log": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_5wvwzkba_engine_dead_1791424744/worker.log"
+    },
+    {
+      "worker_pid": 2130060,
+      "replica": "ieee-activation-3b1291037c21494f870b0b5b4f01285b",
+      "category": "natural_scaleout",
+      "activation_s": 41.9955968890572,
+      "prebuild_witness": {
+        "policy": "on_demand_v1",
+        "quantization": null,
+        "background_build_threads": 0,
+        "native_core_methods": [
+          "spawn"
+        ]
+      },
+      "weight_load_s": 4.84,
+      "model_load_s": 7.177758,
+      "init_profile_cache_warmup_s": 10.95,
+      "compile_s": 0.27,
+      "graph_capture_passes": 2,
+      "aot_cache_loaded": true,
+      "checkpoint_prefetch": true,
+      "inference_jit_notices": [
+        "_lora_shrink_kernel"
+      ],
+      "source_log": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_nxttazpv_engine_dead_1791425172/worker.log"
+    },
+    {
+      "worker_pid": 2129909,
+      "replica": "ieee-activation-40a1a499e6fc46d3902b8977a51beccb",
+      "category": "natural_scaleout",
+      "activation_s": 43.04244909703266,
+      "prebuild_witness": {
+        "policy": "on_demand_v1",
+        "quantization": null,
+        "background_build_threads": 0,
+        "native_core_methods": [
+          "spawn"
+        ]
+      },
+      "weight_load_s": 5.4,
+      "model_load_s": 7.729627,
+      "init_profile_cache_warmup_s": 11.58,
+      "compile_s": 0.28,
+      "graph_capture_passes": 2,
+      "aot_cache_loaded": true,
+      "checkpoint_prefetch": true,
+      "inference_jit_notices": [
+        "_lora_shrink_kernel"
+      ],
+      "source_log": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_hxvyw5zg_engine_dead_1791425246/worker.log"
+    },
+    {
+      "worker_pid": 2159888,
+      "replica": "ieee-activation-c89fd61b5eca477684b25760d9114e5f",
+      "category": "natural_scaleout",
+      "activation_s": 41.99932086199988,
+      "prebuild_witness": {
+        "policy": "on_demand_v1",
+        "quantization": null,
+        "background_build_threads": 0,
+        "native_core_methods": [
+          "spawn"
+        ]
+      },
+      "weight_load_s": 5.23,
+      "model_load_s": 7.431947,
+      "init_profile_cache_warmup_s": 10.81,
+      "compile_s": 0.28,
+      "graph_capture_passes": 2,
+      "aot_cache_loaded": true,
+      "checkpoint_prefetch": true,
+      "inference_jit_notices": [
+        "_lora_shrink_kernel"
+      ],
+      "source_log": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_ab53wn24_engine_dead_1791425636/worker.log"
+    },
+    {
+      "worker_pid": 2159587,
+      "replica": "ieee-activation-1d7cec55d88a47cca8798f65f62e7447",
+      "category": "natural_scaleout",
+      "activation_s": 43.61142644798383,
+      "prebuild_witness": {
+        "policy": "on_demand_v1",
+        "quantization": null,
+        "background_build_threads": 0,
+        "native_core_methods": [
+          "spawn"
+        ]
+      },
+      "weight_load_s": 5.52,
+      "model_load_s": 7.847494,
+      "init_profile_cache_warmup_s": 11.6,
+      "compile_s": 0.32,
+      "graph_capture_passes": 2,
+      "aot_cache_loaded": true,
+      "checkpoint_prefetch": true,
+      "inference_jit_notices": [
+        "_lora_shrink_kernel"
+      ],
+      "source_log": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker__cqph56z_engine_dead_1791425853/worker.log"
+    },
+    {
+      "worker_pid": 2160097,
+      "replica": "ieee-activation-cfcc8863a83d4448bcdaed0ab6c477a0",
+      "category": "natural_scaleout",
+      "activation_s": 44.60756435105577,
+      "prebuild_witness": {
+        "policy": "on_demand_v1",
+        "quantization": null,
+        "background_build_threads": 0,
+        "native_core_methods": [
+          "spawn"
+        ]
+      },
+      "weight_load_s": 4.93,
+      "model_load_s": 7.17796,
+      "init_profile_cache_warmup_s": 11.08,
+      "compile_s": 0.26,
+      "graph_capture_passes": 2,
+      "aot_cache_loaded": true,
+      "checkpoint_prefetch": true,
+      "inference_jit_notices": [
+        "_lora_shrink_kernel"
+      ],
+      "source_log": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_d9a_9t89_engine_dead_1791426035/worker.log"
+    },
+    {
+      "worker_pid": 2200884,
+      "replica": "ieee-activation-5ec1e5b3b9e044368ebd0eab80998a94",
+      "category": "natural_scaleout",
+      "activation_s": 43.29351545695681,
+      "prebuild_witness": {
+        "policy": "on_demand_v1",
+        "quantization": null,
+        "background_build_threads": 0,
+        "native_core_methods": [
+          "spawn"
+        ]
+      },
+      "weight_load_s": 4.58,
+      "model_load_s": 6.823669,
+      "init_profile_cache_warmup_s": 11.24,
+      "compile_s": 0.28,
+      "graph_capture_passes": 2,
+      "aot_cache_loaded": true,
+      "checkpoint_prefetch": true,
+      "inference_jit_notices": [
+        "_lora_shrink_kernel"
+      ],
+      "source_log": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_x8p_y6by_engine_dead_1791428570/worker.log"
+    },
+    {
+      "worker_pid": 2126852,
+      "replica": "ieee-activation-d28b417ac6624413a4439305a778d994",
+      "category": "initial",
+      "activation_s": 51.04424250801094,
+      "prebuild_witness": {
+        "policy": "on_demand_v1",
+        "quantization": null,
+        "background_build_threads": 0,
+        "native_core_methods": [
+          "spawn"
+        ]
+      },
+      "weight_load_s": 4.55,
+      "model_load_s": 6.638241,
+      "init_profile_cache_warmup_s": 10.43,
+      "compile_s": 0.26,
+      "graph_capture_passes": 2,
+      "aot_cache_loaded": true,
+      "checkpoint_prefetch": true,
+      "inference_jit_notices": [
+        "_lora_shrink_kernel"
+      ],
+      "source_log": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_f0c5gueu_engine_dead_1791428571/worker.log"
+    },
+    {
+      "worker_pid": 2199281,
+      "replica": "ieee-activation-eaac6248cad74e5e8f02cf077110d4a6",
+      "category": "natural_scaleout",
+      "activation_s": 41.73270717298146,
+      "prebuild_witness": {
+        "policy": "on_demand_v1",
+        "quantization": null,
+        "background_build_threads": 0,
+        "native_core_methods": [
+          "spawn"
+        ]
+      },
+      "weight_load_s": 4.25,
+      "model_load_s": 6.429505,
+      "init_profile_cache_warmup_s": 10.98,
+      "compile_s": 0.29,
+      "graph_capture_passes": 2,
+      "aot_cache_loaded": true,
+      "checkpoint_prefetch": true,
+      "inference_jit_notices": [
+        "_lora_shrink_kernel"
+      ],
+      "source_log": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_s82pslqb_engine_dead_1791428571/worker.log"
+    },
+    {
+      "worker_pid": 2174829,
+      "replica": "ieee-activation-cee181375ab94f3a8bf0991840116c24",
+      "category": "natural_scaleout",
+      "activation_s": 44.34784112498164,
+      "prebuild_witness": {
+        "policy": "on_demand_v1",
+        "quantization": null,
+        "background_build_threads": 0,
+        "native_core_methods": [
+          "spawn"
+        ]
+      },
+      "weight_load_s": 4.58,
+      "model_load_s": 6.77968,
+      "init_profile_cache_warmup_s": 10.84,
+      "compile_s": 0.3,
+      "graph_capture_passes": 2,
+      "aot_cache_loaded": true,
+      "checkpoint_prefetch": true,
+      "inference_jit_notices": [
+        "_lora_shrink_kernel"
+      ],
+      "source_log": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_3r_4u71u_engine_dead_1791428571/worker.log"
+    }
+  ],
+  "activation_count": 10,
+  "unbound_activation_ids": [],
+  "served_worker_count": 10,
+  "duplicate_archives_checked": [
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_f0c5gueu_engine_dead_1791428618/worker.log"
+  ],
+  "ranges": {
+    "activation_s": {
+      "count": 10,
+      "min": 41.73270717298146,
+      "mean": 43.78475853321142,
+      "max": 51.04424250801094
+    },
+    "weight_load_s": {
+      "count": 10,
+      "min": 4.25,
+      "mean": 4.907,
+      "max": 5.52
+    },
+    "model_load_s": {
+      "count": 10,
+      "min": 6.429505,
+      "mean": 7.1551844,
+      "max": 7.847494
+    },
+    "init_profile_cache_warmup_s": {
+      "count": 10,
+      "min": 10.43,
+      "mean": 11.043,
+      "max": 11.6
+    },
+    "compile_s": {
+      "count": 10,
+      "min": 0.26,
+      "mean": 0.28200000000000003,
+      "max": 0.32
+    }
+  },
+  "n_correct": null,
+  "formal_qualification": false,
+  "no_figures": true,
+  "caveats": [
+    "Log durations are rounded/nested; do not add model/weight/compile/init times.",
+    "Activation durations use one controller clock and actual ready events.",
+    "One development replay; activation populations and closed-loop trajectories can differ.",
+    "An unbound unused worker does not receive a fabricated replica or activation duration.",
+    "Native witness proves mechanism activation, not causal end-to-end speedup."
+  ]
+}

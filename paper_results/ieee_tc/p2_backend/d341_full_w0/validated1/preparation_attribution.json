@@ -1,0 +1,19 @@
+{
+  "requests": 4000,
+  "source_tiers": {
+    "remote": 137,
+    "gpu": 2093,
+    "nvme": 845,
+    "host": 925
+  },
+  "reasons": {
+    "observed_complete_load": 1878,
+    "native_source_reused_or_changed_before_loading": 26,
+    "shared_file_preparation_reused": 3
+  },
+  "eligible_samples": 1878,
+  "ineligible_samples": 29,
+  "changed_copy_cases": [],
+  "numerical_qualification": false,
+  "caveat": "Consistency of recorded ownership/stages only; no subtraction from service or user latency."
+}

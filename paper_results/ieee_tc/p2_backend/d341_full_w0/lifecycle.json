@@ -1,0 +1,140 @@
+{
+  "runs": {
+    "d336": {
+      "gaps": [
+        {
+          "gpu": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+          "released_offset_s": 172.06135224201716,
+          "reallocated_offset_s": 362.60715733398683,
+          "duration_s": 190.54580509196967
+        },
+        {
+          "gpu": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+          "released_offset_s": 1008.3025136250071,
+          "reallocated_offset_s": 1077.6524874040624,
+          "duration_s": 69.34997377905529
+        },
+        {
+          "gpu": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+          "released_offset_s": 1550.3346920370823,
+          "reallocated_offset_s": 2695.8847958130063,
+          "duration_s": 1145.550103775924
+        },
+        {
+          "gpu": "GPU-c4663821-4888-e199-7151-d6298f8d45a5",
+          "released_offset_s": 131.96106059197336,
+          "reallocated_offset_s": 364.0283032699954,
+          "duration_s": 232.067242678022
+        },
+        {
+          "gpu": "GPU-c4663821-4888-e199-7151-d6298f8d45a5",
+          "released_offset_s": 548.7378133350285,
+          "reallocated_offset_s": 748.6608870810596,
+          "duration_s": 199.92307374603115
+        },
+        {
+          "gpu": "GPU-dadf0267-9617-8824-cddb-82fba48a7b97",
+          "released_offset_s": 583.6228418269893,
+          "reallocated_offset_s": 746.1156901000068,
+          "duration_s": 162.49284827301744
+        },
+        {
+          "gpu": "GPU-dadf0267-9617-8824-cddb-82fba48a7b97",
+          "released_offset_s": 1042.10042414302,
+          "reallocated_offset_s": 1075.608013177989,
+          "duration_s": 33.50758903496899
+        }
+      ],
+      "released_gap_gpu_s": 2033.4366363789886,
+      "observed_gpu_s": 13814.334496588912,
+      "causal_savings": null,
+      "envelope_gpu_s": 15847.7711329679,
+      "window_gpu_seconds": {
+        "arrival": 13730.122307944694,
+        "cleanup": 37.97231005586218,
+        "drain": 9.18533636443317,
+        "pre_arrival": 37.05454222392291
+      },
+      "sources": [
+        {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d336_20261008/7b_full_w0/launch.launch/physical_deployment/summary.json",
+          "sha256": "9a8cf71c2dfe92fcaf85974a480a04250db45436633904d3b7b312111c21ff91"
+        },
+        {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d336_20261008/7b_full_w0/launch.launch/physical_deployment/deployment.json",
+          "sha256": "e139086e7cb1a288c1a08e84f5a53457f654b6a24c3f2d10fe4a197907228929"
+        }
+      ]
+    },
+    "d341": {
+      "gaps": [
+        {
+          "gpu": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+          "released_offset_s": 651.9068697789917,
+          "reallocated_offset_s": 730.3331988368882,
+          "duration_s": 78.42632905789651
+        },
+        {
+          "gpu": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+          "released_offset_s": 1041.8293372119078,
+          "reallocated_offset_s": 1077.1993914619088,
+          "duration_s": 35.370054250000976
+        },
+        {
+          "gpu": "GPU-c4663821-4888-e199-7151-d6298f8d45a5",
+          "released_offset_s": 577.9767049779184,
+          "reallocated_offset_s": 734.8078063019784,
+          "duration_s": 156.83110132406
+        },
+        {
+          "gpu": "GPU-c4663821-4888-e199-7151-d6298f8d45a5",
+          "released_offset_s": 1440.3827891439432,
+          "reallocated_offset_s": 1696.0523756348994,
+          "duration_s": 255.66958649095614
+        },
+        {
+          "gpu": "GPU-dadf0267-9617-8824-cddb-82fba48a7b97",
+          "released_offset_s": 149.32973054796457,
+          "reallocated_offset_s": 728.2762603709707,
+          "duration_s": 578.9465298230061
+        },
+        {
+          "gpu": "GPU-dadf0267-9617-8824-cddb-82fba48a7b97",
+          "released_offset_s": 1258.8313793499256,
+          "reallocated_offset_s": 1657.173853502958,
+          "duration_s": 398.3424741530325
+        }
+      ],
+      "released_gap_gpu_s": 1503.5860750989523,
+      "observed_gpu_s": 14350.604333219933,
+      "causal_savings": null,
+      "envelope_gpu_s": 15854.190408318886,
+      "window_gpu_seconds": {
+        "arrival": 14262.923569798935,
+        "cleanup": 38.9055349889677,
+        "drain": 10.992404656019062,
+        "pre_arrival": 37.782823776011355
+      },
+      "sources": [
+        {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d341_20261008/7b_full_w0/launch.launch/physical_deployment/summary.json",
+          "sha256": "0748fb8b51afeac817cd7ab4fedfffddbbf26b21c00a618cdaf047ecfad1a784"
+        },
+        {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d341_20261008/7b_full_w0/launch.launch/physical_deployment/deployment.json",
+          "sha256": "67e769c28ffb8a77e3d67cba7bc543bb81af732321c5ee3eb6a1cdc067712e66"
+        }
+      ]
+    }
+  },
+  "contrasts": {
+    "d336": {
+      "candidate_minus_reference_gpu_s": 536.2698366310215,
+      "envelope_boundary_delta_gpu_s": 6.419275350985117,
+      "reduced_release_gaps_gpu_s": 529.8505612800363
+    }
+  },
+  "causal_savings": null,
+  "confidence_interval": null,
+  "caveat": "Observed physical identity only, not a causal effect or formal G1/G2 qualification."
+}

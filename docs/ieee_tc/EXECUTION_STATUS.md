@@ -11,7 +11,76 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D340 100-prefix done; D341 unchanged full4000 next
+## CURRENT — D341 complete4000 audited; no full-run improvement
+
+2026-10-08: goal ACTIVE/current turn PROGRESS. Same D341 run completed4000/4000
+native-contract/terminal records,0failure. Actual GPU release, service removal,
+exact-owned auxiliary closure,3remote services inactive/ports absent and remote
+log SHA checks passed. Observer3717 and audit80273/startup51805 are CLOSED.
+No replay restart, serving change, new pool/trace, remote interference or figure.
+
+83 offline tests and existing full/context analyzers PASS. All10 binding checks
+and time identities pass;219output-token SHA changes vsD336, N_correct unknown.
+U14350.604333GPU-s vs13814.334497 (+3.88%); mean/P95TTFT1407.676/3319.578ms
+(+16.26/+13.99%); P99TTFT13265.145ms vs4766.143ms. Mean/P95TPOT31.287/56.075ms
+(-2.97/-5.09%); meanE2E5.002403s(+3.08%). Provisional timing3813 vs3837, NOT
+formal SLO. All10 native spawn/unquantized/no-background witnesses verified;
+actual activation mean43.784759s vs47.371069s in11D336 epochs, not a paired
+causal estimate. Initial preparation51.077484s vs51.449530s. See D341 decision.
+Remote132/131480060B/packing0 unchanged.4037resource samples,peak20673847296B,
+minhost94667337728B,high/max/OOM/swap0. SourceSHA9f87d2e10ac42d08717d40a7fbafe725c16916eb4e7d34aa70cee177fd39b664.
+
+Retained wait partition identifies dispatch-window mean72.329->238.054ms as
+main component of total queue609.246->802.372ms increase, NOT root-cause proof.
+Candidate not promoted to qualified working point. NEXT after current evidence
+checkpoint: inspect retained long dispatch-window waits and associated live
+capacity/activation history; then one evidence-based7B hypothesis. No blind
+D341 repeat, import/fork/prebuild retest, higher SLO threshold or premature3B.
+G1/G2/N_correct/commonwarm/Resident/old-new comparison remain OPEN;3B and all
+baselines/M1M2/ablations/sensitivities still pending. Backup closure underway;
+latest verified source checkpoint remains eea5cd2c4b4267b53d7e392d0882ac2110e33ecb.
+
+## HISTORY — D341 unchanged 7B full4000 running (now complete)
+
+2026-10-08: D340 smoke audit/cleanup/backup DONE. Local and independently read
+remote V2 eea5cd2c4b4267b53d7e392d0882ac2110e33ecb,17 exact paths.18 analysis tests,
+bundle/source hashes, syntax/diff/secrets checks passed; user manifest untouched.
+First checkpoint stopped before commit on one YAML EOF blank line; attempt1
+evidence/binding kept, syntax-only correction separately frozen in full_binding2.
+All D340 analysis/backup scopes closed; final backup peak29069312B/events0/swap0.
+Do NOT repeat any completed D340/CPU/import/compression work.
+
+D341 fresh gate passed (disk164785528832B, hostavailable112804376576B), using
+launch_full_gate.py and full_binding2.json. D80 remote services reused unchanged,
+both authenticated health passed, actualNIC1000Mbps/full. Launched tmux
+tc-d341-full1 via existing runner d341; raw d341_20261008/7b_full_w0. Replay
+declares4000/4000 source, no diagnostic prefix, original traceSHA efb903254fcd...
+and W0view a5331be2e220... . First watchdog samples show no events/abort.
+Continuation verified wait: same tmux/service invocation remained live through
+30 spaced45s polls across two continuations; actual frontend/native core PIDs
+confirmed at each final check. Plan and V1 hashes remain unchanged.
+Latest continuation 2026-10-08 10:38+08 is VERIFIED WAIT, not a blocker:
+actual frontend/native core PIDs remain live under the same service invocation.
+Terminal journal2791success/0failure observed. Last watchdog sample2509:
+hostavailable88.727GiB, service18.185GiB, swap0, no memory events/abort.
+Disk162179891200B; Plan/V1 hashes unchanged. Full run remains active; no
+relaunch, serving/config change, remote intervention or heavy offline work.
+Observer exec cell3717 remains running (45s spaced low-overhead checks);
+resume that handle before starting any new observer. It does not own the
+inference tmux and its monitoring duration is not a replay timeout.
+User reapproved once-only delivery cache; D78/D80 already supplies it. Reuse,
+do not recreate. Current D341 tests on-demand unused quantization preparation,
+NOT removal of remote request-time packing (already accomplished earlier).
+Owned aux96e54c3f52d34e1e9487846dfe92c4de invocationaa1a762df48b48748f27175020766281;
+prepared collect_closure.py requires this exact identity after completion.
+Do not relaunch, change serving sources, scan caches or run concurrent heavy jobs.
+NEXT: monitor through complete4000, then actual GPU release/exact owned cleanup,
+stop only matching remote invocations, collect/verify remote records and use
+existing full analyzer extended for D341, compare to D336 full (not D334 prefix).
+No figures. G1/G2/N_correct/commonwarm/Resident/old-new qualification still OPEN;
+3B then baselines/ablations/sensitivities remain pending. No goal closure.
+
+## D340 100-prefix completion
 
 2026-10-08: D340 completed100/100 native-length/timing/control-binding checks;
 2 actual native spawn/unquantized/no-background witnesses. Mean/P95TTFT
