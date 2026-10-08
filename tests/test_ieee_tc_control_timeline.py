@@ -4,7 +4,8 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from scripts.analyze_control_path_overhead import analyze_native_timeline
+from scripts.analyze_control_path_overhead import (analyze_native_timeline,
+    summarize_dispatch_gate_intervals, summarize_dispatch_capacity_context)
 
 
 class ControlTimelineTest(unittest.TestCase):
@@ -218,6 +219,86 @@ class ControlTimelineTest(unittest.TestCase):
         x['mechanism_events']['_ieee_runtime_quarantine_events'][0]['clock_id']='other'
         path.write_text(json.dumps(x))
         with self.assertRaisesRegex(ValueError,'quarantine clocks'): self.run_audit(control_outcome_path=path)
+
+
+class DispatchGateSplitTest(unittest.TestCase):
+    def setUp(self):
+        self.deployment = dict(arrival_start_s=100., clock_id='c', plan=dict(count=1))
+        self.rows = [dict(request_id='r', instance_id='i', success=True,
+            scheduled_arrival_offset_s=1., arrival_released_offset_s=2.,
+            admission_start_offset_s=3., dispatch_window_wait_ms=3000.,
+            admitted_offset_s=7., runtime_slot_wait_ms=2000.,
+            arrival_release_lateness_ms=1000., dispatch_admission_wait_ms=6000.,
+            native_token_timing=dict(native_clock_id='c',
+                controller_admitted_monotonic_s=107.1, controller_completed_monotonic_s=110.))]
+        self.terminals = [dict(request_id='r', instance_id='i', success=True,
+            native_contract_matched=True, clock_id='c', at=111.)]
+        self.activations = [dict(activation_id='i', target_replica='i', clock_id='c',
+            category='initial', trigger_at=90., engine_ready_at=100.)]
+
+    def result(self):
+        return summarize_dispatch_gate_intervals(self.rows, self.deployment,
+                                                self.terminals, self.activations)
+
+    def test_runtime_admission_is_not_gate_resumption(self):
+        result = self.result()
+        row = result['rows'][0]
+        self.assertEqual(row['pre_acquire_ms'], 1000.)
+        self.assertEqual(row['acquire_to_resume_ms'], 2000.)
+        self.assertEqual(row['gate_resumed_offset_s'], 5.)
+        self.assertEqual(row['runtime_admitted_offset_s'], 7.)
+        self.assertFalse(result['formal_qualification'])
+        self.assertIsNone(result['confidence_interval'])
+
+    def test_startup_overlap_is_union(self):
+        for identity, begin, end in [('a',102.5,104.), ('b',103.5,105.5)]:
+            self.activations.append(dict(activation_id=identity, target_replica=identity,
+                clock_id='c', category='natural_scaleout', trigger_at=begin, engine_ready_at=end))
+        row = self.result()['rows'][0]
+        self.assertEqual(row['pre_acquire_startup_overlap_ms'], 500.)
+        self.assertEqual(row['acquire_to_resume_startup_overlap_ms'], 2000.)
+
+    def test_incomplete_rejected(self):
+        self.deployment['plan']['count'] = 2
+        with self.assertRaisesRegex(ValueError, 'population'): self.result()
+
+    def test_bad_boundary_rejected(self):
+        self.rows[0]['admission_start_offset_s'] = 6.
+        with self.assertRaisesRegex(ValueError, 'ordered'): self.result()
+
+    def test_wrong_runtime_identity_rejected(self):
+        self.rows[0]['runtime_slot_wait_ms'] = 1500.
+        with self.assertRaisesRegex(ValueError, 'identity'): self.result()
+
+    def test_mixed_clock_rejected(self):
+        self.terminals[0]['clock_id'] = 'other'
+        with self.assertRaisesRegex(ValueError, 'same-clock'): self.result()
+
+    def test_nonfinite_rejected(self):
+        self.rows[0]['admission_start_offset_s'] = float('nan')
+        with self.assertRaisesRegex(ValueError, 'finite'): self.result()
+
+    def test_capacity_bounds_do_not_treat_pending_as_definite(self):
+        rows = self.result()['rows']
+        samples = [dict(offset_s=t, queue=1, active=0, capacity=1, pending=0)
+                   for t in (4.,6.,10.5)]
+        result = summarize_dispatch_capacity_context(rows, samples)
+        self.assertEqual([r['definitely_owned'] for r in result['rows']], [0,1,0])
+        self.assertEqual([r['possibly_owned'] for r in result['rows']], [1,1,1])
+        self.assertEqual(result['samples_with_unresumed_acquire'],1)
+        self.assertEqual(result['waiting_samples_capacity_definitely_covered'],0)
+
+    def test_capacity_sample_order_rejected(self):
+        c = dict(offset_s=4., queue=1, active=0, capacity=1, pending=0)
+        with self.assertRaisesRegex(ValueError, 'ordered'):
+            summarize_dispatch_capacity_context(self.result()['rows'], [c,c])
+
+    def test_capacity_bound_inversion_rejected(self):
+        rows = self.result()['rows']
+        rows[0]['native_completed_offset_s'] = 1.
+        with self.assertRaisesRegex(ValueError, 'ordered'):
+            summarize_dispatch_capacity_context(rows,
+                [dict(offset_s=4., queue=1, active=0, capacity=1, pending=0)])
 
 
 if __name__ == '__main__':

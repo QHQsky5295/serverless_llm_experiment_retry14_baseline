@@ -19,9 +19,10 @@ from statistics import mean
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
-from scripts.ieee_tc.plot_d290_diagnostic import audit_run, binding_checks, percentile, sha256
+from scripts.ieee_tc.plot_d290_diagnostic import audit_run, binding_checks, percentile, sha256, load
 from scripts.analyze_control_path_overhead import (provisional_timing_bound,
-    summarize_admission_waits, summarize_route_copy_revisits)
+    summarize_admission_waits, summarize_route_copy_revisits, summarize_dispatch_gate_intervals,
+    summarize_dispatch_capacity_context)
 from faaslora.metrics.metrics_collector import NativeV1TokenTimeline
 
 RAW = ROOT / 'results/ieee_tc/p2_backend_qualification/d297_20261007'
@@ -1385,6 +1386,131 @@ def inspect_retained_route_copies(output):
     print(json.dumps(result, indent=2, allow_nan=False), flush=True)
 
 
+def inspect_retained_dispatch_gate(output):
+    """D342: reuse complete D336/D341 data, not another performance replay."""
+    global OUT
+    OUT = Path(output).resolve()
+    if OUT.exists():
+        raise FileExistsError(OUT)
+    assert sha256(PLAN) == '0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7'
+    assert sha256(PROTOCOL) == '5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22'
+    identities = dict(d336='b8452f4f577446128b4a77a7117485660f3b9841caf831ad867a58d9a9587a05',
+        d341='9f87d2e10ac42d08717d40a7fbafe725c16916eb4e7d34aa70cee177fd39b664')
+    paths = [PLAN, PROTOCOL, Path(__file__), ROOT/'scripts/analyze_control_path_overhead.py',
+             ROOT/'scripts/ieee_tc/plot_d290_diagnostic.py']
+    summaries, input_maps, phases = {}, [], []
+    OUT.mkdir(parents=True, exist_ok=False)
+    for name, digest in identities.items():
+        prior = ROOT/f'paper_results/ieee_tc/p2_backend/{name}_full_w0/validated1'
+        audit, seal = read(prior/'audit.json'), read(prior/'manifest.json')
+        for filename in ('audit.json', 'requests.csv', 'control_samples.csv'):
+            assert sha256(prior/filename) == seal['outputs'][filename]
+            paths.append(prior/filename)
+        source = Path(audit['evidence']['source'])
+        assert sha256(source) == digest == audit['evidence']['source_sha256']
+        physical = source.parent/'launch.launch/physical_deployment'
+        outcome = physical/'main_outcome.json'
+        refs = {r['path']: r['sha256'] for r in seal['source_refs']}
+        assert sha256(outcome) == refs[str(outcome)]
+        result, scenario = load(source)
+        requests = scenario['requests']
+        assert len(requests) == 4000
+        query = 'fromstream(2|truncate_stream(inputs | select(.[0][:2] == ["mechanism_events","_ieee_activations"])))'
+        activations = json.loads(subprocess.check_output(['jq','-cn','--stream',query,str(outcome)]))
+        deployment = read(physical/'deployment.json')
+        with (physical/'request_terminals.jsonl').open() as f:
+            terminals = [json.loads(line) for line in f]
+        split = summarize_dispatch_gate_intervals(requests, deployment, terminals, activations)
+        rows = split.pop('rows')
+        with (prior/'control_samples.csv').open(newline='') as f:
+            controls = list(csv.DictReader(f))
+        times = [float(c['offset_s']) for c in controls]
+        assert times == sorted(times) and len(times) == len(set(times))
+        with (prior/'requests.csv').open(newline='') as f:
+            timing = {r['request_id']:r for r in csv.DictReader(f)}
+        assert set(timing) == {r['request_id'] for r in rows}
+        for i, (row, request) in enumerate(zip(rows, requests)):
+            assert row['request_id'] == request['request_id']
+            row.update(trace_index=i, phase=i//500, adapter_id=request['adapter_id'],
+                ttft_ms=request['overall_ttft_ms'], timing_outcome=timing[row['request_id']]['outcome'])
+            for boundary in ('acquire', 'gate_resumed'):
+                at = row[boundary+'_offset_s']
+                index = bisect_left(times, at)-1
+                control = controls[index] if index >= 0 else None
+                for field in ('offset_s', 'queue', 'active', 'capacity', 'pending', 'action', 'outcome'):
+                    row[boundary+'_prior_control_'+field] = control[field] if control else None
+        same_fields = ('request_id', 'adapter_id', 'scheduled_arrival_offset_s',
+                       'source_expected_output_tokens', 'requested_completion_tokens',
+                       'canonical_prompt_sha256', 'generation_contract', 'completion_token_source')
+        input_maps.append((deployment['plan'], result['metadata']['shared_adapter_subset_sha256'],
+                           [tuple(r[k] for k in same_fields) for r in requests]))
+        split['source_sha256'] = digest
+        split['prior_audit_sha256'] = seal['outputs']['audit.json']
+        split['top_one_percent_window_request_ids'] = [r['request_id'] for r in
+            sorted(rows, key=lambda r: (-r['dispatch_window_wait_ms'], r['request_id']))[:40]]
+        for phase in range(8):
+            group = [r for r in rows if r['phase'] == phase]
+            phases.append(dict(run=name, phase=phase, count=len(group),
+                **{k:mean(r[k] for r in group) for k in
+                   ('pre_acquire_ms', 'acquire_to_resume_ms', 'dispatch_window_wait_ms', 'ttft_ms')}))
+        summaries[name] = split
+        table(name+'_requests.csv', rows)
+        write(name+'_activations.json', activations)
+        paths.extend([source, outcome, prior/'manifest.json', physical/'deployment.json',
+                      physical/'request_terminals.jsonl'])
+        del result, scenario, requests, rows
+        gc.collect()
+    assert input_maps[0] == input_maps[1], 'comparison input identities differ'
+    table('phases.csv', phases)
+    write('summary.json', dict(kind='d342_retained_dispatch_split_v1', runs=summaries,
+        matched_inputs=True, new_performance_runs=0, no_figures=True,
+        control_caveat='Prior sampled control values are context, not exact live dispatch gate state.'))
+    write('manifest.json', dict(source_refs=[dict(path=str(p),sha256=sha256(p)) for p in paths],
+        outputs={p.name:sha256(p) for p in sorted(OUT.iterdir())}, no_figures=True))
+    print(json.dumps(summaries, indent=2, allow_nan=False), flush=True)
+
+
+def inspect_retained_dispatch_context(output):
+    """Follow the retained split with conservative sampled ownership bounds."""
+    global OUT
+    OUT = Path(output).resolve()
+    if OUT.exists():
+        raise FileExistsError(OUT)
+    prior = ROOT/'paper_results/ieee_tc/p2_backend/d342_dispatch_wait/analysis1'
+    seal = read(prior/'manifest.json')
+    paths = [prior/'manifest.json', Path(__file__), ROOT/'scripts/analyze_control_path_overhead.py']
+    summaries = {}
+    OUT.mkdir(parents=True, exist_ok=False)
+    for name in ('d336','d341'):
+        request_path = prior/(name+'_requests.csv')
+        control_path = ROOT/f'paper_results/ieee_tc/p2_backend/{name}_full_w0/validated1/control_samples.csv'
+        assert sha256(request_path) == seal['outputs'][request_path.name]
+        refs = {r['path']:r['sha256'] for r in seal['source_refs']}
+        assert sha256(control_path) == refs[str(control_path)]
+        with request_path.open(newline='') as f:
+            requests = list(csv.DictReader(f))
+        for r in requests:
+            for k in ('acquire_offset_s','gate_resumed_offset_s','native_completed_offset_s','terminal_offset_s'):
+                r[k] = float(r[k])
+        with control_path.open(newline='') as f:
+            controls = list(csv.DictReader(f))
+        for c in controls:
+            c['offset_s'] = float(c['offset_s'])
+            for k in ('queue','active','capacity','pending'):
+                c[k] = int(c[k])
+        result = summarize_dispatch_capacity_context(requests, controls)
+        rows = result.pop('rows')
+        result['peak_wait_sample'] = max(rows, key=lambda r:r['acquire_not_yet_resumed'])
+        summaries[name] = result
+        table(name+'_capacity_samples.csv', rows)
+        paths.extend([request_path,control_path])
+    write('summary.json', dict(kind='d342_sampled_capacity_context_v1', runs=summaries,
+        new_performance_runs=0, formal_qualification=False, no_figures=True))
+    write('manifest.json', dict(source_refs=[dict(path=str(p),sha256=sha256(p)) for p in paths],
+        outputs={p.name:sha256(p) for p in sorted(OUT.iterdir())}, no_figures=True))
+    print(json.dumps(summaries, indent=2, allow_nan=False), flush=True)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--campaign', choices=('d297', 'd299', 'd300', 'd303', 'd314', 'd315', 'd318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341'), default='d297')
@@ -1410,14 +1536,23 @@ if __name__ == '__main__':
         help='D320 selected-cost length diagnosis using the sealed compact projections')
     parser.add_argument('--service-lifecycle-output', type=Path,
         help='D324 retained D318/D323 lifecycle and selected-service estimation check')
+    parser.add_argument('--dispatch-gate-output', type=Path,
+        help='D342 retained D336/D341 acquire-entry split, no inference')
+    parser.add_argument('--dispatch-context-output', type=Path,
+        help='D342 compact split data and conservative sampled permit bounds')
     args = parser.parse_args()
     if sum(x is not None for x in (args.admission_wait_output, args.decode_tail_output,
                                   args.native_load_output, args.prefill_output, args.route_copy_output,
                                   args.lifecycle_output, args.routing_load_output, args.routing_length_output,
                                   args.service_lifecycle_output, args.drain_lifecycle_output,
-                                  args.capacity_lifecycle_output)) > 1:
+                                  args.capacity_lifecycle_output, args.dispatch_gate_output,
+                                  args.dispatch_context_output)) > 1:
         parser.error('choose one retained diagnostic')
-    if args.capacity_lifecycle_output is not None:
+    if args.dispatch_context_output is not None:
+        inspect_retained_dispatch_context(args.dispatch_context_output)
+    elif args.dispatch_gate_output is not None:
+        inspect_retained_dispatch_gate(args.dispatch_gate_output)
+    elif args.capacity_lifecycle_output is not None:
         inspect_retained_lifecycle(args.capacity_lifecycle_output, contrast=('d335', 'd336'))
     elif args.drain_lifecycle_output is not None:
         inspect_retained_lifecycle(args.drain_lifecycle_output, contrast=('d323', 'd326'))

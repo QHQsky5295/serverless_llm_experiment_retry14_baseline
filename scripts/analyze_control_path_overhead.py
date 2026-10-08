@@ -1176,6 +1176,141 @@ def summarize_admission_waits(requests: Sequence[Dict[str, Any]]) -> Dict[str, A
             'Native completion/binding checks do not establish numerical adapter qualification.'])
 
 
+def summarize_dispatch_gate_intervals(requests, deployment, terminals, activations):
+    """Split release-to-gate wait at the retained acquire-entry timestamp.
+
+    Acquire-to-resume includes permit wait AND event-loop wakeup delay. The
+    request's admitted_offset_s is the *later* runtime reservation, not gate
+    resumption. Neither this split nor startup overlap proves a causal effect.
+    """
+    def finite(value):
+        return type(value) in (int, float) and math.isfinite(value)
+
+    start, clock = deployment['arrival_start_s'], deployment['clock_id']
+    count = deployment['plan']['count']
+    by_id = {r['request_id']: r for r in terminals}
+    if (not finite(start) or not clock or type(count) is not int or count <= 0
+            or len(requests) != count or len(terminals) != count or len(by_id) != count
+            or len({r['request_id'] for r in requests}) != count
+            or {r['request_id'] for r in requests} != set(by_id)):
+        raise ValueError('complete unique dispatch population required')
+    epochs = {}
+    for a in activations:
+        identity = a['activation_id']
+        left, right = a['trigger_at'], a['engine_ready_at']
+        if (not identity or identity in epochs or a['target_replica'] != identity
+                or a['clock_id'] != clock or not finite(left) or not finite(right)
+                or left > right or a['category'] not in ('initial', 'natural_scaleout', 'controlled')):
+            raise ValueError('ordered same-clock activation required')
+        epochs[identity] = (left-start, right-start)
+
+    def overlap(left, right):
+        spans = sorted((max(left, a), min(right, b)) for a, b in epochs.values()
+                       if max(left, a) < min(right, b))
+        total, end = 0., -math.inf
+        for a, b in spans:
+            total += max(0., b-max(a, end))
+            end = max(end, b)
+        return total * 1000
+
+    rows, errors = [], []
+    for r in requests:
+        t, terminal = r['native_token_timing'], by_id[r['request_id']]
+        if (r['success'] is not True or terminal['success'] is not True
+                or terminal['native_contract_matched'] is not True
+                or r['instance_id'] != terminal['instance_id']
+                or r['instance_id'] not in epochs
+                or t['native_clock_id'] != clock or terminal['clock_id'] != clock):
+            raise ValueError('complete same-clock successful dispatch required')
+        arrival = r['scheduled_arrival_offset_s']
+        released, acquire = r['arrival_released_offset_s'], r['admission_start_offset_s']
+        window, runtime_wait = r['dispatch_window_wait_ms'], r['runtime_slot_wait_ms']
+        runtime = r['admitted_offset_s']
+        values = (arrival, released, acquire, window, runtime_wait, runtime,
+                  r['arrival_release_lateness_ms'], r['dispatch_admission_wait_ms'])
+        if any(not finite(x) or x < 0 for x in values):
+            raise ValueError('finite nonnegative dispatch fields required')
+        resumed = released + window / 1000
+        native = t['controller_admitted_monotonic_s'] - start
+        completed = t['controller_completed_monotonic_s'] - start
+        ended = terminal['at'] - start
+        bounds = (arrival, released, acquire, resumed, runtime, native, completed, ended)
+        if any(not finite(x) for x in bounds) or any(a > b for a, b in zip(bounds, bounds[1:])):
+            raise ValueError('ordered dispatch boundaries required')
+        identities = (abs((released-arrival)*1000-r['arrival_release_lateness_ms']),
+                      abs((runtime-resumed)*1000-runtime_wait),
+                      abs((runtime-arrival)*1000-r['dispatch_admission_wait_ms']))
+        if max(identities) > 1:
+            raise ValueError('dispatch interval identity exceeds 1ms')
+        errors.extend(identities)
+        rows.append(dict(request_id=r['request_id'], instance_id=r['instance_id'],
+            arrival_offset_s=arrival, released_offset_s=released, acquire_offset_s=acquire,
+            gate_resumed_offset_s=resumed, runtime_admitted_offset_s=runtime,
+            native_completed_offset_s=completed, terminal_offset_s=ended,
+            pre_acquire_ms=(acquire-released)*1000, acquire_to_resume_ms=(resumed-acquire)*1000,
+            dispatch_window_wait_ms=window, runtime_slot_wait_ms=runtime_wait,
+            pre_acquire_startup_overlap_ms=overlap(released, acquire),
+            acquire_to_resume_startup_overlap_ms=overlap(acquire, resumed)))
+    metrics = {}
+    for field in ('pre_acquire_ms', 'acquire_to_resume_ms', 'dispatch_window_wait_ms',
+                  'runtime_slot_wait_ms', 'pre_acquire_startup_overlap_ms',
+                  'acquire_to_resume_startup_overlap_ms'):
+        ordered = sorted(r[field] for r in rows)
+        metrics[field] = dict(count=count, sum=math.fsum(ordered), mean=math.fsum(ordered)/count,
+            p95_type1=ordered[math.ceil(.95*count)-1], p99_type1=ordered[math.ceil(.99*count)-1],
+            maximum=ordered[-1])
+    return dict(kind='retained_dispatch_gate_split_v1', count=count, metrics=metrics, rows=rows,
+        max_identity_error_ms=max(errors), n_correct=None, formal_qualification=False,
+        confidence_interval=None, caveats=[
+            'Pre-acquire includes controller task scheduling/yield; it is not permit saturation.',
+            'Acquire-to-resume combines permit availability and callback/task resumption.',
+            'Grant can precede resumed timestamp; release lies between native completion and terminal.',
+            'These boundaries cannot reconstruct exact permit ownership or the live gate limit.',
+            'Startup overlap is an interval union, not CPU attribution or a causal effect.',
+            'Each source is one development run; timing/binding is not numerical qualification.'])
+
+
+def summarize_dispatch_capacity_context(requests, controls):
+    """Conservative permit-ownership bounds AT retained control sample times.
+
+    A permit is definitely owned from gate-resume through native completion;
+    acquisition-entry to terminal is an outer envelope. Neither reconstructs
+    exact grant/release events. Sampled capacity is only valid at its sample.
+    """
+    if (not requests or not controls
+            or len({r['request_id'] for r in requests}) != len(requests)):
+        raise ValueError('nonempty unique request and control observations required')
+    intervals = []
+    for r in requests:
+        b, c, d, e = [r[k] for k in ('acquire_offset_s', 'gate_resumed_offset_s',
+                                     'native_completed_offset_s', 'terminal_offset_s')]
+        if (any(type(x) not in (int,float) or not math.isfinite(x) for x in (b,c,d,e))
+                or not 0 <= b <= c <= d <= e):
+            raise ValueError('ordered permit envelope required')
+        intervals.append((b,c,d,e))
+    rows, last = [], -math.inf
+    for control in controls:
+        at = control['offset_s']
+        counts = [control[k] for k in ('queue','active','capacity','pending')]
+        if (type(at) not in (int,float) or not math.isfinite(at) or at <= last
+                or any(type(x) is not int or x < 0 for x in counts)
+                or control['capacity'] == 0 or control['active'] > control['capacity']):
+            raise ValueError('ordered valid capacity samples required')
+        last = at
+        definite = sum(c <= at < d for b,c,d,e in intervals)
+        possible = sum(b <= at < e for b,c,d,e in intervals)
+        awaiting = sum(b <= at < c for b,c,d,e in intervals)
+        rows.append(dict(control, definitely_owned=definite, possibly_owned=possible,
+            acquire_not_yet_resumed=awaiting,
+            capacity_covered_by_definite_owners=definite >= control['capacity']))
+    waiting = [r for r in rows if r['acquire_not_yet_resumed'] > 0]
+    return dict(kind='sampled_dispatch_capacity_bounds_v1', samples=len(rows),
+        samples_with_unresumed_acquire=len(waiting),
+        waiting_samples_capacity_definitely_covered=sum(r['capacity_covered_by_definite_owners'] for r in waiting),
+        peak_unresumed_acquire=max(r['acquire_not_yet_resumed'] for r in rows),
+        rows=rows, caveat='Sample-time capacity coverage, not an exact full-interval cause or GPU occupancy.')
+
+
 def summarize_route_copy_revisits(requests: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
     """Consecutive retained target views, not RPC totals or avoided latency.
 

@@ -11,7 +11,59 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D341 complete4000 audited; no full-run improvement
+## CURRENT — D342 retained dispatch-window diagnosis COMPLETE; backup checkpoint
+
+2026-10-08: full Plan/V1 re-read; approved published remote cache already exists,
+reuse without regeneration. D341 closure/audits/backup remain DONE. Next data-only
+test splits release→gate-resume at acquire entry, using both complete4000 sources.
+Current alternative explanations: pre-acquire event-loop delay versus await-gate
+capacity/resumption delay. Exact permit grant/release absent; sampled controls
+must not be treated as exact live gate state. No serving/config change accepted.
+Existing analyzer extended and boundary/identity/overlap tests added. New output
+d342_dispatch_wait/analysis1 only; 4GiB/no-swap auxiliary scope, no figures.
+Disk163794300928B, hostavailable112809058304B, GPU census empty before analysis.
+G1/G2 and 7B target remain OPEN; then3B, baselines, main comparisons, ablations.
+
+RESULT: both4000 splits pass, identity error0. Pre-acquire mean28.539295→26.052328ms;
+acquire-to-resume43.789969→212.001188ms. D341 phase1 accounts98.96% of the
+second interval sum. At756.640562s,8definitely-owned permits cover ready capacity8,
+37acquire waiters and3pending activations.24control samples observe waiters,
+18have the conservative ownership lower bound cover capacity. This supports
+local capacity scarcity while replacement capacity starts, not an exact causal
+attribution of all delay. D336 same period had2ready replicas; trajectories differ.
+No serving/config change, GPU run, remote operation, new input or figure.
+72split/regression tests plus34follow-up capacity-bound timeline tests pass;
+analysis peaks1001353216B/61218816B,all memory events/swap0. Context tool77208
+finished, analysis tool60340finished. Both exact analysis/context aux closed.
+Checkpoint verification passed19exact paths,output/source SHA,archived earlier
+source versions,secrets/AST/diff and147protected entries with solely the known
+historical baseline-script change. Usermanifest unchanged/unstaged. Disk
+163786104832B. Save/push this checkpoint, close its exact empty auxiliary scope,
+and independently read remoteHEAD; no new inference in D342.
+NEXT after backup: one bounded 7B capacity question—does verified C8 constrain
+useful batching relative to actual KV/LoRA/iteration capacity and TPOT? Reuse
+history/native resource evidence and official same-version implementation before
+any candidate; do not blindly double concurrency, hold extra GPUs for free, or
+change the ruler. Do not rerun completed D341/D342 or restart old startup probes.
+
+## HISTORY — D341 complete4000 audited; no full-run improvement
+
+BACKUP/CLOSURE VERIFIED: local HEAD and independently read remote V2 both
+5eed59ebabe2ef9d7b34b86836185ed5e3c72913.24 exact paths,19curated hashes,
+26archive members, startup references, protected/secrets/syntax/diff checks PASS.
+All D341 collection/audit/startup/seal/verifier scopes exactly empty and stopped;
+final verifier peak34103296B/events0/swap0. GPU compute census empty. All tool
+handles closed. Disk163799715840B. Usermanifest unchanged/unstaged. D341 closure,
+analysis and backup are DONE; do not repeat them next turn.
+
+NEXT source location already identified: run_all_experiments.py13051–13171
+dispatch gate; external replay is open_loop, so YAML workload concurrency2 does
+NOT impose a global2 clamp. Gate limit is current runtime groups times measured
+runtime capacity8. The permit spans the entire request and grant occurs on
+release/capacity notification. Its recorded wait also includes event-loop
+yield/resumption before acquire, not just permit saturation. Inspect retained
+request/activation/control timelines to separate these before changing anything.
+No new serving change or optimization hypothesis accepted on source reading alone.
 
 2026-10-08: goal ACTIVE/current turn PROGRESS. Same D341 run completed4000/4000
 native-contract/terminal records,0failure. Actual GPU release, service removal,
