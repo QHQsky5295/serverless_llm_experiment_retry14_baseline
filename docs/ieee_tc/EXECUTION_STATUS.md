@@ -11,13 +11,43 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D350 retained diagnosis COMPLETE; checkpoint pending
+## CURRENT — D351 native-core host timing PREPARED, not yet launched
+
+7B mainline, D350 hypothesis only. New opt-in host spans cover input queue,
+client/allowlisted utility, engine step and schedule token allocations; no CUDA
+readback, prompt/RPC payload logging or serving policy change. Default does not
+install hooks. Existing D328 wrapper/D293 runner reused, D349 C14 configuration
+unchanged except three isolated output/cache paths; original W0 first1000 only.
+Formal comparisons forbidden for this observer. N_correct/G1/G2 remain OPEN.
+Initial49 and final202CPUtests pass; resources high/max/OOM/swap0. Actual native
+source hashes, unchanged profile/config binding,147-entry history protection,
+frozen Plan/V1 and user manifest checked. Disk161346510848B; fresh heavy gate
+still required, do not relax150GiB. No GPU launched, no remote service started.
+Preparation AST check initially rejected inherited shutdown; corrected against
+actual EngineCore inheritance, plus a log-marker escape check. Failure evidence
+and original preparation script retained; no inference/results affected.
+Next exact-path checkpoint/push, fresh gate, start frozen remote service and
+one bounded first1000 diagnostic; validate/cleanup/analyze before any candidate.
+No new capacity/softtarget scans, no3B/baselines/figures. d351_core_timing/prelaunch.json.
+
+### D350 retained diagnosis COMPLETE/SEALED/BACKED
+
+LocalHEAD=independently checked remoteV2=
+45bade67ae2240cbac7da82d894af20917adaae8.23exactpaths,18curatedhashes,
+10archive members verified; source/output SHA,66CPUtests,secrets,syntax,diff,
+147-entry history protection checked. Known baseline source difference only;
+user lora_manifest remains unchanged/unstaged. Analysis01/control02/seal03
+all closed, no liveGPU/toolcell/execsession. Remote services were not started
+or changed. Backup receipt retained at d350_20261008/backup_receipt.json.
+Postbackup disk161348571136B. This turn PROGRESS: new retained-data diagnosis,
+all-phase/control join, bounded next hypothesis, tested exact-path checkpoint.
+Do not repeat D350 analysis/closure/backup. Next native-core timing evidence.
 
 D350 adds zero GPU runs. Reused complete D336/D346/D349, frozen Plan/V1,
 D337/D347 interval projections, same input/arrival identities4000each.
 66 CPUtests pass. Analysis1 peak687878144B; high/max/OOM/swap0; scope01
-closed. Control-context scope02 finished; capture empty ownership/resources
-and close at checkpoint. No running GPU job or live tool session.
+closed. Control-context scope02 and checkpoint03 finished/closed with ownership
+and resource receipts. No running GPU job or live tool session.
 Existing analyzer minimally extends registered D336/D349 contrast; no serving
 code, equations, warm threshold, workload, artifact or remote change.
 

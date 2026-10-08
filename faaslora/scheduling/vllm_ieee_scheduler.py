@@ -7,6 +7,7 @@ utility protocol, not a claim that vLLM publishes a stable scheduler metrics API
 """
 import vllm
 import time
+import os
 from bisect import bisect_left
 
 if vllm.__version__ != '0.30.0':
@@ -221,6 +222,11 @@ class IEEENativeAsyncScheduler(AsyncScheduler):
         if existing is not None and existing is not _core_transfer_event:
             raise RuntimeError('native EngineCore transfer bridge name collision')
         EngineCore.ieee_transfer_event = _core_transfer_event
+        # Diagnostic-only host spans. Default leaves every native method intact.
+        if os.environ.get('FAASLORA_TC_CORE_TIMING') not in (None, '0'):
+            from vllm.v1.engine.core import EngineCoreProc
+            from faaslora.utils.core_timing import install_core_host_timing
+            install_core_host_timing(EngineCoreProc, self)
 
     def add_request(self, request):
         self._ieee_pending_admissions.validate_add(request)

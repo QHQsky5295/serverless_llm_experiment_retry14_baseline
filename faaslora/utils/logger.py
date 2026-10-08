@@ -19,6 +19,26 @@ from dataclasses import dataclass
 _diagnostic_stack_state = None
 
 
+def diagnostic_service_receipt(label):
+    """Shared read-only gate for explicitly nonformal, bounded replay observers."""
+    import os
+    if os.environ.get('FAASLORA_FORMAL_RUN') != '0':
+        raise ValueError(f'{label} requires an explicit nonformal diagnostic')
+    receipt_path = Path(os.environ['FAASLORA_TC_LAUNCH_RECEIPT']).resolve(strict=True)
+    receipt = json.loads(receipt_path.read_text())
+    unified = [r[3:] for r in Path('/proc/self/cgroup').read_text().splitlines() if r.startswith('0::')]
+    actual = Path('/sys/fs/cgroup') / unified[0].lstrip('/') if len(unified) == 1 else None
+    expected = Path(receipt['service_identity']['path'])
+    replay = receipt.get('external_replay', {})
+    if (receipt.get('allow_exec') is not True or actual is None
+            or not actual.is_relative_to(expected)
+            or replay.get('replay_scope') != 'diagnostic_prefix_v1'
+            or type(replay.get('diagnostic_prefix_count')) is not int
+            or replay['diagnostic_prefix_count'] <= 0):
+        raise ValueError(f'{label} is outside its gated diagnostic service')
+    return receipt_path, actual, replay
+
+
 def diagnostic_control_enabled():
     """Only an actually qualified, current-process diagnostic may emit events."""
     import os
@@ -98,18 +118,7 @@ def enable_diagnostic_stack_sampling():
         if _diagnostic_stack_state[0] != pid:
             raise ValueError('fork-inherited diagnostic observer is not active in this process')
         return
-    receipt_path = Path(os.environ['FAASLORA_TC_LAUNCH_RECEIPT']).resolve(strict=True)
-    receipt = json.loads(receipt_path.read_text())
-    unified = [r[3:] for r in Path('/proc/self/cgroup').read_text().splitlines() if r.startswith('0::')]
-    actual = Path('/sys/fs/cgroup') / unified[0].lstrip('/') if len(unified) == 1 else None
-    expected = Path(receipt['service_identity']['path'])
-    replay = receipt.get('external_replay', {})
-    if (receipt.get('allow_exec') is not True or actual is None
-            or not actual.is_relative_to(expected)
-            or replay.get('replay_scope') != 'diagnostic_prefix_v1'
-            or type(replay.get('diagnostic_prefix_count')) is not int
-            or replay['diagnostic_prefix_count'] <= 0):
-        raise ValueError('stack sampling is outside its gated diagnostic service')
+    receipt_path, actual, _ = diagnostic_service_receipt('stack sampling')
     import atexit
     ticks = int(Path('/proc/self/stat').read_text().rsplit(') ', 1)[1].split()[19])
     directory = receipt_path.parent/'diagnostic_stacks'

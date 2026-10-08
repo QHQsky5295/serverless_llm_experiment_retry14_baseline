@@ -234,6 +234,13 @@ case "${1:-d293}" in
     SCENARIO=tc_ieee_full
     PREFIX_COUNT=
     ;;
+  d351)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1
+    CONFIG=configs/ieee_tc/20261008_d351_7b_full_w0_prefix1.yaml
+    TAG=d351_7b_full_w0_prefix1
+    SCENARIO=tc_ieee_full
+    PREFIX_COUNT=1000
+    ;;
   *) echo 'Unknown frozen campaign identity; no arbitrary output override' >&2; exit 2 ;;
 esac
 [[ $# -le 1 ]] || exit 2
@@ -256,7 +263,7 @@ export FAASLORA_IEEE_NATIVE_HOST_ALLOCATOR_POLICY=uncached_background_v1
 export PYTORCH_ALLOC_CONF=pinned_max_cached_size_mb:0,pinned_use_background_threads:True
 export VLLM_CACHE_ROOT=/home/qhq/.cache/vllm
 export FAASLORA_PYTHON=/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python
-if [[ "${1:-d293}" == d328 ]]; then
+if [[ "${1:-d293}" == d328 || "${1:-d293}" == d351 ]]; then
   # Observer is enabled by this wrapper only AFTER the normal resource gate.
   export FAASLORA_PYTHON="$ROOT/scripts/ieee_tc/profile_d328_controller_python.sh"
 fi
