@@ -547,6 +547,93 @@ def prepare_capacity_profiles():
         selected_adapters=receipt['selected_adapters'],spec=spec_ref)),flush=True)
 
 
+def prepare_control_profiles():
+    """D356: same existing cases, fresh control-policy timing measurements."""
+    root = p.ROOT
+    out = root/'paper_results/ieee_tc/p2_backend/d356_control_profiles'
+    raw = root/'results/ieee_tc/p2_backend_qualification/d356_20261008'
+    if out.exists() or raw.exists():
+        raise FileExistsError('D356 preparation is append-only')
+    base = root/'paper_results/ieee_tc/p2_backend/d344_capacity_profiles'
+    refs = [(base/'source_spec.json','2e8be28b5031075dec4560a68452b7aaee9887ee56db7f0f689d005f401e28b5'),
+            (base/'gaps1/source_spec.json','a9483c569d52605c10aa6b7bac9cd21949e7758ac87ffafd40b0a7f8ca4088a9')]
+    for path,sha in refs:
+        assert p.digest(path) == sha
+    spec, supplement = [json.loads(path.read_text()) for path,_ in refs]
+    spec.pop('full_development_contract')
+    spec['waves'].extend(supplement['waves'])
+    spec.update(purpose='D356_affected_control_interleave_profiles_not_warm_SLO',
+        nvme_parent=str(raw.resolve()),
+        derivation='Unchanged C14 plus atomic_control_yield_v1; fresh latency, old completed fixed-output lengths only.',
+        order_rule='Reuse exact D344 source and known short-GPU coverage waves including retained warmups; no new inputs.')
+    binding = spec['admission_initialization']
+    binding['kind'] = 'native_fixed_output_control_length_transfer_v1'
+    binding['model_config_changes']['ieee_control_interleave'] = dict(source=None,target='atomic_control_yield_v1')
+    config_path = root/'configs/ieee_tc/20261008_d356_7b_control_source.yaml'
+    old_path = root/'configs/ieee_tc/20261008_d343_7b_capacity_probe14.yaml'
+    candidate,old = [yaml.safe_load(path.read_text()) for path in (config_path,old_path)]
+    key = 'llama2_7b_main_v2_publicmix'
+    expected = copy.deepcopy(old)
+    expected['model_profiles'][key]['model']['ieee_control_interleave'] = 'atomic_control_yield_v1'
+    assert candidate == expected
+    source = candidate['model_profiles'][key]
+    cfg = dict(source['model'])
+    cfg.update(visible_device_ids=[0],device_id=0,timing_contract='ieee_tc_native_v1',
+        ieee_worker_observation=True,ieee_gpu_references=True,ieee_scheduler_observation=True,
+        ieee_input_upper_bounds=[759],generation_contract='fixed_length_greedy_v1',
+        canonical_prompt_renderer='role_lines_v1',max_input_len=759,max_output_tokens_cap=256,
+        ieee_physical_allocation=True)
+    cfg.update(spec['model_overrides'])
+    runtime = root/'results/ieee_tc/p2_backend_qualification/runtime_20260926/cuda_import_attempt3.json'
+    args = dict(backend_version=json.loads(runtime.read_text())['modules']['vllm']['version'],
+                runtime_receipt_sha256=p.digest(runtime),source_trace_sha256=spec['trace_sha256'])
+    _,evidence,assembly = p.prepare_admission_source_runtime(cfg,spec,**args)
+    previous = json.loads((base/'development_contract.json').read_text())
+    before,after = copy.deepcopy(previous['model_config']),copy.deepcopy(assembly['planned_child_model_config'])
+    assert after.pop('ieee_control_interleave') == 'atomic_control_yield_v1'
+    after_init,before_init = after.pop('ieee_admission_profile'),before.pop('ieee_admission_profile')
+    assert after == before
+    assert {k:v for k,v in after_init.items() if k not in ('profile_id','model_backend_id')} == \
+           {k:v for k,v in before_init.items() if k not in ('profile_id','model_backend_id')}
+    assert after_init['profile_id'] != before_init['profile_id']
+    assert not evidence['length_transfer']['timing_samples_transferred']
+    full_path = root/'configs/ieee_tc/20261008_d353_7b_full_w0.yaml'
+    full = yaml.safe_load(full_path.read_text())
+    coord = copy.deepcopy(full['resource_coordination'])
+    for name in ('ieee_service_profile','ieee_preparation_profile'):
+        coord.pop(name)
+    contract = dict(previous,model_config=assembly['planned_child_model_config'],coordination=coord,
+        completed_length_binding=binding,source_config=dict(path=str(config_path.relative_to(root)),sha256=p.digest(config_path)),
+        controller_rule_source=dict(path=str(full_path.relative_to(root)),sha256=p.digest(full_path)),
+        old_timings_relabelled=False,common_warm_reference_changed=False)
+    trace = Path('/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/'
+        '20260424_131528_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/'
+        'llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json')
+    plan = FrozenReplayPlan.load(trace,count=1000)
+    assert plan.source_sha256 == spec['trace_sha256']
+    pool = (root/source['storage']['remote_dir']).resolve(strict=True)
+    out.mkdir(parents=True,exist_ok=False);raw.mkdir(parents=True,exist_ok=False)
+    def save(name,value):
+        with (out/name).open('x') as f:json.dump(value,f,indent=2,allow_nan=False)
+        return dict(path=str((out/name).relative_to(root)),sha256=p.digest(out/name))
+    spec['full_development_contract'] = save('development_contract.json',contract)
+    spec_ref = save('source_spec.json',spec)
+    _,_,identities,waves,static = p.source_profile_inputs(out/'source_spec.json',plan,cfg,pool)
+    final_assembly = p.prepare_admission_source_runtime(cfg,spec,**args)[2]
+    assert len(waves) == 125 and sum(map(len,waves)) == 1569
+    save('launch_config_binding.json',dict(source_config=contract['source_config']))
+    save('prepare.json',dict(kind='d356_control_profile_preparation_v1',passed=True,
+        development_only=True,n_correct=None,gpu_runs=0,full_qualified=False,
+        spec=spec_ref,assembly=final_assembly,length_initialization=evidence,
+        waves=len(waves),cases=sum(map(len,waves)),representative_cases=1545,warmups=24,
+        selected_adapters=len(identities),static_adapters=len(static['artifacts']),
+        actual_coverage_pending=True,old_timings_relabelled=False,
+        source_refs=[dict(path=str(path),sha256=p.digest(path)) for path in
+                     ([x for x,_ in refs]+[config_path,old_path,full_path,runtime])],
+        plan_sha256=p.check_plan(),metric_protocol_sha256=p.digest(root/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md')))
+    print(json.dumps(dict(passed=True,waves=len(waves),cases=sum(map(len,waves)),spec=spec_ref)))
+
+
 def prepare_output_class_gaps():
     """D321: reuse D298 collector/model and only fill audited output-class gaps."""
     root = p.ROOT
@@ -1225,7 +1312,9 @@ def verify_length_candidate(*, smoke=True, attempt=1):
 
 
 if __name__ == '__main__':
-    if sys.argv[1:] == ['--capacity-profile-gaps']:
+    if sys.argv[1:] == ['--control-profiles']:
+        prepare_control_profiles()
+    elif sys.argv[1:] == ['--capacity-profile-gaps']:
         prepare_capacity_profile_gaps()
     elif sys.argv[1:] == ['--capacity-profiles']:
         prepare_capacity_profiles()

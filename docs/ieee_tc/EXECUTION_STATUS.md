@@ -11,7 +11,26 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D355 atomic-control candidate tested; first100 NOT YET LAUNCHED
+## CURRENT — D355 pre-arrival profile-binding failure retained; D356 refresh preparation
+
+D355 execution a9986c3e591d01ea295445aee78a5b609c45db63 was backed then launched.
+Full100 stopped before model creation/arrivals: strict service model identity
+rejects the added control policy.0 terminals/owner events,0 observed GPU-s;
+not a valid performance point or evidence against the optimization. All local
+GPU/service paths released; exact-owned remote units inactive. Stop helper rc1
+was its final grep finding no transfer file, not failed service stop; independent
+clock-ID scan confirms no transfers. Failure closure archive204532B verified.
+See d355_control_interleave/failed_smoke.json. Do NOT rerun this attempt/stop.
+
+Decision: preserve strict timing-profile identity. D356 reuses original D344
+measurement cases (125waves/1569calls incl24warmups), refreshes affected timings
+under SAME C14 plus atomic_control_yield_v1. Explicit length-only transfer may
+reuse native completed fixed-output lengths; no old latency/SLO transfer.
+127 CPU tests and preparation passed; GPU calibration NOT YET LAUNCHED. New profile
+must validate before another exclusive Full100/full4000. D353 controller soft8
+unchanged; no extra candidate/capacity sweep.7B→3B→pausedbaselines remains order.
+
+### D355 qualification history (before the failed entry)
 
 D354 backup local/remote bbdb21f428a77d306461b74cd27a162531fe77d8 confirmed.
 D355 adds opt-in model.ieee_control_interleave=atomic_control_yield_v1:

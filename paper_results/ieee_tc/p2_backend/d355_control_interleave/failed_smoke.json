@@ -1,0 +1,110 @@
+{
+  "kind": "d355_failed_full_entry_v1",
+  "classification": "protocol_or_launcher_error",
+  "cause": "new_control_policy_requires_its_own_measured_service_and_preparation_profiles",
+  "execution_commit": "a9986c3e591d01ea295445aee78a5b609c45db63",
+  "native_completed": 0,
+  "gpu_seconds_observed": 0,
+  "performance_qualified": false,
+  "n_correct": null,
+  "full_source_count": 4000,
+  "diagnostic_prefix_count": 100,
+  "occurred_before_arrivals": true,
+  "remote_closed": true,
+  "remote_transfer_count": 0,
+  "remote_stop_returncode": 1,
+  "remote_stop_nonzero_reason": "no matching transfer file: no request reached transfer",
+  "remote_monitor_sha256": "e3ef30d8b219a0afe89b1634ed98109afd7eab10a8b9a1fd3ae6e1ad5c3f89b4",
+  "closed_scopes": [
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-37a293557c374faaabe46aa09dde65cb.scope",
+        "invocation_id": "bdccec724a0f4ee8989d223cfb785294",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-37a293557c374faaabe46aa09dde65cb.scope",
+        "inode": 20796902
+      },
+      "resources": {
+        "memory.peak": "162041856\n",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+        "memory.swap.current": "0\n"
+      },
+      "cleanup": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-35d14dca9cbe4a46b7e69022c88961e2.scope",
+        "invocation_id": "91c8ab4028964ff8ae8111652943088f",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-35d14dca9cbe4a46b7e69022c88961e2.scope",
+        "inode": 20796860
+      },
+      "resources": {
+        "memory.peak": "36450304\n",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+        "memory.swap.current": "0\n"
+      },
+      "cleanup": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    }
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": false,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [
+      "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"
+    ],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "archive": {
+    "path": "paper_results/ieee_tc/p2_backend/d355_control_interleave/failed_smoke_sources.tar.gz",
+    "sha256": "7df70cc7dda0bc84a3c64c8b704cebcaa9809f4c612978163291d9a1b3035df4",
+    "bytes": 204532,
+    "members": {
+      "7b_interleave_validation_100/launch.json": "86a5c97849a2af8f70efa80830d2c7ceff2834c056d6b85d82a960be7d5bc407",
+      "7b_interleave_validation_100/launch.launch/exec_receipt.json": "492e6eaa1a188826ffd158632910b62eea3d6e7d80420d902c38bd2eb2faa382",
+      "7b_interleave_validation_100/launch.launch/physical_deployment/deployment.json": "6c4ca235d1a1d291dfa562cd578a00be584780efe68ae2f431d6f076ceb594da",
+      "7b_interleave_validation_100/launch.launch/physical_deployment/physical_resource_summary.json": "d59da248041ae335d252d93074b4e0ef161a07cd83cc4d72f5a303457f5bcd73",
+      "7b_interleave_validation_100/launch.launch/physical_deployment/request_terminals.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "7b_interleave_validation_100/launch.launch/physical_deployment/summary.json": "c93f7ccb51fc0cdc355f23bd2e98eeb5cde1afeade380622370a8dd21cba305e",
+      "7b_interleave_validation_100/launch.launch/replay.jsonl": "b9e99a8626c57d7939ab158346048862f238b1b4b9eeb19df24a9d9297cd0404",
+      "7b_interleave_validation_100/launch.launch/replay_startup.txt": "29c9bca575e8b8041cfc21ab875dc45782fb97c44fe35ccf457fcc869b1bebed",
+      "7b_interleave_validation_100/launch.launch/service.log": "ea577b43ad60a9b10b01dc6ddf78481d0128cd5ab0d5f72e71ca107994db66d9",
+      "7b_interleave_validation_100/launch.launch/service_ingress.jsonl": "d46a996896f9bd59ee8e1fa1f35e8f312136fb8449e6b82b6eaed94f22f33795",
+      "7b_interleave_validation_100/launch.launch/watchdog.jsonl": "57e66c397fb8246db85c301113aec9093047261264050b760002c0bcc5886c9f",
+      "7b_interleave_validation_100/launch.launch/watchdog.stderr": "e7976f056d9fbe2916ff9de2ee8e445f606d930bbc0f90f3b9027411069174ce",
+      "7b_interleave_validation_100/launcher.log": "c29a38c19b3a6131e336e12eb5d9ffe68d4ae5207aaae4cc447604caf6d3b9d7",
+      "check_remote_health.py": "176d803fb722f46a895fb15a006f4f3b31469fc5073121c40ebaf524446e95b5",
+      "close_failed_smoke.py": "04473e7e42d5fb8367e212f28bdbb384441b55e46bc528cb66359d034b9475db",
+      "cpu1.log": "0099d7373102dff0b7a9300ebe3c03e629c4bd44640b5fe23bf82f1ece676e71",
+      "cpu1_receipt.json": "b9e27eb90a60b1ce718254c956abba8b66f3f4d5d5a2666956d61d1035bda916",
+      "cpu2.log": "75aa4510725960fe51e34eaa21ba598794ad65a3e40b555d7cb2e50b80a74f7f",
+      "cpu2_receipt.json": "3e7962ec8c3104ee88050c2f5755a10be5dc8af51d20a239d824d573db5f046f",
+      "launch_gate.json": "364bec6665665de8d8b2b241f47b94ee22c7b352cc1246872bee12b9791bebe7",
+      "native1.log": "d6376fcfb7bd60d5bc0df4edcc84dc142957063f352964c62f4f913697bb340f",
+      "native1_receipt.json": "2212ca93a0d172ed7b60841e686c0321465b6f44f485505add69f9d1e51daab0",
+      "native_api_check.py": "a10122972cf35c75f109e841730f89039ba74ca78e9c156ebed2ecb6544dc7d1",
+      "native_api_receipt.json": "dbc4dec24915c072e2b76ae16bfe63170a8317863247a0e50787a541e5fb6fc2",
+      "preparation_scope.json": "e9b89a62366bae9cf66faad06a12e6afd24f7edf0eac7021e5b56758b77b1ce7",
+      "prepare_checkpoint.py": "795eaac2c0a10322320b2e508b7ee71a4b262f6ae80a9449dc4a4b7e33341a67",
+      "remote_health.json": "a28ec5bcf069efe44d40a70a8e278c3ce2ed76d56bde66e89089cf80e5b9ebd7",
+      "remote_monitor.log": "e3ef30d8b219a0afe89b1634ed98109afd7eab10a8b9a1fd3ae6e1ad5c3f89b4",
+      "remote_start.log": "1b058e6e9e68c805072f7a11573887a4358f71a6cf4de0a8756d31134779e8b8",
+      "remote_stop.log": "244378072ca963fc7ea0c6c171b87c6c5b2ff5f31a04856d403c37eeaf682ea6",
+      "start.py": "8239b2a3579bfd577ed8c22a828138ac74501ebbf2c37aa60d6e28e2dd0ba358",
+      "start_receipt.json": "6f73ce119a16ad384162b73554d2d0782296f061f6b8d85c14b6c4152deae839",
+      "start_remote.sh": "172c8b0a2262e14db07c14fd38e39e57e89ccd68f15d3b9deccb0ee5318426a5",
+      "stop_remote.sh": "14e2464f4da8887ed56e349ddff8e909072a98f34a670a30b226c67ab8f45349",
+      "test_candidate.py": "ab3777c7a0ef1368a33a6660efb1c90012f933c023f0533dfe2eeb3ba7e90cfc",
+      "test_cleanup.json": "7826fbeee7bfe4a85f14dc6fd370a4ca792fb500513c251b66e992fe71b1d193"
+    }
+  },
+  "next_action": "remeasure affected profiles with unchanged collector, then new exclusive Full100 attempt"
+}

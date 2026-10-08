@@ -3621,13 +3621,15 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
 
     transfer = binding.get('kind') in (
         'native_fixed_output_length_transfer_v1',
-        'native_fixed_output_capacity_length_transfer_v1')
+        'native_fixed_output_capacity_length_transfer_v1',
+        'native_fixed_output_control_length_transfer_v1')
     fields = {'kind', 'audit', 'model', 'window_s'}
     if transfer:
         fields.add('model_config_changes')
     if (set(binding) != fields or binding['kind'] not in (
             'native_completed_length_binding_v1', 'native_fixed_output_length_transfer_v1',
-            'native_fixed_output_capacity_length_transfer_v1')):
+            'native_fixed_output_capacity_length_transfer_v1',
+            'native_fixed_output_control_length_transfer_v1')):
         raise ValueError('unknown completed-length initialization binding')
     window = binding['window_s']
     if (type(window) not in (int, float) or not math.isfinite(window) or window <= 0
@@ -3663,8 +3665,25 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
     # completions/targets and input identity are still verified below.
     if transfer:
         capacity_transfer = binding['kind'] == 'native_fixed_output_capacity_length_transfer_v1'
-        permitted = ({'max_num_seqs', 'runtime_concurrency_cap', 'max_loras'}
+        control_transfer = binding['kind'] == 'native_fixed_output_control_length_transfer_v1'
+        capacity_fields = {'max_num_seqs', 'runtime_concurrency_cap', 'max_loras'}
+        permitted = (capacity_fields
                      if capacity_transfer else {'max_num_batched_tokens'})
+        numeric_changes = changes
+        if control_transfer:
+            # Reuse only completed fixed-output lengths, NOT latency or SLO.
+            # Explicitly retain the changed policy in the target identity; the
+            # strict timing-profile loaders still demand fresh measurements.
+            numeric_changes = {k:v for k,v in changes.items() if k != 'ieee_control_interleave'}
+            if (set(numeric_changes) not in (set(), capacity_fields)
+                    or changes.get('ieee_control_interleave') !=
+                       dict(source=None, target='atomic_control_yield_v1')
+                    or 'ieee_control_interleave' in source_identity
+                    or identity.get('ieee_scheduler_observation') is not True
+                    or identity.get('ieee_gpu_references') is not True):
+                raise ValueError('fixed-output control completed-length transfer contract differs')
+            permitted = set(numeric_changes) | {'ieee_control_interleave'}
+            capacity_transfer = bool(numeric_changes)
         if (set(changes) != permitted
                 or changes != binding['model_config_changes']
                 or identity.get('generation_contract') != 'fixed_length_greedy_v1'
@@ -3674,9 +3693,9 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
                 or identity.get('max_output_tokens_cap') != 256
                 or identity.get('enable_chunked_prefill') is not True
                 or any(type(value) is not int or value <= 0
-                       for change in changes.values() for value in change.values())
+                       for change in numeric_changes.values() for value in change.values())
                 or (capacity_transfer and any(
-                    len({changes[key][side] for key in permitted}) != 1
+                    len({changes[key][side] for key in capacity_fields}) != 1
                     for side in ('source', 'target')))):
             raise ValueError('fixed-output completed-length transfer contract differs')
     if (entry['same_backend'] != backend_version
