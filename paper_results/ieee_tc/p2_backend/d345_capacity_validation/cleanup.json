@@ -1,0 +1,48 @@
+[
+  {
+    "report": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d344_20261008/export1_receipt.json",
+    "identity": {
+      "unit": "primelora-tc-aux-34400000000000000000000000000022.scope",
+      "invocation_id": "c52c63bb4c4c475bb4d75196fc0737fa",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-34400000000000000000000000000022.scope",
+      "inode": 20577072
+    },
+    "resources": {
+      "memory.peak": "2644463616",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0",
+      "memory.high": "3221225472",
+      "memory.max": "4294967296",
+      "memory.swap.max": "0",
+      "cgroup.events": "populated 0\nfrozen 0"
+    },
+    "cleanup": {
+      "targets": [],
+      "hard_kill": false,
+      "released": true
+    }
+  },
+  {
+    "report": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d345_20261008/prelaunch_binding.json",
+    "identity": {
+      "unit": "primelora-tc-aux-34500000000000000000000000000001.scope",
+      "invocation_id": "a949c16744bf4e28bce98768fd12be46",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-34500000000000000000000000000001.scope",
+      "inode": 20578536
+    },
+    "resources": {
+      "memory.peak": "561184768",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0",
+      "memory.high": "3221225472",
+      "memory.max": "4294967296",
+      "memory.swap.max": "0",
+      "cgroup.events": "populated 0\nfrozen 0"
+    },
+    "cleanup": {
+      "targets": [],
+      "hard_kill": false,
+      "released": true
+    }
+  }
+]

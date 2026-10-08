@@ -11,7 +11,33 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D344 source and gaps COMPLETE; export matched measured profiles next
+## CURRENT — D344 merged export COMPLETE; D345 Full100 prepared, NOT launched
+
+Strict same-C14collection validator and existingexporter now retain1545measured
+samples with200service/24preparationclasses (1212loadsamples). Two rawsources
+remain separate SHA/clock namespaces;24warmups excluded, no default/C8fill.
+376/376CPUregressionpassed. Productionprofile loaders and Full childassembly
+match the predeclaredD344contract. ExportmanifestSHA
+6f22b0938235cd1fe854a26d794b74415b7afee15f213634559590ee2390a012.
+ServiceSHA794d00bac794da9c076b34da38cc310c90d70330b9414ef02de09faab9c7cd32;
+preparationSHAbfe0a6f87a65a1835bf0d374f8045f28e0c09c41d5416960b1c4a218ad2893be.
+No inference rerun, figures, weights/trace regeneration or remote cache rebuild.
+
+D345 config and existingFullrunner branch ready: diagnosticprefix100, Nplan4000,
+sameC14profilebindings/D336controlrule, capacityderivedtargets14, noD341prebuild.
+Prelaunch passes200/24classes, disk163130814464B/host112257400832B,GPUempty.
+Next exact-ownedCPUclosure/seal+backup, freshgate, publishedremote start and
+Full100 in tmux; thenvalidate/release andFull4000. Do not repeatcalibration.
+Numericalcorrectness, commonreferences, G1/G2 and7Btarget remainOPEN; no3B/baselines.
+
+### Prior D344 measurement backup (complete)
+
+BACKUP/CLOSURE VERIFIED: localHEAD and independently read remoteV2 both
+4bf53e13c5d6d79d0ca6c785683345b1671b7a80.13exact paths,10measurement hashes,
+secrets/diff and retained analysis correction checked. Seal20exactlyclosed,
+peak47194112B/events0/swap0; no D344aux/service units remain, GPUcomputeempty.
+Disk163159347200B. All tool handles closed. Measurement/closure/backup are DONE;
+do not repeat. Next is data-only matched multi-source export, thenFull100/4000.
 
 Gap40/40native calls complete;10warmup+30measurements. Two missingGPUshort
 classes each have3observations; actualshort admissions9,10,9,10,9,10,with8original
@@ -21,8 +47,8 @@ repeated1529matrix. Both rawmeasurements retained; noFullrun or profileexport ye
 Gap physical111.405661GPU-s,startup40.735613s,40controlledsetupfetches,
 143002936wireB,packing0;servicepeak5701263360B,minhost106936963072B,events/swap0.
 GPUreleased,servicepathremoved,remote3unitsstopped,portsabsent;bilateral40
-transferSHA/bytesverified. All14–19auxiliaryscopesclosed;seal20finished/empty
-closure beforecheckpointbackup. No liveexperiment or terminalhandle torestart.
+transferSHA/bytesverified. All14–20auxiliaryscopesclosed andcheckpointbackedup.
+No liveexperiment or terminalhandle torestart.
 GaprawSHA764509162dd0889b469e6150ae42aed8ca018f1899271d7b1789406e04508e4d;
 execution7431ad6bde014182289c5e48daff68b4008cd428. Auditarchive157485B.
 
@@ -32,7 +58,7 @@ analyzer2 usesexisting model_identity plus all originalkeys unchanged,exact4
 loaderobservationsvalidated. No servingchange,datamutation orGPUrerun. Two
 coverage/summaryversions identical. Targetcoverage/nativeCSV/union sealed.
 
-NEXT: verify/save this measurement checkpoint, then extendexisting measured
+NEXT: extendexisting measured
 profileexport tovalidate sameC14config/runtime,input/resourcecontracts and
 nativegeometry across BOTH sourceSHA namespaces. Keep all1515+30measured
 samples (24warmups excluded) with their own clocks/ownership; require200classes,

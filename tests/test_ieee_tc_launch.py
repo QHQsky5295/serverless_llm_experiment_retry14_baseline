@@ -884,6 +884,62 @@ class MeasuredSourceProfileExport(unittest.TestCase):
         s,d,_=self.export()
         self.assertEqual((len(p['requests']),len(s['samples']),len(d['samples'])),(12,10,8))
 
+    def collection_fixture(self):
+        import copy
+        source=copy.deepcopy(self.payload)
+        source.update(config_sha256='a'*64,runtime_receipt_sha256='b'*64,
+                      trace=dict(source_sha256='f'*64))
+        source['source_profile_spec'].update(trace_sha256='f'*64,
+            content_index=dict(path='test-index',sha256='1'*64),
+            admission_initialization=dict(kind='test'),model_overrides={},
+            full_development_contract=dict(path='test-contract',sha256='2'*64))
+        first,second=copy.deepcopy(source),copy.deepcopy(source)
+        for i,w in enumerate(first['source_profile_spec']['waves']):
+            if w['source']=='gpu':w['role']='kernel_warmup_retained'
+        for w in second['source_profile_spec']['waves']:
+            if w['source']!='gpu':w['role']='kernel_warmup_retained'
+        old=second['requests'][0]['native_clock_id']
+        second=json.loads(json.dumps(second).replace(json.dumps(old),json.dumps('different-local-native-clock')))
+        return [dict(payload=first,source_run_sha256='3'*64),dict(payload=second,source_run_sha256='4'*64)]
+
+    def collection(self,sources):
+        from scripts.ieee_tc_preflight import measured_source_profile_collection
+        return measured_source_profile_collection(sources,identities=self.identities,
+            context=self.context,model_config=self.payload['model_config'])
+
+    def test_collection_closes_complementary_domains_without_clock_join_or_defaults(self):
+        from scripts.ieee_tc_preflight import measured_source_profile_payloads
+        sources=self.collection_fixture()
+        for s in sources:
+            with self.assertRaisesRegex(ValueError,'missing source/service'):
+                measured_source_profile_payloads(s['payload'],source_run_sha256=s['source_run_sha256'],
+                    identities=self.identities,context=self.context,model_config=self.payload['model_config'])
+        service,prep,coverage=self.collection(sources)
+        self.assertTrue(coverage['class_domain_covered'])
+        self.assertFalse(coverage['clock_domains_joined'])
+        self.assertEqual((len(service['samples']),len(prep['samples'])),(10,8))
+        self.assertEqual(len({s['source_run_sha256'] for s in service['samples']}),2)
+        self.assertEqual(len({s['native_clock_id'] for s in service['samples']}),2)
+        self.assertFalse(service['numerical_adapter_correctness_qualified'])
+
+    def test_collection_rejects_duplicate_missing_mixed_input_runtime_or_native_clock(self):
+        import copy
+        base=self.collection_fixture()
+        cases=[base[:1],[base[0],base[0]]]
+        for mutation in (
+            lambda p:p.update(runtime_receipt_sha256='9'*64),
+            lambda p:p.update(config_sha256='9'*64),
+            lambda p:p['model_config'].update(dtype='different'),
+            lambda p:p['source_profile_spec'].update(trace_sha256='9'*64),
+            lambda p:p['source_profile_spec']['content_index'].update(sha256='9'*64),
+            lambda p:p['source_profile_spec']['full_development_contract'].update(sha256='9'*64),
+            lambda p:p['source_profile_spec']['waves'][-1].update(role='kernel_warmup_retained'),
+            lambda p:p['requests'][-1].update(native_clock_id='mixed-clock'),
+            lambda p:p['physical_allocation'].update(released=False)):
+            sources=copy.deepcopy(base);mutation(sources[1]['payload']);cases.append(sources)
+        for sources in cases:
+            with self.subTest(case=len(cases)),self.assertRaises(ValueError):self.collection(sources)
+
 
 class DevelopmentControlDerivation(unittest.TestCase):
     def test_capacity_targets_reuse_original_rule_without_reprofiling_timing(self):

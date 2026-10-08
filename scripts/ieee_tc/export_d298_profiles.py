@@ -356,30 +356,10 @@ def export_history_length_coverage():
     print(json.dumps(coverage, indent=2), flush=True)
 
 
-def main(campaign='d298'):
-    global RAW, CURATED
-    if campaign == 'd298':
-        config_path = ROOT/'configs/ieee_tc/20261007_d298_7b_capacity_source.yaml'
-        source_commit = '783fa42e6b3ba1cd0e034d8e0cddcd3d72c9b42e'
-    elif campaign in ('d307', 'd307-attempt2'):
-        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d307_20261007'
-        if campaign == 'd307-attempt2':
-            RAW = RAW/'attempt2'
-        CURATED = ROOT/'paper_results/ieee_tc/p2_backend/d307_prefill'
-        config_path = ROOT/'configs/ieee_tc/20261007_d307_7b_prefill_source.yaml'
-        source_commit = (RAW/'source_commit.txt').read_text().strip()
-        assert re.fullmatch('[0-9a-f]{40}', source_commit), 'missing exact launch commit'
-    elif campaign == 'd344':
-        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d344_20261008'
-        CURATED = ROOT/'paper_results/ieee_tc/p2_backend/d344_capacity_profiles'
-        config_path = ROOT/'configs/ieee_tc/20261008_d343_7b_capacity_probe14.yaml'
-        source_commit = (RAW/'source_commit.txt').read_text().strip()
-        assert re.fullmatch('[0-9a-f]{40}', source_commit), 'missing exact launch commit'
-    else:
-        raise ValueError(campaign)
-    out = CURATED / 'initialization'
-    assert not out.exists(), 'never overwrite a prior export'
-    source, launch_path = RAW/'source1.json', RAW/'source1_launch.json'
+def audited_source_run(raw_dir, curated_dir, config_path, *, health_model=None,
+                       require_measurement_seal=False):
+    """Verify each real run independently before combining measured samples."""
+    source, launch_path = raw_dir/'source1.json', raw_dir/'source1_launch.json'
     raw, launch = read(source), read(launch_path)
     assert raw['pass'] and raw['stage'] == 'complete'
     assert raw['shutdown_called'] and raw['profile_workspaces_removed']
@@ -387,7 +367,7 @@ def main(campaign='d298'):
     assert launch['service_path_removed'] and launch['native_gpu_context_release_confirmed']
     assert launch['preflight']['policy'] == p.POLICY
     assert raw['service']['affinity'] == p.POLICY['service_cpus']
-    spec_path = CURATED/'source_spec.json'
+    spec_path = curated_dir/'source_spec.json'
     spec = read(spec_path)
     assert p.digest(spec_path) == raw['source_profile_spec_sha256']
     assert raw['source_profile_spec'] == spec
@@ -396,29 +376,16 @@ def main(campaign='d298'):
     contract = read(contract_path)
     runtime = ROOT/'results/ieee_tc/p2_backend_qualification/runtime_20260926/cuda_import_attempt3.json'
     assert p.digest(runtime) == raw['runtime_receipt_sha256'] == contract['runtime_receipt_sha256']
-    assert p.digest(config_path) == raw['config_sha256'] == read(CURATED/'launch_config_binding.json')['source_config']['sha256']
-    profile = yaml.safe_load(config_path.read_text())['model_profiles']['llama2_7b_main_v2_publicmix']
-    pool = (ROOT/profile['storage']['remote_dir']).resolve(strict=True)
-    index_path = ROOT/spec['content_index']['path']
-    assert p.digest(index_path) == spec['content_index']['sha256']
-    index = read(index_path)
-    client = HttpArtifactStoreClient(endpoint='http://127.0.0.1:1')
-    client.configure_content_manifest(index)
-    identities = {}
-    for row in index['artifacts']:
-        path = (pool/row['id']).resolve(strict=True)
-        assert path.parent == pool
-        identities[row['id']] = client.routing_identity(row['id'], (path/'adapter_config.json').read_bytes())
-    assert len(identities) == 500
+    assert p.digest(config_path) == raw['config_sha256'] == read(curated_dir/'launch_config_binding.json')['source_config']['sha256']
     assert p.digest(Path(raw['trace']['source_path'])) == spec['trace_sha256'] == raw['trace']['source_sha256']
-    journal = RAW/'remote_transfers.jsonl'
+    journal = raw_dir/'remote_transfers.jsonl'
     remote_rows = [json.loads(line) for line in journal.read_text().splitlines()]
     remote = {r['transfer_id']:r for r in remote_rows}
     transfers = raw['remote_transfers']
     assert len(remote) == len(remote_rows) == len(transfers)
     assert {r['http_transfer_id'] for r in transfers} == set(remote)
-    health = read(RAW/'remote_health.json')
-    remote_clock = health['7b']['clock_id'] if campaign == 'd344' else health['health']['clock_id']
+    health = read(raw_dir/'remote_health.json')
+    remote_clock = health[health_model or 'health']['clock_id']
     for r in transfers:
         s = remote[r['http_transfer_id']]
         assert s['clock_id'] == remote_clock
@@ -433,10 +400,94 @@ def main(campaign='d298'):
     assert len(acquire) == len(release) == len(lease['gpu_uuids']) == 1
     assert lease['released'] and release[0] > acquire[0]
     assert all(not Path(path).exists() for path in raw['owned_profile_workspaces'].values())
-    watchdog = RAW/'source1_launch.launch/watchdog.jsonl'
+    watchdog = raw_dir/'source1_launch.launch/watchdog.jsonl'
     with watchdog.open() as stream:
         samples = [r for line in stream if (r := json.loads(line))['event'] == 'resource_sample']
     assert samples and not any(r['decision']['abort_reasons'] for r in samples)
+    paths = [source, launch_path, spec_path, contract_path, journal, watchdog,
+        raw_dir/'remote_monitor.log', raw_dir/'remote_stop.log', raw_dir/'remote_health.json']
+    if require_measurement_seal:
+        seal_path = curated_dir/'measurement_outputs.sha256'
+        for line in seal_path.read_text().splitlines():
+            sha, name = line.split(maxsplit=1)
+            path = curated_dir/name
+            assert path.parent == curated_dir and p.digest(path) == sha
+        checkpoint_path = curated_dir/'measurement_checkpoint.json'
+        checkpoint = read(checkpoint_path)
+        assert checkpoint['passed'] and checkpoint['measurement_complete']
+        assert Path(checkpoint['source_run']['path']).resolve() == source.resolve()
+        assert checkpoint['source_run']['sha256'] == p.digest(source)
+        for entry in checkpoint['source_refs']:
+            assert p.digest(Path(entry['path'])) == entry['sha256']
+        commit = (raw_dir/'source_commit.txt').read_text().strip()
+        assert re.fullmatch('[0-9a-f]{40}', commit)
+        assert commit == checkpoint['source_execution_commit']
+        paths.extend([seal_path, checkpoint_path, raw_dir/'source_commit.txt'])
+    measured = [w for w in spec['waves'] if w['role'] == 'representative_measurement']
+    roles = {f'source-profile/w{i}/l{lane}':w['role'] for i,w in enumerate(spec['waves'])
+             for lane in range(len(w['requests']))}
+    summary = dict(requests=len(raw['requests']),
+        representative_requests=sum(len(w['requests']) for w in measured),
+        warmup_requests=sum(len(w['requests']) for w in spec['waves'] if w['role'] == 'kernel_warmup_retained'),
+        preparation_requests=sum(len(w['requests']) for w in measured if w['source'] != 'gpu'),
+        measured_source_counts=dict(Counter(q['requested_source'] for q in raw['requests']
+            if roles[q['request_id']] == 'representative_measurement')),
+        remote_uuid_pairs=len(transfers),wire_bytes=sum(r['transferred_bytes'] for r in transfers),
+        remote_pack_performed=False,physical_gpu_seconds=release[0]-acquire[0],
+        resources=dict(samples=len(samples),peak_bytes=max(r['service']['memory.peak'] for r in samples),
+            min_host_available_bytes=min(r['host']['available_bytes'] for r in samples),
+            max_swap_bytes=max(r['service']['memory.swap.current'] for r in samples),
+            memory_events={k:max(r['service']['memory.events'][k] for r in samples)
+                for k in ('high','max','oom','oom_kill')}))
+    return dict(payload=raw, source_run_sha256=p.digest(source), spec=spec,
+        contract=contract, launch=launch, roles=roles, summary=summary,
+        source_run=ref(source), raw_evidence=[ref(path) for path in paths])
+
+
+def main(campaign='d298'):
+    global RAW, CURATED
+    if campaign == 'd298':
+        config_path = ROOT/'configs/ieee_tc/20261007_d298_7b_capacity_source.yaml'
+        source_commit = '783fa42e6b3ba1cd0e034d8e0cddcd3d72c9b42e'
+    elif campaign in ('d307', 'd307-attempt2'):
+        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d307_20261007'
+        if campaign == 'd307-attempt2':
+            RAW = RAW/'attempt2'
+        CURATED = ROOT/'paper_results/ieee_tc/p2_backend/d307_prefill'
+        config_path = ROOT/'configs/ieee_tc/20261007_d307_7b_prefill_source.yaml'
+        source_commit = (RAW/'source_commit.txt').read_text().strip()
+    elif campaign in ('d344', 'd344-merged'):
+        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d344_20261008'
+        CURATED = ROOT/'paper_results/ieee_tc/p2_backend/d344_capacity_profiles'
+        config_path = ROOT/'configs/ieee_tc/20261008_d343_7b_capacity_probe14.yaml'
+        source_commit = (RAW/'source_commit.txt').read_text().strip()
+    else:
+        raise ValueError(campaign)
+    assert re.fullmatch('[0-9a-f]{40}', source_commit), 'missing exact launch commit'
+    out = CURATED / 'initialization'
+    assert not out.exists(), 'never overwrite a prior export'
+    directories = [(RAW,CURATED)]
+    if campaign == 'd344-merged':
+        directories.append((RAW/'gaps1', CURATED/'gaps1'))
+    runs = [audited_source_run(r,c,config_path,
+        health_model='7b' if campaign.startswith('d344') else None,
+        require_measurement_seal=campaign.startswith('d344')) for r,c in directories]
+    first = runs[0]
+    raw, spec, contract, launch = [first[k] for k in ('payload','spec','contract','launch')]
+    assert all(r['contract'] == contract for r in runs)
+    profile = yaml.safe_load(config_path.read_text())['model_profiles']['llama2_7b_main_v2_publicmix']
+    pool = (ROOT/profile['storage']['remote_dir']).resolve(strict=True)
+    index_path = ROOT/spec['content_index']['path']
+    assert p.digest(index_path) == spec['content_index']['sha256']
+    index = read(index_path)
+    client = HttpArtifactStoreClient(endpoint='http://127.0.0.1:1')
+    client.configure_content_manifest(index)
+    identities = {}
+    for row in index['artifacts']:
+        path = (pool/row['id']).resolve(strict=True)
+        assert path.parent == pool
+        identities[row['id']] = client.routing_identity(row['id'], (path/'adapter_config.json').read_bytes())
+    assert len(identities) == 500
     input_contract = dict(source_trace_sha256=spec['trace_sha256'],
         content_index_sha256=spec['content_index']['sha256'],
         generation_contract=raw['model_config']['generation_contract'],
@@ -444,6 +495,10 @@ def main(campaign='d298'):
         prompt_content_cap=raw['model_config']['max_input_len'],
         output_cap=raw['model_config']['max_output_tokens_cap'],
         artifact_mode=raw['artifact_mode'],declared_source_profile_sha256=raw['source_profile_spec_sha256'])
+    if len(runs) > 1:
+        del input_contract['declared_source_profile_sha256']
+        input_contract['declared_source_profile_sha256s'] = [r['payload']['source_profile_spec_sha256'] for r in runs]
+        assert all(r['payload']['artifact_mode'] == raw['artifact_mode'] for r in runs)
     envelope = dict(inference_policy=launch['preflight']['policy'],
         artifact_service=dict(memory_high_bytes=2*p.GIB,memory_max_bytes=4*p.GIB,
             memory_swap_max_bytes=0,cpus=list(range(2,20))+list(range(22,40)),
@@ -451,14 +506,15 @@ def main(campaign='d298'):
             delivery_mode='prepublished_gzip_v1',link_mbps=1000,rate_limit=None))
     context = dict(backend_environment_sha256=raw['runtime_receipt_sha256'],
         resource_envelope_sha256=object_hash(envelope),input_contract_sha256=object_hash(input_contract))
-    service, prep, coverage = p.measured_source_profile_payloads(raw,
-        source_run_sha256=p.digest(source),identities=identities,
-        context=context,model_config=contract['model_config'])
-    measured = [w for w in spec['waves'] if w['role'] == 'representative_measurement']
-    measured_count = sum(len(w['requests']) for w in measured)
-    warmup_count = sum(len(w['requests']) for w in spec['waves'] if w['role'] == 'kernel_warmup_retained')
-    prep_count = sum(len(w['requests']) for w in measured if w['source'] != 'gpu')
-    assert len(service['samples']) == measured_count and len(prep['samples']) == prep_count
+    if len(runs) > 1:
+        service, prep, coverage = p.measured_source_profile_collection(runs,
+            identities=identities, context=context, model_config=contract['model_config'])
+    else:
+        service, prep, coverage = p.measured_source_profile_payloads(raw,
+            source_run_sha256=first['source_run_sha256'],identities=identities,
+            context=context,model_config=contract['model_config'])
+    assert len(service['samples']) == sum(r['summary']['representative_requests'] for r in runs)
+    assert len(prep['samples']) == sum(r['summary']['preparation_requests'] for r in runs)
     seal = p.verify_seal(ROOT/'paper_results/ieee_tc/safety/20260925_execution_start_protected.json')
     known = '/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py'
     assert seal['changed'] == [known] and seal['entry_count'] == 147
@@ -480,26 +536,27 @@ def main(campaign='d298'):
     estimates = dict(service=[dict(service_class=asdict(k),**asdict(v),n=loaded['service'].sample_counts[k])
         for k,v in loaded['service'].profiles.items()],preparation=[dict(preparation_class=asdict(k),
         d_ms=v,n=loaded['preparation'].sample_counts[k]) for k,v in loaded['preparation'].profiles.items()])
-    roles = {f'source-profile/w{i}/l{lane}':w['role'] for i,w in enumerate(spec['waves'])
-             for lane in range(len(w['requests']))}
     outputs = defaultdict(set)
-    for q in raw['requests']:
-        if roles[q['request_id']] == 'representative_measurement':
-            outputs[q['source_request_id'],q['adapter_id'],q['prompt_sha256'],q['target_tokens']].add(
-                q['timing']['completion_token_ids_sha256'])
-    summary = dict(requests=len(raw['requests']),representative_requests=measured_count,warmup_requests=warmup_count,
-        measured_source_counts=dict(Counter(q['requested_source'] for q in raw['requests']
-            if roles[q['request_id']] == 'representative_measurement')),
-        remote_uuid_pairs=len(transfers),wire_bytes=sum(r['transferred_bytes'] for r in transfers),
-        remote_pack_performed=False,physical_gpu_seconds=release[0]-acquire[0],
+    source_counts = Counter()
+    for run in runs:
+        source_counts.update(run['summary']['measured_source_counts'])
+        for q in run['payload']['requests']:
+            if run['roles'][q['request_id']] == 'representative_measurement':
+                outputs[q['source_request_id'],q['adapter_id'],q['prompt_sha256'],q['target_tokens']].add(
+                    q['timing']['completion_token_ids_sha256'])
+    summary = {k:sum(r['summary'][k] for r in runs) for k in ('requests','representative_requests',
+        'warmup_requests','preparation_requests','remote_uuid_pairs','wire_bytes','physical_gpu_seconds')}
+    summary.update(measured_source_counts=dict(source_counts),remote_pack_performed=False,
         varied_output_groups=sum(len(v)>1 for v in outputs.values()),total_output_groups=len(outputs),
-        resources=dict(samples=len(samples),peak_bytes=max(r['service']['memory.peak'] for r in samples),
-            min_host_available_bytes=min(r['host']['available_bytes'] for r in samples),
-            max_swap_bytes=max(r['service']['memory.swap.current'] for r in samples),
-            memory_events={k:max(r['service']['memory.events'][k] for r in samples)
-                for k in ('high','max','oom','oom_kill')}))
+        resources=dict(samples=sum(r['summary']['resources']['samples'] for r in runs),
+            peak_bytes=max(r['summary']['resources']['peak_bytes'] for r in runs),
+            min_host_available_bytes=min(r['summary']['resources']['min_host_available_bytes'] for r in runs),
+            max_swap_bytes=max(r['summary']['resources']['max_swap_bytes'] for r in runs),
+            memory_events={k:max(r['summary']['resources']['memory_events'][k] for r in runs)
+                for k in ('high','max','oom','oom_kill')}),
+        per_source=[dict(source_run=r['source_run'],**r['summary']) for r in runs])
     result = dict(kind='measured_development_profile_export_v1',model='7b',passed=True,
-        source_execution_commit=source_commit,source_run=ref(source),
+        source_execution_commit=source_commit,source_run=first['source_run'],
         contract=spec['full_development_contract'],context=context,
         context_definition=dict(backend_environment='SHA256 of qualified native runtime receipt',
             resource_envelope=envelope,input_contract=input_contract,
@@ -507,11 +564,19 @@ def main(campaign='d298'):
         bindings=bindings,profiles={k:v.identity() for k,v in loaded.items()},coverage=coverage,
         estimates=estimates,activation_geometry=loaded['preparation'].activation_layout(),summary=summary,
         full_qualified=False,production_profile_frozen=False,numerical_adapter_correctness_qualified=False,
-        n_correct=None,common_slo_qualified=False,independent_runs=1,ci=None,
+        n_correct=None,common_slo_qualified=False,independent_runs=1 if len(runs)==1 else None,ci=None,
         protection_raw=seal,offline_only=True,new_gpu_runs=0,no_figures=True,
-        raw_evidence=[ref(path) for path in (source,launch_path,journal,watchdog,RAW/'remote_monitor.log',
-            RAW/'remote_stop.log',config_path,runtime,Path(__file__),ROOT/'scripts/ieee_tc_preflight.py')])
-    if campaign in ('d307', 'd307-attempt2', 'd344'):
+        raw_evidence=[entry for r in runs for entry in r['raw_evidence']] +
+            [ref(path) for path in (config_path,ROOT/'results/ieee_tc/p2_backend_qualification/runtime_20260926/cuda_import_attempt3.json',
+                                   Path(__file__),ROOT/'scripts/ieee_tc_preflight.py')])
+    if len(runs)>1:
+        del result['source_run'], result['source_execution_commit']
+        result.update(source_runs=[r['source_run'] for r in runs],
+            source_execution_commits=[(d/'source_commit.txt').read_text().strip() for d,_ in directories],
+            calibration_executions=len(runs),
+            repetition_scope='complementary_class_measurements_not_independent_full_workload_repeats',
+            clock_domains_joined=False)
+    elif campaign in ('d307', 'd307-attempt2', 'd344'):
         result['raw_evidence'].append(ref(RAW/'source_commit.txt'))
     save('manifest.json',result)
     print(json.dumps(dict(passed=True,summary=summary,profiles=result['profiles'],coverage=coverage),indent=2),flush=True)
@@ -520,11 +585,11 @@ def main(campaign='d298'):
 if __name__ == '__main__':
     if not sys.argv[1:]:
         main()
-    elif sys.argv[1:] in (['d307'], ['d307-attempt2'], ['d344']):
+    elif sys.argv[1:] in (['d307'], ['d307-attempt2'], ['d344'], ['d344-merged']):
         main(sys.argv[1])
     elif sys.argv[1:] == ['--history-length-coverage']:
         export_history_length_coverage()
     elif sys.argv[1:] == ['--completed-length-candidate']:
         export_completed_length_candidate()
     else:
-        raise SystemExit('Expected no argument, d307, d307-attempt2 or --history-length-coverage')
+        raise SystemExit('Expected no argument, d307, d307-attempt2, d344, d344-merged, --history-length-coverage or --completed-length-candidate')

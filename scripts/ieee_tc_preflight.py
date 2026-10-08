@@ -3953,6 +3953,99 @@ def source_profile_class_coverage(payload, identities):
 
 def measured_source_profile_payloads(payload, *, source_run_sha256, identities,
                                      context, model_config):
+    """Single-run export stays strict: missing classes cannot be default-filled."""
+    result = _measured_source_profile_samples(payload, source_run_sha256=source_run_sha256,
+        identities=identities, context=context, model_config=model_config)
+    if not result[2]['class_domain_covered']:
+        raise ValueError('measured export has missing source/service classes')
+    return result
+
+
+def measured_source_profile_collection(sources, *, identities, context, model_config):
+    """Join complete same-runtime runs, preserving each sample's SHA and clock.
+
+    Every run must be complete even when its class domain is partial. Callers
+    independently verify actual launch/resource and bilateral transfer receipts;
+    this validator binds their common context and rejects changed input/runtime,
+    duplicated runs, incomplete unions and incompatible native slot geometry.
+    No pseudo-run is constructed and no inter-process timestamps are subtracted.
+    """
+    import copy
+    from collections import Counter
+    from faaslora.preloading.preloading_planner import FrozenPreparationProfiles, native_activation_layout
+    if not isinstance(sources, (list, tuple)) or len(sources) < 2:
+        raise ValueError('collection requires at least two complete source runs')
+    shas = [s['source_run_sha256'] for s in sources]
+    if len(set(shas)) != len(shas):
+        raise ValueError('duplicate source run in measured collection')
+    first = sources[0]['payload']
+    spec_keys = ('bins', 'trace_sha256', 'content_index', 'admission_initialization',
+                 'model_overrides', 'full_development_contract')
+    for key in ('config_sha256', 'runtime_receipt_sha256'):
+        value = first[key]
+        if not isinstance(value,str) or len(value)!=64 or any(c not in '0123456789abcdef' for c in value):
+            raise ValueError('collection requires explicit configuration/environment SHA')
+    if first['runtime_receipt_sha256'] != context['backend_environment_sha256']:
+        raise ValueError('collection context differs from native runtime receipt')
+    spec = first['source_profile_spec']
+    for key in spec_keys:
+        if key not in spec:
+            raise ValueError('collection lacks explicit shared input/development contract')
+    geometry = native_activation_layout(first['sources_before'])
+    exports, audits = [], []
+    for source in sources:
+        payload = source['payload']
+        if (any(payload[key] != first[key] for key in ('config_sha256', 'runtime_receipt_sha256'))
+                or any(payload['source_profile_spec'][k] != spec[k] for k in spec_keys)
+                or payload['trace']['source_sha256'] != spec['trace_sha256']):
+            raise ValueError('collection source configuration/environment/input contract differs')
+        if native_activation_layout(payload['sources_before']) != geometry:
+            raise ValueError('collection has incompatible native slot geometry')
+        service, preparation, audit = _measured_source_profile_samples(payload,
+            source_run_sha256=source['source_run_sha256'],identities=identities,
+            context=context,model_config=model_config)
+        exports.append((service,preparation));audits.append(audit)
+    shared = ('static_adapter_count','exact_file_content_classes','rank_counts',
+              'reachable_bins','runtime_cap','prompt_content_cap','declared_output_cap')
+    if any(any(a[k] != audits[0][k] for k in shared) for a in audits[1:]):
+        raise ValueError('collection has inconsistent class domain')
+    encode = lambda k:json.dumps(k,sort_keys=True)
+    required, counts, missing_content = set(), Counter(), None
+    for audit in audits:
+        observed = {encode(r['service_class']):r['count'] for r in audit['observed_service_counts']}
+        counts.update(observed)
+        required.update(observed)
+        required.update(encode(k) for k in audit['missing_service_classes'])
+        missing = {encode(k) for k in audit['missing_content_sources']}
+        missing_content = missing if missing_content is None else missing_content & missing
+    if missing_content or required-set(counts):
+        raise ValueError('measured collection has missing source/service classes')
+    service, preparation = copy.deepcopy(exports[0])
+    for s,d in exports[1:]:
+        service['samples'].extend(s['samples']);preparation['samples'].extend(d['samples'])
+    for payload in (service,preparation):
+        keys=[(s['source_run_sha256'],s['request_id'],s['attempt_id']) for s in payload['samples']]
+        if len(set(keys)) != len(keys):
+            raise ValueError('duplicate native sample in measured collection')
+    prep_counts=Counter(FrozenPreparationProfiles.source_class(s['admission']['source'], ())
+                        for s in preparation['samples'])
+    coverage=copy.deepcopy(audits[0])
+    coverage.update(kind='native_source_class_domain_collection_audit_v1',
+        measured_service_classes=len(counts),required_service_classes=len(required),
+        measured_preparation_classes=len(prep_counts),
+        minimum_preparation_source_observations=min(prep_counts.values(),default=0),
+        missing_content_sources=[],missing_service_classes=[],
+        observed_service_counts=[dict(service_class=json.loads(k),count=counts[k]) for k in sorted(counts)],
+        class_domain_covered=True,timing_samples_exported=True,
+        source_run_sha256=shas,individual_coverage=audits,
+        preparation_geometry_sources=shas,clock_domains_joined=False)
+    # Keep the first measured geometry receipt, after equality has been proved;
+    # never inherit that replica's readiness, owner, epoch or free capacity.
+    return service, preparation, coverage
+
+
+def _measured_source_profile_samples(payload, *, source_run_sha256, identities,
+                                     context, model_config):
     """Export existing completed admission-enabled observations, never estimates.
 
     The caller verifies source/index/launch/journal SHA receipts and writes new
@@ -3986,8 +4079,6 @@ def measured_source_profile_payloads(payload, *, source_run_sha256, identities,
             or payload.get('physical_allocation', {}).get('released') is not True):
         raise ValueError('measured export requires matching initialized admission runtime and release')
     coverage = source_profile_class_coverage(payload, identities)
-    if not coverage['class_domain_covered']:
-        raise ValueError('measured export has missing source/service classes')
     # Validate geometry, but never copy the old replica's readiness/epoch/free
     # capacity as a live state of a newly activated replica.
     native_activation_layout(payload['sources_before'])

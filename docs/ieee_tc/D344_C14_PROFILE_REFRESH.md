@@ -164,3 +164,42 @@ Coverage union alone is not profile export or Full qualification. The next step
 is matched multi-source validation and export of1545measured samples (24warmups
 excluded), retaining each run's SHA and local clock; then100Fullsmoke/4000W0.
 Numerical correctness, common references and G1/G2 remain open.
+
+## Matched measured export and D345 Full smoke
+
+The existing exporter now accepts the explicit `d344-merged` campaign. It
+independently checks each source's measurement seals, complete run/release,
+configuration and runtime SHA, shared input contract, native slot geometry,
+bilateral published transfers and resource receipts. The strict single-run
+export still rejects missing classes. The union preserves each sample's source
+SHA, request/attempt and process-local clock; no cross-process subtraction,
+neighbor/default fill or C8 timing transfer is performed.
+
+| Retained measurement | Count |
+|---|---:|
+| Total native calls across two calibration executions | 1569 |
+| Excluded but retained warmups | 24 |
+| Measured service samples / classes | 1545 / 200 |
+| Measured preparation samples / classes | 1212 / 24 |
+| Relevant CPU regression tests passed | 376 / 376 |
+
+Profiles load through the unchanged production loaders against the C14 child
+configuration. Their source identity is recorded in
+`paper_results/ieee_tc/p2_backend/d344_capacity_profiles/initialization/manifest.json`.
+These complementary calibration executions are not independent Full repeats;
+their summed1958.983914GPU-s is calibration expenditure, not a Full G1 value.
+No numerical correctness or common-SLO qualification is inferred.
+
+D345 is the existing Full runner with a100-request diagnostic prefix, retaining
+the4000-request plan and original W0 timing. It uses the predeclared D344 C14
+runtime, refreshed service/preparation observations, and D336 control rule with
+only the capacity-derived targets changed. The nine equations, trace, artifacts,
+generation,60-second deployment notice, movement limit, demand window, TTFT
+control bounds and common batch8warm ruler are unchanged. It does not enable the
+rejected D341prebuild policy. New exclusive caches/results prevent overwrite.
+
+The smoke checks native counts/binding, dispatch tiers, interval reconstruction,
+physical release and resource/remote contracts. It does not decide G1/G2 or
+extrapolate4k resource usage. A valid smoke is followed by the full4000W0 replay
+and comparison to retained D336 evidence, including TPOT regressions and unknown
+numerical qualification. No third capacity probe or unrelated local optimization.
