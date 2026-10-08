@@ -636,6 +636,10 @@ LIFECYCLE_CONTRASTS = {
         'd347_retained_native_capacity_lifecycle_v1',
         ('b8452f4f577446128b4a77a7117485660f3b9841caf831ad867a58d9a9587a05',
          '52e7d3fddde1f4bd8ae05831dd4ce0d69e291f9c2b9aba3a7ef5b659a987151e')),
+    ('d336', 'd349'): (
+        'd350_retained_decoupled_control_lifecycle_v1',
+        ('b8452f4f577446128b4a77a7117485660f3b9841caf831ad867a58d9a9587a05',
+         'c289b97bd146ae8ec355f59ea5abd373b271e9848814ea3b60ddff58cfdd97e7')),
 }
 
 
@@ -766,7 +770,7 @@ def inspect_retained_lifecycle(output, *, contrast=('d315', 'd318')):
     OUT.mkdir(parents=True, exist_ok=False)
     identities = dict(zip(contrast, digests))
     for name, digest in identities.items():
-        if contrast == ('d336', 'd346') and name == 'd336':
+        if contrast in (('d336', 'd346'), ('d336', 'd349')) and name == 'd336':
             # Reuse the already sealed full reference projection; do not rescan
             # its large raw outcome merely to reproduce identical intervals.
             cache = ROOT/'paper_results/ieee_tc/p2_backend/d337_capacity_lifecycle/analysis1'
@@ -818,7 +822,7 @@ def inspect_retained_lifecycle(output, *, contrast=('d315', 'd318')):
         query = 'fromstream(2|truncate_stream(inputs | select(.[0][:2] == ["mechanism_events","_ieee_activations"])))'
         activations = json.loads(subprocess.check_output(['jq','-cn','--stream',query,str(outcome)]))
         unready = []
-        if contrast == ('d336', 'd346'):
+        if contrast in (('d336', 'd346'), ('d336', 'd349')):
             write(name+'_all_activations.json', activations)
             activations, unready = partition_activation_readiness(
                 activations, requests, clock_id=deployment['clock_id'])
@@ -861,7 +865,7 @@ def inspect_retained_lifecycle(output, *, contrast=('d315', 'd318')):
         transactions.extend(dict(run=name, **g) for g in native['transactions'])
         summaries[name] = dict(source=evidence, stats=stats, lifecycle=life, activation_offsets=offsets,
             decode=decode, native=native, prefill=prefill)
-        if contrast == ('d336', 'd346'):
+        if contrast in (('d336', 'd346'), ('d336', 'd349')):
             summaries[name].update(unready_activations=unready,
                 startup_overlap_definition='Measured trigger-to-ready intervals only. Non-ready epochs retained separately; no ready/cancel time inferred. All physical leases remain in U.',
                 all_startup_exposure_complete=not unready)
@@ -874,7 +878,7 @@ def inspect_retained_lifecycle(output, *, contrast=('d315', 'd318')):
     paired = paired_timeline_groups(retained, contrast=contrast)
     table('paired_arrival_cohorts.csv', paired.pop('pairs'))
     table('paired_groups.csv', paired.pop('groups'))
-    if contrast == ('d336', 'd346'):
+    if contrast in (('d336', 'd346'), ('d336', 'd349')):
         table('phases.csv', [dict(run=name, **row) for name in contrast
             for row in capacity_phase_groups(retained[name]['requests'])])
     # Family summaries have differing columns; retain their complete fields in JSON.
@@ -1831,6 +1835,8 @@ if __name__ == '__main__':
         help='D337 retained D335/D336 capacity/lifecycle cohorts; same D319 method, no inference')
     parser.add_argument('--c14-lifecycle-output', type=Path,
         help='D347 D336/D346 native-capacity comparison; reuse sealed D336 projection, no inference')
+    parser.add_argument('--decoupled-lifecycle-output', type=Path,
+        help='D350 D336/D349 measured load/prefill/startup overlap; no inference')
     parser.add_argument('--routing-load-output', type=Path,
         help='D320 retained D315/D318 routing load consistency, no inference')
     parser.add_argument('--routing-length-output', type=Path,
@@ -1850,7 +1856,7 @@ if __name__ == '__main__':
                                   args.service_lifecycle_output, args.drain_lifecycle_output,
                                   args.capacity_lifecycle_output, args.dispatch_gate_output,
                                   args.dispatch_context_output, args.c14_lifecycle_output,
-                                  args.calibration_target_output)) > 1:
+                                  args.calibration_target_output, args.decoupled_lifecycle_output)) > 1:
         parser.error('choose one retained diagnostic')
     if args.calibration_target_output is not None:
         inspect_calibration_targets(args.calibration_target_output)
@@ -1862,6 +1868,8 @@ if __name__ == '__main__':
         inspect_retained_lifecycle(args.capacity_lifecycle_output, contrast=('d335', 'd336'))
     elif args.c14_lifecycle_output is not None:
         inspect_retained_lifecycle(args.c14_lifecycle_output, contrast=('d336', 'd346'))
+    elif args.decoupled_lifecycle_output is not None:
+        inspect_retained_lifecycle(args.decoupled_lifecycle_output, contrast=('d336', 'd349'))
     elif args.drain_lifecycle_output is not None:
         inspect_retained_lifecycle(args.drain_lifecycle_output, contrast=('d323', 'd326'))
     elif args.service_lifecycle_output is not None:

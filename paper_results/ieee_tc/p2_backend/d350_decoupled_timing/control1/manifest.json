@@ -1,0 +1,73 @@
+{
+  "kind": "d350_retained_sample_context_v1",
+  "new_inference_runs": 0,
+  "n_correct": null,
+  "formal_qualification": false,
+  "confidence_interval": null,
+  "caveats": [
+    "Sample means/counts, not time-integrated occupancy or per-request atomic state.",
+    "Last preceding sample keeps its age; missing prefix stays null, no future interpolation.",
+    "Post-hoc overlapping exposure groups are not causal shares; all phases and empty cells retained."
+  ],
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d350_20261008/control_context.py",
+      "sha256": "c1a8e8fbdbbad6644473d832866d398472b5a2e7b24a1a98365b8374ff1a07cc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d337_capacity_lifecycle/analysis1/d336_intervals.csv",
+      "sha256": "7b9bbff55512fbf5a7645f4dbf38684eaab60a5e0a944cbd7163e5e163015b3e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d337_capacity_lifecycle/analysis1/manifest.json",
+      "sha256": "20a0173f5436375f49373ab918195561403c4e9cfa864a7444b2509f5a1e79d7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d336_full_w0/validated1/control_samples.csv",
+      "sha256": "2b12d7ffc4cd5aeddef438a5c24f28336610507734e204080deb02c16dd004a0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d336_full_w0/validated1/manifest.json",
+      "sha256": "a5a83a92db8ab35e5f08b5d59be6e7bdc3f58008753a8fe76de2b6a26e8d77e2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d347_capacity_timing/analysis2/d346_intervals.csv",
+      "sha256": "300e7f3fb59c4137d9d936f9de1f830f308241e8c16e93c173a1f841af7a8233"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d347_capacity_timing/analysis2/manifest.json",
+      "sha256": "a1359af454e7868f19f7715512885793d2009db37511396f85c43bdb0436cc8d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d346_full_w0/validated1/control_samples.csv",
+      "sha256": "e8388dd76d82ac9a1a654882c89afa9083c9b2a9713324c50e944b2f1d7ec3f7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d346_full_w0/validated1/manifest.json",
+      "sha256": "01f432793223f8de96180ebcd2210c783809af3efd17cd801cd17602451bd163"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d350_decoupled_timing/analysis1/d349_intervals.csv",
+      "sha256": "e29b645bd33d1db60c032c9223f92beefa7598700859548bffa2c621e619f510"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d350_decoupled_timing/analysis1/manifest.json",
+      "sha256": "8414a2705a29d5f296b3ec72600a7212053b25efd957206d4fde2e8085cea94f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d349_full_w0/validated1/control_samples.csv",
+      "sha256": "4dedd44e992dcad5f760169dc5c1a24300fffe315e9e82b77f07a07d6c163029"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d349_full_w0/validated1/manifest.json",
+      "sha256": "8dc9d3e605ec9412e4a61c943e409b2fb5cbc9f08b0ba24c7adff5fdb834f934"
+    }
+  ],
+  "outputs": {
+    "manifest.json": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "phases.csv": "ec3cffabfbab81ec9a09a0592522dc92966f406bb73c69c1dd16f0d5d8b4393d",
+    "request_sample_context.csv": "9389393e04a5022aa16862ca70f9454574a89aaef85ec70e335b54c4ce77f213",
+    "scale_events.csv": "7d868237cd680d7f7e800a917b9042bb66691f50f7774d476e15e93335edff35",
+    "short_overlap_cells.csv": "7ef2ae2ff9740a31b67bc3fbc50734517507d4f5ffef786a9318bf45c6302dd1"
+  }
+}

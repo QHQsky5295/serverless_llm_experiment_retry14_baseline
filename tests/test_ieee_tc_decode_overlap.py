@@ -272,7 +272,22 @@ class RetainedLifecycle(unittest.TestCase):
         return [dict(request_id=f'r{i:05}', arrival_offset_s=float(i), ttft_ms=1.,
             tpot_ms=2., mean_other_native_requests=3., ttft_pass=True,
             timing_tpot_miss=(i == 501), timing_joint_pass=(i != 501),
-            startup_overlap=(i == 3999)) for i in range(4000)]
+                startup_overlap=(i == 3999)) for i in range(4000)]
+
+    def test_decoupled_pair_same_estimator_no_reverse_or_overwrite(self):
+        original = self.pair()
+        pair = dict(d336=original['d315'], d349=original['d318'])
+        before = copy.deepcopy(pair)
+        result = paired_timeline_groups(pair, contrast=('d336', 'd349'))
+        self.assertEqual(result['pairs'], paired_timeline_groups(original)['pairs'])
+        self.assertEqual(pair, before)
+        with self.assertRaises(ValueError):
+            paired_timeline_groups(pair, contrast=('d349', 'd336'))
+        with tempfile.TemporaryDirectory() as root, self.assertRaises(FileExistsError):
+            inspect_retained_lifecycle(root, contrast=('d336', 'd349'))
+        pair['d349']['requests'][0]['adapter_id'] = 'other'
+        with self.assertRaises(ValueError):
+            paired_timeline_groups(pair, contrast=('d336', 'd349'))
 
     def test_cancelled_epoch_retained_but_not_fabricated_as_ready(self):
         ready = dict(activation_id='r', target_replica='r', category='initial',

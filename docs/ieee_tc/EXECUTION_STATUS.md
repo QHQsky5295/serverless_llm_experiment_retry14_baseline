@@ -11,7 +11,55 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D349 complete4000 W0 AUDITED/SEALED; backup pending
+## CURRENT — D350 retained diagnosis COMPLETE; checkpoint pending
+
+D350 adds zero GPU runs. Reused complete D336/D346/D349, frozen Plan/V1,
+D337/D347 interval projections, same input/arrival identities4000each.
+66 CPUtests pass. Analysis1 peak687878144B; high/max/OOM/swap0; scope01
+closed. Control-context scope02 finished; capture empty ownership/resources
+and close at checkpoint. No running GPU job or live tool session.
+Existing analyzer minimally extends registered D336/D349 contrast; no serving
+code, equations, warm threshold, workload, artifact or remote change.
+
+D349 native request-associated loads1975→1408 vsD336 (−28.71%), butTPOT
+misses80→239. Peer-prefill-overlap requests2288/76miss→2873/234miss;
+short2–32 overlap449/74miss→560/191miss; withoutprefill665/3→554/5.
+Native other-request overlap1.394933→3.071052, NOTkernelbatch. Conditional
+groups overlap/differ; no causal subtraction or statistical CI.
+Phase2 meanarrival→admission646.961→2125.243ms; maxsampledqueue29.
+At1047.085s scale-down then1051.152s scale-up; nextready1096.373s.
+Do not tune cooldown to these observed timestamps. All8phases retained.
+
+Control export original manifest accidentally hashed itself while empty.
+Original preserved; validated_manifest.json verifies unchanged fourtables and
+removes only self-reference. First repair helper lacked Python3.10file_digest;
+failed before writing, corrected streamedSHA. No performance data regenerated.
+Doc: D350_DECOUPLED_CONTROL_DIAGNOSIS.md. Data:d350_decoupled_timing.
+
+NEXT one bounded native-core scheduling/utility timeline hypothesis: burst
+utility work may delay generation steps, confounded with peer-prefill envelope.
+Read historical D328 and current official vLLM0.30core/UniProc/scheduler;
+reuse existing diagnostic attachment/runner and original1000requestprefix.
+First check available same-boundary evidence; add only absent bounded timing
+observation if needed. No synchronous GPU readback, no numerical-observer timing
+reuse, no alteration to utility order/scheduler/fences before evidence. Do not
+repeat D350 or softtarget/capacity/fixed512 scans; no3B/baselines/figures yet.
+Disk161351729152B, only~0.27GiB above150GiB start floor; fresh gate and
+verified rebuildable-cache cleanup required before nextheavy if growth needs it.
+G1/G2,numerical correctness,finalcommonreferences remain OPEN. GoalACTIVE.
+
+### D349 complete4000 W0 AUDITED/SEALED/BACKED (preceding checkpoint)
+
+Checkpoint localHEAD=independently verified remoteV2=
+242eb5dfe1ba1bb170cfdacdaa4ed14dbc4f5ea6.26exactpaths,21curatedhashes,
+23archive members passed staged-content/secrets/syntax/diff/protection checks.
+All D349 localservice/launcher/collection05/audit06/seal07/verifier08 scopes
+closed; all three ownedremote services inactive. No liveGPUjob, toolcell or
+execsession remains. closure_backup_receipt.json preserves independent check.
+Postbackupdisk161370935296B (only slightly above150GiB); recheckbefore any
+nextheavy task and clean only verified rebuildable resources if required.
+This turn made PROGRESS: full replay, all audits, comparisons, decision and
+remote backup complete. Do not redo D349 closure or backup.
 
 All4000 requests completed with native contract counts4000 and zero request
 failures. Launch pass=true; actual nativeGPUrelease confirmed; service path
@@ -24,7 +72,7 @@ collection05 scopes closed. Runtime serving code was NOT changed.
 
 Existing analyzers extended with strict D349 identity; both analyzers return0,
 90 CPUtests pass. Audit06 scope closed. Seal07 finished successfully (23archive
-members/60161B), remains empty until exact-owned checkpoint cleanup. No live
+members/60161B) and was closed by exact-owned checkpoint cleanup. No live
 exec session or GPU job. All-phase/length and D336/D346 comparisons saved.
 Timing-only3668/4000=91.70%,132short of3800. D3463655, D3363837.
 MeanTTFT1349.357788ms/P953248.721206ms/P9912351.693921ms;
@@ -36,8 +84,8 @@ Same1114short requests:TPOTmiss196 vsD346185/D33677. Phase2/3 jointmisses
 132realremote transfers/131480060wireB/packing0; outputSHAchanges177 vsD346,
 all retained. Native consistency is not numerical qualification. Servicepeak
 20519321600B,4026samples,high/max/OOM/swap0; auditpeak995151872B/events0.
-Read complete Plan and frozenV1 this turn. Next checkpoint/secrets/hash/push,
-then retained phase2/3 admission/decode/load evidence and one new hypothesis
+Read complete Plan and frozenV1 this turn. Next retained phase2/3
+admission/decode/load evidence and one new hypothesis
 after historical and primary-source review. Do not repeat D349, finished
 capacity/profiles/numericalblocks, or start3B/baselines. Nofigures. GoalACTIVE.
 Decision:docs/ieee_tc/D349_COMPLETE_W0_DECISION.md.
