@@ -412,6 +412,17 @@ def main(campaign='d298'):
             'enables protected_file_owner_turn_v1 and uses the complete D362 measured profiles. '
             'Live owner-epoch advances verify exposure, not avoided RPCs or causal speedup. '
             'Complete4000 versus D358/D353/D336 is required; no numerical/formal qualification or extrapolation.')
+    elif campaign == 'd366':
+        REFERENCE = ROOT/'results/ieee_tc/p2_backend_qualification/d363_20261009/7b_file_demand_validation_100/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d363_7b_file_demand_validation_100.json'
+        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d366_20261009'
+        RUN = RAW/'7b_file_identity_validation_100'
+        SOURCE = RUN/'experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d366_7b_file_identity_validation_100.json'
+        OUT = ROOT/'paper_results/ieee_tc/p2_backend/d366_file_identity_validation/smoke1'
+        health_name = 'remote_health.json'
+        comparison_caveat = ('D363 is descriptive same-config/input/profile prefix context. D366 repairs '
+            'immutable file identity validation; it does not prove the exact filesystem event in failed D364. '
+            'A successful prefix cannot erase D364 or establish a causal speedup. Complete4000 versus '
+            'D358/D353/D336 remains required; no numerical/formal qualification or prefix extrapolation.')
     elif campaign != 'd298':
         raise ValueError('unknown frozen smoke identity')
     assert not OUT.exists(), 'never overwrite a prior audit'
@@ -427,7 +438,7 @@ def main(campaign='d298'):
     assert outcome['run_completed'] and not outcome['error']
     assert not outcome['cleanup_errors'] and not outcome['measurement_errors']
     journal = RAW/('attempt2/smoke_remote_transfers.jsonl' if campaign in ('d322-attempt2', 'd331-attempt2') else 'smoke_remote_transfers.jsonl')
-    if campaign in ('d345', 'd352', 'd357', 'd363'):
+    if campaign in ('d345', 'd352', 'd357', 'd363', 'd366'):
         journal = RAW/'remote_transfers.jsonl'
     rows = [json.loads(line) for line in journal.read_text().splitlines()]
     remote = {r['transfer_id']:r for r in rows}
@@ -435,7 +446,7 @@ def main(campaign='d298'):
     assert len(remote) == len(rows) == len(transfers)
     assert set(remote) == {r['http_transfer_id'] for r in transfers}
     health = read(RAW/health_name)
-    if campaign in ('d331', 'd331-attempt2', 'd334', 'd340', 'd345', 'd352', 'd357', 'd363'):
+    if campaign in ('d331', 'd331-attempt2', 'd334', 'd340', 'd345', 'd352', 'd357', 'd363', 'd366'):
         clock = health['7b']['clock_id']
     else:
         clock = health['clock_id'] if campaign in ('d322', 'd322-attempt2') else health['health']['clock_id']
@@ -487,10 +498,10 @@ def main(campaign='d298'):
         comparison_caveat=comparison_caveat,
         raw_evidence=[dict(path=str(path),sha256=sha256(path)) for path in
             (SOURCE,REFERENCE,outcome_path,journal,WARM,INDEX,
-             RAW/('remote_monitor.log' if campaign in ('d345', 'd352', 'd357', 'd363') else
+             RAW/('remote_monitor.log' if campaign in ('d345', 'd352', 'd357', 'd363', 'd366') else
                   'attempt2/smoke_remote_monitor.log' if campaign in ('d322-attempt2', 'd331-attempt2') else 'smoke_remote_monitor.log'),
              ROOT/'scripts/run_all_experiments.py', Path(__file__))])
-    if campaign in ('d302', 'd308', 'd310', 'd312', 'd317', 'd322', 'd322-attempt2', 'd331', 'd331-attempt2', 'd334', 'd340', 'd345', 'd352', 'd357', 'd363'):
+    if campaign in ('d302', 'd308', 'd310', 'd312', 'd317', 'd322', 'd322-attempt2', 'd331', 'd331-attempt2', 'd334', 'd340', 'd345', 'd352', 'd357', 'd363', 'd366'):
         result['admission_waits'] = summarize_admission_waits(requests)
         result['mechanism_events'] = {k:v for k,v in outcome['mechanism_events'].items()
             if k in ('_ieee_source_observation_stats', '_ieee_route_cache_stats')}
@@ -506,14 +517,14 @@ def main(campaign='d298'):
             causal_latency_savings=None, requires_new_observation=True)
     if campaign == 'd331-attempt2':
         result['planning_publication_trigger'] = planning_publication_trigger(outcome['mechanism_events'])
-    if campaign in ('d334', 'd340', 'd345', 'd352', 'd357', 'd363'):
+    if campaign in ('d334', 'd340', 'd345', 'd352', 'd357', 'd363', 'd366'):
         result['native_pending_turn_trigger'] = native_pending_turn_trigger(requests)
-    if campaign in ('d352', 'd357', 'd363'):
+    if campaign in ('d352', 'd357', 'd363', 'd366'):
         result['hit_host_transaction_trigger'] = hit_host_transaction_trigger(requests)
-    if campaign in ('d357', 'd363'):
+    if campaign in ('d357', 'd363', 'd366'):
         result['control_interleave_trigger'] = control_interleave_trigger(requests)
         result['candidate_trigger_gate_passed'] = result['control_interleave_trigger']['triggered']
-    if campaign == 'd363':
+    if campaign in ('d363', 'd366'):
         result['file_demand_transaction_trigger'] = file_demand_transaction_trigger(requests)
         result['candidate_trigger_gate_passed'] = (result['candidate_trigger_gate_passed']
             and result['file_demand_transaction_trigger']['triggered'])
@@ -543,5 +554,5 @@ def main(campaign='d298'):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--campaign', choices=('d298','d302','d308','d310','d312','d317','d322','d322-attempt2','d331','d331-attempt2','d334','d340','d345','d352','d357','d363'), default='d298')
+    parser.add_argument('--campaign', choices=('d298','d302','d308','d310','d312','d317','d322','d322-attempt2','d331','d331-attempt2','d334','d340','d345','d352','d357','d363', 'd366'), default='d298')
     main(parser.parse_args().campaign)

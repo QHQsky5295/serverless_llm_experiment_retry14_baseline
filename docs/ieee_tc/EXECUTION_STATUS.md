@@ -11,7 +11,53 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D366 native100 preparation; D365 repaired/tested/backed up
+## CURRENT — D366 native100 COMPLETE, audited and sealed; backup/Full next
+
+2026-10-09:100/100/0fail,source0788a2b972887baafffc87cec7a501f8e078298eb294b7497bedcb386fd41905,
+6097205B,execution0da5917. ActualGPUrelease/servicepathremovalpass,tmuxended.
+stop_remote.sh executedONCE,3ownedremoteunitsinactive. collect_closure.py closed
+launcher199a483c and collected bilateralSHA-matched journals. run_audit.py closed
+resume starter4a0bf4be andcollectione535a956;69CPUchecks+strictauditpassed,[0,0].
+Offline ef43e6d7 closed by seal_checkpoint.py without hardkill.332589B closure
+archive/checksums/protected147/secrets passed,11publication paths staged. Sealer
+afc30fe6 is empty; finish_backup.py closes it and records pushed-head equality.
+Consult raw closure_backup_receipt.json before repeating anycleanup. Do not repeat finished
+start/stop/collection/audit. Initialfailedstarterac000931 andpreparation5b09/2b72
+alreadyclosed. Curatedsmoke1 includes33filetransactions(29Remote/4NVMe),58GPU/9HOST,
+8advancedownerepoch,max5,currentconstraintsrechecked.29fetches50650865wireB,pack0.
+262resourcesamples,peak11054030848B,minhost101917089792B,high/max/OOM/swap0.
+Mean/P95TTFT694.858512/1538.731795ms,mean/P95TPOT29.218495/40.759924ms,
+physicalGPU335.652851436s. VersusD363prefix:TTFT−23.63%/−36.99%,GPU−58.21%,
+TPOT+11.38%/+29.43%;retainregression,single-run/noCI/nocausalclaim.
+D170timing-only99/100;N_correct/commonwarm/Resident/formalG1/G2stillopen.
+NEXTbackup,thenD367unchangedFull4000againstD358/D353/D336,nofurtherretuning.
+SeeD366_COMPLETE_PREFIX_DECISION.md;7B→3B→pausedbaselinesunchanged,noplots.
+
+### D366 live/preparation history — terminal
+
+D366 execution0da5917af192a8e9055ac9c0651462c427e00355 pushed/equality checked.
+Firststart(ac000931) closed preparation scope2b7249b3 and started remote services,
+then systemPython health import failed (missingnumpy), BEFORE tmux/GPUrequest.
+Retained start_attempt1_failure.json. resume_start.py closed only failedstarter,
+verified SAME remoteInvocationIDs, used existing modelPython for health, and
+started one tmux tc-d366-file100. No service restart/configchange or new package.
+Remote actual1000Mbps/full,clock remote-process-monotonic:e27c6f05cf5d4a11b7f9681b3855ebc0.
+Live pane555968, launcher199a483c identitycaptured; resume starter4a0bf4be owns
+tmuxserver and must not be closed while live. Service639b9ca4 resourceguard active.
+Watchdogsample32:host107573637120B,peak5012262912B,high/max/OOM/swap0,noabort,
+disk161906069504B. Startupinprogress, no performance/source result yet.
+Never rerun start.py/resume_start.py or capture_launcher.py. NEXT monitor same
+handle→actualrelease→stop_remote.sh ONCE→exact-owned cleanup/evidence→audit→backup.
+No tests, compression, serving changes or figures during measurement.
+Continuation sample123 on samepane555968:16done/24arrived/0fail,
+host107320127488B,peak7061876736B,high/max/OOM/swap0,noabort. Same live replay,
+not a blocker. Offline analyze_d298_smoke now has drafted d366 registration,
+descriptive referenceD363 and unchanged strict file/native/timing/resource gates;
+UNTESTED untilGPUrelease. rg found no serving-path import; sourceexecution remains
+0da5917. Rawcollect_closure.py and success-only run_audit.py reused fromD363 and
+prepared,NOTexecuted. Audit uses resume_launch_gate.json for starter4a0bf4be,
+not already-closed firststarterac000931. If anyrequestfails, do not invoke the
+success-only analyzer; retain offeredpopulation and use existingfailureaudit.
 
 2026-10-09: D365 backup_receipt.json confirms local/remote f7ccb13803cdcc3056c141aae6fe1cef371226bb,
 verifier closed without hardkill. All D365 cleanup/seal/backup actions finished;
