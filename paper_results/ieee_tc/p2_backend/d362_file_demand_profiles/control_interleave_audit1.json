@@ -1,0 +1,3549 @@
+{
+  "kind": "native_control_interleave_snapshot_audit_v1",
+  "policy": "atomic_control_yield_v1",
+  "scheduler_pid": 121938,
+  "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+  "observations": [
+    {
+      "label": "scheduler_before",
+      "captured_at": 987317.977759035,
+      "input_turns": 1,
+      "handled_controls": 0,
+      "yields_to_native_loop": 0,
+      "yields_with_queued_input": 0
+    },
+    {
+      "label": "wave0:before",
+      "captured_at": 987323.217950182,
+      "input_turns": 1,
+      "handled_controls": 77,
+      "yields_to_native_loop": 0,
+      "yields_with_queued_input": 0
+    },
+    {
+      "label": "wave0:after",
+      "captured_at": 987330.479273022,
+      "input_turns": 151,
+      "handled_controls": 204,
+      "yields_to_native_loop": 116,
+      "yields_with_queued_input": 79
+    },
+    {
+      "label": "wave1:before",
+      "captured_at": 987331.79332126,
+      "input_turns": 151,
+      "handled_controls": 221,
+      "yields_to_native_loop": 116,
+      "yields_with_queued_input": 79
+    },
+    {
+      "label": "wave1:after",
+      "captured_at": 987340.19895568,
+      "input_turns": 343,
+      "handled_controls": 436,
+      "yields_to_native_loop": 279,
+      "yields_with_queued_input": 228
+    },
+    {
+      "label": "wave2:before",
+      "captured_at": 987344.52916177,
+      "input_turns": 343,
+      "handled_controls": 481,
+      "yields_to_native_loop": 279,
+      "yields_with_queued_input": 228
+    },
+    {
+      "label": "wave2:after",
+      "captured_at": 987350.958208273,
+      "input_turns": 496,
+      "handled_controls": 636,
+      "yields_to_native_loop": 419,
+      "yields_with_queued_input": 354
+    },
+    {
+      "label": "wave3:before",
+      "captured_at": 987357.831645649,
+      "input_turns": 496,
+      "handled_controls": 709,
+      "yields_to_native_loop": 419,
+      "yields_with_queued_input": 354
+    },
+    {
+      "label": "wave3:after",
+      "captured_at": 987364.429387126,
+      "input_turns": 653,
+      "handled_controls": 864,
+      "yields_to_native_loop": 558,
+      "yields_with_queued_input": 478
+    },
+    {
+      "label": "wave4:before",
+      "captured_at": 987372.671974485,
+      "input_turns": 653,
+      "handled_controls": 993,
+      "yields_to_native_loop": 558,
+      "yields_with_queued_input": 478
+    },
+    {
+      "label": "wave4:after",
+      "captured_at": 987380.228535481,
+      "input_turns": 827,
+      "handled_controls": 1148,
+      "yields_to_native_loop": 696,
+      "yields_with_queued_input": 594
+    },
+    {
+      "label": "wave5:before",
+      "captured_at": 987385.768808767,
+      "input_turns": 827,
+      "handled_controls": 1235,
+      "yields_to_native_loop": 696,
+      "yields_with_queued_input": 594
+    },
+    {
+      "label": "wave5:after",
+      "captured_at": 987392.302321759,
+      "input_turns": 974,
+      "handled_controls": 1362,
+      "yields_to_native_loop": 812,
+      "yields_with_queued_input": 673
+    },
+    {
+      "label": "wave6:before",
+      "captured_at": 987396.662285576,
+      "input_turns": 974,
+      "handled_controls": 1401,
+      "yields_to_native_loop": 812,
+      "yields_with_queued_input": 673
+    },
+    {
+      "label": "wave6:after",
+      "captured_at": 987401.44638471,
+      "input_turns": 1086,
+      "handled_controls": 1523,
+      "yields_to_native_loop": 919,
+      "yields_with_queued_input": 772
+    },
+    {
+      "label": "wave7:before",
+      "captured_at": 987409.446684843,
+      "input_turns": 1086,
+      "handled_controls": 1581,
+      "yields_to_native_loop": 919,
+      "yields_with_queued_input": 772
+    },
+    {
+      "label": "wave7:after",
+      "captured_at": 987414.119179796,
+      "input_turns": 1199,
+      "handled_controls": 1703,
+      "yields_to_native_loop": 1026,
+      "yields_with_queued_input": 864
+    },
+    {
+      "label": "wave8:before",
+      "captured_at": 987421.270334042,
+      "input_turns": 1199,
+      "handled_controls": 1805,
+      "yields_to_native_loop": 1026,
+      "yields_with_queued_input": 864
+    },
+    {
+      "label": "wave8:after",
+      "captured_at": 987426.484272436,
+      "input_turns": 1324,
+      "handled_controls": 1927,
+      "yields_to_native_loop": 1108,
+      "yields_with_queued_input": 930
+    },
+    {
+      "label": "wave9:before",
+      "captured_at": 987432.625889341,
+      "input_turns": 1324,
+      "handled_controls": 1996,
+      "yields_to_native_loop": 1108,
+      "yields_with_queued_input": 930
+    },
+    {
+      "label": "wave9:after",
+      "captured_at": 987436.991993171,
+      "input_turns": 1423,
+      "handled_controls": 2096,
+      "yields_to_native_loop": 1198,
+      "yields_with_queued_input": 997
+    },
+    {
+      "label": "wave10:before",
+      "captured_at": 987437.36286254,
+      "input_turns": 1423,
+      "handled_controls": 2110,
+      "yields_to_native_loop": 1198,
+      "yields_with_queued_input": 997
+    },
+    {
+      "label": "wave10:after",
+      "captured_at": 987442.579897119,
+      "input_turns": 1525,
+      "handled_controls": 2254,
+      "yields_to_native_loop": 1289,
+      "yields_with_queued_input": 1078
+    },
+    {
+      "label": "wave11:before",
+      "captured_at": 987449.837802422,
+      "input_turns": 1525,
+      "handled_controls": 2324,
+      "yields_to_native_loop": 1289,
+      "yields_with_queued_input": 1078
+    },
+    {
+      "label": "wave11:after",
+      "captured_at": 987457.948744312,
+      "input_turns": 1703,
+      "handled_controls": 2479,
+      "yields_to_native_loop": 1426,
+      "yields_with_queued_input": 1155
+    },
+    {
+      "label": "wave12:before",
+      "captured_at": 987465.846651199,
+      "input_turns": 1703,
+      "handled_controls": 2608,
+      "yields_to_native_loop": 1426,
+      "yields_with_queued_input": 1155
+    },
+    {
+      "label": "wave12:after",
+      "captured_at": 987474.429778699,
+      "input_turns": 1888,
+      "handled_controls": 2763,
+      "yields_to_native_loop": 1566,
+      "yields_with_queued_input": 1225
+    },
+    {
+      "label": "wave13:before",
+      "captured_at": 987480.205952555,
+      "input_turns": 1888,
+      "handled_controls": 2850,
+      "yields_to_native_loop": 1566,
+      "yields_with_queued_input": 1225
+    },
+    {
+      "label": "wave13:after",
+      "captured_at": 987488.024401268,
+      "input_turns": 2049,
+      "handled_controls": 2977,
+      "yields_to_native_loop": 1680,
+      "yields_with_queued_input": 1253
+    },
+    {
+      "label": "wave14:before",
+      "captured_at": 987488.370451243,
+      "input_turns": 2049,
+      "handled_controls": 2994,
+      "yields_to_native_loop": 1680,
+      "yields_with_queued_input": 1253
+    },
+    {
+      "label": "wave14:after",
+      "captured_at": 987497.821257275,
+      "input_turns": 2256,
+      "handled_controls": 3193,
+      "yields_to_native_loop": 1834,
+      "yields_with_queued_input": 1366
+    },
+    {
+      "label": "wave15:before",
+      "captured_at": 987501.885497222,
+      "input_turns": 2256,
+      "handled_controls": 3238,
+      "yields_to_native_loop": 1834,
+      "yields_with_queued_input": 1366
+    },
+    {
+      "label": "wave15:after",
+      "captured_at": 987510.045660857,
+      "input_turns": 2434,
+      "handled_controls": 3393,
+      "yields_to_native_loop": 1971,
+      "yields_with_queued_input": 1447
+    },
+    {
+      "label": "wave16:before",
+      "captured_at": 987516.738445956,
+      "input_turns": 2434,
+      "handled_controls": 3490,
+      "yields_to_native_loop": 1971,
+      "yields_with_queued_input": 1447
+    },
+    {
+      "label": "wave16:after",
+      "captured_at": 987522.312827064,
+      "input_turns": 2549,
+      "handled_controls": 3601,
+      "yields_to_native_loop": 2052,
+      "yields_with_queued_input": 1513
+    },
+    {
+      "label": "wave17:before",
+      "captured_at": 987527.476756218,
+      "input_turns": 2549,
+      "handled_controls": 3664,
+      "yields_to_native_loop": 2052,
+      "yields_with_queued_input": 1513
+    },
+    {
+      "label": "wave17:after",
+      "captured_at": 987532.671727471,
+      "input_turns": 2660,
+      "handled_controls": 3755,
+      "yields_to_native_loop": 2114,
+      "yields_with_queued_input": 1541
+    },
+    {
+      "label": "wave18:before",
+      "captured_at": 987533.005517488,
+      "input_turns": 2660,
+      "handled_controls": 3768,
+      "yields_to_native_loop": 2114,
+      "yields_with_queued_input": 1541
+    },
+    {
+      "label": "wave18:after",
+      "captured_at": 987539.188998988,
+      "input_turns": 2786,
+      "handled_controls": 3899,
+      "yields_to_native_loop": 2200,
+      "yields_with_queued_input": 1608
+    },
+    {
+      "label": "wave19:before",
+      "captured_at": 987543.25912736,
+      "input_turns": 2786,
+      "handled_controls": 3932,
+      "yields_to_native_loop": 2200,
+      "yields_with_queued_input": 1608
+    },
+    {
+      "label": "wave19:after",
+      "captured_at": 987548.700602728,
+      "input_turns": 2902,
+      "handled_controls": 4043,
+      "yields_to_native_loop": 2283,
+      "yields_with_queued_input": 1675
+    },
+    {
+      "label": "wave20:before",
+      "captured_at": 987555.881787896,
+      "input_turns": 2902,
+      "handled_controls": 4096,
+      "yields_to_native_loop": 2283,
+      "yields_with_queued_input": 1675
+    },
+    {
+      "label": "wave20:after",
+      "captured_at": 987561.305309002,
+      "input_turns": 3017,
+      "handled_controls": 4207,
+      "yields_to_native_loop": 2365,
+      "yields_with_queued_input": 1741
+    },
+    {
+      "label": "wave21:before",
+      "captured_at": 987567.374868956,
+      "input_turns": 3017,
+      "handled_controls": 4290,
+      "yields_to_native_loop": 2365,
+      "yields_with_queued_input": 1741
+    },
+    {
+      "label": "wave21:after",
+      "captured_at": 987578.614320124,
+      "input_turns": 3279,
+      "handled_controls": 4417,
+      "yields_to_native_loop": 2464,
+      "yields_with_queued_input": 1786
+    },
+    {
+      "label": "wave22:before",
+      "captured_at": 987578.976848544,
+      "input_turns": 3279,
+      "handled_controls": 4434,
+      "yields_to_native_loop": 2464,
+      "yields_with_queued_input": 1786
+    },
+    {
+      "label": "wave22:after",
+      "captured_at": 987593.012281851,
+      "input_turns": 3565,
+      "handled_controls": 4637,
+      "yields_to_native_loop": 2608,
+      "yields_with_queued_input": 1902
+    },
+    {
+      "label": "wave23:before",
+      "captured_at": 987597.055031414,
+      "input_turns": 3565,
+      "handled_controls": 4682,
+      "yields_to_native_loop": 2608,
+      "yields_with_queued_input": 1902
+    },
+    {
+      "label": "wave23:after",
+      "captured_at": 987608.472783144,
+      "input_turns": 3837,
+      "handled_controls": 4837,
+      "yields_to_native_loop": 2740,
+      "yields_with_queued_input": 2007
+    },
+    {
+      "label": "wave24:before",
+      "captured_at": 987616.37474112,
+      "input_turns": 3837,
+      "handled_controls": 4910,
+      "yields_to_native_loop": 2740,
+      "yields_with_queued_input": 2007
+    },
+    {
+      "label": "wave24:after",
+      "captured_at": 987627.832764809,
+      "input_turns": 4109,
+      "handled_controls": 5065,
+      "yields_to_native_loop": 2872,
+      "yields_with_queued_input": 2113
+    },
+    {
+      "label": "wave25:before",
+      "captured_at": 987635.608610644,
+      "input_turns": 4109,
+      "handled_controls": 5194,
+      "yields_to_native_loop": 2872,
+      "yields_with_queued_input": 2113
+    },
+    {
+      "label": "wave25:after",
+      "captured_at": 987647.924970385,
+      "input_turns": 4389,
+      "handled_controls": 5349,
+      "yields_to_native_loop": 3004,
+      "yields_with_queued_input": 2204
+    },
+    {
+      "label": "wave26:before",
+      "captured_at": 987648.277338405,
+      "input_turns": 4389,
+      "handled_controls": 5366,
+      "yields_to_native_loop": 3004,
+      "yields_with_queued_input": 2204
+    },
+    {
+      "label": "wave26:after",
+      "captured_at": 987659.707883809,
+      "input_turns": 4666,
+      "handled_controls": 5531,
+      "yields_to_native_loop": 3113,
+      "yields_with_queued_input": 2284
+    },
+    {
+      "label": "wave27:before",
+      "captured_at": 987664.731847495,
+      "input_turns": 4666,
+      "handled_controls": 5570,
+      "yields_to_native_loop": 3113,
+      "yields_with_queued_input": 2284
+    },
+    {
+      "label": "wave27:after",
+      "captured_at": 987675.208414481,
+      "input_turns": 4913,
+      "handled_controls": 5703,
+      "yields_to_native_loop": 3218,
+      "yields_with_queued_input": 2376
+    },
+    {
+      "label": "wave28:before",
+      "captured_at": 987685.582507538,
+      "input_turns": 4913,
+      "handled_controls": 5766,
+      "yields_to_native_loop": 3218,
+      "yields_with_queued_input": 2376
+    },
+    {
+      "label": "wave28:after",
+      "captured_at": 987696.012782607,
+      "input_turns": 5160,
+      "handled_controls": 5899,
+      "yields_to_native_loop": 3323,
+      "yields_with_queued_input": 2469
+    },
+    {
+      "label": "wave29:before",
+      "captured_at": 987705.059639771,
+      "input_turns": 5160,
+      "handled_controls": 6010,
+      "yields_to_native_loop": 3323,
+      "yields_with_queued_input": 2469
+    },
+    {
+      "label": "wave29:after",
+      "captured_at": 987715.726271435,
+      "input_turns": 5411,
+      "handled_controls": 6143,
+      "yields_to_native_loop": 3429,
+      "yields_with_queued_input": 2558
+    },
+    {
+      "label": "wave30:before",
+      "captured_at": 987722.260945306,
+      "input_turns": 5411,
+      "handled_controls": 6218,
+      "yields_to_native_loop": 3429,
+      "yields_with_queued_input": 2558
+    },
+    {
+      "label": "wave30:after",
+      "captured_at": 987732.457424952,
+      "input_turns": 5655,
+      "handled_controls": 6327,
+      "yields_to_native_loop": 3516,
+      "yields_with_queued_input": 2602
+    },
+    {
+      "label": "wave31:before",
+      "captured_at": 987740.980427327,
+      "input_turns": 5655,
+      "handled_controls": 6370,
+      "yields_to_native_loop": 3516,
+      "yields_with_queued_input": 2602
+    },
+    {
+      "label": "wave31:after",
+      "captured_at": 987756.389393157,
+      "input_turns": 6008,
+      "handled_controls": 6525,
+      "yields_to_native_loop": 3656,
+      "yields_with_queued_input": 2678
+    },
+    {
+      "label": "wave32:before",
+      "captured_at": 987763.055495364,
+      "input_turns": 6008,
+      "handled_controls": 6598,
+      "yields_to_native_loop": 3656,
+      "yields_with_queued_input": 2678
+    },
+    {
+      "label": "wave32:after",
+      "captured_at": 987778.306529516,
+      "input_turns": 6356,
+      "handled_controls": 6753,
+      "yields_to_native_loop": 3795,
+      "yields_with_queued_input": 2756
+    },
+    {
+      "label": "wave33:before",
+      "captured_at": 987786.776935681,
+      "input_turns": 6356,
+      "handled_controls": 6882,
+      "yields_to_native_loop": 3795,
+      "yields_with_queued_input": 2756
+    },
+    {
+      "label": "wave33:after",
+      "captured_at": 987802.888785723,
+      "input_turns": 6712,
+      "handled_controls": 7037,
+      "yields_to_native_loop": 3934,
+      "yields_with_queued_input": 2825
+    },
+    {
+      "label": "wave34:before",
+      "captured_at": 987808.466084134,
+      "input_turns": 6712,
+      "handled_controls": 7124,
+      "yields_to_native_loop": 3934,
+      "yields_with_queued_input": 2825
+    },
+    {
+      "label": "wave34:after",
+      "captured_at": 987823.729637089,
+      "input_turns": 7052,
+      "handled_controls": 7251,
+      "yields_to_native_loop": 4049,
+      "yields_with_queued_input": 2848
+    },
+    {
+      "label": "wave35:before",
+      "captured_at": 987824.15742548,
+      "input_turns": 7052,
+      "handled_controls": 7268,
+      "yields_to_native_loop": 4049,
+      "yields_with_queued_input": 2848
+    },
+    {
+      "label": "wave35:after",
+      "captured_at": 987840.628173426,
+      "input_turns": 7429,
+      "handled_controls": 7471,
+      "yields_to_native_loop": 4210,
+      "yields_with_queued_input": 2953
+    },
+    {
+      "label": "wave36:before",
+      "captured_at": 987849.173416905,
+      "input_turns": 7429,
+      "handled_controls": 7536,
+      "yields_to_native_loop": 4210,
+      "yields_with_queued_input": 2953
+    },
+    {
+      "label": "wave36:after",
+      "captured_at": 987863.160042308,
+      "input_turns": 7763,
+      "handled_controls": 7669,
+      "yields_to_native_loop": 4327,
+      "yields_with_queued_input": 3016
+    },
+    {
+      "label": "wave37:before",
+      "captured_at": 987871.340591071,
+      "input_turns": 7763,
+      "handled_controls": 7780,
+      "yields_to_native_loop": 4327,
+      "yields_with_queued_input": 3016
+    },
+    {
+      "label": "wave37:after",
+      "captured_at": 987885.464451874,
+      "input_turns": 8099,
+      "handled_controls": 7913,
+      "yields_to_native_loop": 4444,
+      "yields_with_queued_input": 3079
+    },
+    {
+      "label": "wave38:before",
+      "captured_at": 987892.753077734,
+      "input_turns": 8099,
+      "handled_controls": 7988,
+      "yields_to_native_loop": 4444,
+      "yields_with_queued_input": 3079
+    },
+    {
+      "label": "wave38:after",
+      "captured_at": 987906.324966119,
+      "input_turns": 8428,
+      "handled_controls": 8097,
+      "yields_to_native_loop": 4542,
+      "yields_with_queued_input": 3100
+    },
+    {
+      "label": "wave39:before",
+      "captured_at": 987906.72502248,
+      "input_turns": 8428,
+      "handled_controls": 8112,
+      "yields_to_native_loop": 4542,
+      "yields_with_queued_input": 3100
+    },
+    {
+      "label": "wave39:after",
+      "captured_at": 987921.321600541,
+      "input_turns": 8758,
+      "handled_controls": 8281,
+      "yields_to_native_loop": 4652,
+      "yields_with_queued_input": 3181
+    },
+    {
+      "label": "wave40:before",
+      "captured_at": 987926.226655171,
+      "input_turns": 8758,
+      "handled_controls": 8320,
+      "yields_to_native_loop": 4652,
+      "yields_with_queued_input": 3181
+    },
+    {
+      "label": "wave40:after",
+      "captured_at": 987940.105106718,
+      "input_turns": 9092,
+      "handled_controls": 8453,
+      "yields_to_native_loop": 4769,
+      "yields_with_queued_input": 3245
+    },
+    {
+      "label": "wave41:before",
+      "captured_at": 987944.307097956,
+      "input_turns": 9092,
+      "handled_controls": 8496,
+      "yields_to_native_loop": 4769,
+      "yields_with_queued_input": 3245
+    },
+    {
+      "label": "wave41:after",
+      "captured_at": 987951.19631967,
+      "input_turns": 9250,
+      "handled_controls": 8651,
+      "yields_to_native_loop": 4909,
+      "yields_with_queued_input": 3372
+    },
+    {
+      "label": "wave42:before",
+      "captured_at": 987960.142921875,
+      "input_turns": 9250,
+      "handled_controls": 8724,
+      "yields_to_native_loop": 4909,
+      "yields_with_queued_input": 3372
+    },
+    {
+      "label": "wave42:after",
+      "captured_at": 987966.925524301,
+      "input_turns": 9409,
+      "handled_controls": 8879,
+      "yields_to_native_loop": 5049,
+      "yields_with_queued_input": 3500
+    },
+    {
+      "label": "wave43:before",
+      "captured_at": 987974.669829778,
+      "input_turns": 9409,
+      "handled_controls": 9008,
+      "yields_to_native_loop": 5049,
+      "yields_with_queued_input": 3500
+    },
+    {
+      "label": "wave43:after",
+      "captured_at": 987982.377586991,
+      "input_turns": 9598,
+      "handled_controls": 9163,
+      "yields_to_native_loop": 5175,
+      "yields_with_queued_input": 3605
+    },
+    {
+      "label": "wave44:before",
+      "captured_at": 987987.845669359,
+      "input_turns": 9598,
+      "handled_controls": 9250,
+      "yields_to_native_loop": 5175,
+      "yields_with_queued_input": 3605
+    },
+    {
+      "label": "wave44:after",
+      "captured_at": 987994.685083332,
+      "input_turns": 9757,
+      "handled_controls": 9377,
+      "yields_to_native_loop": 5285,
+      "yields_with_queued_input": 3673
+    },
+    {
+      "label": "wave45:before",
+      "captured_at": 987995.049643432,
+      "input_turns": 9757,
+      "handled_controls": 9394,
+      "yields_to_native_loop": 5285,
+      "yields_with_queued_input": 3673
+    },
+    {
+      "label": "wave45:after",
+      "captured_at": 988002.877285322,
+      "input_turns": 9918,
+      "handled_controls": 9597,
+      "yields_to_native_loop": 5416,
+      "yields_with_queued_input": 3787
+    },
+    {
+      "label": "wave46:before",
+      "captured_at": 988010.73775029,
+      "input_turns": 9918,
+      "handled_controls": 9658,
+      "yields_to_native_loop": 5416,
+      "yields_with_queued_input": 3787
+    },
+    {
+      "label": "wave46:after",
+      "captured_at": 988015.664307865,
+      "input_turns": 10046,
+      "handled_controls": 9780,
+      "yields_to_native_loop": 5521,
+      "yields_with_queued_input": 3886
+    },
+    {
+      "label": "wave47:before",
+      "captured_at": 988022.768495254,
+      "input_turns": 10046,
+      "handled_controls": 9882,
+      "yields_to_native_loop": 5521,
+      "yields_with_queued_input": 3886
+    },
+    {
+      "label": "wave47:after",
+      "captured_at": 988028.125472976,
+      "input_turns": 10191,
+      "handled_controls": 10004,
+      "yields_to_native_loop": 5620,
+      "yields_with_queued_input": 3969
+    },
+    {
+      "label": "wave48:before",
+      "captured_at": 988033.768943361,
+      "input_turns": 10191,
+      "handled_controls": 10073,
+      "yields_to_native_loop": 5620,
+      "yields_with_queued_input": 3969
+    },
+    {
+      "label": "wave48:after",
+      "captured_at": 988038.361975604,
+      "input_turns": 10305,
+      "handled_controls": 10173,
+      "yields_to_native_loop": 5703,
+      "yields_with_queued_input": 4036
+    },
+    {
+      "label": "wave49:before",
+      "captured_at": 988038.739938566,
+      "input_turns": 10305,
+      "handled_controls": 10187,
+      "yields_to_native_loop": 5703,
+      "yields_with_queued_input": 4036
+    },
+    {
+      "label": "wave49:after",
+      "captured_at": 988044.723712679,
+      "input_turns": 10414,
+      "handled_controls": 10331,
+      "yields_to_native_loop": 5794,
+      "yields_with_queued_input": 4120
+    },
+    {
+      "label": "wave50:before",
+      "captured_at": 988049.234940484,
+      "input_turns": 10414,
+      "handled_controls": 10367,
+      "yields_to_native_loop": 5794,
+      "yields_with_queued_input": 4120
+    },
+    {
+      "label": "wave50:after",
+      "captured_at": 988054.172876979,
+      "input_turns": 10542,
+      "handled_controls": 10489,
+      "yields_to_native_loop": 5899,
+      "yields_with_queued_input": 4219
+    },
+    {
+      "label": "wave51:before",
+      "captured_at": 988061.76217189,
+      "input_turns": 10542,
+      "handled_controls": 10615,
+      "yields_to_native_loop": 5899,
+      "yields_with_queued_input": 4219
+    },
+    {
+      "label": "wave51:after",
+      "captured_at": 988071.255766331,
+      "input_turns": 10761,
+      "handled_controls": 10770,
+      "yields_to_native_loop": 6039,
+      "yields_with_queued_input": 4305
+    },
+    {
+      "label": "wave52:before",
+      "captured_at": 988076.806335141,
+      "input_turns": 10761,
+      "handled_controls": 10857,
+      "yields_to_native_loop": 6039,
+      "yields_with_queued_input": 4305
+    },
+    {
+      "label": "wave52:after",
+      "captured_at": 988085.307265598,
+      "input_turns": 10951,
+      "handled_controls": 10984,
+      "yields_to_native_loop": 6155,
+      "yields_with_queued_input": 4335
+    },
+    {
+      "label": "wave53:before",
+      "captured_at": 988085.684332637,
+      "input_turns": 10951,
+      "handled_controls": 11001,
+      "yields_to_native_loop": 6155,
+      "yields_with_queued_input": 4335
+    },
+    {
+      "label": "wave53:after",
+      "captured_at": 988094.4563091,
+      "input_turns": 11141,
+      "handled_controls": 11192,
+      "yields_to_native_loop": 6297,
+      "yields_with_queued_input": 4448
+    },
+    {
+      "label": "wave54:before",
+      "captured_at": 988099.926615058,
+      "input_turns": 11141,
+      "handled_controls": 11237,
+      "yields_to_native_loop": 6297,
+      "yields_with_queued_input": 4448
+    },
+    {
+      "label": "wave54:after",
+      "captured_at": 988108.309788204,
+      "input_turns": 11324,
+      "handled_controls": 11392,
+      "yields_to_native_loop": 6437,
+      "yields_with_queued_input": 4529
+    },
+    {
+      "label": "wave55:before",
+      "captured_at": 988115.188789841,
+      "input_turns": 11324,
+      "handled_controls": 11465,
+      "yields_to_native_loop": 6437,
+      "yields_with_queued_input": 4529
+    },
+    {
+      "label": "wave55:after",
+      "captured_at": 988124.035244694,
+      "input_turns": 11536,
+      "handled_controls": 11620,
+      "yields_to_native_loop": 6577,
+      "yields_with_queued_input": 4624
+    },
+    {
+      "label": "wave56:before",
+      "captured_at": 988129.368784019,
+      "input_turns": 11536,
+      "handled_controls": 11687,
+      "yields_to_native_loop": 6577,
+      "yields_with_queued_input": 4624
+    },
+    {
+      "label": "wave56:after",
+      "captured_at": 988135.32564428,
+      "input_turns": 11682,
+      "handled_controls": 11778,
+      "yields_to_native_loop": 6657,
+      "yields_with_queued_input": 4672
+    },
+    {
+      "label": "wave57:before",
+      "captured_at": 988135.676383935,
+      "input_turns": 11682,
+      "handled_controls": 11791,
+      "yields_to_native_loop": 6657,
+      "yields_with_queued_input": 4672
+    },
+    {
+      "label": "wave57:after",
+      "captured_at": 988142.118711944,
+      "input_turns": 11818,
+      "handled_controls": 11926,
+      "yields_to_native_loop": 6743,
+      "yields_with_queued_input": 4731
+    },
+    {
+      "label": "wave58:before",
+      "captured_at": 988146.572702636,
+      "input_turns": 11818,
+      "handled_controls": 11959,
+      "yields_to_native_loop": 6743,
+      "yields_with_queued_input": 4731
+    },
+    {
+      "label": "wave58:after",
+      "captured_at": 988153.01477268,
+      "input_turns": 11982,
+      "handled_controls": 12070,
+      "yields_to_native_loop": 6839,
+      "yields_with_queued_input": 4809
+    },
+    {
+      "label": "wave59:before",
+      "captured_at": 988159.934080453,
+      "input_turns": 11982,
+      "handled_controls": 12123,
+      "yields_to_native_loop": 6839,
+      "yields_with_queued_input": 4809
+    },
+    {
+      "label": "wave59:after",
+      "captured_at": 988166.229603007,
+      "input_turns": 12137,
+      "handled_controls": 12234,
+      "yields_to_native_loop": 6935,
+      "yields_with_queued_input": 4892
+    },
+    {
+      "label": "wave60:before",
+      "captured_at": 988172.651270288,
+      "input_turns": 12137,
+      "handled_controls": 12327,
+      "yields_to_native_loop": 6935,
+      "yields_with_queued_input": 4892
+    },
+    {
+      "label": "wave60:after",
+      "captured_at": 988179.280028997,
+      "input_turns": 12301,
+      "handled_controls": 12438,
+      "yields_to_native_loop": 7031,
+      "yields_with_queued_input": 4974
+    },
+    {
+      "label": "wave61:before",
+      "captured_at": 988179.631880037,
+      "input_turns": 12301,
+      "handled_controls": 12451,
+      "yields_to_native_loop": 7031,
+      "yields_with_queued_input": 4974
+    },
+    {
+      "label": "wave61:after",
+      "captured_at": 988192.81829144,
+      "input_turns": 12630,
+      "handled_controls": 12654,
+      "yields_to_native_loop": 7187,
+      "yields_with_queued_input": 5088
+    },
+    {
+      "label": "wave62:before",
+      "captured_at": 988197.041632907,
+      "input_turns": 12630,
+      "handled_controls": 12699,
+      "yields_to_native_loop": 7187,
+      "yields_with_queued_input": 5088
+    },
+    {
+      "label": "wave62:after",
+      "captured_at": 988209.353074253,
+      "input_turns": 12939,
+      "handled_controls": 12854,
+      "yields_to_native_loop": 7327,
+      "yields_with_queued_input": 5211
+    },
+    {
+      "label": "wave63:before",
+      "captured_at": 988216.572990483,
+      "input_turns": 12939,
+      "handled_controls": 12927,
+      "yields_to_native_loop": 7327,
+      "yields_with_queued_input": 5211
+    },
+    {
+      "label": "wave63:after",
+      "captured_at": 988228.878771023,
+      "input_turns": 13248,
+      "handled_controls": 13082,
+      "yields_to_native_loop": 7467,
+      "yields_with_queued_input": 5327
+    },
+    {
+      "label": "wave64:before",
+      "captured_at": 988236.914206948,
+      "input_turns": 13248,
+      "handled_controls": 13211,
+      "yields_to_native_loop": 7467,
+      "yields_with_queued_input": 5327
+    },
+    {
+      "label": "wave64:after",
+      "captured_at": 988249.8040113,
+      "input_turns": 13565,
+      "handled_controls": 13366,
+      "yields_to_native_loop": 7607,
+      "yields_with_queued_input": 5422
+    },
+    {
+      "label": "wave65:before",
+      "captured_at": 988255.699015431,
+      "input_turns": 13565,
+      "handled_controls": 13453,
+      "yields_to_native_loop": 7607,
+      "yields_with_queued_input": 5422
+    },
+    {
+      "label": "wave65:after",
+      "captured_at": 988267.740791912,
+      "input_turns": 13864,
+      "handled_controls": 13580,
+      "yields_to_native_loop": 7723,
+      "yields_with_queued_input": 5487
+    },
+    {
+      "label": "wave66:before",
+      "captured_at": 988272.718758455,
+      "input_turns": 13864,
+      "handled_controls": 13621,
+      "yields_to_native_loop": 7723,
+      "yields_with_queued_input": 5487
+    },
+    {
+      "label": "wave66:after",
+      "captured_at": 988284.505639691,
+      "input_turns": 14159,
+      "handled_controls": 13754,
+      "yields_to_native_loop": 7841,
+      "yields_with_queued_input": 5596
+    },
+    {
+      "label": "wave67:before",
+      "captured_at": 988295.61161695,
+      "input_turns": 14159,
+      "handled_controls": 13817,
+      "yields_to_native_loop": 7841,
+      "yields_with_queued_input": 5596
+    },
+    {
+      "label": "wave67:after",
+      "captured_at": 988306.968437082,
+      "input_turns": 14454,
+      "handled_controls": 13950,
+      "yields_to_native_loop": 7959,
+      "yields_with_queued_input": 5704
+    },
+    {
+      "label": "wave68:before",
+      "captured_at": 988315.425464,
+      "input_turns": 14454,
+      "handled_controls": 14061,
+      "yields_to_native_loop": 7959,
+      "yields_with_queued_input": 5704
+    },
+    {
+      "label": "wave68:after",
+      "captured_at": 988327.809427,
+      "input_turns": 14764,
+      "handled_controls": 14194,
+      "yields_to_native_loop": 8077,
+      "yields_with_queued_input": 5796
+    },
+    {
+      "label": "wave69:before",
+      "captured_at": 988334.07915117,
+      "input_turns": 14764,
+      "handled_controls": 14269,
+      "yields_to_native_loop": 8077,
+      "yields_with_queued_input": 5796
+    },
+    {
+      "label": "wave69:after",
+      "captured_at": 988345.266468777,
+      "input_turns": 15062,
+      "handled_controls": 14378,
+      "yields_to_native_loop": 8175,
+      "yields_with_queued_input": 5856
+    },
+    {
+      "label": "wave70:before",
+      "captured_at": 988347.934924062,
+      "input_turns": 15062,
+      "handled_controls": 14393,
+      "yields_to_native_loop": 8175,
+      "yields_with_queued_input": 5856
+    },
+    {
+      "label": "wave70:after",
+      "captured_at": 988359.529102244,
+      "input_turns": 15339,
+      "handled_controls": 14550,
+      "yields_to_native_loop": 8274,
+      "yields_with_queued_input": 5925
+    },
+    {
+      "label": "wave71:before",
+      "captured_at": 988366.275685151,
+      "input_turns": 15339,
+      "handled_controls": 14621,
+      "yields_to_native_loop": 8274,
+      "yields_with_queued_input": 5925
+    },
+    {
+      "label": "wave71:after",
+      "captured_at": 988381.64572338,
+      "input_turns": 15687,
+      "handled_controls": 14776,
+      "yields_to_native_loop": 8413,
+      "yields_with_queued_input": 6002
+    },
+    {
+      "label": "wave72:before",
+      "captured_at": 988389.984085736,
+      "input_turns": 15687,
+      "handled_controls": 14905,
+      "yields_to_native_loop": 8413,
+      "yields_with_queued_input": 6002
+    },
+    {
+      "label": "wave72:after",
+      "captured_at": 988405.6619874,
+      "input_turns": 16037,
+      "handled_controls": 15060,
+      "yields_to_native_loop": 8552,
+      "yields_with_queued_input": 6071
+    },
+    {
+      "label": "wave73:before",
+      "captured_at": 988413.474724286,
+      "input_turns": 16037,
+      "handled_controls": 15147,
+      "yields_to_native_loop": 8552,
+      "yields_with_queued_input": 6071
+    },
+    {
+      "label": "wave73:after",
+      "captured_at": 988428.629491961,
+      "input_turns": 16375,
+      "handled_controls": 15274,
+      "yields_to_native_loop": 8668,
+      "yields_with_queued_input": 6093
+    },
+    {
+      "label": "wave74:before",
+      "captured_at": 988428.987555898,
+      "input_turns": 16375,
+      "handled_controls": 15291,
+      "yields_to_native_loop": 8668,
+      "yields_with_queued_input": 6093
+    },
+    {
+      "label": "wave74:after",
+      "captured_at": 988445.297543161,
+      "input_turns": 16747,
+      "handled_controls": 15494,
+      "yields_to_native_loop": 8826,
+      "yields_with_queued_input": 6210
+    },
+    {
+      "label": "wave75:before",
+      "captured_at": 988449.554715555,
+      "input_turns": 16747,
+      "handled_controls": 15539,
+      "yields_to_native_loop": 8826,
+      "yields_with_queued_input": 6210
+    },
+    {
+      "label": "wave75:after",
+      "captured_at": 988464.918376424,
+      "input_turns": 17095,
+      "handled_controls": 15694,
+      "yields_to_native_loop": 8965,
+      "yields_with_queued_input": 6286
+    },
+    {
+      "label": "wave76:before",
+      "captured_at": 988474.324748148,
+      "input_turns": 17095,
+      "handled_controls": 15807,
+      "yields_to_native_loop": 8965,
+      "yields_with_queued_input": 6286
+    },
+    {
+      "label": "wave76:after",
+      "captured_at": 988488.799158915,
+      "input_turns": 17431,
+      "handled_controls": 15940,
+      "yields_to_native_loop": 9082,
+      "yields_with_queued_input": 6346
+    },
+    {
+      "label": "wave77:before",
+      "captured_at": 988495.052127501,
+      "input_turns": 17431,
+      "handled_controls": 16015,
+      "yields_to_native_loop": 9082,
+      "yields_with_queued_input": 6346
+    },
+    {
+      "label": "wave77:after",
+      "captured_at": 988508.768271393,
+      "input_turns": 17764,
+      "handled_controls": 16124,
+      "yields_to_native_loop": 9179,
+      "yields_with_queued_input": 6363
+    },
+    {
+      "label": "wave78:before",
+      "captured_at": 988509.94331088,
+      "input_turns": 17764,
+      "handled_controls": 16139,
+      "yields_to_native_loop": 9179,
+      "yields_with_queued_input": 6363
+    },
+    {
+      "label": "wave78:after",
+      "captured_at": 988524.444644675,
+      "input_turns": 18101,
+      "handled_controls": 16312,
+      "yields_to_native_loop": 9296,
+      "yields_with_queued_input": 6440
+    },
+    {
+      "label": "wave79:before",
+      "captured_at": 988532.40013519,
+      "input_turns": 18101,
+      "handled_controls": 16351,
+      "yields_to_native_loop": 9296,
+      "yields_with_queued_input": 6440
+    },
+    {
+      "label": "wave79:after",
+      "captured_at": 988546.278544056,
+      "input_turns": 18435,
+      "handled_controls": 16484,
+      "yields_to_native_loop": 9414,
+      "yields_with_queued_input": 6506
+    },
+    {
+      "label": "wave80:before",
+      "captured_at": 988554.591442259,
+      "input_turns": 18435,
+      "handled_controls": 16547,
+      "yields_to_native_loop": 9414,
+      "yields_with_queued_input": 6506
+    },
+    {
+      "label": "wave80:after",
+      "captured_at": 988569.074303626,
+      "input_turns": 18775,
+      "handled_controls": 16680,
+      "yields_to_native_loop": 9531,
+      "yields_with_queued_input": 6568
+    },
+    {
+      "label": "wave81:before",
+      "captured_at": 988576.324822188,
+      "input_turns": 18775,
+      "handled_controls": 16751,
+      "yields_to_native_loop": 9531,
+      "yields_with_queued_input": 6568
+    },
+    {
+      "label": "wave81:after",
+      "captured_at": 988583.075069692,
+      "input_turns": 18935,
+      "handled_controls": 16906,
+      "yields_to_native_loop": 9671,
+      "yields_with_queued_input": 6697
+    },
+    {
+      "label": "wave82:before",
+      "captured_at": 988591.737514295,
+      "input_turns": 18935,
+      "handled_controls": 17035,
+      "yields_to_native_loop": 9671,
+      "yields_with_queued_input": 6697
+    },
+    {
+      "label": "wave82:after",
+      "captured_at": 988599.014744182,
+      "input_turns": 19100,
+      "handled_controls": 17190,
+      "yields_to_native_loop": 9798,
+      "yields_with_queued_input": 6791
+    },
+    {
+      "label": "wave83:before",
+      "captured_at": 988604.443114559,
+      "input_turns": 19100,
+      "handled_controls": 17277,
+      "yields_to_native_loop": 9798,
+      "yields_with_queued_input": 6791
+    },
+    {
+      "label": "wave83:after",
+      "captured_at": 988611.084885868,
+      "input_turns": 19255,
+      "handled_controls": 17404,
+      "yields_to_native_loop": 9911,
+      "yields_with_queued_input": 6864
+    },
+    {
+      "label": "wave84:before",
+      "captured_at": 988611.459547351,
+      "input_turns": 19255,
+      "handled_controls": 17421,
+      "yields_to_native_loop": 9911,
+      "yields_with_queued_input": 6864
+    },
+    {
+      "label": "wave84:after",
+      "captured_at": 988620.097441554,
+      "input_turns": 19472,
+      "handled_controls": 17636,
+      "yields_to_native_loop": 10079,
+      "yields_with_queued_input": 7005
+    },
+    {
+      "label": "wave85:before",
+      "captured_at": 988624.257137826,
+      "input_turns": 19472,
+      "handled_controls": 17681,
+      "yields_to_native_loop": 10079,
+      "yields_with_queued_input": 7005
+    },
+    {
+      "label": "wave85:after",
+      "captured_at": 988630.90114031,
+      "input_turns": 19640,
+      "handled_controls": 17836,
+      "yields_to_native_loop": 10219,
+      "yields_with_queued_input": 7131
+    },
+    {
+      "label": "wave86:before",
+      "captured_at": 988637.587839114,
+      "input_turns": 19640,
+      "handled_controls": 17941,
+      "yields_to_native_loop": 10219,
+      "yields_with_queued_input": 7131
+    },
+    {
+      "label": "wave86:after",
+      "captured_at": 988642.954134239,
+      "input_turns": 19758,
+      "handled_controls": 18063,
+      "yields_to_native_loop": 10308,
+      "yields_with_queued_input": 7203
+    },
+    {
+      "label": "wave87:before",
+      "captured_at": 988649.901291173,
+      "input_turns": 19758,
+      "handled_controls": 18132,
+      "yields_to_native_loop": 10308,
+      "yields_with_queued_input": 7203
+    },
+    {
+      "label": "wave87:after",
+      "captured_at": 988654.573132118,
+      "input_turns": 19870,
+      "handled_controls": 18232,
+      "yields_to_native_loop": 10394,
+      "yields_with_queued_input": 7264
+    },
+    {
+      "label": "wave88:before",
+      "captured_at": 988654.92269101,
+      "input_turns": 19870,
+      "handled_controls": 18246,
+      "yields_to_native_loop": 10394,
+      "yields_with_queued_input": 7264
+    },
+    {
+      "label": "wave88:after",
+      "captured_at": 988660.032994171,
+      "input_turns": 19976,
+      "handled_controls": 18394,
+      "yields_to_native_loop": 10489,
+      "yields_with_queued_input": 7339
+    },
+    {
+      "label": "wave89:before",
+      "captured_at": 988664.553569333,
+      "input_turns": 19976,
+      "handled_controls": 18430,
+      "yields_to_native_loop": 10489,
+      "yields_with_queued_input": 7339
+    },
+    {
+      "label": "wave89:after",
+      "captured_at": 988669.70309299,
+      "input_turns": 20100,
+      "handled_controls": 18552,
+      "yields_to_native_loop": 10587,
+      "yields_with_queued_input": 7425
+    },
+    {
+      "label": "wave90:before",
+      "captured_at": 988677.458600856,
+      "input_turns": 20100,
+      "handled_controls": 18610,
+      "yields_to_native_loop": 10587,
+      "yields_with_queued_input": 7425
+    },
+    {
+      "label": "wave90:after",
+      "captured_at": 988683.269993855,
+      "input_turns": 20224,
+      "handled_controls": 18732,
+      "yields_to_native_loop": 10691,
+      "yields_with_queued_input": 7519
+    },
+    {
+      "label": "wave91:before",
+      "captured_at": 988688.978037659,
+      "input_turns": 20224,
+      "handled_controls": 18816,
+      "yields_to_native_loop": 10691,
+      "yields_with_queued_input": 7519
+    },
+    {
+      "label": "wave91:after",
+      "captured_at": 988697.788298427,
+      "input_turns": 20429,
+      "handled_controls": 18943,
+      "yields_to_native_loop": 10807,
+      "yields_with_queued_input": 7559
+    },
+    {
+      "label": "wave92:before",
+      "captured_at": 988698.142866744,
+      "input_turns": 20429,
+      "handled_controls": 18960,
+      "yields_to_native_loop": 10807,
+      "yields_with_queued_input": 7559
+    },
+    {
+      "label": "wave92:after",
+      "captured_at": 988707.278106078,
+      "input_turns": 20631,
+      "handled_controls": 19159,
+      "yields_to_native_loop": 10956,
+      "yields_with_queued_input": 7664
+    },
+    {
+      "label": "wave93:before",
+      "captured_at": 988712.150117715,
+      "input_turns": 20631,
+      "handled_controls": 19204,
+      "yields_to_native_loop": 10956,
+      "yields_with_queued_input": 7664
+    },
+    {
+      "label": "wave93:after",
+      "captured_at": 988720.736360568,
+      "input_turns": 20831,
+      "handled_controls": 19359,
+      "yields_to_native_loop": 11097,
+      "yields_with_queued_input": 7752
+    },
+    {
+      "label": "wave94:before",
+      "captured_at": 988727.421787013,
+      "input_turns": 20831,
+      "handled_controls": 19432,
+      "yields_to_native_loop": 11097,
+      "yields_with_queued_input": 7752
+    },
+    {
+      "label": "wave94:after",
+      "captured_at": 988735.742039378,
+      "input_turns": 21014,
+      "handled_controls": 19587,
+      "yields_to_native_loop": 11236,
+      "yields_with_queued_input": 7831
+    },
+    {
+      "label": "wave95:before",
+      "captured_at": 988743.555106698,
+      "input_turns": 21014,
+      "handled_controls": 19716,
+      "yields_to_native_loop": 11236,
+      "yields_with_queued_input": 7831
+    },
+    {
+      "label": "wave95:after",
+      "captured_at": 988752.853722341,
+      "input_turns": 21228,
+      "handled_controls": 19871,
+      "yields_to_native_loop": 11375,
+      "yields_with_queued_input": 7905
+    },
+    {
+      "label": "wave96:before",
+      "captured_at": 988753.214930547,
+      "input_turns": 21228,
+      "handled_controls": 19888,
+      "yields_to_native_loop": 11375,
+      "yields_with_queued_input": 7905
+    },
+    {
+      "label": "wave96:after",
+      "captured_at": 988759.646059147,
+      "input_turns": 21364,
+      "handled_controls": 20023,
+      "yields_to_native_loop": 11460,
+      "yields_with_queued_input": 7960
+    },
+    {
+      "label": "wave97:before",
+      "captured_at": 988763.603260965,
+      "input_turns": 21364,
+      "handled_controls": 20056,
+      "yields_to_native_loop": 11460,
+      "yields_with_queued_input": 7960
+    },
+    {
+      "label": "wave97:after",
+      "captured_at": 988770.095297877,
+      "input_turns": 21533,
+      "handled_controls": 20167,
+      "yields_to_native_loop": 11556,
+      "yields_with_queued_input": 8033
+    },
+    {
+      "label": "wave98:before",
+      "captured_at": 988777.576694758,
+      "input_turns": 21533,
+      "handled_controls": 20220,
+      "yields_to_native_loop": 11556,
+      "yields_with_queued_input": 8033
+    },
+    {
+      "label": "wave98:after",
+      "captured_at": 988783.79353778,
+      "input_turns": 21687,
+      "handled_controls": 20331,
+      "yields_to_native_loop": 11650,
+      "yields_with_queued_input": 8106
+    },
+    {
+      "label": "wave99:before",
+      "captured_at": 988790.336525599,
+      "input_turns": 21687,
+      "handled_controls": 20424,
+      "yields_to_native_loop": 11650,
+      "yields_with_queued_input": 8106
+    },
+    {
+      "label": "wave99:after",
+      "captured_at": 988796.933180189,
+      "input_turns": 21850,
+      "handled_controls": 20535,
+      "yields_to_native_loop": 11744,
+      "yields_with_queued_input": 8177
+    },
+    {
+      "label": "wave100:before",
+      "captured_at": 988802.293959706,
+      "input_turns": 21850,
+      "handled_controls": 20598,
+      "yields_to_native_loop": 11744,
+      "yields_with_queued_input": 8177
+    },
+    {
+      "label": "wave100:after",
+      "captured_at": 988808.707851438,
+      "input_turns": 21996,
+      "handled_controls": 20689,
+      "yields_to_native_loop": 11823,
+      "yields_with_queued_input": 8220
+    },
+    {
+      "label": "wave101:before",
+      "captured_at": 988812.770995645,
+      "input_turns": 21996,
+      "handled_controls": 20730,
+      "yields_to_native_loop": 11823,
+      "yields_with_queued_input": 8220
+    },
+    {
+      "label": "wave101:after",
+      "captured_at": 988825.137851321,
+      "input_turns": 22313,
+      "handled_controls": 20885,
+      "yields_to_native_loop": 11963,
+      "yields_with_queued_input": 8334
+    },
+    {
+      "label": "wave102:before",
+      "captured_at": 988832.107983917,
+      "input_turns": 22313,
+      "handled_controls": 20958,
+      "yields_to_native_loop": 11963,
+      "yields_with_queued_input": 8334
+    },
+    {
+      "label": "wave102:after",
+      "captured_at": 988844.248823251,
+      "input_turns": 22622,
+      "handled_controls": 21113,
+      "yields_to_native_loop": 12103,
+      "yields_with_queued_input": 8448
+    },
+    {
+      "label": "wave103:before",
+      "captured_at": 988851.998367593,
+      "input_turns": 22622,
+      "handled_controls": 21242,
+      "yields_to_native_loop": 12103,
+      "yields_with_queued_input": 8448
+    },
+    {
+      "label": "wave103:after",
+      "captured_at": 988865.232881933,
+      "input_turns": 22939,
+      "handled_controls": 21397,
+      "yields_to_native_loop": 12242,
+      "yields_with_queued_input": 8542
+    },
+    {
+      "label": "wave104:before",
+      "captured_at": 988870.856019617,
+      "input_turns": 22939,
+      "handled_controls": 21484,
+      "yields_to_native_loop": 12242,
+      "yields_with_queued_input": 8542
+    },
+    {
+      "label": "wave104:after",
+      "captured_at": 988883.422069683,
+      "input_turns": 23235,
+      "handled_controls": 21611,
+      "yields_to_native_loop": 12358,
+      "yields_with_queued_input": 8608
+    },
+    {
+      "label": "wave105:before",
+      "captured_at": 988883.776563335,
+      "input_turns": 23235,
+      "handled_controls": 21628,
+      "yields_to_native_loop": 12358,
+      "yields_with_queued_input": 8608
+    },
+    {
+      "label": "wave105:after",
+      "captured_at": 988897.483051079,
+      "input_turns": 23588,
+      "handled_controls": 21827,
+      "yields_to_native_loop": 12508,
+      "yields_with_queued_input": 8720
+    },
+    {
+      "label": "wave106:before",
+      "captured_at": 988905.838159643,
+      "input_turns": 23588,
+      "handled_controls": 21892,
+      "yields_to_native_loop": 12508,
+      "yields_with_queued_input": 8720
+    },
+    {
+      "label": "wave106:after",
+      "captured_at": 988916.969601577,
+      "input_turns": 23880,
+      "handled_controls": 22025,
+      "yields_to_native_loop": 12626,
+      "yields_with_queued_input": 8810
+    },
+    {
+      "label": "wave107:before",
+      "captured_at": 988925.147829797,
+      "input_turns": 23880,
+      "handled_controls": 22136,
+      "yields_to_native_loop": 12626,
+      "yields_with_queued_input": 8810
+    },
+    {
+      "label": "wave107:after",
+      "captured_at": 988937.852069266,
+      "input_turns": 24218,
+      "handled_controls": 22269,
+      "yields_to_native_loop": 12742,
+      "yields_with_queued_input": 8888
+    },
+    {
+      "label": "wave108:before",
+      "captured_at": 988944.012664371,
+      "input_turns": 24218,
+      "handled_controls": 22344,
+      "yields_to_native_loop": 12742,
+      "yields_with_queued_input": 8888
+    },
+    {
+      "label": "wave108:after",
+      "captured_at": 988955.196505181,
+      "input_turns": 24506,
+      "handled_controls": 22453,
+      "yields_to_native_loop": 12840,
+      "yields_with_queued_input": 8939
+    },
+    {
+      "label": "wave109:before",
+      "captured_at": 988957.768047821,
+      "input_turns": 24506,
+      "handled_controls": 22468,
+      "yields_to_native_loop": 12840,
+      "yields_with_queued_input": 8939
+    },
+    {
+      "label": "wave109:after",
+      "captured_at": 988969.43644746,
+      "input_turns": 24795,
+      "handled_controls": 22625,
+      "yields_to_native_loop": 12946,
+      "yields_with_queued_input": 9011
+    },
+    {
+      "label": "wave110:before",
+      "captured_at": 988974.275713229,
+      "input_turns": 24795,
+      "handled_controls": 22664,
+      "yields_to_native_loop": 12946,
+      "yields_with_queued_input": 9011
+    },
+    {
+      "label": "wave110:after",
+      "captured_at": 988985.703731866,
+      "input_turns": 25087,
+      "handled_controls": 22797,
+      "yields_to_native_loop": 13063,
+      "yields_with_queued_input": 9099
+    },
+    {
+      "label": "wave111:before",
+      "captured_at": 988995.535246801,
+      "input_turns": 25087,
+      "handled_controls": 22924,
+      "yields_to_native_loop": 13063,
+      "yields_with_queued_input": 9099
+    },
+    {
+      "label": "wave111:after",
+      "captured_at": 989011.805160974,
+      "input_turns": 25455,
+      "handled_controls": 23079,
+      "yields_to_native_loop": 13202,
+      "yields_with_queued_input": 9174
+    },
+    {
+      "label": "wave112:before",
+      "captured_at": 989018.355968434,
+      "input_turns": 25455,
+      "handled_controls": 23166,
+      "yields_to_native_loop": 13202,
+      "yields_with_queued_input": 9174
+    },
+    {
+      "label": "wave112:after",
+      "captured_at": 989033.716622416,
+      "input_turns": 25800,
+      "handled_controls": 23293,
+      "yields_to_native_loop": 13319,
+      "yields_with_queued_input": 9192
+    },
+    {
+      "label": "wave113:before",
+      "captured_at": 989034.066321288,
+      "input_turns": 25800,
+      "handled_controls": 23310,
+      "yields_to_native_loop": 13319,
+      "yields_with_queued_input": 9192
+    },
+    {
+      "label": "wave113:after",
+      "captured_at": 989050.519430186,
+      "input_turns": 26166,
+      "handled_controls": 23513,
+      "yields_to_native_loop": 13475,
+      "yields_with_queued_input": 9288
+    },
+    {
+      "label": "wave114:before",
+      "captured_at": 989054.880605397,
+      "input_turns": 26166,
+      "handled_controls": 23558,
+      "yields_to_native_loop": 13475,
+      "yields_with_queued_input": 9288
+    },
+    {
+      "label": "wave114:after",
+      "captured_at": 989070.676450158,
+      "input_turns": 26529,
+      "handled_controls": 23713,
+      "yields_to_native_loop": 13615,
+      "yields_with_queued_input": 9363
+    },
+    {
+      "label": "wave115:before",
+      "captured_at": 989077.71894966,
+      "input_turns": 26529,
+      "handled_controls": 23786,
+      "yields_to_native_loop": 13615,
+      "yields_with_queued_input": 9363
+    },
+    {
+      "label": "wave115:after",
+      "captured_at": 989093.192224865,
+      "input_turns": 26883,
+      "handled_controls": 23941,
+      "yields_to_native_loop": 13755,
+      "yields_with_queued_input": 9436
+    },
+    {
+      "label": "wave116:before",
+      "captured_at": 989099.460810741,
+      "input_turns": 26883,
+      "handled_controls": 24018,
+      "yields_to_native_loop": 13755,
+      "yields_with_queued_input": 9436
+    },
+    {
+      "label": "wave116:after",
+      "captured_at": 989113.007913471,
+      "input_turns": 27205,
+      "handled_controls": 24127,
+      "yields_to_native_loop": 13852,
+      "yields_with_queued_input": 9455
+    },
+    {
+      "label": "wave117:before",
+      "captured_at": 989114.295343442,
+      "input_turns": 27205,
+      "handled_controls": 24142,
+      "yields_to_native_loop": 13852,
+      "yields_with_queued_input": 9455
+    },
+    {
+      "label": "wave117:after",
+      "captured_at": 989129.173399913,
+      "input_turns": 27549,
+      "handled_controls": 24315,
+      "yields_to_native_loop": 13974,
+      "yields_with_queued_input": 9541
+    },
+    {
+      "label": "wave118:before",
+      "captured_at": 989134.055723998,
+      "input_turns": 27549,
+      "handled_controls": 24354,
+      "yields_to_native_loop": 13974,
+      "yields_with_queued_input": 9541
+    },
+    {
+      "label": "wave118:after",
+      "captured_at": 989148.175770664,
+      "input_turns": 27889,
+      "handled_controls": 24487,
+      "yields_to_native_loop": 14089,
+      "yields_with_queued_input": 9604
+    },
+    {
+      "label": "wave119:before",
+      "captured_at": 989156.54264595,
+      "input_turns": 27889,
+      "handled_controls": 24550,
+      "yields_to_native_loop": 14089,
+      "yields_with_queued_input": 9604
+    },
+    {
+      "label": "wave119:after",
+      "captured_at": 989170.490158792,
+      "input_turns": 28223,
+      "handled_controls": 24683,
+      "yields_to_native_loop": 14206,
+      "yields_with_queued_input": 9669
+    },
+    {
+      "label": "wave120:before",
+      "captured_at": 989179.512621175,
+      "input_turns": 28223,
+      "handled_controls": 24794,
+      "yields_to_native_loop": 14206,
+      "yields_with_queued_input": 9669
+    },
+    {
+      "label": "wave120:after",
+      "captured_at": 989193.608475233,
+      "input_turns": 28559,
+      "handled_controls": 24927,
+      "yields_to_native_loop": 14323,
+      "yields_with_queued_input": 9729
+    },
+    {
+      "label": "wave121:before",
+      "captured_at": 989201.644340812,
+      "input_turns": 28559,
+      "handled_controls": 24992,
+      "yields_to_native_loop": 14323,
+      "yields_with_queued_input": 9729
+    },
+    {
+      "label": "wave121:after",
+      "captured_at": 989212.766384568,
+      "input_turns": 28859,
+      "handled_controls": 25083,
+      "yields_to_native_loop": 14403,
+      "yields_with_queued_input": 9741
+    },
+    {
+      "label": "wave122:before",
+      "captured_at": 989217.197220263,
+      "input_turns": 28859,
+      "handled_controls": 25146,
+      "yields_to_native_loop": 14403,
+      "yields_with_queued_input": 9741
+    },
+    {
+      "label": "wave122:after",
+      "captured_at": 989228.314256367,
+      "input_turns": 29162,
+      "handled_controls": 25237,
+      "yields_to_native_loop": 14483,
+      "yields_with_queued_input": 9759
+    },
+    {
+      "label": "wave123:before",
+      "captured_at": 989232.836823456,
+      "input_turns": 29162,
+      "handled_controls": 25300,
+      "yields_to_native_loop": 14483,
+      "yields_with_queued_input": 9759
+    },
+    {
+      "label": "wave123:after",
+      "captured_at": 989243.920504733,
+      "input_turns": 29464,
+      "handled_controls": 25391,
+      "yields_to_native_loop": 14563,
+      "yields_with_queued_input": 9773
+    },
+    {
+      "label": "wave124:before",
+      "captured_at": 989248.39968929,
+      "input_turns": 29464,
+      "handled_controls": 25454,
+      "yields_to_native_loop": 14563,
+      "yields_with_queued_input": 9773
+    },
+    {
+      "label": "wave124:after",
+      "captured_at": 989260.008508724,
+      "input_turns": 29764,
+      "handled_controls": 25545,
+      "yields_to_native_loop": 14644,
+      "yields_with_queued_input": 9789
+    },
+    {
+      "label": "wave125:before",
+      "captured_at": 989266.370568297,
+      "input_turns": 29764,
+      "handled_controls": 25608,
+      "yields_to_native_loop": 14644,
+      "yields_with_queued_input": 9789
+    },
+    {
+      "label": "wave125:after",
+      "captured_at": 989277.472337773,
+      "input_turns": 30066,
+      "handled_controls": 25699,
+      "yields_to_native_loop": 14724,
+      "yields_with_queued_input": 9807
+    },
+    {
+      "label": "wave126:before",
+      "captured_at": 989283.487821115,
+      "input_turns": 30066,
+      "handled_controls": 25752,
+      "yields_to_native_loop": 14724,
+      "yields_with_queued_input": 9807
+    },
+    {
+      "label": "wave126:after",
+      "captured_at": 989294.839581808,
+      "input_turns": 30376,
+      "handled_controls": 25863,
+      "yields_to_native_loop": 14820,
+      "yields_with_queued_input": 9861
+    },
+    {
+      "label": "wave127:before",
+      "captured_at": 989301.036696622,
+      "input_turns": 30376,
+      "handled_controls": 25956,
+      "yields_to_native_loop": 14820,
+      "yields_with_queued_input": 9861
+    },
+    {
+      "label": "wave127:after",
+      "captured_at": 989312.445656291,
+      "input_turns": 30686,
+      "handled_controls": 26067,
+      "yields_to_native_loop": 14916,
+      "yields_with_queued_input": 9914
+    },
+    {
+      "label": "wave128:before",
+      "captured_at": 989315.94957982,
+      "input_turns": 30686,
+      "handled_controls": 26100,
+      "yields_to_native_loop": 14916,
+      "yields_with_queued_input": 9914
+    },
+    {
+      "label": "wave128:after",
+      "captured_at": 989327.335047772,
+      "input_turns": 30997,
+      "handled_controls": 26211,
+      "yields_to_native_loop": 15012,
+      "yields_with_queued_input": 9966
+    },
+    {
+      "label": "wave129:before",
+      "captured_at": 989332.944162621,
+      "input_turns": 30997,
+      "handled_controls": 26304,
+      "yields_to_native_loop": 15012,
+      "yields_with_queued_input": 9966
+    },
+    {
+      "label": "wave129:after",
+      "captured_at": 989344.617215295,
+      "input_turns": 31307,
+      "handled_controls": 26415,
+      "yields_to_native_loop": 15108,
+      "yields_with_queued_input": 10018
+    },
+    {
+      "label": "wave130:before",
+      "captured_at": 989348.13298927,
+      "input_turns": 31307,
+      "handled_controls": 26448,
+      "yields_to_native_loop": 15108,
+      "yields_with_queued_input": 10018
+    },
+    {
+      "label": "wave130:after",
+      "captured_at": 989359.635986187,
+      "input_turns": 31626,
+      "handled_controls": 26559,
+      "yields_to_native_loop": 15204,
+      "yields_with_queued_input": 10064
+    },
+    {
+      "label": "wave131:before",
+      "captured_at": 989365.314484461,
+      "input_turns": 31626,
+      "handled_controls": 26612,
+      "yields_to_native_loop": 15204,
+      "yields_with_queued_input": 10064
+    },
+    {
+      "label": "wave131:after",
+      "captured_at": 989376.642830603,
+      "input_turns": 31937,
+      "handled_controls": 26723,
+      "yields_to_native_loop": 15300,
+      "yields_with_queued_input": 10109
+    },
+    {
+      "label": "wave132:before",
+      "captured_at": 989380.404349112,
+      "input_turns": 31937,
+      "handled_controls": 26756,
+      "yields_to_native_loop": 15300,
+      "yields_with_queued_input": 10109
+    },
+    {
+      "label": "wave132:after",
+      "captured_at": 989391.838411756,
+      "input_turns": 32248,
+      "handled_controls": 26867,
+      "yields_to_native_loop": 15396,
+      "yields_with_queued_input": 10163
+    },
+    {
+      "label": "wave133:before",
+      "captured_at": 989397.424101577,
+      "input_turns": 32248,
+      "handled_controls": 26920,
+      "yields_to_native_loop": 15396,
+      "yields_with_queued_input": 10163
+    },
+    {
+      "label": "wave133:after",
+      "captured_at": 989408.916148146,
+      "input_turns": 32559,
+      "handled_controls": 27031,
+      "yields_to_native_loop": 15492,
+      "yields_with_queued_input": 10220
+    },
+    {
+      "label": "wave134:before",
+      "captured_at": 989414.964422932,
+      "input_turns": 32559,
+      "handled_controls": 27124,
+      "yields_to_native_loop": 15492,
+      "yields_with_queued_input": 10220
+    },
+    {
+      "label": "wave134:after",
+      "captured_at": 989427.249312625,
+      "input_turns": 32898,
+      "handled_controls": 27235,
+      "yields_to_native_loop": 15588,
+      "yields_with_queued_input": 10273
+    },
+    {
+      "label": "scheduler_after",
+      "captured_at": 989427.354135027,
+      "input_turns": 32898,
+      "handled_controls": 27236,
+      "yields_to_native_loop": 15588,
+      "yields_with_queued_input": 10273
+    }
+  ],
+  "delta": {
+    "input_turns": 32897,
+    "handled_controls": 27236,
+    "yields_to_native_loop": 15588,
+    "yields_with_queued_input": 10273
+  },
+  "triggered": true,
+  "queued_input_triggered": true,
+  "counter_scope": "between_recorded_native_scheduler_snapshots",
+  "model_step_count": null,
+  "gpu_idle_seconds": null,
+  "causal_speedup": null,
+  "waves": [
+    {
+      "wave": 0,
+      "role": "kernel_warmup_retained",
+      "delta": {
+        "input_turns": 150,
+        "handled_controls": 127,
+        "yields_to_native_loop": 116,
+        "yields_with_queued_input": 79
+      }
+    },
+    {
+      "wave": 1,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 192,
+        "handled_controls": 215,
+        "yields_to_native_loop": 163,
+        "yields_with_queued_input": 149
+      }
+    },
+    {
+      "wave": 2,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 153,
+        "handled_controls": 155,
+        "yields_to_native_loop": 140,
+        "yields_with_queued_input": 126
+      }
+    },
+    {
+      "wave": 3,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 157,
+        "handled_controls": 155,
+        "yields_to_native_loop": 139,
+        "yields_with_queued_input": 124
+      }
+    },
+    {
+      "wave": 4,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 174,
+        "handled_controls": 155,
+        "yields_to_native_loop": 138,
+        "yields_with_queued_input": 116
+      }
+    },
+    {
+      "wave": 5,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 147,
+        "handled_controls": 127,
+        "yields_to_native_loop": 116,
+        "yields_with_queued_input": 79
+      }
+    },
+    {
+      "wave": 6,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 112,
+        "handled_controls": 122,
+        "yields_to_native_loop": 107,
+        "yields_with_queued_input": 99
+      }
+    },
+    {
+      "wave": 7,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 113,
+        "handled_controls": 122,
+        "yields_to_native_loop": 107,
+        "yields_with_queued_input": 92
+      }
+    },
+    {
+      "wave": 8,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 125,
+        "handled_controls": 122,
+        "yields_to_native_loop": 82,
+        "yields_with_queued_input": 66
+      }
+    },
+    {
+      "wave": 9,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 99,
+        "handled_controls": 100,
+        "yields_to_native_loop": 90,
+        "yields_with_queued_input": 67
+      }
+    },
+    {
+      "wave": 10,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 102,
+        "handled_controls": 144,
+        "yields_to_native_loop": 91,
+        "yields_with_queued_input": 81
+      }
+    },
+    {
+      "wave": 11,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 178,
+        "handled_controls": 155,
+        "yields_to_native_loop": 137,
+        "yields_with_queued_input": 77
+      }
+    },
+    {
+      "wave": 12,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 185,
+        "handled_controls": 155,
+        "yields_to_native_loop": 140,
+        "yields_with_queued_input": 70
+      }
+    },
+    {
+      "wave": 13,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 161,
+        "handled_controls": 127,
+        "yields_to_native_loop": 114,
+        "yields_with_queued_input": 28
+      }
+    },
+    {
+      "wave": 14,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 207,
+        "handled_controls": 199,
+        "yields_to_native_loop": 154,
+        "yields_with_queued_input": 113
+      }
+    },
+    {
+      "wave": 15,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 178,
+        "handled_controls": 155,
+        "yields_to_native_loop": 137,
+        "yields_with_queued_input": 81
+      }
+    },
+    {
+      "wave": 16,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 115,
+        "handled_controls": 111,
+        "yields_to_native_loop": 81,
+        "yields_with_queued_input": 66
+      }
+    },
+    {
+      "wave": 17,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 111,
+        "handled_controls": 91,
+        "yields_to_native_loop": 62,
+        "yields_with_queued_input": 28
+      }
+    },
+    {
+      "wave": 18,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 126,
+        "handled_controls": 131,
+        "yields_to_native_loop": 86,
+        "yields_with_queued_input": 67
+      }
+    },
+    {
+      "wave": 19,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 116,
+        "handled_controls": 111,
+        "yields_to_native_loop": 83,
+        "yields_with_queued_input": 67
+      }
+    },
+    {
+      "wave": 20,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 115,
+        "handled_controls": 111,
+        "yields_to_native_loop": 82,
+        "yields_with_queued_input": 66
+      }
+    },
+    {
+      "wave": 21,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 262,
+        "handled_controls": 127,
+        "yields_to_native_loop": 99,
+        "yields_with_queued_input": 45
+      }
+    },
+    {
+      "wave": 22,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 286,
+        "handled_controls": 203,
+        "yields_to_native_loop": 144,
+        "yields_with_queued_input": 116
+      }
+    },
+    {
+      "wave": 23,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 272,
+        "handled_controls": 155,
+        "yields_to_native_loop": 132,
+        "yields_with_queued_input": 105
+      }
+    },
+    {
+      "wave": 24,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 272,
+        "handled_controls": 155,
+        "yields_to_native_loop": 132,
+        "yields_with_queued_input": 106
+      }
+    },
+    {
+      "wave": 25,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 280,
+        "handled_controls": 155,
+        "yields_to_native_loop": 132,
+        "yields_with_queued_input": 91
+      }
+    },
+    {
+      "wave": 26,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 277,
+        "handled_controls": 165,
+        "yields_to_native_loop": 109,
+        "yields_with_queued_input": 80
+      }
+    },
+    {
+      "wave": 27,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 247,
+        "handled_controls": 133,
+        "yields_to_native_loop": 105,
+        "yields_with_queued_input": 92
+      }
+    },
+    {
+      "wave": 28,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 247,
+        "handled_controls": 133,
+        "yields_to_native_loop": 105,
+        "yields_with_queued_input": 93
+      }
+    },
+    {
+      "wave": 29,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 251,
+        "handled_controls": 133,
+        "yields_to_native_loop": 106,
+        "yields_with_queued_input": 89
+      }
+    },
+    {
+      "wave": 30,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 244,
+        "handled_controls": 109,
+        "yields_to_native_loop": 87,
+        "yields_with_queued_input": 44
+      }
+    },
+    {
+      "wave": 31,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 353,
+        "handled_controls": 155,
+        "yields_to_native_loop": 140,
+        "yields_with_queued_input": 76
+      }
+    },
+    {
+      "wave": 32,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 348,
+        "handled_controls": 155,
+        "yields_to_native_loop": 139,
+        "yields_with_queued_input": 78
+      }
+    },
+    {
+      "wave": 33,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 356,
+        "handled_controls": 155,
+        "yields_to_native_loop": 139,
+        "yields_with_queued_input": 69
+      }
+    },
+    {
+      "wave": 34,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 340,
+        "handled_controls": 127,
+        "yields_to_native_loop": 115,
+        "yields_with_queued_input": 23
+      }
+    },
+    {
+      "wave": 35,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 377,
+        "handled_controls": 203,
+        "yields_to_native_loop": 161,
+        "yields_with_queued_input": 105
+      }
+    },
+    {
+      "wave": 36,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 334,
+        "handled_controls": 133,
+        "yields_to_native_loop": 117,
+        "yields_with_queued_input": 63
+      }
+    },
+    {
+      "wave": 37,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 336,
+        "handled_controls": 133,
+        "yields_to_native_loop": 117,
+        "yields_with_queued_input": 63
+      }
+    },
+    {
+      "wave": 38,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 329,
+        "handled_controls": 109,
+        "yields_to_native_loop": 98,
+        "yields_with_queued_input": 21
+      }
+    },
+    {
+      "wave": 39,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 330,
+        "handled_controls": 169,
+        "yields_to_native_loop": 110,
+        "yields_with_queued_input": 81
+      }
+    },
+    {
+      "wave": 40,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 334,
+        "handled_controls": 133,
+        "yields_to_native_loop": 117,
+        "yields_with_queued_input": 64
+      }
+    },
+    {
+      "wave": 41,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 158,
+        "handled_controls": 155,
+        "yields_to_native_loop": 140,
+        "yields_with_queued_input": 127
+      }
+    },
+    {
+      "wave": 42,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 159,
+        "handled_controls": 155,
+        "yields_to_native_loop": 140,
+        "yields_with_queued_input": 128
+      }
+    },
+    {
+      "wave": 43,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 189,
+        "handled_controls": 155,
+        "yields_to_native_loop": 126,
+        "yields_with_queued_input": 105
+      }
+    },
+    {
+      "wave": 44,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 159,
+        "handled_controls": 127,
+        "yields_to_native_loop": 110,
+        "yields_with_queued_input": 68
+      }
+    },
+    {
+      "wave": 45,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 161,
+        "handled_controls": 203,
+        "yields_to_native_loop": 131,
+        "yields_with_queued_input": 114
+      }
+    },
+    {
+      "wave": 46,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 128,
+        "handled_controls": 122,
+        "yields_to_native_loop": 105,
+        "yields_with_queued_input": 99
+      }
+    },
+    {
+      "wave": 47,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 145,
+        "handled_controls": 122,
+        "yields_to_native_loop": 99,
+        "yields_with_queued_input": 83
+      }
+    },
+    {
+      "wave": 48,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 114,
+        "handled_controls": 100,
+        "yields_to_native_loop": 83,
+        "yields_with_queued_input": 67
+      }
+    },
+    {
+      "wave": 49,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 109,
+        "handled_controls": 144,
+        "yields_to_native_loop": 91,
+        "yields_with_queued_input": 84
+      }
+    },
+    {
+      "wave": 50,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 128,
+        "handled_controls": 122,
+        "yields_to_native_loop": 105,
+        "yields_with_queued_input": 99
+      }
+    },
+    {
+      "wave": 51,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 219,
+        "handled_controls": 155,
+        "yields_to_native_loop": 140,
+        "yields_with_queued_input": 86
+      }
+    },
+    {
+      "wave": 52,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 190,
+        "handled_controls": 127,
+        "yields_to_native_loop": 116,
+        "yields_with_queued_input": 30
+      }
+    },
+    {
+      "wave": 53,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 190,
+        "handled_controls": 191,
+        "yields_to_native_loop": 142,
+        "yields_with_queued_input": 113
+      }
+    },
+    {
+      "wave": 54,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 183,
+        "handled_controls": 155,
+        "yields_to_native_loop": 140,
+        "yields_with_queued_input": 81
+      }
+    },
+    {
+      "wave": 55,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 212,
+        "handled_controls": 155,
+        "yields_to_native_loop": 140,
+        "yields_with_queued_input": 95
+      }
+    },
+    {
+      "wave": 56,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 146,
+        "handled_controls": 91,
+        "yields_to_native_loop": 80,
+        "yields_with_queued_input": 48
+      }
+    },
+    {
+      "wave": 57,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 136,
+        "handled_controls": 135,
+        "yields_to_native_loop": 86,
+        "yields_with_queued_input": 59
+      }
+    },
+    {
+      "wave": 58,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 164,
+        "handled_controls": 111,
+        "yields_to_native_loop": 96,
+        "yields_with_queued_input": 78
+      }
+    },
+    {
+      "wave": 59,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 155,
+        "handled_controls": 111,
+        "yields_to_native_loop": 96,
+        "yields_with_queued_input": 83
+      }
+    },
+    {
+      "wave": 60,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 164,
+        "handled_controls": 111,
+        "yields_to_native_loop": 96,
+        "yields_with_queued_input": 82
+      }
+    },
+    {
+      "wave": 61,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 329,
+        "handled_controls": 203,
+        "yields_to_native_loop": 156,
+        "yields_with_queued_input": 114
+      }
+    },
+    {
+      "wave": 62,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 309,
+        "handled_controls": 155,
+        "yields_to_native_loop": 140,
+        "yields_with_queued_input": 123
+      }
+    },
+    {
+      "wave": 63,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 309,
+        "handled_controls": 155,
+        "yields_to_native_loop": 140,
+        "yields_with_queued_input": 116
+      }
+    },
+    {
+      "wave": 64,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 317,
+        "handled_controls": 155,
+        "yields_to_native_loop": 140,
+        "yields_with_queued_input": 95
+      }
+    },
+    {
+      "wave": 65,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 299,
+        "handled_controls": 127,
+        "yields_to_native_loop": 116,
+        "yields_with_queued_input": 65
+      }
+    },
+    {
+      "wave": 66,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 295,
+        "handled_controls": 133,
+        "yields_to_native_loop": 118,
+        "yields_with_queued_input": 109
+      }
+    },
+    {
+      "wave": 67,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 295,
+        "handled_controls": 133,
+        "yields_to_native_loop": 118,
+        "yields_with_queued_input": 108
+      }
+    },
+    {
+      "wave": 68,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 310,
+        "handled_controls": 133,
+        "yields_to_native_loop": 118,
+        "yields_with_queued_input": 92
+      }
+    },
+    {
+      "wave": 69,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 298,
+        "handled_controls": 109,
+        "yields_to_native_loop": 98,
+        "yields_with_queued_input": 60
+      }
+    },
+    {
+      "wave": 70,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 277,
+        "handled_controls": 157,
+        "yields_to_native_loop": 99,
+        "yields_with_queued_input": 69
+      }
+    },
+    {
+      "wave": 71,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 348,
+        "handled_controls": 155,
+        "yields_to_native_loop": 139,
+        "yields_with_queued_input": 77
+      }
+    },
+    {
+      "wave": 72,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 350,
+        "handled_controls": 155,
+        "yields_to_native_loop": 139,
+        "yields_with_queued_input": 69
+      }
+    },
+    {
+      "wave": 73,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 338,
+        "handled_controls": 127,
+        "yields_to_native_loop": 116,
+        "yields_with_queued_input": 22
+      }
+    },
+    {
+      "wave": 74,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 372,
+        "handled_controls": 203,
+        "yields_to_native_loop": 158,
+        "yields_with_queued_input": 117
+      }
+    },
+    {
+      "wave": 75,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 348,
+        "handled_controls": 155,
+        "yields_to_native_loop": 139,
+        "yields_with_queued_input": 76
+      }
+    },
+    {
+      "wave": 76,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 336,
+        "handled_controls": 133,
+        "yields_to_native_loop": 117,
+        "yields_with_queued_input": 60
+      }
+    },
+    {
+      "wave": 77,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 333,
+        "handled_controls": 109,
+        "yields_to_native_loop": 97,
+        "yields_with_queued_input": 17
+      }
+    },
+    {
+      "wave": 78,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 337,
+        "handled_controls": 173,
+        "yields_to_native_loop": 117,
+        "yields_with_queued_input": 77
+      }
+    },
+    {
+      "wave": 79,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 334,
+        "handled_controls": 133,
+        "yields_to_native_loop": 118,
+        "yields_with_queued_input": 66
+      }
+    },
+    {
+      "wave": 80,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 340,
+        "handled_controls": 133,
+        "yields_to_native_loop": 117,
+        "yields_with_queued_input": 62
+      }
+    },
+    {
+      "wave": 81,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 160,
+        "handled_controls": 155,
+        "yields_to_native_loop": 140,
+        "yields_with_queued_input": 129
+      }
+    },
+    {
+      "wave": 82,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 165,
+        "handled_controls": 155,
+        "yields_to_native_loop": 127,
+        "yields_with_queued_input": 94
+      }
+    },
+    {
+      "wave": 83,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 155,
+        "handled_controls": 127,
+        "yields_to_native_loop": 113,
+        "yields_with_queued_input": 73
+      }
+    },
+    {
+      "wave": 84,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 217,
+        "handled_controls": 215,
+        "yields_to_native_loop": 168,
+        "yields_with_queued_input": 141
+      }
+    },
+    {
+      "wave": 85,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 168,
+        "handled_controls": 155,
+        "yields_to_native_loop": 140,
+        "yields_with_queued_input": 126
+      }
+    },
+    {
+      "wave": 86,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 118,
+        "handled_controls": 122,
+        "yields_to_native_loop": 89,
+        "yields_with_queued_input": 72
+      }
+    },
+    {
+      "wave": 87,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 112,
+        "handled_controls": 100,
+        "yields_to_native_loop": 86,
+        "yields_with_queued_input": 61
+      }
+    },
+    {
+      "wave": 88,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 106,
+        "handled_controls": 148,
+        "yields_to_native_loop": 95,
+        "yields_with_queued_input": 75
+      }
+    },
+    {
+      "wave": 89,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 124,
+        "handled_controls": 122,
+        "yields_to_native_loop": 98,
+        "yields_with_queued_input": 86
+      }
+    },
+    {
+      "wave": 90,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 124,
+        "handled_controls": 122,
+        "yields_to_native_loop": 104,
+        "yields_with_queued_input": 94
+      }
+    },
+    {
+      "wave": 91,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 205,
+        "handled_controls": 127,
+        "yields_to_native_loop": 116,
+        "yields_with_queued_input": 40
+      }
+    },
+    {
+      "wave": 92,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 202,
+        "handled_controls": 199,
+        "yields_to_native_loop": 149,
+        "yields_with_queued_input": 105
+      }
+    },
+    {
+      "wave": 93,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 200,
+        "handled_controls": 155,
+        "yields_to_native_loop": 141,
+        "yields_with_queued_input": 88
+      }
+    },
+    {
+      "wave": 94,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 183,
+        "handled_controls": 155,
+        "yields_to_native_loop": 139,
+        "yields_with_queued_input": 79
+      }
+    },
+    {
+      "wave": 95,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 214,
+        "handled_controls": 155,
+        "yields_to_native_loop": 139,
+        "yields_with_queued_input": 74
+      }
+    },
+    {
+      "wave": 96,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 136,
+        "handled_controls": 135,
+        "yields_to_native_loop": 85,
+        "yields_with_queued_input": 55
+      }
+    },
+    {
+      "wave": 97,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 169,
+        "handled_controls": 111,
+        "yields_to_native_loop": 96,
+        "yields_with_queued_input": 73
+      }
+    },
+    {
+      "wave": 98,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 154,
+        "handled_controls": 111,
+        "yields_to_native_loop": 94,
+        "yields_with_queued_input": 73
+      }
+    },
+    {
+      "wave": 99,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 163,
+        "handled_controls": 111,
+        "yields_to_native_loop": 94,
+        "yields_with_queued_input": 71
+      }
+    },
+    {
+      "wave": 100,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 146,
+        "handled_controls": 91,
+        "yields_to_native_loop": 79,
+        "yields_with_queued_input": 43
+      }
+    },
+    {
+      "wave": 101,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 317,
+        "handled_controls": 155,
+        "yields_to_native_loop": 140,
+        "yields_with_queued_input": 114
+      }
+    },
+    {
+      "wave": 102,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 309,
+        "handled_controls": 155,
+        "yields_to_native_loop": 140,
+        "yields_with_queued_input": 114
+      }
+    },
+    {
+      "wave": 103,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 317,
+        "handled_controls": 155,
+        "yields_to_native_loop": 139,
+        "yields_with_queued_input": 94
+      }
+    },
+    {
+      "wave": 104,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 296,
+        "handled_controls": 127,
+        "yields_to_native_loop": 116,
+        "yields_with_queued_input": 66
+      }
+    },
+    {
+      "wave": 105,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 353,
+        "handled_controls": 199,
+        "yields_to_native_loop": 150,
+        "yields_with_queued_input": 112
+      }
+    },
+    {
+      "wave": 106,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 292,
+        "handled_controls": 133,
+        "yields_to_native_loop": 118,
+        "yields_with_queued_input": 90
+      }
+    },
+    {
+      "wave": 107,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 338,
+        "handled_controls": 133,
+        "yields_to_native_loop": 116,
+        "yields_with_queued_input": 78
+      }
+    },
+    {
+      "wave": 108,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 288,
+        "handled_controls": 109,
+        "yields_to_native_loop": 98,
+        "yields_with_queued_input": 51
+      }
+    },
+    {
+      "wave": 109,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 289,
+        "handled_controls": 157,
+        "yields_to_native_loop": 106,
+        "yields_with_queued_input": 72
+      }
+    },
+    {
+      "wave": 110,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 292,
+        "handled_controls": 133,
+        "yields_to_native_loop": 117,
+        "yields_with_queued_input": 88
+      }
+    },
+    {
+      "wave": 111,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 368,
+        "handled_controls": 155,
+        "yields_to_native_loop": 139,
+        "yields_with_queued_input": 75
+      }
+    },
+    {
+      "wave": 112,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 345,
+        "handled_controls": 127,
+        "yields_to_native_loop": 117,
+        "yields_with_queued_input": 18
+      }
+    },
+    {
+      "wave": 113,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 366,
+        "handled_controls": 203,
+        "yields_to_native_loop": 156,
+        "yields_with_queued_input": 96
+      }
+    },
+    {
+      "wave": 114,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 363,
+        "handled_controls": 155,
+        "yields_to_native_loop": 140,
+        "yields_with_queued_input": 75
+      }
+    },
+    {
+      "wave": 115,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 354,
+        "handled_controls": 155,
+        "yields_to_native_loop": 140,
+        "yields_with_queued_input": 73
+      }
+    },
+    {
+      "wave": 116,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 322,
+        "handled_controls": 109,
+        "yields_to_native_loop": 97,
+        "yields_with_queued_input": 19
+      }
+    },
+    {
+      "wave": 117,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 344,
+        "handled_controls": 173,
+        "yields_to_native_loop": 122,
+        "yields_with_queued_input": 86
+      }
+    },
+    {
+      "wave": 118,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 340,
+        "handled_controls": 133,
+        "yields_to_native_loop": 115,
+        "yields_with_queued_input": 63
+      }
+    },
+    {
+      "wave": 119,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 334,
+        "handled_controls": 133,
+        "yields_to_native_loop": 117,
+        "yields_with_queued_input": 65
+      }
+    },
+    {
+      "wave": 120,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 336,
+        "handled_controls": 133,
+        "yields_to_native_loop": 117,
+        "yields_with_queued_input": 60
+      }
+    },
+    {
+      "wave": 121,
+      "role": "kernel_warmup_retained",
+      "delta": {
+        "input_turns": 300,
+        "handled_controls": 91,
+        "yields_to_native_loop": 80,
+        "yields_with_queued_input": 12
+      }
+    },
+    {
+      "wave": 122,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 303,
+        "handled_controls": 91,
+        "yields_to_native_loop": 80,
+        "yields_with_queued_input": 18
+      }
+    },
+    {
+      "wave": 123,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 302,
+        "handled_controls": 91,
+        "yields_to_native_loop": 80,
+        "yields_with_queued_input": 14
+      }
+    },
+    {
+      "wave": 124,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 300,
+        "handled_controls": 91,
+        "yields_to_native_loop": 81,
+        "yields_with_queued_input": 16
+      }
+    },
+    {
+      "wave": 125,
+      "role": "kernel_warmup_retained",
+      "delta": {
+        "input_turns": 302,
+        "handled_controls": 91,
+        "yields_to_native_loop": 80,
+        "yields_with_queued_input": 18
+      }
+    },
+    {
+      "wave": 126,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 310,
+        "handled_controls": 111,
+        "yields_to_native_loop": 96,
+        "yields_with_queued_input": 54
+      }
+    },
+    {
+      "wave": 127,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 310,
+        "handled_controls": 111,
+        "yields_to_native_loop": 96,
+        "yields_with_queued_input": 53
+      }
+    },
+    {
+      "wave": 128,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 311,
+        "handled_controls": 111,
+        "yields_to_native_loop": 96,
+        "yields_with_queued_input": 52
+      }
+    },
+    {
+      "wave": 129,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 310,
+        "handled_controls": 111,
+        "yields_to_native_loop": 96,
+        "yields_with_queued_input": 52
+      }
+    },
+    {
+      "wave": 130,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 319,
+        "handled_controls": 111,
+        "yields_to_native_loop": 96,
+        "yields_with_queued_input": 46
+      }
+    },
+    {
+      "wave": 131,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 311,
+        "handled_controls": 111,
+        "yields_to_native_loop": 96,
+        "yields_with_queued_input": 45
+      }
+    },
+    {
+      "wave": 132,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 311,
+        "handled_controls": 111,
+        "yields_to_native_loop": 96,
+        "yields_with_queued_input": 54
+      }
+    },
+    {
+      "wave": 133,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 311,
+        "handled_controls": 111,
+        "yields_to_native_loop": 96,
+        "yields_with_queued_input": 57
+      }
+    },
+    {
+      "wave": 134,
+      "role": "representative_measurement",
+      "delta": {
+        "input_turns": 339,
+        "handled_controls": 111,
+        "yields_to_native_loop": 96,
+        "yields_with_queued_input": 53
+      }
+    }
+  ],
+  "zero_yield_waves": []
+}

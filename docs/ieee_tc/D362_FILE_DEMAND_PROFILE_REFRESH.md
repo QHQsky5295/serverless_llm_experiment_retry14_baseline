@@ -83,3 +83,37 @@ warm reference and full Resident budget qualification remain open. Do not claim
 
 Plan SHA: `0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7`.
 Frozen V1 SHA: `5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22`.
+
+## Completed measurement — 2026-10-09
+
+All 1,669 native calls passed their execution contracts. The 1,635 representative
+calls cover all 200 required service classes and 24 preparation classes; the 34
+warmup calls remain in the evidence but are not initialization samples. Fresh
+profiles loaded successfully under the exact D361 runtime identity. No additional
+gap measurement was required and no older timing observations were relabelled.
+
+| Observation | Measured value |
+|---|---:|
+| Protected file-demand transactions | 969 |
+| Transactions with intervening owner-epoch advance | 191 |
+| Maximum observed owner-epoch advance | 7 |
+| Remote transfer pairs | 1,669 |
+| Wire bytes | 3,406,922,201 |
+| Request-time packing operations | 0 |
+| Calibration physical GPU-s | 2,204.462958 |
+| Service memory peak, bytes | 5,453,787,136 |
+| Service high/max/OOM/swap events or bytes | 0 |
+
+The witness audit confirms live resource checks and no reuse of an old capacity
+snapshot. It verifies that the intended path is exercised, not that latency or
+resource use has improved. The calibration deliberately materializes sources and
+is not a representative Full workload: its transfer count and GPU-s must not be
+compared to Full4000 cost. Numerical correctness remains separately unqualified.
+
+All local GPU contexts were released and the three owned remote units stopped.
+After release, 50 CPU regression checks and the bilateral transfer, ownership,
+class-coverage and control-counter audits passed. Complete raw observations stay
+under the new D362 directory. Measurement SHA:
+`7f53d261ed66ae4c5386237da3b4c425197dda3c18c4764e7dbfbcc3d15a457e`.
+The next decision is first100 execution validation followed by complete W0;
+no claim of G1/G2 superiority or 7B closure follows from this calibration.

@@ -1,0 +1,39 @@
+{
+  "passed": true,
+  "calibration_complete": true,
+  "full_performance_qualified": false,
+  "n_correct": null,
+  "source_execution_commit": "8adb30d1390f5fa139061219b03f709cee55ea05",
+  "source_run": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d362_20261009/source1.json",
+    "sha256": "7f53d261ed66ae4c5386237da3b4c425197dda3c18c4764e7dbfbcc3d15a457e"
+  },
+  "measured_calls": 1635,
+  "native_calls": 1669,
+  "service_classes": 200,
+  "preparation_classes": 24,
+  "file_demand_transactions": 969,
+  "advanced_owner_epoch_transactions": 191,
+  "tests_after_release": 50,
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": false,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [
+      "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"
+    ],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "export_resources": {
+    "memory.peak": "949907456\n",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+    "memory.swap.current": "0\n"
+  },
+  "export_evidence": {
+    "sha256": "aef203042eba89cd88e1cea921794d1c7f2fa0de606f450334601236180cabb8",
+    "bytes": 8524
+  },
+  "no_figures": true,
+  "next": "D363 first100 then complete W0 against retained D358/D353/D336"
+}

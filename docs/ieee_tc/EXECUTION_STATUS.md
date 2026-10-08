@@ -11,15 +11,90 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D362 affected profile preparation passed; measurement NEXT; 7B OPEN
+## CURRENT — D362 calibration COMPLETE and exported; 7B performance OPEN
+
+2026-10-09: the same D362 source run completed1669/1669 native calls,
+including34warmups and1635representative measurements. All200service classes
+and24preparation classes covered; no complementary run needed. SourceSHA
+7f53d261ed66ae4c5386237da3b4c425197dda3c18c4764e7dbfbcc3d15a457e;
+execution8adb30d1390f5fa139061219b03f709cee55ea05. GPU2204.462957785s
+is calibration occupancy, NOT Full4000 cost. Native contracts/identity receipts
+pass; numerical N_correct and formalwarm/Resident/G1/G2 qualification remainopen.
+Remote1669pairedtransfers/3406922201wireB/requestpacking0; reusedpublishedcache.
+969filetransactions;191sawunrelatedownerepochadvance,max7,livechecksretained,
+no oldcapacitysnapshotreuse. NativeGPU/HOST path guards retained. This verifies
+mechanism exposure, not a causal performancegain. Controlinterleave triggered.
+Servicepeak5453787136B,hostmin107043381248B,high/max/OOM/swap0.
+
+Actual GPUrelease/servicepathremovalconfirmed; tmuxended. stop_remote.sh ran
+ONCE,3exactownedremoteunitsinactive. run_analysis.py closed starter233a4ec
+and launcher0dc1ff through collector, downloadedSHAverifiedjournals, passed50CPU
+checks and all source/file/control/coverageaudits. Offline52d3e1c closed by
+seal_measurement.py; seal54eca708 closed by export_profiles.py. Fresh strict
+service/preparation loader exportpassed; nooldtiming relabelled, nofigures.
+Measurement evidence2076337B archived, rawretained. Export scope8011d759 is
+empty; closure checkpoint will close exactidentity once and backup all new
+curated data. Check its receipt before any repeatedcleanup.
+
+NEXT: D363 first100 usingD362 measured profiles andD358 unchangedcontrollers,
+then complete4000W0 againstD358/D353/D336. Onlycandidate remainsD361 protected
+file-demandtransaction; no second servingchange/tuning before Fullvalidation.
+Keepmainline7B→3B→pausedbaselines→M1/M2→ablations/sensitivities.
+One-time cacheapproval alreadyrecorded inplan; do NOT regenerate weights,
+traces, publishedarchives or aseconduncompressedpool.
+
+### D362 live history — completed, retained reference
+
+2026-10-09 live: source checkpoint8adb30d1390f5fa139061219b03f709cee55ea05
+pushed and remote equality verified. Same existing collector launched in tmux
+tc-d362-source (pane PID120971); do not launch a duplicate. Source1 and launch
+outputs are under raw d362_20261009. Remote negotiation1000Mbps/full, published
+gzip services healthy; no assets regenerated. Watchdog sample104: actual GPU0
+serving, servicepeak5453787136B,hostavailable108586762240B,high/max/OOM/swap0,
+disk161821388800B,noabort. First measured GPU-source calls have completed;
+this is partial calibration, no Full or performance conclusion.
+Live launcher identity is in launcher_identity.json (unit0dc1ff...); service
+aaefd1098e0f4e60ab2c1992d92ee0d2. Starter scope233a4ec... still owns tmuxserver
+PID120970. Attempted empty-scope check correctly refused closure, sent no signal;
+starter_close_deferred.json records it. Do not close starter until session ends.
+Preparation scope4b2ce7... closed by checkpoint;checkpoint750cb9... closed by
+start.py. Do not repeat those closures. Next monitor SAME measurement→native
+release→stop_remote.sh once→run_analysis.py (owns empty starter closure,
+collect_closure.py, CPU tests and offline file-witness/control/class audit).
+Do NOT separately run collect_closure.py or close_starter.py before that wrapper.
+No tests/hash/compression during GPU. D356 analysis/seal helpers have been reused
+under D362 raw paths with1669/1635/34counts and explicit file-demand audit;
+they have NOT been executed yet. Source checkpoint remains8adb30d.
+Latest verified same live handle at watchdog sample231: file_host wave11 calls
+completing;host108204048384B,peak5453787136B,high/max/OOM/swap0,
+disk161402839040B,noabort. Startup150GiB and running100GiB gates unchanged.
+Continuation verified wait: same live tmux pane120971 at watchdog sample477,
+365/1669 native completion log events (not a completed/calibration-qualified
+result).Host108320727040B,peak5453787136B,high/max/OOM/swap0,
+disk161775316992B,noabort. Full source/launch JSON closure is still pending.
+This turn did not change serving code, restart services or run any tests/analysis.
+Only post-release helpers were prepared from D356, and the live handle was
+revalidated. Previous goal turn was progress (536tests, pushed8adb30d,launch);
+this is a verified wait, not a blocker. Keep the full goal active.
+Second continuation verified the same live pane120971 through watchdog sample823:
+644/1669 completion log events, including NVMe wave50. Host108652412928B,
+servicepeak5453787136B,high/max/OOM/swap0,disk161394970624B,noabort.
+No restart, second experiment or live serving change. Full source/launch result
+and release remain pending. This is another verified wait, not a blocked turn.
+Third continuation: five scheduled50s checks repeatedly confirmed live pane
+120971, ending at watchdog1180 with922/1669completion events. Host108460974080B,
+peak5453787136B,high/max/OOM/swap0,disk161790672896B,noabort. Source/launch
+completion files still pending; no duplicate launch, service mutation, analysis,
+compression or other GPU job. The prior/current turns are verified waits on the
+same ongoing measurement, not equivalent blockers. Keep goal active.
 
 2026-10-09: D361 candidate remains the only serving change. Extended existing
 D356/D344 preparer/runner/exporter for its exact runtime identity. Only completed
 fixed-output lengths transfer via an explicit contract; old timing never moves.
 Reused exact135waves/1669calls (1635representative/34warmups), existing artifacts,
 trace and published delivery cache.536CPU tests passed in native environment.
-No new GPU measurement yet; no performance/numerical qualification claimed.
-Next checkpoint/push and fresh gates→D362 source calibration→strict file-witness,
+At preparation checkpoint no GPU measurement had run; no performance/numerical
+qualification claimed. Prepared sequence: checkpoint/push and fresh gates→D362 source calibration→strict file-witness,
 control counter and class coverage audit→first100→Full4000 against D358/D353/D336.
 Do not repeat D361 cleanup (allscopes closed, backup verified5f3053a).
 See D362_FILE_DEMAND_PROFILE_REFRESH.md. Nofigures;mainline unchanged.
