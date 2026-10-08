@@ -1,0 +1,381 @@
+{
+  "passed": true,
+  "tests": 62,
+  "os_guard_tests": 50,
+  "native_environment": true,
+  "gpu_runs": 0,
+  "base_requests": 4000,
+  "diagnostic_prefix_count": null,
+  "configuration_changed_only_paths": true,
+  "formal_qualification": false,
+  "n_correct": null,
+  "sole_candidate": "protected_file_owner_turn_v1",
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": false,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [
+      "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"
+    ],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "gate": {
+    "kind": "ieee_tc_preflight",
+    "time_unix": 1791484020.2145917,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+    "policy": {
+      "service_high_bytes": 77309411328,
+      "service_max_bytes": 85899345920,
+      "service_swap_max_bytes": 2147483648,
+      "aux_max_bytes": 4294967296,
+      "stop_available_bytes": 17179869184,
+      "margin_bytes": 2147483648,
+      "warning_available_bytes": 25769803776,
+      "service_cpus": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47
+      ],
+      "aux_cpus": [
+        2,
+        3,
+        26,
+        27
+      ],
+      "reserved_cpus": [
+        0,
+        1,
+        24,
+        25
+      ],
+      "memory_full_avg10_percent": 10,
+      "pressure_samples": 10,
+      "sample_seconds": 1,
+      "disk_stop_bytes": 107374182400,
+      "disk_start_floor_bytes": 161061273600
+    },
+    "memory": {
+      "MemTotal": 134626844672,
+      "MemFree": 38003306496,
+      "MemAvailable": 112620339200,
+      "Buffers": 12875350016,
+      "Cached": 52951666688,
+      "SwapCached": 252719104,
+      "Active": 35084636160,
+      "Inactive": 47149400064,
+      "Active(anon)": 16113152000,
+      "Inactive(anon)": 300666880,
+      "Active(file)": 18971484160,
+      "Inactive(file)": 46848733184,
+      "Unevictable": 3211264,
+      "Mlocked": 0,
+      "SwapTotal": 36507213824,
+      "SwapFree": 34825379840,
+      "Zswap": 0,
+      "Zswapped": 0,
+      "Dirty": 1536000,
+      "Writeback": 0,
+      "AnonPages": 16327229440,
+      "Mapped": 1090666496,
+      "Shmem": 6901760,
+      "KReclaimable": 10863521792,
+      "Slab": 12268195840,
+      "SReclaimable": 10863521792,
+      "SUnreclaim": 1404674048,
+      "KernelStack": 42680320,
+      "PageTables": 166268928,
+      "SecPageTables": 0,
+      "NFS_Unstable": 0,
+      "Bounce": 0,
+      "WritebackTmp": 0,
+      "CommitLimit": 103820636160,
+      "Committed_AS": 20771164160,
+      "VmallocTotal": 35184372087808,
+      "VmallocUsed": 623435776,
+      "VmallocChunk": 0,
+      "Percpu": 204668928,
+      "HardwareCorrupted": 0,
+      "AnonHugePages": 69206016,
+      "ShmemHugePages": 0,
+      "ShmemPmdMapped": 0,
+      "FileHugePages": 0,
+      "FilePmdMapped": 0,
+      "Unaccepted": 0,
+      "HugePages_Total": 0,
+      "HugePages_Free": 0,
+      "HugePages_Rsvd": 0,
+      "HugePages_Surp": 0,
+      "Hugepagesize": 2097152,
+      "Hugetlb": 0,
+      "DirectMap4k": 36149624832,
+      "DirectMap2M": 98608087040,
+      "DirectMap1G": 4294967296
+    },
+    "required_available_bytes": 109521666048,
+    "filesystems": [
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+        "device": 2050,
+        "free_bytes": 161510354944,
+        "required_bytes": 161061273600,
+        "free_inodes": 210112197
+      }
+    ],
+    "service_parent_chain": [
+      {
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service",
+        "memory.current": 32908632064,
+        "memory.peak": 93511049216,
+        "memory.high": "max",
+        "memory.max": "max",
+        "memory.swap.current": 217976832,
+        "memory.swap.max": "max",
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=163627428\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=161556007",
+        "cpu.max": null,
+        "cpu.stat": "usage_usec 1337961755683\nuser_usec 1232175827879\nsystem_usec 105785927803\ncore_sched.force_idle_usec 0",
+        "cpuset.cpus.effective": null,
+        "cgroup.controllers": "memory pids",
+        "memory.events": {
+          "low": 0,
+          "high": 108168,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0,
+          "oom_group_kill": 0
+        }
+      },
+      {
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice",
+        "memory.current": 81711476736,
+        "memory.peak": 125386870784,
+        "memory.high": "max",
+        "memory.max": "max",
+        "memory.swap.current": 413229056,
+        "memory.swap.max": "max",
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=890401682\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=885849506",
+        "cpu.max": null,
+        "cpu.stat": "usage_usec 1408825705711\nuser_usec 1284474328685\nsystem_usec 124351377025\ncore_sched.force_idle_usec 0",
+        "cpuset.cpus.effective": null,
+        "cgroup.controllers": "memory pids",
+        "memory.events": {
+          "low": 0,
+          "high": 108168,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 1,
+          "oom_group_kill": 0
+        }
+      },
+      {
+        "path": "/sys/fs/cgroup/user.slice",
+        "memory.current": 81841205248,
+        "memory.peak": 125467160576,
+        "memory.high": "max",
+        "memory.max": "max",
+        "memory.swap.current": 593600512,
+        "memory.swap.max": "max",
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=883751219\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=878897248",
+        "cpu.max": "max 100000",
+        "cpu.stat": "usage_usec 1464091670770\nuser_usec 1322972378978\nsystem_usec 141119291792\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0",
+        "cpuset.cpus.effective": "0-47",
+        "cgroup.controllers": "cpuset cpu io memory hugetlb pids rdma misc",
+        "memory.events": {
+          "low": 0,
+          "high": 108168,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 1,
+          "oom_group_kill": 0
+        }
+      },
+      {
+        "path": "/sys/fs/cgroup",
+        "memory.current": null,
+        "memory.peak": null,
+        "memory.high": null,
+        "memory.max": null,
+        "memory.swap.current": null,
+        "memory.swap.max": null,
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=987328706\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=969648221",
+        "cpu.max": null,
+        "cpu.stat": "usage_usec 2739619678000\nuser_usec 2016672196000\nsystem_usec 722947482000\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0",
+        "cpuset.cpus.effective": "0-47",
+        "cgroup.controllers": "cpuset cpu io memory hugetlb pids rdma misc",
+        "memory.events": null
+      }
+    ],
+    "issues": [],
+    "preflight_pass": true,
+    "production_launch_authorized": false,
+    "remaining_gates": [
+      "actual_service_workers",
+      "separate_replay_and_watchdog",
+      "gpu_cleanup",
+      "per_filesystem_quota_audit"
+    ]
+  },
+  "refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261009_d364_7b_full_w0.yaml",
+      "sha256": "ddf58546e59db13a4f9a60ef37d96d20e7b8c12d8457c773bf51b059b32a205d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261009_d363_7b_file_demand_validation_100.yaml",
+      "sha256": "d7dc83abbe8ce889a0c94574c893386f9bf5ea50ec4fb9a016799154e5ebd2db"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d362_file_demand_profiles/development_contract.json",
+      "sha256": "80f4288558d0550a5efe7f6c7f4bff917375585bebfc5b49816ba77d55f65def"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d362_file_demand_profiles/initialization/manifest.json",
+      "sha256": "547ac8eedcdc672537260e331afc8ebbe889d4d15c2e102926824ec4ad3d1635"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d364_20261009/verify_prelaunch.py",
+      "sha256": "784b79a7ef818949b2bf1a8f5422f18bd057548539b5fdd24e30454f4c9ce43e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh",
+      "sha256": "5c7a3d7a8de068297af357559ac785a1493e5ac0547e57d02086c8a9dfa97e8b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "b8f5110e96a34ee163682a2808566ef39b211915b4e7e247732aabddee135144"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/vllm_ieee_frontend.py",
+      "sha256": "99b7a3bce98f9d5964265b6d865d99bab355e32720c6e0eb8699b883a32050e2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/vllm_ieee_scheduler.py",
+      "sha256": "c335bb25152c18b58a33f2961777cf3336e3f9bd793daeb9789d839f5156125f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/resource_coordinator.py",
+      "sha256": "667860ef2ba1203014ecaa13d192eb989eac27f57f33f42f2944ff110929466b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d362_20261009/export1_receipt.json",
+      "sha256": "730f8f0da83aaf1bbc3e2056766face8fc3363b3f7c2f392b87dffdaa011f951"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d363_file_demand_validation/closure_checkpoint.json",
+      "sha256": "646a187c708cc884b7bdfb6b7f5bee672e9c0a53a30b7da35f726e9c5a88da28"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d363_20261009/closure_backup_receipt.json",
+      "sha256": "05455dbd4ac154e848c83994f55c180b4da9539962b4aec02e1d64807d3e54f0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d362_file_demand_profiles/initialization/service.json",
+      "sha256": "69d5a0448375371a854d7a6470b07ccb936a6aaab057390416591bc2cf2b1cb0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d362_file_demand_profiles/initialization/preparation.json",
+      "sha256": "5fd9a36cc13acdb11fa3f42a3f071fc7e33084fef5f86cd7b4205c614c566645"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D364_FULL_FILE_DEMAND_VALIDATION.md",
+      "sha256": "f6c9344134ce82957c426f1f175190e2790f7d6f10da4e5f81785e0f84a32bf9"
+    }
+  ],
+  "raw_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d364_20261009/binding1.log",
+      "sha256": "1ec6760fb21744756d3950e89991a724e0709a6613fbc75718a4f0eebd829ff2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d364_20261009/capture_launcher.py",
+      "sha256": "e24eb630a4e3ec287c45cb0e20c7c95e39259267b542650077079d6a3c2741b2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d364_20261009/check_remote_health.py",
+      "sha256": "176d803fb722f46a895fb15a006f4f3b31469fc5073121c40ebaf524446e95b5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d364_20261009/os_guards1.log",
+      "sha256": "7cd427d637189b346a90cb109b33668e52fc6b2233ceb7573f782fe743c4cc2f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d364_20261009/prelaunch_binding.json",
+      "sha256": "cedb04b9386a689e44205c446dc957c683c520b077083af1f659a1820df83608"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d364_20261009/preparation_tests1_receipt.json",
+      "sha256": "49ebc2a612090d37735e0699078e19cd845e3ba8416a771a77ed6d0c4163e67d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d364_20261009/prepare_checkpoint.py",
+      "sha256": "97d8b78c0d179e1b9f310a09e3c3f4d9bc86ff2fd0ef2a285e2cb87867a7c043"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d364_20261009/start.py",
+      "sha256": "9300af48c362f96041951c6f754d0adc97c078f69420175867cd2e95bfd81f43"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d364_20261009/start_remote.sh",
+      "sha256": "df2617981b9123a125fc257fd832151754d745cca50d0cf96a9fa2ebc8a7e95a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d364_20261009/stop_remote.sh",
+      "sha256": "d2d7813c615db10fe0442abb373dbbe333d9e0e9d9950283a5a14db10b60293d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d364_20261009/tests1.log",
+      "sha256": "6e79df61db717abb634e0eb455475b12fecad1648f2ec3da9e1f9482656e249f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d364_20261009/verify_prelaunch.py",
+      "sha256": "784b79a7ef818949b2bf1a8f5422f18bd057548539b5fdd24e30454f4c9ce43e"
+    }
+  ],
+  "archive": {
+    "sha256": "f90c12bc9d74f28fe3136bccc1259744bac93cb7bd1c5ec5d23926975563e851",
+    "bytes": 13694
+  },
+  "identity": {
+    "unit": "primelora-tc-aux-4808f9580f37477b92229f761d58a2b5.scope",
+    "invocation_id": "63b4074bbd81410fbb18008a5a12d011",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-4808f9580f37477b92229f761d58a2b5.scope",
+    "inode": 20944454
+  }
+}

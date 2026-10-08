@@ -11,7 +11,24 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D363 first100 COMPLETE and audited; 7B performance OPEN
+## CURRENT — D364 unchanged complete W0 preparation; 7B performance OPEN
+
+2026-10-09: D363 is closed/backed up at a95aac413995675106693f67cd303f7d11f1366c.
+Do not repeat its cleanup. D364 reuses the candidate and D362 profiles unchanged;
+only three output/cache paths differ from D363 YAML. Existing runner removes
+the first100 prefix for all4000 W0. Bounded prelaunch checks, source backup and
+fresh safety gate precede launch; no D364 GPU result exists yet.
+Prior prefix TTFT/GPU regressions retained. Full target phase2 remains untested.
+Mainline 7B -> 3B -> paused baselines; no new candidate, figures or thresholds.
+Preparation passed62 native analysis tests,50 system-Python OS guards and exact
+200service/24preparation class assembly. D363 closure checksums/source reverified,
+protected history unchanged except the established baseline-script exception.
+Startup gate: disk161510105088B,host112101826560B. Preparation archive13694B.
+Scope4808f958 is empty; start.py owns its single exact-identity cleanup before a
+fresh gate. Source checkpoint must be pushed before launch; no GPU run yet.
+See D364_FULL_FILE_DEMAND_VALIDATION.md; next start.py then capture_launcher.py.
+
+## D363 first100 COMPLETE and audited; retained prefix evidence
 
 2026-10-09: D363 completed100/100/0fail usingpusheda5a2355beb8747d0efe2c4b550e998a39c165a7c.
 SourceSHA4228717a06b169ce308d8241e967513dbda6424e7bb2fa6d1b1b796f42a442ff,
