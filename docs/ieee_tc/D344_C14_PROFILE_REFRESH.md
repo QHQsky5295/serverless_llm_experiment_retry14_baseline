@@ -131,3 +131,36 @@ enforces a maximum running set but does not promise that short requests overlap:
 Native admission and completion records—not the configured maximum—must close
 these two coverage gaps. Full export remains disabled until measured union
 coverage and runtime/input/resource identities are validated.
+
+### Supplement outcome
+
+| Observation | Value |
+|---|---:|
+| Native calls completed | 40/40 |
+| Warmup / measured calls | 10 / 30 |
+| Rank8 / rank16 missing-class observations | 3 / 3 |
+| Actual short-target admission counts | 9,10,9,10,9,10 |
+| Long backgrounds still live at each target admission | 8 |
+| Service class count union with source1 | 200/200 |
+| Physical GPU-s, supplement only | 111.405661 |
+| Controlled fetches / wire bytes | 40 / 143002936 |
+| Request-time packing / memory high,max,OOM,swap | 0 |
+
+The measurement supports the sampling diagnosis: long existing requests remained
+live while both short classes were admitted. No sleeps or artificial lifetime
+extension were used. The complete source matrix was not repeated. Physical GPU
+release and remote closure were verified; all40bilateral transfers matched.
+
+Source SHA: `764509162dd0889b469e6150ae42aed8ca018f1899271d7b1789406e04508e4d`;
+execution: `7431ad6bde014182289c5e48daff68b4008cd428`. The first offline analyzer
+over-strictly compared planned and initialized configuration dictionaries: four
+runtime loader observations were added after initialization. Its script/failure
+and outputs remain retained. Corrected analysis reuses the existing runtime
+identity definition, additionally checks every original key unchanged and exactly
+those four startup observations. Coverage and measurement summaries agree byte
+for byte in content; no inference or raw measurements were rerun/rewritten.
+
+Coverage union alone is not profile export or Full qualification. The next step
+is matched multi-source validation and export of1545measured samples (24warmups
+excluded), retaining each run's SHA and local clock; then100Fullsmoke/4000W0.
+Numerical correctness, common references and G1/G2 remain open.

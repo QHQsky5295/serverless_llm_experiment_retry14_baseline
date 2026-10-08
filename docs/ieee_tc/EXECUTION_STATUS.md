@@ -11,7 +11,51 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D344 gaps1 prepared; same C14 runtime,40native calls pending
+## CURRENT — D344 source and gaps COMPLETE; export matched measured profiles next
+
+Gap40/40native calls complete;10warmup+30measurements. Two missingGPUshort
+classes each have3observations; actualshort admissions9,10,9,10,9,10,with8original
+long backgrounds still live in every case. Unionwithsource1 covers200/200service
+classes; preparation24classes retained fromsource1. No forcedwait/barrier or
+repeated1529matrix. Both rawmeasurements retained; noFullrun or profileexport yet.
+Gap physical111.405661GPU-s,startup40.735613s,40controlledsetupfetches,
+143002936wireB,packing0;servicepeak5701263360B,minhost106936963072B,events/swap0.
+GPUreleased,servicepathremoved,remote3unitsstopped,portsabsent;bilateral40
+transferSHA/bytesverified. All14–19auxiliaryscopesclosed;seal20finished/empty
+closure beforecheckpointbackup. No liveexperiment or terminalhandle torestart.
+GaprawSHA764509162dd0889b469e6150ae42aed8ca018f1899271d7b1789406e04508e4d;
+execution7431ad6bde014182289c5e48daff68b4008cd428. Auditarchive157485B.
+
+Offlineanalyzer1 incorrectly compared initializedmodeldict against plannedchild
+including4addedstartupobservations. Preservedanalyzer/failure andinitialoutputs;
+analyzer2 usesexisting model_identity plus all originalkeys unchanged,exact4
+loaderobservationsvalidated. No servingchange,datamutation orGPUrerun. Two
+coverage/summaryversions identical. Targetcoverage/nativeCSV/union sealed.
+
+NEXT: verify/save this measurement checkpoint, then extendexisting measured
+profileexport tovalidate sameC14config/runtime,input/resourcecontracts and
+nativegeometry across BOTH sourceSHA namespaces. Keep all1515+30measured
+samples (24warmups excluded) with their own clocks/ownership; require200classes,
+24preparationclasses. No neighbor/default/C8timingfill. Existing single-run
+export must still reject incomplete input. After export, existing100Fullsmoke
+and4000W0 usingD336controlrules/C14capacity-derivedtargets; NOTD341prebuild.
+Do not repeatD343probes,D344source/gaps. Commonwarmbatch8unchanged;numeric,
+finalcommonreferences,G1/G2 stillOPEN. Then3B,pausedbaselines/M1M2/ablations.
+
+### D344 gaps1 launch (complete; do not relaunch)
+
+Prelaunch7431ad6bde014182289c5e48daff68b4008cd428 independently matchesremoteV2.
+Freshgate disk163448926208B/host112862265344B,emptyGPU;remotehealthy,NIC1000/full.
+tmux primelora_d344_gaps,raw d344_20261008/gaps1. Launcheridentity stored:
+primelora-tc-aux-8416b3834a2c41f280fe90c9bc9df4a0.scope,
+invocation78a4700d14ca4c558580be717bd271a2, inode20567651.
+Service primelora-tc-svc-b8556d36117e4d40b7a5bedf5501b0b0.scope.
+Wait actualterminal/release; do not repeat/relaunch. Exact-owned stop/collection
+scripts prepared; newremote monitorunit d344-gaps, remote path d344_20261008/gaps1.
+Then bounded analyze.py checks40calls,30measurements,each target>=3observations;
+not automaticFull export. No concurrent heavy job/hash/compression.
+
+### D344 gaps1 preparation (complete)
 
 Completed D344source1 evidence backed up183bd8c56a0075be9f8a6521ba1fcec619474642,
 independent remoteV2 verified. Seal09exactlyclosed,peak367312896B/events0/swap0.

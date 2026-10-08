@@ -1,0 +1,32 @@
+{
+  "targets": [
+    {
+      "service_class": {
+        "tier": "gpu",
+        "prompt_bin": 0,
+        "output_limit_bin": 0,
+        "rank_bin": 0,
+        "footprint_bin": 0,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "admitted_bin": 4
+      },
+      "observations": 3
+    },
+    {
+      "service_class": {
+        "tier": "gpu",
+        "prompt_bin": 0,
+        "output_limit_bin": 0,
+        "rank_bin": 1,
+        "footprint_bin": 0,
+        "representation": "native_gpu_dense_slot_v1:torch.float16",
+        "admitted_bin": 4
+      },
+      "observations": 3
+    }
+  ],
+  "three_rounds_covered": true,
+  "all_profiles_exported": false,
+  "n_correct": null,
+  "full_qualified": false
+}
