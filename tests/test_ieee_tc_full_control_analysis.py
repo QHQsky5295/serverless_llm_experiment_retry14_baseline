@@ -6,7 +6,51 @@ from pathlib import Path
 from unittest.mock import patch
 
 from scripts.ieee_tc.analyze_d298_smoke import control_interleave_trigger
+from scripts.ieee_tc.analyze_d297_full import retained_ttft_stages, TTFT_STAGE_MS
 from tests import test_ieee_tc_hit_host_analysis as prior
+
+
+class RetainedTTFTStages(unittest.TestCase):
+    def setUp(self):
+        self.row = dict(request_id='r', pre_acquire_ms=10., acquire_to_resume_ms=20.,
+                        runtime_slot_wait_ms=30.)
+        self.request = dict(request_id='r', arrival_release_lateness_ms=40.,
+                            overall_ttft_ms=200., control_path_total_us=5000.)
+        self.timing = dict(request_id='r', admission_to_engine_dispatch_s='0.01',
+            engine_entry_to_queue_s='0.02', native_engine_queue_s='0.03', native_prefill_s='0.04',
+            ttft_s='0.2', tpot_s='0.025', arrival_to_admission_s='0.1', token_count='8', tier='gpu')
+
+    def result(self):
+        return retained_ttft_stages(self.row, self.request, self.timing)
+
+    def test_additive_stages_routing_is_nested(self):
+        result = self.result()
+        self.assertEqual(sum(result[k] for k in TTFT_STAGE_MS), 200.)
+        self.assertEqual(result['routing_nested_ms'], 5.)
+        self.assertNotIn('routing_nested_ms', TTFT_STAGE_MS)
+        self.assertEqual(result['stage_identity_error_ms'], 0.)
+
+    def test_identity_mismatch(self):
+        self.timing['request_id'] = 'other'
+        with self.assertRaisesRegex(ValueError, 'same-request'): self.result()
+
+    def test_bad_partition_rejected(self):
+        for key in ('ttft_s', 'arrival_to_admission_s', 'native_prefill_s'):
+            with self.subTest(key=key):
+                self.setUp()
+                self.timing[key] = '0.5'
+                with self.assertRaisesRegex(ValueError, '1ms'): self.result()
+
+    def test_missing_nonfinite_and_negative_rejected(self):
+        for value in ('nan', 'inf', '-1'):
+            self.timing['native_prefill_s'] = value
+            with self.assertRaisesRegex(ValueError, 'finite'): self.result()
+        del self.timing['native_prefill_s']
+        with self.assertRaises(KeyError): self.result()
+
+    def test_single_token_not_imputed(self):
+        self.timing['token_count'] = '1'
+        with self.assertRaisesRegex(ValueError, 'multi-token'): self.result()
 
 
 def request(i, owner='owner', pid=123, counts=(5, 4, 2, 1)):

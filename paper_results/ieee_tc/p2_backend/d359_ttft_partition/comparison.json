@@ -1,0 +1,18 @@
+{
+  "mean_ttft_delta_ms": 305.8105310125102,
+  "stage_deltas_ms": {
+    "arrival_release_lateness_ms": -7.796119093429297,
+    "pre_acquire_ms": 0.9521225060743745,
+    "acquire_to_resume_ms": 102.91822729699197,
+    "runtime_slot_wait_ms": 50.27268342048046,
+    "admission_to_engine_dispatch_ms": 140.7078441606427,
+    "engine_entry_to_queue_ms": 38.29413355467841,
+    "native_engine_queue_ms": -5.464493851002771,
+    "native_prefill_ms": -14.073866981925676
+  },
+  "second_phase_share": 0.7703545553467737,
+  "numerical_n_correct": null,
+  "formal_qualification": false,
+  "confidence_interval": null,
+  "caveat": "One development run per configuration; additive means only. Tier groups are post-routing conditional descriptions, not matched causal effects. Startup overlap and sampled capacity cannot identify all wait causes."
+}

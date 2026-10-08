@@ -1,0 +1,66 @@
+{
+  "kind": "d342_sampled_capacity_context_v1",
+  "runs": {
+    "d353": {
+      "kind": "sampled_dispatch_capacity_bounds_v1",
+      "samples": 1875,
+      "samples_with_unresumed_acquire": 17,
+      "waiting_samples_capacity_definitely_covered": 12,
+      "peak_unresumed_acquire": 22,
+      "caveat": "Sample-time capacity coverage, not an exact full-interval cause or GPU occupancy.",
+      "peak_wait_sample": {
+        "offset_s": 756.1686409009853,
+        "queue": 22,
+        "active": 14,
+        "capacity": 14,
+        "pending": 3,
+        "p95_ttft_ms": "6632.2529225144535",
+        "action": "no_action",
+        "outcome": "no_action",
+        "queue_low": "False",
+        "active_low": "False",
+        "ttft_known": "True",
+        "ttft_low": "False",
+        "queue_active_low": "False",
+        "ttft_only_blocks": "False",
+        "all_low": "False",
+        "definitely_owned": 13,
+        "possibly_owned": 36,
+        "acquire_not_yet_resumed": 22,
+        "capacity_covered_by_definite_owners": false
+      }
+    },
+    "d358": {
+      "kind": "sampled_dispatch_capacity_bounds_v1",
+      "samples": 1880,
+      "samples_with_unresumed_acquire": 23,
+      "waiting_samples_capacity_definitely_covered": 5,
+      "peak_unresumed_acquire": 29,
+      "caveat": "Sample-time capacity coverage, not an exact full-interval cause or GPU occupancy.",
+      "peak_wait_sample": {
+        "offset_s": 755.9683968940517,
+        "queue": 29,
+        "active": 14,
+        "capacity": 14,
+        "pending": 3,
+        "p95_ttft_ms": "7560.245882952586",
+        "action": "no_action",
+        "outcome": "no_action",
+        "queue_low": "False",
+        "active_low": "False",
+        "ttft_known": "True",
+        "ttft_low": "False",
+        "queue_active_low": "False",
+        "ttft_only_blocks": "False",
+        "all_low": "False",
+        "definitely_owned": 11,
+        "possibly_owned": 43,
+        "acquire_not_yet_resumed": 29,
+        "capacity_covered_by_definite_owners": false
+      }
+    }
+  },
+  "new_performance_runs": 0,
+  "formal_qualification": false,
+  "no_figures": true
+}

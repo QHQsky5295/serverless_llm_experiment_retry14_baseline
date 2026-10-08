@@ -1,0 +1,257 @@
+{
+  "kind": "d359_retained_dispatch_split_v1",
+  "contrast": [
+    "d353",
+    "d358"
+  ],
+  "runs": {
+    "d353": {
+      "kind": "retained_dispatch_gate_split_v1",
+      "count": 4000,
+      "metrics": {
+        "pre_acquire_ms": {
+          "count": 4000,
+          "sum": 107012.25267676637,
+          "mean": 26.75306316919159,
+          "p95_type1": 64.69635502435267,
+          "p99_type1": 444.2918960703537,
+          "maximum": 25327.385662938468
+        },
+        "acquire_to_resume_ms": {
+          "count": 4000,
+          "sum": 394786.3052695757,
+          "mean": 98.69657631739392,
+          "p95_type1": 0.0950259855017066,
+          "p99_type1": 4780.4294370580465,
+          "maximum": 11027.941838954575
+        },
+        "dispatch_window_wait_ms": {
+          "count": 4000,
+          "sum": 501798.55794634204,
+          "mean": 125.44963948658551,
+          "p95_type1": 167.8878739476204,
+          "p99_type1": 4891.464382992126,
+          "maximum": 25327.477520913817
+        },
+        "runtime_slot_wait_ms": {
+          "count": 4000,
+          "sum": 942055.6866567349,
+          "mean": 235.51392166418373,
+          "p95_type1": 817.8170380415395,
+          "p99_type1": 1620.4640980577096,
+          "maximum": 5360.718647018075
+        },
+        "pre_acquire_startup_overlap_ms": {
+          "count": 4000,
+          "sum": 10107.668818673119,
+          "mean": 2.5269172046682797,
+          "p95_type1": 0.9773640194907784,
+          "p99_type1": 37.805307074449956,
+          "maximum": 4621.087227016687
+        },
+        "acquire_to_resume_startup_overlap_ms": {
+          "count": 4000,
+          "sum": 394604.82309618965,
+          "mean": 98.65120577404741,
+          "p95_type1": 0.06800901610404253,
+          "p99_type1": 4780.4294370580465,
+          "maximum": 11027.941838954575
+        }
+      },
+      "max_identity_error_ms": 0.0,
+      "n_correct": null,
+      "formal_qualification": false,
+      "confidence_interval": null,
+      "caveats": [
+        "Pre-acquire includes controller task scheduling/yield; it is not permit saturation.",
+        "Acquire-to-resume combines permit availability and callback/task resumption.",
+        "Grant can precede resumed timestamp; release lies between native completion and terminal.",
+        "These boundaries cannot reconstruct exact permit ownership or the live gate limit.",
+        "Startup overlap is an interval union, not CPU attribution or a causal effect.",
+        "Each source is one development run; timing/binding is not numerical qualification."
+      ],
+      "source_sha256": "0fe856cf44923ec66fb91aed5ed9d088891bedb7c2b603d416e78b04f0751c9d",
+      "prior_audit_sha256": "10584b2d49cb9afea2bc6df2cc02d6f21cf7d9e780fb668d20c92c22b94a3bf2",
+      "top_one_percent_window_request_ids": [
+        "req_00000",
+        "req_00659",
+        "req_00662",
+        "req_00660",
+        "req_00661",
+        "req_00654",
+        "req_00658",
+        "req_00657",
+        "req_00656",
+        "req_00663",
+        "req_00655",
+        "req_00653",
+        "req_00650",
+        "req_00651",
+        "req_00652",
+        "req_00647",
+        "req_00664",
+        "req_00665",
+        "req_00644",
+        "req_00649",
+        "req_00648",
+        "req_00632",
+        "req_00667",
+        "req_00646",
+        "req_00645",
+        "req_00666",
+        "req_00637",
+        "req_00634",
+        "req_00633",
+        "req_00636",
+        "req_00635",
+        "req_00625",
+        "req_00643",
+        "req_00640",
+        "req_00641",
+        "req_00642",
+        "req_00639",
+        "req_00626",
+        "req_00627",
+        "req_00629"
+      ],
+      "ttft_stage_means_ms": {
+        "arrival_release_lateness_ms": 200.11086620375863,
+        "pre_acquire_ms": 26.75306316919159,
+        "acquire_to_resume_ms": 98.69657631739392,
+        "runtime_slot_wait_ms": 235.51392166418373,
+        "admission_to_engine_dispatch_ms": 263.9393992862897,
+        "engine_entry_to_queue_ms": 84.15387398007442,
+        "native_engine_queue_ms": 12.359921809984371,
+        "native_prefill_ms": 212.28128008713247
+      },
+      "max_ttft_stage_error_ms": 0.0,
+      "routing_nested_mean_ms": 36.123190057
+    },
+    "d358": {
+      "kind": "retained_dispatch_gate_split_v1",
+      "count": 4000,
+      "metrics": {
+        "pre_acquire_ms": {
+          "count": 4000,
+          "sum": 110820.74270106386,
+          "mean": 27.705185675265966,
+          "p95_type1": 78.83487199433148,
+          "p99_type1": 373.84889798704535,
+          "maximum": 26555.619645980187
+        },
+        "acquire_to_resume_ms": {
+          "count": 4000,
+          "sum": 806459.2144575436,
+          "mean": 201.6148036143859,
+          "p95_type1": 0.09746593423187733,
+          "p99_type1": 8463.117457926273,
+          "maximum": 22247.88472999353
+        },
+        "dispatch_window_wait_ms": {
+          "count": 4000,
+          "sum": 917279.9571586074,
+          "mean": 229.31998928965186,
+          "p95_type1": 244.64487796649337,
+          "p99_type1": 8474.955205107108,
+          "maximum": 26555.713083944283
+        },
+        "runtime_slot_wait_ms": {
+          "count": 4000,
+          "sum": 1143146.4203386568,
+          "mean": 285.7866050846642,
+          "p95_type1": 1015.0292270118371,
+          "p99_type1": 1913.0544438958168,
+          "maximum": 6265.345664927736
+        },
+        "pre_acquire_startup_overlap_ms": {
+          "count": 4000,
+          "sum": 10293.182419380173,
+          "mean": 2.5732956048450433,
+          "p95_type1": 0.9562260238453746,
+          "p99_type1": 9.194751968607306,
+          "maximum": 5046.705604996532
+        },
+        "acquire_to_resume_startup_overlap_ms": {
+          "count": 4000,
+          "sum": 806283.302759286,
+          "mean": 201.5708256898215,
+          "p95_type1": 0.06757990922778845,
+          "p99_type1": 8463.117457926273,
+          "maximum": 22247.88472999353
+        }
+      },
+      "max_identity_error_ms": 0.0,
+      "n_correct": null,
+      "formal_qualification": false,
+      "confidence_interval": null,
+      "caveats": [
+        "Pre-acquire includes controller task scheduling/yield; it is not permit saturation.",
+        "Acquire-to-resume combines permit availability and callback/task resumption.",
+        "Grant can precede resumed timestamp; release lies between native completion and terminal.",
+        "These boundaries cannot reconstruct exact permit ownership or the live gate limit.",
+        "Startup overlap is an interval union, not CPU attribution or a causal effect.",
+        "Each source is one development run; timing/binding is not numerical qualification."
+      ],
+      "source_sha256": "0d6c188c302d83f57d3f581181d639c2dd37ed486b5817ce2027127ba055fe51",
+      "prior_audit_sha256": "4118412bd5422ba476a6cef96a6458188b7ffd6bec10d884354aeaa11e5d47e6",
+      "top_one_percent_window_request_ids": [
+        "req_00000",
+        "req_00659",
+        "req_00658",
+        "req_00663",
+        "req_00660",
+        "req_00662",
+        "req_00661",
+        "req_00664",
+        "req_00657",
+        "req_00665",
+        "req_00656",
+        "req_00655",
+        "req_00654",
+        "req_00666",
+        "req_00667",
+        "req_00653",
+        "req_00652",
+        "req_00651",
+        "req_00647",
+        "req_00648",
+        "req_00649",
+        "req_00650",
+        "req_00646",
+        "req_00644",
+        "req_00645",
+        "req_00668",
+        "req_00669",
+        "req_00643",
+        "req_00642",
+        "req_00641",
+        "req_00639",
+        "req_00640",
+        "req_00636",
+        "req_00637",
+        "req_00635",
+        "req_00632",
+        "req_00630",
+        "req_00631",
+        "req_00629",
+        "req_00670"
+      ],
+      "ttft_stage_means_ms": {
+        "arrival_release_lateness_ms": 192.31474711032934,
+        "pre_acquire_ms": 27.705185675265966,
+        "acquire_to_resume_ms": 201.6148036143859,
+        "runtime_slot_wait_ms": 285.7866050846642,
+        "admission_to_engine_dispatch_ms": 404.6472434469324,
+        "engine_entry_to_queue_ms": 122.44800753475283,
+        "native_engine_queue_ms": 6.8954279589816,
+        "native_prefill_ms": 198.2074131052068
+      },
+      "max_ttft_stage_error_ms": 0.0,
+      "routing_nested_mean_ms": 44.60590753275
+    }
+  },
+  "matched_inputs": true,
+  "new_performance_runs": 0,
+  "no_figures": true,
+  "control_caveat": "Prior sampled control values are context, not exact live dispatch gate state."
+}

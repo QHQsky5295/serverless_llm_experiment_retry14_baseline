@@ -11,7 +11,38 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D358 Full4000 COMPLETE and audited; 7B optimization remains OPEN
+## CURRENT — D359 retained TTFT diagnosis COMPLETE; 7B remains OPEN
+
+2026-10-09: reused D353/D358 complete4000 request/native clocks, activations and
+control samples; no GPU run or remote operation. User approval of one-time
+published delivery cache reconfirmed; it already exists, do not republish assets.
+Existing analyzer extended with explicit D353/D358 contrast and tested strict
+eight-stage join.56CPU tests pass; both runs all4000 stage identities error0.
+MeanTTFTdelta+305.810531ms decomposes into release lateness−7.796119,
+pre-acquire+.952123,acquire→resume+102.918227,runtime wait+50.272683,
+admission→engine+140.707844,engine entry→queue+38.294134,
+native queue−5.464494,prefill envelope−14.073867. Routing is nested, not additive.
+Second500phase contributes77.0354555%of globalmeanTTFTincrease; all8phases and
+length/tier groups retained. Phase2NVMe admission→engine567.120→2971.520ms
+(111→137requests),GPUhit58.310→124.053ms(313→294); post-routing conditional,
+not matched causal effects. Startup-overlap/capacity samples are contextual:
+D35823waiting samples/5definite-capacity-covered,not proof allothershadfreeslots.
+Do not label this a prefill regression, solely network cost, or pure RPC time.
+One development run each; noCI,N_correct/formalqualificationremainunknown.
+Analysis scope62aa8ccf5dc7453bbcd57ec5b8ec103d closed exact-owned by seal helper;
+peak987635712B,high/max/OOM/swap0. Newdata/evidence archive66187B in
+paper_results/ieee_tc/p2_backend/d359_ttft_partition/. Sealing completed;
+checkpoint verifier owns closing sealaad84ade991a4b02adbb62e17bdc0349 and checking
+explicit stage/checksums/protected files before push. Exact closure/remote equality
+receipts are retained under raw d359_20261009; consult them before any cleanup.
+NEXT reuse retained source-admission/HOST/native-load/acquire receipts to test
+one hypothesis: control queue/roundtrips on nonGPU preparation prolong occupancy
+of admitted-but-not-executable work during scaleout. Distinguish actual load
+from waiting before changing implementation; do not repeat whole perf run or
+stack capacity/autoscaler/timeout tuning. Detailed decision D359_RETAINED_TTFT_DIAGNOSIS.md.
+Mainline7B→3B→pausedbaselines→M1/M2→ablations/sensitivities unchanged; nofigures.
+
+## D358 Full4000 COMPLETE and audited; retained reference
 
 2026-10-09: same D358 replay finished4000/4000/0failed. Do NOT rerun.
 launch.json pass=true; service domain removed; native GPU contexts released;

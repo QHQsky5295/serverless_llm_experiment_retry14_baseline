@@ -1533,21 +1533,58 @@ def inspect_retained_route_copies(output):
     print(json.dumps(result, indent=2, allow_nan=False), flush=True)
 
 
-def inspect_retained_dispatch_gate(output):
-    """D342: reuse complete D336/D341 data, not another performance replay."""
+TTFT_STAGE_MS = ('arrival_release_lateness_ms', 'pre_acquire_ms',
+    'acquire_to_resume_ms', 'runtime_slot_wait_ms', 'admission_to_engine_dispatch_ms',
+    'engine_entry_to_queue_ms', 'native_engine_queue_ms', 'native_prefill_ms')
+
+
+def retained_ttft_stages(row, request, timing):
+    """Join existing same-request clocks; routing is nested, not an extra stage."""
+    if not row['request_id'] == request['request_id'] == timing['request_id']:
+        raise ValueError('same-request stage identity required')
+    values = {k: row[k] for k in TTFT_STAGE_MS[1:4]}
+    values['arrival_release_lateness_ms'] = request['arrival_release_lateness_ms']
+    for key in TTFT_STAGE_MS[4:]:
+        values[key] = float(timing[key[:-3]+'_s'])*1000
+    values['ttft_ms'] = float(timing['ttft_s'])*1000
+    values['tpot_ms'] = float(timing['tpot_s'])*1000
+    values['routing_nested_ms'] = request['control_path_total_us']/1000
+    if any(type(v) not in (int, float) or not math.isfinite(v) or v < 0
+           for v in values.values()):
+        raise ValueError('complete finite nonnegative stages required')
+    error = abs(math.fsum(values[k] for k in TTFT_STAGE_MS)-values['ttft_ms'])
+    admission = math.fsum(values[k] for k in TTFT_STAGE_MS[:4])
+    if max(error, abs(admission-float(timing['arrival_to_admission_s'])*1000),
+           abs(values['ttft_ms']-request['overall_ttft_ms'])) > 1:
+        raise ValueError('retained TTFT stage identity exceeds 1ms')
+    values['stage_identity_error_ms'] = error
+    values['token_count'] = int(timing['token_count'])
+    if values['token_count'] < 2:
+        raise ValueError('this registered diagnostic requires measured multi-token requests')
+    values['tier'] = timing['tier']
+    return values
+
+
+def inspect_retained_dispatch_gate(output, contrast=('d336', 'd341')):
+    """Reuse registered complete native data, not another performance replay."""
     global OUT
     OUT = Path(output).resolve()
     if OUT.exists():
         raise FileExistsError(OUT)
     assert sha256(PLAN) == '0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7'
     assert sha256(PROTOCOL) == '5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22'
+    if contrast not in (('d336', 'd341'), ('d353', 'd358')):
+        raise ValueError('unregistered retained dispatch contrast')
     identities = dict(d336='b8452f4f577446128b4a77a7117485660f3b9841caf831ad867a58d9a9587a05',
-        d341='9f87d2e10ac42d08717d40a7fbafe725c16916eb4e7d34aa70cee177fd39b664')
+        d341='9f87d2e10ac42d08717d40a7fbafe725c16916eb4e7d34aa70cee177fd39b664',
+        d353='0fe856cf44923ec66fb91aed5ed9d088891bedb7c2b603d416e78b04f0751c9d',
+        d358='0d6c188c302d83f57d3f581181d639c2dd37ed486b5817ce2027127ba055fe51')
     paths = [PLAN, PROTOCOL, Path(__file__), ROOT/'scripts/analyze_control_path_overhead.py',
              ROOT/'scripts/ieee_tc/plot_d290_diagnostic.py']
     summaries, input_maps, phases = {}, [], []
     OUT.mkdir(parents=True, exist_ok=False)
-    for name, digest in identities.items():
+    for name in contrast:
+        digest = identities[name]
         prior = ROOT/f'paper_results/ieee_tc/p2_backend/{name}_full_w0/validated1'
         audit, seal = read(prior/'audit.json'), read(prior/'manifest.json')
         for filename in ('audit.json', 'requests.csv', 'control_samples.csv'):
@@ -1580,6 +1617,8 @@ def inspect_retained_dispatch_gate(output):
             assert row['request_id'] == request['request_id']
             row.update(trace_index=i, phase=i//500, adapter_id=request['adapter_id'],
                 ttft_ms=request['overall_ttft_ms'], timing_outcome=timing[row['request_id']]['outcome'])
+            if contrast == ('d353', 'd358'):
+                row.update(retained_ttft_stages(row, request, timing[row['request_id']]))
             for boundary in ('acquire', 'gate_resumed'):
                 at = row[boundary+'_offset_s']
                 index = bisect_left(times, at)-1
@@ -1600,6 +1639,18 @@ def inspect_retained_dispatch_gate(output):
             phases.append(dict(run=name, phase=phase, count=len(group),
                 **{k:mean(r[k] for r in group) for k in
                    ('pre_acquire_ms', 'acquire_to_resume_ms', 'dispatch_window_wait_ms', 'ttft_ms')}))
+            if contrast == ('d353', 'd358'):
+                phases[-1].update({k:mean(r[k] for r in group) for k in TTFT_STAGE_MS +
+                    ('tpot_ms', 'routing_nested_ms', 'pre_acquire_startup_overlap_ms',
+                     'acquire_to_resume_startup_overlap_ms')})
+                phases[-1]['ttft_misses'] = sum(r['timing_outcome'] in
+                    ('ttft_only_miss', 'both_miss') for r in group)
+                phases[-1]['tpot_misses'] = sum(r['timing_outcome'] in
+                    ('tpot_only_miss', 'both_miss') for r in group)
+        if contrast == ('d353', 'd358'):
+            split['ttft_stage_means_ms'] = {k:mean(r[k] for r in rows) for k in TTFT_STAGE_MS}
+            split['max_ttft_stage_error_ms'] = max(r['stage_identity_error_ms'] for r in rows)
+            split['routing_nested_mean_ms'] = mean(r['routing_nested_ms'] for r in rows)
         summaries[name] = split
         table(name+'_requests.csv', rows)
         write(name+'_activations.json', activations)
@@ -1609,7 +1660,8 @@ def inspect_retained_dispatch_gate(output):
         gc.collect()
     assert input_maps[0] == input_maps[1], 'comparison input identities differ'
     table('phases.csv', phases)
-    write('summary.json', dict(kind='d342_retained_dispatch_split_v1', runs=summaries,
+    write('summary.json', dict(kind=('d342_retained_dispatch_split_v1' if contrast == ('d336', 'd341')
+        else 'd359_retained_dispatch_split_v1'), contrast=contrast, runs=summaries,
         matched_inputs=True, new_performance_runs=0, no_figures=True,
         control_caveat='Prior sampled control values are context, not exact live dispatch gate state.'))
     write('manifest.json', dict(source_refs=[dict(path=str(p),sha256=sha256(p)) for p in paths],
@@ -1617,18 +1669,21 @@ def inspect_retained_dispatch_gate(output):
     print(json.dumps(summaries, indent=2, allow_nan=False), flush=True)
 
 
-def inspect_retained_dispatch_context(output):
+def inspect_retained_dispatch_context(output, prior=None, contrast=('d336', 'd341')):
     """Follow the retained split with conservative sampled ownership bounds."""
     global OUT
     OUT = Path(output).resolve()
     if OUT.exists():
         raise FileExistsError(OUT)
-    prior = ROOT/'paper_results/ieee_tc/p2_backend/d342_dispatch_wait/analysis1'
+    if contrast not in (('d336', 'd341'), ('d353', 'd358')):
+        raise ValueError('unregistered retained dispatch context')
+    if prior is None:
+        prior = ROOT/'paper_results/ieee_tc/p2_backend/d342_dispatch_wait/analysis1'
     seal = read(prior/'manifest.json')
     paths = [prior/'manifest.json', Path(__file__), ROOT/'scripts/analyze_control_path_overhead.py']
     summaries = {}
     OUT.mkdir(parents=True, exist_ok=False)
-    for name in ('d336','d341'):
+    for name in contrast:
         request_path = prior/(name+'_requests.csv')
         control_path = ROOT/f'paper_results/ieee_tc/p2_backend/{name}_full_w0/validated1/control_samples.csv'
         assert sha256(request_path) == seal['outputs'][request_path.name]
@@ -1869,6 +1924,8 @@ if __name__ == '__main__':
         help='D342 retained D336/D341 acquire-entry split, no inference')
     parser.add_argument('--dispatch-context-output', type=Path,
         help='D342 compact split data and conservative sampled permit bounds')
+    parser.add_argument('--interleave-wait-output', type=Path,
+        help='D359 retained D353/D358 stage and dispatch split; no inference')
     parser.add_argument('--calibration-target-output', type=Path,
         help='D348 retained C14 profile exposure; no steady-load inference or new GPU run')
     args = parser.parse_args()
@@ -1878,9 +1935,14 @@ if __name__ == '__main__':
                                   args.service_lifecycle_output, args.drain_lifecycle_output,
                                   args.capacity_lifecycle_output, args.dispatch_gate_output,
                                   args.dispatch_context_output, args.c14_lifecycle_output,
-                                  args.calibration_target_output, args.decoupled_lifecycle_output)) > 1:
+                                  args.calibration_target_output, args.decoupled_lifecycle_output,
+                                  args.interleave_wait_output)) > 1:
         parser.error('choose one retained diagnostic')
-    if args.calibration_target_output is not None:
+    if args.interleave_wait_output is not None:
+        inspect_retained_dispatch_gate(args.interleave_wait_output, contrast=('d353', 'd358'))
+        inspect_retained_dispatch_context(args.interleave_wait_output/'sampled_capacity',
+            prior=args.interleave_wait_output.resolve(), contrast=('d353', 'd358'))
+    elif args.calibration_target_output is not None:
         inspect_calibration_targets(args.calibration_target_output)
     elif args.dispatch_context_output is not None:
         inspect_retained_dispatch_context(args.dispatch_context_output)

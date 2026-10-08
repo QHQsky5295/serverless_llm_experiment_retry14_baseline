@@ -1,0 +1,46 @@
+{
+  "kind": "d359_retained_ttft_diagnosis_v1",
+  "cpu_tests": 56,
+  "new_gpu_runs": 0,
+  "no_figures": true,
+  "source_commit": "fb4e2b89244c440fe2ba77b4e3ae6e0049e6031d",
+  "archive_sha256": "19d21a3888962c90dd735f9bf87f05d53ad9da2bb092ed1f6e5dada38313d088",
+  "refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d359_20261009/run_analysis.py",
+      "sha256": "d788f41e5165109a299ebadb3eb50767b5b82e5ef6cf697fb65166f348104ca0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d359_20261009/analysis1.log",
+      "sha256": "440974330fdf4cd95b59c56edb69598dd18ab54477d05605e0c780152b4326df"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d359_20261009/execution_receipt.json",
+      "sha256": "6cfdce55f84641b850909582f8aace240e21ceb0c41946203b4985caeb9ff20a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d359_20261009/analysis_cleanup.json",
+      "sha256": "8304b04795da8c60adf7411b56dba3edaf8d9247de5d1bbf4528fb9800cfb796"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d359_20261009/seal_analysis.py",
+      "sha256": "da9d3e33b2664f4262650618f122ac341138687fcab6b398a57efacce8a0d11c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d359_20261009/protected.json",
+      "sha256": "86a2cb036b66b0b83dde99f755772af6b2b4932bc37d6b2faaac9270574d277a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/analyze_d297_full.py",
+      "sha256": "398b7001b4339d7aeae71628b3a6633e5db50c465f43d707998ad49fc92774cb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/analyze_control_path_overhead.py",
+      "sha256": "259f67b73e197f69ba748194edfd71073a408490be03e92ab03a94adbf4a29e7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_full_control_analysis.py",
+      "sha256": "4c2adf090be0cde4a5a17a0fca89280fbd87392d2bf295432a5128c893ad70ae"
+    }
+  ]
+}
