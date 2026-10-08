@@ -222,6 +222,15 @@ class IEEENativeAsyncScheduler(AsyncScheduler):
         if existing is not None and existing is not _core_transfer_event:
             raise RuntimeError('native EngineCore transfer bridge name collision')
         EngineCore.ieee_transfer_event = _core_transfer_event
+        self._ieee_control_interleave = None
+        if config.additional_config.get('ieee_tc_control_interleave') is not None:
+            from vllm.v1.engine.core import EngineCoreProc
+            from vllm.v1.engine import EngineCoreRequestType
+            from vllm.v1.executor.uniproc_executor import UniProcExecutor
+            from .core_interleave import install_core_control_interleave
+            self._ieee_control_interleave = install_core_control_interleave(
+                EngineCoreProc, self, executor_type=UniProcExecutor,
+                request_types=EngineCoreRequestType, native_version=vllm.__version__)
         # Diagnostic-only host spans. Default leaves every native method intact.
         if os.environ.get('FAASLORA_TC_CORE_TIMING') not in (None, '0'):
             from vllm.v1.engine.core import EngineCoreProc
@@ -261,5 +270,9 @@ class IEEENativeAsyncScheduler(AsyncScheduler):
         return output
 
     def ieee_scheduler_observation(self):
-        return capture_native_kv_observation(self, self._ieee_iterations,
-                                            input_upper_bounds=self._ieee_input_upper_bounds)
+        result = capture_native_kv_observation(self, self._ieee_iterations,
+                                              input_upper_bounds=self._ieee_input_upper_bounds)
+        interleave = getattr(self, '_ieee_control_interleave', None)
+        if interleave is not None:
+            result['control_interleave'] = interleave.snapshot()
+        return result

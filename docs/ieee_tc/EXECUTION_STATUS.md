@@ -11,7 +11,34 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D354 retained input-turn evidence; no new GPU run
+## CURRENT — D355 atomic-control candidate tested; first100 NOT YET LAUNCHED
+
+D354 backup local/remote bbdb21f428a77d306461b74cd27a162531fe77d8 confirmed.
+D355 adds opt-in model.ieee_control_interleave=atomic_control_yield_v1:
+after a complete Prime control call, return to native loop when it has work.
+FIFO/native handler, atomic pending/GPU/HOST transactions and nine equations
+remain; no timer tuning, extra threads, recursive steps or stale-state cache.
+Version/AST/topology/owner guards; default off. D353 config/profile fixed apart
+from opt-in and isolated output/cache paths. Snapshot counters record trigger.
+
+110 tests pass in CPU env and110 in installed native env; actual native handler/
+step API also passes with synthetic executor/work and NO CUDA initialization.
+Initial109-test failure retained with source archive: Python AST empty-field
+normalization and invalid-config fail-fast path repaired, not a GPU retry.
+All4 test scopes closed;preparation scope identity in d355raw/preparation_scope.
+Preparation archive290292B validated;147-entry protection checked,only recorded
+historical baseline replay change;user manifest unchanged/notstaged.
+
+Next: backup tested checkpoint,close empty owned preparation scope, fresh gates,
+start unchanged published remote service, first100 via existing runner d355.
+Require100/100 native contract/binding, trigger counters and actual GPU cleanup;
+then ordinary full W0 if safe. No SLO/GPU-s qualification from a100-prefix.
+Do not run two heavy tasks or advance3B/baselines. Formal warm/Resident/N_correct
+and all remaining matrices OPEN;no figures. Currentbest-state is not declared.
+Doc D355_ATOMIC_CONTROL_INTERLEAVE.md;raw d355_20261008;curated
+paper_results/ieee_tc/p2_backend/d355_control_interleave/preparation.json.
+
+### D354 retained input-turn evidence (completed)
 
 D353 backup confirmed local=remoteV2 d6714fdf3b539f676c4a212c520eec21c9e4d6a1;
 all prior scopes closed. User reconfirms immutable published delivery cache;

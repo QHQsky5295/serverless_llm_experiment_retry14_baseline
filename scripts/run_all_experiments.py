@@ -3720,6 +3720,13 @@ class InferenceEngine:
                         self.model_cfg['ieee_admission_profile'])
             elif self.model_cfg.get('ieee_admission_profile') is not None:
                 raise ValueError('native admission requires the native scheduler owner')
+            if self.model_cfg.get('ieee_control_interleave') is not None:
+                from faaslora.scheduling.core_interleave import POLICY
+                if (self.model_cfg['ieee_control_interleave'] != POLICY
+                        or not self.model_cfg.get('ieee_scheduler_observation', False)
+                        or not self.model_cfg.get('ieee_gpu_references', False) or tp != 1):
+                    raise ValueError('native control interleave requires the qualified IEEE single-GPU owner')
+                kwargs['additional_config']['ieee_tc_control_interleave'] = POLICY
             if tokenizer_mode is not None:
                 kwargs["tokenizer_mode"] = tokenizer_mode
             if tp > 1:
@@ -3764,7 +3771,8 @@ class InferenceEngine:
             print(f"  [WARN] vLLM engine creation failed ({desc}): {detail[:500]}")
             if (os.environ.get("FAASLORA_TC_LAUNCH_RECEIPT")
                     or self.model_cfg.get("timing_contract") == "ieee_tc_native_v1"
-                    or self.model_cfg.get("ieee_scheduler_observation", False)):
+                    or self.model_cfg.get("ieee_scheduler_observation", False)
+                    or self.model_cfg.get("ieee_control_interleave") is not None):
                 raise RuntimeError(f"TC backend construction failed without config retry: {detail}") from exc
             self._maybe_kill_stale_gpu_processes()
             try:
