@@ -1,0 +1,28 @@
+{
+  "requests": 4000,
+  "source_tiers": {
+    "remote": 136,
+    "gpu": 2012,
+    "nvme": 817,
+    "host": 1035
+  },
+  "reasons": {
+    "observed_complete_load": 1968,
+    "native_source_reused_or_changed_before_loading": 17,
+    "confirmed_file_source_changed_before_loading": 1,
+    "shared_file_preparation_reused": 2
+  },
+  "eligible_samples": 1968,
+  "ineligible_samples": 20,
+  "changed_copy_cases": [
+    {
+      "request_id": "req_00282",
+      "adapter_id": "gaming_lora_0022",
+      "remote_transfer_id": "5e99818172cc40f0a3dbaab26553da36",
+      "remote_target_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d336_20261008/7b_nvme_w0/tc_ieee_full/gaming_lora_0022",
+      "native_lora_path": "/dev/shm/tc-d336-7b-w0/tc_ieee_full/gaming_lora_0022"
+    }
+  ],
+  "numerical_qualification": false,
+  "caveat": "Consistency of recorded ownership/stages only; no subtraction from service or user latency."
+}

@@ -11,7 +11,114 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D336 capacity-derived soft-target candidate prepared, not launched
+## CURRENT — D336 full4000 complete/audited; resource–latency trade-off, backup next
+
+08:46+08:79 CPU tests and both reused full/context analyzers pass. Exact-owned
+offline scope empty/stopped,peak1064529920B,events0/swap0.24-member49850B closure
+archive sealed with curated hashes; no inference/remote service active. D336
+analysis is DONE; do not repeat this run or audit-only cycle. See
+D336_COMPLETE_W0_DECISION.md. NEXT verify/stage exact paths, backup V2, then
+return to7B with the retained latency/decode evidence, not3B/baselines.
+
+All4000 native counts/10binding checks/time identities pass,207outputSHA changes
+vsD335 retained,N_correct unknown. Mean/P95TTFT1210.845/2912.194ms,
+mean/P95TPOT32.245/59.083ms,U13814.334497GPU-s. RelativeD335 U-12.28%,
+P95TTFT+1.90%,P95TPOT+12.01%,meanE2E+3.98%; timing-only3837vs3867,
+NOT formal SLO. RelativeD332 physicalU also lower, but no full dominance claim.
+Seven release gaps total2033.436636GPU-s vs97.092069: observed U reduction
+1933.718657equals1936.344567more gap time minus2.625910envelope increase.
+Remote132/131480060B/packing0;4033resource samples/peak21622865920B,
+minhost93376729088B,events/swap0. Candidate is a resource operating point with
+quality cost, not G1/G2 qualification. No higher targets/deleted guard/max2 clamp.
+Do not repeat D334/D335/D336/profile/numerical blocks without new evidence.
+
+## HISTORY — D336 completed and offline comparison launched
+
+2026-10-08 08:42+08: all4000 terminal/native-contract records,0interrupted,
+launch pass and actual GPU release verified; physical U13814.334496588912GPU-s,
+N_correct unknown. Result SHA b8452f4f577446128b4a77a7117485660f3b9841caf831ad867a58d9a9587a05.
+Exact-owned replay scope stopped empty; both remote services/monitor inactive,
+PID0/portsabsent. Transfer/monitor downloads SHA match remote, no request packing.
+Only extended existing analyzers for the new D336 identity; no serving changes,
+no new inference or figures. Full source plan/V1 and relevant skills reread.
+NEXT: finish bounded full/context checks versus D335, retain D332 context,
+interpret complete latency/resource/control trade-offs, preserve unknown numerical
+qualification, seal/backup then choose one next7B step. Do NOT relaunch D336.
+Fresh disk160747806720B below150GiB: no new heavy performance launch until
+evidenced recovery; no relaxed gate or deletion of unique measurements.7B final
+qualification/3B/baselines/all later matrix remain OPEN.
+
+## HISTORY — D336 full4000 W0 running observations
+
+2026-10-08 07:31+08: actual replay/service launched in tmux tc-d336-full1, pane
+PID1511285, existing guarded runner case d336, no prefix/profiler. Executed HEAD
+0175a045ad7fe1a4f177330e5dda405e87b63955 independently matches remote V2.11 exact
+staged paths/4 curated SHA/54 archive members passed secrets/syntax/diff checks;
+user manifest unchanged/unstaged. Preparation is DONE; do not relaunch D336.
+
+Fresh gate disk161554620416B/memory112754069504B. Five preparatory CPU scopes
+closed exactly; final verifier empty/stopped, peak49602560B/events0/swap0.
+Legacy empty systemd scope labels were observed, but a direct cgroup PID census
+found no active local Prime experiment before launch; no unrelated scopes killed.
+Remote frozen services/monitor started under current identities,link1000/full,
+3B/7B authenticated prepublished_gzip_v1/artifact_timing_v2.7B clock
+a94b0b3d55744c01aa56228f4ee6cbb7. Existing D78/D80 approved cache reused without
+regeneration. User's authorization is already persisted in source plan§2026-09-27.
+
+NEXT: monitor this same ordinary4000W0 to completion, release exact-owned local
+and remote resources, reuse full/context analyzers for D336 vs D335 with D332
+context, preserve failures/negative effects/output changes/unknown N_correct,
+then choose the next7B mainline step. No code/config/profile/remote changes or
+heavy analysis/compression during measurement. No figures.7B final G1/G2,
+numerical/commonwarm/Resident/old-new qualification,3B and baselines remain OPEN.
+
+07:33:31+08 monitor: same pane PID1511285 and replay active,25 terminal records,
+127 watchdog samples; service peak18578640896B,host available94969180160B,
+high/max/OOM/swap0,warning/abortnone. Early first5 service observations included
+mean TTFT11.016s from startup/arrival backlog; preserve this regression warning,
+but do not extrapolate five requests to full4000 or change the candidate midrun.
+No tool process remains pending; long experiment continues in tmux with its
+independent watchdog. No further cache audit/setup/backup repeat is needed.
+
+07:43:47+08 VERIFIED WAIT continuation: actual same tmux pane PID1511285/ps
+live,735 fresh watchdog samples,541/4000 reported successful terminals,0fail.
+The original trace crossed its first500-request rotation boundary. Actual held
+GPU samples4->2->4->3->2 demonstrate release/re-expansion, NOT a complete-run
+resource-saving or SLO claim. Service peak19331055616B,current host available
+103178145792B,high/max/OOM/swap0,foreign compute0,warning/abortnone. Full source
+plan and monitor skill reread; no code/config/profile/remote mutation, no cache
+scan/compression/GPU restart/baseline/figure work during measurement. The bounded
+foreground observation cell ended only; tmux/replay/watchdog/remote remain live.
+Next still finish THIS4000run, not another setup/audit-only/relaunch cycle. The
+source trace spans3963.9s; ongoing elapsed time alone is not a blocker.
+
+07:55:49+08 VERIFIED WAIT continuation: same actual tmux pane PID1511285/ps
+live, elapsed24:29, watchdogsample1448; latest service report1339/4000successful,
+0fail,1342 terminalrecords. Physical heldGPUs4, servicepeak20601348096B,
+hostavailable95761985536B,high/max/OOM/swap0,foreigncompute0,warning/abortnone.
+Complete source plan/AGENTS/monitor skill reread after context compaction.
+No serving/config/profile/remote changes, no analysis/cleanup/compression or
+other performance runs. Observation cell3446 ended only; actual tmux, service,
+watchdog and frozen remote remain running. This is expected verified waiting,
+not an impasse or a new experiment. Next still finish THIS4000run, exact-owned
+closure, then full D336-vs-D335 analysis with D332 context; no relaunch/repeated
+setup/cache generation. User's approved delivery cache already exists and is
+reused. All final qualification/3B/baselines/later matrix remain OPEN.
+
+08:14:02+08 VERIFIED WAIT continuation:24 bounded observations of the same
+actual tmux pane PID1511285/ps completed; service report2780/4000successful,
+0fail,2789 terminalrecords,watchdogsample2526,elapsed42:42. HeldGPUs fell4->3
+near the1500request boundary and stayed3 across subsequent samples through
+the2500boundary. This is physical release evidence, NOT final GPU-s/SLO gain.
+Servicepeak20601348096B,hostavailable98614521856B,high/max/OOM/swap0,
+foreigncompute0,warning/abortnone. Source plan/AGENTS/monitor skill fully reread.
+No serving/config/profile/remote edits, no heavy analysis or interference work.
+Observation cell3452 completed normally; actual experiment remains LIVE and
+must NOT be restarted. This turn/previous turn are verified waits, not blocked.
+Next: finish same full4000, exact-owned release, full/context analysis then
+evidence-based7B decision. All final qualification/3B/baselines remain OPEN.
+
+## HISTORY — D336 capacity-derived soft-target candidate prepared, not launched
 
 2026-10-08: full source plan/V1 and D88/D298/D300/D335 history rechecked. Latest
 user approval of once-published delivery cache reconfirmed; D78/D80 already

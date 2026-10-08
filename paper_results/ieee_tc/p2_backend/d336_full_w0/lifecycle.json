@@ -1,0 +1,175 @@
+{
+  "runs": {
+    "d332": {
+      "gaps": [
+        {
+          "gpu": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+          "released_offset_s": 538.2665707370033,
+          "reallocated_offset_s": 539.5576557599707,
+          "duration_s": 1.2910850229673088
+        },
+        {
+          "gpu": "GPU-c4663821-4888-e199-7151-d6298f8d45a5",
+          "released_offset_s": 498.8560413470259,
+          "reallocated_offset_s": 570.5161618180573,
+          "duration_s": 71.6601204710314
+        },
+        {
+          "gpu": "GPU-c4663821-4888-e199-7151-d6298f8d45a5",
+          "released_offset_s": 728.1625208139885,
+          "reallocated_offset_s": 745.051935179974,
+          "duration_s": 16.88941436598543
+        },
+        {
+          "gpu": "GPU-c4663821-4888-e199-7151-d6298f8d45a5",
+          "released_offset_s": 1248.4972722560633,
+          "reallocated_offset_s": 1347.9316963079618,
+          "duration_s": 99.43442405189853
+        },
+        {
+          "gpu": "GPU-c4663821-4888-e199-7151-d6298f8d45a5",
+          "released_offset_s": 2862.8990894950693,
+          "reallocated_offset_s": 2967.047965898062,
+          "duration_s": 104.14887640299276
+        },
+        {
+          "gpu": "GPU-dadf0267-9617-8824-cddb-82fba48a7b97",
+          "released_offset_s": 198.52303638705052,
+          "reallocated_offset_s": 362.6501703610411,
+          "duration_s": 164.12713397399057
+        }
+      ],
+      "released_gap_gpu_s": 457.551054288866,
+      "observed_gpu_s": 15382.488214008044,
+      "causal_savings": null,
+      "envelope_gpu_s": 15840.03926829691,
+      "window_gpu_seconds": {
+        "arrival": 15301.141209166846,
+        "cleanup": 39.098956420784816,
+        "drain": 5.638241360429674,
+        "pre_arrival": 36.60980705998372
+      },
+      "sources": [
+        {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d332_20261008/7b_full_w0/launch.launch/physical_deployment/summary.json",
+          "sha256": "25d3d9e2a59ff7a76049ccd1b2a1ae7001df4ac2d081bea3e6cd6568e2d2b8ad"
+        },
+        {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d332_20261008/7b_full_w0/launch.launch/physical_deployment/deployment.json",
+          "sha256": "c3e3a06db3533dfd407f9ecd08f97a3b20c3a00c74a1d4232410a2e9f2165923"
+        }
+      ]
+    },
+    "d335": {
+      "gaps": [
+        {
+          "gpu": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+          "released_offset_s": 647.8283611549996,
+          "reallocated_offset_s": 744.9204303100705,
+          "duration_s": 97.09206915507093
+        }
+      ],
+      "released_gap_gpu_s": 97.09206915507093,
+      "observed_gpu_s": 15748.053153870977,
+      "causal_savings": null,
+      "envelope_gpu_s": 15845.145223026047,
+      "window_gpu_seconds": {
+        "arrival": 15665.529902134673,
+        "cleanup": 39.93816880718805,
+        "drain": 6.317263800185174,
+        "pre_arrival": 36.26781912893057
+      },
+      "sources": [
+        {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d335_20261008/7b_full_w0/launch.launch/physical_deployment/summary.json",
+          "sha256": "fb1d0d122e2c0c7f2a1c406f027ca06cec0eb180ee5c9ba46a887178ba03b95f"
+        },
+        {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d335_20261008/7b_full_w0/launch.launch/physical_deployment/deployment.json",
+          "sha256": "c5973fa08e02c046073d87e534d461b46053c4dc1d3787b68f56dd62d6b9499c"
+        }
+      ]
+    },
+    "d336": {
+      "gaps": [
+        {
+          "gpu": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+          "released_offset_s": 172.06135224201716,
+          "reallocated_offset_s": 362.60715733398683,
+          "duration_s": 190.54580509196967
+        },
+        {
+          "gpu": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+          "released_offset_s": 1008.3025136250071,
+          "reallocated_offset_s": 1077.6524874040624,
+          "duration_s": 69.34997377905529
+        },
+        {
+          "gpu": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+          "released_offset_s": 1550.3346920370823,
+          "reallocated_offset_s": 2695.8847958130063,
+          "duration_s": 1145.550103775924
+        },
+        {
+          "gpu": "GPU-c4663821-4888-e199-7151-d6298f8d45a5",
+          "released_offset_s": 131.96106059197336,
+          "reallocated_offset_s": 364.0283032699954,
+          "duration_s": 232.067242678022
+        },
+        {
+          "gpu": "GPU-c4663821-4888-e199-7151-d6298f8d45a5",
+          "released_offset_s": 548.7378133350285,
+          "reallocated_offset_s": 748.6608870810596,
+          "duration_s": 199.92307374603115
+        },
+        {
+          "gpu": "GPU-dadf0267-9617-8824-cddb-82fba48a7b97",
+          "released_offset_s": 583.6228418269893,
+          "reallocated_offset_s": 746.1156901000068,
+          "duration_s": 162.49284827301744
+        },
+        {
+          "gpu": "GPU-dadf0267-9617-8824-cddb-82fba48a7b97",
+          "released_offset_s": 1042.10042414302,
+          "reallocated_offset_s": 1075.608013177989,
+          "duration_s": 33.50758903496899
+        }
+      ],
+      "released_gap_gpu_s": 2033.4366363789886,
+      "observed_gpu_s": 13814.334496588912,
+      "causal_savings": null,
+      "envelope_gpu_s": 15847.7711329679,
+      "window_gpu_seconds": {
+        "arrival": 13730.122307944694,
+        "cleanup": 37.97231005586218,
+        "drain": 9.18533636443317,
+        "pre_arrival": 37.05454222392291
+      },
+      "sources": [
+        {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d336_20261008/7b_full_w0/launch.launch/physical_deployment/summary.json",
+          "sha256": "9a8cf71c2dfe92fcaf85974a480a04250db45436633904d3b7b312111c21ff91"
+        },
+        {
+          "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d336_20261008/7b_full_w0/launch.launch/physical_deployment/deployment.json",
+          "sha256": "e139086e7cb1a288c1a08e84f5a53457f654b6a24c3f2d10fe4a197907228929"
+        }
+      ]
+    }
+  },
+  "contrasts": {
+    "d332": {
+      "candidate_minus_reference_gpu_s": -1568.1537174191326,
+      "envelope_boundary_delta_gpu_s": 7.731864670990035,
+      "reduced_release_gaps_gpu_s": -1575.8855820901226
+    },
+    "d335": {
+      "candidate_minus_reference_gpu_s": -1933.7186572820647,
+      "envelope_boundary_delta_gpu_s": 2.625909941853024,
+      "reduced_release_gaps_gpu_s": -1936.3445672239177
+    }
+  },
+  "causal_savings": null,
+  "confidence_interval": null,
+  "caveat": "Observed physical identity only, not a causal effect or formal G1/G2 qualification."
+}
