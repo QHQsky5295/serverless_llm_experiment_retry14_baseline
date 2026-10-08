@@ -103,3 +103,48 @@ three8/14pairs=80calls. Only old completed fixed-output lengths transfer;
 no old latency profile or SLO is relabelled.40follow-up CPU tests passed,
 including the real integer-zero schema and insufficient-C15 regression.
 No additional minimal-capacity sweep is authorized by this hypothesis.
+
+## C14 result: feasible overlap with a throughput/TPOT trade-off
+
+The second probe completed80/80native token/reference/terminal contracts;
+14warmup and66measured calls. All7waves saw956free KV blocks before and after,
+above896required. Every14-request wave reached14overlapping native intervals;
+all decode intervals intersected for7.18–7.43s in the measured larger waves.
+
+| Within-process round | 8-request wave output token/s | 14-request wave output token/s | Common8 TPOT at8, ms | Common8 TPOT at14, ms |
+|---:|---:|---:|---:|---:|
+|0|199.447814|238.046806|32.871769|47.068137|
+|1|202.828647|236.966484|32.768444|47.010912|
+|2|200.855052|236.103248|32.722036|46.898365|
+
+1. **Observation:** descriptive means201.043838→237.038846token/s (+17.90%).
+   For the same8requests, TPOT32.787416→46.992471ms (+43.32%) and native
+   dispatch-to-first288.272724→323.235279ms (+12.13%). The smaller and larger
+   waves use the SAME C14 runtime; this is not a C8-vs-C14Full comparison.
+2. **Interpretation:** extra slots/sequence capacity permits real overlap and
+   more work per time here, but each decode stream progresses more slowly.
+   Neither the old8cap nor the new14cap is declared globally optimal.
+3. **Implication:** the capacity hypothesis is worth a full validation because
+   queued startup-window requests may benefit, but the TPOT penalty can offset
+   that benefit. No GPU-s savings or formal joint SLO follows from this probe.
+4. **Next:** refresh affected timing profiles under the C14 runtime, preserve
+   the existing paper control rules and measured initialization, then the existing
+   100-request Full smoke and original4000W0. No third minimal capacity point,
+   fresh warm ruler, new workload, or move to3B/baselines before7B objectives.
+
+The three rounds share a process, not independent run repetitions; no CI or
+significance claim. Common-request output SHA differs in2/2/1round-pairs;
+retained, not called numerical correctness. The old common warm batch remains8.
+GPU-only source coverage is deliberately incomplete, so these66measurements
+cannot be exported as a complete Full service/preparation profile.
+
+Resource closure:227.890459physical GPU-s, startup87.647079s,80controlled setup
+fetches/258013231wireB, requestpacking0. Service peak5449039872B, minimum host
+available107080814592B, high/max/OOM/swap0. Native physical GPU released, service
+scope removed, exact launcher auxiliary closed; three remote units inactive and
+ports absent. Remote SHA and all80transfer IDs/archive SHA/bytes agree.
+Startup includes this new configuration's initialization; it is not comparable
+as an independent scale-out sample to D336's cached startup mean.
+
+Data: cap14/analysis1/{requests.csv,summary.json,coverage.json,manifest.json}.
+Original source1.json is retained with its SHA; no historical result overwritten.

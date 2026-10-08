@@ -11,7 +11,33 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D343 C15 probe closed/rejected; C14 bounded followup prepared
+## CURRENT — D343 C14 native probe COMPLETE; next affected profiles then Full
+
+RESULT:80/80native contract calls,14warmup+66measured. All7waves956freeKV
+before/after>=896needed; native interval peak14 and measured common decode
+intersection7.18–7.43s. Three within-process pairs (not independentruns):
+wave token/s201.043838→237.038846(+17.90%), SAME8requests TPOT32.787416→
+46.992471ms(+43.32%), nativeTTFT288.272724→323.235279ms(+12.13%). This is
+sameC14runtime8/14stress-wave tradeoff, not oldC8/newC14Full advantage.
+OutputSHA changes2/2/1pairs; N_correct and finalwarm/Resident/G1G2 remainOPEN.
+227.890459physical GPU-s,80setupfetches258013231wireB,packing0; startup87.647s
+includes firstnewconfig initialization. Servicepeak5449039872B;events/swap0.
+GPU released, service removed, exactlauncherauxclosed,3remoteunits inactive,
+remote SHA/80transferbytes verified. Analyzer finished in scope11, awaits exact
+closure/seal/backup only. C15 alreadyclosed/rejected; no3rdminimalcapacitypoint.
+NEXT after backup: reuse D298 collector to refresh only changed C14 timing
+classes, retaining V1warmbatch8 and D336 paper control rules; then existing
+100Fullsmoke/4000W0. Probe GPU-only classes are not a completeFullprofile.
+No repetition of completed D343 probes, no figures, no3B orbaseline advance.
+
+### Earlier C14 launch (completed; do not relaunch)
+
+C14 prelaunch backup verified9a4968dcee02febb590630ba8b8a9e189c4de83d.
+Checkpoint scope10closed. Fresh disk163729219584B/host112718135296B,
+empty GPU, frozen published remote healthy. tmux primelora_d343_cap14,
+raw d343_20261008/cap14/source1_launch.launch.80planned calls, no Full
+launch. Wait original run, retain failure/success, actualGPUrelease then
+owned remote stop and analysis. Do not rerun C15 or generate new inputs/figures.
 
 C15 initialized with942actual free KV blocks, below960required.0/84inference
 calls; initial schema guard incorrectly expected[] for integer0 unretired

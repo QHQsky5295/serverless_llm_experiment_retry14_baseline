@@ -1,0 +1,115 @@
+{
+  "kind": "d343_completed_capacity_checkpoint_v1",
+  "passed": true,
+  "formal_qualified": false,
+  "source_code_commit": "9a4968dcee02febb590630ba8b8a9e189c4de83d",
+  "archive_sha256": "0bf2e1bd6a6e6a664e87f6899d8a413ae029a92185286c8fe21cfc3021d5a5d9",
+  "archive_bytes": 874337,
+  "analysis_resources": {
+    "memory.peak": "602259456\n",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+    "memory.swap.current": "0\n",
+    "cgroup.events": "populated 0\nfrozen 0\n"
+  },
+  "protection": {
+    "kind": "protected_artifact_verification",
+    "pass": false,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [
+      "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"
+    ],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "previous_checkpoint_byte_identity_verified": "9a4968dcee02febb590630ba8b8a9e189c4de83d",
+  "raw_sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/cap14/source1.json",
+      "sha256": "49c7e6fea12c36db88eb52744fe3e31230b0938ffc55fda8215b4a8a0ecc6f3b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/cap14/source1_launch.json",
+      "sha256": "d0b59e3318ff62153ca69fb22e6830d3abc3b5984c26769c99c719c07d8677fc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/cap14/remote_start.log",
+      "sha256": "b97ba87131f72de5d75ff88b820d5a3508f6082066954b6230336f8b04707d18"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/cap14/remote_stop.log",
+      "sha256": "41f65426e77ee0c362bbccc50cf8d717df8b4930ba86727930262a7da5d28134"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/cap14/remote_stop.json",
+      "sha256": "f5470a0078f6747301f3972fc00849a66f91312f7c3a2122d6f9994fd38fde61"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/cap14/remote_health.json",
+      "sha256": "e29cb05fd2684d9fc403ceb697eb6b1f624a0128191ded2e099906cb8b4384e0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/cap14/remote_transfers.jsonl",
+      "sha256": "c5af4d6d918d97de6b726cc5e6a5acf2f005a11c8ad2e365a9c1a12cb038757f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/cap14/remote_monitor.log",
+      "sha256": "8f32a62a68f7bb01fd9fdf5d13a87abc2d291efee06b40d39c8456b8f4a327b3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/cap14/local_cleanup.json",
+      "sha256": "8060881869b820106bd326c014b4f1bc4fdacccb717c7ffbb2d66cb234399be1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/cap14/analyze.py",
+      "sha256": "960e812922807798b0b913ba59816fa037d0b8cab8cd402547384b70c3a74a0d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/cap14/analysis.log",
+      "sha256": "57dc22ade59f69328ba2e79a06adfc3d043c61e93ab3cadbcfde9910e2aad977"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/cap14/analysis_receipt.json",
+      "sha256": "946c984c73f312c45cf934d7d5d41bffb3aac62ba4aaa6ea2af05a2ddf235e15"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/cap14/analysis_cleanup.json",
+      "sha256": "ec7b1ef113c6dea26c8b7851c080044039941463186678b9ee1167b2b4532236"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/cap14/collect_closure.py",
+      "sha256": "118f0223494b346bd52c0c49ef3cbb0a0d60e387cce983456248c48c1ab98fff"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/cap14/start_remote.sh",
+      "sha256": "7223bf49977186d55e3745e8fc4bbc986183bd052a4bbe3cbdaf9e5853a04481"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/cap14/stop_remote.sh",
+      "sha256": "c9b21eca72f646a0c478dedc75e0e5b474a5e8bec9977c0e91f5588e914d148d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/cap14/check_remote_health.py",
+      "sha256": "7bcc75942875f3954a6ebfe83cac01e516175cb973eee0913aae7112da3d1d22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/cap14/launch_gate.py",
+      "sha256": "92c182168a8edbf337f3421c383d99362fbc5a012a6d06bf14d3c92c1dd5e151"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/cap14/launch_gate.json",
+      "sha256": "8011c34c4a9873b3399475059ee0b2b4e6e09005a97ee47d4a264effe489a11e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/cap14/checkpoint.py",
+      "sha256": "54c89594a10444e344a3a9499d46daaf7a75ded85dc10e42ef5a1f322d9b31fb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/cap14/source1_launch.launch/service.log",
+      "sha256": "686a29a82f9d4cb3f6b516c202f33f066babbe4c447f997d427c3be07810ad2e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/cap14/source1_launch.launch/watchdog.jsonl",
+      "sha256": "2fbf6367273ab26c5f10a0a24b366899a293837e2144f3e868105ba3b8046fce"
+    }
+  ]
+}
