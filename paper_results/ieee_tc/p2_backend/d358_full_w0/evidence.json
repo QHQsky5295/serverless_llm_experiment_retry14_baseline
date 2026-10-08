@@ -1,0 +1,121 @@
+{
+  "kind": "d358_complete_development_checkpoint_v1",
+  "executed_source_commit": "205cff857d39a70fec28e77bc40baf0afc1442ae",
+  "analysis_tests": 120,
+  "native_completed": 4000,
+  "numerical_n_correct": null,
+  "formal_qualification": false,
+  "no_figures": true,
+  "archive_sha256": "cbcd921cd95dbffd9ac2ca61f50d927b42d55d316149db89cfd78bc94caffd82",
+  "raw_references": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d358_20261008/launch_gate.json",
+      "sha256": "be29a447d0f41db90334439d0eaeef6f0e78c42bc314ed9407eb847ccf860616"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d358_20261008/remote_start.log",
+      "sha256": "3c52a3024e6da5e97e5b8d782ed9ad4a243f23ca11c57f005fa63b0e92193c63"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d358_20261008/remote_health.json",
+      "sha256": "1b79c3d6a59272076d68cd013a2718152110e4c9294de674a116acc25480be1f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d358_20261008/remote_stop.log",
+      "sha256": "5ce8710522481a0c3c6966432d3232046c6e5e2a375e917ae0df2109bf57e5b6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d358_20261008/remote_stop.json",
+      "sha256": "5010b5fdb0327ed4e7aab08ac82798415f538e6e804328929fbbc0240d778125"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d358_20261008/local_cleanup.json",
+      "sha256": "3fd2ee59b97f71b8be27d61e069062283076e89397da572b3710dc8615e855b5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d358_20261008/collection_scope_cleanup.json",
+      "sha256": "3ba094247ca392801333602a58be195d6b56181352b0b107d6ec44d6b7510773"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d358_20261008/analysis_cleanup.json",
+      "sha256": "ca1bdc46f81388250e1b314d0e9d0635e5c4d98f4a22cbb15ef73d742e31343d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d358_20261008/audit1.log",
+      "sha256": "efe92f8aa94058c92e7eca46533e9abc31615b66c8dbcff30aab49c7f2677edd"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d358_20261008/offline_execution_receipt.json",
+      "sha256": "7b08d92c6b3cabe86e3bbab0f8789c038fad890f1aae51cd7efb00a482a58071"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d358_20261008/completion_receipt.json",
+      "sha256": "2ce5643b3af7b493dd8d5f214fb2038fd25f49fbcb037727bffdedf5119f6d78"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d358_20261008/collect_closure.py",
+      "sha256": "bf6254bd52a36b62900a22a9edb3c4593348d6dec9e75aaac1a6958ff1a1b843"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d358_20261008/run_audit.py",
+      "sha256": "a3a198f26e970fc6170e05c7abc069e9a51ddae6be44b1a5eecc77a6dd5361e8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d358_20261008/start_remote.sh",
+      "sha256": "a35d68e68e6fcb7de3605e26485da6f6bc2608729d90012c4e7dce8e4912c46d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d358_20261008/stop_remote.sh",
+      "sha256": "022dbc988a90a48e75815f092850f3088b63ddd3babd847376f9e2511c9624b0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d358_20261008/check_remote_health.py",
+      "sha256": "bcb945ccd2c9e8a730098193c0413ff558cc33973fb28ff6f1dfbea999dc0cb9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d358_20261008/closure_checkpoint.py",
+      "sha256": "19e5141bb503e8d54c2ed9ede85bb9c37704cea87ce24df05ec8ef6fdf293682"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d358_20261008/collection_receipt.json",
+      "sha256": "d356be1ea7c4556e3134667b22dc01947e9f70a0565d2aeb9f7ce22b599664d5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d358_20261008/start.py",
+      "sha256": "7d3cac2efb2367f0df64d874dab64b79eee3fee179fa3a8456e4e438357ad360"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d358_20261008/launcher_identity.json",
+      "sha256": "837a907ef651e2220f9d5daabb234dac8dcf3bdf0e45d020bd11e76df77c5f29"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d358_20261008/7b_full_w0/launch.json",
+      "sha256": "6bbc88138904d93dd90620ab7b8a7d12c6c516e5c8fe88abecc3f49939a003b0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d358_20261008/7b_full_w0/launch.launch/physical_deployment/summary.json",
+      "sha256": "adb2f8b48f61fe249af99f075ff541996a1e4d8556ef9137a4d66195af379923"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/analyze_d297_full.py",
+      "sha256": "dbee73e234546eec188b86244fa9094d852bfd418c7e7b265553435c4f0762e7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/check_d299_full_context.py",
+      "sha256": "560ab0d3cc2c1b976c77d1e47f0c1b5e5ed5af7bb6e6e5085fd13709886b521b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/analyze_d298_smoke.py",
+      "sha256": "d76463fa51e9662bab811a37cbd3fa54a1a07f8c6bdb6d0d696d8ed6f5a0b8c9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_hit_host_analysis.py",
+      "sha256": "38b10c69a3aa05dd858fd0c2331c4bfbbb3ed2d396a7f9a2b28852c59ff2ff20"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_full_control_analysis.py",
+      "sha256": "5c4b89ef6b8171ab0e8f288d3c043e39761d84e3742bb533235c61c2da68402f"
+    }
+  ],
+  "next": "D358 improves provisional TPOT and timing joint passes against D353, but TTFT and GPU-s worsen; earlier D336 still has more joint passes. Formal qualification remains open. Inspect complete phase/length/wait/lifecycle evidence for one next hypothesis; no winner-seeking repeat, threshold changes, figures or early 3B/baseline advance."
+}

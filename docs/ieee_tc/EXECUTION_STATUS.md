@@ -11,7 +11,99 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D357 Full100 COMPLETE; D358 ordinary Full4000 preparation
+## CURRENT — D358 Full4000 COMPLETE and audited; 7B optimization remains OPEN
+
+2026-10-09: same D358 replay finished4000/4000/0failed. Do NOT rerun.
+launch.json pass=true; service domain removed; native GPU contexts released;
+all service/replay/watchdog returncodes0. Remote stop_remote.sh executed ONCE;
+three exact-owned units inactive/ports absent; do not repeat. Bilateral journal
+downloads match remote SHA. Launcher e41ce634... closed. Collection scope
+c3773d21025b44cdba383307e8a82db8 closed by the offline helper, no hard kill.
+Source0d6c188c302d83f57d3f581181d639c2dd37ed486b5817ce2027127ba055fe51,
+300387150B; execution commit205cff857d39a70fec28e77bc40baf0afc1442ae.
+GPU-s13567.637457336183; native contracts4000, numerical N_correct unknown.
+
+Existing analyzers extended for D358 after release only;120CPU checks and all
+five commands passed (full audit +D353/D336/D349 contexts). Offline scope
+b0d78f826ee848b099f41a3d07d4df22 closed exact-owned, no hard kill.
+Complete audit: D170 timing-only3821/4000=.95525,
+TTFTmiss161/TPOTmiss20 (overlap2). Mean/P95/P99 TTFT1439.619434/3432.846578/
+15336.032382ms; mean/P95TPOT31.105686/51.073428ms. Compared withD353,
+decode threshold failures decline but TTFT and GPU-s worsen. Do not close7B
+or claim formal qualification; D336 remains earlier service-quality context.
+Full trigger4000receipts/17owners, queued and unqueued yields retained. Remote
+132transfers/131480060wireB/packing0. Resource4028samples,peak23338115072B,
+hostmin91898331136B,high/max/OOM/swap0. Stage identities and protected files pass.
+OutputSHA differences160vsD353/215vsD336/155vsD349 retained, not N_correct.
+Second500phase meanTTFT3599.418ms vsD3531714.758ms,TTFTmiss90vs53;
+TPOTmiss3vs87. Short2–32output TPOTmiss18vs145,TTFTmiss76vs41.
+This is a real decode/first-token trade-off; do not report as a full improvement.
+U rises241.066567GPU-s vsD353 (+1.809%), drops246.697039vsD336 (-1.786%).
+Complete phase/length/lifecycle comparisons and all three references sealed in
+d358_full_w0/; archive71566B/27files roundtrip verified. Seal scope
+311e96d24c0b481ca6acbd6cbf5eddd2 closed by backup verifier. Checkpoint checks
+passed36staged paths/29checksums/27archive members, with no secrets or user
+manifest staged. Verifier a83c991215ed45c994cbc447d6351897 is empty; exact
+closure and remote equality receipt go to raw/closure_backup_receipt.json.
+
+Disk recovered automatically during normal service shutdown to161978200064B,
+above150GiB startup floor; no manual compression/deletion was performed. Fresh
+bounded-analysis resource gate passed. No new figures,3B,baselines or retuning.
+NEXT after checkpoint/push, reuse D358/D353 complete wait/stage/activation
+evidence to isolate second-phase TTFT regression →one literature/history-grounded
+hypothesis. No identical rerun seeking luck, threshold changes or early3B.
+See D358_COMPLETE_W0_DECISION.md. Plan/V1 unchanged; formal warm/Resident/
+numerical qualifications,3B,baselines,main comparisons/ablations remain OPEN.
+
+### D358 live measurement history — completed
+
+Live check2026-10-08 (watchdog sample1028): same tmux pane PID3985152,
+commandpython3,pane_dead0;875arrived/869done/869ok/0fail,971sbusiness elapsed.
+This and the preceding goal turn are verified waits on that actual live handle;
+the implementation turn closed D357 and launched D358. Host92.58GiBavailable,
+servicepeak19.03GiB,high/max/OOM/swap0;disk150.31GiBfree,noabort. No analysis,
+tests, extra GPU work or remote changes during this live measurement. Early
+startup queue remains included; current partial latency/legacy5sSLO is not a
+configuration-selection or formal result. Full4000, actual release and offline
+frozen-metric audit are still required. Continue monitoring the SAME run.
+The original rotation500 boundary has been crossed without clearing legal caches.
+If disk falls below150GiB, do not launch a new heavy task; the existing run's
+100GiB safety-stop threshold is unchanged. Any needed reclaim is post-release,
+limited to verified reconstructible caches, not unique measurements or assets.
+Read-only history crosscheck during monitoring: D295 completed all3registered
+numeric blocks (162calls); its single-request repeatability hypothesis was not
+confirmed. Do not reopen PEFT/numeric repetitions without new evidence. D170
+already has1536measured warm calls, but cross-model common-batch/numerical
+qualification remains open. D285 is only a100request Resident pilot, not U_ref.
+These existing records do not change the current W0 candidate or authorize
+early3B/baseline advance. After D358, inspect second500phase and2–32token misses
+alongside full physicalGPU-s and prior D353/D336 evidence, not partial live CE.
+
+D358 launched2026-10-08 23:00:53CST after preparation/remote branch verification
+at205cff857d39a70fec28e77bc40baf0afc1442ae. tmux tc-d358-full is LIVE. Do NOT
+relaunch, run tests/analysis/compression, or change runtime/config/remote services
+while this performance replay runs. Actual remote link again1000/full; reused
+published cache, no republishing. Gate disk162857697280B (just above150GiB floor).
+Launcher auxe41ce63423a445fb93aff4c1bc1184c7 identity saved in
+results/ieee_tc/p2_backend_qualification/d358_20261008/launcher_identity.json.
+Service scope0366bf23e9614fb7a942a3c4da25a98c; sample29host100.72GiB,
+servicepeak4.12GiB,high/max/OOM/swap0, no warning/abort, still initial preparation.
+Starter aced703515214c329bed949f872637e0 closed exact-owned by capture_launcher.py.
+D357 audit scopee7942feb61a74a49b32048f6623ff00d and D358 preparation
+scope25f8ab64f8994e3a94d210aea6830e3c closed; all D357 work is CLOSED.
+
+NEXT monitor same4000 →actual GPU/service release →D358 stop_remote.sh ONCE
+(not yet run) →reuse D353 collect_closure.py with D358 identity/path →bounded
+full native/context/control audit. Extend existing analyze_d297_full.py and
+check_d299_full_context.py registration AFTER release; add existing
+control_interleave_trigger to Full audit, preserve per-owner/zero rows. Compare
+D353 and D336 (D349 secondary), including short-output TPOT and physicalGPU-s.
+Do not infer N_correct/formalSLO from timing-only pass. No figures/baselines/3B.
+Remote monitor primelora-artifact-monitor-d358-full1.service, log directory
+/home/lab14/primelora_remote/tc/d358_20261008_full1;7Bclock
+remote-process-monotonic:cfba427c5c1547eeaa480422474ac180.
+
+### D357 closure and D358 preparation evidence
 
 D357 executed atd861130722b7ad1151ee8549d29fdb3a3462560a.100native contracts/
 bindings passed, sourcee7a7d50c727c49b26f3d569ec1d9778d377eebd8ddb73288f83293f0d4eb6674

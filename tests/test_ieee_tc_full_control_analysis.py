@@ -1,8 +1,12 @@
 """Strict final-receipt counter audit; fixtures, not GPU performance evidence."""
 import copy
 import unittest
+import tempfile
+from pathlib import Path
+from unittest.mock import patch
 
 from scripts.ieee_tc.analyze_d298_smoke import control_interleave_trigger
+from tests import test_ieee_tc_hit_host_analysis as prior
 
 
 def request(i, owner='owner', pid=123, counts=(5, 4, 2, 1)):
@@ -98,6 +102,37 @@ class FullControlAudit(unittest.TestCase):
         with self.assertRaises(ValueError): control_interleave_trigger([])
         self.rows[0]['success'] = False
         with self.assertRaises(ValueError): control_interleave_trigger(self.rows)
+
+
+class FullControlClosure(prior.FullRunClosureSelection):
+    campaign = 'd358'
+
+
+class FullControlReferences(unittest.TestCase):
+    def test_registered_contrasts_and_non_overwriting_paths(self):
+        from scripts.ieee_tc import check_d299_full_context as context
+        self.assertEqual(context.REGISTERED_REFERENCES['d358'], ('d353', 'd336', 'd349'))
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for reference, suffix in ((None, 'context1'), ('d353', 'context1'),
+                                      ('d336', 'context_d336'), ('d349', 'context_d349')):
+                with self.subTest(reference=reference), patch.multiple(
+                        context, ROOT=root, RAW=None, RUN=None, OUT=None), patch.object(
+                        context.p, 'check_plan', side_effect=RuntimeError('plan gate reached')):
+                    with self.assertRaisesRegex(RuntimeError, 'plan gate reached'):
+                        context.main('d358', reference)
+                    output = root/f'paper_results/ieee_tc/p2_backend/d358_full_w0/{suffix}'
+                    self.assertEqual(context.OUT, output)
+                    self.assertFalse(output.exists())
+                    output.mkdir(parents=True)
+                    with self.assertRaises(AssertionError):
+                        context.main('d358', reference)
+                    output.rmdir()
+
+    def test_unregistered_reference_rejected(self):
+        from scripts.ieee_tc import check_d299_full_context as context
+        with self.assertRaises(ValueError):
+            context.main('d358', 'd303')
 
 
 if __name__ == '__main__':

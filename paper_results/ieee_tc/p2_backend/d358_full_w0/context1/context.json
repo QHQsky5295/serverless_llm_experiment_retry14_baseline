@@ -1,0 +1,1058 @@
+{
+  "kind": "d358_full_context_audit_v1",
+  "reference": {
+    "source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d353_20261008/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d353_7b_full_w0.json",
+    "source_sha256": "0fe856cf44923ec66fb91aed5ed9d088891bedb7c2b603d416e78b04f0751c9d",
+    "physical_source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d353_20261008/7b_full_w0/launch.launch/physical_deployment/physical_resource_summary.json",
+    "physical_sha256": "2e626ff5d32d97091fc20a2878b96f3c5981702ce14dcbe4674f54f562fb52c4",
+    "max_native_ttft_error_ms": 0.0,
+    "max_native_tpot_error_ms": 0.0,
+    "shared_trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "shared_adapter_subset_sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016"
+  },
+  "candidate": {
+    "source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d358_20261008/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d358_7b_full_w0.json",
+    "source_sha256": "0d6c188c302d83f57d3f581181d639c2dd37ed486b5817ce2027127ba055fe51",
+    "physical_source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d358_20261008/7b_full_w0/launch.launch/physical_deployment/physical_resource_summary.json",
+    "physical_sha256": "3fa6a98304e90134080855c678be4a2e9d242227eee6ea3cd08ca457656d7a39",
+    "max_native_ttft_error_ms": 0.0,
+    "max_native_tpot_error_ms": 0.0,
+    "shared_trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "shared_adapter_subset_sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016"
+  },
+  "input_identity_equal": true,
+  "input_fields_checked": [
+    "request_id",
+    "adapter_id",
+    "scheduled_arrival_offset_s",
+    "source_expected_output_tokens",
+    "requested_completion_tokens",
+    "canonical_prompt_sha256",
+    "generation_contract",
+    "completion_token_source"
+  ],
+  "output_hash_changes": [
+    {
+      "request_id": "req_00009",
+      "adapter_id": "finance_lora",
+      "reference_sha256": "4b65f946d8dd4705d3ed227f31aa6343970c2e79502d83e89e02739e1c0c7b26",
+      "candidate_sha256": "ebcbe3bfab382a63ed9fe1789739c516a876398ffd505c274b4b5c617acf4bd8"
+    },
+    {
+      "request_id": "req_00013",
+      "adapter_id": "finance_lora",
+      "reference_sha256": "836fc8b71e827d1ac9a6f26e2f5382239fcb10844d6eceadaba3187756430673",
+      "candidate_sha256": "4bad213b1e7eaab7ce1af818593502cb9795ea68ffb600857e4d540505274111"
+    },
+    {
+      "request_id": "req_00037",
+      "adapter_id": "code_lora",
+      "reference_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "candidate_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_00044",
+      "adapter_id": "finance_lora",
+      "reference_sha256": "49f63f849f9574140d818b861aaea0c7963cefb34b0ad3338b19d34c4b4a5ec4",
+      "candidate_sha256": "d837ad3ecff9c74a476ec653e8316f7741f2ffb87ed2ea91a0a65641b8b2f8c6"
+    },
+    {
+      "request_id": "req_00059",
+      "adapter_id": "finance_lora",
+      "reference_sha256": "94a0ef97cfdd86f6c666b2f0ccd5657975017656ecf2ffa815d11a1161fb8986",
+      "candidate_sha256": "a985dff39fdff6fa979ebbd76115a6f24cc0cfe9d1d49ea88691ad9ebb8e3f80"
+    },
+    {
+      "request_id": "req_00077",
+      "adapter_id": "medical_lora",
+      "reference_sha256": "191f72092b57948d0e5c9de1cfe48eb891b062394e9a6228a3650ca98b5ee796",
+      "candidate_sha256": "4221eee50d9e6753af72843b415b50ec6a60a0822dbf230aafe3e5e3087fff73"
+    },
+    {
+      "request_id": "req_00084",
+      "adapter_id": "finance_lora",
+      "reference_sha256": "3e9cde124fc268fbd2f68b72f0683c93be744cd2b0ecfa7dd12db96f0209a408",
+      "candidate_sha256": "e02e5001da648f17b84512612f0455881319357fbc5b2bbced96c5626613b70c"
+    },
+    {
+      "request_id": "req_00091",
+      "adapter_id": "finance_lora",
+      "reference_sha256": "49f63f849f9574140d818b861aaea0c7963cefb34b0ad3338b19d34c4b4a5ec4",
+      "candidate_sha256": "d837ad3ecff9c74a476ec653e8316f7741f2ffb87ed2ea91a0a65641b8b2f8c6"
+    },
+    {
+      "request_id": "req_00120",
+      "adapter_id": "research_lora_0008",
+      "reference_sha256": "4288a1993df25f6a3eb4c6220d54479813651083d894ba6df74957a50acc908b",
+      "candidate_sha256": "dce9c6d4dd86068d0e1e464f1b60ab07391646b5c2ae48a9f5504cad44a02af3"
+    },
+    {
+      "request_id": "req_00138",
+      "adapter_id": "education_lora_0007",
+      "reference_sha256": "0e1726b6cfde0f83f4900ca51723fe01771a68ec5856a0d699b474390e3c03ce",
+      "candidate_sha256": "1a4e564194ec5c2198885e46b6069981d67ed4657e57613003969a8526b5d118"
+    },
+    {
+      "request_id": "req_00146",
+      "adapter_id": "medical_lora",
+      "reference_sha256": "4288a1993df25f6a3eb4c6220d54479813651083d894ba6df74957a50acc908b",
+      "candidate_sha256": "dce9c6d4dd86068d0e1e464f1b60ab07391646b5c2ae48a9f5504cad44a02af3"
+    },
+    {
+      "request_id": "req_00177",
+      "adapter_id": "finance_lora",
+      "reference_sha256": "ddf847f20f805c4068b2583bcea2958acba7c8bcd05bbc76aaed09ef781be7f6",
+      "candidate_sha256": "127d7d76950e65eb7a1103021505a8a3e84acab1f5e85000ace7358080e0a67c"
+    },
+    {
+      "request_id": "req_00187",
+      "adapter_id": "finance_lora",
+      "reference_sha256": "191f72092b57948d0e5c9de1cfe48eb891b062394e9a6228a3650ca98b5ee796",
+      "candidate_sha256": "5dcbaeb29a842fe1cab0c3d9c5ba7c5fdf4fbc7b0ee046fcd339eb4e6f53cb02"
+    },
+    {
+      "request_id": "req_00202",
+      "adapter_id": "finance_lora",
+      "reference_sha256": "191f72092b57948d0e5c9de1cfe48eb891b062394e9a6228a3650ca98b5ee796",
+      "candidate_sha256": "4221eee50d9e6753af72843b415b50ec6a60a0822dbf230aafe3e5e3087fff73"
+    },
+    {
+      "request_id": "req_00251",
+      "adapter_id": "education_lora_0007",
+      "reference_sha256": "a53540a1f2fde139fee4f6f80f7b80969906e988b913a0152e7f3e8e3320ea7f",
+      "candidate_sha256": "1876bad528dae8215b9a46d9e23fb96bfabc517ce71cff7e40496b176bdf54da"
+    },
+    {
+      "request_id": "req_00272",
+      "adapter_id": "security_lora_0012",
+      "reference_sha256": "bfe82c73b7a3a37b095db1b2df15a51f34acabe486e30f90ac2bbe34f0b75049",
+      "candidate_sha256": "62ff8de1ca312764f8aa4a9f8ce4ccfc2075761b88b6ae2903a6167441a2ec3c"
+    },
+    {
+      "request_id": "req_00295",
+      "adapter_id": "finance_lora",
+      "reference_sha256": "965d5e303933266e507e062922f1ada9c624a1d2b08242ea46beea6327a6ca40",
+      "candidate_sha256": "75437b1fb2372276e6201dca521f6ed530275891b924fb54cf7bee3a0a326134"
+    },
+    {
+      "request_id": "req_00325",
+      "adapter_id": "finance_lora",
+      "reference_sha256": "191f72092b57948d0e5c9de1cfe48eb891b062394e9a6228a3650ca98b5ee796",
+      "candidate_sha256": "4221eee50d9e6753af72843b415b50ec6a60a0822dbf230aafe3e5e3087fff73"
+    },
+    {
+      "request_id": "req_00329",
+      "adapter_id": "finance_lora",
+      "reference_sha256": "49f63f849f9574140d818b861aaea0c7963cefb34b0ad3338b19d34c4b4a5ec4",
+      "candidate_sha256": "d837ad3ecff9c74a476ec653e8316f7741f2ffb87ed2ea91a0a65641b8b2f8c6"
+    },
+    {
+      "request_id": "req_00355",
+      "adapter_id": "finance_lora_0013",
+      "reference_sha256": "891c60d51716debb71879664f5cf6189f9754c4305dca9eb4b07b5ea115a3281",
+      "candidate_sha256": "d8430e1161c3d9e80696c8dc21360e32d69932f74c00bba9c84916b40a6a6380"
+    },
+    {
+      "request_id": "req_00385",
+      "adapter_id": "medical_lora",
+      "reference_sha256": "fb609b9696063d5b8d3c23231c49e9c5e5c88497d8428085a2ce1c5737717d01",
+      "candidate_sha256": "17632d7ad31e7e559f53837b94db2cb7e7f0b3013be184adc2c09168f53843f6"
+    },
+    {
+      "request_id": "req_00387",
+      "adapter_id": "finance_lora",
+      "reference_sha256": "191f72092b57948d0e5c9de1cfe48eb891b062394e9a6228a3650ca98b5ee796",
+      "candidate_sha256": "4221eee50d9e6753af72843b415b50ec6a60a0822dbf230aafe3e5e3087fff73"
+    },
+    {
+      "request_id": "req_00394",
+      "adapter_id": "code_lora",
+      "reference_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "candidate_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_00426",
+      "adapter_id": "ecommerce_lora_0009",
+      "reference_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "candidate_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_00480",
+      "adapter_id": "research_lora_0008",
+      "reference_sha256": "730fc2416c2757019d7024d44b70fa3d569d05cf5c352a2ccbb987716350dbcd",
+      "candidate_sha256": "6fa26e1060b40ee78288f92c3c8d6dd4f0845f9a0659f082cd6732216a548a03"
+    },
+    {
+      "request_id": "req_00495",
+      "adapter_id": "finance_lora",
+      "reference_sha256": "62cdb6958e7c33cac62a4fdc1245b04876528d00efab9fda18b7e2383fa45304",
+      "candidate_sha256": "2a1aa7e164c28ba2069b3c5420130de93f508468406eacbb3efca3c8993646b5"
+    },
+    {
+      "request_id": "req_00525",
+      "adapter_id": "code_lora_0039",
+      "reference_sha256": "49bd491f7c8d888d88999f24e25f81b0b8faccff7ca3ba018bb206d62e3a86aa",
+      "candidate_sha256": "86cb254e0c2c91bf07321f7e9bdcf0f8ae16f0140d85b6dc0f92f05c3e630590"
+    },
+    {
+      "request_id": "req_00598",
+      "adapter_id": "writing_lora_0035",
+      "reference_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "candidate_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_00630",
+      "adapter_id": "finance_lora_0013",
+      "reference_sha256": "d837ad3ecff9c74a476ec653e8316f7741f2ffb87ed2ea91a0a65641b8b2f8c6",
+      "candidate_sha256": "3fd38ac7692dd3329565b11e7d619351dae75067a4b805954f72fe740d876cfa"
+    },
+    {
+      "request_id": "req_00666",
+      "adapter_id": "code_lora_0015",
+      "reference_sha256": "759838661310045e3e64e378aee6763f80ec92b57084638e5f8e52b215751251",
+      "candidate_sha256": "9ebd88a2ad27521607feb4a161f6d55d133ddde0a96862d69b632f50e1f678fa"
+    },
+    {
+      "request_id": "req_00767",
+      "adapter_id": "support_lora_0016",
+      "reference_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "candidate_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_00780",
+      "adapter_id": "ecommerce_lora_0021",
+      "reference_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "candidate_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_00803",
+      "adapter_id": "gaming_lora_0034",
+      "reference_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "candidate_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_00840",
+      "adapter_id": "legal_lora_0029",
+      "reference_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "candidate_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_00880",
+      "adapter_id": "security_lora_0024",
+      "reference_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "candidate_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_00898",
+      "adapter_id": "research_lora_0020",
+      "reference_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "candidate_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_00913",
+      "adapter_id": "finance_lora_0013",
+      "reference_sha256": "d8966041c00c6cb1f112aae5415e4462d7abbed565d85fb00d2656be97613235",
+      "candidate_sha256": "fc3c84b6927aeb6c56aeb3fbb65550c0cd7b2a993a936d5ca3d51f817ca52f31"
+    },
+    {
+      "request_id": "req_00965",
+      "adapter_id": "education_lora_0019",
+      "reference_sha256": "506e9c3f385f3e326489532cd1371aa52dcd2e05c32813138cf08ef370b04a08",
+      "candidate_sha256": "632ccf39c94b5b838bd8532dc6e764b052ec4ef3ce5003a9294f0879a303d8c5"
+    },
+    {
+      "request_id": "req_00993",
+      "adapter_id": "medical_lora_0014",
+      "reference_sha256": "50ebdc4bda29e0aa5dadaab2949bbbf1527bd4b19c2e9ff2cc92e487dab6241b",
+      "candidate_sha256": "d549df861c975f04de43a310fb24d3fdef256b6c55dac8afaf09a523453fc0a2"
+    },
+    {
+      "request_id": "req_00995",
+      "adapter_id": "legal_lora_0017",
+      "reference_sha256": "9986646d9e3055eb0c11966ae8ce2eb5508ba5ec866838a3ae4fbe8dc86189ae",
+      "candidate_sha256": "688050c11ba9f5e3fd0815be6d64bd64dd4d25c5f0511e599170c69437c2d990"
+    },
+    {
+      "request_id": "req_01026",
+      "adapter_id": "finance_lora_0025",
+      "reference_sha256": "f3754431ca605ea85753fe0b97daf2c67f53d0731bdd7f95f7e2f5ee8f861766",
+      "candidate_sha256": "996f2123acda5eff7ff1285fa5563d3d891ba21e951c990bb89ba104bc930aea"
+    },
+    {
+      "request_id": "req_01052",
+      "adapter_id": "medical_lora_0062",
+      "reference_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "candidate_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_01093",
+      "adapter_id": "support_lora_0040",
+      "reference_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "candidate_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_01136",
+      "adapter_id": "medical_lora_0026",
+      "reference_sha256": "2694eeafb32dd388751f5c1799c718699cd33ca2aeeafef19fc9ad3eb7b68c15",
+      "candidate_sha256": "600d21a06a00f0d774c7140cb8e6ea7e91cf59658ad22f7bb54983dfdae8d28c"
+    },
+    {
+      "request_id": "req_01139",
+      "adapter_id": "education_lora_0031",
+      "reference_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "candidate_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_01156",
+      "adapter_id": "education_lora_0043",
+      "reference_sha256": "e02e5001da648f17b84512612f0455881319357fbc5b2bbced96c5626613b70c",
+      "candidate_sha256": "3e9cde124fc268fbd2f68b72f0683c93be744cd2b0ecfa7dd12db96f0209a408"
+    },
+    {
+      "request_id": "req_01231",
+      "adapter_id": "code_lora_0027",
+      "reference_sha256": "28b2cdeafeff41cc9c38adf1291751c2cfbf50164a543d342cea93d0b8c05411",
+      "candidate_sha256": "9dfd82b961992fca811280240e16a88014cc9ccbc39b3742e8c66657d69bf6c2"
+    },
+    {
+      "request_id": "req_01278",
+      "adapter_id": "code_lora_0027",
+      "reference_sha256": "311d51a9b6a9d5a1fdfee8a5a0718f468f9ef9e98b3ebe73cd09ecd470c2ffe8",
+      "candidate_sha256": "34db4a61149abcaa06e002dba4c6d75900c668efef9947a36397e1d63b292bf5"
+    },
+    {
+      "request_id": "req_01302",
+      "adapter_id": "finance_lora_0025",
+      "reference_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "candidate_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_01323",
+      "adapter_id": "finance_lora_0037",
+      "reference_sha256": "836fc8b71e827d1ac9a6f26e2f5382239fcb10844d6eceadaba3187756430673",
+      "candidate_sha256": "4bad213b1e7eaab7ce1af818593502cb9795ea68ffb600857e4d540505274111"
+    },
+    {
+      "request_id": "req_01384",
+      "adapter_id": "translate_lora_0030",
+      "reference_sha256": "97d7153f6e3121971a2fca21ae6a124adb3ab69135031065eb5a750c8979d750",
+      "candidate_sha256": "3c97070f023570cfe06f4f4c1b148fb9967110456917ebe37ad11949883d39f5"
+    },
+    {
+      "request_id": "req_01414",
+      "adapter_id": "gaming_lora_0046",
+      "reference_sha256": "203f3309e5f84b18457e05680c6edd0e8df6047765ede3ba2812337011a2aa23",
+      "candidate_sha256": "9296dcba865be59444f8dadbf2c66ecd876a42b613c9fb0b81a4edcd4fc14584"
+    },
+    {
+      "request_id": "req_01436",
+      "adapter_id": "translate_lora_0042",
+      "reference_sha256": "2694eeafb32dd388751f5c1799c718699cd33ca2aeeafef19fc9ad3eb7b68c15",
+      "candidate_sha256": "600d21a06a00f0d774c7140cb8e6ea7e91cf59658ad22f7bb54983dfdae8d28c"
+    },
+    {
+      "request_id": "req_01464",
+      "adapter_id": "gaming_lora_0058",
+      "reference_sha256": "04e1e9c1536e714477549c40c03bff3ac7092b60d110be1ac9d67ad88253a2ee",
+      "candidate_sha256": "33e6f9b5e08b15dd44d44f0bbab2d4a53a7d9f72275e67c57b88e1d519d061ee"
+    },
+    {
+      "request_id": "req_01479",
+      "adapter_id": "security_lora_0036",
+      "reference_sha256": "4eeda84f906a253b4d0d8539d209c47060bc4cd740a1f6557c2c6c02937d30d2",
+      "candidate_sha256": "31751bb32671d4efbd417df8f4aca55faad01a9fb66e03ed1a3b34aea8c48b09"
+    },
+    {
+      "request_id": "req_01550",
+      "adapter_id": "ecommerce_lora_0069",
+      "reference_sha256": "9c5bb5080e8b5e1ff10bd524df16dd5cca4e234e59301dd304b3430a39aa118b",
+      "candidate_sha256": "c041f2d6053649d03159572d0fdf7563709bc537f752ec839b354f0993e807c0"
+    },
+    {
+      "request_id": "req_01577",
+      "adapter_id": "gaming_lora_0046",
+      "reference_sha256": "ece9a4233758b4175e456d91e53e1a4992973c836f09ad2a379b4966f6f16603",
+      "candidate_sha256": "3ae5f7a9328c3fbcbbf5fdce8b3197567435206cdf243514205e45b21ebc903e"
+    },
+    {
+      "request_id": "req_01596",
+      "adapter_id": "security_lora_0048",
+      "reference_sha256": "3b678dcbb8925d083a328237fe8b800eba5625b1603f7d5d27e3234c3d74e142",
+      "candidate_sha256": "4384927fd0a481adf0ed4041c4244b597c4ed6d054d3b24ba1ae6e5eb2817fc2"
+    },
+    {
+      "request_id": "req_01642",
+      "adapter_id": "medical_lora_0038",
+      "reference_sha256": "d397bd43dc2de69cc211ac6547ddcfcb163d849d629b7ef68ed8114192fb96ea",
+      "candidate_sha256": "a96129b4f91a13610d12cae898accdff69b8f5af0c08915c5af3fe3f33508747"
+    },
+    {
+      "request_id": "req_01645",
+      "adapter_id": "medical_lora_0074",
+      "reference_sha256": "153e68c35fa1959d0af2a586ea56038cde45d6d78838a0b0e7c157b9fa25c8f3",
+      "candidate_sha256": "409f87535e2822ff87c11a83445fdb852592fba14915cc872bbf8260607929a7"
+    },
+    {
+      "request_id": "req_01656",
+      "adapter_id": "finance_lora_0037",
+      "reference_sha256": "8f0c763ee72eb53e1ac6547bd5dd1907f8a646ac8f0d15062ccb6d9a46acd64f",
+      "candidate_sha256": "d1b8f76f1a40528d527630f5276e64e98e921b77b22de3e1078d7ddf97856e19"
+    },
+    {
+      "request_id": "req_01704",
+      "adapter_id": "writing_lora_0059",
+      "reference_sha256": "97d7153f6e3121971a2fca21ae6a124adb3ab69135031065eb5a750c8979d750",
+      "candidate_sha256": "3c97070f023570cfe06f4f4c1b148fb9967110456917ebe37ad11949883d39f5"
+    },
+    {
+      "request_id": "req_01705",
+      "adapter_id": "finance_lora_0037",
+      "reference_sha256": "9ff7a181c51cf73b778b5d7a0a31e7774a61c3720b5e44f1b2f25f2429100f34",
+      "candidate_sha256": "6fc21b9c286a65587e00ead179855ca91cc96129650d0a344d4bd2a1361fd94c"
+    },
+    {
+      "request_id": "req_01740",
+      "adapter_id": "finance_lora_0049",
+      "reference_sha256": "9ff7a181c51cf73b778b5d7a0a31e7774a61c3720b5e44f1b2f25f2429100f34",
+      "candidate_sha256": "6fc21b9c286a65587e00ead179855ca91cc96129650d0a344d4bd2a1361fd94c"
+    },
+    {
+      "request_id": "req_01753",
+      "adapter_id": "research_lora_0056",
+      "reference_sha256": "9f25d4fcb0ca2b61b5ed244d1dc2edc4720f6854d3792a6e113888608b0eb7bc",
+      "candidate_sha256": "b7d61885a674228f544845ef0f4937188e7e507f6a31218d99ac6959c0a0b1c0"
+    },
+    {
+      "request_id": "req_01780",
+      "adapter_id": "research_lora_0044",
+      "reference_sha256": "d549df861c975f04de43a310fb24d3fdef256b6c55dac8afaf09a523453fc0a2",
+      "candidate_sha256": "50ebdc4bda29e0aa5dadaab2949bbbf1527bd4b19c2e9ff2cc92e487dab6241b"
+    },
+    {
+      "request_id": "req_01814",
+      "adapter_id": "finance_lora_0037",
+      "reference_sha256": "48efcbaa18402496ad4269faac0e17234d33e0507c0c77c08fd552496e9cdd48",
+      "candidate_sha256": "24ded50e8cd0eb1a23c9f5c881381509f53712e55bb929278239a08163a0fe26"
+    },
+    {
+      "request_id": "req_01855",
+      "adapter_id": "ecommerce_lora_0081",
+      "reference_sha256": "7d2f5dd669a87c3bc9882417c7bac4f684e682d8c45f38afce0f20372912c02a",
+      "candidate_sha256": "d58fc704cbc18fcd43faf79881e418d3a6251bc5a1b9c4e1814adc5fcf9e9c88"
+    },
+    {
+      "request_id": "req_01899",
+      "adapter_id": "education_lora_0043",
+      "reference_sha256": "207664fe3d712ca37d6a17c879e5dbae1e21143b40ed02bee5e4be648a42b94e",
+      "candidate_sha256": "c27681280cc27bf9a0002ea3ad48ec6a09d9c5da0929524d5232140588e2f136"
+    },
+    {
+      "request_id": "req_01913",
+      "adapter_id": "medical_lora_0050",
+      "reference_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "candidate_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_01921",
+      "adapter_id": "support_lora_0040",
+      "reference_sha256": "c8b005a91adf4bc19c4c4c270ebf15711fced488ab95419f84290f87cfa4f68d",
+      "candidate_sha256": "32017df8a7f7f4f3653dc623d4a6c1b5a171ad9a9721ca5c3fb164884d7379e2"
+    },
+    {
+      "request_id": "req_01933",
+      "adapter_id": "finance_lora_0037",
+      "reference_sha256": "fd541f41226282831be09ea5c5545c6b328ff1cbe611d47021866de8318fddcf",
+      "candidate_sha256": "d815b1303fbc92daea538c9ae570ca93b963bdbf38edf7b8475bbfdc2473321c"
+    },
+    {
+      "request_id": "req_01939",
+      "adapter_id": "code_lora_0039",
+      "reference_sha256": "4384927fd0a481adf0ed4041c4244b597c4ed6d054d3b24ba1ae6e5eb2817fc2",
+      "candidate_sha256": "3b678dcbb8925d083a328237fe8b800eba5625b1603f7d5d27e3234c3d74e142"
+    },
+    {
+      "request_id": "req_01943",
+      "adapter_id": "legal_lora_0041",
+      "reference_sha256": "a985dff39fdff6fa979ebbd76115a6f24cc0cfe9d1d49ea88691ad9ebb8e3f80",
+      "candidate_sha256": "94a0ef97cfdd86f6c666b2f0ccd5657975017656ecf2ffa815d11a1161fb8986"
+    },
+    {
+      "request_id": "req_01969",
+      "adapter_id": "gaming_lora_0046",
+      "reference_sha256": "33e6f9b5e08b15dd44d44f0bbab2d4a53a7d9f72275e67c57b88e1d519d061ee",
+      "candidate_sha256": "04e1e9c1536e714477549c40c03bff3ac7092b60d110be1ac9d67ad88253a2ee"
+    },
+    {
+      "request_id": "req_01970",
+      "adapter_id": "finance_lora_0037",
+      "reference_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "candidate_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_01987",
+      "adapter_id": "writing_lora_0059",
+      "reference_sha256": "cec7cf4fd7fdd43c2a71cc9b341261f52909eea5513c0f483a1c8b775a27ca8d",
+      "candidate_sha256": "2132296fd4af39990ad1f43da35b46f576987dc3476c7d07e3e348b280ce23ae"
+    },
+    {
+      "request_id": "req_02027",
+      "adapter_id": "finance_lora_0061",
+      "reference_sha256": "d16c40e98081143b49eee09b3b6f98983e48253df2f9fd489c5f98650d74ba19",
+      "candidate_sha256": "9d2f1a24e7e3c4d33c5c0aee5e178341e299aea1371616da8dd119856ac0dec9"
+    },
+    {
+      "request_id": "req_02043",
+      "adapter_id": "gaming_lora_0070",
+      "reference_sha256": "7a9dae623a0aad40e132a566788919eb940b875e01bdb3635fc1c81a1d0b5736",
+      "candidate_sha256": "2490b9c89316cbbd6b8382ab3b98426e70a3f5294aac2ce6b7b50386aadece2b"
+    },
+    {
+      "request_id": "req_02078",
+      "adapter_id": "gaming_lora_0070",
+      "reference_sha256": "e9b0226be37343f0d95cdbf067e68032ff466ff3781bde0dc64d56a425b5a243",
+      "candidate_sha256": "4fd3c79813ecdbacbdf8b320eed353833b7c07641998239ab75174508612486f"
+    },
+    {
+      "request_id": "req_02097",
+      "adapter_id": "education_lora_0055",
+      "reference_sha256": "d58fc704cbc18fcd43faf79881e418d3a6251bc5a1b9c4e1814adc5fcf9e9c88",
+      "candidate_sha256": "7d2f5dd669a87c3bc9882417c7bac4f684e682d8c45f38afce0f20372912c02a"
+    },
+    {
+      "request_id": "req_02101",
+      "adapter_id": "finance_lora_0049",
+      "reference_sha256": "7d2f5dd669a87c3bc9882417c7bac4f684e682d8c45f38afce0f20372912c02a",
+      "candidate_sha256": "d58fc704cbc18fcd43faf79881e418d3a6251bc5a1b9c4e1814adc5fcf9e9c88"
+    },
+    {
+      "request_id": "req_02125",
+      "adapter_id": "ecommerce_lora_0069",
+      "reference_sha256": "3472947c624798c41b2734c91bb01df48efc56be4957db6f376099af6a655065",
+      "candidate_sha256": "f7e55b69a9a3b8c4db1263fb386c6bd0cf30ddca02ee4bd2d1888b701c19c93c"
+    },
+    {
+      "request_id": "req_02133",
+      "adapter_id": "finance_lora_0049",
+      "reference_sha256": "c5ce146187bec18ba33f77a62da09e0671e90a869dff46c3729ccd907ddfe272",
+      "candidate_sha256": "53d3d301e88b4aa9de8765fa03a8a83c0a7006583a4438c40a9fd4ac8e8ddd09"
+    },
+    {
+      "request_id": "req_02172",
+      "adapter_id": "research_lora_0068",
+      "reference_sha256": "cd722275b73575d019b804bb9e8f4ad1fd03940c35ae8c8c496a7e5f8e002e2c",
+      "candidate_sha256": "761a6d65c9991ed7e93f0d9b75ba5aac6bc69c5e73aec67a8762de3ed6d13c55"
+    },
+    {
+      "request_id": "req_02203",
+      "adapter_id": "education_lora_0067",
+      "reference_sha256": "24200a30d4e28d642febc8515809d04b149a2cae953f88c51f20382bacbf0599",
+      "candidate_sha256": "0c3b9fa1c3b600e2e56f5243ad3d9685466fc7fd558e9e70ac4b8dd53c4982fb"
+    },
+    {
+      "request_id": "req_02217",
+      "adapter_id": "finance_lora_0049",
+      "reference_sha256": "203f3309e5f84b18457e05680c6edd0e8df6047765ede3ba2812337011a2aa23",
+      "candidate_sha256": "9296dcba865be59444f8dadbf2c66ecd876a42b613c9fb0b81a4edcd4fc14584"
+    },
+    {
+      "request_id": "req_02243",
+      "adapter_id": "code_lora_0063",
+      "reference_sha256": "6299ae0283244427c467ab87353428f5afeab9eecb89031e399a6d658387dca1",
+      "candidate_sha256": "3b678dcbb8925d083a328237fe8b800eba5625b1603f7d5d27e3234c3d74e142"
+    },
+    {
+      "request_id": "req_02281",
+      "adapter_id": "gaming_lora_0058",
+      "reference_sha256": "d837ad3ecff9c74a476ec653e8316f7741f2ffb87ed2ea91a0a65641b8b2f8c6",
+      "candidate_sha256": "3fd38ac7692dd3329565b11e7d619351dae75067a4b805954f72fe740d876cfa"
+    },
+    {
+      "request_id": "req_02317",
+      "adapter_id": "ecommerce_lora_0069",
+      "reference_sha256": "5dcc325b56c5154987a294fa573e536095e93f3a2ec2b91f1dcaf61e041d330b",
+      "candidate_sha256": "91653039af54bc1c21ead7e320db5daabd6f368da688403cabb38755adda36e6"
+    },
+    {
+      "request_id": "req_02323",
+      "adapter_id": "translate_lora_0054",
+      "reference_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "candidate_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_02326",
+      "adapter_id": "code_lora_0051",
+      "reference_sha256": "ae8a66a7ede2b38ce31cf9be63217faf66cee1ea0b51bfc51df9fc6a0796f161",
+      "candidate_sha256": "03c48699344f6ff95f67ea7c08b1dc315a6f7d39781f7199ae9b515708614223"
+    },
+    {
+      "request_id": "req_02332",
+      "adapter_id": "finance_lora_0049",
+      "reference_sha256": "891c60d51716debb71879664f5cf6189f9754c4305dca9eb4b07b5ea115a3281",
+      "candidate_sha256": "b97d7ad7745e0f82ee17a88d3db7823d3f9c3a92ccac3b80cd6a0f7849bac2c4"
+    },
+    {
+      "request_id": "req_02336",
+      "adapter_id": "finance_lora_0049",
+      "reference_sha256": "7352b18664d88288b7a9c8d503cee71e36cfc6747aa172bbf8fe795bc6921760",
+      "candidate_sha256": "70ab8b7277339cd07761c849581c9384ec6b07ee654ee8dbfc3a669cc6648a24"
+    },
+    {
+      "request_id": "req_02341",
+      "adapter_id": "support_lora_0052",
+      "reference_sha256": "a2e7f559ae3f52673c5c0f97c578a40805236f312a167c28889126bdd6aa46f8",
+      "candidate_sha256": "1f41c3b94a280d22024bfb060a0a2c33001cadcb5db3346c525fd05f0c3e3394"
+    },
+    {
+      "request_id": "req_02344",
+      "adapter_id": "gaming_lora_0094",
+      "reference_sha256": "c1f9325650f11a6395b3155361af32c8ce9bad10049aa84eb1723b9e3cdb5443",
+      "candidate_sha256": "8d8f7afd8a0307ef8f8ccab538bdc31832a0df620d2ff3bb65c56b1b75ce9fb9"
+    },
+    {
+      "request_id": "req_02365",
+      "adapter_id": "code_lora_0051",
+      "reference_sha256": "1876bad528dae8215b9a46d9e23fb96bfabc517ce71cff7e40496b176bdf54da",
+      "candidate_sha256": "a53540a1f2fde139fee4f6f80f7b80969906e988b913a0152e7f3e8e3320ea7f"
+    },
+    {
+      "request_id": "req_02372",
+      "adapter_id": "translate_lora_0054",
+      "reference_sha256": "72f22edeabfdfa7284f2808e483210faba9fb68375cdea21a7962935671ba664",
+      "candidate_sha256": "89a10f06aab25c7420ae6110d0985782d354a9a0d915dafedc64b9441a519f10"
+    },
+    {
+      "request_id": "req_02436",
+      "adapter_id": "ecommerce_lora_0057",
+      "reference_sha256": "ae8a66a7ede2b38ce31cf9be63217faf66cee1ea0b51bfc51df9fc6a0796f161",
+      "candidate_sha256": "03c48699344f6ff95f67ea7c08b1dc315a6f7d39781f7199ae9b515708614223"
+    },
+    {
+      "request_id": "req_02443",
+      "adapter_id": "medical_lora_0062",
+      "reference_sha256": "bd4b1229be44da667a558d49027605bfb486b3bac3d2ab76997eae8152df42cc",
+      "candidate_sha256": "5036a59fded08d65d44a8a2e11a9fc1638078d1b98b9b55498b250b9f05b2106"
+    },
+    {
+      "request_id": "req_02484",
+      "adapter_id": "education_lora_0055",
+      "reference_sha256": "e9b0226be37343f0d95cdbf067e68032ff466ff3781bde0dc64d56a425b5a243",
+      "candidate_sha256": "4fd3c79813ecdbacbdf8b320eed353833b7c07641998239ab75174508612486f"
+    },
+    {
+      "request_id": "req_02512",
+      "adapter_id": "legal_lora_0065",
+      "reference_sha256": "ae8a66a7ede2b38ce31cf9be63217faf66cee1ea0b51bfc51df9fc6a0796f161",
+      "candidate_sha256": "03c48699344f6ff95f67ea7c08b1dc315a6f7d39781f7199ae9b515708614223"
+    },
+    {
+      "request_id": "req_02519",
+      "adapter_id": "gaming_lora_0070",
+      "reference_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "candidate_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_02525",
+      "adapter_id": "medical_lora_0062",
+      "reference_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "candidate_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_02579",
+      "adapter_id": "gaming_lora_0094",
+      "reference_sha256": "931e5de11b40384b64f94be8b0fcb738d10990577d9a557c36cab2957aa1f19c",
+      "candidate_sha256": "6c062e088166d1f25ed95531035d08a8bd36193fb9e78f25bf2ef811006d8f8e"
+    },
+    {
+      "request_id": "req_02585",
+      "adapter_id": "finance_lora_0073",
+      "reference_sha256": "7d2f5dd669a87c3bc9882417c7bac4f684e682d8c45f38afce0f20372912c02a",
+      "candidate_sha256": "d58fc704cbc18fcd43faf79881e418d3a6251bc5a1b9c4e1814adc5fcf9e9c88"
+    },
+    {
+      "request_id": "req_02625",
+      "adapter_id": "translate_lora_0066",
+      "reference_sha256": "12fb99fee4681565817ddb5a39cc869d9ef384543e81e225c5508b8994c0b831",
+      "candidate_sha256": "0cdf64f3a6e0a230767bb3ac26fd6b239a11eab9634b12cb846e5f29abb67605"
+    },
+    {
+      "request_id": "req_02692",
+      "adapter_id": "code_lora_0063",
+      "reference_sha256": "cd9cf2390960f989ede39315ce063070e5f20a2d9ba27a9fffc7b3fc8494afbb",
+      "candidate_sha256": "ddbacd921c13ca7e1e8b3561ff94e8cb5af37fdf94c4e7d43a2b1cd1dc5b323a"
+    },
+    {
+      "request_id": "req_02736",
+      "adapter_id": "legal_lora_0077",
+      "reference_sha256": "7d98197170d6f29bb2d361edd528d3a9a0444eed46dd5c7f2bcd0b71811486b1",
+      "candidate_sha256": "fb7f4cb588d2fd3f09c3cbfec0806b57b27b9cb19ad6b844e9bb2c0fc88e78bd"
+    },
+    {
+      "request_id": "req_02743",
+      "adapter_id": "writing_lora_0071",
+      "reference_sha256": "d837ad3ecff9c74a476ec653e8316f7741f2ffb87ed2ea91a0a65641b8b2f8c6",
+      "candidate_sha256": "3fd38ac7692dd3329565b11e7d619351dae75067a4b805954f72fe740d876cfa"
+    },
+    {
+      "request_id": "req_02754",
+      "adapter_id": "ecommerce_lora_0069",
+      "reference_sha256": "33425ce47cde86557da49e4c106ea9a5e0d791bc35adfa85df11f0dde97434d7",
+      "candidate_sha256": "33d9d2826551a4b5d86b9dc58fdf6de541772ec64588c5d4a0ce66988c0f2119"
+    },
+    {
+      "request_id": "req_02775",
+      "adapter_id": "finance_lora_0061",
+      "reference_sha256": "30cce5873143419a36d49b7fd392cc19eb72dd7b3d719301ae7e3706f3229042",
+      "candidate_sha256": "44d142a0b6da042bfc383d47756f4ab60706178167e601a8982467651694b664"
+    },
+    {
+      "request_id": "req_02782",
+      "adapter_id": "education_lora_0079",
+      "reference_sha256": "9fc2d9d8294b2c41faf93aa28d3910b56feb4e9dc0c4b9f1b1da219e3c7ca16c",
+      "candidate_sha256": "b4198bd445843e053941234f988a3619aac1c4f9da94908f2206fa0e01cc32d9"
+    },
+    {
+      "request_id": "req_02784",
+      "adapter_id": "gaming_lora_0082",
+      "reference_sha256": "6e36acfb61613458b2ae07249a699904ba5334b9e49229b28e019c11b1e84b81",
+      "candidate_sha256": "dc98d0f41d5060bfb68f5e6c91daeb5f2511a611cbe2e793fa91980e66638ff8"
+    },
+    {
+      "request_id": "req_02804",
+      "adapter_id": "translate_lora_0078",
+      "reference_sha256": "e6283383dff1df3716d57fb997665de3d11ea204d3d423e2a5a9047df465b99f",
+      "candidate_sha256": "758db5d4e6c5053cab126dbf0b3fafd341c73dbb47429701f614393a65bdb5db"
+    },
+    {
+      "request_id": "req_02818",
+      "adapter_id": "research_lora_0080",
+      "reference_sha256": "965d5e303933266e507e062922f1ada9c624a1d2b08242ea46beea6327a6ca40",
+      "candidate_sha256": "75437b1fb2372276e6201dca521f6ed530275891b924fb54cf7bee3a0a326134"
+    },
+    {
+      "request_id": "req_02847",
+      "adapter_id": "ecommerce_lora_0069",
+      "reference_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "candidate_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_02898",
+      "adapter_id": "translate_lora_0066",
+      "reference_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "candidate_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_02906",
+      "adapter_id": "finance_lora_0073",
+      "reference_sha256": "3c97070f023570cfe06f4f4c1b148fb9967110456917ebe37ad11949883d39f5",
+      "candidate_sha256": "97d7153f6e3121971a2fca21ae6a124adb3ab69135031065eb5a750c8979d750"
+    },
+    {
+      "request_id": "req_02919",
+      "adapter_id": "medical_lora_0062",
+      "reference_sha256": "cbf9bd0a2f8b00912191772622a58999147a53731ec07348acb46ac2447ea794",
+      "candidate_sha256": "1c55ccae3fa54c43a0d2a119ccb0ceba25abb72589e519d8a9b325e249990c60"
+    },
+    {
+      "request_id": "req_02953",
+      "adapter_id": "security_lora_0096",
+      "reference_sha256": "53525e6a73497bc8f84dd5b4ea363d5f6ec59349d952e6a4ae4670d06006b09d",
+      "candidate_sha256": "37c7698824a5405c845d37ddca24262d3c235acc425deba1b1dacc11dccb73f0"
+    },
+    {
+      "request_id": "req_02966",
+      "adapter_id": "research_lora_0080",
+      "reference_sha256": "4ba5e384e1fd5794047496ff75f3155130a9e07705159cb44b5803276f8d71d5",
+      "candidate_sha256": "28b65ced16a985500dae1495bbd30fd8eaaae9a607f8197300bf22163c7c2a54"
+    },
+    {
+      "request_id": "req_02994",
+      "adapter_id": "finance_lora_0061",
+      "reference_sha256": "21ef86106cac382b7f8977568bd190f459a9ff73c8297a857949f522f3449892",
+      "candidate_sha256": "1e8adc0d854a87dfc237f789660e713c1bcf4181f37dfe2185de45fe188e66c2"
+    },
+    {
+      "request_id": "req_03030",
+      "adapter_id": "security_lora_0084",
+      "reference_sha256": "e073b864046f5c7351e0b5ba9eb5404d02085ac7abdb69d3e529a010ad0d896b",
+      "candidate_sha256": "5532f47ce566a6cde2904bdc277e28b166c89cce252a9cf3e983da90ec1f64c7"
+    },
+    {
+      "request_id": "req_03044",
+      "adapter_id": "medical_lora_0086",
+      "reference_sha256": "a586c692e325e3d468e49a108829154d642b3aee3b625f6776db143a92dd7aad",
+      "candidate_sha256": "36b43c5d2b9f2448da410c3bf2d4413e9bb6fe3bb2a544d5649cc95efd8fd352"
+    },
+    {
+      "request_id": "req_03070",
+      "adapter_id": "finance_lora_0073",
+      "reference_sha256": "632ccf39c94b5b838bd8532dc6e764b052ec4ef3ce5003a9294f0879a303d8c5",
+      "candidate_sha256": "506e9c3f385f3e326489532cd1371aa52dcd2e05c32813138cf08ef370b04a08"
+    },
+    {
+      "request_id": "req_03075",
+      "adapter_id": "finance_lora_0073",
+      "reference_sha256": "0be5e00bcbcb4a79efbc04bc02a7ee6d60b1e4eecd54a8b6b10d66011db727dc",
+      "candidate_sha256": "91dc8ed9b687c9b0ec0ae138a751668af2c9fae9406608c6eae952cba663a11a"
+    },
+    {
+      "request_id": "req_03079",
+      "adapter_id": "medical_lora_0074",
+      "reference_sha256": "d97623ac5ac99db2c382a7b79bda85f7031cb8ebdc46c4d96dc1557df24f60c0",
+      "candidate_sha256": "a54f00a5427744daf48698de66f8861b188ae1cca99bed2ad8ca709475bd73a6"
+    },
+    {
+      "request_id": "req_03080",
+      "adapter_id": "research_lora_0080",
+      "reference_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "candidate_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_03094",
+      "adapter_id": "legal_lora_0089",
+      "reference_sha256": "4fd3c79813ecdbacbdf8b320eed353833b7c07641998239ab75174508612486f",
+      "candidate_sha256": "e9b0226be37343f0d95cdbf067e68032ff466ff3781bde0dc64d56a425b5a243"
+    },
+    {
+      "request_id": "req_03104",
+      "adapter_id": "medical_lora_0074",
+      "reference_sha256": "2b5837fc9bd66cff073bd0d2b6c674e85ff2ed7910dd78c66fe54e41801782fb",
+      "candidate_sha256": "2b62500bd8c2e9ee5228462e34393d0b35aeae891d5d8631c333d7f5e7dcd6fa"
+    },
+    {
+      "request_id": "req_03141",
+      "adapter_id": "code_lora_0087",
+      "reference_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "candidate_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_03160",
+      "adapter_id": "finance_lora_0073",
+      "reference_sha256": "617d65daa8ea70a91f99006425e2c8636663888a4c4b5a1614167a22e07bc292",
+      "candidate_sha256": "17359b3b224a2e6a3f24bcf05be9db3e89a64c4e1ab259779e307b619092a0b6"
+    },
+    {
+      "request_id": "req_03162",
+      "adapter_id": "support_lora_0076",
+      "reference_sha256": "3ddf6f0a2f1a3c632c60cd7d69db1b5701b74c985705881a9d81eb7179cdcbff",
+      "candidate_sha256": "ae2ab7575664daa9cf0acf80693949fb42bc5734f55230ff93650e049885f98c"
+    },
+    {
+      "request_id": "req_03178",
+      "adapter_id": "research_lora_0080",
+      "reference_sha256": "59a7f32024d37ac49a6cdbb155d0c9601496e2ee83e92fa12e637b88dddde76c",
+      "candidate_sha256": "17359b3b224a2e6a3f24bcf05be9db3e89a64c4e1ab259779e307b619092a0b6"
+    },
+    {
+      "request_id": "req_03183",
+      "adapter_id": "finance_lora_0073",
+      "reference_sha256": "e9b0226be37343f0d95cdbf067e68032ff466ff3781bde0dc64d56a425b5a243",
+      "candidate_sha256": "4fd3c79813ecdbacbdf8b320eed353833b7c07641998239ab75174508612486f"
+    },
+    {
+      "request_id": "req_03212",
+      "adapter_id": "finance_lora_0073",
+      "reference_sha256": "aaa1740f052507d0aa8717285f544290c2cd6c69a5a92eb91624740df81d4bf0",
+      "candidate_sha256": "c4732b549c5fa5a65d550bf4c1ec8d77fb2848688fd36b6e11927c8a20d52ca6"
+    },
+    {
+      "request_id": "req_03217",
+      "adapter_id": "finance_lora_0073",
+      "reference_sha256": "f9da92299204f13da04fc707c5baa72f252025800d16d57e8efa60c61b25c1bd",
+      "candidate_sha256": "b71706478354f8b7fc3bb3d8a35aeb2302adaf2eba688a38407671afbaa3ce22"
+    },
+    {
+      "request_id": "req_03280",
+      "adapter_id": "finance_lora_0073",
+      "reference_sha256": "d075674cbc1234633c8b5a4ea1098341e666da11569cf8f80bda5a3949e67771",
+      "candidate_sha256": "a4fcb379a627936d22a29857db806026b73c633c9dc7b60a5c25e684b946cb7e"
+    },
+    {
+      "request_id": "req_03300",
+      "adapter_id": "code_lora_0099",
+      "reference_sha256": "7628ab2e2acafe37f47d907a2d33499e988a2266a63568e881863c837fdf5b06",
+      "candidate_sha256": "04878fcfb4623cc06cc20e520a9ae3b4e1e329a45af23837d6acb233b2d7d3c5"
+    },
+    {
+      "request_id": "req_03319",
+      "adapter_id": "code_lora_0087",
+      "reference_sha256": "5c64bf1d781e1902c1c2deb4acdffe48912d6005e0c61bdcc9cfaac4bf98f1c9",
+      "candidate_sha256": "d5efc28070176dcd1787510e1cdf7da6cc5ecc66385f3ed794b1d157672bbf9a"
+    },
+    {
+      "request_id": "req_03364",
+      "adapter_id": "finance_lora_0073",
+      "reference_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "candidate_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_03365",
+      "adapter_id": "research_lora_0080",
+      "reference_sha256": "70ab8b7277339cd07761c849581c9384ec6b07ee654ee8dbfc3a669cc6648a24",
+      "candidate_sha256": "7352b18664d88288b7a9c8d503cee71e36cfc6747aa172bbf8fe795bc6921760"
+    },
+    {
+      "request_id": "req_03446",
+      "adapter_id": "ecommerce_lora_0093",
+      "reference_sha256": "cea82ea1355ad1821f6f57acbf2655078741d1b0d54d118c1c075de043e630f5",
+      "candidate_sha256": "5edac370019b5957b31d088e2673d979806189dd5322dcc8e1209b81806400e9"
+    },
+    {
+      "request_id": "req_03472",
+      "adapter_id": "translate_lora_0078",
+      "reference_sha256": "36b43c5d2b9f2448da410c3bf2d4413e9bb6fe3bb2a544d5649cc95efd8fd352",
+      "candidate_sha256": "a586c692e325e3d468e49a108829154d642b3aee3b625f6776db143a92dd7aad"
+    },
+    {
+      "request_id": "req_03588",
+      "adapter_id": "medical_lora_0086",
+      "reference_sha256": "2b62500bd8c2e9ee5228462e34393d0b35aeae891d5d8631c333d7f5e7dcd6fa",
+      "candidate_sha256": "2b5837fc9bd66cff073bd0d2b6c674e85ff2ed7910dd78c66fe54e41801782fb"
+    },
+    {
+      "request_id": "req_03593",
+      "adapter_id": "research_lora_0092",
+      "reference_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "candidate_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_03667",
+      "adapter_id": "finance_lora_0085",
+      "reference_sha256": "96961f4f0ec70e742999b5935f0b5c401a4cf995e1a689547bd3b5816a654706",
+      "candidate_sha256": "d0f2c4238422661644e0fbdd2c9b30b92ce798c8f5fbc6f1dc63d4b3a79bcd95"
+    },
+    {
+      "request_id": "req_03693",
+      "adapter_id": "finance_lora_0085",
+      "reference_sha256": "2b62500bd8c2e9ee5228462e34393d0b35aeae891d5d8631c333d7f5e7dcd6fa",
+      "candidate_sha256": "2b5837fc9bd66cff073bd0d2b6c674e85ff2ed7910dd78c66fe54e41801782fb"
+    },
+    {
+      "request_id": "req_03738",
+      "adapter_id": "finance_lora_0085",
+      "reference_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "candidate_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_03808",
+      "adapter_id": "support_lora_0088",
+      "reference_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "candidate_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_03810",
+      "adapter_id": "education_lora_0091",
+      "reference_sha256": "53dd69595d0314ff18a1736aaeacad5bf973e43ce485f292ef539b10e40a7cf3",
+      "candidate_sha256": "0de07540b704489725408e407b43e442214ba5e4087769b204d1c86d1c53a088"
+    },
+    {
+      "request_id": "req_03823",
+      "adapter_id": "finance_lora_0097",
+      "reference_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "candidate_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_03845",
+      "adapter_id": "medical_lora_0098",
+      "reference_sha256": "d837ad3ecff9c74a476ec653e8316f7741f2ffb87ed2ea91a0a65641b8b2f8c6",
+      "candidate_sha256": "3fd38ac7692dd3329565b11e7d619351dae75067a4b805954f72fe740d876cfa"
+    },
+    {
+      "request_id": "req_03849",
+      "adapter_id": "legal_lora_0101",
+      "reference_sha256": "70ab8b7277339cd07761c849581c9384ec6b07ee654ee8dbfc3a669cc6648a24",
+      "candidate_sha256": "7352b18664d88288b7a9c8d503cee71e36cfc6747aa172bbf8fe795bc6921760"
+    },
+    {
+      "request_id": "req_03887",
+      "adapter_id": "finance_lora_0085",
+      "reference_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "candidate_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_03906",
+      "adapter_id": "code_lora_0087",
+      "reference_sha256": "78ba14c18571953a3b0c399f0a78f02f1aa0a41d14a9efe2b3bce697387b1965",
+      "candidate_sha256": "e662e544f00faf5f94d509c65f899c421207e301eb00e8553803d454e222ee56"
+    },
+    {
+      "request_id": "req_03915",
+      "adapter_id": "gaming_lora_0118",
+      "reference_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "candidate_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_03947",
+      "adapter_id": "gaming_lora_0118",
+      "reference_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "candidate_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_03955",
+      "adapter_id": "medical_lora_0098",
+      "reference_sha256": "c5ce146187bec18ba33f77a62da09e0671e90a869dff46c3729ccd907ddfe272",
+      "candidate_sha256": "53d3d301e88b4aa9de8765fa03a8a83c0a7006583a4438c40a9fd4ac8e8ddd09"
+    }
+  ],
+  "tier_counts": {
+    "remote": 135,
+    "gpu": 2575,
+    "nvme": 881,
+    "host": 409
+  },
+  "terminal_meta": {
+    "run_completed": true,
+    "error": null,
+    "cleanup_errors": [],
+    "measurement_errors": []
+  },
+  "remote": {
+    "transfers": 132,
+    "wire_bytes": 131480060,
+    "pack_performed": false,
+    "clock": "remote-process-monotonic:cfba427c5c1547eeaa480422474ac180"
+  },
+  "resources": {
+    "samples": 4028,
+    "peak_bytes": 23338115072,
+    "min_host_available_bytes": 91898331136,
+    "max_swap_bytes": 0,
+    "memory_events": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    }
+  },
+  "protection_raw": {
+    "kind": "protected_artifact_verification",
+    "pass": false,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [
+      "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"
+    ],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "n_correct": null,
+  "formal_qualification": false,
+  "no_figures": true,
+  "replicates_per_configuration": 1,
+  "confidence_interval": null,
+  "caveats": [
+    "Full development W0, not held-out; no statistical superiority claim.",
+    "Relative to D353: atomic native control interleaving, corresponding D356 measured initialization, and copied registration counter metadata; controller, native capacity and workload are unchanged. D336 and D349 are historical context with additional configuration or implementation differences, not single-factor contrasts. Ordinary Full4000 with no intrusive timeline observer. One development replay per configuration; no statistical superiority or formal G1/G2 qualification.",
+    "Binding and native counts do not by themselves qualify kernel arithmetic.",
+    "Warm reference remains provisional; shared final references remain open."
+  ],
+  "remote_shutdown": {
+    "all_owned_units_inactive": true,
+    "ports_18080_18081_absent": true,
+    "local_gpu_release_verified_before_remote_stop": true,
+    "download_hashes_match_remote": true,
+    "hashes": {
+      "remote_transfers.jsonl": "81c765215842a08eb1a0f522e6a6a9f19b28a61f754c4731631ebd5d54b7b85a",
+      "remote_monitor.log": "e121f7ab837e2d41060aa01e095ea4a5a3aedd2862953812b7a3b7be3e648e09"
+    },
+    "stop_log_sha256": "5ce8710522481a0c3c6966432d3232046c6e5e2a375e917ae0df2109bf57e5b6"
+  }
+}

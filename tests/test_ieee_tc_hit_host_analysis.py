@@ -61,19 +61,20 @@ class HitHostEvidence(unittest.TestCase):
 
 class FullRunClosureSelection(unittest.TestCase):
     """The registered full analysis cannot consume a live or different run."""
+    campaign = 'd353'
 
     def setUp(self):
         temporary = tempfile.TemporaryDirectory()
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
-        self.raw = self.root/'results/ieee_tc/p2_backend_qualification/d353_20261008'
+        self.raw = self.root/f'results/ieee_tc/p2_backend_qualification/{self.campaign}_20261008'
         self.run = self.raw/'7b_full_w0'
         self.run.mkdir(parents=True)
         self.source = self.run/('experiment_results_full_vllm_dedicated_a500_r4000_c2'
-            '_tc_ieee_full_d353_7b_full_w0.json')
+            f'_tc_ieee_full_{self.campaign}_7b_full_w0.json')
         self.source.write_text('{}\n')
         self.digest = hashlib.sha256(self.source.read_bytes()).hexdigest()
-        self.out = self.root/'paper_results/ieee_tc/p2_backend/d353_full_w0/validated1'
+        self.out = self.root/f'paper_results/ieee_tc/p2_backend/{self.campaign}_full_w0/validated1'
         self.records = {
             'collection_receipt.json': dict(source_path=str(self.source),
                 source_bytes=self.source.stat().st_size, source_sha256=self.digest),
@@ -104,7 +105,7 @@ class FullRunClosureSelection(unittest.TestCase):
              patch.object(full, 'read', side_effect=read), \
              patch.object(full, 'sha256', side_effect=digest), \
              patch.object(full, 'audit_run', side_effect=RuntimeError('full audit reached')):
-            full.main('d353')
+            full.main(self.campaign)
 
     def test_live_without_collection_is_rejected(self):
         del self.records['collection_receipt.json']
