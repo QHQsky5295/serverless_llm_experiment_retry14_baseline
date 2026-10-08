@@ -11,7 +11,45 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D339 fork candidate rejected safely; D340 on-demand prebuild in CPU qualification
+## CURRENT — D340 100-prefix done; D341 unchanged full4000 next
+
+2026-10-08: D340 completed100/100 native-length/timing/control-binding checks;
+2 actual native spawn/unquantized/no-background witnesses. Mean/P95TTFT
+784.9585397/1718.4081011ms, mean/P95TPOT29.8732831/40.4399100ms,
+U330.7621931GPU-s.29 transfers50650865B, no dynamic packing, remote1000Mbps/full.
+Service peak9471033344B, high/max/OOM/swap0. ActualGPU release, service scope
+removal, exact aux closure and3remote units inactive/ports absent confirmed.
+Offline18tests + strict audit passed; numericalN_correct and finalcommonSLO
+remain UNKNOWN. D334 prefix context has different controls, NOT causal savings.
+No figures. D341 fullW0 config/launcher prepared: identical D340 candidate,
+all4000 original requests, exclusive output/cache paths. Next seal/checkpoint
+smoke evidence and full-run config, fresh gate, then actual D341 GPU replay.
+Do not repeat D340 or D339/D338; G1/G2/3B/baselines remain OPEN.
+
+## D340 RUN RECORD
+
+2026-10-08: fresh launch gate passed; frozen D80 remote services started with
+verified identities, both authenticated health checks passed. Actual NIC1000Mbps/
+full again; no cache regeneration. Existing guarded runner launched in tmux
+tc-d340-smoke1, raw d340_20261008/7b_prebuild_validation_100. Native spawn and
+on_demand_v1 retained. Initial watchdog samples: no memory events/abort/foreign
+compute. Do not relaunch or change serving sources while active. Next: monitor,
+exact-owned local/remote cleanup, strict data-only100-prefix audit, then unchanged
+candidate complete4000 if qualification passes. No figures or baseline tasks.
+Health check's first stdlib-Python package import lacked NumPy before any HTTP
+request; management script now loads the unchanged stdlib-only HTTP module by
+file, authenticated health passed. No serving/config change or failed GPU run.
+
+## D340 PRELAUNCH BACKUP
+
+BACKUP/CLOSURE VERIFIED: local and independently read remote V2 both
+df56fb08a9e727557b6b7a78b9e262b5c09eb44c,25 exact paths; archive/source SHA,
+diff/syntax/secrets checks pass. User manifest unchanged/unstaged. All D339/D340
+CPU/compression/prelaunch/backup scopes closed exactly; final backup peak106885120B,
+events0/swap0 and GPU compute census empty. CPU validation/profile binding and
+backup are DONE. Do NOT repeat them, D338 imports, D339 fork, or compression.
+Next actual task is fresh gate/remote start and existing guarded D340100-prefix
+runner (native spawn/on-demand Humming); no GPU replay has been launched yet.
 
 2026-10-08: D339 native-fork candidate passed170 unit tests but real-import safety
 precondition FAILED: CUDAfalse,2 Humming background reaper threads,4 OS tasks.

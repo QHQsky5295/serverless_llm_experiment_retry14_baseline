@@ -3,6 +3,7 @@ import argparse
 import csv
 import json
 import math
+import re
 from collections import Counter
 from pathlib import Path
 
@@ -74,6 +75,21 @@ def native_pending_turn_trigger(requests):
         raise ValueError('native pending/GPU core-turn candidate did not trigger')
     return dict(final_selected_tier_counts=dict(counts),
         combined_successful_requests=counts['gpu'],causal_latency_savings=None)
+
+
+def prebuild_policy_witness(body):
+    """Require the initialized native-model witness, not a configured flag."""
+    records = re.findall(r'^\[quantization-prebuild\] (.+)$', body, re.MULTILINE)
+    if len(records) != 1:
+        raise ValueError('exactly one actual initialized prebuild witness required')
+    row = json.loads(records[0])
+    if (row.get('policy') != 'on_demand_v1' or 'quantization' not in row
+            or row['quantization'] is not None
+            or type(row.get('background_build_threads')) is not int
+            or row['background_build_threads'] != 0
+            or row.get('native_core_methods') != ['spawn']):
+        raise ValueError('actual prebuild/native process contract failed')
+    return row
 
 
 def main(campaign='d298'):
@@ -170,6 +186,16 @@ def main(campaign='d298'):
         comparison_caveat = ('D331 attempt2 reused as the same-input/policy prefix context. D334 changes only '
             'selected GPU native registration/protection sequencing. One prefix is not a performance selection '
             'or formal qualification; complete4000 versus D332 is required, without extrapolating prefix GPU-s.')
+    elif campaign == 'd340':
+        REFERENCE = ROOT/'results/ieee_tc/p2_backend_qualification/d334_20261008/7b_native_pending_validation_100/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d334_7b_native_pending_validation_100.json'
+        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d340_20261008'
+        RUN = RAW/'7b_prebuild_validation_100'
+        SOURCE = RUN/'experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d340_7b_prebuild_validation_100.json'
+        OUT = ROOT/'paper_results/ieee_tc/p2_backend/d340_prebuild_candidate/smoke1'
+        health_name = 'remote_health.json'
+        comparison_caveat = ('D334 is descriptive same-input prefix context only: D340 retains D336 capacity controls, '
+            'not D334 controls. D340 changes only the unused quantization-helper prebuild policy from D336. '
+            'Complete4000 versus D336 is required; do not attribute prefix differences or extrapolate GPU-s.')
     elif campaign != 'd298':
         raise ValueError('unknown frozen smoke identity')
     assert not OUT.exists(), 'never overwrite a prior audit'
@@ -191,7 +217,7 @@ def main(campaign='d298'):
     assert len(remote) == len(rows) == len(transfers)
     assert set(remote) == {r['http_transfer_id'] for r in transfers}
     health = read(RAW/health_name)
-    if campaign in ('d331', 'd331-attempt2', 'd334'):
+    if campaign in ('d331', 'd331-attempt2', 'd334', 'd340'):
         clock = health['7b']['clock_id']
     else:
         clock = health['clock_id'] if campaign in ('d322', 'd322-attempt2') else health['health']['clock_id']
@@ -245,7 +271,7 @@ def main(campaign='d298'):
             (SOURCE,REFERENCE,outcome_path,journal,WARM,INDEX,
              RAW/('attempt2/smoke_remote_monitor.log' if campaign in ('d322-attempt2', 'd331-attempt2') else 'smoke_remote_monitor.log'),
              ROOT/'scripts/run_all_experiments.py', Path(__file__))])
-    if campaign in ('d302', 'd308', 'd310', 'd312', 'd317', 'd322', 'd322-attempt2', 'd331', 'd331-attempt2', 'd334'):
+    if campaign in ('d302', 'd308', 'd310', 'd312', 'd317', 'd322', 'd322-attempt2', 'd331', 'd331-attempt2', 'd334', 'd340'):
         result['admission_waits'] = summarize_admission_waits(requests)
         result['mechanism_events'] = {k:v for k,v in outcome['mechanism_events'].items()
             if k in ('_ieee_source_observation_stats', '_ieee_route_cache_stats')}
@@ -261,8 +287,26 @@ def main(campaign='d298'):
             causal_latency_savings=None, requires_new_observation=True)
     if campaign == 'd331-attempt2':
         result['planning_publication_trigger'] = planning_publication_trigger(outcome['mechanism_events'])
-    if campaign == 'd334':
+    if campaign in ('d334', 'd340'):
         result['native_pending_turn_trigger'] = native_pending_turn_trigger(requests)
+    if campaign == 'd340':
+        service_log = RUN/'launch.launch/service.log'
+        archives = list(dict.fromkeys(re.findall(
+            r'preserved dedicated worker workdir: (.+)', service_log.read_text())))
+        assert archives, 'preserved initialized worker evidence required'
+        witnesses = {}
+        for directory in archives:
+            log = Path(directory)/'worker.log'
+            body = log.read_text()
+            cores = re.findall(r'EngineCore pid=(\d+)\) INFO .* Initializing a V1 LLM engine', body)
+            assert len(cores) == 1
+            witness = prebuild_policy_witness(body)
+            if cores[0] in witnesses:
+                assert witnesses[cores[0]]['witness'] == witness
+            else:
+                witnesses[cores[0]] = dict(witness=witness, log=str(log), sha256=sha256(log))
+        result['prebuild_witnesses'] = witnesses
+        result['raw_evidence'].append(dict(path=str(service_log), sha256=sha256(service_log)))
     with (OUT/'audit.json').open('x') as stream:
         json.dump(result,stream,indent=2,allow_nan=False)
     print(json.dumps(dict(stats=stats,timing={k:v for k,v in timing.items() if k!='decisions'},
@@ -271,5 +315,5 @@ def main(campaign='d298'):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--campaign', choices=('d298','d302','d308','d310','d312','d317','d322','d322-attempt2','d331','d331-attempt2','d334'), default='d298')
+    parser.add_argument('--campaign', choices=('d298','d302','d308','d310','d312','d317','d322','d322-attempt2','d331','d331-attempt2','d334','d340'), default='d298')
     main(parser.parse_args().campaign)

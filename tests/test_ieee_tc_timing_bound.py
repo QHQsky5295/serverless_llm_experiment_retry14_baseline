@@ -1,8 +1,41 @@
 """Exact timing-only bound fixtures; no GPU, no correctness substitution."""
 import copy
+import json
 import unittest
 from scripts.analyze_control_path_overhead import provisional_timing_bound
 from scripts.ieee_tc.analyze_d298_smoke import planning_publication_trigger, native_pending_turn_trigger
+from scripts.ieee_tc.analyze_d298_smoke import prebuild_policy_witness
+
+
+class PrebuildPolicyWitnessTest(unittest.TestCase):
+    def row(self):
+        return dict(policy='on_demand_v1', quantization=None,
+            background_build_threads=0, native_core_methods=['spawn'])
+
+    def line(self, row):
+        return '[quantization-prebuild] '+json.dumps(row)+'\n'
+
+    def test_initialized_witness_required(self):
+        row = self.row()
+        self.assertEqual(prebuild_policy_witness(self.line(row)), row)
+        for body in ['', 'HUMMING_DISABLE_PARALLEL_BUILD=1\n', self.line(row)*2]:
+            with self.assertRaises(ValueError):
+                prebuild_policy_witness(body)
+
+    def test_actual_model_threads_and_process_method(self):
+        for key, value in [('policy',None),('quantization','fp8'),
+                ('background_build_threads',False),('background_build_threads',1),
+                ('native_core_methods',['fork']),('native_core_methods',[])]:
+            row = self.row()
+            row[key] = value
+            with self.subTest(key=key, value=value), self.assertRaises(ValueError):
+                prebuild_policy_witness(self.line(row))
+
+    def test_missing_quantization_is_not_unquantized(self):
+        row = self.row()
+        del row['quantization']
+        with self.assertRaises(ValueError):
+            prebuild_policy_witness(self.line(row))
 
 
 class NativePendingTurnTriggerTest(unittest.TestCase):

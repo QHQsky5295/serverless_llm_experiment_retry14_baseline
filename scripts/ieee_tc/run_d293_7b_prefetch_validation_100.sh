@@ -203,6 +203,16 @@ case "${1:-d293}" in
     export HUMMING_DISABLE_PARALLEL_BUILD=1
     export VLLM_WORKER_MULTIPROC_METHOD=spawn
     ;;
+  d341)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d341_20261008/7b_full_w0
+    CONFIG=configs/ieee_tc/20261008_d341_7b_full_w0.yaml
+    TAG=d341_7b_full_w0
+    SCENARIO=tc_ieee_full
+    PREFIX_COUNT=
+    export FAASLORA_IEEE_QUANTIZATION_PREBUILD_POLICY=on_demand_v1
+    export HUMMING_DISABLE_PARALLEL_BUILD=1
+    export VLLM_WORKER_MULTIPROC_METHOD=spawn
+    ;;
   *) echo 'Unknown frozen campaign identity; no arbitrary output override' >&2; exit 2 ;;
 esac
 [[ $# -le 1 ]] || exit 2

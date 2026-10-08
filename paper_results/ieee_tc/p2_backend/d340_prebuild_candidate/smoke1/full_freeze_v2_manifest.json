@@ -1,0 +1,12 @@
+{
+  "sources": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d340_20261008/smoke_backup_attempt1.json": "1bf5b5aa730091c5e4332e814531d61eb74a9c13a2c188523fe6313db0add15f",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d340_20261008/finish_smoke_checkpoint.py": "b29c87297de1652fec5673f1c5442413f96628305f539ed89a8f2ad54b336ab0",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d341_20261008/full_binding2.json": "c296718f8164d3ea13e2b119d761388326dfe672107dfa70709f399eb6b993df",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d341_20261008/launch_full_gate.py": "7be6325acbe403d558636afbc7f15eb5d064962ce99b0793445ea9b1b8b9d044",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261008_d341_7b_full_w0.yaml": "ccf401de51a25ce74b66ed7d186079904ea6ade653fb9356fb2c267763c4fbb7"
+  },
+  "archive_sha256": "644061cd194d7c2f5b8a8bd584720b501095cc56ec119af3e9501ed4ee122b66",
+  "original_binding_retained": true,
+  "serving_changed": false
+}
