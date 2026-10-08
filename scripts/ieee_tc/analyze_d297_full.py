@@ -627,6 +627,10 @@ LIFECYCLE_CONTRASTS = {
         'd327_retained_drain_lifecycle_v1',
         ('a790cd59968a0d8d33bc017938467c1f818c5e5c617fb9628ab25a4843b5e991',
          '9e1057f50d1cc8dafacfd4f232216cd5979ac6c7e9f2a479dcd26f654295150a')),
+    ('d335', 'd336'): (
+        'd337_retained_capacity_lifecycle_v1',
+        ('a3b6ee044db0ba46915e94ad1de8e67f638b3b0f188fed7eaac1e69078ffaa97',
+         'b8452f4f577446128b4a77a7117485660f3b9841caf831ad867a58d9a9587a05')),
 }
 
 
@@ -1392,6 +1396,8 @@ if __name__ == '__main__':
         help='D319 retained D315/D318 lifecycle and decode analysis, no inference')
     parser.add_argument('--drain-lifecycle-output', type=Path,
         help='D327 retained D323/D326 lifecycle cohorts; same D319 method, no inference')
+    parser.add_argument('--capacity-lifecycle-output', type=Path,
+        help='D337 retained D335/D336 capacity/lifecycle cohorts; same D319 method, no inference')
     parser.add_argument('--routing-load-output', type=Path,
         help='D320 retained D315/D318 routing load consistency, no inference')
     parser.add_argument('--routing-length-output', type=Path,
@@ -1402,9 +1408,12 @@ if __name__ == '__main__':
     if sum(x is not None for x in (args.admission_wait_output, args.decode_tail_output,
                                   args.native_load_output, args.prefill_output, args.route_copy_output,
                                   args.lifecycle_output, args.routing_load_output, args.routing_length_output,
-                                  args.service_lifecycle_output, args.drain_lifecycle_output)) > 1:
+                                  args.service_lifecycle_output, args.drain_lifecycle_output,
+                                  args.capacity_lifecycle_output)) > 1:
         parser.error('choose one retained diagnostic')
-    if args.drain_lifecycle_output is not None:
+    if args.capacity_lifecycle_output is not None:
+        inspect_retained_lifecycle(args.capacity_lifecycle_output, contrast=('d335', 'd336'))
+    elif args.drain_lifecycle_output is not None:
         inspect_retained_lifecycle(args.drain_lifecycle_output, contrast=('d323', 'd326'))
     elif args.service_lifecycle_output is not None:
         inspect_retained_service_lifecycle(args.service_lifecycle_output)

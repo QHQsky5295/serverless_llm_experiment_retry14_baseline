@@ -11,13 +11,49 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D336 full4000 complete/audited; resource–latency trade-off, backup next
+## CURRENT — D337 retained full-run trade-off localized; next startup-path hypothesis
+
+2026-10-08: D337 analysis COMPLETE, no new GPU replay/service/config change or
+figures.73 CPU tests pass; D335/D336 each4000 retained intervals analyzed with
+the same D319/D327 method. In the common288 startup-arrival requests, provisional
+joint timing misses22->51; other3712 misses111->112. This decomposes the observed
+net30 count increase, NOT a causal startup-attributable fraction. In release-gap
+common2033 requests P95TPOT57.089->66.388ms; average peer-native occupancy
+.983->1.395 overall, load count1977->1975 and load seconds71.086->71.201.
+After both last-ready, common946 P95TTFT2940.804->3225.216 while P95TPOT improves
+44.406->40.694. Startup is worth targeting but cannot explain all outcomes.
+
+All11 actual worker PID/activation logs retained: activation44.314–51.429s,
+mean47.371; model loadmean9.379s, init/profile/KV/warmupmean11.501s; all11 AOT
+cache hits, compilemean.279s. Eachhasone runtime LoRA JIT notice without duration.
+Nested rounded log spans not summed or cross-subtracted from monotonic times.
+See D337_CAPACITY_STARTUP_TRADEOFF.md and d337_capacity_lifecycle/analysis1.
+No more subdivision/re-audit/rerun of D336. NEXT one7B question: fresh frontend/
+core initialization, handshake and ready-publication repeated work, not deleted
+TTFTguard, higher targets, max2cap, eager fallback or repeated512budget test.
+Inspect actual code/history/official implementation; if needed one bounded
+no-GPU startup/import measurement before selecting a minimal production change.
+Unknown N_correct/commonwarm/Resident/old-new G1/G2 remain OPEN; 3B/baselines
+and latermatrix paused. Disk below150GiB still prohibits a new heavy launch.
+
+## HISTORY — D336 full4000 complete/audited/backed up; resource–latency trade-off
+
+08:48+08 BACKUP VERIFIED: local HEAD and independent remote V2 both
+321d45b49ef1bcae1ef43bd69e1a77d92fa081ad.23 exact staged paths/17curated hashes/
+24archive members,secrets/syntax/diff checks pass;user manifest unchanged and
+unstaged. Final verifier empty/stopped,peak48525312B,events0/swap0. All current
+local/remote experiment and analysis scopes closed; GPU compute census empty.
+D336 closure/analysis/backup are DONE, not another task to repeat. Available
+disk160669462528B below150GiB; no new heavy launch before evidenced recovery.
+NEXT mainline: use retained full request/decode/control evidence and history to
+distinguish the TPOT/queue trade-off before ONE next7B hypothesis. Do not declare
+formal SLO, restart D336 unchanged, repeat numerical/profile blocks, or jump3B.
 
 08:46+08:79 CPU tests and both reused full/context analyzers pass. Exact-owned
 offline scope empty/stopped,peak1064529920B,events0/swap0.24-member49850B closure
 archive sealed with curated hashes; no inference/remote service active. D336
 analysis is DONE; do not repeat this run or audit-only cycle. See
-D336_COMPLETE_W0_DECISION.md. NEXT verify/stage exact paths, backup V2, then
+D336_COMPLETE_W0_DECISION.md. Backup was pending at08:46 and is verified above;
 return to7B with the retained latency/decode evidence, not3B/baselines.
 
 All4000 native counts/10binding checks/time identities pass,207outputSHA changes

@@ -1,0 +1,228 @@
+{
+  "kind": "d337_retained_d336_startup_logs_v1",
+  "workers": [
+    {
+      "worker_pid": 1519795,
+      "replica": "ieee-activation-c79bd04dc4f24d608798a1fa8ac82493",
+      "category": "natural_scaleout",
+      "activation_s": 51.36226617207285,
+      "weight_load_s": 6.51,
+      "model_load_s": 10.288541,
+      "init_profile_cache_warmup_s": 12.85,
+      "compile_s": 0.29,
+      "graph_capture_passes": 2,
+      "aot_cache_loaded": true,
+      "checkpoint_prefetch": true,
+      "inference_jit_notices": [
+        "_lora_shrink_kernel"
+      ],
+      "source_log": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_p7qvdlpn_engine_dead_1791416074/worker.log"
+    },
+    {
+      "worker_pid": 1519607,
+      "replica": "ieee-activation-42a434f697134931b750851b4c110a85",
+      "category": "natural_scaleout",
+      "activation_s": 49.39078559004702,
+      "weight_load_s": 8.27,
+      "model_load_s": 11.953432,
+      "init_profile_cache_warmup_s": 11.73,
+      "compile_s": 0.29,
+      "graph_capture_passes": 2,
+      "aot_cache_loaded": true,
+      "checkpoint_prefetch": true,
+      "inference_jit_notices": [
+        "_lora_shrink_kernel"
+      ],
+      "source_log": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_vsi_lij2_engine_dead_1791416115/worker.log"
+    },
+    {
+      "worker_pid": 1545470,
+      "replica": "ieee-activation-0661acf8808c4685ad1c942062bea122",
+      "category": "natural_scaleout",
+      "activation_s": 47.64538078196347,
+      "weight_load_s": 6.05,
+      "model_load_s": 10.770586,
+      "init_profile_cache_warmup_s": 11.52,
+      "compile_s": 0.26,
+      "graph_capture_passes": 2,
+      "aot_cache_loaded": true,
+      "checkpoint_prefetch": true,
+      "inference_jit_notices": [
+        "_lora_shrink_kernel"
+      ],
+      "source_log": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_oz_kxxgj_engine_dead_1791416491/worker.log"
+    },
+    {
+      "worker_pid": 1519489,
+      "replica": "ieee-activation-0d40ea4b0b884d059537e6bcd4096787",
+      "category": "natural_scaleout",
+      "activation_s": 49.513527257950045,
+      "weight_load_s": 7.52,
+      "model_load_s": 12.04917,
+      "init_profile_cache_warmup_s": 12.21,
+      "compile_s": 0.3,
+      "graph_capture_passes": 2,
+      "aot_cache_loaded": true,
+      "checkpoint_prefetch": true,
+      "inference_jit_notices": [
+        "_lora_shrink_kernel"
+      ],
+      "source_log": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_0xpkk8_m_engine_dead_1791416526/worker.log"
+    },
+    {
+      "worker_pid": 1545203,
+      "replica": "ieee-activation-5246470d3b644f95bbe2371d0dcecdf6",
+      "category": "natural_scaleout",
+      "activation_s": 47.152711366070434,
+      "weight_load_s": 8.71,
+      "model_load_s": 11.165035,
+      "init_profile_cache_warmup_s": 11.2,
+      "compile_s": 0.29,
+      "graph_capture_passes": 2,
+      "aot_cache_loaded": true,
+      "checkpoint_prefetch": true,
+      "inference_jit_notices": [
+        "_lora_shrink_kernel"
+      ],
+      "source_log": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_uyawl7d4_engine_dead_1791416951/worker.log"
+    },
+    {
+      "worker_pid": 1575019,
+      "replica": "ieee-activation-932e89cd55d14b53af11bbc5f63b273d",
+      "category": "natural_scaleout",
+      "activation_s": 44.31366504402831,
+      "weight_load_s": 4.88,
+      "model_load_s": 7.337535,
+      "init_profile_cache_warmup_s": 11.29,
+      "compile_s": 0.29,
+      "graph_capture_passes": 2,
+      "aot_cache_loaded": true,
+      "checkpoint_prefetch": true,
+      "inference_jit_notices": [
+        "_lora_shrink_kernel"
+      ],
+      "source_log": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_cb5p7y13_engine_dead_1791416985/worker.log"
+    },
+    {
+      "worker_pid": 1600095,
+      "replica": "ieee-activation-a807d495a0cf4ae1886f874c56a4b14d",
+      "category": "natural_scaleout",
+      "activation_s": 45.26687430602033,
+      "weight_load_s": 5.75,
+      "model_load_s": 8.536372,
+      "init_profile_cache_warmup_s": 11.29,
+      "compile_s": 0.28,
+      "graph_capture_passes": 2,
+      "aot_cache_loaded": true,
+      "checkpoint_prefetch": true,
+      "inference_jit_notices": [
+        "_lora_shrink_kernel"
+      ],
+      "source_log": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_3vk3c2ku_engine_dead_1791417493/worker.log"
+    },
+    {
+      "worker_pid": 1599985,
+      "replica": "ieee-activation-2595e942598d492790cc2edaf4a79af0",
+      "category": "natural_scaleout",
+      "activation_s": 45.51590712799225,
+      "weight_load_s": 6.54,
+      "model_load_s": 9.248162,
+      "init_profile_cache_warmup_s": 11.6,
+      "compile_s": 0.27,
+      "graph_capture_passes": 2,
+      "aot_cache_loaded": true,
+      "checkpoint_prefetch": true,
+      "inference_jit_notices": [
+        "_lora_shrink_kernel"
+      ],
+      "source_log": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_t4fyas6__engine_dead_1791419918/worker.log"
+    },
+    {
+      "worker_pid": 1575280,
+      "replica": "ieee-activation-fcc411ba3dca4378a8ee0c3d88b07934",
+      "category": "natural_scaleout",
+      "activation_s": 44.99255061405711,
+      "weight_load_s": 4.78,
+      "model_load_s": 7.109699,
+      "init_profile_cache_warmup_s": 11.18,
+      "compile_s": 0.26,
+      "graph_capture_passes": 2,
+      "aot_cache_loaded": true,
+      "checkpoint_prefetch": true,
+      "inference_jit_notices": [
+        "_lora_shrink_kernel"
+      ],
+      "source_log": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_kp1dnauz_engine_dead_1791419918/worker.log"
+    },
+    {
+      "worker_pid": 1514290,
+      "replica": "ieee-activation-a9baf8eeaa374eba8fbcf1d027a1942e",
+      "category": "initial",
+      "activation_s": 51.429268829058856,
+      "weight_load_s": 4.47,
+      "model_load_s": 6.660001,
+      "init_profile_cache_warmup_s": 10.44,
+      "compile_s": 0.27,
+      "graph_capture_passes": 2,
+      "aot_cache_loaded": true,
+      "checkpoint_prefetch": true,
+      "inference_jit_notices": [
+        "_lora_shrink_kernel"
+      ],
+      "source_log": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_gabpdvbt_engine_dead_1791419918/worker.log"
+    },
+    {
+      "worker_pid": 1724722,
+      "replica": "ieee-activation-ddd7fb811cec463e8095fcf7e7ffd5f0",
+      "category": "natural_scaleout",
+      "activation_s": 44.498824496986344,
+      "weight_load_s": 5.73,
+      "model_load_s": 8.055915,
+      "init_profile_cache_warmup_s": 11.2,
+      "compile_s": 0.27,
+      "graph_capture_passes": 2,
+      "aot_cache_loaded": true,
+      "checkpoint_prefetch": true,
+      "inference_jit_notices": [
+        "_lora_shrink_kernel"
+      ],
+      "source_log": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_c564e0nv_engine_dead_1791419919/worker.log"
+    }
+  ],
+  "duplicate_archives_checked": [
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_gabpdvbt_engine_dead_1791419965/worker.log"
+  ],
+  "ranges": {
+    "activation_s": {
+      "min": 44.31366504402831,
+      "mean": 47.37106923511337,
+      "max": 51.429268829058856
+    },
+    "weight_load_s": {
+      "min": 4.47,
+      "mean": 6.291818181818182,
+      "max": 8.71
+    },
+    "model_load_s": {
+      "min": 6.660001,
+      "mean": 9.379495272727272,
+      "max": 12.04917
+    },
+    "init_profile_cache_warmup_s": {
+      "min": 10.44,
+      "mean": 11.50090909090909,
+      "max": 12.85
+    },
+    "compile_s": {
+      "min": 0.26,
+      "mean": 0.2790909090909091,
+      "max": 0.3
+    }
+  },
+  "caveats": [
+    "Log durations may be rounded and are nested: do not add weights/model/compile/init.",
+    "JIT notices identify runtime cache-miss paths, not measured stall durations or a causal contribution.",
+    "No subtraction between wall-clock log timestamps and native monotonic request times.",
+    "Archive engine_dead name also arises on ordinary shutdown; it is not a request failure verdict."
+  ]
+}

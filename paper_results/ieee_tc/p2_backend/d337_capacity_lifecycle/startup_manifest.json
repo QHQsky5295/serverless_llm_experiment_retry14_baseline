@@ -1,0 +1,209 @@
+{
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d336_20261008/7b_full_w0/launch.launch/service.log",
+      "sha256": "b7b34263c2690d12f745294f66a31de1b26653f952fe82dd135ddfe419c35de7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d337_capacity_lifecycle/analysis1/d336_intervals.csv",
+      "sha256": "7b9bbff55512fbf5a7645f4dbf38684eaab60a5e0a944cbd7163e5e163015b3e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d337_capacity_lifecycle/analysis1/d336_activations.csv",
+      "sha256": "a4c01a0c019344ed00a98a3c106fa61da3ccb670bd69301ca187cdab980c88c8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_p7qvdlpn_engine_dead_1791416074/worker.log",
+      "sha256": "83cba2bb6a9b13fd355589c7ae81915892a36c4c7c561de32f0f69377b488d4a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_p7qvdlpn_engine_dead_1791416074/process.json",
+      "sha256": "22cb99a61d6b9bd875b1745a865cc17b1478d51038ab7a1940aab7a7bbf34a6d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_p7qvdlpn_engine_dead_1791416074/ready.json",
+      "sha256": "b83837a75974798473c86490f508056e32191f17032541ab825bc3452c56f683"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_p7qvdlpn_engine_dead_1791416074/payload.json",
+      "sha256": "d13e5afa4eb6d201d37cc3fdad8b9f673b1e3c819f070d7511c36d8ce4e66c79"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_vsi_lij2_engine_dead_1791416115/worker.log",
+      "sha256": "e083c71129bbadda17f4d1993b58aa689a79885a65d83fc8024b94b39fb92382"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_vsi_lij2_engine_dead_1791416115/process.json",
+      "sha256": "0d9934ed18cfba492e4a63201e78341cd92cfc5d71d1854731671953a789c813"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_vsi_lij2_engine_dead_1791416115/ready.json",
+      "sha256": "9351b6da1f3d2ddcbd9597f0bfe74966a12a31deb417385c41fb56d864224e0c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_vsi_lij2_engine_dead_1791416115/payload.json",
+      "sha256": "d13e5afa4eb6d201d37cc3fdad8b9f673b1e3c819f070d7511c36d8ce4e66c79"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_oz_kxxgj_engine_dead_1791416491/worker.log",
+      "sha256": "2d9ce0d141187377e6d5ad423e951803517bb38a3b237eb0e4a303d3c4ee4386"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_oz_kxxgj_engine_dead_1791416491/process.json",
+      "sha256": "1e51a1351b398e2bf11106746f7f8df5b948f8d6f0efcc269c3d33b80186ce9e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_oz_kxxgj_engine_dead_1791416491/ready.json",
+      "sha256": "c2273725a7c81d8093dadfb097cc6352fc50cf89b299aa7bbde000ce9d6f6f8c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_oz_kxxgj_engine_dead_1791416491/payload.json",
+      "sha256": "d13e5afa4eb6d201d37cc3fdad8b9f673b1e3c819f070d7511c36d8ce4e66c79"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_0xpkk8_m_engine_dead_1791416526/worker.log",
+      "sha256": "ee1cbc322f11356228b4a76af7b19635268f16da86d73abe6452f8181957e3a6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_0xpkk8_m_engine_dead_1791416526/process.json",
+      "sha256": "0a2d14e97449bebb3e2b935fafcfd29b9f6486600f85bbe0a82046ddb211dc83"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_0xpkk8_m_engine_dead_1791416526/ready.json",
+      "sha256": "44547051bf086541e69270d05b2896f40b71459e0e22e5632bed897ff43b7485"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_0xpkk8_m_engine_dead_1791416526/payload.json",
+      "sha256": "d13e5afa4eb6d201d37cc3fdad8b9f673b1e3c819f070d7511c36d8ce4e66c79"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_uyawl7d4_engine_dead_1791416951/worker.log",
+      "sha256": "c7a776325513b7cbb498a01eb2319817c367e1a521feae140e57a3679b14c6af"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_uyawl7d4_engine_dead_1791416951/process.json",
+      "sha256": "cbc8dad745733f312878b4edcdf4d0b4fb4d3b4a55ee5f7ac9723afe2af0e40e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_uyawl7d4_engine_dead_1791416951/ready.json",
+      "sha256": "4ae5b97faf8cacc864d503f2e719aed478080c7cc659e1e80ecd1b1bce33f3a5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_uyawl7d4_engine_dead_1791416951/payload.json",
+      "sha256": "d13e5afa4eb6d201d37cc3fdad8b9f673b1e3c819f070d7511c36d8ce4e66c79"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_cb5p7y13_engine_dead_1791416985/worker.log",
+      "sha256": "d773afe08e122f724ec34ec008fb07d4c0ab8551ba3b048d1ed18c086c4c61b3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_cb5p7y13_engine_dead_1791416985/process.json",
+      "sha256": "c879a616e7d95559b05ac5ed61189a2f0de2b14fc696c9cd4ed72512880c16d9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_cb5p7y13_engine_dead_1791416985/ready.json",
+      "sha256": "c9e7177f23274a11cd03bbaab17e020bcfef0c4331ab893f710c9ae77a7f65de"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_cb5p7y13_engine_dead_1791416985/payload.json",
+      "sha256": "d13e5afa4eb6d201d37cc3fdad8b9f673b1e3c819f070d7511c36d8ce4e66c79"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_3vk3c2ku_engine_dead_1791417493/worker.log",
+      "sha256": "734e1c269624fdd0369ab1af9d44f17ec63a6ec8bae11021d1e31ea60a7d8893"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_3vk3c2ku_engine_dead_1791417493/process.json",
+      "sha256": "91d1c0abcb2fc4502defd68b0ee00c2db9cd2ebef7eb1be890640d171a62515c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_3vk3c2ku_engine_dead_1791417493/ready.json",
+      "sha256": "ce9075cccf177eac6b34e02816070d74488f997377fdab449141b0e8adcef850"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_3vk3c2ku_engine_dead_1791417493/payload.json",
+      "sha256": "d13e5afa4eb6d201d37cc3fdad8b9f673b1e3c819f070d7511c36d8ce4e66c79"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_t4fyas6__engine_dead_1791419918/worker.log",
+      "sha256": "fcae92864219b8ad259724363ac05507fc0dbe216db41b2ff22d517e6c2d0c9f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_t4fyas6__engine_dead_1791419918/process.json",
+      "sha256": "d265c0493046be1e064678e3a992d0e3f367665c45ce366706d5ea9e6c3d453b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_t4fyas6__engine_dead_1791419918/ready.json",
+      "sha256": "9061cf6cd6f667952b219180455e7e387911cb45db9d4f2d34dea36c12d66c70"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_t4fyas6__engine_dead_1791419918/payload.json",
+      "sha256": "d13e5afa4eb6d201d37cc3fdad8b9f673b1e3c819f070d7511c36d8ce4e66c79"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_kp1dnauz_engine_dead_1791419918/worker.log",
+      "sha256": "c371812507effba578814971be48a94134fa1b103d8daa5cd7d5b2129bb5d019"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_kp1dnauz_engine_dead_1791419918/process.json",
+      "sha256": "ea6c8d6f398d8fc332187bbd3cb2658a2c8e794ec0ea44449d6c6c2b824ad564"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_kp1dnauz_engine_dead_1791419918/ready.json",
+      "sha256": "0c31e2a28059496b90f1d31c4fcd53b17d201ea2e1d7a9fe8cc285280ecd5009"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_kp1dnauz_engine_dead_1791419918/payload.json",
+      "sha256": "d13e5afa4eb6d201d37cc3fdad8b9f673b1e3c819f070d7511c36d8ce4e66c79"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_gabpdvbt_engine_dead_1791419918/worker.log",
+      "sha256": "31557ccfa3b45167f52f7531e47d0c6b9d2fbb63ae49a07def007ef789ff635b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_gabpdvbt_engine_dead_1791419918/process.json",
+      "sha256": "a7fc017112272aef8a7fa4a2b3a1a653149abc1da96223488e1ce6aac95065e4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_gabpdvbt_engine_dead_1791419918/ready.json",
+      "sha256": "42f3616c2698757b6d84d4d9acfc8712d4c4b56a114de1f78b36c5e5dc9615c3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_gabpdvbt_engine_dead_1791419918/payload.json",
+      "sha256": "d13e5afa4eb6d201d37cc3fdad8b9f673b1e3c819f070d7511c36d8ce4e66c79"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_c564e0nv_engine_dead_1791419919/worker.log",
+      "sha256": "453c56b7acfe0e774d9f9ed67415254c760c80a7760985eb1504e7611cb0b4ae"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_c564e0nv_engine_dead_1791419919/process.json",
+      "sha256": "4a5b55a4d4b6061db730042aadb067609747b39f8cc8fdf912a14fc58401db25"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_c564e0nv_engine_dead_1791419919/ready.json",
+      "sha256": "3a05bb7d671ffa5632a32888c4c7b49a91910dbc47ad0df491925615d344ddee"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_c564e0nv_engine_dead_1791419919/payload.json",
+      "sha256": "d13e5afa4eb6d201d37cc3fdad8b9f673b1e3c819f070d7511c36d8ce4e66c79"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_gabpdvbt_engine_dead_1791419965/worker.log",
+      "sha256": "31557ccfa3b45167f52f7531e47d0c6b9d2fbb63ae49a07def007ef789ff635b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_gabpdvbt_engine_dead_1791419965/process.json",
+      "sha256": "a7fc017112272aef8a7fa4a2b3a1a653149abc1da96223488e1ce6aac95065e4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_gabpdvbt_engine_dead_1791419965/ready.json",
+      "sha256": "42f3616c2698757b6d84d4d9acfc8712d4c4b56a114de1f78b36c5e5dc9615c3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/worker_failures/faaslora_worker_gabpdvbt_engine_dead_1791419965/payload.json",
+      "sha256": "d13e5afa4eb6d201d37cc3fdad8b9f673b1e3c819f070d7511c36d8ce4e66c79"
+    }
+  ],
+  "output_sha256": "f9786f8bf6ee67ace3d05c2e8b3101378e374068ce8194c9f21dee95fdbac9c0"
+}

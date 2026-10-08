@@ -206,6 +206,21 @@ class RetainedLifecycle(unittest.TestCase):
         with self.assertRaises(ValueError):
             paired_timeline_groups(pair, contrast=('d323', 'd326'))
 
+    def test_capacity_pair_uses_identical_method_and_rejects_reversal_or_overwrite(self):
+        old_pair = self.pair()
+        pair = dict(d335=old_pair['d315'], d336=old_pair['d318'])
+        before = copy.deepcopy(pair)
+        result = paired_timeline_groups(pair, contrast=('d335', 'd336'))
+        original = paired_timeline_groups(old_pair)
+        self.assertEqual(result['pairs'], original['pairs'])
+        self.assertEqual(result['common_last_ready_offset_s'], original['common_last_ready_offset_s'])
+        self.assertEqual({g['run'] for g in result['groups']}, {'d335', 'd336'})
+        self.assertEqual(pair, before)
+        with self.assertRaises(ValueError):
+            paired_timeline_groups(pair, contrast=('d336', 'd335'))
+        with tempfile.TemporaryDirectory() as root, self.assertRaises(FileExistsError):
+            inspect_retained_lifecycle(root, contrast=('d335', 'd336'))
+
     def resource_pair(self):
         old = dict(physical=self.physical(), deployment=dict(clock_id='clock', arrival_start_s=10.))
         new = dict(physical=dict(clock_id='new-clock', measurement_complete=True, open_lease_ids=[],
