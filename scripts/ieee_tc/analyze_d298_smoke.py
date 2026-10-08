@@ -92,6 +92,34 @@ def prebuild_policy_witness(body):
     return row
 
 
+def hit_host_transaction_trigger(requests):
+    """Count only audited final acquisitions, not duplicated nested receipts."""
+    counts = Counter()
+    if not requests:
+        raise ValueError('complete request population required')
+    for request in requests:
+        receipt = request['gpu_reference_evidence']['receipt']
+        allocation = receipt['host_allocation']
+        kind = allocation['after_storage_observation']
+        eligible = receipt['gpu_confirmed_before_acquisition'] is True
+        if kind not in ('fresh_inventory', 'same_transaction_confirmed_gpu_hit_v1'):
+            raise ValueError('unknown HOST storage observation')
+        reused = kind == 'same_transaction_confirmed_gpu_hit_v1'
+        if reused != eligible or (reused and receipt['native_load_invoked'] is not False):
+            raise ValueError('transaction-local HOST evidence used outside confirmed GPU hit')
+        for side in ('before', 'after'):
+            check = allocation[side]
+            observed = check['before']
+            if (check['admitted'] is not True or observed['available'] is not True
+                    or observed['accounted_tensor_bytes'] > check['tensor_budget_bytes']):
+                raise ValueError('HOST transaction did not pass actual occupancy checks')
+        counts[kind] += 1
+    if counts['same_transaction_confirmed_gpu_hit_v1'] <= 0:
+        raise ValueError('transaction-local HOST evidence did not trigger')
+    return dict(final_acquisitions=len(requests), counts=dict(counts),
+                misclassified=0, causal_latency_savings=None)
+
+
 def main(campaign='d298'):
     global RAW, RUN, SOURCE, REFERENCE, OUT
     health_name = 'smoke_remote_health2.json'
@@ -207,6 +235,17 @@ def main(campaign='d298'):
             'D345 uses the predeclared C14 runtime and fresh D344 profiles with D336 capacity-derived control rules. '
             'The unchanged batch8 warm thresholds are provisional timing-only bounds; no numerical or G1/G2 '
             'qualification and no prefix GPU-s extrapolation. Complete4000 versus D336 is required.')
+    elif campaign == 'd352':
+        REFERENCE = ROOT/'results/ieee_tc/p2_backend_qualification/d345_20261008/7b_capacity_validation_100/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d345_7b_capacity_validation_100.json'
+        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d352_20261008'
+        RUN = RAW/'7b_hit_validation_100'
+        SOURCE = RUN/'experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d352_7b_hit_validation_100.json'
+        OUT = ROOT/'paper_results/ieee_tc/p2_backend/d352_hit_host_transaction/smoke1'
+        health_name = 'remote_health.json'
+        comparison_caveat = ('D345 is descriptive same-C14/backend/profile/input prefix context only: '
+            'D349 soft scaling targets are retained in D352, so this is not a single-change performance contrast. '
+            'Candidate changes only the same-transaction HOST postcheck from D349. Full4000 versus '
+            'D349 and D336 is required; no numerical/formal G1/G2 qualification or prefix extrapolation.')
     elif campaign != 'd298':
         raise ValueError('unknown frozen smoke identity')
     assert not OUT.exists(), 'never overwrite a prior audit'
@@ -222,7 +261,7 @@ def main(campaign='d298'):
     assert outcome['run_completed'] and not outcome['error']
     assert not outcome['cleanup_errors'] and not outcome['measurement_errors']
     journal = RAW/('attempt2/smoke_remote_transfers.jsonl' if campaign in ('d322-attempt2', 'd331-attempt2') else 'smoke_remote_transfers.jsonl')
-    if campaign == 'd345':
+    if campaign in ('d345', 'd352'):
         journal = RAW/'remote_transfers.jsonl'
     rows = [json.loads(line) for line in journal.read_text().splitlines()]
     remote = {r['transfer_id']:r for r in rows}
@@ -230,7 +269,7 @@ def main(campaign='d298'):
     assert len(remote) == len(rows) == len(transfers)
     assert set(remote) == {r['http_transfer_id'] for r in transfers}
     health = read(RAW/health_name)
-    if campaign in ('d331', 'd331-attempt2', 'd334', 'd340', 'd345'):
+    if campaign in ('d331', 'd331-attempt2', 'd334', 'd340', 'd345', 'd352'):
         clock = health['7b']['clock_id']
     else:
         clock = health['clock_id'] if campaign in ('d322', 'd322-attempt2') else health['health']['clock_id']
@@ -282,10 +321,10 @@ def main(campaign='d298'):
         comparison_caveat=comparison_caveat,
         raw_evidence=[dict(path=str(path),sha256=sha256(path)) for path in
             (SOURCE,REFERENCE,outcome_path,journal,WARM,INDEX,
-             RAW/('remote_monitor.log' if campaign=='d345' else
+             RAW/('remote_monitor.log' if campaign in ('d345', 'd352') else
                   'attempt2/smoke_remote_monitor.log' if campaign in ('d322-attempt2', 'd331-attempt2') else 'smoke_remote_monitor.log'),
              ROOT/'scripts/run_all_experiments.py', Path(__file__))])
-    if campaign in ('d302', 'd308', 'd310', 'd312', 'd317', 'd322', 'd322-attempt2', 'd331', 'd331-attempt2', 'd334', 'd340', 'd345'):
+    if campaign in ('d302', 'd308', 'd310', 'd312', 'd317', 'd322', 'd322-attempt2', 'd331', 'd331-attempt2', 'd334', 'd340', 'd345', 'd352'):
         result['admission_waits'] = summarize_admission_waits(requests)
         result['mechanism_events'] = {k:v for k,v in outcome['mechanism_events'].items()
             if k in ('_ieee_source_observation_stats', '_ieee_route_cache_stats')}
@@ -301,8 +340,10 @@ def main(campaign='d298'):
             causal_latency_savings=None, requires_new_observation=True)
     if campaign == 'd331-attempt2':
         result['planning_publication_trigger'] = planning_publication_trigger(outcome['mechanism_events'])
-    if campaign in ('d334', 'd340', 'd345'):
+    if campaign in ('d334', 'd340', 'd345', 'd352'):
         result['native_pending_turn_trigger'] = native_pending_turn_trigger(requests)
+    if campaign == 'd352':
+        result['hit_host_transaction_trigger'] = hit_host_transaction_trigger(requests)
     if campaign == 'd340':
         service_log = RUN/'launch.launch/service.log'
         archives = list(dict.fromkeys(re.findall(
@@ -329,5 +370,5 @@ def main(campaign='d298'):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--campaign', choices=('d298','d302','d308','d310','d312','d317','d322','d322-attempt2','d331','d331-attempt2','d334','d340','d345'), default='d298')
+    parser.add_argument('--campaign', choices=('d298','d302','d308','d310','d312','d317','d322','d322-attempt2','d331','d331-attempt2','d334','d340','d345','d352'), default='d298')
     main(parser.parse_args().campaign)

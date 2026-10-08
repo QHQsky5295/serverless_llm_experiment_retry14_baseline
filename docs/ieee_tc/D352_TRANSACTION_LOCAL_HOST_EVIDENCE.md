@@ -104,3 +104,40 @@ and remote services are reused. New results never overwrite historical runs.
 
 Plan SHA: `0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7`.
 V1 SHA: `5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22`.
+
+## Completed minimal validation
+
+Execution commit `3d232cf9790be0702ebbbdef4abbc2be8620cf48`, verified on V2.
+618 CPU tests, 25 tests in the native environment, then 23 analysis tests passed.
+The first100 run completed on 2026-10-08, with all100 native contracts and
+binding checks passing, four physical leases closed and actual GPU release
+confirmed before the remote services were stopped.
+
+| Diagnostic observation | D352 first100 |
+|---|---:|
+| Completed/native-contract matched | 100/100 |
+| Mean / P95 TTFT | 876.166 / 2592.862 ms |
+| Mean / P95 TPOT | 28.035 / 34.319 ms |
+| Timing-only joint pass count, provisional D170 ruler | 98/100 |
+| Observed physical GPU occupancy (prefix only) | 798.516624 GPU-s |
+| Same-transaction postchecks / full postchecks | 62 / 38 |
+| Incorrectly classified postchecks | 0 |
+| Remote transfers / wire bytes / request-time packaging | 29 / 50650865 / 0 |
+| Service peak / high,max,OOM,swap | 18934951936 B / all zero |
+
+The selected dispatch tier was GPU for61 requests, whereas acquisition was
+already-confirmed GPU for62. Eligibility is deliberately the actual serialized
+acquisition state, not a previously selected tier; an intervening preparation
+can make a source faster. All62 satisfy the actual receipt invariant and invoke
+no loader. This difference is not a mislabeled dispatch snapshot.
+
+Comparison to D345 is descriptive only because its scaling controls differ.
+Four output digests differ from D345 despite matching prompt/control identities;
+the retained binding audit cannot identify a numerical cause. N_correct remains
+unknown, and this prefix is not formal qualification or a performance selection.
+No CI or figures are produced. The ordinary D353 Full4000 run now tests the same
+candidate/config against preserved D349 and D336, without the D351 observer.
+
+Source: 8129393 B, SHA
+`e7f8ff5881988698c6b5dca0cccbd3f433d0d86fb289ed9646c82fb3409a0c84`.
+Curated audit: `paper_results/ieee_tc/p2_backend/d352_hit_host_transaction/smoke1/`.

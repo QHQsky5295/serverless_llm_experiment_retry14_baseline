@@ -11,7 +11,57 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D352 transaction-local HOST evidence candidate
+## CURRENT — D352 COMPLETE; D353 ordinary Full4000 preparation
+
+D352 first100 finished, native-contract/binding100/100, timing-only98/100 under
+unchanged provisionalD170 ruler; mean/P95TTFT876.166/2592.862ms, mean/P95TPOT
+28.035/34.319ms. U798.5166242971318GPU-s is prefixONLY, notFullperformance.
+62eligible same-transaction HOST postchecks,38fresh-inventory postchecks,
+zeroincorrecttrigger. SelecteddispatchGPU61 versusacquisitionconfirmedGPU62:
+eligibility is actualserializedacquisition, notpreviousroutingtier. 4leasesclosed,
+GPUrelease/servicepathremovalverified, all3remote servicesinactive. 29transfers,
+50650865wireB, no requestpacking. Servicepeak18934951936B;264samples;high/max/
+OOM/swap0. 23analysis tests passed; analysispeak103325696B. No figures.
+SourceSHA e7f8ff5881988698c6b5dca0cccbd3f433d0d86fb289ed9646c82fb3409a0c84,
+8129393B. Audit smoke1complete; fouroutputdigestdifferences fromD345 retained,
+numericalcauseunknown. D345controls differ, onlydescriptivecontext. N_correctnull.
+Allsetup/launcher/collectionscopesclosedexcept currentcompletedanalysis08,
+identityin offline_execution_receipt.json. Do notrerunD352oranalysis.
+
+D353 config and existingrunner case prepared: D349 identical exceptisolated
+output/NVMe/HOST paths, ordinaryFull4000,noheavyobserver. Requiresanalysis backup,
+source/config/preflightgate and remote startup beforelaunch; NOT launchedyet.
+Next exact-pathbackup plusfullrun; compareD349 andD336 usingfrozenV1, noSLOchange,
+noextraoptimization. Mainline7B→3B→baselines; formalG1/G2/commonreferenceOPEN.
+
+### D352 launch history (completed)
+
+2026-10-08 18:57CST minimal100 LIVE in tmux tc-d352-hit100. Do not relaunch.
+Execution HEAD=remoteV2=3d232cf9790be0702ebbbdef4abbc2be8620cf48;
+11 exact files backed after618 CPU tests and25 native-environment tests.
+Native aux peak619245568B, no high/max/OOM/swap. Source/profile/protection
+binding and fresh preflight passed; all147 historical entries unchanged except
+the previously recorded baseline script. User manifest untouched.
+Raw: results/ieee_tc/p2_backend_qualification/d352_20261008.
+Service: primelora-tc-svc-1fc479be6e60412dafde070603d266bb.scope,
+invocation ec23b4d024c74b07bc0239add204d5a0, inode20728154.
+Launcher: primelora-tc-aux-5086875d39764353ad5d249cc12f8c14.scope,
+exact identity in launcher_identity.json. No exec/tool cell remains live.
+Setup01–05closed; setup06 contains the tmux serverPID3410239, so the cleanup
+guard correctly refused to stop it. Leave it until tmux exits; never kill live
+launcher/service. This 1.1MiB control-process scope is recorded separately;
+actual replay/watchdog remain in the common4GiB auxiliary scope. No service
+resource settings changed. capture_launcher.py failed only its empty-setup
+assertion AFTER successfully saving launcher_identity.json; do not rerun it.
+All3 owned remote services active, 7B clock remote-process-monotonic:
+ee4328c3e0144e68b119b15ee8e79de3. RemoteNIC1000/full, immutable published
+cache reused. At sample62 servicepeak7073648640B, no resource events/warnings.
+After run: requirelaunch.json nativeGPUrelease/servicepathremoved, then use
+stop_remote.sh, collect/validate100/100 and postcheck triggers, close exact-owned
+launcher/setup scopes. No performance inference from this prefix. OrdinaryFull
+4000 remains next; N_correct/formalG1/G2 remainOPEN. No figures/3B/baselines.
+
+### D352 preparation history
 
 D351 is fully analyzed/backed at 6e6f5be0262c7ae2ebe4dbc5fad442dfb08ebbd4;
 do not repeat its run, analysis or archival. D352 implements only one candidate:
