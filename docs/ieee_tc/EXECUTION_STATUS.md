@@ -11,7 +11,25 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D365 deterministic file-demand identity repair; CPU qualification
+## CURRENT — D366 native100 preparation; D365 repaired/tested/backed up
+
+2026-10-09: D365 backup_receipt.json confirms local/remote f7ccb13803cdcc3056c141aae6fe1cef371226bb,
+verifier closed without hardkill. All D365 cleanup/seal/backup actions finished;
+do not repeat. D366 reuses D363 configuration with only3output/cache paths changed,
+same D362 200/24profiles, same existing W0 prefix100 and publishedremote archives.
+Existing runner has an explicit d366 identity; no additional serving changes or
+parameter tuning.69native timing/analysis tests,50OS guards and200/24strict profile
+assembly passed. First publication check rejected one extra YAML EOF blank line;
+all first tests/binding succeeded and first archive retained. Corrected onlythat
+LF (binary SHA proof), reused tests, reran exact binding; final publicationpassed.
+Firstscope5b09a622closedonce. Finalscope2b7249b3 is empty and start.py owns its
+cleanup. Launch uses preparation_final.json/.sha256 and preparation_scope_final;
+do not rerun either preparation helper or substitute first-attempt manifests.
+Finalarchive15567B, disk161906073600B,host112072265728B. Source backup beforelaunch.
+No D366 GPU result exists yet. See D366_FILE_IDENTITY_VALIDATION.md.
+Mainline7B→3B→pausedbaselines unchanged; no new figures or asset generation.
+
+## D365 deterministic file-demand identity repair; CPU qualification complete
 
 2026-10-09: D364 cleanup/backup receipt passed, local/remote both e8f8a513.
 Do not repeat D364 helpers. Reused D310's tiny real publication/lease fixture;
