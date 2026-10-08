@@ -11,7 +11,38 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D346 COMPLETE/AUDITED/BACKED; D347 retained-data diagnosis
+## CURRENT — D348 evidence complete; D349 control contrast prepared/tested, not launched
+
+D348 reused333C14 GPU-ready samples plus66long-request8/14stress measurements.
+Actual admission1–14coverage does NOT identify a steady-load latency curve:
+count1 requests later see9.32new admissions on average; short-output1–6 has
+15/75TPOTmisses while short9/10 has0/6under different background conditions.
+No fitted/interpolated optimal target; proposed value remainsnull.65CPUtests
+passed, analysisreturn0, peak508760064B,high/max/OOM/swap0. Ownedanalysis scope
+closed byD349preparation. No GPU orremote experiment repeated;no figures.
+See D348_C14_PROFILE_IDENTIFIABILITY.md and d348_soft_target_evidence/analysis1.
+
+D349 preservesC14runtime,200/24profiles and IEEEcontrol law; only the absolute
+soft-load workingpoint fromD336 is restored: S8,C14 givesqueue8,upper7/14=.5,
+lower7/28=.25. This is an explicit causal configuration contrast, NOT an
+inferred optimum or a new hardcap8. SameadmittedA/readyN givesactive ratio
+A/(7N)asD336. Preparation verifies exactmodel/profileequality and only3control
+fields plusexclusivepaths differfromD346.252CPUtests pass(54.201s),peak
+2988187648B,high/max/OOM/swap0. Disk162238025728B,host112451342336B atpreflight.
+No new100prefix/nativequalification needed forunchanged paths; nextonecomplete
+original4000W0 aftertestedbackup,freshPlan/status/gateandremotevalidation.
+D349preparationscope01empty,checkpoint/cleanupandbackup notyetcomplete.
+Do notlaunch beforebackup. Noexternalbaseline or3B, nofigures. GoalACTIVE.
+
+## Previous — D346 and D347 COMPLETE/AUDITED/BACKED
+
+D347 backup independently verified localHEAD=remoteV2=
+0c4af0db7b3776ca13d60a6da7ffb9cbbf8edde1.17exactpaths,12sealedoutputs,
+5failed-attemptsource/log versions retained;allD34701–04scopes nowclosed.
+Rawbackup_receipt.json/checkpoint_cleanup.json recordexactclosure. Noopen
+terminalhandle,GPUexperimentorremote service fromthese campaigns remains.
+This continuation madePROGRESS;fullgoal remainsACTIVE. Do notredo D346,
+D347analysis,backup,oldcapacityprobes,numericalblocks orfinishedcalibration.
 
 D346 checkpoint localHEAD/independent remoteV2 both
 33def6fbbdc0c5f2e0c9173f7a0f910514ff960b;22paths,17hashes,25archive members
@@ -25,7 +56,7 @@ cancellednaturalstart has no engine_ready_at and serves no request. Oldanalysis1
 stopped on this unsupported assumption;its exactcode/log/archive preserved.
 Onlymeasured closedstartup intervals enter overlap;cancelledrecord retained
 separately,all4000requests/allphysicalleases stillcounted,noinventedreadytime.
-NoGPU/remoteexperiment running. Analysis03done;closeexactscope andcheckpoint.
+NoGPU/remoteexperiment running. Analysis03andcheckpoint04closed/verified.
 
 Firsttwofixed500-requestphasesjointmisses61→197;allphases163→345.
 Meanothernativeoverlap1.394933→3.211822;scaleupdecisions10→17,retire7→16.
@@ -60,7 +91,7 @@ Decision docs/ieee_tc/D346_COMPLETE_W0_DECISION.md.
 Main audit e18ae... invocation035a7c4012174dafa2157fbcd63f24fd completed/closed.
 Postrun disk~151GiB: recheck exactavailable/growth before nextheavy task.
 
-NEXT: seal/backup D347, then the measured-service softtarget question above.
+NEXT: the measured-service softtarget question above; D347seal/backup DONE.
 History and officialvLLM0.30/Ray2.59/Knative sources checked; theysupport the
 capacity/target distinction,notcausalperformanceproof. No blind rerun,
 thresholdrelaxation orfigures.

@@ -1626,6 +1626,184 @@ def inspect_retained_dispatch_context(output):
     print(json.dumps(summaries, indent=2, allow_nan=False), flush=True)
 
 
+def calibration_exposure(rows):
+    """Describe whole-service exposure, not a steady-concurrency service curve.
+
+    A post-admission count is a snapshot. Subsequent admissions can change the
+    measured TPOT. Use only same-run, same-wave admission/first/last intervals;
+    these envelopes are neither kernel batch sizes nor prefill kernel timings.
+    """
+    if not rows:
+        raise ValueError('nonempty complete calibration required')
+    seen = set()
+    for r in rows:
+        key = (r['source_sha256'], r['request_id'])
+        if key in seen or not all(isinstance(x, str) and x for x in key):
+            raise ValueError('unique source-bound calibration identities required')
+        seen.add(key)
+        if (not isinstance(r['clock_id'], str) or not r['clock_id']
+                or type(r['wave']) is not int or r['wave'] < 0
+                or type(r['admitted_count']) is not int or r['admitted_count'] < 1
+                or type(r['tokens']) is not int or r['tokens'] < 2
+                or type(r['prompt_tokens']) is not int or r['prompt_tokens'] < 1):
+            raise ValueError('explicit native counts and clock required')
+        a, f, z = (r[k] for k in ('admitted', 'first', 'last'))
+        if (any(type(v) not in (int, float) or not math.isfinite(v)
+                for v in (a, f, z)) or not 0 < a <= f < z):
+            raise ValueError('ordered finite calibration intervals required')
+    groups = {}
+    for r in rows:
+        groups.setdefault((r['source_sha256'], r['wave']), []).append(r)
+    output = []
+    for rs in groups.values():
+        if len({r['clock_id'] for r in rs}) != 1:
+            raise ValueError('mixed-clock calibration wave')
+        for r in rs:
+            f, z = r['first'], r['last']
+            peers = [q for q in rs if q['request_id'] != r['request_id']]
+            exposure = sum(max(0., min(z, q['last'])-max(f, q['admitted'])) for q in peers)
+            spans = sorted((max(f, q['admitted']), min(z, q['first'])) for q in peers
+                           if max(f, q['admitted']) < min(z, q['first']))
+            union, end = 0., -math.inf
+            for a, b in spans:
+                union += max(0., b-max(a, end))
+                end = max(end, b)
+            output.append(dict(r, tpot_ms=(z-f)*1000/(r['tokens']-1),
+                admission_to_first_ms=(f-r['admitted'])*1000,
+                later_admissions_during_decode=sum(f <= q['admitted'] < z for q in peers),
+                mean_other_admitted_requests=exposure/(z-f),
+                peer_admission_to_first_envelope_s=union,
+                wave_population=len(rs)))
+    return output
+
+
+def inspect_calibration_targets(output):
+    """D348: reuse sealed C14 observations; never infer unsupported soft targets."""
+    global OUT
+    OUT = output.resolve()
+    if OUT.exists():
+        raise FileExistsError('calibration diagnosis is append-only')
+    base = ROOT/'paper_results/ieee_tc/p2_backend'
+    sources = {
+        base/'d344_capacity_profiles/initialization/service.json':
+            '794d00bac794da9c076b34da38cc310c90d70330b9414ef02de09faab9c7cd32',
+        base/'d344_capacity_profiles/native_requests1.csv':
+            '25c0e9591b30a4df4d8ccc3efce49f9d6aa4d6be27bc164d1c5d029e838c60bd',
+        base/'d344_capacity_profiles/gaps1/native_requests1.csv':
+            '6370581dc071e1df38745db79842ac697a4d94b110933e4af15ac5bf98224aeb',
+        base/'d343_capacity_probe/cap14/analysis1/requests.csv':
+            'eafe2ae05e5c2d9616b2276aa6c74b73bfdc8ea1b9f45255fc187d390f1082dc',
+        ROOT/'results/ieee_tc/p2_backend_qualification/d344_20261008/gaps1/source1.json':
+            '764509162dd0889b469e6150ae42aed8ca018f1899271d7b1789406e04508e4d',
+        WARM:'0ebc7587effe293dcb986d33fb932c100cbcb3384c56ab2c0b0bec73b2bdd88c',
+        PLAN:'0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7',
+        PROTOCOL:'5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22',
+    }
+    for path, expected in sources.items():
+        if sha256(path) != expected:
+            raise ValueError('calibration source changed: '+str(path))
+    profile = read(base/'d344_capacity_profiles/initialization/service.json')
+    gap = read(ROOT/'results/ieee_tc/p2_backend_qualification/d344_20261008/gaps1/source1.json')
+    gap_rows = {r['request_id']:r for r in gap['requests']}
+    if len(gap_rows) != 40 or gap['pass'] is not True:
+        raise ValueError('complete sealed gap run required')
+    if len(profile['samples']) != 1545 or profile['model_config']['runtime_concurrency_cap'] != 14:
+        raise ValueError('complete C14 profile required')
+    csv_rows = {}
+    for rel, source, count in (
+            ('native_requests1.csv', '09d2f2b688c7cbce1591bb8b5ab4af8f28d3df1f26377b109b231ec2440c924e',1529),
+            ('gaps1/native_requests1.csv', '764509162dd0889b469e6150ae42aed8ca018f1899271d7b1789406e04508e4d',40)):
+        with (base/'d344_capacity_profiles'/rel).open(newline='') as f:
+            rs = list(csv.DictReader(f))
+        if len(rs) != count or len({r['request_id'] for r in rs}) != count:
+            raise ValueError('complete sealed calibration CSV required')
+        for r in rs:
+            if r['role'] == 'representative_measurement':
+                csv_rows[source,r['request_id']] = r
+            elif r['role'] != 'kernel_warmup_retained':
+                raise ValueError('unknown calibration role')
+    if set(csv_rows) != {(s['source_run_sha256'],s['request_id']) for s in profile['samples']}:
+        raise ValueError('profile and CSV measurement populations differ')
+    rows = []
+    for s in profile['samples']:
+        c = csv_rows[s['source_run_sha256'],s['request_id']]
+        if s['class_features']['tier'] != 'gpu':
+            continue
+        if (c['source'] != 'gpu' or s['correct'] is not True
+                or s['admission_clock_id'] != s['native_clock_id']
+                or s['admitted_monotonic_s'] != s['acquired_monotonic_s']
+                or s['protected_at_admission'] is not True):
+            raise ValueError('protected same-clock GPU measurements required')
+        features = s['class_features']
+        # The gap CSV lacks native prompt count: recover its own raw measurement,
+        # not canonical prompt length or a neighboring request's observation.
+        native_prompt = c.get('native_prompt_tokens')
+        if native_prompt is None:
+            original = gap_rows[s['request_id']]
+            if (s['source_run_sha256'] != sources[ROOT/'results/ieee_tc/p2_backend_qualification/d344_20261008/gaps1/source1.json']
+                    or original['source_request_id'] != c['source_request_id']
+                    or original['class_features'] != features
+                    or original['last_token_monotonic_s'] != s['last_token_monotonic_s']):
+                raise ValueError('gap native prompt provenance differs')
+            native_prompt = original['timing']['actual_prompt_tokens']
+        prompt = float(native_prompt)
+        if not math.isfinite(prompt) or int(prompt) != prompt or prompt < 1:
+            raise ValueError('invalid measured native prompt count')
+        row = dict(source_sha256=s['source_run_sha256'], request_id=s['request_id'],
+            source_request_id=c['source_request_id'], clock_id=s['native_clock_id'],
+            wave=int(c['wave']), round=int(c['round']), rank=features['adapter_rank'],
+            admitted_count=features['admitted_after_accept'], prompt_tokens=int(prompt),
+            tokens=s['native_output_tokens'], admitted=s['admitted_monotonic_s'],
+            first=s['first_token_monotonic_s'], last=s['last_token_monotonic_s'])
+        if (row['admitted_count'] != int(c['admitted_after_accept'])
+                or abs((row['last']-row['first'])*1000/(row['tokens']-1)-float(c['native_tpot_ms'])) > 1):
+            raise ValueError('profile native timing/count differs from sealed CSV')
+        rows.append(row)
+    if len(rows) != 333:
+        raise ValueError('all333 GPU profile observations required')
+    records = calibration_exposure(rows)
+    thresholds = read(WARM)['warm_threshold_candidates']
+    for r in records:
+        group = [g for g in thresholds if
+                 (g['lower_exclusive'] is None or r['prompt_tokens'] > g['lower_exclusive']) and
+                 (g['upper_inclusive'] is None or r['prompt_tokens'] <= g['upper_inclusive'])]
+        if len(group) != 1:
+            raise ValueError('native prompt lacks unique common timing group')
+        r['timing_tpot_miss'] = r['tpot_ms'] > group[0]['candidate_tpot_threshold_ms']
+    groups = []
+    for population in ('all','short_output_le24','other_output_gt24'):
+        for admitted in range(1,15):
+            rs = [r for r in records if r['admitted_count']==admitted and
+                  (population=='all' or (r['tokens']<=24)==(population=='short_output_le24'))]
+            groups.append(dict(population=population,admitted_count=admitted,count=len(rs),
+                timing_tpot_misses=sum(r['timing_tpot_miss'] for r in rs) if rs else None,
+                mean_tpot_ms=mean(r['tpot_ms'] for r in rs) if rs else None,
+                mean_later_admissions=mean(r['later_admissions_during_decode'] for r in rs) if rs else None,
+                mean_other_admitted_requests=mean(r['mean_other_admitted_requests'] for r in rs) if rs else None,
+                mean_peer_admission_to_first_envelope_s=mean(r['peer_admission_to_first_envelope_s'] for r in rs) if rs else None))
+    with (base/'d343_capacity_probe/cap14/analysis1/requests.csv').open(newline='') as f:
+        stress = [r for r in csv.DictReader(f) if r['role']=='representative_measurement']
+    if len(stress) != 66:
+        raise ValueError('complete measured8/14stress contrast required')
+    summary = dict(kind='d348_retained_C14_soft_target_identifiability_v1',
+        gpu_profile_samples=len(records),matched_stress_samples=len(stress),
+        stress_output_token_values=sorted({int(r['output_tokens']) for r in stress}),
+        stress_native_prompt_values=sorted({float(r['native_prompt_tokens']) for r in stress}),
+        profile_actual_admission_coverage=sorted({r['admitted_count'] for r in records}),
+        proposed_latency_optimal_soft_target=None,service_curve_identified=False,
+        reason='Admission count is not held constant through decode; stress contrast has only long outputs; no matched short-output steady-load curve.',
+        next_contrast='Hold C14 runtime/profiles fixed; recover prior measured C8-control absolute soft targets as an explicit causal working-point contrast, not an inferred latency optimum.',
+        n_correct=None,formal_SLO_qualified=False,new_GPU_runs=0,no_figures=True)
+    OUT.mkdir(parents=True,exist_ok=False)
+    table('gpu_profile_exposure.csv',records)
+    table('admission_groups.csv',groups)
+    write('summary.json',summary)
+    write('manifest.json',dict(source_refs=[dict(path=str(p),sha256=s) for p,s in sources.items()],
+        analysis_script_sha256=sha256(Path(__file__)),
+        outputs={p.name:sha256(p) for p in OUT.iterdir()},no_figures=True))
+    print(json.dumps(summary,indent=2,allow_nan=False),flush=True)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--campaign', choices=('d297', 'd299', 'd300', 'd303', 'd314', 'd315', 'd318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346'), default='d297')
@@ -1657,15 +1835,20 @@ if __name__ == '__main__':
         help='D342 retained D336/D341 acquire-entry split, no inference')
     parser.add_argument('--dispatch-context-output', type=Path,
         help='D342 compact split data and conservative sampled permit bounds')
+    parser.add_argument('--calibration-target-output', type=Path,
+        help='D348 retained C14 profile exposure; no steady-load inference or new GPU run')
     args = parser.parse_args()
     if sum(x is not None for x in (args.admission_wait_output, args.decode_tail_output,
                                   args.native_load_output, args.prefill_output, args.route_copy_output,
                                   args.lifecycle_output, args.routing_load_output, args.routing_length_output,
                                   args.service_lifecycle_output, args.drain_lifecycle_output,
                                   args.capacity_lifecycle_output, args.dispatch_gate_output,
-                                  args.dispatch_context_output, args.c14_lifecycle_output)) > 1:
+                                  args.dispatch_context_output, args.c14_lifecycle_output,
+                                  args.calibration_target_output)) > 1:
         parser.error('choose one retained diagnostic')
-    if args.dispatch_context_output is not None:
+    if args.calibration_target_output is not None:
+        inspect_calibration_targets(args.calibration_target_output)
+    elif args.dispatch_context_output is not None:
         inspect_retained_dispatch_context(args.dispatch_context_output)
     elif args.dispatch_gate_output is not None:
         inspect_retained_dispatch_gate(args.dispatch_gate_output)

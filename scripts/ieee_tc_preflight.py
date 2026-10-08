@@ -4163,10 +4163,12 @@ def _measured_source_profile_samples(payload, *, source_run_sha256, identities,
     return service, preparation, coverage
 
 
-def derive_ieee_capacity_targets(cap, *, min_instances, max_instances):
+def derive_ieee_capacity_targets(cap, *, min_instances, max_instances, target_capacity=None):
     """D88's capacity-unit soft targets, not a throughput/SLO guarantee.
 
-    Keep one admission slot per replica as upper-target headroom. At a drain
+    By default use physical capacity; an explicit measured control working
+    point can be smaller without shrinking physical admission. This parameter
+    does not infer a latency optimum. Keep one slot of target headroom. At a drain
     boundary, the lower target ensures one retirement cannot immediately exceed
     that upper target when admitted work and per-replica capacity stay fixed.
     Hardware admission limits and observed latency remain separate constraints.
@@ -4174,8 +4176,11 @@ def derive_ieee_capacity_targets(cap, *, min_instances, max_instances):
     if (type(cap) is not int or cap < 2 or type(min_instances) is not int
             or type(max_instances) is not int or not 1 <= min_instances < max_instances):
         raise ValueError('development rule requires cap>=2 and a nonempty scale-out range')
-    high_active = (cap - 1) / cap
-    return dict(queue_upper=cap, queue_lower=1, active_upper=high_active,
+    target = cap if target_capacity is None else target_capacity
+    if type(target) is not int or not 2 <= target <= cap:
+        raise ValueError('explicit target capacity must be an integer within physical capacity')
+    high_active = (target - 1) / cap
+    return dict(queue_upper=target, queue_lower=1, active_upper=high_active,
                 active_lower=high_active * min_instances / (min_instances + 1))
 
 

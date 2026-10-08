@@ -1,0 +1,35 @@
+{
+  "kind": "d348_retained_C14_soft_target_identifiability_v1",
+  "gpu_profile_samples": 333,
+  "matched_stress_samples": 66,
+  "stress_output_token_values": [
+    256
+  ],
+  "stress_native_prompt_values": [
+    760.0
+  ],
+  "profile_actual_admission_coverage": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+  ],
+  "proposed_latency_optimal_soft_target": null,
+  "service_curve_identified": false,
+  "reason": "Admission count is not held constant through decode; stress contrast has only long outputs; no matched short-output steady-load curve.",
+  "next_contrast": "Hold C14 runtime/profiles fixed; recover prior measured C8-control absolute soft targets as an explicit causal working-point contrast, not an inferred latency optimum.",
+  "n_correct": null,
+  "formal_SLO_qualified": false,
+  "new_GPU_runs": 0,
+  "no_figures": true
+}

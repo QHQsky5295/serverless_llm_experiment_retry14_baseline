@@ -12,11 +12,47 @@ from scripts.ieee_tc.check_d299_full_context import (
 from scripts.ieee_tc.analyze_d297_full import (
     audit_preparation_attribution, decode_overlap_summary, native_load_overlap_summary, prefill_overlap_summary,
     lifecycle_gaps, paired_timeline_groups, inspect_retained_lifecycle, capacity_phase_groups,
-    partition_activation_readiness,
+    partition_activation_readiness, calibration_exposure,
     routing_load_consistency, inspect_retained_routing_load,
     routing_length_diagnosis, inspect_retained_routing_lengths,
     lifecycle_pair_decomposition, inspect_retained_service_lifecycle,
 )
+
+
+class CalibrationExposure(unittest.TestCase):
+    def fixture(self):
+        return [dict(source_sha256='a'*64, request_id=f'r{i}', clock_id='clock',
+                     wave=0, admitted_count=i+1, tokens=11, prompt_tokens=10,
+                     admitted=a, first=f, last=z)
+                for i,(a,f,z) in enumerate(((1.,2.,12.),(3.,5.,10.)))]
+
+    def test_later_admission_changes_first_requests_decode_exposure(self):
+        rows = calibration_exposure(self.fixture())
+        self.assertEqual(rows[0]['admitted_count'],1)
+        self.assertEqual(rows[0]['later_admissions_during_decode'],1)
+        self.assertAlmostEqual(rows[0]['mean_other_admitted_requests'],.7)
+        self.assertEqual(rows[0]['peer_admission_to_first_envelope_s'],2.)
+        self.assertEqual(rows[0]['tpot_ms'],1000.)
+
+    def test_same_ids_in_other_run_or_wave_do_not_overlap(self):
+        for changed in ('wave','source_sha256'):
+            rows = self.fixture()
+            rows[1][changed] = 1 if changed=='wave' else 'b'*64
+            result = calibration_exposure(rows)
+            self.assertTrue(all(r['mean_other_admitted_requests']==0 for r in result))
+
+    def test_invalid_observations_fail(self):
+        for field,value in (('admitted_count',True),('tokens',1),('last',float('nan')),
+                            ('first',0),('clock_id','other-clock'),('prompt_tokens',2.5)):
+            rows = self.fixture()
+            rows[1][field] = value
+            with self.subTest(field=field),self.assertRaises(ValueError):
+                calibration_exposure(rows)
+        with self.assertRaises(ValueError):
+            calibration_exposure([])
+        rows = self.fixture()
+        with self.assertRaises(ValueError):
+            calibration_exposure(rows+[dict(rows[0])])
 
 
 class RetainedRoutingLoad(unittest.TestCase):

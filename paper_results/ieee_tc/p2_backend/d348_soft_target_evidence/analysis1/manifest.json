@@ -1,0 +1,43 @@
+{
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d344_capacity_profiles/initialization/service.json",
+      "sha256": "794d00bac794da9c076b34da38cc310c90d70330b9414ef02de09faab9c7cd32"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d344_capacity_profiles/native_requests1.csv",
+      "sha256": "25c0e9591b30a4df4d8ccc3efce49f9d6aa4d6be27bc164d1c5d029e838c60bd"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d344_capacity_profiles/gaps1/native_requests1.csv",
+      "sha256": "6370581dc071e1df38745db79842ac697a4d94b110933e4af15ac5bf98224aeb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d343_capacity_probe/cap14/analysis1/requests.csv",
+      "sha256": "eafe2ae05e5c2d9616b2276aa6c74b73bfdc8ea1b9f45255fc187d390f1082dc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d344_20261008/gaps1/source1.json",
+      "sha256": "764509162dd0889b469e6150ae42aed8ca018f1899271d7b1789406e04508e4d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261002_d170_warm_measurement.json",
+      "sha256": "0ebc7587effe293dcb986d33fb932c100cbcb3384c56ab2c0b0bec73b2bdd88c"
+    },
+    {
+      "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+    }
+  ],
+  "analysis_script_sha256": "188ec39fc7d6d847e7c32771ff44ab5cb598ce1ee7fdcd1c97f34703b7e9320c",
+  "outputs": {
+    "gpu_profile_exposure.csv": "356d0145e081294e4c435b6e77401f2e89a5bda4243685815b44b72c4f3195bd",
+    "summary.json": "c38305569484c6efcc03797f0c4f3a340f75b94a5f8c9317f9a1c7fa16367ee1",
+    "admission_groups.csv": "eeae1bdc9e71a62e7237731184ce6df0045b4e800b02c021b1677f4d8dd2c2fb"
+  },
+  "no_figures": true
+}

@@ -942,6 +942,33 @@ class MeasuredSourceProfileExport(unittest.TestCase):
 
 
 class DevelopmentControlDerivation(unittest.TestCase):
+    def test_soft_target_preserves_absolute_load_without_shrinking_native_capacity(self):
+        from faaslora.coordination.autoscaler import IEEEReplicaControl
+        from scripts.ieee_tc_preflight import derive_ieee_capacity_targets
+        old = derive_ieee_capacity_targets(8,min_instances=1,max_instances=4)
+        new = derive_ieee_capacity_targets(14,min_instances=1,max_instances=4,target_capacity=8)
+        self.assertEqual(new,dict(queue_upper=8,queue_lower=1,active_upper=.5,active_lower=.25))
+        extra = dict(ttft_upper_ms=5000.,ttft_lower_ms=2339.924886357039,
+                     ttft_window_s=45.,scale_down_cooldown_s=38.)
+        for ready in range(1,5):
+            for active in range(8*ready+1):
+                for queue in (0,1,8,9):
+                    outputs=[]
+                    for cap,targets in ((8,old),(14,new)):
+                        control=IEEEReplicaControl(dict(targets,**extra),interval_s=2.,
+                            min_instances=1,max_instances=4)
+                        control.observe_ttft('known',1000.,observed_at=10.)
+                        outputs.append(control.evaluate(now=10.,queue_depth=queue,
+                            active_requests=active,ready_capacity=cap*ready,
+                            ready_instances=ready,pending_instances=0))
+                    for key in ('action','all_low','target_instances'):
+                        self.assertEqual(outputs[0][key],outputs[1][key])
+                    self.assertAlmostEqual(outputs[0]['ratios']['active'],outputs[1]['ratios']['active'])
+                    self.assertEqual(outputs[1]['ready_capacity'],14*ready)
+        for target in (True,1,15,8.,'8'):
+            with self.subTest(target=target),self.assertRaises(ValueError):
+                derive_ieee_capacity_targets(14,min_instances=1,max_instances=4,target_capacity=target)
+
     def test_capacity_targets_reuse_original_rule_without_reprofiling_timing(self):
         from scripts.ieee_tc_preflight import derive_ieee_capacity_targets
         self.assertEqual(derive_ieee_capacity_targets(2, min_instances=1, max_instances=4),
