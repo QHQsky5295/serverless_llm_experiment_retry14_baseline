@@ -4973,7 +4973,7 @@ class OwnedFileMovement(unittest.TestCase):
                 return MovementOutcome('completed')
             OwnedMovements().submit(queue, 'owned', operation)
             await entered.wait()
-            slot = NS(instance_id='replica')
+            slot = NS(instance_id='replica', engine=engine)
             async def remove(*a, **kw):
                 self.assertTrue(cleaned.is_set())
                 self.assertEqual(queue.snapshot()[0]['state'], 'cancelled')

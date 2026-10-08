@@ -1569,13 +1569,17 @@ class IEEEBackendGPUReferences:
     """
 
     def __init__(self, manager, completion_fence, *, demand_loader=None, preparation_loader=None,
-                 file_host_loader=None, host_allocation_check=None):
+                 file_host_loader=None, host_allocation_check=None, host_allocation_recheck=None):
         self.manager = manager
         self.completion_fence = completion_fence
         self.demand_loader = demand_loader
         self.preparation_loader = preparation_loader
         self.file_host_loader = file_host_loader
         self.host_allocation_check = host_allocation_check
+        # Optional qualified native callback, not a general cached budget check.
+        # It must read allocator counters again; only HOST storage evidence from
+        # the current no-load confirmed-GPU-hit transaction may be reused.
+        self.host_allocation_recheck = host_allocation_recheck
         self._native_host_tensor_budget = None
         self._native_host_workspace = None
         self._file_host_preparations: Dict[str, Dict[str, Any]] = {}
@@ -2626,11 +2630,22 @@ class IEEEBackendGPUReferences:
             if not receipt['acquired']:
                 raise RuntimeError('native demand-load transaction lost its executable slot')
             if host_check is not None:
-                after = self.host_allocation_check(lora_path=None, reuse=True,
-                    tensor_budget_bytes=self._native_host_tensor_budget)
+                same_transaction = gpu_confirmed and callable(self.host_allocation_recheck)
+                if same_transaction:
+                    # Between checks this path only validates, LRU-pins and
+                    # completion-fences the same native copy on its owner
+                    # thread. No HOST mutation or async preparation is yielded
+                    # to. Loads and first confirmations keep both full walks.
+                    after = self.host_allocation_recheck(before_check=host_check,
+                        tensor_budget_bytes=self._native_host_tensor_budget)
+                else:
+                    after = self.host_allocation_check(lora_path=None, reuse=True,
+                        tensor_budget_bytes=self._native_host_tensor_budget)
                 if after.get('admitted') is not True:
                     raise RuntimeError('native demand exceeded its HOST allowance')
-                receipt['host_allocation'] = dict(before=host_check, after=after)
+                receipt['host_allocation'] = dict(before=host_check, after=after,
+                    after_storage_observation=('same_transaction_confirmed_gpu_hit_v1'
+                        if same_transaction else 'fresh_inventory'))
         except BaseException:
             self._poisoned = True
             raise

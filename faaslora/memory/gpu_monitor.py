@@ -197,16 +197,9 @@ def _ieee_pinned_host_observation(inventory: Dict[str, Any]) -> Dict[str, Any]:
     file cache/tmpfs and reserved allocator segments need separate ownership.
     Empty/unavailable statistics are unknown, never zero-capacity evidence.
     """
-    observe = getattr(getattr(torch, 'cuda', None), 'host_memory_stats', None)
-    keys = ('allocated_bytes.current', 'active_bytes.current',
-            'allocations.current', 'active_requests.current')
-    stats = observe() if callable(observe) else {}
+    stats = _ieee_pinned_host_allocator_stats()
     if not stats:
-        return dict(kind='native_pinned_host_allocator_v1', available=False,
-                    reason='native_host_statistics_unavailable', total_host_memory_covered=False)
-    if any(type(stats.get(k)) is not int or stats[k] < 0 for k in keys):
-        raise ValueError('native pinned HOST statistics are incomplete or invalid')
-    allocated, active, blocks, active_blocks = (stats[k] for k in keys)
+        return _ieee_account_pinned_host_storage({}, stats)
     pinned = sum(row['allocated_bytes'] for row in inventory['host_allocations'] if row['pinned'])
     pageable = sum(row['allocated_bytes'] for row in inventory['host_allocations'] if not row['pinned'])
     staged_ids = set(inventory.get('host_staged_adapter_ids', ()))
@@ -218,20 +211,64 @@ def _ieee_pinned_host_observation(inventory: Dict[str, Any]) -> Dict[str, Any]:
     # Keep it charged outside the cache-growth credit used by the workspace gate.
     registered_exclusive = sum(row['allocated_bytes'] for row in inventory['host_allocations']
         if not staged_ids or (row.get('adapter_ids') and not set(row['adapter_ids']) & staged_ids))
-    if active > allocated or active_blocks > blocks or pinned > active:
-        raise ValueError('native pinned HOST inventory disagrees with allocator counters')
-    return dict(kind='native_pinned_host_allocator_v1', available=True,
-        pinned_allocated_bytes=allocated, pinned_active_bytes=active,
-        pinned_cached_bytes=allocated-active, pinned_blocks=blocks,
-        pinned_active_blocks=active_blocks, registered_pinned_storage_bytes=pinned-staged_pinned,
+    return _ieee_account_pinned_host_storage(dict(
+        registered_pinned_storage_bytes=pinned-staged_pinned,
         registered_pageable_storage_bytes=pageable-staged_pageable,
         staged_only_pinned_storage_bytes=staged_pinned,
         staged_only_pageable_storage_bytes=staged_pageable,
-        native_pageable_storage_bytes=pageable,
         registered_exclusive_storage_bytes=registered_exclusive,
-        accounted_tensor_bytes=allocated+pageable,
         scope=('process_pinned_allocator_plus_registered_and_staged_pageable_tensors' if staged_ids
-               else 'process_pinned_allocator_plus_registered_pageable_tensors'),
+               else 'process_pinned_allocator_plus_registered_pageable_tensors')), stats)
+
+
+def _ieee_reobserve_pinned_host_allocator(storage: Dict[str, Any]) -> Dict[str, Any]:
+    """Fresh allocator counters over an independently established storage graph.
+
+    A previous observation is usable ONLY within the qualified, serialized GPU
+    hit acquisition: native LRU pins and its CUDA completion fence cannot change
+    reachable HOST tensors. No model/epoch/TTL cache is kept across operations.
+    The allocator may change on background threads, so its counters are NEVER
+    reused, even in that transaction. All loads/staging still re-inventory.
+    """
+    return _ieee_account_pinned_host_storage(storage, _ieee_pinned_host_allocator_stats())
+
+
+def _ieee_pinned_host_allocator_stats():
+    """Read and validate native process counters, without retaining a snapshot."""
+    observe = getattr(getattr(torch, 'cuda', None), 'host_memory_stats', None)
+    keys = ('allocated_bytes.current', 'active_bytes.current',
+            'allocations.current', 'active_requests.current')
+    stats = observe() if callable(observe) else {}
+    if stats and any(type(stats.get(k)) is not int or stats[k] < 0 for k in keys):
+        raise ValueError('native pinned HOST statistics are incomplete or invalid')
+    return tuple(stats[k] for k in keys) if stats else ()
+
+
+def _ieee_account_pinned_host_storage(storage, stats):
+    """Pure accounting shared by full observations and same-transaction reads."""
+    if not stats:
+        return dict(kind='native_pinned_host_allocator_v1', available=False,
+                    reason='native_host_statistics_unavailable', total_host_memory_covered=False)
+    fields = ('registered_pinned_storage_bytes', 'registered_pageable_storage_bytes',
+              'staged_only_pinned_storage_bytes', 'staged_only_pageable_storage_bytes',
+              'registered_exclusive_storage_bytes')
+    if any(type(storage.get(key)) is not int or storage[key] < 0 for key in fields):
+        raise ValueError('native HOST storage totals are incomplete or invalid')
+    if storage.get('scope') not in (
+            'process_pinned_allocator_plus_registered_pageable_tensors',
+            'process_pinned_allocator_plus_registered_and_staged_pageable_tensors'):
+        raise ValueError('native HOST allocator requires a complete storage scope')
+    allocated, active, blocks, active_blocks = stats
+    pinned = storage['registered_pinned_storage_bytes'] + storage['staged_only_pinned_storage_bytes']
+    pageable = storage['registered_pageable_storage_bytes'] + storage['staged_only_pageable_storage_bytes']
+    if active > allocated or active_blocks > blocks or pinned > active:
+        raise ValueError('native pinned HOST inventory disagrees with allocator counters')
+    return dict(kind='native_pinned_host_allocator_v1', available=True,
+        **{key: storage[key] for key in fields}, scope=storage['scope'],
+        pinned_allocated_bytes=allocated, pinned_active_bytes=active,
+        pinned_cached_bytes=allocated-active, pinned_blocks=blocks,
+        pinned_active_blocks=active_blocks, native_pageable_storage_bytes=pageable,
+        accounted_tensor_bytes=allocated+pageable,
         total_host_memory_covered=False)
 
 
@@ -1108,7 +1145,8 @@ class IEEEWorkerObservationExtension:
                                 for source, target in copies]
                 with _ieee_pitched_host_copy(destinations, self.device, completion_fence):
                     demand_loader(**args)
-            def host_allocation_check(*, lora_path, tensor_budget_bytes, reuse, proactive=False):
+            def host_allocation_check(*, lora_path, tensor_budget_bytes, reuse, proactive=False,
+                                      _same_transaction_storage=None):
                 import vllm
                 from vllm.utils.torch_utils import PIN_MEMORY
                 if (vllm.__version__ != '0.30.0' or not str(torch.__version__).startswith('2.13.')
@@ -1116,9 +1154,14 @@ class IEEEWorkerObservationExtension:
                         or manager.moe_ep_load_spec is not None
                         or any(name.endswith('.experts') for name in manager.modules)):
                     raise RuntimeError('CPU-only preparation requires the qualified dense vLLM0.30/torch2.13 loader')
-                before = _ieee_pinned_host_observation(_ieee_lora_host_inventory(manager,
-                    staged_models=self._ieee_gpu_reference_owner.staged_models(),
-                    include_tensor_views=False))
+                if _same_transaction_storage is None:
+                    before = _ieee_pinned_host_observation(_ieee_lora_host_inventory(manager,
+                        staged_models=self._ieee_gpu_reference_owner.staged_models(),
+                        include_tensor_views=False))
+                else:
+                    if not reuse or proactive or lora_path is not None:
+                        raise ValueError('same-transaction HOST evidence is only for a GPU-hit postcheck')
+                    before = _ieee_reobserve_pinned_host_allocator(_same_transaction_storage)
                 if not before['available']:
                     raise RuntimeError('native CPU-only preparation lacks allocator occupancy')
                 if reuse:
@@ -1140,6 +1183,13 @@ class IEEEWorkerObservationExtension:
                             allocator_policy=self._ieee_host_allocator_policy,
                             workspace_projection=workspace,
                             total_host_memory_covered=False)
+            def host_allocation_recheck(*, before_check, tensor_budget_bytes):
+                # Qualified above for this exact native loader. The owner calls
+                # this only across acquire() on an already confirmed GPU copy:
+                # no loader, cache insertion, tensor copy or staging can run.
+                return host_allocation_check(lora_path=None, reuse=True,
+                    tensor_budget_bytes=tensor_budget_bytes,
+                    _same_transaction_storage=before_check['before'])
             def file_host_loader(*, adapter_int_id, lora_name, lora_path, tensor_budget_bytes, reuse,
                                  register=True):
                 from vllm.lora.request import LoRARequest
@@ -1178,7 +1228,8 @@ class IEEEWorkerObservationExtension:
             self._ieee_gpu_reference_owner = IEEEBackendGPUReferences(
                 manager, completion_fence, demand_loader=demand_loader,
                 preparation_loader=preparation_loader, file_host_loader=file_host_loader,
-                host_allocation_check=host_allocation_check)
+                host_allocation_check=host_allocation_check,
+                host_allocation_recheck=host_allocation_recheck)
         owner = self._ieee_gpu_reference_owner
         if owner.manager is not manager:
             raise RuntimeError('native LoRA manager replaced; worker reference epoch invalid')

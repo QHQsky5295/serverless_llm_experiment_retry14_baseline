@@ -11,7 +11,31 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D351 diagnostic COMPLETE/ANALYZED/SEALED
+## CURRENT — D352 transaction-local HOST evidence candidate
+
+D351 is fully analyzed/backed at 6e6f5be0262c7ae2ebe4dbc5fad442dfb08ebbd4;
+do not repeat its run, analysis or archival. D352 implements only one candidate:
+on a confirmed GPU-hit acquisition, reuse the current transaction's freshly
+measured HOST storage totals for the postcheck, but re-read allocator counters
+and re-evaluate workspace. No cross-operation cache, source/admission bypass,
+formula/config/SLO change or fence removal. Cold/HOST/unconfirmed paths retain
+both walks. Every new request retains its own full physical inventory.
+
+618 CPU tests passed in attempt3 after preserving two earlier failure logs:
+unavailable-counter ordering regression corrected; old shutdown fixture supplied
+missing engine field (production shutdown unchanged); new worker test's explicit
+v0.30 import fixture corrected for CPU env. Tests include actual callback/workspace
+and D329 freshness counterexamples. Max observed aux peak528838656B, no high/max/
+OOM/swap events. Native-environment test and preparation binding follow. No GPU
+run or remote start yet. Code is NOT backed yet; do not launch before checkpoint.
+
+Next: native CPU check, source/config/protection/preflight binding, exact-path
+commit/push, then unchanged D349 first100 diagnostic using D352 isolated paths.
+Require native contract/closure and eligible postcheck trigger; then ordinary
+Full4000 comparison, no performance figures. Mainline remains7B→3B→baselines;
+N_correct and formalG1/G2/common references remain OPEN.
+
+### D351 diagnostic COMPLETE/ANALYZED/SEALED
 
 18exactpaths/25archive members validated; standardCSV CRLF triggered default
 gitwhitespacecheck,then command-local cr-at-eol checkpassed withALLresultbytes
