@@ -4303,7 +4303,8 @@ def validate_capacity_probe_observation(observation, model_config, contract):
     if (observation.get('kind') != 'ieee_native_scheduler_observation_v1'
             or observation.get('kv_layout') != 'full_attention_single_group'
             or observation.get('admitted') != []
-            or observation.get('unretired_iterations') != []
+            or type(observation.get('unretired_iterations')) is not int
+            or observation['unretired_iterations'] != 0
             or observation.get('native_deferred_free_batches') != 0):
         raise ValueError('capacity probe requires an actually drained native pool')
     block, free = observation.get('kv_tokens_per_block'), observation.get('kv_unreserved_free_blocks')

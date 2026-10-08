@@ -11,7 +11,31 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D343 bounded7B capacity probe prepared; NOT yet measured
+## CURRENT — D343 C15 probe closed/rejected; C14 bounded followup prepared
+
+C15 initialized with942actual free KV blocks, below960required.0/84inference
+calls; initial schema guard incorrectly expected[] for integer0 unretired
+iterations. Corrected guard tested against retained native snapshot still
+rejects942<960. No OOM.101.518437physical GPU-s,15setup fetches/39670961wireB,
+packing0; service peak5450616832B,high/max/OOM/swap0. NativeGPU released,
+service scope removed, launcher scope exactly closed, remote3units stopped,
+journal SHA/bilateral15transfer bytes verified. First result is DONE.
+One explicit followupC14=floor(942/64),80calls from same indexing rule, new
+cap14config/spec/raw paths.40follow-up CPU tests pass. No auto fallback or
+new workload. Next checkpoint/backup then freshgate and C14, not repeatC15.
+Current analysis scope09 awaits exact closure in followup checkpoint.
+
+### Earlier D343 launch record (completed; do not relaunch)
+
+Backup independently verified:2800caec4dab56819459a863b03d20033e03dfde on V2.
+All preparation/test/checkpoint scopes closed. Fresh gate:disk163769196544B,
+MemAvailable112784265216B, emptyGPU. Existing published remote services started
+and authenticated; no new artifact cache.84-call native probe launched in
+tmux primelora_d343_probe through existing gated-launch. Raw d343_20261008;
+source1_launcher.log/source1_launch.launch. No repeated run or Full launch yet.
+Wait for original result/release; then stop only the owned remote invocations,
+collect native capacity/TPOT evidence and decide whether changed profiles/full
+are justified. Numerical correctness/common references/G1G2 stay OPEN.
 
 Full Plan/V1 and completed D342 read. Native current vLLM docs/source checked.
 One candidate: actual sequence/runtime/LoRA capacity8→15, derived from D169's

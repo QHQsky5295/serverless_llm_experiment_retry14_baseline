@@ -1,0 +1,615 @@
+{
+  "kind": "native_source_profile_spec_v1",
+  "purpose": "D343_bounded_native_capacity_probe_not_SLO_reference",
+  "trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+  "content_index": {
+    "path": "paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json",
+    "sha256": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c"
+  },
+  "workspace_derivation": {
+    "path": "paper_results/ieee_tc/p2_backend/20260927_native_host_workspace_contracts.json",
+    "sha256": "275efc7e669b958ded47ab1b7dca2724700ad3580583f3331aeebf8028c22453"
+  },
+  "model_overrides": {
+    "ieee_host_budget_bytes": 17179869184,
+    "ieee_native_host_tensor_budget_bytes": 2147483648,
+    "ieee_native_host_workspace": {
+      "kind": "native_host_workspace_contract_v1",
+      "dtype": "torch.float16",
+      "source_audit_sha256": "224b9337ecaba2590ac888e9d0e3b9eb41a17074ce77b952e98e935259adf60f",
+      "max_resident_pinned_bytes": 33554432,
+      "max_transient_tensor_bytes": 67143184
+    },
+    "ieee_native_host_allocator_policy": "uncached_background_v1"
+  },
+  "nvme_budget_bytes": 17179869184,
+  "movement_concurrency": 3,
+  "host_parent": "/dev/shm",
+  "nvme_parent": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/cap14",
+  "bins": {
+    "prompt_tokens": [
+      759
+    ],
+    "declared_output_tokens": [
+      256
+    ],
+    "adapter_rank": [
+      8,
+      16,
+      64
+    ],
+    "footprint_bytes": [],
+    "admitted_requests": [
+      1,
+      2,
+      4,
+      8,
+      14
+    ]
+  },
+  "representatives": [
+    {
+      "source_index": 34,
+      "source_request_id": "req_00034",
+      "source_row_sha256": "8b3dfee068fa1a1e90b480070c32002c08a6b3d73f55f5610057b4725449b5ba",
+      "adapter_id": "medical_lora",
+      "target_tokens": 256,
+      "native_prompt_tokens": 760,
+      "canonical_prompt_sha256": "51e8d1b07dacc395d23d046399d05e8ee7b277a36c24dc9bd3936dfb87df79c3",
+      "native_prompt_token_ids_sha256": "b8e34fd5c6db3096544bfe523e88af8904cd6f51e0330cf9d6fbc29b69a46e79"
+    },
+    {
+      "source_index": 68,
+      "source_request_id": "req_00068",
+      "source_row_sha256": "40a7a04b7d720a37481e09b871f26b3038073840666a239897d4d51c63799988",
+      "adapter_id": "legal_lora_0017",
+      "target_tokens": 256,
+      "native_prompt_tokens": 760,
+      "canonical_prompt_sha256": "b8f11d32504b794cee34b45082c4725871224f36d69881bed10825a6d8232270",
+      "native_prompt_token_ids_sha256": "2aa32c2e7372e23ad90597a17c8265a1890e069492246e63a9a2861a707b9241"
+    },
+    {
+      "source_index": 172,
+      "source_request_id": "req_00172",
+      "source_row_sha256": "1b968ba36cf1ec2c1b636c413d04d3c29c7f2a6e4353d4f63d8a80736be51db8",
+      "adapter_id": "medical_lora_0026",
+      "target_tokens": 256,
+      "native_prompt_tokens": 760,
+      "canonical_prompt_sha256": "3848f505e173a7e4514e3c18af12f5a7d9c50ed2ad45d5030ead1d29a3a18e70",
+      "native_prompt_token_ids_sha256": "7d3c13b791d1c420eaf20bc54c563741a7e3ee50915c5978e22292c1c65661f3"
+    },
+    {
+      "source_index": 202,
+      "source_request_id": "req_00202",
+      "source_row_sha256": "72266d5d964d9e1fcbafdf6892b1916aacb72f8e60fc1054dad8e7c5b7f09732",
+      "adapter_id": "finance_lora",
+      "target_tokens": 256,
+      "native_prompt_tokens": 760,
+      "canonical_prompt_sha256": "bb57494019b602e54ca3ffe3becf56343464b90543e2767c2944425f73ea3c3a",
+      "native_prompt_token_ids_sha256": "3cebfd4a9e44df8dc13f53fba932da4edc8fe5d5c6879b63e21f98e291dd0859"
+    },
+    {
+      "source_index": 220,
+      "source_request_id": "req_00220",
+      "source_row_sha256": "438bb04cf2fbb6b5780c9bfe4c6f30461102d8c0e408aae8cafb4147d467bddf",
+      "adapter_id": "gaming_lora_0046",
+      "target_tokens": 256,
+      "native_prompt_tokens": 760,
+      "canonical_prompt_sha256": "7badc86a5e215feffb090754fed2f2adf3b0aee89017ea288afdebadf58a4003",
+      "native_prompt_token_ids_sha256": "0eb0431e343ad293f3f338914f12732fdbf0518fe45b9aa569b593d5d2cfd09f"
+    },
+    {
+      "source_index": 287,
+      "source_request_id": "req_00287",
+      "source_row_sha256": "4369f551c948b7e22568ab24d392c488c6ecb681606e6b0717f7cd0f079867c4",
+      "adapter_id": "ecommerce_lora_0021",
+      "target_tokens": 256,
+      "native_prompt_tokens": 760,
+      "canonical_prompt_sha256": "bb57494019b602e54ca3ffe3becf56343464b90543e2767c2944425f73ea3c3a",
+      "native_prompt_token_ids_sha256": "3cebfd4a9e44df8dc13f53fba932da4edc8fe5d5c6879b63e21f98e291dd0859"
+    },
+    {
+      "source_index": 301,
+      "source_request_id": "req_00301",
+      "source_row_sha256": "c11ee367e0c841dc5985861fbc05cec87709bbec5093281c5b69630d356f5b16",
+      "adapter_id": "support_lora_0016",
+      "target_tokens": 256,
+      "native_prompt_tokens": 760,
+      "canonical_prompt_sha256": "51e8d1b07dacc395d23d046399d05e8ee7b277a36c24dc9bd3936dfb87df79c3",
+      "native_prompt_token_ids_sha256": "b8e34fd5c6db3096544bfe523e88af8904cd6f51e0330cf9d6fbc29b69a46e79"
+    },
+    {
+      "source_index": 394,
+      "source_request_id": "req_00394",
+      "source_row_sha256": "19f70039110f7dde2df988abb2ab0d19f597a304aeb2e562c937f7c46efa5764",
+      "adapter_id": "code_lora",
+      "target_tokens": 256,
+      "native_prompt_tokens": 760,
+      "canonical_prompt_sha256": "c910816385fd3cc90d370591689634cc437e80d0a9a45a5150a766008b38e968",
+      "native_prompt_token_ids_sha256": "5e8d5e33f109baf084f8127db7dbdeccce5e4df0f8e77333ca3ad7883f109ccd"
+    },
+    {
+      "source_index": 420,
+      "source_request_id": "req_00420",
+      "source_row_sha256": "96b00a873e4d2332559ec95488c1f7ed81b5ac33ec391693819aab195d84e7b0",
+      "adapter_id": "security_lora_0012",
+      "target_tokens": 256,
+      "native_prompt_tokens": 760,
+      "canonical_prompt_sha256": "3848f505e173a7e4514e3c18af12f5a7d9c50ed2ad45d5030ead1d29a3a18e70",
+      "native_prompt_token_ids_sha256": "7d3c13b791d1c420eaf20bc54c563741a7e3ee50915c5978e22292c1c65661f3"
+    },
+    {
+      "source_index": 445,
+      "source_request_id": "req_00445",
+      "source_row_sha256": "58d8326f5f0f40cfbff80538d5796391aa24eda88a899f780a512c48d72a94b1",
+      "adapter_id": "support_lora",
+      "target_tokens": 256,
+      "native_prompt_tokens": 760,
+      "canonical_prompt_sha256": "7badc86a5e215feffb090754fed2f2adf3b0aee89017ea288afdebadf58a4003",
+      "native_prompt_token_ids_sha256": "0eb0431e343ad293f3f338914f12732fdbf0518fe45b9aa569b593d5d2cfd09f"
+    },
+    {
+      "source_index": 489,
+      "source_request_id": "req_00489",
+      "source_row_sha256": "01f4d886816945ab083d322f4345e94a921f28bf4c48a0c06aee3fc7532a6d14",
+      "adapter_id": "legal_lora",
+      "target_tokens": 256,
+      "native_prompt_tokens": 760,
+      "canonical_prompt_sha256": "0855796b7cff6d4b65067d041cf55f7dfd0887a1fba3ccab4c1d8ece356bd2f6",
+      "native_prompt_token_ids_sha256": "4ff5527cd1c7623d209f6febdae5083002e77abf04af24f6f1e844c0481bc093"
+    },
+    {
+      "source_index": 533,
+      "source_request_id": "req_00533",
+      "source_row_sha256": "98b40882f2892e434fb1f595549ec83436316819dde6db8dea7d06c3d1e60b3a",
+      "adapter_id": "translate_lora_0018",
+      "target_tokens": 256,
+      "native_prompt_tokens": 760,
+      "canonical_prompt_sha256": "8b654313c4a6afa5642b52a0cdab3684abbeb64bcb4ad870b187e7a3ae75cdd8",
+      "native_prompt_token_ids_sha256": "80e7c4c6160d12c2242e8c49e9321fbe432fa13b947e5de123d24d4581da8a39"
+    },
+    {
+      "source_index": 563,
+      "source_request_id": "req_00563",
+      "source_row_sha256": "882385204462b0dc41652d4e2007ac396191f972ad06c7cc53b2d16368a15e0e",
+      "adapter_id": "writing_lora_0035",
+      "target_tokens": 256,
+      "native_prompt_tokens": 760,
+      "canonical_prompt_sha256": "bb57494019b602e54ca3ffe3becf56343464b90543e2767c2944425f73ea3c3a",
+      "native_prompt_token_ids_sha256": "3cebfd4a9e44df8dc13f53fba932da4edc8fe5d5c6879b63e21f98e291dd0859"
+    },
+    {
+      "source_index": 724,
+      "source_request_id": "req_00724",
+      "source_row_sha256": "647afe151d1fae9684991fb26182898ec684c03fc2cdee94dd87bdffc37d9f37",
+      "adapter_id": "medical_lora_0014",
+      "target_tokens": 256,
+      "native_prompt_tokens": 760,
+      "canonical_prompt_sha256": "c910816385fd3cc90d370591689634cc437e80d0a9a45a5150a766008b38e968",
+      "native_prompt_token_ids_sha256": "5e8d5e33f109baf084f8127db7dbdeccce5e4df0f8e77333ca3ad7883f109ccd"
+    }
+  ],
+  "rounds": 3,
+  "selection_window": "existing_source_trace_first_1000_requests_development_only",
+  "order_rule": "Existing D168 index within first1000, descending declared full context, unique adapters; alternating8/candidate waves three rounds; no new inputs.",
+  "warmup_policy": "first_wave_retained_separately_not_in_initial_service_means_no_lifecycle_subtraction",
+  "runtime_boundary": "dedicated_subprocess_physical_allocation",
+  "derivation": "floor(D343_C15_fresh_free_KV_blocks/ceil(max_model_len/block_size)); separate bounded followup; remeasure again",
+  "waves": [
+    {
+      "role": "kernel_warmup_retained",
+      "round": -1,
+      "source": "gpu",
+      "requests": [
+        {
+          "source_request_id": "req_00034",
+          "adapter_id": "medical_lora"
+        },
+        {
+          "source_request_id": "req_00068",
+          "adapter_id": "legal_lora_0017"
+        },
+        {
+          "source_request_id": "req_00172",
+          "adapter_id": "medical_lora_0026"
+        },
+        {
+          "source_request_id": "req_00202",
+          "adapter_id": "finance_lora"
+        },
+        {
+          "source_request_id": "req_00220",
+          "adapter_id": "gaming_lora_0046"
+        },
+        {
+          "source_request_id": "req_00287",
+          "adapter_id": "ecommerce_lora_0021"
+        },
+        {
+          "source_request_id": "req_00301",
+          "adapter_id": "support_lora_0016"
+        },
+        {
+          "source_request_id": "req_00394",
+          "adapter_id": "code_lora"
+        },
+        {
+          "source_request_id": "req_00420",
+          "adapter_id": "security_lora_0012"
+        },
+        {
+          "source_request_id": "req_00445",
+          "adapter_id": "support_lora"
+        },
+        {
+          "source_request_id": "req_00489",
+          "adapter_id": "legal_lora"
+        },
+        {
+          "source_request_id": "req_00533",
+          "adapter_id": "translate_lora_0018"
+        },
+        {
+          "source_request_id": "req_00563",
+          "adapter_id": "writing_lora_0035"
+        },
+        {
+          "source_request_id": "req_00724",
+          "adapter_id": "medical_lora_0014"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "gpu",
+      "diagnostic_wave_size": 8,
+      "requests": [
+        {
+          "source_request_id": "req_00034",
+          "adapter_id": "medical_lora"
+        },
+        {
+          "source_request_id": "req_00068",
+          "adapter_id": "legal_lora_0017"
+        },
+        {
+          "source_request_id": "req_00172",
+          "adapter_id": "medical_lora_0026"
+        },
+        {
+          "source_request_id": "req_00202",
+          "adapter_id": "finance_lora"
+        },
+        {
+          "source_request_id": "req_00220",
+          "adapter_id": "gaming_lora_0046"
+        },
+        {
+          "source_request_id": "req_00287",
+          "adapter_id": "ecommerce_lora_0021"
+        },
+        {
+          "source_request_id": "req_00301",
+          "adapter_id": "support_lora_0016"
+        },
+        {
+          "source_request_id": "req_00394",
+          "adapter_id": "code_lora"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 0,
+      "source": "gpu",
+      "diagnostic_wave_size": 14,
+      "requests": [
+        {
+          "source_request_id": "req_00034",
+          "adapter_id": "medical_lora"
+        },
+        {
+          "source_request_id": "req_00068",
+          "adapter_id": "legal_lora_0017"
+        },
+        {
+          "source_request_id": "req_00172",
+          "adapter_id": "medical_lora_0026"
+        },
+        {
+          "source_request_id": "req_00202",
+          "adapter_id": "finance_lora"
+        },
+        {
+          "source_request_id": "req_00220",
+          "adapter_id": "gaming_lora_0046"
+        },
+        {
+          "source_request_id": "req_00287",
+          "adapter_id": "ecommerce_lora_0021"
+        },
+        {
+          "source_request_id": "req_00301",
+          "adapter_id": "support_lora_0016"
+        },
+        {
+          "source_request_id": "req_00394",
+          "adapter_id": "code_lora"
+        },
+        {
+          "source_request_id": "req_00420",
+          "adapter_id": "security_lora_0012"
+        },
+        {
+          "source_request_id": "req_00445",
+          "adapter_id": "support_lora"
+        },
+        {
+          "source_request_id": "req_00489",
+          "adapter_id": "legal_lora"
+        },
+        {
+          "source_request_id": "req_00533",
+          "adapter_id": "translate_lora_0018"
+        },
+        {
+          "source_request_id": "req_00563",
+          "adapter_id": "writing_lora_0035"
+        },
+        {
+          "source_request_id": "req_00724",
+          "adapter_id": "medical_lora_0014"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 1,
+      "source": "gpu",
+      "diagnostic_wave_size": 14,
+      "requests": [
+        {
+          "source_request_id": "req_00034",
+          "adapter_id": "medical_lora"
+        },
+        {
+          "source_request_id": "req_00068",
+          "adapter_id": "legal_lora_0017"
+        },
+        {
+          "source_request_id": "req_00172",
+          "adapter_id": "medical_lora_0026"
+        },
+        {
+          "source_request_id": "req_00202",
+          "adapter_id": "finance_lora"
+        },
+        {
+          "source_request_id": "req_00220",
+          "adapter_id": "gaming_lora_0046"
+        },
+        {
+          "source_request_id": "req_00287",
+          "adapter_id": "ecommerce_lora_0021"
+        },
+        {
+          "source_request_id": "req_00301",
+          "adapter_id": "support_lora_0016"
+        },
+        {
+          "source_request_id": "req_00394",
+          "adapter_id": "code_lora"
+        },
+        {
+          "source_request_id": "req_00420",
+          "adapter_id": "security_lora_0012"
+        },
+        {
+          "source_request_id": "req_00445",
+          "adapter_id": "support_lora"
+        },
+        {
+          "source_request_id": "req_00489",
+          "adapter_id": "legal_lora"
+        },
+        {
+          "source_request_id": "req_00533",
+          "adapter_id": "translate_lora_0018"
+        },
+        {
+          "source_request_id": "req_00563",
+          "adapter_id": "writing_lora_0035"
+        },
+        {
+          "source_request_id": "req_00724",
+          "adapter_id": "medical_lora_0014"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 1,
+      "source": "gpu",
+      "diagnostic_wave_size": 8,
+      "requests": [
+        {
+          "source_request_id": "req_00034",
+          "adapter_id": "medical_lora"
+        },
+        {
+          "source_request_id": "req_00068",
+          "adapter_id": "legal_lora_0017"
+        },
+        {
+          "source_request_id": "req_00172",
+          "adapter_id": "medical_lora_0026"
+        },
+        {
+          "source_request_id": "req_00202",
+          "adapter_id": "finance_lora"
+        },
+        {
+          "source_request_id": "req_00220",
+          "adapter_id": "gaming_lora_0046"
+        },
+        {
+          "source_request_id": "req_00287",
+          "adapter_id": "ecommerce_lora_0021"
+        },
+        {
+          "source_request_id": "req_00301",
+          "adapter_id": "support_lora_0016"
+        },
+        {
+          "source_request_id": "req_00394",
+          "adapter_id": "code_lora"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 2,
+      "source": "gpu",
+      "diagnostic_wave_size": 8,
+      "requests": [
+        {
+          "source_request_id": "req_00034",
+          "adapter_id": "medical_lora"
+        },
+        {
+          "source_request_id": "req_00068",
+          "adapter_id": "legal_lora_0017"
+        },
+        {
+          "source_request_id": "req_00172",
+          "adapter_id": "medical_lora_0026"
+        },
+        {
+          "source_request_id": "req_00202",
+          "adapter_id": "finance_lora"
+        },
+        {
+          "source_request_id": "req_00220",
+          "adapter_id": "gaming_lora_0046"
+        },
+        {
+          "source_request_id": "req_00287",
+          "adapter_id": "ecommerce_lora_0021"
+        },
+        {
+          "source_request_id": "req_00301",
+          "adapter_id": "support_lora_0016"
+        },
+        {
+          "source_request_id": "req_00394",
+          "adapter_id": "code_lora"
+        }
+      ]
+    },
+    {
+      "role": "representative_measurement",
+      "round": 2,
+      "source": "gpu",
+      "diagnostic_wave_size": 14,
+      "requests": [
+        {
+          "source_request_id": "req_00034",
+          "adapter_id": "medical_lora"
+        },
+        {
+          "source_request_id": "req_00068",
+          "adapter_id": "legal_lora_0017"
+        },
+        {
+          "source_request_id": "req_00172",
+          "adapter_id": "medical_lora_0026"
+        },
+        {
+          "source_request_id": "req_00202",
+          "adapter_id": "finance_lora"
+        },
+        {
+          "source_request_id": "req_00220",
+          "adapter_id": "gaming_lora_0046"
+        },
+        {
+          "source_request_id": "req_00287",
+          "adapter_id": "ecommerce_lora_0021"
+        },
+        {
+          "source_request_id": "req_00301",
+          "adapter_id": "support_lora_0016"
+        },
+        {
+          "source_request_id": "req_00394",
+          "adapter_id": "code_lora"
+        },
+        {
+          "source_request_id": "req_00420",
+          "adapter_id": "security_lora_0012"
+        },
+        {
+          "source_request_id": "req_00445",
+          "adapter_id": "support_lora"
+        },
+        {
+          "source_request_id": "req_00489",
+          "adapter_id": "legal_lora"
+        },
+        {
+          "source_request_id": "req_00533",
+          "adapter_id": "translate_lora_0018"
+        },
+        {
+          "source_request_id": "req_00563",
+          "adapter_id": "writing_lora_0035"
+        },
+        {
+          "source_request_id": "req_00724",
+          "adapter_id": "medical_lora_0014"
+        }
+      ]
+    }
+  ],
+  "admission_initialization": {
+    "kind": "native_fixed_output_capacity_length_transfer_v1",
+    "audit": {
+      "path": "paper_results/ieee_tc/p2_backend/d298_capacity/completed_length_audit.json",
+      "sha256": "cdedf7522c4a1471cac571989bfea7d72eed5fe9a32cfb68871b0ef4e0101a30"
+    },
+    "model": "7b",
+    "window_s": 5,
+    "model_config_changes": {
+      "max_num_seqs": {
+        "source": 8,
+        "target": 14
+      },
+      "runtime_concurrency_cap": {
+        "source": 8,
+        "target": 14
+      },
+      "max_loras": {
+        "source": 8,
+        "target": 14
+      }
+    }
+  },
+  "capacity_probe_contract": {
+    "kind": "native_capacity_probe_v1",
+    "candidate_concurrency": 14,
+    "source_concurrency": 8,
+    "max_model_len": 1024
+  },
+  "bounded_followup_evidence": {
+    "path": "results/ieee_tc/p2_backend_qualification/d343_20261008/source1.json",
+    "sha256": "fe7c440cd0b064c6094dfc16888c84c4ae06dfff7b7a35a8f44939f91fb37073",
+    "source_capacity": 15,
+    "fresh_free_blocks": 942,
+    "first_attempt_retained": true,
+    "diagnostic_schema_error": "integer_zero_unretired_iterations_was_checked_as_empty_list",
+    "independent_capacity_reason": "942free < 15*64; corrected guard still rejects15",
+    "same_run_fallback": false,
+    "maximum_minimal_checks": 2
+  }
+}

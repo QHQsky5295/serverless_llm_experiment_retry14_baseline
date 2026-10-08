@@ -1,0 +1,52 @@
+{
+  "kind": "d343_c15_native_probe_rejected_v1",
+  "n_plan": 84,
+  "n_submitted": 0,
+  "native_inference_calls": 0,
+  "full_qualified": false,
+  "n_correct": null,
+  "measured_free_KV_blocks": 942,
+  "needed_blocks": 960,
+  "original_guard_error": "capacity probe requires an actually drained native pool",
+  "corrected_guard_error": "capacity probe insufficient measured KV: 942 < 960",
+  "native_unretired_iterations": 0,
+  "startup_latency_ms": 86594.1895210417,
+  "physical_GPU_seconds": 101.5184370999923,
+  "remote_fetches": 15,
+  "wire_bytes": 39670961,
+  "request_packing": 0,
+  "service_memory_peak_bytes": 5450616832,
+  "memory_events": {
+    "high": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0
+  },
+  "service_swap_bytes": 0,
+  "host_available_min_bytes": 107138461696,
+  "physical_release_verified": true,
+  "remote_stopped_verified": true,
+  "decision": "C15 rejected for all-max-context probe; one explicit C14 followup from floor(942/64)",
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/source1.json",
+      "sha256": "fe7c440cd0b064c6094dfc16888c84c4ae06dfff7b7a35a8f44939f91fb37073"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/source1_launch.json",
+      "sha256": "6b76425447fddac601a159bbe25ef305d3a3a7ceb2cba8f8f996eeb4fb61f76f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/remote_transfers.jsonl",
+      "sha256": "907fdd0f2f874b1f49ac3b8d88f8fc4dfac4c08072e566757d8b20cfd587eee5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/remote_stop.json",
+      "sha256": "640ac418b9464423a1b7749677cf90c9a93333cc4698f25af1942065365a1f65"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d343_20261008/local_cleanup.json",
+      "sha256": "e20e1ea03e0ec77a4e9e54a05d0d9ef593d408f9463641ebf3c4c65dfd9c9009"
+    }
+  ]
+}

@@ -1142,7 +1142,7 @@ class CapacityProbeObservation(unittest.TestCase):
         contract = dict(kind='native_capacity_probe_v1', candidate_concurrency=15,
                         source_concurrency=8, max_model_len=1024)
         obs = dict(kind='ieee_native_scheduler_observation_v1',
-                   kv_layout='full_attention_single_group', admitted=[], unretired_iterations=[],
+                   kv_layout='full_attention_single_group', admitted=[], unretired_iterations=0,
                    native_deferred_free_batches=0, kv_tokens_per_block=16,
                    kv_unreserved_free_blocks=960)
         return config, contract, obs
@@ -1158,12 +1158,19 @@ class CapacityProbeObservation(unittest.TestCase):
         config, contract, obs = self.fixture()
         for extra in (dict(kv_unreserved_free_blocks=959), dict(kv_unreserved_free_blocks=True),
                       dict(kv_tokens_per_block=0), dict(admitted=[{}]),
-                      dict(unretired_iterations=[1]), dict(native_deferred_free_batches=1),
+                      dict(unretired_iterations=1), dict(unretired_iterations=[]),
+                      dict(unretired_iterations=False), dict(native_deferred_free_batches=1),
                       dict(kind='invented'), dict(kv_layout='unknown')):
             with self.subTest(extra=extra), self.assertRaises(ValueError):
                 p.validate_capacity_probe_observation(dict(obs, **extra), config, contract)
         with self.assertRaises(ValueError):
             p.validate_capacity_probe_observation(obs, dict(config, max_loras=8), contract)
+
+    def test_actual_d343_native_schema_still_rejects_insufficient_c15(self):
+        config, contract, obs = self.fixture()
+        obs['kv_unreserved_free_blocks'] = 942
+        with self.assertRaisesRegex(ValueError, '942 < 960'):
+            p.validate_capacity_probe_observation(obs, config, contract)
 
 
 class SlotContentQualification(unittest.TestCase):

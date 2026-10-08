@@ -78,3 +78,28 @@ The first broad CPU driver lacked a multiprocessing main guard; spawned test
 children re-entered its completed cleanup, so that CPU attempt was interrupted
 and retained. The spawn-safe second driver passes without serving-code changes.
 This is a test-launch mistake, not a failed GPU capacity candidate.
+
+## First native outcome: C15 rejected, one evidence-driven followup
+
+The larger native runtime initialized, but its drained pool had942free blocks,
+not the earlier C8's1022. Full15-context capacity needs960. No inference request
+was submitted.15setup downloads transferred39,670,961wire bytes, no packing.
+Startup86.594s and physical allocation101.518437GPU-s remain recorded; they
+are not a successful workload result. Service peak5,450,616,832B, hostminimum
+107,138,461,696B, high/max/OOM/swap0. Actual native release, owned local
+cleanup and three remote services stopped; source/journal bytes/SHA matched.
+
+The new diagnostic guard initially compared native unretired_iterations to[],
+but this native API returns an integer count0. Its schema check was corrected
+and regression-tested against the retained native snapshot. Corrected guard
+still rejects C15 with explicit942<960. Do not call this a pure capacity-only
+execution failure or hide the diagnostic error; both facts are retained.
+
+One second minimal check is justified by the fresh measurement:
+floor(942/64)=14. It has a separate cap14 configuration/spec/output identity,
+not an in-run fallback or overwritten C15 result. It must freshly pass896free
+blocks before any inference. The same selection rule yields14warmup plus
+three8/14pairs=80calls. Only old completed fixed-output lengths transfer;
+no old latency profile or SLO is relabelled.40follow-up CPU tests passed,
+including the real integer-zero schema and insufficient-C15 regression.
+No additional minimal-capacity sweep is authorized by this hypothesis.
