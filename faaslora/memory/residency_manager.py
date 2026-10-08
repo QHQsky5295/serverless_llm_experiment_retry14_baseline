@@ -881,9 +881,26 @@ class LocalSourceReferences:
             if identity != expected:
                 raise ValueError('file demand source lease changed or was released')
             record = self._validated_source(Path(reference['path']))
-            if (record is None or record['public'] != reference.get('confirmed_source')
-                    or record['public']['content_sha256'] != content_sha256):
-                raise ValueError('file demand source content is not confirmed')
+            current = record['public'] if record is not None else None
+            confirmed = reference.get('confirmed_source')
+            # The lease protects a published copy, not a historical allocation
+            # observation. Validation above rechecks every file signature and
+            # the precharged inode envelope; a bounded block refresh may advance
+            # the planning epoch without invalidating this immutable input.
+            # Logical bytes, membership, representation and content still match.
+            allocation_fields = ('allocated_file_bytes', 'allocated_bytes')
+            same_copy = (isinstance(confirmed, dict) and current is not None
+                and set(current) == set(confirmed)
+                and all(type(confirmed[k]) is int and confirmed[k] >= 0 for k in allocation_fields)
+                and all(value == confirmed[key] for key, value in current.items()
+                        if key not in allocation_fields))
+            if not same_copy or current['content_sha256'] != content_sha256:
+                detail = dict(owner_id=self.owner_id, lease_id=reference['lease_id'],
+                    source_epoch=self.source_epoch, requested_content_sha256=content_sha256,
+                    expected_publication=confirmed, observed_publication=current,
+                    publication_identity_matches=same_copy)
+                raise ValueError('file demand source content is not confirmed: '
+                                 + json.dumps(detail, sort_keys=True))
             witness = {k: reference[k] for k in ('owner_id', 'lease_id', 'adapter_id',
                 'path', 'tier', 'device', 'inode')}
             witness.update(kind=IEEE_FILE_DEMAND_TRANSACTION, content_sha256=content_sha256)

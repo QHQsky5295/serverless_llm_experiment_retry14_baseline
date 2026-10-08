@@ -2726,6 +2726,13 @@ class ConfirmedFilePublication(unittest.TestCase):
             self.owner.demand_witness(reference,content_sha256='f'*64)
         with self.assertRaises(ValueError):
             self.owner.demand_witness(reference | {'lease_id':'fabricated'},content_sha256=content)
+        for field, wrong in (('owner_id', 'another-owner'), ('state', 'released'),
+                ('content_verified', False), ('adapter_id', 'other-adapter'),
+                ('path', str(self.host / 'a')), ('tier', 'host'),
+                ('device', reference['device'] + 1), ('inode', reference['inode'] + 1)):
+            with self.subTest(field=field):
+                with self.assertRaises(ValueError):
+                    self.owner.demand_witness(reference | {field: wrong}, content_sha256=content)
         self.owner.release(lease_id='file',expected_owner_id=self.owner.owner_id)
         with self.assertRaises(ValueError):
             self.owner.demand_witness(reference,content_sha256=content)
@@ -2871,6 +2878,121 @@ class ConfirmedFilePublication(unittest.TestCase):
                     expected_content_sha256=source['content_sha256'])
         self.assertFalse(self.owner.leases)
         self.assertNotIn(self.nvme / 'a', self.owner._confirmed_sources)
+
+    def test_file_demand_witness_survives_bounded_allocation_refresh(self):
+        """D364 hypothesis fixture, not a reconstruction of its kernel event.
+
+        A real published copy and read lease survive physical-block refreshes;
+        signatures, content and the already charged envelope remain unchanged.
+        Exercise refresh both inside demand_witness and before it (another
+        reader's observation), in both allocation directions.
+        """
+        state, file, info, bound = self._published_source_with_unsettled_allocation()
+        original = Path.lstat
+        blocks = [info.st_blocks]
+        def allocation_observation(path, *args, **kwargs):
+            actual = original(path, *args, **kwargs)
+            if path != file:
+                return actual
+            fields = {name: getattr(actual, name) for name in dir(actual) if name.startswith('st_')}
+            return SimpleNamespace(**(fields | {'st_blocks': blocks[0]}))
+        before = self.owner._file_inventory()
+        charged = self.owner._charged_file_bytes(before, 'nvme')
+        original_bound = dict(bound)
+        original_contents = file.read_bytes()
+        with patch.object(Path, 'lstat', allocation_observation):
+            for preobserve in (False, True):
+                for extra_blocks in (8, 0):
+                    held = self.owner.acquire(path=str(self.nvme / 'a'), adapter_id='a',
+                        lease_id=f'demand-{preobserve}-{extra_blocks}')
+                    epoch = self.owner.source_epoch
+                    blocks[0] = info.st_blocks + extra_blocks
+                    if preobserve:
+                        self.owner.source_snapshot('a')
+                    with self.subTest(preobserve=preobserve, extra_blocks=extra_blocks):
+                        witness = self.owner.demand_witness(held,
+                            content_sha256=held['confirmed_source']['content_sha256'])
+                        self.assertEqual(witness['lease_id'], held['lease_id'])
+                        self.assertEqual(witness['inode'], held['inode'])
+                        self.assertGreater(self.owner.source_epoch, epoch)
+                        current = self.owner.source_snapshot('a')['sources'][0]
+                        self.assertEqual(current['allocated_file_bytes'],
+                            before['allocated_file_bytes'] + 512 * extra_blocks)
+                        self.assertNotEqual(current['allocated_file_bytes'],
+                            held['confirmed_source']['allocated_file_bytes'])
+                        self.assertEqual(self.owner._charged_file_bytes(self.owner._file_inventory(),
+                            'nvme'), charged)
+                        self.assertEqual(bound, original_bound)
+                        self.assertEqual(file.read_bytes(), original_contents)
+                        with self.owner.mutation(self.nvme / 'a') as allowed:
+                            self.assertFalse(allowed)
+                    self.owner.release(lease_id=held['lease_id'], expected_owner_id=state['owner_id'])
+        self.assertFalse(self.owner.leases)
+
+    def test_file_demand_witness_rejects_allocation_outside_reserved_envelope(self):
+        state, file, info, bound = self._published_source_with_unsettled_allocation()
+        held = self.owner.acquire(path=str(self.nvme / 'a'), adapter_id='a', lease_id='demand-overflow')
+        original = Path.lstat
+        def excessive_allocation(path, *args, **kwargs):
+            actual = original(path, *args, **kwargs)
+            if path != file:
+                return actual
+            fields = {name: getattr(actual, name) for name in dir(actual) if name.startswith('st_')}
+            return SimpleNamespace(**(fields | {'st_blocks': bound['ceiling_bytes'] // 512 + 8}))
+        with patch.object(Path, 'lstat', excessive_allocation):
+            with self.assertRaisesRegex(RuntimeError, 'exceeds its reserved envelope'):
+                self.owner.demand_witness(held, content_sha256=held['confirmed_source']['content_sha256'])
+        self.assertNotIn(self.nvme / 'a', self.owner._confirmed_sources)
+        self.assertIn(held['lease_id'], self.owner.leases, 'failure must not release live ownership')
+        self.owner.release(lease_id=held['lease_id'], expected_owner_id=state['owner_id'])
+
+    def test_file_demand_witness_preserves_every_nonallocation_publication_field(self):
+        self.assertTrue(self.fetch()[0])
+        held = self.owner.acquire(path=str(self.nvme / 'a'), adapter_id='a', lease_id='demand-fields')
+        confirmed = held['confirmed_source']
+        content = confirmed['content_sha256']
+        for key, value in confirmed.items():
+            if key in ('allocated_file_bytes', 'allocated_bytes'):
+                changes = [None, -1, True, '0']
+            elif isinstance(value, bool):
+                changes = [not value]
+            elif isinstance(value, int):
+                changes = [value + 1]
+            else:
+                changes = [str(value) + '-changed']
+            for changed in changes:
+                with self.subTest(key=key, changed=changed):
+                    altered = held | {'confirmed_source': confirmed | {key: changed}}
+                    with self.assertRaisesRegex(ValueError, 'source content is not confirmed') as caught:
+                        self.owner.demand_witness(altered, content_sha256=content)
+                    detail = json.loads(str(caught.exception).split(': ', 1)[1])
+                    self.assertFalse(detail['publication_identity_matches'])
+                    self.assertEqual(detail['observed_publication'], confirmed)
+            with self.subTest(missing=key):
+                altered = held | {'confirmed_source': {k: v for k, v in confirmed.items() if k != key}}
+                with self.assertRaisesRegex(ValueError, 'source content is not confirmed'):
+                    self.owner.demand_witness(altered, content_sha256=content)
+        for altered in (None, {}, confirmed | {'unexpected': 1}):
+            with self.subTest(schema=altered):
+                with self.assertRaisesRegex(ValueError, 'source content is not confirmed'):
+                    self.owner.demand_witness(held | {'confirmed_source': altered}, content_sha256=content)
+        self.assertEqual(self.owner.demand_witness(held, content_sha256=content)['lease_id'], held['lease_id'])
+        self.owner.release(lease_id=held['lease_id'], expected_owner_id=self.owner.owner_id)
+
+    def test_file_demand_witness_rejects_mutated_or_missing_publication(self):
+        self.assertTrue(self.fetch()[0])
+        held = self.owner.acquire(path=str(self.nvme / 'a'), adapter_id='a', lease_id='demand-mutated')
+        file = self.nvme / 'a' / 'nested' / 'weights'
+        file.write_bytes(b'X' * len(self.payload['nested/weights']))
+        with self.assertRaisesRegex(RuntimeError, 'changed outside its managed publication'):
+            self.owner.demand_witness(held, content_sha256=held['confirmed_source']['content_sha256'])
+        self.assertNotIn(self.nvme / 'a', self.owner._confirmed_sources)
+        with self.assertRaisesRegex(ValueError, 'source content is not confirmed') as caught:
+            self.owner.demand_witness(held, content_sha256=held['confirmed_source']['content_sha256'])
+        detail = json.loads(str(caught.exception).split(': ', 1)[1])
+        self.assertIsNone(detail['observed_publication'])
+        self.assertIn(held['lease_id'], self.owner.leases)
+        self.owner.release(lease_id=held['lease_id'], expected_owner_id=self.owner.owner_id)
 
     def test_confirmed_read_pin_still_rejects_content_changed_after_snapshot(self):
         self.assertTrue(self.fetch()[0])

@@ -11,7 +11,30 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D364 Full W0 COMPLETE with one failure; 7B NOT qualified
+## CURRENT — D365 deterministic file-demand identity repair; CPU qualification
+
+2026-10-09: D364 cleanup/backup receipt passed, local/remote both e8f8a513.
+Do not repeat D364 helpers. Reused D310's tiny real publication/lease fixture;
+unchanged serving code failed all four bounded st_blocks refresh cases, while
+the over-envelope negative case passed. This establishes a demand_witness code
+defect, not the exact filesystem event behind D364's req_03511 (operands absent).
+Repair compares immutable publication fields/schema, not the two mutable physical
+allocation fields. Fresh signatures/envelopes, real live lease, logical size,
+membership/content/representation checks and physical accounting remain. Failed
+publication checks now retain both observations. No retry, tuning or formula change.
+77 targeted checks and662 broader checks in EACH existing Python environment
+passed. Peak647557120B,high/max/OOM/swap0. No GPU/remote work, no figures. Raw d365_20261009 retains
+before/after sources/logs/receipts. All four exact-owned test scopes closed without
+hardkill by seal_candidate.py;1726962B evidence archive/41members verified. Do not
+repeat test cleanup or sealing. verify_checkpoint.py closes the sealer, then
+close_verifier.py records final remote equality; consult raw backup_receipt.json
+before repeating any closure. See D365_FILE_DEMAND_IDENTITY.md.
+NEXT: source backup, then same-config native100 and
+Full4000, reusing D362 profiles after strict binding verification. Do not regenerate
+assets/profiles without new evidence or jump to3B/baselines. Mainline7B remainsopen;
+D364 staysfailed; numericalcorrectness/commonwarm/Resident/formalG1/G2 remainopen.
+
+## D364 Full W0 COMPLETE with one failure; 7B NOT qualified
 
 2026-10-09: complete4000 terminal population,3999successful/native-contract
 returns,1failure req_03511 education_lora_0127. Sourceb90a4f6874d0f5f8a9c0a1ad8ddf749430e11c46b32c35c9eaa71c3edb6762aa,
