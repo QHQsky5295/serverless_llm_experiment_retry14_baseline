@@ -198,6 +198,72 @@ def control_interleave_trigger(requests):
         caveat='Retains zero-trigger and single-snapshot owners. Initial cumulative values include earlier work; no cross-owner subtraction or summation of repeated snapshots.')
 
 
+def file_demand_transaction_trigger(requests):
+    """Audit final held-file transactions without fabricating counterfactual time."""
+    from faaslora.memory.residency_manager import (
+        IEEE_FILE_DEMAND_TRANSACTION, validate_file_demand_witness)
+    if not requests:
+        raise ValueError('complete request population required')
+    seen, counts, advances = set(), Counter(), []
+    for row in requests:
+        rid, aid = row['request_id'], row['adapter_id']
+        if rid in seen or row.get('success') is not True:
+            raise ValueError('complete unique successful request receipts required')
+        seen.add(rid)
+        e = row['gpu_reference_evidence']
+        intent, native, source = e['intent'], e['receipt'], e['source_admission']['source']
+        tier = row['readiness_tier_before_dispatch']
+        if (source['tier'] != tier or type(source['native']) is not bool
+                or e.get('state') != 'released' or native.get('acquired') is not True
+                or e['release_receipt'].get('released') is not True
+                or native['lease_id'] != intent['lease_id']
+                or native['owner_id'] != intent['expected_owner_id']
+                or native['lora_name'] != aid):
+            raise ValueError('selected source and native ownership receipts differ')
+        if source['native']:
+            if tier not in ('gpu','host') or any(key in obj for obj in (intent,native)
+                    for key in ('file_source_witness','file_demand_transaction')):
+                raise ValueError('file policy leaked onto native cached-source path')
+            counts['native_'+tier] += 1
+            continue
+        if tier not in ('remote','nvme','host'):
+            raise ValueError('unknown file-source tier')
+        witness = native.get('file_source_witness')
+        validate_file_demand_witness(witness,lora_name=aid,lora_path=intent['lora_path'],
+                                    content_sha256=source['content_sha256'])
+        held = e['local_source_reference']
+        fence = held.get('protected_until_native_acquisition',{})
+        if (witness != intent.get('file_source_witness')
+                or any(witness[k] != held.get(k) for k in
+                       ('owner_id','lease_id','adapter_id','path','tier','device','inode'))
+                or held.get('content_verified') is not True or held.get('state') != 'released'
+                or witness['tier'] != ('host' if tier=='host' else 'nvme')
+                or native.get('expected_content_sha256') != witness['content_sha256']
+                or intent.get('expected_content_sha256') != witness['content_sha256']
+                or any(fence.get(k) != native[k] for k in
+                       ('owner_id','lease_id','lora_path','clock_id','acquired_monotonic_s'))):
+            raise ValueError('held file/content/lifetime binding differs')
+        txn = native.get('file_demand_transaction',{})
+        observed, validated = txn.get('observed_epoch'), txn.get('validated_epoch')
+        if (txn.get('kind') != IEEE_FILE_DEMAND_TRANSACTION
+                or any(type(x) is not int or x<0 for x in (observed,validated,native.get('epoch')))
+                or not observed <= validated <= native['epoch']
+                or observed != intent['expected_epoch']
+                or type(txn.get('owner_epoch_advance')) is not int
+                or txn['owner_epoch_advance'] != validated-observed
+                or txn.get('live_native_constraints_checked') is not True
+                or txn.get('controller_capacity_snapshot_reused') is not False):
+            raise ValueError('file-demand live transaction receipt differs')
+        counts['file_'+tier] += 1
+        advances.append(validated-observed)
+    return dict(kind='full_file_demand_transaction_audit_v1',requests=len(seen),
+        policy=IEEE_FILE_DEMAND_TRANSACTION,source_counts=dict(counts),
+        file_transactions=len(advances),triggered=bool(advances),
+        advanced_owner_epoch_transactions=sum(x>0 for x in advances),
+        max_owner_epoch_advance=max(advances) if advances else None,
+        old_capacity_snapshot_reused=False,n_correct=None,causal_speedup=None)
+
+
 def main(campaign='d298'):
     global RAW, RUN, SOURCE, REFERENCE, OUT
     health_name = 'smoke_remote_health2.json'
@@ -335,6 +401,17 @@ def main(campaign='d298'):
             'enables atomic_control_yield_v1 and uses the corresponding complete D356 measured profiles. '
             'Trigger counters do not prove latency savings. Unchanged full4000 versus D353/D336 is required; '
             'no numerical/formal qualification or prefix GPU-s extrapolation.')
+    elif campaign == 'd363':
+        REFERENCE = ROOT/'results/ieee_tc/p2_backend_qualification/d357_20261008/7b_interleave_validation_100/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d357_7b_interleave_validation_100.json'
+        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d363_20261009'
+        RUN = RAW/'7b_file_demand_validation_100'
+        SOURCE = RUN/'experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d363_7b_file_demand_validation_100.json'
+        OUT = ROOT/'paper_results/ieee_tc/p2_backend/d363_file_demand_validation/smoke1'
+        health_name = 'remote_health.json'
+        comparison_caveat = ('D357 is descriptive same-input prefix context only. D363 retains D358 controls, '
+            'enables protected_file_owner_turn_v1 and uses the complete D362 measured profiles. '
+            'Live owner-epoch advances verify exposure, not avoided RPCs or causal speedup. '
+            'Complete4000 versus D358/D353/D336 is required; no numerical/formal qualification or extrapolation.')
     elif campaign != 'd298':
         raise ValueError('unknown frozen smoke identity')
     assert not OUT.exists(), 'never overwrite a prior audit'
@@ -350,7 +427,7 @@ def main(campaign='d298'):
     assert outcome['run_completed'] and not outcome['error']
     assert not outcome['cleanup_errors'] and not outcome['measurement_errors']
     journal = RAW/('attempt2/smoke_remote_transfers.jsonl' if campaign in ('d322-attempt2', 'd331-attempt2') else 'smoke_remote_transfers.jsonl')
-    if campaign in ('d345', 'd352', 'd357'):
+    if campaign in ('d345', 'd352', 'd357', 'd363'):
         journal = RAW/'remote_transfers.jsonl'
     rows = [json.loads(line) for line in journal.read_text().splitlines()]
     remote = {r['transfer_id']:r for r in rows}
@@ -358,7 +435,7 @@ def main(campaign='d298'):
     assert len(remote) == len(rows) == len(transfers)
     assert set(remote) == {r['http_transfer_id'] for r in transfers}
     health = read(RAW/health_name)
-    if campaign in ('d331', 'd331-attempt2', 'd334', 'd340', 'd345', 'd352', 'd357'):
+    if campaign in ('d331', 'd331-attempt2', 'd334', 'd340', 'd345', 'd352', 'd357', 'd363'):
         clock = health['7b']['clock_id']
     else:
         clock = health['clock_id'] if campaign in ('d322', 'd322-attempt2') else health['health']['clock_id']
@@ -410,10 +487,10 @@ def main(campaign='d298'):
         comparison_caveat=comparison_caveat,
         raw_evidence=[dict(path=str(path),sha256=sha256(path)) for path in
             (SOURCE,REFERENCE,outcome_path,journal,WARM,INDEX,
-             RAW/('remote_monitor.log' if campaign in ('d345', 'd352', 'd357') else
+             RAW/('remote_monitor.log' if campaign in ('d345', 'd352', 'd357', 'd363') else
                   'attempt2/smoke_remote_monitor.log' if campaign in ('d322-attempt2', 'd331-attempt2') else 'smoke_remote_monitor.log'),
              ROOT/'scripts/run_all_experiments.py', Path(__file__))])
-    if campaign in ('d302', 'd308', 'd310', 'd312', 'd317', 'd322', 'd322-attempt2', 'd331', 'd331-attempt2', 'd334', 'd340', 'd345', 'd352', 'd357'):
+    if campaign in ('d302', 'd308', 'd310', 'd312', 'd317', 'd322', 'd322-attempt2', 'd331', 'd331-attempt2', 'd334', 'd340', 'd345', 'd352', 'd357', 'd363'):
         result['admission_waits'] = summarize_admission_waits(requests)
         result['mechanism_events'] = {k:v for k,v in outcome['mechanism_events'].items()
             if k in ('_ieee_source_observation_stats', '_ieee_route_cache_stats')}
@@ -429,13 +506,17 @@ def main(campaign='d298'):
             causal_latency_savings=None, requires_new_observation=True)
     if campaign == 'd331-attempt2':
         result['planning_publication_trigger'] = planning_publication_trigger(outcome['mechanism_events'])
-    if campaign in ('d334', 'd340', 'd345', 'd352', 'd357'):
+    if campaign in ('d334', 'd340', 'd345', 'd352', 'd357', 'd363'):
         result['native_pending_turn_trigger'] = native_pending_turn_trigger(requests)
-    if campaign in ('d352', 'd357'):
+    if campaign in ('d352', 'd357', 'd363'):
         result['hit_host_transaction_trigger'] = hit_host_transaction_trigger(requests)
-    if campaign == 'd357':
+    if campaign in ('d357', 'd363'):
         result['control_interleave_trigger'] = control_interleave_trigger(requests)
         result['candidate_trigger_gate_passed'] = result['control_interleave_trigger']['triggered']
+    if campaign == 'd363':
+        result['file_demand_transaction_trigger'] = file_demand_transaction_trigger(requests)
+        result['candidate_trigger_gate_passed'] = (result['candidate_trigger_gate_passed']
+            and result['file_demand_transaction_trigger']['triggered'])
     if campaign == 'd340':
         service_log = RUN/'launch.launch/service.log'
         archives = list(dict.fromkeys(re.findall(
@@ -462,5 +543,5 @@ def main(campaign='d298'):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--campaign', choices=('d298','d302','d308','d310','d312','d317','d322','d322-attempt2','d331','d331-attempt2','d334','d340','d345','d352','d357'), default='d298')
+    parser.add_argument('--campaign', choices=('d298','d302','d308','d310','d312','d317','d322','d322-attempt2','d331','d331-attempt2','d334','d340','d345','d352','d357','d363'), default='d298')
     main(parser.parse_args().campaign)

@@ -11,7 +11,35 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D363 first100 CPU-qualified, launch next; 7B performance OPEN
+## CURRENT — D363 first100 COMPLETE and audited; 7B performance OPEN
+
+2026-10-09: D363 completed100/100/0fail usingpusheda5a2355beb8747d0efe2c4b550e998a39c165a7c.
+SourceSHA4228717a06b169ce308d8241e967513dbda6424e7bb2fa6d1b1b796f42a442ff,
+8388963B. ActualGPUrelease/servicepathremovalpass, tmuxended. stop_remote.sh
+ranONCE,3ownedunitsinactive; bilateraljournalSHAmatch. Launcher dc1dd5cb closed
+by collect_closure.py. Starter9450d59f andcollectionae7a3304 closed byrun_audit.py;
+do not repeat. Offlineaudit43325a34 closed byseal_checkpoint.py, nohardkill.
+Closureevidence301484B sealed,12publicationpathschecked. Seal scopee5d58541
+finalclosure/remote-equality recorded inraw/closure_backup_receipt.json by
+finish_backup.py; consult thatreceipt before attempting furthercleanup.
+62postreleaseCPUchecks andexistingaudits passed, newfileauditcovers100requests.
+35filetransactions(29Remote/6NVMe),4advancedownerepoch,max3;61nativeGPU/4nativeHOST
+guards retained. Currentconstraintsrechecked, no oldcapacityreuse. Controltrigger
+100receipts/4owners. Remote29fetches/50650865wireB/packing0,actual1000Mbpsfull.
+Servicepeak19176263680B,hostmin93320040448B,high/max/OOM/swap0.
+
+Prefixmean/P95TTFT909.898093/2441.886618ms; mean/P95TPOT26.233966/31.492178ms;
+physicalGPU803.25265209s. VersusD357prefix: TTFT+13.79%/+36.39%,GPU-s+22.69%,
+TPOT−1.44%/−6.32%. Retainregressions; no performancewin inferred. D170timing-only
+98/100passes,2TTFTmiss,0TPOTmiss. NumericalN_correct/formalwarm/Resident/G1/G2open.
+NoCIfromoneshortrun. Sourceheld-file/lifetime checks passed; mechanismexposure
+isnotavoidedRPCcount orcausalspeedup. Diskrecoveredabove150GiBaftershutdown,
+no manualdeletion. Nofigures orservingchanges.
+NEXT afterseal/backup: D364 complete4000W0, unchangedcandidate/configexceptpaths,
+compareD358/D353/D336; targetphase2notcontainedinprefix. Noadditionaltuning before
+fullreplay. SeeD363_COMPLETE_PREFIX_DECISION.md. Mainline7B→3B→pausedbaselines.
+
+### D363 preparation history — completed
 
 D363 preparation passed430model/native tests and50OSguard tests, exact child
 model identity,200/24profile loaders and unchangedD358controller verification.

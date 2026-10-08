@@ -235,5 +235,81 @@ class FullControlReferences(unittest.TestCase):
             context.main('d358', 'd303')
 
 
+class FullFileDemandAudit(unittest.TestCase):
+    def rows(self):
+        from tests.test_ieee_tc_control_profile_analysis import FileDemandProfileAudit
+        rows=[]
+        for fixture in FileDemandProfileAudit().source()['requests']:
+            source=fixture['requested_source']
+            tier={'file_host':'host','native_host':'host'}.get(source,source)
+            e=fixture['source_evidence']
+            e['source_admission']=dict(source=dict(tier=tier,
+                native=source in ('native_host','gpu'),content_sha256='a'*64))
+            native=e['receipt']
+            native.update(lora_path=e['intent']['lora_path'],clock_id='clock',acquired_monotonic_s=10.)
+            if 'local_source_reference' in e:
+                e['local_source_reference'].update(state='released',
+                    protected_until_native_acquisition={k:native[k] for k in
+                        ('owner_id','lease_id','lora_path','clock_id','acquired_monotonic_s')})
+            rows.append(dict(request_id=fixture['request_id'],adapter_id=fixture['adapter_id'],
+                success=True,readiness_tier_before_dispatch=tier,gpu_reference_evidence=e))
+        return rows
+
+    def audit(self, rows):
+        from scripts.ieee_tc.analyze_d298_smoke import file_demand_transaction_trigger
+        return file_demand_transaction_trigger(rows)
+
+    def test_exact_file_native_and_zero_advances(self):
+        rows=self.rows();before=copy.deepcopy(rows)
+        result=self.audit(rows)
+        self.assertEqual(rows,before)
+        self.assertEqual(result['requests'],5)
+        self.assertEqual(result['file_transactions'],3)
+        self.assertEqual(result['advanced_owner_epoch_transactions'],3)
+        self.assertIsNone(result['n_correct'])
+        self.assertIsNone(result['causal_speedup'])
+        for r in rows[:3]:
+            r['gpu_reference_evidence']['receipt']['file_demand_transaction'].update(
+                validated_epoch=10,owner_epoch_advance=0)
+        result=self.audit(rows)
+        self.assertTrue(result['triggered'])
+        self.assertEqual(result['advanced_owner_epoch_transactions'],0)
+
+    def test_missing_corrupt_and_foreign_file_receipts(self):
+        mutations=[lambda e:e['receipt'].pop('file_source_witness'),
+            lambda e:e['local_source_reference'].update(state='held'),
+            lambda e:e['local_source_reference']['protected_until_native_acquisition'].update(lease_id='foreign'),
+            lambda e:e['local_source_reference'].update(inode=999),
+            lambda e:e['receipt']['file_demand_transaction'].update(validated_epoch=14),
+            lambda e:e['receipt']['file_demand_transaction'].update(owner_epoch_advance=True),
+            lambda e:e['receipt']['file_demand_transaction'].update(live_native_constraints_checked=False),
+            lambda e:e['receipt']['file_demand_transaction'].update(controller_capacity_snapshot_reused=True),
+            lambda e:e['source_admission']['source'].update(content_sha256='f'*64),
+            lambda e:e['release_receipt'].update(released=False)]
+        for mutate in mutations:
+            rows=self.rows();mutate(rows[0]['gpu_reference_evidence'])
+            with self.subTest(mutate=mutate),self.assertRaises((ValueError,KeyError)):
+                self.audit(rows)
+
+    def test_native_cannot_receive_file_policy(self):
+        rows=self.rows()
+        rows[-1]['gpu_reference_evidence']['intent']['file_source_witness']={}
+        with self.assertRaisesRegex(ValueError,'leaked'):self.audit(rows)
+
+    def test_zero_trigger_retained_not_missing_value_imputed(self):
+        result=self.audit(self.rows()[-2:])
+        self.assertFalse(result['triggered'])
+        self.assertEqual(result['file_transactions'],0)
+        self.assertIsNone(result['max_owner_epoch_advance'])
+
+    def test_duplicate_failed_and_missing_source_rejected(self):
+        rows=self.rows()
+        with self.assertRaises(ValueError):self.audit(rows+[rows[0]])
+        rows[0]['success']=False
+        with self.assertRaises(ValueError):self.audit(rows)
+        rows=self.rows();del rows[0]['gpu_reference_evidence']['source_admission']['source']['native']
+        with self.assertRaises(KeyError):self.audit(rows)
+
+
 if __name__ == '__main__':
     unittest.main()
