@@ -11,7 +11,23 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D356 calibration CLOSED; six measured classes still missing
+## CURRENT — D356 source CLOSED; six-class supplement PREPARED, not launched
+
+Original D356 measurement backed and remote-confirmed at
+835e1863f79de5b6fe365850a5bb0b91973e873d. Gap preparation/150CPU tests passed.
+Existing collector/long-background selector reused for six HOST/NVMe classes:
+10waves/100native calls planned (10warmup,90measurement), same C14/control policy.
+Spec SHAae7e630b4e21bfa61b875e90c0ef6252912b04b34bdbca2d67858c10ae0d403e;
+10existing adapters only, original500 static pool unchanged. No GPU run yet.
+RAW d356_20261008/gaps1; CURATED d356_control_profiles/gaps1.
+Preparation aux9fe11bf44ecd4231a51c5253f0659dcb complete/empty; close by its
+preparation_scope.json during checkpoint. Helpers adapted from same source run;
+remote monitor uses separate d356-gaps unit/log, published cache unchanged.
+Next checkpoint/push, then gated existing runner d356-gaps in tc-d356-gaps tmux.
+After measurement verify actual class coverage before compatible merge/export.
+No full-source rerun, old timing fill, default fill, figures or baseline work.
+
+### D356 original measurement closure
 
 D356 completed125waves/1569native calls (24warmup+1545measurement),
 source SHA1be8c0b963176599e4f1a3096fe250046383697675efff8be83d29ebd80b0b12.

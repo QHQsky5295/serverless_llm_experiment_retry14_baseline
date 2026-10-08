@@ -288,7 +288,7 @@ def capacity_profile_waves(population, bins, *, capacity, rounds=3):
     return waves
 
 
-def gpu_short_gap_waves(population, bins, missing, *, rounds=3):
+def short_source_gap_waves(population, bins, missing, *, source='gpu', rounds=3):
     """Existing long requests precede short targets; actual counts remain measured.
 
     The background count is the missing admission bin's lower boundary, not a
@@ -303,11 +303,18 @@ def gpu_short_gap_waves(population, bins, missing, *, rounds=3):
     identities = [json.dumps(k,sort_keys=True) for k in missing]
     if len(set(identities)) != len(identities):
         raise ValueError('duplicate missing class')
+    source_tiers = dict(gpu='gpu', native_host='host', file_host='host', nvme='nvme')
+    representations = dict(native_host='native_cpu_dense_ab_v1:torch.float16:pinned:packed',
+        file_host='verified_regular_file_tree_v1', nvme='verified_regular_file_tree_v1')
+    if source not in source_tiers:
+        raise ValueError('unsupported source for short-output admission gap')
+    tier = source_tiers[source]
     admission_bins = {k['admitted_bin'] for k in missing}
-    if (len(admission_bins) != 1 or any(k['tier'] != 'gpu' or k['output_limit_bin'] != 0
+    if (len(admission_bins) != 1 or any(k['tier'] != tier or k['output_limit_bin'] != 0
             or k['admitted_bin'] <= 0 or k['admitted_bin'] >= len(classes.admitted_requests)
+            or (source in representations and k['representation'] != representations[source])
             for k in missing)):
-        raise ValueError('only measured GPU short-output admission gaps supported')
+        raise ValueError('only matching measured source short-output admission gaps supported')
     admitted_bin = next(iter(admission_bins))
     background_count = classes.admitted_requests[admitted_bin-1]
     if background_count+len(missing) > classes.admitted_requests[admitted_bin]:
@@ -319,7 +326,7 @@ def gpu_short_gap_waves(population, bins, missing, *, rounds=3):
         for row in ordered:
             if row['adapter_id'] in seen:
                 continue
-            features = dict(row['class_features'],tier='gpu',representation=wanted['representation'],
+            features = dict(row['class_features'],tier=tier,representation=wanted['representation'],
                             admitted_after_accept=background_count+1)
             if asdict(classes.classify(**features)) == wanted:
                 choices.append(row)
@@ -343,7 +350,7 @@ def gpu_short_gap_waves(population, bins, missing, *, rounds=3):
     for r in range(rounds):
         shift = r % len(target_refs)
         order = target_refs[shift:]+target_refs[:shift]
-        waves.append(dict(role='representative_measurement',round=r,source='gpu',
+        waves.append(dict(role='representative_measurement',round=r,source=source,
             requests=background_refs+order,background_request_count=background_count,
             target_source_request_ids=[q['source_request_id'] for q in order],
             intended_missing_classes=copy.deepcopy(missing),
@@ -351,26 +358,67 @@ def gpu_short_gap_waves(population, bins, missing, *, rounds=3):
     return waves
 
 
-def prepare_capacity_profile_gaps():
-    """D344 supplement only two actual short-GPU classes; no runtime change."""
+def gpu_short_gap_waves(population, bins, missing, *, rounds=3):
+    """Preserve the original D344 GPU-only entry point and rejection contract."""
+    return short_source_gap_waves(population,bins,missing,source='gpu',rounds=rounds)
+
+
+def control_short_gap_waves(population, bins, missing, *, rounds=3):
+    """Interleave only missing HOST/NVMe classes, retaining one GPU warmup."""
+    source_map = {
+        ('host','native_cpu_dense_ab_v1:torch.float16:pinned:packed'):'native_host',
+        ('host','verified_regular_file_tree_v1'):'file_host',
+        ('nvme','verified_regular_file_tree_v1'):'nvme',
+    }
+    if not missing or len({json.dumps(k,sort_keys=True) for k in missing}) != len(missing):
+        raise ValueError('distinct measured missing classes required')
+    grouped = {}
+    for wanted in missing:
+        key = (wanted['tier'],wanted['representation'])
+        if key not in source_map:
+            raise ValueError('control supplement supports measured HOST/NVMe sources only')
+        grouped.setdefault(source_map[key],[]).append(wanted)
+    by_source = {source:short_source_gap_waves(population,bins,rows,source=source,rounds=rounds)
+                 for source,rows in sorted(grouped.items())}
+    sources = list(by_source)
+    warm = copy.deepcopy(by_source[sources[0]][0])
+    # Each measured source is prepared by the existing collector, independently
+    # of GPU warmup. All admissions/completions remain natural and observed.
+    waves = [warm]
+    for r in range(rounds):
+        order = sources[r % len(sources):]+sources[:r % len(sources)]
+        waves.extend(by_source[source][r+1] for source in order)
+    return waves
+
+
+def prepare_capacity_profile_gaps(*, control=False):
+    """Supplement only measured missing classes, with no runtime change."""
     root = p.ROOT
-    base = root/'paper_results/ieee_tc/p2_backend/d344_capacity_profiles'
+    base = root/('paper_results/ieee_tc/p2_backend/d356_control_profiles' if control
+                 else 'paper_results/ieee_tc/p2_backend/d344_capacity_profiles')
     out = base/'gaps1'
-    raw = root/'results/ieee_tc/p2_backend_qualification/d344_20261008/gaps1'
+    raw = root/('results/ieee_tc/p2_backend_qualification/d356_20261008/gaps1' if control
+                else 'results/ieee_tc/p2_backend_qualification/d344_20261008/gaps1')
     if out.exists() or raw.exists():
-        raise FileExistsError('D344 gap preparation is append-only')
+        raise FileExistsError('gap preparation is append-only')
     read = lambda path:json.loads(Path(path).read_text())
     for line in (base/'measurement_outputs.sha256').read_text().splitlines():
         sha,name = line.split('  ',1)
         assert p.digest(base/name) == sha
     coverage, checkpoint = read(base/'coverage1.json'),read(base/'measurement_checkpoint.json')
     assert checkpoint['passed'] and checkpoint['measurement_complete'] and not checkpoint['profile_complete']
-    assert coverage['measured_service_classes'] == 198 and coverage['required_service_classes'] == 200
-    assert not coverage['missing_content_sources'] and len(coverage['missing_service_classes']) == 2
+    assert coverage['measured_service_classes'] == (194 if control else 198)
+    assert coverage['required_service_classes'] == 200
+    assert not coverage['missing_content_sources'] and len(coverage['missing_service_classes']) == (6 if control else 2)
     source_spec = base/'source_spec.json'
-    assert p.digest(source_spec) == '2e8be28b5031075dec4560a68452b7aaee9887ee56db7f0f689d005f401e28b5'
+    if control:
+        assert p.digest(source_spec) == read(base/'prepare.json')['spec']['sha256']
+        assert checkpoint['source_run']['sha256'] == '1be8c0b963176599e4f1a3096fe250046383697675efff8be83d29ebd80b0b12'
+    else:
+        assert p.digest(source_spec) == '2e8be28b5031075dec4560a68452b7aaee9887ee56db7f0f689d005f401e28b5'
     spec = read(source_spec)
-    waves = gpu_short_gap_waves(spec['representatives'],spec['bins'],coverage['missing_service_classes'])
+    selector = control_short_gap_waves if control else gpu_short_gap_waves
+    waves = selector(spec['representatives'],spec['bins'],coverage['missing_service_classes'])
     trace = Path('/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/'
         '20260424_131528_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/'
         'llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json')
@@ -383,14 +431,18 @@ def prepare_capacity_profile_gaps():
             row = entries[ref['source_request_id']]
             assert row['adapter_id'] == ref['adapter_id']
             assert min(row['expected_output_tokens'],256) == known[ref['source_request_id']]['class_features']['declared_output_tokens']
-    spec.update(purpose='D344_only_two_missing_GPU_short_high_admission_classes',
+    spec.update(purpose=('D356_only_six_missing_HOST_NVMe_short_high_admission_classes' if control
+                        else 'D344_only_two_missing_GPU_short_high_admission_classes'),
         nvme_parent=str(raw.resolve()),waves=waves,
-        derivation='Retain198/200measured C14classes; lower admitted-bin edge long backgrounds then two existing short targets. No artificial wait; native events determine coverage.',
+        derivation=('Retain194/200measured C14/control-policy classes; supplement only six missing HOST/NVMe classes. ' if control else
+                    'Retain198/200measured C14classes; ')+
+                   'Lower admitted-bin edge long backgrounds then existing short targets. No artificial wait; native events determine coverage.',
         order_rule='Existing first1000/D344representatives only; descending declared length/index; alternate short-target order after long backgrounds for3rounds.',
         supplementation=dict(source_run=checkpoint['source_run'],
             coverage=dict(path=str(base/'coverage1.json'),sha256=p.digest(base/'coverage1.json')),
             missing_classes=coverage['missing_service_classes'],capacity_changed=False))
-    config_path = root/'configs/ieee_tc/20261008_d343_7b_capacity_probe14.yaml'
+    config_path = root/('configs/ieee_tc/20261008_d356_7b_control_source.yaml' if control
+                       else 'configs/ieee_tc/20261008_d343_7b_capacity_probe14.yaml')
     source = yaml.safe_load(config_path.read_text())['model_profiles']['llama2_7b_main_v2_publicmix']
     cfg = dict(source['model'])
     cfg.update(visible_device_ids=[0],device_id=0,timing_contract='ieee_tc_native_v1',
@@ -413,7 +465,8 @@ def prepare_capacity_profile_gaps():
     _,_,identities,actual,static = p.source_profile_inputs(out/'source_spec.json',plan,cfg,
         (root/source['storage']['remote_dir']).resolve(strict=True))
     save('launch_config_binding.json',dict(source_config=contract['source_config']))
-    result = dict(kind='d344_missing_gpu_class_preparation_v1',passed=True,
+    result = dict(kind=('d356_missing_source_class_preparation_v1' if control
+                       else 'd344_missing_gpu_class_preparation_v1'),passed=True,
         spec_sha256=p.digest(out/'source_spec.json'),waves=len(actual),calls=sum(map(len,actual)),
         measurement_calls=sum(len(w['requests']) for w in waves if w['role']=='representative_measurement'),
         selected_adapters=len(identities),static_adapters=len(static['artifacts']),
@@ -1316,6 +1369,8 @@ if __name__ == '__main__':
         prepare_control_profiles()
     elif sys.argv[1:] == ['--capacity-profile-gaps']:
         prepare_capacity_profile_gaps()
+    elif sys.argv[1:] == ['--control-profile-gaps']:
+        prepare_capacity_profile_gaps(control=True)
     elif sys.argv[1:] == ['--capacity-profiles']:
         prepare_capacity_profiles()
     elif sys.argv[1:] == ['--capacity-probe']:
