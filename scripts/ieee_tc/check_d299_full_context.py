@@ -345,10 +345,13 @@ def audit_d309_failure(campaign='d309'):
     print(json.dumps(result,indent=2),flush=True)
 
 
+REGISTERED_REFERENCES = {'d315': ('d303', 'd314'), 'd353': ('d349', 'd336')}
+
+
 def main(campaign='d299', reference_override=None):
     global RAW, RUN, OUT
-    if reference_override is not None and (campaign != 'd315' or reference_override not in ('d303', 'd314')):
-        raise ValueError('explicit reference is restricted to the registered D315 contrasts')
+    if reference_override is not None and reference_override not in REGISTERED_REFERENCES.get(campaign, ()):
+        raise ValueError('explicit reference is restricted to the registered campaign contrasts')
     reference = 'd297'
     health_name = 'remote_health2.json'
     change_caveat = 'Capacity, slot, rank and memory package changed together; not single-factor ablation.'
@@ -485,6 +488,26 @@ def main(campaign='d299', reference_override=None):
             'absolute working point S8, without adding a hard admission cap8. '
             'This is one complete development replay per configuration, not '
             'held-out or statistical superiority evidence. D341 is not applied.')
+    elif campaign == 'd353':
+        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d353_20261008'
+        RUN = RAW/'7b_full_w0'
+        reference = reference_override or 'd349'
+        if reference not in ('d349', 'd336'):
+            raise ValueError('D353 compares only its registered D349/D336 full references')
+        suffix = 'context1' if reference == 'd349' else 'context_d336'
+        OUT = ROOT/f'paper_results/ieee_tc/p2_backend/d353_full_w0/{suffix}'
+        health_name = 'remote_health.json'
+        change_caveat = (
+            'D349 configuration/profiles are unchanged; only D352 transaction-local '
+            'HOST postcheck evidence on confirmed GPU acquisition changes. '
+            'Fresh allocator occupancy and all load-path checks remain. ' if reference == 'd349' else
+            'D336 supplies earlier service-quality context, not a single-factor '
+            'contrast: C14 capacity, D344 profiles, D349 soft targets and the '
+            'D352 HOST postcheck candidate differ. ')
+        change_caveat += (
+            'Ordinary Full4000 with no D351 detailed observer. One development '
+            'replay per configuration; closed-loop variation remains. '
+            'No statistical superiority or formal G1/G2 qualification.')
     elif campaign != 'd299':
         raise ValueError('unknown frozen full-run identity')
     assert not OUT.exists()
@@ -520,7 +543,7 @@ def main(campaign='d299', reference_override=None):
     assert len(remote)==len(remote_rows)==len(transfers)
     assert set(remote)=={r['http_transfer_id'] for r in transfers}
     health=read(RAW/health_name)
-    clock=(health['7b']['clock_id'] if campaign in ('d332', 'd335', 'd336', 'd341', 'd346', 'd349') else
+    clock=(health['7b']['clock_id'] if campaign in ('d332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353') else
            health['clock_id'] if campaign in ('d323', 'd326') else health['health']['clock_id'])
     for r in transfers:
         s=remote[r['http_transfer_id']]
@@ -571,7 +594,7 @@ def main(campaign='d299', reference_override=None):
         assert receipt['remote_transfers_sha256'] == sha256(journal)
         assert receipt['remote_monitor_sha256'] == sha256(RAW/'remote_monitor.log')
         result['remote_shutdown'] = receipt['remote_stop']
-    if campaign in ('d315', 'd318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349'):
+    if campaign in ('d315', 'd318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353'):
         receipt = read(RAW/'completion_receipt.json')
         entries = receipt['evidence']
         assert entries[sources[campaign].name]['sha256'] == re['source_sha256']
@@ -599,7 +622,7 @@ def main(campaign='d299', reference_override=None):
            ROOT/'scripts/ieee_tc/plot_d290_diagnostic.py',ROOT/'scripts/ieee_tc_preflight.py']
     if campaign == 'd303':
         paths.append(CURATED/'d303_full_w0/completion_receipt.json')
-    if campaign in ('d314', 'd315', 'd318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349'):
+    if campaign in ('d314', 'd315', 'd318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353'):
         paths.append(RAW/'completion_receipt.json')
     with (OUT/'manifest.json').open('x') as handle:
         json.dump(dict(source_refs=[dict(path=str(p),sha256=sha256(p)) for p in paths],
@@ -610,13 +633,13 @@ def main(campaign='d299', reference_override=None):
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--campaign', choices=('d299', 'd300', 'd303', 'd314', 'd315', 'd318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd309-failure', 'd311-incomplete', 'd313-failure'), default='d299')
-    parser.add_argument('--reference', choices=('d303', 'd314'),
-        help='D315 only: registered complete-run reference, with separate non-overwriting output')
+    parser.add_argument('--campaign', choices=('d299', 'd300', 'd303', 'd314', 'd315', 'd318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd309-failure', 'd311-incomplete', 'd313-failure'), default='d299')
+    parser.add_argument('--reference', choices=('d303', 'd314', 'd349', 'd336'),
+        help='Registered D315 or D353 full reference; separate non-overwriting output')
     args = parser.parse_args()
     campaign = args.campaign
-    if args.reference is not None and campaign != 'd315':
-        parser.error('--reference is only valid for D315')
+    if args.reference is not None and args.reference not in REGISTERED_REFERENCES.get(campaign, ()):
+        parser.error('--reference is not registered for this campaign')
     if campaign == 'd311-incomplete':
         audit_d311_incomplete()
     elif campaign == 'd309-failure':

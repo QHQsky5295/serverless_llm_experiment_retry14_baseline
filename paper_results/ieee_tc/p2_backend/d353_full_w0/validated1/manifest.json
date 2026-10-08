@@ -1,0 +1,74 @@
+{
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d353_20261008/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d353_7b_full_w0.json",
+      "sha256": "0fe856cf44923ec66fb91aed5ed9d088891bedb7c2b603d416e78b04f0751c9d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261002_d170_warm_measurement.json",
+      "sha256": "0ebc7587effe293dcb986d33fb932c100cbcb3384c56ab2c0b0bec73b2bdd88c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json",
+      "sha256": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c"
+    },
+    {
+      "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261008_d353_7b_full_w0.yaml",
+      "sha256": "1ada5702f8bd2ffcdff38871c7fd54747a911b783d694d692be66f4c8681b857"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d353_20261008/7b_full_w0/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "55d90e00f076f69b9059868a85e6b9386c13e2240419821ddbd63a7b73cc851c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/analyze_d297_full.py",
+      "sha256": "e5de6f5c925ddd2b8a1ea29242ab7a8780b4df199efd6ac86c563bd999cb90d3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/plot_d290_diagnostic.py",
+      "sha256": "fdb7898478701b4142bfc15feb231f9c94da566215ec1247ad1ddf6e58d98f9d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/analyze_control_path_overhead.py",
+      "sha256": "cdbda9174ad38612e50393f163c9413cefa23827ce2001c6acdffc55cbf0629b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/analyze_d298_smoke.py",
+      "sha256": "b87f2b4cbdf8f81f8d2fe5468fd21707934ab512749be9e33e46507d4aef0884"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d353_20261008/collection_receipt.json",
+      "sha256": "df279d9dc19aaec97caa1afa293ad03dd526dfe9a037d5e45c7d886781a6bc60"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d353_20261008/local_cleanup.json",
+      "sha256": "b532cfebf6039016f235aa1718a4e1ed0926b487483973279082eca210cf6e1c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d353_20261008/remote_stop.json",
+      "sha256": "10263e3cd8ea6020999620837f43bf007d223623e3df9c7976957141ff3d3c27"
+    }
+  ],
+  "outputs": {
+    "admission_waits.json": "ff570496694a892c6aa7b1d1dbc55e0cc36864b7b6481aa20a8570351e33cc3c",
+    "audit.json": "10584b2d49cb9afea2bc6df2cc02d6f21cf7d9e780fb668d20c92c22b94a3bf2",
+    "control_audit.json": "ac1781e56e32a316bcb08f4c4cf89f45d0d098a98a4f6dd759c6fb6b7141c746",
+    "control_samples.csv": "b8edcf9a9f195ca52c344845e3f36c047392bfe6262b97b636d2d41894b90da5",
+    "copy_retention_trigger.json": "d09a2f53690864efe2dabc10cfb9b97959d98079f8071e7a7413cedd40968fae",
+    "hit_host_transaction_trigger.json": "90c535db8458b572db7bad2d964ce7c3ae9a3a4aee34b653633c5fefed546463",
+    "native_pending_turn_trigger.json": "310425186a8f3622425284270451a8902b8814353b76d9285a475000bed017d5",
+    "planning_publication_trigger.json": "00b92479ec5e89983190b5a9d7f600751e74e13f5a89a7e9f8db59de52e13e90",
+    "preparation_attribution.json": "5ea8900ec94d94cf0288814eac5d662e6f53de0aaaf6cd731cc4dee5c43c5caa",
+    "requests.csv": "ba269e5f950e257da1d3eb7fe6b280d9bfbff974ef2bb222947998f667f42df5",
+    "timing_groups.csv": "3801851f9aa0591f4a5b0509763ccec9ff7cbccb73d81f04e30ee641aa5d5739"
+  },
+  "no_figures": true
+}

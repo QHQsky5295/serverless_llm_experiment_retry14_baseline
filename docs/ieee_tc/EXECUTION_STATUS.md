@@ -11,7 +11,168 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D352 COMPLETE; D353 ordinary Full4000 preparation
+## CURRENT — D353 Full4000 complete/analyzed/sealed; consult backup receipt
+
+Checkpoint verification passed:31exactstagedpaths,25filehashes,46archivemembers,
+syntax/diff/secrets checks and147-entry historical protection. User manifest
+unchanged/notstaged. Backup completion/remoteSHA must be read from
+d353raw/closure_backup_receipt.json before repeating any commit/push work.
+Latest completed verifier scope identity is in closure_checkpoint_verification;
+the backup closer must verify it is owned/empty before stopping it.
+
+2026-10-08 20:33 CST: all offline stages complete. Native4000/4000,
+all10binding checks4000 each,stage identity error0;N_correct/formalG1G2 OPEN.
+U13326.570889990195GPU-s;mean/P95/P99TTFT1133.808903/2967.689615/
+6632.252923ms;mean/P95TPOT36.672525/75.301481ms. Unchanged D170timing-only
+3752/4000=93.8%,48short of3800. D349comparison:latencyimproves butU+17.779%;
+D336comparison:U−3.531%butjoint−2.125pp. NOTqualified;do notadvance3B/baselines.
+2584eligible transaction-local HOSTpostchecks/1416full,misclassified0.
+132remote transfers,131480060wireB,packing0;allownedremote/local servicesclosed.
+4030resourcesamples,servicepeak22306799616B,high/max/OOM/swap0.
+OutputSHAchanges167vsD349,247vsD336retained,notarithmeticqualification.
+
+Initialaudit100tests+Full+contextD349passed;D336function-levelregistration
+guard failed beforewriting output. Originalsource retainedin
+d353raw/check_d299_full_context.audit1.py,provenanceinanalysis_source_retention.
+Fixed sharedregistered-reference whitelist;103tests+remainingD336contextpassed.
+NoGPurerun,statisticalchange,outputoverwriteorhiddenfailure. Firstreceipt[0,0,0,1]
+andresume[0,0]retained. Allcollection/analysis scopesclosed. Latestseal scope
+identityinclosure_seal_scope.json,emptyandpendingcheckpointverifierclosure.
+46members/78481Bclosurearchive verified;phase/length/lifecycle tablescomplete.
+Curatedpaper_results/ieee_tc/p2_backend/d353_full_w0/;decisiondocument
+D353_COMPLETE_W0_DECISION.md. SourceSHA0fe856cf44923ec66fb91aed5ed9d088891bedb7c2b603d416e78b04f0751c9d,
+298685749B. Sixhistorical closedlogs compressedlosslessly,3399909376Breclaimed;
+storage receipts retained,150GiBstartgateunchanged. Nofigures/newGPUrun.
+
+Next: confirmclosure_backup_receipt(remoteV2),thenreuseD353
+remainingphase/short-decodeandD351nativeCPU evidence forONEnewhypothesis.
+Do not repeat D353/analysis,blindcapacity/softtarget sweeps or oldnumericalblocks.
+Mainline7B→3B→pausedbaselines→M1/M2→ablations/sensitivities,allOPEN.
+
+### D353 completed-run closure history
+
+2026-10-08 20:18 CST closure verified:4000/4000 terminal/native-contract
+complete,failed0,measurement_complete=true,open_lease_ids=[];N_correct remains
+null. Physical U=13326.570889990195 GPU-s, not yet a qualified G1 result.
+launch.json pass/native_gpu_context_release_confirmed/service_path_removed=true;
+service/replay/watchdog returncodes0, nvidia-smi compute list empty, tmux exited.
+All3 owned remote services were then stopped with the prepared stop_remote.sh;
+remote_stop.log has3 inactive/PID0 confirmations. Do not rerun launch or stop.
+The remote transfer/monitor logs have NOT yet been collected; Full latency,
+SLO, output/binding and actual HOST-postcheck trigger audit remain pending.
+
+Continue the prepared order: bounded lossless closed-log compression to restore
+150GiB startup headroom (current free160566366208B), collect_closure.py,
+then run_audit.py (pending tests and existing full analyzers). Do not rerun
+whole helpers after partial completion; preserve exclusive-create receipts.
+HEAD remains06ca566; analyzer edits remain untested. Mainline7B→3B→baselines,
+no figures, unchanged V1/D170 development ruler, formal qualification OPEN.
+
+### D353 monitoring/preparation history (completed run; not live)
+
+Latest verified wait, 2026-10-08 19:50:08 CST: same tc-d353-full session
+confirmed live repeatedly; sample2449, 2686/2686 successful and native-contract
+matched terminal records, failed0 (not numerical qualification). Host available
+92.173GiB, high/max/OOM0, no warning/abort; disk148.019GiB, above100GiB running
+floor. Service invocation was independently rechecked unchanged at19:34:03.
+No serving/remote/configuration changes, tests, full analysis, compression,
+figures or new experiment in this continuation. Plan/V1 SHA remain
+0c808509.../5f0732ef...; the just-read full contracts are unchanged. Existing
+offline analyzer edits below remain UNTESTED, pending actual run closure and
+restoration of150GiB startup headroom. Do not restart the live full replay.
+
+Post-run storage recovery is PREPARED, NOT EXECUTED:
+d353raw/storage/compress_historical.py reuses the unchanged D339 guarded
+procedure via AST replacement of TARGETS only. Six closed raw main_outcome
+logs (D314,D315,D318,D332,D335,D346), total3854041079B before compression,
+have source SHA references in their retained curated manifests. Only lightweight
+stat/manifest checks were done while running; full SHA/open-file/protected-result
+checks and two decompression roundtrips must run in bounded3/4GiB aux AFTER GPU
+release. D336/D349 reference outcomes and all raw result JSONs are untouched.
+Use this existing prepared helper rather than re-searching/rebuilding cleanup.
+The helper must refuse when GPU processes remain, and records exact reclamation;
+recheck actual disk gate after completion, never assume an estimated saving.
+
+2026-10-08 19:22:09 CST continuation: same live tmux tc-d353-full, sample793,
+592 terminal records. Host available103445147648B, servicepeak18989367296B,
+high/max/OOM/swap0, no warning/abort/foreign compute. Disk160229117952B;
+the post-run disk-headroom recovery below remains required. No serving,
+configuration, remote-service or measurement changes; no new GPU run.
+
+Prepared ONLY offline D353 registration in existing analyze_d297_full.py and
+check_d299_full_context.py. It requires the post-release collection receipt,
+matching source path/bytes/SHA and local/remote closure, retains all existing
+4000-request/binding/timing audits, adds the existing hit_host_transaction_trigger,
+and registers D349 comparison plus separately labeled D336 historical context.
+Extended tests/test_ieee_tc_hit_host_analysis.py with four closure/source-selection
+cases; existing five trigger cases remain. These edits pass git diff --check
+ONLY: tests/imports/full analysis are NOT YET RUN and must wait until measurement
+ends and resource gates pass. Do not commit them as tested yet. Running source
+HEAD remains06ca566; only these offline files and this status are our dirty edits;
+the generated manifest remains the user's untouched edit.
+
+After actual closure and collection, first run the pending analysis tests, then
+analyze_d297_full --campaign d353, then check_d299_full_context --campaign d353
+and its --reference d336 variant. This is now PREPARED in d353raw/run_audit.py,
+adapted from D349's bounded wrapper and completion_receipt schema. It requires
+actual collection identity/source SHA, physical release, remote closure,4000
+native contracts and the unchanged resource gate. It closes only the exact-owned
+empty collection scope and records all four command results. NOT EXECUTED or
+import-tested yet; no analyzer has consumed live data. Use the prepared helper,
+not D349's hardcoded collection identity. A partial audit failure must retain its
+receipt/output and resume only the remaining step with a new log; do not rerun
+the entire wrapper and overwrite existing exclusive-create artifacts.
+
+Monitoring continuation, 2026-10-08 19:16:11 CST: SAME tmux tc-d353-full
+is live, 307 request terminal records at sample440. This is progress, not a
+completed performance result. Host available103428857856B, service
+peak18989367296B, memory high/max/OOM/swap0, no warning/abort or foreign
+compute. Disk free160378716160B is below the150GiB new-heavy-job gate but
+above the100GiB running floor. Continue this run unchanged; after its actual
+closure, recover headroom using already authorized lossless closed-log
+compression before collection/analysis requiring the startup gate. Do not
+compress, scan full archives or change remote services during measurement.
+Plan and frozenV1 were reread in full. This continuation made no serving,
+configuration, analyzer, remote or GPU-run changes, and ran no heavy tests.
+No completed experiment should be repeated; D353 remains the sole live run.
+
+2026-10-08 19:08:44CST launched tmux tc-d353-full. Do NOT relaunch.
+ExecutionHEAD=independentlyverifiedremoteV2=
+06ca566eb96eb1b619b7c4fd71d0db5da3d2c62b. D352 analysis/closure and D353
+preparation backed in17exactpaths. Firstpush had transientTLSfailure; ordinary
+retry succeeded withoutweakeningTLS,changingcommit orrerunningexperiment.
+Receipts in d353raw/initial_push_failure.json and backup_receipt.json.
+Raw: results/ieee_tc/p2_backend_qualification/d353_20261008/7b_full_w0.
+Config: configs/ieee_tc/20261008_d353_7b_full_w0.yaml.
+SameD349 C14/profile/softtarget configuration exceptthreeisolated output/cache
+paths; onlyD352 HOST postcheck candidate, noobserver, noSLO/formula change.
+All4000originalW0requests, ordinaryopenloop60snotice. No prefix extrapolation.
+
+Serviceunit primelora-tc-svc-ee76b1c3d7f44d138b7894294eacc958.scope,
+invocationcebede387f2b47ffa41099a52baf2f4f,inode20733583.
+Launcherunit primelora-tc-aux-42c3457a9f38445d85dc0da636ecd640.scope,
+invocation9c95e48699134426bf65aa9718bae729,inode20733541.
+Exactlauncheridentity captured in d353raw/launcher_identity.json. D353 setup01–03
+and allD352scopesclosed. tmux launchedoutside thetemporarysetupscope this time;
+actual replay/watchdog stayincommon4GiBaux, service72/80GiBswap2GiB.
+No liveexec/toolsession; tmux+independentwatchdog ownrun. At sample23, host
+available109589159936B,servicepeak3050856448B,high/max/OOM/swap/warning0.
+Freshstartdisk161469927424B;150GiBstartand100GiBrunningfloorunchanged.
+All3ownedremote services active, NIC1000/full, 7Bclock
+remote-process-monotonic:0766b356266b4c48b3d370a611e2ded8.
+Reuseimmutablepublishedcache; no requestpacking, no remoteinterference allowed.
+
+Next: monitor currentrun only; after launch.json confirmsactualGPUrelease and
+servicepathremoved, execute d353raw/stop_remote.sh, then collect_closure.py in
+boundedauxscope. Test the prepared existingfullanalyzer D353 extension, require4000nativecontracts,
+fullbinding/leaseclosure,62-styleeligiblepostcheckcounts (notfixed62threshold).
+ComparefullD349 andD336 withunchangedV1/D170provisionalruler; keepnumerical
+N_correctnull untilqualified. No extraoptimization or secondminimalrun now.
+Ifdiskbelow150GiBafterFull, firstreuseauthorizedlosslesscompression onclosed
+nonprotectedrawoutcome afterSHA/open-file checks; never lowergate/deleteinputs.
+No figures,3B orbaseline advance; G1/G2/numerical/commonreferencesremainOPEN.
+
+### D352 completed result and D353 preparation history
 
 D352 first100 finished, native-contract/binding100/100, timing-only98/100 under
 unchanged provisionalD170 ruler; mean/P95TTFT876.166/2592.862ms, mean/P95TPOT

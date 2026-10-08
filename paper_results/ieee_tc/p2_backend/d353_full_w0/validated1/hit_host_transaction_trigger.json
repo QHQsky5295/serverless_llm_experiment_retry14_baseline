@@ -1,0 +1,9 @@
+{
+  "final_acquisitions": 4000,
+  "counts": {
+    "fresh_inventory": 1416,
+    "same_transaction_confirmed_gpu_hit_v1": 2584
+  },
+  "misclassified": 0,
+  "causal_latency_savings": null
+}

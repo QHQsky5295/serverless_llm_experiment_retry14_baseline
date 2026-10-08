@@ -1,0 +1,9 @@
+{
+  "counters": {
+    "planning_snapshot_publications": 2772,
+    "planning_snapshot_seeded_scopes": 64359,
+    "planning_snapshot_hits": 7381
+  },
+  "exact_rpc_savings": null,
+  "causal_latency_savings": null
+}
