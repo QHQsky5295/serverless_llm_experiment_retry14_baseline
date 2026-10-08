@@ -1369,7 +1369,7 @@ class IEEEWorkerObservationExtension:
                        'expected_owner_id', 'expected_epoch', 'required_source_tier',
                        'expected_source_id'}
             content_allowed = allowed | {'expected_content_sha256'}
-            if set(kwargs) not in (allowed, content_allowed):
+            if set(kwargs) not in (allowed, content_allowed, content_allowed | {'file_source_witness'}):
                 raise ValueError('native demand admission payload differs from the contract')
             request_key = tuple((key, repr(kwargs[key])) for key in sorted(kwargs)) + (
                 ('capacity_only', repr(capacity_only)),)

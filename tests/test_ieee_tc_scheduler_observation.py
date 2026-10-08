@@ -328,6 +328,13 @@ class NativeHookWiring(unittest.TestCase):
             self.assertIs(captured[0]['capacity_only'], True)
             self.assertEqual(captured[0]['scheduler_observation']['kind'],
                              'ieee_native_scheduler_observation_v1')
+            witness=dict(kind='protected_file_owner_turn_v1',owner_id='files',lease_id='file',
+                adapter_id='a',path='/a',tier='nvme',device=1,inode=2,content_sha256='a'*64)
+            qualified=command | {'expected_content_sha256':'a'*64,'file_source_witness':witness}
+            self.assertTrue(engine_core.ieee_admit_and_demand_load(qualified)['acquired'])
+            self.assertEqual(captured[-1]['file_source_witness'],witness)
+            with self.assertRaisesRegex(ValueError,'fields'):
+                engine_core.ieee_admit_and_demand_load(command | {'file_source_witness':witness})
             with self.assertRaisesRegex(ValueError, 'capacity_only=True'):
                 engine_core.ieee_admit_and_demand_load({**command, 'capacity_only': False})
 

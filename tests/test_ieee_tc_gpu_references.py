@@ -10,6 +10,8 @@ from types import SimpleNamespace
 import threading
 import weakref
 import unittest
+import tempfile
+from pathlib import Path
 from unittest.mock import AsyncMock, Mock, patch
 
 try:
@@ -1054,6 +1056,87 @@ class PitchedGeometry(unittest.TestCase):
         source.is_pinned = lambda: False
         with self.assertRaisesRegex(ValueError, 'unqualified'):
             gpu_monitor._ieee_copy2d_layout(source, target)
+
+
+class ProtectedFileDemandTransactions(unittest.TestCase):
+    """Native transaction contract; tiny file witness, no CUDA performance claim."""
+    def setUp(self):
+        self.fixture = NativeDemandTransactions()
+        self.fixture.setUp()
+        self.owner = self.fixture.owner
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.path = Path(self.tmp.name) / 'adapter-4'
+        self.path.mkdir()
+        info = self.path.stat()
+        self.witness = dict(kind='protected_file_owner_turn_v1', owner_id='file-owner',
+            lease_id='file-read', adapter_id='adapter-4', path=str(self.path),
+            tier='nvme', device=info.st_dev, inode=info.st_ino, content_sha256='a'*64)
+
+    def command(self, snapshot=None, **changes):
+        state = snapshot or self.owner.snapshot()
+        return dict(lease_id='demand', adapter_int_id=4, lora_name='adapter-4',
+            lora_path=str(self.path), expected_owner_id=state['owner_id'],
+            expected_epoch=state['epoch'], expected_content_sha256='a'*64,
+            file_source_witness=dict(self.witness)) | changes
+
+    def test_unrelated_pin_progress_not_a_file_identity_conflict(self):
+        before = self.owner.snapshot()
+        self.fixture.pin(1)
+        live = self.owner.snapshot()['epoch']
+        command = self.command(before)
+        receipt = self.owner.demand_load_and_acquire(**command)
+        self.assertTrue(receipt['acquired'])
+        self.assertEqual(len(self.fixture.loads), 1)
+        proof = receipt['file_demand_transaction']
+        self.assertEqual(proof['observed_epoch'], before['epoch'])
+        self.assertEqual(proof['validated_epoch'], live)
+        self.assertGreater(proof['owner_epoch_advance'], 0)
+        self.assertEqual(self.fixture.manager._active_adapters.pinned_items, {1, 4})
+        self.path.rmdir()  # After acknowledgement, a replay must not read files again.
+        self.assertEqual(self.owner.demand_load_and_acquire(**command), receipt)
+        self.assertEqual(len(self.fixture.loads), 1)
+        with self.assertRaisesRegex(ValueError, 'different demand load'):
+            self.owner.demand_load_and_acquire(**(command | {'file_source_witness':None}))
+
+    def test_live_capacity_failure_does_not_load_or_evict(self):
+        before = self.owner.snapshot()
+        self.fixture.pin(1); self.fixture.pin(2)
+        receipt = self.owner.demand_load_and_acquire(**self.command(before))
+        self.assertFalse(receipt['acquired'])
+        self.assertEqual(receipt['reason'], 'all_gpu_slots_pinned')
+        self.assertFalse(self.fixture.loads)
+        self.assertEqual(self.fixture.manager.lora_index_to_id, [1, 2])
+
+    def test_future_or_different_native_owner_cannot_load(self):
+        for changes, reason in (({'expected_owner_id':'other'},'owner_changed'),
+                ({'expected_epoch':self.owner.epoch+10},'stale_snapshot')):
+            receipt = self.owner.demand_load_and_acquire(**self.command(**changes))
+            self.assertEqual(receipt['reason'],reason)
+        self.assertFalse(self.fixture.loads)
+
+    def test_witness_content_copy_and_schema_fail_closed(self):
+        for key, value in (('adapter_id','other'),('path','/other'),
+                ('content_sha256','b'*64),('kind','ignore_epoch'),('inode',True)):
+            with self.subTest(key=key):
+                command=self.command(file_source_witness=self.witness | {key:value})
+                with self.assertRaises(ValueError): self.owner.demand_load_and_acquire(**command)
+        with self.assertRaisesRegex(ValueError,'incarnation'):
+            self.owner.demand_load_and_acquire(**self.command(
+                file_source_witness=self.witness | {'inode':self.witness['inode']+1}))
+        with self.assertRaisesRegex(ValueError,'selected native-copy'):
+            self.owner.demand_load_and_acquire(**self.command(required_source_tier='gpu',expected_source_id='copy'))
+        self.assertFalse(self.fixture.loads)
+
+    def test_live_host_budget_still_precedes_loading(self):
+        self.owner._native_host_tensor_budget=4096
+        self.owner.host_allocation_check=Mock(return_value={'admitted':False})
+        before=self.owner.snapshot()
+        self.fixture.pin(1)
+        receipt=self.owner.demand_load_and_acquire(**self.command(before))
+        self.assertEqual(receipt['reason'],'native_host_tensor_budget')
+        self.assertFalse(self.fixture.loads)
+        self.owner.host_allocation_check.assert_called_once()
 
 
 class NativeDemandTransactions(unittest.TestCase):

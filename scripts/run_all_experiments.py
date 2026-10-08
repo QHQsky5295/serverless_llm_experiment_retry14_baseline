@@ -17012,6 +17012,10 @@ class ScenarioRunner:
         use_native_capacity_witness = bool(
             admission_request_plan is not None and pending_request_plan is None
             and native_witness_enabled and reservation.ieee_pending_admission is not None)
+        from faaslora.memory.residency_manager import IEEE_FILE_DEMAND_TRANSACTION
+        file_demand_policy = self.model_cfg.get('ieee_file_demand_transaction')
+        if file_demand_policy not in (None, IEEE_FILE_DEMAND_TRANSACTION):
+            raise ValueError('unknown native file-demand transaction policy')
         if admission_request_plan is not None and pending_request_plan is not None:
             raise ValueError('native demand witness cannot be combined with pending GPU admission')
         if admission_request_plan is not None and native_witness_enabled \
@@ -17123,6 +17127,17 @@ class ScenarioRunner:
         immutable_identity = getattr(self, '_ieee_artifact_identities', {}).get(adapter_id)
         if isinstance(immutable_identity, dict) and immutable_identity.get('content_sha256'):
             intent['expected_content_sha256'] = immutable_identity['content_sha256']
+        if not cached_only and file_demand_policy is not None:
+            reference = evidence.get('local_source_reference')
+            local_owner = reservation.local_source_owner
+            if (local_owner is None or self._stack is None
+                    or local_owner is not self._stack.residency_manager
+                    or not isinstance(reference, dict)
+                    or reference.get('adapter_id') != adapter_id
+                    or reference.get('path') != local_path):
+                raise ValueError('atomic file demand requires the selected owned file source')
+            intent['file_source_witness'] = local_owner.local_source_references.demand_witness(
+                reference, content_sha256=intent.get('expected_content_sha256'))
         if cached_only:
             intent['required_source_tier'] = selected_source.tier
         if guarded_source is not None:
@@ -17216,6 +17231,18 @@ class ScenarioRunner:
                         'worker_rank', 'completion_fence_scope')}
                 evidence['request_capacity_witness'] = True
             if receipt['acquired']:
+                if 'file_source_witness' in intent:
+                    transaction = receipt.get('file_demand_transaction', {})
+                    epoch = transaction.get('validated_epoch')
+                    if (receipt.get('file_source_witness') != intent['file_source_witness']
+                            or transaction.get('kind') != IEEE_FILE_DEMAND_TRANSACTION
+                            or transaction.get('observed_epoch') != intent['expected_epoch']
+                            or type(epoch) is not int or epoch < intent['expected_epoch']
+                            or epoch > receipt['epoch']
+                            or transaction.get('owner_epoch_advance') != epoch-intent['expected_epoch']
+                            or transaction.get('live_native_constraints_checked') is not True
+                            or transaction.get('controller_capacity_snapshot_reused') is not False):
+                        raise ValueError('file demand lacks its live owner transaction receipt')
                 for field in ('lease_id', 'adapter_int_id', 'lora_name', 'lora_path'):
                     if receipt.get(field) != intent[field]:
                         raise ValueError('native acquisition receipt changed request/source identity')

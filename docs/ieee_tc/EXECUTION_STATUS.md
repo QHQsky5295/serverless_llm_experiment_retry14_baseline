@@ -11,7 +11,40 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D360 preparation receipt diagnosis COMPLETE; 7B remains OPEN
+## CURRENT — D361 opt-in protected file-demand candidate CPU-qualified; 7B OPEN
+
+2026-10-09: implemented one D360-grounded candidate, defaultoff:
+model.ieee_file_demand_transaction=protected_file_owner_turn_v1. Local file owner
+attests its actual held/content-verified lease; native worker validates directory
+incarnation and all LIVE source/pin/capacity/HOST constraints in one serialized
+load/acquire turn. No unrelated globalepoch equality requirement for this explicit
+immutable-file witness; strict legacy rule remains without it. Exact nativeGPU/HOST
+guards and proactive paths unchanged. New receipts bind observed/liveepochs and
+file witness to native lease; controller validates before releasingfile. Unknown
+or cancelled outcomes keep both owners. No concurrency/timeout/scaling/SLO changes.
+Tests: first71had3failures in newfixture which wrongly assumed adapter1 present;
+test corrected to real unrelatedload/release, productionchecks not weakened.
+417passed, then final443passed in actual nativevLLM environment and443CPU.
+Native1/current difference is one explanatorycomment only: exactsources retained,
+SHA andAST equality verified. Max observed testpeak632295424B; allhigh/max/OOM/
+swap0. NoGPU inference,remote operations,newassets orfigures. NumericalN_correct
+and formalG1/G2 remainunknown, no performancebenefit or7Bclosureclaimed.
+All4testscopes closed exact-owned. Evidence1287483B/31members in
+paper_results/ieee_tc/p2_backend/d361_file_demand_transaction/. Two non-destructive
+archive-path failures preserved (raw results are symlinked outsideworktree);
+their empty scopes closed once. Finalseal scopee24ae05014cc4101ba8ce9012d2b99e7
+will be closed by checkpoint verifier; consult raw d361_20261009 receipts first.
+NEXT qualification prerequisite, NOT another candidate: new field changes strict
+service/preparation profile identity. Reuse D356/D344 source-measurement cases,
+collector/exporter to refresh affected timing with candidate enabled; do not
+delete the field from identity or relabel old timing asnew. Extend existing
+length-only transfer contract for this explicit policy difference, retaining
+all remaining exact checks. Then sourcecoverage/transactionaudits→first100→Full4000.
+Compare D358/D353/D336, physicalGPU-s and complete timingoutcomes; D170 remains
+provisional, formalwarm/Resident/correctnessopen. See D361_PROTECTED_FILE_DEMAND_TRANSACTION.md.
+Mainline7B→3B→pausedbaselines→M1/M2→ablations/sensitivities; nofigures.
+
+## D360 preparation receipt diagnosis COMPLETE; retained reference
 
 2026-10-09: reused all4000 D353/D358 source-admission/native-acquisition receipts;
 no GPU/remote run or figure. One-time delivery cache approval reconfirmed: cache

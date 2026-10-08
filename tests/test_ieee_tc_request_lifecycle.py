@@ -1789,6 +1789,89 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
                 runner._resolve_lora.assert_not_awaited()
                 self.assertEqual(slot.active_requests, 0)
 
+    def test_atomic_file_demand_uses_real_held_lease_and_preserves_selected_tier(self):
+        for tier in ('remote', 'nvme', 'host'):
+            with self.subTest(tier=tier):
+                runner, slot, trace, plan, owner, rpc = self.build('remote')
+                runner.model_cfg['ieee_file_demand_transaction']='protected_file_owner_turn_v1'
+                self.file_source(runner, trace, publish=tier!='remote', host=tier=='host')
+                attempts=[]
+                async def advance(*, operation, **kwargs):
+                    if operation=='demand_load_and_acquire':
+                        attempts.append(kwargs)
+                        # The fixture starts empty. Perform an actual unrelated
+                        # load/release after observation, without invented delay.
+                        self.assertNotEqual(kwargs['adapter_int_id'],1)
+                        other=owner.demand_load_and_acquire(lease_id='unrelated',adapter_int_id=1,
+                            lora_name='other-adapter',lora_path='/existing/other-adapter',
+                            expected_owner_id=owner.owner_id,expected_epoch=owner.snapshot()['epoch'])
+                        self.assertTrue(other['acquired'])
+                        owner.release(lease_id='unrelated',expected_owner_id=owner.owner_id)
+                    return await rpc(operation=operation, **kwargs)
+                slot.engine.ieee_gpu_reference.side_effect=advance
+                result=asyncio.run(runner._exec_request(trace,4,0.,request_plan=plan))
+                self.assertTrue(result.success,result.error)
+                e=result.gpu_reference_evidence
+                self.assertEqual(len(attempts),1)
+                self.assertEqual(e['stale_rechecks'],0)
+                self.assertEqual(result.readiness_tier_before_dispatch,tier)
+                self.assertGreater(e['receipt']['file_demand_transaction']['owner_epoch_advance'],0)
+                self.assertEqual(e['receipt']['file_source_witness']['lease_id'],e['local_source_reference']['lease_id'])
+                self.assertEqual(e['local_source_reference']['state'],'released')
+                self.assertFalse(runner._stack.residency_manager.local_source_references.leases)
+                self.assertEqual(owner.snapshot()['live_leases'],0)
+                self.assertEqual(slot.active_requests,0)
+
+    def test_atomic_file_lost_reply_keeps_both_owners(self):
+        runner, slot, trace, plan, owner, rpc=self.build('remote')
+        runner.model_cfg['ieee_file_demand_transaction']='protected_file_owner_turn_v1'
+        self.file_source(runner,trace,publish=True)
+        async def lost(*, operation, **kwargs):
+            reply=await rpc(operation=operation,**kwargs)
+            if operation=='demand_load_and_acquire':
+                raise ConnectionError('test lost file-demand acknowledgement')
+            return reply
+        slot.engine.ieee_gpu_reference.side_effect=lost
+        with self.assertRaises(ConnectionError):
+            asyncio.run(runner._exec_request(trace,4,0.,request_plan=plan))
+        self.assertEqual(owner.snapshot()['live_leases'],1)
+        self.assertEqual(len(runner._stack.residency_manager.local_source_references.leases),1)
+        self.assertEqual(slot.active_requests,1)
+        self.assertEqual(slot.status,'draining')
+
+    def test_atomic_file_cancellation_after_send_keeps_both_owners(self):
+        runner, slot, trace, plan, owner, rpc=self.build('remote')
+        runner.model_cfg['ieee_file_demand_transaction']='protected_file_owner_turn_v1'
+        self.file_source(runner,trace,publish=True)
+        entered=asyncio.Event()
+        async def waiting(*, operation, **kwargs):
+            reply=await rpc(operation=operation,**kwargs)
+            if operation=='demand_load_and_acquire':
+                entered.set()
+                await asyncio.Future()
+            return reply
+        slot.engine.ieee_gpu_reference.side_effect=waiting
+        async def run():
+            task=asyncio.create_task(runner._exec_request(trace,4,0.,request_plan=plan))
+            await asyncio.wait_for(entered.wait(),1.)
+            task.cancel()
+            with self.assertRaises(asyncio.CancelledError): await task
+        asyncio.run(run())
+        self.assertEqual(owner.snapshot()['live_leases'],1)
+        self.assertEqual(len(runner._stack.residency_manager.local_source_references.leases),1)
+        self.assertEqual(slot.active_requests,1)
+
+    def test_file_demand_policy_does_not_change_native_gpu_host_selection(self):
+        for tier in ('gpu','host'):
+            runner, slot, trace, plan, owner, rpc=self.build(tier)
+            runner.model_cfg['ieee_file_demand_transaction']='protected_file_owner_turn_v1'
+            result=asyncio.run(runner._exec_request(trace,4,0.,request_plan=plan))
+            self.assertTrue(result.success,result.error)
+            self.assertEqual(result.readiness_tier_before_dispatch,tier)
+            self.assertNotIn('file_source_witness',result.gpu_reference_evidence['intent'])
+            self.assertNotIn('file_demand_transaction',result.gpu_reference_evidence['receipt'])
+            self.assertEqual(owner.snapshot()['live_leases'],0)
+
     def test_native_publication_after_remote_routing_reselects_before_admission(self):
         runner, slot, trace, plan, owner, rpc = self.build('remote')
         calls = 0
@@ -2632,6 +2715,20 @@ class ConfirmedFilePublication(unittest.TestCase):
         self.client._opener.open.return_value = SizedResponse(archive_bytes(list(
             (self.payload if payload is None else payload).items())))
         return self.runner._materialize_remote_adapter('a', self.nvme / 'a')
+
+    def test_file_demand_witness_requires_actual_live_confirmed_lease(self):
+        self.assertTrue(self.fetch()[0])
+        reference=self.owner.acquire(path=str(self.nvme/'a'),adapter_id='a',lease_id='file')
+        content=reference['confirmed_source']['content_sha256']
+        witness=self.owner.demand_witness(reference,content_sha256=content)
+        self.assertEqual(witness['content_sha256'],content)
+        with self.assertRaises(ValueError):
+            self.owner.demand_witness(reference,content_sha256='f'*64)
+        with self.assertRaises(ValueError):
+            self.owner.demand_witness(reference | {'lease_id':'fabricated'},content_sha256=content)
+        self.owner.release(lease_id='file',expected_owner_id=self.owner.owner_id)
+        with self.assertRaises(ValueError):
+            self.owner.demand_witness(reference,content_sha256=content)
 
     def _check_materialized_source_transaction(self, already_published):
         """Force another publisher between the reader's snapshot and pin.

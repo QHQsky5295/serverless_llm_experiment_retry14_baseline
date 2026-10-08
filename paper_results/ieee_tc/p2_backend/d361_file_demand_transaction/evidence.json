@@ -1,0 +1,261 @@
+{
+  "kind": "d361_protected_file_demand_candidate_v1",
+  "code_parent": "c19a375b80baa69f74df534e4a9b41578b584e1a",
+  "cpu_tests": 443,
+  "native_environment_cpu_tests": 443,
+  "new_gpu_runs": 0,
+  "no_figures": true,
+  "production_performance_qualified": false,
+  "formal_qualification": false,
+  "n_correct": null,
+  "first_test_failure": "new fixture assumed adapter1 present; real fixture starts empty",
+  "native1_current_source_difference": "clarifying comment only; exact source archived and AST-equal",
+  "archive_sha256": "022916ddead186786470dbf083192f64cc476808ab709b380da60b91f9e0fae7",
+  "source_sha256": {
+    "faaslora/memory/residency_manager.py": "73004264b40e8ce6d7708ea18beaaa2f9c8e44884bcb4898feb914e8a264e69f",
+    "faaslora/memory/gpu_monitor.py": "4de43e2bbddec7b1727115b6465ff18032c62b05dd5ad99a856eee3656567540",
+    "faaslora/scheduling/vllm_ieee_scheduler.py": "c335bb25152c18b58a33f2961777cf3336e3f9bd793daeb9789d839f5156125f",
+    "scripts/run_all_experiments.py": "b8f5110e96a34ee163682a2808566ef39b211915b4e7e247732aabddee135144",
+    "tests/test_ieee_tc_gpu_references.py": "88f66e4a904e1d376e61a4aad27bb41cfb05d43162ac770626ff4f4c36a78f8e",
+    "tests/test_ieee_tc_request_lifecycle.py": "9b612befb82593b8aaacdd9ca7d5fc7d789648224b49a4318701af99df621c3a",
+    "tests/test_ieee_tc_scheduler_observation.py": "23e8c9b818bdbb5720042a482c5679d72f4f6b2db9705924b04c998932f3137d"
+  },
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "tests": {
+    "cpu1": {
+      "passed": false,
+      "resources": {
+        "memory.high": "3221225472",
+        "memory.max": "4294967296",
+        "memory.peak": "514420736",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.max": "0",
+        "memory.swap.current": "0"
+      }
+    },
+    "cpu2": {
+      "passed": true,
+      "resources": {
+        "memory.high": "3221225472",
+        "memory.max": "4294967296",
+        "memory.peak": "517816320",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.max": "0",
+        "memory.swap.current": "0"
+      }
+    },
+    "native1": {
+      "passed": true,
+      "resources": {
+        "memory.high": "3221225472",
+        "memory.max": "4294967296",
+        "memory.peak": "632295424",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.max": "0",
+        "memory.swap.current": "0"
+      }
+    },
+    "cpu3": {
+      "passed": true,
+      "resources": {
+        "memory.high": "3221225472",
+        "memory.max": "4294967296",
+        "memory.peak": "518561792",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.max": "0",
+        "memory.swap.current": "0"
+      }
+    }
+  },
+  "exact_test_scope_cleanup": [
+    {
+      "tag": "cpu1",
+      "identity": {
+        "unit": "primelora-tc-aux-9d2e6820ff9840a4a2a8e26e78bc0063.scope",
+        "invocation_id": "1f70d13d90474041856ed9cf2cc61979",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-9d2e6820ff9840a4a2a8e26e78bc0063.scope",
+        "inode": 20901139
+      },
+      "resources": {
+        "memory.peak": "514420736\n",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+        "memory.swap.current": "0\n",
+        "cgroup.events": "populated 0\nfrozen 0\n"
+      },
+      "cleanup": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    },
+    {
+      "tag": "cpu2",
+      "identity": {
+        "unit": "primelora-tc-aux-265704811de54ea7a6ddc32e032c62a1.scope",
+        "invocation_id": "c7fd1c2c09c24d0db2cbd4aa1d7b1078",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-265704811de54ea7a6ddc32e032c62a1.scope",
+        "inode": 20901576
+      },
+      "resources": {
+        "memory.peak": "517816320\n",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+        "memory.swap.current": "0\n",
+        "cgroup.events": "populated 0\nfrozen 0\n"
+      },
+      "cleanup": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    },
+    {
+      "tag": "native1",
+      "identity": {
+        "unit": "primelora-tc-aux-f71f178cde8f40bebba64fd454455e64.scope",
+        "invocation_id": "4870207ca24b4bb39720ef27c12a7b83",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-f71f178cde8f40bebba64fd454455e64.scope",
+        "inode": 20902408
+      },
+      "resources": {
+        "memory.peak": "632295424\n",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+        "memory.swap.current": "0\n",
+        "cgroup.events": "populated 0\nfrozen 0\n"
+      },
+      "cleanup": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    },
+    {
+      "tag": "cpu3",
+      "identity": {
+        "unit": "primelora-tc-aux-25b6a4457c5743dd8bd8518fc71d5e93.scope",
+        "invocation_id": "e68625c5d84a4828af4563df2b01a891",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-25b6a4457c5743dd8bd8518fc71d5e93.scope",
+        "inode": 20903319
+      },
+      "resources": {
+        "memory.peak": "518561792\n",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+        "memory.swap.current": "0\n",
+        "cgroup.events": "populated 0\nfrozen 0\n"
+      },
+      "cleanup": {
+        "targets": [],
+        "hard_kill": false,
+        "released": true
+      }
+    }
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": false,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [
+      "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"
+    ],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d361_20261009/cpu1.log",
+      "sha256": "07ff019e58b05697f9ebac42bce3b9e3430ede152ce968b94c82f698ff6b9b83"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d361_20261009/cpu2.log",
+      "sha256": "46dba4e5b8d74f17684a2b3b15a27a7aac079ed1c582e4ce6643179646373fc7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d361_20261009/native1.log",
+      "sha256": "c67fa354f4fcd318e37280594803655a9c39a7f937f3da52a10db6174e8cec3a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d361_20261009/cpu3.log",
+      "sha256": "65616f85fb7aabe05c8445493db5b09b42815ca600df56e33c87722ad166987d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d361_20261009/cpu1_receipt.json",
+      "sha256": "cd262f723484cfd7b8773e4af8c7198897d63c5bfd8ce8031dd0f6f80c9eafb5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d361_20261009/cpu2_receipt.json",
+      "sha256": "0f02fc625cddc7c2d9e228460eb9c5deb9074678e09519fdad9ac168f3014270"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d361_20261009/native1_receipt.json",
+      "sha256": "93ce298a73f54a77fc4fed9b473938927cf699d77761c8b7c6c408078c8be025"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d361_20261009/cpu3_receipt.json",
+      "sha256": "add06d90b1227c892109a8e767e5e47af576e2698fd77335ec29213e6b5d899d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d361_20261009/cpu1_sources.tar.gz",
+      "sha256": "c43854c99a53d12525517d90d471abb80568863d7db70658e2cb9131e4f6542f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d361_20261009/test_cleanup.json",
+      "sha256": "7144fced7f8f053689915da98ebcb2b5334053787fe1c504d2ce31e115f9ad9a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d361_20261009/test_candidate.py",
+      "sha256": "76c8868035daefdb5dc2fe80d910f0b3a3ebf15b8d9246ee34cae01c9fe43c68"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d361_20261009/seal_candidate.py",
+      "sha256": "e28d25110f86bc91adc26b0f8d5e5eeb5d2722f247944c88daa18d1bde099117"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d361_20261009/protected.json",
+      "sha256": "86a2cb036b66b0b83dde99f755772af6b2b4932bc37d6b2faaac9270574d277a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d361_20261009/seal_attempt1.py",
+      "sha256": "1ef049e46d504fe964880eba4bf6ae2a36478c7d9620737b585b43df5c861eda"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d361_20261009/seal_attempt1_failure.json",
+      "sha256": "87ddc11061f838529d92f33a66b2bdb76380765dd028cc1cf55d9c3085e03b88"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d361_20261009/seal_attempt2.py",
+      "sha256": "bd052791094cad38d37174e1d0641836cad5183a72e48aa2b5895c32e3583f9a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d361_20261009/seal_attempt2_failure.json",
+      "sha256": "a274371785502a0e1ad7b4554348585f2c854d6ceceaf0cb6500089a22548f4c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "sha256": "73004264b40e8ce6d7708ea18beaaa2f9c8e44884bcb4898feb914e8a264e69f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+      "sha256": "4de43e2bbddec7b1727115b6465ff18032c62b05dd5ad99a856eee3656567540"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/vllm_ieee_scheduler.py",
+      "sha256": "c335bb25152c18b58a33f2961777cf3336e3f9bd793daeb9789d839f5156125f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "b8f5110e96a34ee163682a2808566ef39b211915b4e7e247732aabddee135144"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_gpu_references.py",
+      "sha256": "88f66e4a904e1d376e61a4aad27bb41cfb05d43162ac770626ff4f4c36a78f8e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_request_lifecycle.py",
+      "sha256": "9b612befb82593b8aaacdd9ca7d5fc7d789648224b49a4318701af99df621c3a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_scheduler_observation.py",
+      "sha256": "23e8c9b818bdbb5720042a482c5679d72f4f6b2db9705924b04c998932f3137d"
+    }
+  ]
+}

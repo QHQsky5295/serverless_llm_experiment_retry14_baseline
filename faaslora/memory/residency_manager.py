@@ -32,6 +32,32 @@ from ..utils.config import Config
 from ..utils.logger import get_logger
 
 
+IEEE_FILE_DEMAND_TRANSACTION = 'protected_file_owner_turn_v1'
+
+
+def validate_file_demand_witness(witness, *, lora_name, lora_path, content_sha256):
+    """Validate a cooperative file-owner attestation, not a native cache verdict.
+
+    The controller keeps the actual read lease until acknowledgement (including
+    uncertain/cancelled RPCs). The native worker separately checks the directory
+    incarnation and all current native constraints; no old capacity is reused.
+    """
+    fields = {'kind', 'owner_id', 'lease_id', 'adapter_id', 'path', 'tier',
+              'device', 'inode', 'content_sha256'}
+    if (not isinstance(witness, dict) or set(witness) != fields
+            or witness['kind'] != IEEE_FILE_DEMAND_TRANSACTION
+            or any(not isinstance(witness[k], str) or not witness[k]
+                   for k in ('owner_id', 'lease_id', 'adapter_id', 'path'))
+            or witness['adapter_id'] != lora_name or witness['path'] != lora_path
+            or witness['tier'] not in ('host', 'nvme')
+            or type(witness['device']) is not int or witness['device'] < 0
+            or type(witness['inode']) is not int or witness['inode'] <= 0
+            or not isinstance(content_sha256, str) or len(content_sha256) != 64
+            or any(c not in '0123456789abcdef' for c in content_sha256)
+            or witness['content_sha256'] != content_sha256):
+        raise ValueError('file demand requires its content-bound held-source witness')
+
+
 def _file_allocation_geometry(path):
     """Qualified Linux file allocation, not a fitted per-adapter allowance.
 
@@ -837,6 +863,33 @@ class LocalSourceReferences:
                         confirmed_source=(copy.deepcopy(record['public']) if record else None),
                         file_footprint={key: value for key, value in footprint.items()
                                         if key not in ('allocations', 'tiers')})
+
+    def demand_witness(self, reference, *, content_sha256):
+        """Attest a live read lease without carrying a global native epoch.
+
+        All managed mutations participate in this file owner. The immutable
+        content was verified at publication; this revalidates signatures under
+        the same lock and checks the real lease, not merely a caller's dict.
+        """
+        with self.lock:
+            if (not isinstance(reference, dict) or reference.get('state') != 'held'
+                    or reference.get('owner_id') != self.owner_id
+                    or reference.get('content_verified') is not True):
+                raise ValueError('file demand requires a live verified source lease')
+            identity = self.leases.get(reference['lease_id'])
+            expected = tuple(reference[k] for k in ('adapter_id', 'path', 'tier', 'device', 'inode'))
+            if identity != expected:
+                raise ValueError('file demand source lease changed or was released')
+            record = self._validated_source(Path(reference['path']))
+            if (record is None or record['public'] != reference.get('confirmed_source')
+                    or record['public']['content_sha256'] != content_sha256):
+                raise ValueError('file demand source content is not confirmed')
+            witness = {k: reference[k] for k in ('owner_id', 'lease_id', 'adapter_id',
+                'path', 'tier', 'device', 'inode')}
+            witness.update(kind=IEEE_FILE_DEMAND_TRANSACTION, content_sha256=content_sha256)
+            validate_file_demand_witness(witness, lora_name=reference['adapter_id'],
+                lora_path=reference['path'], content_sha256=content_sha256)
+            return witness
 
     def inventory(self, *, _observed_stats=None):
         """Owner snapshot, including retained and private-stage paths.
@@ -2456,18 +2509,21 @@ class IEEEBackendGPUReferences:
                                 expected_owner_id: str, expected_epoch: int,
                                 required_source_tier: Optional[str] = None,
                                 expected_source_id: Optional[str] = None,
-                                expected_content_sha256: Optional[str] = None) -> Dict[str, Any]:
+                                expected_content_sha256: Optional[str] = None,
+                                file_source_witness: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         return self._load_and_acquire(lease_id=lease_id, adapter_int_id=adapter_int_id,
             lora_name=lora_name, lora_path=lora_path, expected_owner_id=expected_owner_id,
             expected_epoch=expected_epoch, required_source_tier=required_source_tier,
             expected_source_id=expected_source_id, expected_content_sha256=expected_content_sha256,
+            file_source_witness=file_source_witness,
             loader=self.demand_loader)
 
     def _load_and_acquire(self, *, lease_id: str, adapter_int_id: int,
                          lora_name: str, lora_path: str, expected_owner_id: str,
                          expected_epoch: int, required_source_tier: Optional[str],
                          loader, expected_source_id: Optional[str] = None,
-                         expected_content_sha256: Optional[str] = None) -> Dict[str, Any]:
+                         expected_content_sha256: Optional[str] = None,
+                         file_source_witness: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Native demand load -> completion -> pin, on one serialized worker.
 
         There is no await or controller-side load/query gap in this operation.
@@ -2502,7 +2558,13 @@ class IEEEBackendGPUReferences:
                 not isinstance(expected_content_sha256, str) or len(expected_content_sha256) != 64
                 or any(c not in '0123456789abcdef' for c in expected_content_sha256)):
             raise ValueError('native source content identity is invalid')
+        if file_source_witness is not None:
+            if required_source_tier is not None or expected_source_id is not None:
+                raise ValueError('file demand cannot replace a selected native-copy witness')
+            validate_file_demand_witness(file_source_witness, lora_name=lora_name,
+                lora_path=lora_path, content_sha256=expected_content_sha256)
         slots = self._refresh()
+        live_validation_epoch = self.epoch
         if expected_owner_id != self.owner_id:
             return {'acquired': False, 'reason': 'owner_changed', **self.snapshot()}
         source = (lora_name, lora_path)
@@ -2515,7 +2577,8 @@ class IEEEBackendGPUReferences:
                     or (receipt['lora_name'], receipt['lora_path']) != source
                     or receipt.get('required_source_tier') != required_source_tier
                     or receipt.get('expected_source_id') != expected_source_id
-                    or receipt.get('expected_content_sha256') != expected_content_sha256):
+                    or receipt.get('expected_content_sha256') != expected_content_sha256
+                    or receipt.get('file_source_witness') != file_source_witness):
                 raise ValueError('lease ID reused for a different demand load')
             return dict(receipt)
         if lease_id in self._released:
@@ -2525,6 +2588,13 @@ class IEEEBackendGPUReferences:
         # binding so a future snapshot remains a typed stale result.
         if expected_epoch > self.epoch:
             return {'acquired': False, 'reason': 'stale_snapshot', **self.snapshot()}
+        if file_source_witness is not None:
+            path = Path(lora_path)
+            info = path.lstat()
+            if (not stat_types.S_ISDIR(info.st_mode) or str(path.resolve(strict=True)) != lora_path
+                    or (info.st_dev, info.st_ino) !=
+                       (file_source_witness['device'], file_source_witness['inode'])):
+                raise ValueError('protected file demand source incarnation changed')
         if expected_source_id is not None:
             # The router may have selected a confirmed GPU copy, then another
             # request legally replaced that same immutable adapter before this
@@ -2550,7 +2620,12 @@ class IEEEBackendGPUReferences:
                     and self._source_contents.get(adapter_int_id) == expected_content_sha256):
                 return {'acquired': False, 'reason': 'required_source_changed',
                         'observed_source_tier': current_source_tier, **self.snapshot()}
-        if expected_source_id is None and expected_epoch != self.epoch:
+        # A file-owner witness protects immutable input, not an old native
+        # residency/capacity decision. Directory identity was checked above;
+        # every native identity, pin and allocation check below uses live state
+        # in this same serialized turn. Without that witness, retain the strict
+        # historical epoch rule; no generic ignore-stale option is provided.
+        if expected_source_id is None and file_source_witness is None and expected_epoch != self.epoch:
             return {'acquired': False, 'reason': 'stale_snapshot', **self.snapshot()}
         self._validate_source_binding(adapter_int_id, source, expected_content_sha256)
         if not callable(loader):
@@ -2670,6 +2745,13 @@ class IEEEBackendGPUReferences:
                            if not gpu_hit else None),
                        load_and_acquire_ms=(time.monotonic()-start)*1000.,
                        proactive_admission_evaluated=False)
+        if file_source_witness is not None:
+            receipt.update(file_source_witness=dict(file_source_witness),
+                file_demand_transaction=dict(kind=IEEE_FILE_DEMAND_TRANSACTION,
+                    observed_epoch=expected_epoch, validated_epoch=live_validation_epoch,
+                    owner_epoch_advance=live_validation_epoch-expected_epoch,
+                    live_native_constraints_checked=True,
+                    controller_capacity_snapshot_reused=False))
         # Publish the post-transaction native identity as part of the same
         # serialized owner acknowledgement.  The controller may use this
         # immutable event frontier to answer *absence* queries for other

@@ -157,7 +157,8 @@ def _core_admit_and_demand_load(core, command):
                       'expected_owner_id', 'expected_epoch', 'required_source_tier',
                       'expected_source_id', 'capacity_only'}
     allowed = legacy_allowed | {'expected_content_sha256'}
-    if not isinstance(command, dict) or set(command) not in (legacy_allowed, allowed):
+    if not isinstance(command, dict) or set(command) not in (
+            legacy_allowed, allowed, allowed | {'file_source_witness'}):
         raise ValueError('native admission command fields differ from the contract')
     if command.get('capacity_only') is not True:
         raise ValueError('request capacity witness requires capacity_only=True')
