@@ -1124,6 +1124,35 @@ class MeasuredAdmissionInitializer(unittest.TestCase):
 
 
 class CapacityProbeObservation(unittest.TestCase):
+    def test_capacity_profile_waves_use_real_homogeneous_classes_and_all_sources(self):
+        from scripts.ieee_tc.prepare_d298_capacity import capacity_profile_waves
+        rows = []
+        for output in (2,5):
+            for i in range(5):
+                rows.append(dict(source_index=len(rows),source_request_id=f'r{output}-{i}',
+                    adapter_id=f'a{i}',content_sha256=f'content{i%2}',class_features=dict(
+                        tier='gpu',representation='native_gpu_executable_v1',footprint_bytes=100,
+                        adapter_rank=8,prompt_tokens=10,declared_output_tokens=output,
+                        admitted_after_accept=1)))
+        bins = dict(prompt_tokens=[10],declared_output_tokens=[2,5],adapter_rank=[8],
+            footprint_bytes=[],admitted_requests=[1,2,4])
+        original = copy.deepcopy(rows)
+        waves = capacity_profile_waves(rows,bins,capacity=4)
+        self.assertEqual(len(waves),31)
+        self.assertEqual(rows,original)
+        known = {r['source_request_id']:r for r in rows}
+        for w in waves[1:]:
+            self.assertEqual(len(w['requests']),4)
+            self.assertEqual(len({r['adapter_id'] for r in w['requests']}),4)
+            selected = [known[r['source_request_id']] for r in w['requests']]
+            self.assertEqual(len({r['class_features']['declared_output_tokens'] for r in selected}),1)
+            self.assertEqual({r['content_sha256'] for r in selected},{'content0','content1'})
+        self.assertEqual({w['source'] for w in waves[1:]},{'remote','nvme','file_host','native_host','gpu'})
+        with self.assertRaisesRegex(ValueError,'insufficient'):
+            capacity_profile_waves(rows[:2],bins,capacity=4)
+        with self.assertRaises(ValueError):
+            capacity_profile_waves(rows,bins,capacity=3)
+
     def test_probe_indexes_existing_distinct_long_contexts_without_new_inputs(self):
         from scripts.ieee_tc.prepare_d298_capacity import capacity_probe_waves
         rows = [dict(source_index=i, source_request_id=f'r{i}', adapter_id=f'a{i%5}',

@@ -369,6 +369,12 @@ def main(campaign='d298'):
         config_path = ROOT/'configs/ieee_tc/20261007_d307_7b_prefill_source.yaml'
         source_commit = (RAW/'source_commit.txt').read_text().strip()
         assert re.fullmatch('[0-9a-f]{40}', source_commit), 'missing exact launch commit'
+    elif campaign == 'd344':
+        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d344_20261008'
+        CURATED = ROOT/'paper_results/ieee_tc/p2_backend/d344_capacity_profiles'
+        config_path = ROOT/'configs/ieee_tc/20261008_d343_7b_capacity_probe14.yaml'
+        source_commit = (RAW/'source_commit.txt').read_text().strip()
+        assert re.fullmatch('[0-9a-f]{40}', source_commit), 'missing exact launch commit'
     else:
         raise ValueError(campaign)
     out = CURATED / 'initialization'
@@ -411,7 +417,8 @@ def main(campaign='d298'):
     transfers = raw['remote_transfers']
     assert len(remote) == len(remote_rows) == len(transfers)
     assert {r['http_transfer_id'] for r in transfers} == set(remote)
-    remote_clock = read(RAW/'remote_health.json')['health']['clock_id']
+    health = read(RAW/'remote_health.json')
+    remote_clock = health['7b']['clock_id'] if campaign == 'd344' else health['health']['clock_id']
     for r in transfers:
         s = remote[r['http_transfer_id']]
         assert s['clock_id'] == remote_clock
@@ -447,7 +454,11 @@ def main(campaign='d298'):
     service, prep, coverage = p.measured_source_profile_payloads(raw,
         source_run_sha256=p.digest(source),identities=identities,
         context=context,model_config=contract['model_config'])
-    assert len(service['samples']) == 240 and len(prep['samples']) == 192
+    measured = [w for w in spec['waves'] if w['role'] == 'representative_measurement']
+    measured_count = sum(len(w['requests']) for w in measured)
+    warmup_count = sum(len(w['requests']) for w in spec['waves'] if w['role'] == 'kernel_warmup_retained')
+    prep_count = sum(len(w['requests']) for w in measured if w['source'] != 'gpu')
+    assert len(service['samples']) == measured_count and len(prep['samples']) == prep_count
     seal = p.verify_seal(ROOT/'paper_results/ieee_tc/safety/20260925_execution_start_protected.json')
     known = '/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py'
     assert seal['changed'] == [known] and seal['entry_count'] == 147
@@ -476,7 +487,7 @@ def main(campaign='d298'):
         if roles[q['request_id']] == 'representative_measurement':
             outputs[q['source_request_id'],q['adapter_id'],q['prompt_sha256'],q['target_tokens']].add(
                 q['timing']['completion_token_ids_sha256'])
-    summary = dict(requests=len(raw['requests']),representative_requests=240,warmup_requests=8,
+    summary = dict(requests=len(raw['requests']),representative_requests=measured_count,warmup_requests=warmup_count,
         measured_source_counts=dict(Counter(q['requested_source'] for q in raw['requests']
             if roles[q['request_id']] == 'representative_measurement')),
         remote_uuid_pairs=len(transfers),wire_bytes=sum(r['transferred_bytes'] for r in transfers),
@@ -500,7 +511,7 @@ def main(campaign='d298'):
         protection_raw=seal,offline_only=True,new_gpu_runs=0,no_figures=True,
         raw_evidence=[ref(path) for path in (source,launch_path,journal,watchdog,RAW/'remote_monitor.log',
             RAW/'remote_stop.log',config_path,runtime,Path(__file__),ROOT/'scripts/ieee_tc_preflight.py')])
-    if campaign in ('d307', 'd307-attempt2'):
+    if campaign in ('d307', 'd307-attempt2', 'd344'):
         result['raw_evidence'].append(ref(RAW/'source_commit.txt'))
     save('manifest.json',result)
     print(json.dumps(dict(passed=True,summary=summary,profiles=result['profiles'],coverage=coverage),indent=2),flush=True)
@@ -509,7 +520,7 @@ def main(campaign='d298'):
 if __name__ == '__main__':
     if not sys.argv[1:]:
         main()
-    elif sys.argv[1:] in (['d307'], ['d307-attempt2']):
+    elif sys.argv[1:] in (['d307'], ['d307-attempt2'], ['d344']):
         main(sys.argv[1])
     elif sys.argv[1:] == ['--history-length-coverage']:
         export_history_length_coverage()

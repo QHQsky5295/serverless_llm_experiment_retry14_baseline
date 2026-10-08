@@ -226,6 +226,188 @@ def missing_length_waves(population, bins, missing, *, rounds=3):
     return waves
 
 
+def capacity_profile_waves(population, bins, *, capacity, rounds=3):
+    """Remeasure changed-runtime classes using indexes, never synthetic inputs.
+
+    Homogeneous length/rank waves expose every actual admission bin. Within a
+    class, longer declared outputs keep the measured lanes alive; ties retain
+    original trace order. Cover each available exact content before extra lanes.
+    This is controlled calibration, not a representative workload or SLO ruler.
+    Actual observations, not the intended lane numbers, determine coverage.
+    """
+    from collections import defaultdict
+    from faaslora.experiment.instance_pool import ServiceClassBins
+    if (type(capacity) is not int or capacity < 1 or type(rounds) is not int
+            or rounds < 1 or not population):
+        raise ValueError('positive capacity/rounds and existing population required')
+    classes = ServiceClassBins(**{k:tuple(v) for k,v in bins.items()})
+    if classes.admitted_requests[-1] != capacity:
+        raise ValueError('profile bins must end at the actual capacity')
+    groups = defaultdict(list)
+    for row in population:
+        k = classes.classify(**row['class_features'])
+        groups[(k.prompt_bin,k.output_limit_bin,k.rank_bin,k.footprint_bin)].append(row)
+    templates = []
+    minimum = 1 if len(classes.admitted_requests) == 1 else classes.admitted_requests[-2]+1
+    for key, rows in sorted(groups.items()):
+        ordered = sorted(rows, key=lambda r:(-r['class_features']['declared_output_tokens'],r['source_index']))
+        chosen, adapters, contents = [], set(), set()
+        for content_pass in (True,False):
+            for row in ordered:
+                if (row['adapter_id'] in adapters or
+                        (content_pass and row['content_sha256'] in contents)):
+                    continue
+                chosen.append(row)
+                adapters.add(row['adapter_id']); contents.add(row['content_sha256'])
+                if len(chosen) == capacity:
+                    break
+            if len(chosen) == capacity:
+                break
+        if len(chosen) < minimum:
+            raise ValueError(f'insufficient existing distinct adapters for capacity class {key}')
+        templates.append(dict(intended_length_rank_class=list(key),
+            requests=[dict(source_request_id=r['source_request_id'],adapter_id=r['adapter_id']) for r in chosen]))
+    selected_ids = {r['adapter_id'] for t in templates for r in t['requests']}
+    if {r['content_sha256'] for r in population if r['adapter_id'] in selected_ids} != \
+            {r['content_sha256'] for r in population}:
+        raise ValueError('existing wave selection misses an exact content class')
+    warm, seen = [], set()
+    for template in templates:
+        for row in template['requests']:
+            if row['adapter_id'] not in seen:
+                warm.append(row); seen.add(row['adapter_id'])
+    waves = [dict(role='kernel_warmup_retained',round=-1,source='gpu',requests=warm[:capacity])]
+    sources = ('remote','nvme','file_host','native_host','gpu')
+    for r in range(rounds):
+        for group, template in enumerate(templates):
+            requests = template['requests']
+            shift = r % len(requests)
+            for pos in range(len(sources)):
+                waves.append(dict(template,role='representative_measurement',round=r,
+                    source=sources[(pos+r+group)%len(sources)],requests=requests[shift:]+requests[:shift]))
+    return waves
+
+
+def prepare_capacity_profiles():
+    """D344: same qualified C14 runtime, newly measured timing initialization."""
+    root = p.ROOT
+    out = root/'paper_results/ieee_tc/p2_backend/d344_capacity_profiles'
+    raw = root/'results/ieee_tc/p2_backend_qualification/d344_20261008'
+    if out.exists() or raw.exists():
+        raise FileExistsError('D344 preparation is append-only')
+    read = lambda path:json.loads(Path(path).read_text())
+    previous = root/'paper_results/ieee_tc/p2_backend/d343_capacity_probe/cap14'
+    for line in (previous/'completed_outputs.sha256').read_text().splitlines():
+        sha,name = line.split('  ',1)
+        assert p.digest(previous/name) == sha
+    spec = read(previous/'source_spec.json')
+    config_path = root/'configs/ieee_tc/20261008_d343_7b_capacity_probe14.yaml'
+    config = yaml.safe_load(config_path.read_text())['model_profiles']['llama2_7b_main_v2_publicmix']
+    history = root/'paper_results/ieee_tc/p2_backend/d321_output_classes/history1'
+    manifest = read(history/'manifest.json')
+    for name,sha in manifest['outputs'].items():
+        assert p.digest(history/name) == sha
+    definition = read(history/'candidate_definition.json')
+    bins = copy.deepcopy(definition['bins'])
+    bins['admitted_requests'] = [1,2,4,8,14]
+    history_rows = read(history/'historical_samples.json')['samples']
+    known = {r['request_id']:r for r in history_rows}
+    assert len(known) == len(history_rows) == 4000
+    old_raw = root/'results/ieee_tc/p2_backend_qualification/d343_20261008/cap14/source1.json'
+    old = read(old_raw)
+    assert old['pass'] and old['physical_allocation']['released']
+    assert len(old['requests']) == 80 and all(r['pass'] for r in old['requests'])
+    plan = FrozenReplayPlan.load(Path(old['trace']['source_path']), count=1000)
+    assert plan.source_sha256 == spec['trace_sha256']
+    content_path = root/spec['content_index']['path']
+    assert p.digest(content_path) == spec['content_index']['sha256']
+    content = read(content_path)
+    client = HttpArtifactStoreClient(endpoint='http://127.0.0.1:1')
+    client.configure_content_manifest(content)
+    pool = (root/config['storage']['remote_dir']).resolve(strict=True)
+    identities = {r['id']:client.routing_identity(r['id'],(pool/r['id']/'adapter_config.json').read_bytes())
+                  for r in content['artifacts']}
+    population = []
+    for i,entry in enumerate(plan.entries):
+        row = json.loads(entry.source_json)
+        features = known[entry.request_id]['class_features']
+        identity = identities[row['adapter_id']]
+        assert features['declared_output_tokens'] == min(row['expected_output_tokens'],256)
+        assert features['adapter_rank'] == identity['rank']
+        population.append(dict(source_index=i,source_request_id=entry.request_id,adapter_id=row['adapter_id'],
+            content_sha256=identity['content_sha256'],class_features=features))
+    waves = capacity_profile_waves(population,bins,capacity=14)
+    selected = {r['adapter_id'] for w in waves for r in w['requests']}
+    assert {identities[a]['content_sha256'] for a in selected} == {v['content_sha256'] for v in identities.values()}
+    spec.update(purpose='D344_C14_affected_service_preparation_calibration_not_warm_SLO',
+        nvme_parent=str(raw.resolve()),bins=bins,waves=waves,
+        representatives=[r for r in population if r['adapter_id'] in selected],
+        derivation='Qualified D343 C14; retain D321 output edges and fixed-output completed lengths only. All timing samples freshly measured under C14; no C8 timing transfer.',
+        order_rule='Existing first1000 only; homogeneous output/rank classes, content coverage first, descending declared target then original index, up to14 distinct lanes; three rotated rounds across five sources.')
+    spec.pop('bounded_followup_evidence',None)
+    cfg = dict(config['model'])
+    cfg.update(visible_device_ids=[0],device_id=0,timing_contract='ieee_tc_native_v1',
+        ieee_worker_observation=True,ieee_gpu_references=True,ieee_scheduler_observation=True,
+        ieee_input_upper_bounds=[759],generation_contract='fixed_length_greedy_v1',
+        canonical_prompt_renderer='role_lines_v1',max_input_len=759,max_output_tokens_cap=256,
+        ieee_physical_allocation=True)
+    cfg.update(spec['model_overrides'])
+    runtime = root/'results/ieee_tc/p2_backend_qualification/runtime_20260926/cuda_import_attempt3.json'
+    _,length_evidence,assembly = p.prepare_admission_source_runtime(cfg,spec,
+        backend_version=read(runtime)['modules']['vllm']['version'],runtime_receipt_sha256=p.digest(runtime),
+        source_trace_sha256=plan.source_sha256)
+    from faaslora.experiment.instance_pool import FrozenServiceProfiles
+    assert FrozenServiceProfiles.model_identity(assembly['planned_child_model_config']) == \
+        FrozenServiceProfiles.model_identity(old['model_config'])
+    full_path = root/'configs/ieee_tc/20261008_d336_7b_full_w0.yaml'
+    full = yaml.safe_load(full_path.read_text())
+    coord = copy.deepcopy(full['resource_coordination'])
+    for key in ('ieee_service_profile','ieee_preparation_profile'):
+        coord.pop(key)
+    coord['ieee_scaling'].update(p.derive_ieee_capacity_targets(14,
+        min_instances=coord['min_instances'],max_instances=coord['max_instances']))
+    contract = dict(kind='ieee_development_control_runtime_contract_v1',model='7b',development_only=True,
+        model_config=assembly['planned_child_model_config'],runtime_receipt_sha256=p.digest(runtime),
+        coordination=coord,service_ewma_beta=.5,preparation_ewma_beta=.5,
+        completed_length_binding=spec['admission_initialization'],full_qualified=False,
+        production_profile_frozen=False,plan_sha256=p.check_plan(),
+        source_config=dict(path=str(config_path.relative_to(root)),sha256=p.digest(config_path)),
+        controller_rule_source=dict(path=str(full_path.relative_to(root)),sha256=p.digest(full_path)),
+        old_timings_relabelled=False,common_warm_reference_changed=False)
+    seal = p.verify_seal(root/'paper_results/ieee_tc/safety/20260925_execution_start_protected.json')
+    changed = Path('/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py')
+    assert seal['entry_count'] == 147 and seal['changed'] == [str(changed)]
+    assert p.digest(changed) == '04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22'
+    out.mkdir(parents=True,exist_ok=False); raw.mkdir(parents=True,exist_ok=False)
+    def save(name,value):
+        with (out/name).open('x') as stream:json.dump(value,stream,indent=2,allow_nan=False)
+        return dict(path=str((out/name).relative_to(root)),sha256=p.digest(out/name))
+    contract_ref = save('development_contract.json',contract)
+    spec['full_development_contract'] = contract_ref
+    spec_ref = save('source_spec.json',spec)
+    _,_,selected_identities,actual,static = p.source_profile_inputs(out/'source_spec.json',plan,cfg,pool)
+    final_assembly = p.prepare_admission_source_runtime(cfg,spec,
+        backend_version=read(runtime)['modules']['vllm']['version'],runtime_receipt_sha256=p.digest(runtime),
+        source_trace_sha256=plan.source_sha256)[2]
+    assert final_assembly['full_development_contract'] == contract_ref
+    save('launch_config_binding.json',dict(source_config=contract['source_config']))
+    receipt = dict(kind='d344_capacity_profile_preparation_v1',passed=True,development_only=True,
+        spec=spec_ref,contract=contract_ref,assembly=final_assembly,length_initialization=length_evidence,
+        waves=len(actual),cases=sum(map(len,actual)),
+        representative_cases=sum(len(w['requests']) for w in waves if w['role']=='representative_measurement'),
+        selected_adapters=len(selected_identities),static_adapters=len(static['artifacts']),
+        output_edges=bins['declared_output_tokens'],admitted_edges=bins['admitted_requests'],
+        actual_coverage_pending=True,n_correct=None,gpu_runs=0,full_qualified=False,
+        production_profile_frozen=False,new_trace=False,new_weights=False,protection_raw=seal,
+        source_refs=[dict(path=str(path),sha256=p.digest(path)) for path in (old_raw,
+            previous/'completed_outputs.sha256',history/'manifest.json',history/'historical_samples.json',
+            history/'candidate_definition.json',config_path,full_path,runtime,content_path)],
+        plan_sha256=p.check_plan(),metric_protocol_sha256=p.digest(root/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'))
+    save('prepare.json',receipt)
+    print(json.dumps(dict(passed=True,waves=receipt['waves'],cases=receipt['cases'],
+        selected_adapters=receipt['selected_adapters'],spec=spec_ref)),flush=True)
+
+
 def prepare_output_class_gaps():
     """D321: reuse D298 collector/model and only fill audited output-class gaps."""
     root = p.ROOT
@@ -904,7 +1086,9 @@ def verify_length_candidate(*, smoke=True, attempt=1):
 
 
 if __name__ == '__main__':
-    if sys.argv[1:] == ['--capacity-probe']:
+    if sys.argv[1:] == ['--capacity-profiles']:
+        prepare_capacity_profiles()
+    elif sys.argv[1:] == ['--capacity-probe']:
         prepare_capacity_probe()
     elif sys.argv[1:] == ['--capacity-probe-followup']:
         prepare_capacity_probe(followup=True)

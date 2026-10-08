@@ -11,7 +11,33 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D343 C14 native probe COMPLETE; next affected profiles then Full
+## CURRENT — D344 C14 timing refresh prepared; GPU calibration not yet launched
+
+2026-10-08: full Plan/V1 reread; D343 completed evidence not repeated. Existing
+D298collector extended with D344source mode. Same C14native config, D321output
+edges24/91/217/256, admitted1/2/4/8/14; first1000originalrequests only.121waves,
+14warmup+1515measured=1529calls,41existingadapterIDs.15targeted CPU tests pass;
+SHA-bound config/length/source assembly passes. Expanded CPU regression373/373
+passes (including source-domain/export, lifecycle and launcher checks). No new
+weights/trace or GPU run.
+All timing classes will be freshly measured; commonwarmbatch8/SLO unchanged.
+Only D336capacity-derived controller targets follow C14rule; no other knob.
+NEXT: expanded CPU check/checkpoint, freshgate, existing tmux source calibration;
+then actualrelease/remoteclosure/coverage export, Full100smoke and4000W0.
+No figures,3B orbaseline advance. Numerical/commonreference/G1G2 remainOPEN.
+
+## HISTORY — D343 C14 native probe COMPLETE; affected profiles are D344
+
+BACKUP/CLOSURE VERIFIED: localHEAD and independent remoteV2 both
+2741f59d378f6a4b591eb1fca42c464e56e5d017. All D343 C15/C14 inference,
+collection,analysis,checkpoint scopes closed; final verifierpeak27127808B,
+events/swap0. GPU compute empty; remote services already stopped.9finalpaths
+and8curated output hashes verified; standard CSV CRLF validated explicitly,
+measurement bytes unchanged. Prior9a4968d snapshot identities checked from Git.
+Usermanifest unchanged/unstaged. Disk163663269888B. D343 run/analysis/seal/
+backup are DONE; do not repeat. All tool handles closed. Current mainline is
+C14 affected timing-profile refresh, then100Fullsmoke and4000W0, not another
+capacity probe, plot,3B orbaseline task. G1/G2 remainOPEN.
 
 RESULT:80/80native contract calls,14warmup+66measured. All7waves956freeKV
 before/after>=896needed; native interval peak14 and measured common decode
