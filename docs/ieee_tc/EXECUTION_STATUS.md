@@ -32,9 +32,11 @@ and launcher0dc1ff through collector, downloadedSHAverifiedjournals, passed50CPU
 checks and all source/file/control/coverageaudits. Offline52d3e1c closed by
 seal_measurement.py; seal54eca708 closed by export_profiles.py. Fresh strict
 service/preparation loader exportpassed; nooldtiming relabelled, nofigures.
-Measurement evidence2076337B archived, rawretained. Export scope8011d759 is
-empty; closure checkpoint will close exactidentity once and backup all new
-curated data. Check its receipt before any repeatedcleanup.
+Measurement evidence2076337B archived, rawretained. Export scope8011d759 and
+checkpoint290343df closed exact-owned, nohardkill; noGPUcompute remains.
+Completed data/profiles backed up at8bcc327da2e9177db098f9ec06125fc2652b4b55;
+remote branch equality verified.51archivemembers checked, usermanifestunstaged.
+closure_backup_receipt.json records finalcleanup; do not repeat oldclosures.
 
 NEXT: D363 first100 usingD362 measured profiles andD358 unchangedcontrollers,
 then complete4000W0 againstD358/D353/D336. Onlycandidate remainsD361 protected
