@@ -11,7 +11,35 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D344 merged export COMPLETE; D345 Full100 prepared, NOT launched
+## CURRENT — D345 Full100 COMPLETE; D346 Full4000 prepared, NOT launched
+
+D345100/100native counts/bindings verified. MeanTTFT848.309953ms/P952032.469623ms,
+meanTPOT28.546773ms/P9536.128674ms,physical759.836137GPU-s(prefixonly).
+Timing-only98/100 underretainedwarmcandidate; numericalNcorrectunknown,
+notformalSLO/G1/G2. TiersGPU62/HOST4/NVMe5/remote29,29bilateralfetches,
+50650865wireB,packing0; peak18237345792B,minhost94142713856B,events/swap0.
+RealGPUrelease/localservicegone/remote3unitsinactive verified;tmuxended.
+SourceSHA17d50430c65fc3b2cdb70cc596044f0bbab7dd5d24674c6223777182b310de19.
+Existingboundedanalyzer and timing tests return0/0, nofigures.
+
+D346 is SAME model/profiles/controls; onlyexclusivepaths and no100prefix.
+Prelaunch passes200/24classes, disk163080966144B/host112219115520B,GPUempty.
+Next seal/backup D345andD346setup, freshgate,remote start, full4000W0.
+No additionalshorttests/capacitypoints. Compare fullD346toD336, retainalltradeoffs.
+Do not reinterpret98/100prefix asfullqualification. No3B/baselines yet.
+
+### D345 launch receipt (completed)
+
+D345 started in tmux primelora_d345 at2026-10-08 13:49Asia/Shanghai.
+Executioncommit2ab680ef1b70c2604a0149cf4043704b6ec801e6 independently matches
+remoteV2. Freshdisk163125723136B/host112778514432B,GPUempty;remotehealthy,NIC1000/full.
+Onlyoneheavyjob. Localraw d345_20261008/7b_capacity_validation_100;
+launcheridentity captured in d345_20261008/launcher_identity.json:
+aux3f017eb3b9814262ada58b65850cd45c,invocation43cebd2266f949afa34085193ec4e10a,
+inode20580442. Service372862e170e14dc4a0fb56bee54e37a3. Do not relaunch.
+Remote monitor d345-smoke1; exact-ownedstop/collect prepared. Wait realterminal,
+release,thenbounded existing smokeanalyzer (addD345identity), not performanceclaims.
+Preparation/exportscopes22/D34501–04closed; no outstandingtoolhandles.
 
 Strict same-C14collection validator and existingexporter now retain1545measured
 samples with200service/24preparationclasses (1212loadsamples). Two rawsources

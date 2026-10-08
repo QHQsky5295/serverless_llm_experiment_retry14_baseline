@@ -1,0 +1,88 @@
+{
+  "reference": {
+    "source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d334_20261008/7b_native_pending_validation_100/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d334_7b_native_pending_validation_100.json",
+    "source_sha256": "d5a059c489977f041eba094927d115a4141f546cb3a3ebca0dda99009220a56e",
+    "physical_source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d334_20261008/7b_native_pending_validation_100/launch.launch/physical_deployment/physical_resource_summary.json",
+    "physical_sha256": "deae4e9135ed9eceb7f5e198d89981e42f8beee8c84618fd428adeff2e86a8b6",
+    "max_native_ttft_error_ms": 0.0,
+    "max_native_tpot_error_ms": 0.0,
+    "shared_trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "shared_adapter_subset_sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016"
+  },
+  "candidate": {
+    "source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d345_20261008/7b_capacity_validation_100/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d345_7b_capacity_validation_100.json",
+    "source_sha256": "17d50430c65fc3b2cdb70cc596044f0bbab7dd5d24674c6223777182b310de19",
+    "physical_source": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d345_20261008/7b_capacity_validation_100/launch.launch/physical_deployment/physical_resource_summary.json",
+    "physical_sha256": "c5b83eb856377031b4dc896068a4dfaeb55af780b8f188e574289cb19f4ef3fc",
+    "max_native_ttft_error_ms": 0.0,
+    "max_native_tpot_error_ms": 0.0,
+    "shared_trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "shared_adapter_subset_sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016"
+  },
+  "input_identity_equal": true,
+  "input_fields_checked": [
+    "request_id",
+    "adapter_id",
+    "scheduled_arrival_offset_s",
+    "source_expected_output_tokens",
+    "requested_completion_tokens",
+    "canonical_prompt_sha256",
+    "generation_contract",
+    "completion_token_source"
+  ],
+  "output_hash_changes": [
+    {
+      "request_id": "req_00009",
+      "adapter_id": "finance_lora",
+      "target_tokens": 94,
+      "reference_sha256": "4b65f946d8dd4705d3ed227f31aa6343970c2e79502d83e89e02739e1c0c7b26",
+      "candidate_sha256": "ebcbe3bfab382a63ed9fe1789739c516a876398ffd505c274b4b5c617acf4bd8"
+    },
+    {
+      "request_id": "req_00037",
+      "adapter_id": "code_lora",
+      "target_tokens": 256,
+      "reference_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272",
+      "candidate_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3"
+    },
+    {
+      "request_id": "req_00059",
+      "adapter_id": "finance_lora",
+      "target_tokens": 45,
+      "reference_sha256": "94a0ef97cfdd86f6c666b2f0ccd5657975017656ecf2ffa815d11a1161fb8986",
+      "candidate_sha256": "a985dff39fdff6fa979ebbd76115a6f24cc0cfe9d1d49ea88691ad9ebb8e3f80"
+    },
+    {
+      "request_id": "req_00067",
+      "adapter_id": "legal_lora",
+      "target_tokens": 256,
+      "reference_sha256": "73983ecc61e7dbd6bcb38eeca91430ceeca2fe5f4fbe2a3c1c67d937662d7dd3",
+      "candidate_sha256": "a00a9aad882e6d3c22387dcafe7d7fa10d2df7bf54541bb5507cb5ce630d8272"
+    },
+    {
+      "request_id": "req_00073",
+      "adapter_id": "code_lora_0015",
+      "target_tokens": 81,
+      "reference_sha256": "617d65daa8ea70a91f99006425e2c8636663888a4c4b5a1614167a22e07bc292",
+      "candidate_sha256": "17359b3b224a2e6a3f24bcf05be9db3e89a64c4e1ab259779e307b619092a0b6"
+    },
+    {
+      "request_id": "req_00084",
+      "adapter_id": "finance_lora",
+      "target_tokens": 46,
+      "reference_sha256": "16efba0bd3719d9a4e11aef5e847e67f7cae261fd9b1ed90273e92bd7bd00c95",
+      "candidate_sha256": "3e9cde124fc268fbd2f68b72f0683c93be744cd2b0ecfa7dd12db96f0209a408"
+    }
+  ],
+  "formal_qualification": false,
+  "causal_speedup_claim": false,
+  "replicates_per_configuration": 1,
+  "confidence_interval": null,
+  "limitations": [
+    "100-request prefix only",
+    "file cache not randomized",
+    "output hash differences remain unaudited",
+    "joint SLO/reference budget not frozen"
+  ],
+  "script_sha256": "fdb7898478701b4142bfc15feb231f9c94da566215ec1247ad1ddf6e58d98f9d"
+}

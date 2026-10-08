@@ -203,3 +203,33 @@ physical release and resource/remote contracts. It does not decide G1/G2 or
 extrapolate4k resource usage. A valid smoke is followed by the full4000W0 replay
 and comparison to retained D336 evidence, including TPOT regressions and unknown
 numerical qualification. No third capacity probe or unrelated local optimization.
+
+### D345 Full100 outcome and next complete replay
+
+| Observation | Value |
+|---|---:|
+| Completed native-count/binding checks | 100/100 |
+| Mean / P95 TTFT | 848.309953 / 2032.469623 ms |
+| Mean / P95 TPOT | 28.546773 / 36.128674 ms |
+| Physical GPU-s, prefix only | 759.836137 |
+| Provisional timing-only joint passes | 98/100 |
+| Dispatch tier GPU / HOST / NVMe / remote | 62 / 4 / 5 / 29 |
+| Real fetches / wire bytes | 29 / 50650865 |
+| Service peak / minimum host available | 18237345792 / 94142713856 bytes |
+| Packing / high / max / OOM / swap | 0 |
+
+Native timing reconstruction errors are0ms. All100adapter control bindings and
+generation counts agree; this is not numerical adapter discrimination. The98%
+is a provisional timing-only upper bound under the retained common warm
+candidate, not formal joint SLO. GPU release and exact-owned remote closure
+passed. Prefix resource use is not extrapolated to4000requests, and the old D334
+prefix is descriptive context only, not a one-variable control.
+
+Execution `2ab680ef1b70c2604a0149cf4043704b6ec801e6`, source SHA
+`17d50430c65fc3b2cdb70cc596044f0bbab7dd5d24674c6223777182b310de19`.
+No smoke-result tuning is introduced: D346 changes only exclusive output/cache
+paths and removes the diagnostic prefix in the existing runner. It executes
+the original4000W0 with identical C14 profiles, model and control settings.
+Compare complete D346 to retained D336, including physicalGPU-s, rawTTFT/TPOT,
+timing-only bounds and all regressions. Correctness/commonreference/G1/G2 stay
+open. Mainline remains7B, then3B, then pausedbaselines and later experiments.

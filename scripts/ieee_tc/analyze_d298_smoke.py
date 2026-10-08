@@ -196,6 +196,17 @@ def main(campaign='d298'):
         comparison_caveat = ('D334 is descriptive same-input prefix context only: D340 retains D336 capacity controls, '
             'not D334 controls. D340 changes only the unused quantization-helper prebuild policy from D336. '
             'Complete4000 versus D336 is required; do not attribute prefix differences or extrapolate GPU-s.')
+    elif campaign == 'd345':
+        REFERENCE = ROOT/'results/ieee_tc/p2_backend_qualification/d334_20261008/7b_native_pending_validation_100/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d334_7b_native_pending_validation_100.json'
+        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d345_20261008'
+        RUN = RAW/'7b_capacity_validation_100'
+        SOURCE = RUN/'experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d345_7b_capacity_validation_100.json'
+        OUT = ROOT/'paper_results/ieee_tc/p2_backend/d345_capacity_validation/smoke1'
+        health_name = 'remote_health.json'
+        comparison_caveat = ('D334 is descriptive same-input prefix context, not a single-change comparison. '
+            'D345 uses the predeclared C14 runtime and fresh D344 profiles with D336 capacity-derived control rules. '
+            'The unchanged batch8 warm thresholds are provisional timing-only bounds; no numerical or G1/G2 '
+            'qualification and no prefix GPU-s extrapolation. Complete4000 versus D336 is required.')
     elif campaign != 'd298':
         raise ValueError('unknown frozen smoke identity')
     assert not OUT.exists(), 'never overwrite a prior audit'
@@ -211,13 +222,15 @@ def main(campaign='d298'):
     assert outcome['run_completed'] and not outcome['error']
     assert not outcome['cleanup_errors'] and not outcome['measurement_errors']
     journal = RAW/('attempt2/smoke_remote_transfers.jsonl' if campaign in ('d322-attempt2', 'd331-attempt2') else 'smoke_remote_transfers.jsonl')
+    if campaign == 'd345':
+        journal = RAW/'remote_transfers.jsonl'
     rows = [json.loads(line) for line in journal.read_text().splitlines()]
     remote = {r['transfer_id']:r for r in rows}
     transfers = outcome['remote_transfers']
     assert len(remote) == len(rows) == len(transfers)
     assert set(remote) == {r['http_transfer_id'] for r in transfers}
     health = read(RAW/health_name)
-    if campaign in ('d331', 'd331-attempt2', 'd334', 'd340'):
+    if campaign in ('d331', 'd331-attempt2', 'd334', 'd340', 'd345'):
         clock = health['7b']['clock_id']
     else:
         clock = health['clock_id'] if campaign in ('d322', 'd322-attempt2') else health['health']['clock_id']
@@ -269,9 +282,10 @@ def main(campaign='d298'):
         comparison_caveat=comparison_caveat,
         raw_evidence=[dict(path=str(path),sha256=sha256(path)) for path in
             (SOURCE,REFERENCE,outcome_path,journal,WARM,INDEX,
-             RAW/('attempt2/smoke_remote_monitor.log' if campaign in ('d322-attempt2', 'd331-attempt2') else 'smoke_remote_monitor.log'),
+             RAW/('remote_monitor.log' if campaign=='d345' else
+                  'attempt2/smoke_remote_monitor.log' if campaign in ('d322-attempt2', 'd331-attempt2') else 'smoke_remote_monitor.log'),
              ROOT/'scripts/run_all_experiments.py', Path(__file__))])
-    if campaign in ('d302', 'd308', 'd310', 'd312', 'd317', 'd322', 'd322-attempt2', 'd331', 'd331-attempt2', 'd334', 'd340'):
+    if campaign in ('d302', 'd308', 'd310', 'd312', 'd317', 'd322', 'd322-attempt2', 'd331', 'd331-attempt2', 'd334', 'd340', 'd345'):
         result['admission_waits'] = summarize_admission_waits(requests)
         result['mechanism_events'] = {k:v for k,v in outcome['mechanism_events'].items()
             if k in ('_ieee_source_observation_stats', '_ieee_route_cache_stats')}
@@ -287,7 +301,7 @@ def main(campaign='d298'):
             causal_latency_savings=None, requires_new_observation=True)
     if campaign == 'd331-attempt2':
         result['planning_publication_trigger'] = planning_publication_trigger(outcome['mechanism_events'])
-    if campaign in ('d334', 'd340'):
+    if campaign in ('d334', 'd340', 'd345'):
         result['native_pending_turn_trigger'] = native_pending_turn_trigger(requests)
     if campaign == 'd340':
         service_log = RUN/'launch.launch/service.log'
@@ -315,5 +329,5 @@ def main(campaign='d298'):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--campaign', choices=('d298','d302','d308','d310','d312','d317','d322','d322-attempt2','d331','d331-attempt2','d334','d340'), default='d298')
+    parser.add_argument('--campaign', choices=('d298','d302','d308','d310','d312','d317','d322','d322-attempt2','d331','d331-attempt2','d334','d340','d345'), default='d298')
     main(parser.parse_args().campaign)
