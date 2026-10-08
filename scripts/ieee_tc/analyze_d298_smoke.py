@@ -120,6 +120,84 @@ def hit_host_transaction_trigger(requests):
                 misclassified=0, causal_latency_savings=None)
 
 
+def control_interleave_trigger(requests):
+    """Audit actual final registration receipts, separately for each native owner.
+
+    This qualified TP=1 path uses the same process for scheduler and worker.
+    Counters precede the current utility's completion. They are not token/model
+    step counts and cannot establish GPU idle time or causal speedup.
+    """
+    if not requests:
+        raise ValueError('complete request population required')
+    keys = ('input_turns', 'handled_controls', 'yields_to_native_loop',
+            'yields_with_queued_input')
+    owners, request_ids, intent_ids, pid_owners = {}, set(), set(), {}
+    for request in requests:
+        rid = request['request_id']
+        evidence, timing = request['gpu_reference_evidence'], request['native_token_timing']
+        pending = evidence['pending_kv_admission']
+        receipt, retired = pending['receipt'], pending['close_receipt']['receipt']
+        owner, pid, clock = (receipt['scheduler_owner_id'], receipt['scheduler_pid'],
+                             receipt['clock_id'])
+        intent = receipt['intent_id']
+        stamp, dispatch = receipt['observed_at'], timing['native_dispatch_monotonic_s']
+        state = receipt['control_interleave']
+        if (request['success'] is not True or not isinstance(rid, str) or not rid
+                or rid in request_ids or not isinstance(intent, str) or not intent
+                or intent in intent_ids or pending['intent_id'] != intent
+                or timing['backend_request_id'] != intent or pending['state'] != 'closed'
+                or receipt['kind'] != 'ieee_pending_admission_v1'
+                or receipt['state'] != 'pending' or receipt['native_request_id'] is not None
+                or receipt['physical_kv_reservation'] is not False
+                or not isinstance(owner, str) or not owner
+                or type(pid) is not int or pid <= 0
+                or type(evidence['receipt']['worker_pid']) is not int
+                or evidence['receipt']['worker_pid'] != pid
+                or not isinstance(clock, str) or not clock
+                or clock != timing['native_clock_id'] or clock != evidence['receipt']['clock_id']
+                or retired['scheduler_owner_id'] != owner or retired['clock_id'] != clock
+                or retired['external_request_id'] != intent or retired['retired'] is not True
+                or any(type(v) not in (int, float) or not math.isfinite(v) or v <= 0
+                       for v in (stamp, dispatch)) or stamp >= dispatch
+                or state.get('kind') != 'ieee_native_control_interleave_v1'
+                or state.get('policy') != 'atomic_control_yield_v1'
+                or any(type(state.get(k)) is not int or state[k] < 0 for k in keys)):
+            raise ValueError('complete same-request/owner native control receipt required')
+        values = {k: state[k] for k in keys}
+        if (values['yields_with_queued_input'] > values['yields_to_native_loop']
+                or values['yields_to_native_loop'] > values['handled_controls']
+                or values['yields_to_native_loop'] > values['input_turns']):
+            raise ValueError('interleave counter subset invariant violated')
+        request_ids.add(rid); intent_ids.add(intent)
+        identity = (pid, clock)
+        if identity in pid_owners and pid_owners[identity] != owner:
+            raise ValueError('native process has conflicting scheduler owners')
+        pid_owners[identity] = owner
+        group = owners.setdefault(owner, dict(scheduler_pid=pid, clock_id=clock, observations=[]))
+        if (group['scheduler_pid'], group['clock_id']) != identity:
+            raise ValueError('scheduler owner changed process or clock')
+        group['observations'].append(dict(request_id=rid, intent_id=intent,
+                                         observed_at=stamp, **values))
+    for group in owners.values():
+        rows = sorted(group['observations'], key=lambda r: r['observed_at'])
+        for before, after in zip(rows, rows[1:]):
+            if (before['observed_at'] >= after['observed_at']
+                    or any(after[k] < before[k] for k in keys)):
+                raise ValueError('same-owner snapshot timestamp or counter regressed')
+        delta = {k: rows[-1][k] - rows[0][k] for k in keys} if len(rows) > 1 else None
+        group.update(observations=rows, delta=delta,
+                     triggered=delta is not None and delta['yields_to_native_loop'] > 0,
+                     queued_input_triggered=delta is not None and delta['yields_with_queued_input'] > 0)
+    return dict(kind='full_native_control_receipt_audit_v1', requests=len(requests),
+        policy='atomic_control_yield_v1', owners=owners,
+        triggered=any(g['triggered'] for g in owners.values()),
+        queued_input_triggered=any(g['queued_input_triggered'] for g in owners.values()),
+        counter_scope='per_owner_between_final_registration_receipts',
+        single_snapshot_owners=sum(g['delta'] is None for g in owners.values()),
+        model_step_count=None, gpu_idle_seconds=None, causal_speedup=None,
+        caveat='Retains zero-trigger and single-snapshot owners. Initial cumulative values include earlier work; no cross-owner subtraction or summation of repeated snapshots.')
+
+
 def main(campaign='d298'):
     global RAW, RUN, SOURCE, REFERENCE, OUT
     health_name = 'smoke_remote_health2.json'
@@ -246,6 +324,17 @@ def main(campaign='d298'):
             'D349 soft scaling targets are retained in D352, so this is not a single-change performance contrast. '
             'Candidate changes only the same-transaction HOST postcheck from D349. Full4000 versus '
             'D349 and D336 is required; no numerical/formal G1/G2 qualification or prefix extrapolation.')
+    elif campaign == 'd357':
+        REFERENCE = ROOT/'results/ieee_tc/p2_backend_qualification/d352_20261008/7b_hit_validation_100/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d352_7b_hit_validation_100.json'
+        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d357_20261008'
+        RUN = RAW/'7b_interleave_validation_100'
+        SOURCE = RUN/'experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d357_7b_interleave_validation_100.json'
+        OUT = ROOT/'paper_results/ieee_tc/p2_backend/d357_control_interleave/smoke1'
+        health_name = 'remote_health.json'
+        comparison_caveat = ('D352 is descriptive same-input prefix context only. D357 retains D353 controls, '
+            'enables atomic_control_yield_v1 and uses the corresponding complete D356 measured profiles. '
+            'Trigger counters do not prove latency savings. Unchanged full4000 versus D353/D336 is required; '
+            'no numerical/formal qualification or prefix GPU-s extrapolation.')
     elif campaign != 'd298':
         raise ValueError('unknown frozen smoke identity')
     assert not OUT.exists(), 'never overwrite a prior audit'
@@ -261,7 +350,7 @@ def main(campaign='d298'):
     assert outcome['run_completed'] and not outcome['error']
     assert not outcome['cleanup_errors'] and not outcome['measurement_errors']
     journal = RAW/('attempt2/smoke_remote_transfers.jsonl' if campaign in ('d322-attempt2', 'd331-attempt2') else 'smoke_remote_transfers.jsonl')
-    if campaign in ('d345', 'd352'):
+    if campaign in ('d345', 'd352', 'd357'):
         journal = RAW/'remote_transfers.jsonl'
     rows = [json.loads(line) for line in journal.read_text().splitlines()]
     remote = {r['transfer_id']:r for r in rows}
@@ -269,7 +358,7 @@ def main(campaign='d298'):
     assert len(remote) == len(rows) == len(transfers)
     assert set(remote) == {r['http_transfer_id'] for r in transfers}
     health = read(RAW/health_name)
-    if campaign in ('d331', 'd331-attempt2', 'd334', 'd340', 'd345', 'd352'):
+    if campaign in ('d331', 'd331-attempt2', 'd334', 'd340', 'd345', 'd352', 'd357'):
         clock = health['7b']['clock_id']
     else:
         clock = health['clock_id'] if campaign in ('d322', 'd322-attempt2') else health['health']['clock_id']
@@ -321,10 +410,10 @@ def main(campaign='d298'):
         comparison_caveat=comparison_caveat,
         raw_evidence=[dict(path=str(path),sha256=sha256(path)) for path in
             (SOURCE,REFERENCE,outcome_path,journal,WARM,INDEX,
-             RAW/('remote_monitor.log' if campaign in ('d345', 'd352') else
+             RAW/('remote_monitor.log' if campaign in ('d345', 'd352', 'd357') else
                   'attempt2/smoke_remote_monitor.log' if campaign in ('d322-attempt2', 'd331-attempt2') else 'smoke_remote_monitor.log'),
              ROOT/'scripts/run_all_experiments.py', Path(__file__))])
-    if campaign in ('d302', 'd308', 'd310', 'd312', 'd317', 'd322', 'd322-attempt2', 'd331', 'd331-attempt2', 'd334', 'd340', 'd345', 'd352'):
+    if campaign in ('d302', 'd308', 'd310', 'd312', 'd317', 'd322', 'd322-attempt2', 'd331', 'd331-attempt2', 'd334', 'd340', 'd345', 'd352', 'd357'):
         result['admission_waits'] = summarize_admission_waits(requests)
         result['mechanism_events'] = {k:v for k,v in outcome['mechanism_events'].items()
             if k in ('_ieee_source_observation_stats', '_ieee_route_cache_stats')}
@@ -340,10 +429,13 @@ def main(campaign='d298'):
             causal_latency_savings=None, requires_new_observation=True)
     if campaign == 'd331-attempt2':
         result['planning_publication_trigger'] = planning_publication_trigger(outcome['mechanism_events'])
-    if campaign in ('d334', 'd340', 'd345', 'd352'):
+    if campaign in ('d334', 'd340', 'd345', 'd352', 'd357'):
         result['native_pending_turn_trigger'] = native_pending_turn_trigger(requests)
-    if campaign == 'd352':
+    if campaign in ('d352', 'd357'):
         result['hit_host_transaction_trigger'] = hit_host_transaction_trigger(requests)
+    if campaign == 'd357':
+        result['control_interleave_trigger'] = control_interleave_trigger(requests)
+        result['candidate_trigger_gate_passed'] = result['control_interleave_trigger']['triggered']
     if campaign == 'd340':
         service_log = RUN/'launch.launch/service.log'
         archives = list(dict.fromkeys(re.findall(
@@ -370,5 +462,5 @@ def main(campaign='d298'):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--campaign', choices=('d298','d302','d308','d310','d312','d317','d322','d322-attempt2','d331','d331-attempt2','d334','d340','d345','d352'), default='d298')
+    parser.add_argument('--campaign', choices=('d298','d302','d308','d310','d312','d317','d322','d322-attempt2','d331','d331-attempt2','d334','d340','d345','d352','d357'), default='d298')
     main(parser.parse_args().campaign)

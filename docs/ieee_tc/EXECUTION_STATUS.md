@@ -13,6 +13,17 @@ user execution-priority override, not a silent rewrite of the approved source pl
 
 ## CURRENT — D356 calibration COMPLETE; D357 Full100 preparation verified
 
+D357 Full receipt analyzer is now implemented and169CPU checks passed. Each
+final registration binds request/intent, retired scheduler owner, actual TP1
+worker PID and clock; snapshots are ordered per owner, single/zero-trigger
+owners retained. No model-step/GPU-idle/causal savings inferred. Existing runner
+and all sealed preparation refs unchanged. Additive analysis preparation archive
+6579B verified, original invalid checksum retained alongside valid checksum.
+Analysis test scopefe93ee8dd90a4db583322a18f37273ee closed exact-owned. Empty
+analysis seal scope27d8550cb174428ea8e167758f22855a remains to close separately
+via analysis_seal_scope.json; original preparation scope remains for the starter.
+NEXT checkpoint/push analyzer, then start_validated.py → Full100. No GPU run yet.
+
 D356 original+gap measurements CLOSED; all local GPU/remote services released.
 Do not relaunch either source run or rerun either remote stop helper.
 Gap100/100native calls passed, all six intended HOST/NVMe classes measured;
