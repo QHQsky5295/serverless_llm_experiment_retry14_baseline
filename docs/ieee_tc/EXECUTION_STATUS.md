@@ -11,7 +11,30 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D346 Full4000 COMPLETE/AUDITED; C14 working point not accepted
+## CURRENT — D346 COMPLETE/AUDITED/BACKED; D347 retained-data diagnosis
+
+D346 checkpoint localHEAD/independent remoteV2 both
+33def6fbbdc0c5f2e0c9173f7a0f910514ff960b;22paths,17hashes,25archive members
+verified. AllD346service/launcher/audit/seal/verifier resources closed. First
+seal attempt used systemPython withoutNumPy; no inference repeated, preserved
+attempt then existingCPUanalysis environment completed seal. No code rollback.
+
+D347analysis2 COMPLETE,96CPUtests pass,peak696680448B/high/max/OOM/swap0.
+ReferenceD336projection reused. Actual17readyepochs+1cancelled retained;the
+cancellednaturalstart has no engine_ready_at and serves no request. Oldanalysis1
+stopped on this unsupported assumption;its exactcode/log/archive preserved.
+Onlymeasured closedstartup intervals enter overlap;cancelledrecord retained
+separately,all4000requests/allphysicalleases stillcounted,noinventedreadytime.
+NoGPU/remoteexperiment running. Analysis03done;closeexactscope andcheckpoint.
+
+Firsttwofixed500-requestphasesjointmisses61→197;allphases163→345.
+Meanothernativeoverlap1.394933→3.211822;scaleupdecisions10→17,retire7→16.
+Same518arrivalcohortin eitherclosedstartup:TPOTmiss31→116;outside49→125.
+Prefill/load overlap alsoincreases;notisolatedcausality. SeeD347diagnosisdoc.
+NEXT hypothesis: useexistingC14D343/D344measured service/length evidence to
+derive latency-constrained softtarget distinctfromphysicalC14, preservingIEEE
+controller. Firstcheckprofilecoverage;nointerpolated/defaultsamples,nonew
+capacitysweep,nonewSLO/batch8ruler,notyetimplementedoraccepted.
 
 D346 execution f4f6d4784d22b5f1afb1b7c6f7ed26bd24d14851 completed4000/4000
 native-contract requests, no failure. ActualGPUrelease/service-removal and
@@ -37,10 +60,10 @@ Decision docs/ieee_tc/D346_COMPLETE_W0_DECISION.md.
 Main audit e18ae... invocation035a7c4012174dafa2157fbcd63f24fd completed/closed.
 Postrun disk~151GiB: recheck exactavailable/growth before nextheavy task.
 
-NEXT: finish result seal/backup, then retained phase/load/TPOT and activation
-diagnosis againstD336 using existing analyzers; verify measured throughput vs
-physical-slot/control-capacity distinction with history and primarysources
-before any new hypothesis. No blind rerun, thresholdrelaxation orfigures.
+NEXT: seal/backup D347, then the measured-service softtarget question above.
+History and officialvLLM0.30/Ray2.59/Knative sources checked; theysupport the
+capacity/target distinction,notcausalperformanceproof. No blind rerun,
+thresholdrelaxation orfigures.
 7B target remainsOPEN, then3B, thenpausedbaselines/M1M2/ablations/sensitivities.
 D294/D295 registered numericalblocks alreadycomplete; do not rerun them.
 

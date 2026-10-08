@@ -11,7 +11,8 @@ from scripts.ieee_tc.check_d299_full_context import (
 
 from scripts.ieee_tc.analyze_d297_full import (
     audit_preparation_attribution, decode_overlap_summary, native_load_overlap_summary, prefill_overlap_summary,
-    lifecycle_gaps, paired_timeline_groups, inspect_retained_lifecycle,
+    lifecycle_gaps, paired_timeline_groups, inspect_retained_lifecycle, capacity_phase_groups,
+    partition_activation_readiness,
     routing_load_consistency, inspect_retained_routing_load,
     routing_length_diagnosis, inspect_retained_routing_lengths,
     lifecycle_pair_decomposition, inspect_retained_service_lifecycle,
@@ -220,6 +221,67 @@ class RetainedLifecycle(unittest.TestCase):
             paired_timeline_groups(pair, contrast=('d336', 'd335'))
         with tempfile.TemporaryDirectory() as root, self.assertRaises(FileExistsError):
             inspect_retained_lifecycle(root, contrast=('d335', 'd336'))
+
+    def test_c14_pair_same_estimator_no_reverse_or_overwrite(self):
+        original = self.pair()
+        pair = dict(d336=original['d315'], d346=original['d318'])
+        result = paired_timeline_groups(pair, contrast=('d336', 'd346'))
+        self.assertEqual(result['pairs'], paired_timeline_groups(original)['pairs'])
+        with self.assertRaises(ValueError):
+            paired_timeline_groups(pair, contrast=('d346', 'd336'))
+        with tempfile.TemporaryDirectory() as root, self.assertRaises(FileExistsError):
+            inspect_retained_lifecycle(root, contrast=('d336', 'd346'))
+
+    def phase_rows(self):
+        return [dict(request_id=f'r{i:05}', arrival_offset_s=float(i), ttft_ms=1.,
+            tpot_ms=2., mean_other_native_requests=3., ttft_pass=True,
+            timing_tpot_miss=(i == 501), timing_joint_pass=(i != 501),
+            startup_overlap=(i == 3999)) for i in range(4000)]
+
+    def test_cancelled_epoch_retained_but_not_fabricated_as_ready(self):
+        ready = dict(activation_id='r', target_replica='r', category='initial',
+            clock_id='clock', trigger_at=0., engine_ready_at=2., state='runtime_ready')
+        cancelled = dict(activation_id='c', target_replica='c', category='natural_scaleout',
+            clock_id='clock', trigger_at=10., state='cancelled', preparation_terminal_at=12.)
+        epochs = [ready, cancelled]
+        before = copy.deepcopy(epochs)
+        measured, unready = partition_activation_readiness(epochs, [dict(instance_id='r')], clock_id='clock')
+        self.assertEqual(measured, [ready])
+        self.assertEqual(unready, [cancelled])
+        self.assertNotIn('engine_ready_at', cancelled)
+        self.assertEqual(epochs, before)
+        for mutation in ('served_cancelled', 'unknown_state', 'bad_ready', 'clock'):
+            copy_epochs = copy.deepcopy(epochs)
+            requests = [dict(instance_id='r')]
+            if mutation == 'served_cancelled': requests[0]['instance_id'] = 'c'
+            elif mutation == 'unknown_state': copy_epochs[1]['state'] = 'initializing'
+            elif mutation == 'bad_ready': copy_epochs[1]['engine_ready_at'] = None
+            else: copy_epochs[1]['clock_id'] = 'other'
+            with self.subTest(case=mutation), self.assertRaises(ValueError):
+                partition_activation_readiness(copy_epochs, requests, clock_id='clock')
+
+    def test_fixed_phases_keep_all_rows_and_type1_statistics(self):
+        rows = self.phase_rows()
+        before = copy.deepcopy(rows)
+        groups = capacity_phase_groups(list(reversed(rows)))
+        self.assertEqual([g['count'] for g in groups], [500]*8)
+        self.assertEqual(groups[1]['timing_tpot_misses'], 1)
+        self.assertEqual(groups[1]['timing_joint_misses'], 1)
+        self.assertEqual(groups[7]['startup_overlap_requests'], 1)
+        self.assertEqual(groups[0]['p95_tpot_ms'], 2.)
+        self.assertEqual(groups[0]['mean_other_native_requests'], 3.)
+        self.assertEqual(rows, before)
+
+    def test_phase_missing_duplicate_nonfinite_or_untyped_decisions_rejected(self):
+        for case in ('missing', 'duplicate', 'nonfinite', 'bool', 'negative'):
+            rows = self.phase_rows()
+            if case == 'missing': rows.pop()
+            elif case == 'duplicate': rows[-1] = rows[0]
+            elif case == 'nonfinite': rows[0]['tpot_ms'] = float('nan')
+            elif case == 'bool': rows[0]['ttft_pass'] = 'False'
+            else: rows[0]['mean_other_native_requests'] = -1.
+            with self.subTest(case=case), self.assertRaises(ValueError):
+                capacity_phase_groups(rows)
 
     def resource_pair(self):
         old = dict(physical=self.physical(), deployment=dict(clock_id='clock', arrival_start_s=10.))

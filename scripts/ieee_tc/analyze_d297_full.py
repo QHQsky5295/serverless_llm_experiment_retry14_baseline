@@ -632,7 +632,70 @@ LIFECYCLE_CONTRASTS = {
         'd337_retained_capacity_lifecycle_v1',
         ('a3b6ee044db0ba46915e94ad1de8e67f638b3b0f188fed7eaac1e69078ffaa97',
          'b8452f4f577446128b4a77a7117485660f3b9841caf831ad867a58d9a9587a05')),
+    ('d336', 'd346'): (
+        'd347_retained_native_capacity_lifecycle_v1',
+        ('b8452f4f577446128b4a77a7117485660f3b9841caf831ad867a58d9a9587a05',
+         '52e7d3fddde1f4bd8ae05831dd4ce0d69e291f9c2b9aba3a7ef5b659a987151e')),
 }
+
+
+def partition_activation_readiness(activations, requests, *, clock_id):
+    """Preserve non-ready epochs without inventing a ready/cancel timestamp.
+
+    Only measured trigger-to-ready intervals enter closed startup overlaps.
+    All requests must belong to ready epochs. Resource accounting is separate
+    and still includes every physical lease, including unused/cancelled startup.
+    """
+    ready, unready, seen = [], [], set()
+    for a in activations:
+        identity, begin = a['activation_id'], a['trigger_at']
+        if (not identity or identity in seen or a['target_replica'] != identity
+                or a['clock_id'] != clock_id
+                or a['category'] not in ('initial', 'natural_scaleout', 'controlled')
+                or type(begin) not in (int, float) or not math.isfinite(begin)):
+            raise ValueError('unique same-clock activation identity required')
+        seen.add(identity)
+        if 'engine_ready_at' in a:
+            end = a['engine_ready_at']
+            if type(end) not in (int, float) or not math.isfinite(end) or end < begin:
+                raise ValueError('finite ordered actual engine-ready timestamp required')
+            ready.append(a)
+        elif a.get('state') in ('cancelled', 'failed', 'startup_ownership_unresolved'):
+            unready.append(a)
+        else:
+            raise ValueError('missing readiness without a recorded non-ready terminal state')
+    if not requests or not {r['instance_id'] for r in requests} <= {a['activation_id'] for a in ready}:
+        raise ValueError('all served requests must bind to an actually ready epoch')
+    return ready, unready
+
+
+def capacity_phase_groups(records):
+    """All eight original 500-request phases; native overlap is not kernel batch."""
+    if len(records) != 4000 or len({r['request_id'] for r in records}) != 4000:
+        raise ValueError('complete unique 4000-request population required')
+    ordered = sorted(records, key=lambda r: (r['arrival_offset_s'], r['request_id']))
+    for r in ordered:
+        for k in ('arrival_offset_s', 'ttft_ms', 'tpot_ms', 'mean_other_native_requests'):
+            if type(r[k]) not in (int, float) or not math.isfinite(r[k]) or r[k] < 0:
+                raise ValueError('finite nonnegative phase measurement required')
+        for k in ('ttft_pass', 'timing_tpot_miss', 'timing_joint_pass', 'startup_overlap'):
+            if type(r[k]) is not bool:
+                raise ValueError('explicit timing/overlap booleans required')
+    groups = []
+    for phase in range(8):
+        rows = ordered[phase*500:(phase+1)*500]
+        groups.append(dict(phase=phase, count=len(rows),
+            first_arrival_s=rows[0]['arrival_offset_s'], last_arrival_s=rows[-1]['arrival_offset_s'],
+            timing_ttft_misses=sum(not r['ttft_pass'] for r in rows),
+            timing_tpot_misses=sum(r['timing_tpot_miss'] for r in rows),
+            timing_joint_misses=sum(not r['timing_joint_pass'] for r in rows),
+            startup_overlap_requests=sum(r['startup_overlap'] for r in rows),
+            mean_ttft_ms=mean(r['ttft_ms'] for r in rows),
+            p95_ttft_ms=percentile([r['ttft_ms'] for r in rows], .95),
+            mean_tpot_ms=mean(r['tpot_ms'] for r in rows),
+            p95_tpot_ms=percentile([r['tpot_ms'] for r in rows], .95),
+            mean_other_native_requests=mean(r['mean_other_native_requests'] for r in rows)))
+    return groups
 
 
 def paired_timeline_groups(runs, *, contrast=('d315', 'd318')):
@@ -703,6 +766,40 @@ def inspect_retained_lifecycle(output, *, contrast=('d315', 'd318')):
     OUT.mkdir(parents=True, exist_ok=False)
     identities = dict(zip(contrast, digests))
     for name, digest in identities.items():
+        if contrast == ('d336', 'd346') and name == 'd336':
+            # Reuse the already sealed full reference projection; do not rescan
+            # its large raw outcome merely to reproduce identical intervals.
+            cache = ROOT/'paper_results/ieee_tc/p2_backend/d337_capacity_lifecycle/analysis1'
+            seal = read(cache/'manifest.json')
+            for filename in ('summary.json', 'd336_intervals.csv', 'transactions.csv'):
+                assert sha256(cache/filename) == seal['outputs'][filename]
+                paths.append(cache/filename)
+            cached = read(cache/'summary.json')['runs']['d336']
+            assert cached['source']['source_sha256'] == digest
+            assert sha256(Path(cached['source']['source'])) == digest
+            with (cache/'d336_intervals.csv').open(newline='') as f:
+                records = list(csv.DictReader(f))
+            for r in records:
+                for k in ('prompt_tokens', 'tokens'):
+                    r[k] = int(r[k])
+                for k in ('arrival_offset_s', 'ttft_ms', 'admission_ms', 'service_ms',
+                          'tpot_ms', 'e2e_s', 'mean_other_native_requests'):
+                    r[k] = float(r[k])
+                for k in ('ttft_pass', 'timing_tpot_miss', 'timing_joint_pass', 'startup_overlap'):
+                    if r[k] not in ('True', 'False'):
+                        raise ValueError('invalid cached timing decision')
+                    r[k] = r[k] == 'True'
+            assert len(records) == 4000
+            summaries[name] = cached
+            retained[name] = dict(requests=records, lifecycle=cached['lifecycle'],
+                activation_offsets=cached['activation_offsets'])
+            for family in ('decode', 'native', 'prefill'):
+                groups.extend(dict(run=name, family='load' if family=='native' else family, **g)
+                              for g in cached[family]['groups'])
+            with (cache/'transactions.csv').open(newline='') as f:
+                transactions.extend(r for r in csv.DictReader(f) if r['run'] == name)
+            paths.extend([cache/'manifest.json', Path(cached['source']['source'])])
+            continue
         prior = ROOT/f'paper_results/ieee_tc/p2_backend/{name}_full_w0/validated1'
         seal = read(prior/'manifest.json')
         for filename, expected in seal['outputs'].items():
@@ -720,6 +817,11 @@ def inspect_retained_lifecycle(output, *, contrast=('d315', 'd318')):
         deployment, physical = read(deployment_path), read(physical_path)
         query = 'fromstream(2|truncate_stream(inputs | select(.[0][:2] == ["mechanism_events","_ieee_activations"])))'
         activations = json.loads(subprocess.check_output(['jq','-cn','--stream',query,str(outcome)]))
+        unready = []
+        if contrast == ('d336', 'd346'):
+            write(name+'_all_activations.json', activations)
+            activations, unready = partition_activation_readiness(
+                activations, requests, clock_id=deployment['clock_id'])
         decode = decode_overlap_summary(requests, activations, clock_id=deployment['clock_id'],
             arrival_start=deployment['arrival_start_s'], thresholds=audit['thresholds'])
         native = native_load_overlap_summary(requests, decode.pop('requests'), clock_id=deployment['clock_id'])
@@ -759,6 +861,10 @@ def inspect_retained_lifecycle(output, *, contrast=('d315', 'd318')):
         transactions.extend(dict(run=name, **g) for g in native['transactions'])
         summaries[name] = dict(source=evidence, stats=stats, lifecycle=life, activation_offsets=offsets,
             decode=decode, native=native, prefill=prefill)
+        if contrast == ('d336', 'd346'):
+            summaries[name].update(unready_activations=unready,
+                startup_overlap_definition='Measured trigger-to-ready intervals only. Non-ready epochs retained separately; no ready/cancel time inferred. All physical leases remain in U.',
+                all_startup_exposure_complete=not unready)
         retained[name] = dict(requests=records, lifecycle=life, activation_offsets=offsets)
         paths.extend([source, outcome, deployment_path, physical_path, Path(evidence['physical_source']),
             prior/'manifest.json', prior/'audit.json', prior/'requests.csv', prior/'control_samples.csv'])
@@ -768,6 +874,9 @@ def inspect_retained_lifecycle(output, *, contrast=('d315', 'd318')):
     paired = paired_timeline_groups(retained, contrast=contrast)
     table('paired_arrival_cohorts.csv', paired.pop('pairs'))
     table('paired_groups.csv', paired.pop('groups'))
+    if contrast == ('d336', 'd346'):
+        table('phases.csv', [dict(run=name, **row) for name in contrast
+            for row in capacity_phase_groups(retained[name]['requests'])])
     # Family summaries have differing columns; retain their complete fields in JSON.
     write('overlap_groups.json', groups)
     table('transactions.csv', transactions)
@@ -1536,6 +1645,8 @@ if __name__ == '__main__':
         help='D327 retained D323/D326 lifecycle cohorts; same D319 method, no inference')
     parser.add_argument('--capacity-lifecycle-output', type=Path,
         help='D337 retained D335/D336 capacity/lifecycle cohorts; same D319 method, no inference')
+    parser.add_argument('--c14-lifecycle-output', type=Path,
+        help='D347 D336/D346 native-capacity comparison; reuse sealed D336 projection, no inference')
     parser.add_argument('--routing-load-output', type=Path,
         help='D320 retained D315/D318 routing load consistency, no inference')
     parser.add_argument('--routing-length-output', type=Path,
@@ -1552,7 +1663,7 @@ if __name__ == '__main__':
                                   args.lifecycle_output, args.routing_load_output, args.routing_length_output,
                                   args.service_lifecycle_output, args.drain_lifecycle_output,
                                   args.capacity_lifecycle_output, args.dispatch_gate_output,
-                                  args.dispatch_context_output)) > 1:
+                                  args.dispatch_context_output, args.c14_lifecycle_output)) > 1:
         parser.error('choose one retained diagnostic')
     if args.dispatch_context_output is not None:
         inspect_retained_dispatch_context(args.dispatch_context_output)
@@ -1560,6 +1671,8 @@ if __name__ == '__main__':
         inspect_retained_dispatch_gate(args.dispatch_gate_output)
     elif args.capacity_lifecycle_output is not None:
         inspect_retained_lifecycle(args.capacity_lifecycle_output, contrast=('d335', 'd336'))
+    elif args.c14_lifecycle_output is not None:
+        inspect_retained_lifecycle(args.c14_lifecycle_output, contrast=('d336', 'd346'))
     elif args.drain_lifecycle_output is not None:
         inspect_retained_lifecycle(args.drain_lifecycle_output, contrast=('d323', 'd326'))
     elif args.service_lifecycle_output is not None:
