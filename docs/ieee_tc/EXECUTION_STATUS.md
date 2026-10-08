@@ -11,7 +11,30 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D362 calibration COMPLETE and exported; 7B performance OPEN
+## CURRENT — D363 first100 CPU-qualified, launch next; 7B performance OPEN
+
+D363 preparation passed430model/native tests and50OSguard tests, exact child
+model identity,200/24profile loaders and unchangedD358controller verification.
+First480test attempt had4OSfixture errors because the wholepreflightmodule ran
+inmodelPython lackingpidfd_send_signal. Retainedfailure; actualwatchdogalready
+uses /usr/bin/python3. Reranall430nonOS tests natively and50OS tests inactual
+watchdogPython, noproductioncodeorcheckweakening. Failedscope9a8465f closed.
+Preparation scope1e0ca791 is empty; start.py closes it once beforefreshlaunchgate.
+Peak693661696B,high/max/OOM/swap0; archive19920B. NoGPUvalidationyet.
+
+2026-10-09: D362 closed/backed up, noGPUorremotejoblive. Reuse its exact fresh
+profiles forD363 first100, sameW0/sourceinputs, no newassets. D363 config differs
+fromD358 only paths, protected_file_owner_turn_v1, identity-bound initializerIDs
+and D362 profilebindings. Existing runner extended with explicitd363 identity.
+No newservingchange, autoscaler/tokens/capacity/SLO/timeout remainunchanged.
+Bounded native CPUtests and exact child-model/profile assembly verification
+are the next launchgate; do not claim GPUvalidation until it actuallyfinishes.
+Rawd363_20261009 has reused launch/health/stop/capture helpers; preparation script
+seals source/testchecks beforepush. See D363_FILE_DEMAND_VALIDATION.md.
+Afterqualification: first100→actualrelease→ownedcleanup→receipt/timing/fileaudit
+→unchanged4000W0 againstD358/D353/D336. Nofigures.7B→3B→pausedbaselines unchanged.
+
+## D362 calibration COMPLETE and exported; retained reference
 
 2026-10-09: the same D362 source run completed1669/1669 native calls,
 including34warmups and1635representative measurements. All200service classes
