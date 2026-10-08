@@ -1,0 +1,111 @@
+{
+  "kind": "d364_failure_aware_context_v1",
+  "planned": 4000,
+  "terminal": 4000,
+  "successful_returns": 3999,
+  "failed": 1,
+  "n_correct": null,
+  "n_good": null,
+  "all_correct_gate_pass": false,
+  "formal_qualification": false,
+  "ranking_eligible": false,
+  "input_identity_equal": true,
+  "input_fields_checked": [
+    "request_id",
+    "adapter_id",
+    "scheduled_arrival_offset_s",
+    "source_expected_output_tokens",
+    "requested_completion_tokens",
+    "canonical_prompt_sha256",
+    "generation_contract"
+  ],
+  "control_binding_pass_counts": {
+    "request_adapter_binding": 3999,
+    "owner_binding": 3999,
+    "lease_binding": 3999,
+    "native_adapter_binding": 3999,
+    "slot_binding": 3999,
+    "frozen_content_binding": 3999,
+    "acquired_and_released": 3999,
+    "common_native_clock": 3999,
+    "acquired_before_dispatch": 3999,
+    "token_digest_transport": 3999
+  },
+  "successful_dispatch_tier_counts": {
+    "remote": 134,
+    "gpu": 2671,
+    "nvme": 796,
+    "host": 398
+  },
+  "max_successful_timing_errors_ms": {
+    "ttft_ms": 0.0,
+    "tpot_ms": 0.0,
+    "stage_ms": 0.0
+  },
+  "physical_gpu_seconds_observed": 13431.62944322708,
+  "window_gpu_seconds": {
+    "arrival": 13350.462400590884,
+    "cleanup": 38.70163530076388,
+    "drain": 4.973949384409934,
+    "pre_arrival": 37.49145795102231
+  },
+  "terminal_meta": {
+    "run_completed": true,
+    "error": null,
+    "cleanup_errors": [],
+    "measurement_errors": []
+  },
+  "remote": {
+    "transfers": 132,
+    "wire_bytes": 131480060,
+    "pack_performed": false,
+    "clock": "remote-process-monotonic:f33c93c3bcf14a2cad54cdd141a60b9a"
+  },
+  "remote_stop": {
+    "all_owned_units_inactive": true,
+    "ports_18080_18081_absent": true,
+    "local_gpu_release_verified_before_remote_stop": true,
+    "download_hashes_match_remote": true,
+    "hashes": {
+      "remote_transfers.jsonl": "d73343e863984ad98949eb9895ae1c8335387661c9e208deccad345bbab75c07",
+      "remote_monitor.log": "18add14cc23c39863a8425010899c92a9072b32a6b02301cda6fa3c01823fc9d"
+    },
+    "stop_log_sha256": "3b7276f38394c60b1f784479823509359b83bab68017a2c12f6c407ccced8e2c"
+  },
+  "resources": {
+    "samples": 4029,
+    "peak_bytes": 21129539584,
+    "min_host_available_bytes": 93283561472,
+    "max_swap_bytes": 0,
+    "memory_events": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    },
+    "event_counts": {
+      "watchdog_ready": 1,
+      "resource_sample": 4029,
+      "gpu_terminal_census": 1,
+      "service_domain_gone": 1
+    }
+  },
+  "protection_raw": {
+    "kind": "protected_artifact_verification",
+    "pass": false,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [
+      "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"
+    ],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "no_figures": true,
+  "confidence_interval": null,
+  "caveats": [
+    "3999 successful returns are a conditional audit population, not 4000 correct requests.",
+    "The failed offered request is preserved verbatim; its tier/timing are not imputed.",
+    "Control binding and token count do not qualify kernel arithmetic.",
+    "Cleanup success is not workload correctness. No performance ranking or SLO acceptance."
+  ]
+}

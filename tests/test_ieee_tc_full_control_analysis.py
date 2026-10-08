@@ -209,30 +209,60 @@ class FullControlClosure(prior.FullRunClosureSelection):
 
 
 class FullControlReferences(unittest.TestCase):
+    campaign = 'd358'
+    references = ('d353', 'd336', 'd349')
+
     def test_registered_contrasts_and_non_overwriting_paths(self):
         from scripts.ieee_tc import check_d299_full_context as context
-        self.assertEqual(context.REGISTERED_REFERENCES['d358'], ('d353', 'd336', 'd349'))
+        self.assertEqual(context.REGISTERED_REFERENCES[self.campaign], self.references)
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            for reference, suffix in ((None, 'context1'), ('d353', 'context1'),
-                                      ('d336', 'context_d336'), ('d349', 'context_d349')):
+            for reference in (None, *self.references):
+                suffix = 'context1' if reference in (None, self.references[0]) else f'context_{reference}'
                 with self.subTest(reference=reference), patch.multiple(
                         context, ROOT=root, RAW=None, RUN=None, OUT=None), patch.object(
                         context.p, 'check_plan', side_effect=RuntimeError('plan gate reached')):
                     with self.assertRaisesRegex(RuntimeError, 'plan gate reached'):
-                        context.main('d358', reference)
-                    output = root/f'paper_results/ieee_tc/p2_backend/d358_full_w0/{suffix}'
+                        context.main(self.campaign, reference)
+                    output = root/f'paper_results/ieee_tc/p2_backend/{self.campaign}_full_w0/{suffix}'
                     self.assertEqual(context.OUT, output)
                     self.assertFalse(output.exists())
                     output.mkdir(parents=True)
                     with self.assertRaises(AssertionError):
-                        context.main('d358', reference)
+                        context.main(self.campaign, reference)
                     output.rmdir()
 
     def test_unregistered_reference_rejected(self):
         from scripts.ieee_tc import check_d299_full_context as context
         with self.assertRaises(ValueError):
-            context.main('d358', 'd303')
+            context.main(self.campaign, 'd303')
+
+
+class FullFileDemandClosure(prior.FullRunClosureSelection):
+    campaign = 'd364'
+    campaign_date = '20261009'
+
+
+class FullFileDemandReferences(FullControlReferences):
+    campaign = 'd364'
+    references = ('d358', 'd353', 'd336')
+
+
+class FullFileDemandFailureEvidence(unittest.TestCase):
+    def test_failure_registration_has_separate_non_overwriting_output(self):
+        from scripts.ieee_tc import check_d299_full_context as context
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            curated = root/'curated'
+            output = curated/'d364_full_w0/failure_audit1'
+            with patch.multiple(context, ROOT=root, CURATED=curated), patch.object(
+                    context.p, 'check_plan', side_effect=RuntimeError('plan gate reached')):
+                with self.assertRaisesRegex(RuntimeError, 'plan gate reached'):
+                    context.audit_d309_failure('d364')
+                self.assertFalse(output.exists())
+                output.mkdir(parents=True)
+                with self.assertRaises(AssertionError):
+                    context.audit_d309_failure('d364')
 
 
 class FullFileDemandAudit(unittest.TestCase):

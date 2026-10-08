@@ -11,7 +11,127 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D364 unchanged complete W0 preparation; 7B performance OPEN
+## CURRENT — D364 Full W0 COMPLETE with one failure; 7B NOT qualified
+
+2026-10-09: complete4000 terminal population,3999successful/native-contract
+returns,1failure req_03511 education_lora_0127. Sourceb90a4f6874d0f5f8a9c0a1ad8ddf749430e11c46b32c35c9eaa71c3edb6762aa,
+298535077B; executioned98ac3aaf388983f8baa8ec17cc13461909a54e.
+Failure occurs before native demand loading at demand_witness line886:
+`ValueError: file demand source content is not confirmed`. Full traceback is
+retained in failure_observation, not truncated. Compared operands are not logged;
+mutable footprint comparison is a code-level lead, NOT established historical
+root cause. Do not bypass content/signature/lease/capacity guards.
+
+ActualGPUrelease and servicepathremoval confirmed; tmux ended, fourGPUs idle.
+stop_remote.sh executed ONCE:3ownedunitsinactive. collect_closure.py stopped
+launcher c7256c6a and storage bf65f1d5, verified bilateral remotejournalSHAs.
+First run_audit attempt closed starter79252da1 and collection1bb64e85, then
+failed importing numpy in systemPython; noGPUrerun or source modification.
+Originalhelper+SHA and audit_attempt1_failure.json retained. Resume verified
+already-closed receipts (did NOT repeat closures), stopped failedaudit c74b1c16,
+and used existing analysisPython for parsing.142CPUtests and D309/D313 reused
+failure-aware audit passed; offline_execution_receipt returncodes[0,0].
+Offline scope dc7b8599 closed by seal_checkpoint.py without hardkill.
+Failure-evidence archive3403463B passed source/checksum/protected-file/secrets
+checks;12publication paths explicitly staged. Verifier scope2e56a516 is empty;
+finish_backup.py owns its final cleanup and remote-equality receipt. Read
+raw/closure_backup_receipt.json before repeating any cleanup/backup step.
+
+Failure audit:10native binding checks3999each, successful timing errors0;
+N_correct/N_good remainunknown,all_correct_gate=false,ranking_eligible=false.
+PhysicalGPU13431.62944322708s is failed-run observed resource, not qualifiedG1.
+132remote fetches/131480060wireB,packing0;4029resource samples,
+servicepeak21129539584B,minhost93283561472B,high/max/OOM/swap0.
+Threeclosedhistorical main_outcome logs(D349/D353/D358) compressedlosslessly
+using unchangedD339 procedure; roundtripSHAsverified,1357942784Breclaimed.
+Uncompressed historical main_outcome paths now have .json.gz retained siblings;
+curated provenance/contentSHA unchanged. CurrentD364 source/failure untouched.
+
+NEXT: confirm closure_backup_receipt.json, then deterministic validation of
+immutable content versus mutable physical-footprint hypothesis,
+with historicalsource and fresh primary-source checks before serving changes.
+No extra GPU run, figures, baseline or3B work. Mainline7B→3B→pausedbaselines.
+Do not invoke the all-success D364 analyzer/contexts or repeat completedhelpers.
+The raw run_audit.py now contains explicit failure-only/resume checks and has
+completed; do NOT rerun it. SeeD364_COMPLETE_FAILURE_DECISION.md.
+
+### D364 live history — terminal; retained evidence
+
+2026-10-09 NEW evidence at sample3284: first request failure in the final phase.
+Terminaljournal req_03511 has success=false, native_contract_matched=false,
+error_type=ValueError. Live3524terminal/3523success/1failure. Service log reports
+`file demand source content is not confirmed`, raised by demand_witness in
+faaslora/memory/residency_manager.py:886. Do not remove/bypass this guard or
+restart/relabel the run. No resource abort/high/max/OOM/swap event; same live
+pane285600. Continue the unchanged full replay and retain all terminal evidence.
+The existing success-only run_audit.py MUST NOT be executed for this outcome.
+After actual release, stop_remote.sh and collect_closure.py remain applicable
+if their original launch/ownership gates pass; then reuse the existing explicit
+failure-aware audit path (D309/D313), without weakening all-success analyzers.
+The source code compares confirmed_source including mutable footprint fields;
+this is a diagnostic lead, NOT yet attribution of req_03511. Inspect final
+request/evidence and prior source-allocation history before any serving change.
+No formal G1/G2 eligibility is possible for this failed offered population.
+
+2026-10-09: D364 source ed98ac3aaf388983f8baa8ec17cc13461909a54e pushed and
+remote equality verified. Existing guarded runner started all4000 W0 in
+tmux tc-d364-full, pane285600; do not duplicate this run. Preparation scope
+4808f958 closed once by start.py. Starter scope79252da1 owns tmuxserver until
+the session ends; do not close while live. Captured launcher c7256c6a identity
+in rawd364/launcher_identity.json. Service scopea5ba6bb9 is owned and monitored.
+Remote actual1000Mbps/full, prepublished_gzip_v1 healthy; no regenerated assets.
+At watchdog sample75 serving4000 began. Latest verified sample164: same pane,
+host97368481792B, peak19330891776B, high/max/OOM/swap0, disk161078657024B,
+four heldGPUs, noabort. Live37complete/44arrived/0fail is partial, not a source
+audit or performance result. Below150GiB while running is not below the100GiB
+stop floor; never lower the next-start gate. launch.json remains pending.
+Continuation verified same live pane285600 at watchdog494:361complete/366arrived,
+0fail; host96141508608B, peak19678195712B, high/max/OOM/swap0,
+disk160411750400B,4heldGPUs,noabort. Observed natural6scaleups/3scaledowns;
+no completed source or release receipt yet. Previous goal turn made progress
+(prepared, tested, pushed and launched); this turn is a verified wait on the
+same live handle, not a blocker. Source plan read in full again; no config change.
+During replay only lightweight monitoring and preparation of offline-only analysis
+entry points; no serving changes/tests/analysis execution/compression.
+Continuations verified same live pane285600 at samples530/612/674/734, then
+782/851/912/979/1037/1107, then1148/1243/1304/1371 and1402/1474/1533/1593.
+Further verified samples1645/1778/1871 and1916/1997/2055/2156/2219, then
+2414/2490/2546, then2577/2647/2702/2763/2829/2898/2957 on same live
+pane285600. Latest3211complete/3214arrived/0fail in seventhphase.
+Host95169900544B, peak21129539584B,
+high/max/OOM/swap0,disk158596390912B,4heldGPUs,noabort;12scaleups/9scaledowns.
+Earlier asynchronous resource/log samples differed (4heldGPUs/2displayedpool);
+do not infer an instantaneous difference from unmatched sample times. FinalGPU-s
+uses actual allocation/release union, never displayed logical replica count.
+launch.json stillpending; no sourceaudit, comparison or post-release helper
+execution. Previous/current turns are verified waits, no blocker and no reason
+to restart. Mainline7B remains open; no additional serving/config change.
+Post-release collect_closure.py reused fromD363 and run_audit.py reused fromD358
+are prepared in rawd364, NOT executed. The latter closes starter79252da1 and the
+collection scope only after release. Existing analyze_d297_full/check_d299_full_context
+now have drafted d364 registration, refsD358/D353/D336 and reused strict
+file_demand_transaction_trigger fromanalyze_d298_smoke. Closure/reference fixtures
+extended to20261009 without relaxing oldtests. These four offline-only files are
+uncommitted and UNTESTED; run the bounded CPUtests only after GPUrelease, then
+execute the audits. git diff --check passed; serving/model/launcher paths have
+no changes, and rg found no imports of these offline analyzers in those paths.
+No performance data were analyzed during GPU measurement. Executioncommit remains
+ed98ac3; eventual analysiscommit must be recorded separately.
+Latest continuation reread the full source plan after compaction and inspected
+the offline-only diff/run_audit helper without execution. No new serving change,
+tests, compression or remote operation; current source/closure still pending.
+The one-time published-cache approval is already implemented and recorded;
+reuse existing immutable archives, do not regenerate a second delivery pool.
+Following continuation revalidated the same live handle throughout, read the
+complete frozen V1 again, and inspected stop_remote.sh/collect_closure.py without
+executing either. Still a verified wait, not a blocker; no restart or new run.
+NEXT: monitor same run -> actual GPU release -> stop_remote.sh ONCE -> exact-owned
+closure and remote journals -> failure-aware audit retaining all4000 -> backup.
+Do not invoke the success-only full comparison or success-only run_audit.py.
+D363 cleanup already finished; never repeat it. D364 start and raw references
+are sealed in preparation_sources.tar.gz. Numerical correctness/formalG1/G2open.
+
+### D364 preparation — passed
 
 2026-10-09: D363 is closed/backed up at a95aac413995675106693f67cd303f7d11f1366c.
 Do not repeat its cleanup. D364 reuses the candidate and D362 profiles unchanged;

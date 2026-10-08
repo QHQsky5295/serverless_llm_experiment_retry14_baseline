@@ -198,9 +198,11 @@ def audit_d309_failure(campaign='d309'):
     cases = {
         'd309': ('811aadf1cc61d14f58b7ebf59a54f1406d05c8e161003f8fd6da947da662257b', 4040),
         'd313': ('091c7ffe720b413610a2a366ed4e18315ec9896c68f6f1080d279e913d229f7c', 4036),
+        'd364': ('b90a4f6874d0f5f8a9c0a1ad8ddf749430e11c46b32c35c9eaa71c3edb6762aa', 4029),
     }
     expected_source_sha, expected_samples = cases[campaign]
-    raw = ROOT/f'results/ieee_tc/p2_backend_qualification/{campaign}_20261007'
+    date = '20261009' if campaign == 'd364' else '20261007'
+    raw = ROOT/f'results/ieee_tc/p2_backend_qualification/{campaign}_{date}'
     run = raw/'7b_full_w0'
     revision = 'failure_audit2' if campaign == 'd313' else 'failure_audit1'
     out = CURATED/f'{campaign}_full_w0'/revision
@@ -289,7 +291,8 @@ def audit_d309_failure(campaign='d309'):
     remote = {r['transfer_id']:r for r in remote_rows}
     assert len(remote) == len(remote_rows) == len(transfers)
     assert set(remote) == {r['http_transfer_id'] for r in transfers}
-    clock = read(raw/'remote_health.json')['health']['clock_id']
+    health = read(raw/'remote_health.json')
+    clock = health['7b']['clock_id'] if campaign == 'd364' else health['health']['clock_id']
     for r in transfers:
         s = remote[r['http_transfer_id']]
         assert r['state'] == 'published' and r['content_verified'] and r['published_archive_verified']
@@ -346,7 +349,8 @@ def audit_d309_failure(campaign='d309'):
 
 
 REGISTERED_REFERENCES = {'d315': ('d303', 'd314'), 'd353': ('d349', 'd336'),
-                         'd358': ('d353', 'd336', 'd349')}
+                         'd358': ('d353', 'd336', 'd349'),
+                         'd364': ('d358', 'd353', 'd336')}
 
 
 def main(campaign='d299', reference_override=None):
@@ -524,6 +528,22 @@ def main(campaign='d299', reference_override=None):
             'or implementation differences, not single-factor contrasts. '
             'Ordinary Full4000 with no intrusive timeline observer. One development '
             'replay per configuration; no statistical superiority or formal G1/G2 qualification.')
+    elif campaign == 'd364':
+        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d364_20261009'
+        RUN = RAW/'7b_full_w0'
+        reference = reference_override or 'd358'
+        suffix = 'context1' if reference == 'd358' else f'context_{reference}'
+        OUT = ROOT/f'paper_results/ieee_tc/p2_backend/d364_full_w0/{suffix}'
+        health_name = 'remote_health.json'
+        change_caveat = (
+            'Relative to D358: protected held-file owner-turn validation and its '
+            'corresponding D362 measured initialization; controller, native capacity, '
+            'generation contract and workload are unchanged. D353 and D336 are '
+            'historical context with additional implementation/configuration differences, '
+            'not single-factor contrasts. Candidate exposure does not establish avoided '
+            'RPC count or causal speedup. Ordinary Full4000 with no intrusive observer. '
+            'One development replay per configuration; no statistical superiority or '
+            'formal G1/G2 qualification. D363 prefix regressions remain evidence.')
     elif campaign != 'd299':
         raise ValueError('unknown frozen full-run identity')
     assert not OUT.exists()
@@ -559,7 +579,7 @@ def main(campaign='d299', reference_override=None):
     assert len(remote)==len(remote_rows)==len(transfers)
     assert set(remote)=={r['http_transfer_id'] for r in transfers}
     health=read(RAW/health_name)
-    clock=(health['7b']['clock_id'] if campaign in ('d332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358') else
+    clock=(health['7b']['clock_id'] if campaign in ('d332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358', 'd364') else
            health['clock_id'] if campaign in ('d323', 'd326') else health['health']['clock_id'])
     for r in transfers:
         s=remote[r['http_transfer_id']]
@@ -610,7 +630,7 @@ def main(campaign='d299', reference_override=None):
         assert receipt['remote_transfers_sha256'] == sha256(journal)
         assert receipt['remote_monitor_sha256'] == sha256(RAW/'remote_monitor.log')
         result['remote_shutdown'] = receipt['remote_stop']
-    if campaign in ('d315', 'd318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358'):
+    if campaign in ('d315', 'd318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358', 'd364'):
         receipt = read(RAW/'completion_receipt.json')
         entries = receipt['evidence']
         assert entries[sources[campaign].name]['sha256'] == re['source_sha256']
@@ -638,7 +658,7 @@ def main(campaign='d299', reference_override=None):
            ROOT/'scripts/ieee_tc/plot_d290_diagnostic.py',ROOT/'scripts/ieee_tc_preflight.py']
     if campaign == 'd303':
         paths.append(CURATED/'d303_full_w0/completion_receipt.json')
-    if campaign in ('d314', 'd315', 'd318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358'):
+    if campaign in ('d314', 'd315', 'd318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358', 'd364'):
         paths.append(RAW/'completion_receipt.json')
     with (OUT/'manifest.json').open('x') as handle:
         json.dump(dict(source_refs=[dict(path=str(p),sha256=sha256(p)) for p in paths],
@@ -649,8 +669,8 @@ def main(campaign='d299', reference_override=None):
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--campaign', choices=('d299', 'd300', 'd303', 'd314', 'd315', 'd318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358', 'd309-failure', 'd311-incomplete', 'd313-failure'), default='d299')
-    parser.add_argument('--reference', choices=('d303', 'd314', 'd349', 'd336', 'd353'),
+    parser.add_argument('--campaign', choices=('d299', 'd300', 'd303', 'd314', 'd315', 'd318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358', 'd364', 'd309-failure', 'd311-incomplete', 'd313-failure', 'd364-failure'), default='d299')
+    parser.add_argument('--reference', choices=('d303', 'd314', 'd349', 'd336', 'd353', 'd358'),
         help='Registered full reference; separate non-overwriting output')
     args = parser.parse_args()
     campaign = args.campaign
@@ -662,5 +682,7 @@ if __name__=='__main__':
         audit_d309_failure()
     elif campaign == 'd313-failure':
         audit_d309_failure('d313')
+    elif campaign == 'd364-failure':
+        audit_d309_failure('d364')
     else:
         main(campaign, args.reference)
