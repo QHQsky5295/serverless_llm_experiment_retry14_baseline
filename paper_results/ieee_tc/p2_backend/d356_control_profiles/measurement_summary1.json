@@ -1,0 +1,38 @@
+{
+  "kind": "d356_complete_native_measurement_summary_v1",
+  "native_calls": 1569,
+  "warmup_calls": 24,
+  "measured_calls": 1545,
+  "source_run_sha256": "1be8c0b963176599e4f1a3096fe250046383697675efff8be83d29ebd80b0b12",
+  "physical_gpu_seconds": 2059.8417760439916,
+  "startup_latency_ms": 89667.33829397708,
+  "fetches": 1569,
+  "wire_bytes": 3049414861,
+  "request_packing": 0,
+  "service_peak_bytes": 5343715328,
+  "min_host_available_bytes": 107159056384,
+  "service_swap_bytes": 0,
+  "memory_events": {
+    "high": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0
+  },
+  "missing_service_classes": 6,
+  "measured_service_classes": 194,
+  "required_service_classes": 200,
+  "measured_preparation_classes": 24,
+  "class_domain_covered": false,
+  "n_correct": null,
+  "full_qualified": false,
+  "common_SLO_qualified": false,
+  "independent_runs": 1,
+  "CI": null,
+  "control_interleave_triggered": true,
+  "control_interleave_delta": {
+    "input_turns": 30693,
+    "handled_controls": 26350,
+    "yields_to_native_loop": 15422,
+    "yields_with_queued_input": 10515
+  }
+}

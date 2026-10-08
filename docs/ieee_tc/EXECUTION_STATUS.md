@@ -11,7 +11,109 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D355 pre-arrival profile-binding failure retained; D356 refresh preparation
+## CURRENT — D356 calibration CLOSED; six measured classes still missing
+
+D356 completed125waves/1569native calls (24warmup+1545measurement),
+source SHA1be8c0b963176599e4f1a3096fe250046383697675efff8be83d29ebd80b0b12.
+All native calls passed their source contract. Actual service coverage194/200,
+preparation24classes complete; six missing short-output/high-admission classes:
+rank8/16 at HOST native pinned, HOST verified file tree, NVMe verified file tree.
+No old latency/default fill; no profile export or Full launch yet.
+
+Across252 scheduler snapshots, atomic_control_yield_v1 observed30693input turns,
+26350handled controls,15422native-loop yields (10515with queued input). No
+zero-yield wave. These are control counters, NOT GPU steps/idle or causal speedup.
+Calibration U=2059.8417760439916GPU-s, startup89667.33829397708ms;
+1569bilaterally paired remote transfers/3049414861wireB/request packing0.
+Service peak5343715328B; host minimum107159056384B; high/max/OOM/swap0.
+N_correct remains unknown; Full/common-SLO/formal qualification remains OPEN.
+
+Actual local GPU/service and remote services released; stop_remote executed once.
+Starter and launcher exact-owned scopes closed. Offline collection/48CPU tests/
+analysis/seal all passed, analysis scope closed. Measurement archive1869663B
+verified;147protected entries unchanged except known baseline script, user
+manifest unchanged. Six missing classes are retained, not hidden by the seal.
+Curated measurement_checkpoint.json and measurement_outputs.sha256 bind evidence.
+The empty seal aux scope95e1fe9cbb4803fdc37a21f4b46e6a72 was subsequently
+closed by recorded identity with no owned PIDs/no hard kill. All scopes closed.
+
+NEXT: reuse existing long-background/short-target gap selector for only these
+six HOST/NVMe classes; actual admission counts determine coverage. No full
+source rerun/capacity change/output change. Strictly merge only compatible,
+complete measured evidence. Then Full100→4000W0 if checks pass. Before Full,
+retain interleave counters in existing native admission receipts (source
+counters alone cannot prove Full trigger); pending test file is NOT yet run
+and the runtime receipt change is NOT implemented. No extra RPC/polling.
+Mainline7B→3B→pausedbaselines; no figures; commonwarm/Resident/numeric correctness
+and all later matrices still OPEN. Published delivery cache reused, not rebuilt.
+
+### D356 live-run history (completed; do not relaunch)
+
+Continuation at 2026-10-08 21:52:36 CST: SAME tmux/nativePID3784253 verified;
+native samples progressed through zero-indexed wave62 (125 planned),watchdog1001.
+Hostavailable108351361024B,servicepeak5343715328B,high/max/OOM/swap0;
+noabort/foreigncompute. No runtime/config/remote changes,tests,hashscan,
+compression,newGPUrun or figures during measurement. Existing published cache
+is reused under the user's reconfirmed one-time-cache approval; do not rebuild.
+
+Offline analysis PREPARED ONLY (UNTESTED; run after actual release):
+- scripts/ieee_tc/export_d298_profiles.py: strict d356 registration and native
+  cumulative-counter audit. All scheduler/wave snapshots, owner+clock, monotonic
+  counters and subset checks; zero-trigger waves retained. Counts do not prove
+  model steps,GPU idle or causal acceleration. Strict timing loaders unchanged.
+- tests/test_ieee_tc_control_profile_analysis.py: seven fixture tests for valid,
+  zero-trigger,missing,foreign,reset and malformed observations; not run yet.
+- d356raw/analyze.py adapted from D344,1569native/24warm/1545measurement calls,
+  actual coverage+bilateraltransfer+capacity+counter checks, requestCSV and
+  measurement summary. Deliberately NO immediate export (seal must come first).
+- d356raw/run_analysis.py: after stop_remote.sh, bounded4GiB/auxCPU runner;
+  starter closure -> collect_closure.py -> analysis tests -> analyze.py. It uses
+  exclusive receipts/logs and must not be rerun wholesale after partial failure.
+- d356raw/seal_measurement.py: after successful offline receipt, closes that
+  exact-owned scope, retains closed evidence+SHA,checks protection and original
+  preparation checksums against execution215c165,then creates measurement seal.
+  Export remains separate: existing exporter main('d356') only after valid seal.
+Only git diff --check has passed for these edits; no claim of passing tests.
+
+IMPORTANT: starter scope a77ccf64dbbe4cda92ac12bde0d5c4c6 is NOT empty while
+tmux lives: direct cgroup.procs read showed PID3783232. The older empty note
+below was inaccurate. Never stop it before session exit and no owned PIDs;
+prepared run_analysis.py checks both. Actual service/replay scopes unchanged.
+
+2026-10-08 21:38 CST. D356 execution and verified remote V2 checkpoint
+215c165fb0f78cafe73625ec596f9c331d88cb33. tmux tc-d356-source is live;
+existing run_d298_capacity_source.sh d356, native single-GPU source collector.
+Actual VLLM::EngineCore PID3784253 belongs to service scope
+primelora-tc-svc-315fb95212c84930a90c0f9d77268ca4.scope, CPUs4–23,28–47;
+GPU0 acquired. Native source samples now completing, not merely launch success.
+Watchdog sample122: servicepeak5343715328B,hostavailable108612218880B,
+high/max/OOM/swap0,noabort. Remote startup1000/full,unchanged published service.
+
+RAW results/ieee_tc/p2_backend_qualification/d356_20261008;
+CURATED paper_results/ieee_tc/p2_backend/d356_control_profiles.
+Source outputs will be source1.json/source1_launch.json; do not read whole
+growing outputs or rerun collector. launcher_identity.json captured actual aux
+52ed60dd78294bb7b2025137bd0a6e0b / InvocationID69c2648aa8134b12932fe97cfb535ee5.
+Starter scope a77ccf64dbbe4cda92ac12bde0d5c4c6 is completed/empty but not yet
+closed; exact identity in launch_gate.json. All previous preparation scopes closed.
+No live tool handle; tmux/watchdog own ongoing run. Preparation checksum binds
+this ledger's PRELAUNCH version at215c165, not subsequent live status updates.
+
+NEXT monitor existing run → verify actual local GPU/service release → prepared
+stop_remote.sh ONCE → collect_closure.py (exact launcher identity, bilateral logs).
+If no transfer on failure, stop helper final grep may return1; verify stopped
+units and absent matching clock independently, do not rerun the whole script.
+Close completed starter scope by recorded identity after confirming no owned PIDs.
+Then adapt/reuse D344 analyze.py and existing exporter for d356 (not yet adapted),
+CPU-test offline changes, verify actual200service/24preparation class coverage,
+native counts/binding, interleave counters in scheduler snapshots, profiles and
+resource/transfer contracts before export. Old latency profiles remain rejected.
+If coverage missing, report actual missing classes and supplement only those.
+After valid export: new exclusive Full100 then4000W0; original D355attempt retained.
+No G1/G2/full/numeric qualification from calibration. Mainline7B→3B→baselines;
+all commonwarm/Resident/N_correct and remaining matrices OPEN. No figures.
+
+### D355 failure and D356 preparation history
 
 D355 execution a9986c3e591d01ea295445aee78a5b609c45db63 was backed then launched.
 Full100 stopped before model creation/arrivals: strict service model identity
@@ -26,7 +128,7 @@ Decision: preserve strict timing-profile identity. D356 reuses original D344
 measurement cases (125waves/1569calls incl24warmups), refreshes affected timings
 under SAME C14 plus atomic_control_yield_v1. Explicit length-only transfer may
 reuse native completed fixed-output lengths; no old latency/SLO transfer.
-127 CPU tests and preparation passed; GPU calibration NOT YET LAUNCHED. New profile
+127 CPU tests and preparation passed before the above launch. New profile
 must validate before another exclusive Full100/full4000. D353 controller soft8
 unchanged; no extra candidate/capacity sweep.7B→3B→pausedbaselines remains order.
 

@@ -40,6 +40,81 @@ def object_hash(value):
         separators=(',', ':')).encode()).hexdigest()
 
 
+def audit_control_interleave_snapshots(observations, *, expected_pid, expected_clock):
+    """Validate cumulative native counters without inventing latency attribution.
+
+    Observation occurs *inside* the current utility, before that utility's own
+    handled/yield counters advance. Differences therefore describe the recorded
+    snapshot interval, not an exact number of requests or model steps.
+    """
+    keys = ('input_turns', 'handled_controls', 'yields_to_native_loop',
+            'yields_with_queued_input')
+    if (type(expected_pid) is not int or expected_pid <= 0
+            or not isinstance(expected_clock, str) or not expected_clock
+            or len(observations) < 2):
+        raise ValueError('one native owner and at least two observations required')
+    rows = []
+    for label, observation in observations:
+        state = observation.get('control_interleave', {})
+        stamp = observation.get('captured_at')
+        if (observation.get('kind') != 'ieee_native_scheduler_observation_v1'
+                or observation.get('scheduler_pid') != expected_pid
+                or type(observation.get('scheduler_pid')) is not int
+                or observation.get('clock_id') != expected_clock
+                or type(stamp) not in (int, float) or not math.isfinite(stamp) or stamp <= 0
+                or state.get('kind') != 'ieee_native_control_interleave_v1'
+                or state.get('policy') != 'atomic_control_yield_v1'
+                or any(type(state.get(k)) is not int or state[k] < 0 for k in keys)):
+            raise ValueError('complete, same-owner native interleave snapshot required')
+        values = {k:state[k] for k in keys}
+        if (values['yields_with_queued_input'] > values['yields_to_native_loop']
+                or values['yields_to_native_loop'] > values['handled_controls']
+                or values['yields_to_native_loop'] > values['input_turns']):
+            raise ValueError('interleave counter subset invariant violated')
+        row = dict(label=label, captured_at=stamp, **values)
+        if rows and (stamp <= rows[-1]['captured_at']
+                     or any(row[k] < rows[-1][k] for k in keys)):
+            raise ValueError('snapshot order or cumulative counters regressed')
+        rows.append(row)
+    delta = {k:rows[-1][k]-rows[0][k] for k in keys}
+    return dict(kind='native_control_interleave_snapshot_audit_v1',
+        policy='atomic_control_yield_v1', scheduler_pid=expected_pid, clock_id=expected_clock,
+        observations=rows, delta=delta,
+        triggered=delta['yields_to_native_loop'] > 0,
+        queued_input_triggered=delta['yields_with_queued_input'] > 0,
+        counter_scope='between_recorded_native_scheduler_snapshots',
+        model_step_count=None, gpu_idle_seconds=None, causal_speedup=None)
+
+
+def audit_control_source_run(raw):
+    """All waves including warmups and zero-trigger intervals; no winner filter."""
+    if raw['model_config'].get('ieee_control_interleave') != 'atomic_control_yield_v1':
+        raise ValueError('source run does not declare the qualified control policy')
+    workers = raw['workers_before']['workers']
+    if len(workers) != 1:
+        raise ValueError('control calibration requires its single native worker')
+    waves, spec = raw['profile_waves'], raw['source_profile_spec']['waves']
+    if len(waves) != len(spec) or not waves:
+        raise ValueError('complete planned wave observations required')
+    observations = [('scheduler_before', raw['scheduler_before'])]
+    for index, wave in enumerate(waves):
+        if wave['wave'] != index or wave.get('complete') is not True:
+            raise ValueError('complete, ordered source waves required')
+        observations.extend((f'wave{index}:{side}', wave['capacity_'+side])
+                            for side in ('before', 'after'))
+    observations.append(('scheduler_after', raw['scheduler_after']))
+    result = audit_control_interleave_snapshots(observations,
+        expected_pid=workers[0]['pid'], expected_clock=workers[0]['clock_id'])
+    keys = tuple(result['delta'])
+    result['waves'] = [dict(wave=index, role=spec[index]['role'],
+        delta={k:wave['capacity_after']['control_interleave'][k]
+                 -wave['capacity_before']['control_interleave'][k] for k in keys})
+        for index,wave in enumerate(waves)]
+    result['zero_yield_waves'] = [r['wave'] for r in result['waves']
+                                if r['delta']['yields_to_native_loop'] == 0]
+    return result
+
+
 def historical_service_samples(requests, *, source_sha, identities, previous_bins):
     """Reuse completed Full native intervals, not estimates or pooled fallbacks.
 
@@ -461,6 +536,11 @@ def main(campaign='d298'):
         CURATED = ROOT/'paper_results/ieee_tc/p2_backend/d344_capacity_profiles'
         config_path = ROOT/'configs/ieee_tc/20261008_d343_7b_capacity_probe14.yaml'
         source_commit = (RAW/'source_commit.txt').read_text().strip()
+    elif campaign == 'd356':
+        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d356_20261008'
+        CURATED = ROOT/'paper_results/ieee_tc/p2_backend/d356_control_profiles'
+        config_path = ROOT/'configs/ieee_tc/20261008_d356_7b_control_source.yaml'
+        source_commit = (RAW/'source_commit.txt').read_text().strip()
     else:
         raise ValueError(campaign)
     assert re.fullmatch('[0-9a-f]{40}', source_commit), 'missing exact launch commit'
@@ -470,10 +550,16 @@ def main(campaign='d298'):
     if campaign == 'd344-merged':
         directories.append((RAW/'gaps1', CURATED/'gaps1'))
     runs = [audited_source_run(r,c,config_path,
-        health_model='7b' if campaign.startswith('d344') else None,
-        require_measurement_seal=campaign.startswith('d344')) for r,c in directories]
+        health_model='7b' if campaign.startswith('d344') or campaign == 'd356' else None,
+        require_measurement_seal=campaign.startswith('d344') or campaign == 'd356') for r,c in directories]
     first = runs[0]
     raw, spec, contract, launch = [first[k] for k in ('payload','spec','contract','launch')]
+    control_audit = None
+    if campaign == 'd356':
+        control_audit = audit_control_source_run(raw)
+        assert control_audit['triggered'], 'enabled mechanism never triggered in calibration'
+        assert read(RAW/'remote_stop.json')['all_owned_units_inactive']
+        assert read(RAW/'local_cleanup.json')['native_gpu_release_confirmed']
     assert all(r['contract'] == contract for r in runs)
     profile = yaml.safe_load(config_path.read_text())['model_profiles']['llama2_7b_main_v2_publicmix']
     pool = (ROOT/profile['storage']['remote_dir']).resolve(strict=True)
@@ -576,8 +662,10 @@ def main(campaign='d298'):
             calibration_executions=len(runs),
             repetition_scope='complementary_class_measurements_not_independent_full_workload_repeats',
             clock_domains_joined=False)
-    elif campaign in ('d307', 'd307-attempt2', 'd344'):
+    elif campaign in ('d307', 'd307-attempt2', 'd344', 'd356'):
         result['raw_evidence'].append(ref(RAW/'source_commit.txt'))
+    if control_audit is not None:
+        result['control_interleave_audit'] = control_audit
     save('manifest.json',result)
     print(json.dumps(dict(passed=True,summary=summary,profiles=result['profiles'],coverage=coverage),indent=2),flush=True)
 
@@ -585,11 +673,11 @@ def main(campaign='d298'):
 if __name__ == '__main__':
     if not sys.argv[1:]:
         main()
-    elif sys.argv[1:] in (['d307'], ['d307-attempt2'], ['d344'], ['d344-merged']):
+    elif sys.argv[1:] in (['d307'], ['d307-attempt2'], ['d344'], ['d344-merged'], ['d356']):
         main(sys.argv[1])
     elif sys.argv[1:] == ['--history-length-coverage']:
         export_history_length_coverage()
     elif sys.argv[1:] == ['--completed-length-candidate']:
         export_completed_length_candidate()
     else:
-        raise SystemExit('Expected no argument, d307, d307-attempt2, d344, d344-merged, --history-length-coverage or --completed-length-candidate')
+        raise SystemExit('Expected no argument, d307, d307-attempt2, d344, d344-merged, d356, --history-length-coverage or --completed-length-candidate')
