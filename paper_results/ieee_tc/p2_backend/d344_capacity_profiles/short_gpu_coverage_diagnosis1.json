@@ -1,0 +1,155 @@
+{
+  "waves": [
+    {
+      "wave": 5,
+      "round": 0,
+      "rank": 8,
+      "planned_lanes": 14,
+      "actual_admission_counts": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        6,
+        6,
+        5,
+        6,
+        5,
+        6,
+        6,
+        6
+      ],
+      "completed_before_last_admission": 9
+    },
+    {
+      "wave": 9,
+      "round": 0,
+      "rank": 16,
+      "planned_lanes": 11,
+      "actual_admission_counts": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        5,
+        5,
+        5,
+        5,
+        4
+      ],
+      "completed_before_last_admission": 8
+    },
+    {
+      "wave": 44,
+      "round": 1,
+      "rank": 8,
+      "planned_lanes": 14,
+      "actual_admission_counts": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        6,
+        5,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6
+      ],
+      "completed_before_last_admission": 9
+    },
+    {
+      "wave": 48,
+      "round": 1,
+      "rank": 16,
+      "planned_lanes": 11,
+      "actual_admission_counts": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        5,
+        5,
+        5,
+        5,
+        4,
+        4
+      ],
+      "completed_before_last_admission": 8
+    },
+    {
+      "wave": 83,
+      "round": 2,
+      "rank": 8,
+      "planned_lanes": 14,
+      "actual_admission_counts": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        5,
+        6,
+        6,
+        6,
+        6,
+        6,
+        6,
+        2
+      ],
+      "completed_before_last_admission": 12
+    },
+    {
+      "wave": 87,
+      "round": 2,
+      "rank": 16,
+      "planned_lanes": 11,
+      "actual_admission_counts": [
+        1,
+        2,
+        1,
+        2,
+        3,
+        4,
+        5,
+        5,
+        4,
+        4,
+        4
+      ],
+      "completed_before_last_admission": 8
+    }
+  ],
+  "missing_classes": [
+    {
+      "tier": "gpu",
+      "prompt_bin": 0,
+      "output_limit_bin": 0,
+      "rank_bin": 0,
+      "footprint_bin": 0,
+      "representation": "native_gpu_dense_slot_v1:torch.float16",
+      "admitted_bin": 4
+    },
+    {
+      "tier": "gpu",
+      "prompt_bin": 0,
+      "output_limit_bin": 0,
+      "rank_bin": 1,
+      "footprint_bin": 0,
+      "representation": "native_gpu_dense_slot_v1:torch.float16",
+      "admitted_bin": 4
+    }
+  ],
+  "explanation": "Actual post-accept class below9 for short GPU-ready waves; native completions before later admission are recorded, no forced barrier.",
+  "next_measurement": "Existing long-output background requests then original short-output targets in one GPU-ready wave; only two genuinely missing classes, no new capacity or workload."
+}

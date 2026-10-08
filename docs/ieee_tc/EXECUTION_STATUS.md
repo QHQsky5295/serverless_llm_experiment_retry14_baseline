@@ -11,7 +11,72 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D344 C14 timing refresh prepared; GPU calibration not yet launched
+## CURRENT — D344 measurement COMPLETE; two genuine profile gaps remain
+
+Source1 completed1529/1529native calls (14warmup+1515measured); actualGPUrelease,
+service removal and exact-owned remote closure verified. No live tmux/GPU run.
+198/200service classes,24preparation classes and all static content/source pairs
+covered. Missing only GPU-ready short-output rank8/rank16 with actual admission
+9–14. Six short-only GPU waves reached at most6actual admissions;8–12requests
+finished before the final admission. This explains the sampling gap, not a
+runtime capacity failure. Do not fill neighboring/default timings or rerun1529.
+1847.578253physicalGPU-s,1529controlled setupfetches,2906411925wireB,packing0;
+servicepeak5706301440B,hostminimum106838941696B,all memoryevents/swap0.
+Native token/timing/binding checks pass; numerical N_correct remainsunknown.
+Profile export intentionally withheld. Commonwarmbatch8/reference/G1/G2 OPEN.
+
+Measurement rawSHA09d2f2b688c7cbce1591bb8b5ab4af8f28d3df1f26377b109b231ec2440c924e;
+source execution833ddd6dcc84e31700ad8bf13c5b449c56fe0f72. Curated sixoutputs plus
+measurement_outputs.sha256 under d344_capacity_profiles; audit archive1711340B.
+Raw135772770B retained, not duplicated into Git. Auxiliary04–08closed; seal09
+finished with receipt, exact empty closure/checkpoint backup next. Protected147
+unchanged except recorded historical baseline replay script; usermanifest intact.
+
+NEXT: backup completed evidence, then same C14collector/config with original
+long-output GPU-ready background ahead of the two existing short targets. Derive
+background count from missing admission-bin boundary8; actual native events
+must prove9–14. Merge only compatible measured profile evidence; no forced wait,
+new capacity point, synthetic request or new artifact. Then100Fullsmoke/4000W0.
+No figures,3B orbaseline advance. No new cache: approved once-only published
+archives already exist (1581215261B); user approval confirmed again this turn.
+
+### Earlier D344 launch (completed; do not relaunch)
+
+PRELAUNCH BACKUP VERIFIED:833ddd6dcc84e31700ad8bf13c5b449c56fe0f72 matches
+independent remoteV2. Preparation/test/checkpoint scopes closed; freshgate
+disk163657302016B,host112820686848B,GPUempty. Frozen remote healthy, NIC1000/full.
+Launched existing runner in tmux primelora_d344_source, raw d344_20261008,
+source1_launcher.log/source1_launch.launch.1529planned nativecalls; no Fullrun.
+Wait original measurement, do not relaunch. Then actualrelease, ownedremote
+stop/transferaudit/coverageexport; Full100/4000 next. G1/G2 remainOPEN.
+
+Live handoff: source launcher identity recorded in raw/launcher_identity.json:
+primelora-tc-aux-3799f099215848feb788a8ffbcaf23ec.scope,
+invocation3dc2f2e322c84cb8aa447018840e8885. Service is the guarded D344source
+run; no open terminal handle to restart. Last inspected measurement progress
+870/1529native sample events throughwave68 (first505measured-call round plus
+14warmups complete; secondround long-output classes underway). Last watchdog
+sample1021: servicepeak5.315GiB,hostavailable100.9GiB,noabort. These are running
+samples, not finalpassed. Original tmux and exact service scope confirmed live;
+no new launch. This continuation is VERIFIED WAIT, not a blocker or completed
+experiment; Plan/V1 hashes unchanged. Finish the same measurement before work
+that would compete for resources or reinterpret its final outcome.
+Raw start/stop/health/collect_closure scripts reuse D343 exact-owned procedure;
+collect_closure checks the recorded launcher identity. analyze.py uses existing
+source-domain/export validators and saves coverage1 before conditional export;
+if incomplete, preserve missing classes, do not relabel timing or rerun whole
+matrix blindly. Existing tmux run must finish before stop_remote.sh/closure/
+bounded analysis. Read this live state first next turn; D343probe/backup and
+D344CPUpreparation/checkpoint are complete and must not be repeated.
+
+Continuation audit: previous turn=PROGRESS (implemented/tested/backedup/launched
+D344). This turn verified the same live tmux/worker measurement and reread full
+Plan/V1; no experiment restarted. Raw analyze.py now validates all native timing
+and bilateral transfer bytes even when coverage is incomplete, and retains a
+measurement_summary1 before conditional profile export. Do not run it until
+source terminal/release and exact remoteclosure. No new hypothesis/configuration
+or heavy task while source calibration is live. Do not confuse its controlled
+three rounds with independent Full runs or numerical adapter qualification.
 
 2026-10-08: full Plan/V1 reread; D343 completed evidence not repeated. Existing
 D298collector extended with D344source mode. Same C14native config, D321output

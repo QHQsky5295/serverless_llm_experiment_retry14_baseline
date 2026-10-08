@@ -73,3 +73,40 @@ This rule is recorded now; the collector itself does not run the autoscaler.
 
 No figures during optimization. Preserve historical results and user manifest.
 Per-run evidence and current next action are maintained in EXECUTION_STATUS.
+
+## Source1 measured outcome and missing-class diagnosis
+
+| Observation | Value |
+|---|---:|
+| Native calls completed | 1529/1529 |
+| Warmup / measured calls | 14 / 1515 |
+| Measured / required service classes | 198 / 200 |
+| Preparation classes | 24 |
+| Physical GPU-s, calibration only | 1847.578253 |
+| Controlled setup fetches / wire bytes | 1529 / 2906411925 |
+| Request-time packing | 0 |
+| Service memory peak | 5706301440 bytes |
+| high/max/OOM/swap events | 0 |
+
+The two uncovered classes are GPU-ready, declared output≤24, rank8 or16,
+and actual post-accept admission9–14. In six homogeneous short-output GPU waves,
+actual admission never exceeded6;8–12requests had completed before the final
+admission. Intended wave size is not actual concurrency. All other service
+classes, static content/source combinations and bilateral transfers passed.
+
+This is evidence of incomplete calibration coverage, not proof that C14 cannot
+execute14requests. The D343 concurrent native probe remains separate evidence.
+Export is withheld rather than filling missing values. Only the two genuine gaps
+will be measured using existing long-output background requests preceding the
+original short targets, with the same C14runtime and real admission timestamps.
+No artificial barrier, changed capacity, generated input or repeat of the full
+1529-call matrix is warranted. A matched multi-source validator must establish
+complete coverage before any Full run uses the resulting profiles.
+
+Source1 SHA: `09d2f2b688c7cbce1591bb8b5ab4af8f28d3df1f26377b109b231ec2440c924e`.
+Execution commit: `833ddd6dcc84e31700ad8bf13c5b449c56fe0f72`.
+GPU release, local service removal and owned remote stop were verified. Native
+counts and bindings do not establish numerical adapter correctness. These are
+three within-process rounds, not independent Full repeats; no CI or G1/G2
+qualification is claimed. Full100/4000and common reference qualification remain
+pending;3B and baseline tasks remain paused.
