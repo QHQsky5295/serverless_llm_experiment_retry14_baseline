@@ -536,7 +536,7 @@ def main(campaign='d298'):
         CURATED = ROOT/'paper_results/ieee_tc/p2_backend/d344_capacity_profiles'
         config_path = ROOT/'configs/ieee_tc/20261008_d343_7b_capacity_probe14.yaml'
         source_commit = (RAW/'source_commit.txt').read_text().strip()
-    elif campaign == 'd356':
+    elif campaign in ('d356', 'd356-merged'):
         RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d356_20261008'
         CURATED = ROOT/'paper_results/ieee_tc/p2_backend/d356_control_profiles'
         config_path = ROOT/'configs/ieee_tc/20261008_d356_7b_control_source.yaml'
@@ -547,19 +547,25 @@ def main(campaign='d298'):
     out = CURATED / 'initialization'
     assert not out.exists(), 'never overwrite a prior export'
     directories = [(RAW,CURATED)]
-    if campaign == 'd344-merged':
+    if campaign in ('d344-merged', 'd356-merged'):
         directories.append((RAW/'gaps1', CURATED/'gaps1'))
     runs = [audited_source_run(r,c,config_path,
-        health_model='7b' if campaign.startswith('d344') or campaign == 'd356' else None,
-        require_measurement_seal=campaign.startswith('d344') or campaign == 'd356') for r,c in directories]
+        health_model='7b' if campaign.startswith(('d344','d356')) else None,
+        require_measurement_seal=campaign.startswith(('d344','d356'))) for r,c in directories]
     first = runs[0]
     raw, spec, contract, launch = [first[k] for k in ('payload','spec','contract','launch')]
     control_audit = None
-    if campaign == 'd356':
-        control_audit = audit_control_source_run(raw)
-        assert control_audit['triggered'], 'enabled mechanism never triggered in calibration'
-        assert read(RAW/'remote_stop.json')['all_owned_units_inactive']
-        assert read(RAW/'local_cleanup.json')['native_gpu_release_confirmed']
+    if campaign.startswith('d356'):
+        audits = []
+        for run,(raw_dir,_) in zip(runs,directories):
+            audit = audit_control_source_run(run['payload'])
+            assert audit['triggered'], 'enabled mechanism never triggered in calibration'
+            assert read(raw_dir/'remote_stop.json')['all_owned_units_inactive']
+            assert read(raw_dir/'local_cleanup.json')['native_gpu_release_confirmed']
+            audits.append(dict(source_run=run['source_run'],audit=audit))
+        control_audit = (audits[0]['audit'] if len(audits)==1 else
+            dict(per_source=audits,clock_domains_joined=False,
+                 causal_speedup=None,gpu_idle_time=None,native_model_steps=None))
     assert all(r['contract'] == contract for r in runs)
     profile = yaml.safe_load(config_path.read_text())['model_profiles']['llama2_7b_main_v2_publicmix']
     pool = (ROOT/profile['storage']['remote_dir']).resolve(strict=True)
@@ -673,11 +679,11 @@ def main(campaign='d298'):
 if __name__ == '__main__':
     if not sys.argv[1:]:
         main()
-    elif sys.argv[1:] in (['d307'], ['d307-attempt2'], ['d344'], ['d344-merged'], ['d356']):
+    elif sys.argv[1:] in (['d307'], ['d307-attempt2'], ['d344'], ['d344-merged'], ['d356'], ['d356-merged']):
         main(sys.argv[1])
     elif sys.argv[1:] == ['--history-length-coverage']:
         export_history_length_coverage()
     elif sys.argv[1:] == ['--completed-length-candidate']:
         export_completed_length_candidate()
     else:
-        raise SystemExit('Expected no argument, d307, d307-attempt2, d344, d344-merged, d356, --history-length-coverage or --completed-length-candidate')
+        raise SystemExit('Expected no argument, d307, d307-attempt2, d344, d344-merged, d356, d356-merged, --history-length-coverage or --completed-length-candidate')

@@ -1,0 +1,63 @@
+{
+  "required": 6,
+  "measured": 6,
+  "intended_classes": [
+    {
+      "tier": "host",
+      "prompt_bin": 0,
+      "output_limit_bin": 0,
+      "rank_bin": 0,
+      "footprint_bin": 0,
+      "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+      "admitted_bin": 4
+    },
+    {
+      "tier": "host",
+      "prompt_bin": 0,
+      "output_limit_bin": 0,
+      "rank_bin": 0,
+      "footprint_bin": 0,
+      "representation": "verified_regular_file_tree_v1",
+      "admitted_bin": 4
+    },
+    {
+      "tier": "nvme",
+      "prompt_bin": 0,
+      "output_limit_bin": 0,
+      "rank_bin": 0,
+      "footprint_bin": 0,
+      "representation": "verified_regular_file_tree_v1",
+      "admitted_bin": 4
+    },
+    {
+      "tier": "host",
+      "prompt_bin": 0,
+      "output_limit_bin": 0,
+      "rank_bin": 1,
+      "footprint_bin": 0,
+      "representation": "native_cpu_dense_ab_v1:torch.float16:pinned:packed",
+      "admitted_bin": 4
+    },
+    {
+      "tier": "host",
+      "prompt_bin": 0,
+      "output_limit_bin": 0,
+      "rank_bin": 1,
+      "footprint_bin": 0,
+      "representation": "verified_regular_file_tree_v1",
+      "admitted_bin": 4
+    },
+    {
+      "tier": "nvme",
+      "prompt_bin": 0,
+      "output_limit_bin": 0,
+      "rank_bin": 1,
+      "footprint_bin": 0,
+      "representation": "verified_regular_file_tree_v1",
+      "admitted_bin": 4
+    }
+  ],
+  "remaining_classes": [],
+  "actual_native_classification": true,
+  "complete": true
+}

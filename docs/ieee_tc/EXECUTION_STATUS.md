@@ -11,7 +11,73 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D356 source CLOSED; six-class supplement PREPARED, not launched
+## CURRENT — D356 calibration COMPLETE; D357 Full100 preparation verified
+
+D356 original+gap measurements CLOSED; all local GPU/remote services released.
+Do not relaunch either source run or rerun either remote stop helper.
+Gap100/100native calls passed, all six intended HOST/NVMe classes measured;
+SHA554c2f6d46d6d6e78e6a60b67c8209e58f2d491d57a19d3d7f64018af3a59794.
+GapU211.8763492850121GPU-s, startup40723.33782503847ms,100transfers/
+357507340wireB,packing0; servicepeak5702094848B,hostmin106783211520B,
+high/max/OOM/swap0. Gap control delta3154turns/1685controls/945yields/473queued.
+48offline checks passed; gap measurement archive241474B verified.
+
+Strict merged export PASSED:200/200service classes,24/24preparation classes;
+1669native calls=34warmup+1635measurement,1302preparation samples.
+Service SHA23e9d4e565fef1530e82e9e831642cef79c0ada396a202de63f47970f77163af;
+preparation SHA61ca9ff297ab1bcdb9d6b3ca3ac76f2457614142885c475ea573d8f02172e983.
+Curated d356_control_profiles/initialization/manifest.json binds two separate
+source runs/clocks, no old timing fill/defaults. First offline export invocation
+failed only at Python module lookup before data loading; original log/receipt
+retained, -m invocation passed. Export scopeb7640a7156274ed59203ca7b9e19ff34
+closed exact-owned/no PIDs/no hard kill. All D356 scopes closed.
+
+D357 code now adds a copied control counter/PID snapshot to the existing native
+register receipt only when enabled. No new RPC/polling/policy; default off and
+canonical entry unchanged.128CPU+128native-env tests PASS. New Full100 config
+uses D356 profiles and matches its actual child model through existing Full
+assembly/strict loaders; D353 controller/soft8 unchanged. Prelaunch passed:
+disk162907930624B,host112198033408B. D357 NOT launched; no performance result.
+Preparation scopes cpu1(1d59f00418704d989625d68435d297f9),native1
+(6f4f436eb594463cb329300b35cc5d79),prelaunch(a4783f4eb29b406bb1ef7ffaf2b8d183)
+closed by exact identities during successful checkpoint; archive14045B verified.
+The generated preparation.sha256 contains literal backslash-n separators, so
+it is retained as invalid; preparation_validated.sha256 uses unchanged measured
+file digests and passes sha256sum. Use new start_validated.py, not start.py.
+Actual preparation.json/source archive are unchanged. Checkpoint aux
+ce28ba1bd8664634808e3053f664ddaa complete/empty, to close via preparation_scope.json
+at launch (do not pre-close it then rerun a helper that expects it live).
+
+NEXT finish/test Full counter audit, then use start_validated.py and existing
+runner d357 (tmux tc-d357-control100),100→4000W0. Preparation seal and its strict
+loader checks passed; tested code/curated data are included in this checkpoint.
+Fresh plan/V1/resource
+checks before launch. Need actual per-owner Full trigger evidence, not D356
+source counters. User cache approval already implemented: reuse existing cache,
+no republishing. Mainline7B→3B→pausedbaselines. No figures; warm/Resident/numeric
+qualification, all main comparisons/ablations/sensitivities remain OPEN.
+
+### D356 six-class supplement live history (completed)
+
+2026-10-08 22:25 CST: preparation backed/local=remote at
+d8ef6a9d6ed85a1a2b3d79d553b249adc26470ed; existing runner d356-gaps launched
+in tmux tc-d356-gaps. Fresh gates passed, remote actual link1000/full, both
+published services healthy. Starter auxa5f420464d2647f38a57f4ca15ad58a0 may
+own tmux; do not stop until session exit and exact-owned PIDs empty.
+Service scopef43caadf36a44773a467ad33ab3d4065; sample16host111611330560B,
+servicepeak1138294784B,high/max/OOM/swap0; still initializing at that sample.
+No full-source rerun. No runtime/config changes or offline heavy work while live.
+
+NEXT monitor same10waves/100calls → actual GPU/service release → gaps1
+stop_remote.sh once → collect_closure.py and starter cleanup by exact identity.
+Remote 7B clock remote-process-monotonic:d85182ed29414b6f9925d8d89e072f11;
+monitor unit primelora-artifact-monitor-d356-gaps.service. Then run only bounded
+offline audit and merge. Original measurement at parent remains immutable.
+The preparation checkpoint had one offline hash-literal transcription failure;
+original failed helper/receipt retained; corrected checkpoint_attempt2 passed,
+closed that empty scope, and did not alter user files or measurements.
+
+### Six-class supplement preparation history
 
 Original D356 measurement backed and remote-confirmed at
 835e1863f79de5b6fe365850a5bb0b91973e873d. Gap preparation/150CPU tests passed.

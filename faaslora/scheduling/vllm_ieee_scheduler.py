@@ -33,7 +33,16 @@ def _core_pending_admission(core, operation, arguments):
     arity = {'register': 2, 'bind': 3, 'withdraw': 1}[operation]
     if type(arguments) is not list or len(arguments) != arity:
         raise ValueError('pending KV ownership command payload mismatch')
-    return getattr(core.scheduler._ieee_pending_admissions, operation)(*arguments)
+    receipt = getattr(core.scheduler._ieee_pending_admissions, operation)(*arguments)
+    interleave = getattr(core.scheduler, '_ieee_control_interleave', None)
+    if operation == 'register' and interleave is not None:
+        # Reuse this native owner/clock-stamped acknowledgement. The current
+        # utility has not yet advanced the cumulative control counters. This
+        # is trigger evidence, not a model-step or per-request latency metric.
+        # Do not mutate the canonical pending entry or add a sampling RPC.
+        receipt = dict(receipt, scheduler_pid=os.getpid(),
+                       control_interleave=interleave.snapshot())
+    return receipt
 
 
 def _core_pending_gpu_reference(core, intent_id, descriptor, reference):
