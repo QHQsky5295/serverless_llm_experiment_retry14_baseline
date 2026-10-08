@@ -11,7 +11,32 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D356 calibration COMPLETE; D357 Full100 preparation verified
+## CURRENT — D357 Full100 COMPLETE; D358 ordinary Full4000 preparation
+
+D357 executed atd861130722b7ad1151ee8549d29fdb3a3462560a.100native contracts/
+bindings passed, sourcee7a7d50c727c49b26f3d569ec1d9778d377eebd8ddb73288f83293f0d4eb6674
+(7314012B). GPU-s654.7159873729106; mean/P95TTFT799.6601438790094/
+1790.3715358115733ms; mean/P95TPOT26.61758728932433/33.61822651688951ms.
+D170timing-only joint98/100,TTFTmiss2,TPOTmiss0. N_correct/formalSLO unknown.
+Fourowners/100finalreceipts audited; per-owner yield deltas753/336/213/7,
+queued206/100/40/0. Actual trigger gate passed; no causal savings inferred.
+29transfers50650865wireB,packing0. Servicepeak18468663296B,
+hostmin93995520000B,high/max/OOM/swap0. All localGPU/service and remote units
+released; stop_remote.sh executed ONCE, do not repeat.41post-run checks passed.
+Starter98eb829ced734e2aa66a6b8aae19ffdd, launcher2aca020dca3942d5a01badb0d4f1839e
+and collector d358c144b67f4c9a8d41d4b4f0b2ed79 scopes closed exact-owned.
+Analysis e7942feb61a74a49b32048f6623ff00d empty, to close in D358 preparation.
+
+D358 uses the exact D357 candidate/profiles/controller, only new paths and no
+100-prefix. RAW d358_20261008/7b_full_w0, config20261008_d358_7b_full_w0.yaml;
+existing runner d358, tmux tc-d358-full. NOT LAUNCHED. Prepare/seal/push D357
+closure and D358 preparation, then fresh resource gate →ordinary4000W0. Remote
+monitor primelora-artifact-monitor-d358-full1.service. Full comparison toD353,
+D349/D336 context is mandatory; no short-run extrapolation, figures or3B/baselines.
+See D357_COMPLETE_D358_FULL_DECISION.md. Formal warm/Resident/numerical identity,
+main comparisons/ablations/sensitivities remain OPEN. Sourceplan/V1 unchanged.
+
+### D357 preparation history — completed
 
 D357 Full receipt analyzer is now implemented and169CPU checks passed. Each
 final registration binds request/intent, retired scheduler owner, actual TP1
