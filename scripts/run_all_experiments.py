@@ -3489,6 +3489,8 @@ class InferenceEngine:
         print(f"  OK: SGLang server ready (TP={tp}, dynamic LoRA)")
 
     async def initialize(self):
+        from faaslora.runtime_configuration import validate_quantization_prebuild_policy
+        validate_quantization_prebuild_policy(self.model_cfg, os.environ)
         policy = self.model_cfg.get('ieee_native_host_allocator_policy')
         marker = os.environ.get('FAASLORA_IEEE_NATIVE_HOST_ALLOCATOR_POLICY')
         if policy is not None or marker:

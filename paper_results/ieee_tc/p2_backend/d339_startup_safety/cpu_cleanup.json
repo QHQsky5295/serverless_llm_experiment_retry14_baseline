@@ -1,0 +1,21 @@
+{
+  "identity": {
+    "unit": "primelora-tc-aux-45f398aa95ea4a49b6ac1e41dbcd08e1.scope",
+    "invocation_id": "7a12d85d81674804afcb317a89cac501",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-45f398aa95ea4a49b6ac1e41dbcd08e1.scope",
+    "inode": 20451863
+  },
+  "resources": {
+    "memory.peak": "2369814528",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0",
+    "cgroup.events": "populated 0\nfrozen 0"
+  },
+  "inactive": true,
+  "launcher_attempt0": {
+    "unit": "primelora-tc-aux-d339-cpu1.scope",
+    "invocation_id": "6bb89982ca314826b0bc74e8ff68bc2d",
+    "error": "Scope name lacked required UUID; stopped before imports/tests.",
+    "inactive": true
+  }
+}

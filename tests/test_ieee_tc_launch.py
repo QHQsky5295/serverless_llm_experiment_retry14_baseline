@@ -1211,6 +1211,60 @@ runner._ieee_native_allocator_environment(
                 asyncio.run(_run_worker(payload, Path(directory) / 'ready.json'))
 
 
+class IEEEQuantizationPrebuild(unittest.TestCase):
+    def fixture(self):
+        return (dict(backend='vllm', dtype='float16', ieee_quantization_prebuild_policy='on_demand_v1'),
+            dict(FAASLORA_IEEE_QUANTIZATION_PREBUILD_POLICY='on_demand_v1',
+                HUMMING_DISABLE_PARALLEL_BUILD='1', VLLM_WORKER_MULTIPROC_METHOD='spawn'))
+
+    def test_opt_in_is_preimport_and_leaves_native_spawn_unchanged(self):
+        from faaslora.runtime_configuration import validate_quantization_prebuild_policy as check
+        config, env = self.fixture()
+        before = dict(env)
+        self.assertTrue(check(config, env))
+        self.assertEqual(env, before)
+        self.assertFalse(check({}, {}))
+
+    def test_inherited_switch_without_config_and_conflicts_are_rejected(self):
+        from faaslora.runtime_configuration import validate_quantization_prebuild_policy as check
+        config, env = self.fixture()
+        for bad in ({}, {'HUMMING_DISABLE_PARALLEL_BUILD':'1'},
+                    {**env, 'VLLM_WORKER_MULTIPROC_METHOD':'fork'},
+                    {**env, 'HUMMING_DISABLE_PARALLEL_BUILD':'0'}):
+            with self.subTest(env=bad), self.assertRaises(ValueError):
+                check(config, bad)
+        with self.assertRaises(ValueError):
+            check({}, env)
+        with self.assertRaises(ValueError):
+            check({}, {'HUMMING_DISABLE_PARALLEL_BUILD':'1'})
+
+    def test_quantized_models_and_unrecognized_policies_are_not_eligible(self):
+        from faaslora.runtime_configuration import validate_quantization_prebuild_policy as check
+        config, env = self.fixture()
+        for key, value in [('quantization','humming'),('backend','sglang'),('dtype','bfloat16'),
+                           ('ieee_quantization_prebuild_policy','unknown')]:
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                check({**config,key:value}, env)
+
+    def test_profile_reuse_is_only_post_ready_fp16_no_inference_relaxation(self):
+        from faaslora.experiment.instance_pool import FrozenServiceProfiles
+        config, _ = self.fixture()
+        identity = FrozenServiceProfiles.model_identity(config)
+        self.assertEqual(identity, {'backend':'vllm','dtype':'float16'})
+        self.assertNotEqual(FrozenServiceProfiles.model_identity({**config,'max_loras':9}), identity)
+        with self.assertRaises(ValueError):
+            FrozenServiceProfiles.model_identity({**config,'quantization':'humming'})
+
+    def test_worker_rejects_late_configuration_before_backend_initialization(self):
+        from scripts.dedicated_engine_worker import _run_worker
+        config, _ = self.fixture()
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory)/'payload.json'
+            path.write_text(json.dumps(dict(repo_root=str(Path.cwd()),model_cfg=config)))
+            with patch.dict(os.environ, {}, clear=True), self.assertRaisesRegex(ValueError, 'pre-import'):
+                asyncio.run(_run_worker(path, Path(directory)/'ready.json'))
+
+
 class IEEEControlContract(unittest.TestCase):
     def make(self):
         from faaslora.coordination.autoscaler import IEEEReplicaControl

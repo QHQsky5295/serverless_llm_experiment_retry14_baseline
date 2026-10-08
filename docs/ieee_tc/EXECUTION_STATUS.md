@@ -11,7 +11,41 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D338 CPU import diagnostic done; no unsupported startup shortcut
+## CURRENT — D339 fork candidate rejected safely; D340 on-demand prebuild in CPU qualification
+
+2026-10-08: D339 native-fork candidate passed170 unit tests but real-import safety
+precondition FAILED: CUDAfalse,2 Humming background reaper threads,4 OS tasks.
+No GPU fork run; patch archived then fully reverted. D339 CPU scopes empty/stopped,
+peak2369814528B/events0/swap0. Do not retry fork or relax the thread guard.
+Three closed historical failed-run main_outcome logs losslessly compressed via
+the prior procedure; double roundtrip SHA/source provenance passed, failures kept.
+Freed4213305344B; available164836679680B at completion, above150GiB. Compression
+peak3221626880B/high3599/max/OOM/swap0, exact scope empty/stopped. No GPU replay.
+
+New single candidate D340: upstream HUMMING_DISABLE_PARALLEL_BUILD=1 for actual
+unquantized FP16, native spawn retained. D339 observed unnecessary import-time
+background preparation, but its latency contribution remains unmeasured. Source
+history/official/local source audited.228 CPU tests pass; actual native import
+has only MainThread, CUDAfalse, spawn retained, no Humming reapers. Existing
+160 service/24 preparation profile classes bind; preflight disk164820172800B,
+host available112265232384B. No GPU launch yet.
+New config reuses D336 controls and original trace/pool,100-prefix smoke only;
+full4000 required before performance selection. No sitecustomize deletion, fork,
+new artifact cache, trace regeneration, policy/metric change or figures.
+NEXT backup tested candidate, fresh guarded remote/
+local gate, then D340 100-prefix. Do not repeat D337/D338 or compression.
+G1/G2/N_correct/commonwarm/Resident/old-new qualification remain OPEN;3B and all
+later baselines/matrices pending. D80 remote delivery cache remains the approved
+shared cache, reused without regeneration. See D339/D340 design notes.
+
+## HISTORY — D338 CPU import diagnostic done; no unsupported startup shortcut
+
+BACKUP/CLOSURE VERIFIED: local HEAD and independent remote V2 both
+3aab0f6a40468f0b9e26671b94a5db2113d1e18e.9 exact paths, archive/source SHA,
+diff/syntax/secrets/protected checks passed; user manifest unchanged/unstaged.
+Diagnostic and backup scopes empty/stopped; final backup peak28143616B,events0,
+swap0, GPU compute census empty. Current disk160627277824B remains below150GiB.
+D338 diagnosis/closure/backup are DONE; do not spend next turn repeating them.
 
 2026-10-08: one bounded CPU-only import diagnostic completed, NO new GPU replay,
 serving/config change, figures, artifact cache or trace regeneration. Two paths:
@@ -31,7 +65,7 @@ Do not treat uv cache size as reclaimable: inspected native wheels hardlinked.
 Known histories D293 prefetch/D307-D315512budget/D329 unsafeHOSTcache remain closed.
 G1/G2/commonwarm/Resident/N_correct/old-new7B qualification remain OPEN;3B then
 baselines/ablation matrix pending. User reapproved published artifact cache;
-existing D80 cache reused, not regenerated. Closure/backup pending below.
+existing D80 cache reused, not regenerated. Closure/backup verified above.
 
 ## HISTORY — D337 retained full-run trade-off localized; next startup-path hypothesis
 

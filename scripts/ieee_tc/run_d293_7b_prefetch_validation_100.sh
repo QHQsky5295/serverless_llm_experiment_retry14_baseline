@@ -193,6 +193,16 @@ case "${1:-d293}" in
     SCENARIO=tc_ieee_full
     PREFIX_COUNT=
     ;;
+  d340)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d340_20261008/7b_prebuild_validation_100
+    CONFIG=configs/ieee_tc/20261008_d340_7b_prebuild_validation_100.yaml
+    TAG=d340_7b_prebuild_validation_100
+    SCENARIO=tc_ieee_full
+    PREFIX_COUNT=100
+    export FAASLORA_IEEE_QUANTIZATION_PREBUILD_POLICY=on_demand_v1
+    export HUMMING_DISABLE_PARALLEL_BUILD=1
+    export VLLM_WORKER_MULTIPROC_METHOD=spawn
+    ;;
   *) echo 'Unknown frozen campaign identity; no arbitrary output override' >&2; exit 2 ;;
 esac
 [[ $# -le 1 ]] || exit 2

@@ -79,6 +79,8 @@ async def _run_worker(payload_path: Path, ready_path: Path) -> None:
         sys.path.insert(0, str(repo_root))
 
     model_cfg = dict(payload["model_cfg"])
+    from faaslora.runtime_configuration import validate_quantization_prebuild_policy
+    on_demand_prebuild = validate_quantization_prebuild_policy(model_cfg, os.environ)
     policy = model_cfg.get('ieee_native_host_allocator_policy')
     marker = os.environ.get('FAASLORA_IEEE_NATIVE_HOST_ALLOCATOR_POLICY')
     if policy is not None or marker:
@@ -268,6 +270,19 @@ async def _run_worker(payload_path: Path, ready_path: Path) -> None:
 
         try:
             await engine.initialize()
+            if on_demand_prebuild:
+                import threading
+                native_model = engine.engine.vllm_config.model_config
+                core_methods = [proc._start_method for proc in
+                    engine.engine.engine_core.resources.engine_manager.processes]
+                if (native_model.quantization is not None
+                        or core_methods != ['spawn']
+                        or any(t.name == 'humming-bg-build-reaper' for t in threading.enumerate())):
+                    raise ValueError('on-demand prebuild requires actual unquantized runtime and no background builder')
+                print('[quantization-prebuild] '+json.dumps(dict(
+                    policy='on_demand_v1', quantization=native_model.quantization,
+                    background_build_threads=0,
+                    native_core_methods=core_methods)), flush=True)
             server = await asyncio.start_server(_handle_client, host="127.0.0.1", port=0,
                                                 limit=_RPC_FRAME_MAX_BYTES)
             sock = server.sockets[0]

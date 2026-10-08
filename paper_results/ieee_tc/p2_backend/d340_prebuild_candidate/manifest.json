@@ -1,0 +1,39 @@
+{
+  "kind": "d340_prebuild_candidate",
+  "source_head": "3aab0f6a40468f0b9e26671b94a5db2113d1e18e",
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "sources": {
+    "candidate_cpu1.json": "237a51fc05899bb9a5d3c28a9a876920a3aae1814812cf7001598124c24eae6b",
+    "cpu_cleanup.json": "1eb0b6893561edbe9fd0e29a6ddd57d3e5d2442d6045a0910d3eb1db191e3b17",
+    "prelaunch_binding.json": "ef543e49166ec21aa172669461617cfd177b5cc626d3a432217160b7da9f0cd6",
+    "prelaunch_cleanup.json": "306b3cf778747ce7d99b02c2d220b9114d09e2e10a224f55c51731359813db21",
+    "test_candidate.py": "1178212c075033d96aa064119265a032fa48390ffee84a3ae0561ebac22eee95",
+    "verify_prelaunch.py": "dcf947af8a4917f1cc33c71a4dad7b91261ad0d2a6661830621f04d6d344340f",
+    "checkpoint.py": "b303f422ede7456ccf228397cd28043b960c4cd3317e572b92c0ba8212244cc5",
+    "candidate_cpu1.log": "8d6e8125b399a41b1c59bb0c12de9b5fbc539ca241b3f200ec6ea14e7ecb4848",
+    "native_entry1.log": "172d740f1a9dc27f932eba6d7d0bd7bfcba4629387a4e5e87675837c8a5bb6b9",
+    "start_remote.sh": "212601d6e686d8cc7e75c0dfd4cae90a0f89863273b82d8b5fcfb35d01151ad1",
+    "stop_remote.sh": "b331d41af69380f9e7d23ebb9c43e7cb3668dd7c5745077767ca4abfa321a751",
+    "check_remote_health.py": "176d803fb722f46a895fb15a006f4f3b31469fc5073121c40ebaf524446e95b5"
+  },
+  "outputs": {
+    "candidate_cpu1.json": "237a51fc05899bb9a5d3c28a9a876920a3aae1814812cf7001598124c24eae6b",
+    "execution_evidence.tar.gz": "d126cdf13e8269327e6a1a00ad8d36e56ccb0b3726f495c6adbb6cc32e35fdb8",
+    "cpu_cleanup.json": "1eb0b6893561edbe9fd0e29a6ddd57d3e5d2442d6045a0910d3eb1db191e3b17",
+    "prelaunch_binding.json": "ef543e49166ec21aa172669461617cfd177b5cc626d3a432217160b7da9f0cd6",
+    "prelaunch_cleanup.json": "306b3cf778747ce7d99b02c2d220b9114d09e2e10a224f55c51731359813db21"
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": false,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [
+      "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"
+    ],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "no_gpu_run": true,
+  "no_figures": true
+}

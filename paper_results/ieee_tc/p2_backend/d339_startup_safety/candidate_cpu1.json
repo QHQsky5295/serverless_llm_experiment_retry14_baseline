@@ -1,0 +1,35 @@
+{
+  "identity": {
+    "unit": "primelora-tc-aux-45f398aa95ea4a49b6ac1e41dbcd08e1.scope",
+    "invocation_id": "7a12d85d81674804afcb317a89cac501",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-45f398aa95ea4a49b6ac1e41dbcd08e1.scope",
+    "inode": 20451863
+  },
+  "before": {
+    "memory.peak": "9867264",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0",
+    "memory.high": "3221225472",
+    "memory.max": "4294967296",
+    "memory.swap.max": "0"
+  },
+  "after": {
+    "memory.peak": "2369814528",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0",
+    "memory.high": "3221225472",
+    "memory.max": "4294967296",
+    "memory.swap.max": "0"
+  },
+  "command": [
+    "/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python",
+    "-m",
+    "unittest",
+    "tests.test_ieee_tc_launch",
+    "tests.test_ieee_tc_service_events",
+    "-v"
+  ],
+  "unit_returncode": 0,
+  "native_entry_returncode": 1,
+  "gpu_census_after": ""
+}

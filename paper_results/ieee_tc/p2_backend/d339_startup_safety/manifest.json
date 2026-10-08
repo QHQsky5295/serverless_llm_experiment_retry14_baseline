@@ -1,0 +1,40 @@
+{
+  "kind": "d339_startup_safety",
+  "source_head": "3aab0f6a40468f0b9e26671b94a5db2113d1e18e",
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "sources": {
+    "summary.json": "246d984256eb411282bc6abca83a08c5401e4188a9173fb00e569ea624e1f633",
+    "resources.json": "97dd50cce3c22ac26c2556792a442453be1a9e50963c9db1a90d82d8056f77d7",
+    "compression_cleanup.json": "b7ee872f204c9b97086ad60bc7b38bac232dbd5d11b740acb4bb10be0ec73c1f",
+    "candidate_cpu1.json": "f89db6267e7f8237858403dd2482896df1ff963c34d969fdf91c9c0aaffecec1",
+    "cpu_cleanup.json": "6e95b424970bff26666feb28cd40daeaa769583f8c26a5f5fa729370ecac5739",
+    "compress_historical.py": "42cc39cf3f7cd8dc84da24a15f1026ac098583d563e8616a11dd5fd8aeb599b7",
+    "close_compression.py": "1136f91fddf0922082eff2e28d98f15deb899946238120c097f60589e3c21229",
+    "close_cpu.py": "3af130c9d537fdcf0b0b868efd0d33a5fd826c3d02182dc39de0cab3fa71bea7",
+    "test_candidate.py": "b6b2ea9a08a818a0650e0cfb48c89285e38e2a3a844af5051db80aeaede563a2",
+    "candidate_cpu1.log": "3127b853ca1c7b39218af372e495fb2a107b64ad6b749ee79ec6aff2d8b7a197",
+    "native_entry1.log": "9bda9847d2fa415c68425cfa31ea48a959456f1c515c4cf4f920995cea5a554e",
+    "rejected_fork_candidate.patch": "9ccd590300eb473e618af0179579d7577763c5d3cd4f298de9f79bce295bdf1b"
+  },
+  "outputs": {
+    "resources.json": "97dd50cce3c22ac26c2556792a442453be1a9e50963c9db1a90d82d8056f77d7",
+    "candidate_cpu1.json": "f89db6267e7f8237858403dd2482896df1ff963c34d969fdf91c9c0aaffecec1",
+    "execution_evidence.tar.gz": "6db918d9192a42519690d5f9cb4b234cecaa6962c2fc0769c5960f61a9708a05",
+    "cpu_cleanup.json": "6e95b424970bff26666feb28cd40daeaa769583f8c26a5f5fa729370ecac5739",
+    "summary.json": "246d984256eb411282bc6abca83a08c5401e4188a9173fb00e569ea624e1f633",
+    "compression_cleanup.json": "b7ee872f204c9b97086ad60bc7b38bac232dbd5d11b740acb4bb10be0ec73c1f"
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": false,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [
+      "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"
+    ],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "no_gpu_run": true,
+  "no_figures": true
+}

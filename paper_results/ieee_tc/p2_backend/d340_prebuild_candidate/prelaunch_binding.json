@@ -1,0 +1,375 @@
+{
+  "kind": "d340_prelaunch_binding_v1",
+  "passed": true,
+  "model_config": {
+    "name": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+    "backend": "vllm",
+    "device_id": 0,
+    "visible_device_ids": [
+      0
+    ],
+    "tensor_parallel_size": 1,
+    "gpu_memory_utilization": 0.92,
+    "max_model_len": 1024,
+    "max_loras": 8,
+    "max_lora_rank": 16,
+    "enable_lora": true,
+    "enforce_eager": false,
+    "dtype": "float16",
+    "max_num_seqs": 8,
+    "max_num_batched_tokens": 1024,
+    "max_output_tokens_cap": 256,
+    "max_input_len": 759,
+    "runtime_concurrency_cap": 8,
+    "enable_chunked_prefill": true,
+    "enable_prefix_caching": false,
+    "vllm_use_v1": true,
+    "vllm_attention_backend": "FLASH_ATTN",
+    "vllm_use_flashinfer_sampler": true,
+    "safetensors_load_strategy": "auto",
+    "ieee_quantization_prebuild_policy": "on_demand_v1",
+    "timing_contract": "ieee_tc_native_v1",
+    "ieee_worker_observation": true,
+    "ieee_gpu_references": true,
+    "ieee_scheduler_observation": true,
+    "ieee_input_upper_bounds": [
+      759
+    ],
+    "generation_contract": "fixed_length_greedy_v1",
+    "canonical_prompt_renderer": "role_lines_v1",
+    "ieee_physical_allocation": true,
+    "ieee_host_budget_bytes": 17179869184,
+    "ieee_native_host_tensor_budget_bytes": 2147483648,
+    "ieee_native_host_workspace": {
+      "kind": "native_host_workspace_contract_v1",
+      "dtype": "torch.float16",
+      "source_audit_sha256": "224b9337ecaba2590ac888e9d0e3b9eb41a17074ce77b952e98e935259adf60f",
+      "max_resident_pinned_bytes": 33554432,
+      "max_transient_tensor_bytes": 67143184
+    },
+    "ieee_native_host_allocator_policy": "uncached_background_v1",
+    "ieee_admission_profile": {
+      "window_s": 5.0,
+      "model_backend_id": "native-model/38a4e646e9bf1cb195d7f0f0d22140b71255e6f2696ea4d73e4b27437a279f36",
+      "profile_id": "native-completed/af483454cadf3d31876e472443f32181d7676917fe3fc61354dd865db6f55427",
+      "profile_means": [
+        100.86411149825784,
+        125.56888888888889
+      ],
+      "transfer_limit": 3
+    },
+    "artifact_content_manifest_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json",
+    "requested_runtime_concurrency_cap": 8,
+    "max_cpu_loras": 24,
+    "requested_enforce_eager": "auto",
+    "resolved_enforce_eager": false,
+    "skip_stale_gpu_cleanup": true
+  },
+  "assembly": {
+    "CUDA_VISIBLE_DEVICES": "0",
+    "FAASLORA_VISIBLE_DEVICES": "0"
+  },
+  "changed_policy_fields": [
+    "ieee_quantization_prebuild_policy"
+  ],
+  "source_references": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261008_d340_7b_prebuild_validation_100.yaml",
+      "sha256": "0992bf7e645d4850dd4b4efc7325f984330f622b62f0d8439853aea69cb05a8e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261008_d336_7b_full_w0.yaml",
+      "sha256": "7fd50e8222f68ee1ced5b96e73e3daaed290314843d41ac4c0d3bbeb62c6ec72"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "95d946b33d49db40293118c17ca449704fef54ff2ab537f9a0c824094e3797b9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/dedicated_engine_worker.py",
+      "sha256": "be58f50786a680a47f8ae5855272a26e5a5da4cf2f5acf3ec467cf8f8221c147"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/runtime_configuration.py",
+      "sha256": "877ba925fc2d456367f00a0643c6872d07537857f00d085dd105e5a48501b92c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/instance_pool.py",
+      "sha256": "0bd975754a004e8f6f4efee45b03c78c6c4b16842aa7ffcb3ba9c7336fc6435a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_launch.py",
+      "sha256": "d210345a4bf7f8f356583c165b0fe870aa824783172b04237701487e002c8d74"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh",
+      "sha256": "a1466f0be9b8b008c947ea6c0e2de60bcdaa65a227bd882d893a70fea91ed274"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/humming/utils/jit.py",
+      "sha256": "17760e8b6ea7d8f2af2cdd5465472ada437b73896528899d795ddba2b47a24bd"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/humming/utils/nvrtc.py",
+      "sha256": "80b5a7433d8c64a13824862f7f94d960b6eebdb4f915382f36a4c82cbfedf40e"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/humming/ops/utils.py",
+      "sha256": "8c983ba7680a1c441758289c5612cb662cdc429b805f98944b980a708aab112f"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/utils/system_utils.py",
+      "sha256": "837e6ff0ab524c06c048d6b42d4f35b77baba2e9d9e57837fe333ca0aaee1cfb"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core_client.py",
+      "sha256": "fd6ca0cb7499b3086eef2fc57674b7ace56ef1c648f09e92e144b255b79018f8"
+    }
+  ],
+  "preflight": {
+    "kind": "ieee_tc_preflight",
+    "time_unix": 1791423470.2220051,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+    "policy": {
+      "service_high_bytes": 77309411328,
+      "service_max_bytes": 85899345920,
+      "service_swap_max_bytes": 2147483648,
+      "aux_max_bytes": 4294967296,
+      "stop_available_bytes": 17179869184,
+      "margin_bytes": 2147483648,
+      "warning_available_bytes": 25769803776,
+      "service_cpus": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47
+      ],
+      "aux_cpus": [
+        2,
+        3,
+        26,
+        27
+      ],
+      "reserved_cpus": [
+        0,
+        1,
+        24,
+        25
+      ],
+      "memory_full_avg10_percent": 10,
+      "pressure_samples": 10,
+      "sample_seconds": 1,
+      "disk_stop_bytes": 107374182400,
+      "disk_start_floor_bytes": 161061273600
+    },
+    "memory": {
+      "MemTotal": 134626844672,
+      "MemFree": 42769477632,
+      "MemAvailable": 112265232384,
+      "Buffers": 12767457280,
+      "Cached": 48075194368,
+      "SwapCached": 251666432,
+      "Active": 34755760128,
+      "Inactive": 42865438720,
+      "Active(anon)": 16455434240,
+      "Inactive(anon)": 328527872,
+      "Active(file)": 18300325888,
+      "Inactive(file)": 42536910848,
+      "Unevictable": 3211264,
+      "Mlocked": 0,
+      "SwapTotal": 36507213824,
+      "SwapFree": 34817253376,
+      "Zswap": 0,
+      "Zswapped": 0,
+      "Dirty": 1572864,
+      "Writeback": 0,
+      "AnonPages": 16695558144,
+      "Mapped": 1125867520,
+      "Shmem": 5525504,
+      "KReclaimable": 10725224448,
+      "Slab": 12088872960,
+      "SReclaimable": 10725224448,
+      "SUnreclaim": 1363648512,
+      "KernelStack": 40304640,
+      "PageTables": 167411712,
+      "SecPageTables": 0,
+      "NFS_Unstable": 0,
+      "Bounce": 0,
+      "WritebackTmp": 0,
+      "CommitLimit": 103820636160,
+      "Committed_AS": 21159034880,
+      "VmallocTotal": 35184372087808,
+      "VmallocUsed": 620670976,
+      "VmallocChunk": 0,
+      "Percpu": 193462272,
+      "HardwareCorrupted": 0,
+      "AnonHugePages": 71303168,
+      "ShmemHugePages": 0,
+      "ShmemPmdMapped": 0,
+      "FileHugePages": 0,
+      "FilePmdMapped": 0,
+      "Unaccepted": 0,
+      "HugePages_Total": 0,
+      "HugePages_Free": 0,
+      "HugePages_Rsvd": 0,
+      "HugePages_Surp": 0,
+      "Hugepagesize": 2097152,
+      "Hugetlb": 0,
+      "DirectMap4k": 35962978304,
+      "DirectMap2M": 98794733568,
+      "DirectMap1G": 4294967296
+    },
+    "required_available_bytes": 109521666048,
+    "filesystems": [
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+        "device": 2050,
+        "free_bytes": 164820172800,
+        "required_bytes": 161061273600,
+        "free_inodes": 210119703
+      }
+    ],
+    "service_parent_chain": [
+      {
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service",
+        "memory.current": 31214563328,
+        "memory.peak": 93511049216,
+        "memory.high": "max",
+        "memory.max": "max",
+        "memory.swap.current": 217980928,
+        "memory.swap.max": "max",
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=163577522\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=161506114",
+        "cpu.max": null,
+        "cpu.stat": "usage_usec 1248108155371\nuser_usec 1150125629143\nsystem_usec 97982526227\ncore_sched.force_idle_usec 0",
+        "cpuset.cpus.effective": null,
+        "cgroup.controllers": "memory pids",
+        "memory.events": {
+          "low": 0,
+          "high": 108168,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0,
+          "oom_group_kill": 0
+        }
+      },
+      {
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice",
+        "memory.current": 79791812608,
+        "memory.peak": 125386870784,
+        "memory.high": "max",
+        "memory.max": "max",
+        "memory.swap.current": 413601792,
+        "memory.swap.max": "max",
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=890365727\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=885813563",
+        "cpu.max": null,
+        "cpu.stat": "usage_usec 1317191033712\nuser_usec 1201125222809\nsystem_usec 116065810902\ncore_sched.force_idle_usec 0",
+        "cpuset.cpus.effective": null,
+        "cgroup.controllers": "memory pids",
+        "memory.events": {
+          "low": 0,
+          "high": 108168,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 1,
+          "oom_group_kill": 0
+        }
+      },
+      {
+        "path": "/sys/fs/cgroup/user.slice",
+        "memory.current": 79920685056,
+        "memory.peak": 125467160576,
+        "memory.high": "max",
+        "memory.max": "max",
+        "memory.swap.current": 594223104,
+        "memory.swap.max": "max",
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=883700510\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=878846549",
+        "cpu.max": "max 100000",
+        "cpu.stat": "usage_usec 1372219526535\nuser_usec 1239464937921\nsystem_usec 132754588613\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0",
+        "cpuset.cpus.effective": "0-47",
+        "cgroup.controllers": "cpuset cpu io memory hugetlb pids rdma misc",
+        "memory.events": {
+          "low": 0,
+          "high": 108168,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 1,
+          "oom_group_kill": 0
+        }
+      },
+      {
+        "path": "/sys/fs/cgroup",
+        "memory.current": null,
+        "memory.peak": null,
+        "memory.high": null,
+        "memory.max": null,
+        "memory.swap.current": null,
+        "memory.swap.max": null,
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=987308868\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=969628558",
+        "cpu.max": null,
+        "cpu.stat": "usage_usec 2591053217000\nuser_usec 1894666322000\nsystem_usec 696386895000\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0",
+        "cpuset.cpus.effective": "0-47",
+        "cgroup.controllers": "cpuset cpu io memory hugetlb pids rdma misc",
+        "memory.events": null
+      }
+    ],
+    "issues": [],
+    "preflight_pass": true,
+    "production_launch_authorized": false,
+    "remaining_gates": [
+      "actual_service_workers",
+      "separate_replay_and_watchdog",
+      "gpu_cleanup",
+      "per_filesystem_quota_audit"
+    ]
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": false,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [
+      "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"
+    ],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "source_requests": 4000,
+  "diagnostic_prefix_count": 100,
+  "formal_qualification": false,
+  "numerical_n_correct": null
+}

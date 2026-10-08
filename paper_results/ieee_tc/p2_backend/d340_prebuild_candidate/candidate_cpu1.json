@@ -1,0 +1,36 @@
+{
+  "identity": {
+    "unit": "primelora-tc-aux-1f81d30c8a4a4d5d811801c3718e4517.scope",
+    "invocation_id": "2c555482665a41f2877380df0f5d7ff7",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-1f81d30c8a4a4d5d811801c3718e4517.scope",
+    "inode": 20455896
+  },
+  "before": {
+    "memory.peak": "10117120",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0",
+    "memory.high": "3221225472",
+    "memory.max": "4294967296",
+    "memory.swap.max": "0"
+  },
+  "after": {
+    "memory.peak": "2378539008",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0",
+    "memory.high": "3221225472",
+    "memory.max": "4294967296",
+    "memory.swap.max": "0"
+  },
+  "command": [
+    "/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python",
+    "-m",
+    "unittest",
+    "tests.test_ieee_tc_launch",
+    "tests.test_ieee_tc_service_events",
+    "tests.test_ieee_tc_service_routing",
+    "-v"
+  ],
+  "unit_returncode": 0,
+  "native_entry_returncode": 0,
+  "gpu_census_after": ""
+}

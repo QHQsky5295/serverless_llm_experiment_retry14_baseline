@@ -646,6 +646,12 @@ class FrozenServiceProfiles:
     def model_identity(model_config: Mapping) -> dict:
         if not isinstance(model_config, Mapping):
             raise ValueError('service profile requires the actual runtime configuration')
+        prebuild_policy = model_config.get('ieee_quantization_prebuild_policy')
+        if prebuild_policy is not None and (
+                prebuild_policy != 'on_demand_v1' or model_config.get('backend') != 'vllm'
+                or model_config.get('dtype') != 'float16'
+                or model_config.get('quantization') is not None):
+            raise ValueError('startup-only prebuild profile reuse requires unquantized FP16')
         # Weight-file loading is a deployment/startup concern.  It is not part
         # of the post-ready service/admission measurements in this profile.
         # Keep the identity strict for inference, LoRA, scheduler, and native
@@ -656,6 +662,9 @@ class FrozenServiceProfiles:
             'safetensors_load_decision', 'safetensors_model_bytes',
             'safetensors_mem_available_bytes', 'safetensors_prefetch_num_threads',
             'safetensors_prefetch_block_size',
+            # Optional quantization helper prebuild is import-time work, not
+            # FP16 service or admission. Exact run/config identity retains it.
+            'ieee_quantization_prebuild_policy',
         }
         return {key: value for key, value in model_config.items()
                 if key not in ({'visible_device_ids', 'device_id', 'ieee_token_id_capture'}

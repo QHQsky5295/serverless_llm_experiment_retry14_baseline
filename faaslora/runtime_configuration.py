@@ -7,6 +7,28 @@ without removing capacity fields from profile identity.
 import copy
 
 
+def validate_quantization_prebuild_policy(model_config, environment):
+    """Bind the upstream on-demand Humming build switch to an FP16 experiment.
+
+    This changes only optional import-time background preparation. The native
+    kernels still build on demand, and multiprocessing remains spawn.
+    """
+    policy = model_config.get('ieee_quantization_prebuild_policy')
+    marker = environment.get('FAASLORA_IEEE_QUANTIZATION_PREBUILD_POLICY')
+    if policy is None and not marker:
+        if environment.get('HUMMING_DISABLE_PARALLEL_BUILD') == '1':
+            raise ValueError('on-demand quantization prebuild must have frozen configuration')
+        return False
+    if (policy != 'on_demand_v1' or marker != policy
+            or model_config.get('backend') != 'vllm'
+            or model_config.get('dtype') != 'float16'
+            or model_config.get('quantization') is not None
+            or environment.get('HUMMING_DISABLE_PARALLEL_BUILD') != '1'
+            or environment.get('VLLM_WORKER_MULTIPROC_METHOD', 'spawn') != 'spawn'):
+        raise ValueError('quantization prebuild candidate requires pre-import FP16/spawn contract')
+    return True
+
+
 # These values are derived inside the fresh worker from the local checkpoint
 # and current host memory.  They are receipts for startup observability, not
 # requested serving configuration, so they must not invalidate the parent/
