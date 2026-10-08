@@ -1,0 +1,346 @@
+{
+  "kind": "d354_retained_input_turn_audit_v1",
+  "new_gpu_run": false,
+  "formal_performance_result": false,
+  "gpu_kernel_timing": false,
+  "n_correct": null,
+  "diagnostic_contract": "D351 intrusive prefix1000, before D352; not D353 ordinary Full",
+  "processes": 12,
+  "requests": 1000,
+  "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+  "input_turns": 50613,
+  "work_input_turns": 50178,
+  "turn_summary": [
+    {
+      "state": "work",
+      "nonempty_turns": 8533,
+      "multi_client_turns": 2228,
+      "multi_utility_turns": 2085,
+      "client_count": {
+        "count": 8533,
+        "total": 13306.0,
+        "mean": 1.559357787413571,
+        "p50": 1,
+        "p95": 4,
+        "maximum": 31
+      },
+      "utility_count": {
+        "count": 8533,
+        "total": 12447.0,
+        "mean": 1.4586897925700222,
+        "p50": 1,
+        "p95": 4,
+        "maximum": 29
+      },
+      "client_ns_ms": {
+        "count": 8533,
+        "total": 339385.908015,
+        "mean": 39.77333974159147,
+        "p50": 0.811538,
+        "p95": 202.716067,
+        "maximum": 1709.048515
+      },
+      "client_thread_cpu_ns_ms": {
+        "count": 8533,
+        "total": 337298.342014,
+        "mean": 39.5286935443572,
+        "p50": 0.806744,
+        "p95": 201.020979,
+        "maximum": 1691.883753
+      },
+      "utility_ns_ms": {
+        "count": 8533,
+        "total": 339053.949118,
+        "mean": 39.73443678870268,
+        "p50": 0.798471,
+        "p95": 202.716067,
+        "maximum": 1709.048515
+      },
+      "clients_after_first_ns_ms": {
+        "count": 8533,
+        "total": 122340.313437,
+        "mean": 14.337315532286418,
+        "p50": 0.0,
+        "p95": 119.189431,
+        "maximum": 1530.478473
+      },
+      "clients_after_first_utility_ns_ms": {
+        "count": 8533,
+        "total": 117460.968385,
+        "mean": 13.765494947263566,
+        "p50": 0.0,
+        "p95": 113.017068,
+        "maximum": 1530.478473
+      }
+    },
+    {
+      "state": "idle_at_entry",
+      "nonempty_turns": 258,
+      "multi_client_turns": 156,
+      "multi_utility_turns": 152,
+      "client_count": {
+        "count": 258,
+        "total": 6292.0,
+        "mean": 24.387596899224807,
+        "p50": 8,
+        "p95": 118,
+        "maximum": 277
+      },
+      "utility_count": {
+        "count": 258,
+        "total": 6139.0,
+        "mean": 23.794573643410853,
+        "p50": 7,
+        "p95": 117,
+        "maximum": 276
+      },
+      "client_ns_ms": {
+        "count": 258,
+        "total": 225704.085898,
+        "mean": 874.8220383643411,
+        "p50": 120.972923,
+        "p95": 4461.198897,
+        "maximum": 16633.990551
+      },
+      "client_thread_cpu_ns_ms": {
+        "count": 258,
+        "total": 224627.603415,
+        "mean": 870.6496256395349,
+        "p50": 120.94002,
+        "p95": 4453.576868,
+        "maximum": 16561.678711
+      },
+      "utility_ns_ms": {
+        "count": 258,
+        "total": 225652.772512,
+        "mean": 874.6231492713179,
+        "p50": 120.748595,
+        "p95": 4460.921013,
+        "maximum": 16633.576495
+      },
+      "clients_after_first_ns_ms": {
+        "count": 258,
+        "total": 225363.163561,
+        "mean": 873.5006339573644,
+        "p50": 120.69046,
+        "p95": 4460.393974,
+        "maximum": 16633.197205
+      },
+      "clients_after_first_utility_ns_ms": {
+        "count": 258,
+        "total": 225362.666999,
+        "mean": 873.4987092984496,
+        "p50": 120.69046,
+        "p95": 4460.393974,
+        "maximum": 16633.197205
+      }
+    }
+  ],
+  "groups": [
+    {
+      "group": "all",
+      "timing_tpot_miss": false,
+      "count": 861,
+      "overlapping_after_first_utility": 665,
+      "mean_tpot_ms": 35.74668087848626,
+      "mean_decode_ms": 4575.581853073171,
+      "mean_client_ms": 946.8535514692219,
+      "mean_work_client_ms": 946.8535514692219,
+      "mean_work_multi_client_ms": 622.1783470487804,
+      "mean_work_clients_after_first_ms": 362.8878956051104,
+      "mean_work_utility_ms": 945.7477329709641,
+      "mean_work_clients_after_first_utility_ms": 349.2990894541231,
+      "mean_work_utilities_after_first_ms": 349.1279452497096
+    },
+    {
+      "group": "all",
+      "timing_tpot_miss": true,
+      "count": 139,
+      "overlapping_after_first_utility": 135,
+      "mean_tpot_ms": 114.84979525324306,
+      "mean_decode_ms": 4258.326806985611,
+      "mean_client_ms": 1775.0775802230216,
+      "mean_work_client_ms": 1775.0775802230216,
+      "mean_work_multi_client_ms": 1681.9642814964027,
+      "mean_work_clients_after_first_ms": 1333.0746944172663,
+      "mean_work_utility_ms": 1772.2306267194244,
+      "mean_work_clients_after_first_utility_ms": 1199.6951219352518,
+      "mean_work_utilities_after_first_ms": 1198.5355262446042
+    },
+    {
+      "group": "short_2_32",
+      "timing_tpot_miss": false,
+      "count": 204,
+      "overlapping_after_first_utility": 117,
+      "mean_tpot_ms": 40.79254615059385,
+      "mean_decode_ms": 515.3747019705883,
+      "mean_client_ms": 119.58423029411766,
+      "mean_work_client_ms": 119.58423029411766,
+      "mean_work_multi_client_ms": 91.68412116176471,
+      "mean_work_clients_after_first_ms": 49.45283333333334,
+      "mean_work_utility_ms": 119.38691898039215,
+      "mean_work_clients_after_first_utility_ms": 46.638575421568625,
+      "mean_work_utilities_after_first_ms": 46.603365926470595
+    },
+    {
+      "group": "short_2_32",
+      "timing_tpot_miss": true,
+      "count": 108,
+      "overlapping_after_first_utility": 104,
+      "mean_tpot_ms": 118.95006168464832,
+      "mean_decode_ms": 1359.6640195370371,
+      "mean_client_ms": 569.393679212963,
+      "mean_work_client_ms": 569.393679212963,
+      "mean_work_multi_client_ms": 541.6980071111111,
+      "mean_work_clients_after_first_ms": 437.85357414814814,
+      "mean_work_utility_ms": 568.45001925,
+      "mean_work_clients_after_first_utility_ms": 399.54909956481487,
+      "mean_work_utilities_after_first_ms": 399.2189706203703
+    },
+    {
+      "group": "long_33_256",
+      "timing_tpot_miss": false,
+      "count": 657,
+      "overlapping_after_first_utility": 548,
+      "mean_tpot_ms": 34.17992819125651,
+      "mean_decode_ms": 5836.285443369863,
+      "mean_client_ms": 1203.722564436834,
+      "mean_work_client_ms": 1203.722564436834,
+      "mean_work_multi_client_ms": 786.8980153607306,
+      "mean_work_clients_after_first_ms": 460.2101980456621,
+      "mean_work_utility_ms": 1202.3346523835617,
+      "mean_work_clients_after_first_utility_ms": 443.27587006697104,
+      "mean_work_utilities_after_first_ms": 443.06251782496196
+    },
+    {
+      "group": "long_33_256",
+      "timing_tpot_miss": true,
+      "count": 31,
+      "overlapping_after_first_utility": 31,
+      "mean_tpot_ms": 100.56499607286348,
+      "mean_decode_ms": 14356.893937451612,
+      "mean_client_ms": 5975.524719225806,
+      "mean_work_client_ms": 5975.524719225806,
+      "mean_work_multi_client_ms": 5654.504850322581,
+      "mean_work_clients_after_first_ms": 4451.909565032258,
+      "mean_work_utility_ms": 5966.046936612903,
+      "mean_work_clients_after_first_utility_ms": 3987.3006192258063,
+      "mean_work_utilities_after_first_ms": 3983.251268419355
+    }
+  ],
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1/launch.launch/diagnostic_core/3277101-96090533.jsonl",
+      "bytes": 36403722,
+      "sha256": "0f9273c3300815302ad30831420a67fa7cb9f7dfe8869e762ac3f47f659199ce"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1/launch.launch/diagnostic_core/3279685-96095910.jsonl",
+      "bytes": 11236318,
+      "sha256": "eb9f167c2230d72cd489f280f53e24d9d2b9aa56686679a85e1df1f697356cc7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1/launch.launch/diagnostic_core/3279814-96096119.jsonl",
+      "bytes": 520830,
+      "sha256": "b5aaffcad048cbca6bebd8efe6034360f0708eaca48df6b867944e6b486b0375"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1/launch.launch/diagnostic_core/3279876-96096380.jsonl",
+      "bytes": 976053,
+      "sha256": "fa268eb97b84f367be9ef4e44f5f276c36ff584dee98d164512c858d57d2a157"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1/launch.launch/diagnostic_core/3295294-96130754.jsonl",
+      "bytes": 3297339,
+      "sha256": "af370069f0b165f9623d8424234e4747346c797e6a996288b32d9be25b16824a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1/launch.launch/diagnostic_core/3295411-96131003.jsonl",
+      "bytes": 229500,
+      "sha256": "8728e0146e0b45de7266d7b7ad7a24a71f8cf44836043dc7f93e4f95897507ab"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1/launch.launch/diagnostic_core/3310904-96167218.jsonl",
+      "bytes": 2849882,
+      "sha256": "2d522923ab98486027c0a8ac66ee4ed65787ae0a35ee0f6df722b9fe564fc7f2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1/launch.launch/diagnostic_core/3311211-96167904.jsonl",
+      "bytes": 1080226,
+      "sha256": "f8437db07efbbd63183e4463e24a3e94e5935f276a62f942820aebc3d288559c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1/launch.launch/diagnostic_core/3311325-96168109.jsonl",
+      "bytes": 7645455,
+      "sha256": "04392644b4c230fd13c7aa61e3c3ce14064e6df936f90a425363ab3877b0990b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1/launch.launch/diagnostic_core/3325573-96200725.jsonl",
+      "bytes": 2232,
+      "sha256": "81c283f8c6f7c42daa59404b859051f8cf67e1d217d320b419f46c8fe068f8da"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1/launch.launch/diagnostic_core/3325682-96200961.jsonl",
+      "bytes": 2234,
+      "sha256": "c0d3e51534443a6840bf4c9d377791ada6b9a01cacb6300f071bf2df859a8a75"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008/7b_full_w0_prefix1/launch.launch/diagnostic_core/3325842-96201200.jsonl",
+      "bytes": 2237,
+      "sha256": "c26fee96b6aff94611b6d8ab9b55c6f6b6a20316dce0c3ef460ec2d7b8802412"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d351_core_timing/analysis1/manifest.json",
+      "bytes": 2254,
+      "sha256": "7cb657cd208bb8a8a98cd436eb8a2d182e133bd77bd553b839929d77bc1cf190"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d351_core_timing/analysis1/core_timing/summary.json",
+      "bytes": 7843,
+      "sha256": "6040930709ebf23505fa692d3ec3edb29b492f72bef5211c33c258728586ab39"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d351_core_timing/analysis1/core_timing/decode_windows.csv",
+      "bytes": 186406,
+      "sha256": "c2be7f7495c3d3ad40e28863f629c5cced14431a5178df10e8f815364c4ab71b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d351_core_timing/analysis1/core_timing/processes.csv",
+      "bytes": 1608,
+      "sha256": "6a9e4ac4ba28d725701febcc13a8961cfe34bcc40921f3af2b9c3802628ced9f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/analyze_control_path_overhead.py",
+      "bytes": 104703,
+      "sha256": "259f67b73e197f69ba748194edfd71073a408490be03e92ab03a94adbf4a29e7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/results/ieee_tc/p2_backend_qualification/d354_20261008/audit_input_turns.py",
+      "bytes": 10309,
+      "sha256": "1d791c1bbc8d67b85a0d55d0c9f6ecd1d2860cdf40c0d3f96cd6e4c8751443ab"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "bytes": 18511,
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+    },
+    {
+      "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "bytes": 75589,
+      "sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+      "bytes": 106584,
+      "sha256": "268bf40534a853812867ae8e80040f190983cb364b41182b55969aace20c93f5"
+    }
+  ],
+  "caveats": [
+    "All intervals are observed host spans including instrumentation; no counterfactual latency is calculated.",
+    "Work/idle is measured at parent entry; child operations can change scheduler work. No child eligibility inferred.",
+    "Suffix is measured client time after the first client/utility in the same input turn; it excludes observer gaps.",
+    "Suffix is a subset of client time, not an additional phase. Concurrent request intersections cannot be summed as service time.",
+    "Host occupancy is not GPU idle or kernel time. Interleaving can also delay control completion and change batching.",
+    "TPOT pass/miss is the unchanged provisional D170 timing ruler, not final qualification or a causal group assignment."
+  ]
+}

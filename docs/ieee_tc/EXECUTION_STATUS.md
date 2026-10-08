@@ -11,7 +11,39 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D353 Full4000 complete/analyzed/sealed; consult backup receipt
+## CURRENT — D354 retained input-turn evidence; no new GPU run
+
+D353 backup confirmed local=remoteV2 d6714fdf3b539f676c4a212c520eec21c9e4d6a1;
+all prior scopes closed. User reconfirms immutable published delivery cache;
+reuse existing cache, no request packing or new artifact pool.
+
+D354 reuses all12 complete D351 native streams/1000 decode windows with SHA
+and exact prior interval checks. 50613 input turns;8533 nonempty work-entry turns,
+2228 multi-client and2085 multi-utility. Work-entry client339.385908s;
+after-first-utility client117.460968s (subset, not extra latency). Short TPOT
+misses104/108 overlap that suffix,mean399.549100ms versus46.638575ms for204
+passing short outputs. Descriptive intrusive pre-D352 evidence, not D353 causal
+attribution, GPU idle or projected speedup.18tests pass;analysis peak259985408B,
+high/max/OOM/swap0. No serving/config/metric change, GPU run or figures.
+
+Decision D354_CONTROL_TURN_EVIDENCE.md: supports ONE next candidate, bounded
+interleaving of complete Prime control transactions with ordinary native model
+steps. Preserve FIFO, idle/abort/shutdown, atomic pending/admission/reference,
+native topology and nine equations. Candidate NOT IMPLEMENTED/QUALIFIED.
+First correctness/minimal validation, then ordinary Full W0 against D353;
+include control delay, TTFT/TPOT, joint timing and physical U trade-offs.
+Do not implement cross-request HOST cache or blindly sweep capacity/softtarget.
+
+Curated paper_results/ieee_tc/p2_backend/d354_input_turns/analysis1;
+raw results/ieee_tc/p2_backend_qualification/d354_20261008.
+Analysis complete. Initialseal rejected original manifest's empty-file selfSHA;
+six data outputs/all sources intact. Preserve original/failure;use separate
+analysis1/validated_manifest.json excluding self, no reanalysis/GPU rerun.
+Closure/backup receipt must be consulted before repeat work.
+Mainline7B→3B→pausedbaselines→M1/M2→ablations/sensitivities,allOPEN.
+D353 provisional3752/4000 stillnotqualified;formal warm/Resident/N_correct OPEN.
+
+### D353 completed checkpoint (historical)
 
 Checkpoint verification passed:31exactstagedpaths,25filehashes,46archivemembers,
 syntax/diff/secrets checks and147-entry historical protection. User manifest

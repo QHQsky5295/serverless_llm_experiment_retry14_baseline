@@ -1054,7 +1054,7 @@ def analyze_control_boundaries(directory: Path, receipt_path: Path,
     return result
 
 
-def summarize_core_host_spans(events):
+def summarize_core_host_spans(events, *, include_input_turns=False):
     """Validate one completed diagnostic stream; host spans are not GPU time.
 
     Missing close/truncated tails remain explicitly incomplete. Disjoint root
@@ -1165,12 +1165,89 @@ def summarize_core_host_spans(events):
         for a,b in spans:
             prefix.append(total); total += b-a
         index[name] = dict(starts=[a for a,b in spans],ends=[b for a,b in spans],prefix=prefix,total_ns=total)
-    return dict(complete=complete,truncated=limit is not None,closed=close is not None,
+    result = dict(complete=complete,truncated=limit is not None,closed=close is not None,
         spans=len(rows),orphan_span_ids=orphans,metrics=metrics,index=index,
         first_ns=min((r['begin_ns'] for r in rows.values()),default=None),last_ns=previous_end if rows else None,
         observer_ns=close['observer_ns'] if close else max((r['preceding_observer_ns'] for r in rows.values()),default=0),
         write_ns=close['write_ns'] if close else max((r['preceding_write_ns'] for r in rows.values()),default=0),
         overhead_is_lower_bound=close is None)
+    if include_input_turns:
+        if not complete:
+            raise ValueError('input-turn audit requires a complete native core stream')
+        result['input_turns'] = _summarize_core_input_turns(roots, children)
+    return result
+
+
+def _summarize_core_input_turns(roots, children):
+    """Describe already validated host turns, never counterfactual decode gain.
+
+    Work/idle is observed only at root entry. A later ADD or ABORT can change it;
+    neither child eligibility nor GPU idle time is inferred. Suffix intervals
+    contain only measured client spans, not intervening observer/write time.
+    """
+    records, intervals = [], defaultdict(list)
+    counts = dict(input_turns=0, empty_input_turns=0, work_input_turns=0)
+    for i, root in enumerate(roots):
+        if root['boundary'] != 'input_queue':
+            continue
+        counts['input_turns'] += 1
+        work = root['details']['unfinished_before'] > 0
+        counts['work_input_turns'] += int(work)
+        nested = sorted(children[root['id']], key=lambda r:r['begin_ns'])
+        if not nested:
+            counts['empty_input_turns'] += 1
+            continue
+        utilities = [j for j, row in enumerate(nested)
+                     if row['details'].get('request_type') == 'UTILITY']
+        first_utility = utilities[0] if utilities else None
+        clients_ns = utility_ns = after_first_ns = after_utility_ns = 0
+        cpu_ns = 0
+        for j, row in enumerate(nested):
+            span = row['begin_ns'], row['end_ns']
+            elapsed = span[1] - span[0]
+            utility = j in utilities
+            clients_ns += elapsed
+            cpu_ns += row['thread_cpu_end_ns'] - row['thread_cpu_begin_ns']
+            utility_ns += elapsed if utility else 0
+            after_first_ns += elapsed if j > 0 else 0
+            after_utility_ns += elapsed if first_utility is not None and j > first_utility else 0
+            if work:
+                intervals['work_client'].append(span)
+                if len(nested) > 1:
+                    intervals['work_multi_client'].append(span)
+                if j > 0:
+                    intervals['work_clients_after_first'].append(span)
+                if utility:
+                    intervals['work_utility'].append(span)
+                if first_utility is not None and j > first_utility:
+                    intervals['work_clients_after_first_utility'].append(span)
+                    if utility:
+                        intervals['work_utilities_after_first'].append(span)
+        following = roots[i+1] if i+1 < len(roots) else None
+        following_step = following if following and following['boundary'] == 'step' else None
+        records.append(dict(id=root['id'], begin_ns=root['begin_ns'], end_ns=root['end_ns'],
+            unfinished_before=root['details']['unfinished_before'],
+            client_count=len(nested), utility_count=len(utilities),
+            client_ns=clients_ns, client_thread_cpu_ns=cpu_ns, utility_ns=utility_ns,
+            clients_after_first_ns=after_first_ns,
+            clients_after_first_utility_ns=after_utility_ns,
+            utility_sequence=';'.join('/'.join(str(nested[j]['details'].get(k,''))
+                for k in ('utility','worker_method','operation')) for j in utilities),
+            following_root_boundary=following['boundary'] if following else None,
+            following_step_begin_ns=following_step['begin_ns'] if following_step else None,
+            following_step_model_executed=following_step['details'].get('model_executed')
+                if following_step else None))
+    index = {}
+    for name in ('work_client','work_multi_client','work_clients_after_first','work_utility',
+                 'work_clients_after_first_utility','work_utilities_after_first'):
+        spans = sorted(intervals[name])
+        prefix, total = [], 0
+        for a,b in spans:
+            prefix.append(total)
+            total += b-a
+        index[name] = dict(starts=[a for a,b in spans],ends=[b for a,b in spans],
+                           prefix=prefix,total_ns=total)
+    return dict(**counts, records=records, index=index)
 
 
 def core_interval_overlap(index, begin_ns, end_ns):

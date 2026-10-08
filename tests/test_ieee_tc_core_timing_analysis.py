@@ -68,6 +68,54 @@ class NativeCoreAnalysis(unittest.TestCase):
         self.assertIsNone(value['first_ns'])
         self.assertEqual(value['metrics'],[])
 
+    def test_input_turns_single_client_has_no_suffix(self):
+        original=events();before=copy.deepcopy(original)
+        value=summarize_core_host_spans(original,include_input_turns=True)['input_turns']
+        self.assertEqual(original,before)
+        self.assertEqual(value['input_turns'],1)
+        self.assertEqual(value['records'][0]['client_count'],1)
+        self.assertEqual(value['records'][0]['utility_count'],1)
+        self.assertEqual(value['records'][0]['following_step_begin_ns'],11)
+        self.assertTrue(value['records'][0]['following_step_model_executed'])
+        self.assertEqual(value['index']['work_clients_after_first']['total_ns'],0)
+        self.assertEqual(value['index']['work_utility']['total_ns'],4)
+
+    def test_input_turns_multiple_utilities_and_half_open_clipping(self):
+        rows=events()
+        rows[0]['details']['request_type']='ADD'
+        second=copy.deepcopy(rows[0]);second.update(id=3,begin_ns=6,end_ns=8,
+            thread_cpu_begin_ns=3,thread_cpu_end_ns=4)
+        second['details']['request_type']='UTILITY'
+        third=copy.deepcopy(second);third.update(id=4,begin_ns=8,end_ns=10,
+            thread_cpu_begin_ns=4,thread_cpu_end_ns=5)
+        rows[2].update(id=6,parent=5);rows[3]['id']=5
+        rows[-1]['completed_spans']=6
+        rows[1:1]=[second,third]
+        value=summarize_core_host_spans(rows,include_input_turns=True)['input_turns']
+        turn=value['records'][0]
+        self.assertEqual((turn['client_count'],turn['utility_count']),(3,2))
+        self.assertEqual((turn['client_ns'],turn['clients_after_first_ns'],
+                          turn['clients_after_first_utility_ns']),(8,4,2))
+        self.assertEqual(core_interval_overlap(value['index']['work_clients_after_first_utility'],7,9),1)
+        self.assertEqual(value['index']['work_utilities_after_first']['total_ns'],2)
+        self.assertEqual(value['index']['work_multi_client']['total_ns'],8)
+        rows[3]['details']['unfinished_before']=0
+        idle=summarize_core_host_spans(rows,include_input_turns=True)['input_turns']
+        self.assertEqual(idle['index']['work_client']['total_ns'],0)
+        self.assertEqual(idle['records'][0]['client_count'],3)
+
+    def test_input_turns_empty_terminal_and_incomplete(self):
+        rows=events()[:2]
+        footer=events()[-1];footer['completed_spans']=2
+        value=summarize_core_host_spans(rows+[footer],include_input_turns=True)['input_turns']
+        self.assertIsNone(value['records'][0]['following_step_begin_ns'])
+        with self.assertRaises(ValueError):summarize_core_host_spans(rows,include_input_turns=True)
+        footer['completed_spans']=1
+        rows=[events()[1],footer];rows[0]['id']=1
+        value=summarize_core_host_spans(rows,include_input_turns=True)['input_turns']
+        self.assertEqual(value['empty_input_turns'],1)
+        self.assertEqual(value['records'],[])
+
     def write_fixture(self, root):
         directory=root/'diagnostic_core';directory.mkdir()
         receipt=root/'exec_receipt.json';deployment=root/'deployment.json'

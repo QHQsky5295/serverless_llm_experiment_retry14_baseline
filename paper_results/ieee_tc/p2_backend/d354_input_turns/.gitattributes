@@ -1,0 +1,2 @@
+# Preserve the existing CSV writer's CRLF bytes and recorded SHA values.
+*.csv whitespace=cr-at-eol
