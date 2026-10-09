@@ -10009,3 +10009,40 @@ D368 input, with new raw/output/cache directories and no curated result or
 figure publication. It must verify native terminal completion, absence of the
 41/20 stale-recheck pattern, GPU release and remote-service closure before any
 full D370 replay is considered.
+
+## D367 storage-margin recovery and D369 validation readiness
+
+2026-10-10: After the D368 archive, available space briefly fell about 6 MiB
+below the unchanged 150-GiB inference-node start floor. No GPU or remote
+service was started in that state. The already-closed D367 outcome was therefore
+archived with the same guarded, lossless procedure in commit `e825bc3` before
+resuming the experiment line. The one-shot wrapper accepted only
+`d367_20261009/7b_full_w0`; closure/release and open-descriptor checks passed,
+`gzip -t` and two decompressed SHA-256 passes matched, and the uncompressed
+duplicate was then removed. The aggregate receipt is
+`paper_results/ieee_tc/storage/20261010_d367_closed_outcome_lossless_compression.json`
+(SHA-256 `6d579240cde08541eafc49dbf7b2fc40791f0bb709d5672f0026f2b3435651c4`).
+It records 472,297,472 allocated bytes reclaimed. The operation ran in
+`primelora-tc-aux-841cff404aef4a629a5ac44dc7f5bb1b.scope` with 4-GiB
+`MemoryMax`, no swap and CPUs `2,3,26,27`; the scope was empty and stopped.
+No unique weights, trace, adapter pool, curated result, source code or user
+manifest was touched.
+
+D369 is a bounded 100-request validation of commit `68eb627` (native
+`source_id` propagation after a legitimate source/tier change). It reuses the
+frozen D368 7B trace, adapter subset, fixed-length greedy contract, remote
+prepublished-gzip delivery and preparation binding, but uses new output/cache
+directories and the new campaign identity
+`d369_20261010/7b_stale_identity_validation_100`. The dispatcher/configuration
+identity is committed and pushed in `e4beb1a`; configuration SHA-256 is
+`9452fa822d321c67e008dc20e3d7c06bc755e5b5be45a4e73ace3cbfc22b14c8`. The
+source plan SHA is
+`0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7`, and the
+frozen V1 digest is
+`5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22`. No
+curated result or figure is permitted from this validation. Pre-launch gates
+passed: branch HEAD equals the remote branch at `e825bc3`, GPU process census
+is empty, available memory is about 104 GiB, available disk is
+161,526,620,160 bytes, remote services/ports are inactive, and the D369 raw
+result directory is absent. The launcher must record these identities again
+and reject any mismatch before starting.
