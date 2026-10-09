@@ -9863,3 +9863,64 @@ disk/memory/GPU gates, and the absence of an existing D368 result before
 starting. The 7B request plan remains a development replay: its outcome can
 measure the startup-barrier change, but cannot by itself establish formal G1/G2
 without complete correctness and the frozen common warm/reference manifests.
+
+## D368 execution and evidence closure — diagnostic only
+
+2026-10-10: The D368 7B Full/W0 replay was launched only after the exact
+auxiliary cgroup, branch, frozen-input, disk, memory, GPU and remote-health
+gates passed. The replay used the already published read-only gzip artifact
+cache and the same trace, adapter subset, request-map hash and effective time
+scale as D367. It completed 4,000/4,000 native-terminal requests with no
+terminal failure. The service was stopped exactly once, the remote monitor and
+all owned local processes were collected, and the post-run GPU/remote checks
+were clear. The raw closure files and result remain under
+`results/ieee_tc/p2_backend_qualification/d368_20261009/7b_full_w0/`; the
+result source SHA-256 is
+`fd749ffe3f0cabb0305340089e1f8d51a08ba776aca5566bec3f30c1d7b4c73e`.
+The collection receipt records 13,059.590304143727 physical GPU-seconds and
+4,000 complete native-contract records. The D368 configuration SHA is
+`336aeb0acd1bf256be532c181baa17f8cc0b8749f14ed1a5b4a4c6fe0e990400`; the
+frozen metric and plan references remain
+`5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22` and
+`0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7`.
+
+This replay is not a formal G1/G2 result. Correctness fields were not
+complete, the old development 5,000-ms SLO field is not the frozen joint
+TTFT/TPOT SLO, and no reference manifest was rerun. Consequently no curated
+CSV, ranking, figure or paper claim was generated from D368.
+
+The paired raw comparison with D367 is:
+
+| development replay | TTFT mean / P95 (ms) | E2E mean / P95 (ms) | dispatch-window mean / P95 (ms) | physical GPU-s |
+|---|---:|---:|---:|---:|
+| D367 bulk preparation | 1309.9 / 3176.1 | 5016.1 / 10447.2 | 172.2 / 125.3 | 13701.34 |
+| D368 per-arrival preparation | 1574.0 / 3539.1 | 5350.0 / 11127.4 | 465.8 / 644.4 | 13059.59 |
+
+The new path removed the synchronous preparation barrier for the first
+request: its overall TTFT fell from 25,916.2 to 6,253.8 ms and its E2E fell
+from 29,472.5 to 9,545.7 ms. The first 500 matched requests also improved
+in aggregate. That local improvement did not establish a full-trace gain:
+over all 4,000 paired request IDs, D368 minus D367 was +264.1 ms mean overall
+TTFT, +334.0 ms mean E2E and +293.6 ms mean dispatch-window time, while
+physical GPU-seconds fell by 4.69%. The largest degradation is attributable
+to a state/residency event rather than remote packing: request `req_00961`
+changed from GPU-resident/no mismatch in D367 to HOST-resident with an
+adapter--replica mismatch in D368, incurred 35,341.3 ms LoRA I/O and 35,543.8
+ms admission-to-engine-dispatch time, while the backend's native TTFT was only
+253 ms. Both replays observed 132 remote transfers and zero remote packing
+time, so this outlier is not evidence that the new path made remote packaging
+slower.
+
+The request-plan receipt for D368 reports 4,000 plans, a single-worker
+per-arrival executor, 101.0001 s accumulated wait and 1.5824 s maximum wait.
+Block-level inspection shows the first 500 requests benefit, followed by a
+dispatch/residency-sensitive regression around requests 500--1,250. The
+evidence therefore supports only the narrower observation that moving plan
+preparation off the event loop removes the initial bulk barrier. It does not
+support the stronger hypothesis that the current single-worker implementation
+improves the complete workload. The next test must isolate executor-induced
+queueing from natural tier/residency variation (starting with a CPU-only
+bounded-worker diagnostic and state-transition audit on the same trace) before
+any new full GPU replay. No blind concurrency increase, adapter-capacity
+change, 3B run, baseline run or figure production is authorized by this
+diagnostic alone.
