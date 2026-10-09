@@ -10239,3 +10239,23 @@ memory rose above the unchanged 102-GiB requirement. They were not part of
 D374 and are excluded from all experiment accounting. No memory or disk policy
 was relaxed and the pre-existing user-owned generated manifest remains
 unstaged.
+
+## D375 capacity-revalidation diagnostic — profile qualification failure
+
+2026-10-10: D375 passed the unchanged startup gates and entered the controlled
+service path, but the service exited before the first request. Its C=8 model
+configuration requested both `atomic_control_yield_v1` and
+`protected_file_owner_turn_v1`, while the bound D362 profiles were measured
+for C=14. The native loader rejected this mismatch with
+`service profile model/configuration/context mismatch`; the replay receipt
+records `N_arrived=0` and `N_submitted=0`, and the launcher classifies the run
+as `qualification_command_failure`.
+
+GPU-context release, service-path removal, auxiliary-scope cleanup and remote
+service cleanup all completed. D375 is not a performance observation and is
+excluded from ranking, SLO, lifecycle, and figures. The detailed provenance
+analysis is in `docs/ieee_tc/D375_PROFILE_MISMATCH.md`. A profile hash or
+consistency check will not be bypassed: the next C=8 diagnostic must either
+use the already-qualified D298/D321 C=8 profile set without the two opt-in
+policy fields, or first perform a new measured C=8 qualification for those
+policies.
