@@ -10274,3 +10274,20 @@ observation and is excluded from all tables and figures. This was a
 configuration-construction error, not a capacity or PrimeLoRA result. The
 detailed record is `docs/ieee_tc/D376_PROFILE_MISMATCH.md`; a new identity with
 the unchanged D298 preparation context is required.
+
+## D377 capacity-revalidation diagnostic — remote service was inactive
+
+2026-10-10: D377 passed profile qualification and began serving, but its
+artifact-node endpoint was inactive. The first remote read returned
+`Connection refused` for `finance_lora`; the subsequent movement failure was
+surfaced as `failed movement requires explicit owner recovery, not an automatic
+retry`. The replay stopped after two terminal failures, so D377 has no valid
+request set and is excluded from every performance, SLO, lifecycle and figure
+claim. The launcher classification is `protocol_or_launcher_error`; all local
+GPU/service scopes were released.
+
+The existing remote 7B user service was then started and its authenticated
+`/health` endpoint returned `ok=true` with `prepublished_gzip_v1`. This fixes
+the environment prerequisite only; it does not alter the experiment metric
+scope. A new identity is required and the service must be kept active through
+the next replay's completion receipt.
