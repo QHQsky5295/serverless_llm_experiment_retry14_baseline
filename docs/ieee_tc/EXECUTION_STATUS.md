@@ -48,6 +48,14 @@ removed only after recording hashes. Neither attempt launched GPU or remote work
 The user-owned generated LoRA manifest remains unstaged and unchanged by this
 closure.
 
+The request-path boundary and final metric interpretation are recorded in
+`docs/ieee_tc/METRIC_BOUNDARY_DECISION_20261009.md` (SHA-256
+`845b7869fb4916f66fe777e20d269688889d8c21b7a5438013db3cc024e0b68d`). It is
+an explanatory companion to the frozen V1 protocol, not a redefinition of the
+G1/G2 ruler. The current read-only link audit is 1000 Mb/s/full on both ends;
+the historical D77 100 Mb/s observation is retained as a separate link-state
+diagnostic and is not pooled with D367.
+
 ## D366 native100 COMPLETE, audited, sealed and backed
 
 2026-10-09:100/100/0fail,source0788a2b972887baafffc87cec7a501f8e078298eb294b7497bedcb386fd41905,
