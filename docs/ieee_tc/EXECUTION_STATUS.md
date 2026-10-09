@@ -13,6 +13,33 @@ user execution-priority override, not a silent rewrite of the approved source pl
 
 ## CURRENT — D367 complete W0 audited; formal qualification remains open
 
+2026-10-09: A bounded CPU-only D368 diagnostic isolated a concrete startup
+barrier before any code change.  D367's first runtime was ready 4.336 s after
+the frozen replay origin, while the first dispatch was around 24.36 s.  Using
+the exact D367 7B trace/config, synchronous parent-side request-plan
+preparation took 19.101 s for 4,000 requests (first request 137.63 ms,
+requests 2--100 mean 4.322 ms); an asyncio heartbeat run took 19.847 s and
+observed a maximum heartbeat gap of 19.847 s.  This is direct event-loop
+starvation evidence, not an autoscaling or remote-transfer attribution.  The
+diagnostic used an owned 4-GiB auxiliary scope, performed no CUDA/GPU/remote
+work, and the scope is inactive.  The full evidence and the falsifiable
+next-step candidate (per-arrival preparation in a bounded executor for native
+external replay, with the existing legacy cache retained) are in
+`docs/ieee_tc/D368_STARTUP_PLAN_PREPARATION_DIAGNOSTIC.md`.  No serving code or
+performance result had changed at the time of that initial diagnostic; the
+candidate implementation and its unit qualification are recorded below.
+
+The minimal candidate then passed a CPU-only 4,000-request validation with the
+same D367 trace and fixed-output contract: 4,000/4,000 plans completed in
+19.654 s, with 194 event-loop heartbeat ticks and a maximum heartbeat gap of
+134.43 ms (versus the synchronous 19.847-s gap). The two earlier diagnostic
+failures were harness omissions of the workload contract and are explicitly
+excluded from evidence. The candidate executor scope was stopped. Existing
+unit/lifecycle qualification now passes (3 new async tests plus 220 selected
+launch/lifecycle tests). The next permitted action is one complete unchanged
+7B W0 GPU replay to measure dispatch/TTFT/GPU-s effects; no 3B, baseline, or
+figure work is authorized before that replay is audited.
+
 2026-10-09: D367 completed one full 7B W0 development replay with
 4000/4000 terminal/native-contract returns and zero terminal failures. The
 immutable source is

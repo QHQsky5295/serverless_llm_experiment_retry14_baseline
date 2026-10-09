@@ -4613,6 +4613,9 @@ def replay_fixture():
                     for i in range(2)]
     plans = {t.request_id: RequestExecutionPlan(t.prompt, 2, 4) for t in runner.traces}
     runner._prepare_request_execution_plan_cache = Mock(return_value=plans)
+    runner._prepare_request_execution_plan = Mock(
+        side_effect=lambda _engine, trace, _default_max_tokens: plans[trace.request_id]
+    )
     runner._scheduled_offset = Mock(return_value=0.)
     runner._live_scale_eval_period_s = Mock(return_value=.1)
     for name in ('_assert_clean_gpu_environment', '_begin_instance_lifecycle_tracking',

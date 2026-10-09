@@ -7398,6 +7398,23 @@ class ScenarioRunner:
         self._adapter_transfer_pressure_evidence: List[Dict[str, Any]] = []
         self._bandwidth_limiter = AggregateBandwidthLimiter(self.bw_mbps)
         self._remote_materialize_locks: Dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
+        # Native external replay receives requests while the initial runtime
+        # is starting. Prompt/canonical-plan preparation is blocking CPU work
+        # and must not monopolize the replay/control event loop. The executor
+        # is created lazily only for that path and intentionally has one worker:
+        # the parent prompt planner is mutable and the serialized worker is a
+        # correctness boundary, not a tunable serving capacity.
+        self._request_plan_executor: Optional[concurrent.futures.ThreadPoolExecutor] = None
+        self._request_plan_preparation_metrics: Dict[str, Any] = {
+            "schema": "request_plan_preparation_v1",
+            "mode": "pre_replay_sync_v1",
+            "count": 0,
+            "total_wait_s": 0.0,
+            "max_wait_s": 0.0,
+            "first_start_monotonic_s": None,
+            "last_end_monotonic_s": None,
+            "executor_workers": 0,
+        }
         self._local_sim_materialization_mode = (
             "reserve_then_hardlink_v1"
             if str(self.name or "").startswith("v2_")
@@ -8147,6 +8164,90 @@ class ScenarioRunner:
                 default_max_tokens,
             )
         return plan_cache
+
+    def _request_plan_preparation_is_lazy(self) -> bool:
+        """Return whether plans must be prepared after frozen arrival.
+
+        The guarded external replay owns an arrival clock that starts before
+        initial deployment. Preparing all future requests synchronously after
+        the first runtime is ready creates a global event-loop barrier. The
+        legacy/internal replay paths retain their historical pre-replay cache
+        contract; only the native external path uses per-arrival preparation.
+        """
+        return bool(
+            self._external_replay is not None
+            and self.model_cfg.get("timing_contract") == "ieee_tc_native_v1"
+        )
+
+    def _ensure_request_plan_preparation_state(self) -> None:
+        """Install diagnostic state for lightweight ``__new__`` test doubles."""
+        if not hasattr(self, "_request_plan_executor"):
+            self._request_plan_executor = None
+        if not hasattr(self, "_request_plan_preparation_metrics"):
+            self._request_plan_preparation_metrics = {
+                "schema": "request_plan_preparation_v1",
+                "mode": "pre_replay_sync_v1",
+                "count": 0,
+                "total_wait_s": 0.0,
+                "max_wait_s": 0.0,
+                "first_start_monotonic_s": None,
+                "last_end_monotonic_s": None,
+                "executor_workers": 0,
+            }
+
+    def _ensure_request_plan_executor(self) -> concurrent.futures.ThreadPoolExecutor:
+        self._ensure_request_plan_preparation_state()
+        executor = self._request_plan_executor
+        if executor is None:
+            executor = concurrent.futures.ThreadPoolExecutor(
+                max_workers=1,
+                thread_name_prefix="faaslora-request-plan",
+            )
+            self._request_plan_executor = executor
+            self._request_plan_preparation_metrics.update(
+                mode="per_arrival_executor_v1",
+                executor_workers=1,
+            )
+        return executor
+
+    async def _prepare_request_execution_plan_after_arrival(
+        self,
+        engine: Any,
+        trace: RequestTrace,
+        default_max_tokens: int,
+    ) -> RequestExecutionPlan:
+        """Prepare one plan without blocking the replay/control event loop.
+
+        The work remains on the request's critical path: the caller awaits the
+        result before admission, so primary TTFT/E2E and dispatch-window
+        accounting include the actual preparation wait. No future request,
+        hotness, generated length, or routing state is consulted.
+        """
+        started = time.perf_counter()
+        metrics = self._request_plan_preparation_metrics
+        if metrics["first_start_monotonic_s"] is None:
+            metrics["first_start_monotonic_s"] = time.monotonic()
+        loop = asyncio.get_running_loop()
+        plan = await loop.run_in_executor(
+            self._ensure_request_plan_executor(),
+            self._prepare_request_execution_plan,
+            engine,
+            trace,
+            default_max_tokens,
+        )
+        elapsed = max(0.0, time.perf_counter() - started)
+        metrics["count"] = int(metrics.get("count", 0) or 0) + 1
+        metrics["total_wait_s"] = float(metrics.get("total_wait_s", 0.0) or 0.0) + elapsed
+        metrics["max_wait_s"] = max(float(metrics.get("max_wait_s", 0.0) or 0.0), elapsed)
+        metrics["last_end_monotonic_s"] = time.monotonic()
+        return plan
+
+    def _shutdown_request_plan_executor(self) -> None:
+        """Join only the runner-owned plan executor during scenario cleanup."""
+        executor = getattr(self, "_request_plan_executor", None)
+        self._request_plan_executor = None
+        if executor is not None:
+            executor.shutdown(wait=True)
 
     def _observe_dynamic_scaling_rps(
         self, observed_rps: float, observed_at: float
@@ -16074,11 +16175,23 @@ class ScenarioRunner:
         # triggered at one naturally observed queue point and is not repeated.
         self._ieee_proactive_diagnostic_attempted = False
         self._ieee_proactive_diagnostic_trigger = None
-        request_plan_cache = self._prepare_request_execution_plan_cache(
-            self.engine,
-            self.traces,
-            max_tokens,
-        )
+        self._ensure_request_plan_preparation_state()
+        lazy_request_plan_preparation = self._request_plan_preparation_is_lazy()
+        if lazy_request_plan_preparation:
+            # External ingress and the native control loop are already live.
+            # Plans are prepared only for requests whose frozen arrival has
+            # been observed, in a bounded executor owned by this runner.
+            request_plan_cache: Dict[str, RequestExecutionPlan] = {}
+            self._request_plan_preparation_metrics.update(
+                mode="per_arrival_executor_v1",
+                executor_workers=1,
+            )
+        else:
+            request_plan_cache = self._prepare_request_execution_plan_cache(
+                self.engine,
+                self.traces,
+                max_tokens,
+            )
         replay_t0 = (self._external_replay.context['replay_t0_s']
                      if self._external_replay is not None else time.perf_counter())
 
@@ -16104,6 +16217,18 @@ class ScenarioRunner:
                 # Eq. (4) observes arrivals, including requests waiting for
                 # admission or a remote fetch. Backend retries do not come here.
                 self._stack.record_arrival(trace.adapter_id)
+            request_plan = request_plan_cache.get(str(getattr(trace, "request_id", "") or ""))
+            if request_plan is None:
+                if not lazy_request_plan_preparation:
+                    raise RuntimeError(
+                        "request plan cache missing outside lazy external preparation"
+                    )
+                request_plan = await self._prepare_request_execution_plan_after_arrival(
+                    self.engine,
+                    trace,
+                    max_tokens,
+                )
+                request_plan_cache[trace.request_id] = request_plan
             async def serve():
                 # Include dispatcher yielding and every service queue in the
                 # same offered-arrival deadline, including already-late tasks.
@@ -16120,9 +16245,6 @@ class ScenarioRunner:
                     (admitted_at - scheduled_arrival_at) * 1000.0,
                 )
                 try:
-                    request_plan = request_plan_cache.get(
-                        str(getattr(trace, "request_id", "") or "")
-                    )
                     out = await self._exec_request(
                         trace,
                         max_tokens,
@@ -25157,6 +25279,13 @@ async def _main_async_impl(
                 main_error = exc
                 raise
             finally:
+                try:
+                    runner._shutdown_request_plan_executor()
+                except BaseException:
+                    if main_error is None:
+                        raise
+                    import traceback
+                    traceback.print_exc()
                 if physical_deployment is not None:
                     try:
                         await _finish_ieee_main_scenario(runner,experiment_stack,
@@ -25205,6 +25334,9 @@ async def _main_async_impl(
                             sorted(runner._local_sim_materialization_counts.items())
                         ),
                     },
+                    "request_plan_preparation": copy.deepcopy(
+                        getattr(runner, "_request_plan_preparation_metrics", {})
+                    ),
                     "remote_artifact_transfers": list(runner._remote_transfer_evidence),
                     "adapter_transfer_pressure": list(runner._adapter_transfer_pressure_evidence),
                     "proactive_admission_diagnostic": copy.deepcopy(
