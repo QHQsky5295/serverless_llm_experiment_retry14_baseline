@@ -1,0 +1,19 @@
+{
+  "kind": "full_file_demand_transaction_audit_v1",
+  "requests": 4000,
+  "policy": "protected_file_owner_turn_v1",
+  "source_counts": {
+    "file_remote": 136,
+    "native_gpu": 2583,
+    "file_nvme": 848,
+    "native_host": 404,
+    "file_host": 29
+  },
+  "file_transactions": 1013,
+  "triggered": true,
+  "advanced_owner_epoch_transactions": 255,
+  "max_owner_epoch_advance": 12,
+  "old_capacity_snapshot_reused": false,
+  "n_correct": null,
+  "causal_speedup": null
+}

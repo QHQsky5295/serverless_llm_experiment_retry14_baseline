@@ -11,27 +11,34 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D367 complete W0 preparation; final G1/G2 criteria reaffirmed
+## CURRENT — D367 complete W0 audited; formal qualification remains open
 
-2026-10-09: latest user clarification is explicit: evaluate the agreed FINAL
-G1/G2 metrics, not independent dominance on every raw latency statistic.
-G1=all4000correct+jointTTFT/TPOT>=95%, then physicalGPU-s/request.
-G2=allcorrect+commonbudget+jointSLO, then W1/W2 P95TTFT and separately jointSLO
-noninferiority. Raw TPOT regression alone is NOT a rejection condition.
-Definitions are fixed; missing correctness/commonwarm/Resident evidence remains
-missing factual evidence, not a tentative metric. V1 and historical records
-are unchanged. See D367_FULL_FILE_DEMAND_VALIDATION.md.
+2026-10-09: D367 completed one full 7B W0 development replay with
+4000/4000 terminal/native-contract returns and zero terminal failures. The
+immutable source is
+`9c6bfb1929692949636e0a2b64aacf9d7707e2e449a31709114f38d11b636941`; physical
+lifecycle GPU time is 13701.34494326613 GPU-s. The offline projection reports
+mean/P95 TTFT 1309.9077/3175.8600 ms and mean/P95 TPOT 31.7334/54.5125 ms;
+3835/4000 requests satisfy the provisional timing upper bound. This is not a
+formal G1/G2 result because `N_correct` is intentionally unknown and the
+common warm/Resident references are not frozen.
 
-D366 closure_backup_receipt confirms local/remote2c17d3dc and sealerafc30fe6
-closed without hardkill. All old helpers finished; do not repeat them.
-D367 reuses D366 configuration with only3paths changed and disables prefix to
-run all4000 W0. No serving edits, tuning or new artifacts/profiles. Prepared
-existing D364 launch/qualification helpers with explicit nativePython health
-and model tests, systemPython OS guards. NOT executed yet. Next: verify,
-sourcebackup, start one full run, monitor -> release -> audit -> backup.
-7B remains the mainline; 3B/baselines/M1M2/ablations/sensitivities outstanding.
-No figures. Previous turn made progress through D366 audited evidence/backup;
-the earlier read-only continuation alone did not launch a new experiment.
+D367 context audit against D358 found exact equality for all checked request
+identity fields and shared trace/adapter-subset hashes. It records 132 remote
+transfers (131480060 wire bytes), no request-time packing, and 4029 resource
+samples with peak service memory 20733222912 B, zero swap/max/OOM events, and
+minimum host available memory 92912091136 B. There are 227 output-token hash
+changes across independent development runs; this is retained as run variation,
+not a causal performance claim. D367 is now offline-audited; no GPU or remote
+service is active. No figures are generated.
+
+The final ruler is unchanged: G1 requires all correct plus joint SLO >=95%
+before comparing physical GPU-s/request; G2 requires all correct plus the
+common budget and joint SLO before comparing W1/W2 P95 TTFT and SLO
+non-inferiority. Raw TPOT regression alone is not a veto, but correctness and
+common-reference evidence cannot be inferred from this replay. Next is closure
+backup, then a first-principles 7B optimization/qualification decision; 3B,
+baselines, M1/M2, ablations, sensitivity, and figures remain outstanding.
 
 ## D366 native100 COMPLETE, audited, sealed and backed
 

@@ -350,7 +350,8 @@ def audit_d309_failure(campaign='d309'):
 
 REGISTERED_REFERENCES = {'d315': ('d303', 'd314'), 'd353': ('d349', 'd336'),
                          'd358': ('d353', 'd336', 'd349'),
-                         'd364': ('d358', 'd353', 'd336')}
+                         'd364': ('d358', 'd353', 'd336'),
+                         'd367': ('d358', 'd353', 'd336')}
 
 
 def main(campaign='d299', reference_override=None):
@@ -544,6 +545,19 @@ def main(campaign='d299', reference_override=None):
             'RPC count or causal speedup. Ordinary Full4000 with no intrusive observer. '
             'One development replay per configuration; no statistical superiority or '
             'formal G1/G2 qualification. D363 prefix regressions remain evidence.')
+    elif campaign == 'd367':
+        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d367_20261009'
+        RUN = RAW/'7b_full_w0'
+        reference = reference_override or 'd358'
+        suffix = 'context1' if reference == 'd358' else f'context_{reference}'
+        OUT = ROOT/f'paper_results/ieee_tc/p2_backend/d367_full_w0/{suffix}'
+        health_name = 'remote_health.json'
+        change_caveat = (
+            'Relative to D358: the D365 immutable file-demand identity repair and '
+            'the unchanged D362 measured initialization are evaluated on the complete '
+            'W0 replay. D364 remains a failed offered population; D366 is a prefix '
+            'diagnostic. This is one development replay, not a held-out block or '
+            'formal G1/G2 qualification.')
     elif campaign != 'd299':
         raise ValueError('unknown frozen full-run identity')
     assert not OUT.exists()
@@ -579,7 +593,7 @@ def main(campaign='d299', reference_override=None):
     assert len(remote)==len(remote_rows)==len(transfers)
     assert set(remote)=={r['http_transfer_id'] for r in transfers}
     health=read(RAW/health_name)
-    clock=(health['7b']['clock_id'] if campaign in ('d332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358', 'd364') else
+    clock=(health['7b']['clock_id'] if campaign in ('d332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358', 'd364', 'd367') else
            health['clock_id'] if campaign in ('d323', 'd326') else health['health']['clock_id'])
     for r in transfers:
         s=remote[r['http_transfer_id']]
@@ -630,13 +644,22 @@ def main(campaign='d299', reference_override=None):
         assert receipt['remote_transfers_sha256'] == sha256(journal)
         assert receipt['remote_monitor_sha256'] == sha256(RAW/'remote_monitor.log')
         result['remote_shutdown'] = receipt['remote_stop']
-    if campaign in ('d315', 'd318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358', 'd364'):
+    if campaign in ('d315', 'd318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358', 'd364', 'd367'):
         receipt = read(RAW/'completion_receipt.json')
-        entries = receipt['evidence']
-        assert entries[sources[campaign].name]['sha256'] == re['source_sha256']
-        assert entries['launch.json']['sha256'] == sha256(RUN/'launch.json')
-        assert entries['remote_transfers.jsonl']['sha256'] == sha256(journal)
-        assert entries['remote_monitor.log']['sha256'] == sha256(RAW/'remote_monitor.log')
+        # D367 uses the compact closure receipt emitted by its resumable
+        # collector; older campaigns retain the per-file ``evidence`` map.
+        entries = receipt.get('evidence')
+        if entries is not None:
+            assert entries[sources[campaign].name]['sha256'] == re['source_sha256']
+            assert entries['launch.json']['sha256'] == sha256(RUN/'launch.json')
+            assert entries['remote_transfers.jsonl']['sha256'] == sha256(journal)
+            assert entries['remote_monitor.log']['sha256'] == sha256(RAW/'remote_monitor.log')
+        else:
+            assert campaign == 'd367'
+            assert receipt['source_sha256'] == re['source_sha256']
+            assert receipt['launch_sha256'] == sha256(RUN/'launch.json')
+            assert receipt['remote_transfers_sha256'] == sha256(journal)
+            assert receipt['remote_monitor_sha256'] == sha256(RAW/'remote_monitor.log')
         assert receipt['physical_gpu_seconds_total'] == right['physical_gpu_seconds']
         assert receipt['n_plan'] == receipt['n_terminal'] == receipt['n_native_contract_complete'] == 4000
         assert receipt['n_failed_from_terminal_journal'] == 0 and receipt['n_correct'] is None
@@ -658,7 +681,7 @@ def main(campaign='d299', reference_override=None):
            ROOT/'scripts/ieee_tc/plot_d290_diagnostic.py',ROOT/'scripts/ieee_tc_preflight.py']
     if campaign == 'd303':
         paths.append(CURATED/'d303_full_w0/completion_receipt.json')
-    if campaign in ('d314', 'd315', 'd318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358', 'd364'):
+    if campaign in ('d314', 'd315', 'd318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358', 'd364', 'd367'):
         paths.append(RAW/'completion_receipt.json')
     with (OUT/'manifest.json').open('x') as handle:
         json.dump(dict(source_refs=[dict(path=str(p),sha256=sha256(p)) for p in paths],
@@ -669,7 +692,7 @@ def main(campaign='d299', reference_override=None):
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--campaign', choices=('d299', 'd300', 'd303', 'd314', 'd315', 'd318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358', 'd364', 'd309-failure', 'd311-incomplete', 'd313-failure', 'd364-failure'), default='d299')
+    parser.add_argument('--campaign', choices=('d299', 'd300', 'd303', 'd314', 'd315', 'd318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358', 'd364', 'd367', 'd309-failure', 'd311-incomplete', 'd313-failure', 'd364-failure'), default='d299')
     parser.add_argument('--reference', choices=('d303', 'd314', 'd349', 'd336', 'd353', 'd358'),
         help='Registered full reference; separate non-overwriting output')
     args = parser.parse_args()

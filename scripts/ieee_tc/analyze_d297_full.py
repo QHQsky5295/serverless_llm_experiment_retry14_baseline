@@ -1322,8 +1322,8 @@ def main(campaign='d297'):
         OUT = ROOT / 'paper_results/ieee_tc/p2_backend/d349_full_w0/validated1'
         SOURCE = RUN / 'experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d349_7b_full_w0.json'
         source_sha = 'c289b97bd146ae8ec355f59ea5abd373b271e9848814ea3b60ddff58cfdd97e7'
-    elif campaign in ('d353', 'd358', 'd364'):
-        date = '20261009' if campaign == 'd364' else '20261008'
+    elif campaign in ('d353', 'd358', 'd364', 'd367'):
+        date = '20261009' if campaign in ('d364', 'd367') else '20261008'
         RAW = ROOT / f'results/ieee_tc/p2_backend_qualification/{campaign}_{date}'
         RUN = RAW / '7b_full_w0'
         OUT = ROOT / f'paper_results/ieee_tc/p2_backend/{campaign}_full_w0/validated1'
@@ -1424,26 +1424,26 @@ def main(campaign='d297'):
                  'Provisional warm thresholds are not globally frozen common SLO.',
                  'Conditional tier groups are not causal comparisons.']))
     print(json.dumps(dict(stats=stats, timing=timing), indent=2), flush=True)
-    if campaign in ('d303', 'd314', 'd315', 'd318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358', 'd364'):
+    if campaign in ('d303', 'd314', 'd315', 'd318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358', 'd364', 'd367'):
         write('admission_waits.json', summarize_admission_waits(requests))
-    if campaign in ('d314', 'd315', 'd318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358', 'd364'):
+    if campaign in ('d314', 'd315', 'd318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358', 'd364', 'd367'):
         write('preparation_attribution.json', audit_preparation_attribution(
             requests, clock_id=deployment['clock_id']))
-    if campaign in ('d318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358', 'd364'):
+    if campaign in ('d318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358', 'd364', 'd367'):
         from scripts.ieee_tc.analyze_d298_smoke import copy_retention_trigger
         trigger = copy_retention_trigger(requests)
         assert trigger['observed_cumulative_retained_scopes_max'] > 0
         write('copy_retention_trigger.json', trigger)
-    if campaign in ('d335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358', 'd364'):
+    if campaign in ('d335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358', 'd364', 'd367'):
         from scripts.ieee_tc.analyze_d298_smoke import native_pending_turn_trigger
         write('native_pending_turn_trigger.json', native_pending_turn_trigger(requests))
-    if campaign in ('d353', 'd358', 'd364'):
+    if campaign in ('d353', 'd358', 'd364', 'd367'):
         from scripts.ieee_tc.analyze_d298_smoke import hit_host_transaction_trigger
         write('hit_host_transaction_trigger.json', hit_host_transaction_trigger(requests))
-    if campaign in ('d358', 'd364'):
+    if campaign in ('d358', 'd364', 'd367'):
         from scripts.ieee_tc.analyze_d298_smoke import control_interleave_trigger
         write('control_interleave_trigger.json', control_interleave_trigger(requests))
-    if campaign == 'd364':
+    if campaign in ('d364', 'd367'):
         from scripts.ieee_tc.analyze_d298_smoke import file_demand_transaction_trigger
         write('file_demand_transaction_trigger.json', file_demand_transaction_trigger(requests))
     del requests, normalized
@@ -1451,7 +1451,7 @@ def main(campaign='d297'):
 
     # jq's streaming parser avoids materializing the 629-MiB outcome tree.
     outcome_path = RUN / 'launch.launch/physical_deployment/main_outcome.json'
-    if campaign in ('d332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358', 'd364'):
+    if campaign in ('d332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358', 'd364', 'd367'):
         from scripts.ieee_tc.analyze_d298_smoke import planning_publication_trigger
         query = 'fromstream(2|truncate_stream(inputs | select(.[0][:2] == ["mechanism_events","_ieee_route_cache_stats"])))'
         stats = json.loads(subprocess.check_output(['jq','-cn','--stream',query,str(outcome_path)]))
@@ -1460,7 +1460,7 @@ def main(campaign='d297'):
     query = 'fromstream(2|truncate_stream(inputs | select(.[0][:2] == ["mechanism_events","_ieee_control_events"])))'
     controls = json.loads(subprocess.check_output(['jq','-cn','--stream',query,str(outcome_path)]))
     import yaml
-    config_date = ('20261009' if campaign == 'd364' else '20261008' if campaign in
+    config_date = ('20261009' if campaign in ('d364', 'd367') else '20261008' if campaign in
         ('d326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358') else '20261007')
     config_path = ROOT / f'configs/ieee_tc/{config_date}_{campaign}_7b_full_w0.yaml'
     cfg = yaml.safe_load(config_path.read_text())['resource_coordination']['ieee_scaling']
@@ -1502,9 +1502,9 @@ def main(campaign='d297'):
     print(json.dumps(control_audit, indent=2), flush=True)
     paths = [SOURCE, WARM, INDEX, PLAN, PROTOCOL, config_path, outcome_path, Path(__file__),
         ROOT/'scripts/ieee_tc/plot_d290_diagnostic.py', ROOT/'scripts/analyze_control_path_overhead.py']
-    if campaign in ('d318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358', 'd364'):
+    if campaign in ('d318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358', 'd364', 'd367'):
         paths.append(ROOT/'scripts/ieee_tc/analyze_d298_smoke.py')
-    if campaign in ('d353', 'd358', 'd364'):
+    if campaign in ('d353', 'd358', 'd364', 'd367'):
         paths.extend(RAW/name for name in (
             'collection_receipt.json', 'local_cleanup.json', 'remote_stop.json'))
     write('manifest.json', dict(source_refs=[dict(path=str(p),sha256=sha256(p)) for p in paths],
@@ -2022,7 +2022,7 @@ def inspect_calibration_targets(output):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--campaign', choices=('d297', 'd299', 'd300', 'd303', 'd314', 'd315', 'd318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358', 'd364'), default='d297')
+    parser.add_argument('--campaign', choices=('d297', 'd299', 'd300', 'd303', 'd314', 'd315', 'd318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358', 'd364', 'd367'), default='d297')
     parser.add_argument('--admission-wait-output', type=Path,
         help='Data-only D299/D300 retained wait partition; explicit new output directory')
     parser.add_argument('--decode-tail-output', type=Path,

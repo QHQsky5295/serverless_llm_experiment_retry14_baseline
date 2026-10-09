@@ -1,0 +1,10 @@
+{
+  "final_selected_tier_counts": {
+    "remote": 136,
+    "gpu": 2583,
+    "nvme": 848,
+    "host": 433
+  },
+  "combined_successful_requests": 2583,
+  "causal_latency_savings": null
+}
