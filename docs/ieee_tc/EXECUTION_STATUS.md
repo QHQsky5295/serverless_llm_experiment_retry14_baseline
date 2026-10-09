@@ -10291,3 +10291,25 @@ The existing remote 7B user service was then started and its authenticated
 the environment prerequisite only; it does not alter the experiment metric
 scope. A new identity is required and the service must be kept active through
 the next replay's completion receipt.
+
+## D378 capacity-revalidation diagnostic — complete development closure
+
+2026-10-10: With the authenticated remote 7B service active, D378 completed
+100/100 requests with zero terminal failures and launcher `pass=true`. All
+records matched the fixed-length generation contract and used native vLLM
+token IDs; this is contract evidence only because numerical adapter
+correctness remains unqualified. The observed mean/P95 TTFT was
+`903.6/2710.8 ms`, mean/P95 E2E `5664.8/9070.9 ms`, mean TPOT `26.29 ms`,
+and TTFT-SLO attainment `99%`.
+
+The physical deployment ledger observed `800.0264` GPU-seconds over four GPUs,
+with all leases released. Dispatch tiers were GPU 51, remote 29, HOST 15 and
+NVMe 5; 29 remote transfers succeeded, 49 adapter-replica mismatch flags were
+observed, and three scale-up events reached four activations. D378 remains a
+development diagnostic (`formal_run=false`, `n_correct=null`) and is excluded
+from G1/G2, ranking and figures. The detailed evidence and hashes are in
+`docs/ieee_tc/D378_CAPACITY_REVALIDATION_RESULT.md`.
+
+After receipt capture the remote 7B service was stopped and local GPUs were
+idle. No source trace, adapter pool, weights, historical results, old figures
+or user-owned manifest were modified.
