@@ -10165,3 +10165,23 @@ The replay reached 4,000/4,000 planned requests, 4,000/4,000 native terminal rec
 The development outcome has strong execution-contract evidence: all 4,000 records report `success=true`, native vLLM token-id timing, `fixed_length_greedy_v1`, `output_contract_match=true`, and `completion_tokens == requested_completion_tokens`; all records contain the pre-dispatch readiness tier. The observed summary is mean/P95 TTFT `1150.7977/2838.1087 ms`, mean/P95 E2E `4825.6696/10100.0780 ms`, mean TPOT `31.0325 ms`, and the legacy development timing field reports `0.99475` at the 5,000-ms TTFT threshold. These values are descriptive only: the result is marked `formal_run=false`, uses the diagnostic local-sim/no-delay path and time-scale factor 8, has no frozen correctness field, and has no common warm/Resident reference manifest. It therefore cannot enter G1/G2 ranking or produce a figure.
 
 The source-identity fix remains causally supported but not a performance claim. No stale-retry field is emitted in this analyzer, and the service log contains no stale-snapshot diagnostic; the prior D368 41/20-recheck evidence is therefore not replaced by an invented zero count. Physical GPU time is higher than D368 (14,482.52 vs. 13,059.59 GPU-s), so the full replay does not establish a resource improvement. The run is retained as the required full-trace closure of the fix and as evidence that the fix did not cause terminal failures. Run-specific service and auxiliary cgroups recorded zero high/max/OOM/swap events; a pre-existing parent-slice OOM counter is not attributed to this run. No 3B, baseline, ablation, formal comparison, or figure work follows from D371 until numerical adapter correctness and the common warm/Resident references are completed.
+
+## D372 validation-input audit — no seed-41 materialized trace found
+
+2026-10-10: A read-only audit was performed before selecting the next 7B
+controller envelope. The IEEE-TC/V2 protocol requires an existing shared seed-41
+trace with exactly 1,000 requests, its matching adapter subset, and an immutable
+validation identity. The active experiment repositories contain no such
+materialized trace, subset pair, completed campaign manifest, or validation
+registry record. The seed-41 strings found in the trees are protocol code,
+synthetic unit-test fixtures, or examples; the available V2 smoke/targeted
+traces and all D371 development inputs are seed 42 and cannot substitute for the
+validation trace.
+
+Accordingly, no D336/D371 tuning replay was launched and no seed-42 result was
+promoted to a validation decision. D336 remains a historical controller
+hypothesis, not a selected configuration. Recovering the already-defined seed-41
+input (or authorizing its deterministic creation from the frozen corpus) is a
+protocol prerequisite. The detailed audit is
+`docs/ieee_tc/D372_7B_VALIDATION_INPUT_AUDIT.md`. No raw result, adapter pool,
+user-owned manifest, old figure, or historical archive was modified.
