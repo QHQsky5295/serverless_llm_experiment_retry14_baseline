@@ -1,19 +1,37 @@
 # IEEE TC execution status
 
-## CURRENT — D384 7B native-token witness registered (not yet run)
+## CURRENT — D385 bounded 7B HF/PEFT sequence witness complete; strict gate remains open
 
-2026-10-10: D384 is the next admissible Prime-first action after the D383
-artifact-node gate and correctness audit.  It is a pre-registered prefix-100
-native token-ID witness over the existing W0 trace and adapter pool.  The
-prefix covers all four materialized adapter content classes and both D170
-input-length groups; no request or load data is regenerated.  It changes no
-serving mechanism or metric ruler and is diagnostic only.  The run is not
-allowed to create `n_correct`, G1/G2, a ranking, or a figure.  The protocol is
+2026-10-10: D385 completed the pre-registered 100-request independent
+HF/PEFT sequence reference for the D384 native-token witness. 100/100 requests
+completed with the fixed-length contract and all loaded adapter tensors passed
+byte/dtype identity checks. 92/100 native sequences matched exactly; the eight
+first divergences all retained the native token in the independent reference's
+top-2, with margin 0 or 0.015625. The service scope recorded no OOM/high/max
+events, and GPU context release/service-scope removal were confirmed.
+
+The strict exact witness predicate therefore fails, as recorded by the launch
+receipt's `qualification_command_failure` class. This is a bounded numerical
+diagnostic, not a full-workload correctness result: near ties are retained as
+warnings, not promoted by tolerance or by changing the denominator. The
+evidence is consistent with FP16/backend numerical sensitivity rather than an
+adapter tensor or prompt-binding mismatch, but it cannot establish `N_correct`
+for 4,000 requests. D385 therefore creates no G1/G2 result, ranking, or
+figure, and does not authorize 3B or baseline work. Full result interpretation
+is in `D385_PEFT_SEQUENCE_REFERENCE_RESULT.md`.
+
+## D384 7B native-token witness — complete; bounded diagnostic only
+
+2026-10-10: D384 completed the pre-registered prefix-100 native token-ID
+witness over the existing W0 trace and adapter pool. The prefix covers all
+four materialized adapter content classes and both D170 input-length groups;
+100/100 requests completed the fixed-length native contract, with token IDs
+and hashes recorded. It changes no serving mechanism or metric ruler and is
+diagnostic only. D385 is the independent sequence reference for this witness;
+neither run creates `n_correct`, G1/G2, a ranking, or a figure. The protocol is
 in `docs/ieee_tc/D384_NATIVE_TOKEN_WITNESS_PROTOCOL.md`; the config and runner
 are `20261010_d384_7b_native_token_witness_100.yaml` and
-`run_d384_7b_native_token_witness_100.sh`.  Before launch, the inference-host
-150-GiB/100-GiB disk, memory, GPU-idle/OOM and remote-service gates must pass;
-after launch the remote artifact unit must be stopped and verified inactive.
+`run_d384_7b_native_token_witness_100.sh`.
 
 ## USER PRIORITY UPDATE — 2026-10-06, no figures before optimization targets
 
