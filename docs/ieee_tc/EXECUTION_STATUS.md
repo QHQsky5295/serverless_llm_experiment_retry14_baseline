@@ -40,6 +40,14 @@ common-reference evidence cannot be inferred from this replay. Next is closure
 backup, then a first-principles 7B optimization/qualification decision; 3B,
 baselines, M1/M2, ablations, sensitivity, and figures remain outstanding.
 
+Closure backup completed and pushed as commit `2cc2d8ca37eeac25a0fa736aa84e940aa32db680`;
+local HEAD equals `faaslora_origin/retry14_continuous_queue_v2`. The closure
+archive has 42 members and 1082473 bytes. Two seal-attempt path/staging failures
+were recorded in the raw D367 directory; their rebuildable partial outputs were
+removed only after recording hashes. Neither attempt launched GPU or remote work.
+The user-owned generated LoRA manifest remains unstaged and unchanged by this
+closure.
+
 ## D366 native100 COMPLETE, audited, sealed and backed
 
 2026-10-09:100/100/0fail,source0788a2b972887baafffc87cec7a501f8e078298eb294b7497bedcb386fd41905,
