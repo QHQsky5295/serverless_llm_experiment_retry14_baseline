@@ -10090,3 +10090,15 @@ The next permitted Prime-first action is a full 7B W0 replay on the fixed code
 are rechecked. D370 remains development evidence until the frozen correctness,
 joint-SLO and resource-reference contracts are available; no 3B, baseline,
 ablation or figure work follows from D369 alone.
+
+Before the next full replay, the closed D364 development outcome was archived
+to restore a safe disk margin. The one-shot wrapper added and pushed in
+`183a665` accepted only `d364_20261009/7b_full_w0`, verified closure/release and
+two gzip round trips, and reclaimed 465,145,856 allocated bytes. Its aggregate
+receipt is
+`paper_results/ieee_tc/storage/20261010_d364_closed_outcome_lossless_compression.json`
+(SHA-256 `a861d60d0c091d5c8240b9718b03f974bb45e8ac7b4083192f5796759cdcac67`).
+The operation used the owned 4-GiB/no-swap scope
+`primelora-tc-aux-bcdbb0cf04e14649bcda4a46a821fda9.scope`; its task count was
+zero before stop. Available space is now 161,955,876,864 bytes, above the
+inference-node start floor with approximately 0.83 GiB of additional margin.
