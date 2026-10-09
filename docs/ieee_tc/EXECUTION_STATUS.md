@@ -10102,3 +10102,37 @@ The operation used the owned 4-GiB/no-swap scope
 `primelora-tc-aux-bcdbb0cf04e14649bcda4a46a821fda9.scope`; its task count was
 zero before stop. Available space is now 161,955,876,864 bytes, above the
 inference-node start floor with approximately 0.83 GiB of additional margin.
+
+## D370 full replay safety abort and cache cleanup
+
+2026-10-10: The fixed-code full 7B W0 replay was started as D370 after the
+complete plan/protocol and resource gates passed. It was deliberately stopped
+before producing a full result when the new per-run NVMe cache reached
+925,729,790 bytes after roughly 60 requests and the inference filesystem fell
+38 MiB below the unchanged 150-GiB start floor. The cache growth rate made a
+continued 4,000-request replay unsafe on the available disk; this was a
+resource-safety decision, not an algorithm or performance conclusion. The
+runner receipt records `pass=false`, `classification=safety_abort_unattributed`,
+`service_path_removed=true` and `native_gpu_context_release_confirmed=false`;
+the raw launch/watchdog/service/replay evidence remains under
+`results/ieee_tc/p2_backend_qualification/d370_20261010/7b_full_w0/`.
+
+The remote services were stopped exactly once with invocation IDs matched to
+`remote_start.log`; all three remote units became inactive with MainPID=0,
+ports 18080/18081 disappeared, and the remote monitor log was retained. Local
+GPU census was empty before and after cleanup; the two empty local auxiliary
+scopes were stopped explicitly. No incomplete D370 data is eligible for a
+Prime performance, SLO, GPU-s/request or correctness claim.
+
+The exact re-creatable cache cleanup was added and pushed in `440a390` before
+execution. `scripts/ieee_tc/cleanup_d370_aborted_cache.py` required the recorded
+safety-abort classification, checked `/proc` and `fuser` references, recorded a
+path/size/file-count/aggregate-SHA manifest, then removed only the D370 NVMe
+cache and empty HOST cache. Receipt:
+`d370_20261010/aborted_cache_cleanup_receipt.json`. It records cache SHA
+`4a58240a30889b184475f86181a3c3c8bc36704aad6a126bfeca6b1e1b8efacf`, launch
+SHA `c65b0374ea92b0360e86dfcde0302f3bd974d115ebdc3c1dccc7d5c7357db0d8`, and
+927,096,832 bytes reclaimed (161,022,832,640 → 161,949,929,472 available).
+Raw evidence, weights, traces, adapter pools, source code and the user-owned
+manifest were protected. A new full replay needs a new campaign identity and a
+larger verified disk reserve; D370 is not to be resumed in place.
