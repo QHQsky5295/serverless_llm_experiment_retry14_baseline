@@ -10213,3 +10213,29 @@ carrier up. The local `eno1np0` sysfs link also reports 1000/full/up. Historical
 100-Mbps evidence is retained as a separate link-state condition and is not mixed
 with the current run pool. No remote service, pack, hash scan, cleanup, or
 configuration change was performed during this audit.
+
+## D374 capacity-revalidation diagnostic — preflight refused before launch
+
+2026-10-10: The bounded 100-request seed-42 capacity-revalidation diagnostic
+was prepared from `c29a637` to test the post-D371 `C=8` controller envelope.
+The unchanged physical-startup-memory gate refused the launch before model
+loading or service startup: required available memory was `109,521,666,048`
+bytes, while the observation was `108,639,059,968` bytes. The retained
+`launch.json` receipt has SHA-256
+`667b59f7be88ba7b76f924629570ba3b45016a66ea2d4875719964308ddb0001` and
+reports `insufficient_physical_startup_headroom`.
+
+No GPU context, local or remote service, request replay, or artifact transfer
+started; the owned auxiliary scope was stopped cleanly and the remote units and
+ports remained inactive. This is a safety refusal, not a performance outcome,
+and D374 is not eligible for ranking or figures. A fresh campaign identity is
+required for a later retry after the complete gate passes. The detailed receipt
+and interpretation are in
+`docs/ieee_tc/D374_CAPACITY_REVALIDATION_PREFLIGHT_REFUSAL.md`.
+
+The post-refusal audit found two stale broad searches launched by this audit
+consuming memory; they were terminated by exact PID, after which available
+memory rose above the unchanged 102-GiB requirement. They were not part of
+D374 and are excluded from all experiment accounting. No memory or disk policy
+was relaxed and the pre-existing user-owned generated manifest remains
+unstaged.
