@@ -11,7 +11,11 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D367 complete W0 audited; formal qualification remains open
+## CURRENT — D371 complete 7B W0 development closure; formal qualification remains open
+
+2026-10-10: D371 completed the full 4,000-request 7B replay after the source-identity fix, with 4,000 native terminal records and zero terminal failures. The run is fully closed and all local/remote resources were released, but it remains development-only because numerical adapter correctness and the frozen common warm/Resident references are still missing. Physical lifecycle GPU time was 14,482.523924252251 GPU-s; no ranking, figure, 3B run or baseline run is authorized from this result alone. Detailed provenance and the no-claim interpretation are recorded in the D371 section at the end of this file.
+
+## Previous current state — D367 complete W0 audited; formal qualification remains open
 
 2026-10-09: A bounded CPU-only D368 diagnostic isolated a concrete startup
 barrier before any code change.  D367's first runtime was ready 4.336 s after
@@ -10151,3 +10155,13 @@ MemoryMax/no swap, reached zero tasks and was stopped. No failed/active run,
 unique artifact, trace, weight, curated result, source file or user manifest
 was deleted; gzip archives remain beside their original physical-deployment
 paths.
+
+## D371 full 7B replay — complete development closure after source-identity fix
+
+2026-10-10: The new full 7B W0 replay was launched from commit `3ba847af857a07e378f16fd3ae44927a4dd8571f` after the unchanged plan/protocol, branch-equality, disk, memory, GPU-idle and remote-health gates passed. The configuration SHA is `eb80bb5702751fb20ec160d429c1c4fd8d9dc411f24a3bf15fe6dcf395a85ff2`; the plan and frozen V1 references are `0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7` and `5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22`. The run used the already published read-only delivery cache and the unchanged 4,000-request trace, adapter subset and fixed-length generation contract. No request-time packaging or additional artifact pool was introduced.
+
+The replay reached 4,000/4,000 planned requests, 4,000/4,000 native terminal records and zero terminal failures. The raw outcome is 306,052,851 bytes with SHA-256 `279ab57f704d4e680dfec5da22b64d1cf017d13809b4c6e60b15da0f8c9343ea`; the launch receipt SHA is `177deacb354e7f677d9c8de7802ca7c3f3359b52dda6f930a1ff96acb9ce29f3`; the completion receipt records `14,482.523924252251` physical GPU-seconds. Remote transfer and monitor hashes are `6f6eaf99026d73ea24aeade78ffc81975dd006e2b4800484977ae541f7eae38e` and `adef0c2b61671911f9105feccb8e302b9e98e7532077f41965d970d29a46b464`. The launcher reported `pass=true`, service-path removal and native GPU-context release; the one permitted remote stop left all three owned units inactive and ports 18080/18081 absent. Local GPU census was empty after closure.
+
+The development outcome has strong execution-contract evidence: all 4,000 records report `success=true`, native vLLM token-id timing, `fixed_length_greedy_v1`, `output_contract_match=true`, and `completion_tokens == requested_completion_tokens`; all records contain the pre-dispatch readiness tier. The observed summary is mean/P95 TTFT `1150.7977/2838.1087 ms`, mean/P95 E2E `4825.6696/10100.0780 ms`, mean TPOT `31.0325 ms`, and the legacy development timing field reports `0.99475` at the 5,000-ms TTFT threshold. These values are descriptive only: the result is marked `formal_run=false`, uses the diagnostic local-sim/no-delay path and time-scale factor 8, has no frozen correctness field, and has no common warm/Resident reference manifest. It therefore cannot enter G1/G2 ranking or produce a figure.
+
+The source-identity fix remains causally supported but not a performance claim. No stale-retry field is emitted in this analyzer, and the service log contains no stale-snapshot diagnostic; the prior D368 41/20-recheck evidence is therefore not replaced by an invented zero count. Physical GPU time is higher than D368 (14,482.52 vs. 13,059.59 GPU-s), so the full replay does not establish a resource improvement. The run is retained as the required full-trace closure of the fix and as evidence that the fix did not cause terminal failures. Run-specific service and auxiliary cgroups recorded zero high/max/OOM/swap events; a pre-existing parent-slice OOM counter is not attributed to this run. No 3B, baseline, ablation, formal comparison, or figure work follows from D371 until numerical adapter correctness and the common warm/Resident references are completed.
