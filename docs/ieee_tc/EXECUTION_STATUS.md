@@ -10046,3 +10046,47 @@ is empty, available memory is about 104 GiB, available disk is
 161,526,620,160 bytes, remote services/ports are inactive, and the D369 raw
 result directory is absent. The launcher must record these identities again
 and reject any mismatch before starting.
+
+## D369 source-identity validation closure
+
+2026-10-10: The bounded D369 replay was launched only after the plan/protocol
+hash, branch equality, disk/memory/GPU, output-directory and remote-service
+gates passed. It used the frozen D368 7B input and the new code path, with
+`FAASLORA_TC_DIAGNOSTIC_PREFIX_COUNT=100`; no configuration was selected from
+the validation outcome. The runner completed 100/100 planned requests and
+100/100 native-contract terminal returns with zero terminal failures. The
+immutable source is
+`9f0c0a9dc5b1a1af0bc5fe7635afcb6d7c2d5bd63d1969804f99c5e3c92bd6d7`, and the
+launch receipt SHA is
+`2b459df092c8b9d972b69f06d4526ac11414053c2e8971f83546ba8c7c8cce62`.
+
+The primary diagnostic result is that all 100 request records report
+`stale_rechecks=0`; the sum, maximum and nonzero-row count are all zero, and
+there are no `cache_source_rechecks` entries. This directly exercises the
+source-identity propagation fix under the same external W0 path that produced
+D368's 41- and 20-recheck outliers. Every record includes the frozen
+`readiness_tier_before_dispatch` field. The validation therefore supports the
+narrow causal claim that carrying the freshly observed native `source_id`
+prevents the repeated stale-snapshot loop; it does not establish a latency,
+GPU-s/request or SLO improvement.
+
+The closure receipt records 661.9514837537427 physical GPU-seconds for the
+100-request development validation, 100 native-contract completions, remote
+transfer SHA
+`47806240f42d552e541dc1a8b5b471fac3c7511a8ac9ba64ce88bf02efbea99d`, remote
+monitor SHA
+`95caa1fad158932c7f868355818d26e284dcc575f13110bf1f85772c1db5ac5c`, and
+`native_gpu_context_release_confirmed=true`/`service_path_removed=true`.
+The remote stop was executed once; all three owned remote units are inactive,
+ports 18080/18081 are absent, local GPU census is empty, and the collection
+scope reports zero OOM/high/swap events. The raw closure is
+`results/ieee_tc/p2_backend_qualification/d369_20261010/`; no curated CSV,
+ranking, figure or formal G1/G2 result was produced. `n_correct` remains
+unknown because the development analyzer does not supply the frozen numerical
+correctness and common warm/Resident reference fields.
+
+The next permitted Prime-first action is a full 7B W0 replay on the fixed code
+(`D370`) only after this closure is backed up and the same resource/remote gates
+are rechecked. D370 remains development evidence until the frozen correctness,
+joint-SLO and resource-reference contracts are available; no 3B, baseline,
+ablation or figure work follows from D369 alone.
