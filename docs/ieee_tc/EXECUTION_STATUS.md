@@ -11,7 +11,29 @@ Preserve paper equations/core semantics and the frozen evaluation ruler. Existin
 figures/history remain untouched. Source plan SHA remains0c808509...; this is a
 user execution-priority override, not a silent rewrite of the approved source plan.
 
-## CURRENT — D366 native100 COMPLETE, audited and sealed; backup/Full next
+## CURRENT — D367 complete W0 preparation; final G1/G2 criteria reaffirmed
+
+2026-10-09: latest user clarification is explicit: evaluate the agreed FINAL
+G1/G2 metrics, not independent dominance on every raw latency statistic.
+G1=all4000correct+jointTTFT/TPOT>=95%, then physicalGPU-s/request.
+G2=allcorrect+commonbudget+jointSLO, then W1/W2 P95TTFT and separately jointSLO
+noninferiority. Raw TPOT regression alone is NOT a rejection condition.
+Definitions are fixed; missing correctness/commonwarm/Resident evidence remains
+missing factual evidence, not a tentative metric. V1 and historical records
+are unchanged. See D367_FULL_FILE_DEMAND_VALIDATION.md.
+
+D366 closure_backup_receipt confirms local/remote2c17d3dc and sealerafc30fe6
+closed without hardkill. All old helpers finished; do not repeat them.
+D367 reuses D366 configuration with only3paths changed and disables prefix to
+run all4000 W0. No serving edits, tuning or new artifacts/profiles. Prepared
+existing D364 launch/qualification helpers with explicit nativePython health
+and model tests, systemPython OS guards. NOT executed yet. Next: verify,
+sourcebackup, start one full run, monitor -> release -> audit -> backup.
+7B remains the mainline; 3B/baselines/M1M2/ablations/sensitivities outstanding.
+No figures. Previous turn made progress through D366 audited evidence/backup;
+the earlier read-only continuation alone did not launch a new experiment.
+
+## D366 native100 COMPLETE, audited, sealed and backed
 
 2026-10-09:100/100/0fail,source0788a2b972887baafffc87cec7a501f8e078298eb294b7497bedcb386fd41905,
 6097205B,execution0da5917. ActualGPUrelease/servicepathremovalpass,tmuxended.
