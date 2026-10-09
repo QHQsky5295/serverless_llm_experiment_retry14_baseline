@@ -1,0 +1,162 @@
+#!/usr/bin/env python3
+"""Losslessly archive closed historical outcome logs after explicit verification.
+
+This utility is deliberately narrow: it accepts only the four immutable raw
+paths listed below, never follows a directory-wide cleanup rule, and removes a
+source only after two independent gzip round-trip hashes match the source
+hash.  A source/audit SHA mismatch is recorded as a provenance caveat; it does
+not make the current source eligible for result reuse.
+"""
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+from pathlib import Path
+import stat
+import subprocess
+import sys
+import time
+
+ROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
+RAW_ROOT = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification')
+OUT = ROOT / 'paper_results/ieee_tc/storage/20261009_closed_outcomes_lossless_compression.json'
+
+TARGETS = [
+    dict(run='d309_20261007/7b_full_w0', audit_sha=None),
+    dict(run='d323_20261007/7b_full_w0', audit_sha='a790cd59968a0d8d33bc017938467c1f818c5e5c617fb9628ab25a4843b5e991'),
+    dict(run='d326_20261008/7b_full_w0', audit_sha='9e1057f50d1cc8dafacfd4f232216cd5979ac6c7e9f2a479dcd26f654295150a'),
+    dict(run='d336_20261008/7b_full_w0', audit_sha='b8452f4f577446128b4a77a7117485660f3b9841caf831ad867a58d9a9587a05'),
+]
+
+
+def digest(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open('rb') as source:
+        for block in iter(lambda: source.read(4 * 1024 * 1024), b''):
+            h.update(block)
+    return h.hexdigest()
+
+
+def stamp(path: Path) -> dict:
+    s = path.lstat()
+    return dict(dev=s.st_dev, ino=s.st_ino, size=s.st_size,
+                mtime_ns=s.st_mtime_ns, ctime_ns=s.st_ctime_ns,
+                mode=s.st_mode, uid=s.st_uid, nlink=s.st_nlink,
+                blocks=s.st_blocks)
+
+
+def no_active(path: Path) -> None:
+    """Reject an open/actively referenced source without broad process kills."""
+    for proc in Path('/proc').iterdir():
+        if not proc.name.isdigit() or int(proc.name) == os.getpid():
+            continue
+        try:
+            if proc.stat().st_uid != os.getuid():
+                continue
+            args = (proc / 'cmdline').read_bytes().split(b'\0')
+            needle = str(path).encode()
+            if any(arg == needle or arg.startswith(needle + b'/') for arg in args):
+                raise RuntimeError(f'active command references {path}: pid {proc.name}')
+        except (FileNotFoundError, ProcessLookupError, PermissionError):
+            continue
+    # fuser is a read-only check and catches an open descriptor without
+    # requiring privileged lsof visibility.
+    result = subprocess.run(['fuser', '-s', '--', str(path)],
+                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    if result.returncode == 0:
+        raise RuntimeError(f'open descriptor references {path}')
+
+
+def decompressed_digest(archive: Path) -> str:
+    h = hashlib.sha256()
+    with subprocess.Popen(['gzip', '-dc', '--', str(archive)],
+                          stdout=subprocess.PIPE) as child:
+        assert child.stdout is not None
+        for block in iter(lambda: child.stdout.read(4 * 1024 * 1024), b''):
+            h.update(block)
+        if child.wait() != 0:
+            raise RuntimeError(f'gzip decompression failed: {archive}')
+    return h.hexdigest()
+
+
+def write_json(path: Path, value: dict, exclusive: bool = False) -> None:
+    mode = 'x' if exclusive else 'w'
+    with path.open(mode) as stream:
+        json.dump(value, stream, indent=2, ensure_ascii=False)
+        stream.write('\n')
+        stream.flush()
+        os.fsync(stream.fileno())
+
+
+def main() -> int:
+    if OUT.exists():
+        raise RuntimeError(f'refusing a second cleanup run: {OUT}')
+    OUT.parent.mkdir(parents=True, exist_ok=True)
+    before = dict(available_bytes=os.statvfs('/home/qhq').f_bavail * os.statvfs('/home/qhq').f_frsize)
+    rows = []
+    try:
+        for target in TARGETS:
+            run = target['run']
+            raw = RAW_ROOT / run
+            source = raw / 'launch.launch/physical_deployment/main_outcome.json'
+            archive = source.with_suffix(source.suffix + '.gz')
+            launch = json.loads((raw / 'launch.json').read_text())
+            if not launch.get('pass') or not launch.get('service_path_removed') or not launch.get('native_gpu_context_release_confirmed'):
+                raise RuntimeError(f'run is not closed and released: {run}')
+            if not source.is_file() or archive.exists():
+                raise RuntimeError(f'unexpected source/archive state: {run}')
+            no_active(source)
+            original_stamp = stamp(source)
+            if original_stamp['nlink'] != 1 or not stat.S_ISREG(original_stamp['mode']):
+                raise RuntimeError(f'non-private regular source required: {source}')
+            source_sha = digest(source)
+            audit_sha = target['audit_sha']
+            row = dict(run=run, source=str(source), archive=str(archive),
+                       source_sha256=source_sha, audit_sha256=audit_sha,
+                       audit_sha_matches=(audit_sha is None or audit_sha == source_sha),
+                       source_stamp=original_stamp,
+                       launch_sha256=digest(raw / 'launch.json'))
+            subprocess.run(['gzip', '-1', '-k', '--', str(source)], check=True)
+            try:
+                subprocess.run(['gzip', '-t', '--', str(archive)], check=True)
+                first = decompressed_digest(archive)
+                second = decompressed_digest(archive)
+                if first != second or first != source_sha or digest(source) != source_sha:
+                    raise RuntimeError(f'round-trip mismatch: {run}')
+                archive_stamp = stamp(archive)
+                no_active(source)
+                source.unlink()
+                if source.exists() or not archive.is_file():
+                    raise RuntimeError(f'source/archive final state invalid: {run}')
+                row.update(archive_sha256=digest(archive), archive_bytes=archive_stamp['size'],
+                           archive_allocated_bytes=archive_stamp['blocks'] * 512,
+                           first_roundtrip_sha256=first, second_roundtrip_sha256=second,
+                           removed_uncompressed_duplicate=True,
+                           allocated_bytes_reclaimed=original_stamp['blocks'] * 512 - archive_stamp['blocks'] * 512)
+                write_json(raw / 'compression_receipt.json', dict(kind='lossless_closed_outcome_compression_v1', **row), exclusive=True)
+                rows.append(row)
+            except Exception:
+                if archive.exists() and not source.exists():
+                    raise RuntimeError(f'archive exists but source disappeared after failed verification: {run}')
+                if archive.exists():
+                    archive.unlink()
+                raise
+        after_stat = os.statvfs('/home/qhq')
+        after = dict(available_bytes=after_stat.f_bavail * after_stat.f_frsize)
+        write_json(OUT, dict(kind='lossless_closed_outcome_compression_v1', created_unix=time.time(),
+                             before=before, after=after, entries=rows,
+                             caveat='Current source is preserved exactly in gzip. audit_sha256 mismatches are provenance caveats and are not promoted to reusable result identity.',
+                             protected='weights, traces, adapter pools, environments, code and curated files unchanged.',
+                             source_archive_round_trip_verified=True), exclusive=True)
+        print(json.dumps(dict(passed=True, entries=len(rows), before=before, after=after,
+                              reclaimed=sum(row['allocated_bytes_reclaimed'] for row in rows))))
+        return 0
+    except Exception:
+        # A receipt is intentionally absent on partial failure; the per-run
+        # receipt and surviving source/archive state remain inspectable.
+        raise
+
+
+if __name__ == '__main__':
+    sys.exit(main())
