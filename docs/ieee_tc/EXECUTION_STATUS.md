@@ -9811,3 +9811,36 @@ Neverwholeload/reproject D137/D145/D14815GB original data.
   Historical LIVE/NEXT handles are superseded, not commands to execute.
 - Earlier THROUGH_D110,D91_D100,D81_D91,D78_D80,D67_D77,THROUGH_D26,D27_D52,
   D53_D66 archives remain intact. Currentstate above has priority.
+
+## D368 storage gate recovery — closed outcome logs archived
+
+2026-10-09: The initial preflight observed 159230300160 available bytes on the
+inference filesystem, below the unchanged 150-GiB start floor
+(161061273600 bytes). No serving process, GPU worker, or remote service was
+started. A guarded utility was added in commit `4ec3e27` and pushed to
+`faaslora_origin/retry14_continuous_queue_v2` before it was run. It operated in
+an owned 4-GiB, no-swap auxiliary scope and touched only four already-closed
+7B W0 outcome files: D309, D323, D326 and D336.
+
+For each file, `launch.json` required a passed run, removed service path and
+confirmed native GPU release; an open-descriptor/active-command check ran before
+compression. `gzip -1 -k`, `gzip -t`, two independent decompressed SHA-256
+passes and a final source hash check completed before the uncompressed duplicate
+was unlinked. The gzip archive remains beside the original physical-deployment
+path, and a per-run receipt remains in each raw run directory. The aggregate
+receipt is
+`paper_results/ieee_tc/storage/20261009_closed_outcomes_lossless_compression.json`
+(SHA-256
+`0d9667a36b32a3f3424e0212993905b70766d791aa357e57006b327ae189b631`). It records
+2,333,794,304 allocated bytes reclaimed and final available space
+161563312128 bytes (about 150.47 GiB), above the start floor. The historical
+curated audit SHA for D323/D326/D336 differs from the current raw source SHA;
+the receipt records that provenance caveat and these archives are not promoted
+to reusable result identities. No weights, traces, adapter pools, environments,
+curated results, old figures or user-owned files were changed.
+
+The compression scope is inactive. The next permitted action is to publish the
+receipt/checkpoint, re-run exact disk/memory/GPU/resource gates, and then launch
+the single unchanged-input D368 7B W0 replay for the asynchronous request-plan
+preparation candidate. No 3B, baseline, figure or formal G1/G2 claim follows
+from this storage maintenance.
