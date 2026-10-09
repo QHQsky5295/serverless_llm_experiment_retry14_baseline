@@ -17469,6 +17469,17 @@ class ScenarioRunner:
                     return None
                 intent.update(expected_epoch=snapshot['epoch'], lora_path=selected_source.lora_path,
                               required_source_tier=selected_source.tier)
+                # Preserve the freshly observed native copy identity across
+                # unrelated owner-epoch advances.  The native owner already
+                # validates this identity atomically and will return
+                # ``required_source_changed`` if the copy really changed;
+                # dropping it here turns harmless epoch churn into a long
+                # stale-snapshot retry loop under concurrent residency work.
+                source_id = getattr(selected_source, 'source_id', None)
+                if selected_source.tier in ('gpu', 'host') and isinstance(source_id, str) and source_id:
+                    intent['expected_source_id'] = source_id
+                else:
+                    intent.pop('expected_source_id', None)
                 continue
             if (receipt.get('reason') == 'stale_snapshot'
                     and receipt['owner_id'] == intent['expected_owner_id']

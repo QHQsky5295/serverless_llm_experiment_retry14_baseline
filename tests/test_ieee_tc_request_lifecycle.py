@@ -966,6 +966,22 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
                 attempts.append(dict(kwargs))
                 if len(attempts) == 1:
                     self.promote_held_host(owner, kwargs)
+                elif len(attempts) == 2:
+                    # Advance the native owner epoch without replacing the
+                    # newly observed GPU copy. Identity-qualified demand
+                    # loading must accept this unrelated churn in one turn.
+                    current = owner.snapshot()
+                    churn = owner.acquire(
+                        lease_id='unrelated-epoch-churn',
+                        adapter_int_id=kwargs['adapter_int_id'],
+                        expected_owner_id=owner.owner_id,
+                        expected_epoch=current['epoch'],
+                    )
+                    self.assertTrue(churn['acquired'])
+                    self.assertTrue(owner.release(
+                        lease_id='unrelated-epoch-churn',
+                        expected_owner_id=owner.owner_id,
+                    )['released'])
             return await observed(operation=operation, **kwargs)
         slot.engine.ieee_gpu_reference.side_effect = promoting
         result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
@@ -974,7 +990,10 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
         self.assertEqual(attempts[0]['required_source_tier'], 'host')
         self.assertTrue(attempts[0]['expected_source_id'])
         self.assertEqual(attempts[1]['required_source_tier'], 'gpu')
-        self.assertNotIn('expected_source_id', attempts[1])
+        # The fresh GPU observation carries its immutable copy identity into
+        # the retry, so unrelated native epoch changes cannot induce a stale
+        # retry loop. A real copy change still returns required_source_changed.
+        self.assertTrue(attempts[1]['expected_source_id'])
         self.assertEqual(slot.engine.ieee_request_sources.await_count, 1)
         slot.engine.ieee_routing_sources.assert_not_awaited()
         self.assertEqual(slot.engine.ieee_source_identities.await_count, 1)
