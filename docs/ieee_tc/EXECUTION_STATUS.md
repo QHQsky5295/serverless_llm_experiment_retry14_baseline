@@ -9973,3 +9973,39 @@ show both cases: unrelated epoch changes complete without repeated retries,
 while a genuine HOST→GPU change still causes one re-observation and a tier
 update. Only after that evidence is complete may a new GPU validation replay
 be considered.
+
+## D368 closure maintenance and source-identity fix validation gate
+
+2026-10-10: The closed D368 outcome was archived before any new GPU work because
+the inference filesystem was below the unchanged 150-GiB start floor. The
+one-shot utility `scripts/ieee_tc/compress_d368_closed_outcome.py` was committed
+and pushed in `c62e9e5` before execution. It accepted only
+`d368_20261009/7b_full_w0`, verified `launch.json` closure/release, checked for
+active commands and open descriptors, and ran `gzip -t` plus two independent
+decompressed SHA-256 passes before removing the 501-MiB uncompressed duplicate.
+The source hash and both round trips matched. The raw per-run receipt is
+`d368_20261009/7b_full_w0/compression_receipt.json`; the aggregate receipt is
+`paper_results/ieee_tc/storage/20261010_d368_closed_outcome_lossless_compression.json`
+(SHA-256 `21dd9658f456130eccea571ae9ddb516614fc9dc2f0744228840f40f75b09b0f`).
+The operation ran in the owned 4-GiB, no-swap auxiliary scope
+`primelora-tc-aux-68ef25fda2eb459e9215f9052792c5a3.scope` and reclaimed
+462,921,728 allocated bytes. Available space increased from 160,599,535,616 to
+161,062,445,056 bytes; the scope is inactive and no GPU or remote serving
+process is active. No weights, traces, adapter pools, environments, curated
+results, figures or the user-owned manifest were changed.
+
+The source-identity propagation fix is committed and pushed in `68eb627`.
+The targeted lifecycle tests pass (3/3), the stale/host/held GPU-reference
+subset passes (37/37), and the broader native/host/stale/source/admission
+selection passes (266/266, 76 deselected). The fix carries a freshly observed
+native `source_id` into a retry intent after a legitimate tier change, while
+dropping the identity only when the source is no longer a native HOST/GPU
+owner. The regression test also advances an unrelated owner epoch to ensure
+the old repeated-stale loop would fail. No retry cap, sleep, capacity change or
+worker-count tuning was introduced.
+
+The next permitted action is a 100-request D369 GPU validation on the frozen
+D368 input, with new raw/output/cache directories and no curated result or
+figure publication. It must verify native terminal completion, absence of the
+41/20 stale-recheck pattern, GPU release and remote-service closure before any
+full D370 replay is considered.
