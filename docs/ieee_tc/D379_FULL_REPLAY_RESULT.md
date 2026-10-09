@@ -30,6 +30,7 @@ It is a development replay, not a formal comparison or figure source.
 | throughput (requests/s) | 1.008746 |
 | token throughput (tokens/s) | 115.558 |
 | development 5000-ms TTFT attainment | 0.97775 |
+| offline D170-threshold joint diagnostic | 3777/4000 = 0.94425 (provisional) |
 | physical GPU lifecycle ledger (GPU-s) | 12076.450 |
 | physical GPU-s / observed terminal | 3.019112 |
 | legacy scenario GPU-s field | 4317.409 |
@@ -42,7 +43,11 @@ It is a development replay, not a formal comparison or figure source.
 The physical ledger and legacy scenario GPU field are different accounting
 contracts; neither is a G1 value until correctness and the common references
 are qualified. The development SLO display is not the frozen common warm-based
-joint SLO.
+joint SLO. The offline D170-threshold diagnostic applies the existing warm-derived
+TTFT/TPOT thresholds to the request records and obtains 3777/4000 joint passes;
+it assumes the native output contract (which is complete) but cannot establish
+numerical `n_correct`, so it is provisional evidence only and is not a formal
+G1 denominator.
 
 ## Remote-delivery boundary evidence
 

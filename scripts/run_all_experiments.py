@@ -25610,6 +25610,31 @@ async def _main_async_impl(
         else:
             all_results.append(run_results[0])
 
+    # The limiter mode describes only injected application-layer delay.  It is
+    # not a transport identifier: a real HTTP artifact client can legitimately
+    # run with zero injected delay.  Derive an independent transport summary
+    # from the request-path evidence so that ``local_sim_no_delay`` cannot be
+    # mistaken for local-file materialization in later analysis.
+    _remote_transfer_records = [
+        transfer
+        for coordination in scenario_coordination_meta.values()
+        for transfer in (coordination.get("remote_artifact_transfers") or [])
+        if isinstance(transfer, dict)
+    ]
+    _remote_delivery_modes = sorted({
+        str(transfer.get("remote_delivery_mode", "")).strip()
+        for transfer in _remote_transfer_records
+        if str(transfer.get("remote_delivery_mode", "")).strip()
+    })
+    if _remote_transfer_records:
+        _artifact_transport_mode = "real_http_artifact_client"
+    else:
+        _artifact_transport_mode = "local_frozen_materialization"
+    _request_time_pack_count = sum(
+        bool(transfer.get("remote_pack_performed"))
+        for transfer in _remote_transfer_records
+    )
+
     # ---- Output ----
     print_results(all_results, bw_mbps, use_azure_replay, has_sgpt, backend,
         workload_description=f"Frozen shared request map ({shared_trace_path})"
@@ -25708,6 +25733,10 @@ async def _main_async_impl(
                 if bw_mbps > 0.0
                 else "local_sim_no_delay"
             ),
+            "artifact_transport_mode": _artifact_transport_mode,
+            "artifact_delivery_modes": _remote_delivery_modes,
+            "remote_artifact_transfer_count": len(_remote_transfer_records),
+            "request_time_pack_count": _request_time_pack_count,
             "total_requests": len(traces),
             # Canonical campaign seed name used by cross-system analyzers.
             # ``workload_seed`` remains for backwards compatibility.

@@ -10389,3 +10389,21 @@ correctness evidence; then establish a valid Resident reference or document the
 remaining contract gap. Only after a 7B Prime configuration passes the frozen
 correctness + joint-SLO + lifecycle rules may the mainline proceed to 3B. No
 figure is generated from D379.
+
+## D382 transport metadata repair and provisional SLO finding
+
+2026-10-10: A metadata-only runner patch was prepared to separate the injected
+application-layer limiter label from the actual artifact transport. New output
+fields are `artifact_transport_mode`, `artifact_delivery_modes`,
+`remote_artifact_transfer_count`, and `request_time_pack_count`. The patch does
+not change request execution, timing, raw-result files, or historical metadata;
+it prevents a real HTTP delivery with zero injected delay from being mislabeled
+as local materialization in future analyses. `py_compile` and two focused v2
+analysis tests pass.
+
+The D379 request records also support a provisional offline diagnostic against
+the reused D170 warm-derived thresholds: 3777/4000 requests (0.94425) satisfy
+both TTFT and TPOT thresholds. This is below the frozen 95% joint-SLO gate and
+cannot be promoted to a formal result because `n_correct` remains unknown. The
+finding reinforces the current Prime-first hold: close full-pool numerical
+correctness and the common Resident reference before any 3B or baseline run.
