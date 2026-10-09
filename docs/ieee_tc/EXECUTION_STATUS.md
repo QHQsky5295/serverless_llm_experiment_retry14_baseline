@@ -10136,3 +10136,18 @@ SHA `c65b0374ea92b0360e86dfcde0302f3bd974d115ebdc3c1dccc7d5c7357db0d8`, and
 Raw evidence, weights, traces, adapter pools, source code and the user-owned
 manifest were protected. A new full replay needs a new campaign identity and a
 larger verified disk reserve; D370 is not to be resumed in place.
+
+To create that reserve, an explicit list of 33 already-closed historical
+outcomes was archived with the guarded compressor added in `5964981`. Every
+entry had `launch.json` pass/release flags, no prior compression receipt and a
+private regular source; each source was gzip-tested and independently hashed
+twice before its uncompressed duplicate was removed. The aggregate receipt is
+`paper_results/ieee_tc/storage/20261010_legacy_closed_outcomes_lossless_compression.json`
+(SHA-256 `0916905428de4593e62865b173bca5b67fe592bc8e7f6858d4be838cccce2f52`).
+It records 33 entries and 7,836,504,064 allocated bytes reclaimed
+(161,949,093,888 → 169,785,155,584 available). The sequential operation ran
+in `primelora-tc-aux-5e2d86c5735f4088b1c5d7118003d1ed.scope` with 4-GiB
+MemoryMax/no swap, reached zero tasks and was stopped. No failed/active run,
+unique artifact, trace, weight, curated result, source file or user manifest
+was deleted; gzip archives remain beside their original physical-deployment
+paths.
