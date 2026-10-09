@@ -9844,3 +9844,22 @@ receipt/checkpoint, re-run exact disk/memory/GPU/resource gates, and then launch
 the single unchanged-input D368 7B W0 replay for the asynchronous request-plan
 preparation candidate. No 3B, baseline, figure or formal G1/G2 claim follows
 from this storage maintenance.
+
+## D368 launch identity — ready, not yet started
+
+The D368 campaign identity is committed and pushed in `a71d854bd69ac1d2b5f40103aa77c8ee5cca66c1` (remote branch equality verified). The new configuration SHA-256 is
+`336aeb0acd1bf256be532c181baa17f8cc0b8749f14ed1a5b4a4c6fe0e990400`.
+Compared with D367, only the campaign output directory, NVMe cache directory,
+HOST cache directory and explanatory comment differ; the YAML diff was checked
+explicitly. The replay will use the native external W0 path and therefore the
+per-arrival single-worker plan-preparation executor from commit
+`5934093c22f891bb6f5d3ade597804a0f24ffbb1`, with preparation wait retained in
+the dispatch/request timeline.
+
+At this checkpoint no D368 GPU process, tmux replay, or remote artifact service
+is active. The exact launcher will recheck the plan SHA, frozen D367 preparation
+binding, branch equality, cgroup identity (`4 GiB`, no swap, auxiliary CPUs),
+disk/memory/GPU gates, and the absence of an existing D368 result before
+starting. The 7B request plan remains a development replay: its outcome can
+measure the startup-barrier change, but cannot by itself establish formal G1/G2
+without complete correctness and the frozen common warm/reference manifests.
