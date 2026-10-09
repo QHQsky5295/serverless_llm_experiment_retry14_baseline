@@ -10259,3 +10259,18 @@ consistency check will not be bypassed: the next C=8 diagnostic must either
 use the already-qualified D298/D321 C=8 profile set without the two opt-in
 policy fields, or first perform a new measured C=8 qualification for those
 policies.
+
+## D376 capacity-revalidation diagnostic — preparation-profile mismatch
+
+2026-10-10: The profile-aligned C=8 diagnostic entered the service runner but
+was rejected before the first request because the D298 preparation profile was
+registered with the D321 service input-contract context. The loader correctly
+reported `preparation profile model/configuration/context mismatch`; the replay
+receipt has `N_arrived=0` and `N_submitted=0`, and the launcher classification
+is `qualification_command_failure`.
+
+All owned GPU/service/remote resources were released. D376 has no performance
+observation and is excluded from all tables and figures. This was a
+configuration-construction error, not a capacity or PrimeLoRA result. The
+detailed record is `docs/ieee_tc/D376_PROFILE_MISMATCH.md`; a new identity with
+the unchanged D298 preparation context is required.
