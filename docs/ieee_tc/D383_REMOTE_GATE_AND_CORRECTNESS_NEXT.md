@@ -59,11 +59,16 @@ compare against the unchanged independent reference. Near ties remain warnings,
 not silently accepted matches. No performance result or G1/G2 denominator is
 created by this diagnostic.
 
-The installed vLLM 0.30 environment exposes `VLLM_BATCH_INVARIANT`, but its
-source contract requires NVIDIA compute capability at least 9.0. All four
-available GPUs report RTX 3090 compute capability 8.6, so enabling that mode
-is not a valid local workaround; it is hardware-inapplicable rather than a
-serving-contract change.
+The installed vLLM 0.30 environment exposes `VLLM_BATCH_INVARIANT`.  An earlier
+note incorrectly treated an environment-variable comment as a hard SM90 gate.
+The source implementation selects an SM80/Ampere Triton path, and a no-model
+initialization probe on an RTX 3090 (compute capability 8.6) completed
+successfully with `VLLM_BATCH_INVARIANT=1`.  This does **not** retroactively
+qualify D379 or prove that the full LoRA/attention stack is invariant: the mode
+can change kernels, memory use, and latency, and vLLM still documents
+reproducibility as version/hardware scoped.  It is therefore a separately
+registered correctness/stability candidate, not a hidden performance switch or
+a reason to relabel existing runs.
 
 No figure is generated from D383. Raw historical evidence, source traces,
 adapter pools, published caches, old figures and the user-owned manifest remain
