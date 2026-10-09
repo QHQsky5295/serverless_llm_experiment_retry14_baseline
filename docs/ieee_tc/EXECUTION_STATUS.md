@@ -10185,3 +10185,31 @@ input (or authorizing its deterministic creation from the frozen corpus) is a
 protocol prerequisite. The detailed audit is
 `docs/ieee_tc/D372_7B_VALIDATION_INPUT_AUDIT.md`. No raw result, adapter pool,
 user-owned manifest, old figure, or historical archive was modified.
+
+## D373 metric-scope and artifact-node gate audit
+
+2026-10-10: The final comparison口径 is now indexed in
+`docs/ieee_tc/METRIC_SCOPE_AND_RESULTS_FREEZE_20261010.md`. It makes the
+research boundary explicit: request-triggered remote read/send/receive/extract,
+cache misses, and their waiting time remain in TTFT/E2E; one-time pre-deployment
+archive creation and unrelated remote administration are recorded separately and
+are not subtracted from E2E. This preserves PrimeLoRA's measurable benefit from
+reducing future fetches without crediting it for an administrator's packaging
+work.
+
+The artifact-node-only disk rule is already implemented by
+`scripts/ieee_tc_preflight.py artifact-disk-check`: it computes
+`S + ceil(1.5 * (sum_i q_i g_i + G))` from explicit concurrent-pack, remaining
+archive-growth, log-growth, and positive safety-reserve bounds, and checks free
+bytes/inodes per filesystem. It does not call the inference-host disk policy.
+The inference host retains its 150-GiB start line, 100-GiB running stop line,
+memory/swap/GPU/OOM protection, and unique-artifact preservation. The focused
+preflight suite passed 7/7 selected tests; the only worktree change remains the
+pre-existing user-owned generated manifest.
+
+A read-only remote check found 139,307,171,840 bytes free, 30,883,772 free
+inodes, no listeners on ports 18080/18081, and `eno1` at 1000 Mb/s/full with
+carrier up. The local `eno1np0` sysfs link also reports 1000/full/up. Historical
+100-Mbps evidence is retained as a separate link-state condition and is not mixed
+with the current run pool. No remote service, pack, hash scan, cleanup, or
+configuration change was performed during this audit.
