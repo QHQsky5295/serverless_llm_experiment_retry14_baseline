@@ -9924,3 +9924,52 @@ bounded-worker diagnostic and state-transition audit on the same trace) before
 any new full GPU replay. No blind concurrency increase, adapter-capacity
 change, 3B run, baseline run or figure production is authorized by this
 diagnostic alone.
+
+## D368 follow-up CPU diagnostic and stale-identity audit
+
+2026-10-10: A no-GPU diagnostic used the same 7B frozen 4,000-request trace
+and the native fixed-output prompt planner. The tokenizer was initialized
+before timing; each request then executed the real
+`_prepare_request_execution_plan` path. Across 4,000 requests, preparation
+time was 4.661 ms mean, 5.111 ms median, 6.830 ms P95, 7.564 ms P99, 8.947 ms
+maximum and 18.644 s total. A deterministic FCFS simulation using the
+measured per-request service times and the recorded arrival offsets produced
+the following total executor wait (seconds):
+
+| arrival compression | one worker | two workers | four workers |
+|---:|---:|---:|---:|
+| 1x (frozen W0) | 0.743 | 0.013 | <0.001 |
+| 8x | 2.675 | 0.217 | 0.002 |
+| 64x | 22.939 | 2.063 | 0.063 |
+
+The observed D368 preparation receipt instead reports 101.0001 s accumulated
+wait and 1.5824 s maximum wait. The bounded single-worker executor is
+therefore not sufficient to explain the full observed delay; changing its
+worker count without a new causal observation would be an unsupported tuning
+patch and is not authorized.
+
+The raw request evidence identifies a separate, testable path. For D368
+`req_00961` and `req_00636`, the selected HOST copy was promoted or replaced by
+a GPU copy, yielding one legitimate `required_source_changed` response. The
+controller then re-observed the native state but did not carry the newly
+observed native `source_id` into the next demand intent. Under concurrent
+owner-epoch advances, the intent consequently entered repeated
+`stale_snapshot` rechecks (41 and 20 respectively), with 35,323.9 ms and
+17,278.1 ms excluded before native loading. The eventual native loads were
+only 17.4 ms and 0.9 ms; the delay was control/state re-resolution, not GPU
+copy or remote transfer time. D367 had only three requests with any stale
+recheck (maximum three); D368 had three, but two reached 41/20 retries.
+
+This observation supports a narrow first-principles hypothesis: after a fresh
+native source observation, retaining its immutable copy identity lets the
+serialized owner tolerate unrelated epoch changes while still rejecting a
+real copy/tier change. The existing native contract already permits this
+identity-based validation, and the unit test for a held HOST copy surviving an
+unrelated epoch advance exercises that invariant. The next code change, if
+the regression test passes, is limited to propagating the freshly observed
+native `source_id` into the retry intent; it must not add sleeps, retry caps,
+capacity increases or worker-count tuning. A small unit/regression test must
+show both cases: unrelated epoch changes complete without repeated retries,
+while a genuine HOST→GPU change still causes one re-observation and a tier
+update. Only after that evidence is complete may a new GPU validation replay
+be considered.
