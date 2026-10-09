@@ -1,5 +1,20 @@
 # IEEE TC execution status
 
+## CURRENT — D384 7B native-token witness registered (not yet run)
+
+2026-10-10: D384 is the next admissible Prime-first action after the D383
+artifact-node gate and correctness audit.  It is a pre-registered prefix-100
+native token-ID witness over the existing W0 trace and adapter pool.  The
+prefix covers all four materialized adapter content classes and both D170
+input-length groups; no request or load data is regenerated.  It changes no
+serving mechanism or metric ruler and is diagnostic only.  The run is not
+allowed to create `n_correct`, G1/G2, a ranking, or a figure.  The protocol is
+in `docs/ieee_tc/D384_NATIVE_TOKEN_WITNESS_PROTOCOL.md`; the config and runner
+are `20261010_d384_7b_native_token_witness_100.yaml` and
+`run_d384_7b_native_token_witness_100.sh`.  Before launch, the inference-host
+150-GiB/100-GiB disk, memory, GPU-idle/OOM and remote-service gates must pass;
+after launch the remote artifact unit must be stopped and verified inactive.
+
 ## USER PRIORITY UPDATE — 2026-10-06, no figures before optimization targets
 
 The latest explicit user goal supersedes the old per-run plotting requirement.
