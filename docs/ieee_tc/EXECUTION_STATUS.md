@@ -10314,7 +10314,7 @@ After receipt capture the remote 7B service was stopped and local GPUs were
 idle. No source trace, adapter pool, weights, historical results, old figures
 or user-owned manifest were modified.
 
-## D379 7B C=8 full W0 replay — in progress
+## D379 7B C=8 full W0 replay — complete development closure
 
 2026-10-10: D379 was launched from the frozen `bcc0ebc` registration after
 the unchanged disk, memory, GPU-idle, branch, plan-SHA and authenticated remote
@@ -10323,11 +10323,29 @@ successful D378 C=8 profile-aligned diagnostic to the existing 4,000-request
 W0 trace. The run remains a development replay (`formal_run=false`); no result
 has entered a metric table or figure.
 
-At the latest checkpoint the controlled replay was still active with 26
-terminal requests and zero terminal failures. Remote artifact fetches were
-being recorded normally. The run is intentionally left in its original tmux
-and resource scopes; it will be closed only after the full receipt, physical
-resource ledger, remote-service stop and cleanup checks are captured.
+The replay completed `4000/4000` terminal requests with zero terminal errors.
+The launcher passed, all owned local scopes were removed, the physical ledger
+closed with no open leases, and the remote 7B service was stopped after receipt
+capture (`ActiveState=inactive`, `MainPID=0`, port 18081 absent). The detailed
+closure, raw hashes and descriptive metrics are in
+`docs/ieee_tc/D379_FULL_REPLAY_RESULT.md`.
+
+The physical ledger observed `12076.449893` GPU-s, while the legacy scenario
+field reports `4317.408954` GPU-s; these contracts are intentionally not mixed.
+The run remains `formal_run=false`, `n_correct=null`, and
+`formal_comparison_qualified=false`. Descriptive mean/P95 TTFT is
+`1313.421/3135.892 ms`, mean E2E `5009.251 ms`, mean TPOT `33.402 ms`, and
+development 5000-ms attainment `0.97775`. Compared with D371, physical GPU-s
+decreased 16.61% but mean/P95 TTFT increased 14.13%/10.49%; because capacity,
+profiles and policy switches all changed, this is not a one-factor causal
+optimization and does not close the Prime target.
+
+The 132 remote transfers were all content-verified prepublished gzip deliveries;
+none performed request-time packing. The request-triggered transfer and local
+materialization remain in the user timeline; deployment-time publication remains
+separate and was not subtracted. The legacy `local_sim_no_delay` metadata label
+is documented as a limiter/transport ambiguity in D380 and does not override
+the transfer records.
 
 ## D380 protocol reconciliation while D379 remains active
 
@@ -10352,7 +10370,22 @@ interpretations without changing the approved protocol or old raw data:
 3. D379/D371 differ in profiles and two policy opt-ins as well as capacity.
    Compare combined configurations descriptively, not as a single-factor effect.
 
-Next remains D379 closure and 7B correctness/common-reference evidence, reusing
-D170 and other valid retained data first. G1/G2, 3B improvement, baseline main
-comparisons, ablations and sensitivities remain incomplete. No figure is due
-before the Prime target. The user-owned generated manifest remains untouched.
+At the time of this entry, the next step was D379 closure. That closure is now
+recorded above; the current next step is the D381 hold point below. G1/G2, 3B
+improvement, baseline main comparisons, ablations and sensitivities remain
+incomplete. No figure is due before the Prime target. The user-owned generated
+manifest remains untouched.
+
+## D381 D379 closure audit and Prime-first hold point
+
+2026-10-10: The D379 closure was audited after the runner exited. The current
+plan/protocol SHAs remain unchanged; only the result/status documentation was
+added. The raw result is retained outside Git, and the only worktree change not
+owned by this task remains `configs/generated/lora_manifest_1000.json`.
+
+The next authorized work is not a baseline or 3B run. First reuse/audit D170's
+7B warm measurements and close the outstanding full-pool numerical adapter
+correctness evidence; then establish a valid Resident reference or document the
+remaining contract gap. Only after a 7B Prime configuration passes the frozen
+correctness + joint-SLO + lifecycle rules may the mainline proceed to 3B. No
+figure is generated from D379.
