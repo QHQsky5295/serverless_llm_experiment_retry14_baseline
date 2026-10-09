@@ -10426,3 +10426,8 @@ D247's strict result is 19/22 with three near-tie divergences, and D379 still
 has `n_correct=null`. The next Prime-first step is a content-class/request-
 binding correctness decision or one newly registered native-token diagnostic,
 not a repeated identical probe, 3B run, baseline run or figure.
+
+The installed vLLM environment documents `VLLM_BATCH_INVARIANT` as requiring
+compute capability >=9.0. The four available RTX 3090 GPUs report capability
+8.6, so this possible determinism workaround is hardware-inapplicable and was
+not enabled or used to alter the serving contract.

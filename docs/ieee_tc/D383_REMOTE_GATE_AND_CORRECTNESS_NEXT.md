@@ -59,6 +59,12 @@ compare against the unchanged independent reference. Near ties remain warnings,
 not silently accepted matches. No performance result or G1/G2 denominator is
 created by this diagnostic.
 
+The installed vLLM 0.30 environment exposes `VLLM_BATCH_INVARIANT`, but its
+source contract requires NVIDIA compute capability at least 9.0. All four
+available GPUs report RTX 3090 compute capability 8.6, so enabling that mode
+is not a valid local workaround; it is hardware-inapplicable rather than a
+serving-contract change.
+
 No figure is generated from D383. Raw historical evidence, source traces,
 adapter pools, published caches, old figures and the user-owned manifest remain
 unchanged.
