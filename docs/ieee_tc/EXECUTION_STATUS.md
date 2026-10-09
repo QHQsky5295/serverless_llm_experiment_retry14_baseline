@@ -10407,3 +10407,22 @@ both TTFT and TPOT thresholds. This is below the frozen 95% joint-SLO gate and
 cannot be promoted to a formal result because `n_correct` remains unknown. The
 finding reinforces the current Prime-first hold: close full-pool numerical
 correctness and the common Resident reference before any 3B or baseline run.
+
+## D383 artifact-node gate and correctness decision boundary
+
+2026-10-10: A read-only remote check confirms the approved artifact-node-only
+disk rule passes: required free bytes `97,407,250,432`, observed free bytes
+`139,184,943,104`, free-inode count `30,883,806`, and margin
+`41,777,692,672` bytes. The published 7B cache is immutable and both artifact
+listeners are inactive. The mount is ext4; quota tooling is unavailable and
+`xfs_quota` rejects the foreign filesystem, so quota is recorded as
+not-configured/applicable rather than silently treated as audited. The
+inference-host 150/100-GiB and memory/GPU/OOM gates remain unchanged.
+
+The same audit finds only four distinct 7B weight/config content classes across
+the 500 logical IDs (counts 348/150/1/1). Existing D166/D167 slot-content,
+D236 PEFT first-position, and D247 sequence diagnostics remain bounded evidence;
+D247's strict result is 19/22 with three near-tie divergences, and D379 still
+has `n_correct=null`. The next Prime-first step is a content-class/request-
+binding correctness decision or one newly registered native-token diagnostic,
+not a repeated identical probe, 3B run, baseline run or figure.

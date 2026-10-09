@@ -773,3 +773,20 @@ limits, sufficient to proceed with candidate Prime loading/profile work using
 no more than that transfer concurrency. It is not all-system arbitrary-concurrency
 evidence, a frozen final configuration, an S6 bandwidth sweep, or an inference
 speedup. Do not repeat D78/D80/D81. Next is representative native Full profiling.
+
+### D383 current artifact-node gate recheck (2026-10-10)
+
+The approved artifact-only disk rule was rechecked read-only before the next
+Prime-first decision. Using the existing archive bounds, 67,108,864-byte log
+growth bound and 17,179,869,184-byte safety reserve, the required free space is
+97,407,250,432 bytes. The remote filesystem reports 139,184,943,104 free bytes
+and 30,883,806 free inodes, so the measured bound passes with 41,777,692,672
+bytes of margin. The 7B published delivery cache remains immutable (directory
+mode 555, manifest mode 444); no listener is present on 18080/18081.
+
+The mount is ext4. The `quota` command is unavailable and `xfs_quota` rejects
+the mount as foreign, so quota is recorded as not configured/applicable rather
+than claimed as audited. This does not change the bounded published-cache
+protocol; a future request-time-packing or cache-publication change requires a
+new bound and filesystem/quota check. Inference-host disk and memory gates are
+unchanged.
