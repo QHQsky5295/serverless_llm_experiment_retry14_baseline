@@ -10313,3 +10313,18 @@ from G1/G2, ranking and figures. The detailed evidence and hashes are in
 After receipt capture the remote 7B service was stopped and local GPUs were
 idle. No source trace, adapter pool, weights, historical results, old figures
 or user-owned manifest were modified.
+
+## D379 7B C=8 full W0 replay — in progress
+
+2026-10-10: D379 was launched from the frozen `bcc0ebc` registration after
+the unchanged disk, memory, GPU-idle, branch, plan-SHA and authenticated remote
+health gates passed. It uses a fresh output/cache identity and extends the
+successful D378 C=8 profile-aligned diagnostic to the existing 4,000-request
+W0 trace. The run remains a development replay (`formal_run=false`); no result
+has entered a metric table or figure.
+
+At the latest checkpoint the controlled replay was still active with 26
+terminal requests and zero terminal failures. Remote artifact fetches were
+being recorded normally. The run is intentionally left in its original tmux
+and resource scopes; it will be closed only after the full receipt, physical
+resource ledger, remote-service stop and cleanup checks are captured.
