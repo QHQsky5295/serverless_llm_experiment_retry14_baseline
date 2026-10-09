@@ -10328,3 +10328,31 @@ terminal requests and zero terminal failures. Remote artifact fetches were
 being recorded normally. The run is intentionally left in its original tmux
 and resource scopes; it will be closed only after the full receipt, physical
 resource ledger, remote-service stop and cleanup checks are captured.
+
+## D380 protocol reconciliation while D379 remains active
+
+2026-10-10 05:04 +08:00: D379's actual runner and watchdog remain live; the
+terminal log reached 1,008 requests at this checkpoint, with no launch
+completion receipt yet. No second heavy task or runtime/configuration edit was
+performed. Both NICs report 1000/full. Disk was about 157 GiB free at the last
+resource poll; no compression, cleanup or remote reconfiguration is performed
+during measurement.
+
+The documentation-only audit in `D380_PROTOCOL_RECONCILIATION.md` corrects three
+interpretations without changing the approved protocol or old raw data:
+
+1. D372's mandatory new seed-41 trace prerequisite was an incorrect carry-over.
+   Current plan §4.7 and frozen V1 §8 retain source seed 42 and separate run role
+   from trace seed; existing trace/index views can support development. Do not
+   create new workloads or relabel repetitions as unseen traces.
+2. D379 enables the real prepublished HTTP path. The top-level
+   `local_sim_no_delay` field depends only on the limiter setting, not the
+   transport. Audit final transfer evidence; repair metadata only after closure,
+   preserving all historical raw fields.
+3. D379/D371 differ in profiles and two policy opt-ins as well as capacity.
+   Compare combined configurations descriptively, not as a single-factor effect.
+
+Next remains D379 closure and 7B correctness/common-reference evidence, reusing
+D170 and other valid retained data first. G1/G2, 3B improvement, baseline main
+comparisons, ablations and sensitivities remain incomplete. No figure is due
+before the Prime target. The user-owned generated manifest remains untouched.
