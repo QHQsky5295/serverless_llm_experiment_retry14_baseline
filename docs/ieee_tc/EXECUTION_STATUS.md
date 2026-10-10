@@ -1,4 +1,4 @@
-# IEEE TC execution status — current, D403
+# IEEE TC execution status — current, D404 terminal
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -75,17 +75,34 @@ regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance re
 
 ## Exact next action and remaining scope
 
+D404 TERMINAL 2026-10-11:100/100 native contracts,0failed,17,369tokens;
+four actual served engines/ready receipts; exact repaired source and contained
+actor readback,live loop/no exception/empty allocation queue. No repeat needed.
+Raw `/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d404_20261011`.
+Execution main abd53201f0ed5959d554541a4b86beae2cfef108,baseline3cc25a8.
+Source scheduler SHA7f42b0cce82f970392b3d484767a13563fb2d29f6c6e870aa8f29b86fb972b91.
+TTFT mean82.940567s/P9587.723942s;queue82.332853s;serviceTTFT433.976789ms.
+All29real HTTP/50,650,865B/724,665,100verified payload bytes;71cache hits,0packs.
+Native/timing recompute error0;physical GPU-s1362.0847175046802,closed leases.
+Report D404_SERVERLESSLLM_QUEUE_QUALIFICATION.md;curated d404_7b_queue/audit.json
+SHAde80d7f8adbe92e4aaec8a6a4950d905ffd3da263a5c7acdff31c4c514290f3e;
+companion manifest125files.100request contracts identical to D402;startup timing
+differs,so do not attribute all latency change to queue repair or compare to D371.
+GPU/service/aux released;remote3ownedunits stopped;loader overlay fully restored.
+Baseline evidence checkpoint6f432c8a079fde9c8db656d8063f6ceef2ae20dd pushed.
+Protected before/after unchanged. No live job. Full baseline/config optimum OPEN.
+
 1. D403 opt-in `request_identity_v1` repair implemented in existing baseline
    source adapter; vendor/historical views untouched. Original ordering,placement,
    scaling,loading,migration and cadence preserved. Official sibling FCFS source
    supports identity removal. 81 CPU tests passed in7.055s,4GiB/zero-swap scope.
    See main `D403_SERVERLESSLLM_QUEUE_REPAIR.md` and baseline detailed report.
    Baseline checkpoint3cc25a87f3895a408a16efe2ef9c75d0e8780ff3 pushed/verified.
-2. Next D404: affected7B scale-out qualification once, same100-prefix/mechanical
-   config as D402, new source view/cold cache/remote invocations. Require fourth
-   backend ready and actual scheduler source/containment/live-loop readback,
-   not only100 completed responses. GPU qualification still pending.
-   This is a new causal fix,not a repeat of D72/D73 polling comparisons.
+2. D404 affected7B scale-out path passed above. Do not repeat100 requests or the
+   D72/D73 polling pair. Next audit existing500-ID native-engine coverage: D80's
+   500-ID HTTP/content gate alone is not engine coverage. D72/D73's1000 prefixes
+   are R2/local/failed,not new-contract compatibility;reuse diagnostics/assets,
+   supplement only missing affected gates. Document scope before GPU work.
 3. Reuse/audit prior500-ID and1,000-request gates where contracts permit;
    reasonable public configuration validation/freeze ->one matched full W0.
    Historical target2/max-seqs4/min1/max4/keep10 is diagnostic,not selected optimum.
@@ -103,9 +120,9 @@ this status is not a shortened experiment plan.
 - One heavy job. Inference disk start max(150GiB,100GiB+1.5growth),stop100GiB;
   service memory high72/max80GiB,swap2GiB,CPUs4-23,28-47;aux4GiB,swap0,
   CPUs2,3,26,27. Actual worker containment/watchdog/cleanup precede GPU runs.
-- D402 service peak49,332,969,472B,swap0,high/max/OOM0;host available minimum
-  63,025,352,704B,disk minimum163,230,203,904B. Recheck before heavy work.
-- All D402 workers/service scope released;four cards15MiB/0%. Loader overlay
+- D404 service peak49,713,250,304B,swap0,high/max/OOM0;host available minimum
+  61,525,995,520B,disk minimum162,448,949,248B. Recheck before heavy work.
+- All D402/D404 workers/service scopes released;four cards15MiB/0%. Loader overlay
   restored to exact preimages,added loader removed;empty aux scope stopped.
   Remote3ownedunits inactive/MainPID0,ports absent.
 - Strict SSH alias primelora-artifact-174,lab14@10.199.227.174:8122;
@@ -115,8 +132,8 @@ this status is not a shortened experiment plan.
   transfers,competition,local preparation remain in latency;no cumulative-span
   subtraction or live remote administration. Artifact-only reserve+growth disk
   gate does not relax inference gates.
-- Small resolver journals/receipts,Ray logs and scheduler copy preserved under
-  raw D402. Private `/tmp/tc-d402-7br` cache~693MiB remains for provenance;
+- Small resolver journals/receipts,Ray logs and scheduler copies preserved under
+  raw D402/D404. Private caches `/tmp/tc-d402-7br` and `/tmp/tc-d404-7br` remain;
   only verified re-creatable objects may be reclaimed after reference checks,
   never raw records,unique weights or frozen traces.
 - Protected147-entry checks before/after identical,SHA

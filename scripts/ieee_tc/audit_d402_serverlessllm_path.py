@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""D402 evidence recipe; reuses the existing baseline/native validators.
+"""D402/D404 evidence recipe; reuses existing baseline/native validators.
 
 Read-only with respect to experiment inputs. Output is exclusive, small, and
 never upgrades a prefix qualification to a main performance comparison.
@@ -65,7 +65,7 @@ async def reproduce_queue(source):
     raise AssertionError('expected original scheduler queue failure did not reproduce')
 
 
-def audit(root, baseline, main):
+def audit(root, baseline, main, scheduler_contract='original'):
     sys.path[:0] = [str(baseline/'scripts'), str(main)]
     import summarize_serverlessllm_replay as analyzer
     import prepare_ieee_tc_serverless_stack as native
@@ -83,6 +83,25 @@ def audit(root, baseline, main):
     qualifier = json.loads((root/'model7b_repaired/model_qualification.json').read_text())
     assert qualifier['passed'] and qualifier['physical_lifecycle']['lifecycle_qualified']
     native.audit_backend_receipts(qualifier, cfg['backend_config']['tc_worker_audit'], ready['clock_id'])
+    view = json.loads((root/'source_repaired/measurement_manifest.json').read_text())
+    assert view.get('scheduler_queue', 'original') == scheduler_contract
+    scheduler_source = root/'storage_aware_scheduler_executed.py'
+    if scheduler_contract == 'request_identity_v1':
+        observed = qualifier['scheduler_readback']
+        assert digest(scheduler_source) == observed['source_sha256']
+        assert observed['source_sha256'] == view['measured_sha256']['sllm/schedulers/storage_aware_scheduler.py']
+        native.validate_scheduler_readback(observed,
+            source=root/'source_repaired/sllm/schedulers/storage_aware_scheduler.py',
+            service_cgroup=cfg['backend_config']['tc_worker_audit']['service_cgroup'],
+            service_cpus=cfg['backend_config']['tc_worker_audit']['service_cpus'])
+        assert len(qualifier['backend_ready_receipts']) == 4
+        assert all(q['total'] == q['done'] == 0 for q in observed['queues'].values())
+        queue_evidence = dict(contract=scheduler_contract, readback=observed,
+            conclusion='four actual backends ready; live native loop and no pending allocations')
+    elif scheduler_contract == 'original':
+        queue_evidence = asyncio.run(reproduce_queue(scheduler_source))
+    else:
+        raise ValueError('unknown scheduler contract')
     frozen = cfg['backend_config']['tc_remote_artifacts']
     assert digest(frozen['content_manifest']) == frozen['content_manifest_file_sha256']
     pool = {a['id']: a for a in json.loads(Path(frozen['content_manifest']).read_text())['artifacts']}
@@ -118,6 +137,7 @@ def audit(root, baseline, main):
         assert server['artifact_id'] == receipt['adapter_id'] == contract['adapter_id']
         assert server['outcome'] == 'sent' and server['pack_performed'] is False and server['temporary_created'] is False
         assert server['delivery_mode'] == evidence['remote_delivery_mode'] == 'prepublished_gzip_v1'
+        assert server['clock_id'] == health['7b']['clock_id']
         assert server['transfer_id'] == evidence['http_transfer_id']
         assert server['archive_sha256'] == evidence['remote_archive_sha256']
         assert server['archive_bytes'] == server['bytes_read'] == server['bytes_written'] == evidence['transferred_bytes']
@@ -156,7 +176,8 @@ def audit(root, baseline, main):
                     root/'source_repaired/measurement_manifest.json', root/'storage_aware_scheduler_executed.py',
                     Path(analyzer.__file__), Path(native.__file__), Path(__file__)]
     result = {k: v for k, v in summary.items() if k not in ('ready_identity', 'diagnostic_rows', 'assignment_gaps_s', 'kind', 'display_name')}
-    result.update(schema='ieee_tc_d402_affected_path_audit_v1', display_name='ServerlessLLM',
+    result.update(schema=('ieee_tc_d402_affected_path_audit_v1' if scheduler_contract == 'original'
+                          else 'ieee_tc_affected_path_audit_v2'), display_name='ServerlessLLM',
         remote_affected_path_qualified=True, complete_system_qualified=False,
         source_plan=ready['plan'], native_revalidated_requests=100, max_native_recompute_error_ms=native_error,
         physical_gpu_seconds=integral, physical_window_gpu_seconds=physical['window_gpu_seconds'],
@@ -169,11 +190,15 @@ def audit(root, baseline, main):
         service_swap_max_bytes=max(s['service'].get('memory.swap.current', 0) for s in samples),
         host_min_available_bytes=min(s['host']['available_bytes'] for s in samples),
         disk_min_free_bytes=min(f['free_bytes'] for s in samples for f in s.get('filesystems', [])),
-        queue_source_reproduction=asyncio.run(reproduce_queue(root/'storage_aware_scheduler_executed.py')),
+        queue_source_reproduction=queue_evidence if scheduler_contract == 'original' else None,
+        scheduler_contract=scheduler_contract,
+        scheduler_qualification=queue_evidence if scheduler_contract != 'original' else None,
         raw_sources=[dict(path=str(p), sha256=digest(p)) for p in source_paths],
         limitations=['100-request development prefix, not a full W0 comparison or configuration optimum.',
             'Raw unknown numerical correctness and old qualification flags are preserved.',
-            'Four logical instances include starting instances; three served engines. Scheduler queue bug independently reproduced; live exception was not logged.',
+            ('Four logical instances include starting instances; three served engines. Scheduler queue bug independently reproduced; live exception was not logged.'
+             if scheduler_contract == 'original' else
+             'Four actual backend-ready receipts and live loop qualify the affected path; one prefix does not quantify a causal latency benefit.'),
             'Fixed native-store four-GPU pool is charged until actual release; not a claim about every ServerlessLLM deployment.',
             'No relative performance comparison with the 4000-request PrimeLoRA observation.'])
     return result
@@ -185,10 +210,11 @@ if __name__ == '__main__':
     parser.add_argument('--baseline', type=Path, required=True)
     parser.add_argument('--main', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--scheduler-contract', choices=('original', 'request_identity_v1'), default='original')
     args = parser.parse_args()
     if args.output.exists():
         raise FileExistsError(args.output)
-    report = audit(args.root, args.baseline, args.main)
+    report = audit(args.root, args.baseline, args.main, args.scheduler_contract)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.open('x') as handle:
         json.dump(report, handle, indent=2)
