@@ -1,0 +1,44 @@
+{
+  "kind": "ieee_tc_d393_7b_v1_correctness_and_remote_metric_audit",
+  "date": "2026-10-10",
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "source_result_sha256": "772ae04ec266e1b0e69c7a1075b7c8bf8a93eb2fc322a2f8ff356a99bc9874d6",
+  "source_result": "d379_20261010/7b_capacity_revalidation_full_w0",
+  "request_count": 4000,
+  "audit_counts": {
+    "fixed_length_contract": 4000,
+    "native_terminal_and_output_count": 4000,
+    "native_token_source": 4000,
+    "confirmed_dispatch_snapshot": 4000,
+    "request_adapter_binding": 4000,
+    "acquisition_lease_and_integer_identity": 4000,
+    "expected_content_sha_in_receipt": 4000,
+    "source_admission_sha_agreement": 4000,
+    "released_reference_receipt": 4000,
+    "remote_rows": 133,
+    "remote_rows_with_published_verified_no_pack_timing": 132
+  },
+  "source_tier_counts": {
+    "gpu": 1994,
+    "host": 1032,
+    "nvme": 841,
+    "remote": 133
+  },
+  "v1_binding_evidence_closed": true,
+  "formal_execution_qualified": false,
+  "n_correct_retroactive_relabel": false,
+  "cross_backend_exact_sequence_required": false,
+  "cross_backend_exact_sequence_diagnostic": true,
+  "g1_g2_qualified": false,
+  "common_warm_reference_frozen": false,
+  "resident_reference_frozen": false,
+  "interpretation": "D379 closes request-level native identity/accounting evidence under V1 but remains a development diagnostic; a new formal 7B replay and common references are required.",
+  "remote_delivery_rule": {
+    "request_triggered_transfer_in_user_latency": true,
+    "offline_publication_in_user_latency": false,
+    "posthoc_subtraction_of_admin_work": false,
+    "equalize_fetch_count": false,
+    "published_delivery_mode": "prepublished_gzip_v1"
+  }
+}

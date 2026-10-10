@@ -1,5 +1,31 @@
 # IEEE TC execution status
 
+## CURRENT — D393 V1 correctness/remote-metric alignment (offline; no run)
+
+2026-10-10: A request-level audit of all 4,000 D379 rows found complete
+fixed-output, native-token, request/adapter-binding, source-content-SHA,
+acquisition-lease, dispatch-snapshot and release-receipt evidence. This closes
+the **V1 binding/accounting evidence** for a future formal run; it does not
+retroactively set `n_correct`, make D379 formal, or create a G1/G2 result.
+The audit also resolves a protocol conflict: V1 explicitly does not require
+token-for-token equality across different backends, so D391's HF/PEFT exact
+sequence requirement is retained as a diagnostic witness rather than an
+unannounced replacement correctness ruler. D385/D295 remain evidence of
+cross-backend and cross-launch numerical variation, not proof of a serving
+adapter mismatch. See `D393_7B_CORRECTNESS_AND_REMOTE_METRIC_ALIGNMENT.md` and
+the curated audit JSON.
+
+The remote rule is unchanged and now explicitly frozen in the D393 evidence:
+request-triggered read/transfer/receive/materialization remains in user
+TTFT/E2E, while prepublished cache creation and remote administration are
+outside the request metric and are never subtracted after the run. A fresh
+read-only link check found 1-Gb/s/full on the current 192.168.4.178↔.174
+route; the historical 100-Mb/s observation remains a separate downshift
+stratum with unknown peer/cable/switch cause. The next mainline action is the
+common 7B warm reference, three Resident references, and then a new formal 7B
+Prime Full replay. 3B, baselines, ablations, sensitivities and figures remain
+closed.
+
 ## USER CONFIRMATION — reuse the approved one-time delivery cache
 
 2026-10-10: The user's asynchronous answer explicitly approves the one-time
