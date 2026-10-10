@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import ast
+from contextlib import nullcontext
 import hashlib
 import importlib.util
 import json
@@ -24,6 +25,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 GIB = 1024**3
@@ -135,7 +137,7 @@ def prepare_measurement_view(native_source: Path, output: Path, variant: str,
     return result
 
 
-def validate_http_observation(prepared, response, event, completed, clock_id):
+def validate_http_observation(prepared, response, event, completed, clock_id, *, ingress_required=False):
     """Native binding/timing validity, NOT a numerical adapter correctness proof."""
     observed = response.get('metrics', {}).get('ieee_tc', {})
     control = observed.get('control_observation', {})
@@ -167,6 +169,12 @@ def validate_http_observation(prepared, response, event, completed, clock_id):
     if (any(type(t) not in (int, float) or not math.isfinite(t) for t in times)
             or times != sorted(times)):
         raise ValueError('planned/HTTP/router/native/completion times are not ordered')
+    ingress = [control.get('tc_ingress_received_s'), control.get('tc_ingress_forwarded_s')]
+    ingress_present = any(t is not None for t in ingress)
+    if ingress_required or ingress_present:
+        if (any(type(t) not in (int, float) or not math.isfinite(t) for t in ingress)
+                or not times[2] <= ingress[0] <= ingress[1] <= times[3]):
+            raise ValueError('service ingress receive/forward times absent or not ordered')
     a, e, d, f, last = times[0], times[2], times[5], times[10], times[11]
     components = [e-a, d-e, f-d, last-f, completed-last]
     tpot_ms = (last-f)*1000/(target-1) if target > 1 else None
@@ -177,16 +185,21 @@ def validate_http_observation(prepared, response, event, completed, clock_id):
             or (target > 1 and (not isinstance(native_tpot, (int, float))
                                or not math.isfinite(native_tpot) or abs(native_tpot-tpot_ms) > 1))):
         raise ValueError('native TPOT recomputation failed')
-    return dict(protocol_valid=True, lora_numerical_correctness_qualified=False,
+    result = dict(protocol_valid=True, lora_numerical_correctness_qualified=False,
                 ttft_ms=(f-a)*1000, tpot_ms=tpot_ms, e2e_ms=(completed-a)*1000,
                 submit_lag_ms=components[0]*1000, dispatch_wait_after_submit_ms=components[1]*1000,
                 service_ttft_ms=components[2]*1000, decode_ms=components[3]*1000,
                 completion_notification_ms=components[4]*1000,
                 router_queue_ms=(times[5]-times[4])*1000,
                 instance_assigned_s=d, ready_instances_at_enqueue=control.get('ready_instances_at_enqueue'))
+    if ingress_present:
+        # Included in d-e already; this diagnostic subspan is NOT another term
+        # in E2E, and arrival/submit times are never reset after startup.
+        result['ingress_wait_ms'] = (ingress[1]-ingress[0])*1000
+    return result
 
 
-async def replay_http_session(plan, origin, prepared, url, emit):
+async def replay_http_session(plan, origin, prepared, url, emit, *, ingress_required=False):
     import aiohttp
     from faaslora.datasets.workload_generator import replay_frozen_http
     trace = aiohttp.TraceConfig()
@@ -219,7 +232,8 @@ async def replay_http_session(plan, origin, prepared, url, emit):
                           status=response.status, body=body, client_completed_s=completed))
                 if response.status != 200:
                     raise ValueError(f'HTTP status {response.status}')
-                return validate_http_observation(row, body, event, completed, origin['clock_id'])
+                return validate_http_observation(row, body, event, completed, origin['clock_id'],
+                                                 ingress_required=ingress_required)
         return await replay_frozen_http(plan, origin, prepared, send, emit)
 
 
@@ -238,6 +252,8 @@ def http_replay(args):
     if (cfg.get('schema') != 'ieee_tc_serverless_http_replay_v1'
             or cfg.get('generation_contract') != 'fixed_length_greedy_v1'
             or cfg.get('renderer') != 'role_lines_v1'
+            or cfg.get('ingress_mode', 'native_direct_v1') not in
+                ('native_direct_v1', 'service_pre_ready_v1')
             or cfg.get('request_count') not in (100, 1000, 4000)
             or not re.fullmatch(r'http://127\.0\.0\.1:[0-9]+/v1/chat/completions', cfg['url'])):
         raise ValueError('unqualified HTTP replay contract')
@@ -271,7 +287,8 @@ def http_replay(args):
             import signal
             task = asyncio.current_task()
             asyncio.get_running_loop().add_signal_handler(signal.SIGTERM, task.cancel)
-            return await replay_http_session(plan, origin, prepared, cfg['url'], emit)
+            return await replay_http_session(plan, origin, prepared, cfg['url'], emit,
+                ingress_required=cfg.get('ingress_mode') == 'service_pre_ready_v1')
 
         counts = asyncio.run(run())
         if counts['N_failed'] or counts['N_response'] != counts['N_plan']:
@@ -1063,6 +1080,83 @@ def existing_pool_embedding_policy(adapter_map: dict[str, str]) -> dict:
                 independent_numerical_correctness=False)
 
 
+def pre_ready_ingress_options(http_cfg, native_port, model, output):
+    """Fail closed on opt-in deployment identity; old native path is unchanged."""
+    if http_cfg is None or http_cfg.get('ingress_mode', 'native_direct_v1') == 'native_direct_v1':
+        return None
+    if http_cfg.get('ingress_mode') != 'service_pre_ready_v1':
+        raise ValueError('unknown service ingress mode')
+    endpoint = urlsplit(http_cfg['url'])
+    if (endpoint.scheme != 'http' or endpoint.hostname != '127.0.0.1'
+            or endpoint.username or endpoint.password or endpoint.query or endpoint.fragment
+            or endpoint.path != '/v1/chat/completions' or not endpoint.port
+            or endpoint.port == native_port or http_cfg.get('model') != model
+            or type(native_port) is not int or not 0 < native_port < 65536
+            or http_cfg.get('request_count') not in (100, 1000, 4000)):
+        raise ValueError('frozen public ingress/private native endpoint contract differs')
+    return dict(port=endpoint.port, upstream_url=f'http://127.0.0.1:{native_port}/v1/chat/completions',
+                model=model, request_count=http_cfg['request_count'],
+                journal_path=output.with_name(output.name+'.ingress.jsonl'), timeout_s=1800.)
+
+
+def capture_native_model_workers(ray, args, guard, admission, checkpoint, package, result):
+    """Retain worker/source/resource readback on failed HTTP qualification too.
+
+    This is still an end-of-run readback, NOT a complete dynamic worker census
+    or a physical GPU lifetime ledger. Missing retired workers remain explicit.
+    """
+    group = Path(admission['service_identity']['path'])
+    result['owned_processes'] = guard.owned_pids(group)
+    result['resource_snapshot'] = guard.cgroup_snapshot(group)
+    names = ray.util.list_named_actors(all_namespaces=True)
+    instance_ids = set()
+    for row in result['requests']:
+        body = row.get('response')
+        if not isinstance(body, dict):
+            continue
+        metrics = body.get('metrics')
+        identity = metrics.get('instance_id') if isinstance(metrics, dict) else None
+        if isinstance(identity, str) and identity:
+            instance_ids.add(identity)
+    result['served_instance_ids'] = sorted(instance_ids)
+    result['model_workers'] = []
+    for name in names:
+        if name['name'] not in instance_ids:
+            continue
+        actor = ray.get_actor(name['name'], namespace=name['namespace'])
+
+        def observe(backend):
+            import hashlib, os, pathlib, ray
+            import sllm.backends.vllm_backend as module
+            import sllm_store.torch as store
+            return dict(pid=os.getpid(), cgroup=pathlib.Path('/proc/self/cgroup').read_text(),
+                affinity=sorted(os.sched_getaffinity(0)), gpu_ids=ray.get_gpu_ids(),
+                cuda_visible=os.environ.get('CUDA_VISIBLE_DEVICES'),
+                backend_file=module.__file__, backend_sha256=hashlib.sha256(pathlib.Path(module.__file__).read_bytes()).hexdigest(),
+                store_file=store.__file__, load_format=backend.engine_args.load_format,
+                model_path=backend.engine_args.model, engine_present=backend.engine is not None,
+                enable_lora=backend.enable_lora)
+
+        observed = ray.get(actor.__ray_call__.remote(observe), timeout=30)
+        observed.update(name)
+        result['model_workers'].append(observed)
+        if (observed['cgroup'].strip() != '0::/' + str(group.relative_to('/sys/fs/cgroup'))
+                or observed['affinity'] != sorted(guard.SERVICE_CPUS)
+                or observed['load_format'] != 'serverless_llm'
+                or Path(observed['model_path']).resolve() != checkpoint.resolve()
+                or Path(observed['backend_file']).resolve() != args.native_source / 'sllm/backends/vllm_backend.py'
+                or Path(observed['store_file']).resolve() != package / 'sllm_store/torch.py'
+                or not observed['engine_present']):
+            raise ValueError('actual native model worker identity/containment differs')
+    result['missing_served_instance_ids'] = sorted(instance_ids - {row['name'] for row in result['model_workers']})
+    if result['missing_served_instance_ids'] or not instance_ids:
+        raise ValueError('actual model worker missing; end-of-run readback cannot qualify retired workers')
+    store_log = (args.output / 'store.log').read_text(errors='replace')
+    result['store_confirmations'] = re.findall(r'Confirm model (\S+) replica (\S+) success', store_log)
+    if not any(path == f'vllm/{args.model_name}/rank_0' for path, _ in result['store_confirmations']):
+        raise ValueError('actual native GPU-load confirmation missing')
+
+
 def qualify_model(args) -> dict:
     """Exercise the real store -> native loader -> model -> HTTP path.
 
@@ -1075,6 +1169,7 @@ def qualify_model(args) -> dict:
     admission = guard.verify_current_service()
     http_cfg = None
     replay_context = None
+    measured = None
     if getattr(args, 'http_replay_config', None) is not None:
         http_cfg = json.loads(args.http_replay_config.read_text())
         replay_context = json.loads(Path(os.environ['FAASLORA_TC_LAUNCH_RECEIPT']).read_text()).get('external_replay', {})
@@ -1094,6 +1189,25 @@ def qualify_model(args) -> dict:
                 or measured.get('repository_startup_hooks') is not False
                 or (args.native_source/'sitecustomize.py').exists()):
             raise ValueError('shared package view must exclude repository startup hooks')
+    options = pre_ready_ingress_options(http_cfg, args.api_port, args.model_name, args.output)
+    if options is None:
+        ingress_context = nullcontext(None)
+    else:
+        # Loading this dependency-light module does not import Ray, vLLM or
+        # transformers. Open service admission before expensive native setup.
+        helper = ROOT/'scripts/ieee_tc_serverless_measurement.py'
+        if helper.resolve() != Path(measured['helper_path']).resolve():
+            raise ValueError('ingress and measured native helper identities differ')
+        spec = importlib.util.spec_from_file_location('tc_service_ingress', helper)
+        support = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(support)
+        ingress_context = support.PreReadyHTTPIngress(**options)
+    with ingress_context as ingress:
+        return _qualify_model(args, guard, admission, http_cfg, replay_context, measured, ingress)
+
+
+def _qualify_model(args, guard, admission, http_cfg, replay_context, measured, ingress) -> dict:
+    """Native model lifecycle inside the already-admitted service domain."""
     if Path(sys.executable).resolve() != (args.environment / 'bin/python').resolve():
         raise ValueError('wrong native model interpreter')
     receipt = json.loads(args.overlay_receipt.read_text())
@@ -1148,6 +1262,10 @@ def qualify_model(args) -> dict:
         result.update(external_http_replay=replay_context, source_view_manifest=measured,
                       artifact_source='existing_local_pool_mechanical_qualification_only',
                       remote_qualified=False, polling_comparison_completed=False)
+        result['ingress'] = dict(mode=http_cfg.get('ingress_mode', 'native_direct_v1'),
+            service_owned=True, business_t0_shifted=False, hidden_retries=False,
+            release_condition='model_router_constructed_not_engine_warm' if ingress else None,
+            journal_path=str(ingress.journal_path) if ingress else None)
     env = dict(os.environ)
     for key in ('TMUX', 'TMUX_PANE', 'SLLM_HEAD_RAY_BIN', 'SLLM_WORKER_RAY_BIN', 'SLLM_HEAD_PYTHON_BIN'):
         env.pop(key, None)
@@ -1223,6 +1341,8 @@ def qualify_model(args) -> dict:
                 raise TimeoutError('native router construction did not complete')
             time.sleep(1)
         startup_event('native_router_start_observed')
+        if ingress is not None:
+            ingress.router_ready()
         from transformers import AutoTokenizer
         tokenizer = AutoTokenizer.from_pretrained(args.backbone, local_files_only=True) if not http_cfg else None
         source_requests = json.loads(args.trace.read_text())['requests'][:4] if not http_cfg else []
@@ -1266,51 +1386,18 @@ def qualify_model(args) -> dict:
             if (completed['event'] != 'http_replay_complete' or completed.get('N_failed') != 0
                     or completed.get('N_response') != http_cfg['request_count']):
                 raise ValueError('external HTTP qualification failed; do not label binding as correctness')
-        names = ray.util.list_named_actors(all_namespaces=True)
-        instance_ids = {r['response']['metrics']['instance_id'] for r in result['requests']}
-        result['model_workers'] = []
-        for name in names:
-            if name['name'] not in instance_ids:
-                continue
-            actor = ray.get_actor(name['name'], namespace=name['namespace'])
-
-            def observe(backend):
-                import hashlib, inspect, os, pathlib, ray
-                import sllm.backends.vllm_backend as module
-                import sllm_store.torch as store
-                return dict(pid=os.getpid(), cgroup=pathlib.Path('/proc/self/cgroup').read_text(),
-                    affinity=sorted(os.sched_getaffinity(0)), gpu_ids=ray.get_gpu_ids(),
-                    cuda_visible=os.environ.get('CUDA_VISIBLE_DEVICES'),
-                    backend_file=module.__file__, backend_sha256=hashlib.sha256(pathlib.Path(module.__file__).read_bytes()).hexdigest(),
-                    store_file=store.__file__, load_format=backend.engine_args.load_format,
-                    model_path=backend.engine_args.model, engine_present=backend.engine is not None,
-                    enable_lora=backend.enable_lora)
-
-            observed = ray.get(actor.__ray_call__.remote(observe), timeout=30)
-            observed.update(name)
-            result['model_workers'].append(observed)
-            group = Path(admission['service_identity']['path'])
-            if (observed['cgroup'].strip() != '0::/' + str(group.relative_to('/sys/fs/cgroup'))
-                    or observed['affinity'] != sorted(guard.SERVICE_CPUS)
-                    or observed['load_format'] != 'serverless_llm'
-                    or Path(observed['model_path']).resolve() != checkpoint.resolve()
-                    or Path(observed['backend_file']).resolve() != args.native_source / 'sllm/backends/vllm_backend.py'
-                    or Path(observed['store_file']).resolve() != package / 'sllm_store/torch.py'
-                    or not observed['engine_present']):
-                raise ValueError('actual native model worker identity/containment differs')
-        if len(result['model_workers']) != len(instance_ids) or not instance_ids:
-            raise ValueError('actual model worker missing')
-        result['owned_processes'] = guard.owned_pids(Path(admission['service_identity']['path']))
-        result['resource_snapshot'] = guard.cgroup_snapshot(Path(admission['service_identity']['path']))
-        store_log = (args.output / 'store.log').read_text(errors='replace')
-        result['store_confirmations'] = re.findall(r'Confirm model (\S+) replica (\S+) success', store_log)
-        if not any(path == f'vllm/{args.model_name}/rank_0' for path, _ in result['store_confirmations']):
-            raise ValueError('actual native GPU-load confirmation missing')
         result['passed'] = True
     except Exception as exc:
         result['error'] = f'{type(exc).__name__}: {exc}'
         failure = exc
     finally:
+        if ray.is_initialized():
+            try:
+                capture_native_model_workers(ray, args, guard, admission, checkpoint, package, result)
+            except Exception as exc:
+                result['worker_audit_error'] = f'{type(exc).__name__}: {exc}'
+                result['passed'] = False
+                failure = failure or exc
         if registered:
             try:
                 result['delete_response'] = post('/delete', {'model': args.model_name}, timeout=60)
