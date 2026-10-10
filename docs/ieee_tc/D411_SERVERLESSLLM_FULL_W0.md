@@ -74,3 +74,44 @@ D410 已完成原生请求、内容、计时及物理资源校验；共同联合
 远端链路1000Mb/s/full，health确认prepublished_gzip_v1/artifact_timing_v2。
 服务和远端所有权、InvocationID及收尾指令记录在EXECUTION_STATUS和原始回执。
 运行中不依据部分请求宣布达标、领先或完整复现。
+
+## 运行中失败证据（03:56 检查，尚未终态）
+
+截至2026-10-11 03:56:37，已提交2,846条，原始响应2,845条，其中通过响应校验
+2,843条、HTTP失败2条。原4,000请求回放仍在进行，没有重启、重试或修改配置。
+不能把当前成功子集视为完整达标结果，最终分母仍是4,000。
+
+| 请求 | ingress forwarded（monotonic秒） | transport failed（秒） | 转发后失败间隔 |
+|---|---:|---:|---:|
+| req_02460 | 1169115.425325445 | 1169115.426527416 | 1.202 ms |
+| req_02751 | 1169338.027686718 | 1169338.028803797 | 1.117 ms |
+
+两条均在`model7b_repaired.ingress.jsonl`记录`ServerDisconnectedError`；
+回放器收到502及`native transport failed; not retried`，没有隐式重试。
+本机入口仅转发至`127.0.0.1:8348/v1/chat/completions`，不是artifact远端。
+在此时保留的`model7b_repaired/serve.log`中，两请求ID均未出现；该日志包含
+相邻请求的原生router处理记录。没有相应异常栈，不能把日志缺项当作完整抓包证据。
+
+一个可证伪假设是连接保活关闭与复用竞争：两次失败分别发生在
+`req_02449`与`req_02742`的ingress响应记录后5.000948及5.001383秒。
+本轮共同native环境的aiohttp版本3.13.3、uvicorn版本0.41.0；实际源视图
+`sllm/cli/_cli_utils.py:80`以`uvicorn.run(app, host=host, port=port)`启动，
+未覆盖5秒keepalive默认值。现有测量入口使用默认15秒keepalive的
+`aiohttp.TCPConnector(limit=0)`。官方固定版本分别确认
+[客户端连接保活默认](https://raw.githubusercontent.com/aio-libs/aiohttp/v3.13.3/aiohttp/connector.py)、
+[服务端默认](https://raw.githubusercontent.com/encode/uvicorn/0.41.0/uvicorn/config.py)；
+[aiohttp客户端源码](https://raw.githubusercontent.com/aio-libs/aiohttp/v3.13.3/aiohttp/client.py)
+只对幂等方法启用连接失败重发，POST不在其中。以上与实测时间特征相符，
+但当前没有连接ID和socket生命周期记录，**不是已经证明的唯一根因**。
+不能据此认定远端传输、GPU能力或ServerlessLLM调度机制导致失败。
+
+待当前回放自然结束、GPU释放后，在既有入口测试中验证该假设；不在业务
+期间执行测试、不变更连接策略、不增加自动推理重试、不重放这两个请求。
+现有helper会把终态失败、原始响应及物理终态账本保留下来。全量成功分析器
+必须拒绝此失败集合；若补离线失败分析，只扩展明确的失败分支，不绕过正确性
+检查、不把缺失token或原生时间填成成功值。归因确认后再决定测量错误修复的
+受影响范围，保留D411及所有失败身份，不为获得更优数字重复同一执行键。
+
+此检查service内存约52.030GiB、主机可用52.882GiB、磁盘148.265GiB，
+high/max/OOM/swap事件均零，外置watchdog未要求中止；这是当前采样，
+不是整轮安全总结。下一重型任务仍须重新满足150GiB启动门槛。

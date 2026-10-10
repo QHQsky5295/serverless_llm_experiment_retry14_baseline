@@ -75,13 +75,30 @@ regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance re
 
 ## Exact next action and remaining scope
 
-D411 read-only continuation checked2026-10-11 03:23:39 Asia/Shanghai:
-same tmux/service/InvocationID,485created/sent,480responses,all4000contracts,
-no failureevent yet. Watchdogsample642:hostavailable55.171GiB,
-service48.254GiB,disk149.701GiB,high/max/OOM/swap0,noabort.
+D411 verified-wait continuation checked2026-10-11 03:56:37 Asia/Shanghai:
+same active service/InvocationID426554ae3dcf4dd2999ceeecf4a2e012,
+2846created/sent,2845rawresponses,2843validatedresponses,all4000contracts,
+2HTTPfailures. Watchdogsample2594 is0.125s old:hostavailable52.882GiB,
+service52.030GiB,disk148.265GiB,high/max/OOM/swap0,noabort.
+Remaining originalarrivalwindow1395.910s;no terminalresult yet. Same livehandle
+polled repeatedly from03:26to03:56;do notinterpret waiting as stopped or restart.
 This is incomplete progress,not a performance verdict. Disk below150GiB forbids
 a new heavylaunch;currentrun remainsabove100GiB runtimefloor. No livecleanup,
 hashscan,remoteadministration,cachepublication,tests or secondheavyjob.
+NEW failure evidence: req_02460 and req_02751 returned502 from service-owned
+loopback ingress, ServerDisconnectedError after forwarding in1.202/1.117ms;
+no retries. Neither ID appears in native serve.log as checked03:56. Ingress
+failures are5.000948/5.001383s after earlier completedresponses, consistent
+with but NOT proof of keepalive-close reuse races (aiohttp3.13.3 client default
+15s, actual nativeenvironment uvicorn0.41.0 server default5s). No socket-ID
+trace exists. Do not attribute to remoteHTTP, GPUcapacity or baselinepolicy.
+See D411_SERVERLESSLLM_FULL_W0.md incident section for exact evidence/sources.
+Keep the live run unchanged; terminal helper will retain failed qualification
+and physical terminals. Existing fullanalyzer asserts success: do not bypass
+that assertion or promote3998responses to4000. After cleanup classify failure,
+retain correct/failure counts and actualresource ledger, then if needed verify
+transport hypothesis with CPU-only existing ingress tests before any repair.
+No hidden retry, same-key performance rerun or new threshold is authorized.
 D412_VLLM_MEASUREMENT_REUSE_AUDIT.md records read-onlynext-entrypoint audit:
 oldvLLM payload/EOF timing,serviceactivityinauxdomain,latepublisher and envelope
 lease gaps remain. ExistingSSEparser alone is insufficient:clienttokenreceipt
@@ -89,6 +106,12 @@ is not D371engine-token-event timing. Official/local0.30.0 timingbuilder's
 TTFT is scheduled-to-first,not offered-arrival-to-first. Reusepuremeasurement/
 commonlauncher,not PrimeLoRAcontrolpolicies;noimplementation/newqualification.
 D411terminalclosure remains the immediate next action below.
+D412 documentation/status backupbe55e25bd4ac7b2334961bb9173f4ba453227834
+was pushed tofaaslora_origin/retry14_continuous_queue_v2 andremoteSHAverified.
+This continuation adds monitorcheckpoint and read-only incident analysis;no
+code/configuration change,new experiment,comparison result,cleanup or
+remoteoperation. User reconfirmed one-time deliverycache approval; already
+implemented D78/D80 is reused, not republished.
 
 D411 RUNNING since2026-10-11 03:12:24 Asia/Shanghai, tmux tc-d411-7b.
 Do NOT restart or launch another heavy job. Main execution
