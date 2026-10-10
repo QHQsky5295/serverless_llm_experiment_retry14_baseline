@@ -1,0 +1,145 @@
+{
+  "schema": "ieee_tc_serverlessllm_d410_runtime_evidence_v1",
+  "display_name": "ServerlessLLM",
+  "run_status": "terminal",
+  "native_contract_population": 1000,
+  "independent_runs": 1,
+  "run_ci": null,
+  "contract_comparison": {
+    "reference": "d408_20261011",
+    "value": "d410_20261011",
+    "matched_fields": [
+      "source_item_sha256",
+      "adapter_id",
+      "target_tokens",
+      "canonical_prompt_sha256",
+      "native_prompt_token_ids_sha256",
+      "artifact_content_sha256"
+    ],
+    "matched_requests": 1000,
+    "source_plan_identical": true
+  },
+  "backend_ready": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d410_20261011/model7b_repaired/worker_receipts/55809b7a3c8745c58aad20742c0992e7.json",
+      "sha256": "9b6bee39ddbb3e64a224777f34c6da31c36dc2e2373e3208248880d8cc01c87d",
+      "visible_gpu": "1",
+      "ready_after_notice_s": 160.19592672702856
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d410_20261011/model7b_repaired/worker_receipts/5e4c0a6466594d2281bf2d328f41f4ae.json",
+      "sha256": "825797715922cf796363901e6ceeb2427e64a603f25c1b6309843abf75ba7d2d",
+      "visible_gpu": "2",
+      "ready_after_notice_s": 169.20324039412662
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d410_20261011/model7b_repaired/worker_receipts/89dfb799482844b1b6f875a801c0e75a.json",
+      "sha256": "31cfad75a1807f950ab6031644ece0d200fa6da512232291222db9e2b9b5f3bc",
+      "visible_gpu": "3",
+      "ready_after_notice_s": 176.53467099904083
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d410_20261011/model7b_repaired/worker_receipts/b05e8b9099b1433b8f40b25b3e72bbf1.json",
+      "sha256": "b226ecf7536b6b2efd13b01d7567c606283c985d97067e74b37eefcb73a2d4e8",
+      "visible_gpu": "0",
+      "ready_after_notice_s": 138.1130113499239
+    }
+  ],
+  "graph_log_witnesses": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d410_20261011/ray_evidence/worker-517c69dd1e97d53705fbf1f10509ea864363b441e3176297727bec5d-01000000-2539393.out",
+      "line": 35,
+      "text": "(EngineCore_DP0 pid=2540065) INFO 10-11 02:42:23 [backends.py:161] Directly load the compiled graph(s) for dynamic shape from the cache, took 3.641 s"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d410_20261011/ray_evidence/worker-517c69dd1e97d53705fbf1f10509ea864363b441e3176297727bec5d-01000000-2539393.out",
+      "line": 36,
+      "text": "(EngineCore_DP0 pid=2540065) INFO 10-11 02:42:25 [monitor.py:34] torch.compile takes 10.68 s in total"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d410_20261011/ray_evidence/worker-517c69dd1e97d53705fbf1f10509ea864363b441e3176297727bec5d-01000000-2539393.out",
+      "line": 40,
+      "text": "(EngineCore_DP0 pid=2540065) INFO 10-11 02:42:29 [gpu_model_runner.py:3128] Graph capturing finished in 2 secs, took 0.09 GiB"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d410_20261011/ray_evidence/worker-822b52cd0d21527a48c7dcf08971c212983db11108886ff049715d7e-01000000-2541016.out",
+      "line": 35,
+      "text": "(EngineCore_DP0 pid=2541914) INFO 10-11 02:42:54 [backends.py:161] Directly load the compiled graph(s) for dynamic shape from the cache, took 3.685 s"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d410_20261011/ray_evidence/worker-822b52cd0d21527a48c7dcf08971c212983db11108886ff049715d7e-01000000-2541016.out",
+      "line": 36,
+      "text": "(EngineCore_DP0 pid=2541914) INFO 10-11 02:42:56 [monitor.py:34] torch.compile takes 10.98 s in total"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d410_20261011/ray_evidence/worker-822b52cd0d21527a48c7dcf08971c212983db11108886ff049715d7e-01000000-2541016.out",
+      "line": 40,
+      "text": "(EngineCore_DP0 pid=2541914) INFO 10-11 02:43:00 [gpu_model_runner.py:3128] Graph capturing finished in 2 secs, took 0.09 GiB"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d410_20261011/ray_evidence/worker-dda62b542f3b3488ccec70b543305aeee10c35368158c3752cf5041d-01000000-2540321.out",
+      "line": 35,
+      "text": "(EngineCore_DP0 pid=2541325) INFO 10-11 02:42:45 [backends.py:161] Directly load the compiled graph(s) for dynamic shape from the cache, took 3.590 s"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d410_20261011/ray_evidence/worker-dda62b542f3b3488ccec70b543305aeee10c35368158c3752cf5041d-01000000-2540321.out",
+      "line": 36,
+      "text": "(EngineCore_DP0 pid=2541325) INFO 10-11 02:42:47 [monitor.py:34] torch.compile takes 12.23 s in total"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d410_20261011/ray_evidence/worker-dda62b542f3b3488ccec70b543305aeee10c35368158c3752cf5041d-01000000-2540321.out",
+      "line": 40,
+      "text": "(EngineCore_DP0 pid=2541325) INFO 10-11 02:42:51 [gpu_model_runner.py:3128] Graph capturing finished in 2 secs, took 0.09 GiB"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d410_20261011/ray_evidence/worker-f4219c4b04844a62ee055393249e893cf813c5ec5cd305cf02700846-01000000-2541469.out",
+      "line": 35,
+      "text": "(EngineCore_DP0 pid=2542223) INFO 10-11 02:43:02 [backends.py:161] Directly load the compiled graph(s) for dynamic shape from the cache, took 3.538 s"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d410_20261011/ray_evidence/worker-f4219c4b04844a62ee055393249e893cf813c5ec5cd305cf02700846-01000000-2541469.out",
+      "line": 36,
+      "text": "(EngineCore_DP0 pid=2542223) INFO 10-11 02:43:04 [monitor.py:34] torch.compile takes 11.07 s in total"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d410_20261011/ray_evidence/worker-f4219c4b04844a62ee055393249e893cf813c5ec5cd305cf02700846-01000000-2541469.out",
+      "line": 40,
+      "text": "(EngineCore_DP0 pid=2542223) INFO 10-11 02:43:07 [gpu_model_runner.py:3128] Graph capturing finished in 2 secs, took 0.09 GiB"
+    }
+  ],
+  "descriptive_comparison": {
+    "ttft_ms": {
+      "reference": 4683.000723537989,
+      "value": 2672.734438647749,
+      "relative_reduction": 0.42926883926925635
+    },
+    "tpot_ms": {
+      "reference": 63.56187172757666,
+      "value": 27.846560403834964,
+      "relative_reduction": 0.5618983575061465
+    },
+    "e2e_ms": {
+      "reference": 12420.357748314971,
+      "value": 5996.914934581146,
+      "relative_reduction": 0.5171705150445665
+    },
+    "physical_gpu_seconds": {
+      "reference": 4584.4279470760375,
+      "value": 4611.030857199803,
+      "relative_reduction": -0.0058028854266829275
+    },
+    "joint_slo_percentage_points": 24.099999999999998
+  },
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d408_7b_compatibility/audit_v2.json",
+      "sha256": "3a159e40315aa5291e70972b621dd77a1222f46c0b308785022c514cfcb28ca4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d410_7b_graph_validation/audit.json",
+      "sha256": "fa1be0a21dd3b9f842eb41a75b618cf59e30509ad069de29c69e69ee51e3d44a"
+    }
+  ],
+  "interpretation": "Descriptive development comparison, not a strict single-factor causal estimate. Execution mode differs; D410 retains native compiler disk cache and all actual startup cost. Both runs are below 95% on this 1000-request population; no comparison to PrimeLoRA full4000 here.",
+  "main_next_action": "Reuse qualified graph configuration in one complete4000 W0 observation; no repeated100/1000 runs or unrelated parameter sweep."
+}

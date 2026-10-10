@@ -1,4 +1,4 @@
-# IEEE TC execution status — D410 original1000 graph validation RUNNING
+# IEEE TC execution status — D410 closed; full4000 ServerlessLLM W0 next
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -75,10 +75,11 @@ regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance re
 
 ## Exact next action and remaining scope
 
-D410 RUNNING, started 2026-10-11 02:40 Asia/Shanghai. Original1,000 W0 requests,
+D410 TERMINAL, started 2026-10-11 02:40 Asia/Shanghai, released before03:00.
+Original1,000 W0 requests,
 no adapter remapping, fixed_length_greedy_v1, public enforce_eager=false as D409;
 no new policy or backend-limit changes. This is development validation, not
-full4,000 qualification or a baseline optimum. Do NOT restart the live run.
+full4,000 qualification or a baseline optimum. Do NOT restart the closed run.
 Raw root:
 `/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d410_20261011`.
 Tmux `tc-d410-7b`; execution main d6fbaaf245f236e6f05babb2f1b7f7919e8e02f7,
@@ -88,9 +89,10 @@ InvocationID e29a72bb3c284637a1b6f62d655fd6da; aux
 primelora-tc-aux-d4100000000000000000000000000001.scope.
 Deployment notice1164859.37841325, business t0=1164919.37841325;
 unchanged60s notice/1800s qualification protection/commonD394SLO.
-Preflight passed, actual contained launch/watchdog receipt exists. Overlay is
-INSTALLED for this run and remote3ownedunits ACTIVE; do not restore/stop during
-business. Remote7Bclock remote-process-monotonic:672039983ce04b839837c414cf6adaf3;
+Preflight passed, actual contained launch/watchdog receipt retained. GPU released,
+service domain removed,emptyaux stopped;overlayRESTORED,remote3ownedunitsSTOPPED
+by exactInvocationID and portsabsent. No live job.
+Remote7Bclock remote-process-monotonic:672039983ce04b839837c414cf6adaf3;
 3B/7B/monitor InvocationIDs respectively b00f633737b34674904ea8415758db2c,
 4f9d03b0696440d88229ab2742a73596,5c3bd0ca8fb0484598261d680cd81186.
 Authenticated health confirms unchanged published-gzip protocol; no new cache
@@ -98,11 +100,35 @@ publication, packing or local pre-materialization. Current remote link1Gbps/full
 Cold per-run LoRA cache; native compiler diskcache retained separately:
 75,240,459B/290files, aggregateSHA
 f8c62659046c116bea0ce79501c52c8824979ca8a676bb5c04cb74671cf7b9a8.
-Do not assume a native compile-cache hit; all actual startup/capture remains
-counted. D408 eager1000 is the development comparison; D406500-ID/D409 bounded
+Four actual native compiler-cache hits verified,3.538..3.685s loads and2s/.09GiB
+captures each. Actualready notice+138.113..176.535s;all startup/capture counted.
+D408 eager1000 is the development comparison; D406500-ID/D409 bounded
 reference evidence reused, no repeat just to obtain exact-token agreement.
-Next: monitor this handle -> actualGPU release -> exact overlay restore and
-ownedremote stop -> preserve raw evidence -> audit -> backup -> full4,000 W0.
+1000/1000native/source/adapter/content/timing contracts,0fail,122510tokens,
+60IDs,4actualservedengines;native/E2E/TPOTrecomputeerror0ms.
+TTFTmean2672.734439/P9513276.391335ms;TPOTmean27.846560/P9536.115468ms;
+E2Emean5996.914935ms. CommonSLO TTFT915/TPOT1000/joint915=91.5%NONFEASIBLE.
+PhysicalU4611.030857GPU-s,4.611031/binding-validrequest,completeleases.
+60HTTP/74953014wireB/1474429899verifiedpayloadB,940cachehits,0packs.
+All1000D408/D410input/adapter/prompt/target/content contracts matched.
+Descriptive joint improvement24.1pp/meanTPOT reduction56.19%,butUincreased0.58%:
+nativefourcardstorehold remains,not claimedGPU savings orstrictcausalestimate.
+Source0-99/100-499/500-999joint46/100,400/400,469/500;all85missesareTTFT.
+Raw unknown numerical flags unchanged. Full4000 ranking remainsOPEN.
+Report D410_SERVERLESSLLM_GRAPH_VALIDATION.md;
+audit paper_results/ieee_tc/baseline_audit/d410_7b_graph_validation/audit.json,
+SHAfa1be0a21dd3b9f842eb41a75b618cf59e30509ad069de29c69e69ee51e3d44a.
+Companionruntime_evidence and161-filemanifest,manifestSHA
+93811678b42a7fc5658985dba25b5acd180d75b10a5baf6a3de4ee6094f5509a.
+15analysisCPUtests passed0.041s. Protectedbefore/after147entries unchanged,
+same96df8e345419d26b941f99e19578d8dfe6717fe06b35caa6d42e0dae4885e87d.
+Baseline closurebackup2a5dfd1154ba93c82d9b7076fde0a8521543933b pushed to
+origin/main and remoteSHAverified;not the D410 executioncommit.
+Next: completeevidencebackup -> reclaim only verified D410downloadobjects and
+recheckdisk -> extendexistingpopulationanalyzer tofull4000 withCPUtests ->
+one complete4000W0 observation viaexistingqualifiedrunner/publicgraphpath.
+Currentdisk160430882816B is below150GiB startgate;do notlaunchuntilrechecked.
+Do not repeat100/1000 gates or use95%failureasreason todelete this observation.
 No new local parameter sweep, no PrimeLoRA retuning or3B jump. All entries below
 are retained historical checkpoints; their NEXT instructions are superseded.
 
@@ -296,7 +322,8 @@ this status is not a shortened experiment plan.
   59,220,758,528B,disk minimum149,497,323,520B. Recheck before heavy work.
 - All D402/D404/D406/D408/D409 workers/service scopes released. Loader overlay
   was restored to exact preimages after each run;empty aux scopes stopped.
-  D410 now owns the installed overlay and active remote units listed above.
+  D410 has also released GPU/service/aux,restored overlay and stopped ownedremote
+  units by exactInvocationID. No live heavy job.
 - Strict SSH alias primelora-artifact-174,lab14@10.199.227.174:8122;
   data192.168.4.174 ports18080/18081. Credentials outside Git.
   Actual current link1000Mb/s/full;historical100Mb/s was a different state.
@@ -326,7 +353,12 @@ this status is not a shortened experiment plan.
   cache_cleanup_before.json and cache_cleanup_after.json. Historical evidence
   manifest predates this cleanup and is not rewritten. Do not redownload for
   a repeated already-passed byte audit. D410 launch rechecked growth/resource
-  gates; continuous watchdog remains active.
+  gates; continuous watchdog was active throughout that run.
+- D410 terminal safety:servicepeak52803334144B,high/max/OOM/swap0;
+  hostavailableminimum58742841344B,diskminimum160506687488B.
+  Watchdog closed normally afteractualrelease. D410objects are still retained
+  after completed byteaudit; reclaim only this rebuildable cache with ownership,
+  hash and reference checks before nextheavylaunch. Keeprawlogs and allreceipts.
 - Protected147-entry checks before/after identical,SHA
   96df8e345419d26b941f99e19578d8dfe6717fe06b35caa6d42e0dae4885e87d.
   Sole historical mismatch:user replay edit,unchanged in this campaign.
