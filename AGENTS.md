@@ -14,7 +14,12 @@ S-LoRA, dLoRA 3B, Loquetier, HydraServe. Preserve official core algorithms;
 record compatibility patches and native versions. Display Serverless without
 "-new", but retain official commit and patch identities in provenance.
 
-Each run ends with a figure/table and interpretation before the next run.
+Latest user direction (2026-10-10): read the main repository's
+docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md alongside frozen V1. One
+performance run per frozen execution key; no repeated-run means or CIs.
+Preserve all attempts and do not select the best repeat. Resume 7B baselines
+after a reusable 7B Prime point, then 3B. The 2026-10-06 direction defers
+figures until Prime is near target; save data/status and interpretation now.
 Report progress from the perspective of paper evidence, not implementation jargon.
 Commit/push tested milestones to this repository's origin/main without force,
 secrets, raw large data or unrelated changes. The main repo tracks cross-project
