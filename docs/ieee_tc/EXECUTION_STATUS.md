@@ -1,4 +1,4 @@
-# IEEE TC execution status — D411 TERMINAL with 3 transport failures; audit next
+# IEEE TC execution status — D413 ingress repair CPU-qualified; one new W0 next
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -75,6 +75,32 @@ regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance re
 
 ## Exact next action and remaining scope
 
+D413 CPU-only checkpoint2026-10-11 04:35 Asia/Shanghai: no live GPU/remote job.
+Bounded real-loopback event-order test reproduced a failed secondPOST when the
+peer closes after pool selection; unchangedproduction test1 passed0.159s.
+This proves the possible mechanism,not the unrecorded historical socket IDs
+ofD411. Baseline extraingress now owns oneconnection perPOST viaforce_close=True,
+limit0; no retries,timeouttuning,backend/policy/scaler/loadingchange. Records
+single_request_loopback_no_retry_v1 andnumeric errno whenavailable.
+Newtest has2successfulPOSTs/distinctconnections/no reuse; ambiguousnativeclose
+afterPOST remainsonevisiblefailure/no retry.8ingresstests passed0.345s; full
+measurement/launch/router92CPUtests passed7.538s,4GiB/zeroswap/CPUs2,3,26,27.
+Reports D413_SERVERLESSLLM_INGRESS_REPAIR.md inmain and
+D413_INGRESS_CONNECTION_LIFETIME.md inbaseline. No newperformancevalue/claim.
+AllD411failuredata unchanged;oldhelperSHAdb0c5232692215a1dd3b8ded3787b7f0dd6dc546e5e8a33bdfc9fbaed5353740
+verifiedfromD411executioncommit,notmutablecurrenthelper. Currentdisk~158.2GB
+below150GiB newheavyfloor;cacheNOTreclaimedyet.
+Baseline testedcheckpoint35dda117faecee5375c146a2c23b16fc2562d82a pushed to
+origin/main andremoteSHAverified. Exact4taskfilesonly;diff/secretschecks passed.
+Protected3userdirtySHAs unchanged;plan/frozenV1/singleV2/D411curated3SHAunchanged.
+Main D413report/status checkpoint backup pending immediately below.
+ImmediateNEXT: finishmaincheckpointbackup; safelyreclaimonlyverifiedD411downloadobjects withreferencechecks;
+thenone new-key full4000W0 withsameD411configuration/commonD394SLO andreal
+resourceledger. Reuse D406wholepool/D409-D410backendqualification,not another
+100/500/1000GPUgate. D411isNOTrestarted,not eligible ranking. PrimeLoRAsealed;
+afternewfullclosure/audit/save return7BvLLM,notlocalparametersearchor3Bjump.
+The older ImmediateNEXT below is preservedhistory and superseded byD413.
+
 TERMINAL checkpoint2026-10-11 04:22 Asia/Shanghai: D411 completed original
 4,000 arrivals/submissions/terminals,3,997validatedresponses and3failures.
 No retry/restart/liveconfiguration change. Modelqualification passed=false,
@@ -111,7 +137,13 @@ a6186d3168456deaeafc41670c92b509fb4047511cb74012894ca87e72c26021.
 Servicepeak57622568960B,high/max/OOM/swap0. No cache reclaimed yet.
 Baseline closure documentation checkpoint020414e367e063131909a51e2cee82c2f2415abc
 pushed toorigin/main and remoteSHAverified;not the D411executioncommit.
-ImmediateNEXT: backup closure, CPU-only bounded keepalive hypothesis test in
+Main closure checkpoint902a52428f501406a27e781261c68377b84976b5 pushed to
+faaslora_origin/retry14_continuous_queue_v2 andremoteSHAverified04:28. Exact7
+taskfiles staged (2docs,analysis,tests,3curatedJSON),diff/secrets/23CPUtests and
+234-filehashverification passed. Baselinebackup above separately verified.
+Only preexisting userdirties remained before this finalcheckpoint. No cache
+cleanup or transportfix occurred. This is progress,not goalcompletion.
+ImmediateNEXT: CPU-only bounded keepalive hypothesis test in
 existing ingress tests; retain failed D411 and unchangedsuccessgates. No
 transportfix or newperformance attempt yet. Keep PrimeLoRAsealed;7Bnextbaseline
 follows closure and evidence-based decision,not an automatic win claim.
