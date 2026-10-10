@@ -1,5 +1,30 @@
 # IEEE TC execution status
 
+## CURRENT — D395 7B Resident-vLLM reference R1 IN PROGRESS
+
+2026-10-10: The first pre-registered 7B Resident reference replay is running
+with the existing W0 trace/subset (trace SHA `efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c`,
+subset SHA `aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016`),
+fixed-length native-token generation, vLLM 0.30.0, DP4/TP1, and the approved
+prepublished gzip delivery endpoint. The run tag is
+`d395_7b_resident_reference_r1_v030_seed42`; the run was launched only after
+the no-GPU dry-run, local resource gate, remote 500-adapter/manifest/health
+check, and idle-GPU check passed. The remote process is a pre-existing-code
+artifact-node process on the independent storage host (PID and launch log are
+recorded on that host); no packing or cache regeneration occurred.
+
+At the time of this update, 2,080/4,000 requests had completed successfully;
+the replay had not reported a failure. The inference host cgroup audit shows
+the vLLM replicas in the 72-GiB high/80-GiB max service domain and the replay
+in the independent 4-GiB high/max, zero-swap auxiliary domain, with the
+recorded CPU affinity masks and no memory high/max/OOM/swap event so far.
+This is a running reference attempt, not a completed `U_ref`, SLO, or G2
+budget value. The terminal replay, native-token validation, request identity,
+remote transfer journal, and physical-GPU release receipt must be audited
+before it can be accepted or downgraded to a protocol diagnostic. No second
+Resident run, 3B, baseline, ablation, sensitivity, or figure work is started
+while this heavy run is live.
+
 ## CURRENT — D394 current-code 7B common warm reference COMPLETE
 
 2026-10-10: The 7B GPU-ready native warm-reference measurement was rerun with
