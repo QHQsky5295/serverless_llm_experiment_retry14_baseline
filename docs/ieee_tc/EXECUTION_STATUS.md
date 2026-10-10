@@ -1,5 +1,24 @@
 # IEEE TC execution status
 
+## CURRENT — D391 correctness qualification proposal (no run)
+
+2026-10-10: A read-only audit found no lawful way to promote D379/D386 to
+`N_correct=4000` under the frozen exact-sequence ruler. D384 proves the native
+request contract, D385 provides only bounded independent HF/PEFT evidence with
+8 strict near-tie mismatches, and D295 shows same-backend cross-launch
+variation. The installed vLLM 0.30 documentation marks batch invariance as a
+beta mode requiring compute capability >=9.0; the RTX 3090 host is SM86, so the
+mode was not enabled or treated as a repair.
+
+`docs/ieee_tc/D391_7B_CORRECTNESS_QUALIFICATION_PROPOSAL.md` records three
+routes. Full independent exact reference over the frozen 4,000-request trace
+is the only route that directly satisfies the current strict denominator;
+native teacher-forced arithmetic and adapter-source checks are supporting
+evidence, not a semantic shortcut. The proposal has not started a GPU process,
+remote service, baseline, or figure and does not change V1 or relabel any old
+result. Until a route is reviewed and succeeds, the Prime-first hold remains:
+no 3B, baseline, ablation, sensitivity, ranking, or figure work.
+
 ## CURRENT — D390 correctness-boundary offline decision
 
 2026-10-10: The frozen numerical adapter-correctness gate cannot be closed
