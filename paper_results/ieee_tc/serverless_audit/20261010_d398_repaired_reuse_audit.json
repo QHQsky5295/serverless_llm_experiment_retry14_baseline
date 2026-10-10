@@ -1,0 +1,263 @@
+{
+  "schema": "ieee_tc_serverless_historical_reuse_audit_v1",
+  "display_name": "Serverless",
+  "model": "llama2_7b",
+  "variant": "repaired",
+  "source_summary": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/serverless_audit/20260927_7b_repaired_polling_d73.json",
+    "sha256": "47a99241199ec1b8e29c6b63cfc971edde38400912388fff11c8efd213ceae9c"
+  },
+  "source_evidence": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/serverless_audit/20260927_7b_repaired_polling_d73_evidence.json",
+    "sha256": "76318c22f731ed480568a01b7796e32fa17d02365bf36f1b801d31c906d61bd1"
+  },
+  "verified_raw_sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/http_7b_1000.json",
+      "sha256": "00a4b6cbbb0d60c91b76cdb34854325c247d52572f6b50eae4f480f7d369a9f3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/PROTOCOL.md",
+      "sha256": "9fd774949ff177d215cdce0b947a004349b18716390e53f0218fddb0d113bee4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/run7b_original.sh",
+      "sha256": "25b05b94f81f8188a0ea3c1eba86eeecbb847d55b51bb604d904505d44e919c0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/run7b_repaired.sh",
+      "sha256": "ed23957c0ddec360dbceca93e035f1b3e134db64bd2c19ac01cb8792b81e86ed"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/launcher7b_repaired.log",
+      "sha256": "ab78159f92b7d4afeeb934ec09192d1ad1073e36cceaf7945448793ac052974f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/launch7b_repaired.json",
+      "sha256": "10a1e6a5e4a8b0d9321e16eb7d645a77df3e4f6d929b35a6861e1c42b70c0f0f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/launch7b_repaired.launch/replay.jsonl",
+      "sha256": "c15c43ae9e80599d15f17f0421c47330fa8381d888c0e2e86db0e1438402593e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/launch7b_repaired.launch/watchdog.jsonl",
+      "sha256": "5ed6de31160fec153c098edca132998a0bb95c7c6b8dd15f60236f4a25902d62"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/launch7b_repaired.launch/exec_receipt.json",
+      "sha256": "efc29a07cc43e455e7ba8780424de927db52fae0923a980e1973d4ea6a29bbdb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/launch7b_repaired.launch/service.log",
+      "sha256": "d8888dc2cbfcfe5f23046d4fbe71e6d794aca7f024ebde872b82180249558e8f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/model7b_repaired/configuration.json",
+      "sha256": "2e1de8d1eb786b873296afd520cdc98e55edaea38a6e6a8694d16760bc8b6bc6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/model7b_repaired/model_qualification.json",
+      "sha256": "8b2ffda2c913a554d44f19d2a51e1bc5d4a35a9491093f3566061e4bf91c21d8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/model7b_repaired/startup_events.jsonl",
+      "sha256": "88ca9229d43aa18c1e8176239f236f1542f796ac51fe45ace22c3faf09b02076"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/model7b_repaired/store.log",
+      "sha256": "696586d66888d485146cf8a46efa5ce6099dce9fb9df75fe0fb84f0416da0470"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/model7b_repaired/serve.log",
+      "sha256": "d61af05d34b3bcc1c41056c4988ad25729f2abba0f67c7480d86df95f3a2fd15"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/source_original/measurement_manifest.json",
+      "sha256": "76d973d5a3b2405604d2a1c6beaa562bad447c3308e02cbf8e89482760dbdb60"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/source_repaired/measurement_manifest.json",
+      "sha256": "bb03cacac9d02f64a4d26ec299f059cb3321ce57bdc84834983449e5068c00cb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/overlay7b_repaired/install.json",
+      "sha256": "8fe8715941b14b23d534edd07fe9d2194e24cc6d75560f3c9698042741d74f20"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/overlay7b_repaired/restore_receipt.json",
+      "sha256": "dd17d779ad96258e62ba181c3a1456a081852286791c4ba6622a520e5e2fe2da"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/native_log_copy_check_repaired_d73.json",
+      "sha256": "c3e17b3b50bef86c817bc4e81e626551de358837a8c76798c264de909ee25233"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/baseline_tests_d73.log",
+      "sha256": "e78fc118720b7281e9345655b8a88554f1d97ed580a70c4293c81043332f03f9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/main_tests_d73.log",
+      "sha256": "5c47af426c9801b0d5e007b34f5146dbbc46d1a324282238761e39e302b519c2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/guard_tests_d73.log",
+      "sha256": "2e2952d023b4ae6d12023001af8a31770f587468f8de362b0c16fb9883e3e732"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/plot_pair_d73.log",
+      "sha256": "acfcba2d4d14d72d1e6a0f1603ad54741eb9dc6325c39f35f98f4d49b143f3fa"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d72_20260927/plot_pair_d73_v2.log",
+      "sha256": "8e555250538ae32ae9d83824217a67bb2958d8f4a26fa002b4e90300d92125a9"
+    }
+  ],
+  "verified_raw_source_count": 25,
+  "source_trace": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "view_sha256": "0a5dfcf8048abdc8fc1e3a8ccaf92bfb925a9db326c8d27507663bede96a0981",
+    "count": 1000,
+    "source_count": 4000,
+    "profile": "W0",
+    "rate_scale": 1.0
+  },
+  "source_summary_reproduced": true,
+  "native_revalidated_requests": 996,
+  "max_native_metric_recomputation_error_ms": 0.0,
+  "validator_sha256": "b00fe2932b0cd3be39b02005e685f8b3beeade559601e16ccaacf2367b0c57fd",
+  "analyzer_sha256": "886921c168679c00783c917b7267021c02b3699604057a4bdb213bb55bbe9527",
+  "counts": {
+    "N_plan": 1000,
+    "N_arrived": 1000,
+    "N_terminal": 1000,
+    "N_response": 996,
+    "N_failed": 4,
+    "N_submitted": 999
+  },
+  "conditional_metrics": {
+    "ttft_ms": {
+      "count": 996,
+      "mean": 122277.953024478,
+      "p50_type1": 121718.39935070602,
+      "p95_type1": 187580.77782811597
+    },
+    "e2e_ms": {
+      "count": 996,
+      "mean": 129984.15610096123,
+      "p50_type1": 129835.45212505851,
+      "p95_type1": 192241.4573399583
+    },
+    "submit_lag_ms": {
+      "count": 996,
+      "mean": 3.1723119036797582,
+      "p50_type1": 2.3032352328300476,
+      "p95_type1": 4.650073125958443
+    },
+    "dispatch_wait_after_submit_ms": {
+      "count": 996,
+      "mean": 121883.03739807545,
+      "p50_type1": 121329.17998998892,
+      "p95_type1": 187289.5369370235
+    },
+    "service_ttft_ms": {
+      "count": 996,
+      "mean": 391.7433144988718,
+      "p50_type1": 434.5909400144592,
+      "p95_type1": 521.4812170015648
+    },
+    "decode_ms": {
+      "count": 996,
+      "mean": 7691.559541795284,
+      "p50_type1": 5732.810719986446,
+      "p95_type1": 16385.342105000746
+    },
+    "completion_notification_ms": {
+      "count": 996,
+      "mean": 14.643534687948488,
+      "p50_type1": 11.076816008426249,
+      "p95_type1": 14.89387801848352
+    },
+    "router_queue_ms": {
+      "count": 996,
+      "mean": 121871.06690584926,
+      "p50_type1": 121325.81235596444,
+      "p95_type1": 187284.66060903156
+    }
+  },
+  "assignment_gap_stats": {
+    "count": 995,
+    "mean": 1.2026305990814274,
+    "p50_type1": 1.0008977630059235,
+    "p95_type1": 4.012671450036578
+  },
+  "actual_native_output_tokens": 121920,
+  "failures": [
+    {
+      "request_id": "req_00000",
+      "adapter_id": "finance_lora",
+      "target_tokens": 152,
+      "actual_tokens": null,
+      "native_prompt_token_ids_sha256": "b7025ee17c560bbec4a2f379e8c1aa851137a8e1a1d7eca56d1f203d03ef73dc",
+      "canonical_prompt_sha256": "792a0642f74c0e35283dad2b2dbdc2507fcc56c649e88d40179a19371b1a0520",
+      "source_item_sha256": "ad0f1b8d7b4683c73ca04d89dddd8cf1986d5ba96d9297c970a2be33276c58c0",
+      "status": "http_request_failed",
+      "planned_arrival_s": 335911.936893753,
+      "error": "ClientConnectorError: Cannot connect to host 127.0.0.1:8348 ssl:default [Connect call failed ('127.0.0.1', 8348)]",
+      "http_status": null
+    },
+    {
+      "request_id": "req_00001",
+      "adapter_id": "finance_lora",
+      "target_tokens": 59,
+      "actual_tokens": null,
+      "native_prompt_token_ids_sha256": "4d005a03641d42a40de41c1fa6fca4eb2ae3d41c64d2ebf713373c025a7473c1",
+      "canonical_prompt_sha256": "7d909f88ed53d92b35fc65d502ec3db8d213c2cec3c220074ea1a92c235864c5",
+      "source_item_sha256": "79cba96f0d085a3f431bd43dd6368141fa00e7c17afefe75c3cac7b6b740df43",
+      "status": "http_request_failed",
+      "planned_arrival_s": 335923.408636383,
+      "error": "ValueError: HTTP status 500",
+      "http_status": 500
+    },
+    {
+      "request_id": "req_00002",
+      "adapter_id": "writing_lora_0011",
+      "target_tokens": 123,
+      "actual_tokens": null,
+      "native_prompt_token_ids_sha256": "4e7ad26aefe1e8726f64e2390cb3b4721b0a65c1100abc2786974bafc3d70887",
+      "canonical_prompt_sha256": "40b3a3a0009e919a9849c35f420de5bc87a313bf48e287fd12b4dc5422e736bf",
+      "source_item_sha256": "b235f3a2b90de853857f6168ef78ab9361d3dc3730c9c67aa7faa114adfb088e",
+      "status": "http_request_failed",
+      "planned_arrival_s": 335925.59258108516,
+      "error": "ValueError: HTTP status 500",
+      "http_status": 500
+    },
+    {
+      "request_id": "req_00845",
+      "adapter_id": "support_lora_0028",
+      "target_tokens": 256,
+      "actual_tokens": null,
+      "native_prompt_token_ids_sha256": "e90fdc82932b6c681055821f713bd32f2b0c330507dc208d3fded73cd43027c6",
+      "canonical_prompt_sha256": "c53896e86d749dbd7726cff67cbf5a7b68471698daafc1dbaa05c458a2085dcd",
+      "source_item_sha256": "c03f599ac50c6c440afc1bd35de8346ce1a2609231d7e6c696118cd4c67db93c",
+      "status": "http_request_failed",
+      "planned_arrival_s": 336842.71732168575,
+      "error": "ServerDisconnectedError: Server disconnected",
+      "http_status": null
+    }
+  ],
+  "reuse_class_for_tc_main": "R2",
+  "diagnostic_evidence_reusable": true,
+  "formal_performance_qualified": false,
+  "remote_qualified": false,
+  "physical_gpu_seconds": null,
+  "independent_lora_numerical_correctness": false,
+  "limitations": [
+    "Single historical local-artifact development prefix; not a full remote replay.",
+    "Failures retained; conditional metrics do not qualify complete-workload SLO.",
+    "Native token/adapter binding is not independent numerical LoRA proof.",
+    "No acquisition/release lease ledger; cleanup alone is not lifecycle GPU-s.",
+    "Do not repeat the original/repaired pair solely to reproduce its diagnosis."
+  ]
+}

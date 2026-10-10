@@ -1,5 +1,39 @@
 # IEEE TC execution status
 
+## CURRENT — D398 Serverless 7B diagnosis reused; affected qualification is next
+
+2026-10-10: D397's single-run/7B-first rule remains authoritative. The existing
+D72/D73 original/repaired 7B pair is now re-audited, not rerun: 24/25 raw-file
+references match, old aggregation reproduces exactly, and 997/996 native
+responses have maximum reconstruction error 0 ms. All 3/4 failures remain.
+The observation is R2/local-artifact/1000-request development evidence, not
+new main-comparison data or lifecycle GPU-s. 60 bounded CPU tests passed;
+no GPU run, figure, remote restart, new cache publication or Prime change.
+
+The repaired loop reduces conditional mean router queue 294.746→121.871 s
+and P95 TTFT 534.178→187.581 s. This supports the known polling bottleneck;
+four minutes is not native model startup or proven GPU saturation. Original
+and repaired evidence must remain. Do not repeat this pair or the old 1000
+prefix solely for the same explanation. Details and hash-bound audit outputs:
+`D398_SERVERLESS_7B_REUSE_AUDIT.md`.
+
+Next EXACT mainline: qualify the 7B repaired Serverless path for published
+real-remote artifacts, service-owned pre-ready request admission, and complete
+physical GPU ownership (including native store contexts). Reuse the existing
+contained launcher, native observation helper, fast checkpoint/environment and
+watchdog. Audit registration-time versus request-time adapter preparation before
+adapting remote paths; no hidden change to native policy, no t0 shift/retry.
+The existing local qualifier currently cannot satisfy that contract, and its
+failure branch skips final worker readback. Fix the affected path and test it
+before a new GPU smoke, then freeze a reasonable public configuration and run
+one full matched 7B workload. No new Prime tuning without comparison evidence.
+
+Remaining space around 150.15 GiB is near the launch floor. Recheck actual
+growth before heavy work; no raw evidence or unique pool may be deleted.
+V1/V2/source plan and pre-existing dirty scripts are unchanged. W1/W2, valid
+Resident budget, complete 7B baseline rankings, 3B and later matrices remain
+unfinished. This section supersedes older contradictory NEXT instructions.
+
 ## CURRENT — D397 single-run revision; 7B W0 observation sealed; baseline audit resumes
 
 2026-10-10: User's latest direction supersedes the historical hold/repetition
