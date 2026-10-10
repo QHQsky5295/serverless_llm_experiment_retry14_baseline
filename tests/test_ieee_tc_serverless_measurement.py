@@ -870,5 +870,158 @@ class PhysicalPoolBridgeTests(unittest.TestCase):
                 launch.record_http_physical_terminals(deployment, replay)
 
 
+class SchedulerQueueIdentityTests(unittest.IsolatedAsyncioTestCase):
+    """Run the actual control-loop AST; no Ray/GPU or modified policy scorer."""
+
+    def source(self, repaired=True):
+        source = (NATIVE/'sllm/schedulers/storage_aware_scheduler.py').read_text()
+        return launch.scheduler_queue_source(source) if repaired else source
+
+    def make(self, queues, *, repaired=True, rounds=1, on_schedule=None, on_load=None):
+        tree = ast.parse(self.source(repaired))
+        cls = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == 'StorageAwareScheduler')
+        fn = next(n for n in cls.body if isinstance(n, ast.AsyncFunctionDef) and n.name == '_control_loop')
+        futures = {name: [asyncio.get_running_loop().create_future() for _ in range(n)] for name, n in queues.items()}
+        obj = NS(running=True, queue_lock=asyncio.Lock(), rounds=0, scheduled=[], loaded=[], updates=[],
+                 model_loading_queues={name: [(i, 1, f) for i, f in enumerate(fs)] for name, fs in futures.items()})
+        nodes = {'0': {'free_gpu': 20}}
+        async def empty(*args):
+            return {}
+        async def get_nodes():
+            return copy.deepcopy(nodes)
+        async def schedule(model, *args):
+            obj.scheduled.append(model)
+            if on_schedule and not await on_schedule(obj, futures, model):
+                return []
+            return [NS(node_id='0', latency=1, migration_plans=None)]
+        async def load(node, model):
+            obj.loaded.append((node, model))
+            if on_load:
+                await on_load(obj, futures)
+        async def update(value):
+            obj.updates.append(copy.deepcopy(value))
+            nodes.update(copy.deepcopy(value))
+        async def sleep(seconds):
+            self.assertEqual(seconds, 1)
+            obj.rounds += 1
+            obj.running = obj.rounds < rounds
+            await asyncio.sleep(0)
+        obj.store_manager = NS(**{k: NS(remote=empty) for k in
+            ('get_model_info', 'get_store_info', 'get_hardware_info')}, load_to_host=NS(remote=load))
+        obj._get_worker_nodes, obj.schedule, obj._update_worker_nodes = get_nodes, schedule, update
+        namespace = {'asyncio': NS(sleep=sleep), 'logger': Mock()}
+        exec(compile(ast.fix_missing_locations(ast.Module(body=[fn], type_ignores=[])), '<scheduler-source>', 'exec'), namespace)
+        return obj, futures, namespace['_control_loop']
+
+    async def test_original_three_pending_reproduces_d402_failure(self):
+        obj, fs, run = self.make({'m': 3}, repaired=False)
+        with self.assertRaisesRegex(IndexError, 'pop index'):
+            await run(obj)
+        self.assertEqual([f.done() for f in fs['m']], [True, True, False])
+        self.assertEqual(obj.model_loading_queues['m'], [(1, 1, fs['m'][1])])
+        self.assertEqual(obj.updates, [])
+
+    async def test_four_pending_complete_once_and_update_gpu_count(self):
+        obj, fs, run = self.make({'m': 4})
+        await run(obj)
+        self.assertEqual([f.result() for f in fs['m']], ['0']*4)
+        self.assertEqual(obj.model_loading_queues['m'], [])
+        self.assertEqual(len(obj.loaded), 4)
+        self.assertEqual(obj.updates[-1]['0']['free_gpu'], 16)
+
+    async def test_multimodel_retains_upstream_index_order(self):
+        obj, fs, run = self.make({'a': 2, 'b': 2})
+        await run(obj)
+        self.assertEqual(obj.scheduled, ['a', 'b', 'a', 'b'])
+        self.assertTrue(all(f.done() for group in fs.values() for f in group))
+
+    async def test_cancelled_request_removed_without_resource_or_load(self):
+        obj, fs, run = self.make({'m': 3})
+        fs['m'][0].cancel()
+        await run(obj)
+        self.assertEqual(len(obj.scheduled), 2)
+        self.assertEqual(len(obj.loaded), 2)
+        self.assertEqual(obj.updates[-1]['0']['free_gpu'], 18)
+        self.assertEqual(obj.model_loading_queues['m'], [])
+
+    async def test_cancellation_while_schedule_awaits_has_no_commit(self):
+        async def cancel(obj, fs, model):
+            fs[model][0].cancel()
+            await asyncio.sleep(0)
+            return True
+        obj, fs, run = self.make({'m': 1}, on_schedule=cancel)
+        await run(obj)
+        self.assertEqual(obj.loaded, [])
+        self.assertEqual(obj.updates[-1]['0']['free_gpu'], 20)
+        self.assertEqual(obj.model_loading_queues['m'], [])
+
+    async def test_removed_queue_while_schedule_awaits_has_no_commit(self):
+        async def cancel(obj, fs, model):
+            fs[model][0].cancel()
+            obj.model_loading_queues.clear()
+            return True
+        obj, fs, run = self.make({'m': 1}, on_schedule=cancel)
+        await run(obj)
+        self.assertEqual(obj.loaded, [])
+        self.assertEqual(obj.updates[-1]['0']['free_gpu'], 20)
+
+    async def test_unavailable_request_survives_for_next_round(self):
+        async def available(obj, fs, model):
+            return obj.rounds > 0
+        obj, fs, run = self.make({'m': 2}, rounds=2, on_schedule=available)
+        await run(obj)
+        self.assertEqual([v['0']['free_gpu'] for v in obj.updates], [20, 18])
+        self.assertTrue(all(f.done() for f in fs['m']))
+
+    async def test_append_during_load_keeps_new_request_for_next_snapshot(self):
+        async def add(obj, fs):
+            if len(obj.loaded) == 1:
+                f = asyncio.get_running_loop().create_future()
+                fs['m'].append(f)
+                obj.model_loading_queues['m'].append((99, 1, f))
+        obj, fs, run = self.make({'m': 3}, rounds=2, on_load=add)
+        await run(obj)
+        self.assertEqual([v['0']['free_gpu'] for v in obj.updates], [17, 16])
+        self.assertTrue(all(f.done() for f in fs['m']))
+
+    async def test_empty_queue_keeps_loop_alive(self):
+        obj, _, run = self.make({})
+        await run(obj)
+        self.assertEqual(obj.scheduled, [])
+        self.assertEqual(obj.rounds, 1)
+
+    def test_policy_methods_unchanged_and_view_opt_in(self):
+        def methods(source):
+            tree = ast.parse(source)
+            cls = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == 'StorageAwareScheduler')
+            return [ast.dump(n) for n in cls.body if getattr(n, 'name', None) != '_control_loop']
+        self.assertEqual(methods(self.source(False)), methods(self.source()))
+        with self.assertRaisesRegex(ValueError, 'source drift'):
+            launch.scheduler_queue_source(self.source(False)+'\n')
+        key = 'sllm/schedulers/storage_aware_scheduler.py'
+        self.assertNotIn(key, launch.measurement_sources(NATIVE, 'repaired'))
+        with tempfile.TemporaryDirectory() as temp:
+            out = Path(temp)/'view'
+            result = launch.prepare_measurement_view(NATIVE, out, 'repaired', MAIN, 'request_identity_v1')
+            self.assertFalse((out/key).is_symlink())
+            self.assertEqual(result['scheduler_queue'], 'request_identity_v1')
+            self.assertFalse(result['scheduler_placement_policy_changed'])
+            self.assertEqual(result['measured_sha256'][key], launch.sha(self.source().encode()))
+            compile((out/key).read_text(), str(out/key), 'exec')
+
+    def test_scheduler_readback_requires_actual_source_and_live_loop(self):
+        path = NATIVE/'sllm/schedulers/storage_aware_scheduler.py'
+        good = dict(class_name='StorageAwareScheduler', source_file=str(path),
+            source_sha256=launch.sha(path.read_bytes()), cgroup='0::/service\n', affinity=[4, 5],
+            running=True, loop_present=True, loop_done=False, loop_cancelled=False, loop_exception=None)
+        kw = dict(source=path, service_cgroup='/service', service_cpus=[4, 5])
+        launch.validate_scheduler_readback(good, **kw)
+        for key, value in [('loop_done', True), ('loop_present', False), ('loop_cancelled', True),
+                           ('loop_exception', 'IndexError'), ('running', False), ('source_sha256', '0'*64),
+                           ('cgroup', '0::/aux'), ('affinity', [0]), ('source_file', '/wrong.py')]:
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                launch.validate_scheduler_readback(dict(good, **{key: value}), **kw)
+
+
 if __name__ == '__main__':
     unittest.main()

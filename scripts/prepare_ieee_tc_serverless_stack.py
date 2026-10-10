@@ -43,7 +43,38 @@ def sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def measurement_sources(native_source: Path, variant: str) -> dict[str, str]:
+def scheduler_queue_source(source: str) -> str:
+    """Correct pending-request identity, without changing placement policy.
+
+    The upstream FcfsScheduler already removes the request tuple. Its storage-
+    aware sibling instead pops indices captured before earlier removals. Keep
+    its sort/score/migration/loop cadence, but commit only the still-live future.
+    """
+    if sha(source.encode()) != 'b7779e41f451a3328eb73337533d6d9b117aafe6ee6b78f9b28e9b5f5e2b0567':
+        raise ValueError('storage-aware scheduler source drift')
+    source = replace_once(source,
+        '                    logger.info(f"Processing request for model {model_name}")\n',
+        '                    loading_request = (request_time, num_gpus, allocation_result)\n'
+        '                    async with self.queue_lock:\n'
+        '                        queue = self.model_loading_queues.get(model_name, [])\n'
+        '                        if loading_request not in queue:\n'
+        '                            continue\n'
+        '                        if allocation_result.done():\n'
+        '                            queue.remove(loading_request)\n'
+        '                            continue\n'
+        '                    logger.info(f"Processing request for model {model_name}")\n')
+    return replace_once(source,
+        '                            self.model_loading_queues[model_name].pop(idx)\n',
+        '                            queue = self.model_loading_queues.get(model_name, [])\n'
+        '                            if loading_request not in queue:\n'
+        '                                continue\n'
+        '                            queue.remove(loading_request)\n'
+        '                            if allocation_result.done():\n'
+        '                                continue\n')
+
+
+def measurement_sources(native_source: Path, variant: str,
+                        scheduler_queue: str = 'original') -> dict[str, str]:
     """Instrument identical control/engine boundaries; only router loop differs.
 
     Returns source text for an exclusive view; the dirty upstream checkout and
@@ -111,17 +142,23 @@ def measurement_sources(native_source: Path, variant: str) -> dict[str, str]:
         '        if tc_observation is not None:\n'
         '            metrics["ieee_tc"] = tc_observation.finish(internal_metrics)\n'
         '        response["metrics"] = metrics\n')
-    return dict(zip(paths, (app, backend, router)))
+    result = dict(zip(paths, (app, backend, router)))
+    if scheduler_queue == 'request_identity_v1':
+        path = 'sllm/schedulers/storage_aware_scheduler.py'
+        result[path] = scheduler_queue_source((native_source/path).read_text())
+    elif scheduler_queue != 'original':
+        raise ValueError('unknown scheduler queue contract')
+    return result
 
 
 def prepare_measurement_view(native_source: Path, output: Path, variant: str,
-                             main_repo: Path) -> dict:
+                             main_repo: Path, scheduler_queue: str = 'original') -> dict:
     if output.exists() or output.is_symlink():
         raise FileExistsError('preserve previous source view')
-    replacements = measurement_sources(native_source, variant)
+    replacements = measurement_sources(native_source, variant, scheduler_queue)
     support = ROOT / 'scripts/ieee_tc_serverless_measurement.py'
     output.mkdir(mode=0o700)
-    # Symlink unchanged files; only three small instrumented sources are copied.
+    # Copy only instrumented/repaired source files; unchanged files are symlinks.
     # No model, environment, artifact pool or workload copy.
     for parent, dirs, files in os.walk(native_source / 'sllm'):
         dirs[:] = [d for d in dirs if d != '__pycache__']
@@ -148,6 +185,8 @@ def prepare_measurement_view(native_source: Path, output: Path, variant: str,
         shared_source_sha256={p: sha((main_repo/p).read_bytes()) for p in
             ('faaslora/storage/http_artifact_store.py', 'faaslora/clock.py')},
         loader_policy_changed=False, routing_policy_changed=variant == 'repaired',
+        scheduler_queue=scheduler_queue, scheduler_placement_policy_changed=False,
+        source_adapter_sha256=sha(Path(__file__).read_bytes()),
         performance_run_authorized=False)
     with (output / 'measurement_manifest.json').open('x') as handle:
         json.dump(result, handle, indent=2)
@@ -1337,6 +1376,55 @@ def record_http_physical_terminals(deployment, replay_path):
                     interrupted=kind == 'http_request_cancelled')
 
 
+def validate_scheduler_readback(observed, *, source, service_cgroup, service_cpus):
+    if (observed.get('class_name') != 'StorageAwareScheduler'
+            or Path(observed.get('source_file', '')).resolve() != source.resolve()
+            or observed.get('source_sha256') != sha(source.read_bytes())
+            or observed.get('cgroup', '').strip() != '0::'+service_cgroup
+            or observed.get('affinity') != sorted(service_cpus)
+            or observed.get('running') is not True
+            or observed.get('loop_present') is not True
+            or observed.get('loop_done') is not False
+            or observed.get('loop_cancelled') is not False
+            or observed.get('loop_exception') is not None):
+        raise ValueError('actual native scheduler source/containment/liveness differs')
+
+
+def capture_native_scheduler(ray, args, guard, admission, result):
+    measured = result.get('source_view_manifest') or {}
+    if measured.get('scheduler_queue', 'original') != 'request_identity_v1':
+        return  # Historical views keep their recorded scope, not invented evidence.
+    names = [r for r in ray.util.list_named_actors(all_namespaces=True)
+             if r['name'] == 'model_loading_scheduler']
+    if len(names) != 1:
+        raise ValueError('exactly one native loading scheduler required')
+    actor = ray.get_actor(names[0]['name'], namespace=names[0]['namespace'])
+
+    def observe(scheduler):
+        import hashlib, os, pathlib
+        import sllm.schedulers.storage_aware_scheduler as module
+        task = scheduler.loop_task
+        return dict(class_name=type(scheduler).__name__, pid=os.getpid(),
+            source_file=module.__file__,
+            source_sha256=hashlib.sha256(pathlib.Path(module.__file__).read_bytes()).hexdigest(),
+            cgroup=pathlib.Path('/proc/self/cgroup').read_text(),
+            affinity=sorted(os.sched_getaffinity(0)), running=scheduler.running,
+            loop_present=task is not None, loop_done=None if task is None else task.done(),
+            loop_cancelled=None if task is None else task.cancelled(),
+            loop_exception=(repr(task.exception()) if task is not None and task.done()
+                            and not task.cancelled() and task.exception() is not None else None),
+            queues={name: dict(total=len(queue), done=sum(row[2].done() for row in queue))
+                    for name, queue in scheduler.model_loading_queues.items()})
+
+    observed = ray.get(actor.__ray_call__.remote(observe), timeout=30)
+    result['scheduler_readback'] = dict(observed, **names[0])
+    group = Path(admission['service_identity']['path'])
+    validate_scheduler_readback(observed,
+        source=args.native_source/'sllm/schedulers/storage_aware_scheduler.py',
+        service_cgroup='/'+str(group.relative_to('/sys/fs/cgroup')),
+        service_cpus=guard.SERVICE_CPUS)
+
+
 def capture_native_model_workers(ray, args, guard, admission, checkpoint, package, result):
     """Retain worker/source/resource readback on failed HTTP qualification too.
 
@@ -1346,6 +1434,7 @@ def capture_native_model_workers(ray, args, guard, admission, checkpoint, packag
     group = Path(admission['service_identity']['path'])
     result['owned_processes'] = guard.owned_pids(group)
     result['resource_snapshot'] = guard.cgroup_snapshot(group)
+    capture_native_scheduler(ray, args, guard, admission, result)
     worker_config = result.get('configuration', {}).get('backend_config', {}).get('tc_worker_audit')
     if worker_config is not None:
         from faaslora.clock import local_monotonic_clock_id
@@ -1743,6 +1832,8 @@ def main() -> None:
     source.add_argument('--native-source', type=Path, required=True)
     source.add_argument('--output', type=Path, required=True)
     source.add_argument('--variant', choices=('original', 'repaired'), required=True)
+    source.add_argument('--scheduler-queue', choices=('original', 'request_identity_v1'),
+                        default='original')
     source.add_argument('--main-repo', type=Path, required=True)
     replay = sub.add_parser('http-replay')
     replay.add_argument('--config', type=Path, required=True)
@@ -1790,7 +1881,7 @@ def main() -> None:
         return
     if args.action == 'prepare-measurement-view':
         print(json.dumps(prepare_measurement_view(args.native_source, args.output, args.variant,
-                                                 args.main_repo), indent=2))
+                                                 args.main_repo, args.scheduler_queue), indent=2))
         return
     if args.action == 'export-checkpoint':
         print(json.dumps(export_checkpoint(args), indent=2))
