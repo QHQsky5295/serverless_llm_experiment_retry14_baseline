@@ -1,4 +1,4 @@
-# IEEE TC execution status — D409 graph path closed; original1000 validation next
+# IEEE TC execution status — D410 original1000 graph validation RUNNING
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -74,6 +74,37 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+D410 RUNNING, started 2026-10-11 02:40 Asia/Shanghai. Original1,000 W0 requests,
+no adapter remapping, fixed_length_greedy_v1, public enforce_eager=false as D409;
+no new policy or backend-limit changes. This is development validation, not
+full4,000 qualification or a baseline optimum. Do NOT restart the live run.
+Raw root:
+`/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d410_20261011`.
+Tmux `tc-d410-7b`; execution main d6fbaaf245f236e6f05babb2f1b7f7919e8e02f7,
+baseline336576bc8a3e7aca34febad52372911289a9ca87.
+Service primelora-tc-svc-1913f29ca4e94a49accc7c3057578dc1.scope,
+InvocationID e29a72bb3c284637a1b6f62d655fd6da; aux
+primelora-tc-aux-d4100000000000000000000000000001.scope.
+Deployment notice1164859.37841325, business t0=1164919.37841325;
+unchanged60s notice/1800s qualification protection/commonD394SLO.
+Preflight passed, actual contained launch/watchdog receipt exists. Overlay is
+INSTALLED for this run and remote3ownedunits ACTIVE; do not restore/stop during
+business. Remote7Bclock remote-process-monotonic:672039983ce04b839837c414cf6adaf3;
+3B/7B/monitor InvocationIDs respectively b00f633737b34674904ea8415758db2c,
+4f9d03b0696440d88229ab2742a73596,5c3bd0ca8fb0484598261d680cd81186.
+Authenticated health confirms unchanged published-gzip protocol; no new cache
+publication, packing or local pre-materialization. Current remote link1Gbps/full.
+Cold per-run LoRA cache; native compiler diskcache retained separately:
+75,240,459B/290files, aggregateSHA
+f8c62659046c116bea0ce79501c52c8824979ca8a676bb5c04cb74671cf7b9a8.
+Do not assume a native compile-cache hit; all actual startup/capture remains
+counted. D408 eager1000 is the development comparison; D406500-ID/D409 bounded
+reference evidence reused, no repeat just to obtain exact-token agreement.
+Next: monitor this handle -> actualGPU release -> exact overlay restore and
+ownedremote stop -> preserve raw evidence -> audit -> backup -> full4,000 W0.
+No new local parameter sweep, no PrimeLoRA retuning or3B jump. All entries below
+are retained historical checkpoints; their NEXT instructions are superseded.
 
 D409 TERMINAL 2026-10-11 02:27 Asia/Shanghai: existing 100-request affected-path
 qualification, original W0 prefix, explicit --no-enforce-eager; no other public
@@ -264,8 +295,8 @@ this status is not a shortened experiment plan.
 - D406 service peak64,123,109,376B,swap0,high/max/OOM0;host available minimum
   59,220,758,528B,disk minimum149,497,323,520B. Recheck before heavy work.
 - All D402/D404/D406/D408/D409 workers/service scopes released. Loader overlay
-  restored to exact preimages,added loader removed;empty aux scope stopped.
-  Remote3ownedunits inactive/MainPID0,ports absent.
+  was restored to exact preimages after each run;empty aux scopes stopped.
+  D410 now owns the installed overlay and active remote units listed above.
 - Strict SSH alias primelora-artifact-174,lab14@10.199.227.174:8122;
   data192.168.4.174 ports18080/18081. Credentials outside Git.
   Actual current link1000Mb/s/full;historical100Mb/s was a different state.
@@ -286,6 +317,16 @@ this status is not a shortened experiment plan.
   Re-auditing removed bytes requires rematerialization;do not redownload just
   to repeat a passed check. Recheck>=150GiB plus predictedgrowth before D409.
 - D408servicepeak52653588480B,high/max/OOM/swap0;hostavailablemin59081170944B.
+- Before D410, D409's downloaded objects only were reclaimed after byte/source
+  hash, distinct-inode, closed-runtime and readable process/reference checks.
+  Removed /tmp/tc-d409-7br/remote_artifacts/objects; retained original pool,
+  remote immutable cache, rawlogs, receipts/journals and source symlink targets.
+  Three inaccessible same-UID proc entries disclosed in raw cleanup receipts.
+  Reclaimed725557248B; diskafter162078203904B. See D409 raw
+  cache_cleanup_before.json and cache_cleanup_after.json. Historical evidence
+  manifest predates this cleanup and is not rewritten. Do not redownload for
+  a repeated already-passed byte audit. D410 launch rechecked growth/resource
+  gates; continuous watchdog remains active.
 - Protected147-entry checks before/after identical,SHA
   96df8e345419d26b941f99e19578d8dfe6717fe06b35caa6d42e0dae4885e87d.
   Sole historical mismatch:user replay edit,unchanged in this campaign.
