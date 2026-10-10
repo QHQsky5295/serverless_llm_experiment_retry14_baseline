@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import math
 import statistics
@@ -189,6 +190,100 @@ def audit_tc_http_journal(replay_path: Path) -> Dict[str, Any]:
                 max_e2e_recomputation_error_ms=max(identity_errors, default=None),
                 max_tpot_recomputation_error_ms=max(tpot_errors, default=None),
                 assignment_gaps_s=gaps, assignment_gap_stats=stats(gaps), diagnostic_rows=rows)
+
+
+def audit_tc_historical_reuse(replay_path: Path, summary_path: Path,
+                              evidence_path: Path) -> Dict[str, Any]:
+    """Recheck a sealed polling diagnostic without duplicating request arrays.
+
+    Reuse the actual HTTP/native validator rather than merely checking that
+    previously derived components add up. This audit cannot promote a local,
+    incomplete development run into a remote main-comparison point.
+    """
+    old = json.loads(summary_path.read_text())
+    evidence = json.loads(evidence_path.read_text())
+    sources = evidence['raw_sources']
+    if not sources or len({r['path'] for r in sources}) != len(sources):
+        raise ValueError('nonempty unique raw-source evidence required')
+    verified = []
+    for row in sources:
+        actual = _sha256_file(Path(row['path']))
+        if actual != row['sha256']:
+            raise ValueError(f"raw-source SHA mismatch: {row['path']}")
+        verified.append(dict(path=row['path'], sha256=actual))
+    if (Path(old['replay_path']).resolve() != replay_path.resolve()
+            or old['replay_sha256'] != _sha256_file(replay_path)
+            or not any(Path(r['path']).resolve() == replay_path.resolve() for r in sources)):
+        raise ValueError('sealed replay identity differs')
+    fresh = audit_tc_http_journal(replay_path)
+    # Any historical aggregation discrepancy needs an explicit R1 correction;
+    # never silently replace the old published values in a reuse report.
+    compare_keys = ('counts', 'conditional_metrics', 'diagnostic_rows',
+                    'assignment_gap_stats', 'actual_native_output_tokens',
+                    'measurement_complete', 'workload_passed')
+    if any(fresh[k] != old[k] for k in compare_keys):
+        raise ValueError('historical summary differs from reconstructed journal')
+    trace = fresh['ready_identity']['plan']
+    if _sha256_file(Path(trace['source_path'])) != trace['source_sha256']:
+        raise ValueError('frozen source trace changed')
+
+    helper = Path(__file__).with_name('prepare_ieee_tc_serverless_stack.py')
+    spec = importlib.util.spec_from_file_location('tc_reuse_native_validator', helper)
+    native = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(native)
+    with replay_path.open() as handle:
+        events = [json.loads(line) for line in handle]
+    index = {kind: {e['request_id']: e for e in events if e['event'] == kind}
+             for kind in ('request_contract', 'request_created', 'http_headers_sent',
+                          'http_raw_response', 'http_response')}
+    max_error = 0.0
+    for rid, terminal in index['http_response'].items():
+        contract = index['request_contract'][rid]
+        response = index['http_raw_response'][rid]
+        body = response['body']
+        observed = body['metrics']['ieee_tc']
+        # The validator hashes these native IDs against the frozen input hash;
+        # using the response's IDs here does not trust an unchecked input list.
+        prepared = dict(contract, input_token_ids=observed['native_prompt_token_ids'])
+        submitted = index['http_headers_sent'][rid]
+        arrival = index['request_created'][rid]
+        for key in ('planned_arrival_s', 'task_created_s', 'source_item_sha256'):
+            if submitted[key] != arrival[key]:
+                raise ValueError('arrival/submission identity changed')
+        recalculated = native.validate_http_observation(
+            prepared, body, submitted, response['client_completed_s'],
+            fresh['ready_identity']['clock_id'])
+        for key, value in recalculated.items():
+            previous = terminal['response'][key]
+            if key.endswith('_ms') and value is not None:
+                error = abs(value-previous)
+                if not math.isfinite(error) or error > 1.0:
+                    raise ValueError(f'native metric recomputation mismatch: {rid}/{key}')
+                max_error = max(max_error, error)
+            elif previous != value:
+                raise ValueError(f'native observation mismatch: {rid}/{key}')
+    return dict(
+        schema='ieee_tc_serverless_historical_reuse_audit_v1', display_name='Serverless',
+        model=old['model_profile'], variant=old['variant'],
+        source_summary=dict(path=str(summary_path.resolve()), sha256=_sha256_file(summary_path)),
+        source_evidence=dict(path=str(evidence_path.resolve()), sha256=_sha256_file(evidence_path)),
+        verified_raw_sources=verified, verified_raw_source_count=len(verified),
+        source_trace=trace, source_summary_reproduced=True,
+        native_revalidated_requests=len(index['http_response']),
+        max_native_metric_recomputation_error_ms=max_error,
+        validator_sha256=_sha256_file(helper), analyzer_sha256=_sha256_file(Path(__file__)),
+        counts=fresh['counts'], conditional_metrics=fresh['conditional_metrics'],
+        assignment_gap_stats=fresh['assignment_gap_stats'],
+        actual_native_output_tokens=fresh['actual_native_output_tokens'],
+        failures=[r for r in fresh['diagnostic_rows'] if r['status'] != 'http_response'],
+        reuse_class_for_tc_main='R2', diagnostic_evidence_reusable=True,
+        formal_performance_qualified=False, remote_qualified=False,
+        physical_gpu_seconds=None, independent_lora_numerical_correctness=False,
+        limitations=['Single historical local-artifact development prefix; not a full remote replay.',
+                     'Failures retained; conditional metrics do not qualify complete-workload SLO.',
+                     'Native token/adapter binding is not independent numerical LoRA proof.',
+                     'No acquisition/release lease ledger; cleanup alone is not lifecycle GPU-s.',
+                     'Do not repeat the original/repaired pair solely to reproduce its diagnosis.'])
 
 
 def _deep_merge(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
@@ -1252,6 +1347,10 @@ def main() -> int:
                     help="Read-only historical queue/cadence audit; not a TC main result.")
     ap.add_argument('--tc-http-audit-only', action='store_true',
                     help='Finished native HTTP diagnostic including all failed/offered rows.')
+    ap.add_argument('--tc-reuse-summary', type=Path,
+                    help='Revalidate sealed native diagnostic summary; not a new performance run.')
+    ap.add_argument('--tc-reuse-evidence', type=Path,
+                    help='Raw-source hash closure for --tc-reuse-summary.')
     ap.add_argument('--polling-variant', choices=('original', 'repaired'))
     ap.add_argument(
         "--adapter-subset",
@@ -1292,6 +1391,21 @@ def main() -> int:
     )
     args = ap.parse_args()
 
+    if args.tc_reuse_summary is not None or args.tc_reuse_evidence is not None:
+        if (args.tc_reuse_summary is None or args.tc_reuse_evidence is None
+                or args.timing_audit_only or args.tc_http_audit_only):
+            ap.error('reuse review requires both sealed files and no other audit mode')
+        if args.output.exists():
+            raise FileExistsError('preserve previous reuse report')
+        result = audit_tc_historical_reuse(args.replay, args.tc_reuse_summary,
+                                           args.tc_reuse_evidence)
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        with args.output.open('x') as handle:
+            json.dump(result, handle, indent=2)
+            handle.write('\n')
+        print(json.dumps({k: v for k, v in result.items()
+                          if k not in {'verified_raw_sources', 'conditional_metrics', 'source_trace'}}, indent=2))
+        return 0
     if args.tc_http_audit_only:
         if args.timing_audit_only:
             ap.error('choose one audit contract')
