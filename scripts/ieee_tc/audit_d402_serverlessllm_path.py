@@ -254,7 +254,37 @@ def timing_stats(values):
                 p95_type1=ordered[math.ceil(.95*len(ordered))-1] if ordered else None)
 
 
-def audit(root, baseline, main, scheduler_contract='original', population='prefix100', slo_freeze=None):
+def validate_terminal_outcome(summary, qualifier, count, outcome):
+    """Separate complete failure diagnostics from the unchanged success gate.
+
+    This only qualifies the observed population, never adapter correctness or
+    performance. Native, content, worker and physical checks remain mandatory.
+    """
+    if outcome not in ('success', 'complete_with_failures'):
+        raise ValueError('unknown terminal outcome contract')
+    counts = summary['counts']
+    keys = ('N_plan', 'N_arrived', 'N_submitted', 'N_terminal', 'N_response', 'N_failed')
+    if (any(type(counts.get(k)) is not int or counts[k] < 0 for k in keys)
+            or any(counts[k] != count for k in keys[:4])
+            or counts['N_response'] + counts['N_failed'] != count
+            or summary.get('measurement_complete') is not True
+            or summary.get('workload_passed') is not (counts['N_failed'] == 0)):
+        raise ValueError('complete offered/submitted/terminal population required')
+    if outcome == 'success':
+        if counts['N_failed'] or qualifier.get('passed') is not True:
+            raise ValueError('success outcome requires all responses and passed qualification')
+    else:
+        if (counts['N_failed'] == 0 or qualifier.get('passed') is not False
+                or qualifier.get('error') != 'ValueError: external HTTP qualification failed; do not label binding as correctness'
+                or any(qualifier.get(k) is not None for k in
+                       ('physical_confirmation_error', 'worker_audit_error', 'delete_error',
+                        'physical_release_error', 'physical_measurement_error'))):
+            raise ValueError('explicit complete request-failure diagnostic required; other errors remain unqualified')
+    return counts['N_response']
+
+
+def audit(root, baseline, main, scheduler_contract='original', population='prefix100', slo_freeze=None,
+          outcome='success'):
     sys.path[:0] = [str(baseline/'scripts'), str(main)]
     import summarize_serverlessllm_replay as analyzer
     import prepare_ieee_tc_serverless_stack as native
@@ -272,10 +302,10 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
     assert digest(config_path) == ready['config_sha256']
     count = validate_population(json.loads(config_path.read_text()), ready,
                                 index['request_contract'], native, population)
-    assert summary['counts']['N_response'] == summary['counts']['N_plan'] == count
     cfg = json.loads((root/'model7b_repaired/configuration.json').read_text())
     qualifier = json.loads((root/'model7b_repaired/model_qualification.json').read_text())
-    assert qualifier['passed'] and qualifier['physical_lifecycle']['lifecycle_qualified']
+    response_count = validate_terminal_outcome(summary, qualifier, count, outcome)
+    assert qualifier['physical_lifecycle']['lifecycle_qualified']
     native.audit_backend_receipts(qualifier, cfg['backend_config']['tc_worker_audit'], ready['clock_id'])
     view = json.loads((root/'source_repaired/measurement_manifest.json').read_text())
     assert view.get('scheduler_queue', 'original') == scheduler_contract
@@ -366,7 +396,8 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
     integral = sum(b-a for intervals in physical['device_intervals'].values() for a, b in intervals)
     assert abs(integral-physical['gpu_seconds']) < 1e-9
     assert abs(sum(physical['window_gpu_seconds'].values())-integral) < 1e-9
-    assert physical['n_native_contract_complete'] == physical['n_terminal'] == physical['n_plan'] == count
+    assert physical['n_native_contract_complete'] == response_count
+    assert physical['n_terminal'] == physical['n_plan'] == count
     samples = [e for e in map(json.loads, (root/'launch7b_repaired.launch/watchdog.jsonl').read_text().splitlines()) if e['event'] == 'resource_sample']
     assert samples
     service_events = {k: max(s['service'].get('memory.events', {}).get(k, 0) for s in samples) for k in ('high', 'max', 'oom', 'oom_kill')}
@@ -375,10 +406,11 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
                     root/'source_repaired/measurement_manifest.json', root/'storage_aware_scheduler_executed.py',
                     Path(analyzer.__file__), Path(native.__file__), Path(__file__)]
     result = {k: v for k, v in summary.items() if k not in ('ready_identity', 'diagnostic_rows', 'assignment_gaps_s', 'kind', 'display_name')}
-    result.update(schema=('ieee_tc_d402_affected_path_audit_v1' if scheduler_contract == 'original'
+    result.update(schema=('ieee_tc_complete_request_failure_audit_v1' if outcome == 'complete_with_failures' else
+                          'ieee_tc_d402_affected_path_audit_v1' if scheduler_contract == 'original'
                           else 'ieee_tc_affected_path_audit_v2'), display_name='ServerlessLLM',
-        remote_affected_path_qualified=True, complete_system_qualified=False,
-        source_plan=ready['plan'], native_revalidated_requests=count, max_native_recompute_error_ms=native_error,
+        remote_affected_path_qualified=outcome == 'success', complete_system_qualified=False,
+        source_plan=ready['plan'], native_revalidated_requests=response_count, max_native_recompute_error_ms=native_error,
         physical_gpu_seconds=integral, physical_window_gpu_seconds=physical['window_gpu_seconds'],
         n_correct=None, independent_lora_numerical_correctness=False,
         remote_transfers=len(remote), remote_wire_bytes=transferred, verified_materialized_bytes=payload,
@@ -406,6 +438,11 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
             ('Cross-system comparison requires a separate full input, generation, initial-state and resource-contract join.'
              if population == 'full4000' else
              'No relative performance comparison with the 4000-request PrimeLoRA observation.')])
+    if outcome == 'complete_with_failures':
+        result.update(outcome_contract=outcome, performance_ranking_eligible=False,
+            remote_successful_response_paths_qualified=True,
+            terminal_failures=[r for r in summary['diagnostic_rows'] if r['status'] != 'http_response'])
+        result['limitations'].append('All offered requests reached a terminal, but request failures remain; conditional latency and total resources do not constitute a feasible G1/G2 point. Failure attribution is separate.')
     if slo_freeze is not None:
         frozen_slo = json.loads(slo_freeze.read_text())
         if (frozen_slo['model'] != 'llama2_7b_main_v2_publicmix'
@@ -418,14 +455,18 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
             sha_key = 'sha256' if key == 'path' else 'audit_sha256'
             if digest(main/frozen_slo['calibration'][key]) != frozen_slo['calibration'][sha_key]:
                 raise ValueError('frozen common calibration content differs')
-        observations = {rid: r['body']['metrics']['ieee_tc'] for rid, r in index['http_raw_response'].items()}
+        observations = {rid: index['http_raw_response'][rid]['body']['metrics']['ieee_tc']
+                        for rid in index['http_response']}
         rows = summary['diagnostic_rows']
         result['common_slo'] = frozen_slo_summary(rows, observations, frozen_slo['groups'])
         result['common_slo'].update(freeze_path=str(slo_freeze), freeze_sha256=digest(slo_freeze),
             scope=('complete W0 native-binding observation; not a cross-scenario optimum or independent numerical proof'
                    if population == 'full4000' else
                    'complete qualified population only; prefix or coverage is not full W0 qualification'),
-            physical_gpu_seconds_per_binding_valid_request=integral/count)
+            physical_gpu_seconds_per_binding_valid_request=(integral/response_count if response_count else None))
+        if outcome == 'complete_with_failures':
+            result['common_slo']['scope'] = 'Complete offered W0 failure diagnostic; failures retained, not an eligible G1/G2 point or independent numerical proof'
+            result['common_slo']['physical_gpu_seconds_per_offered_request'] = integral/count
         result['conditional_metrics']['tpot_ms'] = timing_stats(
             [r['tpot_ms'] for r in rows if r['status'] == 'http_response' and r['actual_tokens'] > 1])
         if population in ('prefix1000', 'full4000'):
@@ -440,7 +481,7 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
                 result['source_order_diagnostics'].append(dict(
                     source_indices_inclusive=[lo, hi-1],
                     common_slo=frozen_slo_summary(subset, observations, frozen_slo['groups']),
-                    metrics={k: timing_stats([r[k] for r in subset if r[k] is not None])
+                    metrics={k: timing_stats([r[k] for r in subset if r.get(k) is not None])
                              for k in ('ttft_ms', 'tpot_ms', 'router_queue_ms', 'service_ttft_ms')},
                     interpretation='Post-run descriptive slice; not an independent run or startup-free primary result.'))
         result['raw_sources'].append(dict(path=str(slo_freeze), sha256=digest(slo_freeze)))
@@ -457,10 +498,13 @@ if __name__ == '__main__':
     parser.add_argument('--population', choices=('prefix100', 'prefix1000', 'adapter_coverage_v1', 'full4000'), default='prefix100')
     parser.add_argument('--reference-result', type=Path)
     parser.add_argument('--slo-freeze', type=Path)
+    parser.add_argument('--outcome', choices=('success', 'complete_with_failures'), default='success',
+                        help='Explicit diagnostic only; never bypass success qualification or hide failed offered rows.')
     args = parser.parse_args()
     if args.output.exists():
         raise FileExistsError(args.output)
-    report = audit(args.root, args.baseline, args.main, args.scheduler_contract, args.population, args.slo_freeze)
+    report = audit(args.root, args.baseline, args.main, args.scheduler_contract, args.population, args.slo_freeze,
+                   args.outcome)
     if args.reference_result:
         if args.population != 'prefix100':
             raise ValueError('independent reference is the unchanged first 100 requests only')

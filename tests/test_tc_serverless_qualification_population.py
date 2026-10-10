@@ -6,7 +6,7 @@ from types import SimpleNamespace as NS
 import unittest
 
 from scripts.ieee_tc.audit_d402_serverlessllm_path import (
-    validate_population, compare_reference_row, frozen_slo_summary)
+    validate_population, compare_reference_row, frozen_slo_summary, validate_terminal_outcome)
 
 
 class QualificationPopulationTests(unittest.TestCase):
@@ -168,6 +168,61 @@ class ReferenceReuseTests(unittest.TestCase):
         self.assertFalse(row['exact_sequence_match'])
         self.assertTrue(row['independently_observed_margin_reusable'])
         self.assertEqual(row['hf_top1_minus_top2'], 0.015625)
+
+
+class TerminalOutcomeTests(unittest.TestCase):
+    def fixture(self, failed=0):
+        summary = dict(counts=dict(N_plan=20, N_arrived=20, N_submitted=20,
+            N_terminal=20, N_response=20-failed, N_failed=failed),
+            measurement_complete=True, workload_passed=failed == 0)
+        qualifier = dict(passed=failed == 0)
+        if failed:
+            qualifier['error'] = 'ValueError: external HTTP qualification failed; do not label binding as correctness'
+        return summary, qualifier
+
+    def test_success_default_cannot_accept_failures(self):
+        self.assertEqual(validate_terminal_outcome(*self.fixture(), 20, 'success'), 20)
+        with self.assertRaisesRegex(ValueError, 'success outcome'):
+            validate_terminal_outcome(*self.fixture(1), 20, 'success')
+
+    def test_failure_diagnostic_is_explicit_and_does_not_rewrite_inputs(self):
+        summary, qualifier = self.fixture(3)
+        before = copy.deepcopy((summary, qualifier))
+        self.assertEqual(validate_terminal_outcome(summary, qualifier, 20, 'complete_with_failures'), 17)
+        self.assertEqual((summary, qualifier), before)
+        self.assertFalse(summary['workload_passed'])
+        with self.assertRaisesRegex(ValueError, 'explicit complete'):
+            validate_terminal_outcome(*self.fixture(), 20, 'complete_with_failures')
+
+    def test_incomplete_population_and_other_errors_cannot_be_relabeled(self):
+        for key in ('N_plan', 'N_arrived', 'N_submitted', 'N_terminal', 'N_response', 'N_failed'):
+            summary, qualifier = self.fixture(3)
+            summary['counts'][key] -= 1
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                validate_terminal_outcome(summary, qualifier, 20, 'complete_with_failures')
+        for key in ('physical_confirmation_error', 'worker_audit_error', 'delete_error',
+                    'physical_release_error', 'physical_measurement_error', 'error'):
+            summary, qualifier = self.fixture(3)
+            qualifier[key] = 'unrelated failure'
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                validate_terminal_outcome(summary, qualifier, 20, 'complete_with_failures')
+        summary, qualifier = self.fixture(3)
+        summary['measurement_complete'] = False
+        with self.assertRaises(ValueError):
+            validate_terminal_outcome(summary, qualifier, 20, 'complete_with_failures')
+
+    def test_zero_response_population_does_not_invent_success(self):
+        summary, qualifier = self.fixture(20)
+        self.assertEqual(validate_terminal_outcome(summary, qualifier, 20, 'complete_with_failures'), 0)
+        with self.assertRaises(ValueError):
+            validate_terminal_outcome(summary, qualifier, 20, 'success')
+        rows = [dict(request_id=f'r{i}', status='http_request_failed') for i in range(20)]
+        result = frozen_slo_summary(rows, {}, [])
+        self.assertEqual(result['offered'], 20)
+        self.assertEqual(result['binding_valid'], 0)
+        self.assertEqual(result['joint_attainment'], 0.)
+        self.assertIsNone(result['conditional_tpot_attainment'])
+        self.assertFalse(result['observed_feasible'])
 
 
 class FrozenSloTests(unittest.TestCase):

@@ -1,0 +1,126 @@
+{
+  "schema": "ieee_tc_ingress_disconnect_observation_v1",
+  "display_name": "ServerlessLLM",
+  "run": "D411",
+  "failures": [
+    {
+      "request_id": "req_02460",
+      "events": [
+        {
+          "event": "ingress_received",
+          "monotonic_s": 1169115.425195138,
+          "request_id": "req_02460",
+          "sequence": 2461,
+          "router_ready": true,
+          "received_s": 1169115.424446636,
+          "request_sha256": "b2b42c26aee866108f6dcdc755be6e954da3af603675c6e536adb282a282914e"
+        },
+        {
+          "event": "ingress_forwarded",
+          "monotonic_s": 1169115.425331555,
+          "request_id": "req_02460",
+          "received_s": 1169115.424446636,
+          "forwarded_s": 1169115.425325445
+        },
+        {
+          "event": "ingress_transport_failed",
+          "monotonic_s": 1169115.426527416,
+          "request_id": "req_02460",
+          "forwarded": true,
+          "error_type": "ServerDisconnectedError"
+        }
+      ],
+      "forward_to_failure_ms": 1.2019712012261152,
+      "nearest_response_to_five_seconds_prior": {
+        "request_id": "req_02449",
+        "interval_s": 5.000947546213865
+      },
+      "native_log_occurrences": 0
+    },
+    {
+      "request_id": "req_02751",
+      "events": [
+        {
+          "event": "ingress_received",
+          "monotonic_s": 1169338.027568665,
+          "request_id": "req_02751",
+          "sequence": 2752,
+          "router_ready": true,
+          "received_s": 1169338.026952022,
+          "request_sha256": "d2c163a0ad435c2d817f3ee2087d82a116aefb1c7f9ebae1cf6c0e24b907f377"
+        },
+        {
+          "event": "ingress_forwarded",
+          "monotonic_s": 1169338.02769181,
+          "request_id": "req_02751",
+          "received_s": 1169338.026952022,
+          "forwarded_s": 1169338.027686718
+        },
+        {
+          "event": "ingress_transport_failed",
+          "monotonic_s": 1169338.028803797,
+          "request_id": "req_02751",
+          "forwarded": true,
+          "error_type": "ServerDisconnectedError"
+        }
+      ],
+      "forward_to_failure_ms": 1.1170790530741215,
+      "nearest_response_to_five_seconds_prior": {
+        "request_id": "req_02742",
+        "interval_s": 5.001382983988151
+      },
+      "native_log_occurrences": 0
+    },
+    {
+      "request_id": "req_03635",
+      "events": [
+        {
+          "event": "ingress_received",
+          "monotonic_s": 1170337.970682628,
+          "request_id": "req_03635",
+          "sequence": 3636,
+          "router_ready": true,
+          "received_s": 1170337.969885089,
+          "request_sha256": "2e2dc50b3e1a2050eadbf431022bd5c51b0c40b6e54f7fe8ab38a7dd0f577925"
+        },
+        {
+          "event": "ingress_forwarded",
+          "monotonic_s": 1170337.970811874,
+          "request_id": "req_03635",
+          "received_s": 1170337.969885089,
+          "forwarded_s": 1170337.97080634
+        },
+        {
+          "event": "ingress_transport_failed",
+          "monotonic_s": 1170337.971942494,
+          "request_id": "req_03635",
+          "forwarded": true,
+          "error_type": "ClientOSError"
+        }
+      ],
+      "forward_to_failure_ms": 1.1361539363861084,
+      "nearest_response_to_five_seconds_prior": {
+        "request_id": "req_03628",
+        "interval_s": 5.000159602845088
+      },
+      "native_log_occurrences": 0
+    }
+  ],
+  "root_cause_proven": false,
+  "retries": 0,
+  "limitation": "No socket-ID or errno witness. Five-second association is a hypothesis, not proof. No causal attribution to remote artifact transport or native scheduling.",
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d411_20261011/model7b_repaired.ingress.jsonl",
+      "sha256": "8e4daf754cf4ca018fc3a20bafc63b1b504bd679dc31ece0a3f17cc1ecacf562"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d411_20261011/model7b_repaired/serve.log",
+      "sha256": "179fd168eefc1507b859891df168306c53dde11cf685a7ef912fde0fd4181ef2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d411_20261011/launch7b_repaired.launch/replay.jsonl",
+      "sha256": "cc221b86c0260f08673bfb4f1fc799ec409a06947ecee4270950b2e56ee6b824"
+    }
+  ]
+}

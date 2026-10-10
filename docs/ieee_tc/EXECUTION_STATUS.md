@@ -1,4 +1,4 @@
-# IEEE TC execution status — D411 full4000 W0 RUNNING; do not restart
+# IEEE TC execution status — D411 TERMINAL with 3 transport failures; audit next
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -75,13 +75,56 @@ regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance re
 
 ## Exact next action and remaining scope
 
-D411 verified-wait continuation checked2026-10-11 03:56:37 Asia/Shanghai:
+TERMINAL checkpoint2026-10-11 04:22 Asia/Shanghai: D411 completed original
+4,000 arrivals/submissions/terminals,3,997validatedresponses and3failures.
+No retry/restart/liveconfiguration change. Modelqualification passed=false,
+error "external HTTP qualification failed; do not label binding as correctness".
+Outerlaunch service_returncode1, native_gpu_context_release_confirmed=true,
+service_path_removed=true; fresh nvidia-smi computeprocess census empty.
+Nativeoverlay RESTORED from exact D411receipt,3ownedremoteunits STOPPED by
+InvocationID and portsabsent,emptyownedauxscope stopped. No live heavyjob.
+Do NOT restart D411 or launch newGPUwork below150GiB disk startfloor.
+Physicalsummary measurement_complete=true,N_plan=N_terminal4000,
+n_native_contract_complete3997,n_correct=null,noopenleases,U16090.164119827561
+GPU-s; below offlineaudit has now revalidated ledger. Do not label this G1feasible.
+Resolver journals/receipts/run_contract,executed scheduler and Ray worker/raylet
+logs copied exclusively intoD411raw; no objectcache reclaimed yet. Remote
+transfersSHA d4a2e99fd5fd353743a84fc79a6b0a14f3d22f5316414f4fe69f995dcb104e39
+and monitorSHA31cec0d2961f29f3563816e40d56b9389d82aa1472f79e40f35747bab28c314c
+match source. Protectedbefore/after same96df8e345419d26b941f99e19578d8dfe6717fe06b35caa6d42e0dae4885e87d:
+only unchanged historical userreplay mismatch; no newprotectedresult change.
+Offline audit COMPLETE: main existinganalyzer adds explicit
+--outcome complete_with_failures,defaultsuccess still rejectsfailedruns.
+23CPUtests passed0.119s/4GiB/zeroswap,actualD411audit passed.3,997 native/source/
+adapter/content/timing contracts,error0ms,457845tokens. CommonD394 joint3938/
+4000=98.45%,TTFT3939,TPOT3996/3997;observed_feasible=false due3failures.
+Conditional mean/P95TTFT950.811265/730.630836ms,TPOT26.413121/31.833669ms,
+E2Emean3940.953967ms. U16090.164120GPU-s,4.022541/offered;not eligible ranking.
+132HTTP/131480060wireB/3300789780verifiedpayloadB,3865cachehits,0packs.
+5actualservedepochs,allreadyreceipts verified,no pendingallocations;
+not5physicalGPUs. Fullrawunknown numerical/correctness flags unchanged.
+Audit paper_results/ieee_tc/baseline_audit/d411_7b_full_w0_failure/audit.json SHA
+eb00a0e729ac9e43b53f67494c25ac99425e72b0c5b88283b783f1517dee617f.
+Companion234-filemanifest SHA7de3171d8e8ea7655aa4a94965e80d69355d15bb49fd1a503ef5907309c2e00d,
+allhashesverified; ingress_failure_evidence SHA
+a6186d3168456deaeafc41670c92b509fb4047511cb74012894ca87e72c26021.
+Servicepeak57622568960B,high/max/OOM/swap0. No cache reclaimed yet.
+Baseline closure documentation checkpoint020414e367e063131909a51e2cee82c2f2415abc
+pushed toorigin/main and remoteSHAverified;not the D411executioncommit.
+ImmediateNEXT: backup closure, CPU-only bounded keepalive hypothesis test in
+existing ingress tests; retain failed D411 and unchangedsuccessgates. No
+transportfix or newperformance attempt yet. Keep PrimeLoRAsealed;7Bnextbaseline
+follows closure and evidence-based decision,not an automatic win claim.
+All RUNNING paragraphs below are retained history, superseded by this checkpoint.
+
+D411 verified-wait continuation checked2026-10-11 04:11:39 Asia/Shanghai:
 same active service/InvocationID426554ae3dcf4dd2999ceeecf4a2e012,
-2846created/sent,2845rawresponses,2843validatedresponses,all4000contracts,
-2HTTPfailures. Watchdogsample2594 is0.125s old:hostavailable52.882GiB,
-service52.030GiB,disk148.265GiB,high/max/OOM/swap0,noabort.
-Remaining originalarrivalwindow1395.910s;no terminalresult yet. Same livehandle
-polled repeatedly from03:26to03:56;do notinterpret waiting as stopped or restart.
+3642created/sent,3638rawresponses,3635validatedresponses,all4000contracts,
+3HTTPfailures. Watchdogsample3484 is0.174s old:hostavailable52.273GiB,
+service53.191GiB,disk147.697GiB,high/max/OOM/swap0,noabort.
+Remaining originalarrivalwindow493.951s;no terminalresult yet. Same livehandle
+polled repeatedly from03:26to04:11 including bounded verifiedwaits;do notinterpret
+waiting as stopped or restart.
 This is incomplete progress,not a performance verdict. Disk below150GiB forbids
 a new heavylaunch;currentrun remainsabove100GiB runtimefloor. No livecleanup,
 hashscan,remoteadministration,cachepublication,tests or secondheavyjob.
@@ -99,6 +142,22 @@ that assertion or promote3998responses to4000. After cleanup classify failure,
 retain correct/failure counts and actualresource ledger, then if needed verify
 transport hypothesis with CPU-only existing ingress tests before any repair.
 No hidden retry, same-key performance rerun or new threshold is authorized.
+Third failure recorded04:11: req_03635, ClientOSError after1.136ms forwarding,
+5.000160s after req_03628 response; no failed-ID native serve.log entry. Same
+unproven keepalive-race hypothesis, errno/message and socket-ID not logged.
+Retain this newfailure; no midrun patch/retry or alteredperformance contract.
+04:00 read-only analysis-entry audit: reuse baseline
+summarize_serverlessllm_replay.audit_tc_http_journal (terminal-only, preserves
+failed offered rows), native.validate_http_observation/audit_backend_receipts
+for actual successes, and main frozen_slo_summary (failed rows stay in offered
+denominator, observed_feasible false). Existing tests explicitly cover failed
+offered rows; not rerun during business. Physical terminal recorder already
+preserves failures. Current audit_d402 integration still asserts allsuccess,
+accesses metrics on every rawresponse and assumes timing keys on every slice
+row: do not bypass these assumptions with filled/removed rows. If integration
+is extended after release, add an explicit diagnostic-failure outcome branch,
+keep successful-path validation unchanged and test missing/failed/zero-success
+populations; retain raw unknown numerical flags. No new parallel framework.
 D412_VLLM_MEASUREMENT_REUSE_AUDIT.md records read-onlynext-entrypoint audit:
 oldvLLM payload/EOF timing,serviceactivityinauxdomain,latepublisher and envelope
 lease gaps remain. ExistingSSEparser alone is insufficient:clienttokenreceipt
@@ -112,6 +171,15 @@ This continuation adds monitorcheckpoint and read-only incident analysis;no
 code/configuration change,new experiment,comparison result,cleanup or
 remoteoperation. User reconfirmed one-time deliverycache approval; already
 implemented D78/D80 is reused, not republished.
+D411 incident documentation backupc46aa4654a342bab874c531e681092849b661552
+pushed tofaaslora_origin/retry14_continuous_queue_v2;remoteSHAverified03:58.
+Exactly two docs staged;diff/secrets checks passed,no runtimecode/bundles changed.
+No GPU smoke or broadhashscan during livebusiness. Latestmonitorcheckpoint and
+analysis-entry notes in this status are the only subsequent task-owned
+uncommitted change AT THAT CHECKPOINT; closure has since added D411report,
+explicit offlinefailureanalysis/tests/curated evidence. Preserve usermanifest
+dirty. Prior goal turn was verifiedwait;currentturn closed the run and completed
+failure-preserving offline audit,not blocked and not goalcomplete.
 
 D411 RUNNING since2026-10-11 03:12:24 Asia/Shanghai, tmux tc-d411-7b.
 Do NOT restart or launch another heavy job. Main execution
@@ -408,7 +476,8 @@ this status is not a shortened experiment plan.
 - All D402/D404/D406/D408/D409 workers/service scopes released. Loader overlay
   was restored to exact preimages after each run;empty aux scopes stopped.
   D410 has also released GPU/service/aux,restored overlay and stopped ownedremote
-  units by exactInvocationID. D411 is the only live heavyjob;see identity above.
+  units by exactInvocationID. D411 is now terminal with GPU/service/aux released,
+  overlayRESTORED and3ownedremoteunitsSTOPPED. No live heavyjob;see closure above.
 - Strict SSH alias primelora-artifact-174,lab14@10.199.227.174:8122;
   data192.168.4.174 ports18080/18081. Credentials outside Git.
   Actual current link1000Mb/s/full;historical100Mb/s was a different state.
