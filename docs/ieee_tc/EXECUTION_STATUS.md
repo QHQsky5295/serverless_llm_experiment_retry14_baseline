@@ -1,5 +1,21 @@
 # IEEE TC execution status
 
+## CURRENT — D387 artifact-node gate recheck complete; inference protections unchanged
+
+2026-10-10: A read-only recheck confirms that the artifact-only node uses the
+independent concurrent-pack/log-growth/safety-reserve rule rather than the
+inference host's fixed 150-GiB floor.  The current remote filesystem has
+139,212,648,448 free bytes against the frozen 97,407,250,432-byte requirement,
+with inactive 7B/3B artifact services, closed port 18081, and a 1000-Mb/s
+full-duplex link.  The focused artifact-gate tests pass.  The detailed
+evidence and the unrelated virtual-environment watchdog test caveat are in
+`D387_ARTIFACT_GATE_RECHECK_20261010.md`.
+
+This is a storage-policy qualification only; it neither changes the
+inference-host disk/memory/OOM protections nor advances the Prime experiment
+stage.  The 7B Prime-first hold remains governed by D386's unresolved strict
+numerical correctness and common-reference gates.
+
 ## CURRENT — D386 7B queue-upper=4 full replay complete; candidate rejected pending correctness closure
 
 2026-10-10: D386 completed the registered 4,000-request 7B W0 replay with
