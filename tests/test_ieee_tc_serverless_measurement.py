@@ -536,6 +536,114 @@ class PreReadyIngressTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(any(r['event']=='ingress_failed' for r in self.rows()))
 
 
+class AdapterCoverageViewTests(unittest.TestCase):
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        self.root = Path(self.temporary.name)
+        self.trace = self.root/'existing_trace.json'
+        self.pool = self.root/'existing_index.json'
+        # Tiny unit fixtures, not newly generated experiment inputs.
+        rows = [dict(request_id=f'r{i:04d}', arrival_time_s=i*1.1,
+            adapter_id='original', expected_output_tokens=3+i%10,
+            body=dict(messages=[dict(role='user', content=f'existing prompt {i}')]))
+            for i in range(1000)]
+        self.trace.write_text(json.dumps(dict(requests=rows)))
+        self.pool.write_text(json.dumps(dict(artifacts=[dict(id=f'a{i:04d}') for i in reversed(range(500))])))
+        self.cfg = dict(trace=str(self.trace), trace_sha256=launch.sha(self.trace.read_bytes()),
+            pool_index=str(self.pool), pool_index_sha256=launch.sha(self.pool.read_bytes()),
+            request_count=500, request_view='adapter_coverage_v1', qualification_only=True,
+            formal_run=False, experiment_role='adapter_pool_functional_coverage')
+
+    def test_existing_work_is_preserved_and_derived_adapter_rows_are_auditable(self):
+        from faaslora.datasets.workload_generator import FrozenReplayPlan, prepare_frozen_http_request
+        before = {p: p.read_bytes() for p in (self.trace, self.pool)}
+        original = FrozenReplayPlan.load(self.trace, count=500)
+        covered = launch.load_http_replay_plan(self.cfg)
+        self.assertEqual(covered.profile, 'ADAPTER_COVERAGE_V1')
+        self.assertEqual(covered.source_sha256, original.source_sha256)
+        self.assertEqual(covered.source_count, 1000)
+        self.assertNotEqual(covered.identity()['view_sha256'], original.identity()['view_sha256'])
+        tokenizer = NS(encode=lambda text, **kw: [ord(c) for c in text],
+                       decode=lambda ids, **kw: ''.join(map(chr, ids)))
+        for i, (old, new) in enumerate(zip(original.entries, covered.entries)):
+            old_row, new_row = json.loads(old.source_json), json.loads(new.source_json)
+            provenance = new_row.pop('tc_adapter_coverage')
+            self.assertEqual(provenance['original_source_item_sha256'], old.source_sha256)
+            self.assertEqual(provenance['original_adapter_id'], old_row['adapter_id'])
+            self.assertEqual(provenance['pool_index_sha256'], self.cfg['pool_index_sha256'])
+            self.assertEqual(provenance['ordinal'], i)
+            self.assertEqual(new_row.pop('adapter_id'), f'a{i:04d}')
+            old_row.pop('adapter_id')
+            self.assertEqual(old_row, new_row)
+            self.assertEqual((old.request_id, old.offset_s), (new.request_id, new.offset_s))
+            self.assertEqual(new.source_sha256, launch.sha(new.source_json.encode()))
+            a, b = [prepare_frozen_http_request(e, tokenizer, 'm') for e in (old, new)]
+            for key in ('canonical_prompt_sha256', 'native_prompt_token_ids_sha256', 'target_tokens'):
+                self.assertEqual(a[key], b[key])
+            self.assertEqual(b['body']['lora_adapter_name'], f'a{i:04d}')
+        self.assertEqual({p: p.read_bytes() for p in before}, before)
+        self.assertEqual(launch.load_http_replay_plan(self.cfg).identity(), covered.identity())
+
+    def test_performance_defaults_are_identical_and_500_cannot_be_silent(self):
+        from faaslora.datasets.workload_generator import FrozenReplayPlan
+        for count in (100, 1000):
+            cfg = dict(trace=str(self.trace), request_count=count)
+            self.assertTrue(launch.qualified_http_population(cfg))
+            self.assertEqual(launch.load_http_replay_plan(cfg), FrozenReplayPlan.load(self.trace, count=count))
+        self.assertFalse(launch.qualified_http_population(dict(request_count=500)))
+        with self.assertRaisesRegex(ValueError, 'explicit functional'):
+            launch.load_http_replay_plan(dict(trace=str(self.trace), request_count=500))
+
+    def test_coverage_cannot_be_formal_or_ambiguously_identified(self):
+        for change in (dict(formal_run=True), dict(formal_run=None), dict(qualification_only=False),
+                       dict(experiment_role='main_performance'), dict(request_count=100),
+                       dict(request_count=True), dict(request_view='unregistered')):
+            with self.subTest(change=change):
+                cfg = dict(self.cfg, **change)
+                self.assertFalse(launch.qualified_http_population(cfg))
+                with self.assertRaises(ValueError):
+                    launch.load_http_replay_plan(cfg)
+
+    def test_changed_source_or_pool_is_rejected(self):
+        for change in (dict(trace_sha256='0'*64), dict(pool_index_sha256='0'*64)):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                launch.load_http_replay_plan(dict(self.cfg, **change))
+        with self.assertRaisesRegex(ValueError, 'trace differ'):
+            launch.load_http_replay_plan(self.cfg, trace=self.root/'other')
+        for ids in (['a']*500, [f'a{i}' for i in range(499)], ['']+[f'a{i}' for i in range(499)]):
+            self.pool.write_text(json.dumps(dict(artifacts=[dict(id=i) for i in ids])))
+            cfg = dict(self.cfg, pool_index_sha256=launch.sha(self.pool.read_bytes()))
+            with self.assertRaisesRegex(ValueError, '500 distinct'):
+                launch.load_http_replay_plan(cfg)
+
+    def test_physical_ledger_accepts_only_derived_adapter_binding(self):
+        from faaslora.clock import local_monotonic_clock_id
+        from faaslora.metrics.metrics_collector import PhysicalGPUDeployment
+        plan = launch.load_http_replay_plan(self.cfg)
+        deployment = PhysicalGPUDeployment(root=self.root/'physical', plan=plan, context=dict(
+            clock_id=local_monotonic_clock_id(), deployment_notice_s=0., replay_t0_s=60., plan=plan.identity()))
+        result = dict(success=True, generation_contract='fixed_length_greedy_v1',
+            timing_contract='ieee_tc_native_v1', output_contract_match=True,
+            completion_token_source='vllm_token_ids', completion_token_ids_sha256='a'*64,
+            canonical_prompt_sha256='b'*64)
+        for i in (0, 1):
+            entry = plan.entries[i]
+            target = json.loads(entry.source_json)['expected_output_tokens']
+            deployment.terminal(entry.request_id, at=100., result=dict(result,
+                request_id=entry.request_id, adapter_id='a0000' if i == 0 else 'original',
+                output_tokens=target, completion_tokens=target, requested_completion_tokens=target))
+        self.assertTrue(deployment.terminals['r0000']['native_contract_matched'])
+        self.assertFalse(deployment.terminals['r0001']['native_contract_matched'])
+
+    def test_public_ingress_accepts_only_the_explicit_coverage_contract(self):
+        cfg = dict(self.cfg, model='m', ingress_mode='service_pre_ready_v1',
+                   url='http://127.0.0.1:1234/v1/chat/completions')
+        self.assertEqual(launch.pre_ready_ingress_options(cfg, 1235, 'm', self.root)['request_count'], 500)
+        with self.assertRaises(ValueError):
+            launch.pre_ready_ingress_options(dict(cfg, formal_run=True), 1235, 'm', self.root)
+
+
 class IngressContractTests(unittest.TestCase):
     def test_mode_is_explicit_and_public_native_ports_must_differ(self):
         base = dict(ingress_mode='service_pre_ready_v1', request_count=100, model='m',

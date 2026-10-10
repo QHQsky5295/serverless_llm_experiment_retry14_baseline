@@ -11,6 +11,7 @@ import argparse
 import asyncio
 import ast
 from contextlib import nullcontext
+from dataclasses import replace
 import hashlib
 import importlib.util
 import json
@@ -350,6 +351,63 @@ async def replay_http_session(plan, origin, prepared, url, emit, *, ingress_requ
         return await replay_frozen_http(plan, origin, prepared, send, emit)
 
 
+def qualified_http_population(cfg):
+    """Coverage is a named functional view, never an ordinary W0 prefix."""
+    count = cfg.get('request_count')
+    view = cfg.get('request_view', 'trace_prefix_v1')
+    if type(count) is not int:
+        return False
+    if view == 'trace_prefix_v1':
+        return count in (100, 1000, 4000)
+    return (view == 'adapter_coverage_v1' and count == 500
+            and cfg.get('qualification_only') is True
+            and cfg.get('formal_run') is False
+            and cfg.get('experiment_role') == 'adapter_pool_functional_coverage')
+
+
+def load_http_replay_plan(cfg, *, trace=None):
+    """Index existing prompts/arrivals/targets; never write a replacement trace.
+
+    The opt-in coverage view binds sorted static pool IDs to the first 500
+    existing requests. Derived rows and their hashes are explicitly different
+    from source rows. Publisher, physical ledger and deadline use this SAME
+    view; no serving policy or performance-workload mapping is changed.
+    """
+    from faaslora.datasets.workload_generator import FrozenReplayPlan
+    path = cfg.get('trace', trace)
+    if trace is not None and Path(path).resolve() != Path(trace).resolve():
+        raise ValueError('service and publisher trace differ')
+    plan = FrozenReplayPlan.load(path, count=cfg['request_count'])
+    if 'trace_sha256' in cfg and plan.source_sha256 != cfg['trace_sha256']:
+        raise ValueError('existing trace changed')
+    view = cfg.get('request_view', 'trace_prefix_v1')
+    if view == 'trace_prefix_v1':
+        if cfg['request_count'] == 500:
+            raise ValueError('500-ID coverage requires an explicit functional view')
+        return plan
+    if not qualified_http_population(cfg):
+        raise ValueError('unqualified functional replay view')
+    raw = Path(cfg['pool_index']).read_bytes()
+    if sha(raw) != cfg['pool_index_sha256']:
+        raise ValueError('existing pool index changed')
+    ids = [row['id'] for row in json.loads(raw)['artifacts']]
+    if (len(ids) != 500 or any(not isinstance(aid, str) or not aid for aid in ids)
+            or len(set(ids)) != 500):
+        raise ValueError('coverage requires 500 distinct existing adapter IDs')
+    entries = []
+    for ordinal, (entry, aid) in enumerate(zip(plan.entries, sorted(ids))):
+        row = json.loads(entry.source_json)
+        if 'tc_adapter_coverage' in row or not row.get('adapter_id'):
+            raise ValueError('coverage source is not an original adapter-bound request')
+        row['tc_adapter_coverage'] = dict(contract=view, ordinal=ordinal,
+            original_source_item_sha256=entry.source_sha256,
+            original_adapter_id=row['adapter_id'], pool_index_sha256=sha(raw))
+        row['adapter_id'] = aid
+        canonical = json.dumps(row, sort_keys=True, separators=(',', ':'), ensure_ascii=False)
+        entries.append(replace(entry, source_json=canonical, source_sha256=sha(canonical.encode())))
+    return replace(plan, entries=tuple(entries), profile='ADAPTER_COVERAGE_V1')
+
+
 def http_replay(args):
     """Auxiliary child of the existing guarded launcher, not a new supervisor."""
     cfg = json.loads(args.config.read_text())
@@ -359,22 +417,24 @@ def http_replay(args):
         raise ValueError('HTTP publisher must share the bounded auxiliary domain')
     sys.path.insert(0, cfg['main_repo'])
     from faaslora.clock import local_monotonic_clock_id
-    from faaslora.datasets.workload_generator import (
-        FrozenReplayPlan, prepare_frozen_http_request)
+    from faaslora.datasets.workload_generator import prepare_frozen_http_request
     from transformers import AutoTokenizer
     if (cfg.get('schema') != 'ieee_tc_serverless_http_replay_v1'
             or cfg.get('generation_contract') != 'fixed_length_greedy_v1'
             or cfg.get('renderer') != 'role_lines_v1'
             or cfg.get('ingress_mode', 'native_direct_v1') not in
                 ('native_direct_v1', 'service_pre_ready_v1')
-            or cfg.get('request_count') not in (100, 1000, 4000)
+            or not qualified_http_population(cfg)
             or not re.fullmatch(r'http://127\.0\.0\.1:[0-9]+/v1/chat/completions', cfg['url'])):
         raise ValueError('unqualified HTTP replay contract')
-    plan = FrozenReplayPlan.load(cfg['trace'], count=cfg['request_count'])
+    plan = load_http_replay_plan(cfg)
     if plan.source_sha256 != cfg['trace_sha256']:
         raise ValueError('existing trace changed')
     tokenizer = AutoTokenizer.from_pretrained(cfg['backbone'], local_files_only=True)
     prepared = {e.request_id: prepare_frozen_http_request(e, tokenizer, cfg['model']) for e in plan.entries}
+    if plan.profile == 'ADAPTER_COVERAGE_V1':
+        for entry in plan.entries:
+            prepared[entry.request_id]['tc_adapter_coverage'] = json.loads(entry.source_json)['tc_adapter_coverage']
     if cfg.get('physical_lifecycle') not in (None, 'native_store_pool_v1'):
         raise ValueError('unknown physical lifecycle contract')
     if cfg.get('physical_lifecycle') == 'native_store_pool_v1':
@@ -1218,7 +1278,7 @@ def pre_ready_ingress_options(http_cfg, native_port, model, output):
             or endpoint.path != '/v1/chat/completions' or not endpoint.port
             or endpoint.port == native_port or http_cfg.get('model') != model
             or type(native_port) is not int or not 0 < native_port < 65536
-            or http_cfg.get('request_count') not in (100, 1000, 4000)):
+            or not qualified_http_population(http_cfg)):
         raise ValueError('frozen public ingress/private native endpoint contract differs')
     return dict(port=endpoint.port, upstream_url=f'http://127.0.0.1:{native_port}/v1/chat/completions',
                 model=model, request_count=http_cfg['request_count'],
@@ -1231,9 +1291,8 @@ def prepare_physical_deployment(args, guard, admission, http_cfg, context, resul
     if (http_cfg['physical_lifecycle'] != 'native_store_pool_v1'
             or http_cfg.get('ingress_mode') != 'service_pre_ready_v1'):
         raise ValueError('native store-pool lifecycle requires service-owned startup admission')
-    from faaslora.datasets.workload_generator import FrozenReplayPlan
     from faaslora.metrics.metrics_collector import PhysicalGPUDeployment
-    plan = FrozenReplayPlan.load(args.trace, count=http_cfg['request_count'])
+    plan = load_http_replay_plan(http_cfg, trace=args.trace)
     deployment = PhysicalGPUDeployment(root=args.output/'physical', plan=plan, context=context)
     deployment.bind_result_file(args.output/'model_qualification.json')
     root = args.output/'worker_receipts'
@@ -1730,8 +1789,7 @@ def _qualify_model(args, guard, admission, http_cfg, replay_context, measured, i
         if http_cfg:
             # Arrivals started at the supervisor's fixed notice+60, independent
             # of readiness. This service never starts or paces the HTTP client.
-            from faaslora.datasets.workload_generator import FrozenReplayPlan
-            frozen = FrozenReplayPlan.load(args.trace, count=http_cfg['request_count'])
+            frozen = load_http_replay_plan(http_cfg, trace=args.trace)
             deadline = replay_context['replay_t0_s']+frozen.entries[-1].offset_s+1800+5
             completed = None
             with Path(replay_context['result_path']).open() as log:
