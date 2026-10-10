@@ -1,4 +1,4 @@
-# IEEE TC execution status — current, D405 CPU gate; D406 prepared
+# IEEE TC execution status — current, D406 terminal
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -89,15 +89,38 @@ passed7.478s in4GiB/zero-swap auxiliary scope. Baseline checkpoint
 7a37e1f9b3220b26f9f0166e36e2821e84aa1d4b pushed and remote hash verified.
 See D405_SERVERLESSLLM_COVERAGE_INVENTORY.md and baseline detailed report.
 
-D406 PREPARED, NOT STARTED at this checkpoint. Exclusive raw root
+D406 TERMINAL 2026-10-11; former tmux `tc-d406-7b` ended. Exclusive raw root
 `/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d406_20261011`.
-Next launch the500-ID functional view after safety/remote/overlay/source checks.
+Execution main6eed716bed1ed994ab1d35e7a00c6ecf0469e4d7,baseline7a37e1f9b3220b26f9f0166e36e2821e84aa1d4b.
+500/500responses/native contracts,exact500logical IDs,0failure,68,925tokens;
+fouractualservedengines,live scheduler/no exception/empty queue. Native/E2E/TPOT
+maximum recompute error0ms.500realHTTP transfers420740410B,verifiedpayload
+12985984450B,0packs/0cache-hit requests. Physical GPU-s2717.3239195765927,
+complete leases. Raw n_correct=null/independent numerical=false preserved.
+Audit SHA24da017f3612e2e15c8533b03d30ffa3ad612c8b52e6dfa3a7bd2c445cb419d7;
+main paper_results/ieee_tc/baseline_audit/d406_7b_coverage/audit.json.
+Evidence manifest602files allSHAverified,manifest SHA
+676f15919945163bd88196c582fa6ee1d19dfaeb85d1854ae6973c15c977d7dc.
+Baseline evidence backup25848cfb57ef15351f800daf7062cffb2a0d3807 pushed/verified.
+Report D406_SERVERLESSLLM_500_ADAPTER_RESULT.md. ActualGPU released,overlay
+RESTORED,remote3ownedunits stopped/portsabsent,empty ownedauxscopes stopped.
+Protected147entriesbefore/afteridentical;sole old mismatch user's replay edit.
+Remote link1000Mb/s/full. Fullbyteaudit passed before cache-only reclamation:
+objects /tmp/tc-d406-7br/remote_artifacts/objects removed;originalpool/remote
+cache/receipts/journals/rawlogs retained. Observed reclaimed13003907072B;
+diskafter162353836032B. Raw cache_cleanup_before/after.json record checks.
+Reauditing removed cache bytes requires rematerialization; do not redownload
+wholepool merely to repeat an already verified gate. Independent numerical
+qualification/actual content diversity remain distinct from native binding.
 View SHA286f7547a8129fd6e75885379428b84c9a5c23a7eb02bf1d7546f49bcf2cee5d.
 Public target4 matches existing engine max-seqs4/max-loras4; min1/max4/keep10
 unchanged. D404 observed overlap2/engine supports capacity validation, not GPU
 saturation. Functional mapping is not a performance comparison or optimum.
-Then original1000 compatibility/config qualification, then full4000 W0.
-No new GPU result yet. Do not restart completed D404 or old D72/D73 pair.
+Next audit reusable numerical qualification,then original1000 compatibility/
+public configuration validation and frozen full4000 W0. Existing analyzer's
+explicit500view validator:6CPUtests pass0.036s; D404 original-population
+reanalyzed numeric fields unchanged, no performance repeat. No live job.
+Do not restart completed D406,D404 or old D72/D73 pair.
 
 D404 TERMINAL 2026-10-11:100/100 native contracts,0failed,17,369tokens;
 four actual served engines/ready receipts; exact repaired source and contained
@@ -122,13 +145,12 @@ Protected before/after unchanged. No live job. Full baseline/config optimum OPEN
    supports identity removal. 81 CPU tests passed in7.055s,4GiB/zero-swap scope.
    See main `D403_SERVERLESSLLM_QUEUE_REPAIR.md` and baseline detailed report.
    Baseline checkpoint3cc25a87f3895a408a16efe2ef9c75d0e8780ff3 pushed/verified.
-2. D404 affected7B scale-out path passed above. Do not repeat100 requests or the
-   D72/D73 polling pair. Next audit existing500-ID native-engine coverage: D80's
-   500-ID HTTP/content gate alone is not engine coverage. D72/D73's1000 prefixes
-   are R2/local/failed,not new-contract compatibility;reuse diagnostics/assets,
-   supplement only missing affected gates. Document scope before GPU work.
-3. Reuse/audit prior500-ID and1,000-request gates where contracts permit;
-   reasonable public configuration validation/freeze ->one matched full W0.
+2. D404 scale-out and D406 whole-pool native execution gates passed above.
+   Do not repeat them or D72/D73 polling pair. D72/D73's1000 prefixes remain
+   R2/local/failed,not new-contract compatibility;reuse diagnostics/assets.
+3. Audit/reuse independent numerical correctness evidence before promoting
+   full-system qualification; original1,000 compatibility and reasonable public
+   configuration validation/freeze ->one matched full W0.
    Historical target2/max-seqs4/min1/max4/keep10 is diagnostic,not selected optimum.
 4. Preserve D371. No PrimeLoRA retuning without comparison evidence or3B jump.
 
@@ -144,9 +166,9 @@ this status is not a shortened experiment plan.
 - One heavy job. Inference disk start max(150GiB,100GiB+1.5growth),stop100GiB;
   service memory high72/max80GiB,swap2GiB,CPUs4-23,28-47;aux4GiB,swap0,
   CPUs2,3,26,27. Actual worker containment/watchdog/cleanup precede GPU runs.
-- D404 service peak49,713,250,304B,swap0,high/max/OOM0;host available minimum
-  61,525,995,520B,disk minimum162,448,949,248B. Recheck before heavy work.
-- All D402/D404 workers/service scopes released;four cards15MiB/0%. Loader overlay
+- D406 service peak64,123,109,376B,swap0,high/max/OOM0;host available minimum
+  59,220,758,528B,disk minimum149,497,323,520B. Recheck before heavy work.
+- All D402/D404/D406 workers/service scopes released;four cards15MiB/0%. Loader overlay
   restored to exact preimages,added loader removed;empty aux scope stopped.
   Remote3ownedunits inactive/MainPID0,ports absent.
 - Strict SSH alias primelora-artifact-174,lab14@10.199.227.174:8122;

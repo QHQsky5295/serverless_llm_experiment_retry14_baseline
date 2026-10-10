@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""D402/D404 evidence recipe; reuses existing baseline/native validators.
+"""D402/D404/D406 evidence recipe; reuses existing baseline/native validators.
 
 Read-only with respect to experiment inputs. Output is exclusive, small, and
 never upgrades a prefix qualification to a main performance comparison.
@@ -65,7 +65,35 @@ async def reproduce_queue(source):
     raise AssertionError('expected original scheduler queue failure did not reproduce')
 
 
-def audit(root, baseline, main, scheduler_contract='original'):
+def validate_population(config, ready, contracts, native, population):
+    """Reconstruct the offered view; do not infer full coverage from a label."""
+    count = 500 if population == 'adapter_coverage_v1' else 100
+    if population not in ('prefix100', 'adapter_coverage_v1'):
+        raise ValueError('unknown qualification population')
+    if config['request_count'] != count or len(contracts) != count:
+        raise ValueError('qualification population count differs')
+    plan = native.load_http_replay_plan(config)
+    if plan.identity() != ready['plan'] or set(contracts) != {e.request_id for e in plan.entries}:
+        raise ValueError('offered view differs from frozen input derivation')
+    for entry in plan.entries:
+        source, contract = json.loads(entry.source_json), contracts[entry.request_id]
+        if (contract['source_item_sha256'] != entry.source_sha256
+                or contract['adapter_id'] != source['adapter_id']
+                or contract['target_tokens'] != min(source['expected_output_tokens'], 256)):
+            raise ValueError('offered adapter/target/derived row differs')
+        if population == 'adapter_coverage_v1':
+            if (plan.profile != 'ADAPTER_COVERAGE_V1'
+                    or contract.get('tc_adapter_coverage') != source.get('tc_adapter_coverage')
+                    or contract.get('tc_adapter_coverage') is None):
+                raise ValueError('whole-pool functional derivation evidence missing')
+        elif plan.profile != 'W0' or 'tc_adapter_coverage' in contract:
+            raise ValueError('ordinary prefix cannot silently become a coverage view')
+    if population == 'adapter_coverage_v1' and len({r['adapter_id'] for r in contracts.values()}) != 500:
+        raise ValueError('functional view has incomplete unique adapter coverage')
+    return count
+
+
+def audit(root, baseline, main, scheduler_contract='original', population='prefix100'):
     sys.path[:0] = [str(baseline/'scripts'), str(main)]
     import summarize_serverlessllm_replay as analyzer
     import prepare_ieee_tc_serverless_stack as native
@@ -77,8 +105,11 @@ def audit(root, baseline, main, scheduler_contract='original'):
     index = {k: {e['request_id']: e for e in events if e['event'] == k} for k in kinds}
     ready = summary['ready_identity']
     assert digest(ready['plan']['source_path']) == ready['plan']['source_sha256']
-    assert digest(root/'http_7b_100.json') == ready['config_sha256']
-    assert summary['counts']['N_response'] == summary['counts']['N_plan'] == 100
+    config_path = root/('http_7b_500.json' if population == 'adapter_coverage_v1' else 'http_7b_100.json')
+    assert digest(config_path) == ready['config_sha256']
+    count = validate_population(json.loads(config_path.read_text()), ready,
+                                index['request_contract'], native, population)
+    assert summary['counts']['N_response'] == summary['counts']['N_plan'] == count
     cfg = json.loads((root/'model7b_repaired/configuration.json').read_text())
     qualifier = json.loads((root/'model7b_repaired/model_qualification.json').read_text())
     assert qualifier['passed'] and qualifier['physical_lifecycle']['lifecycle_qualified']
@@ -94,10 +125,13 @@ def audit(root, baseline, main, scheduler_contract='original'):
             source=root/'source_repaired/sllm/schedulers/storage_aware_scheduler.py',
             service_cgroup=cfg['backend_config']['tc_worker_audit']['service_cgroup'],
             service_cpus=cfg['backend_config']['tc_worker_audit']['service_cpus'])
-        assert len(qualifier['backend_ready_receipts']) == 4
+        if population == 'prefix100':
+            assert len(qualifier['backend_ready_receipts']) == 4  # D404 affected scale-out gate.
+        else:
+            assert qualifier['backend_ready_receipts']  # All served epochs already checked above.
         assert all(q['total'] == q['done'] == 0 for q in observed['queues'].values())
         queue_evidence = dict(contract=scheduler_contract, readback=observed,
-            conclusion='four actual backends ready; live native loop and no pending allocations')
+            conclusion='actual served backends verified; live native loop and no pending allocations')
     elif scheduler_contract == 'original':
         queue_evidence = asyncio.run(reproduce_queue(scheduler_source))
     else:
@@ -105,6 +139,8 @@ def audit(root, baseline, main, scheduler_contract='original'):
     frozen = cfg['backend_config']['tc_remote_artifacts']
     assert digest(frozen['content_manifest']) == frozen['content_manifest_file_sha256']
     pool = {a['id']: a for a in json.loads(Path(frozen['content_manifest']).read_text())['artifacts']}
+    if population == 'adapter_coverage_v1':
+        assert set(pool) == {r['adapter_id'] for r in index['request_contract'].values()}
     remote_rows = [json.loads(line) for line in (root/'remote_transfers.jsonl').read_text().splitlines()]
     remote = {row['transfer_id']: row for row in remote_rows}
     assert len(remote) == len(remote_rows)
@@ -167,19 +203,19 @@ def audit(root, baseline, main, scheduler_contract='original'):
     integral = sum(b-a for intervals in physical['device_intervals'].values() for a, b in intervals)
     assert abs(integral-physical['gpu_seconds']) < 1e-9
     assert abs(sum(physical['window_gpu_seconds'].values())-integral) < 1e-9
-    assert physical['n_native_contract_complete'] == physical['n_terminal'] == physical['n_plan'] == 100
+    assert physical['n_native_contract_complete'] == physical['n_terminal'] == physical['n_plan'] == count
     samples = [e for e in map(json.loads, (root/'launch7b_repaired.launch/watchdog.jsonl').read_text().splitlines()) if e['event'] == 'resource_sample']
     assert samples
     service_events = {k: max(s['service'].get('memory.events', {}).get(k, 0) for s in samples) for k in ('high', 'max', 'oom', 'oom_kill')}
     source_paths = [replay, resource_path, Path(resource['summary_path']), Path(resource['result_file']['path']),
-                    root/'http_7b_100.json', root/'remote_transfers.jsonl', root/'remote_monitor.log',
+                    config_path, root/'remote_transfers.jsonl', root/'remote_monitor.log',
                     root/'source_repaired/measurement_manifest.json', root/'storage_aware_scheduler_executed.py',
                     Path(analyzer.__file__), Path(native.__file__), Path(__file__)]
     result = {k: v for k, v in summary.items() if k not in ('ready_identity', 'diagnostic_rows', 'assignment_gaps_s', 'kind', 'display_name')}
     result.update(schema=('ieee_tc_d402_affected_path_audit_v1' if scheduler_contract == 'original'
                           else 'ieee_tc_affected_path_audit_v2'), display_name='ServerlessLLM',
         remote_affected_path_qualified=True, complete_system_qualified=False,
-        source_plan=ready['plan'], native_revalidated_requests=100, max_native_recompute_error_ms=native_error,
+        source_plan=ready['plan'], native_revalidated_requests=count, max_native_recompute_error_ms=native_error,
         physical_gpu_seconds=integral, physical_window_gpu_seconds=physical['window_gpu_seconds'],
         n_correct=None, independent_lora_numerical_correctness=False,
         remote_transfers=len(remote), remote_wire_bytes=transferred, verified_materialized_bytes=payload,
@@ -194,11 +230,13 @@ def audit(root, baseline, main, scheduler_contract='original'):
         scheduler_contract=scheduler_contract,
         scheduler_qualification=queue_evidence if scheduler_contract != 'original' else None,
         raw_sources=[dict(path=str(p), sha256=digest(p)) for p in source_paths],
-        limitations=['100-request development prefix, not a full W0 comparison or configuration optimum.',
+        limitations=[('500-ID functional mapping of existing prompts/arrivals/targets; not a W0 performance observation.'
+                      if population == 'adapter_coverage_v1' else
+                      '100-request development prefix, not a full W0 comparison or configuration optimum.'),
             'Raw unknown numerical correctness and old qualification flags are preserved.',
             ('Four logical instances include starting instances; three served engines. Scheduler queue bug independently reproduced; live exception was not logged.'
              if scheduler_contract == 'original' else
-             'Four actual backend-ready receipts and live loop qualify the affected path; one prefix does not quantify a causal latency benefit.'),
+             'Actual backend-ready receipts and live loop qualify the affected path; qualification does not quantify a causal latency benefit.'),
             'Fixed native-store four-GPU pool is charged until actual release; not a claim about every ServerlessLLM deployment.',
             'No relative performance comparison with the 4000-request PrimeLoRA observation.'])
     return result
@@ -211,10 +249,11 @@ if __name__ == '__main__':
     parser.add_argument('--main', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--scheduler-contract', choices=('original', 'request_identity_v1'), default='original')
+    parser.add_argument('--population', choices=('prefix100', 'adapter_coverage_v1'), default='prefix100')
     args = parser.parse_args()
     if args.output.exists():
         raise FileExistsError(args.output)
-    report = audit(args.root, args.baseline, args.main, args.scheduler_contract)
+    report = audit(args.root, args.baseline, args.main, args.scheduler_contract, args.population)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.open('x') as handle:
         json.dump(report, handle, indent=2)

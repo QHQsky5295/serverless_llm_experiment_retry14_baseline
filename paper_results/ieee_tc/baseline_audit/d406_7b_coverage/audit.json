@@ -1,0 +1,254 @@
+{
+  "replay_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d406_20261011/launch7b_repaired.launch/replay.jsonl",
+  "replay_sha256": "f779ed6a2d598fe46108e1d7aa81132bd88bfe277747da0feb6f0516e423bd60",
+  "counts": {
+    "N_plan": 500,
+    "N_arrived": 500,
+    "N_terminal": 500,
+    "N_response": 500,
+    "N_failed": 0,
+    "N_submitted": 500
+  },
+  "measurement_complete": true,
+  "workload_passed": true,
+  "formal_performance_qualified": false,
+  "remote_qualified": false,
+  "independent_lora_numerical_correctness": false,
+  "runs": 1,
+  "ci": null,
+  "latency_population": "protocol-valid responses only; failures retained separately",
+  "assignment_gap_population": "success-observed assignments, not all router assignments",
+  "conditional_metrics": {
+    "ttft_ms": {
+      "count": 500,
+      "mean": 5452.220949099865,
+      "p50_type1": 747.1475705970079,
+      "p95_type1": 43617.36567132175
+    },
+    "e2e_ms": {
+      "count": 500,
+      "mean": 14336.94306135038,
+      "p50_type1": 10008.181134006009,
+      "p95_type1": 49244.663757272065
+    },
+    "submit_lag_ms": {
+      "count": 500,
+      "mean": 5.719805551692843,
+      "p50_type1": 2.1376621443778276,
+      "p95_type1": 6.45954255014658
+    },
+    "dispatch_wait_after_submit_ms": {
+      "count": 500,
+      "mean": 4721.153275059536,
+      "p50_type1": 7.939463015645742,
+      "p95_type1": 42785.03489494324
+    },
+    "service_ttft_ms": {
+      "count": 500,
+      "mean": 725.3478684886359,
+      "p50_type1": 655.6393909268081,
+      "p95_type1": 1036.4996220450848
+    },
+    "decode_ms": {
+      "count": 500,
+      "mean": 8859.003320555203,
+      "p50_type1": 7021.83777699247,
+      "p95_type1": 17105.406298069283
+    },
+    "completion_notification_ms": {
+      "count": 500,
+      "mean": 25.718791695311666,
+      "p50_type1": 12.739992933347821,
+      "p95_type1": 133.04705801419914
+    },
+    "router_queue_ms": {
+      "count": 500,
+      "mean": 4672.127347917296,
+      "p50_type1": 0.6414519157260656,
+      "p95_type1": 42766.12883294001
+    }
+  },
+  "actual_native_output_tokens": 68925,
+  "observed_instance_ids": [
+    "tc-native-llama2-7b-fp16-20260927_5535466c-edea-4835-a810-121321b91e61",
+    "tc-native-llama2-7b-fp16-20260927_593f8f15-197e-49d7-9074-f6c68ac424e4",
+    "tc-native-llama2-7b-fp16-20260927_8fc8a4d5-16da-479f-8bc0-d5200e5cbf62",
+    "tc-native-llama2-7b-fp16-20260927_ff18bcd6-f107-4518-b931-c5a2a011f050"
+  ],
+  "offered_unique_adapters": 500,
+  "max_e2e_recomputation_error_ms": 0.0,
+  "max_tpot_recomputation_error_ms": 0.0,
+  "assignment_gap_stats": {
+    "count": 499,
+    "mean": 1.0508571044889041,
+    "p50_type1": 0.7605789140798151,
+    "p95_type1": 3.3986028840299696
+  },
+  "schema": "ieee_tc_affected_path_audit_v2",
+  "display_name": "ServerlessLLM",
+  "remote_affected_path_qualified": true,
+  "complete_system_qualified": false,
+  "source_plan": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "view_sha256": "286f7547a8129fd6e75885379428b84c9a5c23a7eb02bf1d7546f49bcf2cee5d",
+    "count": 500,
+    "source_count": 4000,
+    "profile": "ADAPTER_COVERAGE_V1",
+    "rate_scale": 1.0
+  },
+  "native_revalidated_requests": 500,
+  "max_native_recompute_error_ms": 0.0,
+  "physical_gpu_seconds": 2717.3239195765927,
+  "physical_window_gpu_seconds": {
+    "arrival": 2442.4698638916016,
+    "cleanup": 23.11150394845754,
+    "drain": 63.98556158412248,
+    "pre_arrival": 187.75699015241116
+  },
+  "n_correct": null,
+  "remote_transfers": 500,
+  "remote_wire_bytes": 420740410,
+  "verified_materialized_bytes": 12985984450,
+  "cache_hit_requests": 0,
+  "request_time_pack_count": 0,
+  "backend_ready_receipts": 4,
+  "remote_clock_ids": [
+    "remote-process-monotonic:f1a409a81ba9493fa1c41075f597841a"
+  ],
+  "service_memory_event_maxima": {
+    "high": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0
+  },
+  "service_memory_peak_bytes": 64123109376,
+  "service_swap_max_bytes": 0,
+  "host_min_available_bytes": 59220758528,
+  "disk_min_free_bytes": 149497323520,
+  "queue_source_reproduction": null,
+  "scheduler_contract": "request_identity_v1",
+  "scheduler_qualification": {
+    "contract": "request_identity_v1",
+    "readback": {
+      "class_name": "StorageAwareScheduler",
+      "pid": 2343864,
+      "source_file": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d406_20261011/source_repaired/sllm/schedulers/storage_aware_scheduler.py",
+      "source_sha256": "7f42b0cce82f970392b3d484767a13563fb2d29f6c6e870aa8f29b86fb972b91",
+      "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-6de823f8a93145ff95c966d0144f6d58.scope\n",
+      "affinity": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47
+      ],
+      "running": true,
+      "loop_present": true,
+      "loop_done": false,
+      "loop_cancelled": false,
+      "loop_exception": null,
+      "queues": {
+        "tc-native-llama2-7b-fp16-20260927": {
+          "total": 0,
+          "done": 0
+        }
+      },
+      "name": "model_loading_scheduler",
+      "namespace": "82ead70d-f93f-4dcd-867a-fe4a6cf2c9e1"
+    },
+    "conclusion": "actual served backends verified; live native loop and no pending allocations"
+  },
+  "raw_sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d406_20261011/launch7b_repaired.launch/replay.jsonl",
+      "sha256": "f779ed6a2d598fe46108e1d7aa81132bd88bfe277747da0feb6f0516e423bd60"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d406_20261011/model7b_repaired/physical/physical_resource_summary.json",
+      "sha256": "a51989b62381fc1d733f870b5949cb0c91436ae7fa4cf56fc62732dd5113d3f8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d406_20261011/model7b_repaired/physical/summary.json",
+      "sha256": "438603f41634a37b1daf2dbc80ec35e37fbc679ce3aa959c54d03faee67aaccb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d406_20261011/model7b_repaired/model_qualification.json",
+      "sha256": "036039a2b223d2ecd5a348481b9af11cee6aefc4ff517961af08643264bbca33"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d406_20261011/http_7b_500.json",
+      "sha256": "f37d891c5936d46c482c6a158c657c1567af023b6840cd214567466459f6298c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d406_20261011/remote_transfers.jsonl",
+      "sha256": "ce4476082f4dda67e9ed3c6dd986af34f663f5340498ddb93f807ce338b7c45e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d406_20261011/remote_monitor.log",
+      "sha256": "501586b495929decc8b1f62a6de24b9b57d68ca1f892b26647ba8469daee7a5d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d406_20261011/source_repaired/measurement_manifest.json",
+      "sha256": "0f7c3acfd2bf79f561efce1ffdee6880ad0c30b1210e0c37e4f2fcf86cfac329"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d406_20261011/storage_aware_scheduler_executed.py",
+      "sha256": "7f42b0cce82f970392b3d484767a13563fb2d29f6c6e870aa8f29b86fb972b91"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/scripts/summarize_serverlessllm_replay.py",
+      "sha256": "886921c168679c00783c917b7267021c02b3699604057a4bdb213bb55bbe9527"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/scripts/prepare_ieee_tc_serverless_stack.py",
+      "sha256": "f12134e98ee50a30b27887c971159970e5ccd54f81e0d906b41f6ff3ccca2ba0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d402_serverlessllm_path.py",
+      "sha256": "db1b69583e835e0aafb432165fae48d3ba08218e76ca01bd1a6c95fc958d60a4"
+    }
+  ],
+  "limitations": [
+    "500-ID functional mapping of existing prompts/arrivals/targets; not a W0 performance observation.",
+    "Raw unknown numerical correctness and old qualification flags are preserved.",
+    "Actual backend-ready receipts and live loop qualify the affected path; qualification does not quantify a causal latency benefit.",
+    "Fixed native-store four-GPU pool is charged until actual release; not a claim about every ServerlessLLM deployment.",
+    "No relative performance comparison with the 4000-request PrimeLoRA observation."
+  ]
+}
