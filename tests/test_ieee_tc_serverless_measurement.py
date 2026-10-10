@@ -5,9 +5,11 @@ import hashlib
 import importlib.util
 import json
 import os
+import fcntl
 from pathlib import Path
 import sys
 import tempfile
+import threading
 import time
 from types import SimpleNamespace as NS
 import unittest
@@ -28,6 +30,149 @@ def load(name, path):
 
 launch = load('tc_measurement_launch', ROOT / 'scripts/prepare_ieee_tc_serverless_stack.py')
 measurement = load('tc_measurement', ROOT / 'scripts/ieee_tc_serverless_measurement.py')
+
+
+class PublishedResolverTests(unittest.IsolatedAsyncioTestCase):
+    """Tiny real HTTP fixtures only, not production pool/performance runs."""
+
+    async def asyncSetUp(self):
+        from remote_artifact_node.server import ArtifactHandler, ArtifactServer, prepare_delivery_cache
+        self.temporary = tempfile.TemporaryDirectory()
+        self.root = Path(self.temporary.name)
+        source, published = self.root/'source', self.root/'published'
+        rows = []
+        for aid in ('a', 'b'):
+            files = {'adapter_config.json': b'{"r":8}', 'adapter_model.safetensors': aid.encode()*64}
+            records = []
+            for name, data in files.items():
+                path = source/aid/name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(data)
+                records.append(dict(path=name, size_bytes=len(data), sha256=hashlib.sha256(data).hexdigest()))
+            rows.append(dict(id=aid, files=records))
+        self.index = self.root/'index.json'
+        self.index.write_text(json.dumps(dict(format='artifact_content_v1', artifacts=rows)))
+        prepare_delivery_cache(source, self.index, published)
+        self.records = []
+        self.server = ArtifactServer(('127.0.0.1', 0), ArtifactHandler,
+            root=source, delivery_cache=published, event_sink=self.records.append)
+        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
+        self.thread.start()
+        self.cfg = dict(ingress_mode='service_pre_ready_v1', pool_index=str(self.index),
+            pool_index_sha256=hashlib.sha256(self.index.read_bytes()).hexdigest(),
+            remote_artifacts=dict(mode='published_gzip_ondemand_peft_v1',
+                endpoint=f'http://127.0.0.1:{self.server.server_port}',
+                token_env='TC_TEST_UNUSED_ARTIFACT_TOKEN', timeout_s=3.))
+        self.config, self.paths = launch.prepare_remote_artifacts(self.cfg, self.root,
+            Path('/proc/self/cgroup').read_text().strip().removeprefix('0::'))
+        self.resolver = measurement.PublishedArtifactResolver(self.config)
+
+    async def asyncTearDown(self):
+        await asyncio.to_thread(self.server.shutdown)
+        self.server.server_close()
+        self.thread.join()
+        self.temporary.cleanup()
+
+    async def test_actual_published_transfer_and_independent_resolvers_coalesce(self):
+        other = measurement.PublishedArtifactResolver(self.config)
+        results = await asyncio.gather(*(r.resolve('a', self.paths['a'], f'r{i}')
+            for i, r in enumerate([self.resolver, other]*4)))
+        self.assertEqual(sum(not r['tc_artifact_cache_hit'] for r in results), 1)
+        self.assertEqual(len({r['tc_artifact_transfer_id'] for r in results}), 1)
+        self.assertEqual(len({r['tc_artifact_receipt_sha256'] for r in results}), 1)
+        self.assertEqual(sum(r['tc_artifact_transferred_bytes'] for r in results), self.records[0]['bytes_written'])
+        self.assertFalse(self.records[0]['pack_performed'])
+        self.assertFalse(Path(self.paths['b']).exists())
+        self.assertEqual((Path(self.paths['a'])/'adapter_model.safetensors').read_bytes(), b'a'*64)
+        self.assertFalse(list((Path(self.config['cache_dir'])/'objects').glob('.*staging*')))
+
+    async def test_separate_native_processes_share_one_verified_publication(self):
+        program = '''import asyncio, importlib.util, json, sys
+sys.path.insert(0, sys.argv[1])
+spec = importlib.util.spec_from_file_location('resolver', sys.argv[2])
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
+config, target, rid = json.load(sys.stdin)
+print(json.dumps(asyncio.run(mod.PublishedArtifactResolver(config).resolve('a', target, rid))))
+'''
+        async def child(i):
+            proc = await asyncio.create_subprocess_exec(sys.executable, '-I', '-c', program,
+                str(MAIN), str(ROOT/'scripts/ieee_tc_serverless_measurement.py'),
+                stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+            stdout, stderr = await proc.communicate(json.dumps([self.config, self.paths['a'], f'p{i}']).encode())
+            self.assertEqual(proc.returncode, 0, stderr.decode())
+            return json.loads(stdout)
+        rows = await asyncio.gather(*(child(i) for i in range(3)))
+        self.assertEqual(sum(not r['tc_artifact_cache_hit'] for r in rows), 1)
+        self.assertEqual(len({r['tc_artifact_transfer_id'] for r in rows}), 1)
+        self.assertEqual(len(self.records), 1)
+
+    async def test_unrelated_artifacts_not_serialized_by_same_object_lock(self):
+        lock_path = Path(self.config['cache_dir'])/'locks/a.lock'
+        with lock_path.open('a+b') as held:
+            fcntl.flock(held, fcntl.LOCK_EX)
+            a = asyncio.create_task(self.resolver.resolve('a', self.paths['a'], 'a1'))
+            b = await asyncio.wait_for(self.resolver.resolve('b', self.paths['b'], 'b1'), timeout=2.)
+            self.assertFalse(b['tc_artifact_cache_hit'])
+            self.assertFalse(a.done())
+            a.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await asyncio.wait_for(a, timeout=1.)
+        self.assertFalse(Path(self.paths['a']).exists())
+        self.assertEqual(len(self.records), 1)
+
+    async def test_active_io_cancellation_drains_worker_and_does_not_publish(self):
+        entered, exited = threading.Event(), threading.Event()
+        native = self.resolver.client.download_artifact
+        def delayed(*args, **kwargs):
+            entered.set()
+            kwargs['cancel_event'].wait(2.)
+            try:
+                return native(*args, **kwargs)
+            finally:
+                exited.set()
+        with patch.object(self.resolver.client, 'download_artifact', side_effect=delayed):
+            task = asyncio.create_task(self.resolver.resolve('a', self.paths['a'], 'cancel'))
+            self.assertTrue(await asyncio.to_thread(entered.wait, 1.))
+            task.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await asyncio.wait_for(task, timeout=1.)
+        self.assertTrue(exited.is_set())
+        self.assertFalse(Path(self.paths['a']).exists())
+        self.assertEqual(self.records, [])
+
+    async def test_mutated_cache_and_bare_paths_fail_without_refetch(self):
+        await self.resolver.resolve('a', self.paths['a'], 'first')
+        (Path(self.paths['a'])/'adapter_model.safetensors').write_bytes(b'x'*64)
+        with self.assertRaisesRegex(ValueError, 'receipt'):
+            await self.resolver.resolve('a', self.paths['a'], 'changed')
+        Path(self.paths['b']).mkdir()
+        with self.assertRaisesRegex(ValueError, 'bare artifact'):
+            await self.resolver.resolve('b', self.paths['b'], 'bare')
+        self.assertEqual(len(self.records), 1)
+
+    async def test_remote_failure_is_not_retried_or_replaced_with_local_pool(self):
+        self.resolver.client.endpoint += '/nonexistent'
+        from faaslora.storage.http_artifact_store import RemoteArtifactError
+        with self.assertRaises(RemoteArtifactError):
+            await self.resolver.resolve('a', self.paths['a'], 'bad-url')
+        events = [json.loads(line) for line in self.resolver.journal.read_text().splitlines()]
+        self.assertEqual([e['event'] for e in events], ['resolver_opened', 'resolve_started', 'resolve_failed'])
+        self.assertFalse(Path(self.paths['a']).exists())
+        self.assertFalse(list((Path(self.config['cache_dir'])/'receipts').iterdir()))
+
+    async def test_frozen_identity_cgroup_paths_and_cold_cache_fail_closed(self):
+        with self.assertRaises(FileExistsError):
+            launch.prepare_remote_artifacts(self.cfg, self.root, self.config['service_cgroup'])
+        with self.assertRaisesRegex(ValueError, 'service cgroup'):
+            measurement.PublishedArtifactResolver(dict(self.config, service_cgroup='/not-this-service'))
+        with self.assertRaisesRegex(ValueError, 'index changed'):
+            measurement.published_artifact_client(dict(self.config, content_manifest_file_sha256='0'*64))
+        with self.assertRaisesRegex(ValueError, 'path differs'):
+            await self.resolver.resolve('a', '/unrelated/pool/a', 'bad-path')
+        with self.assertRaises((ValueError, KeyError)):
+            await self.resolver.resolve('../escape', self.paths['a'], 'bad-id')
+        self.assertEqual(self.records, [])
 
 
 class MeasurementTests(unittest.TestCase):
@@ -54,6 +199,25 @@ class MeasurementTests(unittest.TestCase):
         self.assertAlmostEqual(result['submit_lag_ms']+result['dispatch_wait_after_submit_ms']+
             result['service_ttft_ms']+result['decode_ms']+result['completion_notification_ms'], 2200.)
         self.assertFalse(result['lora_numerical_correctness_qualified'])
+        remote_prepared = dict(prepared, artifact_content_sha256='a'*64, artifact_manifest_sha256='b'*64)
+        with self.assertRaisesRegex(ValueError, 'remote artifact'):
+            launch.validate_http_observation(remote_prepared, body, event, 3.2, 'c')
+        artifact_control = dict(tc_artifact_request_id='r', tc_artifact_id='a',
+            tc_artifact_content_sha256='a'*64, tc_artifact_manifest_sha256='b'*64,
+            tc_artifact_delivery_mode='prepublished_gzip_v1', tc_artifact_receipt_sha256='c'*64,
+            tc_artifact_transfer_id='d'*32, tc_artifact_cache_hit=False, tc_artifact_transferred_bytes=123,
+            tc_artifact_resolve_started_s=2.11, tc_artifact_resolve_completed_s=2.19)
+        control.update(artifact_control)
+        remote = launch.validate_http_observation(remote_prepared, body, event, 3.2, 'c')
+        self.assertAlmostEqual(remote['artifact_resolve_ms'], 80.)
+        self.assertEqual(remote['e2e_ms'], result['e2e_ms'])
+        for field, bad in (('tc_artifact_id', 'wrong'), ('tc_artifact_content_sha256', '0'*64),
+                           ('tc_artifact_cache_hit', True), ('tc_artifact_resolve_completed_s', 2.21),
+                           ('tc_artifact_receipt_sha256', None)):
+            control[field] = bad
+            with self.assertRaisesRegex(ValueError, 'remote artifact'):
+                launch.validate_http_observation(remote_prepared, body, event, 3.2, 'c')
+            control[field] = artifact_control[field]
         with self.assertRaisesRegex(ValueError, 'ingress'):
             launch.validate_http_observation(prepared, body, event, 3.2, 'c', ingress_required=True)
         control.update(tc_ingress_received_s=1.11, tc_ingress_forwarded_s=1.19)
@@ -129,6 +293,20 @@ class MeasurementTests(unittest.TestCase):
             cls.body = [n for n in cls.body if getattr(n, 'name', '') != '_load_balancer_loop']
             trees.append(ast.dump(tree))
         self.assertEqual(*trees)
+
+    def test_remote_hook_is_awaited_before_native_lora_request_not_router(self):
+        sources = launch.measurement_sources(NATIVE, 'repaired')
+        backend = sources['sllm/backends/vllm_backend.py']
+        self.assertLess(backend.index('await self._tc_artifact_resolver.resolve('),
+                        backend.index('lora_request = self._build_lora_request('))
+        self.assertNotIn('PublishedArtifactResolver', sources['sllm/routers/roundrobin_router.py'])
+        self.assertNotIn('PublishedArtifactResolver', sources['sllm/app_lib.py'])
+        tree = ast.parse(Path(launch.__file__).read_text())
+        qualifier = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == '_qualify_model')
+        text = ast.unparse(qualifier)
+        self.assertIn('skip_store_lora_registration=True', text)
+        self.assertNotIn('skip_store_model_registration=True', text)
+        self.assertIn('remote_qualified=False', text)
 
     def test_source_view_never_writes_upstream_or_overwrites_prior_output(self):
         paths = ['sllm/app_lib.py', 'sllm/backends/vllm_backend.py', 'sllm/routers/roundrobin_router.py']

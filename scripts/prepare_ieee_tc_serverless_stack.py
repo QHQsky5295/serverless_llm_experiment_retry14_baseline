@@ -76,7 +76,12 @@ def measurement_sources(native_source: Path, variant: str) -> dict[str, str]:
     router = replace_once(router, '            assigned_at = time.time()',
         '            stamp(internal_metrics, "tc_instance_assigned_s")\n            assigned_at = time.time()')
     backend = replace_once(backend, 'import time\n', 'import time\n'
-        'from sllm.backends.tc_measurement import stamp, install_v1_snapshot, NativeRequestObservation\n')
+        'from sllm.backends.tc_measurement import (stamp, install_v1_snapshot, '
+        'NativeRequestObservation, PublishedArtifactResolver)\n')
+    backend = replace_once(backend, '        self.backend_config = backend_config\n',
+        '        self.backend_config = backend_config\n'
+        '        self._tc_artifact_resolver = (PublishedArtifactResolver(backend_config["tc_remote_artifacts"])\n'
+        '            if backend_config.get("tc_remote_artifacts") else None)\n')
     backend = replace_once(backend, '            self.engine = AsyncLLMEngine.from_engine_args(self.engine_args)',
         '            if self.backend_config.get("tc_native_measurement", False):\n'
         '                install_v1_snapshot()\n'
@@ -84,6 +89,11 @@ def measurement_sources(native_source: Path, variant: str) -> dict[str, str]:
     backend = replace_once(backend, '        internal_metrics["backend_started_at"] = time.time()',
         '        stamp(internal_metrics, "tc_backend_entry_s")\n'
         '        internal_metrics["backend_started_at"] = time.time()')
+    backend = replace_once(backend, '        lora_request = self._build_lora_request(\n',
+        '        if self._tc_artifact_resolver is not None:\n'
+        '            internal_metrics.update(await self._tc_artifact_resolver.resolve(\n'
+        '                lora_adapter_name, lora_adapter_path, request_id))\n'
+        '        lora_request = self._build_lora_request(\n')
     backend = replace_once(backend, '        results_generator = self.engine.generate(',
         '        tc_observation = (NativeRequestObservation(lora_request)\n'
         '            if self.backend_config.get("tc_native_measurement", False) else None)\n'
@@ -130,6 +140,8 @@ def prepare_measurement_view(native_source: Path, output: Path, variant: str,
         original_sha256={p: sha((native_source/p).read_bytes()) for p in replacements},
         measured_sha256={p: sha(text.encode()) for p, text in replacements.items()},
         helper_sha256=sha(support.read_bytes()), helper_path=str(support),
+        shared_source_sha256={p: sha((main_repo/p).read_bytes()) for p in
+            ('faaslora/storage/http_artifact_store.py', 'faaslora/clock.py')},
         loader_policy_changed=False, routing_policy_changed=variant == 'repaired',
         performance_run_authorized=False)
     with (output / 'measurement_manifest.json').open('x') as handle:
@@ -175,6 +187,22 @@ def validate_http_observation(prepared, response, event, completed, clock_id, *,
         if (any(type(t) not in (int, float) or not math.isfinite(t) for t in ingress)
                 or not times[2] <= ingress[0] <= ingress[1] <= times[3]):
             raise ValueError('service ingress receive/forward times absent or not ordered')
+    if 'artifact_content_sha256' in prepared:
+        artifact_times = [control.get('tc_artifact_resolve_started_s'),
+                          control.get('tc_artifact_resolve_completed_s')]
+        hit, transferred = control.get('tc_artifact_cache_hit'), control.get('tc_artifact_transferred_bytes')
+        if (control.get('tc_artifact_request_id') != prepared['request_id']
+                or control.get('tc_artifact_id') != prepared['adapter_id']
+                or control.get('tc_artifact_content_sha256') != prepared['artifact_content_sha256']
+                or control.get('tc_artifact_manifest_sha256') != prepared['artifact_manifest_sha256']
+                or control.get('tc_artifact_delivery_mode') != 'prepublished_gzip_v1'
+                or not re.fullmatch('[0-9a-f]{64}', str(control.get('tc_artifact_receipt_sha256')))
+                or not re.fullmatch('[0-9a-f]{32}', str(control.get('tc_artifact_transfer_id')))
+                or type(hit) is not bool or type(transferred) is not int
+                or (transferred != 0 if hit else transferred <= 0)
+                or any(type(t) not in (int, float) or not math.isfinite(t) for t in artifact_times)
+                or not times[6] <= artifact_times[0] <= artifact_times[1] <= times[7]):
+            raise ValueError('service remote artifact identity/timing/receipt differs')
     a, e, d, f, last = times[0], times[2], times[5], times[10], times[11]
     components = [e-a, d-e, f-d, last-f, completed-last]
     tpot_ms = (last-f)*1000/(target-1) if target > 1 else None
@@ -196,7 +224,44 @@ def validate_http_observation(prepared, response, event, completed, clock_id, *,
         # Included in d-e already; this diagnostic subspan is NOT another term
         # in E2E, and arrival/submit times are never reset after startup.
         result['ingress_wait_ms'] = (ingress[1]-ingress[0])*1000
+    if 'artifact_content_sha256' in prepared:
+        result.update(artifact_resolve_ms=(artifact_times[1]-artifact_times[0])*1000,
+                      artifact_cache_hit=hit, artifact_transferred_bytes=transferred)
     return result
+
+
+def remote_artifact_contract(http_cfg):
+    """Shared static identity, no request-time downloads in the replay client."""
+    remote = http_cfg.get('remote_artifacts')
+    if remote is None:
+        return None, None
+    if (http_cfg.get('ingress_mode') != 'service_pre_ready_v1'
+            or set(remote) != {'mode', 'endpoint', 'token_env', 'timeout_s'}):
+        raise ValueError('published remote mode requires explicit startup admission and transport keys')
+    config = dict(remote, content_manifest=http_cfg['pool_index'],
+                  content_manifest_file_sha256=http_cfg['pool_index_sha256'])
+    helper = ROOT/'scripts/ieee_tc_serverless_measurement.py'
+    spec = importlib.util.spec_from_file_location('tc_published_artifact_support', helper)
+    support = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(support)
+    return config, support.published_artifact_client(config)
+
+
+def prepare_remote_artifacts(http_cfg, private_root, service_cgroup):
+    config, client = remote_artifact_contract(http_cfg)
+    if config is None:
+        return None, None
+    root = private_root/'remote_artifacts'
+    config.update(cache_dir=str(root), service_cgroup=service_cgroup)
+    # Fail on reuse, including a stale symlink. Download only touched IDs later.
+    root.mkdir(mode=0o700)
+    for name in ('objects', 'receipts', 'locks', 'journals'):
+        (root/name).mkdir(mode=0o700)
+    with (root/'run_contract.json').open('x') as handle:
+        json.dump(config, handle, sort_keys=True)
+    ids = [row['id'] for row in json.loads(Path(http_cfg['pool_index']).read_text())['artifacts']]
+    descriptions = client.preparation_manifests(ids)
+    return config, {aid: str(root/'objects'/aid) for aid in descriptions}
 
 
 async def replay_http_session(plan, origin, prepared, url, emit, *, ingress_required=False):
@@ -262,6 +327,13 @@ def http_replay(args):
         raise ValueError('existing trace changed')
     tokenizer = AutoTokenizer.from_pretrained(cfg['backbone'], local_files_only=True)
     prepared = {e.request_id: prepare_frozen_http_request(e, tokenizer, cfg['model']) for e in plan.entries}
+    _, artifact_client = remote_artifact_contract(cfg)
+    if artifact_client is not None:
+        from faaslora.storage.http_artifact_store import preparation_content_sha256
+        descriptions = artifact_client.preparation_manifests(sorted({r['adapter_id'] for r in prepared.values()}))
+        for row in prepared.values():
+            row.update(artifact_content_sha256=preparation_content_sha256(descriptions[row['adapter_id']]),
+                       artifact_manifest_sha256=artifact_client.content_manifest_sha256)
     imported_backends = sorted(name for name in ('torch', 'vllm', 'ray', 'sllm') if name in sys.modules)
     if imported_backends:
         raise RuntimeError(f'external tokenizer publisher imported serving modules: {imported_backends}')
@@ -275,7 +347,8 @@ def http_replay(args):
                      helper_sha256=sha(Path(__file__).read_bytes()),
                      shared_source_sha256={p: sha((Path(cfg['main_repo'])/p).read_bytes()) for p in
                          ('faaslora/datasets/workload_generator.py', 'faaslora/clock.py',
-                          'faaslora/metrics/metrics_collector.py')})
+                          'faaslora/metrics/metrics_collector.py',
+                          'faaslora/storage/http_artifact_store.py')})
         emit(ready)
         for row in prepared.values():
             emit(dict(event='request_contract', **{k: v for k, v in row.items()
@@ -431,7 +504,7 @@ def prepare(output: Path, private_root: Path, main_repo: Path, gpu_ids: tuple[in
     rendered, allocation = render(sources, script_dir=output, private_root=private_root,
                                  main_repo=main_repo, gpu_ids=gpu_ids, ray_only=ray_only)
     manifest = {
-        "schema": "ieee_tc_serverless_native_launcher_view_v1", "display_name": "Serverless",
+        "schema": "ieee_tc_serverless_native_launcher_view_v1", "display_name": "ServerlessLLM",
         "main_repo": str(main_repo), "private_root": str(private_root),
         "script_dir": str(output), "source_sha256": SOURCE_SHA,
         "requested_script_dir": requested_output,
@@ -1008,7 +1081,7 @@ def qualify_ray(args) -> dict:
         with (args.output / 'ray_witness.json').open('x') as handle:
             json.dump(result, handle, indent=2)
     if failure:
-        raise RuntimeError('Serverless Ray qualification failed; see preserved witness') from failure
+        raise RuntimeError('ServerlessLLM Ray qualification failed; see preserved witness') from failure
     return result
 
 
@@ -1184,6 +1257,12 @@ def qualify_model(args) -> dict:
                 raise ValueError('measured source view changed')
         if sha(Path(measured['helper_path']).read_bytes()) != measured['helper_sha256']:
             raise ValueError('native measurement helper changed')
+        for path, expected in measured.get('shared_source_sha256', {}).items():
+            if sha((args.main_repo/path).read_bytes()) != expected:
+                raise ValueError('shared measurement/transport source changed')
+        if http_cfg.get('remote_artifacts') is not None and set(measured.get('shared_source_sha256', {})) != {
+                'faaslora/storage/http_artifact_store.py', 'faaslora/clock.py'}:
+            raise ValueError('remote qualification requires frozen common transport source')
         if ((args.native_source/'faaslora').resolve(strict=True) !=
                 (args.main_repo/'faaslora').resolve(strict=True)
                 or measured.get('repository_startup_hooks') is not False
@@ -1254,13 +1333,26 @@ def _qualify_model(args, guard, admission, http_cfg, replay_context, measured, i
             raise ValueError('full existing pool required; no replacement or download')
         embedding_policy = existing_pool_embedding_policy(adapter_map)
         result['embedding_layout_qualification'] = embedding_policy
+        remote_config, remote_map = prepare_remote_artifacts(http_cfg, args.private_root,
+            '/'+str(Path(admission['service_identity']['path']).relative_to('/sys/fs/cgroup')))
+        if remote_config is not None:
+            if set(remote_map) != set(adapter_map):
+                raise ValueError('local metadata audit and remote content identity differ')
+            adapter_map = remote_map
+            result['configuration']['backend_config'].update(tc_remote_artifacts=remote_config,
+                skip_store_lora_registration=True)
+            # This PEFT transport adaptation does not disable native backbone
+            # store registration/fast loading or change RR/scaler policies.
+            if result['configuration']['backend_config']['skip_store_model_registration']:
+                raise ValueError('remote LoRA adapter must preserve native backbone loading')
         result['configuration']['backend_config'].update(
             tc_native_measurement=True, enable_lora=True, require_lora_for_inference=True,
             lora_adapters=adapter_map, max_loras=4, max_cpu_loras=4, max_lora_rank=64,
             disable_log_stats=False,
             disable_lora_embeddings=embedding_policy['disable_lora_embeddings'])
         result.update(external_http_replay=replay_context, source_view_manifest=measured,
-                      artifact_source='existing_local_pool_mechanical_qualification_only',
+                      artifact_source=(remote_config['mode'] if remote_config else
+                          'existing_local_pool_mechanical_qualification_only'),
                       remote_qualified=False, polling_comparison_completed=False)
         result['ingress'] = dict(mode=http_cfg.get('ingress_mode', 'native_direct_v1'),
             service_owned=True, business_t0_shifted=False, hidden_retries=False,

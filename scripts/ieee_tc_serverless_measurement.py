@@ -8,15 +8,195 @@ The ingress is a disclosed deployment adapter, never installed in legacy runs.
 import copy
 import asyncio
 import concurrent.futures
+import fcntl
 import hashlib
 import json
 import os
 from pathlib import Path
 import threading
 import time
+import uuid
 from urllib.parse import urlsplit
 
 OUTPUT_PROCESSOR_SHA256 = '50f5e0aa5d0b7ece086632de6e37376dbeba0a1c0d2f22f95b6759189e76e04d'
+
+
+def published_artifact_client(config):
+    """Validate static delivery metadata only; never fetch from the publisher."""
+    from faaslora.storage.http_artifact_store import HttpArtifactStoreClient
+    endpoint = urlsplit(config['endpoint'])
+    if (config.get('mode') != 'published_gzip_ondemand_peft_v1'
+            or endpoint.scheme not in ('http', 'https') or not endpoint.hostname
+            or endpoint.username or endpoint.password or endpoint.query or endpoint.fragment
+            or not 0 < config['timeout_s'] < float('inf')):
+        raise ValueError('explicit published artifact delivery contract required')
+    raw = Path(config['content_manifest']).read_bytes()
+    if hashlib.sha256(raw).hexdigest() != config['content_manifest_file_sha256']:
+        raise ValueError('frozen artifact index changed')
+    client = HttpArtifactStoreClient(endpoint=config['endpoint'],
+        token_env=config['token_env'], timeout_s=config['timeout_s'],
+        use_env_proxy=False, required_delivery_mode='prepublished_gzip_v1')
+    client.configure_content_manifest(json.loads(raw))
+    return client
+
+
+class PublishedArtifactResolver:
+    """Generic on-demand PEFT transport in the service, not a cache planner.
+
+    Reuses the common strict downloader; no local-pool fallback, prediction,
+    prefetch, eviction or scheduler changes. A per-object interprocess lock
+    coalesces simultaneous misses across native actors. Unrelated objects do
+    not share a lock. Receipts prove verified publication, not numerical LoRA
+    correctness. The launcher creates a fresh run-local cache before bootstrap.
+    """
+
+    def __init__(self, config):
+        self.config = dict(config)
+        self._check_service()
+        self.client = published_artifact_client(config)
+        self.root = Path(config['cache_dir'])
+        if (not self.root.is_absolute() or self.root.is_symlink()
+                or any(not (self.root/p).is_dir() or (self.root/p).is_symlink()
+                       for p in ('objects', 'receipts', 'locks', 'journals'))
+                or json.loads((self.root/'run_contract.json').read_text()) != config):
+            raise ValueError('fresh service-owned artifact cache contract missing')
+        self.journal = self.root/'journals'/f'{os.getpid()}-{uuid.uuid4().hex}.jsonl'
+        self.journal.touch(exist_ok=False)
+        self._journal_lock = threading.Lock()
+        self._emit('resolver_opened', cgroup=Path('/proc/self/cgroup').read_text(),
+                   affinity=sorted(os.sched_getaffinity(0)))
+
+    def _check_service(self):
+        expected = self.config['service_cgroup']
+        actual = Path('/proc/self/cgroup').read_text().strip()
+        if (not isinstance(expected, str) or not expected.startswith('/')
+                or expected == '/' or '..' in Path(expected).parts
+                or not (actual == '0::'+expected or actual.startswith('0::'+expected+'/'))):
+            raise ValueError('artifact resolver must execute within its admitted service cgroup')
+
+    def _emit(self, event, **fields):
+        with self._journal_lock, self.journal.open('a') as handle:
+            handle.write(json.dumps(dict(event=event, pid=os.getpid(),
+                monotonic_s=time.perf_counter(), **fields), separators=(',', ':'))+'\n')
+
+    @staticmethod
+    def _file_identity(target, files):
+        # Verified immutable files are stat-checked on reuse, not rehashed for
+        # every request. This is an integrity guard in an owned run directory,
+        # not protection against a malicious actor who can forge stat metadata.
+        if target.is_symlink() or not target.is_dir():
+            raise ValueError('unverified artifact directory')
+        found = set()
+        for path in target.rglob('*'):
+            if path.is_symlink():
+                raise ValueError('artifact cache contains a symlink')
+            if path.is_file():
+                found.add(path.relative_to(target).as_posix())
+        if found != set(files):
+            raise ValueError('artifact cache file set changed')
+        identities = {}
+        for name, (size, _) in files.items():
+            stat = (target/name).stat()
+            if stat.st_size != size:
+                raise ValueError('artifact cache file size changed')
+            identities[name] = [stat.st_dev, stat.st_ino, stat.st_size,
+                                stat.st_mtime_ns, stat.st_ctime_ns]
+        return identities
+
+    def _resolve(self, adapter_id, path, request_id, cancelled):
+        from faaslora.storage.http_artifact_store import preparation_content_sha256
+        self._check_service()
+        # FrozenPreparationDescriptions validates each ID before path use.
+        files = self.client.preparation_manifests((adapter_id,))[adapter_id]
+        target = self.root/'objects'/adapter_id
+        if str(target) != path or not isinstance(request_id, str) or not request_id:
+            raise ValueError('native request/path differs from frozen artifact mapping')
+        start = time.perf_counter()
+        receipt_path = self.root/'receipts'/f'{adapter_id}.json'
+        content_sha = preparation_content_sha256(files)
+        self._emit('resolve_started', request_id=request_id, adapter_id=adapter_id)
+        evidence = {}
+        try:
+            with (self.root/'locks'/f'{adapter_id}.lock').open('a+b') as lock:
+                # Do not occupy the native async event loop while another actor
+                # downloads. 50 ms is only cancellation/lock wakeup granularity,
+                # not a service policy, transfer throttle or request retry.
+                while True:
+                    if cancelled.is_set():
+                        raise InterruptedError('artifact resolution cancelled')
+                    if time.perf_counter()-start >= self.config['timeout_s']:
+                        raise TimeoutError('artifact publication lock deadline')
+                    try:
+                        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                        break
+                    except BlockingIOError:
+                        cancelled.wait(.05)
+                cache_hit = receipt_path.exists()
+                if cache_hit:
+                    receipt_raw = receipt_path.read_bytes()
+                    receipt = json.loads(receipt_raw)
+                    if (receipt.get('adapter_id') != adapter_id
+                            or receipt.get('content_sha256') != content_sha
+                            or receipt.get('content_manifest_sha256') != self.client.content_manifest_sha256
+                            or receipt.get('files') != self._file_identity(target, files)
+                            or receipt.get('evidence', {}).get('content_verified') is not True
+                            or receipt['evidence'].get('remote_pack_performed') is not False
+                            or receipt['evidence'].get('remote_delivery_mode') != 'prepublished_gzip_v1'):
+                        raise ValueError('artifact publication receipt or cached content changed')
+                else:
+                    if target.exists() or target.is_symlink():
+                        raise ValueError('bare artifact path has no verified remote receipt')
+                    ok, _, _ = self.client.download_artifact(adapter_id, str(target),
+                        require_content_manifest=True, require_remote_timing=True,
+                        evidence=evidence, cancel_event=cancelled)
+                    if (not ok or evidence.get('content_verified') is not True
+                            or evidence.get('remote_pack_performed') is not False
+                            or evidence.get('state') != 'published'):
+                        raise ValueError('unverified remote artifact publication')
+                    receipt = dict(adapter_id=adapter_id, content_sha256=content_sha,
+                        content_manifest_sha256=self.client.content_manifest_sha256,
+                        files=self._file_identity(target, files), evidence=evidence)
+                    receipt_raw = json.dumps(receipt, sort_keys=True, separators=(',', ':')).encode()
+                    with receipt_path.open('xb') as handle:
+                        handle.write(receipt_raw)
+                # Receipt and object are published under the same lock. A
+                # process crash can leave an untrusted path, never a fake hit.
+            result = dict(tc_artifact_request_id=request_id, tc_artifact_id=adapter_id,
+                tc_artifact_content_sha256=content_sha,
+                tc_artifact_manifest_sha256=self.client.content_manifest_sha256,
+                tc_artifact_receipt_sha256=hashlib.sha256(receipt_raw).hexdigest(),
+                tc_artifact_transfer_id=receipt['evidence']['http_transfer_id'],
+                tc_artifact_cache_hit=cache_hit,
+                tc_artifact_transferred_bytes=0 if cache_hit else evidence['transferred_bytes'],
+                tc_artifact_delivery_mode='prepublished_gzip_v1',
+                tc_artifact_resolve_started_s=start,
+                tc_artifact_resolve_completed_s=time.perf_counter())
+            self._emit('resolve_completed', **result)
+            return result
+        except BaseException as exc:
+            self._emit('resolve_failed', request_id=request_id, adapter_id=adapter_id,
+                       error_type=type(exc).__name__, evidence=evidence)
+            raise
+
+    async def resolve(self, adapter_id, path, request_id):
+        cancelled = threading.Event()
+        task = asyncio.create_task(asyncio.to_thread(self._resolve, adapter_id, path, request_id, cancelled))
+        try:
+            return await asyncio.shield(task)
+        except asyncio.CancelledError:
+            cancelled.set()
+            # Drain the bounded I/O worker so cancellation cannot leave an
+            # invisible writer behind when service cleanup begins.
+            while not task.done():
+                try:
+                    await asyncio.shield(task)
+                except asyncio.CancelledError:
+                    continue
+                except Exception:
+                    break
+            if not task.cancelled():
+                task.exception()  # retrieve a failed transfer, preserve cancellation
+            raise
 
 
 class PreReadyHTTPIngress:
