@@ -67,9 +67,10 @@ async def reproduce_queue(source):
 
 def validate_population(config, ready, contracts, native, population):
     """Reconstruct the offered view; do not infer full coverage from a label."""
-    count = 500 if population == 'adapter_coverage_v1' else 100
-    if population not in ('prefix100', 'adapter_coverage_v1'):
+    counts = {'prefix100': 100, 'prefix1000': 1000, 'adapter_coverage_v1': 500}
+    if population not in counts:
         raise ValueError('unknown qualification population')
+    count = counts[population]
     if config['request_count'] != count or len(contracts) != count:
         raise ValueError('qualification population count differs')
     plan = native.load_http_replay_plan(config)
@@ -93,6 +94,101 @@ def validate_population(config, ready, contracts, native, population):
     return count
 
 
+def compare_reference_row(observation, contract, source, reference):
+    """Compare retained hashes; never turn a mismatch into numerical success."""
+    def ids_sha(ids):
+        return hashlib.sha256(json.dumps(ids, separators=(',', ':')).encode()).hexdigest()
+    timing = source['native_token_timing']
+    ids = observation['completion_token_ids']
+    if (not ids or any(type(i) is not int or i < 0 for i in ids)
+            or ids_sha(ids) != observation['completion_token_ids_sha256']
+            or ids_sha(timing['completion_token_ids']) != reference['native_ids_sha256']
+            or timing['completion_token_ids_sha256'] != reference['native_ids_sha256']
+            or not source['success']
+            or source['request_id'] != reference['request_id']
+            or contract['request_id'] != source['request_id']
+            or contract['adapter_id'] != source['adapter_id']
+            or reference['adapter_id'] != source['adapter_id']
+            or observation['native_lora_name'] != source['adapter_id']
+            or contract['canonical_prompt_sha256'] != source['canonical_prompt_sha256']
+            or observation['native_prompt_token_ids_sha256'] != timing['native_prompt_token_ids_sha256']
+            or len(ids) != contract['target_tokens']
+            or contract['target_tokens'] != source['requested_completion_tokens']
+            or contract['target_tokens'] != reference['reference_tokens']
+            or reference['target_tokens'] != contract['target_tokens']):
+        raise ValueError('reference input, adapter, target or native output identity differs')
+    exact = observation['completion_token_ids_sha256'] == reference['reference_ids_sha256']
+    known_reference = (timing['completion_token_ids'] if reference['exact_sequence_match']
+                       else reference['reference_prefix'])
+    divergence = next((i for i, (a, b) in enumerate(zip(ids, known_reference)) if a != b), None)
+    # D385 stores logits only for its own first divergence, not arbitrary later ones.
+    reusable_margin = (not exact and divergence is not None
+        and divergence == reference['first_divergent_position']
+        and ids[divergence] == reference['native_prefix'][divergence])
+    return dict(request_id=source['request_id'], adapter_id=source['adapter_id'],
+        target_tokens=len(ids), exact_sequence_match=exact,
+        native_ids_sha256=observation['completion_token_ids_sha256'],
+        reference_ids_sha256=reference['reference_ids_sha256'],
+        known_first_divergent_position=None if exact else divergence,
+        divergence_position_known=exact or divergence is not None,
+        independently_observed_margin_reusable=bool(reusable_margin),
+        hf_top1_minus_top2=reference['hf_top1_minus_top2'] if reusable_margin else None,
+        native_token_in_hf_top2=reference['native_token_in_hf_top2'] if reusable_margin else None)
+
+
+def reuse_numerical_reference(root, reference_path, main):
+    """D407 bounded independent-reference reuse; no GPU or new reference data."""
+    reference = json.loads(reference_path.read_text())
+    source_path = Path(reference['source_native_path'])
+    if digest(source_path) != reference['source_native_sha256'] or not reference['measurement_complete']:
+        raise ValueError('independent reference provenance incomplete')
+    source_result = json.loads(source_path.read_text())
+    sources = next(iter(source_result['detailed_results'].values()))['requests']
+    source_index = {r['request_id']: r for r in sources}
+    reference_index = {r['request_id']: r for r in reference['requests']}
+    events = [json.loads(l) for l in (root/'launch7b_repaired.launch/replay.jsonl').read_text().splitlines()]
+    contracts = {r['request_id']: r for r in events if r['event'] == 'request_contract'}
+    native = {r['request_id']: r['body']['metrics']['ieee_tc'] for r in events if r['event'] == 'http_raw_response'}
+    cfg = json.loads((root/'http_7b_100.json').read_text())
+    if (len(reference_index) != len(reference['requests']) or len(reference_index) != 100
+            or set(contracts) != set(reference_index) or set(native) != set(reference_index)
+            or set(source_index) != set(reference_index)
+            or cfg['trace_sha256'] != reference['trace_sha256']
+            or digest(cfg['trace']) != reference['trace_sha256']):
+        raise ValueError('bounded witness populations or source trace differ')
+    pool_path = Path(cfg['pool_index'])
+    if digest(pool_path) != cfg['pool_index_sha256']:
+        raise ValueError('pool identity differs')
+    pool = {a['id']: a for a in json.loads(pool_path.read_text())['artifacts']}
+    classes = {}
+    rows = []
+    for rid in sorted(native):
+        row = compare_reference_row(native[rid], contracts[rid], source_index[rid], reference_index[rid])
+        aid = row['adapter_id']
+        selected = [f for f in pool[aid]['files'] if f['path'] in ('adapter_model.safetensors', 'adapter_config.json')]
+        for file in selected:
+            if digest(Path(reference['adapter_root'])/aid/file['path']) != file['sha256']:
+                raise ValueError('reference adapter bytes differ from delivered pool')
+        weight = next(f['sha256'] for f in selected if f['path'] == 'adapter_model.safetensors')
+        row['weight_sha256'] = weight
+        group = classes.setdefault(weight, dict(requests=0, exact_sequences=0, adapter_ids=set()))
+        group['requests'] += 1
+        group['exact_sequences'] += row['exact_sequence_match']
+        group['adapter_ids'].add(aid)
+        rows.append(row)
+    for group in classes.values():
+        group['adapter_ids'] = sorted(group['adapter_ids'])
+    return dict(schema='ieee_tc_serverless_reference_reuse_v1', display_name='ServerlessLLM',
+        count=len(rows), exact_sequences=sum(r['exact_sequence_match'] for r in rows),
+        source_adapter_input_identity_complete=True, weight_classes=classes, requests=rows,
+        full_semantic_correctness_proof=False, full_performance_qualification=False,
+        limitation='Bounded HF/PEFT witness only; mismatches retained, not blanket-classified as rounding. V1 does not require cross-backend exact sequences.',
+        sources=[dict(path=str(p), sha256=digest(p)) for p in
+            (reference_path, source_path, pool_path, root/'launch7b_repaired.launch/replay.jsonl',
+             main/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md',
+             main/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md', Path(__file__))])
+
+
 def audit(root, baseline, main, scheduler_contract='original', population='prefix100'):
     sys.path[:0] = [str(baseline/'scripts'), str(main)]
     import summarize_serverlessllm_replay as analyzer
@@ -105,7 +201,8 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
     index = {k: {e['request_id']: e for e in events if e['event'] == k} for k in kinds}
     ready = summary['ready_identity']
     assert digest(ready['plan']['source_path']) == ready['plan']['source_sha256']
-    config_path = root/('http_7b_500.json' if population == 'adapter_coverage_v1' else 'http_7b_100.json')
+    config_path = root/('http_7b_500.json' if population == 'adapter_coverage_v1' else
+                       'http_7b_1000.json' if population == 'prefix1000' else 'http_7b_100.json')
     assert digest(config_path) == ready['config_sha256']
     count = validate_population(json.loads(config_path.read_text()), ready,
                                 index['request_contract'], native, population)
@@ -232,7 +329,7 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
         raw_sources=[dict(path=str(p), sha256=digest(p)) for p in source_paths],
         limitations=[('500-ID functional mapping of existing prompts/arrivals/targets; not a W0 performance observation.'
                       if population == 'adapter_coverage_v1' else
-                      '100-request development prefix, not a full W0 comparison or configuration optimum.'),
+                      f'{count}-request development prefix, not a full W0 comparison or configuration optimum.'),
             'Raw unknown numerical correctness and old qualification flags are preserved.',
             ('Four logical instances include starting instances; three served engines. Scheduler queue bug independently reproduced; live exception was not logged.'
              if scheduler_contract == 'original' else
@@ -249,11 +346,16 @@ if __name__ == '__main__':
     parser.add_argument('--main', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--scheduler-contract', choices=('original', 'request_identity_v1'), default='original')
-    parser.add_argument('--population', choices=('prefix100', 'adapter_coverage_v1'), default='prefix100')
+    parser.add_argument('--population', choices=('prefix100', 'prefix1000', 'adapter_coverage_v1'), default='prefix100')
+    parser.add_argument('--reference-result', type=Path)
     args = parser.parse_args()
     if args.output.exists():
         raise FileExistsError(args.output)
     report = audit(args.root, args.baseline, args.main, args.scheduler_contract, args.population)
+    if args.reference_result:
+        if args.population != 'prefix100':
+            raise ValueError('independent reference is the unchanged first 100 requests only')
+        report['bounded_numerical_reference'] = reuse_numerical_reference(args.root, args.reference_result, args.main)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.open('x') as handle:
         json.dump(report, handle, indent=2)

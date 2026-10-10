@@ -1,4 +1,4 @@
-# IEEE TC execution status — current, D406 terminal
+# IEEE TC execution status — current, D407 reference reuse; D408 prepared
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -74,6 +74,24 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+D407 COMPLETE 2026-10-11: no GPU repeat. Existing D404100request outputs joined
+to independent D385 HF/PEFT reference with source/input/adapter/content hashes:
+100/100 identities,94exact sequences,all4weight classes. Six differences kept;
+only3share D385's independently recorded divergence position/token and top2
+margin0/.015625. Other3margins unknown,not assumed rounding. Eleven CPU tests
+pass0.050s. Audit paper_results/ieee_tc/baseline_audit/d407_7b_reference/audit.json
+SHA7843794689b7aeaee4ac8ed067de5871ef858729130c7f185a0c9566e6c0b5d4.
+See D407_SERVERLESSLLM_REFERENCE_REUSE.md. Frozen V1/D393 do NOT require exact
+cross-backend tokens; do not reintroduce D391's superseded full-exact oracle.
+Bounded numerical evidence is reusable; raw unknown fields stay unchanged.
+D408 PREPARED: original1000 W0 requests,trace_prefix_v1(nocoverage remapping),
+60actualIDs,target4/min1/max4/keep10 and same D406 backend. Exclusive raw root
+/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d408_20261011.
+Not yet launched at this checkpoint. No new weights/traces/publishedcache.
+Next launch through existing protected/resource-gated native runner,validate,
+then originalfull4000W0 after public configuration decision. Do not repeat
+100/500gates or numerical probes merely for exact-match selection.
 
 D405 COMPLETE 2026-10-11: audited historical replay files: clean7B, earlier7B,
 3B each4000reported successes but132actual logical adapter IDs. Original7B
