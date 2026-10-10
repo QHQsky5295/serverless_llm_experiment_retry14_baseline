@@ -1,4 +1,4 @@
-# IEEE TC execution status — current, D407 reference reuse; D408 prepared
+# IEEE TC execution status — current, D407 reference reuse; D408 running
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -85,11 +85,23 @@ SHA7843794689b7aeaee4ac8ed067de5871ef858729130c7f185a0c9566e6c0b5d4.
 See D407_SERVERLESSLLM_REFERENCE_REUSE.md. Frozen V1/D393 do NOT require exact
 cross-backend tokens; do not reintroduce D391's superseded full-exact oracle.
 Bounded numerical evidence is reusable; raw unknown fields stay unchanged.
-D408 PREPARED: original1000 W0 requests,trace_prefix_v1(nocoverage remapping),
+D408 RUNNING (2026-10-11 01:47 Asia/Shanghai): original1000 W0 requests,trace_prefix_v1(nocoverage remapping),
 60actualIDs,target4/min1/max4/keep10 and same D406 backend. Exclusive raw root
 /home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d408_20261011.
-Not yet launched at this checkpoint. No new weights/traces/publishedcache.
-Next launch through existing protected/resource-gated native runner,validate,
+Tmux tc-d408-7b; service scope primelora-tc-svc-73299919da3640b6a75b48151d6388b9.scope;
+aux primelora-tc-aux-d4080000000000000000000000000001.scope.
+Execution main242b3c455e13ac10920f0af8a04695af05f52a7f(pushed/remoteverified),
+baseline25848cfb57ef15351f800daf7062cffb2a0d3807. No new weights/traces/cache.
+Preflight pass; protected_before SHA96df8e345419d26b941f99e19578d8dfe6717fe06b35caa6d42e0dae4885e87d
+matches prior:sole known user replay edit. Remote health passed before deployment
+notice with existing native env; first /usr/bin/python3 health invocation lacked
+numpy,no remote request/no file output; it was corrected before business arrival.
+Remote services use reused frozen D78/D80 configuration; monitor
+primelora-artifact-monitor-d408-7b.service; loader overlay currently INSTALLED,
+backup/receipt under raw/overlay7b_repaired. After terminal verify GPU/context
+release,restore exact overlay,run raw/stop_remote.sh(invocation checked),retain
+remote transfer/monitor and resolver/worker evidence. Do NOT restart this run.
+Next monitor original1000 through terminal/cleanup and audit prefix1000,
 then originalfull4000W0 after public configuration decision. Do not repeat
 100/500gates or numerical probes merely for exact-match selection.
 
