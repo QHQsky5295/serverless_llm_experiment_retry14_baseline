@@ -77,6 +77,24 @@ class NativeLaunchTests(unittest.TestCase):
     def sources(self):
         return {name: (ROOT / "scripts" / name).read_text() for name in launch.SOURCE_SHA}
 
+    def test_graph_candidate_changes_only_public_execution_mode(self):
+        paths = (Path('/models/vllm/existing'), Path('/source/model'))
+        default = launch.native_model_config(*paths, max_instances=4, target=4)
+        eager = launch.native_model_config(*paths, max_instances=4, target=4, enforce_eager=True)
+        hybrid = launch.native_model_config(*paths, max_instances=4, target=4, enforce_eager=False)
+        self.assertEqual(default, eager)
+        self.assertFalse(hybrid['backend_config']['enforce_eager'])
+        hybrid['backend_config']['enforce_eager'] = True
+        self.assertEqual(hybrid, default)
+        for value in (None, 0, 1, 'false', 'auto'):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                launch.native_model_config(*paths, enforce_eager=value)
+
+    def test_graph_option_is_explicit_in_cli(self):
+        checked = subprocess.run([os.sys.executable, str(HELPER), 'qualify-model', '--help'],
+                                 capture_output=True, text=True, check=True)
+        self.assertIn('--no-enforce-eager', checked.stdout)
+
     def render(self, **changes):
         options = dict(script_dir=Path("/tmp/tc-launch-test/scripts"),
                        private_root=Path("/tmp/tc-launch-test/runtime"),
