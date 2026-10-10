@@ -1,5 +1,39 @@
 # IEEE TC execution status
 
+## CURRENT — D394 current-code 7B common warm reference COMPLETE
+
+2026-10-10: The 7B GPU-ready native warm-reference measurement was rerun with
+the current preflight/replay source because D170's source identity was older.
+The sealed D168 input index and D169 batch-8 candidate were reused; no weights,
+trace, adapter pool, remote service or workload was regenerated. All 1,536
+measured requests and 16 warmups passed the native fixed-output/timing contract,
+with 194 batch records and one monotonic clock domain. The equal-weight
+three-round means are 599.0697427369014/29.87204847451081 ms (TTFT/TPOT) for
+the `<=616` native-input group and 926.6690701178959/42.623490830077905 ms for
+the `>616` group. Applying the frozen 5x/2x multipliers yields candidate
+thresholds 2995.348713684507/59.74409694902162 ms and
+4633.345350589479/85.24698166015581 ms, respectively.
+
+The run is a calibration candidate only: `common_reference_frozen=false`,
+`formal_g1_g2_qualified=false`, and full-pool semantic correctness remains
+open. Service and watchdog returned zero; the watchdog recorded 1,417 resource samples,
+7,569,285,120-byte service peak, 107,259,219,968-byte minimum host available
+memory, no high/OOM/swap event and no abort. The owned GPU lease was released
+and the final census had no service compute process; the conservative raw
+`proves_physical_lease_release=false` field is an unconditional census-only
+limitation; lease release is verified separately through its allocation journal,
+worker exit and clear-context census. Curated values and raw hashes are in
+  `D394_7B_COMMON_WARM_REFERENCE_CURRENT_CODE.md`, the independent streaming
+  audit `paper_results/ieee_tc/p2_backend/20261010_d394_7b_warm_independent_audit_v2.json`,
+  and `paper_results/ieee_tc/p2_backend/20261010_d394_7b_warm_reference.json`.
+
+The first D394 launcher attempt failed before GPU launch because the outer
+scope name did not satisfy the current shared-auxiliary naming contract. It is
+classified as `protocol_or_launcher_error`; it produced no measurement and was
+not merged with the successful attempt. The next permitted action is the
+separate 7B Resident-reference qualification; 3B, baselines, ablations,
+sensitivities and figures remain closed.
+
 ## CURRENT — D393 V1 correctness/remote-metric alignment (offline; no run)
 
 2026-10-10: A request-level audit of all 4,000 D379 rows found complete

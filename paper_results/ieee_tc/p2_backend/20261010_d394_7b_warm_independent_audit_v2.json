@@ -1,0 +1,101 @@
+{
+  "kind": "warm_reference_independent_audit_v1",
+  "passed": true,
+  "projection_sha256": "9a51891eb6e33d1dde64c9e1a3cc70615fb43486c41b68a52accc760f8089cd2",
+  "projection_filter_sha256": "26b863d7640c1f47ceb0404efcbcbaabe83f81e9fc01f23813202730ddd434bf",
+  "source_archive_sha256": "99a4083f2945f8f2e2c8fe48e7a9382f24d9f2cf177bef2a29fb489459bb047f",
+  "launch_sha256": "59e320e387ca5e5610eb7652ac39dfddb0aac6e637b3dee4626bab74cffeedf6",
+  "source_plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "native_checked": 1552,
+  "measured": 1536,
+  "warmup": 16,
+  "unique_measured_source_requests": 512,
+  "batch_checked": 194,
+  "round_means": [
+    {
+      "group_id": 0,
+      "round": 0,
+      "count": 256,
+      "ttft_ms": 600.2333532787816,
+      "tpot_ms": 29.85689059498162
+    },
+    {
+      "group_id": 0,
+      "round": 1,
+      "count": 256,
+      "ttft_ms": 598.1823884576443,
+      "tpot_ms": 29.800784080715353
+    },
+    {
+      "group_id": 0,
+      "round": 2,
+      "count": 256,
+      "ttft_ms": 598.7934864742783,
+      "tpot_ms": 29.95847074783545
+    },
+    {
+      "group_id": 1,
+      "round": 0,
+      "count": 256,
+      "ttft_ms": 926.5776758629727,
+      "tpot_ms": 42.69261944928854
+    },
+    {
+      "group_id": 1,
+      "round": 1,
+      "count": 256,
+      "ttft_ms": 925.4079309457666,
+      "tpot_ms": 42.63318991916329
+    },
+    {
+      "group_id": 1,
+      "round": 2,
+      "count": 256,
+      "ttft_ms": 928.0216035449484,
+      "tpot_ms": 42.54466312178187
+    }
+  ],
+  "watchdog_events": {
+    "watchdog_ready": 1,
+    "resource_sample": 1417,
+    "gpu_terminal_census": 1,
+    "service_domain_gone": 1
+  },
+  "physical_gpu_s": 1383.2156234669965,
+  "census_alone_proves_lease_release": false,
+  "release_journal_verified": true,
+  "resource": {
+    "samples": 1417,
+    "peak_bytes": 7569285120,
+    "host_min_available_bytes": 107259219968,
+    "memory_events": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    },
+    "max_swap_bytes": 0,
+    "warnings": 0,
+    "aborts": []
+  },
+  "protected_manifest": {
+    "kind": "protected_artifact_verification",
+    "pass": false,
+    "seal_sha256": "fa8f001aaa139017762a1cc7e3cb8d090f9d28483166724947246594e0d6a2a6",
+    "changed": [
+      "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"
+    ],
+    "entry_count": 147,
+    "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7"
+  },
+  "protected_scope_ok": true,
+  "known_protected_change": {
+    "path": "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py",
+    "sha256": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22"
+  },
+  "common_reference_frozen": false,
+  "formal_g1_g2_qualified": false
+}

@@ -1,0 +1,75 @@
+{
+  "campaign_id": "d394_20261010",
+  "kind": "common_warm_reference_current_code_v1",
+  "model": "llama2_7b_main_v2_publicmix",
+  "status": "calibration_candidate_complete",
+  "formal_g1_g2_qualified": false,
+  "plan_sha256": "0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7",
+  "metric_protocol": "primelora_tc_metrics_v1",
+  "source_trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+  "warm_reference_index_sha256": "563abfbdeb74c1bc03e42a26c34d48d634c342ac4fa43bd00c5ff8dd82269793",
+  "raw_result": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d394_20261010/7b_measure1.json.gz",
+  "raw_result_encoding": "gzip; source SHA identifies decompressed JSON",
+  "compressed_result_sha256": "99a4083f2945f8f2e2c8fe48e7a9382f24d9f2cf177bef2a29fb489459bb047f",
+  "raw_result_bytes": 707508991,
+  "compressed_result_bytes": 17526550,
+  "independent_audit": "paper_results/ieee_tc/p2_backend/20261010_d394_7b_warm_independent_audit_v2.json",
+  "independent_audit_sha256": "3cb7c9ebdc4340b03311b8942022181f0f4febb848691b006408c1aad02f9eb5",
+  "raw_result_sha256": "86321c3c39e70e86c9e2ab81a2e71173ebf6024e04a4e76b05b5c7f6738c9f2e",
+  "config_sha256": "f81311668708f19fbb2072518e2fe1ee366348f2bbc36d17bb8a61c2a707d6ec",
+  "preflight_source_sha256": "66f9f2d77effa91c514411ddebdee5b6767008da6870a35669401a73151c4ae0",
+  "batch_size": 8,
+  "warmup_requests": 16,
+  "measurement_requests": 1536,
+  "measurement_rounds": 3,
+  "requests_per_group_round": 256,
+  "groups": [
+    {
+      "group_id": 0,
+      "native_input_boundary": "<=616",
+      "round_means_ms": [
+        {"ttft": 600.2333532787816, "tpot": 29.85689059498162},
+        {"ttft": 598.1823884576443, "tpot": 29.800784080715353},
+        {"ttft": 598.7934864742783, "tpot": 29.95847074783545}
+      ],
+      "equal_weight_mean_ms": {"ttft": 599.0697427369014, "tpot": 29.87204847451081},
+      "candidate_threshold_ms": {"ttft": 2995.348713684507, "tpot": 59.74409694902162}
+    },
+    {
+      "group_id": 1,
+      "native_input_boundary": ">616",
+      "round_means_ms": [
+        {"ttft": 926.5776758629727, "tpot": 42.69261944928854},
+        {"ttft": 925.4079309457666, "tpot": 42.63318991916329},
+        {"ttft": 928.0216035449484, "tpot": 42.54466312178187}
+      ],
+      "equal_weight_mean_ms": {"ttft": 926.6690701178959, "tpot": 42.623490830077905},
+      "candidate_threshold_ms": {"ttft": 4633.345350589479, "tpot": 85.24698166015581}
+    }
+  ],
+  "contract": {
+    "native_pass": 1536,
+    "target_match": 1536,
+    "timing_contract": "ieee_tc_native_v1",
+    "clock_domains": 1,
+    "batch_records": 194,
+    "release_records": 1552,
+    "remote_delivery_enabled": false,
+    "prefix_caching": false
+  },
+  "resource_audit": {
+    "watchdog_samples": 1417,
+    "watchdog_total_events": 1420,
+    "service_memory_peak_bytes": 7569285120,
+    "host_min_available_bytes": 107259219968,
+    "memory_high_events": 0,
+    "oom_events": 0,
+    "service_swap_max_bytes": 0,
+    "watchdog_abort_reasons": [],
+    "service_returncode": 0,
+    "watchdog_returncode": 0,
+    "owned_gpu_lease_released": true,
+    "census_alone_proves_lease_release": false
+  },
+  "interpretation": "current-code 7B calibration candidate; not global common reference, not G1/G2"
+}
