@@ -75,6 +75,21 @@ regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance re
 
 ## Exact next action and remaining scope
 
+D411 read-only continuation checked2026-10-11 03:23:39 Asia/Shanghai:
+same tmux/service/InvocationID,485created/sent,480responses,all4000contracts,
+no failureevent yet. Watchdogsample642:hostavailable55.171GiB,
+service48.254GiB,disk149.701GiB,high/max/OOM/swap0,noabort.
+This is incomplete progress,not a performance verdict. Disk below150GiB forbids
+a new heavylaunch;currentrun remainsabove100GiB runtimefloor. No livecleanup,
+hashscan,remoteadministration,cachepublication,tests or secondheavyjob.
+D412_VLLM_MEASUREMENT_REUSE_AUDIT.md records read-onlynext-entrypoint audit:
+oldvLLM payload/EOF timing,serviceactivityinauxdomain,latepublisher and envelope
+lease gaps remain. ExistingSSEparser alone is insufficient:clienttokenreceipt
+is not D371engine-token-event timing. Official/local0.30.0 timingbuilder's
+TTFT is scheduled-to-first,not offered-arrival-to-first. Reusepuremeasurement/
+commonlauncher,not PrimeLoRAcontrolpolicies;noimplementation/newqualification.
+D411terminalclosure remains the immediate next action below.
+
 D411 RUNNING since2026-10-11 03:12:24 Asia/Shanghai, tmux tc-d411-7b.
 Do NOT restart or launch another heavy job. Main execution
 896af899396983350c4544a9d0277283bc28339d, pushed and remoteSHAverified;
@@ -403,9 +418,10 @@ this status is not a shortened experiment plan.
   gates; continuous watchdog was active throughout that run.
 - D410 terminal safety:servicepeak52803334144B,high/max/OOM/swap0;
   hostavailableminimum58742841344B,diskminimum160506687488B.
-  Watchdog closed normally afteractualrelease. D410objects are still retained
-  after completed byteaudit; reclaim only this rebuildable cache with ownership,
-  hash and reference checks before nextheavylaunch. Keeprawlogs and allreceipts.
+  Watchdog closed normally afteractualrelease. D410objects were reclaimed before
+  D411 after completed byte/source/inode/reference audit as recorded above;
+  originalpool,rawlogs,receipts andremoteimmutablecache remain. Do not repeat
+  this cleanup or redownload solely to repeat the completed byteaudit.
 - Protected147-entry checks before/after identical,SHA
   96df8e345419d26b941f99e19578d8dfe6717fe06b35caa6d42e0dae4885e87d.
   Sole historical mismatch:user replay edit,unchanged in this campaign.
