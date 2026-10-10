@@ -21,6 +21,45 @@ from urllib.parse import urlsplit
 OUTPUT_PROCESSOR_SHA256 = '50f5e0aa5d0b7ece086632de6e37376dbeba0a1c0d2f22f95b6759189e76e04d'
 
 
+def record_backend_ready(backend, module_file):
+    """Durable live identity before serving, not an actor-exit/GPU-release claim."""
+    config = backend.backend_config.get('tc_worker_audit')
+    if config is None:
+        return None
+    import sllm_store.torch as store
+    from faaslora.clock import local_monotonic_clock_id
+    identity = dict(pid=os.getpid(),
+        start_ticks=int(Path('/proc/self/stat').read_text().rsplit(')', 1)[1].split()[19]),
+        cgroup=Path('/proc/self/cgroup').read_text().strip(),
+        affinity=sorted(os.sched_getaffinity(0)))
+    backend_path, store_path = Path(module_file).resolve(), Path(store.__file__).resolve()
+    backend_sha = hashlib.sha256(backend_path.read_bytes()).hexdigest()
+    store_sha = hashlib.sha256(store_path.read_bytes()).hexdigest()
+    if (identity['cgroup'] != '0::'+config['service_cgroup']
+            or identity['affinity'] != config['service_cpus']
+            or str(backend_path) != config['backend_path'] or backend_sha != config['backend_sha256']
+            or str(store_path) != config['store_path'] or store_sha != config['store_sha256']
+            or backend.engine_args.load_format != 'serverless_llm'
+            or str(Path(backend.engine_args.model).resolve()) != config['checkpoint_path']
+            or backend.engine is None):
+        raise ValueError('actual backend ready identity differs from the frozen native service')
+    receipt_id = uuid.uuid4().hex
+    row = dict(schema='ieee_tc_native_backend_ready_v1', receipt_id=receipt_id,
+        at=time.perf_counter(), clock_id=local_monotonic_clock_id(), **identity,
+        backend_path=str(backend_path), backend_sha256=backend_sha,
+        store_path=str(store_path), store_sha256=store_sha,
+        checkpoint_path=config['checkpoint_path'], load_format=backend.engine_args.load_format,
+        cuda_visible=os.environ.get('CUDA_VISIBLE_DEVICES'), engine_present=True,
+        enable_lora=backend.enable_lora)
+    raw = json.dumps(row, sort_keys=True, separators=(',', ':')).encode()
+    with (Path(config['root'])/(receipt_id+'.json')).open('xb') as handle:
+        handle.write(raw)
+        handle.flush()
+        os.fsync(handle.fileno())
+    return dict(tc_worker_receipt_id=receipt_id,
+                tc_worker_receipt_sha256=hashlib.sha256(raw).hexdigest())
+
+
 def published_artifact_client(config):
     """Validate static delivery metadata only; never fetch from the publisher."""
     from faaslora.storage.http_artifact_store import HttpArtifactStoreClient

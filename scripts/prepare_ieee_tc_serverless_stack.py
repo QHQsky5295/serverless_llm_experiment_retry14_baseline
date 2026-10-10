@@ -77,7 +77,7 @@ def measurement_sources(native_source: Path, variant: str) -> dict[str, str]:
         '            stamp(internal_metrics, "tc_instance_assigned_s")\n            assigned_at = time.time()')
     backend = replace_once(backend, 'import time\n', 'import time\n'
         'from sllm.backends.tc_measurement import (stamp, install_v1_snapshot, '
-        'NativeRequestObservation, PublishedArtifactResolver)\n')
+        'NativeRequestObservation, PublishedArtifactResolver, record_backend_ready)\n')
     backend = replace_once(backend, '        self.backend_config = backend_config\n',
         '        self.backend_config = backend_config\n'
         '        self._tc_artifact_resolver = (PublishedArtifactResolver(backend_config["tc_remote_artifacts"])\n'
@@ -88,7 +88,12 @@ def measurement_sources(native_source: Path, variant: str) -> dict[str, str]:
         '            self.engine = AsyncLLMEngine.from_engine_args(self.engine_args)')
     backend = replace_once(backend, '        internal_metrics["backend_started_at"] = time.time()',
         '        stamp(internal_metrics, "tc_backend_entry_s")\n'
+        '        if self.backend_config.get("tc_worker_audit"):\n'
+        '            internal_metrics.update(self._tc_ready_receipt)\n'
         '        internal_metrics["backend_started_at"] = time.time()')
+    backend = replace_once(backend, '            self.status = BackendStatus.RUNNING\n',
+        '            self._tc_ready_receipt = record_backend_ready(self, __file__)\n'
+        '            self.status = BackendStatus.RUNNING\n')
     backend = replace_once(backend, '        lora_request = self._build_lora_request(\n',
         '        if self._tc_artifact_resolver is not None:\n'
         '            internal_metrics.update(await self._tc_artifact_resolver.resolve(\n'
@@ -203,6 +208,10 @@ def validate_http_observation(prepared, response, event, completed, clock_id, *,
                 or any(type(t) not in (int, float) or not math.isfinite(t) for t in artifact_times)
                 or not times[6] <= artifact_times[0] <= artifact_times[1] <= times[7]):
             raise ValueError('service remote artifact identity/timing/receipt differs')
+    if prepared.get('worker_lifetime_required'):
+        if (not re.fullmatch('[0-9a-f]{32}', str(control.get('tc_worker_receipt_id')))
+                or not re.fullmatch('[0-9a-f]{64}', str(control.get('tc_worker_receipt_sha256')))):
+            raise ValueError('native backend lifetime receipt absent')
     a, e, d, f, last = times[0], times[2], times[5], times[10], times[11]
     components = [e-a, d-e, f-d, last-f, completed-last]
     tpot_ms = (last-f)*1000/(target-1) if target > 1 else None
@@ -327,6 +336,11 @@ def http_replay(args):
         raise ValueError('existing trace changed')
     tokenizer = AutoTokenizer.from_pretrained(cfg['backbone'], local_files_only=True)
     prepared = {e.request_id: prepare_frozen_http_request(e, tokenizer, cfg['model']) for e in plan.entries}
+    if cfg.get('physical_lifecycle') not in (None, 'native_store_pool_v1'):
+        raise ValueError('unknown physical lifecycle contract')
+    if cfg.get('physical_lifecycle') == 'native_store_pool_v1':
+        for row in prepared.values():
+            row['worker_lifetime_required'] = True
     _, artifact_client = remote_artifact_contract(cfg)
     if artifact_client is not None:
         from faaslora.storage.http_artifact_store import preparation_content_sha256
@@ -1172,15 +1186,175 @@ def pre_ready_ingress_options(http_cfg, native_port, model, output):
                 journal_path=output.with_name(output.name+'.ingress.jsonl'), timeout_s=1800.)
 
 
+def prepare_physical_deployment(args, guard, admission, http_cfg, context, result):
+    if http_cfg is None or http_cfg.get('physical_lifecycle') is None:
+        return None
+    if (http_cfg['physical_lifecycle'] != 'native_store_pool_v1'
+            or http_cfg.get('ingress_mode') != 'service_pre_ready_v1'):
+        raise ValueError('native store-pool lifecycle requires service-owned startup admission')
+    from faaslora.datasets.workload_generator import FrozenReplayPlan
+    from faaslora.metrics.metrics_collector import PhysicalGPUDeployment
+    plan = FrozenReplayPlan.load(args.trace, count=http_cfg['request_count'])
+    deployment = PhysicalGPUDeployment(root=args.output/'physical', plan=plan, context=context)
+    deployment.bind_result_file(args.output/'model_qualification.json')
+    root = args.output/'worker_receipts'
+    root.mkdir(mode=0o700)
+    backend_path = args.native_source/'sllm/backends/vllm_backend.py'
+    store_path = args.store_package/'site-packages/sllm_store/torch.py'
+    result['configuration']['backend_config']['tc_worker_audit'] = dict(root=str(root),
+        service_cgroup='/'+str(Path(admission['service_identity']['path']).relative_to('/sys/fs/cgroup')),
+        service_cpus=sorted(guard.SERVICE_CPUS), backend_path=str(backend_path.resolve()),
+        backend_sha256=sha(backend_path.read_bytes()), store_path=str(store_path.resolve()),
+        store_sha256=sha(store_path.read_bytes()),
+        checkpoint_path=str((args.checkpoint_root/'vllm'/args.model_name).resolve()))
+    result['physical_lifecycle'] = dict(mode='native_store_pool_v1',
+        ownership='one exclusive native store/engine GPU pool; not logical instance count',
+        summary_path=str(deployment.root/'physical_resource_summary.json'),
+        lifecycle_qualified=False)
+    return deployment
+
+
+def allocate_native_pool(args, guard, admission, deployment):
+    """Allocate immediately before native stack spawn, after CPU-only setup."""
+    from faaslora.metrics.metrics_collector import PhysicalGPUAllocation
+    api = guard.load_nvml_binding(Path(os.environ['FAASLORA_TC_NVML_BINDING']),
+                                  os.environ['FAASLORA_TC_NVML_SHA256'])
+    census = guard.NativeGPUCensus(api)
+    try:
+        return PhysicalGPUAllocation(root=deployment.allocations, census=census,
+            service_path=Path(admission['service_identity']['path']), device_indices=args.gpu_ids,
+            owner_identity=guard.gpu_process_identity(os.getpid()))
+    except BaseException:
+        census.close()
+        raise
+
+
+def confirm_native_pool(allocation):
+    """Bind actual service contexts, including the persistent native store."""
+    sample = allocation.census.sample(allocation.service_path)
+    workers = []
+    for device in sample['devices']:
+        for process in device['processes']:
+            if process['service_member'] and process['kind'] == 'compute':
+                if device['gpu_uuid'] not in allocation.gpu_uuids:
+                    raise ValueError('native service used an unallocated physical GPU')
+                workers.append(dict(device_uuid=device['gpu_uuid'], pid=process['pid'],
+                                    worker_rank=device['index']))
+    allocation.confirm_workers(workers)
+
+
+def release_native_pool(allocation):
+    # A failed startup can have a durable allocation/spawn but no confirmed
+    # workers. Do not manufacture an empty native-exit event in that state:
+    # release() preserves its unqualified lease with release_deferred instead.
+    if any(event['event'] == 'native_workers' for event in allocation.events):
+        asyncio.run(allocation.wait_workers(timeout_s=60))
+    return allocation.release()
+
+
+def audit_backend_receipts(result, config, clock_id):
+    """Positive live-at-ready evidence survives legitimate actor retirement."""
+    sources, bindings = {}, {}
+    for request in result['requests']:
+        body = request.get('response')
+        metrics = body.get('metrics') if isinstance(body, dict) else None
+        if not isinstance(metrics, dict) or 'ieee_tc' not in metrics:
+            continue  # Failed responses remain failures, not invented workers.
+        control = metrics['ieee_tc']['control_observation']
+        rid, expected = control.get('tc_worker_receipt_id'), control.get('tc_worker_receipt_sha256')
+        if not re.fullmatch('[0-9a-f]{32}', str(rid)):
+            raise ValueError('served backend has no ready-time receipt')
+        path = Path(config['root'])/(rid+'.json')
+        if path.is_symlink():
+            raise ValueError('backend ready receipt must be an owned regular file')
+        raw = path.read_bytes()
+        row = json.loads(raw)
+        entry = control.get('tc_backend_entry_s')
+        if (sha(raw) != expected or row.get('receipt_id') != rid
+                or row.get('schema') != 'ieee_tc_native_backend_ready_v1'
+                or row.get('clock_id') != clock_id or control.get('tc_clock_id') != clock_id
+                or row.get('cgroup') != '0::'+config['service_cgroup']
+                or row.get('affinity') != config['service_cpus']
+                or any(row.get(k) != config[k] for k in
+                       ('backend_path', 'backend_sha256', 'store_path', 'store_sha256', 'checkpoint_path'))
+                or row.get('engine_present') is not True or row.get('enable_lora') is not True
+                or row.get('load_format') != 'serverless_llm'
+                or type(row.get('pid')) is not int or row['pid'] <= 0
+                or type(row.get('start_ticks')) is not int or row['start_ticks'] <= 0
+                or type(row.get('at')) not in (int, float) or not math.isfinite(row['at'])
+                or type(entry) not in (int, float) or not math.isfinite(entry)
+                or not row['at'] <= entry
+                or not isinstance(control.get('instance_id'), str) or not control['instance_id']):
+            raise ValueError('served backend ready-time identity/source/clock differs')
+        if rid in bindings and bindings[rid] != control['instance_id']:
+            raise ValueError('one backend receipt bound to multiple native instances')
+        bindings[rid] = control['instance_id']
+        sources[rid] = dict(path=str(path), sha256=sha(raw), observation=row)
+    if not sources:
+        raise ValueError('no served backend has a verified ready-time receipt')
+    result['backend_ready_receipts'] = list(sources.values())
+    result['served_instance_ids'] = sorted(set(bindings.values()))
+    result['backend_receipt_instances'] = bindings
+    result['worker_evidence_scope'] = 'native ready-time source/containment; physical pool ledger proves GPU release'
+
+
+def record_http_physical_terminals(deployment, replay_path):
+    """Reuse exact external terminals, including failures; never infer success."""
+    contracts, raw_responses = {}, {}
+    with Path(replay_path).open() as handle:
+        for line in handle:
+            if not line.endswith('\n'):
+                break  # Interrupted writer: keep measurement incomplete.
+            event = json.loads(line)
+            kind, rid = event['event'], event.get('request_id')
+            if kind == 'request_contract':
+                if rid in contracts or event['source_item_sha256'] != deployment.entries[rid].source_sha256:
+                    raise ValueError('physical request contract identity differs')
+                contracts[rid] = event
+            elif kind == 'http_raw_response':
+                if rid in raw_responses:
+                    raise ValueError('duplicate raw HTTP response')
+                raw_responses[rid] = event
+            elif kind in ('http_response', 'http_request_failed', 'http_request_cancelled'):
+                value = None
+                if kind == 'http_response':
+                    raw = raw_responses[rid]
+                    body, prepared = raw['body'], contracts[rid]
+                    native = body['metrics']['ieee_tc']
+                    if (raw['status'] != 200 or event['response'].get('protocol_valid') is not True
+                            or body['id'] != rid or native['native_lora_name'] != prepared['adapter_id']):
+                        raise ValueError('physical terminal lacks a validated native response')
+                    value = dict(success=True, request_id=rid,
+                        generation_contract='fixed_length_greedy_v1', timing_contract=native['timing_contract'],
+                        output_contract_match=True, output_tokens=native['native_output_tokens'],
+                        completion_tokens=body['usage']['completion_tokens'],
+                        requested_completion_tokens=prepared['target_tokens'], completion_token_source='vllm_token_ids',
+                        adapter_id=native['native_lora_name'], instance_id=native['control_observation']['instance_id'],
+                        completion_token_ids_sha256=native['completion_token_ids_sha256'],
+                        canonical_prompt_sha256=prepared['canonical_prompt_sha256'])
+                deployment.terminal(rid, at=event['client_completed_s'], result=value,
+                    error_type=None if kind == 'http_response' else event.get('error', kind),
+                    interrupted=kind == 'http_request_cancelled')
+
+
 def capture_native_model_workers(ray, args, guard, admission, checkpoint, package, result):
     """Retain worker/source/resource readback on failed HTTP qualification too.
 
-    This is still an end-of-run readback, NOT a complete dynamic worker census
-    or a physical GPU lifetime ledger. Missing retired workers remain explicit.
+    Opt-in ready receipts survive actor retirement; legacy actor lookups remain
+    end-of-run-only. Neither substitutes for the separate physical pool ledger.
     """
     group = Path(admission['service_identity']['path'])
     result['owned_processes'] = guard.owned_pids(group)
     result['resource_snapshot'] = guard.cgroup_snapshot(group)
+    worker_config = result.get('configuration', {}).get('backend_config', {}).get('tc_worker_audit')
+    if worker_config is not None:
+        from faaslora.clock import local_monotonic_clock_id
+        audit_backend_receipts(result, worker_config, local_monotonic_clock_id())
+        store_log = (args.output/'store.log').read_text(errors='replace')
+        result['store_confirmations'] = re.findall(r'Confirm model (\S+) replica (\S+) success', store_log)
+        if not any(path == f'vllm/{args.model_name}/rank_0' for path, _ in result['store_confirmations']):
+            raise ValueError('actual native GPU-load confirmation missing')
+        return
     names = ray.util.list_named_actors(all_namespaces=True)
     instance_ids = set()
     for row in result['requests']:
@@ -1398,6 +1572,7 @@ def _qualify_model(args, guard, admission, http_cfg, replay_context, measured, i
             return json.load(response)
 
     failure, registered = None, False
+    deployment = allocation = native_startup = None
     import ray
     # These spans share the request publisher's host monotonic clock. Pair each
     # with a wall reading so coarse native wall logs are not silently treated
@@ -1408,16 +1583,28 @@ def _qualify_model(args, guard, admission, http_cfg, replay_context, measured, i
             handle.write(json.dumps(observation) + '\n')
 
     try:
+        deployment = prepare_physical_deployment(args, guard, admission, http_cfg, replay_context, result)
         with (args.output / 'configuration.json').open('x') as handle:
             json.dump(result['configuration'], handle, indent=2)
         with (args.output / 'startup.log').open('x') as log:
             startup_event('native_stack_start')
-            startup = subprocess.run(['bash', str(args.output / 'start_serverlessllm_stack.sh')],
-                                     env=env, stdout=log, stderr=subprocess.STDOUT, timeout=600)
+            command = ['bash', str(args.output / 'start_serverlessllm_stack.sh')]
+            if deployment is None:
+                startup = subprocess.run(command, env=env, stdout=log, stderr=subprocess.STDOUT, timeout=600)
+            else:
+                allocation = allocate_native_pool(args, guard, admission, deployment)
+                native_startup = subprocess.Popen(command, env=env, stdout=log, stderr=subprocess.STDOUT)
+                allocation.bind_process(native_startup, guard.gpu_process_identity(native_startup.pid))
+                native_startup.wait(timeout=600)
+                startup = native_startup
             startup_event('native_stack_return')
         result['startup_returncode'] = startup.returncode
         if startup.returncode:
             raise RuntimeError('native stack startup failed; inspect preserved logs')
+        if allocation is not None:
+            # Store readiness precedes controller/model registration. It is
+            # actual multi-card CUDA ownership, not a count of ready replicas.
+            confirm_native_pool(allocation)
         ray.init(address=f'{args.host}:{args.ray_port}', log_to_driver=False)
         result['nodes'] = ray.nodes()
         validate_ray_nodes(result['nodes'], len(args.gpu_ids))
@@ -1483,6 +1670,13 @@ def _qualify_model(args, guard, admission, http_cfg, replay_context, measured, i
         result['error'] = f'{type(exc).__name__}: {exc}'
         failure = exc
     finally:
+        if allocation is not None and allocation.process is not None:
+            try:
+                confirm_native_pool(allocation)
+            except Exception as exc:
+                result['physical_confirmation_error'] = f'{type(exc).__name__}: {exc}'
+                result['passed'] = False
+                failure = failure or exc
         if ray.is_initialized():
             try:
                 capture_native_model_workers(ray, args, guard, admission, checkpoint, package, result)
@@ -1506,9 +1700,37 @@ def _qualify_model(args, guard, admission, http_cfg, replay_context, measured, i
                 handle.write(captured.stdout + captured.stderr)
         result['private_tmux_stop_returncode'] = subprocess.run(tmux + ['kill-server'], capture_output=True,
                                                                text=True, timeout=5).returncode
+        if native_startup is not None and native_startup.poll() is None:
+            native_startup.terminate()  # Exact Popen, never a name-based kill.
+            try:
+                native_startup.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                native_startup.kill()
+                native_startup.wait(timeout=5)
+        if allocation is not None:
+            try:
+                release_native_pool(allocation)  # Worker exit AND fresh native census.
+            except Exception as exc:
+                result['physical_release_error'] = f'{type(exc).__name__}: {exc}'
+                result['passed'] = False
+                failure = failure or exc
+            result['physical_allocation'] = allocation.evidence()
+        if deployment is not None:
+            try:
+                record_http_physical_terminals(deployment, replay_context['result_path'])
+                physical = deployment.summarize(observed_until_s=time.monotonic())
+                result['physical_lifecycle']['lifecycle_qualified'] = physical['measurement_complete'] is True
+                if not physical['measurement_complete']:
+                    raise ValueError('physical lifecycle remains incomplete; no finite full-run resource score')
+            except Exception as exc:
+                result['physical_measurement_error'] = f'{type(exc).__name__}: {exc}'
+                result['passed'] = False
+                failure = failure or exc
         result['external_cleanup_required'] = True
         with (args.output / 'model_qualification.json').open('x') as handle:
             json.dump(result, handle, indent=2)
+        if deployment is not None:
+            deployment.finalize()  # Binds the immutable result SHA, including failures.
     if failure:
         raise RuntimeError('native model qualification failed; original evidence preserved') from failure
     return result

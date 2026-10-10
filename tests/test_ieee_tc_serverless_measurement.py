@@ -1,6 +1,7 @@
 """Shared observations, not a claim of model/LoRA/performance qualification."""
 import ast
 import asyncio
+import copy
 import hashlib
 import importlib.util
 import json
@@ -11,9 +12,9 @@ import sys
 import tempfile
 import threading
 import time
-from types import SimpleNamespace as NS
+from types import SimpleNamespace as NS, ModuleType
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, Mock, AsyncMock
 
 ROOT = Path(__file__).resolve().parents[1]
 MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
@@ -199,6 +200,11 @@ class MeasurementTests(unittest.TestCase):
         self.assertAlmostEqual(result['submit_lag_ms']+result['dispatch_wait_after_submit_ms']+
             result['service_ttft_ms']+result['decode_ms']+result['completion_notification_ms'], 2200.)
         self.assertFalse(result['lora_numerical_correctness_qualified'])
+        audited = dict(prepared, worker_lifetime_required=True)
+        with self.assertRaisesRegex(ValueError, 'lifetime receipt'):
+            launch.validate_http_observation(audited, body, event, 3.2, 'c')
+        control.update(tc_worker_receipt_id='e'*32, tc_worker_receipt_sha256='f'*64)
+        self.assertEqual(launch.validate_http_observation(audited, body, event, 3.2, 'c'), result)
         remote_prepared = dict(prepared, artifact_content_sha256='a'*64, artifact_manifest_sha256='b'*64)
         with self.assertRaisesRegex(ValueError, 'remote artifact'):
             launch.validate_http_observation(remote_prepared, body, event, 3.2, 'c')
@@ -618,6 +624,250 @@ class IngressContractTests(unittest.TestCase):
         self.assertLess(source.index('capture_native_model_workers('), source.index("post('/delete'"))
         self.assertLess(source.index('capture_native_model_workers('), source.index('ray.shutdown()'))
         self.assertIn('failure = failure or exc', source)
+
+
+class NativeReadyReceiptTests(unittest.TestCase):
+    """Real process identity/files with fixture backend modules, no GPU claim."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.backend_path, self.store_path = self.root/'backend.py', self.root/'store.py'
+        self.backend_path.write_text('# fixture backend\n')
+        self.store_path.write_text('# fixture store\n')
+        receipt_root = self.root/'receipts'
+        receipt_root.mkdir()
+        self.config = dict(root=str(receipt_root),
+            service_cgroup=Path('/proc/self/cgroup').read_text().strip().removeprefix('0::'),
+            service_cpus=sorted(os.sched_getaffinity(0)),
+            backend_path=str(self.backend_path), backend_sha256=launch.sha(self.backend_path.read_bytes()),
+            store_path=str(self.store_path), store_sha256=launch.sha(self.store_path.read_bytes()),
+            checkpoint_path=str(self.root/'checkpoint'))
+        self.backend = NS(backend_config={'tc_worker_audit': self.config}, engine=object(),
+            engine_args=NS(model=self.config['checkpoint_path'], load_format='serverless_llm'),
+            enable_lora=True)
+        package, store = ModuleType('sllm_store'), ModuleType('sllm_store.torch')
+        store.__file__, package.torch = str(self.store_path), store
+        self.modules = {'sllm_store': package, 'sllm_store.torch': store}
+
+    def record(self):
+        with patch.dict(sys.modules, self.modules):
+            return measurement.record_backend_ready(self.backend, str(self.backend_path))
+
+    def observed(self):
+        from faaslora.clock import local_monotonic_clock_id
+        receipt = self.record()
+        control = dict(receipt, instance_id='retired-instance', tc_backend_entry_s=time.perf_counter(),
+                       tc_clock_id=local_monotonic_clock_id())
+        result = dict(requests=[dict(response={'metrics': {'ieee_tc': {'control_observation': control}}})],
+                      configuration=dict(backend_config=dict(tc_worker_audit=self.config)))
+        return result, control
+
+    def test_durable_ready_identity_is_captured_before_serving_not_exit_proof(self):
+        result, control = self.observed()
+        launch.audit_backend_receipts(result, self.config, control['tc_clock_id'])
+        row = result['backend_ready_receipts'][0]['observation']
+        self.assertEqual(row['pid'], os.getpid())
+        self.assertGreater(row['start_ticks'], 0)
+        self.assertEqual(row['affinity'], sorted(os.sched_getaffinity(0)))
+        self.assertEqual(result['served_instance_ids'], ['retired-instance'])
+        self.assertNotIn('released', row)
+        self.assertIsNone(measurement.record_backend_ready(NS(backend_config={}), '/unused'))
+
+    def test_actual_source_containment_and_engine_must_match(self):
+        for field, bad in [('service_cgroup', '/other'), ('service_cpus', []),
+                           ('backend_sha256', '0'*64), ('store_sha256', '0'*64),
+                           ('checkpoint_path', '/other')]:
+            with self.subTest(field=field), patch.dict(self.config, {field: bad}), \
+                    self.assertRaisesRegex(ValueError, 'identity differs'):
+                self.record()
+        for owner, field, bad in [(self.backend, 'engine', None),
+                                  (self.backend.engine_args, 'load_format', 'auto')]:
+            with patch.object(owner, field, bad), self.assertRaisesRegex(ValueError, 'identity differs'):
+                self.record()
+        self.assertEqual(list(Path(self.config['root']).iterdir()), [])
+
+    def test_missing_modified_receipt_clock_and_instance_alias_are_rejected(self):
+        result, control = self.observed()
+        clock = control['tc_clock_id']
+        for field, bad in [('tc_worker_receipt_id', '../other'), ('tc_worker_receipt_sha256', '0'*64),
+                           ('tc_clock_id', 'other'), ('tc_backend_entry_s', float('nan')),
+                           ('tc_backend_entry_s', float('inf')), ('tc_backend_entry_s', 0.)]:
+            with self.subTest(field=field), patch.dict(control, {field: bad}), self.assertRaises(ValueError):
+                launch.audit_backend_receipts(result, self.config, clock)
+        duplicate = copy.deepcopy(result['requests'][0])
+        duplicate['response']['metrics']['ieee_tc']['control_observation']['instance_id'] = 'other-instance'
+        result['requests'].append(duplicate)
+        with self.assertRaisesRegex(ValueError, 'multiple native instances'):
+            launch.audit_backend_receipts(result, self.config, clock)
+        result['requests'].pop()
+        path = Path(self.config['root'])/(control['tc_worker_receipt_id']+'.json')
+        path.write_bytes(path.read_bytes()+b' ')
+        with self.assertRaisesRegex(ValueError, 'identity/source/clock'):
+            launch.audit_backend_receipts(result, self.config, clock)
+        path.unlink()
+        with self.assertRaises(FileNotFoundError):
+            launch.audit_backend_receipts(result, self.config, clock)
+
+    def test_retired_actor_receipt_audits_without_survivor_lookup(self):
+        result, control = self.observed()
+        (self.root/'store.log').write_text('Confirm model vllm/m/rank_0 replica i success\n')
+        ray = Mock()
+        ray.util.list_named_actors.side_effect = AssertionError('must not require retired actor')
+        guard = NS(owned_pids=lambda _: [os.getpid()], cgroup_snapshot=lambda _: {})
+        args = NS(output=self.root, model_name='m')
+        launch.capture_native_model_workers(ray, args, guard,
+            dict(service_identity=dict(path='/sys/fs/cgroup'+self.config['service_cgroup'])),
+            self.root/'checkpoint', self.root, result)
+        ray.util.list_named_actors.assert_not_called()
+        self.assertEqual(result['served_instance_ids'], ['retired-instance'])
+        self.assertNotIn('lifecycle_qualified', result)
+
+    def test_hook_precedes_ready_and_request_entry_uses_original_receipt(self):
+        source = launch.measurement_sources(NATIVE, 'repaired')['sllm/backends/vllm_backend.py']
+        self.assertLess(source.index('record_backend_ready(self, __file__)'),
+                        source.index('self.status = BackendStatus.RUNNING'))
+        self.assertIn('internal_metrics.update(self._tc_ready_receipt)', source)
+        compile(source, 'fixture_view', 'exec')
+
+
+class PhysicalPoolBridgeTests(unittest.TestCase):
+    """Synthetic pool/events test accounting only; not device qualification."""
+
+    def test_explicit_pool_mode_binds_trace_worker_sources_and_raw_result(self):
+        from faaslora.clock import local_monotonic_clock_id
+        from faaslora.datasets.workload_generator import FrozenReplayPlan
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            backend = root/'native/sllm/backends/vllm_backend.py'
+            store = root/'store/site-packages/sllm_store/torch.py'
+            for path in (backend, store):
+                path.parent.mkdir(parents=True)
+                path.write_text('# tiny source identity fixture\n')
+            trace = root/'fixture.json'
+            trace.write_text(json.dumps(dict(requests=[dict(request_id='r', arrival_time_s=0.,
+                adapter_id='a', expected_output_tokens=4)])))
+            plan = FrozenReplayPlan.load(trace, count=1)
+            args = NS(output=root, trace=trace, native_source=root/'native', store_package=root/'store',
+                      checkpoint_root=root/'models', model_name='m')
+            guard = NS(SERVICE_CPUS={4, 5})
+            admission = dict(service_identity=dict(path='/sys/fs/cgroup/unit'))
+            result = dict(configuration=dict(backend_config={}))
+            context = dict(deployment_notice_s=0., replay_t0_s=2., clock_id=local_monotonic_clock_id(),
+                           plan=plan.identity())
+            self.assertIsNone(launch.prepare_physical_deployment(args, guard, admission, {}, context, result))
+            cfg = dict(physical_lifecycle='native_store_pool_v1', request_count=1)
+            with self.assertRaisesRegex(ValueError, 'startup admission'):
+                launch.prepare_physical_deployment(args, guard, admission, cfg, context, result)
+            cfg['ingress_mode'] = 'service_pre_ready_v1'
+            deployment = launch.prepare_physical_deployment(args, guard, admission, cfg, context, result)
+            audit = result['configuration']['backend_config']['tc_worker_audit']
+            self.assertEqual(audit['backend_sha256'], launch.sha(backend.read_bytes()))
+            self.assertEqual(audit['store_sha256'], launch.sha(store.read_bytes()))
+            self.assertEqual(audit['service_cgroup'], '/unit')
+            self.assertFalse(result['physical_lifecycle']['lifecycle_qualified'])
+            raw = root/'model_qualification.json'
+            raw.write_text(json.dumps(result))
+            summary = deployment.finalize()
+            self.assertFalse(summary['measurement_complete'])
+            manifest = json.loads((deployment.root/'physical_resource_summary.json').read_text())
+            self.assertEqual(manifest['result_file']['sha256'], launch.sha(raw.read_bytes()))
+            with self.assertRaises(FileExistsError):
+                launch.prepare_physical_deployment(args, guard, admission, cfg, context, result)
+
+    def test_store_and_engine_contexts_bound_but_unallocated_device_rejected(self):
+        devices = [dict(index=i, gpu_uuid=f'GPU-{i}', processes=[
+            dict(pid=11, service_member=True, kind='compute'),
+            dict(pid=12+i, service_member=True, kind='compute'),
+            dict(pid=99, service_member=False, kind='compute')]) for i in range(2)]
+        allocation = NS(service_path=Path('/service'), gpu_uuids=['GPU-0', 'GPU-1'],
+            census=NS(sample=lambda _: dict(devices=devices)), confirm_workers=Mock())
+        launch.confirm_native_pool(allocation)
+        self.assertEqual(len(allocation.confirm_workers.call_args.args[0]), 4)
+        allocation.gpu_uuids = ['GPU-0']
+        with self.assertRaisesRegex(ValueError, 'unallocated'):
+            launch.confirm_native_pool(allocation)
+
+    def test_confirmed_pool_waits_for_kernel_exit_before_return(self):
+        order = []
+        async def wait(**kwargs):
+            self.assertEqual(kwargs, dict(timeout_s=60))
+            order.append('exit')
+        allocation = NS(events=[dict(event='native_workers')], wait_workers=wait,
+                        release=lambda: order.append('release'))
+        launch.release_native_pool(allocation)
+        self.assertEqual(order, ['exit', 'release'])
+        allocation.wait_workers = AsyncMock(side_effect=TimeoutError('still live'))
+        allocation.release = Mock()
+        with self.assertRaises(TimeoutError):
+            launch.release_native_pool(allocation)
+        allocation.release.assert_not_called()
+
+    def test_failed_unconfirmed_start_preserves_lease_without_fabricating_exit(self):
+        allocation = NS(events=[dict(event='acquire'), dict(event='worker_spawn')],
+            wait_workers=AsyncMock(), release=Mock(side_effect=RuntimeError('unqualified lease retained')))
+        with self.assertRaisesRegex(RuntimeError, 'lease retained'):
+            launch.release_native_pool(allocation)
+        allocation.wait_workers.assert_not_called()
+        allocation.release.assert_called_once()
+
+    def test_order_allocate_spawn_confirm_register_and_cleanup_then_release(self):
+        tree = ast.parse((ROOT/'scripts/prepare_ieee_tc_serverless_stack.py').read_text())
+        fn = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == '_qualify_model')
+        source = ast.unparse(fn)
+        for earlier, later in [('allocate_native_pool(', 'subprocess.Popen('),
+                               ('allocation.bind_process(', 'native_startup.wait('),
+                               ('confirm_native_pool(', "post('/register'"),
+                               ("['kill-server']", 'release_native_pool('),
+                               ('record_http_physical_terminals(', 'deployment.finalize()')]:
+            self.assertLess(source.index(earlier), source.index(later))
+
+    def test_native_http_success_and_failure_feed_existing_physical_union(self):
+        self._terminals('http_request_failed', expected_terminal=2)
+
+    def test_cancel_is_incomplete_not_a_low_resource_complete_run(self):
+        self._terminals('http_request_cancelled', expected_terminal=1)
+
+    def _terminals(self, last_kind, expected_terminal):
+        from faaslora.clock import local_monotonic_clock_id
+        from faaslora.datasets.workload_generator import FrozenReplayPlan
+        from faaslora.metrics.metrics_collector import PhysicalGPUDeployment
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            trace = root/'fixture.json'
+            trace.write_text(json.dumps(dict(requests=[dict(request_id=str(i), arrival_time_s=3.*i,
+                adapter_id='a', expected_output_tokens=4) for i in range(2)])))
+            plan = FrozenReplayPlan.load(trace)
+            clock = local_monotonic_clock_id()
+            context = dict(deployment_notice_s=0., replay_t0_s=2., clock_id=clock, plan=plan.identity())
+            deployment = PhysicalGPUDeployment(root=root/'physical', plan=plan, context=context)
+            lease = dict(lease_id='pool', owner_id='pool', gpu_uuids=['GPU-0', 'GPU-1'], clock_id=clock)
+            (deployment.allocations/'pool.jsonl').write_text(''.join(json.dumps(dict(lease, event=e, at=t))+'\n'
+                for e, t in [('acquire', 0.), ('worker_spawn', .1), ('native_workers', .2),
+                             ('native_workers_exited', 9.), ('release', 10.)]))
+            native = dict(timing_contract='ieee_tc_native_v1', native_output_tokens=4,
+                native_lora_name='a', completion_token_ids_sha256='a'*64, control_observation=dict(instance_id='i'))
+            body = dict(id='0', usage=dict(completion_tokens=4), metrics=dict(ieee_tc=native))
+            rows = [dict(event='request_contract', request_id=e.request_id, source_item_sha256=e.source_sha256,
+                         adapter_id='a', target_tokens=4, canonical_prompt_sha256='b'*64) for e in plan.entries]
+            rows += [dict(event='http_raw_response', request_id='0', status=200, body=body),
+                     dict(event='http_response', request_id='0', client_completed_s=4., response=dict(protocol_valid=True)),
+                     dict(event=last_kind, request_id='1', client_completed_s=6., error='fixture failure')]
+            replay = root/'replay.jsonl'
+            replay.write_text(''.join(json.dumps(r)+'\n' for r in rows)+'{"partial":')
+            launch.record_http_physical_terminals(deployment, replay)
+            summary = deployment.summarize(observed_until_s=11.)
+            self.assertEqual(summary['n_plan'], 2)
+            self.assertEqual(summary['n_terminal'], expected_terminal)
+            self.assertEqual(summary['n_native_contract_complete'], 1)
+            self.assertEqual(summary['gpu_seconds_observed'], 20.)
+            self.assertEqual(summary['measurement_complete'], expected_terminal == 2)
+            self.assertEqual(summary['gpu_seconds'], 20. if expected_terminal == 2 else None)
+            self.assertIsNone(summary['n_correct'])
+            self.assertIsNone(summary['gpu_seconds_per_correct_request'])
+            with self.assertRaises(ValueError):
+                launch.record_http_physical_terminals(deployment, replay)
 
 
 if __name__ == '__main__':
