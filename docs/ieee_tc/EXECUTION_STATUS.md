@@ -1,5 +1,25 @@
 # IEEE TC execution status
 
+## USER CONFIRMATION — reuse the approved one-time delivery cache
+
+2026-10-10: The user's asynchronous answer explicitly approves the one-time
+read-only compressed delivery cache. This confirms the already implemented
+D78/D80 choice; it does not request a second publication or a new extracted
+artifact pool. D78 records 1,581,215,261 archive bytes across both models
+(about 1.47 GiB). D80 records 500/500 adapters per model, verified content,
+zero request-time packing and zero temporary-archive creation. All 18 raw
+file SHA references in the two D80 coverage summaries were rechecked and match.
+This is reuse of existing functional evidence, not a new inference experiment.
+
+A fresh read-only SSH check through `primelora-artifact-174` reached `lab14`
+at `192.168.4.174`; physical `eno1` reports 1000 Mb/s, full duplex, carrier 1.
+Port 18081 is not listening. No cache was rebuilt and no service was started,
+stopped or restarted. Request-triggered transfer and materialization remain
+inside user latency; offline publication is not subtracted from any result.
+The existing frozen metric and remote-scope documents remain unchanged.
+Next action remains the D391/D392 qualification boundary below, not a repeat
+of remote publication or a baseline/3B/performance-figure launch.
+
 ## CURRENT — D392 Resident-reference path audit (no run)
 
 2026-10-10: The ordinary-vLLM Resident runner was audited read-only. Its
