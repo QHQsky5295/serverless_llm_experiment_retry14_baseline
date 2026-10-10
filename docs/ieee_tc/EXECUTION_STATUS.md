@@ -1,5 +1,25 @@
 # IEEE TC execution status
 
+## CURRENT — D386 7B queue-upper=4 full replay complete; candidate rejected pending correctness closure
+
+2026-10-10: D386 completed the registered 4,000-request 7B W0 replay with
+`queue_upper=4`, changing only that controller trigger relative to D379.  The
+replay returned 4,000/4,000 terminal and successful requests with zero launch,
+measurement, or cleanup errors.  The fixed-length native contract, dispatch
+tier fields, TTFT/TPOT identities, physical GPU ledger, local GPU release,
+and remote-service shutdown all passed their audits.
+
+The result remains development-only: `n_correct=null`, so it is not eligible
+for G1/G2, ranking, or figures.  Relative to D379, D386 lowers service TTFT
+and mean E2E slightly but raises mean/P95 user TTFT and dispatch wait; more
+importantly, physical lifecycle GPU time rises from 12,076.449893 to
+14,914.097249 GPU-s (+23.50%), while provisional TTFT-SLO attainment falls
+from 0.9778 to 0.9725.  Thus `queue_upper=4` is not accepted as a Pareto
+improvement.  Full evidence, hashes, and the next-step decision are in
+`D386_FULL_REPLAY_RESULT.md`.  The Prime-first hold remains: close full-pool
+numerical correctness and the common warm/Resident references before any 3B,
+baseline, ablation, sensitivity, or figure work.
+
 ## CURRENT — D385 bounded 7B HF/PEFT sequence witness complete; strict gate remains open
 
 2026-10-10: D385 completed the pre-registered 100-request independent
