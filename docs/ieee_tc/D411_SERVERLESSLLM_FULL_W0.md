@@ -1,7 +1,8 @@
-# D411 ServerlessLLM complete W0 observation — running
+# D411 ServerlessLLM complete W0 observation — terminal, 3 request failures
 
 Started2026-10-11 03:12:24 Asia/Shanghai, tmux `tc-d411-7b`.
-Do not restart this key. No complete result yet; one heavy job only.
+Terminal2026-10-11 04:20 Asia/Shanghai. Do not restart this key.
+All4000 offered requests reached terminal;3997 validated responses,3 failures.
 Baseline execution commit `2a5dfd1154ba93c82d9b7076fde0a8521543933b`;
 main execution `896af899396983350c4544a9d0277283bc28339d` (pushed/remote verified).
 No baseline source code changes for this run. Existing runner already accepts
@@ -41,3 +42,38 @@ Preserve all failures/unknowncorrectness flags;reuse D406/D409 bounded evidence.
 No same-key rerun to win. PrimeLoRA D371 stayssealed; W1/W2/G2/3B/ablations
 and sensitivity remain open. Authoritative fullplan and main EXECUTION_STATUS
 must be read before continuation,not replaced by this checkpoint.
+
+## Terminal evidence and next action
+
+No baseline runtime source/configuration was changed midrun. Three loopback
+ingress->native API failures: req_02460/req_02751 ServerDisconnectedError,
+req_03635 ClientOSError; all HTTP502, no retry. Each is within~1.4ms of a
+five-second boundary after an earlier response; failed IDs absent in native
+serve.log. Socket IDs/errno not recorded, so keepalive-close reuse is a supported
+hypothesis, not proved root cause or a ServerlessLLM scheduling/remote defect.
+
+Main existing offline analyzer adds explicit complete_with_failures outcome,
+default success qualification remains strict.23CPUtests passed0.119s,4GiB/
+zero-swap. Actual3997 source/adapter/native/content/timing checks passed; error0ms.
+CommonD394 joint3938/4000=98.45%,but observed_feasible=false because3failures.
+Conditional mean/P95TTFT950.811265/730.630836ms,TPOT26.413121/31.833669ms;
+E2Emean3940.953967ms. PhysicalU16090.164120GPU-s,4.022541/offered,
+completeleases;raw n_correct=null/independentnumerical flags unchanged.
+132HTTP/131480060wireB/3300789780verifiedmaterializedB,3865cachehits,0packs.
+Five served epochs have actualreadyreceipts; not five physicalGPUs. Full pool
+functional D406 and bounded numerical D409 evidence retain their original scope.
+
+Main curated directory paper_results/ieee_tc/baseline_audit/d411_7b_full_w0_failure:
+auditSHA eb00a0e729ac9e43b53f67494c25ac99425e72b0c5b88283b783f1517dee617f;
+234-filemanifestSHA7de3171d8e8ea7655aa4a94965e80d69355d15bb49fd1a503ef5907309c2e00d;
+ingressfailureevidenceSHAa6186d3168456deaeafc41670c92b509fb4047511cb74012894ca87e72c26021.
+All234hashesverified. Remote logs copied with equal source hashes. GPUcontexts
+released,service removed,overlayRESTORED,3ownedremoteunitsSTOPPED/portsabsent,
+emptyauxstopped. Protectedbefore/afteridentical;servicehigh/max/OOM/swap0.
+No downloadedobjectcache reclamation yet. Disk below150GiB forbidsnewGPUlaunch.
+
+NEXT: retain/backup failure diagnostic, bounded CPU-only verification using
+existing PreReadyHTTPIngress tests, then evidence-based measurement repair only
+if established. No hidden retry, same-key repeat or threshold relaxation. No
+new parameter sweep,PrimeLoRA retuning or3B jump. Successful-subset latency is
+not an eligible G1/G2 comparison. No baseline code change in this closure.
