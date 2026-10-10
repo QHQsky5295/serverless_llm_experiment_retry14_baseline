@@ -1,4 +1,4 @@
-# IEEE TC execution status — current, D404 terminal
+# IEEE TC execution status — current, D405 CPU gate; D406 prepared
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -74,6 +74,30 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+D405 COMPLETE 2026-10-11: audited historical replay files: clean7B, earlier7B,
+3B each4000reported successes but132actual logical adapter IDs. Original7B
+first500/1000 touch46/60; D404 native100 touches29. D80 whole-pool HTTP evidence
+does NOT establish whole-pool engine execution. No historical500engine gate
+found in the audited sources. Inventory JSON SHA
+62b649e75ca1f6bfd5fd38367716d17e3d78231d1991b512aa10a0c9fa6ed0eb.
+Existing baseline helper now has opt-in adapter_coverage_v1, strictly500,
+qualification-only/nonformal. Existing first500 prompt/arrival/target rows,
+sorted static pool IDs, explicit original/derived row provenance; no new trace
+or weights. Publisher/physical ledger/deadline share the exact view.87CPU tests
+passed7.478s in4GiB/zero-swap auxiliary scope. Baseline checkpoint
+7a37e1f9b3220b26f9f0166e36e2821e84aa1d4b pushed and remote hash verified.
+See D405_SERVERLESSLLM_COVERAGE_INVENTORY.md and baseline detailed report.
+
+D406 PREPARED, NOT STARTED at this checkpoint. Exclusive raw root
+`/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d406_20261011`.
+Next launch the500-ID functional view after safety/remote/overlay/source checks.
+View SHA286f7547a8129fd6e75885379428b84c9a5c23a7eb02bf1d7546f49bcf2cee5d.
+Public target4 matches existing engine max-seqs4/max-loras4; min1/max4/keep10
+unchanged. D404 observed overlap2/engine supports capacity validation, not GPU
+saturation. Functional mapping is not a performance comparison or optimum.
+Then original1000 compatibility/config qualification, then full4000 W0.
+No new GPU result yet. Do not restart completed D404 or old D72/D73 pair.
 
 D404 TERMINAL 2026-10-11:100/100 native contracts,0failed,17,369tokens;
 four actual served engines/ready receipts; exact repaired source and contained
