@@ -1,4 +1,4 @@
-# IEEE TC execution status — D414 full W0 RUNNING; do not restart
+# IEEE TC execution status — D414 full W0 audited; next 7B vLLM
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -74,6 +74,90 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+D414 TERMINAL/AUDITED2026-10-11 05:57 Asia/Shanghai. Original4000offered/
+submitted/terminal/native/source/prompt/adapter/content/timing contracts,
+0failed,458224actualtokens. Do NOT restart D414 or oldercompletedruns.
+CommonD394 joint3925/4000=98.125%,TTFT3929,TPOT3996;observedbindingfeasible=true.
+U16089.762743524276GPU-s,4.022440685881069perbinding-validrequest;fourphysical
+leasesclosed,5servedepochs. Mean/P95TTFT973.686780/1052.246361ms,TPOT26.736734/
+32.929275ms,E2Emean4000.733946ms;E2E/TPOT/native recomputeerror0ms.
+132HTTP/131480060wireB/3300789780verifiedpayloadB,3868cachehits,0packs.
+Raw n_correct=null andindependentnumericalflags unchanged;reuse D406wholepool/
+D409boundedreference,not fullarithmeticproof. No cross-systemranking until
+separate fullcontractjoin;not unseen/formal,W1/W2/G2 orcross-scenariooptimum.
+ActualGPUreleased,servicepathremoved,returncode0;freshGPUcensusempty.
+D414loaderRESTOREDfromownreceipt,remote3ownedunitsSTOPPEDbyInvocationID and
+portsabsent,emptyownedauxstopped. No livejob. Allworker/resolver/remoteevidence
+preserved underD414raw;source/copy remoteSHA match. Servicepeak57570185216B,
+high/max/OOM/swap0. Protected147entrieszerochange;
+protected_afterSHA6b4deabad0cf41b4f928ab8d0069edd8ae445128fb75786a9739f4e9baf11a70.
+Existingstrictfull4000analyzerpassed;23CPUtestspass0.095s/4GiB/zeroswap.
+Audit paper_results/ieee_tc/baseline_audit/d414_7b_full_w0/audit.json
+SHA714a2fdb01b2d5a0e2e6f3a9b0faf7cb23b29632efbf5b343822b7dfe4b7dd74;
+237-file/399017519B evidence_manifest
+SHA8912ab5259d7b10e990ab3b6233b789ce4432c0af2c1544498b7587b700904fd.
+ReportD414_SERVERLESSLLM_FULL_W0.md;all237manifestfilesSHAverified. Baseline
+closurebackup600cd4bf835db7fdfdd3fd72ea31c677507de10e pushedtoorigin/main and
+remoteSHAverified;notexecutioncommit. Mainbackup pendingthischeckpoint;
+no downloadedcache reclaimed yet. Disk~147GiB below
+150GiB NEWheavy startfloor. Do notlaunchbefore safeverifiedcache-onlycleanup
+andfreshresourcegates. Nextsave/backup ->7BvLLM D412measurement integration,
+notServerlessLLMparametersearch/newshortgates or3Bjump. PrimeLoRA D371sealed;
+allotherapprovedcomparisons,Residentreference,W1/W2/G2,3B,A1-A5/S1-S13,CE/docs/
+figuresremainopen. Previousgoalturnverifiedwait;thisturn completedfullrunclosure
+andstrictaudit,concreteprogress,notgoalcompletion. Fullgoalactive.
+All RUNNING/NEXT paragraphs below are preservedhistoricalcheckpoints.
+
+D414 VERIFIED-WAIT continuation2026-10-11 05:44:09 Asia/Shanghai: same active
+serviceInvocationID2a7b6ec60c284d0981714c35296b037e/tmux tc-d414-7b confirmed
+at every poll from05:33to05:44.3590created/sent,3589raw/validatedresponses,
+all4000contracts,0HTTPfailures;notterminal. Watchdogsample3391 age0.023s,
+hostavailable52.326GiB,service53.183GiB,disk147.339GiB,high/max/OOM/swap0,
+noabort. Originalarrivalwindow remaining587.815s. Previous05:33checkpoint
+had3046sent/3045responses;05:25had2511sent/2506responses;05:19had2026sent/
+responses;05:13had1483sent/1482responses;05:06had1030sent/1025responses,
+all0failures. FrozenV1 andsingleV2 fully reread duringthiswait;existingterminal
+audit andownedremote-stop entrypoints inspectedread-only,notexecuted.
+Rawjournals retain all observations. Prior turns and this turn are verified
+waits,not blockers. FullPLAN/STATUS were read afterlastcompaction;currentPLAN
+SHA rechecked unchanged,latestSTATUS andD414contract reread. monitor-experiment
+skill used;no finalperformancecomparison from incomplete data.
+User reconfirmed once-only deliverycache: existingD78/D80 reused,no republish,
+no newpool,real reads/transfers/competition/materialization remain counted.
+No retries,restarts,livechanges,tests,hashscans,remoteoperations,cleanup or
+newperformanceexperiment. No performanceclaim.
+NEXT: keep monitoring SAMEhandle -> terminal release/restore/stop/preserve/
+audit/backup ->7BvLLM. Diskbelow150GiB forbidsnewheavyjobs;100GiB runtimefloor
+unchanged. Keepgoalactive. Taskownedlivecheckpoint remainsunstaged;critical
+main/baselinebackups alreadyverified below,protecteduserchangesuntouched.
+
+D414 VERIFIED-WAIT checkpoint2026-10-11 04:58:55 Asia/Shanghai. Same live
+tmux tc-d414-7b/serviceInvocationID2a7b6ec60c284d0981714c35296b037e repeatedly
+polled from04:51to04:58;not restarted.529created/sent,527raw/validatedresponses,
+4000registeredcontracts,noHTTPfailures,terminalreceiptstillabsent. Watchdog
+sample713 age0.510s,hostavailable55.231GiB,service48.374GiB,disk149.317GiB,
+high/max/OOM/swap0,noabort. Originalarrivalwindow remaining3301.718s.
+Previous goalturn madeprogress by launching/backingup D414;this turn is a
+verifiedwait on an actuallylivehandle,not blocked or a completedperformancepoint.
+Only small local log/status reads;no code/config/test/hash/cleanup/remotechange.
+NEXT remains monitor SAMErun toterminal thenrelease/restore/stop/preserve/audit/
+backup and7BvLLM. Do notlaunchanotherheavyjob orrestartonobservationtimeout.
+
+D414 live checkpoint2026-10-11 04:50:41 Asia/Shanghai: same tmux/service identity
+below remainsACTIVE;89created/sent,87raw and87validatedresponses,4000registered
+contracts,no HTTPfailure recorded. Four worker receipts present;fullrun is NOT
+terminal. Watchdogsample225 age0.851s,hostavailable56.605GiB,service46.538GiB,
+disk149.794GiB,high/max/OOM/swap0,noabort. No premature performance verdict.
+Disk below150GiB now forbids NEW heavylaunch;currentrun staysabove100GiB floor.
+No livecache cleanup,remoteadministration,hashscan,test or configurationchange.
+Monitor same handle untilterminal;do notrestart. Then closure sequence below.
+Running-checkpoint backups pushed andremoteSHAverified:main
+82e980f70c852dbc99939418f3056f3b03307b75;baseline
+8d62172c720bd7a0a3073f86894404f0ba4ebf79. These documentationcommits are NOT
+the executioncommits below. Exact taskdocs only,diff/secrets checks passed.
+This final livecheckpoint is subsequentunstaged task-ownedstatus;userdirties
+preserved. Fullgoalactive,no blocker,no completedperformanceclaim.
 
 D414 RUNNING since2026-10-11 04:46:28 Asia/Shanghai, tmux tc-d414-7b.
 Main execution2860b53740bfea5fc8afae7e2139a13e2855a50f pushed/remoteSHAverified;
