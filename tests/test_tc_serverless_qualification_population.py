@@ -10,8 +10,8 @@ from scripts.ieee_tc.audit_d402_serverlessllm_path import (
 
 
 class QualificationPopulationTests(unittest.TestCase):
-    def fixture(self, coverage):
-        n = 500 if coverage else 100
+    def fixture(self, coverage, n=None):
+        n = n if n is not None else 500 if coverage else 100
         entries, contracts = [], {}
         for i in range(n):
             row = dict(adapter_id=f'a{i}' if coverage else 'a', expected_output_tokens=300)
@@ -26,7 +26,8 @@ class QualificationPopulationTests(unittest.TestCase):
             if coverage:
                 contracts[rid]['tc_adapter_coverage'] = row['tc_adapter_coverage']
         plan = NS(entries=entries, profile='ADAPTER_COVERAGE_V1' if coverage else 'W0',
-                  identity=lambda: dict(count=n, view_sha256='unit-view'))
+                  identity=lambda: dict(count=n, source_count=4000, profile='W0',
+                                        rate_scale=1., view_sha256='unit-view'))
         native = NS(load_http_replay_plan=lambda cfg: plan)
         return dict(request_count=n), dict(plan=plan.identity()), contracts, native, plan
 
@@ -90,6 +91,35 @@ class QualificationPopulationTests(unittest.TestCase):
             contracts[f'r{i}'] = dict(source_item_sha256=f'sha{i}', adapter_id='a', target_tokens=256)
         self.assertEqual(validate_population(dict(request_count=1000), ready, contracts,
                                             native, 'prefix1000'), 1000)
+
+    def test_complete_unscaled_w0_population_passes(self):
+        cfg, ready, contracts, native, _ = self.fixture(False, n=4000)
+        self.assertEqual(validate_population(cfg, ready, contracts, native, 'full4000'), 4000)
+
+    def test_full4000_rejects_short_runs_and_unknown_aliases(self):
+        cfg, ready, contracts, native, _ = self.fixture(False, n=1000)
+        for name in ('full4000', 'full', 'prefix4000'):
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                validate_population(cfg, ready, contracts, native, name)
+
+    def test_full4000_cannot_be_prefix_scaled_or_different_profile(self):
+        cfg, ready, contracts, native, plan = self.fixture(False, n=4000)
+        original = plan.identity()
+        for key, value in (('source_count', 5000), ('source_count', None),
+                           ('count', 1000), ('rate_scale', 2.), ('profile', 'W1')):
+            changed = dict(original, **{key: value})
+            plan.identity = lambda: changed
+            with self.subTest(key=key, value=value), self.assertRaisesRegex(ValueError, 'complete unscaled'):
+                validate_population(cfg, dict(plan=changed), contracts, native, 'full4000')
+
+    def test_full4000_rejects_coverage_remapping_and_missing_offered_row(self):
+        cfg, ready, contracts, native, _ = self.fixture(False, n=4000)
+        contracts['r0']['tc_adapter_coverage'] = {}
+        with self.assertRaises(ValueError):
+            validate_population(cfg, ready, contracts, native, 'full4000')
+        del contracts['r0']
+        with self.assertRaises(ValueError):
+            validate_population(cfg, ready, contracts, native, 'full4000')
 
 
 class ReferenceReuseTests(unittest.TestCase):

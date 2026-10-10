@@ -1,4 +1,4 @@
-# IEEE TC execution status — D410 closed; full4000 ServerlessLLM W0 next
+# IEEE TC execution status — D411 full4000 W0 prepared; not yet launched
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -74,6 +74,25 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+D411 PREPARED 2026-10-11, not yet launched at this checkpoint. One full original
+4000W0 development observation with unchanged D410 public graph configuration.
+See D411_SERVERLESSLLM_FULL_W0.md. Existing analyzer now explicitly validates
+full4000 count/source_count/W0/rate1 and exact offered view;19CPUtests passed
+0.095s in4GiB/zero-swap scope. No online baseline code/algorithm change.
+Raw root `/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d411_20261011`;
+existing runner/config/source view prepared, no new trace/pool/checkpoint.
+Baseline execution2a5dfd1154ba93c82d9b7076fde0a8521543933b.
+Native compilation diskcache now3858files/104734877B,aggregateSHA
+5a75a00e9e341e6ee53e5afb2195c4a193a010c6d3446adcd7c4dfc10ca50791;
+recorded beforelaunch, distinct from cold LoRA/HOST/KV/GPU state.
+D410 downloadedobjects ONLY reclaimed afterbyte/source/inode/reference checks,
+600files/1474429899payloadB,1476268032B observedrelease;
+diskafter161905242112B. Originalpool/rawlogs/remoteimmutablecache retained.
+Three inaccessible sameUIDproc entries disclosed; receipts inD410raw.
+Next: tested code backup, safety/protected checks, exact loaderoverlay installation,
+reuse remote services, one tmux tc-d411-7b full4000 run. No100/1000 repeat,
+no PrimeLoRA tuning or3B jump. The following D410 next-action is superseded.
 
 D410 TERMINAL, started 2026-10-11 02:40 Asia/Shanghai, released before03:00.
 Original1,000 W0 requests,
