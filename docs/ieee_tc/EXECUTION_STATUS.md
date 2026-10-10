@@ -1,4 +1,4 @@
-# IEEE TC execution status — current, D402
+# IEEE TC execution status — current, D403
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -75,13 +75,17 @@ regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance re
 
 ## Exact next action and remaining scope
 
-1. Minimal identity-based scheduler queue deletion repair in a NEW source view,
-   preserving placement score/order,scaling,loading,migration. Do not edit vendor
-   or historical views. Reuse existing source adapter/router CPU-test pattern;
-   record original/patch identities and primary-source evidence.
-2. CPU checks for multiple pending requests/models,unavailable placement,
-   cancellation and concurrent additions; then affected7B scale-out qualification
-   once. This is a new causal fix,not a repeat of D72/D73 polling comparisons.
+1. D403 opt-in `request_identity_v1` repair implemented in existing baseline
+   source adapter; vendor/historical views untouched. Original ordering,placement,
+   scaling,loading,migration and cadence preserved. Official sibling FCFS source
+   supports identity removal. 81 CPU tests passed in7.055s,4GiB/zero-swap scope.
+   See main `D403_SERVERLESSLLM_QUEUE_REPAIR.md` and baseline detailed report.
+   Baseline checkpoint3cc25a87f3895a408a16efe2ef9c75d0e8780ff3 pushed/verified.
+2. Next D404: affected7B scale-out qualification once, same100-prefix/mechanical
+   config as D402, new source view/cold cache/remote invocations. Require fourth
+   backend ready and actual scheduler source/containment/live-loop readback,
+   not only100 completed responses. GPU qualification still pending.
+   This is a new causal fix,not a repeat of D72/D73 polling comparisons.
 3. Reuse/audit prior500-ID and1,000-request gates where contracts permit;
    reasonable public configuration validation/freeze ->one matched full W0.
    Historical target2/max-seqs4/min1/max4/keep10 is diagnostic,not selected optimum.

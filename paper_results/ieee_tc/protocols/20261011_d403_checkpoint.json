@@ -1,0 +1,16 @@
+{
+  "schema": "ieee_tc_checkpoint_v1",
+  "checkpoint": "D403",
+  "main_parent": "72640fa53415923f212923305194ea9eef3335cf",
+  "baseline_commit": "3cc25a87f3895a408a16efe2ef9c75d0e8780ff3",
+  "goal_status": "active",
+  "scheduler_queue": "request_identity_v1",
+  "baseline_full_performance_closed": false,
+  "gpu_qualification": "pending_D404",
+  "cpu_test_count": 81,
+  "cpu_test_seconds": 7.055,
+  "helper_sha256": "8822ece683499a18ba7ccced155654c31b7e1b46a35b00ef9d3b13ec9aa3a973",
+  "tests_sha256": "fbcc27b1602f665aae9d3a4d18c2d21a605588dbdd0833108b2b2ac98c0b7741",
+  "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5",
+  "next": "one affected7B scale-out qualification; preserve D371; then baseline qualification reuse and configuration freeze"
+}
