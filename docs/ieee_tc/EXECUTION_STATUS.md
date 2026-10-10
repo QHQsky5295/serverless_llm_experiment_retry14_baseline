@@ -1,4 +1,4 @@
-# IEEE TC execution status — D414 full W0 prepared; D413 transport repair retained
+# IEEE TC execution status — D414 full W0 RUNNING; do not restart
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -74,6 +74,30 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+D414 RUNNING since2026-10-11 04:46:28 Asia/Shanghai, tmux tc-d414-7b.
+Main execution2860b53740bfea5fc8afae7e2139a13e2855a50f pushed/remoteSHAverified;
+baseline execution35dda117faecee5375c146a2c23b16fc2562d82a remoteSHAreverified.
+Service primelora-tc-svc-6fc1e91952774c4dbf89415c84e35a60.scope,
+InvocationID2a7b6ec60c284d0981714c35296b037e; aux
+primelora-tc-aux-d4140000000000000000000000000001.scope,
+InvocationID018dc11883334acf8eddaa38a6f921db.
+Deploymentnotice1172460.705107463,business t0=1172520.705107463.
+Actual ingress log confirms single_request_loopback_no_retry_v1 in service
+domain. Existing external watchdog active;sample26 nohigh/max/OOM/swap/abort,
+hostavailable84793475072B,service26035859456B,disk161509662720B.
+Source4000/132IDs/458224tokens/viewSHA all revalidated; no new trace/pool.
+Remote link1000Mb/s/full, unchanged published protocol;7Bclock
+remote-process-monotonic:a8f7bdc1c5b54aef9e5f1dd2e84c38eb.
+Remote3B/7B/monitor InvocationIDs respectively96a1fa0166b3408eabe6e2c9ac0715f6,
+3af63d67d4e9495dac306a5e227d9e44,8e70bbed701040e7a7665fc59ce936ae.
+Loader INSTALLED with exact D414 overlay7b_repaired/install.json/backups;
+restore only AFTER actual GPU release. Do not stop/restart services in business.
+NEXT: monitor same livehandle/local journals only. On terminal actualrelease ->
+restore exactoverlay -> D414stop_remote.sh -> preserve resolver/worker/remote
+evidence -> full4000audit with D394 ->save/backup ->7BvLLM. No concurrent tests,
+hashscan,cleanup,remote administration,parameter search or second heavyjob.
+No final performance result yet. Goalactive,PrimeLoRA D371sealed;W1/W2/G2open.
 
 D414 PRELAUNCH checkpoint 2026-10-11 04:44 Asia/Shanghai. No live GPU job.
 See D414_SERVERLESSLLM_FULL_W0.md. Only D413 connection-lifetime repair differs
