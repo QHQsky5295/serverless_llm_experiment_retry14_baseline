@@ -1,5 +1,23 @@
 # IEEE TC execution status
 
+## CURRENT — D390 correctness-boundary offline decision
+
+2026-10-10: The frozen numerical adapter-correctness gate cannot be closed
+from existing evidence.  D384 establishes 100/100 native generation-contract
+records; D385 is 92/100 exact against independent HF/PEFT with eight top-2
+near-ties; D295 records cross-launch same-backend variation; D379/D386 provide
+complete native terminal/timing/resource contracts.  These are necessary
+diagnostics, not a full semantic oracle, so `n_correct` remains unknown and no
+G1/G2 or correctness-normalized ranking is promoted.  The strict ruler is not
+relaxed and no additional screening repeat is appended.  Common warm/Resident
+references remain separately pending.  See `D390_7B_CORRECTNESS_BOUNDARY_DECISION.md`.
+
+No GPU, remote service, baseline, 3B run, ablation, sensitivity experiment or
+figure was started from this decision.  The next permitted action is a
+separately reviewed qualification proposal that can satisfy the existing
+correctness ruler; until then, Prime measurements remain development
+diagnostics.
+
 ## CURRENT — D388 7B incumbent audit complete; no new heavy replay authorized
 
 2026-10-10: An offline, read-only audit of D371, D379 and D386 records D379 as
