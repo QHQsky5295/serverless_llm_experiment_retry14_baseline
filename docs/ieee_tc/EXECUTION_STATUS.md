@@ -1,4 +1,4 @@
-# IEEE TC execution status — D411 full4000 W0 prepared; not yet launched
+# IEEE TC execution status — D411 full4000 W0 RUNNING; do not restart
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -75,7 +75,36 @@ regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance re
 
 ## Exact next action and remaining scope
 
-D411 PREPARED 2026-10-11, not yet launched at this checkpoint. One full original
+D411 RUNNING since2026-10-11 03:12:24 Asia/Shanghai, tmux tc-d411-7b.
+Do NOT restart or launch another heavy job. Main execution
+896af899396983350c4544a9d0277283bc28339d, pushed and remoteSHAverified;
+baseline execution2a5dfd1154ba93c82d9b7076fde0a8521543933b.
+Baseline running-checkpoint backupf8af38bcb7a401114e3782e54bd5b1396a40fc76
+pushed toorigin/main andremoteSHAverified;not the executioncommit.
+Service primelora-tc-svc-cdae00875efc4791b2fad4ef286ef88f.scope,
+InvocationID426554ae3dcf4dd2999ceeecf4a2e012;aux
+primelora-tc-aux-d4110000000000000000000000000001.scope,
+InvocationIDe1a1176feced4bd5ac90df1c38152e09.
+Deploymentnotice1166817.112284243,business t0=1166877.112284243.
+Full source beforelaunch validated4000/4000,132actualIDs,458224targettokens,
+arrivalwindow3963.9089031219482s (~66min). No final performance result yet.
+Remote link1000Mb/s/full,publishedcache reused;7Bclock
+remote-process-monotonic:158e79ec85e345c19ea6fb6250184f23.
+Remote3B/7B/monitor InvocationIDs respectively
+3dadc35fa0e8430d8ef0a231e943546c,f5a284ee1ad643d6b4417e3987500387,
+43c6e563e84f43689b0b27a570ea1255. Keep unchanged during business.
+Loaderoverlay INSTALLED with exact7-memberreceipt inD411raw;restore AFTER
+actualGPUrelease from that receipt. Existingwatchdogactive,4000requestcontracts
+registered;no pressure/OOM/swap in initialsample. Continuousguard authoritative.
+Preflight passed;protected147-entryhashsame96df8e345419d26b941f99e19578d8dfe6717fe06b35caa6d42e0dae4885e87d,
+sole unchanged historicaluserreplaymismatch. No oldresultchange.
+NEXT: monitor existingtmux/localjournals only,no live remoteadministration or
+hash/cleanup. Afterterminal actualGPUrelease ->restoreoverlay ->stopownedremote
+via D411stop_remote.sh ->preserveworker/resolver/remoteevidence ->auditfull4000
+with existinganalyzer/commonD394 ->save/backup ->7Bnextbaseline. Do not repeat
+this key for a better result,retunePrimeLoRA,or jump3B beforecomparison.
+
+D411 preparation checkpoint follows. One full original
 4000W0 development observation with unchanged D410 public graph configuration.
 See D411_SERVERLESSLLM_FULL_W0.md. Existing analyzer now explicitly validates
 full4000 count/source_count/W0/rate1 and exact offered view;19CPUtests passed
@@ -90,8 +119,7 @@ D410 downloadedobjects ONLY reclaimed afterbyte/source/inode/reference checks,
 600files/1474429899payloadB,1476268032B observedrelease;
 diskafter161905242112B. Originalpool/rawlogs/remoteimmutablecache retained.
 Three inaccessible sameUIDproc entries disclosed; receipts inD410raw.
-Next: tested code backup, safety/protected checks, exact loaderoverlay installation,
-reuse remote services, one tmux tc-d411-7b full4000 run. No100/1000 repeat,
+Preparation andlaunch steps completed above. No100/1000 repeat,
 no PrimeLoRA tuning or3B jump. The following D410 next-action is superseded.
 
 D410 TERMINAL, started 2026-10-11 02:40 Asia/Shanghai, released before03:00.
@@ -342,7 +370,7 @@ this status is not a shortened experiment plan.
 - All D402/D404/D406/D408/D409 workers/service scopes released. Loader overlay
   was restored to exact preimages after each run;empty aux scopes stopped.
   D410 has also released GPU/service/aux,restored overlay and stopped ownedremote
-  units by exactInvocationID. No live heavy job.
+  units by exactInvocationID. D411 is the only live heavyjob;see identity above.
 - Strict SSH alias primelora-artifact-174,lab14@10.199.227.174:8122;
   data192.168.4.174 ports18080/18081. Credentials outside Git.
   Actual current link1000Mb/s/full;historical100Mb/s was a different state.
