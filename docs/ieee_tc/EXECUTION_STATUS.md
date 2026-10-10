@@ -1,29 +1,42 @@
 # IEEE TC execution status
 
-## CURRENT — D395 7B Resident-vLLM reference R1 IN PROGRESS
+## CURRENT — D395 7B Resident-vLLM reference R1 COMPLETE (candidate)
 
-2026-10-10: The first pre-registered 7B Resident reference replay is running
-with the existing W0 trace/subset (trace SHA `efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c`,
-subset SHA `aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016`),
+2026-10-10: The first pre-registered 7B Resident reference replay completed
+and passed the terminal audit with the existing W0 trace/subset (trace SHA
+`efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c`, subset
+SHA `aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016`),
 fixed-length native-token generation, vLLM 0.30.0, DP4/TP1, and the approved
 prepublished gzip delivery endpoint. The run tag is
-`d395_7b_resident_reference_r1_v030_seed42`; the run was launched only after
-the no-GPU dry-run, local resource gate, remote 500-adapter/manifest/health
-check, and idle-GPU check passed. The remote process is a pre-existing-code
-artifact-node process on the independent storage host (PID and launch log are
-recorded on that host); no packing or cache regeneration occurred.
+`d395_7b_resident_reference_r1_v030_seed42`. All 4,000 requests returned HTTP
+200 in one attempt; all 4,000 matched the generation contract and used native
+vLLM token IDs. No invalid token ID, empty-success record, or trace-output
+fallback occurred. The request-level TTFT/E2E decomposition identities had
+maximum absolute error 0 ms.
 
-At the time of this update, 2,080/4,000 requests had completed successfully;
-the replay had not reported a failure. The inference host cgroup audit shows
-the vLLM replicas in the 72-GiB high/80-GiB max service domain and the replay
-in the independent 4-GiB high/max, zero-swap auxiliary domain, with the
-recorded CPU affinity masks and no memory high/max/OOM/swap event so far.
-This is a running reference attempt, not a completed `U_ref`, SLO, or G2
-budget value. The terminal replay, native-token validation, request identity,
-remote transfer journal, and physical-GPU release receipt must be audited
-before it can be accepted or downgraded to a protocol diagnostic. No second
-Resident run, 3B, baseline, ablation, sensitivity, or figure work is started
-while this heavy run is live.
+The measured averages were TTFT 1,882.464 ms, TPOT 26.533 ms, E2E 4,902.365
+ms, and 1.009 requests/s; P95 TTFT/E2E were 3,148.881/7,739.531 ms. Applying
+the current-code D394 warm candidate thresholds only as a diagnostic, the
+joint TTFT/TPOT criterion accepted 3,846/4,000 requests (96.15%). The
+thresholds and the common reference remain unfrozen until the required three
+Resident runs are audited.
+
+The physical receipt records four contiguous GPU intervals of 4,036.706774 s,
+giving 16,146.827096 GPU-s by allocation-union accounting. Release occurred
+after worker exit with `final_nvml_empty=true`; the release inventory showed
+15 MiB on each GPU. The legacy summary value 17,806.483043 GPU-s includes the
+300-s deployment idle tail and is retained separately, not substituted for the
+physical receipt value. The approved remote cache journal records 132 sent
+prepublished gzip transfers (131,480,060 wire bytes), 3,868 cache hits, zero
+packing, and zero temporary archives. The remote artifact process was stopped
+only after PID/command verification; the port is closed and journal/log hashes
+are recorded in `D395_7B_RESIDENT_REFERENCE_R1_AUDIT.md` and its adjacent JSON.
+
+D395 is therefore an audited Resident-reference candidate, not final `U_ref`,
+G1/G2, a Prime result, or a baseline ranking. The next permitted heavy action
+is the separate D396 Resident reference run with the same frozen inputs. No
+3B, baseline, ablation, sensitivity, or figure work is opened by this result.
+See `D395_7B_RESIDENT_REFERENCE_R1_AUDIT.md`.
 
 ## CURRENT — D394 current-code 7B common warm reference COMPLETE
 

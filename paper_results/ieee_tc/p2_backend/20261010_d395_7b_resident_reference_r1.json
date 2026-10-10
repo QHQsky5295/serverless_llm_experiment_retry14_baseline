@@ -1,0 +1,113 @@
+{
+  "schema": "ieee_tc_d395_resident_reference_audit_v1",
+  "campaign": "D395",
+  "run_tag": "d395_7b_resident_reference_r1_v030_seed42",
+  "status": "completed_audited_candidate",
+  "acceptance": {
+    "counts_toward_three_run_resident_series": true,
+    "final_common_reference_frozen": false,
+    "final_u_ref": false,
+    "formal_g1_g2_qualified": false
+  },
+  "source": {
+    "model_profile": "llama2_7b_main_v2_publicmix",
+    "dataset_profile": "azure_sharegpt_rep4000",
+    "workload_profile": "llama2_7b_auto500_formal4000_s8",
+    "seed": 42,
+    "trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "adapter_subset_sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016",
+    "generation_contract": "fixed_length_greedy_v1",
+    "runtime": "vLLM 0.30.0",
+    "topology": "data_parallel_dp4_tp1",
+    "max_num_seqs": 2,
+    "max_loras": 4
+  },
+  "native_contract_audit": {
+    "expected_requests": 4000,
+    "completed_records": 4000,
+    "success": 4000,
+    "output_contract_match": 4000,
+    "requested_completion_matches": 4000,
+    "native_completion_token_source": 4000,
+    "native_invalid_token_id_records": 0,
+    "empty_success_records": 0,
+    "request_attempts_one": 4000,
+    "prompt_hash_present": 4000,
+    "request_id_unique": 4000,
+    "e2e_decomposition_max_abs_ms": 0.0,
+    "ttft_decomposition_max_abs_ms": 0.0,
+    "tpot_observed": 4000
+  },
+  "joint_slo_candidate": {
+    "threshold_source": "D394 current-code warm candidate, 5x/2x multipliers",
+    "thresholds_ms": {
+      "input_le_616": {"ttft": 2995.348713684507, "tpot": 59.74409694902162},
+      "input_gt_616": {"ttft": 4633.345350589479, "tpot": 85.24698166015581}
+    },
+    "input_le_616_requests": 1039,
+    "input_gt_616_requests": 2961,
+    "joint_good_requests": 3846,
+    "joint_slo_rate": 0.9615,
+    "tpot_good_requests": 4000,
+    "note": "Candidate thresholds are not frozen common references; this rate is diagnostic until the three-run reference process is complete."
+  },
+  "latency_and_throughput": {
+    "ttft_avg_ms": 1882.4636,
+    "ttft_p50_ms": 245.2509,
+    "ttft_p95_ms": 3148.8806,
+    "ttft_p99_ms": 65927.2762,
+    "service_ttft_avg_ms": 920.7798,
+    "dispatch_wait_avg_ms": 961.6838,
+    "dispatch_wait_p95_ms": 144.7569,
+    "tpot_avg_ms": 26.5328,
+    "e2e_avg_ms": 4902.365,
+    "e2e_p95_ms": 7739.5313,
+    "throughput_rps": 1.009,
+    "throughput_tokens_per_s": 115.5853
+  },
+  "physical_gpu_lifecycle": {
+    "gpu_count": 4,
+    "per_gpu_interval_s": 4036.706774036167,
+    "physical_gpu_seconds_union": 16146.827096144668,
+    "allocation_start_monotonic_s": 1105911.922902393,
+    "release_monotonic_s": 1109948.629676429,
+    "release_status": "released",
+    "release_after_worker_exit": true,
+    "final_nvml_empty": true,
+    "gpu_inventory_at_release_all_idle_15_mib": true,
+    "legacy_summary_gpu_seconds_with_300s_tail": 17806.483043,
+    "legacy_minus_physical_gpu_seconds": 1659.655946855332,
+    "accounting_note": "The physical receipt interval is retained for lifecycle accounting; the summary's deployment-idle-tail value is reported separately and is not silently substituted."
+  },
+  "delivery_audit": {
+    "mode": "prepublished_gzip_v1",
+    "request_path_packing": false,
+    "artifact_transfer_is_request_bound": true,
+    "remote_endpoint": "http://192.168.4.174:18081",
+    "remote_cache_rebuild": false,
+    "remote_miss_transfers": 132,
+    "remote_cache_hit_requests": 3868,
+    "wire_archive_bytes": 131480060,
+    "raw_artifact_bytes_reported_by_client": 3300789780,
+    "server_outcomes_all_sent": true,
+    "server_pack_performed": 0,
+    "server_temporary_created": 0,
+    "transfer_journal_sha256": "b4b39008beeaf95365b993f20b31ecc55139567a71ff094c4ff7f082b37bfa8c",
+    "transfer_journal_path": "/home/lab14/primelora_remote/tc/d80_20260927/7b/transfers-ad2b2b18761a42c3876506fc5b5582be.jsonl",
+    "service_stop": {
+      "pid": 1946848,
+      "command_verified_before_stop": true,
+      "stopped": true,
+      "port_18081_closed": true,
+      "launch_log_sha256": "cf7cb1e57a777454389dfd9fbca270f9529d1c54d5b730999a3ccfd74944a235"
+    }
+  },
+  "raw_files": {
+    "replay_sha256": "91f02ccb276b94125ca06c8da7923a9d741022baca06bd04b32ba32e75808a5d",
+    "summary_sha256": "dd5e2b1e48ef8bc956422848980275f03b15f4c08ada299955ff50a20017e691",
+    "lifecycle_receipt_sha256": "fb30b362fd1f5ccafa23c874e6c04c53331f4cc76818991dc64714a7569a4eb1",
+    "replay_path": "/home/qhq/serverless_llm_baselines/results/ieee_tc_resident_protocol/d395_7b_resident_reference_r1_v030_seed42/llama2_7b_main_v2_publicmix_resident_v1_r4000_a500_seed42_replay.json",
+    "summary_path": "/home/qhq/serverless_llm_baselines/results/ieee_tc_resident_protocol/d395_7b_resident_reference_r1_v030_seed42/llama2_7b_main_v2_publicmix_resident_v1_r4000_a500_seed42_summary.json",
+    "lifecycle_receipt_path": "/home/qhq/serverless_llm_baselines/results/ieee_tc_resident_protocol/d395_7b_resident_reference_r1_v030_seed42/llama2_7b_main_v2_publicmix_resident_v1_r4000_a500_seed42_resident_protocol/llama2_7b_main_v2_publicmix_resident_v1_r4000_a500_seed42_lifecycle.json"
+  }
+}
