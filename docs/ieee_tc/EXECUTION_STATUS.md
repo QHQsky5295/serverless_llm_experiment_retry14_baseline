@@ -1,4 +1,4 @@
-# IEEE TC execution status — D413 ingress repair CPU-qualified; one new W0 next
+# IEEE TC execution status — D414 full W0 prepared; D413 transport repair retained
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -75,6 +75,29 @@ regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance re
 
 ## Exact next action and remaining scope
 
+D414 PRELAUNCH checkpoint 2026-10-11 04:44 Asia/Shanghai. No live GPU job.
+See D414_SERVERLESSLLM_FULL_W0.md. Only D413 connection-lifetime repair differs
+from D411; same original4000/public native configuration/commonD394SLO.
+Raw d414_20261011 under existing serverless_qualification root contains reused
+runner/remote scripts, identical HTTP config, new source view, resource preflight
+and protected snapshot. No GPU gate/parameter sweep. Native compile diskcache
+3858files/104734877B, SHA5a75a00e9e341e6ee53e5afb2195c4a193a010c6d3446adcd7c4dfc10ca50791.
+D411 downloadedobjects ONLY reclaimed with evidence/reference checks:
+1320files,3305664512B observed release; diskafter161526784000B. All raw records,
+original pool and published remote cache retained. Three unreadable sameUID
+proc entries disclosed in cleanup receipts. Do not redo cleanup/byteaudit.
+Baseline execution35dda117faecee5375c146a2c23b16fc2562d82a already backed up.
+NEXT: backup this preparation; start unchanged published remote services and
+health-check; install exact loader-only overlay using NEW D414 backups/receipt;
+fresh gates/input validation -> launch one full W0 in tmux tc-d414-7b.
+Loader installer /home/qhq/relayserve_serverless_llm/scripts/
+relayserve_v4_3_apply_serverlessllm_vllm_store_overlay.py, SHA
+da6a14276f92186457c44c215d45d1ca9d18f7bbea9cdec6665737743f9c5978;
+preflight already passed, NOT yet installed. Actual release precedes restore.
+Follow D414 doc for closure, then7BvLLM. Do not restart D411 or new shortgates.
+User reconfirmed one-time deliverycache approval: reuse D78/D80,not republish.
+Earlier next-action paragraphs below are retained historical checkpoints.
+
 D413 CPU-only checkpoint2026-10-11 04:35 Asia/Shanghai: no live GPU/remote job.
 Bounded real-loopback event-order test reproduced a failed secondPOST when the
 peer closes after pool selection; unchangedproduction test1 passed0.159s.
@@ -93,8 +116,12 @@ below150GiB newheavyfloor;cacheNOTreclaimedyet.
 Baseline testedcheckpoint35dda117faecee5375c146a2c23b16fc2562d82a pushed to
 origin/main andremoteSHAverified. Exact4taskfilesonly;diff/secretschecks passed.
 Protected3userdirtySHAs unchanged;plan/frozenV1/singleV2/D411curated3SHAunchanged.
-Main D413report/status checkpoint backup pending immediately below.
-ImmediateNEXT: finishmaincheckpointbackup; safelyreclaimonlyverifiedD411downloadobjects withreferencechecks;
+Main D413report/status checkpoint03938d3c857b5768deb20e0a723d069734ff79f9
+pushed tofaaslora_origin/retry14_continuous_queue_v2 andremoteSHAverified.
+Onlythis postpushconfirmation is subsequentlyunstaged taskwork;protecteduser
+changes remainuntouched. No GPUexperiment/remoteoperation/cachecleanupoccurred
+inD413. Fullgoal remainsactive;this is oneboundedmeasurementmilestone.
+ImmediateNEXT: safelyreclaimonlyverifiedD411downloadobjects withreferencechecks;
 thenone new-key full4000W0 withsameD411configuration/commonD394SLO andreal
 resourceledger. Reuse D406wholepool/D409-D410backendqualification,not another
 100/500/1000GPUgate. D411isNOTrestarted,not eligible ranking. PrimeLoRAsealed;
