@@ -1,0 +1,45 @@
+{
+  "schema": "ieee_tc_checkpoint_v1",
+  "checkpoint": "D402",
+  "main_parent": "348c5f3e750fd78a2f877c25bd4c06d85b4806bc",
+  "baseline_commit": "d0fea52483f2906a5e68a1ec96aed42135498c67",
+  "goal_status": "active",
+  "native_path_requests": 100,
+  "baseline_full_performance_closed": false,
+  "source_level_scheduler_error_reproduced": true,
+  "next": "minimal identity-based queue repair and affected path qualification before public configuration freeze/full7B comparison",
+  "tests": {
+    "actual_cpu_evidence_audit": "pass",
+    "native_router_launcher_regression_count": 70,
+    "native_router_launcher_regression_seconds": 7.699,
+    "py_compile": "pass"
+  },
+  "evidence_manifest_files_verified": 77,
+  "execution_history_preserved_sha256": "cbfd51321c2bb2fdc0e2c767054cc5e68a16176360235f6a855ec214cd5b9037",
+  "files": [
+    {
+      "path": "docs/ieee_tc/EXECUTION_STATUS.md",
+      "sha256": "a11eb317ebedd341a4d0ce0bde79c595c977f7b6a3c31bdae8893b7b1acac1a9"
+    },
+    {
+      "path": "docs/ieee_tc/EXECUTION_HISTORY_THROUGH_D402.md",
+      "sha256": "cbfd51321c2bb2fdc0e2c767054cc5e68a16176360235f6a855ec214cd5b9037"
+    },
+    {
+      "path": "docs/ieee_tc/D402_SERVERLESSLLM_7B_PATH_RESULT.md",
+      "sha256": "fbc2ee2a2f38c87533f96811576b8b90bc2707c11613a3f81f649ece0de89152"
+    },
+    {
+      "path": "scripts/ieee_tc/audit_d402_serverlessllm_path.py",
+      "sha256": "8be5e3f25f7ea69e0f41af62ae20654ab017262d8dfd48f85b78c9f8959e50be"
+    },
+    {
+      "path": "paper_results/ieee_tc/baseline_audit/d402_7b_path/audit.json",
+      "sha256": "b1102a8b839ac198d512381ac6b0709fb7ab1bedebe6d38143aa4e1b05275ba8"
+    },
+    {
+      "path": "paper_results/ieee_tc/baseline_audit/d402_7b_path/evidence_manifest.json",
+      "sha256": "10c4beb0f79c2aa209697fab72924359d75b9aa705217d186f72de179ad24874"
+    }
+  ]
+}
