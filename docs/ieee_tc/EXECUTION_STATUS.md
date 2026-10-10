@@ -10517,3 +10517,23 @@ The installed vLLM environment documents `VLLM_BATCH_INVARIANT` as requiring
 compute capability >=9.0. The four available RTX 3090 GPUs report capability
 8.6, so this possible determinism workaround is hardware-inapplicable and was
 not enabled or used to alter the serving contract.
+# CURRENT CHECKPOINT — D389 scale-up label audit and delivery-cache reuse
+
+2026-10-10.  The user's one-time approval for an immutable compressed remote
+delivery cache is already fulfilled by D78/D80 and is being reused; no cache
+rebuild, request-path packing, remote source mutation, or new extracted pool was
+performed.  The cache remains outside request E2E preparation and its publish
+time is not subtracted from observed latency.
+
+D389 is a read-only audit of D379.  The stored
+`scaleup_first_service_planned_match_rate=0.0` is a legacy-label semantic
+artifact for `ieee_confirmed`, not evidence that every IEEE activation missed
+its completed preparation targets.  Joining the nine first-service requests to
+the completed, non-superseded activation target sets gives 3/9 conservative
+matches; two additional requests correspond to superseded plans and remain
+unknown rather than being counted.  This does not alter D379's performance
+metrics or formal status.  See `D389_SCALEUP_HANDOFF_LABEL_AUDIT.md`.
+
+No heavy replay was started.  D379 remains the development incumbent; D386
+remains rejected.  Numerical correctness and common warm/Resident reference
+closure are still the gates before a new serving candidate or baseline.
