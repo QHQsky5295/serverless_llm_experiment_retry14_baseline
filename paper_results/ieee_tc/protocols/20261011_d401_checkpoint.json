@@ -1,0 +1,70 @@
+{
+  "schema": "ieee_tc_cross_repository_checkpoint_v1",
+  "date": "2026-10-11",
+  "milestone": "D401 ServerlessLLM physical-pool lifecycle and ready-time provenance CPU validation",
+  "main_parent_commit": "e6b7780020def0a54a879d374080baaca2d22e41",
+  "baseline_commit": "d0fea52483f2906a5e68a1ec96aed42135498c67",
+  "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5",
+  "metric_protocol_v1_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "single_run_v2_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+  "display_names": ["PrimeLoRA", "ServerlessLLM"],
+  "performance_runs_started": 0,
+  "figures_created": 0,
+  "remote_production_mutations": 0,
+  "status": "cpu_validated_physical_pool_bridge_not_gpu_model_qualified",
+  "delivery_cache": "Existing approved D78/D80 objects reused; no production republication or new permanent extracted pool.",
+  "physical_measurement": {
+    "mode": "native_store_pool_v1",
+    "shared_main_implementation_modified": false,
+    "uses": ["PhysicalGPUAllocation", "NativeGPUCensus", "PhysicalGPUDeployment"],
+    "scope": "Exclusive native store and engine pool; logical replica retirement is not physical release.",
+    "ready_receipt_scope": "Served actor native source and containment at ready time; not numerical correctness or release proof.",
+    "release_requires": ["bound kernel process-exit notifications", "fresh native census", "allocator return event"],
+    "failure": "Unconfirmed spawned workers retain an open lease; missing/cancelled requests retain incomplete workload.",
+    "raw_result_sha_bound": true
+  },
+  "baseline_cpu_tests": {
+    "passed": 89,
+    "failed": 0,
+    "seconds": 7.093,
+    "new_test_count": 12,
+    "modules": ["test_ieee_tc_dispatch_audit", "test_ieee_tc_serverless_router", "test_ieee_tc_serverless_launch", "test_ieee_tc_serverless_measurement", "test_serverlessllm_bandwidth_summary", "test_native_stream_timing"],
+    "scope": "ieee-tc-d401-cpu-final.scope",
+    "prior_development_pass": {"passed": 88, "seconds": 7.461, "performance_repeat": false}
+  },
+  "shared_physical_tests": {
+    "module": "tests.test_ieee_tc_gpu_lifecycle",
+    "passed": 32,
+    "failed": 0,
+    "seconds": 1.305,
+    "scope": "ieee-tc-d401-ledger-cpu.scope"
+  },
+  "test_resources": {
+    "interpreter": "/home/qhq/anaconda3/envs/sllm_vllm0102_newserverless_20260518/bin/python",
+    "memory_high_gib": 3,
+    "memory_max_gib": 4,
+    "swap_max_bytes": 0,
+    "cpus": [2, 3, 26, 27],
+    "cpu_quota_percent": 400,
+    "note": "Real temporary files and process identities with synthetic native modules/contexts; loopback transport fixtures. Not model performance or adapter numerical correctness."
+  },
+  "baseline_sources": {
+    "scripts/prepare_ieee_tc_serverless_stack.py": "9b3978a78f0877d0ef18cb71abca47b4b9d89337f73eb0faa51e5cd84a0a8a9b",
+    "scripts/ieee_tc_serverless_measurement.py": "db0c5232692215a1dd3b8ded3787b7f0dd6dc546e5e8a33bdfc9fbaed5353740",
+    "tests/test_ieee_tc_serverless_measurement.py": "06c5b951d683688df6ad79e2d0dc1e0527c9725f241b633dacebda85cc75392d",
+    "docs/ieee_tc/D401_SERVERLESSLLM_PHYSICAL_POOL.md": "805353ca6d3c7dd943e6d695ad74991d0da2fa3e0e5bc4851150df18931704e2"
+  },
+  "protected_verification": {
+    "path": "paper_results/ieee_tc/safety/20261011_d401_protected_verification.json",
+    "sha256": "96df8e345419d26b941f99e19578d8dfe6717fe06b35caa6d42e0dae4885e87d",
+    "historical_seal_pass": false,
+    "entry_count": 147,
+    "changed_from_september_seal": ["/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"],
+    "reason": "Pre-existing user change; current bytes unchanged and not staged.",
+    "current_replay_sha256": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "current_relayserve_sha256": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "observed_free_disk_bytes": 163971575808,
+  "gpu_memory_mib_at_initial_check": [15, 15, 15, 15],
+  "next": "Recheck disk-growth/resource admission and environment/source-view/remote identities, then affected repaired 7B model qualification once before matched full replay. Preserve D371 and D72/D73; no repeated polling diagnostic or new PrimeLoRA tuning without comparison evidence."
+}

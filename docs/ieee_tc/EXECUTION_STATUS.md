@@ -1,5 +1,40 @@
 # IEEE TC execution status
 
+## CURRENT — D401 ServerlessLLM physical-pool bridge CPU-validated; affected 7B GPU qualification next
+
+2026-10-11: the existing native qualifier now supports explicit
+`physical_lifecycle=native_store_pool_v1` with service-owned pre-ready admission.
+It reuses unchanged PhysicalGPUAllocation/NativeGPUCensus/PhysicalGPUDeployment:
+exclusive native store/engine pool before stack spawn, actual context binding,
+kernel exit notification plus fresh census before return, source-bound external
+request terminals, immutable raw-result SHA in the canonical physical sidecar.
+Logical actor shrink does not release a pool still held by the native store.
+This fixed pool deployment is disclosed, not generalized to every possible
+ServerlessLLM deployment. Ready-time actual actor/source/containment receipts
+survive retirement; they prove neither numerical LoRA effects nor GPU release.
+Missing receipt, incomplete workload, failed/unqualified startup and unresolved
+GPU release retain failure/censoring rather than a finite complete resource win.
+
+89 baseline CPU tests passed in 7.093 s (12 new plus expanded checks); the
+unchanged shared GPU lifecycle module's 32 tests passed in 1.305 s. Bounded
+4-GiB/zero-swap auxiliary scopes only. Details in both repositories' D401 notes.
+No GPU model/performance run, production remote mutation, cache republication,
+workload generation, PrimeLoRA optimization or figure occurred. Therefore
+`remote_qualified=false` remains and no new baseline rank is claimed.
+
+Next EXACT mainline: fresh disk-growth/resource admission and frozen environment,
+source-view/remote-service identity checks -> affected repaired 7B model-path
+qualification once -> select/freeze reasonable public configuration -> one
+matched full replay. Reuse existing checkpoint, D78/D80 published objects,
+static pool index and trace. Do not repeat D72/D73 polling diagnostics or the
+invalid Resident path. Disk about 150.12 GiB: recheck before GPU work.
+
+Source plan/full-name snapshot and frozen V1/single-run V2 remain unchanged.
+D371 W0 remains sealed; W1/W2, valid Resident U_ref, complete 7B comparisons,
+3B and later matrices remain open. Protected 147-entry verification differs
+only by the pre-existing user replay edit; current replay/relay SHAs unchanged
+and neither staged. This entry supersedes older next-action sections below.
+
 ## CURRENT — D400 ServerlessLLM service-owned remote resolver CPU-qualified; GPU ownership next
 
 2026-10-10: latest naming directive is persisted in the source plan and full
