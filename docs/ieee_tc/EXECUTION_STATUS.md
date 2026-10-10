@@ -1,5 +1,22 @@
 # IEEE TC execution status
 
+## CURRENT — D392 Resident-reference path audit (no run)
+
+2026-10-10: The ordinary-vLLM Resident runner was audited read-only. Its
+`VLLM_RESIDENT_PROTOCOL_V1` path now has separate service/auxiliary domains,
+prepublished remote delivery checks, a common monotonic deployment notice,
+native fixed-output validation, and a per-GPU acquisition-to-release receipt
+that closes only after an empty NVML census. Shell syntax and helper bytecode
+checks passed. This is implementation readiness, not a Resident measurement.
+
+D213 remains correctly rejected as a reference because it used local static
+adapters, shifted the business clock, shared service/replay scopes, lacked a
+physical ledger, and used a 7,200-second timeout. A fresh three-run Resident
+series is still required to freeze `U_ref` and the G2 budget, but is not
+authorized before the D391 correctness route. The baseline worktree still has
+the user-modified replay script unstaged; it was neither changed nor staged by
+this audit. See `D392_RESIDENT_REFERENCE_READONLY_AUDIT.md`.
+
 ## CURRENT — D391 correctness qualification proposal (no run)
 
 2026-10-10: A read-only audit found no lawful way to promote D379/D386 to
