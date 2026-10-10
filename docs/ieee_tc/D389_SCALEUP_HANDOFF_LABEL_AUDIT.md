@@ -79,6 +79,10 @@ tests, and replay only a newly registered one-factor campaign against D379.
   `/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d379_20261010/7b_capacity_revalidation_full_w0`
 - D379 stored metric: `scaleup_first_service_request_count=9`,
   `scaleup_first_service_planned_match_rate=0.0`.
+- Reproducible audit script: `scripts/ieee_tc/audit_d389_scaleup_handoff_labels.py`
+  (SHA-256 `95892befeaca43a490bceabc7aca1cc899c9204c0667597e58a669f5d13cb127`).
+- Curated read-only audit output:
+  `paper_results/ieee_tc/p2_backend/d389_scaleup_handoff_label_audit/audit.json`
+  (SHA-256 `5a1ae252010a8ecaa773a47de167decf6d471b1ba9a72f29d83dfe4493f6dd9b`).
 - Request records and IEEE activation/preparation records were joined read-only.
 - No result JSON, trace, adapter pool, configuration, or old figure was edited.
-

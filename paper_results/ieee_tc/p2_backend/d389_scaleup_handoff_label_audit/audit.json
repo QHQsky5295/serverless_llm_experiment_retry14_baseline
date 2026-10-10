@@ -1,0 +1,212 @@
+{
+  "completed_plan_count": 7,
+  "confirmed_target_match_count": 3,
+  "conservative_match_rate": 0.3333333333333333,
+  "first_service_count": 9,
+  "kind": "d389_scaleup_handoff_label_audit_v1",
+  "legacy_field_is_not_reused": true,
+  "performance_or_correctness_promoted": false,
+  "records": [
+    {
+      "activation_id": "ieee-activation-ae59edc8ef4a4ca0897ebfa3ab8bb141",
+      "adapter_id": "code_lora",
+      "adapter_int_id": 291372,
+      "confirmed_status": "confirmed_target_miss",
+      "dispatch_monotonic_s": 1086065.384721688,
+      "legacy_planned_adapter_match": false,
+      "matched_completed_plan": true,
+      "plan": {
+        "finished_at": 1086064.590946585,
+        "plan_id": "79a4d7b5273e42fea69acb4666df138f",
+        "planning_sha256": "49bbcd4603f0d4de7b208063282ff20bb01b1b03be50b92f4ca40685b119f8a9",
+        "started_at": 1086063.724161682,
+        "state": "completed",
+        "targets": [
+          963725
+        ]
+      },
+      "readiness_tier_before_dispatch": "nvme",
+      "request_id": "req_00024"
+    },
+    {
+      "activation_id": "ieee-activation-f1bfeab5751e4e6c9d6f4a94733c5388",
+      "adapter_id": "code_lora",
+      "adapter_int_id": 291372,
+      "confirmed_status": "confirmed_target_miss",
+      "dispatch_monotonic_s": 1086082.721906614,
+      "legacy_planned_adapter_match": false,
+      "matched_completed_plan": true,
+      "plan": {
+        "finished_at": 1086068.648759826,
+        "plan_id": "c53c42393c6d49ff88d364d24adb44f7",
+        "planning_sha256": "4610f39afc5cb8464ecbac382c87cf5e273be0c60fbfda9a2d3653ff90ca265b",
+        "started_at": 1086067.59966218,
+        "state": "completed",
+        "targets": [
+          963725
+        ]
+      },
+      "readiness_tier_before_dispatch": "gpu",
+      "request_id": "req_00029"
+    },
+    {
+      "activation_id": "ieee-activation-ca9c24c18ad34964af67f44124ef13c1",
+      "adapter_id": "medical_lora_0014",
+      "adapter_int_id": 683755,
+      "confirmed_status": "confirmed_target_miss",
+      "dispatch_monotonic_s": 1086082.753325138,
+      "legacy_planned_adapter_match": false,
+      "matched_completed_plan": true,
+      "plan": {
+        "finished_at": 1086070.132077863,
+        "plan_id": "bdd8ba53d4a14b539e301d81a1290ee8",
+        "planning_sha256": "cb48a196f4ec446ef5a29ed2ef0bc1fcac11fe637b375c9376e420d5eb452476",
+        "started_at": 1086068.283904814,
+        "state": "completed",
+        "targets": [
+          963725,
+          416753
+        ]
+      },
+      "readiness_tier_before_dispatch": "remote",
+      "request_id": "req_00028"
+    },
+    {
+      "activation_id": "ieee-activation-4722481b10b5436facc97be69ff0746e",
+      "adapter_id": "medical_lora_0014",
+      "adapter_int_id": 683755,
+      "confirmed_status": "confirmed_target_match",
+      "dispatch_monotonic_s": 1086786.043449122,
+      "legacy_planned_adapter_match": false,
+      "matched_completed_plan": true,
+      "plan": {
+        "finished_at": 1086805.257655549,
+        "plan_id": "33a0c9a0420f4c19b28ccce8d535c17b",
+        "planning_sha256": "394212a4a60dfc9d62600c29fc572a12004fcc109f116c9d5dcd6d0e832e6a86",
+        "started_at": 1086785.76974393,
+        "state": "completed",
+        "targets": [
+          683755,
+          131076,
+          194910,
+          356962,
+          92952
+        ]
+      },
+      "readiness_tier_before_dispatch": "nvme",
+      "request_id": "req_00674"
+    },
+    {
+      "activation_id": "ieee-activation-f40d3e022c454fcd846df855ac1a7180",
+      "adapter_id": "finance_lora_0013",
+      "adapter_int_id": 131076,
+      "confirmed_status": "unknown_plan_not_complete",
+      "dispatch_monotonic_s": 1086789.448517483,
+      "legacy_planned_adapter_match": false,
+      "matched_completed_plan": false,
+      "plan": null,
+      "readiness_tier_before_dispatch": "nvme",
+      "request_id": "req_00695"
+    },
+    {
+      "activation_id": "ieee-activation-61617574e6d641459593d830c233ee01",
+      "adapter_id": "research_lora_0020",
+      "adapter_int_id": 356962,
+      "confirmed_status": "unknown_plan_not_complete",
+      "dispatch_monotonic_s": 1086790.231686636,
+      "legacy_planned_adapter_match": false,
+      "matched_completed_plan": false,
+      "plan": null,
+      "readiness_tier_before_dispatch": "nvme",
+      "request_id": "req_00703"
+    },
+    {
+      "activation_id": "ieee-activation-4334ea95a6444ff0b3fdd9872bda9b34",
+      "adapter_id": "finance_lora_0037",
+      "adapter_int_id": 615284,
+      "confirmed_status": "confirmed_target_miss",
+      "dispatch_monotonic_s": 1087130.93027309,
+      "legacy_planned_adapter_match": false,
+      "matched_completed_plan": true,
+      "plan": {
+        "finished_at": 1087176.75099792,
+        "plan_id": "e42ccd6d355c44bea7c9daadc5d72f6c",
+        "planning_sha256": "4d534310a6546e00d26be8fbbec07cd8c89a0ec02e57cb7ece4e9a63b59ac6f1",
+        "started_at": 1087124.679533137,
+        "state": "completed",
+        "targets": [
+          131076,
+          938881,
+          605763,
+          964914,
+          170491,
+          683755,
+          194910,
+          290186
+        ]
+      },
+      "readiness_tier_before_dispatch": "nvme",
+      "request_id": "req_01055"
+    },
+    {
+      "activation_id": "ieee-activation-59037eb48ded4eb3bc47fc8c460d5db5",
+      "adapter_id": "medical_lora_0038",
+      "adapter_int_id": 946784,
+      "confirmed_status": "confirmed_target_match",
+      "dispatch_monotonic_s": 1087705.869740837,
+      "legacy_planned_adapter_match": false,
+      "matched_completed_plan": true,
+      "plan": {
+        "finished_at": 1087721.472571164,
+        "plan_id": "0f1478d4ee4349aeb03477536b7c02c4",
+        "planning_sha256": "704b746f04dd74c7e2559bb4c169f82f37b656b04ca1ed77260767ab20f9fe8b",
+        "started_at": 1087703.020034777,
+        "state": "completed",
+        "targets": [
+          264288,
+          196511,
+          946784,
+          615284,
+          290186,
+          587868,
+          803545,
+          252156
+        ]
+      },
+      "readiness_tier_before_dispatch": "gpu",
+      "request_id": "req_01735"
+    },
+    {
+      "activation_id": "ieee-activation-5abbf3b93bce46aaa6cea0c485aa1d73",
+      "adapter_id": "finance_lora_0049",
+      "adapter_int_id": 975075,
+      "confirmed_status": "confirmed_target_match",
+      "dispatch_monotonic_s": 1088108.473724473,
+      "legacy_planned_adapter_match": false,
+      "matched_completed_plan": true,
+      "plan": {
+        "finished_at": 1088131.141809204,
+        "plan_id": "2b23bace8dc04a3d907949b0da996b8a",
+        "planning_sha256": "7ecd6dd0da6f296c080201408aeab2dad26ee77c2af0c9a38253597772c919d0",
+        "started_at": 1088108.015339228,
+        "state": "completed",
+        "targets": [
+          975075,
+          503922,
+          759642,
+          258317,
+          429557,
+          624445,
+          523333,
+          962022
+        ]
+      },
+      "readiness_tier_before_dispatch": "host",
+      "request_id": "req_02292"
+    }
+  ],
+  "source_outcome": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d379_20261010/7b_capacity_revalidation_full_w0/launch.launch/physical_deployment/main_outcome.json",
+  "source_outcome_sha256": "6aa116bf543eb234bc447699d75115c2a1122f48810d6d8c475ae4318bc5d502",
+  "source_result": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d379_20261010/7b_capacity_revalidation_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d379_7b_capacity_revalidation_full_w0.json",
+  "source_result_sha256": "772ae04ec266e1b0e69c7a1075b7c8bf8a93eb2fc322a2f8ff356a99bc9874d6"
+}

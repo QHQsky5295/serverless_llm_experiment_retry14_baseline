@@ -10534,6 +10534,12 @@ matches; two additional requests correspond to superseded plans and remain
 unknown rather than being counted.  This does not alter D379's performance
 metrics or formal status.  See `D389_SCALEUP_HANDOFF_LABEL_AUDIT.md`.
 
+The reconstruction is reproducible from the preserved raw JSON using
+`scripts/ieee_tc/audit_d389_scaleup_handoff_labels.py`; the 7.6-KiB curated
+output is under `paper_results/ieee_tc/p2_backend/d389_scaleup_handoff_label_audit/`.
+The script passed bytecode compilation and the CPU-only bounded audit; no GPU,
+remote service, result rewrite, or figure was involved.
+
 No heavy replay was started.  D379 remains the development incumbent; D386
 remains rejected.  Numerical correctness and common warm/Resident reference
 closure are still the gates before a new serving candidate or baseline.
