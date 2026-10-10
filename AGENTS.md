@@ -19,6 +19,11 @@ time, not the user's subsequent explicit execution authorization.
   require a new protocol identity and an explicit impact assessment.
 - Every optimization: historical logs/code + current primary-source literature
   and code + falsifiable bottleneck hypothesis + validation + full replay.
+- Latest user direction (2026-10-10): single performance run per frozen key,
+  no repeated-run mean/CI; preserve all old attempts and development identity.
+  Read METRIC_PROTOCOL_SINGLE_RUN_V2.md alongside frozen V1. First close a
+  reusable 7B Prime point and compare 7B baselines (Serverless audit first),
+  then 3B. W0 success alone does not close W1/W2 or G2.
 - Preserve IEEE's nine equations and semantics. Prefer measured, causal online
   state; model-specific frozen configuration is allowed, test-point tuning is not.
 - First validate resource containment and protected results. No GPU performance

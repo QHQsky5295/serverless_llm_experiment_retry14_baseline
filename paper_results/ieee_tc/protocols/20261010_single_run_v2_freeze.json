@@ -1,0 +1,20 @@
+{
+  "kind": "metric_execution_amendment_freeze_v2",
+  "protocol_id": "primelora_tc_single_run_v2",
+  "date": "2026-10-10",
+  "base_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "amendment_path": "docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+  "amendment_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+  "approved_plan_sha256": "1ff21285735f8779d6229b46cc03669a0399e5d0e1fa2ec379b923e5cd12a0bd",
+  "performance_runs_per_execution_key": 1,
+  "between_run_confidence_interval": false,
+  "statistical_superiority_claims": false,
+  "statistical_noninferiority_claims": false,
+  "source_trace_regenerated": false,
+  "preserve_prior_attempts": true,
+  "preserve_development_selection_identity": true,
+  "resident_reference_runs_per_model_scenario": 1,
+  "resident_reference_frozen": false,
+  "qualification_and_resource_rules_unchanged": true,
+  "sequence": ["7B Prime reusable observation", "7B baseline audit/comparison/optimization", "3B", "ablations and mechanism evidence", "sensitivities"]
+}

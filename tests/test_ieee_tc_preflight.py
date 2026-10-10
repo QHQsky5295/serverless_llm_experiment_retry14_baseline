@@ -9,10 +9,10 @@ from scripts import ieee_tc_preflight as p
 
 
 class ApprovedPlanIdentity(unittest.TestCase):
-    def test_current_binding_matches_explicitly_approved_prime_first_plan(self):
-        self.assertEqual(p.SNAPSHOT.name, 'PLAN_APPROVED_20261002_PRIME_FIRST.md')
+    def test_current_binding_matches_explicitly_approved_single_run_plan(self):
+        self.assertEqual(p.SNAPSHOT.name, 'PLAN_APPROVED_20261010_SINGLE_RUN.md')
         self.assertEqual(p.check_plan(),
-            '0c8085098ab25edb17b17362cee5a78cc84009a029196147b6f614fc26f998b7')
+            '1ff21285735f8779d6229b46cc03669a0399e5d0e1fa2ec379b923e5cd12a0bd')
 
     def test_plan_mismatch_still_refuses_instead_of_selecting_a_fallback(self):
         with tempfile.TemporaryDirectory() as tmp:

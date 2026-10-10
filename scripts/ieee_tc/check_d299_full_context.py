@@ -690,12 +690,215 @@ def main(campaign='d299', reference_override=None):
     print(json.dumps(dict(input_identity_equal=True,output_hash_change_count=len(differences))),flush=True)
 
 
+def review_single_run(source, warm_path, output):
+    """Stream a closed historical Full run under the unchanged V1 metric ruler.
+
+    Reuse existing binding/timeline checks. Never relabel a development run as
+    an unseen formal run, infer arithmetic correctness, or overwrite evidence.
+    The output is an evidence review; its eligibility must be interpreted with
+    the single-run V2 amendment and the independently frozen warm manifest.
+    """
+    import ijson
+    from statistics import fmean
+    from scripts.ieee_tc.plot_d290_diagnostic import percentile
+
+    if output.exists():
+        raise ValueError('refusing to overwrite a single-run review')
+    run = source.parent
+    launch_path = run/'launch.json'
+    launch = read(launch_path)
+    if not all(launch.get(k) is True for k in (
+            'pass', 'service_path_removed', 'native_gpu_context_release_confirmed')):
+        raise ValueError('closed and released successful launch required')
+    physical_path = run/'launch.launch/physical_deployment/physical_resource_summary.json'
+    physical, summary = read(physical_path), read(run/'launch.launch/physical_deployment/summary.json')
+    source_sha = sha256(source)
+    if (physical['result_file']['sha256'] != source_sha or not summary['measurement_complete']
+            or summary['open_lease_ids'] or summary['n_plan'] != 4000):
+        raise ValueError('complete physical ledger bound to this result required')
+    paths = [source, launch_path, physical_path, run/'launch.launch/physical_deployment/summary.json',
+             warm_path, Path(__file__), ROOT/'scripts/ieee_tc/plot_d290_diagnostic.py']
+    for entry in summary['allocation_journals']:
+        path = Path(entry['path'])
+        if not entry['released'] or sha256(path) != entry['sha256']:
+            raise ValueError('allocation journal hash or release mismatch')
+        paths.append(path)
+    terminal_path = Path(summary['request_terminals_path'])
+    if sha256(terminal_path) != summary['request_terminals_sha256']:
+        raise ValueError('terminal ledger hash mismatch')
+    paths.append(terminal_path)
+    gpu_s = 0.0
+    for intervals in summary['device_intervals'].values():
+        end = -math.inf
+        for a, b in sorted(intervals):
+            if not all(math.isfinite(v) for v in (a, b)) or b < a or a < end:
+                raise ValueError('ordered disjoint physical ownership intervals required')
+            gpu_s += b-a
+            end = b
+    if (abs(gpu_s-summary['gpu_seconds_observed']) > 1e-6
+            or abs(gpu_s-sum(summary['window_gpu_seconds'].values())) > 1e-6):
+        raise ValueError('physical integral/window partition mismatch')
+    with source.open('rb') as stream:
+        metadata = next(ijson.items(stream, 'metadata', use_float=True))
+    external = launch['external_replay']
+    trace_path = Path(external['plan']['source_path'])
+    if sha256(trace_path) != external['plan']['source_sha256']:
+        raise ValueError('source trace hash mismatch')
+    if abs(external['replay_t0_s']-external['deployment_notice_s']-60) > 1e-6:
+        raise ValueError('common deployment notice mismatch')
+    from faaslora.datasets.workload_generator import FrozenReplayPlan
+    replay_plan = FrozenReplayPlan.load(trace_path, profile=external['plan']['profile'],
+                                       rate_scale=external['plan']['rate_scale'])
+    if replay_plan.identity() != external['plan']:
+        raise ValueError('frozen replay view differs from the launch receipt')
+    source_entries = {entry.request_id: entry for entry in replay_plan.entries}
+    paths.append(trace_path)
+    warm = read(warm_path)
+    if (warm['source_trace_sha256'] != external['plan']['source_sha256']
+            or warm['contract']['native_pass'] != warm['measurement_requests']):
+        raise ValueError('warm reference source/native contract mismatch')
+    if (warm['model'] != 'llama2_7b_main_v2_publicmix'
+            or [g['native_input_boundary'] for g in warm['groups']] != ['<=616', '>616']):
+        raise ValueError('this registered review supports only the two D394 7B strata')
+    index_path = ROOT/'paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json'
+    index = read(index_path)
+    content = {a['id']: hashlib.sha256(json.dumps(sorted(a['files'], key=lambda f: f['path']),
+               sort_keys=True, separators=(',', ':')).encode()).hexdigest() for a in index['artifacts']}
+    paths.append(index_path)
+    remote_path = run.parent/'remote_transfers.jsonl'
+    with remote_path.open() as stream:
+        transfers = [json.loads(line) for line in stream]
+    server = {x['transfer_id']: x for x in transfers}
+    if len(server) != len(transfers) or any(
+            x['pack_performed'] or x['temporary_created'] or x['outcome'] != 'sent' for x in transfers):
+        raise ValueError('published remote-transfer journal contract failed')
+    paths.append(remote_path)
+    seen, counts, binding, tiers, matched = set(), Counter(), Counter(), Counter(), set()
+    values = {k: [] for k in ('ttft_ms', 'tpot_ms', 'e2e_ms')}
+    max_error = {k: 0.0 for k in ('ttft_ms', 'tpot_ms', 'e2e_ms')}
+    vectors = []
+    with source.open('rb') as stream:
+        for r in ijson.items(stream, 'detailed_results.tc_ieee_full.requests.item', use_float=True):
+            rid = r['request_id']
+            if rid in seen or not rid or r['success'] is not True:
+                raise ValueError('unique successful complete request population required')
+            seen.add(rid)
+            entry = source_entries[rid]
+            original = json.loads(entry.source_json)
+            if (r['external_arrival_timing']['source_item_sha256'] != entry.source_sha256
+                    or r['adapter_id'] != original['adapter_id']
+                    or r['source_expected_output_tokens'] != original['expected_output_tokens']
+                    or abs(r['scheduled_arrival_offset_s']-entry.offset_s) > 1e-6
+                    or abs(r['external_arrival_timing']['planned_arrival_s']
+                           - external['replay_t0_s']-entry.offset_s) > 1e-6):
+                raise ValueError('request identity/arrival/adapter/target differs from frozen source')
+            request_vectors([r])
+            t, e = r['native_token_timing'], r['gpu_reference_evidence']
+            tests = binding_checks(r, content[r['adapter_id']])
+            for name, passed in tests.items():
+                binding[name] += passed
+            if not all(tests.values()):
+                raise ValueError(f'native binding evidence failed: {rid}: {tests}')
+            if (t['native_clock_id'] != summary['clock_id'] or not t['native_terminal_observed']
+                    or r['completion_tokens'] != min(r['source_expected_output_tokens'], 256)
+                    or t['native_output_tokens'] != r['completion_tokens']
+                    or e['confirmed_dispatch_snapshot'] is not True):
+                raise ValueError('native output/clock/dispatch contract mismatch')
+            arrival = r['external_arrival_timing']['planned_arrival_s']
+            first, last, completed = (t['native_first_token_monotonic_s'],
+                                     t['native_last_token_monotonic_s'], t['controller_completed_monotonic_s'])
+            if not arrival <= first <= last <= completed:
+                raise ValueError('unordered user/native timing')
+            n = r['completion_tokens']
+            metrics = dict(ttft_ms=(first-arrival)*1000, e2e_ms=(completed-arrival)*1000)
+            if n >= 2:
+                metrics['tpot_ms'] = (last-first)*1000/(n-1)
+            stored = dict(ttft_ms=r['overall_ttft_ms'], e2e_ms=r['overall_e2e_ms'], tpot_ms=r['tpot_ms'])
+            for name, v in metrics.items():
+                if not math.isfinite(v) or v < 0 or abs(v-stored[name]) > 1:
+                    raise ValueError('nonfinite/negative timing or reconstruction error over 1 ms')
+                max_error[name] = max(max_error[name], abs(v-stored[name]))
+                values[name].append(v)
+            group = warm['groups'][0 if t['actual_prompt_tokens'] <= 616 else 1]
+            tp = n == 1 or metrics['tpot_ms'] <= group['candidate_threshold_ms']['tpot']
+            tt = metrics['ttft_ms'] <= group['candidate_threshold_ms']['ttft']
+            counts.update(N=1, native_contract=1, ttft_pass=int(tt), tpot_pass=int(tp),
+                          joint_pass=int(tt and tp), only_ttft_fail=int(not tt and tp),
+                          only_tpot_fail=int(tt and not tp), both_fail=int(not tt and not tp))
+            tiers[r['readiness_tier_before_dispatch']] += 1
+            remote = e.get('remote_preparation')
+            if remote is not None and remote.get('http_transfer_id'):
+                s = server[remote['http_transfer_id']]
+                if (s['artifact_id'] != r['adapter_id'] or remote['content_verified'] is not True
+                        or remote['remote_pack_performed'] is not False
+                        or remote['remote_archive_sha256'] != s['archive_sha256']
+                        or remote['transferred_bytes'] != s['archive_bytes']):
+                    raise ValueError('client/server delivery identity mismatch')
+                matched.add(s['transfer_id'])
+            vectors.append({k:r[k] for k in FIELDS})
+    if len(seen) != 4000 or seen != set(source_entries) or counts['N'] != metadata['total_requests']:
+        raise ValueError('full 4000-request population required')
+    samples, events = [], Counter()
+    watchdog = run/'launch.launch/watchdog.jsonl'
+    with watchdog.open() as stream:
+        for line in stream:
+            row = json.loads(line)
+            events[row['event']] += 1
+            if row['event'] == 'resource_sample':
+                samples.append(row)
+    paths.append(watchdog)
+    if not samples or any(x['decision']['abort_reasons'] for x in samples):
+        raise ValueError('missing or aborted independent resource monitoring')
+    report = dict(kind='single_run_evidence_review_v2', source=str(source), source_sha256=source_sha,
+        original_formal_run=metadata['formal_run'], original_trace_role=metadata['trace_role'],
+        reuse_identity='reused_development_observation', independent_holdout=False,
+        metric_protocol_sha256=sha256(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'),
+        single_run_amendment_sha256=sha256(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md'),
+        source_plan_sha256=launch['plan_sha256'], current_plan_sha256=p.check_plan(),
+        counts=dict(counts), native_binding_checks=dict(binding), tier_counts=dict(tiers),
+        timing_joint_rate=counts['joint_pass']/counts['N'], timing_feasible=counts['joint_pass']>=3800,
+        metrics={k:dict(mean=fmean(v), p95_type1=percentile(v,.95), n=len(v)) for k,v in values.items()},
+        native_reconstruction_max_error_ms=max_error, physical_gpu_seconds=gpu_s,
+        gpu_seconds_per_offered=gpu_s/4000, measurement_complete=True, open_lease_ids=[],
+        source_trace_sha256=external['plan']['source_sha256'], rate_scale=external['plan']['rate_scale'],
+        workload_profile=external['plan']['profile'], preparation_lead_s=60,
+        request_vectors_sha256=hashlib.sha256(json.dumps(vectors, sort_keys=True, separators=(',', ':')).encode()).hexdigest(),
+        remote=dict(server_transfers=len(server), matched_request_transfers=len(matched),
+                    unmatched_server_transfers=len(set(server)-matched), wire_bytes=sum(x['bytes_written'] for x in transfers),
+                    delivery='prepublished_gzip_v1', request_time_packing=False),
+        resource=dict(samples=len(samples), events=dict(events),
+                      host_min_available_bytes=min(x['host']['available_bytes'] for x in samples),
+                      service_peak_bytes=max(x['service']['memory.peak'] for x in samples),
+                      max_swap_bytes=max(x['service']['memory.swap.current'] for x in samples),
+                      memory_events={k:max(x['service']['memory.events'][k] for x in samples)
+                                     for k in ('high','max','oom','oom_kill')}),
+        caveats=['Control-plane/source binding is not independent kernel arithmetic proof.',
+                 'Legacy local_sim_no_delay label describes inactive limiter, not the HTTP transfer journal.',
+                 'Legacy time_scale=8 belongs to the retained source trace; replay rate_scale is recorded separately.',
+                 'Single W0 observation cannot establish W1/W2 feasibility, G2 or a baseline ranking.'],
+        confidence_interval=None, formal_g1_g2_qualified=False,
+        source_refs=[dict(path=str(path), sha256=sha256(path)) for path in dict.fromkeys(paths)])
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with output.open('x') as stream:
+        json.dump(report, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+    print(json.dumps({k: report[k] for k in ('source','counts','timing_joint_rate','physical_gpu_seconds','remote')}))
+
+
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--campaign', choices=('d299', 'd300', 'd303', 'd314', 'd315', 'd318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358', 'd364', 'd367', 'd309-failure', 'd311-incomplete', 'd313-failure', 'd364-failure'), default='d299')
     parser.add_argument('--reference', choices=('d303', 'd314', 'd349', 'd336', 'd353', 'd358'),
         help='Registered full reference; separate non-overwriting output')
+    parser.add_argument('--single-run-source', type=Path)
+    parser.add_argument('--warm-reference', type=Path)
+    parser.add_argument('--review-output', type=Path)
     args = parser.parse_args()
+    if args.single_run_source is not None:
+        if args.warm_reference is None or args.review_output is None:
+            parser.error('single-run review requires explicit warm reference and output')
+        review_single_run(args.single_run_source, args.warm_reference, args.review_output)
+        raise SystemExit(0)
     campaign = args.campaign
     if args.reference is not None and args.reference not in REGISTERED_REFERENCES.get(campaign, ()):
         parser.error('--reference is not registered for this campaign')

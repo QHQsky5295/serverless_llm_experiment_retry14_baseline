@@ -1,0 +1,14 @@
+{
+  "kind": "cross_repository_checkpoint_v1",
+  "date": "2026-10-10",
+  "baseline_commit": "fecf41fae26e8335fe70a6bb7eb6df378a1e1da5",
+  "baseline_branch": "main",
+  "baseline_remote": "origin",
+  "prime_parent_commit": "7d26048",
+  "new_performance_runs": 0,
+  "main_cpu_tests_passed": 24,
+  "baseline_cpu_tests_passed": 7,
+  "protected_existing_user_replay_sha256": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+  "protocol_amendment": "primelora_tc_single_run_v2",
+  "next_mainline": "7B Serverless reuse and qualification audit; no unchanged Resident repeat"
+}

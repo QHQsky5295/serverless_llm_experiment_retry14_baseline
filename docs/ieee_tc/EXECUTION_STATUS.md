@@ -1,5 +1,55 @@
 # IEEE TC execution status
 
+## CURRENT — D397 single-run revision; 7B W0 observation sealed; baseline audit resumes
+
+2026-10-10: User's latest direction supersedes the historical hold/repetition
+instructions below: no formal repeated-run means or CIs; first preserve a
+qualified 7B Prime observation and compare 7B baselines, then 3B. The complete
+plan has an additive revision and a new approved snapshot; frozen metric V1 is
+unchanged and is paired with `METRIC_PROTOCOL_SINGLE_RUN_V2.md`. Plan SHA is
+`1ff21285735f8779d6229b46cc03669a0399e5d0e1fa2ec379b923e5cd12a0bd`.
+
+D371 is now sealed as a **reused development W0 observation**, not an unseen
+formal test: 4,000 native/binding contracts, 3,908 joint passes (97.70%),
+14,482.523924 physical GPU-s, 3.620631 GPU-s/request. Mean/Type-1 P95 TTFT
+are 1,150.798/2,837.896 ms. All ten recorded source/lease/native binding checks
+pass for every request, raw input identity/arrival map is verified, native
+timing reconstruction errors are zero and physical leases close. D394's
+already-complete common warm calibration is separately frozen for 7B SLO
+evaluation; resource U_ref remains open. D379 (94.425%) and D386 (94.85%)
+remain below the unchanged 95% joint criterion; they are not deleted.
+
+The old D371 local-sim diagnosis below was based on stale limiter metadata:
+the actual journal has 132 real HTTP published-gzip transfers, zero packing.
+Original source-trace time_scale=8 is not an additional replay acceleration;
+effective external rate_scale=1. One request-level transfer subrecord cannot
+be joined, retained as a phase-attribution caveat. Structural/mostly-zero LoRA
+content limitation remains. See `D397_7B_SINGLE_RUN_SEAL.md` and its JSON seal.
+
+D396 has completed and resources are released. Deeper review retracts D395's
+earlier reference-eligibility judgment: both D395/D396 use first-payload/EOF
+timing proxies, place download/loading in the auxiliary domain, and have an
+insufficient physical lease/monitor contract. Preserve them as successful
+serving diagnostics, not U_ref or baseline ranking; no third same-path repeat.
+See `D397_RESIDENT_AUDIT_CORRECTION.md`. A native SSE boundary helper has seven
+CPU tests but is not yet integrated/qualified in the baseline replay path.
+
+Storage: losslessly compressed only three closed redundant outcome logs,
+reclaimed 1,471,152,128 bytes, double round-trip hashes recorded; source result
+JSONs remain unchanged. Free space about 150.17 GiB, close to the 150-GiB
+floor: rerun the growth/admission check before any heavy task. Protected
+147-entry verification reports only the pre-existing user-modified baseline
+replay script, unchanged by this task. Remote D78/D80 cache approval is
+recorded and existing cache reused; no republication or new extracted pool.
+
+Next mainline: 7B Serverless historical repaired-path/input/timing/resource
+reuse audit, then qualify affected baseline paths before one matched full
+run each. Do not return to Prime tuning solely because isolated TPOT is worse;
+use joint feasibility/G1/G2. W1/W2, valid Resident budget, external rankings,
+3B, ablations and sensitivities remain incomplete. No new GPU run or figure
+was started in D397. This section supersedes conflicting NEXT/GATE statements
+in the historical entries below.
+
 ## CURRENT — D395 7B Resident-vLLM reference R1 COMPLETE (candidate)
 
 2026-10-10: The first pre-registered 7B Resident reference replay completed

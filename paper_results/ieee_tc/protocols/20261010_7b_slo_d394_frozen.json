@@ -1,0 +1,33 @@
+{
+  "kind": "common_slo_numeric_freeze_v1",
+  "reference_id": "7b_vllm0300_d394_batch8_native_v1",
+  "date": "2026-10-10",
+  "model": "llama2_7b_main_v2_publicmix",
+  "slo_reference_frozen": true,
+  "resource_reference_frozen": false,
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "single_run_amendment_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+  "calibration": {
+    "path": "paper_results/ieee_tc/p2_backend/20261010_d394_7b_warm_reference.json",
+    "sha256": "93e2af33de471af6ee3cf97c7cb98eb074768dd2d34f4d29e152d59ab7566cee",
+    "audit_path": "paper_results/ieee_tc/p2_backend/20261010_d394_7b_warm_independent_audit_v2.json",
+    "audit_sha256": "3cb7c9ebdc4340b03311b8942022181f0f4febb848691b006408c1aad02f9eb5",
+    "archive_sha256": "99a4083f2945f8f2e2c8fe48e7a9382f24d9f2cf177bef2a29fb489459bb047f",
+    "requests": 1536,
+    "batch_size": 8,
+    "prefix_caching": false,
+    "reuse_existing_completed_calibration": true
+  },
+  "input_group_source": "native actual prompt tokens; duplicate quartile boundaries merged",
+  "groups": [
+    {"lower_exclusive": null, "upper_inclusive": 616, "ttft_ms": 2995.348713684507, "tpot_ms": 59.74409694902162},
+    {"lower_exclusive": 616, "upper_inclusive": null, "ttft_ms": 4633.345350589479, "tpot_ms": 85.24698166015581}
+  ],
+  "minimum_joint_count": 3800,
+  "planned_count": 4000,
+  "thresholds_common_to_all_systems": true,
+  "freeze_after_development_observations": true,
+  "historical_reuse_is_independent_holdout": false,
+  "reference_does_not_certify_test_run_correctness": true,
+  "scope": "Common 7B evaluation thresholds only; not a U_ref, G2 budget or system ranking."
+}

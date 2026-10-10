@@ -1,5 +1,11 @@
 # D395 7B Resident reference R1 audit
 
+> Correction, 2026-10-10: the completeness judgment below is superseded by
+> [D397](D397_RESIDENT_AUDIT_CORRECTION.md). Native output counts are valid,
+> but token-time endpoints and service/resource attribution are not qualified.
+> D395 must not define U_ref or enter a final ranking. Historical numbers and
+> the original interpretation are retained below for provenance, not endorsed.
+
 ## Decision
 
 D395 is a completed, audited candidate for the three-run 7B Resident reference

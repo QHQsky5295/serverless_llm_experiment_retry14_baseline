@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Losslessly archive closed historical outcome logs after explicit verification.
 
-This utility is deliberately narrow: it accepts only the four immutable raw
-paths listed below, never follows a directory-wide cleanup rule, and removes a
+This utility is deliberately narrow: it accepts the historical allowlist or
+explicit closed-run paths, never follows a directory-wide cleanup rule, and removes a
 source only after two independent gzip round-trip hashes match the source
 hash.  A source/audit SHA mismatch is recorded as a provenance caveat; it does
 not make the current source eligible for result reuse.
@@ -10,6 +10,7 @@ not make the current source eligible for result reuse.
 from __future__ import annotations
 
 import hashlib
+import argparse
 import json
 import os
 from pathlib import Path
@@ -159,4 +160,26 @@ def main() -> int:
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--closed-run', action='append', default=[],
+                        help='Explicit relative campaign/run path; no directory scan')
+    parser.add_argument('--receipt', type=Path)
+    args = parser.parse_args()
+    if bool(args.closed_run) != bool(args.receipt):
+        parser.error('--closed-run and --receipt must be supplied together')
+    if args.closed_run:
+        if len(set(args.closed_run)) != len(args.closed_run):
+            parser.error('duplicate closed-run path')
+        for run in args.closed_run:
+            path = Path(run)
+            if path.is_absolute() or len(path.parts) != 2 or '..' in path.parts:
+                parser.error('closed-run must be an explicit campaign/run relative path')
+            if not (RAW_ROOT/path).resolve().is_relative_to(RAW_ROOT.resolve()):
+                parser.error('closed-run escapes the raw result root')
+            if (RAW_ROOT/path/'compression_receipt.json').exists():
+                parser.error('closed-run was already compressed')
+        if not args.receipt.resolve().is_relative_to((ROOT/'paper_results/ieee_tc/storage').resolve()):
+            parser.error('receipt must be inside the curated storage directory')
+        TARGETS = [dict(run=run, audit_sha=None) for run in args.closed_run]
+        OUT = args.receipt
     sys.exit(main())
