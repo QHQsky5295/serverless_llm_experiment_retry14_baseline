@@ -1683,6 +1683,7 @@ def _qualify_model(args, guard, admission, http_cfg, replay_context, measured, i
                       remote_qualified=False, polling_comparison_completed=False)
         result['ingress'] = dict(mode=http_cfg.get('ingress_mode', 'native_direct_v1'),
             service_owned=True, business_t0_shifted=False, hidden_retries=False,
+            upstream_connection_policy=ingress.upstream_connection_policy if ingress else None,
             release_condition='model_router_constructed_not_engine_warm' if ingress else None,
             journal_path=str(ingress.journal_path) if ingress else None)
     env = dict(os.environ)

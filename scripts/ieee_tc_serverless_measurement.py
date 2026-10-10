@@ -247,6 +247,8 @@ class PreReadyHTTPIngress:
     and CPU set. No model/artifact/tokenizer work occurs in the replay client.
     """
 
+    upstream_connection_policy = 'single_request_loopback_no_retry_v1'
+
     def __init__(self, *, port, upstream_url, model, request_count, journal_path,
                  timeout_s=1800.):
         upstream = urlsplit(upstream_url)
@@ -328,7 +330,9 @@ class PreReadyHTTPIngress:
             return web.json_response({'error': 'request protection timeout'}, status=504)
         except Exception as exc:
             self._emit('ingress_transport_failed', request_id=rid, forwarded=forwarded,
-                       error_type=type(exc).__name__)
+                       error_type=type(exc).__name__,
+                       error_errno=(exc.errno if isinstance(exc, OSError)
+                                    and type(exc.errno) is int else None))
             return web.json_response({'error': 'native transport failed; not retried'}, status=502)
 
     async def _serve(self):
@@ -340,7 +344,12 @@ class PreReadyHTTPIngress:
         app.router.add_post('/v1/chat/completions', self._handle)
         runner = web.AppRunner(app, access_log=None, handler_cancellation=True,
                                shutdown_timeout=1.)
-        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=0),
+        # This extra measurement ingress owns one loopback connection per POST.
+        # Native idle-close and client pool reuse are otherwise unsynchronized;
+        # retrying an ambiguous POST could execute inference twice. Avoid shared
+        # idle connection state, not failures via retries or a tuned timeout.
+        # Connection establishment remains inside measured service time/cgroup.
+        async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=0, force_close=True),
                 timeout=aiohttp.ClientTimeout(total=None), trust_env=False) as self._session:
             try:
                 await runner.setup()
@@ -348,6 +357,7 @@ class PreReadyHTTPIngress:
                 await site.start()
                 self.port = site._server.sockets[0].getsockname()[1]
                 self._emit('ingress_listening', port=self.port, pid=os.getpid(),
+                           upstream_connection_policy=self.upstream_connection_policy,
                            cgroup=Path('/proc/self/cgroup').read_text(),
                            affinity=sorted(os.sched_getaffinity(0)))
                 self._started.set_result(self.port)

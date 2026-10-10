@@ -386,16 +386,21 @@ class PreReadyIngressTests(unittest.IsolatedAsyncioTestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
         self.received = []
+        self.transports = []
         self.release = asyncio.Event()
         self.expected = 1
         self.status = 200
+        self.disconnect_before_response = False
 
         async def native(request):
             body = await request.json()
             self.received.append(body)
+            self.transports.append(request.transport)
             if len(self.received) == self.expected:
                 self.release.set()
             await self.release.wait()
+            if self.disconnect_before_response:
+                request.transport.close()
             return web.json_response(body, status=self.status)
 
         app = web.Application()
@@ -476,6 +481,8 @@ class PreReadyIngressTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(listening['pid'], os.getpid())
         self.assertEqual(listening['affinity'], sorted(os.sched_getaffinity(0)))
         self.assertEqual(listening['cgroup'], Path('/proc/self/cgroup').read_text())
+        self.assertEqual(listening['upstream_connection_policy'],
+                         'single_request_loopback_no_retry_v1')
         self.assertEqual(rows[-1]['event'], 'ingress_closed')
 
     async def test_timeout_duplicate_and_offered_bound_are_explicit_without_forwarding(self):
@@ -506,6 +513,110 @@ class PreReadyIngressTests(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(response.status, 503)
                     self.assertEqual((await response.json())['request_id'], 'r')
         self.assertEqual(len(self.received), 1)
+        self.assertEqual(sum(r['event']=='ingress_forwarded' for r in self.rows()), 1)
+
+    async def _exercise_idle_peer_close(self, *, historical_pool):
+        """Real sockets: select the live pooled connection, then close its peer.
+
+        The trace hook controls the event ordering, not the exception or HTTP
+        response. This witnesses a possible race, not D411's missing socket ID.
+        There is no five-second sleep or stochastic attempt-until-failure loop.
+        """
+        import aiohttp
+        server_loop = asyncio.get_running_loop()
+        session_type = aiohttp.ClientSession
+        connector_type = aiohttp.TCPConnector
+        reuse_events = []
+        create_events = []
+
+        async def close_peer():
+            self.transports[0].close()
+
+        async def connection_created(session, context, params):
+            create_events.append('new_connection')
+            if len(create_events) == 2:
+                # With request-owned connections the old peer can close at the
+                # same boundary, but cannot invalidate this request's socket.
+                await asyncio.wrap_future(asyncio.run_coroutine_threadsafe(close_peer(), server_loop))
+
+        async def close_selected_peer(session, context, params):
+            protocols = list(session.connector._acquired)
+            self.assertEqual(len(protocols), 1)
+            closed = protocols[0].closed
+            self.assertIsNotNone(closed)
+            reuse_events.append('peer_closed_after_pool_selection')
+            server_loop.call_soon_threadsafe(self.transports[0].close)
+            await asyncio.wait_for(asyncio.shield(closed), 1.)
+
+        def traced_session(*args, **kwargs):
+            trace = aiohttp.TraceConfig()
+            trace.on_connection_reuseconn.append(close_selected_peer)
+            trace.on_connection_create_start.append(connection_created)
+            kwargs['trace_configs'] = [trace]
+            return session_type(*args, **kwargs)
+
+        def connector(*args, **kwargs):
+            if historical_pool:
+                # Reconstruct only D411's one differing connector field; no
+                # exception mocking or production fallback/compatibility flag.
+                kwargs['force_close'] = False
+            return connector_type(*args, **kwargs)
+
+        with patch.object(aiohttp, 'ClientSession', side_effect=traced_session), \
+                patch.object(aiohttp, 'TCPConnector', side_effect=connector):
+            with self.ingress(count=2) as ingress:
+                ingress.router_ready()
+                url = f'http://127.0.0.1:{ingress.port}/v1/chat/completions'
+                async with session_type() as session:
+                    async with session.post(url, json=self.body('first')) as response:
+                        self.assertEqual(response.status, 200)
+                        await response.read()
+                    async with session.post(url, json=self.body('second')) as response:
+                        self.assertEqual(response.status, 502 if historical_pool else 200)
+                        result = await response.json()
+                        if historical_pool:
+                            self.assertEqual(result['error'], 'native transport failed; not retried')
+                        else:
+                            self.assertEqual(result['request_id'], 'second')
+        failures = [r for r in self.rows() if r['event']=='ingress_transport_failed']
+        if historical_pool:
+            self.assertEqual(reuse_events, ['peer_closed_after_pool_selection'])
+            self.assertEqual(len(create_events), 1)
+            self.assertEqual([r['request_id'] for r in self.received], ['first'])
+            self.assertEqual(len(failures), 1)
+            self.assertEqual(failures[0]['request_id'], 'second')
+            self.assertIn(failures[0]['error_type'],
+                          ('ServerDisconnectedError', 'ClientOSError', 'ClientConnectionResetError'))
+        else:
+            self.assertEqual(reuse_events, [])
+            self.assertEqual(len(create_events), 2)
+            self.assertEqual([r['request_id'] for r in self.received], ['first', 'second'])
+            self.assertIsNot(self.transports[0], self.transports[1])
+            self.assertEqual(failures, [])
+        self.assertEqual(sum(r['event']=='ingress_forwarded' for r in self.rows()), 2)
+
+    async def test_pooled_connection_close_after_selection_is_a_visible_single_failure(self):
+        await self._exercise_idle_peer_close(historical_pool=True)
+
+    async def test_request_owned_connections_do_not_reuse_idle_peer(self):
+        await self._exercise_idle_peer_close(historical_pool=False)
+
+    async def test_native_disconnect_after_receiving_post_is_never_retried(self):
+        import aiohttp
+        self.disconnect_before_response = True
+        with self.ingress(count=1) as ingress:
+            ingress.router_ready()
+            async with aiohttp.ClientSession() as session:
+                async with session.post(f'http://127.0.0.1:{ingress.port}/v1/chat/completions',
+                                        json=self.body('ambiguous')) as response:
+                    self.assertEqual(response.status, 502)
+                    self.assertEqual((await response.json())['error'],
+                                     'native transport failed; not retried')
+        self.assertEqual([r['request_id'] for r in self.received], ['ambiguous'])
+        failures = [r for r in self.rows() if r['event']=='ingress_transport_failed']
+        self.assertEqual(len(failures), 1)
+        self.assertEqual(failures[0]['error_type'], 'ServerDisconnectedError')
+        self.assertIsNone(failures[0]['error_errno'])
         self.assertEqual(sum(r['event']=='ingress_forwarded' for r in self.rows()), 1)
 
     async def test_client_cancellation_before_ready_never_submits_or_retries(self):
