@@ -1,0 +1,55 @@
+{
+  "schema": "ieee_tc_cross_repository_checkpoint_v1",
+  "date": "2026-10-10",
+  "milestone": "D399 Serverless service-owned startup admission CPU validation",
+  "main_parent_commit": "13a0e1503fa5faad233d953f4dd9e82914358948",
+  "baseline_commit": "1161efe7982092cc41bc6e126210650c8a26e6ce",
+  "plan_sha256": "1ff21285735f8779d6229b46cc03669a0399e5d0e1fa2ec379b923e5cd12a0bd",
+  "metric_protocol_v1_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "single_run_v2_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+  "performance_runs_started": 0,
+  "figures_created": 0,
+  "remote_mutations": 0,
+  "delivery_cache": "Reuse approved, already published D78/D80 read-only gzip objects; no republication or new full artifact pool.",
+  "status": "cpu_validated_deployment_adaptation_not_remote_or_gpu_qualified",
+  "baseline_cpu_tests": {
+    "passed": 69,
+    "failed": 0,
+    "seconds": 2.822,
+    "new_test_count": 9,
+    "modules": [
+      "test_ieee_tc_dispatch_audit",
+      "test_ieee_tc_serverless_router",
+      "test_ieee_tc_serverless_launch",
+      "test_ieee_tc_serverless_measurement",
+      "test_serverlessllm_bandwidth_summary",
+      "test_native_stream_timing"
+    ],
+    "interpreter": "/home/qhq/anaconda3/envs/sllm_vllm0102_newserverless_20260518/bin/python",
+    "scope": "ieee-tc-d399-cpu-final.scope",
+    "memory_high_gib": 3,
+    "memory_max_gib": 4,
+    "swap_max_bytes": 0,
+    "cpus": [2, 3, 26, 27],
+    "note": "Transport and source fixtures only. The old summary unit test's printed latency/CE values are not model observations."
+  },
+  "baseline_sources": {
+    "scripts/prepare_ieee_tc_serverless_stack.py": "0506976c9e8e3c9aab0d5ebd952b0808baa182fdd854c41e46a45f68c293ef6f",
+    "scripts/ieee_tc_serverless_measurement.py": "27017bcb44d1dc669e19398f22e5fbe18ec6dce897596cbc8946eccbbd31d66a",
+    "tests/test_ieee_tc_serverless_measurement.py": "5a0456971ed373b8aea7a84a4f1489540da18742d60f3341fad91db7ff930c47",
+    "docs/ieee_tc/D399_SERVERLESS_STARTUP_INGRESS.md": "ca3dc3c097e6c558dad50b1da5c8cec6cb594bf06f3c6cb0aef22566d9fad82b"
+  },
+  "protected_verification": {
+    "path": "paper_results/ieee_tc/safety/20261010_d399_protected_verification.json",
+    "sha256": "1c6b0adf9deff7e978ea09664cc9a1e61da7a99528880be0ea49b75cc7a184f1",
+    "historical_seal_pass": false,
+    "entry_count": 147,
+    "changed_from_september_seal": ["/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"],
+    "reason": "Pre-existing user modification; unchanged in this task and not staged.",
+    "current_replay_sha256": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "current_relayserve_sha256": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "final_free_disk_bytes": 161213108224,
+  "gpu_memory_mib": [15, 15, 15, 15],
+  "next": "Complete faithful service-owned published artifact delivery and full physical GPU ownership including store and retired workers, then qualify the affected 7B Serverless path before one matched full replay. No repeat of D72/D73, no new Prime tuning without comparison evidence."
+}

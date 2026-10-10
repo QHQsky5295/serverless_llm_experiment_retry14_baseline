@@ -1,5 +1,40 @@
 # IEEE TC execution status
 
+## CURRENT — D399 Serverless pre-ready admission CPU-validated; remote/lease next
+
+2026-10-10: D371's sealed 7B W0 observation and D397's single-run/7B-first
+direction are unchanged. D72/D73 diagnosis remains reused, not rerun.
+An explicit `service_pre_ready_v1` mode now opens a service-owned HTTP ingress
+before native imports/bootstrap and forwards once the model router is created,
+not when engines become warm. It does not shift business t0, retry, prewarm,
+replace native RR/scaling/loading, or modify old results. Native observations
+require receive/forward timestamps; ingress wait is included in dispatch/TTFT,
+never subtracted or counted twice. Worker/source/resource readback now runs
+before cleanup even if HTTP qualification fails. Nine added CPU tests and
+the previous suite pass: 69 total, 2.822 s in the 4-GiB zero-swap auxiliary scope.
+Details: `D399_SERVERLESS_STARTUP_ADMISSION.md` and baseline D399 note.
+
+No model performance run, remote mutation/cache republication, new dataset,
+Prime change or figure occurred. Current qualifier still labels local artifact
+mode `remote_qualified=false`; do not start it as a matched remote experiment.
+The end-of-run worker check explicitly rejects missing retired instances;
+it is not full lifetime evidence and not a physical lease ledger.
+
+Next EXACT mainline: service-owned published remote delivery preserving and
+disclosing native registration-time versus request-time preparation, plus full
+physical ownership including native store contexts and retired workers. Reuse
+existing transport/allocation/census/contained launcher, not a new framework.
+Native controller registers adapters before constructing the router; its
+missing-path downloader creates PEFT/store-format output, while the qualified
+vLLM path consumes PEFT directories. Do not blindly replace paths or silently
+introduce Prime demand planning. After these changes and CPU checks, qualify
+the affected 7B path once before a full matched replay; no new polling pair.
+
+Free disk is about 150.14 GiB: recheck growth before GPU work. Protected 147-entry
+audit differs only by the pre-existing user replay edit, unchanged here.
+W1/W2, valid Resident U_ref, complete 7B comparison, 3B and later matrices remain
+open. This section supersedes older conflicting next-step instructions.
+
 ## CURRENT — D398 Serverless 7B diagnosis reused; affected qualification is next
 
 2026-10-10: D397's single-run/7B-first rule remains authoritative. The existing
