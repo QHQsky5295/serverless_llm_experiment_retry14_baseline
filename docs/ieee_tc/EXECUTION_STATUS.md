@@ -1,4 +1,4 @@
-# IEEE TC execution status — D408 closed; D409 public execution mode CPU-qualified
+# IEEE TC execution status — D409 graph path closed; original1000 validation next
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -74,6 +74,46 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+D409 TERMINAL 2026-10-11 02:27 Asia/Shanghai: existing 100-request affected-path
+qualification, original W0 prefix, explicit --no-enforce-eager; no other public
+backend/scaler fields changed. Raw root
+`/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d409_20261011`.
+Tmux `tc-d409-7b`; main execution5a3dac21ffe52e0651c988584feecda003f1a64d,
+baseline d6dcf14449e595f461bb933007b62c87423377d2.
+Service scope primelora-tc-svc-8d8865fa28cd4c50bbcc940747b9fff2.scope,
+InvocationID df291d0a5a9c42b2a14a0866a110f3b9; aux
+primelora-tc-aux-d4090000000000000000000000000001.scope.
+No live job; do not restart D409. Retained
+launch7b_repaired.launch/watchdog.jsonl,replay.jsonl,service.log and native logs.
+Native vLLM0.10.2 already
+sets inductor compile_threads=1; no new thread parameter/build introduced.
+Remote reused D78/D80 read-only published gzip cache,link1000Mb/s/full,
+7Bclock remote-process-monotonic:ad5c8352384b424e9db29edaaa2a1f88.
+Three owned remote units STOPPED by matchingInvocationID/portsabsent; GPU
+released/service removed/emptyaux stopped; overlay RESTORED from exact backups.
+No cache republication/request packing. Worker/resolver/remote evidence retained.
+100/100 native/source/adapter/timing contracts,0failed,17369tokens,4servedengines.
+TTFTmean63240.114772/P95111377.363558ms;TPOTmean31.699636/P9534.570687ms;
+jointSLO0/100,TTFT0/100,TPOT100/100. Shortgate NONFEASIBLE,not a fullW0 optimum.
+U1033.029004GPU-s,29HTTP/50650865wireB/724665100verifiedpayloadB,71cachehits,
+0packs. Four actual PIECEWISE capture completions;no silent eager retry.
+Independent D385 reference reused offline:97/100exact,3differences kept with
+existing first-divergence/top2 witnesses;raw unknown numerical flags unchanged.
+Audit_v2 SHA9c35cbb2661567d718f9671e605cf69b38099fdbcefbebbf9c688f2200db1218,
+paper_results/ieee_tc/baseline_audit/d409_7b_graph/audit_v2.json.
+See D409_SERVERLESSLLM_GRAPH_RESULT.md.15analysisCPUtests pass0.052s.
+Evidence_manifest126retainedfiles allSHAverified;manifestSHA
+52c597fe13b0b0bb2782b1a533eba8d12a10a1b2ad5f2a26518107fac2a30fcb.
+Baseline closure backup336576bc8a3e7aca34febad52372911289a9ca87 pushed to
+origin/main and remoteSHA verified;this is not the D409 execution commit.
+Next: original1000 graph/public-config validation on a new key; record retained
+native compile diskcache separately from cold per-run LoRA cache,all actual
+startup cost remains counted. Do not expand unrelated knobs or repeat100 gates.
+Nativecache path ~/.cache/vllm/torch_compile_cache/1c637ca91b/rank_0_0/backbone.
+Keep PrimeLoRA D371; then full4000 W0. Disk at gate minimum161426763776B;
+recheck>=150GiB+growth before another heavy job. No cache deleted this gate.
+The CPU-only D409 entry below is a preserved earlier checkpoint.
 
 D407 COMPLETE 2026-10-11: no GPU repeat. Existing D404100request outputs joined
 to independent D385 HF/PEFT reference with source/input/adapter/content hashes:
@@ -223,7 +263,7 @@ this status is not a shortened experiment plan.
   CPUs2,3,26,27. Actual worker containment/watchdog/cleanup precede GPU runs.
 - D406 service peak64,123,109,376B,swap0,high/max/OOM0;host available minimum
   59,220,758,528B,disk minimum149,497,323,520B. Recheck before heavy work.
-- All D402/D404/D406/D408 workers/service scopes released. Loader overlay
+- All D402/D404/D406/D408/D409 workers/service scopes released. Loader overlay
   restored to exact preimages,added loader removed;empty aux scope stopped.
   Remote3ownedunits inactive/MainPID0,ports absent.
 - Strict SSH alias primelora-artifact-174,lab14@10.199.227.174:8122;

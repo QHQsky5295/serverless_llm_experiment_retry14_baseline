@@ -1,0 +1,281 @@
+{
+  "replay_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d409_20261011/launch7b_repaired.launch/replay.jsonl",
+  "replay_sha256": "2c0893aa2101039ec26589b40f64eaef727c2e2384491ffaa5258783cd2a8967",
+  "counts": {
+    "N_plan": 100,
+    "N_arrived": 100,
+    "N_terminal": 100,
+    "N_response": 100,
+    "N_failed": 0,
+    "N_submitted": 100
+  },
+  "measurement_complete": true,
+  "workload_passed": true,
+  "formal_performance_qualified": false,
+  "remote_qualified": false,
+  "independent_lora_numerical_correctness": false,
+  "runs": 1,
+  "ci": null,
+  "latency_population": "protocol-valid responses only; failures retained separately",
+  "assignment_gap_population": "success-observed assignments, not all router assignments",
+  "conditional_metrics": {
+    "ttft_ms": {
+      "count": 100,
+      "mean": 63240.114772443194,
+      "p50_type1": 63924.71072357148,
+      "p95_type1": 111377.36355792731
+    },
+    "e2e_ms": {
+      "count": 100,
+      "mean": 68734.46402070113,
+      "p50_type1": 65626.52305839583,
+      "p95_type1": 119311.27955531701
+    },
+    "submit_lag_ms": {
+      "count": 100,
+      "mean": 5.0327244540676475,
+      "p50_type1": 3.268899628892541,
+      "p95_type1": 14.576781773939729
+    },
+    "dispatch_wait_after_submit_ms": {
+      "count": 100,
+      "mean": 62680.38153062342,
+      "p50_type1": 63466.73642611131,
+      "p95_type1": 111170.75654515065
+    },
+    "service_ttft_ms": {
+      "count": 100,
+      "mean": 554.700517365709,
+      "p50_type1": 457.500500138849,
+      "p95_type1": 1403.974595014006
+    },
+    "decode_ms": {
+      "count": 100,
+      "mean": 5468.6391922831535,
+      "p50_type1": 6315.690754912794,
+      "p95_type1": 8717.356779845431
+    },
+    "completion_notification_ms": {
+      "count": 100,
+      "mean": 25.710055974777788,
+      "p50_type1": 12.835172936320305,
+      "p95_type1": 152.60420413687825
+    },
+    "router_queue_ms": {
+      "count": 100,
+      "mean": 62570.83872495685,
+      "p50_type1": 63458.9250611607,
+      "p95_type1": 111162.5258710701
+    },
+    "tpot_ms": {
+      "count": 100,
+      "mean": 31.699635811448623,
+      "p50_type1": 31.890596124279945,
+      "p95_type1": 34.57068747633861
+    }
+  },
+  "actual_native_output_tokens": 17369,
+  "observed_instance_ids": [
+    "tc-native-llama2-7b-fp16-20260927_0fbda865-0bcd-4ef5-ae17-e78ef1778bd6",
+    "tc-native-llama2-7b-fp16-20260927_5d57f43f-f4df-40b6-bac6-ee482d3191b7",
+    "tc-native-llama2-7b-fp16-20260927_61e217da-122c-4efb-be7c-34930b19901b",
+    "tc-native-llama2-7b-fp16-20260927_8bb9e4e0-041b-4455-9aac-65d0c055a9a3"
+  ],
+  "offered_unique_adapters": 29,
+  "max_e2e_recomputation_error_ms": 0.0,
+  "max_tpot_recomputation_error_ms": 0.0,
+  "assignment_gap_stats": {
+    "count": 99,
+    "mean": 0.530971039171246,
+    "p50_type1": 0.0011227731592953205,
+    "p95_type1": 2.2031390769407153
+  },
+  "schema": "ieee_tc_affected_path_audit_v2",
+  "display_name": "ServerlessLLM",
+  "remote_affected_path_qualified": true,
+  "complete_system_qualified": false,
+  "source_plan": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "view_sha256": "aaf917bd816e10c4ad6f8138e5365aa9b2976b4300143cc712c12b84443cb020",
+    "count": 100,
+    "source_count": 4000,
+    "profile": "W0",
+    "rate_scale": 1.0
+  },
+  "native_revalidated_requests": 100,
+  "max_native_recompute_error_ms": 0.0,
+  "physical_gpu_seconds": 1033.0290040001273,
+  "physical_window_gpu_seconds": {
+    "arrival": 734.0315933227539,
+    "cleanup": 20.31732152402401,
+    "drain": 68.22081856522709,
+    "pre_arrival": 210.4592705881223
+  },
+  "n_correct": null,
+  "remote_transfers": 29,
+  "remote_wire_bytes": 50650865,
+  "verified_materialized_bytes": 724665100,
+  "cache_hit_requests": 71,
+  "request_time_pack_count": 0,
+  "backend_ready_receipts": 4,
+  "remote_clock_ids": [
+    "remote-process-monotonic:ad5c8352384b424e9db29edaaa2a1f88"
+  ],
+  "service_memory_event_maxima": {
+    "high": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0
+  },
+  "service_memory_peak_bytes": 50855706624,
+  "service_swap_max_bytes": 0,
+  "host_min_available_bytes": 60230864896,
+  "disk_min_free_bytes": 161426763776,
+  "queue_source_reproduction": null,
+  "scheduler_contract": "request_identity_v1",
+  "scheduler_qualification": {
+    "contract": "request_identity_v1",
+    "readback": {
+      "class_name": "StorageAwareScheduler",
+      "pid": 2495248,
+      "source_file": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d409_20261011/source_repaired/sllm/schedulers/storage_aware_scheduler.py",
+      "source_sha256": "7f42b0cce82f970392b3d484767a13563fb2d29f6c6e870aa8f29b86fb972b91",
+      "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-8d8865fa28cd4c50bbcc940747b9fff2.scope\n",
+      "affinity": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47
+      ],
+      "running": true,
+      "loop_present": true,
+      "loop_done": false,
+      "loop_cancelled": false,
+      "loop_exception": null,
+      "queues": {
+        "tc-native-llama2-7b-fp16-20260927": {
+          "total": 0,
+          "done": 0
+        }
+      },
+      "name": "model_loading_scheduler",
+      "namespace": "f006e4e1-dd46-4b62-bed0-782140b643df"
+    },
+    "conclusion": "actual served backends verified; live native loop and no pending allocations"
+  },
+  "raw_sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d409_20261011/launch7b_repaired.launch/replay.jsonl",
+      "sha256": "2c0893aa2101039ec26589b40f64eaef727c2e2384491ffaa5258783cd2a8967"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d409_20261011/model7b_repaired/physical/physical_resource_summary.json",
+      "sha256": "ca5e85c92e5e1298b0cc686cf17c7f9373f19fd4d78496e5b772f9548492e00c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d409_20261011/model7b_repaired/physical/summary.json",
+      "sha256": "ace89bab13495cce2835249e3d61a555f9f89ed245beb33ae35811d76ff8a598"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d409_20261011/model7b_repaired/model_qualification.json",
+      "sha256": "60d5fdcd102b8a6a7ac56c78d17468ff01bf4e1d40cc504a93bd9ea3234f47bf"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d409_20261011/http_7b_100.json",
+      "sha256": "242815a346be995818d918b5c15eb394f52fa430dd9d1e133a63d91d5e5730a6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d409_20261011/remote_transfers.jsonl",
+      "sha256": "638491536aec798e0657c7397f8372ae9542301bcf00eb3f9657a6bb01bf2947"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d409_20261011/remote_monitor.log",
+      "sha256": "29f1405bd938e85c126b50914c78afb0768355b2fd71708c38f3e2e57ac01360"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d409_20261011/source_repaired/measurement_manifest.json",
+      "sha256": "2bb47266bc0915026b8eb2350a27164d6165b0d11feff785e47c608160e79b13"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d409_20261011/storage_aware_scheduler_executed.py",
+      "sha256": "7f42b0cce82f970392b3d484767a13563fb2d29f6c6e870aa8f29b86fb972b91"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/scripts/summarize_serverlessllm_replay.py",
+      "sha256": "886921c168679c00783c917b7267021c02b3699604057a4bdb213bb55bbe9527"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/scripts/prepare_ieee_tc_serverless_stack.py",
+      "sha256": "551f4d3afaf643b8b40f95debc7b74bf981057ac4a7fb159cbab243a3916ce42"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d402_serverlessllm_path.py",
+      "sha256": "a25f9925bdf4fb4f53d6283c3f7d34e5ba4dff64ee53a9395b3ded8c4f4eace9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json",
+      "sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3"
+    }
+  ],
+  "limitations": [
+    "100-request development prefix, not a full W0 comparison or configuration optimum.",
+    "Raw unknown numerical correctness and old qualification flags are preserved.",
+    "Actual backend-ready receipts and live loop qualify the affected path; qualification does not quantify a causal latency benefit.",
+    "Fixed native-store four-GPU pool is charged until actual release; not a claim about every ServerlessLLM deployment.",
+    "No relative performance comparison with the 4000-request PrimeLoRA observation."
+  ],
+  "common_slo": {
+    "offered": 100,
+    "binding_valid": 100,
+    "ttft_good": 0,
+    "tpot_eligible": 100,
+    "tpot_good": 100,
+    "joint_good": 0,
+    "ttft_attainment": 0.0,
+    "joint_attainment": 0.0,
+    "conditional_tpot_attainment": 1.0,
+    "observed_feasible": false,
+    "independent_numerical_proof": false,
+    "freeze_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json",
+    "freeze_sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3",
+    "scope": "complete qualified population only; prefix or coverage is not full W0 qualification",
+    "physical_gpu_seconds_per_binding_valid_request": 10.330290040001273
+  }
+}
