@@ -22,17 +22,19 @@ time, not the user's subsequent explicit execution authorization.
 - Latest user direction (2026-10-10): single performance run per frozen key,
   no repeated-run mean/CI; preserve all old attempts and development identity.
   Read METRIC_PROTOCOL_SINGLE_RUN_V2.md alongside frozen V1. First close a
-  reusable 7B Prime point and compare 7B baselines (Serverless audit first),
+  reusable 7B PrimeLoRA point and compare 7B baselines (ServerlessLLM audit first),
   then 3B. W0 success alone does not close W1/W2 or G2.
 - Preserve IEEE's nine equations and semantics. Prefer measured, causal online
   state; model-specific frozen configuration is allowed, test-point tuning is not.
 - First validate resource containment and protected results. No GPU performance
   campaign until actual workers, playback separation, watchdog and cleanup pass.
-- Serverless audit comes first among baseline tasks. Display name is Serverless.
+- ServerlessLLM audit comes first among baseline tasks. Latest user naming rule
+  (2026-10-10): always write PrimeLoRA and ServerlessLLM in full in reports,
+  new documentation and figures. Preserve historical raw identities/paths.
   Authorized polling repair must preserve RR/scaling/loading semantics.
 - One heavy run at a time. No blind OOM retries. Do not stop unrelated processes.
 - Latest user direction (2026-10-06) supersedes plan section 11's immediate
-  plotting cadence: before Prime meets the performance targets, do not generate
+  plotting cadence: before PrimeLoRA meets the performance targets, do not generate
   figures. Each run: cleanup -> validate/save data -> concise interpretation ->
   next main-line task. Do not spend optimization time on presentation work.
   Later publication figures still follow section 11's typography/layout rules.

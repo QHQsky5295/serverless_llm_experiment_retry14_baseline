@@ -1,5 +1,41 @@
 # IEEE TC execution status
 
+## CURRENT — D400 ServerlessLLM service-owned remote resolver CPU-qualified; GPU ownership next
+
+2026-10-10: latest naming directive is persisted in the source plan and full
+`PLAN_APPROVED_20261010_FULL_NAMES.md` snapshot (SHA
+`f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5`).
+Use full PrimeLoRA and ServerlessLLM names in new reports/documents/figures;
+preserve historical raw IDs and frozen V1/V2 bytes. Single-run/7B-first and the
+sealed D371 W0 observation remain unchanged. D72/D73 remain reused diagnostics.
+
+The existing native qualifier now has explicit service-owned on-demand PEFT
+delivery from the approved published-gzip endpoint. It reuses the common strict
+downloader and private cold cache, preserves native backbone store/fast loading,
+RR/scaling/sampling, and adds no PrimeLoRA policy. Only the LoRA store-format
+conversion is bypassed; request-time preparation is disclosed, not represented
+as unmodified upstream behavior. The historical fair runner already fetched on
+demand, but in the replay client. New replay only reads frozen static metadata.
+Per-object process locks, verified publication receipts, service cgroup checks,
+content/request/transfer bindings and ordered resolve spans are in place.
+No hidden retry/local fallback. 77 bounded CPU tests passed in 7.600 s, including
+real loopback HTTP and three-process single-fetch sharing. These are not model
+performance experiments. Details: `D400_SERVERLESSLLM_REMOTE_SERVICE.md`.
+
+`remote_qualified=false` remains deliberate: no new GPU qualification/full run,
+remote production restart/cache publication, generated workload, permanent
+artifact pool, PrimeLoRA change or figure occurred. Next EXACT mainline is full
+physical GPU ownership/readback including native store contexts and retired
+model workers, using existing PhysicalGPUAllocation/NativeGPUCensus/deployment
+and contained launcher. End-of-run actor lookup alone is not enough. Then fresh
+disk-growth admission -> affected 7B model-path qualification -> one matched
+full replay under a frozen configuration; do not repeat the polling diagnostic.
+
+Disk remains near 150.14 GiB, recheck before GPU work. User-dirty replay/relay
+scripts are unchanged and must not be staged. W1/W2, valid Resident U_ref,
+complete 7B rankings, 3B, ablations/mechanisms/sensitivities remain open. This
+entry supersedes older next actions and abbreviated display-name instructions.
+
 ## CURRENT — D399 Serverless pre-ready admission CPU-validated; remote/lease next
 
 2026-10-10: D371's sealed 7B W0 observation and D397's single-run/7B-first

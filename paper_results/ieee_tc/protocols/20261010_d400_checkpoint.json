@@ -1,0 +1,65 @@
+{
+  "schema": "ieee_tc_cross_repository_checkpoint_v1",
+  "date": "2026-10-10",
+  "milestone": "D400 ServerlessLLM service-owned published LoRA resolver CPU validation",
+  "main_parent_commit": "a191e16debf7fa4c7d78ffd75537842efe6c85e8",
+  "baseline_commit": "5a0181a0fdc877f8a738cc84a270425868dca031",
+  "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5",
+  "metric_protocol_v1_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "single_run_v2_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+  "display_names": ["PrimeLoRA", "ServerlessLLM"],
+  "performance_runs_started": 0,
+  "figures_created": 0,
+  "remote_production_mutations": 0,
+  "delivery_cache": "Reuse approved D78/D80 published objects; no production republication or new permanent extracted pool.",
+  "status": "cpu_validated_service_transport_not_model_or_physical_lifecycle_qualified",
+  "baseline_cpu_tests": {
+    "passed": 77,
+    "failed": 0,
+    "seconds": 7.600,
+    "new_test_count": 8,
+    "modules": [
+      "test_ieee_tc_dispatch_audit",
+      "test_ieee_tc_serverless_router",
+      "test_ieee_tc_serverless_launch",
+      "test_ieee_tc_serverless_measurement",
+      "test_serverlessllm_bandwidth_summary",
+      "test_native_stream_timing"
+    ],
+    "interpreter": "/home/qhq/anaconda3/envs/sllm_vllm0102_newserverless_20260518/bin/python",
+    "scope": "ieee-tc-d400-cpu-final.scope",
+    "memory_high_gib": 3,
+    "memory_max_gib": 4,
+    "swap_max_bytes": 0,
+    "cpus": [2, 3, 26, 27],
+    "cpu_quota_percent": 400,
+    "note": "Includes real loopback published HTTP and independent-process coalescing using temporary tiny fixtures. Printed summary fixture latency/CE is not experimental evidence."
+  },
+  "main_plan_binding_tests": {
+    "passed": 2,
+    "failed": 0,
+    "seconds": 0.002,
+    "class": "tests.test_ieee_tc_preflight.ApprovedPlanIdentity",
+    "scope": "ieee-tc-d400-plan-binding.scope",
+    "resource_envelope": "same bounded CPU-only envelope as baseline checks"
+  },
+  "baseline_sources": {
+    "scripts/prepare_ieee_tc_serverless_stack.py": "ab6e734d9101f943e7ce5b3f2ec0e8fad855ee77af1216217aca7bd97fc0eb11",
+    "scripts/ieee_tc_serverless_measurement.py": "d28a1f765dd0051247b9fcd9b8d4a6f5898cc4704f55c61843c5b02f1fc81bfd",
+    "tests/test_ieee_tc_serverless_measurement.py": "6ee0c031ee7a21fc3bff901124f76318d3dd60caef76de660932218ff8f555c4",
+    "docs/ieee_tc/D400_SERVERLESSLLM_PUBLISHED_RESOLVER.md": "dbf921604b25423b320d2146e97052251beadcd10b6b875eea5213b8ae5caec7"
+  },
+  "protected_verification": {
+    "path": "paper_results/ieee_tc/safety/20261010_d400_protected_verification.json",
+    "sha256": "96df8e345419d26b941f99e19578d8dfe6717fe06b35caa6d42e0dae4885e87d",
+    "historical_seal_pass": false,
+    "entry_count": 147,
+    "changed_from_september_seal": ["/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py"],
+    "reason": "Pre-existing user modification; unchanged in this task and not staged.",
+    "current_replay_sha256": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "current_relayserve_sha256": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "observed_free_disk_bytes": 161197445120,
+  "gpu_memory_mib": [15, 15, 15, 15],
+  "next": "Complete ServerlessLLM physical allocation/census/lifetime evidence including native store and retired workers, then disk-growth admission and affected 7B model qualification before one matched full replay. No repeat polling pair or PrimeLoRA tuning without comparison evidence."
+}
