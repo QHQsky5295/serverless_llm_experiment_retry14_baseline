@@ -1,4 +1,4 @@
-# IEEE TC execution status — current, D407 reference reuse; D408 running
+# IEEE TC execution status — D408 closed; D409 public execution mode CPU-qualified
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -85,25 +85,50 @@ SHA7843794689b7aeaee4ac8ed067de5871ef858729130c7f185a0c9566e6c0b5d4.
 See D407_SERVERLESSLLM_REFERENCE_REUSE.md. Frozen V1/D393 do NOT require exact
 cross-backend tokens; do not reintroduce D391's superseded full-exact oracle.
 Bounded numerical evidence is reusable; raw unknown fields stay unchanged.
-D408 RUNNING (2026-10-11 01:47 Asia/Shanghai): original1000 W0 requests,trace_prefix_v1(nocoverage remapping),
-60actualIDs,target4/min1/max4/keep10 and same D406 backend. Exclusive raw root
-/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d408_20261011.
-Tmux tc-d408-7b; service scope primelora-tc-svc-73299919da3640b6a75b48151d6388b9.scope;
-aux primelora-tc-aux-d4080000000000000000000000000001.scope.
-Execution main242b3c455e13ac10920f0af8a04695af05f52a7f(pushed/remoteverified),
+D408 COMPLETE (2026-10-11 02:07 Asia/Shanghai): original1000 W0 requests,
+trace_prefix_v1,no coverage remapping,60actualIDs,target4/min1/max4/keep10,
+same D406 native backend/eager mode. Raw root
+`/home/qhq/serverless_llm_experiment/results/ieee_tc/serverless_qualification/d408_20261011`.
+Execution main242b3c455e13ac10920f0af8a04695af05f52a7f,
 baseline25848cfb57ef15351f800daf7062cffb2a0d3807. No new weights/traces/cache.
-Preflight pass; protected_before SHA96df8e345419d26b941f99e19578d8dfe6717fe06b35caa6d42e0dae4885e87d
-matches prior:sole known user replay edit. Remote health passed before deployment
-notice with existing native env; first /usr/bin/python3 health invocation lacked
-numpy,no remote request/no file output; it was corrected before business arrival.
-Remote services use reused frozen D78/D80 configuration; monitor
-primelora-artifact-monitor-d408-7b.service; loader overlay currently INSTALLED,
-backup/receipt under raw/overlay7b_repaired. After terminal verify GPU/context
-release,restore exact overlay,run raw/stop_remote.sh(invocation checked),retain
-remote transfer/monitor and resolver/worker evidence. Do NOT restart this run.
-Next monitor original1000 through terminal/cleanup and audit prefix1000,
-then originalfull4000W0 after public configuration decision. Do not repeat
-100/500gates or numerical probes merely for exact-match selection.
+1000/1000 native/source/adapter/content/timing contracts,0fail,122510tokens,
+4actual served engines,live scheduler/no exception/empty allocations.
+TTFTmean4683.000724/P9536802.779816ms;TPOTmean63.561872/P9568.849439ms;
+E2Emean12420.357748ms. Common D394 TTFT828/TPOT800/joint674 of1000:
+67.4% joint,NONFEASIBLE,not a4000-request comparison/config optimum.
+Physical U4584.427947GPU-s,4.584428/binding-valid request,complete releases.
+60HTTP/74953014wireB/1474429899verified payloadB,940cache-hit requests,0packs.
+Raw n_correct=null/numerical flags unchanged; reuse bounded D407 separately.
+Audit v2 SHA3a159e40315aa5291e70972b621dd77a1222f46c0b308785022c514cfcb28ca4,
+paper_results/ieee_tc/baseline_audit/d408_7b_compatibility/audit_v2.json;
+earlier audit.json retained. Companion evidence_manifest189files.
+Report D408_SERVERLESSLLM_1000_RESULT.md. Offline analyzer15CPUtests pass0.050s.
+GPU contexts released/service removed/empty aux stopped/overlay RESTORED.
+Remote3ownedunits stopped by InvocationID,MainPID0/portsabsent; transferred
+remote logsSHAverified,resolver+worker evidence retained. Protected147entries
+before/afterSHA96df8e345419d26b941f99e19578d8dfe6717fe06b35caa6d42e0dae4885e87d
+unchanged,sole historical user replay mismatch. Health prelaunch corrected from
+system Python lackingnumpy to existing nativeenv before any business request.
+No live job; do NOT restart D408 or earlier completed gates.
+
+D409 CPU-QUALIFIED, NOT GPU-RUN: D408 startup and steady decode both matter.
+Ready receipts notice+167.977..168.029s; first100meanTTFT35.417s. Source100-499
+and500-999 jointSLO78.5%/70.6%,TPOT~63ms. Helper had fixed eager=true, whereas
+official pinned backend exposes false/hybrid. Existing helper now has explicit
+--no-enforce-eager,default unchanged,only one public backend config field differs.
+No RR/scaler/loader-policy change or silent eager retry. Baseline89CPUtests pass
+7.234s in4GiB/zero-swap scope; see baseline docs/ieee_tc/D409_SERVERLESSLLM_PUBLIC_EXECUTION_MODE.md.
+Baseline checkpoint d6dcf14449e595f461bb933007b62c87423377d2 pushed to origin/main;
+remote branch SHA verified. D408 evidence manifest189files SHA
+dbaa0ab5343027b29b0bcc964c1601a8d876f42c80fad63d1dd71ba220ed06b3,all189verified.
+Next: full plan/status + safety reread, one new-key affected-path100 graph/native
+timing/adapter/memory gate, then original1000 compatibility if valid. Reuse D406
+content/full-ID evidence, verify graph slot execution rather than assuming it.
+Keep target4/min1/max4/keep10,backendlimits,FP16,common60s/1800s unchanged.
+Hypothesis is decode reduction versus capture startup/memory trade-off,not proven.
+Do not expand unrelated parameters; retain failure and return to full4000W0
+after this bounded public-config check. Do not repeat numerical probes merely
+for token exact-match selection. Preserve PrimeLoRA D371 throughout.
 
 D405 COMPLETE 2026-10-11: audited historical replay files: clean7B, earlier7B,
 3B each4000reported successes but132actual logical adapter IDs. Original7B
@@ -198,7 +223,7 @@ this status is not a shortened experiment plan.
   CPUs2,3,26,27. Actual worker containment/watchdog/cleanup precede GPU runs.
 - D406 service peak64,123,109,376B,swap0,high/max/OOM0;host available minimum
   59,220,758,528B,disk minimum149,497,323,520B. Recheck before heavy work.
-- All D402/D404/D406 workers/service scopes released;four cards15MiB/0%. Loader overlay
+- All D402/D404/D406/D408 workers/service scopes released. Loader overlay
   restored to exact preimages,added loader removed;empty aux scope stopped.
   Remote3ownedunits inactive/MainPID0,ports absent.
 - Strict SSH alias primelora-artifact-174,lab14@10.199.227.174:8122;
@@ -212,6 +237,15 @@ this status is not a shortened experiment plan.
   raw D402/D404. Private caches `/tmp/tc-d402-7br` and `/tmp/tc-d404-7br` remain;
   only verified re-creatable objects may be reclaimed after reference checks,
   never raw records,unique weights or frozen traces.
+- D408 after audit reclaimed only600 downloaded object files at
+  /tmp/tc-d408-7br/remote_artifacts/objects. Original source hashes/different
+  inodes,closed ownedruntime,readable same-UID fd/cwd/root+fuser and tracked
+  future config references checked;3inaccessible proc entries disclosed.
+  Retained allraw/receipt/journal and remoteimmutablecache. Observed release
+  1476124672B;diskafter162219474944B. Rawcache_cleanup_before/after.json.
+  Re-auditing removed bytes requires rematerialization;do not redownload just
+  to repeat a passed check. Recheck>=150GiB plus predictedgrowth before D409.
+- D408servicepeak52653588480B,high/max/OOM/swap0;hostavailablemin59081170944B.
 - Protected147-entry checks before/after identical,SHA
   96df8e345419d26b941f99e19578d8dfe6717fe06b35caa6d42e0dae4885e87d.
   Sole historical mismatch:user replay edit,unchanged in this campaign.

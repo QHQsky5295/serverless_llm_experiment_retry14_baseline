@@ -5,7 +5,8 @@ import json
 from types import SimpleNamespace as NS
 import unittest
 
-from scripts.ieee_tc.audit_d402_serverlessllm_path import validate_population, compare_reference_row
+from scripts.ieee_tc.audit_d402_serverlessllm_path import (
+    validate_population, compare_reference_row, frozen_slo_summary)
 
 
 class QualificationPopulationTests(unittest.TestCase):
@@ -137,6 +138,55 @@ class ReferenceReuseTests(unittest.TestCase):
         self.assertFalse(row['exact_sequence_match'])
         self.assertTrue(row['independently_observed_margin_reusable'])
         self.assertEqual(row['hf_top1_minus_top2'], 0.015625)
+
+
+class FrozenSloTests(unittest.TestCase):
+    def fixture(self):
+        rows = [dict(request_id=f'r{i}', status='http_response', actual_tokens=2,
+                     target_tokens=2, ttft_ms=10., tpot_ms=2.) for i in range(20)]
+        observations = {r['request_id']: dict(native_prompt_token_ids=[1], native_output_tokens=2)
+                        for r in rows}
+        groups = [dict(lower_exclusive=None, upper_inclusive=None, ttft_ms=10., tpot_ms=2.)]
+        return rows, observations, groups
+
+    def test_joint_intersection_and_exact_95_percent_boundary(self):
+        rows, obs, groups = self.fixture()
+        rows[0]['tpot_ms'] = 3.
+        value = frozen_slo_summary(rows, obs, groups)
+        self.assertEqual(value['joint_attainment'], .95)
+        self.assertTrue(value['observed_feasible'])
+        rows[1]['ttft_ms'] = 11.
+        value = frozen_slo_summary(rows, obs, groups)
+        self.assertEqual(value['joint_attainment'], .9)
+        self.assertFalse(value['observed_feasible'])
+
+    def test_failed_request_keeps_offered_denominator(self):
+        rows, obs, groups = self.fixture()
+        rows[0] = dict(request_id='r0', status='http_request_failed')
+        del obs['r0']
+        value = frozen_slo_summary(rows, obs, groups)
+        self.assertEqual(value['joint_good'], 19)
+        self.assertEqual(value['offered'], 20)
+        self.assertFalse(value['observed_feasible'])
+
+    def test_single_token_tpot_is_not_imputed(self):
+        rows, obs, groups = self.fixture()
+        rows[0].update(actual_tokens=1, target_tokens=1, tpot_ms=None)
+        obs['r0']['native_output_tokens'] = 1
+        value = frozen_slo_summary(rows, obs, groups)
+        self.assertEqual(value['tpot_eligible'], 19)
+        self.assertEqual(value['joint_good'], 20)
+        rows[0]['tpot_ms'] = 0.
+        with self.assertRaises(ValueError):
+            frozen_slo_summary(rows, obs, groups)
+
+    def test_ambiguous_group_or_missing_native_timing_rejected(self):
+        rows, obs, groups = self.fixture()
+        with self.assertRaises(ValueError):
+            frozen_slo_summary(rows, obs, groups * 2)
+        rows[0]['tpot_ms'] = float('nan')
+        with self.assertRaises(ValueError):
+            frozen_slo_summary(rows, obs, groups)
 
 
 if __name__ == '__main__':

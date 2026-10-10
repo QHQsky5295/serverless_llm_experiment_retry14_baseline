@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""D402/D404/D406 evidence recipe; reuses existing baseline/native validators.
+"""ServerlessLLM evidence recipe; reuses existing baseline/native validators.
 
 Read-only with respect to experiment inputs. Output is exclusive, small, and
 never upgrades a prefix qualification to a main performance comparison.
@@ -189,7 +189,65 @@ def reuse_numerical_reference(root, reference_path, main):
              main/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md', Path(__file__))])
 
 
-def audit(root, baseline, main, scheduler_contract='original', population='prefix100'):
+def frozen_slo_summary(rows, observations, groups):
+    """Evaluate unchanged native timing by common prompt group, not live CE.
+
+    Caller must first validate terminal/source/content/native identity. This
+    pure calculation cannot turn a failed request into a correctness proof.
+    """
+    counts = dict(offered=len(rows), binding_valid=0, ttft_good=0, tpot_eligible=0,
+                  tpot_good=0, joint_good=0)
+    if not rows or len({r['request_id'] for r in rows}) != len(rows):
+        raise ValueError('unique nonempty offered population required')
+    for row in rows:
+        if row['status'] != 'http_response':
+            continue
+        native = observations[row['request_id']]
+        prompt = len(native['native_prompt_token_ids'])
+        selected = [g for g in groups if
+            (g['lower_exclusive'] is None or prompt > g['lower_exclusive']) and
+            (g['upper_inclusive'] is None or prompt <= g['upper_inclusive'])]
+        if prompt == 0 or len(selected) != 1:
+            raise ValueError('native prompt requires exactly one frozen SLO group')
+        g, n = selected[0], row['actual_tokens']
+        if (type(n) is not int or n < 1 or n != row['target_tokens']
+                or native['native_output_tokens'] != n
+                or any(type(v) not in (int, float) or not math.isfinite(v) or v < 0
+                       for v in (row['ttft_ms'], g['ttft_ms'], g['tpot_ms']))
+                or g['ttft_ms'] <= 0 or g['tpot_ms'] <= 0):
+            raise ValueError('invalid native count, timing or threshold')
+        if n == 1:
+            if row['tpot_ms'] is not None:
+                raise ValueError('single-token TPOT must be N/A')
+            p_good = True
+        else:
+            if (type(row['tpot_ms']) not in (int, float)
+                    or not math.isfinite(row['tpot_ms']) or row['tpot_ms'] < 0):
+                raise ValueError('missing native TPOT')
+            p_good = row['tpot_ms'] <= g['tpot_ms']
+            counts['tpot_eligible'] += 1
+            counts['tpot_good'] += p_good
+        t_good = row['ttft_ms'] <= g['ttft_ms']
+        counts['binding_valid'] += 1
+        counts['ttft_good'] += t_good
+        counts['joint_good'] += t_good and p_good
+    return dict(counts, ttft_attainment=counts['ttft_good']/len(rows),
+                joint_attainment=counts['joint_good']/len(rows),
+                conditional_tpot_attainment=(counts['tpot_good']/counts['tpot_eligible']
+                                            if counts['tpot_eligible'] else None),
+                observed_feasible=(counts['binding_valid'] == len(rows)
+                                   and counts['joint_good']*100 >= 95*len(rows)),
+                independent_numerical_proof=False)
+
+
+def timing_stats(values):
+    ordered = sorted(values)
+    return dict(count=len(ordered), mean=statistics.mean(ordered) if ordered else None,
+                p50_type1=ordered[math.ceil(.5*len(ordered))-1] if ordered else None,
+                p95_type1=ordered[math.ceil(.95*len(ordered))-1] if ordered else None)
+
+
+def audit(root, baseline, main, scheduler_contract='original', population='prefix100', slo_freeze=None):
     sys.path[:0] = [str(baseline/'scripts'), str(main)]
     import summarize_serverlessllm_replay as analyzer
     import prepare_ieee_tc_serverless_stack as native
@@ -336,6 +394,40 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
              'Actual backend-ready receipts and live loop qualify the affected path; qualification does not quantify a causal latency benefit.'),
             'Fixed native-store four-GPU pool is charged until actual release; not a claim about every ServerlessLLM deployment.',
             'No relative performance comparison with the 4000-request PrimeLoRA observation.'])
+    if slo_freeze is not None:
+        frozen_slo = json.loads(slo_freeze.read_text())
+        if (frozen_slo['model'] != 'llama2_7b_main_v2_publicmix'
+                or frozen_slo['slo_reference_frozen'] is not True
+                or frozen_slo['thresholds_common_to_all_systems'] is not True
+                or frozen_slo['metric_protocol_sha256'] != digest(main/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md')
+                or frozen_slo['single_run_amendment_sha256'] != digest(main/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md')):
+            raise ValueError('common frozen SLO protocol identity differs')
+        for key in ('path', 'audit_path'):
+            sha_key = 'sha256' if key == 'path' else 'audit_sha256'
+            if digest(main/frozen_slo['calibration'][key]) != frozen_slo['calibration'][sha_key]:
+                raise ValueError('frozen common calibration content differs')
+        observations = {rid: r['body']['metrics']['ieee_tc'] for rid, r in index['http_raw_response'].items()}
+        rows = summary['diagnostic_rows']
+        result['common_slo'] = frozen_slo_summary(rows, observations, frozen_slo['groups'])
+        result['common_slo'].update(freeze_path=str(slo_freeze), freeze_sha256=digest(slo_freeze),
+            scope='complete qualified population only; prefix or coverage is not full W0 qualification',
+            physical_gpu_seconds_per_binding_valid_request=integral/count)
+        result['conditional_metrics']['tpot_ms'] = timing_stats(
+            [r['tpot_ms'] for r in rows if r['status'] == 'http_response' and r['actual_tokens'] > 1])
+        if population == 'prefix1000':
+            # Exhaustive, nonoverlapping source-order slices; diagnostic only.
+            # Never drop the startup portion from the primary SLO denominator.
+            ordered = sorted(rows, key=lambda r: r['planned_arrival_s'])
+            result['source_order_diagnostics'] = []
+            for lo, hi in ((0, 100), (100, 500), (500, 1000)):
+                subset = ordered[lo:hi]
+                result['source_order_diagnostics'].append(dict(
+                    source_indices_inclusive=[lo, hi-1],
+                    common_slo=frozen_slo_summary(subset, observations, frozen_slo['groups']),
+                    metrics={k: timing_stats([r[k] for r in subset if r[k] is not None])
+                             for k in ('ttft_ms', 'tpot_ms', 'router_queue_ms', 'service_ttft_ms')},
+                    interpretation='Post-run descriptive slice; not an independent run or startup-free primary result.'))
+        result['raw_sources'].append(dict(path=str(slo_freeze), sha256=digest(slo_freeze)))
     return result
 
 
@@ -348,10 +440,11 @@ if __name__ == '__main__':
     parser.add_argument('--scheduler-contract', choices=('original', 'request_identity_v1'), default='original')
     parser.add_argument('--population', choices=('prefix100', 'prefix1000', 'adapter_coverage_v1'), default='prefix100')
     parser.add_argument('--reference-result', type=Path)
+    parser.add_argument('--slo-freeze', type=Path)
     args = parser.parse_args()
     if args.output.exists():
         raise FileExistsError(args.output)
-    report = audit(args.root, args.baseline, args.main, args.scheduler_contract, args.population)
+    report = audit(args.root, args.baseline, args.main, args.scheduler_contract, args.population, args.slo_freeze)
     if args.reference_result:
         if args.population != 'prefix100':
             raise ValueError('independent reference is the unchanged first 100 requests only')
@@ -360,4 +453,5 @@ if __name__ == '__main__':
     with args.output.open('x') as handle:
         json.dump(report, handle, indent=2)
         handle.write('\n')
-    print(json.dumps({k: v for k, v in report.items() if k not in ('raw_sources', 'conditional_metrics', 'source_plan')}, indent=2))
+    print(json.dumps({k: v for k, v in report.items() if k not in
+        ('raw_sources', 'conditional_metrics', 'source_plan', 'bounded_numerical_reference')}, indent=2))
