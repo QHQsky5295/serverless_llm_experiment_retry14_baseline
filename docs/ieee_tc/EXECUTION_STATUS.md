@@ -1,5 +1,22 @@
 # IEEE TC execution status
 
+## CURRENT — D388 7B incumbent audit complete; no new heavy replay authorized
+
+2026-10-10: An offline, read-only audit of D371, D379 and D386 records D379 as
+the current development incumbent for resource-oriented follow-up and rejects
+D386's `queue_upper=4` candidate.  D386's earlier scale-up did not improve
+first-service readiness and increased physical GPU lifecycle time by 23.50%
+relative to D379.  D371 remains a confounded configuration, not a causal
+counterfactual.  The evidence and hashes are in
+`D388_7B_INCUMBENT_AND_NEXT_GATE.md`.
+
+No new threshold/capacity sweep, 3B run, baseline run, ablation, sensitivity
+analysis or figure is authorized from this audit.  The next permitted action
+is closure of the already-open full-workload correctness/common warm/Resident
+boundary, followed by a separately registered one-factor serving candidate
+only if new stage evidence justifies it.  The user-owned manifest remains
+unstaged.
+
 ## CURRENT — D387 artifact-node gate recheck complete; inference protections unchanged
 
 2026-10-10: A read-only recheck confirms that the artifact-only node uses the
