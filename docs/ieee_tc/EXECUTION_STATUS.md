@@ -1,4 +1,4 @@
-# IEEE TC execution status — D442 Loquetier evidence validated; first real 100 preregistered
+# IEEE TC execution status — D442 Loquetier real100 closed; 500-ID coverage next
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement experiment plan.
 Full earlier status is preserved byte-for-byte in EXECUTION_HISTORY_THROUGH_D433.md;
@@ -32,7 +32,52 @@ RUNNING entries are historical. No approved experiment or failed evidence was re
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D442 real100 preparation, NOT yet a passed experiment
+## Current action — D442 real100 closed; no rerun or baseline performance search
+
+See D442_LOQUETIER_100_QUALIFICATION.md. Actual100/100native/source/adapter/timing,
+17369tokens/29requestedIDs/four125-IDshards,0failures; complete500preparation.
+Native/E2E/TPOTrecompute0ms. U1720.670042644022GPU-s,17.20670042644022/request.
+Mean/P95TTFT266435.488/403860.253ms;mean/P95TPOT61.958/63.926ms.
+CommonD394 TTFT0/TPOT70/joint0of100: NONFEASIBLE prefix,not fullW0/ranking.
+Meanrouterqueue197.878s,nativequeue68.031s,registration-to-first.331s;
+ready notice+193.473/287.078/379.126/476.123s. Do not subtractstartup orcallall
+waiting compute/network. D385boundedreference83exact/17differences;
+3existingmargins reusable,14unknown. Raw numericalfalse/n_correctnull retained.
+500HTTP/420740410wireB/12985984450materializedB,0requestpacks;
+100preparationreferences are not newtransfers. Realremote prior1000Mb/s/full.
+Servicepeak42126540800B,hostavailablemin82596470784B,diskmin149954486272B,
+high/max/OOM/swap0. All3returncodes0,actualfourGPUrelease/servicepathremoved.
+Threeexact-ownedremoteunitsstopped/MainPID0/portsabsent;dual-endlogsSHAverified.
+tmux ended0andremoved. Aux0001identitye17114947b5c472c8664d97b40472ef5
+peak213463040B;0008-0011 exactidentity/actualemptytrees stopped,highmaxOOMswap0.
+Strict pre-registered Loquetier analyzer passed withoutpostrun runtime/analyzer changes.
+auditSHA503981d404c973736d96c06395539fe288c841c364236f4759bc2a0b7084c530;
+578-file36274890B evidence_manifestSHAba8e1a0bcbcafc210e0abeef564a03d4c13fb9622541709b234ac7a1a1761647,
+allsourceSHA independentlychecked. Old147protectedentries/threeuserfilesunchanged.
+NEXT doublebackup -> reclaimonlyownedclosedobjects ->freshgates andsameconfig
+500-IDcoverage,thenoriginal1000,single4000. No100repeat/D438capacityrepeat,
+baselineperformance tuning orsealedW0rerun. FullgoalACTIVE,concreteGPUqualification
+andclosureprogress,no blocker;remainingfullscope belowstillOPEN.
+
+## D442 preregistration and launch — historical details, now closed above
+
+Launched2026-10-12 02:25:19Asia/Shanghai in tmux tc-d442-7b, once only.
+Execution MAIN279cce93294d72e21abb2fdece760a94cb073baa and
+BASEd81b05e95dcbd0cfebe296a9e7e86ee4dc0ea146 pushed/remoteSHAverified.
+Frozen100viewaaf917bd816e10c4ad6f8138e5365aa9b2976b4300143cc712c12b84443cb020;
+HTTPe1ab96f06e8f73a7497a47fafbb0b024189934359fbd4141cc7c62aaf3d1f054.
+Freshpreflight passed SHA66f4ba800404244be7643ab8ae2887bef91ee2c4547111a48bc2a6a592263a69;
+free162970681344B. Aux0006/0007 identity+actualemptytree stopped,
+peaks119021568/28512256B,highmaxOOMswap0.
+Serviceprimelora-tc-svc-5d6c6e6a08384c499441b4b7c02d00b5.scope,
+InvocationID1d5c041d28d84d90b7868f84c34605d8; outeraux0001 live.
+Actualremote prelaunch1000Mb/s/full, no link changes/republish.
+Remote3B/7B/monitorInvocationIDs bdf3b975a833467da391a372c51a8420/
+8501a79ee7fb4476adc9498803b9201e/01dcfa121a354adfad9ad079b48b6907;
+7Bclock995d25520de44ec9b856c4eebc79be50. Do not touch remote while running.
+NEXT monitor this exact handle to terminal; actualrelease -> exact-ownedremote
+stop -> preserve evidence -> strictLoquetier audit/boundedreference -> seal/backup.
+No second heavyjob, blindretry, baseline tune or unrelated source mutation.
 
 BASE D442_LOQUETIER_EVIDENCE_AND_100.md preregisters original100/29IDs/17369tokens,
 full500 preparation and fixed D437/D441 four125-ID shards, nativebatch2/context1024.
