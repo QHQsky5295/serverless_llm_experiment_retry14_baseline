@@ -1,4 +1,4 @@
-# IEEE TC execution status — D436 four-system W0 comparison CLOSED
+# IEEE TC execution status — D437 Loquetier static/CPU qualification checkpoint
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement experiment plan.
 Full earlier status is preserved byte-for-byte in EXECUTION_HISTORY_THROUGH_D433.md;
@@ -32,7 +32,63 @@ RUNNING entries are historical. No approved experiment or failed evidence was re
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D436 comparison closed; remaining 7B baseline qualification next
+## Current action — D437 static/CPU checks closed; Loquetier native GPU qualification next
+
+BASE docs/ieee_tc/D437_LOQUETIER_STATIC_CAPACITY.md records full existing500-ID
+metadata accounting, historical source/receipt verification and nativeCPU rules.
+Extended the existing Loquetier gate with opt-in --static-capacity-only; no native
+algorithm edit, performance search, trace generation, modelGPUload, remote action,
+HTTP fetch, republishing, extracted-pool copy, old-result overwrite or figure.
+User again approved once-only readonly gzip delivery cache; reuse D78/D80, do not
+rebuild it. Real reads/transfers/contention/local materialization stay measured.
+
+Actual350rank8/150rank16, homogeneous128targetmodules; deterministic input-only
+byte-balanced four disjoint125-ID shards, no trace/hotness read. Batch2 preserves
+historical compatibility point, context1024; not official default or optimum.
+PerGPU baseFP16 13476835328B, originalPEFTFP32 5469372416B(shards0/1) or
+5435817984B(2/3), preparednativeFP16 4194304000B, pointers256000B, fullcontextKV
+1073741824B. Accountedtotal22.55152/22.52027GiB excludes CUDA/workspace/temporary
+padding/casting/activations/allocator andHOSTpeak: runtime_qualified=false and
+safe_to_launch=false. Header/config/size checks do NOT rehash all tensor payloads.
+Staticcapacity JSON in BASE paper_results/ieee_tc/loquetier/d437_7b_static_capacity.json
+SHA049441391b67e500328546c3c8e1001fd1ce197f0c1a93e150fc26e8bdfe4a77;
+scriptSHAb0f679614432c135197867007c3fa8db62bceca4b671d88cd809a66486c1268f.
+
+5metadata tests and4nativeCPU tests passed; precommit combined9passed2.219s,
+no skip. NativeModelGeneration.post_process exact1/2/256 stopping withEOSdisabled,
+batch mark/adapter preservation andgreedy config checked; CPU mockKV, notmodel
+arithmetic orGPU qualification. NativeunknownID->0 reproduced: wrapper must
+reject unknown/wrong-shard ID and qualify actual forward binding, nothidefallback.
+ExistingnativePython3.9.25/torch2.1.2+cu121/Transformers4.45.2/PEFT0.17.1 reused;
+no install/build/driverchange. NativeHEADaae33baeeb19777129c1ccbff99a898d4a0e2c63,
+three historicaldirtyfiles/defaultdiffSHAde476d06c318ba2be7f65dd9dba9bfb30a2f2c7e14e8bd6e35f30206ab041a39
+unchanged; kernel and old7B/3B gate/OOM receipts verified, see BASEreport.
+
+All5 D437auxscopes GPUhidden,CPU2,3,26,27/high3max4GiB/swap0; high/max/OOM/swap0.
+Each exactInvocationID/actualempty-subtree stopped. Precommit testsaux0004
+ID370ccc61689744b78416cfdb596f0eca peak248307712B; protectedaux0005
+ID478687e8a52a4d35b28e1f4c57d7a589 peak12562432B. All147oldprotectedentries,
+three user-fileSHAs,nativeS-LoRAtenfilepatch unchanged. Protectedverification
+paper_results/ieee_tc/baseline_audit/d437_loquetier/protected_verification.json
+SHA1ff66513bbe7dc141d9bd14e43a7ce4f111cee38aeb215db2db8eebe141fb657.
+LastGPUeach15MiBgraphics/0util,notmux,hostavailable105GiB,disk162920607744B
+(~151.73GiB); not a fresh heavyweight launch permission. No cleanup/deletion.
+BASE checkpoint0f73477ae5bff492356e56812cfb4cdc9f78d2a0 pushed/remoteSHAverified.
+D436 MAIN priorbackup440f309dc819b5f145cadd596f4cbc25c38a3ed2 remains preserved.
+
+NEXT: reuse commonHTTP/remote resolver/physicalownership and nativeLoquetier
+to supply necessary staticmapping, fixedinput, nativeinteger-boundary timing,
+failure/cancel and forward-binding checks; then fresh safety gates and protected
+actualcapacity/100-request qualification. Preserve originalSMLM/virtualmodel/
+MixedLoraModel/ModelGeneration/batching; no baseline performance search. Existing
+gate timing/counts/ready-shifted arrivals are R2, notcommoncontract performance.
+Follow approved500-IDcoverage->original1000->single4000 order; failures retained.
+Loquetier not yet qualified for W0 table. Then HydraServe nativequalification,
+7Bcomparison/necessaryPrimeLoRAoptimization before3B. All remaining scope OPEN.
+This continuation made concrete qualification/code/test/metadata/backup progress,
+not a new GPU performance result and not full goal completion.
+
+## D436 comparison closed — do not repeat sealed W0 performance runs
 
 D436_MATCHED_7B_W0_FOUR_SYSTEMS.md records the complete offline join of sealed
 D371/D397 PrimeLoRA,D414 ServerlessLLM,D423 vLLM,D435 S-LoRA. No GPU run,
@@ -67,7 +123,7 @@ created no analysis output; no performance retry or environment installation.
 CPU2,3,26,27/high3max4GiB/swap0/GPUhidden; successfuljoinpeak1699659776B,
 high/max/OOM/swap0. All five owned D436 auxscopes exactidentity/empty-subtree
 closed. BASE remains94543f3d4dee1a870084ec877011f40ce1b27277 unchanged.
-Current turn made concrete offline comparison+validation+documentation progress.
+That turn made concrete offline comparison+validation+documentation progress.
 NEXT: remaining7B Loquetier/HydraServe native qualification from existing reviews,
 necessary compatibility/correctness/measurement/safety only, no baseline tuning.
 Then complete7B comparison/necessaryPrimeLoRAoptimization before3B.

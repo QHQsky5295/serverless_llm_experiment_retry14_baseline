@@ -1,0 +1,56 @@
+{
+  "schema": "ieee_tc_cross_repository_qualification_checkpoint_v1",
+  "checkpoint": "D437",
+  "date": "2026-10-12",
+  "system": "Loquetier + static-sharded deployment",
+  "stage": "7B static-capacity and native CPU rule checks only",
+  "gpu_performance_run": false,
+  "runtime_qualified": false,
+  "safe_to_launch": false,
+  "performance_optimization": false,
+  "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5",
+  "metric_v1_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "metric_v2_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+  "baseline_repository": "/home/qhq/serverless_llm_baselines",
+  "baseline_commit": "0f73477ae5bff492356e56812cfb4cdc9f78d2a0",
+  "baseline_remote_sha_verified": true,
+  "files_in_baseline_repository": [
+    {
+      "path": "Loquetier_project/scripts/run_loquetier_trace_gate.py",
+      "sha256": "b0f679614432c135197867007c3fa8db62bceca4b671d88cd809a66486c1268f"
+    },
+    {
+      "path": "docs/ieee_tc/D437_LOQUETIER_STATIC_CAPACITY.md",
+      "sha256": "f4f204ebaef54609874c1d9707aeeabd57b7f6698546bd96c983f3809189bcf0"
+    },
+    {
+      "path": "paper_results/ieee_tc/loquetier/d437_7b_static_capacity.json",
+      "sha256": "049441391b67e500328546c3c8e1001fd1ce197f0c1a93e150fc26e8bdfe4a77"
+    },
+    {
+      "path": "tests/test_loquetier_static_capacity.py",
+      "sha256": "84ca25194d3b5ca866af4b073b89c7f106293f8404fe7fb8ed1ffc09541c1492"
+    },
+    {
+      "path": "tests/test_loquetier_native_generation.py",
+      "sha256": "a7fa11940b8ac3f703ab3df4500fd7632b241a4865e3e7bc90213b8b15ccbe90"
+    }
+  ],
+  "native_head": "aae33baeeb19777129c1ccbff99a898d4a0e2c63",
+  "native_default_diff_sha256": "de476d06c318ba2be7f65dd9dba9bfb30a2f2c7e14e8bd6e35f30206ab041a39",
+  "protected_entries_unchanged": 147,
+  "protected_verification_sha256": "1ff66513bbe7dc141d9bd14e43a7ce4f111cee38aeb215db2db8eebe141fb657",
+  "combined_cpu_regression": {
+    "tests": 9,
+    "failures": 0,
+    "skipped": 0,
+    "seconds": 2.219,
+    "native_environment": "/home/qhq/anaconda3/envs/loquetier_20260520",
+    "scope_invocation_id": "370ccc61689744b78416cfdb596f0eca",
+    "memory_peak_bytes": 248307712,
+    "high_max_oom_swap_events": 0,
+    "scope_empty_identity_checked_closed": true
+  },
+  "remote_delivery": "Reuse existing D78/D80 once-only read-only gzip cache; no republish or remote changes in D437",
+  "next": "Necessary native online/static mapping/measurement adaptation, protected actual capacity and original100 qualification; no performance configuration search"
+}
