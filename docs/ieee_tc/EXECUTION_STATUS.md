@@ -1,4 +1,4 @@
-# IEEE TC execution status — D416 native service integrated; D417 path gate next
+# IEEE TC execution status — D417 startup failure closed; D418 toolchain repair
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -74,6 +74,80 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+D418 CPU REPAIR COMPLETE 2026-10-11; no liveGPUjob. Existing vLLM runner now
+binds the declared interpreter's bin (without resolving its Python symlink)
+to workerPATH, probes installed ninja beforeGPUallocation, and verifies actual
+worker tool SHA/PATH hash/MAX_JOBS. Explicitbuild_max_jobs2 implements approved
+nativebuild safeguard; no servingpolicy/engineparameter change orfallback.
+125CPUtests pass7.756s/4GiB/zeroswap/CPUs2,3,26,27. Actualdeclaredvenv probe
+withGPUhidden passes ninja--version; installedFlashInferAST confirms-j2 with
+buildcommand mocked. No compile/preload/installation. Officialfixedtag/source
+andPythonvenv docs checked; D214retry6/7 history explicitly reviewed.
+ReportsD418 in bothrepos; D419 preregistration and reusedrawscripts prepared.
+Baseline testedcheckpoint3bd6088ce988a4108f397378c5b59a8e586cbc8f pushed to
+origin/main andremoteSHAverified. Exact4taskfilesonly,diff/secretschecks passed;
+all3protecteduserdirtySHAs andPLAN/V1/V2unchanged.42D417evidencefilesSHAverified.
+NEXT backupD417closure/D418testedcode -> freshresource/input/protection/cache
+identity gates -> startunchangedownedremote -> oneD419affected100pathgate ->
+release/stop/audit/save -> requiredqualificationreuse/full7BW0. D419notstarted.
+PrimeLoRAD371/ServerlessLLMD414 remainsealed; alluncompletedplan scope remains.
+
+D417 TERMINAL/FAILURE AUDIT COMPLETE 2026-10-11. No live GPU job. All4native
+workers failed at FlashInfer sampling warmup: installed ninja was absent from
+inherited PATH. This is protocol_or_launcher_error, not a baseline performance
+result. History D214retry6 had the same cause; D214retry7 explicitly fixed PATH.
+D416 failed to carry that environment requirement into its new entrypoint.
+Final publisher:100contracts,27created,24headerssent,27failed,0native responses;
+unarrived73 not fabricated timeouts. Earlier physical snapshot has26terminals,
+4openownerleases,U_obs499.795498GPU-s,U=null; it precedes publisher cleanup.
+Do not rewrite journals to fabricate a complete lifetime/cost. External launcher
+confirms actualGPUrelease/servicepathremoved; freshcompute census empty.
+Threeownedremoteunits inactive/MainPID0/portsabsent; originalstop script exited1
+only at no-matching-transfer-journal grep AFTER successfulstop. Separateclosure
+receipt verifies actualstop and copiedmonitorSHA
+edbde45fe9287f58c43d45cecd5e7c090414bb25eba48db9dc2784e4600cceeb.
+Emptyownedaux stopped. Servicepeak21910249472B,hostavailablemin102155436032B,
+diskmin164548575232B,high/max/OOM/swap0,noabort. Protected147entriesunchanged;
+protected_afterSHAac3fee55ff35ceb5900808374b4393f368e21376e7a8b44e22add2df050e983e.
+Curated d417_7b_startup_failure/audit.json SHA
+f6610f2e465eda26fc2a5adde58aeff535fa9bd9bfe6ba96bdf79b8b57e8a53b;
+42filemanifest SHA62d9c47024f37263bfdeaed70cdae14f9415da8d3cdece5d0e254555806d5b82.
+NEXT D418: bind nativeworker PATH to declaredvenv beforeGPUallocation, failclosed
+on missingtool, recordidentity and explicit boundednativeJIT concurrency;CPUtests
+andhistory/officialsourcecheck -> backup -> newkey affectedpathqualification.
+No disablingFlashInfer,alternateenvironment,policychange orD417restart. Preserve
+PrimeLoRA D371/ServerlessLLM D414;then7BfullW0/remainingbaselines,not3Bjump.
+All earlierRUNNING/NEXT paragraphs below are historical, not live jobs.
+
+D417 RUNNING 2026-10-11 15:33:21 Asia/Shanghai, tmux tc-d417-7b.
+Main execution cb2561938bc7871a2b0cfb23117417223a92d25a and baseline
+5c0cfd8b4d4ead40437d6dc852a9e60395075cf3 pushed and remoteSHA verified.
+Service primelora-tc-svc-2bd13b0f6b7b4343b4b80e1dc1cf0dd7.scope,
+InvocationID7062c07a378a4278b92564529feaa4f9; auxiliary
+primelora-tc-aux-d4170000000000000000000000000001.scope.
+Deploymentnotice1211251.664325373, business t0=1211311.664325373.
+Original100 prefix/29IDs/17369tokens/viewSHA
+aaf917bd816e10c4ad6f8138e5365aa9b2976b4300143cc712c12b84443cb020 verified.
+ConfigSHA203699817819b2632c2900c8b6f96f0ec2736539510fe823541e1e0780d07dce,
+HTTPconfigSHA04780143176f16c380295b289aa5a2d5126592649b449f9085a87dc0cb54b105.
+Native compiler diskcache221763files/7506097394B, aggregateSHA
+42cdcdbff103f9cf09cd860d9411bb6071f588087d4837eb84d40d386160ce29;
+scanned before notice, no engine/GPU preloading. Scan completed under bounded
+auxiliary scope; no concurrent inference. Private LoRA cache newly created.
+Remote current1Gbps/full, unchangedD78/D80publishedcache;7Bclock
+remote-process-monotonic:0c5cc5135f7743dc9430a585ebb898ab.
+Owned3B/7B/monitor InvocationIDs692a4f71f5504122904d977127362fff,
+3457a88c8ead4a2a9733560ce148a93a,4e81b78655cd4983ba154d2a66ac7eb6.
+Initial native readback: four actual contained EngineCore workers, FP16/TP1,
+FLASH_ATTN2, inherited limits. Watchdog sample49:available105165381632B,
+service15905505280B,disk164598992896B,high/max/OOM/swap0,noabort.
+No terminal/performance verdict yet. Do not restart or overlap a heavy job.
+NEXT monitor SAMEhandle/local journals only -> actualGPUrelease -> ownedremote
+stop via D417stop_remote.sh -> preserve resolver/worker/remote evidence ->
+native timing/source/content/physical audit and backup -> fullW0 after necessary
+qualification reuse. No live remote change/hashscan/cleanup/tests/parameter search.
+Earlier PREPARATION/NEXT paragraphs are historical and superseded by this run.
 
 D416 CPU INTEGRATION COMPLETE 2026-10-11. No live GPU job at this checkpoint.
 The existing vLLM engine runner now has explicit native-http-service/worker
