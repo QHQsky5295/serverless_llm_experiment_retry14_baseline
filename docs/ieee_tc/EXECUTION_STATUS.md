@@ -1,4 +1,4 @@
-# IEEE TC execution status — D423 full vLLM 7B W0 terminal and audited
+# IEEE TC execution status — D424 matched 7B W0 comparison complete
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -38,8 +38,9 @@ source/adapter binding contracts,3,908 joint passes(97.70%),14,482.523924GPU-s,
 See `D397_7B_SINGLE_RUN_SEAL.md` and its curated seal. Actual132 published HTTP
 deliveries,zero packing,one phase-attribution join caveat. Mostly-zero/repeated
 LoRA content limitation remains. D379(94.425%) and D386(94.85%) are retained
-below-threshold alternatives. D394 freezes7B warm thresholds; valid Resident
-U_ref is OPEN. D395/D396 have measurement/ownership gaps and cannot set it.
+below-threshold alternatives. D394 freezes7B warm thresholds. D424 now freezes
+the qualified D423 W0 Resident U_ref/Q_ref; W1/W2 references remain OPEN.
+D395/D396 have measurement/ownership gaps and cannot set them.
 
 ## D402 — terminal, affected path passed; scheduler defect prevents final freeze
 
@@ -74,6 +75,54 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+D424 OFFLINE COMPARISON COMPLETE 2026-10-11. No live GPU/remote job or new
+performance run. Full PLAN/STATUS/V1/V2 reread; source plan unchanged. Existing
+check_d299_full_context.py gains explicit --matched-w0-output; 31 CPU tests
+pass0.284s, 4GiB/zero-swap/CPUs2,3,26,27/GPUhidden. Full actual join passed once.
+Three sealed audits/manifests, 45 source refs, source/physical journals verified;
+4000 exact matched request/adapter/target/prompt/native-input/content contracts,
+132 IDs/458224 output tokens, same60s notice/resource envelope/unscaled W0.
+No re-download of reclaimed objects or rewrite of unknown raw correctness flags.
+Report D424_MATCHED_7B_W0.md; curated main_comparison/d424_7b_w0/:
+comparison.json SHA0a4df226457f09451e447ea0d520789ed6b8fe8b40689361bc4336e9ba8acd97,
+metrics.csv SHA2ddc86883b9934b8fe31367ef1e844539a8ea42e8beb344309e02dab276ea30e,
+resident_reference.json SHA737c84804023c9f98677fb5f19c8240b4b05cabdb52f6ecdbbfd4527964c3269.
+D423 W0 reference frozen:U_ref16115.377162149176,Q_ref1200.5068596918136ms,
+B_W0=12086.532871611882GPU-s. W1/W2 reference and G2 stillOPEN.
+PrimeLoRA resource observed reductions9.9892%/10.1323% vs ServerlessLLM/vLLM;
+joint SLO97.70% vs98.125%/99.475%;P95TTFT2837.896 vs1052.246/1200.507ms.
+All three meet95%,but no across-metric win, no optimized baseline/resource_opt
+claim. Resident is four-card reference,not a1/2/3/4-card minimum-resource search.
+All three132HTTP/131480060wireB: no remote-byte-reduction evidence inthisW0.
+Completion boundary differs(controller vsHTTP);commonarrival-to-last-token and
+native-entry stage split saved without relabelingE2E. PrimeLoRA/vLLM231output
+digest differences retained,not presumed allrounding;otherpairs203/137.
+Mostlyzero/repeatedweights and bounded independent witness limitations retained.
+User's cache approval reconfirmed:reuseD78/D80,not republish. No runtime/backend/
+paperchange,trace/poolgeneration,figure,cachecleanup or performance-repeat thisstep.
+Post-analysis147protectedentries unchanged againstD423preseal;45comparison
+sourceSHAs and6reference-provenance sources verified;additive mean stage
+identities pass. reference_provenance.json preserves actualexecutioncommits,
+runtime/eval/generation/reference hashes and explicitlyposthoc derivedkey.
+CSV standard-library CRLF initially triggered defaultGit whitespace check;
+per-command cr-at-eol recognition keeps otherwhitespace checks and original
+CSVbytes/hash unchanged;no repositorywide configchange.
+OwnedD424aux0001..0011 all identity/limits/procs-empty checked andstopped;no
+unrelatedprocess stop. This is auxiliaryclosure,not a GPUexperiment or cachecleanup.
+Disk latest163403530240B (~152.2GiB),compute census empty;protected3userSHAs
+unchanged. D424 evidence/code backup pending. Next exactmainline:seal/backup ->
+S-LoRA history/source/native-measurement contract audit,then remaining7Bbaselines;
+do not jump3B,rerunD423 or retune fromthissinglepartialcomparison. Fullgoal ACTIVE.
+All older NEXT/RUNNING checkpoints below are retained history.
+
+Final D423 cache-receipt/status backup db57d27b78e50260c7d87f46b43191d0a994e1ef
+pushed tofaaslora_origin/retry14_continuous_queue_v2,remoteSHA verified18:33:12.
+Exact3taskfiles/diff/secrets/source-receipt/immutablemanifest checks passed.
+Fresh GPU compute census empty;disk163415195648B. Only3protecteduserfiles
+remained tracked-dirty before this postpush task-owned status update.
+No livejob or newexperiment. NEXT same full-contract join/reference decision
+below; fullgoal ACTIVE,not blocked or complete. No same-key repeat required.
 
 D423 CLOSURE BACKED UP / PRIVATE OBJECTS RECLAIMED2026-10-11~18:31.
 Main4c700e70a2b5d2e5ec93bd2d8b1dfc3bc46c0dff andbaseline

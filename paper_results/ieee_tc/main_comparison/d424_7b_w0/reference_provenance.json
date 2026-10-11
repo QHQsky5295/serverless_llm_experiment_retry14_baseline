@@ -1,0 +1,67 @@
+{
+  "kind": "resident_reference_provenance_companion_v1",
+  "not_a_new_performance_execution": true,
+  "resource_reference_sha": "737c84804023c9f98677fb5f19c8240b4b05cabdb52f6ecdbbfd4527964c3269",
+  "comparison_sha256": "0a4df226457f09451e447ea0d520789ed6b8fe8b40689361bc4336e9ba8acd97",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "single_run_amendment_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+  "slo_runtime_definition": {
+    "role": "qualification_development",
+    "request_timeout_s": 1800,
+    "preparation_lead_s": 60,
+    "online_slo_thresholds": null,
+    "source_http_sha256": "32b80e2227a8826943d03abf66de98dfd230f1288dc39840e6973c3d1b9b9ced",
+    "native_worker_config_sha256": "0649777ef8238bdfa251a283121da6bbe9c31a285292457d3315919aeca84161"
+  },
+  "slo_runtime_hash": "0167446ecddacbcee6306671ffbd2439e22926d600bb4b81872123e82e094caa",
+  "slo_eval_hash": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3",
+  "warm_reference_sha": "93e2af33de471af6ee3cf97c7cb98eb074768dd2d34f4d29e152d59ab7566cee",
+  "generation_definition": {
+    "contract": "fixed_length_greedy_v1",
+    "temperature": 0,
+    "top_p": 1,
+    "ignore_eos": true,
+    "stop": [],
+    "stop_token_ids": [],
+    "target_rule": "min(source_expected_output_tokens,256)",
+    "renderer": "role_lines_v1",
+    "matched_request_contract_sha256": "384b63425402ced97961e91081265d3cbe340b6a3b4febde242de28f62cd7399"
+  },
+  "generation_hash": "a6b9b68d794110771563efd163b67c174a2793b72ab3b4b47d99bc1dd026afe3",
+  "execution_key": "c4eba2ffd616ae8f557a35951c83a1958fb0d378bd99c9b6d39ff3bca81978b2",
+  "execution_key_definition": {
+    "run_id": "D423_20261011",
+    "execution_main_commit": "d45d544c939b9d8b1a41aa332b979b74ee0baa3c",
+    "execution_baseline_commit": "e646f9106c8fd6fd15f54b69041bd54234fa47e1",
+    "source_refs": [
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d423_20261011/input_identity.json",
+        "sha256": "d1f218eb802f778735aafcd8033673c3ef4a7bf39d4630a6c6b4c9c89cc4f1bd"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d423_20261011/launch7b.json",
+        "sha256": "9498e39b2b253ee31126ba166bef7be9d9c430426bed17e84b5bf130a471a9ee"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d423_20261011/http_7b_4000.json",
+        "sha256": "32b80e2227a8826943d03abf66de98dfd230f1288dc39840e6973c3d1b9b9ced"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d423_20261011/model7b/worker_config.json",
+        "sha256": "0649777ef8238bdfa251a283121da6bbe9c31a285292457d3315919aeca84161"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d423_20261011/native_cache_prefix_identity.json",
+        "sha256": "2850bdc1442d0b73f217d83c16e6375657fdf132d07c352178d4c0ca5d8457b7"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d423_20261011/run7b.sh",
+        "sha256": "02d71972f6f54eec569270d82c320cc680696d145ebfe1df7a08e5a9cfa57b6c"
+      }
+    ]
+  },
+  "execution_key_derived_after_run": true,
+  "analysis_key": "6152356d7d809b1308f0e79afc2bb5f463e3ce52e766bf3b6b15098bb1bdc287",
+  "original_preregistration_and_raw_flags_unchanged": true,
+  "scope": "W0 only; W1/W2 references and G2 open; Resident is not resource-optimal vLLM."
+}

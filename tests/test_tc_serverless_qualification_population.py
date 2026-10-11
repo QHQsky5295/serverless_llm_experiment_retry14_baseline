@@ -316,5 +316,54 @@ class FrozenSloTests(unittest.TestCase):
             frozen_slo_summary(rows, obs, groups)
 
 
+class MatchedW0Tests(unittest.TestCase):
+    def fixture(self):
+        return dict(request_id='r', source_item_sha256='source', adapter_id='a',
+            target_tokens=256, canonical_prompt_sha256='prompt',
+            native_prompt_token_ids_sha256='native', native_prompt_tokens=759,
+            artifact_content_sha256='content', generation_contract='fixed_length_greedy_v1',
+            arrival_offset_s=1., output_digest='original')
+
+    def test_each_work_field_and_arrival_must_match(self):
+        from scripts.ieee_tc.check_d299_full_context import matched_request_contract
+        left=self.fixture()
+        matched_request_contract(left,dict(left))
+        for key in left.keys()-{'output_digest'}:
+            bad=dict(left);bad[key]='changed' if key!='arrival_offset_s' else 1.01
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                matched_request_contract(left,bad)
+        for value in (None, float('nan'), float('inf')):
+            with self.assertRaises(ValueError):
+                matched_request_contract(left,dict(left,arrival_offset_s=value))
+
+    def test_output_changes_do_not_change_input_eligibility(self):
+        from scripts.ieee_tc.check_d299_full_context import matched_request_contract
+        left=self.fixture()
+        matched_request_contract(left,dict(left,output_digest='changed',arrival_offset_s=1.+1e-8))
+        bad=dict(left);del bad['artifact_content_sha256']
+        with self.assertRaises(ValueError):
+            matched_request_contract(left,bad)
+
+    def physical(self):
+        return dict(measurement_complete=True,open_lease_ids=[],n_plan=4000,n_terminal=4000,
+            n_native_contract_complete=4000,device_intervals={'GPU-a':[[1.,11.]],'GPU-b':[[2.,12.]]},
+            gpu_seconds_observed=20.,window_gpu_seconds={'pre_arrival':2.,'arrival':15.,'drain':2.,'cleanup':1.})
+
+    def test_resource_union_and_partition(self):
+        from scripts.ieee_tc.check_d299_full_context import closed_physical_integral
+        self.assertEqual(closed_physical_integral(self.physical()),20.)
+        for k,v in [('measurement_complete',False),('open_lease_ids',['open']),('n_terminal',3999),
+                    ('n_native_contract_complete',3999),('device_intervals',{}),
+                    ('gpu_seconds_observed',19.),('window_gpu_seconds',{'arrival':19.})]:
+            with self.subTest(key=k), self.assertRaises(ValueError):
+                closed_physical_integral(dict(self.physical(),**{k:v}))
+
+    def test_duplicate_ownership_and_nonfinite_intervals_rejected(self):
+        from scripts.ieee_tc.check_d299_full_context import closed_physical_integral
+        for intervals in ([[1.,11.],[5.,6.]], [[1.,float('nan')]], [[11.,1.]]):
+            with self.subTest(intervals=intervals), self.assertRaises(ValueError):
+                closed_physical_integral(dict(self.physical(),device_intervals={'GPU':intervals}))
+
+
 if __name__ == '__main__':
     unittest.main()

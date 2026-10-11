@@ -885,6 +885,350 @@ def review_single_run(source, warm_path, output):
     print(json.dumps({k: report[k] for k in ('source','counts','timing_joint_rate','physical_gpu_seconds','remote')}))
 
 
+def matched_request_contract(left, right):
+    """Exact work equality, with only a 1-us clock-subtraction allowance.
+
+    Output digests are deliberately excluded: the protocol requires an audit of
+    changed outputs, not cross-backend bitwise equality or winner selection.
+    """
+    fields = ('request_id', 'source_item_sha256', 'adapter_id', 'target_tokens',
+              'canonical_prompt_sha256', 'native_prompt_token_ids_sha256',
+              'native_prompt_tokens', 'artifact_content_sha256', 'generation_contract')
+    for name in fields:
+        if name not in left or name not in right or left[name] != right[name]:
+            raise ValueError(f'matched request contract differs: {name}')
+    for row in (left, right):
+        if (type(row.get('arrival_offset_s')) not in (int, float)
+                or not math.isfinite(row['arrival_offset_s'])):
+            raise ValueError('finite arrival offset required')
+    if abs(left['arrival_offset_s']-right['arrival_offset_s']) > 1e-6:
+        raise ValueError('matched request contract differs: arrival_offset_s')
+
+
+def closed_physical_integral(summary):
+    """Check the retained physical union, not a logical replica-time estimate."""
+    if (summary['measurement_complete'] is not True or summary['open_lease_ids']
+            or summary['n_plan'] != 4000 or summary['n_terminal'] != 4000
+            or summary['n_native_contract_complete'] != 4000):
+        raise ValueError('complete closed 4000-request physical ledger required')
+    total = 0.
+    if not summary['device_intervals']:
+        raise ValueError('physical device intervals required')
+    for intervals in summary['device_intervals'].values():
+        end = -math.inf
+        for a, b in sorted(intervals):
+            if not all(math.isfinite(v) for v in (a, b)) or b < a or a < end:
+                raise ValueError('ordered disjoint physical intervals required')
+            total += b-a
+            end = b
+    if (total <= 0 or abs(total-summary['gpu_seconds_observed']) > 1e-6
+            or abs(total-sum(summary['window_gpu_seconds'].values())) > 1e-6):
+        raise ValueError('physical integral/window partition mismatch')
+    return total
+
+
+def compare_d424_sealed_w0(output):
+    """Offline join of three specified, sealed observations; no new inference.
+
+    Reuses the full native/content audits bound by SHA. It does not redownload
+    already-audited and reclaimed objects, mutate raw unknown correctness flags,
+    or require current mutable analysis code to match an old execution source.
+    """
+    import ijson
+    from itertools import combinations
+    from statistics import fmean
+    from faaslora.datasets.workload_generator import FrozenReplayPlan
+    from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
+
+    if output.exists():
+        raise ValueError('refusing to overwrite matched W0 analysis')
+    refs = {}
+    def checked(path, expected=None):
+        path = Path(path)
+        actual = sha256(path)
+        if expected is not None and actual != expected:
+            raise ValueError(f'sealed source changed: {path}')
+        refs[str(path)] = actual
+        return path
+    def checked_json(path, expected=None):
+        return read(checked(path, expected))
+    def canonical(value):
+        return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(',', ':'),
+                                        allow_nan=False).encode()).hexdigest()
+
+    protocol = checked(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md',
+        '5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22')
+    amendment = checked(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md',
+        '193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d')
+    plan_sha = p.check_plan()
+    freeze_path = ROOT/'paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json'
+    freeze = checked_json(freeze_path,
+        '2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3')
+    index_path = ROOT/'paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json'
+    index = checked_json(index_path,
+        'e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c')
+    content = {a['id']: canonical(sorted(a['files'], key=lambda f: f['path']))
+               for a in index['artifacts']}
+    if len(content) != 500:
+        raise ValueError('frozen full 500-ID pool required')
+    prime_path = ROOT/'paper_results/ieee_tc/p2_backend/20261010_d397_d371_single_run_review_v2.json'
+    prime = checked_json(prime_path,
+        'f48a0943810fb4519d7fa8fc3a284061efb1b05ff96cebad56c1cf6d8d40498e')
+    source = checked(prime['source'], prime['source_sha256'])
+    sources = {'PrimeLoRA': {x['path']: x['sha256'] for x in prime['source_refs']}}
+    seals = {'PrimeLoRA': prime}
+    run = source.parent
+    locations = {'PrimeLoRA': (run/'launch.json',
+        run/'launch.launch/physical_deployment/summary.json')}
+    rows = {'PrimeLoRA': {}}
+    for name, tag, audit_sha, manifest_sha, model, launch_name in (
+        ('ServerlessLLM', 'd414',
+         '714a2fdb01b2d5a0e2e6f3a9b0faf7cb23b29632efbf5b343822b7dfe4b7dd74',
+         '8912ab5259d7b10e990ab3b6233b789ce4432c0af2c1544498b7587b700904fd',
+         'model7b_repaired', 'launch7b_repaired'),
+        ('vLLM', 'd423',
+         '7d9ac56d0db8cf3af0f87c7a5314eb272771ff6408c419bba616e8f7eceeb310',
+         'b3796a4ea857e0a5cc8bb105397bd511f6c8548065b1c20a73ca9242975be516',
+         'model7b', 'launch7b')):
+        directory = ROOT/f'paper_results/ieee_tc/baseline_audit/{tag}_7b_full_w0'
+        seal = checked_json(directory/'audit.json', audit_sha)
+        manifest = checked_json(directory/'evidence_manifest.json', manifest_sha)
+        sources[name] = {x['path']: x['sha256'] for x in manifest['files']}
+        seals[name] = seal
+        replay = checked(seal['replay_path'], seal['replay_sha256'])
+        raw = replay.parent.parent
+        locations[name] = (raw/(launch_name+'.json'), raw/model/'physical/summary.json')
+        cfgpath = raw/'http_7b_4000.json'
+        cfg = checked_json(cfgpath, sources[name][str(cfgpath)])
+        if (cfg['generation_contract'] != 'fixed_length_greedy_v1'
+                or cfg['pool_index_sha256'] != refs[str(index_path)]
+                or cfg['artifact_source'] != 'published_gzip_ondemand_peft_v1'
+                or cfg['ingress_mode'] != 'service_pre_ready_v1'
+                or cfg['formal_run'] is not False):
+            raise ValueError('baseline generation/pool/remote/initial-state identity differs')
+        if name == 'vLLM' and (cfg['experiment_role'] != 'full_w0_resident_reference_candidate'
+                              or seal['scheduler_contract'] != 'resident_rr_v1'):
+            raise ValueError('preregistered resident reference identity required')
+        byevent = {k: {} for k in ('request_contract', 'http_raw_response', 'http_response')}
+        with replay.open() as handle:
+            for line in handle:
+                event = json.loads(line)
+                if event['event'] in byevent:
+                    dest = byevent[event['event']]
+                    if event['request_id'] in dest:
+                        raise ValueError('duplicate request/event')
+                    dest[event['request_id']] = event
+        if any(len(v) != 4000 for v in byevent.values()):
+            raise ValueError('full three-way native/request/response join required')
+        rows[name] = {}
+        for rid, c in byevent['request_contract'].items():
+            rawrow, response = byevent['http_raw_response'][rid], byevent['http_response'][rid]
+            n = rawrow['body']['metrics']['ieee_tc']
+            if (rawrow['status'] != 200 or response['response']['protocol_valid'] is not True
+                    or n['native_lora_name'] != c['adapter_id']
+                    or n['native_prompt_token_ids_sha256'] != c['native_prompt_token_ids_sha256']
+                    or n['native_output_tokens'] != c['target_tokens']
+                    or c['artifact_content_sha256'] != content[c['adapter_id']]):
+                raise ValueError('native/content binding differs from sealed contract')
+            rows[name][rid] = dict(c, native_prompt_tokens=len(n['native_prompt_token_ids']),
+                generation_contract=cfg['generation_contract'], native=n,
+                arrival=response['planned_arrival_s'], submit=response['client_submit_s'],
+                completed=rawrow['client_completed_s'], stored=response['response'])
+        del byevent
+
+    with source.open('rb') as handle:
+        metadata = next(ijson.items(handle, 'metadata', use_float=True))
+    subset_path = checked(metadata['shared_adapter_subset_path'], metadata['shared_adapter_subset_sha256'])
+    subset = read(subset_path)
+    subset_ids = {a['id'] for a in subset['adapters']}
+    if subset_ids != set(content):
+        raise ValueError('PrimeLoRA subset and baseline frozen pool differ')
+    with source.open('rb') as handle:
+        for r in ijson.items(handle, 'detailed_results.tc_ieee_full.requests.item', use_float=True):
+            rid, n, ext = r['request_id'], r['native_token_timing'], r['external_arrival_timing']
+            if rid in rows['PrimeLoRA'] or not r['success'] or not all(binding_checks(r, content[r['adapter_id']]).values()):
+                raise ValueError('PrimeLoRA source/native binding failed')
+            request_vectors([r])
+            rows['PrimeLoRA'][rid] = dict(request_id=rid,
+                source_item_sha256=ext['source_item_sha256'], adapter_id=r['adapter_id'],
+                target_tokens=r['requested_completion_tokens'],
+                canonical_prompt_sha256=r['canonical_prompt_sha256'],
+                native_prompt_token_ids_sha256=n['native_prompt_token_ids_sha256'],
+                native_prompt_tokens=int(n['actual_prompt_tokens']),
+                artifact_content_sha256=content[r['adapter_id']],
+                generation_contract=r['generation_contract'], native=n,
+                arrival=ext['planned_arrival_s'], submit=ext['client_submit_s'],
+                completed=n['controller_completed_monotonic_s'],
+                stored=dict(ttft_ms=r['overall_ttft_ms'], tpot_ms=r['tpot_ms'], e2e_ms=r['overall_e2e_ms']))
+
+    summaries, launches, report_rows = {}, {}, {}
+    common_plan = common_policy = None
+    order = None
+    for name, (launch_path, physical_path) in locations.items():
+        launch = checked_json(launch_path, sources[name][str(launch_path)])
+        physical = checked_json(physical_path, sources[name][str(physical_path)])
+        launches[name], summaries[name] = launch, physical
+        if not all(launch.get(k) is True for k in ('pass', 'service_path_removed', 'native_gpu_context_release_confirmed')):
+            raise ValueError('successful actual closure required')
+        ext, policy = launch['external_replay'], launch['preflight']['policy']
+        if abs(ext['replay_t0_s']-ext['deployment_notice_s']-60) > 1e-6:
+            raise ValueError('common deployment notice differs')
+        trace = checked(ext['plan']['source_path'], ext['plan']['source_sha256'])
+        replay_plan = FrozenReplayPlan.load(trace, profile='W0', rate_scale=1.)
+        if replay_plan.identity() != ext['plan'] or len(replay_plan.entries) != 4000:
+            raise ValueError('complete original W0 required')
+        identity = {k:v for k,v in ext['plan'].items() if k != 'source_path'}
+        if common_plan is None:
+            common_plan, common_policy = identity, policy
+            order = [x.request_id for x in replay_plan.entries]
+        elif identity != common_plan or policy != common_policy:
+            raise ValueError('common arrival or resource envelope differs')
+        if set(rows[name]) != set(order):
+            raise ValueError('offered population differs')
+        for entry in physical['allocation_journals']:
+            if entry['released'] is not True:
+                raise ValueError('open physical allocation')
+            checked(entry['path'], entry['sha256'])
+        checked(physical['request_terminals_path'], physical['request_terminals_sha256'])
+        gpu_s = closed_physical_integral(physical)
+        if abs(gpu_s-seals[name]['physical_gpu_seconds']) > 1e-6:
+            raise ValueError('resource total differs from sealed audit')
+        metrics = {k:[] for k in ('ttft_ms','tpot_ms','e2e_ms','arrival_to_last_token_ms',
+            'submit_lag_ms','submit_to_native_entry_ms','native_entry_to_first_ms',
+            'decode_ms','completion_tail_ms')}
+        good = Counter()
+        phases = [Counter() for _ in range(8)]
+        for ordinal, entry in enumerate(replay_plan.entries):
+            r, original = rows[name][entry.request_id], json.loads(entry.source_json)
+            r['arrival_offset_s'] = r['arrival']-ext['replay_t0_s']
+            if (r['source_item_sha256'] != entry.source_sha256
+                    or r['adapter_id'] != original['adapter_id']
+                    or r['target_tokens'] != min(original['expected_output_tokens'],256)
+                    or abs(r['arrival_offset_s']-entry.offset_s) > 1e-6):
+                raise ValueError('source/adapter/target/arrival contract mismatch')
+            n = r['native']
+            a,e,d,f,l,c = (r['arrival'],r['submit'],n['native_dispatch_monotonic_s'],
+                n['native_first_token_monotonic_s'],n['native_last_token_monotonic_s'],r['completed'])
+            if (n['native_clock_id'] != physical['clock_id'] or not n['native_terminal_observed']
+                    or n['native_output_tokens'] != r['target_tokens']
+                    or not all(math.isfinite(x) for x in (a,e,d,f,l,c))
+                    or not a <= e <= d <= f <= l <= c):
+                raise ValueError('native time/count contract differs')
+            nt = r['target_tokens']
+            values = dict(ttft_ms=(f-a)*1000, tpot_ms=(l-f)*1000/(nt-1) if nt>1 else None,
+                e2e_ms=(c-a)*1000, arrival_to_last_token_ms=(l-a)*1000,
+                submit_lag_ms=(e-a)*1000, submit_to_native_entry_ms=(d-e)*1000,
+                native_entry_to_first_ms=(f-d)*1000, decode_ms=(l-f)*1000,
+                completion_tail_ms=(c-l)*1000)
+            for key in ('ttft_ms','tpot_ms','e2e_ms'):
+                if values[key] is None:
+                    if r['stored'][key] is not None:
+                        raise ValueError('single-token TPOT must remain N/A')
+                elif abs(values[key]-r['stored'][key]) > 1:
+                    raise ValueError('native metric recomputation exceeds 1 ms')
+            groups = [g for g in freeze['groups'] if
+                (g['lower_exclusive'] is None or r['native_prompt_tokens'] > g['lower_exclusive']) and
+                (g['upper_inclusive'] is None or r['native_prompt_tokens'] <= g['upper_inclusive'])]
+            if len(groups) != 1:
+                raise ValueError('one frozen SLO stratum required')
+            tt = values['ttft_ms'] <= groups[0]['ttft_ms']
+            tp = nt == 1 or values['tpot_ms'] <= groups[0]['tpot_ms']
+            cts = dict(n=1, tokens=nt, ttft_pass=int(tt), tpot_pass=int(tp), joint_pass=int(tt and tp))
+            good.update(cts); phases[ordinal//500].update(cts)
+            for key,value in values.items():
+                if value is not None:
+                    metrics[key].append(value)
+        expected = (seals[name]['counts']['joint_pass'] if name == 'PrimeLoRA'
+                    else seals[name]['common_slo']['joint_good'])
+        if good['joint_pass'] != expected:
+            raise ValueError('SLO differs from sealed audit')
+        stats = {k:timing_stats(v) for k,v in metrics.items()}
+        for key in ('ttft_ms','tpot_ms','e2e_ms'):
+            prior = seals[name]['metrics' if name == 'PrimeLoRA' else 'conditional_metrics'][key]
+            if any(abs(stats[key][x]-prior[x]) > 1e-6 for x in ('mean','p95_type1')):
+                raise ValueError('latency aggregate differs from sealed audit')
+        report_rows[name] = dict(counts=dict(good), observed_protocol_feasible=good['joint_pass']>=3800,
+            joint_slo=good['joint_pass']/4000, physical_gpu_seconds=gpu_s,
+            gpu_seconds_per_protocol_valid_request=gpu_s/4000,
+            window_gpu_seconds=physical['window_gpu_seconds'], metrics=stats,
+            source_order_500_request_phases=[dict(x) for x in phases],
+            completion_boundary='controller completion' if name=='PrimeLoRA' else 'external HTTP completion',
+            raw_n_correct=physical['n_correct'], independent_numerical_proof=False)
+
+    output_changes, joined = {}, []
+    contract_keys = ('request_id','source_item_sha256','adapter_id','target_tokens',
+        'canonical_prompt_sha256','native_prompt_token_ids_sha256','native_prompt_tokens',
+        'artifact_content_sha256','generation_contract')
+    for rid in order:
+        ref = rows['PrimeLoRA'][rid]
+        for name in ('ServerlessLLM','vLLM'):
+            matched_request_contract(ref, rows[name][rid])
+        joined.append({k:ref[k] for k in contract_keys})
+    for left,right in combinations(rows,2):
+        changed = [rid for rid in order if rows[left][rid]['native']['completion_token_ids_sha256']
+                   != rows[right][rid]['native']['completion_token_ids_sha256']]
+        output_changes[f'{left} / {right}'] = dict(equal=4000-len(changed), changed=len(changed),
+            changed_request_ids=changed, exact_output_equality_required=False,
+            explanation='Observed digests only; no assumption that all differences are rounding.')
+    diffs = {}
+    pr = report_rows['PrimeLoRA']
+    for name in ('ServerlessLLM','vLLM'):
+        br = report_rows[name]
+        diffs[name] = dict(gpu_seconds_relative_reduction=(br['physical_gpu_seconds']-pr['physical_gpu_seconds'])/br['physical_gpu_seconds'],
+            joint_slo_difference_percentage_points=100*(pr['joint_slo']-br['joint_slo']),
+            p95_ttft_relative_reduction=(br['metrics']['ttft_ms']['p95_type1']-pr['metrics']['ttft_ms']['p95_type1'])/br['metrics']['ttft_ms']['p95_type1'])
+    vr = report_rows['vLLM']
+    if not vr['observed_protocol_feasible'] or len(summaries['vLLM']['device_intervals']) != 4:
+        raise ValueError('eligible four-card complete Resident reference required')
+    reference = dict(kind='single_run_resident_reference_v2', reference_id='7b_W0_vllm0300_D423',
+        model=freeze['model'], workload='W0', reference_frozen=True,
+        U_ref_gpu_seconds=vr['physical_gpu_seconds'], Q_ref_p95_ttft_ms=vr['metrics']['ttft_ms']['p95_type1'],
+        budget_fraction=.75, B_gpu_seconds=.75*vr['physical_gpu_seconds'],
+        n_protocol_valid=4000, raw_n_correct=None, independent_numerical_proof=False,
+        eligibility='Sealed source/native/content/worker/physical audits plus full matched input join; not HTTP 200 alone.',
+        warm_reference_sha256=freeze['calibration']['sha256'], slo_eval_sha256=refs[str(freeze_path)],
+        metric_protocol_sha256=refs[str(protocol)], single_run_amendment_sha256=refs[str(amendment)],
+        reused_development_observation=True, independent_holdout=False,
+        scope='W0 only; W1/W2 references and G2 open; Resident is not resource-optimal vLLM.',
+        source_audit_sha256=refs[str(ROOT/'paper_results/ieee_tc/baseline_audit/d423_7b_full_w0/audit.json')])
+    checked(Path(__file__))
+    checked(ROOT/'scripts/ieee_tc/audit_d402_serverlessllm_path.py')
+    report = dict(kind='matched_sealed_w0_comparison_v1', current_plan_sha256=plan_sha,
+        metric_protocol_sha256=refs[str(protocol)], single_run_amendment_sha256=refs[str(amendment)],
+        common_slo_sha256=refs[str(freeze_path)], common_input=common_plan,
+        common_resource_policy=common_policy, preparation_lead_s=60,
+        matched_request_count=4000, matched_contract_sha256=canonical(joined),
+        actual_unique_adapters=len({r['adapter_id'] for r in joined}),
+        native_tokens=sum(r['target_tokens'] for r in joined), pool_index_sha256=refs[str(index_path)],
+        results=report_rows, PrimeLoRA_relative_observations=diffs, output_digest_audit=output_changes,
+        reference=reference, confidence_interval=None, formal_m1_m2_complete=False,
+        caveats=['Known W0 development observations, one per configuration; no independent holdout or statistical claim.',
+            'Different native batching/cache capacities and ServerlessLLM backend version; whole-system points, not mechanism isolation.',
+            'PrimeLoRA controller completion differs from baseline HTTP completion; arrival-to-last-token is a common supplemental endpoint, not renamed E2E.',
+            'Published remote protocol shared; all three made 132 HTTP transfers/131480060 bytes. No lower remote traffic benefit in this W0.',
+            'Mostly zero/repeated LoRA weights; binding plus bounded independent evidence is not full arithmetic proof.',
+            'PrimeLoRA remote request-level phase join covers 131/132 deliveries; total server bytes remain known.',
+            'Native compiler disk caches differ; no prestarted GPU, no OS-wide page-cache flush.',
+            'W1/W2, optimized baseline resource points, remaining systems, G2 and mechanism evidence are open.'],
+        source_refs=[dict(path=k,sha256=v) for k,v in refs.items()])
+    report['analysis_key'] = canonical(dict(source_refs=report['source_refs'], protocol=refs[str(protocol)],
+                                          amendment=refs[str(amendment)]))
+    output.mkdir(parents=True, exist_ok=False)
+    for filename,value in (('comparison.json',report),('resident_reference.json',reference)):
+        with (output/filename).open('x') as handle:
+            json.dump(value,handle,indent=2,allow_nan=False);handle.write('\n')
+    with (output/'metrics.csv').open('x',newline='') as handle:
+        writer=csv.writer(handle)
+        writer.writerow(['system','run','n_protocol_valid','joint_slo','gpu_seconds','gpu_seconds_per_request',
+                         'mean_ttft_ms','p95_ttft_ms','mean_tpot_ms','p95_tpot_ms','mean_e2e_ms','completion_boundary'])
+        for name,tag in (('PrimeLoRA','D371/D397'),('ServerlessLLM','D414'),('vLLM','D423')):
+            r=report_rows[name];m=r['metrics']
+            writer.writerow([name,tag,4000,r['joint_slo'],r['physical_gpu_seconds'],r['gpu_seconds_per_protocol_valid_request'],
+                m['ttft_ms']['mean'],m['ttft_ms']['p95_type1'],m['tpot_ms']['mean'],m['tpot_ms']['p95_type1'],
+                m['e2e_ms']['mean'],r['completion_boundary']])
+    print(json.dumps(dict(output=str(output),matched=4000,reference=reference,differences=diffs)))
+
+
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--campaign', choices=('d299', 'd300', 'd303', 'd314', 'd315', 'd318', 'd323', 'd326', 'd332', 'd335', 'd336', 'd341', 'd346', 'd349', 'd353', 'd358', 'd364', 'd367', 'd309-failure', 'd311-incomplete', 'd313-failure', 'd364-failure'), default='d299')
@@ -893,7 +1237,12 @@ if __name__=='__main__':
     parser.add_argument('--single-run-source', type=Path)
     parser.add_argument('--warm-reference', type=Path)
     parser.add_argument('--review-output', type=Path)
+    parser.add_argument('--matched-w0-output', type=Path,
+        help='D424 offline join of sealed D371/D397, D414 and D423; exclusive output directory')
     args = parser.parse_args()
+    if args.matched_w0_output is not None:
+        compare_d424_sealed_w0(args.matched_w0_output)
+        raise SystemExit(0)
     if args.single_run_source is not None:
         if args.warm_reference is None or args.review_output is None:
             parser.error('single-run review requires explicit warm reference and output')
