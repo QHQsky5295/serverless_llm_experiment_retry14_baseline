@@ -1,4 +1,4 @@
-# IEEE TC execution status — D422 original vLLM 7B compatibility passed
+# IEEE TC execution status — D423 full vLLM 7B W0 preparation
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -74,6 +74,30 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+D423 PREPARATION 2026-10-11. Full PLAN/STATUS/V1/V2 reread; fresh GPU census
+empty, no tmux, disk163657142272B and hostavailable112072163328B. Existing
+D422 recipes reused for original4000/132IDs/458224tokens, same native config,
+no parameter search or runtime code change. Report D423_VLLM_FULL_W0.md
+preregisters one full W0 and Resident-reference candidacy, contingent on full
+contract/resource audit; no U_ref yet. Exclusive raw vllm_qualification/
+d423_20261011, fresh private /tmp/tc-d423-7bv, neither GPU nor remote started.
+HTTP configSHA32b80e2227a8826943d03abf66de98dfd230f1288dc39840e6973c3d1b9b9ced;
+native config unchanged361dc7645a8eef8ee304addfaa9e1611093dae1c6678b108970c1adc2e7fe3a5.
+NEXT backup preregistration -> fresh resource/protected/input/cache identity
+gates -> unchanged owned remote health -> launch ONCE -> actual release/remote
+closure/preserve/full4000audit/backup -> full-contract comparison. D419/D421/
+D422 are passed and not repeated. PrimeLoRA D371/ServerlessLLM D414 sealed;
+W1/W2/G2/remaining7Bbaselines/3B/ablations/sensitivities/docs/figures OPEN.
+Full goal ACTIVE. Older NEXT/RUNNING paragraphs below are historical.
+
+Final D422 cache-receipt checkpoint ff88422acba5344c8a08eff8dab7e3e8f5f07d06
+pushed to faaslora_origin/retry14_continuous_queue_v2;remote SHA verified.
+Exact3taskfiles/diff/secrets checks passed;only3protected user files remained
+tracked-dirty before this postpush status update. Fresh GPU census empty,
+disk163659489280B. No livejob or D423 preparation yet. Continue one complete
+4000W0 after fresh full-plan/status/protocol/resource checks;do not rerun D422.
+Full goal ACTIVE;this final confirmation is subsequent task-owned unstaged status.
 
 D422 CLOSURE BACKED UP / PRIVATE OBJECTS RECLAIMED 2026-10-11~17:09.
 Main730ce7cc0c6f47064f7ac8dcf9e160df8037c894 andbaseline
