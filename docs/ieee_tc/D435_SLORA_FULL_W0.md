@@ -1,6 +1,35 @@
 # D435 — S-LoRA 7B complete W0, preregistered single observation
 
-2026-10-11. Pending launch; no performance result is asserted.
+2026-10-11 launch22:58:29Asia/Shanghai; completed and audited2026-10-12.
+Execution MAIN84d6b4d0607944c5d6ef47bd9ada2d30817e4887 and
+BASEcae13c57c012ea55a8199740f2696b9db732362f. No native configuration change.
+
+## Closed outcome
+
+Original4000 W0 completed once,0failures; all4000 native/source/adapter/timing
+contracts,458224native output tokens,132requested IDs. Four actual500-ID native
+workers served, physical leases released. Common D394 TTFT3783/4000,
+TPOT3994/4000,joint3777/4000=94.425%: observed nonfeasible under95%, not a reason
+to tune this baseline or repeat the same performance key. U15157.07787045301
+GPU-s,3.7892694676132526per binding-valid request. Mean/P95TTFT7396.416512/
+17699.067366ms,mean/P95TPOT31.251644/45.953041ms,meanE2E10962.479328ms.
+All217 TTFT violations lie in the first500; later3500 have3494joint-good.
+Do not substitute this descriptive warm slice for the full population.
+
+Full500 preparation500HTTP/420740410wireB/12985984450materializedB,0request-time
+packs; deployment references counted once. Native timing recomputation errors0ms.
+Servicepeak62637105152B,high/max/OOM/swap0. Actual GPU release/service removal
+and exact-owned remote stop verified. No run repeated; raw unknown numerical
+correctness flags remain unchanged. Not a full independent numerical proof or
+cross-scenario optimum; a separate matched-system join is still required.
+
+Main curated directory `paper_results/ieee_tc/baseline_audit/d435_7b_slora_full_w0/`:
+auditSHA1c9361f2d995c27e0672611728697f4de48bd0ff3c4e9f4fd778523565b6e4c0,
+manifestSHAd0f6b8b4aca2ac8b34f13230e9ebd559982ed7bce684441c7c5a998e8b0886c2.
+All578 source hashes/sizes rechecked,227275259retained source bytes;147protected
+entries and dirty user sources unchanged. Main D435 report has full interpretation.
+Next: backup, separate matched W0 join, owned cache reclamation and remaining7B
+qualifications; no further S-LoRA tuning/repeat and no3B jump.
 
 ## Purpose and immutable comparison contract
 
