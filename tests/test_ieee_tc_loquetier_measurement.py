@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 import sys
 import tempfile
+import time
 from types import SimpleNamespace as NS
 import unittest
 
@@ -128,6 +129,7 @@ class NativeLoquetierObservationTests(unittest.TestCase):
         gen.requests, gen.prefill_requests, gen.eval_requests, gen.train_requests = [], [], [], []
         gen.finished_mark_ids, gen.output_with_mark_ids = set(), {}
         gen.decode_request_changed = False
+        gen.new_decode_request, gen.cached_decode_kv = False, []
         receipt = self.observer.loquetier_bind_static_registry(gen, {'a': '/artifacts/a', 'b': '/artifacts/b'})
         self.assertTrue(receipt['pointer_tables_verified'])
         self.assertFalse(receipt['numerical_correctness_qualified'])
@@ -192,6 +194,137 @@ class NativeLoquetierObservationTests(unittest.TestCase):
         self.assertEqual(b._tc_loquetier['output_ids'], [22])
         self.assertEqual(a._tc_loquetier['adapter_index'], 1)
         self.assertEqual(b._tc_loquetier['adapter_index'], 0)
+
+    def test_native_terminal_consumed_once_and_process_identity_required(self):
+        gen, r = self.fixture(), self.request(target=2)
+        self.register(gen, [r])
+        process = self.observer._slora_process_identity(os.getpid())
+        with self.assertRaises(ValueError):
+            self.observer.loquetier_request_result(gen, 1, time.perf_counter(), process)
+        self.step(gen, [10])
+        self.step(gen, [11])
+        with self.assertRaises(ValueError):
+            self.observer.loquetier_request_result(gen, 1, time.perf_counter(), dict(process, pid=1))
+        result = self.observer.loquetier_request_result(gen, 1, time.perf_counter(), process)
+        self.assertEqual(result['completion_token_ids'], [10, 11])
+        self.assertEqual(result['native_forward_count'], 2)
+        self.assertEqual(result['native_adapter_index'], 0)
+        self.assertEqual(result['native_tpot_ms'], result['native_decode_ms'])
+        self.assertFalse(result['lora_numerical_correctness_qualified'])
+        with self.assertRaises(KeyError):
+            self.observer.loquetier_request_result(gen, 1, time.perf_counter(), process)
+
+    def test_cancel_releases_only_selected_cache_and_preserves_partial_tokens(self):
+        gen, a, b = self.fixture(), self.request(1, 3), self.request(2, 3, 'b')
+        self.register(gen, [a, b])
+        self.step(gen, [10, 11])
+        gen.cached_decode_kv = [a.kvcache, b.kvcache]
+        cancelled = self.observer.loquetier_cancel_request(gen, 1)
+        self.assertEqual(cancelled['completion_token_ids'], [10])
+        self.assertFalse(cancelled['native_terminal_observed'])
+        self.assertEqual(a.kvcache.releases, 1)
+        self.assertEqual(b.kvcache.releases, 0)
+        self.assertEqual(gen.cached_decode_kv, [b.kvcache])
+        self.assertEqual(gen.requests, [b])
+        self.step(gen, [12])
+        self.step(gen, [13])
+        self.assertEqual(b._tc_loquetier['output_ids'], [11, 12, 13])
+        self.assertEqual(b.kvcache.releases, 1)
+        with self.assertRaises(KeyError):
+            self.observer.loquetier_cancel_request(gen, 1)
+
+    def test_cancel_prefill_before_forward_is_not_success(self):
+        gen, r = self.fixture(), self.request()
+        self.register(gen, [r])
+        gen.requests, gen.prefill_requests = [], [r]
+        result = self.observer.loquetier_cancel_request(gen, r.mark_id)
+        self.assertEqual(result['native_output_tokens'], 0)
+        self.assertIsNone(result['native_first_token_monotonic_s'])
+        self.assertEqual(gen.requests_len, 0)
+        self.assertEqual(gen.cached_decode_kv, [])
+        self.assertEqual(r.kvcache.releases, 1)
+
+    def test_native_empty_batch_stale_cache_reproduction_and_lifecycle_adaptation(self):
+        from loquetier.utils import KvPool
+        for adapt in (False, True):
+            gen = self.fixture()
+            gen.kvpool = KvPool(1, 1, 2, 16, self.torch.float16, self.torch.device('cpu'))
+            first = self.request(1, 2)
+            gen.add_requests([first])  # Actual native KV, not the request fixture's mock.
+            gen.pre_process()
+            self.step(gen, [10])
+            gen.pre_process()
+            self.step(gen, [11])
+            self.assertEqual(gen.requests_len, 0)
+            self.assertEqual(gen.kvpool.num_pages, 0)
+            self.assertEqual(gen.cached_decode_kv, [first.kvcache])
+            if adapt:
+                self.assertEqual(self.observer.loquetier_clear_released_decode_cache(gen), 1)
+            second = self.request(2, 1)
+            gen.add_requests([second])
+            gen.pre_process()
+            # Original pre_process grows a page for the already-ended request.
+            self.assertEqual(first.kvcache.num_pages, 0 if adapt else 1)
+            self.assertEqual(gen.kvpool.num_pages, 1 if adapt else 2)
+            first.kvcache.release()
+            second.kvcache.release()
+
+    def test_actual_native_bridge_uses_owning_thread_and_preserves_work(self):
+        import threading
+        from scripts.replay_vllm_engine_trace import LoquetierNativeBatchBridge
+        from loquetier.utils import KvPool
+        gen = self.fixture()
+        gen.kvpool = KvPool(1, 1, 2, 16, self.torch.float16, self.torch.device('cpu'))
+        def request_factory(mark, rid, aid, ids, target):
+            request = self.request(mark, target, aid)
+            request._tc_request_id = rid
+            request.input_ids = self.torch.tensor(ids, dtype=self.torch.long)
+            request.next_input_ids, request.max_length = ids, len(ids)+target
+            return request
+        def generate():
+            gen.pre_process()
+            self.step(gen, [20+r.mark_id for r in gen.requests])
+        # Only model arithmetic is replaced by controlled integer tokens;
+        # real add/pre/post/KV/observations and the real bridge execute.
+        gen.generate = generate
+        bridge = LoquetierNativeBatchBridge(gen, request_factory, 2)
+        a = bridge.add('a-request', 'a', [1, 2, 3], 2)
+        b = bridge.add('b-request', 'b', [1, 2, 3], 3)
+        with self.assertRaises(ValueError):
+            bridge.add('over-capacity', 'a', [1], 2)
+        self.assertEqual(bridge.step(), {})
+        result = bridge.step()
+        self.assertEqual(result[a]['completion_token_ids'], [20+a]*2)
+        cancelled = bridge.cancel(b)
+        self.assertEqual(cancelled['native_output_tokens'], 2)
+        self.assertEqual(gen.kvpool.num_pages, 0)
+        failures = []
+        def foreign_thread():
+            try:
+                bridge.step()
+            except ValueError as exc:
+                failures.append(str(exc))
+        thread = threading.Thread(target=foreign_thread)
+        thread.start()
+        thread.join()
+        self.assertEqual(len(failures), 1)
+        c = bridge.add('later-request', 'a', [1, 2, 3], 2)
+        self.assertEqual(bridge.step(), {})
+        self.assertEqual(bridge.step()[c]['native_output_tokens'], 2)
+        self.assertEqual(gen.cached_decode_kv, [])
+        self.assertEqual(gen.kvpool.num_pages, 0)
+        self.assertEqual(bridge.close(), [])
+
+    def test_empty_batch_cleanup_rejects_live_pages_and_leaves_active_batch_unchanged(self):
+        gen = self.fixture()
+        live = NS(num_pages=1, seqlen=1)
+        gen.cached_decode_kv = [live]
+        with self.assertRaisesRegex(ValueError, 'live decode pages'):
+            self.observer.loquetier_clear_released_decode_cache(gen)
+        self.assertEqual(gen.cached_decode_kv, [live])
+        gen.requests = [self.request()]
+        self.assertEqual(self.observer.loquetier_clear_released_decode_cache(gen), 0)
+        self.assertEqual(gen.cached_decode_kv, [live])
 
     def test_unknown_and_duplicate_rejected_atomically_before_native_allocation(self):
         for requests in ([self.request(), self.request(2, aid='missing')],

@@ -1,0 +1,143 @@
+{
+  "schema": "ieee_tc_cpu_qualification_checkpoint_v1",
+  "campaign": "d439_20261012",
+  "system": "Loquetier",
+  "purpose": "Necessary online FIFO/static shard/terminal/cancellation and native KV lifecycle adaptation",
+  "cpu_checks_passed": true,
+  "gpu_run": false,
+  "performance_run": false,
+  "runtime_qualified": false,
+  "baseline_parent_commit": "9c7adcc88a1a576893f945272b7a94141f267d6a",
+  "native_commit": "aae33baeeb19777129c1ccbff99a898d4a0e2c63",
+  "native_historical_diff_sha256": "de476d06c318ba2be7f65dd9dba9bfb30a2f2c7e14e8bd6e35f30206ab041a39",
+  "slora_historical_diff_sha256": "7a0f48f60c225789014ad960ec3ab1cf6388611b7650a4f656f1208c981c2d60",
+  "tests": [
+    {
+      "modules": [
+        "tests.test_ieee_tc_loquetier_measurement",
+        "tests.test_ieee_tc_loquetier_service"
+      ],
+      "python": "/home/qhq/anaconda3/envs/loquetier_20260520/bin/python",
+      "environment": {
+        "TC_TEST_LOQUETIER_NATIVE": "1",
+        "CUDA_VISIBLE_DEVICES": ""
+      },
+      "count": 26,
+      "skipped": 0,
+      "passed": true,
+      "reported_duration_s": 2.317,
+      "scope": "primelora-tc-aux-d4390000000000000000000000000003.scope",
+      "invocation_id": "bb68da6015b9428f815f7a35399a85a4",
+      "memory_peak_bytes": 254386176,
+      "high": 0,
+      "max": 0,
+      "oom": 0
+    },
+    {
+      "modules": [
+        "tests.test_ieee_tc_serverless_launch",
+        "tests.test_ieee_tc_serverless_measurement",
+        "tests.test_ieee_tc_slora_measurement",
+        "tests.test_ieee_tc_slora_service",
+        "tests.test_ieee_tc_vllm_measurement",
+        "tests.test_ieee_tc_vllm_service"
+      ],
+      "python": "/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python",
+      "environment": {
+        "CUDA_VISIBLE_DEVICES": ""
+      },
+      "count": 163,
+      "skipped": 0,
+      "passed": true,
+      "reported_duration_s": 19.134,
+      "scope": "primelora-tc-aux-d4390000000000000000000000000004.scope",
+      "invocation_id": "c0be734f1b7248338fee9e1b5c10793c",
+      "memory_peak_bytes": 800219136,
+      "high": 0,
+      "max": 0,
+      "oom": 0
+    }
+  ],
+  "earlier_development_tests": [
+    {
+      "count": 21,
+      "passed": true,
+      "reported_duration_s": 2.432,
+      "scope_suffix": "0001",
+      "invocation_id": "882030120f13420d8c794bb4add38827",
+      "memory_peak_bytes": 253050880
+    },
+    {
+      "count": 23,
+      "passed": true,
+      "reported_duration_s": 2.309,
+      "scope_suffix": "0002",
+      "invocation_id": "9354b7b01bb144a1a79d4b49697900a8",
+      "memory_peak_bytes": 254574592
+    }
+  ],
+  "protection": {
+    "entries": 147,
+    "passed": true,
+    "receipt": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d439_loquetier/protected_verification.json",
+    "sha256": "1ff66513bbe7dc141d9bd14e43a7ce4f111cee38aeb215db2db8eebe141fb657",
+    "scope": "primelora-tc-aux-d4390000000000000000000000000005.scope",
+    "invocation_id": "17ab4f0b484a4681aa94a456f02e5756",
+    "memory_peak_bytes": 29315072,
+    "high": 0,
+    "max": 0,
+    "oom": 0
+  },
+  "all_owned_scopes_stopped_after_identity_and_empty_process_tree": true,
+  "resource_limits": {
+    "gpu_visible": false,
+    "cpus": [
+      2,
+      3,
+      26,
+      27
+    ],
+    "memory_high_bytes": 3221225472,
+    "memory_max_bytes": 4294967296,
+    "swap_max_bytes": 0
+  },
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_baselines/scripts/ieee_tc_serverless_measurement.py",
+      "sha256": "2302032a596c5d0b0390ecc0bec372939636e4982ee1a257de223b5b3236ae79"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/scripts/replay_vllm_engine_trace.py",
+      "sha256": "2271421ef9268b5fb1f22766e2996a838353d8afd1da9a5f305f059d9428af47"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/tests/test_ieee_tc_loquetier_measurement.py",
+      "sha256": "001f1ae1660f3a093e30d5fcbb65b1710edef3f59862d05fdaaa09bc319a444e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/tests/test_ieee_tc_loquetier_service.py",
+      "sha256": "9779237bf4910b3881f5e1140b8cc7a69909cc34d59659d2c75a23e5da83b067"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/docs/ieee_tc/D439_LOQUETIER_ONLINE_BOUNDARIES.md",
+      "sha256": "9fa00dcf4e9099f8a6f0d61541191c1f8c3b55d8589b3b7b286b99fc0dffa20c"
+    }
+  ],
+  "native_lifecycle_witness": {
+    "model_arithmetic": false,
+    "actual_native_add_pre_post_and_cpu_kv": true,
+    "original_old_finished_cache_pages_after_next_prefill": 1,
+    "adapted_old_finished_cache_pages_after_next_prefill": 0,
+    "original_total_pages": 2,
+    "adapted_total_pages": 1,
+    "performance_effect_measured": false
+  },
+  "limitations": [
+    "No actual model arithmetic, request HTTP worker, real remote preparation, four-GPU request coverage or W0 performance.",
+    "Static frontend mapping is an explicit deployment adaptation, not native cluster scheduling.",
+    "Native request/result and startup structural binding are not numerical correctness.",
+    "Fatal native allocation/forward failures require worker exit and actual process/GPU release evidence; queue cleanup alone is insufficient.",
+    "New helper needs a newly frozen source-view manifest before future launches; historical identities unchanged."
+  ],
+  "next": "Integrate existing HTTP/remote/physical-lifecycle paths then 100/500-ID/1000/4000 qualification, remaining 7B before 3B."
+}

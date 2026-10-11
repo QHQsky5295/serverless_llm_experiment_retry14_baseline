@@ -14,6 +14,9 @@ import signal
 import shutil
 import subprocess
 import uuid
+import threading
+from collections import deque
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -355,6 +358,220 @@ class ResidentRoundRobin:
         control.update(tc_instance_assigned_s=time.perf_counter(),
                        instance_id=f'{self.instance_prefix}-{index}')
         return index, dict(body, _sllm_internal_metrics=control)
+
+
+class LoquetierStaticRouter:
+    """Explicit deployment mapping, not an adaptive/native cluster scheduler."""
+
+    def __init__(self, adapter_to_worker, worker_count, clock_id):
+        if (type(worker_count) is not int or worker_count < 1 or not adapter_to_worker
+                or any(not isinstance(a, str) or not a or type(i) is not int
+                       or not 0 <= i < worker_count for a, i in adapter_to_worker.items())
+                or set(adapter_to_worker.values()) != set(range(worker_count))):
+            raise ValueError('complete nonempty static shards required')
+        self.mapping = dict(adapter_to_worker)
+        self.ready = [asyncio.Event() for _ in range(worker_count)]
+        self.clock_id, self.seen = clock_id, set()
+
+    async def route(self, body, received):
+        rid, aid = body.get('request_id'), body.get('lora_adapter_name')
+        control = dict(body.get('_sllm_internal_metrics', {}))
+        if (not isinstance(rid, str) or not rid or rid in self.seen or aid not in self.mapping
+                or control.get('tc_clock_id') != self.clock_id):
+            raise ValueError('unknown/duplicate request or static adapter/clock mismatch')
+        self.seen.add(rid)
+        index = self.mapping[aid]
+        control.update(tc_http_received_s=received, tc_router_enqueued_s=time.perf_counter(),
+            ready_instances_at_enqueue=sum(r.is_set() for r in self.ready),
+            tc_static_shard_index=index)
+        await self.ready[index].wait()  # No rerouting to a ready but wrong shard.
+        control.update(tc_instance_assigned_s=time.perf_counter(), instance_id=f'loquetier-{index}')
+        return index, dict(body, _sllm_internal_metrics=control)
+
+
+def validate_loquetier_input(request_id, adapter_id, prompt_ids, target, adapter_ids):
+    if (not isinstance(request_id, str) or not request_id or adapter_id not in adapter_ids
+            or type(prompt_ids) is not list or not prompt_ids
+            or any(type(i) is not int or i < 0 for i in prompt_ids)
+            or type(target) is not int or not 1 <= target <= 256
+            or len(prompt_ids)+target > 1024):
+        raise ValueError('Loquetier fixed native input/static adapter differs')
+
+
+class LoquetierNativeBatchBridge:
+    """Single-thread owner of original ModelGeneration; no replacement kernels.
+
+    The factory supplies an already guarded native generator and CPU request
+    construction. The approved historical batch bound stays explicit. No future
+    trace, queue priority, dynamic placement or performance configuration search.
+    """
+    def __init__(self, generator, request_factory, batch_size):
+        from ieee_tc_serverless_measurement import _slora_process_identity
+        if (type(batch_size) is not int or batch_size <= 0
+                or not getattr(generator, '_tc_loquetier_registry', None)
+                or generator.requests_len != 0):
+            raise ValueError('empty verified native generator and explicit batch bound required')
+        self.generator, self.factory, self.batch_size = generator, request_factory, batch_size
+        self.adapters = frozenset(generator._tc_loquetier_registry)
+        self.process = _slora_process_identity(os.getpid())
+        self.thread = threading.get_ident()
+        self.objects, self.next_mark = {}, 0
+
+    def _owner(self):
+        if threading.get_ident() != self.thread:
+            raise ValueError('native Loquetier state accessed outside its serial owner')
+
+    def add(self, rid, aid, ids, target):
+        self._owner()
+        validate_loquetier_input(rid, aid, ids, target, self.adapters)
+        if self.generator.requests_len >= self.batch_size:
+            raise ValueError('native batch capacity exceeded')
+        mark = self.next_mark
+        self.next_mark += 1
+        request = self.factory(mark, rid, aid, list(ids), target)
+        self.generator.add_requests([request])
+        self.objects[mark] = request
+        return mark
+
+    def step(self):
+        self._owner()
+        from ieee_tc_serverless_measurement import loquetier_request_result, loquetier_clear_released_decode_cache
+        self.generator.generate()
+        results = {}
+        for mark in sorted(self.generator.finished_mark_ids):
+            if mark not in self.objects:
+                raise ValueError('native terminal belongs to an unknown online request')
+            results[mark] = loquetier_request_result(self.generator, mark,
+                time.perf_counter(), self.process)
+            del self.objects[mark]
+        loquetier_clear_released_decode_cache(self.generator)
+        return results
+
+    def cancel(self, mark):
+        self._owner()
+        from ieee_tc_serverless_measurement import loquetier_cancel_request
+        if mark not in self.objects:
+            raise ValueError('cannot cancel an unknown native request')
+        result = loquetier_cancel_request(self.generator, mark)
+        del self.objects[mark]
+        return result
+
+    def close(self):
+        self._owner()
+        return [self.cancel(mark) for mark in list(self.objects)]
+
+
+class LoquetierOnlineRequests:
+    """FIFO arrival bridge, with all native mutations on one owned thread.
+
+    This adapts the official offline workflow to online arrivals. Each iteration
+    admits waiting requests up to the existing batch bound and invokes native
+    generate once. HTTP cancellation is processed between native iterations;
+    there is no concurrent cache mutation or hidden replacement request.
+    """
+    def __init__(self, bridge_factory, emit):
+        self.factory, self.emit = bridge_factory, emit
+        self.executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix='loquetier-native')
+        self.pending, self.active, self.seen = deque(), {}, set()
+        self.wake = asyncio.Event()
+        self.bridge = self.task = None
+        self.closing = False
+        self.failure = None
+
+    async def _native(self, fn, *args):
+        return await asyncio.get_running_loop().run_in_executor(self.executor, fn, *args)
+
+    async def start(self):
+        if self.bridge is not None or self.closing:
+            raise ValueError('online native bridge already started/closed')
+        try:
+            self.bridge = await self._native(self.factory)
+        except BaseException:
+            self.closing = True
+            self.executor.shutdown(wait=True)
+            raise
+        self.task = asyncio.create_task(self._pump())
+        return self.bridge
+
+    async def submit(self, rid, aid, ids, target):
+        if self.bridge is None or self.closing or self.failure is not None:
+            raise RuntimeError('native online service is not available')
+        validate_loquetier_input(rid, aid, ids, target, self.bridge.adapters)
+        if rid in self.seen:
+            raise ValueError('duplicate online request; no hidden retry')
+        self.seen.add(rid)
+        future = asyncio.get_running_loop().create_future()
+        self.pending.append((rid, aid, list(ids), target, future))
+        self.emit(dict(event='loquetier_online_enqueued', request_id=rid, adapter_id=aid,
+                       at=time.perf_counter()))
+        self.wake.set()
+        try:
+            return await future
+        finally:
+            self.wake.set()  # Also wakes an idle owner after cancellation.
+
+    async def _pump(self):
+        try:
+            while not self.closing:
+                while self.pending and len(self.active) < self.bridge.batch_size:
+                    item = self.pending.popleft()
+                    rid, aid, ids, target, future = item
+                    if future.cancelled():
+                        self.emit(dict(event='loquetier_request_cancelled', request_id=rid,
+                            adapter_id=aid, native_registered=False, native_output_tokens=0,
+                            native_terminal_observed=False, at=time.perf_counter()))
+                        continue
+                    # Keep the item visible to exception cleanup even if native
+                    # registration fails (e.g. a real allocation failure).
+                    try:
+                        mark = await self._native(self.bridge.add, rid, aid, ids, target)
+                    except BaseException as exc:
+                        self.emit(dict(event='loquetier_registration_failed', request_id=rid,
+                            error=f'{type(exc).__name__}: {exc}', at=time.perf_counter()))
+                        if not future.done():
+                            future.set_exception(exc)
+                        raise
+                    self.active[mark] = item
+                for mark, item in list(self.active.items()):
+                    if item[-1].cancelled():
+                        self.emit(await self._native(self.bridge.cancel, mark))
+                        del self.active[mark]
+                if self.active:
+                    results = await self._native(self.bridge.step)
+                    for mark, result in results.items():
+                        rid, _, _, _, future = self.active.pop(mark)
+                        self.emit(dict(event='loquetier_native_completed', request_id=rid,
+                            client_cancelled=future.cancelled(), observation=result))
+                        if not future.cancelled():
+                            future.set_result(result)
+                elif not self.pending:
+                    self.wake.clear()
+                    await self.wake.wait()
+        except Exception as exc:
+            self.failure = exc
+            self.emit(dict(event='loquetier_native_failure', error=f'{type(exc).__name__}: {exc}',
+                           at=time.perf_counter()))
+        finally:
+            try:
+                for record in await self._native(self.bridge.close):
+                    self.emit(record)
+            except Exception as exc:
+                self.failure = self.failure or exc
+                self.emit(dict(event='loquetier_cleanup_failure', error=f'{type(exc).__name__}: {exc}',
+                               at=time.perf_counter()))
+            error = RuntimeError('native online service stopped; no fallback or retry')
+            for item in list(self.active.values())+list(self.pending):
+                if not item[-1].done():
+                    item[-1].set_exception(error)
+            self.active.clear()
+            self.pending.clear()
+
+    async def close(self):
+        self.closing = True
+        self.wake.set()
+        if self.task is not None:
+            await self.task  # Finish a running iteration; do not mutate concurrently.
+        self.executor.shutdown(wait=True)
 
 
 class NativeSloraRequestHandler:

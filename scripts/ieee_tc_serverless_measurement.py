@@ -749,6 +749,88 @@ def loquetier_finished(generator):
         state['finished'] = True
 
 
+def loquetier_request_result(generator, mark, completed_at, process):
+    """Consume a real native terminal once; no HTTP/text-derived token counts."""
+    state = generator._tc_loquetier_active[mark]
+    ids, prompt = state['output_ids'], state['native_prompt_token_ids']
+    times = [state['registered_monotonic_s'], state['scheduled_monotonic_s'],
+             state['first_token_monotonic_s'], state['last_token_monotonic_s'], completed_at]
+    if (not state['finished'] or mark not in generator.finished_mark_ids
+            or len(ids) != state['target_tokens'] or state['forward_count'] != len(ids)
+            or any(type(t) not in (int, float) or not math.isfinite(t) for t in times)
+            or times != sorted(times) or process != _slora_process_identity(os.getpid())):
+        raise ValueError('incomplete native Loquetier terminal/process/timing')
+    result = dict(timing_contract='ieee_tc_loquetier_native_v1', native_terminal_observed=True,
+        native_timing_source='loquetier_native_cpu_integer_after_existing_item',
+        native_clock_id=process['clock_id'], native_registered_monotonic_s=times[0],
+        native_scheduled_monotonic_s=times[1], native_first_token_monotonic_s=times[2],
+        native_last_token_monotonic_s=times[3], worker_completed_monotonic_s=times[4],
+        native_output_tokens=len(ids), native_decode_ms=(times[3]-times[2])*1000.,
+        native_tpot_ms=(times[3]-times[2])*1000./(len(ids)-1) if len(ids)>1 else None,
+        worker_completion_notification_ms=(times[4]-times[3])*1000.,
+        native_prompt_token_ids=list(prompt), native_prompt_token_ids_sha256=_native_ids_digest(prompt),
+        completion_token_ids=list(ids), completion_token_ids_sha256=_native_ids_digest(ids),
+        native_adapter_id=state['adapter_id'], native_adapter_path=state['adapter_path'],
+        native_adapter_index=state['adapter_index'], native_request_id=state['request_id'],
+        native_adapter_binding_source='loquetier_actual_forward_segments_and_startup_pointer_tables',
+        native_process=dict(process), native_engine_class='loquetier_src.models.mixed_lora.MixedLoraModel',
+        native_forward_count=state['forward_count'], lora_numerical_correctness_qualified=False)
+    del generator._tc_loquetier_active[mark]
+    return result
+
+
+def loquetier_cancel_request(generator, mark):
+    """Inference-only cancellation at a serialized native iteration boundary.
+
+    Only the online adapter calls this, never concurrently with generate().
+    The native cache release and decode-list invalidation preserve surviving
+    request order. Partial tokens remain failure evidence, not successful work.
+    """
+    if generator.train_requests or generator.eval_requests:
+        raise ValueError('online cancellation does not support training/evaluation')
+    state = generator._tc_loquetier_active[mark]
+    requests = [r for r in generator.requests+generator.prefill_requests if r.mark_id == mark]
+    if state['finished'] or len(requests) != 1 or requests[0]._tc_loquetier is not state:
+        raise ValueError('native cancellation requires exactly one active request')
+    request = requests[0]
+    if request.kvcache is None:
+        raise ValueError('native registered request has no KV cache')
+    request.kvcache.release()
+    generator.requests = [r for r in generator.requests if r is not request]
+    generator.prefill_requests = [r for r in generator.prefill_requests if r is not request]
+    # The next native pre_process must not grow a just-released cache.
+    generator.cached_decode_kv = [r.kvcache for r in generator.requests]
+    generator.decode_request_changed = bool(generator.requests)
+    if not generator.requests:
+        generator.new_decode_request = False
+    del generator._tc_loquetier_active[mark]
+    return dict(event='loquetier_request_cancelled', request_id=state['request_id'],
+        mark_id=mark, adapter_id=state['adapter_id'], at=time.perf_counter(),
+        native_registered=True, native_output_tokens=len(state['output_ids']),
+        completion_token_ids=list(state['output_ids']),
+        native_first_token_monotonic_s=state['first_token_monotonic_s'],
+        native_last_token_monotonic_s=state['last_token_monotonic_s'],
+        native_forward_count=state['forward_count'], native_terminal_observed=False)
+
+
+def loquetier_clear_released_decode_cache(generator):
+    """Drop stale references only after the last native request has finished.
+
+    Native post_process releases pages but leaves cached_decode_kv populated
+    when requests becomes empty. A subsequent pre_process would acquire a page
+    for those dead sequences. This is a lifecycle correctness adaptation, not
+    a new KV/cache policy; never free live pages or modify an active batch.
+    """
+    if generator.requests_len:
+        return 0
+    caches = generator.cached_decode_kv
+    if any(c.num_pages != 0 or c.seqlen != 0 for c in caches):
+        raise ValueError('empty native batch retains live decode pages; cannot discard silently')
+    count = len(caches)
+    generator.cached_decode_kv = []
+    return count
+
+
 def slora_join_owned_children(children, grace_s=10.):
     """Close exact native multiprocessing handles, never a process-name search.
 
