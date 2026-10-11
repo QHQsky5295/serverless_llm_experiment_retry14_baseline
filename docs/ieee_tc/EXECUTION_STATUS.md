@@ -32,7 +32,7 @@ RUNNING entries are historical. No approved experiment or failed evidence was re
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D438 native observation passed; protected capacity witness preregistered
+## Current action — D438 native observation and single capacity witness passed; HTTP qualification next
 
 BASE docs/ieee_tc/D438_LOQUETIER_NATIVE_OBSERVATION.md records necessary native
 measurement hooks, exact source-view AST preservation and guarded capacity probe.
@@ -58,16 +58,41 @@ probeSHAdc417b9d3847aba55afe4d942b4271ab3f2ca0e42bffce1f06b92354f0905c72.
 BASE preregisteredcodecommit28ffe7ed969c19d2d8683d282b9bda90c1f70d73.
 D437 MAIN checkpoint28a14a10ea704c514720498bb3d61a37d11cbf7e remains preserved.
 
-NEXT run raw/run_capacity.sh once after backup/fresh gates, using existinggated
-launcher/watchdog, nativePython3.9, GPU0, service72/80GiB/swap2, predictedgrowth2GiB.
-This localimmutablepool capacity diagnostic picks D437's largest static shard0
-(125IDs) by footprint, not workload; verifies its full content, native loading,
-pointer binding, batch2/context1024 KV allocation. No requests/forward arithmetic,
-realremote or fourworker qualification; no mainSLO/GPU-s conclusion from this probe.
-Preserve failure/stage and do not tune baseline or automatically repeat.
-Then necessary commonHTTP/staticshard/remote/physicallifecycle adaptation and
+Actual single capacity probe completed2026-10-12 about01:07-01:09Asia/Shanghai,
+BASE execution28ffe7ed969c19d2d8683d282b9bda90c1f70d73,
+MAIN prereg400c3c8b1f358659dc8e8bf464ace4f6e24fa5e8; both backed up before launch.
+Existinggated launcher/watchdog/nativePython3.9/GPU0/service72/80GiB/swap2,
+predictedgrowth2GiB; preflightpassed. D437largeststaticshard0/125IDs selected
+by footprint,notworkload. All125contenthash/load and128targetmodule pointertables
+passed, nativebatch2/context1024KV allocation passed. No retries/configchanges.
+Finalallocated24214530048B/reserved24494735360B; staticaccounted24214509568B.
+SampledNVMLGPU0max24831131648B, not exactinstantaneouspeak.
+Servicepeak7744462848B,hostavailablemin105536823296B,diskmin162913902592B;
+113watchdogsamples,high/max/OOM/swap/abort0. Service/watchdogexit0,
+servicepathremoved, actualGPUreleased,fourcards15MiBbackgroundafter.
+Serviceunitprimelora-tc-svc-381426cb9ee049f28fb10e12fe13621d.scope,
+InvocationIDc0bb3150f32e4699a29530914aeb2d0b. Aux0006
+ID39681dc94bd747cc8f96f6f8b7ed6f60 peak85028864B; aux0007
+IDb2969aef0d00407494727e90d4d326f1 peak29364224B; both actualemptytrees
+identitychecked/stopped,high/max/OOM0. Completedtmuxpane0 removed.
+All147protectedentries remainunchanged; nativeLoquetier/S-LoRA historicaldiffSHAs
+unchanged. No remoteaction,republish,download,poolcopy,oldresultoverwrite orfigures.
+User repeatedonce-onlygzipcacheapproval is recorded; reuseD78/D80, not rebuild.
+
+NativecapacityresultSHA3e2f0a63c2d920d5e5489fe0f93e3a65b096a7f3974604a76f149305c3404f37;
+launchSHA8bf163483b63ac2ac2786b82caecbfdabaae8e36fae8a1bf97fd1b6215f11cb1.
+BASE curatedpaper_results/ieee_tc/loquetier/d438_native_capacity_summary.json
+SHA2e16287fcf406d0cf54c61b2511d337d717a767482be94b2be62a42a970727d3;
+all9sources independentlySHAchecked. BASE closurebackup
+9c7adcc88a1a576893f945272b7a94141f267d6a pushed/remoteSHAverified.
+This is one localimmutablepool loading/KV witness, NOT requests/forwardworkspace,
+fourworker HOST peak,numericalcorrectness,realremote or mainSLO/GPU-s evidence.
+runtime_qualified=false/performance_run=false. Do NOT repeat passedcapacityprobe.
+NEXT necessary commonHTTP/staticshard/remote/physicallifecycle adaptation and
 100->500-ID->1000->4000 qualification; Loquetier still NOT a qualified W0 row.
 HydraServe/remaining7B/comparison/PrimeLoRA optimization before3B; all fullscope OPEN.
+This continuation made concrete guardednativeGPUqualification/closure/backup
+progress. Full goal remains ACTIVE; no recurringblocker or completedmatrix claim.
 
 ## D437 static/CPU checks closed — preserved earlier checkpoint
 
