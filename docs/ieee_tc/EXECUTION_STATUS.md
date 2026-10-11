@@ -60,6 +60,19 @@ NEXT terminal actualGPUrelease -> ownedremote stop -> preserve/auditfull4000/sea
 backup -> descriptive matched W0 comparison. Do not tune baseline or rerun a passed
 prefix. Full goal ACTIVE; no full4000 outcome or ranking yet.
 
+Latest read-only monitoring2026-10-11 23:08:21Asia/Shanghai:418http_response,
+all onlineprotocol_valid=true, no recordedfailed/cancelled events; partial only,
+not completecontract/numerical audit. Four actual native500-ID workers ready;
+ready receipt `.at`1238172.705772950/1238271.970550648/1238363.754154409/
+1238458.981880616 for indices0-3. Service58.154GiB,hostavailable57.634GiB,
+disk139.848GiB,high/max/OOM/swap0;watchdog noabort/warning,tmux alive.
+Use launch7b.launch/replay.jsonl for live response counts. The physical
+request_terminals.jsonl is populated by record_http_physical_terminals after
+the replay; its current zero lines do NOT mean no responses. Do not use
+HTTP200/onlineprotocol alone as final adapter/content/lifecycle acceptance.
+Latest running-doc backup MAINdb08f81261e5caa764f97f143faf20552af37f51;
+execution commits remain84d6b4d/cae13c5, not the later status commits.
+
 ## D434 closed — do NOT repeat
 
 D434 original1000 compatibility completed by2026-10-11 22:44:35Asia/Shanghai.
