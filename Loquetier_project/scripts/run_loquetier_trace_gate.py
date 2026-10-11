@@ -9,18 +9,18 @@ MixedLoraModel and SMLM kernels in the serving path.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import math
 import os
+import re
+import struct
 import sys
 import time
+from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
-
-import torch
-import transformers
-from transformers.generation.logits_process import LogitsProcessorList
-
 
 DEFAULT_VENDOR = (
     Path(__file__).resolve().parents[2]
@@ -45,6 +45,174 @@ class RequestRecord:
 
 def _load_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _tensor_header(path: Path) -> tuple[dict, str]:
+    """Read tensor metadata only, without importing torch or loading weights.
+
+    The returned SHA identifies the header, NOT the tensor payload. Runtime
+    materialization must still verify the complete frozen content SHA.
+    """
+    with path.open('rb') as handle:
+        prefix = handle.read(8)
+        if len(prefix) != 8:
+            raise ValueError('truncated safetensors prefix')
+        size = struct.unpack('<Q', prefix)[0]
+        if not 0 < size <= min(64 * 1024 * 1024, path.stat().st_size - 8):
+            raise ValueError('invalid or oversized safetensors header')
+        header = handle.read(size)
+    rows = json.loads(header)
+    tensors = {k: v for k, v in rows.items() if k != '__metadata__'}
+    widths = {'F16': 2, 'BF16': 2, 'F32': 4}
+    intervals = []
+    for name, value in tensors.items():
+        shape, offsets, dtype = value['shape'], value['data_offsets'], value['dtype']
+        if (not isinstance(shape, list) or not shape
+                or any(type(x) is not int or x <= 0 for x in shape)
+                or dtype not in widths or len(offsets) != 2
+                or any(type(x) is not int for x in offsets)
+                or offsets[0] < 0 or offsets[1] - offsets[0] != math.prod(shape) * widths[dtype]):
+            raise ValueError(f'unsupported tensor metadata: {name}')
+        intervals.append(tuple(offsets))
+    intervals.sort()
+    if (not intervals or intervals[0][0] != 0
+            or any(a[1] != b[0] for a, b in zip(intervals, intervals[1:]))
+            or intervals[-1][1] + 8 + size != path.stat().st_size):
+        raise ValueError('tensor payload extents are missing, overlapping or truncated')
+    return tensors, hashlib.sha256(prefix + header).hexdigest()
+
+
+def _adapter_footprint(adapter_id: str, config: dict, tensors: dict) -> dict:
+    """Native FP32 PEFT originals plus separately prepared FP16 LoRA weights."""
+    if (config.get('peft_type') != 'LORA' or config.get('bias') != 'none'
+            or config.get('modules_to_save') or config.get('use_dora')
+            or config.get('use_rslora') or config.get('fan_in_fan_out')
+            or type(config.get('r')) is not int or config['r'] <= 0):
+        raise ValueError('capacity model covers ordinary native linear LoRA only')
+    pairs = {}
+    elements = 0
+    for name, tensor in tensors.items():
+        match = re.fullmatch(r'(.+)\.lora_([AB])(?:\.default)?\.weight', name)
+        if not match or len(tensor['shape']) != 2:
+            raise ValueError(f'unsupported or non-linear LoRA tensor: {name}')
+        module, side = match.groups()
+        if side in pairs.setdefault(module, {}):
+            raise ValueError('duplicate LoRA tensor identity')
+        pairs[module][side] = tensor['shape']
+        elements += math.prod(tensor['shape'])
+    signature, ranks, padded_elements_per_rank = [], [], 0
+    for module, pair in sorted(pairs.items()):
+        if set(pair) != {'A', 'B'} or pair['A'][0] != pair['B'][1]:
+            raise ValueError('incomplete or inconsistent native A/B rank')
+        rank, in_dim, out_dim = pair['A'][0], pair['A'][1], pair['B'][0]
+        ranks.append(rank)
+        signature.append([module, in_dim, out_dim])
+        padded_elements_per_rank += in_dim + out_dim
+    if not signature:
+        raise ValueError('empty adapter')
+    return dict(id=adapter_id, configured_rank=config['r'], actual_ranks=sorted(set(ranks)),
+        native_max_rank=max([config['r'], *ranks]), modules=len(signature),
+        module_signature=signature, original_elements=elements,
+        peft_original_fp32_bytes=4 * elements,
+        prepared_fp16_bytes_per_rank=2 * padded_elements_per_rank,
+        pointer_bytes=16 * len(signature),
+        base_model_name_or_path=config['base_model_name_or_path'])
+
+
+def _static_capacity_shards(adapters: list[dict], count: int) -> list[dict]:
+    """Input-only byte balancing, never trace popularity or a performance search."""
+    if type(count) is not int or not 1 <= count <= 4 or len(adapters) < count:
+        raise ValueError('one to four nonempty static shards required')
+    if len({a['id'] for a in adapters}) != len(adapters):
+        raise ValueError('duplicate static adapter ID')
+    if any(a['module_signature'] != adapters[0]['module_signature'] for a in adapters):
+        raise ValueError('heterogeneous target modules require a separate native mapping qualification')
+    global_rank = max(a['native_max_rank'] for a in adapters)
+    weight = lambda a: a['peft_original_fp32_bytes'] + global_rank * a['prepared_fp16_bytes_per_rank'] + a['pointer_bytes']
+    shards, totals = [[] for _ in range(count)], [0] * count
+    for adapter in sorted(adapters, key=lambda a: (-weight(a), a['id'])):
+        shard = min(range(count), key=lambda i: (totals[i], len(shards[i]), i))
+        shards[shard].append(adapter)
+        totals[shard] += weight(adapter)
+    result = []
+    for index, members in enumerate(shards):
+        rank = max(a['native_max_rank'] for a in members)
+        result.append(dict(index=index, adapter_ids=sorted(a['id'] for a in members),
+            adapter_count=len(members), native_max_rank=rank,
+            peft_original_fp32_bytes=sum(a['peft_original_fp32_bytes'] for a in members),
+            prepared_fp16_bytes=rank * sum(a['prepared_fp16_bytes_per_rank'] for a in members),
+            pointer_bytes=sum(a['pointer_bytes'] for a in members)))
+    return result
+
+
+def inspect_static_capacity(base_model: Path, adapter_root: Path, pool_index: Path,
+                            shard_count: int, batch_size: int, context_tokens: int) -> dict:
+    """Static preparation accounting only: no CUDA, source trace or new weights."""
+    if any(type(x) is not int or x <= 0 for x in (batch_size, context_tokens)):
+        raise ValueError('explicit positive batch/context capacity required')
+    index = _load_json(pool_index)
+    if len(index['artifacts']) != 500 or len({a['id'] for a in index['artifacts']}) != 500:
+        raise ValueError('full frozen 500-ID pool required')
+    sha = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
+    adapters = []
+    for item in sorted(index['artifacts'], key=lambda a: a['id']):
+        if Path(item['id']).name != item['id'] or item['id'] in ('.', '..'):
+            raise ValueError('unsafe adapter ID')
+        directory = adapter_root / item['id']
+        files = {f['path']: f for f in item['files']}
+        config_path, weights = directory / 'adapter_config.json', directory / 'adapter_model.safetensors'
+        if (sha(config_path) != files['adapter_config.json']['sha256']
+                or weights.stat().st_size != files['adapter_model.safetensors']['size_bytes']):
+            raise ValueError('config or payload size differs from frozen index')
+        tensors, header_sha = _tensor_header(weights)
+        adapter = _adapter_footprint(item['id'], _load_json(config_path), tensors)
+        if Path(adapter['base_model_name_or_path']).resolve() != base_model.resolve():
+            raise ValueError('adapter backbone differs; do not silently load another model')
+        adapter.update(header_sha256=header_sha, config_sha256=sha(config_path),
+            frozen_payload_sha256=files['adapter_model.safetensors']['sha256'], payload_rehashed=False)
+        adapters.append(adapter)
+    config = _load_json(base_model / 'config.json')
+    weights_index = _load_json(base_model / 'model.safetensors.index.json')
+    base_elements, base_headers, base_tensors = 0, {}, set()
+    for name in sorted(set(weights_index['weight_map'].values())):
+        if Path(name).name != name:
+            raise ValueError('unsafe backbone shard name')
+        tensors, header_sha = _tensor_header(base_model / name)
+        expected = {k for k, v in weights_index['weight_map'].items() if v == name}
+        if set(tensors) != expected or base_tensors.intersection(tensors):
+            raise ValueError('backbone tensor index differs from metadata')
+        base_tensors.update(tensors)
+        base_elements += sum(math.prod(t['shape']) for t in tensors.values())
+        base_headers[name] = header_sha
+    base_bytes = base_elements * 2
+    if config['hidden_size'] % config['num_attention_heads']:
+        raise ValueError('non-integral native attention head size')
+    kv_bytes = (2 * config['num_hidden_layers'] * config['num_key_value_heads']
+        * (config['hidden_size'] // config['num_attention_heads']) * 2
+        * batch_size * (16 * math.ceil(context_tokens / 16)))
+    shards = _static_capacity_shards(adapters, shard_count)
+    for shard in shards:
+        shard.update(backbone_fp16_bytes=base_bytes, full_context_kv_bytes=kv_bytes,
+            weights_and_kv_accounted_bytes=(base_bytes + kv_bytes + shard['peft_original_fp32_bytes']
+                + shard['prepared_fp16_bytes'] + shard['pointer_bytes']))
+    module_signature = adapters[0]['module_signature']
+    for adapter in adapters:
+        del adapter['module_signature']
+    return dict(schema='ieee_tc_loquetier_static_capacity_v1', static_only=True,
+        runtime_qualified=False, safe_to_launch=False, no_trace_read=True, no_payload_copy=True,
+        pool_index=str(pool_index), pool_index_sha256=sha(pool_index),
+        adapter_root=str(adapter_root), base_model=str(base_model),
+        base_config_sha256=sha(base_model/'config.json'),
+        base_index_sha256=sha(base_model/'model.safetensors.index.json'), base_headers=base_headers,
+        adapter_count=len(adapters), batch_size=batch_size, context_tokens=context_tokens,
+        actual_rank_counts=dict(Counter(str(a['actual_ranks']) for a in adapters)),
+        sharding_rule='descending_static_bytes_then_ID_least_bytes_count_index_v1',
+        shards=shards, adapters=adapters, common_module_signature=module_signature,
+        analysis_script_sha256=sha(Path(__file__)),
+        limitations=['Headers/sizes and adapter config hashes checked; full tensor payload hashes not rechecked here.',
+            'FP32 original PEFT and FP16 prepared tensors counted separately, matching inspected loading path; actual runtime dtype/storage still needs observation.',
+            'Excludes CUDA context, allocator fragmentation, logits/activations, temporary padding/casting, native workspaces and HOST peak; not a launch safety proof.',
+            'Only static capacity mapping; no native batch/adapter numerical qualification or performance measurement.'])
 
 
 def _adapter_ids(subset: dict[str, Any], limit: int) -> list[str]:
@@ -147,8 +315,8 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--vendor", type=Path, default=DEFAULT_VENDOR)
     parser.add_argument("--base-model", type=Path, required=True)
     parser.add_argument("--adapter-root", type=Path, required=True)
-    parser.add_argument("--trace", type=Path, required=True)
-    parser.add_argument("--adapter-subset", type=Path, required=True)
+    parser.add_argument("--trace", type=Path)
+    parser.add_argument("--adapter-subset", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--dtype", choices=["float16", "bfloat16"], default="float16")
@@ -157,17 +325,43 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--max-batch-size", type=int, default=2)
     parser.add_argument("--max-input-tokens", type=int, default=512)
     parser.add_argument("--max-new-tokens-cap", type=int, default=2)
+    parser.add_argument('--static-capacity-only', action='store_true')
+    parser.add_argument('--pool-index', type=Path)
+    parser.add_argument('--static-shards', type=int, default=4)
+    parser.add_argument('--context-tokens', type=int, default=1024)
     parser.add_argument(
         "--arrival-scale",
         type=float,
         default=0.0,
         help="0 compresses all arrivals for smoke gates; 1 preserves trace spacing.",
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.static_capacity_only:
+        if args.pool_index is None or args.trace is not None or args.adapter_subset is not None:
+            parser.error('static capacity requires --pool-index and must not read a workload/subset')
+    elif args.trace is None or args.adapter_subset is None:
+        parser.error('legacy gate requires --trace and --adapter-subset')
+    return args
 
 
 def main() -> int:
     args = _parse_args()
+    if args.static_capacity_only:
+        if args.output.exists():
+            raise ValueError('refusing to overwrite capacity evidence')
+        result = inspect_static_capacity(args.base_model, args.adapter_root, args.pool_index,
+            args.static_shards, args.max_batch_size, args.context_tokens)
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        with args.output.open('x') as handle:
+            json.dump(result, handle, indent=2, allow_nan=False)
+            handle.write('\n')
+        print(json.dumps(dict(output=str(args.output), adapters=result['adapter_count'],
+            shards=[{k:v for k,v in s.items() if k != 'adapter_ids'} for s in result['shards']],
+            safe_to_launch=False)))
+        return 0
+    import torch
+    import transformers
+    from transformers.generation.logits_process import LogitsProcessorList
     sys.path.insert(0, str(args.vendor / "src"))
     os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
     os.environ.setdefault("HF_DATASETS_OFFLINE", "1")
