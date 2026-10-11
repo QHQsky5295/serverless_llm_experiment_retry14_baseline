@@ -1,4 +1,4 @@
-# IEEE TC execution status — D433 S-LoRA 500-ID coverage preparation
+# IEEE TC execution status — D433 S-LoRA 500-ID coverage running
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -75,6 +75,33 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+D433 RUNNING since2026-10-11 21:55:32Asia/Shanghai,tmux tc-d433-7b.
+Mainexecution627aebff3fdaf67822946e52eacb7c9291f2eb30 andbaseline
+15077ab4aeeac9532b1cb8d9f18567d76883163c pushed/remoteSHAsverified.
+37CPUtests pass1.636s;500IDs/68925tokens/coverageview andsourceconfig verified.
+147protectedentries unchanged;newpresealSHA
+844aef33b8ee5c187e4ff26e9c547f84685a2c78fb345c3d02608dac699ca45f.
+HTTPconfigSHA23f4e7de5e5b13af706181a2c35c33d52c37e575557609717176891c947dfceb;
+nativeconfigSHA2dd3a7415c5b00f0bbcf6ac7b31906da4399285e6df824ba270988015c72ae5d.
+Tritondiskcache2055files/62246523B,no enginepreload. Ownedaux0002/0003 empty/
+identitychecked/stopped,high/max/OOM/swap0. Service
+primelora-tc-svc-85e916b4810e40bca18fe6d254b00200.scope,
+InvocationID041bb4427f674371a3564b4862665416;aux0001sameD433prefix.
+Notice1234191.943843064,businessorigin1234251.943843064. Watchdogsample15
+available112742182912B/service1941127168B/disk163316613120B,noabort/pressure.
+Remoteunchangedpublishedcache,link1000Mb/s/full,7Bclock
+remote-process-monotonic:0781f701010e43578ab610c7f3c03b2c.
+Owned3B/7B/monitorInvocationIDs2498cbe0e721475eb4163c886c4c1c85/
+362c2a3963054298a737d1324db6bb46/92da3e9468004f10944d963809b8b36b.
+NEXT monitor SAMEhandle -> actualGPUrelease -> rawstop_remote.sh ->
+preserve_evidence.py -> existingstrictslora_resident_rr_v1/adapter_coverage_v1
+audit+D394,NO original100numericalreferenceformappedcoverage -> seal/backup ->
+safeverifiedprivateobjectreclamation/freshgates ->original1000 ->onefullW0.
+No liveconfig/code/remotechange,tests/hashscan/cleanup/retry/secondheavyjob.
+No100repeat,sealedbaselineW0repeat,parametersearchor3Bjump. Allremainingapproved
+scopeOPEN/fullgoalACTIVE. Thisturnconcreteactualqualificationlaunchprogress.
+All older NEXT/PREPARATION/RUNNING paragraphs below are historical.
 
 D433 PREPARATION2026-10-11. Full PLAN/STATUS/V1/V2 reread aftercompaction;
 fresh compute census empty,no tmux,availableRAM113045917696B/disk163319328768B.
