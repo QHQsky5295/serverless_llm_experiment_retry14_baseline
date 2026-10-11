@@ -1,0 +1,83 @@
+{
+  "schema": "ieee_tc_hydraserve_readonly_lora_identity_review_v1",
+  "date": "2026-10-12",
+  "native_head": "8ae605de354ccfa2e9095514cdb4a9e9c56aa56b",
+  "native_worktree_clean_observed": true,
+  "review_kind": "source_reasoning_not_runtime_witness",
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/HydraServe_main_20260520/scripts/kubernetes/vllm/download/download.py",
+      "sha256": "4f0317559d18f1209af7b7a9db9e22646f86957cea18b0c488a1368ec79864ba"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/HydraServe_main_20260520/vllm/lora/utils.py",
+      "sha256": "4fac00fb4eb3d75eb4fe6df228c5013bad4a50e8b2367074337942bd1c8e77a3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/HydraServe_main_20260520/vllm/lora/models.py",
+      "sha256": "b0abca52a2027bfc4a6a7f92beba68b802e2f138fa11a9c697a4e93a56989170"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/HydraServe_main_20260520/vllm/lora/worker_manager.py",
+      "sha256": "f1cc4311503df627806627e5af2580656f6b925476e7c4039f490a4ff1b070c8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/HydraServe_main_20260520/vllm/model_executor/models/llama.py",
+      "sha256": "13b7e5f17b678ea73d35901649b856ca771b632ae9f81c986676606fe18a558a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/HydraServe_main_20260520/vllm/worker/model_runner.py",
+      "sha256": "176069a609ec25c112bb74f6eb3aa29a8a0f1f398c3bab468c47d363bce9998e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/HydraServe_main_20260520/vllm/worker/worker.py",
+      "sha256": "ed93a2760b94d1cdb7a30e3a1055eeddf76d45340ae42b947b61485ab19b4b54"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/HydraServe_main_20260520/vllm/engine/async_llm_engine.py",
+      "sha256": "d115aea16aa69fa584b5c6a915553af4d4f31085961c3ea0b61c39c4064bcad6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/HydraServe_main_20260520/vllm/executor/gpu_executor.py",
+      "sha256": "8f7ff36d534b74789b06f7afea40a14bd9bfefac803566275074239c8d9ddebf"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/HydraServe_main_20260520/vllm/sequence.py",
+      "sha256": "046dc2c00ac05a7598c3b9ed84859e5cf24a0b483a0ff3af8754a0dd319e3ac5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/HydraServe_main_20260520/scripts/image/app.py",
+      "sha256": "cab8bc3195159a51da0c4e8ca332a38b049f65891e49cdcd2534fe984235717f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/vendor_new_baselines/HydraServe_main_20260520/scripts/kubernetes/vllm/src/engine.py",
+      "sha256": "c0722e5512fd7ef88a19146f85850d9715fe8002baf49de4fe33aed377174337"
+    }
+  ],
+  "official_sources": [
+    "https://github.com/LLMServe/hydraserve",
+    "https://www.usenix.org/conference/nsdi26/presentation/lou"
+  ],
+  "performance_run": false,
+  "gpu_or_container_launch": false,
+  "runtime_import": false,
+  "baseline_source_modified": false,
+  "installation_or_build": false,
+  "model_or_adapter_pool_generated": false,
+  "remote_administration": false,
+  "qualification_pass": false,
+  "findings": [
+    "Backbone partition.transform rewrites global decoder layer names to stage-local indices; original LoRA parser preserves global indices.",
+    "Current native LoRA manager matches module names without stage-global translation; naive whole-adapter forwarding is not sufficient.",
+    "Destination loader does not create/register a destination LoRA manager; shared decoder module objects and added layers require separate ownership and mapping evidence.",
+    "SequenceGroupMetadata retains lora_request and is pickled across pipeline; absence of upper-layer adapter fields does not imply a core scheduler redesign is necessary.",
+    "Official partition(pp_size=1) deletes existing weight/index files after load; never call it on protected unique original model directory."
+  ],
+  "next": "After D445 terminal/closure, verify authorized platform/actual-worker containment and global-layer plus shared/destination LoRA binding before runtime qualification; preserve native pipeline/consolidation; no performance tuning.",
+  "limitations": [
+    "No actual wrong-output observation",
+    "No numerical or GPU correctness proof",
+    "No proof of a currently usable GPU Kubernetes environment",
+    "No decision to exclude HydraServe solely by source gaps or backend age"
+  ]
+}
