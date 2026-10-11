@@ -138,9 +138,25 @@ def audit_tc_http_journal(replay_path: Path) -> Dict[str, Any]:
         if rid in passed:
             r = event['response']
             observation = raw[rid]['body']['metrics']['ieee_tc']
+            backend = contract.get('native_backend', 'vllm')
+            if backend == 'slora':
+                # S-LoRA binds the actual RPC adapter path/index, not a vLLM
+                # LoRARequest name. Full worker/registry verification remains
+                # in the native receipt audit; never manufacture missing names.
+                path = observation.get('native_adapter_path')
+                adapter_matches = (observation.get('timing_contract') == 'ieee_tc_slora_native_v1'
+                    and isinstance(path, str) and Path(path).is_absolute()
+                    and Path(path).name == contract['adapter_id']
+                    and type(observation.get('native_adapter_index')) is int
+                    and observation['native_adapter_index'] >= 0
+                    and observation.get('native_adapter_binding_source') == 'slora_model_rpc_actual_batch_adapter')
+            elif backend == 'vllm':
+                adapter_matches = observation.get('native_lora_name') == contract['adapter_id']
+            else:
+                raise ValueError('unknown frozen native backend identity')
             if (r.get('protocol_valid') is not True or raw[rid]['status'] != 200
                     or observation['native_output_tokens'] != contract['target_tokens']
-                    or observation['native_lora_name'] != contract['adapter_id']
+                    or not adapter_matches
                     or observation['native_prompt_token_ids_sha256'] != contract['native_prompt_token_ids_sha256']):
                 raise ValueError('validated response differs from frozen contract')
             if any(type(r.get(k)) not in (int, float) or not math.isfinite(r[k]) or r[k] < 0

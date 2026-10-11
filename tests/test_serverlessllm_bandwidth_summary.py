@@ -87,6 +87,56 @@ class ServerlessLLMBandwidthSummaryTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 audit()
 
+    def test_slora_summary_uses_explicit_native_path_without_vllm_name_fallback(self):
+        contract = dict(event='request_contract', request_id='r', adapter_id='a',
+                        native_backend='slora', target_tokens=2,
+                        native_prompt_token_ids_sha256='input',
+                        canonical_prompt_sha256='prompt', source_item_sha256='source')
+        observed = dict(timing_contract='ieee_tc_slora_native_v1', native_output_tokens=2,
+                        native_adapter_path='/owned/a', native_adapter_index=0,
+                        native_adapter_binding_source='slora_model_rpc_actual_batch_adapter',
+                        native_prompt_token_ids_sha256='input',
+                        control_observation=dict(instance_id='slora-0'))
+        timing = dict(protocol_valid=True, ttft_ms=6., e2e_ms=15., submit_lag_ms=1.,
+                      dispatch_wait_after_submit_ms=2., service_ttft_ms=3., decode_ms=4.,
+                      completion_notification_ms=5., router_queue_ms=2., tpot_ms=4.,
+                      instance_assigned_s=10.003, ready_instances_at_enqueue=1)
+        events = [dict(event='replay_ready'), contract,
+                  dict(event='request_created', request_id='r', planned_arrival_s=10.,
+                       source_item_sha256='source'),
+                  dict(event='http_headers_sent', request_id='r'),
+                  dict(event='http_raw_response', request_id='r', status=200,
+                       body=dict(metrics=dict(ieee_tc=observed))),
+                  dict(event='http_response', request_id='r', response=timing),
+                  dict(event='http_replay_complete', N_plan=1, N_arrived=1,
+                       N_terminal=1, N_response=1, N_failed=0)]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)/'journal.jsonl'
+            def audit():
+                path.write_text(''.join(json.dumps(row)+'\n' for row in events))
+                return summary.audit_tc_http_journal(path)
+            actual = audit()
+            self.assertTrue(actual['workload_passed'])
+            self.assertEqual(actual['actual_native_output_tokens'], 2)
+            self.assertEqual(actual['max_e2e_recomputation_error_ms'], 0.)
+            self.assertFalse(actual['independent_lora_numerical_correctness'])
+            self.assertNotIn('native_lora_name', observed)
+            # A plausible foreign-backend name must not rescue corrupt native evidence.
+            observed['native_lora_name'] = 'a'
+            for key, bad in [('timing_contract', 'ieee_tc_native_v1'),
+                             ('native_adapter_path', '/owned/b'), ('native_adapter_path', 'a'),
+                             ('native_adapter_path', None), ('native_adapter_index', -1),
+                             ('native_adapter_index', True), ('native_adapter_index', None),
+                             ('native_adapter_binding_source', 'unverified')]:
+                saved = observed[key]
+                observed[key] = bad
+                with self.subTest(key=key, bad=bad), self.assertRaises(ValueError):
+                    audit()
+                observed[key] = saved
+            contract['native_backend'] = 'unknown'
+            with self.assertRaisesRegex(ValueError, 'unknown frozen native backend'):
+                audit()
+
     def test_aggregate_reservation_fields(self) -> None:
         replay = {
             "remote_artifact_bandwidth": {

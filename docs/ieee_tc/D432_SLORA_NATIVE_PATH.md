@@ -50,3 +50,57 @@ llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_slora_dp4_tp1_launch.yam
 [官方固定API](https://raw.githubusercontent.com/S-LoRA/S-LoRA/c1ddf488781ea7f551cd0bb07bfd097124c93411/slora/server/api_server.py)
 本轮HTTPS内容SHA与本地原生API均为504a1128cd8c6868a7d4c4ed21127b93f3cc7db0fc009082677bf1c1de97c485。
 不是重新优化baseline策略；实际性能尚待观测。
+
+## D432 终态与离线核对（2026-10-11）
+
+已结束，不重启。本轮100 offered/submitted/terminal/native/source/adapter合同全部通过，
+零请求失败、17,369原生输出tokens、29实际请求ID集合中的adapter；四个声明副本均服务。
+所有E2E/TPOT/native重算最大误差0ms。完整静态池500个adapter在四副本ready registry中验证；
+这不等于500个ID均已发请求，后续500-ID功能覆盖仍需完成。
+
+500次真实已发布gzip传输：420,740,410线上字节、12,985,984,450验证物化字节；
+请求时打包0。共同通知后全池物化区间91.425097s；此值包含必要获取/本地物化，
+不是纯网络时间。请求指向已准备工件，request transfer bytes0；500个部署传输只计一次。
+四副本ready分别位于通知后206.032215/300.697412/401.555154/502.670611s，业务未平移。
+
+| 短验证观测（非完整W0排名） | 数值 |
+|---|---:|
+| 平均 / P95 TTFT | 192,773.177 / 386,838.259 ms |
+| 平均 / P95 TPOT | 44.741 / 54.815 ms |
+| 平均 E2E | 200,318.923 ms |
+| TTFT / TPOT / 联合SLO | 5/100、98/100、5/100 |
+| 物理GPU生命周期 | 1,130.906283 GPU-s |
+| GPU-s / binding-valid请求 | 11.309063 |
+| 服务内存峰值 | 62,737,891,328 B |
+| high / max / OOM / swap | 全0 |
+
+该短验证不满足95%联合SLO。主要观察是路由/启动等待均值186.056s，
+另有service TTFT6.697s，不能全部归为网络、纯计算或因果机制缺陷。
+不得与PrimeLoRA4000请求结果相比较。资格路径通过不意味着性能工作点合格或最优。
+
+复用D385原100条HF/PEFT独立参考：请求/input/adapter来源全部对齐，95条序列相同，
+5条差异全部保留，其中3条可复用既有first-divergence margin、另2条未知。
+不把它们一概归为舍入；跨后端精确一致不是V1门槛，也不宣称完整数值证明。
+raw n_correct=null和独立数值资格标记未改写。
+
+### 离线分析修正与验证
+
+第一次完整审计在共同summary入口停止：它直接读vLLM native_lora_name，S-LoRA
+实际记录native_adapter_path/index。运行时原生验证已显式支持S-LoRA，执行数据完整。
+按冻结request_contract.native_backend添加明确分支：S-LoRA必须匹配绝对路径basename、
+非负整数索引、S-LoRA timing/binding contract；不填造vLLM字段，不用替代名称兜底。
+原vLLM分支不变，未知backend拒绝。错误路径、负/布尔/缺失索引、错误合同及伪造
+vLLM名称均拒绝。37项回归通过2.005s；最初失败audit.log保留，成功audit2.log另存。
+这是R1统计入口修正，不影响D432执行版本、不需要GPU重跑。没有性能算法修改。
+
+D431既有严格slora_resident_rr_v1最终完整通过，包括独立publisher、原生进程/配置/
+源文件、四物理分配、native退出/NVML释放、500传输/receipt/content/server关联。
+新audit SHA ba4a963184497d6d2f1ad8f62640b54d552d113fdfbb3a59bb2a7a78921b894f。
+evidence_manifest584文件/27,580,520B全部SHA复核，
+SHA bf5ec1ba64e0f5dfc7f089602abb900312491ad6c1d63c3e44bb97a5678583b3。
+位置：主仓库paper_results/ieee_tc/baseline_audit/d432_7b_slora_native_path/。
+
+GPU全部实际释放、服务域已删除；本轮三远端unit按InvocationID停止、MainPID0/端口无监听。
+147旧结果保护项零变化，三个用户dirty文件和S-LoRA十文件历史补丁未变。
+下一步备份→必要的本轮可重建下载缓存回收/重新资源检查→缺失500-ID功能覆盖→
+原1000兼容→一次完整W0；不能重复本100以挑更好SLO，也不跳3B或重跑已封存基线。
