@@ -1,4 +1,4 @@
-# IEEE TC execution status — D429 S-LoRA HTTP measurement CPU-qualified
+# IEEE TC execution status — D430 S-LoRA service lifecycle CPU-qualified
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -75,6 +75,58 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+D430 CPU INTEGRATION COMPLETE 2026-10-11. Full PLAN/STATUS/V1/V2 read in this
+uncompressed context; identities unchanged. No live GPU/remote/aux job. Existing
+resident HTTP service now has explicit S-LoRA configuration/bootstrap/source
+view/native-ready integration, native Python3.9 plus outer3.12. Pre-ready ingress
+opens before sequential static500 materialization; each GPU is acquired before
+its worker spawn, and original sequential replica startup remains. Business is
+not shifted to ready. Actual TP1 GPU router records model/full HOST pool/adapter
+registry/process/source/environment identity after init; parent binds it to live
+NVML census and pidfd owner, not HTTP health alone. Opt-in native API finally
+terminates/joins exact router/detokenizer handles; physical release remains the
+outer owner's separate responsibility. Default native source view unchanged;
+D428 packed HOST mode remains explicit, no paging/batching/scheduler change.
+Final baseline185 tests pass9.769s; nativePython3.9 selected38 pass1.877s.
+Actual native3.9.25/torch2.0.1+cu118 source-view/guard/API/RPC imports pass with
+CUDA hidden/uninitialized. Full outer HTTP service test passes with real CPU
+loopback but synthetic GPU ownership; no actual GPU qualification/RSS/performance
+claim. First49test attempt had1mock-inspection error; fixture corrected to a
+real callable, production identity inspection unchanged; failedlog retained.
+Raw slora_qualification/d430_20261011; source-view manifest SHA
+51c6f1da21cc5070a7d71e567c10564d3066605546602705c0b1c5d8b9277004.
+147 protected entries zerochange;3user-file SHAs and nested ten-file patch
+unchanged. Nine owned aux scopes identity/all-procs-empty verified then stopped;
+no live job. Disk163363241984B, fresh GPU compute census empty. No cache cleanup,
+remote operation/republication, new weights/trace, figure or paper changes.
+NEXT backup tested integration -> extend existing audit_d402_serverlessllm_path.py
+with explicit S-LoRA receipt/full-pool/native/physical joins and CPU checks ->
+fresh full plan/resource/protected/input gates, freeze prior legal native public
+configuration, actual containment/release + affected100/missing500-ID/1000 ->
+one fullW0. Do not repeat sealed W0 or D428 representation investigation, change
+thresholds, jump3B or call CPU receipts performance results. All remaining
+approved scope OPEN/full goal ACTIVE. Concrete implementation progress, not a
+blocker. Backup pending at this checkpoint.
+
+D430 closure: nine aux scopes all high/max/OOM/swap0, max observed peak506540032B.
+Curated16member/28687B bundle SHA
+ea8be48a8eac926d9a84b0068acc433210f99e807b8db7f77637b157f12ac484;
+all bytes equal raw,12evidence/4changed-source/15original/3derived SHAs verified.
+Baseline checkpoint7d61cb49e3aa2e014a7336fb627a6af3312f3f10 pushed to origin/main
+and remote SHA verified. Exact5taskfiles;185/38tests/source/diff/secret/size
+checks passed. Main report/status/bundle backup follows. No live job; protocol
+and three protected user-file identities unchanged. Mainline remains explicit
+S-LoRA audit integration and necessary actual qualification, not repeated CPU
+representation work or a performance/optimality claim.
+
+D429 BACKED UP 2026-10-11. Main00ce664e08567f264a23def62161a178af1172d8
+pushed to faaslora_origin/retry14_continuous_queue_v2 and remote SHA verified;
+baseline2b598d38307049575a41d8587f7e1c8653ab9b72 pushed to origin/main and
+verified. Exact5main/6baseline task files, tests/source/bundle/protected/diff/
+secret checks passed. No live GPU/remote/aux job; three user-file SHAs intact.
+NEXT actual S-LoRA worker/bootstrap/physical-owner service integration. This
+post-push record is task-owned status, not another performance execution.
 
 D429 COMPONENT COMPLETE 2026-10-11. No live GPU/remote/aux job. Full PLAN and
 STATUS reread after compaction; V1/V2 also fully read, unchanged. Existing shared
