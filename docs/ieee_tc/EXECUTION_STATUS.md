@@ -1,4 +1,4 @@
-# IEEE TC execution status — D451 ElasticLocality 500-ID input qualification
+# IEEE TC execution status — D451 ElasticLocality 500-ID functional coverage completed
 
 Updated 2026-10-12. Current checkpoint, NOT a replacement experiment plan.
 Full prior status is byte-identically archived in EXECUTION_HISTORY_THROUGH_D448.md,
@@ -31,7 +31,7 @@ entries are not current instructions. No evidence or approved task was removed.
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D451 existing500-ID view integration
+## Current action — D451 existing500-ID view integration and actual coverage completed
 
 D451_ELASTICLOCALITY_500_ADAPTER_COVERAGE.md records the next required coverage,
 not a repeat of passedD450. Same D450 runtime/mechanisms, path-only config changes;
@@ -43,10 +43,43 @@ CPU/input qualification passed:268 tests54.029s +4 pidfd tests0.005s. Exact lega
 input-loader definition changed,596others unchanged. Protected147/userfiles intact.
 Six owned CPU scopes actual-recursive-empty/identity closed, high/max/OOM/swap0;
 stdin-selector spawn failure retained and stopped143; no production fallback.
-Curated elastic_locality/d451_coverage_input_qualification.json. No GPU/remote
-service started by D451 yet. No baseline tuning or figures.
-NEXT: backup qualified checkpoint, actual500-ID once, original1000,
-single4000; sealed five-systemW0 and every remaining mainline task retained.
+Curated elastic_locality/d451_coverage_input_qualification.json. Checkpoint
+6cb9bf6e3d29984de24967f9d9f8c36b8a115501 pushed/remoteSHAequal verified.
+07:11:38 actual500-ID started once; completed07:27 with service/watchdog exit0,
+actualGPUrelease and service removal confirmed. 500/500 native token/source/adapter/
+lease bindings,68925tokens; independent D433 retained request-contract witness
+matches all500 canonical prompt hashes/native prompt-ID hashes/targets/derived rows.
+SourceSHA4668afee08c0f5e241d684098eaebf5856b1dad06dd2b2462b5bc40fad270fea.
+Raw n_correct=null remains; binding evidence is not independent numerical proof.
+Full4000/W0/G1/G2 qualification NOT asserted.
+
+Frozen common jointSLO186/500=37.2%; meanTTFT58534.608611ms,
+Type1P95TTFT168610.997153ms; meanqueue16565.516369ms,
+meanservice41969.092242ms; P95TPOT36.373022ms;
+physicalGPU2579.828998s. Initial1/natural_scaleout3, initialactivation43.483525s.
+Every adapter occurs once: dispatchremote500, GPUlocalityhits0;
+693 routingattempts, proactiveplans0, fileLRUreplacements0. No locality/eviction
+performance inference from this functional coverage or comparison to prefix100.
+HTTP500/420740410wireB, both-endUUID/SHA/bytes equal, no request-time packing.
+User reconfirmed once-only compressed-cache approval: existingD78/D80 reused,
+no republish, no extracted pool, all real reading/transfer/materialization retained.
+
+931 resource samples, peak28073377792B, high/max/OOM/swap0/no watchdog abort.
+After GPUrelease: exact-owned remote3B/7B/monitor stopped; both ports absent;
+downloaded transfer/monitor SHA verified. Start/replay auxiliaries and postrun9–14
+closed only after exactidentity and actual recursive cgroup.procs empty checks.
+No task remains running. Postrun analysis-only failures retained: wrong interpreter
+path exit127 before analyzer; wrong source-item attribute exit1, separate v2 uses
+existing source_sha256. No GPU rerun, runtime fallback, tuning or figure.
+Curated elastic_locality/d451_actual_coverage500.json SHA
+42e651c96babce8e65fad79314de5470ee7a46343d0a04662fafde80f05fcacf;
+all24 audit refs independently checked. Delivery verification scope15 also
+exactidentity/actualrecursiveempty closed; high/max/OOM/swap0.
+Protected147, frozenPLAN/V1/V2 and three userfile hashes unchanged.
+Latestdisk162334121984B (~151.19GiB); runtime already released privateNVMe cache
+(empty); no manual deletion needed. Fresh safety gates before next heavy task.
+NEXT: original1000 compatibility at same frozen configuration -> single4000W0;
+sealed five-systemW0 and every remaining mainline task retained. No repeatD451.
 
 ## Previous action — D450 combined contract/configuration CPU qualified
 
