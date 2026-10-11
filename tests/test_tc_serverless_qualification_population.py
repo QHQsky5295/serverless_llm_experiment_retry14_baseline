@@ -6,7 +6,49 @@ from types import SimpleNamespace as NS
 import unittest
 
 from scripts.ieee_tc.audit_d402_serverlessllm_path import (
-    validate_population, compare_reference_row, frozen_slo_summary, validate_terminal_outcome)
+    validate_population, compare_reference_row, frozen_slo_summary, validate_terminal_outcome,
+    validate_vllm_ready_row)
+
+
+class ResidentReadyTests(unittest.TestCase):
+    def fixture(self):
+        cfg = dict(gpu_ids=[2, 3], engine_args={'model':'frozen'}, native_toolchain={'sha':'frozen'})
+        service = dict(cgroup='/owned', affinity=[4, 5])
+        row = dict(schema='ieee_tc_vllm_backend_ready_v1', index=1, cuda_visible='3',
+            clock_id='local', identity=dict(cgroup='/owned',affinity=[4,5],pid=123,start_ticks=9),
+            engine_args=cfg['engine_args'],native_toolchain=cfg['native_toolchain'],at=10.)
+        control = dict(tc_route_ordinal=3,instance_id='vllm-1',tc_clock_id='local',tc_backend_entry_s=11.)
+        return row, cfg, control, service
+
+    def test_actual_ordinal_mapping_not_arrival_order(self):
+        row,cfg,c,svc = self.fixture()
+        self.assertEqual(validate_vllm_ready_row(row,cfg,c,3,svc,'local'),1)
+        for field,value in [('index',0),('cuda_visible','2'),('clock_id','different'),
+                            ('schema','ieee_tc_native_backend_ready_v1')]:
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                validate_vllm_ready_row(dict(row,**{field:value}),cfg,c,3,svc,'local')
+
+    def test_changed_policy_or_toolchain_rejected(self):
+        row,cfg,c,svc = self.fixture()
+        for field,value in [('engine_args',{}),('native_toolchain',{})]:
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                validate_vllm_ready_row(dict(row,**{field:value}),cfg,c,3,svc,'local')
+        for field,value in [('tc_route_ordinal',2),('instance_id','vllm-0')]:
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                validate_vllm_ready_row(row,cfg,dict(c,**{field:value}),3,svc,'local')
+
+    def test_actual_process_resource_and_birth_required(self):
+        row,cfg,c,svc = self.fixture()
+        for field,value in [('cgroup','/other'),('affinity',[0]),('pid',0),('start_ticks',None)]:
+            bad = dict(row,identity=dict(row['identity'],**{field:value}))
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                validate_vllm_ready_row(bad,cfg,c,3,svc,'local')
+
+    def test_ready_must_precede_service_in_same_finite_clock(self):
+        row,cfg,c,svc = self.fixture()
+        for at in (12.,float('nan'),None):
+            with self.subTest(at=at), self.assertRaises(ValueError):
+                validate_vllm_ready_row(dict(row,at=at),cfg,c,3,svc,'local')
 
 
 class QualificationPopulationTests(unittest.TestCase):

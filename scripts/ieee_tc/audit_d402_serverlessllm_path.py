@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ServerlessLLM evidence recipe; reuses existing baseline/native validators.
+"""ServerlessLLM/vLLM evidence recipe; reuses baseline/native validators.
 
 Read-only with respect to experiment inputs. Output is exclusive, small, and
 never upgrades a prefix qualification to a main performance comparison.
@@ -143,7 +143,7 @@ def compare_reference_row(observation, contract, source, reference):
         native_token_in_hf_top2=reference['native_token_in_hf_top2'] if reusable_margin else None)
 
 
-def reuse_numerical_reference(root, reference_path, main):
+def reuse_numerical_reference(root, reference_path, main, scheduler_contract='original'):
     """D407 bounded independent-reference reuse; no GPU or new reference data."""
     reference = json.loads(reference_path.read_text())
     source_path = Path(reference['source_native_path'])
@@ -153,7 +153,9 @@ def reuse_numerical_reference(root, reference_path, main):
     sources = next(iter(source_result['detailed_results'].values()))['requests']
     source_index = {r['request_id']: r for r in sources}
     reference_index = {r['request_id']: r for r in reference['requests']}
-    events = [json.loads(l) for l in (root/'launch7b_repaired.launch/replay.jsonl').read_text().splitlines()]
+    replay = root/('launch7b.launch/replay.jsonl' if scheduler_contract == 'resident_rr_v1'
+                  else 'launch7b_repaired.launch/replay.jsonl')
+    events = [json.loads(l) for l in replay.read_text().splitlines()]
     contracts = {r['request_id']: r for r in events if r['event'] == 'request_contract'}
     native = {r['request_id']: r['body']['metrics']['ieee_tc'] for r in events if r['event'] == 'http_raw_response'}
     cfg = json.loads((root/'http_7b_100.json').read_text())
@@ -185,13 +187,14 @@ def reuse_numerical_reference(root, reference_path, main):
         rows.append(row)
     for group in classes.values():
         group['adapter_ids'] = sorted(group['adapter_ids'])
-    return dict(schema='ieee_tc_serverless_reference_reuse_v1', display_name='ServerlessLLM',
+    return dict(schema='ieee_tc_serverless_reference_reuse_v1',
+        display_name='vLLM' if scheduler_contract == 'resident_rr_v1' else 'ServerlessLLM',
         count=len(rows), exact_sequences=sum(r['exact_sequence_match'] for r in rows),
         source_adapter_input_identity_complete=True, weight_classes=classes, requests=rows,
         full_semantic_correctness_proof=False, full_performance_qualification=False,
         limitation='Bounded HF/PEFT witness only; mismatches retained, not blanket-classified as rounding. V1 does not require cross-backend exact sequences.',
         sources=[dict(path=str(p), sha256=digest(p)) for p in
-            (reference_path, source_path, pool_path, root/'launch7b_repaired.launch/replay.jsonl',
+            (reference_path, source_path, pool_path, replay,
              main/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md',
              main/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md', Path(__file__))])
 
@@ -283,13 +286,94 @@ def validate_terminal_outcome(summary, qualifier, count, outcome):
     return counts['N_response']
 
 
+def validate_vllm_ready_row(row, cfg, control, ordinal, service, clock_id):
+    """Exact static RR/ready/source contract, separate from ServerlessLLM actors."""
+    index = ordinal % len(cfg['gpu_ids'])
+    identity = row.get('identity', {})
+    at, entry = row.get('at'), control.get('tc_backend_entry_s')
+    if (row.get('schema') != 'ieee_tc_vllm_backend_ready_v1'
+            or row.get('index') != index or control.get('tc_route_ordinal') != ordinal
+            or control.get('instance_id') != f'vllm-{index}'
+            or row.get('cuda_visible') != str(cfg['gpu_ids'][index])
+            or row.get('clock_id') != clock_id or control.get('tc_clock_id') != clock_id
+            or identity.get('cgroup') != service['cgroup']
+            or identity.get('affinity') != service['affinity']
+            or any(type(identity.get(k)) is not int or identity[k] <= 0 for k in ('pid', 'start_ticks'))
+            or row.get('engine_args') != cfg['engine_args']
+            or row.get('native_toolchain') != cfg['native_toolchain']
+            or any(type(t) not in (int, float) or not math.isfinite(t) for t in (at, entry))
+            or at > entry):
+        raise ValueError('vLLM static route/ready/containment/toolchain differs')
+    return index
+
+
+def audit_vllm_receipts(root, cfg, qualifier, ready, config_path, native):
+    from replay_vllm_engine_trace import validate_native_service_config
+    http = json.loads(config_path.read_text())
+    validate_native_service_config(cfg, http)
+    if (qualifier['schema'] != 'ieee_tc_vllm_native_model_qualification_v1'
+            or qualifier['physical_lifecycle']['mode'] != 'vllm_resident_pool_v1'
+            or qualifier['physical_lifecycle']['measurement_complete'] is not True
+            or cfg['source_sha256'] != qualifier['source_sha256']
+            or any(cfg.get(k) != v for k, v in qualifier['configuration'].items())):
+        raise ValueError('explicit native vLLM service/lifecycle identity differs')
+    for path, sha in cfg['source_sha256'].items():
+        if digest(path) != sha:
+            raise ValueError('executed native adapter source changed')
+    plan = native.load_http_replay_plan(http)
+    ordinals = {e.request_id: i for i, e in enumerate(plan.entries)}
+    receipts, seen_indices = {}, set()
+    worker_path = root/'model7b/worker_config.json'
+    for request in qualifier['requests']:
+        observation = request['response']['metrics']['ieee_tc']
+        c = observation['control_observation']
+        rid = c['tc_worker_receipt_id']
+        if len(rid) != 32 or any(ch not in '0123456789abcdef' for ch in rid):
+            raise ValueError('invalid native receipt ID')
+        path = root/'model7b/worker_receipts'/(rid+'.json')
+        row = json.loads(path.read_text())
+        if (path.is_symlink() or digest(path) != c['tc_worker_receipt_sha256']
+                or row['receipt_id'] != rid or row['worker_config_sha256'] != digest(worker_path)
+                or row['runner_sha256'] != cfg['source_sha256'][str(Path(sys.modules['replay_vllm_engine_trace'].__file__).resolve())]):
+            raise ValueError('vLLM receipt/worker-config source differs')
+        i = validate_vllm_ready_row(row, cfg, c, ordinals[request['request_id']],
+                                   qualifier['service'], ready['clock_id'])
+        aid = observation['native_lora_name']
+        # D415 checks the native output's path at runtime but retains only
+        # name/int-ID in JSON. Do not invent a missing persisted path field.
+        if (observation['native_lora_int_id'] != cfg['adapters'][aid][0]
+                or cfg['adapters'][aid][1] != str(Path(cfg['remote_config']['cache_dir'])/'objects'/aid)):
+            raise ValueError('native LoRA object differs from frozen adapter mapping')
+        snapshot = row['snapshot']
+        if snapshot['version'] != '0.30.0' or snapshot['schema'] != 'ieee_tc_vllm030_native_snapshot_v1':
+            raise ValueError('native observation version differs')
+        for path0, sha in row['native_api_sha256'].items():
+            if digest(path0) != sha:
+                raise ValueError('native API source changed')
+        for relative, sha in snapshot['source_sha256'].items():
+            if digest(Path(snapshot['package_root'])/relative) != sha:
+                raise ValueError('native observation producer source changed')
+        allocation = qualifier['physical_allocations'][i]
+        spawns = [e for e in allocation['events'] if e['event'] == 'worker_spawn']
+        if not allocation['released'] or len(spawns) != 1 or spawns[0]['worker'] != row['identity']:
+            raise ValueError('ready API process differs from physical owner spawn')
+        receipts[rid] = dict(path=str(path), sha256=digest(path))
+        seen_indices.add(i)
+    if seen_indices != set(range(len(cfg['gpu_ids']))):
+        raise ValueError('resident qualification did not serve every declared worker')
+    return list(receipts.values())
+
+
 def audit(root, baseline, main, scheduler_contract='original', population='prefix100', slo_freeze=None,
           outcome='success'):
     sys.path[:0] = [str(baseline/'scripts'), str(main)]
     import summarize_serverlessllm_replay as analyzer
     import prepare_ieee_tc_serverless_stack as native
     from faaslora.storage.http_artifact_store import preparation_content_sha256
-    replay = root/'launch7b_repaired.launch/replay.jsonl'
+    is_vllm = scheduler_contract == 'resident_rr_v1'
+    launch_root = root/('launch7b.launch' if is_vllm else 'launch7b_repaired.launch')
+    model_root = root/('model7b' if is_vllm else 'model7b_repaired')
+    replay = launch_root/'replay.jsonl'
     summary = analyzer.audit_tc_http_journal(replay)
     events = [json.loads(line) for line in replay.read_text().splitlines()]
     kinds = ('request_contract', 'request_created', 'http_headers_sent', 'http_raw_response', 'http_response')
@@ -302,13 +386,22 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
     assert digest(config_path) == ready['config_sha256']
     count = validate_population(json.loads(config_path.read_text()), ready,
                                 index['request_contract'], native, population)
-    cfg = json.loads((root/'model7b_repaired/configuration.json').read_text())
-    qualifier = json.loads((root/'model7b_repaired/model_qualification.json').read_text())
+    cfg = json.loads((model_root/('worker_config.json' if is_vllm else 'configuration.json')).read_text())
+    qualifier = json.loads((model_root/'model_qualification.json').read_text())
     response_count = validate_terminal_outcome(summary, qualifier, count, outcome)
-    assert qualifier['physical_lifecycle']['lifecycle_qualified']
-    native.audit_backend_receipts(qualifier, cfg['backend_config']['tc_worker_audit'], ready['clock_id'])
-    view = json.loads((root/'source_repaired/measurement_manifest.json').read_text())
-    assert view.get('scheduler_queue', 'original') == scheduler_contract
+    if is_vllm:
+        request_index = {r['request_id']: r for r in qualifier['requests']}
+        if (len(request_index) != len(qualifier['requests'])
+                or set(request_index) != set(index['http_raw_response'])
+                or any(request_index[rid]['response'] != raw['body']
+                       for rid, raw in index['http_raw_response'].items())):
+            raise ValueError('vLLM service and independent publisher responses differ')
+        qualifier['backend_ready_receipts'] = audit_vllm_receipts(root, cfg, qualifier, ready, config_path, native)
+    else:
+        assert qualifier['physical_lifecycle']['lifecycle_qualified']
+        native.audit_backend_receipts(qualifier, cfg['backend_config']['tc_worker_audit'], ready['clock_id'])
+        view = json.loads((root/'source_repaired/measurement_manifest.json').read_text())
+        assert view.get('scheduler_queue', 'original') == scheduler_contract
     scheduler_source = root/'storage_aware_scheduler_executed.py'
     if scheduler_contract == 'request_identity_v1':
         observed = qualifier['scheduler_readback']
@@ -327,9 +420,12 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
             conclusion='actual served backends verified; live native loop and no pending allocations')
     elif scheduler_contract == 'original':
         queue_evidence = asyncio.run(reproduce_queue(scheduler_source))
+    elif is_vllm:
+        queue_evidence = dict(contract=scheduler_contract, native_worker_receipts=qualifier['backend_ready_receipts'],
+            conclusion='Original request-ordinal round robin; every selected native worker/source/ready/owner binding verified.')
     else:
         raise ValueError('unknown scheduler contract')
-    frozen = cfg['backend_config']['tc_remote_artifacts']
+    frozen = cfg['remote_config'] if is_vllm else cfg['backend_config']['tc_remote_artifacts']
     assert digest(frozen['content_manifest']) == frozen['content_manifest_file_sha256']
     pool = {a['id']: a for a in json.loads(Path(frozen['content_manifest']).read_text())['artifacts']}
     if population == 'adapter_coverage_v1':
@@ -384,7 +480,7 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
             path = Path(frozen['cache_dir'])/'objects'/aid/file['path']
             assert path.stat().st_size == file['size_bytes'] and digest(path) == file['sha256']
             payload += file['size_bytes']
-    resource_path = root/'model7b_repaired/physical/physical_resource_summary.json'
+    resource_path = model_root/'physical/physical_resource_summary.json'
     resource = json.loads(resource_path.read_text())
     physical = json.loads(Path(resource['summary_path']).read_text())
     assert digest(resource['summary_path']) == resource['summary_sha256']
@@ -398,17 +494,19 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
     assert abs(sum(physical['window_gpu_seconds'].values())-integral) < 1e-9
     assert physical['n_native_contract_complete'] == response_count
     assert physical['n_terminal'] == physical['n_plan'] == count
-    samples = [e for e in map(json.loads, (root/'launch7b_repaired.launch/watchdog.jsonl').read_text().splitlines()) if e['event'] == 'resource_sample']
+    samples = [e for e in map(json.loads, (launch_root/'watchdog.jsonl').read_text().splitlines()) if e['event'] == 'resource_sample']
     assert samples
     service_events = {k: max(s['service'].get('memory.events', {}).get(k, 0) for s in samples) for k in ('high', 'max', 'oom', 'oom_kill')}
     source_paths = [replay, resource_path, Path(resource['summary_path']), Path(resource['result_file']['path']),
                     config_path, root/'remote_transfers.jsonl', root/'remote_monitor.log',
-                    root/'source_repaired/measurement_manifest.json', root/'storage_aware_scheduler_executed.py',
                     Path(analyzer.__file__), Path(native.__file__), Path(__file__)]
+    source_paths += ([model_root/'worker_config.json', model_root/'native_toolchain.json'] +
+                     [Path(r['path']) for r in qualifier['backend_ready_receipts']] if is_vllm else
+                    [root/'source_repaired/measurement_manifest.json', root/'storage_aware_scheduler_executed.py'])
     result = {k: v for k, v in summary.items() if k not in ('ready_identity', 'diagnostic_rows', 'assignment_gaps_s', 'kind', 'display_name')}
     result.update(schema=('ieee_tc_complete_request_failure_audit_v1' if outcome == 'complete_with_failures' else
                           'ieee_tc_d402_affected_path_audit_v1' if scheduler_contract == 'original'
-                          else 'ieee_tc_affected_path_audit_v2'), display_name='ServerlessLLM',
+                          else 'ieee_tc_affected_path_audit_v2'), display_name='vLLM' if is_vllm else 'ServerlessLLM',
         remote_affected_path_qualified=outcome == 'success', complete_system_qualified=False,
         source_plan=ready['plan'], native_revalidated_requests=response_count, max_native_recompute_error_ms=native_error,
         physical_gpu_seconds=integral, physical_window_gpu_seconds=physical['window_gpu_seconds'],
@@ -434,7 +532,8 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
             ('Four logical instances include starting instances; three served engines. Scheduler queue bug independently reproduced; live exception was not logged.'
              if scheduler_contract == 'original' else
              'Actual backend-ready receipts and live loop qualify the affected path; qualification does not quantify a causal latency benefit.'),
-            'Fixed native-store four-GPU pool is charged until actual release; not a claim about every ServerlessLLM deployment.',
+            ('Resident native vLLM four-GPU pool is charged until actual release; no PrimeLoRA policy added.' if is_vllm else
+             'Fixed native-store four-GPU pool is charged until actual release; not a claim about every ServerlessLLM deployment.'),
             ('Cross-system comparison requires a separate full input, generation, initial-state and resource-contract join.'
              if population == 'full4000' else
              'No relative performance comparison with the 4000-request PrimeLoRA observation.')])
@@ -494,7 +593,7 @@ if __name__ == '__main__':
     parser.add_argument('--baseline', type=Path, required=True)
     parser.add_argument('--main', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
-    parser.add_argument('--scheduler-contract', choices=('original', 'request_identity_v1'), default='original')
+    parser.add_argument('--scheduler-contract', choices=('original', 'request_identity_v1', 'resident_rr_v1'), default='original')
     parser.add_argument('--population', choices=('prefix100', 'prefix1000', 'adapter_coverage_v1', 'full4000'), default='prefix100')
     parser.add_argument('--reference-result', type=Path)
     parser.add_argument('--slo-freeze', type=Path)
@@ -508,7 +607,8 @@ if __name__ == '__main__':
     if args.reference_result:
         if args.population != 'prefix100':
             raise ValueError('independent reference is the unchanged first 100 requests only')
-        report['bounded_numerical_reference'] = reuse_numerical_reference(args.root, args.reference_result, args.main)
+        report['bounded_numerical_reference'] = reuse_numerical_reference(args.root, args.reference_result, args.main,
+                                                                          args.scheduler_contract)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.open('x') as handle:
         json.dump(report, handle, indent=2)

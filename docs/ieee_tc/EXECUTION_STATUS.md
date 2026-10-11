@@ -1,4 +1,4 @@
-# IEEE TC execution status — D419 vLLM 7B affected-path qualification running
+# IEEE TC execution status — D419 vLLM 7B native path passed and closed
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -74,6 +74,44 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+D419 TERMINAL/AUDITED2026-10-11~15:54Asia/Shanghai. No liveGPUjob. Original
+100/100arrivals/submissions/terminals/native/source/adapter/content/timing
+contracts,0failure,17369native tokens;4actualservedworkers. RecomputeE2E/TPOT/
+nativeerror0ms. Fourphysicalownersclosed,U1019.2586401619483GPU-s. Do notrestart.
+29HTTP/50650865wireB/724665100verifiedpayloadB,71cachehits,0packs. CommonD394
+TTFT47/TPOT100/joint47 of100;shortprefixNONFEASIBLE,notfullW0/reference/ranking.
+Mean/P95TTFT18634.907506/74980.162867ms,TPOT25.349100/27.612873ms,E2E23055.655692ms.
+D385independentreference reused:100inputidentities,92exactsequences,8differences;
+3knownfirst-divergence/top2witnesses reused,5marginsunknown. All4weightclasses.
+No newnumericalexperiment/exactmatchgate;raw n_correct=null/unknownflags intact.
+D415runtimechecks nativeadapterpath butJSONretainsname/int-IDonly;offlinepath
+contract binds frozenhooksource/workerconfig/receipts,notinventedoutputfield.
+ActualGPUreleased/servicepathremoved/returncode0;freshcompute census empty.
+Emptyownedauxstopped,3ownedremoteunitsSTOPPEDbyInvocationID/portsabsent. Remote
+copySHA verified:transfer0c8fc0a2c5dec5405a8d00277d1630acefeae63d6da14b10bcb2ce95c1c19469,
+monitor41e4692831319a3da982c28f653a49d0ff9d002234ecfa4617ca9f053a598df3.
+Worker/resolver/remoteevidence retained;no objectcache reclaimed. Peakservice
+11266482176B,hostavailablemin100241502208B,high/max/OOM/swap0,noabort.
+Protected147entriesunchanged,postSHAec1fc6173b03701d132548ef0b615ade8fe6611d5a9cc9a693a25db94a394316.
+Existingmainanalyzer explicitly extends resident_rr_v1 with exactworker/source/
+ordinal/physicalbinding;ServerlessLLMrulesunchanged.27CPUtests pass0.090s.
+Audit d419_7b_native_path/audit.json SHA
+353cf28d452bbe4a6db72450fa557afe02448abdf016dba83d656268b9fe1149;
+103file/18591245BmanifestSHA9830f47c7ddaa5393ceeb11bfd8b8c595966085a7ea71c7edf5959c7e345ed14.
+All103evidencefileSHAs verified. Baselineclosurebackup
+a56d79088ab1e431e12b5cfed95f53a1581d7037 pushedtoorigin/main/remoteSHAverified;
+not the D419executioncommit. Exactlyone taskdoc,no runtime/userdirty changes.
+Initialmanifestrecipe failed on relativeSLOpath (nooutput); resolvedagainstmain,
+thenpassed. This wasofflinepackaging,not anew/retriedperformanceexperiment.
+NEXT finishclosurebackup -> focusedR0-R3inventory ofoldvLLM500-IDfunctional/
+1000compatibility evidence. D395/D396 only132observedIDs,notwholepool;D80HTTP
+coverage and6contentclasses cannot themselves establish500nativeIDexecution.
+Reusevalidscope; ifmissing useexisting adapter_coverage_v1 functionalview and
+original1000compatibility,notnewweights/trace,thenonefull4000W0/reference. Do not
+repeat100gatetofindbetterSLO/exactoutput,retuneServerlessLLM orjump3B. PrimeLoRA
+D371 andServerlessLLMD414 remainsealed. U_ref/W1/W2/G2/allremainingplan OPEN.
+All RUNNING/NEXT paragraphs below are historical,notactivecommands.
 
 D419 RUNNING2026-10-11 15:49:40Asia/Shanghai,tmux tc-d419-7b. No secondheavyjob.
 Main execution2387d7d3b40b28c668718ed050503f51bfa52641 andbaseline
