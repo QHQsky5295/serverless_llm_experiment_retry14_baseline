@@ -1,0 +1,66 @@
+{
+  "checks": [
+    {
+      "repository": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+      "log": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d443_20261012/main_cpu_tests.log",
+      "sha256": "120f87a9d0b9f99e9956fbc7d3aa16affb1e27222ca8a4d2dc4a97d54e62d2f2",
+      "passed": true
+    },
+    {
+      "repository": "/home/qhq/serverless_llm_baselines",
+      "log": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d443_20261012/baseline_cpu_tests.log",
+      "sha256": "2267c097cac0a0d7ee87b7d6ace615cff1c737d9ef5acdd365967eef4d0bc909",
+      "passed": true
+    }
+  ],
+  "d442_sealed_sources_verified": 578,
+  "fixed_sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json",
+      "sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py",
+      "sha256": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh",
+      "sha256": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/configs/ieee_tc/loquetier_7b_static_native_v1.json",
+      "sha256": "d9f3b81d3d90340739ec66b45d36c1c71c706640dd2cd790a19d3ea4a80a617a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/scripts/replay_vllm_engine_trace.py",
+      "sha256": "1cb843589b35e431e16effc60def750a2a78c4243135d93b75cbc07b8e59fbc5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d402_serverlessllm_path.py",
+      "sha256": "92e2d33bd2cf4d2fbe6ab7eb93ae8a220d92ccd0dfae7b0460f929c063643377"
+    }
+  ],
+  "native_patch_sha256": {
+    "Loquetier": "de476d06c318ba2be7f65dd9dba9bfb30a2f2c7e14e8bd6e35f30206ab041a39",
+    "S-LoRA": "7a0f48f60c225789014ad960ec3ab1cf6388611b7650a4f656f1208c981c2d60"
+  },
+  "performance_configuration_changed": false,
+  "new_weights_or_trace": false,
+  "schema": "ieee_tc_loquetier_d443_prelaunch_v1",
+  "raw_root": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d443_20261012",
+  "prior_main_checkpoint": "9694e9b6bf7d63143df968f7522b77586a9ca15a",
+  "prior_baseline_checkpoint": "e320186485c9b4e928377e77354dcaf491da712e",
+  "scope": {
+    "unit": "primelora-tc-aux-d4430000000000000000000000000002.scope",
+    "invocation_id": "3acfa94a66424b9aacda8476971abc43",
+    "peak_bytes": 49405952,
+    "high_max_oom_swap": 0,
+    "actual_recursive_process_tree_empty": true,
+    "stopped_after_identity_check": true
+  },
+  "request_view": "adapter_coverage_v1",
+  "offered_count": 500,
+  "target_tokens": 68925,
+  "performance_ranking_eligible": false,
+  "gpu_run_started": false
+}
