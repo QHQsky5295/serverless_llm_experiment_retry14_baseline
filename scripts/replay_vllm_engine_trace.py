@@ -84,6 +84,8 @@ def validate_native_service_config(cfg, http):
     validate_http_lifecycle_contract(http)
     if cfg.get('schema') == 'ieee_tc_slora_native_service_v1':
         return validate_slora_service_config(cfg, http)
+    if cfg.get('schema') == 'ieee_tc_loquetier_native_service_v1':
+        return validate_loquetier_service_config(cfg, http)
     if (cfg.get('schema') != 'ieee_tc_vllm_native_service_v1'
             or http.get('schema') != 'ieee_tc_vllm_http_replay_v1'
             or cfg.get('routing') != 'round_robin'
@@ -647,6 +649,293 @@ class NativeLoquetierRequestHandler:
             metrics=dict(ieee_tc=measured))
 
 
+LOQUETIER_ENV_KEYS = ('PATH', 'LD_LIBRARY_PATH', 'PYTHONPATH', 'PYTHONNOUSERSITE',
+    'MAX_JOBS', 'TRANSFORMERS_OFFLINE', 'HF_DATASETS_OFFLINE')
+
+
+def load_loquetier_static_plan(cfg, pool_ids=None):
+    """Reuse the frozen input-only placement, never reconstruct from a trace."""
+    path = Path(cfg['static_plan'])
+    if _sha(path) != cfg['static_plan_sha256']:
+        raise ValueError('Loquetier static placement identity changed')
+    plan = _load_json(path)
+    shards = plan.get('shards', [])
+    ids = [aid for shard in shards for aid in shard.get('adapter_ids', [])]
+    if (plan.get('schema') != 'ieee_tc_loquetier_static_capacity_v1'
+            or plan.get('no_trace_read') is not True or plan.get('adapter_count') != 500
+            or plan.get('sharding_rule') != 'descending_static_bytes_then_ID_least_bytes_count_index_v1'
+            or plan.get('batch_size') != cfg['native_args']['batch_size']
+            or plan.get('context_tokens') != cfg['native_args']['context_tokens']
+            or plan.get('base_model') != cfg['native_args']['model_dir']
+            or len(shards) != len(cfg['gpu_ids']) or len(ids) != 500 or len(set(ids)) != 500
+            or any(type(s.get('index')) is not int or s['index'] != i
+                   or not s.get('adapter_ids') for i, s in enumerate(shards))
+            or any(not isinstance(a, str) or not a or Path(a).name != a for a in ids)
+            or (pool_ids is not None and set(ids) != set(pool_ids))):
+        raise ValueError('Loquetier complete static shards differ from frozen input-only plan')
+    return plan
+
+
+def validate_loquetier_service_config(cfg, http):
+    from urllib.parse import urlsplit
+    from prepare_ieee_tc_serverless_stack import validate_http_lifecycle_contract
+    validate_http_lifecycle_contract(http)
+    endpoint = urlsplit(http['url'])
+    devices = cfg.get('gpu_ids', [])
+    ports = [endpoint.port, cfg.get('router_port'), *cfg.get('worker_ports', [])]
+    required = dict(model_dir=http['backbone'], dtype='float16', batch_size=2,
+                    context_tokens=1024, apply_scaling='A')
+    if (cfg.get('schema') != 'ieee_tc_loquetier_native_service_v1'
+            or http.get('schema') != 'ieee_tc_loquetier_http_replay_v1'
+            or cfg.get('routing') != 'static_shards_v1'
+            or cfg.get('worker_startup') != 'sequential_v1'
+            or cfg.get('generation_contract') != 'fixed_length_greedy_v1'
+            or type(devices) is not list or not devices or len(set(devices)) != len(devices)
+            or any(type(d) is not int or d not in range(4) for d in devices)
+            or len(cfg.get('worker_ports', [])) != len(devices)
+            or any(type(p) is not int or not 0 < p < 65536 for p in ports)
+            or len(set(ports)) != len(ports)
+            or endpoint.scheme != 'http' or endpoint.hostname != '127.0.0.1'
+            or endpoint.path != '/v1/chat/completions' or endpoint.query or endpoint.fragment
+            or endpoint.username or endpoint.password or not http.get('remote_artifacts')
+            or cfg.get('native_args') != required
+            or any(type(cfg['native_args'].get(k)) is not type(v) for k,v in required.items())):
+        raise ValueError('explicit Loquetier native/static-shard/sequential/loopback contract required')
+    for key in ('python', 'native_python', 'source_view', 'static_plan', 'native_kernel'):
+        if not isinstance(cfg.get(key), str) or not Path(cfg[key]).is_absolute():
+            raise ValueError('explicit Loquetier interpreter/source/placement/kernel paths required')
+    plan = load_loquetier_static_plan(cfg)
+    if (plan['pool_index'] != http['pool_index']
+            or plan['pool_index_sha256'] != http['pool_index_sha256']):
+        raise ValueError('Loquetier placement and common remote pool differ')
+    return endpoint.port
+
+
+def verify_loquetier_source_view(cfg):
+    root = Path(cfg['source_view'])
+    path = root/'measurement_manifest.json'
+    if _sha(path) != cfg['source_view_manifest_sha256']:
+        raise ValueError('Loquetier source view manifest changed')
+    manifest = _load_json(path)
+    if (manifest.get('schema') != 'ieee_tc_loquetier_measurement_view_v1'
+            or manifest.get('source_view') != str(root.resolve())
+            or manifest.get('supported_observation') != 'native_loquetier_inference_fixed_length_greedy_v1'
+            or manifest.get('helper_path') != str(SCRIPT_DIR/'ieee_tc_serverless_measurement.py')
+            or manifest.get('helper_sha256') != _sha(manifest['helper_path'])
+            or manifest.get('source_adapter_sha256') != _sha(SCRIPT_DIR/'prepare_ieee_tc_serverless_stack.py')
+            or manifest.get('shared_package') != str((Path(cfg['main_repo'])/'faaslora').resolve())
+            or _sha(cfg['native_kernel']) != cfg['native_kernel_sha256']):
+        raise ValueError('Loquetier source view/helper/native kernel identity differs')
+    for key, base in (('original_sha256', Path(manifest['native_source'])/'src/loquetier_src'),
+            ('measured_sha256', root/'loquetier_src'), ('shared_source_sha256', Path(cfg['main_repo']))):
+        for name,digest in manifest[key].items():
+            if _sha(base/name) != digest:
+                raise ValueError('Loquetier guarded source changed: '+name)
+    return manifest
+
+
+def loquetier_worker_environment(cfg, device, environ=None):
+    python = Path(cfg['native_python'])
+    root = python.parent.parent
+    torchlib = root/'lib/python3.9/site-packages/torch/lib'
+    if (not python.is_absolute() or not python.is_file() or not os.access(python, os.X_OK)
+            or not torchlib.is_dir()):
+        raise ValueError('existing Loquetier native Python3.9/torch environment required')
+    env = dict(os.environ if environ is None else environ)
+    env.pop('PYTHONHOME', None)
+    env.update(PATH=str(python.parent)+os.pathsep+env.get('PATH', ''),
+        LD_LIBRARY_PATH=str(torchlib)+os.pathsep+str(root/'lib')+os.pathsep+env.get('LD_LIBRARY_PATH', ''),
+        PYTHONPATH=cfg['source_view'], PYTHONNOUSERSITE='1', PYTHONUNBUFFERED='1',
+        PYTHONDONTWRITEBYTECODE='1', CUDA_VISIBLE_DEVICES=str(device), MAX_JOBS='2',
+        TRANSFORMERS_OFFLINE='1', HF_DATASETS_OFFLINE='1')
+    return env
+
+
+def loquetier_worker_context(config_path, index):
+    """No torch/native imports before source, process and containment checks."""
+    from prepare_ieee_tc_serverless_stack import load_guard
+    cfg = _load_json(config_path)
+    expected = {str(SCRIPT_DIR/n) for n in ('replay_vllm_engine_trace.py',
+        'ieee_tc_serverless_measurement.py', 'prepare_ieee_tc_serverless_stack.py')}
+    if (cfg.get('schema') != 'ieee_tc_loquetier_native_service_v1'
+            or type(index) is not int or not 0 <= index < len(cfg['gpu_ids'])
+            or set(cfg.get('source_sha256', {})) != expected
+            or any(_sha(p) != h for p,h in cfg['source_sha256'].items())
+            or os.environ.get('FAASLORA_TC_LOQUETIER_WORKER_CONFIG_SHA256') != _sha(config_path)
+            or Path(sys.executable).resolve() != Path(cfg['native_python']).resolve()
+            or sys.version_info[:2] != (3, 9)
+            or os.environ.get('CUDA_VISIBLE_DEVICES') != str(cfg['gpu_ids'][index])
+            or set(cfg.get('native_environment', {})) != set(LOQUETIER_ENV_KEYS)
+            or any(os.environ.get(k) != v for k,v in cfg['native_environment'].items())):
+        raise ValueError('Loquetier native process/source/config identity differs')
+    verify_loquetier_source_view(cfg)
+    plan = load_loquetier_static_plan(cfg, cfg['adapters'])
+    root = Path(cfg['remote_config']['cache_dir'])/'objects'
+    if (len(cfg['adapters']) != 500 or not root.is_absolute()
+            or any(Path(p) != root/aid for aid,(_,p) in cfg['adapters'].items())
+            or cfg['remote_config']['content_manifest'] != plan['pool_index']
+            or cfg['remote_config']['content_manifest_file_sha256'] != plan['pool_index_sha256']):
+        raise ValueError('Loquetier workers must use this run common remote objects')
+    sys.path.insert(0, cfg['main_repo'])
+    guard = load_guard(Path(cfg['main_repo']))
+    guard.verify_current_service()
+    prep_path = Path(cfg['output'])/'loquetier_full_pool_preparation.json'
+    prepared = _load_json(prep_path)
+    notice = cfg['deployment_notice_s']
+    if (set(prepared) != set(cfg['adapters']) or type(notice) not in (int,float)
+            or not math.isfinite(notice)):
+        raise ValueError('Loquetier complete after-notice preparation required')
+    for aid,row in prepared.items():
+        start,end = row.get('tc_artifact_resolve_started_s'), row.get('tc_artifact_resolve_completed_s')
+        if (row.get('tc_artifact_id') != aid or row.get('tc_artifact_request_id') != 'loquetier-full-pool:'+aid
+                or row.get('tc_artifact_cache_hit') is not False
+                or any(type(t) not in (float,int) or not math.isfinite(t) for t in (start,end))
+                or not notice <= start <= end <= time.perf_counter()):
+            raise ValueError('Loquetier preparation predates common notice or has wrong identity')
+    return cfg, guard, plan, prepared
+
+
+def _load_loquetier_native_bridge(cfg, index, plan, emit):
+    """Exact previously capacity-tested native load sequence; single owner thread."""
+    from prepare_ieee_tc_serverless_stack import load_guard
+    load_guard(Path(cfg['main_repo'])).verify_current_service()
+    import torch
+    from transformers import LlamaConfig, GenerationConfig, LogitsProcessorList
+    from loquetier_src import LoquetierFramework, create_virtual_model
+    from loquetier_src.models.mixed_llama import MixedLlamaForCausalLM
+    from loquetier_src.models.mixed_lora import MixedLoraModel
+    from loquetier_src.model_generation import ModelGeneration, InputRequest, InferStatus
+    from loquetier_src.tc_measurement import loquetier_bind_static_registry
+    from loquetier.ops import _kernels
+    if (torch.cuda.device_count() != 1 or str(Path(_kernels.__file__).resolve()) !=
+            str(Path(cfg['native_kernel']).resolve()) or _sha(_kernels.__file__) != cfg['native_kernel_sha256']
+            or Path(inspect.getfile(ModelGeneration)).resolve() !=
+                Path(cfg['source_view'])/'loquetier_src/model_generation.py'):
+        raise ValueError('actual Loquetier native imports or visible device differ')
+    torch.cuda.set_device(0)
+    device, dtype = torch.device('cuda:0'), torch.float16
+    aids = plan['shards'][index]['adapter_ids']
+    paths = {aid: cfg['adapters'][aid][1] for aid in aids}
+    basepath = cfg['native_args']['model_dir']
+    emit(dict(event='loquetier_backbone_loading', index=index, at=time.perf_counter()))
+    base = MixedLlamaForCausalLM.from_pretrained(basepath,
+        low_cpu_mem_usage=True, torch_dtype=dtype).to(device)
+    LoquetierFramework.BaseModelList[basepath] = base
+    models = [LoquetierFramework.load_model(paths[aid], use_fast=False, torch_dtype=dtype) for aid in aids]
+    mixed = MixedLoraModel(create_virtual_model(base),
+        {aid: model.base_model for aid,model in zip(aids,models)}, dtype=dtype, device=device, apply_scaling='A')
+    generation = GenerationConfig.from_pretrained(basepath)
+    generation.do_sample, generation.num_beams = False, 1
+    generation.eos_token_id, generation.max_length = None, cfg['native_args']['context_tokens']
+    generator = ModelGeneration(mixed, LlamaConfig.from_pretrained(basepath), generation, device, dtype=dtype)
+    registry = loquetier_bind_static_registry(generator, paths)
+    if generator._tc_loquetier_registry != {aid:i for i,aid in enumerate(aids)}:
+        raise ValueError('native Loquetier adapter index differs from frozen shard order')
+    def request_factory(mark, rid, aid, ids, target):
+        request = InputRequest(status=InferStatus.Prefill, input_ids=torch.tensor(ids, dtype=torch.long),
+            next_input_ids=list(ids), mark_id=mark, lora_name=aid,
+            logits_processor=LogitsProcessorList(), max_length=len(ids)+target)
+        request._tc_request_id = rid
+        return request
+    bridge = LoquetierNativeBatchBridge(generator, request_factory, cfg['native_args']['batch_size'])
+    bridge.native_models = models  # Preserve original and prepared representation; no offload/dedup.
+    bridge.startup = dict(registry=registry, adapter_ids=dict(generator._tc_loquetier_registry),
+        adapter_paths=paths, cuda_device_count=torch.cuda.device_count(),
+        model_dir=basepath, allocated_bytes=torch.cuda.memory_allocated(0),
+        reserved_bytes=torch.cuda.memory_reserved(0), native_kernel_sha256=_sha(_kernels.__file__))
+    return bridge
+
+
+async def _native_loquetier_worker(config_path, index):
+    cfg, guard, plan, prepared = loquetier_worker_context(config_path, index)
+    from aiohttp import web
+    from faaslora.clock import local_monotonic_clock_id
+    runner = queue = waiter = None
+    stopped = asyncio.Event()
+    asyncio.get_running_loop().add_signal_handler(signal.SIGTERM, stopped.set)
+    # Journal retained even for initialization/forward failure; no hidden retry.
+    with (Path(cfg['output'])/f'worker_{index}.native_events.jsonl').open('x') as journal:
+        def emit(row):
+            journal.write(json.dumps(row, allow_nan=False)+'\n')
+            journal.flush()
+        try:
+            queue = LoquetierOnlineRequests(lambda: _load_loquetier_native_bridge(cfg,index,plan,emit), emit)
+            bridge = await queue.start()
+            receipt_id = uuid.uuid4().hex
+            row = dict(schema='ieee_tc_loquetier_backend_ready_v1', receipt_id=receipt_id,
+                at=time.perf_counter(), clock_id=local_monotonic_clock_id(), index=index,
+                identity=guard.gpu_process_identity(os.getpid()), cuda_visible=os.environ['CUDA_VISIBLE_DEVICES'],
+                native_environment=cfg['native_environment'], native_args=cfg['native_args'],
+                worker_config_sha256=_sha(config_path), runner_sha256=_sha(__file__),
+                source_view_manifest_sha256=cfg['source_view_manifest_sha256'],
+                static_plan_sha256=cfg['static_plan_sha256'],
+                preparation_sha256=_sha(Path(cfg['output'])/'loquetier_full_pool_preparation.json'),
+                ready_boundary='native_static_shard_and_model_initialized', **bridge.startup)
+            receipt_path = Path(cfg['output'])/'worker_receipts'/(receipt_id+'.json')
+            _exclusive_json(receipt_path,row)
+            ready = dict(tc_worker_receipt_id=receipt_id, tc_worker_receipt_sha256=_sha(receipt_path),
+                         tc_worker_ready_s=row['at'], port=cfg['worker_ports'][index])
+            adapters = {aid:(i,cfg['adapters'][aid][1]) for i,aid in enumerate(plan['shards'][index]['adapter_ids'])}
+            handler = NativeLoquetierRequestHandler(queue=queue, adapters=adapters,
+                preparation={aid:prepared[aid] for aid in adapters}, clock_id=row['clock_id'], shard_index=index,
+                receipt=ready, worker_process=bridge.process, model=cfg['model'],
+                deployment_notice_s=cfg['deployment_notice_s'])
+            async def generate(request):
+                return web.json_response(await handler.generate(await request.json()))
+            async def health(request):
+                return web.json_response(dict(ready=queue.failure is None and not queue.closing,
+                    receipt_id=receipt_id, process=bridge.process), status=200 if queue.failure is None else 503)
+            app = web.Application()
+            app.router.add_post('/v1/chat/completions',generate)
+            app.router.add_get('/health',health)
+            runner = web.AppRunner(app,access_log=None,handler_cancellation=True,shutdown_timeout=1.)
+            await runner.setup()
+            await web.TCPSite(runner,'127.0.0.1',cfg['worker_ports'][index]).start()
+            _exclusive_json(Path(cfg['output'])/f'worker_{index}.ready.json',ready)
+            waiter = asyncio.create_task(stopped.wait())
+            await asyncio.wait((waiter,queue.task),return_when=asyncio.FIRST_COMPLETED)
+            if queue.task.done():
+                raise RuntimeError('native Loquetier queue stopped; worker must exit') from queue.failure
+        except BaseException as exc:
+            emit(dict(event='loquetier_worker_failed',error=f'{type(exc).__name__}: {exc}',at=time.perf_counter()))
+            raise
+        finally:
+            if waiter is not None:
+                waiter.cancel()
+                await asyncio.gather(waiter,return_exceptions=True)
+            if runner is not None:
+                await runner.cleanup()
+            if queue is not None:
+                await queue.close()
+            emit(dict(event='loquetier_worker_exiting',at=time.perf_counter(),
+                      gpu_release_proven=False))  # Parent proves process exit + native GPU census.
+
+
+def validate_loquetier_ready_receipt(receipt, *, cfg, index, plan, identity,
+                                     preparation_sha256):
+    aids = plan['shards'][index]['adapter_ids']
+    if (receipt.get('schema') != 'ieee_tc_loquetier_backend_ready_v1'
+            or receipt.get('index') != index or receipt.get('identity') != identity
+            or receipt.get('adapter_ids') != {aid:i for i,aid in enumerate(aids)}
+            or receipt.get('adapter_paths') != {aid:cfg['adapters'][aid][1] for aid in aids}
+            or receipt.get('source_view_manifest_sha256') != cfg['source_view_manifest_sha256']
+            or receipt.get('static_plan_sha256') != cfg['static_plan_sha256']
+            or receipt.get('preparation_sha256') != preparation_sha256
+            or receipt.get('native_environment') != cfg['native_environment']
+            or receipt.get('native_args') != cfg['native_args']
+            or receipt.get('native_kernel_sha256') != cfg['native_kernel_sha256']
+            or receipt.get('model_dir') != cfg['native_args']['model_dir']
+            or receipt.get('cuda_visible') != str(cfg['gpu_ids'][index])
+            or receipt.get('cuda_device_count') != 1
+            or receipt.get('runner_sha256') != _sha(__file__)
+            or receipt.get('ready_boundary') != 'native_static_shard_and_model_initialized'
+            or receipt.get('registry', {}).get('adapter_count') != len(aids)
+            or receipt.get('registry', {}).get('pointer_tables_verified') is not True
+            or any(type(receipt.get(k)) is not int or receipt[k] <= 0
+                   for k in ('allocated_bytes','reserved_bytes'))):
+        raise ValueError('actual Loquetier worker/static registry/preparation differs from ready receipt')
+
+
 class NativeSloraRequestHandler:
     """Shared HTTP contract -> native generate_stream, not a new scheduler.
 
@@ -823,7 +1112,9 @@ async def _resident_http_service(config_path, http_path, output, private_root):
     cfg, http = _load_json(config_path), _load_json(http_path)
     ingress_port = validate_native_service_config(cfg, http)
     slora = cfg['schema'] == 'ieee_tc_slora_native_service_v1'
-    backend = 'slora' if slora else 'vllm'
+    loquetier = cfg['schema'] == 'ieee_tc_loquetier_native_service_v1'
+    static_native = slora or loquetier
+    backend = 'loquetier' if loquetier else 'slora' if slora else 'vllm'
     sys.path.insert(0, http['main_repo'])
     guard = load_guard(Path(http['main_repo']))
     admission = guard.verify_current_service()
@@ -836,11 +1127,13 @@ async def _resident_http_service(config_path, http_path, output, private_root):
     plan = load_http_replay_plan(http)
     # All subprocess prerequisites are qualified before the first physical
     # allocation. The executable is already installed; this does not compile.
-    if slora:
-        verify_slora_source_view(dict(cfg, main_repo=http['main_repo']))
+    if static_native:
+        verify_view = verify_loquetier_source_view if loquetier else verify_slora_source_view
+        verify_view(dict(cfg, main_repo=http['main_repo']))
         toolchain = dict(native_python=cfg['native_python'],
             source_view_manifest_sha256=cfg['source_view_manifest_sha256'], startup=cfg['worker_startup'])
-        worker_environments = [(slora_worker_environment(cfg, device), toolchain) for device in cfg['gpu_ids']]
+        make_env = loquetier_worker_environment if loquetier else slora_worker_environment
+        worker_environments = [(make_env(cfg, device), toolchain) for device in cfg['gpu_ids']]
     else:
         worker_environments = [native_worker_environment(cfg, device) for device in cfg['gpu_ids']]
         toolchain = worker_environments[0][1]
@@ -861,14 +1154,22 @@ async def _resident_http_service(config_path, http_path, output, private_root):
     worker_cfg = dict(cfg, model=http['model'], main_repo=http['main_repo'], output=str(output),
         source_sha256=sources, native_toolchain=toolchain,
         remote_config=remote, adapters={aid: [i if slora else i+1, paths[aid]] for i, aid in enumerate(sorted(paths))})
+    if loquetier:
+        shard_plan = load_loquetier_static_plan(cfg, paths)
+        worker_cfg.update(deployment_notice_s=context['deployment_notice_s'],
+            native_environment={k:worker_environments[0][0][k] for k in LOQUETIER_ENV_KEYS})
     if slora:
         worker_cfg.update(deployment_notice_s=context['deployment_notice_s'],
             native_environment={k: worker_environments[0][0][k] for k in SLORA_ENV_KEYS},
             native_input_params={k: cfg['native_args'][k] for k in SLORA_INPUT_KEYS})
     worker_path = output/'worker_config.json'
     _exclusive_json(worker_path, worker_cfg)
-    router = ResidentRoundRobin([e.request_id for e in plan.entries], len(cfg['gpu_ids']),
-                                local_monotonic_clock_id(), instance_prefix=backend)
+    if loquetier:
+        router = LoquetierStaticRouter({aid:s['index'] for s in shard_plan['shards'] for aid in s['adapter_ids']},
+                                      len(cfg['gpu_ids']),local_monotonic_clock_id())
+    else:
+        router = ResidentRoundRobin([e.request_id for e in plan.entries], len(cfg['gpu_ids']),
+                                    local_monotonic_clock_id(), instance_prefix=backend)
     result = dict(schema=f'ieee_tc_{backend}_native_model_qualification_v1', passed=False,
         qualification_only=True, numerical_correctness_qualified=False,
         configuration=cfg, configuration_sha256=_sha(config_path),
@@ -928,6 +1229,19 @@ async def _resident_http_service(config_path, http_path, output, private_root):
                         break
                 except (aiohttp.ClientConnectionError, asyncio.TimeoutError):
                     await asyncio.sleep(.05)
+        elif loquetier:
+            validate_loquetier_ready_receipt(receipt,cfg=worker_cfg,index=index,plan=shard_plan,
+                identity=guard.gpu_process_identity(process.pid),
+                preparation_sha256=_sha(output/'loquetier_full_pool_preparation.json'))
+            async with session.get(f'http://127.0.0.1:{cfg["worker_ports"][index]}/health',
+                    timeout=aiohttp.ClientTimeout(total=1.),allow_redirects=False) as response:
+                health = await response.json()
+                expected_process = dict(pid=receipt['identity']['pid'],
+                    start_ticks=receipt['identity']['start_ticks'],clock_id=receipt['clock_id'])
+                if (response.status != 200 or health.get('ready') is not True
+                        or health.get('receipt_id') != ready['tc_worker_receipt_id']
+                        or health.get('process') != expected_process):
+                    raise ValueError('Loquetier HTTP health does not match the native ready worker')
         elif receipt['identity'] != guard.gpu_process_identity(process.pid):
             raise ValueError('native vLLM API process differs from receipt')
         # Notification and HTTP health alone are not GPU proof. Bind live
@@ -936,8 +1250,8 @@ async def _resident_http_service(config_path, http_path, output, private_root):
         workers = [dict(device_uuid=d['gpu_uuid'], pid=p['pid'], worker_rank=index)
             for d in sample['devices'] if d['gpu_uuid'] in owner.gpu_uuids
             for p in d['processes'] if p['service_member'] and p['kind'] == 'compute']
-        if slora and (len(workers) != 1 or workers[0]['pid'] != receipt['identity']['pid']):
-            raise ValueError('S-LoRA native census is not the receipted TP1 GPU child')
+        if static_native and (len(workers) != 1 or workers[0]['pid'] != receipt['identity']['pid']):
+            raise ValueError('static native census is not the receipted single-GPU process')
         owner.confirm_workers(workers)
         if slora:
             native_process = dict(pid=receipt['identity']['pid'],
@@ -1006,10 +1320,11 @@ async def _resident_http_service(config_path, http_path, output, private_root):
                 await web.TCPSite(app_runner, '127.0.0.1', cfg['router_port']).start()
                 ingress.router_ready()
                 async def start_workers():
-                    if slora:
+                    if static_native:
                         slora_preparation.update(await prepare_slora_full_pool(
-                            PublishedArtifactResolver(remote), paths, context['deployment_notice_s']))
-                        _exclusive_json(output/'slora_full_pool_preparation.json', slora_preparation)
+                            PublishedArtifactResolver(remote), paths, context['deployment_notice_s'],
+                            **({'backend':'loquetier'} if loquetier else {})))
+                        _exclusive_json(output/f'{backend}_full_pool_preparation.json', slora_preparation)
                     for index, device in enumerate(cfg['gpu_ids']):
                         if stop.is_set():
                             raise RuntimeError('resident startup interrupted before next GPU allocation')
@@ -1031,17 +1346,19 @@ async def _resident_http_service(config_path, http_path, output, private_root):
                             env.update(FAASLORA_TC_SLORA_WORKER_CONFIG=str(worker_path),
                                 FAASLORA_TC_SLORA_WORKER_CONFIG_SHA256=_sha(worker_path),
                                 FAASLORA_TC_SLORA_WORKER_INDEX=str(index))
-                        process = subprocess.Popen([cfg['native_python'] if slora else cfg['python'],
+                        elif loquetier:
+                            env['FAASLORA_TC_LOQUETIER_WORKER_CONFIG_SHA256'] = _sha(worker_path)
+                        process = subprocess.Popen([cfg['native_python'] if static_native else cfg['python'],
                             '-B', str(Path(__file__).resolve()),
-                            'native-slora-worker' if slora else 'native-http-worker',
+                            'native-loquetier-worker' if loquetier else 'native-slora-worker' if slora else 'native-http-worker',
                             '--config', str(worker_path), '--index', str(index)],
                             stdout=log, stderr=subprocess.STDOUT, env=env)
                         processes.append(process)
                         owner.bind_process(process, guard.gpu_process_identity(process.pid))
                         task = asyncio.create_task(await_ready(index, owner, process))
                         starts.append(task)
-                        if slora:
-                            await task  # Preserve historical sequential replica initialization.
+                        if static_native:
+                            await task  # Existing sequential initialization bounds peak preparation memory.
                 starts.append(asyncio.create_task(start_workers()))
                 await wait_for_replay()
                 result['passed'] = True
@@ -1076,7 +1393,8 @@ async def _resident_http_service(config_path, http_path, output, private_root):
         try:
             record_http_physical_terminals(deployment, context['result_path'])
             physical = deployment.summarize(observed_until_s=time.monotonic())
-            result['physical_lifecycle'] = dict(mode=f'{backend}_resident_pool_v1',
+            result['physical_lifecycle'] = dict(mode=('loquetier_static_shards_v1' if loquetier
+                                                    else f'{backend}_resident_pool_v1'),
                 summary_path=str(deployment.root/'physical_resource_summary.json'),
                 measurement_complete=physical['measurement_complete'])
             if (not physical['measurement_complete']
@@ -1095,18 +1413,21 @@ async def _resident_http_service(config_path, http_path, output, private_root):
 
 def native_http_main(argv):
     parser = argparse.ArgumentParser(description='Opt-in shared TC native HTTP measurement')
-    parser.add_argument('mode', choices=('native-http-service', 'native-http-worker', 'native-slora-worker'))
+    parser.add_argument('mode', choices=('native-http-service', 'native-http-worker', 'native-slora-worker',
+                                         'native-loquetier-worker'))
     parser.add_argument('--config', type=Path, required=True)
     parser.add_argument('--index', type=int)
     parser.add_argument('--http-replay-config', type=Path)
     parser.add_argument('--output', type=Path)
     parser.add_argument('--private-root', type=Path)
     args = parser.parse_args(argv)
-    if args.mode in ('native-http-worker', 'native-slora-worker'):
+    if args.mode in ('native-http-worker', 'native-slora-worker', 'native-loquetier-worker'):
         if args.index is None:
             parser.error('worker requires --index')
         if args.mode == 'native-slora-worker':
             _native_slora_worker(args.config, args.index)
+        elif args.mode == 'native-loquetier-worker':
+            asyncio.run(_native_loquetier_worker(args.config,args.index))
         else:
             asyncio.run(_native_worker(args.config, args.index))
     else:
@@ -1233,7 +1554,8 @@ def _print_live(label: str, start_perf: float, total: int, results: List[Dict[st
 
 
 def main() -> int:
-    if len(sys.argv) > 1 and sys.argv[1] in ('native-http-service', 'native-http-worker', 'native-slora-worker'):
+    if len(sys.argv) > 1 and sys.argv[1] in ('native-http-service', 'native-http-worker', 'native-slora-worker',
+                                          'native-loquetier-worker'):
         return native_http_main(sys.argv[1:])
     # Legacy path unchanged; the new native service does not import this
     # user-owned dirty replay module or inherit its external loader behavior.
