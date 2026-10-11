@@ -1,4 +1,4 @@
-# IEEE TC execution status — D414 full W0 audited; next 7B vLLM
+# IEEE TC execution status — D415 vLLM native observation tested; integration next
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -75,6 +75,42 @@ regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance re
 
 ## Exact next action and remaining scope
 
+D415 CPU COMPONENT COMPLETE 2026-10-11, following D414 closure. Previous turn
+made concrete source changes but was interrupted before tests/status; this turn
+verified them, not a wait or blocker. No live GPU job. Baseline existing
+ieee_tc_serverless_measurement.py now has explicit install_v030_snapshot and
+V030NativeRequestObservation, reusing the common native timeline. No installed
+backend edits, serving-policy change, userdirty replay edit or new framework.
+Actual pinned producer/collector methods reproduce mutable stats/token aliases
+and token-only merge; snapshots retain matched token-event times and adapter
+name/ID/path, including a separate completion tail. Unknown source/version and
+missing native evidence fail closed. Official v0.30.0 output_processor/outputs/
+stats downloaded read-only: all3 byte SHA and AST equal local installation.
+13 new checks + existing measurement/launcher/router/SSE regression:112tests
+pass7.803s in4GiB/zeroswap/CPUs2,3,26,27. First11-test attempt had one incorrect
+test expectation about native exception propagation; test corrected to require
+the actual raised exception, no native behavior change. Earlier combined76
+passed5.663s. Actual0.30.0 import/idempotent double-install passed withGPUhidden;
+before/after compute census empty. Full details in D415_VLLM_NATIVE_OBSERVATION.md
+in both repos. This is NOT native GPU/path/performance qualification and has
+not yet been wired into the vLLM service runner. Resident U_ref remains OPEN.
+NEXT: integrate tested observation through existing runner/common launcher with
+service-owned ordinary routing/fetch, pre-ready independent HTTP arrivals and
+complete physical leases/actual release; CPU contract tests -> safely reclaim
+verified closed D414 objects -> fresh resource gates -> affected GPU path gate
+and one full W0. Do not rerun legacy D395/D396 unchanged, retune ServerlessLLM,
+jump3B or call this a comparison result. PrimeLoRA D371 and ServerlessLLM D414
+remain sealed. Disk~146.9GiB below150GiB NEWheavy gate; no cachecleanup/remote
+operation/newtrace/pool/figure occurred. Existing D78/D80 read-only published
+cache is reused under user's reconfirmed approval, not regenerated.
+Baseline tested checkpoint aba520572d019743320416b0015b1ba701716ee0 pushed to
+origin/main and remoteSHA verified. Exact3taskfiles only, diff/secrets checks
+passed; userdirty replay/relayserve SHA unchanged. Common protected147entries
+verified zerochange against D414preseal; D415 protected_after SHA
+6b4deabad0cf41b4f928ab8d0069edd8ae445128fb75786a9739f4e9baf11a70.
+Main report/status/protection checkpoint pending; all remaining scope intact.
+Earlier NEXT/RUNNING paragraphs below are retained history, not live jobs.
+
 D414 TERMINAL/AUDITED2026-10-11 05:57 Asia/Shanghai. Original4000offered/
 submitted/terminal/native/source/prompt/adapter/content/timing contracts,
 0failed,458224actualtokens. Do NOT restart D414 or oldercompletedruns.
@@ -99,10 +135,18 @@ SHA714a2fdb01b2d5a0e2e6f3a9b0faf7cb23b29632efbf5b343822b7dfe4b7dd74;
 SHA8912ab5259d7b10e990ab3b6233b789ce4432c0af2c1544498b7587b700904fd.
 ReportD414_SERVERLESSLLM_FULL_W0.md;all237manifestfilesSHAverified. Baseline
 closurebackup600cd4bf835db7fdfdd3fd72ea31c677507de10e pushedtoorigin/main and
-remoteSHAverified;notexecutioncommit. Mainbackup pendingthischeckpoint;
-no downloadedcache reclaimed yet. Disk~147GiB below
+remoteSHAverified;notexecutioncommit. Mainclosurebackup
+3af56b3bb4c76fe0c755d6198237c67851ab5f75 pushedtofaaslora_origin/
+retry14_continuous_queue_v2 andremoteSHAverified05:59. Exactly4taskfiles staged;
+diff/secrets/23CPUtests/237-filehashchecks passed. All3protecteduserdirtySHAs
+unchanged;onlythispostpushconfirmation is subsequentunstagedtaskwork.
+No downloadedcache reclaimed yet. Disk~147GiB below
 150GiB NEWheavy startfloor. Do notlaunchbefore safeverifiedcache-onlycleanup
-andfreshresourcegates. Nextsave/backup ->7BvLLM D412measurement integration,
+andfreshresourcegates. NEXT7BvLLM D412measurement integration;D412readagain,
+stillNOTimplemented/qualified:neednativeengine-token timing,service-owned
+fetch/routing,pre-readyopen-loop ingress,completephysicalleases/commonlauncher.
+Preserveuserdirtyreplay,existingrunners/assets;do notsimplyrerunD395/D396.
+No nextGPUjobstarted. Returnto7Bmainline,
 notServerlessLLMparametersearch/newshortgates or3Bjump. PrimeLoRA D371sealed;
 allotherapprovedcomparisons,Residentreference,W1/W2/G2,3B,A1-A5/S1-S13,CE/docs/
 figuresremainopen. Previousgoalturnverifiedwait;thisturn completedfullrunclosure
