@@ -1,0 +1,49 @@
+{
+  "schema": "ieee_tc_d445_closure_checkpoint_v1",
+  "campaign": "d445_20261012",
+  "execution_commits": {
+    "main": "9471e1ec60baabe78f6d9d00182c100b689e0719",
+    "baseline": "311663aa501ea2f7b61a04f53fa471822272643f"
+  },
+  "baseline_closure_backup": {
+    "commit": "d992fc4fce40ae487df6d9d52ffe48c8d6477311",
+    "branch": "main",
+    "remote": "origin",
+    "remote_sha_verified": true
+  },
+  "audit_sha256": "1fc16d0b15a201a8063142feb0ddc1c430cefed1fc69843927f8c8c170b27e31",
+  "evidence_manifest_sha256": "7057e39dddf78e370de620ef12cfb047c0923ac852db3dabd8a2eab593a067b8",
+  "baseline_summary_sha256": "e3b4ceff8fbb2c03f3fdba79c82c1b8de23d5b7a9c1ae89e57be0e288631f89b",
+  "protected_verification": {
+    "entries": 147,
+    "pass": true,
+    "sha256": "1ff66513bbe7dc141d9bd14e43a7ce4f111cee38aeb215db2db8eebe141fb657"
+  },
+  "sealed_sources": {
+    "files": 577,
+    "bytes": 264306209,
+    "independently_rechecked": true
+  },
+  "prelaunch_tests_reused": {
+    "main": 53,
+    "baseline": 18,
+    "runtime_and_analyzer_unchanged": true
+  },
+  "native_patch_sha256": {
+    "Loquetier": "de476d06c318ba2be7f65dd9dba9bfb30a2f2c7e14e8bd6e35f30206ab041a39",
+    "S-LoRA": "7a0f48f60c225789014ad960ec3ab1cf6388611b7650a4f656f1208c981c2d60"
+  },
+  "all_owned_scopes_closed": true,
+  "actual_gpu_release": true,
+  "exact_owned_remote_services_stopped": true,
+  "native_binding_population": 4000,
+  "independent_numerical_proof": false,
+  "joint_good": 174,
+  "joint_attainment": 0.0435,
+  "observed_common_slo_feasible": false,
+  "baseline_performance_tuning": false,
+  "gpu_run_repeated": false,
+  "cleanup_status": "not_yet_performed_at_this_checkpoint",
+  "matched_comparison_status": "not_yet_performed",
+  "full_goal_status": "active"
+}

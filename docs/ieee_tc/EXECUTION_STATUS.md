@@ -1,4 +1,4 @@
-# IEEE TC execution status — D445 Loquetier single full4000 RUNNING
+# IEEE TC execution status — D445 Loquetier full4000 closed, nonfeasible SLO
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement experiment plan.
 Full earlier status is preserved byte-for-byte in EXECUTION_HISTORY_THROUGH_D433.md;
@@ -32,7 +32,46 @@ RUNNING entries are historical. No approved experiment or failed evidence was re
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D445 single full4000 RUNNING, monitor same handle
+## Current action — D445 closure sealed; backup and owned-cache reclamation next
+
+Same actual handle monitored through normal terminal. At2026-10-12 05:22:35
+4000responses/0failures;05:23:04 all3returncodes0,actualGPUrelease/servicepathremoved.
+No relaunch/configchange/baselineoptimization or live remoteadministration.
+4000offered/submitted/terminal/native/source/adapter/timing,458224tokens,132IDs;
+recompute0ms. CommonD394 TTFT220/TPOT2996/joint174=4.35%,NONFEASIBLE.
+U16998.38323442987GPU-s,4.249595808607468/binding-validrequest.
+Mean/P95TTFT262600.734/555110.032ms;mean/P95TPOT62.403/68.613ms;
+meanE2E269672.942ms. Routerqueue7042.381ms,native-submit-to-registration
+255328.726ms,registered-to-first210.333ms. Shardrequests1008/1076/1048/868;
+descriptivephase evidence,not causal ablation or baseline optimum.
+Raw n_correctnull/independent numericalfalse preserved; noD385full4000proof.
+500HTTP/420740410wireB/12985984450materializedB/0packs;4000referencesnotfetches.
+Servicepeak42372567040B,hostmin81517760512B,diskmin149648982016B;
+high/max/OOM/swap0. Exact-owned remote3unitsstopped/MainPID0/portsabsent.
+TransferSHA2eacd1054836dd348e3649c08f5dc559eeac96616719467a5c6d6d8934f60ed2,
+monitorSHA47e781179eb6ab5202f54aad1cdf5d5ce6e909df1700ba4bdd6d9fe97b85788b.
+Unchanged Loquetier/full4000 audit passed; auditSHA
+1fc16d0b15a201a8063142feb0ddc1c430cefed1fc69843927f8c8c170b27e31.
+577-file264306209BmanifestSHA7057e39dddf78e370de620ef12cfb047c0923ac852db3dabd8a2eab593a067b8;
+allSHA/sizes independentlyrechecked.147protectedentries/threeuserfilesunchanged.
+Aux0001 exactID/actualrecursiveemptytree stopped,peak519933952B.
+Aux0006-0010 IDs bda1b3f2a6314b9a80aa4d061a0bbc1e/edd463f87a814d6d8c79d99503107717/
+98ef573596364b6296f6557d2701d064/ba584b6cea6d406f85eb29e8000cc700/
+5a5ea0c2a63c4f808756c341e052e5d2;peaks163192832/545624064/29700096/7860224/
+327639040B;allactualrecursiveemptytrees/InvocationIDscheckedthenstopped,
+high/max/OOM/swap0. NoD445scope/tmux remains. No freshsemanticreviewPASS.
+Closure report D445_LOQUETIER_FULL_W0.md; BASEcurated d445_full_w0_summary.json.
+BASE closure backup d992fc4fce40ae487df6d9d52ffe48c8d6477311 pushed/remoteSHAverified;
+summarySHA e3b4ceff8fbb2c03f3fdba79c82c1b8de23d5b7a9c1ae89e57be0e288631f89b.
+Native Loquetier/S-LoRA historicalpatch SHAs unchanged. Same-source prelaunch
+53MAIN/18BASE tests reused; no runtime/analyzer change or new performance run.
+NEXT double-repobackup -> onlyownedreconstructibledownloadcleanup -> reverifyseals
+-> separatefullmatched5-systemjoin -> HydraServe/remaining7B/necessaryPrimeLoRAopt.
+Do not repeat D445 or sealedW0;no3Bjump. W1/W2/G2 and fullscope below OPEN.
+This continuation made verifiedwait+actualclosure/audit/seal progress;goalACTIVE,
+no blocker. Backup/cleanup/join not yet claimed complete at this checkpoint.
+
+## D445 launch and monitored progress — historical details, closed above
 
 Launched once2026-10-12T04:07:28+08:00 in tmux tc-d445-7b.
 Serviceunit primelora-tc-svc-147e7a56908444ea8ed8ec9109e4fd98.scope,
@@ -72,6 +111,47 @@ BASEdoconlybackupede9ee0aa1edc45012547b1e25eec11f2b89f1f1 pushed/remoteSHAverifi
 D445execution BASE remains311663aa501ea2f7b61a04f53fa471822272643f.
 Thiscontinuation is verifiedwait+sourceevidenceprogress,notqualificationPASS;
 sameD445 closure remainsnext, nosecondheavyjob or3Bjump/fullgoalcompletion.
+
+Verifiedwait continuation through2026-10-12 04:27:12Asia/Shanghai:
+sameactualtmux live, fourworkerready receipts,1029request_created/759http_response,
+4000predeclaredrequest_contract records; these are liveprogress,not a completeaudit.
+Nohttp_request_failed event; watchdogsample1144 hashigh/max/OOM/swap0/noabort,
+host81984778240B,disk149736538112B. No restart/configchange/remoteadministration/
+secondheavyjob/cleanup. PLAN/V1/V2 hashesunchanged; fullscope stillOPEN.
+Currentturn is verifiedwait on livehandle,notblockage. Continue sameD445 toterminal;
+do not restart or infer fullW0/SLO from thisprefix. No new performance run thisturn.
+
+Verified-wait continuation through 2026-10-12 04:47:08 Asia/Shanghai:
+same tmux and exact service/outer-aux InvocationIDs remain active. Live counters:
+2527 request_created, 2130 http_response, 0 http_request_failed, no replay terminal.
+Watchdog sample2324: host available81864454144B, service42294362112B,
+disk free149697490944B; high/max/OOM/oom_kill all0, no warning/abort.
+These are progress observations, not a completed correctness/SLO audit. Full PLAN,
+full current status, baseline rules and metricV1+V2 reread; all three authority
+hashes unchanged. Repeated user cache approval reuses D78/D80, no new publication.
+No restart, runtime/configuration change, test/build, remote administration,
+cleanup, second heavy job or performance rerun. Closure recipes inspected read-only;
+exact InvocationID plus actual recursive cgroup.procs checks must precede owned
+aux shutdown (the preservation helper's root-only check is not sufficient alone).
+Continue this same D445 handle to actual terminal, then release/audit/seal/backup;
+remaining 7B comparison/HydraServe, necessary PrimeLoRA optimization, 3B and the
+full approved experiment/document scope remain OPEN. Goal ACTIVE, no blocker.
+
+Continuation through 2026-10-12 04:56:18 Asia/Shanghai remains a verified wait,
+not a blocked or completed task. Same live tmux/service InvocationID;3156 arrived,
+2858 responses,0 failures,no replay terminal. Watchdog sample2867:
+host81843167232B, service42315706368B,disk149678231552B,high/max/OOM0,no abort.
+Four GPUs still serving; no second tmux experiment. Full PLAN/status/baseline rules
+reread; no experiment/runtime/config change, remote operation or cleanup.
+Read-only next-join inspection confirmed Loquetier's actual entry field is
+native_registered_monotonic_s (ieee_tc_serverless_measurement.py:752), separate
+from native_scheduled_monotonic_s. Existing matched_native_entry currently supports
+S-LoRA explicitly and otherwise assumes vLLM; after D445 sealing it needs explicit
+Loquetier path/index/forward-binding checks and its own boundary label, not fake
+vLLM fields. Existing strict audit already checks actual static destination, source,
+process, ready receipt and pointer/forward binding. This inspection is not a test
+or fresh qualification PASS. Same terminal->release->audit->seal/backup remains NEXT;
+full approved scope and goal remain ACTIVE/OPEN, no baseline optimization.
 
 ## D445 preregistration and completed prelaunch checks
 
