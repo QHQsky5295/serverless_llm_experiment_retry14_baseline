@@ -1,4 +1,4 @@
-# IEEE TC execution status — D422 original vLLM 7B compatibility running
+# IEEE TC execution status — D422 original vLLM 7B compatibility passed
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -74,6 +74,53 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+D422 TERMINAL/AUDITED 2026-10-11, actual release before17:01:50 Asia/Shanghai.
+1000 offered/submitted/terminal/native/source/adapter/content/timing contracts,
+0 failures,60 IDs,122510 native tokens;E2E/TPOT/native recompute error0ms.
+CommonD394 TTFT991/TPOT1000/joint991=99.1%;mean/P95TTFT455.189460/2118.832637ms,
+mean/P95TPOT24.974164/27.243896ms,meanE2E3490.662821ms. Four actual workers and
+closed physical leases,U4601.208847534144GPU-s,4.601208847534144/request.
+This original1000 compatibility view is NOT fullW0/ranking/U_ref;raw n_correct
+and numerical flags remain unchanged. Native ready notice+40.900..41.959s;
+retained compiler disk cache differs fromD419,not a free engine preload.
+60HTTP/74953014wireB/1474429899verifiedpayloadB,940cachehits,0packs.
+Peakservice12567740416B,hostavailablemin100156542976B,diskmin162226290688B;
+high/max/OOM/swap0. Actual GPU release/service removal/exit0 confirmed;empty
+ownedaux stopped,3ownedremoteunits STOPPED by InvocationID/MainPID0/portsabsent.
+Remote copies SHA:transfer c5457d777af44f3cc0c9ca2ae5f4ed7c253912285a4d1a7e146122ba3e7fb317,
+monitor ce3ba5fe1bc49a7ce210b276fbd1a3c2a5bdfcf801db2aea29fe2cb5c9af5282.
+147 protectedentries unchanged,postSHA c86a0aa5f6624cb83c71f1497d9f235c3d42ddc4267f8c11e8c32e6a0f7e75ad.
+Existing strict prefix1000/resident_rr_v1 audit passed;raw auditSHA
+43f07985abd12189288597587fc0128939c779e1dad65f6875afbdfe82b81517,
+133file/67717384B manifestSHA42f06cbed073ec760b056db59fef4807e57187202f086c78c0db51f5d108abc8.
+Original first100 independentD385 witness reused:97HF exact/3existing margin
+witnesses,93same-as-D419/7changed;all4weightclasses. No newGPU oracle or exact
+match gate;other900 independent numeric proof not inferred. New analysis-only
+recipe initially failed on nonexistent contract arrival field/no output; uses
+existing FrozenReplayPlan original order now,not a performance retry.
+Report D422_VLLM_1000_COMPATIBILITY.md;curated d422_7b_compatibility/.
+NEXT verify/seal backups,optional safe downloadedobject-only reclamation and
+fresh resource gates -> one full4000W0,unchanged native configuration. No100,
+500 or1000 repeat/parameter search. PrimeLoRA D371/ServerlessLLM D414 sealed;
+U_ref/W1/W2/G2/remaining7Bbaselines/3B/A1-A5/S1-S13/CE/docs/figures OPEN.
+This turn completed a monitored live run and strict audit,concrete progress,
+not goalcompletion. Older RUNNING/NEXT paragraphs below are historical.
+
+D422 VERIFIED LIVE checkpoint 2026-10-11 16:45:22 Asia/Shanghai. Same active
+service InvocationID9d9487f825874614acb5d7a94e0f29a7/tmux tc-d422-7b, not restarted.
+51 created/sent,47 raw/validated responses,1000 registered contracts,0 failures.
+Watchdogsample167:hostavailable101595738112B,service10290659328B,
+disk163301314560B,high/max/OOM/swap0,no abort. Deployment notice1215401.25616516,
+business origin1215461.25616516,original last arrival1216540.6704450978.
+Run is not terminal. Running documentation backup e1074cdbef55094a4f83f4929696ca201cc0e662
+pushed to faaslora_origin/retry14_continuous_queue_v2 and remote SHA verified;
+not the execution commit. This postpush checkpoint remains task-owned unstaged.
+NEXT monitor SAME handle, no live tests/hashscan/cleanup/remote changes -> actual
+release -> raw stop_remote.sh/preserve_evidence.py -> existing prefix1000 audit
+with D394 and resident_rr_v1 -> seal/backup -> one full4000W0. Do not repeat
+D419/D421 or treat this wait as a blocker. PrimeLoRA D371/ServerlessLLM D414
+sealed; all remaining approved scope open and full goal active.
 
 D422 RUNNING since 2026-10-11 16:42:25 Asia/Shanghai, tmux tc-d422-7b.
 Exactly one heavy job. Main execution 9f334caab8a2c305f7e29909532a65f7cc8db1d1
