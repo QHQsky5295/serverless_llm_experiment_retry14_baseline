@@ -574,6 +574,79 @@ class LoquetierOnlineRequests:
         self.executor.shutdown(wait=True)
 
 
+class NativeLoquetierRequestHandler:
+    """Common HTTP body to the real native online queue; no new routing policy."""
+    def __init__(self, *, queue, adapters, preparation, clock_id, shard_index,
+                 receipt, worker_process, model, deployment_notice_s):
+        if (type(shard_index) is not int or shard_index < 0 or not adapters
+                or set(adapters) != set(preparation)
+                or set(adapters) != set(queue.bridge.adapters)
+                or {i for i, _ in adapters.values()} != set(range(len(adapters)))
+                or any(type(i) is not int or not Path(p).is_absolute() or Path(p).name != aid
+                       for aid, (i, p) in adapters.items())
+                or worker_process.get('clock_id') != clock_id
+                or any(type(worker_process.get(k)) is not int or worker_process[k] <= 0
+                       for k in ('pid', 'start_ticks'))
+                or any(not isinstance(receipt.get(k), str) or len(receipt[k]) != n
+                       or set(receipt[k])-set('0123456789abcdef') for k, n in (
+                           ('tc_worker_receipt_id', 32), ('tc_worker_receipt_sha256', 64)))
+                or type(receipt.get('tc_worker_ready_s')) not in (float, int)
+                or not math.isfinite(receipt['tc_worker_ready_s'])):
+            raise ValueError('explicit Loquetier shard/preparation/native worker identity required')
+        self.queue, self.adapters, self.preparation = queue, dict(adapters), preparation
+        self.clock_id, self.index = clock_id, shard_index
+        self.receipt, self.process = dict(receipt), dict(worker_process)
+        self.model, self.notice = model, deployment_notice_s
+
+    async def generate(self, body):
+        entry = time.perf_counter()
+        ids, target, aid = body.get('input_tokens'), body.get('max_tokens'), body.get('lora_adapter_name')
+        prompt, rid = body.get('canonical_prompt'), body.get('request_id')
+        validate_loquetier_input(rid, aid, ids, target, self.adapters)
+        if (body.get('model') != self.model or not isinstance(prompt, str) or not prompt
+                or body.get('temperature') != 0 or body.get('top_p') != 1
+                or body.get('ignore_eos') is not True or body.get('stream') is not False
+                or body.get('stop') != [] or body.get('stop_token_ids') != []):
+            raise ValueError('request differs from Loquetier fixed-output/prompt contract')
+        control = dict(body.get('_sllm_internal_metrics', {}))
+        if (control.get('tc_clock_id') != self.clock_id
+                or control.get('instance_id') != f'loquetier-{self.index}'
+                or type(control.get('tc_static_shard_index')) is not int
+                or control['tc_static_shard_index'] != self.index):
+            raise ValueError('Loquetier selected static shard/clock differs')
+        index, path = self.adapters[aid]
+        prep = self.preparation[aid]
+        start, end = prep.get('tc_artifact_resolve_started_s'), prep.get('tc_artifact_resolve_completed_s')
+        if (prep.get('tc_artifact_id') != aid or prep.get('tc_artifact_cache_hit') is not False
+                or prep.get('tc_artifact_request_id') != 'loquetier-full-pool:'+aid
+                or any(type(t) not in (int, float) or not math.isfinite(t)
+                       for t in (self.notice, start, end))
+                or not self.notice <= start <= end <= self.receipt['tc_worker_ready_s'] <= entry):
+            raise ValueError('Loquetier full-pool preparation must follow notice and precede ready')
+        control.update(prep, **self.receipt, tc_backend_entry_s=entry,
+            tc_artifact_preparation_mode='native_full_pool_before_service_v1',
+            tc_deployment_notice_s=self.notice, tc_worker_native_process=dict(self.process),
+            tc_canonical_prompt_sha256=hashlib.sha256(prompt.encode()).hexdigest())
+        control['tc_native_submitted_s'] = time.perf_counter()
+        measured = await self.queue.submit(rid, aid, ids, target)
+        if (measured.get('native_process') != self.process
+                or measured.get('native_request_id') != rid or measured.get('native_adapter_id') != aid
+                or measured.get('native_adapter_path') != path or measured.get('native_adapter_index') != index
+                or type(measured.get('native_adapter_index')) is not int
+                or measured.get('native_prompt_token_ids') != ids
+                or type(measured.get('native_output_tokens')) is not int
+                or measured.get('native_output_tokens') != target
+                or type(measured.get('native_forward_count')) is not int
+                or measured.get('native_forward_count') != target
+                or measured.get('native_terminal_observed') is not True
+                or measured.get('timing_contract') != 'ieee_tc_loquetier_native_v1'):
+            raise ValueError('native Loquetier result differs from ready worker/input/adapter binding')
+        measured = dict(measured, control_observation=control)
+        return dict(id=rid, model=self.model, choices=[dict(index=0, finish_reason='length')],
+            usage=dict(prompt_tokens=len(ids), completion_tokens=target, total_tokens=len(ids)+target),
+            metrics=dict(ieee_tc=measured))
+
+
 class NativeSloraRequestHandler:
     """Shared HTTP contract -> native generate_stream, not a new scheduler.
 

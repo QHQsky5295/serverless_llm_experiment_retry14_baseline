@@ -1,0 +1,54 @@
+{
+  "schema": "ieee_tc_loquetier_http_contract_checkpoint_v1",
+  "checkpoint": "D440",
+  "date": "2026-10-12",
+  "performance_run": false,
+  "runtime_qualified": false,
+  "numerical_correctness_qualified": false,
+  "http_worker_cli_integrated": false,
+  "previous_baseline_commit": "6204e2025a432a55d4bb815ff76ae44f7e50e629",
+  "previous_main_commit": "6c50b081537613fcf319c263e39bcb40f55bc5d8",
+  "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5",
+  "metric_v1_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "single_run_v2_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+  "changes": [
+    "Explicit Loquetier request/observation/native token identity in existing HTTP path",
+    "Shared full static 500-ID publisher with backend-specific preparation references",
+    "Explicit schema/token-source pair in existing physical lifecycle collector",
+    "No native model algorithm, static shard, batch limit, precision or performance configuration change"
+  ],
+  "source_sha256": {
+    "scripts/prepare_ieee_tc_serverless_stack.py": "dbdccafbcca5574eb906dfb530b7c5375fd0fa6772beef4d846d4cd2a2ce5365",
+    "scripts/replay_vllm_engine_trace.py": "4313641918554dd6897116f6848297c508b57f0706808be4054651ca6aeff86e",
+    "scripts/ieee_tc_serverless_measurement.py": "2302032a596c5d0b0390ecc0bec372939636e4982ee1a257de223b5b3236ae79",
+    "tests/test_ieee_tc_loquetier_http.py": "c5d9a8abfabde070d29c7552180006750716c4cd6c6e1308c0086a7f2b27d76a",
+    "docs/ieee_tc/D440_LOQUETIER_HTTP_CONTRACT.md": "5253fde0bcddefa74f8a413884a387175d6496f8425cfcc9da0d43192462cd6d"
+  },
+  "main_source_sha256": {
+    "faaslora/metrics/metrics_collector.py": "2f59ee347a30837a3869bed78517542ff2b32c0ccbf701e5f3f5c6a7709ba3b7",
+    "tests/test_ieee_tc_gpu_lifecycle.py": "ca027fe9ba21590518403f243ccc8b1af9e7b98422700c177a62116948a90f69"
+  },
+  "tests": [
+    {"suite": "Loquetier HTTP/online + ServerlessLLM/vLLM/S-LoRA common regressions", "count": 185, "seconds": 10.093, "passed": true, "python": "/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python", "scope_suffix": "0002"},
+    {"suite": "Loquetier actual native CPU/online boundaries", "count": 26, "seconds": 2.363, "passed": true, "skipped": 0, "python": "/home/qhq/anaconda3/envs/loquetier_20260520/bin/python", "scope_suffix": "0003"},
+    {"suite": "Physical GPU lifecycle accounting", "count": 36, "seconds": 1.417, "passed": true, "python": "/home/qhq/anaconda3/envs/LLM_vllm0102/bin/python", "scope_suffix": "0004"}
+  ],
+  "test_scope": "CPU checks; loopback token producer and physical leases explicitly synthetic, not GPU arithmetic or actual release evidence",
+  "earlier_development_test": {"count": 21, "seconds": 0.441, "passed": true},
+  "auxiliary_contract": {"gpu_visible": false, "cpu_affinity": "2,3,26,27", "memory_high_gib": 3, "memory_max_gib": 4, "swap_max_gib": 0},
+  "closed_scopes": [
+    {"unit": "primelora-tc-aux-d4400000000000000000000000000001.scope", "invocation_id": "814f1449521f4b0ba874899ad5ada150", "memory_peak_bytes": 41381888, "high": 0, "max": 0, "oom": 0},
+    {"unit": "primelora-tc-aux-d4400000000000000000000000000002.scope", "invocation_id": "08d846ee0f8647ffbc43e5d91016e22f", "memory_peak_bytes": 379109376, "high": 0, "max": 0, "oom": 0},
+    {"unit": "primelora-tc-aux-d4400000000000000000000000000003.scope", "invocation_id": "aae1488606354e74891cc62c4533ddfb", "memory_peak_bytes": 254976000, "high": 0, "max": 0, "oom": 0},
+    {"unit": "primelora-tc-aux-d4400000000000000000000000000004.scope", "invocation_id": "93f0c6d69aee4f5084808cf30d00d392", "memory_peak_bytes": 28749824, "high": 0, "max": 0, "oom": 0},
+    {"unit": "primelora-tc-aux-d4400000000000000000000000000005.scope", "invocation_id": "b242a4425bb04c22b8c323f4206ff500", "memory_peak_bytes": 29327360, "high": 0, "max": 0, "oom": 0}
+  ],
+  "cleanup": "Each scope's actual recursive cgroup.procs content checked empty and InvocationID matched before stop; no unrelated process touched",
+  "protected_entries": 147,
+  "protected_verification_sha256": "1ff66513bbe7dc141d9bd14e43a7ce4f111cee38aeb215db2db8eebe141fb657",
+  "native_loquetier_diff_sha256_unchanged": "de476d06c318ba2be7f65dd9dba9bfb30a2f2c7e14e8bd6e35f30206ab041a39",
+  "native_slora_diff_sha256_unchanged": "7a0f48f60c225789014ad960ec3ab1cf6388611b7650a4f656f1208c981c2d60",
+  "remote_action": "none; reuse D78/D80 under repeated once-only gzip-cache approval, no republish or pool copy",
+  "next": "Native worker initialization/receipt/fatal-exit, common static-shard service lifecycle, new source-view manifest, then fresh gates and 100->500-ID->1000->single4000 qualification",
+  "full_goal_complete": false
+}

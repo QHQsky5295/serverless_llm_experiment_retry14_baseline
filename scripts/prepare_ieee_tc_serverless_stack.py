@@ -493,10 +493,32 @@ def validate_http_observation(prepared, response, event, completed, clock_id, *,
     observed = response.get('metrics', {}).get('ieee_tc', {})
     control = observed.get('control_observation', {})
     backend = prepared.get('native_backend', 'vllm')
-    if backend not in ('vllm', 'slora'):
+    if backend not in ('vllm', 'slora', 'loquetier'):
         raise ValueError('unknown native HTTP observation consumer')
     slora = backend == 'slora'
-    if slora:
+    loquetier = backend == 'loquetier'
+    startup_pool = slora or loquetier
+    if loquetier:
+        native_path, native_index = observed.get('native_adapter_path'), observed.get('native_adapter_index')
+        process, shard = observed.get('native_process', {}), control.get('tc_static_shard_index')
+        identity_ok = (isinstance(native_path, str) and Path(native_path).is_absolute()
+            and Path(native_path).name == prepared['adapter_id']
+            and type(native_index) is int and native_index >= 0
+            and observed.get('native_adapter_id') == prepared['adapter_id']
+            and observed.get('native_request_id') == prepared['request_id']
+            and observed.get('native_adapter_binding_source') ==
+                'loquetier_actual_forward_segments_and_startup_pointer_tables'
+            and observed.get('native_timing_source') == 'loquetier_native_cpu_integer_after_existing_item'
+            and observed.get('native_engine_class') == 'loquetier_src.models.mixed_lora.MixedLoraModel'
+            and type(observed.get('native_forward_count')) is int
+            and observed['native_forward_count'] == prepared['target_tokens']
+            and type(shard) is int and shard >= 0 and control.get('instance_id') == f'loquetier-{shard}'
+            and type(process.get('pid')) is int and process['pid'] > 0
+            and type(process.get('start_ticks')) is int and process['start_ticks'] > 0
+            and process.get('clock_id') == clock_id
+            and process == control.get('tc_worker_native_process')
+            and control.get('tc_canonical_prompt_sha256') == prepared['canonical_prompt_sha256'])
+    elif slora:
         native_path, native_index = observed.get('native_adapter_path'), observed.get('native_adapter_index')
         process = observed.get('native_process', {})
         identity_ok = (isinstance(native_path, str) and Path(native_path).is_absolute()
@@ -529,15 +551,18 @@ def validate_http_observation(prepared, response, event, completed, clock_id, *,
             or observed.get('native_prompt_token_ids_sha256') != prepared['native_prompt_token_ids_sha256']
             or not identity_ok
             or observed.get('native_clock_id') != clock_id or control.get('tc_clock_id') != clock_id
-            or observed.get('timing_contract') != ('ieee_tc_slora_native_v1' if slora else 'ieee_tc_native_v1')
+            or observed.get('timing_contract') != ('ieee_tc_loquetier_native_v1' if loquetier
+                else 'ieee_tc_slora_native_v1' if slora else 'ieee_tc_native_v1')
             or observed.get('native_terminal_observed') is not True
             or not control.get('instance_id')):
         raise ValueError('native generation/adapter/clock observation differs from frozen request')
     times = [event['planned_arrival_s'], event['task_created_s'], event['client_submit_s'],
              control.get('tc_http_received_s'), control.get('tc_router_enqueued_s'),
              control.get('tc_instance_assigned_s'), control.get('tc_backend_entry_s'),
-             (control.get('tc_native_http_submitted_s') if slora else observed.get('native_dispatch_monotonic_s')),
-             (observed.get('native_rpc_registered_monotonic_s') if slora else observed.get('native_queued_monotonic_s')),
+             (control.get('tc_native_submitted_s') if loquetier else
+              control.get('tc_native_http_submitted_s') if slora else observed.get('native_dispatch_monotonic_s')),
+             (observed.get('native_registered_monotonic_s') if loquetier else
+              observed.get('native_rpc_registered_monotonic_s') if slora else observed.get('native_queued_monotonic_s')),
              observed.get('native_scheduled_monotonic_s'), observed.get('native_first_token_monotonic_s'),
              observed.get('native_last_token_monotonic_s'), observed.get('worker_completed_monotonic_s'), completed]
     if (any(type(t) not in (int, float) or not math.isfinite(t) for t in times)
@@ -553,7 +578,8 @@ def validate_http_observation(prepared, response, event, completed, clock_id, *,
         artifact_times = [control.get('tc_artifact_resolve_started_s'),
                           control.get('tc_artifact_resolve_completed_s')]
         hit, transferred = control.get('tc_artifact_cache_hit'), control.get('tc_artifact_transferred_bytes')
-        artifact_request_id = ('slora-full-pool:'+prepared['adapter_id'] if slora else prepared['request_id'])
+        artifact_request_id = (backend+'-full-pool:'+prepared['adapter_id'] if startup_pool
+                               else prepared['request_id'])
         if (control.get('tc_artifact_request_id') != artifact_request_id
                 or control.get('tc_artifact_id') != prepared['adapter_id']
                 or control.get('tc_artifact_content_sha256') != prepared['artifact_content_sha256']
@@ -565,7 +591,7 @@ def validate_http_observation(prepared, response, event, completed, clock_id, *,
                 or (transferred != 0 if hit else transferred <= 0)
                 or any(type(t) not in (int, float) or not math.isfinite(t) for t in artifact_times)):
             raise ValueError('service remote artifact identity/timing/receipt differs')
-        if slora:
+        if startup_pool:
             notice, ready = prepared.get('deployment_notice_s'), control.get('tc_worker_ready_s')
             if (control.get('tc_artifact_preparation_mode') != 'native_full_pool_before_service_v1'
                     or any(type(t) not in (int, float) or not math.isfinite(t) for t in (notice, ready))
@@ -574,8 +600,8 @@ def validate_http_observation(prepared, response, event, completed, clock_id, *,
                 raise ValueError('native full-pool preparation/ready must follow common deployment notice')
         elif not times[6] <= artifact_times[0] <= artifact_times[1] <= times[7]:
             raise ValueError('service remote artifact request-driven preparation times differ')
-    elif slora:
-        raise ValueError('S-LoRA main HTTP path requires remote preparation provenance')
+    elif startup_pool:
+        raise ValueError('static native main HTTP path requires remote preparation provenance')
     if prepared.get('worker_lifetime_required'):
         if (not re.fullmatch('[0-9a-f]{32}', str(control.get('tc_worker_receipt_id')))
                 or not re.fullmatch('[0-9a-f]{64}', str(control.get('tc_worker_receipt_sha256')))):
@@ -602,7 +628,7 @@ def validate_http_observation(prepared, response, event, completed, clock_id, *,
         # in E2E, and arrival/submit times are never reset after startup.
         result['ingress_wait_ms'] = (ingress[1]-ingress[0])*1000
     if 'artifact_content_sha256' in prepared:
-        if slora:
+        if startup_pool:
             result.update(artifact_attribution='deployment_preparation_reference_not_request_transfer',
                 preparation_resolve_ms=(artifact_times[1]-artifact_times[0])*1000,
                 preparation_transferred_bytes=transferred,
@@ -647,24 +673,28 @@ def prepare_remote_artifacts(http_cfg, private_root, service_cgroup):
     return config, {aid: str(root/'objects'/aid) for aid in descriptions}
 
 
-async def prepare_slora_full_pool(resolver, paths, deployment_notice_s):
+async def prepare_slora_full_pool(resolver, paths, deployment_notice_s, *, backend='slora'):
     """Preserve native startup preload, using the shared verified delivery path.
 
     Sequential full-static-pool materialization matches the historical runner's
     default worker count of one. Called inside the admitted service AFTER the
     notice, with pre-ready ingress already open. No request/hot-set lookahead.
-    The later native workers still perform their original per-replica HOST load.
+    The later native workers still perform their original per-replica load.
+    Loquetier explicitly opts into the same transfer primitive under its own
+    request identity; this legacy function name does not relabel its backend.
     """
-    if (len(paths) != 500 or type(deployment_notice_s) not in (int, float)
+    if (backend not in ('slora', 'loquetier') or len(paths) != 500
+            or type(deployment_notice_s) not in (int, float)
             or not math.isfinite(deployment_notice_s) or deployment_notice_s > time.perf_counter()
             or any(not isinstance(aid, str) or not aid or not Path(path).is_absolute()
                    or Path(path).name != aid for aid, path in paths.items())):
         raise ValueError('complete existing pool and elapsed deployment notice required')
     prepared = {}
     for aid in sorted(paths):
-        row = await resolver.resolve(aid, paths[aid], 'slora-full-pool:'+aid)
+        request_id = backend+'-full-pool:'+aid
+        row = await resolver.resolve(aid, paths[aid], request_id)
         start, end = row.get('tc_artifact_resolve_started_s'), row.get('tc_artifact_resolve_completed_s')
-        if (row.get('tc_artifact_id') != aid or row.get('tc_artifact_request_id') != 'slora-full-pool:'+aid
+        if (row.get('tc_artifact_id') != aid or row.get('tc_artifact_request_id') != request_id
                 or row.get('tc_artifact_cache_hit') is not False
                 or any(type(t) not in (int, float) or not math.isfinite(t) for t in (start, end))
                 or not deployment_notice_s <= start <= end <= time.perf_counter()):
@@ -781,7 +811,7 @@ def http_replay(args):
     from faaslora.datasets.workload_generator import prepare_frozen_http_request
     from transformers import AutoTokenizer
     if (cfg.get('schema') not in ('ieee_tc_serverless_http_replay_v1', 'ieee_tc_vllm_http_replay_v1',
-                                'ieee_tc_slora_http_replay_v1')
+                                'ieee_tc_slora_http_replay_v1', 'ieee_tc_loquetier_http_replay_v1')
             or cfg.get('generation_contract') != 'fixed_length_greedy_v1'
             or cfg.get('renderer') != 'role_lines_v1'
             or cfg.get('ingress_mode', 'native_direct_v1') not in
@@ -794,9 +824,10 @@ def http_replay(args):
         raise ValueError('existing trace changed')
     tokenizer = AutoTokenizer.from_pretrained(cfg['backbone'], local_files_only=True)
     prepared = {e.request_id: prepare_frozen_http_request(e, tokenizer, cfg['model']) for e in plan.entries}
-    if cfg['schema'] == 'ieee_tc_slora_http_replay_v1':
+    if cfg['schema'] in ('ieee_tc_slora_http_replay_v1', 'ieee_tc_loquetier_http_replay_v1'):
         for row in prepared.values():
-            row['native_backend'] = 'slora'
+            row['native_backend'] = ('slora' if cfg['schema'] == 'ieee_tc_slora_http_replay_v1'
+                                     else 'loquetier')
             row['body']['canonical_prompt'] = row['prompt']
     if plan.profile == 'ADAPTER_COVERAGE_V1':
         for entry in plan.entries:
@@ -861,6 +892,11 @@ def validate_http_lifecycle_contract(cfg):
                 or cfg.get('ingress_mode') != 'service_pre_ready_v1'
                 or cfg.get('artifact_preparation') != 'native_full_pool_before_service_v1'):
             raise ValueError('S-LoRA requires explicit resident/full-pool/pre-ready contracts')
+    elif cfg.get('schema') == 'ieee_tc_loquetier_http_replay_v1':
+        if (cfg.get('physical_lifecycle') != 'loquetier_static_shards_v1'
+                or cfg.get('ingress_mode') != 'service_pre_ready_v1'
+                or cfg.get('artifact_preparation') != 'native_full_pool_before_service_v1'):
+            raise ValueError('Loquetier requires explicit static-shard/full-pool/pre-ready contracts')
     elif cfg.get('schema') == 'ieee_tc_serverless_http_replay_v1':
         if cfg.get('physical_lifecycle') not in (None, 'native_store_pool_v1'):
             raise ValueError('unknown ServerlessLLM physical lifecycle contract')
@@ -1811,11 +1847,13 @@ def record_http_physical_terminals(deployment, replay_path):
                     body, prepared = raw['body'], contracts[rid]
                     native = body['metrics']['ieee_tc']
                     slora = prepared.get('native_backend') == 'slora'
-                    aid = (Path(native.get('native_adapter_path', '')).name if slora
+                    loquetier = prepared.get('native_backend') == 'loquetier'
+                    aid = (Path(native.get('native_adapter_path', '')).name if slora or loquetier
                            else native.get('native_lora_name'))
                     if (raw['status'] != 200 or event['response'].get('protocol_valid') is not True
                             or body['id'] != rid or aid != prepared['adapter_id']
-                            or native['timing_contract'] != ('ieee_tc_slora_native_v1' if slora
+                            or native['timing_contract'] != ('ieee_tc_loquetier_native_v1' if loquetier
+                                                            else 'ieee_tc_slora_native_v1' if slora
                                                             else 'ieee_tc_native_v1')):
                         raise ValueError('physical terminal lacks a validated native response')
                     value = dict(success=True, request_id=rid,
@@ -1823,7 +1861,8 @@ def record_http_physical_terminals(deployment, replay_path):
                         output_contract_match=True, output_tokens=native['native_output_tokens'],
                         completion_tokens=body['usage']['completion_tokens'],
                         requested_completion_tokens=prepared['target_tokens'],
-                        completion_token_source='slora_native_sse_token_id' if slora else 'vllm_token_ids',
+                        completion_token_source=('loquetier_native_integer_token_id' if loquetier
+                            else 'slora_native_sse_token_id' if slora else 'vllm_token_ids'),
                         adapter_id=aid, instance_id=native['control_observation']['instance_id'],
                         completion_token_ids_sha256=native['completion_token_ids_sha256'],
                         canonical_prompt_sha256=prepared['canonical_prompt_sha256'])
