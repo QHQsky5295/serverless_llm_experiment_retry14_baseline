@@ -1,0 +1,146 @@
+{
+  "counts": {
+    "N_plan": 4000,
+    "N_arrived": 4000,
+    "N_terminal": 4000,
+    "N_response": 4000,
+    "N_failed": 0,
+    "N_submitted": 4000
+  },
+  "actual_native_output_tokens": 458224,
+  "offered_unique_adapters": 132,
+  "served_adapter_ids": 132,
+  "measurement_complete": true,
+  "workload_passed": true,
+  "common_slo": {
+    "offered": 4000,
+    "binding_valid": 4000,
+    "ttft_good": 220,
+    "tpot_eligible": 4000,
+    "tpot_good": 2996,
+    "joint_good": 174,
+    "ttft_attainment": 0.055,
+    "joint_attainment": 0.0435,
+    "conditional_tpot_attainment": 0.749,
+    "observed_feasible": false,
+    "independent_numerical_proof": false,
+    "freeze_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json",
+    "freeze_sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3",
+    "scope": "complete W0 native-binding observation; not a cross-scenario optimum or independent numerical proof",
+    "physical_gpu_seconds_per_binding_valid_request": 4.249595808607468
+  },
+  "conditional_metrics": {
+    "ttft_ms": {
+      "count": 4000,
+      "mean": 262600.73385295284,
+      "p50_type1": 233824.84968518838,
+      "p95_type1": 555110.0322289858
+    },
+    "e2e_ms": {
+      "count": 4000,
+      "mean": 269672.9422116338,
+      "p50_type1": 244460.57111443952,
+      "p95_type1": 562739.6639508661
+    },
+    "submit_lag_ms": {
+      "count": 4000,
+      "mean": 2.9705112947849557,
+      "p50_type1": 2.154093701392412,
+      "p95_type1": 4.214333137497306
+    },
+    "dispatch_wait_after_submit_ms": {
+      "count": 4000,
+      "mean": 7047.128435816849,
+      "p50_type1": 4.386920016258955,
+      "p95_type1": 4257.50612700358
+    },
+    "service_ttft_ms": {
+      "count": 4000,
+      "mean": 255550.6349058412,
+      "p50_type1": 221971.73320082948,
+      "p95_type1": 555103.5521270242
+    },
+    "decode_ms": {
+      "count": 4000,
+      "mean": 7065.831234525249,
+      "p50_type1": 5566.885380074382,
+      "p95_type1": 16013.499045977369
+    },
+    "completion_notification_ms": {
+      "count": 4000,
+      "mean": 6.377124155696947,
+      "p50_type1": 5.691668950021267,
+      "p95_type1": 9.016701020300388
+    },
+    "router_queue_ms": {
+      "count": 4000,
+      "mean": 7042.380675062537,
+      "p50_type1": 0.013599870726466179,
+      "p95_type1": 4255.026349797845
+    },
+    "tpot_ms": {
+      "count": 4000,
+      "mean": 62.40280091783884,
+      "p50_type1": 61.36018521170698,
+      "p95_type1": 68.61331724300699
+    }
+  },
+  "physical_gpu_seconds": 16998.38323442987,
+  "physical_window_gpu_seconds": {
+    "arrival": 15157.991990567418,
+    "cleanup": 33.91180459363386,
+    "drain": 1806.47943926882,
+    "pre_arrival": 0
+  },
+  "remote_transfers": 500,
+  "remote_wire_bytes": 420740410,
+  "verified_materialized_bytes": 12985984450,
+  "request_time_pack_count": 0,
+  "service_memory_event_maxima": {
+    "high": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0
+  },
+  "service_memory_peak_bytes": 42372567040,
+  "service_swap_max_bytes": 0,
+  "host_min_available_bytes": 81517760512,
+  "disk_min_free_bytes": 149648982016,
+  "n_correct": null,
+  "independent_lora_numerical_correctness": false,
+  "schema": "ieee_tc_loquetier_d445_full_w0_summary_v1",
+  "source_audit": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d445_7b_loquetier_full_w0/audit.json",
+    "sha256": "1fc16d0b15a201a8063142feb0ddc1c430cefed1fc69843927f8c8c170b27e31"
+  },
+  "evidence_manifest": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d445_7b_loquetier_full_w0/evidence_manifest.json",
+    "sha256": "7057e39dddf78e370de620ef12cfb047c0923ac852db3dabd8a2eab593a067b8",
+    "files": 577,
+    "bytes": 264306209,
+    "all_hashes_rechecked": true
+  },
+  "execution_commits": {
+    "main": "9471e1ec60baabe78f6d9d00182c100b689e0719",
+    "baseline": "311663aa501ea2f7b61a04f53fa471822272643f"
+  },
+  "gpu_run_repeated": false,
+  "baseline_performance_tuning": false,
+  "actual_gpu_release": true,
+  "exact_owned_remote_services_stopped": true,
+  "scope": "Single complete known-workload W0 observation under disclosed static sharding; nonfeasible common SLO, not independent numerical proof, unseen evaluation or a configuration optimum.",
+  "native_queue_mean_ms": 255328.7255106598,
+  "registered_to_first_mean_ms": 210.33274066500599,
+  "static_shard_request_counts": [
+    1008,
+    1076,
+    1048,
+    868
+  ],
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "single_run_protocol_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+  "fresh_semantic_review": {
+    "status": "not_performed",
+    "independent_reviewer_pass": false
+  }
+}
