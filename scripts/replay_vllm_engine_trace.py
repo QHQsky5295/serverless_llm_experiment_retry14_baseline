@@ -178,13 +178,15 @@ class ResidentRoundRobin:
     target, looks at adapter tier/queue lengths or waits for all workers.
     """
 
-    def __init__(self, request_ids, worker_count, clock_id):
-        if worker_count < 1 or len(set(request_ids)) != len(request_ids):
+    def __init__(self, request_ids, worker_count, clock_id, *, instance_prefix='vllm'):
+        if (worker_count < 1 or len(set(request_ids)) != len(request_ids)
+                or instance_prefix not in ('vllm', 'slora')):
             raise ValueError('unique offered request IDs and workers required')
         self.ordinals = {rid: i for i, rid in enumerate(request_ids)}
         self.ready = [asyncio.Event() for _ in range(worker_count)]
         self.seen = set()
         self.clock_id = clock_id
+        self.instance_prefix = instance_prefix
 
     async def route(self, body, received):
         rid = body.get('request_id')
@@ -200,8 +202,99 @@ class ResidentRoundRobin:
             ready_instances_at_enqueue=sum(r.is_set() for r in self.ready),
             tc_route_ordinal=ordinal)
         await self.ready[index].wait()
-        control.update(tc_instance_assigned_s=time.perf_counter(), instance_id=f'vllm-{index}')
+        control.update(tc_instance_assigned_s=time.perf_counter(),
+                       instance_id=f'{self.instance_prefix}-{index}')
         return index, dict(body, _sllm_internal_metrics=control)
+
+
+class NativeSloraRequestHandler:
+    """Shared HTTP contract -> native generate_stream, not a new scheduler.
+
+    All-pool preparation is a startup action after deployment notice, not an
+    artificial request-time fetch. Native token events and the real ready
+    worker identity must agree. HTTP receive/EOF are diagnostics, not TTFT/TPOT.
+    The owning service supplies its already-verified preparation/ready records.
+    """
+    def __init__(self, *, session, endpoint, adapters, preparation, clock_id,
+                 instance_id, receipt, worker_process, model, deployment_notice_s):
+        from urllib.parse import urlsplit
+        url = urlsplit(endpoint)
+        if (url.scheme != 'http' or url.hostname != '127.0.0.1'
+                or not url.port or url.path != '/generate_stream'
+                or url.username or url.password or url.query or url.fragment
+                or not instance_id.startswith('slora-')
+                or set(adapters) != set(preparation)
+                or worker_process.get('clock_id') != clock_id
+                or any(type(worker_process.get(k)) is not int or worker_process[k] <= 0
+                       for k in ('pid', 'start_ticks'))
+                or any(not isinstance(receipt.get(k), str) or len(receipt[k]) != n
+                       or set(receipt[k]) - set('0123456789abcdef') for k, n in (
+                           ('tc_worker_receipt_id', 32), ('tc_worker_receipt_sha256', 64)))
+                or type(receipt.get('tc_worker_ready_s')) not in (float, int)
+                or not math.isfinite(receipt['tc_worker_ready_s'])):
+            raise ValueError('explicit native S-LoRA endpoint/preparation/worker identity required')
+        self.session, self.endpoint, self.adapters = session, endpoint, adapters
+        self.preparation, self.clock_id, self.instance_id = preparation, clock_id, instance_id
+        self.receipt, self.worker_process = dict(receipt), dict(worker_process)
+        self.model, self.notice = model, deployment_notice_s
+
+    async def generate(self, body):
+        from ieee_tc_serverless_measurement import SloraNativeRequestObservation
+        from native_stream_timing import NativeStreamTiming
+        entry = time.perf_counter()
+        ids, target, aid = body.get('input_tokens'), body.get('max_tokens'), body.get('lora_adapter_name')
+        prompt, rid = body.get('canonical_prompt'), body.get('request_id')
+        if (body.get('model') != self.model or not isinstance(rid, str) or not rid
+                or not isinstance(prompt, str) or not prompt
+                or type(ids) is not list or not ids or any(type(t) is not int or t < 0 for t in ids)
+                or type(target) is not int or not 1 <= target <= 256 or len(ids)+target > 1024
+                or body.get('temperature') != 0 or body.get('top_p') != 1
+                or body.get('ignore_eos') is not True or body.get('stream') is not False
+                or body.get('stop') != [] or body.get('stop_token_ids') != []
+                or aid not in self.adapters):
+            raise ValueError('request differs from S-LoRA fixed-output/prompt/adapter contract')
+        control = dict(body.get('_sllm_internal_metrics', {}))
+        if control.get('tc_clock_id') != self.clock_id or control.get('instance_id') != self.instance_id:
+            raise ValueError('S-LoRA routing/clock identity differs')
+        index, path = self.adapters[aid]
+        prep = self.preparation[aid]
+        start, end = prep.get('tc_artifact_resolve_started_s'), prep.get('tc_artifact_resolve_completed_s')
+        if (prep.get('tc_artifact_id') != aid or prep.get('tc_artifact_cache_hit') is not False
+                or any(type(t) not in (int, float) or not math.isfinite(t)
+                       for t in (self.notice, start, end))
+                or not self.notice <= start <= end <= self.receipt['tc_worker_ready_s'] <= entry):
+            raise ValueError('native full-pool preparation must occur after notice and before serving')
+        control.update(prep, **self.receipt, tc_backend_entry_s=entry,
+            tc_artifact_preparation_mode='native_full_pool_before_service_v1',
+            tc_deployment_notice_s=self.notice,
+            tc_worker_native_process=dict(self.worker_process),
+            tc_canonical_prompt_sha256=hashlib.sha256(prompt.encode()).hexdigest())
+        observation = SloraNativeRequestObservation(request_id=rid, adapter_path=path,
+            prompt_ids=ids, target=target, clock_id=self.clock_id)
+        frames = NativeStreamTiming(event_callback=observation.observe)
+        native_body = dict(req_id=rid, inputs=prompt, lora_dir=path,
+            parameters=dict(do_sample=False, temperature=0., top_p=1., top_k=1,
+                presence_penalty=0., frequency_penalty=0., ignore_eos=True,
+                max_new_tokens=target, stop_sequences=[]))
+        control['tc_native_http_submitted_s'] = time.perf_counter()
+        async with self.session.post(self.endpoint, json=native_body, allow_redirects=False) as response:
+            if response.status != 200 or response.content_type != 'text/event-stream':
+                raise ValueError('native S-LoRA did not return its SSE contract')
+            async for chunk in response.content.iter_any():
+                frames.feed(chunk, time.perf_counter())
+            frames.finish()
+        completed = time.perf_counter()
+        measured = observation.finish(completed)
+        if (measured['native_process'] != self.worker_process
+                or measured['native_adapter_index'] != index
+                or frames.token_count != target or frames.token_events != target):
+            raise ValueError('native S-LoRA output differs from ready worker/adapter binding')
+        measured['control_observation'] = control
+        measured['client_sse_diagnostics'] = frames.metrics(completed)
+        return dict(id=rid, model=self.model,
+            choices=[dict(index=0, finish_reason='length')],
+            usage=dict(prompt_tokens=len(ids), completion_tokens=target, total_tokens=len(ids)+target),
+            metrics=dict(ieee_tc=measured))
 
 
 async def _native_worker(config_path, index):

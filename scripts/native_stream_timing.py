@@ -12,7 +12,10 @@ import math
 
 
 class NativeStreamTiming:
-    def __init__(self) -> None:
+    def __init__(self, *, event_callback=None) -> None:
+        # Optional native observation consumer shares this exact SSE framing.
+        # Its engine timestamps remain distinct from the client receive clock.
+        self._event_callback = event_callback
         self._decoder = codecs.getincrementaldecoder("utf-8")()
         self._buffer = ""
         self._previous_receive_s: float | None = None
@@ -50,6 +53,8 @@ class NativeStreamTiming:
         obj = json.loads(payload)
         if not isinstance(obj, dict):
             raise ValueError("native SSE payload must be an object")
+        if self._event_callback is not None:
+            self._event_callback(obj)
         ids = []
         if isinstance(obj.get("token"), dict):  # S-LoRA native SSE
             if "id" in obj["token"]:

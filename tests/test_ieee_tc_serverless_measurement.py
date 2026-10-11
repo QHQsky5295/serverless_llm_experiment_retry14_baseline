@@ -144,7 +144,14 @@ print(json.dumps(asyncio.run(mod.PublishedArtifactResolver(config).resolve('a', 
 
     async def test_mutated_cache_and_bare_paths_fail_without_refetch(self):
         await self.resolver.resolve('a', self.paths['a'], 'first')
-        (Path(self.paths['a'])/'adapter_model.safetensors').write_bytes(b'x'*64)
+        path = Path(self.paths['a'])/'adapter_model.safetensors'
+        before = path.stat()
+        path.write_bytes(b'x'*64)
+        # This is the documented stat-identity guard, not a per-hit content
+        # rehash. Same-size writes may land within one filesystem timestamp
+        # tick; explicitly change the fixture's metadata without timing sleeps.
+        os.utime(path, ns=(before.st_atime_ns, before.st_mtime_ns+1_000_000_000))
+        self.assertNotEqual(path.stat().st_mtime_ns, before.st_mtime_ns)
         with self.assertRaisesRegex(ValueError, 'receipt'):
             await self.resolver.resolve('a', self.paths['a'], 'changed')
         Path(self.paths['b']).mkdir()
