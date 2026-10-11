@@ -1,4 +1,4 @@
-# IEEE TC execution status — D427 S-LoRA HOST capacity bound verified
+# IEEE TC execution status — D428 S-LoRA packed HOST representation CPU-qualified
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -75,6 +75,64 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+D428 COMPONENT COMPLETE2026-10-11. PriorD427turnmadeprogress;thisturnalso concrete
+implementation/equivalenceprogress,notwait/blocker. No liveGPU/remotejob. Full
+PLAN/STATUS/V1/V2remainreadintheuncompressedcontext;currentSHAunchangedrechecked.
+ExistingS-LoRA sourceadapter addsexplicithost_layout=packed_views_v1,defaultnative
+unchanged. Onepinnedpackedallocation+8moduleviewsperlayer;packedbytes/shape/stride
+unchanged. RPC rejectsBMM/TP/debug/no-swap/nonpool beforeNCCL/CUDA;loaderrejects
+GQA/nonFP16/wronggeometry beforeHOSTallocation. Nativepaging/kernel/load/offload/
+scheduler/prefetchselection unchanged;no cross-IDdedup orpoolshrink. Only3source
+copies inexclusiveview,15originalSHAguards;legacycheckout10filepatchuntouched.
+27nativePython3.9tests pass1.535s,full154CPUregression8.428s. First26testattempt
+had1FP32testbuffererror;fixturecorrectedtoactualnativeFP16,failedlogretained.
+FourexistingweightSHArepresentatives(allclasses),all32layers=128layers/
+41943040moduleelements,actualsourceviewpacked+modulevaluesequal,oneunique
+storageperlayer. RepresentativepayloadSHAsrechecked;pinmockedCPU,noCUDAinit,
+notpinnedRSS/nativeinference/500-IDqualification. Actual3.9.25/torch2.0.1+cu118
+sourceviewRPC/API/loaderimportpassedGPUhidden. Fourreplicaadapterdatabound
+40.625GiB,NOTa measuredservicepeakorGPU-sgain;fullmemorygate remainsmandatory.
+Rawslora_qualification/d428_20261011;sourceviewmanifestSHA
+f19bae720380c4dfce2f1a0e916c6b03a649faf1530e41d0316ddad68a78792b;
+existingweightsevidenceSHAfb21a4f98761d5361a37e9644515333ce7c2a18ef3db9d7dbc425f10eec6ba12;
+154testlogSHAfa48a47923beb49904abeefb2ab0d4047447cd680a475c4b93a1ff6094144197.
+ReportsD428_SLORA_PACKED_HOST_VIEWS.md inbothrepos. OfficialfixedS-LoRApoolcopy
+HTTPS/GitHEAD/currentbytesequal;PyTorch2.0.1viewdocsHTTPSchecked;stridelimitation
+explicit. No newweights/trace/pool/figure/cleanup/remoteoperation/install/paperedit.
+NEXT backupcomponent -> existingcommonservice/pre-ready/openloop+S-LoRA-explicit
+validator+actualworkerready/physical-ownerintegration;stoplocalrepresentation
+expansion. CountfullpoolHOSTpreparationaftercommon60snotice;donotshiftbusiness.
+Thenactualcontainment/release+affected100/missing500-ID/1000 ->onefullW0.
+No sealedPrimeLoRA/ServerlessLLM/vLLM repeat,3Bjump/thresholdchange. Allremaining
+approvedscopeOPEN/fullgoalACTIVE. Backupandauxclosure pendingatthischeckpoint.
+
+D428 closure:6ownedauxscopesidentity/limits/allprocs-emptycheckedandstopped,
+high/max/OOM/swap0;maxobservedauxpeak488415232B. 147protectedentrieszerochange,
+3userdirtyfiles/nested10filepatchunchanged. Curated20regularmember/22905Bbundle
+allbyteequalraw,SHA7494da840f1c558c9e224414ac29489dd008c639141f66630c0f75f638d85f8f.
+15original/3derived/helper/sourceadapterSHAsverified. Freshcompute census empty,
+disk163378855936B. No liveGPU/remote/auxjob;checkpointbackupnext,notanotherlocaltest.
+
+D428 baseline checkpoint `f51ffd7f7d278bef1a5ac690dd1aae0b97963620` pushed
+to origin/main; remote branch SHA verified. Exactly four task-owned files;
+test/source/bundle/protected/diff/secrets checks passed. Main report/status/
+curated bundle backup follows. This is a CPU component checkpoint, not a
+performance execution commit. After compaction, full PLAN and current STATUS
+were reread; all three protected user-file SHAs and the plan remain unchanged.
+Next action remains common S-LoRA service integration, not another storage test.
+
+D427 BACKED UP2026-10-11 19:56:02Asia/Shanghai: main
+c90a4e13d4cb43b4f60a53ed488be9e25488217d pushedtofaaslora_origin/
+retry14_continuous_queue_v2 andremoteSHAverified;baseline
+70856189ca73c68176156480915e68c6b1dc05b8 pushedtoorigin/main andverified.
+Exact3filesperrepo;test/source/protected/bundle/diff/secretschecks passed.
+All3protecteduserdirtySHAs unchanged. No liveGPU/remote/auxjob. Thispostpush
+confirmation is subsequenttask-ownedstatusonly. NEXT packed-HOSTrepresentation
+equivalencecheck thencommonS-LoRAserviceintegration andnecessaryqualification;
+do notlaunchknown81.25GiBnativefourreplicaHOSTlayoutunder80GiB. Thisturnmade
+concretecapacity/source/testprogress,not a blocker ornewperformancepoint.
+FullgoalACTIVE,allremainingapprovedscopeOPEN;D78/D80cacheapprovalreused,no republish.
 
 D427 OFFLINE CAPACITY CHECK COMPLETE2026-10-11. No liveGPU/remotejob;D426 was
 progress,not a blocker. FullPLAN/STATUS/V1/V2 reread aftercompaction. All500existing
