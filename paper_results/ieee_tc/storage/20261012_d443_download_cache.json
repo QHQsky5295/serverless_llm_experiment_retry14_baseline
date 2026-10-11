@@ -1,0 +1,58 @@
+{
+  "schema": "ieee_tc_d443_closed_cache_receipt_v1",
+  "main_closure_backup_commit": "5890ba79f3064cc918129769f722238815149a84",
+  "baseline_closure_backup_commit": "16748ca1ffad4108c1d447c10564a2dcdbc1040f",
+  "both_remote_sha_verified_before_removal": true,
+  "all_578_sealed_sha_verified_after_removal": true,
+  "protected_entries": 147,
+  "protected_after_sha256": "1ff66513bbe7dc141d9bd14e43a7ce4f111cee38aeb215db2db8eebe141fb657",
+  "before": {
+    "schema": "ieee_tc_closed_download_cache_reclamation_v1",
+    "campaign": "d443_20261012",
+    "target": "/tmp/tc-d443-7bl/remote_artifacts/objects",
+    "status": "verified_before_removal",
+    "files": 5000,
+    "payload_bytes": 12985984450,
+    "disk_before_bytes": 149872918528,
+    "audit": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d443_7b_loquetier_coverage/audit.json",
+      "sha256": "89f04fdc163558a350dd761196da76bec4048f18724fa40ebbe776ff6019e6dc"
+    },
+    "source_index": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json",
+      "sha256": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c"
+    },
+    "retained_original_pool": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama2_7b_a500_v2_publicmix",
+    "retained_evidence": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d443_20261012",
+    "all_cache_bytes_previously_hashed_by_audit": true,
+    "current_original_bytes_rehashed": true,
+    "current_file_sizes_and_original_inodes_verified": true,
+    "owned_runtime_references": [],
+    "future_config_script_references": [],
+    "cache_symlinks_or_nested_mounts": false,
+    "metadata_copies_hash_match": true,
+    "unreadable_same_uid_proc_entries": [
+      "2628",
+      "4156156",
+      "4157313"
+    ],
+    "open_fd_check_scope": "readable same-UID FD/cwd/root plus fuser, not claimed complete system-wide",
+    "raw_results_removed": false,
+    "unique_artifacts_removed": false,
+    "recipe_sha256": "b862ad2ae1eb5f985493857a63e9be34042169bc8294244fae546a9c9ca2be16",
+    "recorded_unix": 1791746131.9955251
+  },
+  "after": {
+    "schema": "ieee_tc_closed_download_cache_reclamation_v1",
+    "campaign": "d443_20261012",
+    "target": "/tmp/tc-d443-7bl/remote_artifacts/objects",
+    "removed": true,
+    "disk_before_bytes": 149872918528,
+    "disk_after_bytes": 162877321216,
+    "observed_reclaimed_bytes": 13004402688,
+    "before_receipt_sha256": "e33020a6eefef326662b10f4a32d7bca8f6a10b028a902c8d4333f3b1ed6bbd4",
+    "raw_results_removed": false,
+    "unique_artifacts_removed": false,
+    "recorded_unix": 1791746134.314477
+  }
+}

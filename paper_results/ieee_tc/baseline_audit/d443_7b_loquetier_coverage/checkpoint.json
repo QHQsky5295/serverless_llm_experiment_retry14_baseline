@@ -16,6 +16,9 @@
   "qualification_scope": "500-ID functional coverage, not full W0 or independent numerical semantic proof",
   "raw_numerical_unknown_preserved": true,
   "actual_gpu_release_and_exact_owned_remote_stop": true,
-  "owned_download_cache_reclaimed_after_backup": false,
-  "next": "Backup then owned-object reclamation; fresh complete gates and same-config original1000 compatibility, then one full4000W0. No baseline tuning or repeated passed100/500/capacity. Full remaining plan remains open."
+  "main_closure_backup_commit": "5890ba79f3064cc918129769f722238815149a84",
+  "main_closure_remote_sha_verified": true,
+  "owned_download_cache_reclaimed_after_backup": true,
+  "disk_after_bytes": 162877321216,
+  "next": "Fresh complete gates and same-config original1000 compatibility, then one full4000W0. No baseline tuning or repeated passed100/500/capacity. Full remaining plan remains open."
 }

@@ -32,7 +32,7 @@ RUNNING entries are historical. No approved experiment or failed evidence was re
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D443 500-ID run complete and audited; backup/owned-cache cleanup next
+## Current action — D443 500-ID closed and backed up; same-config original1000 next
 
 See D443_LOQUETIER_500_ADAPTER_COVERAGE.md. Same actual handle monitored through
 terminal2026-10-12 03:09:04Asia/Shanghai; all3returncodes0,physicalGPUreleased,
@@ -58,8 +58,19 @@ No fresh semantic-review-agent PASS: experiment-audit requiredsharedreferencesmi
 Aux0001ID267eee3e26284602a9fb577d7aac838a peak245313536B,actualemptytree
 identitychecked/stopped;tmuxdead0removed. Aux0007/0008 closed,peaks49283072/204980224B,
 high/max/OOM/swap0. Aux0009-0012 actualrecursiveemptytree/identitycheckedstopped.
-NEXT sealbackups thenreclaimonlyowneddownloadobjects;original1000sameconfig after
-freshgates,thensingle4000. No repeated500/100/capacity orsealedW0. FullgoalACTIVE,
+Closurebackups MAIN5890ba79f3064cc918129769f722238815149a84 and
+BASE16748ca1ffad4108c1d447c10564a2dcdbc1040f pushed/remoteSHAverified.
+BASEsummarySHAb9a734946bc56899b44fda06c914a194f781a6ec03600bb036369374507a6484.
+Only5000owneddownloadfiles/12985984450payloadB reclaimed AFTERbackups,
+freed13004402688B,diskafter162877321216B(~151.69GiB). Originalpool/rawlogs/
+remotepublishedcache retained. Threeunreadable sameUIDproc entries disclosed,
+notall-system FDproof. Receiptstorage/20261012_d443_download_cache.json.
+All578sealedSHAreverifiedaftercleanup;147oldentriesunchanged. Cleanupaux0013
+ID851e85c21c1f475c9762ddeeb6f3ec81 peak27406336B/highmaxOOMswap0;
+verificationaux0014ID1d21fd2961094e36994db79cd535cea0 actualemptytreechecked/stopped.
+AllD443ownedauxscopes closed;fourGPUs15MiBbackground/0util,notmux.
+NEXT original1000sameconfig afterfreshgates,thensingle4000.
+No repeated500/100/capacity orsealedW0. FullgoalACTIVE,
 verifiedwait+actualclosureprogress,no blocker;allremainingscope belowOPEN.
 
 ## D443 preregistration and actual launch — now closed above
