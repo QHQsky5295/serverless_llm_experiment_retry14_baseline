@@ -1,0 +1,30 @@
+{
+  "schema": "ieee_tc_vllm_native_service_v1",
+  "version": "0.30.0",
+  "python": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python",
+  "routing": "round_robin",
+  "generation_contract": "fixed_length_greedy_v1",
+  "gpu_ids": [0, 1, 2, 3],
+  "router_port": 8353,
+  "worker_ports": [8363, 8373, 8383, 8393],
+  "engine_args": {
+    "model": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+    "tokenizer": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+    "trust_remote_code": true,
+    "dtype": "float16",
+    "tensor_parallel_size": 1,
+    "gpu_memory_utilization": 0.7,
+    "max_model_len": 1024,
+    "max_num_seqs": 2,
+    "max_num_batched_tokens": 1024,
+    "enable_lora": true,
+    "max_loras": 4,
+    "max_cpu_loras": 16,
+    "max_lora_rank": 64,
+    "enforce_eager": false,
+    "enable_chunked_prefill": true,
+    "enable_prefix_caching": false,
+    "disable_log_stats": false,
+    "seed": 0
+  }
+}

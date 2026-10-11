@@ -419,7 +419,7 @@ def http_replay(args):
     from faaslora.clock import local_monotonic_clock_id
     from faaslora.datasets.workload_generator import prepare_frozen_http_request
     from transformers import AutoTokenizer
-    if (cfg.get('schema') != 'ieee_tc_serverless_http_replay_v1'
+    if (cfg.get('schema') not in ('ieee_tc_serverless_http_replay_v1', 'ieee_tc_vllm_http_replay_v1')
             or cfg.get('generation_contract') != 'fixed_length_greedy_v1'
             or cfg.get('renderer') != 'role_lines_v1'
             or cfg.get('ingress_mode', 'native_direct_v1') not in
@@ -435,9 +435,8 @@ def http_replay(args):
     if plan.profile == 'ADAPTER_COVERAGE_V1':
         for entry in plan.entries:
             prepared[entry.request_id]['tc_adapter_coverage'] = json.loads(entry.source_json)['tc_adapter_coverage']
-    if cfg.get('physical_lifecycle') not in (None, 'native_store_pool_v1'):
-        raise ValueError('unknown physical lifecycle contract')
-    if cfg.get('physical_lifecycle') == 'native_store_pool_v1':
+    validate_http_lifecycle_contract(cfg)
+    if cfg.get('physical_lifecycle') is not None:
         for row in prepared.values():
             row['worker_lifetime_required'] = True
     _, artifact_client = remote_artifact_contract(cfg)
@@ -479,6 +478,23 @@ def http_replay(args):
         counts = asyncio.run(run())
         if counts['N_failed'] or counts['N_response'] != counts['N_plan']:
             raise RuntimeError('HTTP protocol qualification incomplete; failures preserved')
+
+
+def validate_http_lifecycle_contract(cfg):
+    """Explicit consumers of the shared publisher; never relabel a native store.
+
+    The vLLM mode reuses only input/timing/HTTP measurement. Its ordinary
+    resident workers have their own physical owners, not ServerlessLLM's store.
+    """
+    if cfg.get('schema') == 'ieee_tc_vllm_http_replay_v1':
+        if (cfg.get('physical_lifecycle') != 'vllm_resident_pool_v1'
+                or cfg.get('ingress_mode') != 'service_pre_ready_v1'):
+            raise ValueError('vLLM requires its resident lifecycle and pre-ready service ingress')
+    elif cfg.get('schema') == 'ieee_tc_serverless_http_replay_v1':
+        if cfg.get('physical_lifecycle') not in (None, 'native_store_pool_v1'):
+            raise ValueError('unknown ServerlessLLM physical lifecycle contract')
+    else:
+        raise ValueError('unknown HTTP publisher consumer')
 
 
 def replace_once(source: str, old: str, new: str) -> str:

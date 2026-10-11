@@ -2,12 +2,17 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
+import hashlib
 import inspect
 import json
 import math
 import os
 import sys
 import time
+import signal
+import subprocess
+import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -15,10 +20,442 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-from replay_openai_trace import RemoteArtifactFetcher, _path_size  # noqa: E402
-
-
 LIVE_PRINT_INTERVAL_S = 2.0
+
+
+def _exclusive_json(path, value):
+    path = Path(path)
+    temporary = path.with_name(path.name+'.'+uuid.uuid4().hex+'.partial')
+    try:
+        with temporary.open('x') as handle:
+            json.dump(value, handle, sort_keys=True, indent=2)
+            handle.write('\n')
+            handle.flush()
+            os.fsync(handle.fileno())
+        # Atomic publication without replacing even a concurrently created file.
+        os.link(temporary, path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def _sha(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def validate_native_service_config(cfg, http):
+    """Fixed-version resident transport adapter, not a second scheduling policy."""
+    from prepare_ieee_tc_serverless_stack import validate_http_lifecycle_contract
+    validate_http_lifecycle_contract(http)
+    if (cfg.get('schema') != 'ieee_tc_vllm_native_service_v1'
+            or http.get('schema') != 'ieee_tc_vllm_http_replay_v1'
+            or cfg.get('routing') != 'round_robin'
+            or cfg.get('generation_contract') != 'fixed_length_greedy_v1'
+            or cfg.get('version') != '0.30.0'
+            or not isinstance(cfg.get('gpu_ids'), list) or not cfg['gpu_ids']
+            or any(type(i) is not int or i not in range(4) for i in cfg['gpu_ids'])
+            or len(set(cfg['gpu_ids'])) != len(cfg['gpu_ids'])
+            or len(cfg.get('worker_ports', [])) != len(cfg['gpu_ids'])):
+        raise ValueError('explicit resident vLLM/round-robin/generation identity required')
+    from urllib.parse import urlsplit
+    endpoint = urlsplit(http['url'])
+    ports = [endpoint.port, cfg.get('router_port'), *cfg['worker_ports']]
+    if (endpoint.scheme != 'http' or endpoint.hostname != '127.0.0.1'
+            or endpoint.path != '/v1/chat/completions' or endpoint.query or endpoint.fragment
+            or endpoint.username or endpoint.password
+            or any(type(p) is not int or not 0 < p < 65536 for p in ports)
+            or len(set(ports)) != len(ports)):
+        raise ValueError('distinct explicit loopback ingress/router/worker ports required')
+    engine = cfg.get('engine_args', {})
+    required = dict(model=http['backbone'], tokenizer=http['backbone'],
+        tensor_parallel_size=1, dtype='float16', enable_lora=True,
+        disable_log_stats=False, max_model_len=1024, enable_prefix_caching=False)
+    if any(engine.get(k) != v for k, v in required.items()):
+        raise ValueError('native engine identity or required timing configuration differs')
+    if not http.get('remote_artifacts'):
+        raise ValueError('resident main path requires real published artifacts; no local fallback')
+    return endpoint.port
+
+
+class NativeVLLMRequestHandler:
+    """One native AsyncLLM: request-driven loading and the native LRU only.
+
+    No preload, planner, admission ranking, adapter-affinity or load-balancing
+    logic. Remote resolution, registration/loading and generation belong to the
+    same guarded service. Dependencies are injectable for CPU contract tests.
+    """
+
+    def __init__(self, *, engine, resolver, adapters, lora_factory, sampling_factory,
+                 observation_factory, clock_id, instance_id, receipt, model):
+        self.engine, self.resolver, self.adapters = engine, resolver, adapters
+        self.lora_factory, self.sampling_factory = lora_factory, sampling_factory
+        self.observation_factory, self.clock_id = observation_factory, clock_id
+        self.instance_id, self.receipt, self.model = instance_id, receipt, model
+
+    async def generate(self, body):
+        entry = time.perf_counter()
+        ids, target, aid = body.get('input_tokens'), body.get('max_tokens'), body.get('lora_adapter_name')
+        if (body.get('model') != self.model or not isinstance(body.get('request_id'), str)
+                or not body['request_id'] or type(ids) is not list or not ids
+                or any(type(t) is not int or t < 0 for t in ids)
+                or type(target) is not int or not 0 < target <= 256 or len(ids)+target > 1024
+                or body.get('temperature') != 0 or body.get('top_p') != 1
+                or body.get('ignore_eos') is not True or body.get('stream') is not False
+                or body.get('stop') != [] or body.get('stop_token_ids') != []
+                or aid not in self.adapters):
+            raise ValueError('request differs from native fixed-output/adapter contract')
+        control = dict(body.get('_sllm_internal_metrics', {}))
+        if control.get('tc_clock_id') != self.clock_id or control.get('instance_id') != self.instance_id:
+            raise ValueError('native worker routing/clock identity differs')
+        control.update(tc_backend_entry_s=entry, **self.receipt)
+        int_id, path = self.adapters[aid]
+        control.update(await self.resolver.resolve(aid, path, body['request_id']))
+        lora = self.lora_factory(lora_name=aid, lora_int_id=int_id, lora_path=path)
+        # CUMULATIVE is explicit in the concrete factory; do not infer tokens
+        # from text or accept DELTA/FINAL_ONLY in the native timing observer.
+        params = self.sampling_factory(temperature=0., top_p=1., max_tokens=target,
+            ignore_eos=True, stop=[], stop_token_ids=[])
+        observation = self.observation_factory(lora)
+        generator = self.engine.generate({'prompt_token_ids': ids}, params,
+            body['request_id'], lora_request=lora)
+        final = None
+        try:
+            async for output in generator:
+                observation.observe(output)
+                final = output
+        finally:
+            # AsyncLLM owns abort on cancellation/GeneratorExit. Explicitly
+            # close a suspended generator if observation validation raised.
+            await generator.aclose()
+        measured = observation.finish(control)
+        if (final is None or not final.finished or measured['native_output_tokens'] != target
+                or measured['native_prompt_token_ids'] != ids):
+            raise ValueError('native engine did not finish the exact requested work')
+        return dict(id=body['request_id'], model=self.model,
+            choices=[dict(index=0, finish_reason='length',
+                          message=dict(role='assistant', content=final.outputs[0].text))],
+            usage=dict(prompt_tokens=len(ids), completion_tokens=target, total_tokens=len(ids)+target),
+            metrics=dict(ieee_tc=measured))
+
+
+class ResidentRoundRobin:
+    """Stable request-ordinal round robin, as in the existing fair runner.
+
+    Readiness only blocks the already-selected worker. It never changes the
+    target, looks at adapter tier/queue lengths or waits for all workers.
+    """
+
+    def __init__(self, request_ids, worker_count, clock_id):
+        if worker_count < 1 or len(set(request_ids)) != len(request_ids):
+            raise ValueError('unique offered request IDs and workers required')
+        self.ordinals = {rid: i for i, rid in enumerate(request_ids)}
+        self.ready = [asyncio.Event() for _ in range(worker_count)]
+        self.seen = set()
+        self.clock_id = clock_id
+
+    async def route(self, body, received):
+        rid = body.get('request_id')
+        if rid not in self.ordinals or rid in self.seen:
+            raise ValueError('unknown/duplicate offered request; no hidden retries')
+        self.seen.add(rid)
+        control = dict(body.get('_sllm_internal_metrics', {}))
+        if control.get('tc_clock_id') != self.clock_id:
+            raise ValueError('router clock differs from startup ingress')
+        ordinal = self.ordinals[rid]
+        index = ordinal % len(self.ready)
+        control.update(tc_http_received_s=received, tc_router_enqueued_s=time.perf_counter(),
+            ready_instances_at_enqueue=sum(r.is_set() for r in self.ready),
+            tc_route_ordinal=ordinal)
+        await self.ready[index].wait()
+        control.update(tc_instance_assigned_s=time.perf_counter(), instance_id=f'vllm-{index}')
+        return index, dict(body, _sllm_internal_metrics=control)
+
+
+async def _native_worker(config_path, index):
+    # No backend import until this exact process has passed containment.
+    from prepare_ieee_tc_serverless_stack import load_guard
+    cfg = _load_json(config_path)
+    expected_sources = {str(SCRIPT_DIR/name) for name in
+        ('replay_vllm_engine_trace.py', 'ieee_tc_serverless_measurement.py',
+         'prepare_ieee_tc_serverless_stack.py')}
+    if (type(index) is not int or not 0 <= index < len(cfg['gpu_ids'])
+            or set(cfg.get('source_sha256', {})) != expected_sources
+            or any(_sha(path) != digest for path, digest in cfg['source_sha256'].items())):
+        raise ValueError('native worker index or frozen adapter source differs')
+    sys.path.insert(0, cfg['main_repo'])
+    guard = load_guard(Path(cfg['main_repo']))
+    guard.verify_current_service()
+    if os.environ.get('CUDA_VISIBLE_DEVICES') != str(cfg['gpu_ids'][index]):
+        raise ValueError('worker visible device differs from physical allocation')
+    from ieee_tc_serverless_measurement import (PublishedArtifactResolver,
+        install_v030_snapshot, V030NativeRequestObservation)
+    from faaslora.clock import local_monotonic_clock_id
+    snapshot = install_v030_snapshot()
+    from vllm.engine.arg_utils import AsyncEngineArgs
+    from vllm.v1.engine.async_llm import AsyncLLM
+    from vllm.lora.request import LoRARequest
+    from vllm.sampling_params import SamplingParams, RequestOutputKind
+    from aiohttp import web
+    engine = None
+    runner = None
+    stopped = asyncio.Event()
+    asyncio.get_running_loop().add_signal_handler(signal.SIGTERM, stopped.set)
+    try:
+        engine = AsyncLLM.from_engine_args(AsyncEngineArgs(**cfg['engine_args']))
+        receipt_id = uuid.uuid4().hex
+        row = dict(schema='ieee_tc_vllm_backend_ready_v1', receipt_id=receipt_id,
+            at=time.perf_counter(), clock_id=local_monotonic_clock_id(),
+            identity=guard.gpu_process_identity(os.getpid()),
+            cuda_visible=os.environ['CUDA_VISIBLE_DEVICES'], index=index,
+            snapshot=snapshot, engine_args=cfg['engine_args'],
+            native_api_sha256={str(Path(inspect.getfile(cls)).resolve()):
+                               _sha(inspect.getfile(cls)) for cls in (AsyncLLM, AsyncEngineArgs)},
+            runner_sha256=_sha(__file__), worker_config_sha256=_sha(config_path))
+        receipt_path = Path(cfg['output'])/'worker_receipts'/(receipt_id+'.json')
+        _exclusive_json(receipt_path, row)
+        receipt = dict(tc_worker_receipt_id=receipt_id, tc_worker_receipt_sha256=_sha(receipt_path))
+        handler = NativeVLLMRequestHandler(engine=engine,
+            resolver=PublishedArtifactResolver(cfg['remote_config']), adapters=cfg['adapters'],
+            lora_factory=LoRARequest,
+            sampling_factory=lambda **kw: SamplingParams(**kw, output_kind=RequestOutputKind.CUMULATIVE),
+            observation_factory=V030NativeRequestObservation, clock_id=row['clock_id'],
+            instance_id=f'vllm-{index}', receipt=receipt, model=cfg['model'])
+
+        async def generate(request):
+            return web.json_response(await handler.generate(await request.json()))
+
+        app = web.Application()
+        app.router.add_post('/v1/chat/completions', generate)
+        runner = web.AppRunner(app, access_log=None, handler_cancellation=True, shutdown_timeout=1.)
+        await runner.setup()
+        await web.TCPSite(runner, '127.0.0.1', cfg['worker_ports'][index]).start()
+        _exclusive_json(Path(cfg['output'])/f'worker_{index}.ready.json',
+                        dict(**receipt, port=cfg['worker_ports'][index]))
+        await stopped.wait()
+    finally:
+        if runner is not None:
+            await runner.cleanup()
+        if engine is not None:
+            engine.shutdown(timeout=60.)
+
+
+async def _resident_http_service(config_path, http_path, output, private_root):
+    from prepare_ieee_tc_serverless_stack import (load_guard, load_http_replay_plan,
+        prepare_remote_artifacts, record_http_physical_terminals)
+    from ieee_tc_serverless_measurement import PreReadyHTTPIngress
+    import aiohttp
+    from aiohttp import web
+    cfg, http = _load_json(config_path), _load_json(http_path)
+    ingress_port = validate_native_service_config(cfg, http)
+    sys.path.insert(0, http['main_repo'])
+    guard = load_guard(Path(http['main_repo']))
+    admission = guard.verify_current_service()
+    context = _load_json(Path(os.environ['FAASLORA_TC_LAUNCH_RECEIPT']))['external_replay']
+    if (context.get('transport') != 'http' or context.get('config_sha256') != _sha(http_path)
+            or Path(sys.executable).resolve() != Path(cfg['python']).resolve()):
+        raise ValueError('service interpreter/publisher contract differs')
+    from faaslora.metrics.metrics_collector import PhysicalGPUAllocation, PhysicalGPUDeployment
+    from faaslora.clock import local_monotonic_clock_id
+    plan = load_http_replay_plan(http)
+    output.mkdir(mode=0o700, exist_ok=False)
+    private_root.mkdir(mode=0o700, exist_ok=False)
+    (output/'worker_receipts').mkdir()
+    deployment = PhysicalGPUDeployment(root=output/'physical', plan=plan, context=context)
+    deployment.bind_result_file(output/'model_qualification.json')
+    service_path = Path(admission['service_identity']['path'])
+    remote, paths = prepare_remote_artifacts(http, private_root,
+        '/'+str(service_path.relative_to('/sys/fs/cgroup')))
+    sources = {str(SCRIPT_DIR/name): _sha(SCRIPT_DIR/name) for name in
+        ('replay_vllm_engine_trace.py', 'ieee_tc_serverless_measurement.py',
+         'prepare_ieee_tc_serverless_stack.py')}
+    worker_cfg = dict(cfg, model=http['model'], main_repo=http['main_repo'], output=str(output),
+        source_sha256=sources,
+        remote_config=remote, adapters={aid: [i+1, paths[aid]] for i, aid in enumerate(sorted(paths))})
+    worker_path = output/'worker_config.json'
+    _exclusive_json(worker_path, worker_cfg)
+    router = ResidentRoundRobin([e.request_id for e in plan.entries], len(cfg['gpu_ids']),
+                                local_monotonic_clock_id())
+    result = dict(schema='ieee_tc_vllm_native_model_qualification_v1', passed=False,
+        qualification_only=True, numerical_correctness_qualified=False,
+        configuration=cfg, configuration_sha256=_sha(config_path),
+        http_config_sha256=_sha(http_path), source_sha256=sources,
+        service=admission, requests=[])
+    owners, processes, logs, starts = [], [], [], []
+    app_runner = None
+    failure = None
+    stop = asyncio.Event()
+    asyncio.get_running_loop().add_signal_handler(signal.SIGTERM, stop.set)
+
+    async def await_ready(index, owner, process):
+        path = output/f'worker_{index}.ready.json'
+        deadline = context['deployment_notice_s']+1800.
+        while not path.exists():
+            if process.poll() is not None:
+                raise RuntimeError(f'vLLM worker {index} exited before ready: {process.returncode}')
+            if stop.is_set() or time.perf_counter() >= deadline:
+                raise TimeoutError('native startup interrupted or qualification protection elapsed')
+            await asyncio.sleep(.05)
+        # A file is notification, not GPU proof. Bind live contexts to this
+        # exact allocation before releasing any queued request to the worker.
+        sample = owner.census.sample(service_path)
+        workers = [dict(device_uuid=d['gpu_uuid'], pid=p['pid'], worker_rank=index)
+            for d in sample['devices'] if d['gpu_uuid'] in owner.gpu_uuids
+            for p in d['processes'] if p['service_member'] and p['kind'] == 'compute']
+        owner.confirm_workers(workers)
+        ready = _load_json(path)
+        receipt = _load_json(output/'worker_receipts'/(ready['tc_worker_receipt_id']+'.json'))
+        if (ready['tc_worker_receipt_sha256'] != _sha(output/'worker_receipts'/(ready['tc_worker_receipt_id']+'.json'))
+                or receipt['identity'] != guard.gpu_process_identity(process.pid) or receipt['index'] != index
+                or receipt['worker_config_sha256'] != _sha(worker_path)
+                or receipt['clock_id'] != router.clock_id):
+            raise ValueError('native ready receipt/source/process identity changed')
+        router.ready[index].set()
+
+    async def wait_for_replay():
+        deadline = context['replay_t0_s']+max(e.offset_s for e in plan.entries)+1800.+60.
+        with Path(context['result_path']).open() as handle:
+            while True:
+                if stop.is_set():
+                    raise RuntimeError('resident service interrupted')
+                if any(p.poll() is not None for p in processes):
+                    raise RuntimeError('resident worker exited during offered workload')
+                for task in starts:
+                    if task.done():
+                        task.result()
+                pos = handle.tell()
+                line = handle.readline()
+                if not line.endswith('\n'):
+                    handle.seek(pos)
+                    if time.perf_counter() >= deadline:
+                        raise TimeoutError('external publisher terminal record absent')
+                    await asyncio.sleep(.1)
+                    continue
+                row = json.loads(line)
+                if row['event'] == 'http_raw_response':
+                    result['requests'].append(dict(request_id=row['request_id'], response=row['body'],
+                                                   http_status=row['status']))
+                if row['event'] in ('http_replay_complete', 'http_replay_incomplete'):
+                    result['http_completion'] = row
+                    if (row['event'] != 'http_replay_complete' or row.get('N_failed') != 0
+                            or row.get('N_response') != len(plan.entries)):
+                        raise ValueError('incomplete/failed native HTTP workload; retained for diagnosis')
+                    return
+
+    try:
+        with PreReadyHTTPIngress(port=ingress_port,
+                upstream_url=f'http://127.0.0.1:{cfg["router_port"]}/v1/chat/completions',
+                model=http['model'], request_count=len(plan.entries),
+                journal_path=output/'ingress.jsonl') as ingress:
+            async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(limit=0, force_close=True),
+                    timeout=aiohttp.ClientTimeout(total=None), trust_env=False) as session:
+                async def route(request):
+                    received = time.perf_counter()
+                    index, body = await router.route(await request.json(), received)
+                    url = f'http://127.0.0.1:{cfg["worker_ports"][index]}/v1/chat/completions'
+                    async with session.post(url, json=body, allow_redirects=False) as response:
+                        return web.Response(body=await response.read(), status=response.status,
+                                            content_type='application/json')
+
+                app = web.Application()
+                app.router.add_post('/v1/chat/completions', route)
+                app_runner = web.AppRunner(app, access_log=None, handler_cancellation=True, shutdown_timeout=1.)
+                await app_runner.setup()
+                await web.TCPSite(app_runner, '127.0.0.1', cfg['router_port']).start()
+                ingress.router_ready()
+                for index, device in enumerate(cfg['gpu_ids']):
+                    api = guard.load_nvml_binding(Path(os.environ['FAASLORA_TC_NVML_BINDING']),
+                                                  os.environ['FAASLORA_TC_NVML_SHA256'])
+                    census = guard.NativeGPUCensus(api)
+                    try:
+                        owner = PhysicalGPUAllocation(root=deployment.allocations, census=census,
+                            service_path=service_path, device_indices=(device,),
+                            owner_identity=guard.gpu_process_identity(os.getpid()))
+                    except BaseException:
+                        census.close()
+                        raise
+                    owners.append(owner)
+                    log = (output/f'worker_{index}.log').open('xb')
+                    logs.append(log)
+                    env = dict(os.environ, CUDA_VISIBLE_DEVICES=str(device),
+                        VLLM_WORKER_MULTIPROC_METHOD='spawn', PYTHONDONTWRITEBYTECODE='1')
+                    # Backend imports occur only in this separate interpreter;
+                    # no dirty replay or repository startup hook is imported.
+                    env.pop('PYTHONPATH', None)
+                    env.pop('PYTHONHOME', None)
+                    process = subprocess.Popen([cfg['python'], '-B', str(Path(__file__).resolve()),
+                        'native-http-worker', '--config', str(worker_path), '--index', str(index)],
+                        stdout=log, stderr=subprocess.STDOUT, env=env)
+                    processes.append(process)
+                    owner.bind_process(process, guard.gpu_process_identity(process.pid))
+                    starts.append(asyncio.create_task(await_ready(index, owner, process)))
+                await wait_for_replay()
+                result['passed'] = True
+    except Exception as exc:
+        failure = exc
+        result['error'] = f'{type(exc).__name__}: {exc}'
+    finally:
+        for task in starts:
+            task.cancel()
+        await asyncio.gather(*starts, return_exceptions=True)
+        if app_runner is not None:
+            await app_runner.cleanup()
+        for process in processes:
+            if process.poll() is None:
+                process.terminate()  # Exact owned Popen; no name/group guessing.
+        waits = await asyncio.gather(*(asyncio.to_thread(p.wait, timeout=60) for p in processes),
+                                     return_exceptions=True)
+        for index, owner in enumerate(owners):
+            try:
+                if index < len(waits) and isinstance(waits[index], BaseException):
+                    raise waits[index]
+                if owner.process is not None and any(e['event'] == 'native_workers' for e in owner.events):
+                    await owner.wait_workers(timeout_s=60.)
+                owner.release()  # pidfd exit AND native empty census.
+            except Exception as exc:
+                result.setdefault('physical_release_errors', []).append(str(exc))
+                result['passed'] = False
+                failure = failure or exc
+        for log in logs:
+            log.close()
+        result['physical_allocations'] = [owner.evidence() for owner in owners]
+        try:
+            record_http_physical_terminals(deployment, context['result_path'])
+            physical = deployment.summarize(observed_until_s=time.monotonic())
+            result['physical_lifecycle'] = dict(mode='vllm_resident_pool_v1',
+                summary_path=str(deployment.root/'physical_resource_summary.json'),
+                measurement_complete=physical['measurement_complete'])
+            if (not physical['measurement_complete']
+                    or physical['n_native_contract_complete'] != len(plan.entries)):
+                raise ValueError('physical or native workload measurement incomplete')
+        except Exception as exc:
+            result['physical_terminal_error'] = str(exc)
+            result['passed'] = False
+            failure = failure or exc
+        _exclusive_json(output/'model_qualification.json', result)
+        deployment.finalize()
+    if failure:
+        raise RuntimeError('vLLM qualification failed; preserve original evidence') from failure
+    return result
+
+
+def native_http_main(argv):
+    parser = argparse.ArgumentParser(description='Opt-in shared TC native HTTP measurement')
+    parser.add_argument('mode', choices=('native-http-service', 'native-http-worker'))
+    parser.add_argument('--config', type=Path, required=True)
+    parser.add_argument('--index', type=int)
+    parser.add_argument('--http-replay-config', type=Path)
+    parser.add_argument('--output', type=Path)
+    parser.add_argument('--private-root', type=Path)
+    args = parser.parse_args(argv)
+    if args.mode == 'native-http-worker':
+        if args.index is None:
+            parser.error('worker requires --index')
+        asyncio.run(_native_worker(args.config, args.index))
+    else:
+        if any(p is None or not p.is_absolute() for p in
+               (args.http_replay_config, args.output, args.private_root)):
+            parser.error('service requires absolute publisher/output/private paths')
+        asyncio.run(_resident_http_service(args.config, args.http_replay_config, args.output, args.private_root))
+    return 0
 
 
 def _load_json(path: Path) -> Dict[str, Any]:
@@ -137,6 +574,11 @@ def _print_live(label: str, start_perf: float, total: int, results: List[Dict[st
 
 
 def main() -> int:
+    if len(sys.argv) > 1 and sys.argv[1] in ('native-http-service', 'native-http-worker'):
+        return native_http_main(sys.argv[1:])
+    # Legacy path unchanged; the new native service does not import this
+    # user-owned dirty replay module or inherit its external loader behavior.
+    from replay_openai_trace import RemoteArtifactFetcher
     ap = argparse.ArgumentParser(description="Replay a shared trace directly through a vLLM-compatible LLMEngine.")
     ap.add_argument("--trace", type=Path, required=True)
     ap.add_argument("--adapter-subset", type=Path, required=True)
