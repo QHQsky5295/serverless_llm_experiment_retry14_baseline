@@ -75,6 +75,29 @@ regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance re
 
 ## Exact next action and remaining scope
 
+D423 CLOSURE BACKED UP / PRIVATE OBJECTS RECLAIMED2026-10-11~18:31.
+Main4c700e70a2b5d2e5ec93bd2d8b1dfc3bc46c0dff andbaseline
+b477b12622b8f095dd4d6d753c36ebe12391e7f7 pushed, both remoteSHAs verified.
+All206 evidencefiles SHA/size verified; exacttaskfiles/diff/secrets/prelaunch27CPU
+checks passed, protected3userdirtySHAs unchanged. No liveGPU/remotejob.
+Reclaimed ONLY /tmp/tc-d423-7bv/remote_artifacts/objects afterbackups:
+1320files/3300789780payloadB,observedfreed3305713664B,diskafter163415580672B.
+Retainedoriginalpool currentbytes/index/distinctinodes,symlinks/mounts,
+savedmetadataSHA,readableownedprocess FD/cwd/root+fuser andfuturetracked
+config/scriptreferences checked. Three unreadable sameUIDproc entries disclosed
+(2628,4156156,4157313),not an exhaustive systemwide proof. Allrawrecords and
+remoteimmutablecache retained; old206-filemanifest notrewritten. Emptyowned
+aux0002..0013 identitychecked/stopped; cleanupInvocation20b8ea732fc848ccaf813e5ff31b2ba9.
+Rawcache_cleanup_before/after andcuratedstorage/20261011_d423_download_cache.json
+retainreceipts. Do NOTredownload justtorepeatpassedbyteaudit orrerunD423.
+NEXT separate full-contract join ofsealedPrimeLoRAD371/D397,ServerlessLLMD414,
+vLLMD423;freezeeligibleW0ResidentU_ref/Q_ref andrecorddescriptivecomparison.
+Then continue remaining7Bbaseline/S-LoRA source+contract audit,not a3Bjump.
+No U_ref freeze orcrosssystemranking yet. W1/W2/G2 andallremaining approved
+scope OPEN. Fullgoal ACTIVE;thisturn concretefullrunclosure/audit/backup,
+not goalcompletion. Finalcache-receipt/statusbackup pending; no GPUjob launched.
+Older NEXT/RUNNING paragraphs are retained history.
+
 CURRENT D423 TERMINAL/AUDITED 2026-10-11, actual release confirmed18:25:32
 Asia/Shanghai. No live GPU job; do NOT restart. All4000 offered/submitted/
 terminal/native/source/prompt/adapter/content/timing contracts,0failed,
