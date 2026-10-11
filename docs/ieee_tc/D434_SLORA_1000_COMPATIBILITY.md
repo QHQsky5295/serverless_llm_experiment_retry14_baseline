@@ -1,6 +1,11 @@
 # D434 — S-LoRA 7B original1000 compatibility
 
-2026-10-11 preregistration; no performance outcome yet.
+2026-10-11 preregistration; launched22:25:08Asia/Shanghai, no terminal outcome yet.
+
+Execution MAIN47be5422cbf65c8c0905f78668a83c188b7b9ccf,
+BASE5059cb0b86c5a5378a772adaa25aa80bb7a1b240; both pushed/remoteSHA verified.
+Tmux tc-d434-7b; service InvocationID18c0f4b4575a45be824a81b181b46476.
+Current source/runtime configuration unchanged; monitor this same run, no repeats.
 
 ## Question and fixed scope
 

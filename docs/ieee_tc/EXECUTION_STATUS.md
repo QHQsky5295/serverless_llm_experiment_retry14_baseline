@@ -1,4 +1,4 @@
-# IEEE TC execution status — D434 S-LoRA original1000 preparation
+# IEEE TC execution status — D434 S-LoRA original1000 RUNNING
 
 Updated 2026-10-11. This is a current checkpoint, NOT a replacement experiment plan.
 Full earlier status is preserved byte-for-byte in EXECUTION_HISTORY_THROUGH_D433.md;
@@ -32,27 +32,50 @@ RUNNING entries are historical. No approved experiment or failed evidence was re
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — no live job at this checkpoint
+## Current action — monitor SAME live D434 run
 
 Full PLAN/STATUS/V1/V2/new baseline rules read this turn. Fresh compute census empty,
-no tmux, RAM available112566226944B/disk163265679360B. These are observations,
+no tmux, RAM available112566226944B/disk163265679360B at prelaunch. These are observations,
 not later launch guarantees. User reconfirms one-time readonly delivery-cache approval:
 D78/D80 already done, reuse it, no republication or new extracted pool.
 
-NEXT: prepare D434 original1000 compatibility with SAME D432/D433 native configuration,
-then fresh resource/protected/input gates, backup, unchanged owned remote health,
-one contained run in tmux. Do not repeat100/500 or search baseline parameters.
+D434 launched2026-10-11 22:25:08Asia/Shanghai in tmux tc-d434-7b.
+Execution MAIN47be5422cbf65c8c0905f78668a83c188b7b9ccf and
+BASE5059cb0b86c5a5378a772adaa25aa80bb7a1b240 pushed and remoteSHA verified.
+Service primelora-tc-svc-b0ce62d358e94489b1d5958c0e83ede0.scope,
+InvocationID18c0f4b4575a45be824a81b181b46476; auxiliary
+primelora-tc-aux-d4340000000000000000000000000001.scope.
+Notice1235966.54994207; business starts60s later. Exactly1000 request contracts
+registered. Watchdogsample23:available112207171584B/service3223691264B,
+disk163260563456B,high/max/OOM/swap0,no abort. Not terminal/no performance verdict.
+HTTPconfigSHAfa864b420f1c33047b2ef9bcecdbb09e98c2e2b00b43a9bef65e4f36dca5fb1d;
+original1000view/60IDs/122510targets verified. Nativecache2055files/62246523B.
+Ownedaux0002/0003/0004 empty-tree/identity checked and stopped,pressure/swap0.
+Remote unchanged publishedcache/link1000Mb/s/full;7Bclock
+remote-process-monotonic:8e030525ed52454e89698c6a7e7b6287.
+3B/7B/monitorInvocationIDs158b40360fdf46bb818a036493b0246c /
+e0525a84e0af4598a1e715bfac1e7255 /1028fcd55b374827a52f7d705422add0.
+NEXT: monitor SAME actual handle and local journals. No live remote changes,
+hashscan/cleanup/tests/retries/second heavyjob or configuration search.
+Do not repeat100/500 or interpret observation timeout as stopped experiment.
 After actual GPU release: stop only owned remote units, preserve logs/receipts,
 strict existing slora_resident_rr_v1/prefix1000 audit with D394 SLO, seal/backup,
 safely reclaim only recreatable private downloaded objects, then one full4000W0.
-D434 not yet launched. Full goal ACTIVE; all remaining approved scope OPEN.
+D434 is running. Full goal ACTIVE; all remaining approved scope OPEN.
+
+Verified wait22:27:30: same active InvocationID,27 created/sent,1000 contracts,
+no native responses yet during startup; no failure/terminal receipt. Watchdog130:
+available111669166080B,service14172696576B,disk150252163072B,high/max/OOM/swap0,
+noabort. Below150GiB forbids NEW heavylaunch;currentrun remainsabove100GiB.
+No live cleanup, remote operation, tests, hashscan, configchange or restart.
+This turn made actual launch progress; current unchanged state is expected wait.
 
 Prepared D434 recipes and preregistration in both repositories; runtime unchanged.
 37 CPU contract tests passed1.858s in existing outer Python3.12 environment.
 Earlier systemPython3.10 attempt failed import(numpy absent); retained log, no install
 or code workaround. Fresh preflight passed and147 protected entries unchanged.
 PresealSHA856204eb4f7e42fc86d11896c5cbae3a3dc2f7d1b7222863d3dcfa63b2e92907.
-Next backup preparation, freeze input/cache identities, remote health, launch once.
+These prelaunch steps are complete; monitor the already launched run.
 
 Raw new root: /home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d434_20261011
 Private new root: /tmp/tc-d434-7bs. Reuse D433 run/start/stop/health/freeze/preserve/seal
