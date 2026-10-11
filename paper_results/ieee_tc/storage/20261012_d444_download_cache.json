@@ -1,0 +1,56 @@
+{
+  "before": {
+    "schema": "ieee_tc_closed_download_cache_reclamation_v1",
+    "campaign": "d444_20261012",
+    "target": "/tmp/tc-d444-7bl/remote_artifacts/objects",
+    "status": "verified_before_removal",
+    "files": 5000,
+    "payload_bytes": 12985984450,
+    "disk_before_bytes": 149767512064,
+    "audit": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d444_7b_loquetier_compatibility/audit.json",
+      "sha256": "969108d53d30bdd1961fab94f64f86187aaaafec007b92cd1accf4aee5508b31"
+    },
+    "source_index": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json",
+      "sha256": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c"
+    },
+    "retained_original_pool": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama2_7b_a500_v2_publicmix",
+    "retained_evidence": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d444_20261012",
+    "all_cache_bytes_previously_hashed_by_audit": true,
+    "current_original_bytes_rehashed": true,
+    "current_file_sizes_and_original_inodes_verified": true,
+    "owned_runtime_references": [],
+    "future_config_script_references": [],
+    "cache_symlinks_or_nested_mounts": false,
+    "metadata_copies_hash_match": true,
+    "unreadable_same_uid_proc_entries": [
+      "2628",
+      "4156156",
+      "4157313"
+    ],
+    "open_fd_check_scope": "readable same-UID FD/cwd/root plus fuser, not claimed complete system-wide",
+    "raw_results_removed": false,
+    "unique_artifacts_removed": false,
+    "recipe_sha256": "92176b795112f251f43f2aad8582a9317dc7351274cf62c1e1379b70554fd7a1",
+    "recorded_unix": 1791748792.0971131
+  },
+  "after": {
+    "schema": "ieee_tc_closed_download_cache_reclamation_v1",
+    "campaign": "d444_20261012",
+    "target": "/tmp/tc-d444-7bl/remote_artifacts/objects",
+    "removed": true,
+    "disk_before_bytes": 149767512064,
+    "disk_after_bytes": 162771959808,
+    "observed_reclaimed_bytes": 13004447744,
+    "before_receipt_sha256": "5b51e899727b210732054589da7fb6e740f29415a1bf8760c473d4b3ea40e2bd",
+    "raw_results_removed": false,
+    "unique_artifacts_removed": false,
+    "recorded_unix": 1791748794.576232
+  },
+  "main_closure_backup": "6d2f137b9187d647ceee715eb70676df60f0bd8c",
+  "baseline_closure_backup": "61bb70b021a457bc30dc770f2c2205f86c8a81e3",
+  "both_remote_shas_verified_before_cleanup": true,
+  "sealed_source_files_reverified_after_cleanup": 580,
+  "protected_entries_unchanged_after_cleanup": 147
+}

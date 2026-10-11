@@ -1,4 +1,4 @@
-# IEEE TC execution status — D444 Loquetier original1000 closed; backup/cleanup next
+# IEEE TC execution status — D444 Loquetier original1000 closed; full4000 next
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement experiment plan.
 Full earlier status is preserved byte-for-byte in EXECUTION_HISTORY_THROUGH_D433.md;
@@ -55,7 +55,18 @@ allSHA independentlyrechecked. 147protectedentries/threeuserfiles/nativepatchesu
 Aux0001/0006-0011 actualrecursiveemptytree+InvocationIDchecked/stopped,highmaxOOMswap0;
 peaks290877440/73080832/234586112/29421568/85471232/7884800/2420736B.
 No D444 scopes/tmux remain. No fresh semantic reviewer PASS claimed.
-NEXT double-repobackup ->owneddownloadcachecleanup ->freshgates ->single4000W0.
+Closurebackups MAIN6d2f137b9187d647ceee715eb70676df60f0bd8c and
+BASE61bb70b021a457bc30dc770f2c2205f86c8a81e3 bothpushed/remoteSHAverified.
+BASEsummarySHA50bbd64ac74df98bf9b8207bf28e7be4337d7586d2a6146eb35fe37743a615c7.
+Only5000owneddownloadfiles/12985984450payloadB reclaimed afterbackups;
+freed13004447744B,diskafter162771959808B(~151.59GiB). Originalpool/rawlogs/
+remote readonlycache retained. Threeunreadable sameUIDproc entries2628/4156156/
+4157313 disclosed; notall-system FDproof. Receiptstorage/20261012_d444_download_cache.json.
+All580sealedSHA reverifiedaftercleanup;147protectedentriesunchanged. Aux0012
+ID6386cee559d5455ea35c2a07bce87fd2 peak26787840B;aux0013ID93ad60ab79c54a99a6e67cea891cda9e
+peak29540352B;bothactualrecursiveemptytree/identitycheckedstopped,highmaxOOMswap0.
+AllD444ownedscopesclosed,fourGPUs15MiBgraphics/0util,hostavailable104GiB at04:00:29.
+NEXT freshgates -> preregister/backup -> sameconfig single4000W0. No repeatedcleanup.
 Do not repeat100/500/1000/capacity orsealedW0, no baseline tuning.
 This turn:verifiedwait+actualclosure/audit/sealprogress; goalACTIVE,no blocker.
 All remaining7B/HydraServe/comparison/PrimeLoRAoptimization before3B andfullscopeOPEN.
