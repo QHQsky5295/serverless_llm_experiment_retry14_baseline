@@ -27,7 +27,7 @@ import hashlib
 import json
 import math
 from pathlib import Path
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any, Dict, List, Optional, Tuple
 from ..clock import local_monotonic_clock_id
 
@@ -72,9 +72,19 @@ class FrozenReplayPlan:
     profile: str
     rate_scale: float
     source_count: int
+    coverage_pool_index: Optional[str] = None
+    coverage_pool_index_sha256: Optional[str] = None
 
     @classmethod
-    def load(cls, path, *, profile='W0', count=None, rate_scale=1.0):
+    def load(cls, path, *, profile='W0', count=None, rate_scale=1.0,
+             coverage_pool_index=None, coverage_pool_index_sha256=None):
+        if profile == 'ADAPTER_COVERAGE_V1':
+            if type(count) is not int or count != 500 or rate_scale != 1.:
+                raise ValueError('coverage requires the unscaled 500-request functional view')
+            plan = cls.load(path, count=count)
+            return plan.with_adapter_coverage(coverage_pool_index, coverage_pool_index_sha256)
+        if coverage_pool_index is not None or coverage_pool_index_sha256 is not None:
+            raise ValueError('coverage pool requires the explicit functional profile')
         source = Path(path).resolve(strict=True)
         raw = source.read_bytes()
         rows = json.loads(raw)['requests']
@@ -110,12 +120,50 @@ class FrozenReplayPlan:
         return cls(str(source), hashlib.sha256(raw).hexdigest(), tuple(entries),
                    profile, rate_scale, len(rows))
 
+    def with_adapter_coverage(self, pool_index, pool_index_sha256):
+        """Same immutable view as the existing HTTP baseline qualification.
+
+        Only adapter IDs change; source arrival/prompt/target and both original
+        and derived row identities remain available. No replacement trace is
+        written. This is functional coverage, never a performance workload.
+        """
+        if (self.profile != 'W0' or len(self.entries) != 500
+                or self.rate_scale != 1. or self.source_count <= 500
+                or not pool_index or not pool_index_sha256):
+            raise ValueError('coverage requires an original 500-row prefix and frozen pool')
+        source = Path(pool_index).resolve(strict=True)
+        raw = source.read_bytes()
+        if hashlib.sha256(raw).hexdigest() != pool_index_sha256:
+            raise ValueError('coverage pool index changed')
+        ids = [row['id'] for row in json.loads(raw)['artifacts']]
+        if (len(ids) != 500 or any(not isinstance(aid, str) or not aid for aid in ids)
+                or len(set(ids)) != 500):
+            raise ValueError('coverage requires 500 distinct existing adapter IDs')
+        entries = []
+        for ordinal, (entry, aid) in enumerate(zip(self.entries, sorted(ids))):
+            row = json.loads(entry.source_json)
+            if 'tc_adapter_coverage' in row or not row.get('adapter_id'):
+                raise ValueError('coverage source is not an original adapter-bound request')
+            row['tc_adapter_coverage'] = dict(contract='adapter_coverage_v1', ordinal=ordinal,
+                original_source_item_sha256=entry.source_sha256,
+                original_adapter_id=row['adapter_id'], pool_index_sha256=pool_index_sha256)
+            row['adapter_id'] = aid
+            canonical = json.dumps(row, sort_keys=True, separators=(',', ':'), ensure_ascii=False)
+            entries.append(replace(entry, source_json=canonical,
+                source_sha256=hashlib.sha256(canonical.encode()).hexdigest()))
+        return replace(self, entries=tuple(entries), profile='ADAPTER_COVERAGE_V1',
+            coverage_pool_index=str(source), coverage_pool_index_sha256=pool_index_sha256)
+
     def identity(self):
         view = [[e.request_id, e.offset_s, e.source_sha256] for e in self.entries]
-        return {'source_path': self.path, 'source_sha256': self.source_sha256,
+        identity = {'source_path': self.path, 'source_sha256': self.source_sha256,
                 'view_sha256': hashlib.sha256(json.dumps(view, separators=(',', ':')).encode()).hexdigest(),
                 'count': len(self.entries), 'source_count': self.source_count,
                 'profile': self.profile, 'rate_scale': self.rate_scale}
+        if self.coverage_pool_index is not None:
+            identity.update(coverage_pool_index=self.coverage_pool_index,
+                            coverage_pool_index_sha256=self.coverage_pool_index_sha256)
+        return identity
 
     def validate_launch_context(self, context, *, formal_run=False):
         """Bind an integrated launch to a full source or an explicit diagnostic.
@@ -129,6 +177,10 @@ class FrozenReplayPlan:
         if context.get('plan') != self.identity():
             raise ValueError('integrated replay source/view identity differs')
         count = context.get('diagnostic_prefix_count')
+        if self.profile == 'ADAPTER_COVERAGE_V1' and (
+                scope != 'diagnostic_prefix_v1' or formal_run or count != 500
+                or self.coverage_pool_index is None):
+            raise ValueError('adapter coverage is an explicit nonformal diagnostic only')
         if scope == 'diagnostic_prefix_v1':
             if (formal_run or type(count) is not int
                     or not 0 < count == len(self.entries) < self.source_count):
@@ -143,7 +195,9 @@ class FrozenReplayPlan:
         count = (context.get('diagnostic_prefix_count')
                  if context.get('replay_scope') == 'diagnostic_prefix_v1' else None)
         plan = cls.load(context['plan']['source_path'],
-                        profile=context['plan']['profile'], count=count)
+                        profile=context['plan']['profile'], count=count,
+                        coverage_pool_index=context['plan'].get('coverage_pool_index'),
+                        coverage_pool_index_sha256=context['plan'].get('coverage_pool_index_sha256'))
         plan.validate_launch_context(context, formal_run=formal_run)
         return plan
 

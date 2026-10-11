@@ -1,5 +1,6 @@
 """Frozen open-loop transport tests; fixtures are not experimental workloads."""
 import asyncio
+import hashlib
 import json
 import math
 from pathlib import Path
@@ -15,6 +16,48 @@ from faaslora.datasets.workload_generator import (
 
 
 class FrozenViews(unittest.TestCase):
+    def test_coverage_preserves_source_and_matches_existing_http_derivation(self):
+        with tempfile.TemporaryDirectory() as d:
+            path, pool = Path(d)/'trace.json', Path(d)/'pool.json'
+            rows = [dict(request_id=f'req_{i:05d}', arrival_time_s=i*.01, adapter_id='old',
+                         expected_output_tokens=123, body={'messages':[{'role':'user','content':'test'}]})
+                    for i in range(501)]
+            path.write_text(json.dumps({'requests':rows}))
+            ids = [f'adapter-{i:03d}' for i in reversed(range(500))]
+            pool.write_text(json.dumps({'artifacts':[{'id':aid} for aid in ids]}))
+            raw, pool_raw = path.read_bytes(), pool.read_bytes()
+            sha = hashlib.sha256(pool_raw).hexdigest()
+            options = dict(profile='ADAPTER_COVERAGE_V1', count=500,
+                           coverage_pool_index=pool, coverage_pool_index_sha256=sha)
+            plan = FrozenReplayPlan.load(path, **options)
+            original = FrozenReplayPlan.load(path, count=500)
+            for i, (entry, old) in enumerate(zip(plan.entries, original.entries)):
+                row = json.loads(entry.source_json)
+                self.assertEqual(entry.offset_s, old.offset_s)
+                self.assertEqual(row['adapter_id'], sorted(ids)[i])
+                annotation = row.pop('tc_adapter_coverage')
+                self.assertEqual(annotation, dict(contract='adapter_coverage_v1', ordinal=i,
+                    original_source_item_sha256=old.source_sha256, original_adapter_id='old',
+                    pool_index_sha256=sha))
+                row['adapter_id'] = 'old'
+                self.assertEqual(row, rows[i])
+            context = dict(plan=plan.identity(), tiny_witness=False,
+                           replay_scope='diagnostic_prefix_v1', diagnostic_prefix_count=500)
+            self.assertEqual(FrozenReplayPlan.from_launch_context(context), plan)
+            self.assertEqual(path.read_bytes(), raw)
+            self.assertEqual(pool.read_bytes(), pool_raw)
+            with self.assertRaises(ValueError):
+                FrozenReplayPlan.from_launch_context(context, formal_run=True)
+            for change in (dict(profile='W0'), dict(count=100), dict(count=True),
+                           dict(rate_scale=2.), dict(coverage_pool_index_sha256='changed')):
+                with self.subTest(change=change), self.assertRaises(ValueError):
+                    FrozenReplayPlan.load(path, **{**options, **change})
+            for invalid in (ids[:-1], [ids[0]]*500, ['']+ids[1:]):
+                pool.write_text(json.dumps({'artifacts':[{'id':aid} for aid in invalid]}))
+                with self.assertRaises(ValueError):
+                    FrozenReplayPlan.load(path, **{**options,
+                        'coverage_pool_index_sha256':hashlib.sha256(pool.read_bytes()).hexdigest()})
+
     def load_rows(self, rows, **kwargs):
         with tempfile.TemporaryDirectory() as d:
             path = Path(d)/'trace.json'

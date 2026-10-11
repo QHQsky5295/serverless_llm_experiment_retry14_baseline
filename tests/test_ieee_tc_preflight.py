@@ -34,6 +34,7 @@ class ForwardedCommandCLI(unittest.TestCase):
             source.write_text(json.dumps(dict(requests=[dict(request_id=str(i), arrival_time_s=i)
                                                        for i in range(3)])))
             args = SimpleNamespace(replay_trace=source, replay_profile='W0', tiny_witness=False,
+                coverage_pool_index=None, coverage_pool_index_sha256=None,
                 diagnostic_prefix_count=2, output=root/'out.jsonl', gate_socket=str(root/'socket'),
                 gate_nonce='fixture')
             observed = []
@@ -75,6 +76,17 @@ class ForwardedCommandCLI(unittest.TestCase):
                 p.gated_launch(['/bin/true'], Path('/unused'),
                     diagnostic_prefix_count=2, replay_trace='trace')
             guard.assert_not_called()
+
+    def test_coverage_arguments_cannot_silently_change_a_performance_view(self):
+        for options in (dict(replay_profile='ADAPTER_COVERAGE_V1'),
+                        dict(replay_profile='ADAPTER_COVERAGE_V1', diagnostic_prefix_count=100,
+                             replay_trace='trace', coverage_pool_index='pool', coverage_pool_index_sha256='sha'),
+                        dict(coverage_pool_index='pool'),
+                        dict(coverage_pool_index_sha256='sha')):
+            with self.subTest(options=options), patch.object(p, 'require_watchdog_primitives') as guard:
+                with self.assertRaises(ValueError):
+                    p.gated_launch(['/bin/true'], Path('/unused'), **options)
+                guard.assert_not_called()
 
     def test_prefix_cli_is_explicit_and_forwards_the_original_source(self):
         with tempfile.TemporaryDirectory() as tmp:

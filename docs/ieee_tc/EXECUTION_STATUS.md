@@ -1,4 +1,4 @@
-# IEEE TC execution status — D450 actual ElasticLocality prefix100 qualified; 500-ID next
+# IEEE TC execution status — D451 ElasticLocality 500-ID input qualification
 
 Updated 2026-10-12. Current checkpoint, NOT a replacement experiment plan.
 Full prior status is byte-identically archived in EXECUTION_HISTORY_THROUGH_D448.md,
@@ -31,7 +31,24 @@ entries are not current instructions. No evidence or approved task was removed.
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D450 combined contract/configuration CPU qualified
+## Current action — D451 existing500-ID view integration
+
+D451_ELASTICLOCALITY_500_ADAPTER_COVERAGE.md records the next required coverage,
+not a repeat of passedD450. Same D450 runtime/mechanisms, path-only config changes;
+existing D433/D443 adapter_coverage_v1 is integrated with guarded Unix ingress.
+Derived rows preserve original arrival/prompt/target, map sorted frozen500 IDs,
+and carry source/derived/pool SHA; no replacement trace, weights or pool.
+CPU/input qualification passed:268 tests54.029s +4 pidfd tests0.005s. Exact legacy
+500rows/viewSHA286f7547...,68925tokens; non-path D450 config equality; only main
+input-loader definition changed,596others unchanged. Protected147/userfiles intact.
+Six owned CPU scopes actual-recursive-empty/identity closed, high/max/OOM/swap0;
+stdin-selector spawn failure retained and stopped143; no production fallback.
+Curated elastic_locality/d451_coverage_input_qualification.json. No GPU/remote
+service started by D451 yet. No baseline tuning or figures.
+NEXT: backup qualified checkpoint, actual500-ID once, original1000,
+single4000; sealed five-systemW0 and every remaining mainline task retained.
+
+## Previous action — D450 combined contract/configuration CPU qualified
 
 Repeated user once-only cache approval reuses D78/D80 (1581215261 archive bytes),
 no republish/extracted pool. Full PLAN/status/baseline rules/V1/V2 read unchanged.

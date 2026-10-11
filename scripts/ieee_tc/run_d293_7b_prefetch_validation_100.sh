@@ -388,6 +388,13 @@ case "${1:-d293}" in
     SCENARIO=tc_ieee_elastic_locality
     PREFIX_COUNT=100
     ;;
+  d451)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/elastic_locality_qualification/d451_20261012/7b_elastic_locality_500
+    CONFIG=configs/ieee_tc/20261012_d451_7b_elastic_locality_500.yaml
+    TAG=d451_7b_elastic_locality_500
+    SCENARIO=tc_ieee_elastic_locality
+    PREFIX_COUNT=500
+    ;;
   *) echo 'Unknown frozen campaign identity; no arbitrary output override' >&2; exit 2 ;;
 esac
 [[ $# -le 1 ]] || exit 2
@@ -428,6 +435,14 @@ export FAASLORA_TC_NVML_BINDING=/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python
 export FAASLORA_TC_NVML_SHA256=4251429c25f1615a4166f395d3c09fe0732bfb023864c4b7f12813373e5696ea
 export FAASLORA_SHARED_TRACE_PATH=/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4/20260512_123619_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_trace.json
 export FAASLORA_SHARED_ADAPTER_SUBSET_PATH="${FAASLORA_SHARED_TRACE_PATH%_trace.json}_adapter_subset.json"
+if [[ "${1:-d293}" == d451 ]]; then
+  # Reuse D433/D443's original source and exact derived functional view.
+  export FAASLORA_SHARED_TRACE_PATH=/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json
+  export FAASLORA_SHARED_ADAPTER_SUBSET_PATH="${FAASLORA_SHARED_TRACE_PATH%_trace.json}_adapter_subset.json"
+  export FAASLORA_TC_REPLAY_PROFILE=ADAPTER_COVERAGE_V1
+  export FAASLORA_TC_COVERAGE_POOL_INDEX="$ROOT/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json"
+  export FAASLORA_TC_COVERAGE_POOL_INDEX_SHA256=e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c
+fi
 export FAASLORA_TRACE_ROLE=exploratory
 export FAASLORA_FORMAL_RUN=0
 export FAASLORA_RESULTS_TAG="$TAG"

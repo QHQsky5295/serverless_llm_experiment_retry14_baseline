@@ -2502,14 +2502,24 @@ class ExternalDispatcherIntegration(unittest.IsolatedAsyncioTestCase):
     async def test_main_prefix_receives_only_bound_original_requests_and_preserves_lifecycle(self):
         await self._main_receives_original_view(prefix=2)
 
-    async def _main_receives_original_view(self, prefix):
+    async def test_main_coverage_uses_same_500_derived_requests_for_ingress_and_service(self):
+        await self._main_receives_original_view(prefix=500, coverage=True)
+
+    async def _main_receives_original_view(self, prefix, coverage=False):
         with tempfile.TemporaryDirectory(prefix='ptci-') as tmp:
             root = Path(tmp)
             source = root/'source.json'
+            source_count = 501 if coverage else 3
             source.write_text(json.dumps({'requests':[
-                {'request_id':str(i), 'arrival_time_s':i*.01, 'adapter_id':'adapter-a',
-                 'body':{'messages':[{'role':'user','content':'test'}]}} for i in range(3)]}))
+                {'request_id':str(i), 'arrival_time_s':i*(.00001 if coverage else .01), 'adapter_id':'adapter-a',
+                 'body':{'messages':[{'role':'user','content':'test'}]}} for i in range(source_count)]}))
             plan = FrozenReplayPlan.load(source, count=prefix)
+            allowed = ['adapter-a']
+            if coverage:
+                allowed = [f'adapter-{i:03d}' for i in range(500)]
+                pool = root/'pool.json'
+                pool.write_text(json.dumps({'artifacts':[{'id':aid} for aid in allowed]}))
+                plan = plan.with_adapter_coverage(pool, hashlib.sha256(pool.read_bytes()).hexdigest())
             expected = len(plan.entries)
             now = time.perf_counter()
             origin = {'clock_id':local_monotonic_clock_id(), 'deployment_notice_s':now,
@@ -2529,14 +2539,22 @@ class ExternalDispatcherIntegration(unittest.IsolatedAsyncioTestCase):
                 await asyncio.sleep(.001)
             async def initialize_then_serve(*args, external_replay, **kwargs):
                 _, traces, meta = runner._load_shared_trace_requests(str(source),
-                    allowed_adapter_ids=['adapter-a'], external_replay=external_replay)
+                    allowed_adapter_ids=allowed, external_replay=external_replay)
                 self.assertEqual([t.request_id for t in traces], [e.request_id for e in plan.entries])
-                self.assertEqual(meta['replay_plan']['source_count'], 3)
+                self.assertEqual([t.adapter_id for t in traces],
+                                 [json.loads(e.source_json)['adapter_id'] for e in plan.entries])
+                self.assertEqual(meta['replay_plan']['source_count'], source_count)
                 if prefix is not None:
                     with self.assertRaisesRegex(ValueError, 'nonformal'):
                         runner._load_shared_trace_requests(str(source),
                             external_replay=external_replay, formal_run=True)
                 await asyncio.sleep(.05)  # Backend still starting; frontend must receive.
+                if coverage:
+                    async def received_all():
+                        while len(external_replay.records) < expected:
+                            external_replay.raise_if_failed()
+                            await asyncio.sleep(.001)
+                    await asyncio.wait_for(received_all(), timeout=5.)
                 self.assertEqual(len(external_replay.records), expected)
                 async for _ in external_replay.receive():
                     pass
@@ -2556,7 +2574,7 @@ class ExternalDispatcherIntegration(unittest.IsolatedAsyncioTestCase):
             resource = json.loads((root/'physical_deployment/summary.json').read_text())
             self.assertEqual(resource['n_plan'], expected)
             deployed = json.loads((root/'physical_deployment/deployment.json').read_text())
-            self.assertEqual(deployed['plan']['source_count'], 3)
+            self.assertEqual(deployed['plan']['source_count'], source_count)
             self.assertEqual(resource['n_terminal'], 0)  # Mock service did not report terminals.
             self.assertFalse(resource['measurement_complete'])
             self.assertIsNone(resource['gpu_seconds_per_correct_request'])
