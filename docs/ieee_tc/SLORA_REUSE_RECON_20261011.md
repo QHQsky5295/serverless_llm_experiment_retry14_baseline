@@ -73,3 +73,27 @@ physical_owner_id字段；固定长度四份均有每请求输出token序列hash
 
 本核查使用analyze-results的“观察—解释—边界—下一步”方式。
 遵循单轮V2，不生成CI/重复均值/性能图；本页全部数值是合同覆盖计数，而非性能排名。
+
+## 原生事件边界的补充只读核查（18:08）
+
+已联网查阅官方固定 commit 的
+[model_rpc.py](https://raw.githubusercontent.com/S-LoRA/S-LoRA/c1ddf488781ea7f551cd0bb07bfd097124c93411/slora/server/router/model_infer/model_rpc.py)，
+并读取当前本地 `model_rpc.py`、router、detokenizer、HTTP manager 和 SSE 入口。
+这是下一阶段的计量设计依据，没有安装观测钩子、改源码或运行 GPU。
+
+- 官方 `forward` 在采样后将 token ID/logprob 搬到 CPU，再构造逐请求输出；
+  原 metadata 只有 ID/logprob，没有原生 token 事件时刻。
+- 本地 router 将此 metadata 经 detokenizer 传递给 HTTP manager；现有 FIFO
+  保留每次更新，但 `generate_stream` 重新构造 SSE，只输出选定字段。
+  因而即使未来在上游增加时刻，也须验证端到端保留，不能假定 SSE 已含该信息。
+- 候选观测边界是原生采样结果可用之后、文本解码/HTTP 排队之前；还须绑定
+  实际请求、batch 的 adapter 路径和原生进程。返回客户端的到达时刻不能替代它。
+  该边界尚未经过测试或与其他系统的事件语义核验，不据此宣布计量已修复。
+- 后续只补观测与共同启动/资源归属，不改变原生 paging、batching、调度、
+  adapter 选择或采样逻辑。需要独立 CPU 合同测试和最小路径验证，现阶段均未执行。
+
+官方仓库说明其将全部 adapters 放在主存、按运行请求装入 GPU，支持保留其
+合法全池准备行为；这不授权把准备挪到共同部署通知之前。
+依据：[官方项目说明](https://github.com/S-LoRA/S-LoRA)。
+固定 commit 的 API 文件本次网页读取失败；对 API 的上述判断来自本地源码，
+尚不声称其已与官方逐字核验。仍优先等待 D423 完整结束，不启动 S-LoRA。
