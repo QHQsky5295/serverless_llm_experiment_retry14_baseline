@@ -1,4 +1,4 @@
-# IEEE TC execution status — D439 Loquetier online boundaries; GPU request qualification still open
+# IEEE TC execution status — D440 Loquetier HTTP contract; native worker integration next
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement experiment plan.
 Full earlier status is preserved byte-for-byte in EXECUTION_HISTORY_THROUGH_D433.md;
@@ -32,7 +32,48 @@ RUNNING entries are historical. No approved experiment or failed evidence was re
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D439 necessary online adapter CPU checks passed; HTTP worker integration next
+## Current action — D440 HTTP/native-token/physical-accounting boundary checks passed
+
+BASE docs/ieee_tc/D440_LOQUETIER_HTTP_CONTRACT.md records necessary commonHTTP
+handler, explicitLoquetier observation/publisher/lifecycle contract, and mainphysical
+collector token/schema pair. Sharedfull500publisher retained; preparationreferences
+are not per-requesttransfers. Nativeinteger first/last separate fromHTTPnotification;
+n=1 TPOTisN/A. Unknown numericalflags remainunknown. No nativealgorithm,precision,
+batch2,staticshard orperformanceconfiguration change; no baseline tuning.
+Loquetier source-view/worker/CLI/outerstaticservice still NOT integrated/qualified.
+
+185HTTP/online/commonregressionspassed10.093s;26nativeCPU/onlinepassed2.363s,
+noskip;36mainphysical-lifecycletestspassed1.417s. Loopback tokenproducer andtestleases
+explicitlysynthetic, notGPUarithmetic/actualrelease proof. Earlier21CPUchecks0.441s
+preserved asdevelopment,notperformance repeats. AuxGPUhidden/CPU2,3,26,27,
+high3/max4GiB/swap0. Finalcommon/native/lifecyclepeaks379109376/254976000/28749824B,
+high/max/OOM0. Fiveauxscopes actualemptyrecursivecgroup.procs andInvocationIDchecked,
+thenstopped. Protectedcheckpeak29327360B; all147oldentriesunchanged;verificationSHA
+1ff66513bbe7dc141d9bd14e43a7ce4f111cee38aeb215db2db8eebe141fb657.
+Threeprotecteduser-fileSHAs,nativeLoquetierthreepatches/S-LoRAtenpatchesunchanged.
+NoGPUmodel,remoteaction,download,republish,poolcopy,oldoverwrite orfigures.
+RepeatedcacheapprovalusesexistingD78/D80; no additionalonce-onlycache created.
+
+BASEsummary paper_results/ieee_tc/loquetier/d440_http_contract_summary.json records
+source/test/resourceidentities;SHAc87797bf3da87b1a51b34b9db050079333dab4b6ff82e4f1f151b6c229d6875b.
+BASEbackupb28c993f02ccdfb0726f3c2edf9201e05872add7 pushed/remoteSHAverified.
+MAINcross-link paper_results/ieee_tc/baseline_audit/d440_loquetier/checkpoint.json.
+Final7sourceSHA/ASTauditpassed;runnerpreexistingdefinitionsunchanged,onlynewhandler.
+Fiveexistingpublisher/validatorfunctions changedexplicitly;oldbackend163regressionspassed.
+Auditaux0006ID799e422a2fe6432a8952bb8654774bb7,peak26447872B/highmaxOOM0,
+actualemptytreeverifiedandstopped; allsixownedD440scopesclosed.
+This continuationmade concretecode/CPUchecks/protectionprogress,notperformance.
+FullgoalACTIVE,no recurringblocker; completeapprovedscope belowremainsOPEN.
+
+NEXT: connect nativeworker guardedinitialization/requestfactory/registry+processready
+receipt/fatalexit and existingouterservice staticmapping/startup/health/physicalleases.
+Create newsourceviewmanifest; changedsourceadapter cannotreuse D438manifest.
+Onlythen freshgates andapproved100->500-IDcoverage->original1000->single4000.
+DoNOTrepeat passedD438capacity orsealedW0. LoquetierhasnoqualifiedW0rowyet.
+Remaining7B/HydraServe/comparison/necessaryPrimeLoRAoptimization precede3B;
+W1/W2/G2,ablations,mechanisms,sensitivities,reviewdocsandlaterfiguresstillOPEN.
+
+## D439 closed — necessary online adapter CPU checks passed; preserved previous checkpoint
 
 BASE docs/ieee_tc/D439_LOQUETIER_ONLINE_BOUNDARIES.md records additions to the
 existing runner/measurement helper: explicit static shard mapping, single-owner

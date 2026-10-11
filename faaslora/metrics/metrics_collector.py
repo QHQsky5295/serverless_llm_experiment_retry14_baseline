@@ -277,7 +277,8 @@ class PhysicalGPUDeployment:
             and get('generation_contract') == 'fixed_length_greedy_v1'
             and (get('timing_contract'), get('completion_token_source')) in (
                 ('ieee_tc_native_v1', 'vllm_token_ids'),
-                ('ieee_tc_slora_native_v1', 'slora_native_sse_token_id'))
+                ('ieee_tc_slora_native_v1', 'slora_native_sse_token_id'),
+                ('ieee_tc_loquetier_native_v1', 'loquetier_native_integer_token_id'))
             and get('output_contract_match') is True
             and type(get('output_tokens')) is int and get('output_tokens') == target
             and get('completion_tokens') == target and get('requested_completion_tokens') == target

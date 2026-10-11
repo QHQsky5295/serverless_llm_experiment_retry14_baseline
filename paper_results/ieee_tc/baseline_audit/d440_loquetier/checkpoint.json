@@ -1,0 +1,34 @@
+{
+  "checkpoint": "D440",
+  "date": "2026-10-12",
+  "baseline_commit": "b28c993f02ccdfb0726f3c2edf9201e05872add7",
+  "baseline_branch": "main",
+  "baseline_remote_verified": true,
+  "baseline_summary": "/home/qhq/serverless_llm_baselines/paper_results/ieee_tc/loquetier/d440_http_contract_summary.json",
+  "baseline_summary_sha256": "c87797bf3da87b1a51b34b9db050079333dab4b6ff82e4f1f151b6c229d6875b",
+  "baseline_report": "/home/qhq/serverless_llm_baselines/docs/ieee_tc/D440_LOQUETIER_HTTP_CONTRACT.md",
+  "baseline_report_sha256": "5253fde0bcddefa74f8a413884a387175d6496f8425cfcc9da0d43192462cd6d",
+  "main_source_sha256": {
+    "faaslora/metrics/metrics_collector.py": "2f59ee347a30837a3869bed78517542ff2b32c0ccbf701e5f3f5c6a7709ba3b7",
+    "tests/test_ieee_tc_gpu_lifecycle.py": "ca027fe9ba21590518403f243ccc8b1af9e7b98422700c177a62116948a90f69"
+  },
+  "protected_verification_sha256": "1ff66513bbe7dc141d9bd14e43a7ce4f111cee38aeb215db2db8eebe141fb657",
+  "source_audit": {
+    "sources_verified": 7,
+    "runner_preexisting_definitions_changed": [],
+    "shared_preexisting_definitions_changed": ["http_replay", "prepare_slora_full_pool", "record_http_physical_terminals", "validate_http_lifecycle_contract", "validate_http_observation"],
+    "unit": "primelora-tc-aux-d4400000000000000000000000000006.scope",
+    "invocation_id": "799e422a2fe6432a8952bb8654774bb7",
+    "memory_peak_bytes": 26447872,
+    "memory_high_events": 0,
+    "memory_max_events": 0,
+    "oom_events": 0,
+    "actual_process_tree_empty_and_scope_stopped": true
+  },
+  "performance_run": false,
+  "native_gpu_request_qualification": "open",
+  "worker_cli_outer_service_integration": "open",
+  "remote_cache": "Reuse D78/D80 once-only published gzip, no republishing or remote action in this checkpoint",
+  "full_goal_status": "active",
+  "next": "Guarded Loquetier native worker and existing static-shard service lifecycle; new source-view manifest, fresh gates, then approved request qualification sequence"
+}
