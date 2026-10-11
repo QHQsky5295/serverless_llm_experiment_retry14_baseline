@@ -75,6 +75,27 @@ regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance re
 
 ## Exact next action and remaining scope
 
+D422 CLOSURE BACKED UP / PRIVATE OBJECTS RECLAIMED 2026-10-11~17:09.
+Main730ce7cc0c6f47064f7ac8dcf9e160df8037c894 andbaseline
+e646f9106c8fd6fd15f54b69041bd54234fa47e1 pushed;bothremoteSHAs verified.
+Baselinefirstpush hadtransient TLSfailure;bounded HTTP/1.1 retry succeeded,
+no TLScheck disabled/no force. All133evidenceSHAs/bytes verified,exact task
+files only,diff/secrets checks passed;protecteduserSHAs unchanged.
+Afterbackups,reclaimed ONLY /tmp/tc-d422-7bv/remote_artifacts/objects:
+600files/1474429899payloadB,observedfreed1476624384B,diskafter163660283904B.
+Retainedoriginalpool bytes rehashed/index/differentinodes,symlinks/mounts,
+metadata copy SHAs,readableownedprocess FD/cwd/root+fuser andfuturetracked
+config/scriptreferences checked. Unreadable sameUIDproc entries2628,4156156,
+4157313disclosed;not a complete systemwide scan. Allraw/receipt/journal/remote
+immutablecache preserved. EmptyownedcleanupscopeInvocation088c7544381b4b0eb6a16c49165badec
+stopped;prior133-filemanifestunchanged. Rawcache_cleanup_before/after.json and
+curatedstorage/20261011_d422_download_cache.json retain receipts.
+No liveGPU/remotejob. NEXT freshfullplan/status/protocol/resourcegates ->
+preregister one full4000W0 withunchangedD419/D421/D422nativeconfig (D423notyet
+prepared/started). Reuse allpassed100/500/1000gates and existingnumericalevidence,
+no repeats/parametersearch. PrimeLoRA D371/ServerlessLLM D414 sealed;
+U_ref/W1/W2/G2 andallremainingapprovedscope OPEN;fullgoal ACTIVE.
+
 D422 TERMINAL/AUDITED 2026-10-11, actual release before17:01:50 Asia/Shanghai.
 1000 offered/submitted/terminal/native/source/adapter/content/timing contracts,
 0 failures,60 IDs,122510 native tokens;E2E/TPOT/native recompute error0ms.
