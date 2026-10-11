@@ -1,4 +1,4 @@
-# IEEE TC execution status — D431 S-LoRA result audit CPU-qualified
+# IEEE TC execution status — D432 S-LoRA actual-path preparation
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -75,6 +75,33 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+D432 PREPARATION 2026-10-11. No live GPU/remote job. Full PLAN/STATUS/V1/V2 read;
+fresh compute census empty, available RAM104GiB/disk163356016640B. D430 source
+view and D431 analyzer reused; prior legal native public7B config explicitly
+frozen: DP4/TP1/RR/sequential/swap/nonBMM, token14000/input984/context1024/
+batch1024/running1000. Historical April24/July18 launch YAML and exact upstream
+API bytes checked. D428 packed HOST retains same native data/algorithm within
+common memory envelope; no new runtime edits or local audit expansion.
+New exclusive raw slora_qualification/d432_20261011 and /tmp/tc-d432-7bs;
+original100/29IDs/17369tokens, full500 static HOST pool after common notice.
+User cache approval reconfirmed: reuseD78/D80, not republication/newweight pool.
+NEXT config/input/source/protection/safety checks and checkpoint backup ->
+unchanged ownedremote health -> actual contained100 qualification in tmux ->
+release/stop/preserve/strictD431audit/backup -> missing500-ID/1000 -> one fullW0.
+No sealed PrimeLoRA/ServerlessLLM/vLLM repeats, no3B jump. Actual qualification
+NOT yet started. All remaining approved scope OPEN/full goal ACTIVE.
+
+D431 BACKED UP 2026-10-11. Main5895f2b12a95966987cf6f99d117422493f73804
+pushed to faaslora_origin/retry14_continuous_queue_v2; remote SHA verified.
+Exact5taskfiles;341CPUtests,9bundle-member equality/8evidence/2source hashes,
+147protected entries, staged diff/size/secret checks passed. Baseline remains
+already-backed-up D430. Three protected user-file SHAs unchanged; fresh compute
+census empty, no live GPU/remote/aux job. This post-push confirmation is the
+only subsequent task-owned change; not another experiment. NEXT actual S-LoRA
+qualification preparation after fresh full plan/status/protocol/safety gates,
+not additional audit expansion or repeated sealed runs. All remaining approved
+scope OPEN/full goal ACTIVE; this turn made concrete progress, not a blocker.
 
 D431 CPU AUDIT COMPLETE 2026-10-11. No live GPU/remote/aux job. Full PLAN,
 STATUS and V1/V2 read after compaction; identities unchanged. Existing main
