@@ -1,0 +1,128 @@
+{
+  "schema": "ieee_tc_loquetier_100_qualification_summary_v1",
+  "display_name": "Loquetier",
+  "counts": {
+    "N_plan": 100,
+    "N_arrived": 100,
+    "N_terminal": 100,
+    "N_response": 100,
+    "N_failed": 0,
+    "N_submitted": 100
+  },
+  "measurement_complete": true,
+  "actual_native_output_tokens": 17369,
+  "offered_unique_adapters": 29,
+  "physical_gpu_seconds": 1720.670042644022,
+  "common_slo": {
+    "offered": 100,
+    "binding_valid": 100,
+    "ttft_good": 0,
+    "tpot_eligible": 100,
+    "tpot_good": 70,
+    "joint_good": 0,
+    "ttft_attainment": 0,
+    "joint_attainment": 0,
+    "conditional_tpot_attainment": 0.7,
+    "observed_feasible": false,
+    "independent_numerical_proof": false,
+    "freeze_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json",
+    "freeze_sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3",
+    "scope": "complete qualified population only; prefix or coverage is not full W0 qualification",
+    "physical_gpu_seconds_per_binding_valid_request": 17.20670042644022
+  },
+  "remote_transfers": 500,
+  "remote_wire_bytes": 420740410,
+  "verified_materialized_bytes": 12985984450,
+  "service_memory_peak_bytes": 42126540800,
+  "service_memory_event_maxima": {
+    "high": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0
+  },
+  "conditional_metrics": {
+    "ttft_ms": {
+      "count": 100,
+      "mean": 266435.4881408438,
+      "p50_type1": 288118.2078148704,
+      "p95_type1": 403860.2525983006
+    },
+    "e2e_ms": {
+      "count": 100,
+      "mean": 277159.6681441646,
+      "p50_type1": 302679.09359699115,
+      "p95_type1": 415040.8983700909
+    },
+    "submit_lag_ms": {
+      "count": 100,
+      "mean": 13.89566298108548,
+      "p50_type1": 3.64033249206841,
+      "p95_type1": 65.36743533797562
+    },
+    "dispatch_wait_after_submit_ms": {
+      "count": 100,
+      "mean": 197901.69004251948,
+      "p50_type1": 214233.67450316437,
+      "p95_type1": 379562.5006270129
+    },
+    "service_ttft_ms": {
+      "count": 100,
+      "mean": 68519.90243534325,
+      "p50_type1": 59042.77905612253,
+      "p95_type1": 148708.3269089926
+    },
+    "decode_ms": {
+      "count": 100,
+      "mean": 10719.043175620027,
+      "p50_type1": 12208.631413988769,
+      "p95_type1": 16196.52711506933
+    },
+    "completion_notification_ms": {
+      "count": 100,
+      "mean": 5.136827700771391,
+      "p50_type1": 5.114418920129538,
+      "p95_type1": 6.668424932286143
+    },
+    "router_queue_ms": {
+      "count": 100,
+      "mean": 197878.18253764417,
+      "p50_type1": 214231.38709715568,
+      "p95_type1": 379558.91810101457
+    },
+    "tpot_ms": {
+      "count": 100,
+      "mean": 61.958306060045686,
+      "p50_type1": 61.95454045071029,
+      "p95_type1": 63.92563687107873
+    }
+  },
+  "bounded_reference": {
+    "count": 100,
+    "exact_sequences": 83,
+    "source_adapter_input_identity_complete": true,
+    "full_semantic_correctness_proof": false
+  },
+  "execution": {
+    "main_commit": "279cce93294d72e21abb2fdece760a94cb073baa",
+    "baseline_commit": "d81b05e95dcbd0cfebe296a9e7e86ee4dc0ea146",
+    "raw_root": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d442_20261012"
+  },
+  "evidence": {
+    "audit_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d442_7b_loquetier_native_path/audit.json",
+    "audit_sha256": "503981d404c973736d96c06395539fe288c841c364236f4759bc2a0b7084c530",
+    "manifest_sha256": "ba8e1a0bcbcafc210e0abeef564a03d4c13fb9622541709b234ac7a1a1761647",
+    "files": 578,
+    "retained_bytes": 36274890,
+    "independent_checksum_pass": true,
+    "protected_147_pass": true
+  },
+  "actual_gpu_release": true,
+  "owned_remote_services_stopped": true,
+  "next": "same-native500-ID functional coverage, original1000, single4000W0; no baseline performance search",
+  "limitations": [
+    "Original100-request startup-heavy prefix is not fullW0/G1/G2 ranking.",
+    "83 exact/17 divergent HF reference sequences; only3 retained margins reusable,14 unknown.",
+    "Raw numerical correctness remains unknown; native binding validity is distinct.",
+    "No trace/weights/pool regeneration, remote republishing, historical overwrite or figures."
+  ]
+}
