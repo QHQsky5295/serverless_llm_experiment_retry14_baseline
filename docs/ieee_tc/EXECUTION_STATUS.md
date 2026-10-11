@@ -1,4 +1,4 @@
-# IEEE TC execution status — D432 S-LoRA actual-path qualification running
+# IEEE TC execution status — D432 S-LoRA actual-path qualification closed
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -75,6 +75,35 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+D432 TERMINAL/AUDITED2026-10-11. No liveGPU/remote job;do NOT restart. Original
+100 offered/submitted/terminal/native/source/adapter contracts,0failures,
+17369native tokens,29requestedIDs;fouractualservedTP1workers/500-IDreadyregistry.
+E2E/TPOT/native recomputeerror0ms.500realHTTP/420740410wireB/12985984450verified
+materializedB,0request-timepacks;staticprep countedonce,requesttransferbytes0.
+Wholepoolmaterialization91.425097s;ready notice+206.032/300.697/401.555/502.671s.
+CommonD394TTFT5/TPOT98/joint5 of100 NONFEASIBLE,notfullW0/ranking/optimum.
+Mean/P95TTFT192773.177/386838.259ms,TPOT44.741/54.815ms,E2Emean200318.923ms.
+PhysicalU1130.9062827061862GPU-s,11.309062827/request;allleasesclosed.
+Raw n_correct=null/numericalflags unchanged. D385boundedreference100identities,
+95exact/5differences/3reusablemargins/2unknown;noexact-token gate ornewGPUoracle.
+Firstofflineauditfailedonsharedsummary's vLLM-only native_lora_name lookup.
+Explicitfrozenbackend/nativepath/index/contract branch addedONLYoffline;37tests
+pass2.005s,failedlogretained. D431strictactualreceipt/content/physicalaudit now
+passes;no runtime repair orperformance repeat. ReportD432_SLORA_NATIVE_PATH.md.
+Curatedd432_7b_slora_native_path/auditSHA
+ba4a963184497d6d2f1ad8f62640b54d552d113fdfbb3a59bb2a7a78921b894f;
+584filemanifestSHA bf5ec1ba64e0f5dfc7f089602abb900312491ad6c1d63c3e44bb97a5678583b3,
+all584hashesverified. GPUreleased/servicepathremoved/exit0;3ownedremoteunits
+stoppedbyInvocationID/MainPID0/portsabsent;allrawreceipts/journals preserved.
+Servicepeak62737891328B,high/max/OOM/swap0;hostavailablemin61224882176B.
+147protectedentrieszerochange;3userdirtySHAs andnested10filepatchunchanged.
+Disk~140GiB<150GiBNEWheavyfloor;objectsNOTreclaimed. NEXTbackupclosedresult/
+offlinefix ->verifiedrecreatabledownloadobject-onlyreclamation/freshgates ->
+missing500-IDfunctionalcoverage ->original1000compatibility ->onefullW0.
+No100repeat,newparametersearch,sealedW0repeat or3Bjump. Allremainingapproved
+scopeOPEN/fullgoalACTIVE;thisturn concreteactualGPUqualification/analysisprogress.
+All older RUNNING/NEXT sections below historical. Backup pendinghere.
 
 D432 RUNNING since2026-10-11 21:28:49 Asia/Shanghai,tmux tc-d432-7b.
 Main execution208db012ab8376fe696e7c43a368a233696169dd andbaseline
