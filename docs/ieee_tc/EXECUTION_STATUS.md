@@ -1,4 +1,4 @@
-# IEEE TC execution status — D438 Loquetier native measurement/capacity qualification
+# IEEE TC execution status — D439 Loquetier online boundaries; GPU request qualification still open
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement experiment plan.
 Full earlier status is preserved byte-for-byte in EXECUTION_HISTORY_THROUGH_D433.md;
@@ -32,7 +32,54 @@ RUNNING entries are historical. No approved experiment or failed evidence was re
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D438 native observation and single capacity witness passed; HTTP qualification next
+## Current action — D439 necessary online adapter CPU checks passed; HTTP worker integration next
+
+BASE docs/ieee_tc/D439_LOQUETIER_ONLINE_BOUNDARIES.md records additions to the
+existing runner/measurement helper: explicit static shard mapping, single-owner
+online FIFO/native batch bridge, exact native terminal, cancellation and fatal-failure
+boundaries. Original ModelGeneration/SMLM/mixed modules/FP16/batch2/static shards
+remain; no baseline performance search or policy optimization. No new framework.
+
+Actual native CPU add/pre/post/KvPool/KvCache witness reproduced a lifecycle bug:
+after the last request releases KV, cached_decode_kv retains dead references;
+the next prefill acquires a page for the ended request. Minimal adaptation clears
+only an empty batch's already-released references after native generate; active
+batches untouched, unexpectedly live pages fail visibly. Original witness has2
+pages vs corrected1 after the next request; no GPU/performance benefit claimed.
+Native checkout/historical3patches unchanged; overall adapted behavior disclosed.
+
+Final26LoquetierCPUtests passed2.317s,no skips,in existingnativePython3.9;
+163commonServerlessLLM/vLLM/S-LoRA regressions passed19.134s, existingPython3.12.
+Earlier21/23development checks preserved as development tests,notperformance repeats.
+AuxGPUhidden/CPU2,3,26,27/high3max4GiB/swap0;finalnativepeak254386176B,
+commonpeak800219136B,protectedcheck29315072B;high/max/OOM0.
+All6ownedauxscopes exactInvocationID/actualemptytrees checked thenstopped.
+Finalsource audit6sources SHAverified; all pre-existing top-level functions/classes
+in both commonfiles remain ASTidentical. Aux0006ID8e191c1102b2436984bd8834eb97edd1,
+peak18042880B,high/max/OOM0; no GPU arithmetic.
+147protectedentries,three user-fileSHAs,nativeLoquetier/S-LoRA patchSHAs unchanged.
+NoGPUload,remoteadministration,download,republish,poolcopy,oldoverwrite orfigures.
+Repeatedonce-onlygzipcacheapproval recorded;continue reuseD78/D80,notrebuild.
+
+BASE curatedpaper_results/ieee_tc/loquetier/d439_cpu_boundary_summary.json records
+code/test/source/resourceidentities. Backups recorded in cross-repository checkpoint
+after commit/push; D438 capacity result remains at its original execution identity.
+SummarySHA13e3d95c5d74378821931814ccbc78cc11c33b7e853bfc6257416317c925bbc7.
+BASEcheckpoint6204e2025a432a55d4bb815ff76ae44f7e50e629 pushed/remoteSHAverified;
+MAIN cross-link paper_results/ieee_tc/baseline_audit/d439_loquetier/checkpoint.json.
+This is concrete implementation/CPU evidence progress,not a new performance point.
+Full goal ACTIVE;no recurringblocker;all remaining approvedscope below stillOPEN.
+
+NEXT: nativeworker/startup/HTTP/commonremote/physicalleases and Loquetier-specific
+analysis contract; these are NOT yet integrated or qualified. Create newsourceview
+manifest for changedhelper,doNOT reuse D438manifest with mutablehelper symlink.
+Fatal native allocation/forward failure must stop worker and verify actualrelease;
+queue cleanup is not proof of releasedGPU. Then freshgates and approved100->500-ID
+coverage->original1000->single4000. No repeatedcapacityprobe or sealedW0 reruns.
+Loquetier still NOT a qualifiedW0 row;HydraServe/remaining7B/comparison/necessary
+PrimeLoRAoptimization precede3B. W1/W2/G2 and fullmatrix stillOPEN.
+
+## D438 native observation and single capacity witness passed — preserved previous checkpoint
 
 BASE docs/ieee_tc/D438_LOQUETIER_NATIVE_OBSERVATION.md records necessary native
 measurement hooks, exact source-view AST preservation and guarded capacity probe.

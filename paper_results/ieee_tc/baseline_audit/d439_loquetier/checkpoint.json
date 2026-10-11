@@ -1,0 +1,54 @@
+{
+  "schema": "ieee_tc_cross_repository_checkpoint_v1",
+  "campaign": "d439_20261012",
+  "system": "Loquetier",
+  "purpose": "Native online boundary CPU qualification; request HTTP integration remains open",
+  "passed": true,
+  "runtime_qualified": false,
+  "performance_run": false,
+  "baseline_checkpoint_commit": "6204e2025a432a55d4bb815ff76ae44f7e50e629",
+  "baseline_remote_verified": true,
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_baselines/paper_results/ieee_tc/loquetier/d439_cpu_boundary_summary.json",
+      "sha256": "13e3d95c5d74378821931814ccbc78cc11c33b7e853bfc6257416317c925bbc7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/docs/ieee_tc/D439_LOQUETIER_ONLINE_BOUNDARIES.md",
+      "sha256": "9fa00dcf4e9099f8a6f0d61541191c1f8c3b55d8589b3b7b286b99fc0dffa20c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d439_loquetier/protected_verification.json",
+      "sha256": "1ff66513bbe7dc141d9bd14e43a7ce4f111cee38aeb215db2db8eebe141fb657"
+    }
+  ],
+  "cpu_tests": {
+    "loquetier_passed": 26,
+    "common_regressions_passed": 163,
+    "no_skips": true,
+    "model_arithmetic": false
+  },
+  "source_integrity": {
+    "all_preexisting_common_top_level_functions_and_classes_ast_unchanged": true,
+    "source_hashes_verified": 6,
+    "historical_native_diffs_unchanged": true,
+    "protected_entries_unchanged": 147
+  },
+  "final_audit_scope": {
+    "unit": "primelora-tc-aux-d4390000000000000000000000000006.scope",
+    "invocation_id": "8e191c1102b2436984bd8834eb97edd1",
+    "memory_peak_bytes": 18042880,
+    "high": 0,
+    "max": 0,
+    "oom": 0,
+    "empty_process_tree_verified": true,
+    "stopped": true
+  },
+  "all_d439_owned_scopes_closed": true,
+  "limitations": [
+    "No HTTP worker integration, real remote request test, four-worker inference, numerical qualification or new performance point.",
+    "Necessary lifecycle correction disclosed; not baseline optimization or a new scheduling policy.",
+    "Prior D438 capacity success reused; its execution identity is not replaced by this commit."
+  ],
+  "next": "Integrate common HTTP/remote/physical lifecycle and explicit Loquetier analysis, then approved 100/500-ID/1000/4000 qualification; remaining 7B before 3B."
+}
