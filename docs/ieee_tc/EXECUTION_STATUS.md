@@ -60,18 +60,43 @@ NEXT terminal actualGPUrelease -> ownedremote stop -> preserve/auditfull4000/sea
 backup -> descriptive matched W0 comparison. Do not tune baseline or rerun a passed
 prefix. Full goal ACTIVE; no full4000 outcome or ranking yet.
 
-Latest read-only monitoring2026-10-11 23:08:21Asia/Shanghai:418http_response,
+Latest read-only monitoring2026-10-11 23:22:12Asia/Shanghai:1251http_response,
 all onlineprotocol_valid=true, no recordedfailed/cancelled events; partial only,
 not completecontract/numerical audit. Four actual native500-ID workers ready;
 ready receipt `.at`1238172.705772950/1238271.970550648/1238363.754154409/
-1238458.981880616 for indices0-3. Service58.154GiB,hostavailable57.634GiB,
-disk139.848GiB,high/max/OOM/swap0;watchdog noabort/warning,tmux alive.
+1238458.981880616 for indices0-3. Service58.199GiB,hostavailable57.310GiB,
+disk139.834GiB,high/max/OOM/swap0;watchdog noabort/warning,same service active.
+Disk remains above runtime100GiB but below new-heavy150GiB: no next heavy run
+until D435 is closed/audited/backed up and owned recreatable cache reclaimed.
 Use launch7b.launch/replay.jsonl for live response counts. The physical
 request_terminals.jsonl is populated by record_http_physical_terminals after
 the replay; its current zero lines do NOT mean no responses. Do not use
 HTTP200/onlineprotocol alone as final adapter/content/lifecycle acceptance.
-Latest running-doc backup MAINdb08f81261e5caa764f97f143faf20552af37f51;
+Prior running-doc backup MAINf2e1830b4a0ca33077e101ad21d9aa4e756ea130;
 execution commits remain84d6b4d/cae13c5, not the later status commits.
+
+## Parallel read-only preparation — Loquetier reuse, no performance run
+
+BASE docs/ieee_tc/LOQUETIER_REUSE_REVIEW_20261011.md now records inspected
+historical gates, official/native source boundaries and required common-protocol
+adaptation. Documentation-only BASE5d36776a205393242c16c5bdb579bebec4240bfd
+pushed/remoteSHA verified; D435 execution BASE remains cae13c5.
+No subagent, baseline code/config edit, test/build/install, pool scan, GPU load,
+remote administration or second performance run. Source/receipt hashes quoted
+in the new review are historical evidence; independent sealing deferred to idle time.
+Existing Loquetier HEADaae33baeeb19777129c1ccbff99a898d4a0e2c63 and three
+historical dirty files preserved. 7B128-ID/256-request gate has507tokens,
+arrival_scale0/inputcap512/outputcap2/batch2: R2 compatibility, NOT matched W0.
+3B500-ID OOM occurred during adapter preparation; no inference result and no
+proof that every static-sharded deployment is infeasible. Approved static-sharded
+deployment still needs complete500-ID/common input/native token/source/physical
+lifecycle qualification; do not optimize/search baseline performance settings.
+Native unknown adapter ->index0 behavior requires explicit binding validation.
+Official ModelGeneration/virtual model/MixedLoraModel/SMLM must remain native;
+do not invent a cluster scheduler or replace its core. Current review is not a
+fresh experiment-audit PASS or completed numerical qualification.
+Next remains D435 terminal closure FIRST, then matched W0 comparison and
+remaining7B baseline qualifications. Do not jump to3B or shrink the full matrix.
 
 ## D434 closed — do NOT repeat
 
@@ -108,7 +133,8 @@ performance and did not alter the D434 performance resource record.
 Receipt paper_results/ieee_tc/storage/20261011_d434_download_cache.json.
 147protected entries unchanged,postSHA23b9be29909ef728f3450ea7e32f592419d81e319012d383ea290ecd618cfd0d.
 Three protected user-file SHAs and nested10filepatch unchanged.
-NEXT freshgates -> preregister/backup and execute ONCE D435 full4000W0 SAME native config.
+Historical next action (now completed): freshgates -> preregister/backup and launch
+ONCE D435 full4000W0 SAME native config. D435 is live above; do NOT relaunch.
 No100/500/1000 repeats,baselineparametersearch,oldsealedW0repeat or3Bjump.
 Cleanup restored about151.98GiB; launch still requires fresh complete safety gates.
 Full goal ACTIVE/all remaining approved scope OPEN. Previous turn launched D434;
