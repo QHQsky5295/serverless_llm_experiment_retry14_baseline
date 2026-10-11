@@ -1,0 +1,42 @@
+{
+  "audit_skill": "experiment-audit",
+  "verdict": "WARN",
+  "reason_code": "bounded_scope_and_missing_historical_cpu_test_receipt",
+  "summary": "Deterministic D419 evidence checks passed; narrow affected-path reuse only. No full W0, whole-pool, reference or ranking qualification.",
+  "audited_input_hashes": {
+    "paper_results/ieee_tc/baseline_audit/d419_7b_native_path/audit.json": "sha256:353cf28d452bbe4a6db72450fa557afe02448abdf016dba83d656268b9fe1149",
+    "paper_results/ieee_tc/baseline_audit/d419_7b_native_path/evidence_manifest.json": "sha256:9830f47c7ddaa5393ceeb11bfd8b8c595966085a7ea71c7edf5959c7e345ed14",
+    "docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "sha256:5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md": "sha256:193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+  },
+  "trace_path": ".aris/traces/experiment-audit/2026-10-11_run01/",
+  "agent_id": "/root/d420_vllm_evidence_review",
+  "verdict_id": "/root/d420_vllm_evidence_review:final",
+  "executor_model": "codex-session-model-not-exposed",
+  "executor_family": "openai",
+  "reviewer_model": "gpt-5.6-sol",
+  "reviewer_family": "openai",
+  "reviewer_reasoning": "ultra",
+  "review_independence": "same-family",
+  "acceptance_status": "provisional",
+  "date": "2026-10-11",
+  "auditor": "gpt-5.6-sol-ultra",
+  "overall_verdict": "warn",
+  "integrity_status": "warn",
+  "checks": {
+    "gt_provenance": {"status": "pass", "details": "Trace-derived targets; independent bounded HF/PEFT reference explicitly not semantic GT."},
+    "score_normalization": {"status": "pass", "details": "Common frozen thresholds; offered and conditional denominators explicit."},
+    "result_existence": {"status": "warn", "details": "103 files/SHA/sizes and raw metrics verified; no retained historical 27-test execution receipt."},
+    "dead_code": {"status": "pass", "details": "Native observer, validator, SLO and physical ledger paths actually executed."},
+    "scope": {"status": "warn", "details": "One prefix100, 29 logical IDs, 4 weight hashes; no complete W0/U_ref/ranking."},
+    "eval_type": "real_system_contract_measurement_qualification_with_bounded_synthetic_reference"
+  },
+  "claims": [
+    {"id": "D419_affected_path", "impact": "supported_with_scope"},
+    {"id": "D419_full_W0_or_U_ref", "impact": "unsupported"},
+    {"id": "D419_500_ID_engine_coverage", "impact": "unsupported"},
+    {"id": "historical_27_test_receipt", "impact": "not_retained_in_manifest"}
+  ],
+  "limitations": ["Five skill shared-reference files unavailable locally", "Same-family semantic review provisional", "No extra GPU experiment or stricter cross-backend equality gate authorized"],
+  "executor_response": "Raw unknown correctness fields remain unchanged. Frozen V2 permits evidence-backed derived metrics in new analysis artifacts; null raw fields alone are not a permanent prohibition. D419 remains incomplete for full W0 regardless. See D420_EXPERIMENT_AUDIT.md."
+}

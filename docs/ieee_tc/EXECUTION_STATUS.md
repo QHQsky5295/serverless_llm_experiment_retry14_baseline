@@ -75,6 +75,21 @@ regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance re
 
 ## Exact next action and remaining scope
 
+D421 VERIFIED-WAIT16:20:29Asia/Shanghai:sameactiveInvocationIDbelow,
+243created/sent,238raw/validatedresponses,500contracts,0failure. Watchdog399:
+hostavailable100258103296B,service17561776128B,disk157769797632B,
+high/max/OOM/swap0,noabort. Diskbelow150GiB forbidsNEWheavyjob;currentrunabove
+100GiBfloor. No livecleanup/test/hashscan/remoteoperation/configurationchange.
+Runningdocbackupc12a9225ed51a86f4ad33d5ba503b08839bf9829 pushed/remoteSHAverified;
+notexecutioncommit. D420freshreviewCOMPLETE,WARNforboundedscopeandmissingold
+CPUtestexecutionreceipt;103sourcefiles/numbersverified,no narrowreuseblocker.
+Fullprompt/interim/finaltrace in.aris/traces/experiment-audit/2026-10-11_run01;
+reportD420_EXPERIMENT_AUDIT.md andmachineJSONsaved. Same-family/provisional;
+missing skillreferencesdisclosed. Rawnulln_correctisnotrewritten;V2allows
+evidence-backednewderivedmetrics,notautomaticpromotionfromHTTP200. Preserve
+oldtesttimingclaimasuncorroboratedbyfile;captureNEWtestreceiptAFTERlivegate.
+NEXTsameD421monitor/terminalclosure/audit/backup,notanotherqualificationrepeat.
+
 D421 RUNNING2026-10-11 16:13:38Asia/Shanghai,tmux tc-d421-7b. Exactlyoneheavyjob.
 Mainexecutionaa76e000127a7cc19d275f8140d0bd8366b3ebc1 pushedtofaaslora_origin/
 retry14_continuous_queue_v2 andremoteSHAverified;baselinea56d79088ab1e431e12b5cfed95f53a1581d7037
