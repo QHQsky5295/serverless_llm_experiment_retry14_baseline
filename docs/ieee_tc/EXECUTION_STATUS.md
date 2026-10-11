@@ -1,4 +1,4 @@
-# IEEE TC execution status — D426 S-LoRA native observation CPU-qualified
+# IEEE TC execution status — D427 S-LoRA HOST capacity bound verified
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -75,6 +75,56 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+D427 OFFLINE CAPACITY CHECK COMPLETE2026-10-11. No liveGPU/remotejob;D426 was
+progress,not a blocker. FullPLAN/STATUS/V1/V2 reread aftercompaction. All500existing
+7B configs/headers:350rank8/150rank16,128000FP16QKVOtensors,total10905190400B
+=10.15625GiB. AuditednativeTP1nonGQAswap retainsbothmoduleandpackedHOSTcopies:
+1/2/3/4replicas lowerbounds20.3125/40.625/60.9375/81.25GiB. Fourreplicas exceed
+common80GiB beforeothermemory,DO NOTlaunchthatconfiguration. Smallerreplicas
+notyetmemoryqualified. NoadapterIDdedup/poolshrink/highmaxincrease/algorithmchange.
+Existingsourcehelper addsnecessary-boundpurefunction+layoutSHAs,notnewlauncher.
+21native3.9tests pass1.553s,full148CPUregression8.081s. Actualunmodifiedloader
+small-tensorstoragecheckhas9independentCPUstorages,total2copies;pinmockedclone,
+noCUDAinitialization,noactualpinnedRSS/GPUqualificationclaim.107historicalD425
+logsSHAverified,no specifiedRSS/cgroupmemorypatterns;ModelProphetprintsnotRSS.
+Rawslora_qualification/d427_20261011/audit.json SHA
+6aa7f573cb48a72e66417d87e3b4c5c9792ed00a10fd3944d24f3a7c8bc5f977.
+ReportsD427_SLORA_HOST_CAPACITY.md inbothrepos. Header/configauditreuseprior
+contentSHAs,notnewpayloadverification. No weights/trace/pool/cachepublication/
+figure/cleanup/remoteoperation. Allnativecompatibility/userchangespreserved.
+NEXT boundedpacked-HOSTrepresentationequivalencecheck;noadaptationchosenyet.
+Ifsemantics-preserving storageadaptationnotvalid,uselegalfewerreplicaswithfull
+memorygate;neverblind4replicaOOM. Thenexistingservice/pre-ready/physical-owner
+integration+explicitS-LoRAvalidator ->affected100/missing500-ID/1000 ->onefullW0.
+No sealedPrimeLoRA/ServerlessLLM/vLLM repeat,3Bjump,thresholdchange orPrimeLoRA
+policyinbaseline. AllremainingapprovedscopeOPEN;fullgoalACTIVE. Backup pending.
+
+D427 finalchecks:147protectedentrieszerochange;PLAN/V1/V2and3userdirtySHAs
+unchanged. TwofixedcommitupstreamloaderfilesHTTPS/GitHEADbytesequalverified,
+localcompatibilitydifferenceexplicit. Fourownedauxscopes identity/limits/all
+procs-emptycheckedandstopped,high/max/OOM/swap0. Smalltests/headerauditbriefly
+overlapped;peakupperbounds213282816+59113472B<4GiB,noheavyconcurrency.
+Curated12member/21008B evidencebundle allbyteequalraw,8sourceSHAsverified;
+SHA2eaa2248bbdb4bc2dfb13043f389b272c9ac4bbd396dbdc862cf24e602368946.
+No liveGPU/remotejob;representationadaptationandserviceintegrationstillOPEN.
+BaselineD427checkpoint70856189ca73c68176156480915e68c6b1dc05b8 pushedtoorigin/main
+andremoteSHAverified. Exact3taskfiles;diff/secrets/21native39/148CPUchecks passed.
+NestedS-LoRA10filepatch SHA7a0f48f60c225789014ad960ec3ab1cf6388611b7650a4f656f1208c981c2d60
+unchanged. Freshcompute census empty,disk163385958400B. Mainbackuppending;
+thisobservation/auditcommit is NOT a performanceexecutioncommit.
+
+D426 BACKED UP2026-10-11 19:36:33Asia/Shanghai: main
+1e44be469c8a6a24ce5d03d80cbb713970922ce4 pushedtofaaslora_origin/
+retry14_continuous_queue_v2 andremoteSHAverified;baseline
+b694915d920bd61200b32614f7e60d88a23a5c08 pushedtoorigin/main andverified.
+Exact3main/4baselinefiles;15native3.9checks/142regressiontests/sourceviewimport,
+147protectedentries,12bundlemembers,diff/secretschecks passed. All3protected
+userdirtySHAs andnestedS-LoRApatch unchanged;freshcompute census empty.
+No liveGPU/remote/auxjob. Thispostpushconfirmation is subsequenttask-owned
+statusonly. NEXT existingservice/pre-ready/physical-owner integration with
+explicitS-LoRA validator,thenaffectedqualification;do notrerunsealedW0points.
+Thisturnprogress,fullgoalACTIVE;allremainingapprovedscopeOPEN.
 
 D426 COMPONENT COMPLETE2026-10-11. No liveGPU/remotejob or newperformance run.
 Existingbaseline helper gains explicitSloraNativeRequestObservation andnative
