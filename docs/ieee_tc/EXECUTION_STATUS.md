@@ -1,4 +1,4 @@
-# IEEE TC execution status — D443 Loquetier 500-ID coverage closed; original1000 next
+# IEEE TC execution status — D444 Loquetier original1000 preregistered
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement experiment plan.
 Full earlier status is preserved byte-for-byte in EXECUTION_HISTORY_THROUGH_D433.md;
@@ -32,7 +32,24 @@ RUNNING entries are historical. No approved experiment or failed evidence was re
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D443 500-ID closed and backed up; same-config original1000 next
+## Current action — D444 original1000 preparation, not yet launched
+
+Full PLAN/status/baseline rules/metricV1+V2 reread. D443 closed/reusable below;
+no repeated100/500/capacity. Same D441 Loquetier configuration and original1000
+view:1000offered/60IDs/122510targettokens, viewSHA
+0a5dfcf8048abdc8fc1e3a8ccaf92bfb925a9db326c8d27507663bede96a0981.
+Raw originalresults/ieee_tc/loquetier_qualification/d444_20261012;
+private /tmp/tc-d444-7bl. Reused D443 recipes with campaign/view only;
+no runtime/analyzer/config/dependency changes or baseline performance search.
+MAIN53checks passed0.441s,BASE18passed0.534s; all578D443sourceSHA verified,
+147oldprotectedentries/threeuserfiles/nativepatches unchanged. Aux0002
+InvocationIDbe8768e94e2c425db252f3fb0d46c053 actualrecursiveemptytree
+identitychecked/stopped. ReadonlyD78/D80 publication reused,notrepublished.
+NEXT double-repobackup -> inputfreeze/freshgates/remotehealth -> once original1000.
+Then release/audit/seal/backup/ownedcachecleanup -> single4000. NoD385 fullprefix
+numericalclaim. Full remaining scope below OPEN; goal ACTIVE, no blocker.
+
+## D443 500-ID closed and backed up; preserved preceding result
 
 See D443_LOQUETIER_500_ADAPTER_COVERAGE.md. Same actual handle monitored through
 terminal2026-10-12 03:09:04Asia/Shanghai; all3returncodes0,physicalGPUreleased,
