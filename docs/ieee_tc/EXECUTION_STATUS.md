@@ -1,4 +1,4 @@
-# IEEE TC execution status — D434 S-LoRA original1000 RUNNING
+# IEEE TC execution status — D434 S-LoRA original1000 CLOSED
 
 Updated 2026-10-11. This is a current checkpoint, NOT a replacement experiment plan.
 Full earlier status is preserved byte-for-byte in EXECUTION_HISTORY_THROUGH_D433.md;
@@ -32,63 +32,68 @@ RUNNING entries are historical. No approved experiment or failed evidence was re
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — monitor SAME live D434 run
+## Current action — D434 TERMINAL/AUDITED, no live GPU/remote job
 
-Full PLAN/STATUS/V1/V2/new baseline rules read this turn. Fresh compute census empty,
-no tmux, RAM available112566226944B/disk163265679360B at prelaunch. These are observations,
-not later launch guarantees. User reconfirms one-time readonly delivery-cache approval:
-D78/D80 already done, reuse it, no republication or new extracted pool.
+D434 original1000 compatibility completed by2026-10-11 22:44:35Asia/Shanghai.
+1000offered/submitted/terminal/native/source/adapter/timingcontracts,0failures,
+122510native tokens,60IDs;fouractualTP1workers served/500-ID registries.
+E2E/TPOT/native recomputation error0ms. U3542.956034773262GPU-s,
+3.5429560347732623/binding-validrequest, all physical leases closed.
+CommonD394 TTFT750/TPOT999/joint749of1000=74.9%,NONFEASIBLE prefix,
+not fullW0/ranking/reference/optimum. Mean/P95TTFT37636.062/236234.733ms,
+TPOT33.501/49.954ms,E2Emean41782.526ms. Raw unknown numerical flags unchanged.
+Source0-99/100-499/500-999 joint1/100,249/400,499/500; last500 meanTTFT241.488ms.
+Do not drop startup from primary denominator or infer fullW0 from a short prefix.
+Fullstaticpool500HTTP/420740410wireB/12985984450verifiedmaterializedB,0packs.
+Preparation span95.131748s; native ready notice+221.662/320.676/421.199/518.432s.
+Deployment transfers counted once,requestwire0/preparation references1000.
+Servicepeak62617686016B,hostavailablemin60923981824B,diskmin150234251264B,
+high/max/OOM/swap0. ActualGPUreleased/servicepathremoved/exit0;remote3ownedunits
+stopped by InvocationID/MainPID0/portsabsent; resolver and remote evidence preserved.
+Strict existing slora_resident_rr_v1/prefix1000 analyzer passed, no runtime/analysis changes.
+ReportD434_SLORA_1000_COMPATIBILITY.md;curated baseline_audit/d434_7b_slora_compatibility/:
+auditSHA05a595c69063efc92484a208325b3476fd4c49c857a6a450b281845af39660a0;
+578-file/63678229B evidence_manifest SHA
+bf444b0c1ce339e6a63342b6484e8cc2dd1d15fbe2d317163d9a9378c65ff7ab.
+All578 source-file SHA/size entries independently verified; closure backup/cachecleanup
+pending at this checkpoint. Audit/seal aux0005/0006 exactidentity/empty-tree closed,
+high/max/OOM/swap0. Aux0007 verification complete, empty scope closure pending.
+147protected entries unchanged,postSHA23b9be29909ef728f3450ea7e32f592419d81e319012d383ea290ecd618cfd0d.
+Three protected user-file SHAs and nested10filepatch unchanged.
+NEXT manifest/source verification + backup -> safe private-download-object-only
+reclamation/freshgates -> preregister and execute ONCE full4000W0 SAME native config.
+No100/500/1000 repeats,baselineparametersearch,oldsealedW0repeat or3Bjump.
+Below150GiB NEWheavyfloor; do not launch until safe cleanup and fresh safety gates.
+Full goal ACTIVE/all remaining approved scope OPEN. Previous turn launched D434;
+this turn monitored same live handle to terminal and completed strict audit, progress.
 
-D434 launched2026-10-11 22:25:08Asia/Shanghai in tmux tc-d434-7b.
-Execution MAIN47be5422cbf65c8c0905f78668a83c188b7b9ccf and
-BASE5059cb0b86c5a5378a772adaa25aa80bb7a1b240 pushed and remoteSHA verified.
-Service primelora-tc-svc-b0ce62d358e94489b1d5958c0e83ede0.scope,
-InvocationID18c0f4b4575a45be824a81b181b46476; auxiliary
-primelora-tc-aux-d4340000000000000000000000000001.scope.
-Notice1235966.54994207; business starts60s later. Exactly1000 request contracts
-registered. Watchdogsample23:available112207171584B/service3223691264B,
-disk163260563456B,high/max/OOM/swap0,no abort. Not terminal/no performance verdict.
-HTTPconfigSHAfa864b420f1c33047b2ef9bcecdbb09e98c2e2b00b43a9bef65e4f36dca5fb1d;
-original1000view/60IDs/122510targets verified. Nativecache2055files/62246523B.
-Ownedaux0002/0003/0004 empty-tree/identity checked and stopped,pressure/swap0.
-Remote unchanged publishedcache/link1000Mb/s/full;7Bclock
-remote-process-monotonic:8e030525ed52454e89698c6a7e7b6287.
-3B/7B/monitorInvocationIDs158b40360fdf46bb818a036493b0246c /
-e0525a84e0af4598a1e715bfac1e7255 /1028fcd55b374827a52f7d705422add0.
-NEXT: monitor SAME actual handle and local journals. No live remote changes,
-hashscan/cleanup/tests/retries/second heavyjob or configuration search.
-Do not repeat100/500 or interpret observation timeout as stopped experiment.
-After actual GPU release: stop only owned remote units, preserve logs/receipts,
-strict existing slora_resident_rr_v1/prefix1000 audit with D394 SLO, seal/backup,
-safely reclaim only recreatable private downloaded objects, then one full4000W0.
-D434 is running. Full goal ACTIVE; all remaining approved scope OPEN.
-
-Verified wait22:27:30: same active InvocationID,27 created/sent,1000 contracts,
-no native responses yet during startup; no failure/terminal receipt. Watchdog130:
-available111669166080B,service14172696576B,disk150252163072B,high/max/OOM/swap0,
-noabort. Below150GiB forbids NEW heavylaunch;currentrun remainsabove100GiB.
-No live cleanup, remote operation, tests, hashscan, configchange or restart.
-This turn made actual launch progress; current unchanged state is expected wait.
-
-Prepared D434 recipes and preregistration in both repositories; runtime unchanged.
-37 CPU contract tests passed1.858s in existing outer Python3.12 environment.
-Earlier systemPython3.10 attempt failed import(numpy absent); retained log, no install
-or code workaround. Fresh preflight passed and147 protected entries unchanged.
-PresealSHA856204eb4f7e42fc86d11896c5cbae3a3dc2f7d1b7222863d3dcfa63b2e92907.
-These prelaunch steps are complete; monitor the already launched run.
-
-Raw new root: /home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d434_20261011
-Private new root: /tmp/tc-d434-7bs. Reuse D433 run/start/stop/health/freeze/preserve/seal
-recipes, changing campaign paths and population only. Existing original1000 view has
-60IDs/122510 targets; use D422 input identity, not guessed SHA.
-Native config BASE/configs/ieee_tc/slora_7b_resident_native_v1.json SHA
+Raw: /home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d434_20261011
+Private: /tmp/tc-d434-7bs. Reuse run/start/stop/health/freeze/preserve/seal recipes.
+Original1000viewSHA0a5dfcf8048abdc8fc1e3a8ccaf92bfb925a9db326c8d27507663bede96a0981.
+Nativeconfig slora_7b_resident_native_v1.json SHA
 2dd3a7415c5b00f0bbcf6ac7b31906da4399285e6df824ba270988015c72ae5d.
 D430 source-view manifest SHA
 51c6f1da21cc5070a7d71e567c10564d3066605546602705c0b1c5d8b9277004.
-DP4/TP1/RR/sequential startup/packed HOST views/native swap non-BMM:
+DP4/TP1/RR/sequentialstartup/packedHOST/native swap nonBMM;
 input984/context1024/tokenbudget14000/batch1024/running1000.
-All500 HOST preparations after common notice; business origin notice+60, no ready shift.
-CPU-only prep is not GPU-s; actual allocations/release define physical ownership.
+Full500 HOST preparation afternotice, business notice+60, actualGPU allocations,
+qualificationprotection1800s; no freeGPU/adapterpreload. ExistingTritoncache2055files/62246523B.
+Prelaunch37CPUtests pass1.858s inexistingouterPython3.12; earlier systemPython3.10
+missingnumpy attempt retained, no install/codeworkaround. No performance retry.
+Execution MAIN47be5422cbf65c8c0905f78668a83c188b7b9ccf,
+BASE5059cb0b86c5a5378a772adaa25aa80bb7a1b240 both pushed/remoteSHAverified.
+Runningdoc backupMAIN677a53e049bea6118d8f4e9d559179ada2098e3c notexecutioncommit.
+Serviceprimelora-tc-svc-b0ce62d358e94489b1d5958c0e83ede0.scope,
+InvocationID18c0f4b4575a45be824a81b181b46476 now released/removed;notrestart.
+Notice1235966.54994207,arrival_start1236026.54994207,end1237105.9642220077.
+Remote priorlink1000Mb/s/full, unchangedD78/D80 once-only gzip cache;no republish.
+Closedremote3B/7B/monitorInvocationIDs158b40360fdf46bb818a036493b0246c/
+e0525a84e0af4598a1e715bfac1e7255/1028fcd55b374827a52f7d705422add0.
+Remote7Bclock8e030525ed52454e89698c6a7e7b6287;copiedtransferSHA
+092504a38e8e2b7f9f57be60442cd2c1068db89d36a3777c43236007f407aa6c,
+monitorSHAb6c9853df74bb7721af442f618e967f46ff66a0d1c459f1e9ef4ec44ffaa798e.
+Aux0001-0006 closed. Emptyverificationaux0007 requires identity/proc-tree closure.
+No figures,paper/backend/policychange or newweights/trace.
 
 ## D433 closed — do NOT repeat
 
