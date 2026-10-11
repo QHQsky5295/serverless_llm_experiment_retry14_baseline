@@ -1,4 +1,4 @@
-# IEEE TC execution status — D443 Loquetier 500-ID coverage RUNNING
+# IEEE TC execution status — D443 Loquetier 500-ID coverage closed; original1000 next
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement experiment plan.
 Full earlier status is preserved byte-for-byte in EXECUTION_HISTORY_THROUGH_D433.md;
@@ -32,7 +32,37 @@ RUNNING entries are historical. No approved experiment or failed evidence was re
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D443 same-config 500-ID functional coverage RUNNING
+## Current action — D443 500-ID run complete and audited; backup/owned-cache cleanup next
+
+See D443_LOQUETIER_500_ADAPTER_COVERAGE.md. Same actual handle monitored through
+terminal2026-10-12 03:09:04Asia/Shanghai; all3returncodes0,physicalGPUreleased,
+servicepathremoved. No rerun/runtime/config/analyzerchange or baseline optimization.
+500/500offered/submitted/terminal/native/source/adapter/timing,all500IDsserved,
+68925nativeoutputtokens,0failures;four125-IDworkersserved. Recomputeerrors0ms.
+U3247.515872713411GPU-s,6.4950317454268225/binding-validrequest.
+Mean/P95TTFT218590.293/375885.992ms;mean/P95TPOT62.948/68.556ms;
+meanE2E227199.293ms. CommonD394 TTFT0/TPOT387/joint0of500:NONFEASIBLE
+functionalview,notW0/ranking. Nativequeue168.390s vsregistered-to-first.218s;
+routerqueue49.895s. No doublecount orall-waiting-is-network attribution.
+500HTTP/420740410wireB/12985984450materializedB,0packs;500referencesnotnewfetches.
+Servicepeak42149494784B,hostavailablemin81977749504B,diskmin149903036416B;
+high/max/OOM/swap0. Exact-ownedremote3unitsstopped/MainPID0/portsabsent;
+transferSHA58117bf347fa183d04442bb875a5aebb7a9f9f654ea88ab15cf642376792db86,
+monitorSHAb14858c9875dbd9adc1495ea3349ec4f5f6df5e65d0a05e467639fd04fcaaf4d.
+Raw numericalunknownflagsremain; D385original100reference NOT appliedtoremapped500.
+Strict unchanged Loquetier/adapter_coverage_v1 auditorpassed; auditSHA
+89f04fdc163558a350dd761196da76bec4048f18724fa40ebbe776ff6019e6dc.
+578-file53278799BmanifestSHAa9a883dc6ef4ebd8b63df0dbed20bbe956d65b713e760f7a8ad39c2e48d8adb8;
+all578SHA independentlychecked. 147protectedentries/threeuserfilesunchanged.
+No fresh semantic-review-agent PASS: experiment-audit requiredsharedreferencesmissing.
+Aux0001ID267eee3e26284602a9fb577d7aac838a peak245313536B,actualemptytree
+identitychecked/stopped;tmuxdead0removed. Aux0007/0008 closed,peaks49283072/204980224B,
+high/max/OOM/swap0. Aux0009-0012 actualrecursiveemptytree/identitycheckedstopped.
+NEXT sealbackups thenreclaimonlyowneddownloadobjects;original1000sameconfig after
+freshgates,thensingle4000. No repeated500/100/capacity orsealedW0. FullgoalACTIVE,
+verifiedwait+actualclosureprogress,no blocker;allremainingscope belowOPEN.
+
+## D443 preregistration and actual launch — now closed above
 
 Launched2026-10-12T02:51:24+08:00 once in tmux tc-d443-7b. Monitor this exact
 handle to terminal, do not relaunch. Serviceunit

@@ -1,0 +1,21 @@
+{
+  "schema": "ieee_tc_cross_repository_checkpoint_v1",
+  "campaign": "d443_20261012",
+  "execution_main_commit": "702672d48712b64df62284174b1de417f22dba4c",
+  "execution_baseline_commit": "9e0ad55d7f051a031ee4099d59d1a4718e64a59f",
+  "baseline_closure_backup_commit": "16748ca1ffad4108c1d447c10564a2dcdbc1040f",
+  "baseline_closure_remote_sha_verified": true,
+  "baseline_summary_sha256": "b9a734946bc56899b44fda06c914a194f781a6ec03600bb036369374507a6484",
+  "audit_sha256": "89f04fdc163558a350dd761196da76bec4048f18724fa40ebbe776ff6019e6dc",
+  "evidence_manifest_sha256": "a9a883dc6ef4ebd8b63df0dbed20bbe956d65b713e760f7a8ad39c2e48d8adb8",
+  "sealed_files_verified": 578,
+  "offered_native_binding_valid": 500,
+  "served_unique_adapters": 500,
+  "native_output_tokens": 68925,
+  "joint_good": 0,
+  "qualification_scope": "500-ID functional coverage, not full W0 or independent numerical semantic proof",
+  "raw_numerical_unknown_preserved": true,
+  "actual_gpu_release_and_exact_owned_remote_stop": true,
+  "owned_download_cache_reclaimed_after_backup": false,
+  "next": "Backup then owned-object reclamation; fresh complete gates and same-config original1000 compatibility, then one full4000W0. No baseline tuning or repeated passed100/500/capacity. Full remaining plan remains open."
+}
