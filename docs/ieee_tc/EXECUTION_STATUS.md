@@ -1,4 +1,4 @@
-# IEEE TC execution status — D437 Loquetier static/CPU qualification checkpoint
+# IEEE TC execution status — D438 Loquetier native measurement/capacity qualification
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement experiment plan.
 Full earlier status is preserved byte-for-byte in EXECUTION_HISTORY_THROUGH_D433.md;
@@ -32,7 +32,44 @@ RUNNING entries are historical. No approved experiment or failed evidence was re
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D437 static/CPU checks closed; Loquetier native GPU qualification next
+## Current action — D438 native observation passed; protected capacity witness preregistered
+
+BASE docs/ieee_tc/D438_LOQUETIER_NATIVE_OBSERVATION.md records necessary native
+measurement hooks, exact source-view AST preservation and guarded capacity probe.
+Native3historicalpatches untouched; nativeSMLM/batching/loading/FP16 preserved.
+Unknown/wrong-shard adapter rejected before nativeindex0fallback/KV allocation;
+startup module/name/pointer readback; actualforward groupedIDs/rootcontext check;
+timestamps immediately after existing nativeinteger.item(), no per-token added
+CUDA sync. Startup pointer readback is explicit and belongs in future preparation.
+Structural binding is not remote-content or model numerical qualification.
+
+New9CPUtests passed2.277s; combined14passed2.055s,no skip, existingnativeenv.
+CommonServerlessLLM/vLLM/S-LoRA163regressionspassed10.995s. No performance rerun.
+All aux0001-0005 closed by exactidentity/emptyrealprocess-tree; high/max/OOM0.
+Old147protected entries and user changes unchanged. No remote administration,
+downloads/newdata, figures or changes to sealed W0 results or evaluation ruler.
+Prior turn D437 was concrete code/qualification/backup progress; no blocker.
+
+D438 raw /home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d438_20261012.
+NativeviewmanifestSHA4dc33282f5777e3462b42c887c22de82ffa00b0ef8ea2aac3af52c9f0ff9dd7a;
+helperSHAa4c116150db7f66f7d7d475cabdc3951095977235c520fc95ad7a5d104e203de;
+sourceadapterSHA2e7e0d2cdb4aa96b239bf08c88ed1a1b8175330631a67c2087074e95dc146e10;
+probeSHAdc417b9d3847aba55afe4d942b4271ab3f2ca0e42bffce1f06b92354f0905c72.
+BASE preregisteredcodecommit28ffe7ed969c19d2d8683d282b9bda90c1f70d73.
+D437 MAIN checkpoint28a14a10ea704c514720498bb3d61a37d11cbf7e remains preserved.
+
+NEXT run raw/run_capacity.sh once after backup/fresh gates, using existinggated
+launcher/watchdog, nativePython3.9, GPU0, service72/80GiB/swap2, predictedgrowth2GiB.
+This localimmutablepool capacity diagnostic picks D437's largest static shard0
+(125IDs) by footprint, not workload; verifies its full content, native loading,
+pointer binding, batch2/context1024 KV allocation. No requests/forward arithmetic,
+realremote or fourworker qualification; no mainSLO/GPU-s conclusion from this probe.
+Preserve failure/stage and do not tune baseline or automatically repeat.
+Then necessary commonHTTP/staticshard/remote/physicallifecycle adaptation and
+100->500-ID->1000->4000 qualification; Loquetier still NOT a qualified W0 row.
+HydraServe/remaining7B/comparison/PrimeLoRA optimization before3B; all fullscope OPEN.
+
+## D437 static/CPU checks closed — preserved earlier checkpoint
 
 BASE docs/ieee_tc/D437_LOQUETIER_STATIC_CAPACITY.md records full existing500-ID
 metadata accounting, historical source/receipt verification and nativeCPU rules.
