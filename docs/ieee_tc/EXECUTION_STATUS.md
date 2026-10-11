@@ -1,4 +1,4 @@
-# IEEE TC execution status — D444 Loquetier original1000 closed; full4000 next
+# IEEE TC execution status — D445 Loquetier single full4000 preregistered
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement experiment plan.
 Full earlier status is preserved byte-for-byte in EXECUTION_HISTORY_THROUGH_D433.md;
@@ -32,7 +32,26 @@ RUNNING entries are historical. No approved experiment or failed evidence was re
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D444 original1000 closed, no rerun
+## Current action — D445 single full4000 preregistered, not yet launched
+
+Full PLAN/status/latest baseline rules/metricV1+V2 reread. D444 closurecleanup
+backup0e7dac301ad92fcffc972104d3d7a1eb01f48e1f pushed/remoteSHAverified.
+No repeated100/500/1000/capacity or sealedW0. Same fixedLoquetier nativeconfig,
+original4000/132IDs/458224tokens, viewSHA
+a5331be2e2204483f18206825d9aaa18cbaa259fe0babfc303f989055819430d.
+Raw originalresults/ieee_tc/loquetier_qualification/d445_20261012;
+private /tmp/tc-d445-7bl. D444recipes reused by campaign/view only; no runtime,
+analyzer/config/dependency or baselineperformance changes. D78/D80readonlycache
+reused under repeateduserapproval, notrepublished. 53MAINtests passed0.447s;
+18BASE passed0.821s, all580D444sourceSHA/147protectedentries/threeuserfiles/
+nativepatches unchanged. Aux0002ID8a30ec39d8be46b080505ec862bc9d0c,
+peak49131520B/highmaxOOMswap0, actualrecursiveemptytree verifiedthenstopped.
+NEXT doublebackup/inputfreeze/freshresource+remotehealth gates ->launchonce.
+Then monitoractualhandle ->release/ownedremote stop ->strictLoquetier/full4000
+audit(noD385reference) ->seal/backup/ownedcachecleanup ->matchedcomparison and
+HydraServe/remaining7B before3B. Fullscope belowOPEN; goalACTIVE,no blocker.
+
+## D444 original1000 closed, no rerun
 
 Monitored same handle to normalterminal by2026-10-12 03:53:48Asia/Shanghai.
 All3returncodes0,actualGPUreleased/servicepathremoved; exact-ownedremote3units
