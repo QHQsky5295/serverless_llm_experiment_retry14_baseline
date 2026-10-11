@@ -1,4 +1,4 @@
-# IEEE TC execution status — D435 S-LoRA full W0 CLOSED / NONFEASIBLE
+# IEEE TC execution status — D436 four-system W0 comparison CLOSED
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement experiment plan.
 Full earlier status is preserved byte-for-byte in EXECUTION_HISTORY_THROUGH_D433.md;
@@ -32,7 +32,48 @@ RUNNING entries are historical. No approved experiment or failed evidence was re
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D435 full W0 closed; backup then matched comparison
+## Current action — D436 comparison closed; remaining 7B baseline qualification next
+
+D436_MATCHED_7B_W0_FOUR_SYSTEMS.md records the complete offline join of sealed
+D371/D397 PrimeLoRA,D414 ServerlessLLM,D423 vLLM,D435 S-LoRA. No GPU run,
+baseline performance/configuration change,remote administration,republishing,
+download,pool generation,old-result overwrite or figure. D78/D80 once-only
+readonly gzip cache remains reused under the user's repeated approval.
+Extended existing check_d299_full_context.py with opt-in --include-sealed-slora;
+explicit native RPC path/index and registration for S-LoRA, no fabricated vLLM
+fields. Reuse already-sealed full registry/process/content audits. Complete4000
+request/source/adapter/arrival/prompt/nativeprompt/target/content match;
+458224tokens/132IDs, same matchedcontract SHA384b63425402ced97961e91081265d3cbe340b6a3b4febde242de28f62cd7399.
+All prior D424 row fields unchanged. Current observations joint/GPU-s per request:
+PrimeLoRA97.70%/3.6206309810630626;ServerlessLLM98.125%/4.022440685881069;
+vLLM99.475%/4.028844290537294;S-LoRA94.425%/3.7892694676132526 NONFEASIBLE.
+PrimeLoRA resource advantage about10% over two feasible baselines, but P95TTFT
+and jointSLO worse. Against S-LoRA raw resource reduction4.4504%,P95TTFT
+reduction83.9658%,joint+3.275pp; not a both-feasible G1 comparison.
+All rows retained; no broad optimum,G2,statistical or full numerical-proof claim.
+Native phase boundaries differ: S-LoRA modelRPC registration vs vLLMengineentry.
+Remote132/131480060B each for prior three;S-LoRA fullpool500/420740410B.
+Preparation-strategy difference is not isolated hierarchy/confirmed-state evidence.
+New paper_results/ieee_tc/main_comparison/d436_7b_w0/comparison.json SHA
+59a6dfa6b3a512ac561c65fb334de4843895c5c7f120e709302d50afd6704427;
+metrics.csv SHA5e204c1d8514494821b71b730e27bb5e2a8ad2d25de7fc002ee1882d0f08047a.
+Resident reference reused byte-identically SHA737c84804023c9f98677fb5f19c8240b4b05cabdb52f6ecdbbfd4527964c3269;
+no refreeze. D424 comparison/reference/CSV hashes unchanged. All147protected
+entries,three user-file SHAs,nativeS-LoRA tenfilepatch remain unchanged.
+Protected verification SHA1ff66513bbe7dc141d9bd14e43a7ce4f111cee38aeb215db2db8eebe141fb657.
+46CPUtests passed0.390s. Full analysis uses existing LLM/bin/python module entry,
+not baseline env(which lacksijson). Two failed CPU-only entry/dependency attempts
+created no analysis output; no performance retry or environment installation.
+CPU2,3,26,27/high3max4GiB/swap0/GPUhidden; successfuljoinpeak1699659776B,
+high/max/OOM/swap0. All five owned D436 auxscopes exactidentity/empty-subtree
+closed. BASE remains94543f3d4dee1a870084ec877011f40ce1b27277 unchanged.
+Current turn made concrete offline comparison+validation+documentation progress.
+NEXT: remaining7B Loquetier/HydraServe native qualification from existing reviews,
+necessary compatibility/correctness/measurement/safety only, no baseline tuning.
+Then complete7B comparison/necessaryPrimeLoRAoptimization before3B.
+No repeated D435 or previous sealedW0. All approved remaining scope below OPEN.
+
+## Historical D435 closure — completed before D436; do not rerun
 
 D435_SLORA_FULL_W0.md preregisters one original4000/132ID/458224token W0 using
 the exact D432/D433/D434 native config. No baseline runtime/config/analyzer changes.
@@ -124,8 +165,8 @@ Native unknown adapter ->index0 behavior requires explicit binding validation.
 Official ModelGeneration/virtual model/MixedLoraModel/SMLM must remain native;
 do not invent a cluster scheduler or replace its core. Current review is not a
 fresh experiment-audit PASS or completed numerical qualification.
-Next remains D435 terminal closure FIRST, then matched W0 comparison and
-remaining7B baseline qualifications. Do not jump to3B or shrink the full matrix.
+That review's historical next was D435 closure, then matched W0 comparison;
+both are now closed above. Remaining7B qualification is next; no3Bjump.
 
 Current continuation also completed read-only HydraServe prerequisite review:
 BASE docs/ieee_tc/HYDRASERVE_REUSE_REVIEW_20261011.md, backup
@@ -179,7 +220,7 @@ Receipt paper_results/ieee_tc/storage/20261011_d434_download_cache.json.
 147protected entries unchanged,postSHA23b9be29909ef728f3450ea7e32f592419d81e319012d383ea290ecd618cfd0d.
 Three protected user-file SHAs and nested10filepatch unchanged.
 Historical next action (now completed): freshgates -> preregister/backup and launch
-ONCE D435 full4000W0 SAME native config. D435 is live above; do NOT relaunch.
+ONCE D435 full4000W0 SAME native config. D435 is closed above; do NOT relaunch.
 No100/500/1000 repeats,baselineparametersearch,oldsealedW0repeat or3Bjump.
 Cleanup restored about151.98GiB; launch still requires fresh complete safety gates.
 Full goal ACTIVE/all remaining approved scope OPEN. Previous turn launched D434;

@@ -927,8 +927,50 @@ def closed_physical_integral(summary):
     return total
 
 
-def compare_d424_sealed_w0(output):
-    """Offline join of three specified, sealed observations; no new inference.
+def matched_native_entry(name, contract, native):
+    """Read each backend's actual boundary; never synthesize vLLM fields for S-LoRA.
+
+    This is a join check, not a replacement for the SHA-bound full registry,
+    process and content audit. Cross-backend phase boundaries remain distinct.
+    """
+    if name == 'S-LoRA':
+        path = native.get('native_adapter_path')
+        if (contract.get('native_backend') != 'slora'
+                or native.get('timing_contract') != 'ieee_tc_slora_native_v1'
+                or not isinstance(path, str) or not Path(path).is_absolute()
+                or Path(path).name != contract['adapter_id']
+                or type(native.get('native_adapter_index')) is not int
+                or native['native_adapter_index'] < 0
+                or native.get('native_adapter_binding_source') != 'slora_model_rpc_actual_batch_adapter'):
+            raise ValueError('S-LoRA native path/index binding required')
+        value = native.get('native_rpc_registered_monotonic_s')
+    else:
+        if native.get('native_lora_name') != contract['adapter_id']:
+            raise ValueError('vLLM native adapter binding required')
+        value = native.get('native_dispatch_monotonic_s')
+    if type(value) not in (int, float) or not math.isfinite(value):
+        raise ValueError('finite backend-specific native entry required')
+    return value
+
+
+def matched_relative_observation(prime, baseline):
+    """Keep raw differences even if the baseline is outside the G1 feasible set."""
+    return dict(
+        gpu_seconds_relative_reduction=(baseline['physical_gpu_seconds']-prime['physical_gpu_seconds'])/baseline['physical_gpu_seconds'],
+        joint_slo_difference_percentage_points=100*(prime['joint_slo']-baseline['joint_slo']),
+        p95_ttft_relative_reduction=(baseline['metrics']['ttft_ms']['p95_type1']-prime['metrics']['ttft_ms']['p95_type1'])/baseline['metrics']['ttft_ms']['p95_type1'],
+        both_observed_protocol_feasible=(prime['observed_protocol_feasible'] and baseline['observed_protocol_feasible']),
+        scope='Raw single-run differences; constrained G1 comparison requires both rows feasible.')
+
+
+def require_unchanged_reference(recomputed, frozen):
+    if recomputed != frozen:
+        raise ValueError('existing frozen Resident reference differs; do not refreeze')
+    return frozen
+
+
+def compare_d424_sealed_w0(output, include_slora=False):
+    """Offline join of specified sealed observations; no new inference.
 
     Reuses the full native/content audits bound by SHA. It does not redownload
     already-audited and reclaimed objects, mutate raw unknown correctness flags,
@@ -981,16 +1023,23 @@ def compare_d424_sealed_w0(output):
     locations = {'PrimeLoRA': (run/'launch.json',
         run/'launch.launch/physical_deployment/summary.json')}
     rows = {'PrimeLoRA': {}}
-    for name, tag, audit_sha, manifest_sha, model, launch_name in (
-        ('ServerlessLLM', 'd414',
+    baseline_specs = [
+        ('ServerlessLLM', 'd414_7b_full_w0',
          '714a2fdb01b2d5a0e2e6f3a9b0faf7cb23b29632efbf5b343822b7dfe4b7dd74',
          '8912ab5259d7b10e990ab3b6233b789ce4432c0af2c1544498b7587b700904fd',
          'model7b_repaired', 'launch7b_repaired'),
-        ('vLLM', 'd423',
+        ('vLLM', 'd423_7b_full_w0',
          '7d9ac56d0db8cf3af0f87c7a5314eb272771ff6408c419bba616e8f7eceeb310',
          'b3796a4ea857e0a5cc8bb105397bd511f6c8548065b1c20a73ca9242975be516',
-         'model7b', 'launch7b')):
-        directory = ROOT/f'paper_results/ieee_tc/baseline_audit/{tag}_7b_full_w0'
+         'model7b', 'launch7b')]
+    if include_slora:
+        baseline_specs.append(('S-LoRA', 'd435_7b_slora_full_w0',
+            '1c9361f2d995c27e0672611728697f4de48bd0ff3c4e9f4fd778523565b6e4c0',
+            'd0f6b8b4aca2ac8b34f13230e9ebd559982ed7bce684441c7c5a998e8b0886c2',
+            'model7b', 'launch7b'))
+    baseline_names = [spec[0] for spec in baseline_specs]
+    for name, tag, audit_sha, manifest_sha, model, launch_name in baseline_specs:
+        directory = ROOT/f'paper_results/ieee_tc/baseline_audit/{tag}'
         seal = checked_json(directory/'audit.json', audit_sha)
         manifest = checked_json(directory/'evidence_manifest.json', manifest_sha)
         sources[name] = {x['path']: x['sha256'] for x in manifest['files']}
@@ -1009,6 +1058,9 @@ def compare_d424_sealed_w0(output):
         if name == 'vLLM' and (cfg['experiment_role'] != 'full_w0_resident_reference_candidate'
                               or seal['scheduler_contract'] != 'resident_rr_v1'):
             raise ValueError('preregistered resident reference identity required')
+        if name == 'S-LoRA' and (cfg['experiment_role'] != 'full_w0_baseline_observation'
+                                or seal['scheduler_contract'] != 'slora_resident_rr_v1'):
+            raise ValueError('sealed S-LoRA native full-W0 identity required')
         byevent = {k: {} for k in ('request_contract', 'http_raw_response', 'http_response')}
         with replay.open() as handle:
             for line in handle:
@@ -1024,14 +1076,15 @@ def compare_d424_sealed_w0(output):
         for rid, c in byevent['request_contract'].items():
             rawrow, response = byevent['http_raw_response'][rid], byevent['http_response'][rid]
             n = rawrow['body']['metrics']['ieee_tc']
+            native_entry = matched_native_entry(name, c, n)
             if (rawrow['status'] != 200 or response['response']['protocol_valid'] is not True
-                    or n['native_lora_name'] != c['adapter_id']
                     or n['native_prompt_token_ids_sha256'] != c['native_prompt_token_ids_sha256']
                     or n['native_output_tokens'] != c['target_tokens']
                     or c['artifact_content_sha256'] != content[c['adapter_id']]):
                 raise ValueError('native/content binding differs from sealed contract')
             rows[name][rid] = dict(c, native_prompt_tokens=len(n['native_prompt_token_ids']),
                 generation_contract=cfg['generation_contract'], native=n,
+                native_entry_s=native_entry,
                 arrival=response['planned_arrival_s'], submit=response['client_submit_s'],
                 completed=rawrow['client_completed_s'], stored=response['response'])
         del byevent
@@ -1057,6 +1110,7 @@ def compare_d424_sealed_w0(output):
                 native_prompt_tokens=int(n['actual_prompt_tokens']),
                 artifact_content_sha256=content[r['adapter_id']],
                 generation_contract=r['generation_contract'], native=n,
+                native_entry_s=n['native_dispatch_monotonic_s'],
                 arrival=ext['planned_arrival_s'], submit=ext['client_submit_s'],
                 completed=n['controller_completed_monotonic_s'],
                 stored=dict(ttft_ms=r['overall_ttft_ms'], tpot_ms=r['tpot_ms'], e2e_ms=r['overall_e2e_ms']))
@@ -1107,7 +1161,7 @@ def compare_d424_sealed_w0(output):
                     or abs(r['arrival_offset_s']-entry.offset_s) > 1e-6):
                 raise ValueError('source/adapter/target/arrival contract mismatch')
             n = r['native']
-            a,e,d,f,l,c = (r['arrival'],r['submit'],n['native_dispatch_monotonic_s'],
+            a,e,d,f,l,c = (r['arrival'],r['submit'],r['native_entry_s'],
                 n['native_first_token_monotonic_s'],n['native_last_token_monotonic_s'],r['completed'])
             if (n['native_clock_id'] != physical['clock_id'] or not n['native_terminal_observed']
                     or n['native_output_tokens'] != r['target_tokens']
@@ -1154,6 +1208,11 @@ def compare_d424_sealed_w0(output):
             source_order_500_request_phases=[dict(x) for x in phases],
             completion_boundary='controller completion' if name=='PrimeLoRA' else 'external HTTP completion',
             raw_n_correct=physical['n_correct'], independent_numerical_proof=False)
+        if include_slora:
+            report_rows[name].update(
+                native_entry_boundary=('S-LoRA model RPC registration' if name=='S-LoRA' else 'vLLM native engine entry'),
+                remote_transfers=(prime['remote']['server_transfers'] if name=='PrimeLoRA' else seals[name]['remote_transfers']),
+                remote_wire_bytes=(prime['remote']['wire_bytes'] if name=='PrimeLoRA' else seals[name]['remote_wire_bytes']))
 
     output_changes, joined = {}, []
     contract_keys = ('request_id','source_item_sha256','adapter_id','target_tokens',
@@ -1161,7 +1220,7 @@ def compare_d424_sealed_w0(output):
         'artifact_content_sha256','generation_contract')
     for rid in order:
         ref = rows['PrimeLoRA'][rid]
-        for name in ('ServerlessLLM','vLLM'):
+        for name in baseline_names:
             matched_request_contract(ref, rows[name][rid])
         joined.append({k:ref[k] for k in contract_keys})
     for left,right in combinations(rows,2):
@@ -1172,11 +1231,13 @@ def compare_d424_sealed_w0(output):
             explanation='Observed digests only; no assumption that all differences are rounding.')
     diffs = {}
     pr = report_rows['PrimeLoRA']
-    for name in ('ServerlessLLM','vLLM'):
+    for name in baseline_names:
         br = report_rows[name]
         diffs[name] = dict(gpu_seconds_relative_reduction=(br['physical_gpu_seconds']-pr['physical_gpu_seconds'])/br['physical_gpu_seconds'],
             joint_slo_difference_percentage_points=100*(pr['joint_slo']-br['joint_slo']),
             p95_ttft_relative_reduction=(br['metrics']['ttft_ms']['p95_type1']-pr['metrics']['ttft_ms']['p95_type1'])/br['metrics']['ttft_ms']['p95_type1'])
+        if include_slora:
+            diffs[name] = matched_relative_observation(pr, br)
     vr = report_rows['vLLM']
     if not vr['observed_protocol_feasible'] or len(summaries['vLLM']['device_intervals']) != 4:
         raise ValueError('eligible four-card complete Resident reference required')
@@ -1191,6 +1252,12 @@ def compare_d424_sealed_w0(output):
         reused_development_observation=True, independent_holdout=False,
         scope='W0 only; W1/W2 references and G2 open; Resident is not resource-optimal vLLM.',
         source_audit_sha256=refs[str(ROOT/'paper_results/ieee_tc/baseline_audit/d423_7b_full_w0/audit.json')])
+    if include_slora:
+        reference_path = ROOT/'paper_results/ieee_tc/main_comparison/d424_7b_w0/resident_reference.json'
+        reference = require_unchanged_reference(reference, checked_json(reference_path,
+            '737c84804023c9f98677fb5f19c8240b4b05cabdb52f6ecdbbfd4527964c3269'))
+        checked(ROOT/'docs/ieee_tc/BASELINE_EXECUTION_RULES_20261011.md')
+        checked(ROOT/'tests/test_tc_serverless_qualification_population.py')
     checked(Path(__file__))
     checked(ROOT/'scripts/ieee_tc/audit_d402_serverlessllm_path.py')
     report = dict(kind='matched_sealed_w0_comparison_v1', current_plan_sha256=plan_sha,
@@ -1211,6 +1278,18 @@ def compare_d424_sealed_w0(output):
             'Native compiler disk caches differ; no prestarted GPU, no OS-wide page-cache flush.',
             'W1/W2, optimized baseline resource points, remaining systems, G2 and mechanism evidence are open.'],
         source_refs=[dict(path=k,sha256=v) for k,v in refs.items()])
+    if include_slora:
+        report['kind'] = 'matched_sealed_w0_comparison_v2'
+        report['resident_reference_reused_unchanged'] = True
+        report['caveats'][3] = ('Published remote protocol shared. PrimeLoRA/ServerlessLLM/vLLM: '
+            '132 transfers/131480060 wire bytes each; S-LoRA full static preparation: '
+            '500 transfers/420740410 bytes. Different preparation strategies, not isolated hierarchy evidence.')
+        report['caveats'][-1] = ('W1/W2, remaining systems, G2 and mechanism evidence remain open. '
+            'No baseline performance search is authorized; measured baseline points are not asserted optimal.')
+        report['caveats'].extend([
+            'S-LoRA remains in the complete table despite joint SLO below 95%; raw differences are not a two-feasible-system G1 comparison.',
+            'S-LoRA native entry is model RPC registration; vLLM-based rows use engine entry. Phase columns are descriptive, not identical causal boundaries.',
+            'S-LoRA first-500/later-request slices are not independent repeats and never replace the full W0 denominator.'])
     report['analysis_key'] = canonical(dict(source_refs=report['source_refs'], protocol=refs[str(protocol)],
                                           amendment=refs[str(amendment)]))
     output.mkdir(parents=True, exist_ok=False)
@@ -1221,9 +1300,10 @@ def compare_d424_sealed_w0(output):
         writer=csv.writer(handle)
         writer.writerow(['system','run','n_protocol_valid','joint_slo','gpu_seconds','gpu_seconds_per_request',
                          'mean_ttft_ms','p95_ttft_ms','mean_tpot_ms','p95_tpot_ms','mean_e2e_ms','completion_boundary'])
-        for name,tag in (('PrimeLoRA','D371/D397'),('ServerlessLLM','D414'),('vLLM','D423')):
+        tags = dict(PrimeLoRA='D371/D397', ServerlessLLM='D414', vLLM='D423', **{'S-LoRA':'D435'})
+        for name in report_rows:
             r=report_rows[name];m=r['metrics']
-            writer.writerow([name,tag,4000,r['joint_slo'],r['physical_gpu_seconds'],r['gpu_seconds_per_protocol_valid_request'],
+            writer.writerow([name,tags[name],4000,r['joint_slo'],r['physical_gpu_seconds'],r['gpu_seconds_per_protocol_valid_request'],
                 m['ttft_ms']['mean'],m['ttft_ms']['p95_type1'],m['tpot_ms']['mean'],m['tpot_ms']['p95_type1'],
                 m['e2e_ms']['mean'],r['completion_boundary']])
     print(json.dumps(dict(output=str(output),matched=4000,reference=reference,differences=diffs)))
@@ -1239,9 +1319,13 @@ if __name__=='__main__':
     parser.add_argument('--review-output', type=Path)
     parser.add_argument('--matched-w0-output', type=Path,
         help='D424 offline join of sealed D371/D397, D414 and D423; exclusive output directory')
+    parser.add_argument('--include-sealed-slora', action='store_true',
+        help='D436: also join sealed D435, retaining nonfeasibility and the existing D424 reference')
     args = parser.parse_args()
+    if args.include_sealed_slora and args.matched_w0_output is None:
+        parser.error('--include-sealed-slora requires --matched-w0-output')
     if args.matched_w0_output is not None:
-        compare_d424_sealed_w0(args.matched_w0_output)
+        compare_d424_sealed_w0(args.matched_w0_output, include_slora=args.include_sealed_slora)
         raise SystemExit(0)
     if args.single_run_source is not None:
         if args.warm_reference is None or args.review_output is None:

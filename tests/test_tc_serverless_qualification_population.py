@@ -574,6 +574,51 @@ class FrozenSloTests(unittest.TestCase):
 
 
 class MatchedW0Tests(unittest.TestCase):
+    def test_slora_entry_uses_native_rpc_without_fabricated_vllm_fields(self):
+        from scripts.ieee_tc.check_d299_full_context import matched_native_entry
+        contract = dict(adapter_id='a', native_backend='slora')
+        native = dict(timing_contract='ieee_tc_slora_native_v1', native_adapter_path='/objects/a',
+            native_adapter_index=0, native_adapter_binding_source='slora_model_rpc_actual_batch_adapter',
+            native_rpc_registered_monotonic_s=7.)
+        original = copy.deepcopy(native)
+        self.assertEqual(matched_native_entry('S-LoRA', contract, native), 7.)
+        self.assertEqual(native, original)
+        for key, value in [('timing_contract', 'ieee_tc_native_v1'),
+                           ('native_adapter_path', '/objects/b'), ('native_adapter_path', 'a'),
+                           ('native_adapter_index', True), ('native_adapter_index', -1),
+                           ('native_adapter_binding_source', 'request_name'),
+                           ('native_rpc_registered_monotonic_s', None),
+                           ('native_rpc_registered_monotonic_s', float('nan'))]:
+            with self.subTest(key=key, value=value), self.assertRaises(ValueError):
+                matched_native_entry('S-LoRA', contract, dict(native, **{key: value}))
+        with self.assertRaises(ValueError):
+            matched_native_entry('vLLM', contract, native)
+        self.assertEqual(matched_native_entry('vLLM', contract,
+            dict(native_lora_name='a', native_dispatch_monotonic_s=9.)), 9.)
+
+    def test_nonfeasible_baseline_retains_raw_difference_not_g1_claim(self):
+        from scripts.ieee_tc.check_d299_full_context import matched_relative_observation
+        prime = dict(physical_gpu_seconds=90., joint_slo=.977, observed_protocol_feasible=True,
+                     metrics={'ttft_ms': {'p95_type1': 3.}})
+        baseline = dict(physical_gpu_seconds=100., joint_slo=.94425, observed_protocol_feasible=False,
+                        metrics={'ttft_ms': {'p95_type1': 5.}})
+        result = matched_relative_observation(prime, baseline)
+        self.assertEqual(result['gpu_seconds_relative_reduction'], .1)
+        self.assertEqual(result['p95_ttft_relative_reduction'], .4)
+        self.assertAlmostEqual(result['joint_slo_difference_percentage_points'], 3.275)
+        self.assertFalse(result['both_observed_protocol_feasible'])
+        self.assertTrue(matched_relative_observation(prime,
+            dict(baseline, observed_protocol_feasible=True))['both_observed_protocol_feasible'])
+
+    def test_existing_resident_reference_cannot_be_refrozen(self):
+        from scripts.ieee_tc.check_d299_full_context import require_unchanged_reference
+        frozen = dict(U_ref_gpu_seconds=16000., Q_ref_p95_ttft_ms=1200., B_gpu_seconds=12000.,
+                      reference_id='original', source_audit_sha256='source')
+        self.assertIs(require_unchanged_reference(dict(frozen), frozen), frozen)
+        for key in frozen:
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                require_unchanged_reference(dict(frozen, **{key: 'changed'}), frozen)
+
     def fixture(self):
         return dict(request_id='r', source_item_sha256='source', adapter_id='a',
             target_tokens=256, canonical_prompt_sha256='prompt',
