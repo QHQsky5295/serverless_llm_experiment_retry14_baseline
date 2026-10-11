@@ -1,4 +1,4 @@
-# IEEE TC execution status — D442 Loquetier real100 closed; 500-ID coverage next
+# IEEE TC execution status — D443 Loquetier 500-ID coverage preregistered
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement experiment plan.
 Full earlier status is preserved byte-for-byte in EXECUTION_HISTORY_THROUGH_D433.md;
@@ -32,7 +32,26 @@ RUNNING entries are historical. No approved experiment or failed evidence was re
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D442 real100 closed; no rerun or baseline performance search
+## Current action — D443 same-config 500-ID functional coverage, not launched yet
+
+Read full PLAN/status/baseline rules/metricV1+V2; reuse approved D78/D80 readonly
+gzip cache, no republish. BASE D443_LOQUETIER_500_ADAPTER_COVERAGE.md preregisters
+existing D433 adapter_coverage_v1:500offered/500IDs/68925targettokens,
+viewSHA286f7547a8129fd6e75885379428b84c9a5c23a7eb02bf1d7546f49bcf2cee5d.
+Raw originalresults/ieee_tc/loquetier_qualification/d443_20261012;
+private /tmp/tc-d443-7bl; exact D441config/native/runtime/analyzer unchanged.
+Reused D442recipes with campaign/500view only; no newweights/trace/pool/framework.
+53MAIN checks passed0.329s;18BASE passed0.583s. All578 D442sources reverified
+after priorcleanup;147protectedentries and threeuser/nativepatchSHAs unchanged.
+Aux0002InvocationID3acfa94a66424b9aacda8476971abc43 checked actualrecursive
+cgroup.procs empty and stopped; GPUhidden/CPU2,3,26,27/high3max4GiB/swap0.
+NEXT double-repository preregistration backups, actualinputfreeze andfreshgates,
+remotehealth -> launch exact500once. NoD385numericalreference for remapped500.
+NotW0/ranking/optimum; no baselineperformance search or100repeat.
+Then original1000/single4000; remaining7B/HydraServe/comparison/PrimeLoRAoptimization
+before3B; fullscope below OPEN, goal ACTIVE. No blocker.
+
+## D442 real100 closed; no rerun or baseline performance search
 
 See D442_LOQUETIER_100_QUALIFICATION.md. Actual100/100native/source/adapter/timing,
 17369tokens/29requestedIDs/four125-IDshards,0failures; complete500preparation.
