@@ -1,4 +1,4 @@
-# IEEE TC execution status — D423 full vLLM 7B W0 preparation
+# IEEE TC execution status — D423 full vLLM 7B W0 running
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -74,6 +74,40 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+D423 RUNNING since 2026-10-11 17:17:37 Asia/Shanghai, tmux tc-d423-7b.
+Exactly one heavy job. Main execution d45d544c939b9d8b1a41aa332b979b74ee0baa3c
+pushed/remote SHA verified; baseline e646f9106c8fd6fd15f54b69041bd54234fa47e1
+remote SHA reverified after one transient TLS failure. No code/policy change.
+27 existing CPU analysis tests passed0.095s before launch; log retained in raw.
+Exact two task docs backed up; diff/secrets/protected-user-SHA checks passed.
+Service primelora-tc-svc-12e69485618a4130adb199240b625b03.scope,
+InvocationID09c12668f1554ed0af12e9435539fe02; auxiliary
+primelora-tc-aux-d4230000000000000000000000000001.scope.
+Deployment notice1217530.452136949,business origin1217590.452136949,
+original last arrival1221554.361040071. Original4000/132IDs/458224tokens/view
+identity revalidated; HTTP configSHA32b80e2227a8826943d03abf66de98dfd230f1288dc39840e6973c3d1b9b9ced,
+native config unchanged361dc7645a8eef8ee304addfaa9e1611093dae1c6678b108970c1adc2e7fe3a5.
+Current native compile diskcache628files/54387041B,
+SHA92cc5289f1f91ebf0149086a133d359549ee311ca65d6bc2ebc380dba25a58d6;
+fresh private LoRA cache, no prestarted engine. Resource preflight passed;
+protected sealSHA7f843a6a5240a9e933db3ca18bb87f08b02b34dd7c5b9995ba628df14a8403dd.
+Unchanged remote published protocol,link1000Mb/s/full;7Bclock
+remote-process-monotonic:c444e597438c46748f539b32f1371e75.
+Remote3B/7B/monitor InvocationIDs a7b8463c93ba4bd0b42d1db4af386217 /
+dcabc6bf4e034bc7a3a3fb3434262d99 / c4340189517849b2a7e7154da37b7572.
+17:19:20 checkpoint:4000registeredcontracts,3created/sent/raw/validated,
+four worker receipts,0failure; no terminal receipt. Watchdog77:
+hostavailable102112628736B,service9229819904B,disk163631943680B,
+high/max/OOM/swap0,no abort. No final performance or reference verdict yet.
+NEXT monitor SAME handle/local journals -> actual GPU release -> D423
+stop_remote.sh/preserve_evidence.py -> existing full4000/resident_rr_v1 audit
+with D394 -> seal/backup -> full-contract comparison/reference decision.
+No live tests/hashscan/cachecleanup/remotechange, retry, second heavy job or
+parameter tuning. D419/D421/D422 not repeated; PrimeLoRA D371/ServerlessLLM
+D414 remain sealed. U_ref/W1/W2/G2/remaining approved scope OPEN; full goal
+ACTIVE. This turn made progress by preregistering/backing up/launching D423.
+Earlier PREPARATION/NEXT/RUNNING entries below are historical.
 
 D423 PREPARATION 2026-10-11. Full PLAN/STATUS/V1/V2 reread; fresh GPU census
 empty, no tmux, disk163657142272B and hostavailable112072163328B. Existing
