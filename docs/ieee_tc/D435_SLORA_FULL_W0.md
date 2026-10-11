@@ -28,8 +28,12 @@ auditSHA1c9361f2d995c27e0672611728697f4de48bd0ff3c4e9f4fd778523565b6e4c0,
 manifestSHAd0f6b8b4aca2ac8b34f13230e9ebd559982ed7bce684441c7c5a998e8b0886c2.
 All578 source hashes/sizes rechecked,227275259retained source bytes;147protected
 entries and dirty user sources unchanged. Main D435 report has full interpretation.
-Next: backup, separate matched W0 join, owned cache reclamation and remaining7B
-qualifications; no further S-LoRA tuning/repeat and no3B jump.
+Closure backed up; owned recreatable downloads subsequently reclaimed with source/
+metadata/reference checks,5000files/12985984450payloadB,free162938236928B.
+All578 sealed source hashes and147protected entries still match. Main receipt:
+paper_results/ieee_tc/storage/20261012_d435_download_cache.json. No unique data removed.
+Next: separate matched W0 join and remaining7B qualifications, fresh safety gates;
+no further S-LoRA tuning/repeat and no3B jump.
 
 ## Purpose and immutable comparison contract
 
