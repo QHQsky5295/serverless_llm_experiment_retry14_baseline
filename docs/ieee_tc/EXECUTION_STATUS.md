@@ -1,4 +1,4 @@
-# IEEE TC execution status — D423 full vLLM 7B W0 running
+# IEEE TC execution status — D423 full vLLM 7B W0 terminal and audited
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -74,6 +74,71 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+CURRENT D423 TERMINAL/AUDITED 2026-10-11, actual release confirmed18:25:32
+Asia/Shanghai. No live GPU job; do NOT restart. All4000 offered/submitted/
+terminal/native/source/prompt/adapter/content/timing contracts,0failed,
+458224 native tokens,132IDs. D394 TTFT3979/TPOT4000/joint3979=99.475%,
+observed binding feasible=true. U16115.377162149176GPU-s,
+4.028844290537294 per binding-valid request; four actual physical leases closed.
+Mean/P95TTFT358.019243/1200.506860ms,TPOT24.797976/27.177332ms,
+meanE2E3182.813643ms. E2E/TPOT/native maximum reconstruction error0ms.
+132HTTP/131480060wireB/3300789780verifiedpayloadB,3868cachehits,0packs.
+Native source/compiler/config identities retained, no online code/policy change.
+First100 offline D385 independent witness reused:97exactHF/3differences,
+2reusable margins,req_00084 margin unknown;95sameD419/5changed,4weightclasses.
+No newGPUoracle, exact-token gate or full numerical proof for other3900;
+raw n_correct/null numerical qualification flags unchanged.
+Actual GPU released/service removed/exit0; empty owned replayaux stopped;
+3ownedremoteunits stopped by InvocationID/MainPID0/portsabsent. RemotecopySHA:
+transfer a60ee2dbf9d17e088a6c6875fd744b493ee134b476d91069d5b0056b645f4445,
+monitor bfd7bdbddeb909ab32aa7f78be87cefa24289c9f3463f60c259a82a96fa7cb27.
+Servicepeak14824255488B,hostavailablemin99514773504B,diskmin160266399744B,
+high/max/OOM/swap0. 147protectedentries unchanged;postSHA
+ccba86423fdb92d970d67b8faea1fbef1bc29b1c340b58496e2169511902d925.
+Curated d423_7b_full_w0/audit.json SHA
+7d9ac56d0db8cf3af0f87c7a5314eb272771ff6408c419bba616e8f7eceeb310;
+206file/226970169B evidence_manifest SHA
+b3796a4ea857e0a5cc8bb105397bd511f6c8548065b1c20a73ca9242975be516.
+All206file SHA/size entries verified. Baseline closure/source-note checkpoint
+b477b12622b8f095dd4d6d753c36ebe12391e7f7 pushed toorigin/main andremoteSHA
+verified; exact2taskdocs,diff/secrets checks passed. This is not executioncommit.
+Main closure backup pending. Protected3userdirty SHAs and PLAN/V1/V2 unchanged.
+27existing CPU tests passed0.095s before launch, retained rawlog. Existing strict
+full4000/resident_rr_v1 analyzer and D422 bounded-reference/seal recipes reused;
+only raw recipe paths/counts changed. No new analysis framework/performance run.
+NEXT verify manifest -> backup both repos -> separate full-contract join with
+PrimeLoRA D371/D397 and ServerlessLLM D414, then W0 reference/comparison decision.
+Downloadedobjects not reclaimed; disk below150GiB NEW-heavyfloor, so any next
+heavylaunch needs verified cache-only reclamation and fresh resource gates.
+No cross-system ranking or frozen U_ref yet. W1/W2/G2,remaining7Bbaselines,3B,
+ablations/mechanisms/sensitivities/CE/docs/figures remain OPEN. Fullgoal ACTIVE;
+this turn completed the monitored run, closure and strict audit. All older
+RUNNING/NEXT checkpoints below are historical, not live instructions.
+
+Latest D423 verified wait, 2026-10-11 18:08:11 Asia/Shanghai: SAME active
+InvocationID 09c12668f1554ed0af12e9435539fe02, no restart. 3225 created/sent,
+3220 raw/validated responses, 4000 contracts, no failures; no terminal receipt.
+Watchdog 2966: host available 99771392000 B, service 14378147840 B,
+disk 160725590016 B, high/max/OOM/swap zero, no abort. Disk is below the
+150 GiB NEW-heavy-launch floor but above the 100 GiB running floor; no live
+cleanup. Original arrival window has 1014.986930 seconds remaining.
+After compaction, full PLAN/STATUS and V1/V2 were reread. Only lightweight local
+reads/monitoring and external official-source browsing; no tests, runtime edits,
+hash scans, remote operations, performance comparison or second GPU job.
+Bounded S-LoRA source notes appended to BASE/docs/ieee_tc/SLORA_REUSE_RECON_20261011.md:
+official fixed-commit native token production and local metadata path inspected;
+native timestamps absent and SSE selects fields. A possible observation boundary
+is identified but NOT implemented or qualified. API web fetch failed; local API
+evidence is not claimed as byte-verified upstream. Preserve existing patches.
+Current task-owned changes are this status and that one baseline document.
+Prior docs-only backups: main 2352c95c174b94a0456e934f29bb1dbfe154a9ff,
+baseline 7d5dbe77f4a61fbff1f805200a6c4b8c61fcb1a1; both pushed/remote verified
+before this checkpoint. These are NOT D423 execution commits.
+NEXT remains same-run monitoring -> actual release -> owned remote closure /
+evidence preservation -> full4000 audit -> seal/backup -> full-contract comparison.
+This is an expected verified wait, not a blocker; full goal ACTIVE. All remaining
+7B baselines, W1/W2/G2, 3B and approved ablation/sensitivity/document scope remains.
 
 D423 VERIFIED WAIT checkpoint2026-10-11 17:53:33 Asia/Shanghai: same active
 service InvocationID09c12668f1554ed0af12e9435539fe02/tmux tc-d423-7b, no restart.
