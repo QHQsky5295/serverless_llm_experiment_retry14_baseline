@@ -1,4 +1,4 @@
-# IEEE TC execution status — D425 S-LoRA historical reuse audit complete
+# IEEE TC execution status — D426 S-LoRA native observation CPU-qualified
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -75,6 +75,58 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+D426 COMPONENT COMPLETE2026-10-11. No liveGPU/remotejob or newperformance run.
+Existingbaseline helper gains explicitSloraNativeRequestObservation andnative
+RPC/token snapshots;existing sourceadapter gains prepare-slora-measurement-view.
+13nativeSHAguards,only2observedcopies,no installed/nestedcheckout edits. Stripping
+exactobservationstatements restoresoriginalAST. Nativeinputalias capturedbefore
+append;batchfilter/merge,detokenizer/FIFO/SSE preserveevents. Packedpoolbinding
+usesactualinfer_adapter,notstagingis_on_gpu. Independentnumericalflagfalse;
+separate ieee_tc_slora_native_v1 schema,no inventedvLLMqueue orphysicallease.
+15newchecks passnativePython3.9.25 in0.198s;full142CPUregression8.177s passes.
+Initialdiscover131hadoneexistingtestsnamespaceimporterror;explicitmodulelaunch
+passeswithoutcodebypass,alllogsretained. ActualsourceviewRPC/API import in
+Python3.9.25/torch2.0.1+cu118 passes,CUDAuninitialized. 4GiB/zeroswap/GPUhidden.
+Rawslora_qualification/d426_20261011;manifestSHA
+bf373f58e52538d20884100798d0a5e3439d5a73cbfe2bfabe6bd6638996fd18;
+142testlogSHAb968411d50a1defc12e614d30a7e12692d67aa80435bc90bf1838486ed1bd960.
+147protectedentrieszerochange;3userdirtySHAs,PLAN/V1/V2andnested10filepatch
+unchanged. No weights/trace/pool/cachepublication/figure/cleanup/remoteoperation.
+ReportsD426_SLORA_NATIVE_OBSERVATION.md inbothrepos. Backup pendingatthisentry.
+NEXT integrate testedobservation with existingcommonpre-ready/openloop service,
+S-LoRA-explicitvalidator andrealphysicalowners. Preserveofficialpaging/batching/
+sampling/allpoolHOSTpreparation;preparationaftercommonnotice andcounted. Native
+Python3.9mustnotexecutePython3.11asyncio.timeout;outerexisting3.12servicecan.
+CheckwholepoolRAMgrowth/actualcontainment beforeaffected100gate,then missing
+500-ID/1000qualification andonefullW0. No sealedPrimeLoRA/ServerlessLLM/vLLM
+repeat,3Bjump,thresholdchange or PrimeLoRApolicyinbaseline. This is concrete
+componentprogress,NOT GPU/numerical/fullS-LoRAqualification. Allremaining
+approvedscope OPEN;fullgoal ACTIVE. PreviousD425turnwasprogress,notblocker.
+All prior NEXT/RUNNING sections below remain historical checkpoints.
+
+D426 evidencebundleSHA8d6e49e310935d347233ed7acf34f451e5d5ce5d15f290178ec6be6ef9334c6e
+retains9logs/manifest/2observedsourcecopies,includingfailedtestdiscovery.
+Ownedaux0001..0007 identity/limits/allprocs-emptycheckedandstopped;allhigh/max/
+OOMzero. Freshcompute census empty,disk163391348736B(~152.2GiB). NoGPU/remotejob.
+Baselinecheckpointb694915d920bd61200b32614f7e60d88a23a5c08 pushedtoorigin/main,
+remoteSHAverified. Exact4taskfiles,test/diff/size/secretscheckspassed;userdirty
+replay/relayserve andnestedS-LoRA preserved. Bundle12membersbyteequalraw.
+Mainreport/status/bundlebackuppending;not aperformanceexecutioncommit.
+
+D425 BACKED UP2026-10-11 19:12:00Asia/Shanghai: main
+a63089d4bd37ef8dfe1a58cc2e7a89be03e1f4c9 pushedtofaaslora_origin/
+retry14_continuous_queue_v2 andremoteSHAverified;baseline
+913b861f084087c0f8f64d1d8381c96c704bc8e9 pushedtoorigin/main andverified.
+Exact5mainfiles/1baselinedoc;9CPUtests,276sourceSHAs,147protectedentries,
+archive/sourceequality,size/secrets/diffchecks passed. Freshcompute census
+empty,disk163400044544B(~152.2GiB). No liveGPU/remote/auxjob. Protecteduser
+changesuntouched;thispostpushconfirmation is subsequenttask-ownedstatusonly.
+NEXT S-LoRA opt-in nativeobservation/commonlauncher/physical-owner integration
+andCPUtests,thennecessaryaffectedqualification. Do not rerunoldsealedW0points,
+restartD423,republishremoteobjects orjump3B. PreviousgoalturnD424wasprogress;
+thisD425turncompletedsource/contractreuseauditandbackup,also progress.
+AllremainingapprovedscopeOPEN;fullgoalACTIVE,notblocked orcomplete.
 
 D425 OFFLINE REUSE AUDIT COMPLETE2026-10-11. No liveGPU/remotejob;do notrestart
 D423 orsealedPrimeLoRA/ServerlessLLM points. FullPLAN/STATUS/V1/V2 reread.
