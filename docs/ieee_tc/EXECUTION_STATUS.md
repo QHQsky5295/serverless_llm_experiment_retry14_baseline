@@ -1,4 +1,4 @@
-# IEEE TC execution status — D443 Loquetier 500-ID coverage preregistered
+# IEEE TC execution status — D443 Loquetier 500-ID coverage RUNNING
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement experiment plan.
 Full earlier status is preserved byte-for-byte in EXECUTION_HISTORY_THROUGH_D433.md;
@@ -32,7 +32,27 @@ RUNNING entries are historical. No approved experiment or failed evidence was re
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D443 same-config 500-ID functional coverage, not launched yet
+## Current action — D443 same-config 500-ID functional coverage RUNNING
+
+Launched2026-10-12T02:51:24+08:00 once in tmux tc-d443-7b. Monitor this exact
+handle to terminal, do not relaunch. Serviceunit
+primelora-tc-svc-ef3947b7d68f4418b5482ae7637b052b.scope,
+InvocationID9a3e8a3e71944bf38b7b2e7cfa702025; outeraux0001live.
+Executed MAIN702672d48712b64df62284174b1de417f22dba4c and
+BASE9e0ad55d7f051a031ee4099d59d1a4718e64a59f; both pushed/remoteSHAverified.
+Inputfreeze passed, HTTPc21602e6be726229a89d4e35b7043d3db15ec6e85aa967bf9c6572d057761c5d.
+FreshpreflightSHAa0e174d14b2b65f341dd4c77c1677f5b1fa1f17a011ac8eaa174286731708270 passed.
+Remote1000Mb/s/full; owned3B/7B/monitorInvocationIDs
+d1dee2264e2a453c9496687b7c3ac183/3c15a7030a8948cd8b66b5703e28c210/
+4903f0a48ce74ea4bc1335afdafebb8b;7Bclock6e96376632fc40659614cc709ff1dddf.
+Prelaunch health once used systemPython lackingnumpy before GPU/fetch; recorded
+health_launcher_error.json. Samecheck passed in existingouterPython3.12;
+no install/source/configchange, no performance retry. Aux0003-0006 closed by
+actualrecursiveemptytree+InvocationID; peaks119046144/28311552/15212544/25968640B,
+high/max/OOM/swap0. Aux0002peak49405952B,high/max/OOM/swap0.
+NEXT verifiedwait -> actualGPUrelease -> exact-ownedremote stop -> evidence copy
+-> unchanged Loquetier/adapter_coverage_v1 audit withoutD385 reference -> seal/backup.
+No secondheavyjob/live remotechanges/baselineoptimization. Preserve failures.
 
 Read full PLAN/status/baseline rules/metricV1+V2; reuse approved D78/D80 readonly
 gzip cache, no republish. BASE D443_LOQUETIER_500_ADAPTER_COVERAGE.md preregisters
@@ -45,8 +65,8 @@ Reused D442recipes with campaign/500view only; no newweights/trace/pool/framewor
 after priorcleanup;147protectedentries and threeuser/nativepatchSHAs unchanged.
 Aux0002InvocationID3acfa94a66424b9aacda8476971abc43 checked actualrecursive
 cgroup.procs empty and stopped; GPUhidden/CPU2,3,26,27/high3max4GiB/swap0.
-NEXT double-repository preregistration backups, actualinputfreeze andfreshgates,
-remotehealth -> launch exact500once. NoD385numericalreference for remapped500.
+The preregistered backup/inputfreeze/freshgates/launch steps are now complete above.
+NoD385numericalreference for remapped500.
 NotW0/ranking/optimum; no baselineperformance search or100repeat.
 Then original1000/single4000; remaining7B/HydraServe/comparison/PrimeLoRAoptimization
 before3B; fullscope below OPEN, goal ACTIVE. No blocker.
