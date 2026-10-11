@@ -1,0 +1,21 @@
+{
+  "schema": "ieee_tc_cross_repository_qualification_checkpoint_v1",
+  "campaign": "d447_20261012",
+  "performance_run": false,
+  "main_parent_commit": "a6a4c7c02842d2b932d65c5b65cee7cb80b78783",
+  "baseline_commit": "71c52cf6f7331dc2a171ec83db5f1011eaf6d5a6",
+  "baseline_push_remote_sha_verified": true,
+  "baseline_summary": "/home/qhq/serverless_llm_baselines/paper_results/ieee_tc/hydraserve/d447_cpu_platform_summary.json",
+  "baseline_summary_sha256": "557f0cb14915d425b088a8293d19b6f701c0c6e9a924a5fea8d6a1d3f561c3fd",
+  "baseline_report_sha256": "64d6cc6a80ab40eaccc17d3e963531f9283975ed8f4c2f98f9876c45b976d14a",
+  "native_source_commit": "8ae605de354ccfa2e9095514cdb4a9e9c56aa56b",
+  "native_source_clean": true,
+  "new_cpu_checks_passed": 10,
+  "new_gpu_performance_runs": 0,
+  "native_runtime_qualified": false,
+  "platform_access_question_pending": true,
+  "old_protected_entries_unchanged": 147,
+  "all_six_owned_scopes_stopped_after_actual_recursive_empty_and_identity_checks": true,
+  "remote_delivery_cache": "D78/D80 reused; no republish or remote administration",
+  "remaining_full_plan_open": true
+}

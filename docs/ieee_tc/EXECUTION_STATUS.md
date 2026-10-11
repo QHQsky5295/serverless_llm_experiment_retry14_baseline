@@ -1,4 +1,4 @@
-# IEEE TC execution status — D446 five-system 7B W0 comparison closed
+# IEEE TC execution status — D447 HydraServe CPU layer witness; platform access pending
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement experiment plan.
 Full earlier status is preserved byte-for-byte in EXECUTION_HISTORY_THROUGH_D433.md;
@@ -32,7 +32,53 @@ RUNNING entries are historical. No approved experiment or failed evidence was re
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D446 matched five-system W0 comparison closed; remaining 7B next
+## Current action — D447 new platform/CPU evidence; no performance run
+
+Full PLAN/status/latest baseline rules reread after compaction. D446 backup
+a6a4c7c02842d2b932d65c5b65cee7cb80b78783 already pushed/remoteSHAverified.
+Repeated cache approval retains D78/D80 reuse; no republish/remote administration.
+BASE D447_HYDRASERVE_PLATFORM_AND_LAYER_WITNESS.md records actual rootless
+Podman3.4.4 metadata success (zero images/containers), nine CDI names and active
+root-owned k3s1.36.4. Current qhq has no readable default/root kubeconfig or Docker
+socket; delegated controllers only memory/pids. No container/cluster launched,
+global config/driver/network/permissions changed or backend installed/built.
+Podman absence is no longer a valid blanket exclusion; metadata != GPU containment.
+Asked user whether existing k3s belongs to this project and for a qhq-readable
+kubeconfig path if available. No credential contents requested. This is a platform
+question, not proof that faithful HydraServe is impossible or whole goal blocked.
+
+New bounded CPU witness executes selected unchanged functions from five SHA-pinned files
+on real existing7B backbone+finance/medical adapter headers, reusing Loquetier's
+metadata reader. No torch/tensorpayload/partition/download/GPU/model import.
+Native cumulative boundaries:1:[32],2:[16,32],3:[11,22,32],4:[8,16,24,32].
+Each adapter128modules; unadapted exact-name lookup maps every noninitialstage
+to wrong global layer identities (2stage second64/64). Derived name view matches
+all identities but is NOT installed in runtime. Native2->1 check_duplicate shares
+16 inert Python decoder objects; not realtorchslot/race/numericalproof.
+Full GPU/native qualification remainsFALSE; no bare-vLLM replacement/perf tuning.
+FirstCPUcheck stopped on overstrict allF16 assumption (32F32 rotarybuffers excluded
+by nativegetType); error retained, diagnostic corrected without touchingweights.
+10CPUtests passed0.073s/no skips. Raw witnessSHA
+769c8228c611ba12506bc37cbfc13ebcb4ae40ecd89d8ac28bc8479b3c50b808,
+originalresults/ieee_tc/hydraserve_qualification/d447_20261012/layer_identity.json.
+BASEsummary paper_results/ieee_tc/hydraserve/d447_cpu_platform_summary.json.
+147protectedentries/threeuserfiles unchanged; nativeHydraHEAD remains clean
+8ae605de354ccfa2e9095514cdb4a9e9c56aa56b. Sixownedauxscopes actualrecursive
+empty/InvocationIDverified thenstopped; high/max/OOM/swap0, GPUhidden,
+CPU2,3,26,27/high3max4GiB. Peaks99512320/11366400/11571200/10682368/11649024/
+6131712B. All14 raw/source SHA records independentlyverified beforebackup.
+No GPU performance, repeatedW0, newtrace/weights/pool, oldoverwrite orfigure.
+Lastdiskfree162472525824B(~151.32GiB), notfreshheavylaunchpermission.
+BASEbackup71c52cf6f7331dc2a171ec83db5f1011eaf6d5a6 pushed/remoteSHAverified;
+summarySHA557f0cb14915d425b088a8293d19b6f701c0c6e9a924a5fea8d6a1d3f561c3fd.
+Crosslink paper_results/ieee_tc/baseline_audit/d447_hydraserve/checkpoint.json.
+This turn made concrete platform/CPU execution/protection/backup progress; goalACTIVE.
+NEXT resolve HydraServe platform ownership/access before native
+GPU qualification. Do not silently mutate unknown cluster or repeat this witness.
+Remaining7B ElasticLocality/W1-W2/reference evidence and necessary PrimeLoRA
+optimization remain on mainline; no3Bjump, all approved scope below staysOPEN.
+
+## D446 matched five-system W0 comparison closed — preserved checkpoint
 
 Full PLAN/status/latest baseline rules and V1+V2 reread. D445 cleanup backup
 3317fdf052e5555b593ca794b0e93b6c7c7ecdbe pushed/remoteSHAverified.
