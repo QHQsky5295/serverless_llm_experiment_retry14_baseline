@@ -1,4 +1,4 @@
-# IEEE TC execution status — D441 Loquetier native worker integrated; real request qualification next
+# IEEE TC execution status — D442 Loquetier evidence validated; first real 100 preregistered
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement experiment plan.
 Full earlier status is preserved byte-for-byte in EXECUTION_HISTORY_THROUGH_D433.md;
@@ -32,7 +32,38 @@ RUNNING entries are historical. No approved experiment or failed evidence was re
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D441 guarded native worker and static service checks passed
+## Current action — D442 real100 preparation, NOT yet a passed experiment
+
+BASE D442_LOQUETIER_EVIDENCE_AND_100.md preregisters original100/29IDs/17369tokens,
+full500 preparation and fixed D437/D441 four125-ID shards, nativebatch2/context1024.
+Raw originalresults/ieee_tc/loquetier_qualification/d442_20261012;
+private /tmp/tc-d442-7bl; ingress8510/router8511/workers8523,8533,8543,8553.
+Existing D432 run/remote/freeze/evidence recipes adapted by campaign/backend only;
+no new weights/trace/pool, no native runtime/config/performance change.
+Only necessary offline summary/evidence identity support added: explicit native
+Loquetier IDs/path/shard-index/forward/terminal, static destination not RR, current
+source/ready and actual worker lifecycle, full500 preparation counted once.
+Unknown numeric fields stay unknown; existing D385 reference remains a bounded
+separate check, not cross-backend exactness or full correctness proof.
+
+Final53MAIN evidence tests passed0.409s,18BASE summary/HTTP tests passed0.604s.
+Earlier69-check development invocation included16 duplicate imported tests;
+preserved, not performance repetitions. All four aux0002-0005 actualemptyrecursive
+trees and InvocationIDs checked/stopped; peaks35.26/41.10/32.34/29.82MB,
+high/max/OOM/swap0, GPUhidden/CPU2,3,26,27/high3max4GiB.
+All147 old protectedentries unchanged; protected_prelaunch SHA
+1ff66513bbe7dc141d9bd14e43a7ce4f111cee38aeb215db2db8eebe141fb657.
+Three user-file/native Loquetier3patch/S-LoRA10patch SHAs unchanged.
+BASE preregistration summary paper_results/ieee_tc/loquetier/d442_prelaunch.json;
+MAIN analyzerSHA92e2d33bd2cf4d2fbe6ab7eb93ae8a220d92ccd0dfae7b0460f929c063643377.
+Repeatedonce-onlycacheapproval retains D78/D80reuse, notrepublishing.
+NoGPU100 launched at this preregistration checkpoint. Freshfreeze/remotehealth/
+safety gates after double-repository backup; then actual100 once, preserve failures.
+DoNOTrepeat D438 capacity/sealedfour-systemW0. Fullgoal ACTIVE, no blocker.
+Remaining7B/HydraServe/comparison/necessaryPrimeLoRAoptimization before3B;
+W1/W2/G2/A1-A5/S1-S13/reviewdocs/laterfigures remainOPEN.
+
+## D441 closed — guarded native worker and static service checks passed
 
 BASE docs/ieee_tc/D441_LOQUETIER_NATIVE_WORKER.md and curated
 paper_results/ieee_tc/loquetier/d441_worker_integration_summary.json record actual

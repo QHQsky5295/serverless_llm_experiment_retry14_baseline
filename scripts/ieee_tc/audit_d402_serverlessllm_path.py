@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ServerlessLLM/vLLM/S-LoRA evidence recipe; reuses native validators.
+"""ServerlessLLM/vLLM/S-LoRA/Loquetier evidence recipe; reuses native validators.
 
 Read-only with respect to experiment inputs. Output is exclusive, small, and
 never upgrades a prefix qualification to a main performance comparison.
@@ -117,7 +117,7 @@ def compare_reference_row(observation, contract, source, reference):
             or contract['adapter_id'] != source['adapter_id']
             or reference['adapter_id'] != source['adapter_id']
             or (Path(observation['native_adapter_path']).name
-                if observation.get('timing_contract') == 'ieee_tc_slora_native_v1'
+                if observation.get('timing_contract') in ('ieee_tc_slora_native_v1', 'ieee_tc_loquetier_native_v1')
                 else observation['native_lora_name']) != source['adapter_id']
             or contract['canonical_prompt_sha256'] != source['canonical_prompt_sha256']
             or observation['native_prompt_token_ids_sha256'] != timing['native_prompt_token_ids_sha256']
@@ -155,7 +155,7 @@ def reuse_numerical_reference(root, reference_path, main, scheduler_contract='or
     sources = next(iter(source_result['detailed_results'].values()))['requests']
     source_index = {r['request_id']: r for r in sources}
     reference_index = {r['request_id']: r for r in reference['requests']}
-    replay = root/('launch7b.launch/replay.jsonl' if scheduler_contract in ('resident_rr_v1', 'slora_resident_rr_v1')
+    replay = root/('launch7b.launch/replay.jsonl' if scheduler_contract in ('resident_rr_v1', 'slora_resident_rr_v1', 'loquetier_static_shards_v1')
                   else 'launch7b_repaired.launch/replay.jsonl')
     events = [json.loads(l) for l in replay.read_text().splitlines()]
     contracts = {r['request_id']: r for r in events if r['event'] == 'request_contract'}
@@ -190,7 +190,7 @@ def reuse_numerical_reference(root, reference_path, main, scheduler_contract='or
     for group in classes.values():
         group['adapter_ids'] = sorted(group['adapter_ids'])
     return dict(schema='ieee_tc_serverless_reference_reuse_v1',
-        display_name=({'resident_rr_v1': 'vLLM', 'slora_resident_rr_v1': 'S-LoRA'}
+        display_name=({'resident_rr_v1': 'vLLM', 'slora_resident_rr_v1': 'S-LoRA', 'loquetier_static_shards_v1': 'Loquetier'}
                       .get(scheduler_contract, 'ServerlessLLM')),
         count=len(rows), exact_sequences=sum(r['exact_sequence_match'] for r in rows),
         source_adapter_input_identity_complete=True, weight_classes=classes, requests=rows,
@@ -406,8 +406,10 @@ def validate_slora_ready_row(row, cfg, control, ordinal, service, clock_id, obse
     return index
 
 
-def validate_slora_allocation(allocation, row, cfg, index, clock_id, completed):
-    """Check retained physical-owner events against native child and API parent."""
+def validate_slora_allocation(allocation, row, cfg, index, clock_id, completed, *, backend='slora'):
+    """Shared single-GPU physical evidence; S-LoRA has a distinct API parent."""
+    if backend not in ('slora', 'loquetier'):
+        raise ValueError('unknown physical native process contract')
     events = allocation['events']
     by_kind = {kind: [e for e in events if e['event'] == kind] for kind in
                ('acquire', 'worker_spawn', 'native_workers', 'native_workers_exited', 'release')}
@@ -423,7 +425,7 @@ def validate_slora_allocation(allocation, row, cfg, index, clock_id, completed):
     workers = [p for d in devices for p in d['processes'] if p['kind'] == 'compute']
     times = [cfg['deployment_notice_s'], acquire['at'], spawn['at'], row['at'],
              native['at'], completed, exited['at'], release['at']]
-    if (spawn['worker'] != row['api_parent_identity']
+    if (spawn['worker'] != row['api_parent_identity' if backend == 'slora' else 'identity']
             or native['workers'] != [dict(device_uuid=gpu, pid=row['identity']['pid'], worker_rank=index)]
             or len(devices) != 1 or devices[0]['index'] != cfg['gpu_ids'][index]
             or len(workers) != 1 or workers[0]['identity'] != row['identity']
@@ -492,6 +494,90 @@ def audit_slora_receipts(root, cfg, qualifier, ready, config_path, native):
     return list(receipts.values())
 
 
+def validate_loquetier_ready_row(row, cfg, control, service, clock_id, observation, plan):
+    """Actual static destination and native forward binding, not ordinal RR."""
+    aid = observation.get('native_adapter_id')
+    shards = [s for s in plan['shards'] if aid in s['adapter_ids']]
+    if len(shards) != 1:
+        raise ValueError('Loquetier native adapter has no unique static shard')
+    index = shards[0]['index']
+    identity = row.get('identity', {})
+    process = dict(pid=identity.get('pid'), start_ticks=identity.get('start_ticks'), clock_id=clock_id)
+    at, notice, entry = row.get('at'), cfg.get('deployment_notice_s'), control.get('tc_backend_entry_s')
+    if (row.get('schema') != 'ieee_tc_loquetier_backend_ready_v1'
+            or row.get('index') != index or type(control.get('tc_static_shard_index')) is not int
+            or control.get('tc_static_shard_index') != index
+            or 'tc_route_ordinal' in control or control.get('instance_id') != f'loquetier-{index}'
+            or row.get('clock_id') != clock_id or control.get('tc_clock_id') != clock_id
+            or identity.get('cgroup') != service['cgroup'] or identity.get('affinity') != service['affinity']
+            or any(type(identity.get(k)) is not int or identity[k] <= 0 for k in ('pid', 'start_ticks'))
+            or observation.get('native_process') != process or control.get('tc_worker_native_process') != process
+            or observation.get('timing_contract') != 'ieee_tc_loquetier_native_v1'
+            or observation.get('native_adapter_path') != cfg['adapters'][aid][1]
+            or type(observation.get('native_adapter_index')) is not int
+            or observation['native_adapter_index'] != shards[0]['adapter_ids'].index(aid)
+            or observation.get('native_adapter_binding_source') !=
+                'loquetier_actual_forward_segments_and_startup_pointer_tables'
+            or observation.get('native_terminal_observed') is not True
+            or type(observation.get('native_forward_count')) is not int
+            or observation['native_forward_count'] != observation.get('native_output_tokens')
+            or control.get('tc_worker_ready_s') != at or control.get('tc_deployment_notice_s') != notice
+            or any(type(t) not in (int, float) or not math.isfinite(t) for t in (notice, at, entry))
+            or not notice <= at <= entry):
+        raise ValueError('Loquetier static destination/native forward/process/notice differs')
+    return index
+
+
+def audit_loquetier_receipts(root, cfg, qualifier, ready, config_path, native):
+    from replay_vllm_engine_trace import (validate_loquetier_service_config,
+        verify_loquetier_source_view, load_loquetier_static_plan, validate_loquetier_ready_receipt)
+    validate_loquetier_service_config(cfg, json.loads(config_path.read_text()))
+    verify_loquetier_source_view(cfg)
+    plan = load_loquetier_static_plan(cfg, cfg['adapters'])
+    if (qualifier['schema'] != 'ieee_tc_loquetier_native_model_qualification_v1'
+            or qualifier['physical_lifecycle']['mode'] != 'loquetier_static_shards_v1'
+            or qualifier['physical_lifecycle']['measurement_complete'] is not True
+            or cfg['source_sha256'] != qualifier['source_sha256']
+            or any(cfg.get(k) != v for k, v in qualifier['configuration'].items())
+            or len(qualifier['physical_allocations']) != len(cfg['gpu_ids'])
+            or len({a['lease_id'] for a in qualifier['physical_allocations']}) != len(cfg['gpu_ids'])
+            or len({g for a in qualifier['physical_allocations'] for g in a['gpu_uuids']}) != len(cfg['gpu_ids'])
+            or any(p != str(Path(cfg['remote_config']['cache_dir'])/'objects'/aid)
+                   for aid, (_, p) in cfg['adapters'].items())):
+        raise ValueError('explicit Loquetier source/static pool/physical lifecycle differs')
+    for path, sha in cfg['source_sha256'].items():
+        if digest(path) != sha:
+            raise ValueError('executed Loquetier adapter source changed')
+    worker_path = root/'model7b/worker_config.json'
+    preparation_sha = digest(root/'model7b/loquetier_full_pool_preparation.json')
+    receipts, seen_indices = {}, set()
+    for request in qualifier['requests']:
+        o = request['response']['metrics']['ieee_tc']
+        c, rid = o['control_observation'], o['control_observation']['tc_worker_receipt_id']
+        if not isinstance(rid, str) or len(rid) != 32 or set(rid)-set('0123456789abcdef'):
+            raise ValueError('invalid Loquetier receipt ID')
+        path = root/'model7b/worker_receipts'/(rid+'.json')
+        row = json.loads(path.read_text())
+        if (path.is_symlink() or digest(path) != c['tc_worker_receipt_sha256']
+                or row['receipt_id'] != rid or row['worker_config_sha256'] != digest(worker_path)
+                or o.get('native_request_id') != request['request_id']):
+            raise ValueError('Loquetier receipt/worker configuration/request differs')
+        i = validate_loquetier_ready_row(row, cfg, c, qualifier['service'], ready['clock_id'], o, plan)
+        validate_loquetier_ready_receipt(row, cfg=cfg, index=i, plan=plan, identity=row['identity'],
+                                        preparation_sha256=preparation_sha)
+        allocation = qualifier['physical_allocations'][i]
+        records = [json.loads(line) for line in Path(allocation['journal']).read_text().splitlines()]
+        if records != allocation['events']:
+            raise ValueError('Loquetier physical journal differs from native qualification')
+        validate_slora_allocation(allocation, row, cfg, i, ready['clock_id'],
+                                  o['worker_completed_monotonic_s'], backend='loquetier')
+        receipts[rid] = dict(path=str(path), sha256=digest(path))
+        seen_indices.add(i)
+    if seen_indices != set(range(len(cfg['gpu_ids']))) or len(receipts) != len(cfg['gpu_ids']):
+        raise ValueError('Loquetier qualification did not bind every declared worker exactly once')
+    return list(receipts.values())
+
+
 def validate_artifact_transfer(aid, control, receipt, receipt_sha, files, server, remote_clock, local_clock):
     """Shared request/preparation transfer join; bytes counted by transfer, not references."""
     from faaslora.storage.http_artifact_store import preparation_content_sha256
@@ -515,8 +601,10 @@ def validate_artifact_transfer(aid, control, receipt, receipt_sha, files, server
         raise ValueError('published artifact transfer/receipt/content identity differs')
 
 
-def validate_slora_preparation(preparation, pool_ids, notice, first_acquire, remote):
+def validate_slora_preparation(preparation, pool_ids, notice, first_acquire, remote, *, backend='slora'):
     """All 500 static IDs after notice, before workers, sequential and one delivery each."""
+    if backend not in ('slora', 'loquetier'):
+        raise ValueError('unknown full-pool preparation contract')
     if len(pool_ids) != 500 or set(preparation) != set(pool_ids) or len(remote) != 500:
         raise ValueError('S-LoRA full-static-pool preparation is incomplete')
     previous, transfers, total = notice, set(), 0
@@ -524,7 +612,7 @@ def validate_slora_preparation(preparation, pool_ids, notice, first_acquire, rem
         row = preparation[aid]
         start, end = row['tc_artifact_resolve_started_s'], row['tc_artifact_resolve_completed_s']
         transfer, size = row['tc_artifact_transfer_id'], row['tc_artifact_transferred_bytes']
-        if (row['tc_artifact_id'] != aid or row['tc_artifact_request_id'] != 'slora-full-pool:'+aid
+        if (row['tc_artifact_id'] != aid or row['tc_artifact_request_id'] != backend+'-full-pool:'+aid
                 or row['tc_artifact_cache_hit'] is not False or row['tc_artifact_delivery_mode'] != 'prepublished_gzip_v1'
                 or transfer in transfers or transfer not in remote
                 or remote[transfer]['artifact_id'] != aid
@@ -577,7 +665,10 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
     from faaslora.storage.http_artifact_store import preparation_content_sha256
     is_vllm = scheduler_contract == 'resident_rr_v1'
     is_slora = scheduler_contract == 'slora_resident_rr_v1'
-    resident = is_vllm or is_slora
+    is_loquetier = scheduler_contract == 'loquetier_static_shards_v1'
+    static_native = is_slora or is_loquetier
+    resident = is_vllm or static_native
+    backend = 'loquetier' if is_loquetier else 'slora' if is_slora else 'vllm'
     launch_root = root/('launch7b.launch' if resident else 'launch7b_repaired.launch')
     model_root = root/('model7b' if resident else 'model7b_repaired')
     replay = launch_root/'replay.jsonl'
@@ -603,7 +694,7 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
                 or any(request_index[rid]['response'] != raw['body']
                        for rid, raw in index['http_raw_response'].items())):
             raise ValueError('resident service and independent publisher responses differ')
-        receipt_audit = audit_slora_receipts if is_slora else audit_vllm_receipts
+        receipt_audit = audit_loquetier_receipts if is_loquetier else audit_slora_receipts if is_slora else audit_vllm_receipts
         qualifier['backend_ready_receipts'] = receipt_audit(root, cfg, qualifier, ready, config_path, native)
     else:
         assert qualifier['physical_lifecycle']['lifecycle_qualified']
@@ -630,7 +721,9 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
         queue_evidence = asyncio.run(reproduce_queue(scheduler_source))
     elif resident:
         queue_evidence = dict(contract=scheduler_contract, native_worker_receipts=qualifier['backend_ready_receipts'],
-            conclusion='Original request-ordinal round robin; every selected native worker/source/ready/owner binding verified.')
+            conclusion=('Frozen input-only static shard mapping; every selected native forward/worker/ready/physical owner verified.'
+                        if is_loquetier else
+                        'Original request-ordinal round robin; every selected native worker/source/ready/owner binding verified.'))
     else:
         raise ValueError('unknown scheduler contract')
     frozen = cfg['remote_config'] if resident else cfg['backend_config']['tc_remote_artifacts']
@@ -645,8 +738,8 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
     used_transfers, hits, transferred, native_error = set(), 0, 0, 0.0
     health = json.loads((root/'remote_health.json').read_text())
     preparation = None
-    if is_slora:
-        preparation = json.loads((model_root/'slora_full_pool_preparation.json').read_text())
+    if static_native:
+        preparation = json.loads((model_root/f'{backend}_full_pool_preparation.json').read_text())
         if set(cfg['adapters']) != set(pool):
             raise ValueError('S-LoRA native registry differs from frozen full pool')
         launch = json.loads((launch_root/'exec_receipt.json').read_text())['external_replay']
@@ -654,7 +747,8 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
             native.load_http_replay_plan(json.loads(config_path.read_text())).entries, index['http_headers_sent'])
         first_acquire = min(e['at'] for a in qualifier['physical_allocations']
                             for e in a['events'] if e['event'] == 'acquire')
-        transferred = validate_slora_preparation(preparation, set(pool), cfg['deployment_notice_s'], first_acquire, remote)
+        transferred = validate_slora_preparation(preparation, set(pool), cfg['deployment_notice_s'], first_acquire, remote,
+                                                backend=backend)
         if set(receipts) != set(pool):
             raise ValueError('S-LoRA preparation receipt population differs from full pool')
         for aid, prep in preparation.items():
@@ -672,7 +766,7 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
         ids = observation['native_prompt_token_ids']
         assert hashlib.sha256(json.dumps(ids, separators=(',', ':')).encode()).hexdigest() == contract['native_prompt_token_ids_sha256']
         prepared_contract = dict(contract, input_token_ids=ids)
-        if is_slora:
+        if static_native:
             prepared_contract['deployment_notice_s'] = cfg['deployment_notice_s']
         recalculated = native.validate_http_observation(prepared_contract,
             raw['body'], index['http_headers_sent'][rid], raw['client_completed_s'], ready['clock_id'], ingress_required=True)
@@ -685,7 +779,7 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
             else:
                 assert value == previous
         c = observation['control_observation']
-        if is_slora:
+        if static_native:
             prep = preparation[contract['adapter_id']]
             validate_slora_preparation_reference(c, prep, recalculated)
             continue
@@ -725,7 +819,7 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
     assert digest(resource['request_terminals_path']) == resource['request_terminals_sha256']
     for row in resource['allocation_journals']:
         assert digest(row['path']) == row['sha256'] and row['released']
-    if is_slora and ({r['path'] for r in resource['allocation_journals']}
+    if static_native and ({r['path'] for r in resource['allocation_journals']}
                      != {a['journal'] for a in qualifier['physical_allocations']}):
         raise ValueError('S-LoRA physical summary and native owners have different journals')
     assert physical['measurement_complete'] and not physical['open_lease_ids']
@@ -743,14 +837,17 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
     source_paths += ([model_root/'worker_config.json', model_root/'native_toolchain.json'] +
                      [Path(r['path']) for r in qualifier['backend_ready_receipts']] if resident else
                     [root/'source_repaired/measurement_manifest.json', root/'storage_aware_scheduler_executed.py'])
-    if is_slora:
-        source_paths += [model_root/'slora_full_pool_preparation.json', Path(cfg['source_view'])/'measurement_manifest.json',
+    if static_native:
+        source_paths += [model_root/f'{backend}_full_pool_preparation.json', Path(cfg['source_view'])/'measurement_manifest.json',
                          launch_root/'exec_receipt.json']
         source_paths += sorted((root/'remote_resolver_evidence/journals').glob('*.jsonl'))
+    if is_loquetier:
+        source_paths += [Path(cfg['static_plan']), Path(cfg['native_kernel'])]
+        source_paths += sorted(model_root.glob('worker_*.native_events.jsonl'))
     result = {k: v for k, v in summary.items() if k not in ('ready_identity', 'diagnostic_rows', 'assignment_gaps_s', 'kind', 'display_name')}
     result.update(schema=('ieee_tc_complete_request_failure_audit_v1' if outcome == 'complete_with_failures' else
                           'ieee_tc_d402_affected_path_audit_v1' if scheduler_contract == 'original'
-                          else 'ieee_tc_affected_path_audit_v2'), display_name='S-LoRA' if is_slora else 'vLLM' if is_vllm else 'ServerlessLLM',
+                          else 'ieee_tc_affected_path_audit_v2'), display_name='Loquetier' if is_loquetier else 'S-LoRA' if is_slora else 'vLLM' if is_vllm else 'ServerlessLLM',
         remote_affected_path_qualified=outcome == 'success', complete_system_qualified=False,
         source_plan=ready['plan'], native_revalidated_requests=response_count, max_native_recompute_error_ms=native_error,
         physical_gpu_seconds=integral, physical_window_gpu_seconds=physical['window_gpu_seconds'],
@@ -776,13 +873,14 @@ def audit(root, baseline, main, scheduler_contract='original', population='prefi
             ('Four logical instances include starting instances; three served engines. Scheduler queue bug independently reproduced; live exception was not logged.'
              if scheduler_contract == 'original' else
              'Actual backend-ready receipts and live loop qualify the affected path; qualification does not quantify a causal latency benefit.'),
-            ('S-LoRA native full-static-pool preparation follows common notice; actual resident GPU leases include HOST load and end only after native exit. No request-time fetch or PrimeLoRA policy added.' if is_slora else
+            ('Loquetier uses disclosed four-way static-sharded deployment, not an official adaptive cluster scheduler. Full500 preparation follows common notice; native SMLM and static125-ID workers retained. No baseline optimization or PrimeLoRA policy added.' if is_loquetier else
+             'S-LoRA native full-static-pool preparation follows common notice; actual resident GPU leases include HOST load and end only after native exit. No request-time fetch or PrimeLoRA policy added.' if is_slora else
              'Resident native vLLM four-GPU pool is charged until actual release; no PrimeLoRA policy added.' if is_vllm else
              'Fixed native-store four-GPU pool is charged until actual release; not a claim about every ServerlessLLM deployment.'),
             ('Cross-system comparison requires a separate full input, generation, initial-state and resource-contract join.'
              if population == 'full4000' else
              'No relative performance comparison with the 4000-request PrimeLoRA observation.')])
-    if is_slora:
+    if static_native:
         result.update(artifact_attribution='deployment_preparation_reference_not_request_transfer',
             deployment_prepared_adapters=len(preparation), deployment_remote_wire_bytes=transferred,
             request_remote_wire_bytes=0, cache_hit_requests=None,
@@ -844,7 +942,7 @@ if __name__ == '__main__':
     parser.add_argument('--baseline', type=Path, required=True)
     parser.add_argument('--main', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
-    parser.add_argument('--scheduler-contract', choices=('original', 'request_identity_v1', 'resident_rr_v1', 'slora_resident_rr_v1'), default='original')
+    parser.add_argument('--scheduler-contract', choices=('original', 'request_identity_v1', 'resident_rr_v1', 'slora_resident_rr_v1', 'loquetier_static_shards_v1'), default='original')
     parser.add_argument('--population', choices=('prefix100', 'prefix1000', 'adapter_coverage_v1', 'full4000'), default='prefix100')
     parser.add_argument('--reference-result', type=Path)
     parser.add_argument('--slo-freeze', type=Path)
