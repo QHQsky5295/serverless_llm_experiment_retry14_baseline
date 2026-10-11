@@ -1,0 +1,15 @@
+{
+  "schema": "ieee_tc_d444_cross_repository_checkpoint_v1",
+  "execution_main": "ebc58ffc380e0d1ed8194754464e8aa50d53d38a",
+  "execution_baseline": "12fefd5881f5216f868304d0e6ada98e90125bba",
+  "main_running_status_backup": "1e2e8d5fe415bf24025b939fe85d717f90593bc7",
+  "baseline_closure_backup": "61bb70b021a457bc30dc770f2c2205f86c8a81e3",
+  "baseline_remote_sha_verified": true,
+  "summary_sha256": "50bbd64ac74df98bf9b8207bf28e7be4337d7586d2a6146eb35fe37743a615c7",
+  "audit_sha256": "969108d53d30bdd1961fab94f64f86187aaaafec007b92cd1accf4aee5508b31",
+  "evidence_manifest_sha256": "a3216305adf6c406cf2289beb9b651ff6daf0416f5779cdfc3e1c18fff199fe3",
+  "source_files_verified": 580,
+  "old_protected_entries_unchanged": 147,
+  "full_goal_complete": false,
+  "next": "After main closure backup, reclaim only owned downloads; fresh gates then single4000 W0 with unchanged configuration"
+}

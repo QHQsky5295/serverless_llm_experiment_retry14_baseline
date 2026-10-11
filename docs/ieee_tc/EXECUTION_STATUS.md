@@ -1,4 +1,4 @@
-# IEEE TC execution status — D444 Loquetier original1000 RUNNING
+# IEEE TC execution status — D444 Loquetier original1000 closed; backup/cleanup next
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement experiment plan.
 Full earlier status is preserved byte-for-byte in EXECUTION_HISTORY_THROUGH_D433.md;
@@ -32,7 +32,35 @@ RUNNING entries are historical. No approved experiment or failed evidence was re
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D444 original1000 RUNNING, monitor same handle
+## Current action — D444 original1000 closed, no rerun
+
+Monitored same handle to normalterminal by2026-10-12 03:53:48Asia/Shanghai.
+All3returncodes0,actualGPUreleased/servicepathremoved; exact-ownedremote3units
+stopped/MainPID0/portsabsent. 1000/1000offered/submitted/terminal/native/source/
+binding/timing,122510native tokens,60IDs,0failures,recompute0ms. Fourshards
+290/175/221/314requests. CommonD394 TTFT91/TPOT802/joint66=6.6%,NONFEASIBLE
+prefix,notW0/ranking/reference. U6124.075851575704GPU-s,6.1240758515757046/request.
+Mean/P95TTFT264451.202/582471.119ms;mean/P95TPOT63.162/70.220ms;
+meanE2E272084.344ms. Routerqueue29.815s/nativequeue234.387s/registered-first.216s;
+no doublecount orall-network claim. Raw numericalunknownflagspreserved,noD385
+full1000proof. Staticfootprintbalance != request-loadbalance,notcausalablation.
+500HTTP/420740410wireB/12985984450materializedB/0packs;1000referencesnotfetches.
+Servicepeak42211688448B,hostmin81887121408B,diskmin149825085440B;
+high/max/OOM/swap0. TransferSHAe07c95147df9460beb5d10a27b88ff447fff40d01a7f76f752e09f8587f451de,
+monitorSHAa9a5e05db7df002f52144a72699c680b154631d03e04df7dce779c8eb8f7b937.
+Strict unchanged Loquetier/prefix1000audit passed; auditSHA
+969108d53d30bdd1961fab94f64f86187aaaafec007b92cd1accf4aee5508b31.
+580-file88725419BmanifestSHAa3216305adf6c406cf2289beb9b651ff6daf0416f5779cdfc3e1c18fff199fe3,
+allSHA independentlyrechecked. 147protectedentries/threeuserfiles/nativepatchesunchanged.
+Aux0001/0006-0011 actualrecursiveemptytree+InvocationIDchecked/stopped,highmaxOOMswap0;
+peaks290877440/73080832/234586112/29421568/85471232/7884800/2420736B.
+No D444 scopes/tmux remain. No fresh semantic reviewer PASS claimed.
+NEXT double-repobackup ->owneddownloadcachecleanup ->freshgates ->single4000W0.
+Do not repeat100/500/1000/capacity orsealedW0, no baseline tuning.
+This turn:verifiedwait+actualclosure/audit/sealprogress; goalACTIVE,no blocker.
+All remaining7B/HydraServe/comparison/PrimeLoRAoptimization before3B andfullscopeOPEN.
+
+## D444 actual launch identity — preserved; run now closed above
 
 Launched once2026-10-12T03:24:00+08:00 in tmux tc-d444-7b. Serviceunit
 primelora-tc-svc-47f7021f111d449cbbe7b04e64be8933.scope,
