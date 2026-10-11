@@ -60,19 +60,22 @@ NEXT terminal actualGPUrelease -> ownedremote stop -> preserve/auditfull4000/sea
 backup -> descriptive matched W0 comparison. Do not tune baseline or rerun a passed
 prefix. Full goal ACTIVE; no full4000 outcome or ranking yet.
 
-Latest read-only monitoring2026-10-11 23:22:12Asia/Shanghai:1251http_response,
+Latest read-only monitoring2026-10-11 23:33:13Asia/Shanghai:2109http_response,
 all onlineprotocol_valid=true, no recordedfailed/cancelled events; partial only,
 not completecontract/numerical audit. Four actual native500-ID workers ready;
 ready receipt `.at`1238172.705772950/1238271.970550648/1238363.754154409/
-1238458.981880616 for indices0-3. Service58.199GiB,hostavailable57.310GiB,
-disk139.834GiB,high/max/OOM/swap0;watchdog noabort/warning,same service active.
+1238458.981880616 for indices0-3. Service58.234GiB,hostavailable57.422GiB,
+disk139.818GiB,high/max/OOM/swap0;watchdog noabort/warning,same service and tmux active.
+Watchdog monotonic confirms1964.98s of the original arrival window remain at
+this checkpoint. This is expected verified wait, not an observation failure;
+do not compress the trace, restart the run or launch another GPU task.
 Disk remains above runtime100GiB but below new-heavy150GiB: no next heavy run
 until D435 is closed/audited/backed up and owned recreatable cache reclaimed.
 Use launch7b.launch/replay.jsonl for live response counts. The physical
 request_terminals.jsonl is populated by record_http_physical_terminals after
 the replay; its current zero lines do NOT mean no responses. Do not use
 HTTP200/onlineprotocol alone as final adapter/content/lifecycle acceptance.
-Prior running-doc backup MAINf2e1830b4a0ca33077e101ad21d9aa4e756ea130;
+Prior running-doc backup MAINe7d7ae0e84954e9826dccc96d7e6a3542e67328d;
 execution commits remain84d6b4d/cae13c5, not the later status commits.
 
 ## Parallel read-only preparation — Loquetier reuse, no performance run
@@ -97,6 +100,22 @@ do not invent a cluster scheduler or replace its core. Current review is not a
 fresh experiment-audit PASS or completed numerical qualification.
 Next remains D435 terminal closure FIRST, then matched W0 comparison and
 remaining7B baseline qualifications. Do not jump to3B or shrink the full matrix.
+
+Current continuation also completed read-only HydraServe prerequisite review:
+BASE docs/ieee_tc/HYDRASERVE_REUSE_REVIEW_20261011.md, backup
+e690a0a31a987075a522e4b021fa13662b3e7c41 pushed/remoteSHA verified.
+Pinned native HEAD8ae605de354ccfa2e9095514cdb4a9e9c56aa56b remains clean.
+Historical missing adapter fields do not by themselves prove scheduler policy
+must change; actual pipeline layer mapping and destination LoRA-manager binding
+still require correctness proof. vLLM0.4.2 age is not an exclusion criterion.
+Current local k3s/docker/containerd services active; podman/k3s executables and
+qhq subuid/subgid present. Docker socket access/default kubeconfig not usable by
+current observed user, kubectl/helm root0700. This is metadata, not actual GPU
+Kubernetes qualification; no existing cluster/remote service changed or tested.
+Do not repeat the old blanket claim that no Kubernetes exists, or infer access
+from service existence. New review changes the next qualification questions,
+not the approved baseline order, core mechanisms, frozen metrics or run identities.
+This goal turn made evidence progress plus verified wait; no full D435 result yet.
 
 ## D434 closed — do NOT repeat
 
