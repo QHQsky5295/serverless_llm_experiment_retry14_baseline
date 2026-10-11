@@ -1,4 +1,4 @@
-# IEEE TC execution status — D428 S-LoRA packed HOST representation CPU-qualified
+# IEEE TC execution status — D429 S-LoRA HTTP measurement CPU-qualified
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -75,6 +75,53 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+D429 COMPONENT COMPLETE 2026-10-11. No live GPU/remote/aux job. Full PLAN and
+STATUS reread after compaction; V1/V2 also fully read, unchanged. Existing shared
+HTTP/SSE/RR/replay/physical reducer now supports explicit S-LoRA schema and native
+token/process binding. Full-static-pool sequential preparation remains after
+common notice; request references do not duplicate deployment transfer bytes.
+No S-LoRA native scheduler/kernel/paging/weights or installed-source modification.
+New 12 bridge tests pass; full baseline173 pass8.349s, main lifecycle236 pass4.536s.
+First combined164 had2failures, retained: error-text compatibility restored and
+stat-mutation fixture made deterministic; production resolver unchanged and
+historical metadata cause unproven. Native model/GPU/service CLI NOT qualified.
+Five owned aux scopes identity/empty-tree checked and stopped, pressure/swap0,
+max recorded peak500289536B; protected147entries unchanged,3userSHAs preserved.
+Reports D429_SLORA_HTTP_MEASUREMENT.md in both repos; raw slora_qualification/
+d429_20261011 retains all test/protection/closure logs and source manifest.
+NEXT backup tested component -> integrate actual S-LoRA Python3.9 bootstrap,
+GPU-worker ready/ownership and cleanup into existing common pre-ready service;
+then actual containment/release and affected100/missing500-ID/1000 -> one fullW0.
+No repetition of sealed W0,3B jump or local storage expansion. Remaining scope
+OPEN/full goal ACTIVE. This turn made implementation/validation progress,not
+a blocker. Reuse D78/D80 cache, no republication. Backup pending at this entry.
+
+D429 baseline checkpoint2b598d38307049575a41d8587f7e1c8653ab9b72 pushed to
+origin/main and remote SHA verified. Exact6taskfiles; 173/236 tests retained,
+source/size/secrets checks passed. An extra doc EOF blank line caught by diff
+check was removed before push; own unpublished commit amended, no force push.
+Curated8member/23083B bundle SHA
+726ad9f8e45c34f4504c3e952b8656dd39f04b3c2b14928840f89dc8b278f014,
+all raw member bytes and7sourceSHAs verified. Main backup follows, not another
+test or performance point. All frozen protocol/user-file identities unchanged.
+
+D428 BACKED UP 2026-10-11 20:20:05 Asia/Shanghai. Main
+`926050bd27605ca8d4213457ef892c2dc72a2341` pushed to
+faaslora_origin/retry14_continuous_queue_v2 and remote SHA verified; baseline
+`f51ffd7f7d278bef1a5ac690dd1aae0b97963620` pushed to origin/main and verified.
+Exact three main/four baseline task files; tests, source/protected hashes,
+bundle identity/member equality, diff and secret-pattern checks passed.
+All three protected user-file SHAs remain unchanged. Fresh GPU census empty;
+disk 163382956032 B. No live GPU/remote/aux job. This post-push confirmation
+is subsequent task-owned status only, not an additional performance result.
+NEXT: integrate S-LoRA with the existing common pre-ready/open-loop service,
+explicit native validation and actual worker readiness/physical ownership;
+then necessary contained inference qualification and one full W0. The HOST
+representation question is closed at CPU equivalence scope; no further local
+expansion or repeated sealed performance keys. All remaining approved scope
+OPEN; full goal ACTIVE. This turn made concrete implementation/evidence/backup
+progress, not a blocker. Reuse D78/D80 published cache without republication.
 
 D428 COMPONENT COMPLETE2026-10-11. PriorD427turnmadeprogress;thisturnalso concrete
 implementation/equivalenceprogress,notwait/blocker. No liveGPU/remotejob. Full

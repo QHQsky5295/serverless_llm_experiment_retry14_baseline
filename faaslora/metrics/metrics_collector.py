@@ -275,11 +275,12 @@ class PhysicalGPUDeployment:
         matched = (get('success') is True and error_type is None
             and get('request_id') == request_id
             and get('generation_contract') == 'fixed_length_greedy_v1'
-            and get('timing_contract') == 'ieee_tc_native_v1'
+            and (get('timing_contract'), get('completion_token_source')) in (
+                ('ieee_tc_native_v1', 'vllm_token_ids'),
+                ('ieee_tc_slora_native_v1', 'slora_native_sse_token_id'))
             and get('output_contract_match') is True
             and type(get('output_tokens')) is int and get('output_tokens') == target
             and get('completion_tokens') == target and get('requested_completion_tokens') == target
-            and get('completion_token_source') == 'vllm_token_ids'
             and get('adapter_id') == source['adapter_id']
             and all(isinstance(get(key), str) and len(get(key)) == 64
                     and set(get(key)) <= set('0123456789abcdef')
@@ -289,6 +290,7 @@ class PhysicalGPUDeployment:
             source_request_sha256=entry.source_sha256, target_tokens=target,
             success=get('success') is True, native_contract_matched=matched,
             error_type=error_type, instance_id=get('instance_id'),
+            timing_contract=get('timing_contract'), completion_token_source=get('completion_token_source'),
             completion_token_ids_sha256=get('completion_token_ids_sha256'),
             canonical_prompt_sha256=get('canonical_prompt_sha256'))
         with self._terminal_path.open('a') as handle:

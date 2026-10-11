@@ -391,6 +391,20 @@ class DeploymentPhysicalAccounting(unittest.TestCase):
         self.deployment.terminal('1', at=6., result=bad)
         self.assertFalse(self.deployment.terminals['1']['native_contract_matched'])
 
+    def test_slora_native_pair_is_explicit_not_vllm_alias(self):
+        value = dict(self.result(), timing_contract='ieee_tc_slora_native_v1',
+                     completion_token_source='slora_native_sse_token_id')
+        self.deployment.terminal('0', at=3., result=value)
+        self.assertTrue(self.deployment.terminals['0']['native_contract_matched'])
+        wrong = dict(self.result('1'), timing_contract='ieee_tc_slora_native_v1')
+        self.deployment.terminal('1', at=6., result=wrong)
+        self.assertFalse(self.deployment.terminals['1']['native_contract_matched'])
+
+    def test_slora_source_never_qualifies_vllm_schema(self):
+        wrong = dict(self.result(), completion_token_source='slora_native_sse_token_id')
+        self.deployment.terminal('0', at=3., result=wrong)
+        self.assertFalse(self.deployment.terminals['0']['native_contract_matched'])
+
     def test_duplicate_early_foreign_terminal_and_root_reuse_rejected(self):
         with self.assertRaisesRegex(ValueError, 'early'):
             self.deployment.terminal('1', at=4.)
