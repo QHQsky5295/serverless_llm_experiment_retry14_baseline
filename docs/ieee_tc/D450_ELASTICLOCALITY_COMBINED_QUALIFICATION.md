@@ -83,3 +83,42 @@ OOM/swap均0。147项保护条目、三个用户文件、D371配置和冻结协�
 完整来源、日志、失败、资源身份见 `paper_results/ieee_tc/elastic_locality/d450_combined_qualification.json`。
 使用 run-experiment 的既有入口、github-sync 的明确文件暂存与备份检查。
 远端管理/回收脚本仅从D371复用并替换新目录、运行名及资格来源，尚未执行。
+
+## 真实 prefix100 已完成并核验
+
+代码/资格提交 `468411b4ef8833855c7aa694b71e7fce7ac5ce93` 已推送且远端SHA
+一致后启动。100/100完成，17,369个原生输出token逐请求等于目标；原始trace
+前缀、adapter、内容、owner、lease、slot、原生时钟与释放绑定全部通过。
+原始 `n_correct=null` 保留，以上不是独立的完整数值正确性证明。
+
+| 项目 | 本次观测 |
+|---|---:|
+| initial / natural_scaleout activation | 1 / 3 |
+| 主动规划、handoff plan、稳态准备 | 全部0 |
+| dispatch tier：remote / GPU / HOST / NVMe | 36 / 41 / 6 / 17 |
+| 二元路由尝试：GPU-hit / 超slack / 无GPU-hit | 41 / 12 / 52 |
+| 实际远端获取 / 线上字节 / 请求打包 | 29 / 50,650,865 B / 0 |
+| 文件LRU替换 | 0（不能据此声称实测替换收益） |
+| 平均 / P95 TTFT | 39,240.140 / 83,290.886 ms |
+| 平均派发等待 / service TTFT | 38,045.182 / 1,194.958 ms |
+| P95 TPOT | 56.098 ms |
+| 共同阈值下的prefix联合达标 | 17/100 |
+| 真实物理GPU占用 | 476.847596 GPU-s |
+
+这是短前缀**功能/机制资格通过，不是SLO或G1/G2通过**。初始activation实际
+150.331273秒，超过共同60秒通知，启动阶段积累的等待完整计入；没有移动
+到达窗口或事后扣除。数据不足以把启动耗时归因于路由/缓存，也不因长延迟
+调参对照或删除该次运行。105次路由尝试不能称105个请求；remote-tier判断与
+实际fetch数不等价，存在共享在途工作。原生HOST hit也不等于受管HOST文件预取。
+
+258个资源样本，服务峰值19,277,647,872 B，high/max/OOM/swap均0。实际GPU
+释放、服务资源域移除后，按精确身份停止远端3B/7B服务及monitor，下载日志
+SHA与远端一致。启动/回放辅助域由既有closure检查停止；收集/分析辅助域11/12
+亦按实际递归进程为空和InvocationID停止。四GPU回到15MiB背景/0利用率。
+最后磁盘162432045056 B（约151.28GiB）；下次仍需fresh gate。
+
+资格数据：`paper_results/ieee_tc/elastic_locality/d450_actual_prefix100.json`。
+147项保护文件再次通过，未覆盖旧结果、未新增权重/trace/解压池、未画图。
+已用monitor-experiment按实际本地tmux/日志监控；未配置Feishu，不外发通知。
+下一项500-ID功能覆盖须复用已有视图及runner，随后原1000/单次4000；
+同后端输出digest与Full的匹配核对仍留给对应输入比较，不在本轮冒称完成。

@@ -1,4 +1,4 @@
-# IEEE TC execution status — D450 combined ElasticLocality CPU qualified; actual prefix next
+# IEEE TC execution status — D450 actual ElasticLocality prefix100 qualified; 500-ID next
 
 Updated 2026-10-12. Current checkpoint, NOT a replacement experiment plan.
 Full prior status is byte-identically archived in EXECUTION_HISTORY_THROUGH_D448.md,
@@ -53,13 +53,29 @@ nonexistent missing field (fixed to existing pass/changed contract).
 All9 owned auxiliaries exact-identity/actual-recursive-empty checked and stopped;
 other scopes high/max/OOM/swap0. Protected147/userfiles/D371/protocols unchanged.
 
-NEXT: verify/push this tested checkpoint; then run existing D371-derived
-raw/d450_20261012/start.py under auxiliary envelope after fresh GPU/disk/memory
-gate. It verifies refs/clean implementation/remote HEAD, reuses published remote
-service procedures and launches tmux tc-d450-locality100 with original prefix100.
-No GPU replay or remote operation has been performed for D450 yet.
-After closure validate actual mechanism/source/native/physical evidence, then
-500-IDcoverage -> original1000 -> single4000. Existing five-systemW0 stays sealed.
+D450 checkpoint468411b4ef8833855c7aa694b71e7fce7ac5ce93 pushed; remoteSHAequal.
+COMPLETED: originalprefix100,100/100native contract/source/adapter/lease bindings,
+17369tokens; initial1/natural_scaleout3; all proactive plans/CPUwork0.
+Dispatchremote/GPU/HOST/NVMe36/41/6/17. Routing105attempts (41hit/12slack/52nohit),
+not105requests. FileLRUreplacements0 (no actual eviction-performance claim).
+RealHTTP29transfers/50650865wireB, both-endUUID/SHA/bytes match, no request packing.
+Mean/P95TTFT39240.140/83290.886ms, meanqueue38045.182ms; P95TPOT56.098ms;
+commonthresholdprefixjoint17/100, physical476.847596GPU-s. Initialactivation150.331273s
+exceededcommon60snotice. Waiting retained, no latency subtraction, no causal attribution
+to locality, no baseline tuning. Functional/mechanism qualified, NOT SLO/G1/G2.
+Raw n_correct=null and numerical-proof limitation retained. Full output-digest
+comparison not done here; preserve for corresponding input comparison.
+Curated elastic_locality/d450_actual_prefix100.json. SourceSHA
+d47de6926690aea881d88f65f39a0aeb3ddff64bfaf2db63639abe234b5563e0.
+258resource samples, peak19277647872B, high/max/OOM/swap0. ActualGPUrelease and
+service removal passed, then exactremote monitor/3B/7B stopped; source/log SHAs verified.
+Start/replay auxiliaries closed by reusedclosure;collection11 andanalysis12 stopped
+after exactidentity/actualrecursiveemptytree. No task remains running.
+Latestdisk162432045056B,fourGPUs15MiBbackground/0util;fresh nextheavygatesneeded.
+Protected147 unchanged. No oldresultoverwrite,newweights/trace/pool,republishing,figures.
+NEXT: 500-IDcoverage on existing input view (check native runner compatibility),
+then original1000 ->single4000. Do not repeat D450 prefix without an affected-contract
+reason. Existing five-systemW0 stays sealed. W1/W2/G2/3B and fullscope still open.
 Raw: /home/qhq/serverless_llm_experiment/results/ieee_tc/elastic_locality_qualification/d450_20261012.
 Goal ACTIVE, substantive implementation/qualification progress; no whole-goal blocker.
 
