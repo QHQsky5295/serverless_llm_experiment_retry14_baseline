@@ -76,6 +76,27 @@ regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance re
 
 ## Exact next action and remaining scope
 
+D432 CLOSURE BACKED UP / PRIVATE OBJECTS RECLAIMED2026-10-11. Main
+fd32681c091d800f5eeedebb7021fbca34c7b3e2 andbaseline
+15077ab4aeeac9532b1cb8d9f18567d76883163c pushed,bothremoteSHAsverified.
+Exacttaskfiles only,37CPUtests/584sourceSHAs/stageddiff/secretschecks passed.
+No liveGPU/remotejob. Afterbackups reclaimedONLY /tmp/tc-d432-7bs/remote_artifacts/objects:
+5000files/12985984450payloadB,observedfreed13004439552B,diskafter163332403200B.
+Retainedoriginalpool rehashed/index/distinctinodes,symlinks/mounts/savedmetadata,
+readableownedprocessFD/cwd/root+fuser/futuretrackedconfigreferenceschecked.
+Unreadable sameUIDproc2628/4156156/4157313 disclosed,notcomplete systemwideproof.
+Rawlogs/receipts/journals/remoteimmutablecache/uniquepool retained. Original584
+manifestunchanged/reverified;147protectedentrieszerochange aftercleanup.
+Aux0008 exactInvocation83eac0692ea24b4ab816005e667f2b38/emptytree checked/stopped;
+its filehashing caused memory.high reclaim AFTER GPUrun,notperformance interference;
+max/OOM/swap0. Otherownedauxclosed;no livejob. Rawcleanup_before/after andcurated
+storage/20261011_d432_download_cache.json retainreceipts. No repeatedbyteaudit
+orredownload required. NEXT freshfullplan/status/protocol/resourcegates ->missing
+500-IDfunctionalview withunchangedD432nativeconfig ->original1000 ->onefullW0.
+No100repeat orbaselineparametersearch, nooldsealedW0repeat/3Bjump. Remaining
+approvedscopeOPEN/fullgoalACTIVE;thisturn actualqualification+closure progress.
+Finalcleanupreceipt backup pendingatthisentry. OlderNEXT/RUNNING historical.
+
 D432 TERMINAL/AUDITED2026-10-11. No liveGPU/remote job;do NOT restart. Original
 100 offered/submitted/terminal/native/source/adapter contracts,0failures,
 17369native tokens,29requestedIDs;fouractualservedTP1workers/500-IDreadyregistry.
