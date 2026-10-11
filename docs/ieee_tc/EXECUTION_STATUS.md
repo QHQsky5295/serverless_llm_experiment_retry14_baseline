@@ -1,6 +1,6 @@
-# IEEE TC execution status — D435 S-LoRA full W0 RUNNING
+# IEEE TC execution status — D435 S-LoRA full W0 CLOSED / NONFEASIBLE
 
-Updated 2026-10-11. This is a current checkpoint, NOT a replacement experiment plan.
+Updated 2026-10-12. This is a current checkpoint, NOT a replacement experiment plan.
 Full earlier status is preserved byte-for-byte in EXECUTION_HISTORY_THROUGH_D433.md;
 archive SHA60aeae9c98335a1b9c8d131441cb052b0351e09ac48f6b07d57ecf7ab6560d98.
 earlier history through D402 remains EXECUTION_HISTORY_THROUGH_D402.md.
@@ -32,7 +32,7 @@ RUNNING entries are historical. No approved experiment or failed evidence was re
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D435 full W0 RUNNING, monitor same handle
+## Current action — D435 full W0 closed; backup then matched comparison
 
 D435_SLORA_FULL_W0.md preregisters one original4000/132ID/458224token W0 using
 the exact D432/D433/D434 native config. No baseline runtime/config/analyzer changes.
@@ -46,7 +46,7 @@ BASEcae13c57c012ea55a8199740f2696b9db732362f both pushed/remoteSHA verified.
 Input/cache freeze passed: W0viewa5331be2e2204483f18206825d9aaa18cbaa259fe0babfc303f989055819430d,
 httpSHAf0fe970f53c549b38cc0dbd8def0109115436f4b1d8ee8530b2ad8efcec8c6f3;
 Triton2055files/62246523B, no GPU preloaded. Aux0002-0004 exactemptytree closed,
-high/max/OOM/swap0. Runtime aux0001 active. Service
+high/max/OOM/swap0. Runtime aux0001 now empty-tree stopped. Closed service
 primelora-tc-svc-f300f4dd9c474b9cb7cfb41a718c5019.scope,
 InvocationIDfd0490c67700443fbe7238bb4d06578a.
 Notice1237981.351138279,arrival_start1238041.351138279,end1242005.260041401;
@@ -54,29 +54,47 @@ fixed arrivalwindow3963.908903122s, not ready-shifted.
 Remote prelaunch1000Mb/s/full;3B/7B/monitor InvocationIDs
 bb3e91ffee0242f8a82dc189a22e6ada/deb3850712654fa2a7c9945a38a07af4/
 d5d4313fc78242a889b9ab44c65efc2e;7Bclock7dbcab2393a74058935a5838bffb7b06.
-Monitor existing watchdog/request/worker receipts only. No remote administration,
-tests/hashscan/cleanup/secondheavyjob. NO restart while this handle is live.
-NEXT terminal actualGPUrelease -> ownedremote stop -> preserve/auditfull4000/seal/
-backup -> descriptive matched W0 comparison. Do not tune baseline or rerun a passed
-prefix. Full goal ACTIVE; no full4000 outcome or ranking yet.
-
-Latest read-only monitoring2026-10-11 23:33:13Asia/Shanghai:2109http_response,
-all onlineprotocol_valid=true, no recordedfailed/cancelled events; partial only,
-not completecontract/numerical audit. Four actual native500-ID workers ready;
-ready receipt `.at`1238172.705772950/1238271.970550648/1238363.754154409/
-1238458.981880616 for indices0-3. Service58.234GiB,hostavailable57.422GiB,
-disk139.818GiB,high/max/OOM/swap0;watchdog noabort/warning,same service and tmux active.
-Watchdog monotonic confirms1964.98s of the original arrival window remain at
-this checkpoint. This is expected verified wait, not an observation failure;
-do not compress the trace, restart the run or launch another GPU task.
-Disk remains above runtime100GiB but below new-heavy150GiB: no next heavy run
-until D435 is closed/audited/backed up and owned recreatable cache reclaimed.
-Use launch7b.launch/replay.jsonl for live response counts. The physical
-request_terminals.jsonl is populated by record_http_physical_terminals after
-the replay; its current zero lines do NOT mean no responses. Do not use
-HTTP200/onlineprotocol alone as final adapter/content/lifecycle acceptance.
+Monitored the same actual service/tmux through terminal2026-10-12 00:06:29;
+no restart, baseline tuning, remote interference or other performance run.
+4000offered/submitted/terminal/native/source/adapter/timing contracts,0failures,
+458224native output tokens,132requested IDs; four actual500-ID workers served.
+E2E/TPOT/native recomputation error0ms. Common D394 TTFT3783/TPOT3994/joint3777
+of4000=94.425%,observed NONFEASIBLE under95%;23requests below3800threshold.
+U15157.07787045301GPU-s,3.7892694676132526per binding-valid request.
+Mean/P95TTFT7396.416512/17699.067366ms,TPOT31.251644/45.953041ms,
+E2Emean10962.479328ms. Raw n_correctnull/numericalfalse remain unchanged.
+All217TTFT violations are in first500(joint283/500); later3500 joint3494/3500.
+These descriptive slices do not replace the complete primary population.
+Full500 preparation500HTTP/420740410wireB/12985984450materializedB,0packs;
+4000preparation references are not additional transfers. No downloaded pool copied.
+Servicepeak62637105152B,hostavailablemin61200150528B,diskmin150091988992B,
+high/max/OOM/swap0. Service/replay/watchdogreturncodes0,actualGPUrelease and
+servicepathremoval verified. All three exact-owned remote units stopped,
+MainPID0/portsabsent; dual-end transfer/monitor evidence copied with SHA checks.
+Strict unchanged slora_resident_rr_v1/full4000 analyzer passed. All147protected
+entries and three user-file/native tenfilepatch hashes remain unchanged.
+Curated baseline_audit/d435_7b_slora_full_w0/audit.json SHA
+1c9361f2d995c27e0672611728697f4de48bd0ff3c4e9f4fd778523565b6e4c0;
+578-file/227275259B evidence_manifest SHA
+d0f6b8b4aca2ac8b34f13230e9ebd559982ed7bce684441c7c5a998e8b0886c2.
+All578source hashes/sizes independently rechecked. Aux0005-0009 empty-tree
+identity-checked stopped, high/max/OOM/swap0; no D435 scope remains. Verification
+aux0009ID3206a46e183e4829b8c06c9d7d2ad473 peak2875392B. No independent-review-agent
+PASS asserted.
+NEXT task-only backup -> full input/generation/resource matched W0 join with
+sealed PrimeLoRA/ServerlessLLM/vLLM -> remaining7B qualifications. Reuse existing
+comparison code, new exclusive output; do not overwrite D424 or refreeze reference.
+BASE closure backup f1e7310a16ac40bfbdd9f25d047742bc46c25f9a pushed/remoteSHAverified;
+MAIN closure backup is the commit containing this checkpoint and D435 curated files.
+Reclaim only owned recreatable D435 downloads after backup/reference checks;
+current disk~139.8GiB exceeds runtime100 but not new-heavy150, so no new heavyjob.
+No S-LoRA performance tuning or repeated prefixes/fullW0; no3Bjump. Goal ACTIVE.
 Prior running-doc backup MAINe7d7ae0e84954e9826dccc96d7e6a3542e67328d;
 execution commits remain84d6b4d/cae13c5, not the later status commits.
+Current continuation reread complete plan/status/latest rules and metricV1+V2,
+made verified wait through terminal plus closure/audit/seal progress. D78/D80 cache
+reused, no duplicate publication/extracted pool or live remote change. No baseline
+source/config changes. Next matched comparison remains separate and not yet done.
 
 ## Parallel read-only preparation — Loquetier reuse, no performance run
 
@@ -115,7 +133,7 @@ Kubernetes qualification; no existing cluster/remote service changed or tested.
 Do not repeat the old blanket claim that no Kubernetes exists, or infer access
 from service existence. New review changes the next qualification questions,
 not the approved baseline order, core mechanisms, frozen metrics or run identities.
-This goal turn made evidence progress plus verified wait; no full D435 result yet.
+That earlier goal turn made evidence progress plus verified wait; D435 now closed above.
 
 ## D434 closed — do NOT repeat
 

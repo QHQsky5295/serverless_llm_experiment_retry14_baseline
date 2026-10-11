@@ -1,11 +1,11 @@
 # D435 — S-LoRA 7B complete W0, preregistered single observation
 
-2026-10-11. Launched22:58:29Asia/Shanghai; no terminal performance result yet.
+2026-10-11 launch22:58:29Asia/Shanghai; completed and audited2026-10-12.
 Execution MAIN84d6b4d0607944c5d6ef47bd9ada2d30817e4887 and
 BASEcae13c57c012ea55a8199740f2696b9db732362f, both pushed/remoteSHA verified.
 Tmux tc-d435-7b; service InvocationIDfd0490c67700443fbe7238bb4d06578a.
 Remote link1000Mb/s/full, published cache reused; input/cache freeze passed.
-Monitor same live handle without restart or baseline tuning.
+The same handle completed without restart or baseline tuning; see outcome below.
 
 ## Purpose and immutable comparison contract
 
@@ -77,3 +77,63 @@ Prelaunch CPU37 tests pass1.696s. Fresh preflight passed;147protected entries
 unchanged. D434578 source-file hashes verified after object cleanup; baseline
 runtime/config and protected user-file identities unchanged. No test install or
 code workaround. Execution commits will be sealed by freeze_inputs.py after backup.
+
+## Completed single-run outcome — 2026-10-12
+
+The original W0 completed once. All4000 offered/submitted/terminal responses passed
+the existing strict native token, source, adapter/content and timing checks;
+458224 actual native output tokens,132 requested IDs,0failed requests. All four
+native500-ID workers served. E2E/TPOT/native recomputation errors are0ms.
+Raw `n_correct=null` and incomplete independent numerical-proof flags remain
+unchanged; this is a full native-binding development observation, not an unseen
+evaluation or universal arithmetic proof.
+
+| Metric | Observed value |
+|---|---:|
+| Common TTFT SLO | 3783/4000 (94.575%) |
+| Common TPOT SLO | 3994/4000 (99.85%) |
+| Common joint SLO | 3777/4000 (94.425%) |
+| Physical lifecycle GPU-s | 15157.07787045301 |
+| GPU-s / binding-valid request | 3.7892694676132526 |
+| Mean / Type-1 P95 TTFT | 7396.416512 / 17699.067366 ms |
+| Mean / Type-1 P95 TPOT | 31.251644 / 45.953041 ms |
+| Mean E2E (external HTTP completion) | 10962.479328 ms |
+
+**Observed nonfeasible under the frozen95% joint requirement.** The23-request
+shortfall is not rounded away. No baseline tuning, repeated performance key,
+threshold change or startup-free replacement follows from this outcome.
+All217 TTFT violations occur among source indices0–499; this first500 has
+283joint-good requests, while the subsequent3500 has3494joint-good. These are
+descriptive slices of one run, not independent repetitions or a warm-only main
+result. They support startup concentration of the observed delay, not a claim
+that every S-LoRA deployment must exhibit the same result.
+
+Physical windows: pre-arrival0, arrival15129.519531617174, drain1.9117999318987131,
+cleanup25.646538903936744GPU-s. CPU-only preparation is not invented GPU time;
+actual native allocations through actual exit determine the total. Full500
+deployment preparation made500HTTP transfers/420740410wire bytes and verified
+12985984450materialized bytes, with0request-time packs. The4000 preparation
+references are not4000additional transfers. Published D78/D80 objects were reused.
+
+Service peak62637105152B, host minimum available61200150528B, disk minimum
+150091988992B; high/max/OOM/swap0. Service/replay/watchdog returncodes0, actual
+GPU contexts released and service path removed. Owned remote3B/7B/monitor units
+stopped only after matching InvocationIDs, with MainPID0 and ports absent;
+dual-end journals and resolver receipts preserved, no object-pool copy.
+All147 protected entries and the three dirty user-file hashes remain unchanged;
+the native ten-file historical patch also remains unchanged.
+
+Curated main-repository directory:
+`paper_results/ieee_tc/baseline_audit/d435_7b_slora_full_w0/`.
+Audit SHA `1c9361f2d995c27e0672611728697f4de48bd0ff3c4e9f4fd778523565b6e4c0`.
+Evidence manifest SHA
+`d0f6b8b4aca2ac8b34f13230e9ebd559982ed7bce684441c7c5a998e8b0886c2`.
+All578 source-file hashes and sizes independently rechecked;227275259retained
+source bytes. No independent-review-agent PASS is asserted by these checks.
+
+Next: backup this closure, perform the separate full input/generation/resource
+join with sealed PrimeLoRA/ServerlessLLM/vLLM, then continue remaining7B baseline
+qualification. Do not overwrite D424 or refreeze its Resident/SLO reference.
+Reclaim only owned recreatable downloads after backup and reference checks;
+disk currently below the150GiB new-heavy threshold, so no new heavy run yet.
+W1/W2, G2, Loquetier/HydraServe,3B and the full approved matrix remain open.
