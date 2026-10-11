@@ -131,9 +131,17 @@ Evidence manifest SHA
 All578 source-file hashes and sizes independently rechecked;227275259retained
 source bytes. No independent-review-agent PASS is asserted by these checks.
 
-Next: backup this closure, perform the separate full input/generation/resource
+Closure backed up to MAIN212cec45ad5a31d4363356a205a13350210637e4 and
+BASEf1e7310a16ac40bfbdd9f25d047742bc46c25f9a, both remoteSHA verified.
+Next: perform the separate full input/generation/resource
 join with sealed PrimeLoRA/ServerlessLLM/vLLM, then continue remaining7B baseline
 qualification. Do not overwrite D424 or refreeze its Resident/SLO reference.
-Reclaim only owned recreatable downloads after backup and reference checks;
-disk currently below the150GiB new-heavy threshold, so no new heavy run yet.
+After backup and reference checks, only owned recreatable downloads were reclaimed:
+5000files/12985984450payloadB, observed freed13004468224B, free162938236928B.
+All578 sealed source hashes and147protected entries still match after cleanup.
+Receipt `paper_results/ieee_tc/storage/20261012_d435_download_cache.json` records
+retained originals, reference-check scope and three unreadable same-UID processes.
+Cleanup-only memory.high3416/maxOOMswap0 is separate from the performance record.
+All D435 auxiliary scopes closed; fresh complete safety gates still precede any
+next heavy run. Do not redownload to repeat already passed historical audits.
 W1/W2, G2, Loquetier/HydraServe,3B and the full approved matrix remain open.

@@ -81,13 +81,21 @@ All578source hashes/sizes independently rechecked. Aux0005-0009 empty-tree
 identity-checked stopped, high/max/OOM/swap0; no D435 scope remains. Verification
 aux0009ID3206a46e183e4829b8c06c9d7d2ad473 peak2875392B. No independent-review-agent
 PASS asserted.
-NEXT task-only backup -> full input/generation/resource matched W0 join with
+NEXT full input/generation/resource matched W0 join with
 sealed PrimeLoRA/ServerlessLLM/vLLM -> remaining7B qualifications. Reuse existing
 comparison code, new exclusive output; do not overwrite D424 or refreeze reference.
 BASE closure backup f1e7310a16ac40bfbdd9f25d047742bc46c25f9a pushed/remoteSHAverified;
-MAIN closure backup is the commit containing this checkpoint and D435 curated files.
-Reclaim only owned recreatable D435 downloads after backup/reference checks;
-current disk~139.8GiB exceeds runtime100 but not new-heavy150, so no new heavyjob.
+MAIN closure backup212cec45ad5a31d4363356a205a13350210637e4 pushed/remoteSHAverified.
+Owned recreatable D435 objects alone reclaimed after backup and complete retained
+original/metadata/reference checks:5000files,12985984450payloadB,freed13004468224B;
+diskafter162938236928B(~151.75GiB). No original/raw/remote published cache removed.
+Receipt paper_results/ieee_tc/storage/20261012_d435_download_cache.json; three
+unreadable sameUIDprocess entries2628/4156156/4157313 disclosed, not claimed all-system FD proof.
+All578 sealed source hashes rechecked AFTER cleanup,147protected entries unchanged.
+Cleanupaux0010ID23ca5f2597a24f80b9d57bc58f7c4c69 peak3221852160B/high3416/maxOOMswap0;
+postperformance only, not a change to D435 performance pressure. Verificationaux0011
+IDd8662fde35c94ccaa85b2ef74daeb60d closed by exactidentity/emptysubtree; no D435scopes remain.
+Fresh complete gates still required before any next heavy run; do not repeat cache removal.
 No S-LoRA performance tuning or repeated prefixes/fullW0; no3Bjump. Goal ACTIVE.
 Prior running-doc backup MAINe7d7ae0e84954e9826dccc96d7e6a3542e67328d;
 execution commits remain84d6b4d/cae13c5, not the later status commits.
