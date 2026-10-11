@@ -1,6 +1,6 @@
 # D422：vLLM 7B 原始 1,000 请求兼容检查（预登记）
 
-2026-10-11。准备阶段，尚未启动。唯一原始结果目录：
+2026-10-11。16:42:25 已启动，尚未终态。唯一原始结果目录：
 `/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d422_20261011`。
 
 目的：完成计划 §6.7 中原始负载的 1,000 请求兼容检查，然后推进一次完整
@@ -40,3 +40,8 @@ raw 中 `run7b.sh` 复用既有 gated-launch/native-http-service；远端启动/
 终态顺序：实际 GPU 释放 → 按本次身份关闭远端 → 保存证据 → 严格分析 → 备份。
 任何失败保留；不因短视图联合 SLO 较低而重复。之后一次完整 W0，PrimeLoRA D371
 和 ServerlessLLM D414 不重跑；U_ref/W1/W2/G2、3B、其他基线和后续完整矩阵仍开放。
+
+实际 main 执行 commit `9f334caab8a2c305f7e29909532a65f7cc8db1d1` 已推送并核对远端；
+baseline commit 如上。本次服务 InvocationID `9d9487f825874614acb5d7a94e0f29a7`，
+tmux `tc-d422-7b`。628 文件/54387041 字节原生编译磁盘缓存的当前身份已冻结，
+与冷 LoRA 缓存分开。启动前 27 项已有分析 CPU 测试通过；没有新后端代码改动。

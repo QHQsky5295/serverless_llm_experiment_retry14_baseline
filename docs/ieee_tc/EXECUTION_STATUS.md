@@ -1,4 +1,4 @@
-# IEEE TC execution status — D422 original vLLM 7B compatibility preparation
+# IEEE TC execution status — D422 original vLLM 7B compatibility running
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -74,6 +74,37 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+D422 RUNNING since 2026-10-11 16:42:25 Asia/Shanghai, tmux tc-d422-7b.
+Exactly one heavy job. Main execution 9f334caab8a2c305f7e29909532a65f7cc8db1d1
+pushed/remote SHA verified; baseline d9971a14e18eca3391665d9da1244594e69b6041
+remote SHA reverified. No baseline code change. 27 existing CPU analysis tests
+passed 0.102s before launch in 4GiB/zero-swap scope; exact two docs backed up,
+diff/secrets/protected-user-SHA checks passed. No retained test-file receipt
+for this terminal-only execution; prior D421 retained test receipt remains.
+Service primelora-tc-svc-243b5724c09b451c8fb6d376df874c9a.scope,
+InvocationID 9d9487f825874614acb5d7a94e0f29a7; auxiliary
+primelora-tc-aux-d4220000000000000000000000000001.scope.
+Original1000/60IDs/122510tokens/viewSHA verified. HTTP config SHA
+6679196e85f9ec68a551e2117b7749a855cbc0e1657a23c0c6f4b236118c0244;
+native config unchanged361dc7645a8eef8ee304addfaa9e1611093dae1c6678b108970c1adc2e7fe3a5.
+Current native compiler disk cache628files/54387041B, SHA
+92cc5289f1f91ebf0149086a133d359549ee311ca65d6bc2ebc380dba25a58d6;
+not GPU preload, fresh LoRA cache. Preflight passed; protected seal SHA
+2261680e6079e611ea4fda05fe60d5fad2eff2c523d8e0ade2e518ff8493cfa8.
+Unchanged remote published protocol/link1000/full;7B clock
+remote-process-monotonic:e7c781165a1d4f3ab78e0d70d57011d0.
+Remote3B/7B/monitor InvocationIDs a1a995d5c9f2409e81c67465303d6312 /
+2918a274f5b44d9eaf8bdde5802382b4 / 5895cf0ad5e948f3b8dd405333a300f3.
+Watchdogsample60:hostavailable102122684416B,service9150644224B,
+disk163730849792B,high/max/OOM/swap0,no abort. No terminal/performance verdict.
+NEXT monitor SAME handle/local journals -> actual GPU release -> D422 owned
+remote stop/preserve evidence -> strict prefix1000 audit with D394 -> backup ->
+one full4000 W0. Do not restart or repeat passed100/500 gates. No live remote
+changes, hashscan, cleanup, tests, parameter tuning or second heavy job.
+PrimeLoRA D371/ServerlessLLM D414 remain sealed; U_ref/W1/W2/G2/rest OPEN.
+This turn made concrete progress by preparing/backing up/launching D422;
+full goal ACTIVE. Older RUNNING/NEXT entries below are preserved history.
 
 D422 PREPARATION 2026-10-11. Full PLAN/STATUS/V1/V2 reread; actual GPU census
 empty and no tmux job. D421 whole-pool qualification/closure/backup is complete,
