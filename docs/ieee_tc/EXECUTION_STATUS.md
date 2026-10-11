@@ -1,4 +1,4 @@
-# IEEE TC execution status — D440 Loquetier HTTP contract; native worker integration next
+# IEEE TC execution status — D441 Loquetier native worker integrated; real request qualification next
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement experiment plan.
 Full earlier status is preserved byte-for-byte in EXECUTION_HISTORY_THROUGH_D433.md;
@@ -32,7 +32,57 @@ RUNNING entries are historical. No approved experiment or failed evidence was re
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D440 HTTP/native-token/physical-accounting boundary checks passed
+## Current action — D441 guarded native worker and static service checks passed
+
+BASE docs/ieee_tc/D441_LOQUETIER_NATIVE_WORKER.md and curated
+paper_results/ieee_tc/loquetier/d441_worker_integration_summary.json record actual
+nativeworker/CLI integration into existing commonservice. Fixed D437 full500,
+four125-ID byte-based shards; D438 load sequence/FP16/batch2/context1024/native
+SMLM retained. Fullpool preparation after commonnotice; pre-ready ingress;
+sequential workerstartup; static mapping, not RR/adaptive reroute; registry/path/
+process/source health and nativecensus before dispatch. Fatal errors exit with
+evidence/no retry; parent keeps actual process/physicalrelease checks. No baseline
+performance search or PrimeLoRA algorithm change. Runtime/GPUforward/numerical
+qualification still FALSE; do not infer performance from CPU assembly checks.
+
+OuterPython3.12 commonregressions208passed10.103s; nativePython3.9 CPU26passed
+2.263s before HTTPdependency addition. Missingaiohttp found before modelimport;
+added only eight absent, hash-locked binary transport dependencies, aiohttp3.13.3
+same as outer. Existingtorch2.1.2cu121/Transformers4.45.2/PEFT0.17.1/nativekernel
+and existingattrs/idna/typing_extensions unchanged. No build/backendupgrade.
+Afteraddition49worker/HTTP/online/nativeCPU checks passed4.426s/no skips.
+Frozenconfig/sourceview/API/versions validation passed. Earlier196/14checks
+preserved asdevelopment. One51-test attempt wronglyincluded Python3.12parent
+ingress inPython3.9 andfailed itsasyncio.timeout path; realouterparent tests passed
+in208, no fallback patched. OneAPIinspection checkedRequestHandler instead of
+Server; correctedinspection passed. These are retainedCPUcheck errors,notperformance.
+
+Newsourceview raw originalresults/ieee_tc/loquetier_qualification/d441_20261012/source_view,
+manifestSHA2d8e801033a4f3b4062b94dbaf34e6c59c1613f4e2427705091435c6f9e82bb7.
+BASEconfig configs/ieee_tc/loquetier_7b_static_native_v1.json SHA
+d9f3b81d3d90340739ec66b45d36c1c71c706640dd2cd790a19d3ea4a80a617a.
+NativePython3.9 worker,existingouterPython3.12; ports8510ingress/8511router/
+8523,8533,8543,8553workers. ActualHTTP/runkey still to freeze. Oldview notoverwritten.
+BASEsummarySHA607e8184289531676985116afb5d2ed213a0d34836551b65cd60bf3521aa37ab.
+Crossrepositorybackup recorded in baseline_audit/d441_loquetier/checkpoint.json.
+
+All14D441auxscopes GPUhidden/CPU2,3,26,27/high3max4GiB/swap0, recordedhighmaxOOM0;
+actualrecursivecgroup.procs empty andInvocationID verifiedbeforeownedstop.
+Finalsourceaudit7SHAs passed; only4existingrunnerdefinitions changed asintended,
+27others ASTidentical. Auditaux0014IDe9a4442ef0404d769ec70a480ca945f0,
+peak23130112B. Old147protectedentries andthreeuserfiles/nativeLoquetier3patches/
+S-LoRA10patches unchanged; protectedverificationSHA1ff66513bbe7dc141d9bd14e43a7ce4f111cee38aeb215db2db8eebe141fb657.
+NoGPUmodel/remoteaction/newpool/weightdownload/oldoverwrite/figure. Repeatedcache
+approval continuesD78/D80reuse, no newpublication. Disk162973720576B lastobserved,
+notfreshlaunchpermission. Concreteimplementation/test/compatibilityprogress,no blocker.
+
+NEXT: Loquetier-specific nativeanalysis/readiness/evidence contract, actual100
+HTTPfreeze and freshgates/backups -> real100 ->500-IDcoverage ->original1000 ->
+single4000. DoNOTrepeat D438capacity or sealedfour-systemW0. Loquetier notyet
+qualifiedW0; remaining7B/HydraServe/comparison/necessaryPrimeLoRAoptimization
+before3B. W1/W2/G2, A1-A5/S1-S13/reviewdocs/laterfigures/fullgoal remainOPEN.
+
+## D440 closed — HTTP/native-token/physical-accounting checks; preserved historical checkpoint
 
 BASE docs/ieee_tc/D440_LOQUETIER_HTTP_CONTRACT.md records necessary commonHTTP
 handler, explicitLoquetier observation/publisher/lifecycle contract, and mainphysical
