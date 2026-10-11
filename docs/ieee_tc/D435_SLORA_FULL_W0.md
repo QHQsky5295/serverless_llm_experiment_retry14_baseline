@@ -1,6 +1,11 @@
 # D435 — S-LoRA 7B complete W0, preregistered single observation
 
-2026-10-11. Pending launch; no performance result is asserted.
+2026-10-11. Launched22:58:29Asia/Shanghai; no terminal performance result yet.
+Execution MAIN84d6b4d0607944c5d6ef47bd9ada2d30817e4887 and
+BASEcae13c57c012ea55a8199740f2696b9db732362f, both pushed/remoteSHA verified.
+Tmux tc-d435-7b; service InvocationIDfd0490c67700443fbe7238bb4d06578a.
+Remote link1000Mb/s/full, published cache reused; input/cache freeze passed.
+Monitor same live handle without restart or baseline tuning.
 
 ## Purpose and immutable comparison contract
 

@@ -1,4 +1,4 @@
-# IEEE TC execution status — D435 S-LoRA full W0 preregistered
+# IEEE TC execution status — D435 S-LoRA full W0 RUNNING
 
 Updated 2026-10-11. This is a current checkpoint, NOT a replacement experiment plan.
 Full earlier status is preserved byte-for-byte in EXECUTION_HISTORY_THROUGH_D433.md;
@@ -32,17 +32,33 @@ RUNNING entries are historical. No approved experiment or failed evidence was re
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D435 full W0 pending launch
+## Current action — D435 full W0 RUNNING, monitor same handle
 
 D435_SLORA_FULL_W0.md preregisters one original4000/132ID/458224token W0 using
 the exact D432/D433/D434 native config. No baseline runtime/config/analyzer changes.
 Raw /home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011;
-private /tmp/tc-d435-7bs; tmux name tc-d435-7b reserved but not launched yet.
+private /tmp/tc-d435-7bs; tmux tc-d435-7b launched2026-10-11 22:58:29Asia/Shanghai.
 37CPU checks passed1.696s; fresh preflight passed,147oldprotected entries unchanged.
 D434578-source-file hashes still match after object cleanup; three user-file SHAs,
 native config/runtime/source-view and historical tenfilepatch unchanged.
-NEXT task-only backup -> input/cachefreeze -> remote health -> one gated full4000.
-No live GPU/remote job at this preregistration checkpoint. Full goal remains ACTIVE.
+Execution MAIN84d6b4d0607944c5d6ef47bd9ada2d30817e4887 and
+BASEcae13c57c012ea55a8199740f2696b9db732362f both pushed/remoteSHA verified.
+Input/cache freeze passed: W0viewa5331be2e2204483f18206825d9aaa18cbaa259fe0babfc303f989055819430d,
+httpSHAf0fe970f53c549b38cc0dbd8def0109115436f4b1d8ee8530b2ad8efcec8c6f3;
+Triton2055files/62246523B, no GPU preloaded. Aux0002-0004 exactemptytree closed,
+high/max/OOM/swap0. Runtime aux0001 active. Service
+primelora-tc-svc-f300f4dd9c474b9cb7cfb41a718c5019.scope,
+InvocationIDfd0490c67700443fbe7238bb4d06578a.
+Notice1237981.351138279,arrival_start1238041.351138279,end1242005.260041401;
+fixed arrivalwindow3963.908903122s, not ready-shifted.
+Remote prelaunch1000Mb/s/full;3B/7B/monitor InvocationIDs
+bb3e91ffee0242f8a82dc189a22e6ada/deb3850712654fa2a7c9945a38a07af4/
+d5d4313fc78242a889b9ab44c65efc2e;7Bclock7dbcab2393a74058935a5838bffb7b06.
+Monitor existing watchdog/request/worker receipts only. No remote administration,
+tests/hashscan/cleanup/secondheavyjob. NO restart while this handle is live.
+NEXT terminal actualGPUrelease -> ownedremote stop -> preserve/auditfull4000/seal/
+backup -> descriptive matched W0 comparison. Do not tune baseline or rerun a passed
+prefix. Full goal ACTIVE; no full4000 outcome or ranking yet.
 
 ## D434 closed — do NOT repeat
 
