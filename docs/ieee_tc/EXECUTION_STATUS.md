@@ -1,4 +1,4 @@
-# IEEE TC execution status — D445 Loquetier single full4000 preregistered
+# IEEE TC execution status — D445 Loquetier single full4000 RUNNING
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement experiment plan.
 Full earlier status is preserved byte-for-byte in EXECUTION_HISTORY_THROUGH_D433.md;
@@ -32,7 +32,33 @@ RUNNING entries are historical. No approved experiment or failed evidence was re
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D445 single full4000 preregistered, not yet launched
+## Current action — D445 single full4000 RUNNING, monitor same handle
+
+Launched once2026-10-12T04:07:28+08:00 in tmux tc-d445-7b.
+Serviceunit primelora-tc-svc-147e7a56908444ea8ed8ec9109e4fd98.scope,
+InvocationID26758f9ae61346babe00e308045d6be9; outeraux0001
+InvocationIDdf81f97a3f0543c48300a115577a1fb3. Executed MAIN
+9471e1ec60baabe78f6d9d00182c100b689e0719 and BASE
+311663aa501ea2f7b61a04f53fa471822272643f; bothpushed/remoteSHAverified.
+Inputfreeze passed,httpSHAffbae38defa4a95412ec77009215d507b810058315df4adc938108170bf5ea95.
+Freshpreflight passed SHA0fda10326f2dda93379572604e6c24150b96181fa2f02074d76234e362236815.
+Remoteactual1000Mb/s/full, noNICchanges/republishing. Owned3B/7B/monitorIDs
+f6c503bb79fb4a19a703c88d0f021a0b/a9ae83c9e258476abb6402145ac4bc1c/
+a0b64b28ffa740588fa3ae2d23bc540a;7Bclock1f3c6091de274da0bb1b0afdd55704df.
+Aux0003/0004/0005 InvocationIDsbd214e0b01c1472fa7991306b831e69c/
+74d10ba8de4b481db18c4522b47aa966/729453bc31ea4ad09d700b21ae32f23d;
+actualrecursiveemptytrees checked/stopped, peaks136282112/28299264/25735168B,
+high/max/OOM/swap0. HealthusedcorrectexistingouterPython3.12,nonewinstall.
+Initialwatchdogsample50:host111445630976B,service7684120576B,allpressureevents0,
+noabort. FullpoolCPUpreparation proceeding; not a completedperformance result.
+NEXT verifiedwait sameactualhandle ->actualGPUrelease ->exact-ownedremote stop
+->evidencepreserve ->unchangedLoquetier/full4000audit(noD385reference) ->seal/backup
+->ownedcachecleanup ->matchedcomparison/HydraServe/remaining7B before3B.
+No relaunch,baseline tuning,live remoteadministration/scan/cleanup orsecondheavyjob.
+This turn made actualsingle4000launch progress. GoalACTIVE,no blocker;
+all remainingapprovedscope belowstillOPEN, no fullG1/G2/optimality claim.
+
+## D445 preregistration and completed prelaunch checks
 
 Full PLAN/status/latest baseline rules/metricV1+V2 reread. D444 closurecleanup
 backup0e7dac301ad92fcffc972104d3d7a1eb01f48e1f pushed/remoteSHAverified.
@@ -46,8 +72,8 @@ reused under repeateduserapproval, notrepublished. 53MAINtests passed0.447s;
 18BASE passed0.821s, all580D444sourceSHA/147protectedentries/threeuserfiles/
 nativepatches unchanged. Aux0002ID8a30ec39d8be46b080505ec862bc9d0c,
 peak49131520B/highmaxOOMswap0, actualrecursiveemptytree verifiedthenstopped.
-NEXT doublebackup/inputfreeze/freshresource+remotehealth gates ->launchonce.
-Then monitoractualhandle ->release/ownedremote stop ->strictLoquetier/full4000
+Doublebackup/inputfreeze/freshresource+remotehealth gates and launch completedabove.
+Monitoractualhandle ->release/ownedremote stop ->strictLoquetier/full4000
 audit(noD385reference) ->seal/backup/ownedcachecleanup ->matchedcomparison and
 HydraServe/remaining7B before3B. Fullscope belowOPEN; goalACTIVE,no blocker.
 

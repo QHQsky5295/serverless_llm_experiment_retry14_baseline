@@ -1,0 +1,31 @@
+{
+  "schema": "ieee_tc_d445_launch_checkpoint_v1",
+  "raw_root": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d445_20261012",
+  "state": "running",
+  "tmux": "tc-d445-7b",
+  "launch_time_observed": "2026-10-12T04:07:28+08:00",
+  "execution_main": "9471e1ec60baabe78f6d9d00182c100b689e0719",
+  "execution_baseline": "311663aa501ea2f7b61a04f53fa471822272643f",
+  "both_execution_commits_pushed_remote_sha_verified": true,
+  "service_unit": "primelora-tc-svc-147e7a56908444ea8ed8ec9109e4fd98.scope",
+  "service_invocation_id": "26758f9ae61346babe00e308045d6be9",
+  "outer_aux_unit": "primelora-tc-aux-d4450000000000000000000000000001.scope",
+  "outer_aux_invocation_id": "df81f97a3f0543c48300a115577a1fb3",
+  "http_sha256": "ffbae38defa4a95412ec77009215d507b810058315df4adc938108170bf5ea95",
+  "fresh_preflight_sha256": "0fda10326f2dda93379572604e6c24150b96181fa2f02074d76234e362236815",
+  "remote_link": {
+    "speed_mbps": 1000,
+    "duplex": "full",
+    "changed_by_this_campaign": false
+  },
+  "remote_invocation_ids": {
+    "model3b": "f6c503bb79fb4a19a703c88d0f021a0b",
+    "model7b": "a9ae83c9e258476abb6402145ac4bc1c",
+    "monitor": "a0b64b28ffa740588fa3ae2d23bc540a"
+  },
+  "remote_7b_clock_id": "remote-process-monotonic:1f3c6091de274da0bb1b0afdd55704df",
+  "performance_result_available": false,
+  "baseline_performance_tuning": false,
+  "full_goal_complete": false,
+  "next": "Monitor same live handle through terminal; release, owned remote stop, preserve evidence, strict full4000 Loquetier audit, seal/backups then owned-cache cleanup; no relaunch"
+}
