@@ -79,6 +79,8 @@ def validate_native_service_config(cfg, http):
     """Fixed-version resident transport adapter, not a second scheduling policy."""
     from prepare_ieee_tc_serverless_stack import validate_http_lifecycle_contract
     validate_http_lifecycle_contract(http)
+    if cfg.get('schema') == 'ieee_tc_slora_native_service_v1':
+        return validate_slora_service_config(cfg, http)
     if (cfg.get('schema') != 'ieee_tc_vllm_native_service_v1'
             or http.get('schema') != 'ieee_tc_vllm_http_replay_v1'
             or cfg.get('routing') != 'round_robin'
@@ -108,6 +110,154 @@ def validate_native_service_config(cfg, http):
     if not http.get('remote_artifacts'):
         raise ValueError('resident main path requires real published artifacts; no local fallback')
     return endpoint.port
+
+
+SLORA_INPUT_KEYS = ('max_req_total_len', 'max_total_token_num', 'pool_size_lora',
+    'batch_max_tokens', 'running_max_req_size', 'swap', 'prefetch', 'prefetch_size',
+    'scheduler', 'profile', 'batch_num_adapters', 'enable_abort', 'dummy',
+    'no_lora_compute', 'no_lora_swap', 'no_kernel', 'no_mem_pool', 'bmm', 'no_lora', 'fair_weights')
+SLORA_ENV_KEYS = ('PATH', 'LD_LIBRARY_PATH', 'CUDA_HOME', 'PYTHONPATH', 'PYTHONNOUSERSITE', 'MAX_JOBS')
+
+
+def validate_slora_service_config(cfg, http):
+    from urllib.parse import urlsplit
+    from prepare_ieee_tc_serverless_stack import validate_http_lifecycle_contract
+    validate_http_lifecycle_contract(http)
+    devices = cfg.get('gpu_ids', [])
+    endpoint = urlsplit(http['url'])
+    ports = [endpoint.port, cfg.get('router_port'), *cfg.get('worker_ports', []), *cfg.get('nccl_ports', [])]
+    if (cfg.get('schema') != 'ieee_tc_slora_native_service_v1'
+            or http.get('schema') != 'ieee_tc_slora_http_replay_v1'
+            or cfg.get('routing') != 'round_robin' or cfg.get('worker_startup') != 'sequential_v1'
+            or cfg.get('generation_contract') != 'fixed_length_greedy_v1'
+            or not devices or type(devices) is not list or len(set(devices)) != len(devices)
+            or any(type(d) is not int or d not in range(4) for d in devices)
+            or len(cfg.get('worker_ports', [])) != len(devices)
+            or len(cfg.get('nccl_ports', [])) != len(devices)
+            or any(type(p) is not int or not 0 < p < 65536 for p in ports)
+            or len(set(ports)) != len(ports)
+            or endpoint.scheme != 'http' or endpoint.hostname != '127.0.0.1'
+            or endpoint.path != '/v1/chat/completions' or endpoint.query or endpoint.fragment
+            or endpoint.username or endpoint.password or not http.get('remote_artifacts')
+            or cfg.get('host_layout') not in ('native_v1', 'packed_views_v1')):
+        raise ValueError('explicit S-LoRA full-pool/resident/sequential/loopback contract required')
+    args = cfg.get('native_args', {})
+    fixed = dict(model_dir=http['backbone'], tokenizer_mode='auto', tp=1,
+        max_req_total_len=1024, swap=True, scheduler='slora', dummy=False, bmm=False,
+        no_lora=False, no_kernel=False, no_lora_compute=False, no_lora_swap=False,
+        no_mem_pool=False, profile=False, enable_abort=False, prefetch=False,
+        prefetch_size=0, pool_size_lora=0, batch_num_adapters=None, fair_weights=[],
+        trust_remote_code=True, disable_log_stats=True, eos_id=2, log_stats_interval=10)
+    keys = set(fixed) | {'max_req_input_len', 'max_total_token_num', 'batch_max_tokens', 'running_max_req_size'}
+    if (set(args) != keys or any(args.get(k) != v or type(args.get(k)) is not type(v)
+                               for k, v in fixed.items())
+            or any(type(args[k]) is not int or args[k] <= 0 for k in keys-set(fixed))
+            or not 759 <= args['max_req_input_len'] < 1024
+            or not 1024 <= args['batch_max_tokens'] <= args['max_total_token_num']):
+        raise ValueError('explicit native S-LoRA args differ from supported original serving path')
+    for key in ('python', 'native_python', 'source_view'):
+        if not isinstance(cfg.get(key), str) or not Path(cfg[key]).is_absolute():
+            raise ValueError('explicit interpreter/source paths required')
+    return endpoint.port
+
+
+def verify_slora_source_view(cfg):
+    root = Path(cfg['source_view'])
+    path = root/'measurement_manifest.json'
+    if _sha(path) != cfg['source_view_manifest_sha256']:
+        raise ValueError('S-LoRA source view manifest changed')
+    manifest = _load_json(path)
+    if (manifest.get('schema') != 'ieee_tc_slora_measurement_view_v1'
+            or manifest.get('source_view') != str(root.resolve())
+            or manifest.get('worker_lifecycle') is not True
+            or manifest.get('worker_lifecycle_scope') != 'TP1_owned_router_detokenizer'
+            or manifest.get('host_layout') != cfg['host_layout']
+            or manifest.get('helper_path') != str(SCRIPT_DIR/'ieee_tc_serverless_measurement.py')
+            or manifest.get('helper_sha256') != _sha(manifest['helper_path'])
+            or manifest.get('source_adapter_sha256') != _sha(SCRIPT_DIR/'prepare_ieee_tc_serverless_stack.py')
+            or manifest.get('shared_package') != str((Path(cfg['main_repo'])/'faaslora').resolve())):
+        raise ValueError('S-LoRA source view helper/layout/lifecycle identity differs')
+    for key, base in (('original_sha256', Path(manifest['native_source'])),
+                      ('measured_sha256', root), ('shared_source_sha256', Path(cfg['main_repo']))):
+        for name, digest in manifest[key].items():
+            if _sha(base/name) != digest:
+                raise ValueError('S-LoRA guarded source changed: '+name)
+    return manifest
+
+
+def slora_worker_environment(cfg, device, environ=None):
+    python = Path(cfg['native_python'])
+    if not python.is_absolute() or not python.is_file() or not os.access(python, os.X_OK):
+        raise ValueError('declared native S-LoRA interpreter unavailable')
+    root = python.parent.parent
+    torchlib = root/'lib/python3.9/site-packages/torch/lib'
+    if not torchlib.is_dir():
+        raise ValueError('historical native Python3.9 torch library path missing')
+    env = dict(os.environ if environ is None else environ)
+    env.pop('PYTHONHOME', None)
+    env.update(PATH=str(python.parent)+os.pathsep+env.get('PATH', ''),
+        CUDA_HOME=str(root), LD_LIBRARY_PATH=str(torchlib)+os.pathsep+str(root/'lib')
+            +os.pathsep+env.get('LD_LIBRARY_PATH', ''),
+        PYTHONPATH=cfg['source_view'], PYTHONNOUSERSITE='1', PYTHONUNBUFFERED='1',
+        PYTHONDONTWRITEBYTECODE='1', CUDA_VISIBLE_DEVICES=str(device), MAX_JOBS='2')
+    return env
+
+
+def slora_worker_context(config_path, index):
+    """Before backend import and again in the real native GPU process."""
+    from prepare_ieee_tc_serverless_stack import load_guard
+    cfg = _load_json(config_path)
+    expected_sources = {str(SCRIPT_DIR/name) for name in (
+        'replay_vllm_engine_trace.py', 'ieee_tc_serverless_measurement.py', 'prepare_ieee_tc_serverless_stack.py')}
+    if (cfg.get('schema') != 'ieee_tc_slora_native_service_v1'
+            or type(index) is not int or not 0 <= index < len(cfg['gpu_ids'])
+            or set(cfg.get('source_sha256', {})) != expected_sources
+            or any(_sha(p) != h for p, h in cfg['source_sha256'].items())
+            or os.environ.get('FAASLORA_TC_SLORA_WORKER_CONFIG_SHA256') != _sha(config_path)
+            or Path(sys.executable).resolve() != Path(cfg['native_python']).resolve()
+            or sys.version_info[:2] != (3, 9)
+            or os.environ.get('CUDA_VISIBLE_DEVICES') != str(cfg['gpu_ids'][index])
+            or os.environ.get('PYTHONPATH') != cfg['source_view']
+            or set(cfg.get('native_environment', {})) != set(SLORA_ENV_KEYS)
+            or any(os.environ.get(k) != v for k, v in cfg['native_environment'].items())
+            or len(cfg.get('adapters', {})) != 500
+            or {i for i, path in cfg['adapters'].values()} != set(range(500))
+            or any(not Path(path).is_absolute() or Path(path).name != aid
+                   for aid, (i, path) in cfg['adapters'].items())
+            or cfg.get('native_input_params') != {k: cfg['native_args'][k] for k in SLORA_INPUT_KEYS}):
+        raise ValueError('S-LoRA native process/source/config identity differs')
+    verify_slora_source_view(cfg)
+    sys.path.insert(0, cfg['main_repo'])
+    guard = load_guard(Path(cfg['main_repo']))
+    guard.verify_current_service()
+    return cfg, guard
+
+
+def _native_slora_worker(config_path, index):
+    cfg, _ = slora_worker_context(config_path, index)
+    # The original API owns router/detokenizer handles; the opt-in source view
+    # adds finally-cleanup. A startup SIGTERM must unwind that same scope.
+    def stop(signum, frame):
+        raise SystemExit(128+signum)
+    signal.signal(signal.SIGTERM, stop)
+    import torch
+    from slora.server import api_server
+    torch.multiprocessing.set_start_method('spawn')
+    argv = [str(Path(api_server.__file__)), '--host', '127.0.0.1',
+            '--port', str(cfg['worker_ports'][index]), '--nccl_port', str(cfg['nccl_ports'][index])]
+    for key, value in cfg['native_args'].items():
+        flag = '--'+(key.replace('_', '-') if key in ('pool_size_lora', 'prefetch_size',
+            'batch_num_adapters', 'enable_abort', 'no_lora_swap', 'no_lora_compute',
+            'no_kernel', 'no_mem_pool', 'no_lora', 'fair_weights') else key)
+        if type(value) is bool:
+            if value:
+                argv.append(flag)
+        elif value is not None and value != []:
+            argv.extend([flag, str(value)])
+    for i, path in cfg['adapters'].values():
+        argv.extend(['--lora-dirs', path])
+    sys.argv = argv
+    api_server.main()
 
 
 class NativeVLLMRequestHandler:
@@ -376,12 +526,14 @@ async def _native_worker(config_path, index):
 
 async def _resident_http_service(config_path, http_path, output, private_root):
     from prepare_ieee_tc_serverless_stack import (load_guard, load_http_replay_plan,
-        prepare_remote_artifacts, record_http_physical_terminals)
-    from ieee_tc_serverless_measurement import PreReadyHTTPIngress
+        prepare_remote_artifacts, record_http_physical_terminals, prepare_slora_full_pool)
+    from ieee_tc_serverless_measurement import PreReadyHTTPIngress, PublishedArtifactResolver
     import aiohttp
     from aiohttp import web
     cfg, http = _load_json(config_path), _load_json(http_path)
     ingress_port = validate_native_service_config(cfg, http)
+    slora = cfg['schema'] == 'ieee_tc_slora_native_service_v1'
+    backend = 'slora' if slora else 'vllm'
     sys.path.insert(0, http['main_repo'])
     guard = load_guard(Path(http['main_repo']))
     admission = guard.verify_current_service()
@@ -394,10 +546,16 @@ async def _resident_http_service(config_path, http_path, output, private_root):
     plan = load_http_replay_plan(http)
     # All subprocess prerequisites are qualified before the first physical
     # allocation. The executable is already installed; this does not compile.
-    worker_environments = [native_worker_environment(cfg, device) for device in cfg['gpu_ids']]
-    toolchain = worker_environments[0][1]
-    if any(identity != toolchain for _, identity in worker_environments):
-        raise ValueError('resident workers have inconsistent native toolchains')
+    if slora:
+        verify_slora_source_view(dict(cfg, main_repo=http['main_repo']))
+        toolchain = dict(native_python=cfg['native_python'],
+            source_view_manifest_sha256=cfg['source_view_manifest_sha256'], startup=cfg['worker_startup'])
+        worker_environments = [(slora_worker_environment(cfg, device), toolchain) for device in cfg['gpu_ids']]
+    else:
+        worker_environments = [native_worker_environment(cfg, device) for device in cfg['gpu_ids']]
+        toolchain = worker_environments[0][1]
+        if any(identity != toolchain for _, identity in worker_environments):
+            raise ValueError('resident workers have inconsistent native toolchains')
     output.mkdir(mode=0o700, exist_ok=False)
     private_root.mkdir(mode=0o700, exist_ok=False)
     (output/'worker_receipts').mkdir()
@@ -412,45 +570,96 @@ async def _resident_http_service(config_path, http_path, output, private_root):
          'prepare_ieee_tc_serverless_stack.py')}
     worker_cfg = dict(cfg, model=http['model'], main_repo=http['main_repo'], output=str(output),
         source_sha256=sources, native_toolchain=toolchain,
-        remote_config=remote, adapters={aid: [i+1, paths[aid]] for i, aid in enumerate(sorted(paths))})
+        remote_config=remote, adapters={aid: [i if slora else i+1, paths[aid]] for i, aid in enumerate(sorted(paths))})
+    if slora:
+        worker_cfg.update(deployment_notice_s=context['deployment_notice_s'],
+            native_environment={k: worker_environments[0][0][k] for k in SLORA_ENV_KEYS},
+            native_input_params={k: cfg['native_args'][k] for k in SLORA_INPUT_KEYS})
     worker_path = output/'worker_config.json'
     _exclusive_json(worker_path, worker_cfg)
     router = ResidentRoundRobin([e.request_id for e in plan.entries], len(cfg['gpu_ids']),
-                                local_monotonic_clock_id())
-    result = dict(schema='ieee_tc_vllm_native_model_qualification_v1', passed=False,
+                                local_monotonic_clock_id(), instance_prefix=backend)
+    result = dict(schema=f'ieee_tc_{backend}_native_model_qualification_v1', passed=False,
         qualification_only=True, numerical_correctness_qualified=False,
         configuration=cfg, configuration_sha256=_sha(config_path),
         http_config_sha256=_sha(http_path), source_sha256=sources,
         service=admission, requests=[])
     owners, processes, logs, starts = [], [], [], []
+    slora_handlers, slora_preparation = {}, {}
     app_runner = None
     failure = None
     stop = asyncio.Event()
     asyncio.get_running_loop().add_signal_handler(signal.SIGTERM, stop.set)
 
     async def await_ready(index, owner, process):
-        path = output/f'worker_{index}.ready.json'
+        path = output/(f'worker_{index}.native_ready.json' if slora else f'worker_{index}.ready.json')
         deadline = context['deployment_notice_s']+1800.
         while not path.exists():
             if process.poll() is not None:
-                raise RuntimeError(f'vLLM worker {index} exited before ready: {process.returncode}')
+                raise RuntimeError(f'{backend} worker {index} exited before ready: {process.returncode}')
             if stop.is_set() or time.perf_counter() >= deadline:
                 raise TimeoutError('native startup interrupted or qualification protection elapsed')
             await asyncio.sleep(.05)
-        # A file is notification, not GPU proof. Bind live contexts to this
-        # exact allocation before releasing any queued request to the worker.
+        ready = _load_json(path)
+        receipt = _load_json(output/'worker_receipts'/(ready['tc_worker_receipt_id']+'.json'))
+        if (ready['tc_worker_receipt_sha256'] != _sha(output/'worker_receipts'/(ready['tc_worker_receipt_id']+'.json'))
+                or receipt['index'] != index
+                or receipt['worker_config_sha256'] != _sha(worker_path)
+                or receipt['clock_id'] != router.clock_id):
+            raise ValueError('native ready receipt/source/process identity changed')
+        if slora:
+            if (receipt.get('schema') != 'ieee_tc_slora_backend_ready_v1'
+                    or receipt.get('api_parent_identity') != guard.gpu_process_identity(process.pid)
+                    or receipt['identity'] != guard.gpu_process_identity(receipt['identity']['pid'])
+                    or receipt['identity']['pid'] == process.pid
+                    or receipt['adapter_ids'] != {p: i for i, p in worker_cfg['adapters'].values()}
+                    or receipt.get('adapter_count') != 500
+                    or receipt.get('source_view_manifest_sha256') != cfg['source_view_manifest_sha256']
+                    or receipt.get('native_input_params') != worker_cfg['native_input_params']
+                    or receipt.get('native_environment') != worker_cfg['native_environment']
+                    or receipt.get('host_layout') != cfg['host_layout']
+                    or receipt.get('cuda_visible') != str(cfg['gpu_ids'][index])
+                    or receipt.get('cuda_device_count') != 1 or receipt.get('tp') != 1
+                    or receipt.get('model_dir') != cfg['native_args']['model_dir']
+                    or receipt.get('runner_sha256') != sources[str(Path(__file__).resolve())]
+                    or receipt.get('rpc_path') != str((Path(cfg['source_view'])/'slora/server/router/model_infer/model_rpc.py').resolve())
+                    or receipt.get('rpc_sha256') != _sha(receipt['rpc_path'])
+                    or receipt.get('ready_boundary') != 'native_full_pool_and_model_initialized'):
+                raise ValueError('actual S-LoRA GPU child/preparation differs from ready receipt')
+            while True:
+                if process.poll() is not None or stop.is_set() or time.perf_counter() >= deadline:
+                    raise RuntimeError('S-LoRA API did not become ready with its native worker')
+                try:
+                    async with session.get(f'http://127.0.0.1:{cfg["worker_ports"][index]}/health',
+                            timeout=aiohttp.ClientTimeout(total=1.), allow_redirects=False) as response:
+                        if response.status != 200:
+                            raise ValueError('native S-LoRA health returned an error')
+                        await response.read()
+                        break
+                except (aiohttp.ClientConnectionError, asyncio.TimeoutError):
+                    await asyncio.sleep(.05)
+        elif receipt['identity'] != guard.gpu_process_identity(process.pid):
+            raise ValueError('native vLLM API process differs from receipt')
+        # Notification and HTTP health alone are not GPU proof. Bind live
+        # contexts to this exact allocation before releasing queued requests.
         sample = owner.census.sample(service_path)
         workers = [dict(device_uuid=d['gpu_uuid'], pid=p['pid'], worker_rank=index)
             for d in sample['devices'] if d['gpu_uuid'] in owner.gpu_uuids
             for p in d['processes'] if p['service_member'] and p['kind'] == 'compute']
+        if slora and (len(workers) != 1 or workers[0]['pid'] != receipt['identity']['pid']):
+            raise ValueError('S-LoRA native census is not the receipted TP1 GPU child')
         owner.confirm_workers(workers)
-        ready = _load_json(path)
-        receipt = _load_json(output/'worker_receipts'/(ready['tc_worker_receipt_id']+'.json'))
-        if (ready['tc_worker_receipt_sha256'] != _sha(output/'worker_receipts'/(ready['tc_worker_receipt_id']+'.json'))
-                or receipt['identity'] != guard.gpu_process_identity(process.pid) or receipt['index'] != index
-                or receipt['worker_config_sha256'] != _sha(worker_path)
-                or receipt['clock_id'] != router.clock_id):
-            raise ValueError('native ready receipt/source/process identity changed')
+        if slora:
+            native_process = dict(pid=receipt['identity']['pid'],
+                start_ticks=receipt['identity']['start_ticks'], clock_id=receipt['clock_id'])
+            slora_handlers[index] = NativeSloraRequestHandler(session=session,
+                endpoint=f'http://127.0.0.1:{cfg["worker_ports"][index]}/generate_stream',
+                adapters=worker_cfg['adapters'], preparation=slora_preparation,
+                clock_id=router.clock_id, instance_id=f'slora-{index}',
+                receipt=dict(ready, tc_worker_ready_s=receipt['at']), worker_process=native_process,
+                model=http['model'], deployment_notice_s=context['deployment_notice_s'])
+            _exclusive_json(output/f'worker_{index}.ready.json',
+                dict(ready, port=cfg['worker_ports'][index], api_health_verified_s=time.perf_counter()))
         router.ready[index].set()
 
     async def wait_for_replay():
@@ -493,6 +702,8 @@ async def _resident_http_service(config_path, http_path, output, private_root):
                 async def route(request):
                     received = time.perf_counter()
                     index, body = await router.route(await request.json(), received)
+                    if slora:
+                        return web.json_response(await slora_handlers[index].generate(body))
                     url = f'http://127.0.0.1:{cfg["worker_ports"][index]}/v1/chat/completions'
                     async with session.post(url, json=body, allow_redirects=False) as response:
                         return web.Response(body=await response.read(), status=response.status,
@@ -504,29 +715,44 @@ async def _resident_http_service(config_path, http_path, output, private_root):
                 await app_runner.setup()
                 await web.TCPSite(app_runner, '127.0.0.1', cfg['router_port']).start()
                 ingress.router_ready()
-                for index, device in enumerate(cfg['gpu_ids']):
-                    api = guard.load_nvml_binding(Path(os.environ['FAASLORA_TC_NVML_BINDING']),
-                                                  os.environ['FAASLORA_TC_NVML_SHA256'])
-                    census = guard.NativeGPUCensus(api)
-                    try:
-                        owner = PhysicalGPUAllocation(root=deployment.allocations, census=census,
-                            service_path=service_path, device_indices=(device,),
-                            owner_identity=guard.gpu_process_identity(os.getpid()))
-                    except BaseException:
-                        census.close()
-                        raise
-                    owners.append(owner)
-                    log = (output/f'worker_{index}.log').open('xb')
-                    logs.append(log)
-                    # Backend imports occur only in this separate interpreter;
-                    # no dirty replay or repository startup hook is imported.
-                    env = worker_environments[index][0]
-                    process = subprocess.Popen([cfg['python'], '-B', str(Path(__file__).resolve()),
-                        'native-http-worker', '--config', str(worker_path), '--index', str(index)],
-                        stdout=log, stderr=subprocess.STDOUT, env=env)
-                    processes.append(process)
-                    owner.bind_process(process, guard.gpu_process_identity(process.pid))
-                    starts.append(asyncio.create_task(await_ready(index, owner, process)))
+                async def start_workers():
+                    if slora:
+                        slora_preparation.update(await prepare_slora_full_pool(
+                            PublishedArtifactResolver(remote), paths, context['deployment_notice_s']))
+                        _exclusive_json(output/'slora_full_pool_preparation.json', slora_preparation)
+                    for index, device in enumerate(cfg['gpu_ids']):
+                        if stop.is_set():
+                            raise RuntimeError('resident startup interrupted before next GPU allocation')
+                        api = guard.load_nvml_binding(Path(os.environ['FAASLORA_TC_NVML_BINDING']),
+                                                      os.environ['FAASLORA_TC_NVML_SHA256'])
+                        census = guard.NativeGPUCensus(api)
+                        try:
+                            owner = PhysicalGPUAllocation(root=deployment.allocations, census=census,
+                                service_path=service_path, device_indices=(device,),
+                                owner_identity=guard.gpu_process_identity(os.getpid()))
+                        except BaseException:
+                            census.close()
+                            raise
+                        owners.append(owner)
+                        log = (output/f'worker_{index}.log').open('xb')
+                        logs.append(log)
+                        env = worker_environments[index][0]
+                        if slora:
+                            env.update(FAASLORA_TC_SLORA_WORKER_CONFIG=str(worker_path),
+                                FAASLORA_TC_SLORA_WORKER_CONFIG_SHA256=_sha(worker_path),
+                                FAASLORA_TC_SLORA_WORKER_INDEX=str(index))
+                        process = subprocess.Popen([cfg['native_python'] if slora else cfg['python'],
+                            '-B', str(Path(__file__).resolve()),
+                            'native-slora-worker' if slora else 'native-http-worker',
+                            '--config', str(worker_path), '--index', str(index)],
+                            stdout=log, stderr=subprocess.STDOUT, env=env)
+                        processes.append(process)
+                        owner.bind_process(process, guard.gpu_process_identity(process.pid))
+                        task = asyncio.create_task(await_ready(index, owner, process))
+                        starts.append(task)
+                        if slora:
+                            await task  # Preserve historical sequential replica initialization.
+                starts.append(asyncio.create_task(start_workers()))
                 await wait_for_replay()
                 result['passed'] = True
     except Exception as exc:
@@ -560,7 +786,7 @@ async def _resident_http_service(config_path, http_path, output, private_root):
         try:
             record_http_physical_terminals(deployment, context['result_path'])
             physical = deployment.summarize(observed_until_s=time.monotonic())
-            result['physical_lifecycle'] = dict(mode='vllm_resident_pool_v1',
+            result['physical_lifecycle'] = dict(mode=f'{backend}_resident_pool_v1',
                 summary_path=str(deployment.root/'physical_resource_summary.json'),
                 measurement_complete=physical['measurement_complete'])
             if (not physical['measurement_complete']
@@ -573,23 +799,26 @@ async def _resident_http_service(config_path, http_path, output, private_root):
         _exclusive_json(output/'model_qualification.json', result)
         deployment.finalize()
     if failure:
-        raise RuntimeError('vLLM qualification failed; preserve original evidence') from failure
+        raise RuntimeError(f'{backend} qualification failed; preserve original evidence') from failure
     return result
 
 
 def native_http_main(argv):
     parser = argparse.ArgumentParser(description='Opt-in shared TC native HTTP measurement')
-    parser.add_argument('mode', choices=('native-http-service', 'native-http-worker'))
+    parser.add_argument('mode', choices=('native-http-service', 'native-http-worker', 'native-slora-worker'))
     parser.add_argument('--config', type=Path, required=True)
     parser.add_argument('--index', type=int)
     parser.add_argument('--http-replay-config', type=Path)
     parser.add_argument('--output', type=Path)
     parser.add_argument('--private-root', type=Path)
     args = parser.parse_args(argv)
-    if args.mode == 'native-http-worker':
+    if args.mode in ('native-http-worker', 'native-slora-worker'):
         if args.index is None:
             parser.error('worker requires --index')
-        asyncio.run(_native_worker(args.config, args.index))
+        if args.mode == 'native-slora-worker':
+            _native_slora_worker(args.config, args.index)
+        else:
+            asyncio.run(_native_worker(args.config, args.index))
     else:
         if any(p is None or not p.is_absolute() for p in
                (args.http_replay_config, args.output, args.private_root)):
@@ -714,7 +943,7 @@ def _print_live(label: str, start_perf: float, total: int, results: List[Dict[st
 
 
 def main() -> int:
-    if len(sys.argv) > 1 and sys.argv[1] in ('native-http-service', 'native-http-worker'):
+    if len(sys.argv) > 1 and sys.argv[1] in ('native-http-service', 'native-http-worker', 'native-slora-worker'):
         return native_http_main(sys.argv[1:])
     # Legacy path unchanged; the new native service does not import this
     # user-owned dirty replay module or inherit its external loader behavior.

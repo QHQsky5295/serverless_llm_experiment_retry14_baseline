@@ -126,9 +126,10 @@ def slora_host_storage_bound(adapter_facts: list[dict], model: dict,
                   'GPU memory and non-adapter CPU tensors'])
 
 
-def slora_measurement_sources(native_source: Path, *, host_layout: str = 'native_v1') -> dict[str, str]:
+def slora_measurement_sources(native_source: Path, *, host_layout: str = 'native_v1',
+                             worker_lifecycle: bool = False) -> dict[str, str]:
     """Opt-in native observations; preserve the audited S-LoRA compatibility tree."""
-    if host_layout not in ('native_v1', 'packed_views_v1'):
+    if host_layout not in ('native_v1', 'packed_views_v1') or type(worker_lifecycle) is not bool:
         raise ValueError('unknown S-LoRA HOST representation')
     originals = dict(SLORA_OBSERVATION_SOURCES)
     if host_layout == 'packed_views_v1':
@@ -172,6 +173,35 @@ def slora_measurement_sources(native_source: Path, *, host_layout: str = 'native
             '        slora_load_packed_host_weights(self, weights)\n')
         replacements[layer_path] = ''.join(lines[:method.lineno-1])+replacement+''.join(lines[method.end_lineno:])
         replacements[rpc_path] = rpc
+    if worker_lifecycle:
+        replacements[rpc_path] = replace_once(replacements[rpc_path],
+            '        import torch\n        import torch.distributed as dist\n',
+            '        from slora.server.tc_measurement import slora_worker_launch_guard\n'
+            '        slora_worker_launch_guard(world_size)\n        import torch\n'
+            '        import torch.distributed as dist\n')
+        replacements[rpc_path] = replace_once(replacements[rpc_path],
+            '        set_random_seed(2147483647)\n',
+            '        set_random_seed(2147483647)\n'
+            '        from slora.server.tc_measurement import slora_record_worker_ready\n'
+            '        slora_record_worker_ready(self, weight_dir, adapter_dirs,\n'
+            '                                  max_total_token_num, load_way, mode)\n')
+        # Scope the original child creation/serving block with owned-handle
+        # cleanup. TP1 has only router (the actual GPU worker) and detokenizer.
+        # No native scheduler, serving statement or success condition changes.
+        tree = ast.parse(replacements[api_path])
+        main = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == 'main')
+        start = next(n for n in main.body if isinstance(n, ast.Expr)
+            and isinstance(n.value, ast.Call) and isinstance(n.value.func, ast.Attribute)
+            and isinstance(n.value.func.value, ast.Name) and n.value.func.value.id == 'proc_router'
+            and n.value.func.attr == 'start')
+        lines = replacements[api_path].splitlines(keepends=True)
+        body = ''.join('    '+line if line.strip() else line for line in lines[start.lineno-1:main.end_lineno])
+        replacements[api_path] = (''.join(lines[:start.lineno-1])
+            +'    proc_detoken = None\n    try:\n'+body
+            +'    finally:\n'
+            +'        from slora.server.tc_measurement import slora_join_owned_children\n'
+            +'        slora_join_owned_children((proc_router, proc_detoken))\n'
+            +''.join(lines[main.end_lineno:]))
     # Compile source only, never import the backend or allocate a device.
     for path, source in replacements.items():
         compile(source, path, 'exec')
@@ -179,14 +209,15 @@ def slora_measurement_sources(native_source: Path, *, host_layout: str = 'native
 
 
 def prepare_slora_measurement_view(native_source: Path, output: Path, main_repo: Path,
-                                   *, host_layout: str = 'native_v1') -> dict:
+                                   *, host_layout: str = 'native_v1', worker_lifecycle: bool = False) -> dict:
     """Reuse the source adapter; optional third copy changes HOST layout only."""
     native_source, main_repo = native_source.resolve(strict=True), main_repo.resolve(strict=True)
     if output.exists() or output.is_symlink():
         raise FileExistsError('preserve previous S-LoRA source view')
     if output.resolve().is_relative_to(native_source):
         raise ValueError('source view must be outside the preserved native checkout')
-    replacements = slora_measurement_sources(native_source, host_layout=host_layout)
+    replacements = slora_measurement_sources(native_source, host_layout=host_layout,
+                                             worker_lifecycle=worker_lifecycle)
     support = ROOT/'scripts/ieee_tc_serverless_measurement.py'
     shared_package = (main_repo/'faaslora').resolve(strict=True)
     output.mkdir(mode=0o700)
@@ -217,6 +248,8 @@ def prepare_slora_measurement_view(native_source: Path, output: Path, main_repo:
         added_cuda_synchronization=False, scheduling_policy_changed=False,
         loading_policy_changed=False, sampling_policy_changed=False,
         host_layout=host_layout, host_representation_changed=host_layout != 'native_v1',
+        worker_lifecycle=worker_lifecycle,
+        worker_lifecycle_scope='TP1_owned_router_detokenizer' if worker_lifecycle else None,
         host_layout_scope=('TP1_nonGQA_FP16_real_swap_unified_pool_not_BMM'
                            if host_layout == 'packed_views_v1' else 'native'),
         performance_run_authorized=False)
@@ -2183,6 +2216,8 @@ def main() -> None:
     for name in ('native-source', 'output', 'main-repo'):
         slora.add_argument('--'+name, type=Path, required=True)
     slora.add_argument('--host-layout', choices=('native_v1', 'packed_views_v1'), default='native_v1')
+    slora.add_argument('--worker-lifecycle', action='store_true',
+                       help='Explicit TP1 native-ready receipt and owned-child cleanup; default unchanged.')
     replay = sub.add_parser('http-replay')
     replay.add_argument('--config', type=Path, required=True)
     replay.add_argument('--output', type=Path, required=True)
@@ -2228,7 +2263,7 @@ def main() -> None:
     args = parser.parse_args()
     if args.action == 'prepare-slora-measurement-view':
         print(json.dumps(prepare_slora_measurement_view(args.native_source, args.output,
-                                                       args.main_repo, host_layout=args.host_layout), indent=2))
+            args.main_repo, host_layout=args.host_layout, worker_lifecycle=args.worker_lifecycle), indent=2))
         return
     if args.action == 'http-replay':
         http_replay(args)

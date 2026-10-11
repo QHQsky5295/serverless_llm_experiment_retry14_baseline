@@ -591,6 +591,83 @@ class V030NativeRequestObservation(NativeRequestObservation):
         super().observe(output)
 
 
+def slora_join_owned_children(children, grace_s=10.):
+    """Close exact native multiprocessing handles, never a process-name search.
+
+    TP1's router is the GPU worker; its death still is NOT a physical-release
+    receipt. The outer owner separately verifies pidfd exit and native census.
+    """
+    owned = [child for child in children if child is not None and child.pid is not None]
+    for child in owned:
+        if child.is_alive():
+            child.terminate()
+    deadline = time.monotonic()+grace_s
+    for child in owned:
+        child.join(timeout=max(0., deadline-time.monotonic()))
+    for child in owned:
+        if child.is_alive():
+            child.kill()
+    for child in owned:
+        child.join(timeout=2.)
+        if child.is_alive():
+            raise RuntimeError('owned native S-LoRA child did not exit')
+
+
+def slora_worker_launch_guard(world_size):
+    from replay_vllm_engine_trace import slora_worker_context
+    if type(world_size) is not int or world_size != 1:
+        raise ValueError('native S-LoRA worker lifecycle requires TP1')
+    return slora_worker_context(Path(os.environ['FAASLORA_TC_SLORA_WORKER_CONFIG']),
+                               int(os.environ['FAASLORA_TC_SLORA_WORKER_INDEX']))
+
+
+def slora_record_worker_ready(server, weight_dir, adapter_dirs, max_total_token_num, load_way, mode):
+    """Called AFTER native model/all-adapter/pool initialization; no warm inference."""
+    from replay_vllm_engine_trace import slora_worker_context, _exclusive_json, _sha
+    config_path = Path(os.environ['FAASLORA_TC_SLORA_WORKER_CONFIG'])
+    index = int(os.environ['FAASLORA_TC_SLORA_WORKER_INDEX'])
+    cfg, guard = slora_worker_context(config_path, index)
+    expected = {path: i for i, path in cfg['adapters'].values()}
+    params = vars(server.input_params)
+    if (server.world_size != 1 or server.tp_rank != 0 or load_way != 'HF' or mode != []
+            or str(Path(weight_dir).resolve()) != cfg['native_args']['model_dir']
+            or list(adapter_dirs) != list(expected)
+            or server.adapter_id != (expected | {None: len(expected)})
+            or len(server.adapters) != len(expected)+1 or server.adapters[-1] is not None
+            or any(server.adapters[i].lora_dir != path for path, i in expected.items())
+            or params != cfg['native_input_params']
+            or max_total_token_num != cfg['native_args']['max_total_token_num']
+            or server.model is None or server.infer_adapter is None):
+        raise ValueError('actual S-LoRA initialization differs from frozen full-pool worker')
+    import inspect
+    import torch
+    now = time.perf_counter()
+    from faaslora.clock import local_monotonic_clock_id
+    identity = guard.gpu_process_identity(os.getpid())
+    if (identity is None or torch.cuda.device_count() != 1 or torch.cuda.current_device() != 0
+            or now < cfg['deployment_notice_s']):
+        raise ValueError('native S-LoRA device/process/notice identity differs')
+    receipt_id = uuid.uuid4().hex
+    rpc_path = Path(inspect.getfile(type(server))).resolve()
+    row = dict(schema='ieee_tc_slora_backend_ready_v1', receipt_id=receipt_id,
+        at=now, clock_id=local_monotonic_clock_id(), identity=identity, index=index,
+        api_parent_identity=guard.gpu_process_identity(os.getppid()),
+        worker_config_sha256=_sha(config_path), runner_sha256=_sha(inspect.getfile(slora_worker_context)),
+        rpc_path=str(rpc_path), rpc_sha256=_sha(rpc_path),
+        source_view_manifest_sha256=cfg['source_view_manifest_sha256'],
+        cuda_visible=os.environ['CUDA_VISIBLE_DEVICES'], cuda_device_count=1, tp=1,
+        native_python=__import__('sys').version, torch_version=torch.__version__,
+        native_environment=dict(cfg['native_environment']),
+        model_dir=str(Path(weight_dir).resolve()), native_input_params=params,
+        adapter_ids=expected, adapter_count=len(expected),
+        host_layout=cfg['host_layout'], ready_boundary='native_full_pool_and_model_initialized')
+    path = Path(cfg['output'])/'worker_receipts'/(receipt_id+'.json')
+    _exclusive_json(path, row)
+    _exclusive_json(Path(cfg['output'])/f'worker_{index}.native_ready.json',
+        dict(tc_worker_receipt_id=receipt_id, tc_worker_receipt_sha256=_sha(path)))
+    return row
+
+
 def slora_require_packed_host_mode(world_size, params):
     """Opt-in representation adapter, never a fallback from unsupported modes."""
     if (type(world_size) is not int or world_size != 1
