@@ -44,6 +44,95 @@ def sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+SLORA_OBSERVATION_SOURCES = {
+    'slora/server/router/model_infer/model_rpc.py': '405fa0342ae74a844a8238118ba88e7ef248ebfbc0a0ee18e052cbeb1c96ce0c',
+    'slora/server/router/model_infer/infer_batch.py': 'c9de78231eae3e716ae0ed2617eb322f8ea7090c28fa4ed88679cf6a24932ca4',
+    'slora/server/router/model_infer/post_process.py': 'a369d40772d7b716d0309f9cbb4ce58dd79c6ab5ebc964ffd2bf3786de7a812e',
+    'slora/server/api_server.py': '504a1128cd8c6868a7d4c4ed21127b93f3cc7db0fc009082677bf1c1de97c485',
+    'slora/server/httpserver/manager.py': 'f0220152d7a925d0d28abb40658a7cfc5c58a06c88b591eb4be6c760ddd38037',
+    'slora/server/router/manager.py': '6c700d0fe71a1df4ea9d6dba100749cc9dbb1ff5c4b4c7bec3cdf9d47d7c3de7',
+    'slora/server/detokenization/manager.py': 'd11514ee650ac145316086d3c115f986c74fb024f7da9a2b1c0fa547da8def0b',
+    'slora/server/io_struct.py': '9f4d96a0194697e26ebe155811c7c717580ea92a6b64a95e75894b1c68d65292',
+    'slora/server/sampling_params.py': 'c1899ef57ba693eb46ebbb571505f2e5bcfc9403ca32286641b6109325baeaf5',
+    'slora/server/router/model_infer/infer_adapter.py': 'dc3fa719a407bcaf85215c814bc569430455696fed1c4141c9b66db5fb3ea842',
+    'slora/models/peft/lora_adapter.py': '3a603145d3198d3fc60ec3f7d433af1600764801ee9289b3cbdaccb56ecb2e45',
+    'slora/models/peft/lora_unordered_batch_infer.py': '97c51adc2687db4d0edc6adca26218372cfdde8e47a978918e355b6a4172c9a2',
+    'slora/models/bmm/lora_bmm_infer.py': 'a9ffec95093e8118910130bde8f3b95c0ba03e8edcce13cd7af03c2279bc4786',
+}
+
+
+def slora_measurement_sources(native_source: Path) -> dict[str, str]:
+    """Opt-in native observations; preserve the audited S-LoRA compatibility tree."""
+    for path, expected in SLORA_OBSERVATION_SOURCES.items():
+        if sha((native_source/path).read_bytes()) != expected:
+            raise ValueError('S-LoRA observation source drift: '+path)
+    rpc_path, api_path = 'slora/server/router/model_infer/model_rpc.py', 'slora/server/api_server.py'
+    rpc, api = (native_source/rpc_path).read_text(), (native_source/api_path).read_text()
+    rpc = replace_once(rpc, 'import time\n', 'import time\n'
+        'from slora.server.tc_measurement import (slora_register_requests, '
+        'slora_forward_started, slora_token_event)\n')
+    rpc = replace_once(rpc, '        batch_data = InferBatch.init_batch(',
+        '        slora_register_requests(self, reqs)\n        batch_data = InferBatch.init_batch(')
+    rpc = replace_once(rpc, '        logits = engine.forward(**kwargs)\n',
+        '        slora_forward_started(self, batch, engine)\n        logits = engine.forward(**kwargs)\n')
+    rpc = replace_once(rpc, '        next_token_ids = next_token_ids.detach().cpu().numpy()\n',
+        '        next_token_ids = next_token_ids.detach().cpu().numpy()\n'
+        '        tc_slora_produced_at = time.perf_counter()\n')
+    rpc = replace_once(rpc, "            output_dict[r['request_id']] = (int(next_token_id), metadata)\n",
+        "            metadata['tc_slora_native_token'] = slora_token_event(\n"
+        '                r, batch.adapter_dirs[i], int(next_token_id), tc_slora_produced_at)\n'
+        "            output_dict[r['request_id']] = (int(next_token_id), metadata)\n")
+    api = replace_once(api, '            yield ("data:" + json.dumps(ret, ensure_ascii=False)',
+        "            ret['tc_slora_native_token'] = metadata['tc_slora_native_token']\n"
+        '            yield ("data:" + json.dumps(ret, ensure_ascii=False)')
+    # Compile source only, never import the backend or allocate a device.
+    for path, source in ((rpc_path, rpc), (api_path, api)):
+        compile(source, path, 'exec')
+    return {rpc_path: rpc, api_path: api}
+
+
+def prepare_slora_measurement_view(native_source: Path, output: Path, main_repo: Path) -> dict:
+    """Reuse the source-view adapter; only two Python files are copied/observed."""
+    native_source, main_repo = native_source.resolve(strict=True), main_repo.resolve(strict=True)
+    if output.exists() or output.is_symlink():
+        raise FileExistsError('preserve previous S-LoRA source view')
+    if output.resolve().is_relative_to(native_source):
+        raise ValueError('source view must be outside the preserved native checkout')
+    replacements = slora_measurement_sources(native_source)
+    support = ROOT/'scripts/ieee_tc_serverless_measurement.py'
+    shared_package = (main_repo/'faaslora').resolve(strict=True)
+    output.mkdir(mode=0o700)
+    for parent, dirs, files in os.walk(native_source/'slora'):
+        dirs[:] = [d for d in dirs if d != '__pycache__']
+        relative = Path(parent).relative_to(native_source)
+        dest = output/relative
+        dest.mkdir(exist_ok=True)
+        for name in files:
+            key = str(relative/name)
+            if key in replacements:
+                (dest/name).write_text(replacements[key])
+            elif not name.endswith('.pyc'):
+                (dest/name).symlink_to(Path(parent)/name)
+    (output/'slora/server/tc_measurement.py').symlink_to(support)
+    (output/'faaslora').symlink_to(shared_package, target_is_directory=True)
+    result = dict(schema='ieee_tc_slora_measurement_view_v1',
+        native_source=str(native_source), source_view=str(output.resolve()),
+        original_sha256=dict(SLORA_OBSERVATION_SOURCES),
+        measured_sha256={p: sha(value.encode()) for p, value in replacements.items()},
+        helper_path=str(support), helper_sha256=sha(support.read_bytes()),
+        source_adapter_sha256=sha(Path(__file__).read_bytes()),
+        shared_package=str(shared_package), repository_startup_hooks=False,
+        shared_source_sha256={'faaslora/clock.py': sha((shared_package/'clock.py').read_bytes())},
+        supported_observation='TP1_native_slora_fixed_length_greedy_v1',
+        timing_boundary='after_existing_sampled_token_id_cpu_transfer_before_logprob_and_text',
+        added_cuda_synchronization=False, scheduling_policy_changed=False,
+        loading_policy_changed=False, sampling_policy_changed=False,
+        performance_run_authorized=False)
+    with (output/'measurement_manifest.json').open('x') as handle:
+        json.dump(result, handle, indent=2)
+    return result
+
+
 def scheduler_queue_source(source: str) -> str:
     """Correct pending-request identity, without changing placement policy.
 
@@ -1915,6 +2004,9 @@ def main() -> None:
     source.add_argument('--scheduler-queue', choices=('original', 'request_identity_v1'),
                         default='original')
     source.add_argument('--main-repo', type=Path, required=True)
+    slora = sub.add_parser('prepare-slora-measurement-view')
+    for name in ('native-source', 'output', 'main-repo'):
+        slora.add_argument('--'+name, type=Path, required=True)
     replay = sub.add_parser('http-replay')
     replay.add_argument('--config', type=Path, required=True)
     replay.add_argument('--output', type=Path, required=True)
@@ -1958,6 +2050,10 @@ def main() -> None:
     model.add_argument('--enforce-eager', action=argparse.BooleanOptionalAction, default=True,
                        help='Historical default is eager; --no-enforce-eager explicitly tests native CUDA graphs.')
     args = parser.parse_args()
+    if args.action == 'prepare-slora-measurement-view':
+        print(json.dumps(prepare_slora_measurement_view(args.native_source, args.output,
+                                                       args.main_repo), indent=2))
+        return
     if args.action == 'http-replay':
         http_replay(args)
         return

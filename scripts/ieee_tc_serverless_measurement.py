@@ -11,7 +11,9 @@ import concurrent.futures
 import fcntl
 import hashlib
 import json
+import math
 import os
+from functools import lru_cache
 from pathlib import Path
 import threading
 import time
@@ -587,3 +589,194 @@ class V030NativeRequestObservation(NativeRequestObservation):
         if getattr(output, 'tc_native_lora_identity', object()) != self.lora_identity:
             raise ValueError('native output adapter ID/path differs from the submitted request')
         super().observe(output)
+
+
+@lru_cache(maxsize=4)
+def _slora_process_identity(pid):
+    # PID is a cache key: a fork must not inherit its parent's identity.
+    from faaslora.clock import local_monotonic_clock_id
+    if pid != os.getpid():
+        raise ValueError('native observation process identity differs')
+    return dict(pid=pid, start_ticks=int(Path('/proc/self/stat').read_text().rsplit(')', 1)[1].split()[19]),
+                clock_id=local_monotonic_clock_id())
+
+
+def _native_ids_digest(ids):
+    return hashlib.sha256(json.dumps(ids, separators=(',', ':')).encode()).hexdigest()
+
+
+def slora_register_requests(server, requests):
+    """Observe original RPC inputs before InferBatch aliases/appends to them.
+
+    Only the qualified TP=1 LoRA path is supported. Metadata lives on the
+    existing request objects, so native filter/merge/free own its lifetime.
+    No global request cache, input mutation, scheduling or sampling change.
+    """
+    params = server.input_params
+    if (server.world_size != 1 or server.tp_rank != 0
+            or any(getattr(params, flag) for flag in ('dummy', 'no_lora', 'no_kernel', 'no_lora_compute'))
+            or params.scheduler != 'slora'):
+        raise ValueError('S-LoRA native observation requires real TP1 slora execution')
+    at = time.perf_counter()
+    seen = set()
+    prepared = []
+    for request in requests:
+        rid, path = request['request_id'], request['adapter_dir']
+        ids, target = request['input_id'], request['output_len']
+        sample = request['sampling_param']
+        if (not isinstance(rid, str) or not rid or rid in seen or '_tc_slora' in request
+                or not isinstance(path, str) or not Path(path).is_absolute()
+                or type(ids) is not list or not ids or any(type(t) is not int or t < 0 for t in ids)
+                or type(target) is not int or not 1 <= target <= 256
+                or sample.get('do_sample') is not False or sample.get('temperature') != 1.
+                or sample.get('top_p') != 1. or sample.get('top_k') != 1
+                or sample.get('presence_penalty') != 0. or sample.get('frequency_penalty') != 0.):
+            raise ValueError('native RPC input differs from fixed greedy LoRA contract')
+        index = server.adapter_id[path]
+        if type(index) is not int or index < 0 or server.adapters[index].lora_dir != path:
+            raise ValueError('native registered adapter object/path differs')
+        seen.add(rid)
+        prepared.append((request, dict(request_id=rid, adapter_path=path, adapter_index=index,
+            native_prompt_token_ids=list(ids), native_prompt_token_ids_sha256=_native_ids_digest(ids),
+            target_tokens=target, registered_monotonic_s=at, scheduled_monotonic_s=None,
+            count=0, process=dict(_slora_process_identity(os.getpid())))))
+    # All validation precedes metadata attachment; failed validation is not a
+    # partially registered native batch. No native fields above are modified.
+    for request, state in prepared:
+        request['_tc_slora'] = state
+
+
+def slora_forward_started(server, batch, engine):
+    """Record first actual forward boundary and verify its selected LoRA path."""
+    expected = ('slora.models.bmm.lora_bmm_infer.LoraBmmInfer' if server.input_params.bmm else
+                'slora.models.peft.lora_unordered_batch_infer.LoraUnorderedBatchInfer')
+    actual = type(engine).__module__+'.'+type(engine).__name__
+    if actual != expected or engine.base_model is not server.model:
+        raise ValueError('native forward is not the declared LoRA engine')
+    if len(batch.adapter_dirs) != len(batch.requests):
+        raise ValueError('native batch request/adapter dimensions differ')
+    at = time.perf_counter()
+    for request, path in zip(batch.requests, batch.adapter_dirs):
+        state = request['_tc_slora']
+        index = server.adapter_id[path]
+        adapter = server.adapters[index]
+        if (state['request_id'] != request['request_id'] or state['adapter_path'] != path
+                or state['adapter_index'] != index or adapter.lora_dir != path
+                or (server.input_params.bmm and adapter.is_on_gpu() is not True)
+                or (not server.input_params.bmm and
+                    (engine.infer_adapter is not server.infer_adapter
+                     or path not in server.infer_adapter.adapter_dirs))):
+            raise ValueError('actual native forward adapter differs or is not resident')
+        if state['scheduled_monotonic_s'] is None:
+            state['scheduled_monotonic_s'] = at
+            state['engine_class'] = actual
+
+
+def slora_token_event(request, adapter_path, token_id, produced_at):
+    """Snapshot after the existing CPU ID transfer, before logprob/text/HTTP.
+
+    No new CUDA synchronization. One batch timestamp applies to its already
+    returned ID vector, not an invented per-kernel timestamp. Original prompt
+    IDs are emitted once, so streaming does not duplicate them per token.
+    """
+    state = request['_tc_slora']
+    scheduled = state['scheduled_monotonic_s']
+    if (adapter_path != state['adapter_path'] or request['request_id'] != state['request_id']
+            or type(token_id) is not int or token_id < 0
+            or type(produced_at) not in (float, int) or not math.isfinite(produced_at)
+            or scheduled is None or produced_at < scheduled
+            or produced_at < state.get('last_at', scheduled)
+            or state['count'] >= state['target_tokens']
+            or len(request['input_id']) != len(state['native_prompt_token_ids'])+state['count']+1
+            or request['input_id'][-1] != token_id):
+        raise ValueError('native produced token/boundary differs from observed request')
+    state['count'] += 1
+    state['last_at'] = produced_at
+    event = dict(schema='ieee_tc_slora_token_event_v1', request_id=state['request_id'],
+        adapter_path=adapter_path, adapter_index=state['adapter_index'],
+        output_index=state['count'], native_token_id=token_id, produced_monotonic_s=produced_at)
+    if state['count'] == 1:
+        event['first_event'] = {key: copy.deepcopy(state[key]) for key in
+            ('native_prompt_token_ids', 'native_prompt_token_ids_sha256', 'target_tokens',
+             'registered_monotonic_s', 'scheduled_monotonic_s', 'engine_class', 'process')}
+    return event
+
+
+class SloraNativeRequestObservation:
+    """Validate native SSE IDs/events without guessing missing timestamps.
+
+    The RPC registration boundary is NOT relabeled as vLLM engine queue entry.
+    The downstream common service adapter must separately record its true
+    ingress/dispatch boundaries, resource owner and artifact provenance.
+    """
+    def __init__(self, *, request_id, adapter_path, prompt_ids, target, clock_id):
+        if (not isinstance(request_id, str) or not request_id
+                or not isinstance(adapter_path, str) or not Path(adapter_path).is_absolute()
+                or type(prompt_ids) is not list or not prompt_ids
+                or any(type(t) is not int or t < 0 for t in prompt_ids)
+                or type(target) is not int or not 1 <= target <= 256 or not clock_id):
+            raise ValueError('explicit S-LoRA native request contract required')
+        self.request_id, self.adapter_path = request_id, adapter_path
+        self.prompt_ids, self.target, self.clock_id = list(prompt_ids), target, clock_id
+        self.tokens, self.first, self.last, self.binding = [], None, None, None
+        self.finished = False
+
+    def observe(self, payload):
+        event = payload.get('tc_slora_native_token', {})
+        token = payload.get('token', {}).get('id')
+        finished = payload.get('finished')
+        at = event.get('produced_monotonic_s')
+        index = event.get('output_index')
+        if (self.finished or event.get('schema') != 'ieee_tc_slora_token_event_v1'
+                or event.get('request_id') != self.request_id or event.get('adapter_path') != self.adapter_path
+                or type(event.get('adapter_index')) is not int or event['adapter_index'] < 0
+                or type(index) is not int or index != len(self.tokens)+1 or index > self.target
+                or type(token) is not int or token < 0 or type(finished) is not bool
+                or type(event.get('native_token_id')) is not int or event['native_token_id'] != token
+                or finished != (index == self.target)
+                or type(at) not in (float, int) or not math.isfinite(at)
+                or (self.last is not None and at < self.last)):
+            raise ValueError('missing, duplicate, truncated or mismatched S-LoRA native event')
+        if self.binding is None:
+            binding = event.get('first_event', {})
+            process = binding.get('process', {})
+            times = [binding.get('registered_monotonic_s'), binding.get('scheduled_monotonic_s'), at]
+            if (binding.get('native_prompt_token_ids') != self.prompt_ids
+                    or binding.get('native_prompt_token_ids_sha256') != _native_ids_digest(self.prompt_ids)
+                    or binding.get('target_tokens') != self.target
+                    or process.get('clock_id') != self.clock_id
+                    or type(process.get('pid')) is not int or process['pid'] <= 0
+                    or type(process.get('start_ticks')) is not int or process['start_ticks'] <= 0
+                    or binding.get('engine_class') not in (
+                        'slora.models.peft.lora_unordered_batch_infer.LoraUnorderedBatchInfer',
+                        'slora.models.bmm.lora_bmm_infer.LoraBmmInfer')
+                    or any(type(t) not in (float, int) or not math.isfinite(t) for t in times)
+                    or times != sorted(times)):
+                raise ValueError('native initial prompt/process/adapter/timing binding differs')
+            self.binding = copy.deepcopy(binding)
+            self.adapter_index, self.first = event['adapter_index'], at
+        elif 'first_event' in event or event['adapter_index'] != self.adapter_index:
+            raise ValueError('native initial binding was repeated or changed')
+        self.tokens.append(token)
+        self.last, self.finished = at, finished
+
+    def finish(self, completed_at):
+        if (not self.finished or len(self.tokens) != self.target
+                or type(completed_at) not in (int, float) or not math.isfinite(completed_at)
+                or completed_at < self.last):
+            raise ValueError('incomplete native S-LoRA output/completion boundary')
+        decode = (self.last-self.first)*1000.
+        return dict(timing_contract='ieee_tc_slora_native_v1', native_terminal_observed=True,
+            native_timing_source='slora_model_rpc_cpu_token_vector_available',
+            native_clock_id=self.clock_id, native_rpc_registered_monotonic_s=self.binding['registered_monotonic_s'],
+            native_scheduled_monotonic_s=self.binding['scheduled_monotonic_s'],
+            native_first_token_monotonic_s=self.first, native_last_token_monotonic_s=self.last,
+            worker_completed_monotonic_s=completed_at, native_output_tokens=len(self.tokens),
+            native_decode_ms=decode, native_tpot_ms=decode/(len(self.tokens)-1) if len(self.tokens)>1 else None,
+            worker_completion_notification_ms=(completed_at-self.last)*1000.,
+            native_prompt_token_ids=list(self.prompt_ids), native_prompt_token_ids_sha256=_native_ids_digest(self.prompt_ids),
+            completion_token_ids=list(self.tokens), completion_token_ids_sha256=_native_ids_digest(self.tokens),
+            native_adapter_path=self.adapter_path, native_adapter_index=self.adapter_index,
+            native_adapter_binding_source='slora_model_rpc_actual_batch_adapter',
+            native_process=dict(self.binding['process']), native_engine_class=self.binding['engine_class'],
+            lora_numerical_correctness_qualified=False)
