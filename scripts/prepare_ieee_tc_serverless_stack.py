@@ -44,6 +44,86 @@ def sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+LOQUETIER_OBSERVATION_SOURCES = {
+    'model_generation.py': '31fb751c0a0b04608b427e84c765735883f37128af4e12379dd8860b135a6cb2',
+    'models/mixed_lora.py': '93be379685693ca16dd57b4400bea9e446ba8ed4108f97f5ba7b2c311d6e4b1e',
+    'models/mixed_llama.py': '39f7d0f8b5dd2bf57e09a90dd746e5f8a6ad8442a7a8e1d8ddd03c08fb7e76fa',
+    'virtual_model.py': 'd1aa64bbbc6e6929bbdf4442cb58a9f646ef4ab29ecfe40683c682cd7df60def',
+    'kernel_utils.py': '65200eb49b8ccfe00620a5295bd802b6ca07131eb0e71ea0483a8583b9c6ac02',
+}
+
+
+def loquetier_measurement_sources(native_source: Path) -> dict[str, str]:
+    """Observe the pinned inference path without replacing native computation."""
+    package = native_source/'src/loquetier_src'
+    for path, expected in LOQUETIER_OBSERVATION_SOURCES.items():
+        if sha((package/path).read_bytes()) != expected:
+            raise ValueError('Loquetier observation source drift: '+path)
+    source = (package/'model_generation.py').read_text()
+    source = replace_once(source, 'from dataclasses import dataclass\n',
+        'from dataclasses import dataclass\nimport time as tc_time\n'
+        'from .tc_measurement import (loquetier_register_requests, '
+        'loquetier_forward_started, loquetier_token_event, loquetier_finished)\n')
+    source = replace_once(source, '    def add_requests(self, requests: List[InputRequest]):\n',
+        '    def add_requests(self, requests: List[InputRequest]):\n'
+        '        loquetier_register_requests(self, requests)\n')
+    source = replace_once(source, '        with grad_func():\n',
+        '        loquetier_forward_started(self, lora_ids, lora_lens)\n'
+        '        with grad_func():\n')
+    source = replace_once(source, '            r.next_input_ids = [next_token_ids[i].item()]\n',
+        '            r.next_input_ids = [next_token_ids[i].item()]\n'
+        '            loquetier_token_event(self, r, r.next_input_ids[0], tc_time.perf_counter())\n')
+    source = replace_once(source, '        self.decode_request_changed &= len(self.requests) > 0\n',
+        '        self.decode_request_changed &= len(self.requests) > 0\n'
+        '        loquetier_finished(self)\n')
+    ast.parse(source)
+    return {'model_generation.py': source}
+
+
+def prepare_loquetier_measurement_view(native_source: Path, output: Path, main_repo: Path) -> dict:
+    """Exclusive small source view, reusing the existing source-adapter method."""
+    native_source, main_repo = native_source.resolve(strict=True), main_repo.resolve(strict=True)
+    if output.exists() or output.is_symlink():
+        raise FileExistsError('preserve previous Loquetier source view')
+    if output.resolve().is_relative_to(native_source):
+        raise ValueError('source view must be outside the preserved native checkout')
+    replacements = loquetier_measurement_sources(native_source)
+    package = native_source/'src/loquetier_src'
+    support = ROOT/'scripts/ieee_tc_serverless_measurement.py'
+    shared_package = (main_repo/'faaslora').resolve(strict=True)
+    output.mkdir(mode=0o700)
+    for parent, dirs, files in os.walk(package):
+        dirs[:] = [d for d in dirs if d != '__pycache__']
+        relative = Path(parent).relative_to(package)
+        dest = output/'loquetier_src'/relative
+        dest.mkdir(parents=True, exist_ok=True)
+        for name in files:
+            key = str(relative/name)
+            if key in replacements:
+                (dest/name).write_text(replacements[key])
+            elif not name.endswith('.pyc'):
+                (dest/name).symlink_to(Path(parent)/name)
+    (output/'loquetier_src/tc_measurement.py').symlink_to(support)
+    (output/'faaslora').symlink_to(shared_package, target_is_directory=True)
+    result = dict(schema='ieee_tc_loquetier_measurement_view_v1',
+        native_source=str(native_source), source_view=str(output.resolve()),
+        original_sha256=LOQUETIER_OBSERVATION_SOURCES,
+        measured_sha256={p: sha(v.encode()) for p, v in replacements.items()},
+        helper_path=str(support), helper_sha256=sha(support.read_bytes()),
+        source_adapter_sha256=sha(Path(__file__).read_bytes()),
+        shared_package=str(shared_package),
+        shared_source_sha256={'faaslora/clock.py': sha((shared_package/'clock.py').read_bytes())},
+        supported_observation='native_loquetier_inference_fixed_length_greedy_v1',
+        timing_boundary='immediately_after_each_existing_native_token_item_before_output_update',
+        added_per_token_cuda_synchronization=False,
+        startup_pointer_table_cpu_readback=True, scheduling_policy_changed=False,
+        loading_policy_changed=False, sampling_policy_changed=False,
+        performance_run_authorized=False)
+    with (output/'measurement_manifest.json').open('x') as handle:
+        json.dump(result, handle, indent=2)
+    return result
+
+
 SLORA_OBSERVATION_SOURCES = {
     'slora/server/router/model_infer/model_rpc.py': '405fa0342ae74a844a8238118ba88e7ef248ebfbc0a0ee18e052cbeb1c96ce0c',
     'slora/server/router/model_infer/infer_batch.py': 'c9de78231eae3e716ae0ed2617eb322f8ea7090c28fa4ed88679cf6a24932ca4',
@@ -2218,6 +2298,9 @@ def main() -> None:
     slora.add_argument('--host-layout', choices=('native_v1', 'packed_views_v1'), default='native_v1')
     slora.add_argument('--worker-lifecycle', action='store_true',
                        help='Explicit TP1 native-ready receipt and owned-child cleanup; default unchanged.')
+    loquetier = sub.add_parser('prepare-loquetier-measurement-view')
+    for name in ('native-source', 'output', 'main-repo'):
+        loquetier.add_argument('--'+name, type=Path, required=True)
     replay = sub.add_parser('http-replay')
     replay.add_argument('--config', type=Path, required=True)
     replay.add_argument('--output', type=Path, required=True)
@@ -2261,6 +2344,10 @@ def main() -> None:
     model.add_argument('--enforce-eager', action=argparse.BooleanOptionalAction, default=True,
                        help='Historical default is eager; --no-enforce-eager explicitly tests native CUDA graphs.')
     args = parser.parse_args()
+    if args.action == 'prepare-loquetier-measurement-view':
+        print(json.dumps(prepare_loquetier_measurement_view(args.native_source, args.output,
+            args.main_repo), indent=2))
+        return
     if args.action == 'prepare-slora-measurement-view':
         print(json.dumps(prepare_slora_measurement_view(args.native_source, args.output,
             args.main_repo, host_layout=args.host_layout, worker_lifecycle=args.worker_lifecycle), indent=2))

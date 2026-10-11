@@ -591,6 +591,164 @@ class V030NativeRequestObservation(NativeRequestObservation):
         super().observe(output)
 
 
+def loquetier_bind_static_registry(generator, adapter_paths):
+    """One startup readback of native name/module/pointer tables, before traffic.
+
+    Does not load, move, deduplicate or alter weights. This proves structural
+    binding only; remote content and numerical qualification are separate.
+    """
+    model, cfg = generator.model, generator.generation_config
+    native_class = type(model).__module__+'.'+type(model).__name__
+    registry = dict(model.lora_name_to_id)
+    if (native_class != 'loquetier_src.models.mixed_lora.MixedLoraModel'
+            or hasattr(generator, '_tc_loquetier_registry')
+            or not adapter_paths or set(adapter_paths) != set(registry)
+            or sorted(registry.values()) != list(range(len(registry)))
+            or any(type(i) is not int for i in registry.values())
+            or any(not isinstance(p, str) or not Path(p).is_absolute() for p in adapter_paths.values())
+            or cfg.do_sample is not False or cfg.num_beams != 1 or cfg.eos_token_id is not None
+            or generator.mode.name != 'GREEDY_SEARCH' or generator.eos_token_ids != [None]
+            or model.training_loras or str(model.dtype) != 'torch.float16'):
+        raise ValueError('native static Loquetier fixed-output registry/config required')
+    names = sorted(registry, key=registry.get)
+    if set(model.adapter_lists) != set(names) or not model.target_module_saves:
+        raise ValueError('native Loquetier module inventory differs')
+    for module_name, adapters in model.target_module_saves.items():
+        layer = model.model.get_submodule(module_name)
+        if (type(layer).__module__+'.'+type(layer).__name__ !=
+                'loquetier_src.models.mixed_lora.MixedLoraLinear'
+                or layer.root_context is not model.root_context
+                or layer.adapters is not adapters or layer.rank != model.rank
+                or [a.adapter_name for a in adapters] != names):
+            raise ValueError('native per-module LoRA index/layout differs')
+        expected_a, expected_b = [], []
+        for name, adapter in zip(names, adapters):
+            if (sum(a is adapter for a in model.adapter_lists[name]) != 1
+                    or str(adapter.wa.dtype) != 'torch.float16'
+                    or str(adapter.wb.dtype) != 'torch.float16'
+                    or adapter.wa.device != layer.device or adapter.wb.device != layer.device
+                    or adapter.wa.ndim != 2 or adapter.wb.ndim != 2
+                    or adapter.wa.shape[0] != model.rank or adapter.wb.shape[1] != model.rank
+                    or not adapter.wa.is_contiguous() or not adapter.wb.is_contiguous()):
+                raise ValueError('native prepared weight storage differs')
+            expected_a.append(adapter.wa.data_ptr())
+            expected_b.append(adapter.wb.data_ptr())
+        # Explicit startup-only readback. Never called in per-token hooks.
+        if (layer.wa_ptrs.detach().cpu().tolist() != expected_a
+                or layer.wb_ptrs.detach().cpu().tolist() != expected_b):
+            raise ValueError('native SMLM pointer table differs from adapter storage')
+    if any(len(model.adapter_lists[n]) != len(model.target_module_saves) for n in names):
+        raise ValueError('native adapter is missing a target module')
+    generator._tc_loquetier_registry = registry
+    generator._tc_loquetier_paths = dict(adapter_paths)
+    generator._tc_loquetier_active = {}
+    generator._tc_loquetier_seen = set()
+    generator._tc_loquetier_request_ids = set()
+    return dict(native_class=native_class, adapter_count=len(names),
+        target_modules=len(model.target_module_saves), rank=model.rank,
+        pointer_tables_verified=True, numerical_correctness_qualified=False)
+
+
+def loquetier_register_requests(generator, requests):
+    """Reject unknown IDs before native index-0 fallback or any KV allocation."""
+    registry = generator._tc_loquetier_registry
+    at, pending, seen, request_ids = time.perf_counter(), [], set(), set()
+    for request in requests:
+        rid, aid, mark = getattr(request, '_tc_request_id', None), request.lora_name, request.mark_id
+        ids = request.next_input_ids
+        if (not isinstance(rid, str) or not rid or type(mark) is not int or mark < 0
+                or rid in request_ids or rid in generator._tc_loquetier_request_ids
+                or mark in seen or mark in generator._tc_loquetier_seen
+                or hasattr(request, '_tc_loquetier') or aid not in registry
+                or generator.model.lora_name_to_id.get(aid) != registry[aid]
+                or request.status.name != 'Prefill' or request.labels is not None
+                or request.input_ids.device.type != 'cpu' or request.input_ids.ndim != 1
+                or str(request.input_ids.dtype) != 'torch.int64'
+                or type(ids) is not list or not ids or any(type(t) is not int or t < 0 for t in ids)
+                or request.input_ids.tolist() != ids
+                or type(request.max_length) is not int
+                or not 1 <= request.max_length-len(ids) <= 256 or request.max_length > 1024
+                or request.logits_processor is None or len(request.logits_processor) != 0):
+            raise ValueError('native Loquetier request differs from fixed input/static binding contract')
+        seen.add(mark)
+        request_ids.add(rid)
+        state = dict(request_id=rid, mark_id=mark, adapter_id=aid, adapter_index=registry[aid],
+            adapter_path=generator._tc_loquetier_paths[aid], native_prompt_token_ids=list(ids),
+            native_prompt_token_ids_sha256=_native_ids_digest(ids),
+            target_tokens=request.max_length-len(ids), registered_monotonic_s=at,
+            scheduled_monotonic_s=None, first_token_monotonic_s=None,
+            last_token_monotonic_s=None, output_ids=[], forward_count=0, finished=False)
+        pending.append((request, state))
+    # All validation precedes attachment. No partial batch on validation failure.
+    for request, state in pending:
+        request._tc_loquetier = state
+        generator._tc_loquetier_active[request.mark_id] = state
+        generator._tc_loquetier_seen.add(request.mark_id)
+        generator._tc_loquetier_request_ids.add(state['request_id'])
+
+
+def loquetier_forward_started(generator, lora_ids, lora_lens):
+    """Observe actual native grouped input IDs and root context before forward."""
+    at = time.perf_counter()
+    expected_ids, expected_lens, states = [], [], []
+    for request in generator.requests:
+        state = request._tc_loquetier
+        aid, index = state['adapter_id'], state['adapter_index']
+        if (state['finished'] or state['request_id'] != request._tc_request_id
+                or state['mark_id'] != request.mark_id or request.lora_name != aid
+                or request.lora_id != index or generator.model.lora_name_to_id.get(aid) != index
+                or state['forward_count'] != len(state['output_ids'])
+                or at < state['registered_monotonic_s']
+                or (state['last_token_monotonic_s'] is not None and at < state['last_token_monotonic_s'])):
+            raise ValueError('actual Loquetier forward identity/order differs')
+        length = len(request.next_input_ids)
+        if not expected_ids or expected_ids[-1] != index:
+            expected_ids.append(index)
+            expected_lens.append(length)
+        else:
+            expected_lens[-1] += length
+        states.append(state)
+    context = generator.model.root_context
+    if (not states or lora_ids != expected_ids or lora_lens != expected_lens
+            or context.lora_ids != lora_ids or context.train_idx):
+        raise ValueError('actual Loquetier forward segments/context differ')
+    for state in states:
+        if state['scheduled_monotonic_s'] is None:
+            state['scheduled_monotonic_s'] = at
+        state['forward_count'] += 1
+
+
+def loquetier_token_event(generator, request, token_id, produced_at):
+    """Immediately after the ORIGINAL scalar .item(); no added CUDA operation."""
+    state = request._tc_loquetier
+    count = len(state['output_ids'])
+    previous = (state['scheduled_monotonic_s'] if state['last_token_monotonic_s'] is None
+                else state['last_token_monotonic_s'])
+    if (generator._tc_loquetier_active.get(request.mark_id) is not state
+            or state['adapter_id'] != request.lora_name or state['adapter_index'] != request.lora_id
+            or state['finished'] or state['forward_count'] != count+1
+            or count >= state['target_tokens'] or type(token_id) is not int or token_id < 0
+            or type(produced_at) not in (int, float) or not math.isfinite(produced_at)
+            or previous is None or produced_at < previous
+            or request.next_input_ids != [token_id]
+            or request.input_ids.shape[0] != len(state['native_prompt_token_ids'])+count):
+        raise ValueError('native Loquetier produced token identity/time/count differs')
+    if count == 0:
+        state['first_token_monotonic_s'] = produced_at
+    state['last_token_monotonic_s'] = produced_at
+    state['output_ids'].append(token_id)
+
+
+def loquetier_finished(generator):
+    """Check native terminal markers without inventing completion or token IDs."""
+    for mark in generator.finished_mark_ids:
+        state = generator._tc_loquetier_active[mark]
+        if (state['finished'] or len(state['output_ids']) != state['target_tokens']
+                or state['forward_count'] != state['target_tokens']):
+            raise ValueError('native Loquetier fixed-length terminal differs')
+        state['finished'] = True
+
+
 def slora_join_owned_children(children, grace_s=10.):
     """Close exact native multiprocessing handles, never a process-name search.
 

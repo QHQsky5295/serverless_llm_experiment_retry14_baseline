@@ -215,6 +215,134 @@ def inspect_static_capacity(base_model: Path, adapter_root: Path, pool_index: Pa
             'Only static capacity mapping; no native batch/adapter numerical qualification or performance measurement.'])
 
 
+def native_capacity_probe(args) -> int:
+    """Guarded loading/KV witness, NOT a remote request or performance run.
+
+    Reuses the historical native loading sequence below. Select the largest
+    static shard from D437, never a workload's hot/requested subset. A successful
+    witness still does not qualify forward workspaces, all four workers or W0.
+    """
+    if args.output.exists() or not args.output.is_absolute():
+        raise ValueError('new absolute capacity evidence path required')
+    result = dict(schema='ieee_tc_loquetier_native_capacity_probe_v1',
+        passed=False, runtime_qualified=False, performance_run=False,
+        real_remote=False, phase='guard', script_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        stages=[], limitations=['One largest static shard only; not all four concurrent workers.',
+            'Weight preparation and full-context KV allocation only, no forward arithmetic/workspace.',
+            'Local immutable pool diagnostic, not real-remote preparation or request timing.'])
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    with args.output.open('x') as handle:
+        try:
+            sys.path.insert(0, str(Path(__file__).resolve().parents[2]/'scripts'))
+            from prepare_ieee_tc_serverless_stack import load_guard, stream_sha
+            guard = load_guard(args.main_repo)
+            admission = guard.verify_current_service()  # Before torch/CUDA/weight reads.
+            result['admission'] = admission
+            plan_bytes = args.static_capacity_plan.read_bytes()
+            if hashlib.sha256(plan_bytes).hexdigest() != '049441391b67e500328546c3c8e1001fd1ce197f0c1a93e150fc26e8bdfe4a77':
+                raise ValueError('capacity probe requires the frozen D437 full500 static map')
+            plan = json.loads(plan_bytes)
+            shard = max(plan['shards'], key=lambda s: (s['weights_and_kv_accounted_bytes'], -s['index']))
+            if (plan['adapter_count'] != 500 or len(plan['shards']) != 4
+                    or plan['batch_size'] != 2 or plan['context_tokens'] != 1024
+                    or Path(plan['base_model']).resolve() != args.base_model.resolve()
+                    or Path(plan['adapter_root']).resolve() != args.adapter_root.resolve()
+                    or os.environ.get('CUDA_VISIBLE_DEVICES') != str(args.physical_gpu_id)
+                    or str(Path(sys.executable)) != '/home/qhq/anaconda3/envs/loquetier_20260520/bin/python'):
+                raise ValueError('frozen capacity geometry/source/interpreter/device differs')
+            manifest_path = args.measurement_view/'measurement_manifest.json'
+            if stream_sha(manifest_path) != args.measurement_view_sha256:
+                raise ValueError('native observation view identity differs')
+            manifest = _load_json(manifest_path)
+            if (manifest['schema'] != 'ieee_tc_loquetier_measurement_view_v1'
+                    or manifest['source_view'] != str(args.measurement_view.resolve())
+                    or stream_sha(Path(manifest['helper_path'])) != manifest['helper_sha256']
+                    or stream_sha(Path(__file__).resolve().parents[2]/'scripts/prepare_ieee_tc_serverless_stack.py')
+                        != manifest['source_adapter_sha256']):
+                raise ValueError('native measurement helper changed')
+            for field, root in [('original_sha256', Path(manifest['native_source'])/'src/loquetier_src'),
+                                ('measured_sha256', args.measurement_view/'loquetier_src'),
+                                ('shared_source_sha256', args.main_repo)]:
+                for path, expected in manifest[field].items():
+                    if stream_sha(root/path) != expected:
+                        raise ValueError('native measurement source changed: '+path)
+            result.update(static_plan_sha256=hashlib.sha256(plan_bytes).hexdigest(),
+                measurement_manifest_sha256=args.measurement_view_sha256,
+                physical_gpu_id=args.physical_gpu_id, shard=shard, phase='content')
+            index = _load_json(Path(plan['pool_index']))
+            if stream_sha(Path(plan['pool_index'])) != plan['pool_index_sha256']:
+                raise ValueError('frozen pool index changed')
+            selected = set(shard['adapter_ids'])
+            for item in index['artifacts']:
+                if item['id'] in selected:
+                    for entry in item['files']:
+                        path = args.adapter_root/item['id']/entry['path']
+                        if path.stat().st_size != entry['size_bytes'] or stream_sha(path) != entry['sha256']:
+                            raise ValueError('selected immutable adapter content differs')
+            result['verified_adapter_count'] = len(selected)
+            sys.path.insert(0, str(args.measurement_view))
+            os.environ['TRANSFORMERS_OFFLINE'] = '1'
+            os.environ['HF_DATASETS_OFFLINE'] = '1'
+            import torch
+            from transformers import LlamaConfig, GenerationConfig
+            from loquetier_src import LoquetierFramework, create_virtual_model
+            from loquetier_src.models.mixed_llama import MixedLlamaForCausalLM
+            from loquetier_src.models.mixed_lora import MixedLoraModel
+            from loquetier_src.model_generation import ModelGeneration
+            from loquetier_src.tc_measurement import loquetier_bind_static_registry
+            from loquetier.utils import KvCache
+            result['phase'] = 'cuda_init'
+            torch.cuda.set_device(0)
+            device, dtype = torch.device('cuda:0'), torch.float16
+
+            def stage(name):
+                result['phase'] = name
+                row = dict(phase=name, at=time.perf_counter(),
+                    allocated_bytes=torch.cuda.memory_allocated(0),
+                    reserved_bytes=torch.cuda.memory_reserved(0),
+                    peak_allocated_bytes=torch.cuda.max_memory_allocated(0),
+                    peak_reserved_bytes=torch.cuda.max_memory_reserved(0))
+                result['stages'].append(row)
+                print(json.dumps(row), flush=True)
+
+            stage('backbone_loading')
+            base = MixedLlamaForCausalLM.from_pretrained(str(args.base_model),
+                low_cpu_mem_usage=True, torch_dtype=dtype).to(device)
+            LoquetierFramework.BaseModelList[str(args.base_model)] = base
+            stage('adapters_loading')
+            models = []
+            for aid in shard['adapter_ids']:
+                models.append(LoquetierFramework.load_model(str(args.adapter_root/aid),
+                    use_fast=False, torch_dtype=dtype))
+                result['loaded_adapter_count'] = len(models)
+            stage('mixed_preparation')
+            mixed = MixedLoraModel(create_virtual_model(base),
+                {aid: model.base_model for aid, model in zip(shard['adapter_ids'], models)},
+                dtype=dtype, device=device, apply_scaling='A')
+            stage('native_registry')
+            cfg = GenerationConfig.from_pretrained(str(args.base_model))
+            cfg.do_sample, cfg.num_beams, cfg.eos_token_id, cfg.max_length = False, 1, None, 1024
+            gen = ModelGeneration(mixed, LlamaConfig.from_pretrained(str(args.base_model)), cfg, device, dtype=dtype)
+            result['registry'] = loquetier_bind_static_registry(gen,
+                {aid: str(args.adapter_root/aid) for aid in shard['adapter_ids']})
+            stage('full_context_kv_allocation')
+            caches = [KvCache(gen.kvpool, plan['context_tokens']) for _ in range(plan['batch_size'])]
+            stage('weights_and_kv_ready')
+            for cache in caches:
+                cache.release()
+            result['passed'] = True
+        except BaseException as exc:
+            result['error'] = f'{type(exc).__name__}: {exc}'
+            result['error_type'] = type(exc).__name__
+            print(json.dumps(dict(phase=result['phase'], error=result['error'])), flush=True)
+        finally:
+            json.dump(result, handle, indent=2, allow_nan=False)
+            handle.write('\n')
+            handle.flush()
+            os.fsync(handle.fileno())
+    return 0 if result['passed'] else 1
+
+
 def _adapter_ids(subset: dict[str, Any], limit: int) -> list[str]:
     ids = [str(item["id"]) for item in subset.get("adapters", [])]
     return ids[:limit] if limit > 0 else ids
@@ -329,6 +457,12 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument('--pool-index', type=Path)
     parser.add_argument('--static-shards', type=int, default=4)
     parser.add_argument('--context-tokens', type=int, default=1024)
+    parser.add_argument('--native-capacity-probe', action='store_true')
+    parser.add_argument('--static-capacity-plan', type=Path)
+    parser.add_argument('--measurement-view', type=Path)
+    parser.add_argument('--measurement-view-sha256')
+    parser.add_argument('--physical-gpu-id', type=int, choices=range(4))
+    parser.add_argument('--main-repo', type=Path)
     parser.add_argument(
         "--arrival-scale",
         type=float,
@@ -336,7 +470,12 @@ def _parse_args() -> argparse.Namespace:
         help="0 compresses all arrivals for smoke gates; 1 preserves trace spacing.",
     )
     args = parser.parse_args()
-    if args.static_capacity_only:
+    if args.native_capacity_probe:
+        if (args.static_capacity_only or args.trace is not None or args.adapter_subset is not None
+                or not all((args.static_capacity_plan, args.measurement_view, args.measurement_view_sha256,
+                            args.main_repo)) or args.physical_gpu_id is None):
+            parser.error('native capacity requires explicit source-view/map/guard/device and no workload')
+    elif args.static_capacity_only:
         if args.pool_index is None or args.trace is not None or args.adapter_subset is not None:
             parser.error('static capacity requires --pool-index and must not read a workload/subset')
     elif args.trace is None or args.adapter_subset is None:
@@ -346,6 +485,8 @@ def _parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = _parse_args()
+    if args.native_capacity_probe:
+        return native_capacity_probe(args)
     if args.static_capacity_only:
         if args.output.exists():
             raise ValueError('refusing to overwrite capacity evidence')
