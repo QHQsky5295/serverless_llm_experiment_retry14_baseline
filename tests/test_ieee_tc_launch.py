@@ -2505,6 +2505,9 @@ class DeploymentTerminalIntegration(unittest.IsolatedAsyncioTestCase):
                 r = runner.ScenarioRunner.__new__(runner.ScenarioRunner)
                 r.name, r.baseline_type, r._coordination_enabled = 'fixture', 'faaslora_full', False
                 r.engine = SimpleNamespace(backend='vllm')
+                # Terminal-only fixture uses the explicit precomputed plan below;
+                # native lazy-plan preparation has its own integration tests.
+                r.model_cfg = {}
                 r.wl_cfg, r._ttft_slo_ms = {}, 1000.
                 trace = SimpleNamespace(request_id='q', adapter_id='a')
                 r.traces = [trace]

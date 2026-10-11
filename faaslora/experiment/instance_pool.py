@@ -1571,6 +1571,8 @@ class Router:
         runtime_concurrency_cap: int = 1,
         max_active_loras: int = 0,
         service_bin_ms: Optional[float] = None,
+        ieee_selection_strategy: str = 'service_bins',
+        locality_load_slack: Optional[int] = None,
     ):
         self.pool = pool
         self.policy = policy
@@ -1578,6 +1580,19 @@ class Router:
         self.runtime_concurrency_cap = max(1, int(runtime_concurrency_cap or 1))
         self.max_active_loras = max(0, int(max_active_loras or 0))
         self.service_bin_ms = service_bin_ms
+        # Ownership/feasibility stays on the IEEE path. A placement comparison
+        # must not silently switch to legacy activation, accounting or hints.
+        if ieee_selection_strategy not in ('service_bins', 'gpu_locality'):
+            raise ValueError('unknown IEEE selection strategy')
+        if ieee_selection_strategy == 'gpu_locality':
+            if policy != 'ieee_confirmed':
+                raise ValueError('GPU-locality selection requires owned IEEE snapshots')
+            if type(locality_load_slack) is not int or locality_load_slack < 0:
+                raise ValueError('GPU-locality requires explicit nonnegative integer load slack')
+        elif locality_load_slack is not None:
+            raise ValueError('load slack applies only to GPU-locality selection')
+        self.ieee_selection_strategy = ieee_selection_strategy
+        self.locality_load_slack = locality_load_slack
         if policy == 'ieee_confirmed' and (
                 service_bin_ms is None or not math.isfinite(service_bin_ms) or service_bin_ms <= 0):
             raise ValueError('IEEE router requires an explicit positive service bin width')
@@ -1585,6 +1600,10 @@ class Router:
         self.selection_count = 0
         self.readiness_aware_selection_count = 0
         self.load_only_selection_count = 0
+        self.locality_selection_reasons = {
+            'gpu_hit': 0, 'load_slack_exceeded': 0,
+            'no_feasible_gpu_hit': 0, 'empty_feasible_set': 0,
+        }
         self.logger = get_logger(__name__)
 
     @staticmethod
@@ -1849,7 +1868,19 @@ class Router:
                 raise ValueError('replica membership changed; retry from updated owner snapshot')
             self.selection_count += 1
             self.readiness_aware_selection_count += 1
-            decision = self.select_ieee_snapshot(ieee_snapshot, self.service_bin_ms)
+            if self.ieee_selection_strategy == 'gpu_locality':
+                decision = self.select_locality_snapshot(ieee_snapshot, self.locality_load_slack)
+                if decision is None:
+                    reason = 'empty_feasible_set'
+                elif self._is_locality_gpu_hit(decision):
+                    reason = 'gpu_hit'
+                elif any(s.feasible and self._is_locality_gpu_hit(s) for s in ieee_snapshot):
+                    reason = 'load_slack_exceeded'
+                else:
+                    reason = 'no_feasible_gpu_hit'
+                self.locality_selection_reasons[reason] += 1
+            else:
+                decision = self.select_ieee_snapshot(ieee_snapshot, self.service_bin_ms)
             self.last_ieee_decision = decision
             if decision is None:
                 return None, None
@@ -1889,3 +1920,46 @@ class Router:
             raise ValueError('mixed snapshot epochs or request identities')
         feasible = [s for s in snapshot if s.feasible]
         return min(feasible, key=lambda s: s.routing_key(delta_ms)) if feasible else None
+
+    def selection_contract(self) -> dict:
+        """Placement identity, not certification of the full benchmark variant."""
+        return dict(schema='owned_routing_selection_v1', owner_policy=self.policy,
+                    strategy=self.ieee_selection_strategy,
+                    locality_load_slack=self.locality_load_slack)
+
+    @staticmethod
+    def _is_locality_gpu_hit(row: ReplicaRoutingSnapshot) -> bool:
+        return (row.adapter_id is not None and row.service_class is not None
+                and row.service_class.tier == 'gpu')
+
+    @staticmethod
+    def select_locality_snapshot(snapshot: tuple[ReplicaRoutingSnapshot, ...],
+                                 load_slack: int) -> Optional[ReplicaRoutingSnapshot]:
+        """Binary GPU locality with an explicit admitted-request slack.
+
+        This is the routing primitive of the approved ElasticLocality control,
+        not the whole control: handoff, planner, admission and cache policy must
+        be qualified separately. It reads neither D/T/O nor sub-GPU tier costs,
+        pending-load counts, utilization, hotness or a handoff preference. Native
+        references/reservations are still acquired by the unchanged caller.
+        """
+        if type(load_slack) is not int or load_slack < 0:
+            raise ValueError('locality load slack must be a nonnegative integer')
+        if not isinstance(snapshot, tuple):
+            raise ValueError('routing snapshot must be immutable')
+        if len({s.replica_id for s in snapshot}) != len(snapshot):
+            raise ValueError('duplicate replicas in snapshot')
+        if len({(s.epoch, s.request_id, s.adapter_id) for s in snapshot}) > 1:
+            raise ValueError('mixed snapshot epochs or request identities')
+        feasible = [s for s in snapshot if s.feasible]
+        if not feasible:
+            return None
+        def load_key(row):
+            return (row.admitted_requests, row.last_dispatch_at, row.replica_id)
+        least_loaded = min(feasible, key=load_key)
+        hits = [s for s in feasible if Router._is_locality_gpu_hit(s)]
+        if hits:
+            hit = min(hits, key=load_key)
+            if hit.admitted_requests <= least_loaded.admitted_requests + load_slack:
+                return hit
+        return least_loaded

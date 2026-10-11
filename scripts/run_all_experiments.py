@@ -7665,6 +7665,8 @@ class ScenarioRunner:
                 runtime_concurrency_cap=self._runtime_forward_capacity_limit(),
                 max_active_loras=self._runtime_max_active_loras(),
                 service_bin_ms=cc.get('service_bin_ms'),
+                ieee_selection_strategy=cc.get('ieee_selection_strategy', 'service_bins'),
+                locality_load_slack=cc.get('locality_load_slack'),
             )
             for slot in self.instance_pool.get_slots():
                 self._prime_slot_cache_view(slot, include_gpu=self._slot_should_include_gpu(slot))
@@ -9955,6 +9957,10 @@ class ScenarioRunner:
             result['ieee_host_capacity_events'] = copy.deepcopy(self._ieee_host_capacity_events)
         if hasattr(self, '_ieee_residency_epochs'):
             result['ieee_residency_epochs'] = copy.deepcopy(self._ieee_residency_epochs)
+        router = getattr(self, 'router', None)
+        if router is not None and router.policy == 'ieee_confirmed':
+            result['ieee_routing_selection'] = router.selection_contract() | {
+                'locality_attempt_reasons': dict(router.locality_selection_reasons)}
         if getattr(self, '_ieee_host_budget_members', None) is not None:
             result['ieee_managed_host_budget'] = self._stack.residency_manager.local_source_references.host_budget_snapshot()
             result['ieee_native_host_budget_owners'] = [copy.deepcopy({
@@ -18116,6 +18122,7 @@ class ScenarioRunner:
                 if ieee_routing:
                     record = dict(kind='ieee_predecision_received_view_v1',
                         selected_replica_id=slot.instance_id,
+                        selection_contract=self.router.selection_contract(),
                         candidates=[asdict(row) | {'active_adapters': sorted(row.active_adapters)}
                                     for row in snapshot], sources=source_evidence,
                         selected_reference_acquired=False)
@@ -24974,6 +24981,8 @@ async def _main_async_impl(
             "min_instances": int(sc_coord.get("min_instances", 1)),
             "max_instances": int(sc_coord.get("max_instances", 1)),
             "routing_policy": str(sc_coord.get("routing_policy", "adapter_affinity")).lower(),
+            "ieee_selection_strategy": sc_coord.get("ieee_selection_strategy", "service_bins"),
+            "locality_load_slack": sc_coord.get("locality_load_slack"),
             "max_concurrent_loads": int(sc_coord.get("max_concurrent_loads", 1) or 1),
             "warm_pool_size": int(sc_coord.get("warm_pool_size", 0) or 0),
             "feature_gates": {
@@ -25405,6 +25414,9 @@ async def _main_async_impl(
                         "load_only_routing_decision_count": int(
                             getattr(runner.router, "load_only_selection_count", 0) or 0
                         ) if runner.router is not None else 0,
+                        "locality_routing_attempt_reasons": (
+                            dict(runner.router.locality_selection_reasons)
+                            if runner.router is not None else {}),
                         "scale_up_event_count": len(result.scale_up_events),
                         "scale_up_events_with_planned_adapters": sum(
                             1

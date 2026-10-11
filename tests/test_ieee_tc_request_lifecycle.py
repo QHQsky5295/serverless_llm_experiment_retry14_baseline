@@ -1229,6 +1229,26 @@ class SelectedSourceAdmissionIntegration(unittest.TestCase):
         slot.engine.generate_prepared.side_effect = generate
         return runner, slot, trace, plan, owner, observed
 
+    def test_locality_route_keeps_selected_source_reference_and_release_contract(self):
+        from faaslora.experiment.instance_pool import Router
+        for tier in ('gpu', 'host'):
+            with self.subTest(tier=tier):
+                runner, slot, trace, plan, owner, _ = self.build(tier)
+                runner.router = Router(runner.instance_pool, 'ieee_confirmed', service_bin_ms=10.,
+                    ieee_selection_strategy='gpu_locality', locality_load_slack=1)
+                result = asyncio.run(runner._exec_request(trace, 4, 0., request_plan=plan))
+                self.assertTrue(result.success, result.error)
+                self.assertEqual(result.readiness_tier_before_dispatch, tier)
+                evidence = result.gpu_reference_evidence
+                self.assertEqual(evidence['routing_snapshot']['selection_contract'],
+                                 runner.router.selection_contract())
+                self.assertEqual(evidence['routing_snapshot']['selected_replica_id'], slot.instance_id)
+                self.assertEqual(evidence['service_intervals']['service_class']['tier'], tier)
+                self.assertEqual(owner.snapshot()['live_leases'], 0)
+                self.assertEqual(owner.snapshot()['live_host_source_leases'], 0)
+                self.assertEqual(slot.active_requests, 0)
+                runner._resolve_lora.assert_not_awaited()
+
     def test_explicit_profile_measurement_reuses_actual_admission_without_cost_defaults(self):
         for tier in ('gpu', 'host'):
             runner, slot, trace, plan, owner, _ = self.build(tier)

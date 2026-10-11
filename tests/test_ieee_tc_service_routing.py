@@ -9,7 +9,7 @@ import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 from faaslora.experiment.instance_pool import (
     InstancePool, ReplicaRoutingSnapshot, Router, ServiceClassBins,
@@ -563,6 +563,17 @@ class FrozenMeasuredInitialization(unittest.TestCase):
         self.assertEqual(identity['profile_sha256'], slot.service_cost_model.profile_id)
         self.assertEqual(identity['initial_samples'], 1)
 
+    def test_locality_placement_keeps_owned_runner_and_measured_profile_identity(self):
+        runner = self.runner(coord_changes=dict(
+            ieee_selection_strategy='gpu_locality', locality_load_slack=1))
+        self.assertEqual(runner._routing_policy, 'ieee_confirmed')
+        self.assertEqual(runner.router.policy, 'ieee_confirmed')
+        self.assertIs(runner.instance_pool.service_profiles, runner._service_profiles)
+        summary = runner._current_coord_metrics()['ieee_routing_selection']
+        self.assertEqual(summary['strategy'], 'gpu_locality')
+        self.assertEqual(summary['locality_load_slack'], 1)
+        self.assertEqual(sum(summary['locality_attempt_reasons'].values()), 0)
+
     def test_service_profile_alone_cannot_enter_legacy_activation_or_warmup(self):
         runner = self.runner()
         engine = SimpleNamespace(model_cfg=self.model | {'dtype': 'bfloat16'}, shutdown=AsyncMock())
@@ -756,6 +767,132 @@ class CommittedRoutingContract(unittest.TestCase):
         for delta in (0, -1, math.inf, math.nan):
             with self.assertRaises(ValueError):
                 Router.select_ieee_snapshot((), delta)
+
+
+class BinaryLocalityRoutingContract(unittest.TestCase):
+    """Synthetic decision witnesses, not an ElasticLocality performance run."""
+
+    @staticmethod
+    def hit(replica='hit', **changes):
+        return candidate(replica, **(dict(service_class=klass('gpu'),
+            service=ServiceComponents(0., 200., 300.)) | changes))
+
+    def test_gpu_hit_wins_inclusive_slack_boundary_without_service_score(self):
+        hit = self.hit(admitted_requests=2)
+        miss = candidate('miss', service=ServiceComponents(.1, .1, .1))
+        self.assertIs(Router.select_locality_snapshot((miss, hit), 1), hit)
+        self.assertIs(Router.select_locality_snapshot((miss, hit), 0), miss)
+        self.assertIs(Router.select_ieee_snapshot((miss, hit), 10), miss)
+
+    def test_overloaded_hit_falls_back_to_global_least_loaded(self):
+        hit = self.hit(admitted_requests=3)
+        miss = candidate('miss')
+        self.assertIs(Router.select_locality_snapshot((hit, miss), 1), miss)
+
+    def test_zero_slack_still_prefers_a_hit_at_equal_load(self):
+        hit, miss = self.hit('z'), candidate('a')
+        self.assertIs(Router.select_locality_snapshot((miss, hit), 0), hit)
+
+    def test_best_hit_is_least_loaded_not_shortest_service(self):
+        busy = self.hit('a', admitted_requests=2, service=ServiceComponents(0., 1., 1.))
+        idle = self.hit('b')
+        self.assertIs(Router.select_locality_snapshot((busy, idle), 1), idle)
+
+    def test_non_gpu_tiers_and_dto_pending_utilization_do_not_rank(self):
+        first = candidate('a', service=ServiceComponents(900., 800., 700.),
+                          pending_loads=20, gpu_utilization_pct=100.)
+        second = candidate('b', service_class=klass('host'),
+                           service=ServiceComponents(.1, .1, .1))
+        with patch.object(ReplicaRoutingSnapshot, 'routing_key',
+                          side_effect=AssertionError('IEEE service score must not be read')):
+            self.assertIs(Router.select_locality_snapshot((second, first), 1), first)
+            for tier in ('remote', 'nvme', 'host'):
+                changed = dataclasses.replace(first, service_class=klass(tier))
+                self.assertIs(Router.select_locality_snapshot((second, changed), 1), changed)
+
+    def test_unready_full_and_active_adapter_limit_hits_are_infeasible(self):
+        miss = candidate('miss')
+        invalid = [dict(runtime_ready=False), dict(available_slots=0),
+                   dict(active_adapters=frozenset({'other'}), max_active_loras=1)]
+        for change in invalid:
+            with self.subTest(change=change):
+                hit = self.hit(**change)
+                self.assertFalse(hit.feasible)
+                self.assertIs(Router.select_locality_snapshot((hit, miss), 10), miss)
+                self.assertIsNone(Router.select_locality_snapshot((hit,), 10))
+        self.assertIsNone(Router.select_locality_snapshot((), 1))
+
+    def test_existing_active_adapter_remains_feasible_at_distinct_adapter_limit(self):
+        hit = self.hit(max_active_loras=1)
+        self.assertIs(Router.select_locality_snapshot((hit, candidate()), 1), hit)
+
+    def test_last_dispatch_then_stable_id_break_ties_without_input_order(self):
+        a, b = candidate('a'), candidate('b')
+        self.assertIs(Router.select_locality_snapshot((b, a), 1), a)
+        newer = dataclasses.replace(a, last_dispatch_at=1.)
+        self.assertIs(Router.select_locality_snapshot((newer, b), 1), b)
+        self.assertIs(Router.select_locality_snapshot((b, newer), 1), b)
+
+    def test_backbone_is_not_counted_as_an_adapter_gpu_hit(self):
+        a = candidate('a', adapter_id=None, active_adapters=frozenset(),
+                      service_class=klass('backbone'), service=ServiceComponents(0., 1., 1.))
+        self.assertFalse(Router._is_locality_gpu_hit(a))
+        self.assertIs(Router.select_locality_snapshot((a,), 1), a)
+
+    def test_mixed_identity_duplicate_or_mutable_snapshot_rejected(self):
+        row = candidate()
+        invalid = [(row, row), [row],
+            (row, dataclasses.replace(row, replica_id='b', epoch=2)),
+            (row, dataclasses.replace(row, replica_id='b', request_id='other')),
+            (row, dataclasses.replace(row, replica_id='b', adapter_id='other'))]
+        for rows in invalid:
+            with self.subTest(rows=rows), self.assertRaises(ValueError):
+                Router.select_locality_snapshot(rows, 1)
+
+    def test_load_slack_requires_explicit_integer_not_bool_or_coercion(self):
+        pool = SimpleNamespace(get_slots=lambda: [])
+        for slack in (None, True, False, -1, 1., '1', math.nan):
+            with self.subTest(slack=slack):
+                with self.assertRaises(ValueError):
+                    Router.select_locality_snapshot((), slack)
+                with self.assertRaises(ValueError):
+                    Router(pool, 'ieee_confirmed', service_bin_ms=10,
+                           ieee_selection_strategy='gpu_locality', locality_load_slack=slack)
+        with self.assertRaises(ValueError):
+            Router(pool, 'least_connections', ieee_selection_strategy='gpu_locality', locality_load_slack=1)
+        with self.assertRaises(ValueError):
+            Router(pool, 'ieee_confirmed', service_bin_ms=10, locality_load_slack=1)
+        with self.assertRaises(ValueError):
+            Router(pool, 'ieee_confirmed', service_bin_ms=10, ieee_selection_strategy='typo')
+
+    def test_live_local_decision_counters_no_handoff_and_pure_shadow(self):
+        pool = InstancePool(max_instances=2)
+        a, b = pool.add_instance(None, None), pool.add_instance(None, None)
+        pool.get_slot(a).scaleup_handoff_request_budget = 10
+        router = Router(pool, 'ieee_confirmed', service_bin_ms=10,
+                        ieee_selection_strategy='gpu_locality', locality_load_slack=1)
+        rows = (self.hit(a), candidate(b))
+        for _ in range(2):
+            self.assertEqual(router.select_locality_snapshot(rows, 1), rows[0])
+        self.assertEqual(router.selection_count, 0)
+        first_slot, first = router.select_instance_with_decision('lora-a', ieee_snapshot=rows)
+        self.assertEqual(first_slot.instance_id, a)
+        _, second = router.select_instance_with_decision('lora-a',
+            ieee_snapshot=(self.hit(a, admitted_requests=3), candidate(b)))
+        self.assertEqual(second.replica_id, b)
+        self.assertEqual(first.replica_id, a)
+        self.assertIs(router.last_ieee_decision, second)
+        self.assertEqual(pool.get_slot(a).scaleup_handoff_request_budget, 10)
+        router.select_instance('lora-a', ieee_snapshot=(candidate(a), candidate(b)))
+        self.assertIsNone(router.select_instance('lora-a', ieee_snapshot=(
+            candidate(a, available_slots=0), candidate(b, runtime_ready=False))))
+        self.assertEqual(router.locality_selection_reasons,
+                         dict(gpu_hit=1, load_slack_exceeded=1, no_feasible_gpu_hit=1, empty_feasible_set=1))
+        with self.assertRaises(ValueError):
+            router.select_instance('other', ieee_snapshot=rows)
+        pool.get_slot(b).status = 'draining'
+        with self.assertRaises(ValueError):
+            router.select_instance('lora-a', ieee_snapshot=rows)
 
 
 if __name__ == '__main__':

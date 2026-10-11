@@ -1,0 +1,62 @@
+{
+  "schema": "elastic_locality_routing_boundary_v1",
+  "campaign": "d448_20261012",
+  "base_commit": "8e7f470dfffe32751ef4fdb48bc864e361553981",
+  "status": "routing_cpu_qualified_full_control_pending",
+  "performance_run": false,
+  "gpu_numerical_qualification": false,
+  "full_elastic_locality_qualified": false,
+  "remote_publication": "reuse_D78_D80_no_action",
+  "owner_policy": "ieee_confirmed",
+  "selection_strategy": "gpu_locality",
+  "preregistered_future_load_slack_requests": 1,
+  "baseline_performance_search": false,
+  "initial_tests": {"count": 427, "seconds": 53.516, "errors": 3, "reason": "one_existing_terminal_only_fixture_missing_model_cfg_three_subcases"},
+  "focused_tests": {"count": 74, "seconds": 0.283, "pass": true},
+  "final_tests": {"count": 428, "seconds": 49.105, "skips": 0, "pass": true},
+  "source_ast": {"pass": true, "unchanged_router_module_definitions": 97, "unchanged_runner_definitions": 514, "initial_audit_error": "incorrect_expected_existing_method_name_in_diagnostic_only"},
+  "protected_entry_count": 147,
+  "protected_entries_unchanged": true,
+  "memory_high_bytes": 3221225472,
+  "memory_max_bytes": 4294967296,
+  "memory_swap_max_bytes": 0,
+  "cpus": [2, 3, 26, 27],
+  "gpu_hidden_for_tests": true,
+  "scope_prefix": "primelora-tc-aux-d448000000000000000000000000000",
+  "scopes": [
+    {"suffix": "1.scope", "invocation_id": "71f9651dae3d461ba82d44b012b74691", "peak_bytes": 2768134144},
+    {"suffix": "2.scope", "invocation_id": "756d407ad0d34f3c92a2c4d1eecb05fa", "peak_bytes": 574255104},
+    {"suffix": "3.scope", "invocation_id": "ec1ecd9655c4444780aa85b11a0946f6", "peak_bytes": 2470174720},
+    {"suffix": "4.scope", "invocation_id": "827541ad67154dada5b547f01fbace6c", "peak_bytes": 29343744},
+    {"suffix": "5.scope", "invocation_id": "aa911d1094f74ec3b5776b6fc3e28502", "peak_bytes": 109309952},
+    {"suffix": "6.scope", "invocation_id": "2890556fb92c49bb89cd7b070be6d19b", "peak_bytes": 108310528},
+    {"suffix": "7.scope", "invocation_id": "4b070d5ecaa444d0a9437aac2ddd783e", "peak_bytes": 6893568}
+  ],
+  "all_scopes_actual_recursive_process_trees_empty_before_owned_stop": true,
+  "all_scopes_high_max_oom_swap_zero": true,
+  "last_disk_free_bytes": 162466381824,
+  "fresh_heavy_launch_authorized": false,
+  "source_files": [
+    {"path": "faaslora/experiment/instance_pool.py", "sha256": "90f21659106e4759c2b604bf2346e4773411b1533911b7ab66b6e24ecb461776"},
+    {"path": "scripts/run_all_experiments.py", "sha256": "7498f8586c34e34c9e480c97769cf5b13d168c731a572ea9958ae211907fddf1"},
+    {"path": "tests/test_ieee_tc_service_routing.py", "sha256": "e9379cd81bb6b4807b95e3bab003189df5b12bf834f744170e9284da2965929f"},
+    {"path": "tests/test_ieee_tc_request_lifecycle.py", "sha256": "4ff37551da085a088bae5684d84f07c6e2426841e85d1a558ab92fb1ac2bd8c7"},
+    {"path": "tests/test_ieee_tc_launch.py", "sha256": "5a608998660b12e50e772aa05be62bb4d827b25c28358d6d49897acc381fe08c"},
+    {"path": "configs/ieee_tc/20261010_d371_7b_full_w0.yaml", "sha256": "eb80bb5702751fb20ec160d429c1c4fd8d9dc411f24a3bf15fe6dcf395a85ff2"}
+  ],
+  "raw_root": "/home/qhq/serverless_llm_experiment/results/ieee_tc/elastic_locality_qualification/d448_20261012",
+  "raw_files": [
+    {"path": "cpu_tests_initial.txt", "sha256": "97337688b652e195f0eeafbdeba44808c078725cc9333de3da533e927064ead9"},
+    {"path": "cpu_tests_focused.txt", "sha256": "75b408d22c98d60a7b42612be9c43ba103b6e5c6e9738ae0d15e338c8533227a"},
+    {"path": "cpu_tests_final.txt", "sha256": "33e189491f0578cf5622fcea4eef4084dadcb5515b10fc39b732a6000ca65ff0"},
+    {"path": "source_audit_initial.txt", "sha256": "580be79033f5558f7e5de7dd5284a4b054f462b111be2df1534f7b6d1f013437"},
+    {"path": "source_audit_final.json", "sha256": "d27576f03ceefc03882971d2945334c0006ffe12b0785cdfa1b8f97721402a51"},
+    {"path": "protected_verification.json", "sha256": "1ff66513bbe7dc141d9bd14e43a7ce4f111cee38aeb215db2db8eebe141fb657"}
+  ],
+  "authorities": {
+    "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5",
+    "metric_v1_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "single_run_v2_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+  },
+  "next": "qualify_ordinary_artifact_LRU_and_all_proactive_entry_gates_before_full_ElasticLocality_config_and_real_qualification"
+}

@@ -1,4 +1,4 @@
-# IEEE TC execution status — D447 HydraServe CPU layer witness; platform access pending
+# IEEE TC execution status — D448 ElasticLocality routing boundary; full qualification pending
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement experiment plan.
 Full earlier status is preserved byte-for-byte in EXECUTION_HISTORY_THROUGH_D433.md;
@@ -32,7 +32,49 @@ RUNNING entries are historical. No approved experiment or failed evidence was re
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D447 new platform/CPU evidence; no performance run
+## Current action — D448 routing primitive qualified, no GPU performance run
+
+Full PLAN/status/latest baseline rules/V1/V2 reread. D447 backup
+8e7f470dfffe32751ef4fdb48bc864e361553981 already pushed/remoteSHAverified.
+HydraServe platform ownership/access remains pending; no repeated probe or unknown
+cluster mutation. Continued remaining7B ElasticLocality without waiting on that access.
+Repeated once-only delivery-cache approval retains D78/D80 reuse, no republish.
+
+D448_ELASTICLOCALITY_ROUTING_BOUNDARY.md documents existing legacy-policy/IEEE-owner
+coupling, history and primary official vLLM routing code/docs. Added an opt-in
+binary GPU-locality selector within unchanged IEEE ownership, live feasible set,
+request-local decision and native reference/release. Explicit integer load-slack,
+least admitted requests then last-dispatch/ID; no D/T/O or sub-GPU tier ranking.
+Default service_bins/Eq.(3) unchanged. Request/summary metadata distinguishes route
+strategy and lookup-attempt reasons. Future qualification slack1 preregistered,
+no baseline performance search. This is NOT full ElasticLocality qualification;
+no runnable full variant config or new performance row yet.
+
+Final428CPUchecks passed49.105s/noskips; focused74passed0.283s including synthetic
+actual_exec_request GPU/HOST reference and release. Initial427had3subcaseerrors
+in one old terminal-only __new__ fixture missing model_cfg; testfixtureonly corrected,
+unchanged historical5934093 lazy-plan predicate, no production fallback. Failure retained.
+AST checks97router-module/514runner existing definitions unchanged, only intended
+6definitions changed+3router helpers. Initialaudit expected wrong method name;
+corrected diagnostic allowlist passed, no runtime change and error retained.
+Raw originalresults/ieee_tc/elastic_locality_qualification/d448_20261012;
+curated paper_results/ieee_tc/elastic_locality/d448_routing_boundary.json.
+147protectedentries/threeuserfiles unchanged, D371configunchanged.
+Sevenauxscopes exactInvocationID/actualrecursiveemptytree checked andstopped;
+CPU2,3,26,27/high3max4GiB/swap0/GPUhidden, high/max/OOM/swap0.
+Peaks2768134144/574255104/2470174720/29343744/109309952/108310528/6893568B.
+All15source/raw/authoritySHA records independentlyverified beforebackup.
+Lastdiskfree162466381824B(~151.31GiB), fourGPUs15MiBbackground/0util;
+freshheavygatesstillrequired. No externalbaseline changes, remoteactions, new
+weights/trace/pool, oldoverwrite, figures or repeatedsealedW0. GoalACTIVE;
+concrete implementation/qualification progress, not an experiment completion.
+NEXT qualify ordinary artifactLRU and every proactive-preparation/admission entry,
+retain physical safety/nativeGPUcache and sameFull autoscaler/backend, then freeze
+complete ElasticLocality configuration and run affected100/500-ID/1000/4000 gates.
+Do not label routing-only as wholecontrol, repeat passedCPUwitness without change,
+or bypass remaining7B/W1-W2/G2/necessaryPrimeLoRAopt before3B/fullscope below.
+
+## D447 preserved checkpoint — platform/CPU evidence; no performance run
 
 Full PLAN/status/latest baseline rules reread after compaction. D446 backup
 a6a4c7c02842d2b932d65c5b65cee7cb80b78783 already pushed/remoteSHAverified.
