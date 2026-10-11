@@ -4,6 +4,13 @@ Read `/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md` in full and
 `/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/EXECUTION_STATUS.md`
 before work, after context compaction, and before every experiment.
 
+Latest user goal update (2026-10-11): read the main repository's
+`docs/ieee_tc/BASELINE_EXECUTION_RULES_20261011.md`. Do not optimize baseline
+performance or search configurations. Only necessary compatibility, correctness/
+measurement and safety adaptations are allowed, preserving official mechanisms.
+Reuse prior qualified configurations and report their actual results, including
+nonfeasibility; do not describe unsearched points as a baseline optimum.
+
 Preserve existing dirty replay_openai_trace.py and relayserve work. Stage only
 explicitly created/changed task files. No dataset/pool regeneration or old-result
 overwrite. Reuse prior valid logs per R0–R3. One heavy experiment at a time;
