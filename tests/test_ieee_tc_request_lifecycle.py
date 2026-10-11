@@ -2724,6 +2724,185 @@ class LocalSourceOwnership(unittest.TestCase):
         self.assertEqual((self.host / 'a' / 'weights').read_bytes(), b'tiny-test-fixture')
 
 
+class OrdinaryArtifactLRU(unittest.TestCase):
+    """Actual file allocation/publication, synthetic HTTP bytes, no GPU inference."""
+
+    def setUp(self):
+        from faaslora.memory.residency_manager import LocalSourceReferences
+        from faaslora.registry.schema import StorageTier
+        from faaslora.storage.http_artifact_store import HttpArtifactStoreClient
+        from tests.test_http_artifact_store import content_manifest
+        self.case = ConfirmedFilePublication()
+        self.case.setUp()
+        self.addCleanup(self.case.doCleanups)
+        self.owner = LocalSourceReferences(
+            {'host': self.case.host, 'nvme': self.case.nvme}, file_cache_policy='demand_lru')
+        self.case.manager.local_source_references = self.owner
+        self.unit = os.statvfs(self.case.nvme).f_frsize
+        self.case.manager.tier_capacities[StorageTier.NVME].total_bytes = 4*self.unit
+        self.payloads = {aid: {'weights': aid.encode()*self.unit*size}
+                         for aid, size in [('a',1),('b',1),('c',1),('d',1),('e',2),('z',4)]}
+        manifest = dict(format='artifact_content_v1', artifacts=[])
+        for aid, files in self.payloads.items():
+            manifest['artifacts'].extend(content_manifest(aid, files)['artifacts'])
+        self.case.client = HttpArtifactStoreClient(endpoint='http://127.0.0.1:1')
+        self.case.client._opener = Mock()
+        self.case.client.configure_content_manifest(manifest)
+        self.case.runner._remote_artifact_client = self.case.client
+
+    def fetch(self, aid):
+        from tests.test_http_artifact_store import archive_bytes, SizedResponse
+        self.case.client._opener.open.return_value = SizedResponse(
+            archive_bytes(list(self.payloads[aid].items())))
+        self.assertTrue(self.case.runner._materialize_remote_adapter(
+            aid, self.case.nvme/aid)[0])
+
+    def populate(self):
+        for aid in 'abc':
+            self.fetch(aid)
+
+    def names(self):
+        return sorted(path.name for path in self.owner._confirmed_sources)
+
+    def hold(self, aid, lease):
+        return self.owner.acquire(path=str(self.case.nvme/aid), adapter_id=aid, lease_id=lease)
+
+    def release(self, lease):
+        self.owner.release(lease_id=lease, expected_owner_id=self.owner.owner_id)
+
+    def test_lru_uses_reads_not_routing_observations_or_release(self):
+        self.populate()
+        self.hold('a', 'read-a')
+        self.release('read-a')
+        self.owner.source_snapshot('b')
+        self.owner.replacement_source_snapshot()
+        self.owner.file_preparation_snapshot()
+        self.fetch('d')
+        self.assertEqual(self.names(), ['a','c','d'])
+        event = self.owner.file_preparation_snapshot()['replacements'][-1]
+        self.assertEqual(event['policy'], 'demand_lru')
+        self.assertEqual(event['state'], 'incoming_allocated')
+        self.assertEqual([row['adapter_id'] for row in event['victims']], ['b'])
+        self.assertEqual(event['observed_released_bytes'], self.unit)
+        self.assertNotIn('incoming_benefit_ms', event)
+
+    def test_replayed_lease_and_release_do_not_become_new_accesses(self):
+        self.populate()
+        self.hold('a','a-read')
+        self.hold('b','b-read')
+        sequence = self.owner._file_access_sequence
+        self.hold('a','a-read')
+        self.release('a-read')
+        self.release('a-read')
+        self.release('b-read')
+        self.assertEqual(self.owner._file_access_sequence, sequence)
+        self.fetch('e')
+        self.assertEqual(self.names(), ['b','e'])
+        self.assertEqual([row['adapter_id'] for row in
+            self.owner.file_preparation_snapshot()['replacements'][-1]['victims']], ['c','a'])
+
+    def test_pinned_source_is_not_a_victim_and_remains_readable(self):
+        self.populate()
+        receipt = self.hold('a','reader')
+        self.fetch('d')
+        self.assertEqual(self.names(), ['a','c','d'])
+        self.assertEqual((Path(receipt['path'])/'weights').read_bytes(), b'a'*self.unit)
+        self.release('reader')
+
+    def test_not_enough_unpinned_bytes_does_not_delete_partial_victims(self):
+        self.populate()
+        for aid in 'ab':
+            self.hold(aid,aid)
+        with self.assertRaisesRegex(RuntimeError, 'insufficient unreferenced LRU'):
+            self.fetch('e')
+        self.assertEqual(self.names(), ['a','b','c'])
+        self.assertFalse(self.owner._file_replacement_events)
+        self.assertFalse(self.owner.materializations or self.owner._transfer_workspaces)
+        for aid in 'ab':
+            self.release(aid)
+
+    def test_oversized_payload_plus_archive_does_not_flush_valid_cache(self):
+        self.populate()
+        with self.assertRaisesRegex(RuntimeError, 'incoming transfer exceeds'):
+            self.fetch('z')
+        self.assertEqual(self.names(), ['a','b','c'])
+        self.assertFalse(self.owner._file_replacement_events)
+
+    def test_active_materialization_target_is_protected(self):
+        self.populate()
+        with self.owner.materializing(self.case.nvme/'a', budgeted=True):
+            self.fetch('d')
+        self.assertEqual(self.names(), ['a','c','d'])
+
+    def test_proactive_plan_and_objective_are_rejected_without_owner_leak(self):
+        with self.assertRaisesRegex(ValueError, 'forbids proactive'):
+            self.owner.register_file_preparation_plan(plan_id='proactive', targets=[])
+        with self.assertRaisesRegex(ValueError, 'forbids preparation'):
+            with self.owner.materializing(self.case.nvme/'a', replacement_epoch={}, budgeted=True):
+                self.fail('preparation objective admitted')
+        self.assertFalse(self.owner.materializations or self.owner._file_replacement_contexts
+                         or self.owner._file_preparation_plans or self.owner._budgeted_materializations)
+
+    def test_default_full_does_not_silently_gain_demand_lru(self):
+        from faaslora.memory.residency_manager import LocalSourceReferences
+        self.owner = LocalSourceReferences({'host':self.case.host, 'nvme':self.case.nvme})
+        self.case.manager.local_source_references = self.owner
+        self.populate()
+        with self.assertRaisesRegex(RuntimeError, 'capacity conflict'):
+            self.fetch('d')
+        self.assertEqual(self.names(), ['a','b','c'])
+        self.assertEqual(self.owner.file_preparation_snapshot()['file_cache_policy'], 'planned_only')
+        self.assertFalse(self.owner._file_replacement_events)
+
+    def test_changed_confirmed_source_is_not_reinterpreted_as_evictable(self):
+        self.populate()
+        path = self.case.nvme/'a'/'weights'
+        info = path.stat()
+        os.utime(path, ns=(info.st_atime_ns, info.st_mtime_ns+1_000_000_000))
+        with self.assertRaisesRegex(RuntimeError, 'changed outside'):
+            self.fetch('d')
+        self.assertTrue(all((self.case.nvme/aid).is_dir() for aid in 'abc'))
+        self.assertFalse(self.owner._file_replacement_events)
+
+    def test_late_transfer_failure_retains_eviction_receipt_not_fake_recovery(self):
+        self.populate()
+        with patch.object(self.owner, 'publish_transfer', side_effect=RuntimeError('publication failure')):
+            with self.assertRaisesRegex(RuntimeError, 'publication failure'):
+                self.fetch('d')
+        self.assertEqual(self.names(), ['b','c'])
+        self.assertFalse((self.case.nvme/'d').exists())
+        self.assertEqual(self.owner._file_replacement_events[-1]['state'], 'incoming_allocated')
+        self.assertEqual(self.case.runner._remote_transfer_evidence[-1]['state'], 'not_published')
+        self.assertFalse(self.owner.materializations or self.owner._transfer_workspaces)
+
+    def test_host_lru_respects_shared_native_allowance_and_other_tier(self):
+        from faaslora.registry.schema import StorageTier
+        self.populate()
+        self.case.manager.tier_capacities[StorageTier.HOST].total_bytes = 4*self.unit
+        self.owner.configure_host_budget(3*self.unit)
+        self.owner.reserve_activation_host(activation_id='pending-native', limit_bytes=self.unit)
+        for aid in 'abc':
+            self.assertTrue(self.case.manager.materialize_confirmed_source(
+                aid, self.case.nvme/aid, StorageTier.HOST))
+        self.assertEqual(sorted(p.name for p in self.case.host.iterdir()), ['b','c'])
+        self.assertEqual(sorted(p.name for p in self.case.nvme.iterdir()), ['a','b','c'])
+        budget = self.owner.host_budget_snapshot()
+        self.assertEqual(budget['shared_file_bytes'], 2*self.unit)
+        self.assertEqual(budget['activation_reserved_bytes'], self.unit)
+        self.assertEqual(budget['remaining_bytes'], 0)
+        self.assertEqual(self.owner._file_replacement_events[-1]['victims'][0]['tier'], 'host')
+        self.owner.cancel_activation_host(activation_id='pending-native')
+
+    def test_reclamation_failure_is_not_swallowed_or_followed_by_new_transfer(self):
+        self.populate()
+        with patch('faaslora.memory.residency_manager.shutil.rmtree', side_effect=OSError('delete failed')):
+            with self.assertRaisesRegex(OSError, 'delete failed'):
+                self.fetch('d')
+        self.assertEqual(self.owner._file_replacement_events[-1]['state'], 'reclamation_failed')
+        self.assertTrue(all((self.case.nvme/aid).is_dir() for aid in 'abc'))
+        self.assertFalse((self.case.nvme/'d').exists())
+
+
 class ConfirmedFilePublication(unittest.TestCase):
     """Actual download/owner publication with tiny files, not inference evidence."""
     def setUp(self):

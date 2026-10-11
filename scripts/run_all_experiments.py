@@ -9963,6 +9963,7 @@ class ScenarioRunner:
                 'locality_attempt_reasons': dict(router.locality_selection_reasons)}
         if getattr(self, '_ieee_host_budget_members', None) is not None:
             result['ieee_managed_host_budget'] = self._stack.residency_manager.local_source_references.host_budget_snapshot()
+            result['ieee_file_cache'] = self._stack.residency_manager.local_source_references.file_preparation_snapshot()
             result['ieee_native_host_budget_owners'] = [copy.deepcopy({
                 k: v for k, v in member.items() if k not in ('engines', 'pidfd')})
                 for member in {id(m): m for m in self._ieee_host_budget_members.values()}.values()]

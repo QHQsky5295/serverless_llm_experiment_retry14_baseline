@@ -1980,6 +1980,45 @@ class SharedDedicatedFactory(unittest.TestCase):
 
 
 class FullPreparationEntryIsolation(unittest.TestCase):
+    def test_ordinary_file_cache_config_is_explicit_and_rejects_mixed_policies(self):
+        from faaslora.experiment.experiment_stack import ExperimentStack
+        coord = dict(routing_policy='ieee_confirmed', ieee_handoff_policy='no_handoff',
+                     coordination_enabled=False)
+        preload = dict(file_cache_policy='demand_lru', hierarchical_residency_enabled=False)
+        with tempfile.TemporaryDirectory() as tmp:
+            args = dict(adapter_info={}, hardware_cfg={}, coord_cfg=coord, preload_cfg=preload,
+                remote_dir=Path(tmp)/'remote', nvme_dir=Path(tmp)/'nvme',
+                host_dir=Path(tmp)/'host', coordination_enabled=False)
+            stack = ExperimentStack(**args)
+            self.assertEqual(stack.residency_manager.local_source_references.file_cache_policy,
+                             'demand_lru')
+            async def check():
+                try:
+                    with self.assertRaisesRegex(ValueError, 'forbids proactive preparation planning'):
+                        await stack.plan_ieee_owned_preparation_async()
+                    self.assertFalse(hasattr(stack, '_ieee_planning_cpu'))
+                finally:
+                    await stack.stop()
+            asyncio.run(check())
+            bad = [dict(coordination_enabled=True),
+                dict(coord_cfg=coord | {'routing_policy':'least_connections'}),
+                dict(coord_cfg=coord | {'ieee_handoff_policy':'full'}),
+                dict(coord_cfg=coord | {'coordination_enabled':True}),
+                dict(coord_cfg=coord | {'coordination_enabled':0}),
+                dict(preload_cfg=preload | {'hierarchical_residency_enabled':True}),
+                dict(preload_cfg={'file_cache_policy':'demand_lru'})]
+            for change in bad:
+                with self.subTest(change=change), self.assertRaisesRegex(ValueError, 'demand-only'):
+                    ExperimentStack(**(args | change))
+
+    def test_disabled_residency_has_no_planner_or_native_side_effect(self):
+        service=runner.ScenarioRunner.__new__(runner.ScenarioRunner)
+        service._hierarchical_residency_enabled=False
+        service._run_ieee_owned_preparation_plan=AsyncMock(side_effect=AssertionError('proactive'))
+        service._schedule_ieee_residency_epochs()
+        service._run_ieee_owned_preparation_plan.assert_not_called()
+        self.assertFalse(hasattr(service, '_ieee_residency_tasks'))
+
     def test_ieee_release_callback_cannot_start_legacy_gpu_forwarding(self):
         service=runner.ScenarioRunner.__new__(runner.ScenarioRunner)
         service._routing_policy='ieee_confirmed'

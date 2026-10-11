@@ -101,6 +101,7 @@ def _build_experiment_config(
     data = {
         "registry": {"backend": registry_backend, "redis": {}},
         "memory": {
+            "file_cache_policy": preload_cfg.get('file_cache_policy', 'planned_only'),
             "gpu": {
                 "total_memory_gb": gpu_total_mb / 1024,
                 "safety_margin": 0.15,
@@ -151,6 +152,13 @@ class ExperimentStack:
         coordination_enabled: bool = True,
         coordinator: Optional[Any] = None,
     ):
+        if preload_cfg.get('file_cache_policy', 'planned_only') == 'demand_lru':
+            if (coord_cfg.get('routing_policy') != 'ieee_confirmed'
+                    or coord_cfg.get('ieee_handoff_policy') != 'no_handoff'
+                    or preload_cfg.get('hierarchical_residency_enabled') is not False
+                    or coord_cfg.get('coordination_enabled') is not False
+                    or coordination_enabled is not False):
+                raise ValueError('ordinary file LRU requires owned demand-only preparation/admission')
         self.adapter_info = adapter_info
         self.remote_dir = Path(remote_dir)
         self.nvme_dir = Path(nvme_dir)
@@ -897,6 +905,10 @@ class ExperimentStack:
         self._pending_scaleup_gpu_artifacts.clear()
         return plan
 
+    def _require_proactive_file_policy(self):
+        if self.residency_manager.local_source_references.file_cache_policy == 'demand_lru':
+            raise ValueError('ordinary file LRU forbids proactive preparation planning')
+
     def plan_ieee_preparation(self, *, mode, options, budgets, costs, source_snapshot_id,
                              source_view=None, size_edges_bytes=None):
         """Plan from observed ingress, not registry popularity or legacy warmup.
@@ -921,6 +933,7 @@ class ExperimentStack:
         remains open; this path must not be relabelled complete Full.
         """
         from ..preloading.preloading_planner import owned_preparation_inputs
+        self._require_proactive_file_policy()
         if profiles.profile_id != costs.profile_id:
             raise ValueError('owned preparation profile differs from the replica cost model')
         inputs = owned_preparation_inputs(native_snapshot=native_snapshot,
@@ -950,6 +963,7 @@ class ExperimentStack:
         current storage; unchanged native/file execution rechecks remain required.
         """
         from ..preloading.planning_cpu import freeze_owned_planning, run_planning_cpu
+        self._require_proactive_file_policy()
         args = freeze_owned_planning(demand=self.hotness_tracker.snapshot(), **received)
         return await run_planning_cpu(self, 'owned_execution_epoch', args)
 

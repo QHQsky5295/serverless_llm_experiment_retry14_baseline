@@ -233,7 +233,11 @@ class LocalSourceReferences:
     owner and may outlive the file read. No async work runs while the lock is held.
     """
 
-    def __init__(self, roots):
+    def __init__(self, roots, *, file_cache_policy='planned_only'):
+        if file_cache_policy not in ('planned_only', 'demand_lru'):
+            raise ValueError('unknown managed file cache policy')
+        self.file_cache_policy = file_cache_policy
+        self._file_access_sequence = 0
         self.roots = {tier: Path(path).resolve() for tier, path in roots.items() if path}
         if (len(set(self.roots.values())) != len(self.roots) or
                 any(a in b.parents for a in self.roots.values() for b in self.roots.values())):
@@ -468,6 +472,68 @@ class LocalSourceReferences:
         receipt.update(state='reclaimed', observed_released_bytes=before-after)
         return after, receipt
 
+    def _touch_file_source(self, record):
+        """Only publication/new read leases affect LRU; observations do not."""
+        if self.file_cache_policy == 'demand_lru':
+            self._file_access_sequence += 1
+            record['last_access_sequence'] = self._file_access_sequence
+
+    def _reclaim_for_file_demand(self, transfer_id, target, required, limit_bytes, before):
+        """Ordinary byte-bounded LRU inside the existing allocation transaction.
+
+        Select all necessary victims before deleting any. Readers, live writers,
+        shared/external inodes and unsettled allocations never yield capacity.
+        No preparation objective, popularity, cost profile or benefit threshold
+        participates. Failure remains explicit when the protected working set
+        leaves insufficient space; it does not bypass the physical budget.
+        """
+        if (self.file_cache_policy != 'demand_lru' or self._file_preparation_plans
+                or self._file_replacement_contexts):
+            raise ValueError('ordinary file LRU cannot execute a preparation objective')
+        if required > limit_bytes:
+            raise RuntimeError('local file capacity conflict: incoming transfer exceeds tier budget')
+        tier = next(t for t, root in self.roots.items() if target.parent == root)
+        capacity = self._file_replacement_capacity()
+        eligible = []
+        for row in capacity:
+            path = Path(row['path'])
+            if not row['eligible'] or path.parent != self.roots[tier] or path == target:
+                continue
+            source = self._confirmed_sources[path]
+            eligible.append((source['last_access_sequence'], path,
+                             row['usable_bytes'], source['public']['content_sha256']))
+        shortfall = before + required - limit_bytes
+        selected, freed = [], 0
+        for sequence, path, usable, content in sorted(eligible):
+            selected.append(dict(path=str(path), adapter_id=path.name, tier=tier,
+                last_access_sequence=sequence, usable_bytes=usable, content_sha256=content))
+            freed += usable
+            if freed >= shortfall:
+                break
+        if freed < shortfall:
+            raise RuntimeError('local file capacity conflict: insufficient unreferenced LRU capacity')
+        receipt = dict(policy='demand_lru', state='claimed', transfer_id=transfer_id,
+            shortfall_bytes=shortfall, expected_usable_bytes=freed, victims=selected)
+        self._file_replacement_events.append(receipt)
+        # The caller holds this owner's lock until incoming preallocation ends.
+        # Withdraw each source before removing it, then notify received views.
+        try:
+            for row in selected:
+                path = Path(row['path'])
+                del self._confirmed_sources[path]
+                self.source_epoch += 1
+                shutil.rmtree(path)
+            after = self._charged_file_bytes(self._file_inventory(), tier)
+            if before - after != freed or after + required > limit_bytes:
+                raise RuntimeError('LRU reclamation differs from exclusive allocated bytes')
+        except BaseException:
+            receipt['state'] = 'reclamation_failed'
+            raise
+        finally:
+            self._file_changed((tier,))
+        receipt.update(state='reclaimed', observed_released_bytes=before-after)
+        return after, receipt
+
     def bind_file_native_fallbacks(self, *, plan_id, objective, receipts):
         """Bind acknowledged native CPU leases to an existing file-plan lifetime.
 
@@ -520,6 +586,8 @@ class LocalSourceReferences:
         """
         from ..storage.http_artifact_store import _quote_artifact_id
         with self.lock:
+            if self.file_cache_policy == 'demand_lru':
+                raise ValueError('ordinary file LRU forbids proactive preparation plans')
             if (not isinstance(plan_id, str) or not plan_id
                     or plan_id in self._closed_file_preparation_plans):
                 raise ValueError('file preparation needs a fresh plan identity')
@@ -584,7 +652,8 @@ class LocalSourceReferences:
                 targets=[dict(path=str(path), content_sha256=content, pending=path in row['pending'])
                          for path, content in sorted(row['targets'].items())])
                 for pid, row in sorted(self._file_preparation_plans.items())],
-                physical_resources_reserved=False, replacements=copy.deepcopy(self._file_replacement_events))
+                physical_resources_reserved=False, replacements=copy.deepcopy(self._file_replacement_events),
+                file_cache_policy=self.file_cache_policy)
 
     def configure_host_budget(self, limit_bytes):
         """One managed HOST allowance, not a second whole-service RSS limit.
@@ -857,6 +926,8 @@ class LocalSourceReferences:
             if record is not None and record['public']['adapter_id'] != adapter_id:
                 raise ValueError('source reference changed the verified adapter identity')
             self.leases[lease_id] = identity
+            if previous is None and record is not None:
+                self._touch_file_source(record)
             return dict(owner_id=self.owner_id, lease_id=lease_id, adapter_id=adapter_id,
                         path=str(source), tier=matches[0], device=stat.st_dev, inode=stat.st_ino,
                         state='held', content_verified=record is not None, capacity_reserved=False,
@@ -1111,6 +1182,9 @@ class LocalSourceReferences:
             if before + required > effective_limit and transfer_id in self._file_replacement_contexts:
                 before, replacement = self._reclaim_for_file_preparation(
                     transfer_id, target, required, payload_required, effective_limit, before, content)
+            elif before + required > effective_limit and self.file_cache_policy == 'demand_lru':
+                before, replacement = self._reclaim_for_file_demand(
+                    transfer_id, target, required, effective_limit, before)
             if before + required > limit_bytes:
                 raise RuntimeError('local file capacity conflict: retained copies plus transfer exceed tier budget')
             if tier == 'host' and self._host_limit is not None:
@@ -1510,6 +1584,7 @@ class LocalSourceReferences:
                       representation='verified_regular_file_tree_v1', **footprint)
         self._confirmed_sources[path] = dict(signatures=signatures, footprint=footprint,
             public=public, expected_files={name: tuple(value) for name, value in expected.items()})
+        self._touch_file_source(self._confirmed_sources[path])
         self.source_epoch += 1
         return dict(owner_id=self.owner_id, epoch=self.source_epoch, **copy.deepcopy(public))
 
@@ -1543,6 +1618,8 @@ class LocalSourceReferences:
             raise ValueError('materialization destination is outside managed tiers')
         transfer_id = uuid.uuid4().hex
         with self.lock:
+            if self.file_cache_policy == 'demand_lru' and replacement_epoch is not None:
+                raise ValueError('ordinary file LRU forbids preparation replacement objectives')
             if target in self.materializations.values():
                 raise RuntimeError('materialization destination already has an active transfer')
             self.materializations[transfer_id] = target
@@ -3248,7 +3325,8 @@ class ResidencyManager:
         self.host_cache_dir = Path(host_dir) if host_dir else None
         self.nvme_cache_dir = Path(nvme_dir) if nvme_dir else None
         self.local_source_references = LocalSourceReferences({
-            'host': self.host_cache_dir, 'nvme': self.nvme_cache_dir})
+            'host': self.host_cache_dir, 'nvme': self.nvme_cache_dir},
+            file_cache_policy=memory_config.get('file_cache_policy', 'planned_only'))
         self.local_transfer_evidence: List[Dict[str, Any]] = []
         self._tracked_gpu_device_ids: Optional[Tuple[int, ...]] = None
         
