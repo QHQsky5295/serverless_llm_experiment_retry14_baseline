@@ -1,4 +1,4 @@
-# IEEE TC execution status — D432 S-LoRA actual-path preparation
+# IEEE TC execution status — D432 S-LoRA actual-path qualification running
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -75,6 +75,32 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+D432 RUNNING since2026-10-11 21:28:49 Asia/Shanghai,tmux tc-d432-7b.
+Main execution208db012ab8376fe696e7c43a368a233696169dd andbaseline
+481a34ae0bea606372139e156e58daf0bee28d5d pushed/remoteSHAverified.
+24 CPU service tests pass1.425s; actual config/source-view checks pass. Owned
+aux0002/0003 exactidentity/empty-tree stopped,high/max/OOM/swap0. Protected147
+entries unchanged; presealSHAf5cd8c5459f7563ea0817a5f3d547a070606e653dadd7b3b474303fba1547f1b.
+Source100/29IDs/17369tokens/viewSHA revalidated; fullpool500. Native Triton
+diskcache2055files/62246523B retained, no engine/GPU preload. HTTPconfigSHA
+ad899f9be8e98be1e1c9c7d43c0776365591be72def9aecd2c8f97750114076a.
+Serviceprimelora-tc-svc-af2fc64a3c834582a473a00d1750a55a.scope,
+InvocationID345a230f2ea64a3fb2656f3306aa9c21;aux
+primelora-tc-aux-d4320000000000000000000000000001.scope.
+Notice1232579.752368367,businessorigin1232639.752368367. Actualpreflight and
+externalwatchdog active;sample14 hostavailable111622197248B/service1984258048B,
+disk163354443776B,high/max/OOM/swap0,noabort. No terminalresult yet.
+Remote unchangedpublishedprotocol/link1000Mb/s/full;7Bclock
+remote-process-monotonic:5a97d75359cc4e12bc32855c30613880. Owned3B/7B/monitor
+InvocationIDs6d14681b16a44560b255a902c4342e5c/9d29a9234bdc4d80959687c003490e20/
+36f19dad1e3d452fa7c33c1b9be6c5a6. No republication or request-time packing.
+NEXT monitor SAMEhandle/localjournals -> actualGPUrelease -> rawstop_remote.sh
+exactownedclosure -> preserve_evidence.py -> D431strictslora_resident_rr_v1 audit
+andbackup ->missing500-ID/1000 ->onefullW0. No liveparameter/code/remotechange,
+hashscan/cleanup/tests/retry/secondheavyjob. No oldsealedW0repeat/3Bjump.
+AllremainingapprovedscopeOPEN/fullgoalACTIVE; this turn actual launch progress.
+Older PREPARATION/NEXT/RUNNING sections below are historical.
 
 D432 PREPARATION 2026-10-11. No live GPU/remote job. Full PLAN/STATUS/V1/V2 read;
 fresh compute census empty, available RAM104GiB/disk163356016640B. D430 source
