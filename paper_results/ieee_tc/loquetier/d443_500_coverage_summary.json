@@ -1,0 +1,138 @@
+{
+  "counts": {
+    "N_plan": 500,
+    "N_arrived": 500,
+    "N_terminal": 500,
+    "N_response": 500,
+    "N_failed": 0,
+    "N_submitted": 500
+  },
+  "actual_native_output_tokens": 68925,
+  "offered_unique_adapters": 500,
+  "served_adapter_ids": 500,
+  "measurement_complete": true,
+  "workload_passed": true,
+  "common_slo": {
+    "offered": 500,
+    "binding_valid": 500,
+    "ttft_good": 0,
+    "tpot_eligible": 500,
+    "tpot_good": 387,
+    "joint_good": 0,
+    "ttft_attainment": 0,
+    "joint_attainment": 0,
+    "conditional_tpot_attainment": 0.774,
+    "observed_feasible": false,
+    "independent_numerical_proof": false,
+    "freeze_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json",
+    "freeze_sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3",
+    "scope": "complete qualified population only; prefix or coverage is not full W0 qualification",
+    "physical_gpu_seconds_per_binding_valid_request": 6.4950317454268225
+  },
+  "conditional_metrics": {
+    "ttft_ms": {
+      "count": 500,
+      "mean": 218590.29316919716,
+      "p50_type1": 194028.3977680374,
+      "p95_type1": 375885.99200872704
+    },
+    "e2e_ms": {
+      "count": 500,
+      "mean": 227199.29309084453,
+      "p50_type1": 210073.38397298008,
+      "p95_type1": 385838.5425498709
+    },
+    "submit_lag_ms": {
+      "count": 500,
+      "mean": 4.797250483650714,
+      "p50_type1": 2.6021350640803576,
+      "p95_type1": 7.156091975048184
+    },
+    "dispatch_wait_after_submit_ms": {
+      "count": 500,
+      "mean": 49913.41772272065,
+      "p50_type1": 4.502866882830858,
+      "p95_type1": 266812.8963110503
+    },
+    "service_ttft_ms": {
+      "count": 500,
+      "mean": 168672.07819599286,
+      "p50_type1": 154949.25124081783,
+      "p95_type1": 362010.1358280517
+    },
+    "decode_ms": {
+      "count": 500,
+      "mean": 8602.825291140936,
+      "p50_type1": 6895.176895195618,
+      "p95_type1": 16410.188738023862
+    },
+    "completion_notification_ms": {
+      "count": 500,
+      "mean": 6.174630506429821,
+      "p50_type1": 5.353911081328988,
+      "p95_type1": 7.755950093269348
+    },
+    "router_queue_ms": {
+      "count": 500,
+      "mean": 49895.187285011634,
+      "p50_type1": 0.013923970982432365,
+      "p95_type1": 266808.26724204235
+    },
+    "tpot_ms": {
+      "count": 500,
+      "mean": 62.94813760370912,
+      "p50_type1": 62.03614272958329,
+      "p95_type1": 68.55579497310899
+    }
+  },
+  "physical_gpu_seconds": 3247.515872713411,
+  "physical_window_gpu_seconds": {
+    "arrival": 1724.268870800035,
+    "cleanup": 38.430390909314156,
+    "drain": 1484.816611004062,
+    "pre_arrival": 0
+  },
+  "remote_transfers": 500,
+  "remote_wire_bytes": 420740410,
+  "verified_materialized_bytes": 12985984450,
+  "request_time_pack_count": 0,
+  "service_memory_event_maxima": {
+    "high": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0
+  },
+  "service_memory_peak_bytes": 42149494784,
+  "service_swap_max_bytes": 0,
+  "host_min_available_bytes": 81977749504,
+  "disk_min_free_bytes": 149903036416,
+  "n_correct": null,
+  "independent_lora_numerical_correctness": false,
+  "schema": "ieee_tc_loquetier_d443_coverage_summary_v1",
+  "source_audit": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d443_7b_loquetier_coverage/audit.json",
+    "sha256": "89f04fdc163558a350dd761196da76bec4048f18724fa40ebbe776ff6019e6dc"
+  },
+  "evidence_manifest": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d443_7b_loquetier_coverage/evidence_manifest.json",
+    "sha256": "a9a883dc6ef4ebd8b63df0dbed20bbe956d65b713e760f7a8ad39c2e48d8adb8",
+    "files": 578,
+    "bytes": 53278799,
+    "all_hashes_rechecked": true
+  },
+  "execution_commits": {
+    "main": "702672d48712b64df62284174b1de417f22dba4c",
+    "baseline": "9e0ad55d7f051a031ee4099d59d1a4718e64a59f"
+  },
+  "gpu_run_repeated": false,
+  "baseline_performance_tuning": false,
+  "actual_gpu_release": true,
+  "exact_owned_remote_services_stopped": true,
+  "scope": "500-ID functional mapping; not complete W0, numerical semantic proof or G1/G2 ranking",
+  "native_queue_mean_ms": 168389.67440864432,
+  "registered_to_first_mean_ms": 217.92867032252252,
+  "fresh_semantic_review": {
+    "status": "unavailable",
+    "reason": "experiment-audit required shared-reference files missing; no reviewer PASS claimed"
+  }
+}
