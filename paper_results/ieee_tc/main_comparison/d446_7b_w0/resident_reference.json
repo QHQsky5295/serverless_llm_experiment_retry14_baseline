@@ -1,0 +1,23 @@
+{
+  "kind": "single_run_resident_reference_v2",
+  "reference_id": "7b_W0_vllm0300_D423",
+  "model": "llama2_7b_main_v2_publicmix",
+  "workload": "W0",
+  "reference_frozen": true,
+  "U_ref_gpu_seconds": 16115.377162149176,
+  "Q_ref_p95_ttft_ms": 1200.5068596918136,
+  "budget_fraction": 0.75,
+  "B_gpu_seconds": 12086.532871611882,
+  "n_protocol_valid": 4000,
+  "raw_n_correct": null,
+  "independent_numerical_proof": false,
+  "eligibility": "Sealed source/native/content/worker/physical audits plus full matched input join; not HTTP 200 alone.",
+  "warm_reference_sha256": "93e2af33de471af6ee3cf97c7cb98eb074768dd2d34f4d29e152d59ab7566cee",
+  "slo_eval_sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3",
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "single_run_amendment_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+  "reused_development_observation": true,
+  "independent_holdout": false,
+  "scope": "W0 only; W1/W2 references and G2 open; Resident is not resource-optimal vLLM.",
+  "source_audit_sha256": "7d9ac56d0db8cf3af0f87c7a5314eb272771ff6408c419bba616e8f7eceeb310"
+}

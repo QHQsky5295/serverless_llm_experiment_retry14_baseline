@@ -928,7 +928,7 @@ def closed_physical_integral(summary):
 
 
 def matched_native_entry(name, contract, native):
-    """Read each backend's actual boundary; never synthesize vLLM fields for S-LoRA.
+    """Read each backend's actual boundary without fabricating vLLM fields.
 
     This is a join check, not a replacement for the SHA-bound full registry,
     process and content audit. Cross-backend phase boundaries remain distinct.
@@ -944,6 +944,29 @@ def matched_native_entry(name, contract, native):
                 or native.get('native_adapter_binding_source') != 'slora_model_rpc_actual_batch_adapter'):
             raise ValueError('S-LoRA native path/index binding required')
         value = native.get('native_rpc_registered_monotonic_s')
+    elif name == 'Loquetier':
+        path = native.get('native_adapter_path')
+        count = native.get('native_output_tokens')
+        if (contract.get('native_backend') != 'loquetier'
+                or native.get('timing_contract') != 'ieee_tc_loquetier_native_v1'
+                or native.get('native_adapter_id') != contract['adapter_id']
+                or native.get('native_request_id') != contract['request_id']
+                or not isinstance(path, str) or not Path(path).is_absolute()
+                or Path(path).name != contract['adapter_id']
+                or type(native.get('native_adapter_index')) is not int
+                or native['native_adapter_index'] < 0
+                or native.get('native_adapter_binding_source') != 'loquetier_actual_forward_segments_and_startup_pointer_tables'
+                or type(count) is not int or count <= 0 or count != contract['target_tokens']
+                or type(native.get('native_forward_count')) is not int
+                or native['native_forward_count'] != count
+                or native.get('native_terminal_observed') is not True):
+            raise ValueError('Loquetier native path/index/forward binding required')
+        value = native.get('native_registered_monotonic_s')
+        scheduled = native.get('native_scheduled_monotonic_s')
+        first = native.get('native_first_token_monotonic_s')
+        if (any(type(t) not in (int, float) or not math.isfinite(t)
+                for t in (value, scheduled, first)) or not value <= scheduled <= first):
+            raise ValueError('ordered Loquetier registration/schedule/token boundaries required')
     else:
         if native.get('native_lora_name') != contract['adapter_id']:
             raise ValueError('vLLM native adapter binding required')
@@ -969,7 +992,7 @@ def require_unchanged_reference(recomputed, frozen):
     return frozen
 
 
-def compare_d424_sealed_w0(output, include_slora=False):
+def compare_d424_sealed_w0(output, include_slora=False, include_loquetier=False):
     """Offline join of specified sealed observations; no new inference.
 
     Reuses the full native/content audits bound by SHA. It does not redownload
@@ -984,6 +1007,8 @@ def compare_d424_sealed_w0(output, include_slora=False):
 
     if output.exists():
         raise ValueError('refusing to overwrite matched W0 analysis')
+    if include_loquetier and not include_slora:
+        raise ValueError('Loquetier extension must retain the sealed S-LoRA row')
     refs = {}
     def checked(path, expected=None):
         path = Path(path)
@@ -1037,6 +1062,11 @@ def compare_d424_sealed_w0(output, include_slora=False):
             '1c9361f2d995c27e0672611728697f4de48bd0ff3c4e9f4fd778523565b6e4c0',
             'd0f6b8b4aca2ac8b34f13230e9ebd559982ed7bce684441c7c5a998e8b0886c2',
             'model7b', 'launch7b'))
+    if include_loquetier:
+        baseline_specs.append(('Loquetier', 'd445_7b_loquetier_full_w0',
+            '1fc16d0b15a201a8063142feb0ddc1c430cefed1fc69843927f8c8c170b27e31',
+            '7057e39dddf78e370de620ef12cfb047c0923ac852db3dabd8a2eab593a067b8',
+            'model7b', 'launch7b'))
     baseline_names = [spec[0] for spec in baseline_specs]
     for name, tag, audit_sha, manifest_sha, model, launch_name in baseline_specs:
         directory = ROOT/f'paper_results/ieee_tc/baseline_audit/{tag}'
@@ -1061,6 +1091,9 @@ def compare_d424_sealed_w0(output, include_slora=False):
         if name == 'S-LoRA' and (cfg['experiment_role'] != 'full_w0_baseline_observation'
                                 or seal['scheduler_contract'] != 'slora_resident_rr_v1'):
             raise ValueError('sealed S-LoRA native full-W0 identity required')
+        if name == 'Loquetier' and (cfg['experiment_role'] != 'full_w0_baseline_observation'
+                                   or seal['scheduler_contract'] != 'loquetier_static_shards_v1'):
+            raise ValueError('sealed Loquetier native full-W0 identity required')
         byevent = {k: {} for k in ('request_contract', 'http_raw_response', 'http_response')}
         with replay.open() as handle:
             for line in handle:
@@ -1210,7 +1243,8 @@ def compare_d424_sealed_w0(output, include_slora=False):
             raw_n_correct=physical['n_correct'], independent_numerical_proof=False)
         if include_slora:
             report_rows[name].update(
-                native_entry_boundary=('S-LoRA model RPC registration' if name=='S-LoRA' else 'vLLM native engine entry'),
+                native_entry_boundary=({'S-LoRA': 'S-LoRA model RPC registration',
+                    'Loquetier': 'Loquetier native batch registration'}.get(name, 'vLLM native engine entry')),
                 remote_transfers=(prime['remote']['server_transfers'] if name=='PrimeLoRA' else seals[name]['remote_transfers']),
                 remote_wire_bytes=(prime['remote']['wire_bytes'] if name=='PrimeLoRA' else seals[name]['remote_wire_bytes']))
 
@@ -1290,6 +1324,24 @@ def compare_d424_sealed_w0(output, include_slora=False):
             'S-LoRA remains in the complete table despite joint SLO below 95%; raw differences are not a two-feasible-system G1 comparison.',
             'S-LoRA native entry is model RPC registration; vLLM-based rows use engine entry. Phase columns are descriptive, not identical causal boundaries.',
             'S-LoRA first-500/later-request slices are not independent repeats and never replace the full W0 denominator.'])
+    if include_loquetier:
+        previous = checked_json(ROOT/'paper_results/ieee_tc/main_comparison/d436_7b_w0/comparison.json',
+            '59a6dfa6b3a512ac561c65fb334de4843895c5c7f120e709302d50afd6704427')
+        if (any(report_rows[name] != row for name, row in previous['results'].items())
+                or any(diffs[name] != row for name, row in previous['PrimeLoRA_relative_observations'].items())
+                or report['matched_contract_sha256'] != previous['matched_contract_sha256']):
+            raise ValueError('previous four-system matched observations changed')
+        report['kind'] = 'matched_sealed_w0_comparison_v3'
+        report['previous_four_system_rows_unchanged'] = True
+        report['caveats'][3] = ('Published remote protocol shared. PrimeLoRA/ServerlessLLM/vLLM: '
+            '132 transfers/131480060 wire bytes each; S-LoRA and Loquetier full static preparation: '
+            '500 transfers/420740410 bytes each. Different preparation strategies, not isolated hierarchy evidence.')
+        report['caveats'].extend([
+            'Loquetier retains native SMLM with disclosed static four-way 125-ID shards and batch2; not an official adaptive cluster scheduler or an optimized baseline.',
+            'Loquetier remains in the table with 4.35% joint SLO; it is outside the observed G1 feasible set.',
+            'Loquetier native entry is batch registration, not vLLM engine entry or S-LoRA model RPC registration; native scheduling is separately observed, not substituted.',
+            'Queue-stage observations do not isolate a causal sharding, hierarchy or confirmed-state effect.'])
+        report['source_refs'] = [dict(path=k, sha256=v) for k,v in refs.items()]
     report['analysis_key'] = canonical(dict(source_refs=report['source_refs'], protocol=refs[str(protocol)],
                                           amendment=refs[str(amendment)]))
     output.mkdir(parents=True, exist_ok=False)
@@ -1300,7 +1352,8 @@ def compare_d424_sealed_w0(output, include_slora=False):
         writer=csv.writer(handle)
         writer.writerow(['system','run','n_protocol_valid','joint_slo','gpu_seconds','gpu_seconds_per_request',
                          'mean_ttft_ms','p95_ttft_ms','mean_tpot_ms','p95_tpot_ms','mean_e2e_ms','completion_boundary'])
-        tags = dict(PrimeLoRA='D371/D397', ServerlessLLM='D414', vLLM='D423', **{'S-LoRA':'D435'})
+        tags = dict(PrimeLoRA='D371/D397', ServerlessLLM='D414', vLLM='D423',
+                    Loquetier='D445', **{'S-LoRA':'D435'})
         for name in report_rows:
             r=report_rows[name];m=r['metrics']
             writer.writerow([name,tags[name],4000,r['joint_slo'],r['physical_gpu_seconds'],r['gpu_seconds_per_protocol_valid_request'],
@@ -1321,11 +1374,16 @@ if __name__=='__main__':
         help='D424 offline join of sealed D371/D397, D414 and D423; exclusive output directory')
     parser.add_argument('--include-sealed-slora', action='store_true',
         help='D436: also join sealed D435, retaining nonfeasibility and the existing D424 reference')
+    parser.add_argument('--include-sealed-loquetier', action='store_true',
+        help='D446: add sealed D445; requires the full four-system join and unchanged reference')
     args = parser.parse_args()
+    if args.include_sealed_loquetier and not args.include_sealed_slora:
+        parser.error('--include-sealed-loquetier requires --include-sealed-slora')
     if args.include_sealed_slora and args.matched_w0_output is None:
         parser.error('--include-sealed-slora requires --matched-w0-output')
     if args.matched_w0_output is not None:
-        compare_d424_sealed_w0(args.matched_w0_output, include_slora=args.include_sealed_slora)
+        compare_d424_sealed_w0(args.matched_w0_output, include_slora=args.include_sealed_slora,
+                              include_loquetier=args.include_sealed_loquetier)
         raise SystemExit(0)
     if args.single_run_source is not None:
         if args.warm_reference is None or args.review_output is None:

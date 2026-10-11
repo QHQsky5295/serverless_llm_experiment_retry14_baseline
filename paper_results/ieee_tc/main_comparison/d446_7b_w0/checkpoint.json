@@ -1,0 +1,29 @@
+{
+  "schema": "ieee_tc_offline_comparison_checkpoint_v1",
+  "campaign": "d446_20261012",
+  "performance_run": false,
+  "baseline_runtime_or_configuration_changed": false,
+  "main_parent_commit": "3317fdf052e5555b593ca794b0e93b6c7c7ecdbe",
+  "baseline_unchanged_commit": "d992fc4fce40ae487df6d9d52ffe48c8d6477311",
+  "comparison_sha256": "95a1037c494b87d1c52c151bc01850b5a96c9cf578f6af3d117a40d73e4b6edf",
+  "metrics_csv_sha256": "2e31ef256f1984c2a6fd1a13c31ffcab2e5db6495d288e6a40b739f9b462546f",
+  "reference_sha256": "737c84804023c9f98677fb5f19c8240b4b05cabdb52f6ecdbbfd4527964c3269",
+  "comparison_source_sha256": "8d6e4220d02176b9191793871721885d04bc4cf170e4091349c908004026f78b",
+  "test_source_sha256": "e56a44c49c51e40c82f1deec879448a1474451145b200f9326add50b1635e991",
+  "all_71_analysis_source_hashes_independently_verified": true,
+  "old_four_system_rows_unchanged": true,
+  "protected_entries_unchanged": 147,
+  "protected_user_file_count": 3,
+  "native_baseline_patches_unchanged": true,
+  "tests": {"passed": 48, "seconds": 0.272, "evidence": "captured tool terminal; no separate persistent test log claimed"},
+  "auxiliary_scopes": [
+    {"suffix": "0001", "invocation_id": "8dc0376d73254f04b35b40f633195607", "memory_peak_bytes": 295170048},
+    {"suffix": "0002", "invocation_id": "70bed48b6c854a8999df783c6a5f5f59", "memory_peak_bytes": 1305673728},
+    {"suffix": "0003", "invocation_id": "729fb7c703514587b2b335e7164323e7", "memory_peak_bytes": 29736960}
+  ],
+  "all_scopes_actual_recursive_empty_and_identity_checked_before_stop": true,
+  "all_scopes_high_max_oom_swap_zero": true,
+  "independent_semantic_reviewer_pass": false,
+  "figures_generated": false,
+  "remaining_full_plan_open": true
+}

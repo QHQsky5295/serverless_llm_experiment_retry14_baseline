@@ -1,4 +1,4 @@
-# IEEE TC execution status — D445 Loquetier full4000 closed, nonfeasible SLO
+# IEEE TC execution status — D446 five-system 7B W0 comparison closed
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement experiment plan.
 Full earlier status is preserved byte-for-byte in EXECUTION_HISTORY_THROUGH_D433.md;
@@ -32,7 +32,49 @@ RUNNING entries are historical. No approved experiment or failed evidence was re
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D445 closed, backed up and cache reclaimed; matched comparison next
+## Current action — D446 matched five-system W0 comparison closed; remaining 7B next
+
+Full PLAN/status/latest baseline rules and V1+V2 reread. D445 cleanup backup
+3317fdf052e5555b593ca794b0e93b6c7c7ecdbe pushed/remoteSHAverified.
+D446_MATCHED_7B_W0_FIVE_SYSTEMS.md records the complete offline join of sealed
+D371/D397 PrimeLoRA,D414 ServerlessLLM,D423 vLLM,D435 S-LoRA,D445 Loquetier.
+No new GPU run, performance repeat, baseline source/config optimization, remote
+administration, republishing, download, pool generation, old overwrite or figure.
+Repeated user approval continues reuse of existing D78/D80 readonly delivery cache.
+
+Existing comparison extended only with opt-in --include-sealed-loquetier requiring
+the S-LoRA row. Explicit native batch registration, path/index/request/forward and
+schedule-before-token checks, no fabricated vLLM fields. Full static destination,
+registry/process/ready/content checks reused from SHA-sealed D445 audit.
+4000 matched requests,458224 native tokens,132 actualIDs, same matchedcontractSHA
+384b63425402ced97961e91081265d3cbe340b6a3b4febde242de28f62cd7399.
+All D436 four rows/relative differences unchanged. JointSLO/GPU-s per request:
+PrimeLoRA97.700%/3.6206309810630626;ServerlessLLM98.125%/4.022440685881069;
+vLLM99.475%/4.028844290537294;S-LoRA94.425%/3.7892694676132526;
+Loquetier4.350%/4.249595808607468. Last two NONFEASIBLE under unchanged95%.
+PrimeLoRA about10% less physicalGPUtime than two feasible baselines, but worse
+P95TTFT/jointSLO. Not fullM1/M2/G2/optimum/statistical or fullnumerical proof.
+Loquetier submit-to-native-registration262387.431ms vs registered-first210.333ms;
+descriptive differing backend boundaries, not causal sharding/hierarchy ablation.
+No native/configuration tuning. All unknown raw numerical flags retained.
+
+New comparisonSHA95a1037c494b87d1c52c151bc01850b5a96c9cf578f6af3d117a40d73e4b6edf,
+CSV2e31ef256f1984c2a6fd1a13c31ffcab2e5db6495d288e6a40b739f9b462546f,
+under paper_results/ieee_tc/main_comparison/d446_7b_w0/.
+Resident reference byte-identical SHA737c84804023c9f98677fb5f19c8240b4b05cabdb52f6ecdbbfd4527964c3269;
+no refreeze. All71 comparison sourceSHAs independently rechecked;147protected
+entries/threeuserfiles unchanged. ProtectedverificationSHA1ff66513bbe7dc141d9bd14e43a7ce4f111cee38aeb215db2db8eebe141fb657.
+48CPUtests passed0.272s. Single offline join successful in existing LLM environment;
+testpeak295170048B, analysispeak1305673728B, high/max/OOM/swap0.
+GPUhidden/CPU2,3,26,27/high3max4GiB/swap0; actualrecursiveemptytree and exact
+InvocationIDs checked before stopping aux0001/0002/0003.
+No independent semantic-review PASS asserted. This turn made concrete offline
+comparison/test/protection progress, not a performance rerun. GoalACTIVE,no blocker.
+NEXT back up this milestone -> HydraServe native qualification from existing two
+reviews and remaining7B/ElasticLocality/W1-W2 evidence -> necessary PrimeLoRA
+optimization before3B. Do not repeat sealedW0 or D445; all approved scope below OPEN.
+
+## D445 closed, backed up and cache reclaimed — preserved prior checkpoint
 
 Same actual handle monitored through normal terminal. At2026-10-12 05:22:35
 4000responses/0failures;05:23:04 all3returncodes0,actualGPUrelease/servicepathremoved.

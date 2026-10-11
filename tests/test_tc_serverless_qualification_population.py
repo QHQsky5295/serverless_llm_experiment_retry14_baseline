@@ -574,6 +574,49 @@ class FrozenSloTests(unittest.TestCase):
 
 
 class MatchedW0Tests(unittest.TestCase):
+    def loquetier_fixture(self):
+        contract = dict(adapter_id='a', native_backend='loquetier', request_id='r', target_tokens=2)
+        native = dict(timing_contract='ieee_tc_loquetier_native_v1', native_adapter_path='/objects/a',
+            native_adapter_id='a', native_request_id='r', native_adapter_index=0,
+            native_adapter_binding_source='loquetier_actual_forward_segments_and_startup_pointer_tables',
+            native_registered_monotonic_s=7., native_scheduled_monotonic_s=8.,
+            native_first_token_monotonic_s=9., native_output_tokens=2,
+            native_forward_count=2, native_terminal_observed=True)
+        return contract, native
+
+    def test_loquetier_registration_not_schedule_or_fabricated_vllm_entry(self):
+        from scripts.ieee_tc.check_d299_full_context import matched_native_entry
+        contract, native = self.loquetier_fixture()
+        original = copy.deepcopy(native)
+        self.assertEqual(matched_native_entry('Loquetier', contract, native), 7.)
+        self.assertEqual(native, original)
+        for key, value in [('native_registered_monotonic_s', None),
+                           ('native_registered_monotonic_s', float('nan')),
+                           ('native_registered_monotonic_s', True),
+                           ('native_scheduled_monotonic_s', 6.),
+                           ('native_scheduled_monotonic_s', 10.),
+                           ('native_first_token_monotonic_s', None)]:
+            with self.subTest(key=key, value=value), self.assertRaises(ValueError):
+                matched_native_entry('Loquetier', contract, dict(native, **{key: value}))
+
+    def test_loquetier_join_requires_actual_adapter_request_forward_binding(self):
+        from scripts.ieee_tc.check_d299_full_context import matched_native_entry
+        contract, native = self.loquetier_fixture()
+        for key, value in [('timing_contract', 'ieee_tc_native_v1'),
+                           ('native_adapter_id', 'wrong'), ('native_request_id', 'wrong'),
+                           ('native_adapter_path', '/objects/b'), ('native_adapter_path', 'a'),
+                           ('native_adapter_index', -1), ('native_adapter_index', True),
+                           ('native_adapter_binding_source', 'request_name'),
+                           ('native_forward_count', 1), ('native_forward_count', True),
+                           ('native_output_tokens', 0), ('native_output_tokens', 3),
+                           ('native_terminal_observed', False)]:
+            with self.subTest(key=key, value=value), self.assertRaises(ValueError):
+                matched_native_entry('Loquetier', contract, dict(native, **{key: value}))
+        with self.assertRaises(ValueError):
+            matched_native_entry('Loquetier', dict(contract, native_backend='vllm'), native)
+        with self.assertRaises(ValueError):
+            matched_native_entry('vLLM', contract, native)
+
     def test_slora_entry_uses_native_rpc_without_fabricated_vllm_fields(self):
         from scripts.ieee_tc.check_d299_full_context import matched_native_entry
         contract = dict(adapter_id='a', native_backend='slora')
