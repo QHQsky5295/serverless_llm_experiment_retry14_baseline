@@ -1,4 +1,4 @@
-# IEEE TC execution status — D421 vLLM 7B whole-pool qualification running
+# IEEE TC execution status — D421 vLLM 7B whole-pool qualification passed
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -74,6 +74,33 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+D421 TERMINAL/AUDITED2026-10-11~16:25Asia/Shanghai. No liveGPUjob. 500/500
+offered/submitted/terminal/native/source/adapter/content/timingcontracts,
+exact500IDs=pool,0failures,68925native tokens. E2E/TPOT/nativeerror0ms.
+Fouractualworkers/closedphysicalleases,U2722.8814599129837GPU-s. Functional
+viewonly,notW0/ranking/U_ref;raw n_correct=null/numericalflagsunchanged.
+Mean/P95TTFT644.341327/2135.383901ms,meanE2E4069.208638ms descriptiveonly.
+500HTTP/420740410wireB/12985984450verifiedpayloadB,0cachehits/0packs.
+Peakservice24619839488B,hostavailablemin99819220992B,high/max/OOM/swap0.
+ActualGPUreleased/servicepathremoved/returncode0;emptyownedauxstopped;
+threeownedremoteunitsSTOPPEDbyInvocationID/MainPID0/portsabsent. Remote
+copySHAstransferf32c2c5e02569f9e3992807a265f43e1719d062346fbbf3ef2ca86f3b5dfd407,
+monitor5dc7d58101458d1bd5397aa95d4cdf39c60165625cc496500a9e132121e543cd.
+147protectedentriesunchanged;postSHAd8e8dd5339a45c80ba5244320665b404e678ef7e1f168e4db335188c7d506466.
+AuditSHA6539a15a293aad9b0e63f4ee1e41b2689847498940468c44b8188a0c583d6277;
+568file/35339691BmanifestSHA293c40bd75e447a36945dfb548759acbe3da50cfc336829053f91ec2bcaa341e.
+Newpost-releaseCPUreceipt27pass0.174s withlog,notretroactiveD419testreceipt.
+D420advisoryreviewbackup399508381a4ce9e864d55ce121ad013b55cc428b pushed/
+remoteSHAverified. All568D421evidencefileSHAs/bytesverified. Baselineclosure
+backupd9971a14e18eca3391665d9da1244594e69b6041 pushedtoorigin/main/remoteSHAverified;
+exactone taskdoc,no runtime/userdirtychanges. MainD421closurebackuppending. Diskabout140GiB,
+below150GiBNEWheavyfloor;objectsnotreclaimedyet. NEXTverify/backupclosure ->
+safeverifiedD421downloadobject-onlyreclamation -> original1000compatibility ->
+onefull4000W0. No passed100/500repeat;PrimeLoRAD371/ServerlessLLMD414remainsealed.
+U_ref/W1/W2/G2/other7Bbaselines/3B/A1-A5/S1-S13/CE/docs/figuresremainOPEN.
+ThisturnD420inventory+advisoryreview+D421actualgate+auditmadeconcreteprogress;
+notgoalcompletion. EarlierRUNNING/NEXTparagraphshistorical,NOTlivecommands.
 
 D421 VERIFIED-WAIT16:20:29Asia/Shanghai:sameactiveInvocationIDbelow,
 243created/sent,238raw/validatedresponses,500contracts,0failure. Watchdog399:

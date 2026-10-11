@@ -40,3 +40,7 @@ analyzer为`scripts/ieee_tc/audit_d402_serverlessllm_path.py`；runner为baselin
 
 没有因此新增GPU重跑、改变评价门槛或扩大数值一致性要求。D421完成后继续原
 1000兼容与4000主线，而不是反复审阅或重新启动100请求。
+
+2026-10-11 D421终态后新增留档：相同analyzer/test源码SHA的27项CPU回归通过，
+本次耗时0.174秒，raw `d421_20261011/cpu_contract_tests_receipt.json`和log已纳入
+D421证据清单。它补齐今后的回执链，不证明旧0.090秒，原审阅WARN原样保留。

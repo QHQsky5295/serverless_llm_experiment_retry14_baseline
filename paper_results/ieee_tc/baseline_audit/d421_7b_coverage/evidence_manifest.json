@@ -1,0 +1,2845 @@
+{
+  "schema": "ieee_tc_evidence_manifest_v1",
+  "files": [
+    {
+      "path": "/home/qhq/serverless_llm_baselines/scripts/prepare_ieee_tc_serverless_stack.py",
+      "bytes": 121086,
+      "sha256": "d2dfb125f23fd2a15e32f692394964391df5da2104f7155824f26e9f135356e6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/scripts/summarize_serverlessllm_replay.py",
+      "bytes": 116510,
+      "sha256": "886921c168679c00783c917b7267021c02b3699604057a4bdb213bb55bbe9527"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/check_remote_health.py",
+      "bytes": 1026,
+      "sha256": "176d803fb722f46a895fb15a006f4f3b31469fc5073121c40ebaf524446e95b5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/cpu_contract_tests.log",
+      "bytes": 205,
+      "sha256": "d337cca6ce29445e3c619aec5c5cfc6ee76105623a51c9c147ec369541f2643a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/cpu_contract_tests_receipt.json",
+      "bytes": 1012,
+      "sha256": "af225e53976f74ca6f2a06d4ca389c58d2d7db14a198d5afa5fb998204f2475e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/evidence_copy_receipt.json",
+      "bytes": 820,
+      "sha256": "7350567bbff63034f7b62029335dadae310d0b55490a2d2424666c0e399b19c2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/freeze_inputs.py",
+      "bytes": 2775,
+      "sha256": "042a9d54ab47f27d8f63f508c2166617dc00a6769c38dd1339dad9d074c29ab1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/http_7b_500.json",
+      "bytes": 1751,
+      "sha256": "6e3ce7b951b4e381606aa582df7eb8168d013b1e2f8719aa07983189ab11822c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/input_identity.json",
+      "bytes": 1020,
+      "sha256": "4dcda3cb3c8306fb535fb59e3ac38e800d42814d4a83cf5efcdecb35a0720668"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/launch7b.json",
+      "bytes": 12406,
+      "sha256": "828a9e30d43e636e0979ae513e3696e807ce068e768ef5f064d30911257f3e64"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/launch7b.launch/exec_receipt.json",
+      "bytes": 13331,
+      "sha256": "91710ee6fef5906cd9678bad8daa66235ace1c51c074ef435e3b0004c0f476ff"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/launch7b.launch/replay.jsonl",
+      "bytes": 4795856,
+      "sha256": "1447172f26b4b28151cf99aaeb8427e6defbe1ea4d5df8e3e3582414023ebee2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/launch7b.launch/replay_startup.txt",
+      "bytes": 1335,
+      "sha256": "c72f806e9a5513117dbf1b80cac7521fab8b820da277e7360472be5d4487122b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/launch7b.launch/service.log",
+      "bytes": 79,
+      "sha256": "68674bc78bb47a4ab9b96d841cb6aaf900e4ca2d1809feef5f1fb4488e93e804"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/launch7b.launch/watchdog.jsonl",
+      "bytes": 4731564,
+      "sha256": "4e84218bcb4038e726ca6e3d778e77b1c6a09994d7d62db4b72bdd1694805daa"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/launch7b.launch/watchdog.stderr",
+      "bytes": 159,
+      "sha256": "2d056a402d36c0559e8176f3048ad5de7f1c8cc6a83cd0416e91573be6e2ac50"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/model7b/ingress.jsonl",
+      "bytes": 242635,
+      "sha256": "c5832da467ca6f0ef42e92be6d26cadd850287db443338e3ea49967e44096237"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/model7b/model_qualification.json",
+      "bytes": 10373730,
+      "sha256": "a3be0858a4fee41ef6ce5a6f9ca7e8602b89786c4c009c8133e26120b447aacc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/model7b/native_toolchain.json",
+      "bytes": 478,
+      "sha256": "a35df92b813409e832a9e9e76e712d84af6567b2883f69187793f347e2a9008c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/model7b/physical/deployment.json",
+      "bytes": 765,
+      "sha256": "0f1f5e06d1e70d597d94128953f45c1f5ed3594b7003aa9986c5879f4c4898d6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/model7b/physical/physical_resource_summary.json",
+      "bytes": 2585,
+      "sha256": "4a3dbd5d9e64e02a734605fbf82dd967477c66f43b8866ca20e2c89245082552"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/model7b/physical/request_terminals.jsonl",
+      "bytes": 285663,
+      "sha256": "d51c1421b69b2636a07fb8bc535f9db2f6e15e6b8a62129e6804cc5e1b4f90a7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/model7b/physical/summary.json",
+      "bytes": 2996,
+      "sha256": "53617529660ef3703552cd8dfbfd82dafb8bbb2d7c192126ce083ebebf441e71"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/model7b/physical_allocations/6cb7dd6a5f614c4ab5dfa47c80f4e553.jsonl",
+      "bytes": 14954,
+      "sha256": "0d809a462898cfb181b8d7422462a52dd242cd5decdc9cb3f9ff0a3f574e82e9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/model7b/physical_allocations/80c8cf2b93dc4aaa955fc2e771631453.jsonl",
+      "bytes": 14954,
+      "sha256": "ed10d0c968958d286178f4bf370ab5a6007439de9176d84c6b238f28d88f4d72"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/model7b/physical_allocations/GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036.lock",
+      "bytes": 38,
+      "sha256": "8ba467a13f135e92daa6c8e15c28675cd34b666e6333b5199212281c14a40247"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/model7b/physical_allocations/GPU-8f51f82e-dce8-22cf-1693-e62b8464f946.lock",
+      "bytes": 38,
+      "sha256": "4117839244c942ed8300745b214d0ff96a1ab49dc59bac8225f855739d6f21e4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/model7b/physical_allocations/GPU-c4663821-4888-e199-7151-d6298f8d45a5.lock",
+      "bytes": 38,
+      "sha256": "a17fef1923b3366c4b28fec8e65c4760587a53189a804715a18f0e839580415d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/model7b/physical_allocations/GPU-dadf0267-9617-8824-cddb-82fba48a7b97.lock",
+      "bytes": 38,
+      "sha256": "d40118fe17e72bfa116cc71eae913dac8ad5d7c9d792ef9ffe877204a4135d5b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/model7b/physical_allocations/b6a640c9a5e444f59d1d31930828dc2b.jsonl",
+      "bytes": 14952,
+      "sha256": "f19ecb3e43bc77c6a9c05310c48b5f447e77d6c0b8443ab311a18d9d823e3225"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/model7b/physical_allocations/daf01458ece64884a10fa63fc608b8e3.jsonl",
+      "bytes": 14951,
+      "sha256": "f87812b9ee737cf7118f904660bd3561f45f11517bafcc92bb3d7333de5e9f90"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/model7b/worker_0.log",
+      "bytes": 13419,
+      "sha256": "9ed4fe8a036a05392284175b4a4cdae060e0910b56b6f9303e3f06fc287950f4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/model7b/worker_0.ready.json",
+      "bytes": 179,
+      "sha256": "e0688558116b08e23dd193b3c8f6c4bf6e99b57e2362139524d26807086c92e2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/model7b/worker_1.log",
+      "bytes": 13419,
+      "sha256": "cea9067d0272221c1f3ba44c1ea763bda6464f22e2a1deec29dbf8e12c09e301"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/model7b/worker_1.ready.json",
+      "bytes": 179,
+      "sha256": "c1474893698b97c948aba3d876e2e2d637da1b0bc4db42a7c4eb360d82e86c4f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/model7b/worker_2.log",
+      "bytes": 13419,
+      "sha256": "2e75aa25cfb5d24440028c706dba22a98ea9a43c0e613d5b04b610b593dc7e10"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/model7b/worker_2.ready.json",
+      "bytes": 179,
+      "sha256": "0150d3556fa33e1696dd983e833f862967f84d9d51021259321be8c003082633"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/model7b/worker_3.log",
+      "bytes": 13419,
+      "sha256": "ddbcf610b1349ba6d9de7814bd45fbd5a7b990a7880bd326c09e478eea99d450"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/model7b/worker_3.ready.json",
+      "bytes": 179,
+      "sha256": "7ead0655993a6ef3ef7dcab499462af9f55810422df958e882cc980dbf9a2131"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/model7b/worker_config.json",
+      "bytes": 59363,
+      "sha256": "ced9c3a26927bcfd2390a7449c3da10bc105ea20c2e7654ee4aa20afd244f9e2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/model7b/worker_receipts/05c1703287d44fc98d410ac778df3fe5.json",
+      "bytes": 3152,
+      "sha256": "3e6aaa4459199734352885832dc697ebb39cac3de17b114817cfa64804a6ac01"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/model7b/worker_receipts/066882d8cc864fbbbda0a0027b84d10f.json",
+      "bytes": 3152,
+      "sha256": "124cb12ab62fe1d4e17d246b195474cc4ed68933c5c85dc4a7ae7ca4d3393b9f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/model7b/worker_receipts/0880b676b8b44e3b88e74a98d410e405.json",
+      "bytes": 3152,
+      "sha256": "3e0d0077dabc1deb4c4c2f119e5b296b37fcf47194448d5a1fcccfff668b5fbf"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/model7b/worker_receipts/35b7eebf168f4e329743b601d887487e.json",
+      "bytes": 3152,
+      "sha256": "d182c6daf41c07c7284b76fbef59b4633810a545c341ec80b86ef8d402f2e4cc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/native_cache_prefix_identity.json",
+      "bytes": 204841,
+      "sha256": "bff88d843c41c211ff63e5b40e75e5338a19060e06cbcdaaef7516dfe5c89246"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/preflight.json",
+      "bytes": 6464,
+      "sha256": "f0cc76cb951eec1a3409e0a1de782ba11f0913462bf8d2f525619c5d2c167ed6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/preserve_evidence.py",
+      "bytes": 2220,
+      "sha256": "52e6edc73307ac65523138a30cbbcd658fd64610e71cc52dc91d01fc5bb95147"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/protected_after.json",
+      "bytes": 273,
+      "sha256": "d8e8dd5339a45c80ba5244320665b404e678ef7e1f168e4db335188c7d506466"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/protected_before.json",
+      "bytes": 35122,
+      "sha256": "c6a29035ba17b9ac0f86f24bccfa30ad20324e3808078730462f87d66931cc42"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_health.json",
+      "bytes": 626,
+      "sha256": "a01c466c429894da35065b215033f5f10c3983ed7f304c0d3751a52dd1e0bb75"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_monitor.log",
+      "bytes": 11953999,
+      "sha256": "5dc7d58101458d1bd5397aa95d4cdf39c60165625cc496500a9e132121e543cd"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/journals/138198-505b8042439249b3bccb2a560637ec0f.jsonl",
+      "bytes": 106792,
+      "sha256": "0a64657c7a4ddbeffd1f73b1d4946ae99e9247800452eeb273e342161be97f4a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/journals/138199-f17d984f542b4b449415ea19fc6b9f52.jsonl",
+      "bytes": 106785,
+      "sha256": "78afd5b4e3e8491b2960376eee889d75c70ffe72702f91d59240ddc4af051a5e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/journals/138201-2ebcb799efbf41b38ee40eece1a5058e.jsonl",
+      "bytes": 106803,
+      "sha256": "386660bcfb69c59b7905928b803b977c0e0314501f5d72dfc75f0fa206d2c33b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/journals/138203-1659ad7b8cbd4d94b739e6c98d403858.jsonl",
+      "bytes": 106806,
+      "sha256": "0c7eca5ca1906fbc9c6126475a802c0738341b1a39b3973955992b7cc22640be"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora.json",
+      "bytes": 2465,
+      "sha256": "5a85e508a69bd371c3150f50b7a2e9d5d3d4aceb6da6dfaac8d82999810ff787"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0015.json",
+      "bytes": 2475,
+      "sha256": "4da49511ea51920bb5960ce8eb10d78f2667e2fa5e3ce71e1a41aeaf44cc9a8e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0027.json",
+      "bytes": 2476,
+      "sha256": "1e1a626bfbea255f82481f567bcb603086d67fad4d8d28754a8398807d674484"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0039.json",
+      "bytes": 2472,
+      "sha256": "88023461e2b7a82bdd47455a4e3b394f1cac234e4138601ef9f92b53790e86ce"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0051.json",
+      "bytes": 2477,
+      "sha256": "51f3ba508eab1d5353e168bb5d613ed47241fce5fcc38b16b89dbe2f12f23c17"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0063.json",
+      "bytes": 2473,
+      "sha256": "5b4f0aa334779f63d8810869374637e59c75020c25aee96e307a3cdc2722133e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0075.json",
+      "bytes": 2473,
+      "sha256": "d50830f823701809efa62f083fc08693d5466a3aefb8d8a0a80ad0718cd9d91a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0087.json",
+      "bytes": 2474,
+      "sha256": "50b6c776f0dcb593bb23f1dc3f39afd91e524c91b541bcaaaf296bb616a45235"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0099.json",
+      "bytes": 2475,
+      "sha256": "8fc677bcee309d957d7efe04ce14a2cd8e691ad6df0923631f76799bc550e2d7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0111.json",
+      "bytes": 2475,
+      "sha256": "fa55f15c3dabc89e82f255a7adecccdbe18cbd2b2327210519f6397e4b69c526"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0123.json",
+      "bytes": 2475,
+      "sha256": "3f633c6e0d648ab6e386e8d83f6ca036cd56dba8dbea60f29b3a142f8495c4dc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0135.json",
+      "bytes": 2471,
+      "sha256": "c1b240f05f331463ded417c0bc2093831954eeec8c1df9beebbd2ebc61edbd13"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0147.json",
+      "bytes": 2474,
+      "sha256": "90ada18e8febf3e9d39dd074c4c229044bf3c92095b02242a832807d345b4ccb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0159.json",
+      "bytes": 2476,
+      "sha256": "d10e4a50c639018e19ecf95c46a27ad74a97eac81e9e8a2aa6ddf79c5e42d1bc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0171.json",
+      "bytes": 2475,
+      "sha256": "919c754132f0f6977cf50732dd7c5f2422128121a37ea6fc16cc950ca7bffcad"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0183.json",
+      "bytes": 2476,
+      "sha256": "f80e69b58edc299e01399812e0a23a31c16e7464c4482db85e1aa7cf278f7b65"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0195.json",
+      "bytes": 2475,
+      "sha256": "74e52aef8a8478720e9caddb7f5e1aba83fbe99c9ac4425a905221534c842037"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0207.json",
+      "bytes": 2475,
+      "sha256": "1dad28674304cc74a56a8c4ccfc34c54bb70a1a93a1ff447b85a45851cb79ac4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0219.json",
+      "bytes": 2474,
+      "sha256": "7748c2028441f9f048607be0019315a55d2b7bb1654554a40afc6d0e643a7eb6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0231.json",
+      "bytes": 2475,
+      "sha256": "e183c2acfd94c3751d3ce7caa795403e08de60ee6de4a5bda0708f8bc436a9d9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0243.json",
+      "bytes": 2476,
+      "sha256": "fa44b95d51546bb6be2b97a38d870b8e845f1e2ea8df0a746ba5f422fc99672d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0255.json",
+      "bytes": 2474,
+      "sha256": "2f565aec91667b4522f46a03ad0ac95f781d47beda6b9e7798db81aa2cc8bf00"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0267.json",
+      "bytes": 2474,
+      "sha256": "f3275e440a2676b1302de53234c12a1209e6df03afc9f7964ea14af57c6fdc82"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0279.json",
+      "bytes": 2473,
+      "sha256": "9e9597f4149bb71cee3f15275bd496cbb2eebf480488d3635f1ef5b24b723255"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0291.json",
+      "bytes": 2475,
+      "sha256": "af73190015df564d92c1c988b2a0eeeea69ce7040749cf1cfe845c2a8163d084"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0303.json",
+      "bytes": 2472,
+      "sha256": "f9d7016cfdbc7629d6e3b832d90f2fcbacc4064fa30952201ceee5c8481694a6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0315.json",
+      "bytes": 2473,
+      "sha256": "e08cb3a5e436e44e878fe0002ea3d89a1a3120268323ad8844d68db0d360541f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0327.json",
+      "bytes": 2476,
+      "sha256": "20cb4669d64204e8b9b988a8907e2cc6942569f55d84154e52550ad0ec8f05e5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0339.json",
+      "bytes": 2470,
+      "sha256": "f96df12d5151f02a2d062eec689afd0f8d5716e6e323374311a1f6a3f3e61f0d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0351.json",
+      "bytes": 2475,
+      "sha256": "a24dacf82d75fb895855314eef5cf05359c0c6585bd6ce535fd238369a0dfa0e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0363.json",
+      "bytes": 2476,
+      "sha256": "0cadb9908657a56a9fe26f1cc4c64c554f50012f3b33e4ef8202349400eee48e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0375.json",
+      "bytes": 2476,
+      "sha256": "d307b7c9b4cd78cff5ccd1524abbda0c30f4b81989d0efdaaae225345fbde7bf"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0387.json",
+      "bytes": 2475,
+      "sha256": "2c395497b170cb37286a37850d45bbc90f11467888b4d639f53f2fe2957513a9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0399.json",
+      "bytes": 2476,
+      "sha256": "a78ce6c915d1b5bb05f03c1364a6216473641cd77dd0d10e29d832f596b2a1f2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0411.json",
+      "bytes": 2477,
+      "sha256": "9605b61572f37259d5ed7adea4401b6866124f36c0552da4ee7319207d6db95e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0423.json",
+      "bytes": 2476,
+      "sha256": "815af81569d84a2b9dad9c2ab927cfaa4685f15583312d089a14778156d94c0f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0435.json",
+      "bytes": 2474,
+      "sha256": "4e4ce67a1fe25300feb42bc28a3c55999726b9b914f0ceeb52b21fa615cf182e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0447.json",
+      "bytes": 2475,
+      "sha256": "f1d5cb23a293b0768ba1854fc947a6d5ba199d8e8e3252540e2acdc71946c3f8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0459.json",
+      "bytes": 2474,
+      "sha256": "5dc2531ba010304cf81f44688de812c4490bcb2a1d50a78a5a988361b9426cba"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0471.json",
+      "bytes": 2476,
+      "sha256": "d843b2506144afb796dca92370c992fc127203d76be3c5bb10abc50e6160b488"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0483.json",
+      "bytes": 2475,
+      "sha256": "a407c9dee4020fe7d0319d0cc67bb4ba0e0ed3d8b3dca6a96c1ceb7d1e93a9e4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/code_lora_0495.json",
+      "bytes": 2476,
+      "sha256": "9d90f66b5b6feeaedb8ed538e66a5d601562315fbf47b764ff5a708d25d3f69b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0009.json",
+      "bytes": 2485,
+      "sha256": "4a2eece69e4f29d00668f97842386196272c8a63066ac7e4fca4f71919148b98"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0021.json",
+      "bytes": 2481,
+      "sha256": "6d3eba32d79431b72007b6d33af1ee9e9a92cd3926e6b1f6048c65c07d34eb65"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0033.json",
+      "bytes": 2485,
+      "sha256": "372ccf2055cd58250081defb49059b751cecfa9269379d0f0fb5d805f82f9a64"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0045.json",
+      "bytes": 2483,
+      "sha256": "1c351bd8cd457a0fa6946570442f43680311dc96575270f89c6ef38c576fbdba"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0057.json",
+      "bytes": 2483,
+      "sha256": "5c31b93f9ef73200380cc81b9e13f94368d02f0c3abb2726367a987f4a087f42"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0069.json",
+      "bytes": 2486,
+      "sha256": "8f3afa1bc12b4f1fb2a5fd4d96a8b0743f5ecdd759dcd5c7c075d7bf5e07f56d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0081.json",
+      "bytes": 2482,
+      "sha256": "0d4914b1504f6ab6556b85ec4e1f31a309eb543499c719f31b2c2c36d67ed77d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0093.json",
+      "bytes": 2487,
+      "sha256": "4d5eb9e131e78b766d9df9ecd31526887c9ffc544d461ea191f2a88800f49780"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0105.json",
+      "bytes": 2487,
+      "sha256": "2dd3a32d3023a1478f538f8443f6833cea90ad29c6bbf1dcb601cb03024df644"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0117.json",
+      "bytes": 2484,
+      "sha256": "d9f4c3aa73375ef80e81a106ea1c70cce071820225838f750488fa49942de8e2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0129.json",
+      "bytes": 2483,
+      "sha256": "06a4962a66b1777e121ce881831caed1d6eff7ec3e5ae29910f0d8489aa57eb4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0141.json",
+      "bytes": 2484,
+      "sha256": "f94980885658e47b080d5c13909a30462faeaeee3e20e9542d844fc83da8fb0a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0153.json",
+      "bytes": 2483,
+      "sha256": "0e51282db38f9e66e0eae4d494d793d8ec552a5de2b9b79a01b6ffa2308d851a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0165.json",
+      "bytes": 2483,
+      "sha256": "1a931c6c07a5b8e358075ee796c6663cf1fceba0e67aa44623af9feb82907ed3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0177.json",
+      "bytes": 2484,
+      "sha256": "16e246f9535dc4087b12b1e4e5a0f59c6db40e5ced9e2bd9d60892d9cdf22c52"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0189.json",
+      "bytes": 2485,
+      "sha256": "64e4c121cfb16cd01cfd0e13eab15b4f5a8e634b2a69c410d423925aa4f618f7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0201.json",
+      "bytes": 2486,
+      "sha256": "d3f76d47736658ac90ece72fcc55109cccff2311cc7e4071d380a9887bd872ae"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0213.json",
+      "bytes": 2486,
+      "sha256": "756f5401a00c5ff38df11284a38de821f27e37c5d53c02ea2a2077e5697bbd84"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0225.json",
+      "bytes": 2485,
+      "sha256": "211a179211b692a45851d9d8e494a50616838a516c59f6570e4ce3887aaa3c86"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0237.json",
+      "bytes": 2484,
+      "sha256": "242a5fa3c1e9e706be227689548ce2106a63076d0f50b496e98f4609ad8488f4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0249.json",
+      "bytes": 2483,
+      "sha256": "c9df29c5e91b348eeb870dea7db7612cff66286efc57b0243e76fa39ac5e3d5c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0261.json",
+      "bytes": 2486,
+      "sha256": "dc7511f4ef9775652e60dc496c2b9fa586f481d04ebf02c0be201a15881efba8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0273.json",
+      "bytes": 2485,
+      "sha256": "2acea18e686149886d09ef98990dc487d1f61ed40e4735fac423ca1064b9904f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0285.json",
+      "bytes": 2484,
+      "sha256": "aac7ae11365775249c37e1f8262397554055faea447eebb9658acade7bf3f677"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0297.json",
+      "bytes": 2485,
+      "sha256": "9df8a501d8cf5459e576aeff833c800307ec45bc7944ce18858873827258a2a5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0309.json",
+      "bytes": 2482,
+      "sha256": "e8df5768fd3dad5c8465a9d6575de3c4ef6329b1fe7709be078de8655b87f46f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0321.json",
+      "bytes": 2485,
+      "sha256": "7651b70b20809ace01e4a580f4f54b682642bf3d921b19e5f5eb7e5b1644cb96"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0333.json",
+      "bytes": 2485,
+      "sha256": "ff0e9222518ccb2476fed2db4846c6d3a2fa24b51fb23a2515993dcdc1da368d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0345.json",
+      "bytes": 2485,
+      "sha256": "0543d20a779005490c8c59a6475b4c998bf769036bf9e12f100a1d969fc578b2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0357.json",
+      "bytes": 2485,
+      "sha256": "730ec50c51471c11bb953421d75be95eca58398afe30e38bfd75f58a4c311722"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0369.json",
+      "bytes": 2485,
+      "sha256": "5b4a912f34081786233eec1a99f6fd5e793a51294056a26fda90a18c9a9545ea"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0381.json",
+      "bytes": 2482,
+      "sha256": "838bcd396b52c9e682c0fe972248e48ed0dd5a2fe8662b6ad7a56482ed9e7da3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0393.json",
+      "bytes": 2485,
+      "sha256": "f9e01bbcd0ce97d1564d5cc834e25c5ffaa94036f16531b686f2fc794afe32cf"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0405.json",
+      "bytes": 2485,
+      "sha256": "fda1173151ea43f8b9e66be3acdb42c5ebe9a2564ce56dd5f88e1d393765e58a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0417.json",
+      "bytes": 2485,
+      "sha256": "efcac53824d816b611a3154990e996d55ac8a208e0c064c0795ee0bd288aac49"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0429.json",
+      "bytes": 2486,
+      "sha256": "0c6c2c24481cc5315e7240a99858e29af66b8a4482c78967260df49c2353b1a5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0441.json",
+      "bytes": 2486,
+      "sha256": "de50a46ad3bcde4d7af5f10de2ba6af925c697fff32a96983ae0207779e0279c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0453.json",
+      "bytes": 2486,
+      "sha256": "f681be577a828137a5a7716899ef51297d2d9a23678de524206b1a2f63d67e2d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0465.json",
+      "bytes": 2485,
+      "sha256": "dc1fa7c153ed93d73c950d3cef93dd6aba63b9914505899381e1c772ba69cf6b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0477.json",
+      "bytes": 2487,
+      "sha256": "231e8146adf007637fcbdc0aed9740c8b423d8fbec1059d004b0f4797830d46e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/ecommerce_lora_0489.json",
+      "bytes": 2486,
+      "sha256": "27470539410b19c6aa38c9a10e060dcce8c9664d8e3f4758efe0f0fe24e97822"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0007.json",
+      "bytes": 2485,
+      "sha256": "ef1b6497c70300f877ad794cb6e161d83d3fcddd44a0b4ccfd75b22e7f3eba14"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0019.json",
+      "bytes": 2481,
+      "sha256": "bd215ceead2da9cacf7fa65e24f3d65532e7acea3faf1264afe11925de123182"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0031.json",
+      "bytes": 2485,
+      "sha256": "c7e40867b6646e704a6a941819839d41bd155e81117277707d9f4edb69bb7878"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0043.json",
+      "bytes": 2483,
+      "sha256": "0fc89de20442484564bebc2c9c4feb7a8c1b2c73cffd2ad455dab0921a732029"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0055.json",
+      "bytes": 2487,
+      "sha256": "b4ba4747bda9f5bb91617fd0a74be70294d1e5365f80d5c8b5f42dd765d218fa"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0067.json",
+      "bytes": 2487,
+      "sha256": "e6219681f650a153945a6a1e91be9af9cd05fc821755f84752e04d319a148ddd"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0079.json",
+      "bytes": 2484,
+      "sha256": "f7f931b727652b0233bcada7e09e222c984db9e3cf988a3b359e63b6fe4bd5e3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0091.json",
+      "bytes": 2487,
+      "sha256": "d0fddd6d58d4d262be36110236077a2b68f31acf886493377ababe118723704c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0103.json",
+      "bytes": 2486,
+      "sha256": "288b056ea659a9d0074599bd438cc70b959fa66cf4bbbf5f0fd2711bbecd212a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0115.json",
+      "bytes": 2481,
+      "sha256": "12df9481b75fc236cc85fe7825011e4c8dab048e0d49cb3387bebc5480c37040"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0127.json",
+      "bytes": 2485,
+      "sha256": "7c351a7fa2dac084b65674b9a4880edc53a36ed91e2a81d9741f6c63b0fa4b7e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0139.json",
+      "bytes": 2487,
+      "sha256": "b918884099243e3f217f7b2c9b6f684e6a1432bf26bac1389ca1e688546ee71a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0151.json",
+      "bytes": 2485,
+      "sha256": "bebfc3d0694c3fcb5077f98bbe41577ba5ad3354b0dfdf2a0cd7cc68426e1f68"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0163.json",
+      "bytes": 2484,
+      "sha256": "87510ca422a1ae31c455e8b13c337cda2ec4f44c2100bc76ca05f15288247394"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0175.json",
+      "bytes": 2485,
+      "sha256": "92478a657527b189ce5c14b0f58c9291d4e417445d85e6bb765fd01af817defb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0187.json",
+      "bytes": 2485,
+      "sha256": "8ef7de92402bed97796a54544109dc7c348d28bc21a4d1c2c5a2f5887547dd91"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0199.json",
+      "bytes": 2485,
+      "sha256": "acecef8d99ae29d1b11cc557e4fb903a5635bd4d9868b9641a6f3ff4456f1c89"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0211.json",
+      "bytes": 2485,
+      "sha256": "d00e003ac2ce89d87602cc398c54ef796d4bd0d719de72edd55ea70cd505c353"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0223.json",
+      "bytes": 2485,
+      "sha256": "957bd29754fc43e0e9833e8eeb0d0011971f1b3f24eb2577f355ffb339c01686"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0235.json",
+      "bytes": 2487,
+      "sha256": "1d773cbf92d463397323759915ce906d098baac281eb1a991808e87ebf572a66"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0247.json",
+      "bytes": 2486,
+      "sha256": "4dfc24d6d1b6d62496b8af3513fb1703adac37a82b20cbade7622ded611a6e7d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0259.json",
+      "bytes": 2486,
+      "sha256": "e4ea2a4b8348ddf8fbd73c5ba0cd8e0c658e6b3d3a01aa501908f5556109f1fa"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0271.json",
+      "bytes": 2484,
+      "sha256": "5e2b8f7bb50794c303ccbe867494a72197916ce6294a766c751c544f9b529c8f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0283.json",
+      "bytes": 2485,
+      "sha256": "977c99a1593dc67e424a91148994a2725e2bc80143a53df34b19a436c2df7f4b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0295.json",
+      "bytes": 2485,
+      "sha256": "edc46ffbce1e1bd64c95c32cbd78ffe900be40de684414855050e1873a4ad85c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0307.json",
+      "bytes": 2485,
+      "sha256": "5e0ccbb3ee84581c4f216c1608494888843226ad914c7b9191b62736c2b5a3bf"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0319.json",
+      "bytes": 2486,
+      "sha256": "3dc5ff8a212027385cb9919bb6f09fddee74343fb575ebef588b94776ae0674b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0331.json",
+      "bytes": 2486,
+      "sha256": "7bd3a569d021e0a023de3c49d4f74c8f1ea2a88a4c43167e3c0fb4253e87bb58"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0343.json",
+      "bytes": 2487,
+      "sha256": "aba88f90818e7061ae64a487fe83d6e0b0ff9d30c4eaa0e7df4069c763364b2d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0355.json",
+      "bytes": 2486,
+      "sha256": "ee52f9f8723a9d4a2d9254a92a94c845a72c9f58e137f7483d0798746cd7a2a6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0367.json",
+      "bytes": 2484,
+      "sha256": "ea600b962bb94b7b343bb6e760f774a6506edd9082b45ef537e37bd4d68910ad"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0379.json",
+      "bytes": 2484,
+      "sha256": "820e790e11c3be1abc4fc926113296dfa6e3543b8dfd05d000289bb499ceb5e0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0391.json",
+      "bytes": 2486,
+      "sha256": "542849fb387b24db59e46e14dd431b20923da8464a9cf5a353fafb4cd50d54bf"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0403.json",
+      "bytes": 2486,
+      "sha256": "99a2bae1164fc03862bbc5af2abd577bc8af169d1c619a5ee358c767cee10801"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0415.json",
+      "bytes": 2485,
+      "sha256": "5a169a63e13af46525b29174399602c5f00afc598040530614312ea1be956c0a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0427.json",
+      "bytes": 2484,
+      "sha256": "85c1d83849095049d05227e4088a35b4e31bd1eae8f9d2e0875cb94e6f131f2f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0439.json",
+      "bytes": 2486,
+      "sha256": "7441d31b3d2ff7893beaeb491c82c029f52c2d29514d379389ca58fdc2c9820c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0451.json",
+      "bytes": 2484,
+      "sha256": "d277f85ad2a40ccc4ede3f90edde54cf39c01bda94124a19be995001ecbf95d0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0463.json",
+      "bytes": 2482,
+      "sha256": "00375dd4d698eac66487e53c8bb2845b96598bc6ab4a2aa9137dff40c4b2af8f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0475.json",
+      "bytes": 2487,
+      "sha256": "a244935b30f7411010a4742253a5c20787ebcd434541c7bd50e52edb7b769916"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0487.json",
+      "bytes": 2483,
+      "sha256": "45f82aa3cbaaf8dcd2c175c6a56d493c4772882c72e9c3aefad13b019192fc5a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/education_lora_0499.json",
+      "bytes": 2486,
+      "sha256": "915154700d703aea41f669a1cef3cdf04e8907359b528ef322141a23a22d6605"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora.json",
+      "bytes": 2474,
+      "sha256": "454b4d910fb8fd43c246eaa591b1d2519312c3a750e940fad6a01b614fb1c76b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0013.json",
+      "bytes": 2482,
+      "sha256": "e7f95d5f2bf2f3b4ba84c306446987ac20016c2482ce24e4d6ff3149c3693e6e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0025.json",
+      "bytes": 2481,
+      "sha256": "2b2d2093001bba779d3b9f938d1537fda9f03be6d5e5537a6002feec445c19eb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0037.json",
+      "bytes": 2482,
+      "sha256": "bc8728a00204ae27a09163223a2a1aa8faa2a88f1fc2eeb3cd02400a839ef504"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0049.json",
+      "bytes": 2482,
+      "sha256": "c1d1dbc5791ce0204a9968b137ed411f2afc17b42744fe319bad8b9a626c36b8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0061.json",
+      "bytes": 2483,
+      "sha256": "f07aa1f2bfb5f3586df8db10a580ee49bb743b68f8e649de4bd64b490c7965e6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0073.json",
+      "bytes": 2482,
+      "sha256": "9e378711c71662229d16172492121665bed324112aa81f62b8b993194d98f5c1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0085.json",
+      "bytes": 2480,
+      "sha256": "e88b4ef4b41f0c032ecd9fb2998798057076d32e29fdf5ed432acb0a7add1000"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0097.json",
+      "bytes": 2482,
+      "sha256": "84d8f62daf4c56c50acc2431afb2c88921223342bb652cfa3e81d75e2b5f9c8c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0109.json",
+      "bytes": 2477,
+      "sha256": "499268a8caae5444d2d77c41848610218a1391183e1679465852fb201543c864"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0121.json",
+      "bytes": 2480,
+      "sha256": "b16c9f83752132dcb31b4dcde584ffa8778101bfcd2bbac27439748db14e4f91"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0133.json",
+      "bytes": 2481,
+      "sha256": "f6cac258779c2aed1fd22a783319d5e92729445ca3f1bf4004a1ea8b32e87f90"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0145.json",
+      "bytes": 2479,
+      "sha256": "7f151484de69783f12d5c48fb1a73a027be2bf259051b6c4e391343fe962626a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0157.json",
+      "bytes": 2481,
+      "sha256": "db5ef2b1b9a836af94ba2e2c524e4a4e05d8c7da5ef944a3c767f9e41b0e8b22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0169.json",
+      "bytes": 2482,
+      "sha256": "c5ddbac1db310de932fe23c850c48805c0c8fe4dac4a49c243af1a6f0b04e300"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0181.json",
+      "bytes": 2483,
+      "sha256": "bea674d595e830c112ed54d30ef3e7ffa440d3ffff06fee58e44d0b20078e06d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0193.json",
+      "bytes": 2481,
+      "sha256": "ca1b7551949d8f0330aa3de2b0707d51324eb240fa4b569ca2bf82dbce209fe5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0205.json",
+      "bytes": 2481,
+      "sha256": "1f42c6e716e7581ab65064d2cec20aec6c52ec2376a496d392da7296715a1641"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0217.json",
+      "bytes": 2482,
+      "sha256": "b62c718419c31a9e7ae941a1ab206e74ed49e293afb6cccb0315c474cb851853"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0229.json",
+      "bytes": 2481,
+      "sha256": "4cbef4144653d47b0e13cc3cd02bc197184ca8f23d9233f4535ebc8ea132a778"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0241.json",
+      "bytes": 2483,
+      "sha256": "5a80a5563a9298204fddaa98f3cd32d6f17d4e0b3d182bdf56b4336e9e927ac7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0253.json",
+      "bytes": 2482,
+      "sha256": "8d54f350cf30ca23d960322367ed48a52d8b799b7d9add8136dc9dddc653b182"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0265.json",
+      "bytes": 2481,
+      "sha256": "089baa2660fa77781befb06e2f2655e9a78e299737d22895e31ed3cb5773776c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0277.json",
+      "bytes": 2480,
+      "sha256": "bc7077f5532e9c11dafebab882a0bb37499ef4eee47f62e1d7ee3e4a684df4bf"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0289.json",
+      "bytes": 2480,
+      "sha256": "37d5dd848e3f29b3e4772f6b0e4b26f290f317fcf149a339fa95870baf9f9053"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0301.json",
+      "bytes": 2483,
+      "sha256": "490c31df55408f37e245e3ee442c9a5130ab43a5b7c4b9a6dfdf4b580f11ca3f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0313.json",
+      "bytes": 2482,
+      "sha256": "2488950cbde496c51ba49be6e85dd701b12ccf9c2376ca66ed742bd50c0c42d9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0325.json",
+      "bytes": 2479,
+      "sha256": "5862d4f8d316f9c14a3d2c807c85b927e3b2a5c37e029df931c06f469f4d9106"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0337.json",
+      "bytes": 2481,
+      "sha256": "0d8faea0c8a97bae6ef83881560e0ab1914395b8297be751fbb712e9dd0784e0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0349.json",
+      "bytes": 2481,
+      "sha256": "b394414103e3b1e0cf78f498bd9f390ae0fa67f73702e8e8d2af146d2b98cc1b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0361.json",
+      "bytes": 2481,
+      "sha256": "27b3b7357c75d3588dd87afc06e04737bcb948dc023e8acf2af42dc462fda890"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0373.json",
+      "bytes": 2480,
+      "sha256": "fcff8b84b83dd7f881ca562fa1ac72683d5b641d054293e928bbfa928f68f24d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0385.json",
+      "bytes": 2482,
+      "sha256": "05acc9c44ea769148d7b9cc59fcd94b2524544024f73a212b48c98f1850d70f5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0397.json",
+      "bytes": 2482,
+      "sha256": "223a29da02c50f7a30b53b7f5220899ca0ac911a3d1a3f91d4905fa3d96c3f0a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0409.json",
+      "bytes": 2482,
+      "sha256": "22a25bca97f0d41428484b756c5e958f3c6e215c53c7cfaacd7214f40b74bb62"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0421.json",
+      "bytes": 2480,
+      "sha256": "822ef83ca459ec4633aecd6e1d9db5ebbf85790ff6ef5c4bdaa840ad7dea6243"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0433.json",
+      "bytes": 2480,
+      "sha256": "dce25261818e09685b77c9afe9880788489f97a4bf537352216a7fccf02181be"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0445.json",
+      "bytes": 2481,
+      "sha256": "c990cb4fb0b7152ea143409bd72c06878083ac238b9b27009591b2555b8d060f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0457.json",
+      "bytes": 2480,
+      "sha256": "3b135f1d35c8298212add612ec3ed3b0901fd55182e1184eceeacd4e17d1d0d6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0469.json",
+      "bytes": 2483,
+      "sha256": "9334868a754116a24ca90bf0900a767fe884e35e953987fe466c195164c68cda"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0481.json",
+      "bytes": 2479,
+      "sha256": "ccd9911062d4720b0a0b0752912aa5b39a3a6b9be1c7af799521fe5457e65df7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/finance_lora_0493.json",
+      "bytes": 2482,
+      "sha256": "c3f96ee7e77d0cfaff0a5e66d778715b4a165f6731e75a2eab48b15134d08786"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0010.json",
+      "bytes": 2478,
+      "sha256": "3435b454003183af9add65e783a4b858f416e442dda1ded28ed124be1f7fd80a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0022.json",
+      "bytes": 2480,
+      "sha256": "5b627ce3c73ecc5e11b70c0cdacdece2df214804102cbd01818d0be382f3b208"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0034.json",
+      "bytes": 2478,
+      "sha256": "b37156f6336a1cef721c87212b1d083cb2f75f78f65cff437f5cda8545276e9b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0046.json",
+      "bytes": 2478,
+      "sha256": "e3556da105c67d9aaa81d8692e01510981734cfb14cfdbaf4dff37230b3c75ff"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0058.json",
+      "bytes": 2477,
+      "sha256": "f58b0de741a2df44d5108147b0c8280e66b6a08a6088be7899344cb0bec17f02"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0070.json",
+      "bytes": 2476,
+      "sha256": "f1c69afe882111d2603fc481cea47bec47a6a303637510c9e1a6dec4e37969f6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0082.json",
+      "bytes": 2480,
+      "sha256": "e413ab2736b2dfb0a15391e6c3f7f385dedc8562437aaa9545c6b409082ed0dc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0094.json",
+      "bytes": 2479,
+      "sha256": "6cd72306870978a291d8dd63896d9925d5ef5e50ad369d1735b1fea06af4c7c8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0106.json",
+      "bytes": 2480,
+      "sha256": "2ee1403546c5bff6f6ef5c81555b0265f2058512e9817ac1108a245645b90b62"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0118.json",
+      "bytes": 2480,
+      "sha256": "9ff8bec6f3ef78fb9a2812a8ea50ebb17f6e288e6ba38c56a976ee49125486d3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0130.json",
+      "bytes": 2479,
+      "sha256": "7f810b3ee91916a16502a69a5902f519655df9391cc51e428132a0f7b9e39462"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0142.json",
+      "bytes": 2479,
+      "sha256": "911cd065199c563f60ed76725626360c86790064e9a04a7480b3aa2ba02dbca1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0154.json",
+      "bytes": 2479,
+      "sha256": "1e678192a9fd13ec2d33e044cb41a3afc8165185c48e29b9e671668dea0f8484"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0166.json",
+      "bytes": 2480,
+      "sha256": "b1cd09f9a26089240e93a15d31fe731e7bcdb28ea8e260791b7aa4f64bd3a3c3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0178.json",
+      "bytes": 2481,
+      "sha256": "a806f0504721da6ff95f80fdb83ebb7737a0944a4cf0b4ba6c7161458e0e87ae"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0190.json",
+      "bytes": 2478,
+      "sha256": "9a71df287746aeb3ae9bc692b7ff70bb15fd61126b92f0b47a2b12565adb5c06"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0202.json",
+      "bytes": 2480,
+      "sha256": "ee3c1d33ea3b0a84eae3c826c6461fd3a0a6ffcfed8b5037e5e65accef22d990"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0214.json",
+      "bytes": 2476,
+      "sha256": "20f44d150abcad91ac480712d32fbc66552209318802158a6450256cbee12cb0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0226.json",
+      "bytes": 2477,
+      "sha256": "280c740188c59e7a074493bffb7ff9ca80fdf90ee60a76ad313bcf52ad18c2a7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0238.json",
+      "bytes": 2479,
+      "sha256": "cd19f7ea85eae6e983e6d7cfac4dc6b04eae1fb4a43bb45c03d30b1904540bf3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0250.json",
+      "bytes": 2481,
+      "sha256": "fcaf773daefa29ea3492533a480487b0c86ccbbe9903b827a456031cdb01d1e3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0262.json",
+      "bytes": 2480,
+      "sha256": "f1c878b24ef82bcbbd30461b63d77cd2d4e4bcecf22ef3dfc9a96747d34c99c1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0274.json",
+      "bytes": 2478,
+      "sha256": "809c9fce7e5717242cc34d908b8282ce7c1b9bc006a6d65f40eebd0ad5f99da3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0286.json",
+      "bytes": 2481,
+      "sha256": "b7f79b8d00fe479afd1e2a7f9ae4c9f3d77ab6bcf168104bf6fcfd6142f42a6d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0298.json",
+      "bytes": 2480,
+      "sha256": "e7545f36acc9151456054139f02cbcac65d3ec92c23057d72dada075202f5002"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0310.json",
+      "bytes": 2479,
+      "sha256": "d28a8615d35387d3dbb346c71d8c0bc15cf020925f670929e602706a501690e4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0322.json",
+      "bytes": 2481,
+      "sha256": "97a14d19346cb6ce466900de383a6ea8d75ca5de443ec9861a23492ceb97f49f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0334.json",
+      "bytes": 2479,
+      "sha256": "49bd9406bf787a8ef0aa71b69fecbd69f8d614305ee6d0a663c7577251b1628c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0346.json",
+      "bytes": 2480,
+      "sha256": "41214fd91066f3299165c1c31806b4562472f32e79c6bc9fe275fecd192f3f9d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0358.json",
+      "bytes": 2481,
+      "sha256": "4b2ff72abc1cd54f2a067cfcb27daaccb7517b350c013edff8ac78aad7bb7bdd"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0370.json",
+      "bytes": 2481,
+      "sha256": "8754eeec47978ba13c87a1c72bf9106488f4be723bd7902b266911e538239105"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0382.json",
+      "bytes": 2478,
+      "sha256": "9027406a124ae98f024682cd7365cc02eab5c59ad45c297f8de807f3cdff21c9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0394.json",
+      "bytes": 2477,
+      "sha256": "8d63585e479d16b6567283fa5d7c583116e12adee75efe2d056ac8cf44f6b63e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0406.json",
+      "bytes": 2480,
+      "sha256": "c48ffa2e08d66908addd7ddbd0853f9671e0e664361e2ef41d385c7b81f45f43"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0418.json",
+      "bytes": 2481,
+      "sha256": "4b3ca00ea2643c05882b5435457cb86ac6fb8a3f35fc1457529e10dc8af52c4f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0430.json",
+      "bytes": 2480,
+      "sha256": "46671a769e70eb93428ccdb1e9412788f05d9be80618d4c90ad6ca00b1565403"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0442.json",
+      "bytes": 2478,
+      "sha256": "bdd9a7c7e88c9da4a95dba92c1a1ed14ccac283f70534513a41aebfb6d442625"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0454.json",
+      "bytes": 2478,
+      "sha256": "0e875eebb405d28fa8c462f7093cdbbe86545f7e3d4e146e5a008f349d671a30"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0466.json",
+      "bytes": 2478,
+      "sha256": "d6fca83b230f0cf37e11d55aa79c6cfb64cefb10546ca403cab838b2645cf676"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0478.json",
+      "bytes": 2479,
+      "sha256": "edc8e576a63870ce6145c9a57e45509890711e2e7af08fd59c9951a2b1f30158"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/gaming_lora_0490.json",
+      "bytes": 2480,
+      "sha256": "8940a6628334e6686cce4217cedc9ee8ebc0e18c1dbcab59d82b8f75e8946e2e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora.json",
+      "bytes": 2467,
+      "sha256": "be25cd160ce6151bc08d69f148152635c0bcab006438b463e3bf3f79cccf65af"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0017.json",
+      "bytes": 2478,
+      "sha256": "8ac4f1bcd0600ce8301b26d7e6dcb356da61fbac6616e3f4d5a2df324085adf6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0029.json",
+      "bytes": 2478,
+      "sha256": "6f810962000081e852378444bcdcf706a891f6b81cafbdae5726fcabbb22ed3e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0041.json",
+      "bytes": 2478,
+      "sha256": "7efdc85fc0989ef12ba678e3d3abe0db5a1c65d9b2842d1a0678ec9f51e2b50c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0053.json",
+      "bytes": 2478,
+      "sha256": "7c6756b071bc55ab5b77ff2894eb8233f31f4db2e38716a46769783a5b4e69b6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0065.json",
+      "bytes": 2477,
+      "sha256": "b0acc9321554ab57069759ff1ff9f3b1fc25b4cd40ed073361ec7503cddde916"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0077.json",
+      "bytes": 2476,
+      "sha256": "f4d0e55087ba8ee11dfae1a86ffca8aac9fd67a010d8227db195205b16ce7e71"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0089.json",
+      "bytes": 2477,
+      "sha256": "62e15dbd9834fd3c450e64d6ee40c466c121b31eed9bc14e9470f919c485584d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0101.json",
+      "bytes": 2478,
+      "sha256": "76aa6952947f7559576e648c434a8d094c0ecefa771ec1aef17e3ddea0e81642"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0113.json",
+      "bytes": 2476,
+      "sha256": "af0dc48342ac09f4f1088f1c6bb5e9f2e33c0a24d2572e3184579162d01cc88a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0125.json",
+      "bytes": 2479,
+      "sha256": "de214252db7a405a3bbd1e73e61afe5f2fa5e6dcb1d941e5a6aaa8eb04b1d3aa"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0137.json",
+      "bytes": 2475,
+      "sha256": "2228fe50f0348b10e81c113e37d8891a949c9e9d06b86d90d684118131c77849"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0149.json",
+      "bytes": 2477,
+      "sha256": "17271c66f0c07ac5a2d4a6ebc0b02f52c59e0a6fa824002e29a4bfc454b86dc5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0161.json",
+      "bytes": 2475,
+      "sha256": "bf302d3fb86ab5251f730426382379ea2b561d574e3cacbddd6365a3b328a8b7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0173.json",
+      "bytes": 2478,
+      "sha256": "8349254d7aa81affebffeb001f0501d32539470ac3ae33be11caa7ce18c55199"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0185.json",
+      "bytes": 2477,
+      "sha256": "6cf4c72e06f42a09c8ab2f75f29fcc600167300e837f763ae34a9e6d55d5205f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0197.json",
+      "bytes": 2477,
+      "sha256": "9f094abb0dc4b992b78f87b51e3b8be056070f4e7fc7ec9054ad3e87204249d8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0209.json",
+      "bytes": 2475,
+      "sha256": "4317fd837560c36aab001b52d7dc02e55512fe3ac38a74155778297c43ba3d01"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0221.json",
+      "bytes": 2478,
+      "sha256": "e5bbe7f74ac95c14900bc07bb43e03bde0a4856fe6fba4bdcd9a9f27393b53ae"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0233.json",
+      "bytes": 2475,
+      "sha256": "d8e85a4cef6781088219b12f8c4185af6947890cf00ae82078c9dcc8e382fece"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0245.json",
+      "bytes": 2475,
+      "sha256": "b33779eb09cdb131bccea4b3a543c973311565d6d2aba0eec388daf73f1782fa"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0257.json",
+      "bytes": 2477,
+      "sha256": "a1fd9c6e5b75bfe681c19974f1ea53f03fb26482e762fd23a0ceb10e02f64080"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0269.json",
+      "bytes": 2475,
+      "sha256": "ae5bceb485706031ef2c47a51123008edbdd0cc33616dd5092a7ea9de100d718"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0281.json",
+      "bytes": 2478,
+      "sha256": "fa4d9ca08e21a7f503fe978d41fa731eb35cb097e53bd61adfcf5b0d362a82e5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0293.json",
+      "bytes": 2477,
+      "sha256": "84e9ec04066c7fb3c9332e67e2147db83a8f61d8ccb3f79d98087523113bc5d7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0305.json",
+      "bytes": 2477,
+      "sha256": "5eff3511ebcbf290dd88fb0bad62986e5680024112cbd2812f2d3fb032d3ba18"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0317.json",
+      "bytes": 2478,
+      "sha256": "5866dfca64c627746966848e991dbf68d15cfe72a309b0b485a3a7d50f171ec5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0329.json",
+      "bytes": 2476,
+      "sha256": "c5b1bcd05bb70638e307c6b6bc5f8338090152e0cbb69fffb5d19489e0198603"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0341.json",
+      "bytes": 2477,
+      "sha256": "abf04ff07b94bd04bcfe7e488ee8145ee5abe77507b1d657698c7a8a3360b644"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0353.json",
+      "bytes": 2477,
+      "sha256": "097f6870505b20b886653aa10a9f0f478df14f11d9141f453d96b9779a8ebf4a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0365.json",
+      "bytes": 2479,
+      "sha256": "79323102ee17b6db27d0e640f72ef9c36560596875f43789a0d5a88d32e9c481"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0377.json",
+      "bytes": 2478,
+      "sha256": "39c0deaa934ca1f34d14760aa680f35fbba8dd549f7b063a3daffe27482bbc82"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0389.json",
+      "bytes": 2478,
+      "sha256": "742c484dff053894b94878914025ffabe5caa4893ba8e44debb8597517fadf4e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0401.json",
+      "bytes": 2476,
+      "sha256": "b8b24c3e3a30a82acaa8256bec4361382c7ffc1635f431f5cc82889ad432fcbb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0413.json",
+      "bytes": 2477,
+      "sha256": "ed1e43543bac7b5f4ad33b5702268af9c0027d20ad69f89e23025c85fd61ac22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0425.json",
+      "bytes": 2475,
+      "sha256": "d95eabb3406910bbc22832a1d34da7c5b809dd5cabe0328e736acec0781fb516"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0437.json",
+      "bytes": 2474,
+      "sha256": "e599e528f5f34c7d46bc1abd876981c81a38b3827553896fd4be8a50dca1b45d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0449.json",
+      "bytes": 2476,
+      "sha256": "dcaac9b52d8c5c983bd2341134d0362436e52c7d60c927fdf09554fc1016294a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0461.json",
+      "bytes": 2477,
+      "sha256": "9afc99e908ecd8be71562ca837b65c6d4461efcf64a234ec7712d7597939d4d0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0473.json",
+      "bytes": 2479,
+      "sha256": "e4cb378e50c4a7f5e26f1d729d455cc48cdcdd250db74dd28840b12626e47a54"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0485.json",
+      "bytes": 2477,
+      "sha256": "f7c14cc831482fd478e22e031c0af9a2b7c7fcb838fb76c178f835e4fa076d67"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/legal_lora_0497.json",
+      "bytes": 2476,
+      "sha256": "ca1a5d53c9dfb76f49233c091b127276e64d6c72053cd51417634f7bbedbc1c4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora.json",
+      "bytes": 2475,
+      "sha256": "6387a28f84804bdde79335b6d38efe9bbf064176c053a6606e3b8f4e35af805a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0014.json",
+      "bytes": 2480,
+      "sha256": "bc55e51c5763cf339674e3988eae9fe0cd23bb75d252c4dcc70d854980d78bc6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0026.json",
+      "bytes": 2480,
+      "sha256": "cd34fd2b2ed4ae1a440e41e39d11a44acdfc53552420f21e80da5a44a217dd95"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0038.json",
+      "bytes": 2481,
+      "sha256": "d5a09dec13ea3bd33b0cd5795e9746f57ef5ce8afb4b44935ce273e7d1835da6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0050.json",
+      "bytes": 2480,
+      "sha256": "0c6d67d226e9f982523fa23df35b58bd3032af29691eb2f95d70ad824c7c85d1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0062.json",
+      "bytes": 2482,
+      "sha256": "adc22ebb7c6588551652bc0a409e06f68cf3f3c35a6d1513f7efb61dee291575"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0074.json",
+      "bytes": 2478,
+      "sha256": "d4204e792b1b392c955fc9584d65b43947d7e2888b176683bff4e6c15e039439"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0086.json",
+      "bytes": 2480,
+      "sha256": "62ba1b4ca43762ef72a69187b451b2d01b2c7530591e0ef99a3c1a8ea84e2b8f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0098.json",
+      "bytes": 2480,
+      "sha256": "3a39fab91d44d93c6386301ff63ea7c9dee8b3a9d9f75fdc29dfc0dacbd1b6e7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0110.json",
+      "bytes": 2481,
+      "sha256": "6b6ccc06c3c9e5a1cc2e4c6b1c93ecd77dfbeb9775a46b60521f7442263c3ba8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0122.json",
+      "bytes": 2482,
+      "sha256": "082f78371d4ec440b24508b24c0e3d2be36280f4044099d3ed7981c0420e4abb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0134.json",
+      "bytes": 2483,
+      "sha256": "8a00461fb82e68c44c2e8de6d1c153246ff86003be006a08576f7566be620a11"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0146.json",
+      "bytes": 2483,
+      "sha256": "b42e7fa199f1a4672bc593c7ecd3269b2526690570067f510ccfa9f5efd80884"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0158.json",
+      "bytes": 2479,
+      "sha256": "66ca3d5a7fcbc7831efead8f8cf69d7379cce395ac41c432bc6b9bef3e75237b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0170.json",
+      "bytes": 2483,
+      "sha256": "e931f793476e5f91d82b671519a845c1238fedb23855594b71bc07e8ecfecdbc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0182.json",
+      "bytes": 2478,
+      "sha256": "f72a4252e4ca85ca39fa91515902d17a935436f5e63f600f06d870a91b7b7547"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0194.json",
+      "bytes": 2481,
+      "sha256": "77c05cf4cb428aefc2f03000650dd11fe0e888d052a12b3a8eb85f48624ba99c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0206.json",
+      "bytes": 2479,
+      "sha256": "113f1a1f6c9ac41b631b0a7f4b7691d5810cc9e42d3e342575724261689c2d2e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0218.json",
+      "bytes": 2481,
+      "sha256": "6f7b9b217c8962ad4d327a59fd5194f488b4497a5318492473542118895e71fe"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0230.json",
+      "bytes": 2475,
+      "sha256": "e4843f06a33c959ac9e675d91bd33f7bb00b7f5411e39fed7413e6a6333d1923"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0242.json",
+      "bytes": 2482,
+      "sha256": "8bf6e7752f392d27c4cf57a3c7447a67276f71949f8ebbb76bdf452687b26df5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0254.json",
+      "bytes": 2480,
+      "sha256": "87bb78f39b8add8a869bab435a98d86f4e506dc33dbdadb792908ee0840ce97f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0266.json",
+      "bytes": 2482,
+      "sha256": "924899bc9b639bd035ab35bcc72d3fbc03f16900b238d9f58016228990706f98"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0278.json",
+      "bytes": 2480,
+      "sha256": "75a968506c6f2b4c66210e8605d27f7069efaec0bfba4d30f92fc2f3a1c7a292"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0290.json",
+      "bytes": 2483,
+      "sha256": "6730a961f7c3515de5a42ed0b97ed29b35cbd470297141642022626743073cfb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0302.json",
+      "bytes": 2481,
+      "sha256": "a45c77ea2c564570c46ceb73863244d9c93235168384422e6575bbce83ed3885"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0314.json",
+      "bytes": 2475,
+      "sha256": "a6bfe972faed48944a40b8340c9543edac3501f5353f3dba79bddea7421cff7d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0326.json",
+      "bytes": 2482,
+      "sha256": "c6fa5c5a995c0bc5008a0c7c50852e8b1c8ac090773055a5cd9bb71020003eae"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0338.json",
+      "bytes": 2482,
+      "sha256": "01b5c9b854191be452ab5fbd716d91c45c9e07da908fec9f2a6b6a1a6fea6b1a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0350.json",
+      "bytes": 2483,
+      "sha256": "d358d4b0476cf4624939d01f77680338791698c1484e7ae25cff3f67658ef8a1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0362.json",
+      "bytes": 2482,
+      "sha256": "49ea2aece2c1e0d439098df26c1f82618476a30b24fc85fe37244c27336326fd"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0374.json",
+      "bytes": 2481,
+      "sha256": "7f81cda6915bbc424aa8e8c3cae39db8f823137e5e6c6673c215e15194e15e7a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0386.json",
+      "bytes": 2479,
+      "sha256": "e1d04e7812c56634b6b2e74b5a08cca47c37d2a21d813b2797c4c453a8200874"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0398.json",
+      "bytes": 2482,
+      "sha256": "f360c2d32a404b84f91e1f2a6be6a93217639acdd59e8373a3a5b4988629cc15"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0410.json",
+      "bytes": 2481,
+      "sha256": "eacbaa0dbf97edfa2400bf6dccc229a6181337390b3686c74321b6ecdc8e9bc9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0422.json",
+      "bytes": 2479,
+      "sha256": "3d5b30f3912cc56fd280eb50f9e25e166cc3d3ddcf34c4740ae5b5b0f63361f7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0434.json",
+      "bytes": 2482,
+      "sha256": "879d7a0ee58eb4578b60b167142130743c52aa491aaf17b9757f81e616e3a7d8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0446.json",
+      "bytes": 2481,
+      "sha256": "ec0fdc633a649ab2dd9ec5456b2790d5b7ea6c57f8f0a306ca6ca87622b99221"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0458.json",
+      "bytes": 2482,
+      "sha256": "8b4bd7f5c6a5775000e6dc5d1540e022573f19a1558fb225d05b0e240456b0f6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0470.json",
+      "bytes": 2481,
+      "sha256": "d629ac06449ddf79a11cdcf1a5e4bead49ca4de8b74ac773f73fd2dd40e13c34"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0482.json",
+      "bytes": 2478,
+      "sha256": "4bd3ae2700afb11f372c2b20207c801e7e67e1dc5209b11b5f31af2a882acaa2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/medical_lora_0494.json",
+      "bytes": 2481,
+      "sha256": "58a3aaaa39efff3130649da4c3da1c80a71d7ab57d4be4d1597800302297704f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0008.json",
+      "bytes": 2484,
+      "sha256": "cacc6607919bc8d8d7a068f7d291217648643fe9f7c3b91f9e923190d31a783d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0020.json",
+      "bytes": 2484,
+      "sha256": "e2bbf97e1e3b164f64b02d0ba3f7833030d841d884a98a57d025bd4f9db5e08c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0032.json",
+      "bytes": 2483,
+      "sha256": "be665bcc6d48651a1841e3a79847132231b7d0b487288adb68b6fc6dfc2738f2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0044.json",
+      "bytes": 2485,
+      "sha256": "1b38f8b0d89ee8a341e5f8ca89cbbf666d27479dfd432eb779880f90a9a0ad03"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0056.json",
+      "bytes": 2482,
+      "sha256": "8a581620404f41a90872f6cbb199850baa0b993b478023599c77154cb55403a7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0068.json",
+      "bytes": 2485,
+      "sha256": "0274c9ab9b7a82dd4dcbdf39eeda61594b001d7056e174083d61f7c3fac3a9b2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0080.json",
+      "bytes": 2483,
+      "sha256": "ae41c7232f029952db8350becdce57f5362d0b8226d4c98daca05ee00bfb71f9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0092.json",
+      "bytes": 2484,
+      "sha256": "8eb80599219df6c3c82bb739de6be426472bb68439b3e6862bb2365c03514f8d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0104.json",
+      "bytes": 2481,
+      "sha256": "a14948925eaf20f19f055f7aaaab2dda699d76487cac5c3768081e0fa82a1600"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0116.json",
+      "bytes": 2484,
+      "sha256": "56de48b6ae2423e445ddaad39862b8d747243534492ca7dce549fa1cb8c9ca02"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0128.json",
+      "bytes": 2480,
+      "sha256": "7682b46b8ded8398a989c0cab719c330c24265fbd636d1af19e214b4af045734"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0140.json",
+      "bytes": 2482,
+      "sha256": "8a8afef946d2cbe3b4220fe5bc3acc3ef10a3e84ba4baf976ea52f36bc768766"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0152.json",
+      "bytes": 2482,
+      "sha256": "11a5d9a31e27c1fc82fe06c8b1be83c0c5534a26d68bbe71cfb017d7466d6734"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0164.json",
+      "bytes": 2482,
+      "sha256": "70dc18f501c2d8e9fbc5f1d304d42e0cfa54361ae894c17038e01da9fe4cfeea"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0176.json",
+      "bytes": 2482,
+      "sha256": "4aa5cbbe201111082d060eb6e264122a729e6450c613649312494de1f7471d55"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0188.json",
+      "bytes": 2482,
+      "sha256": "e6774586cd16fb1745a3a447fe619fc063244b89b993c76960c31f0dcb15be89"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0200.json",
+      "bytes": 2482,
+      "sha256": "64a0e82ab257c31c037e7772f54d12a7f584de28600cd58814b2a069f566cb84"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0212.json",
+      "bytes": 2482,
+      "sha256": "408f52486e26b58bd443ad1fbf4d9b081df4d7b17b9678d550cfc38f516e29e0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0224.json",
+      "bytes": 2483,
+      "sha256": "54d1e3e67bb44e6917338b7315f8acd9d6e9157d4653c11b46684f2a580f5bb9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0236.json",
+      "bytes": 2481,
+      "sha256": "1285e7d4599ebba303240f9f693f4442e36ce48731a6855a70adfa1b9fc719da"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0248.json",
+      "bytes": 2485,
+      "sha256": "4326feea4d8bbd45b30055be1fee7d6b0bb6ec5d5e9079c3eebc2fa932d56765"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0260.json",
+      "bytes": 2481,
+      "sha256": "c2eb9a1bc3f3ab105c19e8579cab8706848e31f378767179591669c21052bf38"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0272.json",
+      "bytes": 2483,
+      "sha256": "f2605e5a836fd5720adbf6a9f4a52f26ddb3e549e5b92ddababf90b94802d3a6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0284.json",
+      "bytes": 2482,
+      "sha256": "e0e9e83923acace6945f81f809971e8fd483a953910461b3d5b496f1ad29ef56"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0296.json",
+      "bytes": 2481,
+      "sha256": "c5354c195baac72d50221847eefb61adcbb29c7620d0511b5a5b70d9bc0add1a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0308.json",
+      "bytes": 2483,
+      "sha256": "213732440ecbe0a75f332e6eeba1b29297a71a87b98f1c98b43e5750a0fc330b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0320.json",
+      "bytes": 2482,
+      "sha256": "374227d0c7060913dc11097f1d27deb278dbdc01c52e15cfb143ef4a5534062f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0332.json",
+      "bytes": 2482,
+      "sha256": "e07c279c922b3119bc871e2b9a9a2236ec44ec26502a84b9084a8ef10ac9e963"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0344.json",
+      "bytes": 2482,
+      "sha256": "e97070e0fd7a46e7e5f6b522f477669637a2244cd7177cedd3a5f0ac3b0004c9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0356.json",
+      "bytes": 2482,
+      "sha256": "805807faa50c931b788f13dbdb6263889a3d0287f677136a8385edf62c0e2e44"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0368.json",
+      "bytes": 2484,
+      "sha256": "5043cdc430af1a2883d4a23b7950644d4653bec2a38af6e5665bdc7e55015676"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0380.json",
+      "bytes": 2483,
+      "sha256": "42d38b857880878278e7f28c3e08f5ddafbb0ac7f4dde4566b439e5841a42e3a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0392.json",
+      "bytes": 2484,
+      "sha256": "d61bd85f7f5b1c017fdcc7cfe9626349fd8a63a8d53c8aa7e1b1eb6c3cabbf2b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0404.json",
+      "bytes": 2483,
+      "sha256": "aff5f26e1bc7e3992dcfbbcc0274f44a94f4cfd4f8e35ba2c4185e5ad11c6c2c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0416.json",
+      "bytes": 2483,
+      "sha256": "0f2e8198309d923147604022a38a357174a27a9068c7f8609815e61d3e4b2c13"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0428.json",
+      "bytes": 2484,
+      "sha256": "00657320df1dc2e60432057f0d9c15e8e8ad642f4f9d190654d009914098ae0e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0440.json",
+      "bytes": 2483,
+      "sha256": "fae0cb537a54d062722fc0fe0de68714526f65187349afbd628eec204d685eff"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0452.json",
+      "bytes": 2484,
+      "sha256": "84c998026518e86d5458f40c2617439df62e62f220170aae51785e6a8912cfe5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0464.json",
+      "bytes": 2483,
+      "sha256": "4b2078aa5a12f8d4d0f8e56e378ee3d8e508bfed8e819abf5b4351999b3d84b9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0476.json",
+      "bytes": 2484,
+      "sha256": "d9e5f6ce2d39cb91db45b40546de595ad65e9dcd7995e5fa28025f634fa89b5c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0488.json",
+      "bytes": 2484,
+      "sha256": "711c164db062a95b9f0a82e9b676cbdfdee5dbb2ead6adea193d0e9114212c12"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/research_lora_0500.json",
+      "bytes": 2480,
+      "sha256": "dd7871642da5e1d0522b8d8c6e0a8b89892a784fc2919e623344288363840932"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0012.json",
+      "bytes": 2481,
+      "sha256": "7d8314cafbf6bc0f93fb06d466012f4e7efc1901bc25faf074349107931345cc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0024.json",
+      "bytes": 2485,
+      "sha256": "dd04f7c977ac0b9af0c9ae7d97190a0a2ef9da8c9ec3b3bd86df3ffd0c9c5f4f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0036.json",
+      "bytes": 2482,
+      "sha256": "8db623c074c35b215f5dfc174f584d355fefa81ba189f5d5ad1934321c48338e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0048.json",
+      "bytes": 2481,
+      "sha256": "edeb1e6a2e0e32fc63b1e511465b68639c8b90a06c1193398dd4002b90ce0e59"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0060.json",
+      "bytes": 2483,
+      "sha256": "c7e61e33e3822138153ce343fea317d4244702960e9c33401df55e8fb389b304"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0072.json",
+      "bytes": 2484,
+      "sha256": "936f1c90b43e908bff7f53b6af480205e0cd5509bde72459e5fc34aca9db0a4b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0084.json",
+      "bytes": 2482,
+      "sha256": "425f5bce1830f1cbbd5d0646c3e1f1d448fbfd771d668ad1577ce6fd97a8be22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0096.json",
+      "bytes": 2482,
+      "sha256": "ba3809e776fa97250f30e0d31435adc1326e14acbbd960bea96090d5610d188b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0108.json",
+      "bytes": 2482,
+      "sha256": "32a0345c6bb3ce9f202ea1d643ee73259c5703184118d96757e810044f1a1e8c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0120.json",
+      "bytes": 2485,
+      "sha256": "1ef1ba11918e37af5e5fc8b9d3f42ab39142c2d9bc2d5e807699858bdd0d6b85"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0132.json",
+      "bytes": 2482,
+      "sha256": "0d317b72e7eb9089f4a790687d8e9098a0604aaf6b0ad1fb6f489d3811dce02a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0144.json",
+      "bytes": 2484,
+      "sha256": "b54439572b43f0636d2f0f4572c5dfd4307f709727238187ed869feec858cc96"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0156.json",
+      "bytes": 2480,
+      "sha256": "bdef963ac842fef0a1e239609c83c5e8e36f0dfd5b5c77b17d1a4d7a7677f122"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0168.json",
+      "bytes": 2483,
+      "sha256": "907b8c953f593b9763ceabd3997014b8f597fc7821202e431121ef8015e6159c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0180.json",
+      "bytes": 2480,
+      "sha256": "a68b028443dcec7620be58960eb3fa64c200913dbf337d2bcf01707155f54097"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0192.json",
+      "bytes": 2484,
+      "sha256": "31c66a1974afec77ae46031ecd6739353545c2c1ed9b844a2b5e81211b2c095c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0204.json",
+      "bytes": 2482,
+      "sha256": "26ef9f0fc3a5adb388f11f9d0196a65bf1b583f54537d98eeab408c62f3f70b0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0216.json",
+      "bytes": 2481,
+      "sha256": "3aa7e18f6d0a2639208492b724bea195fb48de7ff0d996f92d2d673accde8b6e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0228.json",
+      "bytes": 2485,
+      "sha256": "0c2564d8daea91970584be34a2f32b800ee2afff9ad7eb7151578d2991066f79"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0240.json",
+      "bytes": 2485,
+      "sha256": "5735cee7189441f6956f77b5b36927311351675b292b6513c8ddc8a0c165f635"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0252.json",
+      "bytes": 2484,
+      "sha256": "7b12d5fb9260135eaca47fb9f15ef43b3b054c70c03c1a459e6f65500982e83c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0264.json",
+      "bytes": 2483,
+      "sha256": "73ad2cd62234310c970f2fed46d934e7c8e7191e934a9f7728cdc3763aa6883a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0276.json",
+      "bytes": 2483,
+      "sha256": "c59a9f590812ad6ff588909a33a879af6ae9492c1f08072a8315bdacab344c9b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0288.json",
+      "bytes": 2482,
+      "sha256": "79dfef2e8eda45f7b0cf4dfc1f48cf1f42fcfe4c056421dfa192e9323578ba22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0300.json",
+      "bytes": 2483,
+      "sha256": "bfe97f04af6f0057b8d369d70e97ca2ee52830450d3e58f4b505d90dc7299fd0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0312.json",
+      "bytes": 2482,
+      "sha256": "d0578517881a38394901b1556ff06ec70d06419697d4dc021f4909db61d01627"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0324.json",
+      "bytes": 2482,
+      "sha256": "425be99c21b074a02181e1bba0df7d81d73ad8c85c20af0ab10fa4b64d7b2b3f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0336.json",
+      "bytes": 2483,
+      "sha256": "84ba26ef8f945ff68e4bdec019e3c0c253f809009c63412c8b3a9e738742e22d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0348.json",
+      "bytes": 2482,
+      "sha256": "0191da07ef49d4135ff0029fab1a7d358dcb4cf08bddc831059a7ccf877dfd8e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0360.json",
+      "bytes": 2484,
+      "sha256": "fccb0248b1ef7c22e7b50d7128f5e2f325eb988ecffb3af0d97f400dcb25f284"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0372.json",
+      "bytes": 2483,
+      "sha256": "9d767112a09a08944ec078522f70848df81f0ad621f715e4dd5d33c3c9aa1833"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0384.json",
+      "bytes": 2480,
+      "sha256": "2fc0c66e38f78f25a8a8e5a61b3eb9a265f8a726f6e11c92836c3339139e1006"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0396.json",
+      "bytes": 2485,
+      "sha256": "c97baa7e4ae90fe5705043aa2f3918399f6a191477d6ece1e3ab9eeb13058646"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0408.json",
+      "bytes": 2483,
+      "sha256": "28618a5a65bb8339ae90e3864a9296fb89efdc23dac9acac1315c580f18b81a4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0420.json",
+      "bytes": 2479,
+      "sha256": "24b0fda9d330f3d6fda46bda91c8442a9c2a7836e4d40a382dea441833eddf5d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0432.json",
+      "bytes": 2482,
+      "sha256": "ece3eabbe1978623fd25d4a546501e9af2155f80188699fbc5ecfb5bcb60d26b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0444.json",
+      "bytes": 2484,
+      "sha256": "af898888cf314a02b653bee95f6b7a142d99c8810e2693193090f570ef19670d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0456.json",
+      "bytes": 2484,
+      "sha256": "0af50feca4ff78c128a5cbee08c1fa9e52b065220b71cdf63936466f18f12700"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0468.json",
+      "bytes": 2483,
+      "sha256": "d326c8e8d8056a9c4f12a03286e2fe7e9d7839ea4408820e6c760180917420e9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0480.json",
+      "bytes": 2482,
+      "sha256": "89d6c0162d7d8b0923f07716d88f521b016b83f2b9adc3085a381bcbeb018271"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/security_lora_0492.json",
+      "bytes": 2481,
+      "sha256": "50994a68e5369b2d4caea1aed34a5eeb412e739efdced70c22288d5b9b03c3dc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora.json",
+      "bytes": 2471,
+      "sha256": "cae39d3fa881b0d5c5e3d9fb888c08ba1d7cec70777c39945ad9a4cb2557ce72"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0016.json",
+      "bytes": 2479,
+      "sha256": "a346e835456a637c197148f495766f464bd1784835382a308509971d7cfbcf4c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0028.json",
+      "bytes": 2482,
+      "sha256": "5f3ad32320894d87e4786d707564ccf998d3b2ed1114a705d76a95fce1dad9c4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0040.json",
+      "bytes": 2481,
+      "sha256": "285cbe98f6669b260c447e4a5938278f6a3f70701dc97a7697f9f82fc82713df"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0052.json",
+      "bytes": 2483,
+      "sha256": "784a866d190de94b38ea82e63b7f5a8cf7285cd1f25fc73102d60ca5e1292f9e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0064.json",
+      "bytes": 2483,
+      "sha256": "dc899f1b62a9d48d892b990dae1942223f194f165e3d486b04e3f210280004c2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0076.json",
+      "bytes": 2481,
+      "sha256": "3559c21851351d8a2b5862871da37a275ca9c91c9440689c03a433923e90735a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0088.json",
+      "bytes": 2480,
+      "sha256": "4f8be6714eb5acbf329e6720b2c35a960a95e30e1124e3a7b3cb44d953c3afe2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0100.json",
+      "bytes": 2478,
+      "sha256": "70c9b8b5874f53e2fb4b6a3f31870cc05db0e67c306913a5e795a49b43b65c36"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0112.json",
+      "bytes": 2480,
+      "sha256": "7bee164eb0095e363f6e69b68d9401b9953de8895a201489a18b29c8fa6ee89e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0124.json",
+      "bytes": 2478,
+      "sha256": "1e001d57151be786fbed3ef42cf51817d69896110c6e9586fb8b7bc5869103a8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0136.json",
+      "bytes": 2481,
+      "sha256": "26b80313c29aa0a57c1ecc53baaad1ea25898cdaeb5e922cd02a8c00aee68a5f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0148.json",
+      "bytes": 2481,
+      "sha256": "310f349601f81b27c95ff214adb33be56ab95cff74e13892d846062712e90e01"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0160.json",
+      "bytes": 2482,
+      "sha256": "ef178f2ec33a2705c34984e7da6457afb6ab4e0e7fce4f56209f758f01cade41"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0172.json",
+      "bytes": 2481,
+      "sha256": "ae057faedba27e487f21061141470c7c40f994f0234b2ef622998d11d936fd9c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0184.json",
+      "bytes": 2481,
+      "sha256": "b7e649c4d3dc428bb897e766140698a53494a78389e90e3a6fe84fbe2918c9e0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0196.json",
+      "bytes": 2480,
+      "sha256": "aa231b9986bb2cffda090a3f39b7dc1cd068f480dd0472c71ad2adea109907f2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0208.json",
+      "bytes": 2481,
+      "sha256": "b2ab08407262e0de5e7136b19afde161ba8727f31142d2813ebc75afc1c19d68"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0220.json",
+      "bytes": 2482,
+      "sha256": "d9ca5e0a87de9add45f51af85ca6267c9cba4b1f094e377c774aa37bff05046f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0232.json",
+      "bytes": 2480,
+      "sha256": "34f6925de5de8bbe3c8bf7dd3bcfeca7dd4c9658c0e993586c8a679460852503"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0244.json",
+      "bytes": 2482,
+      "sha256": "6bf6c9935b029af3de0466175548fb277f082195230c9b614030be23f164dbc9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0256.json",
+      "bytes": 2481,
+      "sha256": "25d35783154343fe5920ae7dbabac600d0fefa61a249794658b233715eb354d0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0268.json",
+      "bytes": 2482,
+      "sha256": "459d882bec6c93d41afaa3c68a5e8f53f5d99ab7a443f44b68644cbd618f686c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0280.json",
+      "bytes": 2479,
+      "sha256": "f69032c209256915bdd3e7c8b4d6d842435f4d5f4a13fb90fa60081dfab78808"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0292.json",
+      "bytes": 2483,
+      "sha256": "fbe4aae304aadb6f1727ff23a5a9695e10cbee0082e3b6d800b26d82bb1bfe92"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0304.json",
+      "bytes": 2480,
+      "sha256": "e130ee11478aae7c1d946613883e6ac4872ef5904e5cd55f48e7be21d3934561"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0316.json",
+      "bytes": 2480,
+      "sha256": "08f2cef510ebbcd12d597db6423a9b2bd29bce2eca23afceac9a9a014fa480fe"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0328.json",
+      "bytes": 2482,
+      "sha256": "ac4fdc01fa49ddd8233813ebaa3bd1cf73a55e869a6922a613711ebcc1a91ef9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0340.json",
+      "bytes": 2481,
+      "sha256": "910d6bad845a7e9ad9df647c51b00199f82b9f7d41c97e3b3fe78483c955b826"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0352.json",
+      "bytes": 2482,
+      "sha256": "3a2ab137dee0472bc2683c6f0cb10609068f7d479018377893fc13ba959185fe"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0364.json",
+      "bytes": 2480,
+      "sha256": "21ebbaa017c8550be1885481ca311e66dc45a5011fe0f59e59a23eb0336692d1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0376.json",
+      "bytes": 2481,
+      "sha256": "0ce2dd4e181635b52197595f9b08dafdebb674111997272775861adc50cf6ef6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0388.json",
+      "bytes": 2478,
+      "sha256": "4f91f1373ed65cd8b3d71c582ae33a209147a897e2f91f6b402c2c4886da7624"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0400.json",
+      "bytes": 2480,
+      "sha256": "d240d34165e0690a5a73b57392d517c5f579b6a55fe8b347f43d4dcc9b9d3cd0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0412.json",
+      "bytes": 2480,
+      "sha256": "1ba69609a75da37a794acb02eb082f57260d91c73e18abbec00c01a7e0c1bfc5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0424.json",
+      "bytes": 2480,
+      "sha256": "6680ec06967f7519e29eb8afbde05235378d8dba814f1d56d3ee4a751b54699a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0436.json",
+      "bytes": 2481,
+      "sha256": "e051a886d86454e3562d0b04450882b9926a4175b570d37ce181e41a47e4e619"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0448.json",
+      "bytes": 2481,
+      "sha256": "2936de7db2b11f6cbc0a98ef8accce4231a67da95c0e9e0bda25ddad41aac66d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0460.json",
+      "bytes": 2481,
+      "sha256": "fe9873fa987a5000ea70d51a45f38ffbab342b53315320a12d04eab62ec9ff09"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0472.json",
+      "bytes": 2479,
+      "sha256": "68e99931a4ee9c515c3aa2373f318818b60703dcafd98e00e71c1d813f68fea4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0484.json",
+      "bytes": 2480,
+      "sha256": "7fba3254899882f5d7117615e9b508b63cbcc597be41d7a3028a1983c9561bcb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/support_lora_0496.json",
+      "bytes": 2481,
+      "sha256": "6c9e9b8eedd0dc47a3bf64bbaf8291fe8d70a084850fc5d3348d74bf06efdc1a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora.json",
+      "bytes": 2473,
+      "sha256": "74b9c9e75ea58e6edce22154f03787c4dc9c245b1e6f5c5b9dca63745f57a765"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0018.json",
+      "bytes": 2482,
+      "sha256": "a950d93509c1672a0b0f11e7b3c6a08327082bf2bf8772864e02b33d4a941cc7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0030.json",
+      "bytes": 2486,
+      "sha256": "a6a8c2b97c21ec66ec2ebd7a2fad0e9c11e31396431afa8edf826e58d3f08d20"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0042.json",
+      "bytes": 2485,
+      "sha256": "641509afbd638aca0007ba61afe5fe2a66e37f1c0e3bfccbf4b8621cb2a706d0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0054.json",
+      "bytes": 2486,
+      "sha256": "7adea5793e192cf969e8f04e4c3301d50403ef99ba0e300c32ef8cb5bb66d5fc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0066.json",
+      "bytes": 2484,
+      "sha256": "8b0147bf91c8b1808c828e187f4d1417c150c6e4669d1bcc53c6aad3d43f1258"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0078.json",
+      "bytes": 2482,
+      "sha256": "dbe257c86a6d17d2e9af37ec1ead29817f387daf1711a34c3927ce58791ce6d4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0090.json",
+      "bytes": 2487,
+      "sha256": "c980d1fc76fe3f8f3f62e18f42910a664f7f0237d040299cbf75b16911da2d4c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0102.json",
+      "bytes": 2484,
+      "sha256": "d94b770ec6e29defeb5a0aac62ea2ea60c74fbc618ba454f5210364294bac021"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0114.json",
+      "bytes": 2485,
+      "sha256": "b221dcf7877644f6ba1015519f29f0b39344765300c6358e1f23d281071ba82f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0126.json",
+      "bytes": 2484,
+      "sha256": "c22e78737251f093cde30f4de9840021192073088ee0f10a28e5dbc02d02d778"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0138.json",
+      "bytes": 2485,
+      "sha256": "439b28e9d602e6ca500ca43795e2314430a1509db7525fe5b2b0b1ffca616079"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0150.json",
+      "bytes": 2486,
+      "sha256": "54f08fc7bbd11517b090e76266afd83632ffb92b9406af0506d00b61606afd26"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0162.json",
+      "bytes": 2483,
+      "sha256": "fb048eb9d904980f8606b8ec5264101f392f83710cc78c601b2c41be1e310ef8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0174.json",
+      "bytes": 2484,
+      "sha256": "6c92c6acd4e871050f440b5f583fc2d0b4b87c77f0eb9ecd57ca30eae3f78d99"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0186.json",
+      "bytes": 2485,
+      "sha256": "66d83f66277fa9c8a9be8073b90e561262366e81f72da09d3b838c9019bfa2da"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0198.json",
+      "bytes": 2484,
+      "sha256": "16833fb888831a723569107989abb908e2a526abbfaf88e7cdcfc2c03b512c3f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0210.json",
+      "bytes": 2484,
+      "sha256": "c39a2185035abb566e0a5d70ad5f92378b0646a5debee73930cbff41b0a58dc5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0222.json",
+      "bytes": 2484,
+      "sha256": "7564cdf19643f97eeebc6e8a5d94976c987f30b65ac9b3dc4b1b47e271522864"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0234.json",
+      "bytes": 2486,
+      "sha256": "0a7aabec27c5f6d93f6e04b21e2cdebbb38b8a1537c49bd7bf79aebfa80fa832"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0246.json",
+      "bytes": 2485,
+      "sha256": "dda8c8bd83786d597999d333668104cd5f023212393ebdc2ebeddc058098e0cf"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0258.json",
+      "bytes": 2485,
+      "sha256": "f4141c6e0ffc1f690966088f9fcae50108db18ea5e3a9d8f7ca3d552b16efe0a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0270.json",
+      "bytes": 2484,
+      "sha256": "42f0210c81e1b255e6d18b001d2d4f19b02d158950eec8e835de3f3feb76818f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0282.json",
+      "bytes": 2485,
+      "sha256": "5f20aa6a7c80ba096844d7643c50567b5f354e3627462007974d3166a4cf9396"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0294.json",
+      "bytes": 2485,
+      "sha256": "9c431c2b571e637cdde61fe62ceeb180a6decfa576b3a627a42df26213777e22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0306.json",
+      "bytes": 2487,
+      "sha256": "f2b85fd27f6c3b6a49a30fa6f1360f1f1f95c332ced252f9057dc8004aac15d9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0318.json",
+      "bytes": 2484,
+      "sha256": "05b1d1c2acaa90163366825265efc7711bf748492165d3b60d831c09f7b26044"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0330.json",
+      "bytes": 2484,
+      "sha256": "59fafb85b650a9c7a6f0fdcfd807f148cd871364f8e22893c166366da3907f67"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0342.json",
+      "bytes": 2485,
+      "sha256": "cfb3b7b27b48591d3fc29720588a5ef1a4d36d38d1873454127b2015b7a5d1b6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0354.json",
+      "bytes": 2487,
+      "sha256": "ba623c48c80f528ef38746e9ec446d82c2d35cfe9c93854c4810f85bdff02a77"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0366.json",
+      "bytes": 2483,
+      "sha256": "34f11b2e08fe52e4f2c5ece246bc4467459f5b8f7a5c0db04f7663583ab7a350"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0378.json",
+      "bytes": 2485,
+      "sha256": "c56d05a60d6746345a145d718b8249e6cbe027f3c702a8f8f7582eb689fbb266"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0390.json",
+      "bytes": 2483,
+      "sha256": "4772e49ab85cd65da0998fc4f1a382d0aa4ca7d7f99a32bdc7809f77f7eae4d2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0402.json",
+      "bytes": 2486,
+      "sha256": "9ce9ac2b2e2277df00f6f6a6d121e592318e5d68b6ce8790ef25eb3947152cc5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0414.json",
+      "bytes": 2486,
+      "sha256": "36a81860dac36a3200f7d0c75d88aaa974433f1732daceea4015aca8bdf6665e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0426.json",
+      "bytes": 2486,
+      "sha256": "45aa0b1ef63ea78c7ada184066c0f95ddcc0bee52cb0b3db411e2533a4faebe1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0438.json",
+      "bytes": 2483,
+      "sha256": "4e9b1a7f9ab3d3f5a92e050a854b427685422cfd9f37c9117d2e8fb695f61b38"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0450.json",
+      "bytes": 2486,
+      "sha256": "13bfd8b28d060295d5879a903758de2123da28e91fdf555d890f7eec33d0f503"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0462.json",
+      "bytes": 2485,
+      "sha256": "881e63e6bee135dca74b6dc0b697921034d235e04771504c2034f1d38bfa0f3a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0474.json",
+      "bytes": 2486,
+      "sha256": "734345917bc38f128de6e3c50460a4b1e805e2c1e90f9d9d76017e3550c5a5ea"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0486.json",
+      "bytes": 2484,
+      "sha256": "879b0a53758d157bb8559169212a7fd30a88b5c3775eb9380e68778fd0efeae7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/translate_lora_0498.json",
+      "bytes": 2483,
+      "sha256": "9ada40316e4bb05eeb0b8b2ef7d7e4551834ff2384f4adccff991eb1b5211404"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0011.json",
+      "bytes": 2483,
+      "sha256": "4776b043de597abbcb7780f27bcccc37cc0f8537e4ce4c0e562163ec7cc0625f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0023.json",
+      "bytes": 2478,
+      "sha256": "58274e42122fff1a62570e622186fff81490a666836fb17f2bc43480b67b1235"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0035.json",
+      "bytes": 2479,
+      "sha256": "cb7c0c508890e7be40a7501923f253ec8686fbd4e3a497829f1727b3b0315ef4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0047.json",
+      "bytes": 2482,
+      "sha256": "cd8b17c9e36d67819ff38fd665b6eb8a1f81e05697c3c9132423ff5569547c0e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0059.json",
+      "bytes": 2480,
+      "sha256": "9f2bd63de48637e419520b1262f74685b5a30b2cbf62f45d63bdb8e743e9cf70"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0071.json",
+      "bytes": 2481,
+      "sha256": "7892f3010dc4358a0ccba6a0ed1cca322533e0d18e33269990f28b73734f5d1d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0083.json",
+      "bytes": 2481,
+      "sha256": "b6efc422842a6464a871bfe6cb5de80467e9d0bb1e47bb0e52417974b79f54d0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0095.json",
+      "bytes": 2483,
+      "sha256": "3721c299b487d5a8c3d01f23a3941ebdbc83f5dea788141574206a9bd2e068f8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0107.json",
+      "bytes": 2481,
+      "sha256": "908a249da48d60bf1794bc3a9ae8796cf748c8e829cae48221b08b54030eae7d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0119.json",
+      "bytes": 2478,
+      "sha256": "fecf5281d70df9d9f3c58e062250eae48b3497b731eaca636735ccaec076383a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0131.json",
+      "bytes": 2482,
+      "sha256": "6063692c4718c55aa58e66ab54fafcf797a56de57cc5a8bcf21a30b91974d7cc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0143.json",
+      "bytes": 2479,
+      "sha256": "e3715309a4441ec6b97f495090929d0f9163b2f03b2de9a5df4a464e31359a60"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0155.json",
+      "bytes": 2479,
+      "sha256": "70d97d931d2d8264ac1a9377b05f51685691c0c498692a5f2da569813cd15fef"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0167.json",
+      "bytes": 2479,
+      "sha256": "223eccc5e7d912cdee6b048447308c772afc0939cd3896060b6448554efd0905"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0179.json",
+      "bytes": 2479,
+      "sha256": "90beb5227e225b7a639f858baf6ca9bfa8292ed180ebe84b1ebb96cd9b4524c4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0191.json",
+      "bytes": 2482,
+      "sha256": "5ea6ee22cc6e7371f0783dac935fb5920a0e71b1d3b770d7256ed501f2ce50a1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0203.json",
+      "bytes": 2477,
+      "sha256": "791348feb3ccc70aad989c9636b2478756f0c833b484f40722d5d233b9077d92"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0215.json",
+      "bytes": 2480,
+      "sha256": "eb014662fc33c5c4d0b4871c46af5ed9d6663903972853c65682b5d20851d72a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0227.json",
+      "bytes": 2481,
+      "sha256": "0a93dbfa420163057396d693d21dd1e99ef2b8c4b2df30f398c2d9aadd15ede4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0239.json",
+      "bytes": 2478,
+      "sha256": "f3fb979750dc5054b1d6c557518c17b7d57bf0312c6369f29c389182d6843c34"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0251.json",
+      "bytes": 2481,
+      "sha256": "719bb46be643e710a49a7878cdc414c8885c3e9393114a3b890408bf4ea02523"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0263.json",
+      "bytes": 2482,
+      "sha256": "15e4d46f3b8e4ae576ae130a5cf784af609ebe746e411bd6885d5ce093dd94eb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0275.json",
+      "bytes": 2483,
+      "sha256": "8692a837548f7e2c2a1c0b29522f1f0e6156fdb9bb88ab43bae360e081c8f9b9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0287.json",
+      "bytes": 2481,
+      "sha256": "1f227385c62cf92c474b41017254edf2f27a6d62a35e00cdb263c3ab91b2d376"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0299.json",
+      "bytes": 2479,
+      "sha256": "7dfbe4aade31a4614721b2b95ed88e20c4ec5755d0af76a9dfb87e48b950d3f2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0311.json",
+      "bytes": 2481,
+      "sha256": "a81bc675aaf4467c8fd49f830995f7f777c27f891dcd2bb4090bd2079874f71c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0323.json",
+      "bytes": 2483,
+      "sha256": "5749960c4e2f07937fcca4aff9cdb033e11606620a2025d3f6dea5e2ee25b917"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0335.json",
+      "bytes": 2483,
+      "sha256": "6b943692aabf19f3e0400fa6741dce6a2631efec4b3e40463912a8c3a108827c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0347.json",
+      "bytes": 2480,
+      "sha256": "4d0b6563dc51133f7c807e886a51e39f7d076690f1b7adce70cf9890f1d9c0e7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0359.json",
+      "bytes": 2483,
+      "sha256": "12210ab8418e74e86cf1b52e674319d876d6c0d7d4697c53201afa74a32bf88f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0371.json",
+      "bytes": 2480,
+      "sha256": "11173735c1300729a2e1d81df4153e9bc413f8c0234fe9c0abef97565484261b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0383.json",
+      "bytes": 2480,
+      "sha256": "40a0e2b2b327cdd89d7b146ea90b3420c1311b85fcddc6f064949a00457dd3e5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0395.json",
+      "bytes": 2483,
+      "sha256": "56ffeccd51d480d5b79829b771dfddc3280d525b349ff34c6c6dfd101d720e2e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0407.json",
+      "bytes": 2480,
+      "sha256": "a3081e67585747d1408c2c37bba9b1ca0dcf84a49b0901769a23c98c20b597b5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0419.json",
+      "bytes": 2481,
+      "sha256": "1fddc1d0f5c28d40a6bb296e26e66975e9c8ad51d8c03f6387cca46e62ab2c0d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0431.json",
+      "bytes": 2482,
+      "sha256": "3df375faf8ae65ec3653e521bbcf37b0413cff9273f5837027d4e4dcb3a58f71"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0443.json",
+      "bytes": 2482,
+      "sha256": "4362e07aece21787e59c1d6f57099f372fbd94db1293c5f0a0a1a4c9af68da2e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0455.json",
+      "bytes": 2480,
+      "sha256": "cce8ddaf1cdaa4aac626f57d5c60414979a013010bc380f678072bbacc8be66a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0467.json",
+      "bytes": 2481,
+      "sha256": "e690df1af23b9fc24b467776e341170a043a587e0f03ff480a9cca3ba1902b94"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0479.json",
+      "bytes": 2482,
+      "sha256": "bc0351cc5306751ee96d594b823b873c5350bc1fe331233aa0536dcc2aa46e65"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/receipts/writing_lora_0491.json",
+      "bytes": 2481,
+      "sha256": "d288d4c30ec1f88a8a903ab504432a8cdced5a1675244db5075efb44275e9974"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_resolver_evidence/run_contract.json",
+      "bytes": 570,
+      "sha256": "047c2c5c0036231b0c51ad5d21b936c11d82c07f178cb887fe9695fe9500048d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_start.log",
+      "bytes": 657,
+      "sha256": "792b6e4d3564be0d4140e1a2860409b2864e91b1dd28ccbe8a77b802a7a770ba"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_stop.log",
+      "bytes": 501,
+      "sha256": "f2d956948d36563a582665ec2cda8d215c54843ca20ccb3b99531a4f86a99887"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/remote_transfers.jsonl",
+      "bytes": 416080,
+      "sha256": "f32c2c5e02569f9e3992807a265f43e1719d062346fbbf3ef2ca86f3b5dfd407"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/run7b.sh",
+      "bytes": 1503,
+      "sha256": "b6bd6f09a73424b600573894ff92f7b65176b738c48ef6120451f73159f67ba7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/runner.log",
+      "bytes": 308,
+      "sha256": "74cf13b6fa3367e8c40fe7f78aec31180027d72b24c50bf12ae50c2cf71eb7b0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/seal_evidence.py",
+      "bytes": 1256,
+      "sha256": "c8691d5fd1ce0c3b1277a3ccbf0f71fce44ac1e0404f2c45d6478ed54a6f9750"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/start_remote.sh",
+      "bytes": 1930,
+      "sha256": "69f62863dd9f3e70c1b0c546da9fcb55b1169648fe1dcdf9a6af3b9b4a213c21"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011/stop_remote.sh",
+      "bytes": 2049,
+      "sha256": "8cc88f265bf89529ad32a0ab174e331fc0f8fe13f281d0b38515dbf816089392"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d421_7b_coverage/audit.json",
+      "bytes": 9689,
+      "sha256": "6539a15a293aad9b0e63f4ee1e41b2689847498940468c44b8188a0c583d6277"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/audit_d402_serverlessllm_path.py",
+      "bytes": 40929,
+      "sha256": "751055cee1ecfa28b1f4a339ab3f69505d79cda3058db01de95f56b9a619a8ca"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_tc_serverless_qualification_population.py",
+      "bytes": 17644,
+      "sha256": "394caacd53518743531866fe0b05fecd068586eadc88a43b10b9612018f171e2"
+    },
+    {
+      "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "bytes": 79226,
+      "sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+    }
+  ]
+}
