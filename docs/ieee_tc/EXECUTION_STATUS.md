@@ -32,7 +32,7 @@ RUNNING entries are historical. No approved experiment or failed evidence was re
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D445 closure sealed; backup and owned-cache reclamation next
+## Current action — D445 closed, backed up and cache reclaimed; matched comparison next
 
 Same actual handle monitored through normal terminal. At2026-10-12 05:22:35
 4000responses/0failures;05:23:04 all3returncodes0,actualGPUrelease/servicepathremoved.
@@ -65,11 +65,22 @@ BASE closure backup d992fc4fce40ae487df6d9d52ffe48c8d6477311 pushed/remoteSHAver
 summarySHA e3b4ceff8fbb2c03f3fdba79c82c1b8de23d5b7a9c1ae89e57be0e288631f89b.
 Native Loquetier/S-LoRA historicalpatch SHAs unchanged. Same-source prelaunch
 53MAIN/18BASE tests reused; no runtime/analyzer change or new performance run.
-NEXT double-repobackup -> onlyownedreconstructibledownloadcleanup -> reverifyseals
--> separatefullmatched5-systemjoin -> HydraServe/remaining7B/necessaryPrimeLoRAopt.
+MAIN closure backup d0608254010f0b3c38c43e86cf30b070dad38b2f also pushed and
+remote SHA verified before cleanup. Only 5000 owned reconstructible download files,
+12985984450 payload bytes, removed; observed space reclaimed 13004390400 bytes.
+Free space after cleanup 162488328192 bytes (about151.33GiB); fresh gates still
+required before a heavy run. Original pool, raw logs and remote published cache retained.
+Receipt: paper_results/ieee_tc/storage/20261012_d445_download_cache.json.
+Three unreadable same-UID process entries disclosed, not complete system-wide FD proof.
+All577 sealed source hashes reverified after cleanup;147 protected entries unchanged.
+Cleanup aux0011 InvocationID7c6be2c109954e2dacf55189f4c6bb2d, peak27516928B;
+verification aux0012 InvocationIDb2b30325eb184625a5655ce6ab738ec1, peak29749248B.
+Both actual recursive process trees empty and identities checked before owned stop;
+high/max/OOM/swap all0. Do not repeat the cache removal.
+NEXT separate full matched5-system join -> HydraServe/remaining7B/necessaryPrimeLoRAopt.
 Do not repeat D445 or sealedW0;no3Bjump. W1/W2/G2 and fullscope below OPEN.
-This continuation made verifiedwait+actualclosure/audit/seal progress;goalACTIVE,
-no blocker. Backup/cleanup/join not yet claimed complete at this checkpoint.
+This continuation completed backup/owned-cache reclamation and post-cleanup seal
+verification; goal ACTIVE, no blocker. Matched five-system comparison remains next.
 
 ## D445 launch and monitored progress — historical details, closed above
 
