@@ -1,4 +1,4 @@
-# IEEE TC execution status — D421 vLLM 7B whole-pool qualification passed
+# IEEE TC execution status — D422 original vLLM 7B compatibility preparation
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -75,6 +75,18 @@ regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance re
 
 ## Exact next action and remaining scope
 
+D422 PREPARATION 2026-10-11. Full PLAN/STATUS/V1/V2 reread; actual GPU census
+empty and no tmux job. D421 whole-pool qualification/closure/backup is complete,
+not repeated. Existing D421 recipes reused with original trace_prefix_v1,
+1000 requests/60 actual IDs/122510 target tokens, unchanged native config.
+Exclusive raw vllm_qualification/d422_20261011; report D422_VLLM_1000_COMPATIBILITY.md.
+No baseline code change or parameter search. NEXT preregistration backup,
+fresh resource/protected/input/cache identity gates, unchanged owned remote
+health -> one compatibility run -> release/close/audit/backup -> one full W0.
+No GPU or remote operation started at this preparation checkpoint. PrimeLoRA
+D371/ServerlessLLM D414 remain sealed; U_ref/W1/W2/G2/remaining matrix OPEN.
+Earlier RUNNING/NEXT entries below are historical, not live commands.
+
 D421 CLOSURE BACKEDUP / CACHE RECLAIMED2026-10-11~16:34Asia/Shanghai.
 Mainclosurec95996159218d3fa1cf7a5397b446c20383fbf04 pushedtofaaslora_origin/
 retry14_continuous_queue_v2 andremoteSHAverified;baselineclosure d9971a14e18eca3391665d9da1244594e69b6041
@@ -95,6 +107,11 @@ D419/D421nativeconfig/trace_prefix_v1,newexclusivekey -> closure/audit/backup ->
 onefull4000W0. No100/500repeat or baselineparametersearch. D422notpreparedorstarted.
 PrimeLoRAD371/ServerlessLLMD414sealed;U_ref/W1/W2/G2/allremainingplanOPEN.
 Thisturnconcreteprogress,fullgoalACTIVE. PriorRUNNING/NEXTentrieshistorical.
+Finalcache-receiptbackup9e2a4db784559d439680a73074d7c24e3a714d53 pushedto
+faaslora_origin/retry14_continuous_queue_v2 andremoteSHAverified. Exact3taskfiles,
+diff/secretscheckspassed. Freshcompute census empty;disk163734810624B. This
+postpushconfirmationis subsequentunstagedtask-ownedstatus;protectedusermanifest
+remainsuntouched. No livejobornewperformanceexperimentleftunreported.
 
 D421 TERMINAL/AUDITED2026-10-11~16:25Asia/Shanghai. No liveGPUjob. 500/500
 offered/submitted/terminal/native/source/adapter/content/timingcontracts,
