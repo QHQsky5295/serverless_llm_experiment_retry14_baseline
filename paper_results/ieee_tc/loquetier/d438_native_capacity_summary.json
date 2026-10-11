@@ -1,0 +1,109 @@
+{
+  "schema": "ieee_tc_loquetier_capacity_closure_v1",
+  "campaign": "d438_20261012",
+  "system": "Loquetier",
+  "model": "Llama-2-7B",
+  "passed": true,
+  "runtime_qualified": false,
+  "performance_run": false,
+  "real_remote": false,
+  "attempt_count": 1,
+  "execution_commits": {
+    "baseline": "28ffe7ed969c19d2d8683d282b9bda90c1f70d73",
+    "main": "400c3c8b1f358659dc8e8bf464ace4f6e24fa5e8",
+    "native": "aae33baeeb19777129c1ccbff99a898d4a0e2c63"
+  },
+  "qualification": {
+    "complete_pool_adapter_count": 500,
+    "static_shard_count": 4,
+    "observed_shard": 0,
+    "observed_adapter_count": 125,
+    "selection": "largest static accounted footprint; tie smallest index; no trace read",
+    "verified_adapter_count": 125,
+    "loaded_adapter_count": 125,
+    "target_modules": 128,
+    "native_padded_rank": 16,
+    "pointer_tables_verified": true,
+    "batch_size": 2,
+    "context_tokens": 1024,
+    "forward_calls": 0,
+    "requests": 0,
+    "numerical_correctness_qualified": false
+  },
+  "memory": {
+    "static_accounted_weights_and_kv_bytes": 24214509568,
+    "final_allocated_bytes": 24214530048,
+    "final_reserved_bytes": 24494735360,
+    "nvml_sampled_max_gpu0_used_bytes": 24831131648,
+    "service_peak_bytes": 7744462848,
+    "host_available_min_bytes": 105536823296,
+    "disk_free_min_bytes": 162913902592,
+    "service_swap_max_bytes_observed": 0,
+    "service_high_events": 0,
+    "service_max_events": 0,
+    "service_oom_events": 0,
+    "service_oom_kill_events": 0,
+    "watchdog_resource_samples": 113,
+    "watchdog_abort_samples": 0
+  },
+  "closure": {
+    "preflight_pass": true,
+    "service_returncode": 0,
+    "watchdog_returncode": 0,
+    "service_unit": "primelora-tc-svc-381426cb9ee049f28fb10e12fe13621d.scope",
+    "service_invocation_id": "c0bb3150f32e4699a29530914aeb2d0b",
+    "service_path_removed": true,
+    "gpu_compute_processes_after": 0,
+    "aux0006_invocation_id": "39681dc94bd747cc8f96f6f8b7ed6f60",
+    "aux0006_peak_bytes": 85028864,
+    "aux0006_empty_tree_verified_and_stopped": true,
+    "protected_entries": 147,
+    "protected_changed": 0
+  },
+  "sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d438_20261012/native_capacity.json",
+      "sha256": "3e2f0a63c2d920d5e5489fe0f93e3a65b096a7f3974604a76f149305c3404f37"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d438_20261012/capacity_launch.json",
+      "sha256": "8bf163483b63ac2ac2786b82caecbfdabaae8e36fae8a1bf97fd1b6215f11cb1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d438_20261012/capacity_launch.launch/service.log",
+      "sha256": "68ea8af9d4db24aeff72cb53d4947b84328a2c010b54a54f0f6b51ae416b8006"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d438_20261012/capacity_launch.launch/watchdog.jsonl",
+      "sha256": "43bbfff0f524c7ac3ed700111c759836903255719598de3fb26e9bb4c89d8e8c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d438_20261012/capacity_launch.launch/exec_receipt.json",
+      "sha256": "479415d3abf107ce43106c1c0a2a76d2f8cec3af8843a26a925836f3d3d7ae62"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d438_20261012/run_capacity.sh",
+      "sha256": "98a1be9534b09bf68822da2e65977d635b9389a564ffb898b91b6746513f5912"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d438_20261012/protected_after.json",
+      "sha256": "1ff66513bbe7dc141d9bd14e43a7ce4f111cee38aeb215db2db8eebe141fb657"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/loquetier_qualification/d438_20261012/native_view/measurement_manifest.json",
+      "sha256": "4dc33282f5777e3462b42c887c22de82ffa00b0ef8ea2aac3af52c9f0ff9dd7a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/paper_results/ieee_tc/loquetier/d437_7b_static_capacity.json",
+      "sha256": "049441391b67e500328546c3c8e1001fd1ce197f0c1a93e150fc26e8bdfe4a77"
+    }
+  ],
+  "limitations": [
+    "One largest static shard only, not four concurrent workers or complete runtime qualification.",
+    "No forward arithmetic, workspace, actual request, timing or numerical evidence.",
+    "Local immutable content diagnostic, not real-remote service preparation.",
+    "No main SLO, physical GPU-s comparison or PrimeLoRA performance claim.",
+    "NVML maximum is a sampled maximum, not an exact instantaneous peak."
+  ],
+  "next": "Necessary native HTTP/static-shard/remote/physical-lifecycle adaptation, then original 100-request smoke, 500-ID coverage, 1000 compatibility and one 4000-request W0; no repeat of this passed capacity probe."
+}
