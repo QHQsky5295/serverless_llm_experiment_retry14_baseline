@@ -1,4 +1,4 @@
-# IEEE TC execution status — D449 ordinary file LRU; combined ElasticLocality qualification next
+# IEEE TC execution status — D450 combined ElasticLocality CPU qualified; actual prefix next
 
 Updated 2026-10-12. Current checkpoint, NOT a replacement experiment plan.
 Full prior status is byte-identically archived in EXECUTION_HISTORY_THROUGH_D448.md,
@@ -31,7 +31,39 @@ entries are not current instructions. No evidence or approved task was removed.
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D449 implementation/CPU boundary checks completed
+## Current action — D450 combined contract/configuration CPU qualified
+
+Repeated user once-only cache approval reuses D78/D80 (1581215261 archive bytes),
+no republish/extracted pool. Full PLAN/status/baseline rules/V1/V2 read unchanged.
+D450_ELASTICLOCALITY_COMBINED_QUALIFICATION.md and
+paper_results/ieee_tc/elastic_locality/d450_combined_qualification.json record
+one complete explicitly named variant, slack1/no search, actual router/file-owner
+binding, proactive diagnostic rejection, negative/positive mechanism auditor,
+and exact non-target config equality with D371. Existing dispatcher has d450
+prefix100 branch; ordinary native demand/IEEE physical control/formulas unchanged.
+Runner AST: four contract/observation definitions changed, one helper new,
+592 existing definitions unchanged. No baseline performance tuning.
+
+Final621 CPU regressions passed58.387s;38 offline analyzer tests passed0.20s.
+Focused sets overlap. Retained failures: LLM has no pytest (no tests); native-env
+whole control suite spawned dependency build processes and was identity-stopped
+at high38275/peak3441676288B, no max/OOM/swap; new synthetic control fixture
+missed coordinator metrics (test-only fix); audit packaging initially queried
+nonexistent missing field (fixed to existing pass/changed contract).
+All9 owned auxiliaries exact-identity/actual-recursive-empty checked and stopped;
+other scopes high/max/OOM/swap0. Protected147/userfiles/D371/protocols unchanged.
+
+NEXT: verify/push this tested checkpoint; then run existing D371-derived
+raw/d450_20261012/start.py under auxiliary envelope after fresh GPU/disk/memory
+gate. It verifies refs/clean implementation/remote HEAD, reuses published remote
+service procedures and launches tmux tc-d450-locality100 with original prefix100.
+No GPU replay or remote operation has been performed for D450 yet.
+After closure validate actual mechanism/source/native/physical evidence, then
+500-IDcoverage -> original1000 -> single4000. Existing five-systemW0 stays sealed.
+Raw: /home/qhq/serverless_llm_experiment/results/ieee_tc/elastic_locality_qualification/d450_20261012.
+Goal ACTIVE, substantive implementation/qualification progress; no whole-goal blocker.
+
+## Previous checkpoint — D449 implementation/CPU boundary checks completed
 
 Read full PLAN/status/latest baseline rules/V1/V2. D448 MAIN backup
 ba9775e2be55ea67cf76ae96f1ee47fab821da15 previously pushed/remoteSHAverified.

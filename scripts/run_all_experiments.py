@@ -1442,6 +1442,48 @@ def _derive_online_hotness_window_s(
     return max(arrival_window_s, scale_eval_interval_s, ttft_slo_s)
 
 
+def _ieee_system_variant_contract(coord_cfg, preload_cfg, *, environment=None):
+    """Identify the complete internal locality control, not an isolated gate.
+
+    Existing Full and single-feature diagnostics keep their historical identity.
+    The new variant is explicitly assembled; no missing flag is defaulted to
+    'off', and inherited proactive diagnostics cannot contaminate its replay.
+    This validates configuration, NOT actual mechanism absence or performance.
+    """
+    variant = coord_cfg.get('ieee_system_variant')
+    if variant is None:
+        return None
+    if variant != 'elastic_locality_v1':
+        raise ValueError('unknown IEEE system variant')
+    expected_coord = dict(routing_policy='ieee_confirmed',
+        ieee_selection_strategy='gpu_locality', ieee_handoff_policy='no_handoff',
+        coordination_enabled=False, scale_up_handoff_enabled=False,
+        effective_capacity_admission_enabled=False)
+    expected_preload = dict(file_cache_policy='demand_lru', enabled=False,
+        hierarchical_residency_enabled=False, dynamic_forwarding_enabled=False,
+        gpu_dynamic_forwarding_enabled=False, host_promotion_on_nvme_hit_enabled=False)
+    for group, actual, expected in (('coordination', coord_cfg, expected_coord),
+                                    ('preloading', preload_cfg, expected_preload)):
+        for key, value in expected.items():
+            if type(actual.get(key)) is not type(value) or actual[key] != value:
+                raise ValueError(f'ElasticLocality requires explicit {group}.{key}={value!r}')
+    slack = coord_cfg.get('locality_load_slack')
+    if type(slack) is not int or slack < 0:
+        raise ValueError('ElasticLocality requires a nonnegative integer load slack')
+    env = os.environ if environment is None else environment
+    for key in ('FAASLORA_IEEE_PROACTIVE_DIAGNOSTIC',
+                'FAASLORA_IEEE_PROACTIVE_DIAGNOSTIC_DURING_REPLAY'):
+        if str(env.get(key, '')).strip().lower() not in ('', '0', 'false', 'no', 'off'):
+            raise ValueError('ElasticLocality forbids proactive diagnostic: ' + key)
+    return dict(kind='ieee_system_mechanism_contract_v1', system='ElasticLocality',
+        variant=variant, routing_policy='ieee_confirmed',
+        selection_strategy='gpu_locality', locality_load_slack=slack,
+        file_cache_policy='demand_lru', handoff_policy='no_handoff',
+        proactive_preparation=False, native_demand_loading=True,
+        physical_admission=True, autoscaler='IEEEReplicaControl',
+        mechanism_execution_qualified=False)
+
+
 def _validate_ieee_online_observation_binding(model_cfg, coord_cfg, preload_cfg,
                                               stack, *, runner_window_s):
     """Bind the two uses of IEEE W and the real loading-pressure denominator.
@@ -7344,6 +7386,8 @@ class ScenarioRunner:
         self.preload_cfg   = preload_cfg
         self.wl_cfg        = workload_cfg
         self.coord_cfg     = coord_cfg or {}
+        self._ieee_mechanism_contract = _ieee_system_variant_contract(
+            self.coord_cfg, self.preload_cfg)
         if type(initial_runtime_pending) is not bool:
             raise ValueError('initial_runtime_pending must be a boolean')
         self._initial_runtime_pending = initial_runtime_pending
@@ -9925,6 +9969,9 @@ class ScenarioRunner:
         launch = getattr(self, '_ieee_full_launch_contract', None)
         if launch is not None:
             result['ieee_full_launch_contract'] = copy.deepcopy(launch)
+        mechanism = getattr(self, '_ieee_mechanism_contract', None)
+        if mechanism is not None:
+            result['ieee_mechanism_contract'] = copy.deepcopy(mechanism)
         profiles = getattr(self, '_service_profiles', None)
         if profiles is not None:
             result = {**result, 'ieee_service_profile': profiles.identity()}
@@ -15664,6 +15711,25 @@ class ScenarioRunner:
         require(self._generation_contract == 'fixed_length_greedy_v1', 'fixed native generation required')
         request_timeout_s = self._request_timeout_seconds(required=True)
         require(isinstance(self._stack, ExperimentStack), 'owned IEEE stack required')
+        mechanism = _ieee_system_variant_contract(self.coord_cfg, self.preload_cfg)
+        files = self._stack.residency_manager.local_source_references
+        if (self.coord_cfg.get('ieee_selection_strategy') == 'gpu_locality'
+                or files.file_cache_policy == 'demand_lru'):
+            require(mechanism is not None, 'complete locality variant identity required')
+        if mechanism is not None:
+            require(mechanism == getattr(self, '_ieee_mechanism_contract', None),
+                    'system mechanism contract changed after assembly')
+            require(self.name == 'tc_ieee_elastic_locality',
+                    'ElasticLocality must not be labelled as Full')
+            selection = self.router.selection_contract()
+            require(selection['strategy'] == mechanism['selection_strategy']
+                and selection['locality_load_slack'] == mechanism['locality_load_slack']
+                and files.file_cache_policy == mechanism['file_cache_policy']
+                and self._ieee_handoff_policy == 'no_handoff'
+                and self._hierarchical_residency_enabled is False
+                and self._coordination_enabled is False
+                and self._scale_up_handoff_enabled is False,
+                'actual locality owners differ from the complete contract')
         require(isinstance(self._service_profiles, FrozenServiceProfiles)
             and isinstance(self._preparation_profiles, FrozenPreparationProfiles),
             'measured service and preparation profiles required')
@@ -15720,6 +15786,8 @@ class ScenarioRunner:
             request_deadline_origin='planned_arrival',
             physical_deployment_path=str(deployment.root),
             formal_comparison_qualified=False)
+        if mechanism is not None:
+            self._ieee_full_launch_contract['system_mechanism_contract'] = copy.deepcopy(mechanism)
 
     async def _start_ieee_initial_deployment(self):
         """Start the initial physical pool through the same owner as scale-out.
@@ -19624,6 +19692,8 @@ class ScenarioRunner:
         pressure, sleeps to force a decision, or relabels request-driven demand
         loading as proactive admission.
         """
+        if getattr(self, '_ieee_mechanism_contract', None) is not None:
+            raise ValueError('ElasticLocality forbids proactive admission diagnostics')
         import traceback
         from faaslora.preloading.preloading_planner import PreparationPlanSuperseded
         record: Dict[str, Any] = {

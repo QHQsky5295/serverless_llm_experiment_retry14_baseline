@@ -5,7 +5,71 @@ import json
 import pytest
 
 from scripts.ieee_tc.plot_d290_diagnostic import (binding_checks, load, percentile,
-    request_vectors, write_numerical_repeat_audit)
+    request_vectors, write_numerical_repeat_audit, audit_elastic_locality_mechanisms)
+
+
+def locality_evidence():
+    contract = dict(system='ElasticLocality',variant='elastic_locality_v1',
+        proactive_preparation=False,native_demand_loading=True,physical_admission=True,
+        selection_strategy='gpu_locality',file_cache_policy='demand_lru',
+        handoff_policy='no_handoff',locality_load_slack=1)
+    selection = dict(schema='owned_routing_selection_v1',owner_policy='ieee_confirmed',
+        strategy='gpu_locality',locality_load_slack=1)
+    metrics = dict(ieee_mechanism_contract=contract,
+        ieee_routing_selection=selection | {'locality_attempt_reasons':{'gpu_hit':1}},
+        ieee_file_cache=dict(file_cache_policy='demand_lru',plans=[],replacements=[]))
+    events = {key:None for key in ('_ieee_residency_epochs','_ieee_file_preparation_plans',
+        '_ieee_gpu_preparation_plans','_ieee_native_host_preparations','_ieee_proactive_diagnostic')}
+    events['_ieee_activations'] = [dict(policy='no_handoff',plan_sha256=None,
+        preparation_state='disabled')]
+    outcome = dict(scenario='tc_ieee_elastic_locality',coordination_after_shutdown=metrics,
+        launch_contract={'system_mechanism_contract':copy.deepcopy(contract)},
+        mechanism_events=events,planning_cpu_events=[])
+    rows = [dict(gpu_reference_evidence={'routing_snapshot':{'selection_contract':selection}})]
+    return outcome,rows
+
+
+def test_locality_audit_requires_actual_mechanisms_not_label():
+    outcome, rows = locality_evidence()
+    result = audit_elastic_locality_mechanisms(outcome,rows)
+    assert result['passed'] and result['requests'] == 1
+    assert not result['numerical_correctness_qualified']
+    assert not result['performance_qualified']
+
+
+@pytest.mark.parametrize('key', ['_ieee_residency_epochs','_ieee_file_preparation_plans',
+    '_ieee_gpu_preparation_plans','_ieee_native_host_preparations','_ieee_proactive_diagnostic'])
+def test_locality_audit_rejects_proactive_work_or_missing_journal(key):
+    outcome,rows = locality_evidence()
+    outcome['mechanism_events'][key] = [{'state':'completed'}]
+    with pytest.raises(ValueError):
+        audit_elastic_locality_mechanisms(outcome,rows)
+    del outcome['mechanism_events'][key]
+    with pytest.raises(KeyError):
+        audit_elastic_locality_mechanisms(outcome,rows)
+
+
+@pytest.mark.parametrize('fault', ['full_label','no_activation','handoff','planner_cpu',
+    'file_plan','failed_replacement','wrong_router','no_attempt','request_strategy', 'slack_bool'])
+def test_locality_audit_rejects_partial_or_mixed_variant(fault):
+    outcome, rows = locality_evidence()
+    metrics = outcome['coordination_after_shutdown']
+    if fault == 'full_label': outcome['scenario'] = 'tc_ieee_full'
+    elif fault == 'no_activation': outcome['mechanism_events']['_ieee_activations'] = []
+    elif fault == 'handoff': outcome['mechanism_events']['_ieee_activations'][0]['plan_sha256'] = 'plan'
+    elif fault == 'planner_cpu': outcome['planning_cpu_events'] = [{'op':'plan'}]
+    elif fault == 'file_plan': metrics['ieee_file_cache']['plans'] = [{'plan_id':'p'}]
+    elif fault == 'failed_replacement':
+        metrics['ieee_file_cache']['replacements'] = [{'policy':'demand_lru','state':'reclamation_failed'}]
+    elif fault == 'wrong_router': metrics['ieee_routing_selection']['strategy'] = 'service_bins'
+    elif fault == 'no_attempt': metrics['ieee_routing_selection']['locality_attempt_reasons'] = {}
+    elif fault == 'request_strategy':
+        rows[0]['gpu_reference_evidence']['routing_snapshot']['selection_contract']['strategy'] = 'service_bins'
+    elif fault == 'slack_bool':
+        metrics['ieee_mechanism_contract']['locality_load_slack'] = True
+        outcome['launch_contract']['system_mechanism_contract']['locality_load_slack'] = True
+    with pytest.raises(ValueError):
+        audit_elastic_locality_mechanisms(outcome,rows)
 
 
 def request():

@@ -86,6 +86,68 @@ def request_vectors(requests: list[dict]) -> tuple[list, list, list]:
     return vectors
 
 
+def audit_elastic_locality_mechanisms(outcome: dict, requests: list[dict]) -> dict:
+    """Require actual negative/positive mechanism evidence, never just a label.
+
+    This augments the common timing/source/lifecycle audit; it does not by itself
+    certify output arithmetic, a complete workload, SLO or system superiority.
+    """
+    if outcome['scenario'] != 'tc_ieee_elastic_locality' or not requests:
+        raise ValueError('complete ElasticLocality identity and request population required')
+    metrics = outcome['coordination_after_shutdown']
+    contract = metrics['ieee_mechanism_contract']
+    if (contract != outcome['launch_contract']['system_mechanism_contract']
+            or contract['system'] != 'ElasticLocality'
+            or contract['variant'] != 'elastic_locality_v1'
+            or contract['proactive_preparation'] is not False
+            or contract['native_demand_loading'] is not True
+            or contract['physical_admission'] is not True
+            or contract['selection_strategy'] != 'gpu_locality'
+            or contract['file_cache_policy'] != 'demand_lru'
+            or contract['handoff_policy'] != 'no_handoff'):
+        raise ValueError('ElasticLocality mechanism identity mismatch')
+    selection = dict(schema='owned_routing_selection_v1',owner_policy='ieee_confirmed',
+        strategy='gpu_locality',locality_load_slack=contract['locality_load_slack'])
+    if type(selection['locality_load_slack']) is not int or selection['locality_load_slack'] < 0:
+        raise ValueError('invalid locality load slack')
+    summary_selection = metrics['ieee_routing_selection']
+    if any(summary_selection[key] != value for key,value in selection.items()):
+        raise ValueError('actual routing policy differs from launch')
+    reasons = summary_selection['locality_attempt_reasons']
+    if (not reasons or set(reasons) - {'gpu_hit','load_slack_exceeded',
+            'no_feasible_gpu_hit','empty_feasible_set'}
+            or any(type(value) is not int or value < 0 for value in reasons.values())
+            or sum(reasons.values()) < len(requests)):
+        raise ValueError('missing or invalid actual locality attempts')
+    for row in requests:
+        if row['gpu_reference_evidence']['routing_snapshot']['selection_contract'] != selection:
+            raise ValueError('request uses a different routing policy')
+    events = outcome['mechanism_events']
+    for key in ('_ieee_residency_epochs','_ieee_file_preparation_plans',
+                '_ieee_gpu_preparation_plans','_ieee_native_host_preparations',
+                '_ieee_proactive_diagnostic'):
+        if events[key] is not None and events[key] != []:
+            raise ValueError('unexpected proactive mechanism: ' + key)
+    if outcome['planning_cpu_events'] != []:
+        raise ValueError('proactive planning CPU work occurred')
+    activations = events['_ieee_activations']
+    if not activations or any(row['policy'] != 'no_handoff'
+            or row['plan_sha256'] is not None or row['preparation_state'] != 'disabled'
+            for row in activations):
+        raise ValueError('activation preparation was not disabled')
+    cache = metrics['ieee_file_cache']
+    if cache['file_cache_policy'] != 'demand_lru' or cache['plans'] != []:
+        raise ValueError('file cache is not demand-only LRU')
+    if any(row['policy'] != 'demand_lru' or row['state'] != 'incoming_allocated'
+           for row in cache['replacements']):
+        raise ValueError('unexpected or failed file replacement')
+    return dict(kind='elastic_locality_mechanism_audit_v1',passed=True,
+        requests=len(requests),selection_attempt_reasons=dict(reasons),
+        activations=len(activations),file_replacements=len(cache['replacements']),
+        proactive_plans=0,numerical_correctness_qualified=False,
+        performance_qualified=False)
+
+
 def audit_run(path: Path) -> tuple[dict, dict, list[dict]]:
     result, scenario = load(path)
     requests = scenario["requests"]
@@ -127,6 +189,11 @@ def audit_run(path: Path) -> tuple[dict, dict, list[dict]]:
         "shared_trace_sha256": result["metadata"]["shared_trace_sha256"],
         "shared_adapter_subset_sha256": result["metadata"]["shared_adapter_subset_sha256"],
     }
+    if scenario.get('scenario_name') == 'tc_ieee_elastic_locality':
+        outcome_path = path.parent/'launch.launch/physical_deployment/main_outcome.json'
+        outcome = json.loads(outcome_path.read_text())
+        evidence['elastic_locality'] = audit_elastic_locality_mechanisms(outcome,requests)
+        evidence['mechanism_source_sha256'] = sha256(outcome_path)
     return stats, evidence, requests
 
 
