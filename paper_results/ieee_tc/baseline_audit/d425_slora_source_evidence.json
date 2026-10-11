@@ -1,0 +1,96 @@
+{
+  "schema": "ieee_tc_d425_source_reuse_evidence_v1",
+  "inventory": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d425_slora_reuse_inventory.json",
+    "sha256": "95f471cb65cf5646b5a545221dceae5afdcb3f1fddf341582b5b014e70f71161",
+    "bytes": 278096
+  },
+  "verified_source_references": 276,
+  "historical_source_joins": [
+    {
+      "source": "/home/qhq/serverless_llm_baselines/results/paper_experiments/18_eurosys27_v2_c5_smoke/20260718T090511Z_codex_eurosys27v2_c5_smoke_llama2_7b_seed42_r100_20260718T090511Z_codex/protocol/system_resolved_config.json",
+      "commit": "c1ddf488781ea7f551cd0bb07bfd097124c93411",
+      "recorded_modified_files": 9,
+      "recorded_modified_file_mismatches": [
+        "slora/models/llama/layer_weights/pre_and_post_layer_weight.py"
+      ],
+      "current_only_modified_paths": [
+        "slora/server/httpserver/manager.py"
+      ],
+      "old_full_index_diff_sha256": "dbbe2233f6492858bf74f8a4884c08804028ca377e65e1f2141ceeb987eebabb"
+    },
+    {
+      "source": "/home/qhq/serverless_llm_baselines/results/paper_experiments/18_eurosys27_v2_c5_smoke_targeted/20260718_094134_eurosys27v2_c5_fifo_target_llama2_7b_seed42_r32_a32_20260718T094134Z/protocol/system_resolved_config.json",
+      "commit": "c1ddf488781ea7f551cd0bb07bfd097124c93411",
+      "recorded_modified_files": 10,
+      "recorded_modified_file_mismatches": [
+        "slora/models/llama/layer_weights/pre_and_post_layer_weight.py"
+      ],
+      "current_only_modified_paths": [],
+      "old_full_index_diff_sha256": "2fb1eed4e5e485761f31a2b93c7183172f8e17c39161832b3bd837a2f2f522a4"
+    },
+    {
+      "source": "/home/qhq/serverless_llm_baselines/results/paper_experiments/19_eurosys27_v2_c5_smoke_official/20260722_1448_eurosys27v2_c5_smoke_llama2_7b_seed42_r100_a500/protocol/system_resolved_config.json",
+      "commit": "c1ddf488781ea7f551cd0bb07bfd097124c93411",
+      "recorded_modified_files": 10,
+      "recorded_modified_file_mismatches": [],
+      "current_only_modified_paths": [],
+      "old_full_index_diff_sha256": "c62bb51e7ec316e19b60f68807b7eba0fdfe17cdd8dfe67ab7147807a3d64b89"
+    },
+    {
+      "source": "/home/qhq/serverless_llm_baselines/results/paper_experiments/19_eurosys27_v2_c5_smoke_official/20260722_1541_eurosys27v2_c5_smoke_llama2_7b_seed42_r100_a500/protocol/system_resolved_config.json",
+      "commit": "c1ddf488781ea7f551cd0bb07bfd097124c93411",
+      "recorded_modified_files": 10,
+      "recorded_modified_file_mismatches": [],
+      "current_only_modified_paths": [],
+      "old_full_index_diff_sha256": "c62bb51e7ec316e19b60f68807b7eba0fdfe17cdd8dfe67ab7147807a3d64b89"
+    },
+    {
+      "source": "/home/qhq/serverless_llm_baselines/results/paper_experiments/19_eurosys27_v2_c5_smoke_official/20260722_c5_smoke_token_sha_v4/attempts/c5_smoke_7b_seed42/c5_smoke_7b_seed42-a001-20260722t090630z-d1db9043e8/protocol/system_resolved_config.json",
+      "commit": "c1ddf488781ea7f551cd0bb07bfd097124c93411",
+      "recorded_modified_files": 10,
+      "recorded_modified_file_mismatches": [],
+      "current_only_modified_paths": [],
+      "old_full_index_diff_sha256": "c62bb51e7ec316e19b60f68807b7eba0fdfe17cdd8dfe67ab7147807a3d64b89"
+    }
+  ],
+  "current_full_index_diff_sha256": "c62bb51e7ec316e19b60f68807b7eba0fdfe17cdd8dfe67ab7147807a3d64b89",
+  "forward_AST_equals_upstream": true,
+  "api_equals_official_and_git": true,
+  "official_api": {
+    "url": "https://raw.githubusercontent.com/S-LoRA/S-LoRA/c1ddf488781ea7f551cd0bb07bfd097124c93411/slora/server/api_server.py",
+    "sha256": "504a1128cd8c6868a7d4c4ed21127b93f3cc7db0fc009082677bf1c1de97c485",
+    "bytes": 17832
+  },
+  "source_files": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d425_20261011/inventory.py",
+      "sha256": "dc0a535a49fbcaff207b699df9a8bc68d726bb68b78c8c893e759613d2acf6ab",
+      "bytes": 7054
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d425_20261011/verify_sources.py",
+      "sha256": "17548314f477adb878b05100b67719c9bcbc351f58f6c0f708931d4e2f5fbeb5",
+      "bytes": 4010
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/tests/test_fixed_length_generation_contract.py",
+      "sha256": "70de255ef0fb76cd6eec6b169ff41dcf0f5499947bb6774266053bd67f3dbe8f",
+      "bytes": 19744
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d425_20261011/fixed_length_cpu_tests.log",
+      "sha256": "0eb4e26cc4ab71af730d19dcff7786974a2909d1a84ea698f086717f3ff0a4ea",
+      "bytes": 1812
+    }
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "7f843a6a5240a9e933db3ca18bb87f08b02b34dd7c5b9995ba628df14a8403dd",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+  },
+  "claim_scope": "Deterministic byte/AST/legacy-field checks and existing CPU regressions only; not an independent semantic audit or GPU performance qualification."
+}

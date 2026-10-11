@@ -1,4 +1,4 @@
-# IEEE TC execution status — D424 matched 7B W0 comparison complete
+# IEEE TC execution status — D425 S-LoRA historical reuse audit complete
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -75,6 +75,49 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+D425 OFFLINE REUSE AUDIT COMPLETE2026-10-11. No liveGPU/remotejob;do notrestart
+D423 orsealedPrimeLoRA/ServerlessLLM points. FullPLAN/STATUS/V1/V2 reread.
+25existing7B S-LoRA replayJSONs,230supportfiles(107logs/486996lines) inventoried;
+276sourcereferencesSHA/bytesverified.17full4000records lacknativefixed-output
+contract;fivefixedoutputchecks100/85,32/32,100/100,100/100,100/100;threeold500
+developmentrecords395/396/500successesretained. Maximum132actualIDs,no500-ID
+execution found. Allserver_metrics empty;nativefirst/last andphysicalowner
+evidencecannotbereconstructedfromlegacyHTTP/startupmax. No performancepromotion.
+Current10compatibilityfiles matchthreeJuly22sidecars;publishedpatch matcheslive
+diff. NativeforwardAST sameupstream,APIofficial/Git/localbytesequal. Existing
+fixedlength/FIFO9CPUtestspass0.073s withretainedrawlog,4GiB/zeroswap/GPUhidden.
+Oldprotected147entrieszerochange;3protecteduserfilesandnestedS-LoRAuntouched.
+ReportsD425_SLORA_REUSE_AUDIT.md inbothrepos. Curatedbaseline_audit/
+d425_slora_reuse_inventory.json SHA95f471cb65cf5646b5a545221dceae5afdcb3f1fddf341582b5b014e70f71161;
+d425_slora_source_evidence.json SHAbb673cafeae78ba5f3de5c901a4477ff9147c2521132079c3722f7f9b80420c4.
+Rawslora_qualification/d425_20261011 hasD420-adaptedrecipe/sourcecheck/testlog.
+No installedcodechange,newweights/trace,figure,cachecleanup orremoteoperation.
+NEXT backupaudit -> minimalopt-in S-LoRA native-token observation/common
+pre-readylauncher/physical-owner integration usingexistingcomponents,not a
+newframework. Preserveofficialpaging/batching/scheduling/all-poolHOSTpreparation,
+current10compatibilitypatchesanduserdirtyreplay. Newobservationpath needsCPU
+tests thenoriginal100affectedgate;reusevalidoldscope,missing500-ID/1000contract
+gates thenonefull4000W0. Do notcalloldstartupmaxaphysicallease or rerununtouched
+oldrunner. Allremaining7Bbaselines,W1/W2/G2,3B,A1-A5/S1-S13,CE/docs/figuresOPEN.
+This is concreteofflineprogress,notnewperformanceevidence orgoalcompletion.
+FullgoalACTIVE. SixD425aux0001..0006 identity/limits/procs-emptycheckedandstopped.
+Smallrecipe/testlogbundleSHA8bd8b22872e57ea6fce41f45d1aaaee0c5a1bd3c7604b21fb20f2d30a7ddcf44.
+Baselineauditbackup913b861f084087c0f8f64d1d8381c96c704bc8e9 pushedtoorigin/main
+andremoteSHAverified;exactone taskdoconly. Mainauditbackup pendingatthischeckpoint;
+no livejoborcachecleanup. Protected3userdirtySHAs unchanged.
+
+D424 BACKED UP2026-10-11 18:56:15Asia/Shanghai: main
+f0bc203c112323a82c71d791d03cd3e5f3564e7b pushedtofaaslora_origin/
+retry14_continuous_queue_v2 andremoteSHAverified. Exact8taskfiles;31CPUtests,
+source/protected checks,stagedsecrets/size andCRLF-aware diff checks passed.
+Baseline code/repo unchanged thisstep;lastbaseline backup b477b12622b8f095dd4d6d753c36ebe12391e7f7
+remains. Freshcompute census empty;disk163401674752B (~152.2GiB). Onlyprotected
+usermanifest tracked-dirty beforethispostpushstatus. No liveGPU/remotejob.
+NEXT S-LoRA historical source/contract audit andminimalmeasurement integration
+as needed; do not rerunD423 or jump3B. D424 is concrete offlinecomparison and
+reference progress,notgoalcompletion. Allremainingapprovedscope OPEN;fullgoal
+ACTIVE. This postpushconfirmation is subsequenttask-ownedstatus only.
 
 D424 OFFLINE COMPARISON COMPLETE 2026-10-11. No live GPU/remote job or new
 performance run. Full PLAN/STATUS/V1/V2 reread; source plan unchanged. Existing
