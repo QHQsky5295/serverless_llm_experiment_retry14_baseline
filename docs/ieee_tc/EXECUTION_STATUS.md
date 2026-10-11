@@ -75,6 +75,54 @@ regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance re
 
 ## Exact next action and remaining scope
 
+D423 VERIFIED WAIT checkpoint2026-10-11 17:53:33 Asia/Shanghai: same active
+service InvocationID09c12668f1554ed0af12e9435539fe02/tmux tc-d423-7b, no restart.
+2239created/sent,2233raw/validatedresponses,4000registeredcontracts,0failures;
+terminal receipt absent. Watchdog2101:hostavailable100007944192B,
+service13534027776B,disk161351864320B,high/max/OOM/swap0,noabort.
+Same actual livehandle repeatedly verified17:21–17:53. Originalarrivalwindow
+remaining1892.821029s. The running experiment remains a verified wait;
+the preceding continuation made bounded read-only next-entry audit progress;
+this continuation has backed up that evidence below.
+Previous continuations were verified waits,
+not blockers;the launch turn made concrete progress preparing/starting D423.
+Intermediate17:36/17:44/17:49 checkpoints had906/1502/1921validatedresponses;
+all0failures. No observation timeout was interpreted as a terminal run.
+No tests,hashscan,cleanup,remoteoperation,newexperiment or comparison during
+business. PLAN SHA rechecked unchanged; fullPLAN/STATUS/V1/V2 remain read in
+the uncompressed task context. Monitor-experiment skill used for actuallocal
+handle and raw progress only; no incomplete-data performance verdict.
+Running documentation backup02ec5f46cadcc6d45a090d079a595bf879dce398 pushed
+tofaaslora_origin/retry14_continuous_queue_v2; remote SHA verified17:20:29.
+This is NOT the execution commit. Exact2taskdocs only; diff/secrets checks
+passed; no runtime code changed and protected usermanifest untouched.
+NEXT monitor SAME live run/local journals; no tests/hashscan/cleanup/remote
+changes or other heavyjob during business. Original arrivalwindow ends at
+monotonic1221554.361040071; wait is expected,not a blocker. Then actualrelease
+-> ownedremote stop/preserve -> full4000audit/D394 -> backup/comparison.
+Goal ACTIVE. This postpush confirmation is subsequent task-owned unstaged
+status. All prior scope and failures preserved; no final performance verdict.
+
+Read-only S-LoRA next-entry reconnaissance saved in BASE/docs/ieee_tc/
+SLORA_REUSE_RECON_20261011.md. Baseline documentation checkpoint
+7d5dbe77f4a61fbff1f805200a6c4b8c61fcb1a1 pushed toorigin/main andremoteSHA
+verified17:53:33. Exactone taskdoc,diff/secrets checks passed; no baseline
+code change/live tests. Userdirtyreplay/relayserve/nestedS-LoRA preserved.
+This documentation HEAD is NOT the active D423 baseline execution commit.
+Six existing7B replayJSONs read with CPU affinity2,3,26,27; no GPU import,
+tests or bulkhash. April main/May realremote each4000reported successes/132IDs,
+both text-retokenized/no fixed contract. July18fixed100 has85length matches;
+FIFO32has32;July22two100runs each100matches/nativeSSEcount/hash/29IDs.
+These suppliedJSONs lack nativefirst/last pairs/physicalowners; cannot itself
+prove otherlogs lack evidence. Preserve allruns,notbest-selection. Current
+wrapper stageswholepool,starts/waitsreplicas sequentially,thenreplays; contains
+unsafe legacyport/cachecleanup for newprotocol. Currentupstreamc1ddf488... has
+10existingcompatibilitychanges inclFIFO; historicalpatchidentity not rehashed
+duringbusiness. Reuse environment/fixedlength/FIFO evidence AFTERsource/contract
+join,not automaticfullqualification; do not execute legacyrunner or edit user's
+replay/nestedchanges. This is no performancecomparison,newexperiment or policy
+decision. Immediate NEXT remains D423terminalclosure/audit,not S-LoRA launch.
+
 D423 RUNNING since 2026-10-11 17:17:37 Asia/Shanghai, tmux tc-d423-7b.
 Exactly one heavy job. Main execution d45d544c939b9d8b1a41aa332b979b74ee0baa3c
 pushed/remote SHA verified; baseline e646f9106c8fd6fd15f54b69041bd54234fa47e1
