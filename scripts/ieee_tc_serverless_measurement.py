@@ -19,6 +19,11 @@ import uuid
 from urllib.parse import urlsplit
 
 OUTPUT_PROCESSOR_SHA256 = '50f5e0aa5d0b7ece086632de6e37376dbeba0a1c0d2f22f95b6759189e76e04d'
+V030_NATIVE_SOURCES = {
+    'v1/engine/output_processor.py': 'e47b86cd69ce1c1e3f53dac655eaa75c32a4057d10f4a1db16bb83a397f2a329',
+    'outputs.py': '346d1f9204a441867efc3af7c5a99d8a70ef0f69fe607dfa8a4a2557a82ca425',
+    'v1/metrics/stats.py': 'af1983ddc32fa4d3284e72212c6525daf961dd84429023a02d612b68b3112cf3',
+}
 
 
 def record_backend_ready(backend, module_file):
@@ -446,21 +451,27 @@ def snapshot_collector(collector, output):
             raise ValueError('native collector mixed request identities')
         collector.output.metrics = copy.copy(output.metrics)
         collector.output.tc_native_lora_name = output.tc_native_lora_name
+        if hasattr(output, 'tc_native_lora_identity'):
+            collector.output.tc_native_lora_identity = output.tc_native_lora_identity
 
 
 def install_v1_snapshot():
     import vllm.v1.engine.output_processor as module
     if hashlib.sha256(Path(module.__file__).read_bytes()).hexdigest() != OUTPUT_PROCESSOR_SHA256:
         raise ValueError('unqualified vLLM output-processor version')
+    _install_snapshot_hooks(module, snapshot_output, '_ieee_tc_snapshot_v1')
+
+
+def _install_snapshot_hooks(module, snapshot, marker):
     cls = module.RequestState
     old = cls._new_request_output
-    if getattr(old, '_ieee_tc_snapshot_v1', False):
+    if getattr(old, marker, False):
         return
 
     def observed(state, *args, **kwargs):
-        return snapshot_output(state, old(state, *args, **kwargs))
+        return snapshot(state, old(state, *args, **kwargs))
 
-    observed._ieee_tc_snapshot_v1 = True
+    setattr(observed, marker, True)
     cls._new_request_output = observed
     old_put = module.RequestOutputCollector.put
 
@@ -469,6 +480,61 @@ def install_v1_snapshot():
         snapshot_collector(collector, output)
 
     module.RequestOutputCollector.put = put
+
+
+def validate_v030_sources(root, version):
+    """Exact installed observation boundary; no version/hash fallback."""
+    if version != '0.30.0':
+        raise ValueError('vLLM 0.30.0 native observation requires its qualified version')
+    actual = {name: hashlib.sha256((Path(root)/name).read_bytes()).hexdigest()
+              for name in V030_NATIVE_SOURCES}
+    if actual != V030_NATIVE_SOURCES:
+        raise ValueError('unqualified vLLM 0.30.0 native observation sources')
+    return actual
+
+
+def snapshot_v030_output(state, output):
+    """Copy only observations, before mutable stats/token lists advance.
+
+    Scope is single-sequence cumulative text generation, as frozen for TC.
+    Retain native integer IDs even when detokenization emits no text. This
+    hook never samples, schedules, loads, reroutes or reconstructs timestamps.
+    """
+    if output is None:
+        return None
+    if (len(output.outputs) != 1 or state.output_kind.name != 'CUMULATIVE'
+            or state.parent_req is not None or state.streaming_input):
+        raise ValueError('TC vLLM observation requires single cumulative text output')
+    output = snapshot_output(state, output)
+    completion = copy.copy(output.outputs[0])
+    completion.token_ids = list(completion.token_ids)
+    output.outputs = [completion]
+    count = len(completion.token_ids)
+    if output.metrics.num_generation_tokens != count:
+        raise ValueError('native metric/token count mismatch at output production')
+    previous = getattr(state, '_tc_v030_token_snapshot', None)
+    if previous is not None and count == previous.num_generation_tokens:
+        # A terminal notification without a new token must not move the token
+        # boundary, including when the consumer sees only the merged terminal.
+        for name in ('queued_ts', 'scheduled_ts', 'first_token_ts', 'last_token_ts'):
+            setattr(output.metrics, name, getattr(previous, name))
+    if count:
+        state._tc_v030_token_snapshot = copy.copy(output.metrics)
+    lora = state.lora_request
+    output.tc_native_lora_identity = (None if lora is None else
+        (lora.lora_name, lora.lora_int_id, lora.lora_path))
+    return output
+
+
+def install_v030_snapshot():
+    """Opt-in in-memory adapter; does not edit the installed vLLM package."""
+    from importlib.metadata import version
+    import vllm.v1.engine.output_processor as module
+    root = Path(module.__file__).resolve().parents[2]
+    sources = validate_v030_sources(root, version('vllm'))
+    _install_snapshot_hooks(module, snapshot_v030_output, '_ieee_tc_snapshot_v030')
+    return dict(schema='ieee_tc_vllm030_native_snapshot_v1', version='0.30.0',
+                source_sha256=sources, package_root=str(root))
 
 
 class NativeRequestObservation:
@@ -507,3 +573,17 @@ class NativeRequestObservation:
                     control_observation={k: v for k, v in internal_metrics.items()
                                          if k.startswith('tc_') or k in
                                          ('ready_instances_at_enqueue', 'instance_id')})
+
+
+class V030NativeRequestObservation(NativeRequestObservation):
+    """Use the shared timeline with output-event adapter identity checks."""
+
+    def __init__(self, lora_request):
+        super().__init__(lora_request)
+        self.lora_identity = (None if lora_request is None else
+            (lora_request.lora_name, lora_request.lora_int_id, lora_request.lora_path))
+
+    def observe(self, output):
+        if getattr(output, 'tc_native_lora_identity', object()) != self.lora_identity:
+            raise ValueError('native output adapter ID/path differs from the submitted request')
+        super().observe(output)
