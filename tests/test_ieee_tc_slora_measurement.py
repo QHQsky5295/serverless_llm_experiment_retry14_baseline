@@ -80,6 +80,83 @@ def consumer(target=3):
         clock_id=measurement._slora_process_identity(__import__('os').getpid())['clock_id'])
 
 
+class SloraHostBoundTests(unittest.TestCase):
+    def facts(self, aid='a', rank=8):
+        return dict(adapter_id=aid, rank=rank, dtype='F16', tensor_shapes={
+            f'base_model.model.model.layers.0.self_attn.{module}.lora_{side}.weight':
+            ([rank, 64] if side == 'A' else [64, rank])
+            for module in ('q_proj', 'k_proj', 'v_proj', 'o_proj') for side in ('A', 'B')})
+
+    def bound(self, rows, replicas=4, limit=80*1024**3):
+        return launch.slora_host_storage_bound(rows,
+            dict(model_type='llama', hidden_size=64, num_hidden_layers=1,
+                 num_attention_heads=4, num_key_value_heads=4), replicas, limit)
+
+    def test_two_native_copies_and_logical_not_content_deduplication(self):
+        result = self.bound([self.facts('a'), self.facts('b')])
+        self.assertEqual(result['single_copy_pool_bytes'], 2*8*64*8*2)
+        self.assertEqual(result['pinned_adapter_bytes_lower_bound'], 2*4*2*8*64*8*2)
+        self.assertFalse(result['deployment_memory_qualified'])
+        self.assertFalse(result['performance_run_authorized'])
+
+    def test_necessary_not_sufficient_and_boundary(self):
+        n = self.bound([self.facts()])['pinned_adapter_bytes_lower_bound']
+        self.assertFalse(self.bound([self.facts()], limit=n)['exceeds_memory_max'])
+        self.assertTrue(self.bound([self.facts()], limit=n-1)['exceeds_memory_max'])
+        self.assertFalse(self.bound([self.facts()], limit=n+1)['deployment_memory_qualified'])
+
+    def test_reject_missing_extra_dtype_and_rank(self):
+        for change in ('missing', 'extra', 'dtype', 'rank', 'shape'):
+            row = self.facts()
+            key = next(iter(row['tensor_shapes']))
+            if change == 'missing':
+                del row['tensor_shapes'][key]
+            elif change == 'extra':
+                row['tensor_shapes']['lm_head.weight'] = [8, 64]
+            elif change == 'shape':
+                row['tensor_shapes'][key] = [1, 1]
+            else:
+                row[change] = 'F32' if change == 'dtype' else 16
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                self.bound([row])
+
+    def test_reject_duplicate_empty_and_invalid_resources(self):
+        for rows in ([], [self.facts(), self.facts()]):
+            with self.assertRaises(ValueError):
+                self.bound(rows)
+        for replicas, limit in ((True, 80), (0, 80), (5, 80), (1, 0), (1, True)):
+            with self.assertRaises(ValueError):
+                self.bound([self.facts()], replicas, limit)
+
+    def test_native_layout_identity(self):
+        for path, expected in launch.SLORA_HOST_LAYOUT_SOURCES.items():
+            self.assertEqual(launch.sha((NATIVE/path).read_bytes()), expected)
+
+    def test_actual_native_loader_retains_independent_cpu_storages(self):
+        import torch
+        native = load('tc_slora_native_layer', NATIVE/
+            'slora/models/peft/layer_weights/lora_layer_weight.py')
+        row = self.facts()
+        weights = {k: torch.arange(__import__('math').prod(shape), dtype=torch.float16).reshape(shape)
+                   for k, shape in row['tensor_shapes'].items()}
+        model = dict(hidden_size=64, num_attention_heads=4, num_key_value_heads=4)
+        layer = native.LoraLayerWeight(0, 0, 1, dict(r=8), model)
+        # Exercise unmodified loader arithmetic/retention without CUDA pinning.
+        # This is a storage-alias test, not measured pinned RSS or a GPU check.
+        initialized_before = torch.cuda.is_initialized()
+        with patch.object(torch.Tensor, 'pin_memory', lambda value: value.clone()):
+            layer.load_hf_weights(weights, swap=True)
+        homes = [getattr(layer, f'{module}_lora_{side}_home')
+                 for side in ('A', 'B') for module in ('q', 'k', 'v', 'o')]
+        all_tensors = homes + [layer.w_combined_home]
+        self.assertEqual(len({v.untyped_storage().data_ptr() for v in all_tensors}), 9)
+        actual_bytes = sum(v.untyped_storage().nbytes() for v in all_tensors)
+        self.assertEqual(actual_bytes, self.bound([row], replicas=1)['pinned_adapter_bytes_lower_bound'])
+        expected = torch.concat([v.T.reshape(8, 4, -1) for v in homes]).reshape(2, 32, 4, -1)
+        self.assertTrue(torch.equal(layer.w_combined_home, expected))
+        self.assertEqual(torch.cuda.is_initialized(), initialized_before)
+
+
 class SloraObservationTests(unittest.TestCase):
     def test_mutable_prompt_snapshot_and_completion_tail(self):
         request, payloads = native_payloads()

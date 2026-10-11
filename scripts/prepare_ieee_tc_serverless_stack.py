@@ -61,6 +61,65 @@ SLORA_OBSERVATION_SOURCES = {
 }
 
 
+SLORA_HOST_LAYOUT_SOURCES = {
+    'slora/models/peft/layer_weights/lora_layer_weight.py':
+        '71fff39f6bfba68984acedb581b5b16af142f07247901d4c6fb896cfa2f55ec7',
+    'slora/models/peft/layer_weights/hf_load_utils.py':
+        'bccb883493f852a6ef330afb3f8a2bd8c70c0a95421a3022a680083212b4e115',
+    'slora/models/peft/lora_adapter.py': SLORA_OBSERVATION_SOURCES[
+        'slora/models/peft/lora_adapter.py'],
+}
+
+
+def slora_host_storage_bound(adapter_facts: list[dict], model: dict,
+                            replicas: int, memory_max_bytes: int) -> dict:
+    """Necessary bound, NOT a sufficient memory-admission or runtime-RSS estimate.
+
+    The audited FP16 TP1 non-GQA swap loader retains eight module tensors AND
+    their independent packed concatenation per layer. Count logical adapters,
+    never deduplicate equal/zero weights or multiply tokenizer directory bytes.
+    Caller must verify SLORA_HOST_LAYOUT_SOURCES against the executing tree.
+    """
+    dims = [model.get(k) for k in ('hidden_size', 'num_hidden_layers',
+                                  'num_attention_heads', 'num_key_value_heads')]
+    if (model.get('model_type') != 'llama'
+            or any(type(n) is not int or n <= 0 for n in dims)
+            or dims[2] != dims[3] or dims[0] % dims[2]
+            or type(replicas) is not int or not 1 <= replicas <= 4
+            or type(memory_max_bytes) is not int or memory_max_bytes <= 0
+            or not adapter_facts):
+        raise ValueError('audited dense TP1 FP16 swap geometry and resource limit required')
+    hidden, layers = dims[:2]
+    ids, single_copy_bytes = set(), 0
+    for row in adapter_facts:
+        aid, rank = row.get('adapter_id'), row.get('rank')
+        if (not isinstance(aid, str) or not aid or aid in ids
+                or type(rank) is not int or rank <= 0):
+            raise ValueError('unique logical IDs and positive rank required')
+        ids.add(aid)
+        expected = {
+            f'base_model.model.model.layers.{i}.self_attn.{module}.lora_{side}.weight':
+            ([rank, hidden] if side == 'A' else [hidden, rank])
+            for i in range(layers) for module in ('q_proj', 'k_proj', 'v_proj', 'o_proj')
+            for side in ('A', 'B')}
+        if row.get('dtype') != 'F16' or row.get('tensor_shapes') != expected:
+            raise ValueError('complete FP16 QKVO tensor inventory must match declared geometry')
+        single_copy_bytes += sum(2 * math.prod(shape) for shape in expected.values())
+    retained = 2 * single_copy_bytes * replicas
+    return dict(schema='ieee_tc_slora_host_storage_bound_v1',
+        layout='native_tp1_non_gqa_swap_separate_and_packed_v1',
+        logical_adapters=len(ids), replicas=replicas,
+        single_copy_pool_bytes=single_copy_bytes,
+        pinned_adapter_bytes_per_replica=2 * single_copy_bytes,
+        pinned_adapter_bytes_lower_bound=retained, memory_max_bytes=memory_max_bytes,
+        exceeds_memory_max=retained > memory_max_bytes,
+        remaining_bytes_before_all_other_memory=memory_max_bytes-retained,
+        deployment_memory_qualified=False, performance_run_authorized=False,
+        excluded=['backbone/loader staging', 'Python/control processes',
+                  'allocator rounding/cached blocks', 'page cache', 'temporary concatenation',
+                  'GPU memory and non-adapter CPU tensors'])
+
+
 def slora_measurement_sources(native_source: Path) -> dict[str, str]:
     """Opt-in native observations; preserve the audited S-LoRA compatibility tree."""
     for path, expected in SLORA_OBSERVATION_SOURCES.items():
