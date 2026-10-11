@@ -1,4 +1,4 @@
-# IEEE TC execution status — D430 S-LoRA service lifecycle CPU-qualified
+# IEEE TC execution status — D431 S-LoRA result audit CPU-qualified
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -75,6 +75,46 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+D431 CPU AUDIT COMPLETE 2026-10-11. No live GPU/remote/aux job. Full PLAN,
+STATUS and V1/V2 read after compaction; identities unchanged. Existing main
+audit_d402_serverlessllm_path.py adds explicit slora_resident_rr_v1, preserving
+ServerlessLLM/vLLM behavior. Native child/API parent/500-ID ready registry/source/
+configuration bind to retained physical journals and NVML census/actual exit.
+All500 after-notice static-pool preparations join published receipts/server and
+actual resolver completions; unique transfer bytes count once, not per-request
+references. Publisher notice+60 and original arrival offsets checked. Native
+timing/source/adapter validation and optional bounded reference reuse remain;
+unknown raw numerical flags not promoted. Final341 CPU tests pass5.187s;
+earlier40/339 passed, all logs retained. Temporary receipt/journal joins and
+GPU/process identities in tests are synthetic; actual GPU qualification and
+end-to-end audit against real S-LoRA results NOT yet complete.
+All4aux scopes exactidentity/limits/allprocs-empty checked and stopped;
+high/max/OOM/swap0,maxpeak503005184B. First closure helper refused auxiliary
+unit before any stop; note/emptylog retained, exact empty-systemctl closure
+then succeeded, no guard relaxed. Protected147entries zerochange;3userdirty
+SHAs,nested10filepatch,PLAN/V1/V2 unchanged. Freshcompute census empty,
+disk163362246656B. No cache cleanup,remote operation/republication,newweights/
+trace/figures/paper/runtime changes. Baseline staysD430commit7d61cb49e3aa2e014a7336fb627a6af3312f3f10.
+ReportD431_SLORA_RESULT_AUDIT.md; rawslora_qualification/d431_20261011.
+Curated9member15433BbundleSHA
+89fb1a96fb9780d0d54ef86700e871b7422018308c43cd4bc54e842935115906.
+NEXT verify/backup -> fresh fullplan/status/protocol/safety/input/protection
+gates, freeze prior legal native public config with explicit D428 packed HOST
+layout, actual containment/release and affected100/missing500-ID/1000 -> one
+fullW0. Do not repeat sealed PrimeLoRA/ServerlessLLM/vLLM W0, repeat storage
+investigations, launch legacy runner or jump3B. No claimed performance gain or
+optimality. AllremainingapprovedscopeOPEN/fullgoalACTIVE. This turn concrete
+audit implementation/test progress, not a blocker. Backup pending here.
+
+D430 BACKED UP 2026-10-11. Main4d3030c092d560e11bd49f7d6eca0d57dafddc73
+pushed to faaslora_origin/retry14_continuous_queue_v2; remote SHA verified.
+Baseline7d61cb49e3aa2e014a7336fb627a6af3312f3f10 already pushed/verified.
+No live GPU/remote/aux job. This post-push record is subsequent task-owned
+status, not another experiment. NEXT D431 explicit S-LoRA audit integration
+in the existing analyzer: full static-pool preparation versus request-native
+timing, actual worker receipts and physical leases. Then necessary actual
+qualification. No repeated source-layout investigation or sealed W0 run.
 
 D430 CPU INTEGRATION COMPLETE 2026-10-11. Full PLAN/STATUS/V1/V2 read in this
 uncompressed context; identities unchanged. No live GPU/remote/aux job. Existing
