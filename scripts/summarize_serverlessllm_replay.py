@@ -150,6 +150,20 @@ def audit_tc_http_journal(replay_path: Path) -> Dict[str, Any]:
                     and type(observation.get('native_adapter_index')) is int
                     and observation['native_adapter_index'] >= 0
                     and observation.get('native_adapter_binding_source') == 'slora_model_rpc_actual_batch_adapter')
+            elif backend == 'loquetier':
+                path = observation.get('native_adapter_path')
+                adapter_matches = (observation.get('timing_contract') == 'ieee_tc_loquetier_native_v1'
+                    and observation.get('native_adapter_id') == contract['adapter_id']
+                    and observation.get('native_request_id') == rid
+                    and isinstance(path, str) and Path(path).is_absolute()
+                    and Path(path).name == contract['adapter_id']
+                    and type(observation.get('native_adapter_index')) is int
+                    and observation['native_adapter_index'] >= 0
+                    and observation.get('native_adapter_binding_source') ==
+                        'loquetier_actual_forward_segments_and_startup_pointer_tables'
+                    and type(observation.get('native_forward_count')) is int
+                    and observation['native_forward_count'] == contract['target_tokens']
+                    and observation.get('native_terminal_observed') is True)
             elif backend == 'vllm':
                 adapter_matches = observation.get('native_lora_name') == contract['adapter_id']
             else:

@@ -88,8 +88,14 @@ class ServerlessLLMBandwidthSummaryTest(unittest.TestCase):
                 audit()
 
     def test_slora_summary_uses_explicit_native_path_without_vllm_name_fallback(self):
+        self.check_static_summary('slora')
+
+    def test_loquetier_summary_requires_forward_binding_not_vllm_name(self):
+        self.check_static_summary('loquetier')
+
+    def check_static_summary(self, backend):
         contract = dict(event='request_contract', request_id='r', adapter_id='a',
-                        native_backend='slora', target_tokens=2,
+                        native_backend=backend, target_tokens=2,
                         native_prompt_token_ids_sha256='input',
                         canonical_prompt_sha256='prompt', source_item_sha256='source')
         observed = dict(timing_contract='ieee_tc_slora_native_v1', native_output_tokens=2,
@@ -97,6 +103,11 @@ class ServerlessLLMBandwidthSummaryTest(unittest.TestCase):
                         native_adapter_binding_source='slora_model_rpc_actual_batch_adapter',
                         native_prompt_token_ids_sha256='input',
                         control_observation=dict(instance_id='slora-0'))
+        if backend == 'loquetier':
+            observed.update(timing_contract='ieee_tc_loquetier_native_v1', native_adapter_id='a',
+                native_request_id='r', native_terminal_observed=True, native_forward_count=2,
+                native_adapter_binding_source='loquetier_actual_forward_segments_and_startup_pointer_tables',
+                control_observation=dict(instance_id='loquetier-0'))
         timing = dict(protocol_valid=True, ttft_ms=6., e2e_ms=15., submit_lag_ms=1.,
                       dispatch_wait_after_submit_ms=2., service_ttft_ms=3., decode_ms=4.,
                       completion_notification_ms=5., router_queue_ms=2., tpot_ms=4.,
@@ -123,11 +134,16 @@ class ServerlessLLMBandwidthSummaryTest(unittest.TestCase):
             self.assertNotIn('native_lora_name', observed)
             # A plausible foreign-backend name must not rescue corrupt native evidence.
             observed['native_lora_name'] = 'a'
-            for key, bad in [('timing_contract', 'ieee_tc_native_v1'),
+            mutations = [('timing_contract', 'ieee_tc_native_v1'),
                              ('native_adapter_path', '/owned/b'), ('native_adapter_path', 'a'),
                              ('native_adapter_path', None), ('native_adapter_index', -1),
                              ('native_adapter_index', True), ('native_adapter_index', None),
-                             ('native_adapter_binding_source', 'unverified')]:
+                             ('native_adapter_binding_source', 'unverified')]
+            if backend == 'loquetier':
+                mutations += [('native_adapter_id', 'b'), ('native_request_id', 'other'),
+                    ('native_forward_count', 1), ('native_forward_count', True),
+                    ('native_terminal_observed', False)]
+            for key, bad in mutations:
                 saved = observed[key]
                 observed[key] = bad
                 with self.subTest(key=key, bad=bad), self.assertRaises(ValueError):
