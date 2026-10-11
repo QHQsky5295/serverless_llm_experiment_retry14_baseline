@@ -1,4 +1,4 @@
-# IEEE TC execution status — D451 ElasticLocality 500-ID functional coverage completed
+# IEEE TC execution status — D452 ElasticLocality original1000 compatibility
 
 Updated 2026-10-12. Current checkpoint, NOT a replacement experiment plan.
 Full prior status is byte-identically archived in EXECUTION_HISTORY_THROUGH_D448.md,
@@ -31,7 +31,24 @@ entries are not current instructions. No evidence or approved task was removed.
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D451 existing500-ID view integration and actual coverage completed
+## Current action — D452 original1000 input qualified, GPU launch next
+
+Previous goal turn made substantive progress: actualD451 closure/audit and backup,
+not no-progress or a wait. Commit520e23af5f9e4d82b630a252f567a2c7779df331 was pushed
+and remoteSHAequal verified. FullPLAN/status/latestbaseline rules/V1/V2 reread.
+D452_ELASTICLOCALITY_ORIGINAL1000.md preregisters next existing qualification:
+D450 frozenconfig path-only clone, existing launcher d452/PREFIX_COUNT1000 branch;
+no algorithm/runtime/control/metric changes and no baseline optimization.
+Exact D434 legacy1000 entries:60adapters/122510tokens, viewSHA0a5dfcf8048abdc8fc1e3a8ccaf92bfb925a9db326c8d27507663bede96a0981.
+Both historical source paths have samefileSHAefb903...; no regenerated input.
+20 existing replay tests passed0.633s, shell/Python syntax and config equality pass;
+protected147, protocol/userfiles/D451 sealedresult intact. CPUaux1/2 exactidentity/
+actualrecursiveempty stopped, high/max/OOM/swap0, peaks18550784/132988928B.
+Curated elastic_locality/d452_prefix_input_qualification.json; runtime NOT yet run.
+Next: back up qualified checkpoint, fresh resource/remote gates, run original1000
+once; then verify/close/save, followed by single4000W0. No repeatD450/D451.
+
+## Previous action — D451 existing500-ID view integration and actual coverage completed
 
 D451_ELASTICLOCALITY_500_ADAPTER_COVERAGE.md records the next required coverage,
 not a repeat of passedD450. Same D450 runtime/mechanisms, path-only config changes;
