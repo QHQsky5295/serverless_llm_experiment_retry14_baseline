@@ -1,4 +1,4 @@
-# IEEE TC execution status — D419 vLLM 7B native path passed and closed
+# IEEE TC execution status — D420 reuse audit; D421 whole-pool preparation
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -75,6 +75,23 @@ regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance re
 
 ## Exact next action and remaining scope
 
+D420 read-only inventory COMPLETE2026-10-11:32 selected legacy7B vLLM DP4/
+Resident replayJSONs;maximum132actualIDs,none500. D213/D395/D396 retainR2
+input/native-length/diagnostic reuse,not currentnative timing/resource gates.
+InventorySHA2b222ea2d2860e9b71853fc8a439e9cfb359cfc2cca54562ebe9dff81fdf9ede.
+SeeD420_VLLM_COVERAGE_REUSE.md. D419100pathpassed andNOTrepeated. Independent
+read-onlysame-family provisionalexperiment-audit review requested;referenced
+skillshared-references absentlocally,limitationdisclosed. Reviewisadvisory.
+D421PREPARATION:existingadapter_coverage_v1/500existingIDs/68925targettokens,
+view286f7547a8129fd6e75885379428b84c9a5c23a7eb02bf1d7546f49bcf2cee5d;
+sameD419publicengineconfig/source,no baselinecodechanges/no newtraceorweights.
+Rawvllm_qualification/d421_20261011 hasreusedrunner/remote/closure recipes.
+No GPU/remotejobstarted. NEXT backup/preflight/protectedseal/inputandnativecache
+identity -> unchangedpublishedremotehealth -> one500functionalgate -> actual
+release/remoteclose/audit/backup -> original1000compatibility -> onefull4000W0.
+KeepPrimeLoRAD371/ServerlessLLMD414sealed;U_ref/W1/W2/G2/remainingplanOPEN.
+All earlier NEXT/RUNNING paragraphs below are historical.
+
 D419 TERMINAL/AUDITED2026-10-11~15:54Asia/Shanghai. No liveGPUjob. Original
 100/100arrivals/submissions/terminals/native/source/adapter/content/timing
 contracts,0failure,17369native tokens;4actualservedworkers. RecomputeE2E/TPOT/
@@ -104,7 +121,14 @@ a56d79088ab1e431e12b5cfed95f53a1581d7037 pushedtoorigin/main/remoteSHAverified;
 not the D419executioncommit. Exactlyone taskdoc,no runtime/userdirty changes.
 Initialmanifestrecipe failed on relativeSLOpath (nooutput); resolvedagainstmain,
 thenpassed. This wasofflinepackaging,not anew/retriedperformanceexperiment.
-NEXT finishclosurebackup -> focusedR0-R3inventory ofoldvLLM500-IDfunctional/
+Mainclosurebackup bfb349b2a939e31f436602dca5a29851164c0f57 pushedto
+faaslora_origin/retry14_continuous_queue_v2 andremoteSHAverified. Exactly6taskfiles,
+diff/secrets/27CPUtests/103fileSHAchecks passed. Onlyprotectedusermanifest remained
+tracked-dirty beforethispostpushcheckpoint. BaselineuserSHAs unchanged. Fresh
+compute census empty;diskabout153GiB. No livejob/cachecleanup/newperformance run.
+This turn completedD417failureclosure,D418repair andD419qualification/audit,
+concreteprogress,notgoalcompletion. Fullgoal remainsACTIVE.
+NEXT focusedR0-R3inventory ofoldvLLM500-IDfunctional/
 1000compatibility evidence. D395/D396 only132observedIDs,notwholepool;D80HTTP
 coverage and6contentclasses cannot themselves establish500nativeIDexecution.
 Reusevalidscope; ifmissing useexisting adapter_coverage_v1 functionalview and
