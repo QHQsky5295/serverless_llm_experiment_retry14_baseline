@@ -1,0 +1,362 @@
+{
+  "schema": "hydraserve_qualification_checkpoint_v1",
+  "campaign": "d447_20261012",
+  "performance_run": false,
+  "baseline_runtime_or_configuration_changed": false,
+  "baseline_parent_commit": "d992fc4fce40ae487df6d9d52ffe48c8d6477311",
+  "main_parent_commit": "a6a4c7c02842d2b932d65c5b65cee7cb80b78783",
+  "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5",
+  "native_commit": "8ae605de354ccfa2e9095514cdb4a9e9c56aa56b",
+  "witness_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d447_20261012/layer_identity.json",
+  "witness_sha256": "769c8228c611ba12506bc37cbfc13ebcb4ae40ecd89d8ac28bc8479b3c50b808",
+  "source_sha256": {
+    "HydraServe_project/scripts/probe_layer_identity.py": "ba15fe5f54a9d3d7a296b6fbfaeccd7a06262dc5ddb561889b50de6389e86d7a",
+    "tests/test_ieee_tc_hydraserve_layer_identity.py": "9c517bae580339d158bc5114624675d42beeb434b8ffd761fafdb010cfacf9db",
+    "Loquetier_project/scripts/run_loquetier_trace_gate.py": "dc417b9d3847aba55afe4d942b4271ab3f2ca0e42bffce1f06b92354f0905c72"
+  },
+  "raw_file_sha256": {
+    "cpu_initial_header_check.txt": "8146c688a369b59b1d1f1d3cd9e555c600abd08d67d384935ababd3663148117",
+    "cpu_tests_final.txt": "a05635ac7a573541ee2b5dd587400ef7801de4b1459eefeb1a13f72958b6886b",
+    "platform_detail.txt": "728147af31f28c0efb0d222075c0cf21c6fb7faff273bd2e09dc77232ff950aa",
+    "platform_probe.txt": "903b121aa167355eb4b2ed923a99eb75623900f63a97023750b7c367749b1c43",
+    "scope_close_0002_0004.txt": "4f34a7b696a540154cf52b6bba499d2b6b6f1f3393a5b4dacecae65919bf92fe"
+  },
+  "witness": {
+    "schema": "hydraserve_cpu_layer_identity_witness_v1",
+    "model": "Llama-2-7B",
+    "upstream_commit": "8ae605de354ccfa2e9095514cdb4a9e9c56aa56b",
+    "source_sha256": {
+      "scripts/kubernetes/vllm/download/download.py": "4f0317559d18f1209af7b7a9db9e22646f86957cea18b0c488a1368ec79864ba",
+      "vllm/lora/utils.py": "4fac00fb4eb3d75eb4fe6df228c5013bad4a50e8b2367074337942bd1c8e77a3",
+      "vllm/lora/models.py": "b0abca52a2027bfc4a6a7f92beba68b802e2f138fa11a9c697a4e93a56989170",
+      "vllm/model_executor/utils.py": "affa28fb27ca345d372570d84ebe161caec8d76218c8012817e055f05d0e87a9",
+      "vllm/model_executor/models/llama.py": "13b7e5f17b678ea73d35901649b856ca771b632ae9f81c986676606fe18a558a"
+    },
+    "model_config_sha256": "9242e7db1bc2a17873e66084c3b1c6ed10883076e156b338fd6a7775748e2e3c",
+    "model_index_sha256": "217d527037a95cd5cd30384afb425987824373b94cc7206beb48ec0c9499c98f",
+    "header_sha256": {
+      "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf/model-00001-of-00002.safetensors": "8b3dd302cec4e131d6634a0f0457b06fb24f16c742e779b48ac5f599fad908e9",
+      "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf/model-00002-of-00002.safetensors": "4b90fcb7d5f5ea0149845b3a98f8c6abcdd43a93f0a93c33de3b09c773a49731",
+      "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama2_7b_a500_v2_publicmix/finance_lora/adapter_model.safetensors": "b2ea218143e5e77daf58417d661880dac772bd6db4376fd23d8538b8cb7ec7e3",
+      "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama2_7b_a500_v2_publicmix/medical_lora/adapter_model.safetensors": "b2ea218143e5e77daf58417d661880dac772bd6db4376fd23d8538b8cb7ec7e3"
+    },
+    "backbone_tensor_count": 323,
+    "excluded_non_fp16_rotary_buffer_count": 32,
+    "partitions": {
+      "1": [
+        32
+      ],
+      "2": [
+        16,
+        32
+      ],
+      "3": [
+        11,
+        22,
+        32
+      ],
+      "4": [
+        8,
+        16,
+        24,
+        32
+      ]
+    },
+    "adapter_views": [
+      {
+        "adapter": "finance_lora",
+        "pp": 1,
+        "stages": [
+          {
+            "rank": 0,
+            "begin": 0,
+            "end": 32,
+            "modules": 128,
+            "unadapted_wrong_global_identity": 0
+          }
+        ],
+        "derived_name_view_correct": true
+      },
+      {
+        "adapter": "finance_lora",
+        "pp": 2,
+        "stages": [
+          {
+            "rank": 0,
+            "begin": 0,
+            "end": 16,
+            "modules": 64,
+            "unadapted_wrong_global_identity": 0
+          },
+          {
+            "rank": 1,
+            "begin": 16,
+            "end": 32,
+            "modules": 64,
+            "unadapted_wrong_global_identity": 64
+          }
+        ],
+        "derived_name_view_correct": true
+      },
+      {
+        "adapter": "finance_lora",
+        "pp": 3,
+        "stages": [
+          {
+            "rank": 0,
+            "begin": 0,
+            "end": 11,
+            "modules": 44,
+            "unadapted_wrong_global_identity": 0
+          },
+          {
+            "rank": 1,
+            "begin": 11,
+            "end": 22,
+            "modules": 44,
+            "unadapted_wrong_global_identity": 44
+          },
+          {
+            "rank": 2,
+            "begin": 22,
+            "end": 32,
+            "modules": 40,
+            "unadapted_wrong_global_identity": 40
+          }
+        ],
+        "derived_name_view_correct": true
+      },
+      {
+        "adapter": "finance_lora",
+        "pp": 4,
+        "stages": [
+          {
+            "rank": 0,
+            "begin": 0,
+            "end": 8,
+            "modules": 32,
+            "unadapted_wrong_global_identity": 0
+          },
+          {
+            "rank": 1,
+            "begin": 8,
+            "end": 16,
+            "modules": 32,
+            "unadapted_wrong_global_identity": 32
+          },
+          {
+            "rank": 2,
+            "begin": 16,
+            "end": 24,
+            "modules": 32,
+            "unadapted_wrong_global_identity": 32
+          },
+          {
+            "rank": 3,
+            "begin": 24,
+            "end": 32,
+            "modules": 32,
+            "unadapted_wrong_global_identity": 32
+          }
+        ],
+        "derived_name_view_correct": true
+      },
+      {
+        "adapter": "medical_lora",
+        "pp": 1,
+        "stages": [
+          {
+            "rank": 0,
+            "begin": 0,
+            "end": 32,
+            "modules": 128,
+            "unadapted_wrong_global_identity": 0
+          }
+        ],
+        "derived_name_view_correct": true
+      },
+      {
+        "adapter": "medical_lora",
+        "pp": 2,
+        "stages": [
+          {
+            "rank": 0,
+            "begin": 0,
+            "end": 16,
+            "modules": 64,
+            "unadapted_wrong_global_identity": 0
+          },
+          {
+            "rank": 1,
+            "begin": 16,
+            "end": 32,
+            "modules": 64,
+            "unadapted_wrong_global_identity": 64
+          }
+        ],
+        "derived_name_view_correct": true
+      },
+      {
+        "adapter": "medical_lora",
+        "pp": 3,
+        "stages": [
+          {
+            "rank": 0,
+            "begin": 0,
+            "end": 11,
+            "modules": 44,
+            "unadapted_wrong_global_identity": 0
+          },
+          {
+            "rank": 1,
+            "begin": 11,
+            "end": 22,
+            "modules": 44,
+            "unadapted_wrong_global_identity": 44
+          },
+          {
+            "rank": 2,
+            "begin": 22,
+            "end": 32,
+            "modules": 40,
+            "unadapted_wrong_global_identity": 40
+          }
+        ],
+        "derived_name_view_correct": true
+      },
+      {
+        "adapter": "medical_lora",
+        "pp": 4,
+        "stages": [
+          {
+            "rank": 0,
+            "begin": 0,
+            "end": 8,
+            "modules": 32,
+            "unadapted_wrong_global_identity": 0
+          },
+          {
+            "rank": 1,
+            "begin": 8,
+            "end": 16,
+            "modules": 32,
+            "unadapted_wrong_global_identity": 32
+          },
+          {
+            "rank": 2,
+            "begin": 16,
+            "end": 24,
+            "modules": 32,
+            "unadapted_wrong_global_identity": 32
+          },
+          {
+            "rank": 3,
+            "begin": 24,
+            "end": 32,
+            "modules": 32,
+            "unadapted_wrong_global_identity": 32
+          }
+        ],
+        "derived_name_view_correct": true
+      }
+    ],
+    "consolidation": {
+      "source_pp": 2,
+      "source_rank": 1,
+      "destination_pp": 1,
+      "shared_decoder_objects": 16,
+      "identity_preserved": true,
+      "fixture": "inert CPU Python objects, not native torch modules"
+    },
+    "read_tensor_payload": false,
+    "executed_partition": false,
+    "installed_runtime_adaptation": false,
+    "gpu_forward_qualified": false,
+    "numerical_qualified": false,
+    "performance_run": false,
+    "limitations": [
+      "Derived name view is a diagnostic, not an installed LoRA manager.",
+      "Shared-object witness does not establish slot/mapping ownership or race freedom.",
+      "Headers do not reverify full weight contents or prove nonzero numerical effects."
+    ]
+  },
+  "platform": {
+    "podman_version": "3.4.4",
+    "rootless": true,
+    "cgroup_version": "v2",
+    "cgroup_manager": "systemd",
+    "delegated_controllers": [
+      "memory",
+      "pids"
+    ],
+    "image_count": 0,
+    "container_count": 0,
+    "nvidia_cdi_device_names": 9,
+    "k3s_version": "v1.36.4+k3s1",
+    "k3s_service_active": true,
+    "k3s_uid": 0,
+    "default_kubeconfig_available": false,
+    "root_kubeconfig_readable": false,
+    "docker_socket_readable": false,
+    "gpu_container_executed": false,
+    "kubernetes_ownership_confirmed": false,
+    "kubernetes_worker_qualified": false,
+    "global_configuration_changed": false,
+    "requested_user_information": "Existing cluster ownership and qhq-readable kubeconfig path; no credentials requested in text."
+  },
+  "tests": {
+    "passed": 10,
+    "seconds": 0.073,
+    "skipped": 0,
+    "initial_attempt": {
+      "ran": 0,
+      "outcome": "header-check error",
+      "cause": "diagnostic incorrectly required all backbone tensors to be F16; 32 F32 rotary buffers are excluded by native getType"
+    }
+  },
+  "protected": {
+    "pass": true,
+    "entries": 147,
+    "changed": [],
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54"
+  },
+  "auxiliary_scopes": [
+    {
+      "suffix": "0001",
+      "invocation_id": "aa095258413f46009d1710b3911add6c",
+      "memory_peak_bytes": 99512320
+    },
+    {
+      "suffix": "0002",
+      "invocation_id": "dc67fd293ef648818471cfc070ed3a48",
+      "memory_peak_bytes": 11366400
+    },
+    {
+      "suffix": "0003",
+      "invocation_id": "b53ed8e95ff94a938ddec5428acde041",
+      "memory_peak_bytes": 11571200
+    },
+    {
+      "suffix": "0004",
+      "invocation_id": "6bdfff34ba8448469e9c0767f8757a7f",
+      "memory_peak_bytes": 10682368
+    },
+    {
+      "suffix": "0005",
+      "invocation_id": "11595358d02e435c8e1c263e00c09af4",
+      "memory_peak_bytes": 11649024
+    },
+    {
+      "suffix": "0006",
+      "invocation_id": "05a76d001bca494b8053da597206f350",
+      "memory_peak_bytes": 6131712
+    }
+  ],
+  "all_scopes_identity_and_actual_recursive_empty_checked_before_stop": true,
+  "all_scopes_high_max_oom_swap_zero": true,
+  "remote_cache_action": "reuse existing D78/D80; no republishing or remote administration",
+  "disk_free_bytes_last_observed": 162472525824,
+  "full_goal_active": true,
+  "full_matrix_complete": false,
+  "independent_semantic_reviewer_pass": false
+}
