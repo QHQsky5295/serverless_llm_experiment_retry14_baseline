@@ -1,4 +1,4 @@
-# IEEE TC execution status — D417 startup failure closed; D418 toolchain repair
+# IEEE TC execution status — D419 vLLM 7B affected-path qualification running
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -74,6 +74,33 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+D419 RUNNING2026-10-11 15:49:40Asia/Shanghai,tmux tc-d419-7b. No secondheavyjob.
+Main execution2387d7d3b40b28c668718ed050503f51bfa52641 andbaseline
+3bd6088ce988a4108f397378c5b59a8e586cbc8f pushed/remoteSHAverified.
+Service primelora-tc-svc-9b776a0104514a5287475d2cb68baaeb.scope,
+InvocationIDde34d82b27444e87963dc76239ba148e;aux
+primelora-tc-aux-d4190000000000000000000000000001.scope.
+Deploymentnotice1212230.458994817,businessorigin1212290.458994817.
+Original100/29IDs/17369tokens/viewaaf917bd816e10c4ad6f8138e5365aa9b2976b4300143cc712c12b84443cb020
+revalidated; HTTPconfigSHA04780143176f16c380295b289aa5a2d5126592649b449f9085a87dc0cb54b105;
+nativeconfigSHA361dc7645a8eef8ee304addfaa9e1611093dae1c6678b108970c1adc2e7fe3a5.
+Relevantnativecache540files/52117804B SHA
+73c603234980f64ac50fd4a699fd88d5b68cbe2873aafa0f46199e96ae66aa3e frozenbeforelaunch
+(D417observedprefixesplusSM86FlashInfer);not a newwhole-rootseal/noGPUpreload.
+FreshLoRAcache. Remote unchangedpublishedprotocol/link1000/full;7Bclock
+remote-process-monotonic:a2540f3662264ad380014273f8782e0b.
+Owned3B/7B/monitor InvocationIDs5443d7afb2df49918e4183a3acf85f3c,
+0df94271e6f04a6d94b40732b1a91464,cd564e7011644e798dbb1b816bf64238.
+Preflight passed; freshprotectedseal
+3374b30f97dd09ee2f2b8a96f5e1c92edc2ab4031d03614fe7cd4c93c2f8b79f.
+Watchdogsample14:available107842158592B,service3991015424B,disk164532068352B,
+high/max/OOM/swap0,noabort. No terminal/performance result yet.
+NEXT monitorSAMEhandle/localjournals -> actualGPUrelease -> exactownedremote
+stopusingD419stop_remote.sh -> preserveworker/resolver/remoteevidence -> strict
+native/content/physicalaudit/save/backup ->qualificationreuse/fullW0. No live
+remotechanges/cleanup/tests/largehashscan/retry/otherheavyjob. D417NOTrestarted.
+All earlierNEXT/PREPARATION entries below are historical.
 
 D418 CPU REPAIR COMPLETE 2026-10-11; no liveGPUjob. Existing vLLM runner now
 binds the declared interpreter's bin (without resolving its Python symlink)
