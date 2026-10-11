@@ -1,4 +1,4 @@
-# IEEE TC execution status — D433 S-LoRA 500-ID coverage running
+# IEEE TC execution status — D433 S-LoRA 500-ID coverage closed
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -75,6 +75,34 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+D433 TERMINAL/AUDITED2026-10-11,actualreleasebefore22:07:37Asia/Shanghai.
+No liveGPU/remotejob;do NOT restart. All500 offered/submitted/terminal/native/
+source/adapter/content/timingcontracts,exact500IDs=pool,68925tokens,0failures.
+FouractualservedTP1workers/500-IDregistries;E2E/TPOT/nativerecomputeerror0ms.
+Fullstaticpool500HTTP/420740410wireB/12985984450verifiedmaterializedB,0packs;
+deploymentbytescountedonce,requestbytes0/references500. PhysicalU
+1743.8732772790827GPU-s,3.487746554558165/binding-validrequest,allleasesclosed.
+CommonD394TTFT268/TPOT494/joint266of500=53.2%,NONFEASIBLEfunctionalview,
+notW0/ranking/U_ref/optimum. Mean/P95TTFT62511.640/279292.720ms,TPOT38.253/
+53.249ms,E2Emean67703.881ms. Rawnulln_correct/numericalflags unchanged;
+no original100referenceincorrectlyappliedtoadapter-remappedview.
+Servicepeak62410342400B,hostavailablemin61438754816B,diskmin150298062848B,
+high/max/OOM/swap0. ActualGPUreleased/servicepathremoved/exit0;3ownedremote
+unitsstoppedbyInvocationID/MainPID0/portsabsent;allraw/receipt/journalspreserved.
+Existingstrictanalyzerpassedwithoutcodechange;37CPUtestspass1.636sbeforelaunch.
+ReportD433_SLORA_500_ADAPTER_COVERAGE.md. Curatedd433_7b_slora_coverage/auditSHA
+7cc9f8e220e0b5cf761cd5c416e6d3126d22f42cb77f46494af10341feedf3f7;
+576file/36970413BmanifestSHAcb03ba5ddf53241e427712c285197bdcb3f89def15c2480f45e6872a4b20003c,
+all576SHAverified. Protected147entrieszerochange;3userSHAs/nested10filepatch
+unchanged. Emptyaux0004/0005/0006 identity/proc-treechecked/stopped;no livejob.
+NEXT closurebackup ->verifiedprivateobject-onlyreclamation/freshresourcegates
+-> original1000compatibility SAME nativeconfiguration ->onefull4000W0.
+No100/500repeat,sealedotherW0repeat,baselineparametersearchor3Bjump.
+Diskbelow150GiB NEWheavyfloor;no newheavylaunchuntilsafeclosure/freshgates.
+FullremainingapprovedscopeOPEN/goalACTIVE;thisturnactualqualification+audit
+progress,notgoalcompletion. Backup/cachecleanup pendingatthisentry.
+Older RUNNING/NEXT sections below historical.
 
 D433 RUNNING since2026-10-11 21:55:32Asia/Shanghai,tmux tc-d433-7b.
 Mainexecution627aebff3fdaf67822946e52eacb7c9291f2eb30 andbaseline
