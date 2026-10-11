@@ -10,7 +10,7 @@ import tempfile
 import time
 from types import SimpleNamespace as NS
 import unittest
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 ROOT = Path(__file__).resolve().parents[1]
 MAIN = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')
@@ -29,6 +29,7 @@ def configs():
         physical_lifecycle='vllm_resident_pool_v1', ingress_mode='service_pre_ready_v1',
         remote_artifacts={'mode': 'published_gzip_ondemand_peft_v1'})
     cfg = dict(schema='ieee_tc_vllm_native_service_v1', version='0.30.0',
+        build_max_jobs=2,
         routing='round_robin', generation_contract='fixed_length_greedy_v1',
         gpu_ids=[0, 1, 2, 3], router_port=18091, worker_ports=[18092, 18093, 18094, 18095],
         engine_args=dict(model='/model', tokenizer='/model', dtype='float16',
@@ -45,6 +46,44 @@ def body(rid='r0'):
 
 
 class ContractTests(unittest.TestCase):
+    def test_declared_venv_tools_not_resolved_python_parent(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root/'python').symlink_to(sys.executable)
+            (root/'ninja').write_text('test fixture, not a compiler')
+            (root/'ninja').chmod(0o700)
+            cfg = dict(python=str(root/'python'), build_max_jobs=2)
+            source = dict(PATH='/usr/bin', PYTHONPATH='/dirty', PYTHONHOME='/foreign',
+                          MAX_JOBS='999', KEEP='unchanged')
+            with patch.object(service.subprocess, 'run', return_value=NS(stdout='1.13.2\n')) as run:
+                env, receipt = service.native_worker_environment(cfg, 3, source)
+            self.assertEqual(env['PATH'], str(root)+':/usr/bin')
+            self.assertEqual(env['MAX_JOBS'], '2')
+            self.assertEqual(env['CUDA_VISIBLE_DEVICES'], '3')
+            self.assertEqual(env['KEEP'], 'unchanged')
+            self.assertNotIn('PYTHONPATH', env)
+            self.assertNotIn('PYTHONHOME', env)
+            self.assertEqual(source['MAX_JOBS'], '999')
+            self.assertEqual(receipt['ninja'], str(root/'ninja'))
+            self.assertEqual(receipt['ninja_sha256'], hashlib.sha256((root/'ninja').read_bytes()).hexdigest())
+            self.assertEqual(run.call_args.args[0], [str(root/'ninja'), '--version'])
+            self.assertEqual(run.call_args.kwargs['timeout'], 10)
+
+    def test_missing_environment_tool_never_uses_system_ninja(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root/'python').symlink_to(sys.executable)
+            with patch.object(service.shutil, 'which', return_value='/foreign/ninja'), \
+                    patch.object(service.subprocess, 'run') as run, \
+                    self.assertRaisesRegex(ValueError, 'no executable ninja'):
+                service.native_worker_environment(dict(python=str(root/'python'), build_max_jobs=2), 0, {})
+            run.assert_not_called()
+
+    def test_unbounded_build_settings_rejected(self):
+        for jobs in (None, 0, 3, True, '2'):
+            with self.subTest(jobs=jobs), self.assertRaises(ValueError):
+                service.native_worker_environment(dict(python=sys.executable, build_max_jobs=jobs), 0, {})
+
     def test_explicit_consumer_and_lifecycle(self):
         cfg, http = configs()
         self.assertEqual(service.validate_native_service_config(cfg, http), 18090)

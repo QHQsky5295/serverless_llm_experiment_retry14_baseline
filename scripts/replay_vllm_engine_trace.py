@@ -11,6 +11,7 @@ import os
 import sys
 import time
 import signal
+import shutil
 import subprocess
 import uuid
 from pathlib import Path
@@ -42,6 +43,38 @@ def _sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def native_worker_environment(cfg, device, environ=None):
+    """Bind subprocess tools to the declared interpreter before acquiring GPUs.
+
+    Calling a venv Python does not activate its bin directory for native JIT
+    subprocesses. Do not resolve the Python symlink before deriving that bin.
+    No installation, backend fallback or serving-policy change occurs here.
+    """
+    python = Path(cfg['python'])
+    jobs = cfg.get('build_max_jobs')
+    if (not python.is_absolute() or not python.is_file() or not os.access(python, os.X_OK)
+            or type(jobs) is not int or not 1 <= jobs <= 2):
+        raise ValueError('absolute executable interpreter and bounded build_max_jobs required')
+    env = dict(os.environ if environ is None else environ)
+    env.update(PATH=str(python.parent)+os.pathsep+env.get('PATH', ''),
+        MAX_JOBS=str(jobs), CUDA_VISIBLE_DEVICES=str(device),
+        VLLM_WORKER_MULTIPROC_METHOD='spawn', PYTHONDONTWRITEBYTECODE='1')
+    env.pop('PYTHONPATH', None)
+    env.pop('PYTHONHOME', None)
+    expected = python.parent/'ninja'
+    ninja = shutil.which('ninja', path=env['PATH'])
+    if not expected.is_file() or not ninja or Path(ninja).resolve() != expected.resolve():
+        raise ValueError('declared environment has no executable ninja; no system fallback')
+    version = subprocess.run([ninja, '--version'], env=env, check=True, timeout=10,
+        capture_output=True, text=True).stdout.strip()
+    if not version:
+        raise ValueError('native ninja version probe returned no identity')
+    identity = dict(python=str(python), python_resolved=str(python.resolve()),
+        ninja=str(expected), ninja_sha256=_sha(expected), ninja_version=version,
+        build_max_jobs=jobs, path_sha256=hashlib.sha256(env['PATH'].encode()).hexdigest())
+    return env, identity
+
+
 def validate_native_service_config(cfg, http):
     """Fixed-version resident transport adapter, not a second scheduling policy."""
     from prepare_ieee_tc_serverless_stack import validate_http_lifecycle_contract
@@ -51,6 +84,7 @@ def validate_native_service_config(cfg, http):
             or cfg.get('routing') != 'round_robin'
             or cfg.get('generation_contract') != 'fixed_length_greedy_v1'
             or cfg.get('version') != '0.30.0'
+            or type(cfg.get('build_max_jobs')) is not int or not 1 <= cfg['build_max_jobs'] <= 2
             or not isinstance(cfg.get('gpu_ids'), list) or not cfg['gpu_ids']
             or any(type(i) is not int or i not in range(4) for i in cfg['gpu_ids'])
             or len(set(cfg['gpu_ids'])) != len(cfg['gpu_ids'])
@@ -186,6 +220,14 @@ async def _native_worker(config_path, index):
     guard.verify_current_service()
     if os.environ.get('CUDA_VISIBLE_DEVICES') != str(cfg['gpu_ids'][index]):
         raise ValueError('worker visible device differs from physical allocation')
+    # Read back the actual tool inherited by this worker, not only the parent
+    # launch intention. Avoid prepending PATH twice in this check.
+    toolchain = cfg['native_toolchain']
+    if (hashlib.sha256(os.environ.get('PATH', '').encode()).hexdigest() != toolchain['path_sha256']
+            or os.environ.get('MAX_JOBS') != str(toolchain['build_max_jobs'])
+            or shutil.which('ninja') != toolchain['ninja']
+            or _sha(toolchain['ninja']) != toolchain['ninja_sha256']):
+        raise ValueError('native worker toolchain differs from launch qualification')
     from ieee_tc_serverless_measurement import (PublishedArtifactResolver,
         install_v030_snapshot, V030NativeRequestObservation)
     from faaslora.clock import local_monotonic_clock_id
@@ -207,6 +249,7 @@ async def _native_worker(config_path, index):
             identity=guard.gpu_process_identity(os.getpid()),
             cuda_visible=os.environ['CUDA_VISIBLE_DEVICES'], index=index,
             snapshot=snapshot, engine_args=cfg['engine_args'],
+            native_toolchain=toolchain,
             native_api_sha256={str(Path(inspect.getfile(cls)).resolve()):
                                _sha(inspect.getfile(cls)) for cls in (AsyncLLM, AsyncEngineArgs)},
             runner_sha256=_sha(__file__), worker_config_sha256=_sha(config_path))
@@ -256,9 +299,16 @@ async def _resident_http_service(config_path, http_path, output, private_root):
     from faaslora.metrics.metrics_collector import PhysicalGPUAllocation, PhysicalGPUDeployment
     from faaslora.clock import local_monotonic_clock_id
     plan = load_http_replay_plan(http)
+    # All subprocess prerequisites are qualified before the first physical
+    # allocation. The executable is already installed; this does not compile.
+    worker_environments = [native_worker_environment(cfg, device) for device in cfg['gpu_ids']]
+    toolchain = worker_environments[0][1]
+    if any(identity != toolchain for _, identity in worker_environments):
+        raise ValueError('resident workers have inconsistent native toolchains')
     output.mkdir(mode=0o700, exist_ok=False)
     private_root.mkdir(mode=0o700, exist_ok=False)
     (output/'worker_receipts').mkdir()
+    _exclusive_json(output/'native_toolchain.json', toolchain)
     deployment = PhysicalGPUDeployment(root=output/'physical', plan=plan, context=context)
     deployment.bind_result_file(output/'model_qualification.json')
     service_path = Path(admission['service_identity']['path'])
@@ -268,7 +318,7 @@ async def _resident_http_service(config_path, http_path, output, private_root):
         ('replay_vllm_engine_trace.py', 'ieee_tc_serverless_measurement.py',
          'prepare_ieee_tc_serverless_stack.py')}
     worker_cfg = dict(cfg, model=http['model'], main_repo=http['main_repo'], output=str(output),
-        source_sha256=sources,
+        source_sha256=sources, native_toolchain=toolchain,
         remote_config=remote, adapters={aid: [i+1, paths[aid]] for i, aid in enumerate(sorted(paths))})
     worker_path = output/'worker_config.json'
     _exclusive_json(worker_path, worker_cfg)
@@ -375,12 +425,9 @@ async def _resident_http_service(config_path, http_path, output, private_root):
                     owners.append(owner)
                     log = (output/f'worker_{index}.log').open('xb')
                     logs.append(log)
-                    env = dict(os.environ, CUDA_VISIBLE_DEVICES=str(device),
-                        VLLM_WORKER_MULTIPROC_METHOD='spawn', PYTHONDONTWRITEBYTECODE='1')
                     # Backend imports occur only in this separate interpreter;
                     # no dirty replay or repository startup hook is imported.
-                    env.pop('PYTHONPATH', None)
-                    env.pop('PYTHONHOME', None)
+                    env = worker_environments[index][0]
                     process = subprocess.Popen([cfg['python'], '-B', str(Path(__file__).resolve()),
                         'native-http-worker', '--config', str(worker_path), '--index', str(index)],
                         stdout=log, stderr=subprocess.STDOUT, env=env)

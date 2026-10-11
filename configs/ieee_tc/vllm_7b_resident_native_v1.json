@@ -2,6 +2,7 @@
   "schema": "ieee_tc_vllm_native_service_v1",
   "version": "0.30.0",
   "python": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python",
+  "build_max_jobs": 2,
   "routing": "round_robin",
   "generation_contract": "fixed_length_greedy_v1",
   "gpu_ids": [0, 1, 2, 3],
