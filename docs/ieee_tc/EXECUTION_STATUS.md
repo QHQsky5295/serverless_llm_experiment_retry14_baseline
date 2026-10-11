@@ -1,4 +1,4 @@
-# IEEE TC execution status — D420 reuse audit; D421 whole-pool preparation
+# IEEE TC execution status — D421 vLLM 7B whole-pool qualification running
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -74,6 +74,31 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+D421 RUNNING2026-10-11 16:13:38Asia/Shanghai,tmux tc-d421-7b. Exactlyoneheavyjob.
+Mainexecutionaa76e000127a7cc19d275f8140d0bd8366b3ebc1 pushedtofaaslora_origin/
+retry14_continuous_queue_v2 andremoteSHAverified;baselinea56d79088ab1e431e12b5cfed95f53a1581d7037
+alreadybackedup/reverified. No baselinecodechange. 27existinganalysisCPUtests
+passed0.096s/4GiB/zeroswapbeforelaunch;diff/secretscheckspassed/exact4taskfiles.
+Serviceprimelora-tc-svc-b6d8540e824142b5b26918dff1919836.scope,
+InvocationID2afee10ae3244d309ce4ec5070cd5738;aux
+primelora-tc-aux-d4210000000000000000000000000001.scope.
+Deploymentnotice1213672.816455652;commonbusinessorigin60slater.
+500existingIDs/68925targets/coverageviewSHArevalidated;no newtraceorweights.
+Currentnativecache604files/53278235B,notD419prelaunchidentity;sealedbeforelaunch.
+Preflightpass/protectedsealSHA
+c6a29035ba17b9ac0f86f24bccfa30ad20324e3808078730462f87d66931cc42.
+Unchangedpublishedremote/link1000/full;7Bclock
+remote-process-monotonic:f67428c4594f496caac0e76859f00c6d.
+Owned3B/7B/monitorInvocationIDsa2530da2e4324d48866d6252d9e66fc6,
+7d39db34241a4ce8ad759b81dda0f21c,76eb13f3f47845628da86220d02d8801.
+Initialwatchdogsample10available109869613056B/service2008920064B,
+disk163776249856B,high/max/OOM/swap0,noabort. No terminalresult/coverageclaimyet.
+NEXT monitorSAMEhandle/localjournals -> actualGPUrelease -> ownedremoteclosevia
+D421stop_remote.sh -> preserveevidence -> existingstrict500audit/backup ->
+original1000compatibility -> onefull4000W0. No liveconfiguration/remotechange,
+hashscan/cleanup/tests/retry/secondheavyjob. KeepPrimeLoRAD371/ServerlessLLMD414
+sealed;U_ref/W1/W2/G2/remainingplanOPEN. EarlierNEXT/PREPARATIONhistorical.
 
 D420 read-only inventory COMPLETE2026-10-11:32 selected legacy7B vLLM DP4/
 Resident replayJSONs;maximum132actualIDs,none500. D213/D395/D396 retainR2

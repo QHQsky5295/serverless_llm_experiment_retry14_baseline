@@ -1,6 +1,6 @@
 # D421：vLLM 7B 全工件功能检查（预登记）
 
-2026-10-11。状态：准备，尚未启动。原始结果唯一根目录：
+2026-10-11。状态：16:13:38启动，正在运行，尚无终态结论。原始结果唯一根目录：
 `/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011`。
 
 目的仅为补D420确认的500个逻辑ID原生执行覆盖。复用D419已验证的vLLM0.30.0
@@ -35,3 +35,9 @@ max-loras4、CPU-loras16、rank64、1024context/tokenbudget、graph、chunked pr
 结束顺序：实际GPU释放→停止本次远端服务→保存证据→严格分析→备份；再进入
 原1000兼容和一次完整4000 W0。失败保留，不以短检查SLO不高作为重复的理由。
 不重跑D419、不触动PrimeLoRA/ServerlessLLM封存点、不生成排名图。
+
+实际执行main `aa76e000127a7cc19d275f8140d0bd8366b3ebc1`已推送并核对远端；
+baseline SHA如上。tmux `tc-d421-7b`，服务InvocationID
+`2afee10ae3244d309ce4ec5070cd5738`，通知时刻1213672.816455652（本机monotonic）。
+启动前27项分析合同测试通过；本轮没有修改baseline运行代码。完整输入/编译缓存
+初态以及实际资源身份记录在raw。后续只监控同一运行，不将等候误作重启理由。
