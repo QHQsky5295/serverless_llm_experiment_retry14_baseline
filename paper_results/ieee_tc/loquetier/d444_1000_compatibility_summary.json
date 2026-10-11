@@ -1,0 +1,146 @@
+{
+  "counts": {
+    "N_plan": 1000,
+    "N_arrived": 1000,
+    "N_terminal": 1000,
+    "N_response": 1000,
+    "N_failed": 0,
+    "N_submitted": 1000
+  },
+  "actual_native_output_tokens": 122510,
+  "offered_unique_adapters": 60,
+  "served_adapter_ids": 60,
+  "measurement_complete": true,
+  "workload_passed": true,
+  "common_slo": {
+    "offered": 1000,
+    "binding_valid": 1000,
+    "ttft_good": 91,
+    "tpot_eligible": 1000,
+    "tpot_good": 802,
+    "joint_good": 66,
+    "ttft_attainment": 0.091,
+    "joint_attainment": 0.066,
+    "conditional_tpot_attainment": 0.802,
+    "observed_feasible": false,
+    "independent_numerical_proof": false,
+    "freeze_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json",
+    "freeze_sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3",
+    "scope": "complete qualified population only; prefix or coverage is not full W0 qualification",
+    "physical_gpu_seconds_per_binding_valid_request": 6.1240758515757046
+  },
+  "conditional_metrics": {
+    "ttft_ms": {
+      "count": 1000,
+      "mean": 264451.2023163927,
+      "p50_type1": 255965.35796811804,
+      "p95_type1": 582471.1194776464
+    },
+    "e2e_ms": {
+      "count": 1000,
+      "mean": 272084.3438573817,
+      "p50_type1": 265202.1835211199,
+      "p95_type1": 591158.322111005
+    },
+    "submit_lag_ms": {
+      "count": 1000,
+      "mean": 3.6170538116712123,
+      "p50_type1": 2.4180039763450623,
+      "p95_type1": 5.464035086333752
+    },
+    "dispatch_wait_after_submit_ms": {
+      "count": 1000,
+      "mean": 29823.08433675766,
+      "p50_type1": 4.421171965077519,
+      "p95_type1": 226942.14134011418
+    },
+    "service_ttft_ms": {
+      "count": 1000,
+      "mean": 234624.50092582335,
+      "p50_type1": 184777.54516596906,
+      "p95_type1": 582463.4799130727
+    },
+    "decode_ms": {
+      "count": 1000,
+      "mean": 7627.283714311896,
+      "p50_type1": 5687.511601019651,
+      "p95_type1": 16293.6756699346
+    },
+    "completion_notification_ms": {
+      "count": 1000,
+      "mean": 5.857826677151024,
+      "p50_type1": 5.377844907343388,
+      "p95_type1": 7.452914025634527
+    },
+    "router_queue_ms": {
+      "count": 1000,
+      "mean": 29815.35492928396,
+      "p50_type1": 0.013896962627768517,
+      "p95_type1": 226940.1773500722
+    },
+    "tpot_ms": {
+      "count": 1000,
+      "mean": 63.161822133249764,
+      "p50_type1": 61.59941748688545,
+      "p95_type1": 70.21980847451178
+    }
+  },
+  "physical_gpu_seconds": 6124.075851575704,
+  "physical_window_gpu_seconds": {
+    "arrival": 3602.59413826582,
+    "cleanup": 32.96358007658273,
+    "drain": 2488.5181332333013,
+    "pre_arrival": 0
+  },
+  "remote_transfers": 500,
+  "remote_wire_bytes": 420740410,
+  "verified_materialized_bytes": 12985984450,
+  "request_time_pack_count": 0,
+  "service_memory_event_maxima": {
+    "high": 0,
+    "max": 0,
+    "oom": 0,
+    "oom_kill": 0
+  },
+  "service_memory_peak_bytes": 42211688448,
+  "service_swap_max_bytes": 0,
+  "host_min_available_bytes": 81887121408,
+  "disk_min_free_bytes": 149825085440,
+  "n_correct": null,
+  "independent_lora_numerical_correctness": false,
+  "schema": "ieee_tc_loquetier_d444_compatibility_summary_v1",
+  "source_audit": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d444_7b_loquetier_compatibility/audit.json",
+    "sha256": "969108d53d30bdd1961fab94f64f86187aaaafec007b92cd1accf4aee5508b31"
+  },
+  "evidence_manifest": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d444_7b_loquetier_compatibility/evidence_manifest.json",
+    "sha256": "a3216305adf6c406cf2289beb9b651ff6daf0416f5779cdfc3e1c18fff199fe3",
+    "files": 580,
+    "bytes": 88725419,
+    "all_hashes_rechecked": true
+  },
+  "execution_commits": {
+    "main": "ebc58ffc380e0d1ed8194754464e8aa50d53d38a",
+    "baseline": "12fefd5881f5216f868304d0e6ada98e90125bba"
+  },
+  "gpu_run_repeated": false,
+  "baseline_performance_tuning": false,
+  "actual_gpu_release": true,
+  "exact_owned_remote_services_stopped": true,
+  "scope": "Original1000 compatibility prefix; not full W0, independent numerical proof or G1/G2 ranking",
+  "native_queue_mean_ms": 234386.99198442246,
+  "registered_to_first_mean_ms": 216.2242370764725,
+  "static_shard_request_counts": [
+    290,
+    175,
+    221,
+    314
+  ],
+  "metric_protocol_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "single_run_protocol_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+  "fresh_semantic_review": {
+    "status": "not_performed",
+    "independent_reviewer_pass": false
+  }
+}
