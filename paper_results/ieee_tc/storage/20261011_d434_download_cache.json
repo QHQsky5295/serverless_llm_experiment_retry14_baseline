@@ -1,0 +1,51 @@
+{
+  "cache_cleanup_before.json": {
+    "schema": "ieee_tc_closed_download_cache_reclamation_v1",
+    "campaign": "d434_20261011",
+    "target": "/tmp/tc-d434-7bs/remote_artifacts/objects",
+    "status": "verified_before_removal",
+    "files": 5000,
+    "payload_bytes": 12985984450,
+    "disk_before_bytes": 150184931328,
+    "audit": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d434_7b_slora_compatibility/audit.json",
+      "sha256": "05a595c69063efc92484a208325b3476fd4c49c857a6a450b281845af39660a0"
+    },
+    "source_index": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json",
+      "sha256": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c"
+    },
+    "retained_original_pool": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama2_7b_a500_v2_publicmix",
+    "retained_evidence": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d434_20261011",
+    "all_cache_bytes_previously_hashed_by_audit": true,
+    "current_original_bytes_rehashed": true,
+    "current_file_sizes_and_original_inodes_verified": true,
+    "owned_runtime_references": [],
+    "future_config_script_references": [],
+    "cache_symlinks_or_nested_mounts": false,
+    "metadata_copies_hash_match": true,
+    "unreadable_same_uid_proc_entries": [
+      "2628",
+      "4156156",
+      "4157313"
+    ],
+    "open_fd_check_scope": "readable same-UID FD/cwd/root plus fuser, not claimed complete system-wide",
+    "raw_results_removed": false,
+    "unique_artifacts_removed": false,
+    "recipe_sha256": "837a84dc6daefa0422824a8391a4c4fe3fdaf105918ace20eef66da6618a2c84",
+    "recorded_unix": 1791730520.31029
+  },
+  "cache_cleanup_after.json": {
+    "schema": "ieee_tc_closed_download_cache_reclamation_v1",
+    "campaign": "d434_20261011",
+    "target": "/tmp/tc-d434-7bs/remote_artifacts/objects",
+    "removed": true,
+    "disk_before_bytes": 150184931328,
+    "disk_after_bytes": 163189366784,
+    "observed_reclaimed_bytes": 13004435456,
+    "before_receipt_sha256": "c3a589069aa58bf4fa6e36b53a14d353471c8e8bd8697f54be814b8e3ccef914",
+    "raw_results_removed": false,
+    "unique_artifacts_removed": false,
+    "recorded_unix": 1791730522.8584635
+  }
+}

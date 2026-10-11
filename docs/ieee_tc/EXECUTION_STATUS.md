@@ -1,4 +1,4 @@
-# IEEE TC execution status — D434 S-LoRA original1000 CLOSED
+# IEEE TC execution status — D435 S-LoRA full W0 preregistered
 
 Updated 2026-10-11. This is a current checkpoint, NOT a replacement experiment plan.
 Full earlier status is preserved byte-for-byte in EXECUTION_HISTORY_THROUGH_D433.md;
@@ -32,7 +32,19 @@ RUNNING entries are historical. No approved experiment or failed evidence was re
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D434 TERMINAL/AUDITED, no live GPU/remote job
+## Current action — D435 full W0 pending launch
+
+D435_SLORA_FULL_W0.md preregisters one original4000/132ID/458224token W0 using
+the exact D432/D433/D434 native config. No baseline runtime/config/analyzer changes.
+Raw /home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011;
+private /tmp/tc-d435-7bs; tmux name tc-d435-7b reserved but not launched yet.
+37CPU checks passed1.696s; fresh preflight passed,147oldprotected entries unchanged.
+D434578-source-file hashes still match after object cleanup; three user-file SHAs,
+native config/runtime/source-view and historical tenfilepatch unchanged.
+NEXT task-only backup -> input/cachefreeze -> remote health -> one gated full4000.
+No live GPU/remote job at this preregistration checkpoint. Full goal remains ACTIVE.
+
+## D434 closed — do NOT repeat
 
 D434 original1000 compatibility completed by2026-10-11 22:44:35Asia/Shanghai.
 1000offered/submitted/terminal/native/source/adapter/timingcontracts,0failures,
@@ -55,15 +67,21 @@ ReportD434_SLORA_1000_COMPATIBILITY.md;curated baseline_audit/d434_7b_slora_comp
 auditSHA05a595c69063efc92484a208325b3476fd4c49c857a6a450b281845af39660a0;
 578-file/63678229B evidence_manifest SHA
 bf444b0c1ce339e6a63342b6484e8cc2dd1d15fbe2d317163d9a9378c65ff7ab.
-All578 source-file SHA/size entries independently verified; closure backup/cachecleanup
-pending at this checkpoint. Audit/seal aux0005/0006 exactidentity/empty-tree closed,
-high/max/OOM/swap0. Aux0007 verification complete, empty scope closure pending.
+All578 source-file SHA/size entries independently verified. Closure backed up:
+MAIN869fdff76c57a5b8de6efe718d453d891cec2809 and
+BASE33fc840bc282839628a8275fe016671b2541c955, remoteSHA verified.
+Audit/seal aux0005/0006 exactidentity/empty-tree closed, high/max/OOM/swap0.
+Aux0007 and cleanup0008 now closed after exactidentity/empty-subtree checks.
+Only verified private objects reclaimed:5000files/12985984450payloadB,
+observed freed13004435456B,free163189366784B. Originals/raw/remote cache retained.
+Cleanup-only aux peak3221749760B/high4003/max0/OOM0/swap0; this was after
+performance and did not alter the D434 performance resource record.
+Receipt paper_results/ieee_tc/storage/20261011_d434_download_cache.json.
 147protected entries unchanged,postSHA23b9be29909ef728f3450ea7e32f592419d81e319012d383ea290ecd618cfd0d.
 Three protected user-file SHAs and nested10filepatch unchanged.
-NEXT manifest/source verification + backup -> safe private-download-object-only
-reclamation/freshgates -> preregister and execute ONCE full4000W0 SAME native config.
+NEXT freshgates -> preregister/backup and execute ONCE D435 full4000W0 SAME native config.
 No100/500/1000 repeats,baselineparametersearch,oldsealedW0repeat or3Bjump.
-Below150GiB NEWheavyfloor; do not launch until safe cleanup and fresh safety gates.
+Cleanup restored about151.98GiB; launch still requires fresh complete safety gates.
 Full goal ACTIVE/all remaining approved scope OPEN. Previous turn launched D434;
 this turn monitored same live handle to terminal and completed strict audit, progress.
 
@@ -92,7 +110,7 @@ e0525a84e0af4598a1e715bfac1e7255/1028fcd55b374827a52f7d705422add0.
 Remote7Bclock8e030525ed52454e89698c6a7e7b6287;copiedtransferSHA
 092504a38e8e2b7f9f57be60442cd2c1068db89d36a3777c43236007f407aa6c,
 monitorSHAb6c9853df74bb7721af442f618e967f46ff66a0d1c459f1e9ef4ec44ffaa798e.
-Aux0001-0006 closed. Emptyverificationaux0007 requires identity/proc-tree closure.
+Aux0001-0008 closed. No remaining D434 process scope.
 No figures,paper/backend/policychange or newweights/trace.
 
 ## D433 closed — do NOT repeat
