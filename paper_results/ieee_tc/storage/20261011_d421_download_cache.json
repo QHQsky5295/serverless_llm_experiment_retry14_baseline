@@ -1,0 +1,54 @@
+{
+  "schema": "ieee_tc_curated_closed_cache_receipt_v1",
+  "before": {
+    "schema": "ieee_tc_closed_download_cache_reclamation_v1",
+    "campaign": "d421_20261011",
+    "target": "/tmp/tc-d421-7bv/remote_artifacts/objects",
+    "status": "verified_before_removal",
+    "files": 5000,
+    "payload_bytes": 12985984450,
+    "disk_before_bytes": 150730670080,
+    "audit": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/baseline_audit/d421_7b_coverage/audit.json",
+      "sha256": "6539a15a293aad9b0e63f4ee1e41b2689847498940468c44b8188a0c583d6277"
+    },
+    "source_index": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json",
+      "sha256": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c"
+    },
+    "retained_original_pool": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama2_7b_a500_v2_publicmix",
+    "retained_evidence": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d421_20261011",
+    "all_cache_bytes_previously_hashed_by_audit": true,
+    "current_original_bytes_rehashed": true,
+    "current_file_sizes_and_original_inodes_verified": true,
+    "owned_runtime_references": [],
+    "future_config_script_references": [],
+    "cache_symlinks_or_nested_mounts": false,
+    "metadata_copies_hash_match": true,
+    "unreadable_same_uid_proc_entries": [
+      "2628",
+      "4156156",
+      "4157313"
+    ],
+    "open_fd_check_scope": "readable same-UID FD/cwd/root plus fuser, not claimed complete system-wide",
+    "raw_results_removed": false,
+    "unique_artifacts_removed": false,
+    "recipe_sha256": "a2ff0abae55bbe13c352c95bd4ee24fe4193907befd2abdf70519166727f11ba",
+    "recorded_unix": 1791707608.4380996
+  },
+  "after": {
+    "schema": "ieee_tc_closed_download_cache_reclamation_v1",
+    "campaign": "d421_20261011",
+    "target": "/tmp/tc-d421-7bv/remote_artifacts/objects",
+    "removed": true,
+    "disk_before_bytes": 150730670080,
+    "disk_after_bytes": 163735080960,
+    "observed_reclaimed_bytes": 13004410880,
+    "before_receipt_sha256": "0daf48e28543ce21da596ea6682c0f34172125e1de93a9bd7f1e48be1789e05d",
+    "raw_results_removed": false,
+    "unique_artifacts_removed": false,
+    "recorded_unix": 1791707611.5136254
+  },
+  "evidence_manifest_unchanged": "293c40bd75e447a36945dfb548759acbe3da50cfc336829053f91ec2bcaa341e",
+  "note": "The already sealed content-byte audit preceded reclamation. Objects only; retain logs, receipts, original pool and remote published cache. Inaccessible same-UID proc entries are disclosed, not claimed as checked."
+}

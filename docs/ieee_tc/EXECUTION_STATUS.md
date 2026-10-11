@@ -75,6 +75,27 @@ regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance re
 
 ## Exact next action and remaining scope
 
+D421 CLOSURE BACKEDUP / CACHE RECLAIMED2026-10-11~16:34Asia/Shanghai.
+Mainclosurec95996159218d3fa1cf7a5397b446c20383fbf04 pushedtofaaslora_origin/
+retry14_continuous_queue_v2 andremoteSHAverified;baselineclosure d9971a14e18eca3391665d9da1244594e69b6041
+alsoverified. Exacttaskfilesonly,diff/secrets/27CPUtests/568evidenceSHAchecks
+passed;all3protecteduserdirtySHAsunchanged. No liveGPU/remotejob.
+Afterbackups,reclaimedONLY /tmp/tc-d421-7bv/remote_artifacts/objects:
+5000files/12985984450payloadB,observedfreed13004410880B,
+diskafter163735080960B(about152.5GiB). Originalpoolbytesrehash/index/inodes,
+no symlinks/nestedmounts,currentmetadata copies,readableownedprocess FD/cwd/root
+andfuser,futuretrackedconfig/scriptreferenceschecked. Threeunreadable sameUID
+proc entries disclosed(2628,4156156,4157313),notclaimedcomplete systemscan.
+Allrawlogs/receipts/journals,uniquepoolandremoteimmutablecache retained.
+Ownedemptycleanupauxscope stopped;old568-filemanifestnotrewritten.
+Rawcache_cleanup_before/after.json andcuratedstorage/20261011_d421_download_cache.json
+retainreceipts. Do notredownloadwholepooljusttorepeatpassedbyteaudit.
+NEXT freshplan/status/resourcegates -> original1000compatibility usingunchanged
+D419/D421nativeconfig/trace_prefix_v1,newexclusivekey -> closure/audit/backup ->
+onefull4000W0. No100/500repeat or baselineparametersearch. D422notpreparedorstarted.
+PrimeLoRAD371/ServerlessLLMD414sealed;U_ref/W1/W2/G2/allremainingplanOPEN.
+Thisturnconcreteprogress,fullgoalACTIVE. PriorRUNNING/NEXTentrieshistorical.
+
 D421 TERMINAL/AUDITED2026-10-11~16:25Asia/Shanghai. No liveGPUjob. 500/500
 offered/submitted/terminal/native/source/adapter/content/timingcontracts,
 exact500IDs=pool,0failures,68925native tokens. E2E/TPOT/nativeerror0ms.
