@@ -1,4 +1,4 @@
-# IEEE TC execution status — D415 vLLM native observation tested; integration next
+# IEEE TC execution status — D416 native service integrated; D417 path gate next
 
 Updated 2026-10-11. This is a current checkpoint, not a replacement plan.
 The former 10,982-line status is preserved byte-for-byte in
@@ -75,6 +75,37 @@ regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance re
 
 ## Exact next action and remaining scope
 
+D416 CPU INTEGRATION COMPLETE 2026-10-11. No live GPU job at this checkpoint.
+The existing vLLM engine runner now has explicit native-http-service/worker
+modes, shared pre-ready HTTP publication, service-owned published artifact
+resolution, original request-ordinal RR, D415 native observations and per-card
+physical owners with real process/pidfd/NVML release. No PrimeLoRA policy or
+userdirty replay imported; no installed backend change. Native LoRARequest/LRU
+replaces the historical external API-registration wrapper; this deployment
+difference is disclosed, not relabeled as byte-identical D395.
+Ten new service tests plus previous suites:122 pass8.068s (earlier122 pass7.997s),
+4GiB/zeroswap/CPUs2,3,26,27. Main physical lifecycle32tests pass1.316s.
+Actual0.30.0 args/SamplingParams/API import with GPUs hidden passed; no engine
+constructed. Official fixed-version AsyncLLM and LoRA documentation checked.
+See D416_VLLM_NATIVE_SERVICE_INTEGRATION.md in both repos. This is NOT GPU,
+whole-pool/numerical qualification, performance evidence or a frozen U_ref.
+Baseline checkpoint5c0cfd8b4d4ead40437d6dc852a9e60395075cf3 pushed toorigin/main
+and remoteSHA verified. Exact5taskfiles only; diff/secret checks passed.
+Protected147entries reverified unchanged against D414preseal; all3userdirty
+SHAs unchanged. Plan/frozenV1/singleV2 hashes unchanged. No remote operation,
+cachecleanup/republication/newtrace/pool/figure occurred in D416.
+Fresh local readback15:20:root available164596801536B (>150GiB),MemAvailable
+112081690624B,compute census empty. This is not a later launch guarantee.
+D417 PREPARATION: original100-request affected-path gate, inherited7B public
+config, exclusive raw vllm_qualification/d417_20261011; run7b/start/stop/health
+scripts reuse existing procedures, no GPU or remote service started yet.
+NEXT: save/backup preparation, full plan/status/protocol+fresh resource and
+protected/input/cache identity checks, start unchanged ownedpublished service,
+one D417 GPU-path gate -> actualrelease/remoteclose/evidenceaudit -> necessary
+reuse qualification and one fullW0. Do not repeatD395/D396,retuneServerlessLLM
+or jump3B. PrimeLoRAD371/ServerlessLLMD414 sealed;U_ref/W1/W2/G2 stillOPEN.
+All older NEXT paragraphs below are preserved history, not current commands.
+
 D415 CPU COMPONENT COMPLETE 2026-10-11, following D414 closure. Previous turn
 made concrete source changes but was interrupted before tests/status; this turn
 verified them, not a wait or blocker. No live GPU job. Baseline existing
@@ -108,7 +139,18 @@ origin/main and remoteSHA verified. Exact3taskfiles only, diff/secrets checks
 passed; userdirty replay/relayserve SHA unchanged. Common protected147entries
 verified zerochange against D414preseal; D415 protected_after SHA
 6b4deabad0cf41b4f928ab8d0069edd8ae445128fb75786a9739f4e9baf11a70.
-Main report/status/protection checkpoint pending; all remaining scope intact.
+Main report/status/protection checkpoint209b6dc8a00b8d9b4f667ea267f9ff423e00a54d
+pushed tofaaslora_origin/retry14_continuous_queue_v2 andremoteSHAverified.
+Exact3taskfiles only;diff/secrets/protection checks passed. FrozenV1/singleV2
+andprotecteduserSHA unchanged. This postpushconfirmation is subsequentunstaged
+task-ownedstatus; no stagedfiles or liveprocess left. Fullgoalactive.
+Read-only next-entry reconnaissance: legacy fair runner defaults ordinary
+round_robin, not least-loaded; preserve actual chosen prior workpoint, do not
+silently substitute a new policy. Existing replay_vllm_engine_trace.py is a
+synchronous after-ready loop, not a qualified replacement either. Common HTTP
+publisher/validator are in prepare_ieee_tc_serverless_stack.py and have explicit
+schema/physical-lifecycle restrictions; reuse only after explicit tested vLLM
+contract integration, not by relabeling native_store_pool. All remaining scope intact.
 Earlier NEXT/RUNNING paragraphs below are retained history, not live jobs.
 
 D414 TERMINAL/AUDITED2026-10-11 05:57 Asia/Shanghai. Original4000offered/
