@@ -1,4 +1,4 @@
-# IEEE TC execution status — D444 Loquetier original1000 preregistered
+# IEEE TC execution status — D444 Loquetier original1000 RUNNING
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement experiment plan.
 Full earlier status is preserved byte-for-byte in EXECUTION_HISTORY_THROUGH_D433.md;
@@ -32,7 +32,27 @@ RUNNING entries are historical. No approved experiment or failed evidence was re
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D444 original1000 preparation, not yet launched
+## Current action — D444 original1000 RUNNING, monitor same handle
+
+Launched once2026-10-12T03:24:00+08:00 in tmux tc-d444-7b. Serviceunit
+primelora-tc-svc-47f7021f111d449cbbe7b04e64be8933.scope,
+InvocationIDdfa0b37ecf54463aac8cb07c3eecffab. Outeraux0001live.
+Executed MAINebc58ffc380e0d1ed8194754464e8aa50d53d38a and
+BASE12fefd5881f5216f868304d0e6ada98e90125bba; bothpushed/remoteSHAverified.
+Inputfreeze passed,httpSHA04f34657972075220b4b14183efcb2b5fc198c9e893545d89658762592621a4e;
+freshpreflightSHAfdc6e4bc026337e5308aa93eb17f66153bde4a17cf54cdd85bf08a283bea98c6 passed.
+Remote1000Mb/s/full, noNICchange/republish; owned3B/7B/monitorInvocationIDs
+2b5297df63d141c29caa64cb2880a71a/6fcde52718934b5287a10317a0a5c167/
+3bdf060e28f14f8ebee110b5f2c5fdc2;7Bclock485dc1f185ce4a98b345f2c114bff90d.
+Aux0003-0005 actualrecursiveemptytrees/InvocationIDs checkedandstopped;
+peaks119197696/28577792/25956352B, high/max/OOM/swap0. Healthusedcorrect
+existingouterPython3.12; no environmentinstall/retry. Initialwatchdoghealthy,
+oneheavyjob. No live remoteadministration/scan/cleanup orsecondGPUrun.
+NEXT verifiedwait on this exacthandle ->actualGPUrelease ->ownedremote stop ->
+preserveevidence -> unchangedLoquetier/prefix1000audit(noD385reference) ->seal/backup
+->ownedcachecleanup. Do not relaunch1000,repeatpassed100/500orchangeconfig.
+
+## D444 preregistration and completed prelaunch checks
 
 Full PLAN/status/baseline rules/metricV1+V2 reread. D443 closed/reusable below;
 no repeated100/500/capacity. Same D441 Loquetier configuration and original1000
@@ -45,7 +65,7 @@ MAIN53checks passed0.441s,BASE18passed0.534s; all578D443sourceSHA verified,
 147oldprotectedentries/threeuserfiles/nativepatches unchanged. Aux0002
 InvocationIDbe8768e94e2c425db252f3fb0d46c053 actualrecursiveemptytree
 identitychecked/stopped. ReadonlyD78/D80 publication reused,notrepublished.
-NEXT double-repobackup -> inputfreeze/freshgates/remotehealth -> once original1000.
+Double-repobackup/inputfreeze/freshgates/remotehealth and launch completed above.
 Then release/audit/seal/backup/ownedcachecleanup -> single4000. NoD385 fullprefix
 numericalclaim. Full remaining scope below OPEN; goal ACTIVE, no blocker.
 
