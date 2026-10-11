@@ -132,6 +132,18 @@ class SloraHostBoundTests(unittest.TestCase):
         for path, expected in launch.SLORA_HOST_LAYOUT_SOURCES.items():
             self.assertEqual(launch.sha((NATIVE/path).read_bytes()), expected)
 
+    def test_explicit_packed_bound_does_not_authorize_deployment(self):
+        model = dict(model_type='llama', hidden_size=64, num_hidden_layers=1,
+                     num_attention_heads=4, num_key_value_heads=4)
+        bound = launch.slora_host_storage_bound([self.facts()], model, 4, 80*1024**3,
+                                                host_layout='packed_views_v1')
+        self.assertEqual(2*bound['pinned_adapter_bytes_lower_bound'],
+                         self.bound([self.facts()])['pinned_adapter_bytes_lower_bound'])
+        self.assertFalse(bound['deployment_memory_qualified'])
+        with self.assertRaises(ValueError):
+            launch.slora_host_storage_bound([self.facts()], model, 4, 80*1024**3,
+                                            host_layout='unknown')
+
     def test_actual_native_loader_retains_independent_cpu_storages(self):
         import torch
         native = load('tc_slora_native_layer', NATIVE/
@@ -155,6 +167,163 @@ class SloraHostBoundTests(unittest.TestCase):
         expected = torch.concat([v.T.reshape(8, 4, -1) for v in homes]).reshape(2, 32, 4, -1)
         self.assertTrue(torch.equal(layer.w_combined_home, expected))
         self.assertEqual(torch.cuda.is_initialized(), initialized_before)
+
+
+class SloraPackedHostTests(unittest.TestCase):
+    def setUp(self):
+        import torch
+        self.torch = torch
+        self.native = load('tc_slora_packed_reference', NATIVE/
+            'slora/models/peft/layer_weights/lora_layer_weight.py')
+        self.model = dict(hidden_size=64, num_attention_heads=4, num_key_value_heads=4)
+
+    def layer(self, rank=8):
+        return self.native.LoraLayerWeight(0, 0, 1, dict(r=rank), self.model)
+
+    def weights(self, rank=8):
+        shapes = SloraHostBoundTests().facts(rank=rank)['tensor_shapes']
+        return {k: ((self.torch.arange(__import__('math').prod(shape)).float()%113)/16+i).half().reshape(shape)
+                for i, (k, shape) in enumerate(shapes.items())}
+
+    def allocate_without_cuda(self):
+        empty = self.torch.empty
+        def allocate(*args, **kwargs):
+            self.assertIs(kwargs.pop('pin_memory'), True)
+            self.assertEqual(kwargs['device'], 'cpu')
+            return empty(*args, **kwargs)
+        return patch.object(self.torch, 'empty', side_effect=allocate)
+
+    def compare(self, rank=8):
+        old, new = self.layer(rank), self.layer(rank)
+        values = self.weights(rank)
+        original = {k: v.clone() for k, v in values.items()}
+        with patch.object(self.torch.Tensor, 'pin_memory', lambda v: v.clone()):
+            old.load_hf_weights(values, swap=True)
+        with self.allocate_without_cuda() as allocation:
+            measurement.slora_load_packed_host_weights(new, values)
+        self.assertEqual(allocation.call_count, 1)
+        self.assertTrue(new.w_combined_home.is_contiguous())
+        self.assertTrue(self.torch.equal(new.w_combined_home, old.w_combined_home))
+        self.assertEqual(new.w_combined_home.stride(), old.w_combined_home.stride())
+        storages = set()
+        for side in ('A', 'B'):
+            for module in ('q', 'k', 'v', 'o'):
+                name = f'{module}_lora_{side}_home'
+                actual, expected = getattr(new, name), getattr(old, name)
+                self.assertTrue(self.torch.equal(actual, expected), name)
+                self.assertEqual(actual.shape, expected.shape)
+                storages.add(actual.untyped_storage().data_ptr())
+        self.assertEqual(storages, {new.w_combined_home.untyped_storage().data_ptr()})
+        self.assertEqual(new.tc_host_storage['unique_storage_bytes'], old.w_combined_home.numel()*2)
+        for key in values:
+            self.assertTrue(self.torch.equal(values[key], original[key]))
+        return old, new
+
+    def test_native_equivalence_both_existing_ranks_and_single_storage(self):
+        initialized = self.torch.cuda.is_initialized()
+        for rank in (8, 16):
+            with self.subTest(rank=rank):
+                self.compare(rank)
+        self.assertEqual(self.torch.cuda.is_initialized(), initialized)
+
+    def test_invalid_mode_geometry_or_tensor_fails_before_allocation(self):
+        params = NS(swap=True, scheduler='slora', dummy=False, bmm=False,
+            no_lora_swap=False, no_lora=False, no_kernel=False, no_lora_compute=False, no_mem_pool=False)
+        measurement.slora_require_packed_host_mode(1, params)
+        for field in ('bmm', 'dummy', 'no_lora_swap', 'no_lora', 'no_kernel', 'no_lora_compute', 'no_mem_pool'):
+            invalid = copy.copy(params)
+            setattr(invalid, field, True)
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                measurement.slora_require_packed_host_mode(1, invalid)
+        for size in (0, 2, True):
+            with self.assertRaises(ValueError):
+                measurement.slora_require_packed_host_mode(size, params)
+        for change in ('gqa', 'tp', 'missing', 'dtype', 'shape'):
+            layer, weights = self.layer(), self.weights()
+            key = next(iter(weights))
+            if change == 'gqa':
+                layer.network_config = dict(self.model, num_key_value_heads=2)
+            elif change == 'tp':
+                layer.world_size_ = 2
+            elif change == 'missing':
+                del weights[key]
+            elif change == 'dtype':
+                weights[key] = weights[key].float()
+            else:
+                weights[key] = weights[key][:1]
+            with self.subTest(change=change), patch.object(self.torch, 'empty') as allocation:
+                with self.assertRaises(ValueError):
+                    measurement.slora_load_packed_host_weights(layer, weights)
+                allocation.assert_not_called()
+                self.assertFalse(hasattr(layer, 'tc_host_storage'))
+
+    def test_native_packed_load_offload_repeat_keeps_bytes_and_order(self):
+        old, new = self.compare()
+        calls = []
+        def transfer(value, device, **kw):
+            self.assertEqual(device, 'cuda')
+            self.assertEqual(kw, dict(non_blocking=True))
+            calls.append(value.clone())
+            return value.clone()
+        for prefetch in (False, True, False):
+            with patch.object(self.torch.Tensor, 'to', transfer):
+                old.load_to_gpu(prefetch=prefetch)
+                new.load_to_gpu(prefetch=prefetch)
+            self.assertTrue(self.torch.equal(old.w_combined, new.w_combined))
+            old.offload_from_gpu()
+            new.offload_from_gpu()
+            self.assertIsNone(old.w_combined)
+            self.assertIsNone(new.w_combined)
+        self.assertEqual(len(calls), 6)
+        with self.assertRaises(ValueError):
+            measurement.slora_load_packed_host_weights(new, self.weights())
+
+    def test_actual_pool_copy_methods_unchanged_for_prefetch_and_ordinary(self):
+        old, new = self.compare()
+        tree = ast.parse((NATIVE/'slora/server/router/model_infer/infer_adapter.py').read_text())
+        cls = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == 'InferAdapter')
+        methods = [n for n in cls.body if isinstance(n, ast.FunctionDef) and n.name in ('load_lora_A', 'load_lora_B')]
+        scope = {}
+        exec(compile(ast.Module(body=methods, type_ignores=[]), 'actual_pool_copy_methods', 'exec'), scope)
+        location = self.torch.arange(32)
+        def transfer(value, device, **kw):
+            self.assertEqual(device, 'cuda')
+            self.assertEqual(kw, dict(non_blocking=True))
+            return value.clone()
+        for prefetch in (False, True):
+            outputs = []
+            for layer in (old, new):
+                adapter = NS(r=8, network_config=dict(self.model, num_hidden_layers=1), layers=[layer])
+                pool = NS(mem_manager=NS(key_buffer=[self.torch.zeros(32, 4, 16, dtype=self.torch.float16)],
+                                         value_buffer=[self.torch.zeros(32, 4, 16, dtype=self.torch.float16)]))
+                with patch.object(self.torch.Tensor, 'to', transfer):
+                    scope['load_lora_A'](pool, adapter, location, prefetch)
+                    scope['load_lora_B'](pool, adapter, location, prefetch)
+                outputs.append(pool.mem_manager)
+            self.assertTrue(self.torch.equal(outputs[0].key_buffer[0], outputs[1].key_buffer[0]))
+            self.assertTrue(self.torch.equal(outputs[0].value_buffer[0], outputs[1].value_buffer[0]))
+
+    def test_source_view_is_explicit_and_other_native_methods_unchanged(self):
+        replacements = launch.slora_measurement_sources(NATIVE, host_layout='packed_views_v1')
+        path = 'slora/models/peft/layer_weights/lora_layer_weight.py'
+        def methods(source):
+            cls = next(n for n in ast.parse(source).body if isinstance(n, ast.ClassDef) and n.name == 'LoraLayerWeight')
+            return {n.name: ast.dump(n) for n in cls.body if isinstance(n, ast.FunctionDef)}
+        before, after = methods((NATIVE/path).read_text()), methods(replacements[path])
+        self.assertEqual(before.keys(), after.keys())
+        self.assertEqual({k for k in before if before[k] != after[k]}, {'load_hf_weights_cpu'})
+        rpc = replacements['slora/server/router/model_infer/model_rpc.py']
+        self.assertLess(rpc.index('slora_require_packed_host_mode(world_size'), rpc.index('dist.init_process_group'))
+        with tempfile.TemporaryDirectory() as directory:
+            out = Path(directory)/'view'
+            receipt = launch.prepare_slora_measurement_view(NATIVE, out, MAIN, host_layout='packed_views_v1')
+            self.assertTrue(receipt['host_representation_changed'])
+            self.assertFalse(receipt['loading_policy_changed'])
+            self.assertFalse(receipt['performance_run_authorized'])
+            self.assertFalse((out/path).is_symlink())
+            self.assertTrue((out/'slora/server/router/model_infer/infer_adapter.py').is_symlink())
+        with self.assertRaises(ValueError):
+            launch.slora_measurement_sources(NATIVE, host_layout='silent_fallback')
 
 
 class SloraObservationTests(unittest.TestCase):

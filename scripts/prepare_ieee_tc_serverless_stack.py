@@ -72,14 +72,19 @@ SLORA_HOST_LAYOUT_SOURCES = {
 
 
 def slora_host_storage_bound(adapter_facts: list[dict], model: dict,
-                            replicas: int, memory_max_bytes: int) -> dict:
+                            replicas: int, memory_max_bytes: int,
+                            *, host_layout: str = 'native_v1') -> dict:
     """Necessary bound, NOT a sufficient memory-admission or runtime-RSS estimate.
 
-    The audited FP16 TP1 non-GQA swap loader retains eight module tensors AND
-    their independent packed concatenation per layer. Count logical adapters,
+    The native FP16 TP1 non-GQA swap loader retains eight module tensors AND
+    their independent packed concatenation per layer. The explicit packed_views
+    source adapter retains one packed storage with module views. Count logical adapters,
     never deduplicate equal/zero weights or multiply tokenizer directory bytes.
     Caller must verify SLORA_HOST_LAYOUT_SOURCES against the executing tree.
     """
+    if host_layout not in ('native_v1', 'packed_views_v1'):
+        raise ValueError('unknown S-LoRA HOST representation')
+    copies = 2 if host_layout == 'native_v1' else 1
     dims = [model.get(k) for k in ('hidden_size', 'num_hidden_layers',
                                   'num_attention_heads', 'num_key_value_heads')]
     if (model.get('model_type') != 'llama'
@@ -105,12 +110,13 @@ def slora_host_storage_bound(adapter_facts: list[dict], model: dict,
         if row.get('dtype') != 'F16' or row.get('tensor_shapes') != expected:
             raise ValueError('complete FP16 QKVO tensor inventory must match declared geometry')
         single_copy_bytes += sum(2 * math.prod(shape) for shape in expected.values())
-    retained = 2 * single_copy_bytes * replicas
+    retained = copies * single_copy_bytes * replicas
     return dict(schema='ieee_tc_slora_host_storage_bound_v1',
-        layout='native_tp1_non_gqa_swap_separate_and_packed_v1',
+        layout=('native_tp1_non_gqa_swap_separate_and_packed_v1'
+                if host_layout == 'native_v1' else host_layout),
         logical_adapters=len(ids), replicas=replicas,
         single_copy_pool_bytes=single_copy_bytes,
-        pinned_adapter_bytes_per_replica=2 * single_copy_bytes,
+        pinned_adapter_bytes_per_replica=copies * single_copy_bytes,
         pinned_adapter_bytes_lower_bound=retained, memory_max_bytes=memory_max_bytes,
         exceeds_memory_max=retained > memory_max_bytes,
         remaining_bytes_before_all_other_memory=memory_max_bytes-retained,
@@ -120,9 +126,14 @@ def slora_host_storage_bound(adapter_facts: list[dict], model: dict,
                   'GPU memory and non-adapter CPU tensors'])
 
 
-def slora_measurement_sources(native_source: Path) -> dict[str, str]:
+def slora_measurement_sources(native_source: Path, *, host_layout: str = 'native_v1') -> dict[str, str]:
     """Opt-in native observations; preserve the audited S-LoRA compatibility tree."""
-    for path, expected in SLORA_OBSERVATION_SOURCES.items():
+    if host_layout not in ('native_v1', 'packed_views_v1'):
+        raise ValueError('unknown S-LoRA HOST representation')
+    originals = dict(SLORA_OBSERVATION_SOURCES)
+    if host_layout == 'packed_views_v1':
+        originals.update(SLORA_HOST_LAYOUT_SOURCES)
+    for path, expected in originals.items():
         if sha((native_source/path).read_bytes()) != expected:
             raise ValueError('S-LoRA observation source drift: '+path)
     rpc_path, api_path = 'slora/server/router/model_infer/model_rpc.py', 'slora/server/api_server.py'
@@ -144,20 +155,38 @@ def slora_measurement_sources(native_source: Path) -> dict[str, str]:
     api = replace_once(api, '            yield ("data:" + json.dumps(ret, ensure_ascii=False)',
         "            ret['tc_slora_native_token'] = metadata['tc_slora_native_token']\n"
         '            yield ("data:" + json.dumps(ret, ensure_ascii=False)')
+    replacements = {rpc_path: rpc, api_path: api}
+    if host_layout == 'packed_views_v1':
+        rpc = replace_once(rpc, '        self.tp_rank = rank_id\n',
+            '        from slora.server.tc_measurement import slora_require_packed_host_mode\n'
+            '        slora_require_packed_host_mode(world_size, input_params)\n'
+            '        self.tp_rank = rank_id\n')
+        layer_path = 'slora/models/peft/layer_weights/lora_layer_weight.py'
+        original = (native_source/layer_path).read_text()
+        tree = ast.parse(original)
+        cls = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == 'LoraLayerWeight')
+        method = next(n for n in cls.body if isinstance(n, ast.FunctionDef) and n.name == 'load_hf_weights_cpu')
+        lines = original.splitlines(keepends=True)
+        replacement = ('    def load_hf_weights_cpu(self, weights):\n'
+            '        from slora.server.tc_measurement import slora_load_packed_host_weights\n'
+            '        slora_load_packed_host_weights(self, weights)\n')
+        replacements[layer_path] = ''.join(lines[:method.lineno-1])+replacement+''.join(lines[method.end_lineno:])
+        replacements[rpc_path] = rpc
     # Compile source only, never import the backend or allocate a device.
-    for path, source in ((rpc_path, rpc), (api_path, api)):
+    for path, source in replacements.items():
         compile(source, path, 'exec')
-    return {rpc_path: rpc, api_path: api}
+    return replacements
 
 
-def prepare_slora_measurement_view(native_source: Path, output: Path, main_repo: Path) -> dict:
-    """Reuse the source-view adapter; only two Python files are copied/observed."""
+def prepare_slora_measurement_view(native_source: Path, output: Path, main_repo: Path,
+                                   *, host_layout: str = 'native_v1') -> dict:
+    """Reuse the source adapter; optional third copy changes HOST layout only."""
     native_source, main_repo = native_source.resolve(strict=True), main_repo.resolve(strict=True)
     if output.exists() or output.is_symlink():
         raise FileExistsError('preserve previous S-LoRA source view')
     if output.resolve().is_relative_to(native_source):
         raise ValueError('source view must be outside the preserved native checkout')
-    replacements = slora_measurement_sources(native_source)
+    replacements = slora_measurement_sources(native_source, host_layout=host_layout)
     support = ROOT/'scripts/ieee_tc_serverless_measurement.py'
     shared_package = (main_repo/'faaslora').resolve(strict=True)
     output.mkdir(mode=0o700)
@@ -176,7 +205,8 @@ def prepare_slora_measurement_view(native_source: Path, output: Path, main_repo:
     (output/'faaslora').symlink_to(shared_package, target_is_directory=True)
     result = dict(schema='ieee_tc_slora_measurement_view_v1',
         native_source=str(native_source), source_view=str(output.resolve()),
-        original_sha256=dict(SLORA_OBSERVATION_SOURCES),
+        original_sha256={**SLORA_OBSERVATION_SOURCES,
+            **(SLORA_HOST_LAYOUT_SOURCES if host_layout == 'packed_views_v1' else {})},
         measured_sha256={p: sha(value.encode()) for p, value in replacements.items()},
         helper_path=str(support), helper_sha256=sha(support.read_bytes()),
         source_adapter_sha256=sha(Path(__file__).read_bytes()),
@@ -186,6 +216,9 @@ def prepare_slora_measurement_view(native_source: Path, output: Path, main_repo:
         timing_boundary='after_existing_sampled_token_id_cpu_transfer_before_logprob_and_text',
         added_cuda_synchronization=False, scheduling_policy_changed=False,
         loading_policy_changed=False, sampling_policy_changed=False,
+        host_layout=host_layout, host_representation_changed=host_layout != 'native_v1',
+        host_layout_scope=('TP1_nonGQA_FP16_real_swap_unified_pool_not_BMM'
+                           if host_layout == 'packed_views_v1' else 'native'),
         performance_run_authorized=False)
     with (output/'measurement_manifest.json').open('x') as handle:
         json.dump(result, handle, indent=2)
@@ -2066,6 +2099,7 @@ def main() -> None:
     slora = sub.add_parser('prepare-slora-measurement-view')
     for name in ('native-source', 'output', 'main-repo'):
         slora.add_argument('--'+name, type=Path, required=True)
+    slora.add_argument('--host-layout', choices=('native_v1', 'packed_views_v1'), default='native_v1')
     replay = sub.add_parser('http-replay')
     replay.add_argument('--config', type=Path, required=True)
     replay.add_argument('--output', type=Path, required=True)
@@ -2111,7 +2145,7 @@ def main() -> None:
     args = parser.parse_args()
     if args.action == 'prepare-slora-measurement-view':
         print(json.dumps(prepare_slora_measurement_view(args.native_source, args.output,
-                                                       args.main_repo), indent=2))
+                                                       args.main_repo, host_layout=args.host_layout), indent=2))
         return
     if args.action == 'http-replay':
         http_replay(args)

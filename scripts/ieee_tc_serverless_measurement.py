@@ -591,6 +591,68 @@ class V030NativeRequestObservation(NativeRequestObservation):
         super().observe(output)
 
 
+def slora_require_packed_host_mode(world_size, params):
+    """Opt-in representation adapter, never a fallback from unsupported modes."""
+    if (type(world_size) is not int or world_size != 1
+            or params.swap is not True or params.scheduler != 'slora'
+            or any(getattr(params, flag) is not False for flag in (
+                'dummy', 'bmm', 'no_lora_swap', 'no_lora', 'no_kernel',
+                'no_lora_compute', 'no_mem_pool'))):
+        raise ValueError('packed HOST views require real TP1 unified-pool swap execution')
+
+
+def slora_load_packed_host_weights(layer, weights):
+    """One pinned packed allocation; module fields are value-equivalent views.
+
+    Only the explicitly selected TP1 non-GQA packed engine is supported. Its
+    unchanged loader/paging consumes w_combined_home, not the module-view strides.
+    No cross-ID deduplication, quantization, cache policy or loading-time change.
+    The original separate+packed representation remains the default source view.
+    """
+    import torch
+    cfg = layer.network_config
+    hidden, heads, kv_heads = (cfg.get(k) for k in (
+        'hidden_size', 'num_attention_heads', 'num_key_value_heads'))
+    rank = layer.lora_config.get('r')
+    if (layer.world_size_ != 1 or layer.tp_rank_ != 0 or layer.no_lora_swap
+            or layer.data_type_ != torch.float16
+            or any(type(v) is not int or v <= 0 for v in (hidden, heads, kv_heads, rank))
+            or heads != kv_heads or hidden % heads or not weights
+            or hasattr(layer, 'tc_host_storage')):
+        raise ValueError('unsupported or repeated packed HOST initialization')
+    prefix = next(iter(weights))
+    if '.layers.' not in prefix:
+        raise ValueError('native attention tensor prefix required')
+    prefix = prefix[:prefix.find('layers')] + f'layers.{layer.layer_num_}.self_attn'
+    values = []
+    for side in ('A', 'B'):
+        for module in ('q', 'k', 'v', 'o'):
+            key = f'{prefix}.{module}_proj.lora_{side}.weight'
+            value = weights.get(key)
+            shape = (rank, hidden) if side == 'A' else (hidden, rank)
+            if (not isinstance(value, torch.Tensor) or value.device.type != 'cpu'
+                    or value.dtype != torch.float16 or tuple(value.shape) != shape):
+                raise ValueError('complete native FP16 CPU QKVO tensors required: '+key)
+            values.append((side, module, value))
+    # Validate all tensors first. Native order is A:q/k/v/o then B:q/k/v/o.
+    packed = torch.empty((2, 4*rank, heads, hidden//heads), dtype=torch.float16,
+                         device='cpu', pin_memory=True)
+    views = {}
+    for index, (side, module, value) in enumerate(values):
+        part = packed[index//4, (index%4)*rank:(index%4+1)*rank]
+        part.copy_(value.reshape(rank, heads, hidden//heads))
+        views[f'{module}_lora_{side}_home'] = part.view(tuple(value.shape)).T
+    # Commit only after complete initialization. Packed bytes/order/contiguity
+    # are unchanged; module views deliberately need not be contiguous.
+    layer.w_combined_home, layer.w_combined = packed, None
+    for name, view in views.items():
+        setattr(layer, name, view)
+        setattr(layer, name.removesuffix('_home'), None)
+    layer.tc_host_storage = dict(layout='packed_views_v1',
+        unique_storage_bytes=packed.untyped_storage().nbytes(),
+        layer_num=layer.layer_num_, rank=rank, module_fields_are_views=True)
+
+
 @lru_cache(maxsize=4)
 def _slora_process_identity(pid):
     # PID is a cache key: a fork must not inherit its parent's identity.
