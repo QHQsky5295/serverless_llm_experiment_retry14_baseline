@@ -6,6 +6,13 @@ Before any task, after context compaction, and before every experiment, read
 historical "plan mode / no execution this turn" sentences describe approval
 time, not the user's subsequent explicit execution authorization.
 
+Latest user goal update (2026-10-11): also read
+`docs/ieee_tc/BASELINE_EXECUTION_RULES_20261011.md`. Except necessary compatibility,
+correctness/measurement and safety adaptations, do not optimize non-PrimeLoRA
+systems or search their performance configurations. Retain their observed results;
+focus optimization on PrimeLoRA. This supersedes older baseline-tuning permission,
+not the full matrix, frozen metric rules or historical execution identities.
+
 - Work on `retry14_continuous_queue_v2`; preserve pre-existing dirty files.
 - Never stage `configs/generated/lora_manifest_1000.json` or unrelated user work.
 - Use existing runners, environments, artifacts and traces. Do not regenerate

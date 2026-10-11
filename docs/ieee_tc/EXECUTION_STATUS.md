@@ -11,6 +11,14 @@ whole-status reads from truncating current instructions after compaction.
 
 ## Authority and unchanged evaluation
 
+- Latest user goal update2026-10-11: no non-PrimeLoRA performance optimization or
+  configurationsearch except necessary compatibility/correctness/measurement/safety
+  adaptations. Read BASELINE_EXECUTION_RULES_20261011.md with fullPLAN/V1/V2.
+  Preserve prior authorizedresults/configs; frozenbaselinepoints are not optimized
+  frontiers. Focus optimization onPrimeLoRA; same7B-firstorder/fullmatrix retained.
+  SourcePLAN andhistoricalSHA unchanged;this explicitlatestinstruction supersedes
+  olderbaseline-tuningpermission. D433 unchangedqualification complies.
+
 - Read `/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md` fully at task start,
   after compaction and before experiments. It and the full-name snapshot
   `PLAN_APPROVED_20261010_FULL_NAMES.md` have SHA
@@ -75,6 +83,28 @@ analyzer/native validators. CPU audit passed; baseline native/router/launcher
 regression suite70tests passed in7.699s,4-GiB/zero-swap scope. No performance repeat.
 
 ## Exact next action and remaining scope
+
+D433 CLOSURE BACKED UP / PRIVATE OBJECTS RECLAIMED2026-10-11. Main
+77e02e01e7f18540ef38d0831ee8912aa88e9edb andbaseline
+4ab3d2c5f6fbe336f864bf4862bcf052e570867b pushed,bothremoteSHAsverified.
+Exacttaskfilesonly,37tests/576sourceSHA/diff/secretschecks passed.
+ReclaimedONLY /tmp/tc-d433-7bs/remote_artifacts/objects after retainedoriginal
+bytes/index/distinctinodes,symlinks/mounts/metadataSHA/openreference/futureconfig
+checks;5000files12985984450payloadB,freed13004427264B,diskafter163267284992B.
+Allraw/receipt/journal/remoteimmutablecache/uniquepool retained;old576manifest
+unchanged/reverified. Unreadable sameUIDproc2628/4156156/4157313 disclosed,
+notcomplete systemwideproof. Cleanupaux0007exactInvocation
+94540ff633c244f588e3b2a85735e789/emptytree checked/stopped. Filehashinghad6937
+memory.high events/peak3221749760B AFTER GPUrun,max/OOM/swap0,notperformance
+interference. Allownedauxclosed;freshcompute census empty,noGPU/remotejob.
+147protectedentrieszerochangeaftercleanup;receiptcuratedstorage/
+20261011_d433_download_cache.json. Latestuserbaseline-no-optimization rule
+persisted inbothAGENTS/status/newBASELINE_EXECUTION_RULES_20261011.md;
+sourcePLAN/frozenmetrics/historicalidentities unchanged. No algorithmchange.
+NEXT freshmandatoryfullPLAN/STATUS/V1/V2/newrule/resourcegates -> original1000
+S-LoRAcompatibility unchangedD432/D433nativeconfig ->onefull4000W0. No100/500
+repeat,baselineperformanceoptimization,oldsealedW0repeator3Bjump. Allremaining
+scopeOPEN/fullgoalACTIVE. Cleanup/rulebackup pendingatthisentry;notnewexperiment.
 
 D433 TERMINAL/AUDITED2026-10-11,actualreleasebefore22:07:37Asia/Shanghai.
 No liveGPU/remotejob;do NOT restart. All500 offered/submitted/terminal/native/
