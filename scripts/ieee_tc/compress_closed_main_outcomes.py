@@ -14,6 +14,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+import re
 import stat
 import subprocess
 import sys
@@ -107,6 +108,17 @@ def require_closed_launch(launch: dict, *, allow_closed_failure: bool = False) -
     raise RuntimeError('failed/unknown launch requires explicit closed-failure eligibility')
 
 
+def evidence_paths(raw: Path, remote_monitor_log: str | None = None) -> tuple[Path, Path]:
+    """Resolve only an explicit closed run's outcome or adjacent final monitor log."""
+    if remote_monitor_log is None:
+        return (raw / 'launch.launch/physical_deployment/main_outcome.json',
+                raw / 'compression_receipt.json')
+    if not re.fullmatch(r'remote_monitor_[A-Za-z0-9_]+_final\.log', remote_monitor_log):
+        raise ValueError('remote monitor must be a final-log basename, not a path')
+    source = raw.parent / remote_monitor_log
+    return source, source.with_name(source.name + '.compression_receipt.json')
+
+
 def main(*, allow_closed_failure: bool = False) -> int:
     if OUT.exists():
         raise RuntimeError(f'refusing a second cleanup run: {OUT}')
@@ -117,7 +129,9 @@ def main(*, allow_closed_failure: bool = False) -> int:
         for target in TARGETS:
             run = target['run']
             raw = RAW_ROOT / run
-            source = raw / 'launch.launch/physical_deployment/main_outcome.json'
+            source, item_receipt = evidence_paths(raw, target.get('remote_monitor_log'))
+            if item_receipt.exists():
+                raise RuntimeError(f'evidence already has a compression receipt: {source}')
             archive = source.with_suffix(source.suffix + '.gz')
             launch = json.loads((raw / 'launch.json').read_text())
             require_closed_launch(launch, allow_closed_failure=allow_closed_failure)
@@ -152,7 +166,7 @@ def main(*, allow_closed_failure: bool = False) -> int:
                            first_roundtrip_sha256=first, second_roundtrip_sha256=second,
                            removed_uncompressed_duplicate=True,
                            allocated_bytes_reclaimed=original_stamp['blocks'] * 512 - archive_stamp['blocks'] * 512)
-                write_json(raw / 'compression_receipt.json', dict(kind='lossless_closed_outcome_compression_v1', **row), exclusive=True)
+                write_json(item_receipt, dict(kind='lossless_closed_outcome_compression_v1', **row), exclusive=True)
                 rows.append(row)
             except Exception:
                 if archive.exists() and not source.exists():
@@ -181,6 +195,8 @@ if __name__ == '__main__':
     parser.add_argument('--closed-run', action='append', default=[],
                         help='Explicit relative campaign/run path; no directory scan')
     parser.add_argument('--receipt', type=Path)
+    parser.add_argument('--remote-monitor-log', action='append', default=[],
+                        help='Explicit final monitor basename per --closed-run; same campaign only')
     parser.add_argument('--allow-closed-failure', action='store_true',
                         help='Archive explicitly named failed attempts after verified release; retain failure status')
     args = parser.parse_args()
@@ -188,19 +204,28 @@ if __name__ == '__main__':
         parser.error('--closed-run and --receipt must be supplied together')
     if args.allow_closed_failure and not args.closed_run:
         parser.error('--allow-closed-failure requires explicit --closed-run paths')
+    if args.remote_monitor_log and len(args.remote_monitor_log) != len(args.closed_run):
+        parser.error('supply one --remote-monitor-log per --closed-run')
     if args.closed_run:
         if len(set(args.closed_run)) != len(args.closed_run):
             parser.error('duplicate closed-run path')
-        for run in args.closed_run:
+        for index, run in enumerate(args.closed_run):
             path = Path(run)
             if path.is_absolute() or len(path.parts) != 2 or '..' in path.parts:
                 parser.error('closed-run must be an explicit campaign/run relative path')
             if not (RAW_ROOT/path).resolve().is_relative_to(RAW_ROOT.resolve()):
                 parser.error('closed-run escapes the raw result root')
-            if (RAW_ROOT/path/'compression_receipt.json').exists():
+            try:
+                _, item_receipt = evidence_paths(RAW_ROOT/path,
+                    args.remote_monitor_log[index] if args.remote_monitor_log else None)
+            except ValueError as error:
+                parser.error(str(error))
+            if item_receipt.exists():
                 parser.error('closed-run was already compressed')
         if not args.receipt.resolve().is_relative_to((ROOT/'paper_results/ieee_tc/storage').resolve()):
             parser.error('receipt must be inside the curated storage directory')
-        TARGETS = [dict(run=run, audit_sha=None) for run in args.closed_run]
+        TARGETS = [dict(run=run, audit_sha=None,
+                       remote_monitor_log=args.remote_monitor_log[index] if args.remote_monitor_log else None)
+                   for index, run in enumerate(args.closed_run)]
         OUT = args.receipt
     sys.exit(main(allow_closed_failure=args.allow_closed_failure))

@@ -82,6 +82,34 @@ class ClosedOutcomeArchive(unittest.TestCase):
             self.assertEqual(source.read_bytes(), b'failure evidence')
             self.assertFalse(source.with_suffix('.json.gz').exists())
 
+    def test_monitor_path_is_narrow_and_receipt_is_independent(self):
+        raw = Path('/project/raw/campaign/run')
+        source, receipt = archive.evidence_paths(raw, 'remote_monitor_full1_final.log')
+        self.assertEqual(source, raw.parent/'remote_monitor_full1_final.log')
+        self.assertEqual(receipt, source.with_name(source.name+'.compression_receipt.json'))
+        for name in ('../outside.log', '/tmp/remote_monitor_full1_final.log',
+                     'remote_monitor_live.log', 'remote_monitor_x_final.log/child'):
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                archive.evidence_paths(raw, name)
+
+    def test_monitor_roundtrip_preserves_existing_outcome_receipt(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            run = root/'campaign/run'
+            run.mkdir(parents=True)
+            (run/'launch.json').write_text(json.dumps(self.launch(True)))
+            original_receipt = run/'compression_receipt.json'
+            original_receipt.write_bytes(b'previous immutable outcome receipt')
+            source = run.parent/'remote_monitor_full1_final.log'
+            payload = b'closed remote resource observation\n'*256
+            source.write_bytes(payload)
+            with patch.object(archive, 'RAW_ROOT', root), patch.object(archive, 'OUT', root/'receipt.json'), \
+                    patch.object(archive, 'TARGETS', [dict(run='campaign/run', audit_sha=None,
+                        remote_monitor_log=source.name)]), patch.object(archive, 'no_active'):
+                self.assertEqual(archive.main(), 0)
+            self.assertEqual(gzip.decompress(source.with_suffix('.log.gz').read_bytes()), payload)
+            self.assertEqual(original_receipt.read_bytes(), b'previous immutable outcome receipt')
+
 
 if __name__ == '__main__':
     unittest.main()

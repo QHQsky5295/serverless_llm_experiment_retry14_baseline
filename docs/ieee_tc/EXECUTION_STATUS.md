@@ -1,1089 +1,262 @@
-# IEEE TC execution status — D477 isolated GPU container verified; HydraServe native OPEN
-
-Updated 2026-10-12. This is a current checkpoint, NOT a replacement plan.
-Complete preceding status is byte-identically archived in
-EXECUTION_HISTORY_THROUGH_D461.md (cmp passed), SHA
-6af1969d46e767fe9c5287398d140ff917a6f765ad66ef220e8ac197ea08de7b.
-Earlier D448/D433/D402 histories remain. Historical NEXT/RUNNING entries are
-not current instructions. No evidence or approved task was removed.
-
-## Mandatory authority and evaluation
-
-- Read full /home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md at task start,
-  after compaction and before experiments. Source/approved FULL_NAMES snapshot
-  SHA f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5.
-- Read BASELINE_EXECUTION_RULES_20261011.md. Only PrimeLoRA performance optimization.
-  Baselines permit necessary compatibility/correctness/measurement/safety work,
-  no performance configuration search. Preserve actual outcomes and failures.
-- Before comparison/configuration: read METRIC_PROTOCOL_FROZEN_V1.md and
-  METRIC_PROTOCOL_SINGLE_RUN_V2.md in full. SHAs respectively
-  5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22 and
-  193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d.
-- G1: all4000 native/source/adapter contracts and common joint TTFT/TPOT >=95%,
-  then minimum physical lifecycle GPU-s/request. G2: same + U<=.75 U_ref,
-  then W1/W2 P95TTFT and observed joint-SLO difference. CE supplementary.
-  Single TPOT regression is not failure. Raw unknown numerical flags stay unknown;
-  full input/source/adapter binding is not independent kernel numerical proof.
-- One performance run per frozen execution key; no repeated means/CI/significance,
-  winner filtering or threshold changes. Preserve development/reuse identity.
-- Order: sealed7B PrimeLoRA -> 7B baselines -> comparison/PrimeLoRA optimization
-  ->3B -> ablations/mechanisms/sensitivities. W0 alone does not close W1/W2/G2.
-- Full names PrimeLoRA/ServerlessLLM. No figures before near target, no13B,
-  new SGLang, paper edits, new weights/traces or pool regeneration.
-- Every optimization: logs/history + online primary sources + one falsifiable
-  hypothesis + tests/minimal validation/new full replay. IEEE nine formulas fixed.
-
-## Current action — D477 isolated container witness complete; native HydraServe next
-
-Latest user order remains HydraServe necessary faithful adaptation/results BEFORE
-another PrimeLoRA optimization. D476 is sealed, not repeated. Existing unrelated
-k3s untouched; ownership already answered, do not ask it again. Whole goal ACTIVE.
-
-D477 real rootless GPU-container qualification passed after retaining four
-launcher/containment failures. Podman3.4.4 + NVIDIA runtime1.19 + runc1.3.3,
-official Ubuntu22.04 image80,652,148B pulled once with existing proxy and reused.
-Exact GPU UUID8f51f82e-dce8-22cf-1693-e62b8464f946 only; native nvidia-smi exit0.
-Actual worker in pre-established bounded parent, child memory.max134217728,
-swap.max0,pids.max128; entrypoint affinity2,3,26,27 verified before probe.
-Final parentpeak141168640B,high/max/OOM/swap0; container and exact captured
-pause/unit contexts released. This is NVML only, NOT CUDA/model/LoRA/numerical,
-Kubernetes or whole-service-containment qualification, and no performance row.
-
-Retained failures: direct pull omitted configured proxy/timed out; old Podman
-NoCgroups runtime unsupported; runroot>50chars rejected; actual container CPU
-affinity reset to48CPUs despite outertaskset (contained memory but rejected).
-Correction binds at containerentry BEFORE workload, not after model init.
-No global software/config/driver change, no native HydraServe source change,
-baseline tuning, model/trace/pool creation, remote activity or new figures.
-
-Still only memory/pids delegated to qhq, no cpu/cpuset; sudo-n requirespassword.
-Official rootless kind requires CPUdelegation. Pause automatically leaves parent
-for its own user scope; it was identity-owned/closed, but must count/contain it
-before a real full-service qualification. Do not bypass guard or claim all workers
-qualified from this NVML check. Next inspect actual native platform interfaces/
-isolated orchestration options preserving scheduler/pipeline/consolidation and
-startup overlap. Necessary non-cloud lifecycle port must not fake K8s responses
-or replace HydraServe with barevLLM. If faithful route needs administrator resource
-delegation, report exact minimum coordination; do not mutate unrelated cluster.
-D447 global/local LoRA names and shared/new-layer manager binding still need
-native execution proof. Do not repeat completed NVML/D447/old baseline results.
-
-BASE checkpoint504cd97ac4a50d338fde3ab5c7ed82eddd312ba5 pushed/independentremoteequal;
-3explicitfiles,100source hashes and archive roundtrip verified,5existing CPU smoke
-tests passed,protected147/secrets/diff checks pass. Raw d477_20261012;
-BASE docs/ieee_tc/D477_ISOLATED_GPU_CONTAINER_QUALIFICATION.md and curatedhydraserve/d477.
-All owned container/auxiliary tasks closed; GPUcomputeempty. Existing userdirt preserved.
-Storage reused explicit closed-failure archiver,188305408B lossless recovery;
-failure status unchanged/two roundtripSHAs. Image leaves~150.06GiB: fresh150/100GiB
-and predictedgrowth gates before build; no promise of largeimage/build capacity.
-All W1/W2/G2,3B,dLoRA B6,A1-A5,S1-S13,CE/docs/laterfigures remain required.
-
-## Prior action — D476 sealed; HydraServe isolated qualification resumes
-
-D476 checkpoint complete:22explicitfiles pushed as
-e909ce014d396ff45b72b242aaa19d61ac10197c,independentremoteHEADequal.
-22publication smokechecks pass;source/protected/diff/secrets checks passed.
-AllD476auxiliary scopes exactidentity/actualrecursive-empty closed,high/max/OOM/swap0.
-No GPU orremote tasklive. Usermanifestneverstaged,BASEunchanged,k3suntouched.
-Do not rerunD476/D475/previousaudits. Now HydraServe necessary isolated adaptation
-and nativequalification; no newPrimeLoRAcandidate beforeactualbaseline work.
-
-HydraServe next evidence read this turn: all three BASE D447/reuse/layer documents,
-official README/Dockerfile,resource_manager create_pods/utils deployment/main;
-official NVIDIA CDI,K3s rootless andkind rootless docs checked online2026-10-12.
-Existing user delegated controllers still onlymemory/pids,notcpu/cpuset. Official
-kind/rootless Kubernetes requires appropriate CPU delegation; do not claim a
-GPUcontainer alone proves Kubernetes/workersafety. NVIDIA runtime supports CDI
-names through NVIDIA_VISIBLE_DEVICES even with non-CDI-native engines,so old
-Podman3.4.4 alone is not disqualification. No globalruntime/config/clusterchange.
-Next bounded project-owned actual container/GPU/resource qualification with
-explicit capture/cleanup; firstrecoverstorage above150GiB. D140prefix1 remains
-139179561B plaintext,launchfalse butactualreleased/servicegone,eligible for the
-existing explicit closed-failure lossless archiver after ownership/refchecks.
-This is a possible narrow storage recovery,NOT permission to erasefailed evidence;
-large backend/image work still needs measuredgrowth/headroom,notjust29MBfloorfix.
-No imagepull/containerstart/build/newmodel orGPUqualification yet thisturn.
-Keep official modifiedvLLM/pipeline/consolidation; necessaryLoRAlayer/managerbinding
-adaptation stillOPEN. Do not substitute a fake K8s API/barevLLM as completeHydraServe.
-Feishuconfigabsent,notificationnoop. WholegoalACTIVE; no taskstillrunning.
-
-### D476 sealed result
-
-D476 finished once; actual GPU release/service removal verified, captured owned
-start/aux and remote services/monitor closed. All4000 original source/input/adapter/
-native/dispatch contracts pass,458224 tokens,132IDs; D435 independent witness matches.
-Raw independent numerical correctness remains unknown. Joint3897/4000=.97425,
-TTFT3920/TPOT3968; U10778.448802226456,R2.694612200556614,
-P95TTFT2315.363335656002ms,meanTTFT1033.092619146337ms,
-P95TPOT53.0948800034821ms,meanE2E4786.376240576734ms.
-19CPU preparations/18activated/1unused allreturn0;14actual-release-before-replacement
-lifecycles verified.1initial+17natural allengineReady.132remote/131480060wireB/pack0.
-4030watchdogsamples,peak23776821248B,high/max/OOM/swap0;147protectedpass.
-SourceSHA450631019b24007939276f211683893e80ff938c48b4fad4024bd70ef9f75bd1.
-Matched103refs pass,alloldrows retained. VsD472 R-1.1574%,joint+2.25pp,
-P95TTFT-29.5174%;vsElasticLocality R+8.9534%,joint+1.65pp,tail-4.3479%.
-W0 feasible/resource-improved observation,NOT global optimum/W1/W2/G2.
-Samebackend outputdigest changes211/201/206/196/190vsD371/D453/D458/D465/D472,
-causeunknown. No numerical/causal/significance extrapolation. SeeD476_FULL_W0_RESULT.md.
-
-Lossless main_outcome archive passed two independent roundtrip SHA checks,
-507985920B reclaimed; original SHAade857b6c02fd3a00025ca99e7f4c208318c9a7e317a0441955ac3f4b4f34ea5.
-Finalverification passed103source refs/protected147,zero watchdogwarnings;
-2inotify warnings retained,impactunknown. Free161032241152B remains just below
-150GiB new-heavy floor; recover verified space before container/build/native work.
-Frozen close_postrun helper restored byte-identically; extended auxiliary closure
-uses separately recorded close_postrun_extended.py, no frozen input hash rewrite.
-Next explicit Git backup; then HydraServe isolated necessary adaptation/native qualification,
-NOT another PrimeLoRA optimization candidate. Existing k3s stays untouched.
-No baseline tuning,figures,newdata orrepeat. Fullapprovedscope/goalACTIVE.
-
-## Prior action — D476 original4000 running
-
-## 2026-10-12 user question and execution-order correction
-
-Latest explicit user instruction, received during D476 at22:07CST: complete
-HydraServe adaptation and obtain results, compare all baselines, THEN optimize
-PrimeLoRA. This now explicitly confirms the sequence correction below.
-Read BASELINE_COMPLETION_ORDER_20261012.md; AGENTS.md links it as mandatory.
-No further PrimeLoRA candidate before HydraServe qualification/result work.
-Current D476 continues once to closure/audit/save; all metrics and fullscope stay.
-
-The user added: explain what the current experiment tests and why PrimeLoRA
-optimization resumed before finishing baseline adaptation. D476 is one full W0
-evaluation of the already-qualified D474 HOST-execution consumer projection;
-not a baseline experiment or formal ablation. Seven-B W0 observations for
-ServerlessLLM/vLLM/S-LoRA/Loquetier/ElasticLocality are sealed, but HydraServe
-native GPU/LoRA/pipeline/consolidation qualification is still incomplete.
-The preceding choice to prioritize PrimeLoRA optimization deferred HydraServe;
-this is an execution priority choice, not proof that baseline work is complete
-or that Kubernetes ownership is still awaiting user input. Existing k3s is not
-for this project and remains untouched. No global-best claim is justified.
-
-Execution correction in response to this question (not a new performance rule):
-finish this already-running D476 once, verify actual release, close only owned
-resources, audit and preserve its result, then return to the approved HydraServe
-necessary isolated adaptation/native qualification BEFORE another PrimeLoRA
-optimization candidate. Do not repeat sealed baselines or tune their performance.
-Complete comparisons remain conditional on faithful qualification. Thereafter
-use the fuller comparison to direct PrimeLoRA G1/G2 optimization; all W1/W2,
-3B, dLoRA B6, ablations, mechanisms and sensitivities remain required.
-Frozen metrics, formulas, single-run rules and resource protections unchanged.
-No live run was stopped, restarted or modified by this priority clarification.
-
-### Live monitoring evidence
-
-2026-10-12 22:04:03 CST: exact captured service InvocationID still active;
-3691arrived/3689completed/3689successful/0failed of4000,1runtime.
-3561watchdogsamples,high/max/OOM/oom_kill0,warningfalse,abort/foreign/escapedempty.
-Disk158310121472B runtime-safe,below new-heavy-startfloor. Continue same run.
-
-Latest verified wait 2026-10-12 21:50:43 CST: same exact captured service
-InvocationID2917456c2e5b4cbc9d4e8a624c194300 active;3059arrived/3057completed/
-3057successful/0failed of4000,4runtimes. Repeated bounded40–45s waits since
-21:30:48 verified uninterrupted progress through half and three-quarter points.
-2773watchdogsamples,high/max/OOM/oom_kill0,warningfalse,abort/foreign/escapedempty.
-Disk158786117632B remains runtime-safe but below new-heavy-startfloor.
-No replay/config/production change,secondexperiment,analysis,compression,push
-orremote maintenance. FullPLAN/status/rules/monitor-experiment read thisturn.
-Continue exactsame run until terminal; do not restart or infer finalSLO from
-partial counters. Then actualrelease/ownedclosure/audits as recorded below.
-
-Latest verified wait 2026-10-12 21:29:30 CST: exact captured service InvocationID
-2917456c2e5b4cbc9d4e8a624c194300 active; same tmux tc-d476-hostexecw0 live.
-1441 arrived / 1436 completed / 1436 successful / 0 failed of4000;3runtimes.
-Repeated bounded35–45s waits since21:20:51 confirmed continuing originalrun,
-including another natural expansion to4runtimes by21:23:46. No restart/config
-change, new experiment, analysis/test, remote maintenance, compression or push.
-1517watchdog samples;high/max/OOM/oom_kill0,warningfalse,abort/foreign/escapedempty.
-Disk159690739712B above100GiB runtimefloor,below150GiB new-heavy-startfloor.
-Read fullPLAN/status/baseline rules and monitor-experiment skill. Previous and
-current turns are verified waits on actuallivehandle, not blocked or complete.
-Next monitor this exact execution to terminal; only then verify actualrelease,
-use existing captured-identity closure, full audits/comparison and storage work.
-No finalSLO/performance conclusion yet. Whole goal ACTIVE/fullscope retained.
-
-Latest verified wait 2026-10-12 21:19:49 CST: same captured service InvocationID
-2917456c2e5b4cbc9d4e8a624c194300 active, tmux tc-d476-hostexecw0 live.
-821 arrived / 816 completed / 816 successful / 0 failed of4000. Repeated bounded
-40–50s waits verified progress from425completed at21:13:39. Natural controller
-shrunk to1runtime by21:17:06 and expanded to4 by21:18:02; no restart or config
-change. These observations are not final SLO or physical-lifecycle qualification.
-Watchdog944samples, high/max/OOM/oom_kill0; warningfalse, abort/foreign/escapedempty.
-Disk160056786944B remains above100GiB runtimefloor but below150GiB new-startfloor.
-No analysis/tests/cleanup/compression/push/remote maintenance/second experiment.
-Read full PLAN/status/baseline rules and monitor-experiment skill this turn.
-Next continue monitoring this exact run, then terminal/context-release verification
-and existing owned closure/audits. No repeat D475/953CPU/D473/sealed baselines.
-Whole goal ACTIVE; 7B optimization and all remaining approved scope stay OPEN.
-
-Latestverifiedwait2026-10-12 21:09:13CST:samecapturedserviceInvocationactive,
-tmuxstilllive,154arrived/150completed/150successful/0failed of4000;2runtimes.
-Earlier21:06:47was51/47,21:07:50was92/90. Bounded50s waitsconfirmedprogress,
-notrestart. Watchdog317samples,high/max/OOM0,warning/abort/foreign/escapedempty.
-Disk160598331392B below150GiBnew-startfloor,above100GiBruntimefloor;
-continuesamerun,nonewheavy orlivecleanup. NofinalSLO/resourceconclusionyet.
-
-D476 started2026-10-12~21:03:51CST frompushed
-db44e8f068eb30c69466f32ad3d147ffbc45f9e2;independentremoteHEADequal.
-6explicitfiles/source/secrets/protectedchecks passed;CPU1/qualification2/backup3
-exactidentityactual-emptyclosed,high/max/OOM/swap0. Prelaunchdisk161528020992B,
-required161061273600B;freshpreflightpass/noissues. Nativeoriginal4000 in
-tmux tc-d476-hostexecw0;raw
-/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d476_20261012/7b_full_w0.
-At21:05:09samecapturedserviceInvocationactive,3arrived/2completed/0failed,
-76watchdogsamples,high/max/OOM0,noabort/warning. ThisisprogressnotfinalSLO.
-Actualserviceunit primelora-tc-svc-8aac4661cf2d409aa352d64634c2a3ba.scope,
-Invocation2917456c2e5b4cbc9d4e8a624c194300,inode23540449.
-Startauxd476...0004 Invocationd85b2b002f2d403c80ed275e48f01d12,inode23540207;
-actualauxfc419e7d651d410daa51f5c2a144f796 Invocationc83576a96f5b4f0ca39c32415f419739,
-inode23540407. Capturedlaunch_gate/service_aux_identity;leaveactiveuntilclosure.
-Remoteownedservices+monitor primelora-artifact-monitor-d476-hostexecw0.service
-ACTIVE,monitorInvocation2ef00e4d714a40bc962310f5e4a83e89;actual1000Mb/s/full,
-D78/D80readonlyobjectsreused. No maintenance/hashscan/downloadtest/analysis/
-compression/Gitpush/secondexperimentwhileperformanceactive.
-Nextmonitorthissameexecution,neverrestartbecauseobservationtimeout.
-Afterterminalverifylaunch/pass/actualcontextrelease/servicepathremoved,then
-RAW/close_after_release.py inboundedcollectionscope;existinghelperchecks
-capturedidentitiesandactualrecursiveempty BEFOREownedremote stop/download.
-RAW/close_postrun.py collection closescollectionfromreceipt. ThenreuseD472
-fullsource/physical/CPU-lifecycle/commonSLO auditsandmatchedcomparison.
-FullresultdecidesD474hypothesis;oldrowsremain,wholegoalACTIVE,notcomplete.
-
-## Prior action — D476 original4000 preparing
-
-PreviousgoalturnPROGRESS:D475native100actuallycompleted,audited,backedup,closed.
-Read fullPLAN/status/rules/V1/V2 andrun-experiment/github-sync skills.
-CurrentproductionunchangedfromD475/D474qualifiedcandidate. D476config exactly
-D472exceptexclusiveoutput/NVMe/HOSTpaths;original4000,noobserver/prefix/newinput.
-Onlyexplicitwrappercase+2configurationtests.22replay/configchecks passed,
-0failure/error/skip;11existingguardchecks reused. Full4000exactindependentD435
-input/source/native100qualificationand147protectedverified. CPU1/qualification2
-exactidentityactual-emptyclosed,high/max/OOM/swap0. Nextbackup,thenonefullW0run.
-D475notrepeated;alloldresultsretained,no baseline tuning orfigures.
-Mainline7B optimization;W1/W2/G2/3B/remainingmatrixOPEN,wholegoalACTIVE.
-
-## Prior action — D475 native100 passed; full4000 NEXT
-
-D475 executedoncefrompushedaa574372f1a0cb64da665aa14e3abd071081e99a.
-100/100 originalinput/source/adapter/native/dispatch contracts,17369tokens,
-100commonjointSLO;meanTTFT683.487406/P951493.652459ms,
-meanTPOT28.758638/P9535.998760ms;physical334.04601096594706GPU-s.
-HOST16records=13residency+3handoff;dispatchGPU57/HOST6/NVMe8/remote29.
-Remote29fetch/50650865wireB,pack0,actual1000Mb/s/full;D78/D80reused.
-IndependentD435HTTPinputwitnessmatches100. D471samebackendoutputdigests
-differ8/100,identitiesretained/causeunknown;rawnumericaln_correctnull unchanged.
-ShortprefixNOTfullW0/G1/G2 orperformancehypothesisacceptance.
-
-4CPUpreparations,2activated(1initial+1natural),2unusedabandoned,allreturn0.
-UUID/birth/permission/servicegroup/actualphysicaljournalsaudited;no midrunreplacement.
-Prepermissionnativecensusesclear butdonotexcludealltransients.262watchdogsamples,
-servicepeak13100134400B,high/max/OOM/swap0. ActualGPUrelease/servicepathremoved
-BEFOREidentity-ownedremote3unitsstopped;remotejournaldownloadSHA verified.
-CPU1/qualification2/backup3/start4/actualaux/collection5/analysis6/lifecycle7/
-curation8/contract9 exactidentity actualrecursive-emptyclosed;notasklive.
-147protectedpass;user manifest/baselines/unrelatedk3suntouched;nofigures/newinputs.
-SourceSHA849643a8801b0332f9e92bc2dd6c432df0844e0ff6deea606b62cbe28e5a9cc2.
-SeeD475_NATIVE_VALIDATION_RESULT.md;rawD475,curatedd475_host_execution_native.
-Resultbackedup:c3f09ad86420a55b163b51d7f589b04c4d4bd4d8,independentremoteHEADequal.
-Firstpushremotecommit_refs failure retained;onlysamefast-forward retried,notcommit
-orexperiment. Backup-resulta/publicationb exactidentityactual-emptyclosed,all11
-D475auxiliarytasksfinished. FinalverificationSHA
-d693d8a3cc2e451c202e170c170bd93f55c1d80a7f9afbeaa465f3284da5ba14.
-6explicitresultfiles/source/protected/secretschecks pass,user manifestneverstaged.
-NextD476 new-keyoriginal4000unchangedD472settings;not yetconfiguredorlaunched.
-Do notrepeatD475/953CPU/D473/oldfullruns. Latestdisk161530167296B,freshgate.
-WholegoalACTIVE,7Bnotoptimum;allotherapprovedscope remainsOPEN.
-
-## Prior action — D475 native qualification preparing
-
-Read full PLAN/status/baseline rules/V1/V2; run-experiment and github-sync skills.
-D474 checkpoint55d7df5 retained with953CPUtests; do not rerunthatqualification.
-Only new D475 config/output/cache identity and explicit original100wrappercase,
-plus2configcontracttests. All model/lifecycle/profile/controlsettings exactlyD471.
-Reuse originalseed42trace,pool,D78/D80readonlyremote,resourcegate andclosure.
-No new production optimization,threshold/formula/baselinechange orfigure.
-22replay/configtests passed,0failure/error/skip;11existingguardchecks reused.
-Original100exactprefix/full4000independentinput,sourceSHA and147protectedpass.
-CPU1/qualification2actual-emptyexactidentityclosed,high/max/OOM/swap0.
-Nextbackup,thenoneoriginal100nativequalification.
-Ifqualified,one new-keyoriginal4000D472settings; shortprefixisnotG1/G2performance.
-Userk3sclarificationalreadyrecorded;unrelatedclusteruntouched,HydraServelaterisolated.
-Disklast161555570688B;fresh150/100GiBgatesrequired. WholegoalACTIVE.
-
-## Prior action — D474 exact HOST execution consumer proof; native validation NEXT
-
-Read full PLAN/status/rules/V1/V2. D473 retained diagnosis reused,not rerun.
-Online officialvLLM0.30 core/worker,PyTorch2.13Memory andCPU-overheadreport checked;
-vLLM/optimize-for-gpu skills used only for execution boundaries,not generic targets.
-Onlyproductionchange: `_queue_ieee_native_host_preparation.execute` observes the
-existing live source_identity_snapshot instead of full source_snapshot. Initial
-D463ownerquery remains; everyexecution stillqueriesfreshidentity/epoch. No cache,
-newendpoint,formula/config/generation/thresholdchange orbaseline tuning.
-
-This is NOT mechanical extension of D463: exact consumer review now covers the
-conflict/supersession branch. NativeSourceSnapshot alreadyacceptsreadiness-only;
-supersession consumesidentity+confirmedfilecopies,notfootprint/capacity. It cannot
-produce a serviceclass. Actualprepare retains fresh physical inventory/allocator/
-workspace/epoch/source checks andfilelocks/leases/cancel/lostreply handling. Other
-full routing/planning/demand observations unchanged. D329mutation tests retained.
-D465 negativeperformance evidence remains; no predictedmilliseconds/GPU-s saved.
-Hypothesis: reduce unconsumed per-execution physical collection on nativecore,
-not skip real safety. If full replay doesnotimprove,stop this localcandidate.
-
-3newtests +existingaffected suites: red44(41import-discoveredexisting+3new),
-2newdependencyfailures/0errors; rawsource/log preserved. Moduleimportcorrected
-to avoid duplicate TestCase discovery. Candidate350allpass; final953allpass,
-0failure/error/skip,35.240sbody/40.366sincludingdiscovery. CPUfixtures notnative
-GPU/numerical/performance evidence. All3testscopes exactidentity actual-empty
-closed,high/max/OOM/swap0,protected147pass. Rawd474_20261012; newtest
-test_ieee_tc_host_execution_projection.py; seeD474_HOST_EXECUTION_CONSUMER_PROOF.md.
-
-Next verifycuration/backup,thenoriginalD471100 native qualification withnewpaths,
-thenone new-keyoriginal4000withunchangedD472settings ONLYifqualificationpasses.
-No newGPU/remote run yet; no figures/weights/traces/profile/cluster actions.
-D472 remains latestsealedfeasibleW0; candidateperformanceNOTaccepted. Do not
-rerunD473/D472/sealedbaselines ormorepin/importprobes. FullgoalACTIVE;7B/W1/W2/G2/
-3B/HydraServe/ablations/mechanisms/sensitivities/docs remainOPEN.
-
-D474checkpointcomplete:8explicitfilespushedas
-55d7df5fbbb688ac7d234755ba9ea2529b78dfaf;independentremoteHEADequal.
-27currentrefs/24archivedmembers/147protectedverified;953tests pass.
-QualificationSHA794172490e9fa157a1e46ed2806605bd9332e5361ba46474eee306c85cd48f36.
-Curation4/backup5exactidentityactual-emptyclosed,high/max/OOM/swap0;all5D474
-tasksfinished,GPUcomputeempty,remoteunchangedinactive,unrelatedk3suntouched.
-Usermanifestneverstaged,BASEunchanged. Disk161554776064B(~150.46GiB),freshgate
-beforeheavy. Native100andfull4000stillpending;donotrerunCPUtestsorD473diagnosis
-withoutnewcause. NextactualnativequalificationusesD471CPU-preparationconfig,
-notD464(whichlackedCPUpreparation),thenfullD472settingsnewkeyifqualified.
-
-## Prior action — D473 retained residual stages and owner/decode audit completed
-
-No new GPU/remote run, production change, baseline tuning, figure or agent.
-D472 retained4000 twelve-stage E2E identity maxerror0; sealed TTFT/E2E means and
-Type-1 P95 agree. Prior D459/D466/D460 statistics reused, not re-executed.
-ComparedwithElasticLocality meanE2E+902.658713ms,decode+490.501793ms;
-globalacquire-to-resume LESS46.501633ms. ComparedwithD465 decode−0.976499ms,
-gatewait−88.473782ms. CPUpreparation improvedresource but didnotremove decodinggap.
-Do not repeatD466gatecapacitydiagnosis or inferanotherpermit/thresholdfix.
-
-Existingowner/decodeprimitivesappliedonlytoD472:4000requests,15actualservice
-owners uniquelyboundtoTP1GPU/PIDbirthjournals. Meanothernativeoccupancy2.524506,
-NOTkernelbatchsize.45TPOTmisses;33without same-ownerproactiveload,35withpeerprefill,
-25withoutotherstartup. Cannot attributealldecodingloss toloading/startup orsubtract
-overlap spans. Allgroups/sourcebindingsretained;unknownnumericalproofunchanged.
-GPU1623plans/2128attempts/1536loads/524deferred/17missingreceipts;
-HOST1013plans/2427attempts/967loads/1457deferred/3missingreceipts.
-Deferredintervalsunmeasured remainunknown.110existingtimeline/overlaptests pass.
-
-Storageutility nowexplicitlyallowsexactnamedfailedbutclosedruns,notunknownstatus
-orunreleasedowners.6tests pass inclactualgziproundtrip/unchangedlaunch. D93failed3B
-attempt2+D311failed7Bmain_outcome losslesslyarchived;2independentdecompressionSHAs
-each,986513408B reclaimed. Failuresnotpromoted;receipt storage/20261012_d473_closed_failures_lossless.json.
-Afterstorage161602535424B(~150.50GiB);fresh150/100GiBgatesbeforeheavy.
-Analysis1/storage2/context3 exactInvocationID/inode/actualrecursive-emptyclosed;
-peaks406626304/1688469504/831057920B,high/max/OOM/swap0. Pre-execsystemd
-CPUAffinityrejectionretained; AllowedCPUs+taskset retainedsamelimits,actualanalysispassed.
-No GPU/remote taskactive; unrelated k3s untouched. Protected147pass.
-
-ReadD329/D352/D355/D457/D462/D463history andcurrentofficialvLLM0.30worker/
-PyTorch2.13Memory+CUDAHooks. Do notdrop pinning/fences/physicalchecks orcachebyepoch.
-Nextaftercuration/backup: onefocusedconsumer/mutationdependencyreview of native
-controltransactions versusdecodeprogress. No productioncandidateaccepted yet.
-Need exact identity/graph/allocator/staging consumerproofbeforeone new change;
-GPU-hit/no-newweight alone isNOTpermissiontobypassHOST checks. Do notrepeatalready
-implementedoffloads,owner-readprojection,pinquery/importmicrotests orsealedruns.
-See D473_RETAINED_RESIDUAL_DIAGNOSIS.md;rawmain_comparison/d473_20261012,
-curatedmain_comparison/d473_residual. Alloldrows/failuresretained. WholegoalACTIVE;
-7Bnotoptimum,3B/W1/W2/G2/HydraServe/fullapprovedscope OPEN.
-
-D473checkpointcomplete:18explicitfilespushedas
-fedd70afed64c8f1ee754ad6bfd939ce368d6b5d;independentremoteHEADequal.
-42currentrefs/18archivedmembers/147protectedverified,116tests pass;
-manifestSHA1ae413056916c031fb4951d8e8a3bb9fd029e5356d85e2d8ec52aea9a3ca466f.
-Curation4/backup5exactidentityactual-emptyclosed,peaks344551424/343822336B,
-high/max/OOM/swap0. All5D473tasksfinished,noGPUorremotejoblive.
-Usermanifestneverstaged;BASEunchanged. Disk161561788416B(~150.47GiB),freshgate
-beforeheavy. Rawbackup_receipt/closure retainpublication. Do notrepeatD473analysis
-orcompression;nextnativecontrolconsumer/mutationreviewasabove,goalremainsACTIVE.
-
-## Prior action — D472 full audit passed; result checkpoint and residual gap
-
-D472 original4000/native/source/adapter/dispatch audit PASSED; independentD435
-input witness matchesall4000,458224native tokens,132logicalIDs. Existing single-run
-review and matchedD454/D458/D465 comparison passed. 100source refs verified,
-147protected unchanged. SourceSHA
-ea976d22dc103faeac78e030ddfd4afbbe3ea1d342a58855155fdc9d29c9c737.
-JointSLO3807/4000=.95175,7above3800;TTFT3840pass/TPOT3955pass,
-TTFT-only148/TPOT-only33/both12. U10904.660677566892GPU-s,
-R2.726165169391723perboundrequest;meanTTFT1303.724450/P953285.013457ms,
-meanTPOT33.809645/P9557.176180ms;meanE2E5105.544426ms.
-Rawindependentnumericaln_correctnull retained; binding is not kernel proof.
-
-Physical18preparations/18permissions audited,allreturn0;4initialCPUfrontends+
-14afteractualphysicalreturn replacements. Exactlease/UUID/birth/config/owner/
-servicecgroup/timing and 18five-eventphysicaljournals pass;totalagreesphysicalU.
-CPUpreparation10.87–12.96s;prepermissioncensuses13–2398each noownedcontext,
-torch/context/primaryfalseorzero. Samplesdonotexcludealltransients. Firstactual
-acquire0.550sbeforeCPUprepared fullycharged. No unusedCPUprocesses. EngineReady
-separate:1initialready+17naturaltriggers(14ready/3notready),not18ready.
-
-AcceptD472asnextW0feasible/resource-improveddevelopmentcheckpoint,NOTglobaloptimum:
-R−24.7047%vsD371,−8.9483%vsD458;vsD458joint−1.275pp/P95TTFT+15.3694%.
-VsServerlessLLM/vLLM R−32.2261%/−32.3338%,tail/SLOremainworse.
-ElasticLocalitystillbetter:Rgap+10.2292%,joint−0.60pp,P95TTFT+35.7103%.
-VsD465R−9.0076%,joint+.425pp;retainD465nonfeasible and D463's unaccepted
-standaloneperformancehypothesis. No silentrollback,repeat,thresholdchange orbaseline
-tuning. W0budgetratio.902216 isnotW1/W2/G2. Singleobservations,noCI/significance.
-OutputdigestdifferencesvsD371/D453/D458/D465=196/195/205/175,retainedwithoutcause.
-Remote132transfers/131480060wireB,allrequestmatched,pack0;noisolatedW0fetchadvantage.
-4061resourcesamples,servicepeak21431332864B,high/max/OOM/swap0.
-Finalverificationpassed100refs/protected147,watchdogwarnings0;2systemdinotify
-warningsretained,performanceimpactunknown. No measurement/gatechange.
-
-Analysis6/lifecycle_collection7/lifecycle8/curation9/storagea exactidentity actual-
-recursiveemptyclosed;peaks1239212032/313397248/391884800/1062051840/663580672B,
-allhigh/max/OOM/swap0. No GPU/remotejoblive; Kubernetesuntouched.
-Mainoutcome losslesslycompressedwithtworoundtripSHAchecks,reclaimed453611520B,
-uncompressedSHA c3bbc14d7620adfb735789f2162741fb05391e820d80e71ce5f40e60a6913c9a.
-Storage receipt20261012_d472_lossless_compression.json;originalsourcepathmappedto.gz.
-Afterstoragefree160631308288B(~149.60GiB),below150GiBnewheavyfloor:moreverified
-storage recovery is required beforeanyheavylaunch;100GiBruntimefloor unchanged.
-Curatedp2_backend/d472_full_w0;seeD472_FULL_W0_RESULT.md. No figures.
-Nextafterfinalchecks/backup: reuse retained D459–D461/D466 stage/capacity primitives
-to locate remainingD472vsElasticLocalitywithin-arrivaloccupancy/dispatchgap. Do not
-repeatCPUimportmicrotest orD472replay;onefalsifiablehypothesisbeforeanynewchange.
-7Bmainlineactive;3B/W1/W2/G2/HydraServe/fullapprovedscope OPEN,wholegoalACTIVE.
-
-Resultcheckpointcomplete:21explicitfilespushedas
-4a997092a7797e61028ea08579b852e78dd447c6;independentremoteHEADequal.
-22replay/CPUPreparationFullContractsmoketests passed,0fail/error/skip. Source,
-protected147,diff,secrets andexactstagechecks passed;usermanifestneverstaged,
-BASEunchanged. Finalverifyb/backupc exact-ownedactual-emptyclosed,peaks
-386818048/597823488B,high/max/OOM/swap0. AllD472tasksfinished;noGPU/remotejoblive.
-Rawbackup_result_receipt/closure retain publication evidence. No new performance
-run or productionchange inpost-runaudit. Next is residual7Bdiagnosis,not re-audit
-or repetition of D472. Preserve this completed candidate and all prior outcomes.
-
-## Prior execution — D472 original4000 W0 completed and closed; audit then pending
-
-D472 completed2026-10-12~19:45CST. Original4000 replay,service and watchdog
-exit0;launch pass,true nativecontextrelease and servicepathremoved. Terminal
-journal4000planned/4000terminal/4000native-contract-complete. Fullsource/input/
-binding/commonSLO/CPU-preparation-lifecycle audit is still pending; do not yet
-declare G1/G2 feasible or rank it. Raw numerical n_correct remains unknown.
-Source290776740B,SHAea976d22dc103faeac78e030ddfd4afbbe3ea1d342a58855155fdc9d29c9c737.
-Physicaljournal reports10904.660677566892GPU-s,not yet independently audited.
-4061watchdog samples;last terminalcensus clear,service domain gone.
-Captured start/actualaux actual recursive cgroup.procs empty and exact owned
-InvocationID/inode verified BEFORE ownedremote stop; both scopes then inactive.
-Start/actualaux peaks53862400/326639616B,high/max/OOM/swap0. Collection scope
-d472...0005 Invocation113598e7fd424fd6986e06dde484b162,inode23502281,also
-actual-emptyclosed,peak111616000B,high/max/OOM/swap0. No tmux session or
-native GPU compute remains. Both remote services and ownedmonitor inactive,
-portsabsent;downloaded transfer/monitor hashes match remote:
-6fbf77ffb819d787668a8db9f195d1125f84f97a824118456e3c1aba42d4a060 /
-b5ff4d082d71ced8dfd7c6b2298e300d8cad32760cc183dd7548dd93fe9f360f.
-Original helper/receipt inherited native100 wording retained; separate
-completion_annotation.json clarifies full4000 without changing measurements.
-CompletionreceiptSHAb5bc8ed7cd57759814a4a575889c36e59e66c3b93f39ed06e5a0c5e313b103d7.
-Next reuse existing D465 full audit/comparison and D471 lifecycle primitives,
-read full PLAN/V1/V2 before comparison, preserve all prior candidate outcomes.
-No replay repetition or baseline tuning. After audit,lossless closed-evidence
-storage work before any heavy launch:latestdisk160186372096B (<150GiB startfloor,
-above100GiB runtimefloor). Curate findings/checkpoint;7Bmainline remains active,
-3B/W1/W2/G2/remainingapprovedscope OPEN. This turn completed actualrun+closure,
-not the whole goal. Do not keep waiting on the now-terminal replay.
-
-## Prior execution — D472 original4000 W0 monitored without changes
-
-Latest verified wait:2026-10-12 19:22:58 CST,same tmux and exact service
-InvocationID active.3036arrived/3031completed/3031successful/0failed of4000.
-At19:09:51 counters were2026arrived/2023completed/0failed. Repeated bounded
-waits and live scope/log checks confirmed progress past three quarters.
-At18:57:32 counters were1128arrived/1126completed/0failed;this turn repeatedly
-verified continued progress through the halfway point,not a terminal result.
-At18:52:21 counters were806arrived/801completed/0failed,scale_up7/scale_down4.
-Since then the natural controller shrank to one runtime and expanded to four
-again,with continuing request progress. This observes a shrink/re-expand path,
-not yet a verified CPU-replacement lifecycle or final performance result.
-Watchdog warning/abort/foreigncompute/escaped/unresolved empty;memory
-high/max/OOM/oom_kill0. Disk158386814976B,still runtime-safe but no new
-heavy launch. Several bounded50–55s waits verified continuing progress.
-No restart,remote change,analysis or second experiment. Mainline unchanged.
-
-Monitoring checkpoint 2026-10-12 18:47:42 CST: same tmux session and captured
-service InvocationID remain active. Latest live summary:489 arrived/486 completed/
-486 successful/0 failed of4000;scale_up4/scale_down3,2 remaining runtimes.
-This is progress only,not final input/native/common-SLO qualification. Actual
-watchdog reports no unresolved/escaped/foreign compute processes and no abort
-or warning;service memory high/max/OOM/oom_kill all0. At18:46 observed peak
-20075851776B and host available94943330304B. Disk159969828864B (~148.98GiB)
-is above runtimefloor100GiB but below new-heavy-launch150GiB:do not launch
-another heavy job; defer any lossless closed-evidence storage work until release.
-Worker archival label engine_dead appeared during scale-down; retain for final
-exit/lifecycle audit,do not infer a request failure or a benign cause from name.
-No code/config/remote maintenance,analysis,compression or push during replay.
-Completed a bounded45s monitoring wait and verified continued request progress;
-next action remains monitoring this same execution,not restart or same-key rerun.
-
-D472 started2026-10-12~18:36CST frompushed0fd50cccba4f0b623c8abd6cfd5802baea95862a;
-independentremoteHEADequal. 10explicitfiles/checksum/secrets/sourcechecks pass;
-22replay/configtests passed,11existingguardchecks reused,full4000matchesD435
-independentHTTPinput,147protectedpass. CPU/qualification/backup scopesclosed
-actual-empty,peaks313368576/498163712/42754048B,high/max/OOM/swap0.
-Prelaunchdisk161107877888B(~150.04GiB),hostavailable111915737088B;freshguard
-passed,noissues. Nativeoriginal4000 in tmux tc-d472-cpuprepw0; raw
-/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d472_20261012/7b_full_w0.
-InitialengineReadyand4000servingstarted;lastcheckhigh/max/OOM0. No performance
-resultyet,do not comparepartialcounters orlegacy5000ms/CE consoleasfinalSLO.
-Actualserviceunit primelora-tc-svc-3c21d0b3c4974dfd9c4b267ba3097f2f.scope,
-Invocation551e4d3da91a4209af9b873e8facab8a,inode23469612.
-Startauxd472...0004 Invocationd012815a9c2548b5aeff5c423d600105,inode23469370;
-actualauxac4d6fc08549492499b181b7a62f4b8f Invocation1c5e73f6700b477a915dcd3af7e7953b,
-inode23469570;capturedlaunch_gate/service_aux_identity. Remoteownedservices+
-monitorprimelora-artifact-monitor-d472-cpuprepw0.service ACTIVE;leaveunchanged
-duringreplay. RemoteD78/D80readonlyobjectsreused;startuphealthpass.
-No tests/analysis/compression/Gitpush/remote maintenancewhileperformanceactive.
-Afterfinish verifylaunch/contextrelease, thenexistingclose_after_release.py in
-boundedcollectionscope; it checksactualrecursiveempty/capturedidentities before
-stop/download. Its inheritedcompletioncaveatstill saysnative100; preserveoriginal
-helper and labelcorrectionseparatelyafterrun,actualn_planisphysicaljournal4000.
-Thenfullsource/physical/preparation/native/commonSLOaudit,curateandcheckpoint.
-No samekeyrepeat; fullresultdecideshypothesis. CurrentgoalACTIVE,notcomplete.
-
-## Completed — D471 native100 passed; D472 original4000 frozen
-
-D471CPUrepair pushed862ac54bf1eabd9a1a61274a033c4653f64ce1b4,
-remoteHEADequal,12explicitfiles/35publicationchecks. Actualnative100 thenpassed:
-100/100native/source/adapter contracts,17369tokens,100commonjointSLO;meanTTFT
-708.180941/P951823.181388ms,meanTPOT30.208547/P9541.173768ms.
-Physical374.5664273959119GPU-s,NOT completeW0performance or savingsprojection.
-SourceSHAbbdd9be54205396712022edf25ab8a9aafc94c9d761f855f8d8e91f7aadfa88b.
-4fixedUUID CPU preparations aftercommonnotice:2activated(1initial+1natural),
-2unusedabandoned;allreturncode0. Actual journalsacquire/bind/native/exit/release
-andpermissionsmatch;firstacquire0.733sbeforeCPUready fullycharged. Prepermission
-contextchecksfalses/zero;retainednativecensuses12/107/250/250noownedcontext.
-No midrunscale-down/replacement inshortprefix;donotrepeattogettriggercounts.
-27HOSTpreparations23residency/4handoff;29remote/50650865wireB,pack0.
-262samples,peak12906348544B,high/max/OOM/swap0. ActualGPUrelease/servicepath
-removed beforeownedremoteunitsstopped,portsabsent;link1000Mb/s/full.
-Allstart/actualaux exactidentityactual-emptyclosed. Analysis/lifecycle/nativecuration
-peaks405471232/30666752/49704960B,high/max/OOM/swap0,closed. RawD471,
-curatedp2_backend/d471_native_preparation;seeD471_NATIVE_PREPARATION_RESULT.md.
-Rawindependentnumericalcorrectnessnull;nohiddenfallback/numericalclaim/figure.
-
-D472config reusesD465full4000exceptCPUlifecyclepolicy+exclusivepaths. No further
-productionchange afterD471nativequalification. Existingreplay/configtests and
-input/source/147protectedchecks precedebackupandone original4000W0 replay.
-SeeD472_CPU_PREPARATION_FULL_W0.md. FullG1/G2hypothesisstillOPEN;D463retained
-parent/performanceNOTaccepted. Do not rerunnative100, sealedbaselines orimport
-microtests. WholegoalACTIVE;7Bmainline,3B/allremainingapprovedscopeOPEN.
-
-## Previous action — D470 pre-runtime failure retained; D471 CPU correction passed
-
-D46914explicitfiles pushed as68aef590521a3bc3acb0e33a15554871f0715554;
-independentremoteHEADequal,35publicationchecks pass. All4auxiliaries actual-empty
-closed;CPU1/2peaks2461122560/2267176960B,curation327442432B,backup57028608B;
-allhigh/max/OOM/swap0. D469manifestSHA
-ee04ef4ea6034bbfb5cd38c2451a7492b43af8cd0f4cfeb91e00d32ce320298f.
-
-D470original100 guarded native launch failed before preparation/model creation:
-ScenarioRunner service profile model/configuration/context mismatch. New CPU
-startup policy had been placed in model_cfg and changed strict profile identity.
-NO CPU prepared workers or physical allocation launched, no performance point.
-Serviceexit1/watchdog0,actualcontextrelease/servicepathremoved verified. Captured
-start/actualaux InvocationID+inode+actualrecursiveempty closed. Then owned remote
-bothservices/monitor stopped,portsabsent;remote monitor downloaded withSHA.
-Start/actualaux peaks53583872/163807232B;collection45449216B,high/max/OOM/swap0.
-Collection scope also exactidentity/actualempty closed. Rawd470_20261012 retains
-launch/service/remote failure evidence;failed_qualification_closure.json.
-LaunchSHAc85ac3bb217938f0eb7bba263280fb42d13e964fc5eb7ec4a7b3c07d7c42d844;
-service-logSHA454a4a4131516f7a5b2d5f08eac153bedc3d003733e3b0e8ab821d92cd0f5d76.
-Actual link1000Mb/s/full before launch;D78/D80readonlyobjectsunchanged.
-
-D471 moves startup policy to resource_coordination,its actual owner; actualmodel
-config exactlyD464/D465. Original strict service/preparation loaders/profiles/SHA
-unchanged,not an ignored model field or rebadged new measurement. Factory enforces
-explicitpool/policy; old model-levelplacement rejected. New regression usesactual
-D471YAML+bothprofileloaders and exactnativeconfigequality. CPU1:571tests569pass/
-2fixtureerrors (missingserviceprofileassignment andcoord_cfg);originalretained.
-Onlyfixturescorrected;CPU2:571allpass,0fail/error/skip,70.423648s. CPU1/2 peaks
-2456068096/2473689088B,high/max/OOM/swap0;exactidentityactual-emptyclosed.
-Protected147pass. SeeD470_D471_CPU_PREPARATION_CONFIGURATION.md.
-Next curation/protected/sourcechecks,backup,thenD471native100. Not another
-importmicrotest. 7BfullW0 follows only if actualnative qualificationpasses.
-WholegoalACTIVE;D463parentretained/performanceNOTaccepted. Baselines/Kubernetes
-untouched;nofigures,newdata,thresholdchange orperformanceclaim.
-
-## Previous action — D469 original factory integrated; native qualification NEXT
-
-Read full PLAN/status/rules/V1/V2 and vLLM/run-experiment skills. No agents,
-baseline/remote/Kubernetes action, performance replay or figure. Original
-SubprocessInferenceEngineProxy now shares worker input construction for ordinary
-and fixed-UUID CPU-prepared launches. Scenario-owned factory starts bounded
-preparation only after Full qualification/common notice; activation uses original
-runtime factory and physical acquire/bind BEFORE waiting CPUready. No second
-startup framework, latebound mask, fork, threshold/capacity/profile change or
-D463 rollback. D463 remains parent,performanceNOTaccepted. New opt-in policy
-fixed_uuid_cpu_frontend_v1; existing configurations do not enable it.
-Actual physical return/native exit/helper exit precede replacement; final shutdown
-synchronously suppresses refill and joins CPU ownership even on runtime failure
-or cancellation. Popen retained before postspawn birth validation; no fresh-process
-fallback. CPU/helper group validation uses UID/birth/service/session/pidfd;
-unconfirmed ownership stays failure. Main outcome adds preparation/activation
-records; physical integral unchanged. SeeD469_ORIGINAL_FACTORY_CPU_PREPARATION.md.
-
-CPU1:567tests,566pass/1error; old mockwait did not update poll after exit.
-Original retained; corrected fixture only, no guard weakening. Added shutdown
-failure/cancellation/replacement-order tests. CPU2:570allpass,0fail/error/skip.
-These overlapping CPU fixtures are NOT actual native or performance qualification.
-Rawd469_20261012; D470100 config reuses D464 exactly except exclusive paths and
-CPU policy. Wrapper gets one explicit key; no arbitrary output override.
-Next: source/protected/configuration checks and checkpoint -> D470 original100
-native qualification -> once new-key4000W0 only if qualification passes.
-Retain initial/current results; no figures, baseline tuning or SLO change.
-7B optimization/W1/W2/G2/3B/fullapprovedscope OPEN, wholegoalACTIVE.
-
-## Previous action — D468 lifecycle foundation tested; actual factory integration NEXT
-
-Read full PLAN/status/rules/V1/V2; vLLM/run-experiment/github-sync skills.
-No agents, native GPU experiment, baseline/remote action, config change or figure.
-New bounded CPUFrontendPool/PreparedCPUFrontend use inherited one-shot socket
-capability; preparation identity and exact physical acquire/bind must match before
-original worker initialize. Separate cpu_prepared.json from engine ready.json.
-EOF cancels without descriptor CUDA shutdown. Fixed UUID/native TP1/spawn contract;
-no fork, mask latebinding, prebuild toggle, threshold/capacity change or D463 rollback.
-Physical allocation/reducer now recognizes prepared_worker_bind with actual earlier
-birth evidence, not a fake worker_spawn; integral still starts at actual acquire.
-Initial554 CPUtests allpass; four additional worker-control tests and stricter
-native/fixed-output check -> second558 allpass,0fail/error/skip. Publication smoke
-under systemPython exposed eager faaslora.experiment package dependency,4import
-errors(missingnumpy)/9pass; stopped BEFOREstage/commit/push. Keptfailure, no
-globalinstall/testskip. Movednew leaf to faaslora.cpu_frontend and added actual
-isolatedsystemPython import check:final559allpass,0fail/error/skip. Overlapping suites,
-not independent experiments. Real socket/journal fixtures + mocked engine/
-process/census, NOT CUDA or performance qualification. CPU1/2 peaks2299133952/
-1943801856B;CPU3peak2213548032B;high/max/OOM/swap0; exactidentity actualrecursive-empty closed.
-Source snapshots and both logs retained;147protectedpass.
-Rawp2_backend_qualification/d468_20261012,finalcuratedp2_backend/d468_cpu_lifecycle_v2;
-firstcurationd468_cpu_lifecycle retained,not finalsourcequalification.
-seeD468_CPU_PREPARATION_LIFECYCLE.md. Current production main runner/config
-UNCHANGED: no preparation producer/pool hook enabled, no actual prepared native
-process launched. Do not claim this foundation is complete optimization/integration.
-Next: wire original SubprocessInferenceEngineProxy factory and ScenarioRunner
-notice/activation/physicalreturn/teardown to the tested ownership primitives.
-Include postspawn-error ownership and any CPU helper child teardown; do not
-repeat D467import microtest or add another model startup framework. Then minimal
-native qualification -> once new-key4000W0. Never wait CPUready then backdate/omit
-actual exclusive GPU claim cost. D463 retained parent,performanceNOTaccepted.
-7B optimization/W1/W2/G2/3B/fullapprovedscope OPEN; wholegoalACTIVE.
-Publication complete:19explicitfiles pushed as4e8cee275713d0afbdf84051252bcfd4cd699369;
-independentremoteHEAD equal. Finalpublication35smokechecks pass,0fail/error/skip.
-FinalmanifestSHA a08203f0b352fc4896b0c83cce9fcfa5fcca7e8dd5c94fa832e76f6e6634622d.
-All7D468auxiliaries exactidentity actual-emptyclosed;curation1/failedbackup/
-curation2/finalbackup peaks49254400/47644672/46444544/52023296B,
-allhigh/max/OOM/swap0. GPUcomputeempty,remoteunchanged,BASEunchanged,
-usermanifestneverstaged. Beforethispost-pushnoteonlytrackeduserdirt.
-Disk161166893056B(~150.10GiB),freshgatebeforeheavy. NoactiveD468task remains;
-nextturn continuesoriginalfactoryintegration,not morestandaloneimport microtests.
-
-## Previous action — D467 fixed-UUID CPU frontend boundary qualified
-
-Read full PLAN/status/rules/V1/V2 after compaction; vLLM/run-experiment skills,
-github-sync for backup. No agents, production request-path/config changes,
-baseline tuning, weights/trace/pool creation, remote actions, replay or figure.
-Extend existing preflight only with backend-frontend-check and13 CPU tests.
-D337/D338/D339/D340/D341 andD466 reviewed; no import-deletion/fork/prebuild retry.
-Official v0.30 multiprocessing/platform/core-manager/core-client source downloaded
-and hashed; web tool429, direct public primary-source fetch succeeded.
-Native fresh interpreter retained startup hook and fixed actualNVMLindex0 UUID;
-torch2.13.0+cu130/vLLM0.30.0,originalD465config. All5pre-initialize checkpoints:
-torch CUDA false,currentcontext0,primaryactive0. Descriptor.engineNone;
-nativeplatform UUIDsame/one device/SM86/spawn. No engine/weights/core instantiated.
-Existing2Hummingreapers/4OStasks retained,not new finding orfork permission.
-22resource samples/24GPUcensuses allnoownedGPUcontext,observedservicepeak
-1488506880B,hostminimum110324412416B,high/max/OOM/swap/warnings0.
-Actualservice/watchdog exit0, servicepathremoved. CPU1/native2 auxiliaries
-capturedInvocationID/inode/actualrecursiveemptyclosed,peaks2482601984/88182784B,
-allhigh/max/OOM/swap0. No task live. Originalfailure retained:272CPUtests run
-underLLMconda,268pass/2fail/2error;fourPID-fd protectiontests require qualified
-systemPython. Rerunonly4with/usr/bin/python3 passed4/4, no test/guard weakening.
-Actualnativeguard also systemPython.272distincttests nowcovered;not272passfirstattempt.
-Curatedp2_backend/d467_cpu_frontend,rawp2_backend_qualification/d467_20261012.
-SourceSHA b3a6949d6287423f4dc6f3b6b3bbeac17757017e0f5f23ac0df9670544c67391.
-SeeD467_FIXED_UUID_CPU_FRONTEND.md. 147protectedpass;nohistoricaloverwrite.
-Decision: CPU preparation boundary viable, NOT actualpreparation/lifecycle/model/
-performance qualification. Sampledcensus/checkpoints do not excludealltransients;
-sitecustomize ranbeforefirstinternalcheck. No inferredTTFT/GPU-s saving.
-NextD468: implementboundedfixed-UUID CPU preprepare afterdeploymentnotice in
-servicebudget, then actualfreshspawncore onactivation. SeparateCPUready/engineReady,
-actualallocation/bind/birth,exclusiveclaimcost,cancellation/release. Do not latebind
-cached device mask, fork, useGPU sleepasfree, repeatimportmicrotest orshiftaccounting.
-RetainD463ascurrentparent,performanceNOTaccepted;no bundledrollback orconfiguration
-change. Lifecycle tests/minimalnative thenone new-key4000;7Btarget stillOPEN.
-Publication complete:16explicitfiles pushed as767e4d417eaad567595d209b43cd611a9dbdac1e;
-independentremoteHEAD equal.22publication smokechecks passed,noerrors/failures/skips.
-ManifestSHA f9578bf70a38734ec0e63c19b20b627a7ac7fc2de0e31f7c245fa7bc56a866cb.
-Curation3/backup4 exact-ownedactual-emptyclosed,peaks46628864/48877568B,
-allhigh/max/OOM/swap0. AllD467tasksfinished,GPUcomputeempty,remoteunchangedinactive.
-Usermanifestneverstaged,BASEunchanged;beforethispost-pushnoteonlytrackeduserdirt.
-Latestdisk161191510016B(~150.12GiB),freshgatebeforeheavy. WholegoalACTIVE.
-
-## Previous action — D466 retained dispatch/capacity diagnosis completed
-
-Read full PLAN/status/rules/V1/V2 after compaction; analyze-results and
-optimize-for-gpu used, github-sync for checkpoint. No agents, GPU/remote work,
-production change, baseline tuning, replay, new trace or figure.
-Reuse exact existing stage/gate/sample-capacity primitives on D458/D465.
-All4000 each matched; gzip archive and uncompressed SHA verified; all ready/
-unready epochs retained. 40 existing timeline tests pass,0fail/error/skip.
-D465 twelve additive E2E stages reconstruct with0ms error.
-Mean acquire-to-resume167.527716->398.142408ms (+230.614692);
-release-to-acquire26.876311->30.469443; runtimewait249.701038->251.501636.
-Nativequeue/prefill slightly lower,decode3636.602183->3594.094365ms.
-Fixed500-request phases1/2(zero-based) jointmiss100->158;all142->210.
-Control samples1914/1915; waiting25/43; definiteownerscovercapacity6/16.
-AtD465 offset1077.442417s readycapacity14,definiteowners14,queued27,pending3.
-This sample is actually full; uncovered lower bounds do not prove vacancies.
-D465 scaleddown888.855626/936.325544/995.810405s toone ready;D458 retainedtwo
-after988.567386/1052.589883s. D465 triggeredearlier1067.155597s andfirstnewready
-1112.931743s(vsD4581120.092198),yetqueuedmore. Not simply slowerstartup.
-Longest20.276057s wait req01005 resumed1100.513270,beforeanynewready;overlap
-does not mean waiting for that activation. No isolated causal claim.
-SeeD466_RETAINED_DISPATCH_CAPACITY.md;rawmain_comparison/d466_20261012,
-curatedmain_comparison/d466_dispatch_capacity. Analysis1/context2 exact-owned
-actual-emptyclosed,peaks406347776/618795008B,high/max/OOM/swap0;protected147pass.
-No repeatedD465 orsame-tail taxonomy. D463 stillpresent,performanceNOTaccepted.
-Next focusedquestion: feasibility of CPU-only frontend initialization before
-fresh GPUowner/core creation,within servicebudget/notice contract. ReuseD338
-evidence,inspectCUDA/device/init/cancel lifecycle first; not importdeletion,
-forkafterCUDA,sleep-as-free-GPU,threshold/capacity sweep orblindprocesspool.
-No productioncandidate accepted orqualified yet. WholegoalACTIVE.
-Curation verified32currentrefs/23archivedsource-or-projectionmembers and147
-protectedentries.11explicitfiles pushed as31ded1b4536f68ff66ee628d8e4e186643c79d03;
-independent ls-remote equalslocalHEAD. No protectedusermanifest/baselinechanges.
-Firstbackup stopped at generic *.log ignore rule,after staging10intendedfiles;
-no commit/push. v2 verifiedexactstage and explicitly added only the98-byte
-curated40-test log; no broadforce-add/ignorechange/replay. Originalhelper and
-failure retained. Curation3/backup4/backup5 exact-ownedactual-emptyclosed,
-peaks325193728/325115904/329953280B,high/max/OOM/swap0; allD466tasksfinished.
-GPUcomputeempty,remoteunchangedinactive. Disk161196695552B(~150.13GiB),fresh
-gate required. Rawbackup_v2_receipt/backup_v2_closure record finalpublication.
-
-## Previous action — D465 completed, hypothesis not accepted
-
-D465's single full4000 W0 finished on2026-10-12, native service and watchdog
-exit0. GPU release and service-path removal confirmed before remote shutdown.
-The original4,000 input/source/adapter/native/dispatch contracts pass,458224
-native tokens,132 logical IDs. Independent D435 input witness matches all4000.
-SourceSHA cb83dc960641a164be351680c8d69a54873491186eb1825b48afc0407393dd91.
-Execution checkpoint601bcd39da9bf61c496494dcdccd6e407ea669a4 was pushed before
-launch. Config equalsD458 except paths; production onlyD463 owner-read change.
-No repeat, threshold/trace/formula change, baseline tuning or figure.
-
-Observed jointSLO3790/4000=94.75%, below3800 gate. TTFT3827pass,TPOT3937pass;
-TTFT-only147,TPOT-only37,both26. U11984.14842888806 GPU-s,per-bound-request
-2.996037107222015. MeanTTFT1397.647701/P953519.901199ms,meanTPOT33.982953/
-P9559.220341ms,meanE2E5204.356846ms. VsD458 GPUtime+0.0652%,joint−1.70pp,
-P95TTFT+23.6187%. Mean dispatch/admission wait753.010 vs513.687ms; service
-TTFT644.638 vs632.065ms. Additive location is not causal proof.
-W0budgetratio0.991529 does not rescue failedSLO or establish W1/W2/G2.
-DECISION: do not acceptD463/D465 as a demonstrated performance improvement.
-D458 remains the prior feasible checkpoint,not a hidden replacement forD465.
-D463 source still present; no silent rollback or new performance claim.
-Next reconcile retained queue/activation timelines withD459–D461 before one new
-causal hypothesis. No repeated owner-read microtest/prefix/full without new
-evidence; do not get stuck in this narrow optimization.
-
-1129HOSTqueue=1006residency+123handoff.1initialready,21naturaltriggers18ready/
-3notready.132transfers,131480060wireB agree bothends,all132request-linked,pack0.
-Outputdigest changes202vsD458,223vsD371,193vsElasticLocality retained; no
-rounding explanation or independent numerical proof,raw n_correctnull unchanged.
-4075watchdogsamples,servicepeak22273388544B,hostminimum91419357184B,
-high/max/OOM/swap0, nativeTTFT/TPOT/E2E reconstruction0ms.
-
-Captured start scope InvocationIDf93475a74df9428d9fd30a9b287f7396/inode23361963
-and actualaux a03fdd3fec494e9e818fb41447d73d0a/inode23362084 actual-empty closed.
-Remote bothservices+monitor inactive after matching capturedInvocationIDs.
-Collection5,analysis6,curation7,storage8 individually exact-owned actual-empty
-closed; peaks99684352,1251053568,1076170752,664969216B,allhigh/max/OOM/swap0.
-No tasks still running from the native replay. No unrelated Kubernetes mutation.
-Raw d465_20261012,curated p2_backend/d465_full_w0; seeD465_FULL_W0_RESULT.md.
-Existing audit/review/matched-check primitives reused,large outcome streamed.
-147protected entries pass. Mainoutcome losslessly archived after two roundtrip
-SHAchecks,reclaimed464470016B,uncompressedSHA
-cbf83ba2339b63e03882df5a10cd49ddb241b9b2b64c444fc05773c32e22ab1d.
-Receipt storage/20261012_d465_lossless_compression.json,archiveinplace.json.gz.
-Disk161223802880B(~150.15GiB)aftercompression,freshgate required beforeheavy.
-Final verification passed94source refs/protected147,0watchdogwarnings;2inotify
-warnings retained with unknown performanceimpact. Initial postrun verifier used
-absentplural warnings; correctedv2 readsactualsingular warning,originalerror
-andclosure retained. No rawmeasurement orcriterionchange. Verification9/a
-actual-emptyclosed,peaks387203072/385814528B (captured finalclosures),
-high/max/OOM/swap0.15 explicit task files pushed as
-9ff330d1293a67012671bd798eff4cfb76bc889a;independent remoteHEADequalslocal.
-22 postrun smokechecks passed0fail/error/skip (0.668s); initial backup-helper
-escaped-newline assertion failed after tests but before staging. Corrected
-logreader reused the same passingtests,originalhelper/error/closure retained.
-Backupb/c exactidentity actual-emptyclosed;BASEunchanged,user manifestneverstaged.
-No productionrollback yet. Rawbackup_result_v2_receipt/closure are authoritative.
-WholegoalACTIVE; complete nonfeasible candidate is progress,not overallcompletion.
-
-## Completed — D464 original100 native validation passed
-
-Reuse D458 parameters with only exclusive output/NVMe/HOST paths, and existing
-runner's diagnostic original100 prefix. No trace or model/pool regeneration,
-observer, formula/threshold change or baseline tuning. Production unchanged
-from D463 checkpoint8114e0c.22 CPU checks passed (20 existing replay+2 configuration
-contracts),0fail/error/skip;11 existing safety checks passed. Source/protected
-input qualification passed and6 explicit files pushed as1a081bc7c1ea216c01f320f2767d05f36a2118d4;
-independent remote HEAD verified. User manifest untouched/un-staged.
-Reuse the D458 remote management/closure helpers. Cleanup additionally matches
-the captured auxiliary InvocationID/inode.
-See D464_HOST_QUEUE_NATIVE_VALIDATION.md. Raw d464_20261012, curated d464_host_queue.
-Short-prefix metrics cannot establish full-workload G1/G2 or extrapolated savings.
-Native100 completed once:100/100 native/input/source/adapter contracts,17369tokens,
-99joint-SLO,meanTTFT825.733ms/P951898.895ms,meanTPOT28.512ms/P9536.520ms.
-63 HOST queue records; dispatchGPU65/HOST3/NVMe3/remote29.29remote transfers,
-50650865wireB both ends,pack0;1initial+3natural activations ready. Memorypeak
-18753241088B,high/max/OOM/swap0. Timing reconstruction0ms; raw n_correct null.
-GPU actual release and service-path removal verified before remote stop. Captured
-start/aux identities actual-empty closed; both services and monitor inactive.
-Original optional reason breakdown used missing `reason`; curated derivation
-corrects to `trigger_reason`, original retained. No record/count change.
-Short resource656.881695521GPU-s is not full performance/extrapolated savings.
-See D464_NATIVE_VALIDATION_RESULT.md and raw actual_qualification.json, sourceSHA
-5ac6dc4e5e08a7143ac0aefc539ee35f107080860f0f9db4fcb02e67879c6784.
-Fresh link1000Mb/s/full. Existing D458 closed main_outcome was losslessly
-archived via the existing explicit-path utility;465231872B reclaimed, two
-decompression SHA checks passed. No unique evidence deleted,150/100GiB gates
-unchanged. Storage receipt records mapping. Disk161538265088B (~150.44GiB),
-fresh gates still required. Curation passed protected147; all9 auxiliaries plus
-native runner scopes actual-empty closed, GPU empty. HOST sources59residency/
-4handoff. D464 is complete as minimal qualification, not hypothesis acceptance.
-Next: D465 new-key full4000 unchanged D458 settings.
-Current mainline remains7B optimization, full performance hypothesis OPEN.
-
-## Prior checkpoint — D463 exact consumer projection
-
-Read full PLAN/status/rules/V1/V2 after compaction. Used analyze-results,
-run-experiment and github-sync; no agents. Native GPU compute was empty.
-HydraServe existing k3s remains unrelated/project-isolated; no cluster change.
-
-Retained D458 outcome SHA b87241933bd804532a48542a7a3b0f2d37b74d1717271587111c0dd2910bbab2
-contains1109 native HOST queue records (971residency/138handoff),2498 file-held
-attempts,1067 actual loads/held and1429 deferrals;2 file_held records have no
-receipt, retained as missing terminal metadata, not invented outcomes.26 records
-have no file-held attempt (not proof of no execution; GPU-hit/supersession paths
-can finish earlier). At least1109 initial full reads completed. No per-call times
-or estimated GPU-time savings derived. CPU streaming analysis protected147passed,
-peak398671872B,high/max/OOM/swap0; exact captured scope actual-empty closed.
-
-Only production change: `_queue_ieee_native_host_preparation`'s initial owner/clock
-read uses existing live source_identity_snapshot. Subsequent queued full snapshot,
-execution epoch, physical budget/inventory, file leases/lock, cancellation and
-lost-reply behavior unchanged. No cached state, new formula/parameter/endpoint.
-Read D178/D312 and prior D180/181,D193/194/202,D330,D352/D355 before proposing;
-vLLM v0.30 official worker/model manager and CPU-overhead source checked online.
-See D463_HOST_QUEUE_OWNER_PROJECTION.md. Parent5a3e9d3ce701d968f97b3ff4132bacb37906be16.
-
-Six new contract tests first run against unchanged production:5assertion failures,
-1wrong-owner-path error,0skips,0.155s; retained red evidence, not a performance
-failure or proof of a parent loading-policy defect. Two native-owner fixtures
-now model the already existing worker identity endpoint. First targeted359:
-3failed new queue-empty assertions; fixture already has a completed NVMe job.
-Corrected to exact unchanged-prior-queue equality, no production change.
-Final affected950tests passed,0failures/errors/skips,33.550s body/38.591s including
-discovery; overlaps targeted suite, not independent runs. Analysis/red/targeted/
-regression exact captured scopes actual-empty closed; regression peak1074470912B,
-high/max/OOM/swap0. Curated23source refs/protected147/PLAN/V1/V2/user checks pass.
-Whole production AST differs from parent by one operation string only; worker,
-owner,budget,config,baseline unchanged. No GPU or remote actions, new benchmark,
-figure or baseline tuning. Raw d463_20261012 uses exclusive files.
-Do not infer actual speedup from this one avoided full observation per entry.
-Curated p2_backend/d463_host_queue. Checkpoint8114e0c78723bab0dff8d08f37a5b8a891bc1dcb
-pushed to V2; independent ls-remote equals HEAD.7 explicit task files passed
-source/protected/secrets/diff checks; user manifest never staged; BASE unchanged.
-Curation5 and backup6 exact captured scopes actual-empty closed; all6 D463
-auxiliaries absent and GPU compute empty. Raw backup_receipt/backup_closure
-retain identity/resource evidence. Disk161118113792B (~150.05GiB), fresh gates
-required before native validation/full. Whole goal ACTIVE; qualification and
-verified backup are progress, not overall completion or a blocked condition.
-
-## Prior checkpoint — D462 native qualification completed, candidate rejected
-
-Read full PLAN/status/rules/V1/V2. Used run-experiment and optimize-for-gpu.
-Extended only existing ieee_tc_preflight.py with diagnostic backend-pin-check,
-plus tests. NO production faaslora code/configuration or baseline changes.
-D461 observed179 exact pin-query frames, not CPU share; D329 caches unsafe,
-D352 same-transaction reuse and D355 atomic interleave already implemented.
-
-One pre-exec launch rejected absent explicit NVML binding, CUDA never ran.
-Original helper/receipt preserved. v2 uses existing runner's hash-locked NVML
-and allocator environment; unique actual CUDA qualification passed.53 CPU tests,
-0 errors/failures/skips (5.626s),9 actual pinned/pageable/offset/alias/register/
-unregister comparisons,4 complete inventory equality modes. Diagnostic-only AST
-clone substitutes one live query and guards the initialized context at entry.
-1536 small tensor views, no backbone/LoRA pool/trace/remote operation.
-Actual binding13.4.3, CUDA runtime13040, driver13000, Torch2.13.0+cu130;
-one mapped libcudart path. Preserve actual versions, not just wheel label.
-
-20 preregistered alternating local pairs: direct faster only2/20.
-Native/direct medians9.317179/10.220996ms; median paired ratio1.082391.
-Means12.895695/10.290082ms are dominated by one native77.382471ms call;
-cause unknown, record retained. Apparent mean20.2% improvement is NOT sufficient
-evidence of a useful optimization. REJECT Python-binding candidate; no production
-integration, prefix/full replay, repeated microtest or blind extension build.
-See D462_LIVE_PIN_QUERY_QUALIFICATION.md and p2_backend/d462_live_pin/.
-CPU safety/error branch mocks are distinct from actual CUDA failure evidence.
-
-Native service/watchdog exit0, actual context release and service path removal
-verified.4 samples max observed365572096B, high/max/OOM/swap0; CPU test peak539017216B.
-147 protected entries unchanged. Raw:
- /home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d462_20261012/
-CPU1 and launch2/3 exact InvocationID/inode/actual recursive cgroup.procs empty
-closed. Curation4 and final backup5 also exact-identity/actual-empty closed;
-all5 D462 auxiliaries absent, GPU compute empty, no task live.
-Checkpoint5a3e9d3ce701d968f97b3ff4132bacb37906be16 pushed to V2; independent
-ls-remote equals HEAD.9 explicit files passed source/secrets/diff/test/protected
-checks. BASE unchanged; user manifest never staged. Backup5 peak67416064B,
-high/max/OOM/swap0; InvocationID97a802b7108b432bb19d76035efbcd69,inode23340699.
-Raw backup_receipt/backup_closure retain evidence. Latest disk161127510016B
-(~150.06GiB), fresh gates before another heavy job. Whole goal ACTIVE; actual
-qualification/rejection/verified backup are progress, not a blocker or completion.
-
-## Next mainline
-
-D472 completed once,closed,auditedandcompared; do notrestart orrepollperformance.
-AcceptCPUpreparationcandidateasW0feasible/resourceimproved,notfullgoalachieved.
-RetainD465failure,D458priorfeasible andD463unacceptedstandaloneperformanceclaim.
-RetainedD472stage/nativeownerdiagnosis nowcompletedD473; do not repeatit.
-ExactconsumerreviewcompletedD474;D475native100nowpassedandclosed.
-Afterresultbackup,D476new-keyoriginal4000withunchangedD472settings.
-No repeatedCPUqualificationornative100unlessafailure/newchange.
-GlobalpermitwaitisnowbelowElasticLocality;decode/controlgapremains. Noisolatedcauseyet.
-No blindcapacity/thresholdsweep, CPUimport/fork/prebuildtest, cachedphysicalstate
-or mechanicalextensiontoother snapshots. D474 alone hasnewexactconsumerproof;
-do notexpandit.D463 stillpresent,not secretlyrolledback.
-Do not repeat D456 profiling, D458, sealed baselines, C8/capacity/threshold sweeps,
-pin-query microtests, stale HOST caches or already implemented planner offload.
-D458 remains the prior feasible Full point;D465 is retained nonfeasible;
-D472latestfeasible. None establishes lowest GPUoccupancy or fullG1/G2.
-HydraServe independent native qualification remains open, not a reason to alter
-the user's unrelated Kubernetes cluster or abandon the PrimeLoRA optimization mainline.
-
-## Sealed W0 comparison and remaining resource gap
-
-Six-system D454 matched input:4000 requests,458224 native tokens,132 logical IDs.
-Contract SHA384b63425402ced97961e91081265d3cbe340b6a3b4febde242de28f62cd7399.
-All sealed rows retained, no repeats:
-
-| System/run | Joint SLO | GPU-s/bound request | P95 TTFT ms |
-|---|---:|---:|---:|
-| PrimeLoRA D371 | .977 | 3.620630981 | 2837.895685 |
-| ServerlessLLM D414 | .98125 | 4.022440686 | 1052.246361 |
-| vLLM D423 | .99475 | 4.028844291 | 1200.506860 |
-| S-LoRA D435 | .94425 | 3.789269468 | 17699.067366 |
-| Loquetier D445 | .0435 | 4.249595809 | 555110.032229 |
-| ElasticLocality D453 | .95775 | 2.473178968 | 2420.607829 |
-| PrimeLoRA D458 | .9645 | 2.994084616 | 2847.386152 |
-| PrimeLoRA D465, nonfeasible | .9475 | 2.996037107 | 3519.901199 |
-| PrimeLoRA D472 latest, feasible W0 | .95175 | 2.726165169 | 3285.013457 |
-
-S-LoRA/Loquetier diagnostic_nonfeasible; no baseline performance tuning.
-D458 resource17.3049% below old PrimeLoRA,21.0622% above ElasticLocality.
-All4000 native/source/adapter/lease contracts + independent D435 input pass;
-raw n_correct=null retained. Same-backend output-digest changes220 vs old,
-204 vs ElasticLocality retained without unsupported rounding explanation.
-D458 source SHA8d65bf7a9113909451d72a822098e1e464e27d031a7b0ea71357bf30fd52205c.
-Matched comparison SHAd8188014ac448205e33198f81e9bb12a793dea664a1de90e5c504535ea500a42.
-D458 meanTTFT1145.751632/meanE2E4987.147144/P95TPOT58.675797ms.
-Natural22 triggers=19ready+3notready; initial1. No global optimum/G2 claim.
-Firstfour prior systems and D458132fetch/131480060wireB; S-LoRA/Loquetier500/
-420740410B. No isolated remote-transfer advantage on this W0.
-500 logical adapters:498zero/2nonzero,4weightSHA/6tree classes; diversity limitation.
-Loquetier native static4x125 shards,batch2/context1024; not native scale-out.
-
-D394 common SLO: <=616 input TTFT2995.348713684507/TPOT59.74409694902162ms;
->616 TTFT4633.345350589479/TPOT85.24698166015581ms.
-protocols/20261010_7b_slo_d394_frozen.json SHA
-2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3.
-W0 U_ref16115.377162149176,Q_ref1200.5068596918136ms,B12086.532871611882.
-W1/W2 references/G2 OPEN. No short-run extrapolation or refreeze.
-
-D459/D460 retained diagnosis:98.33% of D458-minus-Elastic GPU gap is during
-common arrival window. New mean decode3636.602 vs3102.616ms; mean other native
-occupancy2.653914 vs2.223436, not kernel batch size.31/42 new TPOT misses have
-no same-owner proactive-load overlap;33 have peer prefill. No single-load causal
-explanation or latency subtraction. Pure planning already offloaded.
-D457 file-view optimization reduced controller pickup but did not remove all delay.
-Detailed physical-binding/stage/raw evidence in D459/D460 docs and curated folders.
-
-## HydraServe and common workload plumbing
-
-User confirms existing k3s is NOT for this project; appropriate adaptation authorized.
-Read HYDRASERVE_ISOLATION_DECISION_20261012.md before next change.
-D447 rootlessPodman3.4.4 metadata passed (empty image/container store,9 CDI names).
-No actual GPU container/K8s/native LoRA pipeline/consolidation qualification yet.
-Prefer isolated project-owned reversible deployment, no existing cluster mutation,
-unknown credentials or permission widening; no repeated ownership question.
-Native clean HEAD8ae605de354ccfa2e9095514cdb4a9e9c56aa56b preserved.
-Read BASE HYDRASERVE_REUSE_REVIEW_20261011.md,
+# IEEE TC execution status — D478 official HydraServe blobs resuming
+
+Updated 2026-10-12 23:41 CST. Current checkpoint, NOT replacement plan.
+Preceding status byte-identically archived in EXECUTION_HISTORY_THROUGH_D477.md;
+cmp passed, SHA cee5b2b0527a0ff9f2d07d2dc65c86a74dd2ce0d1b3b27f4a434f764e9adb128.
+D461/D448/D433/D402 and older histories remain. Historical NEXT/RUNNING lines
+are not current instructions. No approved task, outcome or failure removed.
+
+## Authority and immediate order
+
+Read full /home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md at task start,
+after compaction and before experiments. SHA
+f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5.
+Read BASELINE_COMPLETION_ORDER_20261012.md and BASELINE_EXECUTION_RULES_20261011.md.
+
+Latest explicit user order: sealed D476 -> HydraServe necessary faithful isolated
+adaptation/native qualification and actual result -> full available baseline
+comparison -> further PrimeLoRA optimization. NO new PrimeLoRA candidate now.
+User already confirmed existing k3s is NOT this project; appropriate adaptation
+authorized. Do not ask ownership again or mutate that cluster/permissions/data.
+Only PrimeLoRA performance optimization. Baselines permit necessary compatibility,
+correctness/measurement/safety work, not performance configuration search.
+
+Before comparison/configuration read METRIC_PROTOCOL_FROZEN_V1.md and
+METRIC_PROTOCOL_SINGLE_RUN_V2.md in full. SHAs:
+5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22,
+193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d.
+G1: all4000 source/native/adapter contracts and common joint TTFT/TPOT>=95%,
+then physical lifecycle GPU-s/request. G2: same + U<=.75Uref, then W1/W2 tail
+and observed SLO difference. CE supplementary; TPOT regression alone not failure.
+Raw unknown numerical correctness stays unknown; binding is not kernel proof.
+One performance run per frozen key, no repeated mean/CI/winner filtering.
+Retain development/reuse identity. W0 alone is not W1/W2/G2 completion.
+Every optimization: logs/history+online primary sources+falsifiable hypothesis+
+qualification+new full replay; IEEE nine equations/semantics fixed.
+Full names PrimeLoRA/ServerlessLLM, no figures until near target, no13B/newSGLang,
+paper edits, new weights/traces/pool regeneration. Whole goal ACTIVE.
+
+## LIVE — D478 verified partial-blob resume, not performance
+
+Raw directory:
+ /home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d478_20261012/
+Current attempt resume_attempt/; tmux tc-d478-hydra-resume.
+Parent primelora-tc-aux-d4780000000000000000000000000009.scope,
+InvocationIDee6c0326f6f241589f3c4f7e1c403dd5, inode23615162.
+MemoryHigh3G/Max4G/swap0, CPUs2,3,26,27. Direct HTTP Range transfer, no Podman
+process in this attempt; no image import, GPU/model, native backend import,
+Kubernetes operation or remote artifact activity. Read resume_launch.log,
+resume_attempt/result.json (only on terminal), and actual scope/PID state.
+3-hour software-download guard based on remaining bytes/observed registry speed,
+NOT a changed inference timeout or system configuration. Disk runtime100GiB,
+MemAvailable16GiB guards unchanged. Do not restart advancing transfers.
+
+Official README image pinned by actual registry manifest+config verification:
+registry.us-east-1.aliyuncs.com/kubernetes-fc/modelscope-vllm@
+sha256:7a5c182f2296dcafacf9576cf09c3d4d188eda4738d51c081a7ca009f0c4a32f
+(join @digest on one line).
+Config b36aba10152151e75421368ee4abe7dd445fc0cef3c86337a4a18781db7ddfe9,
+amd64/Linux, created2024-12-03,79layer entries,4,049,702,610 compressed bytes.
+Image date is not code commit/qualification. Actual source/dependencies need check.
+Private root RAW/container_storage, overlay with /usr/bin/fuse-overlayfs1.7.1;
+runtime /run/user/1001/pl-hydra-d478, runroot .../runroot. Keep exact short paths.
+No global config or D477 store change. Podman3.4.4/NVIDIA runtime1.19/runc1.3.3.
+
+Original pull_attempt ended at approximately15:31UTC, still incomplete. Final
+owned_pids census raced with child exit; original traceback preserved. No original
+image_result.json/returncode exists: DO NOT reconstruct a claimed exact code.
+Timing agrees with original1800s guard, but TimeoutError is inference only because
+the caught exception was not serialized. External actual recursive-empty + exact
+InvocationID/inode closure passed. Scope2 removed, peak1520467968B,events/swap0.
+
+67 temporary compressed files hardlinked (no data-byte copy) to
+RAW/retained_compressed_cache. cache_retention.json maps inode/source/retained.
+Postterminal retained_cache_audit.json:66unique manifest blobs,64fullSHA+length
+verified/233300347B. Retained1172708833B total. Two partial files (_8/_9):
+36355620/903052834B, expected189594758/3626807089B. No whole image qualification.
+During pull new TLS requests failed; proxy8keys/netnamespace match driver, direct
+TLS timed out. AFTER connection closure largestblob prefix+1MiB range bothHTTP206,
+Content-Range/bytesmatched. No globalnetworkchange. CauseoftransientTLSunknown.
+Initial inspector compared atime too; failed without content mutation, corrected
+to inode/dev/size/mtime/ctime, then completed. Failures/closures retained.
+Resumer independently checks BOTH partials before appending and final fullSHA;
+no repeated download of64completeblobs, no import of partials. Raw manifest/config
+now retrieved and digestverified privately; don't publish arbitraryimageEnv/history.
+
+First attempt prepare_image.py failed before actual data transfer because empty
+anonymous pull-auth.json absent; raw image_result/pull.stderr retained.
+Its scope1 closed exactidentity/actualrecursive-empty, peak92708864B,events0.
+pull_attempt/pull_image.py explicitly reused platform after closed failure and
+empty auths file; public registry tokens and proxy values NEVER serialized.
+tmux show-environment differed, but actual launched helper's all8 proxy env keys
+were checked equal to current process; no proxy fault is established.
+
+Both info checks actually succeeded. Private pause process identity/pidfile birth/
+UID/scope InvocationID checked, adopted into parent BEFORE pull/models, original
+empty pause scope closed. Do not claim pause born inside parent or whole-service
+containment proven. pull finally closes exact captured pause using pidfd.
+
+Cache metadata helper first failed to move from external tool cgroup (PermissionError),
+NO link then created; initial source+cache_initial_failure.json retained.
+Corrected launch through bounded user-manager scope3 before adoption,67links created.
+Scope3 exactidentity/actualempty closed peak9953280B/events0; no permission widening.
+All old D478 image/cache/range/inspection/storage contexts closed; only scope9
+byte transfer is live. No GPU/remote performance job.
+
+Existing lossless archiver extended narrowly for explicit adjacent final monitor
+logs;8tests passed.16closed logs double-roundtripSHA verified,1679425536B reclaimed,
+protected147unchanged; disk161357086720B after. Storagepeak425521152B/events0.
+Receipt MAIN/paper_results/ieee_tc/storage/20261012_d478_closed_remote_monitors.json.
+No measurements changed or deleted; source-to-gzip mapping preserved.
+
+NEXT: monitor SAME resume to terminal. Read result, verify actual remaining
+members empty and close via RAW/close.py resume (external,captured identity).
+Success means compressed bytes only. Verify complete image/source/dependencies,
+prepare local directory/OCI transport with verifiedblobs (hardlinks,no secondcopy),
+then actual private-overlay import under fresh150GiB/startgrowthgate. Do not
+claim nativebackend works until imported/inspected/tested. Freshstorage may be
+needed before import; image+dataset notdeleted. No inferenceparallel to preparation.
+Do not repeat D477 NVML/D447 CPU checks or start another PrimeLoRA candidate.
+BASE draft docs/ieee_tc/D478_HYDRASERVE_IMAGE_PREPARATION.md records new facts;
+D478 curation/backup checkpoint records completed cache/containment/storage work;
+ongoing resume is explicitly NOT a completed qualification or performance result.
+
+## HydraServe evidence and adaptation boundaries
+
+Read MAIN HYDRASERVE_ISOLATION_DECISION_20261012.md and BASE:
+HYDRASERVE_REUSE_REVIEW_20261011.md,
 HYDRASERVE_LORA_IDENTITY_REVIEW_20261012.md,
-D447_HYDRASERVE_PLATFORM_AND_LAYER_WITNESS.md before adaptation.
-CPU stage-local/global-name witness is not GPU/numerical proof.
-Never substitute bare vLLM and label it HydraServe.
+D447_HYDRASERVE_PLATFORM_AND_LAYER_WITNESS.md,
+D477_ISOLATED_GPU_CONTAINER_QUALIFICATION.md.
+Native clean checkout BASE/vendor_new_baselines/HydraServe_main_20260520,
+HEAD8ae605de354ccfa2e9095514cdb4a9e9c56aa56b.
+Control env hydraserve_py_20260520 has no torch/vLLM/triton/transformers.
+Host CUDA13.0 only; do not change host driver/CUDA.
 
-W1 input plumbing still open: FrozenReplayPlan.load already implements half-interval/
-30s phase transform and rejects unfrozen W2 mappings. BASE load_http_replay_plan
-currently calls it without profile (W0); explicit common transformed-input interface
-must be qualified before W1, not just relabelled. No new trace or baseline tuning.
+D477 actual single-UUID NVML rootless GPU container passed with taskset entrypoint
+before workload, pre-established bounded parent/child memory/swap limits.
+Not CUDA tensor/model/LoRA/numerical/K8s or whole-service qualification.
+Four failures retained (proxy omitted, NoCgroups unsupported, runroot length,
+runc affinity reset). All D477 tasks closed, official Ubuntu image reused once.
+D477 pause automatically left parent, exact-owned cleanup performed; D478 adoption
+now witnessed before image work, not proof of complete native lifecycle safety.
+Only memory/pids delegated; official kind/rootless K8s CPUdelegation missing;
+sudo-n requires password. Don't use remote password locally or read root credentials.
+Necessary real lifecycle port may preserve native policies, but no fake K8s ready,
+invented nodes, or barevLLM labelled HydraServe. No platform port implemented yet.
 
-## Safety, ownership, storage and backups
+D447 real7B metadata confirmed global/local mismatch: pp2 second stage64/64 LoRA
+global names wrong without mapping; CPU-only derived view matches. Two existing
+nonzero adapters finance/medical each128A/B modules. No newweights.
+Native consolidation shares actual decoder objects; second independent manager
+may overwrite shared slot/batch mapping. Need actual old/shared/new layers and
+migration/use_dest correctness. Initial manager exists, load_dest_model lacks
+corresponding registration. Low-level sequence/broadcast already carries LoRARequest;
+top-level Request/ChatEngine lacks propagation/fixed-output/native-timing contract.
+No GPU/numerical proof yet; never use all-zero output identity as sufficient proof.
+Official downloader pp1 deletes/rewrites passed weights: NEVER run on unique model.
 
-- MAIN=/home/qhq/serverless_llm_experiment_retry14_baseline,
-  branch retry14_continuous_queue_v2, remote faaslora_origin.
-  D472 execution pushed HEAD0fd50cccba4f0b623c8abd6cfd5802baea95862a.
-  BASE=/home/qhq/serverless_llm_baselines,main,origin,
-  unchanged HEAD71c52cf6f7331dc2a171ec83db5f1011eaf6d5a6.
-- One heavy job. Disk start>=max(150GiB,100GiB+1.5 growth), runtimefloor100GiB.
-  Service high72/max80GiB,swap2GiB,CPUs4-23,28-47; actual workers contained
-  before init. Auxhigh3/max4GiB,swap0,CPUs2,3,26,27. Separate replay/watchdog.
-- Close only exact InvocationID+inode+actual recursive cgroup.procs empty.
-  Never use virtual-file stat size. Never stop unrelated processes.
-- SSH primelora-artifact-174=lab14@10.199.227.174:8122, strict known host.
-  Data192.168.4.174 ports18080/18081, inference192.168.4.178.
-  Token outside Git at /home/qhq/.config/primelora-tc-d75/artifact.token; NEVER print.
-  Latest actual link1000Mb/s/full; historical100Mbps different state, cause unknown.
-- Published readonly gzip D78/D80 reused (1581215261B), no republish/extracted
-  pool/request packing. Real reads/transfer/contention/materialization counted.
-  No live remote maintenance/hashscan/cleanup/tests/build; do not subtract spans.
-- Existing 7B pool /home/qhq/serverless_llm_experiment/artifacts/frozen/llama2_7b_a500_v2_publicmix;
-  original seed42 input and existing environments reused.
-- Protected147 seal: original results/ieee_tc/slora_qualification/d435_20261011/protected_before.json.
-  SHA79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54.
-  NEVER stage MAIN configs/generated/lora_manifest_1000.json, SHA
-  3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df.
-  BASE scripts/replay_openai_trace.py SHA
-  04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22;
-  scripts/run_serverlessllm_relayserve_continuation.sh SHA
-  337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499.
-  Preserve nested S-LoRA10 historical patches/default diff SHA
-  7a0f48f60c225789014ad960ec3ab1cf6388611b7650a4f656f1208c981c2d60.
-  Preserve all unrelated tracked/untracked user files.
-- D459 compressed10 closed old main_outcomes losslessly, reclaimed0.866GiB;
-  receipts map old paths. Do not assume every historical main_outcome is plaintext.
-- Explicit task-only staging; source/diff/test/secrets checks before push.
-  No force, raw large evidence, secrets, history overwrite or unique-data deletion.
-  Update status before yielding; never claim the whole goal complete.
+D478 new source facts:
+- create_deployment uses gpu-mem + hostmemory; computed core% never applied.
+  Necessary port must not invent extra CPU/GPU-share performance policy.
+- storage_server/local_server.py blindly rm -rf /dev/shm/psm_* and retries allocation.
+  Not executed. Must use isolated project-owned shared memory/owned cleanup and
+  common envelope; never expose unrelated host shared memory to that cleanup.
+- Original algorithm schedules physical node/network resources; one computehost
+  with4GPUs is not4physicalnodes. Preserve real topology and mechanism nontrigger.
+Native stage/overlap/consolidation/modifiedvLLM0.4.2 stay; baseline tuning forbidden.
 
-## Remaining full approved scope — not canceled
+## Sealed D476 and prior comparison, do not repeat
 
-7B PrimeLoRA optimization and W1/W2/G2/common references; remaining HydraServe
-native qualification and comparisons;3B optimization/all baseline comparisons;
-dLoRA3B B6; all A1-A5 including confirmed-state, elasticity and first-service;
-all S1-S13 including layer/mismatch/contention motivation, arrival/GPU/network/
-workload/KV/control/backend/EOS/design sensitivity; offline CE/cost/Pareto;
-B1/B2/C1/C2/C3, formula/novelty/two-review evidence documents; later academic
-figures and verified V2 delivery. Reuse only same contracts. No 13B/new SGLang.
-Full original plan plus archived histories retain every setting.
+D476 source contracts:4000/4000,458224native tokens,132logicalIDs,
+independentD435input witness matches; numerical n_correct remains unknown.
+Joint3897/4000=.97425, TTFT3920/TPOT3968; U10778.448802226456,
+R2.694612200556614,meanTTFT1033.092619/P952315.363336ms,
+meanTPOT32.841/P9553.094880ms,meanE2E4786.376241ms.
+19CPUprep/18activated/1unused allreturn0,14actualrelease-before-replacement.
+1initial+17natural ready;132remote/131480060wireB/pack0.
+4030watchdog samples,peak23776821248B,high/max/OOM/swap0,protected147pass.
+SourceSHA450631019b24007939276f211683893e80ff938c48b4fad4024bd70ef9f75bd1.
+Samebackend digest differences retained, causeunknown; no numerical/causal inference.
+W0 feasible/resource-improved observation, not full G1/G2/globalbest.
+Original main_outcome losslessly.gz, originalSHA
+ade857b6c02fd3a00025ca99e7f4c208318c9a7e317a0441955ac3f4b4f34ea5.
+All D476 tasks/remote contexts closed; result e909ce0 pushed+remote verified.
+See D476_FULL_W0_RESULT.md and curatedp2_backend/d476_full_w0.
+
+Prior sealed rows (joint, GPU-s/boundrequest, P95TTFTms):
+PrimeLoRA D371 .977 /3.620630981 /2837.895685
+ServerlessLLM D414 .98125 /4.022440686 /1052.246361
+vLLM D423 .99475 /4.028844291 /1200.506860
+S-LoRA D435 .94425 /3.789269468 /17699.067366 (nonfeasible)
+Loquetier D445 .0435 /4.249595809 /555110.032229 (nonfeasible)
+ElasticLocality D453 .95775 /2.473178968 /2420.607829
+PrimeLoRA D458 .9645 /2.994084616 /2847.386152
+PrimeLoRA D465 .9475 /2.996037107 /3519.901199 (nonfeasible)
+PrimeLoRA D472 .95175 /2.726165169 /3285.013457
+D476 does not yet beat ElasticLocality resource. No new performance comparison
+this turn; values retained from sealed evidence, no thresholds/configselection changed.
+Five external/internal baselines above complete7BW0 exceptHydraServe.
+500logical adapters=498zero/2nonzero,4weightSHA/6treeclasses, limitation retained.
+D394commonSLO TTFT2995.348713684507/4633.345350589479ms,
+TPOT59.74409694902162/85.24698166015581ms splitinput<=616/>616.
+W0Uref16115.377162149176,B12086.532871611882,Qref1200.5068596918136.
+W1/W2references OPEN. BASE load_http_replay_plan currently defaults W0:
+qualify actual common W1 transform interface, don't relabel W0 asW1.
+
+## Safety, preservation and current backup identities
+
+MAIN /home/qhq/serverless_llm_experiment_retry14_baseline,
+retry14_continuous_queue_v2,faaslora_origin. Pre-D478 parent
+2dcb03faa165bb38b6b5f041d55ae524921bb144 was independently remoteequal.
+This checkpoint adds narrowly extended lossless archiver/8tests, storage receipt,
+status and byte-identical archived history. Exact final published HEAD/remote
+comparison goes to RAW/backup_main_receipt.json after commit (not self-referential).
+BASE /home/qhq/serverless_llm_baselines,main,origin,
+HEAD17c2d9998417e3dda009c13d2a9513474cf8eee4 independently remoteequal.
+D47857source records archived/roundtripverified in hydraserve/d478,62431B;
+5existing CPU layer tests passed,protected147pass,diff/secrets/explicitstagepassed.
+Backend/core mechanisms not changed. Acquisition remains live/incomplete.
+User dirt preserved; source archive excludes mutable blob bytes/live resume logs,
+arbitrary image config, auth/proxy values and credentials.
+
+One heavy job. Disk start>=max150GiB,100GiB+1.5growth; runtime100GiB.
+Servicehigh72/max80GiB/swap2,CPUs4-23,28-47; auxhigh3/max4GiB/swap0,
+CPUs2,3,26,27. Actual workers restricted beforemodel; independentwatchdog forruns.
+No performance alongside build/pull/compression/install/test/hashscan/remotechange.
+No blind OOM retries/globalreset/unknown cleanup/driver/globalpermissions changes.
+Exact InvocationID+inode+actual recursive cgroup.procs empty for scope closure.
+Never rely on virtual cgroup file size. Keep live parents until owned children stop.
+
+Protected147seal originalresults/ieee_tc/slora_qualification/d435_20261011/protected_before.json
+SHA79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54.
+NEVER edit/stage MAIN configs/generated/lora_manifest_1000.json,
+SHA3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df.
+BASE scripts/replay_openai_trace.py userSHA
+04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22;
+scripts/run_serverlessllm_relayserve_continuation.sh userSHA
+337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499.
+Preserve all unrelated tracked/untracked files and native baseline patches.
+Explicit stage only; read github-sync before checkpoint, source/protected/tests/
+diff/secrets checks, noforce/credentials/rawlargefiles. Update status beforeyield.
+
+Remote SSH primelora-artifact-174=lab14@10.199.227.174:8122 strictknownhost;
+data192.168.4.174 ports18080/18081; latest1000Mb/s/full. Both inactive sinceD476.
+Token outsideGit /home/qhq/.config/primelora-tc-d75/artifact.token NEVERprint.
+D78/D80immutablegzip1581215261B approved/reused; no republish/newextractedpool/
+per-requestpacking. Real reads/transfer/contention/materialization count.
+Historical100Mbps distinctstate,causeunknown. Currentinternet imagepull unrelated.
+Model/pool/seed42source reused. Compress only verified closed evidence with
+two roundtrip SHAchecks, retain failedstate, mappingreceipts; no uniqueassetdelete.
+D477 recovered188305408B from explicitclosedD140/D100/D97 failures; don't repeat.
+
+## Remaining full scope
+
+HydraServe native isolated correctness/performance and full available7B comparison,
+then further PrimeLoRA optimization;7BW1/W2/G2/commonrefs;3Boptimization/baselines;
+dLoRA3BB6;A1–A5 confirmedstate/elasticity/handoff/hierarchy/admission/firstservice;
+S1–S13 tier/mismatch/contention motivation,load/GPU/network/workload/KV/control/
+backend/EOS/design sensitivities;offlineCE/cost/Pareto;B1/B2/C1/C2/C3 andformula/
+novelty/two-review documents;later academicfigures/verifiedV2delivery.
+FullPLAN+archivedhistories retain settings. No scope is closed by W0 or software
+installation. Report Chinese paper-evidence progress, don't disguise setupasexperiment.
