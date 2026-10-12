@@ -1,0 +1,42 @@
+{
+  "kind": "lossless_closed_outcome_compression_v1",
+  "created_unix": 1791806388.8728404,
+  "before": {
+    "available_bytes": 160177745920
+  },
+  "after": {
+    "available_bytes": 160631308288
+  },
+  "entries": [
+    {
+      "run": "d472_20261012/7b_full_w0",
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d472_20261012/7b_full_w0/launch.launch/physical_deployment/main_outcome.json",
+      "archive": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d472_20261012/7b_full_w0/launch.launch/physical_deployment/main_outcome.json.gz",
+      "source_sha256": "c3bbc14d7620adfb735789f2162741fb05391e820d80e71ce5f40e60a6913c9a",
+      "audit_sha256": null,
+      "audit_sha_matches": true,
+      "source_stamp": {
+        "dev": 2050,
+        "ino": 110900076,
+        "size": 514259225,
+        "mtime_ns": 1791805499989486272,
+        "ctime_ns": 1791805499989486272,
+        "mode": 33204,
+        "uid": 1001,
+        "nlink": 1,
+        "blocks": 1004424
+      },
+      "launch_sha256": "a997ec2b443b9b70077f98202bf41ec20ac16d5294b3c48afd5d332cce8be2cf",
+      "archive_sha256": "ad555e2604cfe87c5e5dfea0a256084aa1a74cb1b17b6476032ae5b5e9e3cbf5",
+      "archive_bytes": 60647653,
+      "archive_allocated_bytes": 60653568,
+      "first_roundtrip_sha256": "c3bbc14d7620adfb735789f2162741fb05391e820d80e71ce5f40e60a6913c9a",
+      "second_roundtrip_sha256": "c3bbc14d7620adfb735789f2162741fb05391e820d80e71ce5f40e60a6913c9a",
+      "removed_uncompressed_duplicate": true,
+      "allocated_bytes_reclaimed": 453611520
+    }
+  ],
+  "caveat": "Current source is preserved exactly in gzip. audit_sha256 mismatches are provenance caveats and are not promoted to reusable result identity.",
+  "protected": "weights, traces, adapter pools, environments, code and curated files unchanged.",
+  "source_archive_round_trip_verified": true
+}

@@ -1,0 +1,10 @@
+{
+  "kind": "d472_closure_label_annotation_v1",
+  "original_receipt": "completion_receipt.json",
+  "original_receipt_sha256": "b5bc8ed7cd57759814a4a575889c36e59e66c3b93f39ed06e5a0c5e313b103d7",
+  "original_field": "caveat",
+  "original_value": "PrimeLoRA CPU preparation native100 qualification; no independent numerical proof or cross-system ranking before audit.",
+  "clarification": "The inherited native100 label is incorrect for this run. D472 executed the original full 4000-request W0. The source receipt and helper remain unchanged; n_plan, n_terminal and n_native_contract_complete are all 4000 in the physical deployment journal. Full input, native timing, adapter binding, lifecycle and common SLO audits remain pending. No independent numerical proof or cross-system ranking is implied.",
+  "measurement_values_changed": false,
+  "source_sha256": "ea976d22dc103faeac78e030ddfd4afbbe3ea1d342a58855155fdc9d29c9c737"
+}

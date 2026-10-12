@@ -1,4 +1,4 @@
-# IEEE TC execution status — D471 native preparation qualified; D472 full W0 next
+# IEEE TC execution status — D472 W0 feasible improvement; residual 7B gap OPEN
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement plan.
 Complete preceding status is byte-identically archived in
@@ -33,7 +33,142 @@ not current instructions. No evidence or approved task was removed.
 - Every optimization: logs/history + online primary sources + one falsifiable
   hypothesis + tests/minimal validation/new full replay. IEEE nine formulas fixed.
 
-## Current action — D471 native100 passed; D472 original4000 being frozen
+## Current action — D472 full audit passed; result checkpoint and residual gap
+
+D472 original4000/native/source/adapter/dispatch audit PASSED; independentD435
+input witness matchesall4000,458224native tokens,132logicalIDs. Existing single-run
+review and matchedD454/D458/D465 comparison passed. 100source refs verified,
+147protected unchanged. SourceSHA
+ea976d22dc103faeac78e030ddfd4afbbe3ea1d342a58855155fdc9d29c9c737.
+JointSLO3807/4000=.95175,7above3800;TTFT3840pass/TPOT3955pass,
+TTFT-only148/TPOT-only33/both12. U10904.660677566892GPU-s,
+R2.726165169391723perboundrequest;meanTTFT1303.724450/P953285.013457ms,
+meanTPOT33.809645/P9557.176180ms;meanE2E5105.544426ms.
+Rawindependentnumericaln_correctnull retained; binding is not kernel proof.
+
+Physical18preparations/18permissions audited,allreturn0;4initialCPUfrontends+
+14afteractualphysicalreturn replacements. Exactlease/UUID/birth/config/owner/
+servicecgroup/timing and 18five-eventphysicaljournals pass;totalagreesphysicalU.
+CPUpreparation10.87–12.96s;prepermissioncensuses13–2398each noownedcontext,
+torch/context/primaryfalseorzero. Samplesdonotexcludealltransients. Firstactual
+acquire0.550sbeforeCPUprepared fullycharged. No unusedCPUprocesses. EngineReady
+separate:1initialready+17naturaltriggers(14ready/3notready),not18ready.
+
+AcceptD472asnextW0feasible/resource-improveddevelopmentcheckpoint,NOTglobaloptimum:
+R−24.7047%vsD371,−8.9483%vsD458;vsD458joint−1.275pp/P95TTFT+15.3694%.
+VsServerlessLLM/vLLM R−32.2261%/−32.3338%,tail/SLOremainworse.
+ElasticLocalitystillbetter:Rgap+10.2292%,joint−0.60pp,P95TTFT+35.7103%.
+VsD465R−9.0076%,joint+.425pp;retainD465nonfeasible and D463's unaccepted
+standaloneperformancehypothesis. No silentrollback,repeat,thresholdchange orbaseline
+tuning. W0budgetratio.902216 isnotW1/W2/G2. Singleobservations,noCI/significance.
+OutputdigestdifferencesvsD371/D453/D458/D465=196/195/205/175,retainedwithoutcause.
+Remote132transfers/131480060wireB,allrequestmatched,pack0;noisolatedW0fetchadvantage.
+4061resourcesamples,servicepeak21431332864B,high/max/OOM/swap0.
+Finalverificationpassed100refs/protected147,watchdogwarnings0;2systemdinotify
+warningsretained,performanceimpactunknown. No measurement/gatechange.
+
+Analysis6/lifecycle_collection7/lifecycle8/curation9/storagea exactidentity actual-
+recursiveemptyclosed;peaks1239212032/313397248/391884800/1062051840/663580672B,
+allhigh/max/OOM/swap0. No GPU/remotejoblive; Kubernetesuntouched.
+Mainoutcome losslesslycompressedwithtworoundtripSHAchecks,reclaimed453611520B,
+uncompressedSHA c3bbc14d7620adfb735789f2162741fb05391e820d80e71ce5f40e60a6913c9a.
+Storage receipt20261012_d472_lossless_compression.json;originalsourcepathmappedto.gz.
+Afterstoragefree160631308288B(~149.60GiB),below150GiBnewheavyfloor:moreverified
+storage recovery is required beforeanyheavylaunch;100GiBruntimefloor unchanged.
+Curatedp2_backend/d472_full_w0;seeD472_FULL_W0_RESULT.md. No figures.
+Nextafterfinalchecks/backup: reuse retained D459–D461/D466 stage/capacity primitives
+to locate remainingD472vsElasticLocalitywithin-arrivaloccupancy/dispatchgap. Do not
+repeatCPUimportmicrotest orD472replay;onefalsifiablehypothesisbeforeanynewchange.
+7Bmainlineactive;3B/W1/W2/G2/HydraServe/fullapprovedscope OPEN,wholegoalACTIVE.
+
+## Prior execution — D472 original4000 W0 completed and closed; audit then pending
+
+D472 completed2026-10-12~19:45CST. Original4000 replay,service and watchdog
+exit0;launch pass,true nativecontextrelease and servicepathremoved. Terminal
+journal4000planned/4000terminal/4000native-contract-complete. Fullsource/input/
+binding/commonSLO/CPU-preparation-lifecycle audit is still pending; do not yet
+declare G1/G2 feasible or rank it. Raw numerical n_correct remains unknown.
+Source290776740B,SHAea976d22dc103faeac78e030ddfd4afbbe3ea1d342a58855155fdc9d29c9c737.
+Physicaljournal reports10904.660677566892GPU-s,not yet independently audited.
+4061watchdog samples;last terminalcensus clear,service domain gone.
+Captured start/actualaux actual recursive cgroup.procs empty and exact owned
+InvocationID/inode verified BEFORE ownedremote stop; both scopes then inactive.
+Start/actualaux peaks53862400/326639616B,high/max/OOM/swap0. Collection scope
+d472...0005 Invocation113598e7fd424fd6986e06dde484b162,inode23502281,also
+actual-emptyclosed,peak111616000B,high/max/OOM/swap0. No tmux session or
+native GPU compute remains. Both remote services and ownedmonitor inactive,
+portsabsent;downloaded transfer/monitor hashes match remote:
+6fbf77ffb819d787668a8db9f195d1125f84f97a824118456e3c1aba42d4a060 /
+b5ff4d082d71ced8dfd7c6b2298e300d8cad32760cc183dd7548dd93fe9f360f.
+Original helper/receipt inherited native100 wording retained; separate
+completion_annotation.json clarifies full4000 without changing measurements.
+CompletionreceiptSHAb5bc8ed7cd57759814a4a575889c36e59e66c3b93f39ed06e5a0c5e313b103d7.
+Next reuse existing D465 full audit/comparison and D471 lifecycle primitives,
+read full PLAN/V1/V2 before comparison, preserve all prior candidate outcomes.
+No replay repetition or baseline tuning. After audit,lossless closed-evidence
+storage work before any heavy launch:latestdisk160186372096B (<150GiB startfloor,
+above100GiB runtimefloor). Curate findings/checkpoint;7Bmainline remains active,
+3B/W1/W2/G2/remainingapprovedscope OPEN. This turn completed actualrun+closure,
+not the whole goal. Do not keep waiting on the now-terminal replay.
+
+## Prior execution — D472 original4000 W0 monitored without changes
+
+Latest verified wait:2026-10-12 19:22:58 CST,same tmux and exact service
+InvocationID active.3036arrived/3031completed/3031successful/0failed of4000.
+At19:09:51 counters were2026arrived/2023completed/0failed. Repeated bounded
+waits and live scope/log checks confirmed progress past three quarters.
+At18:57:32 counters were1128arrived/1126completed/0failed;this turn repeatedly
+verified continued progress through the halfway point,not a terminal result.
+At18:52:21 counters were806arrived/801completed/0failed,scale_up7/scale_down4.
+Since then the natural controller shrank to one runtime and expanded to four
+again,with continuing request progress. This observes a shrink/re-expand path,
+not yet a verified CPU-replacement lifecycle or final performance result.
+Watchdog warning/abort/foreigncompute/escaped/unresolved empty;memory
+high/max/OOM/oom_kill0. Disk158386814976B,still runtime-safe but no new
+heavy launch. Several bounded50–55s waits verified continuing progress.
+No restart,remote change,analysis or second experiment. Mainline unchanged.
+
+Monitoring checkpoint 2026-10-12 18:47:42 CST: same tmux session and captured
+service InvocationID remain active. Latest live summary:489 arrived/486 completed/
+486 successful/0 failed of4000;scale_up4/scale_down3,2 remaining runtimes.
+This is progress only,not final input/native/common-SLO qualification. Actual
+watchdog reports no unresolved/escaped/foreign compute processes and no abort
+or warning;service memory high/max/OOM/oom_kill all0. At18:46 observed peak
+20075851776B and host available94943330304B. Disk159969828864B (~148.98GiB)
+is above runtimefloor100GiB but below new-heavy-launch150GiB:do not launch
+another heavy job; defer any lossless closed-evidence storage work until release.
+Worker archival label engine_dead appeared during scale-down; retain for final
+exit/lifecycle audit,do not infer a request failure or a benign cause from name.
+No code/config/remote maintenance,analysis,compression or push during replay.
+Completed a bounded45s monitoring wait and verified continued request progress;
+next action remains monitoring this same execution,not restart or same-key rerun.
+
+D472 started2026-10-12~18:36CST frompushed0fd50cccba4f0b623c8abd6cfd5802baea95862a;
+independentremoteHEADequal. 10explicitfiles/checksum/secrets/sourcechecks pass;
+22replay/configtests passed,11existingguardchecks reused,full4000matchesD435
+independentHTTPinput,147protectedpass. CPU/qualification/backup scopesclosed
+actual-empty,peaks313368576/498163712/42754048B,high/max/OOM/swap0.
+Prelaunchdisk161107877888B(~150.04GiB),hostavailable111915737088B;freshguard
+passed,noissues. Nativeoriginal4000 in tmux tc-d472-cpuprepw0; raw
+/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d472_20261012/7b_full_w0.
+InitialengineReadyand4000servingstarted;lastcheckhigh/max/OOM0. No performance
+resultyet,do not comparepartialcounters orlegacy5000ms/CE consoleasfinalSLO.
+Actualserviceunit primelora-tc-svc-3c21d0b3c4974dfd9c4b267ba3097f2f.scope,
+Invocation551e4d3da91a4209af9b873e8facab8a,inode23469612.
+Startauxd472...0004 Invocationd012815a9c2548b5aeff5c423d600105,inode23469370;
+actualauxac4d6fc08549492499b181b7a62f4b8f Invocation1c5e73f6700b477a915dcd3af7e7953b,
+inode23469570;capturedlaunch_gate/service_aux_identity. Remoteownedservices+
+monitorprimelora-artifact-monitor-d472-cpuprepw0.service ACTIVE;leaveunchanged
+duringreplay. RemoteD78/D80readonlyobjectsreused;startuphealthpass.
+No tests/analysis/compression/Gitpush/remote maintenancewhileperformanceactive.
+Afterfinish verifylaunch/contextrelease, thenexistingclose_after_release.py in
+boundedcollectionscope; it checksactualrecursiveempty/capturedidentities before
+stop/download. Its inheritedcompletioncaveatstill saysnative100; preserveoriginal
+helper and labelcorrectionseparatelyafterrun,actualn_planisphysicaljournal4000.
+Thenfullsource/physical/preparation/native/commonSLOaudit,curateandcheckpoint.
+No samekeyrepeat; fullresultdecideshypothesis. CurrentgoalACTIVE,notcomplete.
+
+## Completed — D471 native100 passed; D472 original4000 frozen
 
 D471CPUrepair pushed862ac54bf1eabd9a1a61274a033c4653f64ce1b4,
 remoteHEADequal,12explicitfiles/35publicationchecks. Actualnative100 thenpassed:
@@ -436,19 +571,18 @@ qualification/rejection/verified backup are progress, not a blocker or completio
 
 ## Next mainline
 
-D463 CPU qualification,D464 native100 andD465 full4000 complete;retain failures.
-D465 failed commonSLO and did not reduce resourcevsD458. Reject performance
-acceptance of this narrow hypothesis; no repeat. Source stillD463,not rolledback.
-Retained dispatch/activation diagnosis completeD466; fixed-UUID CPU pre-initialize
-boundary qualifiedD467; D468 bounded preparation/IPC/lifecycle foundation CPUtested.
-D469original-factoryintegrationandD471nativequalificationcomplete. Next D472
-one new-key original4000W0, not repeatimport/fork/prebuild tests. Do not extend the owner-read change to
-later snapshots or cached physical inventory. Explicitly declare D463 disposition
-in the next version,not a silent rollback or a claimed accepted improvement.
+D472 completed once,closed,auditedandcompared; do notrestart orrepollperformance.
+AcceptCPUpreparationcandidateasW0feasible/resourceimproved,notfullgoalachieved.
+RetainD465failure,D458priorfeasible andD463unacceptedstandaloneperformanceclaim.
+Nextaftertestedbackupandstoragegate: retainedD472vsElasticLocality/D458 request/
+activation/capacityanalysis,usingexistingD459–D461/D466primitives. Need evidence
+of residualtruecapacity/dispatch/nativeoccupancy beforeone nextcausaloptimization.
+No blindcapacity/thresholdsweep, CPUimport/fork/prebuildtest, cachedphysicalstate
+or extendingowner-readtoother snapshots. D463 stillpresent,not secretlyrolledback.
 Do not repeat D456 profiling, D458, sealed baselines, C8/capacity/threshold sweeps,
 pin-query microtests, stale HOST caches or already implemented planner offload.
-D458 remains the prior feasible Full point;D465 is the latest nonfeasible
-observation. Neither establishes lowest GPUoccupancy or fullG1/G2.
+D458 remains the prior feasible Full point;D465 is retained nonfeasible;
+D472latestfeasible. None establishes lowest GPUoccupancy or fullG1/G2.
 HydraServe independent native qualification remains open, not a reason to alter
 the user's unrelated Kubernetes cluster or abandon the PrimeLoRA optimization mainline.
 
@@ -467,7 +601,8 @@ All sealed rows retained, no repeats:
 | Loquetier D445 | .0435 | 4.249595809 | 555110.032229 |
 | ElasticLocality D453 | .95775 | 2.473178968 | 2420.607829 |
 | PrimeLoRA D458 | .9645 | 2.994084616 | 2847.386152 |
-| PrimeLoRA D465 latest, nonfeasible | .9475 | 2.996037107 | 3519.901199 |
+| PrimeLoRA D465, nonfeasible | .9475 | 2.996037107 | 3519.901199 |
+| PrimeLoRA D472 latest, feasible W0 | .95175 | 2.726165169 | 3285.013457 |
 
 S-LoRA/Loquetier diagnostic_nonfeasible; no baseline performance tuning.
 D458 resource17.3049% below old PrimeLoRA,21.0622% above ElasticLocality.
@@ -522,7 +657,7 @@ must be qualified before W1, not just relabelled. No new trace or baseline tunin
 
 - MAIN=/home/qhq/serverless_llm_experiment_retry14_baseline,
   branch retry14_continuous_queue_v2, remote faaslora_origin.
-  D465 execution pushed HEAD601bcd39da9bf61c496494dcdccd6e407ea669a4.
+  D472 execution pushed HEAD0fd50cccba4f0b623c8abd6cfd5802baea95862a.
   BASE=/home/qhq/serverless_llm_baselines,main,origin,
   unchanged HEAD71c52cf6f7331dc2a171ec83db5f1011eaf6d5a6.
 - One heavy job. Disk start>=max(150GiB,100GiB+1.5 growth), runtimefloor100GiB.
