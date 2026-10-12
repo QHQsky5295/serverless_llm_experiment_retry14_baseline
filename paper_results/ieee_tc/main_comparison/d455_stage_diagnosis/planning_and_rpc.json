@@ -1,0 +1,351 @@
+{
+  "reports": {
+    "PrimeLoRA": {
+      "planning_event_count": 2859,
+      "planning_states": {
+        "completed": 2859
+      },
+      "planning_operations": {
+        "owned_execution_epoch": 2849,
+        "initialized_gpu_objective": 10
+      },
+      "planning": {
+        "capture_serialization_ms": {
+          "count": 2859,
+          "mean": 10.038346171150412,
+          "p50_type1": 9.633688954636455,
+          "p95_type1": 13.525021960958838,
+          "sum": 28699.631703319028
+        },
+        "serialized_owner_wait_ms": {
+          "count": 2859,
+          "mean": 173.2946913707291,
+          "p50_type1": 0.023420900106430054,
+          "p95_type1": 791.5792618878186,
+          "sum": 495449.52262891456
+        },
+        "worker_dispatch_ms": {
+          "count": 2859,
+          "mean": 13.988249571590016,
+          "p50_type1": 3.7662989925593138,
+          "p95_type1": 18.94111791625619,
+          "sum": 39992.405525175855
+        },
+        "worker_wall_ms": {
+          "count": 2859,
+          "mean": 220.85821252246527,
+          "p50_type1": 174.98794896528125,
+          "p95_type1": 510.4535829741508,
+          "sum": 631433.6296017282
+        },
+        "worker_result_pickup_ms": {
+          "count": 2859,
+          "mean": 146.8982109704699,
+          "p50_type1": 7.853232091292739,
+          "p95_type1": 839.0240289736539,
+          "sum": 419981.9851645734
+        },
+        "worker_cpu_seconds": {
+          "count": 2859,
+          "mean": 0.22082502245260596,
+          "p50_type1": 0.1749498220000021,
+          "p95_type1": 0.5103957039999614,
+          "sum": 631.3387391920004
+        },
+        "input_bytes": {
+          "count": 2859,
+          "mean": 776645.907660021,
+          "p50_type1": 786770,
+          "p95_type1": 809216,
+          "sum": 2220430650.0
+        },
+        "output_bytes": {
+          "count": 2859,
+          "mean": 1340070.0185379502,
+          "p50_type1": 1361497,
+          "p95_type1": 1422001,
+          "sum": 3831260183.0
+        }
+      },
+      "first_planning_event": {
+        "operation": "owned_execution_epoch",
+        "captured_monotonic_s": 1078431.780101648,
+        "detached_monotonic_s": 1078431.781397531,
+        "submitted_monotonic_s": 1078431.782636293,
+        "state": "completed",
+        "caller_cancelled": false,
+        "worker_pid": 3465786,
+        "worker_started_monotonic_s": 1078442.12938791,
+        "worker_finished_monotonic_s": 1078442.219047581,
+        "worker_cpu_seconds": 0.08965085400000028,
+        "input_bytes": 384395,
+        "output_bytes": 877690,
+        "plan_sha256": "0c5a5c16532fe3702dda3b6480dab82ef0b5f497ae59ae2c577602449701818b",
+        "cpu_affinity": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47
+        ],
+        "cgroup": "0::/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-d7315ac3d05544dea290f189f2c4839d.scope",
+        "frozen_execution_validated": true,
+        "frozen_validation_seconds": 0.020849114982411265,
+        "plan_keys": [
+          "kind",
+          "mode",
+          "source_snapshot_id",
+          "profile_id",
+          "cost_sequence",
+          "demand_observed_at",
+          "window_seconds",
+          "total_arrivals",
+          "arrival_counts",
+          "remaining_bytes",
+          "options",
+          "cost_estimates",
+          "plan_sha256",
+          "physical_resources_reserved",
+          "selected",
+          "diagnostics",
+          "source_view"
+        ],
+        "execution_objectives_prepared": true,
+        "execution_objectives_seconds": 4.2798928916454315e-05,
+        "joined_monotonic_s": 1078442.225478088
+      },
+      "rpc": {
+        "parent_rpc_wall_ms": {
+          "count": 4000,
+          "mean": 4055.764887797006,
+          "p50_type1": 3275.784057099372,
+          "p95_type1": 9008.920289110392
+        },
+        "parent_rpc_overhead_ms": {
+          "count": 4000,
+          "mean": 256.54356455378,
+          "p50_type1": 14.50018398463726,
+          "p95_type1": 1273.5104800667614
+        },
+        "parent_rpc_channel_acquire_ms": {
+          "count": 4000,
+          "mean": 0.026256751676555723,
+          "p50_type1": 0.00916304998099804,
+          "p95_type1": 0.018007121980190277
+        },
+        "parent_rpc_response_pickup_delay_ms": {
+          "count": 4000,
+          "mean": 254.7274260520935,
+          "p50_type1": 12.451171875,
+          "p95_type1": 1272.6242542266846
+        },
+        "parent_rpc_thread_resume_delay_ms": {
+          "count": 4000,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "parent_rpc_send_flush_ms": {
+          "count": 4000,
+          "mean": 0.12214869662420824,
+          "p50_type1": 0.11995993554592133,
+          "p95_type1": 0.1778251025825739
+        },
+        "parent_rpc_wait_response_ms": {
+          "count": 4000,
+          "mean": 4054.928792684921,
+          "p50_type1": 3275.3429850563407,
+          "p95_type1": 9007.964098127559
+        },
+        "parent_rpc_request_bytes": {
+          "count": 4000,
+          "mean": 23879.5605,
+          "p50_type1": 24568.0,
+          "p95_type1": 26552.0
+        },
+        "parent_rpc_response_bytes": {
+          "count": 4000,
+          "mean": 1781.49125,
+          "p50_type1": 1782.0,
+          "p95_type1": 1786.0
+        },
+        "worker_rpc_handler_wall_ms": {
+          "count": 4000,
+          "mean": 3799.221323243226,
+          "p50_type1": 3002.8677380178124,
+          "p95_type1": 8767.337172059342
+        },
+        "worker_rpc_queue_ms": {
+          "count": 4000,
+          "mean": 1.599364697933197,
+          "p50_type1": 1.4743804931640625,
+          "p95_type1": 2.6671886444091797
+        }
+      },
+      "external_schema_example": {
+        "index": 0,
+        "request_id": "req_00000",
+        "planned_arrival_s": 1078479.741370046,
+        "task_created_s": 1078479.790203267,
+        "source_item_sha256": "ad0f1b8d7b4683c73ca04d89dddd8cf1986d5ba96d9297c970a2be33276c58c0",
+        "client_submit_s": 1078479.790405918,
+        "server_received_s": 1078479.791057783,
+        "service_dequeued_s": 1078484.000188149
+      }
+    },
+    "ElasticLocality": {
+      "planning_event_count": 0,
+      "planning_states": {},
+      "planning_operations": {},
+      "planning": {},
+      "first_planning_event": null,
+      "rpc": {
+        "parent_rpc_wall_ms": {
+          "count": 4000,
+          "mean": 3556.857003958081,
+          "p50_type1": 2740.7919249963015,
+          "p95_type1": 8149.30265606381
+        },
+        "parent_rpc_overhead_ms": {
+          "count": 4000,
+          "mean": 5.1922010680427775,
+          "p50_type1": 2.197349676862359,
+          "p95_type1": 4.576747072860599
+        },
+        "parent_rpc_channel_acquire_ms": {
+          "count": 4000,
+          "mean": 0.055068404879420996,
+          "p50_type1": 0.009296927601099014,
+          "p95_type1": 0.01667090691626072
+        },
+        "parent_rpc_response_pickup_delay_ms": {
+          "count": 4000,
+          "mean": 3.2513543367385864,
+          "p50_type1": 0.3399848937988281,
+          "p95_type1": 1.825094223022461
+        },
+        "parent_rpc_thread_resume_delay_ms": {
+          "count": 4000,
+          "mean": 0.0,
+          "p50_type1": 0.0,
+          "p95_type1": 0.0
+        },
+        "parent_rpc_send_flush_ms": {
+          "count": 4000,
+          "mean": 0.14074246725067496,
+          "p50_type1": 0.1356750726699829,
+          "p95_type1": 0.1814090646803379
+        },
+        "parent_rpc_wait_response_ms": {
+          "count": 4000,
+          "mean": 3555.827187784773,
+          "p50_type1": 2739.7384920623153,
+          "p95_type1": 8148.171003907919
+        },
+        "parent_rpc_request_bytes": {
+          "count": 4000,
+          "mean": 22500.103,
+          "p50_type1": 23841.0,
+          "p95_type1": 26668.0
+        },
+        "parent_rpc_response_bytes": {
+          "count": 4000,
+          "mean": 1781.892,
+          "p50_type1": 1782.0,
+          "p95_type1": 1787.0
+        },
+        "worker_rpc_handler_wall_ms": {
+          "count": 4000,
+          "mean": 3551.664802890038,
+          "p50_type1": 2737.79174615629,
+          "p95_type1": 8142.435997957364
+        },
+        "worker_rpc_queue_ms": {
+          "count": 4000,
+          "mean": 1.6359102725982666,
+          "p50_type1": 1.561880111694336,
+          "p95_type1": 2.526998519897461
+        }
+      },
+      "external_schema_example": {
+        "index": 0,
+        "request_id": "req_00000",
+        "planned_arrival_s": 1271177.824291181,
+        "task_created_s": 1271177.874287464,
+        "source_item_sha256": "ad0f1b8d7b4683c73ca04d89dddd8cf1986d5ba96d9297c970a2be33276c58c0",
+        "client_submit_s": 1271177.874500359,
+        "server_received_s": 1271177.875041135,
+        "service_dequeued_s": 1271177.875478051
+      }
+    }
+  },
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d371_20261010/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d371_7b_full_w0.json",
+      "sha256": "279ab57f704d4e680dfec5da22b64d1cf017d13809b4c6e60b15da0f8c9343ea"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d371_20261010/7b_full_w0/compression_receipt.json",
+      "sha256": "ff6a50f7b00b50e4126f5c83bc39dffba7140aefffc9aa927f2f8a4384b29a42"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d371_20261010/7b_full_w0/launch.launch/physical_deployment/main_outcome.json.gz",
+      "sha256": "c5cbd69476f8678f521ddc9b893c8777cbc72b52d1917781a639e2dd0724deec"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/elastic_locality_qualification/d453_20261012/7b_elastic_locality_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_elastic_locality_d453_7b_elastic_locality_w0.json",
+      "sha256": "f758f48cb1231de7a86025a1cdda777c2285dd2c892b208e9b21e5691c47fb50"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/elastic_locality_qualification/d453_20261012/7b_elastic_locality_w0/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "c6b7d7fcb5b619d75bcc4a4ba3610221c55971a14d872e320d6dbbd16847022f"
+    }
+  ],
+  "script": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d455_20261012/inspect_cpu.py",
+    "sha256": "f9324c7fa64d871b7e659fc29072964a1a4b6fb633d9ec60b5056de0e27064f0"
+  },
+  "scope": {
+    "unit": "primelora-tc-aux-d4550000000000000000000000000006.scope",
+    "invocation_id": "8f37c78dd7534cc3a7f9dc2483ed3ca1",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4550000000000000000000000000006.scope",
+    "inode": 23217484
+  },
+  "causal_attribution_established": false,
+  "caveat": "RPC pickup uses same-host wall times and producer clamping; planning spans overlap requests and are not additive E2E."
+}

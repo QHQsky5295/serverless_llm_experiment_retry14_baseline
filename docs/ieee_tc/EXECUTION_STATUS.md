@@ -1,4 +1,4 @@
-# IEEE TC execution status — D454 six-system W0 joined; resource gap localized
+# IEEE TC execution status — D455 growing controller delay localized; no policy change
 
 Updated 2026-10-12. Current checkpoint, NOT a replacement experiment plan.
 Full prior status is byte-identically archived in EXECUTION_HISTORY_THROUGH_D448.md,
@@ -31,7 +31,54 @@ entries are not current instructions. No evidence or approved task was removed.
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D454 offline comparison and control diagnosis completed
+## Current action — D455 retained request/CPU diagnosis completed
+
+Read full PLAN/status/baseline rules/V1/V2 after compaction; no online code/policy,
+configuration, baseline tuning, remote administration, GPU run or figure changed.
+Cache reapproval reuses completed D78/D80; no republish or extracted pool.
+Extended existing offline control analyzer with strict 12-stage same-monotonic-clock
+partition; 8000/8000 retained rows pass, max identity error0ms. D454 matchedW0
+mean/P95 remain exact. FullminusElastic meanE2E+622.783867ms, meanTTFT+147.099872ms.
+Mean permit acquire->resume0.380vs356.170ms; arrival->controllerrelease207.674vs6.136;
+runtime-slot281.050vs151.597; admission->nativeentry291.174vs173.306;
+nativeentry->firsttoken difference only12.617ms. Decode3336.563vs3102.616ms,
+worker->controllercompletion255.562vs4.157. Nested timings never added twice.
+
+Across fixed8x500source-order groups, PrimeLoRA meanarrivaldelay40.450->406.651ms
+and completionpickup49.091->456.315ms; ElasticLocality stays approximately4-9/2-8ms.
+This is a retained within-run trend, not independent repeats or isolated causality.
+2859completeFullplanningreceipts:2849owned_execution_epoch+10initialized_gpu_objective;
+worker CPU631.339s, parentfreezeserializationmean10.038ms, workerresultpickup146.898ms.
+GenerationRPCchannelwait0.026vs0.055ms; responsepickup254.727vs3.251ms; replies~1781B
+both. RPCpickupusesproducerwallclock/clamp; primary12-stageidentityusesmonotonic.
+Pureplanningalreadyoffloaded; no redundant offload/TTL/fallback/threshold-relaxation patch.
+Relevant D93/D188/D193-D204/D328-D331/D342/D350/D355/D374-D388 history and its
+prior-planning-owner references cross-checked (not every intervening experiment);
+Python3.12asyncio and Llumnix observation-path officialdocs checked. Current full
+file-preparation inventory is synchronous; actual share/cause remains unmeasured.
+Full-history coordinator export occurs at end, notliveprogress; not a valid assumedcause.
+
+92CPUtests passed0.498s; no skips. Firstnewentry ImportError beforedata/output retained
+with exactfailedscript; corrected toexistingtiming_stats and importregression. NoGPUretry.
+Curated main_comparison/d455_stage_diagnosis contains byte-identical stage/RPCplanning
+summaries, closure and deliveryverification. D455_CONTROLLER_STAGE_DIAGNOSIS.md
+records completephase/stagetables and limits. Projected8000rows retainedraw, notGit.
+Delivery check139refs/protected147/threeuserSHAs/protocols passed. SixownedCPUdomains
+and verifier7 exactInvocationID/actualrecursiveemptyclosed; allhigh/max/OOM/swap0,
+maxanalysispeak477192192B. NoGPUcomputeprocess. Lastdisk161830854656B(~150.72GiB),
+freshheavygate required. Explicitbackupcommit/remotematch recorded in rawD455
+backup_receipt.json afterpush; BASE remains71c52cf6f7331dc2a171ec83db5f1011eaf6d5a6.
+
+NEXT: establish current function-level cause of controller-delaygrowth. Reuseexisting
+D328 python_frames_v1 wrapper/analysis for one D371-config originalprefix1000 diagnostic
+if no retainedcurrentstackcoversit; no newpolicy/threshold/profile/capacity. Register
+andresourcequalify beforelaunch, keep diagnosticnotranking identity; no repeatD328's
+olderC8 point or speculative optimization. Then one evidence-backed formula-compatible
+candidate, tests/minimalvalidation/fullrun. Remaining7BW1/W2/reference/G2,3B,HydraServe
+externaldependency,A1-A5/S1-S13/docs/figures allstillOPEN. GoalACTIVE; currentturn
+substantiveofflineevidence/verifieddelivery progress, not blocked or entiregoal complete.
+
+## Previous action — D454 offline comparison and control diagnosis completed
 
 Read full PLAN/status/baseline rules/V1/V2; no runtime/configuration/policy change,
 new GPU run, baseline optimization, remote administration or figure. User again

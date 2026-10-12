@@ -301,5 +301,59 @@ class DispatchGateSplitTest(unittest.TestCase):
                 [dict(offset_s=4., queue=1, active=0, capacity=1, pending=0)])
 
 
+class RetainedStagePartitionTest(unittest.TestCase):
+    def test_campaign_entry_imports_existing_statistics(self):
+        from scripts.ieee_tc.analyze_d455_stages import analyze
+        self.assertTrue(callable(analyze))
+
+    def row(self):
+        return dict(request_id='r', success=True, requested_completion_tokens=2,
+            scheduled_arrival_offset_s=0., arrival_released_offset_s=1.,
+            admission_start_offset_s=2., admitted_offset_s=4.,
+            dispatch_window_wait_ms=2000., arrival_release_lateness_ms=1000.,
+            runtime_slot_wait_ms=1000., dispatch_admission_wait_ms=4000.,
+            overall_ttft_ms=9000., overall_e2e_ms=12000., routing_decision_us=300000.,
+            external_arrival_timing=dict(planned_arrival_s=100.),
+            native_token_timing=dict(timing_contract='ieee_tc_native_v1', native_clock_id='c',
+                controller_admitted_monotonic_s=105., native_dispatch_monotonic_s=106.,
+                native_queued_monotonic_s=107., native_scheduled_monotonic_s=108.,
+                native_first_token_monotonic_s=109., native_last_token_monotonic_s=110.,
+                worker_completed_monotonic_s=111., controller_completed_monotonic_s=112.,
+                native_output_tokens=2, native_tpot_ms=1000.))
+
+    def analyze(self, row):
+        from scripts.analyze_control_path_overhead import partition_retained_request_stages
+        return partition_retained_request_stages(row, arrival_start_s=100., clock_id='c')
+
+    def test_complete_additive_partition_and_separate_nested_route(self):
+        result = self.analyze(self.row())
+        self.assertEqual(len(result['stages_ms']), 12)
+        self.assertTrue(all(v == 1000. for v in result['stages_ms'].values()))
+        self.assertEqual(sum(result['stages_ms'].values()), 12000.)
+        self.assertEqual(result['nested_routing_ms'], 300.)
+        self.assertEqual(result['max_identity_error_ms'], 0.)
+
+    def test_missing_fields_rejected(self):
+        row = self.row()
+        del row['runtime_slot_wait_ms']
+        with self.assertRaises(KeyError): self.analyze(row)
+
+    def test_order_clock_and_native_counts_rejected(self):
+        for field, value in [('native_clock_id','wrong'), ('native_output_tokens',1),
+                             ('native_first_token_monotonic_s', 105.)]:
+            row = self.row()
+            row['native_token_timing'][field] = value
+            with self.subTest(field=field), self.assertRaises(ValueError): self.analyze(row)
+
+    def test_invalid_boundary_and_stored_identity_rejected(self):
+        for field, value in [('admission_start_offset_s',4.),
+                             ('arrival_released_offset_s',float('nan')),
+                             ('overall_ttft_ms',9002.),('overall_e2e_ms',12002.),
+                             ('dispatch_window_wait_ms',-1.),('success',False)]:
+            row = self.row()
+            row[field] = value
+            with self.subTest(field=field), self.assertRaises(ValueError): self.analyze(row)
+
+
 if __name__ == '__main__':
     unittest.main()

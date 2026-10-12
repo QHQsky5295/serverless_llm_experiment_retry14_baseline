@@ -1448,6 +1448,63 @@ def summarize_route_evidence(requests: Sequence[Dict[str, Any]]) -> Dict[str, An
     }
 
 
+def partition_retained_request_stages(request, *, arrival_start_s, clock_id):
+    """Additive same-clock stages, with routing retained as a nested observation.
+
+    Gate wait is not pure permit saturation; prefill is a wall-time envelope,
+    not GPU kernel time. Missing/inconsistent fields are never zero-filled.
+    """
+    from faaslora.metrics.metrics_collector import NativeV1TokenTimeline
+
+    def finite(value):
+        return type(value) in (int, float) and math.isfinite(value)
+
+    n = request['native_token_timing']
+    if (request['success'] is not True or not finite(arrival_start_s)
+            or n['native_output_tokens'] != request['requested_completion_tokens']):
+        raise ValueError('successful fixed-output native request required')
+    service = NativeV1TokenTimeline.service_breakdown(n,
+        admitted_at=n['controller_admitted_monotonic_s'],
+        completed_at=n['controller_completed_monotonic_s'], clock_id=clock_id)
+    offsets = [request[k] for k in ('scheduled_arrival_offset_s',
+        'arrival_released_offset_s', 'admission_start_offset_s', 'admitted_offset_s')]
+    if any(not finite(x) or x < 0 for x in offsets):
+        raise ValueError('finite nonnegative arrival/admission offsets required')
+    arrival, released, acquire, runtime = [arrival_start_s + x for x in offsets]
+    window = request['dispatch_window_wait_ms']
+    if not finite(window) or window < 0:
+        raise ValueError('finite nonnegative dispatch window required')
+    resumed = released + window / 1000
+    bounds = (arrival, released, acquire, resumed, runtime,
+              n['controller_admitted_monotonic_s'])
+    if any(a > b for a, b in zip(bounds, bounds[1:])):
+        raise ValueError('ordered pre-engine boundaries required')
+    names = ('arrival_release_ms', 'release_to_acquire_ms', 'acquire_to_resume_ms',
+             'runtime_slot_wait_ms', 'runtime_to_controller_admission_ms')
+    stages = {name:(b-a)*1000 for name,a,b in zip(names,bounds,bounds[1:])}
+    service_names = ('admission_to_engine_dispatch_ms', 'engine_entry_to_queue_ms',
+        'native_engine_queue_ms', 'native_prefill_ms', 'native_decode_ms',
+        'worker_completion_notification_ms', 'worker_to_controller_completion_ms')
+    stages.update({key:service[key] for key in service_names})
+    checks = (
+        (arrival, request['external_arrival_timing']['planned_arrival_s'], 1000),
+        (stages['arrival_release_ms'], request['arrival_release_lateness_ms'], 1),
+        (stages['runtime_slot_wait_ms'], request['runtime_slot_wait_ms'], 1),
+        ((runtime-arrival)*1000, request['dispatch_admission_wait_ms'], 1),
+        ((n['native_first_token_monotonic_s']-arrival)*1000, request['overall_ttft_ms'], 1),
+        (math.fsum(stages.values()), request['overall_e2e_ms'], 1),
+    )
+    errors = [abs(a-b)*scale for a,b,scale in checks]
+    if any(not finite(x) or x > 1 for x in errors):
+        raise ValueError('retained timeline identity exceeds 1ms')
+    route = request['routing_decision_us'] / 1000
+    if not finite(route) or route < 0:
+        raise ValueError('complete nested routing duration required')
+    return dict(request_id=request['request_id'], stages_ms=stages,
+        nested_routing_ms=route, max_identity_error_ms=max(errors),
+        ttft_ms=request['overall_ttft_ms'], e2e_ms=request['overall_e2e_ms'])
+
+
 def summarize_admission_waits(requests: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
     """Partition retained arrival/admission clocks; do not label all wait queueing.
 
