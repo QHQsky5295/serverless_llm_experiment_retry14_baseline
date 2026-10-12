@@ -31,7 +31,7 @@ entries are not current instructions. No evidence or approved task was removed.
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D452 original1000 input qualified, GPU launch next
+## Current action — D452 original1000 completed and delivery verified
 
 Previous goal turn made substantive progress: actualD451 closure/audit and backup,
 not no-progress or a wait. Commit520e23af5f9e4d82b630a252f567a2c7779df331 was pushed
@@ -44,9 +44,37 @@ Both historical source paths have samefileSHAefb903...; no regenerated input.
 20 existing replay tests passed0.633s, shell/Python syntax and config equality pass;
 protected147, protocol/userfiles/D451 sealedresult intact. CPUaux1/2 exactidentity/
 actualrecursiveempty stopped, high/max/OOM/swap0, peaks18550784/132988928B.
-Curated elastic_locality/d452_prefix_input_qualification.json; runtime NOT yet run.
-Next: back up qualified checkpoint, fresh resource/remote gates, run original1000
-once; then verify/close/save, followed by single4000W0. No repeatD450/D451.
+Curated elastic_locality/d452_prefix_input_qualification.json. Checkpoint
+57e7b13623d6c67310abc6580742ea25a7a2e495 pushed/remoteSHAequal; actual original1000
+launched07:40:58 in tmux tc-d452-locality1000, panePID2272004 alive/python3.
+Fresh32GiBgrowth gate passed, realremote1000Mb/s/full, existingD78/D80 cache reused.
+COMPLETED same launch once:1000/1000native token/source/adapter/lease bindings,
+122510tokens, zero failures. D434 retained input journal independently matches all
+1000 prompt hashes/native prompt-ID hashes/targets/source rows. Raw n_correct=null
+and absent independent kernel numerical proof stay unchanged. Not full4000/G1/G2.
+Commonjoint878/1000=87.8% (below95%); meanTTFT1856.451311ms,
+Type1P95TTFT11802.663969ms; meanqueue1238.101214ms/meanservice618.350097ms,
+P95TPOT66.677047ms; physicalGPU2781.422323s. No baseline tuning or rerun.
+Dispatchremote/GPU/HOST/NVMe60/646/87/207;1005selectionattempts,
+GPUhit646/slack33/nohit326; proactiveplans0/fileLRUreplacements0.
+Activationinitial1; natural11triggers comprise9runtime_ready and2cancelled with
+nullreadytime. Do not confuse triggers with completedscaleups orfirstservice.
+Initialactivation41.238201s. RealHTTP60transfers/74953014wireB; two-endUUID/SHA/
+bytesmatch; request-timepacking0; D78/D80existingdeliverycache reused.
+1179resourcesamples/peak19297902592B,high/max/OOM/swap0. Service/watchdogexit0,
+actualGPUrelease/servicepathremoved before exact-owned remote3B/7B/monitorstop;
+portsabsent, downloadedjournal/monitorSHAverified. All8 priorownedCPUauxclosed
+only after exactidentity and actualrecursivecgroup.procs empty checks.
+Curated elastic_locality/d452_actual_prefix1000.json retains rawaudit,inputwitness,
+activationdistinction, closure and allsourceSHA. Postrun auditors passedfirstattempt.
+Finaldeliverycheck passed25source refs/protected147; curatedSHA
+42163de84e0ecb4e4dc7ea3d33c6b257698a4b0370b9b614f4359116413cc210.
+Verificationaux9 InvocationID01dd96192242429d85d8177cbe526366 also actualempty/
+exactidentityclosed,high/max/OOM/swap0. No performance tasklive.
+Latestdisk162227302400B(~151.09GiB), fourGPUcomputeprocessesabsent;
+freshnextheavygatesrequired. Protected147/protocols/userfilesunchanged.
+NEXT: one original4000W0 at same frozenconfig; no repeatD450/D451/D452.
+Sealedfive-systemW0,remaining7BW1/W2/G2,3B and fullscope unchanged.
 
 ## Previous action — D451 existing500-ID view integration and actual coverage completed
 
