@@ -1,0 +1,33 @@
+{
+  "kind": "d458_retained_environment_warning_v1",
+  "scope": {
+    "unit": "primelora-tc-aux-d458000000000000000000000000000b.scope",
+    "invocation_id": "953f76134ce14bfd8139199404be2837",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d458000000000000000000000000000b.scope",
+    "inode": 23306074
+  },
+  "actual_limits_all_samples_match": true,
+  "direct_watchdog_samples": 4076,
+  "physical_release_verified": true,
+  "inotify_warnings": [
+    "2026-10-12T11:46:19+0800 dhu-PowerEdge-T640 systemd[2552]: primelora-tc-svc-bb023d043c8e4557a591c08b60784c66.scope: Failed to add control inotify watch descriptor for control group /user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-bb023d043c8e4557a591c08b60784c66.scope: No space left on device",
+    "2026-10-12T11:46:19+0800 dhu-PowerEdge-T640 systemd[2552]: primelora-tc-svc-bb023d043c8e4557a591c08b60784c66.scope: Failed to add memory inotify watch descriptor for control group /user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-bb023d043c8e4557a591c08b60784c66.scope: No space left on device"
+  ],
+  "no_environment_changes": true,
+  "full_performance_environment_equivalence_proven": false,
+  "minimum_recorded_disk_free_bytes": 157866590208,
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d458_20261012/review_closed_run.py",
+      "sha256": "7f6539a84b7a2b61391bbe5c6eeae3fe286c99cfeea6469afaf375152db1a5f4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d458_20261012/7b_full_w0/launch.json",
+      "sha256": "e7678e135e8951993f0a45eea2191580e60204f79977c04d39ca3320a6db3a1f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d458_20261012/7b_full_w0/launch.launch/watchdog.jsonl",
+      "sha256": "45314bded0118edbda5629ef1de14300cd40b78d9e168f0d421f84bc1f80dca2"
+    }
+  ]
+}

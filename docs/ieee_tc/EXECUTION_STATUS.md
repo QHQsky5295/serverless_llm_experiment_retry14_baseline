@@ -1,4 +1,4 @@
-# IEEE TC execution status — D458 full W0 qualified, not yet launched
+# IEEE TC execution status — D458 full W0 completed and audited
 
 Updated 2026-10-12. Current checkpoint, NOT a replacement experiment plan.
 Full prior status is byte-identically archived in EXECUTION_HISTORY_THROUGH_D448.md,
@@ -31,7 +31,54 @@ entries are not current instructions. No evidence or approved task was removed.
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D458 same-candidate full4000 prelaunch qualification
+## Current action — D458 full4000 completed, matched audit passed
+
+Same once-only run completed2026-10-12 about12:55; no restart, repeatedcandidate,
+livechanges or baseline tuning. Previousgoalturn VERIFIED_WAIT; thisturn actual
+completion/closure/native/input/matched audit PROGRESS. All4000native/source/
+adapter/leasecontracts and independentD435input witness pass,458224native tokens,
+132logicalIDs. Raw n_correct=null retained; no complete kernel numericalproof.
+SourceSHA8d65bf7a9113909451d72a822098e1e464e27d031a7b0ea71357bf30fd52205c.
+Commonjoint3858/4000=96.45%,meanTTFT1145.751632/P952847.386152ms;
+meanTPOT34.022228/P9558.675797ms;meanE2E4987.147144ms.
+PhysicalGPU11976.338464381872s=2.994084616095468GPU-s/boundrequest.
+ComparedsealedoldPrimeLoRA: resource-17.3049%,joint-1.25points,P95+0.3344%.
+ComparedElasticLocality:resource+21.0622%,joint+0.675points,P95+17.6310%.
+NOTlowestresourceW0;no globaloptimum/G2claim. W0budgetratio.990882877 isdiagnostic.
+All6priorrows/reference unchanged; same4000contractSHA384b63425402ced97961e91081265d3cbe340b6a3b4febde242de28f62cd7399.
+SamebackendoutputSHAchanges220vsoldFull/204vsElastic; allIDs retained, noautomatic
+roundingexplanation/independentnumericalproof. No figures/thresholdchange/rerun.
+
+Initial1ready,natural22triggers=19ready+3notready. Dispatchremote/GPU/HOST/NVMe
+133/2460/506/901;HTTP132/131480060wireB,both-endUUID/SHA/bytesmatch,pack0.
+Request-levelremotephase join131/132 retained; full transfer totals verified.
+4076resourcesamples,peak24446930944B,high/max/OOM/swap0; minimumdisk157866590208B.
+ActualGPUrelease/servicepathremoved and exit0 verified before exactremote3B/7B/
+monitorstop/downloadSHAcheck. Start/replayaux exactInvocationID/inode/actualrecursive
+empty verified andstopped. Postrun9/a also exactidentity/actualrecursiveemptyclosed.
+Reviewb andcurationc completed; require exact-ownedfinalclosure beforebackup.
+Reviewb identity in rawreview_identity.json;curationc InvocationID
+0b8f813fdb844e6a8f535c8ae6b49fd8,inode23306748;peak1962156032B,events0.
+93sourcerefs/34prelaunchrefs/protected147 passed; sourcesbacked up in curated
+postrun_analysis_sources.json. Inotifywarningsretained,actualall-samplelimitschecked,
+nohost/IDE/globalchanges or zero-effectclaim. Sourcecheckpointeb50795wasalready
+pushed; resultcheckpointNEXT after exactclosure/staged/secretschecks.
+
+NEXT: seal/backup this actualfull result; inspectstoragebefore nextheavylaunch.
+Then reuseD455stage/control diagnosis withD458 to locate remainingbusinesswindow
+GPUgap and one evidence-backed formula-compatible optimization. Do not repeatD458
+orsealedbaselines. All7BW1/W2/G2/refs,3B,HydraServeisolatednativequalification,
+dLoRA3B,A1-A5/S1-S13/docs/figures remainrequired. GoalACTIVE, notblocked/complete.
+
+Finaldelivery: 100distinctsource refs/protected147 passed,9postrun executedsource
+backups byteverified,all6priorrows/reference unchanged. Reviewb/curationc now
+exactInvocationID/inode/actualrecursiveempty closed;high/max/OOM/swap0.
+Finalverifierd InvocationID7f5fbdab0e12471ca449c6c238b5bf9b,inode23308212 completed,
+to close beforestaging. Lastdisk160274026496B(~149.26GiB),GPUcomputeempty.
+ResultdocD458_FILE_VIEW_FULL_W0_RESULTS.md and11curatedpostrunJSONfiles ready;
+onlytaskexplicitfiles to stage,neverusermanifest. No additionalGPUrun.
+
+## Previous action — D458 same-candidate full4000 qualified and launched
 
 FullPLAN/status/baseline rules/V1/V2 reread aftercompaction. D458 registers ordinary
 full4000 W0 for the same D457 file-view candidate, not another optimization/prefix
@@ -56,6 +103,82 @@ startgates mandatory. NEXT explicitbackup/remotematch then one actualfull4000 un
 tmux tc-d458-filevieww0. No repeatD457 orsealedbaselines. GoalACTIVE; substantive
 qualification progress. All7BW1/W2/G2,3B,HydraServeisolatedqualification,A/S/docs/
 figures remain required. No figures until near target.
+
+Subsequentlaunch2026-10-12: checkpoint
+eb5079524c5427b69e726962318571e8060bb988 pushed and independentremoteSHAequal.
+9explicitfiles/14byteexactsourcebackups passedstaged/ref/secretschecks; usermanifest
+notstaged. Closer6 exactInvocationID/actualrecursiveempty closed,peak302235648B;
+staging7 InvocationID10f7a2146f444cb692137a51b9f998e6 also exactidentity/actualempty
+closed,peak287027200B,high/max/OOM/swap0. Receipts retainedraw.
+Actualonce-onlyfull4000 launched in tmux tc-d458-filevieww0, panePID2860084 verified
+live/python3 atelapsed65s. Fresh32GiBgrowth/150GiB/memory/GPUgates passed;
+realremote1000Mb/s/full, D78/D80reused/no republish. Startaux8 InvocationID
+032a2067972748e6a403f512a9f205c3. Service
+primelora-tc-svc-bb023d043c8e4557a591c08b60784c66.scope InvocationID
+65c523f7ab8a4a15885c9e77a776f427; replayaux
+primelora-tc-aux-b1990c49a6aa40b7b7177ae9fcfd2dc2.scope.
+Remote3B ebe23af8043f431c92d0ef690e79e101,7B2c078326384e42c9bf5a9bed0cafe948,
+monitor997de66674bd4fcea94e7a77d7a6572e; exactunits recordedremote_start.log.
+Latestwatchdogsample63 noabort/warning/high/max/OOM/swap,peak7132045312B,
+free161223811072B. Firstrequestsubmitted onoriginal schedule; notfinalcounts/results.
+Same systemd inotifywarning retained; actualdirectmonitoring present, noglobalchange.
+NEXT monitor SAMEhandle throughcompletion; no tests/hashscan/build/cleanup/remote
+maintenance/runtimechange duringmeasurement. Onlyafter actualGPUrelease/service
+removal use existingclose_after_release.py and full4000native/input/resourceauditors,
+then same-contractcomparison. No repeatprefix/baselines or prematurewinnerclaim.
+FullgoalACTIVE; this turn substantivequalification/backup/actual-launch progress.
+
+Continuation VERIFIED_WAIT: priorgoalturn was PROGRESS (qualification/backup/actual
+launch). FullPLAN/status/latestbaseline rules reread. Same tmux/PID2860084 verified
+live repeatedly; latestprocesselapsed354s,174submitted/172terminalrows of4000.
+These are liveprogress, not auditedsuccess/SLO/ranking. Watchdogsample348 noabort/
+warning/high/max/OOM/swap,peak18087526400B; free160251129856B(~149.25GiB), above
+100GiBruntimefloor but not clearanceforanother150GiBlaunch. No tests/hashscan/
+heavyanalysis/cleanup/remoteadministration/runtime/config changes or rerun.
+Read-onlyexistingD458 analyzers/closure andcommonD290 audit inspection confirms
+the intended full4000 native/input/transfer/resource path; no analyzerexecuted yet.
+Actualreplayaux liveInvocationID387f06981e30465689d78b0fd0d7cc54,inode23271699,
+unitprimelora-tc-aux-b1990c49a6aa40b7b7177ae9fcfd2dc2.scope recordednow; require
+this exactidentity plus actualrecursiveempty before postrunstop, not pathalone.
+Continue SAME4000handle to actualtermination. Remainingfullscope unchanged;
+GoalACTIVE, verifiedlive experiment waiting, not no-progress or a blocker.
+
+Nextcontinuation VERIFIED_WAIT: priorgoalturn alsoverifiedwait, notanimpasse.
+FullPLAN/status/baselinerules reread includingtruncatedreadrepairs. Same tmux/
+PID2860084 repeatedlyconfirmedlive, latestelapsed707s.518submitted/518terminalrows
+of4000; no finalauditedsuccess, jointSLO or resource result. Watchdogsample697
+noabort/warning/high/max/OOM/swap,peak18087526400B; free160063008768B(~149.07GiB).
+Above100GiBruntimefloor; nextheavylaunchneedsfresh150GiBgate. Originalarrival
+window3963.908903s continues; no shortening, repeat, newtest/analysis/maintenance,
+runtimechange orfigure. Continue samehandle throughactualcompletion and physical
+release, then exact-ownedclosure andcompleteaudit. Fullremainingmatrix/GoalACTIVE.
+
+Ongoing continuation VERIFIED_WAIT: fullPLAN/status/baseline rules reread after
+compaction; monitor-experiment skill used for the same actual local tmux run.
+PID2860084 verified repeatedly through processelapsed1204s; latest1087submitted/
+1073terminalrows of4000, not auditedcorrectness or finalSLO. Watchdogsample1187
+peak20807495680B, high/max/OOM/swap0, no warning/abort; free159535968256B
+(~148.58GiB), above100GiBruntimefloor but below a new150GiBstartgate.
+Read-only closure/native/input auditor inspection only; no analyzer executed,
+new run, tests, hashscan, baseline adaptation, remote maintenance or runtime change.
+Current same-key progress is verified waiting, not repeated blocking. Continue
+original3963.908903s arrival window and actual drain/release. Postrun replayaux
+must match the previously observed InvocationID387f06981e30465689d78b0fd0d7cc54
+and inode23271699 plus actualrecursiveempty before stop; source helper path-only
+check is not sufficient by itself. Full remaining scope/GoalACTIVE unchanged.
+
+Same-run half-way checkpoint: previousgoalturn VERIFIED_WAIT, currentturn also
+verifiedwaiting on the same actualPID2860084, repeatedlycheckedlive through1975s.
+FullPLAN/status/baselinerules and monitor skill reread. Latest2019submitted/
+2014terminalrows of4000, no auditedcomplete result. Watchdogsample1947,
+peak20807495680B, high/max/OOM/swap0, no warning/abort; free159109431296B
+(~148.18GiB). Currentrun remainsabove100GiBruntimefloor; no newheavylaunchallowed
+withoutfresh150GiBgate. No code/config changes, tests, analyzer execution, scans,
+remoteoperations, cleanup, repeat or figures. Originalarrival window is only
+partiallyobserved; remain on SAMEhandle throughfullarrival/drain/physicalrelease,
+then exact-identity closure and complete native/input/resource comparisons.
+All remaining7BW1/W2/G2,3B,HydraServe qualification,A/S/docs/figures remainrequired.
+GoalACTIVE; verifiedlive waiting is not an impasse or completion.
 
 ## Previous action — D457 actual1000 completed, audited, backed up; next full replay
 

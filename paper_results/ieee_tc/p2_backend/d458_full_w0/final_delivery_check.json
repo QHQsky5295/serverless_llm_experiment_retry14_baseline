@@ -1,0 +1,63 @@
+{
+  "passed": true,
+  "verified_refs": 100,
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+  },
+  "scope": {
+    "unit": "primelora-tc-aux-d458000000000000000000000000000d.scope",
+    "invocation_id": "7f5fbdab0e12471ca449c6c238b5bf9b",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d458000000000000000000000000000d.scope",
+    "inode": 23308212
+  },
+  "closed": [
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-d458000000000000000000000000000b.scope",
+        "invocation_id": "953f76134ce14bfd8139199404be2837",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d458000000000000000000000000000b.scope",
+        "inode": 23306074
+      },
+      "recursive_cgroup_procs": {
+        "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d458000000000000000000000000000b.scope/cgroup.procs": []
+      },
+      "actual_recursive_procs_empty": true,
+      "resources": {
+        "memory.peak": "529448960",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "after": "inactive"
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-d458000000000000000000000000000c.scope",
+        "invocation_id": "0b8f813fdb844e6a8f535c8ae6b49fd8",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d458000000000000000000000000000c.scope",
+        "inode": 23306748
+      },
+      "recursive_cgroup_procs": {
+        "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d458000000000000000000000000000c.scope/cgroup.procs": []
+      },
+      "actual_recursive_procs_empty": true,
+      "resources": {
+        "memory.peak": "1962156032",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "after": "inactive"
+    }
+  ],
+  "previous_six_rows_unchanged": true,
+  "reference_unchanged": true,
+  "source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d458_20261012/finalize_delivery.py",
+    "sha256": "14398fab9c6879cf864b04572a135820b77d7ca38f292bbc68549600366bd6ae",
+    "content": "\"\"\"Close completed D458 analysis domains and verify the curated evidence.\"\"\"\nimport hashlib\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\nROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nRAW=Path(__file__).resolve().parent\nOUT=ROOT/'paper_results/ieee_tc/p2_backend/d458_full_w0'\nsys.path.insert(0,str(ROOT))\nfrom scripts import ieee_tc_preflight as p\n\nload=lambda path:json.loads(path.read_text())\nidentity=p.scope_identity(p.cg_path().name)\nwith (RAW/'finalize_identity.json').open('x') as f:json.dump(identity,f,indent=2)\nclosed=[]\nfor name in ('review_identity.json','curation_identity.json'):\n    expected=load(RAW/name)\n    owner=p.scope_identity(expected['unit'])\n    assert owner==expected and p.scope_still_owned(owner)\n    group=Path(owner['path'])\n    members={str(f):f.read_text().split() for f in group.rglob('cgroup.procs')}\n    assert members and all(not rows for rows in members.values())\n    resources={k:(group/k).read_text().strip() for k in\n        ('memory.peak','memory.events','memory.swap.current')}\n    assert p.scope_still_owned(owner)\n    subprocess.run(['systemctl','--user','stop',owner['unit']],check=True)\n    after=subprocess.check_output(['systemctl','--user','show',owner['unit'],'-p','ActiveState','--value'],text=True).strip()\n    assert after=='inactive'\n    closed.append(dict(identity=owner,recursive_cgroup_procs=members,\n        actual_recursive_procs_empty=True,resources=resources,after=after))\nchecked={}\ndef visit(value):\n    if isinstance(value,dict):\n        if isinstance(value.get('path'),str) and isinstance(value.get('sha256'),str):\n            path=Path(value['path'])\n            assert checked.get(str(path),value['sha256'])==value['sha256']\n            if str(path) not in checked:\n                assert p.digest(path)==value['sha256'],path\n                checked[str(path)]=value['sha256']\n        for child in value.values():visit(child)\n    elif isinstance(value,list):\n        for child in value:visit(child)\nfor path in OUT.glob('*.json'):\n    visit(load(path))\nfor row in load(OUT/'postrun_analysis_sources.json')['scripts']:\n    assert hashlib.sha256(row['content'].encode()).hexdigest()==row['sha256']\n    assert Path(row['path']).read_text()==row['content']\nreport=load(OUT/'matched_comparison.json')\nprior=load(ROOT/'paper_results/ieee_tc/main_comparison/d454_7b_w0/comparison.json')\nassert report['previous_six_system_results']==prior['results']\nassert report['reference']==prior['reference']\nassert report['matched_contract_sha256']==prior['matched_contract_sha256']\nassert len(report['same_backend_output_audits']['PrimeLoRA_D371']['changed_request_ids'])==220\nassert len(report['same_backend_output_audits']['ElasticLocality_D453']['changed_request_ids'])==204\nassert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()\nseal=p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))\nassert seal['pass'] and seal['entry_count']==147\nwith (OUT/'final_delivery_check.json').open('x') as f:\n    json.dump(dict(passed=True,verified_refs=len(checked),protected=seal,scope=identity,\n        closed=closed,previous_six_rows_unchanged=True,reference_unchanged=True,\n        source=dict(path=str(Path(__file__)),sha256=p.digest(Path(__file__)),content=Path(__file__).read_text())),f,indent=2)\nprint(json.dumps(dict(passed=True,verified_refs=len(checked),protected=147,closed=len(closed),scope=identity)))\n"
+  }
+}

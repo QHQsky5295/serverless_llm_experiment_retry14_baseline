@@ -1,0 +1,140 @@
+{
+  "kind": "d458_actual_full_w0_qualification_v1",
+  "passed": true,
+  "stats": {
+    "completed": 4000,
+    "mean_ttft_ms": 1145.7516322180745,
+    "p95_ttft_ms": 2847.3861515522003,
+    "mean_queue_ms": 513.6870895382017,
+    "p95_queue_ms": 1251.0778536088765,
+    "mean_service_ms": 632.0645426798728,
+    "p95_service_ms": 1738.628254039213,
+    "mean_tpot_ms": 34.02222814829077,
+    "p95_tpot_ms": 58.67579669159438,
+    "initial_preload_wall_s": 52.38347333506681,
+    "physical_gpu_seconds": 11976.338464381872,
+    "n_correct": null
+  },
+  "evidence": {
+    "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d458_20261012/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d458_7b_full_w0.json",
+    "source_sha256": "8d65bf7a9113909451d72a822098e1e464e27d031a7b0ea71357bf30fd52205c",
+    "physical_source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d458_20261012/7b_full_w0/launch.launch/physical_deployment/physical_resource_summary.json",
+    "physical_sha256": "cb272faef98a76fd9219212e15f1fd4e4e5929e8af2019b16284e6920ac4cac8",
+    "max_native_ttft_error_ms": 0.0,
+    "max_native_tpot_error_ms": 0.0,
+    "shared_trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "shared_adapter_subset_sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016"
+  },
+  "protocol_bound_count": 4000,
+  "numerical_correctness_qualified": false,
+  "fixed_workload_complete4000": true,
+  "ranking_eligible": false,
+  "replicates": 1,
+  "confidence_interval": null,
+  "native_tokens": 458224,
+  "dispatch_tiers": {
+    "remote": 133,
+    "gpu": 2460,
+    "host": 506,
+    "nvme": 901
+  },
+  "activation_categories": {
+    "initial": 1,
+    "natural_scaleout": 22
+  },
+  "activation_state_counts": {
+    "initial": {
+      "runtime_ready": 1
+    },
+    "natural_scaleout": {
+      "runtime_ready": 19,
+      "cancelled": 3
+    }
+  },
+  "initial_activation_s": [
+    52.36486153607257
+  ],
+  "common_threshold_joint_count": 3858,
+  "remote_transfers": 132,
+  "remote_wire_bytes": 131480060,
+  "request_time_pack_count": 0,
+  "resources": {
+    "samples": 4076,
+    "peak_bytes": 24446930944,
+    "max_swap_bytes": 0,
+    "events": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    }
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+  },
+  "refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d458_20261012/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d458_7b_full_w0.json",
+      "sha256": "8d65bf7a9113909451d72a822098e1e464e27d031a7b0ea71357bf30fd52205c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d458_20261012/7b_full_w0/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "b87241933bd804532a48542a7a3b0f2d37b74d1717271587111c0dd2910bbab2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d458_20261012/7b_full_w0/launch.json",
+      "sha256": "e7678e135e8951993f0a45eea2191580e60204f79977c04d39ca3320a6db3a1f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d458_20261012/remote_transfers.jsonl",
+      "sha256": "b3e2f57d0f44b876232e5a12d17284cfeaef5e0cd447bd1cf25d9ba0724e4050"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d458_20261012/remote_monitor.log",
+      "sha256": "801f084f4d87f8dc708ff1850e18ebda9b74463cab774a4accb050a823e9f53a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d458_20261012/remote_stop.json",
+      "sha256": "bde1aced795cbaefc8e82ca6853b7ffd2dd68b0c769b84db574199b50e910e9f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d458_20261012/local_cleanup.json",
+      "sha256": "ec9311af46e34ee2820be7a890815c4e183242d3009232d08fcef29c2a4a5d4f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d458_20261012/completion_receipt.json",
+      "sha256": "398795a4accfc7f0868a70e785a82bf1860e8ab83526c212d2f4b5aa1f98a15d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d458_20261012/remote_health.json",
+      "sha256": "1be4feef47a23b710c222e5d04a407e47ccfce12da94b09ae2737ecd85a2dd41"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d458_20261012/7b_full_w0/launch.launch/watchdog.jsonl",
+      "sha256": "45314bded0118edbda5629ef1de14300cd40b78d9e168f0d421f84bc1f80dca2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json",
+      "sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json",
+      "sha256": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d458_20261012/analyze_prefix.py",
+      "sha256": "b81e9168f369ee446561b999e93503e8b0ca78d8cc0966e42186d71b3baca459"
+    }
+  ],
+  "scope": {
+    "unit": "primelora-tc-aux-d458000000000000000000000000000a.scope",
+    "invocation_id": "b4a6e5c183204844966ca40480b2756f",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d458000000000000000000000000000a.scope",
+    "inode": 23304926
+  }
+}

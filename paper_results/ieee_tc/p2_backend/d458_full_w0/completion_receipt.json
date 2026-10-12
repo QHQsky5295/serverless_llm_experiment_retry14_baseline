@@ -1,0 +1,46 @@
+{
+  "kind": "d458_full_w0000_closure_v1",
+  "source_commit": "eb5079524c5427b69e726962318571e8060bb988",
+  "n_plan": 4000,
+  "n_terminal": 4000,
+  "n_native_contract_complete": 4000,
+  "n_failed_from_terminal_journal": 0,
+  "planned": 4000,
+  "terminal": 4000,
+  "successful_returns": 4000,
+  "failed": 0,
+  "source_sha256": "8d65bf7a9113909451d72a822098e1e464e27d031a7b0ea71357bf30fd52205c",
+  "launch_sha256": "e7678e135e8951993f0a45eea2191580e60204f79977c04d39ca3320a6db3a1f",
+  "physical_gpu_seconds_total": 11976.338464381872,
+  "native_gpu_context_release_confirmed": true,
+  "service_path_removed": true,
+  "remote_transfers_sha256": "b3e2f57d0f44b876232e5a12d17284cfeaef5e0cd447bd1cf25d9ba0724e4050",
+  "remote_monitor_sha256": "801f084f4d87f8dc708ff1850e18ebda9b74463cab774a4accb050a823e9f53a",
+  "remote_stop": {
+    "all_owned_units_inactive": true,
+    "ports_18080_18081_absent": true,
+    "local_gpu_release_verified_before_remote_stop": true,
+    "download_hashes_match_remote": true,
+    "hashes": {
+      "remote_transfers.jsonl": "b3e2f57d0f44b876232e5a12d17284cfeaef5e0cd447bd1cf25d9ba0724e4050",
+      "remote_monitor.log": "801f084f4d87f8dc708ff1850e18ebda9b74463cab774a4accb050a823e9f53a"
+    },
+    "stop_log_sha256": "06dde90a7cdcc149998b023eedd3279dd9e85126aa5ff0ca1cd5151308447c37"
+  },
+  "remote_cleanup": {
+    "all_owned_units_inactive": true,
+    "ports_18080_18081_absent": true,
+    "local_gpu_release_verified_before_remote_stop": true,
+    "download_hashes_match_remote": true,
+    "hashes": {
+      "remote_transfers.jsonl": "b3e2f57d0f44b876232e5a12d17284cfeaef5e0cd447bd1cf25d9ba0724e4050",
+      "remote_monitor.log": "801f084f4d87f8dc708ff1850e18ebda9b74463cab774a4accb050a823e9f53a"
+    },
+    "stop_log_sha256": "06dde90a7cdcc149998b023eedd3279dd9e85126aa5ff0ca1cd5151308447c37"
+  },
+  "n_correct": null,
+  "formal_qualification": false,
+  "ranking_eligible": false,
+  "no_figures": true,
+  "caveat": "PrimeLoRA full4000 file-view evaluation; no independent numerical proof or cross-system ranking before audit."
+}
