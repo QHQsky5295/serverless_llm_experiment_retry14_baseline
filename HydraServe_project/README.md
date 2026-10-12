@@ -8,6 +8,9 @@ semantics. Necessary isolated platform and LoRA-coordinate adaptation is ongoing
 the unrelated existing k3s cluster is not used or modified. Retain native modified
 vLLM 0.4.2, pipeline, overlap and consolidation; no baseline performance tuning.
 See [D479 adaptation evidence](../docs/ieee_tc/D479_HYDRASERVE_LORA_BINDING_ADAPTATION.md).
+The [D480 platform seam](../docs/ieee_tc/D480_HYDRASERVE_PLATFORM_PORT.md) preserves
+native policies and actual physical-node topology; its CPU checks pass, but the
+concrete isolated lifecycle and model workers still require qualification.
 CPU ownership tests and single-GPU NVML access have passed in their limited
 scopes. Native GPU/numerical correctness and performance are NOT yet qualified.
 Official source remains clean; the new runtime component is not installed yet.

@@ -1,0 +1,134 @@
+{
+  "kind": "native_hydraserve_platform_injection_cpu_checkpoint",
+  "checkpoint_verified": true,
+  "tests": {
+    "passed": true,
+    "returncode": 0,
+    "source_sha256": {
+      "HydraServe_project/runtime/platform_port.py": "c6bac72fe78803d8765fc0cce94ccfd2035e926b8fabecd0e6166b4fd49779cc",
+      "tests/test_ieee_tc_hydraserve_platform_port.py": "4bd3d96043c7c08d3100f43bb59ded73a6228b4c3317013ff995d061d07b19cd"
+    },
+    "elapsed_s": 0.8665866570081562,
+    "platform_installed": false,
+    "native_gpu_qualified": false,
+    "kubernetes_contacted": false,
+    "performance_result": false
+  },
+  "closure": {
+    "passed": true,
+    "identity": {
+      "unit": "primelora-tc-aux-d4800000000000000000000000000002.scope",
+      "invocation_id": "d3481da2c956427aaf1f5ce3caa2690d",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4800000000000000000000000000002.scope",
+      "inode": 23636201
+    },
+    "resources": {
+      "memory.peak": "26591232",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0"
+    },
+    "actual_recursive_procs_empty": true
+  },
+  "initial_test": {
+    "passed": false,
+    "returncode": 1,
+    "source_sha256": {
+      "HydraServe_project/runtime/platform_port.py": "c6bac72fe78803d8765fc0cce94ccfd2035e926b8fabecd0e6166b4fd49779cc",
+      "tests/test_ieee_tc_hydraserve_platform_port.py": "cfa310c860d23a3963c80ce529403d5ca98e85dd556b20a0eed49fc8899d284b"
+    },
+    "elapsed_s": 0.919551539933309,
+    "platform_installed": false,
+    "native_gpu_qualified": false,
+    "kubernetes_contacted": false,
+    "performance_result": false
+  },
+  "initial_source_reconstruction_verified": true,
+  "source_manifest": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d480_20261013/qualify_platform.py": {
+      "sha256": "5a90cd6d09dfbb24b3cea8f83148730fd88bfb591a556eaa947eea229e28a517",
+      "bytes": 1847
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d480_20261013/retry_fixture.py": {
+      "sha256": "66037d794b00e68438991689311abc1073d85d710f10f34163c0b14965b3ffc3",
+      "bytes": 396
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d480_20261013/close.py": {
+      "sha256": "879acd4adef30f323d99ee3c6bf8e95e1c28d780113545ba7a208ce795d43870",
+      "bytes": 1136
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d480_20261013/close_fixture.py": {
+      "sha256": "1707084eb064a0c93828fdb457cb68a0949b9169193f392700e11da7c6a473eb",
+      "bytes": 347
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d480_20261013/fixture_correction.md": {
+      "sha256": "5fd78ddf1ead04f42669530a273e362907a3722f9c5d1d2a721a045181611017",
+      "bytes": 838
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d480_20261013/test.log": {
+      "sha256": "6a9be0075f32b161ede9124d7ea64dd5a969cca4691363def7f981782f2639a4",
+      "bytes": 3856
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d480_20261013/test_result.json": {
+      "sha256": "2362cdfabba47dff90b7dab5a09e5533772e6c13464b48341669b99c89236051",
+      "bytes": 468
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d480_20261013/test_identity.json": {
+      "sha256": "623f6e517a11428bdbb1534aae630e46ab97a4365093619fa19f25c27322cc25",
+      "bytes": 286
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d480_20261013/test_closure.json": {
+      "sha256": "103aac2a3db12bad7577653295493e0cebe60e2d5535dab2a64bc696ab3a29f3",
+      "bytes": 538
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d480_20261013/fixture_retry/test.log": {
+      "sha256": "99431f5924e22a7aeba4969e2bb4f3927c1bb47b2ed7b266fd6a8eb31f306863",
+      "bytes": 2687
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d480_20261013/fixture_retry/test_result.json": {
+      "sha256": "ab366b821fdce8a45f7d29139744f5dbbb5e7ea02fca6883cb7c3f0a38550f47",
+      "bytes": 468
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d480_20261013/fixture_retry/test_identity.json": {
+      "sha256": "6b74ee207f98df342b0e5b0454fdbc2da4b2da84850ebc48f28c312c2941eb5a",
+      "bytes": 286
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d480_20261013/fixture_retry/test_closure.json": {
+      "sha256": "ee7aa9a6877716e25432683fdfcc0fb209adb0bdf3799d190c568fdb401e2e4d",
+      "bytes": 538
+    },
+    "/home/qhq/serverless_llm_baselines/HydraServe_project/runtime/platform_port.py": {
+      "sha256": "c6bac72fe78803d8765fc0cce94ccfd2035e926b8fabecd0e6166b4fd49779cc",
+      "bytes": 6887
+    },
+    "/home/qhq/serverless_llm_baselines/tests/test_ieee_tc_hydraserve_platform_port.py": {
+      "sha256": "4bd3d96043c7c08d3100f43bb59ded73a6228b4c3317013ff995d061d07b19cd",
+      "bytes": 12932
+    },
+    "/home/qhq/serverless_llm_baselines/docs/ieee_tc/D480_HYDRASERVE_PLATFORM_PORT.md": {
+      "sha256": "ac2bd3d4388c338ef3fdd0754bdaad689fea7cb387f465601c71961ecaf1bb57",
+      "bytes": 5500
+    },
+    "/home/qhq/serverless_llm_baselines/HydraServe_project/README.md": {
+      "sha256": "fa7cfe1fed69ad27421aac477cbcd5d3f33f0be694d9de4cbcc8160fa23a254f",
+      "bytes": 2246
+    }
+  },
+  "archive_sha256": "d18d9c4b453375826d7ea8c7aee1df89f85a9bde1515a569182fc289e77c34b9",
+  "protected_verification": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+  },
+  "concrete_platform_qualified": false,
+  "component_installed": false,
+  "native_backend_qualified": false,
+  "numerical_qualified": false,
+  "performance_result": false,
+  "upstream_commit": "8ae605de354ccfa2e9095514cdb4a9e9c56aa56b",
+  "tests_count": 22,
+  "new_tests_count": 12,
+  "live_work": "D479 separate software resume"
+}
