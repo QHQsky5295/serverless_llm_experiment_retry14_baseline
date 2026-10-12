@@ -1,0 +1,701 @@
+{
+  "kind": "isolated_nvml_container_qualification",
+  "passed": true,
+  "native_cuda_model_lora_qualification": false,
+  "kubernetes_qualified": false,
+  "whole_service_containment_qualified": false,
+  "performance_result": false,
+  "official_hydraserve_commit": "8ae605de354ccfa2e9095514cdb4a9e9c56aa56b",
+  "attempts": [
+    {
+      "name": "direct",
+      "result": {
+        "passed": false,
+        "evidence": "NVML only; no CUDA tensor/model/Kubernetes qualification",
+        "failure": "AssertionError: pull",
+        "remaining_scope_members": [
+          {
+            "pid": 182760,
+            "start_ticks": 132294618,
+            "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4770000000000000000000000000002.scope",
+            "affinity": [
+              2,
+              3,
+              26,
+              27
+            ]
+          }
+        ],
+        "disk_free_after": 161216827392,
+        "runtime_directory": "/run/user/1001/primelora-hydra-d477"
+      },
+      "closure": {
+        "passed": true,
+        "mode": "direct",
+        "pause": {
+          "identity": {
+            "pid": 182851,
+            "start_ticks": 132294658,
+            "uid": 1001,
+            "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/user.slice/podman-pause-8364830045005569099.scope",
+            "affinity": [
+              2,
+              3,
+              26,
+              27
+            ]
+          },
+          "unit": {
+            "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/user.slice/podman-pause-8364830045005569099.scope",
+            "InvocationID": "f219a9f70cd54a639c522f37a1138226"
+          },
+          "private_pidfile": "/run/user/1001/primelora-hydra-d477/libpod/tmp/pause.pid",
+          "actual_released": true,
+          "caveat": "Podman creates a separate pause scope; not proof of whole-service containment"
+        },
+        "identity": {
+          "unit": "primelora-tc-aux-d4770000000000000000000000000002.scope",
+          "invocation_id": "0616e8f194944db5bfba711a7f68569b",
+          "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4770000000000000000000000000002.scope",
+          "inode": 23583608
+        }
+      }
+    },
+    {
+      "name": "container_proxy_attempt",
+      "result": {
+        "passed": false,
+        "evidence": "NVML only; no CUDA tensor/model/Kubernetes qualification",
+        "failure": "AssertionError: run",
+        "remaining_scope_members": [
+          {
+            "pid": 188729,
+            "start_ticks": 132310871,
+            "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4770000000000000000000000000003.scope",
+            "affinity": [
+              2,
+              3,
+              26,
+              27
+            ]
+          }
+        ],
+        "disk_free_after": 161128394752,
+        "runtime_directory": "/run/user/1001/primelora-hydra-d477-proxy"
+      },
+      "closure": {
+        "passed": true,
+        "mode": "proxy",
+        "pause": {
+          "identity": {
+            "pid": 188772,
+            "start_ticks": 132310917,
+            "uid": 1001,
+            "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/user.slice/podman-pause-8856996079592285819.scope",
+            "affinity": [
+              2,
+              3,
+              26,
+              27
+            ]
+          },
+          "unit": {
+            "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/user.slice/podman-pause-8856996079592285819.scope",
+            "InvocationID": "ec64441820ff4be2889fe29fe335f7c5"
+          },
+          "private_pidfile": "/run/user/1001/primelora-hydra-d477-proxy/libpod/tmp/pause.pid",
+          "actual_released": true,
+          "caveat": "Podman creates a separate pause scope; not proof of whole-service containment"
+        },
+        "resources": {
+          "memory.peak": "181993472",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "memory.swap.current": "0"
+        },
+        "identity": {
+          "unit": "primelora-tc-aux-d4770000000000000000000000000003.scope",
+          "invocation_id": "43c1bb449ba74665af5e9bb462a6c377",
+          "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4770000000000000000000000000003.scope",
+          "inode": 23585035
+        }
+      }
+    },
+    {
+      "name": "container_delegated_attempt",
+      "result": {
+        "passed": false,
+        "evidence": "NVML only; no CUDA tensor/model/Kubernetes qualification",
+        "failure": "AssertionError: info",
+        "remaining_scope_members": [
+          {
+            "pid": 193671,
+            "start_ticks": 132324352,
+            "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4770000000000000000000000000004.scope/supervisor",
+            "affinity": [
+              2,
+              3,
+              26,
+              27
+            ]
+          }
+        ],
+        "disk_free_after": 161128120320,
+        "runtime_directory": "/run/user/1001/primelora-hydra-d477-delegated"
+      },
+      "closure": {
+        "passed": true,
+        "mode": "delegated",
+        "resources": {
+          "memory.peak": "26988544",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "memory.swap.current": "0"
+        },
+        "identity": {
+          "unit": "primelora-tc-aux-d4770000000000000000000000000004.scope",
+          "invocation_id": "481281d28a8946ebba2d7cb62c7f3b98",
+          "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4770000000000000000000000000004.scope",
+          "inode": 23586146
+        }
+      }
+    },
+    {
+      "name": "container_parent_attempt",
+      "result": {
+        "passed": false,
+        "evidence": "NVML only; no CUDA tensor/model/Kubernetes qualification",
+        "failure": "AssertionError: ",
+        "remaining_scope_members": [
+          {
+            "pid": 195287,
+            "start_ticks": 132328661,
+            "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4770000000000000000000000000005.scope/supervisor",
+            "affinity": [
+              2,
+              3,
+              26,
+              27
+            ]
+          }
+        ],
+        "disk_free_after": 161127784448,
+        "runtime_directory": "/run/user/1001/primelora-hydra-d477-proxy"
+      },
+      "closure": {
+        "passed": true,
+        "mode": "parent",
+        "pause": {
+          "identity": {
+            "pid": 195333,
+            "start_ticks": 132328702,
+            "uid": 1001,
+            "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/user.slice/podman-pause-8679306822774052197.scope",
+            "affinity": [
+              2,
+              3,
+              26,
+              27
+            ]
+          },
+          "unit": {
+            "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/user.slice/podman-pause-8679306822774052197.scope",
+            "InvocationID": "9a44fca6df274b8c83093f7ff3959552"
+          },
+          "private_pidfile": "/run/user/1001/primelora-hydra-d477-proxy/libpod/tmp/pause.pid",
+          "actual_released": true,
+          "caveat": "Podman creates a separate pause scope; not proof of whole-service containment"
+        },
+        "resources": {
+          "memory.peak": "150876160",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "memory.swap.current": "0"
+        },
+        "identity": {
+          "unit": "primelora-tc-aux-d4770000000000000000000000000005.scope",
+          "invocation_id": "86335f0133e043cca54c419bc9c996ae",
+          "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4770000000000000000000000000005.scope",
+          "inode": 23586625
+        }
+      }
+    },
+    {
+      "name": "container_affinity_attempt",
+      "result": {
+        "passed": true,
+        "evidence": "NVML only; no CUDA tensor/model/Kubernetes qualification",
+        "gpu_uuid": "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946",
+        "container_id": "6ff0b7dc13414ac1ea07a214523f89cff407968bae812fdaacfdffd3d24a0c30",
+        "actual_worker_contained": true,
+        "remaining_scope_members": [
+          {
+            "pid": 198479,
+            "start_ticks": 132336673,
+            "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4770000000000000000000000000006.scope/supervisor",
+            "affinity": [
+              2,
+              3,
+              26,
+              27
+            ]
+          }
+        ],
+        "disk_free_after": 161127481344,
+        "runtime_directory": "/run/user/1001/primelora-hydra-d477-proxy"
+      },
+      "closure": {
+        "passed": true,
+        "mode": "affinity",
+        "pause": {
+          "identity": {
+            "pid": 198522,
+            "start_ticks": 132336703,
+            "uid": 1001,
+            "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/user.slice/podman-pause-4764435966485670815.scope",
+            "affinity": [
+              2,
+              3,
+              26,
+              27
+            ]
+          },
+          "unit": {
+            "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/user.slice/podman-pause-4764435966485670815.scope",
+            "InvocationID": "9b40e8808e1b4222a859a2cfa6dc4880"
+          },
+          "private_pidfile": "/run/user/1001/primelora-hydra-d477-proxy/libpod/tmp/pause.pid",
+          "actual_released": true,
+          "caveat": "Podman creates a separate pause scope; not proof of whole-service containment"
+        },
+        "resources": {
+          "memory.peak": "141168640",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "memory.swap.current": "0"
+        },
+        "identity": {
+          "unit": "primelora-tc-aux-d4770000000000000000000000000006.scope",
+          "invocation_id": "9e171e325b704d25b9bacd9cee912364",
+          "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4770000000000000000000000000006.scope",
+          "inode": 23587346
+        }
+      }
+    }
+  ],
+  "source_manifest": {
+    "/home/qhq/serverless_llm_baselines/docs/ieee_tc/D477_ISOLATED_GPU_CONTAINER_QUALIFICATION.md": {
+      "sha256": "fa9c1c73857374cc9c4677e9101b3fcc3e7cb12ad32745b2de4e5af6875d6981",
+      "size": 5857
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/close.py": {
+      "sha256": "9276c6af98cbf1580c97a8d24908c4e3bfc3e12353b6965913afe453d385fc9f",
+      "size": 1269
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/close_container_context.py": {
+      "sha256": "72f2f553e1112d6317fca94fcd18fbd0a719ea417b88eda0a3958c26fa1cf855",
+      "size": 3531
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/close_container_context_v2.py": {
+      "sha256": "42ab6b2feda10429c86909e774c3f3f89f21f9b8430ba873358dc6ef15d9d06f",
+      "size": 3558
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/close_container_context_v3.py": {
+      "sha256": "5ac4be2e6be77ddc55b3243486d67620aad211499a45388936f854a9c571e585",
+      "size": 3570
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/contained_after_info.json": {
+      "sha256": "ba6cff14a334c28c39e09e61f71a96f2ea7c0dc4552bf99e9d0c457edfed7ae5",
+      "size": 264
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container.py": {
+      "sha256": "addccb5d3598b6b8eff4ff80b9fbde616f954cc0cd3538115e92483cb5399161",
+      "size": 5363
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_affinity_attempt/contained_after_info.json": {
+      "sha256": "fb65a5696775336fb315b41ee31317a1f38c3a90a16675860c3fc1095735f049",
+      "size": 275
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_affinity_attempt/container.py": {
+      "sha256": "b7cfe913b9b7246e62c57300009f2cd1f0ad70e6ea8389a6e5bdea5d36d9435f",
+      "size": 6641
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_affinity_attempt/container_commands.json": {
+      "sha256": "190bc221af7db01c218aba23b13c3ce5f75217ba3ca93b276587e56d1743176c",
+      "size": 6845
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_affinity_attempt/container_context_closure.json": {
+      "sha256": "a513f11b9a14516f45bef5691c21cb1cb662cf33ae0fd0b3dae5451cbdafb718",
+      "size": 1249
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_affinity_attempt/container_effective_limits.json": {
+      "sha256": "38e11d8ae7989838e29be0614022641a4f64c85d531dc24c2e0b415ef189fc07",
+      "size": 78
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_affinity_attempt/container_identity.json": {
+      "sha256": "1a7405e720f75401e53069e6693f1b87b768a8b6b15d38d50eb31da3e4651251",
+      "size": 286
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_affinity_attempt/container_preflight.json": {
+      "sha256": "a453a1499f71b7af982835abb21a81fb7eb22e82df12f24e40c2cf4fae9c72ee",
+      "size": 6525
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_affinity_attempt/container_process_identity.json": {
+      "sha256": "b758dd7cbc704b2645dc759735a2ffce034231526f2a4f353f9990a9869a6dd9",
+      "size": 325
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_affinity_attempt/container_result.json": {
+      "sha256": "f74960537e2fd06f0c51b1bea330fbd50fa684149a5d374284c9fbef2156e2d3",
+      "size": 706
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_affinity_attempt/containers.conf": {
+      "sha256": "5aabfd07777b9c02e3132080ab796f5e5d1860faa6420a60e4de587612999715",
+      "size": 60
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_affinity_attempt/image.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_affinity_attempt/image.stdout": {
+      "sha256": "edab2591aeee04c7ac40a2282f2f7c1f17a61117fec00355e42fe8e858c5d035",
+      "size": 2732
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_affinity_attempt/image_identity.json": {
+      "sha256": "7f4ff446cb44c11f1d08ed65faca0e88af95234e9731227fe27d946d5b9c5a81",
+      "size": 460
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_affinity_attempt/info.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_affinity_attempt/info.stdout": {
+      "sha256": "8acb6ed1f0e588ad5934ce8b465bb32938f8e80f42626824ab42694e5042b245",
+      "size": 3662
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_affinity_attempt/inspect_final.stderr": {
+      "sha256": "e8b87254cc1c0627bfc68a46a70fab90430c8a01c8d3306d5eca4f267d6d2110",
+      "size": 131
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_affinity_attempt/inspect_final.stdout": {
+      "sha256": "3d06a22c344d009197caea7dad44aef0da42245117b343126fc30657ed482e48",
+      "size": 12860
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_affinity_attempt/inspect_live.stderr": {
+      "sha256": "d66fdb58c6a8f7c914b46f65203e3445255864adce92fa0425a78f77e0c47bec",
+      "size": 131
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_affinity_attempt/inspect_live.stdout": {
+      "sha256": "b77bc4b98961d16bbfaf4a1670555bcf305067848309062b4ee56c6fce8aa705",
+      "size": 13096
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_affinity_attempt/logs.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_affinity_attempt/logs.stdout": {
+      "sha256": "dd7b9d5b86bc964537432df317230d40352cd8c35823b1185101ac1c55d2c7c0",
+      "size": 85
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_affinity_attempt/remove_owned.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_affinity_attempt/remove_owned.stdout": {
+      "sha256": "fb84cbf6a6b06d47743a1ba176677252508fcc3dc32d6ded8d3362cc1a5c6805",
+      "size": 65
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_affinity_attempt/run.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_affinity_attempt/run.stdout": {
+      "sha256": "fb84cbf6a6b06d47743a1ba176677252508fcc3dc32d6ded8d3362cc1a5c6805",
+      "size": 65
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_affinity_attempt/selected_gpu.json": {
+      "sha256": "77a3fb0fbf57a7fe3204750360cff6ad8c1544b0fc2d5ceae90c2790c3946421",
+      "size": 80
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_affinity_attempt/wait.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_affinity_attempt/wait.stdout": {
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "size": 2
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_closure.json": {
+      "sha256": "f8e182f1c888614cb2c48759f6d9b15a12c19fd419a8cbe50f62ee4c4b5ea6c7",
+      "size": 625
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_commands.json": {
+      "sha256": "78e5f7d8353dd0c7aeda96705476038a3b519f79ae40dab74849d1aa813dc296",
+      "size": 1481
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_context_closure.json": {
+      "sha256": "bd81d53d4df117ce645785c5ce6e30a07cef492a75dcfbc9163a656650c3903a",
+      "size": 1074
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_delegated_attempt/container.py": {
+      "sha256": "ac22d75e94f387bf6a6c113bb5555ba39fcbeb481d261eab38b9729dbcbd3093",
+      "size": 6038
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_delegated_attempt/container_commands.json": {
+      "sha256": "99112fc5db844a09bdd2016c6b8e2813d663ea4e6cf09bccf662017c3005e320",
+      "size": 716
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_delegated_attempt/container_context_closure.json": {
+      "sha256": "b9b55ee7904fec57c402db1b9597c37468c03e2cb25f07e80c99e6f4ebd8e411",
+      "size": 521
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_delegated_attempt/container_identity.json": {
+      "sha256": "6a9140a8800be4018a7d383bd1a1188919dd5a799c63a4c660e04db7a5da12f8",
+      "size": 286
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_delegated_attempt/container_preflight.json": {
+      "sha256": "79e2991dbd488db693fb1320e6bc56d358e194323dba59f66491fe4cbf106b10",
+      "size": 6526
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_delegated_attempt/container_result.json": {
+      "sha256": "f4378b258e578c78cf370cd84e63c9fc82d7764e35f9d105689729ee04779190",
+      "size": 569
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_delegated_attempt/containers.conf": {
+      "sha256": "5aabfd07777b9c02e3132080ab796f5e5d1860faa6420a60e4de587612999715",
+      "size": 60
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_delegated_attempt/info.stderr": {
+      "sha256": "5663db1ee88273c494f2c1eba50219ef072caa751c106c4da5fed5e3ec6b335a",
+      "size": 58
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_delegated_attempt/info.stdout": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_identity.json": {
+      "sha256": "9e0123d92d1d0c78b56b22160f9f3fcaebc15baf305ea181d9552af352e93b08",
+      "size": 286
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_parent_attempt/contained_after_info.json": {
+      "sha256": "b627351bf94f772682c1e67faeaa92332733b722c5e471c960a73ff90158543e",
+      "size": 275
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_parent_attempt/container.py": {
+      "sha256": "1b8a6cd16ad710ba02269f3837a54414bb070a0f426aa361f2554327d26f8a7c",
+      "size": 6184
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_parent_attempt/container_commands.json": {
+      "sha256": "934343b4721d9647ffb72bf435346c2a20d6d3b8f34386ecf430666250bf3cf9",
+      "size": 6035
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_parent_attempt/container_context_closure.json": {
+      "sha256": "f7ec2242024309237d0bb80ff55555392e002fdcfb4c971d6496288357b41e46",
+      "size": 1247
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_parent_attempt/container_identity.json": {
+      "sha256": "31704dbade3ea05a336fa1e92ff6ec9e81998af785c691a458c3a8714fc35a85",
+      "size": 286
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_parent_attempt/container_preflight.json": {
+      "sha256": "b39062184cf6f68c8a86e8dba7eaa233737ec5c918f509be9fee554f8b105dc7",
+      "size": 6523
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_parent_attempt/container_process_identity.json": {
+      "sha256": "99ae1221feb32ce9a61a364943725dcd38879e8f6e024f71b86e343b293f936b",
+      "size": 669
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_parent_attempt/container_result.json": {
+      "sha256": "369d1fac1f0c95b5923d62f5ad6ce9dbecbe7565f37ac6ea32ab01e8023b82b2",
+      "size": 561
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_parent_attempt/containers.conf": {
+      "sha256": "5aabfd07777b9c02e3132080ab796f5e5d1860faa6420a60e4de587612999715",
+      "size": 60
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_parent_attempt/image.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_parent_attempt/image.stdout": {
+      "sha256": "edab2591aeee04c7ac40a2282f2f7c1f17a61117fec00355e42fe8e858c5d035",
+      "size": 2732
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_parent_attempt/image_identity.json": {
+      "sha256": "7f4ff446cb44c11f1d08ed65faca0e88af95234e9731227fe27d946d5b9c5a81",
+      "size": 460
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_parent_attempt/info.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_parent_attempt/info.stdout": {
+      "sha256": "2f753ab40f952ee6ca108bfb30876e4c675ebdcd42a46caf876af7dfde8f6b63",
+      "size": 3663
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_parent_attempt/inspect_final.stderr": {
+      "sha256": "e9b642eea49f7900d23b344d853e8fa30527674a1814d243fd38440e50d67a8e",
+      "size": 131
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_parent_attempt/inspect_final.stdout": {
+      "sha256": "b8f4bed0459584a36183492cf494d7c11bebb9402281e24797cb80bf6685b2f1",
+      "size": 12841
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_parent_attempt/inspect_live.stderr": {
+      "sha256": "e9b642eea49f7900d23b344d853e8fa30527674a1814d243fd38440e50d67a8e",
+      "size": 131
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_parent_attempt/inspect_live.stdout": {
+      "sha256": "b8f4bed0459584a36183492cf494d7c11bebb9402281e24797cb80bf6685b2f1",
+      "size": 12841
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_parent_attempt/remove_owned.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_parent_attempt/remove_owned.stdout": {
+      "sha256": "caa1c7a8b10165414d98f2755689926ac08d3319dbfa91c4efb32d8f2a3dd7af",
+      "size": 65
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_parent_attempt/run.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_parent_attempt/run.stdout": {
+      "sha256": "caa1c7a8b10165414d98f2755689926ac08d3319dbfa91c4efb32d8f2a3dd7af",
+      "size": 65
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_parent_attempt/selected_gpu.json": {
+      "sha256": "77a3fb0fbf57a7fe3204750360cff6ad8c1544b0fc2d5ceae90c2790c3946421",
+      "size": 80
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_parent_attempt/stop_owned.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_parent_attempt/stop_owned.stdout": {
+      "sha256": "caa1c7a8b10165414d98f2755689926ac08d3319dbfa91c4efb32d8f2a3dd7af",
+      "size": 65
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_preflight.json": {
+      "sha256": "2405dcf3b9b621205a8205dccb3cc952f87ce5ee6259f77e438c9dfe867c7322",
+      "size": 6497
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_proxy_attempt/contained_after_info.json": {
+      "sha256": "665c12966470eae8364f132678fbe7d2dad315730460991ba93a4d266a705fa8",
+      "size": 264
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_proxy_attempt/container.py": {
+      "sha256": "fe7b9976c9e20eda57dc441671ec4e9b64fec780cff9a44e0c1cf68f15a28545",
+      "size": 5492
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_proxy_attempt/container_commands.json": {
+      "sha256": "6540337788cdffeb25f15f63899cd02e50fa96207c6a0f08abb567d9a45cd6e6",
+      "size": 3652
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_proxy_attempt/container_context_closure.json": {
+      "sha256": "b9fa90220da677d43da0819ada533a65a1aafe553dfb7618266592bc5d36a8cf",
+      "size": 1246
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_proxy_attempt/container_identity.json": {
+      "sha256": "410dc895f7622e0ca418ce8f9ee5874dbdbefe183963b6c6ece18ebf033e090c",
+      "size": 286
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_proxy_attempt/container_preflight.json": {
+      "sha256": "26a069384b73c659148f3717b0e6a2221e534b4cc8557fccf99de3175325f7b7",
+      "size": 6521
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_proxy_attempt/container_result.json": {
+      "sha256": "cc0b0f0307f55f78dcc4b51c0fbb654b014765cd0bc752cee67677ce74c1ac85",
+      "size": 553
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_proxy_attempt/image.stderr": {
+      "sha256": "d76f171068b4320dab64a52c63fc4ff50f55529282a1c998959bf3432363a708",
+      "size": 498
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_proxy_attempt/image.stdout": {
+      "sha256": "edab2591aeee04c7ac40a2282f2f7c1f17a61117fec00355e42fe8e858c5d035",
+      "size": 2732
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_proxy_attempt/image_identity.json": {
+      "sha256": "7f4ff446cb44c11f1d08ed65faca0e88af95234e9731227fe27d946d5b9c5a81",
+      "size": 460
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_proxy_attempt/info.stderr": {
+      "sha256": "3552b881ab912dd035095a95e60d4d3693894228f696657a683e6aa9c839dbc4",
+      "size": 996
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_proxy_attempt/info.stdout": {
+      "sha256": "202057e7c6dc7c9a83e5a9be70ce4f64392d651b58a8f61ba6675359ff7bdeab",
+      "size": 3625
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_proxy_attempt/pull.stderr": {
+      "sha256": "b0a0b8328dc6e502c132ca85f8450ef462a29d9690e477eed7744fd21348e49f",
+      "size": 893
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_proxy_attempt/pull.stdout": {
+      "sha256": "095264c143f21369b0c6f1ed96db1d3578a6389cd326c4a54aa03653d2626af8",
+      "size": 65
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_proxy_attempt/run.stderr": {
+      "sha256": "88c627227165589b15081218326ac80ca446e66305d0ac553ca03f19ecf741ef",
+      "size": 612
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_proxy_attempt/run.stdout": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_proxy_attempt/selected_gpu.json": {
+      "sha256": "77a3fb0fbf57a7fe3204750360cff6ad8c1544b0fc2d5ceae90c2790c3946421",
+      "size": 80
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/container_result.json": {
+      "sha256": "1b34636e63fa8f4163025ebbec16d500f8bdf136f01602d8b69dac30b862f0ba",
+      "size": 548
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/info.stderr": {
+      "sha256": "f712891f9444809bc1c0099d484fcbfa763ac72f947aba96f6787e7e882f19ee",
+      "size": 996
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/info.stdout": {
+      "sha256": "843d094d3305ce9b7e2180f286adf211a4bf589b074f1157fedb3a1eadfc31e8",
+      "size": 3564
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/pull.stderr": {
+      "sha256": "c4b43cb92d51bdecbdbede3306fa14d9faae600d8e5645b7efbfe9256a63b52f",
+      "size": 727
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/pull.stdout": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/storage.py": {
+      "sha256": "d8cba622281a0a67e77881c12ad2f7a7bb565bad7af0a0c18092b905603ca21b",
+      "size": 1157
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/storage_closure.json": {
+      "sha256": "58d6011ae5e7c66f0c44856ec6c61a5255c39bcbe125dba198b72fbe81b49d42",
+      "size": 626
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d477_20261012/storage_identity.json": {
+      "sha256": "a415e8cc3bc23e7a59316e7099de2a853451a4b7a33bd6e4cdd5bf670df1c98a",
+      "size": 286
+    },
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/storage/20261012_d477_closed_outcomes_lossless.json": {
+      "sha256": "b4be6f3a483a702a691f08d5b523fccba1b6bdc5b8bbef1c7344dfa6e4f6f111",
+      "size": 4969
+    }
+  },
+  "archive_sha256": "bfa65a2c6c3a35fd08a1e3f78712db23f70311724ffe72f1b63765acd93c5fba",
+  "preserved_failures": 4,
+  "protected_verification": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+  },
+  "remaining": [
+    "CPU controller delegation/platform interface",
+    "pause lifecycle containment",
+    "native modified backend",
+    "pipeline/consolidation LoRA correctness",
+    "full workload qualification"
+  ]
+}
