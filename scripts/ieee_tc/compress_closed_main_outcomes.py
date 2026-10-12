@@ -90,7 +90,24 @@ def write_json(path: Path, value: dict, exclusive: bool = False) -> None:
         os.fsync(stream.fileno())
 
 
-def main() -> int:
+def require_closed_launch(launch: dict, *, allow_closed_failure: bool = False) -> None:
+    """Storage eligibility is distinct from performance/qualification success.
+
+    An explicit failed attempt may be archived losslessly only after its actual
+    service and native contexts were released. Its pass flag is never rewritten.
+    Unknown status and incomplete release evidence are not eligible.
+    """
+    if (launch.get('service_path_removed') is not True or
+            launch.get('native_gpu_context_release_confirmed') is not True):
+        raise RuntimeError('run is not closed and released')
+    if launch.get('pass') is True:
+        return
+    if allow_closed_failure and launch.get('pass') is False:
+        return
+    raise RuntimeError('failed/unknown launch requires explicit closed-failure eligibility')
+
+
+def main(*, allow_closed_failure: bool = False) -> int:
     if OUT.exists():
         raise RuntimeError(f'refusing a second cleanup run: {OUT}')
     OUT.parent.mkdir(parents=True, exist_ok=True)
@@ -103,8 +120,7 @@ def main() -> int:
             source = raw / 'launch.launch/physical_deployment/main_outcome.json'
             archive = source.with_suffix(source.suffix + '.gz')
             launch = json.loads((raw / 'launch.json').read_text())
-            if not launch.get('pass') or not launch.get('service_path_removed') or not launch.get('native_gpu_context_release_confirmed'):
-                raise RuntimeError(f'run is not closed and released: {run}')
+            require_closed_launch(launch, allow_closed_failure=allow_closed_failure)
             if not source.is_file() or archive.exists():
                 raise RuntimeError(f'unexpected source/archive state: {run}')
             no_active(source)
@@ -116,7 +132,8 @@ def main() -> int:
             row = dict(run=run, source=str(source), archive=str(archive),
                        source_sha256=source_sha, audit_sha256=audit_sha,
                        audit_sha_matches=(audit_sha is None or audit_sha == source_sha),
-                       source_stamp=original_stamp,
+                       source_stamp=original_stamp, launch_pass=launch['pass'],
+                       closed_failure_explicitly_allowed=allow_closed_failure,
                        launch_sha256=digest(raw / 'launch.json'))
             subprocess.run(['gzip', '-1', '-k', '--', str(source)], check=True)
             try:
@@ -164,9 +181,13 @@ if __name__ == '__main__':
     parser.add_argument('--closed-run', action='append', default=[],
                         help='Explicit relative campaign/run path; no directory scan')
     parser.add_argument('--receipt', type=Path)
+    parser.add_argument('--allow-closed-failure', action='store_true',
+                        help='Archive explicitly named failed attempts after verified release; retain failure status')
     args = parser.parse_args()
     if bool(args.closed_run) != bool(args.receipt):
         parser.error('--closed-run and --receipt must be supplied together')
+    if args.allow_closed_failure and not args.closed_run:
+        parser.error('--allow-closed-failure requires explicit --closed-run paths')
     if args.closed_run:
         if len(set(args.closed_run)) != len(args.closed_run):
             parser.error('duplicate closed-run path')
@@ -182,4 +203,4 @@ if __name__ == '__main__':
             parser.error('receipt must be inside the curated storage directory')
         TARGETS = [dict(run=run, audit_sha=None) for run in args.closed_run]
         OUT = args.receipt
-    sys.exit(main())
+    sys.exit(main(allow_closed_failure=args.allow_closed_failure))

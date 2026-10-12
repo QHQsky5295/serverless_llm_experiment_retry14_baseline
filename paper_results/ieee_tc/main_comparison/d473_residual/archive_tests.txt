@@ -1,0 +1,12 @@
+test_failed_source_rejected_without_mutation (tests.test_ieee_tc_closed_outcome_archive.ClosedOutcomeArchive.test_failed_source_rejected_without_mutation) ... ok
+test_failed_source_roundtrip_and_launch_unchanged (tests.test_ieee_tc_closed_outcome_archive.ClosedOutcomeArchive.test_failed_source_roundtrip_and_launch_unchanged) ... ok
+test_failure_requires_opt_in (tests.test_ieee_tc_closed_outcome_archive.ClosedOutcomeArchive.test_failure_requires_opt_in) ... ok
+test_opt_in_does_not_waive_release (tests.test_ieee_tc_closed_outcome_archive.ClosedOutcomeArchive.test_opt_in_does_not_waive_release) ... ok
+test_success_eligible_by_default (tests.test_ieee_tc_closed_outcome_archive.ClosedOutcomeArchive.test_success_eligible_by_default) ... ok
+test_unknown_status_is_not_failure (tests.test_ieee_tc_closed_outcome_archive.ClosedOutcomeArchive.test_unknown_status_is_not_failure) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.113s
+
+OK
+{"passed": true, "entries": 1, "before": {"available_bytes": 160616148992}, "after": {"available_bytes": 160616120320}, "reclaimed": 8192}

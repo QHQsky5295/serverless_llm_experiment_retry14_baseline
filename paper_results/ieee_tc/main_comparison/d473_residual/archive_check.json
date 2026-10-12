@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "failed_launches_unchanged": true,
+  "script_sha256": "cb603a1abce1ef306ec2555287c88c7bb7f0d69f35ab6e819d1b8e67ba657843",
+  "test_sha256": "a590092b97a7586a902eb2d78ddee16e83e262dffd8f3df70956e4c8cd8a20a1",
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+  }
+}

@@ -1,4 +1,4 @@
-# IEEE TC execution status — D472 W0 feasible improvement; residual 7B gap OPEN
+# IEEE TC execution status — D473 residual diagnosis closed; 7B optimization OPEN
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement plan.
 Complete preceding status is byte-identically archived in
@@ -33,7 +33,47 @@ not current instructions. No evidence or approved task was removed.
 - Every optimization: logs/history + online primary sources + one falsifiable
   hypothesis + tests/minimal validation/new full replay. IEEE nine formulas fixed.
 
-## Current action — D472 full audit passed; result checkpoint and residual gap
+## Current action — D473 retained residual stages and owner/decode audit completed
+
+No new GPU/remote run, production change, baseline tuning, figure or agent.
+D472 retained4000 twelve-stage E2E identity maxerror0; sealed TTFT/E2E means and
+Type-1 P95 agree. Prior D459/D466/D460 statistics reused, not re-executed.
+ComparedwithElasticLocality meanE2E+902.658713ms,decode+490.501793ms;
+globalacquire-to-resume LESS46.501633ms. ComparedwithD465 decode−0.976499ms,
+gatewait−88.473782ms. CPUpreparation improvedresource but didnotremove decodinggap.
+Do not repeatD466gatecapacitydiagnosis or inferanotherpermit/thresholdfix.
+
+Existingowner/decodeprimitivesappliedonlytoD472:4000requests,15actualservice
+owners uniquelyboundtoTP1GPU/PIDbirthjournals. Meanothernativeoccupancy2.524506,
+NOTkernelbatchsize.45TPOTmisses;33without same-ownerproactiveload,35withpeerprefill,
+25withoutotherstartup. Cannot attributealldecodingloss toloading/startup orsubtract
+overlap spans. Allgroups/sourcebindingsretained;unknownnumericalproofunchanged.
+GPU1623plans/2128attempts/1536loads/524deferred/17missingreceipts;
+HOST1013plans/2427attempts/967loads/1457deferred/3missingreceipts.
+Deferredintervalsunmeasured remainunknown.110existingtimeline/overlaptests pass.
+
+Storageutility nowexplicitlyallowsexactnamedfailedbutclosedruns,notunknownstatus
+orunreleasedowners.6tests pass inclactualgziproundtrip/unchangedlaunch. D93failed3B
+attempt2+D311failed7Bmain_outcome losslesslyarchived;2independentdecompressionSHAs
+each,986513408B reclaimed. Failuresnotpromoted;receipt storage/20261012_d473_closed_failures_lossless.json.
+Afterstorage161602535424B(~150.50GiB);fresh150/100GiBgatesbeforeheavy.
+Analysis1/storage2/context3 exactInvocationID/inode/actualrecursive-emptyclosed;
+peaks406626304/1688469504/831057920B,high/max/OOM/swap0. Pre-execsystemd
+CPUAffinityrejectionretained; AllowedCPUs+taskset retainedsamelimits,actualanalysispassed.
+No GPU/remote taskactive; unrelated k3s untouched. Protected147pass.
+
+ReadD329/D352/D355/D457/D462/D463history andcurrentofficialvLLM0.30worker/
+PyTorch2.13Memory+CUDAHooks. Do notdrop pinning/fences/physicalchecks orcachebyepoch.
+Nextaftercuration/backup: onefocusedconsumer/mutationdependencyreview of native
+controltransactions versusdecodeprogress. No productioncandidateaccepted yet.
+Need exact identity/graph/allocator/staging consumerproofbeforeone new change;
+GPU-hit/no-newweight alone isNOTpermissiontobypassHOST checks. Do notrepeatalready
+implementedoffloads,owner-readprojection,pinquery/importmicrotests orsealedruns.
+See D473_RETAINED_RESIDUAL_DIAGNOSIS.md;rawmain_comparison/d473_20261012,
+curatedmain_comparison/d473_residual. Alloldrows/failuresretained. WholegoalACTIVE;
+7Bnotoptimum,3B/W1/W2/G2/HydraServe/fullapprovedscope OPEN.
+
+## Prior action — D472 full audit passed; result checkpoint and residual gap
 
 D472 original4000/native/source/adapter/dispatch audit PASSED; independentD435
 input witness matchesall4000,458224native tokens,132logicalIDs. Existing single-run
@@ -80,6 +120,16 @@ Nextafterfinalchecks/backup: reuse retained D459–D461/D466 stage/capacity prim
 to locate remainingD472vsElasticLocalitywithin-arrivaloccupancy/dispatchgap. Do not
 repeatCPUimportmicrotest orD472replay;onefalsifiablehypothesisbeforeanynewchange.
 7Bmainlineactive;3B/W1/W2/G2/HydraServe/fullapprovedscope OPEN,wholegoalACTIVE.
+
+Resultcheckpointcomplete:21explicitfilespushedas
+4a997092a7797e61028ea08579b852e78dd447c6;independentremoteHEADequal.
+22replay/CPUPreparationFullContractsmoketests passed,0fail/error/skip. Source,
+protected147,diff,secrets andexactstagechecks passed;usermanifestneverstaged,
+BASEunchanged. Finalverifyb/backupc exact-ownedactual-emptyclosed,peaks
+386818048/597823488B,high/max/OOM/swap0. AllD472tasksfinished;noGPU/remotejoblive.
+Rawbackup_result_receipt/closure retain publication evidence. No new performance
+run or productionchange inpost-runaudit. Next is residual7Bdiagnosis,not re-audit
+or repetition of D472. Preserve this completed candidate and all prior outcomes.
 
 ## Prior execution — D472 original4000 W0 completed and closed; audit then pending
 
@@ -574,9 +624,10 @@ qualification/rejection/verified backup are progress, not a blocker or completio
 D472 completed once,closed,auditedandcompared; do notrestart orrepollperformance.
 AcceptCPUpreparationcandidateasW0feasible/resourceimproved,notfullgoalachieved.
 RetainD465failure,D458priorfeasible andD463unacceptedstandaloneperformanceclaim.
-Nextaftertestedbackupandstoragegate: retainedD472vsElasticLocality/D458 request/
-activation/capacityanalysis,usingexistingD459–D461/D466primitives. Need evidence
-of residualtruecapacity/dispatch/nativeoccupancy beforeone nextcausaloptimization.
+RetainedD472stage/nativeownerdiagnosis nowcompletedD473; do not repeatit.
+Aftertestedbackup: nativecontroltransaction consumer/mutationdependency review,
+thenone falsifiableoptimization onlyifliveidentity/physicalchecks remainproved.
+GlobalpermitwaitisnowbelowElasticLocality;decode/controlgapremains. Noisolatedcauseyet.
 No blindcapacity/thresholdsweep, CPUimport/fork/prebuildtest, cachedphysicalstate
 or extendingowner-readtoother snapshots. D463 stillpresent,not secretlyrolledback.
 Do not repeat D456 profiling, D458, sealed baselines, C8/capacity/threshold sweeps,

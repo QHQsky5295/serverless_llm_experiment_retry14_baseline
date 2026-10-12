@@ -1,0 +1,16 @@
+<frozen importlib._bootstrap>:488: DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+<frozen importlib._bootstrap>:488: DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
+W1012 20:17:55.064000 4050400 site-packages/torch/utils/cpp_extension.py:118] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:55: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+  class InferenceRequest(BaseModel):
+/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:77: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+  class InferenceResponse(BaseModel):
+/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:99: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+  class SystemStatusResponse(BaseModel):
+/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/api/http_server.py:123: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+  class PreloadingRequest(BaseModel):
+----------------------------------------------------------------------
+Ran 110 tests in 5.380s
+
+OK
+sys:1: DeprecationWarning: builtin type swigvarlink has no __module__ attribute

@@ -1,0 +1,1 @@
+{"kind":"pre_exec_scope_property_rejection","passed":false,"returncode":1,"message":"Unknown assignment: CPUAffinity=2,3,26,27","analysis_executed":false,"resolution":"retain AllowedCPUs scope restriction and use taskset for process affinity; no resource gate changed"}
