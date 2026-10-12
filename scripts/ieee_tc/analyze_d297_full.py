@@ -371,6 +371,133 @@ def native_load_overlap_summary(requests, decode_records, *, clock_id):
             'D170 TPOT timing threshold remains provisional; no formal SLO or numerical qualification.'])
 
 
+def proactive_load_overlap_summary(records, plans, host_preparations, activations, *, clock_id):
+    """Intersect observed proactive operations on the same native owner.
+
+    A deferred receipt without a native interval is unmeasured, not a zero-time
+    operation. These unions are exposure, not token stalls or causal savings.
+    """
+    def finite(value):
+        return type(value) in (int, float) and math.isfinite(value)
+
+    owners, replicas = {}, {}
+    for a in activations:
+        owner = a.get('native_owner_id')
+        if owner is not None:
+            if owner in replicas or a['clock_id'] != clock_id:
+                raise ValueError('duplicate or mixed-clock activation owner')
+            replicas[owner] = a['target_replica']
+    for r in records:
+        identity = (r['replica'], r['worker_pid'])
+        if (r['owner'] not in replicas or replicas[r['owner']] != r['replica']
+                or r['owner'] in owners and owners[r['owner']] != identity
+                or not finite(r['first']) or not finite(r['last']) or r['first'] >= r['last']):
+            raise ValueError('request owner/incarnation or interval mismatch')
+        owners[r['owner']] = identity
+    if not records or len({r['request_id'] for r in records}) != len(records):
+        raise ValueError('nonempty unique request projection required')
+    counts, receipts, intervals, leases, attempts = Counter(), [], [], set(), set()
+    for kind, collection in (('gpu', plans), ('host', host_preparations)):
+        counts[kind+'_plans'] = len(collection)
+        for plan in collection:
+            for attempt in plan['attempts']:
+                aid = attempt['attempt_id']
+                if not aid or aid in attempts:
+                    raise ValueError('duplicate preparation attempt')
+                attempts.add(aid)
+                counts[kind+'_attempts'] += 1
+                counts[kind+'_state_'+attempt['state']] += 1
+                if 'receipt' not in attempt:
+                    counts[kind+'_without_receipt'] += 1
+                    continue
+                e = attempt['receipt']
+                owner, pid = e['owner_id'], e['worker_pid']
+                identity = (plan['target_replica'], pid)
+                if (e['clock_id'] != clock_id or e['worker_rank'] != 0
+                        or type(pid) is not int or pid <= 0
+                        or replicas.get(owner) != plan['target_replica']
+                        or kind == 'gpu' and plan['owner_id'] != owner
+                        or owner in owners and owners[owner] != identity):
+                    raise ValueError('proactive owner/clock/worker differs from activation')
+                owners[owner] = identity
+                accepted = e['acquired' if kind == 'gpu' else 'held']
+                if type(accepted) is not bool:
+                    raise ValueError('explicit proactive outcome required')
+                counts[kind+'_receipts'] += 1
+                if not accepted:
+                    counts[kind+'_deferred_interval_unmeasured'] += 1
+                    continue
+                lease = e['lease_id']
+                if not lease or lease in leases or type(e['native_load_invoked']) is not bool:
+                    raise ValueError('invalid/duplicate native preparation lease')
+                leases.add(lease)
+                counts[kind+'_accepted'] += 1
+                invoked = e['native_load_invoked']
+                counts[kind+'_loads' if invoked else kind+'_reused'] += 1
+                projection = dict(kind=kind, owner=owner, worker_pid=pid,
+                    replica=plan['target_replica'], plan_id=plan['plan_id'],
+                    trigger_reason=plan['trigger_reason'], attempt_id=aid,
+                    lease_id=lease, native_load_invoked=invoked)
+                spans = []
+                if kind == 'gpu':
+                    end, fence = e['acquired_monotonic_s'], e['completion_fence_ms']
+                    if not finite(end) or not finite(fence) or fence < 0:
+                        raise ValueError('invalid preparation fence')
+                    spans.append(('gpu_fence', end-fence/1000, end))
+                    if invoked:
+                        start, loaded = e['native_load_started_monotonic_s'], e['native_load_completed_monotonic_s']
+                        if not finite(start) or loaded != end or start > end-fence/1000:
+                            raise ValueError('GPU load does not contain acquisition fence')
+                        spans.append(('gpu_load', start, loaded))
+                    elif any(e.get(k) is not None for k in ('native_load_started_monotonic_s',
+                                                           'native_load_completed_monotonic_s')):
+                        raise ValueError('reused GPU source must not claim a load interval')
+                else:
+                    start, end = e['load_started_monotonic_s'], e['load_completed_monotonic_s']
+                    spans.append(('host_transaction', start, end))
+                    if invoked:
+                        spans.append(('host_load', start, end))
+                for category, start, end in spans:
+                    if not finite(start) or not finite(end) or not 0 <= start <= end:
+                        raise ValueError('invalid proactive native interval')
+                    intervals.append(dict(category=category,start=start,end=end,**projection))
+                receipts.append(projection)
+    output, groups = [], []
+    categories = ('gpu_load', 'gpu_fence', 'host_load', 'host_transaction', 'any_load')
+    for r in records:
+        row = dict(r)
+        for category in categories:
+            matching = [e for e in intervals if e['owner'] == r['owner']
+                and (e['category'] == category or category == 'any_load'
+                     and e['category'] in ('gpu_load', 'host_load'))
+                and max(r['first'], e['start']) < min(r['last'], e['end'])]
+            end, total = -math.inf, 0.
+            for a, b in sorted((max(r['first'], e['start']), min(r['last'], e['end'])) for e in matching):
+                total += max(0., b-max(a,end)); end=max(end,b)
+            row['proactive_'+category+'_overlap_s'] = total
+            row['proactive_'+category+'_overlap'] = bool(matching)
+            row['proactive_'+category+'_decode_fraction'] = total/(r['last']-r['first'])
+        output.append(row)
+    for category in categories:
+        for flag in (False, True):
+            rs = [r for r in output if r['proactive_'+category+'_overlap'] == flag]
+            groups.append(dict(group=category,label=flag,count=len(rs),
+                timing_tpot_misses=sum(r['timing_tpot_miss'] for r in rs),
+                mean_tpot_ms=mean(r['tpot_ms'] for r in rs) if rs else None,
+                mean_other_native_requests=mean(r['mean_other_native_requests'] for r in rs) if rs else None,
+                mean_decode_fraction=mean(r['proactive_'+category+'_decode_fraction'] for r in rs) if rs else None))
+    return dict(requests=output,groups=groups,counts=dict(counts),intervals=intervals,
+        native_owners={o:dict(replica=v[0],worker_pid=v[1]) for o,v in owners.items()},
+        observed_interval_ms={c:sum((e['end']-e['start'])*1000 for e in intervals if e['category']==c)
+                              for c in categories if c != 'any_load'},
+        causal_attribution_established=False,
+        caveats=['Same native owner/incarnation and monotonic clock; not a kernel stall measurement.',
+            'GPU load includes the acquisition fence; HOST transaction includes reuse. Do not add nested spans.',
+            'Rejected/missing-receipt operations have no interval here; not assumed to have zero overhead.',
+            'Source snapshots, release and other utility calls are not fully covered.',
+            'Exposure depends on decode duration; conditional groups and native concurrency are not controlled.'])
+
+
 def inspect_retained_native_load(output):
     """D305 narrows D304 with existing receipts; no new GPU or broad startup scan."""
     global OUT

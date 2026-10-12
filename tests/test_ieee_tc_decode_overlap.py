@@ -16,6 +16,7 @@ from scripts.ieee_tc.analyze_d297_full import (
     routing_load_consistency, inspect_retained_routing_load,
     routing_length_diagnosis, inspect_retained_routing_lengths,
     lifecycle_pair_decomposition, inspect_retained_service_lifecycle,
+    proactive_load_overlap_summary,
 )
 
 
@@ -665,6 +666,59 @@ class FailureAwarePopulation(unittest.TestCase):
                 s.update(completed=2,failed=0)
             with self.subTest(mutation=mutation),self.assertRaises(ValueError):
                 failed_run_partition(data)
+
+
+class ProactiveLoadOverlap(unittest.TestCase):
+    def fixture(self):
+        rows=[dict(request_id='q',replica='r',worker_pid=123,owner='o',first=10.,last=20.,
+            tpot_ms=100.,timing_tpot_miss=True,mean_other_native_requests=2.)]
+        activations=[dict(native_owner_id='o',target_replica='r',clock_id='clock'),
+                     dict(native_owner_id='other',target_replica='s',clock_id='clock')]
+        receipt=dict(owner_id='o',worker_pid=123,worker_rank=0,clock_id='clock',
+            acquired=True,lease_id='lease',native_load_invoked=True,acquired_monotonic_s=14.,
+            completion_fence_ms=1000.,native_load_started_monotonic_s=12.,
+            native_load_completed_monotonic_s=14.)
+        plans=[dict(owner_id='o',target_replica='r',plan_id='p',trigger_reason='residency',
+            attempts=[dict(attempt_id='a',state='completed',receipt=receipt)])]
+        host=dict(receipt,held=True,lease_id='host',load_started_monotonic_s=13.,
+                  load_completed_monotonic_s=15.)
+        hosts=[dict(target_replica='r',plan_id='p',trigger_reason='residency',
+            attempts=[dict(attempt_id='h',state='completed',receipt=host)])]
+        return rows,plans,hosts,activations
+
+    def test_union_and_nested_fence(self):
+        result=proactive_load_overlap_summary(*self.fixture(),clock_id='clock')
+        row=result['requests'][0]
+        self.assertEqual(row['proactive_any_load_overlap_s'],3.)
+        self.assertEqual(row['proactive_gpu_fence_overlap_s'],1.)
+        self.assertEqual(row['proactive_any_load_decode_fraction'],.3)
+        self.assertFalse(result['causal_attribution_established'])
+
+    def test_other_owner_and_endpoint_touch_are_not_overlap(self):
+        rows,plans,hosts,acts=self.fixture()
+        plans[0].update(owner_id='other',target_replica='s')
+        plans[0]['attempts'][0]['receipt'].update(owner_id='other',worker_pid=456)
+        hosts[0]['attempts'][0]['receipt'].update(load_started_monotonic_s=20.,load_completed_monotonic_s=21.)
+        result=proactive_load_overlap_summary(rows,plans,hosts,acts,clock_id='clock')
+        self.assertFalse(result['requests'][0]['proactive_any_load_overlap'])
+
+    def test_deferred_and_missing_are_not_zero_duration_loads(self):
+        rows,plans,hosts,acts=self.fixture()
+        plans[0]['attempts'][0]['receipt']['acquired']=False
+        hosts[0]['attempts']=[dict(attempt_id='h',state='file_held')]
+        result=proactive_load_overlap_summary(rows,plans,hosts,acts,clock_id='clock')
+        self.assertEqual(result['counts']['gpu_deferred_interval_unmeasured'],1)
+        self.assertEqual(result['counts']['host_without_receipt'],1)
+        self.assertEqual(result['intervals'],[])
+
+    def test_invalid_owner_clock_lease_and_interval_rejected(self):
+        for key,value in [('owner_id','missing'),('clock_id','other'),('worker_pid',456),
+                          ('native_load_completed_monotonic_s',13.)]:
+            args=self.fixture();args[1][0]['attempts'][0]['receipt'][key]=value
+            with self.subTest(key=key),self.assertRaises(ValueError):
+                proactive_load_overlap_summary(*args,clock_id='clock')
+        args=self.fixture();args[2][0]['attempts'][0]['receipt']['lease_id']='lease'
+        with self.assertRaises(ValueError):proactive_load_overlap_summary(*args,clock_id='clock')
 
 
 class DecodeOverlap(unittest.TestCase):

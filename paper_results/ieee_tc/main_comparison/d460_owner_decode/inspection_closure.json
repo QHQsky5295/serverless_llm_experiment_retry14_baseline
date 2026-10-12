@@ -1,0 +1,17 @@
+{
+  "identity": {
+    "unit": "primelora-tc-aux-d4600000000000000000000000000001.scope",
+    "invocation_id": "aba245fe520546e39259a6e77816b36c",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4600000000000000000000000000001.scope",
+    "inode": 23320277
+  },
+  "actual_recursive_procs_empty": true,
+  "recursive_cgroup_procs": {
+    "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4600000000000000000000000000001.scope/cgroup.procs": []
+  },
+  "resources": {
+    "memory.peak": "302096384",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  }
+}

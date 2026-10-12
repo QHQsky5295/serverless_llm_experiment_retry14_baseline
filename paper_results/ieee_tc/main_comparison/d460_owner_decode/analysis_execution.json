@@ -1,0 +1,46 @@
+{
+  "passed": true,
+  "scope": {
+    "unit": "primelora-tc-aux-d4600000000000000000000000000002.scope",
+    "invocation_id": "81acea0cea7449b392a669d974481670",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4600000000000000000000000000002.scope",
+    "inode": 23323084
+  },
+  "commands": [
+    {
+      "name": "tests",
+      "returncode": 0,
+      "command": [
+        "/home/qhq/anaconda3/envs/LLM/bin/python",
+        "-B",
+        "-m",
+        "unittest",
+        "tests.test_ieee_tc_decode_overlap",
+        "tests.test_ieee_tc_control_timeline",
+        "-v"
+      ]
+    },
+    {
+      "name": "owner_decode",
+      "returncode": 0,
+      "command": [
+        "/home/qhq/anaconda3/envs/LLM/bin/python",
+        "-B",
+        "-m",
+        "scripts.ieee_tc.analyze_d455_stages",
+        "--include-d458",
+        "--owner-decode",
+        "--output",
+        "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d460_20261012/owner_decode"
+      ]
+    }
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+  }
+}

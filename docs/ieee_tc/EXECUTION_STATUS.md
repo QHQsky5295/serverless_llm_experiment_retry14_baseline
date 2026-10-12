@@ -1,4 +1,4 @@
-# IEEE TC execution status — D459 retained diagnosis and storage recovery
+# IEEE TC execution status — D460 same-owner decode diagnosis
 
 Updated 2026-10-12. Current checkpoint, NOT a replacement experiment plan.
 Full prior status is byte-identically archived in EXECUTION_HISTORY_THROUGH_D448.md,
@@ -31,7 +31,42 @@ entries are not current instructions. No evidence or approved task was removed.
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D459 offline stage/control diagnosis completed
+## Current action — D460 retained native-owner decode diagnosis completed
+
+FullPLAN/status/baseline rules/V1/V2 read. Used analyze-results; extended existing
+D297/D455 offline analyzers only, no onlinecode/config/baselineoptimization/GPUrun/
+remoteoperation/figure.110CPUtests passed5.554s. All12000 retained requestintervals
+and10994 nested proactive subintervals verifiedinside exactphysicalGPUleases;
+owner/PID/startticks/census bind12/31/20owners to4physicalGPUs inD371/D453/D458.
+SameD394thresholds,allthree meanTPOT/decode match sealedcomparisons.
+Meanothernativeoccupancy1.897908/2.223436/2.653914;decode3336.563/3102.616/3636.602ms.
+Prefilloverlaprequests2349/2521/2720;proactiveloadexposure735/0/750.
+NewPrimeLoRA42TPOTmisses:31withoutsame-ownerproactiveload,33withpeerprefill.
+NewactualproactiveGPUloads1650 vsold1645, cumulative94.735vs95.766s;
+HOST1067vs1083loads,cumulative166.099vs181.268s. Increasedproactiveloadwork doesnot
+explainallnewdecode regression. Concurrency/prefill also differ; nocausalclaim,
+kernelbatch inference, latency subtraction or direct budget/capacity recommendation.
+Missing/rejectedoperations lackintervals,notzerooverhead; allstatecounts retained.
+D458joint96.45% stillW0feasible; G1resourcegap21.0622%vsElasticLocality andW1/W2/G2
+remainopen,notfailed solelybecauseTPOTregressed.
+
+Curated main_comparison/d460_owner_decode;92source/projectionrefs/protected147/
+threeprotocols/threeuserSHAs verified. No performance rerun,newdata,cleanup orplots.
+Inspectionaux1 exactInvocationID/actualrecursiveemptyclosed byanalysis2; analysis2
+likewiseclosed bycuration3. Curation3 InvocationID66568181db0d49fcad88a8eeeb24c743,
+inode23324864 completed; exactclosure/staged/secrets/sourcechecks andbackup NEXT.
+Memory/disk protections unchanged,freshgate requiredbeforeheavylaunch.
+
+NEXT: reuseD456existing10GPUcore functionframes plusD351-D355history tolocate
+remaining nativecontrol work; D457didnotchange worker. No morecondition-group
+expansion ornewGPUprofilingbydefault; do not repeatC8/tokenbudget/threshold sweeps,
+staleHOSTcache or alreadyimplementedatomicinterleave. Registeroneformula-equivalent
+candidate onlywithevidence,tests,minimalvalidation,newfullreplay. Keepcontroller
+pickup separatehypothesis. Remaining7BW1/W2/G2/references,3B,HydraServeisolatednative
+qualification,dLoRA3B,A1-A5/S1-S13,docs/figures stillOPEN. WholegoalACTIVE;
+thisturnsubstantiveretainedanalysisprogress,notblocked/complete.
+
+## Previous action — D459 offline stage/control diagnosis completed
 
 FullPLAN/status/baseline rules/V1/V2 reread. Extended existingD454/D455analyzers
 with explicitincludeD458/newoutput only; no onlinecode/config/baselineoptimization,
@@ -76,6 +111,17 @@ Finalverifier4 InvocationID4745c782f7cf42a1a62357bcebfb9842,inode23316559 comple
 closeexact-ownedemptybeforebackup.17taskfiles prepared; usermanifestneverstage.
 NoGPUtasklive. Nextaction afterbackup remainsD458sameGPU preparation/decode causal
 diagnosis,notaperformance rerun. Fullremaininggoal scope unchanged.
+
+D459backup20dfc7f8d24932d5be005d5fda74f31ee01a5de8 pushedtoV2; independent
+ls-remoteequalsHEAD verified.17explicitfiles/source/secrets/diffcheckspassed;
+usermanifestneverstaged. Finalverifier4 andstaging5 exactInvocationID/inode/
+actualrecursivecgroup.procs emptyverifiedthenstopped. AllD459auxunitsabsent,
+GPUcomputeempty; no ownedrunningjob. Staging5InvocationID44025ffbcc25444b9ea9d88d87039bec,
+inode23316996; closure/backup_receipt retainedraw. BASEunchanged71c52cf6f7331dc2a171ec83db5f1011eaf6d5a6.
+Latestfree161183023104B(~150.113GiB); fresh150GiB/memorygatebeforeanyheavyjob.
+WholegoalACTIVE; substantiveofflineanalysis/storage/backupPROGRESS. Nextmainline
+is retainedD458 nativepreparation/decode/concurrencydiagnosis, no repeatD458 or
+sealedbaselines; remainingfullscope unchanged.
 
 ## Previous action — D458 full4000 completed, matched audit passed
 
