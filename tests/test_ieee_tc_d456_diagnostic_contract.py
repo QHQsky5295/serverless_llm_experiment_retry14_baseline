@@ -29,6 +29,28 @@ class HostQueueValidationContract(unittest.TestCase):
         self.assertIn('export FAASLORA_FORMAL_RUN=0', shell)
 
 
+class HostQueueFullContract(unittest.TestCase):
+    def test_d465_only_exclusive_paths_differ_from_d458(self):
+        old = yaml.safe_load((ROOT/'configs/ieee_tc/20261012_d458_7b_full_w0.yaml').read_text())
+        new = yaml.safe_load((ROOT/'configs/ieee_tc/20261012_d465_7b_full_w0.yaml').read_text())
+        for section, field in [('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                               ('storage', 'host_cache_dir')]:
+            before, after = old[section].pop(field), new[section].pop(field)
+            self.assertNotEqual(before, after)
+            self.assertIn('d465', after)
+        self.assertEqual(old, new)
+        self.assertEqual(new['workload']['total_requests'], 4000)
+
+    def test_d465_full_source_without_observer_or_new_parameters(self):
+        shell = (ROOT/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh').read_text()
+        block = re.search(r'^  d465\)(.*?)^    ;;', shell, re.M | re.S).group(1)
+        self.assertIn('PREFIX_COUNT=\n', block)
+        self.assertIn('SCENARIO=tc_ieee_full', block)
+        self.assertNotIn('export', block)
+        self.assertNotIn('"${1:-d293}" == d465', shell)
+        self.assertIn('export FAASLORA_FORMAL_RUN=0', shell)
+
+
 class D456DiagnosticContract(unittest.TestCase):
     def test_only_exclusive_paths_differ_from_d371(self):
         old = yaml.safe_load((ROOT/'configs/ieee_tc/20261010_d371_7b_full_w0.yaml').read_text())

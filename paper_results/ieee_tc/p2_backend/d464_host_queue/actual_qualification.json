@@ -1,0 +1,149 @@
+{
+  "kind": "d464_actual_native100_qualification_v1",
+  "passed": true,
+  "stats": {
+    "completed": 100,
+    "mean_ttft_ms": 825.7330084685236,
+    "p95_ttft_ms": 1898.8945498131216,
+    "mean_queue_ms": 253.58309088274837,
+    "p95_queue_ms": 716.698610689491,
+    "mean_service_ms": 572.1499175857753,
+    "p95_service_ms": 1615.2668639551848,
+    "mean_tpot_ms": 28.512148264487415,
+    "p95_tpot_ms": 36.520323283468365,
+    "initial_preload_wall_s": 54.79163087019697,
+    "physical_gpu_seconds": 656.8816955210641,
+    "n_correct": null
+  },
+  "evidence": {
+    "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d464_20261012/7b_host_queue_validation_100/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d464_7b_host_queue_validation_100.json",
+    "source_sha256": "5ac6dc4e5e08a7143ac0aefc539ee35f107080860f0f9db4fcb02e67879c6784",
+    "physical_source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d464_20261012/7b_host_queue_validation_100/launch.launch/physical_deployment/physical_resource_summary.json",
+    "physical_sha256": "b2e8907c17eb567602feca9a9cae5392674e1626b3730eebc2a2af94176d2b6e",
+    "max_native_ttft_error_ms": 0.0,
+    "max_native_tpot_error_ms": 0.0,
+    "shared_trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "shared_adapter_subset_sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016"
+  },
+  "protocol_bound_count": 100,
+  "numerical_correctness_qualified": false,
+  "fixed_workload_complete4000": false,
+  "ranking_eligible": false,
+  "replicates": 1,
+  "confidence_interval": null,
+  "host_preparation_records": 63,
+  "native_tokens": 17369,
+  "dispatch_tiers": {
+    "remote": 29,
+    "gpu": 65,
+    "host": 3,
+    "nvme": 3
+  },
+  "activation_categories": {
+    "initial": 1,
+    "natural_scaleout": 3
+  },
+  "activation_state_counts": {
+    "initial": {
+      "runtime_ready": 1
+    },
+    "natural_scaleout": {
+      "runtime_ready": 3
+    }
+  },
+  "initial_activation_s": [
+    54.78662051819265
+  ],
+  "common_threshold_joint_count": 99,
+  "remote_transfers": 29,
+  "remote_wire_bytes": 50650865,
+  "request_time_pack_count": 0,
+  "resources": {
+    "samples": 263,
+    "peak_bytes": 18753241088,
+    "max_swap_bytes": 0,
+    "events": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    }
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+  },
+  "refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d464_20261012/7b_host_queue_validation_100/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d464_7b_host_queue_validation_100.json",
+      "sha256": "5ac6dc4e5e08a7143ac0aefc539ee35f107080860f0f9db4fcb02e67879c6784"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d464_20261012/7b_host_queue_validation_100/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "9b1185f9c199f0e21e460dd5d687620938cce337ec3df5f8351ef9985da069e6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d464_20261012/7b_host_queue_validation_100/launch.json",
+      "sha256": "c954e4ce09cd90b1bdd360581c305ec2a9f37524196b28a39705b6bc1affb2c4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d464_20261012/remote_transfers.jsonl",
+      "sha256": "5a6054fb13fd201337c5dabb0a8dff0fe88d0091cfbfbb5f09fba4f012a258b1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d464_20261012/remote_monitor.log",
+      "sha256": "8f24d1fc083e591428588e8d19050ac6daf96d8b828b58a8c13d9fb71e96b5e3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d464_20261012/remote_stop.json",
+      "sha256": "9c3b5ad18513da4e33c44690e4bc5c6ec23b359a00a118cb1fbfc1596f4fd2de"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d464_20261012/local_cleanup.json",
+      "sha256": "01c6b0866f37fc2e4509b77a557ff7d23ff644e64a54048525a61a9591e3f232"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d464_20261012/completion_receipt.json",
+      "sha256": "7352330267b13ad6fcda4d3f3aefe8ecc6c427eb226b85f27e2b96683d5bee42"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d464_20261012/remote_health.json",
+      "sha256": "ac755413902e5db98850455ffb18daa5cbaf5052dde5b9d71234c0bb4ec5673c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d464_20261012/7b_host_queue_validation_100/launch.launch/watchdog.jsonl",
+      "sha256": "1ff97a971c30967f4c76928f8b5a2940c5eee7d7fec3b91ebd68f5f1214289c1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json",
+      "sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json",
+      "sha256": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d464_20261012/analyze_prefix.py",
+      "sha256": "38b7edf199d30c9a66645c09270c467ad366ff146cefc044f2702d4cd2a649ef"
+    }
+  ],
+  "scope": {
+    "unit": "primelora-tc-aux-d4640000000000000000000000000007.scope",
+    "invocation_id": "f6743df8a57a4e4d95fc48b64a34abaf",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4640000000000000000000000000007.scope",
+    "inode": 23358551
+  },
+  "host_preparation_trigger_reasons": {
+    "residency": 59,
+    "handoff": 4
+  },
+  "derivation_note": "Original optional breakdown used absent reason; corrected to recorded trigger_reason. Source records/count/qualification unchanged.",
+  "original_analysis": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d464_20261012/actual_qualification.json",
+    "sha256": "7659a7f1734aafe9d6452c3e6a54fa7790b34dc972b60ef6c443bb194f7a475f"
+  }
+}

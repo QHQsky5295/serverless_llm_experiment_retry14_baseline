@@ -1,4 +1,4 @@
-# IEEE TC execution status — D464 native HOST queue validation preparation
+# IEEE TC execution status — D464 passed; D465 full4000 prepared
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement plan.
 Complete preceding status is byte-identically archived in
@@ -33,20 +33,53 @@ not current instructions. No evidence or approved task was removed.
 - Every optimization: logs/history + online primary sources + one falsifiable
   hypothesis + tests/minimal validation/new full replay. IEEE nine formulas fixed.
 
-## Current action — D464 original100 native validation
+## Current action — D465 full4000 preparation after D464
+
+D465 registers the original full4000 W0, no prefix/observer. Configuration is
+identical to D458 except exclusive paths. Production unchanged from D463. Two
+new runner/configuration contracts plus existing20 replay checks qualify launch;
+D464 native100 and unchanged safety checks are reused, not repeated. Input
+qualification verifies original4000 equality with sealed D435 input, all source
+bindings and protected147. This is a new-key development observation, once only.
+See D465_HOST_QUEUE_FULL_W0.md. Raw d465_20261012/7b_full_w0, curated d465_full_w0.
+Before native start: verified task-only backup and fresh resource gate. No full
+performance result exists yet. During native run, no analysis/build/compression
+or remote management. Capture auxiliary identity while running for owned closure.
+
+## Completed — D464 original100 native validation passed
 
 Reuse D458 parameters with only exclusive output/NVMe/HOST paths, and existing
 runner's diagnostic original100 prefix. No trace or model/pool regeneration,
 observer, formula/threshold change or baseline tuning. Production unchanged
 from D463 checkpoint8114e0c.22 CPU checks passed (20 existing replay+2 configuration
-contracts),0fail/error/skip; actual native validation and full4000 remain pending.
+contracts),0fail/error/skip;11 existing safety checks passed. Source/protected
+input qualification passed and6 explicit files pushed as1a081bc7c1ea216c01f320f2767d05f36a2118d4;
+independent remote HEAD verified. User manifest untouched/un-staged.
 Reuse the D458 remote management/closure helpers. Cleanup additionally matches
-the captured auxiliary InvocationID/inode.33 total CPU/input+safety checks and
-source/protected input qualification must pass before the native run starts.
+the captured auxiliary InvocationID/inode.
 See D464_HOST_QUEUE_NATIVE_VALIDATION.md. Raw d464_20261012, curated d464_host_queue.
 Short-prefix metrics cannot establish full-workload G1/G2 or extrapolated savings.
-Next: verified checkpoint -> fresh resource gate -> native100 -> audit -> new-key
-full4000 unchanged D458 settings. Current mainline remains7B optimization.
+Native100 completed once:100/100 native/input/source/adapter contracts,17369tokens,
+99joint-SLO,meanTTFT825.733ms/P951898.895ms,meanTPOT28.512ms/P9536.520ms.
+63 HOST queue records; dispatchGPU65/HOST3/NVMe3/remote29.29remote transfers,
+50650865wireB both ends,pack0;1initial+3natural activations ready. Memorypeak
+18753241088B,high/max/OOM/swap0. Timing reconstruction0ms; raw n_correct null.
+GPU actual release and service-path removal verified before remote stop. Captured
+start/aux identities actual-empty closed; both services and monitor inactive.
+Original optional reason breakdown used missing `reason`; curated derivation
+corrects to `trigger_reason`, original retained. No record/count change.
+Short resource656.881695521GPU-s is not full performance/extrapolated savings.
+See D464_NATIVE_VALIDATION_RESULT.md and raw actual_qualification.json, sourceSHA
+5ac6dc4e5e08a7143ac0aefc539ee35f107080860f0f9db4fcb02e67879c6784.
+Fresh link1000Mb/s/full. Existing D458 closed main_outcome was losslessly
+archived via the existing explicit-path utility;465231872B reclaimed, two
+decompression SHA checks passed. No unique evidence deleted,150/100GiB gates
+unchanged. Storage receipt records mapping. Disk161538265088B (~150.44GiB),
+fresh gates still required. Curation passed protected147; all9 auxiliaries plus
+native runner scopes actual-empty closed, GPU empty. HOST sources59residency/
+4handoff. D464 is complete as minimal qualification, not hypothesis acceptance.
+Next: D465 new-key full4000 unchanged D458 settings.
+Current mainline remains7B optimization, full performance hypothesis OPEN.
 
 ## Prior checkpoint — D463 exact consumer projection
 
@@ -138,8 +171,8 @@ qualification/rejection/verified backup are progress, not a blocker or completio
 
 ## Next mainline
 
-D463 CPU qualification and verified backup complete; retain all failures.
-Next minimal native validation and one new-key full4000 with D458
+D463 CPU qualification and D464 native100 complete; retain all failures.
+Next one new-key full4000 with D458
 settings unchanged. The concrete redundant boundary is only the initial HOST
 queue owner read; do not extend to later snapshots or cached physical inventory.
 Do not repeat D456 profiling, D458, sealed baselines, C8/capacity/threshold sweeps,

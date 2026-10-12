@@ -1,0 +1,243 @@
+{
+  "kind": "d465_original4000_input_qualification_v1",
+  "cpu_qualification_pass": true,
+  "actual_gpu_run_complete": false,
+  "performance_ranking_eligible": false,
+  "view": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4/20260512_123619_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_trace.json",
+    "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "view_sha256": "a5331be2e2204483f18206825d9aaa18cbaa259fe0babfc303f989055819430d",
+    "count": 4000,
+    "source_count": 4000,
+    "profile": "W0",
+    "rate_scale": 1.0
+  },
+  "full_view": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4/20260512_123619_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_trace.json",
+    "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "view_sha256": "a5331be2e2204483f18206825d9aaa18cbaa259fe0babfc303f989055819430d",
+    "count": 4000,
+    "source_count": 4000,
+    "profile": "W0",
+    "rate_scale": 1.0
+  },
+  "exact_baseline_entries": true,
+  "non_target_config_equal": true,
+  "production_unchanged_from_d463": true,
+  "target_tokens": 458224,
+  "tests": {
+    "passed": true,
+    "count": 22,
+    "errors": 0,
+    "failures": 0,
+    "skipped": 0,
+    "scope": {
+      "unit": "primelora-tc-aux-d4650000000000000000000000000001.scope",
+      "invocation_id": "343f7a50c93c4ae889a48f43d7e9efca",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4650000000000000000000000000001.scope",
+      "inode": 23361047
+    }
+  },
+  "guard_tests_reused": 11,
+  "native100_verified": true,
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+  },
+  "scope": {
+    "unit": "primelora-tc-aux-d4650000000000000000000000000002.scope",
+    "invocation_id": "e30e1a3003a2469ebcacd988b45ec9a1",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4650000000000000000000000000002.scope",
+    "inode": 23361484
+  },
+  "helpers": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/backup.py",
+      "sha256": "ec47692954dc50a1af97add7e2ff84720cf7d67b6268efac0caeefe878076788",
+      "content": "\"\"\"D465 explicit task-only checkpoint; reuse the existing guarded Git procedure.\"\"\"\nimport hashlib\nimport json\nfrom pathlib import Path\nimport re\nimport subprocess\nimport sys\nROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nRAW=Path(__file__).resolve().parent\nOUT=ROOT/'paper_results/ieee_tc/p2_backend/d465_full_w0'\nsys.path.insert(0,str(ROOT))\nfrom scripts import ieee_tc_preflight as p\ndef save(path,value):\n    with path.open('x') as f:json.dump(value,f,indent=2)\nscope=p.scope_identity(p.cg_path().name);save(RAW/'backup_identity.json',scope)\nq=json.loads((OUT/'input_qualification.json').read_text());assert q['cpu_qualification_pass']\nfor ref in q['refs']:assert p.digest(Path(ref['path']))==ref['sha256'],ref['path']\nassert p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))['pass']\nassert subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()=='1a081bc7c1ea216c01f320f2767d05f36a2118d4'\nassert subprocess.check_output(['git','rev-parse','HEAD'],cwd='/home/qhq/serverless_llm_baselines',text=True).strip()=='71c52cf6f7331dc2a171ec83db5f1011eaf6d5a6'\nclosure=json.loads((RAW.parent/'d464_20261012/curation_closure.json').read_text())\nassert closure['passed'] and closure['actual_recursive_procs_empty'] and not Path(closure['identity']['path']).exists()\npaths=['configs/ieee_tc/20261012_d465_7b_full_w0.yaml',\n    'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh','tests/test_ieee_tc_d456_diagnostic_contract.py',\n    'docs/ieee_tc/D465_HOST_QUEUE_FULL_W0.md','docs/ieee_tc/EXECUTION_STATUS.md',\n    'paper_results/ieee_tc/p2_backend/d465_full_w0/input_qualification.json',\n    'docs/ieee_tc/D464_NATIVE_VALIDATION_RESULT.md',\n    'paper_results/ieee_tc/p2_backend/d464_host_queue/actual_qualification.json',\n    'paper_results/ieee_tc/p2_backend/d464_host_queue/final_verification.json',\n    'paper_results/ieee_tc/storage/20261012_d464_d458_lossless_compression.json']\nassert not subprocess.check_output(['git','diff','--cached','--name-only'],cwd=ROOT,text=True).strip()\nsubprocess.run(['git','diff','--check'],cwd=ROOT,check=True)\nsubprocess.run(['git','add','--',*paths],cwd=ROOT,check=True)\nstaged=subprocess.check_output(['git','diff','--cached','--name-only'],cwd=ROOT,text=True).splitlines()\nassert set(staged)==set(paths) and all('lora_manifest_1000.json' not in x for x in staged)\ntoken=Path('/home/qhq/.config/primelora-tc-d75/artifact.token').read_bytes().strip()\nhashes={}\nfor name in paths:\n    data=subprocess.check_output(['git','show',':'+name],cwd=ROOT)\n    assert len(data)<2*1024*1024\n    assert not re.search(rb'-----BEGIN [A-Z ]*PRIVATE KEY-----|ghp_[A-Za-z0-9]{25,}|github_pat_[A-Za-z0-9_]{20,}|hf_[A-Za-z0-9]{25,}',data)\n    assert not token or token not in data\n    hashes[name]=hashlib.sha256(data).hexdigest();assert hashes[name]==p.digest(ROOT/name)\nsubprocess.run(['git','diff','--cached','--check'],cwd=ROOT,check=True)\nsave(RAW/'staged_check.json',dict(passed=True,files=hashes))\nsubprocess.run(['git','commit','-m','tc: seal native100 and freeze full HOST queue replay (D464-D465)'],cwd=ROOT,check=True)\nsubprocess.run(['git','push','faaslora_origin','retry14_continuous_queue_v2'],cwd=ROOT,check=True)\nhead=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()\nremote=subprocess.check_output(['git','ls-remote','faaslora_origin','refs/heads/retry14_continuous_queue_v2'],cwd=ROOT,text=True).split()[0]\nassert head==remote\nreceipt=dict(passed=True,head=head,remote=remote,files=len(paths),scope=scope)\nsave(RAW/'backup_receipt.json',receipt);print(json.dumps(receipt))\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/check_remote_health.py",
+      "sha256": "176d803fb722f46a895fb15a006f4f3b31469fc5073121c40ebaf524446e95b5",
+      "content": "import json\nimport sys\nimport time\nfrom pathlib import Path\nsys.path.insert(0, '/home/qhq/serverless_llm_experiment_retry14_baseline')\nfrom faaslora.storage.http_artifact_store import HttpArtifactStoreClient\n\ntoken = Path('/home/qhq/.config/primelora-tc-d75/artifact.token').read_text().strip()\nresults = {}\nfor model, port in [('3b',18080),('7b',18081)]:\n    client = HttpArtifactStoreClient(endpoint=f'http://192.168.4.174:{port}', token=token,\n        timeout_s=5, required_delivery_mode='prepublished_gzip_v1')\n    for attempt in range(10):\n        try:\n            data = client.health()\n            break\n        except (OSError, RuntimeError):\n            if attempt == 9:\n                raise\n            time.sleep(1)\n    assert data['ok'] and data['delivery_mode'] == 'prepublished_gzip_v1'\n    assert data['timing_contract'] == 'artifact_timing_v2'\n    results[model] = data\nwith (Path(__file__).resolve().parent/'remote_health.json').open('x') as f:\n    json.dump(results, f, indent=2)\nprint(json.dumps(results))\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/close.py",
+      "sha256": "5029fc68b90d0b007577434f7a2fa943d61741c53eb0f8a15feed71d5ea90ead",
+      "content": "\"\"\"Stop only a captured identical auxiliary after reading actual recursive members.\"\"\"\nimport json\nfrom pathlib import Path\nimport subprocess\nimport sys\nROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nRAW=Path(__file__).resolve().parent\nsys.path.insert(0,str(ROOT))\nfrom scripts import ieee_tc_preflight as p\nname=sys.argv[1]\nassert name in ('cpu','guard_v2','qualification','backup','analysis','collection')\nexpected=json.loads((RAW/(name+'_identity.json')).read_text())\nassert p.scope_still_owned(expected)\ngroup=Path(expected['path'])\nmembers={str(x):x.read_text().split() for x in group.rglob('cgroup.procs')}\nassert members and all(not values for values in members.values())\nresources={k:(group/k).read_text().strip() for k in ('memory.peak','memory.events','memory.swap.current')}\nassert p.scope_still_owned(expected)\nsubprocess.run(['systemctl','--user','stop',expected['unit']],check=True)\nassert not group.exists()\nresult=dict(passed=True,identity=expected,resources=resources,actual_recursive_procs_empty=True,\n    source_sha256=p.digest(Path(__file__)))\nwith (RAW/(name+'_closure.json')).open('x') as f:json.dump(result,f,indent=2)\nprint(json.dumps(result))\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/close_after_release.py",
+      "sha256": "290d6a04b16fdec72ad21b7fd48e359b86dddc50210b061c7ed9b06982bd8b5c",
+      "content": "\"\"\"D465 owned, empty-scope precheck before the existing closure workflow.\"\"\"\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nRAW = Path(__file__).resolve().parent\nsys.path.insert(0, str(ROOT))\nfrom scripts import ieee_tc_preflight as p\n\nlaunch = json.loads((RAW/'7b_full_w0/launch.json').read_text())\nassert launch['pass'] and launch['service_path_removed']\nassert launch['native_gpu_context_release_confirmed']\nstart = json.loads((RAW/'launch_gate.json').read_text())['identity']\nchecks = []\nfor unit, expected in [(start['unit'], start), (Path(launch['auxiliary']['path']).name, json.loads((RAW/'service_aux_identity.json').read_text()))]:\n    identity = p.scope_identity(unit)\n    if expected is not None:\n        assert identity == expected, (identity, expected)\n    else:\n        assert identity['path'] == launch['auxiliary']['path']\n    group = Path(identity['path'])\n    members = {str(path): path.read_text().split() for path in group.rglob('cgroup.procs')}\n    assert members and all(not pids for pids in members.values()), members\n    assert p.scope_still_owned(identity)\n    checks.append(dict(identity=identity, recursive_cgroup_procs=members,\n        resources={name:(group/name).read_text().strip() for name in\n            ('memory.peak','memory.events','memory.swap.current','cgroup.events')}))\nwith (RAW/'preclosure_owned_empty.json').open('x') as handle:\n    json.dump(dict(checks=checks, launch_pass=True, scope=p.scope_identity(p.cg_path().name)), handle, indent=2)\nsubprocess.run(['bash', str(RAW/'stop_remote.sh')], check=True)\nsubprocess.run(['/usr/bin/python3', str(RAW/'collect_closure.py')], check=True)\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/collect_closure.py",
+      "sha256": "3f4338284ee8c6e3a07131b7ba33144a992c76439589de276744e76b7f4f49cb",
+      "content": "\"\"\"D465 closure: reuse D452 exact-owned cleanup/download checks.\"\"\"\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\nsys.path.insert(0, '/home/qhq/serverless_llm_experiment_retry14_baseline')\nfrom scripts import ieee_tc_preflight as p\n\nown_identity = p.scope_identity(p.cg_path().name)\nown_group = Path(own_identity['path'])\nassert (own_group/'memory.max').read_text().strip() == str(4*p.GIB)\nassert (own_group/'memory.swap.max').read_text().strip() == '0'\ngate = p.preflight([p.ROOT], 4*p.GIB)\n# Closure is not a new launch: the run may have crossed the start-floor while\n# writing its retained logs.  Record that gate honestly and reject only a\n# live-resource/safety issue, not the expected post-run disk condition.\nassert not any('host_memory_below_stop' in issue or 'filesystem_below_stop' in issue\n               for issue in gate['issues']), gate['issues']\nraw = Path(__file__).resolve().parent\nrun = raw/'7b_full_w0'\nlaunch = json.loads((run/'launch.json').read_text())\nassert launch['pass'] and launch['service_path_removed'] and launch['native_gpu_context_release_confirmed']\nassert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()\naux = Path(launch['auxiliary']['path'])\nidentity_record = json.loads((raw/'launch_gate.json').read_text())['identity']\nidentity = p.scope_identity(identity_record['unit'])\nassert identity == identity_record\nassert p.scope_still_owned(identity) and not p.owned_pids(Path(identity['path']))\nservice_aux = p.scope_identity(aux.name)\nassert service_aux == json.loads((raw/'service_aux_identity.json').read_text())\nassert p.scope_still_owned(service_aux) and not p.owned_pids(aux)\nfiles = {key: (aux/key).read_text() for key in ['memory.peak','memory.events','memory.swap.current',\n    'memory.high','memory.max','memory.swap.max','cgroup.events']}\nsubprocess.run(['systemctl','--user','stop',service_aux['unit']],check=True)\nservice_aux_after = subprocess.check_output(\n    ['systemctl','--user','show',service_aux['unit'],'-p','ActiveState','--value'], text=True).strip()\nassert service_aux_after == 'inactive'\nsubprocess.run(['systemctl','--user','stop',identity['unit']],check=True)\nafter = subprocess.check_output(['systemctl','--user','show',identity['unit'],'-p','ActiveState','--value'],text=True).strip()\nassert after == 'inactive'\nwith (raw/'local_cleanup.json').open('x') as f:\n    json.dump(dict(identity=identity, service_aux=service_aux, files=files,\n                   after=after, service_aux_after=service_aux_after,\n                   launch_pass=True,native_gpu_release_confirmed=True), f, indent=2)\nstop = (raw/'remote_stop.log').read_text()\nassert stop.count('ActiveState=inactive') == 3 and stop.count('MainPID=0') == 3\ntransfer_paths = [line for line in stop.splitlines()\n    if line.startswith('/home/lab14/primelora_remote/tc/d80_20260927/7b/transfers-') and line.endswith('.jsonl')]\nassert len(transfer_paths) == 1\npaths = {\n    'remote_transfers.jsonl': transfer_paths[0],\n    'remote_monitor.log': '/home/lab14/primelora_remote/tc/d465_20261012_hostqueuew0/remote_monitor.log',\n}\nhashes = {}\nfor name, remote_path in paths.items():\n    destination = raw/name\n    assert not destination.exists()\n    expected = subprocess.check_output(['ssh','-o','BatchMode=yes','primelora-artifact-174','sha256sum',remote_path],text=True).split()[0]\n    subprocess.run(['scp','-q','-o','BatchMode=yes',f'primelora-artifact-174:{remote_path}',str(destination)],check=True)\n    assert p.digest(destination) == expected\n    hashes[name] = expected\nwith (raw/'remote_stop.json').open('x') as f:\n    json.dump(dict(all_owned_units_inactive=True,ports_18080_18081_absent=True,\n        local_gpu_release_verified_before_remote_stop=True,download_hashes_match_remote=True,\n        hashes=hashes,stop_log_sha256=p.digest(raw/'remote_stop.log')),f,indent=2)\nprint(json.dumps(dict(local_aux_inactive=True,remote_inactive=True,hashes=hashes)))\n\nsource = next(run.glob('experiment_results*.json'))\nreceipt = dict(identity=own_identity, source_path=str(source), source_sha256=p.digest(source),\n    source_bytes=source.stat().st_size, preflight=gate,\n    resources={k:(own_group/k).read_text().strip() for k in\n        ('memory.peak','memory.events','memory.swap.current','cgroup.events')})\nwith (raw/'collection_receipt.json').open('x') as f:\n    json.dump(receipt,f,indent=2)\nprint(json.dumps({k:receipt[k] for k in ('identity','source_path','source_sha256','source_bytes','resources')}))\n\nwith (raw/'completion_receipt.json').open('x') as f:\n    physical=json.loads((run/'launch.launch/physical_deployment/physical_resource_summary.json').read_text())\n    completion=dict(kind='d465_host_queue000_closure_v1',\n        source_commit=json.loads((raw/'launch_gate.json').read_text())['head'],\n        n_plan=physical['n_plan'],n_terminal=physical['n_terminal'],\n        n_native_contract_complete=physical['n_native_contract_complete'],\n        n_failed_from_terminal_journal=physical['n_terminal']-physical['n_native_contract_complete'],\n        planned=physical['n_plan'],terminal=physical['n_terminal'],\n        successful_returns=physical['n_native_contract_complete'],\n        failed=physical['n_terminal']-physical['n_native_contract_complete'],\n        source_sha256=receipt['source_sha256'],\n        launch_sha256=p.digest(run/'launch.json'),\n        physical_gpu_seconds_total=physical['physical_gpu_seconds_total'],\n        native_gpu_context_release_confirmed=True,service_path_removed=True,\n        remote_transfers_sha256=hashes['remote_transfers.jsonl'],\n        remote_monitor_sha256=hashes['remote_monitor.log'],\n        remote_stop=json.loads((raw/'remote_stop.json').read_text()),\n        remote_cleanup=json.loads((raw/'remote_stop.json').read_text()),\n        n_correct=None,formal_qualification=False,ranking_eligible=False,\n        no_figures=True,caveat='PrimeLoRA HOST queue full4000 evaluation; no independent numerical proof or cross-system ranking before audit.')\n    json.dump(completion,f,indent=2)\nprint(json.dumps(dict(completion=True,n_plan=completion['n_plan'],\n    n_terminal=completion['n_terminal'],n_native_contract_complete=completion['n_native_contract_complete'])))\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/cpu_checks.py",
+      "sha256": "e51d657a246c208f09a76a1f4f1eee695624e88fa39a8d12f239b79712ce7216",
+      "content": "\"\"\"Run the existing replay/input checks; no GPU or trace generation.\"\"\"\nimport json\nfrom pathlib import Path\nimport sys\nimport unittest\nROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nRAW=Path(__file__).resolve().parent\nsys.path.insert(0,str(ROOT))\nfrom scripts import ieee_tc_preflight as p\n\nif __name__=='__main__':\n    own=p.scope_identity(p.cg_path().name)\n    with (RAW/'cpu_identity.json').open('x') as f:json.dump(own,f,indent=2)\n    result=unittest.TextTestRunner(verbosity=2).run(unittest.defaultTestLoader.loadTestsFromNames(['tests.test_ieee_tc_external_replay', 'tests.test_ieee_tc_d456_diagnostic_contract.HostQueueFullContract']))\n    with (RAW/'cpu_result.json').open('x') as f:\n        json.dump(dict(passed=result.wasSuccessful(),count=result.testsRun,\n            errors=len(result.errors),failures=len(result.failures),skipped=len(result.skipped),scope=own),f,indent=2)\n    sys.exit(0 if result.wasSuccessful() else 1)\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/qualify_sources.py",
+      "sha256": "2c015882b135bb0d8b63f818390bbf62fbdc4ddf423db8620845475b728ce980",
+      "content": "\"\"\"Reuse D458 input qualification on the original4000 source; no new workload.\"\"\"\nimport importlib.util\nimport json\nimport re\nimport subprocess\nimport sys\nfrom pathlib import Path\nimport yaml\nROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nRAW=Path(__file__).resolve().parent\nOUT=ROOT/'paper_results/ieee_tc/p2_backend/d465_full_w0'\nsys.path.insert(0,str(ROOT))\nfrom scripts import ieee_tc_preflight as p\nfrom faaslora.datasets.workload_generator import FrozenReplayPlan\ndef save(path,value):\n    with path.open('x') as f:json.dump(value,f,indent=2,allow_nan=False)\nscope=p.scope_identity(p.cg_path().name)\nsave(RAW/'qualification_identity.json',scope)\nshell=ROOT/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh'\nsource=re.search(r'^export FAASLORA_SHARED_TRACE_PATH=(.+)$',shell.read_text(),re.M)[1]\nfull=FrozenReplayPlan.load(source,count=4000)\nplan=FrozenReplayPlan.load(source,count=4000)\nassert full.source_count==4000 and plan.entries==full.entries\ncontext=dict(plan=plan.identity(),tiny_witness=False,replay_scope='full_source_v1',diagnostic_prefix_count=None)\nassert FrozenReplayPlan.from_launch_context(context)==plan\nbaseline=Path('/home/qhq/serverless_llm_baselines/scripts/prepare_ieee_tc_serverless_stack.py')\nspec=importlib.util.spec_from_file_location('d465_existing_baseline',baseline)\nnative=importlib.util.module_from_spec(spec);spec.loader.exec_module(native)\ncfg_path=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/http_7b_4000.json')\ncfg=json.loads(cfg_path.read_text())\nlegacy=native.load_http_replay_plan(cfg)\nassert full.entries==legacy.entries\nnewcfg=ROOT/'configs/ieee_tc/20261012_d465_7b_full_w0.yaml'\noldcfg=ROOT/'configs/ieee_tc/20261012_d458_7b_full_w0.yaml'\nleft,right=yaml.safe_load(oldcfg.read_text()),yaml.safe_load(newcfg.read_text())\nfor item in (left,right):\n    item['experiment'].pop('output_dir');item['storage'].pop('nvme_cache_dir');item['storage'].pop('host_cache_dir')\nassert left==right\nsubprocess.run(['git','diff','--exit-code','8114e0c78723bab0dff8d08f37a5b8a891bc1dcb','--',\n    'faaslora','scripts/run_all_experiments.py','scripts/ieee_tc_preflight.py',\n    'scripts/run_all_experiments_user_scope.sh','scripts/ieee_tc/plot_d290_diagnostic.py'],cwd=ROOT,check=True)\ncpu=json.loads((RAW/'cpu_result.json').read_text());assert cpu['passed'] and cpu['count']==22\nguard_path=RAW.parent/'d464_20261012/guard_v2_result.json'\nguard=json.loads(guard_path.read_text());assert guard['passed'] and guard['tests']==11\nnative_path=ROOT/'paper_results/ieee_tc/p2_backend/d464_host_queue/final_verification.json'\nnative_result=json.loads(native_path.read_text());assert native_result['passed'] and native_result['qualification']['protocol_bound_count']==100\nfor ref in native_result['refs']:assert p.digest(Path(ref['path']))==ref['sha256'],ref['path']\nseal=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json')\nprotected=p.verify_seal(seal);assert protected['pass'] and protected['entry_count']==147\nprior=ROOT/'paper_results/ieee_tc/p2_backend/d463_host_queue/qualification.json'\nprior_data=json.loads(prior.read_text());assert prior_data['passed'] and prior_data['exact_ast_single_constant_change']\nfor ref in prior_data['source_refs']:\n    assert p.digest(Path(ref['path']))==ref['sha256'],ref['path']\nfor path,digest in prior_data['preserved_identities'].items():assert p.digest(Path(path))==digest,path\nfor path,digest in prior_data['results']['regression']['sources'].items():assert p.digest(Path(path))==digest,path\nfor path in RAW.glob('*.py'):compile(path.read_text(),str(path),'exec')\nfor path in [shell,*RAW.glob('*.sh')]:subprocess.run(['bash','-n',str(path)],check=True)\nrefs=[Path(source),Path(cfg['trace']),cfg_path,baseline,newcfg,oldcfg,shell,prior,p.PLAN,seal]\nrefs += [ROOT/s for s in ('scripts/run_all_experiments.py','scripts/ieee_tc_preflight.py',\n    'scripts/run_all_experiments_user_scope.sh','scripts/ieee_tc/plot_d290_diagnostic.py',\n    'faaslora/datasets/workload_generator.py','tests/test_ieee_tc_external_replay.py',\n    'tests/test_ieee_tc_d456_diagnostic_contract.py','docs/ieee_tc/D465_HOST_QUEUE_FULL_W0.md',\n    'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md','docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md')]\nhelpers=sorted([*RAW.glob('*.py'),*RAW.glob('*.sh')])\nrefs += helpers+[RAW/'cpu_result.json',guard_path,native_path]\nresult=dict(kind='d465_original4000_input_qualification_v1',cpu_qualification_pass=True,\n    actual_gpu_run_complete=False,performance_ranking_eligible=False,view=plan.identity(),full_view=full.identity(),\n    exact_baseline_entries=True,non_target_config_equal=True,production_unchanged_from_d463=True,\n    target_tokens=sum(min(json.loads(e.source_json)['expected_output_tokens'],256) for e in plan.entries),\n    tests=cpu,guard_tests_reused=11,native100_verified=True,protected=protected,scope=scope,\n    helpers=[dict(path=str(x),sha256=p.digest(x),content=x.read_text()) for x in helpers],\n    refs=[dict(path=str(x),sha256=p.digest(x)) for x in refs])\nOUT.mkdir(parents=True,exist_ok=True);save(OUT/'input_qualification.json',result)\nprint(json.dumps(dict(passed=True,tests=22,guard_tests=11,view=plan.identity(),scope=scope)))\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/start.py",
+      "sha256": "a062c84bf79b59ea6eea338f7a52a98a41d23c0109bb7d086d38b2b785662793",
+      "content": "\"\"\"D465 HOST queue full4000 candidate; reuse D371 protected deployment procedure.\"\"\"\nimport json\nimport os\nfrom pathlib import Path\nimport subprocess\nimport sys\n\nROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nRAW = Path(__file__).resolve().parent\nBINDING = ROOT / 'paper_results/ieee_tc/p2_backend/d465_full_w0/input_qualification.json'\nsys.path.insert(0, str(ROOT))\nfrom scripts import ieee_tc_preflight as p\n\n\ndef run(command, **kwargs):\n    return subprocess.run(command, check=True, **kwargs)\n\n\ndef main():\n    assert RAW.name == 'd465_20261012'\n    assert not (RAW / '7b_full_w0').exists()\n    identity = p.scope_identity(p.cg_path().name)\n    group = Path(identity['path'])\n    assert (group / 'memory.max').read_text().strip() == str(4 * p.GIB)\n    assert (group / 'memory.swap.max').read_text().strip() == '0'\n    assert os.sched_getaffinity(0) == {2, 3, 26, 27}\n    head = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()\n    remote = subprocess.check_output(\n        ['git', 'ls-remote', 'faaslora_origin', 'refs/heads/retry14_continuous_queue_v2'],\n        cwd=ROOT, text=True).split()[0]\n    assert head == remote\n    changed = subprocess.check_output(\n        ['git', 'diff', '--name-only', 'HEAD', '--', 'faaslora', 'scripts',\n         'configs/ieee_tc', 'tests'], cwd=ROOT, text=True).strip()\n    assert not changed, changed\n    binding = json.loads(BINDING.read_text())\n    assert binding['cpu_qualification_pass'] is True\n    for ref in binding['refs']:\n        assert p.digest(Path(ref['path'])) == ref['sha256'], ref['path']\n    gate = p.preflight([ROOT], 32 * p.GIB)\n    assert gate['preflight_pass'], gate['issues']\n    assert not subprocess.check_output(\n        ['nvidia-smi', '--query-compute-apps=pid', '--format=csv,noheader'], text=True).strip()\n    assert subprocess.run(['tmux', 'has-session', '-t', 'tc-d465-hostqueuew0'],\n                          stderr=subprocess.DEVNULL).returncode != 0\n    RAW.mkdir(parents=True, exist_ok=True)\n    with (RAW / 'launch_gate.json').open('x') as stream:\n        json.dump(dict(passed=True, campaign='d465_20261012', head=head,\n                       remote=remote, gate=gate, identity=identity,\n                       source_execution_sha=head,\n                       qualification_manifest_sha256=p.digest(BINDING),\n                       config_sha=p.digest(ROOT / 'configs/ieee_tc/20261012_d465_7b_full_w0.yaml')),\n                  stream, indent=2)\n    run(['bash', str(RAW / 'start_remote.sh')])\n    run(['/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python',\n         str(RAW / 'check_remote_health.py')], cwd=ROOT)\n    run(['tmux', 'new-session', '-d', '-s', 'tc-d465-hostqueuew0', '-c', str(ROOT),\n         'bash scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh d465'])\n    with (RAW / 'start_receipt.json').open('x') as stream:\n        json.dump(dict(launched=True, campaign='d465_20261012', head=head,\n                       remote=remote, tmux='tc-d465-hostqueuew0', identity=identity),\n                  stream, indent=2)\n    print(json.dumps(dict(launched=True, campaign='d465_20261012', tmux='tc-d465-hostqueuew0')))\n\n\nif __name__ == '__main__':\n    main()\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/start_remote.sh",
+      "sha256": "595eb8d40419c854de3781593f830a21b06cb5b5c4a66ef2f04816cb4f70f3af",
+      "content": "#!/usr/bin/env bash\n# Reuse the frozen published-service procedure; campaign paths only.\nset -euo pipefail\nset -o noclobber\nraw=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012\nssh -o BatchMode=yes primelora-artifact-174 /bin/bash <<'REMOTE' > \"$raw/remote_start.log\" 2>&1\nset -euo pipefail\nbase=/home/lab14/primelora_remote/tc/d80_20260927\nout=/home/lab14/primelora_remote/tc/d465_20261012_hostqueuew0\ntest \"$(loginctl show-user lab14 -p Linger --value)\" = yes\ntest \"$(awk '/^MemAvailable:/{print $2}' /proc/meminfo)\" -ge 27525120\ntest \"$(df -B1 --output=avail \"$base\" | tail -1 | tr -d ' ')\" -ge 17280532480\ntest -z \"$(ss -ltnH '( sport = :18080 or sport = :18081 )')\"\ntest ! -e \"$out\"\nfor model in 3b 7b; do\n  test \"$(systemctl --user show primelora-artifact-tc-${model}.service -p ActiveState --value)\" = inactive\n  cmp \"$base/primelora-artifact-tc-${model}.service\" \"/home/lab14/.config/systemd/user/primelora-artifact-tc-${model}.service\"\ndone\nmkdir \"$out\"\niface=$(ip -o route get 192.168.4.178 | awk '{for(i=1;i<=NF;i++) if($i==\"dev\"){print $(i+1);exit}}')\ntest -n \"$iface\"\ncat \"/sys/class/net/$iface/speed\" \"/sys/class/net/$iface/duplex\"\nsystemctl --user start primelora-artifact-tc-3b.service primelora-artifact-tc-7b.service\nsystemd-run --user --unit=primelora-artifact-monitor-d465-hostqueuew0.service \\\n  -p Type=exec -p UMask=0077 -p MemoryHigh=128M -p MemoryMax=256M -p MemorySwapMax=0 \\\n  -p CPUAffinity='0 20' -p TasksMax=32 -p NoNewPrivileges=yes \\\n  -p TimeoutStopSec=30 -p Restart=no \\\n  -p StandardOutput=\"append:$out/remote_monitor.log\" \\\n  -p StandardError=\"append:$out/remote_monitor.log\" \\\n  /bin/bash \"$base/monitor_remote_services_v2.sh\"\nsystemctl --user show primelora-artifact-tc-3b.service primelora-artifact-tc-7b.service primelora-artifact-monitor-d465-hostqueuew0.service \\\n  -p Id -p InvocationID -p MainPID -p ActiveState -p MemoryHigh -p MemoryMax -p MemorySwapMax\nREMOTE\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/stop_remote.sh",
+      "sha256": "ad6cd98defdf739a7dd6ba7bbee0f3a61f92768a13cb5faca6083c26ed291a77",
+      "content": "#!/usr/bin/env bash\nset -euo pipefail\nset -o noclobber\nraw=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012\njq -e '.native_gpu_context_release_confirmed and .service_path_removed' \"$raw/7b_full_w0/launch.json\" >/dev/null\ntest -z \"$(nvidia-smi --query-compute-apps=pid --format=csv,noheader)\"\nids=()\nfor unit in primelora-artifact-tc-3b.service primelora-artifact-tc-7b.service primelora-artifact-monitor-d465-hostqueuew0.service; do\n  id=$(awk -F= -v want=\"$unit\" '$1==\"Id\" {id=$2} $1==\"InvocationID\" && id==want {print $2}' \"$raw/remote_start.log\")\n  [[ \"$id\" =~ ^[a-f0-9]{32}$ ]]\n  ids+=(\"$id\")\ndone\nclock_id=$(jq -er '.\"7b\".clock_id' \"$raw/remote_health.json\")\n[[ \"$clock_id\" =~ ^remote-process-monotonic:[a-f0-9]{32}$ ]]\nssh -o BatchMode=yes primelora-artifact-174 /bin/bash -s -- \"${ids[@]}\" \"$clock_id\" <<'REMOTE' > \"$raw/remote_stop.log\" 2>&1\nset -euo pipefail\nunits=(primelora-artifact-tc-3b.service primelora-artifact-tc-7b.service primelora-artifact-monitor-d465-hostqueuew0.service)\nids=(\"$1\" \"$2\" \"$3\")\nclock_id=$4\nfor i in 0 1 2; do\n  test \"$(systemctl --user show \"${units[$i]}\" -p InvocationID --value)\" = \"${ids[$i]}\"\ndone\nsystemctl --user stop \"${units[2]}\"\nfor i in 0 1; do\n  state=$(systemctl --user show \"${units[$i]}\" -p ActiveState --value)\n  if test \"$state\" != inactive; then\n    test \"$(systemctl --user show \"${units[$i]}\" -p InvocationID --value)\" = \"${ids[$i]}\"\n    systemctl --user stop \"${units[$i]}\"\n  fi\ndone\nfor unit in \"${units[@]}\"; do\n  test \"$(systemctl --user show \"$unit\" -p ActiveState --value)\" = inactive\n  test \"$(systemctl --user show \"$unit\" -p MainPID --value)\" = 0\n  systemctl --user show \"$unit\" -p Id -p ActiveState -p MainPID -p Result\ndone\ntest -z \"$(ss -ltnH '( sport = :18080 or sport = :18081 )')\"\ngrep -l \"$clock_id\" /home/lab14/primelora_remote/tc/d80_20260927/7b/transfers-*.jsonl\nsha256sum /home/lab14/primelora_remote/tc/d465_20261012_hostqueuew0/remote_monitor.log\nREMOTE\n"
+    }
+  ],
+  "refs": [
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4/20260512_123619_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_trace.json",
+      "sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+      "sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/http_7b_4000.json",
+      "sha256": "f0fe970f53c549b38cc0dbd8def0109115436f4b1d8ee8530b2ad8efcec8c6f3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/scripts/prepare_ieee_tc_serverless_stack.py",
+      "sha256": "dbdccafbcca5574eb906dfb530b7c5375fd0fa6772beef4d846d4cd2a2ce5365"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261012_d465_7b_full_w0.yaml",
+      "sha256": "e8174edea3cca7f299f014b91069823b4c49c3fb27417c5c3ebc4c9d1fb7f837"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261012_d458_7b_full_w0.yaml",
+      "sha256": "6a5ddbed1ed612da750c00439e6a8c4f55e645ecb673a45a11f495a5771c25ed"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh",
+      "sha256": "f58c443bbbb25af085c2815094425de7f350eac21b64d3317e897592ddb2f015"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d463_host_queue/qualification.json",
+      "sha256": "f2a4b08798a7c8fab7862a14e7aa4a4dcd71e4968eec3d3e3dad6d7e309f3498"
+    },
+    {
+      "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json",
+      "sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "9d8d55d5e707192ae74beb555e0947852b94a237c995eddbdacd4541a17ef566"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py",
+      "sha256": "bb3c6e95314f6e23f7039a727508d5ad426897238494ab6d5878b90c94c21aaf"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments_user_scope.sh",
+      "sha256": "d41e782949370030c6cc4260ca9d1d5ca059ac32384bc18ff7b10c52c5cc0168"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/plot_d290_diagnostic.py",
+      "sha256": "18e96959d167c3b9b8c762a4ee4274d4443eba38610e02cd89cd0755c5664f22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/datasets/workload_generator.py",
+      "sha256": "af55470a7fdd7eb10cd289daeffa13b33ea9d09f50dfb4a2f0f3777416103d19"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_external_replay.py",
+      "sha256": "a83572d09fd9e01d8be2bfce535a68263c77fa490c13155b9623d09c4d715731"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_d456_diagnostic_contract.py",
+      "sha256": "b57b2f75107234838f2b46754e87c35486ba3da4a617cafac1142abf4f93801a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D465_HOST_QUEUE_FULL_W0.md",
+      "sha256": "7738f9e1ead0afcace5121feae74dc50dbf12f21aa6de3c296757f9ca459d7d3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+      "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/backup.py",
+      "sha256": "ec47692954dc50a1af97add7e2ff84720cf7d67b6268efac0caeefe878076788"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/check_remote_health.py",
+      "sha256": "176d803fb722f46a895fb15a006f4f3b31469fc5073121c40ebaf524446e95b5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/close.py",
+      "sha256": "5029fc68b90d0b007577434f7a2fa943d61741c53eb0f8a15feed71d5ea90ead"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/close_after_release.py",
+      "sha256": "290d6a04b16fdec72ad21b7fd48e359b86dddc50210b061c7ed9b06982bd8b5c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/collect_closure.py",
+      "sha256": "3f4338284ee8c6e3a07131b7ba33144a992c76439589de276744e76b7f4f49cb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/cpu_checks.py",
+      "sha256": "e51d657a246c208f09a76a1f4f1eee695624e88fa39a8d12f239b79712ce7216"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/qualify_sources.py",
+      "sha256": "2c015882b135bb0d8b63f818390bbf62fbdc4ddf423db8620845475b728ce980"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/start.py",
+      "sha256": "a062c84bf79b59ea6eea338f7a52a98a41d23c0109bb7d086d38b2b785662793"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/start_remote.sh",
+      "sha256": "595eb8d40419c854de3781593f830a21b06cb5b5c4a66ef2f04816cb4f70f3af"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/stop_remote.sh",
+      "sha256": "ad6cd98defdf739a7dd6ba7bbee0f3a61f92768a13cb5faca6083c26ed291a77"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/cpu_result.json",
+      "sha256": "5cd4679d7119ea246f21d0c477fa2ff86a23a2601af9057434961de713d7339c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d464_20261012/guard_v2_result.json",
+      "sha256": "0106bed69880607b40ef29e443733b71185ba63f6961bd8daa240b03e0ed8ed5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d464_host_queue/final_verification.json",
+      "sha256": "0fdc8be53e1496a97f91ae7b038265c5b2cfe1fe4898f51abdd583b6cf9f03d0"
+    }
+  ]
+}
