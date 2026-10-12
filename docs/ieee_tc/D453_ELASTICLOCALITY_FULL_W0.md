@@ -58,3 +58,38 @@ raw：原项目results/ieee_tc/elastic_locality_qualification/d453_20261012。
 PrimeLoRA优化，随后3B。HydraServe原生资格仍受现有Kubernetes访问前置条件限制；
 不改未知集群、不以裸vLLM替代。dLoRA 3B、A1–A5、S1–S13、CE补充、两轮审稿
 设计文档及后期图表仍按完整计划执行。不能因局部可行性宣称整个目标已完成。
+
+## 单轮实测与证据边界（2026-10-12 收尾）
+
+同一次运行完成4,000/4,000请求、458,224个原生输出tokens。原生数量、
+source/adapter/lease绑定和既有D435逐请求输入合同全部匹配。未知的原始
+n_correct不回填；这不是独立kernel数值正确性证明。
+
+| 指标 | 单轮观测 |
+|---|---:|
+| 冻结共同联合SLO | 3,831/4,000（95.775%） |
+| 生命周期物理GPU-s | 9,892.715870 |
+| GPU-s/协议绑定请求 | 2.473179 |
+| 平均TTFT | 1,003.697865 ms |
+| Type-1 P95 TTFT | 2,420.607829 ms |
+| 平均dispatch等待 | 528.828451 ms |
+| 平均service TTFT | 474.869414 ms |
+| 平均/P95 TPOT | 29.212305 / 54.523438 ms |
+
+这次资源和尾延迟观测低于已封存PrimeLoRA W0，而联合SLO低于其97.70%。
+保留该不利于Full资源优势的证据，不因结果重复运行或调整对照。
+需要在同合同六系统分析中核验同后端输出差异；目前封存包仍明确标记
+ranking_eligible=false，不能直接据此宣称完整跨场景优劣或因果机制。
+
+无主动准备计划，普通文件LRU驱逐未触发。4,014次路由选择尝试含2,710次
+GPU-hit、185次slack回退、1,119次无可行GPU-hit；不是4,014条完成请求。
+实际dispatch tier：remote132、GPU2706、HOST315、NVMe847。
+natural_scaleout共33次触发，其中30次ready、3次取消；另有1次initial。
+first-service须另按epoch第一条dispatch绑定，不能用触发数替代。
+
+132次真实HTTP/131,480,060线上字节，两端ID/SHA/字节核验一致；请求内
+打包为0，D78/D80既有缓存直接复用。4040次资源采样，峰值20,717,527,040B，
+high/max/OOM/swap均0。实际GPU释放先于远端服务关闭，清理及下载SHA通过。
+原始运行、失败/取消事件及全部历史结果保留；没有增加重复、权重或负载。
+
+完整证据见paper_results/ieee_tc/elastic_locality/d453_actual_full_w0.json。

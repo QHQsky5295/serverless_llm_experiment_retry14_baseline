@@ -1,4 +1,4 @@
-# IEEE TC execution status — D453 ElasticLocality full4000 W0 preregistered
+# IEEE TC execution status — D453 ElasticLocality full4000 W0 completed
 
 Updated 2026-10-12. Current checkpoint, NOT a replacement experiment plan.
 Full prior status is byte-identically archived in EXECUTION_HISTORY_THROUGH_D448.md,
@@ -31,7 +31,52 @@ entries are not current instructions. No evidence or approved task was removed.
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D453 full4000 W0 prepared, not yet launched
+## Current action — D453 full4000 closed, audited; matched comparison next
+
+Same single launch completed2026-10-12 09:19; no restart or second performance run.
+4000/4000 native/source/adapter/lease contracts passed,458224native tokens,
+zero failed. Independent retainedD435 input witness matches all4000 canonical
+prompt hashes/native prompt-ID hashes/targets/adapter/source rows. Raw n_correct
+stays null; complete binding evidence is not independent kernel numerical proof.
+Sourcecommit0cddb850ce4d79333057da909afb4a11ffa930f6; sourceSHA
+f758f48cb1231de7a86025a1cdda777c2285dd2c892b208e9b21e5691c47fb50.
+
+Commonjoint3831/4000=95.775%, above95% threshold. MeanTTFT1003.697864922ms,
+Type1P95TTFT2420.607829234ms; meanqueue528.828450925ms,
+meanservice474.869413997ms; meanTPOT29.212304974ms/P95TPOT54.523438402ms.
+Actual lifecycle9892.715870097047GPU-s=2.4731789675242615GPU-s/boundrequest.
+These raw resource/tail values are lower than sealedPrimeLoRAW0, while jointSLO
+is lower thanPrimeLoRA97.70%. Do not hide this result or repeat until it loses.
+Matched six-system contract and same-backend output-difference audits remain NEXT;
+qualification package ranking_eligible=false pending those comparisons. NotG2/globaloptimum.
+
+Dispatchremote/GPU/HOST/NVMe132/2706/315/847. Routing4014selectionattempts:
+GPUhit2710/slack185/nohit1119/empty0. Proactiveplans0/fileLRUreplacements0.
+Initial1 ready; natural33triggers=30runtime_ready+3cancelled, not33completed
+scaleups orfirstservice. Initialactivation41.894134533s.
+132realHTTPtransfers/131480060wireB, two-endUUID/SHA/bytes match;
+request-timepacking0. Reconfirmedcacheapproval reusesD78/D80, no republish.
+4040resourcesamples/peak20717527040B, high/max/OOM/swap0. Service/watchdogexit0,
+actualGPUrelease and servicepathremoved before exactremote3B/7B/monitorstop;
+portsabsent,downloadSHAverified. Start/replayaux actualrecursiveempty checked and
+closed; postrunaux4/5/6 closed by recordedInvocationID; closer7 alsoactualempty/
+identityclosed. Lastdisk161934061568B (~150.81GiB), newheavyneedsfreshgate.
+
+Curated elastic_locality/d453_actual_full_w0.json preserves qualification,
+independent input witness, closure, source hashes and limitations. No figures,
+newweights/trace/pool,baseline tuning,oldoverwrite or remote cache regeneration.
+FullPLAN/status/baseline rules/V1/V2 reread;147protected entries and userfiles
+unchanged by auditors. Deliveryverification passed26independent source refs and
+protected147;curatedSHA3cb2e9254941125f4f4d53465c682829fc0cac2127c1cf71c6b059b5e48be9de.
+Verificationaux8 InvocationID92994ba51da84c1dab3d50dbec056376 alsoactualrecursiveempty/
+identityclosed,high/max/OOM/swap0. Allownedtasksclosed;checkpoint backup follows.
+NEXT: extend existing matchedW0 analyzer with this sealed row, audit native
+output digests under the same backend, preserve all five prior rows; then7B
+W1/W2/G2 with qualified commoninput plumbing and justifiedPrimeLoRAoptimization,
+before3B. HydraServe access dependency and fullremaining scope unchanged.
+Goal ACTIVE: substantive run completion/closure/audit progress, not blocked.
+
+## Previous action — D453 launch and verified monitoring
 
 Previousturn substantiveprogress: D452 actual1000closure/audit/backup, no blocker.
 D452 checkpoint594c3e026d2c45465f1cad462ae7cad8271c2050 pushed and remoteSHAequal.
@@ -43,10 +88,60 @@ fullviewSHAa5331be2e2204483f18206825d9aaa18cbaa259fe0babfc303f989055819430d.
 20 replaytests passed0.678s; shell/Python syntax/configequality/source checks pass.
 Protected147/protocols/userfiles/D452sealedresult intact. CPUaux1/2 exactidentity/
 actualrecursiveemptytreeclosed, high/max/OOM/swap0. Curated
-elastic_locality/d453_full_input_qualification.json. Next pushcheckpoint andfresh
-safety/remote gates, then launch once. No GPUtasklive and no remoterepublish.
+elastic_locality/d453_full_input_qualification.json. Checkpoint
+0cddb850ce4d79333057da909afb4a11ffa930f6 pushed and remoteSHAequal verified.
+Actual launched08:11, tmux tc-d453-localityw0/panePID2346473; serving4000 after
+initial engine-ready08:12:05. Fresh32GiBgrowth/preflight passed, no issues;
+realremote1000Mb/s/full, D78/D80cache reused, no republish. Firstrequestsarriving,
+no performance result yet; watchdog high/max/OOM/swap0/no abort in earlysamples.
+Startauxd453...0003 InvocationID763fe7ffa9a847bcb7606d4e9802d308;
+remote3B fe60f4af1a3c4592aba1b3d1a7313e81,7B372e01863f014a3db24e87e59e25d88d;
+monitor primelora-artifact-monitor-d453-localityw0.service InvocationID
+65c4da1e7f324b8cba2c6f0d1548620e. Exactidentities in launch_gate/remote_start.
+Do not relaunch, test, hashscan, build, clean or remotelymaintain duringmeasurement.
+Remote must stay until actualGPUrelease. Reuse close_after_release.py then existing
+analyze_prefix.py and cross_contract.py prepared for4000; no result claims beforeaudit.
 Afterclosureaudit, compare samecontracts and continue7BW1/W2/G2 before3B;
 HydraServeexternalqualification and allfullscope retained, not repeatD450–D452.
+
+Latest continuation: previous goalturn classified PROGRESS (D452 seal/backup and
+D453 actuallaunch); this turn VERIFIED_WAIT on live tmux pane/PID2346473 python3,
+rechecked with ps at processelapsed705s. FullPLAN/status/baseline rules reread;
+monitoring only, no runtime/config changes, tests, heavy analysis or remote action.
+At replayelapsed10:44: arrived518/4000, completed515/4000, zero failed;
+live counters scale_up4/scale_down4 (not yet audited activation/first-service counts).
+Latestwatchdog noabort/no warning; memory.peak13598650368B,high/max/OOM/swap0.
+Lastdisk161136713728B (~150.07GiB), above runtime100GiBfloor; nextlaunch requires
+fresh150GiBstartgate, no cleanup duringmeasurement. Same single run remainslive.
+No final4000metrics or ranking yet; continue monitoring samehandle, never relaunch
+because a polling interval elapsed. Goal ACTIVE, not a repeated blocker or complete.
+
+Next continuation VERIFIED_WAIT: same tmux/PID2346473 confirmedlive repeatedly,
+pselapsed1228s at lastcheck; replayelapsed19:25,arrived1114/4000,completed1110/4000,
+zero failed. Natural livecounters scale_up10/scale_down7,current4runtimes.
+Latestwatchdog high/max/OOM/swap0,no warning/abort. Backlog temporarily increased
+near successive rotation/arrival phases and then drained; this is partial observed
+behavior, not finalSLO or an isolated mechanism attribution. No code/config change,
+tests, heavy analysis, remoteadministration, cacheclearing or rerun duringmeasurement.
+Continue the same4000 run; wait is an active experiment dependency, not a goalblocker.
+
+Ongoing same-run checkpoint: tmux/PID2346473 live, processelapsed2818s,
+replayelapsed45:56,arrived3062/4000,completed3060/4000,zero failed,current3runtimes.
+Live scale_up25/scale_down23 are provisional counters, not audited epoch counts.
+Latestwatchdog noabort/no warning/high/max/OOM/swap0. Last explicitdisk sample
+160184565760B (~149.18GiB); above100GiBruntimefloor, not a newlaunchclearance.
+No live maintenance, tests, runtime changes or rerun. Same full4000 still running.
+
+Read-only next-mainline finding during wait (no edits/tests):
+faaslora/datasets/workload_generator.py FrozenReplayPlan.load already implements
+approved W1 half-interval/30sphase indexing and rejects unfrozenW2 mapping.
+BASE scripts/prepare_ieee_tc_serverless_stack.py load_http_replay_plan line771
+calls FrozenReplayPlan.load without profile, hence current HTTP path still W0;
+its qualified populations cover trace_prefix_v1 and adapter_coverage_v1.
+After D453closure and matchedW0 analysis, qualify an explicit common W1 input
+interface using the existing transform, preserving all baseline service policies/
+configuration and old W0 identity. Do not assume setting a profile label already
+changes HTTP arrivals; no new trace/weights or baseline tuning authorized.
 
 ## Previous action — D452 original1000 completed and delivery verified
 
