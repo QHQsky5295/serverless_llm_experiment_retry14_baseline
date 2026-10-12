@@ -465,6 +465,13 @@ case "${1:-d293}" in
     SCENARIO=tc_ieee_full
     PREFIX_COUNT=
     ;;
+  d475)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d475_20261012/7b_cpu_frontend_validation_100
+    CONFIG=configs/ieee_tc/20261012_d475_7b_cpu_frontend_validation_100.yaml
+    TAG=d475_7b_cpu_frontend_validation_100
+    SCENARIO=tc_ieee_full
+    PREFIX_COUNT=100
+    ;;
   *) echo 'Unknown frozen campaign identity; no arbitrary output override' >&2; exit 2 ;;
 esac
 [[ $# -le 1 ]] || exit 2

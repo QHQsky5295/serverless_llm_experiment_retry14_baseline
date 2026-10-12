@@ -1,4 +1,4 @@
-# IEEE TC execution status — D474 execution consumer qualified on CPU; 7B OPEN
+# IEEE TC execution status — D475 original100 native qualification preparing; 7B OPEN
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement plan.
 Complete preceding status is byte-identically archived in
@@ -33,7 +33,23 @@ not current instructions. No evidence or approved task was removed.
 - Every optimization: logs/history + online primary sources + one falsifiable
   hypothesis + tests/minimal validation/new full replay. IEEE nine formulas fixed.
 
-## Current action — D474 exact HOST execution consumer proof; native validation NEXT
+## Current action — D475 native qualification preparing
+
+Read full PLAN/status/baseline rules/V1/V2; run-experiment and github-sync skills.
+D474 checkpoint55d7df5 retained with953CPUtests; do not rerunthatqualification.
+Only new D475 config/output/cache identity and explicit original100wrappercase,
+plus2configcontracttests. All model/lifecycle/profile/controlsettings exactlyD471.
+Reuse originalseed42trace,pool,D78/D80readonlyremote,resourcegate andclosure.
+No new production optimization,threshold/formula/baselinechange orfigure.
+22replay/configtests passed,0failure/error/skip;11existingguardchecks reused.
+Original100exactprefix/full4000independentinput,sourceSHA and147protectedpass.
+CPU1/qualification2actual-emptyexactidentityclosed,high/max/OOM/swap0.
+Nextbackup,thenoneoriginal100nativequalification.
+Ifqualified,one new-keyoriginal4000D472settings; shortprefixisnotG1/G2performance.
+Userk3sclarificationalreadyrecorded;unrelatedclusteruntouched,HydraServelaterisolated.
+Disklast161555570688B;fresh150/100GiBgatesrequired. WholegoalACTIVE.
+
+## Prior action — D474 exact HOST execution consumer proof; native validation NEXT
 
 Read full PLAN/status/rules/V1/V2. D473 retained diagnosis reused,not rerun.
 Online officialvLLM0.30 core/worker,PyTorch2.13Memory andCPU-overheadreport checked;
@@ -67,6 +83,17 @@ No newGPU/remote run yet; no figures/weights/traces/profile/cluster actions.
 D472 remains latestsealedfeasibleW0; candidateperformanceNOTaccepted. Do not
 rerunD473/D472/sealedbaselines ormorepin/importprobes. FullgoalACTIVE;7B/W1/W2/G2/
 3B/HydraServe/ablations/mechanisms/sensitivities/docs remainOPEN.
+
+D474checkpointcomplete:8explicitfilespushedas
+55d7df5fbbb688ac7d234755ba9ea2529b78dfaf;independentremoteHEADequal.
+27currentrefs/24archivedmembers/147protectedverified;953tests pass.
+QualificationSHA794172490e9fa157a1e46ed2806605bd9332e5361ba46474eee306c85cd48f36.
+Curation4/backup5exactidentityactual-emptyclosed,high/max/OOM/swap0;all5D474
+tasksfinished,GPUcomputeempty,remoteunchangedinactive,unrelatedk3suntouched.
+Usermanifestneverstaged,BASEunchanged. Disk161554776064B(~150.46GiB),freshgate
+beforeheavy. Native100andfull4000stillpending;donotrerunCPUtestsorD473diagnosis
+withoutnewcause. NextactualnativequalificationusesD471CPU-preparationconfig,
+notD464(whichlackedCPUpreparation),thenfullD472settingsnewkeyifqualified.
 
 ## Prior action — D473 retained residual stages and owner/decode audit completed
 
