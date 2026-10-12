@@ -1966,6 +1966,7 @@ class IEEEInitialDeployment(unittest.TestCase):
         _, files, service, _, engine = self.make('no_handoff')
         async def run():
             service.preload_cfg = dict(enabled=False)
+            service.coord_cfg = {}  # No CPU preparation lifecycle opt-in in this fixture.
             # This fixture tests entry wiring, not full-campaign qualification.
             with patch.object(service, '_require_ieee_full_qualification') as qualification:
                 await service.preload()

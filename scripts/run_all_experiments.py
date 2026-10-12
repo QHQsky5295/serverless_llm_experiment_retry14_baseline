@@ -5583,7 +5583,7 @@ class SubprocessInferenceEngineProxy:
 
     @classmethod
     def prepare_cpu_frontend(cls, *, model_cfg, cost_model, device_id,
-                             runtime_gpu_ids, deployment_notice_s, retained):
+                             runtime_gpu_ids, deployment_notice_s, retained, policy):
         """Fresh, fixed-UUID frontend; no physical allocation or engine creation.
 
         Register the Popen handle before birth validation so a failed producer
@@ -5592,7 +5592,7 @@ class SubprocessInferenceEngineProxy:
         from scripts.ieee_tc_preflight import (
             verify_current_service, NativeGPUCensus, load_nvml_binding, gpu_process_identity)
         from faaslora.cpu_frontend import CONTRACT, PreparedCPUFrontend, configuration_sha256
-        if (model_cfg.get('ieee_cpu_frontend_policy') != CONTRACT
+        if (policy != CONTRACT or 'ieee_cpu_frontend_policy' in model_cfg
                 or model_cfg.get('backend', 'vllm') != 'vllm'
                 or model_cfg.get('tensor_parallel_size') != 1
                 or model_cfg.get('ieee_physical_allocation') is not True
@@ -5671,10 +5671,9 @@ class SubprocessInferenceEngineProxy:
         requested_device_id = int(device_id) if device_id is not None else None
         from faaslora.cpu_frontend import CONTRACT, configuration_sha256
         prepared = None
-        policy = model_cfg.get('ieee_cpu_frontend_policy')
-        if policy is not None or cpu_frontend_pool is not None:
-            if policy != CONTRACT or cpu_frontend_pool is None:
-                raise ValueError('CPU frontend policy requires the owned preparation pool')
+        if 'ieee_cpu_frontend_policy' in model_cfg:
+            raise ValueError('CPU frontend policy belongs to the lifecycle controller, not model configuration')
+        if cpu_frontend_pool is not None:
             prepared = cpu_frontend_pool.claim(requested_device_id)
             local, _ = _prepare_dedicated_subprocess_model_cfg(model_cfg,
                 device_id=requested_device_id, runtime_gpu_ids=runtime_gpu_ids)
@@ -16011,7 +16010,7 @@ class ScenarioRunner:
         """C1 完整：三层级联预加载 远端→硬盘(NVMe)→内存(HOST)→GPU，最热在 GPU、次热在内存、再次在硬盘。"""
         if getattr(self, '_routing_policy', None) == 'ieee_confirmed':
             self._require_ieee_full_qualification()
-            if self.model_cfg.get('ieee_cpu_frontend_policy') is not None:
+            if self.coord_cfg.get('ieee_cpu_frontend_policy') is not None:
                 if not isinstance(self.engine_factory, DedicatedScenarioEngineFactory):
                     raise ValueError('CPU preparation requires the original shared runtime factory')
                 self.engine_factory.start_preparation(
@@ -22040,7 +22039,7 @@ class DedicatedScenarioEngineFactory:
         from faaslora.cpu_frontend import CONTRACT, CPUFrontendPool
         args = self.arguments
         if (self.pool is not None or not args['use_subprocess']
-                or args['model_cfg'].get('ieee_cpu_frontend_policy') != CONTRACT):
+                or args['coord_cfg'].get('ieee_cpu_frontend_policy') != CONTRACT):
             raise ValueError('CPU preparation requires one explicit native factory policy')
 
         def create(device_id, notice):
@@ -22049,7 +22048,7 @@ class DedicatedScenarioEngineFactory:
             return SubprocessInferenceEngineProxy.prepare_cpu_frontend(
                 model_cfg=local, cost_model=args['cost_cfg'], device_id=device_id,
                 runtime_gpu_ids=runtime_ids, deployment_notice_s=notice,
-                retained=self.preparations)
+                retained=self.preparations, policy=args['coord_cfg']['ieee_cpu_frontend_policy'])
 
         self.pool = CPUFrontendPool(devices=devices, create=create)
         self.pool.start(deployment_notice_s=deployment_notice_s)
@@ -22082,7 +22081,7 @@ class DedicatedScenarioEngineFactory:
                 if row['observation'] is None and path.is_file():
                     row['observation'] = json.loads(path.read_text())
             rows.append(row)
-        return dict(policy=self.arguments['model_cfg'].get('ieee_cpu_frontend_policy'),
+        return dict(policy=self.arguments['coord_cfg'].get('ieee_cpu_frontend_policy'),
             legal_devices=None if self.pool is None else list(self.pool.devices),
             closing=None if self.pool is None else self.pool.closing, records=rows)
 
@@ -22151,6 +22150,11 @@ async def _spawn_dedicated_scenario_engine(*, model_cfg, host_visible_ids, cost_
     """
     local_model_cfg, target_runtime_gpu_ids = _dedicated_scenario_model_config(
         model_cfg, host_visible_ids, device_id)
+    from faaslora.cpu_frontend import CONTRACT
+    policy = coord_cfg.get('ieee_cpu_frontend_policy')
+    if ((policy is not None or cpu_frontend_pool is not None)
+            and (policy != CONTRACT or cpu_frontend_pool is None or not use_subprocess)):
+        raise ValueError('CPU frontend lifecycle policy requires the owned preparation pool')
     if use_subprocess:
         new_engine = await SubprocessInferenceEngineProxy.spawn(
             model_cfg=local_model_cfg, cost_model=cost_cfg,

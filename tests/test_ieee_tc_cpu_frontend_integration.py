@@ -21,13 +21,14 @@ UUID = 'GPU-01234567-0123-4567-89ab-0123456789ab'
 def model():
     return dict(backend='vllm', tensor_parallel_size=1, device_id=0,
         visible_device_ids=[0, 1], enforce_eager=True, ieee_gpu_references=True,
-        ieee_cpu_frontend_policy=CONTRACT, ieee_physical_allocation=True,
+        ieee_physical_allocation=True,
         timing_contract='ieee_tc_native_v1', generation_contract='fixed_length_greedy_v1')
 
 
 def factory():
     return runner.DedicatedScenarioEngineFactory(model_cfg=model(), host_visible_ids=[0, 1],
-        cost_cfg={}, coord_cfg={}, hardware_cfg={}, coordination_enabled=True, use_subprocess=True)
+        cost_cfg={}, coord_cfg={'ieee_cpu_frontend_policy':CONTRACT}, hardware_cfg={},
+        coordination_enabled=True, use_subprocess=True)
 
 
 class FactoryLifecycle(unittest.IsolatedAsyncioTestCase):
@@ -113,10 +114,13 @@ class FactoryLifecycle(unittest.IsolatedAsyncioTestCase):
         active.abandon.assert_not_awaited()
 
     async def test_policy_requires_exact_shared_pool_not_ordinary_spawn(self):
+        with self.assertRaisesRegex(ValueError, 'owned preparation pool'):
+            await factory()(device_id=0)
         with patch.object(runner.SubprocessInferenceEngineProxy, '_startup_cleanup_done', True):
-            with self.assertRaisesRegex(ValueError, 'owned preparation pool'):
+            with self.assertRaisesRegex(ValueError, 'lifecycle controller'):
                 await runner.SubprocessInferenceEngineProxy.spawn(
-                    model_cfg=model(), cost_model={}, device_id=0, runtime_gpu_ids=[0])
+                    model_cfg=dict(model(),ieee_cpu_frontend_policy=CONTRACT),
+                    cost_model={}, device_id=0, runtime_gpu_ids=[0])
         f = factory()
         f.arguments['use_subprocess'] = False
         with self.assertRaises(ValueError):
@@ -124,6 +128,27 @@ class FactoryLifecycle(unittest.IsolatedAsyncioTestCase):
 
 
 class Producer(unittest.TestCase):
+    def test_actual_candidate_preserves_strict_measured_native_profiles(self):
+        import yaml
+        root=Path(__file__).resolve().parents[1]
+        current=yaml.safe_load((root/'configs/ieee_tc/20261012_d471_7b_cpu_frontend_validation_100.yaml').read_text())
+        parent=yaml.safe_load((root/'configs/ieee_tc/20261012_d464_7b_host_queue_validation_100.yaml').read_text())
+        self.assertEqual(current['model'],parent['model'])
+        controller=dict(current['resource_coordination'])
+        self.assertEqual(controller.pop('ieee_cpu_frontend_policy'),CONTRACT)
+        self.assertEqual(controller,parent['resource_coordination'])
+        service=object.__new__(runner.ScenarioRunner)
+        service.model_cfg=current['model']
+        service.coord_cfg=current['resource_coordination']
+        service._initial_runtime_pending=True
+        # Exercise the actual runtime/profile binding that rejected D470, not
+        # an approximate model dict or a mock that bypasses the loader.
+        service._service_profiles=service._load_ieee_service_profiles()
+        self.assertIsNotNone(service._service_profiles)
+        self.assertIsNotNone(service._load_ieee_preparation_profiles())
+        before=runner._prepare_dedicated_subprocess_model_cfg(parent['model'],device_id=0,runtime_gpu_ids=[0])[0]
+        self.assertEqual(service._planned_ieee_runtime_model_config(),before)
+
     def test_fresh_fixed_uuid_and_fd_are_set_before_popen_no_gpu_lease(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -143,7 +168,7 @@ class Producer(unittest.TestCase):
                  patch('faaslora.metrics.metrics_collector.PhysicalGPUAllocation') as allocate:
                 ticket = runner.SubprocessInferenceEngineProxy.prepare_cpu_frontend(
                     model_cfg=model(), cost_model={}, device_id=1, runtime_gpu_ids=[1],
-                    deployment_notice_s=time.monotonic(), retained=retained)
+                    deployment_notice_s=time.monotonic(), retained=retained, policy=CONTRACT)
                 args = popen.call_args
                 self.assertEqual(args.kwargs['env']['CUDA_VISIBLE_DEVICES'], UUID)
                 self.assertEqual(args.kwargs['env']['FAASLORA_VISIBLE_DEVICES'], UUID)
@@ -175,7 +200,7 @@ class Producer(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     runner.SubprocessInferenceEngineProxy.prepare_cpu_frontend(
                         model_cfg=model(), cost_model={}, device_id=0, runtime_gpu_ids=[0],
-                        deployment_notice_s=time.monotonic(), retained=retained)
+                        deployment_notice_s=time.monotonic(), retained=retained, policy=CONTRACT)
             self.assertIs(retained[0]['process'], proc)
             self.assertIsNone(retained[0]['ticket'])
             self.assertEqual(retained[0]['channel'].fileno(), -1)

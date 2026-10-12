@@ -1,4 +1,4 @@
-# IEEE TC execution status — D469 original-factory CPU preparation integration
+# IEEE TC execution status — D470 retained failure; D471 lifecycle configuration correction
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement plan.
 Complete preceding status is byte-identically archived in
@@ -33,7 +33,43 @@ not current instructions. No evidence or approved task was removed.
 - Every optimization: logs/history + online primary sources + one falsifiable
   hypothesis + tests/minimal validation/new full replay. IEEE nine formulas fixed.
 
-## Current action — D469 original factory integrated; native qualification NEXT
+## Current action — D470 actual pre-runtime failure retained; D471 CPU correction passed
+
+D46914explicitfiles pushed as68aef590521a3bc3acb0e33a15554871f0715554;
+independentremoteHEADequal,35publicationchecks pass. All4auxiliaries actual-empty
+closed;CPU1/2peaks2461122560/2267176960B,curation327442432B,backup57028608B;
+allhigh/max/OOM/swap0. D469manifestSHA
+ee04ef4ea6034bbfb5cd38c2451a7492b43af8cd0f4cfeb91e00d32ce320298f.
+
+D470original100 guarded native launch failed before preparation/model creation:
+ScenarioRunner service profile model/configuration/context mismatch. New CPU
+startup policy had been placed in model_cfg and changed strict profile identity.
+NO CPU prepared workers or physical allocation launched, no performance point.
+Serviceexit1/watchdog0,actualcontextrelease/servicepathremoved verified. Captured
+start/actualaux InvocationID+inode+actualrecursiveempty closed. Then owned remote
+bothservices/monitor stopped,portsabsent;remote monitor downloaded withSHA.
+Start/actualaux peaks53583872/163807232B;collection45449216B,high/max/OOM/swap0.
+Collection scope also exactidentity/actualempty closed. Rawd470_20261012 retains
+launch/service/remote failure evidence;failed_qualification_closure.json.
+LaunchSHAc85ac3bb217938f0eb7bba263280fb42d13e964fc5eb7ec4a7b3c07d7c42d844;
+service-logSHA454a4a4131516f7a5b2d5f08eac153bedc3d003733e3b0e8ab821d92cd0f5d76.
+Actual link1000Mb/s/full before launch;D78/D80readonlyobjectsunchanged.
+
+D471 moves startup policy to resource_coordination,its actual owner; actualmodel
+config exactlyD464/D465. Original strict service/preparation loaders/profiles/SHA
+unchanged,not an ignored model field or rebadged new measurement. Factory enforces
+explicitpool/policy; old model-levelplacement rejected. New regression usesactual
+D471YAML+bothprofileloaders and exactnativeconfigequality. CPU1:571tests569pass/
+2fixtureerrors (missingserviceprofileassignment andcoord_cfg);originalretained.
+Onlyfixturescorrected;CPU2:571allpass,0fail/error/skip,70.423648s. CPU1/2 peaks
+2456068096/2473689088B,high/max/OOM/swap0;exactidentityactual-emptyclosed.
+Protected147pass. SeeD470_D471_CPU_PREPARATION_CONFIGURATION.md.
+Next curation/protected/sourcechecks,backup,thenD471native100. Not another
+importmicrotest. 7BfullW0 follows only if actualnative qualificationpasses.
+WholegoalACTIVE;D463parentretained/performanceNOTaccepted. Baselines/Kubernetes
+untouched;nofigures,newdata,thresholdchange orperformanceclaim.
+
+## Previous action — D469 original factory integrated; native qualification NEXT
 
 Read full PLAN/status/rules/V1/V2 and vLLM/run-experiment skills. No agents,
 baseline/remote/Kubernetes action, performance replay or figure. Original

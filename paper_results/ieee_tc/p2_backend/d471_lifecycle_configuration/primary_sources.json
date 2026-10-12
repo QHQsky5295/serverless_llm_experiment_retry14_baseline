@@ -1,0 +1,17 @@
+{
+  "refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d471_20261012/core_manager.py",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/engine/utils.py",
+      "sha256": "d09f86b107b3c63b62f40a6590036be5b711778ea997fc5a6af6de94fdd2ccd3",
+      "fetched_wall_s": 1791800627.817398
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d471_20261012/cuda_platform.py",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/platforms/cuda.py",
+      "sha256": "f0464617920723fd7a088b05aee84aa6b97ff8bf3ff4301fc474de67afb0ca31",
+      "fetched_wall_s": 1791800628.9920278
+    }
+  ],
+  "web_tool": "429; public official raw fetch"
+}
