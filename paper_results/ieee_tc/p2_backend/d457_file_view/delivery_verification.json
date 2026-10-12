@@ -1,0 +1,52 @@
+{
+  "passed": true,
+  "verified_refs": 58,
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+  },
+  "input_qualification_refs_checked": 35,
+  "analyzers_exact_parent_substitutions_only": true,
+  "outputs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d457_file_view/actual_qualification.json",
+      "sha256": "822073a278a7f1c4ba1725a0ceafef040add832dc3538ca304155a45a1c9dc59"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d457_file_view/input_witness.json",
+      "sha256": "19434b45d09b733880618c80a31dee3a569c4cf27e8e7543fe04a1a3249214ab"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d457_file_view/postrun_aux_closure.json",
+      "sha256": "0da5a8afc45d24e4ce5fdf4e205712dcd53ba1d3c8bc3c719330f492dfe9bc67"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d457_file_view/completion_receipt.json",
+      "sha256": "035cb8620e28c851a3efa66c0df0815c53e649d5c54f77828fdb14be982b435c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d457_file_view/environment_audit.json",
+      "sha256": "07f4c59e99a4c5f90cc4f6dbc89dfb45121c3e7c01bd0c10c09eacd521ced29e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d457_file_view/actual_summary.json",
+      "sha256": "e2ba2d99a2cda39ef27c18a533e95793f025ec81a5b9558ec62d17eb3759c0c1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d457_file_view/postrun_analysis_sources.json",
+      "sha256": "acf2eab183b016dd5c5f619be576d6613f84329e8bb35209aafdac403e06daa5"
+    }
+  ],
+  "scope": {
+    "unit": "primelora-tc-aux-d457000000000000000000000000000e.scope",
+    "invocation_id": "9551402a26a24cb1bc57c7e8c08058d1",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d457000000000000000000000000000e.scope",
+    "inode": 23263021
+  },
+  "closed_count": 5,
+  "no_figures": true
+}

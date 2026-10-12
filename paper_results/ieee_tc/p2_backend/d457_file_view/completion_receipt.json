@@ -1,0 +1,46 @@
+{
+  "kind": "d457_file_view_prefix1000_closure_v1",
+  "source_commit": "ab495b5fce273bbc1b1a4ab6ec53593082a094dc",
+  "n_plan": 1000,
+  "n_terminal": 1000,
+  "n_native_contract_complete": 1000,
+  "n_failed_from_terminal_journal": 0,
+  "planned": 1000,
+  "terminal": 1000,
+  "successful_returns": 1000,
+  "failed": 0,
+  "source_sha256": "6f309c118e7b7eca1f17e55a6865c9a37f2fe9249058d0eece1fe7808f7e8f4a",
+  "launch_sha256": "64823dfc910444da9bda5960f843cb50b174bb7fdc164cc0d7e86637b3727ce1",
+  "physical_gpu_seconds_total": 3886.4403406179044,
+  "native_gpu_context_release_confirmed": true,
+  "service_path_removed": true,
+  "remote_transfers_sha256": "0888aec0cf44d3146276b16441a9442c0e0d7c7b10cf94f9fe7a26ebe54736ee",
+  "remote_monitor_sha256": "7d01f1b9e995e9f9b7a5c771e3f3a702496734814b8002a0aaa534829ae1ec48",
+  "remote_stop": {
+    "all_owned_units_inactive": true,
+    "ports_18080_18081_absent": true,
+    "local_gpu_release_verified_before_remote_stop": true,
+    "download_hashes_match_remote": true,
+    "hashes": {
+      "remote_transfers.jsonl": "0888aec0cf44d3146276b16441a9442c0e0d7c7b10cf94f9fe7a26ebe54736ee",
+      "remote_monitor.log": "7d01f1b9e995e9f9b7a5c771e3f3a702496734814b8002a0aaa534829ae1ec48"
+    },
+    "stop_log_sha256": "9d563903ddfce4679aee2370eb390e7a299c712846c2c7db23d2051f4dfbb23a"
+  },
+  "remote_cleanup": {
+    "all_owned_units_inactive": true,
+    "ports_18080_18081_absent": true,
+    "local_gpu_release_verified_before_remote_stop": true,
+    "download_hashes_match_remote": true,
+    "hashes": {
+      "remote_transfers.jsonl": "0888aec0cf44d3146276b16441a9442c0e0d7c7b10cf94f9fe7a26ebe54736ee",
+      "remote_monitor.log": "7d01f1b9e995e9f9b7a5c771e3f3a702496734814b8002a0aaa534829ae1ec48"
+    },
+    "stop_log_sha256": "9d563903ddfce4679aee2370eb390e7a299c712846c2c7db23d2051f4dfbb23a"
+  },
+  "n_correct": null,
+  "formal_qualification": false,
+  "ranking_eligible": false,
+  "no_figures": true,
+  "caveat": "PrimeLoRA prefix1000 file-view validation; not full4000 or independent numerical proof."
+}

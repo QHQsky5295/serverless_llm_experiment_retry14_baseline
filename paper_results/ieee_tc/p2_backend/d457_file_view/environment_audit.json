@@ -1,0 +1,135 @@
+{
+  "kind": "d457_environment_warning_postrelease_v1",
+  "scope": {
+    "unit": "primelora-tc-aux-d457000000000000000000000000000c.scope",
+    "invocation_id": "5bb5d907e2794dfda6c8b2e58d0f0746",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d457000000000000000000000000000c.scope",
+    "inode": 23261515
+  },
+  "service_unit": "primelora-tc-svc-a646a8ca7d8346658621eff12993ba27.scope",
+  "inotify_warnings": [
+    "2026-10-12T11:02:48+0800 dhu-PowerEdge-T640 systemd[2552]: primelora-tc-svc-a646a8ca7d8346658621eff12993ba27.scope: Failed to add control inotify watch descriptor for control group /user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-a646a8ca7d8346658621eff12993ba27.scope: No space left on device",
+    "2026-10-12T11:02:48+0800 dhu-PowerEdge-T640 systemd[2552]: primelora-tc-svc-a646a8ca7d8346658621eff12993ba27.scope: Failed to add memory inotify watch descriptor for control group /user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-a646a8ca7d8346658621eff12993ba27.scope: No space left on device"
+  ],
+  "sysctl_readonly": {
+    "max_user_watches": 65536,
+    "max_user_instances": 128,
+    "max_queued_events": 16384
+  },
+  "per_process_fd_observations": [
+    {
+      "pid": 4156642,
+      "comm": "MainThread",
+      "descriptors": [
+        {
+          "fd": 27,
+          "watch_lines": 63568
+        }
+      ],
+      "watch_line_sum": 63568
+    },
+    {
+      "pid": 4156867,
+      "comm": "codex",
+      "descriptors": [
+        {
+          "fd": 37,
+          "watch_lines": 1909
+        },
+        {
+          "fd": 40,
+          "watch_lines": 0
+        }
+      ],
+      "watch_line_sum": 1909
+    },
+    {
+      "pid": 4156237,
+      "comm": "MainThread",
+      "descriptors": [
+        {
+          "fd": 28,
+          "watch_lines": 33
+        }
+      ],
+      "watch_line_sum": 33
+    },
+    {
+      "pid": 2552,
+      "comm": "systemd",
+      "descriptors": [
+        {
+          "fd": 6,
+          "watch_lines": 17
+        },
+        {
+          "fd": 11,
+          "watch_lines": 1
+        },
+        {
+          "fd": 13,
+          "watch_lines": 1
+        }
+      ],
+      "watch_line_sum": 19
+    },
+    {
+      "pid": 2981,
+      "comm": "dbus-daemon",
+      "descriptors": [
+        {
+          "fd": 6,
+          "watch_lines": 4
+        }
+      ],
+      "watch_line_sum": 4
+    },
+    {
+      "pid": 4156426,
+      "comm": "MainThread",
+      "descriptors": [
+        {
+          "fd": 68,
+          "watch_lines": 2
+        }
+      ],
+      "watch_line_sum": 2
+    },
+    {
+      "pid": 2787,
+      "comm": "pipewire-media-",
+      "descriptors": [
+        {
+          "fd": 21,
+          "watch_lines": 1
+        }
+      ],
+      "watch_line_sum": 1
+    }
+  ],
+  "unreadable_or_disappeared_entries": 4,
+  "warning_cause": "not_proven_by_postrun_snapshot",
+  "caution": "Inherited descriptors may be counted in several processes; per-PID totals are not a unique per-user watch count.",
+  "direct_watchdog_samples": 1198,
+  "actual_limits_all_samples_match": true,
+  "no_abort": true,
+  "physical_release_verified": true,
+  "minimum_recorded_disk_free_bytes": 160028659712,
+  "no_environment_changes": true,
+  "full_performance_environment_equivalence_proven": false,
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d457_20261012/audit_environment.py",
+      "sha256": "9d3bf6c12335b7d1211245067b5fa1803a3e07558313408330e3928c08046d10"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d457_20261012/7b_full_w0_prefix1/launch.json",
+      "sha256": "64823dfc910444da9bda5960f843cb50b174bb7fdc164cc0d7e86637b3727ce1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d457_20261012/7b_full_w0_prefix1/launch.launch/watchdog.jsonl",
+      "sha256": "5b754f3cf2217d1a73cf63a8501263c5b0e9756ff5e335978ef4d4538a733a23"
+    }
+  ],
+  "primary_reference": "https://man7.org/linux/man-pages/man2/inotify_add_watch.2.html"
+}

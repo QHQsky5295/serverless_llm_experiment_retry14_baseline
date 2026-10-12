@@ -1,4 +1,4 @@
-# IEEE TC execution status — D457 file-view candidate CPU-qualified; actual validation next
+# IEEE TC execution status — D457 file-view validation completed
 
 Updated 2026-10-12. Current checkpoint, NOT a replacement experiment plan.
 Full prior status is byte-identically archived in EXECUTION_HISTORY_THROUGH_D448.md,
@@ -31,7 +31,45 @@ entries are not current instructions. No evidence or approved task was removed.
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D457 equivalent file-view optimization CPU qualified
+## Current action — D457 actual1000 completed, audited; backup/next full replay
+
+Same once-only launch completed2026-10-12 about11:23; no restart/secondrun/live
+codechange. FullPLAN/status/baseline rules/V1/V2 reread.1000/1000native/source/
+adapter/leasecontracts and independentD434input witness pass,122510native tokens,
+60logicalIDs. Raw n_correct staysnull; no independentkernelnumericalproof.
+SourceSHA6f309c118e7b7eca1f17e55a6865c9a37f2fe9249058d0eece1fe7808f7e8f4a.
+Joint923/1000=92.3%,meanTTFT1534.405063ms/Type1P957104.083208ms,
+meanqueue861.209840/service673.195223ms,meanTPOT34.629929/P9561.619537ms,
+physicalGPU3886.4403406179044s. Original1000integration,NOTfull4000/G1/G2;
+do not compare as speedup againstD456observer or fullW0. No figures/thresholdchange.
+Initial1ready,natural9triggers=8ready+1unready;dispatchremote/GPU/HOST/NVMe
+60/636/108/196.60realHTTP/74953014wireB,two-endUUID/SHA/bytesmatch,pack0.
+
+1198resource samples,peak20254359552B,high/max/OOM/swap0/noabort. ActualGPUrelease/
+servicepathremoved before exact-ownedremote3B/7B/monitorstop; downloadSHAverified.
+Inotifywarning auditedafterrelease: max_user_watches65536,visibleper-process watch
+lines sum65536(MainThread63568,codex1909,systemd19 amongothers). Consistent with
+userwatch exhaustion, not full disk; sharedFDduplicates/postrun timing prevent
+definitive launch-time causality. Allsamples actual72/80GiB/swap2limits verified;
+no global limit/IDE/unrelated process changed. Environmentequivalence not proven;
+retainwarning and check before nextlaunch. Minimumruntimefree160028659712B.
+
+ReusedD452analyzers exactpaths/kinds only,58refs/35prelaunchrefs/protected147/
+threeuserfiles pass. Firstshell refused existing qualification.log beforeanalyzer;
+emptyqualification.json retained, actualanalyzeronce underuniquename. Firstdelivery
+attempt KeyError on cancelledmissingengine_ready_at retained beforepublishing;
+v2 uses existingstrict partition_activation_readiness withallrealrequests, no
+fabricatedreadytime/GPUrerun. Curatedp2_backend/d457_file_view,8executedpostrun
+source texts saved. Postrun9/a/b/c andfailedd exactInvocationID/actualrecursiveempty
+closed; deliverye also exactidentity/actualemptyclosed,peak672116736B,high/max/OOM/swap0.
+Closerf InvocationID75723c67e07e4f81a2b3ed093c12a0d7 awaits finalidentityclosure.
+Currentdoc D457_FILE_VIEW_INTEGRATION_RESULTS.
+Next: exact-owned finalCPUclosure, backup, freshstorage/environment gates then one
+ordinaryfull4000W0 atsamecandidate/config. No repeatD457. Allremaining7BW1/W2/G2,
+3B,HydraServeisolatedqualification,A1-A5/S1-S13/docs/figures retained. GoalACTIVE;
+this turn substantivecompletion/closure/analysisprogress, not a blocker.
+
+## Previous action — D457 equivalent file-view optimization CPU qualified
 
 Read fullPLAN/status/baseline rules/V1/V2 aftercompaction. D456 current-function
 evidence plus D93/D153/D188/D193/D194 and 2f1bc4b history support one candidate:
@@ -60,6 +98,49 @@ D457_FILE_VIEW_CPU_RESULTS; curated p2_backend/d457_file_view. CPU scopesbounded
 NEXT: exact-owned CPUclosure/backup, one original1000 validation then full4000W0;
 do not repeatD456. Fullremaining7BW1/W2/G2,3B,HydraServe,A/S/docs/figures retained.
 GoalACTIVE; this turn substantiveimplementation/CPUqualificationprogress.
+
+Subsequentlaunch2026-10-12 11:02:48: checkpoint
+ab495b5fce273bbc1b1a4ab6ec53593082a094dc pushed and independentremoteSHAequal.
+15explicitstagedfiles/10byte-exactsourcebackups checked; protectedusermanifest
+notstaged. CPUaux1–5 closed by exactInvocationID/actualrecursiveempty; verifier6
+81e3119c58e94b6aa53b3f953ca3e897 andstaging7 baa245bd074c4b9fb85f07b6f8e83f9c
+also exactidentity/actualrecursiveempty checked thenstopped. AllCPU high/max/OOM/swap0.
+Actual once-only1000 started in tmux tc-d457-fileviewprefix1/panePID2756827.
+Fresh150GiB/32GiBgrowth/memory/GPU gatepassed; remote1000Mb/s/full, D78/D80reuse.
+Startaux8 InvocationIDc87e2bcb9d3141d18c754818d5fef6a0; replayaux
+primelora-tc-aux-0778942af5da472583cdc4d3cb63109b.scope; service
+primelora-tc-svc-a646a8ca7d8346658621eff12993ba27.scope.
+Latestconfirmedliveprocesselapsed129s: request_submitted index26,23terminalrows;
+notfinal counts or performance conclusions. Watchdogsample127 high/max/OOM/swap0,
+no abort/warning,peak19213680640B. Lastdisk161527709696B(~150.44GiB).
+No live tests/hashscan/analysis/remote maintenance orpolicy change.
+
+Environmentnote: systemd journal atlaunch reported control/memory inotify-watch
+allocation ENOSPC. Actualdiskfree150GiB and independentwatchdog directcgroupreads
+continue; this is not evidence that storage is full or safetylimits absent.
+Exactcause/measurementimpact unconfirmed; retainwarning and inspect afterclosure,
+not change hostmanager/watch limits duringmeasurement. Priorstatussearch found
+no matching recordednote. Do not silently call runenvironment fullyqualified.
+
+NEXT now: monitor thissame livehandle to actualcompletion, then use prepared
+close_after_release.py onlyafter confirmedphysicalGPUrelease/service removal;
+reuseD290/D453 normal native/input/resourceauditors, preserve anyfailure/limitations.
+No repeatD456/D457 orframeobserver performancecomparison. Then new ordinaryfull4000
+ifintegrationvalid. GoalACTIVE; actualcandidate launch progress, notblocked.
+
+Continuation VERIFIED_WAIT: previousgoalturn was substantive implementation,
+CPUqualification, backup and actuallaunch PROGRESS. FullPLAN/status/baseline rules/
+V1/V2 reread. Same tmux/PID2756827 verifiedlive repeatedly; latestelapsed444s,
+310submitted/307terminalrows of1000, not an auditedsuccess/SLO result.
+Watchdogsample438 noabort/warning/high/max/OOM/swap,peak19213680640B;
+disk160436121600B(~149.42GiB), above100GiBruntimefloor but notnewlaunchclearance.
+No runtime/config change, tests, analysis execution, hashscan, cleanup or remote
+administration. Systemd inotifywarning remains for postrunenvironment audit.
+Read-only D452 analyze_prefix/cross_contract and commonD290 auditor inspection
+confirms existing native/input/resource checks can be reused for this ordinaryFull
+prefix afterclosure; no framecollector required and no audit has run yet.
+Continue thissame1000 handle; no restart/repeat or premature performance claim.
+Fullremaining scope unchanged; GoalACTIVE and this is verifiedlive waiting.
 
 ## Previous action — D456 once-only diagnostic completed and audited
 
