@@ -1,4 +1,4 @@
-# IEEE TC execution status — D475 native100 qualified; next full4000; 7B OPEN
+# IEEE TC execution status — D476 original4000 preparing; 7B OPEN
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement plan.
 Complete preceding status is byte-identically archived in
@@ -33,7 +33,20 @@ not current instructions. No evidence or approved task was removed.
 - Every optimization: logs/history + online primary sources + one falsifiable
   hypothesis + tests/minimal validation/new full replay. IEEE nine formulas fixed.
 
-## Current action — D475 native100 passed; full4000 NEXT
+## Current action — D476 original4000 preparing
+
+PreviousgoalturnPROGRESS:D475native100actuallycompleted,audited,backedup,closed.
+Read fullPLAN/status/rules/V1/V2 andrun-experiment/github-sync skills.
+CurrentproductionunchangedfromD475/D474qualifiedcandidate. D476config exactly
+D472exceptexclusiveoutput/NVMe/HOSTpaths;original4000,noobserver/prefix/newinput.
+Onlyexplicitwrappercase+2configurationtests.22replay/configchecks passed,
+0failure/error/skip;11existingguardchecks reused. Full4000exactindependentD435
+input/source/native100qualificationand147protectedverified. CPU1/qualification2
+exactidentityactual-emptyclosed,high/max/OOM/swap0. Nextbackup,thenonefullW0run.
+D475notrepeated;alloldresultsretained,no baseline tuning orfigures.
+Mainline7B optimization;W1/W2/G2/3B/remainingmatrixOPEN,wholegoalACTIVE.
+
+## Prior action — D475 native100 passed; full4000 NEXT
 
 D475 executedoncefrompushedaa574372f1a0cb64da665aa14e3abd071081e99a.
 100/100 originalinput/source/adapter/native/dispatch contracts,17369tokens,
@@ -55,7 +68,13 @@ curation8/contract9 exactidentity actualrecursive-emptyclosed;notasklive.
 147protectedpass;user manifest/baselines/unrelatedk3suntouched;nofigures/newinputs.
 SourceSHA849643a8801b0332f9e92bc2dd6c432df0844e0ff6deea606b62cbe28e5a9cc2.
 SeeD475_NATIVE_VALIDATION_RESULT.md;rawD475,curatedd475_host_execution_native.
-Nextverifyandbackupresult,thenD476 new-keyoriginal4000unchangedD472settings.
+Resultbackedup:c3f09ad86420a55b163b51d7f589b04c4d4bd4d8,independentremoteHEADequal.
+Firstpushremotecommit_refs failure retained;onlysamefast-forward retried,notcommit
+orexperiment. Backup-resulta/publicationb exactidentityactual-emptyclosed,all11
+D475auxiliarytasksfinished. FinalverificationSHA
+d693d8a3cc2e451c202e170c170bd93f55c1d80a7f9afbeaa465f3284da5ba14.
+6explicitresultfiles/source/protected/secretschecks pass,user manifestneverstaged.
+NextD476 new-keyoriginal4000unchangedD472settings;not yetconfiguredorlaunched.
 Do notrepeatD475/953CPU/D473/oldfullruns. Latestdisk161530167296B,freshgate.
 WholegoalACTIVE,7Bnotoptimum;allotherapprovedscope remainsOPEN.
 
