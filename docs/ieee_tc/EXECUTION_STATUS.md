@@ -1,4 +1,4 @@
-# IEEE TC execution status — D456 current-controller diagnostic qualified; launch pending
+# IEEE TC execution status — D456 diagnostic complete; PrimeLoRA optimization next
 
 Updated 2026-10-12. Current checkpoint, NOT a replacement experiment plan.
 Full prior status is byte-identically archived in EXECUTION_HISTORY_THROUGH_D448.md,
@@ -31,7 +31,64 @@ entries are not current instructions. No evidence or approved task was removed.
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D456 observer-only current-configuration diagnostic qualified
+## Current action — D456 once-only diagnostic completed and audited
+
+Same actual run completed2026-10-12 10:34, no restart/new candidate or policy change.
+1000/1000 native/source/adapter/lease contracts and independentD434 prompt/native
+input-ID/target/source witness pass;122510native tokens,60logicaladapters.
+Raw numerical correctness stays null. Commonjoint928/1000=92.8%,meanTTFT1646.724889ms,
+Type1P95TTFT7273.100392ms,meanqueue949.183702/service697.541186ms;
+meanTPOT33.817988/P9559.054405ms,physicalGPU3854.234795222059s.
+Observer-onlyprefix, NOT ordinaryFull/mainW0 ranking or completeG1/G2.
+SourceSHA94682f9f23608751cb171b97ef914a69ce90c3eaf8fc49c919868fbb4d8c1a6f.
+Initial1/natural9triggers=8ready+1cancelled;initialactivation52.288633s.
+Dispatchremote/GPU/HOST/NVMe60/614/120/206.60HTTPtransfers/74953014wireB,
+two-endUUID/SHA/bytesmatch,no requestpacking. D78/D80 cache reused/no republish.
+1199resource samples,peak20021817344B,high/max/OOM/swap0/no warnings.
+ActualGPUrelease/servicepathremoved preceded exact-ownedremote3B/7B/monitorstop;
+downloadSHAverified and localaux actualrecursiveempty/exactInvocationID closed.
+
+Currentframe evidence:1controller/1planner/10frontend/10GPUcore. Controller538
+businesssamples:129residencyexecution,116planningentry,90preparation_snapshot,
+43planning_source_observations,25local_file_inventory,17replacement_capacity;
+these inclusivecounts overlap and are NOT CPUtime shares. Nearestmain343includes
+selectorwaiting, not main-functioncompute. Exactexamples show lstat/pathancestor/
+relative-path and replacement-index work. ControllerCPUatlastsample466.584798s,
+observerCPUbeforelast.417034s,maxsamplelag.737568s; no all-overhead guarantee.
+185controlboundaryattempts allcomplete: nativewallmean10.592680ms,
+nativeCPU10.092186ms,frontendready->parentreceivedmean36.882416ms/P95189.746810,
+parenttotalmean169.239458ms. Concurrentcalls not summed as requestlatency.
+D456_CONTROLLER_DIAGNOSTIC_RESULTS.md records observations/caveats/primarysources.
+Priority now is equivalent synchronous file-view construction, not redundant pure
+planner offload, staleTTL, thresholdrelaxation or premature causal-speedup claims.
+
+ExistingD328/D200 andD453/D452 auditors reused with paths/count/currenthealthschema;
+all passfirstexecution.52postrunCPUtests passed3.263s, no skips/failures.
+Curated p2_backend/d456_controller includes controller/native/resource/boundary/input
+evidence. Deliverycheck passed99source refs,31qualification refs,protected147,
+threeuserfiles/protocols. One post-release closure-helper kindlabel correction is
+exact-diff/SHA documented; no runtime/measurement/cleanupsemantic change.
+Postrunaux4-7 exactInvocationID/actualrecursiveemptyclosed, no high/max/OOM/swap;
+deliveryaux8 closure recorded separately. Lastdisk161538711552B(~150.45GiB),
+freshheavygate required. No figures/newweights/trace/pool/baselineoptimization.
+11 executedanalysis/closure source texts backed up byte-identically in curated
+analysis_sources.json.17explicitstagedfiles verified, no usermanifest/credentials.
+Initialstagingcheck expected18files rather thanactual17; failure/script retained,
+correctedv2 passed without any experiment rerun. Stagingaux9/a anddeliveryaux8
+exactidentity/actualrecursiveempty closed,high/max/OOM/swap0. Allownedtasksclosed.
+
+User answeredHydraServe question: existingk3s is NOT for this project, authorizes
+appropriate adaptation. Prefer project-isolated reversibledeployment; do not alter
+unknowncluster services/permissions or seek its secrets. Read
+HYDRASERVE_ISOLATION_DECISION_20261012.md. No repeatedownershipquestion; actual
+GPU/container/nativeLoRA qualification still OPEN, not successfulreproduction.
+
+NEXT: preserve/backup this evidence then one formula-compatible file-view efficiency
+hypothesis with history+primarysources+equivalence tests/minimalvalidation/fullrun.
+No repeatD456. Remaining7BW1/W2/reference/G2,3B,A1-A5/S1-S13/docs/figures OPEN.
+GoalACTIVE; currentturn substantivecompletion/closure/analysis progress, notblocked.
+
+## Previous action — D456 observer-only current-configuration diagnostic qualified
 
 Read full PLAN/status/baseline rules/V1/V2 after compaction. Reapproval of remote
 delivery cache reuses D78/D80; no republish or extracted pool. D456 registers one
@@ -54,11 +111,38 @@ CPUaux1/2 exactInvocationID and actualrecursiveempty checked then stopped;
 high/max/OOM/swap0, peaks573149184/402415616B. Existing D453 remote/start/closure
 workflow reused with campaign paths only; no remote services started yet.
 
-NEXT: backup/verify remoteSHA; fresh150GiB/32GiBgrowth+memory/GPU gates, then launch
-once in tmux tc-d456-controllerprefix1. No repeat same key; during measurement no
-tests/maintenance/cleanup/hashscan. After actualrelease exact-ownedremote/auxclosure,
+Checkpoint367d8507c6157d11268ca206bd614fdacde0905a pushed and remoteSHAequal
+independently verified. Actual once-only launch2026-10-12 10:13:57 in tmux
+tc-d456-controllerprefix1, panePID2641686 confirmedalive/python3 at elapsed101s.
+Fresh150GiB/32GiBgrowth+memory/GPU gates passed; remoteactual1000Mb/s/full,
+readonly D78/D80 cache reused. Original1000 replay started, latestsavedprogress
+12arrived/10completed/0failed at replayelapsed40s; no finalperformance claim.
+Stack observer files present for controller/native processes. Latestwatchdog
+sample99 high/max/OOM/swap0/noabort, memory.peak15389892608B.
+Startaux3 InvocationID5c786af7e44e4365b43456c0933ebf76; remote3B
+7196a17e9b5c4042a7fc1ee6acee13de,7B158b21e0e1bb4ced8a9ec189d4b08c36,
+monitor181c5a3ef0404bd9b4e26b8d7106db40. Exactidentities in launch_gate/
+remote_start; actual replayaux primelora-tc-aux-d09f7d1c1d114327976fda0c1e53e8f4.scope.
+Reuse rawD456 close_after_release.py only after actualGPUrelease and successful
+launch receipt, then existing D200/D290/D455 analyzers (notyetexecuted forD456).
+Do not repeat samekey; duringmeasurement no tests/maintenance/cleanup/hashscan.
+NEXT: monitor same actualhandle throughcompletion, exact-ownedremote/auxclosure,
 existingstack/request analysis, then one evidence-backed candidate. GoalACTIVE.
+This turn is substantive qualification/backup/actual-run progress, not blocked.
 Remaining7BW1/W2/reference/G2,3B,HydraServe dependency,A1-A5/S1-S13/docs/figures OPEN.
+
+Latest continuation VERIFIED_WAIT: previous goalturn was actualqualification/
+backup/launch progress. FullPLAN/status/baseline rules reread; same tmux/PID2641686
+confirmedalive repeatedly, latestprocesselapsed586s. Replayelapsed8:38,
+428arrived/426completed/0failed of1000; live scale_up5/scale_down2,4runtimes.
+Counters are provisional, not auditedactivation/first-service evidence. Watchdog
+sample578 high/max/OOM/swap0/noabort orwarning. Last explicitdisk160722288640B
+(~149.68GiB), above100GiBruntimefloor but not a fresh150GiBlaunchclearance.
+No code/config/policy change, tests, heavyanalysis, remoteadministration, cleanup
+or second run. Read-only existingfileowner/caller/analyzer inspection prepares
+postrun interpretation; no newcausal conclusion or speculativepatch. Continue
+same diagnostic through actualtermination, not restart on observationtimeouts.
+GoalACTIVE; remainingcompleteplan unchanged, waiting is an actualliveexperiment.
 
 ## Previous action — D455 retained request/CPU diagnosis completed
 
@@ -507,13 +591,15 @@ SHA2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3.
 W0 Uref16115.377162149176,Qref1200.5068596918136ms,B12086.532871611882.
 W1/W2 references and G2 remain OPEN. No refreeze or short-run extrapolation.
 
-## HydraServe — limited external dependency; continue other mainline work
+## HydraServe — user-authorized project isolation; native qualification open
 
 D447 actual rootlessPodman3.4.4 metadata succeeded: no images/containers,9CDInames,
 cgroupv2 memory/pids delegation. k3s1.36.4 active but root-owned; qhq lacks readable
 kubeconfig/Docker socket, kubectl/helm root0700. No GPU container/K8s qualification.
-Asked whether cluster belongs to project and for an existing qhq-readable kubeconfig
-path; unanswered. Do not repeat query/probe or modify unknown cluster/permissions.
+User now confirms existingcluster is notforproject and authorizes appropriate
+adaptation. Prefer isolatedproject-owned deployment; no further ownership query,
+no modifying existingcluster/permissions or borrowingunknowncredentials. Read
+HYDRASERVE_ISOLATION_DECISION_20261012.md before next adaptation.
 NativeHEAD8ae605de354ccfa2e9095514cdb4a9e9c56aa56b clean and preserved.
 D447 CPU witness: stage-local backbone names/globalLoRA lookup differ; inert2->1
 sharing witness, not nativeGPU/numericalproof. Actual adapter propagation still

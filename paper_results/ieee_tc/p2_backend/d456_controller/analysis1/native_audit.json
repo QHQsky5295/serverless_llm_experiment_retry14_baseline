@@ -1,0 +1,52 @@
+{
+  "stats": {
+    "completed": 1000,
+    "mean_ttft_ms": 1646.7248887170572,
+    "p95_ttft_ms": 7273.100392194465,
+    "mean_queue_ms": 949.1837022211403,
+    "p95_queue_ms": 5529.900383902714,
+    "mean_service_ms": 697.5411864959169,
+    "p95_service_ms": 1859.2895898036659,
+    "mean_tpot_ms": 33.81798763202782,
+    "p95_tpot_ms": 59.05440499385198,
+    "initial_preload_wall_s": 52.29674145299941,
+    "physical_gpu_seconds": 3854.234795222059,
+    "n_correct": null
+  },
+  "evidence": {
+    "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d456_7b_full_w0_prefix1.json",
+    "source_sha256": "94682f9f23608751cb171b97ef914a69ce90c3eaf8fc49c919868fbb4d8c1a6f",
+    "physical_source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/physical_deployment/physical_resource_summary.json",
+    "physical_sha256": "48810a7548623621576123a847f59ac7693e217712e99d2bb2f5d1d6ca87aa47",
+    "max_native_ttft_error_ms": 0.0,
+    "max_native_tpot_error_ms": 0.0,
+    "shared_trace_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "shared_adapter_subset_sha256": "aa94b21e1295aefde664e5b29c030a9e42e02af946369bfe9ae15336b89b3016"
+  },
+  "binding_pass_counts": {
+    "request_adapter_binding": 1000,
+    "owner_binding": 1000,
+    "lease_binding": 1000,
+    "native_adapter_binding": 1000,
+    "slot_binding": 1000,
+    "frozen_content_binding": 1000,
+    "acquired_and_released": 1000,
+    "common_native_clock": 1000,
+    "acquired_before_dispatch": 1000,
+    "token_digest_transport": 1000
+  },
+  "source_count": 4000,
+  "diagnostic_count": 1000,
+  "terminal_success": 1000,
+  "terminal_failure": 0,
+  "window_gpu_seconds": {
+    "arrival": 3593.253564772429,
+    "cleanup": 192.94281573104672,
+    "drain": 31.113625552505255,
+    "pre_arrival": 36.92478916607797
+  },
+  "allocations": 10,
+  "numerical_n_correct": null,
+  "formal_qualification": false,
+  "includes_observer_overhead": true
+}

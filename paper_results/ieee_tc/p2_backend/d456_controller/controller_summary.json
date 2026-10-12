@@ -1,0 +1,2467 @@
+{
+  "kind": "d456_controller_diagnostic_evidence_v1",
+  "diagnostic_only": true,
+  "formal_performance_result": false,
+  "ranking_eligible": false,
+  "source_count": 4000,
+  "diagnostic_prefix_count": 1000,
+  "roles": {
+    "controller": 1,
+    "planner": 1,
+    "frontend": 10,
+    "gpu_core": 10
+  },
+  "controller": {
+    "pid": 2641802,
+    "start_ticks": 127848627,
+    "parent_pid": 2641789,
+    "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-8232dd1ccf91455195215d2d2861610d.scope",
+    "role_evidence": [
+      "controller"
+    ],
+    "samples": 597,
+    "missing_main_samples": 0,
+    "truncated_main_samples": 3,
+    "final_partial_line_bytes": 0,
+    "first_sample_s": 1278490.4393252,
+    "last_sample_s": 1279695.433060967,
+    "max_interval_s": 2.7384193409234285,
+    "max_schedule_lag_s": 0.7375682909041643,
+    "process_cpu_at_last_sample_s": 466.584797715,
+    "observer_cpu_before_last_sample_s": 0.41703372999999916,
+    "observer_cpu_excludes_last_sample": true,
+    "main_phase_counts": {
+      "pre_arrival": 28,
+      "request_window": 538,
+      "post_requests": 31
+    },
+    "leaf_frames": [
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/selectors.py",
+        "function": "select",
+        "samples": 390,
+        "occurrence_fraction": 0.6532663316582915
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_decode_native_rpc_frame",
+        "samples": 17,
+        "occurrence_fraction": 0.02847571189279732
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/_weakrefset.py",
+        "function": "_remove",
+        "samples": 15,
+        "occurrence_fraction": 0.02512562814070352
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+        "function": "stat",
+        "samples": 13,
+        "occurrence_fraction": 0.021775544388609715
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+        "function": "_str_normcase",
+        "samples": 11,
+        "occurrence_fraction": 0.018425460636515914
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+        "function": "__init__",
+        "samples": 9,
+        "occurrence_fraction": 0.01507537688442211
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/planning_cpu.py",
+        "function": "execution_bundle_copy",
+        "samples": 8,
+        "occurrence_fraction": 0.01340033500837521
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/instance_pool.py",
+        "function": "_footprints",
+        "samples": 8,
+        "occurrence_fraction": 0.01340033500837521
+      },
+      {
+        "file": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/filelock/_api.py",
+        "function": "_audit_fork_safety",
+        "samples": 7,
+        "occurrence_fraction": 0.011725293132328308
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/selector_events.py",
+        "function": "sock_sendall",
+        "samples": 7,
+        "occurrence_fraction": 0.011725293132328308
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_drop_rpc_channel",
+        "samples": 7,
+        "occurrence_fraction": 0.011725293132328308
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+        "function": "iterdir",
+        "samples": 6,
+        "occurrence_fraction": 0.010050251256281407
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+        "function": "__new__",
+        "samples": 6,
+        "occurrence_fraction": 0.010050251256281407
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+        "function": "_from_parsed_parts",
+        "samples": 6,
+        "occurrence_fraction": 0.010050251256281407
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+        "function": "__getitem__",
+        "samples": 4,
+        "occurrence_fraction": 0.006700167504187605
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+        "function": "_parse_path",
+        "samples": 4,
+        "occurrence_fraction": 0.006700167504187605
+      },
+      {
+        "file": "<frozen posixpath>",
+        "function": "join",
+        "samples": 4,
+        "occurrence_fraction": 0.006700167504187605
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/dataclasses.py",
+        "function": "replace",
+        "samples": 4,
+        "occurrence_fraction": 0.006700167504187605
+      },
+      {
+        "file": "<frozen _collections_abc>",
+        "function": "__iter__",
+        "samples": 4,
+        "occurrence_fraction": 0.006700167504187605
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/json/__init__.py",
+        "function": "dump",
+        "samples": 4,
+        "occurrence_fraction": 0.006700167504187605
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+        "function": "_format_parsed_parts",
+        "samples": 3,
+        "occurrence_fraction": 0.005025125628140704
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/planning_cpu.py",
+        "function": "run",
+        "samples": 3,
+        "occurrence_fraction": 0.005025125628140704
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+        "function": "__hash__",
+        "samples": 3,
+        "occurrence_fraction": 0.005025125628140704
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+        "function": "with_segments",
+        "samples": 3,
+        "occurrence_fraction": 0.005025125628140704
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/selectors.py",
+        "function": "register",
+        "samples": 3,
+        "occurrence_fraction": 0.005025125628140704
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+        "function": "_load_parts",
+        "samples": 3,
+        "occurrence_fraction": 0.005025125628140704
+      },
+      {
+        "file": "<frozen posixpath>",
+        "function": "_joinrealpath",
+        "samples": 2,
+        "occurrence_fraction": 0.0033500837520938024
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/selector_events.py",
+        "function": "sock_recv",
+        "samples": 2,
+        "occurrence_fraction": 0.0033500837520938024
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/selector_events.py",
+        "function": "_sock_recv",
+        "samples": 2,
+        "occurrence_fraction": 0.0033500837520938024
+      },
+      {
+        "file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+        "function": "__len__",
+        "samples": 2,
+        "occurrence_fraction": 0.0033500837520938024
+      }
+    ],
+    "nearest_project_frames": [
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "main",
+        "samples": 393,
+        "occurrence_fraction": 0.6582914572864321
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "function": "_planning_source_observations",
+        "samples": 29,
+        "occurrence_fraction": 0.048576214405360134
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "function": "_local_file_inventory",
+        "samples": 25,
+        "occurrence_fraction": 0.04187604690117253
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_decode_native_rpc_frame",
+        "samples": 18,
+        "occurrence_fraction": 0.03015075376884422
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "function": "_file_replacement_capacity_from_inventory",
+        "samples": 17,
+        "occurrence_fraction": 0.02847571189279732
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "function": "<genexpr>",
+        "samples": 15,
+        "occurrence_fraction": 0.02512562814070352
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/instance_pool.py",
+        "function": "_footprints",
+        "samples": 13,
+        "occurrence_fraction": 0.021775544388609715
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/planning_cpu.py",
+        "function": "execution_bundle_copy",
+        "samples": 11,
+        "occurrence_fraction": 0.018425460636515914
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_native_rpc_roundtrip",
+        "samples": 11,
+        "occurrence_fraction": 0.018425460636515914
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "function": "preparation_snapshot",
+        "samples": 10,
+        "occurrence_fraction": 0.01675041876046901
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_drop_rpc_channel",
+        "samples": 7,
+        "occurrence_fraction": 0.011725293132328308
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_run_ieee_gpu_preparation_plan",
+        "samples": 6,
+        "occurrence_fraction": 0.010050251256281407
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/instance_pool.py",
+        "function": "<genexpr>",
+        "samples": 6,
+        "occurrence_fraction": 0.010050251256281407
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_open_rpc_channel",
+        "samples": 5,
+        "occurrence_fraction": 0.008375209380234505
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/serving/vllm_wrapper.py",
+        "function": "<module>",
+        "samples": 3,
+        "occurrence_fraction": 0.005025125628140704
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/planning_cpu.py",
+        "function": "run",
+        "samples": 3,
+        "occurrence_fraction": 0.005025125628140704
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_finish_ieee_main_scenario",
+        "samples": 3,
+        "occurrence_fraction": 0.005025125628140704
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "function": "acquire_confirmed",
+        "samples": 2,
+        "occurrence_fraction": 0.0033500837520938024
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_rpc",
+        "samples": 2,
+        "occurrence_fraction": 0.0033500837520938024
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_planner.py",
+        "function": "validate_native_gpu_epoch",
+        "samples": 2,
+        "occurrence_fraction": 0.0033500837520938024
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/datasets/workload_generator.py",
+        "function": "load",
+        "samples": 1,
+        "occurrence_fraction": 0.0016750418760469012
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_ieee_scope_identity_equal",
+        "samples": 1,
+        "occurrence_fraction": 0.0016750418760469012
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_ieee_publish_identity_frontier",
+        "samples": 1,
+        "occurrence_fraction": 0.0016750418760469012
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "<genexpr>",
+        "samples": 1,
+        "occurrence_fraction": 0.0016750418760469012
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_emit_live_snapshot",
+        "samples": 1,
+        "occurrence_fraction": 0.0016750418760469012
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_live_result_stats",
+        "samples": 1,
+        "occurrence_fraction": 0.0016750418760469012
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_run_ieee_file_preparation_plan",
+        "samples": 1,
+        "occurrence_fraction": 0.0016750418760469012
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/datasets/workload_generator.py",
+        "function": "_read_transport",
+        "samples": 1,
+        "occurrence_fraction": 0.0016750418760469012
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_detect_foreign_gpu_consumers",
+        "samples": 1,
+        "occurrence_fraction": 0.0016750418760469012
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/metrics/metrics_collector.py",
+        "function": "__init__",
+        "samples": 1,
+        "occurrence_fraction": 0.0016750418760469012
+      }
+    ],
+    "inclusive_project_frames": [
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "<module>",
+        "samples": 594,
+        "occurrence_fraction": 0.9949748743718593
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "main",
+        "samples": 594,
+        "occurrence_fraction": 0.9949748743718593
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_run_ieee_owned_preparation_plan",
+        "samples": 129,
+        "occurrence_fraction": 0.21608040201005024
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_execute_ieee_residency_epoch",
+        "samples": 129,
+        "occurrence_fraction": 0.21608040201005024
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_plan_ieee_preparation_for_slot",
+        "samples": 116,
+        "occurrence_fraction": 0.19430485762144054
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "function": "preparation_snapshot",
+        "samples": 90,
+        "occurrence_fraction": 0.1507537688442211
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_rpc",
+        "samples": 43,
+        "occurrence_fraction": 0.07202680067001675
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "function": "_planning_source_observations",
+        "samples": 43,
+        "occurrence_fraction": 0.07202680067001675
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "ieee_gpu_reference",
+        "samples": 35,
+        "occurrence_fraction": 0.05862646566164154
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_send_rpc_on_channel",
+        "samples": 29,
+        "occurrence_fraction": 0.048576214405360134
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "function": "_local_file_inventory",
+        "samples": 25,
+        "occurrence_fraction": 0.04187604690117253
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_manager.py",
+        "function": "_execute",
+        "samples": 24,
+        "occurrence_fraction": 0.04020100502512563
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "execute",
+        "samples": 24,
+        "occurrence_fraction": 0.04020100502512563
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_ieee_publish_planning_sources",
+        "samples": 21,
+        "occurrence_fraction": 0.035175879396984924
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "function": "_file_inventory",
+        "samples": 19,
+        "occurrence_fraction": 0.031825795644891124
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_decode_native_rpc_frame",
+        "samples": 18,
+        "occurrence_fraction": 0.03015075376884422
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "function": "_file_replacement_capacity_from_inventory",
+        "samples": 17,
+        "occurrence_fraction": 0.02847571189279732
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "function": "<genexpr>",
+        "samples": 15,
+        "occurrence_fraction": 0.02512562814070352
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_run_ieee_file_preparation_plan",
+        "samples": 13,
+        "occurrence_fraction": 0.021775544388609715
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/instance_pool.py",
+        "function": "from_native",
+        "samples": 13,
+        "occurrence_fraction": 0.021775544388609715
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/instance_pool.py",
+        "function": "_from_payload",
+        "samples": 13,
+        "occurrence_fraction": 0.021775544388609715
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/instance_pool.py",
+        "function": "_footprints",
+        "samples": 13,
+        "occurrence_fraction": 0.021775544388609715
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_execute_ieee_file_preparation_plan",
+        "samples": 12,
+        "occurrence_fraction": 0.020100502512562814
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "function": "inventory",
+        "samples": 12,
+        "occurrence_fraction": 0.020100502512562814
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/planning_cpu.py",
+        "function": "execution_bundle_copy",
+        "samples": 11,
+        "occurrence_fraction": 0.018425460636515914
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/planning_cpu.py",
+        "function": "execution_preparation_bundle",
+        "samples": 11,
+        "occurrence_fraction": 0.018425460636515914
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_native_rpc_roundtrip",
+        "samples": 11,
+        "occurrence_fraction": 0.018425460636515914
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "execute_gpu",
+        "samples": 9,
+        "occurrence_fraction": 0.01507537688442211
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_run_offered_request",
+        "samples": 9,
+        "occurrence_fraction": 0.01507537688442211
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "serve",
+        "samples": 9,
+        "occurrence_fraction": 0.01507537688442211
+      }
+    ],
+    "request_window_nearest_project": [
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "main",
+        "samples": 343,
+        "occurrence_fraction": 0.637546468401487
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "function": "_planning_source_observations",
+        "samples": 29,
+        "occurrence_fraction": 0.05390334572490706
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "function": "_local_file_inventory",
+        "samples": 25,
+        "occurrence_fraction": 0.046468401486988845
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_decode_native_rpc_frame",
+        "samples": 18,
+        "occurrence_fraction": 0.03345724907063197
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "function": "_file_replacement_capacity_from_inventory",
+        "samples": 17,
+        "occurrence_fraction": 0.031598513011152414
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "function": "<genexpr>",
+        "samples": 15,
+        "occurrence_fraction": 0.027881040892193308
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/instance_pool.py",
+        "function": "_footprints",
+        "samples": 13,
+        "occurrence_fraction": 0.024163568773234202
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/planning_cpu.py",
+        "function": "execution_bundle_copy",
+        "samples": 11,
+        "occurrence_fraction": 0.020446096654275093
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_native_rpc_roundtrip",
+        "samples": 11,
+        "occurrence_fraction": 0.020446096654275093
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "function": "preparation_snapshot",
+        "samples": 10,
+        "occurrence_fraction": 0.01858736059479554
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_drop_rpc_channel",
+        "samples": 7,
+        "occurrence_fraction": 0.013011152416356878
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_run_ieee_gpu_preparation_plan",
+        "samples": 6,
+        "occurrence_fraction": 0.011152416356877323
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/instance_pool.py",
+        "function": "<genexpr>",
+        "samples": 6,
+        "occurrence_fraction": 0.011152416356877323
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_open_rpc_channel",
+        "samples": 5,
+        "occurrence_fraction": 0.00929368029739777
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/planning_cpu.py",
+        "function": "run",
+        "samples": 3,
+        "occurrence_fraction": 0.0055762081784386614
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "function": "acquire_confirmed",
+        "samples": 2,
+        "occurrence_fraction": 0.0037174721189591076
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_rpc",
+        "samples": 2,
+        "occurrence_fraction": 0.0037174721189591076
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_planner.py",
+        "function": "validate_native_gpu_epoch",
+        "samples": 2,
+        "occurrence_fraction": 0.0037174721189591076
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_ieee_scope_identity_equal",
+        "samples": 1,
+        "occurrence_fraction": 0.0018587360594795538
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_ieee_publish_identity_frontier",
+        "samples": 1,
+        "occurrence_fraction": 0.0018587360594795538
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "<genexpr>",
+        "samples": 1,
+        "occurrence_fraction": 0.0018587360594795538
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_emit_live_snapshot",
+        "samples": 1,
+        "occurrence_fraction": 0.0018587360594795538
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_live_result_stats",
+        "samples": 1,
+        "occurrence_fraction": 0.0018587360594795538
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_run_ieee_file_preparation_plan",
+        "samples": 1,
+        "occurrence_fraction": 0.0018587360594795538
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/datasets/workload_generator.py",
+        "function": "_read_transport",
+        "samples": 1,
+        "occurrence_fraction": 0.0018587360594795538
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_detect_foreign_gpu_consumers",
+        "samples": 1,
+        "occurrence_fraction": 0.0018587360594795538
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/metrics/metrics_collector.py",
+        "function": "__init__",
+        "samples": 1,
+        "occurrence_fraction": 0.0018587360594795538
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "function": "source_snapshot",
+        "samples": 1,
+        "occurrence_fraction": 0.0018587360594795538
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+        "function": "_execute_ieee_file_preparation_plan",
+        "samples": 1,
+        "occurrence_fraction": 0.0018587360594795538
+      },
+      {
+        "file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "function": "_file_inventory",
+        "samples": 1,
+        "occurrence_fraction": 0.0018587360594795538
+      }
+    ],
+    "source_refs": [
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2641802-127848627.json",
+        "bytes": 749,
+        "sha256": "53376ae4bf6fbbd03786bf43442d0acf4be3cfbd9f5a7f94e5ed70ca43796682"
+      },
+      {
+        "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2641802-127848627.stacks.jsonl",
+        "bytes": 2655990,
+        "sha256": "dc672686e4bbadf82d8def7e8fcbc6f5f712d9a9fd1c9170a7482de9ddc997a8"
+      }
+    ]
+  },
+  "inclusive": [
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "main",
+      "samples": 538
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "<module>",
+      "samples": 538
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_run_ieee_owned_preparation_plan",
+      "samples": 129
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_execute_ieee_residency_epoch",
+      "samples": 129
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_plan_ieee_preparation_for_slot",
+      "samples": 116
+    },
+    {
+      "file": "faaslora/memory/residency_manager.py",
+      "function": "preparation_snapshot",
+      "samples": 90
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_rpc",
+      "samples": 43
+    },
+    {
+      "file": "faaslora/memory/residency_manager.py",
+      "function": "_planning_source_observations",
+      "samples": 43
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "ieee_gpu_reference",
+      "samples": 35
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_send_rpc_on_channel",
+      "samples": 29
+    },
+    {
+      "file": "faaslora/memory/residency_manager.py",
+      "function": "_local_file_inventory",
+      "samples": 25
+    },
+    {
+      "file": "faaslora/preloading/preloading_manager.py",
+      "function": "_execute",
+      "samples": 24
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "execute",
+      "samples": 24
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_ieee_publish_planning_sources",
+      "samples": 21
+    },
+    {
+      "file": "faaslora/memory/residency_manager.py",
+      "function": "_file_inventory",
+      "samples": 19
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_decode_native_rpc_frame",
+      "samples": 18
+    },
+    {
+      "file": "faaslora/memory/residency_manager.py",
+      "function": "_file_replacement_capacity_from_inventory",
+      "samples": 17
+    },
+    {
+      "file": "faaslora/memory/residency_manager.py",
+      "function": "<genexpr>",
+      "samples": 15
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_run_ieee_file_preparation_plan",
+      "samples": 13
+    },
+    {
+      "file": "faaslora/experiment/instance_pool.py",
+      "function": "from_native",
+      "samples": 13
+    },
+    {
+      "file": "faaslora/experiment/instance_pool.py",
+      "function": "_footprints",
+      "samples": 13
+    },
+    {
+      "file": "faaslora/experiment/instance_pool.py",
+      "function": "_from_payload",
+      "samples": 13
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_execute_ieee_file_preparation_plan",
+      "samples": 12
+    },
+    {
+      "file": "faaslora/memory/residency_manager.py",
+      "function": "inventory",
+      "samples": 12
+    },
+    {
+      "file": "faaslora/preloading/planning_cpu.py",
+      "function": "execution_bundle_copy",
+      "samples": 11
+    },
+    {
+      "file": "faaslora/preloading/planning_cpu.py",
+      "function": "execution_preparation_bundle",
+      "samples": 11
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_native_rpc_roundtrip",
+      "samples": 11
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "execute_gpu",
+      "samples": 9
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "run_one",
+      "samples": 9
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_run_offered_request",
+      "samples": 9
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "serve",
+      "samples": 9
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_exec_request",
+      "samples": 9
+    },
+    {
+      "file": "faaslora/memory/residency_manager.py",
+      "function": "_settle_file_allocations",
+      "samples": 8
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "prepare_gpu_source",
+      "samples": 8
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "stage_and_submit",
+      "samples": 8
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_run_ieee_gpu_preparation_plan",
+      "samples": 8
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_exec_request_in_reservation",
+      "samples": 7
+    },
+    {
+      "file": "faaslora/memory/residency_manager.py",
+      "function": "_validated_source",
+      "samples": 7
+    },
+    {
+      "file": "faaslora/memory/residency_manager.py",
+      "function": "_source_observation",
+      "samples": 7
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_drop_rpc_channel",
+      "samples": 7
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_ieee_publish_identity_frontier",
+      "samples": 6
+    },
+    {
+      "file": "faaslora/experiment/instance_pool.py",
+      "function": "<genexpr>",
+      "samples": 6
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_open_rpc_channel",
+      "samples": 5
+    },
+    {
+      "file": "faaslora/memory/residency_manager.py",
+      "function": "acquire_confirmed",
+      "samples": 4
+    },
+    {
+      "file": "faaslora/memory/residency_manager.py",
+      "function": "source_snapshot",
+      "samples": 4
+    },
+    {
+      "file": "faaslora/experiment/instance_pool.py",
+      "function": "identity_view",
+      "samples": 4
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_ieee_identity_equal",
+      "samples": 4
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_queue_ieee_native_host_preparation",
+      "samples": 3
+    },
+    {
+      "file": "faaslora/preloading/planning_cpu.py",
+      "function": "run",
+      "samples": 3
+    },
+    {
+      "file": "faaslora/preloading/planning_cpu.py",
+      "function": "run_planning_cpu",
+      "samples": 3
+    },
+    {
+      "file": "faaslora/experiment/experiment_stack.py",
+      "function": "plan_ieee_owned_preparation_async",
+      "samples": 3
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_ieee_protect_selected_source",
+      "samples": 3
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_main_async_impl",
+      "samples": 3
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "run",
+      "samples": 3
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_run_continuous_observed",
+      "samples": 3
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_emit_live_snapshot",
+      "samples": 3
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "generate",
+      "samples": 2
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "generate_prepared",
+      "samples": 2
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_finish_runtime_request_reservation",
+      "samples": 2
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_execute_background_scale_up",
+      "samples": 2
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_add_dedicated_instance_slot",
+      "samples": 2
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_add_ieee_dedicated_instance",
+      "samples": 2
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "ieee_prepare_host",
+      "samples": 2
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "ieee_transfer_event",
+      "samples": 2
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_ieee_prepare_selected_adapter",
+      "samples": 2
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_acquire_runtime_gpu_reference",
+      "samples": 2
+    },
+    {
+      "file": "faaslora/preloading/preloading_planner.py",
+      "function": "validate_native_gpu_epoch",
+      "samples": 2
+    },
+    {
+      "file": "faaslora/experiment/instance_pool.py",
+      "function": "request_view",
+      "samples": 2
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_ieee_scope_identity_equal",
+      "samples": 1
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_ieee_route_cache_covers_scope",
+      "samples": 1
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "<genexpr>",
+      "samples": 1
+    },
+    {
+      "file": "faaslora/memory/residency_manager.py",
+      "function": "acquire",
+      "samples": 1
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "ieee_close_pending",
+      "samples": 1
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_ieee_publish_post_load_identity",
+      "samples": 1
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "ieee_register_pending_gpu_reference",
+      "samples": 1
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_register_ieee_pending_admission",
+      "samples": 1
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_live_result_stats",
+      "samples": 1
+    },
+    {
+      "file": "faaslora/datasets/workload_generator.py",
+      "function": "_pump",
+      "samples": 1
+    },
+    {
+      "file": "faaslora/datasets/workload_generator.py",
+      "function": "_read_transport",
+      "samples": 1
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_assert_clean_gpu_environment",
+      "samples": 1
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_detect_foreign_gpu_consumers",
+      "samples": 1
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_spawn_dedicated_scenario_engine",
+      "samples": 1
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_spawn_engine",
+      "samples": 1
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "spawn",
+      "samples": 1
+    },
+    {
+      "file": "faaslora/metrics/metrics_collector.py",
+      "function": "__init__",
+      "samples": 1
+    },
+    {
+      "file": "faaslora/memory/residency_manager.py",
+      "function": "demand_witness",
+      "samples": 1
+    },
+    {
+      "file": "faaslora/memory/residency_manager.py",
+      "function": "finish_file_preparation_target",
+      "samples": 1
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_lora_int_id",
+      "samples": 1
+    }
+  ],
+  "callers": [
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "main",
+      "line": 26005,
+      "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "caller_function": "<module>",
+      "caller_line": 26022,
+      "occurrences": 538
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "<module>",
+      "line": 26022,
+      "caller_file": "",
+      "caller_function": "truncated",
+      "caller_line": 0,
+      "occurrences": 538
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_execute_ieee_residency_epoch",
+      "line": 13969,
+      "caller_file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/events.py",
+      "caller_function": "_run",
+      "caller_line": 88,
+      "occurrences": 129
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_run_ieee_owned_preparation_plan",
+      "line": 19658,
+      "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "caller_function": "_execute_ieee_residency_epoch",
+      "caller_line": 13969,
+      "occurrences": 116
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_plan_ieee_preparation_for_slot",
+      "line": 19642,
+      "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "caller_function": "_run_ieee_owned_preparation_plan",
+      "caller_line": 19658,
+      "occurrences": 88
+    },
+    {
+      "file": "faaslora/memory/residency_manager.py",
+      "function": "preparation_snapshot",
+      "line": 1377,
+      "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "caller_function": "_plan_ieee_preparation_for_slot",
+      "caller_line": 19642,
+      "occurrences": 42
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_rpc",
+      "line": 5944,
+      "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "caller_function": "ieee_gpu_reference",
+      "caller_line": 6521,
+      "occurrences": 24
+    },
+    {
+      "file": "faaslora/preloading/preloading_manager.py",
+      "function": "_execute",
+      "line": 135,
+      "caller_file": "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/events.py",
+      "caller_function": "_run",
+      "caller_line": 88,
+      "occurrences": 24
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_plan_ieee_preparation_for_slot",
+      "line": 19639,
+      "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "caller_function": "_run_ieee_owned_preparation_plan",
+      "caller_line": 19658,
+      "occurrences": 21
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_decode_native_rpc_frame",
+      "line": 5238,
+      "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "caller_function": "_send_rpc_on_channel",
+      "caller_line": 5880,
+      "occurrences": 18
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_send_rpc_on_channel",
+      "line": 5880,
+      "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "caller_function": "_rpc",
+      "caller_line": 5944,
+      "occurrences": 18
+    },
+    {
+      "file": "faaslora/memory/residency_manager.py",
+      "function": "preparation_snapshot",
+      "line": 1412,
+      "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "caller_function": "_plan_ieee_preparation_for_slot",
+      "caller_line": 19642,
+      "occurrences": 17
+    },
+    {
+      "file": "faaslora/memory/residency_manager.py",
+      "function": "_file_replacement_capacity_from_inventory",
+      "line": 333,
+      "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "caller_function": "preparation_snapshot",
+      "caller_line": 1412,
+      "occurrences": 15
+    },
+    {
+      "file": "faaslora/memory/residency_manager.py",
+      "function": "_planning_source_observations",
+      "line": 1338,
+      "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "caller_function": "preparation_snapshot",
+      "caller_line": 1377,
+      "occurrences": 14
+    },
+    {
+      "file": "faaslora/memory/residency_manager.py",
+      "function": "<genexpr>",
+      "line": 1330,
+      "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "caller_function": "_planning_source_observations",
+      "caller_line": 1330,
+      "occurrences": 14
+    },
+    {
+      "file": "faaslora/memory/residency_manager.py",
+      "function": "_planning_source_observations",
+      "line": 1330,
+      "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "caller_function": "preparation_snapshot",
+      "caller_line": 1377,
+      "occurrences": 14
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_run_ieee_owned_preparation_plan",
+      "line": 19661,
+      "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "caller_function": "_execute_ieee_residency_epoch",
+      "caller_line": 13969,
+      "occurrences": 13
+    },
+    {
+      "file": "faaslora/experiment/instance_pool.py",
+      "function": "_from_payload",
+      "line": 383,
+      "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/instance_pool.py",
+      "caller_function": "from_native",
+      "caller_line": 261,
+      "occurrences": 13
+    },
+    {
+      "file": "faaslora/experiment/instance_pool.py",
+      "function": "from_native",
+      "line": 261,
+      "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "caller_function": "_ieee_publish_planning_sources",
+      "caller_line": 8936,
+      "occurrences": 13
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_ieee_publish_planning_sources",
+      "line": 8936,
+      "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "caller_function": "_plan_ieee_preparation_for_slot",
+      "caller_line": 19639,
+      "occurrences": 13
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_run_ieee_file_preparation_plan",
+      "line": 19923,
+      "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "caller_function": "_run_ieee_owned_preparation_plan",
+      "caller_line": 19661,
+      "occurrences": 12
+    },
+    {
+      "file": "faaslora/memory/residency_manager.py",
+      "function": "inventory",
+      "line": 992,
+      "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "caller_function": "preparation_snapshot",
+      "caller_line": 1376,
+      "occurrences": 12
+    },
+    {
+      "file": "faaslora/preloading/planning_cpu.py",
+      "function": "execution_bundle_copy",
+      "line": 70,
+      "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/planning_cpu.py",
+      "caller_function": "execution_preparation_bundle",
+      "caller_line": 308,
+      "occurrences": 11
+    },
+    {
+      "file": "faaslora/preloading/planning_cpu.py",
+      "function": "execution_preparation_bundle",
+      "line": 308,
+      "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "caller_function": "_execute_ieee_file_preparation_plan",
+      "caller_line": 19951,
+      "occurrences": 11
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_execute_ieee_file_preparation_plan",
+      "line": 19951,
+      "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "caller_function": "_run_ieee_file_preparation_plan",
+      "caller_line": 19923,
+      "occurrences": 11
+    },
+    {
+      "file": "faaslora/memory/residency_manager.py",
+      "function": "_file_inventory",
+      "line": 1002,
+      "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "caller_function": "inventory",
+      "caller_line": 992,
+      "occurrences": 11
+    },
+    {
+      "file": "faaslora/memory/residency_manager.py",
+      "function": "preparation_snapshot",
+      "line": 1376,
+      "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "caller_function": "_plan_ieee_preparation_for_slot",
+      "caller_line": 19642,
+      "occurrences": 11
+    },
+    {
+      "file": "faaslora/experiment/instance_pool.py",
+      "function": "_footprints",
+      "line": 149,
+      "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/experiment/instance_pool.py",
+      "caller_function": "_from_payload",
+      "caller_line": 383,
+      "occurrences": 11
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "_send_rpc_on_channel",
+      "line": 5868,
+      "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "caller_function": "_rpc",
+      "caller_line": 5944,
+      "occurrences": 11
+    },
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "ieee_gpu_reference",
+      "line": 6521,
+      "caller_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "caller_function": "execute",
+      "caller_line": 19170,
+      "occurrences": 10
+    }
+  ],
+  "examples": [
+    {
+      "file": "scripts/run_all_experiments.py",
+      "function": "main",
+      "index": 29,
+      "at": 1278546.677040312,
+      "truncated": false,
+      "frames": [
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/selectors.py",
+          "select",
+          468
+        ],
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py",
+          "_run_once",
+          1961
+        ],
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py",
+          "run_forever",
+          645
+        ],
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/base_events.py",
+          "run_until_complete",
+          678
+        ],
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py",
+          "run",
+          118
+        ],
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/asyncio/runners.py",
+          "run",
+          195
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+          "main",
+          26005
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+          "<module>",
+          26022
+        ]
+      ]
+    },
+    {
+      "file": "faaslora/memory/residency_manager.py",
+      "function": "_local_file_inventory",
+      "index": 62,
+      "at": 1278612.716319311,
+      "truncated": false,
+      "frames": [
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "stat",
+          840
+        ],
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "lstat",
+          847
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "_local_file_inventory",
+          156
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "_file_inventory",
+          1002
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "_settle_file_allocations",
+          1062
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "preparation_snapshot",
+          1364
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+          "_plan_ieee_preparation_for_slot",
+          19642
+        ]
+      ]
+    },
+    {
+      "file": "faaslora/memory/residency_manager.py",
+      "function": "_file_replacement_capacity_from_inventory",
+      "index": 63,
+      "at": 1278614.727370898,
+      "truncated": false,
+      "frames": [
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "_format_parsed_parts",
+          432
+        ],
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "_from_parsed_parts",
+          421
+        ],
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "__getitem__",
+          285
+        ],
+        [
+          "<frozen _collections_abc>",
+          "__iter__",
+          1026
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "_file_replacement_capacity_from_inventory",
+          333
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "preparation_snapshot",
+          1412
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+          "_plan_ieee_preparation_for_slot",
+          19642
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+          "_run_ieee_owned_preparation_plan",
+          19658
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+          "_execute_ieee_residency_epoch",
+          13969
+        ]
+      ]
+    },
+    {
+      "file": "faaslora/memory/residency_manager.py",
+      "function": "_planning_source_observations",
+      "index": 106,
+      "at": 1278700.881774808,
+      "truncated": false,
+      "frames": [
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "__getitem__",
+          277
+        ],
+        [
+          "<frozen _collections_abc>",
+          "__iter__",
+          1026
+        ],
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+          "relative_to",
+          678
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "_planning_source_observations",
+          1338
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "preparation_snapshot",
+          1377
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+          "_plan_ieee_preparation_for_slot",
+          19642
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+          "_run_ieee_owned_preparation_plan",
+          19658
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+          "_execute_ieee_residency_epoch",
+          13969
+        ]
+      ]
+    }
+  ],
+  "boundary_summary": {
+    "attempts": 185,
+    "statuses": {
+      "success_complete": 185
+    },
+    "partial_lines": [],
+    "metrics": [
+      {
+        "phase": "all",
+        "field": "parent_begin__to__parent_send",
+        "unit": "ms",
+        "count": 185,
+        "mean": 0.7357124553842319,
+        "p50": 0.6242049857974052,
+        "p95": 1.40175293199718,
+        "max": 11.04387897066772
+      },
+      {
+        "phase": "all",
+        "field": "parent_send__to__worker_received",
+        "unit": "ms",
+        "count": 185,
+        "mean": 1.8517925290743242,
+        "p50": 0.3703730180859566,
+        "p95": 1.767992042005062,
+        "max": 210.97785187885165
+      },
+      {
+        "phase": "all",
+        "field": "worker_received__to__frontend_begin",
+        "unit": "ms",
+        "count": 185,
+        "mean": 0.15642321165147666,
+        "p50": 0.14082598499953747,
+        "p95": 0.2364940010011196,
+        "max": 1.4338470064103603
+      },
+      {
+        "phase": "all",
+        "field": "frontend_begin__to__frontend_native_send",
+        "unit": "ms",
+        "count": 185,
+        "mean": 0.09654881810215679,
+        "p50": 0.09402702562510967,
+        "p95": 0.14261482283473015,
+        "max": 0.21061883307993412
+      },
+      {
+        "phase": "all",
+        "field": "frontend_native_send__to__native_begin",
+        "unit": "ms",
+        "count": 185,
+        "mean": 103.13666219999259,
+        "p50": 39.816518081352115,
+        "p95": 369.6978138759732,
+        "max": 722.4899020511657
+      },
+      {
+        "phase": "all",
+        "field": "native_begin__to__native_ready",
+        "unit": "ms",
+        "count": 185,
+        "mean": 10.592680051922798,
+        "p50": 9.880814934149384,
+        "p95": 14.920697780326009,
+        "max": 50.529760075733066
+      },
+      {
+        "phase": "all",
+        "field": "native_ready__to__frontend_native_received",
+        "unit": "ms",
+        "count": 185,
+        "mean": 13.450001113469133,
+        "p50": 4.1183000430464745,
+        "p95": 14.951296150684357,
+        "max": 665.4295469634235
+      },
+      {
+        "phase": "all",
+        "field": "frontend_native_received__to__frontend_ready",
+        "unit": "ms",
+        "count": 185,
+        "mean": 2.0314303944139063,
+        "p50": 2.2558229975402355,
+        "p95": 2.909125993028283,
+        "max": 8.76421295106411
+      },
+      {
+        "phase": "all",
+        "field": "frontend_ready__to__parent_received",
+        "unit": "ms",
+        "count": 185,
+        "mean": 36.88241638922812,
+        "p50": 0.6937501020729542,
+        "p95": 189.7468101233244,
+        "max": 1140.342605067417
+      },
+      {
+        "phase": "all",
+        "field": "parent_received__to__parent_terminal",
+        "unit": "ms",
+        "count": 185,
+        "mean": 0.30579125835887483,
+        "p50": 0.26723812334239483,
+        "p95": 0.5235900171101093,
+        "max": 2.4362499825656414
+      },
+      {
+        "phase": "all",
+        "field": "parent_total_ms",
+        "unit": "ms",
+        "count": 185,
+        "mean": 169.23945842159762,
+        "p50": 60.86723110638559,
+        "p95": 572.0012439414859,
+        "max": 2135.3685460053384
+      },
+      {
+        "phase": "all",
+        "field": "native_thread_cpu_ms",
+        "unit": "ms",
+        "count": 185,
+        "mean": 10.09218594594545,
+        "p50": 9.619369999995797,
+        "p95": 14.820528000001332,
+        "max": 30.812066999999388
+      },
+      {
+        "phase": "prebusiness",
+        "field": "parent_begin__to__parent_send",
+        "unit": "ms",
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      {
+        "phase": "prebusiness",
+        "field": "parent_send__to__worker_received",
+        "unit": "ms",
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      {
+        "phase": "prebusiness",
+        "field": "worker_received__to__frontend_begin",
+        "unit": "ms",
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      {
+        "phase": "prebusiness",
+        "field": "frontend_begin__to__frontend_native_send",
+        "unit": "ms",
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      {
+        "phase": "prebusiness",
+        "field": "frontend_native_send__to__native_begin",
+        "unit": "ms",
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      {
+        "phase": "prebusiness",
+        "field": "native_begin__to__native_ready",
+        "unit": "ms",
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      {
+        "phase": "prebusiness",
+        "field": "native_ready__to__frontend_native_received",
+        "unit": "ms",
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      {
+        "phase": "prebusiness",
+        "field": "frontend_native_received__to__frontend_ready",
+        "unit": "ms",
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      {
+        "phase": "prebusiness",
+        "field": "frontend_ready__to__parent_received",
+        "unit": "ms",
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      {
+        "phase": "prebusiness",
+        "field": "parent_received__to__parent_terminal",
+        "unit": "ms",
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      {
+        "phase": "prebusiness",
+        "field": "parent_total_ms",
+        "unit": "ms",
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      {
+        "phase": "prebusiness",
+        "field": "native_thread_cpu_ms",
+        "unit": "ms",
+        "count": 0,
+        "mean": null,
+        "p50": null,
+        "p95": null,
+        "max": null
+      },
+      {
+        "phase": "business",
+        "field": "parent_begin__to__parent_send",
+        "unit": "ms",
+        "count": 185,
+        "mean": 0.7357124553842319,
+        "p50": 0.6242049857974052,
+        "p95": 1.40175293199718,
+        "max": 11.04387897066772
+      },
+      {
+        "phase": "business",
+        "field": "parent_send__to__worker_received",
+        "unit": "ms",
+        "count": 185,
+        "mean": 1.8517925290743242,
+        "p50": 0.3703730180859566,
+        "p95": 1.767992042005062,
+        "max": 210.97785187885165
+      },
+      {
+        "phase": "business",
+        "field": "worker_received__to__frontend_begin",
+        "unit": "ms",
+        "count": 185,
+        "mean": 0.15642321165147666,
+        "p50": 0.14082598499953747,
+        "p95": 0.2364940010011196,
+        "max": 1.4338470064103603
+      },
+      {
+        "phase": "business",
+        "field": "frontend_begin__to__frontend_native_send",
+        "unit": "ms",
+        "count": 185,
+        "mean": 0.09654881810215679,
+        "p50": 0.09402702562510967,
+        "p95": 0.14261482283473015,
+        "max": 0.21061883307993412
+      },
+      {
+        "phase": "business",
+        "field": "frontend_native_send__to__native_begin",
+        "unit": "ms",
+        "count": 185,
+        "mean": 103.13666219999259,
+        "p50": 39.816518081352115,
+        "p95": 369.6978138759732,
+        "max": 722.4899020511657
+      },
+      {
+        "phase": "business",
+        "field": "native_begin__to__native_ready",
+        "unit": "ms",
+        "count": 185,
+        "mean": 10.592680051922798,
+        "p50": 9.880814934149384,
+        "p95": 14.920697780326009,
+        "max": 50.529760075733066
+      },
+      {
+        "phase": "business",
+        "field": "native_ready__to__frontend_native_received",
+        "unit": "ms",
+        "count": 185,
+        "mean": 13.450001113469133,
+        "p50": 4.1183000430464745,
+        "p95": 14.951296150684357,
+        "max": 665.4295469634235
+      },
+      {
+        "phase": "business",
+        "field": "frontend_native_received__to__frontend_ready",
+        "unit": "ms",
+        "count": 185,
+        "mean": 2.0314303944139063,
+        "p50": 2.2558229975402355,
+        "p95": 2.909125993028283,
+        "max": 8.76421295106411
+      },
+      {
+        "phase": "business",
+        "field": "frontend_ready__to__parent_received",
+        "unit": "ms",
+        "count": 185,
+        "mean": 36.88241638922812,
+        "p50": 0.6937501020729542,
+        "p95": 189.7468101233244,
+        "max": 1140.342605067417
+      },
+      {
+        "phase": "business",
+        "field": "parent_received__to__parent_terminal",
+        "unit": "ms",
+        "count": 185,
+        "mean": 0.30579125835887483,
+        "p50": 0.26723812334239483,
+        "p95": 0.5235900171101093,
+        "max": 2.4362499825656414
+      },
+      {
+        "phase": "business",
+        "field": "parent_total_ms",
+        "unit": "ms",
+        "count": 185,
+        "mean": 169.23945842159762,
+        "p50": 60.86723110638559,
+        "p95": 572.0012439414859,
+        "max": 2135.3685460053384
+      },
+      {
+        "phase": "business",
+        "field": "native_thread_cpu_ms",
+        "unit": "ms",
+        "count": 185,
+        "mean": 10.09218594594545,
+        "p50": 9.619369999995797,
+        "p95": 14.820528000001332,
+        "max": 30.812066999999388
+      }
+    ]
+  },
+  "caveats": [
+    "Occurrences are not CPU-time percentages or wall-time phases.",
+    "Main-thread counters exclude the observer; idle frames remain included.",
+    "Inclusive frame counts overlap; per-process denominators differ.",
+    "GIL delay can hide busy intervals; C/CUDA internal frames absent.",
+    "Process CPU includes native threads; observer CPU excludes final sample.",
+    "Final partial lines and missing roles are explicit, not zero overhead.",
+    "Request window includes drain; absent full terminal population has no inferred end."
+  ],
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d456_7b_full_w0_prefix1.json",
+      "sha256": "94682f9f23608751cb171b97ef914a69ce90c3eaf8fc49c919868fbb4d8c1a6f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "73b3c4ae1a2bc93d06e086117c635e7885650a9e1d4d949e7daef0d927657ff3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.json",
+      "sha256": "e5aa311629fe52a9806ec4f49b41d88a1030948270af6279309e1a32e6474fb0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/remote_transfers.jsonl",
+      "sha256": "877a9ebd3b4ee5d6dd36ac77b0f074b6b0db5f42c27fa46027f3d53ecd45bf93"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/remote_monitor.log",
+      "sha256": "a220d621a543c0c959498df43ad2aa307b8bd23fc648f42d9e47ad420ba50d37"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/remote_stop.json",
+      "sha256": "e5ec881bc9084e495b2172c82978d1902df8ece1597f64210968688aabc60e49"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/local_cleanup.json",
+      "sha256": "5463e38518f2e42a9e2896b5fd97bbf5aa676b12d6e05fea44e4581cf32ab083"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/completion_receipt.json",
+      "sha256": "0feddf8db415d56e525a26e26e4cbc19e56ecac92d6414c1ca154824746fcee1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/remote_health.json",
+      "sha256": "b9412e6b2a63658e459da5c3008201baebd5eb428d7fd61f499497b208778fb8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/watchdog.jsonl",
+      "sha256": "169e57425a8903d94e286ac0b70659458f69c3c3c6fe2d9f646ff4b23a9ccd9d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json",
+      "sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json",
+      "sha256": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/audit_request_contract.py",
+      "sha256": "796acfd3e449d153cd8518fbed9f21aad9bd37260aad39215db13606993db84a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d434_20261011/launch7b.launch/replay.jsonl",
+      "sha256": "542a41411bcc635fdb04c521e7b7cf67ad06130dcbfd9e3a8277e9a5790eb253"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/cross_contract.py",
+      "sha256": "5cecc1c267d1bebc5cf131cfc35218f82e34b991e2b74e2a5a4c78fb9cd4a8c7"
+    },
+    {
+      "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+      "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json",
+      "sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py",
+      "sha256": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh",
+      "sha256": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2641802-127848627.json",
+      "sha256": "53376ae4bf6fbbd03786bf43442d0acf4be3cfbd9f5a7f94e5ed70ca43796682"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2641802-127848627.stacks.jsonl",
+      "sha256": "dc672686e4bbadf82d8def7e8fcbc6f5f712d9a9fd1c9170a7482de9ddc997a8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2642557-127849851.json",
+      "sha256": "95343ba4c22562bd2c5d53035e5bf84372d1be087cbeb9aa8575faa7f1cc9a4b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2642557-127849851.stacks.jsonl",
+      "sha256": "2529fffb3b6a3c8e2f2e9c1b5959ee23db6580012f751ac5615fded85bbb5e9e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2643000-127850931.json",
+      "sha256": "84f96ff8f39234d80ede4cc336299357f1d7a578328ee66cf8a4f5edb5b0012c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2643000-127850931.stacks.jsonl",
+      "sha256": "3a67adaff5a98323b7e1a1610f15392c9cb35ce8054eeedd40d7d5df63647fc3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2643487-127852164.json",
+      "sha256": "5a321629518c35abb31a348ffd53badb020dd8e57e18650bd9d4faf97fb2a53a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2643487-127852164.stacks.jsonl",
+      "sha256": "2d3ab8588b7b50e991e9abfd0ffe4fee8eca1fc49f53cc83dfb236859e2e40be"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2645261-127855743.json",
+      "sha256": "ffd1e5f208ac0a735e69103a7a44cf2e6cd4ec4f4c0596e5c77c3b5e77b21c83"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2645261-127855743.stacks.jsonl",
+      "sha256": "15ccff43bcaaa902438d8ce27b0c91c9017c8a30f501645099f615e35398235a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2645365-127855949.json",
+      "sha256": "f5e6d61b5f05d5af9fa435d42c50b4dff5204f63c0aa5992713fa3f261b4628f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2645365-127855949.stacks.jsonl",
+      "sha256": "effac048af9762cb740b50efb77ae1d85de0902cbddf10d6abbd73377195ee65"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2645474-127856149.json",
+      "sha256": "4cbeed426e168540ff066dd8928798c0d545dd7c81fce7991f3ee9b6f1425f92"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2645474-127856149.stacks.jsonl",
+      "sha256": "32872d3e307aec0d2a445d98365263923af3aea28e6d03a7bc92f46f0568bedd"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2645764-127856961.json",
+      "sha256": "65ecaf6ab9b014806291db455cfe6f630ff5af289bde05664c1b109606da0645"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2645764-127856961.stacks.jsonl",
+      "sha256": "eaf4f975ad9a47d9656f611d06a174710adc4a0d39589e21fb8bb453e445d410"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2645904-127857217.json",
+      "sha256": "573f031a521b96e108ee70796a1e9aa8409d048ee744f4ae7650385419ef6ab7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2645904-127857217.stacks.jsonl",
+      "sha256": "33ad359027ee2bc2ce32eae87a6c514f10a7796ef190dd90a571b73373c691ee"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2645969-127857364.json",
+      "sha256": "65e7890b349bdb6cdc376ca5dfadd15cdc10e17ac7630349b4d136ee7884eef6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2645969-127857364.stacks.jsonl",
+      "sha256": "eea2e26c15edf4b0345a135614c7345c4d63dbea30ad95748ae9d05981099f8f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2660414-127890833.json",
+      "sha256": "9d53c3457dc67f3b1dd1e3e7f4778e0e5b1f1c44208067524cd7b37cd4c2c58d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2660414-127890833.stacks.jsonl",
+      "sha256": "8fbfd6684b27487c5eb7a8af48378de18de1d9960fbe83bec8214d131bffe2d8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2660455-127891045.json",
+      "sha256": "9b4ce44d2fa6860c254287440dd68e2bc547bcafa53235607753628d4860f43e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2660455-127891045.stacks.jsonl",
+      "sha256": "e5240a53ed1d14042665c6046aca08b8a54ecae164c879bb83f6bfc30e677f95"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2661137-127892057.json",
+      "sha256": "2ce9e77a11f0d92fbbd110dc6de6e58b9551991fad5ef92979b87111f36e6473"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2661137-127892057.stacks.jsonl",
+      "sha256": "498b15bd4b6e1ad824fc641c6baea63e5d742068947c4cd7ed553af557169d50"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2661260-127892332.json",
+      "sha256": "b3e098d9a98fff4258105efa3fe4860bffaf2038347ff5529e4624fd75bf7ee5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2661260-127892332.stacks.jsonl",
+      "sha256": "4afc98988f0bab9621b75238f0b38b9c2b600e57c1f9be90dabb1c226b39fb76"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2676009-127927431.json",
+      "sha256": "1946532e013e6ddb6116032aa86f1a353565ae09eed2c04d3cf7482fcb96ccba"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2676009-127927431.stacks.jsonl",
+      "sha256": "b5c88fbd632f5fcb900dde0ab0d51b6aadc6c0fa370befedf4e472c9bd13a1b4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2676468-127928104.json",
+      "sha256": "94ef8603d30d36260e1e5747758c9e84767b925c5ec83888c4529f591d5999e8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2676468-127928104.stacks.jsonl",
+      "sha256": "a08e6433f2c234ac021b13208bf892b68be8ddfc1fdfedcb82aad604a4089c28"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2676522-127928294.json",
+      "sha256": "7b350fbaf0566d4bc0d12393805f8fbed1d05d9365af06a94d27466c70903f19"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2676522-127928294.stacks.jsonl",
+      "sha256": "fb8b1a11c0de26750d7315b54b471423b6953d4c97557a95d8af355fe4a886c8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2676654-127928612.json",
+      "sha256": "f1180e18005ce6ba4b2669e0d2077cf68fd3b512fecc10ad106a05485ff04c53"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2676654-127928612.stacks.jsonl",
+      "sha256": "a5bcb1ad80b049514a4bec8c98522f9a062f7b2dd6db33cbf6180fc233eeacd1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2677031-127929334.json",
+      "sha256": "c59a6ca80bf9ee060cad71c0dc4187bb63031699aa6a1c6745536d84b558a044"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2677031-127929334.stacks.jsonl",
+      "sha256": "5b44a745253920b02c5fe9989ee5f9fb23b21959a9a6b7cc7ff1c4bfc5374425"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2677107-127929532.json",
+      "sha256": "023cf2f78d4f00cc94739af667300ad7b2328bcd72f50bc965643e87d4bf4da0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2677107-127929532.stacks.jsonl",
+      "sha256": "f600404d5429aee977426966bdb55997f050b367afebd40d030214536088fae1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2691250-127962472.json",
+      "sha256": "c519ddf6511ad335398f9f3a7be2e54cdc22a18029a5f3072d960c9520883d3e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2691250-127962472.stacks.jsonl",
+      "sha256": "f9bd9a2dea791299f58f15fa2dcce06d251aabc38e65c6d8ac2d5ae444b9352f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2691750-127963737.json",
+      "sha256": "3de801d60e6f14d96b69e8787a41fbf7a1a623160d4bf3cc7b87d8016d1d4701"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2691750-127963737.stacks.jsonl",
+      "sha256": "21eb9914f361db95fe1a0f80e5bd5374441cc763c052fcc9a8f22b01dae20fcc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/curate_callers.py",
+      "sha256": "61b5a4d2d1ae992a3cf497f56317b0af11abef17d4bbb7fb6176b393a845413b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/collect_prefix1_cpu.py",
+      "sha256": "43fae51c9e9f65e6caaf0eebb4ac82a21166cea6f5b747f56441f75eef7e3a32"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/prefix1_cpu_samples.json",
+      "sha256": "1ef6a8d447090f2be43a067a25c5964ae4b62ad715c8005439b1617b6758545c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/exec_receipt.json",
+      "sha256": "5923a16581186a8d97c35d8202d23a42470e2f38b5e9db0ebaf9a47f22b94d4f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/physical_deployment/deployment.json",
+      "sha256": "763c2fa1c6ad6a099719a8adec894cb0e7de16d9f66e159ad92ac170c43a19f4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2641802-127848627.control.jsonl",
+      "sha256": "031f2ce6e39e0046f410dc0df5436ef74b380760a661523ee5a9151428e4db88"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2642557-127849851.control.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2643000-127850931.control.jsonl",
+      "sha256": "4ae95907ef5ff2b71b4408feb2b519d8645de41eb2d93db73d60834843cf344a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2643487-127852164.control.jsonl",
+      "sha256": "f4bad04c0cb141a62f41958753ef57eddf894b1bd23f93e3b5ce9aed8509e451"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2645261-127855743.control.jsonl",
+      "sha256": "2bb03a01f27a5ff91168da2014525cfe351192908c0ed86eedd23f6dea55c631"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2645365-127855949.control.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2645474-127856149.control.jsonl",
+      "sha256": "5bb20f7e267f72fb4af34f0f6b68d5550e1e20457871193c7b5fbb72a101bfca"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2645764-127856961.control.jsonl",
+      "sha256": "5475839d8f817c0a44ee9d5f3abc128676b405ee61ffb51607b26dba82dd30aa"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2645904-127857217.control.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2645969-127857364.control.jsonl",
+      "sha256": "8bb8b60f67538835649680ca9a0c3b3a8baaa0ad74ff9d9ee22637a6bfcf43c6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2660414-127890833.control.jsonl",
+      "sha256": "cab88a1ea8cd3095d3ecf496ee380334efdce77443fef9c5fa6cc7f24d2c8c73"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2660455-127891045.control.jsonl",
+      "sha256": "d7291530e2044d3d29381905b255d53aeb8632bb9d7b0b24897706eaf47161cc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2661137-127892057.control.jsonl",
+      "sha256": "290ad8b8d1ee433efda59af2a905f9a15292e26a599f6db53bcf9acdae4be14d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2661260-127892332.control.jsonl",
+      "sha256": "59825afef4864cd0a7067424d7da5464f6374d9df1c4025817ad1738c31c53ea"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2676009-127927431.control.jsonl",
+      "sha256": "12e3e6b236bc9f1ec83f5b232d6d56cf023eeea10916f725582a95f57038da21"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2676468-127928104.control.jsonl",
+      "sha256": "031604b5fd18f7cbe947e880c62f582fd49e9b301622dd6d39bb1d3c811b01a5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2676522-127928294.control.jsonl",
+      "sha256": "22925391ed820d3928964874085ad3ae44b9f4ed2a502f5a644c15ac423c9d23"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2676654-127928612.control.jsonl",
+      "sha256": "062063e5be7f69694becfe01cf6c9e94f26a81e3b93f6ecea080043114fb3a21"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2677031-127929334.control.jsonl",
+      "sha256": "2569df6fd08e1a24278a6c60fbdca2f8656e070509d8d2e5c8bba52669cd8e4e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2677107-127929532.control.jsonl",
+      "sha256": "e41ce14f3956cfd24a71b9d482e676aa3a0461c179b47647adefd0267f6bb39b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2691250-127962472.control.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2691750-127963737.control.jsonl",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/analyze_control_path_overhead.py",
+      "sha256": "cdfef5f13dff5f4e9bd9cad61e98e049238c21f306cdb79d907538335e3ff0db"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/analyze_all.py",
+      "sha256": "2967b0bbb37f7d1c7de38877665d2e7725662d4c59de16fb9f6d2663141ad80f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/analyze_prefix.py",
+      "sha256": "9ca345f85b5b74a505e690e4d5690085caf90fa1a50f8a7e6406fe270002033d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/postrun_tests.py",
+      "sha256": "ef4485a89b7b65e447bc82e34501787d63a8f46c93665daaf68c407f299166a6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/curate_delivery.py",
+      "sha256": "e2c9c6a61d7fac15fe276403126b26a81e1787c8d50effd9071f4a07b7d74855"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/collect_closure.py",
+      "sha256": "d5c91e38471ad0e1e939cc7d7d9b1f9f58a5e4deb9d2edd69579d1193ffd7a98"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/close_after_release.py",
+      "sha256": "ad9815352717bbf25a9ebf4cc011fd822e48ba58317be34eeb2ff10a5fc9b5fe"
+    }
+  ]
+}
