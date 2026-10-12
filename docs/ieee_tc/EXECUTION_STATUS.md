@@ -1,6 +1,6 @@
-# IEEE TC execution status — D478 official HydraServe blobs resuming
+# IEEE TC execution status — D479 LoRA binding tests; official blobs resuming
 
-Updated 2026-10-12 23:41 CST. Current checkpoint, NOT replacement plan.
+Updated 2026-10-13 00:07 CST. Current checkpoint, NOT replacement plan.
 Preceding status byte-identically archived in EXECUTION_HISTORY_THROUGH_D477.md;
 cmp passed, SHA cee5b2b0527a0ff9f2d07d2dc65c86a74dd2ce0d1b3b27f4a434f764e9adb128.
 D461/D448/D433/D402 and older histories remain. Historical NEXT/RUNNING lines
@@ -36,11 +36,46 @@ qualification+new full replay; IEEE nine equations/semantics fixed.
 Full names PrimeLoRA/ServerlessLLM, no figures until near target, no13B/newSGLang,
 paper edits, new weights/traces/pool regeneration. Whole goal ACTIVE.
 
-## LIVE — D478 verified partial-blob resume, not performance
+## D479 current progress and LIVE software download
+
+Raw /home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d479_20261012/.
+BASE HydraServe_project/runtime/lora_stage_binding.py adds exact native partition
+coordinates and one native-manager global union for original/destination views.
+Inherits native LRU/activation/slot policy; new/shared layers checked separately,
+active slots populated for new layers, shared head processor checked/reused.
+Native source checkout remains clean; component NOT installed or GPU-qualified.
+10 new CPU tests pass, using pinned original activation/packing-name functions
+with inert layer/weight substitutes; dummy test covers traversal only, NOT actual
+dummy tensors. No performance/configuration search, model, remote or K8s changes.
+Testscope1 closed exactidentity/recursive-empty, peak20201472B, events/swap0.
+Read BASE docs/ieee_tc/D479_HYDRASERVE_LORA_BINDING_ADAPTATION.md before integration.
+Still need actual worker source/dependency checks, native layer/tensor/numerical
+witness, lifecycle-platform port and per-request fixed-output/native measurement.
+Do not mistake the CPU helper for completed HydraServe or manufacture ready state.
+
+D478 first resume TERMINAL TimeoutError at1233.255052632885s, below10800s guard.
+No full blob completed: small55229988B, large903052834B retained on same inodes.
+Actual scope9 recursive-empty then closed; peak36876288B, all events/swap0.
+Failure saved in D478/resume_attempt/result.json and resume_closure.json.
+No exact socket subcause was serialized; do not invent one or label inferencefailure.
+
+LIVE: D479/resume_image_blobs_v2.py, attempt resume_attempt/, log resume_launch.log,
+tmux tc-d479-hydra-resume. Parent primelora-tc-aux-d4790000000000000000000000000002.scope,
+InvocationID7427cf753d324f8490cea3f9afd8faaa, inode23626274.
+High3/Max4GiB/swap0,CPU2,3,26,27. Same official manifest+64verifiedblobs/cache;
+recheck prefix/interior,64MiBmaximum segments,read1 partial persistence,
+8failures/blob,10800s totalguard. Final wholeSHA/length mandatory. No imageimport,
+GPU/model/remoteactivity. Monitor this SAME attempt; don't restart advancingbytes.
+No other heavy task. If terminal, read result and externally close exactidentity
+after actual recursive cgroup.procs empty via D479/close.py resume.
+DO NOT use D478/close.py for this newscope. Freshimport150GiB/startgrowthgate
+after bytescomplete; source/dependencies/nativequalification still required.
+
+## D478 preceding acquisition and preserved checkpoint (not live)
 
 Raw directory:
  /home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d478_20261012/
-Current attempt resume_attempt/; tmux tc-d478-hydra-resume.
+Closed attempt resume_attempt/; former tmux tc-d478-hydra-resume.
 Parent primelora-tc-aux-d4780000000000000000000000000009.scope,
 InvocationIDee6c0326f6f241589f3c4f7e1c403dd5, inode23615162.
 MemoryHigh3G/Max4G/swap0, CPUs2,3,26,27. Direct HTTP Range transfer, no Podman
@@ -100,8 +135,8 @@ Cache metadata helper first failed to move from external tool cgroup (Permission
 NO link then created; initial source+cache_initial_failure.json retained.
 Corrected launch through bounded user-manager scope3 before adoption,67links created.
 Scope3 exactidentity/actualempty closed peak9953280B/events0; no permission widening.
-All old D478 image/cache/range/inspection/storage contexts closed; only scope9
-byte transfer is live. No GPU/remote performance job.
+All D478 image/cache/range/inspection/storage/resume contexts now closed;
+the live successor is D479 above. No GPU/remote performance job.
 
 Existing lossless archiver extended narrowly for explicit adjacent final monitor
 logs;8tests passed.16closed logs double-roundtripSHA verified,1679425536B reclaimed,
@@ -109,8 +144,8 @@ protected147unchanged; disk161357086720B after. Storagepeak425521152B/events0.
 Receipt MAIN/paper_results/ieee_tc/storage/20261012_d478_closed_remote_monitors.json.
 No measurements changed or deleted; source-to-gzip mapping preserved.
 
-NEXT: monitor SAME resume to terminal. Read result, verify actual remaining
-members empty and close via RAW/close.py resume (external,captured identity).
+Previous NEXT retained as workflow (now apply to D479): monitor same resume to
+terminal, read result, verify actual remaining members empty and close externally.
 Success means compressed bytes only. Verify complete image/source/dependencies,
 prepare local directory/OCI transport with verifiedblobs (hardlinks,no secondcopy),
 then actual private-overlay import under fresh150GiB/startgrowthgate. Do not
@@ -119,7 +154,8 @@ needed before import; image+dataset notdeleted. No inferenceparallel to preparat
 Do not repeat D477 NVML/D447 CPU checks or start another PrimeLoRA candidate.
 BASE draft docs/ieee_tc/D478_HYDRASERVE_IMAGE_PREPARATION.md records new facts;
 D478 curation/backup checkpoint records completed cache/containment/storage work;
-ongoing resume is explicitly NOT a completed qualification or performance result.
+D478 resume ended incomplete; D479 successor is explicitly NOT a completed
+qualification or performance result. D478 source archive remains unchanged.
 
 ## HydraServe evidence and adaptation boundaries
 
@@ -206,14 +242,26 @@ qualify actual common W1 transform interface, don't relabel W0 asW1.
 
 ## Safety, preservation and current backup identities
 
+D479 BASE checkpoint055adf30fe9758f3ee4320427affa674df05f111 pushed to origin/main,
+independentlyremoteequal.15CPU tests pass(10new+5existing),source/protected147/user
+dirtySHA/secrets/diff/explicitstagechecks pass; nativecheckoutclean.12explicit
+source/test/terminalrecords in hydraserve/d479/binding_evidence.tar.gz roundtrip
+verified,archiveSHAc38c887b1b267157b945181e98439fad24727e41536efe38aebc18a3d8424da1.
+Do not edit those raw sealed sources; revisions need new evidence identity.
+Scopes1(test),3(curation),4(BASEbackup) exactidentity/actualemptyclosed,allevents0.
+Onlyscope2transferlive; at16:06UTCsmallcache60881931B,sameinode110384426;
+memorycurrent19714048B, no terminalresult. MAIN status-only checkpoint follows;
+finalHEAD/remoteequality recorded in D479/backup_main_receipt.json afterpublish.
+
 MAIN /home/qhq/serverless_llm_experiment_retry14_baseline,
 retry14_continuous_queue_v2,faaslora_origin. Pre-D478 parent
 2dcb03faa165bb38b6b5f041d55ae524921bb144 was independently remoteequal.
-This checkpoint adds narrowly extended lossless archiver/8tests, storage receipt,
-status and byte-identical archived history. Exact final published HEAD/remote
-comparison goes to RAW/backup_main_receipt.json after commit (not self-referential).
+D478 MAIN checkpoint6de0285c12ae8bbdf2197dd39a15b1a598c99c3c independentlyremoteequal;
+adds narrowly extended lossless archiver/8tests, storage receipt, status and
+byte-identical archived history. Exact publicationreceipt stays in D478raw.
 BASE /home/qhq/serverless_llm_baselines,main,origin,
-HEAD17c2d9998417e3dda009c13d2a9513474cf8eee4 independently remoteequal.
+D478parent17c2d9998417e3dda009c13d2a9513474cf8eee4 independently remoteequal;
+currentD479HEADabove.
 D47857source records archived/roundtripverified in hydraserve/d478,62431B;
 5existing CPU layer tests passed,protected147pass,diff/secrets/explicitstagepassed.
 Backend/core mechanisms not changed. Acquisition remains live/incomplete.
