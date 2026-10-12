@@ -710,5 +710,63 @@ class MatchedW0Tests(unittest.TestCase):
                 closed_physical_integral(dict(self.physical(),device_intervals={'GPU':intervals}))
 
 
+class ElasticLocalityMatchedTests(unittest.TestCase):
+    def row(self, rid='r'):
+        return dict(request_id=rid, source_item_sha256='source', adapter_id='a',
+            target_tokens=2, canonical_prompt_sha256='prompt',
+            native_prompt_token_ids_sha256='input', native_prompt_tokens=3,
+            artifact_content_sha256='content', generation_contract='fixed_length_greedy_v1',
+            arrival_offset_s=1., native=dict(completion_token_ids_sha256='a'*64,
+                                           native_output_tokens=2))
+
+    def test_same_backend_differences_retained_without_automatic_explanation(self):
+        from scripts.ieee_tc.check_d299_full_context import matched_output_digest_audit
+        left = {rid:self.row(rid) for rid in ('r1','r2')}
+        right = copy.deepcopy(left)
+        right['r2']['native']['completion_token_ids_sha256'] = 'b'*64
+        audit = matched_output_digest_audit(left, right, ['r1','r2'])
+        self.assertEqual((audit['equal'], audit['changed']), (1, 1))
+        self.assertEqual(audit['changed_request_ids'], ['r2'])
+        self.assertEqual(audit['by_adapter'], {'a':dict(total=2, changed=1)})
+        self.assertFalse(audit['independent_numerical_proof'])
+        self.assertFalse(audit['first_divergence_and_logits_available'])
+
+    def test_missing_invalid_or_short_outputs_cannot_be_treated_as_equal(self):
+        from scripts.ieee_tc.check_d299_full_context import matched_output_digest_audit
+        left = {'r':self.row()}
+        for field, value in [('completion_token_ids_sha256', None),
+                             ('completion_token_ids_sha256', ''),
+                             ('completion_token_ids_sha256', 'x'*64),
+                             ('native_output_tokens', 1)]:
+            right = copy.deepcopy(left)
+            right['r']['native'][field] = value
+            with self.subTest(field=field, value=value), self.assertRaises(ValueError):
+                matched_output_digest_audit(left, right, ['r'])
+
+    def test_output_audit_rejects_missing_duplicate_or_mismatched_input(self):
+        from scripts.ieee_tc.check_d299_full_context import matched_output_digest_audit
+        left = {'r':self.row()}
+        for right, order in [({}, ['r']), (left, ['r','r']),
+                             ({'r':dict(self.row(), adapter_id='wrong')}, ['r'])]:
+            with self.assertRaises(ValueError):
+                matched_output_digest_audit(left, right, order)
+
+    def test_extension_cannot_drop_prior_rows(self):
+        from scripts.ieee_tc.check_d299_full_context import compare_d424_sealed_w0
+        with tempfile.TemporaryDirectory() as directory:
+            for slora, loquetier in [(False, False), (True, False), (False, True)]:
+                with self.subTest(slora=slora, loquetier=loquetier), self.assertRaises(ValueError):
+                    compare_d424_sealed_w0(Path(directory)/'new', slora, loquetier, True)
+
+    def test_streamed_controller_loader_requires_explicit_complete_scenario(self):
+        from scripts.ieee_tc.check_d299_full_context import matched_controller_rows
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory)/'source.json'
+            source.write_text(json.dumps(dict(detailed_results=dict(tc_ieee_full=dict(requests=[])))))
+            for scenario in ('tc_ieee_full','tc_ieee_elastic_locality','wrong'):
+                with self.subTest(scenario=scenario), self.assertRaises(ValueError):
+                    matched_controller_rows(source, scenario, {})
+
+
 if __name__ == '__main__':
     unittest.main()

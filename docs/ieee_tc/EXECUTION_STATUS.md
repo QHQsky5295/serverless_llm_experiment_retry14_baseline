@@ -1,4 +1,4 @@
-# IEEE TC execution status — D453 ElasticLocality full4000 W0 completed
+# IEEE TC execution status — D454 six-system W0 joined; resource gap localized
 
 Updated 2026-10-12. Current checkpoint, NOT a replacement experiment plan.
 Full prior status is byte-identically archived in EXECUTION_HISTORY_THROUGH_D448.md,
@@ -31,7 +31,65 @@ entries are not current instructions. No evidence or approved task was removed.
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D453 full4000 closed, audited; matched comparison next
+## Current action — D454 offline comparison and control diagnosis completed
+
+Read full PLAN/status/baseline rules/V1/V2; no runtime/configuration/policy change,
+new GPU run, baseline optimization, remote administration or figure. User again
+approved once-only readonly delivery cache: reuse completedD78/D80 (1581215261B),
+no republish or extractedpool. This authorization and boundaries are already inPLAN.
+
+Extended existing matchedW0 analyzer to add sealedD453 while preserving all five
+D446 rows, relative observations and Resident reference byte-for-byte. Same native
+controller row/binding checks for Full and ElasticLocality; all4000inputs/458224native
+tokens/132logicalIDs match, contractSHA384b63425402ced97961e91081265d3cbe340b6a3b4febde242de28f62cd7399.
+D453 E2E recomputed/checked against every request, not fabricated as an oldseal field.
+Raw n_correct=null and absent independent numerical proof remain explicit.
+Samebackend:3812equal/188changednativeoutputSHA across80adapters; all changedIDs
+retained, no first-divergence/logits proof or automatic rounding/batching explanation.
+
+MatchedW0 jointSLO / physicalGPU-s per boundrequest / Type1P95TTFTms:
+PrimeLoRA .977 /3.6206309810630626 /2837.895684875548;
+ServerlessLLM .98125 /4.022440685881069 /1052.2463605739176;
+vLLM .99475 /4.028844290537294 /1200.5068596918136;
+S-LoRA .94425 /3.7892694676132526 /17699.067366309464 (nonfeasible);
+Loquetier .0435 /4.249595808607468 /555110.0322289858 (nonfeasible);
+ElasticLocality .95775 /2.4731789675242615 /2420.6078292336315.
+PrimeLoRA uses46.3958% moreGPUtime than feasibleElasticLocality, with17.2390%
+higherP95TTFT but77morejointgoodrequests (+1.925points). Thus currentFull is NOT
+lowestresource measuredW0 point; no winnerfilter/rerun/thresholdchange. Composite
+internalcontrol, not single-factor causality. Firstfour share132fetch/131480060wireB,
+so thisW0 does not demonstrateFull reducingremote transfers versusElasticLocality.
+
+Reused nativecontrol events and physical intervalunions, verified identical controller
+config, commonarrival3963.908903s. FullminusElastic total4589.808054GPU-s:
+arrival+4717.854033, prearrival-9.024056, drain+7.979029, cleanup-127.000953.
+ArrivalmeanphysicalGPUs3.631634vs2.441432; fourcardwalltime3022.505544vs979.476777s.
+Withinready>1samples, TTFTnotlow1119vs80; alllow605vs990. Blockers overlap,
+samplecounts are NOT elapsedtime. Resourcegap primarilyduringbusiness, notstartup/
+cleanup; feedbackpath localized, routing/preparation/admission cause NOT established.
+
+53 CPUtests passed0.374s; actualjoin successful. First controlprojection KeyError
+last_arrival_offset_s retained; v2 reads existingFrozenReplayPlan lastentry/identity
+and succeeds. No performance rerun or fallback. Executedv2 script byte-identically
+backedup as scripts/ieee_tc/analyze_d454_control.py. Curated
+paper_results/ieee_tc/main_comparison/d454_7b_w0 and D454_MATCHED_W0_ELASTICLOCALITY.md.
+Delivery verification passed137source refs/protected147/threeuserfileSHAs; all5owned
+CPUdomains exactInvocationID/actualrecursiveemptyclosed,high/max/OOM/swap0.
+No computeGPUprocess remains. Lastdisk161856069632B (~150.74GiB), freshheavygate
+required. BASE unchanged71c52cf6f7331dc2a171ec83db5f1011eaf6d5a6. Explicitbackup
+commit and remote equality are recorded in raw d454_20261012/backup_receipt.json
+after push verification; never stage usermanifest/unrelatedfiles or rawlarge data.
+
+NEXT: PrimeLoRA-only causal diagnosis of persistent TTFT scale-in feedback using
+existing request stages, routing/preparation/admission events, D374-D388 history and
+primary-source implementations. Do not first relax thresholds, blindly repeatC8,
+or call disabling allFull mechanisms an optimization. Register one falsifiable
+formula-compatible candidate only with evidence, then necessaryvalidation/fullrun.
+7BW1/W2/G2 inputs/references and comparison remain open before3B; HydraServe
+externaldependency/fullremaining A1-A5/S1-S13/docs retained. GoalACTIVE,
+substantive offline analysis/verifieddelivery progress, not a whole-goal blocker.
+
+## Previous action — D453 full4000 closed, audited
 
 Same single launch completed2026-10-12 09:19; no restart or second performance run.
 4000/4000 native/source/adapter/lease contracts passed,458224native tokens,
@@ -69,7 +127,10 @@ FullPLAN/status/baseline rules/V1/V2 reread;147protected entries and userfiles
 unchanged by auditors. Deliveryverification passed26independent source refs and
 protected147;curatedSHA3cb2e9254941125f4f4d53465c682829fc0cac2127c1cf71c6b059b5e48be9de.
 Verificationaux8 InvocationID92994ba51da84c1dab3d50dbec056376 alsoactualrecursiveempty/
-identityclosed,high/max/OOM/swap0. Allownedtasksclosed;checkpoint backup follows.
+identityclosed,high/max/OOM/swap0. Allownedtasksclosed. Checkpoint
+cab0de35e69db34e8907c7217c75c7085ab99c83 pushed/remoteSHAequal; rawbackup_receipt.json
+records this closure and delivery evidence. Only protected usermanifest remains
+tracked-dirty apart from this post-push status note.
 NEXT: extend existing matchedW0 analyzer with this sealed row, audit native
 output digests under the same backend, preserve all five prior rows; then7B
 W1/W2/G2 with qualified commoninput plumbing and justifiedPrimeLoRAoptimization,

@@ -992,7 +992,64 @@ def require_unchanged_reference(recomputed, frozen):
     return frozen
 
 
-def compare_d424_sealed_w0(output, include_slora=False, include_loquetier=False):
+def matched_controller_rows(source, scenario, content):
+    """Stream native controller requests with the same checks for Full and controls."""
+    import ijson
+    result = {}
+    with source.open('rb') as handle:
+        for r in ijson.items(handle, f'detailed_results.{scenario}.requests.item', use_float=True):
+            rid, n, ext = r['request_id'], r['native_token_timing'], r['external_arrival_timing']
+            if rid in result or not r['success'] or not all(binding_checks(r, content[r['adapter_id']]).values()):
+                raise ValueError('controller source/native binding failed')
+            request_vectors([r])
+            result[rid] = dict(request_id=rid,
+                source_item_sha256=ext['source_item_sha256'], adapter_id=r['adapter_id'],
+                target_tokens=r['requested_completion_tokens'],
+                canonical_prompt_sha256=r['canonical_prompt_sha256'],
+                native_prompt_token_ids_sha256=n['native_prompt_token_ids_sha256'],
+                native_prompt_tokens=int(n['actual_prompt_tokens']),
+                artifact_content_sha256=content[r['adapter_id']],
+                generation_contract=r['generation_contract'], native=n,
+                native_entry_s=n['native_dispatch_monotonic_s'],
+                arrival=ext['planned_arrival_s'], submit=ext['client_submit_s'],
+                completed=n['controller_completed_monotonic_s'],
+                stored=dict(ttft_ms=r['overall_ttft_ms'], tpot_ms=r['tpot_ms'], e2e_ms=r['overall_e2e_ms']))
+    if len(result) != 4000:
+        raise ValueError('full controller population required')
+    return result
+
+
+def matched_output_digest_audit(left, right, order):
+    """Retain every same-backend output difference; missing digests cannot be equal."""
+    if set(left) != set(order) or set(right) != set(order) or len(set(order)) != len(order):
+        raise ValueError('complete unique digest audit population required')
+    changed, by_adapter = [], {}
+    for rid in order:
+        a, b = left[rid], right[rid]
+        matched_request_contract(a, b)
+        digests = []
+        for row in (a, b):
+            value = row['native'].get('completion_token_ids_sha256')
+            if (not isinstance(value, str) or len(value) != 64
+                    or any(c not in '0123456789abcdef' for c in value)
+                    or row['native']['native_output_tokens'] != row['target_tokens']):
+                raise ValueError('complete native output count and SHA256 required')
+            digests.append(value)
+        differs = digests[0] != digests[1]
+        counts = by_adapter.setdefault(a['adapter_id'], dict(total=0, changed=0))
+        counts['total'] += 1
+        counts['changed'] += int(differs)
+        if differs:
+            changed.append(rid)
+    return dict(equal=len(order)-len(changed), changed=len(changed),
+        changed_request_ids=changed, by_adapter=by_adapter,
+        exact_output_equality_required=False, independent_numerical_proof=False,
+        first_divergence_and_logits_available=False,
+        explanation='Native sequence digests and bindings audited; no claim that differences are rounding or caused solely by batching.')
+
+
+def compare_d424_sealed_w0(output, include_slora=False, include_loquetier=False,
+                          include_elastic_locality=False):
     """Offline join of specified sealed observations; no new inference.
 
     Reuses the full native/content audits bound by SHA. It does not redownload
@@ -1009,6 +1066,8 @@ def compare_d424_sealed_w0(output, include_slora=False, include_loquetier=False)
         raise ValueError('refusing to overwrite matched W0 analysis')
     if include_loquetier and not include_slora:
         raise ValueError('Loquetier extension must retain the sealed S-LoRA row')
+    if include_elastic_locality and not (include_slora and include_loquetier):
+        raise ValueError('ElasticLocality extension must retain all five sealed rows')
     refs = {}
     def checked(path, expected=None):
         path = Path(path)
@@ -1129,24 +1188,30 @@ def compare_d424_sealed_w0(output, include_slora=False, include_loquetier=False)
     subset_ids = {a['id'] for a in subset['adapters']}
     if subset_ids != set(content):
         raise ValueError('PrimeLoRA subset and baseline frozen pool differ')
-    with source.open('rb') as handle:
-        for r in ijson.items(handle, 'detailed_results.tc_ieee_full.requests.item', use_float=True):
-            rid, n, ext = r['request_id'], r['native_token_timing'], r['external_arrival_timing']
-            if rid in rows['PrimeLoRA'] or not r['success'] or not all(binding_checks(r, content[r['adapter_id']]).values()):
-                raise ValueError('PrimeLoRA source/native binding failed')
-            request_vectors([r])
-            rows['PrimeLoRA'][rid] = dict(request_id=rid,
-                source_item_sha256=ext['source_item_sha256'], adapter_id=r['adapter_id'],
-                target_tokens=r['requested_completion_tokens'],
-                canonical_prompt_sha256=r['canonical_prompt_sha256'],
-                native_prompt_token_ids_sha256=n['native_prompt_token_ids_sha256'],
-                native_prompt_tokens=int(n['actual_prompt_tokens']),
-                artifact_content_sha256=content[r['adapter_id']],
-                generation_contract=r['generation_contract'], native=n,
-                native_entry_s=n['native_dispatch_monotonic_s'],
-                arrival=ext['planned_arrival_s'], submit=ext['client_submit_s'],
-                completed=n['controller_completed_monotonic_s'],
-                stored=dict(ttft_ms=r['overall_ttft_ms'], tpot_ms=r['tpot_ms'], e2e_ms=r['overall_e2e_ms']))
+    rows['PrimeLoRA'] = matched_controller_rows(source, 'tc_ieee_full', content)
+    if include_elastic_locality:
+        locality = checked_json(ROOT/'paper_results/ieee_tc/elastic_locality/d453_actual_full_w0.json',
+            '3cb2e9254941125f4f4d53465c682829fc0cac2127c1cf71c6b059b5e48be9de')
+        if (locality['passed'] is not True or locality['protocol_bound_count'] != 4000
+                or locality['fixed_workload_complete4000'] is not True
+                or locality['input_witness']['passed'] is not True
+                or locality['evidence']['elastic_locality']['passed'] is not True):
+            raise ValueError('sealed full ElasticLocality qualification required')
+        local_refs = locality['refs'] + locality['input_witness']['refs'] + locality['raw_analysis_refs']
+        for ref in local_refs:
+            checked(ref['path'], ref['sha256'])
+        local_source = checked(locality['evidence']['source'], locality['evidence']['source_sha256'])
+        physical_receipt = checked_json(locality['evidence']['physical_source'],
+            locality['evidence']['physical_sha256'])
+        checked(physical_receipt['summary_path'], physical_receipt['summary_sha256'])
+        local_run = local_source.parent
+        local_launch = local_run/'launch.json'
+        sources['ElasticLocality'] = {**{r['path']:r['sha256'] for r in local_refs},
+            physical_receipt['summary_path']: physical_receipt['summary_sha256']}
+        locations['ElasticLocality'] = (local_launch, Path(physical_receipt['summary_path']))
+        seals['ElasticLocality'] = locality
+        rows['ElasticLocality'] = matched_controller_rows(local_source, 'tc_ieee_elastic_locality', content)
+        baseline_names.append('ElasticLocality')
 
     summaries, launches, report_rows = {}, {}, {}
     common_plan = common_policy = None
@@ -1178,7 +1243,9 @@ def compare_d424_sealed_w0(output, include_slora=False, include_loquetier=False)
             checked(entry['path'], entry['sha256'])
         checked(physical['request_terminals_path'], physical['request_terminals_sha256'])
         gpu_s = closed_physical_integral(physical)
-        if abs(gpu_s-seals[name]['physical_gpu_seconds']) > 1e-6:
+        sealed_gpu_s = (seals[name]['stats']['physical_gpu_seconds'] if name == 'ElasticLocality'
+                        else seals[name]['physical_gpu_seconds'])
+        if abs(gpu_s-sealed_gpu_s) > 1e-6:
             raise ValueError('resource total differs from sealed audit')
         metrics = {k:[] for k in ('ttft_ms','tpot_ms','e2e_ms','arrival_to_last_token_ms',
             'submit_lag_ms','submit_to_native_entry_ms','native_entry_to_first_ms',
@@ -1225,12 +1292,20 @@ def compare_d424_sealed_w0(output, include_slora=False, include_loquetier=False)
             for key,value in values.items():
                 if value is not None:
                     metrics[key].append(value)
-        expected = (seals[name]['counts']['joint_pass'] if name == 'PrimeLoRA'
-                    else seals[name]['common_slo']['joint_good'])
+        expected = (seals[name]['common_threshold_joint_count'] if name == 'ElasticLocality' else
+                    seals[name]['counts']['joint_pass'] if name == 'PrimeLoRA' else
+                    seals[name]['common_slo']['joint_good'])
         if good['joint_pass'] != expected:
             raise ValueError('SLO differs from sealed audit')
         stats = {k:timing_stats(v) for k,v in metrics.items()}
         for key in ('ttft_ms','tpot_ms','e2e_ms'):
+            if name == 'ElasticLocality':
+                # The D453 seal stores TTFT/TPOT; E2E is recomputed above from
+                # every native timeline and checked against every stored request.
+                if key != 'e2e_ms' and any(abs(stats[key][stat]-seals[name]['stats'][prefix+key]) > 1e-6
+                        for stat, prefix in (('mean', 'mean_'), ('p95_type1', 'p95_'))):
+                    raise ValueError('ElasticLocality aggregate differs from sealed audit')
+                continue
             prior = seals[name]['metrics' if name == 'PrimeLoRA' else 'conditional_metrics'][key]
             if any(abs(stats[key][x]-prior[x]) > 1e-6 for x in ('mean','p95_type1')):
                 raise ValueError('latency aggregate differs from sealed audit')
@@ -1239,7 +1314,7 @@ def compare_d424_sealed_w0(output, include_slora=False, include_loquetier=False)
             gpu_seconds_per_protocol_valid_request=gpu_s/4000,
             window_gpu_seconds=physical['window_gpu_seconds'], metrics=stats,
             source_order_500_request_phases=[dict(x) for x in phases],
-            completion_boundary='controller completion' if name=='PrimeLoRA' else 'external HTTP completion',
+            completion_boundary='controller completion' if name in ('PrimeLoRA','ElasticLocality') else 'external HTTP completion',
             raw_n_correct=physical['n_correct'], independent_numerical_proof=False)
         if include_slora:
             report_rows[name].update(
@@ -1342,6 +1417,25 @@ def compare_d424_sealed_w0(output, include_slora=False, include_loquetier=False)
             'Loquetier native entry is batch registration, not vLLM engine entry or S-LoRA model RPC registration; native scheduling is separately observed, not substituted.',
             'Queue-stage observations do not isolate a causal sharding, hierarchy or confirmed-state effect.'])
         report['source_refs'] = [dict(path=k, sha256=v) for k,v in refs.items()]
+    if include_elastic_locality:
+        previous = checked_json(ROOT/'paper_results/ieee_tc/main_comparison/d446_7b_w0/comparison.json',
+            '95a1037c494b87d1c52c151bc01850b5a96c9cf578f6af3d117a40d73e4b6edf')
+        if (any(report_rows[name] != row for name, row in previous['results'].items())
+                or any(diffs[name] != row for name, row in previous['PrimeLoRA_relative_observations'].items())
+                or report['matched_contract_sha256'] != previous['matched_contract_sha256']):
+            raise ValueError('previous five-system matched observations changed')
+        report['kind'] = 'matched_sealed_w0_comparison_v4'
+        report['previous_five_system_rows_unchanged'] = True
+        report['same_backend_output_audit'] = matched_output_digest_audit(
+            rows['PrimeLoRA'], rows['ElasticLocality'], order)
+        report['caveats'][3] = ('Published remote protocol shared. PrimeLoRA/ElasticLocality/ServerlessLLM/vLLM: '
+            '132 transfers/131480060 wire bytes each; S-LoRA/Loquetier:500/420740410. '
+            'No isolated remote-transfer reduction from Full against ElasticLocality in W0.')
+        report['caveats'].extend([
+            'ElasticLocality is a composite internal control, not a single-factor ablation or an external-paper baseline.',
+            'Same-backend digest changes are retained with per-adapter counts; no logits/first-divergence proof and no automatic rounding explanation.',
+            'Neither W0 timing feasibility nor lower GPU time establishes W1/W2 feasibility or G2.'])
+        report['source_refs'] = [dict(path=k, sha256=v) for k,v in refs.items()]
     report['analysis_key'] = canonical(dict(source_refs=report['source_refs'], protocol=refs[str(protocol)],
                                           amendment=refs[str(amendment)]))
     output.mkdir(parents=True, exist_ok=False)
@@ -1353,7 +1447,7 @@ def compare_d424_sealed_w0(output, include_slora=False, include_loquetier=False)
         writer.writerow(['system','run','n_protocol_valid','joint_slo','gpu_seconds','gpu_seconds_per_request',
                          'mean_ttft_ms','p95_ttft_ms','mean_tpot_ms','p95_tpot_ms','mean_e2e_ms','completion_boundary'])
         tags = dict(PrimeLoRA='D371/D397', ServerlessLLM='D414', vLLM='D423',
-                    Loquetier='D445', **{'S-LoRA':'D435'})
+                    Loquetier='D445', ElasticLocality='D453', **{'S-LoRA':'D435'})
         for name in report_rows:
             r=report_rows[name];m=r['metrics']
             writer.writerow([name,tags[name],4000,r['joint_slo'],r['physical_gpu_seconds'],r['gpu_seconds_per_protocol_valid_request'],
@@ -1376,14 +1470,19 @@ if __name__=='__main__':
         help='D436: also join sealed D435, retaining nonfeasibility and the existing D424 reference')
     parser.add_argument('--include-sealed-loquetier', action='store_true',
         help='D446: add sealed D445; requires the full four-system join and unchanged reference')
+    parser.add_argument('--include-sealed-elastic-locality', action='store_true',
+        help='D454: add sealed D453, preserving all five prior rows and native-output audit')
     args = parser.parse_args()
+    if args.include_sealed_elastic_locality and not (args.include_sealed_loquetier and args.include_sealed_slora):
+        parser.error('--include-sealed-elastic-locality requires both sealed baseline extensions')
     if args.include_sealed_loquetier and not args.include_sealed_slora:
         parser.error('--include-sealed-loquetier requires --include-sealed-slora')
     if args.include_sealed_slora and args.matched_w0_output is None:
         parser.error('--include-sealed-slora requires --matched-w0-output')
     if args.matched_w0_output is not None:
         compare_d424_sealed_w0(args.matched_w0_output, include_slora=args.include_sealed_slora,
-                              include_loquetier=args.include_sealed_loquetier)
+                              include_loquetier=args.include_sealed_loquetier,
+                              include_elastic_locality=args.include_sealed_elastic_locality)
         raise SystemExit(0)
     if args.single_run_source is not None:
         if args.warm_reference is None or args.review_output is None:
