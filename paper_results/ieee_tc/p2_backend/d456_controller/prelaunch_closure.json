@@ -1,0 +1,44 @@
+[
+  {
+    "identity": {
+      "unit": "primelora-tc-aux-d4560000000000000000000000000001.scope",
+      "invocation_id": "22f4b051433e4d61aae00852f706f7fd",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4560000000000000000000000000001.scope",
+      "inode": 23225152
+    },
+    "recursive_cgroup_procs": {
+      "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4560000000000000000000000000001.scope/cgroup.procs": []
+    },
+    "actual_recursive_procs_empty": true,
+    "resources": {
+      "memory.peak": "573149184",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0",
+      "memory.high": "3221225472",
+      "memory.max": "4294967296",
+      "memory.swap.max": "0"
+    },
+    "after": "inactive"
+  },
+  {
+    "identity": {
+      "unit": "primelora-tc-aux-d4560000000000000000000000000002.scope",
+      "invocation_id": "00270492c0da42a58c431bc633fe055f",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4560000000000000000000000000002.scope",
+      "inode": 23225510
+    },
+    "recursive_cgroup_procs": {
+      "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4560000000000000000000000000002.scope/cgroup.procs": []
+    },
+    "actual_recursive_procs_empty": true,
+    "resources": {
+      "memory.peak": "402415616",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0",
+      "memory.high": "3221225472",
+      "memory.max": "4294967296",
+      "memory.swap.max": "0"
+    },
+    "after": "inactive"
+  }
+]

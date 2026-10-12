@@ -1,0 +1,41 @@
+"""D456 is an observation-only path clone of the sealed D371 configuration."""
+from pathlib import Path
+import re
+import unittest
+import yaml
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+class D456DiagnosticContract(unittest.TestCase):
+    def test_only_exclusive_paths_differ_from_d371(self):
+        old = yaml.safe_load((ROOT/'configs/ieee_tc/20261010_d371_7b_full_w0.yaml').read_text())
+        new = yaml.safe_load((ROOT/'configs/ieee_tc/20261012_d456_7b_full_w0_prefix1.yaml').read_text())
+        for section, field in [('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                               ('storage', 'host_cache_dir')]:
+            before, after = old[section].pop(field), new[section].pop(field)
+            self.assertNotEqual(before, after)
+            self.assertIn('d456', after)
+            self.assertIn('prefix1', after)
+        self.assertEqual(old, new)
+        self.assertEqual(new['model']['runtime_concurrency_cap'], 14)
+        self.assertEqual(new['workload']['total_requests'], 4000)
+
+    def test_launcher_registers_only_original_prefix(self):
+        shell = (ROOT/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh').read_text()
+        block = re.search(r'^  d456\)(.*?)^    ;;', shell, re.M | re.S).group(1)
+        self.assertIn('PREFIX_COUNT=1000', block)
+        self.assertIn('SCENARIO=tc_ieee_full', block)
+        self.assertNotIn('export', block)
+        self.assertIn('"${1:-d293}" == d456', shell)
+        self.assertIn('export FAASLORA_FORMAL_RUN=0', shell)
+
+    def test_wrapper_retains_qualification_and_frames_boundary(self):
+        shell = (ROOT/'scripts/ieee_tc/profile_d328_controller_python.sh').read_text()
+        self.assertIn('d456_7b_full_w0_prefix1)', shell)
+        self.assertIn('test -f "$FAASLORA_TC_LAUNCH_RECEIPT"', shell)
+        self.assertIn('test "${FAASLORA_FORMAL_RUN:-}" = 0', shell)
+        branch = re.search(r'if \[\[ (.*?)\]\]; then\n(.*?)\nelse', shell, re.S)
+        self.assertIn('d456_7b_full_w0_prefix1', branch.group(1))
+        self.assertIn('FAASLORA_TC_STACK_SAMPLING=python_frames_v1', branch.group(2))
+        self.assertNotIn('CORE_TIMING', branch.group(2))

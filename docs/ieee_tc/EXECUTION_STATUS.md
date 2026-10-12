@@ -1,4 +1,4 @@
-# IEEE TC execution status — D455 growing controller delay localized; no policy change
+# IEEE TC execution status — D456 current-controller diagnostic qualified; launch pending
 
 Updated 2026-10-12. Current checkpoint, NOT a replacement experiment plan.
 Full prior status is byte-identically archived in EXECUTION_HISTORY_THROUGH_D448.md,
@@ -31,7 +31,36 @@ entries are not current instructions. No evidence or approved task was removed.
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D455 retained request/CPU diagnosis completed
+## Current action — D456 observer-only current-configuration diagnostic qualified
+
+Read full PLAN/status/baseline rules/V1/V2 after compaction. Reapproval of remote
+delivery cache reuses D78/D80; no republish or extracted pool. D456 registers one
+current D371-config originalprefix1000 with existing D328 python_frames_v1,
+not a new performance candidate/ranking run. Only exclusive result/NVMe/HOST
+paths differ; cap14/profile/IEEE/control/metric policies unchanged. Runtime sources
+remain c83882b; no baseline tuning. Prior D328 olderC8 evidence not transplanted.
+D455 hypothesis: locate current synchronous control work behind growing arrival/
+completion pickup delays. No speculative inventory/TTL/offload patch; pureplanner
+already offloaded. Python3.12 frameAPI and official vLLM CPU-analysis rechecked;
+sample counts are not CPU-time shares/causal TTFT fractions, shortprefix limitation
+explicit in D456_CURRENT_CONTROLLER_DIAGNOSTIC.md.
+
+29 CPU tests passed27.776s, no skips/failures; original1000 exactly equals existing
+D434 input,60logicaladapters/122510targettokens,viewSHA0a5dfcf8048abdc8fc1e3a8ccaf92bfb925a9db326c8d27507663bede96a0981.
+Confignonpath equality/shellsyntax/source checks and protected147/three userfiles/
+protocols passed. Curated p2_backend/d456_controller/input_qualification.json
+contains31source refs, observer contract and explicit noGPUresult/no ranking.
+CPUaux1/2 exactInvocationID and actualrecursiveempty checked then stopped;
+high/max/OOM/swap0, peaks573149184/402415616B. Existing D453 remote/start/closure
+workflow reused with campaign paths only; no remote services started yet.
+
+NEXT: backup/verify remoteSHA; fresh150GiB/32GiBgrowth+memory/GPU gates, then launch
+once in tmux tc-d456-controllerprefix1. No repeat same key; during measurement no
+tests/maintenance/cleanup/hashscan. After actualrelease exact-ownedremote/auxclosure,
+existingstack/request analysis, then one evidence-backed candidate. GoalACTIVE.
+Remaining7BW1/W2/reference/G2,3B,HydraServe dependency,A1-A5/S1-S13/docs/figures OPEN.
+
+## Previous action — D455 retained request/CPU diagnosis completed
 
 Read full PLAN/status/baseline rules/V1/V2 after compaction; no online code/policy,
 configuration, baseline tuning, remote administration, GPU run or figure changed.

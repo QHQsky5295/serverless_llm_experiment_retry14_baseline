@@ -5,6 +5,9 @@ ROOT=/home/qhq/serverless_llm_experiment_retry14_baseline
 RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d328_20261008
 case "${FAASLORA_RESULTS_TAG:-}" in
   d328_7b_full_w0_prefix1) ;;
+  d456_7b_full_w0_prefix1)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012
+    ;;
   d351_7b_full_w0_prefix1)
     RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008
     ;;
@@ -15,7 +18,7 @@ test -n "${FAASLORA_TC_LAUNCH_RECEIPT:-}"
 test -f "$FAASLORA_TC_LAUNCH_RECEIPT"
 test ! -e "$RAW/controller_prefix1_time.txt"
 test "${FAASLORA_FORMAL_RUN:-}" = 0
-if [[ "$FAASLORA_RESULTS_TAG" == d328_7b_full_w0_prefix1 ]]; then
+if [[ "$FAASLORA_RESULTS_TAG" == d328_7b_full_w0_prefix1 || "$FAASLORA_RESULTS_TAG" == d456_7b_full_w0_prefix1 ]]; then
   test ! -e "$(dirname "$FAASLORA_TC_LAUNCH_RECEIPT")/diagnostic_stacks"
   export FAASLORA_TC_STACK_SAMPLING=python_frames_v1
 else
