@@ -51,6 +51,30 @@ class HostQueueFullContract(unittest.TestCase):
         self.assertIn('export FAASLORA_FORMAL_RUN=0', shell)
 
 
+class CPUPreparationFullContract(unittest.TestCase):
+    def test_d472_only_cpu_policy_and_exclusive_paths_differ(self):
+        old = yaml.safe_load((ROOT/'configs/ieee_tc/20261012_d465_7b_full_w0.yaml').read_text())
+        new = yaml.safe_load((ROOT/'configs/ieee_tc/20261012_d472_7b_full_w0.yaml').read_text())
+        for section, field in [('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                               ('storage', 'host_cache_dir')]:
+            before, after = old[section].pop(field), new[section].pop(field)
+            self.assertNotEqual(before, after)
+            self.assertIn('d472', after)
+        self.assertEqual(new['resource_coordination'].pop('ieee_cpu_frontend_policy'),
+                         'fixed_uuid_cpu_frontend_v1')
+        self.assertEqual(old, new)
+        self.assertEqual(new['workload']['total_requests'], 4000)
+
+    def test_d472_original_full_source_without_observer(self):
+        shell = (ROOT/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh').read_text()
+        block = re.search(r'^  d472\)(.*?)^    ;;', shell, re.M | re.S).group(1)
+        self.assertIn('PREFIX_COUNT=\n', block)
+        self.assertIn('SCENARIO=tc_ieee_full', block)
+        self.assertNotIn('export', block)
+        self.assertNotIn('"${1:-d293}" == d472', shell)
+        self.assertIn('export FAASLORA_FORMAL_RUN=0', shell)
+
+
 class D456DiagnosticContract(unittest.TestCase):
     def test_only_exclusive_paths_differ_from_d371(self):
         old = yaml.safe_load((ROOT/'configs/ieee_tc/20261010_d371_7b_full_w0.yaml').read_text())

@@ -1,4 +1,4 @@
-# IEEE TC execution status — D470 retained failure; D471 lifecycle configuration correction
+# IEEE TC execution status — D471 native preparation qualified; D472 full W0 next
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement plan.
 Complete preceding status is byte-identically archived in
@@ -33,7 +33,35 @@ not current instructions. No evidence or approved task was removed.
 - Every optimization: logs/history + online primary sources + one falsifiable
   hypothesis + tests/minimal validation/new full replay. IEEE nine formulas fixed.
 
-## Current action — D470 actual pre-runtime failure retained; D471 CPU correction passed
+## Current action — D471 native100 passed; D472 original4000 being frozen
+
+D471CPUrepair pushed862ac54bf1eabd9a1a61274a033c4653f64ce1b4,
+remoteHEADequal,12explicitfiles/35publicationchecks. Actualnative100 thenpassed:
+100/100native/source/adapter contracts,17369tokens,100commonjointSLO;meanTTFT
+708.180941/P951823.181388ms,meanTPOT30.208547/P9541.173768ms.
+Physical374.5664273959119GPU-s,NOT completeW0performance or savingsprojection.
+SourceSHAbbdd9be54205396712022edf25ab8a9aafc94c9d761f855f8d8e91f7aadfa88b.
+4fixedUUID CPU preparations aftercommonnotice:2activated(1initial+1natural),
+2unusedabandoned;allreturncode0. Actual journalsacquire/bind/native/exit/release
+andpermissionsmatch;firstacquire0.733sbeforeCPUready fullycharged. Prepermission
+contextchecksfalses/zero;retainednativecensuses12/107/250/250noownedcontext.
+No midrunscale-down/replacement inshortprefix;donotrepeattogettriggercounts.
+27HOSTpreparations23residency/4handoff;29remote/50650865wireB,pack0.
+262samples,peak12906348544B,high/max/OOM/swap0. ActualGPUrelease/servicepath
+removed beforeownedremoteunitsstopped,portsabsent;link1000Mb/s/full.
+Allstart/actualaux exactidentityactual-emptyclosed. Analysis/lifecycle/nativecuration
+peaks405471232/30666752/49704960B,high/max/OOM/swap0,closed. RawD471,
+curatedp2_backend/d471_native_preparation;seeD471_NATIVE_PREPARATION_RESULT.md.
+Rawindependentnumericalcorrectnessnull;nohiddenfallback/numericalclaim/figure.
+
+D472config reusesD465full4000exceptCPUlifecyclepolicy+exclusivepaths. No further
+productionchange afterD471nativequalification. Existingreplay/configtests and
+input/source/147protectedchecks precedebackupandone original4000W0 replay.
+SeeD472_CPU_PREPARATION_FULL_W0.md. FullG1/G2hypothesisstillOPEN;D463retained
+parent/performanceNOTaccepted. Do not rerunnative100, sealedbaselines orimport
+microtests. WholegoalACTIVE;7Bmainline,3B/allremainingapprovedscopeOPEN.
+
+## Previous action — D470 pre-runtime failure retained; D471 CPU correction passed
 
 D46914explicitfiles pushed as68aef590521a3bc3acb0e33a15554871f0715554;
 independentremoteHEADequal,35publicationchecks pass. All4auxiliaries actual-empty
@@ -413,8 +441,8 @@ D465 failed commonSLO and did not reduce resourcevsD458. Reject performance
 acceptance of this narrow hypothesis; no repeat. Source stillD463,not rolledback.
 Retained dispatch/activation diagnosis completeD466; fixed-UUID CPU pre-initialize
 boundary qualifiedD467; D468 bounded preparation/IPC/lifecycle foundation CPUtested.
-Next actual original-factory integration then native preparation/freshGPUowner
-handoff qualification, not repeatimport/fork/prebuild tests. Do not extend the owner-read change to
+D469original-factoryintegrationandD471nativequalificationcomplete. Next D472
+one new-key original4000W0, not repeatimport/fork/prebuild tests. Do not extend the owner-read change to
 later snapshots or cached physical inventory. Explicitly declare D463 disposition
 in the next version,not a silent rollback or a claimed accepted improvement.
 Do not repeat D456 profiling, D458, sealed baselines, C8/capacity/threshold sweeps,

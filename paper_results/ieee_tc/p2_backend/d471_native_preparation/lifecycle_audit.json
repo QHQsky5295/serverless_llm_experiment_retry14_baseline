@@ -1,0 +1,58 @@
+{
+  "passed": true,
+  "actual_native_preparation": true,
+  "full_performance_qualified": false,
+  "actual_midrun_replacement_observed": false,
+  "activated": [
+    {
+      "preparation_id": "ae7beb0d87664296852d9c7cab4ad977",
+      "gpu_uuid": "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946",
+      "prepermission_samples": 12,
+      "prepared_at": 1307970.955662222,
+      "acquire_at": 1307970.222946317,
+      "permission_at": 1307970.992412812,
+      "release_at": 1308206.013712046,
+      "acquire_before_prepared": true,
+      "physical_gpu_seconds": 235.79076572903432
+    },
+    {
+      "preparation_id": "94e969817d294479bf99094e1211d063",
+      "gpu_uuid": "GPU-dadf0267-9617-8824-cddb-82fba48a7b97",
+      "prepermission_samples": 107,
+      "prepared_at": 1307971.427733732,
+      "acquire_at": 1308066.912906904,
+      "permission_at": 1308067.042457907,
+      "release_at": 1308205.688568571,
+      "acquire_before_prepared": false,
+      "physical_gpu_seconds": 138.77566166687757
+    }
+  ],
+  "unused": [
+    {
+      "preparation_id": "a5a384171cc14a8ba991d6a8f0ba8efa",
+      "gpu_uuid": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+      "prepermission_samples": 250
+    },
+    {
+      "preparation_id": "50c50c868be1455aa935652bb14f7a91",
+      "gpu_uuid": "GPU-c4663821-4888-e199-7151-d6298f8d45a5",
+      "prepermission_samples": 250
+    }
+  ],
+  "physical_gpu_seconds": 374.5664273959119,
+  "refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d471_20261012/7b_cpu_frontend_validation_100/launch.launch/physical_allocations/9f57ab054c204106842f1124aac40983.jsonl",
+      "sha256": "d9422ed450fc68bc28e7ee26fe420cb5f7740ad6e88088f0e0a63d45577f2fb7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d471_20261012/7b_cpu_frontend_validation_100/launch.launch/physical_allocations/144d1feef0fa4c95aef29dc128908631.jsonl",
+      "sha256": "06c683573a314f4e147ae21861da1fe770db2bb59be1e3bd91f3e4cff2550da7"
+    }
+  ],
+  "caveats": [
+    "Sampled native census does not exclude all transients.",
+    "No scale-down/replacement occurred in this original100; full W0 will cover natural lifecycle.",
+    "Raw independent numerical correctness flag remains unknown."
+  ]
+}
