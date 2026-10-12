@@ -1,0 +1,46 @@
+{
+  "kind": "d465_host_queue000_closure_v1",
+  "source_commit": "601bcd39da9bf61c496494dcdccd6e407ea669a4",
+  "n_plan": 4000,
+  "n_terminal": 4000,
+  "n_native_contract_complete": 4000,
+  "n_failed_from_terminal_journal": 0,
+  "planned": 4000,
+  "terminal": 4000,
+  "successful_returns": 4000,
+  "failed": 0,
+  "source_sha256": "cb83dc960641a164be351680c8d69a54873491186eb1825b48afc0407393dd91",
+  "launch_sha256": "62c7862d6b9b9fd3efca7ad039360ce3907c5688f112721a26d731fded8a2753",
+  "physical_gpu_seconds_total": 11984.14842888806,
+  "native_gpu_context_release_confirmed": true,
+  "service_path_removed": true,
+  "remote_transfers_sha256": "6d6d00aa0e27d7acd84277571b362ae30918877abeb24fd595e60e9219388617",
+  "remote_monitor_sha256": "8ba0aa93254c876d31b1a763db1bf50d4c92ffaaa7ef9e2edd5d332fdfe3ec7b",
+  "remote_stop": {
+    "all_owned_units_inactive": true,
+    "ports_18080_18081_absent": true,
+    "local_gpu_release_verified_before_remote_stop": true,
+    "download_hashes_match_remote": true,
+    "hashes": {
+      "remote_transfers.jsonl": "6d6d00aa0e27d7acd84277571b362ae30918877abeb24fd595e60e9219388617",
+      "remote_monitor.log": "8ba0aa93254c876d31b1a763db1bf50d4c92ffaaa7ef9e2edd5d332fdfe3ec7b"
+    },
+    "stop_log_sha256": "3912dcd74bc7ae956316c5dc6348d12abfde78c56bc5c827e2868cb5d807817b"
+  },
+  "remote_cleanup": {
+    "all_owned_units_inactive": true,
+    "ports_18080_18081_absent": true,
+    "local_gpu_release_verified_before_remote_stop": true,
+    "download_hashes_match_remote": true,
+    "hashes": {
+      "remote_transfers.jsonl": "6d6d00aa0e27d7acd84277571b362ae30918877abeb24fd595e60e9219388617",
+      "remote_monitor.log": "8ba0aa93254c876d31b1a763db1bf50d4c92ffaaa7ef9e2edd5d332fdfe3ec7b"
+    },
+    "stop_log_sha256": "3912dcd74bc7ae956316c5dc6348d12abfde78c56bc5c827e2868cb5d807817b"
+  },
+  "n_correct": null,
+  "formal_qualification": false,
+  "ranking_eligible": false,
+  "no_figures": true,
+  "caveat": "PrimeLoRA HOST queue full4000 evaluation; no independent numerical proof or cross-system ranking before audit."
+}

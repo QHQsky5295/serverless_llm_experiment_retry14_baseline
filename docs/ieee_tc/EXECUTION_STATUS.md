@@ -1,4 +1,4 @@
-# IEEE TC execution status — D464 passed; D465 full4000 prepared
+# IEEE TC execution status — D465 complete, common SLO not met
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement plan.
 Complete preceding status is byte-identically archived in
@@ -33,18 +33,58 @@ not current instructions. No evidence or approved task was removed.
 - Every optimization: logs/history + online primary sources + one falsifiable
   hypothesis + tests/minimal validation/new full replay. IEEE nine formulas fixed.
 
-## Current action — D465 full4000 preparation after D464
+## Current action — D465 completed, hypothesis not accepted
 
-D465 registers the original full4000 W0, no prefix/observer. Configuration is
-identical to D458 except exclusive paths. Production unchanged from D463. Two
-new runner/configuration contracts plus existing20 replay checks qualify launch;
-D464 native100 and unchanged safety checks are reused, not repeated. Input
-qualification verifies original4000 equality with sealed D435 input, all source
-bindings and protected147. This is a new-key development observation, once only.
-See D465_HOST_QUEUE_FULL_W0.md. Raw d465_20261012/7b_full_w0, curated d465_full_w0.
-Before native start: verified task-only backup and fresh resource gate. No full
-performance result exists yet. During native run, no analysis/build/compression
-or remote management. Capture auxiliary identity while running for owned closure.
+D465's single full4000 W0 finished on2026-10-12, native service and watchdog
+exit0. GPU release and service-path removal confirmed before remote shutdown.
+The original4,000 input/source/adapter/native/dispatch contracts pass,458224
+native tokens,132 logical IDs. Independent D435 input witness matches all4000.
+SourceSHA cb83dc960641a164be351680c8d69a54873491186eb1825b48afc0407393dd91.
+Execution checkpoint601bcd39da9bf61c496494dcdccd6e407ea669a4 was pushed before
+launch. Config equalsD458 except paths; production onlyD463 owner-read change.
+No repeat, threshold/trace/formula change, baseline tuning or figure.
+
+Observed jointSLO3790/4000=94.75%, below3800 gate. TTFT3827pass,TPOT3937pass;
+TTFT-only147,TPOT-only37,both26. U11984.14842888806 GPU-s,per-bound-request
+2.996037107222015. MeanTTFT1397.647701/P953519.901199ms,meanTPOT33.982953/
+P9559.220341ms,meanE2E5204.356846ms. VsD458 GPUtime+0.0652%,joint−1.70pp,
+P95TTFT+23.6187%. Mean dispatch/admission wait753.010 vs513.687ms; service
+TTFT644.638 vs632.065ms. Additive location is not causal proof.
+W0budgetratio0.991529 does not rescue failedSLO or establish W1/W2/G2.
+DECISION: do not acceptD463/D465 as a demonstrated performance improvement.
+D458 remains the prior feasible checkpoint,not a hidden replacement forD465.
+D463 source still present; no silent rollback or new performance claim.
+Next reconcile retained queue/activation timelines withD459–D461 before one new
+causal hypothesis. No repeated owner-read microtest/prefix/full without new
+evidence; do not get stuck in this narrow optimization.
+
+1129HOSTqueue=1006residency+123handoff.1initialready,21naturaltriggers18ready/
+3notready.132transfers,131480060wireB agree bothends,all132request-linked,pack0.
+Outputdigest changes202vsD458,223vsD371,193vsElasticLocality retained; no
+rounding explanation or independent numerical proof,raw n_correctnull unchanged.
+4075watchdogsamples,servicepeak22273388544B,hostminimum91419357184B,
+high/max/OOM/swap0, nativeTTFT/TPOT/E2E reconstruction0ms.
+
+Captured start scope InvocationIDf93475a74df9428d9fd30a9b287f7396/inode23361963
+and actualaux a03fdd3fec494e9e818fb41447d73d0a/inode23362084 actual-empty closed.
+Remote bothservices+monitor inactive after matching capturedInvocationIDs.
+Collection5,analysis6,curation7,storage8 individually exact-owned actual-empty
+closed; peaks99684352,1251053568,1076170752,664969216B,allhigh/max/OOM/swap0.
+No tasks still running from the native replay. No unrelated Kubernetes mutation.
+Raw d465_20261012,curated p2_backend/d465_full_w0; seeD465_FULL_W0_RESULT.md.
+Existing audit/review/matched-check primitives reused,large outcome streamed.
+147protected entries pass. Mainoutcome losslessly archived after two roundtrip
+SHAchecks,reclaimed464470016B,uncompressedSHA
+cbf83ba2339b63e03882df5a10cd49ddb241b9b2b64c444fc05773c32e22ab1d.
+Receipt storage/20261012_d465_lossless_compression.json,archiveinplace.json.gz.
+Disk161223802880B(~150.15GiB)aftercompression,freshgate required beforeheavy.
+Final verification passed94source refs/protected147,0watchdogwarnings;2inotify
+warnings retained with unknown performanceimpact. Initial postrun verifier used
+absentplural warnings; correctedv2 readsactualsingular warning,originalerror
+andclosure retained. No rawmeasurement orcriterionchange. Verification9/a
+actual-emptyclosed,peaks387203072/385814528B (captured finalclosures),
+high/max/OOM/swap0. Task-only result backup next; no productionrollback yet.
+WholegoalACTIVE; complete nonfeasible candidate is progress,not overallcompletion.
 
 ## Completed — D464 original100 native validation passed
 
@@ -171,13 +211,16 @@ qualification/rejection/verified backup are progress, not a blocker or completio
 
 ## Next mainline
 
-D463 CPU qualification and D464 native100 complete; retain all failures.
-Next one new-key full4000 with D458
-settings unchanged. The concrete redundant boundary is only the initial HOST
-queue owner read; do not extend to later snapshots or cached physical inventory.
+D463 CPU qualification,D464 native100 andD465 full4000 complete;retain failures.
+D465 failed commonSLO and did not reduce resourcevsD458. Reject performance
+acceptance of this narrow hypothesis; no repeat. Source stillD463,not rolledback.
+Next examine existing dispatch/activation/native occupancy timelines against
+D459–D461,then register one causally grounded next version. Do not extend the
+owner-read change to later snapshots or cached physical inventory.
 Do not repeat D456 profiling, D458, sealed baselines, C8/capacity/threshold sweeps,
 pin-query microtests, stale HOST caches or already implemented planner offload.
-D458 remains the latest Full observation, W0 feasible but not lowest GPU occupancy.
+D458 remains the prior feasible Full point;D465 is the latest nonfeasible
+observation. Neither establishes lowest GPUoccupancy or fullG1/G2.
 HydraServe independent native qualification remains open, not a reason to alter
 the user's unrelated Kubernetes cluster or abandon the PrimeLoRA optimization mainline.
 
@@ -195,7 +238,8 @@ All sealed rows retained, no repeats:
 | S-LoRA D435 | .94425 | 3.789269468 | 17699.067366 |
 | Loquetier D445 | .0435 | 4.249595809 | 555110.032229 |
 | ElasticLocality D453 | .95775 | 2.473178968 | 2420.607829 |
-| PrimeLoRA D458 latest | .9645 | 2.994084616 | 2847.386152 |
+| PrimeLoRA D458 | .9645 | 2.994084616 | 2847.386152 |
+| PrimeLoRA D465 latest, nonfeasible | .9475 | 2.996037107 | 3519.901199 |
 
 S-LoRA/Loquetier diagnostic_nonfeasible; no baseline performance tuning.
 D458 resource17.3049% below old PrimeLoRA,21.0622% above ElasticLocality.
@@ -250,7 +294,7 @@ must be qualified before W1, not just relabelled. No new trace or baseline tunin
 
 - MAIN=/home/qhq/serverless_llm_experiment_retry14_baseline,
   branch retry14_continuous_queue_v2, remote faaslora_origin.
-  Prior pushed HEAD f303fdb5a5bd0785e641cf8bfcc42e5f107ab3cf.
+  D465 execution pushed HEAD601bcd39da9bf61c496494dcdccd6e407ea669a4.
   BASE=/home/qhq/serverless_llm_baselines,main,origin,
   unchanged HEAD71c52cf6f7331dc2a171ec83db5f1011eaf6d5a6.
 - One heavy job. Disk start>=max(150GiB,100GiB+1.5 growth), runtimefloor100GiB.

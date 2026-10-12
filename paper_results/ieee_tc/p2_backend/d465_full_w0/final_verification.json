@@ -1,0 +1,601 @@
+{
+  "kind": "d465_closed_full4000_final_verification_v1",
+  "passed": true,
+  "source_execution_sha": "601bcd39da9bf61c496494dcdccd6e407ea669a4",
+  "source_result_sha256": "cb83dc960641a164be351680c8d69a54873491186eb1825b48afc0407393dd91",
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+  },
+  "verified_source_refs": 94,
+  "closures": {
+    "cpu": {
+      "passed": true,
+      "identity": {
+        "unit": "primelora-tc-aux-d4650000000000000000000000000001.scope",
+        "invocation_id": "343f7a50c93c4ae889a48f43d7e9efca",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4650000000000000000000000000001.scope",
+        "inode": 23361047
+      },
+      "resources": {
+        "memory.peak": "308604928",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "actual_recursive_procs_empty": true,
+      "source_sha256": "5029fc68b90d0b007577434f7a2fa943d61741c53eb0f8a15feed71d5ea90ead"
+    },
+    "qualification": {
+      "passed": true,
+      "identity": {
+        "unit": "primelora-tc-aux-d4650000000000000000000000000002.scope",
+        "invocation_id": "e30e1a3003a2469ebcacd988b45ec9a1",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4650000000000000000000000000002.scope",
+        "inode": 23361484
+      },
+      "resources": {
+        "memory.peak": "498286592",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "actual_recursive_procs_empty": true,
+      "source_sha256": "5029fc68b90d0b007577434f7a2fa943d61741c53eb0f8a15feed71d5ea90ead"
+    },
+    "backup": {
+      "passed": true,
+      "identity": {
+        "unit": "primelora-tc-aux-d4650000000000000000000000000003.scope",
+        "invocation_id": "16d9f52bf65c4e869ea7df638e408932",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4650000000000000000000000000003.scope",
+        "inode": 23361684
+      },
+      "resources": {
+        "memory.peak": "25128960",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "actual_recursive_procs_empty": true,
+      "source_sha256": "5029fc68b90d0b007577434f7a2fa943d61741c53eb0f8a15feed71d5ea90ead"
+    },
+    "collection": {
+      "passed": true,
+      "identity": {
+        "unit": "primelora-tc-aux-d4650000000000000000000000000005.scope",
+        "invocation_id": "871d41673e014c958592d2bc7a6374d0",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4650000000000000000000000000005.scope",
+        "inode": 23398034
+      },
+      "resources": {
+        "memory.peak": "99684352",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "actual_recursive_procs_empty": true,
+      "source_sha256": "5029fc68b90d0b007577434f7a2fa943d61741c53eb0f8a15feed71d5ea90ead"
+    },
+    "analysis": {
+      "passed": true,
+      "identity": {
+        "unit": "primelora-tc-aux-d4650000000000000000000000000006.scope",
+        "invocation_id": "80f60da396224ffba34bab8923f76593",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4650000000000000000000000000006.scope",
+        "inode": 23398945
+      },
+      "resources": {
+        "memory.peak": "1251053568",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "actual_recursive_procs_empty": true,
+      "source_sha256": "5029fc68b90d0b007577434f7a2fa943d61741c53eb0f8a15feed71d5ea90ead"
+    },
+    "curation": {
+      "passed": true,
+      "identity": {
+        "unit": "primelora-tc-aux-d4650000000000000000000000000007.scope",
+        "invocation_id": "f389dfb9a7b64f7ab2d4639d2c0d95a8",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4650000000000000000000000000007.scope",
+        "inode": 23399619
+      },
+      "resources": {
+        "memory.peak": "1076170752",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "actual_recursive_procs_empty": true,
+      "source_sha256": "f06818a74b6268be5acda164e4122c2114cd8e1213cdc018a93c25faffffed3a"
+    },
+    "storage": {
+      "passed": true,
+      "identity": {
+        "unit": "primelora-tc-aux-d4650000000000000000000000000008.scope",
+        "invocation_id": "b2ddda05e38e414d8b9e85d0789e95eb",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4650000000000000000000000000008.scope",
+        "inode": 23401004
+      },
+      "resources": {
+        "memory.peak": "664969216",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "actual_recursive_procs_empty": true,
+      "source_sha256": "f06818a74b6268be5acda164e4122c2114cd8e1213cdc018a93c25faffffed3a"
+    },
+    "final_verify": {
+      "passed": true,
+      "identity": {
+        "unit": "primelora-tc-aux-d4650000000000000000000000000009.scope",
+        "invocation_id": "7296681550674950b0df546a0763cbfb",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4650000000000000000000000000009.scope",
+        "inode": 23401520
+      },
+      "resources": {
+        "memory.peak": "387203072",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "actual_recursive_procs_empty": true,
+      "source_sha256": "f06818a74b6268be5acda164e4122c2114cd8e1213cdc018a93c25faffffed3a"
+    }
+  },
+  "actual_service_limits_all_samples_match": true,
+  "warnings": 0,
+  "minimum_disk_free_bytes": 158357233664,
+  "inotify_warnings": [
+    "2026-10-12T14:53:37+0800 dhu-PowerEdge-T640 systemd[2552]: primelora-tc-svc-ef869b7006dd4f91a3e9b513158049e2.scope: Failed to add control inotify watch descriptor for control group /user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-ef869b7006dd4f91a3e9b513158049e2.scope: No space left on device",
+    "2026-10-12T14:53:37+0800 dhu-PowerEdge-T640 systemd[2552]: primelora-tc-svc-ef869b7006dd4f91a3e9b513158049e2.scope: Failed to add memory inotify watch descriptor for control group /user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-ef869b7006dd4f91a3e9b513158049e2.scope: No space left on device"
+  ],
+  "no_environment_modification": true,
+  "absence_of_environmental_noise_proven": false,
+  "storage_receipt": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/storage/20261012_d465_lossless_compression.json",
+    "sha256": "da303f9343caaf43b3b1181fc2603b9f14756b4222c66c8e536b9729a61adddc"
+  },
+  "archived_source_uncompressed_sha_verified": true,
+  "free_bytes": 161223372800,
+  "metric_outcome": {
+    "joint_good": 3790,
+    "required": 3800,
+    "observed_protocol_feasible": false,
+    "performance_hypothesis_accepted": false,
+    "no_repeat": true
+  },
+  "whole_goal_complete": false,
+  "no_figures": true,
+  "scope": {
+    "unit": "primelora-tc-aux-d465000000000000000000000000000a.scope",
+    "invocation_id": "2ceb7ea2bfeb4780906be3a311435788",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d465000000000000000000000000000a.scope",
+    "inode": 23402194
+  },
+  "analysis_correction": "Initial final_verify used absent warnings; actual schema is singular warning. Original helper/error/closure retained. No raw measurement or gate changed.",
+  "refs": [
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/11_remote_fair_main_local_sim_v4/20260512_123619_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_local-sim_v1_trace.json",
+      "sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+      "sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/http_7b_4000.json",
+      "sha256": "f0fe970f53c549b38cc0dbd8def0109115436f4b1d8ee8530b2ad8efcec8c6f3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/scripts/prepare_ieee_tc_serverless_stack.py",
+      "sha256": "dbdccafbcca5574eb906dfb530b7c5375fd0fa6772beef4d846d4cd2a2ce5365"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261012_d465_7b_full_w0.yaml",
+      "sha256": "e8174edea3cca7f299f014b91069823b4c49c3fb27417c5c3ebc4c9d1fb7f837"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/ieee_tc/20261012_d458_7b_full_w0.yaml",
+      "sha256": "6a5ddbed1ed612da750c00439e6a8c4f55e645ecb673a45a11f495a5771c25ed"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh",
+      "sha256": "f58c443bbbb25af085c2815094425de7f350eac21b64d3317e897592ddb2f015"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d463_host_queue/qualification.json",
+      "sha256": "f2a4b08798a7c8fab7862a14e7aa4a4dcd71e4968eec3d3e3dad6d7e309f3498"
+    },
+    {
+      "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json",
+      "sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "9d8d55d5e707192ae74beb555e0947852b94a237c995eddbdacd4541a17ef566"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py",
+      "sha256": "bb3c6e95314f6e23f7039a727508d5ad426897238494ab6d5878b90c94c21aaf"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments_user_scope.sh",
+      "sha256": "d41e782949370030c6cc4260ca9d1d5ca059ac32384bc18ff7b10c52c5cc0168"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/plot_d290_diagnostic.py",
+      "sha256": "18e96959d167c3b9b8c762a4ee4274d4443eba38610e02cd89cd0755c5664f22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/datasets/workload_generator.py",
+      "sha256": "af55470a7fdd7eb10cd289daeffa13b33ea9d09f50dfb4a2f0f3777416103d19"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_external_replay.py",
+      "sha256": "a83572d09fd9e01d8be2bfce535a68263c77fa490c13155b9623d09c4d715731"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_d456_diagnostic_contract.py",
+      "sha256": "b57b2f75107234838f2b46754e87c35486ba3da4a617cafac1142abf4f93801a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/D465_HOST_QUEUE_FULL_W0.md",
+      "sha256": "7738f9e1ead0afcace5121feae74dc50dbf12f21aa6de3c296757f9ca459d7d3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+      "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/backup.py",
+      "sha256": "ec47692954dc50a1af97add7e2ff84720cf7d67b6268efac0caeefe878076788"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/check_remote_health.py",
+      "sha256": "176d803fb722f46a895fb15a006f4f3b31469fc5073121c40ebaf524446e95b5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/close.py",
+      "sha256": "5029fc68b90d0b007577434f7a2fa943d61741c53eb0f8a15feed71d5ea90ead"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/close_after_release.py",
+      "sha256": "290d6a04b16fdec72ad21b7fd48e359b86dddc50210b061c7ed9b06982bd8b5c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/collect_closure.py",
+      "sha256": "3f4338284ee8c6e3a07131b7ba33144a992c76439589de276744e76b7f4f49cb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/cpu_checks.py",
+      "sha256": "e51d657a246c208f09a76a1f4f1eee695624e88fa39a8d12f239b79712ce7216"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/qualify_sources.py",
+      "sha256": "2c015882b135bb0d8b63f818390bbf62fbdc4ddf423db8620845475b728ce980"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/start.py",
+      "sha256": "a062c84bf79b59ea6eea338f7a52a98a41d23c0109bb7d086d38b2b785662793"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/start_remote.sh",
+      "sha256": "595eb8d40419c854de3781593f830a21b06cb5b5c4a66ef2f04816cb4f70f3af"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/stop_remote.sh",
+      "sha256": "ad6cd98defdf739a7dd6ba7bbee0f3a61f92768a13cb5faca6083c26ed291a77"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/cpu_result.json",
+      "sha256": "5cd4679d7119ea246f21d0c477fa2ff86a23a2601af9057434961de713d7339c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d464_20261012/guard_v2_result.json",
+      "sha256": "0106bed69880607b40ef29e443733b71185ba63f6961bd8daa240b03e0ed8ed5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d464_host_queue/final_verification.json",
+      "sha256": "0fdc8be53e1496a97f91ae7b038265c5b2cfe1fe4898f51abdd583b6cf9f03d0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d465_7b_full_w0.json",
+      "sha256": "cb83dc960641a164be351680c8d69a54873491186eb1825b48afc0407393dd91"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/7b_full_w0/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "cbf83ba2339b63e03882df5a10cd49ddb241b9b2b64c444fc05773c32e22ab1d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/7b_full_w0/launch.json",
+      "sha256": "62c7862d6b9b9fd3efca7ad039360ce3907c5688f112721a26d731fded8a2753"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/remote_transfers.jsonl",
+      "sha256": "6d6d00aa0e27d7acd84277571b362ae30918877abeb24fd595e60e9219388617"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/remote_monitor.log",
+      "sha256": "8ba0aa93254c876d31b1a763db1bf50d4c92ffaaa7ef9e2edd5d332fdfe3ec7b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/remote_stop.json",
+      "sha256": "064e9b6febae4b1bbf2103c59aa8e192f580dc987947f4e85fe52da6907736f1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/local_cleanup.json",
+      "sha256": "947d5e39f19d1cf419c3fcecb409262e6d7104679c71a362a02632d5eae777d4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/completion_receipt.json",
+      "sha256": "6ea1819c18993d63823db8d1c431bd4b6e89a7a52dfb32e64777a497a1b65dc7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/remote_health.json",
+      "sha256": "3add3d743807520f437e8f8d8d7b7d2cfda6f304377bf61aeade5849b4ffe916"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/7b_full_w0/launch.launch/watchdog.jsonl",
+      "sha256": "40139e6c8c31214b28f71b71230a856d97c0c89118f00f2cfc09c2e1501461e2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json",
+      "sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json",
+      "sha256": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/analyze_prefix.py",
+      "sha256": "08ff815b80d5b14eb6680974293b6df0ee955758053f6e06b6eb0f2b96203dc8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/launch7b.launch/replay.jsonl",
+      "sha256": "618d805cbedfbf2a43bc274e6f8b0fdd40a3a1acaea74f7d47ff57b976723ff1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/cross_contract.py",
+      "sha256": "143b9c8bf1540e81e0696d2ebfca40507872436f042916f1b1a5a6134ef52cad"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json",
+      "sha256": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py",
+      "sha256": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh",
+      "sha256": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/7b_full_w0/launch.launch/physical_deployment/physical_resource_summary.json",
+      "sha256": "54cc5aa92fc85d0e6cbf6e8f8019fa466527cd668cd913f56354f0b7bc4d87c2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/7b_full_w0/launch.launch/physical_deployment/summary.json",
+      "sha256": "7f64d3e01da030d3fe889f5d95d6fba9ce257429f55853593dd5241233894419"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/20261010_d394_7b_warm_reference.json",
+      "sha256": "93e2af33de471af6ee3cf97c7cb98eb074768dd2d34f4d29e152d59ab7566cee"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/check_d299_full_context.py",
+      "sha256": "69f89b4b8751afcdad9f407d134700d669d37f1969f17041164956684fabd526"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/7b_full_w0/launch.launch/physical_allocations/0132ee0f95434e0a93b69bd3125d8273.jsonl",
+      "sha256": "90016b4564b6bc18c257ba084a48a4252075ac868a32288b468cf7231fbd95ed"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/7b_full_w0/launch.launch/physical_allocations/15638574c14547ccb9571be50d4da7a9.jsonl",
+      "sha256": "05f52697e65656de3da712fbae51b220ea083f7f964314d899cd6587b5fab116"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/7b_full_w0/launch.launch/physical_allocations/1771b9df59254e649ecf1fd0351da5f4.jsonl",
+      "sha256": "b6b5de851ab9271bbea5188ea2634bcd128d43baeeaa2c15350b9c246a0d64e6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/7b_full_w0/launch.launch/physical_allocations/182ecc00ba7e43a8bb91d0bbd4ac560c.jsonl",
+      "sha256": "82418693d4e446c1a21bfa49708f7092c054f91568057fa94b1bba1b2159ea4f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/7b_full_w0/launch.launch/physical_allocations/1ef5bdb0a1714ab280249ebecc0f7796.jsonl",
+      "sha256": "b31d9f86da5fb4b83cee15185714176b9d4f07ccb3bfc390a678e6d2302b3c4a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/7b_full_w0/launch.launch/physical_allocations/2053e633daf94f288cf3e1f96e3c2150.jsonl",
+      "sha256": "ba48efa5c20c8f9620e62a8b5bccb3cfb0b7f36fc9fa0a9f11c47aa100554026"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/7b_full_w0/launch.launch/physical_allocations/2d0fe821c5bb4c13b539b6196b7a35a5.jsonl",
+      "sha256": "245694be71aee50c387f1a204af5a5a3c6198f5ec54eb5c4cdb5e52df953df1f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/7b_full_w0/launch.launch/physical_allocations/36660b65205344a7b3f0094f5dd43a01.jsonl",
+      "sha256": "66bd7fedd060455827deb1ee00c468e28fca1260d1e416f7c2d5ce4e1e178188"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/7b_full_w0/launch.launch/physical_allocations/46230156b8ae43299d39781df6226756.jsonl",
+      "sha256": "3879c714a202fe0a2446e6212e5b3a18b1b444882efe3acba340748952fb6011"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/7b_full_w0/launch.launch/physical_allocations/4a96bc0fdac24e6683c1f1352e2a5589.jsonl",
+      "sha256": "399c2ddc4cf5326cb6502f4756807bad18501f92678daf243b5cc40a141fa581"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/7b_full_w0/launch.launch/physical_allocations/57b3c9e33d5d43378a6e24d965360594.jsonl",
+      "sha256": "caabc9cfa73fc7d28cf8f4c93986130b4b706ae8d7014a6b25460cb7498efc11"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/7b_full_w0/launch.launch/physical_allocations/64e870f78be4445f9fda692fbb9db512.jsonl",
+      "sha256": "f17e3a44e97e704520e5d64ad191cfaadfa8fe25d7a2d9254cd2d3ec76a68365"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/7b_full_w0/launch.launch/physical_allocations/7b44f1308e724f9f94ef782890307265.jsonl",
+      "sha256": "8c203a4bbbcce2fbd58ae4ac60a06db3563abfe0b9a817b17335b4c7128b803a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/7b_full_w0/launch.launch/physical_allocations/85b8d2e9850a4af6afc41a3a1679bb61.jsonl",
+      "sha256": "0f409b6609b95a9a8608638e88ab18b2c186c151dc3f1a1e7ba941d01283474a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/7b_full_w0/launch.launch/physical_allocations/b7d5a29e681c4f1f943e442a0f8d7f76.jsonl",
+      "sha256": "271f4736ca00d23500af875d2aec7f8a6bb0981d6ced22e3a160eaabfe7a7051"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/7b_full_w0/launch.launch/physical_allocations/c64b04ea90d345728b0e5e26f0834f7e.jsonl",
+      "sha256": "3c867b097f06f882c222a6f1f8647064071415da2a3977102fd74d8967fcdcfa"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/7b_full_w0/launch.launch/physical_allocations/ca55ab6ef5804a5ba6c93b7652d2cba0.jsonl",
+      "sha256": "35ef5001bc9b971846e7694f7a03e013673ae150756249cca6d0fbd31432b2ed"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/7b_full_w0/launch.launch/physical_allocations/de4808f08c2c478382487b6e71918367.jsonl",
+      "sha256": "c144413f0de9517475c58c8257075b371fff3c93a4a91833a6b6064acd19a578"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/7b_full_w0/launch.launch/physical_allocations/e8968cda3eb842c1bad64018356fd457.jsonl",
+      "sha256": "59e3da16e72ea888087f841305e0a708ae2f115d21a7b8cfa6edb03872a8c179"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/7b_full_w0/launch.launch/physical_allocations/e9a4ec79effd4364a7a4c570c0aca395.jsonl",
+      "sha256": "ce62a687a09713191dd6d3a8657483d5d0c154608333a19c31f36aaeb9ce5141"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/7b_full_w0/launch.launch/physical_allocations/ecbea67da82445528658a531c1a86a85.jsonl",
+      "sha256": "c6ac5d3e79b5515fdf8a7c4c25bdac92a8f045c45a23b02e30f872635f8691b3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/7b_full_w0/launch.launch/physical_allocations/fe4c288cee4c4bfdb9fac105d131d05e.jsonl",
+      "sha256": "c8874d3e4146c602e857b14ae92e55e4b50332485eaa402c82ce810b3b4901a6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/7b_full_w0/launch.launch/physical_deployment/request_terminals.jsonl",
+      "sha256": "a67fc8ac872cc5619efb6767f6fa030abd6a94958b76515ce0605935cdbfab6d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/main_comparison/d454_7b_w0/comparison.json",
+      "sha256": "e8246c0203202f8d1e50adeac85a6569d134ea95729627da7a6a1df12b6c38ce"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/single_run_review.json",
+      "sha256": "1e82c3053859af62630736dfd3dae3c78c935638ec8826994a5093ca3548f8f6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/actual_qualification.json",
+      "sha256": "b999273512ba20782136ae21fc4893404e849db0196b32fdd804811012bf37ed"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/actual_input_witness.json",
+      "sha256": "dbb0ff0e3ea652ab28755d894940f9b97bbbdc9dcce8af9fffbfc62f94f043b4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d371_20261010/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d371_7b_full_w0.json",
+      "sha256": "279ab57f704d4e680dfec5da22b64d1cf017d13809b4c6e60b15da0f8c9343ea"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d371_20261010/7b_full_w0/launch.json",
+      "sha256": "177deacb354e7f677d9c8de7802ca7c3f3359b52dda6f930a1ff96acb9ce29f3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/elastic_locality_qualification/d453_20261012/7b_elastic_locality_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_elastic_locality_d453_7b_elastic_locality_w0.json",
+      "sha256": "f758f48cb1231de7a86025a1cdda777c2285dd2c892b208e9b21e5691c47fb50"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/elastic_locality_qualification/d453_20261012/7b_elastic_locality_w0/launch.json",
+      "sha256": "3a8990fc8fbc3134cf11e7dbe8197dc1fad523f6343250ad56d589920374b0b7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d458_full_w0/matched_comparison.json",
+      "sha256": "d8188014ac448205e33198f81e9bb12a793dea664a1de90e5c504535ea500a42"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d458_20261012/7b_full_w0/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d458_7b_full_w0.json",
+      "sha256": "8d65bf7a9113909451d72a822098e1e464e27d031a7b0ea71357bf30fd52205c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d458_20261012/7b_full_w0/launch.json",
+      "sha256": "e7678e135e8951993f0a45eea2191580e60204f79977c04d39ca3320a6db3a1f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/analyze_closed.py",
+      "sha256": "e4b0aee34c26de772a09735bb4a9bf3012644d253169667d0badf99f02852c09"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/compare_curate.py",
+      "sha256": "edcc03ff9e4d1351b7dcd480fb53d9ee8b87d12a540aeab730f783de44015ece"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/close_postrun.py",
+      "sha256": "f06818a74b6268be5acda164e4122c2114cd8e1213cdc018a93c25faffffed3a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/collection_closure.json",
+      "sha256": "ab93a8bc937ce5d8b17f4ab941e65eb6677c00f4bd82cb60da5745b2bd2339c6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/analysis_closure.json",
+      "sha256": "bfce210d5923f92113d4b861e2fd055b429bc0c0718449ff395006e834526c99"
+    }
+  ],
+  "helper_sources": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/analyze_prefix.py",
+      "sha256": "08ff815b80d5b14eb6680974293b6df0ee955758053f6e06b6eb0f2b96203dc8",
+      "content": "\"\"\"D465 data-only qualification, reusing the existing common analyzer.\"\"\"\nimport ijson\nimport hashlib\nimport json\nimport math\nimport sys\nfrom collections import Counter\nfrom pathlib import Path\n\nROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nRAW=Path(__file__).resolve().parent\nsys.path.insert(0,str(ROOT))\nfrom scripts.ieee_tc.plot_d290_diagnostic import audit_run,binding_checks,sha256\nfrom scripts import ieee_tc_preflight as p\nfrom faaslora.datasets.workload_generator import FrozenReplayPlan\n\nrun=RAW/'7b_full_w0'\nsource=next(run.glob('experiment_results*.json'))\nstats,evidence,requests=audit_run(source)\nassert len(requests)==4000\noutcome_path=run/'launch.launch/physical_deployment/main_outcome.json'\ndef selected(prefix):\n    with outcome_path.open('rb') as handle:\n        return next(ijson.items(handle,prefix,use_float=True))\noutcome={key:selected(key) for key in ('run_completed','error','cleanup_errors','measurement_errors','launch_contract','remote_transfers')}\noutcome['mechanism_events']={'_ieee_activations':selected('mechanism_events._ieee_activations')}\nwith outcome_path.open('rb') as handle:\n    host_reasons=Counter(row['trigger_reason'] for row in ijson.items(handle,'mechanism_events._ieee_native_host_preparations.item',use_float=True))\nlaunch=json.loads((run/'launch.json').read_text())\nassert launch['pass'] and launch['service_returncode']==launch['watchdog_returncode']==0\nassert launch['service_path_removed'] and launch['native_gpu_context_release_confirmed']\nassert outcome['run_completed'] and not outcome['error']\nassert not outcome['cleanup_errors'] and not outcome['measurement_errors']\nplan=FrozenReplayPlan.load(outcome['launch_contract']['input_plan']['source_path'],count=4000)\nassert plan.identity()==outcome['launch_contract']['input_plan']\nentries={e.request_id:e for e in plan.entries}\nassert set(entries)=={r['request_id'] for r in requests}\nindex_path=ROOT/'paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json'\nindex=json.loads(index_path.read_text())\nexpected={a['id']:hashlib.sha256(json.dumps(sorted(a['files'],key=lambda f:f['path']),\n    sort_keys=True,separators=(',',':')).encode()).hexdigest() for a in index['artifacts']}\nfor row in requests:\n    entry=entries[row['request_id']]\n    original=json.loads(entry.source_json)\n    assert row['adapter_id']==original['adapter_id']\n    assert math.isclose(row['scheduled_arrival_offset_s'],entry.offset_s,abs_tol=1e-9)\n    assert row['source_expected_output_tokens']==original['expected_output_tokens']\n    assert row['completion_tokens']==min(original['expected_output_tokens'],256)\n    assert all(binding_checks(row,expected[row['adapter_id']]).values())\njournal=RAW/'remote_transfers.jsonl'\nserver_rows=[json.loads(line) for line in journal.read_text().splitlines()]\nserver={r['transfer_id']:r for r in server_rows}\ntransfers=outcome['remote_transfers']\nassert len(server)==len(server_rows)==len(transfers)\nassert set(server)=={r['http_transfer_id'] for r in transfers}\nclock=json.loads((RAW/'remote_health.json').read_text())['7b']['clock_id']\nfor row in transfers:\n    peer=server[row['http_transfer_id']]\n    assert row['state']=='published' and row['content_verified'] and row['published_archive_verified']\n    assert row['artifact_id']==peer['artifact_id']\n    assert row['remote_archive_sha256']==peer['archive_sha256']\n    assert row['transferred_bytes']==peer['archive_bytes']==peer['bytes_read']==peer['bytes_written']\n    assert peer['clock_id']==clock and peer['outcome']=='sent'\n    assert not row['remote_pack_performed'] and not peer['pack_performed'] and not peer['temporary_created']\nresources=[r for line in (run/'launch.launch/watchdog.jsonl').read_text().splitlines()\n    if (r:=json.loads(line))['event']=='resource_sample']\nassert resources and not any(r['decision']['abort_reasons'] for r in resources)\nassert all(r['service']['memory.high']==72*p.GIB and r['service']['memory.max']==80*p.GIB and r['service']['memory.swap.max']==2*p.GIB for r in resources)\nslo_path=ROOT/'paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json'\nassert sha256(slo_path)=='2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3'\nslo=json.loads(slo_path.read_text())\ngood=0\nfor row in requests:\n    length=row['native_token_timing']['actual_prompt_tokens']\n    groups=[g for g in slo['groups'] if (g['lower_exclusive'] is None or length>g['lower_exclusive'])\n        and (g['upper_inclusive'] is None or length<=g['upper_inclusive'])]\n    assert len(groups)==1\n    g=groups[0]\n    good+=row['overall_ttft_ms']<=g['ttft_ms'] and (row['completion_tokens']==1 or row['tpot_ms']<=g['tpot_ms'])\nprotected=p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))\nassert protected['pass'] and protected['entry_count']==147\nactivations=outcome['mechanism_events']['_ieee_activations']\nrefs=[source,outcome_path,run/'launch.json',journal,RAW/'remote_monitor.log',RAW/'remote_stop.json',\n    RAW/'local_cleanup.json',RAW/'completion_receipt.json',RAW/'remote_health.json',\n    run/'launch.launch/watchdog.jsonl',slo_path,index_path,Path(__file__)]\nprint(json.dumps(dict(kind='d465_actual_full_w0_qualification_v1',passed=True,\n    stats=stats,evidence=evidence,protocol_bound_count=4000,numerical_correctness_qualified=False,\n    fixed_workload_complete4000=True,ranking_eligible=False,replicates=1,confidence_interval=None,\n    host_queue_trigger_reasons=dict(host_reasons),\n    native_tokens=sum(r['completion_tokens'] for r in requests),\n    dispatch_tiers=dict(Counter(r['readiness_tier_before_dispatch'] for r in requests)),\n    activation_categories=dict(Counter(r['category'] for r in activations)),\n    activation_state_counts={category:dict(Counter(r['state'] for r in activations if r['category']==category))\n        for category in sorted({r['category'] for r in activations})},\n    initial_activation_s=[r['engine_ready_at']-r['trigger_at'] for r in activations if r['category']=='initial'],\n    common_threshold_joint_count=good,remote_transfers=len(transfers),\n    remote_wire_bytes=sum(r['transferred_bytes'] for r in transfers),request_time_pack_count=0,\n    resources=dict(samples=len(resources),peak_bytes=max(r['service']['memory.peak'] for r in resources),\n        max_swap_bytes=max(r['service']['memory.swap.current'] for r in resources),\n        events={k:max(r['service']['memory.events'][k] for r in resources) for k in ('high','max','oom','oom_kill')}),\n    protected=protected,refs=[dict(path=str(f),sha256=sha256(f)) for f in refs],\n    scope=p.scope_identity(p.cg_path().name)),indent=2))\n\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/cross_contract.py",
+      "sha256": "143b9c8bf1540e81e0696d2ebfca40507872436f042916f1b1a5a6134ef52cad",
+      "content": "\"\"\"Independent existing-baseline input witness; no performance or output equality claim.\"\"\"\nimport json\nimport sys\nfrom pathlib import Path\n\nROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nRAW = Path(__file__).resolve().parent\nsys.path.insert(0, str(ROOT))\nfrom scripts.ieee_tc.plot_d290_diagnostic import load, sha256\nfrom scripts import ieee_tc_preflight as p\nfrom faaslora.datasets.workload_generator import FrozenReplayPlan\n\nrun = RAW/'7b_full_w0'\nsource = next(run.glob('experiment_results*.json'))\n_, scenario = load(source)\nrequests = {r['request_id']:r for r in scenario['requests']}\ncontext = json.loads((run/'launch.launch/exec_receipt.json').read_text())['external_replay']\nplan = FrozenReplayPlan.from_launch_context(context)\nentries = {e.request_id:e for e in plan.entries}\nprior = Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/launch7b.launch/replay.jsonl')\ncontracts = {}\nfor line in prior.open():\n    event = json.loads(line)\n    if event['event'] == 'request_contract':\n        assert event['request_id'] not in contracts\n        contracts[event['request_id']] = event\nassert len(contracts) == 4000 and requests.keys() == entries.keys() == contracts.keys()\nfor rid, row in requests.items():\n    ref = contracts[rid]\n    entry = entries[rid]\n    assert row['adapter_id'] == ref['adapter_id']\n    assert row['requested_completion_tokens'] == row['completion_tokens'] == ref['target_tokens']\n    assert row['canonical_prompt_sha256'] == ref['canonical_prompt_sha256']\n    assert row['canonical_prompt_tokens'] == ref['canonical_prompt_tokens']\n    assert row['native_token_timing']['native_prompt_token_ids_sha256'] == ref['native_prompt_token_ids_sha256']\n    assert entry.source_sha256 == ref['source_item_sha256']\n    assert row['generation_contract'] == 'fixed_length_greedy_v1'\n    assert row['output_contract_match'] is True\n\nfrozen = {\n    Path('/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md'):'f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5',\n    ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md':'5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22',\n    ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md':'193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d',\n    ROOT/'configs/generated/lora_manifest_1000.json':'3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df',\n    Path('/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py'):'04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22',\n    Path('/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh'):'337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499',\n}\nfor path, digest in frozen.items():\n    assert sha256(path) == digest, path\nprint(json.dumps(dict(kind='d465_existing_original4000_input_witness_v1',passed=True,\n    request_count=len(requests),compared_fields=['request_id','adapter_id','target_tokens',\n        'canonical_prompt_sha256','canonical_prompt_tokens','native_prompt_token_ids_sha256',\n        'source_item_sha256'],\n    generation_contract='fixed_length_greedy_v1',output_token_equality_required=False,\n    numerical_correctness_qualified=False,performance_comparison=False,\n    scope=p.scope_identity(p.cg_path().name),\n    refs=[dict(path=str(path),sha256=sha256(path)) for path in (source,prior,Path(__file__),*frozen)]),indent=2))\n\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/analyze_closed.py",
+      "sha256": "e4b0aee34c26de772a09735bb4a9bf3012644d253169667d0badf99f02852c09",
+      "content": "\"\"\"D465 bounded offline analysis using the existing full-run audit/review.\"\"\"\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\nROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nRAW=Path(__file__).resolve().parent\nsys.path.insert(0,str(ROOT))\nfrom scripts import ieee_tc_preflight as p\nfrom scripts.ieee_tc.check_d299_full_context import review_single_run\nidentity=p.scope_identity(p.cg_path().name)\nwith (RAW/'analysis_identity.json').open('x') as f:json.dump(identity,f,indent=2)\nassert json.loads((RAW/'collection_closure.json').read_text())['passed']\nassert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()\nfor name,output in [('analyze_prefix.py','actual_qualification.json'),('cross_contract.py','actual_input_witness.json')]:\n    with (RAW/output).open('x') as out, (RAW/(output+'.stderr.log')).open('x') as err:\n        subprocess.run([sys.executable,'-B',str(RAW/name)],stdout=out,stderr=err,check=True)\n    result=json.loads((RAW/output).read_text())\n    assert result['passed']\n    print(json.dumps(dict(analysis=name,passed=True)),flush=True)\nreview_single_run(next((RAW/'7b_full_w0').glob('experiment_results*.json')),\n    ROOT/'paper_results/ieee_tc/p2_backend/20261010_d394_7b_warm_reference.json',\n    RAW/'single_run_review.json')\nprint(json.dumps(dict(passed=True,scope=identity)),flush=True)\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/compare_curate.py",
+      "sha256": "edcc03ff9e4d1351b7dcd480fb53d9ee8b87d12a540aeab730f783de44015ece",
+      "content": "\"\"\"D465 source-bound join using the existing D397/D454 review primitives.\"\"\"\nimport ijson\nimport ast\nimport hashlib\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nROOT = Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nRAW = Path(__file__).resolve().parent\nOUT = ROOT/'paper_results/ieee_tc/p2_backend/d465_full_w0'\nsys.path.insert(0, str(ROOT))\nfrom scripts import ieee_tc_preflight as p\nfrom scripts.ieee_tc.check_d299_full_context import (read, matched_controller_rows,\n    matched_output_digest_audit, matched_relative_observation, closed_physical_integral)\nfrom scripts.ieee_tc.analyze_d297_full import partition_activation_readiness\nfrom scripts.ieee_tc.plot_d290_diagnostic import load as load_result\nfrom faaslora.datasets.workload_generator import FrozenReplayPlan\n\nidentity = p.scope_identity(p.cg_path().name)\nwith (RAW/'curation_identity.json').open('x') as f:\n    json.dump(identity, f, indent=2)\nassert not subprocess.check_output(['nvidia-smi', '--query-compute-apps=pid',\n    '--format=csv,noheader'], text=True).strip()\nrefs = {}\ndef checked(path, expected=None):\n    path = Path(path)\n    digest = p.digest(path)\n    assert expected is None or digest == expected, path\n    assert str(path) not in refs or refs[str(path)] == digest\n    refs[str(path)] = digest\n    return path\n\ncomparison = read(checked(ROOT/'paper_results/ieee_tc/main_comparison/d454_7b_w0/comparison.json',\n    'e8246c0203202f8d1e50adeac85a6569d134ea95729627da7a6a1df12b6c38ce'))\npinned = {r['path']:r['sha256'] for r in comparison['source_refs']}\nreview = read(checked(RAW/'single_run_review.json'))\naudit = read(checked(RAW/'actual_qualification.json'))\nwitness = read(checked(RAW/'actual_input_witness.json'))\nassert audit['passed'] and audit['protocol_bound_count'] == 4000\nassert witness['passed'] and witness['request_count'] == 4000\nassert review['counts']['N'] == review['counts']['native_contract'] == 4000\nassert review['counts']['joint_pass'] == audit['common_threshold_joint_count']\nfor record in review['source_refs'] + audit['refs'] + witness['refs']:\n    checked(record['path'], record['sha256'])\nsource = checked(review['source'], review['source_sha256'])\nlaunch = read(checked(source.parent/'launch.json'))\nphysical = read(checked(source.parent/'launch.launch/physical_deployment/summary.json'))\nassert closed_physical_integral(physical) == review['physical_gpu_seconds']\nassert launch['preflight']['policy'] == comparison['common_resource_policy']\nplan = FrozenReplayPlan.load(launch['external_replay']['plan']['source_path'])\nassert plan.identity() == launch['external_replay']['plan']\nassert {k:v for k,v in plan.identity().items() if k != 'source_path'} == comparison['common_input']\nfreeze = read(checked(ROOT/'paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json',\n    comparison['common_slo_sha256']))\nwarm = read(checked(ROOT/freeze['calibration']['path'], freeze['calibration']['sha256']))\nassert all(w['candidate_threshold_ms']['ttft'] == f['ttft_ms']\n    and w['candidate_threshold_ms']['tpot'] == f['tpot_ms']\n    for w,f in zip(warm['groups'], freeze['groups']))\nindex = read(checked(ROOT/'paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json',\n    comparison['pool_index_sha256']))\ncontent = {a['id']:hashlib.sha256(json.dumps(sorted(a['files'], key=lambda f:f['path']),\n    sort_keys=True, separators=(',', ':')).encode()).hexdigest() for a in index['artifacts']}\nrows = matched_controller_rows(source, 'tc_ieee_full', content)\norder = [e.request_id for e in plan.entries]\nfor r in rows.values():\n    r['arrival_offset_s'] = r['arrival'] - launch['external_replay']['replay_t0_s']\nkeys = ('request_id','source_item_sha256','adapter_id','target_tokens',\n    'canonical_prompt_sha256','native_prompt_token_ids_sha256','native_prompt_tokens',\n    'artifact_content_sha256','generation_contract')\njoined = [{k:rows[rid][k] for k in keys} for rid in order]\ncontract_sha = hashlib.sha256(json.dumps(joined, sort_keys=True,\n    separators=(',', ':')).encode()).hexdigest()\nassert contract_sha == comparison['matched_contract_sha256']\ndigests = {}\nfor record in comparison['source_refs']:\n    path = Path(record['path'])\n    if 'experiment_results_full' not in path.name:\n        continue\n    name, scenario = ('PrimeLoRA_D371', 'tc_ieee_full') if 'd371_20261010' in str(path) else (\n        'ElasticLocality_D453', 'tc_ieee_elastic_locality')\n    assert 'd371_20261010' in str(path) or 'd453_20261012' in str(path)\n    other = matched_controller_rows(checked(path, record['sha256']), scenario, content)\n    old_launch_path = path.parent/'launch.json'\n    old_launch = read(checked(old_launch_path, pinned[str(old_launch_path)]))\n    for r in other.values():\n        r['arrival_offset_s'] = r['arrival'] - old_launch['external_replay']['replay_t0_s']\n    digests[name] = matched_output_digest_audit(rows, other, order)\nassert set(digests) == {'PrimeLoRA_D371', 'ElasticLocality_D453'}\nprior_path=checked(ROOT/'paper_results/ieee_tc/p2_backend/d458_full_w0/matched_comparison.json',\n    'd8188014ac448205e33198f81e9bb12a793dea664a1de90e5c504535ea500a42')\nprior=read(prior_path)\nprior_source=checked(next((RAW.parent/'d458_20261012/7b_full_w0').glob('experiment_results*.json')),\n    '8d65bf7a9113909451d72a822098e1e464e27d031a7b0ea71357bf30fd52205c')\nother=matched_controller_rows(prior_source,'tc_ieee_full',content)\nprior_launch=read(checked(prior_source.parent/'launch.json'))\nfor r in other.values():\n    r['arrival_offset_s']=r['arrival']-prior_launch['external_replay']['replay_t0_s']\ndigests['PrimeLoRA_D458']=matched_output_digest_audit(rows,other,order)\ncurrent = dict(counts=review['counts'], observed_protocol_feasible=review['timing_feasible'],\n    joint_slo=review['timing_joint_rate'], physical_gpu_seconds=review['physical_gpu_seconds'],\n    gpu_seconds_per_protocol_valid_request=review['physical_gpu_seconds']/4000,\n    window_gpu_seconds=physical['window_gpu_seconds'], metrics=review['metrics'],\n    raw_n_correct=None, independent_numerical_proof=False)\ndifferences = {name:matched_relative_observation(current, value)\n    for name,value in {**comparison['results'],'PrimeLoRA_D458':prior['candidate']}.items()}\n_, scenario = load_result(source)\nwith (RAW/'7b_full_w0/launch.launch/physical_deployment/main_outcome.json').open('rb') as handle:\n    activations=next(ijson.items(handle,'mechanism_events._ieee_activations',use_float=True))\nready, unready = partition_activation_readiness(activations, scenario['requests'],\n    clock_id=activations[0]['clock_id'])\npartition = {category:dict(triggered=sum(r['category'] == category for r in activations),\n    ready=sum(r['category'] == category for r in ready),\n    not_ready=sum(r['category'] == category for r in unready))\n    for category in sorted({r['category'] for r in activations})}\ndel scenario\nqualification = read(OUT/'input_qualification.json')\nfor record in qualification['refs']:\n    checked(record['path'], record['sha256'])\nprotected = p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))\nassert protected['pass'] and protected['entry_count'] == 147\nscripts = []\nfor name in ('close_after_release.py','collect_closure.py','stop_remote.sh','analyze_prefix.py',\n             'cross_contract.py','analyze_closed.py','compare_curate.py','close_postrun.py'):\n    path = checked(RAW/name)\n    text = path.read_text()\n    if name.endswith('.py'):\n        ast.parse(text)\n    scripts.append(dict(path=str(path), sha256=refs[str(path)], content=text))\ndef write(name, value):\n    with (OUT/name).open('x') as handle:\n        json.dump(value, handle, indent=2, allow_nan=False)\nfor name in ('actual_qualification.json','actual_input_witness.json','single_run_review.json',\n             'completion_receipt.json','local_cleanup.json','remote_stop.json',\n             'collection_closure.json','analysis_closure.json'):\n    path = checked(RAW/name)\n    with (OUT/name).open('xb') as handle:\n        handle.write(path.read_bytes())\n    assert (OUT/name).read_bytes() == path.read_bytes()\nwrite('matched_comparison.json', dict(kind='d465_matched_frozen_w0_candidate_v1',\n    source_commit=read(RAW/'launch_gate.json')['head'], candidate=current,\n    previous_six_system_results=comparison['results'], previous_candidate=prior['candidate'], reference=comparison['reference'],\n    matched_contract_sha256=contract_sha, native_tokens=audit['native_tokens'],\n    actual_unique_adapters=len({r['adapter_id'] for r in rows.values()}),\n    candidate_relative_observations=differences, same_backend_output_audits=digests,\n    activation_partition=partition, remote=review['remote'],\n    diagnostic_w0_budget_ratio=current['physical_gpu_seconds']/comparison['reference']['B_gpu_seconds'],\n    full_g1_g2_complete=False, numerical_correctness_qualified=False, confidence_interval=None,\n    caveats=['Known-workload single-run observations; no significance or independent holdout claim.',\n        'Same-backend changed output digests are retained without an assumed numerical cause.',\n        'W0 budget check is descriptive, not the required W1/W2 G2 comparison.',\n        'No repeat or significance claim; the failed common SLO point is retained.',\n        'Old rows and nonfeasible systems retained; no baseline rerun or tuning.'],\n    refs=[dict(path=path,sha256=sha) for path,sha in refs.items()]))\nwrite('postrun_analysis_sources.json', dict(scripts=scripts))\nwrite('postrun_delivery_verification.json', dict(passed=True, protected=protected,\n    verified_refs=len(refs), input_qualification_refs=len(qualification['refs']),\n    source_backups=len(scripts), scope=identity, no_figures=True))\nprint(json.dumps(dict(passed=True, candidate=current, differences=differences,\n    output_changes={k:v['changed'] for k,v in digests.items()}, verified_refs=len(refs),\n    activation_partition=partition, scope=identity), indent=2))\n\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/close_postrun.py",
+      "sha256": "f06818a74b6268be5acda164e4122c2114cd8e1213cdc018a93c25faffffed3a",
+      "content": "\"\"\"Stop only a captured identical auxiliary after reading actual recursive members.\"\"\"\nimport json\nfrom pathlib import Path\nimport subprocess\nimport sys\nROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nRAW=Path(__file__).resolve().parent\nsys.path.insert(0,str(ROOT))\nfrom scripts import ieee_tc_preflight as p\nname=sys.argv[1]\nassert name in ('curation','storage','backup_result','final_verify')\nexpected=json.loads((RAW/(name+'_identity.json')).read_text())\nassert p.scope_still_owned(expected)\ngroup=Path(expected['path'])\nmembers={str(x):x.read_text().split() for x in group.rglob('cgroup.procs')}\nassert members and all(not values for values in members.values())\nresources={k:(group/k).read_text().strip() for k in ('memory.peak','memory.events','memory.swap.current')}\nassert p.scope_still_owned(expected)\nsubprocess.run(['systemctl','--user','stop',expected['unit']],check=True)\nassert not group.exists()\nresult=dict(passed=True,identity=expected,resources=resources,actual_recursive_procs_empty=True,\n    source_sha256=p.digest(Path(__file__)))\nwith (RAW/(name+'_closure.json')).open('x') as f:json.dump(result,f,indent=2)\nprint(json.dumps(result))\n\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/compress_closed.py",
+      "sha256": "f758b7b8330e0480be72ae1e14e57771b961197f69baf7ddc49a7a858c6fd5e0",
+      "content": "\"\"\"Invoke existing lossless archiver for one explicitly closed D465 source.\"\"\"\nimport json\nfrom pathlib import Path\nimport subprocess\nimport sys\nROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nRAW=Path(__file__).resolve().parent\nsys.path.insert(0,str(ROOT))\nfrom scripts import ieee_tc_preflight as p\nidentity=p.scope_identity(p.cg_path().name)\nwith (RAW/'storage_identity.json').open('x') as f:json.dump(identity,f,indent=2)\nassert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()\nsource=RAW/'7b_full_w0/launch.launch/physical_deployment/main_outcome.json'\nrefs=json.loads((RAW/'actual_qualification.json').read_text())['refs']\nexpected=next(r['sha256'] for r in refs if r['path']==str(source))\nassert p.digest(source)==expected\nseal=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json')\nassert p.verify_seal(seal)['pass']\nsubprocess.run([sys.executable,str(ROOT/'scripts/ieee_tc/compress_closed_main_outcomes.py'),\n    '--closed-run','d465_20261012/7b_full_w0','--receipt',\n    str(ROOT/'paper_results/ieee_tc/storage/20261012_d465_lossless_compression.json')],check=True)\nassert p.verify_seal(seal)['pass']\n\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/final_verify.py",
+      "sha256": "fe79d066945fd41c6c82503417438f22399b33af99e6aed6b3f833b0335a3c6f",
+      "content": "\"\"\"D465 verify existing curated evidence, explicit archive mapping and owned closure.\"\"\"\nimport ast\nimport gzip\nimport hashlib\nimport json\nimport shutil\nimport subprocess\nimport sys\nfrom pathlib import Path\nROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nRAW=Path(__file__).resolve().parent\nOUT=ROOT/'paper_results/ieee_tc/p2_backend/d465_full_w0'\nsys.path.insert(0,str(ROOT))\nfrom scripts import ieee_tc_preflight as p\ndef read(path):return json.loads(path.read_text())\ndef write(path,value):\n    with path.open('x') as f:json.dump(value,f,indent=2,allow_nan=False)\nscope=p.scope_identity(p.cg_path().name)\nwrite(RAW/'final_verify_identity.json',scope)\nassert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()\nassert subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()=='601bcd39da9bf61c496494dcdccd6e407ea669a4'\narchive_path=ROOT/'paper_results/ieee_tc/storage/20261012_d465_lossless_compression.json'\narchive=read(archive_path)\nassert archive['source_archive_round_trip_verified'] and len(archive['entries'])==1\nentry=archive['entries'][0]\nassert entry['removed_uncompressed_duplicate']\nassert entry['source_sha256']==entry['first_roundtrip_sha256']==entry['second_roundtrip_sha256']\nassert p.digest(Path(entry['archive']))==entry['archive_sha256']\nh=hashlib.sha256()\nwith gzip.open(entry['archive'],'rb') as f:\n    for block in iter(lambda:f.read(1024*1024),b''):h.update(block)\nassert h.hexdigest()==entry['source_sha256']\nverified={}\ndef check(ref):\n    path=Path(ref['path'])\n    if str(path) in verified:\n        assert verified[str(path)]==ref['sha256']\n        return\n    if path.exists():actual=p.digest(path)\n    else:\n        assert str(path)==entry['source']\n        actual=h.hexdigest()\n    assert actual==ref['sha256'],str(path)\n    verified[str(path)]=actual\nfor name in ('input_qualification.json','actual_qualification.json','actual_input_witness.json',\n             'single_run_review.json','matched_comparison.json'):\n    row=read(OUT/name)\n    for ref in row.get('refs',[])+row.get('source_refs',[]):check(ref)\nclosures={}\nfor name in ('cpu','qualification','backup','collection','analysis','curation','storage'):\n    path=RAW/(name+'_closure.json')\n    row=read(path)\n    assert row['passed'] and row['actual_recursive_procs_empty'] and not Path(row['identity']['path']).exists()\n    closures[name]=row\nlocal=read(RAW/'local_cleanup.json')\nassert all(not Path(local[key]['path']).exists() for key in ('identity','service_aux'))\nassert read(RAW/'remote_stop.json')['all_owned_units_inactive']\nsamples=[]\nwith (RAW/'7b_full_w0/launch.launch/watchdog.jsonl').open() as f:\n    for line in f:\n        row=json.loads(line)\n        if row['event']=='resource_sample':samples.append(row)\nassert len(samples)==4075 and all(not r['decision']['abort_reasons'] for r in samples)\nassert all(r['service']['memory.high']==72*p.GIB and r['service']['memory.max']==80*p.GIB\n    and r['service']['memory.swap.max']==2*p.GIB for r in samples)\njournal=subprocess.check_output(['journalctl','--user','-u',\n    'primelora-tc-svc-ef869b7006dd4f91a3e9b513158049e2.scope','--no-pager','-o','short-iso'],text=True)\nseal=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json')\nprotected=p.verify_seal(seal)\nassert protected['pass'] and protected['entry_count']==147\nhelpers=[]\nfor name in ('analyze_prefix.py','cross_contract.py','analyze_closed.py','compare_curate.py',\n             'close_postrun.py','compress_closed.py','final_verify.py'):\n    path=RAW/name\n    text=path.read_text();ast.parse(text)\n    helpers.append(dict(path=str(path),sha256=p.digest(path),content=text))\nresult=dict(kind='d465_closed_full4000_final_verification_v1',passed=True,\n    source_execution_sha='601bcd39da9bf61c496494dcdccd6e407ea669a4',\n    source_result_sha256=read(RAW/'collection_receipt.json')['source_sha256'],\n    protected=protected,verified_source_refs=len(verified),closures=closures,\n    actual_service_limits_all_samples_match=True,\n    warnings=sum(bool(r['decision']['warnings']) for r in samples),\n    minimum_disk_free_bytes=min(f['free_bytes'] for r in samples for f in r['filesystems']),\n    inotify_warnings=[line for line in journal.splitlines() if 'inotify watch' in line],\n    no_environment_modification=True,absence_of_environmental_noise_proven=False,\n    storage_receipt=dict(path=str(archive_path),sha256=p.digest(archive_path)),\n    archived_source_uncompressed_sha_verified=True,free_bytes=shutil.disk_usage(ROOT).free,\n    metric_outcome=dict(joint_good=3790,required=3800,observed_protocol_feasible=False,\n        performance_hypothesis_accepted=False,no_repeat=True),\n    whole_goal_complete=False,no_figures=True,scope=scope,\n    refs=[dict(path=key,sha256=value) for key,value in verified.items()],\n    helper_sources=helpers)\nwrite(OUT/'final_verification.json',result)\nprint(json.dumps(dict(passed=True,verified_refs=len(verified),free_bytes=result['free_bytes'],\n    warnings=result['warnings'],inotify_warning_count=len(result['inotify_warnings']),scope=scope)))\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/final_verify_v2.py",
+      "sha256": "95a04f710c5e4e04062fa463ebbfe4241aa3ab159bac5b4c8e9af4aec2d04ce7",
+      "content": "\"\"\"D465 verify existing curated evidence, explicit archive mapping and owned closure.\"\"\"\nimport ast\nimport gzip\nimport hashlib\nimport json\nimport shutil\nimport subprocess\nimport sys\nfrom pathlib import Path\nROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nRAW=Path(__file__).resolve().parent\nOUT=ROOT/'paper_results/ieee_tc/p2_backend/d465_full_w0'\nsys.path.insert(0,str(ROOT))\nfrom scripts import ieee_tc_preflight as p\ndef read(path):return json.loads(path.read_text())\ndef write(path,value):\n    with path.open('x') as f:json.dump(value,f,indent=2,allow_nan=False)\nscope=p.scope_identity(p.cg_path().name)\nwrite(RAW/'final_verify_v2_identity.json',scope)\nassert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()\nassert subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()=='601bcd39da9bf61c496494dcdccd6e407ea669a4'\narchive_path=ROOT/'paper_results/ieee_tc/storage/20261012_d465_lossless_compression.json'\narchive=read(archive_path)\nassert archive['source_archive_round_trip_verified'] and len(archive['entries'])==1\nentry=archive['entries'][0]\nassert entry['removed_uncompressed_duplicate']\nassert entry['source_sha256']==entry['first_roundtrip_sha256']==entry['second_roundtrip_sha256']\nassert p.digest(Path(entry['archive']))==entry['archive_sha256']\nh=hashlib.sha256()\nwith gzip.open(entry['archive'],'rb') as f:\n    for block in iter(lambda:f.read(1024*1024),b''):h.update(block)\nassert h.hexdigest()==entry['source_sha256']\nverified={}\ndef check(ref):\n    path=Path(ref['path'])\n    if str(path) in verified:\n        assert verified[str(path)]==ref['sha256']\n        return\n    if path.exists():actual=p.digest(path)\n    else:\n        assert str(path)==entry['source']\n        actual=h.hexdigest()\n    assert actual==ref['sha256'],str(path)\n    verified[str(path)]=actual\nfor name in ('input_qualification.json','actual_qualification.json','actual_input_witness.json',\n             'single_run_review.json','matched_comparison.json'):\n    row=read(OUT/name)\n    for ref in row.get('refs',[])+row.get('source_refs',[]):check(ref)\nclosures={}\nfor name in ('cpu','qualification','backup','collection','analysis','curation','storage','final_verify'):\n    path=RAW/(name+'_closure.json')\n    row=read(path)\n    assert row['passed'] and row['actual_recursive_procs_empty'] and not Path(row['identity']['path']).exists()\n    closures[name]=row\nlocal=read(RAW/'local_cleanup.json')\nassert all(not Path(local[key]['path']).exists() for key in ('identity','service_aux'))\nassert read(RAW/'remote_stop.json')['all_owned_units_inactive']\nsamples=[]\nwith (RAW/'7b_full_w0/launch.launch/watchdog.jsonl').open() as f:\n    for line in f:\n        row=json.loads(line)\n        if row['event']=='resource_sample':samples.append(row)\nassert len(samples)==4075 and all(not r['decision']['abort_reasons'] for r in samples)\nassert all(r['service']['memory.high']==72*p.GIB and r['service']['memory.max']==80*p.GIB\n    and r['service']['memory.swap.max']==2*p.GIB for r in samples)\njournal=subprocess.check_output(['journalctl','--user','-u',\n    'primelora-tc-svc-ef869b7006dd4f91a3e9b513158049e2.scope','--no-pager','-o','short-iso'],text=True)\nseal=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json')\nprotected=p.verify_seal(seal)\nassert protected['pass'] and protected['entry_count']==147\nhelpers=[]\nfor name in ('analyze_prefix.py','cross_contract.py','analyze_closed.py','compare_curate.py',\n             'close_postrun.py','compress_closed.py','final_verify.py','final_verify_v2.py','close_final_v2.py'):\n    path=RAW/name\n    text=path.read_text();ast.parse(text)\n    helpers.append(dict(path=str(path),sha256=p.digest(path),content=text))\nresult=dict(kind='d465_closed_full4000_final_verification_v1',passed=True,\n    source_execution_sha='601bcd39da9bf61c496494dcdccd6e407ea669a4',\n    source_result_sha256=read(RAW/'collection_receipt.json')['source_sha256'],\n    protected=protected,verified_source_refs=len(verified),closures=closures,\n    actual_service_limits_all_samples_match=True,\n    warnings=sum(bool(r['decision']['warning']) for r in samples),\n    minimum_disk_free_bytes=min(f['free_bytes'] for r in samples for f in r['filesystems']),\n    inotify_warnings=[line for line in journal.splitlines() if 'inotify watch' in line],\n    no_environment_modification=True,absence_of_environmental_noise_proven=False,\n    storage_receipt=dict(path=str(archive_path),sha256=p.digest(archive_path)),\n    archived_source_uncompressed_sha_verified=True,free_bytes=shutil.disk_usage(ROOT).free,\n    metric_outcome=dict(joint_good=3790,required=3800,observed_protocol_feasible=False,\n        performance_hypothesis_accepted=False,no_repeat=True),\n    whole_goal_complete=False,no_figures=True,scope=scope,\n    analysis_correction='Initial final_verify used absent warnings; actual schema is singular warning. Original helper/error/closure retained. No raw measurement or gate changed.',\n    refs=[dict(path=key,sha256=value) for key,value in verified.items()],\n    helper_sources=helpers)\nwrite(OUT/'final_verification.json',result)\nprint(json.dumps(dict(passed=True,verified_refs=len(verified),free_bytes=result['free_bytes'],\n    warnings=result['warnings'],inotify_warning_count=len(result['inotify_warnings']),scope=scope)))\n\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d465_20261012/close_final_v2.py",
+      "sha256": "b1020f7ab679a58c63eba33e3f48e37cfd30b838cd7f0b2a32827a1483d6a3dd",
+      "content": "\"\"\"Stop only a captured identical auxiliary after reading actual recursive members.\"\"\"\nimport json\nfrom pathlib import Path\nimport subprocess\nimport sys\nROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nRAW=Path(__file__).resolve().parent\nsys.path.insert(0,str(ROOT))\nfrom scripts import ieee_tc_preflight as p\nname=sys.argv[1]\nassert name in ('final_verify_v2','backup_result')\nexpected=json.loads((RAW/(name+'_identity.json')).read_text())\nassert p.scope_still_owned(expected)\ngroup=Path(expected['path'])\nmembers={str(x):x.read_text().split() for x in group.rglob('cgroup.procs')}\nassert members and all(not values for values in members.values())\nresources={k:(group/k).read_text().strip() for k in ('memory.peak','memory.events','memory.swap.current')}\nassert p.scope_still_owned(expected)\nsubprocess.run(['systemctl','--user','stop',expected['unit']],check=True)\nassert not group.exists()\nresult=dict(passed=True,identity=expected,resources=resources,actual_recursive_procs_empty=True,\n    source_sha256=p.digest(Path(__file__)))\nwith (RAW/(name+'_closure.json')).open('x') as f:json.dump(result,f,indent=2)\nprint(json.dumps(result))\n\n\n"
+    }
+  ]
+}
