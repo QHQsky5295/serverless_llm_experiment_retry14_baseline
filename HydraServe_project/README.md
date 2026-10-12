@@ -1,5 +1,19 @@
 # HydraServe Reproduction Gate
 
+## Current IEEE TC work (2026-10-13)
+
+The May decision below is historical, not the current qualification outcome.
+The request-identity omission does not by itself require replacing scheduler
+semantics. Necessary isolated platform and LoRA-coordinate adaptation is ongoing;
+the unrelated existing k3s cluster is not used or modified. Retain native modified
+vLLM 0.4.2, pipeline, overlap and consolidation; no baseline performance tuning.
+See [D479 adaptation evidence](../docs/ieee_tc/D479_HYDRASERVE_LORA_BINDING_ADAPTATION.md).
+CPU ownership tests and single-GPU NVML access have passed in their limited
+scopes. Native GPU/numerical correctness and performance are NOT yet qualified.
+Official source remains clean; the new runtime component is not installed yet.
+
+## Historical May gate (retained)
+
 HydraServe is tracked as a new serverless LLM inference candidate for the
 2026-05-18 baseline campaign.
 
