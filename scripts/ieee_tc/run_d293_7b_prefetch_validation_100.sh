@@ -402,6 +402,13 @@ case "${1:-d293}" in
     SCENARIO=tc_ieee_elastic_locality
     PREFIX_COUNT=1000
     ;;
+  d453)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/elastic_locality_qualification/d453_20261012/7b_elastic_locality_w0
+    CONFIG=configs/ieee_tc/20261012_d453_7b_elastic_locality_w0.yaml
+    TAG=d453_7b_elastic_locality_w0
+    SCENARIO=tc_ieee_elastic_locality
+    PREFIX_COUNT=
+    ;;
   *) echo 'Unknown frozen campaign identity; no arbitrary output override' >&2; exit 2 ;;
 esac
 [[ $# -le 1 ]] || exit 2

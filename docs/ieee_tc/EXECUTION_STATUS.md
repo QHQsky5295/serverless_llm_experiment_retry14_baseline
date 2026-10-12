@@ -1,4 +1,4 @@
-# IEEE TC execution status — D452 ElasticLocality original1000 compatibility
+# IEEE TC execution status — D453 ElasticLocality full4000 W0 preregistered
 
 Updated 2026-10-12. Current checkpoint, NOT a replacement experiment plan.
 Full prior status is byte-identically archived in EXECUTION_HISTORY_THROUGH_D448.md,
@@ -31,7 +31,24 @@ entries are not current instructions. No evidence or approved task was removed.
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D452 original1000 completed and delivery verified
+## Current action — D453 full4000 W0 prepared, not yet launched
+
+Previousturn substantiveprogress: D452 actual1000closure/audit/backup, no blocker.
+D452 checkpoint594c3e026d2c45465f1cad462ae7cad8271c2050 pushed and remoteSHAequal.
+D453_ELASTICLOCALITY_FULL_W0.md registers one unchangedconfiguration full4000:
+new output/NVMe/HOST paths and existinglauncher d453/PREFIX_COUNTempty only.
+No runtime/algorithm/safety/testsource change; no baselineperformanceoptimization.
+Exact D435 original4000 entries,132actuallogicaladapters/458224targettokens,
+fullviewSHAa5331be2e2204483f18206825d9aaa18cbaa259fe0babfc303f989055819430d.
+20 replaytests passed0.678s; shell/Python syntax/configequality/source checks pass.
+Protected147/protocols/userfiles/D452sealedresult intact. CPUaux1/2 exactidentity/
+actualrecursiveemptytreeclosed, high/max/OOM/swap0. Curated
+elastic_locality/d453_full_input_qualification.json. Next pushcheckpoint andfresh
+safety/remote gates, then launch once. No GPUtasklive and no remoterepublish.
+Afterclosureaudit, compare samecontracts and continue7BW1/W2/G2 before3B;
+HydraServeexternalqualification and allfullscope retained, not repeatD450–D452.
+
+## Previous action — D452 original1000 completed and delivery verified
 
 Previous goal turn made substantive progress: actualD451 closure/audit and backup,
 not no-progress or a wait. Commit520e23af5f9e4d82b630a252f567a2c7779df331 was pushed
