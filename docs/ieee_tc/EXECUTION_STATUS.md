@@ -1,4 +1,4 @@
-# IEEE TC execution status — D476 audited; HydraServe next; 7B OPEN
+# IEEE TC execution status — D477 isolated GPU container verified; HydraServe native OPEN
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement plan.
 Complete preceding status is byte-identically archived in
@@ -33,7 +33,81 @@ not current instructions. No evidence or approved task was removed.
 - Every optimization: logs/history + online primary sources + one falsifiable
   hypothesis + tests/minimal validation/new full replay. IEEE nine formulas fixed.
 
-## Current action — D476 audited, saving before HydraServe
+## Current action — D477 isolated container witness complete; native HydraServe next
+
+Latest user order remains HydraServe necessary faithful adaptation/results BEFORE
+another PrimeLoRA optimization. D476 is sealed, not repeated. Existing unrelated
+k3s untouched; ownership already answered, do not ask it again. Whole goal ACTIVE.
+
+D477 real rootless GPU-container qualification passed after retaining four
+launcher/containment failures. Podman3.4.4 + NVIDIA runtime1.19 + runc1.3.3,
+official Ubuntu22.04 image80,652,148B pulled once with existing proxy and reused.
+Exact GPU UUID8f51f82e-dce8-22cf-1693-e62b8464f946 only; native nvidia-smi exit0.
+Actual worker in pre-established bounded parent, child memory.max134217728,
+swap.max0,pids.max128; entrypoint affinity2,3,26,27 verified before probe.
+Final parentpeak141168640B,high/max/OOM/swap0; container and exact captured
+pause/unit contexts released. This is NVML only, NOT CUDA/model/LoRA/numerical,
+Kubernetes or whole-service-containment qualification, and no performance row.
+
+Retained failures: direct pull omitted configured proxy/timed out; old Podman
+NoCgroups runtime unsupported; runroot>50chars rejected; actual container CPU
+affinity reset to48CPUs despite outertaskset (contained memory but rejected).
+Correction binds at containerentry BEFORE workload, not after model init.
+No global software/config/driver change, no native HydraServe source change,
+baseline tuning, model/trace/pool creation, remote activity or new figures.
+
+Still only memory/pids delegated to qhq, no cpu/cpuset; sudo-n requirespassword.
+Official rootless kind requires CPUdelegation. Pause automatically leaves parent
+for its own user scope; it was identity-owned/closed, but must count/contain it
+before a real full-service qualification. Do not bypass guard or claim all workers
+qualified from this NVML check. Next inspect actual native platform interfaces/
+isolated orchestration options preserving scheduler/pipeline/consolidation and
+startup overlap. Necessary non-cloud lifecycle port must not fake K8s responses
+or replace HydraServe with barevLLM. If faithful route needs administrator resource
+delegation, report exact minimum coordination; do not mutate unrelated cluster.
+D447 global/local LoRA names and shared/new-layer manager binding still need
+native execution proof. Do not repeat completed NVML/D447/old baseline results.
+
+BASE checkpoint504cd97ac4a50d338fde3ab5c7ed82eddd312ba5 pushed/independentremoteequal;
+3explicitfiles,100source hashes and archive roundtrip verified,5existing CPU smoke
+tests passed,protected147/secrets/diff checks pass. Raw d477_20261012;
+BASE docs/ieee_tc/D477_ISOLATED_GPU_CONTAINER_QUALIFICATION.md and curatedhydraserve/d477.
+All owned container/auxiliary tasks closed; GPUcomputeempty. Existing userdirt preserved.
+Storage reused explicit closed-failure archiver,188305408B lossless recovery;
+failure status unchanged/two roundtripSHAs. Image leaves~150.06GiB: fresh150/100GiB
+and predictedgrowth gates before build; no promise of largeimage/build capacity.
+All W1/W2/G2,3B,dLoRA B6,A1-A5,S1-S13,CE/docs/laterfigures remain required.
+
+## Prior action — D476 sealed; HydraServe isolated qualification resumes
+
+D476 checkpoint complete:22explicitfiles pushed as
+e909ce014d396ff45b72b242aaa19d61ac10197c,independentremoteHEADequal.
+22publication smokechecks pass;source/protected/diff/secrets checks passed.
+AllD476auxiliary scopes exactidentity/actualrecursive-empty closed,high/max/OOM/swap0.
+No GPU orremote tasklive. Usermanifestneverstaged,BASEunchanged,k3suntouched.
+Do not rerunD476/D475/previousaudits. Now HydraServe necessary isolated adaptation
+and nativequalification; no newPrimeLoRAcandidate beforeactualbaseline work.
+
+HydraServe next evidence read this turn: all three BASE D447/reuse/layer documents,
+official README/Dockerfile,resource_manager create_pods/utils deployment/main;
+official NVIDIA CDI,K3s rootless andkind rootless docs checked online2026-10-12.
+Existing user delegated controllers still onlymemory/pids,notcpu/cpuset. Official
+kind/rootless Kubernetes requires appropriate CPU delegation; do not claim a
+GPUcontainer alone proves Kubernetes/workersafety. NVIDIA runtime supports CDI
+names through NVIDIA_VISIBLE_DEVICES even with non-CDI-native engines,so old
+Podman3.4.4 alone is not disqualification. No globalruntime/config/clusterchange.
+Next bounded project-owned actual container/GPU/resource qualification with
+explicit capture/cleanup; firstrecoverstorage above150GiB. D140prefix1 remains
+139179561B plaintext,launchfalse butactualreleased/servicegone,eligible for the
+existing explicit closed-failure lossless archiver after ownership/refchecks.
+This is a possible narrow storage recovery,NOT permission to erasefailed evidence;
+large backend/image work still needs measuredgrowth/headroom,notjust29MBfloorfix.
+No imagepull/containerstart/build/newmodel orGPUqualification yet thisturn.
+Keep official modifiedvLLM/pipeline/consolidation; necessaryLoRAlayer/managerbinding
+adaptation stillOPEN. Do not substitute a fake K8s API/barevLLM as completeHydraServe.
+Feishuconfigabsent,notificationnoop. WholegoalACTIVE; no taskstillrunning.
+
+### D476 sealed result
 
 D476 finished once; actual GPU release/service removal verified, captured owned
 start/aux and remote services/monitor closed. All4000 original source/input/adapter/
