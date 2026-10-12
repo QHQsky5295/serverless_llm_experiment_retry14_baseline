@@ -1,0 +1,86 @@
+{
+  "passed": true,
+  "source_count": 54,
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+  },
+  "preserved_identities": {
+    "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "scope": {
+    "unit": "primelora-tc-aux-d4610000000000000000000000000004.scope",
+    "invocation_id": "d8e97591f2624918b016ba52c0594f20",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4610000000000000000000000000004.scope",
+    "inode": 23331594
+  },
+  "closures": [
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-d4610000000000000000000000000001.scope",
+        "invocation_id": "3544f7e6f29a4602a98cc280236a606d",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4610000000000000000000000000001.scope",
+        "inode": 23328940
+      },
+      "actual_recursive_procs_empty": true,
+      "resources": {
+        "memory.peak": "301912064",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      }
+    },
+    {
+      "unit": "primelora-tc-aux-d461a001.scope",
+      "invocation_id": "67a8361e1bcf4017aab40ae0f59b3cd5",
+      "inode": 23328740,
+      "actual_recursive_procs_empty": true,
+      "resources": {
+        "memory.peak": "284663808",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "failed_attempt": "ValueError: not an owned TC service/test UUID scope; before analysis/data writes"
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-d4610000000000000000000000000002.scope",
+        "invocation_id": "40d4f4e2c6d1418086e33127d9f7bb5f",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4610000000000000000000000000002.scope",
+        "inode": 23330957
+      },
+      "actual_recursive_procs_empty": true,
+      "resources": {
+        "memory.peak": "291446784",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "failed_attempt": "Counter.most_common ties depend on set iteration/hash seed; no output or experiment mutation"
+    },
+    {
+      "identity": {
+        "unit": "primelora-tc-aux-d4610000000000000000000000000003.scope",
+        "invocation_id": "c3f4d6d7c6734f7297ca80feec5122c5",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4610000000000000000000000000003.scope",
+        "inode": 23331394
+      },
+      "actual_recursive_procs_empty": true,
+      "resources": {
+        "memory.peak": "290762752",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "failed_attempt": "183 whole add-function frames != exact pin-query line; no outputs or runtime changes"
+    }
+  ],
+  "free_bytes": 161130483712,
+  "executed_source_sha256": "bc3696ca9fc51768648e242856d3dd8fcbde4f433fd812566aaf90ebd76db403"
+}

@@ -1,0 +1,2199 @@
+{
+  "kind": "d461_retained_native_frame_evidence_v1",
+  "passed": true,
+  "native_workers": 10,
+  "request_window_samples": 1680,
+  "all_phase_samples": 1761,
+  "missing_main": 0,
+  "truncated_main": 4,
+  "inclusive_business": [
+    {
+      "key": [
+        "faaslora/scheduling/core_interleave.py",
+        "process_input_queue"
+      ],
+      "count": 793
+    },
+    {
+      "key": [
+        "faaslora/scheduling/core_interleave.py",
+        "_handle"
+      ],
+      "count": 283
+    },
+    {
+      "key": [
+        "faaslora/memory/gpu_monitor.py",
+        "ieee_gpu_reference"
+      ],
+      "count": 283
+    },
+    {
+      "key": [
+        "faaslora/memory/gpu_monitor.py",
+        "add"
+      ],
+      "count": 183
+    },
+    {
+      "key": [
+        "faaslora/memory/gpu_monitor.py",
+        "_ieee_lora_host_inventory"
+      ],
+      "count": 183
+    },
+    {
+      "key": [
+        "faaslora/memory/residency_manager.py",
+        "_load_and_acquire"
+      ],
+      "count": 93
+    },
+    {
+      "key": [
+        "faaslora/memory/gpu_monitor.py",
+        "host_allocation_check"
+      ],
+      "count": 74
+    },
+    {
+      "key": [
+        "faaslora/scheduling/vllm_ieee_scheduler.py",
+        "_core_prepare_host"
+      ],
+      "count": 65
+    },
+    {
+      "key": [
+        "faaslora/memory/residency_manager.py",
+        "proactive_host_prepare_and_acquire"
+      ],
+      "count": 65
+    },
+    {
+      "key": [
+        "faaslora/memory/residency_manager.py",
+        "demand_load_and_acquire"
+      ],
+      "count": 50
+    },
+    {
+      "key": [
+        "faaslora/memory/gpu_monitor.py",
+        "demand_loader"
+      ],
+      "count": 22
+    },
+    {
+      "key": [
+        "faaslora/memory/gpu_monitor.py",
+        "file_host_loader"
+      ],
+      "count": 19
+    },
+    {
+      "key": [
+        "faaslora/memory/residency_manager.py",
+        "prepare_file_host_and_hold"
+      ],
+      "count": 19
+    },
+    {
+      "key": [
+        "faaslora/scheduling/vllm_ieee_scheduler.py",
+        "_core_pending_gpu_reference"
+      ],
+      "count": 17
+    },
+    {
+      "key": [
+        "faaslora/memory/gpu_monitor.py",
+        "preparation_loader"
+      ],
+      "count": 17
+    },
+    {
+      "key": [
+        "faaslora/memory/gpu_monitor.py",
+        "replacement_cost_provider"
+      ],
+      "count": 9
+    },
+    {
+      "key": [
+        "faaslora/memory/gpu_monitor.py",
+        "__torch_dispatch__"
+      ],
+      "count": 8
+    },
+    {
+      "key": [
+        "faaslora/preloading/preloading_planner.py",
+        "validate_native_gpu_epoch"
+      ],
+      "count": 7
+    },
+    {
+      "key": [
+        "faaslora/memory/gpu_monitor.py",
+        "completion_fence"
+      ],
+      "count": 5
+    },
+    {
+      "key": [
+        "faaslora/memory/residency_manager.py",
+        "register_preparation_plan"
+      ],
+      "count": 3
+    },
+    {
+      "key": [
+        "faaslora/memory/residency_manager.py",
+        "acquire"
+      ],
+      "count": 3
+    },
+    {
+      "key": [
+        "sitecustomize.py",
+        "_faaslora_vllm_worker_shutdown"
+      ],
+      "count": 3
+    },
+    {
+      "key": [
+        "faaslora/memory/gpu_monitor.py",
+        "_ieee_host_copy_contract"
+      ],
+      "count": 3
+    },
+    {
+      "key": [
+        "faaslora/memory/gpu_monitor.py",
+        "decide"
+      ],
+      "count": 3
+    },
+    {
+      "key": [
+        "faaslora/memory/residency_manager.py",
+        "release"
+      ],
+      "count": 2
+    },
+    {
+      "key": [
+        "faaslora/memory/gpu_monitor.py",
+        "_ieee_pinned_host_observation"
+      ],
+      "count": 1
+    },
+    {
+      "key": [
+        "faaslora/memory/gpu_monitor.py",
+        "<genexpr>"
+      ],
+      "count": 1
+    },
+    {
+      "key": [
+        "faaslora/memory/gpu_monitor.py",
+        "_ieee_pitched_host_copy"
+      ],
+      "count": 1
+    },
+    {
+      "key": [
+        "faaslora/memory/gpu_monitor.py",
+        "_ieee_copy2d_layout"
+      ],
+      "count": 1
+    },
+    {
+      "key": [
+        "faaslora/serving/vllm_wrapper.py",
+        "<module>"
+      ],
+      "count": 1
+    },
+    {
+      "key": [
+        "faaslora/serving/__init__.py",
+        "<module>"
+      ],
+      "count": 1
+    },
+    {
+      "key": [
+        "faaslora/serving/inference_engine.py",
+        "<module>"
+      ],
+      "count": 1
+    },
+    {
+      "key": [
+        "faaslora/preloading/preloading_planner.py",
+        "native_gpu_fallback_costs"
+      ],
+      "count": 1
+    },
+    {
+      "key": [
+        "faaslora/memory/residency_manager.py",
+        "_register_staged_host"
+      ],
+      "count": 1
+    }
+  ],
+  "nearest_business": [
+    {
+      "key": [
+        "",
+        "no_project_frame"
+      ],
+      "count": 883
+    },
+    {
+      "key": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/core_interleave.py",
+        "process_input_queue"
+      ],
+      "count": 510
+    },
+    {
+      "key": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+        "add"
+      ],
+      "count": 183
+    },
+    {
+      "key": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+        "ieee_gpu_reference"
+      ],
+      "count": 46
+    },
+    {
+      "key": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+        "demand_loader"
+      ],
+      "count": 14
+    },
+    {
+      "key": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+        "__torch_dispatch__"
+      ],
+      "count": 8
+    },
+    {
+      "key": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_planner.py",
+        "validate_native_gpu_epoch"
+      ],
+      "count": 7
+    },
+    {
+      "key": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+        "file_host_loader"
+      ],
+      "count": 6
+    },
+    {
+      "key": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+        "completion_fence"
+      ],
+      "count": 5
+    },
+    {
+      "key": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "proactive_host_prepare_and_acquire"
+      ],
+      "count": 4
+    },
+    {
+      "key": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/sitecustomize.py",
+        "_faaslora_vllm_worker_shutdown"
+      ],
+      "count": 3
+    },
+    {
+      "key": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+        "_ieee_host_copy_contract"
+      ],
+      "count": 3
+    },
+    {
+      "key": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "register_preparation_plan"
+      ],
+      "count": 1
+    },
+    {
+      "key": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+        "<genexpr>"
+      ],
+      "count": 1
+    },
+    {
+      "key": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+        "_ieee_copy2d_layout"
+      ],
+      "count": 1
+    },
+    {
+      "key": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "acquire"
+      ],
+      "count": 1
+    },
+    {
+      "key": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/serving/vllm_wrapper.py",
+        "<module>"
+      ],
+      "count": 1
+    },
+    {
+      "key": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+        "decide"
+      ],
+      "count": 1
+    },
+    {
+      "key": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "_load_and_acquire"
+      ],
+      "count": 1
+    },
+    {
+      "key": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "_register_staged_host"
+      ],
+      "count": 1
+    }
+  ],
+  "business_leaf": [
+    {
+      "frame": [
+        "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/threading.py",
+        "wait",
+        355
+      ],
+      "samples": 510
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+        "_process_engine_step",
+        1464
+      ],
+      "samples": 334
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/cuda/streams.py",
+        "synchronize",
+        254
+      ],
+      "samples": 209
+    },
+    {
+      "frame": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+        "add",
+        105
+      ],
+      "samples": 179
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/ops/triton_ops/lora_kernel_metadata.py",
+        "prepare_tensors",
+        122
+      ],
+      "samples": 58
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu/model_runner.py",
+        "prepare_inputs",
+        1283
+      ],
+      "samples": 30
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/triton/backends/nvidia/driver.py",
+        "__call__",
+        328
+      ],
+      "samples": 27
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu/buffer_utils.py",
+        "copy_to_uva",
+        128
+      ],
+      "samples": 27
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/filelock/_api.py",
+        "_audit_fork_safety",
+        1810
+      ],
+      "samples": 17
+    },
+    {
+      "frame": [
+        "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py",
+        "deepcopy",
+        118
+      ],
+      "samples": 14
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/ops/triton_ops/lora_shrink_op.py",
+        "_lora_shrink",
+        192
+      ],
+      "samples": 13
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/cuda/graphs.py",
+        "replay",
+        186
+      ],
+      "samples": 12
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/_tensor.py",
+        "__iter__",
+        1215
+      ],
+      "samples": 11
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/_ops.py",
+        "__call__",
+        875
+      ],
+      "samples": 10
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu/model_runner.py",
+        "sample",
+        1534
+      ],
+      "samples": 9
+    },
+    {
+      "frame": [
+        "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py",
+        "deepcopy",
+        127
+      ],
+      "samples": 8
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/model_executor/layers/utils.py",
+        "default_unquantized_gemm",
+        90
+      ],
+      "samples": 7
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/_ops.py",
+        "__call__",
+        1279
+      ],
+      "samples": 7
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/model_executor/parameter.py",
+        "load_merged_column_weight",
+        176
+      ],
+      "samples": 6
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/cuda/streams.py",
+        "record",
+        209
+      ],
+      "samples": 5
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu/async_utils.py",
+        "async_copy_to_np",
+        254
+      ],
+      "samples": 5
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/triton/runtime/cache.py",
+        "triton_key",
+        305
+      ],
+      "samples": 5
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/utils/gc_utils.py",
+        "freeze_gc_for_cudagraph_capture",
+        116
+      ],
+      "samples": 5
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu/sample/gumbel.py",
+        "gumbel_sample",
+        277
+      ],
+      "samples": 4
+    },
+    {
+      "frame": [
+        "/home/qhq/.cache/vllm/torch_compile_cache/torch_aot_compile/00a6dcd3662e0e7b89b33318d27215fee415ef7de83d955482bc98e8712c7847/inductor_cache/26/c26vqndqh3mnh2gn3acely6kcau5ztsc24jkwiessmo5pcgw2kof.py",
+        "call",
+        935
+      ],
+      "samples": 4
+    },
+    {
+      "frame": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/preloading/preloading_planner.py",
+        "validate_native_gpu_epoch",
+        1230
+      ],
+      "samples": 4
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/lora_model.py",
+        "from_lora_tensors",
+        157
+      ],
+      "samples": 4
+    },
+    {
+      "frame": [
+        "/home/qhq/.cache/vllm/torch_compile_cache/torch_aot_compile/00a6dcd3662e0e7b89b33318d27215fee415ef7de83d955482bc98e8712c7847/inductor_cache/26/c26vqndqh3mnh2gn3acely6kcau5ztsc24jkwiessmo5pcgw2kof.py",
+        "call",
+        966
+      ],
+      "samples": 4
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/model_executor/parameter.py",
+        "load_qkv_weight",
+        201
+      ],
+      "samples": 4
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/model_executor/parameter.py",
+        "load_row_parallel_weight",
+        230
+      ],
+      "samples": 4
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu/sample/sampler.py",
+        "__call__",
+        132
+      ],
+      "samples": 3
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/lora_model.py",
+        "from_lora_tensors",
+        162
+      ],
+      "samples": 3
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu/model_runner.py",
+        "prepare_inputs",
+        1300
+      ],
+      "samples": 3
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/utils/torch_utils.py",
+        "async_tensor_h2d",
+        719
+      ],
+      "samples": 3
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/utils/torch_utils.py",
+        "async_tensor_h2d",
+        732
+      ],
+      "samples": 3
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/ops/triton_ops/lora_shrink_op.py",
+        "_lora_shrink",
+        172
+      ],
+      "samples": 3
+    },
+    {
+      "frame": [
+        "<frozen importlib._bootstrap_external>",
+        "get_data",
+        1190
+      ],
+      "samples": 3
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/model_executor/models/utils.py",
+        "_load_module",
+        366
+      ],
+      "samples": 3
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/utils/gc_utils.py",
+        "freeze_gc_for_cudagraph_capture",
+        105
+      ],
+      "samples": 3
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu/model_runner.py",
+        "shutdown",
+        2266
+      ],
+      "samples": 3
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/utils/mem_utils.py",
+        "__exit__",
+        100
+      ],
+      "samples": 3
+    },
+    {
+      "frame": [
+        "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py",
+        "deepcopy",
+        134
+      ],
+      "samples": 3
+    },
+    {
+      "frame": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+        "add",
+        114
+      ],
+      "samples": 3
+    },
+    {
+      "frame": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+        "_ieee_host_copy_contract",
+        481
+      ],
+      "samples": 3
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu/sample/sampler.py",
+        "__call__",
+        180
+      ],
+      "samples": 3
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/utils/mem_utils.py",
+        "memory_profiling",
+        284
+      ],
+      "samples": 3
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu/cudagraph_utils.py",
+        "profile_cudagraph_memory",
+        866
+      ],
+      "samples": 3
+    },
+    {
+      "frame": [
+        "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/json/encoder.py",
+        "iterencode",
+        258
+      ],
+      "samples": 3
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/layers/base_linear.py",
+        "reset_lora",
+        160
+      ],
+      "samples": 3
+    },
+    {
+      "frame": [
+        "<frozen importlib._bootstrap_external>",
+        "_path_stat",
+        147
+      ],
+      "samples": 3
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu/model_states/default.py",
+        "prepare_attn",
+        197
+      ],
+      "samples": 2
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/lora_model.py",
+        "from_local_checkpoint",
+        277
+      ],
+      "samples": 2
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/utils/torch_utils.py",
+        "async_tensor_h2d",
+        723
+      ],
+      "samples": 2
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/layers/column_parallel_linear.py",
+        "set_lora",
+        347
+      ],
+      "samples": 2
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/punica_wrapper/punica_gpu.py",
+        "add_lora_logits",
+        309
+      ],
+      "samples": 2
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/utils/torch_utils.py",
+        "async_tensor_h2d",
+        721
+      ],
+      "samples": 2
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu/sample/gumbel.py",
+        "gumbel_sample",
+        305
+      ],
+      "samples": 2
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/layers/base_linear.py",
+        "reset_lora",
+        159
+      ],
+      "samples": 2
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/utils/mem_utils.py",
+        "memory_profiling",
+        298
+      ],
+      "samples": 2
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/cuda/graphs.py",
+        "capture_end",
+        169
+      ],
+      "samples": 2
+    },
+    {
+      "frame": [
+        "/home/qhq/.cache/vllm/torch_compile_cache/torch_aot_compile/00a6dcd3662e0e7b89b33318d27215fee415ef7de83d955482bc98e8712c7847/inductor_cache/26/c26vqndqh3mnh2gn3acely6kcau5ztsc24jkwiessmo5pcgw2kof.py",
+        "call",
+        1028
+      ],
+      "samples": 2
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu/input_batch.py",
+        "combine_sampled_and_draft_tokens",
+        476
+      ],
+      "samples": 2
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu/sample/gumbel.py",
+        "gumbel_sample",
+        304
+      ],
+      "samples": 2
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu/eplb_utils.py",
+        "wrapper",
+        27
+      ],
+      "samples": 2
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/utils/_device.py",
+        "__torch_function__",
+        122
+      ],
+      "samples": 2
+    },
+    {
+      "frame": [
+        "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pkgutil.py",
+        "_iter_file_finder_modules",
+        154
+      ],
+      "samples": 2
+    },
+    {
+      "frame": [
+        "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py",
+        "_deepcopy_dict",
+        221
+      ],
+      "samples": 2
+    },
+    {
+      "frame": [
+        "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py",
+        "_keep_alive",
+        231
+      ],
+      "samples": 2
+    },
+    {
+      "frame": [
+        "<string>",
+        "execution_fn",
+        386
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/ast.py",
+        "visit",
+        406
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/attention/backends/flash_attn.py",
+        "do_kv_cache_update",
+        1454
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.cache/vllm/torch_compile_cache/torch_aot_compile/00a6dcd3662e0e7b89b33318d27215fee415ef7de83d955482bc98e8712c7847/inductor_cache/26/c26vqndqh3mnh2gn3acely6kcau5ztsc24jkwiessmo5pcgw2kof.py",
+        "call",
+        994
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/utils/cache.py",
+        "remove_oldest",
+        200
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+        "<genexpr>",
+        213
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.cache/vllm/torch_compile_cache/torch_aot_compile/00a6dcd3662e0e7b89b33318d27215fee415ef7de83d955482bc98e8712c7847/inductor_cache/26/c26vqndqh3mnh2gn3acely6kcau5ztsc24jkwiessmo5pcgw2kof.py",
+        "call",
+        943
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+        "_ieee_copy2d_layout",
+        624
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu/model_runner.py",
+        "prepare_inputs",
+        1304
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/layers/vocab_parallel_embedding.py",
+        "reset_lora",
+        56
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+        "acquire",
+        2539
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py",
+        "_deepcopy_dict",
+        220
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/attention/backends/flash_attn.py",
+        "kernel",
+        113
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/punica_wrapper/punica_gpu.py",
+        "add_lora_logits",
+        320
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/model_manager.py",
+        "remove_adapter",
+        1197
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/cuda/streams.py",
+        "wait",
+        223
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu/sample/sampler.py",
+        "__call__",
+        133
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/layers/base_linear.py",
+        "set_lora",
+        183
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu/model_runner.py",
+        "execute_model",
+        1811
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/utils/mem_utils.py",
+        "current_memory_usage",
+        87
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/linecache.py",
+        "checkcache",
+        75
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py",
+        "_extract_get_pydantic_json_schema",
+        2688
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/layers/base_linear.py",
+        "set_lora",
+        186
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "<frozen importlib._bootstrap>",
+        "_call_with_frames_removed",
+        488
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/punica_wrapper/punica_gpu.py",
+        "add_lora_logits",
+        328
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/layers/column_parallel_linear.py",
+        "set_lora",
+        343
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/fx/experimental/proxy_tensor.py",
+        "wrapped",
+        1761
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py",
+        "_deepcopy_list",
+        196
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/lora_weights.py",
+        "optimize",
+        40
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "<frozen importlib._bootstrap_external>",
+        "_fill_cache",
+        1652
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py",
+        "deepcopy",
+        128
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/subprocess.py",
+        "communicate",
+        1196
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/model_executor/layers/vocab_parallel_embedding.py",
+        "weight_loader",
+        507
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu/model_runner.py",
+        "profile_run",
+        970
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py",
+        "_deepcopy_atomic",
+        172
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/cuda/memory.py",
+        "mem_get_info",
+        862
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/punica_wrapper/utils.py",
+        "convert_mapping",
+        123
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/pathlib.py",
+        "stat",
+        840
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/copy.py",
+        "_keep_alive",
+        242
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/model_manager.py",
+        "_create_merged_loras_inplace",
+        872
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/model_executor/models/utils.py",
+        "_load_module",
+        391
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/utils/torch_utils.py",
+        "async_tensor_h2d",
+        725
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu/cudagraph_utils.py",
+        "_teardown_profiling_state",
+        1025
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/torch/cuda/__init__.py",
+        "synchronize",
+        1219
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+        "add",
+        95
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/tvm_ffi/registry.py",
+        "list_global_func_names",
+        234
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.cache/vllm/torch_compile_cache/torch_aot_compile/00a6dcd3662e0e7b89b33318d27215fee415ef7de83d955482bc98e8712c7847/inductor_cache/26/c26vqndqh3mnh2gn3acely6kcau5ztsc24jkwiessmo5pcgw2kof.py",
+        "call",
+        983
+      ],
+      "samples": 1
+    },
+    {
+      "frame": [
+        "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu/model_runner.py",
+        "sample_tokens",
+        2048
+      ],
+      "samples": 1
+    }
+  ],
+  "pin_query_callers": [
+    {
+      "caller": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+        "ieee_gpu_reference",
+        1507
+      ],
+      "samples": 87
+    },
+    {
+      "caller": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+        "host_allocation_check",
+        1158
+      ],
+      "samples": 72
+    },
+    {
+      "caller": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+        "ieee_gpu_reference",
+        1518
+      ],
+      "samples": 10
+    },
+    {
+      "caller": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+        "replacement_cost_provider",
+        1272
+      ],
+      "samples": 6
+    },
+    {
+      "caller": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+        "file_host_loader",
+        1223
+      ],
+      "samples": 4
+    }
+  ],
+  "examples": [
+    {
+      "pid": 2643487,
+      "index": 29,
+      "at": 1278589.930785965,
+      "caller": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+        "ieee_gpu_reference",
+        1507
+      ],
+      "frames": [
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "add",
+          105
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "_ieee_lora_host_inventory",
+          158
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "ieee_gpu_reference",
+          1507
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "run_method",
+          510
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/executor/uniproc_executor.py",
+          "collective_rpc",
+          103
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "collective_rpc",
+          971
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "<lambda>",
+          1554
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "_invoke_utility_method",
+          1599
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "_handle_client_request",
+          1559
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/core_interleave.py",
+          "_handle",
+          64
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/core_interleave.py",
+          "process_input_queue",
+          97
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/core_interleave.py",
+          "process_input_queue",
+          130
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "run_busy_loop",
+          1407
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/fault_tolerance/engine_core_sentinel.py",
+          "run_with_fault_tolerance",
+          179
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "run_engine_core",
+          1352
+        ],
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/multiprocessing/process.py",
+          "run",
+          108
+        ],
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/multiprocessing/process.py",
+          "_bootstrap",
+          314
+        ],
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/multiprocessing/spawn.py",
+          "_main",
+          135
+        ],
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/multiprocessing/spawn.py",
+          "spawn_main",
+          122
+        ],
+        [
+          "<string>",
+          "<module>",
+          1
+        ]
+      ]
+    },
+    {
+      "pid": 2643487,
+      "index": 37,
+      "at": 1278605.938110064,
+      "caller": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+        "host_allocation_check",
+        1158
+      ],
+      "frames": [
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "add",
+          105
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "_ieee_lora_host_inventory",
+          158
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "host_allocation_check",
+          1158
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "_load_and_acquire",
+          2811
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "demand_load_and_acquire",
+          2608
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "ieee_gpu_reference",
+          1498
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "run_method",
+          510
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/executor/uniproc_executor.py",
+          "collective_rpc",
+          103
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "collective_rpc",
+          971
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "<lambda>",
+          1554
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "_invoke_utility_method",
+          1599
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "_handle_client_request",
+          1559
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/core_interleave.py",
+          "_handle",
+          64
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/core_interleave.py",
+          "process_input_queue",
+          97
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/core_interleave.py",
+          "process_input_queue",
+          130
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "run_busy_loop",
+          1407
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/fault_tolerance/engine_core_sentinel.py",
+          "run_with_fault_tolerance",
+          179
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "run_engine_core",
+          1352
+        ],
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/multiprocessing/process.py",
+          "run",
+          108
+        ],
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/multiprocessing/process.py",
+          "_bootstrap",
+          314
+        ],
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/multiprocessing/spawn.py",
+          "_main",
+          135
+        ],
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/multiprocessing/spawn.py",
+          "spawn_main",
+          122
+        ],
+        [
+          "<string>",
+          "<module>",
+          1
+        ]
+      ]
+    },
+    {
+      "pid": 2643487,
+      "index": 151,
+      "at": 1278834.162812734,
+      "caller": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+        "ieee_gpu_reference",
+        1518
+      ],
+      "frames": [
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "add",
+          105
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "_ieee_lora_host_inventory",
+          158
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "ieee_gpu_reference",
+          1518
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "run_method",
+          510
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/executor/uniproc_executor.py",
+          "collective_rpc",
+          103
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "collective_rpc",
+          971
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "<lambda>",
+          1554
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "_invoke_utility_method",
+          1599
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "_handle_client_request",
+          1559
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/core_interleave.py",
+          "_handle",
+          64
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/core_interleave.py",
+          "process_input_queue",
+          97
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/core_interleave.py",
+          "process_input_queue",
+          130
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "run_busy_loop",
+          1407
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/fault_tolerance/engine_core_sentinel.py",
+          "run_with_fault_tolerance",
+          179
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "run_engine_core",
+          1352
+        ],
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/multiprocessing/process.py",
+          "run",
+          108
+        ],
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/multiprocessing/process.py",
+          "_bootstrap",
+          314
+        ],
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/multiprocessing/spawn.py",
+          "_main",
+          135
+        ],
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/multiprocessing/spawn.py",
+          "spawn_main",
+          122
+        ],
+        [
+          "<string>",
+          "<module>",
+          1
+        ]
+      ]
+    },
+    {
+      "pid": 2645969,
+      "index": 69,
+      "at": 1278724.825645085,
+      "caller": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+        "replacement_cost_provider",
+        1272
+      ],
+      "frames": [
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "add",
+          105
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "_ieee_lora_host_inventory",
+          158
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "replacement_cost_provider",
+          1272
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "proactive_host_prepare_and_acquire",
+          3010
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "ieee_gpu_reference",
+          1341
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "run_method",
+          510
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/executor/uniproc_executor.py",
+          "collective_rpc",
+          103
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "collective_rpc",
+          971
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/vllm_ieee_scheduler.py",
+          "_core_prepare_host",
+          130
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "<lambda>",
+          1554
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "_invoke_utility_method",
+          1599
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "_handle_client_request",
+          1559
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/core_interleave.py",
+          "_handle",
+          64
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/core_interleave.py",
+          "process_input_queue",
+          97
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/core_interleave.py",
+          "process_input_queue",
+          130
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "run_busy_loop",
+          1407
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/fault_tolerance/engine_core_sentinel.py",
+          "run_with_fault_tolerance",
+          179
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "run_engine_core",
+          1352
+        ],
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/multiprocessing/process.py",
+          "run",
+          108
+        ],
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/multiprocessing/process.py",
+          "_bootstrap",
+          314
+        ],
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/multiprocessing/spawn.py",
+          "_main",
+          135
+        ],
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/multiprocessing/spawn.py",
+          "spawn_main",
+          122
+        ],
+        [
+          "<string>",
+          "<module>",
+          1
+        ]
+      ]
+    },
+    {
+      "pid": 2645969,
+      "index": 296,
+      "at": 1279179.262023198,
+      "caller": [
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+        "file_host_loader",
+        1223
+      ],
+      "frames": [
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "add",
+          105
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "_ieee_lora_host_inventory",
+          158
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "file_host_loader",
+          1223
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+          "prepare_file_host_and_hold",
+          2435
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+          "ieee_gpu_reference",
+          1498
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/serial_utils.py",
+          "run_method",
+          510
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/executor/uniproc_executor.py",
+          "collective_rpc",
+          103
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "collective_rpc",
+          971
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "<lambda>",
+          1554
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "_invoke_utility_method",
+          1599
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "_handle_client_request",
+          1559
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/core_interleave.py",
+          "_handle",
+          64
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/core_interleave.py",
+          "process_input_queue",
+          89
+        ],
+        [
+          "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/scheduling/core_interleave.py",
+          "process_input_queue",
+          130
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "run_busy_loop",
+          1407
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/fault_tolerance/engine_core_sentinel.py",
+          "run_with_fault_tolerance",
+          179
+        ],
+        [
+          "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/engine/core.py",
+          "run_engine_core",
+          1352
+        ],
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/multiprocessing/process.py",
+          "run",
+          108
+        ],
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/multiprocessing/process.py",
+          "_bootstrap",
+          314
+        ],
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/multiprocessing/spawn.py",
+          "_main",
+          135
+        ],
+        [
+          "/home/qhq/anaconda3/envs/LLM_vllm0102/lib/python3.12/multiprocessing/spawn.py",
+          "spawn_main",
+          122
+        ],
+        [
+          "<string>",
+          "<module>",
+          1
+        ]
+      ]
+    }
+  ],
+  "no_online_changes": true,
+  "no_gpu_run": true,
+  "formal_performance_result": false,
+  "cpu_time_profile": false,
+  "candidate_implemented": false,
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/curate_callers.py",
+      "sha256": "61b5a4d2d1ae992a3cf497f56317b0af11abef17d4bbb7fb6176b393a845413b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/collect_prefix1_cpu.py",
+      "sha256": "43fae51c9e9f65e6caaf0eebb4ac82a21166cea6f5b747f56441f75eef7e3a32"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/prefix1_cpu_samples.json",
+      "sha256": "1ef6a8d447090f2be43a067a25c5964ae4b62ad715c8005439b1617b6758545c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2641802-127848627.json",
+      "sha256": "53376ae4bf6fbbd03786bf43442d0acf4be3cfbd9f5a7f94e5ed70ca43796682"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2641802-127848627.stacks.jsonl",
+      "sha256": "dc672686e4bbadf82d8def7e8fcbc6f5f712d9a9fd1c9170a7482de9ddc997a8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2642557-127849851.json",
+      "sha256": "95343ba4c22562bd2c5d53035e5bf84372d1be087cbeb9aa8575faa7f1cc9a4b"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2642557-127849851.stacks.jsonl",
+      "sha256": "2529fffb3b6a3c8e2f2e9c1b5959ee23db6580012f751ac5615fded85bbb5e9e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2643000-127850931.json",
+      "sha256": "84f96ff8f39234d80ede4cc336299357f1d7a578328ee66cf8a4f5edb5b0012c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2643000-127850931.stacks.jsonl",
+      "sha256": "3a67adaff5a98323b7e1a1610f15392c9cb35ce8054eeedd40d7d5df63647fc3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2643487-127852164.json",
+      "sha256": "5a321629518c35abb31a348ffd53badb020dd8e57e18650bd9d4faf97fb2a53a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2643487-127852164.stacks.jsonl",
+      "sha256": "2d3ab8588b7b50e991e9abfd0ffe4fee8eca1fc49f53cc83dfb236859e2e40be"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2645261-127855743.json",
+      "sha256": "ffd1e5f208ac0a735e69103a7a44cf2e6cd4ec4f4c0596e5c77c3b5e77b21c83"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2645261-127855743.stacks.jsonl",
+      "sha256": "15ccff43bcaaa902438d8ce27b0c91c9017c8a30f501645099f615e35398235a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2645365-127855949.json",
+      "sha256": "f5e6d61b5f05d5af9fa435d42c50b4dff5204f63c0aa5992713fa3f261b4628f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2645365-127855949.stacks.jsonl",
+      "sha256": "effac048af9762cb740b50efb77ae1d85de0902cbddf10d6abbd73377195ee65"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2645474-127856149.json",
+      "sha256": "4cbeed426e168540ff066dd8928798c0d545dd7c81fce7991f3ee9b6f1425f92"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2645474-127856149.stacks.jsonl",
+      "sha256": "32872d3e307aec0d2a445d98365263923af3aea28e6d03a7bc92f46f0568bedd"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2645764-127856961.json",
+      "sha256": "65ecaf6ab9b014806291db455cfe6f630ff5af289bde05664c1b109606da0645"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2645764-127856961.stacks.jsonl",
+      "sha256": "eaf4f975ad9a47d9656f611d06a174710adc4a0d39589e21fb8bb453e445d410"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2645904-127857217.json",
+      "sha256": "573f031a521b96e108ee70796a1e9aa8409d048ee744f4ae7650385419ef6ab7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2645904-127857217.stacks.jsonl",
+      "sha256": "33ad359027ee2bc2ce32eae87a6c514f10a7796ef190dd90a571b73373c691ee"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2645969-127857364.json",
+      "sha256": "65e7890b349bdb6cdc376ca5dfadd15cdc10e17ac7630349b4d136ee7884eef6"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2645969-127857364.stacks.jsonl",
+      "sha256": "eea2e26c15edf4b0345a135614c7345c4d63dbea30ad95748ae9d05981099f8f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2660414-127890833.json",
+      "sha256": "9d53c3457dc67f3b1dd1e3e7f4778e0e5b1f1c44208067524cd7b37cd4c2c58d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2660414-127890833.stacks.jsonl",
+      "sha256": "8fbfd6684b27487c5eb7a8af48378de18de1d9960fbe83bec8214d131bffe2d8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2660455-127891045.json",
+      "sha256": "9b4ce44d2fa6860c254287440dd68e2bc547bcafa53235607753628d4860f43e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2660455-127891045.stacks.jsonl",
+      "sha256": "e5240a53ed1d14042665c6046aca08b8a54ecae164c879bb83f6bfc30e677f95"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2661137-127892057.json",
+      "sha256": "2ce9e77a11f0d92fbbd110dc6de6e58b9551991fad5ef92979b87111f36e6473"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2661137-127892057.stacks.jsonl",
+      "sha256": "498b15bd4b6e1ad824fc641c6baea63e5d742068947c4cd7ed553af557169d50"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2661260-127892332.json",
+      "sha256": "b3e098d9a98fff4258105efa3fe4860bffaf2038347ff5529e4624fd75bf7ee5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2661260-127892332.stacks.jsonl",
+      "sha256": "4afc98988f0bab9621b75238f0b38b9c2b600e57c1f9be90dabb1c226b39fb76"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2676009-127927431.json",
+      "sha256": "1946532e013e6ddb6116032aa86f1a353565ae09eed2c04d3cf7482fcb96ccba"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2676009-127927431.stacks.jsonl",
+      "sha256": "b5c88fbd632f5fcb900dde0ab0d51b6aadc6c0fa370befedf4e472c9bd13a1b4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2676468-127928104.json",
+      "sha256": "94ef8603d30d36260e1e5747758c9e84767b925c5ec83888c4529f591d5999e8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2676468-127928104.stacks.jsonl",
+      "sha256": "a08e6433f2c234ac021b13208bf892b68be8ddfc1fdfedcb82aad604a4089c28"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2676522-127928294.json",
+      "sha256": "7b350fbaf0566d4bc0d12393805f8fbed1d05d9365af06a94d27466c70903f19"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2676522-127928294.stacks.jsonl",
+      "sha256": "fb8b1a11c0de26750d7315b54b471423b6953d4c97557a95d8af355fe4a886c8"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2676654-127928612.json",
+      "sha256": "f1180e18005ce6ba4b2669e0d2077cf68fd3b512fecc10ad106a05485ff04c53"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2676654-127928612.stacks.jsonl",
+      "sha256": "a5bcb1ad80b049514a4bec8c98522f9a062f7b2dd6db33cbf6180fc233eeacd1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2677031-127929334.json",
+      "sha256": "c59a6ca80bf9ee060cad71c0dc4187bb63031699aa6a1c6745536d84b558a044"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2677031-127929334.stacks.jsonl",
+      "sha256": "5b44a745253920b02c5fe9989ee5f9fb23b21959a9a6b7cc7ff1c4bfc5374425"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2677107-127929532.json",
+      "sha256": "023cf2f78d4f00cc94739af667300ad7b2328bcd72f50bc965643e87d4bf4da0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2677107-127929532.stacks.jsonl",
+      "sha256": "f600404d5429aee977426966bdb55997f050b367afebd40d030214536088fae1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2691250-127962472.json",
+      "sha256": "c519ddf6511ad335398f9f3a7be2e54cdc22a18029a5f3072d960c9520883d3e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2691250-127962472.stacks.jsonl",
+      "sha256": "f9bd9a2dea791299f58f15fa2dcce06d251aabc38e65c6d8ac2d5ae444b9352f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2691750-127963737.json",
+      "sha256": "3de801d60e6f14d96b69e8787a41fbf7a1a623160d4bf3cc7b87d8016d1d4701"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/diagnostic_stacks/2691750-127963737.stacks.jsonl",
+      "sha256": "21eb9914f361db95fe1a0f80e5bd5374441cc763c052fcc9a8f22b01dae20fcc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d461_20261012/inspect_native.py",
+      "sha256": "dfd9d55693ad4df9b8f7910fc81b6c205f9071aba1ad2c80da75ab276c4dbe24"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d456_controller/analysis1/business_callers.json",
+      "sha256": "7f4fbfc4e492daa48a1e96d7f25ccc5c1fdc2040f1cc59f7c77d5f319b37874f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d456_20261012/7b_full_w0_prefix1/launch.launch/physical_deployment/request_terminals.jsonl",
+      "sha256": "0f93ac2a45cef1a02bb0e8a32b8bc12a88c0c5c8a54baf15799f839ca3893dc2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py",
+      "sha256": "4de43e2bbddec7b1727115b6465ff18032c62b05dd5ad99a856eee3656567540"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d461_20261012/inspection.json",
+      "sha256": "442e396f388c3399ce9ac3a7576991573288008c9ead4beedd6dfa24441e94e3"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d461_20261012/curate_native_v3.py",
+      "sha256": "bc3696ca9fc51768648e242856d3dd8fcbde4f433fd812566aaf90ebd76db403"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d456_controller/controller_summary.json",
+      "sha256": "8ba21080b292800d66b1e25afe8482cccd730b425a0abef4c9729ddbfc63b1d9"
+    }
+  ],
+  "caveats": [
+    "Occurrences are not CPU-time percentages or wall-time phases.",
+    "Main-thread counters exclude the observer; idle frames remain included.",
+    "Inclusive frame counts overlap; per-process denominators differ.",
+    "GIL delay can hide busy intervals; C/CUDA internal frames absent.",
+    "Process CPU includes native threads; observer CPU excludes final sample.",
+    "Final partial lines and missing roles are explicit, not zero overhead.",
+    "Request window includes drain; absent full terminal population has no inferred end.",
+    "D456 prefix observer, not D458 full-run CPU attribution or a measured optimization.",
+    "Native gpu_monitor.py is byte-identical to the D456 prelaunch commit; D457 changed controller file projections only."
+  ]
+}

@@ -1,4 +1,4 @@
-# IEEE TC execution status — D460 same-owner decode diagnosis
+# IEEE TC execution status — D461 retained native pin-query evidence
 
 Updated 2026-10-12. Current checkpoint, NOT a replacement experiment plan.
 Full prior status is byte-identically archived in EXECUTION_HISTORY_THROUGH_D448.md,
@@ -31,7 +31,38 @@ entries are not current instructions. No evidence or approved task was removed.
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D460 retained native-owner decode diagnosis completed
+## Current action — D461 native function evidence completed; one next candidate
+
+FullPLAN/status/baseline rules/V1/V2 read; analyze-results used. No productioncode,
+configuration, baseline tuning, GPUrun, remoteoperation or figure changed.
+ReusedD456 collectors and exactoriginalframes for10nativecores;1761allsamples,
+1680businesssamples,0missingmain/4truncated. Nativegpu_monitor byteidenticalto
+D456prelaunch367d8507; allretainedsourcecounterfacts rechecked.183add-function
+frames but179exact is_pinned-line frames:87registeredfullsnapshot,72hostbudget,
+10staging,6replacement,4filehostpostload. Inclusivecounts overlap, notCPUshares;
+D456prefixobserver cannot supply D458 walltimefraction or causalbenefit.
+D329unsafeepochcache rejected;D352transactionreuse andD355interleave alreadydone.
+PyTorch2.13 Memory/CUDAHooks,CUDA Runtime/Pythonbinding,vLLM0.30officialsourcechecked.
+
+NEXTsinglecandidate: same live pointer query inside alreadyinitialized qualified
+CUDA owner, avoiding repeated genericcontext discovery, NOT caching pinning or
+droppingchecks. Must first qualifyactualcontext/runtime/error and pinned/pageable/
+alias/offset/register-unregister equivalence andtinyinventoryoverhead. No production
+implementation or GPUbenefit yet. If notfaster/equivalent reject; ifqualified then
+boundedimplementation/regressions/minimalprefix/newfull4000. Do not repeatnative
+profiling,D458,baselines,thresholds orC8sweeps. D458joint96.45% W0feasible;
+G1resourcegap21.0622%vsElasticLocality remains, notsingleTPOTfailure.
+
+Curatedmain_comparison/d461_native_frames;54source refs/protected147/protocols/
+threeuserSHAsverified. Retainedanalysisfailures: UUIDunitnamegate beforedata;
+Countertieorder assertion; wholefunction vs exactline assertion. Corrected source
+comparison/counting only, noGPUrerun. AllpriorD461CPUscopes exactidentity andactual
+recursiveemptyclosed; finalcuration4 InvocationIDd8e97591f2624918b016ba52c0594f20,
+inode23331594 completed,requiresfinalclosure/backup. WholegoalACTIVE; substantive
+nativeevidence progress.7BW1/W2/G2/references,3B,HydraServeisolatedqualification,
+dLoRA3B,A1-A5/S1-S13/docs/figures allremainOPEN. Resourcegatesunchanged.
+
+## Previous action — D460 retained native-owner decode diagnosis completed
 
 FullPLAN/status/baseline rules/V1/V2 read. Used analyze-results; extended existing
 D297/D455 offline analyzers only, no onlinecode/config/baselineoptimization/GPUrun/
@@ -65,6 +96,17 @@ candidate onlywithevidence,tests,minimalvalidation,newfullreplay. Keepcontroller
 pickup separatehypothesis. Remaining7BW1/W2/G2/references,3B,HydraServeisolatednative
 qualification,dLoRA3B,A1-A5/S1-S13,docs/figures stillOPEN. WholegoalACTIVE;
 thisturnsubstantiveretainedanalysisprogress,notblocked/complete.
+
+D460checkpoint e57a76d7315ed6037650168508c57f87f2d398aa pushedtoV2;
+independentls-remote equalsHEAD.12explicitfiles/source/secrets/diffchecks passed,
+usermanifestneverstaged; BASEunchanged71c52cf6f7331dc2a171ec83db5f1011eaf6d5a6.
+All4ownedCPUscopes exactInvocationID/inode/actualrecursiveemptyclosed andnowabsent;
+high/max/OOM/swap0,largestanalysispeak962932736B. GPUcomputeempty,nojoblive.
+Finalverifier4 InvocationID58a99db727894e89a03641f3bc557ddf,inode23326091;
+closure/backup_receipt retainedraw. Latestfree161147006976B(~150.08GiB),notreserved
+space; freshgatesbeforeheavylaunch. Nextmainline remainsD456retainednativecore
+functionevidence plusactualcode/history,not repeatD460/D458 orsealedbaselines.
+WholegoalACTIVE; substantiveanalysis/physicalbinding/backupPROGRESS.
 
 ## Previous action — D459 offline stage/control diagnosis completed
 
