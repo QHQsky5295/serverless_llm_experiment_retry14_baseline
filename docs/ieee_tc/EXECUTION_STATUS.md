@@ -1,4 +1,4 @@
-# IEEE TC execution status — D475 original100 native qualification preparing; 7B OPEN
+# IEEE TC execution status — D475 native100 qualified; next full4000; 7B OPEN
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement plan.
 Complete preceding status is byte-identically archived in
@@ -33,7 +33,33 @@ not current instructions. No evidence or approved task was removed.
 - Every optimization: logs/history + online primary sources + one falsifiable
   hypothesis + tests/minimal validation/new full replay. IEEE nine formulas fixed.
 
-## Current action — D475 native qualification preparing
+## Current action — D475 native100 passed; full4000 NEXT
+
+D475 executedoncefrompushedaa574372f1a0cb64da665aa14e3abd071081e99a.
+100/100 originalinput/source/adapter/native/dispatch contracts,17369tokens,
+100commonjointSLO;meanTTFT683.487406/P951493.652459ms,
+meanTPOT28.758638/P9535.998760ms;physical334.04601096594706GPU-s.
+HOST16records=13residency+3handoff;dispatchGPU57/HOST6/NVMe8/remote29.
+Remote29fetch/50650865wireB,pack0,actual1000Mb/s/full;D78/D80reused.
+IndependentD435HTTPinputwitnessmatches100. D471samebackendoutputdigests
+differ8/100,identitiesretained/causeunknown;rawnumericaln_correctnull unchanged.
+ShortprefixNOTfullW0/G1/G2 orperformancehypothesisacceptance.
+
+4CPUpreparations,2activated(1initial+1natural),2unusedabandoned,allreturn0.
+UUID/birth/permission/servicegroup/actualphysicaljournalsaudited;no midrunreplacement.
+Prepermissionnativecensusesclear butdonotexcludealltransients.262watchdogsamples,
+servicepeak13100134400B,high/max/OOM/swap0. ActualGPUrelease/servicepathremoved
+BEFOREidentity-ownedremote3unitsstopped;remotejournaldownloadSHA verified.
+CPU1/qualification2/backup3/start4/actualaux/collection5/analysis6/lifecycle7/
+curation8/contract9 exactidentity actualrecursive-emptyclosed;notasklive.
+147protectedpass;user manifest/baselines/unrelatedk3suntouched;nofigures/newinputs.
+SourceSHA849643a8801b0332f9e92bc2dd6c432df0844e0ff6deea606b62cbe28e5a9cc2.
+SeeD475_NATIVE_VALIDATION_RESULT.md;rawD475,curatedd475_host_execution_native.
+Nextverifyandbackupresult,thenD476 new-keyoriginal4000unchangedD472settings.
+Do notrepeatD475/953CPU/D473/oldfullruns. Latestdisk161530167296B,freshgate.
+WholegoalACTIVE,7Bnotoptimum;allotherapprovedscope remainsOPEN.
+
+## Prior action — D475 native qualification preparing
 
 Read full PLAN/status/baseline rules/V1/V2; run-experiment and github-sync skills.
 D474 checkpoint55d7df5 retained with953CPUtests; do not rerunthatqualification.
@@ -697,8 +723,9 @@ D472 completed once,closed,auditedandcompared; do notrestart orrepollperformance
 AcceptCPUpreparationcandidateasW0feasible/resourceimproved,notfullgoalachieved.
 RetainD465failure,D458priorfeasible andD463unacceptedstandaloneperformanceclaim.
 RetainedD472stage/nativeownerdiagnosis nowcompletedD473; do not repeatit.
-ExactconsumerreviewnowcompletedD474;aftertestedbackup:minimalnative100thenonce
-new-key4000W0ifqualified. No repeatedCPUqualificationunlessafailure/newchange.
+ExactconsumerreviewcompletedD474;D475native100nowpassedandclosed.
+Afterresultbackup,D476new-keyoriginal4000withunchangedD472settings.
+No repeatedCPUqualificationornative100unlessafailure/newchange.
 GlobalpermitwaitisnowbelowElasticLocality;decode/controlgapremains. Noisolatedcauseyet.
 No blindcapacity/thresholdsweep, CPUimport/fork/prebuildtest, cachedphysicalstate
 or mechanicalextensiontoother snapshots. D474 alone hasnewexactconsumerproof;

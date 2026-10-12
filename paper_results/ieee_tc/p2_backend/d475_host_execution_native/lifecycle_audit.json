@@ -1,0 +1,81 @@
+{
+  "passed": true,
+  "actual_native_preparation": true,
+  "full_replay": false,
+  "actual_midrun_replacement_observed": false,
+  "activated": [
+    {
+      "preparation_id": "507c824ab2f841b2b07c710382e75c3e",
+      "gpu_uuid": "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946",
+      "prepermission_samples": 12,
+      "process_started_at": 1316639.801837468,
+      "prepared_at": 1316652.279350521,
+      "acquire_at": 1316652.38670468,
+      "permission_at": 1316652.501402507,
+      "release_at": 1316887.496695325,
+      "acquire_before_prepared": false,
+      "cpu_preparation_seconds": 12.477513052988797,
+      "prepared_before_acquire_seconds": 0.107354159001261,
+      "physical_gpu_seconds": 235.10999064496718
+    },
+    {
+      "preparation_id": "7f75807672c74f5b930b229ebaf050bf",
+      "gpu_uuid": "GPU-dadf0267-9617-8824-cddb-82fba48a7b97",
+      "prepermission_samples": 147,
+      "process_started_at": 1316639.822087496,
+      "prepared_at": 1316651.660480366,
+      "acquire_at": 1316788.482471854,
+      "permission_at": 1316788.584508109,
+      "release_at": 1316887.418492175,
+      "acquire_before_prepared": false,
+      "cpu_preparation_seconds": 11.838392870035022,
+      "prepared_before_acquire_seconds": 136.82199148787186,
+      "physical_gpu_seconds": 98.93602032097988
+    }
+  ],
+  "unused": [
+    {
+      "preparation_id": "32ce3bbf805f4c3ab5f2f9b448caa58c",
+      "gpu_uuid": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+      "prepermission_samples": 250
+    },
+    {
+      "preparation_id": "6d3805086216443fad413665042ab7a6",
+      "gpu_uuid": "GPU-c4663821-4888-e199-7151-d6298f8d45a5",
+      "prepermission_samples": 250
+    }
+  ],
+  "replacements": [],
+  "preparation_count": 4,
+  "activated_count": 2,
+  "replacement_count": 0,
+  "physical_gpu_seconds": 334.04601096594706,
+  "refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d475_20261012/7b_cpu_frontend_validation_100/launch.launch/physical_allocations/adaacd4758ab45c080b1a09c14173cab.jsonl",
+      "sha256": "92b23d36c5fec728d291f8fa8d72c9b45956ca53f5a4541753a64ebb5fc9bc9d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d475_20261012/7b_cpu_frontend_validation_100/launch.launch/physical_allocations/96b5d3bb769147aa81379c58d789a2bd.jsonl",
+      "sha256": "1222754d13051b166916e204203d8f75415b8ecf506e14fde56661287621650a"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d475_20261012/cpu_preparation_evidence.json",
+      "sha256": "71c57e0d36319252162fd1952cfb315e4fd1a839b3818815097cb336ee1e6b86"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d475_20261012/actual_qualification.json",
+      "sha256": "a06419beb5a0927476524302ec616d74be841e2b6a7142b9eb12d6851d5df52d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d475_20261012/7b_cpu_frontend_validation_100/launch.launch/watchdog.jsonl",
+      "sha256": "049e4405a24f8514c7956a746006b1803c5f5c2f84ebacf24497d759fcf1f760"
+    }
+  ],
+  "caveats": [
+    "Sampled native census does not exclude all transients.",
+    "CPU preparation/activation permission is not engine-ready or first-service.",
+    "Natural closed-loop differences do not isolate an additive causal time saving.",
+    "Raw independent numerical correctness flag remains unknown."
+  ]
+}
