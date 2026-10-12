@@ -8,6 +8,70 @@ from unittest.mock import patch
 from scripts import ieee_tc_preflight as p
 
 
+class LivePinQueryQualification(unittest.TestCase):
+    def runtime(self, status=0, memory_type=1):
+        from types import SimpleNamespace as NS
+        from unittest.mock import Mock
+        return NS(cudaError_t=NS(cudaSuccess=0, cudaErrorInvalidValue=1),
+            cudaMemoryType=NS(cudaMemoryTypeHost=1),
+            cudaPointerGetAttributes=Mock(return_value=(status, NS(type=memory_type))),
+            cudaGetLastError=Mock(return_value=(1,)))
+
+    def test_host_is_true_and_other_memory_types_are_false(self):
+        for memory_type in (0, 1, 2, 3):
+            runtime = self.runtime(memory_type=memory_type)
+            self.assertEqual(p._direct_pin_query(runtime, 4096), memory_type == 1)
+            runtime.cudaPointerGetAttributes.assert_called_once_with(4096)
+            runtime.cudaGetLastError.assert_not_called()
+
+    def test_invalid_value_clears_error_exactly_like_native_hook(self):
+        runtime = self.runtime(status=1)
+        self.assertFalse(p._direct_pin_query(runtime, 4096))
+        runtime.cudaGetLastError.assert_called_once_with()
+
+    def test_other_errors_propagate_not_unpinned_fallback(self):
+        runtime = self.runtime(status=700)
+        with self.assertRaisesRegex(RuntimeError, 'pointer query failed'):
+            p._direct_pin_query(runtime, 4096)
+        runtime.cudaGetLastError.assert_not_called()
+
+    def test_bad_pointer_rejected_before_cuda(self):
+        runtime = self.runtime()
+        for pointer in (0, -1, None, True, 1.0):
+            with self.assertRaises(ValueError):
+                p._direct_pin_query(runtime, pointer)
+        runtime.cudaPointerGetAttributes.assert_not_called()
+
+    def test_fresh_query_each_time_observes_registration_change(self):
+        from types import SimpleNamespace as NS
+        runtime = self.runtime()
+        runtime.cudaPointerGetAttributes.side_effect = [(0, NS(type=x)) for x in (0, 1, 0)]
+        self.assertEqual([p._direct_pin_query(runtime, 4096) for _ in range(3)], [False, True, False])
+        self.assertEqual(runtime.cudaPointerGetAttributes.call_count, 3)
+
+    def test_diagnostic_clone_preserves_original_and_checks_entry(self):
+        from types import SimpleNamespace as NS
+        from unittest.mock import Mock
+        from faaslora.memory.gpu_monitor import _ieee_lora_host_inventory as inventory
+        guard, query = Mock(), Mock()
+        candidate, source = p._pin_inventory_witness(inventory, query, guard)
+        owner = NS(list_adapters=lambda: {})
+        self.assertEqual(candidate(owner), inventory(owner))
+        guard.assert_called_once_with()
+        query.assert_not_called()
+        self.assertIsNot(candidate, inventory)
+        self.assertIn('_pin_query(tensor, pointer)', source)
+        guard.side_effect = RuntimeError('context changed')
+        with self.assertRaisesRegex(RuntimeError, 'context changed'):
+            candidate(owner)
+
+    def test_unknown_inventory_source_rejected(self):
+        def without_native_query():
+            return None
+        with self.assertRaisesRegex(RuntimeError, 'exactly one'):
+            p._pin_inventory_witness(without_native_query, None, None)
+
+
 class ApprovedPlanIdentity(unittest.TestCase):
     def test_current_binding_matches_approved_full_names_and_single_run_plan(self):
         self.assertEqual(p.SNAPSHOT.name, 'PLAN_APPROVED_20261010_FULL_NAMES.md')

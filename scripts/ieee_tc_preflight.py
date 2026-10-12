@@ -2217,6 +2217,191 @@ def backend_host_allocator_check(runtime_receipt: Path, artifact_audit: Path, *,
     return result
 
 
+def _direct_pin_query(runtime, pointer: int) -> bool:
+    """Diagnostic equivalent of CUDAHooks' live pointer query, never a cache."""
+    if type(pointer) is not int or pointer <= 0:
+        raise ValueError('pin query requires a live positive storage base pointer')
+    status, attributes = runtime.cudaPointerGetAttributes(pointer)
+    if status == runtime.cudaError_t.cudaErrorInvalidValue:
+        runtime.cudaGetLastError()  # Match PyTorch's documented invalid-value branch.
+        return False
+    if status != runtime.cudaError_t.cudaSuccess:
+        raise RuntimeError(f'live CUDA pointer query failed: {status}')
+    return attributes.type == runtime.cudaMemoryType.cudaMemoryTypeHost
+
+
+def _pin_inventory_witness(original, query, guard):
+    """Clone one exact function for a microtest; do not patch the serving module."""
+    import ast
+    import inspect
+    import textwrap
+    tree = ast.parse(textwrap.dedent(inspect.getsource(original)))
+    expected = ast.parse('tensor.is_pinned()', mode='eval').body
+    class Replace(ast.NodeTransformer):
+        count = 0
+        def visit_Call(self, node):
+            if ast.dump(node) == ast.dump(expected):
+                self.count += 1
+                return ast.copy_location(ast.parse('_pin_query(tensor, pointer)', mode='eval').body, node)
+            return self.generic_visit(node)
+    rewrite = Replace()
+    tree = rewrite.visit(tree)
+    if rewrite.count != 1 or len(tree.body) != 1 or not isinstance(tree.body[0], ast.FunctionDef):
+        raise RuntimeError('qualified inventory must contain exactly one per-view native pin query')
+    # Once per observation; include this cost in the complete-inventory benchmark.
+    tree.body[0].body.insert(1, ast.parse('_pin_guard()').body[0])
+    ast.fix_missing_locations(tree)
+    namespace = {**original.__globals__, '_pin_query': query, '_pin_guard': guard}
+    exec(compile(tree, '<diagnostic-live-pin-inventory>', 'exec'), namespace)
+    return namespace[original.__name__], ast.unparse(tree)
+
+
+def backend_pin_query_check(runtime_receipt: Path) -> dict:
+    """D462: actual CUDA semantics and whole-inventory microtest, no backbone.
+
+    Small tensor fixtures are not a new adapter pool. No model, input trace,
+    production function, pin-state cache, async stream or registry is modified.
+    """
+    service = verify_current_service()  # Limits established BEFORE torch/CUDA.
+    prior = json.loads(runtime_receipt.read_text())
+    if (prior.get('kind') != 'backend_cuda_import_qualification_v1'
+            or prior.get('pass') is not True or prior.get('stage') != 'complete'
+            or Path(prior['environment']).resolve() != Path(sys.prefix).resolve()):
+        raise RuntimeError('pin check requires completed native CUDA receipt')
+    result = dict(kind='native_live_pin_query_d462_v1', service=service,
+        runtime_receipt_sha256=digest(runtime_receipt), plan_sha256=check_plan(),
+        check_source_sha256=digest(Path(__file__)), environment=sys.prefix,
+        production_launch_authorized=False, formal_performance_result=False,
+        stage='imports', cases=[], **{'pass': False})
+    try:
+        import mmap
+        from types import SimpleNamespace as NS
+        import torch
+        from cuda.bindings import driver, runtime
+        import importlib.metadata
+        sys.path.insert(0, str(ROOT))
+        from faaslora.memory.gpu_monitor import _ieee_lora_host_inventory as inventory
+        if (torch.__version__ != '2.13.0+cu130'
+                or importlib.metadata.version('vllm') != '0.30.0'
+                or torch.cuda.device_count() != 1):
+            raise RuntimeError('pin check requires exact native candidate and one visible GPU')
+        torch.cuda.set_device(0)
+        torch.cuda.init()
+        sentinel = torch.empty(1, device='cuda')  # Explicitly initialize the sole context.
+        torch.cuda.synchronize()
+        def checked(values):
+            status, *rest = values
+            if int(status) != 0:
+                raise RuntimeError(f'CUDA qualification call failed: {status}')
+            return rest
+        context, = checked(driver.cuCtxGetCurrent())
+        primary_flags, active = checked(driver.cuDevicePrimaryCtxGetState(0))
+        if not int(context) or active != 1:
+            raise RuntimeError('qualification did not establish its sole primary context')
+        def guard():
+            current, = checked(driver.cuCtxGetCurrent())
+            device, = checked(runtime.cudaGetDevice())
+            if (not torch.cuda.is_initialized() or current != context or device != 0):
+                raise RuntimeError('live pointer witness no longer owns its initialized context')
+        def query(tensor, pointer):
+            if type(tensor) is not torch.Tensor or tensor.device.type != 'cpu':
+                raise ValueError('live pin witness excludes tensor subclasses and non-CPU tensors')
+            return _direct_pin_query(runtime, pointer)
+        candidate, candidate_source = _pin_inventory_witness(inventory, query, guard)
+        result.update(stage='semantics', torch_version=str(torch.__version__),
+            cuda_python_version=importlib.metadata.version('cuda-bindings'),
+            runtime_version=checked(runtime.cudaRuntimeGetVersion())[0],
+            driver_version=checked(runtime.cudaDriverGetVersion())[0],
+            context=int(context), primary_flags=primary_flags,
+            inventory_source_sha256=digest(ROOT/'faaslora/memory/gpu_monitor.py'),
+            candidate_source=candidate_source, candidate_is_diagnostic_clone=True,
+            device_name=torch.cuda.get_device_name(0), capability=list(torch.cuda.get_device_capability(0)))
+        def compare(label, tensor, expected):
+            guard()
+            pointer = int(tensor.untyped_storage().data_ptr())
+            direct, native = query(tensor, pointer), bool(tensor.is_pinned())
+            result['cases'].append(dict(case=label, native=native, direct=direct,
+                expected=expected, offset=tensor.storage_offset(),
+                storage_capacity=tensor.untyped_storage().nbytes(),
+                storage_base_equals_view_pointer=pointer == tensor.data_ptr()))
+            if direct != native or direct != expected:
+                raise RuntimeError(f'pin semantics mismatch: {label}')
+        pageable = torch.empty((8, 32), dtype=torch.float16)
+        pinned = torch.empty_like(pageable, pin_memory=True)
+        for name, tensor, value in (('pageable', pageable, False), ('pinned', pinned, True),
+                ('pinned_offset', pinned[1:], True), ('pageable_offset', pageable[1:], False),
+                ('pinned_alias_transpose', pinned.T, True)):
+            compare(name, tensor, value)
+        backing = mmap.mmap(-1, mmap.PAGESIZE)
+        registered = torch.frombuffer(backing, dtype=torch.uint8).view(16, -1)
+        base = int(registered.untyped_storage().data_ptr())
+        compare('before_register', registered[1:], False)
+        checked(runtime.cudaHostRegister(base, mmap.PAGESIZE, 0))
+        try:
+            compare('after_register', registered, True)
+            compare('registered_offset', registered[1:], True)
+        finally:
+            checked(runtime.cudaHostUnregister(base))
+        compare('after_unregister', registered, False)
+        del registered
+        backing.close()
+        # Dense/packed/aliased/shared/staged and scoped observations, same graphs.
+        models = {}
+        for aid in range(1, 9):
+            layers = {}
+            for layer in range(32):
+                a = torch.empty((8, 32), dtype=torch.float16, pin_memory=(aid % 2 == 0))
+                b = torch.empty((32, 8), dtype=torch.float16, pin_memory=(aid % 2 == 0))
+                layers[f'layer{layer:02d}'] = NS(lora_a=[a, a[1:], a.T], lora_b=[b, b[1:], b.T])
+            models[aid] = NS(id=aid, rank=8, loras=layers)
+        models[2].loras['layer00'].lora_a[0] = models[1].loras['layer00'].lora_a[0]
+        manager = NS(list_adapters=lambda: dict(models))
+        staged = NS(id=9, rank=8, loras=models[2].loras)
+        modes = [dict(), dict(include_tensor_views=False),
+                 dict(include_tensor_views=False, requested_adapter_ids=[1, 2]),
+                 dict(staged_models={9: staged}, include_tensor_views=False)]
+        result['inventory_equality'] = []
+        for options in modes:
+            expected, observed = inventory(manager, **options), candidate(manager, **options)
+            if expected != observed:
+                raise RuntimeError('complete inventory changed under direct live pin query')
+            result['inventory_equality'].append(dict(options=list(options), equal=True,
+                allocations=len(expected['host_allocations']),
+                adapters=len(expected['host_adapter_footprints'])))
+        result.update(stage='microbenchmark', fixture=dict(adapters=8, layers_per_adapter=32,
+            tensor_views=8*32*6, small_in_memory_only=True, workload_performance=False))
+        # Single preregistered alternating schedule, not repeated workload runs/CI.
+        options = dict(include_tensor_views=False)
+        for function in (inventory, candidate):
+            function(manager, **options)
+        torch.cuda.synchronize()
+        measurements = []
+        for index in range(20):
+            for label, function in ([('native', inventory), ('direct', candidate)] if index % 2 == 0
+                                    else [('direct', candidate), ('native', inventory)]):
+                start_cpu, start = time.process_time_ns(), time.perf_counter_ns()
+                value = function(manager, **options)
+                elapsed, cpu = time.perf_counter_ns()-start, time.process_time_ns()-start_cpu
+                measurements.append(dict(index=index, variant=label, wall_ns=elapsed, cpu_ns=cpu))
+        torch.cuda.synchronize()  # No async CUDA work was enqueued by the queries.
+        guard()
+        def mean(label, field):
+            rows = [x[field] for x in measurements if x['variant'] == label]
+            return sum(rows)/len(rows)
+        result['measurements'] = measurements
+        result['means'] = {label: {field: mean(label, field) for field in ('wall_ns', 'cpu_ns')}
+                           for label in ('native', 'direct')}
+        result['direct_to_native_wall_ratio'] = mean('direct', 'wall_ns')/mean('native', 'wall_ns')
+        result['mapped_cuda_runtime_files'] = sorted({x.split()[-1] for x in
+            Path('/proc/self/maps').read_text().splitlines() if 'libcudart' in x and '/' in x})
+        del sentinel
+        result.update(stage='complete', **{'pass': True})
+    except Exception as error:
+        import traceback
+        result.update(error_type=type(error).__name__, error=str(error), traceback=traceback.format_exc())
+    return result
+
+
 def backend_copy_check(runtime_receipt: Path) -> dict:
     """Real native setters/DMA, no backbone, new adapter artifact or trace.
 
@@ -5842,6 +6027,7 @@ def main():
     parser.add_argument('action', choices=['preflight', 'seal', 'verify', 'self-test', 'ray-test',
                                          'watchdog', 'watchdog-test', 'install-candidate', 'backend-check',
                                          'backend-model-check', 'backend-copy-check', 'backend-host-check',
+                                         'backend-pin-check',
                                          'backend-peft-reference', 'backend-peft-sequence-reference',
                                          'artifact-audit', 'artifact-index', 'artifact-disk-check', '_worker',
                                          'gated-launch', '_launch-gate', '_replay-publisher', '_replay-witness'])
@@ -5998,6 +6184,10 @@ def main():
             parser.error('backend-peft-sequence-reference requires native-result, replay-trace, config, adapter-root and output')
         result = backend_peft_sequence_reference(
             args.native_result, args.replay_trace, args.config, args.adapter_root)
+    elif args.action == 'backend-pin-check':
+        if not args.runtime_receipt or not args.output:
+            parser.error('backend-pin-check requires the native runtime receipt and new output')
+        result = backend_pin_query_check(args.runtime_receipt)
     elif args.action == 'backend-copy-check':
         if not args.runtime_receipt or not args.output:
             parser.error('backend-copy-check requires the native runtime receipt and new output')
