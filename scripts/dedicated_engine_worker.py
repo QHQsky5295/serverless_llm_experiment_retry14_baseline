@@ -11,8 +11,10 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import contextlib
 import json
 import os
+import socket
 import sys
 import time
 import warnings
@@ -72,8 +74,58 @@ def _decode_prepared_request(kwargs: Dict[str, Any]) -> Dict[str, Any]:
     return {**kwargs, '_prepared_request': RequestExecutionPlan(**values)}
 
 
-async def _run_worker(payload_path: Path, ready_path: Path) -> None:
+async def _await_cpu_frontend_activation(payload, channel, engine, ready_path):
+    """CPU-ready is not an engine-ready RPC address or a GPU ownership claim."""
+    from scripts.ieee_tc_preflight import (
+        verify_current_service, gpu_process_identity, _cpu_frontend_state)
+    from faaslora.clock import local_monotonic_clock_id
+    from faaslora.cpu_frontend import (
+        CONTRACT, configuration_sha256, validate_preparation, receive_activation)
+    verify_current_service()
+    os.set_inheritable(channel.fileno(), False)
+    expected = dict(payload['cpu_preparation'], birth=gpu_process_identity(os.getpid()))
+    if (expected['contract'] != CONTRACT or engine.engine is not None
+            or engine.backend != 'vllm'
+            or engine.model_cfg.get('tensor_parallel_size') != 1
+            or engine.model_cfg.get('ieee_physical_allocation') is not True
+            or engine.model_cfg.get('timing_contract') != 'ieee_tc_native_v1'
+            or engine.model_cfg.get('generation_contract') != 'fixed_length_greedy_v1'
+            or expected['configuration_sha256'] != configuration_sha256(
+                payload['model_cfg'], payload['cost_model'])
+            or gpu_process_identity(os.getppid()) != expected['owner']
+            or os.environ.get('VLLM_WORKER_MULTIPROC_METHOD') != 'spawn'):
+        raise ValueError('CPU frontend requires its original TP1/native owner/configuration')
+    validate_preparation(expected, birth=expected['birth'],
+        gpu_uuids=[expected['gpu_uuid']], acquire_at=time.monotonic(), owner=expected['owner'])
+    from scripts.run_all_experiments import _lazy_import_vllm
+    if not _lazy_import_vllm():
+        raise RuntimeError('CPU frontend native import failed; no fallback')
+    from faaslora.scheduling.vllm_ieee_frontend import IEEENativeAsyncLLM
+    import torch
+    from cuda.bindings import driver
+    from vllm.platforms import current_platform
+    status, = driver.cuInit(0)  # Driver only; no primary context retain/create.
+    if int(status) != 0:
+        raise RuntimeError('CPU frontend driver observation unavailable')
+    state = _cpu_frontend_state(torch, driver, expected['gpu_uuid'])
+    if current_platform.get_device_uuid(0) != expected['gpu_uuid']:
+        raise RuntimeError('CPU frontend cached platform UUID differs')
+    _write_ready(ready_path.with_name('cpu_prepared.json'), dict(
+        status='cpu_prepared', preparation=expected, context_state=state,
+        prepared_at_s=time.monotonic(), engine_ready=False,
+        clock_id=local_monotonic_clock_id()))
+    activated = await receive_activation(channel, expected=expected,
+        birth=expected['birth'], clock_id=local_monotonic_clock_id())
+    # Recheck the exact fixed-device boundary after an arbitrarily long wait.
+    # This remains distinct from the parent's actual exclusive allocation time.
+    _cpu_frontend_state(torch, driver, expected['gpu_uuid'])
+    return activated
+
+
+async def _run_worker(payload_path: Path, ready_path: Path, activation_channel=None) -> None:
     payload = json.loads(payload_path.read_text(encoding="utf-8"))
+    if ('cpu_preparation' in payload) != (activation_channel is not None):
+        raise ValueError('CPU preparation payload requires its inherited activation capability')
     repo_root = Path(payload["repo_root"]).resolve()
     if str(repo_root) not in sys.path:
         sys.path.insert(0, str(repo_root))
@@ -268,6 +320,13 @@ async def _run_worker(payload_path: Path, ready_path: Path) -> None:
                 except Exception:
                     pass
 
+        if activation_channel is not None:
+            permission = await _await_cpu_frontend_activation(
+                payload, activation_channel, engine, ready_path)
+            if permission is None:
+                # No initialize/shutdown on an abandoned descriptor. Generic
+                # shutdown contains CUDA/distributed cleanup and is not CPU-only.
+                return
         try:
             await engine.initialize()
             if on_demand_prebuild:
@@ -305,13 +364,18 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--payload", required=True)
     parser.add_argument("--ready-file", required=True)
+    parser.add_argument("--activation-fd", type=int)
     args = parser.parse_args()
 
     payload_path = Path(args.payload).resolve()
     ready_path = Path(args.ready_file).resolve()
 
     try:
-        asyncio.run(_run_worker(payload_path, ready_path))
+        with contextlib.ExitStack() as stack:
+            channel = None
+            if args.activation_fd is not None:
+                channel = stack.enter_context(socket.socket(fileno=args.activation_fd))
+            asyncio.run(_run_worker(payload_path, ready_path, channel))
     except Exception as exc:
         try:
             _write_ready(ready_path, {"status": "error", "error": f"{type(exc).__name__}: {exc}"})

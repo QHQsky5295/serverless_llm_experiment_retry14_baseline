@@ -1,4 +1,4 @@
-# IEEE TC execution status — D467 fixed-UUID CPU boundary qualified
+# IEEE TC execution status — D468 CPU preparation lifecycle contracts
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement plan.
 Complete preceding status is byte-identically archived in
@@ -33,7 +33,41 @@ not current instructions. No evidence or approved task was removed.
 - Every optimization: logs/history + online primary sources + one falsifiable
   hypothesis + tests/minimal validation/new full replay. IEEE nine formulas fixed.
 
-## Current action — D467 fixed-UUID CPU frontend boundary qualified
+## Current action — D468 lifecycle foundation tested; actual factory integration NEXT
+
+Read full PLAN/status/rules/V1/V2; vLLM/run-experiment/github-sync skills.
+No agents, native GPU experiment, baseline/remote action, config change or figure.
+New bounded CPUFrontendPool/PreparedCPUFrontend use inherited one-shot socket
+capability; preparation identity and exact physical acquire/bind must match before
+original worker initialize. Separate cpu_prepared.json from engine ready.json.
+EOF cancels without descriptor CUDA shutdown. Fixed UUID/native TP1/spawn contract;
+no fork, mask latebinding, prebuild toggle, threshold/capacity change or D463 rollback.
+Physical allocation/reducer now recognizes prepared_worker_bind with actual earlier
+birth evidence, not a fake worker_spawn; integral still starts at actual acquire.
+Initial554 CPUtests allpass; four additional worker-control tests and stricter
+native/fixed-output check -> second558 allpass,0fail/error/skip. Publication smoke
+under systemPython exposed eager faaslora.experiment package dependency,4import
+errors(missingnumpy)/9pass; stopped BEFOREstage/commit/push. Keptfailure, no
+globalinstall/testskip. Movednew leaf to faaslora.cpu_frontend and added actual
+isolatedsystemPython import check:final559allpass,0fail/error/skip. Overlapping suites,
+not independent experiments. Real socket/journal fixtures + mocked engine/
+process/census, NOT CUDA or performance qualification. CPU1/2 peaks2299133952/
+1943801856B;CPU3peak2213548032B;high/max/OOM/swap0; exactidentity actualrecursive-empty closed.
+Source snapshots and both logs retained;147protectedpass.
+Rawp2_backend_qualification/d468_20261012,finalcuratedp2_backend/d468_cpu_lifecycle_v2;
+firstcurationd468_cpu_lifecycle retained,not finalsourcequalification.
+seeD468_CPU_PREPARATION_LIFECYCLE.md. Current production main runner/config
+UNCHANGED: no preparation producer/pool hook enabled, no actual prepared native
+process launched. Do not claim this foundation is complete optimization/integration.
+Next: wire original SubprocessInferenceEngineProxy factory and ScenarioRunner
+notice/activation/physicalreturn/teardown to the tested ownership primitives.
+Include postspawn-error ownership and any CPU helper child teardown; do not
+repeat D467import microtest or add another model startup framework. Then minimal
+native qualification -> once new-key4000W0. Never wait CPUready then backdate/omit
+actual exclusive GPU claim cost. D463 retained parent,performanceNOTaccepted.
+7B optimization/W1/W2/G2/3B/fullapprovedscope OPEN; wholegoalACTIVE.
+
+## Previous action — D467 fixed-UUID CPU frontend boundary qualified
 
 Read full PLAN/status/rules/V1/V2 after compaction; vLLM/run-experiment skills,
 github-sync for backup. No agents, production request-path/config changes,
@@ -67,6 +101,13 @@ actualallocation/bind/birth,exclusiveclaimcost,cancellation/release. Do not late
 cached device mask, fork, useGPU sleepasfree, repeatimportmicrotest orshiftaccounting.
 RetainD463ascurrentparent,performanceNOTaccepted;no bundledrollback orconfiguration
 change. Lifecycle tests/minimalnative thenone new-key4000;7Btarget stillOPEN.
+Publication complete:16explicitfiles pushed as767e4d417eaad567595d209b43cd611a9dbdac1e;
+independentremoteHEAD equal.22publication smokechecks passed,noerrors/failures/skips.
+ManifestSHA f9578bf70a38734ec0e63c19b20b627a7ac7fc2de0e31f7c245fa7bc56a866cb.
+Curation3/backup4 exact-ownedactual-emptyclosed,peaks46628864/48877568B,
+allhigh/max/OOM/swap0. AllD467tasksfinished,GPUcomputeempty,remoteunchangedinactive.
+Usermanifestneverstaged,BASEunchanged;beforethispost-pushnoteonlytrackeduserdirt.
+Latestdisk161191510016B(~150.12GiB),freshgatebeforeheavy. WholegoalACTIVE.
 
 ## Previous action — D466 retained dispatch/capacity diagnosis completed
 
@@ -297,8 +338,9 @@ D463 CPU qualification,D464 native100 andD465 full4000 complete;retain failures.
 D465 failed commonSLO and did not reduce resourcevsD458. Reject performance
 acceptance of this narrow hypothesis; no repeat. Source stillD463,not rolledback.
 Retained dispatch/activation diagnosis completeD466; fixed-UUID CPU pre-initialize
-boundary qualifiedD467. Next implement bounded CPU preparation/freshGPUowner
-handoff, not repeatimport/fork/prebuild tests. Do not extend the owner-read change to
+boundary qualifiedD467; D468 bounded preparation/IPC/lifecycle foundation CPUtested.
+Next actual original-factory integration then native preparation/freshGPUowner
+handoff qualification, not repeatimport/fork/prebuild tests. Do not extend the owner-read change to
 later snapshots or cached physical inventory. Explicitly declare D463 disposition
 in the next version,not a silent rollback or a claimed accepted improvement.
 Do not repeat D456 profiling, D458, sealed baselines, C8/capacity/threshold sweeps,

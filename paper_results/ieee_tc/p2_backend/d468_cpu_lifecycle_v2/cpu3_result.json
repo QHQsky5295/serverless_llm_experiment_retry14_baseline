@@ -1,0 +1,60 @@
+{
+  "passed": true,
+  "tests": 559,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "elapsed_s": 73.37632435304113,
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+  },
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/cpu_frontend.py",
+      "sha256": "c25ddf331346df78e61d7d699c07329da46be1803ae091fe960d95121012bc1f",
+      "snapshot": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d468_20261012/cpu3_sources/faaslora_cpu_frontend.py"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/metrics/metrics_collector.py",
+      "sha256": "d9548c3e78813b7dbcfd9dfbbad3574bc45297c2c173883e68b39f5eaf4039ed",
+      "snapshot": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d468_20261012/cpu3_sources/faaslora_metrics_metrics_collector.py"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/dedicated_engine_worker.py",
+      "sha256": "2abd833029002db0518901c52984a83da686c0c77408b8fb056e7328acf5e972",
+      "snapshot": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d468_20261012/cpu3_sources/scripts_dedicated_engine_worker.py"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_cpu_frontend_lifecycle.py",
+      "sha256": "d6d4a2315f5105353c1989016a9fd44002c9004822067c3835de7e467a7ad8f9",
+      "snapshot": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d468_20261012/cpu3_sources/tests_test_ieee_tc_cpu_frontend_lifecycle.py"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_gpu_lifecycle.py",
+      "sha256": "8c77bbaa94646855c7ca86fda478a193b0a81786f3299da2e5d1c91b66bec185",
+      "snapshot": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d468_20261012/cpu3_sources/tests_test_ieee_tc_gpu_lifecycle.py"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "9d8d55d5e707192ae74beb555e0947852b94a237c995eddbdacd4541a17ef566",
+      "snapshot": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d468_20261012/cpu3_sources/scripts_run_all_experiments.py"
+    }
+  ],
+  "modules": [
+    "tests.test_ieee_tc_cpu_frontend_lifecycle",
+    "tests.test_ieee_tc_gpu_lifecycle",
+    "tests.test_ieee_tc_frontend_preparation",
+    "tests.test_ieee_tc_native_timing",
+    "tests.test_ieee_tc_launch",
+    "tests.test_basic_smoke"
+  ],
+  "python": "/home/qhq/anaconda3/envs/LLM/bin/python",
+  "helper_sha256": "6e79b8cd72ce08117669ce03da41b0bc2db4541cfa412839048375cc19dd7015",
+  "native_qualification": false,
+  "performance_result": false
+}

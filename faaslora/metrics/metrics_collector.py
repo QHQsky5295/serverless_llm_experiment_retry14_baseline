@@ -321,9 +321,14 @@ class PhysicalGPUDeployment:
                 event = row['event']
                 if event == 'acquire' and index != 0:
                     raise ValueError('duplicate physical acquire')
-                if event == 'worker_spawn':
+                if event in ('worker_spawn', 'prepared_worker_bind'):
                     if spawned or confirmed or exited:
                         raise ValueError('physical worker spawn sequence differs')
+                    if event == 'prepared_worker_bind':
+                        from faaslora.cpu_frontend import validate_preparation
+                        validate_preparation(row['preparation'], birth=row['worker'],
+                            gpu_uuids=first['gpu_uuids'], acquire_at=first['at'],
+                            owner=first['owner_identity'])
                     spawned = True
                 elif event == 'native_workers':
                     if not spawned or exited:
@@ -403,7 +408,8 @@ class PhysicalGPUAllocation:
     """Actual exclusive allocation for one local dedicated runtime.
 
     Cooperative locks are scoped to the guarded service, not a cluster scheduler.
-    Allocation precedes worker creation; return requires process termination AND
+    Allocation precedes GPU initialization (and ordinarily worker creation);
+    explicitly bound CPU-prepared processes may predate it. Return requires process termination AND
     a fresh native census. A crashed owner leaves an open durable journal which
     prevents reuse, even when the OS has dropped its locks. No destructor invents
     a release. UUID visibility is a consequence of allocation, not its evidence.
@@ -501,7 +507,7 @@ class PhysicalGPUAllocation:
             handle.close()
         self._locks.clear()
 
-    def bind_process(self, process, birth_identity):
+    def bind_process(self, process, birth_identity, *, preparation=None):
         with self._mutex:
             if self.process is not None or self.released:
                 raise RuntimeError('physical owner already bound or released')
@@ -510,7 +516,15 @@ class PhysicalGPUAllocation:
             if (birth_identity is None or birth_identity['pid'] != process.pid
                     or not Path(birth_identity['cgroup']).is_relative_to(self.service_path)):
                 raise RuntimeError('worker birth/containment identity unavailable')
-            self._append('worker_spawn', worker=birth_identity)
+            if preparation is None:
+                self._append('worker_spawn', worker=birth_identity)
+            else:
+                from faaslora.cpu_frontend import validate_preparation
+                validate_preparation(preparation, birth=birth_identity,
+                    gpu_uuids=self.gpu_uuids, acquire_at=self.events[0]['at'],
+                    owner=self.owner_identity)
+                self._append('prepared_worker_bind', worker=birth_identity,
+                             preparation=preparation)
 
     def confirm_workers(self, workers):
         with self._mutex:

@@ -363,6 +363,36 @@ class DeploymentPhysicalAccounting(unittest.TestCase):
         self.assertIsNone(report['gpu_seconds_per_correct_request'])
         self.assertFalse(report['eligible_correctness'])
 
+    def test_cpu_prepared_binding_does_not_shift_acquire_or_fake_process_spawn(self):
+        from faaslora.cpu_frontend import CONTRACT
+        owner = self.allocate(0, 1.)
+        birth = dict(pid=20, start_ticks=2, cgroup='/service/worker')
+        preparation = dict(contract=CONTRACT, preparation_id='a'*32,
+            gpu_uuid='GPU-0', configuration_sha256='b'*64,
+            deployment_notice_s=0., process_started_s=.2,
+            birth=birth, owner=owner.owner_identity)
+        process = SimpleNamespace(pid=20, poll=lambda:0, returncode=0)
+        with patch('faaslora.metrics.metrics_collector.time.monotonic',return_value=1.5):
+            owner.bind_process(process,birth,preparation=preparation)
+        # This CPU fixture supplies native lifetime evidence explicitly; it is
+        # not proof that an actual CUDA worker initialized or exited.
+        with patch('faaslora.metrics.metrics_collector.time.monotonic',return_value=3.):
+            owner._append('native_workers', workers=[])
+        with patch('faaslora.metrics.metrics_collector.time.monotonic',return_value=7.):
+            owner._append('native_workers_exited')
+        owner._native_workers_confirmed=owner._worker_exit_observed=True
+        self.release(owner,8.)
+        self.deployment.terminal('0',at=6.,result=self.result())
+        self.deployment.terminal('1',at=7.,result=self.result('1'))
+        report=self.deployment.summarize(observed_until_s=9.)
+        self.assertEqual(report['gpu_seconds'],7.)  # acquire1, not birth.2/bind1.5/ready3
+        self.assertEqual([r['event'] for r in owner.events],
+            ['acquire','prepared_worker_bind','native_workers','native_workers_exited','release'])
+        rows=[dict(r) for r in owner.events]
+        rows[1]=dict(rows[1],preparation=dict(preparation,gpu_uuid='GPU-1'))
+        owner.journal.write_text(''.join(json.dumps(r)+'\n' for r in rows))
+        with self.assertRaises(ValueError):self.deployment.summarize(observed_until_s=9.)
+
     def test_failed_startup_open_owner_and_global_cancel_stay_censored(self):
         self.allocate(0, 1.)
         self.deployment.terminal('0', at=3., error_type='CancelledError', interrupted=True)
