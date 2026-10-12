@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "count": 20,
+  "errors": 0,
+  "failures": 0,
+  "skipped": 0,
+  "scope": {
+    "unit": "primelora-tc-aux-d4580000000000000000000000000001.scope",
+    "invocation_id": "b3b1a0559b0f47d6bdf56d9cef6bfcd0",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4580000000000000000000000000001.scope",
+    "inode": 23266939
+  }
+}

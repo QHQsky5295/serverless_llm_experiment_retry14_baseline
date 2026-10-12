@@ -1,4 +1,4 @@
-# IEEE TC execution status — D457 file-view validation completed
+# IEEE TC execution status — D458 full W0 qualified, not yet launched
 
 Updated 2026-10-12. Current checkpoint, NOT a replacement experiment plan.
 Full prior status is byte-identically archived in EXECUTION_HISTORY_THROUGH_D448.md,
@@ -31,7 +31,33 @@ entries are not current instructions. No evidence or approved task was removed.
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D457 actual1000 completed, audited; backup/next full replay
+## Current action — D458 same-candidate full4000 prelaunch qualification
+
+FullPLAN/status/baseline rules/V1/V2 reread aftercompaction. D458 registers ordinary
+full4000 W0 for the same D457 file-view candidate, not another optimization/prefix
+repeat. Existinglauncher d458 case disables PREFIX_COUNT; no observer. Only exclusive
+output/NVMe/HOST paths change. Backend/cap14/profile/control/IEEE formulas unchanged.
+ExactD4354000 entries,132logicalIDs/458224targettokens; viewSHA
+a5331be2e2204483f18206825d9aaa18cbaa259fe0babfc303f989055819430d.
+20existingreplaytests passed0.582s. First11guardtests had1analysis-interpreter error
+(missing signal.pidfd_send_signal); same11 pass0.009s under actual/usr/bin/python3,
+no assertion or productionchange. Firstsourcequalification refusedmissingguardresult;
+all originalfailedscripts/logs retained, v2passed withcorrectguardbinding.
+34source refs/protected147/protocols/userfiles/configequality checked. Freshguard
+preflight32GiBgrowth passed, actualGPUcomputeempty. Currenttemporary inotifyprobe
+errno28; historicalD371/D453/D457 hadsamewarnings. Directpolling/watchdog/pidfd/
+actual-limit/explicit-emptycleanup tests pass; nohost/IDE/otherproject changes or
+claim of zero environmental effect. Curated p2_backend/d458_full_w0 contains input,
+guard,CPU,5scopeclosures and14byteexact helper sourcebackups. Aux1-5 exactInvocationID
+and actualrecursiveempty checked then stopped, retainedfailuresincluded. Closer6
+InvocationIDd504e5a38bd240d08cd3abcacdb67bfb stillrequires exact-owned emptyclosure.
+NoGPUperformance run/remote start yet. Lastdisk161226514432B(~150.15GiB), fresh
+startgates mandatory. NEXT explicitbackup/remotematch then one actualfull4000 under
+tmux tc-d458-filevieww0. No repeatD457 orsealedbaselines. GoalACTIVE; substantive
+qualification progress. All7BW1/W2/G2,3B,HydraServeisolatedqualification,A/S/docs/
+figures remain required. No figures until near target.
+
+## Previous action — D457 actual1000 completed, audited, backed up; next full replay
 
 Same once-only launch completed2026-10-12 about11:23; no restart/secondrun/live
 codechange. FullPLAN/status/baseline rules/V1/V2 reread.1000/1000native/source/
@@ -62,12 +88,23 @@ v2 uses existingstrict partition_activation_readiness withallrealrequests, no
 fabricatedreadytime/GPUrerun. Curatedp2_backend/d457_file_view,8executedpostrun
 source texts saved. Postrun9/a/b/c andfailedd exactInvocationID/actualrecursiveempty
 closed; deliverye also exactidentity/actualemptyclosed,peak672116736B,high/max/OOM/swap0.
-Closerf InvocationID75723c67e07e4f81a2b3ed093c12a0d7 awaits finalidentityclosure.
+Closerf InvocationID75723c67e07e4f81a2b3ed093c12a0d7 also exactidentity/actualempty
+closed by finalstagingcheck, receipt closer_f_closure.json retained.
 Currentdoc D457_FILE_VIEW_INTEGRATION_RESULTS.
 Next: exact-owned finalCPUclosure, backup, freshstorage/environment gates then one
 ordinaryfull4000W0 atsamecandidate/config. No repeatD457. Allremaining7BW1/W2/G2,
 3B,HydraServeisolatedqualification,A1-A5/S1-S13/docs/figures retained. GoalACTIVE;
 this turn substantivecompletion/closure/analysisprogress, not a blocker.
+
+Backupcheckpointd5c57ccbd2d3ec244cf17b1179f2e8d6d1797980 pushed toV2;
+independentls-remote equalsHEAD verified.11explicitstagedfiles/8byteexactpostrun
+sourcebackups/secrets/refchecks passed; usermanifest notstaged. Finalstagingaux10
+InvocationID4677511a7f644d71a263eef839df2ebc actualrecursiveempty/inode/identity
+checked thenstopped,peak287449088B,high/max/OOM/swap0. AllD457auxunitsabsent and
+GPUcomputeempty; raw result_backup_receipt.json recordschecks. Lastdiskfree
+161237200896B(~150.16GiB),freshgatesrequired; no cleanup ofunique/historicaldata.
+No actualD458/full4000candidate launched yet. FullgoalACTIVE; continue preregistered
+full4000samecandidate after storage/environmentchecks, not anotherprefix/optimization.
 
 ## Previous action — D457 equivalent file-view optimization CPU qualified
 

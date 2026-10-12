@@ -1,0 +1,302 @@
+{
+  "kind": "d458_existing_guard_and_environment_v1",
+  "passed": true,
+  "tests": 11,
+  "scope": {
+    "unit": "primelora-tc-aux-d4580000000000000000000000000004.scope",
+    "invocation_id": "5adfaba2f15d43e785a86777bccf242f",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4580000000000000000000000000004.scope",
+    "inode": 23268487
+  },
+  "historical_service_warnings": [
+    {
+      "launch_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d371_20261010/7b_full_w0/launch.json",
+      "launch_sha256": "177deacb354e7f677d9c8de7802ca7c3f3359b52dda6f930a1ff96acb9ce29f3",
+      "unit": "primelora-tc-svc-d7315ac3d05544dea290f189f2c4839d.scope",
+      "warnings": [
+        "2026-10-10T02:39:31+0800 dhu-PowerEdge-T640 systemd[2552]: primelora-tc-svc-d7315ac3d05544dea290f189f2c4839d.scope: Failed to add control inotify watch descriptor for control group /user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-d7315ac3d05544dea290f189f2c4839d.scope: No space left on device",
+        "2026-10-10T02:39:31+0800 dhu-PowerEdge-T640 systemd[2552]: primelora-tc-svc-d7315ac3d05544dea290f189f2c4839d.scope: Failed to add memory inotify watch descriptor for control group /user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-d7315ac3d05544dea290f189f2c4839d.scope: No space left on device"
+      ]
+    },
+    {
+      "launch_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/elastic_locality_qualification/d453_20261012/7b_elastic_locality_w0/launch.json",
+      "launch_sha256": "3a8990fc8fbc3134cf11e7dbe8197dc1fad523f6343250ad56d589920374b0b7",
+      "unit": "primelora-tc-svc-dc631eb1e925443380a57967e7cd3389.scope",
+      "warnings": [
+        "2026-10-12T08:11:09+0800 dhu-PowerEdge-T640 systemd[2552]: primelora-tc-svc-dc631eb1e925443380a57967e7cd3389.scope: Failed to add control inotify watch descriptor for control group /user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-dc631eb1e925443380a57967e7cd3389.scope: No space left on device",
+        "2026-10-12T08:11:09+0800 dhu-PowerEdge-T640 systemd[2552]: primelora-tc-svc-dc631eb1e925443380a57967e7cd3389.scope: Failed to add memory inotify watch descriptor for control group /user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-dc631eb1e925443380a57967e7cd3389.scope: No space left on device"
+      ]
+    },
+    {
+      "launch_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d457_20261012/7b_full_w0_prefix1/launch.json",
+      "launch_sha256": "64823dfc910444da9bda5960f843cb50b174bb7fdc164cc0d7e86637b3727ce1",
+      "unit": "primelora-tc-svc-a646a8ca7d8346658621eff12993ba27.scope",
+      "warnings": [
+        "2026-10-12T11:02:48+0800 dhu-PowerEdge-T640 systemd[2552]: primelora-tc-svc-a646a8ca7d8346658621eff12993ba27.scope: Failed to add control inotify watch descriptor for control group /user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-a646a8ca7d8346658621eff12993ba27.scope: No space left on device",
+        "2026-10-12T11:02:48+0800 dhu-PowerEdge-T640 systemd[2552]: primelora-tc-svc-a646a8ca7d8346658621eff12993ba27.scope: Failed to add memory inotify watch descriptor for control group /user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-a646a8ca7d8346658621eff12993ba27.scope: No space left on device"
+      ]
+    }
+  ],
+  "current_ephemeral_watch_probe": [
+    {
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4580000000000000000000000000004.scope/cgroup.events",
+      "watch_created": false,
+      "errno": 28
+    },
+    {
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4580000000000000000000000000004.scope/memory.events",
+      "watch_created": false,
+      "errno": 28
+    }
+  ],
+  "max_user_watches": 65536,
+  "preflight": {
+    "kind": "ieee_tc_preflight",
+    "time_unix": 1791776379.1529078,
+    "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5",
+    "policy": {
+      "service_high_bytes": 77309411328,
+      "service_max_bytes": 85899345920,
+      "service_swap_max_bytes": 2147483648,
+      "aux_max_bytes": 4294967296,
+      "stop_available_bytes": 17179869184,
+      "margin_bytes": 2147483648,
+      "warning_available_bytes": 25769803776,
+      "service_cpus": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47
+      ],
+      "aux_cpus": [
+        2,
+        3,
+        26,
+        27
+      ],
+      "reserved_cpus": [
+        0,
+        1,
+        24,
+        25
+      ],
+      "memory_full_avg10_percent": 10,
+      "pressure_samples": 10,
+      "sample_seconds": 1,
+      "disk_stop_bytes": 107374182400,
+      "disk_start_floor_bytes": 161061273600
+    },
+    "memory": {
+      "MemTotal": 134626844672,
+      "MemFree": 53058916352,
+      "MemAvailable": 111823323136,
+      "Buffers": 6975254528,
+      "Cached": 43780640768,
+      "SwapCached": 246730752,
+      "Active": 22144479232,
+      "Inactive": 45431582720,
+      "Active(anon)": 16454844416,
+      "Inactive(anon)": 374403072,
+      "Active(file)": 5689634816,
+      "Inactive(file)": 45057179648,
+      "Unevictable": 3211264,
+      "Mlocked": 0,
+      "SwapTotal": 36507213824,
+      "SwapFree": 35025981440,
+      "Zswap": 0,
+      "Zswapped": 0,
+      "Dirty": 1024000,
+      "Writeback": 4096,
+      "AnonPages": 16756510720,
+      "Mapped": 1187844096,
+      "Shmem": 9195520,
+      "KReclaimable": 10176573440,
+      "Slab": 11597168640,
+      "SReclaimable": 10176573440,
+      "SUnreclaim": 1420595200,
+      "KernelStack": 41828352,
+      "PageTables": 164696064,
+      "SecPageTables": 0,
+      "NFS_Unstable": 0,
+      "Bounce": 0,
+      "WritebackTmp": 0,
+      "CommitLimit": 103820636160,
+      "Committed_AS": 20693266432,
+      "VmallocTotal": 35184372087808,
+      "VmallocUsed": 753876992,
+      "VmallocChunk": 0,
+      "Percpu": 218431488,
+      "HardwareCorrupted": 0,
+      "AnonHugePages": 71303168,
+      "ShmemHugePages": 0,
+      "ShmemPmdMapped": 0,
+      "FileHugePages": 0,
+      "FilePmdMapped": 0,
+      "Unaccepted": 0,
+      "HugePages_Total": 0,
+      "HugePages_Free": 0,
+      "HugePages_Rsvd": 0,
+      "HugePages_Surp": 0,
+      "Hugepagesize": 2097152,
+      "Hugetlb": 0,
+      "DirectMap4k": 51102318592,
+      "DirectMap2M": 85802876928,
+      "DirectMap1G": 2147483648
+    },
+    "required_available_bytes": 109521666048,
+    "filesystems": [
+      {
+        "path": "/home/qhq/serverless_llm_experiment_retry14_baseline",
+        "device": 2050,
+        "free_bytes": 161230012416,
+        "required_bytes": 161061273600,
+        "free_inodes": 210128463
+      }
+    ],
+    "service_parent_chain": [
+      {
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service",
+        "memory.current": 36132401152,
+        "memory.peak": 93511049216,
+        "memory.high": "max",
+        "memory.max": "max",
+        "memory.swap.current": 216825856,
+        "memory.swap.max": "max",
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=234564241\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=230730210",
+        "cpu.max": null,
+        "cpu.stat": "usage_usec 1584673236122\nuser_usec 1462161527389\nsystem_usec 122511708733\ncore_sched.force_idle_usec 0",
+        "cpuset.cpus.effective": null,
+        "cgroup.controllers": "memory pids",
+        "memory.events": {
+          "low": 0,
+          "high": 182831,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0,
+          "oom_group_kill": 0
+        }
+      },
+      {
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice",
+        "memory.current": 66963005440,
+        "memory.peak": 125386870784,
+        "memory.high": "max",
+        "memory.max": "max",
+        "memory.swap.current": 219156480,
+        "memory.swap.max": "max",
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=982792852\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=976400499",
+        "cpu.max": null,
+        "cpu.stat": "usage_usec 1668080364564\nuser_usec 1523558178683\nsystem_usec 144522185881\ncore_sched.force_idle_usec 0",
+        "cpuset.cpus.effective": null,
+        "cgroup.controllers": "memory pids",
+        "memory.events": {
+          "low": 0,
+          "high": 182831,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 1,
+          "oom_group_kill": 0
+        }
+      },
+      {
+        "path": "/sys/fs/cgroup/user.slice",
+        "memory.current": 67112407040,
+        "memory.peak": 125467160576,
+        "memory.high": "max",
+        "memory.max": "max",
+        "memory.swap.current": 395284480,
+        "memory.swap.max": "max",
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=976165688\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=969475877",
+        "cpu.max": "max 100000",
+        "cpu.stat": "usage_usec 1724470721875\nuser_usec 1562812605438\nsystem_usec 161658116437\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0",
+        "cpuset.cpus.effective": "0-47",
+        "cgroup.controllers": "cpuset cpu io memory hugetlb pids rdma misc",
+        "memory.events": {
+          "low": 0,
+          "high": 182831,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 1,
+          "oom_group_kill": 0
+        }
+      },
+      {
+        "path": "/sys/fs/cgroup",
+        "memory.current": null,
+        "memory.peak": null,
+        "memory.high": null,
+        "memory.max": null,
+        "memory.swap.current": null,
+        "memory.swap.max": null,
+        "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=1071874693\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=1051606069",
+        "cpu.max": null,
+        "cpu.stat": "usage_usec 3282564475000\nuser_usec 2445014407000\nsystem_usec 837550068000\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0",
+        "cpuset.cpus.effective": "0-47",
+        "cgroup.controllers": "cpuset cpu io memory hugetlb pids rdma misc",
+        "memory.events": null
+      }
+    ],
+    "issues": [],
+    "preflight_pass": true,
+    "production_launch_authorized": false,
+    "remaining_gates": [
+      "actual_service_workers",
+      "separate_replay_and_watchdog",
+      "gpu_cleanup",
+      "per_filesystem_quota_audit"
+    ]
+  },
+  "no_global_settings_or_other_processes_changed": true,
+  "guard_strategy": "Unchanged direct polling, actual resource readback, owned pidfd/cgroup.kill and explicit empty-scope cleanup; no inotify-dependent safety gate.",
+  "performance_equivalence_from_warning_alone": false,
+  "refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d458_20261012/guard_checks_v2.py",
+      "sha256": "277d6e44afbd05b528bbaac59ffdf75d5a358f93f4972092e92b649f662abfc7"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc_preflight.py",
+      "sha256": "5fe9358fd7fba8a0b566f824a111e5e8d01d6973e3512eef37e1834b80984c1d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_preflight.py",
+      "sha256": "911b13182366fd38d25a1ebfc88479a4fd963b96208f79c6e417fbed91892a6c"
+    }
+  ]
+}
