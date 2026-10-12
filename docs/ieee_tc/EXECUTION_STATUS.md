@@ -1,6 +1,6 @@
-# IEEE TC execution status — D479 LoRA binding tests; official blobs resuming
+# IEEE TC execution status — D480 native platform seam; official blobs resuming
 
-Updated 2026-10-13 00:07 CST. Current checkpoint, NOT replacement plan.
+Updated 2026-10-13 00:28 CST. Current checkpoint, NOT replacement plan.
 Preceding status byte-identically archived in EXECUTION_HISTORY_THROUGH_D477.md;
 cmp passed, SHA cee5b2b0527a0ff9f2d07d2dc65c86a74dd2ce0d1b3b27f4a434f764e9adb128.
 D461/D448/D433/D402 and older histories remain. Historical NEXT/RUNNING lines
@@ -36,7 +36,47 @@ qualification+new full replay; IEEE nine equations/semantics fixed.
 Full names PrimeLoRA/ServerlessLLM, no figures until near target, no13B/newSGLang,
 paper edits, new weights/traces/pool regeneration. Whole goal ACTIVE.
 
-## D479 current progress and LIVE software download
+## D480 current progress: native lifecycle seam, NOT a running platform
+
+Raw /home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d480_20261013/.
+BASE HydraServe_project/runtime/platform_port.py source-pins resource_manager,
+scheduler and algs, then renders two in-memory overlays. Only lifecycle/inventory/
+address operations get an optional platform dependency; native policies remain.
+algs.py unchanged, NetManager/claim/best-fit/remainder rule and scheduler methods
+unchanged; native /init still awaited. No fake Kubernetes objects/readiness.
+Caller must supply actual qualified isolated container lifecycle; NOT installed,
+no native GPU correctness or performance result yet. User's unrelated k3s untouched.
+
+Important source fact: Scheduler gives ours max remaining GPU per PHYSICAL NODE;
+ours requires p available nodes for pp_size=p. One host with4GPUs is ONE inventory
+entry, not4nodes. Unchanged-algorithm CPU witness with synthetic14GBmodel/5GBKV
+selected pp1 four times on node0, native best-fit selecting four GPUs; no natural
+consolidation. This is a control-path witness, NOT measured model footprint or
+chosen final performance profile. Preserve mechanism nontrigger and topology
+limits; don't force a new policy or relabel local GPUs as physical nodes.
+
+12 new platform tests +10 D479 binding tests passed. Initial run21pass/1error:
+synthetic ModelStats omitted native default prefill_time=0. Only fixture corrected;
+failure log/sourceSHA/reversible correction retained, full retry22pass.
+Both small scopes exactidentity/recursive-empty closed, peaks26382336/26591232B,
+all high/max/OOM/swap0. Backup regression27tests (plus5existing) passes.
+17explicit source/test/failure records archived with full roundtrip SHA checking;
+protected147 unchanged, user dirty SHAs unchanged, nativecheckoutclean.
+Archive SHA d18d9c4b453375826d7ea8c7aee1df89f85a9bde1515a569182fc289e77c34b9;
+summary SHA3269be6e99a763c3c3fec84af6f2934b495fac6dee5845d5a4b25184406c6b2e.
+BASE checkpoint77eb0c74936a248a7034c5603661abfe981cbfca pushed/remoteequal.
+Curation andBASEbackup scopes3/4 closed, peaks11423744/28381184B,events0.
+Read BASE docs/ieee_tc/D480_HYDRASERVE_PLATFORM_PORT.md before integration.
+
+NEXT: continue SAME D479 download below, qualify real image/source, implement
+actual isolated lifecycle using D477 containment evidence and this native seam;
+private project IPC/shm (native local_server clears psm_*), safe readonly backbone
+delivery (native remote_server duplicates CPUweights), D479 native LoRA binding,
+request/generation/token measurement, then100/500-ID/1000/4000 in order.
+No new PrimeLoRA candidate, no baseline tuning, no invented performance data.
+No concrete platform or storage adaptation is qualified by these CPU tests.
+
+## D479 completed binding helper and LIVE software download
 
 Raw /home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d479_20261012/.
 BASE HydraServe_project/runtime/lora_stage_binding.py adds exact native partition
@@ -50,7 +90,7 @@ dummy tensors. No performance/configuration search, model, remote or K8s changes
 Testscope1 closed exactidentity/recursive-empty, peak20201472B, events/swap0.
 Read BASE docs/ieee_tc/D479_HYDRASERVE_LORA_BINDING_ADAPTATION.md before integration.
 Still need actual worker source/dependency checks, native layer/tensor/numerical
-witness, lifecycle-platform port and per-request fixed-output/native measurement.
+witness, concrete lifecycle-platform implementation and fixed-output/native measurement.
 Do not mistake the CPU helper for completed HydraServe or manufacture ready state.
 
 D478 first resume TERMINAL TimeoutError at1233.255052632885s, below10800s guard.
@@ -179,7 +219,8 @@ now witnessed before image work, not proof of complete native lifecycle safety.
 Only memory/pids delegated; official kind/rootless K8s CPUdelegation missing;
 sudo-n requires password. Don't use remote password locally or read root credentials.
 Necessary real lifecycle port may preserve native policies, but no fake K8s ready,
-invented nodes, or barevLLM labelled HydraServe. No platform port implemented yet.
+invented nodes, or barevLLM labelled HydraServe. D480 adds the native injection
+seam; its concrete isolated lifecycle implementation is NOT yet qualified.
 
 D447 real7B metadata confirmed global/local mismatch: pp2 second stage64/64 LoRA
 global names wrong without mapping; CPU-only derived view matches. Two existing
@@ -241,6 +282,17 @@ W1/W2references OPEN. BASE load_http_replay_plan currently defaults W0:
 qualify actual common W1 transform interface, don't relabel W0 asW1.
 
 ## Safety, preservation and current backup identities
+
+D480 BASE77eb0c74936a248a7034c5603661abfe981cbfca independentlyremoteequal.
+MAIN predecessor204b0d76edb419282d062faa28ddc2dd429cb8b1 (D479) remoteverified.
+D480 MAIN status-only checkpoint follows; exactHEAD/remoteequality saved to
+D480/backup_main_receipt.json. No userfile or oldresult changed.
+At16:27UTC D479 scope2 still contains onlyPID369785, uid1001, CPU2,3,26,27;
+memorycurrent53125120B/peak53309440B, allhigh/max/OOM/swap0, no terminalresult.
+At16:25UTCsmallblob90831883B, full189594758; large903052834B queued unchanged.
+Disk161285378048B (~150.21GiB): currentdownload stays above runtime100GiB,
+but fresh import must again satisfy150GiB/startgrowthgate. Do not compress while
+download runs. Software transfer and actualGPUperformance remain distinct.
 
 D479 BASE checkpoint055adf30fe9758f3ee4320427affa674df05f111 pushed to origin/main,
 independentlyremoteequal.15CPU tests pass(10new+5existing),source/protected147/user
