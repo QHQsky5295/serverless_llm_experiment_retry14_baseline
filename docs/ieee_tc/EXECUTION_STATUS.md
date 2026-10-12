@@ -1,4 +1,4 @@
-# IEEE TC execution status — D473 residual diagnosis closed; 7B optimization OPEN
+# IEEE TC execution status — D474 execution consumer qualified on CPU; 7B OPEN
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement plan.
 Complete preceding status is byte-identically archived in
@@ -33,7 +33,42 @@ not current instructions. No evidence or approved task was removed.
 - Every optimization: logs/history + online primary sources + one falsifiable
   hypothesis + tests/minimal validation/new full replay. IEEE nine formulas fixed.
 
-## Current action — D473 retained residual stages and owner/decode audit completed
+## Current action — D474 exact HOST execution consumer proof; native validation NEXT
+
+Read full PLAN/status/rules/V1/V2. D473 retained diagnosis reused,not rerun.
+Online officialvLLM0.30 core/worker,PyTorch2.13Memory andCPU-overheadreport checked;
+vLLM/optimize-for-gpu skills used only for execution boundaries,not generic targets.
+Onlyproductionchange: `_queue_ieee_native_host_preparation.execute` observes the
+existing live source_identity_snapshot instead of full source_snapshot. Initial
+D463ownerquery remains; everyexecution stillqueriesfreshidentity/epoch. No cache,
+newendpoint,formula/config/generation/thresholdchange orbaseline tuning.
+
+This is NOT mechanical extension of D463: exact consumer review now covers the
+conflict/supersession branch. NativeSourceSnapshot alreadyacceptsreadiness-only;
+supersession consumesidentity+confirmedfilecopies,notfootprint/capacity. It cannot
+produce a serviceclass. Actualprepare retains fresh physical inventory/allocator/
+workspace/epoch/source checks andfilelocks/leases/cancel/lostreply handling. Other
+full routing/planning/demand observations unchanged. D329mutation tests retained.
+D465 negativeperformance evidence remains; no predictedmilliseconds/GPU-s saved.
+Hypothesis: reduce unconsumed per-execution physical collection on nativecore,
+not skip real safety. If full replay doesnotimprove,stop this localcandidate.
+
+3newtests +existingaffected suites: red44(41import-discoveredexisting+3new),
+2newdependencyfailures/0errors; rawsource/log preserved. Moduleimportcorrected
+to avoid duplicate TestCase discovery. Candidate350allpass; final953allpass,
+0failure/error/skip,35.240sbody/40.366sincludingdiscovery. CPUfixtures notnative
+GPU/numerical/performance evidence. All3testscopes exactidentity actual-empty
+closed,high/max/OOM/swap0,protected147pass. Rawd474_20261012; newtest
+test_ieee_tc_host_execution_projection.py; seeD474_HOST_EXECUTION_CONSUMER_PROOF.md.
+
+Next verifycuration/backup,thenoriginalD471100 native qualification withnewpaths,
+thenone new-keyoriginal4000withunchangedD472settings ONLYifqualificationpasses.
+No newGPU/remote run yet; no figures/weights/traces/profile/cluster actions.
+D472 remains latestsealedfeasibleW0; candidateperformanceNOTaccepted. Do not
+rerunD473/D472/sealedbaselines ormorepin/importprobes. FullgoalACTIVE;7B/W1/W2/G2/
+3B/HydraServe/ablations/mechanisms/sensitivities/docs remainOPEN.
+
+## Prior action — D473 retained residual stages and owner/decode audit completed
 
 No new GPU/remote run, production change, baseline tuning, figure or agent.
 D472 retained4000 twelve-stage E2E identity maxerror0; sealed TTFT/E2E means and
@@ -72,6 +107,16 @@ implementedoffloads,owner-readprojection,pinquery/importmicrotests orsealedruns.
 See D473_RETAINED_RESIDUAL_DIAGNOSIS.md;rawmain_comparison/d473_20261012,
 curatedmain_comparison/d473_residual. Alloldrows/failuresretained. WholegoalACTIVE;
 7Bnotoptimum,3B/W1/W2/G2/HydraServe/fullapprovedscope OPEN.
+
+D473checkpointcomplete:18explicitfilespushedas
+fedd70afed64c8f1ee754ad6bfd939ce368d6b5d;independentremoteHEADequal.
+42currentrefs/18archivedmembers/147protectedverified,116tests pass;
+manifestSHA1ae413056916c031fb4951d8e8a3bb9fd029e5356d85e2d8ec52aea9a3ca466f.
+Curation4/backup5exactidentityactual-emptyclosed,peaks344551424/343822336B,
+high/max/OOM/swap0. All5D473tasksfinished,noGPUorremotejoblive.
+Usermanifestneverstaged;BASEunchanged. Disk161561788416B(~150.47GiB),freshgate
+beforeheavy. Rawbackup_receipt/closure retainpublication. Do notrepeatD473analysis
+orcompression;nextnativecontrolconsumer/mutationreviewasabove,goalremainsACTIVE.
 
 ## Prior action — D472 full audit passed; result checkpoint and residual gap
 
@@ -625,11 +670,12 @@ D472 completed once,closed,auditedandcompared; do notrestart orrepollperformance
 AcceptCPUpreparationcandidateasW0feasible/resourceimproved,notfullgoalachieved.
 RetainD465failure,D458priorfeasible andD463unacceptedstandaloneperformanceclaim.
 RetainedD472stage/nativeownerdiagnosis nowcompletedD473; do not repeatit.
-Aftertestedbackup: nativecontroltransaction consumer/mutationdependency review,
-thenone falsifiableoptimization onlyifliveidentity/physicalchecks remainproved.
+ExactconsumerreviewnowcompletedD474;aftertestedbackup:minimalnative100thenonce
+new-key4000W0ifqualified. No repeatedCPUqualificationunlessafailure/newchange.
 GlobalpermitwaitisnowbelowElasticLocality;decode/controlgapremains. Noisolatedcauseyet.
 No blindcapacity/thresholdsweep, CPUimport/fork/prebuildtest, cachedphysicalstate
-or extendingowner-readtoother snapshots. D463 stillpresent,not secretlyrolledback.
+or mechanicalextensiontoother snapshots. D474 alone hasnewexactconsumerproof;
+do notexpandit.D463 stillpresent,not secretlyrolledback.
 Do not repeat D456 profiling, D458, sealed baselines, C8/capacity/threshold sweeps,
 pin-query microtests, stale HOST caches or already implemented planner offload.
 D458 remains the prior feasible Full point;D465 is retained nonfeasible;

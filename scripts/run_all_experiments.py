@@ -19610,7 +19610,7 @@ class ScenarioRunner:
         engine = slot.engine
         await self._attach_ieee_file_pressure(engine)
         # Queue ownership consumes only a fresh owner/clock identity. The
-        # queued execution still takes its own full physical observation;
+        # queued execution still takes its own fresh source observation;
         # this read cannot authorize a load or supply its execution epoch.
         current = await engine.ieee_gpu_reference(operation='source_identity_snapshot')
         owner_id = current['owner_id']
@@ -19647,7 +19647,12 @@ class ScenarioRunner:
                         raise
                     cancelled = True
         async def execute(attempt_id):
-            observed = checked(await engine.ieee_gpu_reference(operation='source_snapshot'))
+            # This consumer needs current copy identity/GPU confirmation and
+            # the execution epoch, not a storage graph or allocator verdict.
+            # prepare_file_host_and_hold performs its own live physical checks;
+            # planner/admission observations are unchanged. Never reuse entry
+            # identity here: intervening native mutations must remain visible.
+            observed = checked(await engine.ieee_gpu_reference(operation='source_identity_snapshot'))
             # Reuse requires this worker's actual immutable source identity.
             native = next((s for s in observed['sources'] if s['adapter_int_id'] == aid), None)
             if native is not None and (

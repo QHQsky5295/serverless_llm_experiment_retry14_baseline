@@ -1,0 +1,39 @@
+{
+  "passed": true,
+  "qualified_cpu_tests": 953,
+  "source_refs_checked": 27,
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+  },
+  "curation_closure": {
+    "passed": true,
+    "identity": {
+      "unit": "primelora-tc-aux-d4740000000000000000000000000004.scope",
+      "invocation_id": "8a0843e1cb084e498da4e38d2f8b5600",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4740000000000000000000000000004.scope",
+      "inode": 23528549
+    },
+    "resources": {
+      "memory.peak": "474152960",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0"
+    },
+    "actual_recursive_procs_empty": true,
+    "source_sha256": "a9897d743212b9687eebb914f7bddb08bcdd7400bc70d51e26f769685be22c90"
+  },
+  "native_validation_pending": true,
+  "performance_hypothesis_accepted": false,
+  "scope": {
+    "unit": "primelora-tc-aux-d4740000000000000000000000000005.scope",
+    "invocation_id": "c016901d5f904500bbb02923e6b030bd",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4740000000000000000000000000005.scope",
+    "inode": 23528749
+  },
+  "helper_sha256": "db8f2ea7278f466b7b99a4c0ceaefb2ab5cbce3abb1dfcd674d2d9e7a3f4d52c",
+  "free_bytes": 161555693568
+}

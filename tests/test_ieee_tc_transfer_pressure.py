@@ -1286,7 +1286,7 @@ class OwnedNativeHostMovement(unittest.TestCase):
         return runner._queue_ieee_native_host_preparation(slot=slot, adapter_id='a',
             source_path=str(fixture.nvme/'a'), trigger_reason='residency', plan_id=plan)
 
-    def test_queue_entry_needs_only_live_owner_clock_then_full_execution_read(self):
+    def test_queue_entry_needs_only_live_owner_clock_then_fresh_execution_identity(self):
         async def run():
             fixture, runner, queue, engine, ledger, native, slot = await self.make()
             original = engine.ieee_gpu_reference
@@ -1294,7 +1294,7 @@ class OwnedNativeHostMovement(unittest.TestCase):
             async def observed(operation, **kwargs):
                 calls.append(operation)
                 value = await original(operation, **kwargs)
-                if operation == 'source_identity_snapshot':
+                if operation == 'source_identity_snapshot' and len(calls) == 1:
                     # Dependency witness, not a fabricated production snapshot.
                     return {k: value[k] for k in ('owner_id', 'clock_id')}
                 return value
@@ -1302,7 +1302,7 @@ class OwnedNativeHostMovement(unittest.TestCase):
             try:
                 result = await self.call(fixture, runner, slot)
                 self.assertEqual(result['state'], 'native_host_prepared')
-                self.assertEqual(calls, ['source_identity_snapshot', 'source_snapshot',
+                self.assertEqual(calls, ['source_identity_snapshot', 'source_identity_snapshot',
                     'prepare_file_host_and_hold', 'release_host_source'])
                 self.assertFalse(fixture.owner.leases)
                 self.assertFalse(native.owner._host_leases)
@@ -1318,11 +1318,11 @@ class OwnedNativeHostMovement(unittest.TestCase):
             entry_epochs, execution_epochs, commands = [], [], []
             async def observed(operation, **kwargs):
                 value = await original(operation, **kwargs)
-                if operation == 'source_identity_snapshot':
+                if operation == 'source_identity_snapshot' and not entry_epochs:
                     entry_epochs.append(value['epoch'])
                     # A completed live owner change between the two RPCs.
                     native.owner.manager.deactivate(1)
-                elif operation == 'source_snapshot':
+                elif operation == 'source_identity_snapshot':
                     execution_epochs.append(value['epoch'])
                 elif operation == 'prepare_file_host_and_hold':
                     commands.append(kwargs)
@@ -1418,14 +1418,14 @@ class OwnedNativeHostMovement(unittest.TestCase):
             async def observed(operation, **kwargs):
                 calls.append(operation)
                 value = await original(operation, **kwargs)
-                if operation == 'source_snapshot':
+                if operation == 'source_identity_snapshot' and len(calls) == 2:
                     value['owner_id'] = 'different-execution-owner'
                 return value
             engine.ieee_gpu_reference = observed
             try:
                 with self.assertRaisesRegex(ValueError, 'owner/clock differs'):
                     await self.call(fixture, runner, slot)
-                self.assertEqual(calls, ['source_identity_snapshot', 'source_snapshot'])
+                self.assertEqual(calls, ['source_identity_snapshot', 'source_identity_snapshot'])
                 self.assertFalse(fixture.owner.leases)
                 self.assertFalse(native.owner._host_leases)
                 self.assertEqual(ledger.snapshot()['active_transfers'], 0)
