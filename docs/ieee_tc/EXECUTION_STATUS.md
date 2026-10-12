@@ -1,4 +1,4 @@
-# IEEE TC execution status — D465 complete, common SLO not met
+# IEEE TC execution status — D466 retained capacity diagnosis complete
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement plan.
 Complete preceding status is byte-identically archived in
@@ -33,7 +33,38 @@ not current instructions. No evidence or approved task was removed.
 - Every optimization: logs/history + online primary sources + one falsifiable
   hypothesis + tests/minimal validation/new full replay. IEEE nine formulas fixed.
 
-## Current action — D465 completed, hypothesis not accepted
+## Current action — D466 retained dispatch/capacity diagnosis completed
+
+Read full PLAN/status/rules/V1/V2 after compaction; analyze-results and
+optimize-for-gpu used, github-sync for checkpoint. No agents, GPU/remote work,
+production change, baseline tuning, replay, new trace or figure.
+Reuse exact existing stage/gate/sample-capacity primitives on D458/D465.
+All4000 each matched; gzip archive and uncompressed SHA verified; all ready/
+unready epochs retained. 40 existing timeline tests pass,0fail/error/skip.
+D465 twelve additive E2E stages reconstruct with0ms error.
+Mean acquire-to-resume167.527716->398.142408ms (+230.614692);
+release-to-acquire26.876311->30.469443; runtimewait249.701038->251.501636.
+Nativequeue/prefill slightly lower,decode3636.602183->3594.094365ms.
+Fixed500-request phases1/2(zero-based) jointmiss100->158;all142->210.
+Control samples1914/1915; waiting25/43; definiteownerscovercapacity6/16.
+AtD465 offset1077.442417s readycapacity14,definiteowners14,queued27,pending3.
+This sample is actually full; uncovered lower bounds do not prove vacancies.
+D465 scaleddown888.855626/936.325544/995.810405s toone ready;D458 retainedtwo
+after988.567386/1052.589883s. D465 triggeredearlier1067.155597s andfirstnewready
+1112.931743s(vsD4581120.092198),yetqueuedmore. Not simply slowerstartup.
+Longest20.276057s wait req01005 resumed1100.513270,beforeanynewready;overlap
+does not mean waiting for that activation. No isolated causal claim.
+SeeD466_RETAINED_DISPATCH_CAPACITY.md;rawmain_comparison/d466_20261012,
+curatedmain_comparison/d466_dispatch_capacity. Analysis1/context2 exact-owned
+actual-emptyclosed,peaks406347776/618795008B,high/max/OOM/swap0;protected147pass.
+No repeatedD465 orsame-tail taxonomy. D463 stillpresent,performanceNOTaccepted.
+Next focusedquestion: feasibility of CPU-only frontend initialization before
+fresh GPUowner/core creation,within servicebudget/notice contract. ReuseD338
+evidence,inspectCUDA/device/init/cancel lifecycle first; not importdeletion,
+forkafterCUDA,sleep-as-free-GPU,threshold/capacity sweep orblindprocesspool.
+No productioncandidate accepted orqualified yet. WholegoalACTIVE.
+
+## Previous action — D465 completed, hypothesis not accepted
 
 D465's single full4000 W0 finished on2026-10-12, native service and watchdog
 exit0. GPU release and service-path removal confirmed before remote shutdown.
@@ -83,7 +114,13 @@ warnings retained with unknown performanceimpact. Initial postrun verifier used
 absentplural warnings; correctedv2 readsactualsingular warning,originalerror
 andclosure retained. No rawmeasurement orcriterionchange. Verification9/a
 actual-emptyclosed,peaks387203072/385814528B (captured finalclosures),
-high/max/OOM/swap0. Task-only result backup next; no productionrollback yet.
+high/max/OOM/swap0.15 explicit task files pushed as
+9ff330d1293a67012671bd798eff4cfb76bc889a;independent remoteHEADequalslocal.
+22 postrun smokechecks passed0fail/error/skip (0.668s); initial backup-helper
+escaped-newline assertion failed after tests but before staging. Corrected
+logreader reused the same passingtests,originalhelper/error/closure retained.
+Backupb/c exactidentity actual-emptyclosed;BASEunchanged,user manifestneverstaged.
+No productionrollback yet. Rawbackup_result_v2_receipt/closure are authoritative.
 WholegoalACTIVE; complete nonfeasible candidate is progress,not overallcompletion.
 
 ## Completed — D464 original100 native validation passed
@@ -214,9 +251,11 @@ qualification/rejection/verified backup are progress, not a blocker or completio
 D463 CPU qualification,D464 native100 andD465 full4000 complete;retain failures.
 D465 failed commonSLO and did not reduce resourcevsD458. Reject performance
 acceptance of this narrow hypothesis; no repeat. Source stillD463,not rolledback.
-Next examine existing dispatch/activation/native occupancy timelines against
-D459–D461,then register one causally grounded next version. Do not extend the
-owner-read change to later snapshots or cached physical inventory.
+Retained dispatch/activation diagnosis is now complete inD466. Next inspect
+CPU-only frontend preparation/freshGPUowner boundary withD338history andofficial
+sources before proposing one candidate. Do not extend the owner-read change to
+later snapshots or cached physical inventory. Explicitly declare D463 disposition
+in the next version,not a silent rollback or a claimed accepted improvement.
 Do not repeat D456 profiling, D458, sealed baselines, C8/capacity/threshold sweeps,
 pin-query microtests, stale HOST caches or already implemented planner offload.
 D458 remains the prior feasible Full point;D465 is the latest nonfeasible
