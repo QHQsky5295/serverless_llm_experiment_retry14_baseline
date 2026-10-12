@@ -1,4 +1,4 @@
-# IEEE TC execution status — D462 live pin-query candidate rejected
+# IEEE TC execution status — D463 HOST queue owner projection qualification
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement plan.
 Complete preceding status is byte-identically archived in
@@ -33,7 +33,46 @@ not current instructions. No evidence or approved task was removed.
 - Every optimization: logs/history + online primary sources + one falsifiable
   hypothesis + tests/minimal validation/new full replay. IEEE nine formulas fixed.
 
-## Current action — D462 native qualification completed, candidate rejected
+## Current action — D463 exact consumer projection
+
+Read full PLAN/status/rules/V1/V2 after compaction. Used analyze-results,
+run-experiment and github-sync; no agents. Native GPU compute was empty.
+HydraServe existing k3s remains unrelated/project-isolated; no cluster change.
+
+Retained D458 outcome SHA b87241933bd804532a48542a7a3b0f2d37b74d1717271587111c0dd2910bbab2
+contains1109 native HOST queue records (971residency/138handoff),2498 file-held
+attempts,1067 actual loads/held and1429 deferrals;2 file_held records have no
+receipt, retained as missing terminal metadata, not invented outcomes.26 records
+have no file-held attempt (not proof of no execution; GPU-hit/supersession paths
+can finish earlier). At least1109 initial full reads completed. No per-call times
+or estimated GPU-time savings derived. CPU streaming analysis protected147passed,
+peak398671872B,high/max/OOM/swap0; exact captured scope actual-empty closed.
+
+Only production change: `_queue_ieee_native_host_preparation`'s initial owner/clock
+read uses existing live source_identity_snapshot. Subsequent queued full snapshot,
+execution epoch, physical budget/inventory, file leases/lock, cancellation and
+lost-reply behavior unchanged. No cached state, new formula/parameter/endpoint.
+Read D178/D312 and prior D180/181,D193/194/202,D330,D352/D355 before proposing;
+vLLM v0.30 official worker/model manager and CPU-overhead source checked online.
+See D463_HOST_QUEUE_OWNER_PROJECTION.md. Parent5a3e9d3ce701d968f97b3ff4132bacb37906be16.
+
+Six new contract tests first run against unchanged production:5assertion failures,
+1wrong-owner-path error,0skips,0.155s; retained red evidence, not a performance
+failure or proof of a parent loading-policy defect. Two native-owner fixtures
+now model the already existing worker identity endpoint. First targeted359:
+3failed new queue-empty assertions; fixture already has a completed NVMe job.
+Corrected to exact unchanged-prior-queue equality, no production change.
+Final affected950tests passed,0failures/errors/skips,33.550s body/38.591s including
+discovery; overlaps targeted suite, not independent runs. Analysis/red/targeted/
+regression exact captured scopes actual-empty closed; regression peak1074470912B,
+high/max/OOM/swap0. Curated23source refs/protected147/PLAN/V1/V2/user checks pass.
+Whole production AST differs from parent by one operation string only; worker,
+owner,budget,config,baseline unchanged. No GPU or remote actions, new benchmark,
+figure or baseline tuning. Raw d463_20261012 uses exclusive files.
+Do not infer actual speedup from this one avoided full observation per entry.
+Curated p2_backend/d463_host_queue; backup pending, then native validation/full.
+
+## Prior checkpoint — D462 native qualification completed, candidate rejected
 
 Read full PLAN/status/rules/V1/V2. Used run-experiment and optimize-for-gpu.
 Extended only existing ieee_tc_preflight.py with diagnostic backend-pin-check,
@@ -65,20 +104,24 @@ verified.4 samples max observed365572096B, high/max/OOM/swap0; CPU test peak5390
 147 protected entries unchanged. Raw:
  /home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d462_20261012/
 CPU1 and launch2/3 exact InvocationID/inode/actual recursive cgroup.procs empty
-closed. Curation4 completed, final exact closure/source/secret/diff checks and
-backup still NEXT. No GPU run remains. Latest disk161125584896B (~150.06GiB),
-fresh gates before another heavy job. Whole goal ACTIVE; actual qualification
-and rejection are progress, not a blocker or completed system optimization.
+closed. Curation4 and final backup5 also exact-identity/actual-empty closed;
+all5 D462 auxiliaries absent, GPU compute empty, no task live.
+Checkpoint5a3e9d3ce701d968f97b3ff4132bacb37906be16 pushed to V2; independent
+ls-remote equals HEAD.9 explicit files passed source/secrets/diff/test/protected
+checks. BASE unchanged; user manifest never staged. Backup5 peak67416064B,
+high/max/OOM/swap0; InvocationID97a802b7108b432bb19d76035efbcd69,inode23340699.
+Raw backup_receipt/backup_closure retain evidence. Latest disk161127510016B
+(~150.06GiB), fresh gates before another heavy job. Whole goal ACTIVE; actual
+qualification/rejection/verified backup are progress, not a blocker or completion.
 
 ## Next mainline
 
-Seal/backup D462, then return to retained end-to-end control wait evidence:
-distinguish necessary new observations from duplicate calls within one control
-turn. Check D180/181 scoped observation, D193/194/202 projection, D330 publication,
-D352 transaction reuse and D355 interleave before proposing anything.
+Finish verified D463 backup (CPU qualification passed), retain all failures.
+Then minimal native validation and one new-key full4000 with D458
+settings unchanged. The concrete redundant boundary is only the initial HOST
+queue owner read; do not extend to later snapshots or cached physical inventory.
 Do not repeat D456 profiling, D458, sealed baselines, C8/capacity/threshold sweeps,
 pin-query microtests, stale HOST caches or already implemented planner offload.
-No new candidate until a concrete redundant boundary is established.
 D458 remains the latest Full observation, W0 feasible but not lowest GPU occupancy.
 HydraServe independent native qualification remains open, not a reason to alter
 the user's unrelated Kubernetes cluster or abandon the PrimeLoRA optimization mainline.

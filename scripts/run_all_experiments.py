@@ -19469,7 +19469,10 @@ class ScenarioRunner:
             raise ValueError('native HOST preparation requires an explicit tensor sub-budget')
         engine = slot.engine
         await self._attach_ieee_file_pressure(engine)
-        current = await engine.ieee_gpu_reference(operation='source_snapshot')
+        # Queue ownership consumes only a fresh owner/clock identity. The
+        # queued execution still takes its own full physical observation;
+        # this read cannot authorize a load or supply its execution epoch.
+        current = await engine.ieee_gpu_reference(operation='source_identity_snapshot')
         owner_id = current['owner_id']
         clock_id = local_monotonic_clock_id()
         def checked(value):

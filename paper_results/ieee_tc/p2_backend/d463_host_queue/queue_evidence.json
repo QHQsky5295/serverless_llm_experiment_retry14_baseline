@@ -1,0 +1,79 @@
+{
+  "kind": "d463_retained_host_queue_observation_dependency_v1",
+  "counts": {
+    "records": 1109,
+    "recorded_attempts": 2498,
+    "records_without_file_held_attempt": 26,
+    "receipts": 2496,
+    "native_load_invoked": 1067,
+    "held": 1067,
+    "released_file_reference": 2498
+  },
+  "trigger_reasons": {
+    "residency": 971,
+    "handoff": 138
+  },
+  "attempt_states": {
+    "completed": 1067,
+    "deferred": 1429,
+    "file_held": 2
+  },
+  "native_owners": 20,
+  "at_least_initial_full_reads": 1109,
+  "current_reads": [
+    19473,
+    19480
+  ],
+  "static_native_operations": [
+    {
+      "line": 19472,
+      "operation": "source_snapshot"
+    },
+    {
+      "line": 19507,
+      "operation": "source_snapshot"
+    },
+    {
+      "line": 19546,
+      "operation": "prepare_file_host_and_hold"
+    },
+    {
+      "line": 19555,
+      "operation": "release_host_source"
+    }
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+  },
+  "scope": {
+    "unit": "primelora-tc-aux-d4630000000000000000000000000001.scope",
+    "invocation_id": "fb34ed01ebab4e899253500159d79921",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4630000000000000000000000000001.scope",
+    "inode": 23344849
+  },
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d458_20261012/7b_full_w0/launch.launch/physical_deployment/main_outcome.json",
+      "sha256": "b87241933bd804532a48542a7a3b0f2d37b74d1717271587111c0dd2910bbab2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py",
+      "sha256": "251a00d058196bdc5b2aab9873445cd69b4c5dd68581d6a6a9641e882fffc9e4"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/analyze_queue.py",
+      "sha256": "2542c5c876ef43dae16bad71b2f07f94e72a9f7edebe01e3f450bee6c94846db"
+    }
+  ],
+  "caveats": [
+    "Records prove initial reads completed, not every possibly failed initial call.",
+    "Attempt records start only after a file lease: already-GPU or superseded attempts are not counted here.",
+    "No timings or extrapolated GPU/latency savings; ordinary D458 lacks per-call control spans.",
+    "This is sealed-run reuse, not new GPU data or an independent repeated run."
+  ]
+}

@@ -1,0 +1,317 @@
+{
+  "kind": "d463_live_owner_projection_cpu_qualification_v1",
+  "passed": true,
+  "parent": "5a3e9d3ce701d968f97b3ff4132bacb37906be16",
+  "production_change": "initial HOST queue source_snapshot -> source_identity_snapshot only",
+  "exact_ast_single_constant_change": true,
+  "results": {
+    "red": {
+      "passed": false,
+      "tests": 6,
+      "failures": 5,
+      "errors": 1,
+      "skipped": 0,
+      "elapsed_s": 0.1547953779809177,
+      "sources": {
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py": "251a00d058196bdc5b2aab9873445cd69b4c5dd68581d6a6a9641e882fffc9e4",
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_transfer_pressure.py": "fc98b45dbaded38f401c2d59821166f882bd7f0b91c1fa54c4295d7796cb86af",
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py": "4de43e2bbddec7b1727115b6465ff18032c62b05dd5ad99a856eee3656567540",
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py": "b3ea1c27ef4e27ba57550b8f61ede817d9daddb3f66a602d2ad926fc01c0095e",
+        "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/check.py": "8a958b3c14f57717c1b3622f6fa806af27daf2b84a1a33dc8cc6780001f7f07d"
+      },
+      "scope": {
+        "unit": "primelora-tc-aux-d4630000000000000000000000000002.scope",
+        "invocation_id": "b8e4a52580b841cb93bfb7e971a40970",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4630000000000000000000000000002.scope",
+        "inode": 23345760
+      },
+      "protected": {
+        "kind": "protected_artifact_verification",
+        "pass": true,
+        "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+        "changed": [],
+        "entry_count": 147,
+        "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+      },
+      "expected_red": true
+    },
+    "targeted": {
+      "passed": false,
+      "tests": 359,
+      "failures": 3,
+      "errors": 0,
+      "skipped": 0,
+      "elapsed_s": 33.510277120163664,
+      "sources": {
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py": "9d8d55d5e707192ae74beb555e0947852b94a237c995eddbdacd4541a17ef566",
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_transfer_pressure.py": "fc98b45dbaded38f401c2d59821166f882bd7f0b91c1fa54c4295d7796cb86af",
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py": "4de43e2bbddec7b1727115b6465ff18032c62b05dd5ad99a856eee3656567540",
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py": "b3ea1c27ef4e27ba57550b8f61ede817d9daddb3f66a602d2ad926fc01c0095e",
+        "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/check.py": "8a958b3c14f57717c1b3622f6fa806af27daf2b84a1a33dc8cc6780001f7f07d"
+      },
+      "scope": {
+        "unit": "primelora-tc-aux-d4630000000000000000000000000003.scope",
+        "invocation_id": "d26350b2d6bc492db35dcaf3ecc3b01d",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4630000000000000000000000000003.scope",
+        "inode": 23346039
+      },
+      "protected": {
+        "kind": "protected_artifact_verification",
+        "pass": true,
+        "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+        "changed": [],
+        "entry_count": 147,
+        "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+      },
+      "expected_red": false
+    },
+    "regression": {
+      "passed": true,
+      "tests": 950,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "elapsed_s": 38.5909720689524,
+      "sources": {
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py": "9d8d55d5e707192ae74beb555e0947852b94a237c995eddbdacd4541a17ef566",
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_transfer_pressure.py": "3cfc603c9932b556c9c8151d43e64a36d485f5cd5046f1415aae861eb5542ed3",
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/gpu_monitor.py": "4de43e2bbddec7b1727115b6465ff18032c62b05dd5ad99a856eee3656567540",
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py": "b3ea1c27ef4e27ba57550b8f61ede817d9daddb3f66a602d2ad926fc01c0095e",
+        "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/check.py": "8a958b3c14f57717c1b3622f6fa806af27daf2b84a1a33dc8cc6780001f7f07d"
+      },
+      "scope": {
+        "unit": "primelora-tc-aux-d4630000000000000000000000000004.scope",
+        "invocation_id": "8f03ba17704745089393c4ae8ad6b39b",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4630000000000000000000000000004.scope",
+        "inode": 23346634
+      },
+      "protected": {
+        "kind": "protected_artifact_verification",
+        "pass": true,
+        "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+        "changed": [],
+        "entry_count": 147,
+        "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+      },
+      "expected_red": false
+    }
+  },
+  "closures": {
+    "analysis": {
+      "passed": true,
+      "identity": {
+        "unit": "primelora-tc-aux-d4630000000000000000000000000001.scope",
+        "invocation_id": "fb34ed01ebab4e899253500159d79921",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4630000000000000000000000000001.scope",
+        "inode": 23344849
+      },
+      "resources": {
+        "memory.peak": "398671872",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "actual_recursive_procs_empty": true,
+      "source_sha256": "4421857f1459edcf9c09f8c676e847bea18da9c7679118f30d3f891602b4e0e1"
+    },
+    "red": {
+      "passed": true,
+      "identity": {
+        "unit": "primelora-tc-aux-d4630000000000000000000000000002.scope",
+        "invocation_id": "b8e4a52580b841cb93bfb7e971a40970",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4630000000000000000000000000002.scope",
+        "inode": 23345760
+      },
+      "resources": {
+        "memory.peak": "614334464",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "actual_recursive_procs_empty": true,
+      "source_sha256": "4421857f1459edcf9c09f8c676e847bea18da9c7679118f30d3f891602b4e0e1"
+    },
+    "targeted": {
+      "passed": true,
+      "identity": {
+        "unit": "primelora-tc-aux-d4630000000000000000000000000003.scope",
+        "invocation_id": "d26350b2d6bc492db35dcaf3ecc3b01d",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4630000000000000000000000000003.scope",
+        "inode": 23346039
+      },
+      "resources": {
+        "memory.peak": "1060499456",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "actual_recursive_procs_empty": true,
+      "source_sha256": "4421857f1459edcf9c09f8c676e847bea18da9c7679118f30d3f891602b4e0e1"
+    },
+    "regression": {
+      "passed": true,
+      "identity": {
+        "unit": "primelora-tc-aux-d4630000000000000000000000000004.scope",
+        "invocation_id": "8f03ba17704745089393c4ae8ad6b39b",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4630000000000000000000000000004.scope",
+        "inode": 23346634
+      },
+      "resources": {
+        "memory.peak": "1074470912",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "actual_recursive_procs_empty": true,
+      "source_sha256": "4421857f1459edcf9c09f8c676e847bea18da9c7679118f30d3f891602b4e0e1"
+    }
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+  },
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/analysis_closure.json",
+      "sha256": "6edebc3c8c8160ec7d81dc4e19ceadc64783540d139ba896e3731e32b7e3b5a0"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/analysis_identity.json",
+      "sha256": "d1422c05da2f68276221546f006ee12a6ca951d079be80d84c801e34f350eb55"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/analyze_queue.py",
+      "sha256": "2542c5c876ef43dae16bad71b2f07f94e72a9f7edebe01e3f450bee6c94846db"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/check.py",
+      "sha256": "8a958b3c14f57717c1b3622f6fa806af27daf2b84a1a33dc8cc6780001f7f07d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/close.py",
+      "sha256": "4421857f1459edcf9c09f8c676e847bea18da9c7679118f30d3f891602b4e0e1"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/curate.py",
+      "sha256": "e2d9e0839b05e52fddc4b88ca8ccb4217d95a7b6b0a065eaa97fb25a66a4decb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/curation_identity.json",
+      "sha256": "c603321471bfdcc091a3703daa58cafab8f414fc8c3008387dfac7342163023f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/queue_evidence.json",
+      "sha256": "b0d0290f2f1f8c38fea9934d66456c355ee8587d0ad580ed827631707b1404b5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/red_closure.json",
+      "sha256": "407bf81dfd33b628eed037e03145ff30357f373f90885980218fadba12f1796c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/red_identity.json",
+      "sha256": "2b1756cee29b18c52da956cf80c4da02578607e3d3a1f71c77a45eced47ff6be"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/red_result.json",
+      "sha256": "8a7b7f820bc34d457a614358aa4b05052c8bc606a6cb32c4d7eb93dda736b1cb"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/red_sources.json",
+      "sha256": "17d96c67f797effbfa573f20b6519f60ded8fa80a4394a97254b275c32a8060f"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/red_tests.log",
+      "sha256": "76c428d3387d832d85e145278e03dc19d90f1f1e6e9b0297683491f21294e21c"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/regression_closure.json",
+      "sha256": "c1d273407740e5ed10f46d7e051dc2dbee39ed9055464fb4c0fe36f231befef2"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/regression_identity.json",
+      "sha256": "c58ca14f0d24d0b62fa5203bd21870e63d4bab58bc889fa3f4ab7ae43d876443"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/regression_result.json",
+      "sha256": "d0705a0459d7ed1baa4dd0b63c052a868f1e0fabc73a759e9e01888929f243cc"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/regression_sources.json",
+      "sha256": "5938dbcddc48e85a5b67ce2ba16a3cf953cebb80088a870b2ddcc9e684056628"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/regression_tests.log",
+      "sha256": "2d05f6696afefdde46e72aaa919c775ec3765150f9803ca39f4108280317dc0d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/targeted_closure.json",
+      "sha256": "f893053596ce987d87a2fc123c9bb0620e5143a5d280cbc51c1b5dd2d00658ef"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/targeted_identity.json",
+      "sha256": "e1c31c5066c4c59fa8431e87c356d6d0edca24febc4629a9f07dab44cfb73fd9"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/targeted_result.json",
+      "sha256": "90fb5cbeb8926db3967172379b760aad11c763693136839e02fa4b2e739f1ad5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/targeted_sources.json",
+      "sha256": "dcf638112201d63d90985cd1400d0c63f079e73a81e7debc65ad2a64c51a628d"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/targeted_tests.log",
+      "sha256": "4c3109a1839099e62a99496b8079c42550379d115f9edc5962cc3392ce993811"
+    }
+  ],
+  "analysis_helpers": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/analyze_queue.py",
+      "sha256": "2542c5c876ef43dae16bad71b2f07f94e72a9f7edebe01e3f450bee6c94846db",
+      "content": "\"\"\"Read-only streaming count of the already sealed D458 preparation records.\"\"\"\nimport ast\nfrom collections import Counter\nimport json\nimport os\nfrom pathlib import Path\nimport subprocess\nimport sys\n\nROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nRAW=Path(__file__).resolve().parent\nsys.path.insert(0,str(ROOT))\nimport ijson\nfrom scripts import ieee_tc_preflight as p\n\ndef save(name,value):\n    with (RAW/name).open('x') as f:json.dump(value,f,indent=2,allow_nan=False)\n\nscope=p.scope_identity(p.cg_path().name)\nsave('analysis_identity.json',scope)\nassert os.environ['CUDA_VISIBLE_DEVICES']==''\nassert os.sched_getaffinity(0)=={2,3,26,27}\nassert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()\nprotected=p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))\nassert protected['pass'] and protected['entry_count']==147\nsource=RAW.parent/'d458_20261012/7b_full_w0/launch.launch/physical_deployment/main_outcome.json'\ndigest=p.digest(source)\nassert digest=='b87241933bd804532a48542a7a3b0f2d37b74d1717271587111c0dd2910bbab2'\ncounts=Counter(); reasons=Counter(); states=Counter(); owners=Counter()\nwith source.open('rb') as f:\n    for row in ijson.items(f,'mechanism_events._ieee_native_host_preparations.item',use_float=True):\n        counts['records']+=1\n        reasons[row['trigger_reason']]+=1\n        attempts=row['attempts']\n        counts['recorded_attempts']+=len(attempts)\n        counts['records_without_file_held_attempt']+=not attempts\n        for a in attempts:\n            states[a['state']]+=1\n            receipt=a.get('receipt')\n            if receipt:\n                counts['receipts']+=1\n                counts['native_load_invoked']+=receipt.get('native_load_invoked') is True\n                owners[receipt['owner_id']]+=1\n                counts['held']+=receipt.get('held') is True\n            counts['released_file_reference']+=a.get('file_reference_released') is True\nrunner=ROOT/'scripts/run_all_experiments.py'\ntree=ast.parse(runner.read_text())\nmethod=next(n for n in ast.walk(tree) if isinstance(n,ast.AsyncFunctionDef) and n.name=='_queue_ieee_native_host_preparation')\nreads=[n for n in ast.walk(method) if isinstance(n,ast.Name) and n.id=='current' and isinstance(n.ctx,ast.Load)]\nassert len(reads)==2\nobserved=[]\nfor call in ast.walk(method):\n    if isinstance(call,ast.Call) and isinstance(call.func,ast.Attribute) and call.func.attr=='ieee_gpu_reference':\n        for key in call.keywords:\n            if key.arg=='operation':observed.append(dict(line=call.lineno,operation=ast.literal_eval(key.value)))\nobserved.sort(key=lambda x:x['line'])\nassert observed[0]['operation']=='source_snapshot' and observed[1]['operation']=='source_snapshot'\nassert counts['records']>0 and counts['native_load_invoked']==1067\nresult=dict(kind='d463_retained_host_queue_observation_dependency_v1',counts=dict(counts),\n    trigger_reasons=dict(reasons),attempt_states=dict(states),native_owners=len(owners),\n    at_least_initial_full_reads=counts['records'],current_reads=[n.lineno for n in reads],\n    static_native_operations=observed,protected=protected,scope=scope,\n    source_refs=[dict(path=str(x),sha256=p.digest(x)) for x in (source,runner,Path(__file__))],\n    caveats=['Records prove initial reads completed, not every possibly failed initial call.',\n      'Attempt records start only after a file lease: already-GPU or superseded attempts are not counted here.',\n      'No timings or extrapolated GPU/latency savings; ordinary D458 lacks per-call control spans.',\n      'This is sealed-run reuse, not new GPU data or an independent repeated run.'])\nsave('queue_evidence.json',result)\nprint(json.dumps({k:result[k] for k in ('counts','trigger_reasons','attempt_states','native_owners','at_least_initial_full_reads')}))\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/check.py",
+      "sha256": "8a958b3c14f57717c1b3622f6fa806af27daf2b84a1a33dc8cc6780001f7f07d",
+      "content": "\"\"\"D463 bounded existing unittest entry, preserving every run and source identity.\"\"\"\nimport ast\nimport json\nimport os\nfrom pathlib import Path\nimport subprocess\nimport sys\nimport time\nimport unittest\n\nROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nRAW=Path(__file__).resolve().parent\nsys.path.insert(0,str(ROOT))\nfrom scripts import ieee_tc_preflight as p\nphase=sys.argv[1]\nassert phase in ('red','targeted','regression')\ndef save(name,value):\n    with (RAW/name).open('x') as f:json.dump(value,f,indent=2,allow_nan=False)\nscope=p.scope_identity(p.cg_path().name)\nsave(phase+'_identity.json',scope)\nassert os.environ['CUDA_VISIBLE_DEVICES']==''\nassert os.sched_getaffinity(0)=={2,3,26,27}\nassert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()\nprotected=p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))\nassert protected['pass']\nif phase=='red':\n    from tests.test_ieee_tc_transfer_pressure import OwnedNativeHostMovement\n    tests=['tests.test_ieee_tc_transfer_pressure.OwnedNativeHostMovement.'+name\n        for name in dir(OwnedNativeHostMovement) if name.startswith(('test_queue_entry_','test_queue_execution_'))]\n    assert len(tests)==6\nelif phase=='targeted':\n    tests=['tests.test_ieee_tc_transfer_pressure.OwnedNativeHostMovement',\n        'tests.test_ieee_tc_transfer_pressure.MixedOwnedPreparation',\n        'tests.test_ieee_tc_identity_recheck',\n        'tests.test_ieee_tc_host_observation_freshness',\n        'tests.test_ieee_tc_worker_observation.NativeHostFootprint',\n        'tests.test_ieee_tc_worker_observation.NativeHostPhysicalProjection',\n        'tests.test_basic_smoke']\nelse:\n    tests=['tests.test_ieee_tc_transfer_pressure','tests.test_ieee_tc_gpu_references',\n           'tests.test_ieee_tc_request_lifecycle','tests.test_ieee_tc_service_events',\n           'tests.test_ieee_tc_identity_recheck','tests.test_ieee_tc_worker_observation',\n           'tests.test_ieee_tc_host_observation_freshness','tests.test_basic_smoke']\nsources=[ROOT/x for x in ('scripts/run_all_experiments.py','tests/test_ieee_tc_transfer_pressure.py',\n    'faaslora/memory/gpu_monitor.py','faaslora/memory/residency_manager.py')]+[Path(__file__)]\nfor source in sources:ast.parse(source.read_text())\nbefore={str(x):p.digest(x) for x in sources}\nsave(phase+'_sources.json',dict(sources=before,tests=tests,parent=subprocess.check_output(\n    ['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),diff=subprocess.check_output(\n    ['git','diff','HEAD','--','scripts/run_all_experiments.py','tests/test_ieee_tc_transfer_pressure.py'],cwd=ROOT,text=True)))\nstart=time.monotonic()\nwith (RAW/(phase+'_tests.log')).open('x') as log:\n    result=unittest.TextTestRunner(stream=log,verbosity=2).run(unittest.defaultTestLoader.loadTestsFromNames(tests))\nassert before=={str(x):p.digest(x) for x in sources}\nreport=dict(passed=result.wasSuccessful(),tests=result.testsRun,failures=len(result.failures),\n    errors=len(result.errors),skipped=len(result.skipped),elapsed_s=time.monotonic()-start,\n    sources=before,scope=scope,protected=protected,expected_red=phase=='red')\nsave(phase+'_result.json',report)\nprint(json.dumps({k:v for k,v in report.items() if k not in ('sources','scope','protected')}))\nraise SystemExit(0 if result.wasSuccessful() or phase=='red' else 1)\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/close.py",
+      "sha256": "4421857f1459edcf9c09f8c676e847bea18da9c7679118f30d3f891602b4e0e1",
+      "content": "\"\"\"Stop only a captured identical auxiliary after reading actual recursive members.\"\"\"\nimport json\nfrom pathlib import Path\nimport subprocess\nimport sys\nROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nRAW=Path(__file__).resolve().parent\nsys.path.insert(0,str(ROOT))\nfrom scripts import ieee_tc_preflight as p\nname=sys.argv[1]\nassert name in ('analysis','red','targeted','regression','curation','backup')\nexpected=json.loads((RAW/(name+'_identity.json')).read_text())\nassert p.scope_still_owned(expected)\ngroup=Path(expected['path'])\nmembers={str(x):x.read_text().split() for x in group.rglob('cgroup.procs')}\nassert members and all(not values for values in members.values())\nresources={k:(group/k).read_text().strip() for k in ('memory.peak','memory.events','memory.swap.current')}\nassert p.scope_still_owned(expected)\nsubprocess.run(['systemctl','--user','stop',expected['unit']],check=True)\nassert not group.exists()\nresult=dict(passed=True,identity=expected,resources=resources,actual_recursive_procs_empty=True,\n    source_sha256=p.digest(Path(__file__)))\nwith (RAW/(name+'_closure.json')).open('x') as f:json.dump(result,f,indent=2)\nprint(json.dumps(result))\n"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/curate.py",
+      "sha256": "e2d9e0839b05e52fddc4b88ca8ccb4217d95a7b6b0a065eaa97fb25a66a4decb",
+      "content": "\"\"\"Verify exact change, immutable source inputs and completed CPU evidence.\"\"\"\nimport ast\nimport hashlib\nimport json\nimport os\nfrom pathlib import Path\nimport shutil\nimport subprocess\nimport sys\nROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nRAW=Path(__file__).resolve().parent\nOUT=ROOT/'paper_results/ieee_tc/p2_backend/d463_host_queue'\nsys.path.insert(0,str(ROOT))\nfrom scripts import ieee_tc_preflight as p\nload=lambda x:json.loads(x.read_text())\ndef save(path,value):\n    with path.open('x') as f:json.dump(value,f,indent=2,allow_nan=False)\nscope=p.scope_identity(p.cg_path().name)\nsave(RAW/'curation_identity.json',scope)\nassert os.environ['CUDA_VISIBLE_DEVICES']=='' and os.sched_getaffinity(0)=={2,3,26,27}\nassert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()\nhead=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()\nassert head=='5a3e9d3ce701d968f97b3ff4132bacb37906be16'\nbefore=ast.parse(subprocess.check_output(['git','show','HEAD:scripts/run_all_experiments.py'],cwd=ROOT,text=True))\nafter=ast.parse((ROOT/'scripts/run_all_experiments.py').read_text())\nmethod=next(n for n in ast.walk(before) if isinstance(n,ast.AsyncFunctionDef) and n.name=='_queue_ieee_native_host_preparation')\nentry=next(n for n in method.body if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='current' for t in n.targets))\nkey=next(k for k in entry.value.value.keywords if k.arg=='operation')\nassert key.value.value=='source_snapshot'\nkey.value.value='source_identity_snapshot'\nassert ast.dump(before,include_attributes=False)==ast.dump(after,include_attributes=False)\nassert not subprocess.check_output(['git','diff','HEAD','--','faaslora','configs/ieee_tc'],cwd=ROOT,text=True)\nevidence=load(RAW/'queue_evidence.json')\nfor ref in evidence['source_refs']:\n    if ref['path']==str(ROOT/'scripts/run_all_experiments.py'):\n        original=subprocess.check_output(['git','show','HEAD:scripts/run_all_experiments.py'],cwd=ROOT)\n        assert hashlib.sha256(original).hexdigest()==ref['sha256']\n    else:assert p.digest(Path(ref['path']))==ref['sha256']\nresults={name:load(RAW/(name+'_result.json')) for name in ('red','targeted','regression')}\nassert (results['red']['tests'],results['red']['failures'],results['red']['errors'])==(6,5,1)\nassert (results['targeted']['tests'],results['targeted']['failures'],results['targeted']['errors'])==(359,3,0)\nassert results['regression']['passed'] and results['regression']['skipped']==0\nfor path,sha in results['regression']['sources'].items():assert p.digest(Path(path))==sha,path\nprotected=p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))\nassert protected['pass'] and protected['entry_count']==147\nidentities={\n    p.PLAN:'f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5',\n    ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md':'5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22',\n    ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md':'193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d',\n    ROOT/'configs/generated/lora_manifest_1000.json':'3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df',\n    Path('/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py'):'04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22',\n    Path('/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh'):'337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499'}\nfor path,sha in identities.items():assert p.digest(path)==sha,path\nclosures={name:load(RAW/(name+'_closure.json')) for name in ('analysis','red','targeted','regression')}\nfor row in closures.values():\n    assert row['passed'] and row['actual_recursive_procs_empty']\n    assert not Path(row['identity']['path']).exists()\n    assert row['resources']['memory.swap.current']=='0'\n    assert all(int(line.split()[1])==0 for line in row['resources']['memory.events'].splitlines())\nOUT.mkdir(parents=True,exist_ok=False)\nsave(OUT/'queue_evidence.json',evidence)\nfiles=[x for x in RAW.iterdir() if x.suffix in ('.py','.json','.log')]\nrefs=[dict(path=str(x),sha256=p.digest(x)) for x in sorted(files)]\nhelpers=[dict(path=str(x),sha256=p.digest(x),content=x.read_text()) for x in sorted(RAW.glob('*.py'))]\nsave(OUT/'qualification.json',dict(kind='d463_live_owner_projection_cpu_qualification_v1',\n    passed=True,parent=head,production_change='initial HOST queue source_snapshot -> source_identity_snapshot only',\n    exact_ast_single_constant_change=True,results=results,closures=closures,protected=protected,\n    source_refs=refs,analysis_helpers=helpers,preserved_identities={str(x):sha for x,sha in identities.items()},\n    raw_evidence=dict(path=str(OUT/'queue_evidence.json'),sha256=p.digest(OUT/'queue_evidence.json')),\n    performance_hypothesis_accepted=False,native_validation_pending=True,full4000_pending=True,\n    issues_preserved=['Red6 tests against unchanged production:5 failures/1 error.',\n      'First candidate359 tests:3 new fixture assertions assumed an empty queue despite its completed NVMe task.',\n      'Final tests compare exact prior queue, not an empty queue. Production candidate unchanged.',\n      'D458 two file-held attempt records lack receipts; no invented terminal outcome.'],\n    scope=scope,free_bytes=shutil.disk_usage(ROOT).free))\nprint(json.dumps(dict(passed=True,tests=results['regression']['tests'],source_refs=len(refs),\n    protected=protected['entry_count'],output=str(OUT),scope=scope)))\n"
+    }
+  ],
+  "preserved_identities": {
+    "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "raw_evidence": {
+    "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/p2_backend/d463_host_queue/queue_evidence.json",
+    "sha256": "b0d0290f2f1f8c38fea9934d66456c355ee8587d0ad580ed827631707b1404b5"
+  },
+  "performance_hypothesis_accepted": false,
+  "native_validation_pending": true,
+  "full4000_pending": true,
+  "issues_preserved": [
+    "Red6 tests against unchanged production:5 failures/1 error.",
+    "First candidate359 tests:3 new fixture assertions assumed an empty queue despite its completed NVMe task.",
+    "Final tests compare exact prior queue, not an empty queue. Production candidate unchanged.",
+    "D458 two file-held attempt records lack receipts; no invented terminal outcome."
+  ],
+  "scope": {
+    "unit": "primelora-tc-aux-d4630000000000000000000000000005.scope",
+    "invocation_id": "d68a655a7101432dbc04b92b1a77f1f1",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4630000000000000000000000000005.scope",
+    "inode": 23347466
+  },
+  "free_bytes": 161118879744
+}

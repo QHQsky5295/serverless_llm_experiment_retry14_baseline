@@ -1274,6 +1274,8 @@ class OwnedNativeHostMovement(unittest.TestCase):
             return actual_load(**kwargs)
         owner.file_host_loader = load
         async def rpc(operation, **kwargs):
+            if operation == 'source_identity_snapshot':
+                operation = 'source_snapshot'  # The real worker invokes this same live owner read.
             return {**getattr(owner, operation)(**kwargs), 'clock_id': local_monotonic_clock_id()}
         engine.ieee_gpu_reference = rpc
         runner.model_cfg['ieee_native_host_tensor_budget_bytes'] = 4096
@@ -1283,6 +1285,153 @@ class OwnedNativeHostMovement(unittest.TestCase):
     def call(self, fixture, runner, slot, plan='host-plan'):
         return runner._queue_ieee_native_host_preparation(slot=slot, adapter_id='a',
             source_path=str(fixture.nvme/'a'), trigger_reason='residency', plan_id=plan)
+
+    def test_queue_entry_needs_only_live_owner_clock_then_full_execution_read(self):
+        async def run():
+            fixture, runner, queue, engine, ledger, native, slot = await self.make()
+            original = engine.ieee_gpu_reference
+            calls = []
+            async def observed(operation, **kwargs):
+                calls.append(operation)
+                value = await original(operation, **kwargs)
+                if operation == 'source_identity_snapshot':
+                    # Dependency witness, not a fabricated production snapshot.
+                    return {k: value[k] for k in ('owner_id', 'clock_id')}
+                return value
+            engine.ieee_gpu_reference = observed
+            try:
+                result = await self.call(fixture, runner, slot)
+                self.assertEqual(result['state'], 'native_host_prepared')
+                self.assertEqual(calls, ['source_identity_snapshot', 'source_snapshot',
+                    'prepare_file_host_and_hold', 'release_host_source'])
+                self.assertFalse(fixture.owner.leases)
+                self.assertFalse(native.owner._host_leases)
+                self.assertEqual(ledger.snapshot()['active_transfers'], 0)
+            finally:
+                await queue.close()
+        asyncio.run(run())
+
+    def test_queue_entry_identity_is_not_reused_as_execution_epoch(self):
+        async def run():
+            fixture, runner, queue, engine, ledger, native, slot = await self.make()
+            original = engine.ieee_gpu_reference
+            entry_epochs, execution_epochs, commands = [], [], []
+            async def observed(operation, **kwargs):
+                value = await original(operation, **kwargs)
+                if operation == 'source_identity_snapshot':
+                    entry_epochs.append(value['epoch'])
+                    # A completed live owner change between the two RPCs.
+                    native.owner.manager.deactivate(1)
+                elif operation == 'source_snapshot':
+                    execution_epochs.append(value['epoch'])
+                elif operation == 'prepare_file_host_and_hold':
+                    commands.append(kwargs)
+                return value
+            engine.ieee_gpu_reference = observed
+            try:
+                result = await self.call(fixture, runner, slot)
+                self.assertEqual(result['state'], 'native_host_prepared')
+                self.assertEqual(len(entry_epochs), 1)
+                self.assertEqual(len(execution_epochs), 1)
+                self.assertGreater(execution_epochs[0], entry_epochs[0])
+                self.assertEqual(commands[0]['expected_epoch'], execution_epochs[0])
+                self.assertFalse(fixture.owner.leases)
+                self.assertFalse(native.owner._host_leases)
+            finally:
+                await queue.close()
+        asyncio.run(run())
+
+    def test_queue_entry_identity_foreign_clock_rejected_before_registration(self):
+        async def run():
+            fixture, runner, queue, engine, ledger, native, slot = await self.make()
+            before = queue.snapshot()  # Fixture already completed the NVMe fetch.
+            original = engine.ieee_gpu_reference
+            calls = []
+            async def observed(operation, **kwargs):
+                calls.append(operation)
+                value = await original(operation, **kwargs)
+                if operation == 'source_identity_snapshot':
+                    value['clock_id'] = 'foreign-clock'
+                return value
+            engine.ieee_gpu_reference = observed
+            try:
+                with self.assertRaisesRegex(ValueError, 'owner/clock differs'):
+                    await self.call(fixture, runner, slot)
+                self.assertEqual(calls, ['source_identity_snapshot'])
+                self.assertEqual(queue.snapshot(), before)
+                self.assertFalse(fixture.owner.leases)
+                self.assertFalse(native.owner._host_leases)
+            finally:
+                await queue.close()
+        asyncio.run(run())
+
+    def test_queue_entry_identity_failure_is_not_retried_or_registered(self):
+        async def run():
+            fixture, runner, queue, engine, ledger, native, slot = await self.make()
+            before = queue.snapshot()
+            calls = []
+            async def failed(operation, **kwargs):
+                calls.append(operation)
+                raise RuntimeError('live owner invariant failure')
+            engine.ieee_gpu_reference = failed
+            try:
+                with self.assertRaisesRegex(RuntimeError, 'live owner invariant failure'):
+                    await self.call(fixture, runner, slot)
+                self.assertEqual(calls, ['source_identity_snapshot'])
+                self.assertEqual(queue.snapshot(), before)
+                self.assertFalse(fixture.owner.leases)
+            finally:
+                await queue.close()
+        asyncio.run(run())
+
+    def test_queue_entry_identity_cancellation_does_not_submit_materialization(self):
+        async def run():
+            fixture, runner, queue, engine, ledger, native, slot = await self.make()
+            before = queue.snapshot()
+            entered = asyncio.Event()
+            calls = []
+            async def wait(operation, **kwargs):
+                calls.append(operation)
+                entered.set()
+                await asyncio.Future()
+            engine.ieee_gpu_reference = wait
+            try:
+                task = asyncio.create_task(self.call(fixture, runner, slot))
+                await entered.wait()
+                task.cancel()
+                with self.assertRaises(asyncio.CancelledError):
+                    await task
+                self.assertEqual(calls, ['source_identity_snapshot'])
+                self.assertEqual(queue.snapshot(), before)
+                self.assertFalse(fixture.owner.leases)
+                self.assertFalse(native.owner._host_leases)
+                self.assertEqual(ledger.snapshot()['active_transfers'], 0)
+            finally:
+                await queue.close()
+        asyncio.run(run())
+
+    def test_queue_execution_still_rejects_different_owner_after_identity_read(self):
+        async def run():
+            fixture, runner, queue, engine, ledger, native, slot = await self.make()
+            original = engine.ieee_gpu_reference
+            calls = []
+            async def observed(operation, **kwargs):
+                calls.append(operation)
+                value = await original(operation, **kwargs)
+                if operation == 'source_snapshot':
+                    value['owner_id'] = 'different-execution-owner'
+                return value
+            engine.ieee_gpu_reference = observed
+            try:
+                with self.assertRaisesRegex(ValueError, 'owner/clock differs'):
+                    await self.call(fixture, runner, slot)
+                self.assertEqual(calls, ['source_identity_snapshot', 'source_snapshot'])
+                self.assertFalse(fixture.owner.leases)
+                self.assertFalse(native.owner._host_leases)
+                self.assertEqual(ledger.snapshot()['active_transfers'], 0)
+            finally:
+                await queue.close()
+        asyncio.run(run())
 
     def _check_native_host_snapshot_pin_transaction(self, already_native):
         """An owner publisher must not enter between file observation and pin.
@@ -2022,7 +2171,10 @@ class MixedOwnedPreparation(unittest.TestCase):
                     has_packed_modules=False) for j, aid in enumerate(registered)])
             return dict(source, native_footprints=inv, clock_id=local_monotonic_clock_id())
         async def reference(*, operation, **kw):
-            result = snapshot() if operation in ('source_snapshot', 'routing_source_snapshot') else getattr(owner, operation)(**kw)
+            if operation == 'source_identity_snapshot':
+                result = owner.source_snapshot(**kw)
+            else:
+                result = snapshot() if operation in ('source_snapshot', 'routing_source_snapshot') else getattr(owner, operation)(**kw)
             return dict(result, worker_pid=os.getpid(), clock_id=local_monotonic_clock_id())
         async def prepare(**kw):
             from faaslora.preloading.preloading_planner import (native_gpu_fallback_costs,

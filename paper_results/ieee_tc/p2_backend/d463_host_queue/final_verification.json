@@ -1,0 +1,43 @@
+{
+  "passed": true,
+  "qualified_cpu_tests": 950,
+  "source_refs_checked": 23,
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+  },
+  "curation_closure": {
+    "passed": true,
+    "identity": {
+      "unit": "primelora-tc-aux-d4630000000000000000000000000005.scope",
+      "invocation_id": "d68a655a7101432dbc04b92b1a77f1f1",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4630000000000000000000000000005.scope",
+      "inode": 23347466
+    },
+    "resources": {
+      "memory.peak": "450486272",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0"
+    },
+    "actual_recursive_procs_empty": true,
+    "source_sha256": "4421857f1459edcf9c09f8c676e847bea18da9c7679118f30d3f891602b4e0e1"
+  },
+  "native_validation_pending": true,
+  "performance_hypothesis_accepted": false,
+  "additional_source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d463_20261012/backup.py",
+    "sha256": "b250d005fbbe3885bec39c7c7472b072ed217a16ede9597ab2cf4c2355ec6ec0",
+    "content": "\"\"\"D463 task-only verified checkpoint, no raw data or user files staged.\"\"\"\nimport hashlib\nimport json\nfrom pathlib import Path\nimport re\nimport shutil\nimport subprocess\nimport sys\nROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nRAW=Path(__file__).resolve().parent\nOUT=ROOT/'paper_results/ieee_tc/p2_backend/d463_host_queue'\nsys.path.insert(0,str(ROOT))\nfrom scripts import ieee_tc_preflight as p\nload=lambda x:json.loads(x.read_text())\ndef save(path,value):\n    with path.open('x') as f:json.dump(value,f,indent=2,allow_nan=False)\nscope=p.scope_identity(p.cg_path().name)\nsave(RAW/'backup_identity.json',scope)\nqualification=load(OUT/'qualification.json')\nassert qualification['passed'] and qualification['exact_ast_single_constant_change']\nfor ref in qualification['source_refs']:\n    assert p.digest(Path(ref['path']))==ref['sha256'],ref['path']\nfor path,digest in qualification['results']['regression']['sources'].items():\n    assert p.digest(Path(path))==digest,path\nfor path,digest in qualification['preserved_identities'].items():\n    assert p.digest(Path(path))==digest,path\nclosure=load(RAW/'curation_closure.json')\nassert closure['passed'] and closure['actual_recursive_procs_empty']\nassert not Path(closure['identity']['path']).exists()\nprotected=p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))\nassert protected['pass'] and protected['entry_count']==147\nassert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()\nassert subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()==qualification['parent']\nassert subprocess.check_output(['git','rev-parse','HEAD'],cwd='/home/qhq/serverless_llm_baselines',text=True).strip()=='71c52cf6f7331dc2a171ec83db5f1011eaf6d5a6'\nsave(OUT/'final_verification.json',dict(passed=True,qualified_cpu_tests=950,\n    source_refs_checked=len(qualification['source_refs']),protected=protected,\n    curation_closure=closure,native_validation_pending=True,performance_hypothesis_accepted=False,\n    additional_source=dict(path=str(Path(__file__)),sha256=p.digest(Path(__file__)),content=Path(__file__).read_text()),\n    scope=scope,free_bytes=shutil.disk_usage(ROOT).free))\npaths=['scripts/run_all_experiments.py','tests/test_ieee_tc_transfer_pressure.py',\n       'docs/ieee_tc/D463_HOST_QUEUE_OWNER_PROJECTION.md','docs/ieee_tc/EXECUTION_STATUS.md']+[\n       str(x.relative_to(ROOT)) for x in sorted(OUT.glob('*.json'))]\nassert len(paths)==7\nassert not subprocess.check_output(['git','diff','--cached','--name-only'],cwd=ROOT,text=True).strip()\nsubprocess.run(['git','diff','--check'],cwd=ROOT,check=True)\nsubprocess.run(['git','add','--',*paths],cwd=ROOT,check=True)\nstaged=subprocess.check_output(['git','diff','--cached','--name-only'],cwd=ROOT,text=True).splitlines()\nassert set(staged)==set(paths) and all('lora_manifest_1000.json' not in x for x in staged)\ntoken=Path('/home/qhq/.config/primelora-tc-d75/artifact.token').read_bytes().strip()\nchecks={}\nfor name in paths:\n    data=subprocess.check_output(['git','show',':'+name],cwd=ROOT)\n    assert len(data)<2*1024*1024\n    assert not re.search(rb'-----BEGIN [A-Z ]*PRIVATE KEY-----|ghp_[A-Za-z0-9]{25,}|github_pat_[A-Za-z0-9_]{20,}|hf_[A-Za-z0-9]{25,}',data)\n    assert not token or token not in data\n    checks[name]=hashlib.sha256(data).hexdigest()\n    assert checks[name]==p.digest(ROOT/name)\nsubprocess.run(['git','diff','--cached','--check'],cwd=ROOT,check=True)\nsave(RAW/'staged_check.json',dict(passed=True,files=checks))\nsubprocess.run(['git','commit','-m','tc: qualify live identity-only HOST queue ownership (D463)'],cwd=ROOT,check=True)\nsubprocess.run(['git','push','faaslora_origin','retry14_continuous_queue_v2'],cwd=ROOT,check=True)\nhead=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()\nremote=subprocess.check_output(['git','ls-remote','faaslora_origin','refs/heads/retry14_continuous_queue_v2'],cwd=ROOT,text=True).split()[0]\nassert head==remote\nreceipt=dict(passed=True,head=head,remote=remote,scope=scope,files=len(paths),free_bytes=shutil.disk_usage(ROOT).free)\nsave(RAW/'backup_receipt.json',receipt)\nprint(json.dumps(receipt))\n"
+  },
+  "scope": {
+    "unit": "primelora-tc-aux-d4630000000000000000000000000006.scope",
+    "invocation_id": "4ee51b9582b54485855e2b77140bb761",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4630000000000000000000000000006.scope",
+    "inode": 23348535
+  },
+  "free_bytes": 161118674944
+}
