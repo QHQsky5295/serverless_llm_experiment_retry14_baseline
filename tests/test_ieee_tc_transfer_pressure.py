@@ -147,6 +147,20 @@ class FileCapacityIndex(unittest.TestCase):
             rows = owner._file_replacement_capacity_from_inventory({'allocations': []}, sources)
         self.assertTrue(all(r['usable_bytes'] == 0 and not r['eligible'] for r in rows))
 
+    def test_component_ancestors_preserve_anchors_and_proper_ancestor_semantics(self):
+        owner = self.make()
+        sources = {Path(p): dict(allocated_file_bytes=4096) for p in
+                   ('/', '//', '.', '/a', '/ab', '/a/nested', 'a', 'a/..')}
+        inventory = dict(allocations=[self.allocation([p]) for p in
+            ('/a/file', '/ab/file', '/a/nested/file', '/a', '//a/file',
+             'a/file', 'a/../file', './file', '/', '.', 'a//nested/./file')])
+        with patch.object(Path, 'stat', lambda *a, **k: NS(st_dev=1)):
+            expected = self.reference(owner, inventory, sources)
+            with patch.object(Path, 'parents', new=property(
+                    lambda _: self.fail('ancestor Path reconstruction'))):
+                self.assertEqual(owner._file_replacement_capacity_from_inventory(
+                    inventory, sources), expected)
+
 
 class ManagedHostOwnership(unittest.TestCase):
     def make(self):

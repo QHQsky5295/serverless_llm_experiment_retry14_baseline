@@ -1,0 +1,252 @@
+{
+  "kind": "d457_ephemeral_file_view_component_v1",
+  "old_commit": "871ed971d6a0eea420aabb14c2e14ead6a784413",
+  "old_source_sha256": "6fbec99d5cb86d6bdf4da2c72976b9de2e8d6c2d2319da8b9b36fa671fd66bd1",
+  "groups": [
+    {
+      "logical_candidates": 4,
+      "variant": "parent",
+      "component_calls": 3,
+      "mean_seconds": 0.0040955970374246435,
+      "counts": {
+        "inventory": 1,
+        "path_stat": 48,
+        "parents_property": 124,
+        "relative_to": 42
+      }
+    },
+    {
+      "logical_candidates": 4,
+      "variant": "candidate",
+      "component_calls": 3,
+      "mean_seconds": 0.0012626040261238813,
+      "counts": {
+        "inventory": 1,
+        "path_stat": 48
+      }
+    },
+    {
+      "logical_candidates": 500,
+      "variant": "parent",
+      "component_calls": 3,
+      "mean_seconds": 0.01234241109341383,
+      "counts": {
+        "inventory": 1,
+        "path_stat": 48,
+        "parents_property": 121,
+        "relative_to": 42
+      }
+    },
+    {
+      "logical_candidates": 500,
+      "variant": "candidate",
+      "component_calls": 3,
+      "mean_seconds": 0.01023485193339487,
+      "counts": {
+        "inventory": 1,
+        "path_stat": 48
+      }
+    }
+  ],
+  "rows": [
+    {
+      "logical_candidates": 4,
+      "actual_confirmed_trees": 7,
+      "repeat": 0,
+      "variant": "parent",
+      "elapsed_seconds": 0.0037952030543237925,
+      "counts": {
+        "inventory": 1,
+        "path_stat": 48,
+        "parents_property": 124,
+        "relative_to": 42
+      },
+      "exact_except_capture_times": true
+    },
+    {
+      "logical_candidates": 4,
+      "actual_confirmed_trees": 7,
+      "repeat": 0,
+      "variant": "candidate",
+      "elapsed_seconds": 0.0012254510074853897,
+      "counts": {
+        "inventory": 1,
+        "path_stat": 48
+      },
+      "exact_except_capture_times": true
+    },
+    {
+      "logical_candidates": 4,
+      "actual_confirmed_trees": 7,
+      "repeat": 1,
+      "variant": "candidate",
+      "elapsed_seconds": 0.0012451710645109415,
+      "counts": {
+        "inventory": 1,
+        "path_stat": 48
+      },
+      "exact_except_capture_times": true
+    },
+    {
+      "logical_candidates": 4,
+      "actual_confirmed_trees": 7,
+      "repeat": 1,
+      "variant": "parent",
+      "elapsed_seconds": 0.0043642339296638966,
+      "counts": {
+        "inventory": 1,
+        "path_stat": 48,
+        "parents_property": 124,
+        "relative_to": 42
+      },
+      "exact_except_capture_times": true
+    },
+    {
+      "logical_candidates": 4,
+      "actual_confirmed_trees": 7,
+      "repeat": 2,
+      "variant": "parent",
+      "elapsed_seconds": 0.0041273541282862425,
+      "counts": {
+        "inventory": 1,
+        "path_stat": 48,
+        "parents_property": 124,
+        "relative_to": 42
+      },
+      "exact_except_capture_times": true
+    },
+    {
+      "logical_candidates": 4,
+      "actual_confirmed_trees": 7,
+      "repeat": 2,
+      "variant": "candidate",
+      "elapsed_seconds": 0.0013171900063753128,
+      "counts": {
+        "inventory": 1,
+        "path_stat": 48
+      },
+      "exact_except_capture_times": true
+    },
+    {
+      "logical_candidates": 500,
+      "actual_confirmed_trees": 7,
+      "repeat": 0,
+      "variant": "parent",
+      "elapsed_seconds": 0.0119074119720608,
+      "counts": {
+        "inventory": 1,
+        "path_stat": 48,
+        "parents_property": 121,
+        "relative_to": 42
+      },
+      "exact_except_capture_times": true
+    },
+    {
+      "logical_candidates": 500,
+      "actual_confirmed_trees": 7,
+      "repeat": 0,
+      "variant": "candidate",
+      "elapsed_seconds": 0.010367842856794596,
+      "counts": {
+        "inventory": 1,
+        "path_stat": 48
+      },
+      "exact_except_capture_times": true
+    },
+    {
+      "logical_candidates": 500,
+      "actual_confirmed_trees": 7,
+      "repeat": 1,
+      "variant": "candidate",
+      "elapsed_seconds": 0.010529103921726346,
+      "counts": {
+        "inventory": 1,
+        "path_stat": 48
+      },
+      "exact_except_capture_times": true
+    },
+    {
+      "logical_candidates": 500,
+      "actual_confirmed_trees": 7,
+      "repeat": 1,
+      "variant": "parent",
+      "elapsed_seconds": 0.012666612165048718,
+      "counts": {
+        "inventory": 1,
+        "path_stat": 48,
+        "parents_property": 121,
+        "relative_to": 42
+      },
+      "exact_except_capture_times": true
+    },
+    {
+      "logical_candidates": 500,
+      "actual_confirmed_trees": 7,
+      "repeat": 2,
+      "variant": "parent",
+      "elapsed_seconds": 0.012453209143131971,
+      "counts": {
+        "inventory": 1,
+        "path_stat": 48,
+        "parents_property": 121,
+        "relative_to": 42
+      },
+      "exact_except_capture_times": true
+    },
+    {
+      "logical_candidates": 500,
+      "actual_confirmed_trees": 7,
+      "repeat": 2,
+      "variant": "candidate",
+      "elapsed_seconds": 0.009807609021663666,
+      "counts": {
+        "inventory": 1,
+        "path_stat": 48
+      },
+      "exact_except_capture_times": true
+    }
+  ],
+  "inference": false,
+  "formal_result": false,
+  "caveats": [
+    "Existing tiny fixture; 500 names are metadata, not new LoRA weights or workload.",
+    "Three alternating component calls are not independent performance runs or seeds.",
+    "Instrumented timings include wrappers; no serving TTFT/GPU-s extrapolation.",
+    "Only two pure projection functions differ; fresh inventory/stat/validation unchanged."
+  ],
+  "source_refs": [
+    {
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d457_20261012/compare_observation.py",
+      "sha256": "2368fdc9e7c775942a9df074538e2a2e20daccf4e0514483d92dd5e74532b912"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/memory/residency_manager.py",
+      "sha256": "b3ea1c27ef4e27ba57550b8f61ede817d9daddb3f66a602d2ad926fc01c0095e"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_file_observation.py",
+      "sha256": "81e2f9b4c45e7ce2189d7d554f9e43cc84ffdf48207608f419a88e69e2521078"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_transfer_pressure.py",
+      "sha256": "164ce20cf7788d91af0057ae417ef505baba07995c9dc0e0c753a013bdfd3318"
+    },
+    {
+      "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+    },
+    {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+      "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+    }
+  ],
+  "resources": {
+    "memory.peak": "531677184",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "memory.swap.current": "0"
+  }
+}

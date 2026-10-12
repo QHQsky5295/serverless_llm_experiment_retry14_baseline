@@ -323,18 +323,25 @@ class LocalSourceReferences:
                 parent = path.parent
                 if parent not in parent_devices:
                     parent_devices[parent] = parent.stat().st_dev
-                source_paths_by_device.setdefault(parent_devices[parent], set()).add(path)
+                source_paths_by_device.setdefault(parent_devices[parent], {})[path.parts] = path
         for item in inventory['allocations']:
             if (item['kind'] != 'file' or item['external_link_count'] != 0
                     or item.get('pending_increment_bytes', 0) != 0):
                 continue
-            candidates = source_paths_by_device.get(item['device'], set())
+            paths_by_parts = source_paths_by_device.get(item['device'], {})
+            candidates = paths_by_parts.keys()
             for name in item['paths']:
-                candidates = candidates.intersection(Path(name).parents)
+                # Preserve lexical proper-ancestor semantics without allocating
+                # a Path for every ancestor. Anchor is one component; a relative
+                # path also has the empty ('.') ancestor. Never use string prefix.
+                item_path = Path(name)
+                parts = item_path.parts
+                candidates = candidates & {parts[:end] for end in
+                    range(int(bool(item_path.anchor)), len(parts))}
                 if not candidates:
                     break
-            for path in candidates:
-                usable_by_path[path] += item['allocated_bytes']
+            for parts in candidates:
+                usable_by_path[paths_by_parts[parts]] += item['allocated_bytes']
         rows = []
         for path, source in sorted(sources.items()):
             usable = usable_by_path[path]
@@ -1315,31 +1322,41 @@ class LocalSourceReferences:
         individual source inventory. No index survives the planning call.
         """
         from ..storage.http_artifact_store import _verified_file_signature
-        roots = set(self.roots.values())
-        if any(not stat_types.S_ISDIR(observed_stats[root].st_mode) for root in roots):
+        if any(not stat_types.S_ISDIR(observed_stats[root].st_mode)
+               for root in self.roots.values()):
             raise RuntimeError('managed source root is unavailable')
-        indexed, seen = {}, {}
+        # Inventory paths are normalized by Path during the fresh scan. Retain
+        # its root labels/stat objects instead of reconstructing each Path and
+        # walking its ancestors twice. This index never survives this call.
+        roots = {tier: (root, str(root), str(root).rstrip(os.sep) + os.sep)
+                 for tier, root in self.roots.items()}
+        stats_by_name = {str(path): info for path, info in observed_stats.items()}
+        indexed, trees = {}, {}
         for allocation in inventory['allocations']:
             inode = allocation['device'], allocation['inode']
-            for name in allocation['paths']:
-                item = Path(name)
-                if item in roots:
+            if len(allocation['paths']) != len(allocation['path_tiers']):
+                raise ValueError('managed inventory path/tier count differs')
+            for name, tier in zip(allocation['paths'], allocation['path_tiers']):
+                root, root_name, prefix = roots[tier]
+                if name == root_name:
                     continue
-                # Managed roots are nonoverlapping; find the direct child once
-                # per actual path, not once per candidate/absent adapter.
-                root = next(root for root in roots if root in item.parents)
-                relative = item.relative_to(root)
-                source = root / relative.parts[0]
-                signatures, footprint = indexed.setdefault(source, ({}, dict(
-                    file_path_bytes=0, allocated_file_bytes=0,
-                    allocated_bytes=0, unique_file_count=0)))
-                info = observed_stats[item]
+                if not name.startswith(prefix):
+                    raise ValueError('managed inventory path differs from its tier root')
+                child, separator, relative = name[len(prefix):].partition(os.sep)
+                key = tier, child
+                tree = trees.get(key)
+                if tree is None:
+                    signatures, footprint = {}, dict(file_path_bytes=0,
+                        allocated_file_bytes=0, allocated_bytes=0, unique_file_count=0)
+                    tree = trees[key] = signatures, footprint, set()
+                    indexed[root / child] = signatures, footprint
+                signatures, footprint, source_inodes = tree
+                info = stats_by_name[name]
                 signature = _verified_file_signature(info)
-                signatures[str(item.relative_to(source))] = (
+                signatures[relative if separator else '.'] = (
                     signature[:-2] if stat_types.S_ISDIR(info.st_mode) else signature)
                 if allocation['kind'] == 'file':
                     footprint['file_path_bytes'] += allocation['logical_bytes']
-                source_inodes = seen.setdefault(source, set())
                 if inode not in source_inodes:
                     source_inodes.add(inode)
                     footprint['allocated_bytes'] += allocation['allocated_bytes']

@@ -1,4 +1,4 @@
-# IEEE TC execution status — D456 diagnostic complete; PrimeLoRA optimization next
+# IEEE TC execution status — D457 file-view candidate CPU-qualified; actual validation next
 
 Updated 2026-10-12. Current checkpoint, NOT a replacement experiment plan.
 Full prior status is byte-identically archived in EXECUTION_HISTORY_THROUGH_D448.md,
@@ -31,7 +31,37 @@ entries are not current instructions. No evidence or approved task was removed.
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D456 once-only diagnostic completed and audited
+## Current action — D457 equivalent file-view optimization CPU qualified
+
+Read fullPLAN/status/baseline rules/V1/V2 aftercompaction. D456 current-function
+evidence plus D93/D153/D188/D193/D194 and 2f1bc4b history support one candidate:
+reuse current inventory root/tier/stat identities and component ancestor tuples,
+not repeated Path.parents/relative_to objects. Official vLLM CPUanalysis and
+Python3.12pathlib semantics checked. Only two projection functions changed;
+all other residency-manager AST identical to871ed971. Freshinventory/twostat/lock/
+epoch/physicalbudgets/protection/executionrechecks and IEEE formulas unchanged.
+No TTL/stale cache/offload fallback/new policy/baseline tuning.
+
+14focusedtests passed. First410regression run had one launcher error: spawn child
+reexecuted unguarded testentry and FileExistsError on exclusiveidentity caused
+BrokenProcessPool. Exactfailedscript/log/result retained; v2 main guard only,
+production/expectations unchanged. All410passed26.803s. 20inputtests0.649s pass.
+ParentAST twofunction comparison on existing7-tree fixture,12 outputs equal except
+capturetimes; 500metadata candidates mean12.342411->10.234852ms,inventory1/stat48
+unchanged,parents121/relative42->0/0. Threecomponentcalls are notperformance repeats;
+no TTFT/GPU-s extrapolation. No newweights/trace/pool orfigures.
+
+D457config equalsD371 except exclusivepaths; same original1000D434 entries,
+60logicalIDs/122510targettokens/viewSHA0a5dfcf8048abdc8fc1e3a8ccaf92bfb925a9db326c8d27507663bede96a0981.
+Existinglauncher has D457 no-frame-observer branch.35sourcerefs/protected147/
+threeuserfiles/protocols verified. DocsD457_EPHEMERAL_FILE_VIEW_INDEX and
+D457_FILE_VIEW_CPU_RESULTS; curated p2_backend/d457_file_view. CPU scopesbounded
+3/4GiB/swap0/CPU2,3,26,27, no high/max/OOM/swap. No actualD457GPUrun started yet.
+NEXT: exact-owned CPUclosure/backup, one original1000 validation then full4000W0;
+do not repeatD456. Fullremaining7BW1/W2/G2,3B,HydraServe,A/S/docs/figures retained.
+GoalACTIVE; this turn substantiveimplementation/CPUqualificationprogress.
+
+## Previous action — D456 once-only diagnostic completed and audited
 
 Same actual run completed2026-10-12 10:34, no restart/new candidate or policy change.
 1000/1000 native/source/adapter/lease contracts and independentD434 prompt/native
@@ -87,6 +117,11 @@ NEXT: preserve/backup this evidence then one formula-compatible file-view effici
 hypothesis with history+primarysources+equivalence tests/minimalvalidation/fullrun.
 No repeatD456. Remaining7BW1/W2/reference/G2,3B,A1-A5/S1-S13/docs/figures OPEN.
 GoalACTIVE; currentturn substantivecompletion/closure/analysis progress, notblocked.
+Resultcheckpoint871ed971d6a0eea420aabb14c2e14ead6a784413 pushed;
+independentls-remoteequal verified. BASE unchanged71c52cf6f7331dc2a171ec83db5f1011eaf6d5a6.
+RawD456 result_backup_receipt.json records closure/backup; finaldisk161534259200B,
+GPUcomputeempty/allD456auxunitsabsent. Onlyprotectedusermanifest tracked-dirty
+before this post-push status note. No ongoing GPU or analysis job.
 
 ## Previous action — D456 observer-only current-configuration diagnostic qualified
 

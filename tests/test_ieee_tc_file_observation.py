@@ -189,6 +189,49 @@ class FreshFileObservation(unittest.TestCase):
                 owner.inventory(_observed_stats=stats)
         self.assertEqual(stats, {})
 
+    def test_nested_cross_tree_and_cross_tier_alias_projection_is_exact(self):
+        fixture, owner, manifests, limits = self.make()
+        file = next(p for p in (fixture.nvme/'a').rglob('*') if p.is_file())
+        roots = tuple(owner.roots.values())
+        # Tiny existing bytes only; no LoRA pool or source manifest is generated.
+        for root in roots:
+            for child in ('index-a', 'index-ab', 'index-中文'):
+                nested = root/child/'nested'/'more'
+                nested.mkdir(parents=True)
+                os.link(file, nested/'alias')
+                os.link(file, nested.parent/'second')
+        with owner.lock:
+            stats = {}
+            inventory = owner.inventory(_observed_stats=stats)
+            before = copy.deepcopy(inventory)
+            actual = owner._planning_source_observations(inventory, stats)
+            expected = {child: owner._source_observation(child)
+                        for root in roots for child in root.iterdir()}
+            self.assertEqual(actual, expected)
+            self.assertEqual(inventory, before)
+            # Projection uses the scan's existing identities, not new ancestor
+            # Path chains or relative_to calls for each file in each tree.
+            with (patch.object(Path, 'parents', new=property(
+                    lambda _: self.fail('ancestor Path reconstruction'))),
+                  patch.object(Path, 'relative_to', side_effect=AssertionError('relative reconstruction'))):
+                self.assertEqual(owner._planning_source_observations(inventory, stats), expected)
+
+    def test_projection_rejects_inconsistent_inventory_tier_labels(self):
+        fixture, owner, manifests, limits = self.make()
+        with owner.lock:
+            stats = {}
+            inventory = owner.inventory(_observed_stats=stats)
+            bad = copy.deepcopy(inventory)
+            bad['allocations'][0]['path_tiers'] = []
+            with self.assertRaisesRegex(ValueError, 'path/tier count'):
+                owner._planning_source_observations(bad, stats)
+            bad = copy.deepcopy(inventory)
+            allocation = next(row for row in bad['allocations'] if row['kind'] == 'file')
+            tier = allocation['path_tiers'][0]
+            allocation['path_tiers'][0] = next(t for t in owner.roots if t != tier)
+            with self.assertRaisesRegex(ValueError, 'differs from its tier root'):
+                owner._planning_source_observations(bad, stats)
+
 
 if __name__ == '__main__':
     unittest.main()
