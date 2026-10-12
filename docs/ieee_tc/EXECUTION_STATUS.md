@@ -1,4 +1,4 @@
-# IEEE TC execution status — D463 HOST queue owner projection qualification
+# IEEE TC execution status — D464 native HOST queue validation preparation
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement plan.
 Complete preceding status is byte-identically archived in
@@ -33,7 +33,22 @@ not current instructions. No evidence or approved task was removed.
 - Every optimization: logs/history + online primary sources + one falsifiable
   hypothesis + tests/minimal validation/new full replay. IEEE nine formulas fixed.
 
-## Current action — D463 exact consumer projection
+## Current action — D464 original100 native validation
+
+Reuse D458 parameters with only exclusive output/NVMe/HOST paths, and existing
+runner's diagnostic original100 prefix. No trace or model/pool regeneration,
+observer, formula/threshold change or baseline tuning. Production unchanged
+from D463 checkpoint8114e0c.22 CPU checks passed (20 existing replay+2 configuration
+contracts),0fail/error/skip; actual native validation and full4000 remain pending.
+Reuse the D458 remote management/closure helpers. Cleanup additionally matches
+the captured auxiliary InvocationID/inode.33 total CPU/input+safety checks and
+source/protected input qualification must pass before the native run starts.
+See D464_HOST_QUEUE_NATIVE_VALIDATION.md. Raw d464_20261012, curated d464_host_queue.
+Short-prefix metrics cannot establish full-workload G1/G2 or extrapolated savings.
+Next: verified checkpoint -> fresh resource gate -> native100 -> audit -> new-key
+full4000 unchanged D458 settings. Current mainline remains7B optimization.
+
+## Prior checkpoint — D463 exact consumer projection
 
 Read full PLAN/status/rules/V1/V2 after compaction. Used analyze-results,
 run-experiment and github-sync; no agents. Native GPU compute was empty.
@@ -70,7 +85,14 @@ Whole production AST differs from parent by one operation string only; worker,
 owner,budget,config,baseline unchanged. No GPU or remote actions, new benchmark,
 figure or baseline tuning. Raw d463_20261012 uses exclusive files.
 Do not infer actual speedup from this one avoided full observation per entry.
-Curated p2_backend/d463_host_queue; backup pending, then native validation/full.
+Curated p2_backend/d463_host_queue. Checkpoint8114e0c78723bab0dff8d08f37a5b8a891bc1dcb
+pushed to V2; independent ls-remote equals HEAD.7 explicit task files passed
+source/protected/secrets/diff checks; user manifest never staged; BASE unchanged.
+Curation5 and backup6 exact captured scopes actual-empty closed; all6 D463
+auxiliaries absent and GPU compute empty. Raw backup_receipt/backup_closure
+retain identity/resource evidence. Disk161118113792B (~150.05GiB), fresh gates
+required before native validation/full. Whole goal ACTIVE; qualification and
+verified backup are progress, not overall completion or a blocked condition.
 
 ## Prior checkpoint — D462 native qualification completed, candidate rejected
 
@@ -116,8 +138,8 @@ qualification/rejection/verified backup are progress, not a blocker or completio
 
 ## Next mainline
 
-Finish verified D463 backup (CPU qualification passed), retain all failures.
-Then minimal native validation and one new-key full4000 with D458
+D463 CPU qualification and verified backup complete; retain all failures.
+Next minimal native validation and one new-key full4000 with D458
 settings unchanged. The concrete redundant boundary is only the initial HOST
 queue owner read; do not extend to later snapshots or cached physical inventory.
 Do not repeat D456 profiling, D458, sealed baselines, C8/capacity/threshold sweeps,
