@@ -2256,6 +2256,133 @@ def _pin_inventory_witness(original, query, guard):
     return namespace[original.__name__], ast.unparse(tree)
 
 
+def _cpu_frontend_state(torch, driver, expected_mask: str) -> dict:
+    """Observe a fixed-device frontend without creating or retaining a context.
+
+    The caller has initialized only the CUDA *driver* with cuInit. Neither the
+    driver current-context query nor primary-context state query retains one.
+    Do not substitute cudaGetDevice/current_device: those may initialize CUDA.
+    This is a qualification witness, not a GPU ownership/ready declaration.
+    """
+    if (not re.fullmatch(r'GPU-[a-fA-F0-9-]+', expected_mask)
+            or os.environ.get('CUDA_VISIBLE_DEVICES') != expected_mask
+            or os.environ.get('FAASLORA_VISIBLE_DEVICES') != expected_mask):
+        raise RuntimeError('CPU frontend requires one immutable physical UUID mask')
+    if torch.cuda.is_initialized():
+        raise RuntimeError('CPU frontend has initialized torch CUDA')
+    def checked(values):
+        status, *rest = values
+        if int(status) != 0:
+            raise RuntimeError(f'CPU frontend driver observation failed: {status}')
+        return rest
+    count, = checked(driver.cuDeviceGetCount())
+    if count != 1:
+        raise RuntimeError('CPU frontend requires exactly one visible driver device')
+    context, = checked(driver.cuCtxGetCurrent())
+    flags, active = checked(driver.cuDevicePrimaryCtxGetState(0))
+    if int(context) != 0 or active != 0:
+        raise RuntimeError('CPU frontend has a current or active primary CUDA context')
+    return dict(cuda_visible_devices=expected_mask, torch_cuda_initialized=False,
+                driver_device_count=count, current_context=int(context),
+                primary_flags=int(flags), primary_active=int(active))
+
+
+def backend_frontend_check(runtime_receipt: Path, config: Path) -> dict:
+    """D467: qualify the real pre-initialize boundary, not startup performance.
+
+    Fixed UUID precedes sitecustomize/imports. Keep the existing startup hook,
+    frontend classes and uninitialized InferenceEngine descriptor. Do not create
+    an AsyncLLM, EngineCore, GPU owner, weights, pool, request or remote fetch.
+    Independent guarded-launch census covers the process and its descendants.
+    """
+    service = verify_current_service()
+    prior = json.loads(runtime_receipt.read_text())
+    if (prior.get('kind') != 'backend_cuda_import_qualification_v1'
+            or prior.get('pass') is not True or prior.get('stage') != 'complete'
+            or Path(prior['environment']).resolve() != Path(sys.prefix).resolve()):
+        raise RuntimeError('frontend check requires completed native CUDA receipt')
+    result = dict(kind='native_cpu_frontend_boundary_d467_v1', service=service,
+        runtime_receipt_sha256=digest(runtime_receipt), config_sha256=digest(config),
+        plan_sha256=check_plan(), check_source_sha256=digest(Path(__file__)),
+        environment=sys.prefix, production_launch_authorized=False,
+        formal_performance_result=False, model_qualification=False,
+        stage='entry', observations=[], **{'pass': False})
+    try:
+        import asyncio
+        import importlib.metadata
+        import threading
+        import yaml
+        import torch
+        from cuda.bindings import driver
+        mask = os.environ.get('CUDA_VISIBLE_DEVICES', '')
+        if (not re.fullmatch(r'GPU-[a-fA-F0-9-]+', mask)
+                or os.environ.get('FAASLORA_VISIBLE_DEVICES') != mask
+                or torch.cuda.is_initialized()):
+            raise RuntimeError('frontend check requires a fresh immutable UUID process')
+        if (torch.__version__ != '2.13.0+cu130'
+                or importlib.metadata.version('vllm') != '0.30.0'):
+            raise RuntimeError('frontend check requires the qualified native backend')
+        status, = driver.cuInit(0)  # Driver only; deliberately no context retain.
+        if int(status) != 0:
+            raise RuntimeError(f'CPU frontend driver initialization failed: {status}')
+        def observe(stage):
+            record = _cpu_frontend_state(torch, driver, mask)
+            record.update(stage=stage, monotonic_s=time.monotonic(),
+                process_cpu_s=time.process_time(),
+                threads=[t.name for t in threading.enumerate()],
+                native_thread_count=len(list(Path('/proc/self/task').iterdir())))
+            result['observations'].append(record)
+        observe('entry_after_unchanged_sitecustomize')
+        result['startup_hook_loaded'] = 'sitecustomize' in sys.modules
+        if not result['startup_hook_loaded']:
+            raise RuntimeError('frontend witness must retain the actual startup hook')
+        sys.path.insert(0, str(ROOT))
+        from scripts import run_all_experiments as runner
+        observe('runner_imported')
+        if not runner._lazy_import_vllm():
+            raise RuntimeError('native frontend import unavailable; no fallback')
+        from faaslora.scheduling.vllm_ieee_frontend import IEEENativeAsyncLLM
+        from scripts import dedicated_engine_worker
+        from vllm.platforms import current_platform
+        observe('native_frontend_and_worker_imported')
+        source = yaml.safe_load(config.read_text())
+        cfg = dict(source['model'])
+        if (cfg.get('backend') != 'vllm' or cfg.get('tensor_parallel_size') != 1
+                or cfg.get('generation_contract') != 'fixed_length_greedy_v1'):
+            raise RuntimeError('frontend check requires the retained TP1 fixed-output configuration')
+        cfg, _ = runner._prepare_dedicated_subprocess_model_cfg(
+            cfg, device_id=0, runtime_gpu_ids=[0])
+        # Do not instantiate AsyncLLM or call initialize/shutdown: shutdown of an
+        # uninitialized descriptor is not needed and contains distributed cleanup.
+        async def descriptor_only():
+            engine = runner.InferenceEngine(cfg, source.get('cost_model', {}))
+            if engine.engine is not None:
+                raise RuntimeError('descriptor unexpectedly created a native engine')
+            return dict(engine_none=True, backend=engine.backend, device_id=engine.device_id,
+                        model_config=engine.model_cfg)
+        result['descriptor'] = asyncio.run(descriptor_only())
+        observe('uninitialized_descriptor_constructed')
+        capability = current_platform.get_device_capability(0)
+        native_uuid = current_platform.get_device_uuid(0)
+        if (current_platform.device_count() != 1 or native_uuid != mask
+                or capability is None or tuple(capability) != (8, 6)):
+            raise RuntimeError('native fixed-device observation differs from the selected SM86 UUID')
+        result.update(platform_type=type(current_platform).__name__, native_uuid=native_uuid,
+            capability=list(capability), torch_version=str(torch.__version__),
+            vllm_version=importlib.metadata.version('vllm'),
+            frontend_class=IEEENativeAsyncLLM.__qualname__,
+            worker_file=dedicated_engine_worker.__file__,
+            core_start_method=os.environ.get('VLLM_WORKER_MULTIPROC_METHOD'))
+        if result['core_start_method'] != 'spawn':
+            raise RuntimeError('frontend preparation must preserve fresh spawned native cores')
+        observe('fixed_device_platform_verified')
+        result.update(stage='complete', **{'pass': True})
+    except Exception as error:
+        import traceback
+        result.update(error_type=type(error).__name__, error=str(error), traceback=traceback.format_exc())
+    return result
+
+
 def backend_pin_query_check(runtime_receipt: Path) -> dict:
     """D462: actual CUDA semantics and whole-inventory microtest, no backbone.
 
@@ -6027,7 +6154,7 @@ def main():
     parser.add_argument('action', choices=['preflight', 'seal', 'verify', 'self-test', 'ray-test',
                                          'watchdog', 'watchdog-test', 'install-candidate', 'backend-check',
                                          'backend-model-check', 'backend-copy-check', 'backend-host-check',
-                                         'backend-pin-check',
+                                         'backend-pin-check', 'backend-frontend-check',
                                          'backend-peft-reference', 'backend-peft-sequence-reference',
                                          'artifact-audit', 'artifact-index', 'artifact-disk-check', '_worker',
                                          'gated-launch', '_launch-gate', '_replay-publisher', '_replay-witness'])
@@ -6184,6 +6311,10 @@ def main():
             parser.error('backend-peft-sequence-reference requires native-result, replay-trace, config, adapter-root and output')
         result = backend_peft_sequence_reference(
             args.native_result, args.replay_trace, args.config, args.adapter_root)
+    elif args.action == 'backend-frontend-check':
+        if not all((args.runtime_receipt, args.config, args.output)):
+            parser.error('backend-frontend-check requires runtime receipt, retained config and new output')
+        result = backend_frontend_check(args.runtime_receipt, args.config)
     elif args.action == 'backend-pin-check':
         if not args.runtime_receipt or not args.output:
             parser.error('backend-pin-check requires the native runtime receipt and new output')

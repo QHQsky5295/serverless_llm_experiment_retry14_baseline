@@ -1,0 +1,38 @@
+{
+  "kind": "d467_cpu_frontend_qualification_summary_v1",
+  "passed": true,
+  "decision": "Fixed-UUID CPU preparation boundary qualified; lifecycle integration and performance remain unqualified.",
+  "source_result_sha256": "b3a6949d6287423f4dc6f3b6b3bbeac17757017e0f5f23ac0df9670544c67391",
+  "resource": {
+    "samples": 22,
+    "gpu_censuses": 24,
+    "max_observed_service_peak_bytes": 1488506880,
+    "min_host_available_bytes": 110324412416,
+    "max_swap_bytes": 0,
+    "max_memory_events": {
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0
+    },
+    "native_gpu_contexts_observed": 0,
+    "warning_samples": 0
+  },
+  "checkpoints": 5,
+  "unique_cpu_tests": 272,
+  "new_cpu_tests": 13,
+  "existing_background_python_threads": [
+    "humming-bg-build-reaper",
+    "humming-bg-build-reaper"
+  ],
+  "no_fork_no_engine_no_weights_no_remote_no_replay": true,
+  "production_request_path_changed": false,
+  "D463_performance_accepted": false,
+  "limitations": [
+    "No allocation, ready, cancellation or reuse handshake is implemented by this diagnostic.",
+    "Five in-process checkpoints and sampled NVML census do not establish absence of every possible transient context.",
+    "Unchanged sitecustomize ran before the first in-process checkpoint.",
+    "CUDA driver initialization is present in this qualification only; it retains no context.",
+    "No measured end-to-end improvement or amortized per-frontend memory claim."
+  ]
+}

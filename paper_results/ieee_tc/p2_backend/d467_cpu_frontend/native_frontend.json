@@ -1,0 +1,235 @@
+{
+  "kind": "native_cpu_frontend_boundary_d467_v1",
+  "service": {
+    "service_identity": {
+      "unit": "primelora-tc-svc-c31de320623148c09009a584fd0b825a.scope",
+      "invocation_id": "070e00dfca9f4dd1815c592adc5d361d",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-c31de320623148c09009a584fd0b825a.scope",
+      "inode": 23425445
+    },
+    "pid": 3609237,
+    "cgroup": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-c31de320623148c09009a584fd0b825a.scope",
+    "affinity": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47
+    ],
+    "production_launch_authorized": false
+  },
+  "runtime_receipt_sha256": "cf38bbf8d3b80b30d88ac38e27722d389a24ae516565708cfc924937589079cf",
+  "config_sha256": "e8174edea3cca7f299f014b91069823b4c49c3fb27417c5c3ebc4c9d1fb7f837",
+  "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5",
+  "check_source_sha256": "24772fb4ca23f84280d70d2a5a430da0b66ae75ffc1f5b7a86ddb671099868fb",
+  "environment": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925",
+  "production_launch_authorized": false,
+  "formal_performance_result": false,
+  "model_qualification": false,
+  "stage": "complete",
+  "observations": [
+    {
+      "cuda_visible_devices": "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946",
+      "torch_cuda_initialized": false,
+      "driver_device_count": 1,
+      "current_context": 0,
+      "primary_flags": 0,
+      "primary_active": 0,
+      "stage": "entry_after_unchanged_sitecustomize",
+      "monotonic_s": 1303245.783313038,
+      "process_cpu_s": 10.202212544,
+      "threads": [
+        "MainThread",
+        "humming-bg-build-reaper",
+        "humming-bg-build-reaper"
+      ],
+      "native_thread_count": 4
+    },
+    {
+      "cuda_visible_devices": "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946",
+      "torch_cuda_initialized": false,
+      "driver_device_count": 1,
+      "current_context": 0,
+      "primary_flags": 0,
+      "primary_active": 0,
+      "stage": "runner_imported",
+      "monotonic_s": 1303246.678543701,
+      "process_cpu_s": 11.029454721,
+      "threads": [
+        "MainThread",
+        "humming-bg-build-reaper",
+        "humming-bg-build-reaper"
+      ],
+      "native_thread_count": 4
+    },
+    {
+      "cuda_visible_devices": "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946",
+      "torch_cuda_initialized": false,
+      "driver_device_count": 1,
+      "current_context": 0,
+      "primary_flags": 0,
+      "primary_active": 0,
+      "stage": "native_frontend_and_worker_imported",
+      "monotonic_s": 1303246.679333483,
+      "process_cpu_s": 11.03024361,
+      "threads": [
+        "MainThread",
+        "humming-bg-build-reaper",
+        "humming-bg-build-reaper"
+      ],
+      "native_thread_count": 4
+    },
+    {
+      "cuda_visible_devices": "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946",
+      "torch_cuda_initialized": false,
+      "driver_device_count": 1,
+      "current_context": 0,
+      "primary_flags": 0,
+      "primary_active": 0,
+      "stage": "uninitialized_descriptor_constructed",
+      "monotonic_s": 1303246.689867927,
+      "process_cpu_s": 11.040777308,
+      "threads": [
+        "MainThread",
+        "humming-bg-build-reaper",
+        "humming-bg-build-reaper"
+      ],
+      "native_thread_count": 4
+    },
+    {
+      "cuda_visible_devices": "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946",
+      "torch_cuda_initialized": false,
+      "driver_device_count": 1,
+      "current_context": 0,
+      "primary_flags": 0,
+      "primary_active": 0,
+      "stage": "fixed_device_platform_verified",
+      "monotonic_s": 1303246.69115606,
+      "process_cpu_s": 11.042064854,
+      "threads": [
+        "MainThread",
+        "humming-bg-build-reaper",
+        "humming-bg-build-reaper"
+      ],
+      "native_thread_count": 4
+    }
+  ],
+  "pass": true,
+  "startup_hook_loaded": true,
+  "descriptor": {
+    "engine_none": true,
+    "backend": "vllm",
+    "device_id": 0,
+    "model_config": {
+      "name": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+      "backend": "vllm",
+      "device_id": 0,
+      "visible_device_ids": [
+        0
+      ],
+      "tensor_parallel_size": 1,
+      "gpu_memory_utilization": 0.92,
+      "max_model_len": 1024,
+      "max_loras": 14,
+      "max_lora_rank": 16,
+      "enable_lora": true,
+      "enforce_eager": false,
+      "dtype": "float16",
+      "max_num_seqs": 14,
+      "max_num_batched_tokens": 1024,
+      "max_output_tokens_cap": 256,
+      "max_input_len": 759,
+      "runtime_concurrency_cap": 14,
+      "enable_chunked_prefill": true,
+      "enable_prefix_caching": false,
+      "vllm_use_v1": true,
+      "vllm_attention_backend": "FLASH_ATTN",
+      "vllm_use_flashinfer_sampler": true,
+      "safetensors_load_strategy": "auto",
+      "timing_contract": "ieee_tc_native_v1",
+      "ieee_worker_observation": true,
+      "ieee_gpu_references": true,
+      "ieee_scheduler_observation": true,
+      "ieee_control_interleave": "atomic_control_yield_v1",
+      "ieee_file_demand_transaction": "protected_file_owner_turn_v1",
+      "ieee_input_upper_bounds": [
+        759
+      ],
+      "generation_contract": "fixed_length_greedy_v1",
+      "canonical_prompt_renderer": "role_lines_v1",
+      "ieee_physical_allocation": true,
+      "ieee_host_budget_bytes": 17179869184,
+      "ieee_native_host_tensor_budget_bytes": 2147483648,
+      "ieee_native_host_workspace": {
+        "kind": "native_host_workspace_contract_v1",
+        "dtype": "torch.float16",
+        "source_audit_sha256": "224b9337ecaba2590ac888e9d0e3b9eb41a17074ce77b952e98e935259adf60f",
+        "max_resident_pinned_bytes": 33554432,
+        "max_transient_tensor_bytes": 67143184
+      },
+      "ieee_native_host_allocator_policy": "uncached_background_v1",
+      "ieee_admission_profile": {
+        "window_s": 5.0,
+        "model_backend_id": "native-model/10cc02ee5f92297d6e60c5e3796f42e06f72e9c4274276c8de90d11eb41d32e3",
+        "profile_id": "native-completed/99bd0d0ffe6c8b3626700ad2b58df7352a48ebbac6e30ac5f301d45fdc4a2d2c",
+        "profile_means": [
+          100.86411149825784,
+          125.56888888888889
+        ],
+        "transfer_limit": 3
+      },
+      "artifact_content_manifest_path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/inputs/20260927_7b_materialized_content_index.json",
+      "requested_runtime_concurrency_cap": 14,
+      "max_cpu_loras": 24,
+      "requested_enforce_eager": "auto",
+      "resolved_enforce_eager": false,
+      "skip_stale_gpu_cleanup": true
+    }
+  },
+  "platform_type": "NvmlCudaPlatform",
+  "native_uuid": "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946",
+  "capability": [
+    8,
+    6
+  ],
+  "torch_version": "2.13.0+cu130",
+  "vllm_version": "0.30.0",
+  "frontend_class": "IEEENativeAsyncLLM",
+  "worker_file": "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/dedicated_engine_worker.py",
+  "core_start_method": "spawn"
+}

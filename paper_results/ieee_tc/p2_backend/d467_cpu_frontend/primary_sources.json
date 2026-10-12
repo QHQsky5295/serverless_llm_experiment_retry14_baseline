@@ -1,0 +1,29 @@
+{
+  "retrieved_at_utc": "2026-10-12T09:06:27Z",
+  "refs": [
+    {
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/docs/design/multiprocessing.md",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d467_20261012/official_docs_design_multiprocessing.md",
+      "sha256": "1959cb563a5decf9b99186069e6b1d6a724b895ff1fd9c84fa1d382ed3a84d8f",
+      "bytes": 8321
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/platforms/cuda.py",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d467_20261012/official_vllm_platforms_cuda.py",
+      "sha256": "f0464617920723fd7a088b05aee84aa6b97ff8bf3ff4301fc474de67afb0ca31",
+      "bytes": 40672
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/engine/utils.py",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d467_20261012/official_vllm_v1_engine_utils.py",
+      "sha256": "d09f86b107b3c63b62f40a6590036be5b711778ea997fc5a6af6de94fdd2ccd3",
+      "bytes": 56169
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/engine/core_client.py",
+      "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d467_20261012/official_vllm_v1_engine_core_client.py",
+      "sha256": "fd6ca0cb7499b3086eef2fc57674b7ace56ef1c648f09e92e144b255b79018f8",
+      "bytes": 81200
+    }
+  ]
+}

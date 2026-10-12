@@ -1,0 +1,9 @@
+test_launch_cannot_start_model_before_auxiliary_limits_exist (tests.test_ieee_tc_preflight.ProtocolGates) ... ok
+test_live_install_prevents_overlapping_model_launch (tests.test_ieee_tc_preflight.ProtocolGates) ... ok
+test_scope_identity_change_never_signals (tests.test_ieee_tc_preflight.ProtocolGates) ... ok
+test_tiny_gate_cannot_be_used_to_launch_an_unbounded_model (tests.test_ieee_tc_preflight.ProtocolGates) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.005s
+
+OK

@@ -1,4 +1,4 @@
-# IEEE TC execution status — D466 retained capacity diagnosis complete
+# IEEE TC execution status — D467 fixed-UUID CPU boundary qualified
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement plan.
 Complete preceding status is byte-identically archived in
@@ -33,7 +33,42 @@ not current instructions. No evidence or approved task was removed.
 - Every optimization: logs/history + online primary sources + one falsifiable
   hypothesis + tests/minimal validation/new full replay. IEEE nine formulas fixed.
 
-## Current action — D466 retained dispatch/capacity diagnosis completed
+## Current action — D467 fixed-UUID CPU frontend boundary qualified
+
+Read full PLAN/status/rules/V1/V2 after compaction; vLLM/run-experiment skills,
+github-sync for backup. No agents, production request-path/config changes,
+baseline tuning, weights/trace/pool creation, remote actions, replay or figure.
+Extend existing preflight only with backend-frontend-check and13 CPU tests.
+D337/D338/D339/D340/D341 andD466 reviewed; no import-deletion/fork/prebuild retry.
+Official v0.30 multiprocessing/platform/core-manager/core-client source downloaded
+and hashed; web tool429, direct public primary-source fetch succeeded.
+Native fresh interpreter retained startup hook and fixed actualNVMLindex0 UUID;
+torch2.13.0+cu130/vLLM0.30.0,originalD465config. All5pre-initialize checkpoints:
+torch CUDA false,currentcontext0,primaryactive0. Descriptor.engineNone;
+nativeplatform UUIDsame/one device/SM86/spawn. No engine/weights/core instantiated.
+Existing2Hummingreapers/4OStasks retained,not new finding orfork permission.
+22resource samples/24GPUcensuses allnoownedGPUcontext,observedservicepeak
+1488506880B,hostminimum110324412416B,high/max/OOM/swap/warnings0.
+Actualservice/watchdog exit0, servicepathremoved. CPU1/native2 auxiliaries
+capturedInvocationID/inode/actualrecursiveemptyclosed,peaks2482601984/88182784B,
+allhigh/max/OOM/swap0. No task live. Originalfailure retained:272CPUtests run
+underLLMconda,268pass/2fail/2error;fourPID-fd protectiontests require qualified
+systemPython. Rerunonly4with/usr/bin/python3 passed4/4, no test/guard weakening.
+Actualnativeguard also systemPython.272distincttests nowcovered;not272passfirstattempt.
+Curatedp2_backend/d467_cpu_frontend,rawp2_backend_qualification/d467_20261012.
+SourceSHA b3a6949d6287423f4dc6f3b6b3bbeac17757017e0f5f23ac0df9670544c67391.
+SeeD467_FIXED_UUID_CPU_FRONTEND.md. 147protectedpass;nohistoricaloverwrite.
+Decision: CPU preparation boundary viable, NOT actualpreparation/lifecycle/model/
+performance qualification. Sampledcensus/checkpoints do not excludealltransients;
+sitecustomize ranbeforefirstinternalcheck. No inferredTTFT/GPU-s saving.
+NextD468: implementboundedfixed-UUID CPU preprepare afterdeploymentnotice in
+servicebudget, then actualfreshspawncore onactivation. SeparateCPUready/engineReady,
+actualallocation/bind/birth,exclusiveclaimcost,cancellation/release. Do not latebind
+cached device mask, fork, useGPU sleepasfree, repeatimportmicrotest orshiftaccounting.
+RetainD463ascurrentparent,performanceNOTaccepted;no bundledrollback orconfiguration
+change. Lifecycle tests/minimalnative thenone new-key4000;7Btarget stillOPEN.
+
+## Previous action — D466 retained dispatch/capacity diagnosis completed
 
 Read full PLAN/status/rules/V1/V2 after compaction; analyze-results and
 optimize-for-gpu used, github-sync for checkpoint. No agents, GPU/remote work,
@@ -63,6 +98,16 @@ fresh GPUowner/core creation,within servicebudget/notice contract. ReuseD338
 evidence,inspectCUDA/device/init/cancel lifecycle first; not importdeletion,
 forkafterCUDA,sleep-as-free-GPU,threshold/capacity sweep orblindprocesspool.
 No productioncandidate accepted orqualified yet. WholegoalACTIVE.
+Curation verified32currentrefs/23archivedsource-or-projectionmembers and147
+protectedentries.11explicitfiles pushed as31ded1b4536f68ff66ee628d8e4e186643c79d03;
+independent ls-remote equalslocalHEAD. No protectedusermanifest/baselinechanges.
+Firstbackup stopped at generic *.log ignore rule,after staging10intendedfiles;
+no commit/push. v2 verifiedexactstage and explicitly added only the98-byte
+curated40-test log; no broadforce-add/ignorechange/replay. Originalhelper and
+failure retained. Curation3/backup4/backup5 exact-ownedactual-emptyclosed,
+peaks325193728/325115904/329953280B,high/max/OOM/swap0; allD466tasksfinished.
+GPUcomputeempty,remoteunchangedinactive. Disk161196695552B(~150.13GiB),fresh
+gate required. Rawbackup_v2_receipt/backup_v2_closure record finalpublication.
 
 ## Previous action — D465 completed, hypothesis not accepted
 
@@ -251,9 +296,9 @@ qualification/rejection/verified backup are progress, not a blocker or completio
 D463 CPU qualification,D464 native100 andD465 full4000 complete;retain failures.
 D465 failed commonSLO and did not reduce resourcevsD458. Reject performance
 acceptance of this narrow hypothesis; no repeat. Source stillD463,not rolledback.
-Retained dispatch/activation diagnosis is now complete inD466. Next inspect
-CPU-only frontend preparation/freshGPUowner boundary withD338history andofficial
-sources before proposing one candidate. Do not extend the owner-read change to
+Retained dispatch/activation diagnosis completeD466; fixed-UUID CPU pre-initialize
+boundary qualifiedD467. Next implement bounded CPU preparation/freshGPUowner
+handoff, not repeatimport/fork/prebuild tests. Do not extend the owner-read change to
 later snapshots or cached physical inventory. Explicitly declare D463 disposition
 in the next version,not a silent rollback or a claimed accepted improvement.
 Do not repeat D456 profiling, D458, sealed baselines, C8/capacity/threshold sweeps,
