@@ -1,5 +1,6 @@
 """D455 retained planning/transport evidence; CPU only, immutable outputs."""
 import gzip
+import argparse
 import json
 import math
 import sys
@@ -13,11 +14,28 @@ sys.path.insert(0,str(ROOT))
 from scripts.ieee_tc.check_d299_full_context import read,sha256
 from scripts.ieee_tc.audit_d402_serverlessllm_path import timing_stats
 from scripts import ieee_tc_preflight as p
+from scripts.ieee_tc.analyze_d455_stages import with_d458_candidate
+
+parser=argparse.ArgumentParser(allow_abbrev=False)
+parser.add_argument('--include-d458',action='store_true')
+parser.add_argument('--output',type=Path)
+args=parser.parse_args()
+output=args.output or RAW/'cpu_inspection.json'
+if output.exists():
+    raise ValueError('refusing to overwrite planning evidence')
+if args.include_d458 and args.output is None:
+    raise ValueError('D458 analysis requires an explicit new output')
 
 comparison=read(ROOT/'paper_results/ieee_tc/main_comparison/d454_7b_w0/comparison.json')
 control=read(ROOT/'paper_results/ieee_tc/main_comparison/d454_7b_w0/control_diagnosis.json')
+assert sha256(ROOT/'paper_results/ieee_tc/main_comparison/d454_7b_w0/comparison.json')=='e8246c0203202f8d1e50adeac85a6569d134ea95729627da7a6a1df12b6c38ce'
+assert sha256(ROOT/'paper_results/ieee_tc/main_comparison/d454_7b_w0/control_diagnosis.json')=='26003b8f4fbcb676a59b167f8f585e558631ec33444d7517796807f7e749b387'
+candidate_path=ROOT/'paper_results/ieee_tc/p2_backend/d458_full_w0/matched_comparison.json'
+if args.include_d458:
+    assert sha256(candidate_path)=='d8188014ac448205e33198f81e9bb12a793dea664a1de90e5c504535ea500a42'
+    comparison=with_d458_candidate(comparison,read(candidate_path))
 pinned={r['path']:r['sha256'] for r in comparison['source_refs']+control['source_refs']}
-refs=[]
+refs=[dict(path=str(candidate_path),sha256=sha256(candidate_path))] if args.include_d458 else []
 def checked(path):
     path=Path(path)
     assert sha256(path)==pinned[str(path)],path
@@ -30,7 +48,14 @@ for ref in comparison['source_refs']:
     if 'experiment_results_full' not in source.name:
         continue
     checked(source)
-    name,scenario=('PrimeLoRA','tc_ieee_full') if 'd371_' in str(source) else ('ElasticLocality','tc_ieee_elastic_locality')
+    if 'd371_20261010' in str(source):
+        name,scenario='PrimeLoRA','tc_ieee_full'
+    elif 'd453_20261012' in str(source):
+        name,scenario='ElasticLocality','tc_ieee_elastic_locality'
+    elif args.include_d458 and 'd458_20261012' in str(source):
+        name,scenario='PrimeLoRA_D458','tc_ieee_full'
+    else:
+        raise ValueError('unexpected controller source')
     path=source.parent/'launch.launch/physical_deployment/main_outcome.json'
     if name=='PrimeLoRA':
         receipt=read(checked(source.parent/'compression_receipt.json'))
@@ -78,6 +103,6 @@ for ref in comparison['source_refs']:
 result=dict(reports=reports,source_refs=refs,script=dict(path=str(Path(__file__)),sha256=sha256(Path(__file__))),
     scope=p.scope_identity(p.cg_path().name),causal_attribution_established=False,
     caveat='RPC pickup uses same-host wall times and producer clamping; planning spans overlap requests and are not additive E2E.')
-with (RAW/'cpu_inspection.json').open('x') as f:
+with output.open('x') as f:
     json.dump(result,f,indent=2,allow_nan=False)
 print(json.dumps(result,indent=2))

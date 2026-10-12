@@ -1,0 +1,32 @@
+{
+  "passed": true,
+  "scope": {
+    "unit": "primelora-tc-aux-d4590000000000000000000000000004.scope",
+    "invocation_id": "4745c782f7cf42a1a62357bcebfb9842",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4590000000000000000000000000004.scope",
+    "inode": 23316559
+  },
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+  },
+  "preserved_identities": {
+    "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "source_refs_verified": 22,
+  "compressed_archive_and_receipt_matches": 10,
+  "verifier_source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d459_20261012/finalize.py",
+    "sha256": "e7dbba0e534744268c8b0cb82fe7dbb5c8fe41a49550fd35321a3df0e0ad02ac",
+    "content": "\"\"\"D459 independent final delivery verification and exact-owned scope closure.\"\"\"\nimport hashlib\nimport json\nimport subprocess\nimport sys\nfrom pathlib import Path\nROOT=Path('/home/qhq/serverless_llm_experiment_retry14_baseline')\nRAW=Path(__file__).resolve().parent\nOUT=ROOT/'paper_results/ieee_tc/main_comparison/d459_d458_diagnosis'\nsys.path.insert(0,str(ROOT))\nfrom scripts import ieee_tc_preflight as p\nload=lambda path:json.loads(path.read_text())\ndef save(path,value):\n    with path.open('x') as f:json.dump(value,f,indent=2,allow_nan=False)\nidentity=p.scope_identity(p.cg_path().name)\nsave(RAW/'finalize_identity.json',identity)\nexpected=load(RAW/'curation_identity.json')\nowner=p.scope_identity(expected['unit'])\nassert owner==expected and p.scope_still_owned(owner)\ngroup=Path(owner['path'])\nmembers={str(f):f.read_text().split() for f in group.rglob('cgroup.procs')}\nassert members and all(not v for v in members.values())\nresources={k:(group/k).read_text().strip() for k in ('memory.peak','memory.events','memory.swap.current')}\nassert p.scope_still_owned(owner)\nsubprocess.run(['systemctl','--user','stop',owner['unit']],check=True)\nsave(OUT/'curation_closure.json',dict(identity=owner,actual_recursive_procs_empty=True,\n    recursive_cgroup_procs=members,resources=resources))\nfor row in load(OUT/'executed_sources.json')['sources']:\n    assert p.digest(Path(row['path']))==row['sha256']\n    assert hashlib.sha256(row['content'].encode()).hexdigest()==row['sha256']\ncheck=load(OUT/'delivery_check.json')\nfor name,expected in check['current_ref_checks'].items():assert p.digest(Path(name))==expected\nfor name,raw in [('stages.json',RAW/'stages/summary.json'),('control.json',RAW/'control.json'),\n                 ('planning.json',RAW/'planning.json')]:\n    assert load(OUT/name)==load(raw)\nreceipt=Path(check['compression_receipt']['path'])\nassert p.digest(receipt)==check['compression_receipt']['sha256']\nentries=load(receipt)['entries']\nassert len(entries)==10\nfor row in entries:\n    assert not Path(row['source']).exists()\n    assert p.digest(Path(row['archive']))==row['archive_sha256']\n    assert row['source_sha256']==row['first_roundtrip_sha256']==row['second_roundtrip_sha256']==row['audit_sha256']\n    local=load(Path(row['source']).parents[2]/'compression_receipt.json')\n    assert all(local[key]==value for key,value in row.items())\nidentities={\n '/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md':'f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5',\n str(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md'):'5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22',\n str(ROOT/'docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md'):'193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d',\n str(ROOT/'configs/generated/lora_manifest_1000.json'):'3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df',\n '/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py':'04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22',\n '/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh':'337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499'}\nfor name,expected in identities.items():assert p.digest(Path(name))==expected,name\nseal=p.verify_seal(Path('/home/qhq/serverless_llm_experiment/results/ieee_tc/slora_qualification/d435_20261011/protected_before.json'))\nassert seal['pass'] and seal['entry_count']==147\nassert not subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader'],text=True).strip()\nsubprocess.run(['git','diff','--check'],cwd=ROOT,check=True)\nsave(OUT/'final_verification.json',dict(passed=True,scope=identity,protected=seal,\n    preserved_identities=identities,source_refs_verified=len(check['current_ref_checks']),\n    compressed_archive_and_receipt_matches=10,\n    verifier_source=dict(path=str(Path(__file__)),sha256=p.digest(Path(__file__)),content=Path(__file__).read_text())))\nprint(json.dumps(dict(passed=True,scope=identity,refs=len(check['current_ref_checks']),archives=10,protected=147)))\n"
+  }
+}

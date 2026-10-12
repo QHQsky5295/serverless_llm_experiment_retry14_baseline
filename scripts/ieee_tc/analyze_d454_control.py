@@ -1,5 +1,6 @@
 """Bounded, read-only D454 control/physical-window projection; no simulation."""
 import gzip
+import argparse
 import hashlib
 import json
 import math
@@ -18,8 +19,24 @@ sys.path.insert(0,str(ROOT))
 from scripts.ieee_tc.check_d299_full_context import read, sha256, closed_physical_integral
 from scripts import ieee_tc_preflight as p
 from faaslora.datasets.workload_generator import FrozenReplayPlan
+from scripts.ieee_tc.analyze_d455_stages import with_d458_candidate
+
+parser=argparse.ArgumentParser(allow_abbrev=False)
+parser.add_argument('--include-d458',action='store_true')
+parser.add_argument('--output',type=Path)
+args=parser.parse_args()
+output=args.output or OUT/'control_diagnosis.json'
+if output.exists():
+    raise ValueError('refusing to overwrite control evidence')
+if args.include_d458 and args.output is None:
+    raise ValueError('D458 analysis requires an explicit new output')
 
 comparison=read(OUT/'comparison.json')
+assert sha256(OUT/'comparison.json')=='e8246c0203202f8d1e50adeac85a6569d134ea95729627da7a6a1df12b6c38ce'
+candidate_path=ROOT/'paper_results/ieee_tc/p2_backend/d458_full_w0/matched_comparison.json'
+if args.include_d458:
+    assert sha256(candidate_path)=='d8188014ac448205e33198f81e9bb12a793dea664a1de90e5c504535ea500a42'
+    comparison=with_d458_candidate(comparison,read(candidate_path))
 sealed={x['path']:x['sha256'] for x in comparison['source_refs']}
 refs=[]
 def checked(path, expected=None):
@@ -32,9 +49,14 @@ def checked(path, expected=None):
 
 reports={}
 settings=None
-for name, date, config, parent, runname in [
+cases=[
     ('PrimeLoRA','d371_20261010','20261010_d371_7b_full_w0.yaml','p2_backend_qualification','7b_full_w0'),
-    ('ElasticLocality','d453_20261012','20261012_d453_7b_elastic_locality_w0.yaml','elastic_locality_qualification','7b_elastic_locality_w0')]:
+    ('ElasticLocality','d453_20261012','20261012_d453_7b_elastic_locality_w0.yaml','elastic_locality_qualification','7b_elastic_locality_w0')]
+if args.include_d458:
+    cases.append(('PrimeLoRA_D458','d458_20261012','20261012_d458_7b_full_w0.yaml',
+                  'p2_backend_qualification','7b_full_w0'))
+    checked(candidate_path)
+for name, date, config, parent, runname in cases:
     run=Path('/home/qhq/serverless_llm_experiment/results/ieee_tc')/parent/date/runname
     launch_path=run/'launch.json'
     launch=read(checked(launch_path,sealed[str(launch_path)]))
@@ -56,10 +78,13 @@ for name, date, config, parent, runname in [
                 digest.update(block)
         assert digest.hexdigest()==receipt['source_sha256']
         opener=lambda:gzip.open(archive,'rb')
-    else:
+    elif name=='ElasticLocality':
         audit=read(ROOT/'paper_results/ieee_tc/elastic_locality/d453_actual_full_w0.json')
         ref=next(x for x in audit['refs'] if x['path']==str(outcome))
         checked(outcome,ref['sha256'])
+        opener=lambda:outcome.open('rb')
+    else:
+        checked(outcome,sealed[str(outcome)])
         opener=lambda:outcome.open('rb')
     with opener() as stream:
         events=list(ijson.items(stream,'mechanism_events._ieee_control_events.item',use_float=True))
@@ -118,6 +143,11 @@ result=dict(kind='d454_control_and_physical_window_observation_v1',reports=repor
     source_refs=refs+[dict(path=str(checked(OUT/'comparison.json')),sha256=sha256(OUT/'comparison.json')),
                       dict(path=str(Path(__file__)),sha256=sha256(Path(__file__)))],
     scope=p.scope_identity(p.cg_path().name))
-with (OUT/'control_diagnosis.json').open('x') as stream:
+if args.include_d458:
+    result['kind']='d459_d458_control_and_physical_window_observation_v1'
+    result['candidate_minus_reference_gpu_seconds_by_window']={
+        name:{k:reports['PrimeLoRA_D458']['window_gpu_seconds'][k]-reports[name]['window_gpu_seconds'][k]
+              for k in reports[name]['window_gpu_seconds']} for name in ('PrimeLoRA','ElasticLocality')}
+with output.open('x') as stream:
     json.dump(result,stream,indent=2,allow_nan=False)
 print(json.dumps(result,indent=2))

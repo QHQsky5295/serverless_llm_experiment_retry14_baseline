@@ -13,7 +13,29 @@ from scripts import ieee_tc_preflight as p
 from faaslora.datasets.workload_generator import FrozenReplayPlan
 
 
-def analyze(output):
+def with_d458_candidate(comparison, candidate):
+    """Join a sealed candidate, without replacing any of the six prior rows."""
+    if candidate['previous_six_system_results'] != comparison['results']:
+        raise ValueError('candidate changed a prior result')
+    if candidate['reference'] != comparison['reference']:
+        raise ValueError('candidate changed the common reference')
+    if candidate['matched_contract_sha256'] != comparison['matched_contract_sha256']:
+        raise ValueError('candidate input contract differs')
+    refs = {r['path']:r['sha256'] for r in comparison['source_refs']}
+    for row in candidate['refs']:
+        if row['path'] in refs and refs[row['path']] != row['sha256']:
+            raise ValueError('conflicting source identity')
+        refs[row['path']] = row['sha256']
+    sources = [r for r in candidate['refs'] if 'd458_20261012' in r['path']
+               and 'experiment_results_full' in Path(r['path']).name]
+    if len(sources) != 1:
+        raise ValueError('exactly one D458 request source required')
+    return dict(comparison, results=dict(comparison['results'],
+        PrimeLoRA_D458=candidate['candidate']),
+        source_refs=[dict(path=path, sha256=digest) for path,digest in refs.items()])
+
+
+def analyze(output, *, include_d458=False):
     output = Path(output)
     if output.exists():
         raise ValueError('refusing to overwrite D455 stage evidence')
@@ -22,8 +44,14 @@ def analyze(output):
     assert sha256(comparison_path) == 'e8246c0203202f8d1e50adeac85a6569d134ea95729627da7a6a1df12b6c38ce'
     assert sha256(control_path) == '26003b8f4fbcb676a59b167f8f585e558631ec33444d7517796807f7e749b387'
     comparison, control = read(comparison_path), read(control_path)
+    candidate_path = ROOT/'paper_results/ieee_tc/p2_backend/d458_full_w0/matched_comparison.json'
+    if include_d458:
+        assert sha256(candidate_path) == 'd8188014ac448205e33198f81e9bb12a793dea664a1de90e5c504535ea500a42'
+        comparison = with_d458_candidate(comparison, read(candidate_path))
     pinned = {r['path']:r['sha256'] for r in comparison['source_refs']}
     refs = [dict(path=str(path), sha256=sha256(path)) for path in (comparison_path, control_path)]
+    if include_d458:
+        refs.append(dict(path=str(candidate_path), sha256=sha256(candidate_path)))
 
     def checked(path):
         assert sha256(path) == pinned[str(path)], path
@@ -39,6 +67,8 @@ def analyze(output):
             name, scenario = 'PrimeLoRA', 'tc_ieee_full'
         elif 'd453_20261012' in str(source):
             name, scenario = 'ElasticLocality', 'tc_ieee_elastic_locality'
+        elif include_d458 and 'd458_20261012' in str(source):
+            name, scenario = 'PrimeLoRA_D458', 'tc_ieee_full'
         else:
             raise ValueError('unexpected controller source')
         checked(source)
@@ -97,7 +127,8 @@ def analyze(output):
             ttft_not_low=summary([r for r in rows if r['ttft_not_low']]),
             max_identity_error_ms=max(r['max_identity_error_ms'] for r in rows))
         all_rows[name] = rows
-    assert set(reports) == {'PrimeLoRA', 'ElasticLocality'}
+    assert set(reports) == ({'PrimeLoRA', 'ElasticLocality', 'PrimeLoRA_D458'}
+                            if include_d458 else {'PrimeLoRA', 'ElasticLocality'})
     delta = {key:reports['PrimeLoRA']['all']['stages_ms'][key]['mean']-
                  reports['ElasticLocality']['all']['stages_ms'][key]['mean']
              for key in reports['PrimeLoRA']['all']['stages_ms']}
@@ -120,6 +151,13 @@ def analyze(output):
                  'TTFT-not-low and tier groups differ between systems; they are diagnostic, not controlled populations.',
                  'Controller samples observe completed requests later; per-request threshold membership does not reconstruct the exact feedback window.',
                  'No counterfactual latency, independent numerical proof, new performance run or confidence interval.'])
+    if include_d458:
+        result['kind'] = 'd459_d458_matched_retained_request_stage_partition_v1'
+        result['candidate_minus_reference_mean_stage_ms'] = {
+            name:{key:reports['PrimeLoRA_D458']['all']['stages_ms'][key]['mean']-
+                      reports[name]['all']['stages_ms'][key]['mean']
+                  for key in reports[name]['all']['stages_ms']}
+            for name in ('PrimeLoRA', 'ElasticLocality')}
     with (output/'summary.json').open('x') as handle:
         json.dump(result, handle, indent=2, allow_nan=False)
     print(json.dumps(dict(output=str(output), delta=delta,
@@ -130,4 +168,6 @@ def analyze(output):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument('--output', required=True, type=Path)
-    analyze(parser.parse_args().output)
+    parser.add_argument('--include-d458', action='store_true')
+    args = parser.parse_args()
+    analyze(args.output, include_d458=args.include_d458)

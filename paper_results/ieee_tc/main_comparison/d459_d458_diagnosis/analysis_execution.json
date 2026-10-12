@@ -1,0 +1,56 @@
+{
+  "passed": true,
+  "scope": {
+    "unit": "primelora-tc-aux-d4590000000000000000000000000001.scope",
+    "invocation_id": "edba622b27cb4e7595b8d0db361d1469",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4590000000000000000000000000001.scope",
+    "inode": 23312483
+  },
+  "commands": [
+    {
+      "name": "tests",
+      "returncode": 0,
+      "command": [
+        "/home/qhq/anaconda3/envs/LLM/bin/python",
+        "-B",
+        "-m",
+        "unittest",
+        "tests.test_ieee_tc_control_timeline",
+        "-v"
+      ]
+    },
+    {
+      "name": "stages",
+      "returncode": 0,
+      "command": [
+        "/home/qhq/anaconda3/envs/LLM/bin/python",
+        "-B",
+        "-m",
+        "scripts.ieee_tc.analyze_d455_stages",
+        "--include-d458",
+        "--output",
+        "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d459_20261012/stages"
+      ]
+    },
+    {
+      "name": "control",
+      "returncode": 0,
+      "command": [
+        "/home/qhq/anaconda3/envs/LLM/bin/python",
+        "-B",
+        "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/analyze_d454_control.py",
+        "--include-d458",
+        "--output",
+        "/home/qhq/serverless_llm_experiment/results/ieee_tc/main_comparison/d459_20261012/control.json"
+      ]
+    }
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+  }
+}

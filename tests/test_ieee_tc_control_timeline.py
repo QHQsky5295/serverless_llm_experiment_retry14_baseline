@@ -302,6 +302,29 @@ class DispatchGateSplitTest(unittest.TestCase):
 
 
 class RetainedStagePartitionTest(unittest.TestCase):
+    def test_sealed_candidate_preserves_prior_rows_and_rejects_mismatch(self):
+        import copy
+        from scripts.ieee_tc.analyze_d455_stages import with_d458_candidate
+        old = dict(results={'PrimeLoRA':{'metric':1}}, reference={'U':2},
+            matched_contract_sha256='contract', source_refs=[dict(path='/old',sha256='a')])
+        candidate = dict(previous_six_system_results=copy.deepcopy(old['results']),
+            reference=copy.deepcopy(old['reference']), matched_contract_sha256='contract',
+            refs=[dict(path='/d458_20261012/experiment_results_full.json',sha256='b')],
+            candidate={'metric':3})
+        snapshot=copy.deepcopy(old)
+        joined=with_d458_candidate(old,candidate)
+        self.assertEqual(old,snapshot)
+        self.assertEqual(joined['results']['PrimeLoRA'],old['results']['PrimeLoRA'])
+        self.assertEqual(joined['results']['PrimeLoRA_D458'],{'metric':3})
+        for key,value in [('previous_six_system_results',{}),('reference',{}),
+                          ('matched_contract_sha256','other'),('refs',[])]:
+            bad=copy.deepcopy(candidate)
+            bad[key]=value
+            with self.assertRaises(ValueError): with_d458_candidate(old,bad)
+        bad=copy.deepcopy(candidate)
+        bad['refs'].append(dict(path='/old',sha256='conflict'))
+        with self.assertRaises(ValueError): with_d458_candidate(old,bad)
+
     def test_campaign_entry_imports_existing_statistics(self):
         from scripts.ieee_tc.analyze_d455_stages import analyze
         self.assertTrue(callable(analyze))

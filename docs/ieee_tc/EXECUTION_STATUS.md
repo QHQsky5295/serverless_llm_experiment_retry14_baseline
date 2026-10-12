@@ -1,4 +1,4 @@
-# IEEE TC execution status — D458 full W0 completed and audited
+# IEEE TC execution status — D459 retained diagnosis and storage recovery
 
 Updated 2026-10-12. Current checkpoint, NOT a replacement experiment plan.
 Full prior status is byte-identically archived in EXECUTION_HISTORY_THROUGH_D448.md,
@@ -31,7 +31,53 @@ entries are not current instructions. No evidence or approved task was removed.
 - Full names PrimeLoRA/ServerlessLLM. No figures before near target; no13B,
   new SGLang, paper edits, new weights/trace or pool regeneration.
 
-## Current action — D458 full4000 completed, matched audit passed
+## Current action — D459 offline stage/control diagnosis completed
+
+FullPLAN/status/baseline rules/V1/V2 reread. Extended existingD454/D455analyzers
+with explicitincludeD458/newoutput only; no onlinecode/config/baselineoptimization,
+GPUrun,remoteoperation orfigure.40CPUtests pass0.318s.12000same-clock request
+partitions maxidentityerror0ms. PriorD371/D453stage/control/planning reports exactly
+equaltheir sealedD454/D455results; allsixbaseline/reference rows remainunchanged.
+NewPrimeLoRA arrivalrelease69.582vsold207.674ms,completionpickup90.735vs255.562;
+decode3636.602vs3336.563ms. TTFTimprovementonly5.046ms,E2Eregression161.478ms.
+AgainstElasticLocality E2E+784.261ms,decode+533.986ms(~68.09% ofdifference).
+Nativeworkloadsame,notisolatedload-contentioncausality. Stage6still147.749msarrival/
+181.368mspickup; controllerdelaysreducedbutnoteliminated.
+PhysicalbusinesswindowFullminusElastic2048.857of2083.623GPU-s totalgap(~98.33%);
+arrivalmeanGPUs2.958vs2.441. TTFTnotlowcontrolsample487vs80,notelapsedtimes.
+Planningevents2988,workerCPU623.641s,parentcapture8.970ms,resultpickup41.181ms;
+generationchannelwait.0357ms,responsepickup89.878ms. Pureplanningalreadyoffloaded.
+NewD459doc givesfulltable/limits. OfficialvLLMCPUarticle/PEP471/Python3.12checked:
+do notborrowH100numbers orassumePOSIXscandirremovesrequiredfreshstatchecks.
+
+Curatedmain_comparison/d459_d458_diagnosis;22currentrefs/protected147verified.
+10explicitclosedoldmain_outcomes losslesslycompressedusingexistingtool, each
+source/no-active/exclusiveinode/twogziproundtrip checked;930254848Breclaimed.
+D458/currentD459directinputsunchanged. Receiptstorage/20261012_d459_closed_outcomes_lossless_compression.json;
+originalpathsretainedincompressionreceipts; compressionisnotdeletinguniqueevidence.
+Available161185202176B(~150.115GiB);freshgatebeforeanyheavylaunch,notreservedspace.
+Analysisaux1 exactInvocationID/actualrecursiveemptyclosed byaux2; aux2 likewise
+closedbyaux3. Aux3InvocationIDd83cb251ec894044aa99e02765600a3f,inode23314937,
+completed,stillneedsexact-ownedemptyclosure/finaldelivery/source/stagedchecksandbackup.
+
+NEXT: seal/backupD459 then reuseexistingD458 nativepreparation/transaction/request
+logs tocheck actualsameGPU/owner decodeoverlap andconcurrency; keepremainingCPU
+pickupasaseparatehypothesis. Do not blindlycontinuefileAPI micro-optimization,
+thresholdrelaxation, baseline tuning orrepeatD458. Anycandidate requireshistory+
+primarysources+formulaequivalence+minimalvalidation+newfullreplay. Remaining7B
+W1/W2/G2/references,3B,HydraServeisolatednativequalification,dLoRA3B,A1-A5/S1-S13,
+docs/figures stillOPEN. WholegoalACTIVE; thisturn substantiveofflineevidence and
+safeverifiedstoragerecovery progress,notblockedorcomplete.
+
+Independentfinaldeliverypassed22currentrefs,10archive/roundtrip/receiptidentities,
+147protectedfiles,PLAN/V1/V2andthreeuserfileSHAs.9executedsourcebackupsverified.
+Curationaux3 exactInvocationID/inode/actualrecursiveemptyclosed,high/max/OOM/swap0.
+Finalverifier4 InvocationID4745c782f7cf42a1a62357bcebfb9842,inode23316559 completed;
+closeexact-ownedemptybeforebackup.17taskfiles prepared; usermanifestneverstage.
+NoGPUtasklive. Nextaction afterbackup remainsD458sameGPU preparation/decode causal
+diagnosis,notaperformance rerun. Fullremaininggoal scope unchanged.
+
+## Previous action — D458 full4000 completed, matched audit passed
 
 Same once-only run completed2026-10-12 about12:55; no restart, repeatedcandidate,
 livechanges or baseline tuning. Previousgoalturn VERIFIED_WAIT; thisturn actual
@@ -77,6 +123,18 @@ Finalverifierd InvocationID7f5fbdab0e12471ca449c6c238b5bf9b,inode23308212 comple
 to close beforestaging. Lastdisk160274026496B(~149.26GiB),GPUcomputeempty.
 ResultdocD458_FILE_VIEW_FULL_W0_RESULTS.md and11curatedpostrunJSONfiles ready;
 onlytaskexplicitfiles to stage,neverusermanifest. No additionalGPUrun.
+
+Resultcheckpointdc29f9d015256abed59025a50b75248784eae5fe pushed toV2;
+independentls-remote equalHEAD verified.13explicitfiles/source/secrets/diff checks
+passed; usermanifest neverstaged. Finalverifierd exactidentity/actualrecursiveempty
+closed bystaginge; staginge InvocationIDb38563bc165841b6a2c1ea54f6e02960,
+inode23308886 also exactidentity/actualrecursiveempty closed,peak286588928B,
+high/max/OOM/swap0. AllD458auxunitsabsent andGPUcomputeempty. Rawresult_backup_receipt
+recordsbackup/closure. BASE unchanged71c52cf6f7331dc2a171ec83db5f1011eaf6d5a6.
+Lastdisk160273350656B(~149.26GiB); no newheavylaunch before approvedspace recovery
+andfreshgates. No liveGPUoranalysisjob; nextsafeaction is offlineD458/D455stage/
+control comparison and source-aware storage audit, not rerunningD458 orbaselines.
+WholegoalACTIVE; thisturn substantivecompletion/audit/matchedcomparison/backup.
 
 ## Previous action — D458 same-candidate full4000 qualified and launched
 
