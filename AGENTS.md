@@ -6,6 +6,13 @@ Before any task, after context compaction, and before every experiment, read
 historical "plan mode / no execution this turn" sentences describe approval
 time, not the user's subsequent explicit execution authorization.
 
+Latest user order (2026-10-12): read
+`docs/ieee_tc/BASELINE_COMPLETION_ORDER_20261012.md`. Finish/audit/save the already
+running D476 once, then complete HydraServe necessary isolated adaptation/native
+qualification and obtain actual results BEFORE another PrimeLoRA optimization
+candidate. Compare the full available baseline set, then optimize PrimeLoRA.
+This supersedes older priorities deferring HydraServe, not metrics or full scope.
+
 Latest user goal update (2026-10-11): also read
 `docs/ieee_tc/BASELINE_EXECUTION_RULES_20261011.md`. Except necessary compatibility,
 correctness/measurement and safety adaptations, do not optimize non-PrimeLoRA

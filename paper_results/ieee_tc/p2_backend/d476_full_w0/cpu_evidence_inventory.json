@@ -1,0 +1,21 @@
+{
+  "preparations": 19,
+  "states": {
+    "activation_sent": 18,
+    "abandoned": 1
+  },
+  "returncodes": {
+    "0": 19
+  },
+  "observations": 19,
+  "activations": 18,
+  "journal_count": 18,
+  "journal_event_sequences": {
+    "acquire,prepared_worker_bind,native_workers,native_workers_exited,release": 18
+  },
+  "source": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d476_20261012/7b_full_w0/launch.launch/physical_deployment/main_outcome.json",
+    "sha256": "ade857b6c02fd3a00025ca99e7f4c208318c9a7e317a0441955ac3f4b4f34ea5"
+  },
+  "incomplete_activation_records": []
+}

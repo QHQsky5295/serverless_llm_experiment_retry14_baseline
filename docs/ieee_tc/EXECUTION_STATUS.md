@@ -1,4 +1,4 @@
-# IEEE TC execution status — D476 original4000 preparing; 7B OPEN
+# IEEE TC execution status — D476 audited; HydraServe next; 7B OPEN
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement plan.
 Complete preceding status is byte-identically archived in
@@ -33,7 +33,149 @@ not current instructions. No evidence or approved task was removed.
 - Every optimization: logs/history + online primary sources + one falsifiable
   hypothesis + tests/minimal validation/new full replay. IEEE nine formulas fixed.
 
-## Current action — D476 original4000 preparing
+## Current action — D476 audited, saving before HydraServe
+
+D476 finished once; actual GPU release/service removal verified, captured owned
+start/aux and remote services/monitor closed. All4000 original source/input/adapter/
+native/dispatch contracts pass,458224 tokens,132IDs; D435 independent witness matches.
+Raw independent numerical correctness remains unknown. Joint3897/4000=.97425,
+TTFT3920/TPOT3968; U10778.448802226456,R2.694612200556614,
+P95TTFT2315.363335656002ms,meanTTFT1033.092619146337ms,
+P95TPOT53.0948800034821ms,meanE2E4786.376240576734ms.
+19CPU preparations/18activated/1unused allreturn0;14actual-release-before-replacement
+lifecycles verified.1initial+17natural allengineReady.132remote/131480060wireB/pack0.
+4030watchdogsamples,peak23776821248B,high/max/OOM/swap0;147protectedpass.
+SourceSHA450631019b24007939276f211683893e80ff938c48b4fad4024bd70ef9f75bd1.
+Matched103refs pass,alloldrows retained. VsD472 R-1.1574%,joint+2.25pp,
+P95TTFT-29.5174%;vsElasticLocality R+8.9534%,joint+1.65pp,tail-4.3479%.
+W0 feasible/resource-improved observation,NOT global optimum/W1/W2/G2.
+Samebackend outputdigest changes211/201/206/196/190vsD371/D453/D458/D465/D472,
+causeunknown. No numerical/causal/significance extrapolation. SeeD476_FULL_W0_RESULT.md.
+
+Lossless main_outcome archive passed two independent roundtrip SHA checks,
+507985920B reclaimed; original SHAade857b6c02fd3a00025ca99e7f4c208318c9a7e317a0441955ac3f4b4f34ea5.
+Finalverification passed103source refs/protected147,zero watchdogwarnings;
+2inotify warnings retained,impactunknown. Free161032241152B remains just below
+150GiB new-heavy floor; recover verified space before container/build/native work.
+Frozen close_postrun helper restored byte-identically; extended auxiliary closure
+uses separately recorded close_postrun_extended.py, no frozen input hash rewrite.
+Next explicit Git backup; then HydraServe isolated necessary adaptation/native qualification,
+NOT another PrimeLoRA optimization candidate. Existing k3s stays untouched.
+No baseline tuning,figures,newdata orrepeat. Fullapprovedscope/goalACTIVE.
+
+## Prior action — D476 original4000 running
+
+## 2026-10-12 user question and execution-order correction
+
+Latest explicit user instruction, received during D476 at22:07CST: complete
+HydraServe adaptation and obtain results, compare all baselines, THEN optimize
+PrimeLoRA. This now explicitly confirms the sequence correction below.
+Read BASELINE_COMPLETION_ORDER_20261012.md; AGENTS.md links it as mandatory.
+No further PrimeLoRA candidate before HydraServe qualification/result work.
+Current D476 continues once to closure/audit/save; all metrics and fullscope stay.
+
+The user added: explain what the current experiment tests and why PrimeLoRA
+optimization resumed before finishing baseline adaptation. D476 is one full W0
+evaluation of the already-qualified D474 HOST-execution consumer projection;
+not a baseline experiment or formal ablation. Seven-B W0 observations for
+ServerlessLLM/vLLM/S-LoRA/Loquetier/ElasticLocality are sealed, but HydraServe
+native GPU/LoRA/pipeline/consolidation qualification is still incomplete.
+The preceding choice to prioritize PrimeLoRA optimization deferred HydraServe;
+this is an execution priority choice, not proof that baseline work is complete
+or that Kubernetes ownership is still awaiting user input. Existing k3s is not
+for this project and remains untouched. No global-best claim is justified.
+
+Execution correction in response to this question (not a new performance rule):
+finish this already-running D476 once, verify actual release, close only owned
+resources, audit and preserve its result, then return to the approved HydraServe
+necessary isolated adaptation/native qualification BEFORE another PrimeLoRA
+optimization candidate. Do not repeat sealed baselines or tune their performance.
+Complete comparisons remain conditional on faithful qualification. Thereafter
+use the fuller comparison to direct PrimeLoRA G1/G2 optimization; all W1/W2,
+3B, dLoRA B6, ablations, mechanisms and sensitivities remain required.
+Frozen metrics, formulas, single-run rules and resource protections unchanged.
+No live run was stopped, restarted or modified by this priority clarification.
+
+### Live monitoring evidence
+
+2026-10-12 22:04:03 CST: exact captured service InvocationID still active;
+3691arrived/3689completed/3689successful/0failed of4000,1runtime.
+3561watchdogsamples,high/max/OOM/oom_kill0,warningfalse,abort/foreign/escapedempty.
+Disk158310121472B runtime-safe,below new-heavy-startfloor. Continue same run.
+
+Latest verified wait 2026-10-12 21:50:43 CST: same exact captured service
+InvocationID2917456c2e5b4cbc9d4e8a624c194300 active;3059arrived/3057completed/
+3057successful/0failed of4000,4runtimes. Repeated bounded40–45s waits since
+21:30:48 verified uninterrupted progress through half and three-quarter points.
+2773watchdogsamples,high/max/OOM/oom_kill0,warningfalse,abort/foreign/escapedempty.
+Disk158786117632B remains runtime-safe but below new-heavy-startfloor.
+No replay/config/production change,secondexperiment,analysis,compression,push
+orremote maintenance. FullPLAN/status/rules/monitor-experiment read thisturn.
+Continue exactsame run until terminal; do not restart or infer finalSLO from
+partial counters. Then actualrelease/ownedclosure/audits as recorded below.
+
+Latest verified wait 2026-10-12 21:29:30 CST: exact captured service InvocationID
+2917456c2e5b4cbc9d4e8a624c194300 active; same tmux tc-d476-hostexecw0 live.
+1441 arrived / 1436 completed / 1436 successful / 0 failed of4000;3runtimes.
+Repeated bounded35–45s waits since21:20:51 confirmed continuing originalrun,
+including another natural expansion to4runtimes by21:23:46. No restart/config
+change, new experiment, analysis/test, remote maintenance, compression or push.
+1517watchdog samples;high/max/OOM/oom_kill0,warningfalse,abort/foreign/escapedempty.
+Disk159690739712B above100GiB runtimefloor,below150GiB new-heavy-startfloor.
+Read fullPLAN/status/baseline rules and monitor-experiment skill. Previous and
+current turns are verified waits on actuallivehandle, not blocked or complete.
+Next monitor this exact execution to terminal; only then verify actualrelease,
+use existing captured-identity closure, full audits/comparison and storage work.
+No finalSLO/performance conclusion yet. Whole goal ACTIVE/fullscope retained.
+
+Latest verified wait 2026-10-12 21:19:49 CST: same captured service InvocationID
+2917456c2e5b4cbc9d4e8a624c194300 active, tmux tc-d476-hostexecw0 live.
+821 arrived / 816 completed / 816 successful / 0 failed of4000. Repeated bounded
+40–50s waits verified progress from425completed at21:13:39. Natural controller
+shrunk to1runtime by21:17:06 and expanded to4 by21:18:02; no restart or config
+change. These observations are not final SLO or physical-lifecycle qualification.
+Watchdog944samples, high/max/OOM/oom_kill0; warningfalse, abort/foreign/escapedempty.
+Disk160056786944B remains above100GiB runtimefloor but below150GiB new-startfloor.
+No analysis/tests/cleanup/compression/push/remote maintenance/second experiment.
+Read full PLAN/status/baseline rules and monitor-experiment skill this turn.
+Next continue monitoring this exact run, then terminal/context-release verification
+and existing owned closure/audits. No repeat D475/953CPU/D473/sealed baselines.
+Whole goal ACTIVE; 7B optimization and all remaining approved scope stay OPEN.
+
+Latestverifiedwait2026-10-12 21:09:13CST:samecapturedserviceInvocationactive,
+tmuxstilllive,154arrived/150completed/150successful/0failed of4000;2runtimes.
+Earlier21:06:47was51/47,21:07:50was92/90. Bounded50s waitsconfirmedprogress,
+notrestart. Watchdog317samples,high/max/OOM0,warning/abort/foreign/escapedempty.
+Disk160598331392B below150GiBnew-startfloor,above100GiBruntimefloor;
+continuesamerun,nonewheavy orlivecleanup. NofinalSLO/resourceconclusionyet.
+
+D476 started2026-10-12~21:03:51CST frompushed
+db44e8f068eb30c69466f32ad3d147ffbc45f9e2;independentremoteHEADequal.
+6explicitfiles/source/secrets/protectedchecks passed;CPU1/qualification2/backup3
+exactidentityactual-emptyclosed,high/max/OOM/swap0. Prelaunchdisk161528020992B,
+required161061273600B;freshpreflightpass/noissues. Nativeoriginal4000 in
+tmux tc-d476-hostexecw0;raw
+/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d476_20261012/7b_full_w0.
+At21:05:09samecapturedserviceInvocationactive,3arrived/2completed/0failed,
+76watchdogsamples,high/max/OOM0,noabort/warning. ThisisprogressnotfinalSLO.
+Actualserviceunit primelora-tc-svc-8aac4661cf2d409aa352d64634c2a3ba.scope,
+Invocation2917456c2e5b4cbc9d4e8a624c194300,inode23540449.
+Startauxd476...0004 Invocationd85b2b002f2d403c80ed275e48f01d12,inode23540207;
+actualauxfc419e7d651d410daa51f5c2a144f796 Invocationc83576a96f5b4f0ca39c32415f419739,
+inode23540407. Capturedlaunch_gate/service_aux_identity;leaveactiveuntilclosure.
+Remoteownedservices+monitor primelora-artifact-monitor-d476-hostexecw0.service
+ACTIVE,monitorInvocation2ef00e4d714a40bc962310f5e4a83e89;actual1000Mb/s/full,
+D78/D80readonlyobjectsreused. No maintenance/hashscan/downloadtest/analysis/
+compression/Gitpush/secondexperimentwhileperformanceactive.
+Nextmonitorthissameexecution,neverrestartbecauseobservationtimeout.
+Afterterminalverifylaunch/pass/actualcontextrelease/servicepathremoved,then
+RAW/close_after_release.py inboundedcollectionscope;existinghelperchecks
+capturedidentitiesandactualrecursiveempty BEFOREownedremote stop/download.
+RAW/close_postrun.py collection closescollectionfromreceipt. ThenreuseD472
+fullsource/physical/CPU-lifecycle/commonSLO auditsandmatchedcomparison.
+FullresultdecidesD474hypothesis;oldrowsremain,wholegoalACTIVE,notcomplete.
+
+## Prior action — D476 original4000 preparing
 
 PreviousgoalturnPROGRESS:D475native100actuallycompleted,audited,backedup,closed.
 Read fullPLAN/status/rules/V1/V2 andrun-experiment/github-sync skills.
