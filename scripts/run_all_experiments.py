@@ -5566,6 +5566,90 @@ class SubprocessInferenceEngineProxy:
             pass
 
     @classmethod
+    def _worker_inputs(cls, *, model_cfg, cost_model, device_id, runtime_gpu_ids):
+        """Shared immutable inputs for ordinary and CPU-prepared launches."""
+        local, updates = _prepare_dedicated_subprocess_model_cfg(
+            model_cfg, device_id=device_id, runtime_gpu_ids=runtime_gpu_ids)
+        env = _ieee_native_allocator_environment(local, os.environ)
+        root = Path(tempfile.mkdtemp(prefix='faaslora_worker_', dir='/tmp'))
+        if str(local.get('backend', '')).lower() == 'sglang':
+            (root/'sglang').mkdir()
+            local['sglang_workdir_base'] = str(root/'sglang')
+        env['PYTHONPATH'] = str(REPO_ROOT) + os.pathsep + env.get('PYTHONPATH', '')
+        env.update(updates)
+        payload = dict(repo_root=str(REPO_ROOT), model_cfg=local,
+            cost_model=copy.deepcopy(cost_model), device_id=local.get('device_id'))
+        return dict(root=root, model_cfg=local, env=env, updates=updates, payload=payload)
+
+    @classmethod
+    def prepare_cpu_frontend(cls, *, model_cfg, cost_model, device_id,
+                             runtime_gpu_ids, deployment_notice_s, retained):
+        """Fresh, fixed-UUID frontend; no physical allocation or engine creation.
+
+        Register the Popen handle before birth validation so a failed producer
+        cannot orphan a process. The owning factory joins failed records too.
+        """
+        from scripts.ieee_tc_preflight import (
+            verify_current_service, NativeGPUCensus, load_nvml_binding, gpu_process_identity)
+        from faaslora.cpu_frontend import CONTRACT, PreparedCPUFrontend, configuration_sha256
+        if (model_cfg.get('ieee_cpu_frontend_policy') != CONTRACT
+                or model_cfg.get('backend', 'vllm') != 'vllm'
+                or model_cfg.get('tensor_parallel_size') != 1
+                or model_cfg.get('ieee_physical_allocation') is not True
+                or model_cfg.get('timing_contract') != 'ieee_tc_native_v1'
+                or model_cfg.get('generation_contract') != 'fixed_length_greedy_v1'
+                or os.environ.get('VLLM_WORKER_MULTIPROC_METHOD') != 'spawn'
+                or not math.isfinite(deployment_notice_s)
+                or time.monotonic() < deployment_notice_s):
+            raise ValueError('CPU preparation requires the guarded post-notice native TP1 contract')
+        service = verify_current_service()
+        inputs = cls._worker_inputs(model_cfg=model_cfg, cost_model=cost_model,
+            device_id=device_id, runtime_gpu_ids=runtime_gpu_ids)
+        root, local, env = inputs['root'], inputs['model_cfg'], inputs['env']
+        indices = [int(i) for i in inputs['updates']['CUDA_VISIBLE_DEVICES'].split(',')]
+        if len(indices) != 1:
+            raise ValueError('CPU preparation requires exactly one physical device')
+        census = NativeGPUCensus(load_nvml_binding(
+            Path(os.environ['FAASLORA_TC_NVML_BINDING']), os.environ['FAASLORA_TC_NVML_SHA256']))
+        try:
+            sample = census.sample(Path(service['service_identity']['path']))
+            gpu_uuid = {d['index']: d['gpu_uuid'] for d in sample['devices']}[indices[0]]
+        finally:
+            census.close()
+        env.update(CUDA_VISIBLE_DEVICES=gpu_uuid, FAASLORA_VISIBLE_DEVICES=gpu_uuid)
+        preparation = dict(contract=CONTRACT, preparation_id=uuid.uuid4().hex,
+            gpu_uuid=gpu_uuid, configuration_sha256=configuration_sha256(local, cost_model),
+            deployment_notice_s=deployment_notice_s, process_started_s=time.monotonic(),
+            owner=gpu_process_identity(os.getpid()))
+        inputs['payload']['cpu_preparation'] = preparation
+        (root/'payload.json').write_text(json.dumps(inputs['payload']), encoding='utf-8')
+        parent, child = socket.socketpair()
+        record = dict(inputs=inputs, process=None, channel=parent, birth=None, ticket=None)
+        retained.append(record)
+        try:
+            with (root/'worker.log').open('ab', buffering=0) as log:
+                process = subprocess.Popen([
+                    os.environ.get('FAASLORA_PYTHON') or sys.executable,
+                    str(cls._worker_script_path()), '--payload', str(root/'payload.json'),
+                    '--ready-file', str(root/'ready.json'), '--activation-fd', str(child.fileno())],
+                    cwd=str(REPO_ROOT), env=env, stdout=log, stderr=subprocess.STDOUT,
+                    close_fds=True, pass_fds=(child.fileno(),), start_new_session=True)
+                record['process'] = process  # retain before any fallible post-spawn work
+            record['birth'] = gpu_process_identity(process.pid)
+            cls._write_process_meta(root, process)
+            ticket = PreparedCPUFrontend(process=process, channel=parent,
+                evidence=dict(preparation, birth=record['birth']), identity=gpu_process_identity)
+            ticket.launch_inputs = inputs
+            ticket.device_id = device_id
+            record['ticket'] = ticket
+            return ticket
+        except BaseException:
+            parent.close()  # EOF forbids native initialization; factory still joins the process.
+            raise
+        finally:
+            child.close()
+
+    @classmethod
     async def spawn(
         cls,
         *,
@@ -5573,6 +5657,7 @@ class SubprocessInferenceEngineProxy:
         cost_model: Dict[str, Any],
         device_id: Optional[int],
         runtime_gpu_ids: Optional[List[int]] = None,
+        cpu_frontend_pool=None,
     ) -> "SubprocessInferenceEngineProxy":
         spawn_started_at = time.perf_counter()
         if not cls._startup_cleanup_done:
@@ -5584,34 +5669,33 @@ class SubprocessInferenceEngineProxy:
             cls._startup_cleanup_done = True
 
         requested_device_id = int(device_id) if device_id is not None else None
-        local_model_cfg, worker_env_updates = _prepare_dedicated_subprocess_model_cfg(
-            model_cfg,
-            device_id=requested_device_id,
-            runtime_gpu_ids=runtime_gpu_ids,
-        )
-        worker_env = _ieee_native_allocator_environment(local_model_cfg, os.environ)
-
-        worker_root = Path(tempfile.mkdtemp(prefix="faaslora_worker_", dir="/tmp"))
-        if str(local_model_cfg.get("backend", "") or "").lower() == "sglang":
-            sglang_workdir_base = worker_root / "sglang"
-            sglang_workdir_base.mkdir(parents=True, exist_ok=True)
-            local_model_cfg["sglang_workdir_base"] = str(sglang_workdir_base)
+        from faaslora.cpu_frontend import CONTRACT, configuration_sha256
+        prepared = None
+        policy = model_cfg.get('ieee_cpu_frontend_policy')
+        if policy is not None or cpu_frontend_pool is not None:
+            if policy != CONTRACT or cpu_frontend_pool is None:
+                raise ValueError('CPU frontend policy requires the owned preparation pool')
+            prepared = cpu_frontend_pool.claim(requested_device_id)
+            local, _ = _prepare_dedicated_subprocess_model_cfg(model_cfg,
+                device_id=requested_device_id, runtime_gpu_ids=runtime_gpu_ids)
+            if (prepared.device_id != requested_device_id
+                    or configuration_sha256(local, cost_model) != prepared.evidence['configuration_sha256']):
+                raise ValueError('CPU frontend configuration changed after preparation')
+            inputs = prepared.launch_inputs
+        else:
+            inputs = cls._worker_inputs(model_cfg=model_cfg, cost_model=cost_model,
+                device_id=requested_device_id, runtime_gpu_ids=runtime_gpu_ids)
+        local_model_cfg, worker_env_updates = inputs['model_cfg'], inputs['updates']
+        worker_env, worker_root = inputs['env'], inputs['root']
         payload_path = worker_root / "payload.json"
         ready_path = worker_root / "ready.json"
         log_path = worker_root / "worker.log"
 
-        payload = {
-            "repo_root": str(REPO_ROOT),
-            "model_cfg": local_model_cfg,
-            "cost_model": copy.deepcopy(cost_model),
-            "device_id": local_model_cfg.get("device_id"),
-        }
-        payload_path.write_text(json.dumps(payload), encoding="utf-8")
+        if prepared is None:
+            payload_path.write_text(json.dumps(inputs['payload']), encoding='utf-8')
 
         python_bin = os.environ.get("FAASLORA_PYTHON") or sys.executable
         worker_script = cls._worker_script_path()
-        worker_env["PYTHONPATH"] = str(REPO_ROOT) + os.pathsep + worker_env.get("PYTHONPATH", "")
-        worker_env.update(worker_env_updates)
 
         log_handle = open(log_path, "ab", buffering=0)
         allocation = None
@@ -5637,22 +5721,14 @@ class SubprocessInferenceEngineProxy:
             visible = ','.join(allocation.gpu_uuids)
             worker_env.update(CUDA_VISIBLE_DEVICES=visible, FAASLORA_VISIBLE_DEVICES=visible)
         try:
-            process = subprocess.Popen(
-            [
-                python_bin,
-                str(worker_script),
-                "--payload",
-                str(payload_path),
-                "--ready-file",
-                str(ready_path),
-            ],
-            cwd=str(REPO_ROOT),
-            env=worker_env,
-            stdout=log_handle,
-            stderr=subprocess.STDOUT,
-            close_fds=True,
-            start_new_session=True,
-            )
+            if prepared is not None:
+                process = prepared.process
+            else:
+                process = subprocess.Popen(
+                    [python_bin, str(worker_script), '--payload', str(payload_path),
+                     '--ready-file', str(ready_path)],
+                    cwd=str(REPO_ROOT), env=worker_env, stdout=log_handle,
+                    stderr=subprocess.STDOUT, close_fds=True, start_new_session=True)
         except BaseException:
             log_handle.close()
             if allocation is not None:
@@ -5696,7 +5772,15 @@ class SubprocessInferenceEngineProxy:
         ready: Optional[Dict[str, Any]] = None
         try:
             if allocation is not None:
-                allocation.bind_process(process, gpu_process_identity(process.pid))
+                if prepared is None:
+                    allocation.bind_process(process, gpu_process_identity(process.pid))
+                else:
+                    # Never await cpu_prepared.json before acquiring the GPU.
+                    # An incomplete CPU import after exclusive claim is billed.
+                    prepared.physical_allocation = allocation
+                    allocation.bind_process(process, gpu_process_identity(process.pid),
+                                            preparation=prepared.evidence)
+                    prepared.activate(allocation)
             startup_timeout_s = float(os.environ.get("FAASLORA_WORKER_START_TIMEOUT_S", "180"))
             startup_timeout_s = max(30.0, startup_timeout_s)
             deadline = time.monotonic() + startup_timeout_s
@@ -5741,6 +5825,16 @@ class SubprocessInferenceEngineProxy:
         try:
             from faaslora.runtime_configuration import initialized_worker_configuration
             initialized_cfg = initialized_worker_configuration(ready, local_model_cfg)
+            if prepared is not None:
+                observed = json.loads((worker_root/'cpu_prepared.json').read_text())
+                granted = json.loads((worker_root/'cpu_activated.json').read_text())
+                if (observed['preparation'] != prepared.evidence
+                        or observed['engine_ready'] is not False
+                        or granted['permission']['lease_id'] != allocation.owner_id
+                        or granted['permission']['birth'] != prepared.evidence['birth']):
+                    raise ValueError('CPU preparation/activation evidence differs from actual binding')
+                prepared.observation = observed
+                prepared.activation = granted
         except BaseException:
             await _terminate_startup_process()
             if allocation is not None:
@@ -5761,6 +5855,8 @@ class SubprocessInferenceEngineProxy:
             physical_allocation=allocation,
         )
         proxy.model_config_source = ready['configuration_contract']
+        proxy._cpu_frontend_pool = cpu_frontend_pool
+        proxy._cpu_frontend_ticket = prepared
         if allocation is not None:
             try:
                 workers = await proxy.ieee_worker_observation()
@@ -6594,6 +6690,13 @@ class SubprocessInferenceEngineProxy:
                     self._engine_dead = True
                     self._preserve_worker_workdir('physical_release_unconfirmed')
                     raise
+            ticket = getattr(self, '_cpu_frontend_ticket', None)
+            if ticket is not None:
+                from faaslora.cpu_frontend import finish_process_group
+                await finish_process_group(self._process, ticket.evidence['birth'], ticket.identity)
+                # Return only once and only after native context/physical release.
+                self._cpu_frontend_pool.returned(self.device_id, ticket, allocation=allocation)
+                self._cpu_frontend_ticket = None
             if normal_shutdown and not keep_logs:
                 shutil.rmtree(self._workdir, ignore_errors=True)
                 self._normal_shutdown_completed = True
@@ -6612,6 +6715,7 @@ class SubprocessInferenceEngineProxy:
             cost_model=self._cost_model,
             device_id=self.device_id,
             runtime_gpu_ids=self._runtime_gpu_ids,
+            cpu_frontend_pool=getattr(self, '_cpu_frontend_pool', None),
         )
         self._process = replacement._process
         self._host = replacement._host
@@ -6620,6 +6724,8 @@ class SubprocessInferenceEngineProxy:
         self._log_path = replacement._log_path
         self._engine_dead = replacement._engine_dead
         self._physical_allocation = replacement._physical_allocation
+        self._cpu_frontend_pool = getattr(replacement, '_cpu_frontend_pool', None)
+        self._cpu_frontend_ticket = getattr(replacement, '_cpu_frontend_ticket', None)
         self._reinit_attempted = False
 
 
@@ -14579,6 +14685,35 @@ class ScenarioRunner:
 
     async def _shutdown_instance_pool(self) -> None:
         self._instance_pool_closing = True
+        factory = getattr(self, 'engine_factory', None)
+        cpu_cleanup = None
+        if isinstance(factory, DedicatedScenarioEngineFactory):
+            # Synchronous closing mark BEFORE any native retirement can return
+            # its ticket; final teardown must never refill CPU preparation.
+            factory.stop_preparation()
+            cpu_cleanup = asyncio.create_task(factory.close_preparation())
+        primary = None
+        try:
+            await self._shutdown_instance_pool_runtimes()
+        except BaseException as exc:
+            primary = exc
+        if cpu_cleanup is not None:
+            while not cpu_cleanup.done():
+                try:
+                    await asyncio.shield(cpu_cleanup)
+                except asyncio.CancelledError as exc:
+                    if primary is None:
+                        primary = exc
+            try:
+                cpu_cleanup.result()
+            except BaseException as exc:
+                if primary is not None:
+                    raise primary from exc
+                raise
+        if primary is not None:
+            raise primary
+
+    async def _shutdown_instance_pool_runtimes(self) -> None:
         # Scale-in/quarantine own online shutdown independently of requests.
         # Join it before the common shutdown census; never close one engine twice
         # concurrently or remove its shared IO owner underneath that shutdown.
@@ -15876,6 +16011,12 @@ class ScenarioRunner:
         """C1 完整：三层级联预加载 远端→硬盘(NVMe)→内存(HOST)→GPU，最热在 GPU、次热在内存、再次在硬盘。"""
         if getattr(self, '_routing_policy', None) == 'ieee_confirmed':
             self._require_ieee_full_qualification()
+            if self.model_cfg.get('ieee_cpu_frontend_policy') is not None:
+                if not isinstance(self.engine_factory, DedicatedScenarioEngineFactory):
+                    raise ValueError('CPU preparation requires the original shared runtime factory')
+                self.engine_factory.start_preparation(
+                    deployment_notice_s=self._physical_deployment.notice,
+                    devices=self._available_device_ids()[:self.instance_pool.max_instances])
             await self._start_ieee_initial_deployment()
             return
         await self._stack.start()
@@ -21887,26 +22028,137 @@ def _build_local_tp_runtime_env_updates(
     }
 
 
+class DedicatedScenarioEngineFactory:
+    """Scenario-owned preparation attached to the existing single runtime path."""
+    def __init__(self, **arguments):
+        self.arguments = copy.deepcopy(arguments)
+        self.pool = None
+        self.preparations = []
+        self._close_task = None
+
+    def start_preparation(self, *, deployment_notice_s, devices):
+        from faaslora.cpu_frontend import CONTRACT, CPUFrontendPool
+        args = self.arguments
+        if (self.pool is not None or not args['use_subprocess']
+                or args['model_cfg'].get('ieee_cpu_frontend_policy') != CONTRACT):
+            raise ValueError('CPU preparation requires one explicit native factory policy')
+
+        def create(device_id, notice):
+            local, runtime_ids = _dedicated_scenario_model_config(
+                args['model_cfg'], args['host_visible_ids'], device_id)
+            return SubprocessInferenceEngineProxy.prepare_cpu_frontend(
+                model_cfg=local, cost_model=args['cost_cfg'], device_id=device_id,
+                runtime_gpu_ids=runtime_ids, deployment_notice_s=notice,
+                retained=self.preparations)
+
+        self.pool = CPUFrontendPool(devices=devices, create=create)
+        self.pool.start(deployment_notice_s=deployment_notice_s)
+
+    async def __call__(self, device_id=None):
+        try:
+            return await _spawn_dedicated_scenario_engine(**self.arguments,
+                device_id=device_id, cpu_frontend_pool=self.pool)
+        except BaseException as exc:
+            if self.pool is not None:
+                self.pool.failure = exc  # no silent fresh-worker retry
+            raise
+
+    def stop_preparation(self):
+        if self.pool is not None:
+            self.pool.closing = True
+
+    def preparation_evidence(self):
+        rows = []
+        for record in self.preparations:
+            ticket = record['ticket']
+            row = dict(worker_root=str(record['inputs']['root']), birth=record['birth'],
+                process_returncode=None if record['process'] is None else record['process'].poll(),
+                state='producer_failed' if ticket is None else ticket.state)
+            if ticket is not None:
+                row['preparation'] = ticket.evidence
+                row['activation'] = getattr(ticket, 'activation', None)
+                row['observation'] = getattr(ticket, 'observation', None)
+                path = record['inputs']['root']/'cpu_prepared.json'
+                if row['observation'] is None and path.is_file():
+                    row['observation'] = json.loads(path.read_text())
+            rows.append(row)
+        return dict(policy=self.arguments['model_cfg'].get('ieee_cpu_frontend_policy'),
+            legal_devices=None if self.pool is None else list(self.pool.devices),
+            closing=None if self.pool is None else self.pool.closing, records=rows)
+
+    async def close_preparation(self):
+        self.stop_preparation()
+        if self._close_task is None:
+            self._close_task = asyncio.create_task(self._close_preparation())
+        cancelled = False
+        while not self._close_task.done():
+            try:
+                await asyncio.shield(self._close_task)
+            except asyncio.CancelledError:
+                cancelled = True
+        self._close_task.result()
+        if cancelled:
+            raise asyncio.CancelledError
+
+    async def _close_preparation(self):
+        from faaslora.cpu_frontend import abandon_cpu_process
+        from scripts.ieee_tc_preflight import gpu_process_identity
+        errors = []
+        if self.pool is not None:
+            try:
+                await self.pool.close()
+            except BaseException as exc:
+                errors.append(exc)
+        # Includes failed producer records and claimed-but-never-activated
+        # records. Activated tickets stay with original physical runtime cleanup.
+        for record in self.preparations:
+            ticket, process = record['ticket'], record['process']
+            if process is None:
+                record['channel'].close()
+                continue
+            if ticket is not None and (ticket.state != 'preparing'
+                                      or hasattr(ticket, 'physical_allocation')):
+                continue
+            try:
+                if ticket is None:
+                    await abandon_cpu_process(process, record['channel'], record['birth'],
+                                              gpu_process_identity)
+                else:
+                    await ticket.abandon()
+            except BaseException as exc:
+                errors.append(exc)
+        if errors:
+            raise RuntimeError('CPU preparation cleanup retains unresolved ownership') from errors[0]
+
+
+def _dedicated_scenario_model_config(model_cfg, host_visible_ids, device_id):
+    local = copy.deepcopy(model_cfg)
+    if device_id is not None:
+        local['device_id'] = int(device_id)
+    target = copy.deepcopy(model_cfg)
+    if host_visible_ids:
+        target['visible_device_ids'] = list(host_visible_ids)
+    return local, _resolve_runtime_gpu_device_ids(target, device_id=local.get('device_id'))
+
+
 async def _spawn_dedicated_scenario_engine(*, model_cfg, host_visible_ids, cost_cfg,
-        coord_cfg, hardware_cfg, coordination_enabled, use_subprocess, device_id=None):
+        coord_cfg, hardware_cfg, coordination_enabled, use_subprocess, device_id=None,
+        cpu_frontend_pool=None):
     """One runtime factory for the main replay and bounded integration checks.
 
     Preserve the parent configuration until the subprocess resolves its own
     device view. Qualification must not implement a second model startup path.
     """
-    local_model_cfg = copy.deepcopy(model_cfg)
-    if device_id is not None:
-        local_model_cfg['device_id'] = int(device_id)
-    target_resolve_cfg = copy.deepcopy(model_cfg)
-    if host_visible_ids:
-        target_resolve_cfg['visible_device_ids'] = list(host_visible_ids)
-    target_runtime_gpu_ids = _resolve_runtime_gpu_device_ids(
-        target_resolve_cfg, device_id=local_model_cfg.get('device_id'))
+    local_model_cfg, target_runtime_gpu_ids = _dedicated_scenario_model_config(
+        model_cfg, host_visible_ids, device_id)
     if use_subprocess:
         new_engine = await SubprocessInferenceEngineProxy.spawn(
             model_cfg=local_model_cfg, cost_model=cost_cfg,
-            device_id=local_model_cfg.get('device_id'), runtime_gpu_ids=target_runtime_gpu_ids)
+            device_id=local_model_cfg.get('device_id'), runtime_gpu_ids=target_runtime_gpu_ids,
+            cpu_frontend_pool=cpu_frontend_pool)
     else:
+        if cpu_frontend_pool is not None or local_model_cfg.get('ieee_cpu_frontend_policy'):
+            raise ValueError('CPU preparation cannot use the in-process backend')
         local_model_cfg['skip_stale_gpu_cleanup'] = True
         new_engine = InferenceEngine(local_model_cfg, cost_cfg)
         await new_engine.initialize()
@@ -24250,6 +24502,13 @@ async def _finish_ieee_main_scenario(service, stack, claims, primary_error):
     except BaseException as exc:
         measurement_errors.append(error_record('coordination_snapshot',exc))
         failure_objects.append(exc)
+    factory = getattr(service, 'engine_factory', None)
+    if isinstance(factory, DedicatedScenarioEngineFactory):
+        try:
+            data['cpu_frontend_preparation'] = factory.preparation_evidence()
+        except BaseException as exc:
+            measurement_errors.append(error_record('cpu_preparation_snapshot', exc))
+            failure_objects.append(exc)
     data['cleanup'] = dict(complete=False,roots=claims,reason='shutdown_unresolved')
     if not errors:
         try:
@@ -25194,25 +25453,12 @@ async def _main_async_impl(
                     instance_mode=instance_mode,
                 )
 
-                async def _spawn_engine(
-                    device_id=None,
-                    model_cfg=spawn_model_cfg,
-                    host_visible_ids=host_visible_device_ids,
-                    cost_cfg=cost_model,
-                    coord_cfg_local=sc_coord,
-                    hw_cfg_local=hw_merged,
-                    coord_enabled_local=(
-                        btype == "faaslora_full"
-                        and bool(sc_coord.get("coordination_enabled", True))
-                    ),
-                ):
-                    return await _spawn_dedicated_scenario_engine(
-                        model_cfg=model_cfg, host_visible_ids=host_visible_ids, cost_cfg=cost_cfg,
-                        coord_cfg=coord_cfg_local, hardware_cfg=hw_cfg_local,
-                        coordination_enabled=coord_enabled_local,
-                        use_subprocess=use_subprocess_engine, device_id=device_id)
-
-                engine_factory = _spawn_engine
+                engine_factory = DedicatedScenarioEngineFactory(
+                    model_cfg=spawn_model_cfg, host_visible_ids=host_visible_device_ids,
+                    cost_cfg=cost_model, coord_cfg=sc_coord, hardware_cfg=hw_merged,
+                    coordination_enabled=(btype == 'faaslora_full'
+                        and bool(sc_coord.get('coordination_enabled', True))),
+                    use_subprocess=use_subprocess_engine)
 
             initial_runtime_pending = sc_coord.get('routing_policy') == 'ieee_confirmed'
             if initial_runtime_pending:

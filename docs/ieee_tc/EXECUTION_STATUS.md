@@ -1,4 +1,4 @@
-# IEEE TC execution status — D468 CPU preparation lifecycle contracts
+# IEEE TC execution status — D469 original-factory CPU preparation integration
 
 Updated 2026-10-12. This is a current checkpoint, NOT a replacement plan.
 Complete preceding status is byte-identically archived in
@@ -33,7 +33,36 @@ not current instructions. No evidence or approved task was removed.
 - Every optimization: logs/history + online primary sources + one falsifiable
   hypothesis + tests/minimal validation/new full replay. IEEE nine formulas fixed.
 
-## Current action — D468 lifecycle foundation tested; actual factory integration NEXT
+## Current action — D469 original factory integrated; native qualification NEXT
+
+Read full PLAN/status/rules/V1/V2 and vLLM/run-experiment skills. No agents,
+baseline/remote/Kubernetes action, performance replay or figure. Original
+SubprocessInferenceEngineProxy now shares worker input construction for ordinary
+and fixed-UUID CPU-prepared launches. Scenario-owned factory starts bounded
+preparation only after Full qualification/common notice; activation uses original
+runtime factory and physical acquire/bind BEFORE waiting CPUready. No second
+startup framework, latebound mask, fork, threshold/capacity/profile change or
+D463 rollback. D463 remains parent,performanceNOTaccepted. New opt-in policy
+fixed_uuid_cpu_frontend_v1; existing configurations do not enable it.
+Actual physical return/native exit/helper exit precede replacement; final shutdown
+synchronously suppresses refill and joins CPU ownership even on runtime failure
+or cancellation. Popen retained before postspawn birth validation; no fresh-process
+fallback. CPU/helper group validation uses UID/birth/service/session/pidfd;
+unconfirmed ownership stays failure. Main outcome adds preparation/activation
+records; physical integral unchanged. SeeD469_ORIGINAL_FACTORY_CPU_PREPARATION.md.
+
+CPU1:567tests,566pass/1error; old mockwait did not update poll after exit.
+Original retained; corrected fixture only, no guard weakening. Added shutdown
+failure/cancellation/replacement-order tests. CPU2:570allpass,0fail/error/skip.
+These overlapping CPU fixtures are NOT actual native or performance qualification.
+Rawd469_20261012; D470100 config reuses D464 exactly except exclusive paths and
+CPU policy. Wrapper gets one explicit key; no arbitrary output override.
+Next: source/protected/configuration checks and checkpoint -> D470 original100
+native qualification -> once new-key4000W0 only if qualification passes.
+Retain initial/current results; no figures, baseline tuning or SLO change.
+7B optimization/W1/W2/G2/3B/fullapprovedscope OPEN, wholegoalACTIVE.
+
+## Previous action — D468 lifecycle foundation tested; actual factory integration NEXT
 
 Read full PLAN/status/rules/V1/V2; vLLM/run-experiment/github-sync skills.
 No agents, native GPU experiment, baseline/remote action, config change or figure.
@@ -66,6 +95,15 @@ repeat D467import microtest or add another model startup framework. Then minimal
 native qualification -> once new-key4000W0. Never wait CPUready then backdate/omit
 actual exclusive GPU claim cost. D463 retained parent,performanceNOTaccepted.
 7B optimization/W1/W2/G2/3B/fullapprovedscope OPEN; wholegoalACTIVE.
+Publication complete:19explicitfiles pushed as4e8cee275713d0afbdf84051252bcfd4cd699369;
+independentremoteHEAD equal. Finalpublication35smokechecks pass,0fail/error/skip.
+FinalmanifestSHA a08203f0b352fc4896b0c83cce9fcfa5fcca7e8dd5c94fa832e76f6e6634622d.
+All7D468auxiliaries exactidentity actual-emptyclosed;curation1/failedbackup/
+curation2/finalbackup peaks49254400/47644672/46444544/52023296B,
+allhigh/max/OOM/swap0. GPUcomputeempty,remoteunchanged,BASEunchanged,
+usermanifestneverstaged. Beforethispost-pushnoteonlytrackeduserdirt.
+Disk161166893056B(~150.10GiB),freshgatebeforeheavy. NoactiveD468task remains;
+nextturn continuesoriginalfactoryintegration,not morestandaloneimport microtests.
 
 ## Previous action — D467 fixed-UUID CPU frontend boundary qualified
 

@@ -205,6 +205,7 @@ class TicketOwnership(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.ticket.state, 'activation_sent')
 
     async def test_abandon_before_activation_closes_permission_then_joins(self):
+        self.process.wait.side_effect = lambda timeout: setattr(self.process.poll, 'return_value', 0)
         await self.ticket.abandon()
         self.channel.close.assert_called_once()
         self.process.wait.assert_called_once_with(5)

@@ -118,7 +118,11 @@ async def _await_cpu_frontend_activation(payload, channel, engine, ready_path):
         birth=expected['birth'], clock_id=local_monotonic_clock_id())
     # Recheck the exact fixed-device boundary after an arbitrarily long wait.
     # This remains distinct from the parent's actual exclusive allocation time.
-    _cpu_frontend_state(torch, driver, expected['gpu_uuid'])
+    after = _cpu_frontend_state(torch, driver, expected['gpu_uuid'])
+    if activated is not None:
+        _write_ready(ready_path.with_name('cpu_activated.json'), dict(
+            permission=activated, context_state=after,
+            granted_at_s=time.monotonic(), clock_id=local_monotonic_clock_id()))
     return activated
 
 

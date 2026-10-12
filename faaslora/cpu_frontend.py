@@ -14,6 +14,7 @@ import math
 import os
 from pathlib import Path
 import re
+import select
 import signal
 import socket
 import subprocess
@@ -21,6 +22,92 @@ import time
 
 CONTRACT = 'fixed_uuid_cpu_frontend_v1'
 MAX_ACTIVATION_BYTES = 4096
+
+
+async def finish_process_group(process, birth, identity):
+    """Join CPU helpers after their original session leader has terminated.
+
+    A process-group number alone is not ownership. Check every live member's
+    birth, uid and service subtree, then pin it with a pidfd before signaling.
+    An escaped/unknown member fails closed; the service watchdog retains the
+    enclosing resource domain. No scan or signal of unrelated process groups.
+    """
+    if process.poll() is None:
+        raise RuntimeError('frontend leader is still alive')
+    for sig in (signal.SIGTERM, signal.SIGKILL):
+        pinned = []
+        try:
+            for entry in Path('/proc').iterdir():
+                if not entry.name.isdecimal():
+                    continue
+                try:
+                    fields = (entry/'stat').read_text().rsplit(')', 1)[1].split()
+                except FileNotFoundError:
+                    continue
+                if int(fields[2]) != process.pid or fields[0] == 'Z':
+                    continue
+                member = identity(int(entry.name))
+                if (not isinstance(member, dict) or member.get('uid') != birth.get('uid')
+                        or member['start_ticks'] < birth['start_ticks']
+                        or not Path(member['cgroup']).is_relative_to(birth['cgroup'])
+                        or int(fields[3]) != process.pid):
+                    raise RuntimeError('unqualified CPU helper ownership; refusing to signal')
+                fd = os.pidfd_open(member['pid'])
+                pinned.append(fd)
+                if identity(member['pid']) != member:
+                    raise RuntimeError('CPU helper birth changed during pidfd acquisition')
+            if not pinned:
+                return
+            for fd in pinned:
+                signal.pidfd_send_signal(fd, sig)
+            pending = set(pinned)
+            deadline = time.monotonic() + 5.
+            while pending:
+                ready, _, _ = await asyncio.to_thread(select.select, list(pending), [], [],
+                    max(0., deadline - time.monotonic()))
+                if not ready:
+                    break
+                pending.difference_update(ready)
+            if not pending:
+                # Re-census: a helper may have created a child before exiting.
+                continue
+        finally:
+            for fd in pinned:
+                os.close(fd)
+    # Do not announce a clean group from a leader-only wait or a stale census.
+    for entry in Path('/proc').iterdir():
+        if entry.name.isdecimal():
+            try:
+                fields = (entry/'stat').read_text().rsplit(')', 1)[1].split()
+            except FileNotFoundError:
+                continue
+            if int(fields[2]) == process.pid and fields[0] != 'Z':
+                raise RuntimeError('CPU helper exit remains unconfirmed')
+
+
+async def abandon_cpu_process(process, channel, birth, identity):
+    """Also usable by the producer after a post-Popen validation failure."""
+    channel.close()
+    if not isinstance(birth, dict) or birth.get('pid') != process.pid:
+        raise RuntimeError('CPU frontend birth unavailable; retain guarded ownership')
+    if process.poll() is None:
+        if identity(process.pid) != birth:
+            raise RuntimeError('CPU frontend birth changed; refusing to signal')
+        try:
+            await asyncio.to_thread(process.wait, 5)
+        except subprocess.TimeoutExpired:
+            for sig in (signal.SIGTERM, signal.SIGKILL):
+                if identity(process.pid) != birth or os.getpgid(process.pid) != process.pid:
+                    raise RuntimeError('CPU frontend lost its owned process group')
+                # The original unreaped Popen leader anchors the session here.
+                os.killpg(process.pid, sig)
+                try:
+                    await asyncio.to_thread(process.wait, 5)
+                    break
+                except subprocess.TimeoutExpired:
+                    if sig == signal.SIGKILL:
+                        raise
+    await finish_process_group(process, birth, identity)
 
 
 def configuration_sha256(model_cfg, cost_model):
@@ -160,27 +247,8 @@ class PreparedCPUFrontend:
     async def abandon(self):
         if self.state == 'activation_sent':
             raise RuntimeError('activated frontend belongs to the physical runtime owner')
-        self.channel.close()  # EOF prevents initialize even while imports finish.
         self.state = 'abandoning'
-        if self.process.poll() is None:
-            if self.identity(self.process.pid) != self.evidence['birth']:
-                raise RuntimeError('CPU frontend birth changed; refusing to signal')
-            try:
-                await asyncio.to_thread(self.process.wait, 5)
-            except subprocess.TimeoutExpired:
-                if self.identity(self.process.pid) != self.evidence['birth']:
-                    raise RuntimeError('CPU frontend birth changed; refusing to signal')
-                # Fresh dedicated interpreter is its own session/group leader.
-                if os.getpgid(self.process.pid) != self.process.pid:
-                    raise RuntimeError('CPU frontend lost its owned process group')
-                os.killpg(self.process.pid, signal.SIGTERM)
-                try:
-                    await asyncio.to_thread(self.process.wait, 5)
-                except subprocess.TimeoutExpired:
-                    if self.identity(self.process.pid) != self.evidence['birth']:
-                        raise RuntimeError('CPU frontend birth changed; refusing to signal')
-                    os.killpg(self.process.pid, signal.SIGKILL)
-                    await asyncio.to_thread(self.process.wait, 5)
+        await abandon_cpu_process(self.process, self.channel, self.evidence['birth'], self.identity)
         self.state = 'abandoned'
 
 
