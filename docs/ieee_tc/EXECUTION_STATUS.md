@@ -1,4 +1,35 @@
-# IEEE TC status — D510 complete; seven-system comparison complete; seal then optimize PrimeLoRA
+# IEEE TC status — D511 resource-gap diagnosis complete; current native timing next
+
+## Current main line 2026-10-14: D511 retained analysis, no live GPU run
+
+D510 faithful HydraServe full4000 and seven-system comparison COMPLETE; both
+repositories backed up. CPU21/22 actual recursive-empty closure receipts checked,
+their captured cgroup paths are gone; no need to rerun closure or D510 analysis.
+D511 reuses D476 all4000, D473 stage primitive and D454 control/physical projection.
+Read D511_RETAINED_W0_RESOURCE_GAP.md. Full request identity error0ms, sealed
+mean/P95 unchanged. Resource excess vsElasticLocality885.732932GPU-s comes from
+arrival+1036.372380, pre-arrival-11.618342, drain-.292848, cleanup-138.728257.
+MeanE2E excess583.489529ms includes decode+467.140437; permitwait is222.287323ms
+LOWER, so no evidence for simply increasing capacity. Not causal attribution.
+Raw results/ieee_tc/main_comparison/d511_20261014; summary/requests/controls saved.
+128 CPU tests PASS. Analysis/curation scoped3/4GiB/swap0/CPU2,3,26,27/CUDAhidden;
+actual recursive-empty closures COMPLETE, peaks148676608/712982528B, events0.
+Protected147/userdirt unchanged; 1,035,995B archive member SHA roundtrip PASS.
+Checkpoint push receipt recorded in RAW/backup_receipt.json after actual success.
+Production faaslora and main preflight/runner unchanged from D476 sourcecommit.
+
+NEXT ONLY: preregister and run ONE current-D476 original1000-prefix native core
+host_spans_v1 diagnostic, reusing D351 CoreHostTiming/analyzer + protected runner.
+No old frameobserver, new policy/profile/capacity/SLO, baseline rerun or newinput.
+Compare exact current utility threadCPU/host spans with model-step/request windows;
+do not reuse old D351/D456 proportions as current measurement. If utility does not
+explain current pauses, stop mechanical snapshot refinements and examine iteration
+composition. Diagnostic is NOT ordinary performance result or full G1/G2point.
+This next diagnostic is NOT prepared/launched yet; do not claim running.
+Then one evidenced formula-preserving optimization, validation and one fullreplay.
+Read full PLAN/metrics and mainline rules; all remaining scope below stays ACTIVE.
+
+## Prior completed D510 result (not an unfinished task)
 
 ## Current state 2026-10-14: D510 complete, no live GPU experiment
 
@@ -51,8 +82,8 @@ UseRAWbackup_result_verified.py; originalbackup_result.py retainsgeneric2MiBguar
 MAINpaper_results/ieee_tc/main_comparison/d510_7b_w0/comparison.json +delivery.json
 are byte/source-bound publications. Check actual result_backup_main_receipt.json
 for this status/publication commit and remote equality; no self-referential hash.
-CPU19/20actualemptyclosed; BASEbackup21 andMAINbackup22 closure receipts follow
-their actual exits. Verify these two actual receipts before nextheavyjob.
+CPU19/20actualemptyclosed; BASEbackup21 andMAINbackup22 closure receipts are
+complete and were verified during D511. Both captured paths are absent.
 Nextmainline: resumePrimeLoRA optimization fromD476 vsElasticLocality gap: historicalstage
 andlifecyclelogs+officialsources+falsifiablehypothesis, nineformulas/commonmetrics
 unchanged. No newHydraServeperformance search; additionaldiagnosis onlyifactual
@@ -323,7 +354,9 @@ vLLM D423 .99475/4.028844291/1200.506860;
 S-LoRA D435 .94425/3.789269468/17699.067366 nonfeasible;
 Loquetier D445 .0435/4.249595809/555110.032229 nonfeasible;
 ElasticLocality D453 .95775/2.473178968/2420.607829.
-HydraServe missing; PrimeLoRA stilllosesElasticLocalityresource. No newcomparison.
+HydraServe D510 .68725/2.415538153/8851.575365 nonfeasible; the complete
+seven-system D510 comparison supersedes the older six-system table.
+PrimeLoRA stilllosesElasticLocalityresource; D511 diagnoses this retained gap.
 D3947BSLO input<=616/>616:TTFT2995.348713684507/4633.345350589479ms,
 TPOT59.74409694902162/85.24698166015581ms.W0Uref16115.377162149176,
 B12086.532871611882,Qref1200.5068596918136.W1/W2refsOPEN; qualifyactualW1
@@ -351,7 +384,7 @@ Explicitstage/source/checksum/tests/secrets/diff; MAINfaaslora_origin/
 retry14_continuous_queue_v2 andBASEorigin/main; verifiedremotebackupcheckpoints.
 
 RemoteSSHprimelora-artifact-174 lab14@10.199.227.174:8122 strictknownhost;
-data192.168.4.174ports18080/18081inactiveD476.TokenoutsideGit
+data192.168.4.174ports18080/18081inactiveafterD510.TokenoutsideGit
 /home/qhq/.config/primelora-tc-d75/artifact.token NEVERprint. D78/D80readonlygzip
 1581215261B reuse,no republish/extractedpool/requestpacking. Latest1000Mb/s/full;
 old100Mbpsdistinctstate,causeunknown. Realnecessaryread/transfer/contention/
@@ -359,7 +392,7 @@ materializationcount; no oldspan subtraction. No remotechangesduringexperiments.
 
 ## Remaining fullscope — goalACTIVE
 
-HydraServeactualresult/fullavailable7Bcomparison/PrimeLoRAoptimization;
+HydraServeactualresult/fullavailable7BW0comparison COMPLETE; PrimeLoRAoptimization;
 7BW1/W2/G2/commonrefs;3Boptimization/baselines;dLoRA3BB6;A1–A5confirmedstate/
 elasticity/handoff/hierarchy/admission/firstservice;S1–S13tier/mismatch/contention/
 load/GPU/network/workload/KV/control/backend/EOS/designsensitivity;offlineCE/cost/
