@@ -1,6 +1,6 @@
-# IEEE TC execution status — D483 storage-first maintenance
+# IEEE TC execution status — D483 storage maintenance complete, resume HydraServe
 
-Updated 2026-10-13 09:17 CST. Current checkpoint, NOT replacement plan.
+Updated 2026-10-13 09:40 CST. Current checkpoint, NOT replacement plan.
 Preceding status byte-identically archived in EXECUTION_HISTORY_THROUGH_D477.md;
 cmp passed, SHA cee5b2b0527a0ff9f2d07d2dc65c86a74dd2ce0d1b3b27f4a434f764e9adb128.
 D461/D448/D433/D402 and older histories remain. Historical NEXT/RUNNING lines
@@ -18,7 +18,35 @@ obsolete/rebuildable data or losslessly compress closed evidence; no new build
 or inference until this maintenance is addressed. No unique assets, failed
 evidence or unrelated project data deletion. Then resume the baseline order below.
 
-## D483 live maintenance checkpoint (not a performance experiment)
+## D483 completed maintenance checkpoint (not a performance experiment)
+
+TERMINAL: all48monitors+3largelegacyresults losslessly archived and protected.
+Total47,340,646,400 allocatedbytes reclaimed=44.0894126892GiB; finalfree
+207572226048B=193.3166999817GiB. Fresh gates still required before next heavyjob.
+Legacy1443.873600s, peak3221995520B, high169749/max0/OOM0/OOMkill0/swap0.
+Scope6 exactInvocation08c6d7eeb6a84a579bfdea87b1825778/inode23887612 checked;
+actualrecursiveempty thenclosed. No live compression, build, download or GPUjob.
+75historical primelora scopes still show systemdactive but actualrecursiveprocs
+ALL EMPTY; no scope killed based on label. Read terminal_checkpoint/remaining_scopes.json,
+SHAccdc867515e62d3afcaf3d7039257bb0a42a3f1d5126eea87f04c7a23d6a954c.
+Legacyreceipt20261013_d483_closed_legacy_results.json SHA
+95cd0ee1184938c83c42f7730d0c5b8bf0187f5b9818cc9d2fefbde08e981cc1.
+Three actualcompressedfiles independentlySHA-rechecked atterminalcuration,
+configbindings/roundtripreceipts/protected147pass. 25 smallterminalsource/receipt
+records in storage/d483_terminal/terminal_evidence.tar.gz, SHA
+4f9006702ef3a2a1190ee117d2654639abdaa8790dd6154874c740219852570d.
+Initial live snapshot remains immutable. Curationscope10closed, backup follows.
+Specific historicaldLoRA MANIFEST->subset->cache dependency verified; retained,
+not an all-cache proof. No uniqueassets or environments deleted.
+
+NEXT MAIN LINE: storage-first batch addressed. Resume faithful HydraServe source
+environment/build using D482 exactwheels+readonlyCUDA12.4; no redundant downloads,
+max2compilejobs/actual containment/fresh disk and memory gates. Then native
+lifecycle/IPC/address/LoRA/generation qualification and100/500-ID/1000/4000 result,
+allavailablebaseline comparison, onlythen PrimeLoRAoptimization. Do NOT start
+another storage sweep or PrimeLoRA candidate by default. Fullremaining scope below.
+
+The following D483 chronological notes retain evidence, not live instructions.
 
 48 explicit closed remote-monitor logs compressed, two independent decompressed
 SHAs plus fresh original SHA match; 2,780,131,328 allocated bytes reclaimed.
@@ -39,7 +67,7 @@ pip cache now42.7MB, NOT September51.89GB; conda package39.04GB may share hardli
 No broad purge. Six-root du rc1 has two private container apt partial permission
 gaps; targeted two-subtree detaildu rc0. Scopes3/4actuallyemptyclosed,events0.
 
-LIVE large-result maintenance, NOT inference: compress_legacy_storage.py;
+Previously live, NOW TERMINAL as above: compress_legacy_storage.py;
 unified session28193, scopeprimelora-tc-aux-d4830000000000000000000000000006.scope,
 Invocation08c6d7eeb6a84a579bfdea87b1825778,inode23887612.
 Explicit D148/D137/D135 7b_full_w0_full1; actual launch --config/output_dir binds

@@ -1,0 +1,173 @@
+{
+  "checkpoint_verified": true,
+  "performance_result": false,
+  "source_manifest": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d148_20261001/7b_outputs_full1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d148_7b_full_w0_full1.json.compression_receipt.json": {
+      "sha256": "50fc99825c276c1417512f0ca2fb692b223d5ace6ffc5907ea2d8cc154238d11",
+      "bytes": 1505
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d137_20261001/7b_outputs_full1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d137_7b_full_w0_full1.json.compression_receipt.json": {
+      "sha256": "36c3777e1fdff71b7dc3ecb5fa4fbe52f493d775247636ac3346ef489da5b0a3",
+      "bytes": 1505
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d135_20261001/7b_outputs_full1/experiment_results_full_vllm_dedicated_a500_r4000_c2_tc_ieee_full_d135_7b_full_w0_full1.json.compression_receipt.json": {
+      "sha256": "c29fd2bc0b180e23915e2871affee40b72770045b533762c2b0344f2a1fc5cbf",
+      "bytes": 1505
+    },
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/storage/20261013_d483_closed_legacy_results.json": {
+      "sha256": "95cd0ee1184938c83c42f7730d0c5b8bf0187f5b9818cc9d2fefbde08e981cc1",
+      "bytes": 5232
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d483_20261013/compress_legacy_storage.py": {
+      "sha256": "8d092b5cac1d0826aab5a47874f89adc8318cd24987573eb0efee1fd804431b0",
+      "bytes": 4886
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d483_20261013/legacy_storage_bindings.json": {
+      "sha256": "cf84cc2f8607149cc606eedaeaaba3e57c6cbcbc49fad4ec5cc6f23f6b57178a",
+      "bytes": 2843
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d483_20261013/legacy_storage_identity.json": {
+      "sha256": "974d11b3e558d569ddbbc265012fd547f7bf121dba46693da6841bd1ade2ffc7",
+      "bytes": 286
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d483_20261013/legacy_storage_result.json": {
+      "sha256": "14ddb18366be7993d9ccd844fe4bade1a2d8608c5e2c9da429fa34c2b838d1e0",
+      "bytes": 251
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d483_20261013/legacy_storage_closure.json": {
+      "sha256": "17bebc5a886bc7f50a8381c1b660b72b2a39464a400dcaf54628f10079fa20c3",
+      "bytes": 539
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d483_20261013/legacy_storage.log": {
+      "sha256": "fde6d60d22715f0e30a7bc61f46ae06b7efae3c9015f317becdca04f7acbd49a",
+      "bytes": 146
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d483_20261013/observe_storage.py": {
+      "sha256": "e3ddf9224a1608fe2a07f424838e2afe2d089a8c685e56263732399cb7c6c939",
+      "bytes": 2758
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d483_20261013/live_storage_observations.jsonl": {
+      "sha256": "722c2d71a2d5a9f17e0d769548e850332365d2fa22fc01942b2af2520d5cfd82",
+      "bytes": 9469
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d483_20261013/cache_retention_witness.py": {
+      "sha256": "de5eaa1481611a993aa474defd8c591fb4500297955434df4909f912a2b80d33",
+      "bytes": 1705
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d483_20261013/cache_retention_witness.json": {
+      "sha256": "9c2d78b3f02b4bfbadc534ae558f894586d5917a5b7fcc831cfbfc4934122ba4",
+      "bytes": 1772
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d483_20261013/legacy_test_result.json": {
+      "sha256": "4d654dd20fdd502a4ce1aec7281c7da9e2c85583c4e880ec28d1c186a24341dd",
+      "bytes": 308
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d483_20261013/legacy_test_closure.json": {
+      "sha256": "f62724a5f31d3577406e4ce01815aaa28f01378196aacc1eb8c9e5e30195144b",
+      "bytes": 532
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d483_20261013/legacy_test.log": {
+      "sha256": "66f6fb5e4577d63081a8cd40331b4281a0cea1c8f83ceeca61fc3a44622c0de8",
+      "bytes": 2087
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d483_20261013/storage_result.json": {
+      "sha256": "2ecc298408c71409a43619cafd28ecd53c79ccfdaf5ac898c2ddf8086c61fa17",
+      "bytes": 217
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d483_20261013/backup_main_receipt.json": {
+      "sha256": "88d642b61b6f6c70e2700b5d1a8712da4a3f98ebf0119034a407b85028e75225",
+      "bytes": 1009
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d483_20261013/backup_main_closure.json": {
+      "sha256": "13ae8eba4cc691dbba327ed1f137361c0b935bda7a8625c7a0d81e51f992573f",
+      "bytes": 532
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d483_20261013/backup_baseline_receipt.json": {
+      "sha256": "e36a52b28cfc29db21fc9a6267837c5aa6a4b7042be7af1949cb6e43424c2eb7",
+      "bytes": 564
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d483_20261013/backup_baseline_closure.json": {
+      "sha256": "32d5f8f5b5eb45246c465cbc3d67d58f85866027e24beec2c8c9080acf03dcd6",
+      "bytes": 532
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d483_20261013/terminal_checkpoint/curate.py": {
+      "sha256": "e8710239a85b580ff5e5ddb8dc0966ebe36cdf3d7cf7f749708958ba8709e32d",
+      "bytes": 4359
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d483_20261013/terminal_checkpoint/close.py": {
+      "sha256": "ffaaeb790f5749f86f7c0efa421a4cb7751897f85d6d4d5356bafea24f2caa0f",
+      "bytes": 323
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d483_20261013/terminal_checkpoint/backup.py": {
+      "sha256": "a50cfaae5adee89b54ebc4187025feff5c42c0fc88157eec164085c9a7545409",
+      "bytes": 1505
+    }
+  },
+  "archive_sha256": "4f9006702ef3a2a1190ee117d2654639abdaa8790dd6154874c740219852570d",
+  "tests": {
+    "passed": true,
+    "returncode": 0,
+    "source_sha256": {
+      "scripts/ieee_tc/compress_closed_main_outcomes.py": "3fbe720eaca01f6451a028ece71eba9600df420f1d233fdd669b3e2822e1f33b",
+      "tests/test_ieee_tc_closed_outcome_archive.py": "e514cab5782e8613e9ec255ec4199fdf7fa457234045eda26d77c5f8f4982f34"
+    }
+  },
+  "tests_count": 12,
+  "legacy_storage": {
+    "passed": true,
+    "files": 3,
+    "reclaimed_bytes": 44560515072,
+    "free_bytes": 207572226048,
+    "receipt_sha256": "95cd0ee1184938c83c42f7730d0c5b8bf0187f5b9818cc9d2fefbde08e981cc1",
+    "protected_unchanged": true,
+    "elapsed_s": 1443.873600065941
+  },
+  "monitor_storage": {
+    "passed": true,
+    "files": 48,
+    "reclaimed_bytes": 2780131328,
+    "free_bytes": 163016425472,
+    "receipt_sha256": "0f2a92611f79de03742b3ebed0f7678b0edb8c722cf368d813275d0578883aac",
+    "protected_unchanged": true
+  },
+  "total_allocated_bytes_reclaimed": 47340646400,
+  "actual_terminal_closure": {
+    "passed": true,
+    "identity": {
+      "unit": "primelora-tc-aux-d4830000000000000000000000000006.scope",
+      "invocation_id": "08c6d7eeb6a84a579bfdea87b1825778",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4830000000000000000000000000006.scope",
+      "inode": 23887612
+    },
+    "resources": {
+      "memory.peak": "3221995520",
+      "memory.events": "low 0\nhigh 169749\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0"
+    },
+    "actual_recursive_empty": true
+  },
+  "protected_verification": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+  },
+  "live_work": null,
+  "cache_retention": {
+    "kind": "specific_cache_retention_witness",
+    "manifest": "/home/qhq/serverless_llm_baselines/results/paper_experiments/15_new_serverless_baselines_remote_v1/20260521_dlora_remote_mig3_full4000_g2u92_s4_v1_llama32_3b_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_dlora/MANIFEST.json",
+    "manifest_sha256": "831423718e46d4ec728ebd4468fdfd743d8757533f6258544961ec07dc779821",
+    "subset": "/home/qhq/serverless_llm_baselines/results/paper_experiments/15_new_serverless_baselines_remote_v1/20260521_dlora_remote_mig3_full4000_g2u92_s4_v1_llama32_3b_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_dlora/shared_inputs/llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_dlora_remote_adapter_subset.json",
+    "subset_sha256": "c4cccb990e3486f4c0a0072c73c5fca4e46dfe7e0dc9f7cdace9aa0a622e0e91",
+    "actual_input_root": "/home/qhq/serverless_llm_baselines/results/paper_experiments/15_new_serverless_baselines_remote_v1/20260521_dlora_remote_mig3_full4000_g2u92_s4_v1_llama32_3b_llama32_3b_r4000_a500_seed42_z1p0_hot48_rot500_s8_remote_fair_real-remote_v1_dlora/remote_cache/dlora",
+    "recorded_original_root": "/home/qhq/serverless_llm_experiment/artifacts/frozen/llama32_3b_a500_v1_modelscope",
+    "materializer": "/home/qhq/serverless_llm_baselines/scripts/materialize_remote_adapter_subset.py",
+    "materializer_sha256": "62393f49b23b1459c195e09d0a2a1f30c3c534100c820b96b5bcc3694d5e99e5",
+    "decision": "retain; current historical input refers directly to this cache",
+    "limitations": "One concrete dependency, not an all-consumer audit. No full cache/source SHA comparison or reconstruction has been performed this turn; do not infer wholesale deletion eligibility.",
+    "mutation": false
+  },
+  "previous_live_snapshot_sha256": "d98d8d41e082b524f3d43c186b4dd49d99bb99f06c4c9c88c6897839beb61a6b"
+}
