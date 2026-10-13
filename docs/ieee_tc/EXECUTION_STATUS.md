@@ -1,4 +1,4 @@
-# IEEE TC status — D496 common request plumbing CPU-qualified; GPU generation next
+# IEEE TC status — D497 actual request failure isolated; D498 tokenizer bridge qualified
 
 Updated2026-10-13. Current checkpoint, NOT replacement plan. Entire preceding
 status byte-identically archived EXECUTION_HISTORY_THROUGH_D491.md; cmp passed,
@@ -22,7 +22,68 @@ only, no performance tuning/configsearch. Existing k3s belongs to another projec
 do not access/change cluster/credentials/permissions/resources. Isolated rootless
 Podman adaptation authorized; no barevLLM substitution, fakeReady or fake nodes.
 
-## D496 current checkpoint (CPU contract tests, NOT GPU generation/performance)
+## D497–D498 current checkpoint (failure preserved; NO performance result)
+
+BASE cfa5ba2715eaf85b95fb454c2f528b11eae97ac9 pushed/independently remote-equal.
+MAIN predecessor fb6fc54792b26288cdaffaa6e1ea9b9b55826ea5; status backup follows.
+Read BASEdocs/ieee_tc/D498_HYDRASERVE_TOKENIZER_COMPAT.md. No live heavy job.
+
+D497 ACTUALLY launched native provider/private13GiBSHM/C++GPUfastload/originalapp
+and Request/Instance/ChatEngine with first existing finance request req_00000,
+target152, canonicalpromptIDs,greedy/ignoreEOS/correctLoRAname/index/path. Init200,
+health200, completionHTTPheaders200 but engine failed BEFORE first native output.
+Servertrace: get_lora_tokenizer -> TokenizerFast.from_file -> ModelWrapper JSON
+deserialization. ZERO completed requests; medical req_00021 target89 not submitted.
+Client incompletechunk stream is consequence, not networktimeout/performance.
+No token or numericalcorrectness claim. D497 original overlays/logs/failure retained.
+
+Cause: existing adapter BPE JSON stores merge pairs (tokenizers>=0.20); pinned
+HydraServe tokenizers0.19.1 expects strings. Primaryofficial0.19.1/0.20.0source
+fetched/archived. New runtime/tokenizer_compat.py ONLY lossless pairs->legacy
+serialization, exact JSON inverse; reject spaces/ambiguous/mixed shapes. No
+base-tokenizer fallback, backend upgrade, slowtokenizer switch or policy tuning.
+Immutable adapter view symlinks original weights/configs, writes tokenizer.json
+only. TWO converted metadata files,1156966B each; weight copies0. Originalpool
+untouched. Originalsource dirs + backbone + view must be readonlymounted together.
+
+D498 CPU qualification PASS: existing0.22.2 original vs native0.19.1 converted,
+each2adapters x all4000existingtrace texts encoding+decoding hashes identical;
+fullvocab/all32000single-token decodes/special map+IDs/BOS/EOS identical. No
+GPUgeneration tested onnewview yet; not a universal library/numerical proof.
+63CPUregressionsPASS(4new+59prior). Protected147/userdirty/vendorclean/diff/secrets
+andexplicitBASEpush gates passed. Existingk3s untouched. No remote service changes.
+
+D497peak42372599808B; high/max/OOM/OOMkill/swap0, actual GPUclear/servicegone,
+worker/provider/storage/pause released. svcInvocation0d318768a0774e5a9f9a9329629b3b6c,
+inode24018345; aux3Invocation728720af2b57465eab273d8ced571dda,inode24018303,
+exactemptyclosed. D497prepare1/2closed. D498CPU1–4 actualemptyclosed, peak<=
+217980928B/events0/swap0. Curation5 actualemptyclosedpeak33546240B/events0/swap0.
+Backup6/7 closures in raw receipts. Free201944530944B(~188GiB), fresh gates needed.
+
+231 explicit source/failure/CPU qualification receipts archived with roundtripSHA:
+BASEpaper_results/ieee_tc/hydraserve/d498/tokenizer_compat_evidence.tar.gz
+SHA3ef88b51c13da22f3d430aeeeacea6297173b57f429ab4bb28aa733bff9edaaa;
+summarySHA4e86bc2bca6b49e12372b5991d0001ddc5cd699119a6defd56c8f32622e137e5.
+Raw originalresults/ieee_tc/hydraserve_qualification/d497_20261013,d498_20261013.
+
+NEXT: D498 actual GPU request witness is ALREADY PREPARED, NOT LAUNCHED.
+Do NOT rerun prepare.py/tokenizer_witness or overwrite outputs. Read fullPLAN and
+thisstatus, fresh idle/resources gate, then tmux bash rawd498/launch.sh. Dedicated
+launchaux is d498...0009; close_audit.py matches9 (CPU1–4 alreadyclosed). Source
+manifest frozen, same D497 native protocol/inputs; only qualified tokenizer view.
+request_witness.py unchanged; mounts include original symlinktarget directories.
+After terminal, close_audit.py records actualrelease; preserve any newfailure.
+Need native binding/token/clock checks, not just init200. D498curatedcheckpoint
+explicitly says GPUrun=False; anylater GPUevidence gets NEWappend-onlycuration,
+not overwritten summary/archive. Scripts/source are preserved there for recovery.
+
+Then fix separately native startupStreamWriter ownerloop lifetime/release before
+repeated/multireplica loading; integrate existing realremote request-drivenresolver
+and originalfullScheduler;100->500-ID->1000->4000 HydraServeactualresult -> all
+availablebaselinecomparison -> PrimeLoRAoptimization. Full pipeline/KVmigration/
+concurrentconsolidation correctness stillOPEN. No barevLLM replacement/fakeReady.
+
+## D496 preceding checkpoint (CPU contract tests, NOT GPU generation/performance)
 
 BASE9459dd459799ab7eecbad769b102bb009708c038 pushed/independentlyremoteequal.
 MAIN predecessor0f23fd1aa72a2664b89471ee92a8c743be37fbbc; statusbackup follows.
