@@ -1,4 +1,4 @@
-# IEEE TC status — D495 native 7B delivery and real app initialization passed
+# IEEE TC status — D496 common request plumbing CPU-qualified; GPU generation next
 
 Updated2026-10-13. Current checkpoint, NOT replacement plan. Entire preceding
 status byte-identically archived EXECUTION_HISTORY_THROUGH_D491.md; cmp passed,
@@ -22,7 +22,58 @@ only, no performance tuning/configsearch. Existing k3s belongs to another projec
 do not access/change cluster/credentials/permissions/resources. Isolated rootless
 Podman adaptation authorized; no barevLLM substitution, fakeReady or fake nodes.
 
-## D494–D495 current checkpoint (NOT a performance result)
+## D496 current checkpoint (CPU contract tests, NOT GPU generation/performance)
+
+BASE9459dd459799ab7eecbad769b102bb009708c038 pushed/independentlyremoteequal.
+MAIN predecessor0f23fd1aa72a2664b89471ee92a8c743be37fbbc; statusbackup follows.
+Read BASEdocs/ieee_tc/D496_HYDRASERVE_REQUEST_CONTRACT.md. No liveheavyjob.
+NEW runtime/request_contract.py: opt-in FrozenRequest travels through original
+Request.prompt/Instance/ChatEngine. CanonicalinputIDs,adapterID/path/index and
+target passed to native completion, greedy/ignoreEOS/nostop. Originalsyncstream
+and5secondsubmissiontimeout retained. EntireScheduler/Model/Request AST unchanged;
+originalresp_generator successfulprofiling AST unchanged. No baselineparamsearch.
+Error/cancel/streamclose nowreleaseactualnativecounts once, notswallowed/unboundreply.
+
+Native RequestOutput construction snapshots perf_counter; CompletionOutput copies
+tokenIDs because originalpoints atmutatingsequence list. Native completion SSE
+addsdeltaIDs/nativebinding/processPID/startticks/bootID/snapshottime. No text
+retokenization/chunkcount/expected-count replacement; NOT kernelpertokenclock.
+Native sequencebinding isNOT numericalcorrectness. Crossprocessclock/workerreceipt
+stillmustbequalifiedwithcommonprotocol; actualGPUgenerationNOTyettested.
+StaticLoRAregistry SHA/native1-basedorder onTWO nativecompletioninitializations;
+metadataregistration doesn'treadweights,fetch,claimready orvalidatefiles.
+native_delivery.render_overlays(...,request_contract=True) composesD480/D495;
+defaultD495pathunchanged andoldoverlays/resultsnotmodified. Cleanvendoruntouched.
+
+59CPUtests PASS(14new+45prior), includingactualrenderedRequest->Instance->ChatEngine
+withtestresponse doubles, emptytext/multitokenchunks/errors/cancel/coldclose/source
+drift/registry/AST/outputalias checks. NOT fullschedulerHTTP/GPUinferencequalification.
+Officialengine.py fetchedonline/SHAc0722e5512fd7ef88a19146f85850d9715fe8002baf49de4fe33aed377174337.
+protected147/userdirty/nativeclean/diff/secrets/explicitstage/backup allPASS.
+BASEpaper_results/ieee_tc/hydraserve/d496/request_contract_evidence.tar.gz SHA
+aefe5ce374ec64cf0f4ef5944f627588b7f8fba73f2369e81c6cf84ec9bce94d;
+summarySHAbeb0a6d8e3edce79d3a8689bf2e81f02833ea95c58cbeec8e120f58835366800.
+Raw originalresults/ieee_tc/hydraserve_qualification/d496_20261013.
+CPUaux1/2exactInvocation/recursiveemptyclosed; curation3 peak33443840B/events0,
+swap0 actualemptyclosed; backup4exactownedemptyclosed. No GPUjobstartedthischeckpoint.
+Free201967214592B(~188.1GiB), available110184624KiB; freshgatesneeded.
+
+NEXT advance ACTUAL generation (not another import/container or onlyCPUtest):
+reuseD495fullnativeprovider/SHM/fastload/app recipe + opt-inrequestoverlay and
+staticreadonlymetadataregistry foralreadyexistingadapters. Qualifyoriginalupper
+Request/Instance path withnativeoutput/LoRAbinding andfixedcommoninputs, then
+integrateexistingrealremote request-drivenresolver/replayer andfullactualScheduler.
+No barevLLMreplacement. PreserveD495/SHA/source snapshots andfailedattempts.
+Before repeated/multireplicaloading, fixnative startupStreamWriter ownership:
+asyncio.run closesitsloop; laterend_load_model_shm hitsEventloopclosed andstorage
+free observedonlyatworkerdelete. Needprotocol-preservingownerlifetime+releaseproof.
+Registryexpects HYDRASERVE_LORA_REGISTRY + _SHA256; JSONlist{adapter_id,
+adapter_index,adapter_path}, contiguous1-based nativeenumeration. DoesNOT fetch.
+Then100->500-ID->1000->4000 HydraServeactualresult -> allavailablebaselinecomparison
+-> PrimeLoRAoptimization. Pipeline/KVmigration/concurrentconsolidation correctness
+OPEN; no performanceclaim from D495initialization or D496CPUcontract.
+
+## D494–D495 preceding checkpoint (NOT a performance result)
 
 BASE c334727892b7b7fa2c63c4fd10cf3f124f9695a1 pushed/independentlyremoteequal.
 MAIN preceding9446e814ebdde563878cc9b156028756663f6441; currentstatusbackup follows.
