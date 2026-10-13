@@ -1,4 +1,4 @@
-# IEEE TC status — D502 native Scheduler + request-driven real-remote LoRA PASS
+# IEEE TC status — D503 native common HTTP 100-prefix qualification complete
 
 Updated2026-10-13. Current checkpoint, NOT replacement plan. Entire preceding
 status byte-identically archived EXECUTION_HISTORY_THROUGH_D491.md; cmp passed,
@@ -22,7 +22,62 @@ only, no performance tuning/configsearch. Existing k3s belongs to another projec
 do not access/change cluster/credentials/permissions/resources. Isolated rootless
 Podman adaptation authorized; no barevLLM substitution, fakeReady or fake nodes.
 
-## D502 current checkpoint (two-request delivery qualification, NOT performance)
+## D503 completed (2026-10-13; NOT a full performance point)
+
+BASE77b5f3a0b5bcb2588aa515ae0bdfc9db2a317d59 pushed/remote-equal. MAIN preceding
+f4b7e66ef85065cc306b48f0b4e48673ea4c2bb0; this status backup follows. No live
+heavy job. Read BASEdocs/ieee_tc/D503_HYDRASERVE_COMMON_HTTP.md. Goal remains ACTIVE.
+
+ACTUAL original full Scheduler + common external HTTP/open-loop publisher:
+100/100 offered/arrived/terminal/native-contract-complete, 0 failed; 29 unique
+adapters, 29 request-driven real-remote transfers, 50,650,865 wire bytes. All
+transfer IDs/content/receipt SHA matched; no remote request packing/temp archives.
+Native counts/canonical input/adapter/timing checks passed. Original idle loop
+released all 4 naturally created pp1 instances on ONE physical host. Two nonzero
+requests' outputs equal D502; n_correct stays null, numerical equivalence OPEN.
+
+Physical actual-container reservation union 1033.412008754 GPU-s, 10.334120088 per
+offered request; windows pre0/arrival523.945161059/drain352.671394928/cleanup
+156.795452766. Actual native GPU contexts qualified, all leases closed. Boundary
+starts BEFORE container creation, not first CUDA use; earlier native bookkeeping
+is not reconstructed. pp1 claim-to-create has no intervening await; multi-rank
+sequential create/cache reservations require separate boundary audit if exercised.
+Prefix mean/P95 TTFT42512.344/78862.363ms, TPOT55.529/63.429ms; not compared with
+full 4000 W0 points and not attributed to a specific mechanism without evidence.
+
+88 CPU tests and independent postrun audit PASS. New opt-in queue/assignment/
+backend-ready/native-submit observation ASTs leave original policy unchanged.
+Original synchronous generator consumed off-loop; no fabricated V1 scheduler
+timestamps or bare-vLLM replacement. Physical union supports native co-location.
+Original test ModelSet tuple remains QUALIFICATION identity, not final common-SLO
+performance config. No baseline tuning/search. Fresh official pinned main/engine/
+scheduler/ModelInfo matched; no vendor edits or existing-k3s access.
+
+D503 service Invocation218c1cd76a97484f945dd51301c11ff5,inode24076121 actualgone;
+aux9 Invocation789e74a51b27450c824fb72a3b5b27d0,inode24075921 actualemptyclosed.
+Peak47,493,828,608B, high/max/OOM/OOMkill/swap0; all workers/provider/storage/pause
+and GPU contexts released. CPU1–5closed; curation6peak26,066,944B/events0/swap0
+closed; BASEbackup7exactclosed; MAINbackup8 closure separately retained. Remote
+owned3B/7B/monitor stopped AFTERlocalrelease; ports18080/18081absent. Actual link
+1000Mb/s/full beforelaunch; historical100Mb cause unknown. No changes during run.
+Free200,991,637,504B (~187GiB); fresh launch gates required, no broadcleanupneeded.
+
+445 explicit files roundtripSHA; protected147/userdirty/vendorclean/secrets/diff/
+88-tests/explicit-stage/push PASS. BASEpaper_results/ieee_tc/hydraserve/d503/
+http_qualification_evidence.tar.gz SHA
+7cce2da2186a7725381628f6019d89036dc1272132d4baed902cb5c71816857a;
+summarySHAa55a4d0250f5b089a216ceda5e7a052091db0a1906f878d7a14b0779f7d6a7e3.
+Raworiginalresults/ieee_tc/hydraserve_qualification/d503_20261013. Do NOT rerun
+D503 prepare/launch/audit/checkpoint or overwrite sources/results. No new pools.
+
+NEXT500-ID functional ->1000 compatibility ->4000 actual HydraServe -> all
+available baseline comparison ->PrimeLoRA optimization. Reuse qualified common
+HTTP/native scheduler/remote/physical path, not more two-request/import tests.
+Numerical LoRA/full pipeline/KV migration/consolidation remain OPEN; 500 static
+registered IDs do not establish 500-ID execution. Full remaining scope below is
+unchanged; no new performance ranking or baseline optimum is claimed.
+
+## D502 preceding checkpoint (two-request delivery qualification, NOT performance)
 
 BASEc4dff5e0487f058cd36f4512c2c610bf0be4e78a pushed/remote-equal; MAIN preceding
 02f737f72ad5c9431ab7b128ba5e2f6c224fc051. No live heavy job. Read BASE
