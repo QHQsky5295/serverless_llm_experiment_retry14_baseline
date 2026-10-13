@@ -1,6 +1,6 @@
-# IEEE TC execution status — D481 IPC/transport qualified; D479 download terminal
+# IEEE TC execution status — D482 official source-build dependencies acquired
 
-Updated 2026-10-13 08:45 CST. Current checkpoint, NOT replacement plan.
+Updated 2026-10-13 08:57 CST. Current checkpoint, NOT replacement plan.
 Preceding status byte-identically archived in EXECUTION_HISTORY_THROUGH_D477.md;
 cmp passed, SHA cee5b2b0527a0ff9f2d07d2dc65c86a74dd2ce0d1b3b27f4a434f764e9adb128.
 D461/D448/D433/D402 and older histories remain. Historical NEXT/RUNNING lines
@@ -36,7 +36,51 @@ qualification+new full replay; IEEE nine equations/semantics fixed.
 Full names PrimeLoRA/ServerlessLLM, no figures until near target, no13B/newSGLang,
 paper edits, new weights/traces/pool regeneration. Whole goal ACTIVE.
 
-## D481 current progress: actual private IPC and native TCP identities
+## D482 current progress: software dependencies, NOT a native backend result
+
+BASE checkpoint969f688bf56d5e9fc9fe7924fc259e46d72cdca7 pushed/remoteequal.
+Read BASE docs/ieee_tc/D482_HYDRASERVE_SOURCE_BUILD_PREREQUISITES.md.
+Raw results/ieee_tc/hydraserve_qualification/d482_20261013/ in original experimentrepo.
+D479's failure below exposed auth outside retry boundary. D482 narrowly reused
+its downloader with one finite8failure budget across auth/probe/body.7CPU tests
+pass; length/range/inode/fullSHA/TLS verification and all guards preserved.
+Actual successor also TERMINAL after8TLS errors/122.16335381800309s, no newbytes;
+actualPID gone/recursive-empty then closed, peak28704768B,events/swap0.
+Current proxycurl registry/auth failTLS; directtime out; GitHubAPI200. Proxy8keys
+actualchild match launchenvironment. Root network cause unproven; not GPUfailure,
+not the experiment's real1GbpsLoRA link. Don't endlessly restart same failedpath.
+
+Official README supports source build. Fixed officialcommit and modifiedvLLM0.4.2
+remain, no baseline tuning/replacement. Readonly audit found existing complete
+listed CUDA12.4.131 toolchain files in anaconda3/envs/slinfer_official_20260612;
+nvcc --version actually succeeds. Earlier host-/usr/local-only CUDA13 conclusion
+does not rule out this cached toolchain. Do not modify that old environment.
+Its Torch2.3.1 is NOT officialrequired2.3.0.11listed CUDA runtime versions match
+Torch2.3.0 pins; ABI/Triton/flash-attn/fastload/NCCL and actual linking still OPEN.
+
+NEW COMPLETED exact official cp310/Linux dependency acquisition, no install:
+torch2.3.0 779141888B SHA d8ea5a465dbfd8501f33c937d1f693176c9aef9d1c1b0ca1d44ed7b0a18c52ac;
+xformers0.0.26.post1 222745400B SHA 1fe0f9a3dddb7f6175c2e34de2f318d6742eec28c068b8334b093016b2c9c2c8.
+Both actual fullSHA/size match independentPyPImetadata, pipreturn0,100.974756s.
+Reuse RAW/build_wheels/, do NOT redownload. packages_result.json and
+packages_closure.json retain exactevidence; no environment/model/driver changes.
+Scope7 Invocationb45073d3225c473ea806e884af399f6e/inode23877675 closed after
+actualrecursiveempty; peak2135113728B,high/max/OOM/swap0. No live heavy task.
+BASE curated archive predates packagecompletion; its live_work is historical,
+not currentprocessstate.25source/failure/audit records SHA/roundtrip/protected147
+passed; archive616b84218d5a6b1a7dc40440226ce52ba665a21f97630c3db46ab2786f88e290.
+
+NEXT: fresh disk gate currently FAILS150GiB for a new heavy job (~149.24GiB).
+Reuse scripts/ieee_tc/compress_closed_main_outcomes.py and D478 explicit monitor
+wrapper, only new proven-closed logs, double-roundtrip SHA/receipts/protected147;
+no uniqueasset or oldresult deletion. Restore storage before new environment/build.
+Then isolated source build with readonly reused CUDA/runtime dependencies,
+fixed official kernels/fastload and max2compile jobs, no performance alongside.
+Native source/dependency qualification -> D480/D481 actual lifecycle/IPC/address
+and D479LoRA integration -> real100/500-ID/1000/4000 -> allbaselinecomparison.
+No new PrimeLoRA candidate; do not collapse goal to compatibility/build work.
+
+## D481 preceding progress: actual private IPC and native TCP identities
 
 BASE checkpoint6be6e133612da27c73387d07d9192a8f414ceb00 pushed/remoteequal.
 Read BASE docs/ieee_tc/D481_HYDRASERVE_IPC_AND_TRANSPORT.md before integration.
@@ -320,13 +364,14 @@ qualify actual common W1 transform interface, don't relabel W0 asW1.
 
 ## Safety, preservation and current backup identities
 
-D481 BASE6be6e133612da27c73387d07d9192a8f414ceb00 independentlyremoteequal.
-MAIN predecessor834e2c3e8ebb72babb8e6be481c465585f3759c6 (D480) remoteverified.
-D481 MAIN status-only checkpoint follows; exactHEAD/remoteequality saved to
-D481/backup_main_receipt.json. No userfile or oldresult changed.
-At08:41CST disk161260445696B (~150.19GiB), MemAvailable111802925056B.
-D479 is terminal/closed, not a live wait. Fresh download/import requires the
-unchanged150GiB/startgrowth gate. Software transfer and GPUperformance distinct.
+D482 BASE969f688bf56d5e9fc9fe7924fc259e46d72cdca7 independentlyremoteequal.
+MAIN predecessor5c1ec5d29be561cf35f34da972760dc19a06f414 (D481) remoteverified.
+D482 MAIN status-only checkpoint follows; exactHEAD/remoteequality saved to
+D482/backup_main_receipt.json. No userfile or oldresult changed.
+After dependency download disk160241328128B (~149.24GiB), below newheavy150GiB.
+D479/D482registry and D482packages allterminal/closed, NOT a live wait.
+Restore storage by existing verifiedclosed-log losslesscompression beforebuild;
+unchanged150GiB/startgrowthgate and100GiBruntime. Software andGPUresults distinct.
 
 D479 BASE checkpoint055adf30fe9758f3ee4320427affa674df05f111 pushed to origin/main,
 independentlyremoteequal.15CPU tests pass(10new+5existing),source/protected147/user
