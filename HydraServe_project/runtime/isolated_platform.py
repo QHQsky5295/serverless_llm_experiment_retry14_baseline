@@ -21,6 +21,13 @@ from .loopback_transport import address_environment
 
 @dataclass(frozen=True)
 class ContainerRecipe:
+    """Resource and process recipe, not a service-lifetime policy.
+
+    The native controller owns worker retirement; its caller's bounded campaign
+    and independent watchdog own emergency cleanup. A request/init deadline must
+    never become Podman's --timeout, which kills the entire long-lived container.
+    Infrastructure CLI calls remain independently bounded in _call.
+    """
     image_id: str
     native_images: Tuple[str, ...]
     entrypoint: Tuple[str, ...]
@@ -29,7 +36,6 @@ class ContainerRecipe:
     memory_bytes: int
     swap_bytes: int
     pids_max: int = 512
-    timeout_s: int = 1800
     tmp_bytes: int = 256 * 1024**2
     native_nas_path: str = '/mnt'
 
@@ -79,7 +85,7 @@ class IsolatedPodmanPlatform:
             raise ValueError('immutable qualified image ID required')
         if not recipe.native_images or '/hydra-entry.py' not in recipe.entrypoint:
             raise ValueError('explicit native image mapping/entrypoint required')
-        if recipe.memory_bytes <= 0 or recipe.swap_bytes < 0 or recipe.timeout_s <= 0:
+        if recipe.memory_bytes <= 0 or recipe.swap_bytes < 0:
             raise ValueError('finite container limits required')
         if not cpu_ids or not gate_script.is_file():
             raise ValueError('qualified entry gate and CPU set required')
@@ -236,7 +242,7 @@ class IsolatedPodmanPlatform:
             '--pids-limit='+str(recipe.pids_max),'--network=host','--http-proxy=false',
             '--read-only','--cap-drop=ALL','--security-opt=no-new-privileges',
             '--security-opt=label=disable','--label=org.primelora.campaign='+self.campaign,
-            '--timeout='+str(recipe.timeout_s),'--tmpfs=/tmp:rw,size='+str(recipe.tmp_bytes),
+            '--tmpfs=/tmp:rw,size='+str(recipe.tmp_bytes),
             '--ipc='+ipc,'--volume='+str(worker.output)+':/hydra-output:rw',
             '--volume='+str(self.gate_script)+':/hydra-entry.py:ro']
         if ipc == 'private':

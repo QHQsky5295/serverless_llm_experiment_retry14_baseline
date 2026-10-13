@@ -35,6 +35,43 @@ class PlatformChecks(unittest.IsolatedAsyncioTestCase):
         with self.assertRaisesRegex(ValueError,'entrypoint'):
             self.make(recipe=replace(self.recipe,entrypoint=('/python','app.py')))
 
+    def test_request_deadline_is_not_a_container_recipe_option(self):
+        with self.assertRaises(TypeError):
+            replace(self.recipe, timeout_s=1800)
+
+    async def test_all_roles_have_controller_owned_lifetime_and_bounded_resources(self):
+        p = self.make()
+        calls, qualified = [], []
+
+        async def call(args):
+            calls.append(args)
+            return 0, 'b' * 64 + '\n'
+
+        async def qualify(worker):
+            qualified.append(worker.name)
+
+        p._call, p._qualify = call, qualify
+        with patch.object(p, '_check_parent'):
+            for role in ('storage', 'provider', 'worker'):
+                worker = OwnedWorker(role, 'test-' + role, '127.77.49.20',
+                                     'GPU-1234' if role == 'worker' else None,
+                                     self.root / role)
+                private = role == 'storage'
+                await p._create(worker,
+                    {'_PRIVATE_SHM_BYTES': 1024} if private else {},
+                    'private' if private else 'container:' + 'c' * 64, ())
+        self.assertEqual(qualified, ['storage', 'provider', 'worker'])
+        for args in calls:
+            # Do not replace 1800 with a larger arbitrary lifetime either.
+            self.assertFalse(any(a == '--timeout' or a.startswith('--timeout=')
+                                 for a in args))
+            self.assertIn('--memory=' + str(self.recipe.memory_bytes), args)
+            self.assertIn('--memory-swap=' + str(self.recipe.memory_bytes), args)
+            self.assertIn('--pids-limit=512', args)
+            self.assertIn('--cgroup-parent=' + str(p.parent), args)
+            self.assertIn('--read-only', args)
+            self.assertIn('/hydra-entry.py', args)
+
     def test_rejects_nonloopback_and_duplicate_gpu(self):
         with self.assertRaises(ValueError):
             self.make(storage_address='192.168.1.1')
