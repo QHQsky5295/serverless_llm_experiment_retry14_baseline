@@ -1,5 +1,55 @@
 # D506 — HydraServe full W0: preregistered single observation
 
+## Actual outcome: invalid/incomplete due to adaptation lifetime cap
+
+The run below was launched once and stopped after a verified launcher/platform
+error. It is **not** a qualified performance result or a native HydraServe
+system-resource failure. Keep the preregistration and all failure evidence.
+
+The isolated adapter's `ContainerRecipe.timeout_s=1800` was passed to
+`podman run --timeout=1800` for storage, CPU provider and every GPU container.
+This option limits the **whole container lifetime**, not startup or a request.
+The installed CLI help and the matching [Podman 3.4.4 documentation](https://docs.podman.io/en/v3.4.4/markdown/podman-run.1.html#timeout-seconds)
+confirm that meaning. All six exact-owned containers exited after approximately
+1,800 seconds; captured State records show `OOMKilled=false`. This was a bug in
+our isolation adaptation, not evidence that HydraServe cannot serve this load.
+The prior short qualifications did not run long enough to expose the cap.
+
+Final publisher record: N_plan=4000, N_arrived=N_terminal=2229,
+N_response=1202, N_failed=1027 (includes cancellations). The 1,771 unarrived
+requests are not relabelled timeouts. No full SLO/GPU-s ranking or finite
+per-correct cost is derived from this truncated execution. Full native numerical
+correctness remains unclaimed; the strict full-run audit was not executed.
+
+The exact launcher was interrupted using a verified pidfd so its existing
+cleanup path could stop its own service, publisher and watcher. tmux exit=2;
+launch classification=`protocol_or_launcher_error`; actual GPU contexts clear,
+service resource group removed, launch auxiliary recursively empty and closed.
+Peak service memory 50,427,858,944 bytes; high/max/OOM/OOMkill/swap events zero.
+Remote 3B/7B/monitor stopped by their recorded InvocationIDs **after** local
+release; ports 18080/18081 absent and collected logs SHA-verified.
+
+Two diagnostic-helper failures before the interrupt are also retained: host
+Python 3.10 could not parse Podman's nanosecond ISO timestamps; the existing
+3.12 environment parsed and saved the evidence but lacks `os.pidfd_open`.
+The separate host pidfd helper then delivered the checked signal. Neither
+failure changed the running policy or triggered a rerun.
+
+Next correction is narrowly scoped: remove the inappropriate per-container
+lifetime timer and leave service lifetime with the native controller and the
+existing bounded campaign/watchdog cleanup. Do not replace 1,800 with an
+arbitrarily larger constant. Retain request protection, startup checks, native
+scheduler/cache/batch settings and common evaluation thresholds. Validate the
+specific lifecycle contract, preserve this attempt, then run a new full-W0
+attempt. No performance parameter search or baseline optimum claim is allowed.
+
+Stopped container metadata remains in the isolated Podman store; capture its
+logs/state and remove only these exact-owned, exited objects before the next
+launch. Unique weights, source traces, raw failures and the unrelated k3s
+cluster remain untouched. Full remaining project scope is unchanged.
+
+## Original preregistration (retained)
+
 2026-10-13. This record is written before launch; no result is asserted here.
 The next step follows D505's 1,000-request compatibility audit, not another
 elementary qualification. Original D503 runtime integration is unchanged.
