@@ -1,4 +1,34 @@
-# IEEE TC status — D507 lifetime correction prepared, full4000 not yet launched
+# IEEE TC status — D507 terminal 3876 responses / 124 failures; resources closed
+
+LATEST CHECKPOINT: D507 failure-aware outcome SEALED and BASE pushed/remote-equal
+988f7662b6282c925dee08a7c72ee2ce20a532b2. Fresh90CPUtests/protected147/userdirt/
+vendorclean/secrets/diff passed.613-file full local archive31,630,351B retained
+outside staged Git;602-file compact curated archive1,523,017B SHA
+11a8bcc1b9208821957ec87cac4683f708ea091968a04866e752411f0ecfdd2c backed up.
+Five remaining native containers' State/stdout/stderr preserved, no containers
+deleted; original idle path had already removed w1 with recordedrelease.
+CPU7/8/10/11/12/13/14/15/16 actually empty/closed; no GPU inference live.
+
+D508 NEW READ-ONLY diagnosis PASS, NOT a GPU run: pinned official arg_utils/
+config/core scheduler/controller re-fetched and byte-identical to nativevendor.
+All three executed EngineArgs sites enabled LoRA but did not override max_loras
+or max_cpu_loras. Actual defaults max_loras=1,max_cpu_loras=None->1; native
+controller admission batch8. Original backend defers distinct adapters when
+max_loras is occupied. In3632responses BEFORE first timeout, every worker had
+peak distinct-adapter decode overlap1, cross-adapter overlapping pairs0; same
+adapter peakrequest overlap5/5/6/5. This directly supports a capacity-mismatch
+hypothesis; no claimed intervention speedup yet. Raw d508_20261013/
+adaptation_diagnosis.json records sourceSHA/online URLs and exact observations.
+
+NEXT: finish MAIN backup, then necessary HydraServe adaptations: single-owner
+iterator cancellation plus LoRA batch capacity derived from original per-instance
+admission (with actual memory qualification), NOT arbitrary capacity sweep or
+larger timeouts. Preserve native policies/pipeline/consolidation/old failures.
+Investigate complete-stage effect and validate before a NEW affected full4000
+execution key. No more elementary import/tokenizer tests. After faithful actual
+HydraServe result, full available baseline comparison, then PrimeLoRA optimization.
+Mainline/fullmatrix remains ACTIVE; do not accept abnormal baseline performance
+without adaptation review under latest user clarification.
 
 Updated2026-10-13. Current checkpoint, NOT replacement plan. Entire preceding
 status byte-identically archived EXECUTION_HISTORY_THROUGH_D491.md; cmp passed,
@@ -6,7 +36,193 @@ SHA017a48a3675c0aa9e2f1baff09552539a0ebe64123816a2ad883f25a7f5063d1.
 Older D477/D461/D448/D433/D402 histories remain. Their NEXT/RUNNING notes are
 historical, not current instructions. No approved task/outcome/failure removed.
 
-## D507 current checkpoint (2026-10-13; prepared, NOT yet running)
+## D507 current outcome (2026-10-13; terminal, nonfeasible; audit pending)
+
+The SAME full4000 run ended: N_plan=N_arrived=N_terminal=4000,
+N_response=3876, N_failed=124. These are response counts, not yet independently
+audited V1 contract counts; raw n_correct remains unknown. Do NOT restart this
+baseline or extend request timeouts because of the failed outcome. Original
+success-only audit.py remains unexecuted. A new failure-aware audit is next.
+
+Post-terminal service finalization exceeded the existing 60s guard; launch
+classification protocol_or_launcher_error, service/watchdog -15, replay 1,
+hard_kill=true/released=false; tmux exit91 at original close_audit assertion.
+This POST-terminal closure failure does not erase the preceding 124 actual
+request timeouts. Original launch/close logs and preregistration remain unchanged.
+There is no original terminal GPU census: full physical closure cannot be assumed.
+
+NEW recover_closure.py verified original service Invocation/inode and recursively
+empty descendants, plus empty native GPU census; stopped ONLY the two empty owned
+service/launchaux scopes. Actual recovery time recorded, not backdated release.
+Peak54397161472B, all high/max/OOM/OOMkill/swap0 over5773 samples. Service
+Invocationd855457eebbb44fe93ca7d792ca987ad,inode24207809 gone; aux9 Invocation
+0b984cf4de2844b7b93388ceac2387d4,inode24207609 gone. RecoveryCPU7/remoteCPU8
+also actually empty/closed. Exact-owned remote3B/7B/monitor stopped AFTER local
+release, both ports absent; transfers/monitor SHA matched remote originals.
+No k3s or unrelated service accessed/changed. No GPU experiment is live.
+
+NEXT failure-aware native/request/source/timing/remote audit, observed/right-censored
+physical accounting, seal/back up outcome; then full available baseline comparison
+using latest PrimeLoRA D476, followed by PrimeLoRA optimization. Full approved
+matrix remains ACTIVE; failure does not authorize baseline performance search.
+
+LATEST user goal supplement: unreasonably poor baselines require evidence-based
+adaptation review, not automatic acceptance under the no-performance-search rule.
+Read updated BASELINE_EXECUTION_RULES_20261011.md. D507 failure-aware audit now
+PASS: 3876 native contract responses,124 timeouts,6/4000 joint SLO. 105 server
+generator-close overlap errors occur AFTER client timeouts (19 other cancellations).
+3632 responses preceded first timeout. Poor pre-timeout queuing is observable;
+later responses/retirement may be affected by OUR cancellation adapter. Do not
+declare faithful full-result closure or attribute all slowness to original policy.
+Necessary cancellation ownership review/repair remains before a clean full baseline
+result and PrimeLoRA optimization; no timeout/SLO relaxation or winner filtering.
+Original physical ledger has4acquires/1release: exact U is unknown; audited lower
+22932.369175774GPU-s, conservative recovery upper24496.389781413GPU-s, NOT a
+precise ranking value.132remote transfers131480060wireB, all bound including5
+first-touch transfers belonging to failed requests. First offline audit correctly
+stopped on these missing failure-owned transfers; v1 source/error preserved,
+failure-aware v2 included their retained artifact receipts and passed.
+
+Native log capture first stopped on stale Podman Running state after conmon kill;
+actual originalPID/birth gone, recursivegroups gone. Keep stale State as evidence,
+do not rewrite it. Read-only capture v2 uses actual ownership/absence, not labels.
+No containers removed. Final curation/backup and cancellation-path review next.
+
+### D507 preceding launch/wait history (no longer running)
+
+LATEST OUTCOME WARNING: late http_request_failed events now observed in the SAME
+run. Bounded tail of launch_gate.launch/replay.jsonl confirms TimeoutError at
+~1800s from planned arrival, e.g. req_03614 arrival1404068.3725305658,
+completion1405868.379617821; req_03620 similarly. Initial submission lag was
+milliseconds; native allocation logs show queue waits around1709–1724s.
+These are actual request-deadline failures, NOT the removed container-lifetime
+timer. Watchdog5233 stillhigh/max/OOM/OOMkill/swap0,warningfalse/abortnone.
+Full denominator4000 staysfixed. Later terminal_count mixes responses AND
+failures; do not label it allsuccessfulresponses. Exactpopulation/source/timing/
+resource attribution requires postclosure audit; do NOT infer rootcause or
+change runtime/timeout/configuration whilelive. Existing audit.py requires4000
+native-contract responses and is now NOT the appropriate success audit; leave
+it unexecuted and preserve it. After actualtermination/ownedclosure, derive a
+NEW failure-aware observation with all planned/arrived/response/failed counts,
+native/source binding for actualresponses and physical union, not a feasible
+G1 point. Preserve failures and proceed to full availablebaseline comparison;
+no baseline performance tuning or rerun merely because it misses the goal.
+
+ONE tmux primelora-d507 panePID3014164 isalive; run_and_close.sh launched once.
+Service primelora-tc-svc-e55e30421ffe4d4d868962062271f68d.scope,
+Invocationd855457eebbb44fe93ca7d792ca987ad,inode24207809; launchaux9.
+Actualexternalreplay matchespreregistered4000W0view. Deploymentnotice
+1400584.845739947; replayt0=1400644.845739947, samequalifiedmonotonicclock.
+Nativeprivate storage initialized, CPUprovider startupundercommon80GiB underway.
+Latestinitialwatchdogsample8:events0/swap0,warningfalse/abortnone; no fullclaim.
+
+Beforelaunch BASE3eec32869c657e8020581da4354ee9ad8b91a95d and
+MAINec36afd489a3edcaa3357e398ec8ad6102a15f77 pushed/remote-equal;
+90freshCPUtests/protected147/userdirty/archiveSHA/secrets/diff passed.
+CPU1–6 actualemptyclosed. Authenticatedremotehealth AND source/protected/resource
+gates explicitlycompleted/readPASS BEFORElaunch, freshactual1000Mb/s/full.
+Remote3BInvocatione37895d5a09a4b6d9d4790afb586f1b1;
+7B362722f2e67b48b794ecd2cf8b8271df;monitord9aeae341231412d8259a9953ad9e70f.
+D78/D80readonlypublishedobjectscoldper-run,reusedwithoutrepublishing.
+
+DO NOT rerunprepare/launch/audit oroverwrite. Monitor actualtmux/process and
+watchdog/service logs. No remoteadmin/build/hashscan/compression/secondGPUtask
+whileactive. run_and_close.sh closeslocally thenexact-ownedremote/collectslogs.
+Onlyafteractualclosure use strictaudit.py ifall4000complete; otherwiseclassify/
+retainfailure. Auditnotyetexecuted. Thenfullavailablebaselinecomparison ->
+PrimeLoRAoptimization. Fullremainingmatrix atfileend remainsACTIVE.
+
+Latestactualwatchdogsample136:11HTTPresponsesobserved; nativeGPUprocesses
+3018560/3021262/3022430 onphysicalGPUs0/1/2, originalfourthallocation stillonline
+controllerdecision. tmux3014164alive;service42.3983GiB,hostavailable62.5168GiB,
+disk170.5484GiB,high/max/OOM/OOMkill/swap0,warningfalse/abortnone.
+No prefixperformanceconclusion, no runtime/remotechanges. This runningnote is
+localpendingpostrunbackup; precedingtestedcheckpointalreadyremotelybackedup.
+
+Verified waiting thisturn: same actualtmux3014164 stayedalive; observedresponses
+74->129->180->242->327->395. Latestwatchdogsample756:service45.4206GiB,
+hostavailable60.1092GiB,disk169.6068GiB,high/max/OOM/OOMkill/swap0,
+warningfalse/abortnone. Originalqueuewait retained; no service/runtime/remote
+change, hashscan, repeat, performanceanalysis or extraheavyjob. Awaitthissame
+full4000run andactualclosure; strictaudit.py stillNOTexecuted.
+
+Read-only postrun-entry inspection (NOT a newcomparison): reuse MAINscripts/
+ieee_tc/check_d299_full_context.py matched_controller_rows/matched_native_entry/
+matched_request_contract/matched_relative_observation and existingD476
+RAWp2_backend_qualification/d476_20261012/compare_curate.py source-bound join.
+MAINpaper_results/ieee_tc/main_comparison/d454_7b_w0/comparison.json contains
+OLDERPrimeLoRA row; use latestsealedD476 matched_comparison.json.candidate,
+keepallotherbaseline rows/failures and historicalPrimeLoRA references explicit.
+D476 provenance key is refs (not source_refs); matchedcontractSHA
+384b63425402ced97961e91081265d3cbe340b6a3b4febde242de28f62cd7399,
+458224nativeoutputs/132actualIDs. AfterHydraServeclosure: completeitsstrictaudit,
+source/content/prompt/target/timing/resource cross-join thenallavailablecomparison.
+Do not assume sharednominalW0label alone provesmatchedcontract. No comparison
+or PrimeLoRA optimization has been executed early; wholeapprovedscopeACTIVE.
+
+Further verified wait: the SAME tmux panePID3014164 remained alive while observed
+HTTP responses advanced431->653->730->798->841. Latestwatchdogsample1417:
+service46.3260GiB,hostavailable59.5219GiB,disk169.1500GiB; high/max/OOM/
+OOMkill/swap0,warningfalse/abortnone. The fourth nativeGPU workerPID3024474 is
+recorded in the service resource domain; no foreign compute process observed.
+Native instance queue waits remain in the measured timeline. No restart, runtime
+or remote changes, build, scan, compression, extra heavy job or result filtering.
+Full PLAN/status and frozen V1/single-run V2 were reread; prepared audit.py was
+inspected read-only, NOT executed. Continue this original full4000 run, then check
+actual local/remote closure before audit/curation/backup and allavailablebaseline
+comparison. A live prefix is not a completed result or numerical correctness proof.
+
+Next goal turn classified VERIFIED WAIT: same actual panePID3014164/process alive
+through887->926->1021->1093->1138->1177->1219->1296 observedHTTPresponses.
+Watchdogsample2109:service47.1220GiB,hostavailable59.0971GiB,disk168.7353GiB,
+high/max/OOM/OOMkill/swap0,warningfalse/abortnone. At sample1942 monotonic
+1402552.737769622 all four original nativeGPU PIDs3018560/3021262/3022430/
+3024474 were still present with their original birth identities. Later ps at
+sample2028 showed elapsed33:15/32:25/32:10/31:41 respectively: actual workers
+survived beyond the erroneous D506 1800s container lifetime boundary. This is
+lifecycle-correction evidence, NOT full-run or SLO/numerical qualification.
+No changedruntime/remoteconfiguration, restart, additionalexperiment, audit or
+compression. Continue SAME full4000; postclosure audit/curation/backups and all
+availablebaselinecomparison remain next, followed by PrimeLoRA optimization.
+
+Subsequent verified waiting: same live tmux/process3014164, responses1340->1395
+->1457->1503->1563. Latestwatchdog2488:service47.3699GiB,hostavailable58.8991GiB,
+disk168.7848GiB,allhigh/max/OOM/OOMkill/swap0,warningfalse/abortnone. No restart,
+runtime/remotechanges, secondheavyjob, prematureaudit or ranking. Original full
+4000 remains live; fullclosure/audit/curation/comparison still await this run.
+
+Further VERIFIED WAIT: actualtmux/process3014164 stayedalive; response observations
+1624->1684->1760->1810->1868->1913->1971->2023. Latestwatchdog3025:
+service47.9664GiB,hostavailable58.5087GiB,disk168.5479GiB; high/max/OOM/OOMkill/
+swap0,warningfalse/abortnone. Same originalrun beyond half of plannedresponses,
+not a second experiment and NOT a completed/audited result. No runtime/remote/
+sourcechanges, heavyparallelwork, prematureanalysis or configurationselection.
+Next remains SAMErun completion + actualclosure -> strictaudit/curation/backup
+-> allavailablebaselinecomparison -> PrimeLoRAoptimization; fullscopeACTIVE.
+
+Latest VERIFIED WAIT: originaltmux3014164 actualalive beyondonehour; responses
+2081->2150->2238->2305->2383->2437->2493. Watchdog3528:service48.5495GiB,
+hostavailable58.1380GiB,disk168.1780GiB,high/max/OOM/OOMkill/swap0,
+warningfalse/abortnone. No newexperiment, runtime/remotechanges, earlyaudit or
+performancecomparison. Keepawaiting SAMEfull4000 andactualclosure, then follow
+the previouslyprepared strictaudit/curation/backup/fullcomparison sequence.
+
+Continuation VERIFIED WAIT: sameactualtmux/process3014164 alive; observedresponses
+2526->2598->2653->2714->2759->2812->2867->2921->2974->3030. Watchdog4210:
+service49.2424GiB,hostavailable57.5918GiB,disk167.8147GiB,high/max/OOM/OOMkill/
+swap0,warningfalse/abortnone. No restart, source/runtime/remotechanges, extra
+heavyjob or prematureanalysis. Original full4000 stillRUNNING; morethanthree
+quarters of responses observed, not yet complete/audited. Await SAMErun and
+actualrelease, then existing strictaudit/curation/backups/fullbaselinecomparison.
+
+Further VERIFIED WAIT: actualsame tmux/process3014164 remainedalive; responses
+3065->3111->3161->3221->3267->3303->3372->3409->3450->3489. Latestwatchdog4894:
+service49.9644GiB,hostavailable57.2171GiB,disk167.5438GiB,high/max/OOM/OOMkill/
+swap0,warningfalse/abortnone. No config/source/remotechange, restart, parallel
+heavyjob, prematureaudit or performanceclaim. Full4000 stillRUNNING; awaitits
+actualterminal+closure. Existing requestguards remainfrozen, failuresretained.
+
+### D507 preparation history (completed before launch above)
 
 D506 failure sealed BASEf1591bff7ab9d828b5697e3308aece6ba676ba7d and
 MAINbcc2d8ab4091f56de6db5e12c6685384367449d3, bothpushed/remote-equal.
