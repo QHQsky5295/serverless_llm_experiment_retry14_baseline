@@ -1,4 +1,4 @@
-# IEEE TC status — D505 1000-request compatibility sealed; full4000 next
+# IEEE TC status — D506 full4000 W0 prepared; not yet launched
 
 Updated2026-10-13. Current checkpoint, NOT replacement plan. Entire preceding
 status byte-identically archived EXECUTION_HISTORY_THROUGH_D491.md; cmp passed,
@@ -21,6 +21,38 @@ performance optimization; baseline compatibility/correctness/measurement/safety
 only, no performance tuning/configsearch. Existing k3s belongs to another project;
 do not access/change cluster/credentials/permissions/resources. Isolated rootless
 Podman adaptation authorized; no barevLLM substitution, fakeReady or fake nodes.
+
+## D506 preregistration (2026-10-13; no result yet)
+
+Raw originalresults/ieee_tc/hydraserve_qualification/d506_20261013 prepared ONCE.
+Unchanged D505 native runtime/controller/backend/modeltuple/cache/idle policy;
+only request population1000->4000 and campaign identity changed. Full existing
+W0 view SHA a5331be2e2204483f18206825d9aaa18cbaa259fe0babfc303f989055819430d,
+same source trace/pool/fixed-output/open-loop/60s notice/realremote contract.
+Preregistration SHA033911e0ae567ae8c3dd02dc0bf0be65739465ae0acd10113fa3899c06654b24.
+Read BASEdocs/ieee_tc/D506_HYDRASERVE_FULL_W0.md. Native9000/200ms control
+inputs remain separate from commonD394 EVALUATION thresholds; no baseline tuning.
+Keep formal_run=false/qualification identity/raw n_correct=null. Derive full
+V1 binding/accounting observation only after actual complete evidence audit;
+do not require new cross-backend exact token equality or invent numeric proof.
+
+Preparation CPU1 actual empty/closed: Invocationedc250ddd76a40f6b7075ec531585b96,
+inode24176808, peak135823360B/events0/swap0. No D506 GPU or remote service
+has started at this checkpoint. Next back up preregistration, await/read remote
+start and authenticated health/resource/source/protected gates, close CPU scopes,
+then launch one tmux full4000 with unchanged20GiB growth and common safety gates.
+Do not repeatprepare/overwrite files. Run closure automatically, then collect
+remote evidence only afterlocalrelease. Pipeline/migration/consolidation scope
+remains limited to actual events; one physicalhost, unrelatedk3s untouched.
+After fullresult: allavailablebaseline comparison ->PrimeLoRA optimization.
+Entire remaining matrix at end of thisfile remains ACTIVE.
+
+D506 preregistration BASE329a021df779581381380e2e8afea22194778f2a pushed,
+independently remote-equal; fresh88CPUtests/protected147/source/userdirty/vendor/
+secrets/diff gatesPASS. Firstbackup CPU2 usedhostPythonmissing aiohttp/numpy;
+3importerrors preserved, nothingstaged/GPUstarted. QualifiedexistingCPUenvironment
+passedall88; no install/runtimechange/testskip. CPU2/3 actualemptyclosed.
+MAINstatusbackup follows beforefreshremotehealth and guardedlaunch.
 
 ## D505 actual qualification COMPLETE (2026-10-13; not full W0 performance)
 
