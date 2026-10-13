@@ -1,6 +1,6 @@
-# IEEE TC execution status — D485 HydraServe native compilation running
+# IEEE TC execution status — D486 native libraries imported; GPU qualification next
 
-Updated 2026-10-13 10:20 CST. Current checkpoint, NOT replacement plan.
+Updated 2026-10-13 10:58 CST. Current checkpoint, NOT replacement plan.
 Preceding status byte-identically archived in EXECUTION_HISTORY_THROUGH_D477.md;
 cmp passed, SHA cee5b2b0527a0ff9f2d07d2dc65c86a74dd2ce0d1b3b27f4a434f764e9adb128.
 D461/D448/D433/D402 and older histories remain. Historical NEXT/RUNNING lines
@@ -13,12 +13,79 @@ after compaction and before experiments. SHA
 f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5.
 Read BASELINE_COMPLETION_ORDER_20261012.md and BASELINE_EXECUTION_RULES_20261011.md.
 
-NEWEST order: STORAGE_PRIORITY_20261013.md. First audit and reclaim proven
-obsolete/rebuildable data or losslessly compress closed evidence; no new build
-or inference until this maintenance is addressed. No unique assets, failed
-evidence or unrelated project data deletion. Then resume the baseline order below.
+Latest user goal again confirms HydraServe actual result -> allavailablebaseline
+comparison -> PrimeLoRA optimization; recheck frozen metric fairness, particularly
+ServerlessLLM TTFT/SLO. D483 storage maintenance is already COMPLETE; no new
+storage sweep by default. Continue monitoring actual disk/memory; no uniqueassets,
+failed evidence or unrelateddata deletion. Original storage-first record retained.
 
-## D485 LIVE native compilation (not GPU qualification or performance)
+## D486 COMPLETE native package/import and separate SLO recheck (no GPU result)
+
+D485 former unifiedsession42070 TERMINAL SUCCESS: all29officialCMake steps,
+elapsed2198.173899430083s. _C/_moe_C/_punica_C and reusedfastload actualoutputs
+SHAverified; nativecheckoutclean. Exactscope2 Invocation/inode/actualrecursiveempty
+thenclosed; peak3221487616B,high557/max0/OOM0/OOMkill0/swap0. Do NOT restartbuild.
+Read BASE docs/ieee_tc/D486_HYDRASERVE_NATIVE_INSTALL.md, priorD485docs are historical.
+
+RAW originalresults/ieee_tc/hydraserve_qualification/d486_20261013.
+Reuse BASE/installs/hydraserve_native_d484_20261013; nativeoriginalVLLM_USE_PRECOMPILED
+installs unchangedPython + ownD485extensions from209fileSHAmanifestprivateview.
+Actualvllm0.4.2/distribution0.4.2+cu124, Torch2.3.0+cu121,
+FlashAttention2.5.8/cu122/Torch2.3/cp310/ABI false, NCCL2.18.1 allimported.
+Actualfastloadtorch.ops load PASS with ENABLE_PARA=0 IMPORT-ONLY, noSHM/model;
+do not carry import-only bypass into actualnativefastload qualification.
+CUDA NOT initialized, numerical/performance NOT qualified. Never use barevLLM.
+
+Originaldependencies attempt80.083247s installedallpackages/pipcheckPASS then
+failedSHAcheckbecause officialwheeldoesnotpackage fused_moe/configs/README.
+Onlythat README missing; originalfailure/source preserved. Newverify_import.py
+excludes exactnonruntimeREADME, allotherPython/data/binariesSHAchecked. No reinstall,
+downloadorcompile repeated. Retry3.184380sPASS; scope2/3actualemptyclosed,
+peaks1482092544/259051520B,allevents/swap0. AllD486workTERMINAL.
+NCCL public291649520B SHA005503b62b9fe466b6b2f60ba2ad1daa4571196ffcb82a3d77a3c775bfcd5ac8,
+privatepath RAW/private_home/.config/vllm/nccl/cu12/libnccl.so.2.18.1;0644,
+set VLLM_NCCL_SO_PATH explicitly in actualdeployment. OriginalNCCLsetup.py writes
+globalHOME/retriesforever, so privateHOME+boundedpredownload+officialMD5 used.
+FlashwheelSHA13454dd3d37cf173649bd389b84614b8072fb283f8f2fd23a65ab66caafc304b.
+Sources/installedABI/versionactualreadback + officialreportsretained. Host/oldenv
+unchanged; reusedNVnamespace mustnotpipupgrade/uninstall; readonlycontainer mounts.
+Completedfree202032189440B (~188.16GiB), fresh gatesbefore nextheavyjob.
+
+Separate requestedoffline metric recheck: D414 raw40MBreplay exactSHA,
+4000nativeclocks/adapter/prompt/token identities, direct f-a and (l-f)/(n-1),
+existing frozen_slo_summary ALLmatch priorsealedmetrics. TTFT3929,TPOT3996,
+joint3925/4000=.98125. MeanTTFT973.686780/P951052.246361ms;
+P9923238.101457/max79281.846124ms. First500joint446/P95TTFT44825.547774ms.
+This is NOT oldfour-minute-wait run. Complete95% canpass withstartupviolations;
+noneexcluded, >95%global isnot everyphase guarantee. Raw n_correctunknown and
+independentnumericalproofstillfalse; resourcefromsealedD414notreintegrated.
+MAIN docs/ieee_tc/D486_METRIC_FAIRNESS_RECHECK.md explains formulas/fairness/scope,
+paper_results/ieee_tc/metric_audit/20261013_d486_serverlessllm_recheck.json records.
+Recheckscope1closedactualempty peak180277248B,allevents/swap0. NoGPUrerun/noCI.
+
+50explicit source/failure/import/recheck/terminalrecords archived/roundtripverified,
+protected147pass, sourcesyntaxpassed; no newCPUunittestclaim. BASEcuratedd486
+archive043bd908617607ad1ac2f841ff4cac24259710360b6e786d83387221cd1517e8,
+summary20ab32628088f9a34220b33efec40c7b788326af5f510b8650cfea963c35aa88.
+Curation4closureandBASE/MAINbackupreceipts inRAW. PriorverifiedHEADs
+MAIN1741e88d50c7f80964ce7b2d9fde3f02463fe2fd/BASE53ce76b3ea513a3d61a7075780df98a8594f52f7;
+BASE D486 a5fd938efddcce86141e49bd4b4acda6bfab59de pushed/independentlyremoteequal;
+MAIN checkpoint follows with independentremoteequality. No newPrimeLoRAcandidate.
+
+NEXT MAIN LINE: actual isolatedGPU kernel/nonzeroLoRA andnativeworkerqualification,
+not another dependencyinstall/build. Read/reuse D477/481 actualcontainer components,
+D479 sharedLoRAowner, D480 lifecycle seam (concreteplatform NOT yet implemented),
+sourcepinned necessaryrequest/fixed-output/native-token adaptation, safe readonly
+backbone layout/provider andprivateSHM (neverhostshm). Sourceapp LOCAL_SERVER=1
+uses fastload; sourceCPUprovider packsmodelbytesandwoulddefaultload13B too:
+mustonlyrequestexisting7B/3B, no13B/uniqueweightsrewrite/newwholepool.
+Check actualmemory before loading; realPyTorchGPU successstillOPEN. Source-pinned
+tests/lora/test_punica.py has native reference/tolerance to reuse; no newweights.
+Then100->500-ID->1000->4000 actualresult, fullavailablebaselinecomparison,
+onlythenPrimeLoRAoptimization. W1/W2/G2,3B,ablation,sensitivity/docsremain below.
+
+## D485 preceding live checkpoint (now completed and closed above)
+
 
 D484 dependencies complete andbackedup; MAINc6f16c3218d9cd9b71cb95d5936521a7f7a5114a
 andBASE8c52abc505cb83c9f019badbe0e0f709d75ea292 pushed/remoteequal.

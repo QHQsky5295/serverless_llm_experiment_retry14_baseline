@@ -1,0 +1,262 @@
+{
+  "passed": true,
+  "new_performance_run": false,
+  "independent_numerical_proof": false,
+  "source_replay_sha256": "589db9707b8e05e2bf3056b6ff9c303fd0a1fa0e31ebded3d6f35aa59c670d30",
+  "audit_sha256": "714a2fdb01b2d5a0e2e6f3a9b0faf7cb23b29632efbf5b343822b7dfe4b7dd74",
+  "analyzer_sha256": "92e2d33bd2cf4d2fbe6ab7eb93ae8a220d92ccd0dfae7b0460f929c063643377",
+  "freeze_sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3",
+  "protocol_v1_sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+  "amendment_v2_sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d",
+  "counts": {
+    "event": "http_replay_complete",
+    "N_plan": 4000,
+    "N_arrived": 4000,
+    "N_terminal": 4000,
+    "N_response": 4000,
+    "N_failed": 0
+  },
+  "common_slo": {
+    "offered": 4000,
+    "binding_valid": 4000,
+    "ttft_good": 3929,
+    "tpot_eligible": 4000,
+    "tpot_good": 3996,
+    "joint_good": 3925,
+    "ttft_attainment": 0.98225,
+    "joint_attainment": 0.98125,
+    "conditional_tpot_attainment": 0.999,
+    "observed_feasible": true,
+    "independent_numerical_proof": false
+  },
+  "metrics": {
+    "ttft_ms": {
+      "count": 4000,
+      "mean": 973.6867795758299,
+      "p50_type1": 463.91269098967314,
+      "p95_type1": 1052.2463605739176
+    },
+    "tpot_ms": {
+      "count": 4000,
+      "mean": 26.73673387053769,
+      "p50_type1": 25.691563129315483,
+      "p95_type1": 32.929275365960265
+    }
+  },
+  "source_order_phases": [
+    {
+      "first_index": 0,
+      "last_index": 499,
+      "common_slo": {
+        "offered": 500,
+        "binding_valid": 500,
+        "ttft_good": 447,
+        "tpot_eligible": 500,
+        "tpot_good": 499,
+        "joint_good": 446,
+        "ttft_attainment": 0.894,
+        "joint_attainment": 0.892,
+        "conditional_tpot_attainment": 0.998,
+        "observed_feasible": false,
+        "independent_numerical_proof": false
+      },
+      "ttft": {
+        "count": 500,
+        "mean": 4260.284169348422,
+        "p50_type1": 438.58492840081453,
+        "p95_type1": 44825.5477740895
+      }
+    },
+    {
+      "first_index": 500,
+      "last_index": 999,
+      "common_slo": {
+        "offered": 500,
+        "binding_valid": 500,
+        "ttft_good": 488,
+        "tpot_eligible": 500,
+        "tpot_good": 497,
+        "joint_good": 485,
+        "ttft_attainment": 0.976,
+        "joint_attainment": 0.97,
+        "conditional_tpot_attainment": 0.994,
+        "observed_feasible": true,
+        "independent_numerical_proof": false
+      },
+      "ttft": {
+        "count": 500,
+        "mean": 657.9451127522625,
+        "p50_type1": 439.4731158390641,
+        "p95_type1": 2842.0184429269284
+      }
+    },
+    {
+      "first_index": 1000,
+      "last_index": 1499,
+      "common_slo": {
+        "offered": 500,
+        "binding_valid": 500,
+        "ttft_good": 494,
+        "tpot_eligible": 500,
+        "tpot_good": 500,
+        "joint_good": 494,
+        "ttft_attainment": 0.988,
+        "joint_attainment": 0.988,
+        "conditional_tpot_attainment": 1.0,
+        "observed_feasible": true,
+        "independent_numerical_proof": false
+      },
+      "ttft": {
+        "count": 500,
+        "mean": 547.0937300682999,
+        "p50_type1": 451.1293505784124,
+        "p95_type1": 955.5806340649724
+      }
+    },
+    {
+      "first_index": 1500,
+      "last_index": 1999,
+      "common_slo": {
+        "offered": 500,
+        "binding_valid": 500,
+        "ttft_good": 500,
+        "tpot_eligible": 500,
+        "tpot_good": 500,
+        "joint_good": 500,
+        "ttft_attainment": 1.0,
+        "joint_attainment": 1.0,
+        "conditional_tpot_attainment": 1.0,
+        "observed_feasible": true,
+        "independent_numerical_proof": false
+      },
+      "ttft": {
+        "count": 500,
+        "mean": 433.2188348695636,
+        "p50_type1": 459.44071491248906,
+        "p95_type1": 644.4267733022571
+      }
+    },
+    {
+      "first_index": 2000,
+      "last_index": 2499,
+      "common_slo": {
+        "offered": 500,
+        "binding_valid": 500,
+        "ttft_good": 500,
+        "tpot_eligible": 500,
+        "tpot_good": 500,
+        "joint_good": 500,
+        "ttft_attainment": 1.0,
+        "joint_attainment": 1.0,
+        "conditional_tpot_attainment": 1.0,
+        "observed_feasible": true,
+        "independent_numerical_proof": false
+      },
+      "ttft": {
+        "count": 500,
+        "mean": 447.2439753576182,
+        "p50_type1": 479.6723611652851,
+        "p95_type1": 678.1015109736472
+      }
+    },
+    {
+      "first_index": 2500,
+      "last_index": 2999,
+      "common_slo": {
+        "offered": 500,
+        "binding_valid": 500,
+        "ttft_good": 500,
+        "tpot_eligible": 500,
+        "tpot_good": 500,
+        "joint_good": 500,
+        "ttft_attainment": 1.0,
+        "joint_attainment": 1.0,
+        "conditional_tpot_attainment": 1.0,
+        "observed_feasible": true,
+        "independent_numerical_proof": false
+      },
+      "ttft": {
+        "count": 500,
+        "mean": 456.35453973477706,
+        "p50_type1": 493.224790552631,
+        "p95_type1": 743.7665909528732
+      }
+    },
+    {
+      "first_index": 3000,
+      "last_index": 3499,
+      "common_slo": {
+        "offered": 500,
+        "binding_valid": 500,
+        "ttft_good": 500,
+        "tpot_eligible": 500,
+        "tpot_good": 500,
+        "joint_good": 500,
+        "ttft_attainment": 1.0,
+        "joint_attainment": 1.0,
+        "conditional_tpot_attainment": 1.0,
+        "observed_feasible": true,
+        "independent_numerical_proof": false
+      },
+      "ttft": {
+        "count": 500,
+        "mean": 490.8396820286289,
+        "p50_type1": 513.1623870693147,
+        "p95_type1": 757.0240944623947
+      }
+    },
+    {
+      "first_index": 3500,
+      "last_index": 3999,
+      "common_slo": {
+        "offered": 500,
+        "binding_valid": 500,
+        "ttft_good": 500,
+        "tpot_eligible": 500,
+        "tpot_good": 500,
+        "joint_good": 500,
+        "ttft_attainment": 1.0,
+        "joint_attainment": 1.0,
+        "conditional_tpot_attainment": 1.0,
+        "observed_feasible": true,
+        "independent_numerical_proof": false
+      },
+      "ttft": {
+        "count": 500,
+        "mean": 496.5141924470663,
+        "p50_type1": 536.4089198410511,
+        "p95_type1": 812.164357630536
+      }
+    }
+  ],
+  "extra_tail_diagnostics_ms": {
+    "p99_type1": 23238.101456547156,
+    "maximum": 79281.84612398036
+  },
+  "physical_gpu_seconds": 16089.762743524276,
+  "physical_gpu_seconds_per_binding_valid_request": 4.022440685881069,
+  "resource_provenance": "Reuses sealed D414 allocation/release audit; not independently re-integrated here.",
+  "scope": "Exact replay SHA + native clocks, IDs/counts and timing arithmetic; not a rerun of all content/worker/lifecycle validators.",
+  "limitations": [
+    "One reused development observation, not holdout or confidence interval.",
+    "Whole-run >=95% does not ensure startup phase >=95%; no phase or request removed.",
+    "Raw n_correct remains unknown; native contract is not independent numerical proof."
+  ],
+  "source_recipe_sha256": "0df9f075f98d35afa82a1ac893bda84379d91935375588d60571372e46ae6826",
+  "raw_scope_closure": {
+    "passed": true,
+    "identity": {
+      "unit": "primelora-tc-aux-d4860000000000000000000000000001.scope",
+      "invocation_id": "d975965cc13848f99c1a58ca67c6733d",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4860000000000000000000000000001.scope",
+      "inode": 23926246
+    },
+    "resources": {
+      "memory.peak": "180277248",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0"
+    },
+    "actual_recursive_empty": true
+  },
+  "baseline_evidence_archive_sha256": "043bd908617607ad1ac2f841ff4cac24259710360b6e786d83387221cd1517e8"
+}
