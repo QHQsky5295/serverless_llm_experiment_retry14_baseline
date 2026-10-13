@@ -1,4 +1,4 @@
-# IEEE TC status — D501 full native Scheduler generation and idle release PASS
+# IEEE TC status — D502 native Scheduler + request-driven real-remote LoRA PASS
 
 Updated2026-10-13. Current checkpoint, NOT replacement plan. Entire preceding
 status byte-identically archived EXECUTION_HISTORY_THROUGH_D491.md; cmp passed,
@@ -22,7 +22,57 @@ only, no performance tuning/configsearch. Existing k3s belongs to another projec
 do not access/change cluster/credentials/permissions/resources. Isolated rootless
 Podman adaptation authorized; no barevLLM substitution, fakeReady or fake nodes.
 
-## D500–D501 current checkpoint (NOT a performance result)
+## D502 current checkpoint (two-request delivery qualification, NOT performance)
+
+BASEc4dff5e0487f058cd36f4512c2c610bf0be4e78a pushed/remote-equal; MAIN preceding
+02f737f72ad5c9431ab7b128ba5e2f6c224fc051. No live heavy job. Read BASE
+docs/ieee_tc/D502_HYDRASERVE_REAL_REMOTE.md. Fullscope/mainline/goalACTIVE unchanged.
+
+ACTUAL fullnativeScheduler+originalcoldstart/SHMfastload/init -> two request-driven
+remoteLoRAs -> native152/89tokens -> original30sidlerelease PASSED. Two native
+outputsequences equalD501; binding/token identity isNOTnumericalequivalence.
+finance14,718,801B + medical14,736,516B wire, bothcoldmiss/contentverified andremote
+pack_performed=false/temporary_created=false, transferIDs matchedserverrecords.
+Actualnetwork1000Mb/s/fullbeforelaunch, historical100Mbcause stillunknown.
+ExistingD78/D80readonlypublishedcache reused, no republish/newweights/pool/trace.
+Only2objectsfetched;500staticdescriptionsdoNOTmean500-IDfunctionalqualification.
+
+New NativeArtifactViews reuses PublishedArtifactResolver and lossless tokenizer
+view; no extraweightcopy, no prefetch/policytuning. BoundRequest opt-inprepare runs
+AFTERnativeassignment/init BEFOREexistingbackendsubmit. Common300stransportguard,
+original5ssubmittimeout unchanged, totalrequestguard/actual latencyretainallcost.
+Perobject metadata lock/receipt/statguard; cancellationjoinswriter; errorsrelease
+originalinstancecounts. Officialscheduler/engine refetched/bytesmatched. Policy
+ASTunchanged. CPUfirst3renamepermissionsfailuresrecorded(cpu_failure_notes.md),
+noGPUstartedthen; fixedstagingpermissions/sealedfinalpublication,80testsPASS.
+
+D502peak42970333184B; high/max/OOM/OOMkill/swap0. Allactualworkers/provider/storage/
+pause/GPUgone. svcInvocation9d1230e11d7d482e9b882d6e8dc0a2ae,inode24053924;
+aux9Invocation728b0375b7c34d2d87d98d1e14c8693c,inode24053882 actualemptyclosed.
+CPU1–5closed; curation6peak20238336B/events0/swap0closed. Backups7/8exactclosures
+separate. Remote3B/7B/monitor exactInvocation stopped AFTERlocalGPUrelease;
+18080/18081absent/logSHAverified. No remotechangesduringrun. Free201828442112B
+(~188GiB); freshgates required. No broadcleanupneeded/repeated. Existingk3suntouched.
+
+228explicitfiles roundtripSHA, protected147/userdirty/vendorclean/secrets/diff/
+80tests/pushPASS. BASEpaper_results/ieee_tc/hydraserve/d502/remote_scheduler_evidence.tar.gz
+SHA0862b0d94dc54116dd097b33a8254547fe418930f83cbc336ca56263c205b3ac;
+summarySHAe3e1e0750d11701b6a73934bf67eff65e092f51e8e225762f554917644adfb3e.
+Raworiginalresults/ieee_tc/hydraserve_qualification/d502_20261013. DoNOTrerunD502
+prepare/launch/checkpoint or repeat2requesttest. Rawremoteobjects/view metadataare
+smallownedworkingcache, no automaticdelete withoutreferences/receipts check.
+
+NEXT advance commonHTTP/open-loop frontend and physicalGPUledger with existing
+prepare_ieee_tc_serverless_stack.py replay_frozen_http/FrozenReplayPlan interfaces;
+retainactualoriginalScheduler, notbarevLLM orclient-sideartifactpreparation.
+100 ->500-IDfunctional ->1000 ->4000 actualHydraServeresult ->allavailablebaseline
+comparison ->PrimeLoRAoptimization. NumericalLoRA andfullpipeline/KVmigration/
+concurrentconsolidation qualificationremainOPEN; don'tinvent n_correct. Integrate
+necessaryqualification withactualnextworkload, notmoreelementaryimports/tests.
+OriginalnativeModelSettestregistration inD501/D502 isqualificationidentity, NOT
+frozencommonSLO/performanceconfig. ReadV1/V2beforecomparison/configselection.
+
+## D500–D501 preceding checkpoint (NOT a performance result)
 
 BASE2a7f8d7ee780ca12c75768882ea6547507adf322 pushed/remote-equal; MAIN preceding
 af50deb60858e0c1e28a9ade7257bf51070e3ca4. No live heavy job. Read BASE
