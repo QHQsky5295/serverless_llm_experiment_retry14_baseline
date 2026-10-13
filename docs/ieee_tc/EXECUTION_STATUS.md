@@ -1,4 +1,4 @@
-# IEEE TC status — D509 affected GPU qualification prepared, not launched
+# IEEE TC status — D509 GPU qualification PASSED; next full4000 HydraServe
 
 Updated2026-10-13. Previous status preserved BYTE-FOR-BYTE in
 EXECUTION_HISTORY_THROUGH_D508.md. Older histories remain intact; their RUNNING/
@@ -22,51 +22,76 @@ G1/G2 frozen V1 + single-run V2; one performance run/key, no CI/winner filtering
 One heavy job, no build/hash/compression/remote changes during inference.
 Figures deferred until PrimeLoRA near target; paper-evidence Chinese updates.
 
-## D509 current checkpoint — new GPU qualification NOT YET LAUNCHED
+## D509 completed affected GPU qualification — NOT a full W0 result
 
+BASEf3d3f7fb802f30480ea8827060668a3361fd6194 PUSHED/remote-equal.
+MAIN precedingd2b0c1bb15bbfbb12a1d7250d91a32da1f65ff68; outcome backup follows.
+Read BASEdocs/ieee_tc/D509_HYDRASERVE_GPU_RESULT.md.
 RAW originalresults/ieee_tc/hydraserve_qualification/d509_20261013.
-Read BASEdocs/ieee_tc/D509_HYDRASERVE_AFFECTED_GPU_QUALIFICATION.md.
-Prepared existing first100 W0-prefix; 500 static IDs; common HTTP/open-loop/
-fixed-output/60snotice/realremote/physical union, unchanged native Model tuple,
-batch8,cache0,idle30,1800 requestguard,20GiBgrowth/common80GiBenvelope.
-Enable D508 cancellation_ownership=True and lora_admission_capacity=True.
-16 overlays exactly equal D508 CPU-qualified overlay manifest.
-Actual Scheduler Model.batch_size asserted equal source-derived8 before serving.
-Prereg SHA a3f929110c4586c967565a6fe599791aea95614f4925af1c157db9b91b819fe1.
-100 prefix is AFFECTED concurrency/memory qualification, NOT fullW0 ranking
-or new 100->500->1000 ladder. Reuse prior500-ID/input/1000 qualification.
-Must audit native prompt/adapter/index/path/count/clock/content, actual mixed
-distinct-adapter decode overlap>=2, GPU/KV/memory and real complete release.
-No artificial cancellation; if none occurs, only priorCPU cancellation coverage.
-No new weights/pool/trace, no baseline policy or threshold search.
 
-115-file small prelaunch archive258337B created/roundtrip verified:
-BASEpaper_results/ieee_tc/hydraserve/d509/prelaunch_evidence.tar.gz and summary.json.
-It deliberately says prepared_not_launched; later GPU evidence must be appended,
-not overwrite this checkpoint. Source snapshots under executed_sources.
-D508 tested checkpoint BASE5a8e65fffcf91beb646ca7843789303dc142f511 and
-MAIN48d866c2bdaec1cf730daeb81e7908b9fe65f457 both pushed/remote-equal.
-D509 BASE f29cbba35a261b67a2fed7adfaf9206f299f02f3 PUSHED/remote-equal;
-fresh100CPUtests/protected147/userdirt/vendorclean/diff/secrets passed.
-MAIN status/history backup next before remote/gated launch; no new GPU result yet.
+ACTUAL100/100 offered/terminal/native-contract responses,0failed,29actualIDs,
+29remote transfers50,650,865wireB, allmatched/content/clock/index/path/nativecount
+qualified. Original two pp1 workers onONEhost: distinct-adapter decode peak8/3,
+requestpeak8/3,crossadapteroverlappingpairs377/14. Nativecontrolleractualbatch8,
+16overlays exactlyequalD508qualifiedmanifest; both optins enabled. Actualmemory
+nativeGPUworkers814KVblocks/512CPUblocks; peakused21,708,472,320/21,467,299,840B.
+No baselinepolicy/performance search, newinput or changeddeadline. No forcedcancel.
 
-D507 stale cleanup completed: original five containers' logs/State already
-sealed. First exact-ID cleanup removed3workers then rm storage failed because
-provider remained; subsequent strictState/ConmonPid assumptions failed on reaped
-State. All scripts/errors/receipts retained, no GPU launch. Final verified actual
-original/current PID absence and cgroup absence, removed provider before storage.
-No unrelated processes touched, no original release timestamps backfilled.
-CPU1–5 actual recursive-empty closed; events0/swap0. CPU6 curation completed,
-its exact closure follows. Store-specific pauses closed by identity. No k3s.
+Mean/P95TTFT1305.267096/8406.227326ms; TPOT57.773865/67.424540ms;
+meanE2E11330.732935ms. Actualphysicalunion429.210687706GPU-s; windows
+pre0/arrival310.338267300/drain25.070555705/cleanup93.801864702. Independent
+input/remote/native/physical audit PASS. This100prefix isNOTfullW0 or G1/G2point.
+Do not extrapolate its resource/latency to4000 or use it as finalcomparisontable.
 
-NEXT: closeCPU6; tested explicit BASE backup + MAIN status/history backup;
-await/read remote_start success then authenticated health + source/protected/
-resource gates; closeCPU scopes BEFORE ONE tmux primelora-d509 launch.
-Use existing run_and_close.sh (launchaux9). No repeated prepare/overwrite.
-After actual localclosure + remote_stop, independently audit mixed-LoRA/native
-contract/resource. If pass -> one NEW full4000 HydraServe -> source-bound full
-available baseline comparison with latest PrimeLoRA D476 -> PrimeLoRA optimization.
-Do not mistake a 100-prefix for a full result or instantiate another setup ladder.
+Same-native D503 matched100prefix:96outputsequencesequal,4changed.
+req_00008/research_lora_0008:2positions;req_00059/finance_lora:2;
+req_00073/code_lora_0015:6;req_00084/finance_lora:2;allfirstdifferingatindex37.
+Canonicalinput/adapter/target/nativecount unchanged. Fullold/newsequences and
+SHA in same_backend_output_comparison.json. Numericcause NOT independentlyproved;
+do not assert bitwiseequivalence or silently discarddifferences. Existingnonzero
+witnessreq_00000/req_00021 stillmatchD502. PerV1 numericalqualification remainsOPEN/
+rawn_correctnull, not a newcross-backendexact-token requirement. Fullpipeline/
+KV/consolidation remainOPEN; actualpp1qualification alone doesn'tprovethem.
+
+tmuxprimelora-d509 pane3420391 deadexit0. Actualnative30sidleretirement released
+bothworkers; provider/storage/pause/service/GPUcontexts gone. ServiceInvocation
+20d43e791cd94837ad58dce1e3d4f6b4,inode24289995; aux9Invocation
+0743f1bec6994daca69d288bb6377133,inode24289953 actuallyemptyclosed.
+334watchdog samples,servicepeak45,248,995,328B; high/max/OOM/OOMkill/swap0.
+Exact-ownedremote3B/7B/monitor stopped AFTERlocalrelease,portsabsent/logSHAmatched.
+Remoteactual1000Mb/s/fullbeforelaunch; start+authenticatedhealth/source/protected/
+resource gates were explicitlyreadPASS beforelaunch; no remotechangesduringrun.
+CPU1–8/10–13actuallyemptyclosed; resultcuration13peak27,021,312B/events0/swap0.
+BASEbackup14closure andMAINoutcomebackup15 handledseparately. No liveGPUjob.
+
+384file1,194,150B resultarchive roundtripSHA:
+BASEpaper_results/ieee_tc/hydraserve/d509_result/affected_gpu_evidence.tar.gz,
+SHAab62e2940e30ad2ac5e3a0cc3b18236585727db957767abfeaad7f690d99c97d.
+summary.json/source/protected147/userdirt/vendorclean/fresh100CPUtests/diff/secrets
+andexplicitBASEpush gatesPASS. Priorprepared d509/258337Barchive staysimmutable.
+Use backup_verified.py for outcome backup (directD480reuse); intermediate
+backup_result.py was neverexecuted and has unsafe stringindex transformation,
+retainit as unusedpreparationartifact, doNOTexecute. All runtime sourcesunchanged.
+
+D509 preparation also removed5staleD507containers afterlogs/statebackup+actual
+PID/cgroupabsence. Firstremoved3workers thenstorage dependencyrefusal; laterstrict
+State/ConmonPidassumptions failed onreapedrecords. Finalprovider-before-storage
+cleanup succeeded; allfailedscripts/receipts retained. No oldreleasebackfill,
+unknownprocesskill, broadprune, k3saccess or uniqueassetdeletion.
+
+NEXT MAIN-LINE: closebackup14/15, then prepare ONE newfull4000HydraServe(D510)
+reusing D509 qualified recipe + D507 originalfullHTTPconfig/view. Change only
+population/campaignidentity, retain D508bothoptins/nativebatchassertions, Modeltuple
+(13,9000,200,1000000,1),cache0,idle30,common1800guard/60snotice/resource/physical/
+realremotecontract. No new100->500->1000ladder or repeated imports/setup.
+Freeze fullprereg/source,back up,explicitlyawait/read remote_start+health/resource
+gates and actualCPUclosure beforelaunch. Keepqualification/developmentidentity/
+rawn_correctnull, deriveV1bindingaccounting observation onlyafteractualfullaudit.
+PriorD507strictaudit.py canreusewithnewpreregSHA oncecomplete; failedrun mustuse
+failure-awareaudit instead. Do not rerunD509prepare/launch/audit/curation.
+ThenallavailablebaselinecomparisonwithlatestPrimeLoRAD476 ->PrimeLoRAoptimization.
+Whole7B/3B/W1/W2/G2/A1–A5/S1–S13/cost/docs/finalfigures scope remainsACTIVE.
+Freshlastdisk178,909,433,856B(~166.6GiB),MemAvailable112,369,168,384B; gatefreshagain.
 
 ## D508 completed necessary adaptations — CPU-qualified, GPU pending
 
