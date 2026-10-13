@@ -1,6 +1,6 @@
-# IEEE TC execution status — D486 native libraries imported; GPU qualification next
+# IEEE TC execution status — D488 native nonzero GPU arithmetic passed; worker integration next
 
-Updated 2026-10-13 10:58 CST. Current checkpoint, NOT replacement plan.
+Updated 2026-10-13 11:25 CST. Current checkpoint, NOT replacement plan.
 Preceding status byte-identically archived in EXECUTION_HISTORY_THROUGH_D477.md;
 cmp passed, SHA cee5b2b0527a0ff9f2d07d2dc65c86a74dd2ce0d1b3b27f4a434f764e9adb128.
 D461/D448/D433/D402 and older histories remain. Historical NEXT/RUNNING lines
@@ -14,10 +14,87 @@ f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5.
 Read BASELINE_COMPLETION_ORDER_20261012.md and BASELINE_EXECUTION_RULES_20261011.md.
 
 Latest user goal again confirms HydraServe actual result -> allavailablebaseline
-comparison -> PrimeLoRA optimization; recheck frozen metric fairness, particularly
-ServerlessLLM TTFT/SLO. D483 storage maintenance is already COMPLETE; no new
+comparison -> PrimeLoRA optimization. Prior requested metric recheck completed
+D486; no further offline metric loop now. D483 storage maintenance COMPLETE; no new
 storage sweep by default. Continue monitoring actual disk/memory; no uniqueassets,
 failed evidence or unrelateddata deletion. Original storage-first record retained.
+
+## D487 terminal and D488 continuation (not a performance run)
+
+D488 TERMINAL PASS, all128 module positions, both original distinct nonzero
+LoRAs in each mixed-slot batch compared with independent CPUfloat32 algebra.
+MaxrelativeL2=.00025079824263229966, maxabsolute=3.2195821404457092e-6;
+fixed .005relative/officialFP16tolerance unchanged. No-adapter rowszero.
+GPUreleased/ownedcontainerdeleted/pauseclosed/actualrecursiveempty closurePASS,
+scope1Invocation7d7494af9e124366ad80b631a66714e4,inode23947996,
+peak506236928B,high/max/OOM/OOMkill/swap0. Free202018508800B.
+NOT fullmodel/stage/sharedmanager/pipeline/consolidation/nativeworker qualification,
+not performance, no PrimeLoRAcandidate and no remote activity. Don't repeat
+installation/build/NVML/originalkernel or this arithmetic check.
+52explicit source/success/failure/resource records archived/roundtripSHAverified;
+protected147 and original artifact fullSHA match 20260927 content index.
+BASEpaper_results/ieee_tc/hydraserve/d488 archive
+7e32b149966677bd8ce1d5cf2aad9bcc3da749e571066db2eb5433035b051f37;
+summary0d9690d1af4571501bac9f05e0586de55b72ab18ff1dbbf25ca2ca6c9fe1babb.
+Read BASEdocs/ieee_tc/D488_HYDRASERVE_NATIVE_GPU_ARITHMETIC.md.
+BASE dab88f46e223d0a026d73173a25998c456603408 pushed/independentlyremoteequal;
+MAIN status checkpoint follows; exactreceipts savedD488raw. Curation2/BASEbackup3
+actualrecursiveempty closed; all memoryevents/swap0. Explicit staging, bundle
+roundtrip/sourceSHA/secrets/userdirty/nativeclean gates passed; no newCPUunittest
+claim. All actual component GPU outcomes, including failures, are in the archive.
+
+NEXT: actual D479 stage/shared-owner native-manager binding and worker integration,
+concrete D480 lifecycle platform from D481/D488 qualified container components,
+safe private fastload/provider plus request adapter/fixed-output/native-token
+contract. Then100->500-ID->1000->4000 actual HydraServe result -> fullavailable
+baseline comparison -> PrimeLoRA optimization. Do NOT substitute barevLLM or
+spend another turn on alreadypassed environment/elementaryCUDA checks. Full
+W1/W2/G2,3B,A1-A5,S1-S13/docs scope below remains.
+
+Chronological attempt details retained below; D488 is no longer live.
+
+D487 original native Punica test, SiLU and FlashAttention actualGPU numerical
+checks passed; nonzero adapter check then failed because this new test mistook
+D447 header_sha256 for full-file SHA. No weight changed. Both original artifacts
+match existing 20260927_7b_materialized_content_index.json full-file identities:
+finance971901c3140f83f57cbb19fcc86d33b4d010f6d8fc15fbec621f0347bc31a258,
+medicald2b1dcfe42193917d0b2e0f728e735f24ad119dd2c77cb9b20c983c7f688fa5c.
+They are TWO distinct weights, not one; earlier same-SHA interpretation was wrong.
+D487 controller inherited conda Python lacking os.pidfd_open; container already
+removed/GPUreleased, captured pause was then identity-checked and signalled using
+/usr/bin/python3. Postsignal census raced with exit; separate exactInvocation/
+actualrecursiveempty closure passed, peak670785536B/allmemoryevents/swap0.
+Preserve both failures; no fabricated D487 top-level result/returncode.
+
+D488 reuses exact D487/D481 recipes with complete-file SHA and explicit host
+/usr/bin/python3. Does NOT repeat the three passed kernel checks; same native
+kernel/weights/tolerance/protection. tmux tc-d488-hydra-nonzero, RAW
+originalresults/ieee_tc/hydraserve_qualification/d488_20261013.
+Read actual result.json/output/native_gpu_result.json/probe_identity and process
+state; original launch entry was not a completed qualification. It is now closed
+with the terminal evidence above. Continue native manager/worker contract.
+
+D486 BASE a5fd938efddcce86141e49bd4b4acda6bfab59de and MAIN
+85b1bbd0d3d78405d65d921d053a5441351e66b5 pushed/independentlyremoteequal.
+Both backup scopes actualrecursiveempty closed; protected147 unchanged.
+D487 reuses D481 actual private container lifecycle/ownership/cleanup,
+D477 existing Ubuntu image, D486 native installed environment, readonly reused
+Python/CUDA dependencies and finance/medical artifacts. No install/build/newweights.
+RAW originalresults/ieee_tc/hydraserve_qualification/d487_20261013;
+tmux tc-d487-hydra-native-gpu, scope primelora-tc-aux-d4870000000000000000000000000001.
+Read actual result.json, output/native_gpu_result.json, probe_identity and process
+state; this paragraph is a launch intention, not a completed result.
+Parent3/4GiBswap0, actual worker2GiBswap0, CPU2,3,26,27; finite300s guard.
+Worker waits for host ownership/limits verification before CUDA. No host shm,
+network, cluster or remote service access. One selected GPU, no backbone loaded.
+Original native FP16 Punica test body/tolerance reused plus actual 128 existing
+LoRA module updates compared with independent CPU float32 x*A.T*B.T*alpha/r.
+Additional fixed relative-update-L2<=.005 and nonzero checks reject zero output;
+no-adapter negative-index row must remain zero. finance/medical have TWO complete
+weight SHAs (shared header is not shared contents). One SiLU and FlashAttention
+arithmetic witness, no performance inference. Pipeline/shared manager/fullmodel
+and complete worker request contract remain OPEN. After terminal: actual GPUrelease,
+ownedcontainer/pause cleanup and recursive-empty scope closure before next task.
 
 ## D486 COMPLETE native package/import and separate SLO recheck (no GPU result)
 
