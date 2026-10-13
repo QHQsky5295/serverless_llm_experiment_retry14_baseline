@@ -1,4 +1,4 @@
-# IEEE TC status — D498 native generation PASS; D499 early SHM release PASS
+# IEEE TC status — D501 full native Scheduler generation and idle release PASS
 
 Updated2026-10-13. Current checkpoint, NOT replacement plan. Entire preceding
 status byte-identically archived EXECUTION_HISTORY_THROUGH_D491.md; cmp passed,
@@ -22,7 +22,48 @@ only, no performance tuning/configsearch. Existing k3s belongs to another projec
 do not access/change cluster/credentials/permissions/resources. Isolated rootless
 Podman adaptation authorized; no barevLLM substitution, fakeReady or fake nodes.
 
-## D498–D499 current checkpoint (actual GPU generation; NO performance result)
+## D500–D501 current checkpoint (NOT a performance result)
+
+BASE2a7f8d7ee780ca12c75768882ea6547507adf322 pushed/remote-equal; MAIN preceding
+af50deb60858e0c1e28a9ade7257bf51070e3ca4. No live heavy job. Read BASE
+docs/ieee_tc/D501_HYDRASERVE_NATIVE_SCHEDULER.md. Goal/mainline/fullscope unchanged.
+
+D501 actual original Scheduler.process_request -> queue/ours/prefetch -> original
+ResourceManager coldstart -> native provider/privateSHM/fastload/app/init ->
+Request/Instance/ChatEngine completed existing finance152 and medical89 tokens.
+Original30s idle loop deleted actualworker and restored rgpus[[24]*4]. Onephysical
+host4GPUs, nativepp1; no inventednodes or forcedconsolidation. OriginalModelSet[0]
+testregistration retained, not finalcommonSLO/performanceconfig selection.
+
+New fullcontroller source/SHA loader moves only Kubernetes SDK import into its
+five originalusingfunctions; no fakeSDK/cluster, nativeHTTP/TCP/algorithmunchanged.
+Exact flat-module aliases/conflict gates. Existing k3s untouched. D500 failed
+after first actual152tokens becauseharness comparedcontainerPID1 tohostPID;
+secondnot submitted. Itsfinalcleanup Python lackedpidfd andresult.jsondoesnotexist;
+outerqualifiedcleanupreleasedall. Failedraw preserved. D501 matchesentryPID and
+hostbirth/boot,retainsliveidentity/timeNScheck; onlyhostpidfdcleanuphelper uses
+/usr/bin/python3. NativePython3.10.20 stillruns actualcontrollerdependencies.
+
+D500peak42516488192B; D501peak42705088512B; high/max/OOM/OOMkill/swap0.
+D501svcInvocation7d7de1bee24445e19a7158621db9bed3,inode24043224;
+aux9Invocationec70d7d5d49045ca9287feb9236f30c3,inode24043182 actualemptyclosed.
+AllGPU/provider/storage/worker/pausegone; CPU1/2alreadyclosed. Curation3peak
+41578496B/events0/swap0actualclosed. Backupclosures separatelyrecorded.
+75CPUregressionsPASS,protected147/userdirty/vendorclean/secrets/diff/pushPASS.
+376explicitfiles roundtripSHA; BASEpaper_results/ieee_tc/hydraserve/d501/
+scheduler_evidence.tar.gz SHA84852e27255f9ddf7255b7f683b1e9e2cf846e847b1feee0d32eb420e1f6f88e;
+summarySHA71bad7c8603d2e5739c6585c32094de2e48bbbf24b6779cdc6a61d55068cf768.
+Raworiginalresults/ieee_tc/hydraserve_qualification/d500_20261013,d501_20261013.
+No repeated D501 launch/prepare. Free~188GiB; freshgates required. No remotechanges.
+
+NEXT request-driven realremote LoRA integration using existing PublishedArtifactResolver
+and qualified tokenizer metadata view; resolveafteractualinstanceassignment, no
+futurefetch/fullpoolpreload/weightcopies/newtrace. KeepnativeScheduler/commonreplayer.
+Then100 ->500-ID ->1000 ->4000 actualHydraServeresult ->fullavailablebaselinecomparison
+->PrimeLoRAoptimization. Nativebinding isNOTnumericalLoRAequivalence; numerical,
+remote,fullpipeline/KVmigration/concurrentconsolidation remainOPEN. No newranking.
+
+## D498–D499 preceding checkpoint (actual GPU generation; NO performance result)
 
 BASE a52dca9399e4c4a2e0aeb546e1b516d2f9cbf8cf pushed/independently remote-equal.
 MAIN predecessor2921e92068678856d6e3ffcafc8918a54ebc13bb; statusbackup follows.
