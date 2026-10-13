@@ -89,6 +89,32 @@ def mark_bound(prompt, event, **fields):
     prompt.control[event] = time.perf_counter()
 
 
+async def wait_for_native_assignment(request, model):
+    """Cancel exactly the native queue reservation whose owner has not started.
+
+    Native assignment and this coroutine run on the same event loop. If the
+    assignment event was set just before cancellation, Instance.chat has been
+    created but not awaited: close that unstarted coroutine and release its
+    reservation here. Once the await returns, Instance.chat owns cancellation
+    and its existing exception path releases the counters. Do not reset demand
+    history, change FIFO order, or cancel other requests.
+    """
+    import asyncio
+    import inspect
+    try:
+        await request.resp_event.wait()
+    except asyncio.CancelledError:
+        if request.resp_func is None:
+            model.waiting_queue.remove(request)
+        else:
+            if inspect.getcoroutinestate(request.resp_func) != inspect.CORO_CREATED:
+                raise RuntimeError('native assignment cancellation has no unstarted owner')
+            request.resp_func.close()
+            request.assigned_instance.num_reqs -= 1
+            request.assigned_instance.last_chat_time = time.time()
+        raise
+
+
 async def prepare_bound_artifact(prompt):
     """Optional on-demand delivery after native assignment/init, before submit.
 
@@ -276,7 +302,7 @@ def annotate_native_event(response_json, request, res, output, delta_token_ids):
     return json.dumps(payload, separators=(',', ':'))
 
 
-def render_overlays(native_root, *, control_observations=False):
+def render_overlays(native_root, *, control_observations=False, cancellation_ownership=False):
     """Compose D480 lifecycle port; exact source identities before each splice."""
     root = Path(native_root)
     originals = {}
@@ -351,6 +377,16 @@ def render_overlays(native_root, *, control_observations=False):
         +'            if cold_counted:\n                self.num_coldstart_reqs -= 1\n'
         +'            self.last_chat_time = time.time()\n            raise\n'+source[end:])
     result[name] = source.encode()
+    if cancellation_ownership:
+        source = replace_one(source,
+            '        instance.num_reqs += 1\n        self.resp_func = instance.chat',
+            '        instance.num_reqs += 1\n        self.assigned_instance = instance\n'
+            '        self.resp_func = instance.chat')
+        source = replace_one(source,
+            '        await request.resp_event.wait()\n',
+            '        from HydraServe_project.runtime.request_contract import wait_for_native_assignment\n'
+            '        await wait_for_native_assignment(request, model)\n')
+        result[name] = source.encode()
     if control_observations:
         # Opt-in instrumentation only: older qualification source remains exact.
         source = replace_one(source, 'KVCacheRequiredSize = 5\n',

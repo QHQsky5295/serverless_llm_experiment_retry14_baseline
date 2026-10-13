@@ -6,6 +6,7 @@ from pathlib import Path
 import tempfile
 import types
 import unittest
+from unittest.mock import patch
 
 from HydraServe_project.runtime import native_delivery as delivery
 from HydraServe_project.runtime.native_overlay_entry import SourceOverlay
@@ -34,6 +35,42 @@ class DeliveryTests(unittest.TestCase):
         self.assertEqual(delivery.native_lora_token_limit(NATIVE),65528)
         self.assertEqual(app.count('max_num_batched_tokens=65528,'),3)
         self.assertLess(app.index('asyncio.run(start_load_model_shm'),app.index('import vllm'))
+
+    def test_lora_capacity_matches_original_instance_admission_all_engine_sites(self):
+        old=delivery.render_overlays(NATIVE)
+        new=delivery.render_overlays(NATIVE,lora_admission_capacity=True)
+        batch=delivery.native_admission_batch(NATIVE)
+        self.assertEqual(batch,8)  # Pinned source default, not the implementation's constant.
+        tree=ast.parse(new[delivery.APP])
+        sites=[n for n in ast.walk(tree) if isinstance(n,ast.Call) and isinstance(n.func,ast.Name)
+               and n.func.id in ('EngineArgs','AsyncEngineArgs')]
+        self.assertEqual(len(sites),3)
+        for site in sites:
+            kw={k.arg:k.value for k in site.keywords}
+            self.assertNotIn('max_cpu_loras',kw)  # Native default follows max_loras exactly.
+            self.assertNotIn('max_num_seqs',kw)
+            expression=compile(ast.Expression(kw['max_loras']),'native-capacity','eval')
+            for pp in (1,2,3,4):
+                self.assertEqual(eval(expression,{'os':types.SimpleNamespace(environ={'PP_SIZE':str(pp)})}),batch*pp)
+        class RemoveCapacity(ast.NodeTransformer):
+            def visit_Call(self,node):
+                node=self.generic_visit(node)
+                if isinstance(node.func,ast.Name) and node.func.id in ('EngineArgs','AsyncEngineArgs'):
+                    node.keywords=[k for k in node.keywords if k.arg!='max_loras']
+                return node
+        self.assertEqual(ast.dump(ast.parse(old[delivery.APP])),ast.dump(RemoveCapacity().visit(tree)))
+        for name in old.keys()-{delivery.APP}:self.assertEqual(old[name],new[name],name)
+        # Destination's current PP_SIZE is explicitly updated before its engine.
+        app=new[delivery.APP].decode()
+        self.assertLess(app.index('os.environ["PP_SIZE"] = str(dest_pp_size)'),app.index('engine_args = AsyncEngineArgs('))
+
+    def test_lora_capacity_source_drift_rejected(self):
+        original=Path.read_bytes
+        def read(path):
+            data=original(path)
+            return data+b'\n' if path.name=='scheduler.py' else data
+        with patch.object(Path,'read_bytes',read),self.assertRaisesRegex(ValueError,'admission source drift'):
+            delivery.native_admission_batch(NATIVE)
 
     def fixture(self,missing=False):
         mapping={'a':'part1.safetensors','b':'part2.safetensors'}

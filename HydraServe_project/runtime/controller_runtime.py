@@ -29,9 +29,12 @@ ALIASES={name:SOURCE_DIR+'/'+name+'.py' for name in NATIVE_SHA}
 KUBE_FUNCTIONS={'create_deployment','delete_deployment','delete_all_deployments','create_job','delete_job'}
 
 
-def render_controller_sources(native_root, *, control_observations=False):
+def render_controller_sources(native_root, *, control_observations=False, cancellation_ownership=False):
     """Manifest-ready full modules; unchanged HTTP/TCP/algorithm source retained."""
-    root=Path(native_root); overlays=request_overlays(root, control_observations=control_observations); result={}
+    root=Path(native_root)
+    overlays=request_overlays(root, control_observations=control_observations,
+                              cancellation_ownership=cancellation_ownership)
+    result={}
     for name,relative in ALIASES.items():
         raw=(root/relative).read_bytes()
         if sha256(raw).hexdigest()!=NATIVE_SHA[name]:

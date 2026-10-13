@@ -21,6 +21,44 @@ def digest_ids(ids):
     return sha256(json.dumps(ids, separators=(',', ':')).encode()).hexdigest()
 
 
+async def consume_native_stream(stream):
+    """One owner serializes native next/close, even after repeated cancellation.
+
+    Keep the original per-chunk AnyIO off-loop iterator. Cancelling an asyncio
+    waiter cannot stop a running synchronous next(). Signal the owner to stop at
+    its next yield, then JOIN it before propagating cancellation. No extra chunk
+    is requested after that yield, no completion is fabricated, and native
+    request counters remain held until the generator actually closes. A pending
+    first read may still finish (or hit its existing transport timeout); this is
+    not instantaneous backend preemption and does not change any timeout.
+    """
+    from starlette.concurrency import iterate_in_threadpool
+    stop = asyncio.Event()
+
+    async def own():
+        try:
+            async for _ in iterate_in_threadpool(stream):
+                if stop.is_set():
+                    break
+        finally:
+            stream.close()
+
+    owner = asyncio.create_task(own())
+    try:
+        await asyncio.shield(owner)
+    except asyncio.CancelledError:
+        stop.set()
+        while not owner.done():
+            try:
+                await asyncio.shield(owner)
+            except asyncio.CancelledError:
+                # Repeated cancellation of the waiter must not abandon next().
+                # An independently cancelled owner is detected by result().
+                continue
+        owner.result()  # Preserve an actual stream/close error, not a fake success.
+        raise
+
+
 def decode_request(body, registry, public_model):
     """Use supplied canonical native IDs, never tokenize or apply a template."""
     fixed = dict(model=public_model, temperature=0, top_p=1, ignore_eos=True,
@@ -186,7 +224,6 @@ class NativeHTTPAdapter:
 
     async def handle(self, request):
         from aiohttp import web
-        from starlette.concurrency import iterate_in_threadpool
         received=time.perf_counter()
         rid=None
         bound=None
@@ -206,13 +243,7 @@ class NativeHTTPAdapter:
             stream=await self.scheduler.process_request(rid,self.native_model,bound,stream=True)
             if self.idle is None:
                 self.idle=asyncio.create_task(self.scheduler.check_instance_loop(30))
-            try:
-                # Same off-loop iteration as original StreamingResponse. The
-                # original generator updates native profiling and request counts.
-                async for _ in iterate_in_threadpool(stream):
-                    pass
-            finally:
-                stream.close()
+            await consume_native_stream(stream)
             completed=time.perf_counter()
             proof=observe_worker(bound,self.platform,self.clock_id)
             result=response_from_bound(bound,proof,completed)

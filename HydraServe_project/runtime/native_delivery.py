@@ -37,13 +37,33 @@ def native_lora_token_limit(root):
     return value
 
 
+def native_admission_batch(root):
+    """Derive the original Model default; no independent LoRA tuning knob.
+
+    Frozen run setup must also check its actual Model.batch_size equals this
+    value. Original Instance admission is Model.batch_size * pp_size. The
+    source digest binds that formula as well as the default extracted here.
+    """
+    from .platform_port import SOURCE_DIR, SOURCE_SHA256
+    raw=(Path(root)/SOURCE_DIR/'scheduler.py').read_bytes()
+    if sha256(raw).hexdigest()!=SOURCE_SHA256['scheduler.py']:
+        raise ValueError('native admission source drift')
+    owner=next(n for n in ast.parse(raw).body if isinstance(n,ast.ClassDef) and n.name=='Model')
+    init=next(n for n in owner.body if getattr(n,'name',None)=='__init__')
+    defaults=dict(zip([a.arg for a in init.args.args][-len(init.args.defaults):],init.args.defaults))
+    value=ast.literal_eval(defaults['batch_size'])
+    if type(value)!=int or value<=0:raise ValueError('invalid native admission batch')
+    return value
+
+
 def replace_one(source, old, new):
     if source.count(old) != 1:
         raise ValueError('native delivery splice count changed')
     return source.replace(old,new,1)
 
 
-def render_overlays(native_root, *, request_contract=False, shm_control=False):
+def render_overlays(native_root, *, request_contract=False, shm_control=False,
+                    lora_admission_capacity=False):
     root=Path(native_root)
     overlays=loopback_transport.render_overlays(root)
     source=overlays[PROVIDER].decode()
@@ -80,17 +100,24 @@ def render_overlays(native_root, *, request_contract=False, shm_control=False):
                     yield name, param
 '''
     overlays[WEIGHTS]=replace_one(raw.decode(),old,new).encode()
-    # Explicitly opt in to native LoRA. Keep batch/rank/cache/LRU default values,
-    # apart from no added vocabulary: existing adapters have no embedding rows.
+    # Explicitly opt in to native LoRA; old overlays keep their original defaults.
+    # D508 aligns concurrent adapters with the unchanged controller's admission,
+    # not with the 500-entry catalog. Native CPU capacity defaults to max_loras;
+    # rank, max_num_seqs, cache replacement and all scheduling policies stay native.
+    # Initial and destination engines read their current PP_SIZE (the native app
+    # updates that environment before destination construction).
     app=overlays[APP].decode()
     # One branch has deeper indentation; handle its exact whitespace separately.
     import re
     pattern=r'(?m)^([ \t]*)gpu_memory_utilization=gpu_memory_utilization,\n'
     token_limit=native_lora_token_limit(root)
+    batch=native_admission_batch(root) if lora_admission_capacity else None
     def enable(match):
         indent=match.group(1)
         return (match.group(0)+indent+'enable_lora=True,\n'+indent+'lora_extra_vocab_size=0,\n'
-                +indent+f'max_num_batched_tokens={token_limit},  # native LoRA kernel ceiling\n')
+                +indent+f'max_num_batched_tokens={token_limit},  # native LoRA kernel ceiling\n'
+                +(indent+f'max_loras={batch} * int(os.environ["PP_SIZE"]),  # native instance admission\n'
+                  if batch is not None else ''))
     app,count=re.subn(pattern,enable,app)
     if count!=3:raise ValueError('native EngineArgs sites changed')
     overlays[APP]=app.encode()

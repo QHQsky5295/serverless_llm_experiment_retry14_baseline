@@ -5,6 +5,7 @@ from copy import deepcopy
 import json
 from pathlib import Path
 import tempfile
+import threading
 import time
 from types import SimpleNamespace as NS
 import unittest
@@ -13,6 +14,7 @@ from unittest.mock import patch
 from HydraServe_project.runtime import http_contract as hc, request_contract as rc
 from tests.test_ieee_tc_hydraserve_request_contract import contract, response, Stream
 from tests.test_ieee_tc_hydraserve_platform_port import NATIVE
+from tests.test_ieee_tc_hydraserve_request_contract import load_native
 
 
 def fixture():
@@ -148,6 +150,104 @@ class HTTPTransportTests(unittest.IsolatedAsyncioTestCase):
                         duplicate=await client.post(f'http://127.0.0.1:{port}/v1/chat/completions',json=body)
                         self.assertEqual(duplicate.status,409)
             finally:await app.close()
+
+
+class StreamOwnershipTests(unittest.IsolatedAsyncioTestCase):
+    async def test_cancel_running_next_joins_before_close_and_no_extra_next(self):
+        loop=asyncio.get_running_loop()
+        entered=asyncio.Event()
+        release=threading.Event()
+        seen=[]
+        def stream():
+            try:
+                seen.append('entered')
+                loop.call_soon_threadsafe(entered.set)
+                if not release.wait(3):
+                    raise RuntimeError('test release missing')
+                seen.append('yielded')
+                yield 'one'
+                seen.append('unwanted next')
+                yield 'two'
+            finally:
+                seen.append('closed')
+        task=asyncio.create_task(hc.consume_native_stream(stream()))
+        try:
+            await asyncio.wait_for(entered.wait(),2)
+            for _ in range(3):
+                task.cancel()
+                await asyncio.sleep(0)
+                self.assertFalse(task.done())
+                self.assertEqual(seen,['entered'])
+            release.set()
+            with self.assertRaises(asyncio.CancelledError):
+                await asyncio.wait_for(task,2)
+            self.assertEqual(seen,['entered','yielded','closed'])
+        finally:
+            release.set()
+            await asyncio.gather(task,return_exceptions=True)
+
+    async def test_completed_and_failed_stream_close_exactly_once(self):
+        for failure in (False,True):
+            closes=[]
+            def stream():
+                try:
+                    yield 'one'
+                    if failure:raise ValueError('original stream failure')
+                    yield 'two'
+                finally:closes.append(1)
+            if failure:
+                with self.assertRaisesRegex(ValueError,'original stream failure'):
+                    await hc.consume_native_stream(stream())
+            else:
+                await hc.consume_native_stream(stream())
+            self.assertEqual(closes,[1])
+
+    async def test_cancel_preserves_read_error_and_closes(self):
+        loop=asyncio.get_running_loop();entered=asyncio.Event();release=threading.Event()
+        closes=[]
+        def stream():
+            try:
+                loop.call_soon_threadsafe(entered.set)
+                if not release.wait(3):raise RuntimeError('test release missing')
+                raise ValueError('actual read error')
+                yield  # Make this a synchronous generator.
+            finally:closes.append(1)
+        task=asyncio.create_task(hc.consume_native_stream(stream()))
+        try:
+            await asyncio.wait_for(entered.wait(),2)
+            task.cancel();await asyncio.sleep(0)
+            release.set()
+            with self.assertRaisesRegex(ValueError,'actual read error'):
+                await asyncio.wait_for(task,2)
+            self.assertEqual(closes,[1])
+        finally:
+            release.set();await asyncio.gather(task,return_exceptions=True)
+
+    async def test_real_rendered_native_counters_remain_owned_until_read_finishes(self):
+        ns=load_native(rc.render_overlays(NATIVE,cancellation_ownership=True))
+        model=ns['Model']('native/0',(13,9000,200,1000000,1))
+        instance=ns['Instance'](model,1,False,0,['127.0.0.1'],[object()])
+        entered=asyncio.Event();release=threading.Event();loop=asyncio.get_running_loop()
+        closed=[]
+        def chat():
+            try:
+                loop.call_soon_threadsafe(entered.set)
+                if not release.wait(3):raise RuntimeError('test release missing')
+                yield NS(choices=[NS(delta=NS(content='one'))],usage=None)
+                self.fail('cancelled stream requested another chunk')
+            finally:closed.append(1)
+        instance.num_reqs=1;instance.num_coldstart_reqs=1
+        task=asyncio.create_task(hc.consume_native_stream(instance.resp_generator(1,chat(),True)))
+        try:
+            await asyncio.wait_for(entered.wait(),2)
+            task.cancel();await asyncio.sleep(0)
+            self.assertEqual((instance.num_reqs,instance.num_coldstart_reqs),(1,1))
+            release.set()
+            with self.assertRaises(asyncio.CancelledError):await asyncio.wait_for(task,2)
+            self.assertEqual((instance.num_reqs,instance.num_coldstart_reqs),(0,0))
+            self.assertEqual(closed,[1])
+        finally:
+            release.set();await asyncio.gather(task,return_exceptions=True)
 
 
 if __name__=='__main__':unittest.main()

@@ -247,5 +247,68 @@ class ControllerTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((self.instance.num_reqs, self.instance.num_coldstart_reqs), (0, 0))
 
 
+class AssignmentCancellationTests(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        self.ns=load_native(rc.render_overlays(NATIVE,cancellation_ownership=True))
+        self.model=self.ns['Model']('native/0',(13,9000,200,1000000,1))
+        self.model.loop_started=True
+        self.scheduler=self.ns['Scheduler'].__new__(self.ns['Scheduler'])
+        self.scheduler.models=[self.model];self.scheduler.model_list=['native/0']
+        self.instance=self.ns['Instance'](self.model,1,False,0,['127.0.0.1'],[object()])
+
+    async def enqueue(self):
+        task=asyncio.create_task(self.scheduler.process_request(
+            'req_00001','native/0',rc.BoundRequest(contract()),True))
+        await asyncio.sleep(0)
+        self.assertEqual(len(self.model.waiting_queue),1)
+        return task
+
+    async def test_cancel_queued_request_removes_only_it_preserving_history(self):
+        task=await self.enqueue()
+        other=self.ns['Request']('other','native/0','legacy',True,1.)
+        self.model.add_request(other)
+        history=list(self.model.history_request_times)
+        task.cancel()
+        with self.assertRaises(asyncio.CancelledError):await task
+        self.assertEqual(list(self.model.waiting_queue),[other])
+        self.assertEqual(list(self.model.history_request_times),history)
+        self.assertEqual(self.instance.num_reqs,0)
+
+    async def test_cancel_assigned_before_chat_started_releases_once(self):
+        import inspect
+        task=await self.enqueue()
+        request=self.model.waiting_queue.popleft()
+        with redirect_stdout(io.StringIO()):request.allocate_instance(self.instance)
+        self.assertEqual(self.instance.num_reqs,1)
+        task.cancel()
+        with self.assertRaises(asyncio.CancelledError):await task
+        self.assertEqual(inspect.getcoroutinestate(request.resp_func),inspect.CORO_CLOSED)
+        self.assertEqual((self.instance.num_reqs,self.instance.num_coldstart_reqs),(0,0))
+        self.assertFalse(self.model.waiting_queue)
+
+    async def test_cancel_after_chat_started_uses_existing_instance_owner(self):
+        task=await self.enqueue()
+        request=self.model.waiting_queue.popleft()
+        self.instance.inited=False
+        with redirect_stdout(io.StringIO()):request.allocate_instance(self.instance)
+        await asyncio.sleep(0)
+        self.assertEqual((self.instance.num_reqs,self.instance.num_coldstart_reqs),(1,1))
+        task.cancel()
+        with self.assertRaises(asyncio.CancelledError):await task
+        self.assertEqual((self.instance.num_reqs,self.instance.num_coldstart_reqs),(0,0))
+
+    def test_opt_in_changes_only_assignment_lifecycle_not_policies(self):
+        path=rc.platform_port.SOURCE_DIR+'/scheduler.py'
+        old=ast.parse(rc.render_overlays(NATIVE)[path])
+        new=ast.parse(rc.render_overlays(NATIVE,cancellation_ownership=True)[path])
+        def methods(tree):
+            return {(c.name,n.name):ast.dump(n) for c in tree.body if isinstance(c,ast.ClassDef)
+                for n in c.body if isinstance(n,(ast.FunctionDef,ast.AsyncFunctionDef))}
+        a,b=methods(old),methods(new)
+        self.assertEqual(a.keys(),b.keys())
+        changed={key for key in a if a[key]!=b[key]}
+        self.assertEqual(changed,{('Request','allocate_instance'),('Scheduler','process_request')})
+
+
 if __name__ == '__main__':
     unittest.main()
