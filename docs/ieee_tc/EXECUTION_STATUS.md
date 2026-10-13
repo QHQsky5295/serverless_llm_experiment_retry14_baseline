@@ -1,6 +1,6 @@
-# IEEE TC execution status — D480 native platform seam; official blobs resuming
+# IEEE TC execution status — D481 IPC/transport qualified; D479 download terminal
 
-Updated 2026-10-13 00:28 CST. Current checkpoint, NOT replacement plan.
+Updated 2026-10-13 08:45 CST. Current checkpoint, NOT replacement plan.
 Preceding status byte-identically archived in EXECUTION_HISTORY_THROUGH_D477.md;
 cmp passed, SHA cee5b2b0527a0ff9f2d07d2dc65c86a74dd2ce0d1b3b27f4a434f764e9adb128.
 D461/D448/D433/D402 and older histories remain. Historical NEXT/RUNNING lines
@@ -36,7 +36,38 @@ qualification+new full replay; IEEE nine equations/semantics fixed.
 Full names PrimeLoRA/ServerlessLLM, no figures until near target, no13B/newSGLang,
 paper edits, new weights/traces/pool regeneration. Whole goal ACTIVE.
 
-## D480 current progress: native lifecycle seam, NOT a running platform
+## D481 current progress: actual private IPC and native TCP identities
+
+BASE checkpoint6be6e133612da27c73387d07d9192a8f414ceb00 pushed/remoteequal.
+Read BASE docs/ieee_tc/D481_HYDRASERVE_IPC_AND_TRANSPORT.md before integration.
+Two actual CPU containers share project-private64MiB shm, distinct from host IPC;
+worker read/deleted only its test object, host sentinel unchanged. Both worker
+and host retrieved correct payload over project loopback HTTP. Host networking
+is NOT kernel network isolation; no existing cluster/network configuration changed.
+Actual container limits128MiB/swap0/CPU2,26 and bounded parent verified beforework;
+owned containers/pause released, recursive-empty closure. Peak233533440B,events0.
+Initial helper exit127 preserved: BusyBox multicall filename error, NOT HydraServe;
+only helper mount basename corrected, no changed resource/security settings.
+
+Source-pinned loopback_transport.py changes only opt-in listener/source addresses.
+Native init_connection maps peer IP to rank; real unbound loopback source was
+127.0.0.1, so explicit source binding is required to preserve replica identities.
+Actual original two-stage connection function, with inert model objects, passed
+bidirectional data and both channel address checks. AST inverse matches all four
+native files.32CPU tests pass; nativecheckout clean. NOT CUDA/pipeline/consolidation
+or model/LoRA correctness. No performance result or new PrimeLoRA candidate.
+35source/failure/test records archived+roundtrip verified,protected147unchanged;
+archive675a874821c7c95566525796b10c9aeed08e92ad971c5f402b3479fb6c40a151.
+All D481 probe/test/curation/BASEbackup scopes closed with events/swap0.
+Historical D481 curated snapshot calls D479 live at00:40; that is superseded by
+the observed terminal result below, not silently edited in the sealed archive.
+
+NEXT: finish official image acquisition, qualify actual source/dependencies,
+connect D480 native seam to qualified isolated lifecycle/IPC/address components;
+safe backbone delivery, D479 LoRA binding, native request/token contract and real
+100/500-ID/1000/4000 qualification. Do not replace HydraServe with bare vLLM.
+
+## D480 preceding progress: native lifecycle seam, NOT a running platform
 
 Raw /home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d480_20261013/.
 BASE HydraServe_project/runtime/platform_port.py source-pins resource_manager,
@@ -68,7 +99,7 @@ BASE checkpoint77eb0c74936a248a7034c5603661abfe981cbfca pushed/remoteequal.
 Curation andBASEbackup scopes3/4 closed, peaks11423744/28381184B,events0.
 Read BASE docs/ieee_tc/D480_HYDRASERVE_PLATFORM_PORT.md before integration.
 
-NEXT: continue SAME D479 download below, qualify real image/source, implement
+Original NEXT (download now terminal below): qualify real image/source, implement
 actual isolated lifecycle using D477 containment evidence and this native seam;
 private project IPC/shm (native local_server clears psm_*), safe readonly backbone
 delivery (native remote_server duplicates CPUweights), D479 native LoRA binding,
@@ -76,7 +107,7 @@ request/generation/token measurement, then100/500-ID/1000/4000 in order.
 No new PrimeLoRA candidate, no baseline tuning, no invented performance data.
 No concrete platform or storage adaptation is qualified by these CPU tests.
 
-## D479 completed binding helper and LIVE software download
+## D479 completed binding helper and terminal software download
 
 Raw /home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d479_20261012/.
 BASE HydraServe_project/runtime/lora_stage_binding.py adds exact native partition
@@ -99,16 +130,22 @@ Actual scope9 recursive-empty then closed; peak36876288B, all events/swap0.
 Failure saved in D478/resume_attempt/result.json and resume_closure.json.
 No exact socket subcause was serialized; do not invent one or label inferencefailure.
 
-LIVE: D479/resume_image_blobs_v2.py, attempt resume_attempt/, log resume_launch.log,
+TERMINAL: D479/resume_image_blobs_v2.py, attempt resume_attempt/, log resume_launch.log,
 tmux tc-d479-hydra-resume. Parent primelora-tc-aux-d4790000000000000000000000000002.scope,
 InvocationID7427cf753d324f8490cea3f9afd8faaa, inode23626274.
 High3/Max4GiB/swap0,CPU2,3,26,27. Same official manifest+64verifiedblobs/cache;
 recheck prefix/interior,64MiBmaximum segments,read1 partial persistence,
 8failures/blob,10800s totalguard. Final wholeSHA/length mandatory. No imageimport,
-GPU/model/remoteactivity. Monitor this SAME attempt; don't restart advancingbytes.
-No other heavy task. If terminal, read result and externally close exactidentity
-after actual recursive cgroup.procs empty via D479/close.py resume.
-DO NOT use D478/close.py for this newscope. Freshimport150GiB/startgrowthgate
+GPU/model/remoteactivity. At08:41CST actual PID missing, result terminal:
+elapsed2479.589040463092s, first stream TimeoutError at119634955B, then token
+refresh URLError/SSLEOFError(errno8) outside the bounded stream retry. No complete
+blob; retained small119634955B/189594758B and large903052834B/3626807089B,
+sameinodes110384426/110384427. Do not infer GPU failure or registry root cause.
+Exact InvocationID/inode and actualrecursive-empty checked, scope closed08:43;
+peak81137664B, allhigh/max/OOM/swap0. Failure/closure retained in D479raw.
+Next acquisition revision must cover authentication/probes as bounded operations,
+not only body reads; reuse all bytes, keep wholeSHA/length and runtime safety gates.
+No new download started at this checkpoint. Freshimport150GiB/startgrowthgate
 after bytescomplete; source/dependencies/nativequalification still required.
 
 ## D478 preceding acquisition and preserved checkpoint (not live)
@@ -283,16 +320,13 @@ qualify actual common W1 transform interface, don't relabel W0 asW1.
 
 ## Safety, preservation and current backup identities
 
-D480 BASE77eb0c74936a248a7034c5603661abfe981cbfca independentlyremoteequal.
-MAIN predecessor204b0d76edb419282d062faa28ddc2dd429cb8b1 (D479) remoteverified.
-D480 MAIN status-only checkpoint follows; exactHEAD/remoteequality saved to
-D480/backup_main_receipt.json. No userfile or oldresult changed.
-At16:27UTC D479 scope2 still contains onlyPID369785, uid1001, CPU2,3,26,27;
-memorycurrent53125120B/peak53309440B, allhigh/max/OOM/swap0, no terminalresult.
-At16:25UTCsmallblob90831883B, full189594758; large903052834B queued unchanged.
-Disk161285378048B (~150.21GiB): currentdownload stays above runtime100GiB,
-but fresh import must again satisfy150GiB/startgrowthgate. Do not compress while
-download runs. Software transfer and actualGPUperformance remain distinct.
+D481 BASE6be6e133612da27c73387d07d9192a8f414ceb00 independentlyremoteequal.
+MAIN predecessor834e2c3e8ebb72babb8e6be481c465585f3759c6 (D480) remoteverified.
+D481 MAIN status-only checkpoint follows; exactHEAD/remoteequality saved to
+D481/backup_main_receipt.json. No userfile or oldresult changed.
+At08:41CST disk161260445696B (~150.19GiB), MemAvailable111802925056B.
+D479 is terminal/closed, not a live wait. Fresh download/import requires the
+unchanged150GiB/startgrowth gate. Software transfer and GPUperformance distinct.
 
 D479 BASE checkpoint055adf30fe9758f3ee4320427affa674df05f111 pushed to origin/main,
 independentlyremoteequal.15CPU tests pass(10new+5existing),source/protected147/user
