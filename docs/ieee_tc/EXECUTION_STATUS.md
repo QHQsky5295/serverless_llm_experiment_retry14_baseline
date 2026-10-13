@@ -1,6 +1,6 @@
-# IEEE TC execution status — D483 storage maintenance complete, resume HydraServe
+# IEEE TC execution status — D484 HydraServe dependencies completed, native build next
 
-Updated 2026-10-13 09:40 CST. Current checkpoint, NOT replacement plan.
+Updated 2026-10-13 10:02 CST. Current checkpoint, NOT replacement plan.
 Preceding status byte-identically archived in EXECUTION_HISTORY_THROUGH_D477.md;
 cmp passed, SHA cee5b2b0527a0ff9f2d07d2dc65c86a74dd2ce0d1b3b27f4a434f764e9adb128.
 D461/D448/D433/D402 and older histories remain. Historical NEXT/RUNNING lines
@@ -17,6 +17,46 @@ NEWEST order: STORAGE_PRIORITY_20261013.md. First audit and reclaim proven
 obsolete/rebuildable data or losslessly compress closed evidence; no new build
 or inference until this maintenance is addressed. No unique assets, failed
 evidence or unrelated project data deletion. Then resume the baseline order below.
+
+## D484 current work: native-source prerequisites, not a performance result
+
+Storage-first request addressed; newest goal resumes HydraServe actual result ->
+allavailablebaseline comparison -> PrimeLoRA optimization. No further storage sweep.
+D483 terminal MAIN2d6388634f0361403b82a027276ba9fa2a0ce30a pushed/remoteequal,
+12archive tests/25source roundtrips/protected147/explicitstage/secrets passed.
+Scope11 exactidentity/actualrecursiveempty closed,peak24600576B,events/swap0.
+No performance, model or remote artifact activity in D483/D484 setup.
+
+TERMINAL D484 environment preparation, former unifiedsession83176;
+primelora-tc-aux-d4840000000000000000000000000003.scope.
+RAW originalresults/ieee_tc/hydraserve_qualification/d484_20261013,
+read environment_identity.json for InvocationID/inode and actual process state.
+New isolated BASE/installs/hydraserve_native_d484_20261013, Python3.10;
+D482exactTorch2.3.0/xformers0.0.26.post1wheels installed fromexistingfiles.
+Common/build requirements installed; pip check andactualCPUimport pass:
+Torch2.3.0+cu121/xformers0.0.26.post1/Triton2.3.0/Transformers4.43.1.
+NoCUDAinitialized; stillNOT complete nativebackend/NCCL/flash-attn/fastload.
+12Python-independent CUDA distributions reused from readonlyoldslinfer site,
+RECORD bytes/py3-none tags checked, no Python3.11 torch/Triton/ABI reuse.
+Originalenvs/nativecheckout/models/traces/cluster unchanged.
+Aux3/4GiBswap0CPU2,3,26,27,1800s finiteguard16GiBhost/100GiBdisk.
+Completed360.713657s; scope3Invocationb8b4875d66de479a86d59b6b08e13e1d,
+inode23907856 actuallyrecursiveempty thenclosed. Peak3221749760B,
+high9008/max0/OOM0/OOMkill0/swap0; free203557830656B (~189.58GiB).
+12runtimeRECORD manifests passedagainafterinstall. No live heavyjob.
+4CPUtests pass; initial same-name scripts import error preserved/corrected only by
+explicitfile import; scopes1/2 actuallyemptyclosed,events0.
+Read BASEdocs/ieee_tc/D484_HYDRASERVE_SOURCE_ENVIRONMENT.md.
+BASE checkpoint8c52abc505cb83c9f019badbe0e0f709d75ea292 pushed/remoteequal;
+33source records roundtrip/protected147/userdirty/secrets/4tests passed.
+Archive3df9c9aadf849e005b2adc4f2083732993dfeef903add94e55eabb3a044bfb58;
+summary502f3b766153630b662e21427fe631494b6d7da724b1661d4adb67dc8615e21d.
+Curation4/BASEbackup5 actuallyemptyclosed,events/swap0.
+
+NEXT: preserve/push testeddependencycheckpoint, reuse newenvironment and wheels,
+no reinstall/redownload. Then exact native CUDA/Punica/fastload/flash-attn/NCCL
+qualification and D480/D481/D479 integration,100/500-ID/1000/4000; notbarevLLM.
+Oneheavyjob atatime; no newPrimeLoRA candidate. Fullscope retained below.
 
 ## D483 completed maintenance checkpoint (not a performance experiment)
 
