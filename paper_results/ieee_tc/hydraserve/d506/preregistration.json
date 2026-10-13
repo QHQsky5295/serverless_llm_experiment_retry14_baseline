@@ -1,0 +1,73 @@
+{
+  "campaign": "d506_20261013",
+  "status": "prepared_not_launched",
+  "system": "HydraServe",
+  "model": "Llama-2-7B",
+  "workload": "W0",
+  "n_plan": 4000,
+  "plan_identity": {
+    "source_path": "/home/qhq/serverless_llm_baselines/results/paper_experiments/03_main_comparison/20260424_104050_llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1/shared_artifacts/llama2_7b_r4000_a500_seed42_z1p0_hot48_rot500_s8_mainv1_trace.json",
+    "source_sha256": "efb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c",
+    "view_sha256": "a5331be2e2204483f18206825d9aaa18cbaa259fe0babfc303f989055819430d",
+    "count": 4000,
+    "source_count": 4000,
+    "profile": "W0",
+    "rate_scale": 1.0
+  },
+  "formal_run": false,
+  "qualification_only": true,
+  "performance_result": false,
+  "interpretation": "preregistered single development observation; derive V1 binding/accounting metrics after full audit; no independent holdout or optimal configuration claim",
+  "reuse_from": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d505_20261013",
+  "reuse_audit_sha256": "148e8d3489a5a1e5beddaae2ef42263bd4099cf9a2634da9ae9778b6dbd6b4fb",
+  "references": {
+    "plan": {
+      "path": "/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md",
+      "sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+    },
+    "metric_protocol": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md",
+      "sha256": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22"
+    },
+    "single_run_amendment": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md",
+      "sha256": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+    },
+    "slo_eval": {
+      "path": "/home/qhq/serverless_llm_experiment_retry14_baseline/paper_results/ieee_tc/protocols/20261010_7b_slo_d394_frozen.json",
+      "sha256": "2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3"
+    }
+  },
+  "runtime_registration_sha256": "927babb8512c937fb31634021727d6f1c2ad9f0e93bd92290ff722093b231f88",
+  "runtime_model_info": [
+    13,
+    9000,
+    200,
+    1000000,
+    1
+  ],
+  "runtime_thresholds_are_not_evaluation_thresholds": true,
+  "generation_contract": "fixed_length_greedy_v1",
+  "native_batch": 8,
+  "native_use_cache": 0,
+  "native_slow_expr": 0,
+  "native_idle_retirement_s": 30,
+  "deployment_notice_s": 60,
+  "request_guard_s": 1800,
+  "predicted_growth_gib": 20,
+  "physical_nodes": 1,
+  "physical_gpus": 4,
+  "physical_ledger": "hydraserve_container_union_v1",
+  "pp1_claim_to_create_boundary_qualified": true,
+  "multirank_boundary_audit_if_exercised": true,
+  "no_runtime_policy_change": true,
+  "no_config_search": true,
+  "repeat_count": 1,
+  "numerical_lora_qualified": false,
+  "n_correct": null,
+  "pipeline_migration_consolidation_qualification": "not established; record actual triggers, no forced events",
+  "source_heads": {
+    "baseline": "cd3baf4251e840d983177d4c6e8f7e8f103f78a4",
+    "main": "175e46b9ed770fb264b98c7141acbc40e21b55d5"
+  }
+}
