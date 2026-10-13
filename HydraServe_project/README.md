@@ -11,6 +11,10 @@ See [D479 adaptation evidence](../docs/ieee_tc/D479_HYDRASERVE_LORA_BINDING_ADAP
 The [D480 platform seam](../docs/ieee_tc/D480_HYDRASERVE_PLATFORM_PORT.md) preserves
 native policies and actual physical-node topology; its CPU checks pass, but the
 concrete isolated lifecycle and model workers still require qualification.
+The [D481 IPC/transport witness](../docs/ieee_tc/D481_HYDRASERVE_IPC_AND_TRANSPORT.md)
+now demonstrates real private shared IPC, host/container HTTP and CPU execution
+of native two-stage TCP connections with explicit replica source addresses.
+It is not a CUDA, numerical, consolidation or performance qualification.
 CPU ownership tests and single-GPU NVML access have passed in their limited
 scopes. Native GPU/numerical correctness and performance are NOT yet qualified.
 Official source remains clean; the new runtime component is not installed yet.
