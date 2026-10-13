@@ -1,10 +1,47 @@
-# IEEE TC status — D506 stopped: container-lifetime adaptation error, not performance
+# IEEE TC status — D507 lifetime correction prepared, full4000 not yet launched
 
 Updated2026-10-13. Current checkpoint, NOT replacement plan. Entire preceding
 status byte-identically archived EXECUTION_HISTORY_THROUGH_D491.md; cmp passed,
 SHA017a48a3675c0aa9e2f1baff09552539a0ebe64123816a2ad883f25a7f5063d1.
 Older D477/D461/D448/D433/D402 histories remain. Their NEXT/RUNNING notes are
 historical, not current instructions. No approved task/outcome/failure removed.
+
+## D507 current checkpoint (2026-10-13; prepared, NOT yet running)
+
+D506 failure sealed BASEf1591bff7ab9d828b5697e3308aece6ba676ba7d and
+MAINbcc2d8ab4091f56de6db5e12c6685384367449d3, bothpushed/remote-equal.
+AllsixstoppedD506container native stdout/stderr/State/ownership captured BEFORE
+exact-ID removal; no uniqueasset or oldevidence deletion. Store-specificfresh
+Podmanpause exactPID/birth/UIDverified andclosed; unrelatedk3s untouched.
+
+NecessaryD507adaptation removesContainerRecipe.timeout_s and Podman --timeout;
+NOT replacedwithlargerTTL. Nativecontroller ownsretirement; existingbounded
+campaign/watchdog ownsabnormalcleanup. Requestguard1800/nativeinit/transport/
+CLI60/nativeScheduler/modeltuple9000/200/cache/batch8/idle30/SLO unchanged.
+TwoCPUregressionsadded; all11isolated-platformtestsPASS. Full90tests runatbackup.
+
+Full4000D507preparedONCE, sameW0view/trace/pool/generation/realremote/60snotice/
+resourceenvelope/physicalledger asinvalidD506; no newelementaryGPUqualification.
+Raworiginalresults/ieee_tc/hydraserve_qualification/d507_20261013.
+PreregSHAab9c8692f31d824dd8ee89be6fae0d4e7db6241cea6d15e086653ec7f85f637e.
+66files roundtripSHA lifecycle_correction_evidence.tar.gz4,553,660B,
+SHAef1e52716f787de4e29fc744318c6bf6672bae6eda63196c9006e1425d51db29,
+underBASEpaper_results/ieee_tc/hydraserve/d507/; includesnativeD506logs and
+newexecution sources. D506originalarchiveunchanged. Runtimeonlychangedsource
+isolated_platform.py; oldsnapshotsverified, no nativepolicysearch/performanceclaim.
+CPU1/2actualemptyclosed,events0/swap0; prepareCPU3completed,closure next.
+
+NEXT protected/tests/secrets/backups, explicitlyawait/read remote_start then
+authenticatedhealth/resource/source/protected gates; closeCPUscopes then
+ONE tmux full4000D507. Do NOT rerunprepare/overwrite. No remoteoperations/builds/
+hashscans/compression duringinference. Actualclosure thenstrictfullaudit (onlyif
+complete), saveoutcome ->allavailablebaselinecomparison ->PrimeLoRAoptimization.
+Full7B/3B/W1/W2/G2/A1–A5/S1–S13/cost/docs/finalfigures remainACTIVE.
+
+D507 BASE3eec32869c657e8020581da4354ee9ad8b91a95d PUSHED/remote-equal.
+Fresh90CPUtests/protected147/userdirty/vendorclean/secrets/diff/archiveSHA allPASS;
+CPU3preparepeak140460032B/events0/swap0 actualclosed. BASEbackup4closure next,
+then MAINstatusbackup andfreshremote/starthealth gates; stillNO GPUlaunch.
 
 ## Authority and main line
 
