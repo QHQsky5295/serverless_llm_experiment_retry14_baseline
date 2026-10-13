@@ -121,6 +121,40 @@ class HostExecutionFullContract(unittest.TestCase):
         self.assertIn('export FAASLORA_FORMAL_RUN=0', shell)
 
 
+class D512DiagnosticContract(unittest.TestCase):
+    def test_only_exclusive_paths_differ_from_current_d476(self):
+        old = yaml.safe_load((ROOT/'configs/ieee_tc/20261012_d476_7b_full_w0.yaml').read_text())
+        new = yaml.safe_load((ROOT/'configs/ieee_tc/20261014_d512_7b_full_w0_prefix1.yaml').read_text())
+        for section, field in [('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                               ('storage', 'host_cache_dir')]:
+            before, after = old[section].pop(field), new[section].pop(field)
+            self.assertNotEqual(before, after)
+            self.assertIn('d512', after)
+            self.assertIn('prefix1', after)
+        self.assertEqual(old, new)
+        self.assertEqual(new['workload']['total_requests'], 4000)
+
+    def test_existing_external_replay_selects_original1000(self):
+        shell = (ROOT/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh').read_text()
+        block = re.search(r'^  d512\)(.*?)^    ;;', shell, re.M | re.S).group(1)
+        self.assertIn('PREFIX_COUNT=1000\n', block)
+        self.assertIn('SCENARIO=tc_ieee_full', block)
+        self.assertNotIn('export', block)
+        self.assertIn('"${1:-d293}" == d512', shell)
+        self.assertIn('export FAASLORA_FORMAL_RUN=0', shell)
+        self.assertIn('export FAASLORA_TC_EXTERNAL_REPLAY=1', shell)
+
+    def test_wrapper_uses_existing_core_not_frame_observer(self):
+        shell = (ROOT/'scripts/ieee_tc/profile_d328_controller_python.sh').read_text()
+        self.assertIn('d512_7b_full_w0_prefix1)', shell)
+        self.assertIn('test -f "$FAASLORA_TC_LAUNCH_RECEIPT"', shell)
+        self.assertIn('test "${FAASLORA_FORMAL_RUN:-}" = 0', shell)
+        branch = re.search(r'if \[\[ (.*?)\]\]; then\n(.*?)\nelse\n(.*?)\nfi', shell, re.S)
+        self.assertNotIn('d512', branch.group(1))
+        self.assertIn('unset FAASLORA_TC_STACK_SAMPLING', branch.group(3))
+        self.assertIn('FAASLORA_TC_CORE_TIMING=host_spans_v1', branch.group(3))
+
+
 class D456DiagnosticContract(unittest.TestCase):
     def test_only_exclusive_paths_differ_from_d371(self):
         old = yaml.safe_load((ROOT/'configs/ieee_tc/20261010_d371_7b_full_w0.yaml').read_text())

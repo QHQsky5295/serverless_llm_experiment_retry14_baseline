@@ -11,6 +11,9 @@ case "${FAASLORA_RESULTS_TAG:-}" in
   d351_7b_full_w0_prefix1)
     RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d351_20261008
     ;;
+  d512_7b_full_w0_prefix1)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d512_20261014
+    ;;
   *) echo 'Unregistered diagnostic observer campaign' >&2; exit 2 ;;
 esac
 test "$1" = "$ROOT/scripts/run_all_experiments.py"

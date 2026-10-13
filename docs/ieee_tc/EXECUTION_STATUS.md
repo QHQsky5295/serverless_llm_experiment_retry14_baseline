@@ -1,4 +1,27 @@
-# IEEE TC status — D511 resource-gap diagnosis complete; current native timing next
+# IEEE TC status — D512 current native-timing diagnostic preparation
+
+## Current main line 2026-10-14: D512 CPU-qualified, checkpoint/launch pending
+
+D510 seven-system comparison and D511 diagnosis COMPLETE and backed up.
+D512 is ONE current-D476 original1000-prefix host_spans_v1 diagnostic, not a
+performance candidate. Read D512_CURRENT_NATIVE_CORE_DIAGNOSTIC.md. Only three
+exclusive paths and exact existing-runner/wrapper registration added; faaslora,
+main runner/preflight/analyzer remain byte-identical to D476 production commit.
+Original view0a5dfcf...0981/60logicalIDs/122510targettokens; no new inputs/profile/
+policy/SLO or frames. CPU tests/source/protected qualification and checkpoint
+must pass before awaited remote health/resource gates and ONE tmux launch.
+54 CPU tests PASS; original1000 exact source/native view, three-path-only config,
+unchanged production, installed native source SHA, protected147/userdirt/PLAN/
+metric SHA checks PASS. CPU/qualification actual recursive-empty closure checked
+before backup; no GPU run launched at this writing, no new performance result.
+RAW originalresults/ieee_tc/p2_backend_qualification/d512_20261014. Qualification
+manifest in paper_results/ieee_tc/p2_backend/d512_native_core; next actual receipt
+determines state. Do not restart from a tool timeout or reuse old timing fractions.
+After realrelease collect exact local/remote closure, native audit and reused D351
+timing analysis under current D394 thresholds. Then ONE evidence-backed change
+and fullreplay. Whole remaining scope below stays ACTIVE; no figures yet.
+
+## Prior D511 result and decision (completed)
 
 ## Current main line 2026-10-14: D511 retained analysis, no live GPU run
 
