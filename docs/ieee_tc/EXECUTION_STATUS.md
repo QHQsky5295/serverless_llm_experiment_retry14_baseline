@@ -1,4 +1,4 @@
-# IEEE TC status — D497 actual request failure isolated; D498 tokenizer bridge qualified
+# IEEE TC status — D498 native generation PASS; D499 early SHM release PASS
 
 Updated2026-10-13. Current checkpoint, NOT replacement plan. Entire preceding
 status byte-identically archived EXECUTION_HISTORY_THROUGH_D491.md; cmp passed,
@@ -22,7 +22,66 @@ only, no performance tuning/configsearch. Existing k3s belongs to another projec
 do not access/change cluster/credentials/permissions/resources. Isolated rootless
 Podman adaptation authorized; no barevLLM substitution, fakeReady or fake nodes.
 
-## D497–D498 current checkpoint (failure preserved; NO performance result)
+## D498–D499 current checkpoint (actual GPU generation; NO performance result)
+
+BASE a52dca9399e4c4a2e0aeb546e1b516d2f9cbf8cf pushed/independently remote-equal.
+MAIN predecessor2921e92068678856d6e3ffcafc8918a54ebc13bb; statusbackup follows.
+Read BASEdocs/ieee_tc/D499_HYDRASERVE_GENERATION_AND_RELEASE.md. No liveheavyjob.
+
+D498 ACTUALLY ran prepared GPU witness: original Request/Instance/ChatEngine ->
+native app with qualified lossless tokenizer views. req_00000 finance152/152 and
+req_00021 medical89/89; nativebinding/counts/clock/processidentity/counters PASS.
+Original provider/twoexistingHFshards/nativepacking/two-threadwire/private13GiB
+SHM/C++fastload and /init200 used. NOT fullScheduler,realremote,numericalLoRA,
+pipeline/KVmigration/consolidation or performance qualification. No newinput/pool.
+D498previousCPUonly summary/archive staysimmutable, not retrospectively changed.
+
+D499 necessary SHM connectionownership repair implemented as opt-in shm_control.
+Original startup asyncio.run closesitsloop; original StreamWriter laterclose on
+uvicornloop fails. NativeShmLease ownsnonblockingsocket independentofthatloop,
+loop.sock_* performs pendingI/O; socketclose sendsnativeEOF. Samewire/header,
+loaderarguments/thread, originalstartupoverlap/init/consolidationcalls andcache/
+schedulerpolicy. Cancel/loaderfailure closesandreraises; duplicatebeginrejects.
+Onlytwo connectionfunctions/globalowner changed; defaultolderoverlaysunchanged.
+Pinnedofficialapp refetchedSHA matches; CPython3.10 docs reviewed. No newfallback.
+
+D499 ACTUAL GPU witness PASS: native readonlyqueryflag1(knownbutcleared) and
+free_buffer(0,13476855675) recorded BEFORE generation/workerdelete while exact
+workerPID/birthstillalive. Bothsameexistingrequests subsequentlycompleted152/89;
+outputIDs equalD498forboth. ThisprovesSHMpoolrange reusable, NOT thatpreallocated
+tmpfspagesreleasedtohost or wholememoryreduced. 7newCPUtests(reaLoopbackTCP),
+full70testsPASS. Initialpreparequoteanchorfailurepreserved; finish_prepare only
+completedabsentfiles. D499reusesD498adapterviews; nocopy/repack/regeneratedtrace.
+
+D498peak42909892608B; D499peak43116400640B; bothhigh/max/OOM/OOMkill/swap0.
+ActualGPUclear/provider/storage/worker/pausegone andservicegone. D498svcInvocation
+5fbfe99c8c744bb7a79ffb85c88af7f5,inode24026359; aux9Invocation5338caa3a458439b829abbd8ed1b8a44,
+inode24026317. D499svcInvocationb958e31b01ca4aa39487a834b39ba927,inode24032704;
+aux9Invocation04fbb66a4b704cf991ef4c1594c791dc,inode24032662. Allactualemptyclosed.
+D499CPU1/2/6closed; curation3peak34811904B/events0/swap0closed; backup4/5receipts
+separateinraw. Free201933180928B(~188GiB); freshlaunchgates stillrequired.
+
+407explicitfiles archivedwithroundtripSHA; protected147/userdirty/vendorclean/
+diff/tests/secrets/explicitstage/push gatesPASS. BASEpaper_results/ieee_tc/hydraserve/d499:
+generation_release_evidence.tar.gz SHA943da4c15e09f6535b084dadb710240d4eb04cb53d08e82094d1a92c71fc92fe;
+summarySHA72c392496aba3ba67e828a0e996ca5f01aeaa1829df4e983d9a30217227e8fa2.
+Raworiginalresults/ieee_tc/hydraserve_qualification/d498_20261013,d499_20261013.
+D498livecode subsequentlyevolved; verifyits executed_sources snapshots against
+itsmanifest, NOT currentnative_delivery as ifthatranduringD498. No remotechanges.
+
+NEXT actual fullScheduler/realremote integration, NOT repeatD498/D499/prepare or
+elementaryimports. Original Scheduler.process_request/check_model_loop and
+create_cold_start_instance mustusequalifiedLifecyclePlatform,originalours/prefetch/
+placement/counters; currentlywitnessusesalreadyinitializedInstance. Nativeutils.py
+imports Kubernetes/Aliyun atmodulelevel; isolate platform-only dependency without
+fakecluster or replacingoriginalHTTP/TCPrequestfunctions. Nativefiles under
+vendor.../scripts/kubernetes/vllm/src (NOT top-levelsrc). Keeponephysicalhost4GPUs.
+Connectexistingrequest-drivenrealremote LoRAresolver andtokenizerview,original
+fullScheduler/commonreplayer;100->500-ID->1000->4000 actualHydraServeresult ->
+allavailablebaselinecomparison -> PrimeLoRAoptimization. NumericalLoRA andfull
+pipeline/KVmigration/concurrentconsolidation remainOPEN. Fullremainingmatrixbelow.
+
+## D497–D498 preceding checkpoint (failure preserved; NO performance result)
 
 BASE cfa5ba2715eaf85b95fb454c2f528b11eae97ac9 pushed/independently remote-equal.
 MAIN predecessor fb6fc54792b26288cdaffaa6e1ea9b9b55826ea5; status backup follows.
