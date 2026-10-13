@@ -1,4 +1,4 @@
-# IEEE TC status — D503 native common HTTP 100-prefix qualification complete
+# IEEE TC status — D504 500-ID functional qualification complete; 1000 next
 
 Updated2026-10-13. Current checkpoint, NOT replacement plan. Entire preceding
 status byte-identically archived EXECUTION_HISTORY_THROUGH_D491.md; cmp passed,
@@ -21,6 +21,75 @@ performance optimization; baseline compatibility/correctness/measurement/safety
 only, no performance tuning/configsearch. Existing k3s belongs to another project;
 do not access/change cluster/credentials/permissions/resources. Isolated rootless
 Podman adaptation authorized; no barevLLM substitution, fakeReady or fake nodes.
+
+## D504 actual qualification COMPLETE (2026-10-13; not W0 performance)
+
+BASEd8069f5ffba814c9c4252cc5c238d43c0988669e pushed/remote-equal. No GPU job.
+Actual500/500 native-contract responses,500 distinct logicalIDs,0 failed,
+500 request-driven realremote transfers/420,740,410 wireB, allmatchedto local
+receipts; no request packing/temp. Native input/adapter/length/time contract PASS.
+n_correct remainsnull; no numerical equivalence/fullpipeline/KVmigration/
+consolidation qualification. Onephysicalhost,fouroriginalpp1 instances, original
+30s idle path releasedall. This adapter_coverage_v1 isNOT W0prefix/performance.
+
+Observed physical container-reservation union4604.206954383GPU-s,
+9.208413909/offered; pre0/arrival2239.345318356/drain2227.887869176/
+cleanup136.973766851. Mean/P95TTFT289289.305915/505736.984892ms,
+TPOT60.719879/72.787144ms; no comparison tofullW0. D503 boundarycaveatunchanged.
+ServiceInvocation827508296d1a42a28fa73b8c3147628e,inode24089907 actuallygone;
+launchaux9Invocation404bb6498f9f4170b1b99b59dd0f44f2,inode24089865 emptyclosed.
+Peak61,854,396,416B; high/max/OOM/OOMkill/swap0; actualGPU/provider/storage/
+pausegone. Remoteownedservices stopped AFTERlocalrelease; portsabsent.
+
+Original tmuxexit92 ispostruncollectionerror, notgenerationfailure. Missing
+prelaunchhealthreceipt made originalcollectorstopbeforeSSH. Firstofflineaudit
+was also premature, stoppedbeforeoutputs. Originalerrorspreserved. Newpostrelease
+healthreceipt (NOT retroactiveprelaunch), originalInvocation-owned stop and
+SHA-verified collection succeeded; subsequentofflineauditPASS. Futureprerequisites
+must be explicitly awaited/read beforelaunch oranalysis; never assumeasyncpass.
+
+1396explicitfiles roundtripSHA; archive5,206,190B underBASEpaper_results/ieee_tc/
+hydraserve/d504/coverage_evidence.tar.gz, SHA recordedinimmutable summary.json.
+Protected147/userdirty/vendorclean/secrets/diff/88freshCPUtests/pushPASS.
+CPU1–6actualemptyclosed; curation6peak52,097,024B/events0/swap0. Backup7/8
+closures separatelyrecorded. Free187,416,596,480B (~174.5GiB), freshgatesneeded.
+ReadBASEdocs/ieee_tc/D504_HYDRASERVE_500_ID_COVERAGE.md. Raworiginalresults/
+ieee_tc/hydraserve_qualification/d504_20261013. Neverrerun/overwriteD504.
+
+NEXT1000compatibility ->4000 actualHydraServe ->allavailablebaselinecomparison
+->PrimeLoRAoptimization; no more elementarywitnesses or baselinepolicytuning.
+Numericalqualification explicitlyOPEN; cannotinventcorrectnessorforcepipeline.
+Fullremainingmatrixbelowunchanged; goalACTIVE. NofiguresuntilnearPrimeLoRAtarget.
+
+### D504 preparation and sequencing history (preserved, no longer running)
+
+Prepared raworiginalresults/ieee_tc/hydraserve_qualification/d504_20261013 by
+mechanically reusing D503 native/common HTTP/remote/physical path. No source or
+baseline-policy changes. Explicit adapter_coverage_v1 maps sorted500 existing
+IDs onto first500 existing prompt/arrival/target entries; not an ordinary W0
+prefix, no replacement trace or weights generated. All500 small configs matched
+frozen contentSHA:350rank8/150rank16, fourq/k/v/o targets; single tokenizerSHA
+already exercisedD503. This metadata audit isNOTGPU/numericalcoverage. Native
+ranklimit16 unchanged. Existing poolmaterializedbytes12,985,984,450;20GiB growth
+gate includes views/temporary/log allowance. No fullpoolprefetch.
+
+CPUprepare1actualemptyclosed. RemoteD78/D80 services started exact-ownedD504;
+no republish/request-time packing. Prelaunch2 FAILED at authenticated health
+connection-refused immediately after service start (protected147/userdirty/source
+checks had passed). The agent launched before incorporating that failure; this
+ordering error is retained in prelaunch_failure_notes.md, not described as passed.
+CPU2actualemptyclosed. Independent guarded-launch resource gates and publisher's
+authenticated content-manifest handshake subsequently passed BEFORE deployment
+notice. D504 remains functional diagnostic only; no remote restart/config change
+or in-run health retry. Do not silently promote to performance or repeat the key.
+D50388CPUregressions/sourcefreeze retained. D504 ran in tmux primelora-d504 with
+common externalpublisher/60snotice/coldper-runcache; run_and_close.sh automatically
+checks actual release then attempts remote collection (failure/recovery above).
+No remotechanges/builds/scansduringrun.
+DoNOT rerunprepare/overwriteinputs. Ifpassed:1000compatibility ->4000HydraServe
+->fullavailablebaselinecomparison ->PrimeLoRAoptimization. Numerical/fullpipeline/
+KV/consolidation OPEN. Fullremainingmatrixbelow unchanged. D503MAINbackup
+b0d3ea628973399ceaa9f66a7990b77c9cddae50 pushed/remote-equal;allCPU1–8closed.
 
 ## D503 completed (2026-10-13; NOT a full performance point)
 
