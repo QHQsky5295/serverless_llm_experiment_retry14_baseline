@@ -1,4 +1,4 @@
-# IEEE TC status — D506 full4000 W0 prepared; not yet launched
+# IEEE TC status — D506 stopped: container-lifetime adaptation error, not performance
 
 Updated2026-10-13. Current checkpoint, NOT replacement plan. Entire preceding
 status byte-identically archived EXECUTION_HISTORY_THROUGH_D491.md; cmp passed,
@@ -22,7 +22,111 @@ only, no performance tuning/configsearch. Existing k3s belongs to another projec
 do not access/change cluster/credentials/permissions/resources. Isolated rootless
 Podman adaptation authorized; no barevLLM substitution, fakeReady or fake nodes.
 
-## D506 preregistration (2026-10-13; no result yet)
+## D506 actual outcome (2026-10-13; STOPPED, incomplete/invalid)
+
+tmux primelora-d506 dead exit2; no GPU job. Nativecontainers each terminated at
+~1800seconds because OUR isolated_platform.py passed --timeout=1800 to Podman,
+which limitswholecontainerlifetime, NOT startup/request. Installedhelp andofficial
+Podman3.4.4 docs verified. Sixexact-owned State records savedin
+RAW/container_lifetime_failure.json;allOOMKilledfalse. NotnativeHydraServe
+performance/system-resourcefailure; classificationprotocol_or_launcher_error.
+
+Publisherterminal: N_plan4000,N_arrived=N_terminal2229,N_response1202,N_failed1027
+(includescancelled). Remaining1771notarrived, notfakedtimeouts. No fullSLO/GPU-s
+ranking, no numericalcorrectnesspromotion, no full_auditexecution. Rawfaileddata
+andallpreregistration/sourceSHA retained. D506 mustNOTberestarted/overwritten.
+ExactlauncherpidfdSIGINT triggeredexistingownedcleanup; servicegone/nativeGPU
+contextsreleased;launchaux9Invocation585b136f0cdd4295a167ef05aa7ba707 emptyclosed.
+Peak50427858944B;high/max/OOM/OOMkill/swap0. Remote3B/7B/monitor exact-owned
+stoppedAFTERlocalrelease;portsabsent/logSHAmatched. CPU1–6closed. Failedhelper
+ISOparser/pidfd attempts preserved; hostpidfdhelper deliveredtheactualsignal.
+
+NEXT seal/backup failure evidence BEFOREsourceedits; capturestoppedcontainer
+logs/state thenonlyexact-owned cleanup. Removeinappropriateper-containerlifetime
+timer, relyingonnativecontroller+existingboundedcampaign/watchdogcleanup. DoNOT
+arbitrarilyincreaseTTL, change1800requestguard/SLO/nativepolicy, ortunebaseline.
+Validateonlythislifecyclecontract, thennewfull4000attempt; notmoreelementary
+qualification. Thenfullavailablebaselinecomparison ->PrimeLoRAoptimization.
+ReadBASEdocs/ieee_tc/D506_HYDRASERVE_FULL_W0.md. Failurecuration/push stillPENDING.
+All7B/3B/W1/W2/G2/A1–A5/S1–S13/cost/docs/finalfigures remainOPEN;goalACTIVE.
+
+Failurecuration nowCOMPLETE:439explicitfiles,5,143,756B roundtripSHAarchive
+BASEpaper_results/ieee_tc/hydraserve/d506/failed_lifetime_evidence.tar.gz plus
+summary.json. Protected147/sourcechecks passed; populationaudit preserves
+2229arrived/1202responses/1027failed-or-cancelled/1771notarrived. No fullperfrow.
+CPU7curation actualemptyclosed; sourceunchanged so far. Failurebackup follows;
+postrunstrictaudit.py remains unexecuted and is not applicable to thispartialrun.
+DoNOT reruncuration/overwrite. Stoppedcontainer cleanup and lifetimefix stillPENDING.
+
+Failure BASEf1591bff7ab9d828b5697e3308aece6ba676ba7d nowPUSHED/remote-equal,
+fresh88CPUtests/protected147/userdirty/source/vendorclean/secrets/diff allPASS.
+ArchiveSHA8b4230015f526977dc02d288ea50c4ce5763c1293951fa7d58a18ce8c4dad99f,
+summarySHA07e45a196e4a0e81d480a0a307163a74be265ad6118edbb090f9389077413107.
+CPU7curationpeak84885504B/events0/swap0 actualclosed; CPU8BASEbackupclosed.
+MAINstatusbackup next withseparateCPU10, no runningheavyjob. SourcehasNOTyetbeen
+fixed; nextnecessarylifetimecorrection isnotbaselineperformancetuning. Preserve
+container logs/State BEFOREexact-owned removal; do notoverwriteD506 orrunits
+strictsuccessaudit. Freshdisk183285915648B(~170.7GiB),MemAvailable112647868416B;
+newlaunch requiresfreshgates. Entiregoal/fullmatrix stillACTIVE.
+
+### D506 actual launch history (no longer running)
+
+tmux primelora-d506 panePID2871594 actualalive; run_and_close.sh launched ONCE.
+Service primelora-tc-svc-1f9b667fcb1a436cbb8671c628d6c18f.scope,
+Invocationf0b714394f5c4c2ab4e975f96174040c,inode24179351. Launchaux9.
+exec_receipt external4000 W0 view matchespreregistration; deploymentnotice
+1397084.676304775,replayt0=1397144.676304775 samequalifiedmonotonicclock.
+Watchdog actualsampling/events0/swap0 atstart, originalprovider/storage startup
+undercommonservice80GiB. No completedperformance claim. DoNOTrepeatlaunch or
+prepare. Monitor actualtmux/process/logs, notold state labels; letclosure finish.
+
+Beforelaunch: remote_start command completed/readsuccess, thenauthenticated
+health for3B/7B AND resource/source/protected147 gates completed/readPASS;
+CPU5exactemptyclosed Invocation760f9db358654f3bbbee40ae43cbe220,inode24178872.
+FreshMemAvailable112281948160B,disk~185.8e9B;20GiBgrowth/common150/100GiB
+gatepassed. Freshremoteactual1000Mb/s/full. Remoteowned3BInvocation
+ff6b5cb44a1246129935e78de7bc7951;7Be83b90cd88c046c38832752343683727;
+monitorf6a51e684b114b609901f2a09e0cbf6d. D78/D80readonlyobjectsreused.
+NO remotechanges, builds, hashscans, compression or anotherGPUtask whileactive.
+run_and_close.sh closesactuallocalresources thenexact-ownedremote andcollects
+receipts. Onlyafterterminal/closure inspectaudits; preservefailures/incomplete.
+
+Preregistration backup complete beforelaunch: BASE329a021df779581381380e2e8afea22194778f2a,
+MAINea372931ac3eb9962084ea055ea0094dbc67054f bothpushed/remote-equal.
+CPU1–5allactualemptyclosed (firstbackupCPU2failure retained), fresh88testsPASS.
+Current runningstatus is local until nextclosed checkpoint; no backup duringrun.
+Latest actualwatchdogsample111: nativeprovider/storage initialized, first6HTTP
+responses observed, nativeGPUprocess2876097 onphysicalGPU0; tmuxstillalive.
+Servicecurrent43243175936B,peak43381321728B,hostavailable69054889984B,
+diskfree185507975168B, high/max/OOM/swap0, warningfalse/abortnone.
+This isprogress only, NOT full-request contract audit or performance result.
+Lateractualsample395:136HTTPresponsesobserved;service44.8455GiB,hostavailable
+60.5747GiB,disk171.6309GiB,events/swap0,warningfalse/abortnone;sametmuxalive.
+No performance conclusion fromprefix. Prepared RAWaudit.py reusingD503audit,
+with4000exactpopulation, duplicate/index/path checks, independentphysicalunion/
+nativeworker lifetime binding andcommonD394 SLO. SyntaxcheckedONLY; NOTexecuted.
+ExecuteunderboundedCPU ONLYafterlocalclosure andremote_stop receipts pass. It
+preservesrawn_correct=null andwritesnewV1binding/accountingobservation; anyfailure
+isretained inaudit_failure.json, never apartialqualifiedranking or changeddenominator.
+Full-source/request/resource audits/curation/backup remainPENDING, not assumedpass.
+Latestverifiedwaitsample532:236HTTPresponsesobserved,tmux2871594stillalive;
+service45.0571GiB,hostavailable60.4832GiB,disk171.5410GiB,events/swap0,
+warningfalse/abortnone. Sameoriginalrun; no restart/newexperiment/remotechanges.
+Subsequent verifiedwaiting: same tmux/process stayedalive while responses advanced
+272->347->412->458->517. Latestwatchdogsample961:service45.5924GiB,
+hostavailable60.5728GiB,disk171.3153GiB,high/max/OOM/swap0,warningfalse/abortnone.
+Originalqueuewait increased; no latency subtraction, runtimeadjustment or early
+performance conclusion. Remainonthissame4000run; postreleaseaudit stillNOTexecuted.
+Further verifiedwaiting:539->617->725->811->874->924->1018responses;
+same originaltmux2871594 alive. Latestwatchdogsample1568:service46.6368GiB,
+hostavailable59.9837GiB,disk170.9241GiB,events/swap0,warningfalse/abortnone.
+This is the ongoing full4000 run, NOT a new1000qualification or completedrun.
+No runtime/remote/config changes, extraheavyjob, repeats, analysisexecution or
+earlyresource-return claim. Awaitremainingrequests and actualclosure, thenaudit.
+Afterresult: fullavailablebaseline comparison ->PrimeLoRAoptimization.
+3B/W1/W2/G2/A1–A5/S1–S13/cost/docs/figures remainOPEN, fullscopeACTIVE.
+
+### D506 preregistration history (prepared before the actual launch above)
 
 Raw originalresults/ieee_tc/hydraserve_qualification/d506_20261013 prepared ONCE.
 Unchanged D505 native runtime/controller/backend/modeltuple/cache/idle policy;
