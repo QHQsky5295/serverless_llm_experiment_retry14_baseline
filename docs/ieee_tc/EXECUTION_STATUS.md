@@ -1,4 +1,4 @@
-# IEEE TC status — D493 concrete lifecycle/private storage connected
+# IEEE TC status — D495 native 7B delivery and real app initialization passed
 
 Updated2026-10-13. Current checkpoint, NOT replacement plan. Entire preceding
 status byte-identically archived EXECUTION_HISTORY_THROUGH_D491.md; cmp passed,
@@ -21,6 +21,50 @@ performance optimization; baseline compatibility/correctness/measurement/safety
 only, no performance tuning/configsearch. Existing k3s belongs to another project;
 do not access/change cluster/credentials/permissions/resources. Isolated rootless
 Podman adaptation authorized; no barevLLM substitution, fakeReady or fake nodes.
+
+## D494–D495 current checkpoint (NOT a performance result)
+
+BASE c334727892b7b7fa2c63c4fd10cf3f124f9695a1 pushed/independentlyremoteequal.
+MAIN preceding9446e814ebdde563878cc9b156028756663f6441; currentstatusbackup follows.
+Read BASEdocs/ieee_tc/D495_HYDRASERVE_NATIVE_DELIVERY.md. No liveheavyjob.
+Actualnative CPUprovider/two-existing-HFshards/packing/two-threadTCP/private13GiB
+SHM/C++GPUfastload/originalapp+LoRAmanager/KVinit allconnected. D495 /init200,
+/health200,/v1/models200. OriginalResourceManager actualGPUselection/release used;
+GPU-visibleUUID verified beforepermit. Onephysicalhost, notfour inventednodes.
+Readonly metadata/symlinks only; no tensorcopy/combinedcheckpoint/newdataset.
+
+D494 originalfailure retained: nativebatchdefault65536 violates ownLoRAkernel
+ceiling65528, so/init500. D495 explicitlyuses source-AST-derived65528 onthree
+LoRA-enabledEngineArgs sites; notparametersearch/performanceoptimization.
+Officialconfig re-fetchedonline, SHA5a17e5ca3741314175daa825024172be0decb56dd411d6e40ff146cfe15d8332.
+ProviderwithoutLoRAdefaultunchanged; originalpacking/wire/storagepolicies retained.
+
+Bothrunscommonhigh72/max80GiB/swap2,CPU4-23/28-47; wholeprovider/storage/worker
+incommonparent. D494peak42040569856B; D495peak42318667776B; allhigh/max/OOM/
+OOMkill/swap0. Workers/provider/storage/pausegone; actualGPUclear,svcgroupgone,
+exactInvocation/inode emptyauxclosed. D495svcInvocation303886b8151e43debae95deca14549cf,
+inode23993694; auxInvocationeacea1d57eaa4b42a66c8c7dfb4d335a,inode23993652.
+45CPUregressionsPASS; protected147/userdirty/nativeclean/secrets/diff/PUSHallPASS.
+186explicitfailure/success/source records roundtripSHAchecked:
+BASEpaper_results/ieee_tc/hydraserve/d495/native_delivery_evidence.tar.gz SHA
+7cc57b5e05fc09e9fb34f76abe787955c549d1f67ae9578ba3e725fc4e62fbf4;
+summarySHA526a43234a21ad053d196eeea79d597e3c3f1439fe1754b42bd628cc4bbc3a98.
+Raw originalresults/ieee_tc/hydraserve_qualification/d494_20261013,d495_20261013.
+Latestdiskfree201970425856B(~188.1GiB); available110223124KiB; freshgates required.
+
+NEXT: nativeRequest/ChatEngine input+LoRA+fixed-output+native-token/timingcontract,
+not another elementary import/container/SHM test. Officialsrc/engine.py chat uses
+temperature1/max_tokens1024, Request in src/scheduler.py lacksadapter/target.
+Native vllm/entrypoints/openai/serving_completion.py alreadyhasLoRARequest and
+token_ids; keep actualHydraServe scheduler, don't replacewithbarevLLM. Registration
+llama2_7b hasnochattemplate; choose necessarycanonical-input adaptation explicitly.
+Also observed nativeapp startup asyncio.run closesoldloop; end_load_model_shm
+laterreports Event loop is closed. Storagefree_buffer observedonlyaroundworker
+deletion; notproof of promptsteady-stateSHMrelease. Trace control-socketownership
+before multireplica/consolidation; protocol-preserving correctnessrepair ifneeded.
+Nativeactualgeneration/per-requestLoRA/pipeline/KVmigration/concurrentconsolidation
+remainOPEN. Then100->500-ID->1000->4000 HydraServe -> availablebaselinecomparison
+-> PrimeLoRAoptimization. No newperformancepoint/ranking/claimfrominitialization.
 
 ## D492–D493 completed (NOT inference/performance)
 
@@ -69,11 +113,26 @@ Curation3actualemptyclosedpeak12320768B/events0; backup4closurefollows.
 Officialresource_manager.py refetchedonline SHA equals pinnedinput. Webtool429
 notusedasevidence; boundedrawGitHubfetch succeeded. No nativecheckout changes.
 
-## NEXT: actual native provider/fastload/app and request contract
+## D494 precursor detail (D495 current next action above)
+
+D494 (2026-10-13) NEW actual CPU provider loaded existing TWO 7B HF shards,
+native packing/partition/two-thread wire -> private13GiB SHM -> C++ GPU fastload
+completed. GPU UUID gate actually passed. Original app /init returned500 before
+engine construction: native batch default65536 exceeds its own LoRA kernel cap
+65528. This is a concrete compatibility failure, NOT a performance result.
+Raw d494_20261013 retains executed source overlays, logs,failedresult and closure.
+Common72/80GiB,swap2,CPUs4-23/28-47; observedpeak42040569856B,events/swap0;
+GPUreleased/servicegone/exact-owned emptyauxclosed. Existingk3s untouched.
+NEW readonly metadata links/shard iterator/import overlay/provider lifecycle
+passed15CPUtests. No wholecheckpointcopy/download/partition rewrite. Nativeapp
+LoRAenable/extra_vocab0 necessary for existingweights; native LoRA/batch/cache
+defaults otherwise retained. NEXT revision only clips batchtokenlimit to exact
+source-pinned native LoRA ceiling65528 (not performance tuning); D495initnowpassed.
+Upper requestLoRA/nativeoutputcontract stillOPEN. No PrimeLoRA candidate now.
 
 Use concreteplatform with D491lora_worker_binding overlay. Preserve modified
 vLLM0.4.2/nativepipeline/startupoverlap/consolidation. Need actualprovider->private
-SHM->C++fastload->app/init AND upperleveladapter/fixed-output/native-tokencontract.
+SHM->C++fastload->app/init (D495passed) AND upperleveladapter/fixed-output/native-tokencontract.
 Then100->500-ID->1000->4000 HydraServeactualresult -> fullavailablebaseline
 comparison -> PrimeLoRAoptimization. Do NOT repeat install/build/elementaryCUDA/
 container or sharedbinding tests instead of advancing this integration.
@@ -109,7 +168,8 @@ D486private_home/.config/vllm/nccl/cu12/libnccl.so.2.18.1 SHA
 005503b62b9fe466b6b2f60ba2ad1daa4571196ffcb82a3d77a3c775bfcd5ac8;
 setVLLM_NCCL_SO_PATH. D485build_fastload/lib/libst_pybinding.so SHA
 f11b31a82f654d7c8950d85e05461d31b5cc45469720deb1e784d47022571e44,
-mount/vllm-workspace/libst_pybinding.so. ImportPASS, actualSHMloadstillOPEN.
+mount/vllm-workspace/libst_pybinding.so. ImportPASS, actualSHMload/appinitD495PASS;
+end-to-endgenerative correctnessstillOPEN.
 
 D487Punica/SiLU/FlashAttention GPU arithmeticPASS; D488nonzeroLoRA128positionsPASS.
 D491 actualnativeDefaultModelLoader/Llama/ModelRunner2loadboundaries/oneLRUmanager
