@@ -73,6 +73,29 @@ class BoundRequest:
     terminal: bool = False
     native_request_id: str = None
     native_process: dict = None
+    artifact_preparer: object = None
+    artifact_evidence: dict = None
+
+
+async def prepare_bound_artifact(prompt):
+    """Optional on-demand delivery after native assignment/init, before submit.
+
+    This is a data-path prerequisite, not a routing signal or a prefetch. The
+    original five-second backend submission timeout remains unchanged; bounded
+    remote I/O has its own common transport deadline and cancellation contract.
+    """
+    if not isinstance(prompt, BoundRequest) or prompt.artifact_preparer is None:
+        return
+    if prompt.artifact_evidence is not None or prompt.native_request_id is not None:
+        raise ValueError('artifact preparation cannot reuse a bound request')
+    evidence = await prompt.artifact_preparer.prepare(prompt.contract)
+    c = prompt.contract
+    if (not isinstance(evidence, dict)
+            or evidence.get('tc_artifact_request_id') != c.request_id
+            or evidence.get('tc_artifact_id') != c.adapter_id
+            or evidence.get('native_adapter_path') != c.adapter_path):
+        raise ValueError('prepared artifact differs from native request')
+    prompt.artifact_evidence = evidence
 
 
 class CompletionAsChatStream:
@@ -304,6 +327,11 @@ def render_overlays(native_root):
         '        if not is_coldstart_req:\n            self.num_coldstart_reqs -= 1\n',
         '        if not is_coldstart_req:\n            self.num_coldstart_reqs -= 1\n'
         '            cold_counted = False\n')
+    body = replace_one(body,
+        '        try:\n            reply = await asyncio.wait_for(self.chat_engine.chat(prompt, stream), timeout=5)\n',
+        '        from HydraServe_project.runtime.request_contract import prepare_bound_artifact\n'
+        '        await prepare_bound_artifact(prompt)\n'
+        '        try:\n            reply = await asyncio.wait_for(self.chat_engine.chat(prompt, stream), timeout=5)\n')
     source = (source[:start]+'        cold_counted = False\n        try:\n'
         +''.join('    '+line if line.strip() else line for line in body.splitlines(keepends=True))
         +'        except BaseException:\n'
