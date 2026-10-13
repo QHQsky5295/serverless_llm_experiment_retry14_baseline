@@ -7,6 +7,12 @@ historical "plan mode / no execution this turn" sentences describe approval
 time, not the user's subsequent explicit execution authorization.
 
 Latest user order (2026-10-12): read
+`docs/ieee_tc/STORAGE_PRIORITY_20261013.md` FIRST for the newer storage-first
+instruction: audit and safely reclaim proven obsolete/rebuildable data or
+losslessly compress closed evidence before another build/new experiment.
+Retain unique assets, failed evidence, user dirt and unrelated projects.
+After this maintenance, resume the baseline order below; no experiment scope
+is removed. Read
 `docs/ieee_tc/BASELINE_COMPLETION_ORDER_20261012.md`. Finish/audit/save the already
 running D476 once, then complete HydraServe necessary isolated adaptation/native
 qualification and obtain actual results BEFORE another PrimeLoRA optimization

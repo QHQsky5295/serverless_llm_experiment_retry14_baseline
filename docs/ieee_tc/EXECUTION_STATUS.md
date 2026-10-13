@@ -1,6 +1,6 @@
-# IEEE TC execution status — D482 official source-build dependencies acquired
+# IEEE TC execution status — D483 storage-first maintenance
 
-Updated 2026-10-13 08:57 CST. Current checkpoint, NOT replacement plan.
+Updated 2026-10-13 09:17 CST. Current checkpoint, NOT replacement plan.
 Preceding status byte-identically archived in EXECUTION_HISTORY_THROUGH_D477.md;
 cmp passed, SHA cee5b2b0527a0ff9f2d07d2dc65c86a74dd2ce0d1b3b27f4a434f764e9adb128.
 D461/D448/D433/D402 and older histories remain. Historical NEXT/RUNNING lines
@@ -12,6 +12,61 @@ Read full /home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md at task start,
 after compaction and before experiments. SHA
 f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5.
 Read BASELINE_COMPLETION_ORDER_20261012.md and BASELINE_EXECUTION_RULES_20261011.md.
+
+NEWEST order: STORAGE_PRIORITY_20261013.md. First audit and reclaim proven
+obsolete/rebuildable data or losslessly compress closed evidence; no new build
+or inference until this maintenance is addressed. No unique assets, failed
+evidence or unrelated project data deletion. Then resume the baseline order below.
+
+## D483 live maintenance checkpoint (not a performance experiment)
+
+48 explicit closed remote-monitor logs compressed, two independent decompressed
+SHAs plus fresh original SHA match; 2,780,131,328 allocated bytes reclaimed.
+Receipt paper_results/ieee_tc/storage/20261013_d483_closed_remote_monitors.json
+SHA 0f2a92611f79de03742b3ebed0f7678b0edb8c722cf368d813275d0578883aac.
+Free bytes after163016425472 (~151.82GiB); not a permanent capacity guarantee.
+Protected147 unchanged, successful/nonfeasible/failed identities unchanged.
+Archiver only extends allowed basename to exact remote_monitor.log; same actual
+closure/release/no-open-file/roundtrip requirements.9 regression tests pass.
+Storage scope2 Invocation0b56ba09cce2403bbc2a8f9620dd70f6/inode23882072 actually
+recursive-empty then closed; peak439107584B, high/max/OOM/swap0.
+Test scope1 also closed. RAW hydraserve_qualification/d483_20261013.
+Metadata inventory finished: baseline results722.62GB, old remote baseline group
+271.91GB mostly per-run remote_cache; prior downstream input references mean
+NOT proven disposable, retained. Main p2qualification217.24GB, dominated by old
+9–15GB experiment_results JSON; preserve via compression, not projection/deletion.
+pip cache now42.7MB, NOT September51.89GB; conda package39.04GB may share hardlinks.
+No broad purge. Six-root du rc1 has two private container apt partial permission
+gaps; targeted two-subtree detaildu rc0. Scopes3/4actuallyemptyclosed,events0.
+
+LIVE large-result maintenance, NOT inference: compress_legacy_storage.py;
+unified session28193, scopeprimelora-tc-aux-d4830000000000000000000000000006.scope,
+Invocation08c6d7eeb6a84a579bfdea87b1825778,inode23887612.
+Explicit D148/D137/D135 7b_full_w0_full1; actual launch --config/output_dir binds
+each source.3/4GiBswap0CPU2,3,26,27;1sparentguard16GiBhost/100GiBdisk,7200sfinite.
+Original source remains until two decompressedSHA+freshsourceSHA+sameidentity;
+rawlarge JSON never loaded into RAM. New12tests pass, testscope5closedevents0.
+At09:16D148 gzip progressing; no finalreceipt yet. Do not restart advancing job.
+NEXT: monitor same job toterminal, inspect legacy_storage_result/failure.json,
+verifyactualrecursiveempty and run close.py legacy_storage. Only then count
+releasedbytes/updatecurated terminalreceipt. On interruption preserve partials
+and per-file receipts; never replay the whole list blindly.
+
+37smallsource/test/closedmonitor/inventory/binding records archived and roundtrip
+verified: paper_results/ieee_tc/storage/d483, archiveSHA
+39e5e4608d98180d8fb949353604e2f6c814fe7a22570644dc17981ff4e04afe;
+summaryd98d8d41e082b524f3d43c186b4dd49d99bb99f06c4c9c88c6897839beb61a6b.
+Snapshot explicitly calls largebatchlive, not complete. Curation scope7closed.
+Read D483_STORAGE_MAINTENANCE.md; backup receipts follow in D483raw.
+BASE storage-order checkpoint5950bdd568523d9dd4c6c9ce3f73fd724a473e5b pushed and
+independentlyremoteequal; scope8closed. MAIN tested checkpoint follows.
+At09:18large-file scope6 memory.high events30907 from bounded streaming, max/OOM/
+swap0; record actual events at terminal, do not inherit first48-log zeroevents.
+This maintenance is not a performance run; don't remove the protective limit.
+No currently running GPU job/build/download. Exact dependencies acquired inD482
+remain needed/reused. Storage maintenance first; no new PrimeLoRA candidate.
+
+## Baseline main line retained after maintenance
 
 Latest explicit user order: sealed D476 -> HydraServe necessary faithful isolated
 adaptation/native qualification and actual result -> full available baseline

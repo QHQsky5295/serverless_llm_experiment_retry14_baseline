@@ -110,6 +110,97 @@ class ClosedOutcomeArchive(unittest.TestCase):
             self.assertEqual(gzip.decompress(source.with_suffix('.log.gz').read_bytes()), payload)
             self.assertEqual(original_receipt.read_bytes(), b'previous immutable outcome receipt')
 
+    def test_current_monitor_basename_requires_same_closure(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            run = root/'campaign/run'
+            run.mkdir(parents=True)
+            source = run.parent/'remote_monitor.log'
+            payload = b'closed current-campaign observations\n'*256
+            source.write_bytes(payload)
+            launch = self.launch(True)
+            launch['service_path_removed'] = False
+            (run/'launch.json').write_text(json.dumps(launch))
+            with patch.object(archive, 'RAW_ROOT', root), patch.object(archive, 'OUT', root/'receipt.json'), \
+                    patch.object(archive, 'TARGETS', [dict(run='campaign/run', audit_sha=None,
+                        remote_monitor_log='remote_monitor.log')]), patch.object(archive, 'no_active') as check:
+                with self.assertRaises(RuntimeError):
+                    archive.main()
+                self.assertEqual(source.read_bytes(), payload)
+                self.assertFalse(source.with_suffix('.log.gz').exists())
+                launch['service_path_removed'] = True
+                (run/'launch.json').write_text(json.dumps(launch))
+                self.assertEqual(archive.main(), 0)
+                self.assertEqual(check.call_count, 2)
+            self.assertEqual(gzip.decompress(source.with_suffix('.log.gz').read_bytes()), payload)
+
+    def test_legacy_path_rejects_other_evidence_and_symlinks(self):
+        with tempfile.TemporaryDirectory() as directory:
+            raw = Path(directory)/'campaign/run'
+            raw.mkdir(parents=True)
+            for name in ('../outside.json', '/tmp/experiment_results_x.json',
+                         '7b_outputs_x/../experiment_results_x.json',
+                         '7b_outputs_x/model.safetensors', '7b_outputs_x/launch.json'):
+                with self.subTest(name=name), self.assertRaises(ValueError):
+                    archive.evidence_paths(raw, legacy_result=name)
+            with self.assertRaises(ValueError):
+                archive.evidence_paths(raw, 'remote_monitor.log',
+                                       '7b_outputs_x/experiment_results_x.json')
+            target = raw.parent/'real_outputs'
+            target.mkdir()
+            (raw.parent/'7b_outputs_x').symlink_to(target, target_is_directory=True)
+            with self.assertRaises(ValueError):
+                archive.evidence_paths(raw, legacy_result='7b_outputs_x/experiment_results_x.json')
+
+    def test_legacy_roundtrip_requires_closure_and_preserves_prior_receipt(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            raw = root/'campaign/run'
+            raw.mkdir(parents=True)
+            relative = '7b_outputs_x/experiment_results_x.json'
+            source = raw.parent/relative
+            source.parent.mkdir()
+            payload = b'{"old_result":"preserve every field"}\n'*256
+            source.write_bytes(payload)
+            (raw/'compression_receipt.json').write_bytes(b'immutable prior receipt')
+            launch = self.launch(False)
+            (raw/'launch.json').write_text(json.dumps(launch))
+            with patch.object(archive, 'RAW_ROOT', root), patch.object(archive, 'OUT', root/'receipt.json'), \
+                    patch.object(archive, 'TARGETS', [dict(run='campaign/run', audit_sha=None,
+                        legacy_result=relative)]), patch.object(archive, 'no_active'):
+                with self.assertRaises(RuntimeError):
+                    archive.main()
+                self.assertEqual(source.read_bytes(), payload)
+                self.assertEqual(archive.main(allow_closed_failure=True), 0)
+            self.assertEqual(gzip.decompress(source.with_suffix('.json.gz').read_bytes()), payload)
+            self.assertEqual((raw/'compression_receipt.json').read_bytes(), b'immutable prior receipt')
+            self.assertFalse(json.loads((root/'receipt.json').read_text())['entries'][0]['launch_pass'])
+
+    def test_same_content_replacement_before_unlink_is_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            raw = root/'campaign/run'
+            source = raw/'launch.launch/physical_deployment/main_outcome.json'
+            source.parent.mkdir(parents=True)
+            payload = b'{"unchanged_bytes":"different_identity"}\n'*256
+            source.write_bytes(payload)
+            (raw/'launch.json').write_text(json.dumps(self.launch(True)))
+            calls = 0
+            def replace_on_second_check(path):
+                nonlocal calls
+                calls += 1
+                if calls == 2:
+                    replacement = path.with_suffix('.replacement')
+                    replacement.write_bytes(payload)
+                    replacement.replace(path)
+            with patch.object(archive, 'RAW_ROOT', root), patch.object(archive, 'OUT', root/'receipt.json'), \
+                    patch.object(archive, 'TARGETS', [dict(run='campaign/run', audit_sha=None)]), \
+                    patch.object(archive, 'no_active', side_effect=replace_on_second_check):
+                with self.assertRaisesRegex(RuntimeError, 'source identity changed'):
+                    archive.main()
+            self.assertEqual(source.read_bytes(), payload)
+            self.assertFalse(source.with_suffix('.json.gz').exists())
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -108,13 +108,28 @@ def require_closed_launch(launch: dict, *, allow_closed_failure: bool = False) -
     raise RuntimeError('failed/unknown launch requires explicit closed-failure eligibility')
 
 
-def evidence_paths(raw: Path, remote_monitor_log: str | None = None) -> tuple[Path, Path]:
-    """Resolve only an explicit closed run's outcome or adjacent final monitor log."""
+def evidence_paths(raw: Path, remote_monitor_log: str | None = None,
+                   legacy_result: str | None = None) -> tuple[Path, Path]:
+    """Resolve only an explicit closed run's outcome or adjacent monitor log.
+
+    Newer campaigns use the exact basename remote_monitor.log. Eligibility
+    still comes from release evidence and live-reference checks, not the name.
+    """
+    if legacy_result is not None:
+        if remote_monitor_log is not None:
+            raise ValueError('only one explicit evidence type may be selected')
+        if not re.fullmatch(r'(?:3b|7b)_outputs_[A-Za-z0-9_]+/experiment_results_[A-Za-z0-9_.-]+\.json', legacy_result):
+            raise ValueError('legacy result must be an exact adjacent output JSON path')
+        source = raw.parent / legacy_result
+        if source.resolve() != source.absolute():
+            raise ValueError('legacy result cannot traverse symlinks')
+        return source, source.with_name(source.name + '.compression_receipt.json')
     if remote_monitor_log is None:
         return (raw / 'launch.launch/physical_deployment/main_outcome.json',
                 raw / 'compression_receipt.json')
-    if not re.fullmatch(r'remote_monitor_[A-Za-z0-9_]+_final\.log', remote_monitor_log):
-        raise ValueError('remote monitor must be a final-log basename, not a path')
+    if (remote_monitor_log != 'remote_monitor.log' and
+            not re.fullmatch(r'remote_monitor_[A-Za-z0-9_]+_final\.log', remote_monitor_log)):
+        raise ValueError('remote monitor must be an allowed exact basename, not a path')
     source = raw.parent / remote_monitor_log
     return source, source.with_name(source.name + '.compression_receipt.json')
 
@@ -129,7 +144,8 @@ def main(*, allow_closed_failure: bool = False) -> int:
         for target in TARGETS:
             run = target['run']
             raw = RAW_ROOT / run
-            source, item_receipt = evidence_paths(raw, target.get('remote_monitor_log'))
+            source, item_receipt = evidence_paths(raw, target.get('remote_monitor_log'),
+                                                  target.get('legacy_result'))
             if item_receipt.exists():
                 raise RuntimeError(f'evidence already has a compression receipt: {source}')
             archive = source.with_suffix(source.suffix + '.gz')
@@ -158,6 +174,8 @@ def main(*, allow_closed_failure: bool = False) -> int:
                     raise RuntimeError(f'round-trip mismatch: {run}')
                 archive_stamp = stamp(archive)
                 no_active(source)
+                if stamp(source) != original_stamp:
+                    raise RuntimeError(f'source identity changed before removal: {run}')
                 source.unlink()
                 if source.exists() or not archive.is_file():
                     raise RuntimeError(f'source/archive final state invalid: {run}')
@@ -197,6 +215,8 @@ if __name__ == '__main__':
     parser.add_argument('--receipt', type=Path)
     parser.add_argument('--remote-monitor-log', action='append', default=[],
                         help='Explicit final monitor basename per --closed-run; same campaign only')
+    parser.add_argument('--legacy-result', action='append', default=[],
+                        help='Exact adjacent model_outputs_tag/experiment_results_*.json per closed run')
     parser.add_argument('--allow-closed-failure', action='store_true',
                         help='Archive explicitly named failed attempts after verified release; retain failure status')
     args = parser.parse_args()
@@ -206,6 +226,8 @@ if __name__ == '__main__':
         parser.error('--allow-closed-failure requires explicit --closed-run paths')
     if args.remote_monitor_log and len(args.remote_monitor_log) != len(args.closed_run):
         parser.error('supply one --remote-monitor-log per --closed-run')
+    if args.legacy_result and (args.remote_monitor_log or len(args.legacy_result) != len(args.closed_run)):
+        parser.error('supply one --legacy-result per --closed-run, without monitor arguments')
     if args.closed_run:
         if len(set(args.closed_run)) != len(args.closed_run):
             parser.error('duplicate closed-run path')
@@ -217,7 +239,8 @@ if __name__ == '__main__':
                 parser.error('closed-run escapes the raw result root')
             try:
                 _, item_receipt = evidence_paths(RAW_ROOT/path,
-                    args.remote_monitor_log[index] if args.remote_monitor_log else None)
+                    args.remote_monitor_log[index] if args.remote_monitor_log else None,
+                    args.legacy_result[index] if args.legacy_result else None)
             except ValueError as error:
                 parser.error(str(error))
             if item_receipt.exists():
@@ -225,7 +248,8 @@ if __name__ == '__main__':
         if not args.receipt.resolve().is_relative_to((ROOT/'paper_results/ieee_tc/storage').resolve()):
             parser.error('receipt must be inside the curated storage directory')
         TARGETS = [dict(run=run, audit_sha=None,
-                       remote_monitor_log=args.remote_monitor_log[index] if args.remote_monitor_log else None)
+                       remote_monitor_log=args.remote_monitor_log[index] if args.remote_monitor_log else None,
+                       legacy_result=args.legacy_result[index] if args.legacy_result else None)
                    for index, run in enumerate(args.closed_run)]
         OUT = args.receipt
     sys.exit(main(allow_closed_failure=args.allow_closed_failure))
