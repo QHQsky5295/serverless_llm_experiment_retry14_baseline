@@ -1,6 +1,6 @@
-# IEEE TC execution status — D484 HydraServe dependencies completed, native build next
+# IEEE TC execution status — D485 HydraServe native compilation running
 
-Updated 2026-10-13 10:02 CST. Current checkpoint, NOT replacement plan.
+Updated 2026-10-13 10:20 CST. Current checkpoint, NOT replacement plan.
 Preceding status byte-identically archived in EXECUTION_HISTORY_THROUGH_D477.md;
 cmp passed, SHA cee5b2b0527a0ff9f2d07d2dc65c86a74dd2ce0d1b3b27f4a434f764e9adb128.
 D461/D448/D433/D402 and older histories remain. Historical NEXT/RUNNING lines
@@ -18,7 +18,46 @@ obsolete/rebuildable data or losslessly compress closed evidence; no new build
 or inference until this maintenance is addressed. No unique assets, failed
 evidence or unrelated project data deletion. Then resume the baseline order below.
 
-## D484 current work: native-source prerequisites, not a performance result
+## D485 LIVE native compilation (not GPU qualification or performance)
+
+D484 dependencies complete andbackedup; MAINc6f16c3218d9cd9b71cb95d5936521a7f7a5114a
+andBASE8c52abc505cb83c9f019badbe0e0f709d75ea292 pushed/remoteequal.
+RAW originalresults/ieee_tc/hydraserve_qualification/d485_20261013.
+Fixednativecheckout unmodified; directoriginalCMake default _C/_moe_C/_punica_C,
+SM86,Torch2.3.0,NVCC12.4.131,GCC11.4; no barevLLM/no baselineperformancetuning.
+First attempt bothconfigure+nativefastload compile/link passed, then _C compilation
+failed missingcusparse.h. Actualwheelheaderexists: CMAKE_INCLUDE_PATH is discovery,
+notcompilerinclude. Scope1 closedactualempty,89.204960s,peak2073468928B,events0.
+Failure/config/logs preserved; successfulfastload reused, not rebuilt.
+
+LIVE successor header_retry/build_with_headers.py, unifiedsession42070,
+primelora-tc-aux-d4850000000000000000000000000002.scope;
+Invocation1f0c2fb7a10b47e4af47c18215c20561,inode23915887.
+Read header_retry/build_identity.json andactualstate. Same source/limits,
+onlyexplicitmathsysteminclude flags; noCUDA12.1runtimeheader override of12.4.
+Configure passed andactualcache_kernels.cu compiled; continuing original29steps.
+No model/GPU execution, remote artifact operations or PrimeLoRA candidate.
+At10:20CST actualbuild6/29 completed,stillprogressing; events/swap0,
+free203384459264B (~189.42GiB). These are liveobservations, notterminalresults.
+3/4GiBswap0CPU2,3,26,27,onecompilejob/NVCCthread,3600sfiniteguard,
+16GiBhost/100GiBdisk. Liveprogress isnotallkernels/link/loadqualified.
+BASE checkpoint53ce76b3ea513a3d61a7075780df98a8594f52f7 pushed/remoteequal.
+29smallimmutable source/failure/configuration records archived/roundtripchecked,
+protected147 unchanged, userdirt/secrets/diff/explicitstage passed; no newCPUunit
+claim for this compilation-onlycheckpoint. Archive
+bbcd13a1819d351d1dce17a38b43617fae19ec239e69b111d87724014fd40666;
+summaryd3c26be5d0744419a88b028a67960d32e6c4c60ad43b8373606fa9a7040dce7a.
+Snapshot explicitlymarksbuildlive; mutablebuildlog/outputsexcluded. Curation3/
+BASEbackup4 actualemptyclosed,events0. MAINstatuscheckpointfollows.
+
+NEXT: monitorSAMEbuild toterminal, doNOTrestart. Read header_retry/build_result,
+verifyactualrecursiveempty then header_retry/close.py build. Qualifycompiled
+artifacts/imports plusremainingNCCL/flash-attn; D479/D480/D481realworkerintegration,
+nativeLoRA numericaland100/500-ID/1000/4000 actualresult -> allavailablebaseline
+comparison -> PrimeLoRAoptimization. Read BASE D485_HYDRASERVE_NATIVE_BUILD.md.
+Fullremaining experimentsandmetricrules below unchanged; no newstorage sweep.
+
+## D484 completed prerequisites, not a performance result
 
 Storage-first request addressed; newest goal resumes HydraServe actual result ->
 allavailablebaseline comparison -> PrimeLoRA optimization. No further storage sweep.
