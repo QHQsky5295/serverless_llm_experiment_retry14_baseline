@@ -1,0 +1,308 @@
+{
+  "kind": "hydraserve_native_source_dependencies_checkpoint",
+  "checkpoint_verified": true,
+  "tests": {
+    "passed": true,
+    "returncode": 0,
+    "sources": {
+      "/home/qhq/serverless_llm_baselines/scripts/ieee_tc_prepare_hydraserve_source_environment.py": "eb5fd6d5929d8de69a7e8c3bfb9c7575888a7c1e0e3c88cf14c963d4ea2df7ff",
+      "/home/qhq/serverless_llm_baselines/tests/test_ieee_tc_hydraserve_environment_reuse.py": "cf407cf7bf5c900720910f4283566e638d1aa6daecf4a50b8c149d60589011d0"
+    },
+    "log_sha256": "bde653915a9d3f49a1d9e0160fe29a363e2305e64c3cebba7ae455090b7917eb"
+  },
+  "tests_count": 4,
+  "environment": {
+    "passed": true,
+    "performance_result": false,
+    "model_started": false,
+    "kernel_compiled": false,
+    "environment": "/home/qhq/serverless_llm_baselines/installs/hydraserve_native_d484_20261013",
+    "steps": [
+      {
+        "label": "venv",
+        "command": [
+          "/home/qhq/anaconda3/envs/hydraserve_py_20260520/bin/python",
+          "-B",
+          "-m",
+          "venv",
+          "/home/qhq/serverless_llm_baselines/installs/hydraserve_native_d484_20261013"
+        ],
+        "returncode": 0
+      },
+      {
+        "label": "exact_wheels",
+        "command": [
+          "/home/qhq/serverless_llm_baselines/installs/hydraserve_native_d484_20261013/bin/python",
+          "-B",
+          "-m",
+          "pip",
+          "--isolated",
+          "install",
+          "--no-cache-dir",
+          "--index-url=https://pypi.org/simple",
+          "--timeout=30",
+          "--retries=2",
+          "--no-deps",
+          "--report",
+          "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/exact_wheels_report.json",
+          "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d482_20261013/build_wheels/torch-2.3.0-cp310-cp310-manylinux1_x86_64.whl",
+          "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d482_20261013/build_wheels/xformers-0.0.26.post1-cp310-cp310-manylinux2014_x86_64.whl"
+        ],
+        "returncode": 0
+      },
+      {
+        "label": "dependencies",
+        "command": [
+          "/home/qhq/serverless_llm_baselines/installs/hydraserve_native_d484_20261013/bin/python",
+          "-B",
+          "-m",
+          "pip",
+          "--isolated",
+          "install",
+          "--no-cache-dir",
+          "--index-url=https://pypi.org/simple",
+          "--timeout=30",
+          "--retries=2",
+          "--only-binary=torch,xformers,triton,ray,numpy,scipy,pyarrow",
+          "--report",
+          "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/dependencies_report.json",
+          "-r",
+          "/home/qhq/serverless_llm_baselines/vendor_new_baselines/HydraServe_main_20260520/requirements-common.txt",
+          "-r",
+          "/home/qhq/serverless_llm_baselines/vendor_new_baselines/HydraServe_main_20260520/requirements-build.txt",
+          "cmake<4",
+          "ray==2.9.3",
+          "triton==2.3.0",
+          "nvidia-ml-py",
+          "modelscope==1.15.0",
+          "datasets==2.18.0",
+          "flask[async]",
+          "accelerate",
+          "hf_transfer"
+        ],
+        "returncode": 0
+      },
+      {
+        "label": "pip_check",
+        "command": [
+          "/home/qhq/serverless_llm_baselines/installs/hydraserve_native_d484_20261013/bin/python",
+          "-B",
+          "-m",
+          "pip",
+          "--isolated",
+          "check"
+        ],
+        "returncode": 0
+      },
+      {
+        "label": "import_check",
+        "command": [
+          "/home/qhq/serverless_llm_baselines/installs/hydraserve_native_d484_20261013/bin/python",
+          "-B",
+          "-c",
+          "import torch,xformers,triton,transformers; import json; assert torch.__version__=='2.3.0+cu121'; assert xformers.__version__=='0.0.26.post1'; assert triton.__version__=='2.3.0'; assert transformers.__version__=='4.43.1'; assert not torch.cuda.is_initialized(); print(json.dumps(dict(torch=torch.__version__,xformers=xformers.__version__,triton=triton.__version__,transformers=transformers.__version__,cuda=torch.version.cuda,abi=torch._C._GLIBCXX_USE_CXX11_ABI,cuda_initialized=False)))"
+        ],
+        "returncode": 0
+      },
+      {
+        "label": "freeze",
+        "command": [
+          "/home/qhq/serverless_llm_baselines/installs/hydraserve_native_d484_20261013/bin/python",
+          "-B",
+          "-m",
+          "pip",
+          "--isolated",
+          "freeze"
+        ],
+        "returncode": 0
+      }
+    ],
+    "elapsed_s": 360.71365749207325,
+    "free_bytes": 203557830656,
+    "scope_after": {
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4840000000000000000000000000003.scope",
+      "memory.current": 3186499584,
+      "memory.peak": 3221749760,
+      "memory.high": 3221225472,
+      "memory.max": 4294967296,
+      "memory.swap.current": 0,
+      "memory.swap.max": 0,
+      "memory.pressure": "some avg10=10.23 avg60=10.07 avg300=2.85 total=9819357\nfull avg10=10.23 avg60=10.07 avg300=2.85 total=9817594",
+      "cpu.max": null,
+      "cpu.stat": "usage_usec 153881005\nuser_usec 137165204\nsystem_usec 16715800\ncore_sched.force_idle_usec 0",
+      "cpuset.cpus.effective": null,
+      "cgroup.controllers": "memory pids",
+      "memory.events": {
+        "low": 0,
+        "high": 9008,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      }
+    }
+  },
+  "closure": {
+    "passed": true,
+    "identity": {
+      "unit": "primelora-tc-aux-d4840000000000000000000000000003.scope",
+      "invocation_id": "b8b4875d66de479a86d59b6b08e13e1d",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4840000000000000000000000000003.scope",
+      "inode": 23907856
+    },
+    "resources": {
+      "memory.peak": "3221749760",
+      "memory.events": "low 0\nhigh 9008\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0"
+    },
+    "actual_recursive_empty": true
+  },
+  "source_manifest": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/qualify.py": {
+      "sha256": "2068b5c7fa3091da2c31fe688777acf579c9a87b8f09607edfc967fc9a55da2c",
+      "bytes": 1146
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/close.py": {
+      "sha256": "c6a3fe0e26ce9b54bf8e6abd277eeaca31afc96d9f2efaa48071c400c3cb530d",
+      "bytes": 393
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/curate.py": {
+      "sha256": "71535d3df7d4288249a360df04d6ad3bef93f3ceffc7e8b76b480401371334f5",
+      "bytes": 3062
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/backup.py": {
+      "sha256": "97867d76c31a30847a199185db9d3d2eed893a3d5081f3a09a3d3745a37cac19",
+      "bytes": 1150
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/initial_test_note.md": {
+      "sha256": "7d15b8535197a98eb1d995e4c35a04ff7869a2defee1b2d2fef22c9d8bf59d5f",
+      "bytes": 708
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/initial_test_identity.json": {
+      "sha256": "e8247a90ba6cfa997a1fd9d44bedc0df09cb25f8a711e7fa2e22273530d1a895",
+      "bytes": 286
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/initial_test_closure.json": {
+      "sha256": "eb68101e9887ceff5ee1874bdb5eccd3ed31b10b22be017bf543d86abfee5372",
+      "bytes": 531
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/test.log": {
+      "sha256": "bde653915a9d3f49a1d9e0160fe29a363e2305e64c3cebba7ae455090b7917eb",
+      "bytes": 501
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/test_result.json": {
+      "sha256": "8a7cf809c5cb87178584ab246d99376a868bfbfba52dbb3d1c6a4dcf82db35c9",
+      "bytes": 470
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/test_identity.json": {
+      "sha256": "311338970b2e92b6d3a994dcdd326cbfe73e375d29230c6d37f6c19d004db956",
+      "bytes": 286
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/test_closure.json": {
+      "sha256": "6c4c205779de9f286e8bc28c593186389f22f73f61f41f4e22a309c07fb84edb",
+      "bytes": 532
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/environment_identity.json": {
+      "sha256": "961d47a8a785e5efe4d3722ad26c3f20d4a95c085bec71702996d4f24273e0f3",
+      "bytes": 286
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/environment_preflight.json": {
+      "sha256": "bd85be9a97a622c3723284d85a9d49b7c25a8fd29edc822540a467aa1fd1b901",
+      "bytes": 6696
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/environment_result.json": {
+      "sha256": "90d1871813cde83b3da1ce0f1c1f336450a897aaf171152f7c75ae3904d4aa22",
+      "bytes": 4649
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/environment_closure.json": {
+      "sha256": "600b796304466257e8848ff1887ab6228820ae07f72b76563e30a9b187b11316",
+      "bytes": 537
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/cuda_reuse_manifest.json": {
+      "sha256": "07eff8c49dfb8f202be5b87fdb803987faa8086cb42a29520011fd0785eeec23",
+      "bytes": 61225
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/exact_wheels_report.json": {
+      "sha256": "3472a5abc907fd1c372febf29fb62371b057a30f6fe48950f10fcf4ccfd2f00e",
+      "bytes": 29606
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/dependencies_report.json": {
+      "sha256": "9d6e55ee257ddc08b32b3e48c0faa148f195df9a6d667781acc1d3f6488a22e9",
+      "bytes": 1746526
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/venv.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/venv_worker.json": {
+      "sha256": "8f136450599d1336ec8f588b9cca65ef0097b76b51e41a1d797bfc308ca5c5a8",
+      "bytes": 254
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/exact_wheels.log": {
+      "sha256": "37ea89f2d87041820cbdde52f167deebfdaeaf92ae3e5f51f597dfa63ab813f3",
+      "bytes": 642
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/exact_wheels_worker.json": {
+      "sha256": "264d5619111cfbfc81d1c1e9f4aaeee914ee89ef6d4586a1c13e6384d031a895",
+      "bytes": 254
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/dependencies.log": {
+      "sha256": "f97880307fa8f66e422515ecd0e77b9d2c6f69a997019a7accd280d480b99827",
+      "bytes": 37689
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/dependencies_worker.json": {
+      "sha256": "702634a83fcfdd51ab40b80e10ea6935b34d45527f220339924e2c3079739130",
+      "bytes": 254
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/pip_check.log": {
+      "sha256": "9261363b733079a641c2e4cc9bc46ffa1d8336945a87f807b6cf68847dbc9b09",
+      "bytes": 30
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/pip_check_worker.json": {
+      "sha256": "0917f9b4c9615d62a7c9c94a49fe323f5a39c904ca65f19ddb7475074997f63f",
+      "bytes": 254
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/import_check.log": {
+      "sha256": "3d7c20b5937d6ce2590dc275bd708af9cb1a110e7896fe1d8210fc83ac4ddd82",
+      "bytes": 155
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/import_check_worker.json": {
+      "sha256": "ab4159b2ea183402b2f4a47218c87bada14f89190c019458f302310664c8493b",
+      "bytes": 254
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/freeze.log": {
+      "sha256": "b37a3b97dea6d8c8081f3e8346a556e890333abad677a8ccce953c54c934a00d",
+      "bytes": 2895
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d484_20261013/freeze_worker.json": {
+      "sha256": "6a26b7e879960551e0a22d0f6031fd16f8c4500082a473c3153aa91a0da96c78",
+      "bytes": 254
+    },
+    "/home/qhq/serverless_llm_baselines/scripts/ieee_tc_prepare_hydraserve_source_environment.py": {
+      "sha256": "eb5fd6d5929d8de69a7e8c3bfb9c7575888a7c1e0e3c88cf14c963d4ea2df7ff",
+      "bytes": 10445
+    },
+    "/home/qhq/serverless_llm_baselines/tests/test_ieee_tc_hydraserve_environment_reuse.py": {
+      "sha256": "cf407cf7bf5c900720910f4283566e638d1aa6daecf4a50b8c149d60589011d0",
+      "bytes": 2335
+    },
+    "/home/qhq/serverless_llm_baselines/docs/ieee_tc/D484_HYDRASERVE_SOURCE_ENVIRONMENT.md": {
+      "sha256": "a575ac1b93b988298ea52d9c770458b0f84d2ca868318dfd651e294d26581fb4",
+      "bytes": 4230
+    }
+  },
+  "archive_sha256": "3df9c9aadf849e005b2adc4f2083732993dfeef903add94e55eabb3a044bfb58",
+  "protected_verification": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+  },
+  "native_backend_qualified": false,
+  "numerical_qualified": false,
+  "performance_result": false,
+  "upstream_commit": "8ae605de354ccfa2e9095514cdb4a9e9c56aa56b",
+  "live_work": null
+}
