@@ -1,0 +1,68 @@
+{
+  "checkpoint_verified": true,
+  "performance_result": false,
+  "cpu_tests_passed": 59,
+  "actual_gpu_generation_qualified": false,
+  "remote_request_materialization_qualified": false,
+  "original_scheduler_policy_ast_unchanged": true,
+  "protected_verification": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+  },
+  "source_manifest": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d496_20261013/checkpoint.py": {
+      "sha256": "910a6a660f3fa88fabe88582e2f892ff1907d49bd1f40ef28189a7c7f33aacd0",
+      "bytes": 4544
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d496_20261013/backup.py": {
+      "sha256": "a573e4160539de1f633d243ca512c2e53acdbed37ce6a538fe4284cd8ac8d0c2",
+      "bytes": 1593
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d496_20261013/cpu_scope_closures.json": {
+      "sha256": "88709fae17048976a9471971abb91b1c1d2d745aa19e0185e76246e94f5242cb",
+      "bytes": 1082
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d496_20261013/cpu_tests.log": {
+      "sha256": "7aad8464571d50022c8171bc1f156877182e3676015d0dc0277a4b8b48f7fe6c",
+      "bytes": 6960
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d496_20261013/upstream_engine.py": {
+      "sha256": "c0722e5512fd7ef88a19146f85850d9715fe8002baf49de4fe33aed377174337",
+      "bytes": 1334
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d496_20261013/online_source.json": {
+      "sha256": "d6fa2c9fc2912e15f7267f8e7c24170b50e56a08e8ac80690a0688db209590ce",
+      "bytes": 227
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d496_20261013/protected_verification.json": {
+      "sha256": "9dac45f7d37433804a200c67fdb6d18191684bbca954fa927bf502fdf2a846ba",
+      "bytes": 272
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d496_20261013/curation_identity.json": {
+      "sha256": "3aaf58f2744738811ad03c62c0b3fb9f2974aa1bd51ebfd0bbb109956486d9e8",
+      "bytes": 286
+    },
+    "/home/qhq/serverless_llm_baselines/HydraServe_project/runtime/request_contract.py": {
+      "sha256": "76cb2ca752726ddbed902544080a37465446c3c17f9913eb3ed280a601a96f68",
+      "bytes": 15967
+    },
+    "/home/qhq/serverless_llm_baselines/HydraServe_project/runtime/native_delivery.py": {
+      "sha256": "6a1733fee38cba7fe8c1f22d78a0a12294ac738c59fda7f0235c68dfd89be206",
+      "bytes": 9992
+    },
+    "/home/qhq/serverless_llm_baselines/tests/test_ieee_tc_hydraserve_request_contract.py": {
+      "sha256": "6d2a0c5d0a7db6957dd89d9a1b1d3bf251a681449e40be7d71e44b678eee93de",
+      "bytes": 12715
+    },
+    "/home/qhq/serverless_llm_baselines/docs/ieee_tc/D496_HYDRASERVE_REQUEST_CONTRACT.md": {
+      "sha256": "aa5211c3cec72c8cea01e1450b025a8d2070f048fb8b7fa96f6d6278e6521c73",
+      "bytes": 5272
+    }
+  },
+  "archive_sha256": "aefe5ce374ec64cf0f4ef5944f627588b7f8fba73f2369e81c6cf84ec9bce94d",
+  "next": "Actual native generation/binding; remote resolver; SHM control ownership; full original scheduler replay"
+}

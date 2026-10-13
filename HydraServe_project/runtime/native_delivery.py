@@ -43,7 +43,7 @@ def replace_one(source, old, new):
     return source.replace(old,new,1)
 
 
-def render_overlays(native_root):
+def render_overlays(native_root, *, request_contract=False):
     root=Path(native_root)
     overlays=loopback_transport.render_overlays(root)
     source=overlays[PROVIDER].decode()
@@ -97,6 +97,10 @@ def render_overlays(native_root):
     runner,removed=lora_worker_binding.render_overlay(root)
     lora_worker_binding.verify_inverse(runner,removed,root)
     overlays[lora_worker_binding.RUNNER]=runner
+    if request_contract:
+        from . import request_contract as contract
+        overlays.update(contract.render_overlays(root))
+        overlays[APP]=contract.enable_app_registration(overlays[APP].decode()).encode()
     for name,raw in overlays.items():compile(raw,name,'exec')
     return overlays
 
