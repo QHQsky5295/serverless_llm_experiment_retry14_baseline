@@ -1,0 +1,1338 @@
+{
+  "kind": "hydraserve_native_gpu_arithmetic",
+  "checkpoint_verified": true,
+  "performance_result": false,
+  "gpu_executed": true,
+  "native_backend_qualified": false,
+  "full_model_qualified": false,
+  "original_native_kernel_checks": {
+    "passed": false,
+    "performance_result": false,
+    "full_model_qualified": false,
+    "stage_binding_qualified": false,
+    "pipeline_consolidation_qualified": false,
+    "rows": [],
+    "native_reference_test_passed": true,
+    "silu_and_flash_attention_passed": true,
+    "error_type": "AssertionError",
+    "error": ""
+  },
+  "nonzero_lora_arithmetic": {
+    "passed": true,
+    "performance_result": false,
+    "full_model_qualified": false,
+    "stage_binding_qualified": false,
+    "pipeline_consolidation_qualified": false,
+    "rows": [
+      {
+        "module": "base_model.model.model.layers.0.self_attn.k_proj",
+        "max_absolute_error": 1.9026920199394226e-06,
+        "relative_l2_error": 0.00021412000933196396,
+        "update_l2": 0.2236710488796234,
+        "native_nonzero": 28670,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.0.self_attn.o_proj",
+        "max_absolute_error": 1.9068829715251923e-06,
+        "relative_l2_error": 0.0002249799872515723,
+        "update_l2": 0.28193199634552,
+        "native_nonzero": 28671,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.0.self_attn.q_proj",
+        "max_absolute_error": 9.539071470499039e-07,
+        "relative_l2_error": 0.00019693523063324392,
+        "update_l2": 0.3020935356616974,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.0.self_attn.v_proj",
+        "max_absolute_error": 1.8854625523090363e-06,
+        "relative_l2_error": 0.00021093669056426734,
+        "update_l2": 0.25499972701072693,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.1.self_attn.k_proj",
+        "max_absolute_error": 1.716427505016327e-06,
+        "relative_l2_error": 0.00021497572015505284,
+        "update_l2": 0.27043062448501587,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.1.self_attn.o_proj",
+        "max_absolute_error": 1.9045546650886536e-06,
+        "relative_l2_error": 0.00020908741862513125,
+        "update_l2": 0.3341585695743561,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.1.self_attn.q_proj",
+        "max_absolute_error": 1.4691613614559174e-06,
+        "relative_l2_error": 0.00020283112826291472,
+        "update_l2": 0.27766090631484985,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.1.self_attn.v_proj",
+        "max_absolute_error": 1.894775778055191e-06,
+        "relative_l2_error": 0.00020037802460137755,
+        "update_l2": 0.24027827382087708,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.10.self_attn.k_proj",
+        "max_absolute_error": 1.9040890038013458e-06,
+        "relative_l2_error": 0.00021114399714861065,
+        "update_l2": 0.2821570038795471,
+        "native_nonzero": 28671,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.10.self_attn.o_proj",
+        "max_absolute_error": 9.5367431640625e-07,
+        "relative_l2_error": 0.00020297884475439787,
+        "update_l2": 0.25434136390686035,
+        "native_nonzero": 28671,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.10.self_attn.q_proj",
+        "max_absolute_error": 9.541399776935577e-07,
+        "relative_l2_error": 0.00020163209410384297,
+        "update_l2": 0.20547091960906982,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.10.self_attn.v_proj",
+        "max_absolute_error": 1.9073486328125e-06,
+        "relative_l2_error": 0.00021395960357040167,
+        "update_l2": 0.31717395782470703,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.11.self_attn.k_proj",
+        "max_absolute_error": 1.9059516489505768e-06,
+        "relative_l2_error": 0.00022520383936353028,
+        "update_l2": 0.3185296654701233,
+        "native_nonzero": 28648,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.11.self_attn.o_proj",
+        "max_absolute_error": 9.5367431640625e-07,
+        "relative_l2_error": 0.00021363790438044816,
+        "update_l2": 0.18268750607967377,
+        "native_nonzero": 28670,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.11.self_attn.q_proj",
+        "max_absolute_error": 1.9078142940998077e-06,
+        "relative_l2_error": 0.00022728853218723089,
+        "update_l2": 0.297600656747818,
+        "native_nonzero": 28644,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.11.self_attn.v_proj",
+        "max_absolute_error": 9.5367431640625e-07,
+        "relative_l2_error": 0.00021002648281864822,
+        "update_l2": 0.29123133420944214,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.12.self_attn.k_proj",
+        "max_absolute_error": 1.8426217138767242e-06,
+        "relative_l2_error": 0.0001921907241921872,
+        "update_l2": 0.2963050305843353,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.12.self_attn.o_proj",
+        "max_absolute_error": 1.8863938748836517e-06,
+        "relative_l2_error": 0.0002005453425226733,
+        "update_l2": 0.22692449390888214,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.12.self_attn.q_proj",
+        "max_absolute_error": 1.8854625523090363e-06,
+        "relative_l2_error": 0.000197937959455885,
+        "update_l2": 0.2040978968143463,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.12.self_attn.v_proj",
+        "max_absolute_error": 1.8845312297344208e-06,
+        "relative_l2_error": 0.00021383062994573265,
+        "update_l2": 0.2612142264842987,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.13.self_attn.k_proj",
+        "max_absolute_error": 9.5367431640625e-07,
+        "relative_l2_error": 0.00021290290169417858,
+        "update_l2": 0.2582438588142395,
+        "native_nonzero": 28671,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.13.self_attn.o_proj",
+        "max_absolute_error": 1.9068829715251923e-06,
+        "relative_l2_error": 0.00020832240988966078,
+        "update_l2": 0.2557402551174164,
+        "native_nonzero": 28671,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.13.self_attn.q_proj",
+        "max_absolute_error": 9.527429938316345e-07,
+        "relative_l2_error": 0.00019385800987947732,
+        "update_l2": 0.23631739616394043,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.13.self_attn.v_proj",
+        "max_absolute_error": 9.539071470499039e-07,
+        "relative_l2_error": 0.0002060132974293083,
+        "update_l2": 0.2505766749382019,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.14.self_attn.k_proj",
+        "max_absolute_error": 9.527429938316345e-07,
+        "relative_l2_error": 0.00020880065858364105,
+        "update_l2": 0.1578563153743744,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.14.self_attn.o_proj",
+        "max_absolute_error": 1.9040890038013458e-06,
+        "relative_l2_error": 0.00021182748605497181,
+        "update_l2": 0.23804216086864471,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.14.self_attn.q_proj",
+        "max_absolute_error": 1.8738210201263428e-06,
+        "relative_l2_error": 0.00020365997625049204,
+        "update_l2": 0.24070052802562714,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.14.self_attn.v_proj",
+        "max_absolute_error": 1.7923302948474884e-06,
+        "relative_l2_error": 0.0002036086079897359,
+        "update_l2": 0.27114880084991455,
+        "native_nonzero": 28671,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.15.self_attn.k_proj",
+        "max_absolute_error": 1.7872080206871033e-06,
+        "relative_l2_error": 0.00020848213171120733,
+        "update_l2": 0.18965190649032593,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.15.self_attn.o_proj",
+        "max_absolute_error": 1.905485987663269e-06,
+        "relative_l2_error": 0.00021351840405259281,
+        "update_l2": 0.21193070709705353,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.15.self_attn.q_proj",
+        "max_absolute_error": 9.5367431640625e-07,
+        "relative_l2_error": 0.00021131153334863484,
+        "update_l2": 0.2364681214094162,
+        "native_nonzero": 28671,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.15.self_attn.v_proj",
+        "max_absolute_error": 9.5367431640625e-07,
+        "relative_l2_error": 0.0002142303710570559,
+        "update_l2": 0.26211246848106384,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.16.self_attn.k_proj",
+        "max_absolute_error": 1.903623342514038e-06,
+        "relative_l2_error": 0.00019875801808666438,
+        "update_l2": 0.29856252670288086,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.16.self_attn.o_proj",
+        "max_absolute_error": 1.8114224076271057e-06,
+        "relative_l2_error": 0.00021090022346470505,
+        "update_l2": 0.21552038192749023,
+        "native_nonzero": 28671,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.16.self_attn.q_proj",
+        "max_absolute_error": 9.5367431640625e-07,
+        "relative_l2_error": 0.0002109847409883514,
+        "update_l2": 0.2433234304189682,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.16.self_attn.v_proj",
+        "max_absolute_error": 1.5855766832828522e-06,
+        "relative_l2_error": 0.0001963929389603436,
+        "update_l2": 0.29686713218688965,
+        "native_nonzero": 28671,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.17.self_attn.k_proj",
+        "max_absolute_error": 1.8444843590259552e-06,
+        "relative_l2_error": 0.00020234831026755273,
+        "update_l2": 0.23862317204475403,
+        "native_nonzero": 28670,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.17.self_attn.o_proj",
+        "max_absolute_error": 1.57160684466362e-06,
+        "relative_l2_error": 0.0002045355358859524,
+        "update_l2": 0.2242686152458191,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.17.self_attn.q_proj",
+        "max_absolute_error": 1.8705613911151886e-06,
+        "relative_l2_error": 0.00020892926841042936,
+        "update_l2": 0.2174617350101471,
+        "native_nonzero": 28671,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.17.self_attn.v_proj",
+        "max_absolute_error": 1.903623342514038e-06,
+        "relative_l2_error": 0.0001929489226313308,
+        "update_l2": 0.2894136905670166,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.18.self_attn.k_proj",
+        "max_absolute_error": 9.532086551189423e-07,
+        "relative_l2_error": 0.00020909056183882058,
+        "update_l2": 0.20249812304973602,
+        "native_nonzero": 28671,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.18.self_attn.o_proj",
+        "max_absolute_error": 1.8319115042686462e-06,
+        "relative_l2_error": 0.00020396316540427506,
+        "update_l2": 0.26278069615364075,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.18.self_attn.q_proj",
+        "max_absolute_error": 1.8961727619171143e-06,
+        "relative_l2_error": 0.00019605235138442367,
+        "update_l2": 0.3040524125099182,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.18.self_attn.v_proj",
+        "max_absolute_error": 1.8915161490440369e-06,
+        "relative_l2_error": 0.00021867583564016968,
+        "update_l2": 0.2310832291841507,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.19.self_attn.k_proj",
+        "max_absolute_error": 1.8547289073467255e-06,
+        "relative_l2_error": 0.0001825406216084957,
+        "update_l2": 0.36231759190559387,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.19.self_attn.o_proj",
+        "max_absolute_error": 9.532086551189423e-07,
+        "relative_l2_error": 0.00019876642909366637,
+        "update_l2": 0.2628147602081299,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.19.self_attn.q_proj",
+        "max_absolute_error": 1.9040890038013458e-06,
+        "relative_l2_error": 0.00020619211136363447,
+        "update_l2": 0.29371753334999084,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.19.self_attn.v_proj",
+        "max_absolute_error": 1.9064173102378845e-06,
+        "relative_l2_error": 0.00025079824263229966,
+        "update_l2": 0.33893245458602905,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.2.self_attn.k_proj",
+        "max_absolute_error": 9.5367431640625e-07,
+        "relative_l2_error": 0.000213666440686211,
+        "update_l2": 0.22684311866760254,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.2.self_attn.o_proj",
+        "max_absolute_error": 1.7029233276844025e-06,
+        "relative_l2_error": 0.00020493454940151423,
+        "update_l2": 0.2647755444049835,
+        "native_nonzero": 28671,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.2.self_attn.q_proj",
+        "max_absolute_error": 1.8989667296409607e-06,
+        "relative_l2_error": 0.00020817464974243194,
+        "update_l2": 0.20043683052062988,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.2.self_attn.v_proj",
+        "max_absolute_error": 1.9008293747901917e-06,
+        "relative_l2_error": 0.00021297023340594023,
+        "update_l2": 0.2127290666103363,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.20.self_attn.k_proj",
+        "max_absolute_error": 9.529758244752884e-07,
+        "relative_l2_error": 0.00020558307005558163,
+        "update_l2": 0.22476841509342194,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.20.self_attn.o_proj",
+        "max_absolute_error": 9.541399776935577e-07,
+        "relative_l2_error": 0.00020336321904323995,
+        "update_l2": 0.23575752973556519,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.20.self_attn.q_proj",
+        "max_absolute_error": 1.9064173102378845e-06,
+        "relative_l2_error": 0.00021107756765559316,
+        "update_l2": 0.2618024945259094,
+        "native_nonzero": 28650,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.20.self_attn.v_proj",
+        "max_absolute_error": 9.539071470499039e-07,
+        "relative_l2_error": 0.00020720611792057753,
+        "update_l2": 0.26605746150016785,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.21.self_attn.k_proj",
+        "max_absolute_error": 9.541399776935577e-07,
+        "relative_l2_error": 0.00021050164650660008,
+        "update_l2": 0.22721628844738007,
+        "native_nonzero": 28658,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.21.self_attn.o_proj",
+        "max_absolute_error": 3.2195821404457092e-06,
+        "relative_l2_error": 0.00020451804448384792,
+        "update_l2": 0.3086152970790863,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.21.self_attn.q_proj",
+        "max_absolute_error": 1.794658601284027e-06,
+        "relative_l2_error": 0.0002102579310303554,
+        "update_l2": 0.2521682381629944,
+        "native_nonzero": 28636,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.21.self_attn.v_proj",
+        "max_absolute_error": 9.534414857625961e-07,
+        "relative_l2_error": 0.00020101197878830135,
+        "update_l2": 0.26765817403793335,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.22.self_attn.k_proj",
+        "max_absolute_error": 1.8207356333732605e-06,
+        "relative_l2_error": 0.00020497984951362014,
+        "update_l2": 0.2833985686302185,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.22.self_attn.o_proj",
+        "max_absolute_error": 9.5367431640625e-07,
+        "relative_l2_error": 0.0002093091607093811,
+        "update_l2": 0.254209041595459,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.22.self_attn.q_proj",
+        "max_absolute_error": 1.7746351659297943e-06,
+        "relative_l2_error": 0.00020098449022043496,
+        "update_l2": 0.212246373295784,
+        "native_nonzero": 28670,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.22.self_attn.v_proj",
+        "max_absolute_error": 1.5422701835632324e-06,
+        "relative_l2_error": 0.00019973402959294617,
+        "update_l2": 0.31341591477394104,
+        "native_nonzero": 28671,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.23.self_attn.k_proj",
+        "max_absolute_error": 1.898501068353653e-06,
+        "relative_l2_error": 0.0001979446387849748,
+        "update_l2": 0.3143491744995117,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.23.self_attn.o_proj",
+        "max_absolute_error": 1.7248094081878662e-06,
+        "relative_l2_error": 0.0002052818308584392,
+        "update_l2": 0.24574045836925507,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.23.self_attn.q_proj",
+        "max_absolute_error": 9.5367431640625e-07,
+        "relative_l2_error": 0.000204462165129371,
+        "update_l2": 0.2113228142261505,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.23.self_attn.v_proj",
+        "max_absolute_error": 9.5367431640625e-07,
+        "relative_l2_error": 0.0002180323062930256,
+        "update_l2": 0.19746331870555878,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.24.self_attn.k_proj",
+        "max_absolute_error": 9.539071470499039e-07,
+        "relative_l2_error": 0.0002173252432839945,
+        "update_l2": 0.2040644884109497,
+        "native_nonzero": 28671,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.24.self_attn.o_proj",
+        "max_absolute_error": 1.8915161490440369e-06,
+        "relative_l2_error": 0.00020954941282980144,
+        "update_l2": 0.24940553307533264,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.24.self_attn.q_proj",
+        "max_absolute_error": 1.9073486328125e-06,
+        "relative_l2_error": 0.00020501330436673015,
+        "update_l2": 0.32484009861946106,
+        "native_nonzero": 28671,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.24.self_attn.v_proj",
+        "max_absolute_error": 9.5367431640625e-07,
+        "relative_l2_error": 0.00020427336858119816,
+        "update_l2": 0.21432241797447205,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.25.self_attn.k_proj",
+        "max_absolute_error": 1.8998980522155762e-06,
+        "relative_l2_error": 0.00019843589689116925,
+        "update_l2": 0.2741779088973999,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.25.self_attn.o_proj",
+        "max_absolute_error": 1.8887221813201904e-06,
+        "relative_l2_error": 0.00018936922424472868,
+        "update_l2": 0.30252909660339355,
+        "native_nonzero": 28671,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.25.self_attn.q_proj",
+        "max_absolute_error": 1.9045546650886536e-06,
+        "relative_l2_error": 0.00020534243958536536,
+        "update_l2": 0.28372547030448914,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.25.self_attn.v_proj",
+        "max_absolute_error": 1.8989667296409607e-06,
+        "relative_l2_error": 0.0002013678167713806,
+        "update_l2": 0.2974264919757843,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.26.self_attn.k_proj",
+        "max_absolute_error": 1.9059516489505768e-06,
+        "relative_l2_error": 0.0002116847172146663,
+        "update_l2": 0.23276157677173615,
+        "native_nonzero": 28670,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.26.self_attn.o_proj",
+        "max_absolute_error": 9.534414857625961e-07,
+        "relative_l2_error": 0.00020880834199488163,
+        "update_l2": 0.2521633803844452,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.26.self_attn.q_proj",
+        "max_absolute_error": 9.532086551189423e-07,
+        "relative_l2_error": 0.0002120667340932414,
+        "update_l2": 0.1767246574163437,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.26.self_attn.v_proj",
+        "max_absolute_error": 1.0584481060504913e-06,
+        "relative_l2_error": 0.0002159259165637195,
+        "update_l2": 0.19268013536930084,
+        "native_nonzero": 28668,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.27.self_attn.k_proj",
+        "max_absolute_error": 1.9059516489505768e-06,
+        "relative_l2_error": 0.00021633514552377164,
+        "update_l2": 0.30102166533470154,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.27.self_attn.o_proj",
+        "max_absolute_error": 1.884065568447113e-06,
+        "relative_l2_error": 0.00019784287724178284,
+        "update_l2": 0.25726115703582764,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.27.self_attn.q_proj",
+        "max_absolute_error": 9.5367431640625e-07,
+        "relative_l2_error": 0.00018721455126069486,
+        "update_l2": 0.2838561534881592,
+        "native_nonzero": 28670,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.27.self_attn.v_proj",
+        "max_absolute_error": 9.5367431640625e-07,
+        "relative_l2_error": 0.00019298933329991996,
+        "update_l2": 0.2793920636177063,
+        "native_nonzero": 28670,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.28.self_attn.k_proj",
+        "max_absolute_error": 1.8263235688209534e-06,
+        "relative_l2_error": 0.00020635769760701805,
+        "update_l2": 0.22909992933273315,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.28.self_attn.o_proj",
+        "max_absolute_error": 1.8831342458724976e-06,
+        "relative_l2_error": 0.0002051909250440076,
+        "update_l2": 0.22451598942279816,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.28.self_attn.q_proj",
+        "max_absolute_error": 1.9073486328125e-06,
+        "relative_l2_error": 0.0002072954666800797,
+        "update_l2": 0.2799695134162903,
+        "native_nonzero": 28671,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.28.self_attn.v_proj",
+        "max_absolute_error": 9.534414857625961e-07,
+        "relative_l2_error": 0.00018710686708800495,
+        "update_l2": 0.19172416627407074,
+        "native_nonzero": 28671,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.29.self_attn.k_proj",
+        "max_absolute_error": 9.525101631879807e-07,
+        "relative_l2_error": 0.00021003223082516342,
+        "update_l2": 0.1891646832227707,
+        "native_nonzero": 28670,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.29.self_attn.o_proj",
+        "max_absolute_error": 9.539071470499039e-07,
+        "relative_l2_error": 0.0002138114650733769,
+        "update_l2": 0.23001056909561157,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.29.self_attn.q_proj",
+        "max_absolute_error": 9.532086551189423e-07,
+        "relative_l2_error": 0.00020632492669392377,
+        "update_l2": 0.2479049563407898,
+        "native_nonzero": 28671,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.29.self_attn.v_proj",
+        "max_absolute_error": 9.522773325443268e-07,
+        "relative_l2_error": 0.0001982406247407198,
+        "update_l2": 0.18513529002666473,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.3.self_attn.k_proj",
+        "max_absolute_error": 1.9031576812267303e-06,
+        "relative_l2_error": 0.00021648782421834767,
+        "update_l2": 0.281986266374588,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.3.self_attn.o_proj",
+        "max_absolute_error": 1.9073486328125e-06,
+        "relative_l2_error": 0.00020477459474932402,
+        "update_l2": 0.3711735010147095,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.3.self_attn.q_proj",
+        "max_absolute_error": 9.534414857625961e-07,
+        "relative_l2_error": 0.0002009473682846874,
+        "update_l2": 0.1914430409669876,
+        "native_nonzero": 28671,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.3.self_attn.v_proj",
+        "max_absolute_error": 9.5367431640625e-07,
+        "relative_l2_error": 0.0002078608813462779,
+        "update_l2": 0.20759595930576324,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.30.self_attn.k_proj",
+        "max_absolute_error": 9.539071470499039e-07,
+        "relative_l2_error": 0.00021239765919744968,
+        "update_l2": 0.22623947262763977,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.30.self_attn.o_proj",
+        "max_absolute_error": 9.532086551189423e-07,
+        "relative_l2_error": 0.0002154407266061753,
+        "update_l2": 0.18312157690525055,
+        "native_nonzero": 28671,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.30.self_attn.q_proj",
+        "max_absolute_error": 1.6619451344013214e-06,
+        "relative_l2_error": 0.00021363573614507914,
+        "update_l2": 0.24719251692295074,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.30.self_attn.v_proj",
+        "max_absolute_error": 9.534414857625961e-07,
+        "relative_l2_error": 0.00020582177967298776,
+        "update_l2": 0.216232031583786,
+        "native_nonzero": 28671,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.31.self_attn.k_proj",
+        "max_absolute_error": 1.2009404599666595e-06,
+        "relative_l2_error": 0.00020308318198658526,
+        "update_l2": 0.18171261250972748,
+        "native_nonzero": 28671,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.31.self_attn.o_proj",
+        "max_absolute_error": 1.8784776329994202e-06,
+        "relative_l2_error": 0.00016729719936847687,
+        "update_l2": 0.2752686142921448,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.31.self_attn.q_proj",
+        "max_absolute_error": 1.9068829715251923e-06,
+        "relative_l2_error": 0.00021884408488404006,
+        "update_l2": 0.3299974501132965,
+        "native_nonzero": 28670,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.31.self_attn.v_proj",
+        "max_absolute_error": 9.539071470499039e-07,
+        "relative_l2_error": 0.00020775334269274026,
+        "update_l2": 0.27566269040107727,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.4.self_attn.k_proj",
+        "max_absolute_error": 9.529758244752884e-07,
+        "relative_l2_error": 0.00021060802100691944,
+        "update_l2": 0.18431062996387482,
+        "native_nonzero": 28670,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.4.self_attn.o_proj",
+        "max_absolute_error": 9.5367431640625e-07,
+        "relative_l2_error": 0.00020724172645714134,
+        "update_l2": 0.18616780638694763,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.4.self_attn.q_proj",
+        "max_absolute_error": 9.5367431640625e-07,
+        "relative_l2_error": 0.00020505300199147314,
+        "update_l2": 0.1967550814151764,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.4.self_attn.v_proj",
+        "max_absolute_error": 9.5367431640625e-07,
+        "relative_l2_error": 0.00020839847275055945,
+        "update_l2": 0.21371714770793915,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.5.self_attn.k_proj",
+        "max_absolute_error": 1.298263669013977e-06,
+        "relative_l2_error": 0.00018407002789899707,
+        "update_l2": 0.27241867780685425,
+        "native_nonzero": 28671,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.5.self_attn.o_proj",
+        "max_absolute_error": 1.8952414393424988e-06,
+        "relative_l2_error": 0.00020163939916528761,
+        "update_l2": 0.2804829776287079,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.5.self_attn.q_proj",
+        "max_absolute_error": 1.9078142940998077e-06,
+        "relative_l2_error": 0.00021340398234315217,
+        "update_l2": 0.32415515184402466,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.5.self_attn.v_proj",
+        "max_absolute_error": 1.8212012946605682e-06,
+        "relative_l2_error": 0.00020370123093016446,
+        "update_l2": 0.19075603783130646,
+        "native_nonzero": 28671,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.6.self_attn.k_proj",
+        "max_absolute_error": 1.9059516489505768e-06,
+        "relative_l2_error": 0.0002068491594400257,
+        "update_l2": 0.24763520061969757,
+        "native_nonzero": 28669,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.6.self_attn.o_proj",
+        "max_absolute_error": 1.841224730014801e-06,
+        "relative_l2_error": 0.0002074773219646886,
+        "update_l2": 0.24726103246212006,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.6.self_attn.q_proj",
+        "max_absolute_error": 9.539071470499039e-07,
+        "relative_l2_error": 0.000209987279959023,
+        "update_l2": 0.2225276678800583,
+        "native_nonzero": 28665,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.6.self_attn.v_proj",
+        "max_absolute_error": 9.529758244752884e-07,
+        "relative_l2_error": 0.00019844004418700933,
+        "update_l2": 0.18651467561721802,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.7.self_attn.k_proj",
+        "max_absolute_error": 1.32853165268898e-06,
+        "relative_l2_error": 0.00020545163715723902,
+        "update_l2": 0.15497435629367828,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.7.self_attn.o_proj",
+        "max_absolute_error": 1.9045546650886536e-06,
+        "relative_l2_error": 0.00021528550132643431,
+        "update_l2": 0.253240168094635,
+        "native_nonzero": 28670,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.7.self_attn.q_proj",
+        "max_absolute_error": 1.7704442143440247e-06,
+        "relative_l2_error": 0.00020400166977196932,
+        "update_l2": 0.24451108276844025,
+        "native_nonzero": 28671,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.7.self_attn.v_proj",
+        "max_absolute_error": 9.529758244752884e-07,
+        "relative_l2_error": 0.00020979286637157202,
+        "update_l2": 0.15435275435447693,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.8.self_attn.k_proj",
+        "max_absolute_error": 9.5367431640625e-07,
+        "relative_l2_error": 0.0002040910767391324,
+        "update_l2": 0.23300977051258087,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.8.self_attn.o_proj",
+        "max_absolute_error": 9.541399776935577e-07,
+        "relative_l2_error": 0.00020398086053319275,
+        "update_l2": 0.25382035970687866,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.8.self_attn.q_proj",
+        "max_absolute_error": 9.522773325443268e-07,
+        "relative_l2_error": 0.00020051407045684755,
+        "update_l2": 0.18542933464050293,
+        "native_nonzero": 28663,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.8.self_attn.v_proj",
+        "max_absolute_error": 1.8998980522155762e-06,
+        "relative_l2_error": 0.00019691072520799935,
+        "update_l2": 0.32320791482925415,
+        "native_nonzero": 28671,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.9.self_attn.k_proj",
+        "max_absolute_error": 9.511131793260574e-07,
+        "relative_l2_error": 0.00019268161850050092,
+        "update_l2": 0.1688983142375946,
+        "native_nonzero": 28671,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.9.self_attn.o_proj",
+        "max_absolute_error": 1.9078142940998077e-06,
+        "relative_l2_error": 0.00021683587692677975,
+        "update_l2": 0.26959553360939026,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.9.self_attn.q_proj",
+        "max_absolute_error": 9.541399776935577e-07,
+        "relative_l2_error": 0.00021536051644943655,
+        "update_l2": 0.23233893513679504,
+        "native_nonzero": 28672,
+        "no_adapter_row_zero": true
+      },
+      {
+        "module": "base_model.model.model.layers.9.self_attn.v_proj",
+        "max_absolute_error": 9.48319211602211e-07,
+        "relative_l2_error": 0.00021456900867633522,
+        "update_l2": 0.1606505960226059,
+        "native_nonzero": 28671,
+        "no_adapter_row_zero": true
+      }
+    ],
+    "native_reference_test_passed": false,
+    "prior_native_kernel_result": "D487: original Punica/SiLU/FlashAttention passed; not repeated",
+    "modules_compared": 128,
+    "logical_adapters": [
+      {
+        "adapter": "finance_lora",
+        "weight_sha256": "971901c3140f83f57cbb19fcc86d33b4d010f6d8fc15fbec621f0347bc31a258",
+        "config_sha256": "43dfb033e740f0783575dcceb590cb44a87b0fe597a09afee8d38e47480a129c"
+      },
+      {
+        "adapter": "medical_lora",
+        "weight_sha256": "d2b1dcfe42193917d0b2e0f728e735f24ad119dd2c77cb9b20c983c7f688fa5c",
+        "config_sha256": "9338d10d9fc95aec5abc0aaa149f757e0c5dd010004b2b105d3a0666fd08badb"
+      }
+    ],
+    "unique_weight_sha_count": 2,
+    "torch_version": "2.3.0+cu121",
+    "vllm_version": "0.4.2",
+    "gpu_name": "NVIDIA GeForce RTX 3090",
+    "device_count": 1,
+    "gpu_peak_allocated_bytes": 394240,
+    "gpu_peak_reserved_bytes": 2097152,
+    "fixed_tolerance": {
+      "rtol": 0.005,
+      "atol": 0.005,
+      "relative_update_l2_max": 0.005
+    },
+    "reference": "CPU float32 x @ A.T @ B.T * alpha/r; original FP16 tolerance"
+  },
+  "max_relative_l2_error": 0.00025079824263229966,
+  "max_absolute_error": 3.2195821404457092e-06,
+  "prior_input_index_sha256": "e85cce3c3611da15530f9e663549231d3493282c85913344fe41c2a67044260c",
+  "source_manifest": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d487_20261013/probe.py": {
+      "sha256": "49139ceb6a6794c102807994ae39e6eb3fb59ffb8b4ed0a54406052a8a4d1c59",
+      "bytes": 6119
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d487_20261013/native_gpu_witness.py": {
+      "sha256": "0e452651d9de0994fea11a6e96a58c7c4e14cbf45f2347dd1b30f3357b58ca17",
+      "bytes": 7473
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d487_20261013/executed_probe.py": {
+      "sha256": "3b7a83fa218979ef43ab13f99f8610f2a5f7a1a37742d860e58ea04a7c9baa37",
+      "bytes": 12565
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d487_20261013/close.py": {
+      "sha256": "7260e55aacbee83f61560c9f67986c455d5800948ef6ead7ef2a15cab63acd04",
+      "bytes": 298
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d487_20261013/launch.sh": {
+      "sha256": "3b4b9719ac5bf05cc25751b5d211e88ba530f74082d2c4ecdfe64965b15a9cc4",
+      "bytes": 428
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d487_20261013/containers.conf": {
+      "sha256": "5aabfd07777b9c02e3132080ab796f5e5d1860faa6420a60e4de587612999715",
+      "bytes": 60
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d487_20261013/launch.log": {
+      "sha256": "a21d6eb4b2d22da691b1e1b7046990931a31e973293f3dc7bbbf1c7170daf176",
+      "bytes": 1295
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d487_20261013/probe_identity.json": {
+      "sha256": "a751621611592080437f47846e49a977441b817dd24ec5c7936c8131078f6c80",
+      "bytes": 286
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d487_20261013/preflight.json": {
+      "sha256": "9dbb4a4d3e7d464b77cbbcbb151700539313ff3fca2ae2a1fc79fa087b503b9a",
+      "bytes": 6502
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d487_20261013/image_identity.json": {
+      "sha256": "e786ac4329ed2e1209ca0cc64034251f868787aae7f5e0af218ceb7e8d2fa4d9",
+      "bytes": 229
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d487_20261013/selected_gpu.json": {
+      "sha256": "9bed0510ceafb364aabda0c8bece3019aac6b6fe3bfd9307e7540d43c2b32a4b",
+      "bytes": 56
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d487_20261013/pause_adoption.json": {
+      "sha256": "3d9783e1c29bb38a7e89d10f81cfbea1eaa576f5c2f2cdb19513f89c3d19f14e",
+      "bytes": 805
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d487_20261013/inspect_worker_ownership.json": {
+      "sha256": "8de25aef18d0b8c987397ade1f6c2b58921f62bc2cb444705236693cdaa6369e",
+      "bytes": 551
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d487_20261013/worker_final_state.json": {
+      "sha256": "235d0e84a9b95a1df8e320ef2ba9fc446aeeadafe2baef61ea3c578b72bab0c2",
+      "bytes": 526
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d487_20261013/worker_logs.stdout": {
+      "sha256": "29e6f11b7057fdf25bee71ea401c66c9489f5e1bcfd07bf942b4213148c542fd",
+      "bytes": 305
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d487_20261013/worker_logs.stderr": {
+      "sha256": "5a39883c00bddfa76374498608d7dbf0173de80b45eaddccd4b37baad5c87c6c",
+      "bytes": 195
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d487_20261013/guard.jsonl": {
+      "sha256": "1f8408ff6ddcc7f8b7707ef8f08412f150c5990db4a2f6e47dc25121dbc3e98d",
+      "bytes": 6022
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d487_20261013/output/native_gpu_result.json": {
+      "sha256": "4a8d183088b7ffab8e65bcc3cf58a7c5d89f1d719279a231e6703fda98431b76",
+      "bytes": 312
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d487_20261013/output/worker_before_cuda.json": {
+      "sha256": "bb82c5eb8e27567e25326c81eaf047b5e9f68a531dd5592fff4cc473ce1f8de4",
+      "bytes": 125
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d487_20261013/output/permit_cuda.json": {
+      "sha256": "efd0f6fce13e490121f8d03d0abf819d5ebb1fa00afe017ffcc54869eea02d18",
+      "bytes": 474
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d487_20261013/probe_closure.json": {
+      "sha256": "62f447c30b9782d484cdd82324e8d692d0b5bb3dc3c9721997c6739270e86a6e",
+      "bytes": 533
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d487_20261013/remove_0.stdout": {
+      "sha256": "81c3bc09a547de0de5c94a5396e82c80ae6ec2219dffe7580c667cae4b6d2837",
+      "bytes": 65
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d487_20261013/remove_0.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d488_20261013/probe.py": {
+      "sha256": "230e7036ab89d824ca270e8d1f509791e41e2fdc0a68ce12529818410c3fb5bb",
+      "bytes": 1916
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d488_20261013/native_gpu_witness.py": {
+      "sha256": "b4156135c40a3713e56d4a90470e80d0d21a80c9fc310f3225c2ac298474d4d0",
+      "bytes": 5902
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d488_20261013/executed_probe.py": {
+      "sha256": "f3ef809927d8ff8fcd4ad6fdb2fcf15c7c5ebcea2fede574f53e8b624646a71e",
+      "bytes": 12565
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d488_20261013/close.py": {
+      "sha256": "7260e55aacbee83f61560c9f67986c455d5800948ef6ead7ef2a15cab63acd04",
+      "bytes": 298
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d488_20261013/launch.sh": {
+      "sha256": "36d96f693d5179c596e6edf741a348041b2fa3340c2cc435f37f744323659138",
+      "bytes": 437
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d488_20261013/containers.conf": {
+      "sha256": "5aabfd07777b9c02e3132080ab796f5e5d1860faa6420a60e4de587612999715",
+      "bytes": 60
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d488_20261013/launch.log": {
+      "sha256": "2002114a098e0df3dbca8ced09958417b2929fde67d233ca1aacdb7315225a75",
+      "bytes": 33216
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d488_20261013/probe_identity.json": {
+      "sha256": "58763a0aba6e69b15281f05f871ece93f2a6bb150f94ef4f70f5042673c3bade",
+      "bytes": 286
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d488_20261013/preflight.json": {
+      "sha256": "3dff1c3da4ce2265c83843c43839d20037efe568e9e216b1c6818a8b1a24b4db",
+      "bytes": 6498
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d488_20261013/image_identity.json": {
+      "sha256": "e786ac4329ed2e1209ca0cc64034251f868787aae7f5e0af218ceb7e8d2fa4d9",
+      "bytes": 229
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d488_20261013/selected_gpu.json": {
+      "sha256": "9bed0510ceafb364aabda0c8bece3019aac6b6fe3bfd9307e7540d43c2b32a4b",
+      "bytes": 56
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d488_20261013/pause_adoption.json": {
+      "sha256": "32d9d491af43afb6c997f04f1b1b9fb5b48cfd5cdb32c730e108b64f44a46cb9",
+      "bytes": 805
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d488_20261013/inspect_worker_ownership.json": {
+      "sha256": "ed8fdade561adf9bc887d70a86f4ca1f5dbeaa3226d07d877960d6437a87a521",
+      "bytes": 551
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d488_20261013/worker_final_state.json": {
+      "sha256": "24e5fb2be3a3623ed519df1d57e0d14a93e99f0a978c6bb61908e958ae8bf34d",
+      "bytes": 525
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d488_20261013/worker_logs.stdout": {
+      "sha256": "402f8a83bbebea6aa0eec7b4d823c55baa9802752fd454b406b77da373c8a57b",
+      "bytes": 1322
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d488_20261013/worker_logs.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d488_20261013/guard.jsonl": {
+      "sha256": "c921552af3a0bf8bddec1283ab65a09a4fd39196835ef3bf76e65e2c14b06e53",
+      "bytes": 5019
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d488_20261013/output/native_gpu_result.json": {
+      "sha256": "8941b57f17e6f6874dcaf6b05aed9e224166d27ac91865c1362554f3c458880a",
+      "bytes": 38102
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d488_20261013/output/worker_before_cuda.json": {
+      "sha256": "5d33ab5305ee0d5b6bb11682a282ae9ac7c3d9a0692fb099883a040d4fd64470",
+      "bytes": 124
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d488_20261013/output/permit_cuda.json": {
+      "sha256": "ac499f83efe19e53ae05bb5322802c64328f977e479f08f4a8663959d7852d1d",
+      "bytes": 474
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d488_20261013/probe_closure.json": {
+      "sha256": "983251d9b506df995707701cad9e44d9a044df50b4de69819ef7612b3607d8ab",
+      "bytes": 533
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d488_20261013/remove_0.stdout": {
+      "sha256": "6921165d4965e7b789fa0f556ca8df2f8a69c84617293eee88ecb5fc2fc0194c",
+      "bytes": 65
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d488_20261013/remove_0.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d487_20261013/close_retained_pause.py": {
+      "sha256": "16b4f2313d4c3c0a58038062ffccf0f8361dc1c37bfbd6da49b6c91acdb21aa4",
+      "bytes": 1199
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d488_20261013/result.json": {
+      "sha256": "6f20771561509594f696cecb202527caa1b5bf8ba41aabde792cbe630d22d308",
+      "bytes": 40823
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d488_20261013/commands.json": {
+      "sha256": "ca5c146aabb508af6d7f69ada5ede9a7f96c21dda04bb279f0e0198b419ac43c",
+      "bytes": 6731
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d488_20261013/curate.py": {
+      "sha256": "ef578623db59ebd73a20c44dcb6177abb2fc27c3e2db6d27ced171fc5ef1b477",
+      "bytes": 4776
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d488_20261013/backup.py": {
+      "sha256": "dfaa845d7d57db6ed1545742effa417f1fff73e6c1d9579edc66d739362ac7cc",
+      "bytes": 953
+    },
+    "/home/qhq/serverless_llm_baselines/docs/ieee_tc/D488_HYDRASERVE_NATIVE_GPU_ARITHMETIC.md": {
+      "sha256": "0aa957b7fdb122077a19a23f18fd4d3bc9acfaeea973de1625f783a955009fc6",
+      "bytes": 5914
+    }
+  },
+  "archive_sha256": "7e32b149966677bd8ce1d5cf2aad9bcc3da749e571066db2eb5433035b051f37",
+  "protected_verification": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+  },
+  "tests_count": 0,
+  "component_gpu_checks_passed": true,
+  "scope_closures": [
+    {
+      "passed": true,
+      "identity": {
+        "unit": "primelora-tc-aux-d4870000000000000000000000000001.scope",
+        "invocation_id": "bc6299f96aa9402baa9eb435aabf853a",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4870000000000000000000000000001.scope",
+        "inode": 23946011
+      },
+      "resources": {
+        "memory.peak": "670785536",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "actual_recursive_empty": true
+    },
+    {
+      "passed": true,
+      "identity": {
+        "unit": "primelora-tc-aux-d4880000000000000000000000000001.scope",
+        "invocation_id": "7d7494af9e124366ad80b631a66714e4",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4880000000000000000000000000001.scope",
+        "inode": 23947996
+      },
+      "resources": {
+        "memory.peak": "506236928",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "memory.swap.current": "0"
+      },
+      "actual_recursive_empty": true
+    }
+  ],
+  "note": "D487 full-file/header check error retained; actual native test/SiLU/flash pass reused. D488 only existing nonzero LoRA arithmetic. No pipeline/model/performance proof."
+}
