@@ -1,0 +1,1490 @@
+{
+  "checkpoint_verified": true,
+  "performance_result": false,
+  "native_app_init": true,
+  "request_lora_qualified": false,
+  "native_generation_qualified": false,
+  "previous_failure": {
+    "passed": false,
+    "kind": "native_backbone_delivery_init_qualification",
+    "native_backend_qualified": false,
+    "performance_result": false,
+    "pipeline_peer_identity_qualified": false,
+    "gpu_started": true,
+    "error_type": "HTTPError",
+    "error": "HTTP Error 500: Internal Server Error",
+    "cleanup": [],
+    "disk_free_after": 201985400832,
+    "gpu_apps_after": "",
+    "gpu_released": true
+  },
+  "successful_init": {
+    "passed": true,
+    "kind": "native_backbone_delivery_init_qualification",
+    "native_backend_qualified": false,
+    "performance_result": false,
+    "pipeline_peer_identity_qualified": false,
+    "gpu_started": true,
+    "actual_cpu_provider": true,
+    "actual_private_storage": true,
+    "native_app_init": true,
+    "shared_memory_fastload": true,
+    "physical_nodes": 1,
+    "request_lora_qualified": false,
+    "native_generation_qualified": false,
+    "cleanup": [],
+    "disk_free_after": 201972183040,
+    "gpu_apps_after": "",
+    "gpu_released": true
+  },
+  "closures": [
+    {
+      "service": {
+        "unit": "primelora-tc-svc-17807de8fdb747cdb16362484a3bd11d.scope",
+        "invocation_id": "1616ba19c86c483abf09e28c243158ba",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-17807de8fdb747cdb16362484a3bd11d.scope",
+        "inode": 23990709
+      },
+      "service_gone": true,
+      "auxiliary": {
+        "unit": "primelora-tc-aux-d4940000000000000000000000000003.scope",
+        "invocation_id": "b084babb4e1940f184d01958dee801d4",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4940000000000000000000000000003.scope",
+        "inode": 23990667
+      },
+      "actual_recursive_empty": true,
+      "peak_bytes": 42040569856,
+      "event_max": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "swap_max": 0,
+      "gpu_terminal_census": [
+        {
+          "event": "gpu_terminal_census",
+          "gpu": {
+            "source": "nvml_v3_compute_and_graphics",
+            "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+            "query_start_s": 1374092.440491021,
+            "query_end_s": 1374092.445587565,
+            "devices": [
+              {
+                "gpu_uuid": "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946",
+                "index": 0,
+                "memory_api": "nvmlDeviceGetMemoryInfo_v2_raw_fields",
+                "memory_total_bytes": 25769803776,
+                "memory_used_bytes": 15400960,
+                "memory_free_bytes": 25280643072,
+                "memory_driver_reserved_bytes": 473759744,
+                "gpu_utilization_percent": 0,
+                "processes": [
+                  {
+                    "pid": 2875,
+                    "kind": "graphics",
+                    "used_gpu_memory_bytes": 4677632,
+                    "identity": {
+                      "pid": 2875,
+                      "start_ticks": 6435,
+                      "uid": 127,
+                      "cgroup": "/sys/fs/cgroup/user.slice/user-127.slice/session-c1.scope",
+                      "affinity": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7,
+                        8,
+                        9,
+                        10,
+                        11,
+                        12,
+                        13,
+                        14,
+                        15,
+                        16,
+                        17,
+                        18,
+                        19,
+                        20,
+                        21,
+                        22,
+                        23,
+                        24,
+                        25,
+                        26,
+                        27,
+                        28,
+                        29,
+                        30,
+                        31,
+                        32,
+                        33,
+                        34,
+                        35,
+                        36,
+                        37,
+                        38,
+                        39,
+                        40,
+                        41,
+                        42,
+                        43,
+                        44,
+                        45,
+                        46,
+                        47
+                      ]
+                    },
+                    "service_member": false,
+                    "previously_owned": false
+                  }
+                ]
+              },
+              {
+                "gpu_uuid": "GPU-dadf0267-9617-8824-cddb-82fba48a7b97",
+                "index": 1,
+                "memory_api": "nvmlDeviceGetMemoryInfo_v2_raw_fields",
+                "memory_total_bytes": 25769803776,
+                "memory_used_bytes": 15400960,
+                "memory_free_bytes": 25280643072,
+                "memory_driver_reserved_bytes": 473759744,
+                "gpu_utilization_percent": 0,
+                "processes": [
+                  {
+                    "pid": 2875,
+                    "kind": "graphics",
+                    "used_gpu_memory_bytes": 4677632,
+                    "identity": {
+                      "pid": 2875,
+                      "start_ticks": 6435,
+                      "uid": 127,
+                      "cgroup": "/sys/fs/cgroup/user.slice/user-127.slice/session-c1.scope",
+                      "affinity": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7,
+                        8,
+                        9,
+                        10,
+                        11,
+                        12,
+                        13,
+                        14,
+                        15,
+                        16,
+                        17,
+                        18,
+                        19,
+                        20,
+                        21,
+                        22,
+                        23,
+                        24,
+                        25,
+                        26,
+                        27,
+                        28,
+                        29,
+                        30,
+                        31,
+                        32,
+                        33,
+                        34,
+                        35,
+                        36,
+                        37,
+                        38,
+                        39,
+                        40,
+                        41,
+                        42,
+                        43,
+                        44,
+                        45,
+                        46,
+                        47
+                      ]
+                    },
+                    "service_member": false,
+                    "previously_owned": false
+                  }
+                ]
+              },
+              {
+                "gpu_uuid": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+                "index": 2,
+                "memory_api": "nvmlDeviceGetMemoryInfo_v2_raw_fields",
+                "memory_total_bytes": 25769803776,
+                "memory_used_bytes": 15400960,
+                "memory_free_bytes": 25280643072,
+                "memory_driver_reserved_bytes": 473759744,
+                "gpu_utilization_percent": 0,
+                "processes": [
+                  {
+                    "pid": 2875,
+                    "kind": "graphics",
+                    "used_gpu_memory_bytes": 4677632,
+                    "identity": {
+                      "pid": 2875,
+                      "start_ticks": 6435,
+                      "uid": 127,
+                      "cgroup": "/sys/fs/cgroup/user.slice/user-127.slice/session-c1.scope",
+                      "affinity": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7,
+                        8,
+                        9,
+                        10,
+                        11,
+                        12,
+                        13,
+                        14,
+                        15,
+                        16,
+                        17,
+                        18,
+                        19,
+                        20,
+                        21,
+                        22,
+                        23,
+                        24,
+                        25,
+                        26,
+                        27,
+                        28,
+                        29,
+                        30,
+                        31,
+                        32,
+                        33,
+                        34,
+                        35,
+                        36,
+                        37,
+                        38,
+                        39,
+                        40,
+                        41,
+                        42,
+                        43,
+                        44,
+                        45,
+                        46,
+                        47
+                      ]
+                    },
+                    "service_member": false,
+                    "previously_owned": false
+                  }
+                ]
+              },
+              {
+                "gpu_uuid": "GPU-c4663821-4888-e199-7151-d6298f8d45a5",
+                "index": 3,
+                "memory_api": "nvmlDeviceGetMemoryInfo_v2_raw_fields",
+                "memory_total_bytes": 25769803776,
+                "memory_used_bytes": 15400960,
+                "memory_free_bytes": 25280643072,
+                "memory_driver_reserved_bytes": 473759744,
+                "gpu_utilization_percent": 0,
+                "processes": [
+                  {
+                    "pid": 2875,
+                    "kind": "graphics",
+                    "used_gpu_memory_bytes": 4677632,
+                    "identity": {
+                      "pid": 2875,
+                      "start_ticks": 6435,
+                      "uid": 127,
+                      "cgroup": "/sys/fs/cgroup/user.slice/user-127.slice/session-c1.scope",
+                      "affinity": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7,
+                        8,
+                        9,
+                        10,
+                        11,
+                        12,
+                        13,
+                        14,
+                        15,
+                        16,
+                        17,
+                        18,
+                        19,
+                        20,
+                        21,
+                        22,
+                        23,
+                        24,
+                        25,
+                        26,
+                        27,
+                        28,
+                        29,
+                        30,
+                        31,
+                        32,
+                        33,
+                        34,
+                        35,
+                        36,
+                        37,
+                        38,
+                        39,
+                        40,
+                        41,
+                        42,
+                        43,
+                        44,
+                        45,
+                        46,
+                        47
+                      ]
+                    },
+                    "service_member": false,
+                    "previously_owned": false
+                  }
+                ]
+              }
+            ],
+            "service_held_gpu_uuids": [],
+            "unresolved_processes": [],
+            "escaped_owned_processes": [],
+            "foreign_compute_processes": [],
+            "service_native_contexts_clear": true,
+            "proves_physical_lease_release": false
+          }
+        }
+      ],
+      "original_failed_result_preserved": true
+    },
+    {
+      "service": {
+        "unit": "primelora-tc-svc-194427fe7f8c4ea5ac56040deed541d8.scope",
+        "invocation_id": "303886b8151e43debae95deca14549cf",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-svc-194427fe7f8c4ea5ac56040deed541d8.scope",
+        "inode": 23993694
+      },
+      "service_gone": true,
+      "auxiliary": {
+        "unit": "primelora-tc-aux-d4950000000000000000000000000003.scope",
+        "invocation_id": "eacea1d57eaa4b42a66c8c7dfb4d335a",
+        "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4950000000000000000000000000003.scope",
+        "inode": 23993652
+      },
+      "actual_recursive_empty": true,
+      "peak_bytes": 42318667776,
+      "event_max": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      },
+      "swap_max": 0,
+      "gpu_terminal_census": [
+        {
+          "event": "gpu_terminal_census",
+          "gpu": {
+            "source": "nvml_v3_compute_and_graphics",
+            "clock_id": "linux-monotonic:aef67ed2-79d1-46bc-82e4-37401a5b45bf:time:[4026531834]",
+            "query_start_s": 1374428.579090272,
+            "query_end_s": 1374428.584462679,
+            "devices": [
+              {
+                "gpu_uuid": "GPU-8f51f82e-dce8-22cf-1693-e62b8464f946",
+                "index": 0,
+                "memory_api": "nvmlDeviceGetMemoryInfo_v2_raw_fields",
+                "memory_total_bytes": 25769803776,
+                "memory_used_bytes": 15400960,
+                "memory_free_bytes": 25280643072,
+                "memory_driver_reserved_bytes": 473759744,
+                "gpu_utilization_percent": 0,
+                "processes": [
+                  {
+                    "pid": 2875,
+                    "kind": "graphics",
+                    "used_gpu_memory_bytes": 4677632,
+                    "identity": {
+                      "pid": 2875,
+                      "start_ticks": 6435,
+                      "uid": 127,
+                      "cgroup": "/sys/fs/cgroup/user.slice/user-127.slice/session-c1.scope",
+                      "affinity": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7,
+                        8,
+                        9,
+                        10,
+                        11,
+                        12,
+                        13,
+                        14,
+                        15,
+                        16,
+                        17,
+                        18,
+                        19,
+                        20,
+                        21,
+                        22,
+                        23,
+                        24,
+                        25,
+                        26,
+                        27,
+                        28,
+                        29,
+                        30,
+                        31,
+                        32,
+                        33,
+                        34,
+                        35,
+                        36,
+                        37,
+                        38,
+                        39,
+                        40,
+                        41,
+                        42,
+                        43,
+                        44,
+                        45,
+                        46,
+                        47
+                      ]
+                    },
+                    "service_member": false,
+                    "previously_owned": false
+                  }
+                ]
+              },
+              {
+                "gpu_uuid": "GPU-dadf0267-9617-8824-cddb-82fba48a7b97",
+                "index": 1,
+                "memory_api": "nvmlDeviceGetMemoryInfo_v2_raw_fields",
+                "memory_total_bytes": 25769803776,
+                "memory_used_bytes": 15400960,
+                "memory_free_bytes": 25280643072,
+                "memory_driver_reserved_bytes": 473759744,
+                "gpu_utilization_percent": 0,
+                "processes": [
+                  {
+                    "pid": 2875,
+                    "kind": "graphics",
+                    "used_gpu_memory_bytes": 4677632,
+                    "identity": {
+                      "pid": 2875,
+                      "start_ticks": 6435,
+                      "uid": 127,
+                      "cgroup": "/sys/fs/cgroup/user.slice/user-127.slice/session-c1.scope",
+                      "affinity": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7,
+                        8,
+                        9,
+                        10,
+                        11,
+                        12,
+                        13,
+                        14,
+                        15,
+                        16,
+                        17,
+                        18,
+                        19,
+                        20,
+                        21,
+                        22,
+                        23,
+                        24,
+                        25,
+                        26,
+                        27,
+                        28,
+                        29,
+                        30,
+                        31,
+                        32,
+                        33,
+                        34,
+                        35,
+                        36,
+                        37,
+                        38,
+                        39,
+                        40,
+                        41,
+                        42,
+                        43,
+                        44,
+                        45,
+                        46,
+                        47
+                      ]
+                    },
+                    "service_member": false,
+                    "previously_owned": false
+                  }
+                ]
+              },
+              {
+                "gpu_uuid": "GPU-56e0f9e0-c5f2-58b3-08b0-5f46beb9a036",
+                "index": 2,
+                "memory_api": "nvmlDeviceGetMemoryInfo_v2_raw_fields",
+                "memory_total_bytes": 25769803776,
+                "memory_used_bytes": 15400960,
+                "memory_free_bytes": 25280643072,
+                "memory_driver_reserved_bytes": 473759744,
+                "gpu_utilization_percent": 0,
+                "processes": [
+                  {
+                    "pid": 2875,
+                    "kind": "graphics",
+                    "used_gpu_memory_bytes": 4677632,
+                    "identity": {
+                      "pid": 2875,
+                      "start_ticks": 6435,
+                      "uid": 127,
+                      "cgroup": "/sys/fs/cgroup/user.slice/user-127.slice/session-c1.scope",
+                      "affinity": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7,
+                        8,
+                        9,
+                        10,
+                        11,
+                        12,
+                        13,
+                        14,
+                        15,
+                        16,
+                        17,
+                        18,
+                        19,
+                        20,
+                        21,
+                        22,
+                        23,
+                        24,
+                        25,
+                        26,
+                        27,
+                        28,
+                        29,
+                        30,
+                        31,
+                        32,
+                        33,
+                        34,
+                        35,
+                        36,
+                        37,
+                        38,
+                        39,
+                        40,
+                        41,
+                        42,
+                        43,
+                        44,
+                        45,
+                        46,
+                        47
+                      ]
+                    },
+                    "service_member": false,
+                    "previously_owned": false
+                  }
+                ]
+              },
+              {
+                "gpu_uuid": "GPU-c4663821-4888-e199-7151-d6298f8d45a5",
+                "index": 3,
+                "memory_api": "nvmlDeviceGetMemoryInfo_v2_raw_fields",
+                "memory_total_bytes": 25769803776,
+                "memory_used_bytes": 15400960,
+                "memory_free_bytes": 25280643072,
+                "memory_driver_reserved_bytes": 473759744,
+                "gpu_utilization_percent": 0,
+                "processes": [
+                  {
+                    "pid": 2875,
+                    "kind": "graphics",
+                    "used_gpu_memory_bytes": 4677632,
+                    "identity": {
+                      "pid": 2875,
+                      "start_ticks": 6435,
+                      "uid": 127,
+                      "cgroup": "/sys/fs/cgroup/user.slice/user-127.slice/session-c1.scope",
+                      "affinity": [
+                        0,
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7,
+                        8,
+                        9,
+                        10,
+                        11,
+                        12,
+                        13,
+                        14,
+                        15,
+                        16,
+                        17,
+                        18,
+                        19,
+                        20,
+                        21,
+                        22,
+                        23,
+                        24,
+                        25,
+                        26,
+                        27,
+                        28,
+                        29,
+                        30,
+                        31,
+                        32,
+                        33,
+                        34,
+                        35,
+                        36,
+                        37,
+                        38,
+                        39,
+                        40,
+                        41,
+                        42,
+                        43,
+                        44,
+                        45,
+                        46,
+                        47
+                      ]
+                    },
+                    "service_member": false,
+                    "previously_owned": false
+                  }
+                ]
+              }
+            ],
+            "service_held_gpu_uuids": [],
+            "unresolved_processes": [],
+            "escaped_owned_processes": [],
+            "foreign_compute_processes": [],
+            "service_native_contexts_clear": true,
+            "proves_physical_lease_release": false
+          }
+        }
+      ],
+      "original_failed_result_preserved": true
+    }
+  ],
+  "protected_verification": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+  },
+  "source_manifest": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/prepare.py": {
+      "sha256": "fe37b06fa8c88654267bbd97bce9005b2327682f998aa32d428cacc02f5206c4",
+      "bytes": 2339
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/probe.py": {
+      "sha256": "3a3078b88aee7a20786ae2b76d88f6aed96a3e1fe64fb1f3577450df1120c39a",
+      "bytes": 17130
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/native_body.py": {
+      "sha256": "9e9b4f57e37a6c09e3fea086e53d4afd8bc5d8b5782ddd1a085af4ade2488a19",
+      "bytes": 8790
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/launch.sh": {
+      "sha256": "62ce861764ca6f64594b4d0ffb9d9f41aba15e57480b91d62dcc11114d05c81a",
+      "bytes": 828
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/launch.log": {
+      "sha256": "a1449bef5082b83af23469d0d523ec0d54c3c055b2cae9ceb62cb192f91c46ba",
+      "bytes": 318
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/source_manifest.json": {
+      "sha256": "ddf31bed365c1afcb097132f153f32a6a8ba84908f6a3ffec46122e5b50f61d4",
+      "bytes": 3639
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/probe_identity.json": {
+      "sha256": "50d458ab31d02209741999e34c2b26e8368c877d8fd235ccb527e52735da9e61",
+      "bytes": 286
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/preflight.json": {
+      "sha256": "c51d34aaee3260a051d272317155b9c7bce3fc0deb476f7e1d2c0131c4d15bf1",
+      "bytes": 6499
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/image_identity.json": {
+      "sha256": "e786ac4329ed2e1209ca0cc64034251f868787aae7f5e0af218ceb7e8d2fa4d9",
+      "bytes": 229
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/pause_adoption.json": {
+      "sha256": "31153a2fdc1497d0f2d4d5a40ee050f189d2c0ac2acdf9936edc7386dc5d91af",
+      "bytes": 1517
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/shm_capacity.json": {
+      "sha256": "1cb9d239b2a9d398ac163975e1fd6b9df76366dc62e3f27149390ef0551bd5d1",
+      "bytes": 132
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/provider_ready.json": {
+      "sha256": "59767bd0a2c3a820280b05212c9e6923e84d6cbba46bcfe3f668090af1659574",
+      "bytes": 82
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/result.json": {
+      "sha256": "3a217468517e41c1e2c953be4d79771edefd9cbc6580b320f33aa0718eeb9f11",
+      "bytes": 395
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/commands.json": {
+      "sha256": "aaf7d2297fbbcc9ab571c32fefa0c22184353edcfe7f282addb1e4616b1669ae",
+      "bytes": 465
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/launch_gate.json": {
+      "sha256": "1d900cc7f8bea8720ae9c7a4cd05b856338465a84c24f5d119549e1ea281feb5",
+      "bytes": 10755
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/close_audit.py": {
+      "sha256": "f8b2e44f946226d35337633ca6760202e9c0eac81a40c9b410ff93df01d794e6",
+      "bytes": 1766
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/closure.json": {
+      "sha256": "8c98d3001f2b9513a33f44679f03ae2d7b6b972a4b318c8e3b4ea069ba14abec",
+      "bytes": 9986
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/executed_sources/000_probe.py": {
+      "sha256": "3a3078b88aee7a20786ae2b76d88f6aed96a3e1fe64fb1f3577450df1120c39a",
+      "bytes": 17130
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/executed_sources/001_native_body.py": {
+      "sha256": "9e9b4f57e37a6c09e3fea086e53d4afd8bc5d8b5782ddd1a085af4ade2488a19",
+      "bytes": 8790
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/executed_sources/002_prepare.py": {
+      "sha256": "fe37b06fa8c88654267bbd97bce9005b2327682f998aa32d428cacc02f5206c4",
+      "bytes": 2339
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/executed_sources/003_loopback_transport.py": {
+      "sha256": "52d90c690523c6d9ac02d0b753dad648da8d17d571cc065ab0fa7c0aad11b21c",
+      "bytes": 3157
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/executed_sources/004_platform_port.py": {
+      "sha256": "c6bac72fe78803d8765fc0cce94ccfd2035e926b8fabecd0e6166b4fd49779cc",
+      "bytes": 6887
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/executed_sources/005_lora_stage_binding.py": {
+      "sha256": "c1f071a41dec027b57cbf0d38ccf3aa5fc29f521155162d67da87b04f3954c4f",
+      "bytes": 10579
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/executed_sources/006_container_entry.py": {
+      "sha256": "72fcba597516a902bdc739de7dcee48424daa310c17109510b93fa912d38901b",
+      "bytes": 1496
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/executed_sources/007_native_overlay_entry.py": {
+      "sha256": "6d01b1eb9bc68ab8ab5f4c8583e687ed03229fcdedc5b8ea29753065375bc6d9",
+      "bytes": 2022
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/executed_sources/008_isolated_platform.py": {
+      "sha256": "c8b4d257b8c4b7f6f7fdd4f8376d3936fd4504581c6a7335b9ad2773d113e87f",
+      "bytes": 19201
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/executed_sources/009_lora_worker_binding.py": {
+      "sha256": "df4c830b5de51e0ebb1bb84b36db19a0478e0f65c7c053cfe1f66e2072175deb",
+      "bytes": 5773
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/executed_sources/010_native_delivery.py": {
+      "sha256": "4f1605106f5a482db1332b0c4a0f433f7380f2cd347479baf72da37e88325bb2",
+      "bytes": 8489
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/overlays/manifest.json": {
+      "sha256": "21dd62da655a44de08b229eb924bee8519e168d41ea8a27cd0843dc77fc04ccd",
+      "bytes": 665
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/overlays/scripts/image/app.py": {
+      "sha256": "b15a83abb194a513dc71544050053ecbd233d230ebff691688f282e075b9ab49",
+      "bytes": 20142
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/overlays/scripts/kubernetes/vllm/storage_server/local_server.py": {
+      "sha256": "eeabe09d1fbc53f0f118a0bd3a0e297129cc48cc68d4ec415da9e7ea19435b7f",
+      "bytes": 16595
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/overlays/scripts/kubernetes/vllm/storage_server/remote_server.py": {
+      "sha256": "4c6a494782c84b2614274ea8fe84ba4d3d3ad3bc5130347a0b2724fa1687385f",
+      "bytes": 17699
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/overlays/vllm/executor/gpu_executor.py": {
+      "sha256": "0ad620fac79d7ad0dd53e087f67b114301cb3f0c4a5a8adf1a78048db9ec1aa8",
+      "bytes": 18624
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/overlays/vllm/model_executor/model_loader/weight_utils.py": {
+      "sha256": "7f8cf1113e3baa585bf1f42732a121ea5610ec9869d13ff0572704d667948b98",
+      "bytes": 19209
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/overlays/vllm/worker/model_runner.py": {
+      "sha256": "bf2def5f20e5dc230917e65dc90fcf3903a871d7ee9aee857c0861769eadf0a2",
+      "bytes": 50286
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/metadata/partition.json": {
+      "sha256": "44a8dcf3597f2741fb7fd1302aac9c37fb59c27cbf570f73c24fbaa5b946dd07",
+      "bytes": 1176
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/launch_gate.launch/service.log": {
+      "sha256": "f851f9007f6fc49c28372019b381982bd41510de8a90bc4543ec452bd50fcd20",
+      "bytes": 667
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/launch_gate.launch/watchdog.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/launch_gate.launch/exec_receipt.json": {
+      "sha256": "bcc2b2521274284ad8de00023ac73861f7f34c4923682ec6bf38ff37d35851b9",
+      "bytes": 11861
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000001.command.json": {
+      "sha256": "5e5057a92e9139eee364a4676101edd0f9255e03fc1bb1d02b26ee202cf2816d",
+      "bytes": 5754
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000002.command.json": {
+      "sha256": "cac197d4cab5cb85aade85ac4ae4fbd34bf253e807f557de3c425e5fa175b20a",
+      "bytes": 124
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000003.command.json": {
+      "sha256": "d04c1846d3b196c4b172443774f1b3d26abd3e3c982112e82b2673d2b1d9950e",
+      "bytes": 108
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000004.command.json": {
+      "sha256": "bfedb4623e6332b99a16c30738bf3290f71025954751226408daf2dd135a68b7",
+      "bytes": 5852
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000005.command.json": {
+      "sha256": "cb4263de3bfbd878cefd68b3388238675f892296f59fa19eb16d44471bdc2240",
+      "bytes": 125
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000006.command.json": {
+      "sha256": "5fe2602ea70c19d304863a0555048d8f2b7d1d6d9837c8293bd805cfda6951fc",
+      "bytes": 109
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000007.command.json": {
+      "sha256": "5facf0017be3260b184102e1ac102d3ceed6a4400f28a05655bc551bf5c71506",
+      "bytes": 124
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000008.command.json": {
+      "sha256": "f49d744339488f6d573fc2ab7c375010d67a5299a2077de9da1c368019b408e4",
+      "bytes": 108
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000009.command.json": {
+      "sha256": "5886bf7a808702eef9e8bd39934eb5011615419403ee5d31969c3b4d73d86220",
+      "bytes": 6010
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000010.command.json": {
+      "sha256": "fa6e1ba5f6b09f6595104070593939b91de910e88261c544498fe9775ad802bd",
+      "bytes": 119
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000011.command.json": {
+      "sha256": "d42eeaac4373aa4bd9d97f271ba2735a2ffc2aae1adb6d3222d75e4176ddbd52",
+      "bytes": 103
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000012.command.json": {
+      "sha256": "9deae636ac6a6bb60baadc86048d1cebc96bdeb900ebaf80210ed86a4a06bf64",
+      "bytes": 123
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000013.command.json": {
+      "sha256": "54b63057bc0269a05b2d7723a93a527dec932a227a26e639590cd9cda5364e7a",
+      "bytes": 107
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000014.command.json": {
+      "sha256": "e373c897a59c58c62620cf9c5c4495939d8fa5a7b044bbdb47a46cfe74449bcc",
+      "bytes": 382
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000015.command.json": {
+      "sha256": "34c31b0130a8f4ed430268850e23fc03c955e2aef7331b1b757346020469e5a1",
+      "bytes": 118
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000016.command.json": {
+      "sha256": "9f04769a8e61ca6772eac5cc76db3e459456fa57564d8ec58153bc538a7b8c25",
+      "bytes": 103
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000017.command.json": {
+      "sha256": "0b59c714a0b3e50ccb255ebd7b28597008dd9473a9441405b6341aa860933c72",
+      "bytes": 118
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000018.command.json": {
+      "sha256": "37152054a89b7e9f95d34bed1f1f0083a2de7325fdd9c887259555d8a0357a42",
+      "bytes": 103
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000019.command.json": {
+      "sha256": "db734729afb622010abf4f820484c997ae6b98b5ae312b5e38afe3ad5d02c8a0",
+      "bytes": 156
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000020.command.json": {
+      "sha256": "ec05c11b8d91786250e624841a3240562506916b7b245b77d94f4ee982ad17dc",
+      "bytes": 173
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000021.command.json": {
+      "sha256": "30af7290ed05672b31d0d01484a9c0680a2db49ae263110ebdd75199280dabb8",
+      "bytes": 155
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000022.command.json": {
+      "sha256": "051164c1cf38c3f148bd560ce1bdead1b8a0cf81bfca817b5fe4f05ec26a631c",
+      "bytes": 124
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000023.command.json": {
+      "sha256": "c6ca2a3f7710407e36aa3c0d0cb4264a70c62f72ca3752dfe3e734e9e9178ac7",
+      "bytes": 109
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000024.command.json": {
+      "sha256": "2ba3d9c2b265bef46e6f3fa7d0aef4115e450996a2964b3c4ebe04ab8a8a3480",
+      "bytes": 156
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000025.command.json": {
+      "sha256": "f444d939ed3d1c399a6126f33067ae2e1ea2fcb80c01646063c5ccbec11c54fb",
+      "bytes": 173
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000026.command.json": {
+      "sha256": "e33b5e51bbeab5954d95788adde073c2f3f7873978c45b1eb64a5bbdfb9ecf96",
+      "bytes": 153
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000027.command.json": {
+      "sha256": "2dd6940230c1d04457ccb2fafb506fc87d165daefbbc69c9fc639c74636f34a1",
+      "bytes": 124
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000028.command.json": {
+      "sha256": "7ecd4448553b51d311cb69bbf4137d417d400239add47c2ad625697099ac9a8c",
+      "bytes": 108
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000029.command.json": {
+      "sha256": "482f5e89b863f2066373b95839243b33922d0f7119b9816cb48c7aa99c48d261",
+      "bytes": 156
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000030.command.json": {
+      "sha256": "b3c3f20a9222618449851c8bed1b84d3fbf7f8f1d996172a54a13eafd8f11cb0",
+      "bytes": 173
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000031.command.json": {
+      "sha256": "323c6e3a04a0664160493d860ee0c5e01419ff735d16c3f4c8b78924e1c6d0b9",
+      "bytes": 152
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/d494-provider.ownership.json": {
+      "sha256": "1dfc0b2a9d7fc83555916bf4a9d88377343b02c0d047f8cd3b5847f4fc04f59c",
+      "bytes": 1020
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/d494-storage.ownership.json": {
+      "sha256": "d8ef060cae9aca000ccebd1b832d2fe5951db747c6f230589242413b0df06a24",
+      "bytes": 1020
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/d494-w0.ownership.json": {
+      "sha256": "efc47e80759c56865cb266f226ab2af00328c0bda5e578c3c87e8d929b8bdc0c",
+      "bytes": 1058
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/d494-w0.native-request.json": {
+      "sha256": "fdff705b692adefa42c8c0e001bc2cc586f581de28f3852346b0cbdf4890c235",
+      "bytes": 587
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000024.stdout": {
+      "sha256": "6d30e6812249c749f5aad6b765e57e742ac8d0d54cdb4385f333f3b734e2d8da",
+      "bytes": 2869
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000024.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000019.stdout": {
+      "sha256": "211deda859c164e5f74a0c6ee4607a0c9554abb3c5dbf3a993fa4a1ab8706112",
+      "bytes": 900
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000019.stderr": {
+      "sha256": "260556e248a6aa3ba33a6b70ce22360e15b3721dcbb940260da4e4130144243d",
+      "bytes": 5880
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000029.stdout": {
+      "sha256": "7c7daa3d86b245a678c3a075ecb7f7a647eca5e4d7dee62175db716094665e20",
+      "bytes": 438
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/000029.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/d494-storage/entry.json": {
+      "sha256": "dd6f3d9fd5b52d6e13f0159b4dff2ed9fcc1b4cfe397f0df4b2710f58a596bc0",
+      "bytes": 228
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/d494-storage/permit.json": {
+      "sha256": "b87f5d9bec2bee4741599d8b554e3ff7858626d6c06d7cbe526f94bcbc51aae7",
+      "bytes": 138
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/d494-provider/entry.json": {
+      "sha256": "97367bc325b9ed619cf92b7b0eaf010f91bbb737e950cebfe9be603a8cd374b5",
+      "bytes": 229
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/d494-provider/permit.json": {
+      "sha256": "e5bd32f10fb59b18b71efaee8f88b6c1c9d07dac103a397c36a17589c01044c0",
+      "bytes": 139
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/d494-w0/entry.json": {
+      "sha256": "f1d84c7795f40571afc1700f213221576f888e83e373bfdd8ab81bd6df929cfa",
+      "bytes": 223
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/platform/d494-w0/permit.json": {
+      "sha256": "038ffc64727ac5fb88552c1bc5a9972b6ba7cb6ed805a6cf05196dc9d226400f",
+      "bytes": 133
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/prepare.py": {
+      "sha256": "d65b0c824ab1c75e53ebca2df74a82b0569021e7cfaa9d52a293a02d5e9b06a7",
+      "bytes": 667
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/probe.py": {
+      "sha256": "567affc29495e82ab4549e91dd751967de663fa094438ba4c7a4cf466841d22b",
+      "bytes": 17130
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/native_body.py": {
+      "sha256": "77643942f4b1517091df400509de3e11df425a133ba4299470d67c64d4967929",
+      "bytes": 8790
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/launch.sh": {
+      "sha256": "632397b005dcd187ed4156c5b46dfafd583d01da58e5571f2496275cf80f6cce",
+      "bytes": 828
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/launch.log": {
+      "sha256": "63adbadf5f0a48050290da77e5105ba7fdeb6a279443d3041db2f74349eb61ca",
+      "bytes": 317
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/source_manifest.json": {
+      "sha256": "5bad57849169e3cf1ec9eed8a811b39cb793df64e2ac35edf40fee27c44238e3",
+      "bytes": 3639
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/probe_identity.json": {
+      "sha256": "283e443a50f875a00814e2839462f66214b251f0ddb6a667367ebf1743ca0b25",
+      "bytes": 286
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/preflight.json": {
+      "sha256": "4a944c81a55909df620a2c4e5dbf961704fc30e806747650800f0564c3f9abc1",
+      "bytes": 6500
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/image_identity.json": {
+      "sha256": "e786ac4329ed2e1209ca0cc64034251f868787aae7f5e0af218ceb7e8d2fa4d9",
+      "bytes": 229
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/pause_adoption.json": {
+      "sha256": "408ea140240ecafae75ae24eb7f7e618642c04a83416d6c7616b2181a85b970c",
+      "bytes": 1517
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/shm_capacity.json": {
+      "sha256": "1cb9d239b2a9d398ac163975e1fd6b9df76366dc62e3f27149390ef0551bd5d1",
+      "bytes": 132
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/provider_ready.json": {
+      "sha256": "a0dc89f8dfd69d9dd91ff246e60d255e23c30a08a548b8992f5a385b7f98a11c",
+      "bytes": 82
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/result.json": {
+      "sha256": "d28758873c761aa0f72e96cfda9663c17d455b3c5ba1852fea4dc8ab21c00ce5",
+      "bytes": 537
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/commands.json": {
+      "sha256": "78cdd06d0fed5aae61b1a7e616a9b96715fd45efea5ad6b411a4ead05de6b5fe",
+      "bytes": 464
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/launch_gate.json": {
+      "sha256": "4dda5b004656fe7cda765cf2923c5f8e0d1a1e93502adb52a5918b62a623e69a",
+      "bytes": 10702
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/close_audit.py": {
+      "sha256": "358498564368f9778e2dd41ac11824ccf5636b3768af315a43da6ef949a6cad2",
+      "bytes": 1766
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/closure.json": {
+      "sha256": "746d74d75920c355b811c86b293881876dd016e7f11317b47d53891013220124",
+      "bytes": 9986
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/executed_sources/000_probe.py": {
+      "sha256": "567affc29495e82ab4549e91dd751967de663fa094438ba4c7a4cf466841d22b",
+      "bytes": 17130
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/executed_sources/001_native_body.py": {
+      "sha256": "77643942f4b1517091df400509de3e11df425a133ba4299470d67c64d4967929",
+      "bytes": 8790
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/executed_sources/002_prepare.py": {
+      "sha256": "d65b0c824ab1c75e53ebca2df74a82b0569021e7cfaa9d52a293a02d5e9b06a7",
+      "bytes": 667
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/executed_sources/003_loopback_transport.py": {
+      "sha256": "52d90c690523c6d9ac02d0b753dad648da8d17d571cc065ab0fa7c0aad11b21c",
+      "bytes": 3157
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/executed_sources/004_platform_port.py": {
+      "sha256": "c6bac72fe78803d8765fc0cce94ccfd2035e926b8fabecd0e6166b4fd49779cc",
+      "bytes": 6887
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/executed_sources/005_lora_stage_binding.py": {
+      "sha256": "c1f071a41dec027b57cbf0d38ccf3aa5fc29f521155162d67da87b04f3954c4f",
+      "bytes": 10579
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/executed_sources/006_container_entry.py": {
+      "sha256": "72fcba597516a902bdc739de7dcee48424daa310c17109510b93fa912d38901b",
+      "bytes": 1496
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/executed_sources/007_native_overlay_entry.py": {
+      "sha256": "6d01b1eb9bc68ab8ab5f4c8583e687ed03229fcdedc5b8ea29753065375bc6d9",
+      "bytes": 2022
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/executed_sources/008_isolated_platform.py": {
+      "sha256": "c8b4d257b8c4b7f6f7fdd4f8376d3936fd4504581c6a7335b9ad2773d113e87f",
+      "bytes": 19201
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/executed_sources/009_lora_worker_binding.py": {
+      "sha256": "df4c830b5de51e0ebb1bb84b36db19a0478e0f65c7c053cfe1f66e2072175deb",
+      "bytes": 5773
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/executed_sources/010_native_delivery.py": {
+      "sha256": "53edb4f758443982cdb154e77f12bcabb7cc90c17e391db8fe2efc9178470855",
+      "bytes": 9745
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/overlays/manifest.json": {
+      "sha256": "fdd2236fe2a7b10b1dd3a4852c76db6068504011bf14b06e4e63648bdac47ed5",
+      "bytes": 665
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/overlays/scripts/image/app.py": {
+      "sha256": "82b8047b4dc357944e24ffc6cb11cd60e700d5adca9ea72a3a53c97b76cd49ae",
+      "bytes": 20362
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/overlays/scripts/kubernetes/vllm/storage_server/local_server.py": {
+      "sha256": "eeabe09d1fbc53f0f118a0bd3a0e297129cc48cc68d4ec415da9e7ea19435b7f",
+      "bytes": 16595
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/overlays/scripts/kubernetes/vllm/storage_server/remote_server.py": {
+      "sha256": "4c6a494782c84b2614274ea8fe84ba4d3d3ad3bc5130347a0b2724fa1687385f",
+      "bytes": 17699
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/overlays/vllm/executor/gpu_executor.py": {
+      "sha256": "0ad620fac79d7ad0dd53e087f67b114301cb3f0c4a5a8adf1a78048db9ec1aa8",
+      "bytes": 18624
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/overlays/vllm/model_executor/model_loader/weight_utils.py": {
+      "sha256": "7f8cf1113e3baa585bf1f42732a121ea5610ec9869d13ff0572704d667948b98",
+      "bytes": 19209
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/overlays/vllm/worker/model_runner.py": {
+      "sha256": "bf2def5f20e5dc230917e65dc90fcf3903a871d7ee9aee857c0861769eadf0a2",
+      "bytes": 50286
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/metadata/partition.json": {
+      "sha256": "44a8dcf3597f2741fb7fd1302aac9c37fb59c27cbf570f73c24fbaa5b946dd07",
+      "bytes": 1176
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/launch_gate.launch/service.log": {
+      "sha256": "46dbdac2e0591ca29a0e93e5dc35a9580e43b838403492b403c2b93cf7620c57",
+      "bytes": 874
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/launch_gate.launch/watchdog.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/launch_gate.launch/exec_receipt.json": {
+      "sha256": "c4bf121669f2c22c71e838e65a9666a90946edf10742737b93b4cf2b952b8954",
+      "bytes": 11861
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000001.command.json": {
+      "sha256": "a89bb0136b947cd0c8fefab79558bc8e2737e0175676c1a51f3eb560c1159911",
+      "bytes": 5754
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000002.command.json": {
+      "sha256": "f625737600cfc1cead764397fadf1dff4077f6841b25a3f157622e71c43bbcc5",
+      "bytes": 124
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000003.command.json": {
+      "sha256": "aa11c7bc8d51658f86d72c337e3faacc70ef6e119ca8f22346989fb4e7dacbe4",
+      "bytes": 108
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000004.command.json": {
+      "sha256": "01bd4267d24f99f6f1ff2d99f3818049b66493c593f699463aa2428d384f0506",
+      "bytes": 5852
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000005.command.json": {
+      "sha256": "6cb1f264e222809c10b030e47dab7fb34a2f07ef5b6571716d943774c0d8c029",
+      "bytes": 125
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000006.command.json": {
+      "sha256": "b3a72efc6d0fe8ebbfcdd44925ac706ec5b9c00065906d06aa8e79e75d785c56",
+      "bytes": 109
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000007.command.json": {
+      "sha256": "2ae1e020d4baac6ddb14c50607bc7cdab0d555332854f1d9f176009d8b1a4ff5",
+      "bytes": 123
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000008.command.json": {
+      "sha256": "0fad296850279846ddd656729ee6f984a7473be3179d5d91cd224e769a6c646a",
+      "bytes": 108
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000009.command.json": {
+      "sha256": "08cc861a117ca87f301aef319ce3ee1572f96878ac9f20c23ab2440bd0c215d1",
+      "bytes": 6010
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000010.command.json": {
+      "sha256": "a12278856cdd6b17cce870ceb8d506f4ae8789f69839a4556614cbbc301f3073",
+      "bytes": 118
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000011.command.json": {
+      "sha256": "ccaff235080151d6a1fb0e272dddc182de231808abbc9d325ece0046fac0fa84",
+      "bytes": 103
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000012.command.json": {
+      "sha256": "6e9249b0eb55972caea6682ba61d44b29c73befdcccb52796e352992c63660c1",
+      "bytes": 124
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000013.command.json": {
+      "sha256": "cb9974dec1c5a7564e7f6f7f2f079375abd97d1c1e887219420576095ee1c95a",
+      "bytes": 108
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000014.command.json": {
+      "sha256": "6043d473d6572c40c709084ed67107433815d6fd72b79446be301cda6150a83a",
+      "bytes": 382
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000015.command.json": {
+      "sha256": "444011630d83ff0c9731cd98df0bb6e72e3b3e6a42203361c2a2b24df2adcbdb",
+      "bytes": 119
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000016.command.json": {
+      "sha256": "f4cc5aeff83b8787d95b60ee2cda8d885aab236e2ac1bff77fd37fa1b7068597",
+      "bytes": 103
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000017.command.json": {
+      "sha256": "c336ba81965f5648cc819b9fd9c2999f084c955a93ea263eaf41f32d54ffbbbc",
+      "bytes": 119
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000018.command.json": {
+      "sha256": "ed65b69bfd1d7905f58d2ffd8fbfe331cf4b13e197d7e9e392e5cb3aa9cb1d90",
+      "bytes": 101
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000019.command.json": {
+      "sha256": "4ed8e3501d9e476083a6fd0b30e4987512302d694af447b739ff3e0e42621a50",
+      "bytes": 155
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000020.command.json": {
+      "sha256": "c21079b91496640f44914de20c2a525174038f34680560e5bcda045f04be246f",
+      "bytes": 173
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000021.command.json": {
+      "sha256": "21ee4b9665be8c19f0d42b24f892cc76312f9fc6ee1df54b0fbda38a04106151",
+      "bytes": 154
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000022.command.json": {
+      "sha256": "5f0e702665feef19163b2fe54efc74007f3d25b378be653071033d2d221029f8",
+      "bytes": 119
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000023.command.json": {
+      "sha256": "2cf5a0d13a7794adf1887ecd69e4cf0802b2f7103bebb9bfbf96741b04cbde2e",
+      "bytes": 118
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000024.command.json": {
+      "sha256": "e057f0a88513419674d7596eef6c47d0d60f250de7c8a905a4f3e5b13f30448d",
+      "bytes": 119
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000025.command.json": {
+      "sha256": "df46db90d8bfab75ddab332aa71d53f4cf9e35b8f310e08e05802925be100680",
+      "bytes": 124
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000026.command.json": {
+      "sha256": "73084e89552727358da6f49c1889cd97044fb77d22d09122ff4e356bbcb1132d",
+      "bytes": 108
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000027.command.json": {
+      "sha256": "3f4e27975a0531155874180b39cb8cfe1d90cded0171f3b2c0c6a0782a00170d",
+      "bytes": 156
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000028.command.json": {
+      "sha256": "71f71586d0d1b1e89208602329c389abe2f58aa437826efd37625a35d67bfed0",
+      "bytes": 173
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000029.command.json": {
+      "sha256": "3907036eba0825b541777834ebf6c656679be10e34e3923bc29aa04bf19ee4ad",
+      "bytes": 154
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000030.command.json": {
+      "sha256": "cbd3301962c1a5a463dc94413dbea0c9fe12156dfdd0bb401665e853438e8d25",
+      "bytes": 123
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000031.command.json": {
+      "sha256": "61fa24d338cd9af5a157c4442313205f6cacdcc0e8045bc9c0742dcf7763d963",
+      "bytes": 108
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000032.command.json": {
+      "sha256": "5eeaa9ebae454f5109eb70b0f15aae690064cdb793bad813a514677e69e942b4",
+      "bytes": 156
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000033.command.json": {
+      "sha256": "94f08584f22db6505029f07e920a34295e73f2a20d68baea97b68e28d3b6bbf9",
+      "bytes": 173
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000034.command.json": {
+      "sha256": "35313070ce7ab2b04f3900d618f09bf41956b79c369e8f5f3c59852d8b191983",
+      "bytes": 153
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/d495-provider.ownership.json": {
+      "sha256": "217b4b6e1c8b6c65adc4033d0ea94f4fee822ac0f47c515c6e7548517b8b92ec",
+      "bytes": 1020
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/d495-storage.ownership.json": {
+      "sha256": "f181281b1a3c50411bea791a645ef9e563b8017d0a89f1ecea3463facca3c08b",
+      "bytes": 1020
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/d495-w0.ownership.json": {
+      "sha256": "5b10c81070dfefa5dcaeb7b7f494c71ca32d8cceab9be121ff23d80bae3be6d8",
+      "bytes": 1058
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/d495-w0.native-request.json": {
+      "sha256": "fdff705b692adefa42c8c0e001bc2cc586f581de28f3852346b0cbdf4890c235",
+      "bytes": 587
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000027.stdout": {
+      "sha256": "90d447ede84fd6ceb72e878a0bdf72f7c1f311217030d44105aaaede0e0ea85a",
+      "bytes": 2864
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000027.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000019.stdout": {
+      "sha256": "c3bd1b17e45fab7e21b1e2e22e46e79d0fed4cf21ba01ff9d8ecd81c0249cb99",
+      "bytes": 4360
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000019.stderr": {
+      "sha256": "9bbdb92de1304567f483234af2163818ca2dd82207eff490ba411198e87045f9",
+      "bytes": 843
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000032.stdout": {
+      "sha256": "844d3d77240f7909ba570fcb158fc67b2aea1eb13dc950a42a25f12445da5899",
+      "bytes": 438
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/000032.stderr": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/d495-storage/entry.json": {
+      "sha256": "27ba287883cf32aa7151da362bfb71e98fbbbaeca7afd9f6e094899c04e8b531",
+      "bytes": 228
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/d495-storage/permit.json": {
+      "sha256": "47fd13c116e07096332d55408a584219b90928a3f6f83f7549b6930a25dbcdc7",
+      "bytes": 138
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/d495-provider/entry.json": {
+      "sha256": "6048959b2f9779b148b8600e741be700e5b2accd24308ce2c359ced6546a43f4",
+      "bytes": 229
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/d495-provider/permit.json": {
+      "sha256": "3050cf0be29030322764744ef582576a73f2d3d4c2c9d7301d26285ac4c97698",
+      "bytes": 139
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/d495-w0/entry.json": {
+      "sha256": "fcc72c8f637430894acfb0216c90e8bb51853ae8d35548403c21e55736762587",
+      "bytes": 223
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/platform/d495-w0/permit.json": {
+      "sha256": "f394e2798ef0d360f6de4ab9086dd8344873c6c3a3e7b84e0208ee7439c56d26",
+      "bytes": 133
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/native_init_response.json": {
+      "sha256": "7a5bb26e93427ae56990d041dea4d6a584f7d4cf79aaa88b8a71f8bd92a86b11",
+      "bytes": 84
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/native_model_registry.json": {
+      "sha256": "9015dfa6fd648193fdac7b6341b6a9b8cab71e91a7521fd984a71bed2652800c",
+      "bytes": 694
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/curate.py": {
+      "sha256": "dd2632261368b8c572c6b47c4d6dddbefefd2c13f7d9e8a5355b54c71016f9d5",
+      "bytes": 4189
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d495_20261013/backup.py": {
+      "sha256": "a6bea17bd53a55cad1f93f01a9912345665c0c5d76c22992c04492713a23776a",
+      "bytes": 1633
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d494_20261013/upstream_config.py": {
+      "sha256": "5a17e5ca3741314175daa825024172be0decb56dd411d6e40ff146cfe15d8332",
+      "bytes": 52839
+    },
+    "/home/qhq/serverless_llm_baselines/HydraServe_project/runtime/isolated_platform.py": {
+      "sha256": "c8b4d257b8c4b7f6f7fdd4f8376d3936fd4504581c6a7335b9ad2773d113e87f",
+      "bytes": 19201
+    },
+    "/home/qhq/serverless_llm_baselines/HydraServe_project/runtime/native_delivery.py": {
+      "sha256": "53edb4f758443982cdb154e77f12bcabb7cc90c17e391db8fe2efc9178470855",
+      "bytes": 9745
+    },
+    "/home/qhq/serverless_llm_baselines/HydraServe_project/runtime/native_overlay_entry.py": {
+      "sha256": "6d01b1eb9bc68ab8ab5f4c8583e687ed03229fcdedc5b8ea29753065375bc6d9",
+      "bytes": 2022
+    },
+    "/home/qhq/serverless_llm_baselines/tests/test_ieee_tc_hydraserve_native_delivery.py": {
+      "sha256": "faac45cb8e2c2f30d22030b5bbca8158c8dbb6d2b72d319f087ab0f58f885aa3",
+      "bytes": 4781
+    },
+    "/home/qhq/serverless_llm_baselines/tests/test_ieee_tc_hydraserve_isolated_platform.py": {
+      "sha256": "ece2060a5108f4f71d918ee48103a17672bd1320e83e4444c7ff70ad79f71cfd",
+      "bytes": 5687
+    },
+    "/home/qhq/serverless_llm_baselines/docs/ieee_tc/D495_HYDRASERVE_NATIVE_DELIVERY.md": {
+      "sha256": "a80b259c02bea1f7c92914e606d0f8913147921c61224de3e91be562f2c44157",
+      "bytes": 5274
+    }
+  },
+  "archive_sha256": "7cc57b5e05fc09e9fb34f76abe787955c549d1f67ae9578ba3e725fc4e62fbf4",
+  "next": "Native Request/ChatEngine LoRA+fixed-output+native timing; startup control-socket lifetime; no performance claim"
+}

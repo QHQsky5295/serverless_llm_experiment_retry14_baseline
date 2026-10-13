@@ -91,6 +91,21 @@ class PlatformChecks(unittest.IsolatedAsyncioTestCase):
             await p.close()
         self.assertEqual(called,['b','a','storage'])
 
+    async def test_provider_shares_private_storage_without_gpu_inventory_change(self):
+        p=self.make()
+        with self.assertRaisesRegex(RuntimeError,'storage'):
+            await p.start_provider('provider','127.77.49.11',{})
+        p.storage=OwnedWorker('storage','storage','127.77.49.10',None,self.root,cid='b'*64)
+        calls=[]
+        async def create(worker,env,ipc,mounts):calls.append((worker,env,ipc))
+        p._create=create
+        await p.start_provider('provider','127.77.49.11',{})
+        self.assertIsNone(calls[0][0].uuid)
+        self.assertEqual(calls[0][2],'container:'+'b'*64)
+        self.assertEqual(len(p.workers),0)
+        with self.assertRaisesRegex(ValueError,'duplicate'):
+            await p.start_provider('provider','127.77.49.11',{})
+
     async def test_cancel_does_not_race_running_cli(self):
         p=self.make()
         p.base=[sys.executable,'-c',"import time; time.sleep(.1); print('command-finished')"]

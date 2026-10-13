@@ -96,6 +96,7 @@ class IsolatedPodmanPlatform:
         self.gate_script = Path(gate_script)
         self.prefix, self.next_address = address_prefix, first_address
         self.workers: Dict[str, OwnedWorker] = {}
+        self.providers: Dict[str, OwnedWorker] = {}
         self.storage: Optional[OwnedWorker] = None
         self.serial = 0
         self.lock = asyncio.Lock()
@@ -204,6 +205,12 @@ class IsolatedPodmanPlatform:
                 raise RuntimeError('private storage owner exited')
             if ns['ipc'] != os.readlink(f"/proc/{storage_state['State']['Pid']}/ns/ipc"):
                 raise RuntimeError('worker cannot share private storage IPC')
+        if worker.uuid is not None:
+            _, visible = await self._call(['exec',worker.cid,
+                '/usr/bin/taskset','-c',','.join(map(str,self.cpus)),
+                'nvidia-smi','--query-gpu=uuid','--format=csv,noheader'])
+            if visible.splitlines() != [worker.uuid]:
+                raise RuntimeError('actual container-visible GPU differs from selection')
         self._check_parent()
         worker.owner, worker.child_group = owner, child
         self._save(worker.container_name+'.ownership.json', dict(owner=owner,
@@ -294,6 +301,24 @@ class IsolatedPodmanPlatform:
             await self._create(worker,{**env,**address_environment(address)},
                                'container:'+self.storage.cid, ())
 
+    async def start_provider(self, name, address, environment):
+        """Local CPU backbone provider, charged to the same service parent.
+
+        This is not another physical compute node in the scheduler inventory.
+        Native provider protocol/CPU packing executes in its own actual container.
+        """
+        async with self.lock:
+            if name in self.providers or not re.fullmatch(r'[a-z0-9-]{1,40}',name):
+                raise ValueError('duplicate/invalid provider identity')
+            if self.storage is None or self.storage.cid is None or self.storage.removed:
+                raise RuntimeError('private storage lifecycle required first')
+            self._check_address(address,(8888,))
+            cname=self.campaign+'-'+name
+            worker=OwnedWorker(name,cname,address,None,self.output/cname)
+            self.providers[name]=worker
+            await self._create(worker,{**environment,**address_environment(address)},
+                               'container:'+self.storage.cid,())
+
     async def worker_ip(self, name):
         async with self.lock:
             worker = self.workers[name]
@@ -340,6 +365,7 @@ class IsolatedPodmanPlatform:
         async with self.lock:
             errors = []
             sequence = list(reversed(list(self.workers.values())))
+            sequence += list(reversed(list(self.providers.values())))
             if self.storage:
                 sequence.append(self.storage)
             for worker in sequence:
