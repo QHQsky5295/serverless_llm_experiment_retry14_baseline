@@ -14,10 +14,14 @@ import sys
 
 
 class SourceOverlay(importlib.abc.MetaPathFinder,importlib.abc.Loader):
-    def __init__(self,root,manifest):
+    def __init__(self,root,manifest,*,module_aliases=None):
         self.root,self.manifest=Path(root),manifest
         self.modules={name[:-3].replace('/','.') :name for name in manifest
                       if name.startswith('vllm/') and name.endswith('.py')}
+        for module, relative in (module_aliases or {}).items():
+            if module in self.modules or relative not in manifest or not relative.endswith('.py'):
+                raise ValueError('invalid or duplicate native module alias')
+            self.modules[module]=relative
 
     def find_spec(self,fullname,path=None,target=None):
         if fullname in self.modules:

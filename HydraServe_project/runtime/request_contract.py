@@ -163,6 +163,21 @@ def native_process():
     return dict(_PROCESS)
 
 
+def matches_worker_process(process, owner, entry, boot_id):
+    """Match container PID to its entry receipt, host birth to actual owner.
+
+    Container PID need not equal host PID. This pure receipt check does not
+    replace live ownership/cgroup/namespace validation by the platform.
+    """
+    return (isinstance(process, dict) and isinstance(owner, dict) and isinstance(entry, dict)
+        and type(process.get('pid')) is int and process['pid'] > 0
+        and type(owner.get('pid')) is int and owner['pid'] > 0
+        and type(process.get('start_ticks')) is int and process['start_ticks'] > 0
+        and process['pid'] == entry.get('pid')
+        and process['start_ticks'] == owner.get('start_ticks') == entry.get('start_ticks')
+        and process.get('boot_id') == boot_id and isinstance(boot_id, str) and bool(boot_id))
+
+
 def frozen_lora_modules():
     """Register static identity/path metadata only; never pre-load adapter bytes.
 
