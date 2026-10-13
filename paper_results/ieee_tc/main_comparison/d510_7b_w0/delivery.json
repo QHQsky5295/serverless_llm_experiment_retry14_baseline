@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "comparison_sha256": "d8f1f1ab7acc698d0653cefde4afa135e69a906b014bd4b0dfd3a55a5b856288",
+  "source_path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d510_20261013/full_seven_system_comparison.json",
+  "baseline_summary_path": "/home/qhq/serverless_llm_baselines/paper_results/ieee_tc/hydraserve/d510_result/summary.json",
+  "baseline_summary_sha256": "1d8793eefefc6f8233d5a913b26c980e80f53c386e40828c6f4864fa83cbb76e",
+  "full_archive": {
+    "path": "/home/qhq/serverless_llm_baselines/paper_results/ieee_tc/hydraserve/d510_result/full_w0_evidence.tar.gz",
+    "sha256": "61841675d6099ecd3873ea06d4f6aa70a8316bb5cc93835f7c423aa7d56f5f37",
+    "bytes": 23036330,
+    "tracked_in_git": false,
+    "reason": "Large raw log archive remains local; compact source-bound evidence is backed up."
+  },
+  "qualified_full_request_join": 4000,
+  "no_new_gpu_replay": true,
+  "no_figures": true,
+  "formal_m1_m2_complete": false
+}

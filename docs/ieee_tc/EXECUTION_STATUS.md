@@ -1,6 +1,99 @@
-# IEEE TC status — D510 full4000 HydraServe prepared, not yet launched
+# IEEE TC status — D510 complete; seven-system comparison complete; seal then optimize PrimeLoRA
 
-## Current continuation: D510
+## Current state 2026-10-14: D510 complete, no live GPU experiment
+
+Actual tmuxprimelora-d510 pane3487006 deadexit0. Full4000 offered/arrived/terminal/
+nativecontractresponses,0failures,458224actualtokens,132actualIDs. Frozen full
+input/native/content/remote/clock/physical audit PASS. 132remote transfers,
+131480060wireB; requestpackingfalse. All34nativeworkers pp1/destpp1/batch8;
+34acquire/spawn/nativecontext/release. Physicalunion9662.152610210469GPU-s,
+windows0/9450.354225911666/20.74031947203912/191.05806482676417. Actualnative
+retirement+localservice/aux9/ownedremotesreleasePASS; portsabsent/logSHAmatched.
+Peak51459432448B,high/max/OOM/OOMkill/swap0. Independentnumericalproof stillOPEN,
+rawn_correctnull; knownpoollimitations andD50996equal/4changed audit retained.
+
+HydraServe joint2749/4000=68.725%,TTFTattainment89.775%,TPOTconditional74.675%.
+Mean/P95TTFT1505.568643/8851.575365ms; mean/P95TPOT69.883999/108.214275ms;
+meanE2E8863.097021ms;GPU-s/boundrequest2.4155381525526174. NONFEASIBLE under
+theunchanged95%commonSLO; noteligibleaslowestresourcefeasiblepoint. No newtuning,
+deadlinechange or replay. Fullpipeline/consolidation remainsunproved (allpp1).
+
+Completed301-source seven-system join;4000exactworkmatches/SHA384b63425402ced97961e91081265d3cbe340b6a3b4febde242de28f62cd7399.
+PrimeLoRA D476 .97425/2.694612200556614/2315.363336ms;
+ServerlessLLM D414 .98125/4.022440686/1052.246361ms;
+vLLM D423 .99475/4.028844291/1200.506860ms;
+S-LoRA D435 .94425/3.789269468/17699.067366ms nonfeasible;
+Loquetier D445 .0435/4.249595809/555110.032229ms nonfeasible;
+ElasticLocality D453 .95775/2.473178968/2420.607829ms;
+HydraServe D510 .68725/2.415538153/8851.575365ms nonfeasible.
+FeasibleresourceorderElasticLocality,PrimeLoRA,ServerlessLLM,vLLM. PrimeLoRA
+uses8.9534%moreGPUtime thanElasticLocality, joint+1.65pp,tail4.3479%lower.
+NOTbestresource; nextoptimization mustaddressactualgap, notdropstrongercontrol.
+
+RAWd510_20261013/full_w0_evaluation.json andfull_seven_system_comparison.json.
+BASEdocs/ieee_tc/D510_HYDRASERVE_FULL_W0_RESULT.md. Finalsuccessfulanalysis:
+compare_final.py ->comparison_executed_final.py under existing
+/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python (ijson installed).
+Previous6analysisfailures retained in comparison_attempt*_failure.json andscripts;
+they didNOTrerunGPU/changeanymeasurement. Complete217historicalrefinventory found
+exactly4differences:2laterupdatedtrackedfiles,2gziplogs. ExacthistoricalGitbytes/
+decompressedSHAverified; nohashbypass. CPU10–18actualemptyclosurescomplete.
+
+Full2176-filelocalarchive23036330B SHA61841675d6099ecd3873ea06d4f6aa70a8316bb5cc93835f7c423aa7d56f5f37
+atBASEpaper_results/ieee_tc/hydraserve/d510_result/full_w0_evidence.tar.gz.
+LargearchiveLOCALONLY; neverstage. Fullsummary.json/source/SHAroundtripverified.
+Compact2167-filearchive2610697B SHA5761bcfcad66b80c2254a550333cac1966845cd49fe249fed32c1c8a37d346f7
+andcuratedsummary+resultdoc pushedBASE09baa9379bdc3518f18f408d2cad3763c2754554,
+remote-equal; fresh100CPUtests/source/protected147/userdirt/diff/secretsPASS.
+Exact2.49MiBcuratedarchive alone permitted abovegeneric2MiBpublishingguard,
+withEXACTsize/SHAandallmember/secretschecks; noexperimentthresholdchanged.
+UseRAWbackup_result_verified.py; originalbackup_result.py retainsgeneric2MiBguard.
+MAINpaper_results/ieee_tc/main_comparison/d510_7b_w0/comparison.json +delivery.json
+are byte/source-bound publications. Check actual result_backup_main_receipt.json
+for this status/publication commit and remote equality; no self-referential hash.
+CPU19/20actualemptyclosed; BASEbackup21 andMAINbackup22 closure receipts follow
+their actual exits. Verify these two actual receipts before nextheavyjob.
+Nextmainline: resumePrimeLoRA optimization fromD476 vsElasticLocality gap: historicalstage
+andlifecyclelogs+officialsources+falsifiablehypothesis, nineformulas/commonmetrics
+unchanged. No newHydraServeperformance search; additionaldiagnosis onlyifactual
+unresolvedadaptationdefectisfound. No otherheavyjobcurrentlyrunning.
+All7B/3B/W1/W2/G2/A1–A5/S1–S13/cost/docs/finalfigures scope remainsACTIVE.
+
+## Historical D510 launch/progress notes — not current RUNNING state
+
+ACTUALLY LAUNCHED2026-10-13 23:28 CST; tmuxprimelora-d510 pane3487006 alive.
+Continuation verified live through watchdog sample680: terminal_count504 with
+latest native responses req_00497/req_00507; not full-result validation. Host
+MemAvailable61.314GiB, service44.035GiB, memory.high/max/OOM/OOMkill/swap0;
+watchdog warningfalse/noabort. This is a verified wait on the SAME live tmux/PID,
+not stopped/blocked and not permission to launch a repeat. Read fresh actual
+state next; all result analysis/backups remain deferred until physical release.
+Newer actual live check sample1671: terminal_count1614, tmuxpane3487006 alive,
+MemAvailable62.385GiB/service44.545GiB, memoryevents0/noabort. RAWcompare_full.py
+prepared but NEVERexecuted/tested whilelive. It reuses D454/D476 matched contract
+and comparison primitives, preserves common refs/all rows/unknown numerical
+qualification, and refuses liveGPU or incomplete audit. Review/test/run only
+after full audit+physicalrelease; result guards intentionally reject missing
+evidence. Not a new experiment or a performance result. No remotechanges/builds/
+hashscans/testjobs during this continuation; only source-interface reads and
+postrun comparison-script preparation alongside lightweight live monitoring.
+Prelaunch MAINa2d9b4ed22d1afcd0fb17e660596b4983f5a55a0 pushed/remote-equal.
+BASE1cca200a60e50ad36a9dc64bad860a8710697f74. CPU1–5 actualemptyclosed.
+Remote start explicitly awaited, both authenticated health+protected/source/resource
+PASS read before launch. Actual remote1000Mb/s/full; no remote maintenance whilelive.
+Serviceprimelora-tc-svc-8429a4e739e94a559817063d7a03bb84.scope,
+Invocationefcc68297fa4426bbf35fa5acb69135f,inode24304339.
+Aux9Invocation7707322c68984389911b7566eda4856f. Notice1412566.961854170,
+replayt0=1412626.961854170. Native CPUprovider/private storage/original Scheduler
+started; full4000 publisher plan matches. This is NOT a completed outcome.
+Current action: read lightweight progress/watchdog only; no hashes/tests/compression/
+backups/builds/secondrun while inference live. run_and_close.sh owns normal native
+retirement, localactualclosure and then exact-owned remote stop/collection.
+On terminal inspect actual tmux/launch/localrelease/remoteclosure, do not infer
+completion from a tool timeout. Success audit only if fullcontract and releases
+complete; otherwise preserve failure and use failure-aware audit. Then curate/back
+up result and compare all available baselines before any PrimeLoRA candidate.
+The prepared-not-launched paragraphs below describe the immutable prereg checkpoint.
 
 D509 result backup completed: BASEf3d3f7fb802f30480ea8827060668a3361fd6194,
 MAINd9357fdcd088c6d3cf748c8ff8b9e3b308a2e121, both pushed/remote-equal.
