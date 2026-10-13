@@ -1,6 +1,6 @@
-# IEEE TC execution status — D488 native nonzero GPU arithmetic passed; worker integration next
+# IEEE TC execution status — D491 native model/shared LoRA binding passed; actual service integration next
 
-Updated 2026-10-13 11:25 CST. Current checkpoint, NOT replacement plan.
+Updated 2026-10-13 11:55 CST. Current checkpoint, NOT replacement plan.
 Preceding status byte-identically archived in EXECUTION_HISTORY_THROUGH_D477.md;
 cmp passed, SHA cee5b2b0527a0ff9f2d07d2dc65c86a74dd2ce0d1b3b27f4a434f764e9adb128.
 D461/D448/D433/D402 and older histories remain. Historical NEXT/RUNNING lines
@@ -18,6 +18,74 @@ comparison -> PrimeLoRA optimization. Prior requested metric recheck completed
 D486; no further offline metric loop now. D483 storage maintenance COMPLETE; no new
 storage sweep by default. Continue monitoring actual disk/memory; no uniqueassets,
 failed evidence or unrelateddata deletion. Original storage-first record retained.
+
+## D489–D491 completed native model/load-boundary integration (not performance)
+
+BASE4328cff8a93df659345b070ad564f72bc8156cc0 pushed/independentlyremoteequal.
+MAIN priora6069bab578ddf3ed9f67d3f644bf197219f7a92; currentstatus backupfollows.
+Raw originalresults/ieee_tc/hydraserve_qualification/d489_20261013,
+d490_20261013,d491_20261013. ALL terminal/actualrecursiveempty closed; no livejob.
+Read BASEdocs/ieee_tc/D491_HYDRASERVE_NATIVE_SHARED_LORA_BINDING.md.
+
+NEW lora_worker_binding.py source-pinned ModelRunner overlay inserts D479 owner
+at actual initial/destination load boundaries, within native CudaMemoryProfiler;
+actual CUDA synchronize before return/readiness. ManifestSHA/rank/size/layercount
+immutablechecks; actualnative LoRAmodels/worker_manager/layersSHA verified.
+Exactbyte inverse restores entireoriginalModelRunner; no scheduling/LRU/activation/
+slot/KV changes. Clean officialcheckout and installedenvironment unchanged.
+Realservice must still load this overlay; not deployed wholeHydraServe yet.
+
+D491 PASS actual native DefaultModelLoader/LlamaForCausalLM/check_duplicate,
+two integrated ModelRunnerload functions and LRUCacheWorkerLoRAManager onGPU.
+Native partition pp4[8,16,24,32] rank3old8layers -> pp2[16,32]rank1dest16layers.
+ONE GPU controlled views, NOT four/two physicalnodes or actualpipeline run.
+Only weightiterator supplies existing readonlybackbone shards/officialnames;
+complete ORIGINAL loaderincludingCPUinit/model.to/device/postprocess executed.
+Initial74tensorloads/dest72new;8olddecoderobjects/sharedlm_head/logitsprocessor,
+sameLoRAowner/slotIDs/batchmapping preserved; twoalreadyactive distinctnonzero
+adapters finance/medical inheritedonto newlayers before nativeearlyreturn.
+All32packedQKV/o modules acrossglobal16–31 (64q/k/v/o positions) independent
+CPUfloat32updatesPASS; maxrelativeL2 .0002201656752731651 (~.0220%),
+maxabsolute1.9078142940998077e-6, fixed .005tolerance unchanged, noadapterrows0.
+Nativefull linear forwards also checked. TorchGPUpeakallocated6790957056B,
+reserved6807355392B, NOTtotalGPUoccupancy/lifecycle/performance measurement.
+NOT fullattention/KV/pipelinetraffic/KVmigration/concurrentconsolidation/native
+fastload/e2etoken result. No performancepoint, no newPrimeLoRAcandidate.
+
+D489 failed beforeCUDA: test importedLlama directly,circular loader/llava import.
+D490 usesnativepublicloaderimport first; reachedactualmodels but fixtureomitted
+native model.to(device), RowParallelparam.data remainedCPU, kernelrejected
+"w must be a CUDA tensor". D491fixesTEST by invokingfullnativeDefaultModelLoader,
+onlyreadonlyiterator controlled. NOTbaselineperformancefailure/OOM/tunedretry.
+D490driverdefaultgpu_started=false isnot proofnoCUDA; actualmodellogs showGPU.
+All failedsources/results/exit/cleanup preserved, no oldattemptoverwrite.
+
+Functionalparenthigh10/max12GiB,childmax10GiB,swap0/CPU2,3,26,27;
+actualworkerPID/limits/namespaceack beforeCUDA,900sguard16GiBhost/100GiBdisk.
+NOTformalserviceenvelope/performance. D489scope2Invocation7a8de2320b39442487a7a23469900a96,
+inode23961209,peak423489536B; D490scope1Invocation676a1ac11bd14fa4b4e0b601691e7342,
+inode23962009,peak949055488B; D491scope1Invocation4529130b56b14184853cbcc29f8b5ff6,
+inode23963441,peak2864246784B. Allhigh/max/OOM/OOMkill/swap0, GPUreleased,
+ownedcontainers/pausegone, actualrecursiveempty closed. Free~188.13GiB.
+
+13CPUtests initiallyPASS, backup18PASSincluding5existinglayeridentitytests.
+89explicit source/failure/success/resource records archived/roundtripSHAverified;
+protected147/userdirtySHAs/nativeclean/secrets/diff/explicitstagePASS.
+BASEpaper_results/ieee_tc/hydraserve/d491 archive
+16dda66608091ccf74cb84c542f6b61e7da2feabfe023f7b6483dea2612dffb9;
+summary99bd8f87ce480abcaf801029edc76f39959b21941502e2391d8fddaf58f10be6.
+Curation2/BASEbackup3 actualemptyclosed; allmemoryevents/swap0.
+
+NEXT concreteMAINLINE: actual D480 LifecyclePlatform backedby D481 verified
+container/privateIPC/loopback/UUID components; sourcepinned workerapp with this
+bindingoverlay, readonly backbone/nativefastload provider and top-level
+adapter/fixed-output/native-token contract. Do NOT repeat environment/build/
+elementaryCUDA or sharedbinding qualification. Then100->500-ID->1000->4000
+HydraServeactualresult -> fullavailablebaselinecomparison -> PrimeLoRAoptimization.
+Onephysicalnode4GPUs, nofakephysicalnodes; preserve naturalnontrigger of native
+pipeline/consolidation. Separate controlledfullpipeline/KVcorrectnessstillneeded.
+No unrelatedk3saccess, newmodels/traces/pools, baselineperformancetuningorfigures.
+W1/W2/G2,3B/B6,A1–A5,S1–S13,offlineCE/docs/finalfigures ALL remain.
 
 ## D487 terminal and D488 continuation (not a performance run)
 
