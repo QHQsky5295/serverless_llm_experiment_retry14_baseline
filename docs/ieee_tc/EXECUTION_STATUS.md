@@ -1,4 +1,27 @@
-# IEEE TC status — D509 GPU qualification PASSED; next full4000 HydraServe
+# IEEE TC status — D510 full4000 HydraServe prepared, not yet launched
+
+## Current continuation: D510
+
+D509 result backup completed: BASEf3d3f7fb802f30480ea8827060668a3361fd6194,
+MAINd9357fdcd088c6d3cf748c8ff8b9e3b308a2e121, both pushed/remote-equal.
+CPU14/15 actual recursive-empty closure receipts exist; do not repeat closure.
+D510 RAW originalresults/ieee_tc/hydraserve_qualification/d510_20261013.
+Prepared ONLY, no GPU run yet. Original D507 full4000 HTTP config byte-identical;
+16 overlays exactly equal D509. Native runtime/Model batch8/cancellation ownership,
+original Scheduler/model tuple/cache/idle30/notice60/requestguard1800 unchanged.
+Preregistration SHA3b657909f488d5a4d3e008ebd2a0e004d7f1e0e4609d1daf8644d5c0e53d360a.
+Full view SHAa5331be2e2204483f18206825d9aaa18cbaa259fe0babfc303f989055819430d.
+Numerical qualification remains open; same-backend D509 96equal/4changed audit
+retained, raw n_correctnull. No new tuning, data, short qualification or k3s access.
+Read BASEdocs/ieee_tc/D510_HYDRASERVE_FULL_W0.md.
+Prelaunch BASEbackup1cca200a60e50ad36a9dc64bad860a8710697f74 pushed/remote-equal;
+100 CPU tests, protected147/source/user-dirt/diff/secrets/archive roundtrip PASS.
+85-file prelaunch archive251578B; no runtime policy change or GPU experiment yet.
+Next: small preregistration backup + explicit awaited remote start/health/protected/
+source/resource PASS + actual CPU closure, ONE tmux full4000 run, real local/remote
+release, complete or failure-aware audit. Then full available baseline comparison
+using latest PrimeLoRA D476, then PrimeLoRA optimization. Full remaining scope below.
+Prior D509 NEXT clauses below are historical; do not repeat its preparation/audits.
 
 Updated2026-10-13. Previous status preserved BYTE-FOR-BYTE in
 EXECUTION_HISTORY_THROUGH_D508.md. Older histories remain intact; their RUNNING/
