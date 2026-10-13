@@ -4,6 +4,13 @@ Read `/home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md` in full and
 `/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/EXECUTION_STATUS.md`
 before work, after context compaction, and before every experiment.
 
+Latest user order (2026-10-13): first read the main repository's
+docs/ieee_tc/STORAGE_PRIORITY_20261013.md. Prioritize verified safe storage
+cleanup/lossless closed-evidence compression before builds/new experiments.
+Then follow BASELINE_COMPLETION_ORDER_20261012.md: finish HydraServe faithful
+adaptation/actual result and all available baseline comparison BEFORE another
+PrimeLoRA candidate. Existing k3s belongs to another project; do not modify it.
+
 Latest user goal update (2026-10-11): read the main repository's
 `docs/ieee_tc/BASELINE_EXECUTION_RULES_20261011.md`. Do not optimize baseline
 performance or search configurations. Only necessary compatibility, correctness/
