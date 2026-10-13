@@ -1,4 +1,59 @@
-# IEEE TC status — D507 terminal 3876 responses / 124 failures; resources closed
+# IEEE TC status — D508 necessary adaptations CPU-qualified; next native GPU qualification
+
+LATEST CHECKPOINT2026-10-13: BASE5a8e65fffcf91beb646ca7843789303dc142f511
+PUSHED/remote-equal. D508 is CPU-only progress, NOT a new performance result.
+No GPU experiment/remote service running. Existing unrelated k3s untouched.
+Read BASEdocs/ieee_tc/D508_HYDRASERVE_ADAPTATION_OWNERSHIP_CAPACITY.md.
+
+Necessary changes now implemented:
+- http_contract.consume_native_stream preserves original per-chunk AnyIO
+  off-loop iteration under one shielded owner. Cancellation signals stop after
+  pending next yields, JOINS actual owner then propagates; repeated cancellation
+  cannot close a concurrently running generator. Native counts remain owned
+  until real close. This is NOT instantaneous backend preemption; existing
+  transport/request/init/cleanup guards unchanged. Actual read errors propagate.
+- request_contract/controller_runtime render opt-in cancellation_ownership=True:
+  remove only cancelled unassigned request; if assigned before chat starts,
+  close exact unstarted coroutine/release once; after chat starts its existing
+  exception owner handles release. Demand history/FIFO/native policies unchanged.
+- native_delivery.render_overlays opt-in lora_admission_capacity=True:
+  max_loras = source-pinned native Model default batch(8) * current PP_SIZE
+  on ALL3EngineArgs sites. max_cpu_loras retains native None->max_loras.
+  No catalog-sized500cache, rank/max_num_seqs/LRU/policy changes or parameter sweep.
+  Destination reads nativeupdatedPP_SIZE; existing reusedworker slots may retain
+  larger initial capacity. New run MUST assert actual Model.batch_size==derived8.
+
+100/100 fullCPUtests and36/36 actualnativePython3.10 targetedtests PASS.
+Tests use actual worker-thread blocked next/repeatedcancel/error/counterrelease,
+plus original rendered queued/assigned-before-start/started cancellation paths;
+AST checks isolate lifecycle changes and max_loras-only EngineArgs addition.
+FirstCPUtest stopped on ambiguous source splice (5errors); failedsource/log kept;
+precise allocate_instance anchor fixed then33testsPASS. No GPUtest failure here.
+Pinned official worker/executor sources re-fetched byte-identical: LoRA buffers
+allocated duringload_model BEFORE actual free-memory/nativeKV calculation.
+Still need actual mixed-adapter GPU/memory qualification; codeorder is not proof.
+
+D508RAW originalresults/ieee_tc/hydraserve_qualification/d508_20261013.
+Qualifiedsource/overlaySHA snapshots saved;65-file roundtripchecked archive
+BASEpaper_results/ieee_tc/hydraserve/d508/adaptation_evidence.tar.gz175118B.
+summary.json includes priorD507diagnosis andqualification. Protected147/userdirty/
+vendorclean/fresh100tests/diff/secrets/explicitstage/push PASS. CPU1–5actually
+emptyclosed; CPU4peak89985024B, allhigh/max/OOM/OOMkill/swap0. BackupCPU6closure
+andMAINstatusbackup follow; no liveGPUjob. D507 archives/failures unchanged.
+
+NEXT MAIN-LINE: finish checkpoint closure/MAINbackup, then NEW native mixed-LoRA
+concurrency/memory qualification using existing qualified commonHTTP/fullnative
+scheduler and original inputs (e.g. affected100prefix, NOT basic import/setup
+ladder). Enable BOTH opt-ins above; verify actual batch and native distinctadapter
+overlap, token/content/clock binding and full physicalrelease. Exact-owned five
+staleD507container records remain in privatePodmanstore; logs/State already saved
+and backed up BEFORE any exact-ID cleanup. No broadprune/foreignk3s access.
+Then ONE new affected full4000HydraServe ->allavailablebaselinecomparison using
+latestPrimeLoRAD476 ->PrimeLoRAoptimization. No timeout/SLO relaxation, oldresult
+overwrite, repeatwinnerfilter or immediate PrimeLoRA candidate. Full remaining
+7B/3B/W1/W2/G2/A1–A5/S1–S13/cost/docs/finalfigures below remains ACTIVE.
+
+## D507 preceding terminal checkpoint (sealed, not current work)
 
 LATEST CHECKPOINT: D507 failure-aware outcome SEALED and BASE pushed/remote-equal
 988f7662b6282c925dee08a7c72ee2ce20a532b2. Fresh90CPUtests/protected147/userdirt/
