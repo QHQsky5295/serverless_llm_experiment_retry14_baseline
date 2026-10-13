@@ -1,4 +1,4 @@
-# IEEE TC status — D504 500-ID functional qualification complete; 1000 next
+# IEEE TC status — D505 1000-request compatibility sealed; full4000 next
 
 Updated2026-10-13. Current checkpoint, NOT replacement plan. Entire preceding
 status byte-identically archived EXECUTION_HISTORY_THROUGH_D491.md; cmp passed,
@@ -21,6 +21,81 @@ performance optimization; baseline compatibility/correctness/measurement/safety
 only, no performance tuning/configsearch. Existing k3s belongs to another project;
 do not access/change cluster/credentials/permissions/resources. Isolated rootless
 Podman adaptation authorized; no barevLLM substitution, fakeReady or fake nodes.
+
+## D505 actual qualification COMPLETE (2026-10-13; not full W0 performance)
+
+BASEcd3baf4251e840d983177d4c6e8f7e8f103f78a4 pushed/remote-equal. No liveGPUjob.
+ReadBASEdocs/ieee_tc/D505_HYDRASERVE_1000_COMPATIBILITY.md. Original1000-prefix
+completed1000/1000/1000/1000 offered/arrived/terminal/native-contract responses,
+0failed;60requested logicaladapters,60request-driven realremote transfers,
+74,953,014wireB,allreceipt/content/transferIDs matched, no requestpack/temp.
+Input/adapter/nativeindex/nativecount/clock/process/timing auditPASS. Twoexisting
+nonzero outputs matchD502, NOT independentnumericalproof; raw n_correctnull.
+RecallD393/V1: no new cross-backend exact-token-equality substitute for binding/
+accounting qualification; stillno HTTP200/name/count-only correctnesspromotion.
+
+Mean/P95TTFT302606.357839/523997.128948ms; TPOT62.883717/79.802997ms;
+E2E310140.194658/527501.026815ms. Mean submitlag4.030806ms,instancewait
+260795.201367ms,assignment-to-first41807.125667ms,decode7491.086070ms;
+artifactresolve225.439184ms isNESTED,notadditive. PrefixNOTfullW0ranking.
+Physicalactualcontainer-reservationunion6554.059487593GPU-s,6.554059488/offered;
+windows pre0/arrival4106.776171554/drain2270.325859637/cleanup176.957456402.
+Allnativecontextsqualified/leasesclosed. D503pp1boundarycaveatunchanged.
+Same originalScheduler/modeltuple/batch8/USE_CACHE0/SLOW_EXPR0; fourpp1instances
+onONEphysicalhost,original30sidleretirement, no policytuning orforcedpipeline.
+
+tmuxprimelora-d505 actualdead exit0. ServiceInvocation9af869eb405a4d339f67d6cc4497562e,
+inode24109586 actuallygone; launchaux9Invocationcd65124d387f4e138a2a61461b1f0852,
+inode24109386 recursivelyemptyclosed. Peak49,888,940,032B; high/max/OOM/swap0.
+AllGPU/provider/storage/workers/pause released; exact-ownedremote3B/7B/monitor
+stopped AFTERlocalrelease,portsabsent,logSHAverified. Prelaunchhealthpassed.
+No remoteadmin/scans/compressionduringinference. CPU1–4/6emptyclosed; curation6
+peak59,330,560B/events0/swap0. CPU5unused;backup7/8closureseparate. Free
+185,855,791,104B(~173GiB); fresh150/100GiB+growth gates requirednextlaunch.
+
+518explicitfiles roundtripSHA;protected147/userdirty/vendorclean/secrets/diff/
+fresh88CPUtests/pushPASS. BASEpaper_results/ieee_tc/hydraserve/d505/
+compatibility_evidence.tar.gz7,780,211B SHA
+d7e1b5092d8caa558888490520c87f5264ab8f45e72d4e3a259b7832085839fd;
+summarySHAef538402ebe7cca3ab26767fe40476b4f07068f79386f19dc927e60adadce08f.
+Raworiginalresults/ieee_tc/hydraserve_qualification/d505_20261013 preserved.
+Neverrerunprepare/launch/audit/curation oroverwrite. D505audit/checkpoint alreadyDONE.
+
+NEXT onefull4000HydraServe usingunchangedqualifiednativeconfig/no performancesearch,
+explicitlyrecordnativeruntime9000/200ms versuscommonD394 EVALUATIONthresholds;
+do not use9000/200asevaluationorcallthisdefaultpointoptimal. Keepdevelopment/
+qualificationidentity,sourceW0view/fixednativegeneration/realremote/physicalunion.
+Thenfullavailablebaselinecomparison ->PrimeLoRAoptimization. Don'trepeatelementary
+qualification. Numerical/fullpipeline/KVmigration/consolidation remainlimited/
+OPEN,notfabricatedorforced. Full7B/3B/W1/W2/G2/A1–A5/S1–S13/docs scopeACTIVE.
+
+### D505 preparation and execution history (preserved, no longer running)
+
+Raworiginalresults/ieee_tc/hydraserve_qualification/d505_20261013. Mechanically
+reuseD503/D504nativepath, unchanged modeltuple/backend/scheduler/idle/cachepolicy.
+Original trace_prefix_v1 first1000 requests, NOT500-IDcoverageview. No newweights/
+pool/trace. Existing500IDmetadata/CPU88tests reused; source/currentSHA matched.
+FirstCPUprepare failed BEFOREgeneratedinputs/services/GPU becauseharness wrongly
+expectedrequest_viewabsent; D503explicitlyhadtrace_prefix_v1. Exactvalueassertion
+corrected inprepare2.py, originalfailure/source preserved; secondpreparePASS.
+CPU1/2actualemptyclosed. RemoteD78/D80readonlyservicesstartPASS,1000Mb/s/full.
+StandaloneauthenticatedhealthANDprelaunchresource/protected147/sourcechecks
+explicitlycompleted/readPASS beforelaunch. CPU3actualemptyclosed. Launchalso
+requiresbothprelaunchreceipts; no repeatingD504asynchronousprerequisiteerror.
+
+tmuxprimelora-d505 panePID2546714 ran run_and_close.sh once, originalcommon
+externalHTTP/openloop/60snotice/coldper-runcache, growth20GiB. Outcome/closure/
+remoteownedstop/independentaudit nowcompletedabove. No build/compression/scans/
+remotechangesduringinference. DoNOTrerunprepare/launch or overwriteoldresults.
+NumericalLoRA/fullpipeline/KVmigration/consolidation stillOPEN; no fabricated
+n_correct. Then4000 actualHydraServe ->allavailablebaselinecomparison ->
+PrimeLoRAoptimization. Fullmatrixbelowunchanged. D504BASEd8069f5ffba814c9c4252cc5c238d43c0988669e
+andMAIN286ec631fef869766dc8fdd20241d248f6a60ae5 pushed/remote-equal;
+allD504CPU1–8actualemptyclosed. No backup/build whileD505GPUactive.
+Historical watchdog sample227:48 HTTPresponses observed, actual4GPUs allocated;
+service44.14GiB,hostavailable61.17GiB,diskfree173.47GiB,high/max/OOM/swap0.
+This wasprogressonly, notthefinalresult. Postreleaseaudit.py (D503audit adapted
+onlycount/configpath) subsequentlyranAFTERclosure/remote-stop success andpassed.
 
 ## D504 actual qualification COMPLETE (2026-10-13; not W0 performance)
 
