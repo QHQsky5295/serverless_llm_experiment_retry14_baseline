@@ -1,0 +1,217 @@
+{
+  "kind": "hydraserve_partial_native_compilation_checkpoint",
+  "checkpoint_verified": true,
+  "initial_attempt": {
+    "passed": false,
+    "performance_result": false,
+    "model_started": false,
+    "gpu_executed": false,
+    "steps": [
+      {
+        "label": "configure_vllm",
+        "returncode": 0
+      },
+      {
+        "label": "configure_fastload",
+        "returncode": 0
+      },
+      {
+        "label": "build_fastload",
+        "returncode": 0
+      },
+      {
+        "label": "build_vllm",
+        "returncode": 1
+      }
+    ],
+    "error_type": "AssertionError",
+    "error": "build_vllm",
+    "elapsed_s": 89.20495950197801,
+    "free_bytes": 203508768768,
+    "scope_after": {
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4850000000000000000000000000001.scope",
+      "memory.current": 232235008,
+      "memory.peak": 2073468928,
+      "memory.high": 3221225472,
+      "memory.max": 4294967296,
+      "memory.swap.current": 0,
+      "memory.swap.max": 0,
+      "memory.pressure": "some avg10=0.00 avg60=0.00 avg300=0.00 total=0\nfull avg10=0.00 avg60=0.00 avg300=0.00 total=0",
+      "cpu.max": null,
+      "cpu.stat": "usage_usec 76095159\nuser_usec 67554275\nsystem_usec 8540884\ncore_sched.force_idle_usec 0",
+      "cpuset.cpus.effective": null,
+      "cgroup.controllers": "memory pids",
+      "memory.events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0,
+        "oom_group_kill": 0
+      }
+    }
+  },
+  "initial_closure": {
+    "passed": true,
+    "identity": {
+      "unit": "primelora-tc-aux-d4850000000000000000000000000001.scope",
+      "invocation_id": "3e48655768114b99a14c0120db1c406e",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4850000000000000000000000000001.scope",
+      "inode": 23913949
+    },
+    "resources": {
+      "memory.peak": "2073468928",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0"
+    },
+    "actual_recursive_empty": true
+  },
+  "fastload": {
+    "path": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d485_20261013/build_fastload/lib/libst_pybinding.so",
+    "sha256": "f11b31a82f654d7c8950d85e05461d31b5cc45469720deb1e784d47022571e44",
+    "bytes": 12279432
+  },
+  "source_manifest": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d485_20261013/build_native.py": {
+      "sha256": "11072ee7231fce0534a9857f9405c3698651d346bdf465646c2ff5daf4de4d90",
+      "bytes": 7256
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d485_20261013/close.py": {
+      "sha256": "0d020ba274166c1272282e9ab1c7cfac06ce50aa798a8e57de6c218d91e56c85",
+      "bytes": 371
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d485_20261013/curate.py": {
+      "sha256": "f6242a542a677225457a4569127e0babe09a8b7b332b4773ef2b5648dbcfa463",
+      "bytes": 3679
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d485_20261013/backup.py": {
+      "sha256": "645db029d1fca38c6bee636f70f902a6ff3a93b82692e2b61992ee16ee23f143",
+      "bytes": 967
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d485_20261013/build_identity.json": {
+      "sha256": "4dbcf5073a61a02bc2678c885371c26b8efd9b09214acea2650db15b86968d32",
+      "bytes": 286
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d485_20261013/build_preflight.json": {
+      "sha256": "9aa5b403013ef5b2e45cd780fe479bf26809eb57046b9d0d62c863edf691e6c3",
+      "bytes": 6730
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d485_20261013/build_sources.json": {
+      "sha256": "c7ed793a62e73ca60bbf5e73fd5be3e2c788748527fa1c76efde3b6ab68724ff",
+      "bytes": 1408
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d485_20261013/build_commands.json": {
+      "sha256": "01ba22dae3c2873d01938c5b8b47cff01126926229eab839810b3e9ae6fb5ad1",
+      "bytes": 13571
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d485_20261013/build_result.json": {
+      "sha256": "8ba03e859c059efc06658c16e3c97c374fa88bf4b1a21d3f12c766bcb1ffc53d",
+      "bytes": 1330
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d485_20261013/build_closure.json": {
+      "sha256": "0f4199bd2fa687f5caa3e33ae9c5f77658500d7dd6c8f204eccaeccb1ab6c4b0",
+      "bytes": 534
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d485_20261013/configure_vllm.log": {
+      "sha256": "8f82136f0985ca335cf93a2608af225767a916a2554a7a172743ec4e51d76c4b",
+      "bytes": 4104
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d485_20261013/configure_fastload.log": {
+      "sha256": "f5a67056db95c48b087bf9bf0d4cf943a24378b70b397d4f314ca8484f983652",
+      "bytes": 4011
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d485_20261013/build_fastload.log": {
+      "sha256": "5cd3928c0cc582da6d513668b1226cd1e4c51968d6726d0310632235b54e5e6e",
+      "bytes": 1666
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d485_20261013/build_vllm.log": {
+      "sha256": "00ad5f7b00de1039ac74267f17a7d321d5c27a543711b3d90f3ce34e2ac91179",
+      "bytes": 2264
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d485_20261013/header_retry/build_with_headers.py": {
+      "sha256": "d7a3c493db9b9defbdd2df5e684ea085e4a2353c3738b3cda20d60abe068c1d8",
+      "bytes": 1812
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d485_20261013/header_retry/close.py": {
+      "sha256": "daafc0533e9d70273b7ede29376be60f56e84eee3f27677626a207b5e518a3cd",
+      "bytes": 365
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d485_20261013/header_retry/build_identity.json": {
+      "sha256": "fa2375d474b35f4a14292f43ba028b7958663625ec4fb8fc37f5776f3eb32c8a",
+      "bytes": 286
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d485_20261013/header_retry/build_preflight.json": {
+      "sha256": "974ff1bb9531bfe43351685889d2c6d00b1236fd09398c57c4aa1a2ac9557f15",
+      "bytes": 6743
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d485_20261013/header_retry/build_sources.json": {
+      "sha256": "c7ed793a62e73ca60bbf5e73fd5be3e2c788748527fa1c76efde3b6ab68724ff",
+      "bytes": 1408
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d485_20261013/header_retry/build_commands.json": {
+      "sha256": "8983acd408adb204431d6dc15d18c9841a8d4ccdcf89b6bef79b73f9ee0cb671",
+      "bytes": 10035
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d485_20261013/header_retry/configure_vllm.log": {
+      "sha256": "e41b17ebace87aec99a8b1a25568002b285c97c44a9c851dd7198b6bea869e1f",
+      "bytes": 4116
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d485_20261013/header_retry/configure_vllm_worker.json": {
+      "sha256": "1462974be56b5939b9d801cb465621893b9f4b53449090ec95c59bc2dee417d2",
+      "bytes": 254
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d485_20261013/header_retry/build_vllm_worker.json": {
+      "sha256": "b3eb07afbb17d2039a25873ca130114350e6f762ba36f56194345124b55b97c5",
+      "bytes": 254
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d485_20261013/header_retry/reused_fastload.json": {
+      "sha256": "9549ef66208553fa3ba7ba3ca099f52a60a5b7b4eb4f2b80e69fbb0547408717",
+      "bytes": 245
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d485_20261013/configure_vllm_worker.json": {
+      "sha256": "54ccbc616023a20bb2f165737bef4751d5c3bfe74e0a84022f7ac14bc1dc62ec",
+      "bytes": 254
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d485_20261013/configure_fastload_worker.json": {
+      "sha256": "76a391f828e950f10ad24286efd35b089505e1c709dd43856d825646f3029004",
+      "bytes": 254
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d485_20261013/build_fastload_worker.json": {
+      "sha256": "c81188569214baff2bc3a67765851f4d12a53831d79f380e8edbc564c13503ae",
+      "bytes": 254
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d485_20261013/build_vllm_worker.json": {
+      "sha256": "599b16dbcddff3671641851c55a64119a740557dac54a79b4b00e89b5482e661",
+      "bytes": 254
+    },
+    "/home/qhq/serverless_llm_baselines/docs/ieee_tc/D485_HYDRASERVE_NATIVE_BUILD.md": {
+      "sha256": "e21773292e68933a271eba28d339a076c803eccc5bb03d3b013d21e00910d70b",
+      "bytes": 3151
+    }
+  },
+  "archive_sha256": "bbcd13a1819d351d1dce17a38b43617fae19ec239e69b111d87724014fd40666",
+  "protected_verification": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5"
+  },
+  "native_backend_qualified": false,
+  "numerical_qualified": false,
+  "performance_result": false,
+  "upstream_commit": "8ae605de354ccfa2e9095514cdb4a9e9c56aa56b",
+  "tests_count": 0,
+  "syntax_checks": true,
+  "live_work": {
+    "kind": "same_native_compile_with_split_math_headers",
+    "scope": {
+      "unit": "primelora-tc-aux-d4850000000000000000000000000002.scope",
+      "invocation_id": "1f0c2fb7a10b47e4af47c18215c20561",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d4850000000000000000000000000002.scope",
+      "inode": 23915887
+    },
+    "outcome_file": "/home/qhq/serverless_llm_experiment/results/ieee_tc/hydraserve_qualification/d485_20261013/header_retry/build_result.json"
+  }
+}
