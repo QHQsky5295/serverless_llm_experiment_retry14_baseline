@@ -43,7 +43,7 @@ def replace_one(source, old, new):
     return source.replace(old,new,1)
 
 
-def render_overlays(native_root, *, request_contract=False):
+def render_overlays(native_root, *, request_contract=False, shm_control=False):
     root=Path(native_root)
     overlays=loopback_transport.render_overlays(root)
     source=overlays[PROVIDER].decode()
@@ -101,6 +101,9 @@ def render_overlays(native_root, *, request_contract=False):
         from . import request_contract as contract
         overlays.update(contract.render_overlays(root))
         overlays[APP]=contract.enable_app_registration(overlays[APP].decode()).encode()
+    if shm_control:
+        from .shm_control import render_app
+        overlays[APP]=render_app(overlays[APP].decode(),root).encode()
     for name,raw in overlays.items():compile(raw,name,'exec')
     return overlays
 
