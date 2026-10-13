@@ -493,6 +493,12 @@ def validate_http_observation(prepared, response, event, completed, clock_id, *,
     observed = response.get('metrics', {}).get('ieee_tc', {})
     control = observed.get('control_observation', {})
     backend = prepared.get('native_backend', 'vllm')
+    if backend == 'hydraserve':
+        if str(ROOT) not in sys.path:
+            sys.path.append(str(ROOT))
+        from HydraServe_project.runtime.http_contract import validate_observation
+        return validate_observation(prepared, response, event, completed, clock_id,
+                                    ingress_required=ingress_required)
     if backend not in ('vllm', 'slora', 'loquetier'):
         raise ValueError('unknown native HTTP observation consumer')
     slora = backend == 'slora'
@@ -811,7 +817,8 @@ def http_replay(args):
     from faaslora.datasets.workload_generator import prepare_frozen_http_request
     from transformers import AutoTokenizer
     if (cfg.get('schema') not in ('ieee_tc_serverless_http_replay_v1', 'ieee_tc_vllm_http_replay_v1',
-                                'ieee_tc_slora_http_replay_v1', 'ieee_tc_loquetier_http_replay_v1')
+                                'ieee_tc_slora_http_replay_v1', 'ieee_tc_loquetier_http_replay_v1',
+                                'ieee_tc_hydraserve_http_replay_v1')
             or cfg.get('generation_contract') != 'fixed_length_greedy_v1'
             or cfg.get('renderer') != 'role_lines_v1'
             or cfg.get('ingress_mode', 'native_direct_v1') not in
@@ -824,6 +831,10 @@ def http_replay(args):
         raise ValueError('existing trace changed')
     tokenizer = AutoTokenizer.from_pretrained(cfg['backbone'], local_files_only=True)
     prepared = {e.request_id: prepare_frozen_http_request(e, tokenizer, cfg['model']) for e in plan.entries}
+    if cfg['schema'] == 'ieee_tc_hydraserve_http_replay_v1':
+        for row in prepared.values():
+            row['native_backend'] = 'hydraserve'
+            row['body']['canonical_prompt'] = row['prompt']
     if cfg['schema'] in ('ieee_tc_slora_http_replay_v1', 'ieee_tc_loquetier_http_replay_v1'):
         for row in prepared.values():
             row['native_backend'] = ('slora' if cfg['schema'] == 'ieee_tc_slora_http_replay_v1'
@@ -883,7 +894,11 @@ def validate_http_lifecycle_contract(cfg):
     The vLLM mode reuses only input/timing/HTTP measurement. Its ordinary
     resident workers have their own physical owners, not ServerlessLLM's store.
     """
-    if cfg.get('schema') == 'ieee_tc_vllm_http_replay_v1':
+    if cfg.get('schema') == 'ieee_tc_hydraserve_http_replay_v1':
+        if (cfg.get('physical_lifecycle') != 'hydraserve_container_union_v1'
+                or cfg.get('ingress_mode') != 'service_pre_ready_v1'):
+            raise ValueError('HydraServe requires native container-union and pre-ready service ingress')
+    elif cfg.get('schema') == 'ieee_tc_vllm_http_replay_v1':
         if (cfg.get('physical_lifecycle') != 'vllm_resident_pool_v1'
                 or cfg.get('ingress_mode') != 'service_pre_ready_v1'):
             raise ValueError('vLLM requires its resident lifecycle and pre-ready service ingress')

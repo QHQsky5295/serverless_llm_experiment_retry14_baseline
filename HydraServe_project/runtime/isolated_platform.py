@@ -63,7 +63,8 @@ class IsolatedPodmanPlatform:
                  node: str, gpu_uuids: Sequence[str], gpu_gb: float,
                  network_gbps: float, host_gb: float, storage_address: str,
                  recipe: ContainerRecipe, gate_script: Path,
-                 address_prefix: str = '127.77.49.', first_address: int = 20):
+                 address_prefix: str = '127.77.49.', first_address: int = 20,
+                 lifecycle_observer=None):
         if not re.fullmatch(r'[a-z0-9][a-z0-9-]{0,47}', campaign):
             raise ValueError('invalid campaign identity')
         if not node or len(set(gpu_uuids)) != len(gpu_uuids):
@@ -100,6 +101,7 @@ class IsolatedPodmanPlatform:
         self.storage: Optional[OwnedWorker] = None
         self.serial = 0
         self.lock = asyncio.Lock()
+        self.lifecycle_observer = lifecycle_observer
         self._check_parent()
 
     def _check_parent(self):
@@ -298,8 +300,12 @@ class IsolatedPodmanPlatform:
             self._save(cname+'.native-request.json', dict(name=name,image=image,
                 env=env,node=node,gpu_id=gpu_id,gpu=gpu,nas_path=nas_path,
                 native_gpu_request_is_not_a_physical_partition=True))
+            if self.lifecycle_observer is not None:
+                self.lifecycle_observer.before_create(worker)
             await self._create(worker,{**env,**address_environment(address)},
                                'container:'+self.storage.cid, ())
+            if self.lifecycle_observer is not None:
+                self.lifecycle_observer.after_create(worker)
 
     async def start_provider(self, name, address, environment):
         """Local CPU backbone provider, charged to the same service parent.
@@ -341,6 +347,8 @@ class IsolatedPodmanPlatform:
         return True
 
     async def _delete(self, worker):
+        if self.lifecycle_observer is not None and worker.uuid and not worker.removed:
+            self.lifecycle_observer.before_delete(worker)
         state = await self._inspect(worker)
         if state is not None:
             await self._call(['logs',worker.cid or worker.container_name],allow_missing=True)
@@ -349,6 +357,8 @@ class IsolatedPodmanPlatform:
             await self._call(['rm',worker.cid or worker.container_name])
         if not self._actual_gone(worker):
             raise RuntimeError('container acknowledged removal but owned processes remain')
+        if self.lifecycle_observer is not None and worker.uuid and not worker.removed:
+            self.lifecycle_observer.after_delete(worker)
         worker.removed = True
 
     async def delete_worker(self, name):

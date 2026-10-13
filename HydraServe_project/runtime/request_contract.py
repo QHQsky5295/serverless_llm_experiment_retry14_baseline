@@ -12,6 +12,7 @@ import math
 import os
 from pathlib import Path
 import re
+import time
 from types import SimpleNamespace
 
 from . import platform_port
@@ -75,6 +76,17 @@ class BoundRequest:
     native_process: dict = None
     artifact_preparer: object = None
     artifact_evidence: dict = None
+    control: dict = field(default_factory=dict)
+
+
+def mark_bound(prompt, event, **fields):
+    """Observe an actual native boundary once, without making a decision."""
+    if not isinstance(prompt, BoundRequest):
+        return
+    if event in prompt.control or set(fields) & prompt.control.keys():
+        raise ValueError('duplicate HydraServe control observation')
+    prompt.control.update(fields)
+    prompt.control[event] = time.perf_counter()
 
 
 async def prepare_bound_artifact(prompt):
@@ -264,7 +276,7 @@ def annotate_native_event(response_json, request, res, output, delta_token_ids):
     return json.dumps(payload, separators=(',', ':'))
 
 
-def render_overlays(native_root):
+def render_overlays(native_root, *, control_observations=False):
     """Compose D480 lifecycle port; exact source identities before each splice."""
     root = Path(native_root)
     originals = {}
@@ -339,6 +351,31 @@ def render_overlays(native_root):
         +'            if cold_counted:\n                self.num_coldstart_reqs -= 1\n'
         +'            self.last_chat_time = time.time()\n            raise\n'+source[end:])
     result[name] = source.encode()
+    if control_observations:
+        # Opt-in instrumentation only: older qualification source remains exact.
+        source = replace_one(source, 'KVCacheRequiredSize = 5\n',
+            'from HydraServe_project.runtime.request_contract import mark_bound\n\n'
+            'KVCacheRequiredSize = 5\n')
+        source = replace_one(source,
+            '    def add_request(self, request: Request):\n',
+            '    def add_request(self, request: Request):\n'
+            '        mark_bound(request.prompt, "router_enqueued_s")\n')
+        source = replace_one(source,
+            '    def allocate_instance(self, instance: Instance):\n',
+            '    def allocate_instance(self, instance: Instance):\n'
+            '        mark_bound(self.prompt, "instance_assigned_s", instance_id=str(instance.id))\n')
+        source = replace_one(source,
+            '            is_coldstart_req = True if self.pp_size > 1 else False\n',
+            '            mark_bound(prompt, "backend_ready_s")\n'
+            '            is_coldstart_req = True if self.pp_size > 1 else False\n')
+        result[name] = source.encode()
+        source = result[ENGINE].decode()
+        source = replace_one(source,
+            '            reply = self.client.completions.create(**prompt.contract.completion_arguments())\n',
+            '            from HydraServe_project.runtime.request_contract import mark_bound\n'
+            '            mark_bound(prompt, "native_http_submitted_s")\n'
+            '            reply = self.client.completions.create(**prompt.contract.completion_arguments())\n')
+        result[ENGINE] = source.encode()
     for name, source in result.items():
         compile(source, name, 'exec')
     return result
