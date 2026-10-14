@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "archive_sha256": "90f2445ef3a7b3b9341f4002909fe0bb6a97a342d50d0da88b6ee063cee5ddbe",
+  "members": {
+    "verify_hydra_followup.py": "31860471725f3f569d460b0e032978e111a2c055cd4a4454f12a3ca492d82b67",
+    "close_hydra_followup.py": "1cc68d6b0eb6b62f6f4cfcffcc56200e996bda3e1abdea9c80be195d42a9a3ef",
+    "hydra_followup_tests.log": "6dd98b8531f10815f07d8239aac2cc80907d43232aef66763d26d8706cb92f7b",
+    "hydra_followup_identity.json": "3395ad11cc30cbaa946a32bab9379dddc4d131319554ed5ec5cc872dca8d3b13"
+  },
+  "report_sha256": "9eea2c194ffe437127207519bcbb0904b93bdb9f3e753d5bbf06d4e6cedd4726"
+}

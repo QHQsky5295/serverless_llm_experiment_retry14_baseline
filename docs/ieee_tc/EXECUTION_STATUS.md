@@ -1,6 +1,27 @@
 # IEEE TC status — D513 publication scope and threshold rationale complete
 
+## Latest user follow-up 2026-10-14: HydraServe 5/2 alignment
+
+Read D513_HYDRASERVE_ALIGNMENT_FOLLOWUP.md. User asks whether warmTTFTx5 /
+warmTPOTx2 can be main evaluation. YES as common latency-threshold method,
+ALREADY frozen in V1 and D394; not a replacement for attainment q or budget rho.
+Keep G1/G2, marginal+joint attainment, raw tails and physicalGPU-s together;
+no new combined score or winner-dependent threshold. HydraServe application
+exceptions and GPUmemory-time differ; don't claim identical evaluation.
+20260928 alignment doc's calibration-pending text is historical, not current.
+Newfollowup small-file arithmetic/source verification and backup pending; actual
+receipt determines completion. No serving edits/newGPUrun/remoteoperations/figures.
+D514 remains next evidence-driven systemoptimization, not this metric discussion.
+PreviousD513 complete, do not rerun its analysis/backup. Whole remaining scope below.
+
 ## Current authoritative state 2026-10-14: D513 offline update complete
+
+Checkpoint7502bcfaecc298ad5d867d840d2e86c499e15e9d PUSHED/remote-equal.
+101analysis tests+all96preflight tests PASS with correct interpreter partition;
+no skippedtests. RAW/backup_retry2_receipt.json verified; backup_retry2 actual
+recursiveempty closure complete and capturedpath gone. Prior2failed test attempts
+retained in the evidence archive, neither staged nor changed a serving experiment.
+Do not rerunD513analysis/backup. This paragraph is the local post-backup handoff.
 
 Latest user explicitly excludes unpublished systems from baseline tables and asks
 for scientific support for95%/75%. Read BASELINE_SCOPE_20261014.md and
