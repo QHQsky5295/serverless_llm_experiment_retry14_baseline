@@ -1,0 +1,89 @@
+{
+  "kind": "cpu_metadata_lowering_qualification_not_serving_v1",
+  "qualification_sha256": "3f59cac7b10874ebca549e957b5bccce62c27c3423600c2b1f9fbb73b24ffa75",
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "preserved": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/configs/generated/lora_manifest_1000.json": "3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df",
+    "/home/qhq/serverless_llm_baselines/scripts/replay_openai_trace.py": "04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22",
+    "/home/qhq/serverless_llm_baselines/scripts/run_serverlessllm_relayserve_continuation.sh": "337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499"
+  },
+  "cpu_closure": {
+    "passed": true,
+    "identity": {
+      "unit": "primelora-tc-aux-d5200000000000000000000000000001.scope",
+      "invocation_id": "ad7ea43194694613971dd7658b274999",
+      "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5200000000000000000000000000001.scope",
+      "inode": 24757514
+    },
+    "actual_recursive_procs_empty": true,
+    "resources": {
+      "memory.peak": "3112230912",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.swap.current": "0"
+    },
+    "source_sha256": "2228f502fbc76dc5b6cc7a96cdf66452e56d95b6b26c48bad416aac9dccf54af"
+  },
+  "archive_members": {
+    "00_qualify.py": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d520_20261014/qualify.py",
+      "sha256": "121ccd244bf351b8edc988d8f789346f7eca2ead60877adeb96ac46b97925af8"
+    },
+    "01_close.py": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d520_20261014/close.py",
+      "sha256": "2228f502fbc76dc5b6cc7a96cdf66452e56d95b6b26c48bad416aac9dccf54af"
+    },
+    "02_backup.py": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d520_20261014/backup.py",
+      "sha256": "4862b1b9efef998f31b0df8d7c8265edd7fd271e396994335c6e7441a668e0ed"
+    },
+    "03_cpu_identity.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d520_20261014/cpu_identity.json",
+      "sha256": "44dbc5e8a58d26299dd26d083a004e2597fb8216cf6b57d35562f441a5b18a93"
+    },
+    "04_cpu_tests.log": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d520_20261014/cpu_tests.log",
+      "sha256": "52b3a413bbeeef0b9b7f3654f9333f9435a723125493a2df67d7a6d50b411b85"
+    },
+    "05_source_identity.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d520_20261014/source_identity.json",
+      "sha256": "cf1b2c94e6546004fb8025b7b3100eba5fb30582b5d36d4611b6e82d2dadea9a"
+    },
+    "06_cpu_result.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d520_20261014/cpu_result.json",
+      "sha256": "3f59cac7b10874ebca549e957b5bccce62c27c3423600c2b1f9fbb73b24ffa75"
+    },
+    "07_cpu_closure.json": {
+      "source": "/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d520_20261014/cpu_closure.json",
+      "sha256": "a2834c1a8def72ffa96cc4e7265a8ec0d2d136e4a6404bb1c1891527a8857097"
+    },
+    "08_lora_kernel_metadata.py": {
+      "source": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/ops/triton_ops/lora_kernel_metadata.py",
+      "sha256": "7669eeeb491e89df7ef4ff050a79d3934ce7a63b146fe93239f081d176c68881"
+    },
+    "09_punica_gpu.py": {
+      "source": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/punica_wrapper/punica_gpu.py",
+      "sha256": "7ddedad89b6721751012af6f72bd85d0f8e2f6e9b288fc1909b08a732c360919"
+    },
+    "10_utils.py": {
+      "source": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/punica_wrapper/utils.py",
+      "sha256": "1d926bd9cc9118719f64a9706d1c0f433a12f3605cfb10f125e1217231109158"
+    },
+    "11_model_manager.py": {
+      "source": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/model_manager.py",
+      "sha256": "6695bb7d6373d8f29bb13d6ae31e2ef2a98f8c23a6f37f9147d67cafca5f3302"
+    },
+    "12_async_utils.py": {
+      "source": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu/async_utils.py",
+      "sha256": "77e17a4570ead2be30ae9b00888cf077a3b873018c12ca0549b853bfda02c1ba"
+    }
+  },
+  "archive_sha256": "9431235dc6670a295f1ec452b6146a5d26fe9ca32a286fb571aab80b36313b69",
+  "previous_status_archive_sha256": "e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99"
+}

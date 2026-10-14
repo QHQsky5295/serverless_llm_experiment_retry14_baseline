@@ -1,0 +1,69 @@
+{
+  "passed": true,
+  "tests": 311,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "sources": [
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/ops/triton_ops/lora_kernel_metadata.py",
+      "sha256": "7669eeeb491e89df7ef4ff050a79d3934ce7a63b146fe93239f081d176c68881",
+      "official_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/ops/triton_ops/lora_kernel_metadata.py",
+      "official_sha256": "7669eeeb491e89df7ef4ff050a79d3934ce7a63b146fe93239f081d176c68881",
+      "byte_equal": true
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/punica_wrapper/punica_gpu.py",
+      "sha256": "7ddedad89b6721751012af6f72bd85d0f8e2f6e9b288fc1909b08a732c360919",
+      "official_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/punica_wrapper/punica_gpu.py",
+      "official_sha256": "7ddedad89b6721751012af6f72bd85d0f8e2f6e9b288fc1909b08a732c360919",
+      "byte_equal": true
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/punica_wrapper/utils.py",
+      "sha256": "1d926bd9cc9118719f64a9706d1c0f433a12f3605cfb10f125e1217231109158",
+      "official_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/punica_wrapper/utils.py",
+      "official_sha256": "1d926bd9cc9118719f64a9706d1c0f433a12f3605cfb10f125e1217231109158",
+      "byte_equal": true
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/lora/model_manager.py",
+      "sha256": "6695bb7d6373d8f29bb13d6ae31e2ef2a98f8c23a6f37f9147d67cafca5f3302",
+      "official_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/lora/model_manager.py",
+      "official_sha256": "6695bb7d6373d8f29bb13d6ae31e2ef2a98f8c23a6f37f9147d67cafca5f3302",
+      "byte_equal": true
+    },
+    {
+      "path": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu/async_utils.py",
+      "sha256": "77e17a4570ead2be30ae9b00888cf077a3b873018c12ca0549b853bfda02c1ba",
+      "official_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.30.0/vllm/v1/worker/gpu/async_utils.py",
+      "official_sha256": "77e17a4570ead2be30ae9b00888cf077a3b873018c12ca0549b853bfda02c1ba",
+      "byte_equal": true
+    }
+  ],
+  "protected": {
+    "kind": "protected_artifact_verification",
+    "pass": true,
+    "seal_sha256": "79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54",
+    "changed": [],
+    "entry_count": 147,
+    "plan_sha256": "d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83"
+  },
+  "serving_integration": false,
+  "gpu_qualified": false,
+  "performance_qualified": false,
+  "original_metadata_oracle_cases": 96,
+  "scope": {
+    "unit": "primelora-tc-aux-d5200000000000000000000000000001.scope",
+    "invocation_id": "ad7ea43194694613971dd7658b274999",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5200000000000000000000000000001.scope",
+    "inode": 24757514
+  },
+  "refs": {
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/faaslora/utils/lora_metadata.py": "7ab5aa9e74f727eea082ce388d03923dd1b5e77568bd148d3b35f5edba7cdafb",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/tests/test_ieee_tc_lora_metadata_lowering.py": "da20a8c2ba41071c2eb0bf535e3c99373777017cb21f8f7aabef1270beb2ed16",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py": "fd646b0faa1879064bff76f3f3effaea11360154e4488e650a55889e6e214ddf",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_FROZEN_V1.md": "5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/docs/ieee_tc/METRIC_PROTOCOL_SINGLE_RUN_V2.md": "193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d"
+  }
+}

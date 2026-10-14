@@ -1,1000 +1,161 @@
-# IEEE TC status — D519 restored serving semantics and step diagnostic
-
-## D519 authoritative outcome, 2026-10-14
-
-ONEoriginal1000diagnostic COMPLETED; actualGPUrelease/servicepathgone/tmuxgone;
-exact-ownedremote services stoppedafterlocalrelease/logSHAverified. 1000native
-contracts/0failure,60fetch/74953014wireB/packing0; independentn_correctstillnull.
-Mainrunnerrestoredbyte-identicalD476; no allocator/policy/thresholdchange.
-Read D519_STEP_DIAGNOSTIC_RESULT.md. FullcomponentdiagnosticgateFAILED: primary
-processhit64MiBcap,10/11journalscomplete,whole-processrequestcoverage279/1000.
-Strictcomponentanalysisrefused BEFOREoutput. Failure/source preserved; separate
-explicitpartial analysis retained47038actuallycompletedsteps incl31360fromcapped
-process, orphan1notimputed. complete_diagnostic_qualified=false; noGPUrepeat.
-Single-token45513step mean23.669581ms/CPU7.468172; allocdriver.125878ms,
-freeprocesscounter10.206529ms(backgroundoverlapNOTcausal),input.919288ms,
-LoRAactivation2.100393ms(P50.133625,P95.403878),scheduler.230154ms.
-Multitoken987step83.052146ms/CPU82.809049,execute80.685168/LoRA22.072073ms.
-DirectallocationisNOTsupportedasmajorstepcost; no unlimitedcache/thresholdsweep.
-Rawsourceaf2c2680e375c3c5d14720a810d30d9e6892852b7951fcdb6e1522083005e7b1.
-Servicepeak20621922304B/1188samples/events0/swap0. 1028prelaunchCPUtests,
-127analysisCPUtests and33componenttestsPASS. CPU1–3/collection5/analysis6/
-strictfailedoperation7/partialoperation8actualrecursiveemptyclosed/pathsgone;
-partialpeak515584000B/events0/swap0. No liveGPUrun. Resultcuration/testedbackupNEXT.
-Prelaunch3654b8645f5792a7c7d7e47416613398b682ec08PUSHED. Earlierlive/nextnotes
-belowhistorical; doNOTrerunD519/D512/D516/HydraServe or claimfullcomponentcoverage.
-Afteroutcomebackup,nextONEsource/historyreviewofnativeoutput/pinnedbufferrelease
-andlongLoRAactivationdependency withD56–60budgetconstraints. Reuseobservations,
-no newGPUdiagnostic/candidatepreparedyet. Ifprovedavoidablework,boundedcontract
-thenminimalvalidation/ordinaryfull4000. D476remainssealedperformancepoint.
-Whole7BW1/W2/G2/commonrefs/3B/baselines/dLoRA/A1–A5/S1–S13/cost/docs/finaldelivery
-ACTIVE; nofiguresyet. Partialdiagnosis isprogress, nottargetachieved.
-
-## D519 current preregistration, 2026-10-14
-
-D514 rejected GPU source-query change has been RESTORED to D476 semantics.
-scripts/run_all_experiments.py is byte-identical to sealed production
-db44e8f068eb30c69466f32ad3d147ffbc45f9e2; faaslora only D518 observer differences.
-Four GPU ownership/deferral/mixed-path regression tests retained/adapted, HOST
-D474 behavior unchanged. D516 nonfeasible evidence retained, not a causalproof.
-Read D519_RESTORED_STEP_DIAGNOSTIC.md. ONE original1000 diagnostic prepared with
-host_spans_v1 + v2_components_v1; same D476 config except threeexclusive paths.
-1028 CPU tests PASS/0fail/error/skip; source/config/original1000view/protected147/
-threeuserdirt/PLAN/V1/V2 checksPASS. View0a5dfcf...0981,60IDs,122510targettokens.
-CPU1 actualrecursiveemptyclosed,peak2314604544B/events0/swap0. Qualification2
-closure and explicit tested backup NEXT, then actualawaitedremotehealth/resource
-gates and ONE tmux tc-d519-coreprefix1. NO GPU run launched at this writing.
-RAW results/ieee_tc/p2_backend_qualification/d519_20261014, reuseD512helpers.
-This is diagnostic-only, not a new performance point or allocator optimization.
-Whilelive ONLYlightweightwatchdog/progress; nohash/tests/backup/remotechanges.
-AfteractualnativeGPUrelease: boundedaux5 close_after_release.py ->close.py
-collection; then reused source/native/span audit plusstepcomponent analysis.
-Hypothesisunsupported -> measuredothercomponent, not blindcachethresholds;
-supported -> boundedphysicalcontract, minimalvalidation thenordinaryfull4000.
-Whole7BW1/W2/G2/commonrefs/3B/baselines/dLoRA/A1–A5/S1–S13/cost/docs/finaldelivery
-ACTIVE. No repeatedHydraServe/D512/D516/D518. OlderNEXTclausesbelowhistorical.
-
-## D518 backup verified — resume here
-
-Checkpoint880a38eb02868d235784a7e0d3b10967b6617590 PUSHED/remote-equal;
-RAW/backup_receipt.json confirms explicit7files,163CPUtests/source/protected147/
-userdirt/diff/secrets checks. CPU andbackup actualrecursiveemptyclosed/pathsgone,
-peaks613306368/26984448B,events0/swap0. NoGPU/remote/k3s action or livejob.
-DoNOTrepeatD518CPUtests/backup; this is localpost-backup handoff.
-NEXT as below: restore D514 rejectedproductionchange to D476 source semantics,
-validate restoration, then ONE original1000 V2 component diagnostic. Notprepared
-orlaunched yet. D518diagnostic is opt-in/off bydefault, not a performance fix.
-FullremaininggoalACTIVE; oldbackup-next clausesbeloware historical.
-
-## D518 current handoff, 2026-10-14
-
-Read D518_NATIVE_STEP_BOUNDARIES.md. Actual inference entry is scripts/
-run_all_experiments.py, not the old serving/vllm_wrapper.py. Qualified native
-path is V2 gpu/model_runner.py, async two-batch UniProc; no need to re-enable
-async scheduling or assume all graph/eager iterations have identical costs.
-New falsifiable hypothesis: process-wide pinned_max_cached_size_mb=0 also
-affects per-iteration small pinned input/output staging. D56–D60 already proved
-the LoRA release benefit and warned about lost reuse; current overhead UNKNOWN.
-Do not remove HOST accounting, restore unlimited cache or sweep thresholds.
-
-Existing CoreHostTiming now has opt-in FAASLORA_TC_CORE_STEP_TIMING=
-v2_components_v1, requiring host_spans_v1 and native V2 dense async TP/PP/DP1.
-Per-step bounded component counts/wall/threadCPU plus native process allocator
-count/time counters; nested not additive, driver microseconds not GPU kernels,
-background frees not automatically attributable to step. Default unchanged.
-No new runner/framework/input/profile/SLO; no GPU/remote/k3s operation thisturn.
-163 relevant CPUtestsPASS/0skip; actualCPUrecursiveemptyclosure/pathgone,
-peak613306368B/events0/swap0, protected147unchanged. Rawd518_20261014.
-Explicit tested backup NEXT; actual backup_receipt/closure establish completion.
-
-NEXT ONE: restore rejected D514 single production change to accepted D476
-semantics with source/test evidence, then preregister ONE original1000-prefix
-component diagnostic reusing D512 recipe and current explicit observer. It is
-NOT prepared/launched yet. Production currently STILL D514; do not mislabel it
-D476. D516 remainsnonfeasible/sealed; no repeated D516 or HydraServe performance.
-If allocator hypothesis unsupported, use measured dominant component, no cache
-parameter sweep. If supported, derive bounded reuse/physical-capacity contract
-before candidate, minimalqualification thenordinaryfull4000. Whole7BW1/W2/G2/
-commonrefs/3B/baselines/dLoRA/A1–A5/S1–S13/cost/docs/finaldelivery ACTIVE.
-Prior NEXT/live paragraphs beloware historical, not current process state.
-
-## D517 outcome backup verified — resume here
-
-Checkpoint75dc40f7d8a09dff21b90caae12a8ba0a95a1806 PUSHED/remote-equal.
-RAW/backup_retry_receipt.json verifiesexplicit10files,133CPUtests,source/CSVcell/
-protected147/userdirt/diff/secretschecks. Analysis1/curation2/failedbackup3/retry4
-ALLactualrecursiveemptyclosed/pathsgone,events0/swap0;finalbackuppeak27127808B.
-Publication uses*_lf.csv andpublication_manifest.json; originalCRLFfiles/failed
-backup.py remainuntouched. DoNOTrepeatD517analysis/tests/curation/backup orGPUruns.
-No liveGPUexperiment, no remote/k3schanges, no productionchange thisstage.
-This is localpost-backup handoff; priorbackup-pendingclausesare historical.
-NextONE actualstep-internal source/history review; no candidate, newobservation
-or revertpreparedyet. D514candidate stillpresent;D516notaccepted,D476preserved.
-Whole7BW1/W2/G2/3B/dLoRA/A1–A5/S1–S13/cost/docs/finaldelivery goalACTIVE.
-
-## D517 current result, 2026-10-14
-
-D517 reused D512 ten complete journals/231722spans/1000decodewindows, no newGPU
-run or productionchange. Read D517_ITERATION_COMPOSITION_RESULT.md. 69293steps:
-67424single-token-allocation,994multi-token,577zero-token,298no-schedule,0raised.
-Meanstep22.709636/80.707289ms; meanthreadCPU6.940118/79.687214ms; mean
-schedule.220505/.339003ms. Shapes are NOT puredecode/prefill or GPUkerneltime.
-Current14020work-entry nonemptyinputturns have0multi-UTILITY and0clienttimeafter
-firstUTILITY: historicalD355interleave alreadyworks, donotreimplementit.
-ShortTPOTmiss19requests meanclient418.857832ms/multitokenstep237.767947ms/
-schedule2.644124ms; passing293respectively116.329921/46.634196/3.172342ms.
-Allgroups retained; overlapisnotcausal/effectsize, no latency subtraction.
-133CPUtestsPASS; priorSHA/1000partitionequalities/protected147PASS. Analysis1
-actualrecursiveemptyclosed/pathgone,peak630038528B,events0/swap0. Rawd517_20261014;
-curation/testedexplicitbackupNEXT, not yetclaimedcomplete. No liveGPU/remotechanges.
-Curationsources23/archive11139B/roundtripPASS,actualemptyclosurepeak26673152B.
-Firstbackup stoppedBEFOREcommit: inheritedCSVCRLF failscachedwhitespacecheck.
-Raw/curatedCRLFandmanifest preserved. backup_retry.py publishes separateLFcopies
-withidenticalCSVcells andpublication_manifest; noanalysis/inferencerepeat.
-Actualbackup_retry_receipt/closure determine publishing; oldbackup.py mustnotrerun.
-NextONE source/history review of actualstep-internal inputpreparation/execution/
-synchronization/outputpath before candidate or additionalobservation. DoNOT
-repeatD517/D512/D516/HydraServe, mechanicalsnapshottrims orblindparameters.
-D516nonfeasible preserved,D476retained;productionstillD514candidate,notreverted.
-WholeW1/W2/G2/3B/dLoRA/A1–A5/S1–S13/cost/docs/finaldelivery remainsACTIVE.
-Prior next/live clauses beloware historical and superseded by this handoff.
-
-## D516 outcome backup verified — resume here
-
-Outcome65eb834fa2d5e1a726bf5f1849365b7274d753bf PUSHED/remote-equal.
-RAW/backup_result_receipt.json confirms123CPUtestsPASS/0skip, explicit19files,
-source/protected147/userdirt/diff/secrets checksPASS. Backup11actualrecursiveempty
-closurePASS/pathgone,peak608145408B/events0/swap0. AlllocalownedscopesandGPUreleased;
-remoteexact-ownedservicesinactive. No inferenceoranalysiscurrentlyrunning.
-Do NOT rerunD516,itsanalysis,tests,backup,orHydraServe. This is localpost-backup
-handoff; earlier backup-next/live clausesare historical.
-NextONE newbottleneck review ofnativeiteration/controlcomposition, usingexisting
-D512logs/history/officialsources; D516notaccepted, D476sealedpointpreserved.
-No newcandidate/revertpreparedyet. Stopmechanicalsnapshotrefinements andretain
-allW1/W2/G2/3B/dLoRA/A1–A5/S1–S13/cost/docs/finaldelivery scopeACTIVE.
-
-## D516 authoritative result, 2026-10-14
-
-The single original4000 W0 run COMPLETED; tmux gone, launchPASS/nativeGPUrelease/
-servicepathremoved. No live inference. Full4000native contracts/458224tokens,
-0failures; input/content/clock/remote/physical checksPASS. Joint3791/4000=94.775%,
-belowunchanged95%; U11011.303222888382 GPU-s,2.7528258057220953/request.
-Mean/P95TTFT1272.858456/3321.357967ms;mean/P95TPOT32.901143/56.422733ms.
-AgainstD476,U+2.16037%,joint-2.65pp,P95TTFT+43.44867%. Candidate NOT accepted
-as improved/feasible workingpoint; retainD476 and allnegativeevidence, no repeat.
-Read D516_FULL_W0_RESULT.md. No claimthat single-run delta provescausalharm.
-
-GPU1785plans/2233attempts/2230receipts/1902acquired/328deferred; changedboundary
-actuallyexecuted. HOST1242preparations; dispatchGPU2437/HOST574/NVMe855/remote134.
-132matchedremote transfers131480060wireB,packing0. NativeCPU23activations/19
-replacements,allactualreleaseclosed. Same-backendD476 outputs3811equal/189changed;
-causeunknown,rawn_correctnull. PublishedD513six-systemcomparison retained incl
-HydraServe, nonfeasible rows notdeleted;ElasticLocality onlyablation.
-Service4059samples,peak23431499776B,high/max/OOM/OOMkill/swap0,noabort/warning.
-2systemdinotifywarningsretained; noenvironmentchange/no claimnoiseabsent.
-
-Source8889d3f1543b1464a508980432c1be95e6c992fde9b32a2ec875369c732a2cd2.
-CPU1–3,collection5,analysis6,lifecyclecollection7,lifecycle8,curation9,finalverify10
-actuallyrecursiveemptyclosed. Exact-ownedremote stopped AFTERlocalGPUrelease,
-logsSHAverified. Curated17resultJSON/sourcebackups inpaper_results/.../d516_full_w0;
-finalverification101refs/protected147/userdirt/metricsPASS. NoGPUreplayorfigures.
-Next explicit tested outcome backup, thenoneevidence-driven newbottleneck review
-ofnativeiteration/controlcomposition usingD512/history/officialsources. Stop
-mechanical snapshot refinements; currentproductionstillD514candidate, no revert
-yet/no newexperiment prepared. W1/W2/G2/3B/dLoRA/A1–A5/S1–S13/cost/docs/final
-delivery allACTIVE. All following live/prepared clausesare historical; doNOTrestart.
-
-## D516 actual launch and live handoff, 2026-10-14
-
-Checkpoint cf36b0df9c4ec8cfe7b2c59569d20a31acd12cf7 PUSHED/remote-equal;
-CPU1–3 actualrecursive-empty closures complete. BASE09baa937 unchanged.
-start.py ACTUALLY awaited source/protected/resource gates, remote_start and
-authenticated health PASS, then launched ONCE. tmux tc-d516-gpuexecw0 pane
-909835 is alive; never repeat launch from a tool timeout or historical note.
-Service deda058361994718b0cc010cded407ee.scope, Invocation
-bf38ec90f1a843cda65e442766ca27ac, inode24652895. Exact service_aux identity
-is saved; auxiliary unit11b86d9372e849bf8987ae15c1158476.scope.
-Notice1456243.396487997; replayt0=1456303.396487997; original4000 fullview
-verified. Remote actual1000Mb/s/full, D78/D80 publishedgzip; no live maintenance.
-At watchdog sample78:3terminal records, hostavailable105141096448B,
-service6961025024B; high/max/OOM/OOMkill/swap0, no warning/abort.
-This is running evidence, NOT a completed outcome or performance improvement.
-
-NEXT: lightweight progress/watchdog only until actual local GPU release. No
-hash scans/tests/builds/compression/backup/secondrun or remote changes whilelive.
-After launch.json confirms native GPU release/service path removal, run existing
-RAW/close_after_release.py in new bounded aux5, then close.py collection; it
-verifies exact-owned empty local scopes and stops/downloads only owned remote.
-If failed, preserve failure and use failure-aware closure, not success-only audit.
-Then reuse D476 streaming native/source/lifecycle/contract analyses with D515
-GPU-plan receipt checks and D394 common ruler; include D513 published roster
-and HydraServe in comparison, no ElasticLocality baseline. No analysis has run
-yet. Keep independent numerical proof unknown and audit same-backend changes.
-All remaining W1/W2/G2/3B/dLoRA/A1–A5/S1–S13/cost/docs/finaldelivery ACTIVE.
-Earlier prepared/not-launched clauses are now historical; do not re-execute them.
-
-Continuation verified SAME live tmux/pane909835 at watchdog sample548,
-412terminal records; hostavailable91.973953GiB/service13.333275GiB/disk161.092110GiB,
-high/max/OOM/OOMkill/swap0,warningfalse/noabort. This is a VERIFIED WAIT, not
-stopped/completed. No runtime/config/remote change or concurrent heavy task.
-Prepared-only RAW/analyze_closed.py,analyze_prefix.py,cross_contract.py,
-collect_cpu_evidence.py,audit_lifecycle.py,close_postrun_extended.py reuse D476.
-They have NOT been run/tested yet; review before execution after collection.
-analyze_prefix streams GPU-plan receipts to prove changed boundary activation;
-cross_contract pins current approved PLAN and retains full D435 input witness.
-Postrelease order: collection aux5 -> close.py collection -> analyze_closed.py
-bounded aux6 -> close_postrun_extended.py analysis -> collect_cpu_evidence.py
-bounded aux7 -> closure lifecycle_collection -> audit_lifecycle.py bounded aux8
--> closure lifecycle. Existing streaming primitives/common D394 ruler unchanged.
-Comparison/curation/outcome backup are not yet prepared; must use D513 published
-six-system roster including HydraServe and audit D476 same-backend outputs.
-No comparison of this incomplete run, no new inference or threshold change.
-
-Latest continuation VERIFIED WAIT on the same live tmux/pane909835 through
-watchdog sample1169:1051terminal journal records. Hostavailable89.575600GiB,
-service16.145092GiB,disk160.744186GiB; high/max/OOM/OOMkill/swap0,
-warningfalse/noabort. Several successive live polls showed continued progress
-(496->551->659->788->848->908->1051), not a stale state-file assumption.
-No tests, analysis, hashes, compression, backups, remote changes or new run
-executed during this continuation. Postrun helpers above remain prepared-only.
-Continue the SAME run; no completed result or optimization acceptance yet.
-
-Subsequent monitoring continuation VERIFIED WAIT, same actual live pane909835,
-watchdog sample1996 and2074terminal records (continued from1121 this turn).
-Hostavailable88.655636GiB/service17.423279GiB/disk160.129696GiB;
-high/max/OOM/OOMkill/swap0, no warnings/abort. All intervening actual polls
-confirmed progress; no new experiment, production edit, remote management,
-test/analysis/hash/compression/backup executed. Existing prepared postrun
-helpers remain unexecuted. Wait for actual completion/native release before
-collection aux5; preserve full remaining mainline, no midpoint ranking.
-
-## D516 current main line, 2026-10-14
-
-D515 outcome739be9a pushed/verified; do not rerun its tests or inference.
-D51622input/config/replaytests PASS; full4000 exact view
-a5331be2e2204483f18206825d9aaa18cbaa259fe0babfc303f989055819430d,
-458224targettokens. Reused11guard/D514957+4tests and D515native100 qualification;
-source/protected147/userdirt/PLAN/V1/V2checksPASS. CPU1 actualemptyclosed;
-qualification2 actualclosure and explicitbackup next, then singlelaunch.
-D516 prepared by reusing D476 runner/config/qualification/start/closure workflow.
-Only three exclusive config paths and wrapper/test registration; production
-unchanged from D514/D515. Read D516_GPU_EXECUTION_FULL_W0.md. No new GPU run
-has launched at this writing. CPU/source/protection tests and explicit backup
-must pass, then await remote authenticated health and resource gates before
-ONE ordinary original4000 W0. No new profile/policy/SLO/input or baseline repeat.
-Short D515 performance was NOT improved; full result decides acceptance.
-Raw results/ieee_tc/p2_backend_qualification/d516_20261014. close.py collection
-uses the actual collection_receipt identity (no missing identity-file assumption).
-Published comparison includes HydraServe/D513 six rows, not ElasticLocality as
-baseline. Independent numerical proof remains unknown; all digest changes kept.
-All 7B W1/W2/G2,3B,dLoRA,A1–A5,S1–S13,cost/docs/finaldelivery remain ACTIVE.
-The prior next/not-prepared clauses below are historical.
-
-## D515 checkpoint verified — resume here
-
-Outcome739be9a77970913d4c75307c43907033e82779fa PUSHED/remote-equal, actual
-backup_result_receipt.json and backup_result_closure.json PASS. Alllocalowned
-auxiliaryscopes actuallyrecursiveemptyclosed/pathsgone;GPUandownedremote
-servicesreleased. No inference currentlyrunning. Do not rerunD514orD515,
-theirtests/analysis/curation/backup,orHydraServe. This is localpost-backuphandoff.
-NextD516 ONEordinaryfull4000W0 underD476frozenconfig andD514productionchange;
-notprepared/launchedyet. ReuseD476existingrecipe,onlyexclusivepaths,source/
-configtests/prelaunchbackup/actualresource+remotehealthgates. ReadFULLPLAN/
-status/metricsbeforelaunch. CandidateperformancehypothesisOPEN,shortprefix
-wasnotbetter. Fullresultdeterminesacceptance; retainallnegativeevidence.
-WholeW1/W2/G2/3B/dLoRA/A1–A5/S1–S13/cost/docs/finaldelivery remainsACTIVE.
-
-## D515 authoritative result, 2026-10-14
-
-D515 original100 executed ONCE and completed, not live. All100native contracts,
-17369tokens,0failure,commonjoint100/100. Input/content/adapter/clock/physical
-auditPASS. GPU37plans/39attempts/39native receipts/34acquired/5deferred;
-HOST27preparations,dispatchGPU61/HOST8/NVMe2/remote29. Remote29fetches,
-50650865wireB,packing0. Mean/P95TTFT816.699662/2064.692368ms,
-TPOT29.005707/35.633536ms,physical374.8210465789307GPU-s. This shortfragment
-isNOTperformanceimprovement: D475meanTTFT683.487/U334.046011 were lower.
-3same-backendoutputdigestchanges retained; unknowncause/rawn_correctnull.
-CPU4preparations/2activations/2unused,nomidrunreplacement. ActualnativeGPU
-release/servicepathgonePASS; exact-ownedremote services+monitor stopped only
-afterlocalrelease,logsSHAverified. Servicepeak12666990592B/events0/swap0.
-CPU1–3,collection5,analysis6,lifecycle7,contract8actuallyemptyclosed;curation9
-PASS,nextactualclosureandoutcomebackup. ReadD515_NATIVE_VALIDATION_RESULT.md.
-RawsourceSHA315c0d97f4d902c27beb511e7c26550f250009dbd5ad6b5be1b90d3b39562aa4.
-AftertestedbackupONLY nextD516 ordinaryfull4000W0 usingD476frozenconfiguration
-andD514production; not yetprepared/launched. No extrashortreplay/parameters/SLO,
-no repeatedbaselines. Fullresultdecidescandidateacceptance; ifnobenefitstop
-mechanicalsnapshotrefinements. RemainingwholegoalACTIVE. Liveparagraphsbelow
-arehistorical,doNOTrestartD515. Previousbackuphashese4775b9/cab2a4a retained.
-
-## Actual D515 live state, 2026-10-14
-
-ACTUALLY launched ONCE after explicit awaited remote/authenticated health and
-source/protected/resource gates. MAINe4775b944774e652f6b5445aa1b977b0d3787c91
-pushed/remote-equal, BASE09baa937 unchanged. CPU1–3actualemptyclosurescomplete.
-tmux tc-d515-cpuprep100 pane850890 alive; never relaunch from tool timeout.
-Remote actual1000Mb/s/full, readonlypublishedgzip; nochangesduringinference.
-At watchdog sample158,38terminal records,hostavailable102174572544B,
-service10207248384B;memoryhigh/max/OOM/swap0,warningfalse/noabort.
-This is NOT a completed result. Continue lightweight progress/watchdog only.
-After actualrelease, boundedaux5 close_after_release.py then close_postrun.py
-collection (not close.py collection, which expects a different identityfile).
-Prepared-only postrun analyze.py/analyze_prefix.py/cross_contract.py/
-audit_lifecycle.py/curate_native.py/backup_result.py reuse D475; not executed yet.
-Review before execution; baseline/input and same-backend comparisons keep unknown
-numerical correctness. New GPU-preparation receipt check must prove changed path
-triggered. No performance claim before complete ordinary4000 followup.
-Whole remaining scopeACTIVE; prior not-launched notes below now historical.
-
-## D515 next launch: source qualification passed
-
-D51522input/config/replaytestsPASS; reused11guardtests and D514957regression
-plus4native-environmentCPUtests. Exactoriginal100view
-aaf917bd816e10c4ad6f8138e5365aa9b2976b4300143cc712c12b84443cb020,
-sourceefb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c.
-Onlythreeexclusiveconfigpaths; runtime unchangedfromcab2a4a. Protected147,
-threeuserdirt/PLAN/V1/V2 andD514sourcechecksPASS. NoGPUrunyet.
-RAWresults/ieee_tc/p2_backend_qualification/d515_20261014; readD515doc.
-AfterexplicitbackupandactualCPUclosures, start.py awaitsexistingremote start+
-authenticatedhealth thenONEtmux tc-d515-cpuprep100 launch. Keepactualreceipts,
-watchonlylightweightprogresswhilelive; nohash/tests/builds/backups/remotechanges.
-Onactualreleaseclose_after_release.py ->close.py collection, thennativeaudit.
-Neverretrylaunchfromatooltimeout. WholeW1/W2/G2/3B/A1–A5/S1–S13/docs scopeACTIVE.
-
-## D514 checkpoint complete; D515 next, not launched
-
-D514 checkpoint cab2a4ae24f5fb5d8e29e04b82f8bf1a2efcef87 PUSHED/remote-equal.
-Qualification and backup receipts PASS; all ten auxiliary scopes actually
-recursive-empty and removed. Last backup memory peak35241984B/events0/swap0;
-disk174124511232B. Do not rerun D514 tests, curation or backup.
-D515 reuses D475 original100 native validation with only exclusive output/cache
-paths. Preparation is not launch or performance evidence. After affected native
-qualification, ONE ordinary full4000 W0; no extra prefix ladder or new parameter.
-Full remaining scope and frozen metrics below remain ACTIVE.
-
-## D514 latest: CPU qualification passed; native validation not launched
-
-Final regression2:957PASS/0fail/0error/0skip,36.633s testbody; native environment
-4newtestsPASS. OnlyoneproductionASTconstantchanges. Keepallfailedtests:
-targetedspawnreentry/main-guarderror requiredexact-ownedstop (memory.high77410,
-OOM/max/swap0);unit/ unit2fixturecorrections;regression3oldcapturefilterfailures.
-No servingpolicychange tofix tests. All8aux scopes actualrecursiveemptyclosed.
-Source/curation/explicitbackup are next; actualbackupreceipt determines publishing.
-Do not rerunCPU qualification oncebackupverified. NoGPU/remote/Kubernetesoperation.
-NextONE original100native validation of D514candidate usingD475/D476recipe,
-thenONEordinaryfull4000W0 withsamefrozenconfig. No newtrace/pool/parameters/SLO.
-ReadfullPLAN/status beforelaunch; retainpublishedbaselinecomparison andwhole
-W1/W2/G2/3B/A1–A5/S1–S13/cost/docs scope. Performancehypothesis remainsOPEN.
-
-## Current main line 2026-10-14: D514 CPU candidate, no new GPU run
-
-Read D514_GPU_EXECUTION_CONSUMER_PROOF.md. Parentd15a659e54045da322fe16da3e0d41b8c18bad61.
-D512 retained outcome streaming audit:590plans/828attempts/825prepare receipts,
-662acquired/163deferred/2superseded/1observing. No invented missing terminal or
-duration attribution. Audit actualrecursiveempty scopeclosed,peak51376128B/events0.
-Single production AST constant: GPU-preparation execute's fresh source_snapshot
-becomes fresh source_identity_snapshot; native capacity/admission/worker/owner,
-routing/planner and other queries unchanged. No epoch/TTL/physical-state cache.
-Four new CPU tests; red3expected dependency failures+1wrong-test-factory error,
-original source/logretained. Corrected fixtureusesexistingMixedOwnedPreparation.
-Targeted/full regression PENDING atthiswriting, no performance claim or newGPUrun.
-ReuseD474test/curation/backupworkflow inresults/ieee_tc/p2_backend_qualification/d514_20261014.
-Afterqualifiedbackuponly: original100native affectedvalidation ->oneordinary4000W0
-withunchangedD476configuration. No repeatedD512/baselines/newdata/thresholdchange.
-Thenreturnwholemainline7BW1/W2/G2/3B/A1–A5/S1–S13/cost/docs/finaldelivery; ACTIVE.
-AllolderNEXTclausesbelowarehistorical. D513metricfollowupcomplete, donotrepeat.
-
-## Latest user follow-up 2026-10-14: HydraServe 5/2 alignment
-
-Follow-up checkpoint d15a659e54045da322fe16da3e0d41b8c18bad61 PUSHED/remote-equal;
-small-source SHA/5x2 arithmetic/all6rows/marginal denominators/document table
-checks and9smoke tests PASS. Protected147/user3dirt/PLAN/V1/V2 unchanged.
-RAW/hydra_followup_backup_receipt.json andhydra_followup_closure.json verify
-actualcompletion andrecursiveempty/pathgone. Do not rerunfollowup helper.
-No new inference or serving-code change. This is the localpost-backup handoff.
-
-Read D513_HYDRASERVE_ALIGNMENT_FOLLOWUP.md. User asks whether warmTTFTx5 /
-warmTPOTx2 can be main evaluation. YES as common latency-threshold method,
-ALREADY frozen in V1 and D394; not a replacement for attainment q or budget rho.
-Keep G1/G2, marginal+joint attainment, raw tails and physicalGPU-s together;
-no new combined score or winner-dependent threshold. HydraServe application
-exceptions and GPUmemory-time differ; don't claim identical evaluation.
-20260928 alignment doc's calibration-pending text is historical, not current.
-Originalprepared note was pending; the receipts above now prove completion.
-No serving edits/newGPUrun/remoteoperations/figures.
-D514 remains next evidence-driven systemoptimization, not this metric discussion.
-PreviousD513 complete, do not rerun its analysis/backup. Whole remaining scope below.
-
-## Current authoritative state 2026-10-14: D513 offline update complete
-
-Checkpoint7502bcfaecc298ad5d867d840d2e86c499e15e9d PUSHED/remote-equal.
-101analysis tests+all96preflight tests PASS with correct interpreter partition;
-no skippedtests. RAW/backup_retry2_receipt.json verified; backup_retry2 actual
-recursiveempty closure complete and capturedpath gone. Prior2failed test attempts
-retained in the evidence archive, neither staged nor changed a serving experiment.
-Do not rerunD513analysis/backup. This paragraph is the local post-backup handoff.
-
-Latest user explicitly excludes unpublished systems from baseline tables and asks
-for scientific support for95%/75%. Read BASELINE_SCOPE_20261014.md and
-SLO_BUDGET_RATIONALE_20261014.md. Formal baseline roster: vLLM SOSP2023,
-S-LoRA MLSys2024,ServerlessLLM OSDI2024,HydraServe NSDI2026,Loquetier NeurIPS2025;
-dLoRA OSDI2024 only3BW1/W2. ElasticLocality is NOT a baseline; preserve D453 and
-old D510/D511 as composite-ablation evidence, never relabel it as a paper system.
-Earlier clauses below requiring it in the main comparison are historical and
-SUPERSEDED. Publication status does not prove mechanism coverage or correctness.
-
-D513 reused sealed D510 rows, no GPU run/config tuning/metric changes/figures.
-New paper_results/ieee_tc/main_comparison/d513_published_7b_w0 has six unchanged
-rows including PrimeLoRA; all nonfeasible published rows retained; separate
-mechanism_evidence.json retains ElasticLocality unchanged. Native-count/binding
-evidence remains distinct from independent numerical proof (raw_n_correctnull).
-101CPUtests PASS; protected147/userdirt/source/V1/V2 unchanged. Analysis scope
-1638ae3e66524ac7a96a8e6219b79d0b actualrecursiveempty closed/pathgone,
-peak598212608B/events0/swap0. RAW originalresults/ieee_tc/main_comparison/d513_20261014.
-First backup attempt stopped BEFORE staging/commit: preflight tests used the
-model Python lacking pidfd_send_signal, and the approved-plan test still pinned
-the old snapshot. Failed96-test log retained; no guard bypass or serving change.
-Actualbackupscope recursivelyemptyclosed,peak597950464B/events0. Correct the
-plan-identity test and run watchdog/preflight tests with qualified /usr/bin/python3;
-new backup_retry receipt/closure determines actual publishing, never repeat oldhelper.
-That all-host retry also stopped before staging:6 model-dependent tests need the
-existing model environment (host lacks numpy/has incompatible user Torch). Preserve
-both failures; retry2 partitions ALL96 tests by actual interpreter role, ProtocolGates
-onqualifiedhost andremainingclasses onmodelPython, no skips/newpackages/guardbypass.
-backup_retry scopeactualemptyclosed,peak74297344B/events0. Only backup_retry2_receipt
-andclosure can establish finalbackup; do not rerun firsttwohelpers.
-Read CONTRIBUTION_METRIC_MAP_20261014.md for the latest user clarification:
-paper problem -> core mechanism -> metric motivation -> PrimeLoRA causal evidence.
-
-Fixed-W0 sensitivity:90% feasible orderPrimeLoRA,S-LoRA,ServerlessLLM,vLLM;
-95% PrimeLoRA,ServerlessLLM,vLLM;99%onlyvLLM. At95%/50%budget none,75%only
-PrimeLoRA,100%PrimeLoRA/ServerlessLLM/vLLM. No reoptimized frontier or W1/W2G2
-claim. PrimeLoRA's33.011%/33.117% lowerU vsServerlessLLM/vLLM comes withlower
-jointattainment/higherP95TTFT. Changing the roster is NOT measured improvement.
-95% is a frozen explicit5%latency-violation allowance, not universalstandard;
-75% is a25%resource-saving testscenario, not scientifically unique/optimalconstant.
-DistServe90/99,HydraServewarm5/2,SarathiP99TBT,Llumnixresource-tailtradeoff,
-MLPerfapplication-specificconstraints checked in officialprimarysources.
-FrozenG1/G2remain; approvedthreshold/budgetsensitivities mustretainnegativecases.
-
-PLAN amended by explicit latestuser instructions and new immutable snapshot:
-SHA d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83.
-preflight SNAPSHOT path now PLAN_APPROVED_20261014_PUBLISHED_BASELINES.md;
-oldapprovedsnapshots/history notmodified. Fullread sourceplan and metrics asusual.
-Servingfaaslora unchanged; existinganalyzer extended with explicit publication
-view,sourceSHA/exclusiveoutputguards and no new inferenceframework.
-
-NEXT aftertestedbackup: resume ONE evidence-driven PrimeLoRAoptimization(D514),
-fromD512currentCPUutilitycosts and historicalD329/D352/D355/D474constraints.
-No prepared candidate yet; no promised speedup; donotrerunHydraServe/D512/D513.
-Whole remaining7BW1/W2/G2,3B,dLoRA3BB6,A1–A5,S1–S13,cost/CE,reviewdocs,
-finalfigures/V2delivery ACTIVE. Neednotbeat an unpublished variant to qualify
-the externalbaseline comparison, but mechanism overhead remains an optimization
-and ablation question. No isolatedTTFT/TPOT shortcut, thresholdselectionbywinner,
-newweights/traces/13B, userdirtstaging, oldresultoverwrite or earlygoalcompletion.
-
-## Historical D512 state — completed, not the current comparison roster
-
-## Current authoritative state 2026-10-14: D512 complete and backed up
-
-Outcome checkpoint e8b88dca93bece05e7749eb0f8218fb61ce75db5 PUSHED and remote-equal,
-verified by RAW/backup_result_receipt.json. Backup9 actual recursive-empty closure
-also complete; its captured path is gone. Do not repeat D512 launch, analysis,
-curation or outcome backup. This local status update is the post-backup handoff.
-
-D512 original1000 prefix completed ONCE. Actual launch PASS/native GPU release/
-service-path removal, all1000 terminal/native contracts complete, failure0.
-Exact-owned remote services/monitor stopped AFTER localrelease; logs downloaded
-with remote SHA, local start4/serviceaux and collection5 actually empty closed.
-Analysis6 and operation7 also actual recursive-empty closed (660807680/48947200B
-peak, all memoryevents/swap0). No live GPU run; no inference restart in analysis.
-Source1088c48fa272a3b182ac6db844a12cf3c40f4a00ccc9f8d6f077a1d800e97652,
-77615074B. Native count/input/content/lease/physical checks PASS; independent
-numerical n_correct remains null. 10/10 complete uncapped observer journals,
-1000/1000 request coverage,231722 completedspans. 119 existing analysis tests PASS.
-Servicepeak21803249664B/minhost92132245504B,1181samples,high/max/OOM/OOMkill/swap0.
-60remotefetches/74953014wireB,0requestpacking; launchlink1000Mb/s/full.
-
-Read D512_NATIVE_CORE_DIAGNOSTIC_RESULT.md. Work utility costs remain material:
-source_snapshot698calls/94.010s,prepare_host415/93.248s,routing_snapshot577/41.866s;
-~99% threadCPU/wall. Totalworkclient358.062s vsidle-entry306.561s, acrossprocesses,
-NOT directly subtractable request latency/GPU-s. Observer60.942s includeswrite48.528s.
-Diagnosticmean/P95TTFT2151.407/13272.553ms,TPOT34.336/64.168ms,U3905.398137;
-NOT an ordinary full4000 candidate, no comparison/speedup inferred. D394 frozen
-thresholds used; legacy analyzer phrase 'provisional ruler' inaccurate for this run,
-explicitly corrected in resultdoc/curatedsummary without overwriting rawanalysis.
-
-Latest user asks publication venues and objective/industry norms. Read
-BASELINE_PUBLICATIONS_AND_OPTIMALITY_20261014.md. Officialmainconference records:
-vLLM/PagedAttention SOSP2023;S-LoRA MLSys2024;ServerlessLLM OSDI2024;
-HydraServe NSDI2026;Loquetier NeurIPS2025;dLoRA OSDI2024. ElasticLocality is an
-INTERNAL control, not a published external baseline; retain it despite stronger
-resource results. Venue does not prove adaptation correctness. CurrentvLLM0.30
-is not identicalto2023release. G1/G2unchanged; minimumGPU-s is NOT minimumGPU
-utilization. MLPerf/DistServe support quality-constrained efficiency, but this
-project's95%/75%/warmmultipliers are NOT a universal industry standard/certification.
-
-Resultcuration8 completed reused D511 boundedarchive/source/protected/test workflow:
-128 CPU tests PASS, protected147/userdirt/sourcechecks PASS,98140B archive roundtrip
-PASS; actual recursiveempty closed,peak652222464B/events0/swap0. Resultmanifest
-c7013262c71e3afa9dcfa95eafba277be87d6e1844ca36407f81d096cad4e567 in
-paper_results/ieee_tc/p2_backend/d512_native_core/result1. Explicit outcome backup
-uses RAW/backup_result.py; actual backup_result_receipt/closure determine success.
-After tested result/doc backup, NEXT ONLY: one evidence-driven formula-preserving
-PrimeLoRA optimization from current control costs. Inspect fresh physical graph
-construction/consumer dependencies and historical D329/D352/D355/D474 counterexamples;
-no crosscall identity/pinning cache, missing physical proof, blindcapacity/cooldown
-change, or repeated diagnostic without newhypothesis. If no safe redundantwork is
-proved, inspect native iterationcomposition. Minimalvalidation then one ordinary
-fullreplay. D510 seven-system baseline comparison already COMPLETE; no need to
-restart HydraServe/basicsetup or repeat its fullrun. Baseline defects still require
-necessary adaptation when supported, not performance tuning/search.
-
-Full goalACTIVE:7B W1/W2/G2/commonrefs;3Boptimization/allbaselines;dLoRA3BB6;
-A1–A5,S1–S13,cost/CE,reviewdocs,finalfigures. Nineformulas/frozenmetrics/single-run/
-storage+OOMgates/protected147/userdirt preserved. No figures yet. The following
-RUNNING/prepared notes are historical, not current process state.
-
-## Actual live state 2026-10-14 01:34 CST
-
-D512 actually launched once at01:33CST after backup/source/resource/protected
-gates and explicitly awaited remote start/authenticated health PASS. MAIN HEAD
-f5bf24c7ef1e9a934eb7becb5e4e044d605ce441 pushed/remote-equal; BASE09baa937
-unchanged. CPU1–3 actual recursively empty scopes closed, resources/events saved.
-tmux tc-d512-coreprefix1 pane3815771 ALIVE; do not relaunch or interpret this
-status as completed. Service aa9cd657a4204195a871026b43eb24cc.scope Invocation
-446beff7ce144a15b5f4efc6d42499f9,inode24366662; service_aux73227bfe951a4131bd08846e798eec4d
-Invocation0c73bdd611274bcb97e172d355ed89d8,inode24366620 captured in RAW.
-Notice1420081.471460440,replayt0=1420141.471460440,original1000 prefix identity
-verified by actual launch. Remote1000Mb/s/full, publishedgzip; no remote changes
-while live. Last watchdog MemAvailable103872331776B,service8272945152B,
-memory.high/max/OOM/OOMkill/swap0,warningfalse/noabort. Not a result.
-NEXT: lightweight progress/watchdog checks only until actual localrelease.
-No hashscan/test/build/compression/backup/secondrun during inference. Existing
-RAW/close_after_release.py and collect_closure.py own exact start+serviceaux
-closure and remote stop/download AFTER verified native GPU release. Run those
-in a new bounded auxiliary scope, preserve that scope's actual identity and
-close it via RAW/close.py collection. If launch fails, retain failure and use
-failure-aware closure rather than success-only helpers. Then full native/source
-audit and D351 timing analysis with current D394 thresholds; not G1/G2ranking.
-All fullscope remainsACTIVE. The following prepared paragraphs are historical.
-
-Continuation actual live check: same tmux/pane3815771 alive, watchdog sample761,
-561 terminal journal records; MemAvailable94.5564GiB/service11.3691GiB,
-warningfalse/noabort. This is a VERIFIED WAIT, not stopped/completed. No runtime
-code/config/remote changes, new inference, tests, hashes or backup whilelive.
-Prepared-only RAW/analyze_prefix.py reuses D351 audit/core-span partition with
-D476 streaming outcome selection and D394 frozen thresholds (group labels are
-enumeration only); cross_contract.py reuses D476 with D434 exact1000 witness.
-RAW/run_analysis.py requires completed collection_closure/native release/remote
-stop and runs reused CPUtests then analysis. summarize_operations.py reuses D351
-operation aggregation after analysis_closure. These four helpers and
-close_analysis.py are NOT executed/tested yet. Review them before execution;
-they neither alter serving code nor replace the launch-frozen helpers.
-After completion: collection in newboundedaux5 -> close.py collection ->
-run_analysis.py in newboundedaux6 -> close_analysis.py analysis ->
-summarize_operations.py in newboundedaux7 -> close_analysis.py operation.
-Preserve any failure/partial output; no repeated GPU run for analysis errors.
-
-## Current main line 2026-10-14: D512 CPU-qualified, checkpoint/launch pending
-
-D510 seven-system comparison and D511 diagnosis COMPLETE and backed up.
-D512 is ONE current-D476 original1000-prefix host_spans_v1 diagnostic, not a
-performance candidate. Read D512_CURRENT_NATIVE_CORE_DIAGNOSTIC.md. Only three
-exclusive paths and exact existing-runner/wrapper registration added; faaslora,
-main runner/preflight/analyzer remain byte-identical to D476 production commit.
-Original view0a5dfcf...0981/60logicalIDs/122510targettokens; no new inputs/profile/
-policy/SLO or frames. CPU tests/source/protected qualification and checkpoint
-must pass before awaited remote health/resource gates and ONE tmux launch.
-54 CPU tests PASS; original1000 exact source/native view, three-path-only config,
-unchanged production, installed native source SHA, protected147/userdirt/PLAN/
-metric SHA checks PASS. CPU/qualification actual recursive-empty closure checked
-before backup; no GPU run launched at this writing, no new performance result.
-RAW originalresults/ieee_tc/p2_backend_qualification/d512_20261014. Qualification
-manifest in paper_results/ieee_tc/p2_backend/d512_native_core; next actual receipt
-determines state. Do not restart from a tool timeout or reuse old timing fractions.
-After realrelease collect exact local/remote closure, native audit and reused D351
-timing analysis under current D394 thresholds. Then ONE evidence-backed change
-and fullreplay. Whole remaining scope below stays ACTIVE; no figures yet.
-
-## Prior D511 result and decision (completed)
-
-## Current main line 2026-10-14: D511 retained analysis, no live GPU run
-
-D510 faithful HydraServe full4000 and seven-system comparison COMPLETE; both
-repositories backed up. CPU21/22 actual recursive-empty closure receipts checked,
-their captured cgroup paths are gone; no need to rerun closure or D510 analysis.
-D511 reuses D476 all4000, D473 stage primitive and D454 control/physical projection.
-Read D511_RETAINED_W0_RESOURCE_GAP.md. Full request identity error0ms, sealed
-mean/P95 unchanged. Resource excess vsElasticLocality885.732932GPU-s comes from
-arrival+1036.372380, pre-arrival-11.618342, drain-.292848, cleanup-138.728257.
-MeanE2E excess583.489529ms includes decode+467.140437; permitwait is222.287323ms
-LOWER, so no evidence for simply increasing capacity. Not causal attribution.
-Raw results/ieee_tc/main_comparison/d511_20261014; summary/requests/controls saved.
-128 CPU tests PASS. Analysis/curation scoped3/4GiB/swap0/CPU2,3,26,27/CUDAhidden;
-actual recursive-empty closures COMPLETE, peaks148676608/712982528B, events0.
-Protected147/userdirt unchanged; 1,035,995B archive member SHA roundtrip PASS.
-Checkpoint push receipt recorded in RAW/backup_receipt.json after actual success.
-Production faaslora and main preflight/runner unchanged from D476 sourcecommit.
-
-NEXT ONLY: preregister and run ONE current-D476 original1000-prefix native core
-host_spans_v1 diagnostic, reusing D351 CoreHostTiming/analyzer + protected runner.
-No old frameobserver, new policy/profile/capacity/SLO, baseline rerun or newinput.
-Compare exact current utility threadCPU/host spans with model-step/request windows;
-do not reuse old D351/D456 proportions as current measurement. If utility does not
-explain current pauses, stop mechanical snapshot refinements and examine iteration
-composition. Diagnostic is NOT ordinary performance result or full G1/G2point.
-This next diagnostic is NOT prepared/launched yet; do not claim running.
-Then one evidenced formula-preserving optimization, validation and one fullreplay.
-Read full PLAN/metrics and mainline rules; all remaining scope below stays ACTIVE.
-
-## Prior completed D510 result (not an unfinished task)
-
-## Current state 2026-10-14: D510 complete, no live GPU experiment
-
-Actual tmuxprimelora-d510 pane3487006 deadexit0. Full4000 offered/arrived/terminal/
-nativecontractresponses,0failures,458224actualtokens,132actualIDs. Frozen full
-input/native/content/remote/clock/physical audit PASS. 132remote transfers,
-131480060wireB; requestpackingfalse. All34nativeworkers pp1/destpp1/batch8;
-34acquire/spawn/nativecontext/release. Physicalunion9662.152610210469GPU-s,
-windows0/9450.354225911666/20.74031947203912/191.05806482676417. Actualnative
-retirement+localservice/aux9/ownedremotesreleasePASS; portsabsent/logSHAmatched.
-Peak51459432448B,high/max/OOM/OOMkill/swap0. Independentnumericalproof stillOPEN,
-rawn_correctnull; knownpoollimitations andD50996equal/4changed audit retained.
-
-HydraServe joint2749/4000=68.725%,TTFTattainment89.775%,TPOTconditional74.675%.
-Mean/P95TTFT1505.568643/8851.575365ms; mean/P95TPOT69.883999/108.214275ms;
-meanE2E8863.097021ms;GPU-s/boundrequest2.4155381525526174. NONFEASIBLE under
-theunchanged95%commonSLO; noteligibleaslowestresourcefeasiblepoint. No newtuning,
-deadlinechange or replay. Fullpipeline/consolidation remainsunproved (allpp1).
-
-Completed301-source seven-system join;4000exactworkmatches/SHA384b63425402ced97961e91081265d3cbe340b6a3b4febde242de28f62cd7399.
-PrimeLoRA D476 .97425/2.694612200556614/2315.363336ms;
-ServerlessLLM D414 .98125/4.022440686/1052.246361ms;
-vLLM D423 .99475/4.028844291/1200.506860ms;
-S-LoRA D435 .94425/3.789269468/17699.067366ms nonfeasible;
-Loquetier D445 .0435/4.249595809/555110.032229ms nonfeasible;
-ElasticLocality D453 .95775/2.473178968/2420.607829ms;
-HydraServe D510 .68725/2.415538153/8851.575365ms nonfeasible.
-FeasibleresourceorderElasticLocality,PrimeLoRA,ServerlessLLM,vLLM. PrimeLoRA
-uses8.9534%moreGPUtime thanElasticLocality, joint+1.65pp,tail4.3479%lower.
-NOTbestresource; nextoptimization mustaddressactualgap, notdropstrongercontrol.
-
-RAWd510_20261013/full_w0_evaluation.json andfull_seven_system_comparison.json.
-BASEdocs/ieee_tc/D510_HYDRASERVE_FULL_W0_RESULT.md. Finalsuccessfulanalysis:
-compare_final.py ->comparison_executed_final.py under existing
-/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python (ijson installed).
-Previous6analysisfailures retained in comparison_attempt*_failure.json andscripts;
-they didNOTrerunGPU/changeanymeasurement. Complete217historicalrefinventory found
-exactly4differences:2laterupdatedtrackedfiles,2gziplogs. ExacthistoricalGitbytes/
-decompressedSHAverified; nohashbypass. CPU10–18actualemptyclosurescomplete.
-
-Full2176-filelocalarchive23036330B SHA61841675d6099ecd3873ea06d4f6aa70a8316bb5cc93835f7c423aa7d56f5f37
-atBASEpaper_results/ieee_tc/hydraserve/d510_result/full_w0_evidence.tar.gz.
-LargearchiveLOCALONLY; neverstage. Fullsummary.json/source/SHAroundtripverified.
-Compact2167-filearchive2610697B SHA5761bcfcad66b80c2254a550333cac1966845cd49fe249fed32c1c8a37d346f7
-andcuratedsummary+resultdoc pushedBASE09baa9379bdc3518f18f408d2cad3763c2754554,
-remote-equal; fresh100CPUtests/source/protected147/userdirt/diff/secretsPASS.
-Exact2.49MiBcuratedarchive alone permitted abovegeneric2MiBpublishingguard,
-withEXACTsize/SHAandallmember/secretschecks; noexperimentthresholdchanged.
-UseRAWbackup_result_verified.py; originalbackup_result.py retainsgeneric2MiBguard.
-MAINpaper_results/ieee_tc/main_comparison/d510_7b_w0/comparison.json +delivery.json
-are byte/source-bound publications. Check actual result_backup_main_receipt.json
-for this status/publication commit and remote equality; no self-referential hash.
-CPU19/20actualemptyclosed; BASEbackup21 andMAINbackup22 closure receipts are
-complete and were verified during D511. Both captured paths are absent.
-Nextmainline: resumePrimeLoRA optimization fromD476 vsElasticLocality gap: historicalstage
-andlifecyclelogs+officialsources+falsifiablehypothesis, nineformulas/commonmetrics
-unchanged. No newHydraServeperformance search; additionaldiagnosis onlyifactual
-unresolvedadaptationdefectisfound. No otherheavyjobcurrentlyrunning.
-All7B/3B/W1/W2/G2/A1–A5/S1–S13/cost/docs/finalfigures scope remainsACTIVE.
-
-## Historical D510 launch/progress notes — not current RUNNING state
-
-ACTUALLY LAUNCHED2026-10-13 23:28 CST; tmuxprimelora-d510 pane3487006 alive.
-Continuation verified live through watchdog sample680: terminal_count504 with
-latest native responses req_00497/req_00507; not full-result validation. Host
-MemAvailable61.314GiB, service44.035GiB, memory.high/max/OOM/OOMkill/swap0;
-watchdog warningfalse/noabort. This is a verified wait on the SAME live tmux/PID,
-not stopped/blocked and not permission to launch a repeat. Read fresh actual
-state next; all result analysis/backups remain deferred until physical release.
-Newer actual live check sample1671: terminal_count1614, tmuxpane3487006 alive,
-MemAvailable62.385GiB/service44.545GiB, memoryevents0/noabort. RAWcompare_full.py
-prepared but NEVERexecuted/tested whilelive. It reuses D454/D476 matched contract
-and comparison primitives, preserves common refs/all rows/unknown numerical
-qualification, and refuses liveGPU or incomplete audit. Review/test/run only
-after full audit+physicalrelease; result guards intentionally reject missing
-evidence. Not a new experiment or a performance result. No remotechanges/builds/
-hashscans/testjobs during this continuation; only source-interface reads and
-postrun comparison-script preparation alongside lightweight live monitoring.
-Prelaunch MAINa2d9b4ed22d1afcd0fb17e660596b4983f5a55a0 pushed/remote-equal.
-BASE1cca200a60e50ad36a9dc64bad860a8710697f74. CPU1–5 actualemptyclosed.
-Remote start explicitly awaited, both authenticated health+protected/source/resource
-PASS read before launch. Actual remote1000Mb/s/full; no remote maintenance whilelive.
-Serviceprimelora-tc-svc-8429a4e739e94a559817063d7a03bb84.scope,
-Invocationefcc68297fa4426bbf35fa5acb69135f,inode24304339.
-Aux9Invocation7707322c68984389911b7566eda4856f. Notice1412566.961854170,
-replayt0=1412626.961854170. Native CPUprovider/private storage/original Scheduler
-started; full4000 publisher plan matches. This is NOT a completed outcome.
-Current action: read lightweight progress/watchdog only; no hashes/tests/compression/
-backups/builds/secondrun while inference live. run_and_close.sh owns normal native
-retirement, localactualclosure and then exact-owned remote stop/collection.
-On terminal inspect actual tmux/launch/localrelease/remoteclosure, do not infer
-completion from a tool timeout. Success audit only if fullcontract and releases
-complete; otherwise preserve failure and use failure-aware audit. Then curate/back
-up result and compare all available baselines before any PrimeLoRA candidate.
-The prepared-not-launched paragraphs below describe the immutable prereg checkpoint.
-
-D509 result backup completed: BASEf3d3f7fb802f30480ea8827060668a3361fd6194,
-MAINd9357fdcd088c6d3cf748c8ff8b9e3b308a2e121, both pushed/remote-equal.
-CPU14/15 actual recursive-empty closure receipts exist; do not repeat closure.
-D510 RAW originalresults/ieee_tc/hydraserve_qualification/d510_20261013.
-Prepared ONLY, no GPU run yet. Original D507 full4000 HTTP config byte-identical;
-16 overlays exactly equal D509. Native runtime/Model batch8/cancellation ownership,
-original Scheduler/model tuple/cache/idle30/notice60/requestguard1800 unchanged.
-Preregistration SHA3b657909f488d5a4d3e008ebd2a0e004d7f1e0e4609d1daf8644d5c0e53d360a.
-Full view SHAa5331be2e2204483f18206825d9aaa18cbaa259fe0babfc303f989055819430d.
-Numerical qualification remains open; same-backend D509 96equal/4changed audit
-retained, raw n_correctnull. No new tuning, data, short qualification or k3s access.
-Read BASEdocs/ieee_tc/D510_HYDRASERVE_FULL_W0.md.
-Prelaunch BASEbackup1cca200a60e50ad36a9dc64bad860a8710697f74 pushed/remote-equal;
-100 CPU tests, protected147/source/user-dirt/diff/secrets/archive roundtrip PASS.
-85-file prelaunch archive251578B; no runtime policy change or GPU experiment yet.
-Next: small preregistration backup + explicit awaited remote start/health/protected/
-source/resource PASS + actual CPU closure, ONE tmux full4000 run, real local/remote
-release, complete or failure-aware audit. Then full available baseline comparison
-using latest PrimeLoRA D476, then PrimeLoRA optimization. Full remaining scope below.
-Prior D509 NEXT clauses below are historical; do not repeat its preparation/audits.
-
-Updated2026-10-13. Previous status preserved BYTE-FOR-BYTE in
-EXECUTION_HISTORY_THROUGH_D508.md. Older histories remain intact; their RUNNING/
-NEXT notes are historical. Full approved scope is retained below and in PLAN.
-
-## Authority and main line
-
-Read FULL /home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md and this file before
-work/after compaction/before experiments. PLAN SHA
-f851e6da5237cb706f5a167dd1180984d5d02694fa6568f1720e0e5aada0b1f5.
-Read STORAGE_PRIORITY_20261013.md, BASELINE_COMPLETION_ORDER_20261012.md,
-BASELINE_EXECUTION_RULES_20261011.md. D483 maintenance already completed;
-do not repeatedly broad-scan. Latest order: faithful HydraServe actual result ->
-all available baseline comparison -> PrimeLoRA optimization.
+# IEEE TC execution status — D520 CPU metadata lowering
+
+Updated2026-10-14. Prior status preserved BYTE-FOR-BYTE in
+EXECUTION_HISTORY_THROUGH_D519.md, SHA
+e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
+Older RUNNING/NEXT paragraphs there are historical, not current process state.
+
+## Current authoritative handoff
+
+D519 outcome4e272a8be91db44ab1c6e10d2a91e7e7d1609d4a pushed/remote-equal.
+D520 read source/history and added ONLY an unintegrated pure CPU metadata helper
+faaslora/utils/lora_metadata.py + tests. No serving caller, no installed dependency
+edit, no allocator/policy/SLO change, no GPU/remote/k3s operation.
+Read D520_NATIVE_METADATA_DEPENDENCY.md. Official native mapping currently makes
+GPU reductions/unique and CPU branches from information already present on CPU.
+Avoiding that round trip is a new falsifiable hypothesis, not a proved speedup.
+High host-free driver time may overlap waiting; do NOT restore unlimited cache,
+sweep thresholds, subtract it from step time or repeat D56–60.
+
+D520 CPU qualification COMPLETE:311tests PASS/0fail/error/skip,96 actual installed
+Torch2.13 CPU kernel-metadata oracle cases, five officialv0.30 files byte-identical.
+CPU scope actualrecursiveempty closed/pathgone; peak3112230912B,events0/swap0.
+Raw results/ieee_tc/p2_backend_qualification/d520_20261014; curated
+paper_results/ieee_tc/p2_backend/d520_metadata_lowering/cpu_qualification.json.
+Explicit tested checkpoint backup NEXT; actual backup_receipt/closure establish
+completion. Do not rerun completed qualification. No live inference or CPU job.
+
+NEXT ONE: complete the device-publication/lifetime contract and integrate this
+candidate via existing worker extension, explicit versioned dense V2 strategy.
+Keep native activation/LRU/current-slot invalidation/references/admission and IEEE
+nine equations. Stable GPU buffer addresses/dtypes/graph bindings; same native
+execution stream. Bounded pinned staging ownership must prevent overwrite until
+actual copy completion and count bytes in existing HOST/cgroup budgets. No
+unbounded cache, speculative free-byte credit or fallback to guessed slots.
+Minimal native metadata/graph/nonzero-LoRA qualification, then ONE ordinary
+original4000 W0 with frozen D476 config and this sole change if qualified.
+Do not launch a new D519 diagnostic or baseline replay. No runtime integration,
+new config or GPU qualification is prepared yet. Full goal ACTIVE.
+
+## Authority and execution rules
+
+Read FULL /home/qhq/storage_audit_20260915/PrimeLoRA-PLAN.md and this status before
+work/after compaction/before experiment. PLAN SHA
+d7acd08127d4f4513b23af6dd57a9647cf047570f2b563e361e716ccb0b32b83.
+Also read STORAGE_PRIORITY_20261013.md,BASELINE_COMPLETION_ORDER_20261012.md,
+BASELINE_EXECUTION_RULES_20261011.md,BASELINE_SCOPE_20261014.md,
+SLO_BUDGET_RATIONALE_20261014.md. D483 storage maintenance DONE; do not repeat
+broadscans. HydraServe necessary adaptation/full4000 D510 DONE; do not restart it.
+Shared k3s belongs to another project: no service, credential, permission or
+resource changes. Qualified HydraServe isolated rootless Podman path retained.
+
+Published comparison: PrimeLoRA, vLLM(SOSP2023), S-LoRA(MLSys2024),
+ServerlessLLM(OSDI2024), HydraServe(NSDI2026), Loquetier(NeurIPS2025).
+dLoRA(OSDI2024) only3BW1/W2. ElasticLocality is ONLY a composite ablation,
+not baseline/internal-strong-control; historical stronger results retained.
+Do not relabel/remove failures or infer improvement from changing the roster.
 Only necessary baseline compatibility/correctness/measurement/safety adaptation;
-no performance sweeps. Abnormally poor results require adaptation review.
-Existing k3s belongs to another project: NO access/credential/resource changes.
-Isolated rootless Podman path authorized; keep official backend/Scheduler/
-placement/pipeline/startup overlap/consolidation, no fake nodes/Ready.
-G1/G2 frozen V1 + single-run V2; one performance run/key, no CI/winner filtering.
-One heavy job, no build/hash/compression/remote changes during inference.
-Figures deferred until PrimeLoRA near target; paper-evidence Chinese updates.
+no performance sweeps. Abnormal results still require evidence-based defect review.
 
-## D509 completed affected GPU qualification — NOT a full W0 result
+One performance run/frozenkey; no CI/repeat means/winner filtering. Full names
+PrimeLoRA/ServerlessLLM. Figures deferred until near target. Chinese updates as
+paper evidence: completed/current scientific question/remaining experiments.
+No new weights/traces/pools/13B/SGLang/paper source edits/history overwrite.
+Use existing runners/environments. CPU metadata fixtures are not new workloads.
 
-BASEf3d3f7fb802f30480ea8827060668a3361fd6194 PUSHED/remote-equal.
-MAIN precedingd2b0c1bb15bbfbb12a1d7250d91a32da1f65ff68; outcome backup follows.
-Read BASEdocs/ieee_tc/D509_HYDRASERVE_GPU_RESULT.md.
-RAW originalresults/ieee_tc/hydraserve_qualification/d509_20261013.
+## Retained D519 evidence (not a new performance point)
 
-ACTUAL100/100 offered/terminal/native-contract responses,0failed,29actualIDs,
-29remote transfers50,650,865wireB, allmatched/content/clock/index/path/nativecount
-qualified. Original two pp1 workers onONEhost: distinct-adapter decode peak8/3,
-requestpeak8/3,crossadapteroverlappingpairs377/14. Nativecontrolleractualbatch8,
-16overlays exactlyequalD508qualifiedmanifest; both optins enabled. Actualmemory
-nativeGPUworkers814KVblocks/512CPUblocks; peakused21,708,472,320/21,467,299,840B.
-No baselinepolicy/performance search, newinput or changeddeadline. No forcedcancel.
+Production main runner restored byte-identicalD476 db44e8f068eb30c69466f32ad3d147ffbc45f9e2.
+Only D518 opt-in component observer differs in existing serving modules.
+ONE1000 diagnostic finished nativecontracts1000/0failure/122510tokens;
+independent numerical n_correct remainsnull. All11allocationsreleased; remote
+60fetch/74953014wireB/packing0. Servicepeak20621922304B/events0/swap0.
+Full component qualification FAILED due64MiB cap in primaryprocess,10/11journals
+complete,279/1000 whole-process request coverage. Partial analysis explicitly
+retains47038 realclosedsteps;1orphan not imputed. Do NOT repeat analysis/GPU.
+45513single-token steps:mean23.669581ms/threadCPU7.468172,allocation.125878,
+backgroundfree10.206529,input.919288,LoRAactivation2.100393,scheduler.230154.
+987multitoken:step83.052146/CPU82.809049,execute80.685168/LoRA22.072073.
+Nested notadditive; no puredecode/prefill/GPUidle inference.
+Sourceaf2c2680e375c3c5d14720a810d30d9e6892852b7951fcdb6e1522083005e7b1.
+Resultmanifest21c9299fee58c93e993dc7c4e03b244e6a290de243c1b501c0bf23be389c5f0e.
+Result doc D519_STEP_DIAGNOSTIC_RESULT.md and result1 evidence remain immutable.
 
-Mean/P95TTFT1305.267096/8406.227326ms; TPOT57.773865/67.424540ms;
-meanE2E11330.732935ms. Actualphysicalunion429.210687706GPU-s; windows
-pre0/arrival310.338267300/drain25.070555705/cleanup93.801864702. Independent
-input/remote/native/physical audit PASS. This100prefix isNOTfullW0 or G1/G2point.
-Do not extrapolate its resource/latency to4000 or use it as finalcomparisontable.
+D516 rejected source-query candidate:4000nativecontracts, joint94.775%<95,
+U11011.303222888382,2.752825806/request, P95TTFT3321.357967ms. Not accepted;
+not proof of causal harm from one run. RestoredD476, no repeats.
+D517/D518/D519 diagnoses/qualifications/backups completed; do not redo them.
 
-Same-native D503 matched100prefix:96outputsequencesequal,4changed.
-req_00008/research_lora_0008:2positions;req_00059/finance_lora:2;
-req_00073/code_lora_0015:6;req_00084/finance_lora:2;allfirstdifferingatindex37.
-Canonicalinput/adapter/target/nativecount unchanged. Fullold/newsequences and
-SHA in same_backend_output_comparison.json. Numericcause NOT independentlyproved;
-do not assert bitwiseequivalence or silently discarddifferences. Existingnonzero
-witnessreq_00000/req_00021 stillmatchD502. PerV1 numericalqualification remainsOPEN/
-rawn_correctnull, not a newcross-backendexact-token requirement. Fullpipeline/
-KV/consolidation remainOPEN; actualpp1qualification alone doesn'tprovethem.
+## Frozen evaluation and sealed 7B W0
 
-tmuxprimelora-d509 pane3420391 deadexit0. Actualnative30sidleretirement released
-bothworkers; provider/storage/pause/service/GPUcontexts gone. ServiceInvocation
-20d43e791cd94837ad58dce1e3d4f6b4,inode24289995; aux9Invocation
-0743f1bec6994daca69d288bb6377133,inode24289953 actuallyemptyclosed.
-334watchdog samples,servicepeak45,248,995,328B; high/max/OOM/OOMkill/swap0.
-Exact-ownedremote3B/7B/monitor stopped AFTERlocalrelease,portsabsent/logSHAmatched.
-Remoteactual1000Mb/s/fullbeforelaunch; start+authenticatedhealth/source/protected/
-resource gates were explicitlyreadPASS beforelaunch; no remotechangesduringrun.
-CPU1–8/10–13actuallyemptyclosed; resultcuration13peak27,021,312B/events0/swap0.
-BASEbackup14closure andMAINoutcomebackup15 handledseparately. No liveGPUjob.
-
-384file1,194,150B resultarchive roundtripSHA:
-BASEpaper_results/ieee_tc/hydraserve/d509_result/affected_gpu_evidence.tar.gz,
-SHAab62e2940e30ad2ac5e3a0cc3b18236585727db957767abfeaad7f690d99c97d.
-summary.json/source/protected147/userdirt/vendorclean/fresh100CPUtests/diff/secrets
-andexplicitBASEpush gatesPASS. Priorprepared d509/258337Barchive staysimmutable.
-Use backup_verified.py for outcome backup (directD480reuse); intermediate
-backup_result.py was neverexecuted and has unsafe stringindex transformation,
-retainit as unusedpreparationartifact, doNOTexecute. All runtime sourcesunchanged.
-
-D509 preparation also removed5staleD507containers afterlogs/statebackup+actual
-PID/cgroupabsence. Firstremoved3workers thenstorage dependencyrefusal; laterstrict
-State/ConmonPidassumptions failed onreapedrecords. Finalprovider-before-storage
-cleanup succeeded; allfailedscripts/receipts retained. No oldreleasebackfill,
-unknownprocesskill, broadprune, k3saccess or uniqueassetdeletion.
-
-NEXT MAIN-LINE: closebackup14/15, then prepare ONE newfull4000HydraServe(D510)
-reusing D509 qualified recipe + D507 originalfullHTTPconfig/view. Change only
-population/campaignidentity, retain D508bothoptins/nativebatchassertions, Modeltuple
-(13,9000,200,1000000,1),cache0,idle30,common1800guard/60snotice/resource/physical/
-realremotecontract. No new100->500->1000ladder or repeated imports/setup.
-Freeze fullprereg/source,back up,explicitlyawait/read remote_start+health/resource
-gates and actualCPUclosure beforelaunch. Keepqualification/developmentidentity/
-rawn_correctnull, deriveV1bindingaccounting observation onlyafteractualfullaudit.
-PriorD507strictaudit.py canreusewithnewpreregSHA oncecomplete; failedrun mustuse
-failure-awareaudit instead. Do not rerunD509prepare/launch/audit/curation.
-ThenallavailablebaselinecomparisonwithlatestPrimeLoRAD476 ->PrimeLoRAoptimization.
-Whole7B/3B/W1/W2/G2/A1–A5/S1–S13/cost/docs/finalfigures scope remainsACTIVE.
-Freshlastdisk178,909,433,856B(~166.6GiB),MemAvailable112,369,168,384B; gatefreshagain.
-
-## D508 completed necessary adaptations — CPU-qualified, GPU pending
-
-BASE5a8e65fffcf91beb646ca7843789303dc142f511, MAIN48d866c2bdaec1cf730daeb81e7908b9fe65f457.
-Both backups and CPU1–7 exact-empty closures COMPLETE (old status pending notes
-were historical). Read BASEdocs/ieee_tc/D508_HYDRASERVE_ADAPTATION_OWNERSHIP_CAPACITY.md.
-100 fullCPUtests +36 actualnativePython3.10 targetedtests passed.
-Single shielded output-stream owner preserves per-chunk off-loop iteration;
-cancel waits pending next, closes once then propagates. Queue-only cancel removes
-that request; assigned-before-chat cancel closes unstarted coroutine/releases
-once; started chat retains native release ownership. No instantaneous GPU cancel
-claim, timeout increase or scheduling policy change.
-max_loras=source-pinned native Model.batch8 * current PP_SIZE on ALL3EngineArgs
-sites; max_cpu_loras native None follows max_loras. Not500cache, no rank/
-max_num_seqs/LRU changes. Reused destination slots may retain larger capacity.
-Official worker/executor code allocates LoRA before actual free-memory/KV
-calculation; this is NOT actual GPU memory proof.
-Initial ambiguous source-splice CPU failure retained then exact-anchor fix passed.
-65-file175118B adaptation_evidence.tar.gz/summary in BASEpaper_results/.../d508.
-Native sources fetched pinned byte-identical. No baseline performance claim.
-
-## D507 failed full4000 — sealed, never overwrite or promote
-
-BASE988f7662b6282c925dee08a7c72ee2ce20a532b2 and MAIN49d54a40e91381d165f1f99b9db65f28657f67ca.
-N_plan/arrived/submitted/terminal4000;3876native-contract responses,124timeouts.
-6/4000 jointSLO, raw n_correctnull. 105 concurrentgenerator.close errors AFTER
-clienttimeouts;3632 responses beforefirsttimeout. In those, each worker's distinct
-adapter decode overlappeak1, crossadapterpairs0; sameadapterpeak5/5/6/5.
-Actual backend max_loras1 vs nativeadmission8 supports D508 capacity hypothesis,
-not proof that it explains ALL slowness. Poorpretimeoutqueuing is real.
-Mean/P95TTFT980772.5333/1760019.5060ms, TPOT62.5442/80.0316ms,
-E2E987809.9242/1769381.2292ms;not faithful qualified final baseline.
-132remote transfers131480060wireB allmatched incl5failed firsttouchrequests.
-105 cancellation errors may affect late responses/retirement; do not accept
-abnormal baseline result automatically under no-performance-search rule.
-Physical ledger4acquires/1release: exactUunknown. Auditedlower22932.369175774,
-conservative recoveryupper24496.389781413GPU-s, NOT precise ranking value.
-Original60sclosure failed,hard_killtrue/releasedfalse;actual recovery separate,
-not backdated. All localGPU/scopes and exact-ownedremote closed. NoGPUrunlive.
-Failure-aware audit passed; success-only audit.py intentionally NEVER executed.
-613file31,630,351B fullarchive localONLY;602file1,523,017Bcompactarchive backedup.
-Originalresults/ieee_tc/hydraserve_qualification/d507_20261013 preserved.
-CPU1–17 completed/closed as receipts; five stalePodman records now removedD509.
-
-## Reusable preceding qualification / comparison entrypoints
-
-D503100prefix/D504500-IDcoverage/D5051000prefix succeeded native binding/count/
-remote/clock/physicalclosure, not independent numerical proof. D506full attempt
-invalid due OUR per-container1800sTTL, removedD507 (requestguard unchanged).
-D491 nonzero layer arithmetic passed; full pipeline/KV/consolidation remainsOPEN.
-Do not repeat install/basicCUDA/tokenizer/provider setup; limitations below.
-D509 first100 validation reuses all unaffected input/metadata qualifications.
-
-MAINpaper_results/ieee_tc/main_comparison/d454_7b_w0/comparison.json includes OLD
-PrimeLoRA D371; latestcandidate in paper_results/ieee_tc/p2_backend/d476_full_w0/
-matched_comparison.json (candidate,previous_six_system_results,reference,refs).
-MatchedrequestcontractSHA384b63425402ced97961e91081265d3cbe340b6a3b4febde242de28f62cd7399,
-458224nativeoutputtokens/132actualIDs. Reuse scripts/ieee_tc/check_d299_full_context.py
-matched_* primitives and originalresults/.../p2_backend_qualification/d476_20261012/
-compare_curate.py. Same nominal W0 alone is NOT contract matching.
-HydraServe full faithful result/audit required before new comparison/PrimeLoRA.
-
-## Qualified components and reusable environment (don't redo)
-
-BASE/vendor_new_baselines/HydraServe_main_20260520 cleanHEAD
-8ae605de354ccfa2e9095514cdb4a9e9c56aa56b. D480/D481/D491 sourcepinned overlays.
-BASE/installs/hydraserve_native_d484_20261013: Python3.10,Torch2.3.0+cu121,
-xformers0.0.26.post1,Transformers4.43.1,flash_attn2.5.8/Torch2.3/cp310/ABIfalse,
-Triton2.3.0,Ray2.9.3,nativevllm0.4.2 originalPython+ownD485kernels.
-ReadonlyPythonbase anaconda3/envs/hydraserve_py_20260520; readonlyCUDA12.4.131
-andnvidia namespace from slinfer_official_20260612. Neverpip-upgrade sharednamespace.
-D486private_home/.config/vllm/nccl/cu12/libnccl.so.2.18.1 SHA
-005503b62b9fe466b6b2f60ba2ad1daa4571196ffcb82a3d77a3c775bfcd5ac8;
-setVLLM_NCCL_SO_PATH. D485build_fastload/lib/libst_pybinding.so SHA
-f11b31a82f654d7c8950d85e05461d31b5cc45469720deb1e784d47022571e44,
-mount/vllm-workspace/libst_pybinding.so. ImportPASS, actualSHMload/appinitD495PASS;
-end-to-endgenerative correctnessstillOPEN.
-
-D487Punica/SiLU/FlashAttention GPU arithmeticPASS; D488nonzeroLoRA128positionsPASS.
-D491 actualnativeDefaultModelLoader/Llama/ModelRunner2loadboundaries/oneLRUmanager
-pp4rank3->pp2rank1 ONONEGPU,32packedmodules global16–31/twoalreadyactiveLoRA;
-maxrelativeL2.0002201656752731651,fixed.005tolerance;8decoderobjects/head/slots
-shared. CompleteoriginalCPUinit/model.to/postprocess, onlyHFiteratorcontrolled.
-NOTattention/KV/pipeline/KVmigration/concurrentconsolidation/fastload/e2etokens.
-ReadD491doc; D489circularimport/D490incompleteTESTfactoryfailures retained.
-
-Ubuntu22.04imagee8df6c74f650ad385efe2e20103eca9b0ad50690fb3c63d49fa00762412bbf55,
-D477container_proxy_attempt/container_storage vfs; runtime
-/run/user/1001/primelora-hydra-d477-proxy/runroot; Podman3.4.4/NVIDIAruntime1.19.
-Use/usr/bin/python3 hostpidfdcleanup. Pauseinitiallyownscope: verify/adoptBEFORE
-workers, notclaimborninparent. CPUcontrollerundelegated; taskset+actualaffinity.
-ReuserecipeD493/executed_probe.py plusBASE D480/D481/D493docs.
-Originalbackbone models/meta-llama--Llama-2-7b-hf readonly. financefullSHA
-971901c3140f83f57cbb19fcc86d33b4d010f6d8fc15fbec621f0347bc31a258;
-medical d2b1dcfe42193917d0b2e0f728e735f24ad119dd2c77cb9b20c983c7f688fa5c.
-EqualheaderSHA isNOTequalfullweights.500logical=498zero/2nonzero,4weightSHA/
-6treeclasses limitationretained. No newmodels/traces/pools/13B.
-
-## Frozen evaluation and sealed7BW0 (do not repeat)
-
-Beforecomparison/configselection read METRIC_PROTOCOL_FROZEN_V1.md and
-METRIC_PROTOCOL_SINGLE_RUN_V2.md FULL; respectiveSHAs
+Before comparison/configselection read FULL METRIC_PROTOCOL_FROZEN_V1.md and
+METRIC_PROTOCOL_SINGLE_RUN_V2.md, SHAs
 5f0732ef54d629b40cece42bdbf536e8e74c6505e3ec5d4c7e8742408ad80f22,
 193bf1535af1aa50f83d98dc2e944ecbdc7bd27aa96baeca82f0654e02f9357d.
-G1 all4000contracts+commonjointTTFT/TPOT>=95%,thenphysicalGPU-s. G2same+
-U<=.75Uref,W1/W2tail/observedSLOdifference; CEsupplementary. Unknownnumerical
-n_correctstaysunknown. Oneperformance/frozenkey; noCI/repeatmeans/winnerfilter.
-TPOTrelative regressionalone notfailure; retain development/reuseidentity.
-Sealed(joint,GPU-s/boundrequest,P95TTFTms):
-PrimeLoRA D476 .97425/2.694612200556614/2315.363336;
-ServerlessLLM D414 .98125/4.022440686/1052.246361;
-vLLM D423 .99475/4.028844291/1200.506860;
-S-LoRA D435 .94425/3.789269468/17699.067366 nonfeasible;
-Loquetier D445 .0435/4.249595809/555110.032229 nonfeasible;
-ElasticLocality D453 .95775/2.473178968/2420.607829.
-HydraServe D510 .68725/2.415538153/8851.575365 nonfeasible; the complete
-seven-system D510 comparison supersedes the older six-system table.
-PrimeLoRA stilllosesElasticLocalityresource; D511 diagnoses this retained gap.
-D3947BSLO input<=616/>616:TTFT2995.348713684507/4633.345350589479ms,
-TPOT59.74409694902162/85.24698166015581ms.W0Uref16115.377162149176,
-B12086.532871611882,Qref1200.5068596918136.W1/W2refsOPEN; qualifyactualW1
-transform, not relabeldefaultW0. W0 isNOTW1/W2/G2closure. Historiesretaindetails.
+G1 all4000correct/nativecontracts + jointTTFT/TPOT>=95%, then physicalGPU-s.
+G2same + U<=.75Uref, W1/W2P95TTFT/observedSLOdifference; CE supplementary.
+Numerical binding/count evidence is not independent numerical proof; unknown
+n_correct staysunknown.95%/75% project points, not universalindustrynorms.
+Keep approved90/95/99%/.5/.75/1/multiplier sensitivities including negatives.
+
+D513 six-system published table SHA
+044c04d6bb5b894761628146a65de248a53436cdd4ba23346837eccb3473b17b:
+(system, joint, GPU-s/boundrequest, P95TTFTms)
+PrimeLoRA D476 .97425,2.694612200556614,2315.363336;
+ServerlessLLM D414 .98125,4.022440685881069,1052.246361;
+vLLM D423 .99475,4.028844290537294,1200.506860;
+S-LoRA D435 .94425,3.7892694676132525,17699.067366 NONFEASIBLE;
+Loquetier D445 .0435,4.249595808607468,555110.032229 NONFEASIBLE;
+HydraServe D510 .68725,2.4155381525526174,8851.575365 NONFEASIBLE.
+HydraServe all34workerspp1: does not prove pipeline/consolidation performance.
+ElasticLocalityD453 .95775/2.473178968/2420.607829 remains ablation evidence.
+PrimeLoRA U10778.448802226456 is33.011%/33.117% belowServerlessLLM/vLLM,
+but lowerattainment/highertail; no all-metric/cross-scenario optimum claim.
+
+D394 SLO SHA2d906f8aaf3fa1bf8cf30d116990db9970fb7be7bf1374fdbd1d8995090104f3:
+input<=616/>616 TTFT2995.348713684507/4633.345350589479ms,
+TPOT59.74409694902162/85.24698166015581ms.
+W0Uref16115.377162149176,B12086.532871611882,Qref1200.5068596918136.
+W1/W2refsOPEN; W0 is NOT W1/W2/G2closure.
+Matched4000contractSHA384b63425402ced97961e91081265d3cbe340b6a3b4febde242de28f62cd7399.
 
 ## Safety, protection and publishing
 
-Oneheavyjob; no experiment withbuild/install/hashscan/compression/remotechanges.
-Diskstart>=max150GiB,100GiB+1.5growth; runtime100GiB. Servicehigh72/max80GiB,
-swap2,CPU4-23,28-47; auxhigh3/max4GiB,swap0,CPU2,3,26,27. Emptyservicestart
-MemAvailable>=102GiB; otherwise remaininggrowthformula. Actualworker restriction
-BEFOREmodel/external16GiBhost/100GiBdiskguard. No blindOOMretry/globalGPUreset/
-reboot/driver/unknowncleanup. Close exactInvocation/inode+actualrecursiveempty,
-never virtualfilesize or systemdactivelabel. No rawlargefiles/credentials/forcepush.
+One heavy job. No build/tests/hashscan/compression/backup/remote changes during
+inference. Diskstart>=max150GiB,100GiB+1.5growth; runtimestop100GiB.
+Servicehigh72/max80GiB,swap2,CPU4-23,28-47; auxhigh3/max4GiB,swap0,CPU2,3,26,27.
+EmptyhoststartMemAvailable>=102GiB; otherwise remaininggrowth formula.
+External16GiBhoststop. Actualworker restrictions before load; no blindOOMretry,
+globalGPUreset/reboot/driver changes/unknowncleanup. Closure checks exact
+Invocation/inode,actual recursive cgroup.procs and capturedpathgone.
+Latest read-only disk~162GiB,hostavailable~104GiB; gate freshly before next job.
 
-Protected147seal originalresults/ieee_tc/slora_qualification/d435_20261011/protected_before.json
+MAIN retry14_continuous_queue_v2/faaslora_origin. BASEHEAD
+09baa9379bdc3518f18f408d2cad3763c2754554, unchanged. Protected147 seal
+originalresults/ieee_tc/slora_qualification/d435_20261011/protected_before.json
 SHA79df0c64c0d88236bc20b439d735f8dcab113f06582421151742aa63a5a2be54.
-Neveredit/stageMAINconfigs/generated/lora_manifest_1000.json SHA
+NeverstageMAINconfigs/generated/lora_manifest_1000.json SHA
 3b69bd0a6888aa56e98c3b9efb61234860d4b80f25729cfea6b79126d19127df.
 BASEscripts/replay_openai_trace.py SHA
 04f3eb52c64c6d684dec3ecef1e6a450d687e0922430c2d77932917e4a38fc22;
 scripts/run_serverlessllm_relayserve_continuation.sh SHA
 337dceec7a528b7816e5a55e81d3c26f3feb1499976a4d049faa69809acec499.
-Explicitstage/source/checksum/tests/secrets/diff; MAINfaaslora_origin/
-retry14_continuous_queue_v2 andBASEorigin/main; verifiedremotebackupcheckpoints.
+Explicit paths only; checksum/tests/diff/secrets before commit/push; no rawlarge
+files, credentials or forcepush. All old data/failures/userdirt preserved.
 
 RemoteSSHprimelora-artifact-174 lab14@10.199.227.174:8122 strictknownhost;
-data192.168.4.174ports18080/18081inactiveafterD510.TokenoutsideGit
-/home/qhq/.config/primelora-tc-d75/artifact.token NEVERprint. D78/D80readonlygzip
-1581215261B reuse,no republish/extractedpool/requestpacking. Latest1000Mb/s/full;
-old100Mbpsdistinctstate,causeunknown. Realnecessaryread/transfer/contention/
-materializationcount; no oldspan subtraction. No remotechangesduringexperiments.
+data192.168.4.174ports18080/18081 inactiveafterD519. Token outsideGit
+/home/qhq/.config/primelora-tc-d75/artifact.token NEVERprint/stage.
+D78/D80readonlygzip1581215261B reuse, no republish/extractedpool/requestpacking.
+Latestactual1000Mb/s/full; old100Mbpsdistinctstate,causeunknown. Real necessary
+read/transfer/contention/materialization count; no subtracting old accumulated
+spans. Remote start/health must explicitly complete before launch.
 
-## Remaining fullscope — goalACTIVE
+## Full remaining scope — ACTIVE
 
-HydraServeactualresult/fullavailable7BW0comparison COMPLETE; PrimeLoRAoptimization;
-7BW1/W2/G2/commonrefs;3Boptimization/baselines;dLoRA3BB6;A1–A5confirmedstate/
-elasticity/handoff/hierarchy/admission/firstservice;S1–S13tier/mismatch/contention/
-load/GPU/network/workload/KV/control/backend/EOS/designsensitivity;offlineCE/cost/
-Pareto;B1/B2/C1/C2/C3/formula/novelty/two-reviewdocs;lateracademicfigures/V2delivery.
-NineIEEEequations unchanged. No13B/newSGLang/paperedits/newweights/trace/pools/
-oldresultoverwrite. Nofiguresuntilneargoal. Chinese paper-evidence updates, full
-names PrimeLoRA/ServerlessLLM. Setup/lifecycle checks areNOTperformanceexperiments.
+7B PrimeLoRA evidence-driven optimization;7BW1/W2/G2/commonrefs;
+3Boptimization/allbaselines;dLoRA3BB6;A1–A5confirmedstate/elasticity/handoff/
+hierarchy/admission/firstservice;S1–S13tier/mismatch/contention/load/GPU/network/
+workload/KV/control/backend/EOS/designsensitivities;offlinecost/CE/Pareto;
+B1/B2/C1/C2/C3/formula/novelty/two-reviewdocs;lateracademicfigures/V2delivery.
+No stage closure from this CPU-only result, no goal completion or scope reduction.
