@@ -1,11 +1,33 @@
-# IEEE TC execution status — D529 completed; candidate not improved
+# IEEE TC execution status — D530 offline diagnosis complete; advance W1 qualification
 
-Updated2026-10-14. Prior status preserved BYTE-FOR-BYTE in
+Updated2026-10-15. Prior status preserved BYTE-FOR-BYTE in
 EXECUTION_HISTORY_THROUGH_D519.md, SHA
 e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Older RUNNING/NEXT paragraphs there are historical, not current process state.
 
 ## Current authoritative handoff
+
+D530 offline stage/control/physical analysis COMPLETE; NO new GPU run or serving
+change. Reused D511 machinery and sealedD476 statistics on D529 full4000.
+4000 timelines/0ms identityerror, actualclosedphysical integral matches. Extra
+739.996246GPU-s in arrivalwindow, cleanup-9.791455; meanphysicalGPUs2.702884->
+2.889567. Decodeenvelope-18.856687ms, permitrequest->resume+119.871856ms,
+runtime-slotwait+25.583049ms. Not causal kernel/CPU/capacity evidence.
+Read D530_METADATA_STAGE_GAP.md. D529 remainsREJECTED,D476 retained; no more
+same-candidate localpatches/repeats. Latest plan mainline now requires W1/W2/G2
+actual evidence, not endless W0 attempts to beat resident rawlatency at lessU.
+NEXT qualify existingW1 arrivalview and actualPrimeLoRA/vLLM entry bindings,
+then ONE frozenvLLM W1 commonreference and D476 FullW1 (samepolicy/config/profile),
+then remainingpublished systems/W2. This is NOT7Bclosure; fullscope persists.
+No W1 config or launch prepared; sourceW0/assets reused, no regeneratedtrace.
+D530 RAW results/ieee_tc/main_comparison/d530_20261015; curated
+paper_results/ieee_tc/main_comparison/d530_metadata_stage_gap.40CPUtestsPASS;
+analysis/curation actualrecursiveempty/CLOSED/pathgone,peaks147771392/45461504B,
+events0/swap0. Protected147/userdirt/baselinefiles unchanged; no liveGPU/remotejob.
+D530 result backup PENDING, perform explicit source/archive/secrets checks first.
+Sharedk3suntouched,HydraServeD510complete; no baseline reruns of existing W0.
+
+Prior D529 completion handoff retained below:
 
 D529 TERMINAL SUCCESS and postrelease audits COMPLETE. 4000 nativecontracts,
 458224tokens,3820/4000jointSLO(95.5%),U11508.173072298989GPU-s,
@@ -26,9 +48,15 @@ recursiveempty/pathgone; peaks787431424/1120518144/1068621824/26861568B,events0.
 RAW d529_20261014; curated d529_metadata_full_w0/full4000_result.json,
 metadata_audit.json,cross_contract.json. Source SHA
 66bcc1b1b2a6a9e555f1262e72d0ef9511e332facf0ae7878768ccf07a29fab3.
-Postrun helpers actually passed; publication backup NOT YET performed.
-NEXT explicit result backup with archive/ref/protected/userdirt/secrets checks,
-then evidence-based main-line bottleneck review using D476 reference. No new
+Postrun helpers actually passed; result backup COMPLETE:
+b26378b348ee3705b6b69f567c61aa0084a4f653 PUSHED/remote-equal,7explicitfiles.
+Archive roundtrip/ref/protected147/userdirt/diff/secrets checks passed. Actual
+publication scope CLOSED/recursiveempty/pathgone,peak26734592B,events0/swap0;
+RAW publication_receipt.json/publication_closure.json retain evidence. Do not
+repeat analysis/audit/backup or qualification. Only this post-backup status
+and untouched user'smanifest are dirty. Fresh disk160GiB,MemAvailable107167MiB,
+GPU computeprocessesempty. NEXT evidence-based main-line bottleneck review
+using D476 reference. No new
 candidate/experiment prepared, no liveGPU/remote/auxiliary job. No repeated
 100/calibration/device/baseline tests. Allremaining scopeACTIVE,sharedk3suntouched.
 
