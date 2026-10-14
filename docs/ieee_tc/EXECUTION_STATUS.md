@@ -1,4 +1,30 @@
-# IEEE TC status — D514 GPU-preparation identity candidate under qualification
+# IEEE TC status — D515 native validation CPU-qualified, not launched
+
+## D515 next launch: source qualification passed
+
+D51522input/config/replaytestsPASS; reused11guardtests and D514957regression
+plus4native-environmentCPUtests. Exactoriginal100view
+aaf917bd816e10c4ad6f8138e5365aa9b2976b4300143cc712c12b84443cb020,
+sourceefb903254fcddc320b6765144f4118883d3d057267c5d516ee88927d4504957c.
+Onlythreeexclusiveconfigpaths; runtime unchangedfromcab2a4a. Protected147,
+threeuserdirt/PLAN/V1/V2 andD514sourcechecksPASS. NoGPUrunyet.
+RAWresults/ieee_tc/p2_backend_qualification/d515_20261014; readD515doc.
+AfterexplicitbackupandactualCPUclosures, start.py awaitsexistingremote start+
+authenticatedhealth thenONEtmux tc-d515-cpuprep100 launch. Keepactualreceipts,
+watchonlylightweightprogresswhilelive; nohash/tests/builds/backups/remotechanges.
+Onactualreleaseclose_after_release.py ->close.py collection, thennativeaudit.
+Neverretrylaunchfromatooltimeout. WholeW1/W2/G2/3B/A1–A5/S1–S13/docs scopeACTIVE.
+
+## D514 checkpoint complete; D515 next, not launched
+
+D514 checkpoint cab2a4ae24f5fb5d8e29e04b82f8bf1a2efcef87 PUSHED/remote-equal.
+Qualification and backup receipts PASS; all ten auxiliary scopes actually
+recursive-empty and removed. Last backup memory peak35241984B/events0/swap0;
+disk174124511232B. Do not rerun D514 tests, curation or backup.
+D515 reuses D475 original100 native validation with only exclusive output/cache
+paths. Preparation is not launch or performance evidence. After affected native
+qualification, ONE ordinary full4000 W0; no extra prefix ladder or new parameter.
+Full remaining scope and frozen metrics below remain ACTIVE.
 
 ## D514 latest: CPU qualification passed; native validation not launched
 
