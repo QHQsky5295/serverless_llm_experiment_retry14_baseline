@@ -1,4 +1,40 @@
-# IEEE TC status — D515 native100 complete; result backup pending
+# IEEE TC status — D516 full W0 preparation; no new run launched yet
+
+## D516 current main line, 2026-10-14
+
+D515 outcome739be9a pushed/verified; do not rerun its tests or inference.
+D51622input/config/replaytests PASS; full4000 exact view
+a5331be2e2204483f18206825d9aaa18cbaa259fe0babfc303f989055819430d,
+458224targettokens. Reused11guard/D514957+4tests and D515native100 qualification;
+source/protected147/userdirt/PLAN/V1/V2checksPASS. CPU1 actualemptyclosed;
+qualification2 actualclosure and explicitbackup next, then singlelaunch.
+D516 prepared by reusing D476 runner/config/qualification/start/closure workflow.
+Only three exclusive config paths and wrapper/test registration; production
+unchanged from D514/D515. Read D516_GPU_EXECUTION_FULL_W0.md. No new GPU run
+has launched at this writing. CPU/source/protection tests and explicit backup
+must pass, then await remote authenticated health and resource gates before
+ONE ordinary original4000 W0. No new profile/policy/SLO/input or baseline repeat.
+Short D515 performance was NOT improved; full result decides acceptance.
+Raw results/ieee_tc/p2_backend_qualification/d516_20261014. close.py collection
+uses the actual collection_receipt identity (no missing identity-file assumption).
+Published comparison includes HydraServe/D513 six rows, not ElasticLocality as
+baseline. Independent numerical proof remains unknown; all digest changes kept.
+All 7B W1/W2/G2,3B,dLoRA,A1–A5,S1–S13,cost/docs/finaldelivery remain ACTIVE.
+The prior next/not-prepared clauses below are historical.
+
+## D515 checkpoint verified — resume here
+
+Outcome739be9a77970913d4c75307c43907033e82779fa PUSHED/remote-equal, actual
+backup_result_receipt.json and backup_result_closure.json PASS. Alllocalowned
+auxiliaryscopes actuallyrecursiveemptyclosed/pathsgone;GPUandownedremote
+servicesreleased. No inference currentlyrunning. Do not rerunD514orD515,
+theirtests/analysis/curation/backup,orHydraServe. This is localpost-backuphandoff.
+NextD516 ONEordinaryfull4000W0 underD476frozenconfig andD514productionchange;
+notprepared/launchedyet. ReuseD476existingrecipe,onlyexclusivepaths,source/
+configtests/prelaunchbackup/actualresource+remotehealthgates. ReadFULLPLAN/
+status/metricsbeforelaunch. CandidateperformancehypothesisOPEN,shortprefix
+wasnotbetter. Fullresultdeterminesacceptance; retainallnegativeevidence.
+WholeW1/W2/G2/3B/dLoRA/A1–A5/S1–S13/cost/docs/finaldelivery remainsACTIVE.
 
 ## D515 authoritative result, 2026-10-14
 
