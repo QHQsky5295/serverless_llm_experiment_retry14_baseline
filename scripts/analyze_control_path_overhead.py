@@ -1336,6 +1336,76 @@ def _summarize_core_input_turns(roots, children):
     return dict(**counts, records=records, index=index)
 
 
+def summarize_core_step_components(events, *, allow_partial=False):
+    """Strict optional V2 host component audit, never an additive kernel model."""
+    baseline = summarize_core_host_spans(events)
+    if not baseline['complete'] and not allow_partial:
+        raise ValueError('step components require a complete native core stream')
+    # Explicit partial audit keeps only actually recorded complete roots. No
+    # synthetic footer, imputed parent or whole-request coverage claim.
+    roots = sorted((r for r in events if r.get('event') == 'native_core_host_span_v1'
+                    and r['parent'] is None), key=lambda r: r['begin_ns'])
+    children = defaultdict(list)
+    for r in events:
+        if r.get('event') == 'native_core_host_span_v1' and r['parent'] is not None:
+            children[r['parent']].append(r)
+    iterations = _summarize_core_iterations(roots, children)
+    allowed = ('execute_model', 'add_requests', 'update_requests', 'prepare_inputs',
+               'prepare_attn', '_set_active_loras', 'sample_tokens',
+               'block_table_writes', 'fullgraph', 'piecewise_graph', 'update_from_output')
+    columns = ['calls', 'inclusive_wall_ns', 'inclusive_thread_cpu_ns', 'raised']
+    counter_keys = ('num_host_alloc', 'num_host_free', 'host_alloc_time.total', 'host_free_time.total')
+    rows = {r['id']: r for r in events if r.get('boundary') == 'step'}
+    records, previous = [], None
+    for step in iterations['records']:
+        payload = rows[step['id']]['details'].get('step_components_v1')
+        required = {'columns', 'values', 'nested_not_additive', 'allocator_before',
+                    'allocator_after', 'allocator_scope', 'allocator_time_unit', 'gpu_kernel_timing'}
+        if (type(payload) is not dict or set(payload) != required
+                or payload['columns'] != columns or payload['nested_not_additive'] is not True
+                or payload['gpu_kernel_timing'] is not False
+                or payload['allocator_scope'] != 'process_counters_background_frees_possible'
+                or payload['allocator_time_unit'] != 'microseconds'
+                or type(payload['values']) is not dict
+                or not set(payload['values']) <= set(allowed)):
+            raise ValueError('invalid or missing step component contract')
+        before, after = payload['allocator_before'], payload['allocator_after']
+        for counters in (before, after):
+            if type(counters) is not dict or set(counters) != set(counter_keys):
+                raise ValueError('missing native allocator counters')
+            for key, value in counters.items():
+                if (type(value) not in (int, float) or not math.isfinite(value) or value < 0
+                        or (key.startswith('num_') and type(value) is not int)):
+                    raise ValueError('invalid native allocator counter')
+        if any(after[k] < before[k] or (previous is not None and before[k] < previous[k])
+               for k in counter_keys):
+            raise ValueError('native allocator counter reset')
+        previous = after
+        record = {key: step[key] for key in ('id', 'category', 'step_ns', 'step_thread_cpu_ns',
+                    'schedule_ns', 'scheduled_requests', 'scheduled_tokens')}
+        record['allocator_delta'] = {key: after[key]-before[key] for key in counter_keys}
+        record['components'] = {}
+        for key in allowed:
+            value = payload['values'].get(key)
+            if value is None:
+                record['components'][key] = [0, 0, 0, 0]
+                continue
+            if (type(value) is not list or len(value) != 4
+                    or any(type(v) is not int or v < 0 for v in value)
+                    or value[0] < 1 or value[3] > value[0]
+                    or value[1] > step['step_ns'] or value[2] > step['step_thread_cpu_ns']):
+                raise ValueError('invalid component count or enclosing time')
+            record['components'][key] = list(value)
+        records.append(record)
+    return dict(records=records, step_count=len(records), component_names=allowed,
+        allocator_counter_keys=counter_keys, gpu_kernel_timing=False,
+        nested_not_additive=True, background_frees_possible=True,
+        allocator_time_unit='microseconds', observation_complete=baseline['complete'],
+        truncated=baseline['truncated'], orphan_span_ids=baseline['orphan_span_ids'],
+        first_complete_root_ns=roots[0]['begin_ns'] if roots else None,
+        last_complete_root_ns=roots[-1]['end_ns'] if roots else None)
+
+
 def core_interval_overlap(index, begin_ns, end_ns):
     """Exact integer integral of sorted disjoint intervals; half-open windows."""
     if type(begin_ns) is not int or type(end_ns) is not int or end_ns < begin_ns:

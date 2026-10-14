@@ -22,6 +22,96 @@ def events():
              unfinished_span_ids=[],observer_ns=1,write_ns=1,bytes_before_close=0)]
 
 
+class NativeStepComponentAnalysis(unittest.TestCase):
+    def test_explicit_partial_keeps_true_roots_without_inventing_footer(self):
+        from scripts.analyze_control_path_overhead import summarize_core_step_components
+        rows=self.fixture()
+        orphan=copy.deepcopy(rows[2])
+        orphan.update(id=6,parent=5,begin_ns=33,end_ns=34,
+                      thread_cpu_begin_ns=16,thread_cpu_end_ns=17)
+        rows[-1].update(completed_spans=5,truncated=True,monotonic_ns=36)
+        rows[-1:-1]=[orphan,dict(event='observation_limit',monotonic_ns=35,
+            completed_spans=5,first_unwritten_span=5)]
+        original=copy.deepcopy(rows)
+        with self.assertRaises(ValueError):summarize_core_step_components(rows)
+        result=summarize_core_step_components(rows,allow_partial=True)
+        self.assertEqual(rows,original)
+        self.assertFalse(result['observation_complete'])
+        self.assertTrue(result['truncated'])
+        self.assertEqual(result['orphan_span_ids'],[6])
+        self.assertEqual(result['last_complete_root_ns'],31)
+        self.assertEqual(result['step_count'],1)
+
+    @staticmethod
+    def fixture():
+        rows = events()
+        rows[3]['details']['step_components_v1'] = dict(
+            columns=['calls', 'inclusive_wall_ns', 'inclusive_thread_cpu_ns', 'raised'],
+            values={'execute_model':[1,12,6,0], 'prepare_inputs':[1,6,3,0]},
+            nested_not_additive=True, allocator_before={
+                'num_host_alloc':2, 'num_host_free':1, 'host_alloc_time.total':100,
+                'host_free_time.total':80},
+            allocator_after={'num_host_alloc':4, 'num_host_free':2,
+                'host_alloc_time.total':110, 'host_free_time.total':90},
+            allocator_scope='process_counters_background_frees_possible',
+            allocator_time_unit='microseconds', gpu_kernel_timing=False)
+        return rows
+
+    def test_component_nested_times_not_added_or_source_mutated(self):
+        from scripts.analyze_control_path_overhead import summarize_core_step_components
+        rows=self.fixture(); old=copy.deepcopy(rows)
+        result=summarize_core_step_components(rows)
+        record,=result['records']
+        self.assertEqual(rows,old)
+        self.assertEqual(record['step_ns'],20)
+        self.assertEqual(record['components']['execute_model'],[1,12,6,0])
+        self.assertEqual(record['components']['fullgraph'],[0,0,0,0])
+        self.assertEqual(record['allocator_delta']['num_host_alloc'],2)
+        # Process background timing may exceed this step's wall duration.
+        self.assertEqual(record['allocator_delta']['host_free_time.total'],10)
+        self.assertTrue(result['nested_not_additive'])
+        self.assertFalse(result['gpu_kernel_timing'])
+
+    def test_missing_unknown_units_nan_negative_and_escaped_times_rejected(self):
+        from scripts.analyze_control_path_overhead import summarize_core_step_components
+        changes=[
+            lambda p:p.update(allocator_time_unit='seconds'),
+            lambda p:p.update(gpu_kernel_timing=True),
+            lambda p:p['values'].update(unknown=[1,1,1,0]),
+            lambda p:p['values'].update(execute_model=[1,21,6,0]),
+            lambda p:p['values'].update(execute_model=[1,12,11,0]),
+            lambda p:p['values'].update(execute_model=[True,12,6,0]),
+            lambda p:p['values'].update(execute_model=[1,12,6,2]),
+            lambda p:p['allocator_after'].update(num_host_alloc=1),
+            lambda p:p['allocator_after'].update(num_host_alloc=4.0),
+            lambda p:p['allocator_after'].update({'host_alloc_time.total':float('nan')}),
+            lambda p:p['allocator_before'].pop('num_host_free')]
+        for change in changes:
+            with self.subTest(change=change):
+                rows=self.fixture();change(rows[3]['details']['step_components_v1'])
+                with self.assertRaises(ValueError):summarize_core_step_components(rows)
+        rows=self.fixture();rows[3]['details'].pop('step_components_v1')
+        with self.assertRaises(ValueError):summarize_core_step_components(rows)
+        with self.assertRaises(ValueError):summarize_core_step_components(self.fixture()[:-1])
+
+    def test_empty_closed_process_and_crossstep_reset(self):
+        from scripts.analyze_control_path_overhead import summarize_core_step_components
+        footer=events()[-1];footer['completed_spans']=0
+        self.assertEqual(summarize_core_step_components([footer])['step_count'],0)
+        rows=self.fixture()
+        schedule,step=copy.deepcopy(rows[2:4])
+        schedule.update(id=6,parent=5,begin_ns=33,end_ns=36,
+                        thread_cpu_begin_ns=16,thread_cpu_end_ns=18)
+        step.update(id=5,begin_ns=32,end_ns=52,
+                    thread_cpu_begin_ns=16,thread_cpu_end_ns=26)
+        rows[-1].update(completed_spans=6,monotonic_ns=53)
+        rows[-1:-1]=[schedule,step]
+        with self.assertRaisesRegex(ValueError,'reset'):summarize_core_step_components(rows)
+        p=step['details']['step_components_v1']
+        p['allocator_before']=dict(p['allocator_after'])
+        self.assertEqual(summarize_core_step_components(rows)['step_count'],2)
+
+
 class NativeCoreAnalysis(unittest.TestCase):
     def test_nested_partition_is_exact_and_half_open(self):
         value=summarize_core_host_spans(events())

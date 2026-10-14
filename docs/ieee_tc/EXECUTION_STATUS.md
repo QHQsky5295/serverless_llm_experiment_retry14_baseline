@@ -1,5 +1,35 @@
 # IEEE TC status — D519 restored serving semantics and step diagnostic
 
+## D519 authoritative outcome, 2026-10-14
+
+ONEoriginal1000diagnostic COMPLETED; actualGPUrelease/servicepathgone/tmuxgone;
+exact-ownedremote services stoppedafterlocalrelease/logSHAverified. 1000native
+contracts/0failure,60fetch/74953014wireB/packing0; independentn_correctstillnull.
+Mainrunnerrestoredbyte-identicalD476; no allocator/policy/thresholdchange.
+Read D519_STEP_DIAGNOSTIC_RESULT.md. FullcomponentdiagnosticgateFAILED: primary
+processhit64MiBcap,10/11journalscomplete,whole-processrequestcoverage279/1000.
+Strictcomponentanalysisrefused BEFOREoutput. Failure/source preserved; separate
+explicitpartial analysis retained47038actuallycompletedsteps incl31360fromcapped
+process, orphan1notimputed. complete_diagnostic_qualified=false; noGPUrepeat.
+Single-token45513step mean23.669581ms/CPU7.468172; allocdriver.125878ms,
+freeprocesscounter10.206529ms(backgroundoverlapNOTcausal),input.919288ms,
+LoRAactivation2.100393ms(P50.133625,P95.403878),scheduler.230154ms.
+Multitoken987step83.052146ms/CPU82.809049,execute80.685168/LoRA22.072073ms.
+DirectallocationisNOTsupportedasmajorstepcost; no unlimitedcache/thresholdsweep.
+Rawsourceaf2c2680e375c3c5d14720a810d30d9e6892852b7951fcdb6e1522083005e7b1.
+Servicepeak20621922304B/1188samples/events0/swap0. 1028prelaunchCPUtests,
+127analysisCPUtests and33componenttestsPASS. CPU1–3/collection5/analysis6/
+strictfailedoperation7/partialoperation8actualrecursiveemptyclosed/pathsgone;
+partialpeak515584000B/events0/swap0. No liveGPUrun. Resultcuration/testedbackupNEXT.
+Prelaunch3654b8645f5792a7c7d7e47416613398b682ec08PUSHED. Earlierlive/nextnotes
+belowhistorical; doNOTrerunD519/D512/D516/HydraServe or claimfullcomponentcoverage.
+Afteroutcomebackup,nextONEsource/historyreviewofnativeoutput/pinnedbufferrelease
+andlongLoRAactivationdependency withD56–60budgetconstraints. Reuseobservations,
+no newGPUdiagnostic/candidatepreparedyet. Ifprovedavoidablework,boundedcontract
+thenminimalvalidation/ordinaryfull4000. D476remainssealedperformancepoint.
+Whole7BW1/W2/G2/commonrefs/3B/baselines/dLoRA/A1–A5/S1–S13/cost/docs/finaldelivery
+ACTIVE; nofiguresyet. Partialdiagnosis isprogress, nottargetachieved.
+
 ## D519 current preregistration, 2026-10-14
 
 D514 rejected GPU source-query change has been RESTORED to D476 semantics.
