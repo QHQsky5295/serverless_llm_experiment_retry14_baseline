@@ -1,12 +1,40 @@
-# IEEE TC execution status — D535 common sampling build/load verified; W1 launch next
+# IEEE TC execution status — D536 complete; result curation and W1 initial-state review
 
 Updated2026-10-15. Prior status preserved BYTE-FOR-BYTE in
 EXECUTION_HISTORY_THROUGH_D519.md, SHA
 e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
-Older RUNNING/NEXT paragraphs there are historical, not current process state.
 
 ## Current authoritative handoff
 
+D536 TERMINAL SUCCESS; strict existing resident_rr_v1/full4000_w1 audit COMPLETE.
+All4000nativecontracts/458224tokens,0failures,timingrecomputeerrors0.
+Joint2907/4000=72.675% (TTFT2907,TPOT4000),P95TTFT9777.026765514165ms,
+meanTTFT2900.834479789075ms,U9008.761400188087GPU-s,
+2.2521903500470217/bindingvalidrequest. NOT95%feasible;
+n_correctnull/independentnumericalproofunknown. Read D536_VLLM_W1_RESULT.md.
+132remote fetch/131480060wireB/packing0;fouractualready/releasednativeworkers.
+Servicepeak15358455808B,allhigh/max/OOM/kill/swap0. Localcleanup exactrecursiveempty/
+service+auxpathgone;remote3ownedunitsinactive/MainPID0/portsabsent.
+Remote transfer/monitor bilateral hashesmatch. Analysis actualrecursiveempty/
+CLOSED/pathgone,peak566038528B,events0/swap0. No GPU/remote/auxjob remains.
+
+Execution MAINfea6a1be08f2663c3a89fe5680cfa704f644515e and
+BASEbde215460acb9e850efa479a89bda6fc39a2bd7d werePUSHED/remoteequal beforelaunch.
+RAW vllm_qualification/d536_20261015. Result curation COMPLETE: result1/audit.json,
+manifest.json and75450-byte evidence.tar.gz; source/archive-roundtrip/protected147/
+userdirt checksPASS. Exactresultclosure recorded. publish_result.py prepared by
+reuse ofD532; NEXT explicitresultbackup -> exactpublicationclosure. Do not rerun completed
+analysis/collection/performance/D531103tests/D53416checks/D535build.
+
+D536 actualmodelJIT usednewprefix6d1961d6a9;worker0graph9.01s,totalcompile31.58s,
+engineinit56.71s. All realJIT remainsinmeasurement; commonD535sampling build is
+not all-modelprewarm. Prelaunchseal didNOTestablish newprefixprestate.
+Afterresultbackup: boundedexistinglog/config/cacheidentityreview BEFORE W1
+Uref/Qref freeze or D533 FullW1. Do not silentlyprewarm/subtract/restart or claim
+allW1losscausedbycompiler. D533 preparedNOTlaunched. No W1referencefrozen.
+Currentturn PROGRESS: actualrunterminal/release/audit; priorwait notes superseded.
+Sharedk3suntouched;HydraServeD510isolatedresultretained. FullremainingscopeACTIVE.
+Historical notes below retain earlier states; this handoff is authoritative.
 D535 common sampling software build/load qualification COMPLETE. Read
 D535_COMMON_SAMPLING_BUILD.md. ONE native generic build, no CUDA/model/LoRA/
 trace load or kernel execution. Both actual entry boundaries render identical
