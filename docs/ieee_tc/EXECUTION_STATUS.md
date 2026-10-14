@@ -1,4 +1,4 @@
-# IEEE TC execution status — D522 device qualification complete
+# IEEE TC execution status — D523 pre-start rejection; affected profiles next
 
 Updated2026-10-14. Prior status preserved BYTE-FOR-BYTE in
 EXECUTION_HISTORY_THROUGH_D519.md, SHA
@@ -6,6 +6,48 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Older RUNNING/NEXT paragraphs there are historical, not current process state.
 
 ## Current authoritative handoff
+
+D523 original100 Full attempt TERMINAL before model initialization or request
+submission: `FrozenServiceProfiles.load` rejected model/configuration/context
+mismatch. The sole new `ieee_lora_metadata_policy=cpu_live_mapping_v1` changes
+runtime timing identity; D523 still referenced D362 timing initialization.
+This is a launcher/profile-binding error, NOT a measured performance regression.
+Do not bypass exact identity, remove the field, relabel old timing, or rerun D523.
+Preserve its config/output and all failed evidence.
+
+RAW `results/ieee_tc/p2_backend_qualification/d523_20261014/`:
+`7b_cpu_frontend_validation_100/launch.json` pass=false, service_returncode=1,
+GPU-context release confirmed and service path gone. `local_cleanup.json` and
+`start_closure.json` confirm exact owned auxiliary recursive processes empty;
+actual captured paths gone, events/swap zero. `remote_stop.log` confirms both
+artifact services and monitor inactive/MainPID=0; no listeners remained.
+NIC before launch was 1000Mb/s/full. No request transfer matched this remote
+process clock, consistent with pre-start rejection. No live GPU/CPU/remote job.
+
+NEXT D524: refresh affected service/preparation initialization via EXISTING
+D298 native source collector. Reuse exact D362 135 waves/1669 calls, existing
+inputs/published artifacts. Only completed fixed-output lengths may transfer;
+fresh timing must carry the exact metadata-policy identity. Common warm SLO,
+resource budgets, nine equations and performance workload remain unchanged.
+Collector's actual global HOST attach can additionally verify native publisher
+installation/accounting/counters. Then a NEW original100 Full key with qualified
+profiles, followed by ONE4000 W0 if eligible. Do not repeat completed D522
+device/CPU checks or any baseline.
+
+D524 preparation COMPLETE:322 affected CPU tests PASS/0failure/error/skip,
+exact135waves/1669calls retained, next Full model identity verified equal.
+No CUDA initialization. Actual auxiliary recursive processes empty and path gone;
+peak2285068288B, high/max/OOM/OOMkill/swap0. New spec SHA
+847182165fcbe44bf132dce1f67ee61c844371ef5cce6ff9ffdabffd5936a179.
+Read D524_METADATA_PROFILE_REFRESH.md. Metadata installation receipt/counter
+audit is prepared; actual native installation/timing remain unmeasured.
+NEXT explicit tested backup, then existing d524 source collector exactly once.
+
+D522 checkpoint cc80e58b1a495e90fda3eecc657012bc3ba36b83 PUSHED/remote-equal.
+Ten explicit files; source/tests/protected147/userdirt/secrets/archive-roundtrip
+checks passed. RAW/backup_receipt.json and backup_closure.json retain evidence;
+actual backup recursive processes empty, captured path gone. Do not repeat
+backup or qualification. Only this post-backup status update is uncommitted.
 
 D522 actual CUDA device qualification COMPLETE, device2.json pass. Ten cases
 (one/mixed/reassigned/all14slots/allbase, specialization off/on) have exact
@@ -23,9 +65,9 @@ Added read-only publisher counters to existing source/worker observation (no
 extra RPC/readback). CPU regression521 PASS/0failure/error/skip; peak1059352576B,
 high/max/OOM/OOMkill/swap0, actualrecursiveempty/pathgone. D521 tests remainvalid
 historical evidence, not newperformance. RAW d522_20261014; curated
-paper_results/ieee_tc/p2_backend/d522_metadata_device/. Backup NEXT.
+paper_results/ieee_tc/p2_backend/d522_metadata_device/. Backup COMPLETE above.
 
-NEXT D523 original100 Full native integration qualification: existing runner
+Historical D523 pre-launch intention (superseded by terminal outcome above): existing runner
 d523 case and configs/ieee_tc/20261014_d523_7b_cpu_frontend_validation_100.yaml
 prepared, NOT launched. Exactly D475/D476 non-target config plus
 ieee_lora_metadata_policy=cpu_live_mapping_v1; no parameter tuning. This uses
@@ -202,7 +244,7 @@ Explicit paths only; checksum/tests/diff/secrets before commit/push; no rawlarge
 files, credentials or forcepush. All old data/failures/userdirt preserved.
 
 RemoteSSHprimelora-artifact-174 lab14@10.199.227.174:8122 strictknownhost;
-data192.168.4.174ports18080/18081 inactiveafterD519. Token outsideGit
+data192.168.4.174ports18080/18081 inactiveafterD523. Token outsideGit
 /home/qhq/.config/primelora-tc-d75/artifact.token NEVERprint/stage.
 D78/D80readonlygzip1581215261B reuse, no republish/extractedpool/requestpacking.
 Latestactual1000Mb/s/full; old100Mbpsdistinctstate,causeunknown. Real necessary

@@ -3,7 +3,69 @@ import copy
 import unittest
 
 from scripts.ieee_tc.export_d298_profiles import (
-    audit_control_interleave_snapshots, audit_control_source_run, audit_file_demand_source_run)
+    audit_control_interleave_snapshots, audit_control_source_run, audit_file_demand_source_run,
+    audit_metadata_source_run)
+
+
+class MetadataProfileInstallationAudit(unittest.TestCase):
+    def fixture(self):
+        row = dict(policy='cpu_live_mapping_v1', installed=True, poisoned=False,
+            banks=2, rows=1024, slots=14, staging_bytes=99040, updates=0,
+            reuse_waits=0, copied_bytes=0, gpu_buffers_replaced=False,
+            native_mapping_invalidation_preserved=True)
+        initial = dict(row, accounted_before_bytes=1000, accounted_after_bytes=100040,
+            required_minimum_with_staging_bytes=130040)
+        final = dict(row, updates=40, copied_bytes=4000)
+        identity = dict(owner_id='worker-owner', worker_pid=123, clock_id='native-clock')
+        return dict(model_config=dict(ieee_lora_metadata_policy='cpu_live_mapping_v1',
+                max_num_batched_tokens=1024, max_loras=14, ieee_native_host_tensor_budget_bytes=200000),
+            metadata_host_installation=dict(identity, configured=True, tensor_budget_bytes=200000,
+                metadata_publication=initial,
+                workspace_partition=dict(registered_upper_bytes=10000, demand_load_peak_bytes=10000),
+                allocation=dict(admitted=True, before=dict(accounted_tensor_bytes=100040))),
+            metadata_global_host_budget=dict(total_bytes=1000000),
+            workers_after=dict(workers=[dict(pid=123, clock_id='native-clock', metadata_publication=dict(final))]),
+            sources_after=dict(identity, metadata_publication=dict(final)),
+            sources_after_eviction=dict(identity, metadata_publication=dict(final)))
+
+    def test_actual_receipt_counters_and_accounted_staging(self):
+        raw = self.fixture()
+        before = copy.deepcopy(raw)
+        result = audit_metadata_source_run(raw)
+        self.assertEqual(raw, before)
+        self.assertEqual(result['actual_pinned_increment'], 99040)
+        self.assertTrue(result['triggered'])
+        self.assertFalse(result['numerical_correctness_qualified'])
+        self.assertIsNone(result['causal_speedup'])
+
+    def test_missing_wrong_identity_accounting_or_inactive_publisher_rejected(self):
+        mutations = [
+            lambda x: x['model_config'].update(ieee_lora_metadata_policy='other'),
+            lambda x: x['metadata_host_installation'].update(configured=False),
+            lambda x: x['metadata_host_installation'].update(worker_pid=124),
+            lambda x: x['metadata_host_installation']['metadata_publication'].update(accounted_after_bytes=1000),
+            lambda x: x['metadata_host_installation']['metadata_publication'].update(required_minimum_with_staging_bytes=0),
+            lambda x: x['metadata_host_installation']['allocation'].update(admitted=False),
+            lambda x: x['metadata_host_installation']['workspace_partition'].update(demand_load_peak_bytes=1000000),
+            lambda x: x['sources_after'].update(owner_id='foreign'),
+            lambda x: x['sources_after_eviction']['metadata_publication'].update(updates=39),
+            lambda x: x['sources_after_eviction']['metadata_publication'].update(installed=False),
+            lambda x: x['sources_after_eviction']['metadata_publication'].update(poisoned=True),
+            lambda x: x['sources_after_eviction']['metadata_publication'].update(staging_bytes=0),
+            lambda x: x['sources_after_eviction']['metadata_publication'].update(updates=True),
+            lambda x: x['sources_after_eviction']['metadata_publication'].update(gpu_buffers_replaced=True),
+        ]
+        for mutation in mutations:
+            with self.subTest(mutation=mutation):
+                raw = self.fixture()
+                mutation(raw)
+                with self.assertRaises(ValueError):
+                    audit_metadata_source_run(raw)
+        raw = self.fixture()
+        for row in (raw['workers_after']['workers'][0], raw['sources_after'], raw['sources_after_eviction']):
+            row['metadata_publication'].update(updates=0, copied_bytes=0)
+        with self.assertRaises(ValueError):
+            audit_metadata_source_run(raw)
 
 
 def snapshot(stamp, turns, controls, yields, queued):

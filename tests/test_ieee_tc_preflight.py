@@ -1287,6 +1287,56 @@ class MeasuredAdmissionInitializer(unittest.TestCase):
             self.derive(model_config=candidate)
 
 
+    def test_metadata_transfer_is_explicit_lengths_only_and_keeps_timing_identity(self):
+        from types import SimpleNamespace
+        from faaslora.experiment.instance_pool import FrozenServiceProfiles
+        self.fixed_output_transfer_fixture()
+        fields = ('max_num_seqs', 'runtime_concurrency_cap', 'max_loras')
+        self.cfg.update({key: 8 for key in fields})
+        self.cfg.update(ieee_scheduler_observation=True, ieee_gpu_references=True)
+        policies = dict(ieee_control_interleave='atomic_control_yield_v1',
+                        ieee_file_demand_transaction='protected_file_owner_turn_v1')
+        original = dict(self.cfg)
+        for existing in ((), ('ieee_control_interleave',), ('ieee_file_demand_transaction',), tuple(policies)):
+            self.cfg = dict(original, **{key: policies[key] for key in existing})
+            self.run['model_config'] = copy.deepcopy(self.cfg)
+            self.entry['model_config'] = copy.deepcopy(self.cfg)
+            self.bind()
+            candidate = dict(self.cfg, **policies, ieee_lora_metadata_policy='cpu_live_mapping_v1')
+            changes = {key: dict(source=None, target=value) for key, value in policies.items() if key not in existing}
+            changes['ieee_lora_metadata_policy'] = dict(source=None, target='cpu_live_mapping_v1')
+            self.binding.update(kind='native_fixed_output_metadata_length_transfer_v1', model_config_changes=changes)
+            profile, evidence = self.derive(model_config=candidate)
+            self.assertEqual(profile['profile_means'], [20., 40.])
+            self.assertFalse(evidence['length_transfer']['timing_samples_transferred'])
+            self.assertFalse(evidence['length_transfer']['numerical_correctness_qualified'])
+            self.assertFalse(evidence['performance_samples_relabelled'])
+            with self.assertRaisesRegex(ValueError, 'runtime configuration differs'):
+                FrozenServiceProfiles.validate_runtime(SimpleNamespace(
+                    model_config_json=json.dumps(FrozenServiceProfiles.model_identity(self.cfg), sort_keys=True),
+                    model_identity=FrozenServiceProfiles.model_identity), candidate)
+            for key in fields:
+                candidate[key] = 14
+                changes[key] = dict(source=8, target=14)
+            transferred, _ = self.derive(model_config=candidate)
+            self.assertEqual(transferred['profile_means'], profile['profile_means'])
+            self.assertNotEqual(transferred['profile_id'], profile['profile_id'])
+            for extra in (dict(ieee_lora_metadata_policy=None), dict(ieee_lora_metadata_policy='unknown'),
+                          dict(ieee_file_demand_transaction=None), dict(ieee_control_interleave='unknown'),
+                          dict(max_loras=15), dict(max_num_batched_tokens=512), dict(ieee_gpu_references=False),
+                          dict(generation_contract='natural_stop'), dict(max_input_len=758), dict(extra=None)):
+                with self.subTest(existing=existing, extra=extra), self.assertRaises(ValueError):
+                    self.derive(model_config=dict(candidate, **extra))
+            self.binding['kind'] = 'native_fixed_output_file_demand_length_transfer_v1'
+            with self.assertRaises(ValueError):
+                self.derive(model_config=candidate)
+            self.binding['kind'] = 'native_fixed_output_metadata_length_transfer_v1'
+        self.run['requests'][1]['actual_tokens'] = 9
+        self.bind()
+        with self.assertRaisesRegex(ValueError, 'correct native completion'):
+            self.derive(model_config=candidate)
+
+
 class CapacityProbeObservation(unittest.TestCase):
     def test_gpu_short_gap_uses_original_long_background_and_real_admission(self):
         from scripts.ieee_tc.prepare_d298_capacity import gpu_short_gap_waves

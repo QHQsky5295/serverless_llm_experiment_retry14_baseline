@@ -4107,7 +4107,8 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
         'native_fixed_output_length_transfer_v1',
         'native_fixed_output_capacity_length_transfer_v1',
         'native_fixed_output_control_length_transfer_v1',
-        'native_fixed_output_file_demand_length_transfer_v1')
+        'native_fixed_output_file_demand_length_transfer_v1',
+        'native_fixed_output_metadata_length_transfer_v1')
     fields = {'kind', 'audit', 'model', 'window_s'}
     if transfer:
         fields.add('model_config_changes')
@@ -4115,7 +4116,8 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
             'native_completed_length_binding_v1', 'native_fixed_output_length_transfer_v1',
             'native_fixed_output_capacity_length_transfer_v1',
             'native_fixed_output_control_length_transfer_v1',
-            'native_fixed_output_file_demand_length_transfer_v1')):
+            'native_fixed_output_file_demand_length_transfer_v1',
+            'native_fixed_output_metadata_length_transfer_v1')):
         raise ValueError('unknown completed-length initialization binding')
     window = binding['window_s']
     if (type(window) not in (int, float) or not math.isfinite(window) or window <= 0
@@ -4153,26 +4155,35 @@ def measured_admission_initializer(binding, *, model_config, backend_version,
         capacity_transfer = binding['kind'] == 'native_fixed_output_capacity_length_transfer_v1'
         control_transfer = binding['kind'] == 'native_fixed_output_control_length_transfer_v1'
         file_transfer = binding['kind'] == 'native_fixed_output_file_demand_length_transfer_v1'
+        metadata_transfer = binding['kind'] == 'native_fixed_output_metadata_length_transfer_v1'
         capacity_fields = {'max_num_seqs', 'runtime_concurrency_cap', 'max_loras'}
         permitted = (capacity_fields
                      if capacity_transfer else {'max_num_batched_tokens'})
         numeric_changes = changes
-        if control_transfer or file_transfer:
+        if control_transfer or file_transfer or metadata_transfer:
             # Reuse only completed fixed-output lengths, NOT latency or SLO.
             # Explicitly retain the changed policy in the target identity; the
             # strict timing-profile loaders still demand fresh measurements.
             policies = {'ieee_control_interleave': 'atomic_control_yield_v1'}
-            if file_transfer:
+            if file_transfer or metadata_transfer:
                 policies['ieee_file_demand_transaction'] = 'protected_file_owner_turn_v1'
                 # Completed lengths may come from before the control-policy
                 # change or from its exact current setting. Timing cannot.
                 if source_identity.get('ieee_control_interleave') == policies['ieee_control_interleave']:
                     policies.pop('ieee_control_interleave')
+            if metadata_transfer:
+                # Metadata lowering changes timing identity, not prescribed
+                # fixed-output lengths. Permit only this exact new policy;
+                # all timing loaders remain strict and require fresh samples.
+                if source_identity.get('ieee_file_demand_transaction') == policies['ieee_file_demand_transaction']:
+                    policies.pop('ieee_file_demand_transaction')
+                policies['ieee_lora_metadata_policy'] = 'cpu_live_mapping_v1'
             numeric_changes = {k:v for k,v in changes.items() if k not in policies}
             if (set(numeric_changes) not in (set(), capacity_fields)
                     or any(changes.get(key) != dict(source=None, target=value)
                            or key in source_identity for key, value in policies.items())
                     or identity.get('ieee_control_interleave') != 'atomic_control_yield_v1'
+                    or (metadata_transfer and identity.get('ieee_file_demand_transaction') != 'protected_file_owner_turn_v1')
                     or identity.get('ieee_scheduler_observation') is not True
                     or identity.get('ieee_gpu_references') is not True):
                 raise ValueError('fixed-output control completed-length transfer contract differs')
@@ -4941,7 +4952,12 @@ async def qualify_native_source_matrix(engine, boundary, bins, waves, result):
     result.update(profile_collection_only=True, router_qualified=False,
         physical_capacity_qualified=False, numerical_adapter_correctness_qualified=False,
         priming_policy='explicit_controlled_source_setup_recorded_per_wave', profile_waves=[])
-    await boundary._attach_ieee_host_budget(engine)
+    host_installation = await boundary._attach_ieee_host_budget(engine)
+    if boundary.model_cfg.get('ieee_lora_metadata_policy') is not None:
+        # Retain the actual existing HOST attachment receipt. No extra RPC,
+        # allocator probe or CUDA synchronization is added to measured requests.
+        result['metadata_host_installation'] = host_installation
+        result['metadata_global_host_budget'] = files.local_source_references.host_budget_snapshot()
     for number, cases in enumerate(waves):
         setup = dict(wave=number, source=cases[0]['source'], requests=[c['case_id'] for c in cases],
                      started_monotonic_s=time.monotonic(), native_evictions={}, transfers=[])

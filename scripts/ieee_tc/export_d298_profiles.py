@@ -40,6 +40,60 @@ def object_hash(value):
         separators=(',', ':')).encode()).hexdigest()
 
 
+def audit_metadata_source_run(raw):
+    """Actual installation/cumulative use, not full-model numerical proof."""
+    from faaslora.memory.lora_metadata_publication import staging_bytes
+    cfg = raw['model_config']
+    receipt = raw['metadata_host_installation']
+    initial = receipt['metadata_publication']
+    snapshots = [initial]
+    workers = raw['workers_after']['workers']
+    if (cfg.get('ieee_lora_metadata_policy') != 'cpu_live_mapping_v1'
+            or len(workers) != 1 or receipt.get('configured') is not True
+            or receipt.get('tensor_budget_bytes') != cfg['ieee_native_host_tensor_budget_bytes']
+            or receipt.get('worker_pid') != workers[0]['pid']
+            or receipt.get('clock_id') != workers[0]['clock_id']):
+        raise ValueError('metadata installation lacks exact native HOST/worker binding')
+    snapshots.append(workers[0]['metadata_publication'])
+    for name in ('sources_after', 'sources_after_eviction'):
+        source = raw[name]
+        if (source.get('owner_id') != receipt['owner_id']
+                or source.get('worker_pid') != receipt['worker_pid']
+                or source.get('clock_id') != receipt['clock_id']):
+            raise ValueError('metadata source owner changed')
+        snapshots.append(source['metadata_publication'])
+    expected_bytes = staging_bytes(cfg['max_num_batched_tokens'], cfg['max_loras'], 2)
+    counters = ('updates', 'reuse_waits', 'copied_bytes')
+    for index, row in enumerate(snapshots):
+        if (row.get('policy') != 'cpu_live_mapping_v1' or row.get('installed') is not True
+                or row.get('poisoned') is not False or row.get('gpu_buffers_replaced') is not False
+                or row.get('native_mapping_invalidation_preserved') is not True
+                or row.get('banks') != 2 or row.get('rows') != cfg['max_num_batched_tokens']
+                or row.get('slots') != cfg['max_loras'] or row.get('staging_bytes') != expected_bytes
+                or any(type(row.get(key)) is not int or row[key] < 0 for key in counters)
+                or row['reuse_waits'] > row['updates']
+                or (index and any(row[key] < snapshots[index-1][key] for key in counters))):
+            raise ValueError('metadata publisher contract/cumulative counter mismatch')
+    before, after = initial['accounted_before_bytes'], initial['accounted_after_bytes']
+    partition = receipt['workspace_partition']
+    workspace = partition['registered_upper_bytes'] + 2 * partition['demand_load_peak_bytes']
+    if (any(type(x) is not int or x < 0 for x in (before, after, workspace))
+            or after - before < expected_bytes
+            or initial['required_minimum_with_staging_bytes'] != before + expected_bytes + workspace
+            or after + workspace > receipt['tensor_budget_bytes']
+            or receipt['allocation'].get('admitted') is not True
+            or receipt['allocation']['before']['accounted_tensor_bytes'] != after
+            or initial['updates'] != 0 or initial['copied_bytes'] != 0
+            or snapshots[-1]['updates'] <= 0 or snapshots[-1]['copied_bytes'] <= 0):
+        raise ValueError('metadata pinned accounting/actual use not established')
+    return dict(policy='cpu_live_mapping_v1', installed=True, triggered=True,
+        pinned_staging_bytes=expected_bytes, actual_pinned_increment=after-before,
+        tensor_budget_bytes=receipt['tensor_budget_bytes'], snapshots=snapshots,
+        global_host_budget=raw['metadata_global_host_budget'],
+        timing_samples_relabelled=False, numerical_correctness_qualified=False,
+        causal_speedup=None)
+
+
 def audit_control_interleave_snapshots(observations, *, expected_pid, expected_clock):
     """Validate cumulative native counters without inventing latency attribution.
 
@@ -612,6 +666,11 @@ def main(campaign='d298'):
         CURATED = ROOT/'paper_results/ieee_tc/p2_backend/d356_control_profiles'
         config_path = ROOT/'configs/ieee_tc/20261008_d356_7b_control_source.yaml'
         source_commit = (RAW/'source_commit.txt').read_text().strip()
+    elif campaign == 'd524':
+        RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d524_20261014'
+        CURATED = ROOT/'paper_results/ieee_tc/p2_backend/d524_metadata_profiles'
+        config_path = ROOT/'configs/ieee_tc/20261014_d524_7b_metadata_source.yaml'
+        source_commit = (RAW/'source_commit.txt').read_text().strip()
     elif campaign == 'd362':
         RAW = ROOT/'results/ieee_tc/p2_backend_qualification/d362_20261009'
         CURATED = ROOT/'paper_results/ieee_tc/p2_backend/d362_file_demand_profiles'
@@ -626,12 +685,13 @@ def main(campaign='d298'):
     if campaign in ('d344-merged', 'd356-merged'):
         directories.append((RAW/'gaps1', CURATED/'gaps1'))
     runs = [audited_source_run(r,c,config_path,
-        health_model='7b' if campaign.startswith(('d344','d356','d362')) else None,
-        require_measurement_seal=campaign.startswith(('d344','d356','d362'))) for r,c in directories]
+        health_model='7b' if campaign.startswith(('d344','d356','d362','d524')) else None,
+        require_measurement_seal=campaign.startswith(('d344','d356','d362','d524'))) for r,c in directories]
     first = runs[0]
     raw, spec, contract, launch = [first[k] for k in ('payload','spec','contract','launch')]
+    metadata_audit = audit_metadata_source_run(raw) if campaign == 'd524' else None
     control_audit = None
-    if campaign.startswith(('d356','d362')):
+    if campaign.startswith(('d356','d362','d524')):
         audits = []
         for run,(raw_dir,_) in zip(runs,directories):
             audit = audit_control_source_run(run['payload'])
@@ -744,11 +804,13 @@ def main(campaign='d298'):
             calibration_executions=len(runs),
             repetition_scope='complementary_class_measurements_not_independent_full_workload_repeats',
             clock_domains_joined=False)
-    elif campaign in ('d307', 'd307-attempt2', 'd344', 'd356', 'd362'):
+    elif campaign in ('d307', 'd307-attempt2', 'd344', 'd356', 'd362', 'd524'):
         result['raw_evidence'].append(ref(RAW/'source_commit.txt'))
     if control_audit is not None:
         result['control_interleave_audit'] = control_audit
-    if campaign == 'd362':
+    if metadata_audit is not None:
+        result['metadata_publication_audit'] = metadata_audit
+    if campaign in ('d362', 'd524'):
         result['file_demand_transaction_audit'] = audit_file_demand_source_run(raw)
     save('manifest.json',result)
     print(json.dumps(dict(passed=True,summary=summary,profiles=result['profiles'],coverage=coverage),indent=2),flush=True)
@@ -757,7 +819,7 @@ def main(campaign='d298'):
 if __name__ == '__main__':
     if not sys.argv[1:]:
         main()
-    elif sys.argv[1:] in (['d307'], ['d307-attempt2'], ['d344'], ['d344-merged'], ['d356'], ['d356-merged'], ['d362']):
+    elif sys.argv[1:] in (['d307'], ['d307-attempt2'], ['d344'], ['d344-merged'], ['d356'], ['d356-merged'], ['d362'], ['d524']):
         main(sys.argv[1])
     elif sys.argv[1:] == ['--history-length-coverage']:
         export_history_length_coverage()
