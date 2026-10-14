@@ -14,6 +14,9 @@ case "${FAASLORA_RESULTS_TAG:-}" in
   d512_7b_full_w0_prefix1)
     RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d512_20261014
     ;;
+  d519_7b_full_w0_prefix1)
+    RAW=/home/qhq/serverless_llm_experiment/results/ieee_tc/p2_backend_qualification/d519_20261014
+    ;;
   *) echo 'Unregistered diagnostic observer campaign' >&2; exit 2 ;;
 esac
 test "$1" = "$ROOT/scripts/run_all_experiments.py"
@@ -28,6 +31,11 @@ else
   test ! -e "$(dirname "$FAASLORA_TC_LAUNCH_RECEIPT")/diagnostic_core"
   unset FAASLORA_TC_STACK_SAMPLING
   export FAASLORA_TC_CORE_TIMING=host_spans_v1
+fi
+if [[ "$FAASLORA_RESULTS_TAG" == d519_7b_full_w0_prefix1 ]]; then
+  export FAASLORA_TC_CORE_STEP_TIMING=v2_components_v1
+else
+  unset FAASLORA_TC_CORE_STEP_TIMING
 fi
 export FAASLORA_PYTHON=/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin/python
 exec /usr/bin/time -v -o "$RAW/controller_prefix1_time.txt" "$FAASLORA_PYTHON" "$@"

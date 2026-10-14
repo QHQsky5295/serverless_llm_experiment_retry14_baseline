@@ -167,6 +167,30 @@ class GPUExecutionFullContract(unittest.TestCase):
         self.assertIn('export FAASLORA_FORMAL_RUN=0', shell)
 
 
+class D519DiagnosticContract(unittest.TestCase):
+    def test_restored_configuration_only_changes_three_paths(self):
+        old = yaml.safe_load((ROOT/'configs/ieee_tc/20261012_d476_7b_full_w0.yaml').read_text())
+        new = yaml.safe_load((ROOT/'configs/ieee_tc/20261014_d519_7b_full_w0_prefix1.yaml').read_text())
+        for section, field in [('experiment', 'output_dir'), ('storage', 'nvme_cache_dir'),
+                               ('storage', 'host_cache_dir')]:
+            self.assertNotEqual(old[section].pop(field), new[section].pop(field))
+        self.assertEqual(old, new)
+
+    def test_explicit_prefix_and_components_not_production(self):
+        shell = (ROOT/'scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh').read_text()
+        block = re.search(r'^  d519\)(.*?)^    ;;', shell, re.M | re.S).group(1)
+        self.assertIn('PREFIX_COUNT=1000\n', block)
+        self.assertIn('SCENARIO=tc_ieee_full', block)
+        self.assertNotIn('export', block)
+        self.assertIn('export FAASLORA_FORMAL_RUN=0', shell)
+        wrapper = (ROOT/'scripts/ieee_tc/profile_d328_controller_python.sh').read_text()
+        branch = re.search(r'if \[\[ "\$FAASLORA_RESULTS_TAG" == d519_7b_full_w0_prefix1 \]\]; then\n(.*?)\nelse\n(.*?)\nfi', wrapper, re.S)
+        self.assertIsNotNone(branch)
+        self.assertIn('export FAASLORA_TC_CORE_STEP_TIMING=v2_components_v1', branch.group(1))
+        self.assertIn('unset FAASLORA_TC_CORE_STEP_TIMING', branch.group(2))
+        self.assertIn('FAASLORA_TC_CORE_TIMING=host_spans_v1', wrapper)
+
+
 class D512DiagnosticContract(unittest.TestCase):
     def test_only_exclusive_paths_differ_from_current_d476(self):
         old = yaml.safe_load((ROOT/'configs/ieee_tc/20261012_d476_7b_full_w0.yaml').read_text())

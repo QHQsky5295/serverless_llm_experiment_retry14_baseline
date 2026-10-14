@@ -14,7 +14,7 @@ from tests import test_ieee_tc_gpu_references as references
 
 
 class GPUExecutionProjection(unittest.TestCase):
-    """GPU queue execution consumes identities; native admission stays live."""
+    """Restored D476 GPU source read; preserve D514's ownership regressions."""
     def make(self, decide=None, **kwargs):
         fixture = references.OwnedNativePreparationPlans()
         self.addCleanup(fixture.doCleanups)
@@ -22,11 +22,9 @@ class GPUExecutionProjection(unittest.TestCase):
         original = slot.engine.ieee_gpu_reference.side_effect
         identities = []
         async def reference(*, operation, **kw):
-            self.assertNotIn(operation, ('source_snapshot', 'routing_source_snapshot'))
+            self.assertNotIn(operation, ('source_identity_snapshot', 'routing_source_snapshot'))
             value = await original(operation=operation, **kw)
-            if operation == 'source_identity_snapshot':
-                self.assertNotIn('native_footprints', value)
-                self.assertNotIn('native_host_allocator', value)
+            if operation == 'source_snapshot':
                 identities.append(value)
             return value
         slot.engine.ieee_gpu_reference.side_effect = reference
@@ -112,7 +110,7 @@ class GPUExecutionProjection(unittest.TestCase):
                 await queue.close()
         asyncio.run(asyncio.wait_for(run(), 3))
 
-    def test_mixed_remote_host_gpu_path_keeps_physical_checks_outside_identity_boundary(self):
+    def test_mixed_remote_host_gpu_path_restores_full_source_read(self):
         import contextvars
         inside = contextvars.ContextVar('gpu_execution', default=False)
         # Reuse the fixture module's serialized-selector execution. This test
@@ -138,7 +136,7 @@ class GPUExecutionProjection(unittest.TestCase):
             return original_submit(**kw)
         async def reference(*, operation, **kw):
             if inside.get():
-                self.assertNotIn(operation, ('source_snapshot', 'routing_source_snapshot'))
+                self.assertNotIn(operation, ('source_identity_snapshot', 'routing_source_snapshot'))
                 observed.append(operation)
             return await original_reference(operation=operation, **kw)
         queue.submit = submit
@@ -146,7 +144,7 @@ class GPUExecutionProjection(unittest.TestCase):
         async def run():
             try:
                 await factory.execute(runner, slot, mode='residency')
-                self.assertIn('source_identity_snapshot', observed)
+                self.assertIn('source_snapshot', observed)
                 self.assertIn(('host', 'a'), loads)
                 self.assertIn(('gpu', 'a'), loads)
                 self.assertGreater(slot.engine.ieee_prepare_host.await_count, 0)

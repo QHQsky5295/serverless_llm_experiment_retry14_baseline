@@ -1,4 +1,40 @@
-# IEEE TC status — D518 native step source review and CPU observer qualification
+# IEEE TC status — D519 restored serving semantics and step diagnostic
+
+## D519 current preregistration, 2026-10-14
+
+D514 rejected GPU source-query change has been RESTORED to D476 semantics.
+scripts/run_all_experiments.py is byte-identical to sealed production
+db44e8f068eb30c69466f32ad3d147ffbc45f9e2; faaslora only D518 observer differences.
+Four GPU ownership/deferral/mixed-path regression tests retained/adapted, HOST
+D474 behavior unchanged. D516 nonfeasible evidence retained, not a causalproof.
+Read D519_RESTORED_STEP_DIAGNOSTIC.md. ONE original1000 diagnostic prepared with
+host_spans_v1 + v2_components_v1; same D476 config except threeexclusive paths.
+1028 CPU tests PASS/0fail/error/skip; source/config/original1000view/protected147/
+threeuserdirt/PLAN/V1/V2 checksPASS. View0a5dfcf...0981,60IDs,122510targettokens.
+CPU1 actualrecursiveemptyclosed,peak2314604544B/events0/swap0. Qualification2
+closure and explicit tested backup NEXT, then actualawaitedremotehealth/resource
+gates and ONE tmux tc-d519-coreprefix1. NO GPU run launched at this writing.
+RAW results/ieee_tc/p2_backend_qualification/d519_20261014, reuseD512helpers.
+This is diagnostic-only, not a new performance point or allocator optimization.
+Whilelive ONLYlightweightwatchdog/progress; nohash/tests/backup/remotechanges.
+AfteractualnativeGPUrelease: boundedaux5 close_after_release.py ->close.py
+collection; then reused source/native/span audit plusstepcomponent analysis.
+Hypothesisunsupported -> measuredothercomponent, not blindcachethresholds;
+supported -> boundedphysicalcontract, minimalvalidation thenordinaryfull4000.
+Whole7BW1/W2/G2/commonrefs/3B/baselines/dLoRA/A1–A5/S1–S13/cost/docs/finaldelivery
+ACTIVE. No repeatedHydraServe/D512/D516/D518. OlderNEXTclausesbelowhistorical.
+
+## D518 backup verified — resume here
+
+Checkpoint880a38eb02868d235784a7e0d3b10967b6617590 PUSHED/remote-equal;
+RAW/backup_receipt.json confirms explicit7files,163CPUtests/source/protected147/
+userdirt/diff/secrets checks. CPU andbackup actualrecursiveemptyclosed/pathsgone,
+peaks613306368/26984448B,events0/swap0. NoGPU/remote/k3s action or livejob.
+DoNOTrepeatD518CPUtests/backup; this is localpost-backup handoff.
+NEXT as below: restore D514 rejectedproductionchange to D476 source semantics,
+validate restoration, then ONE original1000 V2 component diagnostic. Notprepared
+orlaunched yet. D518diagnostic is opt-in/off bydefault, not a performance fix.
+FullremaininggoalACTIVE; oldbackup-next clausesbeloware historical.
 
 ## D518 current handoff, 2026-10-14
 
