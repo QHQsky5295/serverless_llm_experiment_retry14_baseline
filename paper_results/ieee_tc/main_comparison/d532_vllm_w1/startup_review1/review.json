@@ -1,0 +1,682 @@
+{
+  "passed": true,
+  "new_gpu_run": false,
+  "serving_modified": false,
+  "shared_cache_modified": false,
+  "native_configuration_and_toolchain_equal": true,
+  "native_functions_ast_equal": {
+    "native_worker_environment": true,
+    "_native_worker": true,
+    "NativeVLLMRequestHandler": true
+  },
+  "cache_changed": [
+    {
+      "path": "/home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/.ninja_deps",
+      "old": [
+        289472,
+        "34f5d438add102663836de5f7405f365e2dd1b760e9c139e2795b70388942e71"
+      ],
+      "new": [
+        302920,
+        "b11705ef254a47ec3f3a3b2ebe80ae5bcfaa450c4ef9ab2387fa807a677dad3c"
+      ]
+    },
+    {
+      "path": "/home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/.ninja_log",
+      "old": [
+        3780,
+        "b137acd1aaf33bcd65b94cbed36d70c8dd926c83e2e7e4e46eb1834c2e2e4e6c"
+      ],
+      "new": [
+        4320,
+        "12945553b6bcdd4a6fb9913a6a4fa377ff143efb6661c32b2593b17ae801be29"
+      ]
+    },
+    {
+      "path": "/home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/build.ninja",
+      "old": [
+        3731,
+        "98c0b5e1fdebe080604bdf3b08bf39d9ed05c61e35e06037e0756d4d561756d1"
+      ],
+      "new": [
+        3778,
+        "053d80c8059d08ac41c81a4dc43437825afeed6c60524dc3fe0cc588500ac07f"
+      ]
+    },
+    {
+      "path": "/home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_flashinfer_sampling_binding.cuda.o",
+      "old": [
+        682496,
+        "c223cd11e73fc2ef54240e0cbbd9bada5aa87e2f0dbae398481ec1aa837af358"
+      ],
+      "new": [
+        682496,
+        "a11df90050d32d1e7918458cfa99c70b95df5c4062239d1447549f78e1b28a30"
+      ]
+    },
+    {
+      "path": "/home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_renorm.cuda.o",
+      "old": [
+        693240,
+        "9a62454425db2403d9c648276ba64e9d5a0dc6b55f3cac4e2696a1caf11ae4c8"
+      ],
+      "new": [
+        693240,
+        "eab469e9da9b33d64ceb842ca0124d787e92fa488d748a0c9374dfa411a51a60"
+      ]
+    },
+    {
+      "path": "/home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_sampling.cuda.o",
+      "old": [
+        2087072,
+        "a4284cc5a04fd8fa23d3f3b04445ca49d8823f1568c47cbbc7c233ecdeeb1b17"
+      ],
+      "new": [
+        2087072,
+        "f106e20a0c6bfd1d72b0e6252c564e32345d7752b1d81b4523fc652fd3c6b399"
+      ]
+    },
+    {
+      "path": "/home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/sampling.so",
+      "old": [
+        2194008,
+        "94322a1a39e56afbdbf7710889c93a6bb2fc813a04a5d732e9a783fc72539fab"
+      ],
+      "new": [
+        2194008,
+        "0f9700462438b7a14f590e31f7424b0edc32acdafeebb7be29f86cd26eede1b7"
+      ]
+    }
+  ],
+  "ninja_log_frozen_prefixes": [
+    {
+      "bytes": 3780,
+      "sha256": "b137acd1aaf33bcd65b94cbed36d70c8dd926c83e2e7e4e46eb1834c2e2e4e6c",
+      "matched": true
+    },
+    {
+      "bytes": 4320,
+      "sha256": "12945553b6bcdd4a6fb9913a6a4fa377ff143efb6661c32b2593b17ae801be29",
+      "matched": true
+    }
+  ],
+  "ninja_appended_events": [
+    {
+      "start_ms": 9,
+      "end_ms": 40287,
+      "output_mtime_ns": 1791995617921761164,
+      "output_mtime_utc": "2026-10-14T16:33:37.921761+00:00",
+      "output": "/home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_renorm.cuda.o",
+      "command_hash": "91b5c581bd784ac0"
+    },
+    {
+      "start_ms": 40288,
+      "end_ms": 51273,
+      "output_mtime_ns": 1791995658201001443,
+      "output_mtime_utc": "2026-10-14T16:34:18.201001+00:00",
+      "output": "/home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_flashinfer_sampling_binding.cuda.o",
+      "command_hash": "29faa44a4974a0b0"
+    },
+    {
+      "start_ms": 9,
+      "end_ms": 101377,
+      "output_mtime_ns": 1791995617921761164,
+      "output_mtime_utc": "2026-10-14T16:33:37.921761+00:00",
+      "output": "/home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_sampling.cuda.o",
+      "command_hash": "d431f230ccbb333c"
+    },
+    {
+      "start_ms": 101377,
+      "end_ms": 101758,
+      "output_mtime_ns": 1791995719290400397,
+      "output_mtime_utc": "2026-10-14T16:35:19.290401+00:00",
+      "output": "/home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/sampling.so",
+      "command_hash": "16da55d9abe4f5d"
+    }
+  ],
+  "renderer_comparison": {
+    "current_build_matches_default": true,
+    "pre_d532_build_matches_explicit": false,
+    "default_matches_d423": true,
+    "diff": [
+      "--- ",
+      "+++ ",
+      "@@ -1,8 +1,8 @@",
+      " ninja_required_version = 1.3",
+      " name = sampling",
+      "-cuda_home = /usr/local/cuda",
+      "+cuda_home = /usr/local/cuda-13.0",
+      " cxx = c++",
+      "-nvcc = $cuda_home/bin/nvcc",
+      "+nvcc = /usr/local/cuda-13.0/bin/nvcc",
+      " cxx_launcher = ",
+      " nvcc_launcher = ",
+      " "
+    ]
+  },
+  "rendered": {
+    "vllm_default": {
+      "text": "ninja_required_version = 1.3\nname = sampling\ncuda_home = /usr/local/cuda\ncxx = c++\nnvcc = $cuda_home/bin/nvcc\ncxx_launcher = \nnvcc_launcher = \n\ncommon_cflags = -DPy_LIMITED_API=0x03090000 $\n    -D_GLIBCXX_USE_CXX11_ABI=1 $\n    -I/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/cccl/cub $\n    -I/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/cccl/libcudacxx/include $\n    -I/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/cccl/thrust $\n    -isystem /home/qhq/anaconda3/envs/LLM_vllm0102/include/python3.12 $\n    -isystem $cuda_home/include $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/tvm_ffi/include $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/tvm_ffi/include $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/include $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/csrc $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/cutlass/include $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/cutlass/tools/util/include $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/spdlog/include\ncflags = $common_cflags $\n    -fPIC $\n    -std=c++17 $\n    -Wno-switch-bool $\n    -DNDEBUG $\n    -O3\npost_cflags =\ncuda_cflags = $common_cflags $\n    --compiler-options=-fPIC $\n    --expt-relaxed-constexpr $\n    -static-global-template-stub=false $\n    -gencode=arch=compute_86,code=sm_86 $\n    -DFLASHINFER_ENABLE_FP8_E8M0 $\n    -DFLASHINFER_ENABLE_FP4_E2M1 $\n    -std=c++17 $\n    --threads=1 $\n    -use_fast_math $\n    -Xfatbin=-compress-all $\n    --compress-mode=size $\n    -DFLASHINFER_ENABLE_F16 $\n    -DFLASHINFER_ENABLE_BF16 $\n    -DFLASHINFER_ENABLE_FP8_E4M3 $\n    -DFLASHINFER_ENABLE_FP8_E5M2 $\n    -DNDEBUG $\n    -O3\ncuda_post_cflags =\nldflags = -shared $\n    -L$cuda_home/lib64 $\n    -L$cuda_home/lib64/stubs $\n    -lcudart $\n    -lcuda\n\nrule compile\n  command = $cxx_launcher $cxx -MMD -MF $out.d $cflags -c $in -o $out $post_cflags\n  depfile = $out.d\n  deps = gcc\n\nrule cuda_compile\n  command = $nvcc_launcher $nvcc --generate-dependencies-with-compile -MF $out.d $cuda_cflags -c $in -o $out $cuda_post_cflags\n  depfile = $out.d\n  deps = gcc\n\nrule link\n  command = $cxx $in $ldflags -o $out\n\nbuild /home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_sampling.cuda.o: cuda_compile /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/csrc/sampling.cu\nbuild /home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_renorm.cuda.o: cuda_compile /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/csrc/renorm.cu\nbuild /home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_flashinfer_sampling_binding.cuda.o: cuda_compile /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/csrc/flashinfer_sampling_binding.cu\n\nbuild /home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/sampling.so: link /home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_sampling.cuda.o /home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_renorm.cuda.o /home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_flashinfer_sampling_binding.cuda.o\ndefault /home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/sampling.so\n",
+      "sha256": "98c0b5e1fdebe080604bdf3b08bf39d9ed05c61e35e06037e0756d4d561756d1",
+      "bytes": 3731,
+      "cuda_initialized": false,
+      "build_called": false
+    },
+    "primelora_explicit": {
+      "text": "ninja_required_version = 1.3\nname = sampling\ncuda_home = /usr/local/cuda-13.0\ncxx = c++\nnvcc = /usr/local/cuda-13.0/bin/nvcc\ncxx_launcher = \nnvcc_launcher = \n\ncommon_cflags = -DPy_LIMITED_API=0x03090000 $\n    -D_GLIBCXX_USE_CXX11_ABI=1 $\n    -I/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/cccl/cub $\n    -I/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/cccl/libcudacxx/include $\n    -I/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/cccl/thrust $\n    -isystem /home/qhq/anaconda3/envs/LLM_vllm0102/include/python3.12 $\n    -isystem $cuda_home/include $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/tvm_ffi/include $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/tvm_ffi/include $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/include $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/csrc $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/cutlass/include $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/cutlass/tools/util/include $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/spdlog/include\ncflags = $common_cflags $\n    -fPIC $\n    -std=c++17 $\n    -Wno-switch-bool $\n    -DNDEBUG $\n    -O3\npost_cflags =\ncuda_cflags = $common_cflags $\n    --compiler-options=-fPIC $\n    --expt-relaxed-constexpr $\n    -static-global-template-stub=false $\n    -gencode=arch=compute_86,code=sm_86 $\n    -DFLASHINFER_ENABLE_FP8_E8M0 $\n    -DFLASHINFER_ENABLE_FP4_E2M1 $\n    -std=c++17 $\n    --threads=1 $\n    -use_fast_math $\n    -Xfatbin=-compress-all $\n    --compress-mode=size $\n    -DFLASHINFER_ENABLE_F16 $\n    -DFLASHINFER_ENABLE_BF16 $\n    -DFLASHINFER_ENABLE_FP8_E4M3 $\n    -DFLASHINFER_ENABLE_FP8_E5M2 $\n    -DNDEBUG $\n    -O3\ncuda_post_cflags =\nldflags = -shared $\n    -L$cuda_home/lib64 $\n    -L$cuda_home/lib64/stubs $\n    -lcudart $\n    -lcuda\n\nrule compile\n  command = $cxx_launcher $cxx -MMD -MF $out.d $cflags -c $in -o $out $post_cflags\n  depfile = $out.d\n  deps = gcc\n\nrule cuda_compile\n  command = $nvcc_launcher $nvcc --generate-dependencies-with-compile -MF $out.d $cuda_cflags -c $in -o $out $cuda_post_cflags\n  depfile = $out.d\n  deps = gcc\n\nrule link\n  command = $cxx $in $ldflags -o $out\n\nbuild /home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_sampling.cuda.o: cuda_compile /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/csrc/sampling.cu\nbuild /home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_renorm.cuda.o: cuda_compile /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/csrc/renorm.cu\nbuild /home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_flashinfer_sampling_binding.cuda.o: cuda_compile /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/csrc/flashinfer_sampling_binding.cu\n\nbuild /home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/sampling.so: link /home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_sampling.cuda.o /home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_renorm.cuda.o /home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_flashinfer_sampling_binding.cuda.o\ndefault /home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/sampling.so\n",
+      "sha256": "ffb0db40ae97f27dc07a922c5200b2e3d3edc58ff2914b7f4d526124c230a05f",
+      "bytes": 3746,
+      "cuda_initialized": false,
+      "build_called": false
+    }
+  },
+  "ready": {
+    "d423_20261011": [
+      {
+        "index": 3,
+        "ready_after_notice_s": 41.79348920611665,
+        "engine_args": {
+          "disable_log_stats": false,
+          "dtype": "float16",
+          "enable_chunked_prefill": true,
+          "enable_lora": true,
+          "enable_prefix_caching": false,
+          "enforce_eager": false,
+          "gpu_memory_utilization": 0.7,
+          "max_cpu_loras": 16,
+          "max_lora_rank": 64,
+          "max_loras": 4,
+          "max_model_len": 1024,
+          "max_num_batched_tokens": 1024,
+          "max_num_seqs": 2,
+          "model": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+          "seed": 0,
+          "tensor_parallel_size": 1,
+          "tokenizer": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+          "trust_remote_code": true
+        }
+      },
+      {
+        "index": 2,
+        "ready_after_notice_s": 40.886804474983364,
+        "engine_args": {
+          "disable_log_stats": false,
+          "dtype": "float16",
+          "enable_chunked_prefill": true,
+          "enable_lora": true,
+          "enable_prefix_caching": false,
+          "enforce_eager": false,
+          "gpu_memory_utilization": 0.7,
+          "max_cpu_loras": 16,
+          "max_lora_rank": 64,
+          "max_loras": 4,
+          "max_model_len": 1024,
+          "max_num_batched_tokens": 1024,
+          "max_num_seqs": 2,
+          "model": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+          "seed": 0,
+          "tensor_parallel_size": 1,
+          "tokenizer": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+          "trust_remote_code": true
+        }
+      },
+      {
+        "index": 1,
+        "ready_after_notice_s": 41.2235460029915,
+        "engine_args": {
+          "disable_log_stats": false,
+          "dtype": "float16",
+          "enable_chunked_prefill": true,
+          "enable_lora": true,
+          "enable_prefix_caching": false,
+          "enforce_eager": false,
+          "gpu_memory_utilization": 0.7,
+          "max_cpu_loras": 16,
+          "max_lora_rank": 64,
+          "max_loras": 4,
+          "max_model_len": 1024,
+          "max_num_batched_tokens": 1024,
+          "max_num_seqs": 2,
+          "model": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+          "seed": 0,
+          "tensor_parallel_size": 1,
+          "tokenizer": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+          "trust_remote_code": true
+        }
+      },
+      {
+        "index": 0,
+        "ready_after_notice_s": 41.767803895054385,
+        "engine_args": {
+          "disable_log_stats": false,
+          "dtype": "float16",
+          "enable_chunked_prefill": true,
+          "enable_lora": true,
+          "enable_prefix_caching": false,
+          "enforce_eager": false,
+          "gpu_memory_utilization": 0.7,
+          "max_cpu_loras": 16,
+          "max_lora_rank": 64,
+          "max_loras": 4,
+          "max_model_len": 1024,
+          "max_num_batched_tokens": 1024,
+          "max_num_seqs": 2,
+          "model": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+          "seed": 0,
+          "tensor_parallel_size": 1,
+          "tokenizer": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+          "trust_remote_code": true
+        }
+      }
+    ],
+    "d532_20261015": [
+      {
+        "index": 2,
+        "ready_after_notice_s": 142.93390788813122,
+        "engine_args": {
+          "disable_log_stats": false,
+          "dtype": "float16",
+          "enable_chunked_prefill": true,
+          "enable_lora": true,
+          "enable_prefix_caching": false,
+          "enforce_eager": false,
+          "gpu_memory_utilization": 0.7,
+          "max_cpu_loras": 16,
+          "max_lora_rank": 64,
+          "max_loras": 4,
+          "max_model_len": 1024,
+          "max_num_batched_tokens": 1024,
+          "max_num_seqs": 2,
+          "model": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+          "seed": 0,
+          "tensor_parallel_size": 1,
+          "tokenizer": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+          "trust_remote_code": true
+        }
+      },
+      {
+        "index": 0,
+        "ready_after_notice_s": 143.20942726009525,
+        "engine_args": {
+          "disable_log_stats": false,
+          "dtype": "float16",
+          "enable_chunked_prefill": true,
+          "enable_lora": true,
+          "enable_prefix_caching": false,
+          "enforce_eager": false,
+          "gpu_memory_utilization": 0.7,
+          "max_cpu_loras": 16,
+          "max_lora_rank": 64,
+          "max_loras": 4,
+          "max_model_len": 1024,
+          "max_num_batched_tokens": 1024,
+          "max_num_seqs": 2,
+          "model": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+          "seed": 0,
+          "tensor_parallel_size": 1,
+          "tokenizer": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+          "trust_remote_code": true
+        }
+      },
+      {
+        "index": 1,
+        "ready_after_notice_s": 143.19315526005812,
+        "engine_args": {
+          "disable_log_stats": false,
+          "dtype": "float16",
+          "enable_chunked_prefill": true,
+          "enable_lora": true,
+          "enable_prefix_caching": false,
+          "enforce_eager": false,
+          "gpu_memory_utilization": 0.7,
+          "max_cpu_loras": 16,
+          "max_lora_rank": 64,
+          "max_loras": 4,
+          "max_model_len": 1024,
+          "max_num_batched_tokens": 1024,
+          "max_num_seqs": 2,
+          "model": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+          "seed": 0,
+          "tensor_parallel_size": 1,
+          "tokenizer": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+          "trust_remote_code": true
+        }
+      },
+      {
+        "index": 3,
+        "ready_after_notice_s": 143.35103098209947,
+        "engine_args": {
+          "disable_log_stats": false,
+          "dtype": "float16",
+          "enable_chunked_prefill": true,
+          "enable_lora": true,
+          "enable_prefix_caching": false,
+          "enforce_eager": false,
+          "gpu_memory_utilization": 0.7,
+          "max_cpu_loras": 16,
+          "max_lora_rank": 64,
+          "max_loras": 4,
+          "max_model_len": 1024,
+          "max_num_batched_tokens": 1024,
+          "max_num_seqs": 2,
+          "model": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+          "seed": 0,
+          "tensor_parallel_size": 1,
+          "tokenizer": "/home/qhq/serverless_llm_experiment/models/meta-llama--Llama-2-7b-hf",
+          "trust_remote_code": true
+        }
+      }
+    ]
+  },
+  "worker_log_boundaries": {
+    "d423_20261011": {
+      "worker_0.log": [
+        "(EngineCore pid=291041) INFO 10-11 17:18:37 [decorators.py:313] Directly load AOT compilation from path /home/qhq/.cache/vllm/torch_compile_cache/torch_aot_compile/5aa16d450e99426f10d34b8dad9ac841c1d5db1cbc22aebc833790f64ad77928/rank_0_0/model",
+        "(EngineCore pid=291041) INFO 10-11 17:18:37 [monitor.py:53] torch.compile took 0.29 s in total",
+        "(EngineCore pid=291041) INFO 10-11 17:18:40 [model_runner.py:1066] Graph capturing finished in 2 secs, took 0.07 GiB",
+        "(EngineCore pid=291041) INFO 10-11 17:18:40 [kernel_warmup.py:172] JIT kernel warmup starting.",
+        "(EngineCore pid=291041) INFO 10-11 17:18:40 [kernel_warmup.py:185] JIT kernel warmup finished in 0.00s.",
+        "(EngineCore pid=291041) INFO 10-11 17:18:43 [model_runner.py:1066] Graph capturing finished in 2 secs, took 0.03 GiB",
+        "(EngineCore pid=291041) INFO 10-11 17:18:44 [core.py:372] init engine (profile, create kv cache, warmup model) took 9.59 s (compilation: 0.29 s)"
+      ],
+      "worker_1.log": [
+        "(EngineCore pid=291032) INFO 10-11 17:18:36 [decorators.py:313] Directly load AOT compilation from path /home/qhq/.cache/vllm/torch_compile_cache/torch_aot_compile/5aa16d450e99426f10d34b8dad9ac841c1d5db1cbc22aebc833790f64ad77928/rank_0_0/model",
+        "(EngineCore pid=291032) INFO 10-11 17:18:36 [monitor.py:53] torch.compile took 0.31 s in total",
+        "(EngineCore pid=291032) INFO 10-11 17:18:40 [model_runner.py:1066] Graph capturing finished in 2 secs, took 0.07 GiB",
+        "(EngineCore pid=291032) INFO 10-11 17:18:40 [kernel_warmup.py:172] JIT kernel warmup starting.",
+        "(EngineCore pid=291032) INFO 10-11 17:18:40 [kernel_warmup.py:185] JIT kernel warmup finished in 0.00s.",
+        "(EngineCore pid=291032) INFO 10-11 17:18:42 [model_runner.py:1066] Graph capturing finished in 2 secs, took 0.03 GiB",
+        "(EngineCore pid=291032) INFO 10-11 17:18:43 [core.py:372] init engine (profile, create kv cache, warmup model) took 9.73 s (compilation: 0.31 s)"
+      ],
+      "worker_2.log": [
+        "(EngineCore pid=291049) INFO 10-11 17:18:36 [decorators.py:313] Directly load AOT compilation from path /home/qhq/.cache/vllm/torch_compile_cache/torch_aot_compile/5aa16d450e99426f10d34b8dad9ac841c1d5db1cbc22aebc833790f64ad77928/rank_0_0/model",
+        "(EngineCore pid=291049) INFO 10-11 17:18:36 [monitor.py:53] torch.compile took 0.28 s in total",
+        "(EngineCore pid=291049) INFO 10-11 17:18:39 [model_runner.py:1066] Graph capturing finished in 2 secs, took 0.07 GiB",
+        "(EngineCore pid=291049) INFO 10-11 17:18:40 [kernel_warmup.py:172] JIT kernel warmup starting.",
+        "(EngineCore pid=291049) INFO 10-11 17:18:40 [kernel_warmup.py:185] JIT kernel warmup finished in 0.00s.",
+        "(EngineCore pid=291049) INFO 10-11 17:18:42 [model_runner.py:1066] Graph capturing finished in 2 secs, took 0.03 GiB",
+        "(EngineCore pid=291049) INFO 10-11 17:18:43 [core.py:372] init engine (profile, create kv cache, warmup model) took 9.45 s (compilation: 0.28 s)"
+      ],
+      "worker_3.log": [
+        "(EngineCore pid=291056) INFO 10-11 17:18:37 [decorators.py:313] Directly load AOT compilation from path /home/qhq/.cache/vllm/torch_compile_cache/torch_aot_compile/5aa16d450e99426f10d34b8dad9ac841c1d5db1cbc22aebc833790f64ad77928/rank_0_0/model",
+        "(EngineCore pid=291056) INFO 10-11 17:18:37 [monitor.py:53] torch.compile took 0.28 s in total",
+        "(EngineCore pid=291056) INFO 10-11 17:18:40 [model_runner.py:1066] Graph capturing finished in 2 secs, took 0.07 GiB",
+        "(EngineCore pid=291056) INFO 10-11 17:18:40 [kernel_warmup.py:172] JIT kernel warmup starting.",
+        "(EngineCore pid=291056) INFO 10-11 17:18:40 [kernel_warmup.py:185] JIT kernel warmup finished in 0.00s.",
+        "(EngineCore pid=291056) INFO 10-11 17:18:43 [model_runner.py:1066] Graph capturing finished in 2 secs, took 0.03 GiB",
+        "(EngineCore pid=291056) INFO 10-11 17:18:44 [core.py:372] init engine (profile, create kv cache, warmup model) took 9.57 s (compilation: 0.28 s)"
+      ]
+    },
+    "d532_20261015": {
+      "worker_0.log": [
+        "(EngineCore pid=2663285) INFO 10-15 00:33:34 [decorators.py:313] Directly load AOT compilation from path /home/qhq/.cache/vllm/torch_compile_cache/torch_aot_compile/5aa16d450e99426f10d34b8dad9ac841c1d5db1cbc22aebc833790f64ad77928/rank_0_0/model",
+        "(EngineCore pid=2663285) INFO 10-15 00:33:34 [monitor.py:53] torch.compile took 0.32 s in total",
+        "(EngineCore pid=2663285) INFO 10-15 00:33:37 [model_runner.py:1066] Graph capturing finished in 2 secs, took 0.07 GiB",
+        "(EngineCore pid=2663285) INFO 10-15 00:33:37 [kernel_warmup.py:172] JIT kernel warmup starting.",
+        "(EngineCore pid=2663285) INFO 10-15 00:33:37 [kernel_warmup.py:185] JIT kernel warmup finished in 0.00s.",
+        "(EngineCore pid=2663285) INFO 10-15 00:35:21 [model_runner.py:1066] Graph capturing finished in 2 secs, took 0.03 GiB",
+        "(EngineCore pid=2663285) INFO 10-15 00:35:22 [core.py:372] init engine (profile, create kv cache, warmup model) took 111.57 s (compilation: 0.32 s)"
+      ],
+      "worker_1.log": [
+        "(EngineCore pid=2663293) INFO 10-15 00:33:34 [decorators.py:313] Directly load AOT compilation from path /home/qhq/.cache/vllm/torch_compile_cache/torch_aot_compile/5aa16d450e99426f10d34b8dad9ac841c1d5db1cbc22aebc833790f64ad77928/rank_0_0/model",
+        "(EngineCore pid=2663293) INFO 10-15 00:33:34 [monitor.py:53] torch.compile took 0.29 s in total",
+        "(EngineCore pid=2663293) INFO 10-15 00:33:37 [model_runner.py:1066] Graph capturing finished in 2 secs, took 0.07 GiB",
+        "(EngineCore pid=2663293) INFO 10-15 00:33:37 [kernel_warmup.py:172] JIT kernel warmup starting.",
+        "(EngineCore pid=2663293) INFO 10-15 00:33:37 [kernel_warmup.py:185] JIT kernel warmup finished in 0.00s.",
+        "(EngineCore pid=2663293) INFO 10-15 00:35:21 [model_runner.py:1066] Graph capturing finished in 2 secs, took 0.03 GiB",
+        "(EngineCore pid=2663293) INFO 10-15 00:35:22 [core.py:372] init engine (profile, create kv cache, warmup model) took 111.57 s (compilation: 0.29 s)"
+      ],
+      "worker_2.log": [
+        "(EngineCore pid=2663276) INFO 10-15 00:33:33 [decorators.py:313] Directly load AOT compilation from path /home/qhq/.cache/vllm/torch_compile_cache/torch_aot_compile/5aa16d450e99426f10d34b8dad9ac841c1d5db1cbc22aebc833790f64ad77928/rank_0_0/model",
+        "(EngineCore pid=2663276) INFO 10-15 00:33:33 [monitor.py:53] torch.compile took 0.28 s in total",
+        "(EngineCore pid=2663276) INFO 10-15 00:33:37 [model_runner.py:1066] Graph capturing finished in 2 secs, took 0.07 GiB",
+        "(EngineCore pid=2663276) INFO 10-15 00:33:37 [kernel_warmup.py:172] JIT kernel warmup starting.",
+        "(EngineCore pid=2663276) INFO 10-15 00:33:37 [kernel_warmup.py:185] JIT kernel warmup finished in 0.00s.",
+        "(EngineCore pid=2663276) INFO 10-15 00:35:21 [model_runner.py:1066] Graph capturing finished in 2 secs, took 0.03 GiB",
+        "(EngineCore pid=2663276) INFO 10-15 00:35:22 [core.py:372] init engine (profile, create kv cache, warmup model) took 111.97 s (compilation: 0.28 s)"
+      ],
+      "worker_3.log": [
+        "(EngineCore pid=2663300) INFO 10-15 00:33:33 [decorators.py:313] Directly load AOT compilation from path /home/qhq/.cache/vllm/torch_compile_cache/torch_aot_compile/5aa16d450e99426f10d34b8dad9ac841c1d5db1cbc22aebc833790f64ad77928/rank_0_0/model",
+        "(EngineCore pid=2663300) INFO 10-15 00:33:33 [monitor.py:53] torch.compile took 0.28 s in total",
+        "(EngineCore pid=2663300) INFO 10-15 00:33:37 [model_runner.py:1066] Graph capturing finished in 2 secs, took 0.07 GiB",
+        "(EngineCore pid=2663300) INFO 10-15 00:33:38 [kernel_warmup.py:172] JIT kernel warmup starting.",
+        "(EngineCore pid=2663300) INFO 10-15 00:33:38 [kernel_warmup.py:185] JIT kernel warmup finished in 0.00s.",
+        "(EngineCore pid=2663300) INFO 10-15 00:35:21 [model_runner.py:1066] Graph capturing finished in 2 secs, took 0.03 GiB",
+        "(EngineCore pid=2663300) INFO 10-15 00:35:23 [core.py:372] init engine (profile, create kv cache, warmup model) took 111.88 s (compilation: 0.28 s)"
+      ]
+    }
+  },
+  "resource_observations": {
+    "d423_20261011": {
+      "samples": 100,
+      "first": {
+        "after_notice_s": 36.54505721805617,
+        "cpu_usage_usec": 263566747,
+        "gpu_util": [
+          0,
+          25,
+          19,
+          0
+        ],
+        "memory_events": {
+          "low": 0,
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0,
+          "oom_group_kill": 0
+        },
+        "swap": 0
+      },
+      "last": {
+        "after_notice_s": 136.9724798281677,
+        "cpu_usage_usec": 339165910,
+        "gpu_util": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "memory_events": {
+          "low": 0,
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0,
+          "oom_group_kill": 0
+        },
+        "swap": 0
+      },
+      "all_zero_gpu_util": 46,
+      "cpu_seconds_delta": 75.599163,
+      "caveat": "Samples are not kernel spans; CPU usage does not independently locate the wait."
+    },
+    "d532_20261015": {
+      "samples": 100,
+      "first": {
+        "after_notice_s": 36.502701516030356,
+        "cpu_usage_usec": 271409211,
+        "gpu_util": [
+          0,
+          0,
+          23,
+          0
+        ],
+        "memory_events": {
+          "low": 0,
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0,
+          "oom_group_kill": 0
+        },
+        "swap": 0
+      },
+      "last": {
+        "after_notice_s": 136.88283403613605,
+        "cpu_usage_usec": 432428685,
+        "gpu_util": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "memory_events": {
+          "low": 0,
+          "high": 0,
+          "max": 0,
+          "oom": 0,
+          "oom_kill": 0,
+          "oom_group_kill": 0
+        },
+        "swap": 0
+      },
+      "all_zero_gpu_util": 96,
+      "cpu_seconds_delta": 161.019474,
+      "caveat": "Samples are not kernel spans; CPU usage does not independently locate the wait."
+    }
+  },
+  "compiler_realpaths": {
+    "/usr/local/cuda": "/usr/local/cuda-13.0",
+    "/usr/local/cuda/bin/nvcc": "/usr/local/cuda-13.0/bin/nvcc",
+    "/usr/local/cuda-13.0/bin/nvcc": "/usr/local/cuda-13.0/bin/nvcc"
+  },
+  "limitation": "No warmup call span or complete historical environment snapshot; do not subtract compile time from latency or declare all poor performance explained.",
+  "source_refs": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d423_20261011/native_cache_prefix_identity.json": {
+      "sha256": "2850bdc1442d0b73f217d83c16e6375657fdf132d07c352178d4c0ca5d8457b7",
+      "bytes": 212907
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d532_20261015/native_cache_prefix_identity.json": {
+      "sha256": "7cfefb685e9426ee6263eedb254e08aa35497045d3fbdaaf8469b8d2d6f78021",
+      "bytes": 212907
+    },
+    "/home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/build.ninja": {
+      "sha256": "98c0b5e1fdebe080604bdf3b08bf39d9ed05c61e35e06037e0756d4d561756d1",
+      "bytes": 3731
+    },
+    "/home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/.ninja_log": {
+      "sha256": "5fe83f04277aee9638680a3d3604a58b7200d0835b9c7b5959bd05f05c2c22b1",
+      "bytes": 4858
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d423_20261011/model7b/physical/deployment.json": {
+      "sha256": "8f239ca654280a92e9b67f5357f8ab4e2126c7dd7b09907f71b55c8c13e771f1",
+      "bytes": 749
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d423_20261011/model7b/worker_receipts/2f7a331a527a475ab8d258c08c7ce3d5.json": {
+      "sha256": "e22d8534db136c08025c9e7f6ec2dfe6f114932e51cb08ead9452a5644e73e30",
+      "bytes": 3152
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d423_20261011/model7b/worker_receipts/5fd2005d1f22464fb15f44b7937c04b4.json": {
+      "sha256": "d837cd0ac445431e84dbdcb2b0ab18b0bd6bc1925baac53192801590f30de74a",
+      "bytes": 3152
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d423_20261011/model7b/worker_receipts/916441f4cad94bf5a2edaae91e534ea4.json": {
+      "sha256": "030a066f60458fc2aa8177a64f7c06748a0c03bd33906380383eaa63ce8452d0",
+      "bytes": 3152
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d423_20261011/model7b/worker_receipts/ca76a2a504314df18a53dc0a3f29c009.json": {
+      "sha256": "0f702922781ec3bc6cb6c2560c93be67d6240e9c5d5723b8e26e93f66ee5c95b",
+      "bytes": 3152
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d423_20261011/model7b/worker_0.log": {
+      "sha256": "a228365831cbb094fa5ac1f063bc13bf79a7f152156b0b041a815aa7138c0384",
+      "bytes": 13419
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d423_20261011/model7b/worker_1.log": {
+      "sha256": "4f234b95bdf3cd1d69ce78c48abb063ba1a6a2c48747adb065da6791b4f94fe3",
+      "bytes": 13419
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d423_20261011/model7b/worker_2.log": {
+      "sha256": "69bd303715a937770b0293bb0984cda77d48c21a63a63370eb3045ed65a57d7d",
+      "bytes": 13419
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d423_20261011/model7b/worker_3.log": {
+      "sha256": "06cef9cc15b4118e3725ec386deef0632f30e38d187afa54a35c73d497b45887",
+      "bytes": 13419
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d423_20261011/model7b/native_toolchain.json": {
+      "sha256": "a35df92b813409e832a9e9e76e712d84af6567b2883f69187793f347e2a9008c",
+      "bytes": 478
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d532_20261015/model7b/physical/deployment.json": {
+      "sha256": "ccc7ef5f6f804e81a727b073135cbbd3c15fb185e7315b89bff610d2d42f4593",
+      "bytes": 750
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d532_20261015/model7b/worker_receipts/066d4e79d73843d6ae631a58e5ea0602.json": {
+      "sha256": "f0f610808133ad14aa3b6a6c6ab6ae1027a66c3331b370688357a547246a4788",
+      "bytes": 3153
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d532_20261015/model7b/worker_receipts/68e1dad6174b440fb2e189ad5a9cce1b.json": {
+      "sha256": "bf1d04d3a46188b35e6e6a9db6afb8a801f618b1d609890b16375d94386ee167",
+      "bytes": 3153
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d532_20261015/model7b/worker_receipts/76a32741433348eeb8acfed304335850.json": {
+      "sha256": "dddf86e30d3e5c07ca818f980e18abd0571ac84978c81dd6b3bb465ea9fe6dbc",
+      "bytes": 3153
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d532_20261015/model7b/worker_receipts/7a8356c55e2d42c0b829f5a41e4fa01a.json": {
+      "sha256": "56e48358eae86539806c047726ac6763939da84d030491277716c12d42ac66e0",
+      "bytes": 3153
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d532_20261015/model7b/worker_0.log": {
+      "sha256": "e72bbcfa641098c34120a738ef9fed004aa534d68a47a622f688e008cb5a754e",
+      "bytes": 13467
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d532_20261015/model7b/worker_1.log": {
+      "sha256": "240baa430107d95100ec0c4c14f702f80c97b01c531e442b96ff52f3f2423011",
+      "bytes": 13467
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d532_20261015/model7b/worker_2.log": {
+      "sha256": "8ae7353436da40a69e16d7dfb7983ba1fdbe38add90a3aee533c52b3a74ce807",
+      "bytes": 13467
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d532_20261015/model7b/worker_3.log": {
+      "sha256": "aa99bea30538bf8fc3d8a0997e2a7fd334c4773ff5f248a3310af94b9bb502d8",
+      "bytes": 13467
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d532_20261015/model7b/native_toolchain.json": {
+      "sha256": "a35df92b813409e832a9e9e76e712d84af6567b2883f69187793f347e2a9008c",
+      "bytes": 478
+    },
+    "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu_worker.py": {
+      "sha256": "6994436e4547c0996ab555b3e814e8ccea26b650dfc1b378b97d640745309347",
+      "bytes": 65620
+    },
+    "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/vllm/v1/worker/gpu/warmup.py": {
+      "sha256": "423ac32d58fe008c228cfa223e4fcebfcf87e3463a9dbdf80a083c0578d73723",
+      "bytes": 18738
+    },
+    "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/jit/core.py": {
+      "sha256": "454316d67f22ebe3035cf17a13e9d01ffe5eed392d4e96adb952f3955bcb132b",
+      "bytes": 21687
+    },
+    "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/jit/cpp_ext.py": {
+      "sha256": "c2ebe90fa1ddc3896553c51a4799e43ee8e2cd506740d3e3b1493280bfd7262b",
+      "bytes": 12481
+    },
+    "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/jit/env.py": {
+      "sha256": "c3955fd0b83154356942840c1217e7c64a3602766feddbd701f814bae25ff47e",
+      "bytes": 6759
+    },
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh": {
+      "sha256": "808b75f4d1b9c533f020b14cd1589a63334311bae885c33d9f064d95a4f4c0ee",
+      "bytes": 25945
+    },
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d532_20261015/startup_review.py": {
+      "sha256": "9b059931d8da4d75b3f24f29fa5bb5ce7aebf5874cef9e97a676e2de94d0c09a",
+      "bytes": 11039
+    }
+  },
+  "identity": {
+    "unit": "primelora-tc-aux-d5320000000000000000000000000005.scope",
+    "invocation_id": "71f629e1fd9749e49b920af2b22885ae",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5320000000000000000000000000005.scope",
+    "inode": 25051048
+  },
+  "resources": {
+    "memory.peak": "387276800\n",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+    "memory.swap.current": "0\n"
+  }
+}

@@ -1,4 +1,4 @@
-# IEEE TC execution status — D532 W1 terminal/audited; startup discrepancy review next
+# IEEE TC execution status — D532 startup cache mismatch identified; common toolchain adaptation next
 
 Updated2026-10-15. Prior status preserved BYTE-FOR-BYTE in
 EXECUTION_HISTORY_THROUGH_D519.md, SHA
@@ -6,6 +6,26 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Older RUNNING/NEXT paragraphs there are historical, not current process state.
 
 ## Current authoritative handoff
+
+D532 bounded startup review COMPLETE; read D532_STARTUP_CACHE_REVIEW.md.
+Direct evidence: sealed ninja-log prefixes match D423/D532, then four appended
+sampling build records cover101.749s (build end101.758s), aligned with startup gap.
+Only7/628 sealed cache files differ, allsampling; modelAOT hit remains unchanged.
+Two entrypoints share sampling cache but CUDA_HOME/NVCC spelling and explicit
+CC differ. Actual CPU-only native renderer with all3PrimeLoRA settings exactly
+matches preD5323778-byte SHA; vLLMdefault matches D423/postD5323731-byte SHA.
+Firsttwo-variable probe mismatch retained; no fabricated historicalenv.
+This is evidence of shared compilation-state interference, NOT proof allW1
+latency/SLO loss caused by it. OriginalD532 untouched/validobserved; no subtraction,
+no winnerfilter, no W1referencefreeze yet. No serving/config/cache edits or GPUrun.
+review1/review.json,compiler_binding.json and evidence retained; actual review/
+contract scopes recursiveempty/CLOSED/pathgone,peaks387276800/383705088B,events0.
+NEXT minimal common compiler-identity/cache-compatibility adaptation and affected
+CPU validation BEFORE D533/newW1reference; no silent prewarming, new policy needs
+explicit execution identity/impact. Reuse existing tools, not baseline tuning.
+Review checkpoint backup pending; no liveGPU/remote/auxjob,sharedk3suntouched.
+HydraServeD510 alreadyisolated/completed; delayed clusterreply requires no redo.
+Allremaining scope ACTIVE. Prior unresolved-cause statements below are historical.
 
 D532 TERMINAL SUCCESS; existing resident_rr_v1/full4000_w1 audit COMPLETE.
 All4000 nativecontracts/458224tokens,0failures,all timing recompute errors0.
@@ -34,7 +54,19 @@ Result curation COMPLETE: main_comparison/d532_vllm_w1/result1 contains strict
 audit.json,manifest.json and74481-byte evidence.tar.gz. Raw sources and archive
 roundtrip/protected147/userdirt checked; D531103tests reused, none repeated.
 Result scope actualrecursiveempty/CLOSED/pathgone,peak26947584B,events0/swap0.
-Result backup NEXT via prepared publish_result.py (not yet executed).
+Result backup COMPLETE:1fbeb90a3d28e099aacfdd0dcf747b195f56e799 PUSHED and
+remote-equal;7explicitfiles,archive-roundtrip/SHA/protected147/userdirt/secrets/
+diff checksPASS. RAW publication_receipt.json/publication_closure.json retain
+actual publication scope recursivelyempty/CLOSED/pathgone,peak27205632B,
+events0/swap0. BASE unchanged;b540d7664bf4f8522b3b2694348d889e902034c6.
+Do not repeat analysis/curation/backup/tests or the D532 performance key.
+Only this post-backup handoff plus untouched user'smanifest are MAINdirty;
+BASE two userfiles remain untouched. Latest available disk167541862400B;
+new inference needs fresh gate and appropriate proven-cache review, not broad
+cleanup. D532 private object cache currently retained for evidence audit.
+NEXT bounded existing-log/source/environment review of the startup discrepancy;
+no new GPU candidate or changed baseline configuration prepared. D533 is not
+launched and W1 U_ref/Q_ref not frozen. No live GPU/remote/auxiliary job remains.
 Keep D532 immutable, no same-key rerun,
 no threshold change or baseline tuning. Entire remaining scope ACTIVE.
 

@@ -1,0 +1,73 @@
+{
+  "passed": true,
+  "kind": "native_CPU_only_in_memory_build_description",
+  "scope": {
+    "unit": "primelora-tc-aux-d5320000000000000000000000000006.scope",
+    "invocation_id": "005da1cb11534574b61859114ee88898",
+    "path": "/sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/primelora-tc-aux-d5320000000000000000000000000006.scope",
+    "inode": 25051959
+  },
+  "rendered": {
+    "text": "ninja_required_version = 1.3\nname = sampling\ncuda_home = /usr/local/cuda-13.0\ncxx = c++\nnvcc = /usr/local/cuda-13.0/bin/nvcc\ncxx_launcher = \nnvcc_launcher = \n\ncommon_cflags = -DPy_LIMITED_API=0x03090000 $\n    -D_GLIBCXX_USE_CXX11_ABI=1 $\n    -I/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/cccl/cub $\n    -I/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/cccl/libcudacxx/include $\n    -I/home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/cccl/thrust $\n    -isystem /home/qhq/anaconda3/envs/LLM_vllm0102/include/python3.12 $\n    -isystem $cuda_home/include $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/tvm_ffi/include $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/tvm_ffi/include $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/include $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/csrc $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/cutlass/include $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/cutlass/tools/util/include $\n    -isystem /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/spdlog/include\ncflags = $common_cflags $\n    -fPIC $\n    -std=c++17 $\n    -Wno-switch-bool $\n    -DNDEBUG $\n    -O3\npost_cflags =\ncuda_cflags = -ccbin $\n    /usr/bin/gcc $\n    $common_cflags $\n    --compiler-options=-fPIC $\n    --expt-relaxed-constexpr $\n    -static-global-template-stub=false $\n    -gencode=arch=compute_86,code=sm_86 $\n    -DFLASHINFER_ENABLE_FP8_E8M0 $\n    -DFLASHINFER_ENABLE_FP4_E2M1 $\n    -std=c++17 $\n    --threads=1 $\n    -use_fast_math $\n    -Xfatbin=-compress-all $\n    --compress-mode=size $\n    -DFLASHINFER_ENABLE_F16 $\n    -DFLASHINFER_ENABLE_BF16 $\n    -DFLASHINFER_ENABLE_FP8_E4M3 $\n    -DFLASHINFER_ENABLE_FP8_E5M2 $\n    -DNDEBUG $\n    -O3\ncuda_post_cflags =\nldflags = -shared $\n    -L$cuda_home/lib64 $\n    -L$cuda_home/lib64/stubs $\n    -lcudart $\n    -lcuda\n\nrule compile\n  command = $cxx_launcher $cxx -MMD -MF $out.d $cflags -c $in -o $out $post_cflags\n  depfile = $out.d\n  deps = gcc\n\nrule cuda_compile\n  command = $nvcc_launcher $nvcc --generate-dependencies-with-compile -MF $out.d $cuda_cflags -c $in -o $out $cuda_post_cflags\n  depfile = $out.d\n  deps = gcc\n\nrule link\n  command = $cxx $in $ldflags -o $out\n\nbuild /home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_sampling.cuda.o: cuda_compile /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/csrc/sampling.cu\nbuild /home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_renorm.cuda.o: cuda_compile /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/csrc/renorm.cu\nbuild /home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_flashinfer_sampling_binding.cuda.o: cuda_compile /home/qhq/.venvs/primelora_vllm0300_tc_20260925/lib/python3.12/site-packages/flashinfer/data/csrc/flashinfer_sampling_binding.cu\n\nbuild /home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/sampling.so: link /home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_sampling.cuda.o /home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_renorm.cuda.o /home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/csrc_flashinfer_sampling_binding.cuda.o\ndefault /home/qhq/.cache/flashinfer/0.6.18.post1/86/cached_ops/sampling/sampling.so\n",
+    "sha256": "053d80c8059d08ac41c81a4dc43437825afeed6c60524dc3fe0cc588500ac07f",
+    "bytes": 3778,
+    "cuda_initialized": false,
+    "build_called": false
+  },
+  "environment": {
+    "HOME": "/home/qhq",
+    "PATH": "/home/qhq/.venvs/primelora_vllm0300_tc_20260925/bin:/usr/local/cuda/bin:/usr/bin:/bin",
+    "CUDA_VISIBLE_DEVICES": "",
+    "FLASHINFER_CUDA_ARCH_LIST": "8.6",
+    "FLASHINFER_WORKSPACE_BASE": "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d532_20261015/render_primelora_actual_cc",
+    "MAX_JOBS": "2",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONNOUSERSITE": "1",
+    "CC": "/usr/bin/gcc",
+    "CUDA_HOME": "/usr/local/cuda-13.0",
+    "FLASHINFER_NVCC": "/usr/local/cuda-13.0/bin/nvcc"
+  },
+  "pre_d532_exact_SHA_match": true,
+  "first_probe_omission": "PrimeLoRA import sets CC=/usr/bin/gcc when absent; no historical environment was fabricated",
+  "actual_historical_runner_CC_block_unchanged": true,
+  "diff": [
+    "--- ",
+    "+++ ",
+    "@@ -1,8 +1,8 @@",
+    " ninja_required_version = 1.3",
+    " name = sampling",
+    "-cuda_home = /usr/local/cuda",
+    "+cuda_home = /usr/local/cuda-13.0",
+    " cxx = c++",
+    "-nvcc = $cuda_home/bin/nvcc",
+    "+nvcc = /usr/local/cuda-13.0/bin/nvcc",
+    " cxx_launcher = ",
+    " nvcc_launcher = ",
+    " ",
+    "@@ -27,7 +27,9 @@",
+    "     -DNDEBUG $",
+    "     -O3",
+    " post_cflags =",
+    "-cuda_cflags = $common_cflags $",
+    "+cuda_cflags = -ccbin $",
+    "+    /usr/bin/gcc $",
+    "+    $common_cflags $",
+    "     --compiler-options=-fPIC $",
+    "     --expt-relaxed-constexpr $",
+    "     -static-global-template-stub=false $"
+  ],
+  "source_sha256": {
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d532_20261015/compiler_binding_review.py": "cf516ac1a9bbd6897adc0e90805d5ba8b4e7c615d8e9cc446203ea7c826e8a9e",
+    "/home/qhq/serverless_llm_experiment/results/ieee_tc/vllm_qualification/d532_20261015/startup_review.py": "9b059931d8da4d75b3f24f29fa5bb5ce7aebf5874cef9e97a676e2de94d0c09a",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/run_all_experiments.py": "4b2d2cdaa469a514722f8dd8848068d984f4ca122ddc364fce250ef038fd7b77",
+    "/home/qhq/serverless_llm_experiment_retry14_baseline/scripts/ieee_tc/run_d293_7b_prefetch_validation_100.sh": "808b75f4d1b9c533f020b14cd1589a63334311bae885c33d9f064d95a4f4c0ee"
+  },
+  "no_gpu_or_build": true,
+  "no_serving_or_shared_cache_edits": true,
+  "limitations": "Exact build description recovered, not every historical environment variable or parent process; cannot subtract compilation from request metrics.",
+  "resources": {
+    "memory.peak": "383705088\n",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+    "memory.swap.current": "0\n"
+  }
+}
