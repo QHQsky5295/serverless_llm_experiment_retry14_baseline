@@ -1,4 +1,4 @@
-# IEEE TC execution status — D531 W1 input qualification complete; D532 reference next
+# IEEE TC execution status — D532 W1 terminal/audited; startup discrepancy review next
 
 Updated2026-10-15. Prior status preserved BYTE-FOR-BYTE in
 EXECUTION_HISTORY_THROUGH_D519.md, SHA
@@ -6,6 +6,76 @@ e0ed5415b779effec429b48ea716abde2e3e9b1a379d5abbc11073cdca2f3a99.
 Older RUNNING/NEXT paragraphs there are historical, not current process state.
 
 ## Current authoritative handoff
+
+D532 TERMINAL SUCCESS; existing resident_rr_v1/full4000_w1 audit COMPLETE.
+All4000 nativecontracts/458224tokens,0failures,all timing recompute errors0.
+JointSLO2655/4000=66.375% (TTFT2655,TPOT4000),P95TTFT39873.52985702455ms,
+meanTTFT7068.632712113089ms,U9007.16969716316GPU-s. NOT95%feasible;
+n_correctnull/independentnumericalproofunknown. Raw audit_full4000_w1.json
+retains all phases, fail/unknown flags and source hashes; no performance rerun.
+132remote fetch/131480060wireB/packing0; four real ready/released nativeworkers.
+Local service/aux exactclosure COMPLETE,remote3ownedunitsinactive/MainPID0/
+portsabsent,bilateral transfer/monitor hashesmatch. Analysis actualrecursiveempty/
+CLOSED/pathgone,peak566853632B,events0/swap0; no livejob remains.
+Servicepeak15187890176B,allhigh/max/OOM/swap0.
+
+Startup discrepancy needs bounded existing-log/source review BEFORE freezing
+W1 reference or launching D533: D532 ready~143s afterdeployment vs D423~41–42s.
+Allfour D532 logs show init111.57–111.97s vs D423~9.59s, same AOT cache path
+hit (~0.3s compile), same engine_args, same measured three-file native snapshot.
+There is ~104s wall gap between JIT-warmup-finished and graph-finished lines,
+while graph internal elapsed says2s. Cause UNKNOWN; do not attribute all first
+phase degradation to burst, compiler miss, network, CPU or native design yet.
+First500 joint1/500; retain all eight phases (not warm-only primary results).
+Source inspection shows native V2 warmup_kernels between those log boundaries,
+but no span measurement proves which call caused the gap. Official v0.30
+gpu_worker source consulted; no source/config modification or GPU diagnostic.
+Result curation COMPLETE: main_comparison/d532_vllm_w1/result1 contains strict
+audit.json,manifest.json and74481-byte evidence.tar.gz. Raw sources and archive
+roundtrip/protected147/userdirt checked; D531103tests reused, none repeated.
+Result scope actualrecursiveempty/CLOSED/pathgone,peak26947584B,events0/swap0.
+Result backup NEXT via prepared publish_result.py (not yet executed).
+Keep D532 immutable, no same-key rerun,
+no threshold change or baseline tuning. Entire remaining scope ACTIVE.
+
+Historical D532 running/prelaunch notes below are superseded by terminal above:
+
+D532 NOW RUNNING ONCE in tmux tc-d532-vllm-w1, panePID2661360/bash.
+Actual start_receipt.json/service_aux_identity.json establish launch; no terminal
+launch7b.json yet. Execution main320799aa12bc44304d91e623b15a6b1d3bae97f9,
+baselineb540d7664bf4f8522b3b2694348d889e902034c6, bothPUSHED/remote-equal
+before launch. Backup/start scopes actualrecursiveempty/CLOSED/pathgone.
+Remote bothservices/ownedmonitor ACTIVE, actualNIC1000Mb/s/full. At watchdog237:
+servicepeak11974090752B,all memoryevents0/swap0,hostavailable100685479936B,
+diskfree169995427840B,no warning/abort. Four owned native workers ready and
+HTTP native response records present; partial progress is NOT completed
+performance/SLO/numerical qualification. No tests/build/hashscan/compression/
+backup/remote maintenance or second inference while this original run lives.
+NEXT monitor terminal -> close_launch.py -> stop_remote.sh -> bounded evidence
+preservation and resident_rr_v1/full4000_w1 audit. preserve_evidence.py prepared
+after execution checkpoint, UNEXECUTED/UNTESTED; saves only closed journals and
+receipts, not materialized weights. run_analysis.py now prepared by reusing D529
+bounded wrapper and the existing resident_rr_v1/full4000_w1 analyzer; also
+UNEXECUTED/UNTESTED. It requires explicit --outcome, actual closed resources,
+3/4GiB auxiliary limits/swap0/CPU2,3,26,27 and writes exclusive outputs. Do not
+run collection separately and then replay its exclusive wrapper. Postrun source
+hashes/archival/validation still required; no new serving or analysis formula.
+Shared k3s untouched; latest user reply confirms it is unrelated. HydraServe
+D510 isolated adaptation/result already completed; do not repeat or access k3s.
+Entire remaining scope ACTIVE; D533 follows actual terminal/release/audit.
+
+Latest continuation is a VERIFIED WAIT on the same live tmux panePID2661360/bash;
+3047/4000 http_response records at watchdog1583, terminal launch7b.json absent.
+Peak14495703040B,all memoryevents0/swap0,hostavailable99921092608B,
+diskfree168261459968B,no warning/abort. Progress observed2524->2679->2817->
+2962->3047 responses. Frozen V1 and single-run V2 fully read in prior monitoring
+continuation; no comparison or reference freeze performed on partial data.
+No new qualification, performance result, ranking, code/config edit, tests,
+backup or remote operation in this continuation. Previously prepared postrun
+helpers remain UNEXECUTED/UNTESTED. Do not restart the original run or launch
+D533 until real terminal/release/audit. Full remaining goal scope stays ACTIVE.
+
+Historical D532 prelaunch handoff (superseded by actual launch above):
 
 D532 PREPARED, notlaunched: one frozenvLLM W1 commonreference candidate.
 Read D532_VLLM_W1_REFERENCE.md. D531103tests/inputqualification reused, no GPU
