@@ -1,6 +1,45 @@
-# IEEE TC status — D513 publication scope and threshold rationale complete
+# IEEE TC status — D514 GPU-preparation identity candidate under qualification
+
+## D514 latest: CPU qualification passed; native validation not launched
+
+Final regression2:957PASS/0fail/0error/0skip,36.633s testbody; native environment
+4newtestsPASS. OnlyoneproductionASTconstantchanges. Keepallfailedtests:
+targetedspawnreentry/main-guarderror requiredexact-ownedstop (memory.high77410,
+OOM/max/swap0);unit/ unit2fixturecorrections;regression3oldcapturefilterfailures.
+No servingpolicychange tofix tests. All8aux scopes actualrecursiveemptyclosed.
+Source/curation/explicitbackup are next; actualbackupreceipt determines publishing.
+Do not rerunCPU qualification oncebackupverified. NoGPU/remote/Kubernetesoperation.
+NextONE original100native validation of D514candidate usingD475/D476recipe,
+thenONEordinaryfull4000W0 withsamefrozenconfig. No newtrace/pool/parameters/SLO.
+ReadfullPLAN/status beforelaunch; retainpublishedbaselinecomparison andwhole
+W1/W2/G2/3B/A1–A5/S1–S13/cost/docs scope. Performancehypothesis remainsOPEN.
+
+## Current main line 2026-10-14: D514 CPU candidate, no new GPU run
+
+Read D514_GPU_EXECUTION_CONSUMER_PROOF.md. Parentd15a659e54045da322fe16da3e0d41b8c18bad61.
+D512 retained outcome streaming audit:590plans/828attempts/825prepare receipts,
+662acquired/163deferred/2superseded/1observing. No invented missing terminal or
+duration attribution. Audit actualrecursiveempty scopeclosed,peak51376128B/events0.
+Single production AST constant: GPU-preparation execute's fresh source_snapshot
+becomes fresh source_identity_snapshot; native capacity/admission/worker/owner,
+routing/planner and other queries unchanged. No epoch/TTL/physical-state cache.
+Four new CPU tests; red3expected dependency failures+1wrong-test-factory error,
+original source/logretained. Corrected fixtureusesexistingMixedOwnedPreparation.
+Targeted/full regression PENDING atthiswriting, no performance claim or newGPUrun.
+ReuseD474test/curation/backupworkflow inresults/ieee_tc/p2_backend_qualification/d514_20261014.
+Afterqualifiedbackuponly: original100native affectedvalidation ->oneordinary4000W0
+withunchangedD476configuration. No repeatedD512/baselines/newdata/thresholdchange.
+Thenreturnwholemainline7BW1/W2/G2/3B/A1–A5/S1–S13/cost/docs/finaldelivery; ACTIVE.
+AllolderNEXTclausesbelowarehistorical. D513metricfollowupcomplete, donotrepeat.
 
 ## Latest user follow-up 2026-10-14: HydraServe 5/2 alignment
+
+Follow-up checkpoint d15a659e54045da322fe16da3e0d41b8c18bad61 PUSHED/remote-equal;
+small-source SHA/5x2 arithmetic/all6rows/marginal denominators/document table
+checks and9smoke tests PASS. Protected147/user3dirt/PLAN/V1/V2 unchanged.
+RAW/hydra_followup_backup_receipt.json andhydra_followup_closure.json verify
+actualcompletion andrecursiveempty/pathgone. Do not rerunfollowup helper.
+No new inference or serving-code change. This is the localpost-backup handoff.
 
 Read D513_HYDRASERVE_ALIGNMENT_FOLLOWUP.md. User asks whether warmTTFTx5 /
 warmTPOTx2 can be main evaluation. YES as common latency-threshold method,
@@ -9,8 +48,8 @@ Keep G1/G2, marginal+joint attainment, raw tails and physicalGPU-s together;
 no new combined score or winner-dependent threshold. HydraServe application
 exceptions and GPUmemory-time differ; don't claim identical evaluation.
 20260928 alignment doc's calibration-pending text is historical, not current.
-Newfollowup small-file arithmetic/source verification and backup pending; actual
-receipt determines completion. No serving edits/newGPUrun/remoteoperations/figures.
+Originalprepared note was pending; the receipts above now prove completion.
+No serving edits/newGPUrun/remoteoperations/figures.
 D514 remains next evidence-driven systemoptimization, not this metric discussion.
 PreviousD513 complete, do not rerun its analysis/backup. Whole remaining scope below.
 

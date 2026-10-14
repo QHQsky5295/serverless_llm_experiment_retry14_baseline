@@ -2824,7 +2824,7 @@ class AutomaticGPUReplacement(unittest.TestCase):
         reference = slot.engine.ieee_gpu_reference.side_effect
         async def capture(**kw):
             result = await reference(**kw)
-            if kw['operation'] in ('source_snapshot', 'routing_source_snapshot'):
+            if kw['operation'] in ('source_snapshot', 'routing_source_snapshot', 'source_identity_snapshot'):
                 observed.append(result)
             return result
         slot.engine.ieee_gpu_reference.side_effect = capture

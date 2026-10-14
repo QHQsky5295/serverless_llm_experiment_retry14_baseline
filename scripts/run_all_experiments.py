@@ -19307,7 +19307,11 @@ class ScenarioRunner:
             row = rows[aid]
             evidence = dict(attempt_id=attempt_id, adapter_int_id=aid, state='observing')
             record['attempts'].append(evidence)
-            current = checked(await engine.ieee_gpu_reference(operation='source_snapshot'))
+            # Only current source/slot/staging identities are consumed here.
+            # The following native prepare transaction reobserves the complete
+            # physical graph, allocator and KV state before admitting a copy.
+            # This is a fresh owner read, not a cached capacity permission.
+            current = checked(await engine.ieee_gpu_reference(operation='source_identity_snapshot'))
             source = next((r for r in current['sources'] if r['adapter_int_id'] == aid), None)
             staged = next((r for r in current.get('staged_sources', ()) if r['adapter_int_id'] == aid), None)
             if source is None:

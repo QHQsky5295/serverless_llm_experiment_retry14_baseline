@@ -10,6 +10,150 @@ from faaslora.preloading.preloading_planner import (
     PreparationPlanSuperseded, supersede_confirmed_native_file_copy)
 from scripts.run_all_experiments import InferenceEngine
 from tests import test_ieee_tc_transfer_pressure as pressure
+from tests import test_ieee_tc_gpu_references as references
+
+
+class GPUExecutionProjection(unittest.TestCase):
+    """GPU queue execution consumes identities; native admission stays live."""
+    def make(self, decide=None, **kwargs):
+        fixture = references.OwnedNativePreparationPlans()
+        self.addCleanup(fixture.doCleanups)
+        case, runner, slot, response = fixture.make(decide, **kwargs)
+        original = slot.engine.ieee_gpu_reference.side_effect
+        identities = []
+        async def reference(*, operation, **kw):
+            self.assertNotIn(operation, ('source_snapshot', 'routing_source_snapshot'))
+            value = await original(operation=operation, **kw)
+            if operation == 'source_identity_snapshot':
+                self.assertNotIn('native_footprints', value)
+                self.assertNotIn('native_host_allocator', value)
+                identities.append(value)
+            return value
+        slot.engine.ieee_gpu_reference.side_effect = reference
+        return fixture, case, runner, slot, identities
+
+    def test_gpu_reuse_and_host_promotion_still_execute_and_release(self):
+        _, case, runner, slot, identities = self.make()
+        objective = case.epoch()
+        before = len(case.case.loads)
+        async def run():
+            queue = runner._stack.preloading_manager.ieee_movements
+            try:
+                result = await runner._run_ieee_gpu_preparation_plan(slot=slot,
+                    objective=objective, target_adapter_ids=[2, 4], trigger_reason='residency')
+                self.assertEqual({r['adapter_int_id'] for r in result}, {2, 4})
+                self.assertEqual(sum(r['reused'] for r in result), 1)
+                self.assertEqual(len(case.case.loads)-before, 1)
+                attempts = runner._ieee_gpu_preparation_plans[-1]['attempts']
+                self.assertEqual(len(identities), len(attempts))
+                self.assertEqual(slot.engine.ieee_prepare_host.await_count, len(attempts))
+                self.assertEqual(sum(a['receipt']['acquired'] for a in attempts), 2)
+                # Concurrent targets may stale one another's received epoch;
+                # preserve that real deferral rather than assume two RPCs.
+                for attempt in attempts:
+                    if not attempt['receipt']['acquired']:
+                        self.assertEqual(attempt['receipt']['reason'], 'stale_snapshot')
+                self.assertFalse(case.owner.snapshot()['live_leases'])
+                self.assertFalse(case.owner.snapshot()['pending_preparation_targets'])
+            finally:
+                await queue.close()
+        asyncio.run(asyncio.wait_for(run(), 3))
+
+    def test_admission_deferral_waits_for_external_wake_and_reobserves(self):
+        allow = [False]
+        _, case, runner, slot, identities = self.make(
+            lambda *_: dict(admit=allow[0], reason='admit' if allow[0] else 'defer_effective_capacity'))
+        async def run():
+            queue = runner._stack.preloading_manager.ieee_movements
+            task = asyncio.create_task(runner._run_ieee_gpu_preparation_plan(slot=slot,
+                objective=case.epoch(), target_adapter_ids=[4], trigger_reason='residency'))
+            try:
+                while not task.done() and (not queue.snapshot() or queue.snapshot()[0]['state'] != 'deferred'):
+                    await asyncio.sleep(0)
+                if task.done():
+                    await task
+                self.assertFalse(task.done())
+                self.assertEqual(slot.engine.ieee_prepare_host.await_count, 1)
+                old_epoch = identities[-1]['epoch']
+                case.case.pin(2)
+                case.case.release('hit-2')
+                allow[0] = True
+                queue.wake(owner_id=case.owner.owner_id)
+                result = await asyncio.wait_for(task, 2)
+                self.assertTrue(result[0]['receipt']['acquired'])
+                self.assertEqual(len(identities), 2)
+                self.assertGreater(identities[-1]['epoch'], old_epoch)
+                self.assertFalse(case.owner.snapshot()['live_leases'])
+            finally:
+                if not task.done():
+                    task.cancel()
+                await asyncio.gather(task, return_exceptions=True)
+                await queue.close()
+        asyncio.run(asyncio.wait_for(run(), 3))
+
+    def test_later_source_growth_still_supersedes_without_admission(self):
+        fixture, case, runner, slot, identities = self.make(host_capacity=4)
+        objective = case.epoch()
+        async def changed():
+            fixture.grow_sources_after_registration(case)
+        async def run():
+            queue = runner._stack.preloading_manager.ieee_movements
+            try:
+                with self.assertRaises(PreparationPlanSuperseded) as caught:
+                    await runner._run_ieee_gpu_preparation_plan(slot=slot,
+                        objective=objective, target_adapter_ids=[4], trigger_reason='residency',
+                        after_registration=changed)
+                self.assertEqual(caught.exception.stage, 'native_gpu_objective')
+                self.assertEqual(len(identities), 1)
+                slot.engine.ieee_prepare_host.assert_not_awaited()
+                self.assertFalse(case.owner.snapshot()['pending_preparation_targets'])
+                self.assertFalse(case.owner.snapshot()['live_leases'])
+            finally:
+                await queue.close()
+        asyncio.run(asyncio.wait_for(run(), 3))
+
+    def test_mixed_remote_host_gpu_path_keeps_physical_checks_outside_identity_boundary(self):
+        import contextvars
+        inside = contextvars.ContextVar('gpu_execution', default=False)
+        # Reuse the fixture module's serialized-selector execution. This test
+        # concerns GPU ownership, not process-spawn/startup latency.
+        pressure.setUpModule()
+        self.addCleanup(pressure.tearDownModule)
+        factory = pressure.MixedOwnedPreparation()
+        self.addCleanup(factory.doCleanups)
+        fixture, runner, queue, slot, owner, snapshot, loads = factory.make(remote_gpu=True)
+        original_submit = queue.submit
+        original_reference = slot.engine.ieee_gpu_reference.side_effect
+        observed = []
+        def submit(**kw):
+            if kw['key'][1] == 'gpu':
+                action = kw['action']
+                async def execute(attempt):
+                    token = inside.set(True)
+                    try:
+                        return await action(attempt)
+                    finally:
+                        inside.reset(token)
+                kw['action'] = execute
+            return original_submit(**kw)
+        async def reference(*, operation, **kw):
+            if inside.get():
+                self.assertNotIn(operation, ('source_snapshot', 'routing_source_snapshot'))
+                observed.append(operation)
+            return await original_reference(operation=operation, **kw)
+        queue.submit = submit
+        slot.engine.ieee_gpu_reference.side_effect = reference
+        async def run():
+            try:
+                await factory.execute(runner, slot, mode='residency')
+                self.assertIn('source_identity_snapshot', observed)
+                self.assertIn(('host', 'a'), loads)
+                self.assertIn(('gpu', 'a'), loads)
+                self.assertGreater(slot.engine.ieee_prepare_host.await_count, 0)
+                factory.check_clean(fixture, runner, owner)
+            finally:
+                await queue.close()
+        asyncio.run(asyncio.wait_for(run(), 5))
 
 
 class HostExecutionProjection(unittest.TestCase):

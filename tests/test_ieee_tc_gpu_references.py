@@ -2210,7 +2210,10 @@ class OwnedNativePreparationPlans(unittest.TestCase):
         def response(row):
             return row | {'clock_id': local_monotonic_clock_id()}
         async def reference(*, operation, **kwargs):
-            return response(getattr(owner, operation)(**kwargs))
+            # The worker's identity endpoint makes a fresh owner read; it is
+            # not a method on the reference owner itself.
+            native_operation = 'source_snapshot' if operation == 'source_identity_snapshot' else operation
+            return response(getattr(owner, native_operation)(**kwargs))
         async def prepare(**kwargs):
             return response(owner.proactive_host_prepare_and_acquire(**kwargs,
                 decide=decide or (lambda *_: {'admit': True, 'reason': 'admit'})))
